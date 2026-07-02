@@ -1,0 +1,10 @@
+{
+  "name": "catedra-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Deploy da plataforma Cátedra na Vercel com IA (Claude) via função serverless.",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  }
+}

@@ -1,0 +1,19 @@
+# build / deploy gerados
+public/
+node_modules/
+.vercel
+
+# segredos (a chave da API vive só nas variáveis de ambiente da Vercel)
+.env
+.env.local
+
+# config local de preview/dev (contém caminhos absolutos desta máquina)
+.claude/
+
+# artefatos de trabalho (screenshots, versão antiga) — não fazem parte do app
+scraps/
+uploads/
+
+# macOS / sistema
+.DS_Store
+.thumbnail

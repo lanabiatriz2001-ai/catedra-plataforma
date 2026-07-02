@@ -1,0 +1,15 @@
+{
+  "name": "Cátedra · Plataforma de Estudos",
+  "short_name": "Cátedra",
+  "description": "Mentor de estudo para concursos jurídicos: ciclo adaptativo, revisão espaçada e mapa de risco.",
+  "start_url": "./Catedra.dc.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0c8a5b",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
