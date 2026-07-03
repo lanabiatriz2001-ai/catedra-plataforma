@@ -2622,6 +2622,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);flex:none;">{{ m.hStr }}</span>
               </div>
             </sc-for>
+            <sc-if value="{{ comOnlyYou }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;color:var(--text3);font-size:12.5px;padding:10px 4px 2px;line-height:1.5;">Você ainda é a única pessoa no ranking — seu tempo de estudo aparece aqui conforme você registra sessões.</div>
+            </sc-if>
           </div>
         </div>
 
@@ -2642,6 +2645,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 <button style="background:var(--accentSoft);color:var(--accentD);border:1px solid var(--accentRing);border-radius:10px;padding:10px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">Entrar no grupo</button>
               </div>
             </sc-for>
+            <sc-if value="{{ comGruposEmpty }}" hint-placeholder-val="{{ true }}">
+              <div style="grid-column:1/-1;background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;color:var(--text3);font-size:13px;line-height:1.5;">Nenhum grupo de estudo ainda. Quando a comunidade tiver grupos, eles aparecerão aqui.</div>
+            </sc-if>
           </div>
         </div>
 
@@ -2656,6 +2662,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               </div>
             </sc-for>
           </div>
+          <sc-if value="{{ comFeedEmpty }}" hint-placeholder-val="{{ true }}">
+            <div style="text-align:center;color:var(--text3);font-size:13px;padding:4px 0 2px;">Ainda não há publicações na comunidade.</div>
+          </sc-if>
           <button style="margin-top:16px;width:100%;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;padding:10px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;">Publicar no mural</button>
         </div>
        </div>
@@ -3008,17 +3017,17 @@ class Component extends DCLogic {
       darkMode: (()=>{ try{ return localStorage.getItem('catedra:dark')==='1'; }catch(_){} return false; })(),
       menuOpen:false, navExpanded:false,
       isMobile: (typeof window!=='undefined' && window.innerWidth<900),
-      blocks: seedBlocks,
+      blocks: [],
       cycleMode: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:cycleMode')) || 'sugestao',
-      manualFixed:[{id:'f1', disc:'Revisão · Anki', kind:'Flashcards', min:25},{id:'f2', disc:'Questões do dia', kind:'Questões', min:30}],
-      manualRot:[{id:'o1', disc:'Direito Constitucional', kind:'Teoria', min:50},{id:'o2', disc:'Direito Administrativo', kind:'Teoria', min:50},{id:'o3', disc:'Direito Tributário', kind:'Teoria', min:45},{id:'o4', disc:'Direito Civil', kind:'Teoria', min:45},{id:'o5', disc:'Processo Civil', kind:'Teoria', min:40}],
+      manualFixed:[],
+      manualRot:[],
       rotPointer:0,
-      edital: seedEdital,
-      reviews: seedReviews,
+      edital: [],
+      reviews: [],
       revSession: null,
-      sim:{total:120, acertos:78, erros:37, brancos:5},
+      sim:{total:0, acertos:0, erros:0, brancos:0},
       simAnalysis:'liquida',
-      discItems:[{label:'Questão discursiva 1', obtida:8, maxima:10},{label:'Questão discursiva 2', obtida:6.5, maxima:10},{label:'Peça jurídica', obtida:14, maxima:20}],
+      discItems:[],
       timerRunning:false, timerSeconds:0,
       timerMode:'livre', pomoFocus:25, pomoBreak:5, pomoMenuOpen:false, sessionModalOpen:false,
       pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false,
@@ -3026,81 +3035,29 @@ class Component extends DCLogic {
       sessionDraft:{ disc:'Direito Constitucional', topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
       edImportMode:'pdf', edRaw:'', edParsed:null, edExtracting:false, edFileName:'',
       cad:{mode:'nova', discSel:'Direito Constitucional', discNova:'', cor:'#2563eb', topico:'', sub:''},
-      eventos:[
-        {dia:5, tipo:'Revisão', titulo:'Controle de constitucionalidade', color:'#2563eb'},
-        {dia:9, tipo:'Simulado', titulo:'CEBRASPE 05', color:'#0f7a57'},
-        {dia:12, tipo:'Revisão', titulo:'Crédito tributário', color:'#06b6d4'},
-        {dia:15, tipo:'Meta', titulo:'Fechar 80% do edital', color:'#c2790c'},
-        {dia:21, tipo:'Simulado', titulo:'FGV bloco Administrativo', color:'#a855f7'},
-        {dia:28, tipo:'Revisão', titulo:'Recursos (CPC)', color:'#84cc16'},
-      ],
-      biblioteca:[
-        {id:'b1', tipo:'Lei seca', titulo:'CF/88 — Direitos e garantias fundamentais', disc:'Constitucional', color:'#2563eb', kind:'text', content:[
-          'Art. 5º Todos são iguais perante a lei, sem distinção de qualquer natureza, garantindo-se aos brasileiros e aos estrangeiros residentes no País a inviolabilidade do direito à vida, à liberdade, à igualdade, à segurança e à propriedade, nos termos seguintes:',
-          'I — homens e mulheres são iguais em direitos e obrigações, nos termos desta Constituição;',
-          'II — ninguém será obrigado a fazer ou deixar de fazer alguma coisa senão em virtude de lei;',
-          'III — ninguém será submetido a tortura nem a tratamento desumano ou degradante;',
-          'X — são invioláveis a intimidade, a vida privada, a honra e a imagem das pessoas, assegurado o direito a indenização pelo dano material ou moral decorrente de sua violação;',
-          'LIV — ninguém será privado da liberdade ou de seus bens sem o devido processo legal;',
-          'LV — aos litigantes, em processo judicial ou administrativo, e aos acusados em geral são assegurados o contraditório e a ampla defesa, com os meios e recursos a ela inerentes;',
-          'LXXVIII — a todos, no âmbito judicial e administrativo, são assegurados a razoável duração do processo e os meios que garantam a celeridade de sua tramitação.'
-        ]},
-        {id:'b2', tipo:'Jurisprudência', titulo:'Súmulas vinculantes do STF — seleção', disc:'Constitucional', color:'#2563eb', kind:'text', content:[
-          'SV 11 — Só é lícito o uso de algemas em casos de resistência e de fundado receio de fuga ou de perigo à integridade física própria ou alheia, por parte do preso ou de terceiros, justificada a excepcionalidade por escrito.',
-          'SV 13 — A nomeação de cônjuge, companheiro ou parente em linha reta, colateral ou por afinidade, até o terceiro grau, da autoridade nomeante, para o exercício de cargo em comissão ou de confiança, viola a Constituição (nepotismo).',
-          'SV 14 — É direito do defensor ter acesso amplo aos elementos de prova que, já documentados em procedimento investigatório, digam respeito ao exercício do direito de defesa.',
-          'SV 25 — É ilícita a prisão civil de depositário infiel, qualquer que seja a modalidade do depósito.',
-          'SV 37 — Não cabe ao Poder Judiciário, que não tem função legislativa, aumentar vencimentos de servidores públicos sob o fundamento de isonomia.'
-        ]},
-        {id:'b3', tipo:'Resumo', titulo:'Atos administrativos — mapa mental', disc:'Administrativo', color:'#a855f7', kind:'text', content:[
-          'Atributos do ato administrativo: presunção de legitimidade e veracidade, imperatividade, autoexecutoriedade e tipicidade.',
-          'Requisitos (elementos) de validade: competência, finalidade, forma, motivo e objeto. Os três primeiros são sempre vinculados; motivo e objeto podem ser discricionários.',
-          'Competência: irrenunciável, imprescritível, improrrogável; admite delegação e avocação, salvo competência exclusiva.',
-          'Convalidação: corrige vícios sanáveis (competência e forma), com efeitos retroativos (ex tunc). Não se convalidam vícios de finalidade, motivo e objeto.',
-          'Extinção: anulação (vício de legalidade, efeito ex tunc), revogação (conveniência e oportunidade, efeito ex nunc) e cassação (descumprimento de condições pelo beneficiário).',
-          'Teoria dos motivos determinantes: o ato vincula-se aos motivos declarados; se forem falsos ou inexistentes, o ato é nulo.'
-        ]},
-        {id:'b4', tipo:'PDF', titulo:'Lei 14.133/2021 — Nova Lei de Licitações (resumo)', disc:'Administrativo', color:'#a855f7', kind:'text', content:[
-          'Modalidades de licitação: pregão, concorrência, concurso, leilão e diálogo competitivo. Foram extintas a tomada de preços e o convite.',
-          'Critérios de julgamento: menor preço, maior desconto, melhor técnica ou conteúdo artístico, técnica e preço, maior lance (leilão) e maior retorno econômico.',
-          'Fases do processo (art. 17): preparatória; divulgação do edital; apresentação de propostas e lances; julgamento; habilitação; recursal; e homologação.',
-          'Em regra, a habilitação ocorre após o julgamento das propostas (inversão de fases), podendo o edital prever a ordem tradicional mediante justificativa.',
-          'Agentes de contratação e a figura do pregoeiro conduzem o certame; a comissão de contratação atua no diálogo competitivo.',
-          'Prazo recursal: 3 dias úteis, contados da intimação ou da lavratura da ata, para a maioria dos atos do processo licitatório.'
-        ]},
-        {id:'b5', tipo:'Resumo', titulo:'Crédito tributário — esquema (CTN)', disc:'Tributário', color:'#06b6d4', kind:'text', content:[
-          'Constituição do crédito: lançamento (art. 142 CTN), de ofício, por declaração ou por homologação.',
-          'Suspensão da exigibilidade (art. 151): moratória, depósito do montante integral, reclamações e recursos administrativos, concessão de liminar ou tutela, e parcelamento. Mnemônico: MORDER LIMPAR.',
-          'Extinção (art. 156): pagamento, compensação, transação, remissão, prescrição e decadência, conversão de depósito em renda, entre outras.',
-          'Exclusão (art. 175): isenção e anistia. A exclusão impede a constituição do crédito; não dispensa o cumprimento das obrigações acessórias.',
-          'Cuidado com a pegadinha clássica: suspensão (art. 151) ≠ exclusão (art. 175) ≠ extinção (art. 156).'
-        ]},
-      ],
+      eventos:[],
+      biblioteca:[],
       bibDraft:{tipo:'Resumo', titulo:'', disc:'Constitucional', texto:''},
       bibFilter:'todos',
       bibMode:'upload', bibDragOver:false, bibBusy:false, bibBusyMsg:'',
       readerOpen:null,
       eventDraft:{dia:15, tipo:'Tarefa', titulo:''},
       calMonth:5, calYear:2026, calSel:12, calFilter:'todos', calView:'mes',
-      habitos:(()=>{ const seed={sono:7.5, agua:5, exercicio:0, pausas:6, alongar:0, sol:0}; try{ const h=localStorage.getItem('catedra:habitos'); if(h){ const p=JSON.parse(h); if(p&&typeof p==='object') return {...seed, ...p}; } }catch(_){} return seed; })(),
+      habitos:(()=>{ const seed={sono:0, agua:0, exercicio:0, pausas:0, alongar:0, sol:0}; try{ const h=localStorage.getItem('catedra:habitos'); if(h){ const p=JSON.parse(h); if(p&&typeof p==='object') return {...seed, ...p}; } }catch(_){} return seed; })(),
       planHoras:24,
       provaMode:false, provaSeconds:0, provaRunning:false, provaDurationMin:240, provaName:'Simulado cronometrado',
       onboardStep: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:onboarded')==='1') ? 0 : 1,
       onboardChoice:'',
-      metas:[
-        {id:'m1', titulo:'Resolver 500 questões no mês', prog:312, alvo:500, unidade:'questões'},
-        {id:'m2', titulo:'Zerar revisões atrasadas', prog:3, alvo:5, unidade:'revisões'},
-        {id:'m3', titulo:'2 simulados por semana', prog:1, alvo:2, unidade:'simulados'},
-      ],
+      metas:[],
       metaDraft:{titulo:'', alvo:100},
       ankiImported:false, pdfOpen:null,
       profile:{banca:'cebraspe', estrategia:'ciclo', retaFinal:false},
       anaTab:'visao',
-      ankiHist:[{date:'12 mai',ret:82,reviews:180},{date:'19 mai',ret:85,reviews:205},{date:'26 mai',ret:79,reviews:240},{date:'02 jun',ret:84,reviews:210},{date:'09 jun',ret:88,reviews:195}],
+      ankiHist:[],
       ankiInput:'',
       prognHoras:3,
       accent:null,
-      prefs:{density:'confortavel', notifRevisao:true, notifMeta:true, sync:'backup', nome:'Aluno', objetivo:'AGU — Advogado da União', metaDiaria:4, mentor:'professor', fontScale:'padrao',
+      prefs:{density:'confortavel', notifRevisao:true, notifMeta:true, sync:'backup', nome:'Aluno', objetivo:'', metaDiaria:4, mentor:'professor', fontScale:'padrao',
         nivel:'intermediario', turno:'noite', cobranca:'equilibrado', dias:{seg:true,ter:true,qua:true,qui:true,sex:true,sab:true,dom:false},
         focoBloco:50, focoPausa:10, autoRegistro:true, autoConcluir:true, autoRevisao:true,
         alAnki:true, alPrecisao:true, alErros:true, alSemanal:true, alProva:true, alSimulados:false,
@@ -3108,11 +3065,7 @@ class Component extends DCLogic {
       treinoGerado:false,
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
-      errors:[
-        {id:'e1', disc:'Direito Tributário', topic:'Crédito tributário', banca:'CEBRASPE', nota:'Confundi suspensão com extinção do crédito (art. 151 x 156 CTN).', status:'pendente'},
-        {id:'e2', disc:'Direito Administrativo', topic:'Licitações (Lei 14.133)', banca:'FGV', nota:'Errei o prazo de recurso na nova lei de licitações.', status:'pendente'},
-        {id:'e3', disc:'Direito Constitucional', topic:'Controle de constitucionalidade', banca:'CEBRASPE', nota:'Marquei efeito ex nunc onde era ex tunc na ADI.', status:'resolvido'},
-      ],
+      errors:[],
       errDraft:{disc:'Direito Tributário', topic:'', banca:'CEBRASPE', nota:''},
       mentorMsgs:[{role:'assistant', text:'Olá! Sou seu mentor na Cátedra. Posso ajudar a organizar a semana, explicar um tópico, montar um plano para a reta final ou entender por que você erra mais em certa disciplina. Por onde começamos?'}],
       mentorInput:'', mentorBusy:false,
@@ -3134,13 +3087,7 @@ class Component extends DCLogic {
       }, orientFlash:false,
       notifOpen:false, userMenuOpen:false,
       notifsRead:{},
-      notifs:[
-        {id:'n1', tipo:'revisao', icon:'⏰', titulo:'2 revisões atrasadas', texto:'Constitucional e Administrativo passaram da data.', tempo:'agora', read:false},
-        {id:'n2', tipo:'meta', icon:'🎯', titulo:'Faltam 6h para a meta da semana', texto:'Você está em 75% das 24h planejadas.', tempo:'há 2h', read:false},
-        {id:'n3', tipo:'erro', icon:'📕', titulo:'Erro pendente vira revisão', texto:'Crédito tributário ainda não foi revisado.', tempo:'há 5h', read:false},
-        {id:'n4', tipo:'conquista', icon:'🏆', titulo:'Novo nível em Constância', texto:'Você alcançou o Nível 2 — 14 dias seguidos.', tempo:'ontem', read:true},
-        {id:'n5', tipo:'prova', icon:'📅', titulo:'84 dias para a prova', texto:'AGU · CEBRASPE. Mantenha o ritmo.', tempo:'ontem', read:true},
-      ],
+      notifs:[],
       quoteIdx: (typeof Date!=='undefined' ? new Date().getDate() : 0),
       synced:true, syncFlash:false,
       historicoFilter:'', relPeriod:30,
@@ -3148,7 +3095,7 @@ class Component extends DCLogic {
       highlights: this._loadHL(), flashcards: this._loadFC()
     };
     const _sl = this._loadLib(); if(_sl && _sl.length) this.state.biblioteca = [..._sl, ...this.state.biblioteca];
-    if(this.state.sessions===null){ this.state.sessions = this._seedSessions(); }
+    if(this.state.sessions===null){ this.state.sessions = []; }
     try{ const _o=localStorage.getItem('catedra:orient'); if(_o){ const _op=JSON.parse(_o); if(_op&&typeof _op==='object') this.state.orient={...this.state.orient, ..._op}; } }catch(_){}
     this.INTERVALS = [1,3,7,15,30];
     this.QUOTES = [
@@ -4297,7 +4244,7 @@ class Component extends DCLogic {
       strike: b.done?'line-through':'none'}));
     const cicloTotal = blocks.length;
     const cicloDone = blocks.filter(b=>b.done).length;
-    const cicloPct = Math.round(cicloDone/cicloTotal*100);
+    const cicloPct = cicloTotal>0 ? Math.round(cicloDone/cicloTotal*100) : 0;
     const ringCirc = 2*Math.PI*72;
     const ringOffset = ringCirc*(1-cicloPct/100);
     const blocksHome = blocks.filter(b=>!b.done).slice(0,3);
@@ -4317,7 +4264,7 @@ class Component extends DCLogic {
     const _actBy={}; B.discList.forEach(d=>{ _actBy[d.disc]={horas:d.horas, q:d.q, liqPct:d.liqPct, min:d.min}; });
     const edital = this.state.edital.map((d,i)=>{
       const done=d.topics.filter(t=>t.done).length, tot=d.topics.length;
-      const pct=Math.round(done/tot*100);
+      const pct=tot>0?Math.round(done/tot*100):0;
       const act=_actBy[d.disc]||{horas:0,q:0,liqPct:0,min:0};
       const actStr = act.min>0 ? (act.horas+'h estudadas · '+act.q+'q · '+act.liqPct+'% líq') : 'sem sessões ainda';
       return {...d, i, done, tot, pct, actHoras:act.horas, actQ:act.q, actLiq:act.liqPct, actStr, hasAct:act.min>0, topics:d.topics.map((t,j)=>({...t,d:i,i:j,
@@ -4330,7 +4277,7 @@ class Component extends DCLogic {
     });
     const edTotal = edital.reduce((a,d)=>a+d.tot,0);
     const edDone = edital.reduce((a,d)=>a+d.done,0);
-    const edPct = Math.round(edDone/edTotal*100);
+    const edPct = edTotal>0 ? Math.round(edDone/edTotal*100) : 0;
     const edAlta = edital.filter(d=>d.pct>=60).length;
     // meta de tempo por peso (brief: metasDeTempo)
     const pesoMap = {'Direito Constitucional':2,'Direito Administrativo':2,'Direito Penal':1.5,'Direito Civil':1.5,'Direito Tributário':1,'Processo Civil':1,'Direito Financeiro':1};
@@ -4518,7 +4465,7 @@ class Component extends DCLogic {
     const metaAlvoMin = _metaIdealMin*_diasAtivos;
     const _metaAlvoH = Math.round(metaAlvoMin/60*10)/10;
     const metaDoneMin = B.weekMin;
-    const metaPct = Math.min(100, Math.round(metaDoneMin/metaAlvoMin*100));
+    const metaPct = metaAlvoMin>0 ? Math.min(100, Math.round(metaDoneMin/metaAlvoMin*100)) : 0;
     const metaFaltamH = Math.max(0, Math.round((metaAlvoMin - metaDoneMin)/60*10)/10);
     const metaSemana = `${Math.floor(metaDoneMin/60)}h / ${_metaAlvoH}h`;
     // objetivo + banca (Personalização → feedback em todo o painel)
@@ -4543,34 +4490,17 @@ class Component extends DCLogic {
 
     // ===== Comunidade (estilo YPT) — ranking semanal com seu tempo real =====
     const _comUserMin = B.weekMin;
-    const _comSeed=[
-      {nome:'Marina', av:'M', col:'#2563eb', min:1820, now:true},
-      {nome:'Rafael', av:'R', col:'#a855f7', min:1610, now:true},
-      {nome:'Júlia', av:'J', col:'#0d9488', min:1395, now:false},
-      {nome:'Bruno', av:'B', col:'#c2790c', min:1180, now:true},
-      {nome:'Camila', av:'C', col:'#dc2626', min:980, now:false},
-      {nome:'Diego', av:'D', col:'#0f9d6b', min:760, now:false},
-      {nome:'Letícia', av:'L', col:'#6366f1', min:540, now:true}
-    ];
+    const _comSeed=[];
     const _comAll=[..._comSeed, {nome:'Você', av:(((this.state.prefs&&this.state.prefs.nome)||'A').trim()[0]||'A').toUpperCase(), col:'var(--accent)', min:_comUserMin, now:true, eu:true}].sort((a,b)=>b.min-a.min);
     const _comMedal=['🥇','🥈','🥉']; const _comTop=Math.max(1,_comAll[0].min);
     const comRank=_comAll.map((m,i)=>({...m, posStr:(i+1)+'º', medal:_comMedal[i]||'', hStr:fmtHM(m.min), barW:Math.round(m.min/_comTop*100)+'%', rowBg: m.eu?'var(--accentSoft)':'transparent', rowBd: m.eu?'1px solid var(--accentRing)':'1px solid transparent', nameW: m.eu?'700':'600', nowDot: m.now?'#0f9d6b':'var(--border)'}));
     const _comNowList=_comAll.filter(m=>m.now);
     const comNowAvatars=_comNowList.slice(0,8).map(m=>({...m}));
-    const comNowN=String(_comNowList.length + 303);
+    const comNowN=String(_comNowList.length);
     const comUserPos=String((comRank.findIndex(m=>m.eu))+1);
     const comUserH=fmtHM(_comUserMin); const comUserStreak=String(B.streak);
-    const comGrupos=[
-      {nome:'PF Agente 2026', tag:'Polícia Federal', membros:'312', agora:'48', cor:'#2563eb'},
-      {nome:'Tribunais — TJ/TRF', tag:'Tribunais', membros:'184', agora:'23', cor:'#0d9488'},
-      {nome:'Receita Federal', tag:'Área fiscal', membros:'97', agora:'12', cor:'#c2790c'},
-      {nome:'Carreiras Jurídicas', tag:'Magistratura e MP', membros:'265', agora:'31', cor:'#a855f7'}
-    ];
-    const comFeed=[
-      {av:'M', col:'#2563eb', nome:'Marina', txt:'bateu 30 dias seguidos 🔥', meta:'há 8 min · PF Agente'},
-      {av:'R', col:'#a855f7', nome:'Rafael', txt:'entrou num desafio de revisão', meta:'há 21 min'},
-      {av:'J', col:'#0d9488', nome:'Júlia', txt:'"Dividam Adm em blocos de 25 min, salvou minha semana."', meta:'há 1 h · 14 curtidas'}
-    ];
+    const comGrupos=[];
+    const comFeed=[];
     const _bShort = (id)=>{ const v=BANCAS_INFO[id]; return v? (v.label||'').replace(/\s*\(.*/,'') : null; };
     const bancaLabel = _bShort((this.state.profile&&this.state.profile.banca)) || _bShort('cebraspe') || 'CEBRASPE';
     const objetivoShort = (((this.state.prefs&&this.state.prefs.objetivo)||'').split('—')[0].trim()) || (this.state.prefs&&this.state.prefs.objetivo) || 'Concurso';
@@ -4654,10 +4584,10 @@ class Component extends DCLogic {
     if(_orientCfg.alRev!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', icon:'⏰', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>r.disc.replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
     if(_orientCfg.alRev!==false && revToday.length){ _liveNotifs.push({id:'rev-today', tipo:'revisao', icon:'🔁', titulo:revToday.length+' revis'+(revToday.length>1?'ões para hoje':'ão para hoje'), texto:'Faça sua sessão de "Revisar agora" para manter o ciclo.', tempo:'hoje', view:'revisoes'}); }
     const _metaThresh = _cob==='leve'?50 : (_cob==='rigido'?100 : 85);
-    if(_orientCfg.alMeta!==false && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', icon:'🎯', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
+    if(_orientCfg.alMeta!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', icon:'🎯', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
     const _errPendN = this.state.errors.filter(e=>e.status==='pendente').length;
     if(_orientCfg.alErros!==false && _errPendN>0){ _liveNotifs.push({id:'err', tipo:'erro', icon:'📕', titulo:_errPendN+' erro'+(_errPendN>1?'s pendentes':' pendente')+' no caderno', texto:'Transforme em revisão + flashcard com 1 clique.', tempo:'hoje', view:'erros'}); }
-    if(_orientCfg.alProva!==false){ _liveNotifs.push({id:'prova', tipo:'prova', icon:'📅', titulo:'Faltam '+_diasProvaN+' dias para a prova', texto:'Mantenha o ritmo: '+Math.round(B.totalMin/60)+'h estudadas até aqui.', tempo:'hoje', view:'inicio'}); }
+    if(_orientCfg.alProva!==false && this.state.provaData){ _liveNotifs.push({id:'prova', tipo:'prova', icon:'📅', titulo:'Faltam '+_diasProvaN+' dias para a prova', texto:'Mantenha o ritmo: '+Math.round(B.totalMin/60)+'h estudadas até aqui.', tempo:'hoje', view:'inicio'}); }
     const notifs = _liveNotifs.map(n=>{ const read=!!_notifRead[n.id]; return {...n, read, dotOp:read?'0':'1', bgC:read?'var(--surface)':'var(--accentSoft)'}; });
     this._lastNotifIds = _liveNotifs.map(n=>n.id);
     const notifUnread = notifs.filter(n=>!n.read).length;
@@ -4733,7 +4663,7 @@ class Component extends DCLogic {
     const pesos = { 'Direito Constitucional':2,'Direito Penal':1.5,'Direito Administrativo':2,'Processo Civil':1,'Direito Civil':1.5,'Direito Tributário':1 };
     const domBase = accRows; // {disc,pct,color}
     const wsum = domBase.reduce((a,r)=>a+(pesos[r.disc]||1),0);
-    const notaHoje = Math.round(domBase.reduce((a,r)=>a+r.pct*(pesos[r.disc]||1),0)/wsum);
+    const notaHoje = wsum>0 ? Math.round(domBase.reduce((a,r)=>a+r.pct*(pesos[r.disc]||1),0)/wsum) : 0;
     const corte = pf.banca==='cebraspe'?70 : pf.banca==='fgv'?65 : 68;
     let k = 0.0011 * (Math.max(1,horas)/3); if(pf.estrategia==='estrategico') k*=1.18; if(pf.retaFinal) k*=1.1;
     const fAt = (d)=> 1 - Math.exp(-k*horas*d);
@@ -4742,7 +4672,7 @@ class Component extends DCLogic {
     // curva
     const N=14; const curvePts=[]; for(let i=0;i<=N;i++){ const d=Math.round(dias*i/N); curvePts.push({d, v:proj(notaHoje,d)}); }
     const cW=460, cH=150, vmin=40, vmax=100;
-    const cx=(d)=> (d/dias)*cW; const cy=(v)=> cH-((v-vmin)/(vmax-vmin))*cH;
+    const cx=(d)=> (d/Math.max(1,dias))*cW; const cy=(v)=> cH-((v-vmin)/(vmax-vmin))*cH;
     const curvePoly = curvePts.map(p=>`${cx(p.d).toFixed(1)},${cy(p.v).toFixed(1)}`).join(' ');
     const curveArea = `0,${cH} `+curvePoly+` ${cW},${cH}`;
     const corteY = cy(corte);
@@ -5183,7 +5113,7 @@ class Component extends DCLogic {
         iconStyle:`width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;background:${on?'var(--accent)':'var(--surface2)'};color:${on?'var(--onAccent)':'var(--text2)'};`,
         titleColor: on?'var(--accentD)':'var(--ink)' }; }),
       cicloRestam, nextAction, hasNext:!!nextAction, allDone:!nextAction, greeting, dateLabel, weekdayLabel,
-      sidebarStreak:String(B.streak), tempoHoje, diasProva:String(_diasProvaN), retencao:String(B.brutoPct), metaSemana, metaPct, focoSugestao, objetivoShort, bancaLabel, bancaInfo, bancaPenLabel, bancaPenStyle,
+      sidebarStreak:String(B.streak), tempoHoje, diasProva:(this.state.provaData?String(_diasProvaN):'—'), retencao:String(B.brutoPct), metaSemana, metaPct, focoSugestao, objetivoShort, bancaLabel, bancaInfo, bancaPenLabel, bancaPenStyle,
       // histórico
       isHistorico:this.state.view==='historico', navHistorico:navStyle('historico'),
       histList, histEmpty:histList.length===0, histNotEmpty:histList.length>0, histCount:String(histList.length), histFilterVal:_histFilter, histDiscs,
@@ -5193,7 +5123,7 @@ class Component extends DCLogic {
       isRetaFinal:this.state.view==='reta-final', navRetaFinal:navStyle('reta-final'),
       retaStatusLabel:_retaOn?'Modo reta final ATIVADO':'Modo reta final desativado', retaTog:togStyle(_retaOn), retaKnob:togKnob(_retaOn),
       retaReduz:_retaReduz, retaReduzTog:togStyle(_retaReduz), retaReduzKnob:togKnob(_retaReduz),
-      retaComOpts, retaComVal:_retaCom, retaProvaData:this.state.provaData||'', retaDias:String(_diasProvaN),
+      retaComOpts, retaComVal:_retaCom, retaProvaData:this.state.provaData||'', retaDias:(this.state.provaData?String(_diasProvaN):'—'),
       retaRevVenc:String(revOverdue.length), retaErrPend:String(errPend), retaSim:String(B.simulados),
       retaCmds, retaNext, retaHasNext:retaNext.length>0,
       setProvaData:this.setProvaData, toggleRetaFinal:this.toggleRetaFinal, setRetaCom:this.setRetaCom, toggleReduzTeoria:this.toggleReduzTeoria, retaCriarBloco:this.retaCriarBloco,
@@ -5387,6 +5317,7 @@ class Component extends DCLogic {
       habCards, habDoneN, habTotalN, habInc:this.habInc, habDec:this.habDec,
       isComunidade:this.state.view==='comunidade', navComunidade:navStyle('comunidade'),
       comRank, comNowAvatars, comNowN, comUserPos, comUserH, comUserStreak, comGrupos, comFeed,
+      comGruposEmpty: comGrupos.length===0, comFeedEmpty: comFeed.length===0, comOnlyYou: comRank.length<=1,
       breathAnim:_breathOn?'ctbreath 8s ease-in-out infinite':'none', breathLabel:_breathOn?'inspire…':'pronto', breathBtn:_breathOn?'Pausar':'Começar',
       toggleBreath:this.toggleBreath, moods, setMood:this.setMood, moodTip:_moodTips[this.state.mood]||_moodTips[''],
       // personalização inteligente
