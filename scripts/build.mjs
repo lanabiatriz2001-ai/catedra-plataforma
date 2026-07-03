@@ -26,9 +26,9 @@ const INJECT = `
 <meta name="theme-color" content="#0f7a57">
 <script>
 /* Provedor de IA em produção: encaminha o prompt para a função serverless
-   (Claude via Vercel). A chave da API fica só no servidor (ANTHROPIC_API_KEY)
-   e nunca chega ao navegador do aluno. Com isso, Mentor IA e a correção de
-   redação passam a usar o Claude de verdade — não o fallback local. */
+   (Google Gemini via Vercel). A chave da API fica só no servidor
+   (GEMINI_API_KEY) e nunca chega ao navegador do aluno. Com isso, Mentor IA e a
+   correção de redação passam a usar a IA de verdade — não o fallback local. */
 window.claude = {
   complete: async function (prompt) {
     const r = await fetch('/api/complete', {
