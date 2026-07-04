@@ -3067,17 +3067,17 @@ class Component extends DCLogic {
       metas:this._load('metas', []),
       metaDraft:{titulo:'', alvo:100},
       ankiImported:false, pdfOpen:null,
-      profile:{banca:'cebraspe', estrategia:'ciclo', retaFinal:false},
+      profile:{banca:'cebraspe', estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
       anaTab:'visao',
       ankiHist:[],
       ankiInput:'',
       prognHoras:3,
-      accent:null,
+      accent:this._load('accent', null),
       prefs:{density:'confortavel', notifRevisao:true, notifMeta:true, sync:'backup', nome:'Aluno', objetivo:'', metaDiaria:4, mentor:'professor', fontScale:'padrao',
         nivel:'intermediario', turno:'noite', cobranca:'equilibrado', dias:{seg:true,ter:true,qua:true,qui:true,sex:true,sab:true,dom:false},
         focoBloco:50, focoPausa:10, autoRegistro:true, autoConcluir:true, autoRevisao:true,
         alAnki:true, alPrecisao:true, alErros:true, alSemanal:true, alProva:true, alSimulados:false,
-        radius:'tema', contentWidth:'padrao'},
+        radius:'tema', contentWidth:'padrao', ...this._load('prefs', {})},
       treinoGerado:false,
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
@@ -3141,7 +3141,7 @@ class Component extends DCLogic {
   // que mudou (comparação por referência), com debounce, e avisa a camada de
   // sincronização na nuvem, se existir.
   _autosave(){
-    const keys=['edital','reviews','blocks','manualFixed','manualRot','rotPointer','metas','eventos','errors','sim'];
+    const keys=['edital','reviews','blocks','manualFixed','manualRot','rotPointer','metas','eventos','errors','sim','prefs','profile','accent'];
     const L=this._lastSaved||(this._lastSaved={});
     let dirty=false; for(const k of keys){ if(this.state[k]!==L[k]){ dirty=true; break; } }
     if(!dirty) return;
