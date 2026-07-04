@@ -920,10 +920,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">repetem todo dia, sem rodízio</div>
             <div style="display:flex;flex-direction:column;gap:8px;">
               <sc-for list="{{ manualFixed }}" as="f" hint-placeholder-count="2">
-                <div style="display:flex;align-items:center;gap:11px;background:var(--surface2);border-radius:10px;padding:11px 14px;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface2);border-radius:10px;padding:10px 12px;">
                   <span style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accentD);background:var(--accentSoft);padding:3px 7px;border-radius:6px;flex:none;">Fixa</span>
-                  <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);">{{ f.disc }}</div><div style="font-size:11.5px;color:var(--text3);">{{ f.kind }} · {{ f.min }}min</div></div>
-                  <button data-id="{{ f.id }}" onclick="{{ removeFixed }}" title="Remover" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
+                  <input data-id="{{ f.id }}" data-field="disc" value="{{ f.disc }}" oninput="{{ editFixed }}" placeholder="Nome da atividade (ex.: Revisão Anki)" style="flex:1;min-width:130px;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 9px;font-size:13px;color:var(--ink);font-family:inherit;">
+                  <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" style="border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="Teoria">Teoria</option><option value="Questões">Questões</option><option value="Lei seca">Lei seca</option><option value="Jurisprudência">Jurisprudência</option><option value="Revisão">Revisão</option><option value="Flashcards">Flashcards</option></select>
+                  <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" title="Minutos" style="width:60px;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:13px;color:var(--ink);font-family:inherit;flex:none;">
+                  <span style="font-size:11px;color:var(--text3);flex:none;">min</span>
+                  <button data-id="{{ f.id }}" onclick="{{ removeFixed }}" title="Remover" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
                 </div>
               </sc-for>
             </div>
@@ -935,11 +938,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">giram pelo ciclo — uma por dia, na ordem</div>
             <div style="display:flex;flex-direction:column;gap:8px;">
               <sc-for list="{{ manualRot }}" as="r" hint-placeholder-count="5">
-                <div style="display:flex;align-items:center;gap:11px;background:var(--surface2);border-radius:10px;padding:11px 14px;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface2);border-radius:10px;padding:10px 12px;">
                   <span style="width:22px;height:22px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;flex:none;{{ r.posStyle }}">{{ r.pos }}</span>
-                  <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);">{{ r.disc }}</div><div style="font-size:11.5px;color:var(--text3);">{{ r.kind }} · {{ r.min }}min</div></div>
+                  <input data-id="{{ r.id }}" data-field="disc" value="{{ r.disc }}" oninput="{{ editRot }}" placeholder="Disciplina (ex.: Direito Penal)" style="flex:1;min-width:130px;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 9px;font-size:13px;color:var(--ink);font-family:inherit;">
+                  <select data-id="{{ r.id }}" data-field="kind" value="{{ r.kind }}" onchange="{{ editRot }}" style="border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="Teoria">Teoria</option><option value="Questões">Questões</option><option value="Lei seca">Lei seca</option><option value="Jurisprudência">Jurisprudência</option><option value="Revisão">Revisão</option><option value="Flashcards">Flashcards</option></select>
+                  <input data-id="{{ r.id }}" data-field="min" type="number" min="5" step="5" value="{{ r.min }}" oninput="{{ editRot }}" title="Minutos" style="width:60px;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:13px;color:var(--ink);font-family:inherit;flex:none;">
+                  <span style="font-size:11px;color:var(--text3);flex:none;">min</span>
                   <sc-if value="{{ r.isNext }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:700;color:var(--accentD);background:var(--accentSoft);padding:3px 7px;border-radius:6px;flex:none;">próxima</span></sc-if>
-                  <button data-id="{{ r.id }}" onclick="{{ removeRot }}" title="Remover" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
+                  <button data-id="{{ r.id }}" onclick="{{ removeRot }}" title="Remover" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
                 </div>
               </sc-for>
             </div>
@@ -1098,12 +1104,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <sc-if value="{{ d.open }}" hint-placeholder-val="{{ false }}">
                 <div style="padding:2px 18px 14px 42px;display:flex;flex-direction:column;gap:2px;">
                   <sc-for list="{{ d.topics }}" as="t" hint-placeholder-count="4">
-                    <button data-d="{{ t.d }}" data-i="{{ t.i }}" onclick="{{ toggleTopic }}" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;padding:9px 0;font-family:inherit;border-top:1px solid var(--border);">
-                      <span style="width:20px;height:20px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ t.checkBorder }};background:{{ t.checkBg }};color:#fff;">
+                    <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--border);">
+                      <button data-d="{{ t.d }}" data-i="{{ t.i }}" onclick="{{ toggleTopic }}" title="Concluir / desmarcar" style="width:20px;height:20px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ t.checkBorder }};background:{{ t.checkBg }};color:#fff;cursor:pointer;padding:0;">
                         <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
-                      </span>
-                      <span style="font-size:13.5px;color:var(--text2);text-decoration:{{ t.strike }};">{{ t.name }}</span>
-                    </button>
+                      </button>
+                      <input data-d="{{ t.d }}" data-i="{{ t.i }}" value="{{ t.name }}" oninput="{{ editTopic }}" title="Editar tópico" style="flex:1;min-width:0;font-size:13.5px;color:var(--text2);text-decoration:{{ t.strike }};border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:5px 9px;font-family:inherit;">
+                    </div>
                     <sc-if value="{{ t.hasSubs }}" hint-placeholder-val="{{ false }}">
                       <div style="display:flex;flex-direction:column;gap:1px;padding-left:31px;">
                         <sc-for list="{{ t.subs }}" as="sb" hint-placeholder-count="2">
@@ -1261,6 +1267,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             </div>
             <label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:6px;">Tema da redação</label>
             <select onchange="{{ setRedTema }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:11px 13px;font-size:13.5px;color:var(--ink);font-family:inherit;margin-bottom:18px;"><sc-for list="{{ redTemaOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for></select>
+            <input value="{{ redTema }}" oninput="{{ setRedTema }}" placeholder="✏️ Ou escreva / edite o seu próprio tema aqui" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:11px 13px;font-size:13.5px;color:var(--ink);font-family:inherit;margin:-8px 0 18px;">
             <textarea value="{{ redText }}" oninput="{{ onRedText }}" rows="14" placeholder="Desenvolva sua resposta aqui. Estruture em introdução, desenvolvimento e conclusão; fundamente com dispositivos legais e, quando couber, jurisprudência." style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:16px;font-size:14.5px;color:var(--ink);font-family:var(--body);line-height:1.7;resize:vertical;outline:none;"></textarea>
             <sc-if value="{{ redIsLivre }}" hint-placeholder-val="{{ false }}">
               <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
@@ -2148,8 +2155,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <sc-for list="{{ metas }}" as="m" hint-placeholder-count="3">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-              <span style="font-weight:600;font-size:14.5px;color:var(--ink);">{{ m.titulo }}</span>
-              <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--mono);font-size:13px;color:var(--text2);">{{ m.prog }} / {{ m.alvo }} {{ m.unidade }}</span><sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}"><span title="Atualizada automaticamente pelos seus registros" style="font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accentD);background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:6px;padding:3px 7px;">auto</span></sc-if><sc-if value="{{ m.manual }}" hint-placeholder-val="{{ false }}"><button data-id="{{ m.id }}" onclick="{{ metaPlus }}" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--accentSoft);color:var(--accentD);cursor:pointer;font-weight:700;font-family:inherit;">+</button></sc-if><button data-id="{{ m.id }}" onclick="{{ removeMeta }}" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;font-family:inherit;">×</button></div>
+              <sc-if value="{{ m.manual }}" hint-placeholder-val="{{ false }}"><input data-id="{{ m.id }}" data-field="titulo" value="{{ m.titulo }}" oninput="{{ editMeta }}" title="Editar objetivo" style="flex:1;min-width:150px;font-weight:600;font-size:14.5px;color:var(--ink);border:1px solid var(--border);background:var(--surface2);border-radius:8px;padding:6px 10px;font-family:inherit;"></sc-if>
+              <sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}"><span style="font-weight:600;font-size:14.5px;color:var(--ink);">{{ m.titulo }}</span></sc-if>
+              <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--mono);font-size:13px;color:var(--text2);display:inline-flex;align-items:center;gap:5px;">{{ m.prog }} / <sc-if value="{{ m.manual }}" hint-placeholder-val="{{ false }}"><input data-id="{{ m.id }}" data-field="alvo" type="number" min="1" value="{{ m.alvo }}" oninput="{{ editMeta }}" title="Editar alvo" style="width:62px;font-family:var(--mono);font-size:13px;color:var(--text2);border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:4px 6px;"></sc-if><sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}">{{ m.alvo }}</sc-if> {{ m.unidade }}</span><sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}"><span title="Atualizada automaticamente pelos seus registros" style="font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accentD);background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:6px;padding:3px 7px;">auto</span></sc-if><sc-if value="{{ m.manual }}" hint-placeholder-val="{{ false }}"><button data-id="{{ m.id }}" onclick="{{ metaPlus }}" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--accentSoft);color:var(--accentD);cursor:pointer;font-weight:700;font-family:inherit;">+</button></sc-if><button data-id="{{ m.id }}" onclick="{{ removeMeta }}" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;font-family:inherit;">×</button></div>
             </div>
             <div style="height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:12px;"><i style="display:block;height:100%;width:{{ m.pct }}%;background:var(--heroGrad);border-radius:99px;transition:width .35s;"></i></div>
             <div style="font-size:12px;color:var(--text3);margin-top:7px;">{{ m.pct }}% concluído</div>
@@ -3443,15 +3451,19 @@ class Component extends DCLogic {
   }
   syncManual(extra){ const f=extra.manualFixed||this.state.manualFixed, r=extra.manualRot||this.state.manualRot, p=extra.rotPointer!=null?extra.rotPointer:this.state.rotPointer;
     this.setState({...extra, blocks:this.composeManual(f,r,p)}); }
-  addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'Nova atividade fixa', kind:'Teoria', min:30}]});
+  addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'', kind:'Teoria', min:30}]});
+  editFixed = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=Math.max(1, parseInt(val,10)||0); this.syncManual({manualFixed:this.state.manualFixed.map(x=> x.id===id ? {...x,[field]:val} : x)}); };
   removeFixed = (e)=>{ const id=e.currentTarget.dataset.id; this.syncManual({manualFixed:this.state.manualFixed.filter(x=>x.id!==id)}); };
-  addRot = ()=> this.syncManual({manualRot:[...this.state.manualRot, {id:'o'+Date.now(), disc:'Nova disciplina', kind:'Teoria', min:45}]});
+  addRot = ()=> this.syncManual({manualRot:[...this.state.manualRot, {id:'o'+Date.now(), disc:'', kind:'Teoria', min:45}]});
+  editRot = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=Math.max(1, parseInt(val,10)||0); this.syncManual({manualRot:this.state.manualRot.map(x=> x.id===id ? {...x,[field]:val} : x)}); };
   removeRot = (e)=>{ const id=e.currentTarget.dataset.id; const idx=this.state.manualRot.findIndex(x=>x.id===id); const nr=this.state.manualRot.filter(x=>x.id!==id);
     let p=this.state.rotPointer; if(idx<p) p=Math.max(0,p-1); if(nr.length) p=p%nr.length; else p=0; this.syncManual({manualRot:nr, rotPointer:p}); };
   advanceRot = ()=>{ const n=this.state.manualRot.length; if(!n) return; this.syncManual({rotPointer:(this.state.rotPointer+1)%n}); };
   toggleEdital = (e)=>{ const i=+e.currentTarget.dataset.i; const ed=this.state.edital.slice(); ed[i]={...ed[i],open:!ed[i].open}; this.setState({edital:ed}); };
   toggleTopic = (e)=>{ const d=+e.currentTarget.dataset.d, i=+e.currentTarget.dataset.i; const ed=this.state.edital.slice();
     const tp=ed[d].topics.slice(); tp[i]={...tp[i],done:!tp[i].done}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); };
+  editTopic = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, i=+el.dataset.i, v=el.value; const ed=this.state.edital.slice();
+    const tp=ed[d].topics.slice(); tp[i]={...tp[i],name:v}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); };
   onSim = (e)=>{ const f=e.currentTarget.dataset.f; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({sim:{...s.sim,[f]:v}})); };
   fillExample = ()=> this.setState({sim:{total:120,acertos:78,erros:37,brancos:5}});
 
@@ -4197,6 +4209,7 @@ class Component extends DCLogic {
   addMeta = ()=>{ const d=this.state.metaDraft; if(!d.titulo.trim()) return;
     this.setState(s=>({metas:[...s.metas,{id:'m'+Date.now(), titulo:d.titulo.trim(), prog:0, alvo:d.alvo||100, unidade:'un.'}], metaDraft:{titulo:'',alvo:100}})); this.flashSync(); };
   metaPlus = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,prog:Math.min(m.alvo,m.prog+1)}:m)})); this.flashSync(); };
+  editMeta = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let v=el.value; if(field==='alvo') v=Math.max(1,parseInt(v,10)||0); this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,[field]:v}:m)})); };
   removeMeta = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.filter(m=>m.id!==id)})); };
 
   // ===== exportar relatório PDF =====
@@ -5135,7 +5148,7 @@ class Component extends DCLogic {
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
       dirStyle:{ sutil:dirBtn('sutil'), premium:dirBtn('premium'), clean:dirBtn('clean'), moderno:dirBtn('moderno') },
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
-      toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic,
+      toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic,
       onSim:this.onSim, fillExample:this.fillExample,
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze,
@@ -5174,7 +5187,7 @@ class Component extends DCLogic {
       isManual:this.state.cycleMode==='manual',
       manualFixed:this.state.manualFixed,
       manualRot:this.state.manualRot.map((r,i)=>({...r, pos:i+1, isNext:i===this.state.rotPointer, posStyle:i===this.state.rotPointer?'color:var(--onAccent);background:var(--accent);':'color:var(--text3);background:var(--surface2);'})),
-      addFixed:this.addFixed, removeFixed:this.removeFixed, addRot:this.addRot, removeRot:this.removeRot, advanceRot:this.advanceRot,
+      addFixed:this.addFixed, removeFixed:this.removeFixed, editFixed:this.editFixed, addRot:this.addRot, removeRot:this.removeRot, editRot:this.editRot, advanceRot:this.advanceRot,
       rotNextName:(this.state.manualRot[this.state.rotPointer]||{}).disc||'—',
       cycleModes:[
         {mode:'sugestao', icon:'★', title:'Sugestão da plataforma', desc:'Ciclo padrão equilibrado: teoria, questões, lei seca, jurisprudência e revisão.'},
@@ -5300,7 +5313,7 @@ class Component extends DCLogic {
       // domínio por tópico
       isDominio:this.state.view==='dominio', navDominio:navStyle('dominio'), domTopics,
       // metas
-      isMetas:this.state.view==='metas', navMetas:navStyle('metas'), metas, metaDraft:this.state.metaDraft, onMetaDraft:this.onMetaDraft, addMeta:this.addMeta, metaPlus:this.metaPlus, removeMeta:this.removeMeta,
+      isMetas:this.state.view==='metas', navMetas:navStyle('metas'), metas, metaDraft:this.state.metaDraft, onMetaDraft:this.onMetaDraft, addMeta:this.addMeta, metaPlus:this.metaPlus, editMeta:this.editMeta, removeMeta:this.removeMeta,
       // modo prova
       provaMode:this.state.provaMode, startProva:this.startProva, provaToggle:this.provaToggle, finishProva:this.finishProva, exitProva:this.exitProva, setProvaDuration:this.setProvaDuration,
       provaRunning:this.state.provaRunning, provaIdle:!this.state.provaRunning, provaName:this.state.provaName,
