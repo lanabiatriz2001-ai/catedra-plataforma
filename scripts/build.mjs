@@ -20,10 +20,20 @@ const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 
 const src = read('Catedra.dc.html');
 
+// Supabase (login real + sincronização). URL e chave PUBLISHABLE são PÚBLICAS
+// por design — podem ficar no código do navegador. (A secreta, sb_secret_*,
+// nunca vai aqui.)
+const SUPABASE_URL = 'https://frcnfqxniwzdyykvgqqu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
+
 const INJECT = `
 <!-- ▼ injetado pelo build de produção — NÃO existe no Catedra.dc.html original ▼ -->
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#0f7a57">
+<!-- login real + sincronização na nuvem (Supabase) — carregado ANTES do support.js -->
+<script>window.CATEDRA_SUPABASE = { url: ${JSON.stringify(SUPABASE_URL)}, key: ${JSON.stringify(SUPABASE_KEY)} };</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./auth.js"></script>
 <script>
 /* Provedor de IA em produção: encaminha o prompt para a função serverless
    (Google Gemini via Vercel). A chave da API fica só no servidor
@@ -54,7 +64,7 @@ const pub = join(ROOT, 'public');
 mkdirSync(pub, { recursive: true });
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'manifest.webmanifest', 'icon.svg']) {
+for (const f of ['support.js', 'manifest.webmanifest', 'icon.svg', 'auth.js']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
 }
 

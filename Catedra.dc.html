@@ -3017,15 +3017,15 @@ class Component extends DCLogic {
       darkMode: (()=>{ try{ return localStorage.getItem('catedra:dark')==='1'; }catch(_){} return false; })(),
       menuOpen:false, navExpanded:false,
       isMobile: (typeof window!=='undefined' && window.innerWidth<900),
-      blocks: [],
+      blocks: this._load('blocks', []),
       cycleMode: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:cycleMode')) || 'sugestao',
-      manualFixed:[],
-      manualRot:[],
-      rotPointer:0,
-      edital: [],
-      reviews: [],
+      manualFixed:this._load('manualFixed', []),
+      manualRot:this._load('manualRot', []),
+      rotPointer:this._load('rotPointer', 0),
+      edital: this._load('edital', []),
+      reviews: this._load('reviews', []),
       revSession: null,
-      sim:{total:0, acertos:0, erros:0, brancos:0},
+      sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}),
       simAnalysis:'liquida',
       discItems:[],
       timerRunning:false, timerSeconds:0,
@@ -3035,7 +3035,7 @@ class Component extends DCLogic {
       sessionDraft:{ disc:'Direito Constitucional', topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
       edImportMode:'pdf', edRaw:'', edParsed:null, edExtracting:false, edFileName:'',
       cad:{mode:'nova', discSel:'Direito Constitucional', discNova:'', cor:'#2563eb', topico:'', sub:''},
-      eventos:[],
+      eventos:this._load('eventos', []),
       biblioteca:[],
       bibDraft:{tipo:'Resumo', titulo:'', disc:'Constitucional', texto:''},
       bibFilter:'todos',
@@ -3048,7 +3048,7 @@ class Component extends DCLogic {
       provaMode:false, provaSeconds:0, provaRunning:false, provaDurationMin:240, provaName:'Simulado cronometrado',
       onboardStep: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:onboarded')==='1') ? 0 : 1,
       onboardChoice:'',
-      metas:[],
+      metas:this._load('metas', []),
       metaDraft:{titulo:'', alvo:100},
       ankiImported:false, pdfOpen:null,
       profile:{banca:'cebraspe', estrategia:'ciclo', retaFinal:false},
@@ -3065,7 +3065,7 @@ class Component extends DCLogic {
       treinoGerado:false,
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
-      errors:[],
+      errors:this._load('errors', []),
       errDraft:{disc:'Direito Tributário', topic:'', banca:'CEBRASPE', nota:''},
       mentorMsgs:[{role:'assistant', text:'Olá! Sou seu mentor na Cátedra. Posso ajudar a organizar a semana, explicar um tópico, montar um plano para a reta final ou entender por que você erra mais em certa disciplina. Por onde começamos?'}],
       mentorInput:'', mentorBusy:false,
@@ -3117,7 +3117,24 @@ class Component extends DCLogic {
     window.addEventListener('keydown', this._onKey);
   }
   componentWillUnmount(){ if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._tick) clearInterval(this._tick); this._teardownReader(); }
-  componentDidUpdate(){ this._readerSync(); this._syncModalFocus(); }
+  componentDidUpdate(){ this._readerSync(); this._syncModalFocus(); this._autosave(); }
+  // carrega uma fatia do estado do localStorage (usado no construtor)
+  _load(k, fb){ try{ const r=localStorage.getItem('catedra:'+k); if(r!=null){ const v=JSON.parse(r); if(v!=null) return v; } }catch(_){} return fb; }
+  // persiste automaticamente as fatias que não tinham salvamento próprio
+  // (edital, revisões, ciclo, metas, calendário, simulado, erros) — só grava o
+  // que mudou (comparação por referência), com debounce, e avisa a camada de
+  // sincronização na nuvem, se existir.
+  _autosave(){
+    const keys=['edital','reviews','blocks','manualFixed','manualRot','rotPointer','metas','eventos','errors','sim'];
+    const L=this._lastSaved||(this._lastSaved={});
+    let dirty=false; for(const k of keys){ if(this.state[k]!==L[k]){ dirty=true; break; } }
+    if(!dirty) return;
+    clearTimeout(this._asT);
+    this._asT=setTimeout(()=>{
+      for(const k of keys){ try{ localStorage.setItem('catedra:'+k, JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){} }
+      try{ if(window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push(); }catch(_){}
+    }, 500);
+  }
   _syncModalFocus(){
     try{
       const panel=document.querySelector('.ct-modal-panel');
