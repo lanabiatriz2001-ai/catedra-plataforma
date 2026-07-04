@@ -42,9 +42,14 @@
   }
   window.CatedraSync = { push: function () { clearTimeout(pushT); pushT = setTimeout(pushNow, 800); } };
 
-  // intercepta escritas do app/usuário para acionar a sincronização
-  localStorage.setItem = function (k, v) { _si(k, v); if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
-  localStorage.removeItem = function (k) { _ri(k); if (k === 'catedra:auth' && user) { logout(); return; } if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
+  // intercepta escritas do app/usuário para acionar a sincronização.
+  // usa defineProperty com enumerable:false para NÃO poluir Object.keys(localStorage).
+  var setImpl = function (k, v) { _si(k, v); if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
+  var remImpl = function (k) { _ri(k); if (k === 'catedra:auth' && user) { logout(); return; } if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
+  try {
+    Object.defineProperty(localStorage, 'setItem', { configurable: true, writable: true, enumerable: false, value: setImpl });
+    Object.defineProperty(localStorage, 'removeItem', { configurable: true, writable: true, enumerable: false, value: remImpl });
+  } catch (_) { localStorage.setItem = setImpl; localStorage.removeItem = remImpl; }
 
   // ---------- overlay / gate ----------
   var GRAD = 'linear-gradient(135deg,#0f7a57,#0a5c41)';
