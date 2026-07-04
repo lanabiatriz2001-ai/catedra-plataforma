@@ -926,6 +926,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                   <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" style="border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="Teoria">Teoria</option><option value="Questões">Questões</option><option value="Lei seca">Lei seca</option><option value="Jurisprudência">Jurisprudência</option><option value="Revisão">Revisão</option><option value="Flashcards">Flashcards</option></select>
                   <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" title="Minutos" style="width:60px;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:13px;color:var(--ink);font-family:inherit;flex:none;">
                   <span style="font-size:11px;color:var(--text3);flex:none;">min</span>
+                  <button data-id="{{ f.id }}" data-dir="-1" onclick="{{ moveFixed }}" title="Subir" style="width:26px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;flex:none;font-size:12px;">↑</button>
+                  <button data-id="{{ f.id }}" data-dir="1" onclick="{{ moveFixed }}" title="Descer" style="width:26px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;flex:none;font-size:12px;">↓</button>
                   <button data-id="{{ f.id }}" onclick="{{ removeFixed }}" title="Remover" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
                 </div>
               </sc-for>
@@ -945,6 +947,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                   <input data-id="{{ r.id }}" data-field="min" type="number" min="5" step="5" value="{{ r.min }}" oninput="{{ editRot }}" title="Minutos" style="width:60px;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:13px;color:var(--ink);font-family:inherit;flex:none;">
                   <span style="font-size:11px;color:var(--text3);flex:none;">min</span>
                   <sc-if value="{{ r.isNext }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:700;color:var(--accentD);background:var(--accentSoft);padding:3px 7px;border-radius:6px;flex:none;">próxima</span></sc-if>
+                  <button data-id="{{ r.id }}" data-dir="-1" onclick="{{ moveRot }}" title="Subir" style="width:26px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;flex:none;font-size:12px;">↑</button>
+                  <button data-id="{{ r.id }}" data-dir="1" onclick="{{ moveRot }}" title="Descer" style="width:26px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;flex:none;font-size:12px;">↓</button>
                   <button data-id="{{ r.id }}" onclick="{{ removeRot }}" title="Remover" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
                 </div>
               </sc-for>
@@ -1113,10 +1117,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     <sc-if value="{{ t.hasSubs }}" hint-placeholder-val="{{ false }}">
                       <div style="display:flex;flex-direction:column;gap:1px;padding-left:31px;">
                         <sc-for list="{{ t.subs }}" as="sb" hint-placeholder-count="2">
-                          <button data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-i="{{ sb.i }}" onclick="{{ toggleSub }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;padding:6px 0;font-family:inherit;">
-                            <span style="width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ sb.subBorder }};background:{{ sb.subBg }};color:#fff;"><sc-if value="{{ sb.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.8"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></span>
-                            <span style="font-size:12.5px;color:var(--text3);text-decoration:{{ sb.subStrike }};">{{ sb.name }}</span>
-                          </button>
+                          <div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
+                            <button data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-i="{{ sb.i }}" onclick="{{ toggleSub }}" title="Concluir / desmarcar" style="width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ sb.subBorder }};background:{{ sb.subBg }};color:#fff;cursor:pointer;padding:0;"><sc-if value="{{ sb.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.8"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                            <input data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-i="{{ sb.i }}" value="{{ sb.name }}" oninput="{{ editSub }}" title="Editar subtópico" style="flex:1;min-width:0;font-size:12.5px;color:var(--text3);text-decoration:{{ sb.subStrike }};border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:4px 8px;font-family:inherit;">
+                          </div>
                         </sc-for>
                       </div>
                     </sc-if>
@@ -1528,9 +1532,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid {{ e.color }};border-radius:var(--radius);padding:16px 18px;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
                 <div style="flex:1;min-width:180px;">
-                  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;"><span style="font-weight:600;font-size:14.5px;color:var(--ink);">{{ e.topic }}</span><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:{{ e.statusBg }};color:{{ e.statusColor }};">{{ e.statusLabel }}</span></div>
+                  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;"><input data-id="{{ e.id }}" data-field="topic" value="{{ e.topic }}" oninput="{{ editError }}" title="Editar tópico do erro" style="flex:1;min-width:140px;font-weight:600;font-size:14px;color:var(--ink);border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 9px;font-family:inherit;"><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:{{ e.statusBg }};color:{{ e.statusColor }};">{{ e.statusLabel }}</span></div>
                   <div style="font-size:12px;color:var(--text3);margin-top:3px;">{{ e.disc }} · {{ e.banca }}</div>
-                  <p style="margin:9px 0 0;font-size:13px;color:var(--text2);line-height:1.5;">{{ e.nota }}</p>
+                  <textarea data-id="{{ e.id }}" data-field="nota" value="{{ e.nota }}" oninput="{{ editError }}" title="Editar anotação" rows="2" style="width:100%;box-sizing:border-box;margin:9px 0 0;font-size:13px;color:var(--text2);line-height:1.5;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:6px 9px;font-family:inherit;resize:vertical;"></textarea>
                 </div>
                 <div style="display:flex;gap:7px;flex-wrap:wrap;">
                   <button data-id="{{ e.id }}" onclick="{{ errorToBoth }}" title="Criar revisão + flashcard de uma vez" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">✦ Revisão + Card</button>
@@ -2108,7 +2112,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid {{ b.color }};border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px;">
               <div style="display:flex;gap:12px;align-items:flex-start;">
                 <span style="width:38px;height:38px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;">{{ b.tipoIcon }}</span>
-                <div style="flex:1;min-width:0;"><span style="font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:{{ b.tipoColor }};">{{ b.tipo }}</span><div style="font-weight:600;font-size:13.5px;color:var(--ink);margin-top:3px;line-height:1.3;">{{ b.titulo }}</div><div style="font-size:11.5px;color:var(--text3);margin-top:4px;">{{ b.disc }} · {{ b.metaStr }}</div></div>
+                <div style="flex:1;min-width:0;"><span style="font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:{{ b.tipoColor }};">{{ b.tipo }}</span><input data-id="{{ b.id }}" data-field="titulo" value="{{ b.titulo }}" oninput="{{ editBiblio }}" title="Editar título do material" style="width:100%;box-sizing:border-box;font-weight:600;font-size:13.5px;color:var(--ink);margin-top:3px;line-height:1.3;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:4px 8px;font-family:inherit;"><div style="font-size:11.5px;color:var(--text3);margin-top:4px;">{{ b.disc }} · {{ b.metaStr }}</div></div>
                 <button data-id="{{ b.id }}" onclick="{{ removeBiblio }}" title="Remover" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;">×</button>
               </div>
               <div style="display:flex;align-items:center;gap:8px;">
@@ -3459,11 +3463,15 @@ class Component extends DCLogic {
   removeRot = (e)=>{ const id=e.currentTarget.dataset.id; const idx=this.state.manualRot.findIndex(x=>x.id===id); const nr=this.state.manualRot.filter(x=>x.id!==id);
     let p=this.state.rotPointer; if(idx<p) p=Math.max(0,p-1); if(nr.length) p=p%nr.length; else p=0; this.syncManual({manualRot:nr, rotPointer:p}); };
   advanceRot = ()=>{ const n=this.state.manualRot.length; if(!n) return; this.syncManual({rotPointer:(this.state.rotPointer+1)%n}); };
+  moveRot = (e)=>{ const id=e.currentTarget.dataset.id, dir=+e.currentTarget.dataset.dir; const arr=this.state.manualRot.slice(); const i=arr.findIndex(x=>x.id===id); const j=i+dir; if(i<0||j<0||j>=arr.length) return; const tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp; this.syncManual({manualRot:arr}); };
+  moveFixed = (e)=>{ const id=e.currentTarget.dataset.id, dir=+e.currentTarget.dataset.dir; const arr=this.state.manualFixed.slice(); const i=arr.findIndex(x=>x.id===id); const j=i+dir; if(i<0||j<0||j>=arr.length) return; const tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp; this.syncManual({manualFixed:arr}); };
   toggleEdital = (e)=>{ const i=+e.currentTarget.dataset.i; const ed=this.state.edital.slice(); ed[i]={...ed[i],open:!ed[i].open}; this.setState({edital:ed}); };
   toggleTopic = (e)=>{ const d=+e.currentTarget.dataset.d, i=+e.currentTarget.dataset.i; const ed=this.state.edital.slice();
     const tp=ed[d].topics.slice(); tp[i]={...tp[i],done:!tp[i].done}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); };
   editTopic = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, i=+el.dataset.i, v=el.value; const ed=this.state.edital.slice();
     const tp=ed[d].topics.slice(); tp[i]={...tp[i],name:v}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); };
+  editSub = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, i=+el.dataset.i, v=el.value; const ed=this.state.edital.slice();
+    const tp=ed[d].topics.slice(); const sb=(tp[t].subs||[]).slice(); sb[i]={...sb[i],name:v}; tp[t]={...tp[t],subs:sb}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); };
   onSim = (e)=>{ const f=e.currentTarget.dataset.f; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({sim:{...s.sim,[f]:v}})); };
   fillExample = ()=> this.setState({sim:{total:120,acertos:78,erros:37,brancos:5}});
 
@@ -3683,6 +3691,7 @@ class Component extends DCLogic {
 
   // ===== caderno de erros =====
   onErrDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({errDraft:{...s.errDraft,[k]:v}})); };
+  editError = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field, v=el.value; this.setState(s=>({errors:s.errors.map(x=> x.id===id?{...x,[field]:v}:x)})); };
   addError = ()=>{ const d=this.state.errDraft; if(!d.nota.trim()) return;
     const err={id:'e'+Date.now(), disc:d.disc, topic:d.topic||'(sem tópico)', banca:d.banca, nota:d.nota.trim(), status:'pendente'};
     this.setState(s=>({errors:[err,...s.errors], errDraft:{...s.errDraft, topic:'', nota:''}})); this.flashSync(); };
@@ -3851,6 +3860,7 @@ class Component extends DCLogic {
   _ensurePdfWorker(){ try{ if(window.pdfjsLib && !window.pdfjsLib.GlobalWorkerOptions.workerSrc){ window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } }catch(e){} }
 
   onBibDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({bibDraft:{...s.bibDraft,[k]:v}})); };
+  editBiblio = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field, v=el.value; this.setState(s=>({biblioteca:s.biblioteca.map(b=> b.id===id?{...b,[field]:v}:b)}), ()=>this._persistLib()); };
   setBibMode = (e)=> this.setState({bibMode:e.currentTarget.dataset.m});
   addBiblio = ()=>{ const d=this.state.bibDraft; if(!d.titulo.trim()) return;
     const content = (d.texto||'').split(/\n{2,}/).map(p=>p.trim()).filter(Boolean);
@@ -5148,7 +5158,7 @@ class Component extends DCLogic {
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
       dirStyle:{ sutil:dirBtn('sutil'), premium:dirBtn('premium'), clean:dirBtn('clean'), moderno:dirBtn('moderno') },
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
-      toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic,
+      toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
       onSim:this.onSim, fillExample:this.fillExample,
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze,
@@ -5187,7 +5197,7 @@ class Component extends DCLogic {
       isManual:this.state.cycleMode==='manual',
       manualFixed:this.state.manualFixed,
       manualRot:this.state.manualRot.map((r,i)=>({...r, pos:i+1, isNext:i===this.state.rotPointer, posStyle:i===this.state.rotPointer?'color:var(--onAccent);background:var(--accent);':'color:var(--text3);background:var(--surface2);'})),
-      addFixed:this.addFixed, removeFixed:this.removeFixed, editFixed:this.editFixed, addRot:this.addRot, removeRot:this.removeRot, editRot:this.editRot, advanceRot:this.advanceRot,
+      addFixed:this.addFixed, removeFixed:this.removeFixed, editFixed:this.editFixed, addRot:this.addRot, removeRot:this.removeRot, editRot:this.editRot, moveRot:this.moveRot, moveFixed:this.moveFixed, advanceRot:this.advanceRot,
       rotNextName:(this.state.manualRot[this.state.rotPointer]||{}).disc||'—',
       cycleModes:[
         {mode:'sugestao', icon:'★', title:'Sugestão da plataforma', desc:'Ciclo padrão equilibrado: teoria, questões, lei seca, jurisprudência e revisão.'},
@@ -5335,7 +5345,7 @@ class Component extends DCLogic {
       eventDraft:this.state.eventDraft, onEventDraft:this.onEventDraft, addEvent:this.addEvent, removeEvent:this.removeEvent, toggleEvent:this.toggleEvent, calProxEmpty:calProx.length===0,
       // biblioteca
       isBiblioteca:this.state.view==='biblioteca', navBiblioteca:navStyle('biblioteca'), bibList, bibCount,
-      bibDraft:this.state.bibDraft, onBibDraft:this.onBibDraft, addBiblio:this.addBiblio, removeBiblio:this.removeBiblio, setBibFilter:this.setBibFilter,
+      bibDraft:this.state.bibDraft, onBibDraft:this.onBibDraft, addBiblio:this.addBiblio, removeBiblio:this.removeBiblio, editBiblio:this.editBiblio, setBibFilter:this.setBibFilter,
       bibStats, bibEmpty,
       brainDestaques, brainMateriais, brainCards, brainErros, brainRevisoes, recentHls, hasRecentHl,
       // leitor + upload
@@ -5387,7 +5397,7 @@ class Component extends DCLogic {
       syncFlash:this.state.syncFlash,
       // caderno de erros
       isErros:this.state.view==='erros', errors, errPend, errResolved, errDiscOpts,
-      errDraft:this.state.errDraft, onErrDraft:this.onErrDraft, addError:this.addError, resolveError:this.resolveError, removeError:this.removeError, errorToReview:this.errorToReview, errorToCard:this.errorToCard, errorToBoth:this.errorToBoth,
+      errDraft:this.state.errDraft, onErrDraft:this.onErrDraft, addError:this.addError, editError:this.editError, resolveError:this.resolveError, removeError:this.removeError, errorToReview:this.errorToReview, errorToCard:this.errorToCard, errorToBoth:this.errorToBoth,
       errPendStr:String(errPend),
       // desempenho — modos de cálculo
       perfModes, perfActive, perfBarRows, setPerfMode:this.setPerfMode,

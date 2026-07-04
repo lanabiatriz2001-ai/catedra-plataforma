@@ -33,14 +33,37 @@
   function applyData(d) { if (!d) return; Object.keys(d).forEach(function (k) { if (isData(k)) { try { _si(k, d[k]); } catch (_) {} } }); }
   function clearLocal() { var r = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('catedra:') === 0) r.push(k); } r.forEach(function (k) { _ri(k); }); }
 
-  var user = null, hydrating = true, pushT = null;
+  var user = null, hydrating = true, pushT = null, authToken = null, firstDirtyAt = 0;
+  // mantém o token do usuário em cache (para o flush com keepalive ao fechar a aba)
+  sb.auth.onAuthStateChange(function (_e, session) { authToken = session && session.access_token; });
 
   function pushNow() {
     if (!user || hydrating) return;
+    firstDirtyAt = 0;
     sb.from('user_data').upsert({ user_id: user.id, data: collect(), updated_at: new Date().toISOString() })
       .then(function (res) { if (res && res.error) console.warn('[Cátedra] sync erro:', res.error.message); });
   }
-  window.CatedraSync = { push: function () { clearTimeout(pushT); pushT = setTimeout(pushNow, 800); } };
+  window.CatedraSync = { push: function () {
+    if (!firstDirtyAt) firstDirtyAt = Date.now();
+    clearTimeout(pushT);
+    // debounce 700ms; se está acumulando há >2,5s (edição contínua), sobe já.
+    pushT = setTimeout(pushNow, (Date.now() - firstDirtyAt) > 2500 ? 0 : 700);
+  } };
+  // flush imediato quando a aba é fechada/minimizada — a última edição SEMPRE sobe.
+  // keepalive faz a requisição sobreviver ao fechamento; usa o JWT do usuário (RLS).
+  function flushSync() {
+    if (!user || hydrating) return;
+    clearTimeout(pushT); firstDirtyAt = 0;
+    try {
+      fetch(CFG.url + '/rest/v1/user_data', {
+        method: 'POST', keepalive: true,
+        headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + (authToken || CFG.key), 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({ user_id: user.id, data: collect(), updated_at: new Date().toISOString() }),
+      });
+    } catch (_) { pushNow(); }
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushSync(); });
+  window.addEventListener('pagehide', flushSync);
 
   // intercepta escritas do app/usuário para acionar a sincronização.
   // usa defineProperty com enumerable:false para NÃO poluir Object.keys(localStorage).
