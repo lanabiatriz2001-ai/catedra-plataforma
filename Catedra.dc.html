@@ -3042,8 +3042,8 @@ class Component extends DCLogic {
       reviews: this._load('reviews', []),
       revSession: null,
       sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}),
-      simAnalysis:'liquida',
-      discItems:[],
+      simAnalysis:this._load('simAnalysis', 'liquida'),
+      discItems:this._load('discItems', []),
       timerRunning:false, timerSeconds:0,
       timerMode:'livre', pomoFocus:25, pomoBreak:5, pomoMenuOpen:false, sessionModalOpen:false,
       pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false, pipMsg:'',
@@ -3060,36 +3060,36 @@ class Component extends DCLogic {
       eventDraft:{dia:15, tipo:'Tarefa', titulo:''},
       calMonth:5, calYear:2026, calSel:12, calFilter:'todos', calView:'mes',
       habitos:(()=>{ const seed={sono:0, agua:0, exercicio:0, pausas:0, alongar:0, sol:0}; try{ const h=localStorage.getItem('catedra:habitos'); if(h){ const p=JSON.parse(h); if(p&&typeof p==='object') return {...seed, ...p}; } }catch(_){} return seed; })(),
-      planHoras:24,
+      planHoras:this._load('planHoras', 24),
       provaMode:false, provaSeconds:0, provaRunning:false, provaDurationMin:240, provaName:'Simulado cronometrado',
       onboardStep: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:onboarded')==='1') ? 0 : 1,
       onboardChoice:'',
       metas:this._load('metas', []),
       metaDraft:{titulo:'', alvo:100},
-      ankiImported:false, pdfOpen:null,
+      ankiImported:this._load('ankiImported', false), pdfOpen:null,
       profile:{banca:'cebraspe', estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
       anaTab:'visao',
-      ankiHist:[],
+      ankiHist:this._load('ankiHist', []),
       ankiInput:'',
-      prognHoras:3,
+      prognHoras:this._load('prognHoras', 3),
       accent:this._load('accent', null),
       prefs:{density:'confortavel', notifRevisao:true, notifMeta:true, sync:'backup', nome:'Aluno', objetivo:'', metaDiaria:4, mentor:'professor', fontScale:'padrao',
         nivel:'intermediario', turno:'noite', cobranca:'equilibrado', dias:{seg:true,ter:true,qua:true,qui:true,sex:true,sab:true,dom:false},
         focoBloco:50, focoPausa:10, autoRegistro:true, autoConcluir:true, autoRevisao:true,
         alAnki:true, alPrecisao:true, alErros:true, alSemanal:true, alProva:true, alSimulados:false,
         radius:'tema', contentWidth:'padrao', ...this._load('prefs', {})},
-      treinoGerado:false,
+      treinoGerado:this._load('treinoGerado', false),
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
       errDraft:{disc:'Direito Tributário', topic:'', banca:'CEBRASPE', nota:''},
-      mentorMsgs:[{role:'assistant', text:'Olá! Sou seu mentor na Cátedra. Posso ajudar a organizar a semana, explicar um tópico, montar um plano para a reta final ou entender por que você erra mais em certa disciplina. Por onde começamos?'}],
+      mentorMsgs:this._load('mentorMsgs', [{role:'assistant', text:'Olá! Sou seu mentor na Cátedra. Posso ajudar a organizar a semana, explicar um tópico, montar um plano para a reta final ou entender por que você erra mais em certa disciplina. Por onde começamos?'}]),
       mentorInput:'', mentorBusy:false,
       redTema:'Discursiva — Os limites do poder regulamentar da Administração Pública.',
-      redText:'', redBusy:false, redResult:null, redHistory:this._redLoad(), redMode:'criterios', redGabarito:'', redGabBusy:false, redGabFile:'',
+      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redMode:'criterios', redGabarito:this._load('redGabarito', ''), redGabBusy:false, redGabFile:'',
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'',
-      multiFmt:'texto', multiSrc:'', breathOn:false, mood:'',
+      multiFmt:this._load('multiFmt', 'texto'), multiSrc:this._load('multiSrc', ''), breathOn:false, mood:'',
       orient:{
         nivel:'intermediario', tempoDia:'180', turno:'noite', energia:'normal', dias:'seg,ter,qua,qui,sex,sab', energiaPlano:'normal',
         cobranca:'equilibrado', estrategia:'ciclo', banca:'cebraspe', linguagem:'professor', focoEstrategico:false,
@@ -3102,11 +3102,11 @@ class Component extends DCLogic {
         ankiRetMin:'85', ankiRetMax:'90', ankiAlerta:'80', ankiMaxRev:'350', ankiNovos:'25'
       }, orientFlash:false,
       notifOpen:false, userMenuOpen:false,
-      notifsRead:{},
+      notifsRead:this._load('notifsRead', {}),
       notifs:[],
       quoteIdx: (typeof Date!=='undefined' ? new Date().getDate() : 0),
       synced:true, syncFlash:false,
-      historicoFilter:'', relPeriod:30,
+      historicoFilter:'', relPeriod:this._load('relPeriod', 30),
       provaData:(()=>{ try{ const d=localStorage.getItem('catedra:prova'); if(d) return d; }catch(_){} return null; })(),
       highlights: this._loadHL(), flashcards: this._loadFC()
     };
@@ -3141,7 +3141,7 @@ class Component extends DCLogic {
   // que mudou (comparação por referência), com debounce, e avisa a camada de
   // sincronização na nuvem, se existir.
   _autosave(){
-    const keys=['edital','reviews','blocks','manualFixed','manualRot','rotPointer','metas','eventos','errors','sim','prefs','profile','accent'];
+    const keys=['edital','reviews','blocks','manualFixed','manualRot','rotPointer','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','mentorMsgs','redText','redGabarito','planHoras','prognHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','ankiImported','treinoGerado'];
     const L=this._lastSaved||(this._lastSaved={});
     let dirty=false; for(const k of keys){ if(this.state[k]!==L[k]){ dirty=true; break; } }
     if(!dirty) return;
@@ -3461,7 +3461,7 @@ class Component extends DCLogic {
   addRot = ()=> this.syncManual({manualRot:[...this.state.manualRot, {id:'o'+Date.now(), disc:'', kind:'Teoria', min:45}]});
   editRot = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=Math.max(1, parseInt(val,10)||0); this.syncManual({manualRot:this.state.manualRot.map(x=> x.id===id ? {...x,[field]:val} : x)}); };
   removeRot = (e)=>{ const id=e.currentTarget.dataset.id; const idx=this.state.manualRot.findIndex(x=>x.id===id); const nr=this.state.manualRot.filter(x=>x.id!==id);
-    let p=this.state.rotPointer; if(idx<p) p=Math.max(0,p-1); if(nr.length) p=p%nr.length; else p=0; this.syncManual({manualRot:nr, rotPointer:p}); };
+    let p=this.state.rotPointer; if(idx<=p) p=Math.max(0,p-1); if(nr.length) p=((p%nr.length)+nr.length)%nr.length; else p=0; this.syncManual({manualRot:nr, rotPointer:p}); };
   advanceRot = ()=>{ const n=this.state.manualRot.length; if(!n) return; this.syncManual({rotPointer:(this.state.rotPointer+1)%n}); };
   moveRot = (e)=>{ const id=e.currentTarget.dataset.id, dir=+e.currentTarget.dataset.dir; const arr=this.state.manualRot.slice(); const i=arr.findIndex(x=>x.id===id); const j=i+dir; if(i<0||j<0||j>=arr.length) return; const tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp; this.syncManual({manualRot:arr}); };
   moveFixed = (e)=>{ const id=e.currentTarget.dataset.id, dir=+e.currentTarget.dataset.dir; const arr=this.state.manualFixed.slice(); const i=arr.findIndex(x=>x.id===id); const j=i+dir; if(i<0||j<0||j>=arr.length) return; const tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp; this.syncManual({manualFixed:arr}); };
@@ -3650,7 +3650,8 @@ class Component extends DCLogic {
       biblioteca:this.state.biblioteca, highlights:this.state.highlights, flashcards:this.state.flashcards,
       errors:this.state.errors, reviews:this.state.reviews, metas:this.state.metas, eventos:this.state.eventos, sessions:this.state.sessions,
       ciclo:this.state.blocks, edital:this.state.edital, sim:this.state.sim, anki:this.state.ankiHist,
-      prefs:this.state.prefs, dir:this.state.dir, darkMode:this.state.darkMode, accent:this.state.accent };
+      prefs:this.state.prefs, dir:this.state.dir, darkMode:this.state.darkMode, accent:this.state.accent,
+      profile:this.state.profile, orient:this.state.orient, habitos:this.state.habitos, manualFixed:this.state.manualFixed, manualRot:this.state.manualRot, rotPointer:this.state.rotPointer, cycleMode:this.state.cycleMode, provaData:this.state.provaData, redHistory:this.state.redHistory, discItems:this.state.discItems, mentorMsgs:this.state.mentorMsgs, planHoras:this.state.planHoras, prognHoras:this.state.prognHoras };
     try{ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
       const a=document.createElement('a'); a.href=url; a.download='catedra-backup.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
       this._toast('Backup completo exportado ✦');
@@ -3660,25 +3661,27 @@ class Component extends DCLogic {
       const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
       inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return; const fr=new FileReader();
         fr.onload=()=>{ try{ const d=JSON.parse(fr.result); const patch={};
-            ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
+            ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','discItems','mentorMsgs','planHoras','prognHoras'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
             if(d.highlights!=null) patch.highlights=d.highlights;
             if(Array.isArray(d.ciclo)) patch.blocks=d.ciclo;
             if(Array.isArray(d.anki)) patch.ankiHist=d.anki;
+            if(Array.isArray(d.redHistory)) patch.redHistory=d.redHistory;
+            if(d.provaData!=null) patch.provaData=d.provaData;
             if(d.dir&&['sutil','premium','clean','moderno'].includes(d.dir)) patch.dir=d.dir;
             if(typeof d.darkMode==='boolean') patch.darkMode=d.darkMode;
             if(d.accent!==undefined) patch.accent=d.accent;
-            this.setState(patch, ()=>{ try{ if(patch.highlights) this._saveHL(patch.highlights); if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.biblioteca) this._persistLib(); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); }catch(_){} });
+            this.setState(patch, ()=>{ try{ if(patch.highlights) this._saveHL(patch.highlights); if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.biblioteca) this._persistLib(); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem('catedra:cycleMode', patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
             this.flashSync(); this._toast('Backup restaurado em todo o sistema ✦');
           }catch(err){ this._toast('Arquivo inválido — esperado um backup .json'); } };
         fr.readAsText(f); };
       inp.click();
     }catch(e){ this._toast('Não foi possível importar'); } };
 
-  wipeAll = ()=>{ if(!window.confirm('Apagar TODOS os dados locais? Biblioteca, destaques, flashcards, metas e preferências serão removidos deste aparelho. Esta ação não pode ser desfeita.')) return;
-    try{ ['catedra:hl','catedra:fc','catedra:lib','catedra:dir','catedra:dark','catedra:sessions'].forEach(k=>localStorage.removeItem(k)); }catch(_){}
+  wipeAll = ()=>{ if(!window.confirm('Apagar TODOS os dados locais? Edital, ciclo, sessões, revisões, metas, biblioteca, preferências — tudo será removido deste aparelho (e da sua conta na nuvem). Esta ação não pode ser desfeita.')) return;
+    try{ Object.keys(localStorage).filter(k=>k.indexOf('catedra:')===0 && k!=='catedra:auth' && k!=='catedra:onboarded').forEach(k=>localStorage.removeItem(k)); }catch(_){}
     this._fileCache={};
-    this.setState({ biblioteca:[], highlights:{}, flashcards:[], metas:[], eventos:[], sessions:[], readerOpen:null, accent:null, dir:'sutil', darkMode:false });
-    this.flashSync(); this._toast('Todos os dados locais foram apagados'); };
+    this._toast('Todos os dados locais foram apagados');
+    setTimeout(()=>{ try{ location.reload(); }catch(_){ this.setState({ biblioteca:[], highlights:{}, flashcards:[], metas:[], eventos:[], edital:[], reviews:[], errors:[], sessions:[], readerOpen:null, accent:null, dir:'sutil', darkMode:false }); } }, 300); };
 
   // ===== login =====
   onLoginField = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(k==='email'?{loginEmail:v}:{loginPass:v}); };
@@ -4839,11 +4842,11 @@ class Component extends DCLogic {
     const _accMeta={'Direito Constitucional':{peso:2, inc:'alta', fb:78},'Direito Penal':{peso:1.5, inc:'media', fb:74},'Direito Administrativo':{peso:2, inc:'alta', fb:66},'Processo Civil':{peso:1, inc:'media', fb:58},'Direito Civil':{peso:1.5, inc:'alta', fb:52},'Direito Tributário':{peso:1, inc:'baixa', fb:41}};
     const accForPerf = Object.keys(_accMeta).map(disc=>({ disc, pct: (_liqByFull[disc]!=null?_liqByFull[disc]:_accMeta[disc].fb), peso:_accMeta[disc].peso, inc:_accMeta[disc].inc }));
     const incW={alta:1.5, media:1, baixa:0.6};
-    const simpleAvg = Math.round(accForPerf.reduce((a,r)=>a+r.pct,0)/accForPerf.length);
+    const simpleAvg = accForPerf.length ? Math.round(accForPerf.reduce((a,r)=>a+r.pct,0)/accForPerf.length) : 0;
     const wPesoSum = accForPerf.reduce((a,r)=>a+r.peso,0);
-    const wPeso = Math.round(accForPerf.reduce((a,r)=>a+r.pct*r.peso,0)/wPesoSum);
+    const wPeso = wPesoSum ? Math.round(accForPerf.reduce((a,r)=>a+r.pct*r.peso,0)/wPesoSum) : 0;
     const wIncSum = accForPerf.reduce((a,r)=>a+incW[r.inc],0);
-    const wInc = Math.round(accForPerf.reduce((a,r)=>a+r.pct*incW[r.inc],0)/wIncSum);
+    const wInc = wIncSum ? Math.round(accForPerf.reduce((a,r)=>a+r.pct*incW[r.inc],0)/wIncSum) : 0;
     const liqGlobal = Math.max(0, Math.round((78-37)/120*100)); // exemplo C−E do último simulado
     const perfModes=[
       {m:'simples', title:'Média simples', val:simpleAvg, desc:'Média aritmética do acerto por disciplina. Visão geral rápida.'},
