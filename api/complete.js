@@ -36,7 +36,15 @@ export default async function handler(req, res) {
     // modelo: aceita override do corpo (se for um nome de modelo Gemini) ou da env.
     const model = (typeof body.model === 'string' && /^gemini[\w.\-]*$/.test(body.model))
       ? body.model
-      : (process.env.GEMINI_MODEL || 'gemini-2.0-flash');
+      : (process.env.GEMINI_MODEL || 'gemini-2.5-flash');
+
+    const genConfig = {
+      maxOutputTokens: Math.min(body.max_tokens || 4096, 8192),
+      temperature: typeof body.temperature === 'number' ? body.temperature : 0.7,
+    };
+    // modelos 2.5 têm "thinking" que consome tokens de saída; desligamos para
+    // garantir que o orçamento vá para a resposta (e menos latência).
+    if (/2\.5/.test(model)) genConfig.thinkingConfig = { thinkingBudget: 0 };
 
     const r = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent',
@@ -48,10 +56,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            maxOutputTokens: Math.min(body.max_tokens || 4096, 8192),
-            temperature: typeof body.temperature === 'number' ? body.temperature : 0.7,
-          },
+          generationConfig: genConfig,
         }),
       }
     );
