@@ -30,6 +30,12 @@ const INJECT = `
 <!-- ▼ injetado pelo build de produção — NÃO existe no Catedra.dc.html original ▼ -->
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#0f7a57">
+<!-- PWA instalável no iPhone (Adicionar à Tela de Início) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cátedra">
+<link rel="apple-touch-icon" href="./icon-180.png">
 <!-- login real + sincronização na nuvem (Supabase) — carregado ANTES do support.js -->
 <script>window.CATEDRA_SUPABASE = { url: ${JSON.stringify(SUPABASE_URL)}, key: ${JSON.stringify(SUPABASE_KEY)} };</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -64,8 +70,21 @@ const pub = join(ROOT, 'public');
 mkdirSync(pub, { recursive: true });
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'manifest.webmanifest', 'icon.svg', 'auth.js']) {
+for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
+}
+
+// manifest: no deploy o start_url é index.html (não Catedra.dc.html) + ícone PNG p/ iOS
+{
+  const mani = JSON.parse(read('manifest.webmanifest'));
+  mani.start_url = './index.html';
+  mani.scope = './';
+  mani.icons = [
+    { src: './icon-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+    { src: './icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+    { src: './icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+  ];
+  writeFileSync(join(pub, 'manifest.webmanifest'), JSON.stringify(mani, null, 2));
 }
 
 // sw.js: o arquivo de entrada agora é index.html (não Catedra.dc.html)

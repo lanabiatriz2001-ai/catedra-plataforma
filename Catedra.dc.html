@@ -374,7 +374,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Retomar</sc-if>
           </button>
           <button onclick="{{ resetTimer }}" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:14px 24px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;">Zerar</button>
+          <button onclick="{{ togglePiP }}" title="Abrir o cronômetro em janela flutuante (Picture-in-Picture)" style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:14px 24px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"></rect><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" stroke="none"></rect></svg>Janela flutuante</button>
         </div>
+        <sc-if value="{{ hasPipMsg }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:min(440px,84vw);margin-top:16px;text-align:center;font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.72);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:11px 14px;">{{ pipMsg }}</div>
+        </sc-if>
         <sc-if value="{{ focusPaused }}" hint-placeholder-val="{{ false }}">
           <button onclick="{{ finishFocus }}" style="margin-top:16px;display:flex;align-items:center;gap:9px;background:#fff;color:var(--sbg);border:none;border-radius:99px;padding:13px 26px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Encerrar e registrar sessão</button>
         </sc-if>
@@ -3030,7 +3034,7 @@ class Component extends DCLogic {
       discItems:[],
       timerRunning:false, timerSeconds:0,
       timerMode:'livre', pomoFocus:25, pomoBreak:5, pomoMenuOpen:false, sessionModalOpen:false,
-      pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false,
+      pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false, pipMsg:'',
       sessions: (()=>{ try{ const raw=localStorage.getItem('catedra:sessions'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
       sessionDraft:{ disc:'Direito Constitucional', topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
       edImportMode:'pdf', edRaw:'', edParsed:null, edExtracting:false, edFileName:'',
@@ -3551,6 +3555,58 @@ class Component extends DCLogic {
   // ===== modo foco (tela cheia, sem distração) =====
   enterFocus = ()=>{ this.setState({focusMode:true, pomoMenuOpen:false}); if(!this.state.timerRunning) this.toggleTimer(); };
   exitFocus = ()=> this.setState({focusMode:false});
+  // ===== Picture-in-Picture do cronômetro (janela flutuante do modo foco) =====
+  _pipReady(){ try{ return typeof document!=='undefined' && document.pictureInPictureEnabled && !!document.createElement('video').requestPictureInPicture; }catch(_){ return false; } }
+  _pipVals(){
+    const st=this.state, isPomo=st.timerMode==='pomo';
+    const isPausa=isPomo && st.pomoPhase==='pausa';
+    const phaseDur=(st.pomoPhase==='foco'?st.pomoFocus:st.pomoBreak)*60;
+    const remaining=Math.max(0, phaseDur-st.timerSeconds);
+    return { disp: isPomo?this.fmtClock(remaining):this.fmtClock(st.timerSeconds),
+      label: isPomo?(st.pomoPhase==='foco'?'FOCO':'PAUSA'):'SESSÃO LIVRE',
+      color: isPausa?'#e0922a':'#13a06b',
+      pct: (isPomo&&phaseDur)?Math.min(1,st.timerSeconds/phaseDur):0,
+      running: st.timerRunning, isPomo };
+  }
+  _drawPiP(){
+    const cv=this._pipCv; if(!cv) return; const ctx=cv.getContext('2d'); const W=cv.width, H=cv.height; const v=this._pipVals();
+    ctx.fillStyle='#0d1512'; ctx.fillRect(0,0,W,H);
+    if(v.isPomo){ ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fillRect(0,0,W,12); ctx.fillStyle=v.color; ctx.fillRect(0,0,W*v.pct,12); }
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle=v.color; ctx.font='bold 34px -apple-system, system-ui, sans-serif';
+    ctx.fillText(v.label + (v.running?'':'  ❚❚'), W/2, H*0.27);
+    ctx.fillStyle='#fff'; ctx.font='700 148px ui-monospace, "SF Mono", Menlo, monospace';
+    ctx.fillText(v.disp, W/2, H*0.58);
+    ctx.fillStyle='rgba(255,255,255,.4)'; ctx.font='500 24px -apple-system, system-ui, sans-serif';
+    ctx.fillText('Cátedra · Modo Foco', W/2, H*0.87);
+  }
+  _pipStop(){ if(this._pipInt){ clearInterval(this._pipInt); this._pipInt=null; } if(this._pipVid){ try{ this._pipVid.pause(); }catch(_){} } }
+  togglePiP = async ()=>{
+    try{
+      if(document.pictureInPictureElement){ await document.exitPictureInPicture(); this._pipStop(); return; }
+      if(!this._pipReady()) throw {name:'NotSupportedError'};
+      if(!this._pipCv){
+        this._pipCv=document.createElement('canvas'); this._pipCv.width=640; this._pipCv.height=360;
+        const vid=document.createElement('video'); vid.muted=true; vid.playsInline=true; vid.setAttribute('playsinline','');
+        vid.style.cssText='position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
+        document.body.appendChild(vid); this._pipVid=vid;
+        vid.addEventListener('leavepictureinpicture', ()=>{ this._pipStop(); });
+      }
+      this._drawPiP();
+      this._pipVid.srcObject=this._pipCv.captureStream(4);
+      await this._pipVid.play();
+      await this._pipVid.requestPictureInPicture();
+      if(this._pipInt) clearInterval(this._pipInt);
+      this._pipInt=setInterval(()=>this._drawPiP(), 500);
+    }catch(e){
+      this._pipStop();
+      const nm=String((e&&(e.name||e.message))||'');
+      const msg=/NotSupported|not supported/i.test(nm)
+        ? 'Este navegador não permite janela flutuante (PiP). No iPhone o Modo Foco fica em tela cheia; o PiP flutuante funciona no Chrome (computador/Android).'
+        : 'Não consegui abrir a janela flutuante agora — tente de novo.';
+      this.setState({pipMsg:msg}); setTimeout(()=>{ try{ this.setState({pipMsg:''}); }catch(_){} }, 7000);
+    }
+  };
   finishFocus = ()=>{ if(this._tick){ clearInterval(this._tick); this._tick=null; } const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60); this.setState(s=>({focusMode:false, timerRunning:false, sessionModalOpen:true, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
 
   // ===== Anki =====
@@ -5220,6 +5276,7 @@ class Component extends DCLogic {
       timerStateLabel, pomoLivre:pomoChip('livre'), pomoPomo:pomoChip('pomo'),
       isPomo, isPausa, phaseColor, phasePct, pomoCycles:this.state.pomoCycles,
       focusMode:this.state.focusMode, enterFocus:this.enterFocus, exitFocus:this.exitFocus, finishFocus:this.finishFocus,
+      togglePiP:this.togglePiP, pipMsg:this.state.pipMsg, hasPipMsg:!!this.state.pipMsg,
       focusPaused: !this.state.timerRunning && this.state.timerSeconds>0,
       focusPhaseLabel: isPomo ? (this.state.pomoPhase==='foco'?'Foco':'Pausa') : 'Sessão livre',
       openSession:this.openSession, closeSession:this.closeSession, saveSession:this.saveSession, sessionModalOpen:this.state.sessionModalOpen, stop:this.stop,
