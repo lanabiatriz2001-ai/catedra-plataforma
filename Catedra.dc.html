@@ -623,21 +623,22 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;">dias</span>
             </div>
           </div>
-          <!-- detalhes -->
-          <div style="flex:1;min-width:220px;">
+          <!-- detalhes (ocupam o meio) -->
+          <div style="flex:1;min-width:200px;">
             <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
               <span style="font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink);">Faltam {{ cdSemStr }}</span>
               <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:{{ cdUrg }};border-radius:99px;padding:3px 10px;">{{ cdUrgLabel }}</span>
             </div>
             <div style="font-size:12.5px;color:var(--text3);margin-top:4px;">🗓️ {{ cdWeekday }}, {{ cdDataFmt }}</div>
             <!-- barra de semanas restantes -->
-            <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:14px;">
-              <sc-for list="{{ cdWeeksBar }}" as="w" hint-placeholder-count="12"><span title="semana restante" style="width:14px;height:14px;border-radius:4px;background:{{ cdUrg }};opacity:.85;"></span></sc-for>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:14px;">
+              <sc-for list="{{ cdWeeksBar }}" as="w" hint-placeholder-count="12"><span title="semana restante" style="flex:1;min-width:12px;max-width:22px;height:14px;border-radius:4px;background:{{ cdUrg }};opacity:.85;"></span></sc-for>
             </div>
-            <div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;">
-              <div><div style="font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink);">{{ cdHorasPrev }}</div><div style="font-size:11px;color:var(--text3);">estudo previsto até lá</div></div>
-              <div><div style="font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink);">{{ cdProgPct }}%</div><div style="font-size:11px;color:var(--text3);">{{ cdProgLabel }}</div></div>
-            </div>
+          </div>
+          <!-- métricas (coluna à direita, preenchendo a largura) -->
+          <div style="flex:none;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:16px;padding-left:26px;border-left:1px solid var(--border);min-width:160px;">
+            <div><div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink);">{{ cdHorasPrev }}</div><div style="font-size:11px;color:var(--text3);">estudo previsto até lá</div></div>
+            <div><div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink);">{{ cdProgPct }}%</div><div style="font-size:11px;color:var(--text3);">{{ cdProgLabel }}</div></div>
           </div>
         </div>
         </sc-if>
@@ -4622,7 +4623,10 @@ class Component extends DCLogic {
       `--display:${T.display};--body:${T.body};--mono:${T.mono};--heroGrad:${heroGrad};`+
       `--sbg:${sbgVal};--stext:${T.sidebarText};--sactbg:${this.state.accent?'rgba(255,255,255,.14)':T.sidebarActiveBg};--sacttext:${this.state.accent?'#fff':T.sidebarActiveText};`+
       `--bg:${bgVal};background:${bgVal};color:${T.ink};font-family:${T.body};font-size:${fontScalePx};`;
-    const contentMax = pf0.contentWidth==='largo'?'1360px':'1120px';
+    // largura por view: telas de grade (muitos cards/colunas) ficam largas; telas em coluna única ficam num limite de leitura confortável
+    const _wideView = ['dashboards','edital','analise','dominio','calendario','comunidade','conquistas','anki','simulados','historico','relatorio','multiformato','biblioteca','metas','erros'].indexOf(this.state.view)>=0;
+    const _cwLargo = pf0.contentWidth==='largo';
+    const contentMax = (_wideView ? (_cwLargo?1240:1080) : (_cwLargo?1040:900)) + 'px';
 
     const navStyle = (id)=>{
       const on = this.state.view===id;
