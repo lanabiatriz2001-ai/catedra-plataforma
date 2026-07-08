@@ -4437,7 +4437,7 @@ class Component extends DCLogic {
   // ===== personalização / ajustes extra =====
   setPrefVal = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({prefs:{...s.prefs,[k]:v}})); };
   setPrefOpt = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.dataset.v; this.setState(s=>({prefs:{...s.prefs,[k]:v}})); };
-  setMetaDiaria = (e)=> this.setState(s=>({prefs:{...s.prefs,metaDiaria:+e.currentTarget.value}}));
+  setMetaDiaria = (e)=>{ const h=Math.max(1, +e.currentTarget.value||1); this.setState(s=>({prefs:{...s.prefs,metaDiaria:h}, orient:{...s.orient, metaIdeal:String(h*60)}}), ()=>this._persistOrient()); };
   setFocoNum = (e)=>{ const k=e.currentTarget.dataset.k; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({prefs:{...s.prefs,[k]:v}})); };
   toggleDia = (e)=>{ const d=e.currentTarget.dataset.d; this.setState(s=>({prefs:{...s.prefs,dias:{...s.prefs.dias,[d]:!s.prefs.dias[d]}}})); };
 
@@ -4511,7 +4511,7 @@ class Component extends DCLogic {
   toggleBreath = ()=> this.setState(s=>({breathOn:!s.breathOn}));
   setMood = (e)=> this.setState({mood:e.currentTarget.dataset.k});
   _persistOrient(){ try{ localStorage.setItem('catedra:orient', JSON.stringify(this.state.orient)); }catch(_){} }
-  setOrient = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao'].indexOf(k)>=0 && this.state.cycleMode==='sugestao'){ this.setState({blocks:this._genSugestao()}); } }); };
+  setOrient = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao'].indexOf(k)>=0 && this.state.cycleMode==='sugestao'){ this.setState({blocks:this._genSugestao()}); } }); };
   toggleOrient = (e)=>{ const k=e.currentTarget.dataset.k; this.setState(s=>({orient:{...s.orient,[k]:!s.orient[k]}}), ()=>this._persistOrient()); };
   setOrientSlider = (e)=>{ const k=e.currentTarget.dataset.k; const v=parseInt(e.currentTarget.value,10); this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>this._persistOrient()); };
   setOrientRadio = (e)=>{ const v=e.currentTarget.dataset.v; this.setState(s=>({orient:{...s.orient,energiaPlano:v}}), ()=>this._persistOrient()); };
@@ -4813,6 +4813,7 @@ class Component extends DCLogic {
     const _diasAtivos = Math.max(1, String(_orientCfg.dias||'seg,ter,qua,qui,sex,sab').split(',').filter(Boolean).length);
     const _metaIdealMin = Math.max(30, parseInt(_orientCfg.metaIdeal,10)||180);
     const metaAlvoMin = _metaIdealMin*_diasAtivos;
+    const metaDiariaH = Math.max(1, Math.min(10, Math.round(_metaIdealMin/60))); // slider (h) espelha a meta real usada no cálculo
     const _metaAlvoH = Math.round(metaAlvoMin/60*10)/10;
     const metaDoneMin = B.weekMin;
     const metaPct = metaAlvoMin>0 ? Math.min(100, Math.round(metaDoneMin/metaAlvoMin*100)) : 0;
@@ -4881,7 +4882,7 @@ class Component extends DCLogic {
       });
       return items.sort((a,b)=>b.ts-a.ts).slice(0,6); })();
     const _bShort = (id)=>{ const v=BANCAS_INFO[id]; return v? (v.label||'').replace(/\s*\(.*/,'') : null; };
-    const bancaLabel = _bShort((this.state.profile&&this.state.profile.banca)) || _bShort('cebraspe') || 'CEBRASPE';
+    const bancaLabel = _bShort((this.state.orient&&this.state.orient.banca)) || _bShort((this.state.profile&&this.state.profile.banca)) || _bShort('cebraspe') || 'CEBRASPE';
     const objetivoShort = (((this.state.prefs&&this.state.prefs.objetivo)||'').split('—')[0].trim()) || (this.state.prefs&&this.state.prefs.objetivo) || 'Concurso';
     // foco do dia guiado pelos pesos de prioridade + cobrança + reta final
     const _cob = _orientCfg.cobranca||'equilibrado';
@@ -5767,7 +5768,7 @@ class Component extends DCLogic {
       orSliders:_sliderRows, orAlertas:_alertas, orFocoToggles:_focoToggles, orConselhos:_conselhos,
       openPalette:this.openPalette, closePalette:this.closePalette, onPaletteQuery:this.onPaletteQuery, paletteGo:this.paletteGo,
       // personalização/ajustes extra
-      prefNome:this.state.prefs.nome, prefObjetivo:this.state.prefs.objetivo, prefMetaDiaria:this.state.prefs.metaDiaria,
+      prefNome:this.state.prefs.nome, prefObjetivo:this.state.prefs.objetivo, prefMetaDiaria:metaDiariaH,
       setPrefVal:this.setPrefVal, setMetaDiaria:this.setMetaDiaria, setPrefOpt:this.setPrefOpt,
       mentorProfessor:mentorOpt('professor'), mentorCoach:mentorOpt('coach'), mentorDireto:mentorOpt('direto'),
       fontPadrao:fontOpt('padrao'), fontGrande:fontOpt('grande')
