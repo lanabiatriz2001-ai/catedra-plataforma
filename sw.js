@@ -29,7 +29,7 @@ if (!IS_PROD) {
   });
 } else {
   // ---- produção: PWA normal ----
-  var VERSION = 'catedra-v2';
+  var VERSION = 'catedra-v3';
   var ASSETS = ['./', './support.js', './manifest.webmanifest', './icon.svg'];
 
   self.addEventListener('install', function(e){
@@ -59,5 +59,25 @@ if (!IS_PROD) {
         return res;
       }).catch(function(){ return caches.match(e.request); })
     );
+  });
+
+  // clique numa notificação: foca a aba do app (ou abre uma nova)
+  self.addEventListener('notificationclick', function(e){
+    e.notification.close();
+    e.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(cs){
+        for (var i = 0; i < cs.length; i++) { if ('focus' in cs[i]) return cs[i].focus(); }
+        if (self.clients.openWindow) return self.clients.openWindow('./');
+      })
+    );
+  });
+
+  // push real (com app fechado) — requer servidor com chaves VAPID enviando o payload
+  self.addEventListener('push', function(e){
+    var d = {};
+    try { d = e.data ? e.data.json() : {}; } catch (_) {}
+    e.waitUntil(self.registration.showNotification(d.titulo || 'Cátedra', {
+      body: d.texto || '', icon: './icon-180.png', badge: './icon.svg', tag: d.id || 'catedra', data: d
+    }));
   });
 }

@@ -74,6 +74,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .ct-skip{position:fixed;left:10px;top:-60px;z-index:200;background:var(--accent);color:var(--onAccent);padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;transition:top .15s;}
 .ct-skip:focus{top:10px;}
 #ct-main:focus{outline:none;}
+@media (max-width:899px){ .ct-scroll{ padding-bottom:calc(84px + env(safe-area-inset-bottom)) !important; } }
 /* ---- calendário grande (grade em largura total) ---- */
 .ct-calwrap{display:flex;flex-direction:column;gap:16px;}
 .ct-calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
@@ -285,7 +286,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-              <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina</label><select data-k="disc" value="{{ sessionDraft.disc }}" onchange="{{ onSessionField }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option>Direito Constitucional</option><option>Direito Administrativo</option><option>Direito Tributário</option><option>Direito Civil</option><option>Direito Penal</option><option>Processo Civil</option></select></div>
+              <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ sessDiscSelVal }}" onchange="{{ onSessionDisc }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><sc-for list="{{ sessDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ sessDiscCustom }}">Outra…</option></select>
+                <sc-if value="{{ sessDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ sessionDraft.disc }}" oninput="{{ onSessionField }}" placeholder="Digite o nome da disciplina" style="width:100%;box-sizing:border-box;border:1px solid var(--accent);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;margin-top:8px;"></sc-if>
+              </div>
               <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico</label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="ex.: Controle de constitucionalidade" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
               <sc-if value="{{ hasBibForLink }}" hint-placeholder-val="{{ false }}">
                 <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Vincular material da biblioteca <span style="color:var(--text3);font-weight:400;">(opcional)</span></label><select data-k="materialId" value="{{ sessionDraft.materialId }}" onchange="{{ onSessionField }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option value="">— nenhum —</option><sc-for list="{{ bibLinkOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.id }}">{{ o.titulo }}</option></sc-for></select></div>
@@ -362,7 +365,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <div style="display:flex;gap:7px;flex-wrap:wrap;"><sc-for list="{{ histEditCats }}" as="c" hint-placeholder-count="6"><button data-v="{{ c.v }}" onclick="{{ setHistEditCat }}" aria-label="{{ c.v }}" style="{{ c.style }}">{{ c.mark }}{{ c.icon }} {{ c.v }}</button></sc-for></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-              <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina</label><select data-k="disc" value="{{ histEdit.disc }}" onchange="{{ onHistEditField }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option>Direito Constitucional</option><option>Direito Administrativo</option><option>Direito Tributário</option><option>Direito Civil</option><option>Direito Penal</option><option>Processo Civil</option></select></div>
+              <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ heDiscSelVal }}" onchange="{{ onHistEditDisc }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><sc-for list="{{ heDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ heDiscCustom }}">Outra…</option></select>
+                <sc-if value="{{ heDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ histEdit.disc }}" oninput="{{ onHistEditField }}" placeholder="Digite o nome da disciplina" style="width:100%;box-sizing:border-box;border:1px solid var(--accent);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;margin-top:8px;"></sc-if>
+              </div>
               <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico</label><input data-k="topico" value="{{ histEdit.topico }}" oninput="{{ onHistEditField }}" placeholder="ex.: Controle de constitucionalidade" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
               <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tempo (min)</label><input type="number" min="0" data-k="minutos" value="{{ histEdit.minutos }}" oninput="{{ onHistEditField }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
             </div>
@@ -597,15 +602,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(22px,3vw,34px);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;">
           <div style="position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:99px;background:rgba(255,255,255,.08);"></div>
           <div style="position:relative;min-width:240px;flex:1;">
-            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.8;font-weight:600;">{{ dateLabel }} · 🔥 {{ sidebarStreak }} dias</div>
+            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.8;font-weight:600;">{{ dateLabel }} · 🔥 {{ sidebarStreak }} dias<sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"> · 🛡️ {{ escudos }}</sc-if></div>
             <h2 style="margin:8px 0 0;font-family:var(--display);font-size:clamp(26px,3.4vw,38px);font-weight:700;line-height:1.05;">{{ greeting }}, {{ userFirstName }}.</h2>
             <p style="margin:10px 0 0;font-size:14.5px;opacity:.92;max-width:440px;line-height:1.5;">Restam <b>{{ cicloRestam }} blocos</b> e <b>{{ revPend }} revisões</b> para hoje. {{ focoSugestao }}</p>
           </div>
+          <sc-if value="{{ showContagem }}" hint-placeholder-val="{{ true }}">
           <div style="position:relative;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:18px 22px;text-align:center;backdrop-filter:blur(4px);min-width:150px;">
             <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:600;">Prova-alvo</div>
             <div style="font-family:var(--display);font-size:44px;font-weight:700;line-height:1;margin:8px 0 4px;">{{ diasProva }}</div>
             <div style="font-size:11.5px;opacity:.85;">dias · {{ objetivoShort }} · {{ bancaLabel }}</div>
           </div>
+          </sc-if>
         </div>
 
         <!-- FRASE MOTIVACIONAL -->
@@ -664,7 +671,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     <div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><span style="width:9px;height:9px;border-radius:99px;background:{{ nextAction.kindColor }};"></span><span style="font-size:13px;color:var(--text2);">{{ nextAction.kind }} · {{ nextAction.tag }} · {{ nextAction.min }}min</span></div>
                   </div>
                   <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <button onclick="{{ enterFocus }}" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:12px 20px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar em foco</button>
+                    <button data-i="{{ nextAction.i }}" onclick="{{ enterFocus }}" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:12px 20px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar em foco</button>
                     <button data-view="ciclo" onclick="{{ onNav }}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:11px;padding:12px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">Ver ciclo</button>
                   </div>
                 </div>
@@ -783,7 +790,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <!-- CONSTÂNCIA (quadradinhos que se somam) -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-            <div style="display:flex;align-items:center;gap:11px;"><span style="font-size:24px;">🔥</span><div><div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);line-height:1;">{{ sidebarStreak }} dias</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">sequência de constância</div></div></div>
+            <div style="display:flex;align-items:center;gap:11px;"><span style="font-size:24px;">🔥</span><div><div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);line-height:1;">{{ sidebarStreak }} dias</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">sequência de constância</div></div><span title="Escudos protegem a ofensiva num dia sem estudo — você ganha 1 a cada 7 dias (máx. 3)" style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 11px;font-size:12px;font-weight:700;color:var(--text2);">🛡️ {{ escudos }}<span style="font-weight:500;color:var(--text3);">· próximo em {{ escudosProxDias }}d</span></span></div>
             <div style="display:flex;align-items:flex-end;gap:3px;height:40px;">
               <sc-for list="{{ streakBars }}" as="b" hint-placeholder-count="14">
                 <div style="width:7px;border-radius:3px 3px 0 0;height:{{ b.h }}%;background:{{ b.barColor }};"></div>
@@ -1086,7 +1093,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div style="font-size:12px;color:var(--text3);margin-top:2px;">cole o texto do edital abaixo e reconhecemos as disciplinas e tópicos automaticamente</div>
           </div>
           <textarea oninput="{{ edSetRaw }}" rows="7" placeholder="Cole aqui o conteúdo programático. Ex.:&#10;DIREITO ADMINISTRATIVO&#10;1 Atos administrativos&#10;2 Licitações e contratos&#10;DIREITO CONSTITUCIONAL&#10;1 Direitos fundamentais" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:11px;padding:13px;font-size:13px;color:var(--ink);font-family:var(--mono);line-height:1.6;resize:vertical;"></textarea>
-          <button onclick="{{ edRecognize }}" style="margin-top:12px;background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Reconhecer conteúdo</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+            <button onclick="{{ edStructureAI }}" disabled="{{ edAiBusy }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">{{ edAiLabel }}</button>
+            <button onclick="{{ edRecognize }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Reconhecer sem IA</button>
+          </div>
 
           <sc-if value="{{ hasParsed }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px;">
@@ -1752,7 +1762,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
           <div style="background:var(--heroGrad);border-radius:var(--radius);padding:20px;color:#fff;"><div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;font-weight:600;">Níveis alcançados</div><div style="font-family:var(--display);font-size:34px;font-weight:700;line-height:1;margin-top:6px;">{{ conqEarned }} <span style="font-size:16px;opacity:.8;">/ {{ conqTotalLevels }}</span></div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;"><div style="font-size:11.5px;color:var(--text3);">Categorias no máximo</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;">{{ conqMaxed }}</div></div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;"><div style="font-size:11.5px;color:var(--text3);">Sequência atual</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;">🔥 {{ sidebarStreak }}</div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;"><div style="font-size:11.5px;color:var(--text3);">Sequência atual</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;">🔥 {{ sidebarStreak }}</div><div style="font-size:11.5px;color:var(--text3);margin-top:4px;">🛡️ {{ escudos }} escudo(s) · +1 em {{ escudosProxDias }}d</div></div>
         </div>
 
         <!-- Em progresso -->
@@ -1890,6 +1900,56 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       <!-- ================= CALENDÁRIO ================= -->
       <sc-if value="{{ isCalendario }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- CRONOGRAMA AUTOMÁTICO ATÉ A PROVA (derivado do edital + horas/semana) -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div><span style="font-weight:600;color:var(--ink);font-size:15px;">Cronograma até a prova</span><div style="font-size:12px;color:var(--text3);margin-top:2px;">gerado automaticamente do seu edital, pesos e horas/semana — atualiza sozinho conforme você conclui tópicos</div></div>
+            <sc-if value="{{ cronoOn }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:var(--text3);font-family:var(--mono);">{{ cronoResumo }}</span></sc-if>
+          </div>
+          <sc-if value="{{ cronoSemData }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px;padding:14px 16px;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;">
+              <span style="font-size:20px;">📅</span>
+              <div style="flex:1;min-width:200px;font-size:13px;color:var(--text2);">Defina a <b style="color:var(--ink);">data da prova</b> para gerar o plano semana a semana.</div>
+              <input type="date" value="{{ retaProvaData }}" onchange="{{ setProvaData }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;">
+            </div>
+          </sc-if>
+          <sc-if value="{{ cronoSemTopicos }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:14px;padding:14px 16px;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;font-size:13px;color:var(--text2);">Seu edital não tem tópicos pendentes — importe o edital (ou desmarque tópicos) para distribuí-los até a prova.</div>
+          </sc-if>
+          <sc-if value="{{ cronoOn }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+              <sc-for list="{{ cronoSemanas }}" as="w" hint-placeholder-count="4">
+                <div style="border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface2);">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+                    <span style="width:26px;height:26px;border-radius:8px;background:var(--accent);color:var(--onAccent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;flex:none;">{{ w.n }}</span>
+                    <span style="font-family:var(--mono);font-size:12px;color:var(--text3);">{{ w.label }}</span>
+                    <span style="font-size:11px;color:var(--text3);">· ~{{ w.horas }}h</span>
+                    <sc-if value="{{ w.temSimulado }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#c2790c;background:rgba(194,121,12,.14);border-radius:99px;padding:3px 9px;">📝 Simulado</span></sc-if>
+                    <sc-if value="{{ w.isUltima }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#c0392f;background:rgba(192,57,47,.12);border-radius:99px;padding:3px 9px;">🏁 Semana da prova</span></sc-if>
+                  </div>
+                  <sc-if value="{{ w.isRev }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:13px;color:var(--ink);font-weight:600;">{{ w.titulo }}</div>
+                    <div style="font-size:12px;color:var(--text3);margin-top:3px;">retome o caderno de revisões, a lei seca de maior incidência e os flashcards com pior retenção.</div>
+                  </sc-if>
+                  <sc-if value="{{ w.temGrupos }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                      <sc-for list="{{ w.grupos }}" as="g" hint-placeholder-count="2">
+                        <div style="display:flex;gap:9px;align-items:baseline;">
+                          <span style="width:9px;height:9px;border-radius:3px;background:{{ g.color }};flex:none;align-self:center;"></span>
+                          <span style="font-size:12.5px;font-weight:600;color:var(--ink);flex:none;">{{ g.disc }}</span>
+                          <span style="font-size:12px;color:var(--text3);min-width:0;">{{ g.resumo }}</span>
+                          <span style="font-family:var(--mono);font-size:11px;color:var(--text3);flex:none;margin-left:auto;">{{ g.n }} tópico(s)</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
         <!-- barra: navegação de mês + estatísticas -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:8px;">
@@ -2022,18 +2082,35 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
       <!-- ================= DOMÍNIO POR TÓPICO ================= -->
       <sc-if value="{{ isDominio }}" hint-placeholder-val="{{ false }}">
+       <div style="display:flex;flex-direction:column;gap:16px;">
+       <sc-if value="{{ hasFocoRende }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Onde estudar rende mais pontos</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">nº de questões da disciplina na prova × sua lacuna de domínio — a decisão nº 1 do concurseiro</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ focoRende }}" as="r" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:var(--surface2);">
+                <span style="width:9px;height:9px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
+                <div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ r.short }}</div><div style="font-size:11.5px;color:var(--text3);">{{ r.questoes }} questões na prova · líquido {{ r.liqStr }}</div></div>
+                <div style="text-align:right;flex:none;"><div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);">{{ r.ptsStr }}</div><div style="font-size:10.5px;color:var(--text3);">{{ r.ganhoStr }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+       </sc-if>
        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-        <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Domínio estimado por tópico</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">calculado a partir de acertos, revisões, erros e Anki — do mais frágil ao mais sólido</div>
+        <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Domínio real por tópico</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">calculado das questões que você registrou em cada tópico (líquido C−E), com alerta de recência — do mais frágil ao mais sólido</div>
         <sc-for list="{{ domTopics }}" as="t" hint-placeholder-count="8">
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
             <span style="width:9px;height:9px;border-radius:99px;background:{{ t.color }};flex:none;"></span>
-            <div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ t.topic }}</div><div style="font-size:11.5px;color:var(--text3);">{{ t.disc }}</div></div>
-            <div style="width:110px;height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;flex:none;"><i style="display:block;height:100%;width:{{ t.dom }}%;background:{{ t.levelColor }};border-radius:99px;"></i></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ t.topic }}</div><div style="font-size:11.5px;color:var(--text3);">{{ t.disc }} · {{ t.metaInfo }}</div></div>
+            <div style="width:110px;height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;flex:none;"><i style="display:block;height:100%;width:{{ t.barW }}%;background:{{ t.levelColor }};border-radius:99px;"></i></div>
             <span style="font-family:var(--mono);font-size:12.5px;color:var(--ink);font-weight:600;width:38px;text-align:right;">{{ t.dom }}%</span>
-            <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;color:#fff;background:{{ t.levelColor }};flex:none;width:74px;text-align:center;">{{ t.level }}</span>
+            <span style="font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:99px;color:#fff;background:{{ t.levelColor }};flex:none;width:82px;text-align:center;">{{ t.level }}</span>
           </div>
         </sc-for>
+       </div>
        </div>
       </sc-if>
 
@@ -2454,13 +2531,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
 
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div style="font-weight:600;color:var(--ink);font-size:15px;">Comunidade</div><span style="font-size:11.5px;font-weight:600;color:#0f9d6b;display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:99px;background:#0f9d6b;"></span>312 estudando agora</span></div>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-              <div style="display:flex;gap:11px;align-items:flex-start;"><span style="width:34px;height:34px;border-radius:99px;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;">M</span><div style="flex:1;"><div style="font-size:13px;color:var(--ink);"><b>Marina</b> bateu 30 dias seguidos 🔥</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">há 8 min · grupo PF Agente</div></div></div>
-              <div style="display:flex;gap:11px;align-items:flex-start;"><span style="width:34px;height:34px;border-radius:99px;background:#a855f7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;">R</span><div style="flex:1;"><div style="font-size:13px;color:var(--ink);"><b>Rafael</b> está num desafio de revisão. <span style="color:var(--accentD);font-weight:600;cursor:pointer;">Entrar →</span></div><div style="font-size:11px;color:var(--text3);margin-top:1px;">há 21 min</div></div></div>
-              <div style="display:flex;gap:11px;align-items:flex-start;"><span style="width:34px;height:34px;border-radius:99px;background:#0d9488;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;">J</span><div style="flex:1;"><div style="font-size:13px;color:var(--ink);"><b>Júlia</b>: "Dividam Adm em blocos de 25 min, salvou minha semana."</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">há 1 h · 14 curtidas</div></div></div>
-            </div>
-            <button style="margin-top:16px;width:100%;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;padding:10px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;">Abrir grupo de estudo</button>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div style="font-weight:600;color:var(--ink);font-size:15px;">Comunidade</div><sc-if value="{{ comViaGrupo }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:#0f9d6b;display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:99px;background:#0f9d6b;"></span>{{ comNowN }} estudando agora</span></sc-if></div>
+            <sc-if value="{{ comViaGrupo }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <sc-for list="{{ comFeed }}" as="f" hint-placeholder-count="3">
+                  <div style="display:flex;gap:11px;align-items:flex-start;"><span style="width:34px;height:34px;border-radius:99px;background:{{ f.col }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;">{{ f.av }}</span><div style="flex:1;"><div style="font-size:13px;color:var(--ink);"><b>{{ f.nome }}</b> {{ f.txt }}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">{{ f.meta }}</div></div></div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ comSemGrupo }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:14px 16px;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;font-size:12.5px;color:var(--text3);line-height:1.5;">Crie um grupo com seus amigos (ou entre com um código) para ver aqui a atividade real de quem estuda com você.</div>
+            </sc-if>
+            <button data-view="comunidade" onclick="{{ onNav }}" style="margin-top:16px;width:100%;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;padding:10px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;">Abrir grupos de estudo</button>
           </div>
         </div>
        </div>
@@ -2497,11 +2579,25 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
         </div>
 
-        <!-- RANKING SEMANAL -->
+        <!-- RANKING SEMANAL (real, por grupo) -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-            <span style="font-weight:600;color:var(--ink);font-size:15px;">Ranking da semana</span><span style="font-size:12px;color:var(--text3);">por tempo de estudo</span>
+            <span style="font-weight:600;color:var(--ink);font-size:15px;">Ranking da semana</span><span style="font-size:12px;color:var(--text3);">por tempo de estudo · dados reais dos membros</span>
           </div>
+          <sc-if value="{{ comTemGrupos }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
+              <sc-for list="{{ comGrupoChips }}" as="gc" hint-placeholder-count="2"><button data-id="{{ gc.id }}" onclick="{{ setComGrupoAtivo }}" style="{{ gc.style }}">{{ gc.nome }}</button></sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasComDesafio }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid var(--border);border-radius:12px;padding:13px 15px;background:var(--surface2);margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+                <span style="font-size:12.5px;font-weight:600;color:var(--ink);">🎯 Desafio da semana: {{ comDesafio.meta }} revisões em grupo</span>
+                <span style="font-family:var(--mono);font-size:12px;color:var(--text2);font-weight:700;">{{ comDesafio.atual }}/{{ comDesafio.meta }}</span>
+              </div>
+              <div style="height:8px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);"><i style="display:block;height:100%;width:{{ comDesafio.pct }}%;background:var(--accent);border-radius:99px;transition:width .4s;"></i></div>
+            </div>
+          </sc-if>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <sc-for list="{{ comRank }}" as="m" hint-placeholder-count="8">
               <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:{{ m.rowBg }};border:{{ m.rowBd }};">
@@ -2819,6 +2915,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div style="flex:1;"><div style="font-size:13.5px;color:var(--ink);font-weight:500;">Criar revisão automática</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">agenda a 1ª revisão do tópico estudado</div></div>
             <button data-k="autoRevisao" onclick="{{ togglePref }}" aria-label="Criar revisão automática" style="{{ togAutoRev }}"><span style="{{ togAutoRevKnob }}"></span></button>
           </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
+            <div style="flex:1;"><div style="font-size:13.5px;color:var(--ink);font-weight:500;">Mostrar contagem regressiva da prova</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">exibe os "dias para a prova" no Início e na Reta Final — desligue se a contagem te causa ansiedade</div></div>
+            <button data-k="mostrarContagem" onclick="{{ togglePref }}" aria-label="Mostrar contagem regressiva da prova" style="{{ togContagem }}"><span style="{{ togContagemKnob }}"></span></button>
+          </div>
         </div>
 
         <!-- ALERTAS INTELIGENTES -->
@@ -2835,7 +2935,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Notificações</div>
-          <div style="font-size:12px;color:var(--text3);line-height:1.5;">Os avisos deste protótipo são gerados a partir dos seus dados locais: revisões vencidas, meta semanal, erros pendentes e prova-alvo.</div>
+          <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:14px;">Com a permissão ativa, o app avisa (com a aba/PWA aberta) sobre <b style="color:var(--text2);">revisões vencidas</b>, <b style="color:var(--text2);">meta da semana em risco</b> e <b style="color:var(--text2);">ofensiva prestes a quebrar</b> — no máximo 1 aviso por gatilho por dia. No iPhone, instale o app na Tela de Início.</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button onclick="{{ requestNotifPerm }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">{{ notifPermBtnLabel }}</button>
+            <span style="font-size:12.5px;color:{{ notifPermColor }};font-weight:600;">{{ notifPermStatus }}</span>
+          </div>
         </div>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Sincronização</div>
@@ -2862,6 +2966,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
      </div>
     </sc-if></div>
   </div></main>
+
+  <!-- BOTTOM-NAV fixa (só mobile) -->
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+    <nav aria-label="Navegação rápida" style="position:fixed;left:0;right:0;bottom:0;z-index:35;display:flex;align-items:flex-end;background:var(--surface);border-top:1px solid var(--border);padding:4px 6px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -2px 14px rgba(0,0,0,.10);">
+      <button data-view="inicio" onclick="{{ onNav }}" aria-label="Início" style="{{ bnInicio }}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 11l9-8 9 8M5 9v11h5v-6h4v6h5V9" stroke-linecap="round" stroke-linejoin="round"></path></svg>Início</button>
+      <button data-view="ciclo" onclick="{{ onNav }}" aria-label="Ciclo de Estudos" style="{{ bnCiclo }}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg>Ciclo</button>
+      <button onclick="{{ openSession }}" aria-label="Registrar sessão" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:none;cursor:pointer;padding:0 2px 7px;font-family:inherit;font-size:10px;font-weight:700;color:var(--accent);">
+        <span style="width:46px;height:46px;border-radius:99px;background:var(--accent);color:var(--onAccent);display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 4px 14px rgba(0,0,0,.22);border:3px solid var(--surface);"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg></span>Registrar
+      </button>
+      <button data-view="revisoes" onclick="{{ onNav }}" aria-label="Revisões" style="{{ bnRevisoes }}">
+        <span style="position:relative;display:inline-flex;"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-6px;right:-9px;background:var(--accent);color:var(--onAccent);font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 3px;">{{ revPendStr }}</span></sc-if></span>Revisões
+      </button>
+      <button onclick="{{ toggleMenu }}" aria-label="Abrir menu completo" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:none;cursor:pointer;padding:7px 2px;font-family:inherit;font-size:10px;font-weight:600;color:var(--text3);"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"></path></svg>Menu</button>
+    </nav>
+  </sc-if>
 </div>
 
 </x-dc>
@@ -2928,10 +3047,10 @@ class Component extends DCLogic {
       discItems:this._load('discItems', []),
       timerRunning:false, timerSeconds:0,
       timerMode:'livre', pomoFocus:25, pomoBreak:5, pomoMenuOpen:false, sessionModalOpen:false,
-      pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false, pipMsg:'',
+      pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false, focusBlockIdx:null, pipMsg:'',
       sessions: (()=>{ try{ const raw=localStorage.getItem('catedra:sessions'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
       sessionDraft:{ disc:'Direito Constitucional', topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
-      edImportMode:'pdf', edRaw:'', edParsed:null, edExtracting:false, edFileName:'',
+      edImportMode:'pdf', edRaw:'', edParsed:null, edExtracting:false, edAiBusy:false, edFileName:'',
       cad:{mode:'nova', discSel:'Direito Constitucional', discNova:'', cor:'#2563eb', topico:'', sub:'', peso:'', questoes:''},
       eventos:this._load('eventos', []),
       biblioteca:[],
@@ -2949,6 +3068,7 @@ class Component extends DCLogic {
       metas:this._load('metas', []),
       metaDraft:{titulo:'', alvo:100},
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, gruposSync:false,
+      comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       grupoDraft:{nome:'', codigo:''},
       ankiImported:this._load('ankiImported', false), pdfOpen:null,
       profile:{banca:'cebraspe', estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
@@ -2957,7 +3077,8 @@ class Component extends DCLogic {
       ankiInput:'',
       prognHoras:this._load('prognHoras', 3),
       accent:this._load('accent', null),
-      prefs:{density:'confortavel', notifRevisao:true, notifMeta:true, sync:'backup', nome:'Aluno', objetivo:'', metaDiaria:4, mentor:'professor', fontScale:'padrao',
+      escudos:this._load('escudos', 0), streakFreezeUsados:this._load('streakFreezeUsados', []), streakCheckDate:this._load('streakCheckDate', ''), escudoUltimoGanho:this._load('escudoUltimoGanho', ''),
+      prefs:{density:'confortavel', notifRevisao:true, notifMeta:true, sync:'backup', nome:'Aluno', objetivo:'', metaDiaria:4, mentor:'professor', fontScale:'padrao', mostrarContagem:true,
         nivel:'intermediario', turno:'noite', cobranca:'equilibrado', dias:{seg:true,ter:true,qua:true,qui:true,sex:true,sab:true,dom:false},
         focoBloco:50, focoPausa:10, autoRegistro:true, autoConcluir:true, autoRevisao:true,
         alAnki:true, alPrecisao:true, alErros:true, alSemanal:true, alProva:true, alSimulados:false,
@@ -2985,9 +3106,10 @@ class Component extends DCLogic {
       }, orientFlash:false,
       notifOpen:false, userMenuOpen:false,
       notifsRead:this._load('notifsRead', {}),
+      notifPush:this._load('notifPush', false), notifPerm:'default',
       notifs:[],
       quoteIdx: (typeof Date!=='undefined' ? new Date().getDate() : 0),
-      synced:true, syncFlash:false,
+      synced:true, syncFlash:false, syncStatus:'local',
       historicoFilter:'', histEdit:null, relPeriod:this._load('relPeriod', 30),
       provaData:(()=>{ try{ const d=localStorage.getItem('catedra:prova'); if(d) return d; }catch(_){} return null; })(),
       highlights: this._loadHL(), flashcards: this._loadFC()
@@ -3013,6 +3135,59 @@ class Component extends DCLogic {
       if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); if(this.state.loggedIn) this.setState(s=>({paletteOpen:!s.paletteOpen, paletteQuery:''})); }
       if(e.key==='Tab' && this._modalActive){ const panel=document.querySelector('.ct-modal-panel'); if(panel){ const f=[].slice.call(panel.querySelectorAll('input:not([type=hidden]),textarea,select,button,a[href],[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled && el.offsetParent!==null); if(f.length){ const first=f[0], last=f[f.length-1]; if(!panel.contains(document.activeElement)){ e.preventDefault(); first.focus(); } else if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); } else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); } } } } };
     window.addEventListener('keydown', this._onKey);
+    this._reconcileStreak();
+    try{ if(this._notifSupported()) this.setState({notifPerm:Notification.permission}); }catch(_){}
+    // estado real de sync (emitido pelo auth.js) + re-hidratação após merge de outro aparelho
+    this._onSyncState = (e)=>{ try{ this.setState({syncStatus:(e.detail&&e.detail.status)||'local'}); }catch(_){} };
+    this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){} };
+    window.addEventListener('catedra:syncstate', this._onSyncState);
+    window.addEventListener('catedra:synced', this._onSynced);
+  }
+  // relê do localStorage as fatias que o merge de sync pode ter atualizado (sem reload)
+  _rehydrateFromLocal(){
+    const patch={};
+    try{ const raw=localStorage.getItem('catedra:sessions'); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
+    patch.reviews=this._load('reviews', this.state.reviews);
+    patch.metas=this._load('metas', this.state.metas);
+    patch.eventos=this._load('eventos', this.state.eventos);
+    patch.errors=this._load('errors', this.state.errors);
+    patch.edital=this._load('edital', this.state.edital);
+    patch.meusGrupos=this._load('meusGrupos', this.state.meusGrupos);
+    patch.redHistory=this._redLoad();
+    patch.escudos=this._load('escudos', this.state.escudos);
+    patch.streakFreezeUsados=this._load('streakFreezeUsados', this.state.streakFreezeUsados);
+    try{ patch.highlights=this._loadHL(); patch.flashcards=this._loadFC(); }catch(_){}
+    try{ const lib=this._loadLib(); if(Array.isArray(lib)&&lib.length){ const seed=this.state.biblioteca.filter(b=>!b.user); patch.biblioteca=[...lib, ...seed]; } }catch(_){}
+    // evita marcar dirty de novo: aplica sem passar pelo _autosave
+    this._lastSaved=null;
+    this.setState(patch, ()=>{ const L=this._lastSaved||(this._lastSaved={}); Object.keys(patch).forEach(k=>{ L[k]=this.state[k]; }); });
+  }
+  // ===== escudo de ofensiva (streak freeze) =====
+  // Regras: consome 1 escudo p/ cobrir 1 dia isolado sem estudo (ontem), 1x por dia;
+  // ganha 1 escudo a cada 7 dias de ofensiva (teto 3). Efeito colateral fora do render.
+  _reconcileStreak(){
+    try{
+      const day=864e5; const t=new Date(); t.setHours(0,0,0,0);
+      const key=(d)=>new Date(d).toISOString().slice(0,10);
+      const todayK=key(t), ontem=key(t.getTime()-day), anteontem=key(t.getTime()-2*day);
+      const dates=new Set((this.state.sessions||[]).map(s=>s.date));
+      let escudos=this.state.escudos||0; let frz=(this.state.streakFreezeUsados||[]).slice(); let mudou=false;
+      const patch={};
+      if(this.state.streakCheckDate!==todayK){
+        patch.streakCheckDate=todayK;
+        if(!dates.has(ontem) && !frz.includes(ontem) && escudos>0 && (dates.has(anteontem)||frz.includes(anteontem))){
+          escudos--; frz=[...frz, ontem]; mudou=true; this._toast('🛡️ Escudo usado — sua ofensiva foi protegida');
+        }
+      }
+      // streak local (já considerando o congelamento recém-aplicado)
+      const has=(dt)=>{ const k=key(dt); return dates.has(k)||frz.includes(k); };
+      let p=new Date(t); if(!has(p)) p=new Date(p.getTime()-day); let stk=0; while(has(p)){ stk++; p=new Date(p.getTime()-day); }
+      if(stk>0 && stk%7===0 && escudos<3 && this.state.escudoUltimoGanho!==todayK){
+        escudos=Math.min(3, escudos+1); patch.escudoUltimoGanho=todayK; mudou=true;
+        this._toast('🛡️ +1 escudo de ofensiva ('+escudos+'/3)');
+      }
+      if(mudou || patch.streakCheckDate){ patch.escudos=escudos; patch.streakFreezeUsados=frz; this.setState(patch); }
+    }catch(_){ }
   }
   componentWillUnmount(){ if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._tick) clearInterval(this._tick); if(this._pipMsgT) clearTimeout(this._pipMsgT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
   componentDidUpdate(){ this._readerSync(); this._syncModalFocus(); this._autosave(); }
@@ -3023,7 +3198,7 @@ class Component extends DCLogic {
   // que mudou (comparação por referência), com debounce, e avisa a camada de
   // sincronização na nuvem, se existir.
   _autosave(){
-    const keys=['edital','reviews','blocks','manualFixed','manualRot','rotPointer','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','mentorMsgs','redText','redGabarito','redEnunciado','planHoras','prognHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','treinoGerado','provaDurationMin','meusGrupos'];
+    const keys=['edital','reviews','blocks','manualFixed','manualRot','rotPointer','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','mentorMsgs','redText','redGabarito','redEnunciado','planHoras','prognHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','treinoGerado','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush'];
     const L=this._lastSaved||(this._lastSaved={});
     let dirty=false; for(const k of keys){ if(this.state[k]!==L[k]){ dirty=true; break; } }
     if(!dirty) return;
@@ -3088,8 +3263,8 @@ class Component extends DCLogic {
     return { facilidade: Math.round(facilidade*100)/100, intervalo, repeticoes, due: intervalo };
   }
   reviewRate = (e)=>{ const id=e.currentTarget.dataset.id; const q=+e.currentTarget.dataset.q;
-    const rv=this.state.reviews.map(r=> r.id===id ? {...r, ...this.sm2(r, q)} : r); this.setState({reviews:rv}); };
-  reviewSnooze = (e)=>{ const id=e.currentTarget.dataset.id; const rv=this.state.reviews.map(r=> r.id===id?{...r,due:r.due+1}:r); this.setState({reviews:rv}); };
+    const rv=this.state.reviews.map(r=> r.id===id ? {...r, ...this.sm2(r, q), up:Date.now()} : r); this.setState({reviews:rv}); };
+  reviewSnooze = (e)=>{ const id=e.currentTarget.dataset.id; const rv=this.state.reviews.map(r=> r.id===id?{...r,due:r.due+1, up:Date.now()}:r); this.setState({reviews:rv}); };
   // fluxo "revisar agora" — item a item, reagendando por SM-2
   startRevSession = ()=>{ const due=this.state.reviews.filter(r=>r.due<=0).sort((a,b)=>a.due-b.due).map(r=>r.id);
     if(!due.length){ this._toast('Nenhuma revisão pendente — tudo em dia 🎉'); return; }
@@ -3147,6 +3322,29 @@ class Component extends DCLogic {
   edSetMode = (e)=> this.setState({edImportMode:e.currentTarget.dataset.m, edParsed:null});
   edSetRaw = (e)=> this.setState({edRaw:e.currentTarget.value});
   edRecognize = ()=>{ const p=this.parseEdital(this.state.edRaw); this.setState({edParsed:p}); };
+  _editalColor(disc, idx){
+    const palette=['#2563eb','#a855f7','#06b6d4','#6366f1','#dc2626','#84cc16','#0d9488','#d6457f','#b08433','#4f46e5','#e8553e','#7c5cd6'];
+    const known={'direito constitucional':'#2563eb','direito administrativo':'#a855f7','direito tributário':'#06b6d4','direito financeiro':'#b91c1c','direito civil':'#6366f1','direito penal':'#dc2626','processo civil':'#84cc16','direito processual civil':'#84cc16','direito do trabalho':'#0d9488','direito ambiental':'#10b981','língua portuguesa':'#e8553e'};
+    return known[(disc||'').toLowerCase()]||palette[(idx||0)%palette.length];
+  }
+  edStructureAI = async ()=>{
+    const raw=(this.state.edRaw||'').trim();
+    if(!raw){ this._toast('Cole o texto do edital primeiro'); return; }
+    if(this.state.edAiBusy) return;
+    this.setState({edAiBusy:true, edParsed:null});
+    const prompt='Você estrutura editais de concursos públicos brasileiros. A partir do CONTEÚDO PROGRAMÁTICO abaixo (colado de um edital, possivelmente bagunçado por quebras de linha de PDF), extraia as DISCIPLINAS e, para cada uma, a lista de TÓPICOS (frases curtas, sem numeração). Preserve os nomes das disciplinas como estão no edital (apenas em Title Case). Responda SOMENTE com JSON válido, sem nenhum texto fora dele, neste formato exato: {"disciplinas":[{"disc":"Nome da Disciplina","topicos":["tópico 1","tópico 2"]}]}\nCONTEÚDO:\n"""\n'+raw.slice(0,8000)+'\n"""';
+    let j=null;
+    try{ if(window.claude && window.claude.complete){ const r=await window.claude.complete(prompt); j=this._parseJSON(r); } }catch(_){}
+    if(j && Array.isArray(j.disciplinas) && j.disciplinas.length){
+      const parsed=j.disciplinas.map((d,i)=>({ disc:this.titleCase(String(d.disc||'').trim()), color:this._editalColor(String(d.disc||'').trim(), i),
+        topics:(Array.isArray(d.topicos)?d.topicos:(Array.isArray(d.topics)?d.topics:[])).map(t=>String(t).trim()).filter(t=>t.length>1) }))
+        .filter(d=>d.disc);
+      if(parsed.length){ this.setState({edParsed:parsed, edAiBusy:false}); this._toast('Edital estruturado pela IA ✦'); return; }
+    }
+    const p=this.parseEdital(raw);
+    this.setState({edParsed:p, edAiBusy:false});
+    this._toast(p.length? 'IA indisponível — usei o reconhecimento local' : 'Não consegui estruturar; revise o texto colado');
+  };
   edPickFile = (e)=>{ const f=e.currentTarget.files && e.currentTarget.files[0]; if(!f) return; this._ingest(f); e.currentTarget.value=''; };
   edDrop = (e)=>{ e.preventDefault(); const f=e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if(f) this._ingest(f); };
   async _extractEditalPdf(f){
@@ -3295,7 +3493,11 @@ class Component extends DCLogic {
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
   toggleNav = ()=> this.setState(s=>({navExpanded:!s.navExpanded}));
-  toggleBlock = (e)=>{ const i=+e.currentTarget.dataset.i; const b=this.state.blocks.slice(); b[i]={...b[i],done:!b[i].done}; this.setState({blocks:b}); };
+  toggleBlock = (e)=>{ const i=+e.currentTarget.dataset.i; const b=this.state.blocks.slice(); const willDone=!b[i].done; b[i]={...b[i],done:willDone};
+    if(willDone){ // concluiu → abre o registro já preenchido com o bloco (minutos = duração do bloco, se o cronômetro estiver zerado)
+      const pre=Math.round((this.state.timerSeconds||this.state.studiedSeconds||0)/60);
+      this.setState(s=>({blocks:b, sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._blockToDraft(b[i], s.sessionDraft), minutos: pre>0?String(pre):String(b[i].min||'')}}));
+    } else { this.setState({blocks:b}); } };
   _genSugestao(){
     const O=this.state.orient||{}, p=this.state.profile||{};
     const base=Math.max(20, parseInt(O.blocoPadrao,10)||50); const m=(f)=>Math.max(15,Math.round(base*f));
@@ -3413,10 +3615,15 @@ class Component extends DCLogic {
     const todayMin=S.filter(s=>s.date===todayStr).reduce((a,s)=>a+(s.min||0),0);
     const weekMin=S.filter(s=>s.ts>=now-7*day && s.countMeta!==false).reduce((a,s)=>a+(s.min||0),0);
     // streak
-    let streak=0; { const has=(dt)=>dates.has(new Date(dt).toISOString().slice(0,10)); let p=new Date(); p.setHours(0,0,0,0); if(!has(p)) p=new Date(p.getTime()-day); while(has(p)){ streak++; p=new Date(p.getTime()-day); } }
+    let streak=0; { const frz=new Set(this.state.streakFreezeUsados||[]); const has=(dt)=>{ const k=new Date(dt).toISOString().slice(0,10); return dates.has(k)||frz.has(k); }; let p=new Date(); p.setHours(0,0,0,0); if(!has(p)) p=new Date(p.getTime()-day); while(has(p)){ streak++; p=new Date(p.getTime()-day); } }
     // por disciplina
     const COL={'Direito Constitucional':'#2563eb','Direito Administrativo':'#a855f7','Direito Tributário':'#06b6d4','Direito Penal':'#dc2626','Direito Civil':'#6366f1','Processo Civil':'#84cc16'};
     const by={}; S.forEach(s=>{ const k=s.disc||'—'; (by[k]||(by[k]={disc:k,min:0,q:0,a:0,e:0,b:0,n:0})); const o=by[k]; o.min+=s.min||0;o.q+=s.questoes||0;o.a+=s.acertos||0;o.e+=s.erradas||0;o.b+=s.brancos||0;o.n++; });
+    // agregado por (disciplina¦tópico) — base do domínio por tópico REAL
+    const _normT=(t)=>String(t||'').toLowerCase().replace('direito ','').replace(/[^a-zà-ú0-9]+/gi,' ').trim();
+    const byTopic={}; S.forEach(s=>{ const tn=_normT(s.topico); if(!tn || /— bloco \d+$/.test(s.topico||'')) return; const k=(s.disc||'—')+'¦'+tn;
+      (byTopic[k]||(byTopic[k]={disc:s.disc||'—', topico:s.topico, q:0,a:0,e:0,min:0,n:0,lastTs:0}));
+      const o=byTopic[k]; o.q+=s.questoes||0;o.a+=s.acertos||0;o.e+=s.erradas||0;o.min+=s.min||0;o.n++; if((s.ts||0)>o.lastTs)o.lastTs=s.ts||0; });
     const discList=Object.values(by).map(o=>({...o, color:COL[o.disc]||'#0f7a57', short:o.disc.replace('Direito ',''), brutoPct:o.q?Math.round(o.a/o.q*100):0, liq:o.a-o.e, liqPct:o.q?Math.round((o.a-o.e)/o.q*100):0, horas:Math.round(o.min/60*10)/10})).sort((x,y)=>y.q-x.q);
     // semanas (6)
     const weeks=[]; for(let w=5; w>=0; w--){ const start=now-(w*7+6)*day, end=now-w*7*day+day; const ws=S.filter(s=>s.ts>=start && s.ts<end);
@@ -3424,12 +3631,16 @@ class Component extends DCLogic {
       weeks.push({label:'S'+(6-w), q, bruto:q?Math.round(a/q*100):0, liq:q?Math.round((a-e)/q*100):0, min:mi}); }
     // heatmap 28 dias
     const heat=[]; let heatMax=1; for(let d=27; d>=0; d--){ const ds=new Date(now-d*day).toISOString().slice(0,10); const mm=S.filter(s=>s.date===ds).reduce((a,s)=>a+(s.min||0),0); heatMax=Math.max(heatMax,mm); heat.push({date:ds, min:mm, isToday:d===0}); }
-    return {totalMin,totalQ,totalA,totalE,totalB,liq,brutoPct,liqPct,diasEstudados,nDiscs,simulados,todayMin,weekMin,streak,discList,weeks,heat,heatMax};
+    return {totalMin,totalQ,totalA,totalE,totalB,liq,brutoPct,liqPct,diasEstudados,nDiscs,simulados,todayMin,weekMin,streak,discList,weeks,heat,heatMax,byTopic,normT:_normT};
   }
-  _freshSessionDraft(prev){ return { disc:(prev&&prev.disc)||'Direito Constitucional', topico:'', categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true }; }
+  _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true }; }
+  _kindToCat(kind){ return {'Teoria':'Teoria','Questões':'Questões','Lei seca':'Lei seca','Jurisprudência':'Jurisprudência','Simulado':'Simulado','Revisão':'Revisão','Flashcards':'Revisão'}[kind]||'Teoria'; }
+  _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind); return {...this._freshSessionDraft(prev), disc:b.disc||'', topico:(b.tag&&b.tag!=='Rotativa'&&b.tag!=='Fixa')?b.tag:'', categorias:[cat], categoria:cat}; }
   openSession = ()=>{ const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
   closeSession = ()=> this.setState({sessionModalOpen:false});
   onSessionField = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({sessionDraft:{...s.sessionDraft,[k]:v}})); };
+  onSessionDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({sessionDraft:{...s.sessionDraft, discCustom:v==='__outra__', disc:v==='__outra__'?'':v}})); };
+  onHistEditDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({histEdit:{...s.histEdit, discCustom:v==='__outra__', disc:v==='__outra__'?'':v}})); };
   setSessionCat = (e)=>{ const v=e.currentTarget.dataset.v; this.setState(s=>{ const sd=s.sessionDraft; const cur=Array.isArray(sd.categorias)?sd.categorias:[sd.categoria].filter(Boolean); let next; if(cur.includes(v)){ next=cur.filter(x=>x!==v); if(!next.length) next=[v]; } else { next=[...cur, v]; } return {sessionDraft:{...sd, categorias:next, categoria:next[0]}}; }); };
   setSessionFoco = (e)=>{ const v=+e.currentTarget.dataset.v; this.setState(s=>({sessionDraft:{...s.sessionDraft,foco:v}})); };
   toggleSessionFlag = (e)=>{ const k=e.currentTarget.dataset.k; this.setState(s=>({sessionDraft:{...s.sessionDraft,[k]:!s.sessionDraft[k]}})); };
@@ -3446,23 +3657,32 @@ class Component extends DCLogic {
     const mat = d.materialId ? (this.state.biblioteca.find(b=>b.id===d.materialId)||null) : null;
     const _catsArr = (Array.isArray(d.categorias)&&d.categorias.length) ? d.categorias : [d.categoria].filter(Boolean);
     const _cats0 = _catsArr[0]||'Teoria';
+    const _disc=(d.disc||'').trim()||'Geral';
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:new Date().toISOString().slice(0,10),
-      disc:d.disc, topico:d.topico.trim()|| (mat&&mat.titulo) || _cats0, categoria:_cats0, categorias:_catsArr,
+      disc:_disc, topico:d.topico.trim()|| (mat&&mat.titulo) || _cats0, categoria:_cats0, categorias:_catsArr,
       min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, foco:d.foco, nota:d.nota.trim(), materialId:d.materialId||null, countMeta:d.contarMeta!==false };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     const patch={ sessions, sessionModalOpen:false, studiedSeconds:0, timerSeconds:0, timerRunning:false, sessionDraft:this._freshSessionDraft(d) };
-    if(d.agendarRevisao){ const col=this.DISC_FULL_COLOR[d.disc]||'#0f7a57';
-      patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:d.disc, topic:rec.topico, color:col, due:0, intervalo:1, facilidade:2.5, repeticoes:0}]; }
+    if(d.agendarRevisao){ const col=this.DISC_FULL_COLOR[_disc]||'#0f7a57';
+      patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:_disc, topic:rec.topico, color:col, due:0, intervalo:1, facilidade:2.5, repeticoes:0}]; }
     if(this._tick){ clearInterval(this._tick); this._tick=null; }
-    this.setState(patch); this.flashSync();
+    this.setState(patch, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     const accTxt = q? ' · '+Math.round(a/q*100)+'% bruto · líquido '+(a-er) : '';
     const revTxt = d.agendarRevisao? ' · revisão agendada' : '';
     this._toast('Sessão registrada · '+min+' min'+accTxt+revTxt+' ✦');
   };
   stop = (e)=>{ e.stopPropagation(); };
   // ===== modo foco (tela cheia, sem distração) =====
-  enterFocus = ()=>{ this.setState({focusMode:true, pomoMenuOpen:false}); if(!this.state.timerRunning) this.toggleTimer(); };
-  exitFocus = ()=> this.setState({focusMode:false});
+  enterFocus = (e)=>{
+    // vincula o bloco APENAS quando o gatilho traz data-i explícito ("Iniciar em foco" do bloco);
+    // "Tela cheia"/toolbar/paleta entram sem bloco para não concluir o bloco errado.
+    const _di=e&&e.currentTarget&&e.currentTarget.dataset?e.currentTarget.dataset.i:null;
+    const idx=(_di!=null&&_di!=='')?+_di:null;
+    const blk=(idx!=null&&this.state.blocks[idx])?this.state.blocks[idx]:null;
+    this.setState(s=>({focusMode:true, pomoMenuOpen:false, focusBlockIdx:blk?idx:null,
+      sessionDraft: blk? this._blockToDraft(blk, s.sessionDraft) : s.sessionDraft}));
+    if(!this.state.timerRunning) this.toggleTimer(); };
+  exitFocus = ()=> this.setState({focusMode:false, focusBlockIdx:null});
   // ===== Picture-in-Picture do cronômetro (janela flutuante do modo foco) =====
   _docPiPReady(){ try{ return !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow); }catch(_){ return false; } }
   _videoPiPReady(){ try{ const v=document.createElement('video'); return !!(document.pictureInPictureEnabled && v.requestPictureInPicture) || !!(v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')); }catch(_){ return false; } }
@@ -3584,7 +3804,12 @@ class Component extends DCLogic {
       this._pipFlash(msg);
     }
   };
-  finishFocus = ()=>{ if(this._tick){ clearInterval(this._tick); this._tick=null; } const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60); this.setState(s=>({focusMode:false, timerRunning:false, sessionModalOpen:true, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
+  finishFocus = ()=>{ if(this._tick){ clearInterval(this._tick); this._tick=null; } const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60);
+    this.setState(s=>{ const idx=s.focusBlockIdx; const blk=(idx!=null&&s.blocks[idx])?s.blocks[idx]:null;
+      const blocks= blk? s.blocks.map((x,j)=> j===idx?{...x,done:true}:x) : s.blocks;
+      const draft= blk? this._blockToDraft(blk, s.sessionDraft) : this._freshSessionDraft(s.sessionDraft);
+      return {focusMode:false, timerRunning:false, sessionModalOpen:true, focusBlockIdx:null, blocks,
+        sessionDraft:{...draft, minutos: pre>0?String(pre):(blk?String(blk.min||''):'')}}; }); };
 
   // ===== Anki =====
   onAnkiInput = (e)=> this.setState({ankiInput:e.currentTarget.value});
@@ -4154,8 +4379,29 @@ class Component extends DCLogic {
   onGrupoDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({grupoDraft:{...s.grupoDraft,[k]:v}})); };
   _loadGrupos = async ()=>{ const sb=this._sb(); if(!sb) return;
     this.setState({gruposBusy:true});
-    try{ const r=await sb.rpc('meus_grupos'); if(r.error) throw r.error; const list=(r.data||[]).map((row,i)=>this._normGrupo(row,i)); this.setState({meusGrupos:list, gruposBusy:false, gruposSync:true}); }
+    try{
+      if(!this.state.comMyUid){ try{ const u=await sb.auth.getUser(); if(u&&u.data&&u.data.user) this.setState({comMyUid:u.data.user.id}); }catch(_){} }
+      const r=await sb.rpc('meus_grupos'); if(r.error) throw r.error;
+      const list=(r.data||[]).map((row,i)=>this._normGrupo(row,i));
+      const ativo=this.state.comGrupoAtivo && list.some(g=>g.id===this.state.comGrupoAtivo) ? this.state.comGrupoAtivo : (list[0]?list[0].id:null);
+      this.setState({meusGrupos:list, gruposBusy:false, gruposSync:true, comGrupoAtivo:ativo});
+      await this._publicarAtividade();
+      if(ativo) await this._loadRankingGrupo(ativo);
+    }
     catch(err){ this.setState({gruposBusy:false}); } };
+  // publica minhas stats semanais nos meus grupos (no máx. 1x por minuto)
+  _publicarAtividade = async ()=>{ const sb=this._sb(); if(!sb || !(this.state.meusGrupos||[]).length) return;
+    const agora=Date.now(); if(this._pubAtvT && agora-this._pubAtvT<60000) return; this._pubAtvT=agora;
+    try{ const B=this._brain(); const semana=agora-7*864e5;
+      const revs=(this.state.reviews||[]).filter(r=>r.up && r.up>=semana).length;
+      const nome=(this.state.prefs&&this.state.prefs.nome)||'Membro';
+      await sb.rpc('publicar_atividade', {p_minutos:B.weekMin||0, p_streak:B.streak||0, p_revisoes:revs, p_nome:nome});
+    }catch(_){ } };
+  _loadRankingGrupo = async (gid)=>{ const sb=this._sb(); if(!sb || !gid) return;
+    try{ const r=await sb.rpc('ranking_grupo', {p_grupo_id:gid}); if(r.error) throw r.error;
+      this.setState({comRankRows:Array.isArray(r.data)?r.data:[], comGrupoAtivo:gid});
+    }catch(_){ this.setState({comRankRows:[]}); } };
+  setComGrupoAtivo = (e)=>{ const gid=e.currentTarget.dataset.id; if(gid) this._loadRankingGrupo(gid); };
   addGrupo = async ()=>{ const nome=(this.state.grupoDraft.nome||'').trim(); if(!nome){ this._toast('Dê um nome ao grupo'); return; }
     const meuNome=(this.state.prefs&&this.state.prefs.nome)||'Você'; const sb=this._sb();
     if(sb){ this.setState({gruposBusy:true});
@@ -4195,7 +4441,7 @@ class Component extends DCLogic {
   saveHistEdit = ()=>{ const d=this.state.histEdit; if(!d||!d.id) return;
     const min=Math.max(0,parseInt(d.minutos,10)||0), a=Math.max(0,parseInt(d.acertos,10)||0), er=Math.max(0,parseInt(d.erradas,10)||0), br=Math.max(0,parseInt(d.brancos,10)||0); const q=a+er+br;
     const cats=(Array.isArray(d.categorias)&&d.categorias.length)?d.categorias:['Teoria'];
-    const sessions=this.state.sessions.map(x=> x.id===d.id ? {...x, disc:d.disc, topico:(d.topico||'').trim()||x.topico, categorias:cats, categoria:cats[0], min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, nota:(d.nota||'').trim()} : x);
+    const sessions=this.state.sessions.map(x=> x.id===d.id ? {...x, disc:(d.disc||'').trim()||x.disc||'Geral', topico:(d.topico||'').trim()||x.topico, categorias:cats, categoria:cats[0], min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, nota:(d.nota||'').trim()} : x);
     try{ this._saveSessions(sessions); }catch(_){} this.setState({sessions, histEdit:null}); this.flashSync(); };
   setProvaData = (e)=>{ const v=e.currentTarget.value; this.setState({provaData:v||null}); try{ if(v) localStorage.setItem('catedra:prova',v); else localStorage.removeItem('catedra:prova'); }catch(_){} this.flashSync(); };
   toggleRetaFinal = ()=>{ this.setState(s=>({profile:{...s.profile, retaFinal:!s.profile.retaFinal}})); this.flashSync(); };
@@ -4215,6 +4461,32 @@ class Component extends DCLogic {
   shuffleQuote = ()=> this.setState(s=>({quoteIdx:(s.quoteIdx+1)%this.QUOTES.length}));
 
   // ===== notificações =====
+  // ===== notificações locais (PWA) — funcionam com o app/aba aberto; push com app fechado exige servidor (VAPID) =====
+  _notifSupported(){ try{ return typeof window!=='undefined' && 'Notification' in window; }catch(_){ return false; } }
+  requestNotifPerm = async ()=>{
+    if(!this._notifSupported()){ this._toast('Este navegador não suporta notificações'); return; }
+    try{
+      const p=await Notification.requestPermission();
+      this.setState({notifPerm:p, notifPush:p==='granted'});
+      if(p==='granted'){ this._toast('Notificações ativadas ✦'); }
+      else if(p==='denied'){ this._toast('Permissão negada — reative nas configurações do navegador'); }
+    }catch(_){ }
+  };
+  async _fireLocalNotif(n){
+    if(this.state.notifPush!==true) return;
+    if(!this._notifSupported() || Notification.permission!=='granted') return;
+    const today=new Date().toISOString().slice(0,10);
+    let sent={}; try{ sent=JSON.parse(localStorage.getItem('catedra:notifSent')||'{}'); }catch(_){}
+    if(sent[n.id]===today) return;                       // no máx. 1 por gatilho por dia
+    sent[n.id]=today; try{ localStorage.setItem('catedra:notifSent', JSON.stringify(sent)); }catch(_){}
+    const opts={ body:n.texto, icon:'./icon-180.png', badge:'./icon.svg', tag:n.id, data:{view:n.view||'inicio'} };
+    try{
+      if('serviceWorker' in navigator && navigator.serviceWorker.controller){
+        const reg=await navigator.serviceWorker.ready; await reg.showNotification(n.titulo, opts); return;
+      }
+    }catch(_){}
+    try{ new Notification(n.titulo, opts); }catch(_){}
+  }
   toggleNotif = ()=> this.setState(s=>({notifOpen:!s.notifOpen, userMenuOpen:false}));
   closeNotif = ()=> this.setState({notifOpen:false});
   readNotif = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({notifsRead:{...s.notifsRead,[id]:true}})); };
@@ -4301,6 +4573,13 @@ class Component extends DCLogic {
         `padding:11px 13px;border-radius:11px;font-size:14px;font-weight:${on?'600':'500'};font-family:inherit;`+
         `transition:all .15s;background:${on?'var(--sactbg)':'transparent'};color:${on?'var(--sacttext)':'var(--stext)'};`;
     };
+    // bottom-nav mobile: estilo do item ativo/inativo
+    const bnStyle = (id)=>{
+      const on = this.state.view===id;
+      return `flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:none;cursor:pointer;`+
+        `padding:7px 2px;font-family:inherit;font-size:10px;font-weight:${on?'700':'600'};color:${on?'var(--accent)':'var(--text3)'};position:relative;`;
+    };
+    const bnInicio=bnStyle('inicio'), bnCiclo=bnStyle('ciclo'), bnRevisoes=bnStyle('revisoes');
     // ===== menu simplificado: essenciais visíveis + "Mais opções" =====
     const _moreViews=['anki','analise','conquistas','historico','mentor','dominio','multiformato','bemestar','comunidade','biblioteca','ajustes'];
     const _onMore=_moreViews.indexOf(this.state.view)>=0;
@@ -4575,33 +4854,68 @@ class Component extends DCLogic {
     const bancaPenLabel = bancaInfo.penalidade ? 'Erro anula acerto' : 'Erro não penaliza';
     const bancaPenStyle = 'font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;'+(bancaInfo.penalidade?'background:rgba(192,57,47,.12);color:#c0392f;':'background:rgba(15,157,107,.14);color:#0f9d6b;');
 
-    // ===== Comunidade (estilo YPT) — ranking semanal com seu tempo real =====
+    // ===== Comunidade — ranking semanal REAL do grupo (Supabase) com fallback local =====
     const _comUserMin = B.weekMin;
-    const _comSeed=[];
-    const _comAll=[..._comSeed, {nome:'Você', av:(((this.state.prefs&&this.state.prefs.nome)||'A').trim()[0]||'A').toUpperCase(), col:'var(--accent)', min:_comUserMin, now:true, eu:true}].sort((a,b)=>b.min-a.min);
-    const _comMedal=['🥇','🥈','🥉']; const _comTop=Math.max(1,_comAll[0].min);
+    const _rkRows=this.state.comRankRows||[]; const _meuUid=this.state.comMyUid||'';
+    const comViaGrupo=_rkRows.length>0;
+    const _comPal=['#6366f1','#0d9488','#d6457f','#b08433','#dc2626','#2563eb','#a855f7','#84cc16'];
+    let _comAll;
+    if(comViaGrupo){
+      _comAll=_rkRows.map((r,i)=>{ const eu=_meuUid && r.user_id===_meuUid; return {nome:eu?'Você':(r.nome||'Membro'), av:((r.nome||'M').trim()[0]||'M').toUpperCase(), col:eu?'var(--accent)':_comPal[i%_comPal.length], min:(eu?Math.max(r.minutos||0,_comUserMin):(r.minutos||0)), now:!!r.ao_vivo, eu, streakM:r.streak||0, revsM:r.revisoes||0, upTs:r.updated_at?Date.parse(r.updated_at):0}; });
+      if(!_comAll.some(m=>m.eu)) _comAll.push({nome:'Você', av:(((this.state.prefs&&this.state.prefs.nome)||'A').trim()[0]||'A').toUpperCase(), col:'var(--accent)', min:_comUserMin, now:true, eu:true, streakM:B.streak, revsM:0, upTs:Date.now()});
+      _comAll.sort((a,b)=>b.min-a.min);
+    } else {
+      _comAll=[{nome:'Você', av:(((this.state.prefs&&this.state.prefs.nome)||'A').trim()[0]||'A').toUpperCase(), col:'var(--accent)', min:_comUserMin, now:true, eu:true, streakM:B.streak, revsM:0, upTs:Date.now()}];
+    }
+    const _comMedal=['🥇','🥈','🥉']; const _comTop=Math.max(1,(_comAll[0]&&_comAll[0].min)||1);
     const comRank=_comAll.map((m,i)=>({...m, posStr:(i+1)+'º', medal:_comMedal[i]||'', hStr:fmtHM(m.min), barW:Math.round(m.min/_comTop*100)+'%', rowBg: m.eu?'var(--accentSoft)':'transparent', rowBd: m.eu?'1px solid var(--accentRing)':'1px solid transparent', nameW: m.eu?'700':'600', nowDot: m.now?'#0f9d6b':'var(--border)'}));
     const _comNowList=_comAll.filter(m=>m.now);
     const comNowAvatars=_comNowList.slice(0,8).map(m=>({...m}));
     const comNowN=String(_comNowList.length);
     const comUserPos=String((comRank.findIndex(m=>m.eu))+1);
     const comUserH=fmtHM(_comUserMin); const comUserStreak=String(B.streak);
+    // seletor do grupo ativo (ranking é POR grupo)
+    const comGrupoChips=(this.state.meusGrupos||[]).map(g=>{ const on=g.id===this.state.comGrupoAtivo; return {id:g.id, nome:g.nome, style:`border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;`}; });
+    const comTemGrupos=(this.state.meusGrupos||[]).length>0;
+    // desafio coletivo da semana (derivado do ranking): 50 revisões somadas no grupo
+    const _desafioMeta=50; const _desafioAtual=comViaGrupo?_comAll.reduce((a,m)=>a+(m.revsM||0),0):0;
+    const comDesafio={meta:String(_desafioMeta), atual:String(_desafioAtual), pct:Math.min(100,Math.round(_desafioAtual/_desafioMeta*100)), done:_desafioAtual>=_desafioMeta};
+    const hasComDesafio=comViaGrupo;
     const _meuNomeG=(this.state.prefs&&this.state.prefs.nome)||'Você';
     const comGrupos=(this.state.meusGrupos||[]).map(g=>{ const membros=Array.isArray(g.membros)?g.membros:[]; return {
       id:g.id, nome:g.nome, codigo:g.codigo||'', hasCodigo:!!g.codigo, cor:g.cor||'#0f7a57', tag:'Grupo',
       membrosLabel:membros.length+(membros.length===1?' membro':' membros'),
       membrosList:membros.map((m,i)=>{ const nome=(m&&m.nome)||'Membro'; const eu=nome===_meuNomeG; return {nome, nomeLabel: eu?(nome+' · você'):nome, chipBd: eu?'var(--accent)':'var(--border)', id:g.id, inicial:(nome||'?').slice(0,1).toUpperCase(), eu}; }),
       when:(()=>{ try{ return new Date(g.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })() }; });
-    const comFeed=[];
+    // mural REAL: derivado da atividade semanal dos membros do grupo ativo
+    const comFeed=(()=>{ if(!comViaGrupo) return [];
+      const items=[]; const _agoF=(ts)=>{ if(!ts) return 'esta semana'; const m=Math.floor((Date.now()-ts)/60000); if(m<2) return 'agora'; if(m<60) return m+' min atrás'; const h=Math.floor(m/60); if(h<24) return h+'h atrás'; return Math.floor(h/24)+'d atrás'; };
+      _comAll.forEach(m=>{
+        if(m.min>0) items.push({col:m.col, av:m.av, nome:m.nome, txt:'estudou '+fmtHM(m.min)+' nesta semana', meta:_agoF(m.upTs), ts:m.upTs||0});
+        if((m.streakM||0)>=3) items.push({col:m.col, av:m.av, nome:m.nome, txt:'está com ofensiva de '+m.streakM+' dias 🔥', meta:_agoF(m.upTs), ts:(m.upTs||0)-1});
+        if((m.revsM||0)>=10) items.push({col:m.col, av:m.av, nome:m.nome, txt:'fez '+m.revsM+' revisões na semana 🔁', meta:_agoF(m.upTs), ts:(m.upTs||0)-2});
+      });
+      return items.sort((a,b)=>b.ts-a.ts).slice(0,6); })();
     const _bShort = (id)=>{ const v=BANCAS_INFO[id]; return v? (v.label||'').replace(/\s*\(.*/,'') : null; };
     const bancaLabel = _bShort((this.state.profile&&this.state.profile.banca)) || _bShort('cebraspe') || 'CEBRASPE';
     const objetivoShort = (((this.state.prefs&&this.state.prefs.objetivo)||'').split('—')[0].trim()) || (this.state.prefs&&this.state.prefs.objetivo) || 'Concurso';
     // foco do dia guiado pelos pesos de prioridade + cobrança + reta final
     const _cob = _orientCfg.cobranca||'equilibrado';
     const _retaOnNow = !!(this.state.profile&&this.state.profile.retaFinal);
+    // ranking "onde estudar rende mais pontos": nº de questões da prova × lacuna de domínio
+    const focoRende=(this.state.edital||[])
+      .filter(d=>d.questoes!==''&&d.questoes!=null&&+d.questoes>0)
+      .map(d=>{ const bd=B.discList.find(x=>x.disc===d.disc); const liq=(bd&&bd.q>0)?Math.max(0,Math.min(100,bd.liqPct)):null;
+        const lac=liq==null?60:Math.max(0,100-liq); const pts=Math.round(+d.questoes*lac/100);
+        const ganho80=liq==null?Math.round(+d.questoes*0.4):Math.max(0,Math.round(+d.questoes*Math.max(0,80-liq)/100));
+        return {disc:d.disc, short:(d.disc||'').replace('Direito ',''), color:d.color||'#0f7a57', questoes:String(d.questoes), liqStr:liq==null?'sem dados':liq+'%', pts, ptsStr:'~'+pts+'q', ganhoStr:ganho80>0?('+'+ganho80+'q se chegar a 80%'):'mantenha o nível', semDados:liq==null}; })
+      .sort((a,b)=>b.pts-a.pts);
+    const focoRendeTop=focoRende[0]||null;
+    const hasFocoRende=focoRende.length>0;
     const _focoCands=[];
     if(revPend>0) _focoCands.push({s:(parseInt(_orientCfg.pRevVenc,10)||10)+(revOverdue.length?3:0), t:'as revisões vencidas'});
     if(_retaOnNow) _focoCands.push({s:(parseInt(_orientCfg.pProva,10)||8)+4, t:'simulados e revisão da reta final'});
+    if(focoRendeTop && focoRendeTop.pts>0 && !focoRendeTop.semDados) _focoCands.push({s:(parseInt(_orientCfg.pPesos,10)||9), t:focoRendeTop.short+' — pode render '+focoRendeTop.ptsStr+' a mais na prova'});
     _focoCands.push({s:(parseInt(_orientCfg.pEdital,10)||8), t: nextAction?('o bloco de '+String(nextAction.disc||'estudo').replace('Direito ','')):'o próximo bloco do edital'});
     _focoCands.sort((a,b)=>b.s-a.s);
     const _focoVerbo = _cob==='rigido'?'Ataque já' : (_cob==='leve'?'Sem pressa, priorize' : 'Priorize');
@@ -4699,8 +5013,16 @@ class Component extends DCLogic {
     const _metaThresh = _cob==='leve'?50 : (_cob==='rigido'?100 : 85);
     if(_orientCfg.alMeta!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', icon:'🎯', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
     if(_orientCfg.alProva!==false && this.state.provaData){ _liveNotifs.push({id:'prova', tipo:'prova', icon:'📅', titulo:'Faltam '+_diasProvaN+' dias para a prova', texto:'Mantenha o ritmo: '+Math.round(B.totalMin/60)+'h estudadas até aqui.', tempo:'hoje', view:'inicio'}); }
+    // aviso de fim de dia: ofensiva em risco (após as 20h, sem estudo hoje, com sequência a proteger)
+    if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=20){
+      const _escN=this.state.escudos||0;
+      _liveNotifs.push({id:'ofensiva-'+new Date().toISOString().slice(0,10), tipo:'meta', icon:'🔥', titulo:'Sua ofensiva de '+B.streak+' dia'+(B.streak>1?'s':'')+' está em risco',
+        texto:_escN>0?('Estude hoje — ou um dos seus '+_escN+' escudo(s) 🛡️ será usado automaticamente amanhã.'):'Estude nem que sejam 15 minutos para não perder a sequência (você não tem escudos).', tempo:'hoje', view:'inicio'});
+    }
     const notifs = _liveNotifs.map(n=>{ const read=!!_notifRead[n.id]; return {...n, read, dotOp:read?'0':'1', bgC:read?'var(--surface)':'var(--accentSoft)'}; });
     this._lastNotifIds = _liveNotifs.map(n=>n.id);
+    // dispara notificação local (1x por gatilho/dia) fora do render
+    if(this.state.notifPush===true && _liveNotifs.length){ const _fireList=_liveNotifs.filter(n=>n.id==='rev-overdue'||n.id==='meta'||String(n.id).indexOf('ofensiva-')===0); if(_fireList.length){ setTimeout(()=>{ _fireList.forEach(n=>{ try{ this._fireLocalNotif(n); }catch(_){} }); },0); } }
     const notifUnread = notifs.filter(n=>!n.read).length;
 
     // ===== Conquistas (continuação) =====
@@ -4913,13 +5235,66 @@ class Component extends DCLogic {
     const planMin = this.state.planHoras*60;
     const planRows = planW.map(d=>{ const min=Math.round(planMin*(d.need/planSum)); return {...d, min, label: min>=60?`${Math.floor(min/60)}h${String(min%60).padStart(2,'0')}`:`${min}min`, pct:Math.round(d.need/planSum*100)}; }).sort((a,b)=>b.min-a.min);
 
+    // ===== Cronograma automático até a prova (derivado — sempre atualizado) =====
+    const cronoOn = !!this.state.provaData;
+    let cronoSemanas=[], cronoResumo='', cronoPendTotal=0;
+    if(cronoOn){
+      const _cDias=Math.max(1,_diasProvaN);
+      const _cNSem=Math.max(1,Math.ceil(_cDias/7));
+      const _cRevW=_cNSem>=6?2:(_cNSem>=3?1:0);           // semanas finais reservadas p/ revisão geral
+      const _cStudyW=Math.max(1,_cNSem-_cRevW);
+      // tópicos pendentes do edital, com peso (edital > mapa padrão > 1)
+      const _cPend=[]; this.state.edital.forEach(d=>{ const _pw=(d.peso!==''&&d.peso!=null)?(+d.peso||1):(_pesoBy[d.disc]||1); (d.topics||[]).forEach(t=>{ if(!t.done) _cPend.push({disc:d.disc, color:d.color||'#0f7a57', peso:_pw, name:t.name}); }); });
+      cronoPendTotal=_cPend.length;
+      _cPend.sort((a,b)=>b.peso-a.peso);
+      const _cPorSem=_cStudyW?Math.ceil(_cPend.length/_cStudyW):0;
+      const _fmtD=(dt)=>{ try{ return dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } };
+      const _hoje=new Date(); _hoje.setHours(0,0,0,0);
+      const _showMax=10;
+      for(let w=0; w<Math.min(_cNSem,_showMax); w++){
+        const ini=new Date(_hoje.getTime()+w*7*864e5), fim=new Date(Math.min(_hoje.getTime()+((w+1)*7-1)*864e5, new Date(this.state.provaData+'T00:00:00').getTime()));
+        const isRev=w>=_cStudyW;
+        const fatia=isRev?[]:_cPend.slice(w*_cPorSem,(w+1)*_cPorSem);
+        // agrupa por disciplina
+        const _gr={}; fatia.forEach(t=>{ (_gr[t.disc]||(_gr[t.disc]={disc:t.disc,color:t.color,names:[]})).names.push(t.name); });
+        const grupos=Object.values(_gr).map(g=>({disc:g.disc, color:g.color, resumo:g.names.slice(0,3).join(' · ')+(g.names.length>3?' · +'+(g.names.length-3):''), n:String(g.names.length)}));
+        const temSimulado=(!isRev && (w+1)%2===0) || w===_cNSem-1;
+        cronoSemanas.push({ n:String(w+1), label:_fmtD(ini)+' – '+_fmtD(fim), isRev, isUltima:w===_cNSem-1,
+          titulo:isRev?(w===_cNSem-1?'Revisão geral + simulado final':'Revisão geral — erros, lei seca e flashcards'):null,
+          grupos, temGrupos:grupos.length>0, temSimulado,
+          horas:String(this.state.planHoras||24) });
+      }
+      cronoResumo=_cNSem+' semana'+(_cNSem>1?'s':'')+' até a prova · '+cronoPendTotal+' tópico'+(cronoPendTotal!==1?'s':'')+' pendentes · ~'+(this.state.planHoras||24)+'h/semana';
+      if(_cNSem>_showMax) cronoResumo+=' · mostrando as primeiras '+_showMax+' semanas';
+    }
+    const cronoSemData=!cronoOn, cronoSemTopicos=cronoOn&&cronoPendTotal===0;
+
     // ===== Domínio por tópico (ancorado no líquido real da disciplina) =====
     const _liqShort={}; B.discList.forEach(d=>{ if(d.q>0) _liqShort[d.disc.replace('Direito ','')]=Math.max(5,Math.min(98,d.liqPct)); });
     const _domBlend=(short,orig)=>{ const real=_liqShort[short]; return real!=null ? Math.round(0.6*real+0.4*orig) : orig; };
-    const domTopics=(()=>{ const out=[]; (this.state.edital||[]).forEach(d=>{ const short=(d.disc||'').replace('Direito ',''); const real=_liqShort[short]; const baseDom=(real!=null?real:50);
-        (d.topics||[]).forEach(tp=>{ const dom=Math.max(8,Math.min(98,Math.round(tp.done?Math.max(baseDom,70):Math.min(baseDom,58)))); out.push({disc:short, topic:tp.name, dom, color:d.color||'#0f7a57'}); }); });
+    // domínio por tópico REAL: agrega as sessões do tópico (líquido), com amostra mínima e decaimento por recência
+    const domTopics=(()=>{ const out=[]; const MIN_Q=6, TAU=45; const now=Date.now();
+      (this.state.edital||[]).forEach(d=>{ const short=(d.disc||'').replace('Direito ','');
+        (d.topics||[]).forEach(tp=>{ const key=(d.disc||'—')+'¦'+B.normT(tp.name); const ag=B.byTopic[key];
+          if(ag && ag.q>=MIN_Q){
+            const liq=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100)));
+            const diasSem=Math.max(0,(now-(ag.lastTs||now))/864e5);
+            const emRisco=liq>=60 && diasSem>TAU;
+            out.push({disc:short, topic:tp.name, dom:liq, color:d.color||'#0f7a57', hasData:true, samples:ag.q, sampleStr:ag.q+'q', emRisco,
+              metaInfo:ag.q+' questões · há '+Math.round(diasSem)+'d'});
+          } else if(ag && ag.q>0){
+            out.push({disc:short, topic:tp.name, dom:Math.max(8,Math.min(98,Math.round((ag.a-ag.e)/ag.q*100))), color:d.color||'#0f7a57', hasData:false, samples:ag.q, sampleStr:ag.q+'q', emRisco:false,
+              metaInfo:'poucas questões ('+ag.q+') — resolva mais para consolidar'});
+          } else {
+            out.push({disc:short, topic:tp.name, dom:0, color:d.color||'#0f7a57', hasData:false, samples:0, sampleStr:'—', emRisco:false,
+              metaInfo:tp.done?'marcado como concluído · sem questões registradas':'sem dados — registre sessões com este tópico'});
+          } }); });
       return out; })()
-      .map(t=>({...t, level: t.dom>=70?'Dominado':t.dom>=50?'Em curso':'Frágil', levelColor: t.dom>=70?'#0f9d6b':t.dom>=50?'#c2790c':'#c0392f'})).sort((a,b)=>a.dom-b.dom);
+      .map(t=>({...t,
+        level: !t.hasData?(t.samples>0?'Poucos dados':'Sem dados'):(t.emRisco?'Em risco':(t.dom>=70?'Dominado':t.dom>=50?'Em curso':'Frágil')),
+        levelColor: !t.hasData?'var(--text3)':(t.emRisco?'#b08433':(t.dom>=70?'#0f9d6b':t.dom>=50?'#c2790c':'#c0392f')),
+        barW: t.hasData?t.dom:(t.samples>0?t.dom:0)}))
+      .sort((a,b)=>{ const ra=a.hasData?0:1, rb=b.hasData?0:1; if(ra!==rb) return ra-rb; return a.dom-b.dom; });
 
     // ===== Metas personalizadas =====
     const _mesIni=(()=>{ const d=new Date(); d.setDate(1); d.setHours(0,0,0,0); return d.getTime(); })();
@@ -5082,6 +5457,18 @@ class Component extends DCLogic {
     const _histFilter=this.state.historicoFilter||'';
     const histList=_histFilter?histAll.filter(s=>s.disc===_histFilter):histAll;
     const histDiscs=[...new Set(this.state.sessions.map(s=>s.disc).filter(Boolean))];
+    // disciplinas disponíveis para registro/edição: edital primeiro, depois já usadas; fallback jurídico só se vazio
+    const _discPadrao=['Direito Constitucional','Direito Administrativo','Direito Tributário','Direito Civil','Direito Penal','Processo Civil'];
+    const _discBase=[...new Set([...this.state.edital.map(d=>d.disc), ...histDiscs].map(x=>(x||'').trim()).filter(Boolean))];
+    const discListReg=_discBase.length?_discBase:_discPadrao;
+    const _sd0=this.state.sessionDraft||{};
+    const sessDiscCustom=!!_sd0.discCustom;
+    const sessDiscOpts=[...new Set([...discListReg, ...((!sessDiscCustom && _sd0.disc && !discListReg.includes(_sd0.disc))?[_sd0.disc]:[])])].map(v=>({v, sel:!sessDiscCustom && v===_sd0.disc}));
+    const sessDiscSelVal=sessDiscCustom?'__outra__':(_sd0.disc||'');
+    const _he0=this.state.histEdit||{};
+    const heDiscCustom=!!_he0.discCustom;
+    const heDiscOpts=[...new Set([...discListReg, ...((!heDiscCustom && _he0.disc && !discListReg.includes(_he0.disc))?[_he0.disc]:[])])].map(v=>({v, sel:!heDiscCustom && v===_he0.disc}));
+    const heDiscSelVal=heDiscCustom?'__outra__':(_he0.disc||'');
     const _histTotMin=this.state.sessions.reduce((a,s)=>a+(s.min||0),0);
     // ===== histórico: edição de sessão =====
     const _he=this.state.histEdit;
@@ -5131,7 +5518,8 @@ class Component extends DCLogic {
       revCardInterval:revRun.intervalo, revCardEf:revRun.ef, revCardReps:revRun.reps, revOpts:revRun.opts,
       revTallyAgain:revRun.again, revTallyHard:revRun.hard, revTallyGood:revRun.good, revTallyEasy:revRun.easy, revReviewedN:revRun.reviewedN, revAcertos:revRun.acertos,
       revStartDisabled: revPend===0,
-      revOverdue, revToday, revUpcoming, revPend, revPendStr:String(revPend),
+      revOverdue, revToday, revUpcoming, revPend, revPendStr:String(revPend), revHasPend:revPend>0,
+      bnInicio, bnCiclo, bnRevisoes,
       revOverdueEmpty:revOverdue.length===0, revTodayEmpty:revToday.length===0,
       isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
       isMentor:this.state.view==='mentor', navMentor:navStyle('mentor'),
@@ -5154,8 +5542,9 @@ class Component extends DCLogic {
       viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',dominio:'Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Análise de desempenho',conquistas:'Metas & Conquistas',mentor:'Mentor IA',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório'}[this.state.view]),
       viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Analisador de retenção — não produção de cartões',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',mentor:'Tira-dúvidas e orientação personalizada',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
-      syncLabel: this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador', syncTitle:'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho',
-      syncDot: this.state.syncFlash?'#c2790c':'#0f9d6b', syncBg:'var(--surface2)',
+      syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
+      syncTitle:(this.state.syncStatus==='local'?'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho':'Seus dados sincronizam com a sua conta — o merge une o progresso de todos os aparelhos'),
+      syncDot:({enviando:'#c2790c', salvo:'#0f9d6b', offline:'#8a8f98', erro:'#c0392f', local:(this.state.syncFlash?'#c2790c':'#0f9d6b')}[this.state.syncStatus]||'#0f9d6b'), syncBg:'var(--surface2)',
       dashDaily, dashDailyTotal, dashLast7, dashWeek, dashMonth, dashYearTotal, donutSegs, donutCenter, donutC:C,
       // ciclo
       blocks, cicloTotal, cicloDone, cicloPct, ringCirc, ringOffset, blocksHome,
@@ -5175,18 +5564,21 @@ class Component extends DCLogic {
         iconStyle:`width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;background:${on?'var(--accent)':'var(--surface2)'};color:${on?'var(--onAccent)':'var(--text2)'};`,
         titleColor: on?'var(--accentD)':'var(--ink)' }; }),
       cicloRestam, nextAction, hasNext:!!nextAction, allDone:!nextAction, greeting, dateLabel, weekdayLabel,
-      sidebarStreak:String(B.streak), tempoHoje, diasProva:(this.state.provaData?String(_diasProvaN):'—'), retencao:String(B.brutoPct), metaSemana, metaPct, focoSugestao, objetivoShort, bancaLabel, bancaInfo, bancaPenLabel, bancaPenStyle,
+      sidebarStreak:String(B.streak), tempoHoje,
+      escudos:String(this.state.escudos||0), escudoOn:(this.state.escudos||0)>0, escudosProxDias:String(B.streak>0?(7-(B.streak%7))%7||7:7), diasProva:((this.state.prefs.mostrarContagem!==false && this.state.provaData)?String(_diasProvaN):'—'), showContagem:this.state.prefs.mostrarContagem!==false, retencao:String(B.brutoPct), metaSemana, metaPct, focoSugestao, objetivoShort, bancaLabel, bancaInfo, bancaPenLabel, bancaPenStyle,
       // histórico
       isHistorico:this.state.view==='historico', navHistorico:navStyle('historico'),
       histList, histEmpty:histList.length===0, histNotEmpty:histList.length>0, histCount:String(histList.length), histFilterVal:_histFilter, histDiscs,
       histTotal:String(this.state.sessions.length), histHoras:(Math.round(_histTotMin/60*10)/10).toFixed(1), histBruto:B.brutoPct+'%', histLiq:(B.liq>0?'+'+B.liq:String(B.liq)),
       setHistFilter:this.setHistFilter, delSession:this.delSession,
       histEditOpen, histEdit, histEditCats, histEditResumo, openHistEdit:this.openHistEdit, onHistEditField:this.onHistEditField, setHistEditCat:this.setHistEditCat, closeHistEdit:this.closeHistEdit, saveHistEdit:this.saveHistEdit,
+      heDiscOpts, heDiscCustom, heDiscSelVal, onHistEditDisc:this.onHistEditDisc,
       // reta final
       isRetaFinal:this.state.view==='reta-final', navRetaFinal:navStyle('reta-final'),
       retaStatusLabel:_retaOn?'Modo reta final ATIVADO':'Modo reta final desativado', retaTog:togStyle(_retaOn), retaKnob:togKnob(_retaOn),
       retaReduz:_retaReduz, retaReduzTog:togStyle(_retaReduz), retaReduzKnob:togKnob(_retaReduz),
-      retaComOpts, retaComVal:_retaCom, retaProvaData:this.state.provaData||'', retaDias:(this.state.provaData?String(_diasProvaN):'—'),
+      retaComOpts, retaComVal:_retaCom, retaProvaData:this.state.provaData||'', retaDias:((this.state.prefs.mostrarContagem!==false && this.state.provaData)?String(_diasProvaN):'—'),
+      cronoOn, cronoSemanas, cronoResumo, cronoSemData, cronoSemTopicos,
       retaRevVenc:String(revOverdue.length), retaSim:String(B.simulados),
       retaCmds, retaNext, retaHasNext:retaNext.length>0,
       setProvaData:this.setProvaData, toggleRetaFinal:this.toggleRetaFinal, setRetaCom:this.setRetaCom, toggleReduzTeoria:this.toggleReduzTeoria, retaCriarBloco:this.retaCriarBloco,
@@ -5198,6 +5590,7 @@ class Component extends DCLogic {
       setRelPeriod:this.setRelPeriod, relPrint:this.exportPDF,
       // sessões
       onSessionField:this.onSessionField, setSessionCat:this.setSessionCat, setSessionFoco:this.setSessionFoco, toggleSessionFlag:this.toggleSessionFlag, sessionQuickMin:this.sessionQuickMin,
+      sessDiscOpts, sessDiscCustom, sessDiscSelVal, onSessionDisc:this.onSessionDisc,
       sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary, bibLinkOpts, hasBibForLink,
       flagRevisao:_flag(this.state.sessionDraft.agendarRevisao), switchRevisao:_switch(this.state.sessionDraft.agendarRevisao), switchRevisaoKnob:_knob(this.state.sessionDraft.agendarRevisao),
       flagMeta:_flag(this.state.sessionDraft.contarMeta!==false), switchMeta:_switch(this.state.sessionDraft.contarMeta!==false), switchMetaKnob:_knob(this.state.sessionDraft.contarMeta!==false),
@@ -5225,6 +5618,7 @@ class Component extends DCLogic {
       edParsedView, edParsedDisc, edParsedTopics, hasParsed:!!this.state.edParsed,
       dropZoneStyle, edSegPdf:segBtn(this.state.edImportMode==='pdf'), edSegTexto:segBtn(this.state.edImportMode==='texto'),
       edSetMode:this.edSetMode, edSetRaw:this.edSetRaw, edRecognize:this.edRecognize, edPickFile:this.edPickFile, edDrop:this.edDrop, edConfirm:this.edConfirm, edDiscard:this.edDiscard,
+      edStructureAI:this.edStructureAI, edAiBusy:this.state.edAiBusy, edAiLabel:(this.state.edAiBusy?'Estruturando com IA…':'Estruturar com IA ✦'),
       onDragOver:(e)=>e.preventDefault(),
       // estatísticas (Início)
       statsTiles:[
@@ -5278,6 +5672,7 @@ class Component extends DCLogic {
       isPlanej:this.state.view==='planejamento', navPlanej:navStyle('planejamento'), planRows, planHoras:this.state.planHoras, setPlanHoras:this.setPlanHoras,
       // domínio por tópico
       isDominio:this.state.view==='dominio', navDominio:navStyle('dominio'), domTopics,
+      focoRende, hasFocoRende,
       // metas
       metas, metaDraft:this.state.metaDraft, onMetaDraft:this.onMetaDraft, addMeta:this.addMeta, metaPlus:this.metaPlus, editMeta:this.editMeta, removeMeta:this.removeMeta,
       // modo prova
@@ -5324,6 +5719,7 @@ class Component extends DCLogic {
       // ajustes: foco
       focoBloco:pf0.focoBloco, focoPausa:pf0.focoPausa, setFocoNum:this.setFocoNum,
       togAutoReg:togStyle(pf0.autoRegistro), togAutoRegKnob:togKnob(pf0.autoRegistro),
+      togContagem:togStyle(pf0.mostrarContagem!==false), togContagemKnob:togKnob(pf0.mostrarContagem!==false),
       togAutoConc:togStyle(pf0.autoConcluir), togAutoConcKnob:togKnob(pf0.autoConcluir),
       togAutoRev:togStyle(pf0.autoRevisao), togAutoRevKnob:togKnob(pf0.autoRevisao),
       // ajustes: alertas
@@ -5340,6 +5736,10 @@ class Component extends DCLogic {
       notifOpen:this.state.notifOpen, toggleNotif:this.toggleNotif, closeNotif:this.closeNotif, readNotif:this.readNotif, readAllNotif:this.readAllNotif, goNotif:this.goNotif,
       notifs,
       notifUnread, notifUnreadStr:String(notifUnread), hasUnread:notifUnread>0,
+      requestNotifPerm:this.requestNotifPerm,
+      notifPermBtnLabel:(this.state.notifPerm==='granted'&&this.state.notifPush)?'Notificações ativadas ✓':'Ativar notificações',
+      notifPermStatus:({granted:this.state.notifPush?'permissão concedida':'permissão concedida — clique para ligar', denied:'permissão negada no navegador', default:'ainda não solicitada'}[this.state.notifPerm])||(this._notifSupported()?'':'não suportado neste navegador'),
+      notifPermColor:this.state.notifPerm==='granted'?'#0f9d6b':(this.state.notifPerm==='denied'?'#c0392f':'var(--text3)'),
       // menu suspenso de usuário
       userMenuOpen:this.state.userMenuOpen, toggleUserMenu:this.toggleUserMenu, userMenuGo:this.userMenuGo, userInitial:(pf0.nome||'A').slice(0,1).toUpperCase(), userName:pf0.nome, userFirstName:(pf0.nome||'Aluno').trim().split(/\s+/)[0]||'Aluno', userObjetivo:pf0.objetivo,
       // login
@@ -5366,6 +5766,7 @@ class Component extends DCLogic {
       habCards, habDoneN, habTotalN, habInc:this.habInc, habDec:this.habDec,
       isComunidade:this.state.view==='comunidade', navComunidade:navStyle('comunidade'),
       comRank, comNowAvatars, comNowN, comUserPos, comUserH, comUserStreak, comGrupos, comFeed,
+      comViaGrupo, comSemGrupo:!comViaGrupo, comGrupoChips, comTemGrupos, setComGrupoAtivo:this.setComGrupoAtivo, comDesafio, hasComDesafio,
       grupoDraft:this.state.grupoDraft, onGrupoDraft:this.onGrupoDraft, addGrupo:this.addGrupo, entrarGrupo:this.entrarGrupo, removeGrupo:this.removeGrupo, copiarCodigo:this.copiarCodigo,
       gruposBusy:this.state.gruposBusy, gruposSync:this.state.gruposSync, gruposCloud:!!(typeof window!=='undefined'&&window.CatedraAuth&&window.CatedraAuth.client),
       comGruposEmpty: comGrupos.length===0, comFeedEmpty: comFeed.length===0, comOnlyYou: comRank.length<=1,

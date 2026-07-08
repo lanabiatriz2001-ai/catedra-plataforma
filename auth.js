@@ -26,44 +26,143 @@
   // originais — usados internamente para NÃO disparar o sync em cascata
   var _si = localStorage.setItem.bind(localStorage);
   var _ri = localStorage.removeItem.bind(localStorage);
-  var EXCLUDE = { 'catedra:auth': 1 };
+  // _dirty/_lastSrv/notifSent são meta-estado LOCAL do aparelho — nunca sobem no blob
+  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1 };
   function isData(k) { return k && k.indexOf('catedra:') === 0 && !EXCLUDE[k]; }
 
   function collect() { var o = {}; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (isData(k)) o[k] = localStorage.getItem(k); } return o; }
   function applyData(d) { if (!d) return; Object.keys(d).forEach(function (k) { if (isData(k)) { try { _si(k, d[k]); } catch (_) {} } }); }
   function clearLocal() { var r = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('catedra:') === 0) r.push(k); } r.forEach(function (k) { _ri(k); }); }
 
-  var user = null, hydrating = true, pushT = null, authToken = null, firstDirtyAt = 0;
+  var user = null, hydrating = true, pushT = null, authToken = null, pushing = false;
   // mantém o token do usuário em cache (para o flush com keepalive ao fechar a aba)
   sb.auth.onAuthStateChange(function (_e, session) { authToken = session && session.access_token; });
 
+  // ---------- estado real de sync (exposto ao app) ----------
+  var syncStatus = 'local';
+  function setStatus(s) {
+    syncStatus = s;
+    try { window.dispatchEvent(new CustomEvent('catedra:syncstate', { detail: { status: s } })); } catch (_) {}
+  }
+  function isDirty() { try { return localStorage.getItem('catedra:_dirty') === '1'; } catch (_) { return false; } }
+  function setDirty(v) { try { if (v) _si('catedra:_dirty', '1'); else _ri('catedra:_dirty'); } catch (_) {} }
+  function lastSrv() { try { return localStorage.getItem('catedra:_lastSrv') || ''; } catch (_) { return ''; } }
+  function setLastSrv(v) { try { _si('catedra:_lastSrv', v || ''); } catch (_) {} }
+
+  // ---------- merge por chave/id (fim do last-write-wins) ----------
+  // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
+  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:meusGrupos': 1 };
+  function parseJ(s) { try { return JSON.parse(s); } catch (_) { return undefined; } }
+  function stamp(x) { return (x && (x.up || x.ts)) || 0; }
+  function mergeArr(sv, lc, preferServer) {
+    if (!Array.isArray(sv)) return lc; if (!Array.isArray(lc)) return sv;
+    var map = {}, order = [];
+    sv.forEach(function (it) { if (it && it.id != null) { map[it.id] = it; order.push(it.id); } });
+    lc.forEach(function (it) {
+      if (!it || it.id == null) return;
+      if (!(it.id in map)) { map[it.id] = it; order.push(it.id); return; }
+      var s = map[it.id];
+      // colisão: vence quem tem carimbo mais novo; sem carimbo, vence conforme a direção do merge
+      if (stamp(it) > stamp(s)) map[it.id] = it;
+      else if (stamp(it) === stamp(s) && !preferServer) map[it.id] = it;
+    });
+    return order.map(function (id) { return map[id]; });
+  }
+  function mergeHl(sv, lc) {
+    if (!sv || typeof sv !== 'object') return lc; if (!lc || typeof lc !== 'object') return sv;
+    var out = {}; var books = {};
+    Object.keys(sv).forEach(function (b) { books[b] = 1; }); Object.keys(lc).forEach(function (b) { books[b] = 1; });
+    Object.keys(books).forEach(function (b) { out[b] = mergeArr(sv[b] || [], lc[b] || [], false); });
+    return out;
+  }
+  // serverObj/localObj: {chave: stringJSON}. preferServer decide escalares sem carimbo.
+  function mergeAll(serverObj, localObj, preferServer) {
+    serverObj = serverObj || {}; localObj = localObj || {};
+    var keys = {}, out = {};
+    Object.keys(serverObj).forEach(function (k) { keys[k] = 1; }); Object.keys(localObj).forEach(function (k) { keys[k] = 1; });
+    Object.keys(keys).forEach(function (k) {
+      if (!isData(k)) return;
+      var sv = serverObj[k], lc = localObj[k];
+      if (sv == null) { out[k] = lc; return; }
+      if (lc == null) { out[k] = sv; return; }
+      if (sv === lc) { out[k] = lc; return; }
+      if (ARRAY_ID[k]) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
+      if (k === 'catedra:hl') { var h = mergeHl(parseJ(sv), parseJ(lc)); out[k] = h !== undefined ? JSON.stringify(h) : (preferServer ? sv : lc); return; }
+      out[k] = preferServer ? sv : lc; // escalares/objetos sem carimbo: direção do merge decide
+    });
+    return out;
+  }
+
   function pushNow() {
-    if (!user || hydrating) return;
-    firstDirtyAt = 0;
-    sb.from('user_data').upsert({ user_id: user.id, data: collect(), updated_at: new Date().toISOString() })
-      .then(function (res) { if (res && res.error) console.warn('[Cátedra] sync erro:', res.error.message); });
+    if (!user || hydrating || pushing) return;
+    pushing = true; setStatus('enviando');
+    // read-before-write: relê o servidor e mescla antes de subir (nada de sobrescrever cego)
+    sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
+      .then(function (res) {
+        var row = res && res.data;
+        var merged = mergeAll(row && row.data, collect(), false); // subida: local prevalece nos escalares
+        applyData(merged); // grava o resultado unido localmente (via _si — não redispara sync)
+        var now = new Date().toISOString();
+        return sb.from('user_data').upsert({ user_id: user.id, data: merged, updated_at: now })
+          .then(function (r2) {
+            if (r2 && r2.error) throw r2.error;
+            setDirty(false); setLastSrv(now); setStatus('salvo');
+          });
+      })
+      .catch(function (err) { console.warn('[Cátedra] sync erro:', err && err.message); setStatus(navigator.onLine === false ? 'offline' : 'erro'); })
+      .then(function () { pushing = false; });
   }
   window.CatedraSync = { push: function () {
-    if (!firstDirtyAt) firstDirtyAt = Date.now();
+    setDirty(true);
     clearTimeout(pushT);
-    // debounce 700ms; se está acumulando há >2,5s (edição contínua), sobe já.
-    pushT = setTimeout(pushNow, (Date.now() - firstDirtyAt) > 2500 ? 0 : 700);
-  } };
-  // flush imediato quando a aba é fechada/minimizada — a última edição SEMPRE sobe.
-  // keepalive faz a requisição sobreviver ao fechamento; usa o JWT do usuário (RLS).
+    pushT = setTimeout(pushNow, 700);
+  }, get status() { return syncStatus; } };
+
+  // pull + merge ao voltar para a aba / reconectar — o outro aparelho pode ter estudado
+  var pulling = false;
+  function pullAndMerge() {
+    if (!user || hydrating || pushing || pulling) return;
+    pulling = true;
+    sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
+      .then(function (res) {
+        var row = res && res.data;
+        if (!row || !row.data) { pulling = false; return; }
+        var serverNewer = row.updated_at && row.updated_at > lastSrv();
+        if (!serverNewer && !isDirty()) { pulling = false; setStatus('salvo'); return; }
+        // servidor mais novo e este aparelho limpo → escalares vêm do servidor; arrays sempre por id
+        var merged = mergeAll(row.data, collect(), serverNewer && !isDirty());
+        applyData(merged);
+        setLastSrv(row.updated_at || lastSrv());
+        try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {}
+        pulling = false;
+        if (isDirty()) pushNow(); else setStatus('salvo');
+      })
+      .catch(function () { pulling = false; setStatus(navigator.onLine === false ? 'offline' : 'erro'); });
+  }
+
+  // flush imediato quando a aba é fechada/minimizada. keepalive sobrevive ao fechamento;
+  // SEM token de usuário não envia (RLS rejeitaria) — o dirty fica marcado e a próxima
+  // abertura reconcilia via pullAndMerge + pushNow.
   function flushSync() {
     if (!user || hydrating) return;
-    clearTimeout(pushT); firstDirtyAt = 0;
+    clearTimeout(pushT);
+    if (!authToken) return; // sem JWT o POST seria rejeitado pelo RLS — deixa o dirty para a próxima sessão
     try {
       fetch(CFG.url + '/rest/v1/user_data', {
         method: 'POST', keepalive: true,
-        headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + (authToken || CFG.key), 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+        headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify({ user_id: user.id, data: collect(), updated_at: new Date().toISOString() }),
       });
+      // não dá para confirmar sucesso no unload: mantém o dirty; a próxima abertura confirma/mescla
     } catch (_) { pushNow(); }
   }
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushSync(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') flushSync();
+    else if (document.visibilityState === 'visible') pullAndMerge();
+  });
   window.addEventListener('pagehide', flushSync);
+  window.addEventListener('online', function () { setStatus('enviando'); pullAndMerge(); });
+  window.addEventListener('offline', function () { setStatus('offline'); });
 
   // intercepta escritas do app/usuário para acionar a sincronização.
   // usa defineProperty com enumerable:false para NÃO poluir Object.keys(localStorage).
@@ -148,12 +247,19 @@
   // ---------- fluxo ----------
   function onLogin(u) {
     user = u;
-    if (sessionStorage.getItem('catedra:hydrated') === '1') { _si('catedra:auth', '1'); hydrating = false; hide(); return; }
+    if (sessionStorage.getItem('catedra:hydrated') === '1') { _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
     showLoading('Carregando seus dados…');
-    sb.from('user_data').select('data').eq('user_id', u.id).maybeSingle().then(function (res) {
+    sb.from('user_data').select('data,updated_at').eq('user_id', u.id).maybeSingle().then(function (res) {
       var row = res && res.data;
-      if (row && row.data && Object.keys(row.data).length) { clearLocal(); applyData(row.data); }
-      else { sb.from('user_data').upsert({ user_id: u.id, data: collect(), updated_at: new Date().toISOString() }); }
+      var now = new Date().toISOString();
+      if (row && row.data && Object.keys(row.data).length) {
+        // mescla nuvem + local (por id nos arrays) — edições offline deste aparelho não se perdem
+        var merged = mergeAll(row.data, collect(), true);
+        applyData(merged);
+        sb.from('user_data').upsert({ user_id: u.id, data: merged, updated_at: now });
+        setLastSrv(now); setDirty(false);
+      }
+      else { sb.from('user_data').upsert({ user_id: u.id, data: collect(), updated_at: now }); setLastSrv(now); setDirty(false); }
       _si('catedra:auth', '1');
       sessionStorage.setItem('catedra:hydrated', '1');
       location.reload();
