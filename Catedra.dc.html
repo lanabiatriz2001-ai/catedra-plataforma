@@ -1027,12 +1027,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                   <div style="font-size:11px;color:var(--text3);margin-top:7px;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:99px;background:{{ d.color }};flex:none;"></span>{{ d.actStr }}</div>
                 </div>
               </button>
+              <!-- peso + nº de questões: sempre visível (não precisa expandir) -->
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:0 18px 14px 42px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);">Peso no edital<input type="number" min="0" step="0.5" data-i="{{ d.i }}" data-k="peso" value="{{ d.pesoVal }}" oninput="{{ onDiscMeta }}" placeholder="—" style="width:72px;border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:5px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;"></label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);">Nº de questões<input type="number" min="0" step="1" data-i="{{ d.i }}" data-k="questoes" value="{{ d.questoesVal }}" oninput="{{ onDiscMeta }}" placeholder="—" style="width:82px;border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:5px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;"></label>
+                <span style="font-size:11px;color:var(--text3);">usados no ciclo, cronograma e no ranking "onde rende mais pontos"</span>
+              </div>
               <sc-if value="{{ d.open }}" hint-placeholder-val="{{ false }}">
                 <div style="padding:2px 18px 14px 42px;display:flex;flex-direction:column;gap:2px;">
-                  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:6px 0 12px;">
-                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);">Peso no edital<input type="number" min="0" step="0.5" data-i="{{ d.i }}" data-k="peso" value="{{ d.pesoVal }}" oninput="{{ onDiscMeta }}" placeholder="—" style="width:72px;border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:5px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;"></label>
-                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);">Nº de questões<input type="number" min="0" step="1" data-i="{{ d.i }}" data-k="questoes" value="{{ d.questoesVal }}" oninput="{{ onDiscMeta }}" placeholder="—" style="width:82px;border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:5px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;"></label>
-                  </div>
                   <sc-for list="{{ d.topics }}" as="t" hint-placeholder-count="4">
                     <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--border);">
                       <button data-d="{{ t.d }}" data-i="{{ t.i }}" onclick="{{ toggleTopic }}" title="Concluir / desmarcar" style="width:20px;height:20px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ t.checkBorder }};background:{{ t.checkBg }};color:#fff;cursor:pointer;padding:0;">
