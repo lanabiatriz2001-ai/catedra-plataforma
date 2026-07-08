@@ -250,6 +250,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <button onclick="{{ resetTimer }}" title="Zerar" style="width:30px;height:30px;border-radius:99px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--text3);flex:none;">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         </button>
+        <button onclick="{{ togglePiP }}" title="Janela flutuante (Picture-in-Picture)" style="width:30px;height:30px;border-radius:99px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--text3);flex:none;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="5" width="18" height="14" rx="2"></rect><rect x="12" y="12" width="6" height="4" rx="1" fill="currentColor" stroke="none"></rect></svg>
+        </button>
         <button onclick="{{ openSession }}" title="Registrar sessão" style="width:30px;height:30px;border-radius:99px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--ink);color:var(--surface);flex:none;">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>
         </button>
@@ -3011,7 +3014,7 @@ class Component extends DCLogic {
       if(e.key==='Tab' && this._modalActive){ const panel=document.querySelector('.ct-modal-panel'); if(panel){ const f=[].slice.call(panel.querySelectorAll('input:not([type=hidden]),textarea,select,button,a[href],[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled && el.offsetParent!==null); if(f.length){ const first=f[0], last=f[f.length-1]; if(!panel.contains(document.activeElement)){ e.preventDefault(); first.focus(); } else if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); } else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); } } } } };
     window.addEventListener('keydown', this._onKey);
   }
-  componentWillUnmount(){ if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._tick) clearInterval(this._tick); this._teardownReader(); }
+  componentWillUnmount(){ if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._tick) clearInterval(this._tick); if(this._pipMsgT) clearTimeout(this._pipMsgT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
   componentDidUpdate(){ this._readerSync(); this._syncModalFocus(); this._autosave(); }
   // carrega uma fatia do estado do localStorage (usado no construtor)
   _load(k, fb){ try{ const r=localStorage.getItem('catedra:'+k); if(r!=null){ const v=JSON.parse(r); if(v!=null) return v; } }catch(_){} return fb; }
@@ -3461,7 +3464,8 @@ class Component extends DCLogic {
   enterFocus = ()=>{ this.setState({focusMode:true, pomoMenuOpen:false}); if(!this.state.timerRunning) this.toggleTimer(); };
   exitFocus = ()=> this.setState({focusMode:false});
   // ===== Picture-in-Picture do cronômetro (janela flutuante do modo foco) =====
-  _pipReady(){ try{ return typeof document!=='undefined' && document.pictureInPictureEnabled && !!document.createElement('video').requestPictureInPicture; }catch(_){ return false; } }
+  _docPiPReady(){ try{ return !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow); }catch(_){ return false; } }
+  _videoPiPReady(){ try{ const v=document.createElement('video'); return !!(document.pictureInPictureEnabled && v.requestPictureInPicture) || !!(v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')); }catch(_){ return false; } }
   _pipVals(){
     const st=this.state, isPomo=st.timerMode==='pomo';
     const isPausa=isPomo && st.pomoPhase==='pausa';
@@ -3471,7 +3475,65 @@ class Component extends DCLogic {
       label: isPomo?(st.pomoPhase==='foco'?'FOCO':'PAUSA'):'SESSÃO LIVRE',
       color: isPausa?'#e0922a':'#13a06b',
       pct: (isPomo&&phaseDur)?Math.min(1,st.timerSeconds/phaseDur):0,
-      running: st.timerRunning, isPomo };
+      running: st.timerRunning, isPomo, phaseText:isPomo?(isPausa?'Pausa':'Foco'):'Sessão livre' };
+  }
+  _pipFlash(msg){
+    if(this._pipMsgT) clearTimeout(this._pipMsgT);
+    this.setState({pipMsg:msg});
+    this._pipMsgT=setTimeout(()=>{ try{ this.setState({pipMsg:''}); }catch(_){} }, 7000);
+  }
+  _closeDocPiP(){
+    if(this._pipDocInt){ clearInterval(this._pipDocInt); this._pipDocInt=null; }
+    if(this._pipWin && !this._pipWin.closed){ try{ this._pipWin.close(); }catch(_){} }
+    this._pipWin=null;
+  }
+  _renderDocPiP(){
+    const w=this._pipWin; if(!w || w.closed) return;
+    const v=this._pipVals();
+    const $=(id)=>w.document.getElementById(id);
+    const time=$('ct-pip-time'), phase=$('ct-pip-phase'), state=$('ct-pip-state'), bar=$('ct-pip-bar'), toggle=$('ct-pip-toggle');
+    if(time) time.textContent=v.disp;
+    if(phase){ phase.textContent=v.phaseText; phase.style.color=v.color; }
+    if(state) state.textContent=v.running?'Rodando':'Pausado';
+    if(bar){ bar.style.width=Math.round(v.pct*100)+'%'; bar.style.background=v.color; bar.style.opacity=v.isPomo?'1':'0'; }
+    if(toggle) toggle.textContent=v.running?'Pausar':'Retomar';
+  }
+  async _openDocPiP(){
+    const w=await window.documentPictureInPicture.requestWindow({width:360,height:250});
+    this._pipWin=w;
+    w.document.title='Cátedra · Foco';
+    w.document.body.innerHTML=`
+      <style>
+        *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d1512;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif}
+        .wrap{height:100%;display:flex;flex-direction:column;justify-content:center;padding:20px 22px;background:radial-gradient(circle at 20% 12%,rgba(19,160,107,.34),transparent 34%),linear-gradient(135deg,#101b16,#070b09)}
+        .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;font-size:12px;color:rgba(255,255,255,.58);font-weight:650;letter-spacing:.12em;text-transform:uppercase}
+        .phase{font-size:13px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+        .time{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:62px;line-height:.95;font-weight:800;letter-spacing:-.06em;text-align:center;margin:7px 0 14px;white-space:nowrap}
+        .track{height:6px;background:rgba(255,255,255,.13);border-radius:99px;overflow:hidden;margin:0 0 18px}
+        .bar{height:100%;width:0%;border-radius:99px;transition:width .4s linear,background .2s}
+        .actions{display:flex;gap:8px}
+        button{flex:1;border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.08);color:#fff;font:700 13px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer}
+        button.primary{background:#13a06b;border-color:#13a06b;color:#fff}
+      </style>
+      <div class="wrap">
+        <div class="brand"><span>Cátedra</span><span id="ct-pip-state">Rodando</span></div>
+        <div id="ct-pip-phase" class="phase">Foco</div>
+        <div id="ct-pip-time" class="time">00:00</div>
+        <div class="track"><div id="ct-pip-bar" class="bar"></div></div>
+        <div class="actions">
+          <button id="ct-pip-toggle" class="primary">Pausar</button>
+          <button id="ct-pip-reset">Zerar</button>
+          <button id="ct-pip-open">Abrir</button>
+        </div>
+      </div>`;
+    w.document.getElementById('ct-pip-toggle').addEventListener('click', ()=>this.toggleTimer());
+    w.document.getElementById('ct-pip-reset').addEventListener('click', ()=>this.resetTimer());
+    w.document.getElementById('ct-pip-open').addEventListener('click', ()=>{ try{ window.focus(); this.setState({focusMode:true}); }catch(_){} });
+    w.addEventListener('pagehide', ()=>{ if(this._pipWin===w){ if(this._pipDocInt){ clearInterval(this._pipDocInt); this._pipDocInt=null; } this._pipWin=null; } });
+    this._renderDocPiP();
+    if(this._pipDocInt) clearInterval(this._pipDocInt);
+    this._pipDocInt=setInterval(()=>this._renderDocPiP(), 500);
+    this._pipFlash('Janela flutuante aberta. Se quiser, pode deixar o Cátedra em segundo plano.');
   }
   _drawPiP(){
     const cv=this._pipCv; if(!cv) return; const ctx=cv.getContext('2d'); const W=cv.width, H=cv.height; const v=this._pipVals();
@@ -3479,37 +3541,47 @@ class Component extends DCLogic {
     if(v.isPomo){ ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fillRect(0,0,W,12); ctx.fillStyle=v.color; ctx.fillRect(0,0,W*v.pct,12); }
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillStyle=v.color; ctx.font='bold 34px -apple-system, system-ui, sans-serif';
-    ctx.fillText(v.label + (v.running?'':'  ❚❚'), W/2, H*0.27);
-    ctx.fillStyle='#fff'; ctx.font='700 148px ui-monospace, "SF Mono", Menlo, monospace';
+    ctx.fillText(v.label + (v.running?'':'  PAUSADO'), W/2, H*0.27);
+    ctx.fillStyle='#fff'; ctx.font=`700 ${v.disp.length>5?118:148}px ui-monospace, "SF Mono", Menlo, monospace`;
     ctx.fillText(v.disp, W/2, H*0.58);
     ctx.fillStyle='rgba(255,255,255,.4)'; ctx.font='500 24px -apple-system, system-ui, sans-serif';
     ctx.fillText('Cátedra · Modo Foco', W/2, H*0.87);
   }
   _pipStop(){ if(this._pipInt){ clearInterval(this._pipInt); this._pipInt=null; } if(this._pipVid){ try{ this._pipVid.pause(); }catch(_){} } }
+  async _openVideoPiP(){
+    if(!this._pipCv){
+      this._pipCv=document.createElement('canvas'); this._pipCv.width=640; this._pipCv.height=360;
+      const vid=document.createElement('video'); vid.muted=true; vid.playsInline=true; vid.autoplay=true; vid.disablePictureInPicture=false; vid.setAttribute('playsinline','');
+      vid.style.cssText='position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:.01;pointer-events:none;';
+      document.body.appendChild(vid); this._pipVid=vid;
+      vid.addEventListener('leavepictureinpicture', ()=>{ this._pipStop(); });
+      vid.addEventListener('webkitpresentationmodechanged', ()=>{ if(vid.webkitPresentationMode!=='picture-in-picture') this._pipStop(); });
+    }
+    if(!this._pipCv.captureStream) throw {name:'NotSupportedError'};
+    this._drawPiP();
+    this._pipVid.srcObject=this._pipCv.captureStream(2);
+    await this._pipVid.play();
+    if(this._pipVid.requestPictureInPicture) await this._pipVid.requestPictureInPicture();
+    else if(this._pipVid.webkitSetPresentationMode) this._pipVid.webkitSetPresentationMode('picture-in-picture');
+    else throw {name:'NotSupportedError'};
+    if(this._pipInt) clearInterval(this._pipInt);
+    this._pipInt=setInterval(()=>this._drawPiP(), 500);
+    this._pipFlash('PiP aberto como visor de foco. No iPad, o Safari pode limitar interação dentro da janela.');
+  }
   togglePiP = async ()=>{
     try{
+      if(this._pipWin && !this._pipWin.closed){ this._closeDocPiP(); return; }
       if(document.pictureInPictureElement){ await document.exitPictureInPicture(); this._pipStop(); return; }
-      if(!this._pipReady()) throw {name:'NotSupportedError'};
-      if(!this._pipCv){
-        this._pipCv=document.createElement('canvas'); this._pipCv.width=640; this._pipCv.height=360;
-        const vid=document.createElement('video'); vid.muted=true; vid.playsInline=true; vid.setAttribute('playsinline','');
-        vid.style.cssText='position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
-        document.body.appendChild(vid); this._pipVid=vid;
-        vid.addEventListener('leavepictureinpicture', ()=>{ this._pipStop(); });
-      }
-      this._drawPiP();
-      this._pipVid.srcObject=this._pipCv.captureStream(4);
-      await this._pipVid.play();
-      await this._pipVid.requestPictureInPicture();
-      if(this._pipInt) clearInterval(this._pipInt);
-      this._pipInt=setInterval(()=>this._drawPiP(), 500);
+      if(this._docPiPReady()) return await this._openDocPiP();
+      if(this._videoPiPReady()) return await this._openVideoPiP();
+      throw {name:'NotSupportedError'};
     }catch(e){
       this._pipStop();
       const nm=String((e&&(e.name||e.message))||'');
       const msg=/NotSupported|not supported/i.test(nm)
-        ? 'Este navegador não permite janela flutuante (PiP). No iPhone o Modo Foco fica em tela cheia; o PiP flutuante funciona no Chrome (computador/Android).'
+        ? 'Este navegador não liberou Picture-in-Picture para este modo. No iPad, tente abrir pelo Safari; se o sistema bloquear o visor, use Tela cheia.'
         : 'Não consegui abrir a janela flutuante agora — tente de novo.';
-      this.setState({pipMsg:msg}); setTimeout(()=>{ try{ this.setState({pipMsg:''}); }catch(_){} }, 7000);
+      this._pipFlash(msg);
     }
   };
   finishFocus = ()=>{ if(this._tick){ clearInterval(this._tick); this._tick=null; } const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60); this.setState(s=>({focusMode:false, timerRunning:false, sessionModalOpen:true, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
