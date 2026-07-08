@@ -732,41 +732,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
         </div>
 
-        <!-- SESSÕES RECENTES (registro que alimenta tudo) -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
-            <div style="display:flex;align-items:center;gap:9px;"><span style="font-size:18px;">⏱️</span><span style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);">Sessões recentes</span></div>
-            <button onclick="{{ openSession }}" style="display:flex;align-items:center;gap:7px;background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>Registrar</button>
+        <!-- ESTATÍSTICAS (leitura objetiva, no topo) -->
+        <div>
+          <div style="font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink);margin-bottom:14px;">Estatísticas</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+            <sc-for list="{{ statsTiles }}" as="t" hint-placeholder-count="8">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--heroGrad);"></div>
+                <div style="font-family:var(--display);font-size:26px;font-weight:700;color:var(--ink);line-height:1;">{{ t.value }}</div>
+                <div style="font-size:11.5px;color:var(--text3);margin-top:7px;">{{ t.label }}</div>
+              </div>
+            </sc-for>
           </div>
-          <div style="font-size:12.5px;color:var(--text3);margin-bottom:16px;">cada registro soma às suas horas, ao desempenho e às revisões</div>
-          <sc-if value="{{ hasSessions }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessionsCount }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">sessões</div></div>
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessTotalH }}h</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">tempo somado</div></div>
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessAccOverall }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">bruto</div></div>
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:{{ sessLiqColor }};line-height:1;">{{ sessLiqOverall }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">líquido</div></div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <sc-for list="{{ recentSessions }}" as="s" hint-placeholder-count="3">
-                <div style="display:flex;gap:11px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;">
-                  <span style="width:34px;height:34px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;">{{ s.icon }}</span>
-                  <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.topico }}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">{{ s.discShort }} · {{ s.catLabel }} · {{ s.ago }}</div></div>
-                  <div style="display:flex;align-items:center;gap:10px;flex:none;">
-                    <sc-if value="{{ s.hasLiq }}" hint-placeholder-val="{{ false }}"><span title="líquido (acertos − erradas)" style="font-family:var(--mono);font-size:12px;font-weight:700;color:{{ s.liqColor }};">{{ s.liqStr }}</span></sc-if>
-                    <sc-if value="{{ s.hasAcc }}" hint-placeholder-val="{{ false }}"><span title="aproveitamento bruto" style="font-family:var(--mono);font-size:12px;font-weight:700;color:{{ s.accColor }};">{{ s.accStr }}</span></sc-if>
-                    <span style="font-family:var(--mono);font-size:12px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:4px 9px;">{{ s.minStr }}</span>
-                  </div>
-                </div>
-              </sc-for>
-            </div>
-          </sc-if>
-          <sc-if value="{{ noSessions }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 15px;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;">
-              <span style="font-size:22px;flex:none;">⏱️</span>
-              <div style="flex:1;min-width:180px;"><div style="font-size:13px;font-weight:600;color:var(--ink);">Nenhuma sessão registrada ainda</div><div style="font-size:12px;color:var(--text3);margin-top:2px;line-height:1.45;">Registre a primeira para alimentar horas, desempenho e revisões.</div></div>
-              <button onclick="{{ openSession }}" style="flex:none;background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:9px 16px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">Registrar primeira sessão</button>
-            </div>
-          </sc-if>
         </div>
         <!-- TEMPO DE ESTUDO HOJE (topo) -->
         <!-- TEMPO DE ESTUDO HOJE + META DA SEMANA (lado a lado) -->
@@ -804,18 +781,41 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
         </div>
 
-        <!-- ESTATÍSTICAS (leitura objetiva, no topo) -->
-        <div>
-          <div style="font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink);margin-bottom:14px;">Estatísticas</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
-            <sc-for list="{{ statsTiles }}" as="t" hint-placeholder-count="8">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;">
-                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--heroGrad);"></div>
-                <div style="font-family:var(--display);font-size:26px;font-weight:700;color:var(--ink);line-height:1;">{{ t.value }}</div>
-                <div style="font-size:11.5px;color:var(--text3);margin-top:7px;">{{ t.label }}</div>
-              </div>
-            </sc-for>
+        <!-- SESSÕES RECENTES (registro que alimenta tudo) -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:9px;"><span style="font-size:18px;">⏱️</span><span style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);">Sessões recentes</span></div>
+            <button onclick="{{ openSession }}" style="display:flex;align-items:center;gap:7px;background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>Registrar</button>
           </div>
+          <div style="font-size:12.5px;color:var(--text3);margin-bottom:16px;">cada registro soma às suas horas, ao desempenho e às revisões</div>
+          <sc-if value="{{ hasSessions }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessionsCount }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">sessões</div></div>
+              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessTotalH }}h</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">tempo somado</div></div>
+              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessAccOverall }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">bruto</div></div>
+              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:{{ sessLiqColor }};line-height:1;">{{ sessLiqOverall }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">líquido</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <sc-for list="{{ recentSessions }}" as="s" hint-placeholder-count="3">
+                <div style="display:flex;gap:11px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;">
+                  <span style="width:34px;height:34px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;">{{ s.icon }}</span>
+                  <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.topico }}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">{{ s.discShort }} · {{ s.catLabel }} · {{ s.ago }}</div></div>
+                  <div style="display:flex;align-items:center;gap:10px;flex:none;">
+                    <sc-if value="{{ s.hasLiq }}" hint-placeholder-val="{{ false }}"><span title="líquido (acertos − erradas)" style="font-family:var(--mono);font-size:12px;font-weight:700;color:{{ s.liqColor }};">{{ s.liqStr }}</span></sc-if>
+                    <sc-if value="{{ s.hasAcc }}" hint-placeholder-val="{{ false }}"><span title="aproveitamento bruto" style="font-family:var(--mono);font-size:12px;font-weight:700;color:{{ s.accColor }};">{{ s.accStr }}</span></sc-if>
+                    <span style="font-family:var(--mono);font-size:12px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:4px 9px;">{{ s.minStr }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noSessions }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 15px;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;">
+              <span style="font-size:22px;flex:none;">⏱️</span>
+              <div style="flex:1;min-width:180px;"><div style="font-size:13px;font-weight:600;color:var(--ink);">Nenhuma sessão registrada ainda</div><div style="font-size:12px;color:var(--text3);margin-top:2px;line-height:1.45;">Registre a primeira para alimentar horas, desempenho e revisões.</div></div>
+              <button onclick="{{ openSession }}" style="flex:none;background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:9px 16px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">Registrar primeira sessão</button>
+            </div>
+          </sc-if>
         </div>
 
         <!-- CONSTÂNCIA (quadradinhos que se somam) -->
