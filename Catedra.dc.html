@@ -123,6 +123,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="anki" onclick="{{ onNav }}" style="{{ navStyle.anki }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 5l8-2 8 2v11l-8 2-8-2zM4 5l8 2 8-2M12 7v11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Anki</span></button>
       <button data-view="analise" onclick="{{ onNav }}" style="{{ navStyle.analise }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 3v18h18M7 14l3-4 4 3 5-7" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Análise</span></button>
+      <button data-view="erros" onclick="{{ onNav }}" style="{{ navErros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 9v4M12 17h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Caderno de erros</span></button>
       <button data-view="conquistas" onclick="{{ onNav }}" style="{{ navStyle.conquistas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M7 4h10v4a5 5 0 0 1-10 0V4ZM5 4H3v2a3 3 0 0 0 3 3M19 4h2v2a3 3 0 0 1-3 3M9 17h6M8 21h8M12 13v4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Metas &amp; Conquistas</span></button>
       <button data-view="historico" onclick="{{ onNav }}" style="{{ navHistorico }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3M3 4v3.3h3.3M12 8v4l3 2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Histórico</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:9px;font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
     </nav>
@@ -2098,6 +2099,70 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
        </div>
       </sc-if>
 
+      <!-- ================= CADERNO DE ERROS ================= -->
+      <sc-if value="{{ isErros }}" hint-placeholder-val="{{ false }}">
+       <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- registrar erro -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Registrar um erro</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">anote a questão que você errou e, principalmente, o <b>motivo</b> — é o que revela seu padrão de erro</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ errDraftDiscSelVal }}" onchange="{{ onErrDraftDisc }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><sc-for list="{{ errDraftDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ errDraftDiscCustom }}">Outra…</option></select>
+              <sc-if value="{{ errDraftDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ errDraft.disc }}" oninput="{{ onErrDraft }}" placeholder="Digite a disciplina" style="width:100%;box-sizing:border-box;border:1px solid var(--accent);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;margin-top:8px;"></sc-if>
+            </div>
+            <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico <span style="color:var(--text3);font-weight:400;">(opcional)</span></label><input data-k="topico" value="{{ errDraft.topico }}" oninput="{{ onErrDraft }}" placeholder="ex.: Controle de constitucionalidade" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
+            <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Enunciado / resumo da questão</label><textarea data-k="enunciado" value="{{ errDraft.enunciado }}" oninput="{{ onErrDraft }}" rows="3" placeholder="Cole ou resuma a questão que você errou" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;resize:vertical;"></textarea></div>
+            <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Gabarito / por que errei <span style="color:var(--text3);font-weight:400;">(vira o verso do flashcard)</span></label><textarea data-k="gabarito" value="{{ errDraft.gabarito }}" oninput="{{ onErrDraft }}" rows="2" placeholder="A resposta correta e a explicação" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;resize:vertical;"></textarea></div>
+            <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Motivo do erro</label><select data-k="motivo" value="{{ errDraft.motivo }}" onchange="{{ onErrDraft }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><sc-for list="{{ errMotivoOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.k }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+          </div>
+          <button onclick="{{ addErro }}" style="margin-top:16px;background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:11px 20px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Adicionar ao caderno</button>
+        </div>
+
+        <!-- estatísticas -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:11.5px;color:var(--text3);">Erros no caderno</div><div style="font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);margin-top:6px;">{{ errStats.total }}</div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;border-top:3px solid #c0392f;"><div style="font-size:11.5px;color:var(--text3);">Em aberto</div><div style="font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);margin-top:6px;">{{ errStats.abertos }}</div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;border-top:3px solid #0f9d6b;"><div style="font-size:11.5px;color:var(--text3);">Resolvidos</div><div style="font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);margin-top:6px;">{{ errStats.resolvidos }}</div></div>
+        </div>
+
+        <!-- lista + filtros -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+            <span style="font-weight:600;color:var(--ink);font-size:15px;">Seus erros</span>
+            <select data-k="disc" onchange="{{ setErrFilt }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 11px;font-size:12.5px;color:var(--ink);font-family:inherit;"><sc-for list="{{ errFiltDiscOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.on }}">{{ o.label }}</option></sc-for></select>
+          </div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;">
+            <sc-for list="{{ errFiltMotivoOpts }}" as="m" hint-placeholder-count="6"><button data-k="motivo" data-v="{{ m.k }}" onclick="{{ setErrFilt }}" style="{{ m.style }}">{{ m.label }}</button></sc-for>
+          </div>
+          <sc-if value="{{ errVazio }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:26px 16px;text-align:center;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;color:var(--text3);font-size:13px;line-height:1.5;">Seu caderno está vazio. Cada questão que você erra e registra aqui vira material de revisão dirigido ao seu ponto fraco.</div>
+          </sc-if>
+          <sc-if value="{{ errFiltVazio }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:20px 16px;text-align:center;color:var(--text3);font-size:13px;">Nenhum erro com esse filtro.</div>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <sc-for list="{{ errList }}" as="e" hint-placeholder-count="3">
+              <div style="border:1px solid var(--border);border-radius:12px;padding:15px 16px;background:var(--surface2);opacity:{{ e.cardOpacity }};">
+                <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px;">
+                  <span style="font-size:11px;font-weight:700;color:#fff;background:{{ e.motColor }};border-radius:99px;padding:3px 10px;">{{ e.motLabel }}</span>
+                  <span style="font-size:12px;color:var(--text3);">{{ e.subLabel }}</span>
+                  <span style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-left:auto;">{{ e.quando }}</span>
+                </div>
+                <div style="font-size:13.5px;color:var(--ink);line-height:1.5;">{{ e.enunCurto }}</div>
+                <sc-if value="{{ e.temGab }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text2);line-height:1.5;margin-top:8px;padding:9px 11px;background:var(--surface);border-radius:9px;border-left:3px solid #0f9d6b;">✓ {{ e.gabarito }}</div></sc-if>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                  <button data-id="{{ e.id }}" onclick="{{ erroToFlash }}" style="background:rgba(99,102,241,.12);color:#5b53d6;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">→ Flashcard</button>
+                  <button data-id="{{ e.id }}" onclick="{{ erroToRevisao }}" style="background:rgba(15,157,107,.14);color:#0b7a52;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">→ Revisão</button>
+                  <button data-id="{{ e.id }}" onclick="{{ toggleErroResolvido }}" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">{{ e.resolvidoLabel }}</button>
+                  <button data-id="{{ e.id }}" onclick="{{ removeErro }}" title="Remover" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:auto;">Excluir</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+       </div>
+      </sc-if>
+
       <!-- ================= METAS (fundido em Metas & Conquistas) ================= -->
       <sc-if value="{{ isConqMetas }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
@@ -3051,6 +3116,7 @@ class Component extends DCLogic {
       onboardChoice:'',
       metas:this._load('metas', []),
       metaDraft:{titulo:'', alvo:100},
+      errDraft:{disc:'', discCustom:false, topico:'', enunciado:'', gabarito:'', motivo:'conteudo'}, errFiltDisc:'todas', errFiltMotivo:'todos',
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, gruposSync:false,
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       grupoDraft:{nome:'', codigo:''},
@@ -4287,8 +4353,23 @@ class Component extends DCLogic {
 
   // ===== cérebro conectado: roteia um destaque para outras áreas =====
   _discFull(d){ const m={'Constitucional':'Direito Constitucional','Administrativo':'Direito Administrativo','Tributário':'Direito Tributário','Civil':'Direito Civil','Penal':'Direito Penal','Processo Civil':'Processo Civil'}; return m[d]||d; }
-  _routeHl(h, dest){ const rd=this._rd; const item=rd.item; const discFull=this._discFull(item.disc); const colorMap={'Direito Constitucional':'#2563eb','Direito Administrativo':'#a855f7','Direito Tributário':'#06b6d4','Direito Civil':'#6366f1','Direito Penal':'#dc2626','Processo Civil':'#84cc16'};
-    if(dest==='anki'){ const card={id:'fc'+Date.now(), front:(h.note||'Defina / explique o trecho marcado'), back:h.text, disc:discFull, source:item.titulo, ts:Date.now()}; this.setState(s=>{ const fc=[card,...s.flashcards]; this._saveFC(fc); return {flashcards:fc, ankiImported:true}; }); this._toast('Flashcard criado no Anki ✦'); }
+  async _routeHl(h, dest){ const rd=this._rd; const item=rd.item; const discFull=this._discFull(item.disc); const colorMap={'Direito Constitucional':'#2563eb','Direito Administrativo':'#a855f7','Direito Tributário':'#06b6d4','Direito Civil':'#6366f1','Direito Penal':'#dc2626','Processo Civil':'#84cc16'};
+    if(dest==='anki'){
+      // gera uma pergunta/resposta de recall ativo via IA; se falhar, cai no card literal (trecho)
+      const literal={id:'fc'+Date.now(), front:(h.note||'Defina / explique o trecho marcado'), back:h.text, disc:discFull, source:item.titulo, ts:Date.now()};
+      let card=literal;
+      try{
+        if(window.claude && window.claude.complete){
+          this._toast('Gerando flashcard com IA…');
+          const prompt='Você cria flashcards de RECALL ATIVO para concursos públicos. A partir do TRECHO abaixo (e da nota, se houver), gere UMA pergunta clara que force lembrar o conceito e a resposta correta e concisa (não copie o trecho literalmente). Responda SOMENTE com JSON válido, sem texto fora dele: {"front":"pergunta","back":"resposta"}\nTRECHO:\n"""'+(h.text||'').slice(0,1500)+'"""'+(h.note?('\nNOTA: '+h.note.slice(0,300)):'');
+          const r=await window.claude.complete(prompt); const j=this._parseJSON(r);
+          if(j && j.front && j.back){ card={...literal, front:String(j.front).trim(), back:String(j.back).trim(), ia:true}; }
+        }
+      }catch(_){}
+      this.setState(s=>{ const fc=[card,...s.flashcards]; this._saveFC(fc); return {flashcards:fc, ankiImported:true}; });
+      this._toast(card.ia?'Flashcard gerado com IA ✦':'Flashcard criado (IA indisponível — usei o trecho)');
+      this.flashSync(); return;
+    }
     else if(dest==='revisao'){ const rev={id:'r'+Date.now(), disc:discFull, topic:item.titulo, color:colorMap[discFull]||item.color||'#0f7a57', due:0, intervalo:1, facilidade:2.5, repeticoes:0}; this.setState(s=>({reviews:[...s.reviews, rev]})); this._toast('Revisão agendada para hoje ✦'); }
     this.flashSync();
   }
@@ -4352,6 +4433,24 @@ class Component extends DCLogic {
   metaPlus = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,prog:Math.min(m.alvo,m.prog+1)}:m)})); this.flashSync(); };
   editMeta = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let v=el.value; if(field==='alvo') v=Math.max(1,parseInt(v,10)||0); this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,[field]:v}:m)})); };
   removeMeta = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.filter(m=>m.id!==id)})); };
+
+  // ===== caderno de erros (motivo do erro → vira flashcard/revisão) =====
+  ERR_MOTIVOS = {conteudo:{label:'Falta de conteúdo',color:'#c0392f'}, interpretacao:{label:'Interpretação',color:'#b08433'}, decoreba:{label:'Decoreba / lei seca',color:'#6b4fbb'}, desatencao:{label:'Desatenção',color:'#2563eb'}, chute:{label:'Chute',color:'#0f9d6b'}};
+  onErrDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({errDraft:{...s.errDraft,[k]:v}})); };
+  onErrDraftDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({errDraft:{...s.errDraft, discCustom:v==='__outra__', disc:v==='__outra__'?'':v}})); };
+  addErro = ()=>{ const d=this.state.errDraft; const enun=(d.enunciado||'').trim(); if(!enun){ this._toast('Escreva o enunciado (ou o resumo) da questão'); return; }
+    const rec={id:'e'+Date.now(), ts:Date.now(), disc:(d.disc||'').trim()||'Geral', topico:(d.topico||'').trim(), enunciado:enun, gabarito:(d.gabarito||'').trim(), motivo:d.motivo||'conteudo', resolvido:false};
+    this.setState(s=>({errors:[rec, ...s.errors], errDraft:this._freshErrDraft(s.errDraft)})); this._toast('Erro registrado no caderno ✦'); this.flashSync(); };
+  _freshErrDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||''; return {disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', enunciado:'', gabarito:'', motivo:(prev&&prev.motivo)||'conteudo'}; }
+  removeErro = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({errors:s.errors.filter(x=>x.id!==id)})); this.flashSync(); };
+  toggleErroResolvido = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({errors:s.errors.map(x=> x.id===id?{...x,resolvido:!x.resolvido}:x)})); this.flashSync(); };
+  setErrFilt = (e)=>{ const el=e.currentTarget; const k=el.dataset.k; const v=el.dataset.v!=null?el.dataset.v:el.value; this.setState({[k==='disc'?'errFiltDisc':'errFiltMotivo']:v}); };
+  erroToFlash = (e)=>{ const id=e.currentTarget.dataset.id; const er=this.state.errors.find(x=>x.id===id); if(!er) return;
+    const card={id:'fc'+Date.now(), front:er.enunciado, back:er.gabarito||'(cadastre o gabarito no caderno de erros)', disc:er.disc, source:'Caderno de erros', ts:Date.now()};
+    this.setState(s=>{ const fc=[card,...s.flashcards]; this._saveFC(fc); return {flashcards:fc, ankiImported:true}; }); this._toast('Flashcard criado a partir do erro ✦'); this.flashSync(); };
+  erroToRevisao = (e)=>{ const id=e.currentTarget.dataset.id; const er=this.state.errors.find(x=>x.id===id); if(!er) return;
+    const col=this.DISC_FULL_COLOR[er.disc]||'#0f7a57';
+    this.setState(s=>({reviews:[...s.reviews, {id:'r'+Date.now(), disc:er.disc, topic:er.topico||er.enunciado.slice(0,40), color:col, due:0, intervalo:1, facilidade:2.5, repeticoes:0}]})); this._toast('Revisão do erro agendada para hoje ✦'); this.flashSync(); };
 
   // ===== comunidade: grupos de estudo (Supabase real, com fallback local) =====
   _pal7=['#2563eb','#a855f7','#0d9488','#d6457f','#b08433','#dc2626','#0f7a57'];
@@ -4999,6 +5098,24 @@ class Component extends DCLogic {
     const _metaThresh = _cob==='leve'?50 : (_cob==='rigido'?100 : 85);
     if(_alerts.alSemanal!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', icon:'🎯', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
     if(_alerts.alProva!==false && this.state.provaData){ _liveNotifs.push({id:'prova', tipo:'prova', icon:'📅', titulo:'Faltam '+_diasProvaN+' dias para a prova', texto:'Mantenha o ritmo: '+Math.round(B.totalMin/60)+'h estudadas até aqui.', tempo:'hoje', view:'inicio'}); }
+    // 4 alertas inteligentes (a partir dos dados existentes) — gateados pelos mesmos toggles de Ajustes
+    const _naNow=Date.now(), _naDay=864e5, _naS=this.state.sessions||[];
+    // (1) queda de retenção no Anki
+    const _ah=this.state.ankiHist||[]; const _ankiRet=_ah.length?_ah[_ah.length-1].ret:null;
+    const _ankiAlert=parseInt((this.state.orient&&this.state.orient.ankiAlerta),10)||80;
+    if(_alerts.alAnki!==false && _ankiRet!=null && _ankiRet<_ankiAlert){ _liveNotifs.push({id:'anki-ret', tipo:'anki', icon:'📉', titulo:'Retenção do Anki em '+_ankiRet+'%', texto:'Abaixo do seu mínimo ('+_ankiAlert+'%). Reduza cartões novos e reforce os antigos.', tempo:'hoje', view:'anki'}); }
+    // (2) queda de precisão (últimos 7 dias vs 7-21 dias)
+    const _prec=(arr)=>{ const q=arr.reduce((a,s)=>a+(s.questoes||0),0); const li=arr.reduce((a,s)=>a+((s.acertos||0)-(s.erradas||0)),0); return q>=10?Math.round(li/q*100):null; };
+    const _pRec=_prec(_naS.filter(s=>s.ts>=_naNow-7*_naDay)); const _pPrev=_prec(_naS.filter(s=>s.ts<_naNow-7*_naDay && s.ts>=_naNow-21*_naDay));
+    if(_alerts.alPrecisao!==false && _pRec!=null && _pPrev!=null && _pRec<_pPrev-8){ _liveNotifs.push({id:'precisao', tipo:'desempenho', icon:'⚠️', titulo:'Sua precisão caiu para '+_pRec+'%', texto:'Era '+_pPrev+'% na semana anterior. Reveja os tópicos com mais erros antes de avançar.', tempo:'esta semana', view:'analise'}); }
+    // (3) erros acumulando no caderno
+    const _errAb=(this.state.errors||[]).filter(e=>!e.resolvido).length;
+    if(_alerts.alErros!==false && _errAb>=5){ _liveNotifs.push({id:'erros', tipo:'erros', icon:'📕', titulo:_errAb+' erros em aberto no caderno', texto:'Transforme-os em flashcards e revisões — é onde você mais ganha pontos.', tempo:'hoje', view:'erros'}); }
+    // (4) lembrete de simulado (sem simulado há 7+ dias, já tendo estudado)
+    const _sims=_naS.filter(s=>(Array.isArray(s.categorias)?s.categorias:[s.categoria]).includes('Simulado'));
+    const _lastSim=_sims.length?Math.max.apply(null,_sims.map(s=>s.ts||0)):0;
+    const _diasSim=_lastSim?Math.floor((_naNow-_lastSim)/_naDay):null;
+    if(_alerts.alSimulados!==false && B.totalMin>0 && ((_lastSim===0 && B.diasEstudados>=7) || (_diasSim!=null && _diasSim>=7))){ _liveNotifs.push({id:'simulado', tipo:'simulado', icon:'📝', titulo: _lastSim? ('Faz '+_diasSim+' dias sem simulado') : 'Hora do seu primeiro simulado', texto:'Um simulado cronometrado mede o que a teoria sozinha não mostra.', tempo:'hoje', view:'simulados'}); }
     // aviso de fim de dia: ofensiva em risco (após as 20h, sem estudo hoje, com sequência a proteger)
     if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=20){
       const _escN=this.state.escudos||0;
@@ -5454,6 +5571,30 @@ class Component extends DCLogic {
     const heDiscCustom=!!_he0.discCustom;
     const heDiscOpts=[...new Set([...discListReg, ...((!heDiscCustom && _he0.disc && !discListReg.includes(_he0.disc))?[_he0.disc]:[])])].map(v=>({v, sel:!heDiscCustom && v===_he0.disc}));
     const heDiscSelVal=heDiscCustom?'__outra__':(_he0.disc||'');
+    // ===== caderno de erros =====
+    const _errMot=this.ERR_MOTIVOS;
+    const _ed0=this.state.errDraft||{};
+    const errDraftDiscCustom=!!_ed0.discCustom;
+    const errDraftDiscOpts=[...new Set([...discListReg, ...((!errDraftDiscCustom && _ed0.disc && !discListReg.includes(_ed0.disc))?[_ed0.disc]:[])])].map(v=>({v, sel:!errDraftDiscCustom && v===_ed0.disc}));
+    const errDraftDiscSelVal=errDraftDiscCustom?'__outra__':(_ed0.disc||'');
+    const errMotivoOpts=Object.keys(_errMot).map(k=>({k, label:_errMot[k].label, sel:_ed0.motivo===k}));
+    const _errAll=this.state.errors||[];
+    const _efDisc=this.state.errFiltDisc||'todas', _efMot=this.state.errFiltMotivo||'todos';
+    const errFiltDiscOpts=[{v:'todas', label:'Todas as disciplinas', on:_efDisc==='todas'}].concat([...new Set(_errAll.map(e=>e.disc).filter(Boolean))].map(d=>({v:d, label:d, on:_efDisc===d})));
+    const _errChip=(on,color)=>`border:1px solid ${on?color:'var(--border)'};background:${on?color:'var(--surface)'};color:${on?'#fff':'var(--text2)'};border-radius:99px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;`;
+    const errFiltMotivoOpts=[{k:'todos', label:'Todos os motivos', style:_errChip(_efMot==='todos','var(--text2)')}].concat(Object.keys(_errMot).map(k=>({k, label:_errMot[k].label, style:_errChip(_efMot===k,_errMot[k].color)})));
+    const errList=_errAll
+      .filter(e=>(_efDisc==='todas'||e.disc===_efDisc) && (_efMot==='todos'||e.motivo===_efMot))
+      .map(e=>{ const m=_errMot[e.motivo]||{label:'—',color:'var(--text3)'}; return {...e,
+        motLabel:m.label, motColor:m.color,
+        quando:(()=>{ try{ return new Date(e.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
+        subLabel:(e.disc||'Geral')+(e.topico?(' · '+e.topico):''),
+        enunCurto:(e.enunciado||'').length>220?(e.enunciado.slice(0,220)+'…'):(e.enunciado||''),
+        cardOpacity:e.resolvido?'0.55':'1', resolvidoLabel:e.resolvido?'Resolvido':'Marcar resolvido',
+        temGab:!!(e.gabarito&&e.gabarito.trim()) }; });
+    const _errAbertos=_errAll.filter(e=>!e.resolvido).length;
+    const errStats={total:String(_errAll.length), abertos:String(_errAbertos), resolvidos:String(_errAll.length-_errAbertos)};
+    const errVazio=_errAll.length===0, errFiltVazio=_errAll.length>0 && errList.length===0;
     const _histTotMin=this.state.sessions.reduce((a,s)=>a+(s.min||0),0);
     // ===== histórico: edição de sessão =====
     const _he=this.state.histEdit;
@@ -5524,8 +5665,8 @@ class Component extends DCLogic {
       redResultLivre, redCompareStudent, redCompareGab,
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',dominio:'Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Análise de desempenho',conquistas:'Metas & Conquistas',mentor:'Mentor IA',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório'}[this.state.view]),
-      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Analisador de retenção — não produção de cartões',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',mentor:'Tira-dúvidas e orientação personalizada',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação'}[this.state.view]),
+      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Análise de desempenho',conquistas:'Metas & Conquistas',mentor:'Mentor IA',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório'}[this.state.view]),
+      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Analisador de retenção — não produção de cartões',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',mentor:'Tira-dúvidas e orientação personalizada',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
       syncTitle:(this.state.syncStatus==='local'?'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho':'Seus dados sincronizam com a sua conta — o merge une o progresso de todos os aparelhos'),
@@ -5657,6 +5798,9 @@ class Component extends DCLogic {
       isPlanej:this.state.view==='planejamento', navPlanej:navStyle('planejamento'), planRows, planHoras:this.state.planHoras, setPlanHoras:this.setPlanHoras,
       // domínio por tópico
       isDominio:this.state.view==='dominio', navDominio:navStyle('dominio'), domTopics,
+      isErros:this.state.view==='erros', navErros:navStyle('erros'),
+      errList, errStats, errVazio, errFiltVazio, errDraft:this.state.errDraft, errDraftDiscOpts, errDraftDiscCustom, errDraftDiscSelVal, errMotivoOpts, errFiltDiscOpts, errFiltMotivoOpts,
+      onErrDraft:this.onErrDraft, onErrDraftDisc:this.onErrDraftDisc, addErro:this.addErro, removeErro:this.removeErro, toggleErroResolvido:this.toggleErroResolvido, setErrFilt:this.setErrFilt, erroToFlash:this.erroToFlash, erroToRevisao:this.erroToRevisao,
       focoRende, hasFocoRende,
       // metas
       metas, metaDraft:this.state.metaDraft, onMetaDraft:this.onMetaDraft, addMeta:this.addMeta, metaPlus:this.metaPlus, editMeta:this.editMeta, removeMeta:this.removeMeta,
