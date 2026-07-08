@@ -849,6 +849,31 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             </sc-for>
           </div>
           <div style="margin-top:16px;padding:13px 15px;background:var(--accentSoft);border-radius:12px;font-size:12.5px;color:var(--accentD);line-height:1.5;">{{ moodTip }}</div>
+          <!-- hábitos do dia -->
+          <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+              <span style="font-size:13px;font-weight:600;color:var(--ink);">Hábitos saudáveis de hoje</span>
+              <span style="font-size:11.5px;color:var(--text3);font-family:var(--mono);">{{ habDoneN }}/{{ habTotalN }} na meta</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;">
+              <sc-for list="{{ habCards }}" as="h" hint-placeholder-count="6">
+                <div style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;background:var(--surface2);">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <span style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text2);"><span style="font-size:15px;">{{ h.icon }}</span>{{ h.label }}</span>
+                    <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:{{ h.statusColor }};">{{ h.vStr }}{{ h.unitStr }}</span>
+                  </div>
+                  <div style="height:6px;border-radius:99px;background:var(--surface);overflow:hidden;margin:9px 0;"><i style="display:block;height:100%;width:{{ h.pctW }};background:{{ h.barColor }};border-radius:99px;transition:width .3s;"></i></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                    <span style="font-size:10.5px;color:var(--text3);">{{ h.metaStr }}</span>
+                    <div style="display:flex;gap:6px;flex:none;">
+                      <button data-k="{{ h.k }}" data-step="{{ h.step }}" onclick="{{ habDec }}" aria-label="Diminuir {{ h.label }}" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                      <button data-k="{{ h.k }}" data-step="{{ h.step }}" onclick="{{ habInc }}" aria-label="Aumentar {{ h.label }}" style="width:26px;height:26px;border-radius:7px;border:none;background:var(--accent);color:var(--onAccent);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
         </div>
         </div>
 
