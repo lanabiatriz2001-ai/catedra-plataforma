@@ -3055,7 +3055,7 @@ class Component extends DCLogic {
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       grupoDraft:{nome:'', codigo:''},
       ankiImported:this._load('ankiImported', false), pdfOpen:null,
-      profile:{banca:'cebraspe', estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
+      profile:{estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
       anaTab:'visao',
       ankiHist:this._load('ankiHist', []),
       ankiInput:'',
@@ -3063,7 +3063,6 @@ class Component extends DCLogic {
       accent:this._load('accent', null),
       escudos:this._load('escudos', 0), streakFreezeUsados:this._load('streakFreezeUsados', []), streakCheckDate:this._load('streakCheckDate', ''), escudoUltimoGanho:this._load('escudoUltimoGanho', ''),
       prefs:{density:'confortavel', notifRevisao:true, notifMeta:true, sync:'backup', nome:'Aluno', objetivo:'', metaDiaria:4, mentor:'professor', fontScale:'padrao', mostrarContagem:true,
-        nivel:'intermediario', turno:'noite', cobranca:'equilibrado', dias:{seg:true,ter:true,qua:true,qui:true,sex:true,sab:true,dom:false},
         focoBloco:50, focoPausa:10, autoRegistro:true, autoConcluir:true, autoRevisao:true,
         alAnki:true, alPrecisao:true, alErros:true, alSemanal:true, alProva:true, alSimulados:false,
         radius:'tema', contentWidth:'padrao', ...this._load('prefs', {})},
@@ -4439,7 +4438,6 @@ class Component extends DCLogic {
   setPrefOpt = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.dataset.v; this.setState(s=>({prefs:{...s.prefs,[k]:v}})); };
   setMetaDiaria = (e)=>{ const h=Math.max(1, +e.currentTarget.value||1); this.setState(s=>({prefs:{...s.prefs,metaDiaria:h}, orient:{...s.orient, metaIdeal:String(h*60)}}), ()=>this._persistOrient()); };
   setFocoNum = (e)=>{ const k=e.currentTarget.dataset.k; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({prefs:{...s.prefs,[k]:v}})); };
-  toggleDia = (e)=>{ const d=e.currentTarget.dataset.d; this.setState(s=>({prefs:{...s.prefs,dias:{...s.prefs.dias,[d]:!s.prefs.dias[d]}}})); };
 
   // ===== frase motivacional =====
   shuffleQuote = ()=> this.setState(s=>({quoteIdx:(s.quoteIdx+1)%this.QUOTES.length}));
@@ -4882,7 +4880,7 @@ class Component extends DCLogic {
       });
       return items.sort((a,b)=>b.ts-a.ts).slice(0,6); })();
     const _bShort = (id)=>{ const v=BANCAS_INFO[id]; return v? (v.label||'').replace(/\s*\(.*/,'') : null; };
-    const bancaLabel = _bShort((this.state.orient&&this.state.orient.banca)) || _bShort((this.state.profile&&this.state.profile.banca)) || _bShort('cebraspe') || 'CEBRASPE';
+    const bancaLabel = _bShort((this.state.orient&&this.state.orient.banca)) || _bShort('cebraspe') || 'CEBRASPE';
     const objetivoShort = (((this.state.prefs&&this.state.prefs.objetivo)||'').split('—')[0].trim()) || (this.state.prefs&&this.state.prefs.objetivo) || 'Concurso';
     // foco do dia guiado pelos pesos de prioridade + cobrança + reta final
     const _cob = _orientCfg.cobranca||'equilibrado';
@@ -5312,7 +5310,6 @@ class Component extends DCLogic {
 
     // estilos das novas opções de layout/personalização
     const segOpt=(cur,v)=>`padding:8px 13px;border-radius:9px;border:1px solid ${cur===v?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;background:${cur===v?'var(--accentSoft)':'var(--surface)'};color:${cur===v?'var(--accentD)':'var(--text2)'};`;
-    const diaChip=(on)=>`width:38px;height:38px;border-radius:10px;border:1px solid ${on?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;background:${on?'var(--accent)':'var(--surface)'};color:${on?'var(--onAccent)':'var(--text3)'};`;
     const perfBarRows = accForPerf.map(r=>({ disc:r.disc, pct:r.pct,
       wlabel: pm==='peso'?('peso '+r.peso) : pm==='incidencia'?('inc. '+r.inc) : pm==='liquido'?'C−E':'média',
       color: r.pct>=70?'#0f9d6b':r.pct>=55?'#c2790c':'#c0392f' }));
@@ -5698,12 +5695,7 @@ class Component extends DCLogic {
       // personalização: layout
       radTema:segOpt(pf0.radius,'tema'), radMedio:segOpt(pf0.radius,'medio'), radArred:segOpt(pf0.radius,'arredondado'), radReto:segOpt(pf0.radius,'reto'),
       wPadrao:segOpt(pf0.contentWidth,'padrao'), wLargo:segOpt(pf0.contentWidth,'largo'),
-      // personalização: perfil de estudo
-      pfNivel:pf0.nivel, nivIni:segOpt(pf0.nivel,'iniciante'), nivInt:segOpt(pf0.nivel,'intermediario'), nivAva:segOpt(pf0.nivel,'avancado'),
-      turMan:segOpt(pf0.turno,'manha'), turTar:segOpt(pf0.turno,'tarde'), turNoi:segOpt(pf0.turno,'noite'),
-      cobLeve:segOpt(pf0.cobranca,'leve'), cobEq:segOpt(pf0.cobranca,'equilibrado'), cobRig:segOpt(pf0.cobranca,'rigido'),
-      diasChips:[['seg','S'],['ter','T'],['qua','Q'],['qui','Q'],['sex','S'],['sab','S'],['dom','D']].map(([k,l])=>({k, l, style:diaChip(pf0.dias[k])})),
-      setPrefOptVal:this.setPrefOpt, toggleDia:this.toggleDia,
+      setPrefOptVal:this.setPrefOpt,
       // ajustes: foco
       focoBloco:pf0.focoBloco, focoPausa:pf0.focoPausa, setFocoNum:this.setFocoNum,
       togAutoReg:togStyle(pf0.autoRegistro), togAutoRegKnob:togKnob(pf0.autoRegistro),
