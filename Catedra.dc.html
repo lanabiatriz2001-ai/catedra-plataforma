@@ -622,18 +622,30 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <!-- coluna principal -->
           <div style="flex:2.2;min-width:300px;display:flex;flex-direction:column;gap:16px;">
             <!-- CRONÔMETRO (destaque) -->
-            <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px 24px;color:#fff;display:flex;align-items:center;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;">
+            <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px 24px;color:#fff;position:relative;overflow:hidden;">
               <div style="position:absolute;right:-30px;top:-34px;width:150px;height:150px;border-radius:99px;background:rgba(255,255,255,.08);"></div>
-              <div style="position:relative;flex:none;">
-                <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:700;">Cronômetro de estudo</div>
-                <div style="font-family:var(--mono);font-size:clamp(42px,8vw,62px);font-weight:700;line-height:1;letter-spacing:-.02em;margin-top:5px;">{{ sessionDisplay }}</div>
+              <div style="position:relative;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+                <div style="flex:none;">
+                  <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:700;">{{ homeTimerLabel }}</div>
+                  <div style="font-family:var(--mono);font-size:clamp(42px,8vw,62px);font-weight:700;line-height:1;letter-spacing:-.02em;margin-top:5px;">{{ sessionDisplay }}</div>
+                </div>
+                <div style="flex:1;min-width:190px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                  <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ true }}"><button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:12px;padding:13px 24px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar</button></sc-if>
+                  <sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ false }}"><button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:12px;padding:13px 24px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"></path></svg>Pausar</button></sc-if>
+                  <button onclick="{{ resetTimer }}" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">Zerar</button>
+                  <button onclick="{{ enterFocus }}" style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>Tela cheia</button>
+                </div>
               </div>
-              <div style="position:relative;flex:1;min-width:190px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ true }}"><button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:12px;padding:13px 24px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar</button></sc-if>
-                <sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ false }}"><button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:12px;padding:13px 24px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"></path></svg>Pausar</button></sc-if>
-                <button onclick="{{ resetTimer }}" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">Zerar</button>
-                <button onclick="{{ enterFocus }}" style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>Tela cheia</button>
+              <div style="position:relative;display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:16px;">
+                <span style="font-size:11px;opacity:.82;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-right:2px;">Modo</span>
+                <button data-mode="livre" onclick="{{ setTimerMode }}" style="{{ homePmLivre }}">Livre</button>
+                <button data-mode="pomo" data-f="25" data-b="5" onclick="{{ setTimerMode }}" style="{{ homePm25 }}">Pomodoro 25·5</button>
+                <button data-mode="pomo" data-f="50" data-b="10" onclick="{{ setTimerMode }}" style="{{ homePm50 }}">50·10</button>
+                <button data-mode="pomo" data-f="90" data-b="15" onclick="{{ setTimerMode }}" style="{{ homePm90 }}">90·15</button>
               </div>
+              <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}">
+                <div style="position:relative;height:6px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:12px;"><i style="display:block;height:100%;width:{{ phasePct }}%;background:#fff;border-radius:99px;transition:width .9s linear;"></i></div>
+              </sc-if>
             </div>
             <!-- AGORA -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;">
@@ -4597,6 +4609,15 @@ class Component extends DCLogic {
       `background:${this.state.timerRunning?phaseColorSoft:'var(--surface2)'};`;
     const timerStateLabel = !this.state.timerRunning ? (isPomo?`pomodoro ${this.state.pomoFocus}′`:'parado')
       : (isPomo ? `${this.state.pomoPhase} ${this.state.pomoPhase==='foco'?this.state.pomoFocus:this.state.pomoBreak}′` : 'em curso');
+    // cronômetro do Início: rótulo dinâmico + seletor de modo (livre / pomodoro)
+    const homeTimerLabel = isPomo
+      ? ('Pomodoro · '+(isPausa?'pausa '+this.state.pomoBreak:'foco '+this.state.pomoFocus)+'′')
+      : 'Cronômetro de estudo · livre';
+    const _homePmBtn=(on)=>`background:${on?'#fff':'rgba(255,255,255,.14)'};color:${on?'var(--accentD)':'#fff'};border:1px solid rgba(255,255,255,.30);border-radius:99px;padding:6px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;`;
+    const homePmLivre=_homePmBtn(this.state.timerMode==='livre');
+    const homePm25=_homePmBtn(isPomo && this.state.pomoFocus===25);
+    const homePm50=_homePmBtn(isPomo && this.state.pomoFocus===50);
+    const homePm90=_homePmBtn(isPomo && this.state.pomoFocus===90);
 
     // ===== notificações reais (derivadas dos dados) =====
     const _notifRead = this.state.notifsRead||{};
@@ -5030,6 +5051,7 @@ class Component extends DCLogic {
       toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
       onSim:this.onSim, fillExample:this.fillExample,
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
+      homeTimerLabel, homePmLivre, homePm25, homePm50, homePm90,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze,
       startRevSession:this.startRevSession, revReveal:this.revReveal, revAnswer:this.revAnswer, revSkip:this.revSkip, closeRevSession:this.closeRevSession,
       revActive:revRun.active, revDone:revRun.done, revNotDone:revRun.active&&!revRun.done, revRevealed:revRun.revealed, revNotRevealed:revRun.active&&!revRun.done&&!revRun.revealed,
