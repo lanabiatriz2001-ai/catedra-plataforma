@@ -607,14 +607,40 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <h2 style="margin:8px 0 0;font-family:var(--display);font-size:clamp(26px,3.4vw,38px);font-weight:700;line-height:1.05;">{{ greeting }}, {{ userFirstName }}.</h2>
             <p style="margin:10px 0 0;font-size:14.5px;opacity:.92;max-width:440px;line-height:1.5;">Restam <b>{{ cicloRestam }} blocos</b> e <b>{{ revPend }} revisões</b> para hoje. {{ focoSugestao }}</p>
           </div>
-          <sc-if value="{{ showContagem }}" hint-placeholder-val="{{ true }}">
-          <div style="position:relative;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:18px 22px;text-align:center;backdrop-filter:blur(4px);min-width:150px;">
-            <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:600;">Prova-alvo</div>
-            <div style="font-family:var(--display);font-size:44px;font-weight:700;line-height:1;margin:8px 0 4px;">{{ diasProva }}</div>
-            <div style="font-size:11.5px;opacity:.85;">dias · {{ objetivoShort }} · {{ bancaLabel }}</div>
-          </div>
-          </sc-if>
         </div>
+
+        <!-- CONTAGEM REGRESSIVA (visual) -->
+        <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;display:flex;align-items:center;gap:26px;flex-wrap:wrap;">
+          <!-- anel de progresso da jornada -->
+          <div style="position:relative;flex:none;width:132px;height:132px;">
+            <svg viewBox="0 0 120 120" width="132" height="132" style="transform:rotate(-90deg);">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface2)" stroke-width="11"></circle>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="{{ cdRingColor }}" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ cdRingDash }}" stroke-dashoffset="{{ cdRingOffset }}" style="transition:stroke-dashoffset .6s;"></circle>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <span style="font-family:var(--display);font-size:38px;font-weight:700;line-height:1;color:var(--ink);">{{ cdDias }}</span>
+              <span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;">dias</span>
+            </div>
+          </div>
+          <!-- detalhes -->
+          <div style="flex:1;min-width:220px;">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+              <span style="font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink);">Faltam {{ cdSemStr }}</span>
+              <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:{{ cdUrg }};border-radius:99px;padding:3px 10px;">{{ cdUrgLabel }}</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--text3);margin-top:4px;">🗓️ {{ cdWeekday }}, {{ cdDataFmt }}</div>
+            <!-- barra de semanas restantes -->
+            <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:14px;">
+              <sc-for list="{{ cdWeeksBar }}" as="w" hint-placeholder-count="12"><span title="semana restante" style="width:14px;height:14px;border-radius:4px;background:{{ cdUrg }};opacity:.85;"></span></sc-for>
+            </div>
+            <div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;">
+              <div><div style="font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink);">{{ cdHorasPrev }}</div><div style="font-size:11px;color:var(--text3);">estudo previsto até lá</div></div>
+              <div><div style="font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink);">{{ cdProgPct }}%</div><div style="font-size:11px;color:var(--text3);">{{ cdProgLabel }}</div></div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
 
         <!-- FRASE MOTIVACIONAL -->
         <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:16px;">
@@ -1885,56 +1911,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       <!-- ================= CALENDÁRIO ================= -->
       <sc-if value="{{ isCalendario }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
-
-        <!-- CRONOGRAMA AUTOMÁTICO ATÉ A PROVA (derivado do edital + horas/semana) -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-            <div><span style="font-weight:600;color:var(--ink);font-size:15px;">Cronograma até a prova</span><div style="font-size:12px;color:var(--text3);margin-top:2px;">gerado automaticamente do seu edital, pesos e horas/semana — atualiza sozinho conforme você conclui tópicos</div></div>
-            <sc-if value="{{ cronoOn }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:var(--text3);font-family:var(--mono);">{{ cronoResumo }}</span></sc-if>
-          </div>
-          <sc-if value="{{ cronoSemData }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px;padding:14px 16px;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;">
-              <span style="font-size:20px;">📅</span>
-              <div style="flex:1;min-width:200px;font-size:13px;color:var(--text2);">Defina a <b style="color:var(--ink);">data da prova</b> para gerar o plano semana a semana.</div>
-              <input type="date" value="{{ retaProvaData }}" onchange="{{ setProvaData }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;">
-            </div>
-          </sc-if>
-          <sc-if value="{{ cronoSemTopicos }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:14px;padding:14px 16px;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;font-size:13px;color:var(--text2);">Seu edital não tem tópicos pendentes — importe o edital (ou desmarque tópicos) para distribuí-los até a prova.</div>
-          </sc-if>
-          <sc-if value="{{ cronoOn }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
-              <sc-for list="{{ cronoSemanas }}" as="w" hint-placeholder-count="4">
-                <div style="border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface2);">
-                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-                    <span style="width:26px;height:26px;border-radius:8px;background:var(--accent);color:var(--onAccent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;flex:none;">{{ w.n }}</span>
-                    <span style="font-family:var(--mono);font-size:12px;color:var(--text3);">{{ w.label }}</span>
-                    <span style="font-size:11px;color:var(--text3);">· ~{{ w.horas }}h</span>
-                    <sc-if value="{{ w.temSimulado }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#c2790c;background:rgba(194,121,12,.14);border-radius:99px;padding:3px 9px;">📝 Simulado</span></sc-if>
-                    <sc-if value="{{ w.isUltima }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#c0392f;background:rgba(192,57,47,.12);border-radius:99px;padding:3px 9px;">🏁 Semana da prova</span></sc-if>
-                  </div>
-                  <sc-if value="{{ w.isRev }}" hint-placeholder-val="{{ false }}">
-                    <div style="font-size:13px;color:var(--ink);font-weight:600;">{{ w.titulo }}</div>
-                    <div style="font-size:12px;color:var(--text3);margin-top:3px;">retome o caderno de revisões, a lei seca de maior incidência e os flashcards com pior retenção.</div>
-                  </sc-if>
-                  <sc-if value="{{ w.temGrupos }}" hint-placeholder-val="{{ true }}">
-                    <div style="display:flex;flex-direction:column;gap:6px;">
-                      <sc-for list="{{ w.grupos }}" as="g" hint-placeholder-count="2">
-                        <div style="display:flex;gap:9px;align-items:baseline;">
-                          <span style="width:9px;height:9px;border-radius:3px;background:{{ g.color }};flex:none;align-self:center;"></span>
-                          <span style="font-size:12.5px;font-weight:600;color:var(--ink);flex:none;">{{ g.disc }}</span>
-                          <span style="font-size:12px;color:var(--text3);min-width:0;">{{ g.resumo }}</span>
-                          <span style="font-family:var(--mono);font-size:11px;color:var(--text3);flex:none;margin-left:auto;">{{ g.n }} tópico(s)</span>
-                        </div>
-                      </sc-for>
-                    </div>
-                  </sc-if>
-                </div>
-              </sc-for>
-            </div>
-          </sc-if>
-        </div>
-
         <!-- barra: navegação de mês + estatísticas -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:8px;">
@@ -5338,39 +5314,29 @@ class Component extends DCLogic {
     const planMin = this.state.planHoras*60;
     const planRows = planW.map(d=>{ const min=Math.round(planMin*(d.need/planSum)); return {...d, min, label: min>=60?`${Math.floor(min/60)}h${String(min%60).padStart(2,'0')}`:`${min}min`, pct:Math.round(d.need/planSum*100)}; }).sort((a,b)=>b.min-a.min);
 
-    // ===== Cronograma automático até a prova (derivado — sempre atualizado) =====
-    const cronoOn = !!this.state.provaData;
-    let cronoSemanas=[], cronoResumo='', cronoPendTotal=0;
-    if(cronoOn){
-      const _cDias=Math.max(1,_diasProvaN);
-      const _cNSem=Math.max(1,Math.ceil(_cDias/7));
-      const _cRevW=_cNSem>=6?2:(_cNSem>=3?1:0);           // semanas finais reservadas p/ revisão geral
-      const _cStudyW=Math.max(1,_cNSem-_cRevW);
-      // tópicos pendentes do edital, com peso (edital > mapa padrão > 1)
-      const _cPend=[]; this.state.edital.forEach(d=>{ const _pw=(d.peso!==''&&d.peso!=null)?(+d.peso||1):(_pesoBy[d.disc]||1); (d.topics||[]).forEach(t=>{ if(!t.done) _cPend.push({disc:d.disc, color:d.color||'#0f7a57', peso:_pw, name:t.name}); }); });
-      cronoPendTotal=_cPend.length;
-      _cPend.sort((a,b)=>b.peso-a.peso);
-      const _cPorSem=_cStudyW?Math.ceil(_cPend.length/_cStudyW):0;
-      const _fmtD=(dt)=>{ try{ return dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } };
-      const _hoje=new Date(); _hoje.setHours(0,0,0,0);
-      const _showMax=10;
-      for(let w=0; w<Math.min(_cNSem,_showMax); w++){
-        const ini=new Date(_hoje.getTime()+w*7*864e5), fim=new Date(Math.min(_hoje.getTime()+((w+1)*7-1)*864e5, new Date(this.state.provaData+'T00:00:00').getTime()));
-        const isRev=w>=_cStudyW;
-        const fatia=isRev?[]:_cPend.slice(w*_cPorSem,(w+1)*_cPorSem);
-        // agrupa por disciplina
-        const _gr={}; fatia.forEach(t=>{ (_gr[t.disc]||(_gr[t.disc]={disc:t.disc,color:t.color,names:[]})).names.push(t.name); });
-        const grupos=Object.values(_gr).map(g=>({disc:g.disc, color:g.color, resumo:g.names.slice(0,3).join(' · ')+(g.names.length>3?' · +'+(g.names.length-3):''), n:String(g.names.length)}));
-        const temSimulado=(!isRev && (w+1)%2===0) || w===_cNSem-1;
-        cronoSemanas.push({ n:String(w+1), label:_fmtD(ini)+' – '+_fmtD(fim), isRev, isUltima:w===_cNSem-1,
-          titulo:isRev?(w===_cNSem-1?'Revisão geral + simulado final':'Revisão geral — erros, lei seca e flashcards'):null,
-          grupos, temGrupos:grupos.length>0, temSimulado,
-          horas:String(this.state.planHoras||24) });
-      }
-      cronoResumo=_cNSem+' semana'+(_cNSem>1?'s':'')+' até a prova · '+cronoPendTotal+' tópico'+(cronoPendTotal!==1?'s':'')+' pendentes · ~'+(this.state.planHoras||24)+'h/semana';
-      if(_cNSem>_showMax) cronoResumo+=' · mostrando as primeiras '+_showMax+' semanas';
+    // ===== Contagem regressiva para a prova (card visual do Início) =====
+    const cdOn = !!this.state.provaData && this.state.prefs.mostrarContagem!==false;
+    let cdDias=0, cdSemStr='', cdDataFmt='', cdWeekday='', cdProgPct=0, cdProgLabel='', cdHorasPrev='', cdUrg='var(--accent)', cdUrgLabel='', cdWeeksBar=[], cdRingOffset=0;
+    const _cdR=52, _cdCirc=2*Math.PI*_cdR;
+    let cdRingDash=_cdCirc; cdRingOffset=_cdCirc;
+    if(cdOn){
+      cdDias=Math.max(0,_diasProvaN);
+      const _sem=Math.floor(cdDias/7), _resto=cdDias%7;
+      cdSemStr = _sem>0 ? (_sem+' semana'+(_sem>1?'s':'')+(_resto>0?(' e '+_resto+' dia'+(_resto>1?'s':'')):'')) : (cdDias+' dia'+(cdDias!==1?'s':''));
+      try{ const pd=new Date(this.state.provaData+'T00:00:00'); cdDataFmt=pd.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}); const _wd=pd.toLocaleDateString('pt-BR',{weekday:'long'}); cdWeekday=_wd.charAt(0).toUpperCase()+_wd.slice(1); }catch(_){}
+      // progresso da jornada: da 1ª sessão registrada até a prova
+      const _ss=this.state.sessions||[]; const _js=_ss.length?Math.min.apply(null,_ss.map(s=>s.ts||Date.now())):0;
+      if(_js){ const pdms=new Date(this.state.provaData+'T00:00:00').getTime(); const total=pdms-_js, done=Date.now()-_js; cdProgPct=total>0?Math.max(0,Math.min(100,Math.round(done/total*100))):0; }
+      cdProgLabel = cdProgPct>0 ? (cdProgPct+'% da preparação percorrida') : 'registre sessões para acompanhar sua jornada';
+      cdHorasPrev = String(Math.round((cdDias/7)*(this.state.planHoras||24)))+'h';
+      cdUrg = cdDias<=7 ? '#c0392f' : (cdDias<=30 ? '#c2790c' : 'var(--accent)');
+      cdUrgLabel = cdDias<=7 ? 'reta final' : (cdDias<=30 ? 'último mês' : (cdDias<=90?'aproximando':'no prazo'));
+      cdRingOffset = _cdCirc*(1 - cdProgPct/100);
+      // barra de semanas restantes (até 24 blocos)
+      const _nSeg=Math.min(24, Math.max(1, _sem + (_resto>0?1:0)));
+      cdWeeksBar=Array.from({length:_nSeg}).map((_,i)=>({i, last: i===_nSeg-1}));
     }
-    const cronoSemData=!cronoOn, cronoSemTopicos=cronoOn&&cronoPendTotal===0;
+    const cdRingColor=cdUrg;
 
     // ===== Domínio por tópico (ancorado no líquido real da disciplina) =====
     const _liqShort={}; B.discList.forEach(d=>{ if(d.q>0) _liqShort[d.disc.replace('Direito ','')]=Math.max(5,Math.min(98,d.liqPct)); });
@@ -5704,7 +5670,7 @@ class Component extends DCLogic {
       retaStatusLabel:_retaOn?'Modo reta final ATIVADO':'Modo reta final desativado', retaTog:togStyle(_retaOn), retaKnob:togKnob(_retaOn),
       retaReduz:_retaReduz, retaReduzTog:togStyle(_retaReduz), retaReduzKnob:togKnob(_retaReduz),
       retaComOpts, retaComVal:_retaCom, retaProvaData:this.state.provaData||'', retaDias:((this.state.prefs.mostrarContagem!==false && this.state.provaData)?String(_diasProvaN):'—'),
-      cronoOn, cronoSemanas, cronoResumo, cronoSemData, cronoSemTopicos,
+      cdOn, cdDias:String(cdDias), cdSemStr, cdDataFmt, cdWeekday, cdProgPct:String(cdProgPct), cdProgLabel, cdHorasPrev, cdUrg, cdUrgLabel, cdWeeksBar, cdRingColor, cdRingDash:String(Math.round(cdRingDash)), cdRingOffset:String(Math.round(cdRingOffset)),
       retaRevVenc:String(revOverdue.length), retaSim:String(B.simulados),
       retaCmds, retaNext, retaHasNext:retaNext.length>0,
       setProvaData:this.setProvaData, toggleRetaFinal:this.toggleRetaFinal, setRetaCom:this.setRetaCom, toggleReduzTeoria:this.toggleReduzTeoria, retaCriarBloco:this.retaCriarBloco,
