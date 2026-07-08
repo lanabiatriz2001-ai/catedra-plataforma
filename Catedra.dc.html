@@ -128,7 +128,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Inteligência</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="mentor" onclick="{{ onNav }}" style="{{ navMentor }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 11.5a8.38 8.38 0 0 1-9 8.34l-5 1 1-4.2A8.5 8.5 0 1 1 21 11.5Z" stroke-linejoin="round"></path><path d="M9 10h6M9 13.5h4" stroke-linecap="round"></path></svg><span>Mentor IA</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:9px;font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">IA</span></button>
-      <button data-view="prognostico" onclick="{{ onNav }}" style="{{ navStyle.prognostico }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 17l5-5 4 4 8-9" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 7h4v4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Prognóstico</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:9px;font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
       <button data-view="dominio" onclick="{{ onNav }}" style="{{ navDominio }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7z" stroke-linejoin="round"></path><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Domínio por tópico</span></button>
       <button data-view="multiformato" onclick="{{ onNav }}" style="{{ navMulti }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="13" rx="2"></rect><path d="M3 17l6 4M21 17l-6 4M10 8.5l4 2.5-4 2.5z" stroke-linejoin="round"></path></svg><span>Multiformato</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:9px;font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
     </nav>
@@ -728,6 +727,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:stretch;">
           <!-- coluna principal -->
           <div style="flex:2.2;min-width:300px;display:flex;flex-direction:column;gap:16px;">
+            <!-- CRONÔMETRO (destaque) -->
+            <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px 24px;color:#fff;display:flex;align-items:center;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;">
+              <div style="position:absolute;right:-30px;top:-34px;width:150px;height:150px;border-radius:99px;background:rgba(255,255,255,.08);"></div>
+              <div style="position:relative;flex:none;">
+                <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:700;">Cronômetro de estudo</div>
+                <div style="font-family:var(--mono);font-size:clamp(42px,8vw,62px);font-weight:700;line-height:1;letter-spacing:-.02em;margin-top:5px;">{{ sessionDisplay }}</div>
+              </div>
+              <div style="position:relative;flex:1;min-width:190px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ true }}"><button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:12px;padding:13px 24px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar</button></sc-if>
+                <sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ false }}"><button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:12px;padding:13px 24px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"></path></svg>Pausar</button></sc-if>
+                <button onclick="{{ resetTimer }}" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">Zerar</button>
+                <button onclick="{{ enterFocus }}" style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>Tela cheia</button>
+              </div>
+            </div>
             <!-- AGORA -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;">
               <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--heroGrad);"></div>
@@ -779,6 +792,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <button onclick="{{ enterFocus }}" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:13px;font-family:inherit;"><span style="width:34px;height:34px;border-radius:9px;background:var(--accentSoft);color:var(--accentD);display:flex;align-items:center;justify-content:center;flex:none;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.4"></circle></svg></span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);">Modo foco</div><div style="font-size:11.5px;color:var(--text3);">cronômetro em tela cheia</div></div></button>
             </div>
           </div>
+        </div>
+
+        <!-- BEM-ESTAR (rápido, no Início) -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:9px;"><span style="font-size:18px;">🧘</span><span style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);">Bem-estar</span></div>
+            <button data-view="bemestar" onclick="{{ onNav }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Abrir bem-estar →</button>
+          </div>
+          <div style="font-size:12.5px;color:var(--text3);margin-bottom:16px;">Como você está agora? O check-in ajusta a cobrança e o ritmo sugerido.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <sc-for list="{{ moods }}" as="m" hint-placeholder-count="5">
+              <button data-k="{{ m.k }}" onclick="{{ setMood }}" style="{{ m.style }}"><span style="font-size:24px;line-height:1;">{{ m.emoji }}</span><span style="font-size:11.5px;font-weight:600;">{{ m.label }}</span></button>
+            </sc-for>
+          </div>
+          <div style="margin-top:16px;padding:13px 15px;background:var(--accentSoft);border-radius:12px;font-size:12.5px;color:var(--accentD);line-height:1.5;">{{ moodTip }}</div>
         </div>
 
         <!-- DASHBOARDS DE TEMPO (no Início) -->
@@ -1236,16 +1264,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <sc-if value="{{ redNoResult }}" hint-placeholder-val="{{ true }}">
          <div style="display:flex;flex-direction:column;gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-            <label style="display:block;font-size:11.5px;color:var(--text3);font-weight:600;margin-bottom:6px;">① Tema / título <span style="opacity:.7;font-weight:400;">— opcional, usado só para rotular no histórico</span></label>
-            <select onchange="{{ setRedTema }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:11px 13px;font-size:13.5px;color:var(--ink);font-family:inherit;margin-bottom:18px;"><sc-for list="{{ redTemaOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for></select>
-            <input value="{{ redTema }}" oninput="{{ setRedTema }}" placeholder="✏️ Ou escreva / edite o seu próprio título aqui" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:11px 13px;font-size:13.5px;color:var(--ink);font-family:inherit;margin:-8px 0 18px;">
-            <label style="display:block;font-size:11.5px;color:var(--text3);font-weight:600;margin-bottom:6px;">② Enunciado da questão</label>
+            <label style="display:block;font-size:11.5px;color:var(--text3);font-weight:600;margin-bottom:6px;">① Enunciado da questão</label>
             <textarea value="{{ redEnunciado }}" oninput="{{ onRedEnun }}" rows="4" placeholder="Cadastre aqui o enunciado / comando da questão que você vai responder. Ex.: Disserte sobre os limites do poder regulamentar da Administração Pública, abordando: (a) fundamento constitucional; (b) espécies; (c) controle judicial." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:14px;font-size:13.5px;color:var(--ink);font-family:var(--body);line-height:1.6;resize:vertical;outline:none;margin-bottom:18px;"></textarea>
-            <label style="display:block;font-size:11.5px;color:var(--text3);font-weight:600;margin-bottom:6px;">③ Sua resposta</label>
+            <label style="display:block;font-size:11.5px;color:var(--text3);font-weight:600;margin-bottom:6px;">② Sua resposta</label>
             <textarea value="{{ redText }}" oninput="{{ onRedText }}" rows="14" placeholder="Desenvolva sua resposta aqui. Estruture em introdução, desenvolvimento e conclusão; fundamente com dispositivos legais e, quando couber, jurisprudência." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:16px;font-size:14.5px;color:var(--ink);font-family:var(--body);line-height:1.7;resize:vertical;outline:none;"></textarea>
             <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
-                <label style="font-size:11.5px;color:var(--text3);font-weight:600;">④ Gabarito / espelho de correção</label>
+                <label style="font-size:11.5px;color:var(--text3);font-weight:600;">③ Gabarito / espelho de correção</label>
                 <button onclick="{{ importRedGab }}" style="display:flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface2);border-radius:9px;padding:8px 13px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" stroke-linecap="round" stroke-linejoin="round"></path></svg>Importar PDF/TXT</button>
               </div>
               <textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" rows="6" placeholder="Cole aqui o gabarito oficial, o espelho de correção ou uma resposta-modelo. A plataforma compara sua resposta com este conteúdo e gera o raio-X ponto a ponto." style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:14px;font-size:13.5px;color:var(--ink);font-family:var(--body);line-height:1.6;resize:vertical;outline:none;"></textarea>
@@ -1858,76 +1883,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
        </div>
       </sc-if>
 
-      <!-- ================= PROGNÓSTICO (inovação) ================= -->
-      <sc-if value="{{ isProg }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
-          <div style="background:var(--heroGrad);border-radius:var(--radius);padding:26px;color:#fff;display:flex;flex-direction:column;justify-content:center;">
-            <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:600;">Se a prova fosse hoje</div>
-            <div style="display:flex;align-items:baseline;gap:12px;margin-top:8px;"><span style="font-family:var(--display);font-size:46px;font-weight:700;line-height:1;">{{ notaHoje }}%</span><span style="opacity:.85;font-size:13px;">nota estimada agora</span></div>
-            <div style="height:1px;background:rgba(255,255,255,.25);margin:18px 0;"></div>
-            <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:600;">Projeção no dia da prova</div>
-            <div style="display:flex;align-items:baseline;gap:12px;margin-top:8px;"><span style="font-family:var(--display);font-size:46px;font-weight:700;line-height:1;">{{ notaProva }}%</span><span style="opacity:.85;font-size:13px;">em {{ diasProva }} dias · corte {{ corte }}%</span></div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;justify-content:center;">
-            <span style="align-self:flex-start;font-size:12px;font-weight:700;padding:6px 14px;border-radius:99px;color:#fff;background:{{ progColor }};">{{ progVerdict }}</span>
-            <p style="margin:16px 0 0;font-size:13.5px;color:var(--text2);line-height:1.6;">{{ progMsg }}</p>
-            <div style="margin-top:20px;">
-              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--text2);font-weight:500;">Esforço diário</label><span style="font-family:var(--mono);font-weight:600;color:var(--accent);font-size:15px;">{{ progHoras }}h / dia</span></div>
-              <input type="range" min="1" max="8" step="1" value="{{ progHoras }}" oninput="{{ setProgHoras }}" style="width:100%;accent-color:var(--accent);cursor:pointer;">
-              <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text3);margin-top:3px;"><span>1h</span><span>arraste para simular</span><span>8h</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Curva de prontidão até a prova</span><span style="font-size:11.5px;color:var(--text3);">linha pontilhada = nota de corte ({{ corte }}%)</span></div>
-          <svg viewBox="0 0 {{ cW }} {{ cH }}" preserveAspectRatio="none" style="width:100%;height:170px;display:block;overflow:visible;">
-            <polygon points="{{ curveArea }}" fill="var(--accentSoft)" opacity="0.6"></polygon>
-            <line x1="0" y1="{{ corteY }}" x2="{{ corteX }}" y2="{{ corteY }}" stroke="#c0392f" stroke-width="1.5" stroke-dasharray="5 4"></line>
-            <polyline points="{{ curvePoly }}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
-          </svg>
-          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text3);margin-top:6px;"><span>hoje</span><span>em 42 dias</span><span>dia da prova</span></div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-            <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Projeção por disciplina</div>
-            <div style="font-size:11.5px;color:var(--text3);margin-bottom:18px;">claro = hoje · escuro = projetado na prova</div>
-            <sc-for list="{{ progDiscProj }}" as="d" hint-placeholder-count="6">
-              <div style="margin-bottom:14px;">
-                <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;"><span style="color:var(--text2);">{{ d.disc }}</span><span style="font-family:var(--mono);color:var(--text2);">{{ d.hoje }}% → {{ d.prova }}%</span></div>
-                <div style="height:9px;border-radius:99px;background:var(--surface2);overflow:hidden;position:relative;">
-                  <i style="position:absolute;left:0;top:0;height:100%;width:{{ d.prova }}%;background:{{ d.color }};opacity:.35;border-radius:99px;"></i>
-                  <i style="position:absolute;left:0;top:0;height:100%;width:{{ d.hoje }}%;background:{{ d.color }};border-radius:99px;"></i>
-                </div>
-              </div>
-            </sc-for>
-          </div>
-
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-            <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Treino cirúrgico de hoje</span></div>
-            <div style="font-size:11.5px;color:var(--text3);margin-bottom:16px;">gerado a partir das disciplinas com maior distância até o corte</div>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              <sc-for list="{{ treinoAlvos }}" as="t" hint-placeholder-count="3">
-                <div style="display:flex;align-items:center;gap:13px;padding:13px 15px;background:var(--surface2);border-radius:12px;border-left:4px solid {{ t.color }};">
-                  <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);">{{ t.topic }}</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">{{ t.disc }}</div></div>
-                  <span style="font-family:var(--mono);font-size:12px;color:var(--text2);background:var(--surface);padding:5px 10px;border-radius:8px;">{{ t.q }} questões</span>
-                </div>
-              </sc-for>
-            </div>
-            <button onclick="{{ gerarTreino }}" style="margin-top:16px;width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:12px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Gerar treino direcionado</button>
-            <sc-if value="{{ treinoGerado }}" hint-placeholder-val="{{ false }}">
-              <div style="margin-top:12px;display:flex;gap:10px;align-items:flex-start;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:10px;padding:12px 14px;">
-                <span style="color:var(--accentD);font-weight:700;flex:none;">✓</span>
-                <p style="margin:0;font-size:12.5px;color:var(--text2);line-height:1.5;">Treino de 56 questões montado e adicionado ao Ciclo de hoje, priorizando os 3 tópicos acima.</p>
-              </div>
-            </sc-if>
-          </div>
-        </div>
-       </div>
-      </sc-if>
-
       <!-- ================= CALENDÁRIO ================= -->
       <sc-if value="{{ isCalendario }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
@@ -2024,37 +1979,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
 
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-            <div><div style="font-weight:600;color:var(--ink);font-size:15px;">Adicionar material</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">suba um PDF de verdade, um .txt, ou crie um resumo — tudo fica pronto para ler e marcar</div></div>
-            <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:4px;">
-              <button data-m="upload" onclick="{{ setBibMode }}" style="{{ bibSegUpload }}">Enviar arquivo</button>
-              <button data-m="texto" onclick="{{ setBibMode }}" style="{{ bibSegTexto }}">Escrever resumo</button>
-            </div>
+          <div style="margin-bottom:14px;">
+            <div style="font-weight:600;color:var(--ink);font-size:15px;">Adicionar material</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">cole um resumo, a lei ou as súmulas — tudo fica pronto para ler e marcar no leitor</div>
           </div>
-
-          <sc-if value="{{ bibModeUpload }}" hint-placeholder-val="{{ true }}">
-            <label ondrop="{{ bibDrop }}" ondragover="{{ bibDragOver }}" ondragleave="{{ bibDragLeave }}" style="{{ bibDropStyle }}">
-              <input type="file" accept=".pdf,.txt,text/plain,application/pdf" multiple="" onchange="{{ bibPickFile }}" style="display:none;">
-              <div style="width:54px;height:54px;border-radius:14px;background:var(--accentSoft);display:flex;align-items:center;justify-content:center;margin-bottom:10px;"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--accent)" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" stroke-linecap="round"></path></svg></div>
-              <div style="font-weight:600;color:var(--ink);font-size:14.5px;">Arraste arquivos aqui ou clique para enviar</div>
-              <div style="font-size:12.5px;color:var(--text3);margin-top:3px;">PDF (com seleção de texto) ou TXT · vários de uma vez</div>
-              <sc-if value="{{ bibBusy }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;font-size:12px;color:var(--accent);font-weight:600;">{{ bibBusyMsg }}</div></sc-if>
-            </label>
-            <div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;">
-              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text3);"><span style="width:7px;height:7px;border-radius:99px;background:#0a7ea4;"></span>PDF renderizado com camada de texto selecionável</div>
-              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text3);"><span style="width:7px;height:7px;border-radius:99px;background:#0f9d6b;"></span>marcações e notas salvas no aparelho</div>
-            </div>
-          </sc-if>
-
-          <sc-if value="{{ bibModeTexto }}" hint-placeholder-val="{{ false }}">
+          <div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
               <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Título</label><input data-k="titulo" value="{{ bibDraft.titulo }}" oninput="{{ onBibDraft }}" placeholder="ex.: Súmulas do STJ — Tributário" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
               <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Conteúdo (cole o resumo, a lei, as súmulas…)</label><textarea data-k="texto" value="{{ bibDraft.texto }}" oninput="{{ onBibDraft }}" placeholder="Cole aqui o texto. Cada linha em branco separa um parágrafo. Você poderá selecionar e marcar tudo no leitor." style="width:100%;min-height:120px;resize:vertical;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;line-height:1.5;"></textarea></div>
-              <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tipo</label><select data-k="tipo" value="{{ bibDraft.tipo }}" onchange="{{ onBibDraft }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option>Resumo</option><option>Lei seca</option><option>Jurisprudência</option><option>PDF</option></select></div>
+              <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tipo</label><select data-k="tipo" value="{{ bibDraft.tipo }}" onchange="{{ onBibDraft }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option>Resumo</option><option>Lei seca</option><option>Jurisprudência</option></select></div>
               <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina</label><select data-k="disc" value="{{ bibDraft.disc }}" onchange="{{ onBibDraft }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option>Constitucional</option><option>Administrativo</option><option>Tributário</option><option>Civil</option><option>Penal</option><option>Processo Civil</option></select></div>
             </div>
             <button onclick="{{ addBiblio }}" style="margin-top:14px;background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Salvar e abrir no leitor</button>
-          </sc-if>
+          </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <sc-for list="{{ bibChips }}" as="c" hint-placeholder-count="5"><button data-f="{{ c.f }}" onclick="{{ setBibFilter }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
@@ -2128,6 +2064,23 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       </sc-if>
 
       <!-- ================= AJUSTES (conta · personalização · orientação — aba única) ================= -->
+      <!-- PERFIL (identidade no topo) -->
+      <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
+       <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+            <div style="width:52px;height:52px;border-radius:99px;background:var(--heroGrad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:700;font-size:22px;flex:none;">{{ userInitial }}</div>
+            <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:16px;color:var(--ink);">{{ userName }}</div><div style="font-size:12.5px;color:var(--text3);">{{ userObjetivo }} · dados locais</div></div>
+            <button onclick="{{ logout }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 15px;font-size:13px;color:#c0392f;cursor:pointer;font-family:inherit;font-weight:600;">Sair</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Como quer ser chamado</label><input data-k="nome" value="{{ prefNome }}" oninput="{{ setPrefVal }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
+            <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Objetivo / cargo-alvo</label><input data-k="objetivo" value="{{ prefObjetivo }}" oninput="{{ setPrefVal }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
+          </div>
+        </div>
+       </div>
+      </sc-if>
+
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
 
@@ -2563,32 +2516,42 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
         </div>
 
-        <!-- GRUPOS DE ESTUDO (criar com amigos) -->
+        <!-- GRUPOS DE ESTUDO (Supabase real · entra por código) -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="font-weight:600;color:var(--ink);font-size:15px;">Grupos de estudo</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px;">crie um grupo e convide seus amigos para estudar junto</div>
-          <div style="display:grid;grid-template-columns:1.3fr 1.7fr auto;gap:10px;align-items:end;">
-            <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Nome do grupo</label><input data-k="nome" value="{{ grupoDraft.nome }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: Foco PF 2026" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
-            <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Amigos <span style="color:var(--text3);font-weight:400;">(separe por vírgula)</span></label><input data-k="amigos" value="{{ grupoDraft.amigos }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: Ana, Bruno, Carla" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
-            <button onclick="{{ addGrupo }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:11px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;white-space:nowrap;">Criar grupo</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div style="font-weight:600;color:var(--ink);font-size:15px;">Grupos de estudo</div>
+            <sc-if value="{{ gruposBusy }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:var(--accent);font-weight:600;">sincronizando…</span></sc-if>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px;">crie um grupo e compartilhe o <b style="color:var(--text2);">código</b> — seus amigos entram digitando esse código e veem o mesmo grupo em qualquer aparelho</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
+            <div style="display:flex;gap:8px;align-items:flex-end;">
+              <div style="flex:1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Criar um grupo</label><input data-k="nome" value="{{ grupoDraft.nome }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: Foco PF 2026" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
+              <button onclick="{{ addGrupo }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:11px 16px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;white-space:nowrap;">Criar</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-end;">
+              <div style="flex:1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Entrar com código</label><input data-k="codigo" value="{{ grupoDraft.codigo }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: 7KQ2ZP" maxlength="8" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;"></div>
+              <button onclick="{{ entrarGrupo }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;white-space:nowrap;">Entrar</button>
+            </div>
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:16px;">
             <sc-for list="{{ comGrupos }}" as="g" hint-placeholder-count="2">
               <div style="background:var(--surface2);border:1px solid var(--border);border-left:4px solid {{ g.cor }};border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:11px;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                   <div style="min-width:0;"><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:{{ g.cor }};font-weight:700;">{{ g.tag }} · {{ g.membrosLabel }}</div><div style="font-weight:600;color:var(--ink);font-size:15px;margin-top:4px;text-wrap:pretty;">{{ g.nome }}</div></div>
-                  <button data-id="{{ g.id }}" onclick="{{ removeGrupo }}" title="Excluir grupo" style="background:transparent;border:none;cursor:pointer;color:var(--text3);padding:2px;flex:none;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  <button data-id="{{ g.id }}" onclick="{{ removeGrupo }}" title="Sair do grupo" style="background:transparent;border:none;cursor:pointer;color:var(--text3);padding:2px;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
                 </div>
+                <sc-if value="{{ g.hasCodigo }}" hint-placeholder-val="{{ true }}">
+                  <button data-cod="{{ g.codigo }}" onclick="{{ copiarCodigo }}" title="Copiar código para compartilhar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;padding:8px 12px;cursor:pointer;font-family:inherit;"><span style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Código</span><span style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.1em;">{{ g.codigo }}</span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--text3)" stroke-width="1.9" style="flex:none;"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round"></path></svg></button>
+                </sc-if>
                 <div style="display:flex;flex-wrap:wrap;gap:6px;">
                   <sc-for list="{{ g.membrosList }}" as="mb" hint-placeholder-count="3">
-                    <span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:3px 9px 3px 4px;font-size:12px;color:var(--ink);"><span style="width:20px;height:20px;border-radius:99px;background:{{ g.cor }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex:none;">{{ mb.inicial }}</span>{{ mb.nome }}<button data-id="{{ mb.id }}" data-idx="{{ mb.idx }}" onclick="{{ removeMembroGrupo }}" aria-label="Remover membro" style="background:transparent;border:none;cursor:pointer;color:var(--text3);padding:0 0 0 2px;font-size:14px;line-height:1;">×</button></span>
+                    <span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid {{ mb.chipBd }};border-radius:99px;padding:3px 10px 3px 4px;font-size:12px;color:var(--ink);"><span style="width:20px;height:20px;border-radius:99px;background:{{ g.cor }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex:none;">{{ mb.inicial }}</span>{{ mb.nomeLabel }}</span>
                   </sc-for>
                 </div>
-                <button data-id="{{ g.id }}" onclick="{{ addMembroGrupo }}" style="background:var(--accentSoft);color:var(--accentD);border:1px solid var(--accentRing);border-radius:10px;padding:9px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;">+ Adicionar amigo</button>
               </div>
             </sc-for>
             <sc-if value="{{ comGruposEmpty }}" hint-placeholder-val="{{ true }}">
-              <div style="grid-column:1/-1;background:var(--surface2);border:1px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;color:var(--text3);font-size:13px;line-height:1.5;">Você ainda não criou grupos. Dê um nome, adicione amigos e clique em <b style="color:var(--text2);">Criar grupo</b>.</div>
+              <div style="grid-column:1/-1;background:var(--surface2);border:1px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;color:var(--text3);font-size:13px;line-height:1.5;">Você ainda não está em nenhum grupo. Crie um e compartilhe o código, ou entre com o código de um amigo.</div>
             </sc-if>
           </div>
         </div>
@@ -2622,14 +2585,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       </sc-if>
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-          <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:16px;">Seu perfil</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Como quer ser chamado</label><input data-k="nome" value="{{ prefNome }}" oninput="{{ setPrefVal }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
-            <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Objetivo / cargo-alvo</label><input data-k="objetivo" value="{{ prefObjetivo }}" oninput="{{ setPrefVal }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
-          </div>
-        </div>
-
         <!-- LAYOUT DA PLATAFORMA -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Layout da plataforma</div>
@@ -2835,14 +2790,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-          <div style="display:flex;align-items:center;gap:14px;">
-            <div style="width:52px;height:52px;border-radius:99px;background:var(--heroGrad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:700;font-size:22px;flex:none;">A</div>
-            <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:16px;color:var(--ink);">{{ userName }}</div><div style="font-size:12.5px;color:var(--text3);">{{ userObjetivo }} · dados locais</div></div>
-            <button onclick="{{ logout }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 15px;font-size:13px;color:#c0392f;cursor:pointer;font-family:inherit;font-weight:600;">Sair</button>
-          </div>
-        </div>
-
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Meta diária de estudo</span><span style="font-family:var(--mono);font-weight:600;color:var(--accent);font-size:16px;">{{ prefMetaDiaria }}h / dia</span></div>
           <div style="font-size:12px;color:var(--text3);margin:4px 0 14px;">alimenta o anel de progresso, o prognóstico e os lembretes</div>
           <input type="range" min="1" max="10" step="1" value="{{ prefMetaDiaria }}" oninput="{{ setMetaDiaria }}" style="width:100%;accent-color:var(--accent);cursor:pointer;">
@@ -2997,8 +2944,8 @@ class Component extends DCLogic {
       onboardChoice:'',
       metas:this._load('metas', []),
       metaDraft:{titulo:'', alvo:100},
-      meusGrupos:this._load('meusGrupos', []),
-      grupoDraft:{nome:'', amigos:''},
+      meusGrupos:this._load('meusGrupos', []), gruposBusy:false, gruposSync:false,
+      grupoDraft:{nome:'', codigo:''},
       ankiImported:this._load('ankiImported', false), pdfOpen:null,
       profile:{banca:'cebraspe', estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
       anaTab:'visao',
@@ -3017,7 +2964,6 @@ class Component extends DCLogic {
       errors:this._load('errors', []),
       mentorMsgs:this._load('mentorMsgs', [{role:'assistant', text:'Olá! Sou seu mentor de estudos na Cátedra. Ajudo com o método: organizar a semana, montar um plano para a reta final, escolher técnicas de revisão e entender por que você erra mais em certa disciplina. (Para explicações de conteúdo, use a Biblioteca e os flashcards.) Por onde começamos?'}]),
       mentorInput:'', mentorBusy:false,
-      redTema:'Discursiva — Os limites do poder regulamentar da Administração Pública.',
       redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redMode:'livre', redGabarito:this._load('redGabarito', ''), redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''),
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'',
@@ -3340,7 +3286,7 @@ class Component extends DCLogic {
         heroGrad:'linear-gradient(135deg,#1fd98e,#0c8a5d)' } }
   };}
 
-  onNav = (e)=>{ const v=e.currentTarget.dataset.view; this.setState({view:v, menuOpen:false}); };
+  onNav = (e)=>{ const v=e.currentTarget.dataset.view; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d}); try{ localStorage.setItem('catedra:dir', d); }catch(_){} };
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
@@ -3670,7 +3616,6 @@ class Component extends DCLogic {
   _redSave(h){ try{ localStorage.setItem('catedra:red', JSON.stringify(h)); }catch(_){} }
   onRedText = (e)=> this.setState({redText:e.currentTarget.value});
   onRedEnun = (e)=> this.setState({redEnunciado:e.currentTarget.value, redResult:null});
-  setRedTema = (e)=> this.setState({redTema:e.currentTarget.value, redResult:null});
   redReset = ()=> this.setState({redResult:null, redText:''});
   onRedGab = (e)=> this.setState({redGabarito:e.currentTarget.value});
   importRedGab = ()=>{ try{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/pdf,.pdf,text/plain,.txt';
@@ -3687,9 +3632,9 @@ class Component extends DCLogic {
     if(!(this.state.redGabarito||'').trim()){ this._toast('Cole ou importe o gabarito para comparar'); return; }
     this.setState({redBusy:true, redResult:null});
     const enun=(this.state.redEnunciado||'').trim();
-    const res= await this._corrigeRedacaoLivre(this.state.redTema, text, this.state.redGabarito, enun);
+    const _titulo=(enun? enun.replace(/\s+/g,' ').slice(0,80) : (text.replace(/\s+/g,' ').slice(0,60)||'Questão discursiva'));
+    const res= await this._corrigeRedacaoLivre(_titulo, text, this.state.redGabarito, enun);
     if(res){ res.livre=true; res.enunciado=enun; }
-    const _titulo=(enun? enun.replace(/\s+/g,' ').slice(0,80) : this.state.redTema);
     const entry={id:'rd'+Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now()};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
     this.setState({redBusy:false, redResult:res, redHistory:hist}); this.flashSync();
@@ -4127,18 +4072,40 @@ class Component extends DCLogic {
   editMeta = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let v=el.value; if(field==='alvo') v=Math.max(1,parseInt(v,10)||0); this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,[field]:v}:m)})); };
   removeMeta = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.filter(m=>m.id!==id)})); };
 
-  // ===== comunidade: grupos com amigos =====
+  // ===== comunidade: grupos de estudo (Supabase real, com fallback local) =====
+  _pal7=['#2563eb','#a855f7','#0d9488','#d6457f','#b08433','#dc2626','#0f7a57'];
+  _sb(){ try{ return (window.CatedraAuth && window.CatedraAuth.client) || null; }catch(_){ return null; } }
+  _codigoLocal(){ let c=''; const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; for(let i=0;i<6;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; }
+  _normGrupo(row, i){ const membros=Array.isArray(row.membros)?row.membros.map(m=>(typeof m==='string'?{nome:m}:{uid:m.uid, nome:m.nome})):[];
+    return {id:row.id, codigo:row.codigo||'', nome:row.nome||'Grupo de estudo', membros, cor:this._pal7[(i||0)%this._pal7.length], ts:row.criado_em?(Date.parse(row.criado_em)||0):(row.ts||0)}; }
   onGrupoDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({grupoDraft:{...s.grupoDraft,[k]:v}})); };
-  addGrupo = ()=>{ const d=this.state.grupoDraft; const nome=(d.nome||'').trim(); if(!nome){ this._toast('Dê um nome ao grupo'); return; }
-    const _pal=['#2563eb','#a855f7','#0d9488','#d6457f','#b08433','#dc2626','#0f7a57'];
-    const amigos=(d.amigos||'').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean);
-    const membros=['Você', ...amigos];
-    const g={id:'gr'+Date.now(), nome, cor:_pal[this.state.meusGrupos.length%_pal.length], membros, ts:Date.now()};
-    this.setState(s=>({meusGrupos:[g, ...s.meusGrupos], grupoDraft:{nome:'', amigos:''}})); this._toast('Grupo “'+nome+'” criado ✦'); this.flashSync(); };
-  removeGrupo = (e)=>{ const id=e.currentTarget.dataset.id; if(!window.confirm('Excluir este grupo?')) return; this.setState(s=>({meusGrupos:s.meusGrupos.filter(g=>g.id!==id)})); this.flashSync(); };
-  addMembroGrupo = (e)=>{ const id=e.currentTarget.dataset.id; let nome=''; try{ nome=(window.prompt('Nome do amigo para adicionar ao grupo:')||'').trim(); }catch(_){}
-    if(!nome) return; this.setState(s=>({meusGrupos:s.meusGrupos.map(g=> g.id===id ? {...g, membros:[...g.membros, nome]} : g)})); this.flashSync(); };
-  removeMembroGrupo = (e)=>{ const id=e.currentTarget.dataset.id, idx=+e.currentTarget.dataset.idx; this.setState(s=>({meusGrupos:s.meusGrupos.map(g=> g.id===id ? {...g, membros:g.membros.filter((_,i)=>i!==idx)} : g)})); this.flashSync(); };
+  _loadGrupos = async ()=>{ const sb=this._sb(); if(!sb) return;
+    this.setState({gruposBusy:true});
+    try{ const r=await sb.rpc('meus_grupos'); if(r.error) throw r.error; const list=(r.data||[]).map((row,i)=>this._normGrupo(row,i)); this.setState({meusGrupos:list, gruposBusy:false, gruposSync:true}); }
+    catch(err){ this.setState({gruposBusy:false}); } };
+  addGrupo = async ()=>{ const nome=(this.state.grupoDraft.nome||'').trim(); if(!nome){ this._toast('Dê um nome ao grupo'); return; }
+    const meuNome=(this.state.prefs&&this.state.prefs.nome)||'Você'; const sb=this._sb();
+    if(sb){ this.setState({gruposBusy:true});
+      try{ const r=await sb.rpc('criar_grupo', {p_nome:nome, p_nome_membro:meuNome}); if(r.error) throw r.error;
+        const g=this._normGrupo(r.data,0); this.setState(s=>({meusGrupos:[g, ...s.meusGrupos.filter(x=>x.id!==g.id)], grupoDraft:{nome:'', codigo:''}, gruposBusy:false, gruposSync:true})); this._toast('Grupo criado ✦ código '+g.codigo); }
+      catch(err){ this.setState({gruposBusy:false}); this._toast('Não consegui criar no servidor — verifique a conexão'); }
+      return; }
+    const g={id:'gr'+Date.now(), codigo:this._codigoLocal(), nome, cor:this._pal7[this.state.meusGrupos.length%this._pal7.length], membros:[{nome:meuNome}], ts:Date.now()};
+    this.setState(s=>({meusGrupos:[g, ...s.meusGrupos], grupoDraft:{nome:'', codigo:''}})); this._toast('Grupo criado ✦ código '+g.codigo); this.flashSync(); };
+  entrarGrupo = async ()=>{ const cod=(this.state.grupoDraft.codigo||'').trim().toUpperCase(); if(!cod){ this._toast('Digite o código do grupo'); return; }
+    const meuNome=(this.state.prefs&&this.state.prefs.nome)||'Membro'; const sb=this._sb();
+    if(sb){ this.setState({gruposBusy:true});
+      try{ const r=await sb.rpc('entrar_grupo', {p_codigo:cod, p_nome_membro:meuNome}); if(r.error) throw r.error;
+        if(!r.data){ this.setState({gruposBusy:false}); this._toast('Código não encontrado'); return; }
+        const g=this._normGrupo(r.data,0); this.setState(s=>({meusGrupos:[g, ...s.meusGrupos.filter(x=>x.id!==g.id)], grupoDraft:{nome:'', codigo:''}, gruposBusy:false, gruposSync:true})); this._toast('Você entrou no grupo ✦'); }
+      catch(err){ this.setState({gruposBusy:false}); this._toast('Código não encontrado ou falha ao entrar'); }
+      return; }
+    this._toast('Entre na sua conta para participar de grupos por código'); };
+  removeGrupo = async (e)=>{ const id=e.currentTarget.dataset.id; if(!window.confirm('Sair deste grupo?')) return;
+    const sb=this._sb();
+    if(sb){ try{ const r=await sb.rpc('sair_grupo', {p_id:id}); if(r.error) throw r.error; }catch(err){} }
+    this.setState(s=>({meusGrupos:s.meusGrupos.filter(g=>g.id!==id)})); this.flashSync(); };
+  copiarCodigo = (e)=>{ const cod=e.currentTarget.dataset.cod||''; try{ navigator.clipboard.writeText(cod); }catch(_){} this._toast('Código '+cod+' copiado'); };
 
   // ===== exportar relatório PDF =====
   exportPDF = ()=>{ try{ window.print(); }catch(_){} };
@@ -4262,7 +4229,7 @@ class Component extends DCLogic {
         `transition:all .15s;background:${on?'var(--sactbg)':'transparent'};color:${on?'var(--sacttext)':'var(--stext)'};`;
     };
     // ===== menu simplificado: essenciais visíveis + "Mais opções" =====
-    const _moreViews=['anki','analise','conquistas','historico','mentor','prognostico','dominio','multiformato','bemestar','comunidade','biblioteca','ajustes'];
+    const _moreViews=['anki','analise','conquistas','historico','mentor','dominio','multiformato','bemestar','comunidade','biblioteca','ajustes'];
     const _onMore=_moreViews.indexOf(this.state.view)>=0;
     const navShowMore=this.state.navExpanded||_onMore;
     const navToggleShow=!_onMore;
@@ -4546,10 +4513,11 @@ class Component extends DCLogic {
     const comNowN=String(_comNowList.length);
     const comUserPos=String((comRank.findIndex(m=>m.eu))+1);
     const comUserH=fmtHM(_comUserMin); const comUserStreak=String(B.streak);
+    const _meuNomeG=(this.state.prefs&&this.state.prefs.nome)||'Você';
     const comGrupos=(this.state.meusGrupos||[]).map(g=>{ const membros=Array.isArray(g.membros)?g.membros:[]; return {
-      id:g.id, nome:g.nome, cor:g.cor||'#0f7a57', tag:'Meu grupo',
-      membros:String(membros.length), membrosLabel:membros.length+(membros.length===1?' membro':' membros'),
-      membrosList:membros.map((nome,i)=>({nome, idx:String(i), id:g.id, inicial:(nome||'?').slice(0,1).toUpperCase(), eu:nome==='Você'})),
+      id:g.id, nome:g.nome, codigo:g.codigo||'', hasCodigo:!!g.codigo, cor:g.cor||'#0f7a57', tag:'Grupo',
+      membrosLabel:membros.length+(membros.length===1?' membro':' membros'),
+      membrosList:membros.map((m,i)=>{ const nome=(m&&m.nome)||'Membro'; const eu=nome===_meuNomeG; return {nome, nomeLabel: eu?(nome+' · você'):nome, chipBd: eu?'var(--accent)':'var(--border)', id:g.id, inicial:(nome||'?').slice(0,1).toUpperCase(), eu}; }),
       when:(()=>{ try{ return new Date(g.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })() }; });
     const comFeed=[];
     const _bShort = (id)=>{ const v=BANCAS_INFO[id]; return v? (v.label||'').replace(/\s*\(.*/,'') : null; };
@@ -4713,35 +4681,6 @@ class Component extends DCLogic {
           : {tone:'good', title:'Retenção na meta ('+ankiIdealRange+')', text:'Em '+ankiLast+'%. Pode manter '+_aNovos+' cartões novos/dia; para acelerar, suba aos poucos sem passar de '+_aMaxRev+' revisões/dia.'} ),
       {tone:'info', title:'Ritmo de revisão', text:`Cerca de ${Math.round(ankiTotalRev/Math.max(1,ankiHist.length))} revisões por registro · seu teto configurado é ${_aMaxRev}/dia.`}
     ].map(i=>({...i, dot: i.tone==='good'?'#0f9d6b':i.tone==='warn'?'#c2790c':'var(--accent)'}));
-
-    // ===== PROGNÓSTICO (inovação) =====
-    const dias = _diasProvaN;
-    const horas = this.state.prognHoras;
-    const pesos = { 'Direito Constitucional':2,'Direito Penal':1.5,'Direito Administrativo':2,'Processo Civil':1,'Direito Civil':1.5,'Direito Tributário':1 };
-    const domBase = accRows; // {disc,pct,color}
-    const pf = this.state.profile;
-    const wsum = domBase.reduce((a,r)=>a+(pesos[r.disc]||1),0);
-    const notaHoje = wsum>0 ? Math.round(domBase.reduce((a,r)=>a+r.pct*(pesos[r.disc]||1),0)/wsum) : 0;
-    const corte = pf.banca==='cebraspe'?70 : pf.banca==='fgv'?65 : 68;
-    let k = 0.0011 * (Math.max(1,horas)/3); if(pf.estrategia==='estrategico') k*=1.18; if(pf.retaFinal) k*=1.1;
-    const fAt = (d)=> 1 - Math.exp(-k*horas*d);
-    const proj = (base,d)=> Math.min(99, Math.round(base + (100-base)*fAt(d)));
-    const notaProva = proj(notaHoje, dias);
-    // curva
-    const N=14; const curvePts=[]; for(let i=0;i<=N;i++){ const d=Math.round(dias*i/N); curvePts.push({d, v:proj(notaHoje,d)}); }
-    const cW=460, cH=150, vmin=40, vmax=100;
-    const cx=(d)=> (d/Math.max(1,dias))*cW; const cy=(v)=> cH-((v-vmin)/(vmax-vmin))*cH;
-    const curvePoly = curvePts.map(p=>`${cx(p.d).toFixed(1)},${cy(p.v).toFixed(1)}`).join(' ');
-    const curveArea = `0,${cH} `+curvePoly+` ${cW},${cH}`;
-    const corteY = cy(corte);
-    // cruzamento do corte
-    let crossDay=null; for(let d=0;d<=dias;d++){ if(proj(notaHoje,d)>=corte){ crossDay=d; break; } }
-    let progVerdict, progColor, progMsg;
-    if(notaProva>=corte+6){ progVerdict='Aprovação provável'; progColor='#0f9d6b'; progMsg=`No ritmo de ${horas}h/dia você cruza a nota de corte ${crossDay!=null?'em ~'+crossDay+' dias':'antes da prova'} e chega com folga.`; }
-    else if(notaProva>=corte){ progVerdict='No limite do corte'; progColor='#c2790c'; progMsg=`Projeção encosta no corte (${corte}%). Aumente 1–2h/dia ou foque nas disciplinas fracas para criar margem.`; }
-    else { progVerdict='Abaixo do corte'; progColor='#c0392f'; progMsg=`No ritmo atual a projeção (${notaProva}%) fica abaixo do corte de ${corte}%. Suba as horas/dia ou priorize o treino cirúrgico.`; }
-    const progDiscProj = domBase.map(r=>({ disc:r.disc, color:r.color, hoje:r.pct, prova:proj(r.pct,dias) })).sort((a,b)=>a.prova-b.prova);
-    const treinoAlvos = [...progDiscProj].slice(0,3).map((r,i)=>({ disc:r.disc, color:r.color, topic:({'Direito Tributário':'Crédito tributário','Direito Civil':'Negócio jurídico','Processo Civil':'Recursos','Direito Administrativo':'Improbidade administrativa','Direito Constitucional':'Controle de constitucionalidade','Direito Penal':'Penas'}[r.disc]||'Tópico crítico'), q:18+i*2, gap:corte-r.hoje }));
 
     // ===== cronômetro: pomodoro / modal =====
     const pomoChip = (m)=>`width:100%;text-align:left;border:none;cursor:pointer;font-family:inherit;font-size:13px;padding:9px 12px;border-radius:8px;background:${(this.state.timerMode==='livre'&&m==='livre')||(this.state.timerMode==='pomo'&&m!=='livre')?'var(--accentSoft)':'transparent'};color:var(--ink);`;
@@ -4942,7 +4881,6 @@ class Component extends DCLogic {
       {view:'simulados', label:'Ir para Simulados', hint:'raio-x'},
       {view:'anki', label:'Ir para Anki', hint:'retenção'},
       {view:'analise', label:'Ir para Análise', hint:'desempenho'},
-      {view:'prognostico', label:'Ir para Prognóstico', hint:'projeção'},
       {view:'conquistas', label:'Ir para Metas & Conquistas', hint:'metas e gamificação'},
       {view:'multiformato', label:'Ir para Multiformato', hint:'texto, áudio, vídeo, mapa mental'},
       {view:'bemestar', label:'Ir para Bem-estar', hint:'respiração, hábitos, mindfulness'},
@@ -5011,14 +4949,6 @@ class Component extends DCLogic {
     const mentorSugs=['Como organizar minha semana de estudos?','Como melhorar meu desempenho em '+_weakShort+'?','Monte um plano para a reta final','Que técnica uso para fixar o que estudo?'];
 
     // ===== Redação =====
-    const RED_TEMAS=[
-      'Discursiva — Os limites do poder regulamentar da Administração Pública.',
-      'Discursiva — Controle de constitucionalidade: efeitos da decisão e modulação temporal.',
-      'Discursiva — Responsabilidade civil do Estado por conduta omissiva.',
-      'Peça — Parecer sobre hipótese de dispensa de licitação na Lei 14.133/2021.',
-      'Discursiva — A colisão entre liberdade de expressão e direito à honra.',
-    ];
-    const redTemaOpts=RED_TEMAS.map(t=>({v:t, sel:t===this.state.redTema}));
     const redWords=((this.state.redText||'').match(/\S+/g)||[]).length;
     const redGabarito=this.state.redGabarito, redGabBusy=this.state.redGabBusy, redGabFile=this.state.redGabFile;
     const redGabWords=((this.state.redGabarito||'').match(/\S+/g)||[]).length;
@@ -5104,7 +5034,7 @@ class Component extends DCLogic {
         ? `position:fixed;top:0;left:0;bottom:0;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px;z-index:50;transition:transform .28s ease;transform:translateX(${this.state.menuOpen?'0':'-110%'});box-shadow:${this.state.menuOpen?'0 0 40px rgba(0,0,0,.4)':'none'};`
         : `position:relative;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px;z-index:50;`,
       showBackdrop: this.state.isMobile && this.state.menuOpen,
-      navStyle:{ inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), simulados:navStyle('simulados'), anki:navStyle('anki'), dashboards:navStyle('dashboards'), analise:navStyle('analise'), conquistas:navStyle('conquistas'), prognostico:navStyle('prognostico'), personalizacao:navStyle('personalizacao'), ajustes:navStyle('ajustes') },
+      navStyle:{ inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), simulados:navStyle('simulados'), anki:navStyle('anki'), dashboards:navStyle('dashboards'), analise:navStyle('analise'), conquistas:navStyle('conquistas'), personalizacao:navStyle('personalizacao'), ajustes:navStyle('ajustes') },
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
       dirStyle:{ sutil:dirBtn('sutil'), premium:dirBtn('premium'), clean:dirBtn('clean'), moderno:dirBtn('moderno') },
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
@@ -5126,20 +5056,20 @@ class Component extends DCLogic {
       mentorPersonaLabel:_persona.label, mentorPersonaDesc:_persona.desc,
       onMentorInput:this.onMentorInput, mentorKey:this.mentorKey, mentorSuggest:this.mentorSuggest, mentorClear:this.mentorClear, sendMentor:this.sendMentor,
       isRedacao:this.state.view==='redacao', navRedacao:navStyle('redacao'),
-      redTemaOpts, redTema:this.state.redTema, redText:this.state.redText, redWords:String(redWords), redWordsN:redWords, redCanSubmit, redBusy:this.state.redBusy, redIdle:!this.state.redBusy,
+      redText:this.state.redText, redWords:String(redWords), redWordsN:redWords, redCanSubmit, redBusy:this.state.redBusy, redIdle:!this.state.redBusy,
       redEnunciado:this.state.redEnunciado, onRedEnun:this.onRedEnun,
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
       redEnunciadoShow, redEnunciadoResult,
       redResult:this.state.redResult, redHasResult:!!this.state.redResult, redNoResult:!this.state.redResult,
       redHist, redHistEmpty:redHist.length===0, redBtnStyle, redBtnLabel,
-      onRedText:this.onRedText, setRedTema:this.setRedTema, submitRed:this.submitRed, redReset:this.redReset,
+      onRedText:this.onRedText, submitRed:this.submitRed, redReset:this.redReset,
       redGabarito, redGabBusy, redGabFile, redGabWords:String(redGabWords),
       onRedGab:this.onRedGab, importRedGab:this.importRedGab,
       redResultLivre, redCompareStudent, redCompareGab,
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
-      isAnki:this.state.view==='anki', isProg:this.state.view==='prognostico', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',dominio:'Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Análise de desempenho',conquistas:'Metas & Conquistas',prognostico:'Prognóstico',mentor:'Mentor IA',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório'}[this.state.view]),
-      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Analisador de retenção — não produção de cartões',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',prognostico:'Nota projetada na prova e simulação de esforço',mentor:'Tira-dúvidas e orientação personalizada',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação'}[this.state.view]),
+      isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
+      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',dominio:'Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Análise de desempenho',conquistas:'Metas & Conquistas',mentor:'Mentor IA',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório'}[this.state.view]),
+      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Analisador de retenção — não produção de cartões',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',mentor:'Tira-dúvidas e orientação personalizada',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       syncLabel: this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador', syncTitle:'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho',
       syncDot: this.state.syncFlash?'#c2790c':'#0f9d6b', syncBg:'var(--surface2)',
@@ -5237,11 +5167,6 @@ class Component extends DCLogic {
       ankiPoly, ankiW, ankiH, ankiInsights, ankiIdealRange, ankiInput:this.state.ankiInput, onAnkiInput:this.onAnkiInput, saveAnki:this.saveAnki,
       fcCards: this.state.flashcards.map(f=>({...f, discColor:(this.DISC_COLOR[(f.disc||'').replace('Direito ','')]||'#0f7a57')})),
       fcCountStr:String(this.state.flashcards.length), fcEmpty:this.state.flashcards.length===0, removeCard:this.removeCard,
-      // prognóstico
-      notaHoje, notaProva, corte, progHoras:horas, progVerdict, progColor, progMsg, crossDay: crossDay==null?'—':crossDay,
-      setProgHoras:this.setProgHoras, curvePoly, curveArea, corteY, cW, cH, corteX:cW, progDiscProj, treinoAlvos,
-      gerarTreino:this.gerarTreino, treinoGerado:this.state.treinoGerado,
-      progNotaHojeY: cy(notaHoje), progNotaProvaY: cy(notaProva),
       // cronômetro
       timerMode:this.state.timerMode, pomoMenuOpen:this.state.pomoMenuOpen, togglePomoMenu:this.togglePomoMenu, setTimerMode:this.setTimerMode,
       timerStateLabel, pomoLivre:pomoChip('livre'), pomoPomo:pomoChip('pomo'),
@@ -5358,7 +5283,8 @@ class Component extends DCLogic {
       habCards, habDoneN, habTotalN, habInc:this.habInc, habDec:this.habDec,
       isComunidade:this.state.view==='comunidade', navComunidade:navStyle('comunidade'),
       comRank, comNowAvatars, comNowN, comUserPos, comUserH, comUserStreak, comGrupos, comFeed,
-      grupoDraft:this.state.grupoDraft, onGrupoDraft:this.onGrupoDraft, addGrupo:this.addGrupo, removeGrupo:this.removeGrupo, addMembroGrupo:this.addMembroGrupo, removeMembroGrupo:this.removeMembroGrupo,
+      grupoDraft:this.state.grupoDraft, onGrupoDraft:this.onGrupoDraft, addGrupo:this.addGrupo, entrarGrupo:this.entrarGrupo, removeGrupo:this.removeGrupo, copiarCodigo:this.copiarCodigo,
+      gruposBusy:this.state.gruposBusy, gruposSync:this.state.gruposSync, gruposCloud:!!(typeof window!=='undefined'&&window.CatedraAuth&&window.CatedraAuth.client),
       comGruposEmpty: comGrupos.length===0, comFeedEmpty: comFeed.length===0, comOnlyYou: comRank.length<=1,
       breathAnim:_breathOn?'ctbreath 8s ease-in-out infinite':'none', breathLabel:_breathOn?'inspire…':'pronto', breathBtn:_breathOn?'Pausar':'Começar',
       toggleBreath:this.toggleBreath, moods, setMood:this.setMood, moodTip:_moodTips[this.state.mood]||_moodTips[''],
