@@ -1470,7 +1470,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Registrar simulado</span><button onclick="{{ fillExample }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500;">Exemplo</button></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Nome / Banca</label><input value="Simulado CEBRASPE 05" readonly="" style="width:100%;border:1px solid var(--border);background:var(--surface2);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
+            <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Nome / Banca</label><input value="{{ simNome }}" oninput="{{ onSimNome }}" placeholder="ex.: Simulado CEBRASPE 05" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
             <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Forma de análise</label><select value="{{ simAnalysis }}" onchange="{{ onSimAnalysis }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option value="liquida">Certo/errado — nota líquida C−E (Cespe/Cebraspe)</option><option value="me">Múltipla escolha — % bruto (FGV/FCC/Vunesp)</option><option value="disc">Discursiva / peça jurídica</option></select><div style="font-size:11.5px;color:var(--text3);margin-top:6px;line-height:1.45;">{{ anaNote }}</div></div>
           </div>
 
@@ -1506,6 +1506,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <div style="font-size:12px;color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--accent);font-weight:700;">i</span><span>Some a nota de cada questão discursiva e peça jurídica. A pontuação total define o percentual de aproveitamento.</span></div>
             </div>
           </sc-if>
+          <button onclick="{{ saveSimulado }}" style="margin-top:18px;width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:11px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Registrar simulado no histórico</button>
+          <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;">soma às suas horas, ao desempenho e aparece nos "Simulados registrados"</div>
         </div>
 
         <!-- raio-x ao vivo -->
@@ -1545,7 +1547,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;">
             <div style="text-align:center;background:var(--surface2);border-radius:10px;padding:12px 6px;"><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink);">{{ sim.total }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px;">questões</div></div>
             <div style="text-align:center;background:var(--surface2);border-radius:10px;padding:12px 6px;"><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:#c0392f;">{{ loss }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px;">erros+brancos</div></div>
-            <div style="text-align:center;background:var(--surface2);border-radius:10px;padding:12px 6px;"><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink);">4h15</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px;">tempo</div></div>
+            <div style="text-align:center;background:var(--surface2);border-radius:10px;padding:12px 6px;"><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink);">{{ simTempoLabel }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px;">tempo</div></div>
           </div>
           <div style="margin-top:18px;">
             <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:10px;">Forças e fraquezas</div>
@@ -1866,11 +1868,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
             <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:14px;">Registrar retenção do dia</div>
-            <label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Retenção verdadeira (%)</label>
-            <div style="display:flex;gap:10px;">
-              <input type="number" min="0" max="100" placeholder="88" value="{{ ankiInput }}" oninput="{{ onAnkiInput }}" style="flex:1;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);">
-              <button onclick="{{ saveAnki }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Salvar</button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+              <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Retenção verdadeira (%)</label><input type="number" min="0" max="100" placeholder="88" value="{{ ankiInput }}" oninput="{{ onAnkiInput }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
+              <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Revisões hoje <span style="color:var(--text3);font-weight:400;">(opcional)</span></label><input type="number" min="0" placeholder="120" value="{{ ankiRevInput }}" oninput="{{ onAnkiRevInput }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
             </div>
+            <button onclick="{{ saveAnki }}" style="width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Salvar</button>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
               <span style="font-size:12px;font-weight:600;padding:5px 11px;border-radius:99px;background:var(--surface2);color:{{ ankiStatusColor }};">Status: {{ ankiStatus }}</span>
               <span style="font-size:12px;font-weight:600;padding:5px 11px;border-radius:99px;background:var(--surface2);color:var(--text2);">Média: {{ ankiAvg }}%</span>
@@ -1901,18 +1903,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
         </div>
 
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">traga estatísticas de retenção e carga direto do seu Anki</div>
-          <sc-if value="{{ ankiNotImported }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-              <button onclick="{{ importAnki }}" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 16px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" stroke-linecap="round" stroke-linejoin="round"></path></svg>Importar arquivo</button>
-              <span style="font-size:12px;color:var(--text3);">ou conecte via AnkiConnect (localhost:8765)</span>
-            </div>
-          </sc-if>
-          <sc-if value="{{ ankiImported }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;gap:10px;align-items:center;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:10px;padding:12px 14px;"><span style="color:var(--accentD);font-weight:700;">✓</span><span style="font-size:12.5px;color:var(--text2);">Importado: 240 revisões e 86% de retenção adicionados à curva.</span></div>
-          </sc-if>
-        </div>
 
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Curva de retenção</span><span style="font-size:11.5px;color:var(--text3);">ideal: {{ ankiIdealRange }}</span></div>
@@ -2314,11 +2304,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Modo padrão</label><select data-k="modoPadrao" value="{{ orient.modoPadrao }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="livre">Livre</option><option value="pomodoro">Pomodoro</option><option value="imersao">Imersão</option></select></div>
               <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ao abrir a plataforma</label><select data-k="aoAbrir" value="{{ orient.aoAbrir }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="foco">Mostrar foco do dia</option><option value="inicio">Ir para o Início</option><option value="ciclo">Abrir o Ciclo</option></select></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
-              <sc-for list="{{ orFocoToggles }}" as="t" hint-placeholder-count="5">
-                <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:11px;cursor:pointer;"><input type="checkbox" data-k="{{ t.k }}" checked="{{ t.on }}" onchange="{{ toggleOrient }}" style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex:none;"><span style="font-size:12.5px;color:var(--ink);line-height:1.35;">{{ t.l }}</span></label>
-              </sc-for>
-            </div>
+            <div style="font-size:11.5px;color:var(--text3);margin-top:14px;line-height:1.5;">O comportamento ao registrar (abrir registro ao parar, marcar bloco concluído, criar revisão automática) é ajustado em <b style="color:var(--text2);">Ajustes → Ritmo e comportamento</b>.</div>
           </div>
         </div>
 
@@ -2569,23 +2555,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
 
         <!-- ALERTA PROATIVO -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid #c2790c;border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;">
-          <span style="font-size:22px;line-height:1;">⏳</span>
-          <div style="flex:1;"><div style="font-weight:600;color:var(--ink);font-size:14px;">Você está há 1h50 sem pausa</div><div style="font-size:12.5px;color:var(--text3);margin-top:2px;">a retenção cai depois de ~50 min de foco contínuo. Que tal 5 minutos longe da tela?</div></div>
-          <button style="background:var(--accentSoft);color:var(--accentD);border:none;border-radius:9px;padding:9px 14px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;flex:none;">Pausar 5 min</button>
+        <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <span style="font-size:22px;line-height:1;">🌬️</span>
+          <div style="flex:1;min-width:180px;"><div style="font-weight:600;color:var(--ink);font-size:14px;">Precisa de uma pausa?</div><div style="font-size:12.5px;color:var(--text3);margin-top:2px;">a retenção cai depois de ~50 min de foco contínuo. Respire fundo por 1 minuto antes de voltar.</div></div>
+          <button onclick="{{ toggleBreath }}" style="background:var(--accentSoft);color:var(--accentD);border:none;border-radius:9px;padding:9px 14px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;flex:none;">{{ breathBtn }} respiração guiada</button>
         </div>
 
-        <!-- MINDFULNESS + COMUNIDADE -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-            <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:14px;">Áudios de mindfulness</div>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              <div style="display:flex;align-items:center;gap:13px;padding:11px 13px;border:1px solid var(--border);border-radius:12px;"><span style="width:40px;height:40px;border-radius:11px;background:var(--accentSoft);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;">🧘</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);">Foco antes da prova</div><div style="font-size:11.5px;color:var(--text3);">respiração · 8 min</div></div><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--accent)"><path d="M8 5v14l11-7z"></path></svg></div>
-              <div style="display:flex;align-items:center;gap:13px;padding:11px 13px;border:1px solid var(--border);border-radius:12px;"><span style="width:40px;height:40px;border-radius:11px;background:var(--accentSoft);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;">🌙</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);">Desacelerar para dormir</div><div style="font-size:11.5px;color:var(--text3);">relaxamento · 12 min</div></div><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--accent)"><path d="M8 5v14l11-7z"></path></svg></div>
-              <div style="display:flex;align-items:center;gap:13px;padding:11px 13px;border:1px solid var(--border);border-radius:12px;"><span style="width:40px;height:40px;border-radius:11px;background:var(--accentSoft);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;">🌿</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);">Reduzir ansiedade</div><div style="font-size:11.5px;color:var(--text3);">grounding · 5 min</div></div><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--accent)"><path d="M8 5v14l11-7z"></path></svg></div>
-            </div>
-          </div>
-
+        <!-- COMUNIDADE -->
+        <div style="display:grid;grid-template-columns:1fr;gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div style="font-weight:600;color:var(--ink);font-size:15px;">Comunidade</div><sc-if value="{{ comViaGrupo }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:#0f9d6b;display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:99px;background:#0f9d6b;"></span>{{ comNowN }} estudando agora</span></sc-if></div>
             <sc-if value="{{ comViaGrupo }}" hint-placeholder-val="{{ false }}">
@@ -2726,7 +2703,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <sc-if value="{{ comFeedEmpty }}" hint-placeholder-val="{{ true }}">
             <div style="text-align:center;color:var(--text3);font-size:13px;padding:4px 0 2px;">Ainda não há publicações na comunidade.</div>
           </sc-if>
-          <button style="margin-top:16px;width:100%;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;padding:10px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;">Publicar no mural</button>
         </div>
        </div>
       </sc-if>
@@ -3098,7 +3074,7 @@ class Component extends DCLogic {
       edital: this._load('edital', []),
       reviews: this._load('reviews', []),
       revSession: null,
-      sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}),
+      sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}), simNome:'',
       simAnalysis:this._load('simAnalysis', 'liquida'),
       discItems:this._load('discItems', []),
       timerRunning:false, timerSeconds:0,
@@ -3115,7 +3091,7 @@ class Component extends DCLogic {
       bibMode:'upload', bibDragOver:false, bibBusy:false, bibBusyMsg:'',
       readerOpen:null,
       eventDraft:{dia:15, tipo:'Tarefa', titulo:''},
-      calMonth:5, calYear:2026, calSel:12, calFilter:'todos', calView:'mes',
+      calMonth:(new Date()).getMonth(), calYear:(new Date()).getFullYear(), calSel:(new Date()).getDate(), calFilter:'todos', calView:'mes',
       habitos:(()=>{ const seed={sono:0, agua:0, exercicio:0, pausas:0, alongar:0, sol:0}; try{ const h=localStorage.getItem('catedra:habitos'); if(h){ const p=JSON.parse(h); if(p&&typeof p==='object') return {...seed, ...p}; } }catch(_){} return seed; })(),
       planHoras:this._load('planHoras', 24),
       provaMode:false, provaSeconds:0, provaRunning:false, provaDurationMin:this._load('provaDurationMin',240), provaName:'Simulado cronometrado',
@@ -3131,7 +3107,7 @@ class Component extends DCLogic {
       profile:{estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
       anaTab:'visao',
       ankiHist:this._load('ankiHist', []),
-      ankiInput:'',
+      ankiInput:'', ankiRevInput:'',
       prognHoras:this._load('prognHoras', 3),
       accent:this._load('accent', null),
       escudos:this._load('escudos', 0), streakFreezeUsados:this._load('streakFreezeUsados', []), streakCheckDate:this._load('streakCheckDate', ''), escudoUltimoGanho:this._load('escudoUltimoGanho', ''),
@@ -3193,6 +3169,8 @@ class Component extends DCLogic {
     window.addEventListener('keydown', this._onKey);
     this._reconcileStreak();
     try{ if(this._notifSupported()) this.setState({notifPerm:Notification.permission}); }catch(_){}
+    // "Ao abrir a plataforma" (Orientação): ciclo abre o Ciclo; foco/início ficam no Início
+    try{ const _ao=(this.state.orient&&this.state.orient.aoAbrir)||'foco'; if(_ao==='ciclo' && this.state.view==='inicio') this.setState({view:'ciclo'}); }catch(_){}
     // estado real de sync (emitido pelo auth.js) + re-hidratação após merge de outro aparelho
     this._onSyncState = (e)=>{ try{ this.setState({syncStatus:(e.detail&&e.detail.status)||'local'}); }catch(_){} };
     this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){} };
@@ -3212,6 +3190,10 @@ class Component extends DCLogic {
     patch.redHistory=this._redLoad();
     patch.escudos=this._load('escudos', this.state.escudos);
     patch.streakFreezeUsados=this._load('streakFreezeUsados', this.state.streakFreezeUsados);
+    try{ const _o=localStorage.getItem('catedra:orient'); if(_o){ const p=JSON.parse(_o); if(p&&typeof p==='object') patch.orient={...this.state.orient, ...p}; } }catch(_){}
+    try{ const _h=localStorage.getItem('catedra:habitos'); if(_h){ const p=JSON.parse(_h); if(p&&typeof p==='object') patch.habitos={...this.state.habitos, ...p}; } }catch(_){}
+    try{ const _pv=localStorage.getItem('catedra:prova'); patch.provaData=_pv||null; }catch(_){}
+    try{ const _cm=localStorage.getItem('catedra:cycleMode'); if(_cm) patch.cycleMode=_cm; }catch(_){}
     try{ patch.highlights=this._loadHL(); patch.flashcards=this._loadFC(); }catch(_){}
     try{ const lib=this._loadLib(); if(Array.isArray(lib)&&lib.length){ const seed=this.state.biblioteca.filter(b=>!b.user); patch.biblioteca=[...lib, ...seed]; } }catch(_){}
     // evita marcar dirty de novo: aplica sem passar pelo _autosave
@@ -3550,7 +3532,7 @@ class Component extends DCLogic {
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
   toggleNav = ()=> this.setState(s=>({navExpanded:!s.navExpanded}));
   toggleBlock = (e)=>{ const i=+e.currentTarget.dataset.i; const b=this.state.blocks.slice(); const willDone=!b[i].done; b[i]={...b[i],done:willDone};
-    if(willDone){ // concluiu → abre o registro já preenchido com o bloco (minutos = duração do bloco, se o cronômetro estiver zerado)
+    if(willDone && (this.state.prefs&&this.state.prefs.autoRegistro)!==false){ // concluiu → abre o registro preenchido (se "Abrir registro ao parar" estiver ligado)
       const pre=Math.round((this.state.timerSeconds||this.state.studiedSeconds||0)/60);
       this.setState(s=>({blocks:b, sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._blockToDraft(b[i], s.sessionDraft), minutos: pre>0?String(pre):String(b[i].min||'')}}));
     } else { this.setState({blocks:b}); } };
@@ -3620,6 +3602,19 @@ class Component extends DCLogic {
     const tp=ed[d].topics.slice(); const sb=(tp[t].subs||[]).slice(); sb[i]={...sb[i],name:v}; tp[t]={...tp[t],subs:sb}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); };
   onSim = (e)=>{ const f=e.currentTarget.dataset.f; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({sim:{...s.sim,[f]:v}})); };
   fillExample = ()=> this.setState({sim:{total:120,acertos:78,erros:37,brancos:5}});
+  onSimNome = (e)=> this.setState({simNome:e.currentTarget.value});
+  saveSimulado = ()=>{ const s=this.state.sim||{}; const nome=(this.state.simNome||'').trim()||'Simulado';
+    const min=Math.max(0, parseInt(this.state.provaDurationMin,10)||0);
+    const isDisc=this.state.simAnalysis==='disc';
+    const questoes=isDisc?0:Math.max(0,parseInt(s.total,10)||0);
+    const acertos=isDisc?0:Math.max(0,parseInt(s.acertos,10)||0);
+    const erradas=isDisc?0:Math.max(0,parseInt(s.erros,10)||0);
+    const brancos=isDisc?0:Math.max(0,parseInt(s.brancos,10)||0);
+    if(!questoes && !min && !isDisc){ this._toast('Preencha as questões (ou a duração) do simulado'); return; }
+    const rec={ id:'s'+Date.now(), ts:Date.now(), date:new Date().toISOString().slice(0,10), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:'', materialId:null, countMeta:true };
+    const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
+    this.setState({sessions, simNome:''}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
+    this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
 
   // ===== análise: sub-abas =====
   setAnaTab = (e)=> this.setState({anaTab:e.currentTarget.dataset.ana});
@@ -3689,7 +3684,7 @@ class Component extends DCLogic {
     const heat=[]; let heatMax=1; for(let d=27; d>=0; d--){ const ds=new Date(now-d*day).toISOString().slice(0,10); const mm=S.filter(s=>s.date===ds).reduce((a,s)=>a+(s.min||0),0); heatMax=Math.max(heatMax,mm); heat.push({date:ds, min:mm, isToday:d===0}); }
     return {totalMin,totalQ,totalA,totalE,totalB,liq,brutoPct,liqPct,diasEstudados,nDiscs,simulados,todayMin,weekMin,streak,discList,weeks,heat,heatMax,byTopic,normT:_normT};
   }
-  _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true }; }
+  _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:_autoRev, contarMeta:true }; }
   _kindToCat(kind){ return {'Teoria':'Teoria','Questões':'Questões','Lei seca':'Lei seca','Jurisprudência':'Jurisprudência','Simulado':'Simulado','Revisão':'Revisão','Flashcards':'Revisão'}[kind]||'Teoria'; }
   _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind); return {...this._freshSessionDraft(prev), disc:b.disc||'', topico:(b.tag&&b.tag!=='Rotativa'&&b.tag!=='Fixa')?b.tag:'', categorias:[cat], categoria:cat}; }
   openSession = ()=>{ const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
@@ -3862,16 +3857,19 @@ class Component extends DCLogic {
   };
   finishFocus = ()=>{ if(this._tick){ clearInterval(this._tick); this._tick=null; } const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60);
     this.setState(s=>{ const idx=s.focusBlockIdx; const blk=(idx!=null&&s.blocks[idx])?s.blocks[idx]:null;
-      const blocks= blk? s.blocks.map((x,j)=> j===idx?{...x,done:true}:x) : s.blocks;
+      const _autoConcl=(s.prefs&&s.prefs.autoConcluir)!==false, _autoReg=(s.prefs&&s.prefs.autoRegistro)!==false;
+      const blocks= (blk&&_autoConcl)? s.blocks.map((x,j)=> j===idx?{...x,done:true}:x) : s.blocks;
       const draft= blk? this._blockToDraft(blk, s.sessionDraft) : this._freshSessionDraft(s.sessionDraft);
-      return {focusMode:false, timerRunning:false, sessionModalOpen:true, focusBlockIdx:null, blocks,
+      return {focusMode:false, timerRunning:false, sessionModalOpen:_autoReg, focusBlockIdx:null, blocks,
         sessionDraft:{...draft, minutos: pre>0?String(pre):(blk?String(blk.min||''):'')}}; }); };
 
   // ===== Anki =====
   onAnkiInput = (e)=> this.setState({ankiInput:e.currentTarget.value});
+  onAnkiRevInput = (e)=> this.setState({ankiRevInput:e.currentTarget.value});
   saveAnki = ()=>{ const v=Math.max(0,Math.min(100,parseInt(this.state.ankiInput,10)||0)); if(!v) return;
+    const rev=Math.max(0,parseInt(this.state.ankiRevInput,10)||0);
     const d=new Date(); const lbl=String(d.getDate()).padStart(2,'0')+' '+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()];
-    this.setState(s=>({ankiHist:[...s.ankiHist,{date:lbl,ret:v,reviews:200}].slice(-9), ankiInput:''})); };
+    this.setState(s=>({ankiHist:[...s.ankiHist,{date:lbl,ret:v,reviews:rev}].slice(-9), ankiInput:'', ankiRevInput:''}), ()=>this._cloudPush()); };
 
   // ===== Prognóstico (inovação) =====
   setProgHoras = (e)=> this.setState({prognHoras:+e.currentTarget.value});
@@ -3987,8 +3985,9 @@ class Component extends DCLogic {
     this.setState({redBusy:true, redResult:null});
     const enun=(this.state.redEnunciado||'').trim();
     const _titulo=(enun? enun.replace(/\s+/g,' ').slice(0,80) : (text.replace(/\s+/g,' ').slice(0,60)||'Questão discursiva'));
-    const res= await this._corrigeRedacaoLivre(_titulo, text, this.state.redGabarito, enun);
-    if(res){ res.livre=true; res.enunciado=enun; }
+    let res=null; try{ res= await this._corrigeRedacaoLivre(_titulo, text, this.state.redGabarito, enun); }catch(_){}
+    if(!res){ this.setState({redBusy:false}); this._toast('Não consegui corrigir agora — tente de novo'); return; }
+    res.livre=true; res.enunciado=enun;
     const entry={id:'rd'+Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now()};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
     this.setState({redBusy:false, redResult:res, redHistory:hist}); this.flashSync();
@@ -4397,18 +4396,17 @@ class Component extends DCLogic {
   // ===== calendário: navegação / seleção / filtro =====
   calPrev = ()=> this.setState(s=>{ let m=s.calMonth-1, y=s.calYear; if(m<0){ m=11; y--; } return {calMonth:m, calYear:y, calSel:null}; });
   calNext = ()=> this.setState(s=>{ let m=s.calMonth+1, y=s.calYear; if(m>11){ m=0; y++; } return {calMonth:m, calYear:y, calSel:null}; });
-  calHoje = ()=> this.setState({calMonth:5, calYear:2026, calSel:12});
+  calHoje = ()=>{ const d=new Date(); this.setState({calMonth:d.getMonth(), calYear:d.getFullYear(), calSel:d.getDate()}); };
   calPick = (e)=>{ const d=parseInt(e.currentTarget.dataset.d,10); if(!d) return; this.setState(s=>({calSel: s.calSel===d?null:d, eventDraft:{...s.eventDraft, dia:d}})); };
   setCalFilter = (e)=> this.setState({calFilter:e.currentTarget.dataset.f});
   // ===== hábitos saudáveis =====
-  _persistHabitos(){ try{ localStorage.setItem('catedra:habitos', JSON.stringify(this.state.habitos)); }catch(_){} }
+  _persistHabitos(){ try{ localStorage.setItem('catedra:habitos', JSON.stringify(this.state.habitos)); }catch(_){} this._cloudPush(); }
   habInc = (e)=>{ const k=e.currentTarget.dataset.k; const step=parseFloat(e.currentTarget.dataset.step)||1; const max=parseFloat(e.currentTarget.dataset.max)||999;
     this.setState(s=>({habitos:{...s.habitos, [k]:Math.min(max, Math.round(((s.habitos[k]||0)+step)*10)/10)}}), ()=>{ this._persistHabitos(); }); this.flashSync(); };
   habDec = (e)=>{ const k=e.currentTarget.dataset.k; const step=parseFloat(e.currentTarget.dataset.step)||1;
     this.setState(s=>({habitos:{...s.habitos, [k]:Math.max(0, Math.round(((s.habitos[k]||0)-step)*10)/10)}}), ()=>{ this._persistHabitos(); }); this.flashSync(); };
   openPdf = (e)=> this.setState({pdfOpen:e.currentTarget.dataset.t});
   closePdf = ()=> this.setState({pdfOpen:null});
-  importAnki = ()=> this.setState({ankiImported:true, ankiHist:[...this.state.ankiHist,{date:'importado', ret:86, reviews:240}].slice(-9)});
   removeCard = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const fc=s.flashcards.filter(c=>c.id!==id); this._saveFC(fc); return {flashcards:fc}; }); this.flashSync(); };
 
   // ===== planejamento =====
@@ -4532,7 +4530,7 @@ class Component extends DCLogic {
     const cats=(Array.isArray(d.categorias)&&d.categorias.length)?d.categorias:['Teoria'];
     const sessions=this.state.sessions.map(x=> x.id===d.id ? {...x, disc:(d.disc||'').trim()||x.disc||'Geral', topico:(d.topico||'').trim()||x.topico, categorias:cats, categoria:cats[0], min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, nota:(d.nota||'').trim()} : x);
     try{ this._saveSessions(sessions); }catch(_){} this.setState({sessions, histEdit:null}); this.flashSync(); };
-  setProvaData = (e)=>{ const v=e.currentTarget.value; this.setState({provaData:v||null}); try{ if(v) localStorage.setItem('catedra:prova',v); else localStorage.removeItem('catedra:prova'); }catch(_){} this.flashSync(); };
+  setProvaData = (e)=>{ const v=e.currentTarget.value; this.setState({provaData:v||null}); try{ if(v) localStorage.setItem('catedra:prova',v); else localStorage.removeItem('catedra:prova'); }catch(_){} this.flashSync(); this._cloudPush(); };
   toggleRetaFinal = ()=>{ this.setState(s=>({profile:{...s.profile, retaFinal:!s.profile.retaFinal}})); this.flashSync(); };
   setRetaCom = (e)=> this.setState(s=>({orient:{...s.orient, retaFinalCom:e.currentTarget.value}}));
   toggleReduzTeoria = ()=> this.setState(s=>({orient:{...s.orient, reduzirTeoria:!s.orient.reduzirTeoria}}));
@@ -4614,7 +4612,8 @@ class Component extends DCLogic {
     this.setState(s=>{ const fc=[...novos,...s.flashcards]; this._saveFC(fc); return {flashcards:fc, ankiImported:true}; }); this._toast(novos.length+' cartões adicionados ao Anki ✦'); this.flashSync(); };
   toggleBreath = ()=> this.setState(s=>({breathOn:!s.breathOn}));
   setMood = (e)=> this.setState({mood:e.currentTarget.dataset.k});
-  _persistOrient(){ try{ localStorage.setItem('catedra:orient', JSON.stringify(this.state.orient)); }catch(_){} }
+  _cloudPush(){ try{ if(window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push(); }catch(_){} }
+  _persistOrient(){ try{ localStorage.setItem('catedra:orient', JSON.stringify(this.state.orient)); }catch(_){} this._cloudPush(); }
   setOrient = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao'].indexOf(k)>=0 && this.state.cycleMode==='sugestao'){ this.setState({blocks:this._genSugestao()}); } }); };
   toggleOrient = (e)=>{ const k=e.currentTarget.dataset.k; this.setState(s=>({orient:{...s.orient,[k]:!s.orient[k]}}), ()=>this._persistOrient()); };
   setOrientSlider = (e)=>{ const k=e.currentTarget.dataset.k; const v=parseInt(e.currentTarget.value,10); this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>this._persistOrient()); };
@@ -5007,8 +5006,16 @@ class Component extends DCLogic {
     const _focoCands=[];
     if(revPend>0) _focoCands.push({s:(parseInt(_orientCfg.pRevVenc,10)||10)+(revOverdue.length?3:0), t:'as revisões vencidas'});
     if(_retaOnNow) _focoCands.push({s:(parseInt(_orientCfg.pProva,10)||8)+4, t:'simulados e revisão da reta final'});
-    if(focoRendeTop && focoRendeTop.pts>0 && !focoRendeTop.semDados) _focoCands.push({s:(parseInt(_orientCfg.pPesos,10)||9), t:focoRendeTop.short+' — pode render '+focoRendeTop.ptsStr+' a mais na prova'});
+    if(focoRendeTop && focoRendeTop.pts>0 && !focoRendeTop.semDados) _focoCands.push({s:(parseInt(_orientCfg.pIncid,10)||8), t:focoRendeTop.short+' — pode render '+focoRendeTop.ptsStr+' a mais na prova'});
     _focoCands.push({s:(parseInt(_orientCfg.pEdital,10)||8), t: nextAction?('o bloco de '+String(nextAction.disc||'estudo').replace('Direito ','')):'o próximo bloco do edital'});
+    // sliders de prioridade que faltavam entrar no cálculo: desempenho, tempo sem estudar, erros
+    const _weakD=[...B.discList].filter(d=>d.q>=5).sort((a,b)=>a.liqPct-b.liqPct)[0];
+    if(_weakD) _focoCands.push({s:(parseInt(_orientCfg.pDesemp,10)||9), t:_weakD.disc.replace('Direito ','')+' — seu líquido mais baixo ('+_weakD.liqPct+'%)'});
+    const _lastByDisc={}; (this.state.sessions||[]).forEach(s=>{ if(s.disc){ const t=s.ts||0; if(t>(_lastByDisc[s.disc]||0)) _lastByDisc[s.disc]=t; } });
+    const _staleD=(this.state.edital||[]).map(d=>({disc:d.disc, last:_lastByDisc[d.disc]||0})).sort((a,b)=>a.last-b.last)[0];
+    if(_staleD && (this.state.sessions||[]).length){ const _dsem=_staleD.last?Math.floor((Date.now()-_staleD.last)/864e5):null; if(_dsem===null||_dsem>=7) _focoCands.push({s:(parseInt(_orientCfg.pTempo,10)||7), t:_staleD.disc.replace('Direito ','')+(_dsem!=null?(' — sem estudar há '+_dsem+' dias'):' — ainda sem sessões')}); }
+    const _errAbF=(this.state.errors||[]).filter(e=>!e.resolvido).length;
+    if(_errAbF>=3) _focoCands.push({s:(parseInt(_orientCfg.pErros,10)||9), t:'os '+_errAbF+' erros em aberto do seu caderno'});
     _focoCands.sort((a,b)=>b.s-a.s);
     const _focoVerbo = _cob==='rigido'?'Ataque já' : (_cob==='leve'?'Sem pressa, priorize' : 'Priorize');
     const focoSugestao = _focoVerbo+' '+(_focoCands[0]||{t:'o que mais pesa na sua aprovação'}).t+'.';
@@ -5280,7 +5287,7 @@ class Component extends DCLogic {
     const evByDay = {}; _monthEvents.forEach(e=>{ (evByDay[e.dia]=evByDay[e.dia]||[]).push(e); });
     const _firstDow=new Date(_cy,_cm,1).getDay();
     const _daysInMonth=new Date(_cy,_cm+1,0).getDate();
-    const _isCurMonth=(_cm===5&&_cy===2026); const calToday=12;
+    const _calNow=new Date(); const _isCurMonth=(_cm===_calNow.getMonth()&&_cy===_calNow.getFullYear()); const calToday=_calNow.getDate();
     const calCells = [];
     for(let i=0;i<_firstDow;i++) calCells.push({empty:true, notEmpty:false, key:'e'+i, cellBg:'transparent', cellBorder:'transparent', dayColor:'var(--text3)', day:0, evs:[], hasMore:false, more:''});
     for(let d=1; d<=_daysInMonth; d++){ const isT=_isCurMonth&&d===calToday; const isSel=_csel===d; const dows=new Date(_cy,_cm,d).getDay(); const wkd=(dows===0||dows===6); const evs=(evByDay[d]||[]);
@@ -5463,7 +5470,7 @@ class Component extends DCLogic {
     const moods=_moodDefs.map(m=>({...m, style:`display:flex;flex-direction:column;align-items:center;gap:6px;width:78px;padding:12px 6px;border-radius:13px;cursor:pointer;font-family:inherit;transition:all .15s;border:1px solid ${this.state.mood===m.k?'var(--accent)':'var(--border)'};background:${this.state.mood===m.k?'var(--accentSoft)':'var(--surface)'};color:var(--ink);`}));
 
     // ===== personalização inteligente (orientação) =====
-    const O=this.state.orient;
+    const O=this.state.orient||{};
     const _hhmm=(min)=>{ const n=parseInt(min,10)||0; const h=Math.floor(n/60), m=n%60; return `${h}:${String(m).padStart(2,'0')}:00`; };
     const _nivelL={iniciante:'Iniciante',intermediario:'Intermediário',avancado:'Avançado'}[O.nivel];
     const _cobrancaL={leve:'Leve',equilibrado:'Equilibrado',rigido:'Rígido'}[O.cobranca];
@@ -5490,7 +5497,7 @@ class Component extends DCLogic {
     const _conselhos=[
       {dot:'#c2790c',t:'Meta mínima ainda não batida',d:`Faça ao menos ${O.metaMin} min hoje. Com energia ${O.energiaPlano}, conduta sugerida: ${_estrategiaL} com foco em revisões vencidas e bloco principal.`},
       {dot:'#c0392f',t:'Revisões vencidas',d:`Há ${revPend} revisão(ões) vencida(s). Antes de avançar, faça uma rodada curta de revisão.`},
-      {dot:'#7c5cd6',t:`Ajuste para ${O.banca.toUpperCase()}`,d:'Inclua certo/errado, literalidade, exceções e pegadinhas conceituais na correção.'}
+      {dot:'#7c5cd6',t:`Ajuste para ${(O.banca||"cebraspe").toUpperCase()}`,d:'Inclua certo/errado, literalidade, exceções e pegadinhas conceituais na correção.'}
     ];
 
     // ===== personalização/ajustes extra =====
@@ -5634,7 +5641,7 @@ class Component extends DCLogic {
       dirStyle:{ sutil:dirBtn('sutil'), premium:dirBtn('premium'), clean:dirBtn('clean'), moderno:dirBtn('moderno') },
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
       toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
-      onSim:this.onSim, fillExample:this.fillExample,
+      onSim:this.onSim, fillExample:this.fillExample, simNome:this.state.simNome, onSimNome:this.onSimNome, saveSimulado:this.saveSimulado, simTempoLabel:(this.state.provaDurationMin>0?fmtHM(this.state.provaDurationMin):'—'),
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
       homeTimerLabel, homePmLivre, homePm25, homePm50, homePm90,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze,
@@ -5767,7 +5774,7 @@ class Component extends DCLogic {
       achievements, achDone, achProgress, conqEarned, conqMaxed, conqTotalLevels,
       // anki
       ankiHist, ankiLast, ankiAvg, ankiTotalRev, ankiStatus, ankiStatusColor, ankiStatusMsg,
-      ankiPoly, ankiW, ankiH, ankiInsights, ankiIdealRange, ankiInput:this.state.ankiInput, onAnkiInput:this.onAnkiInput, saveAnki:this.saveAnki,
+      ankiPoly, ankiW, ankiH, ankiInsights, ankiIdealRange, ankiInput:this.state.ankiInput, onAnkiInput:this.onAnkiInput, ankiRevInput:this.state.ankiRevInput, onAnkiRevInput:this.onAnkiRevInput, saveAnki:this.saveAnki,
       fcCards: this.state.flashcards.map(f=>({...f, discColor:(this.DISC_COLOR[(f.disc||'').replace('Direito ','')]||'#0f7a57')})),
       fcCountStr:String(this.state.flashcards.length), fcEmpty:this.state.flashcards.length===0, removeCard:this.removeCard,
       // cronômetro
@@ -5815,7 +5822,7 @@ class Component extends DCLogic {
       onbEdital:onboardCard('edital'), onbCiclo:onboardCard('ciclo'), onbImport:onboardCard('import'),
       onboardPct: Math.round(this.state.onboardStep/3*100),
       // anki import / pdf
-      importAnki:this.importAnki, ankiImported:this.state.ankiImported, ankiNotImported:!this.state.ankiImported, openPdf:this.openPdf, closePdf:this.closePdf, pdfOpen:this.state.pdfOpen, pdfIsOpen:!!this.state.pdfOpen,
+      ankiImported:this.state.ankiImported, ankiNotImported:!this.state.ankiImported, openPdf:this.openPdf, closePdf:this.closePdf, pdfOpen:this.state.pdfOpen, pdfIsOpen:!!this.state.pdfOpen,
       // exportar pdf
       exportPDF:this.exportPDF, importData:this.importData, wipeAll:this.wipeAll, forgotPass:this.forgotPass,
       // calendário
@@ -5900,7 +5907,7 @@ class Component extends DCLogic {
       isOrient:this.state.view==='orientacao', navOrient:navStyle('orientacao'), orient:O,
       setOrient:this.setOrient, toggleOrient:this.toggleOrient, setOrientSlider:this.setOrientSlider, setOrientRadio:this.setOrientRadio,
       saveOrient:this.saveOrient, orientSaveLabel:this.state.orientFlash?'Aplicado ✓':'Salvar e aplicar',
-      orHero:{nivel:_nivelL, tempo:O.tempoDia+' min', cobranca:_cobrancaL, estrategia:_estrategiaL, banca:O.banca.toUpperCase(), reta:_retaL},
+      orHero:{nivel:_nivelL, tempo:O.tempoDia+' min', cobranca:_cobrancaL, estrategia:_estrategiaL, banca:(O.banca||"cebraspe").toUpperCase(), reta:_retaL},
       orTempoHHMM:'= '+_hhmm(O.tempoDia), orBlocoHHMM:'= '+_hhmm(O.blocoPadrao), orPausaHHMM:'= '+_hhmm(O.pausaPadrao),
       orEnBaixa:_energiaCard('baixa'), orEnNormal:_energiaCard('normal'), orEnAlta:_energiaCard('alta'),
       orEnBaixaOn:O.energiaPlano==='baixa', orEnNormalOn:O.energiaPlano==='normal', orEnAltaOn:O.energiaPlano==='alta',
