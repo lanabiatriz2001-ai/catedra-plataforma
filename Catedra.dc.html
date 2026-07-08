@@ -4992,12 +4992,15 @@ class Component extends DCLogic {
 
     // ===== notificações reais (derivadas dos dados) =====
     const _notifRead = this.state.notifsRead||{};
+    // gates dos alertas = os MESMOS toggles que o usuário mexe em Ajustes (prefs.*),
+    // não o store paralelo orient.al* — assim ligar/desligar um alerta realmente vale.
+    const _alerts = this.state.prefs||{};
     const _liveNotifs=[];
-    if(_orientCfg.alRev!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', icon:'⏰', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>r.disc.replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
-    if(_orientCfg.alRev!==false && revToday.length){ _liveNotifs.push({id:'rev-today', tipo:'revisao', icon:'🔁', titulo:revToday.length+' revis'+(revToday.length>1?'ões para hoje':'ão para hoje'), texto:'Faça sua sessão de "Revisar agora" para manter o ciclo.', tempo:'hoje', view:'revisoes'}); }
+    if(_alerts.notifRevisao!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', icon:'⏰', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>r.disc.replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
+    if(_alerts.notifRevisao!==false && revToday.length){ _liveNotifs.push({id:'rev-today', tipo:'revisao', icon:'🔁', titulo:revToday.length+' revis'+(revToday.length>1?'ões para hoje':'ão para hoje'), texto:'Faça sua sessão de "Revisar agora" para manter o ciclo.', tempo:'hoje', view:'revisoes'}); }
     const _metaThresh = _cob==='leve'?50 : (_cob==='rigido'?100 : 85);
-    if(_orientCfg.alMeta!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', icon:'🎯', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
-    if(_orientCfg.alProva!==false && this.state.provaData){ _liveNotifs.push({id:'prova', tipo:'prova', icon:'📅', titulo:'Faltam '+_diasProvaN+' dias para a prova', texto:'Mantenha o ritmo: '+Math.round(B.totalMin/60)+'h estudadas até aqui.', tempo:'hoje', view:'inicio'}); }
+    if(_alerts.alSemanal!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', icon:'🎯', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
+    if(_alerts.alProva!==false && this.state.provaData){ _liveNotifs.push({id:'prova', tipo:'prova', icon:'📅', titulo:'Faltam '+_diasProvaN+' dias para a prova', texto:'Mantenha o ritmo: '+Math.round(B.totalMin/60)+'h estudadas até aqui.', tempo:'hoje', view:'inicio'}); }
     // aviso de fim de dia: ofensiva em risco (após as 20h, sem estudo hoje, com sequência a proteger)
     if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=20){
       const _escN=this.state.escudos||0;
@@ -5713,8 +5716,8 @@ class Component extends DCLogic {
         {k:'alAnki', label:'Queda de retenção no Anki', on:pf0.alAnki},
         {k:'alPrecisao', label:'Queda de precisão', on:pf0.alPrecisao},
         {k:'alErros', label:'Erros pendentes acumulando', on:pf0.alErros},
-        {k:'alSemanal', label:'Resumo semanal', on:pf0.alSemanal},
-        {k:'alProva', label:'Contagem regressiva da prova', on:pf0.alProva},
+        {k:'alSemanal', label:'Meta da semana em risco', on:pf0.alSemanal},
+        {k:'alProva', label:'Alerta de prova próxima', on:pf0.alProva},
         {k:'alSimulados', label:'Lembrete de simulado', on:pf0.alSimulados},
       ].map(a=>({...a, tog:togStyle(a.on), knob:togKnob(a.on)})),
       // notificações
