@@ -31,6 +31,15 @@
   function isData(k) { return k && k.indexOf('catedra:') === 0 && !EXCLUDE[k]; }
 
   function collect() { var o = {}; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (isData(k)) o[k] = localStorage.getItem(k); } return o; }
+  // Não sobe PDFs (base64 pesado) da biblioteca para a nuvem — ficam LOCAIS no aparelho.
+  // Tira pdfB64/pages/_bytes de catedra:lib só na hora de subir; o merge reanexa os locais.
+  function stripLib(str) {
+    try { var lib = JSON.parse(str); if (!Array.isArray(lib)) return str;
+      var lean = lib.map(function (b) { if (b && (b.pdfB64 || b.pages || b._bytes)) { var c = {}; for (var kk in b) if (kk !== 'pdfB64' && kk !== 'pages' && kk !== '_bytes') c[kk] = b[kk]; c._pdfLocal = true; return c; } return b; });
+      return JSON.stringify(lean);
+    } catch (e) { return str; }
+  }
+  function leanForUpload(obj) { if (!obj) return obj; var o = {}; Object.keys(obj).forEach(function (k) { o[k] = (k === 'catedra:lib') ? stripLib(obj[k]) : obj[k]; }); return o; }
   function applyData(d) { if (!d) return; Object.keys(d).forEach(function (k) { if (isData(k)) { try { _si(k, d[k]); } catch (_) {} } }); }
   function clearLocal() { var r = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('catedra:') === 0) r.push(k); } r.forEach(function (k) { _ri(k); }); }
 
@@ -52,6 +61,10 @@
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
   var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:meusGrupos': 1 };
+  // Config do CICLO MANUAL (agenda da semana) é de UM APARELHO: no merge sempre vence o LOCAL.
+  // Assim (a) uma cópia antiga/vazia da nuvem NUNCA apaga a agenda, e (b) deletar de fato deleta
+  // (o "mais conteúdo vence" trazia itens removidos de volta). Trade-off aceito: single-device.
+  var CFG_LOCAL_WINS = { 'catedra:manualFixed': 1, 'catedra:manualRot': 1, 'catedra:cycleMode': 1, 'catedra:manualFixedRoteiroAtual': 1, 'catedra:rotPointer': 1, 'catedra:agendaFeitas': 1 };
   function parseJ(s) { try { return JSON.parse(s); } catch (_) { return undefined; } }
   function stamp(x) { return (x && (x.up || x.ts)) || 0; }
   function mergeArr(sv, lc, preferServer) {
@@ -67,6 +80,19 @@
       else if (stamp(it) === stamp(s) && !preferServer) map[it.id] = it;
     });
     return order.map(function (id) { return map[id]; });
+  }
+  // merge de catedra:lib: por id (como mergeArr) e REANEXA o PDF local quando a versão da
+  // nuvem veio enxuta (sem pdfB64) — garante que sincronizar nunca apaga um PDF local.
+  function mergeLibArr(sv, lc, preferServer) {
+    var merged = mergeArr(sv, lc, preferServer);
+    if (!Array.isArray(merged)) return merged;
+    var loc = {}; if (Array.isArray(lc)) lc.forEach(function (it) { if (it && it.id != null) loc[it.id] = it; });
+    return merged.map(function (it) {
+      if (it && it.id != null && !it.pdfB64 && loc[it.id] && loc[it.id].pdfB64) {
+        var c = {}; for (var k in it) c[k] = it[k]; c.pdfB64 = loc[it.id].pdfB64; if (loc[it.id].pages) c.pages = loc[it.id].pages; delete c._pdfLocal; return c;
+      }
+      return it;
+    });
   }
   function mergeHl(sv, lc) {
     if (!sv || typeof sv !== 'object') return lc; if (!lc || typeof lc !== 'object') return sv;
@@ -86,8 +112,13 @@
       if (sv == null) { out[k] = lc; return; }
       if (lc == null) { out[k] = sv; return; }
       if (sv === lc) { out[k] = lc; return; }
+      if (k === 'catedra:lib') { var ml = mergeLibArr(parseJ(sv), parseJ(lc), !!preferServer); out[k] = ml !== undefined ? JSON.stringify(ml) : (preferServer ? sv : lc); return; }
       if (ARRAY_ID[k]) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
       if (k === 'catedra:hl') { var h = mergeHl(parseJ(sv), parseJ(lc)); out[k] = h !== undefined ? JSON.stringify(h) : (preferServer ? sv : lc); return; }
+      // Config do CICLO MANUAL (agenda da semana) pertence a este aparelho: vence quem tem
+      // MAIS conteúdo; empate => local. Evita que uma cópia antiga/vazia da nuvem apague a
+      // agenda inteira só porque o servidor está "mais novo" (bug de last-write-wins).
+      if (CFG_LOCAL_WINS[k]) { out[k] = lc; return; }
       out[k] = preferServer ? sv : lc; // escalares/objetos sem carimbo: direção do merge decide
     });
     return out;
@@ -103,7 +134,7 @@
         var merged = mergeAll(row && row.data, collect(), false); // subida: local prevalece nos escalares
         applyData(merged); // grava o resultado unido localmente (via _si — não redispara sync)
         var now = new Date().toISOString();
-        return sb.from('user_data').upsert({ user_id: user.id, data: merged, updated_at: now })
+        return sb.from('user_data').upsert({ user_id: user.id, data: leanForUpload(merged), updated_at: now })
           .then(function (r2) {
             if (r2 && r2.error) throw r2.error;
             setDirty(false); setLastSrv(now); setStatus('salvo');
@@ -151,7 +182,7 @@
       fetch(CFG.url + '/rest/v1/user_data', {
         method: 'POST', keepalive: true,
         headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({ user_id: user.id, data: collect(), updated_at: new Date().toISOString() }),
+        body: JSON.stringify({ user_id: user.id, data: leanForUpload(collect()), updated_at: new Date().toISOString() }),
       });
       // não dá para confirmar sucesso no unload: mantém o dirty; a próxima abertura confirma/mescla
     } catch (_) { pushNow(); }
@@ -174,10 +205,32 @@
   } catch (_) { localStorage.setItem = setImpl; localStorage.removeItem = remImpl; }
 
   // ---------- overlay / gate ----------
-  var GRAD = 'linear-gradient(135deg,#0f7a57,#0a5c41)';
+  // O gate segue a COR SELECIONADA (catedra:accent) e o modo escuro (catedra:dark).
+  // Sem accent salvo → verde (comportamento original); assim a web não quebra.
+  function _accent() {
+    try { var a = localStorage.getItem('catedra:accent'); if (a) { a = JSON.parse(a);
+      if (typeof a === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(a)) return a; } } catch (_) {}
+    return '#0f7a57';
+  }
+  function _darken(hex, f) {
+    try { var h = hex.replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&');
+      var n = parseInt(h, 16), r = Math.round(((n >> 16) & 255) * f), g = Math.round(((n >> 8) & 255) * f), b = Math.round((n & 255) * f);
+      return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    } catch (_) { return hex; }
+  }
+  var ACC = _accent(), ACC2 = _darken(ACC, 0.62);
+  var DARK = (function () { var d = localStorage.getItem('catedra:dark'); return d === '1' || d === 'true'; })();
+  var GRAD = 'linear-gradient(135deg,' + ACC + ',' + ACC2 + ')';
+  // paleta do lado do formulário conforme o modo
+  var PG   = DARK ? '#0e1116' : '#f6f4ee';  // fundo do gate
+  var CARD = DARK ? '#171b21' : '#ffffff';  // fundo dos inputs
+  var INK  = DARK ? '#f2f3f5' : '#1a1a1a';  // títulos/entrada
+  var MUT  = DARK ? '#9aa4ad' : '#7a857f';  // texto secundário
+  var LAB  = DARK ? '#c2c9d0' : '#5a6b63';  // rótulos
+  var BRD  = DARK ? '#2b3138' : '#d9d5cc';  // borda dos inputs
   var el = document.createElement('div');
   el.id = 'catedra-auth-gate';
-  el.setAttribute('style', 'position:fixed;inset:0;z-index:2147483000;background:#f6f4ee;display:flex;');
+  el.setAttribute('style', 'position:fixed;inset:0;z-index:2147483000;background:' + PG + ';display:flex;');
   (document.body || document.documentElement).appendChild(el);
   document.addEventListener('DOMContentLoaded', function () { if (document.body && el.parentNode !== document.body) document.body.appendChild(el); });
 
@@ -185,8 +238,8 @@
   function hide() { el.style.display = 'none'; }
   function showLoading(msg) {
     el.innerHTML = '<div style="margin:auto;text-align:center;font-family:system-ui,sans-serif;">'
-      + '<div style="width:40px;height:40px;border:4px solid #cfe7dd;border-top-color:#0f7a57;border-radius:50%;margin:0 auto 16px;animation:ctspin .8s linear infinite;"></div>'
-      + '<div style="font-size:14px;color:#5a6b63;">' + (msg || 'Carregando…') + '</div>'
+      + '<div style="width:40px;height:40px;border:4px solid ' + (DARK ? '#2a2f36' : '#cfe7dd') + ';border-top-color:' + ACC + ';border-radius:50%;margin:0 auto 16px;animation:ctspin .8s linear infinite;"></div>'
+      + '<div style="font-size:14px;color:' + MUT + ';">' + (msg || 'Carregando…') + '</div>'
       + '<style>@keyframes ctspin{to{transform:rotate(360deg)}}</style></div>';
     show();
   }
@@ -203,15 +256,15 @@
       + '</div>'
       + '<div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;">'
       + '<form id="ctf" style="width:100%;max-width:360px;">'
-      + '<h2 style="font-family:Georgia,serif;font-size:26px;font-weight:600;color:#1a1a1a;margin:0;">' + title + '</h2>'
-      + '<p style="font-size:13.5px;color:#7a857f;margin:6px 0 24px;">Acesse sua conta para salvar e sincronizar seus estudos.</p>'
-      + '<label style="display:block;font-size:12px;color:#5a6b63;font-weight:600;margin-bottom:6px;">E-mail</label>'
-      + '<input id="cte" type="email" autocomplete="email" placeholder="voce@email.com" style="width:100%;box-sizing:border-box;border:1px solid #d9d5cc;background:#fff;border-radius:10px;padding:12px 14px;font-size:14px;color:#1a1a1a;margin-bottom:14px;">'
-      + '<label style="display:block;font-size:12px;color:#5a6b63;font-weight:600;margin-bottom:6px;">Senha</label>'
-      + '<input id="ctp" type="password" autocomplete="' + (mode === 'login' ? 'current-password' : 'new-password') + '" placeholder="••••••••" style="width:100%;box-sizing:border-box;border:1px solid #d9d5cc;background:#fff;border-radius:10px;padding:12px 14px;font-size:14px;color:#1a1a1a;margin-bottom:8px;">'
-      + '<div id="cterr" style="min-height:18px;font-size:12.5px;color:#c0392f;margin:4px 0 10px;line-height:1.4;"></div>'
-      + '<button id="cts" type="submit" style="width:100%;background:#0f7a57;color:#fff;border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">' + title + '</button>'
-      + '<p id="ctt" style="font-size:12.5px;color:#7a857f;text-align:center;margin:18px 0 0;cursor:pointer;">' + alt + '</p>'
+      + '<h2 style="font-family:Georgia,serif;font-size:26px;font-weight:600;color:' + INK + ';margin:0;">' + title + '</h2>'
+      + '<p style="font-size:13.5px;color:' + MUT + ';margin:6px 0 24px;">Acesse sua conta para salvar e sincronizar seus estudos.</p>'
+      + '<label style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">E-mail</label>'
+      + '<input id="cte" type="email" autocomplete="email" placeholder="voce@email.com" style="width:100%;box-sizing:border-box;border:1px solid ' + BRD + ';background:' + CARD + ';border-radius:10px;padding:12px 14px;font-size:14px;color:' + INK + ';margin-bottom:14px;">'
+      + '<label style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">Senha</label>'
+      + '<input id="ctp" type="password" autocomplete="' + (mode === 'login' ? 'current-password' : 'new-password') + '" placeholder="••••••••" style="width:100%;box-sizing:border-box;border:1px solid ' + BRD + ';background:' + CARD + ';border-radius:10px;padding:12px 14px;font-size:14px;color:' + INK + ';margin-bottom:8px;">'
+      + '<div id="cterr" style="min-height:18px;font-size:12.5px;color:#e0533f;margin:4px 0 10px;line-height:1.4;"></div>'
+      + '<button id="cts" type="submit" style="width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">' + title + '</button>'
+      + '<p id="ctt" style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:18px 0 0;cursor:pointer;">' + alt + '</p>'
       + '</form></div>';
     show();
     el.querySelector('#ctt').onclick = function () { mode = mode === 'login' ? 'signup' : 'login'; showForm(); };
@@ -256,10 +309,10 @@
         // mescla nuvem + local (por id nos arrays) — edições offline deste aparelho não se perdem
         var merged = mergeAll(row.data, collect(), true);
         applyData(merged);
-        sb.from('user_data').upsert({ user_id: u.id, data: merged, updated_at: now });
+        sb.from('user_data').upsert({ user_id: u.id, data: leanForUpload(merged), updated_at: now });
         setLastSrv(now); setDirty(false);
       }
-      else { sb.from('user_data').upsert({ user_id: u.id, data: collect(), updated_at: now }); setLastSrv(now); setDirty(false); }
+      else { sb.from('user_data').upsert({ user_id: u.id, data: leanForUpload(collect()), updated_at: now }); setLastSrv(now); setDirty(false); }
       _si('catedra:auth', '1');
       sessionStorage.setItem('catedra:hydrated', '1');
       location.reload();

@@ -17,3 +17,8 @@ uploads/
 # macOS / sistema
 .DS_Store
 .thumbnail
+.env*
+
+# build do app nativo (binário compilado, gerado por mac/build-app.sh)
+mac/build/
+Catedra.dc.html.bak*
