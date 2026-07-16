@@ -11,25 +11,32 @@ struct SectionShell<Content: View>: View {
     var search: Binding<String>? = nil
     var searchPrompt: String = "Buscar"
     var trailing: AnyView? = nil
+    /// Linguagem vitrine: gradiente do cabeçalho (ex.: cores da matéria).
+    /// nil = acento da plataforma.
+    var tintStops: [Color]? = nil
     @ViewBuilder var content: Content
+
+    private var stops: [Color] { tintStops ?? [ThemeState.t.accent, ThemeState.t.accentD] }
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .center, spacing: 13) {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(ThemeState.t.accent.opacity(0.14))
-                    .frame(width: 40, height: 40)
-                    .overlay(Image(systemName: icon).font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(ThemeState.t.accent))
+            HStack(alignment: .center, spacing: 14) {
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .fill(LinearGradient(colors: stops, startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 46, height: 46)
+                    .overlay(Image(systemName: icon).font(.system(size: 19, weight: .semibold))
+                        .foregroundStyle(.white))
+                    .shadow(color: stops[0].opacity(0.4), radius: 8, y: 4)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 8) {
-                        Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(AppTheme.ink)
+                        Text(title).font(.system(size: 26, weight: .heavy)).tracking(-0.4)
+                            .foregroundStyle(AppTheme.ink)
                         if let count {
                             Text("\(count)")
-                                .font(.system(size: 11.5, weight: .semibold).monospacedDigit())
-                                .padding(.horizontal, 7).padding(.vertical, 1.5)
-                                .background(Capsule().fill(ThemeState.t.accent.opacity(0.14)))
-                                .foregroundStyle(ThemeState.t.accent)
+                                .font(.system(size: 11.5, weight: .bold).monospacedDigit())
+                                .padding(.horizontal, 8).padding(.vertical, 2)
+                                .background(Capsule().fill(stops[0].opacity(0.15)))
+                                .foregroundStyle(stops[0])
                         }
                     }
                     if let subtitle {

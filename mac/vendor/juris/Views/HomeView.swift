@@ -28,15 +28,16 @@ struct CartaoJuris: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
                 if let r = entry.ramoDireito {
-                    Text(r).font(.system(size: 9.5, weight: .medium))
-                        .foregroundStyle(Palette.accent).lineLimit(1)
+                    Text(r).font(.system(size: 9.5, weight: .semibold))
+                        .foregroundStyle(RamoStyle.color(r)).lineLimit(1)
                 }
             }
             .padding(13)
             .frame(width: 236, height: 150, alignment: .topLeading)
             .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 12))
             .overlay(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2).fill(entry.fonteKind.cor)
+                // Lombada na cor do RAMO (vitrine) — a fonte segue no badge.
+                RoundedRectangle(cornerRadius: 2).fill(RamoStyle.color(entry.ramoDireito))
                     .frame(width: 3).padding(.vertical, 14)
             }
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
@@ -189,11 +190,12 @@ struct HomeView: View {
                                 .lineLimit(4).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
                             HStack(spacing: 6) {
                                 Image(systemName: "book.fill").font(.system(size: 11))
-                                Text("Ler inteiro teor").font(.system(size: 12.5, weight: .semibold))
+                                Text("Ler inteiro teor").font(.system(size: 12.5, weight: .bold))
                             }
-                            .foregroundStyle(Palette.appBackground)
-                            .padding(.horizontal, 14).padding(.vertical, 8)
-                            .background(Palette.accent, in: Capsule())
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16).padding(.vertical, 9)
+                            .background(RamoStyle.gradient(d.ramoDireito), in: Capsule())
+                            .shadow(color: RamoStyle.color(d.ramoDireito).opacity(0.45), radius: 9, y: 4)
                             .padding(.top, 2)
                         }
                         Spacer(minLength: 0)
@@ -201,10 +203,11 @@ struct HomeView: View {
                     .padding(26)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
-                        LinearGradient(colors: [d.fonteKind.cor.opacity(0.16), Palette.cardBackground],
+                        LinearGradient(colors: [RamoStyle.color(d.ramoDireito).opacity(0.18), Palette.cardBackground],
                                        startPoint: .topLeading, endPoint: .bottomTrailing),
                         in: RoundedRectangle(cornerRadius: 18))
-                    .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Palette.hairline, lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(RamoStyle.color(d.ramoDireito).opacity(0.25), lineWidth: 1))
+                    .shadow(color: RamoStyle.color(d.ramoDireito).opacity(0.16), radius: 16, y: 8)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 26)
@@ -222,16 +225,16 @@ struct HomeView: View {
                         Button { store.selecao = .ramoDetalhe(EscopoFiltrado(ramo: ramo.nome)); store.selectedID = nil } label: {
                             VStack(alignment: .leading, spacing: 6) {
                                 Image(systemName: "books.vertical.fill").font(.system(size: 16))
-                                    .foregroundStyle(Palette.accent)
+                                    .foregroundStyle(.white)
                                 Spacer(minLength: 0)
-                                Text(ramo.nome).font(.system(size: 12.5, weight: .semibold))
-                                    .foregroundStyle(Palette.titleInk).lineLimit(2)
-                                Text("\(ramo.count) verbetes").font(.system(size: 10))
-                                    .foregroundStyle(Palette.secondaryInk)
+                                Text(ramo.nome).font(.system(size: 12.5, weight: .bold))
+                                    .foregroundStyle(.white).lineLimit(2)
+                                Text("\(ramo.count) verbetes").font(.system(size: 10, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.85))
                             }
                             .padding(13).frame(width: 168, height: 104, alignment: .topLeading)
-                            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
+                            .background(RamoStyle.gradient(ramo.nome), in: RoundedRectangle(cornerRadius: 14))
+                            .shadow(color: RamoStyle.color(ramo.nome).opacity(0.35), radius: 8, y: 4)
                         }
                         .buttonStyle(.plain)
                     }

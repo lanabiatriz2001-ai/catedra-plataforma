@@ -10,22 +10,9 @@ struct RichNoteEditor: View {
     var minHeight: CGFloat = 150
 
     @StateObject private var coord = RichTextCoordinator()
-
-    // Paleta de cores para texto e marca-texto (combina com o clean do app).
-    private let palette: [(String, NSColor)] = [
-        ("Amarelo", NSColor(srgbRed: 1.0, green: 0.86, blue: 0.30, alpha: 1)),
-        ("Verde",   NSColor(srgbRed: 0.55, green: 0.86, blue: 0.55, alpha: 1)),
-        ("Azul",    NSColor(srgbRed: 0.60, green: 0.78, blue: 1.0, alpha: 1)),
-        ("Rosa",    NSColor(srgbRed: 1.0, green: 0.68, blue: 0.80, alpha: 1)),
-        ("Laranja", NSColor(srgbRed: 1.0, green: 0.75, blue: 0.45, alpha: 1)),
-    ]
-    private let inkPalette: [(String, NSColor)] = [
-        ("Padrão", NSColor.labelColor),
-        ("Vermelho", NSColor.systemRed),
-        ("Azul", NSColor.systemBlue),
-        ("Verde", NSColor.systemGreen),
-        ("Roxo", NSColor.systemPurple),
-    ]
+    @EnvironmentObject var store: AppStore   // cores favoritas COMPARTILHADAS com o marca-texto da lei
+    @State private var inkColor = Color.primary   // última cor de texto escolhida (pra favoritar)
+    @State private var hlColor = Color(hexRGBA: "#FFD60AFF")   // última cor de marca-texto escolhida
 
     var body: some View {
         VStack(spacing: 0) {
@@ -60,22 +47,19 @@ struct RichNoteEditor: View {
                 fmt("underline", "Sublinhado (⌘U)") { coord.toggleUnderline() }
                 fmt("strikethrough", "Tachado") { coord.toggleStrikethrough() }
                 sep
-                Menu {
-                    ForEach(inkPalette, id: \.0) { name, color in
-                        Button { coord.setTextColor(color) } label: { Label(name, systemImage: "circle.fill").foregroundStyle(Color(nsColor: color)) }
-                    }
-                } label: { Image(systemName: "textformat") }
-                    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                    .help("Cor do texto selecionado")
-                Menu {
-                    ForEach(palette, id: \.0) { name, color in
-                        Button { coord.setHighlight(color) } label: { Label(name, systemImage: "circle.fill").foregroundStyle(Color(nsColor: color)) }
-                    }
-                    Divider()
-                    Button("Remover marca-texto") { coord.setHighlight(nil) }
-                } label: { Image(systemName: "highlighter") }
-                    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                    .help("Marca-texto no trecho selecionado")
+                // Cor do TEXTO — livre (abre o painel do macOS); aplica na seleção.
+                Image(systemName: "textformat").font(.system(size: 10))
+                ColorPicker("", selection: $inkColor, supportsOpacity: false)
+                    .labelsHidden()
+                    .onChange(of: inkColor) { _, c in coord.setTextColor(NSColor(c)) }
+                    .help("Cor do texto — escolha qualquer cor")
+                // MARCA-TEXTO — livre; aplica na seleção.
+                Image(systemName: "highlighter").font(.system(size: 10))
+                ColorPicker("", selection: $hlColor, supportsOpacity: false)
+                    .labelsHidden()
+                    .onChange(of: hlColor) { _, c in coord.setHighlight(NSColor(c)) }
+                    .help("Marca-texto — escolha qualquer cor")
+                fmt("highlighter", "Remover marca-texto do trecho") { coord.setHighlight(nil) }
                 Spacer(minLength: 0)
             }
             HStack(spacing: 3) {
@@ -98,6 +82,28 @@ struct RichNoteEditor: View {
                     }
                     .buttonStyle(.plain)
                     .help(name)
+                }
+                sep
+                // Favoritar a cor de marca-texto atual + cores favoritas (compartilhadas
+                // com o marca-texto da lei). Clique aplica; botão direito remove.
+                Button { store.adicionarCorFavorita(hlColor.hexRGBA) } label: {
+                    Image(systemName: store.coresFavoritas.contains(hlColor.hexRGBA) ? "star.fill" : "star")
+                        .foregroundStyle(store.coresFavoritas.contains(hlColor.hexRGBA) ? Color.yellow : Color.secondary)
+                }
+                .help("Salvar esta cor de marca-texto nos favoritos")
+                .disabled(store.coresFavoritas.contains(hlColor.hexRGBA))
+                ForEach(store.coresFavoritas.prefix(6), id: \.self) { hex in
+                    Button { hlColor = Color(hexRGBA: hex); coord.setHighlight(NSColor(hexRGBA: hex)) } label: {
+                        Circle().fill(Color(hexRGBA: hex)).frame(width: 14, height: 14)
+                            .overlay(Circle().strokeBorder(.secondary.opacity(0.35), lineWidth: 0.5))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Marcar com esta cor · botão direito remove dos favoritos")
+                    .contextMenu {
+                        Button(role: .destructive) { store.removerCorFavorita(hex) } label: {
+                            Label("Remover dos favoritos", systemImage: "star.slash")
+                        }
+                    }
                 }
                 Spacer(minLength: 0)
                 fmt("eraser", "Limpar formatação") { coord.clearFormatting() }

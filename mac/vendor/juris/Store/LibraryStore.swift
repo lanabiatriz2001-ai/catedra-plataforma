@@ -93,6 +93,11 @@ final class LibraryStore {
     func removeChecklistItem(_ id: UUID) {
         readingChecklist.removeAll { $0.id == id }
     }
+    /// Reagenda (ou remove) o prazo de uma meta — o "adiar em 1 clique" do checklist.
+    func setChecklistDue(_ id: UUID, _ date: Date?) {
+        guard let i = readingChecklist.firstIndex(where: { $0.id == id }) else { return }
+        readingChecklist[i].dueDate = date
+    }
     func clearCompletedChecklistItems() {
         readingChecklist.removeAll { $0.done }
     }

@@ -182,11 +182,16 @@ struct RemissoesView: View {
     /// Resolve a norma referida para um id da biblioteca (nil = não está instalada).
     var resolve: (LegislativeNote) -> UUID? = { _ in nil }
     var onOpen: (UUID) -> Void = { _ in }
+    /// Quando embutido num acordeão (redesign da leitura), o título e a caixa de
+    /// fundo vêm da própria seção — aqui mostramos só as linhas.
+    var embedded: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label("Remissões e alterações", systemImage: "arrow.triangle.branch")
-                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            if !embedded {
+                Label("Remissões e alterações", systemImage: "arrow.triangle.branch")
+                    .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            }
             ForEach(Array(notes.enumerated()), id: \.offset) { _, note in
                 HStack(alignment: .top, spacing: 8) {
                     Label(note.kind.label, systemImage: note.kind.symbol)
@@ -209,8 +214,8 @@ struct RemissoesView: View {
                 }
             }
         }
-        .padding(10)
+        .padding(embedded ? 0 : 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(.background.secondary))
+        .background { if !embedded { RoundedRectangle(cornerRadius: 10).fill(.background.secondary) } }
     }
 }

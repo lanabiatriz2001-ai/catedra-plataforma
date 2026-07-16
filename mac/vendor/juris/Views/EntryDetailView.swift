@@ -43,8 +43,10 @@ struct EntryDetailView: View {
                 header
                 alertaSituacao
                 enunciadoCard
-                notaAppCard
+                // "Minhas anotações" LOGO ABAIXO do dispositivo (pedido da Lana) —
+                // antes vinha depois da nota de estudo do app.
                 anotacaoCard
+                notaAppCard
                 metadata
                 if let p = entry.precedentes, !p.isEmpty {
                     disclosure("Precedentes / Julgados", "text.quote", p)
@@ -116,6 +118,8 @@ struct EntryDetailView: View {
     // MARK: - Cabeçalho
 
     private var header: some View {
+        // Faixa "vitrine": gradiente do RAMO com título serifado em branco —
+        // cada verbete carrega a identidade de cor da sua disciplina.
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 FonteBadge(fonte: entry.fonteKind)
@@ -127,22 +131,35 @@ struct EntryDetailView: View {
             }
             Text(entry.titulo)
                 .font(Typo.serifTitle(30))
-                .foregroundStyle(Palette.titleInk)
+                .foregroundStyle(.white)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
             if let t = entry.tema, t != entry.titulo {
                 Text(t)
                     .font(Typo.serifBody(15, .medium)).italic()
-                    .foregroundStyle(Palette.secondaryInk)
+                    .foregroundStyle(.white.opacity(0.88))
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            HStack(spacing: 0) {
-                Rectangle().fill(Palette.accent).frame(width: 44, height: 2)
-                Rectangle().fill(Palette.hairline).frame(height: 1)
+            if let r = entry.ramoDireito {
+                Text(r.uppercased())
+                    .font(.system(size: 10, weight: .bold)).tracking(1.1)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .padding(.horizontal, 9).padding(.vertical, 3)
+                    .background(Color.white.opacity(0.16), in: Capsule())
             }
-            .padding(.top, 2)
         }
+        .padding(22)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            ZStack(alignment: .topTrailing) {
+                RamoStyle.gradient(entry.ramoDireito)
+                Circle().fill(Color.white.opacity(0.09)).frame(width: 200, height: 200).offset(x: 60, y: -76)
+                Circle().fill(Color.white.opacity(0.06)).frame(width: 130, height: 130).offset(x: -40, y: 88)
+            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.3), radius: 16, y: 8)
     }
 
     /// Nota de estudo ORIGINAL (não oficial) — esquema/mapa mental do que a corte quis dizer.
@@ -373,13 +390,15 @@ struct EntryDetailView: View {
         .padding(.vertical, 18)
         .padding(.horizontal, 22)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 14))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 16))
         .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 2).fill(entry.fonteKind.cor)
+            // Lombada do RAMO (vitrine) — combina com a faixa do cabeçalho.
+            RoundedRectangle(cornerRadius: 2).fill(RamoStyle.color(entry.ramoDireito))
                 .frame(width: 3.5).padding(.vertical, 16).padding(.leading, 1.5)
         }
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Palette.hairline, lineWidth: 1))
-        .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Palette.hairline, lineWidth: 1))
+        .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.18), radius: 14, y: 6)
+        .shadow(color: .black.opacity(0.04), radius: 3, y: 1)
     }
 
     /// Coluna de balões de comentário, alinhada ao trecho comentado — estilo Google Docs (espelha o LEGIS).

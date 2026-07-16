@@ -193,6 +193,8 @@ struct LibraryFile: Codable {
     var readingChecklist: [ReadingChecklistItem]?  // metas de leitura livres da usuária
     var coresFavoritas: [String]?                  // paleta de cores de grifo favoritas
     var alinhamentos: [String: String]?             // "lawID|unitKey" -> alinhamento do texto
+    var leituraRespostas: [String: String]?         // "lawID|unitKey|q" -> resposta da leitura ativa
+    var leituraIA: [String: String]?                // "lawID|unitKey" -> JSON (recall + pegadinhas)
 
     init(laws: [LawEntry], updates: [UpdateEvent],
          lastCheckDate: Date?, annotations: [TextAnnotation]?, customCategories: [String]?,
@@ -203,7 +205,9 @@ struct LibraryFile: Codable {
          studySecondsByLaw: [String: Double]? = nil,
          readingChecklist: [ReadingChecklistItem]? = nil,
          coresFavoritas: [String]? = nil,
-         alinhamentos: [String: String]? = nil) {
+         alinhamentos: [String: String]? = nil,
+         leituraRespostas: [String: String]? = nil,
+         leituraIA: [String: String]? = nil) {
         self.laws = laws
         self.updates = updates
         self.lastCheckDate = lastCheckDate
@@ -220,6 +224,8 @@ struct LibraryFile: Codable {
         self.readingChecklist = readingChecklist
         self.coresFavoritas = coresFavoritas
         self.alinhamentos = alinhamentos
+        self.leituraRespostas = leituraRespostas
+        self.leituraIA = leituraIA
     }
 
     init(from decoder: Decoder) throws {
@@ -240,6 +246,8 @@ struct LibraryFile: Codable {
         readingChecklist = try container.decodeIfPresent([ReadingChecklistItem].self, forKey: .readingChecklist)
         coresFavoritas = try container.decodeIfPresent([String].self, forKey: .coresFavoritas)
         alinhamentos = try container.decodeIfPresent([String: String].self, forKey: .alinhamentos)
+        leituraRespostas = try container.decodeIfPresent([String: String].self, forKey: .leituraRespostas)
+        leituraIA = try container.decodeIfPresent([String: String].self, forKey: .leituraIA)
     }
 
     /// Remove da biblioteca as antigas fontes de jurisprudência (docKind "juris",

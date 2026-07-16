@@ -12,6 +12,10 @@ enum ReaderCommand {
 final class ReaderController: ObservableObject {
     weak var textView: ReaderTextView?
     @Published var selectionLength: Int = 0
+    /// Retângulo do trecho selecionado, no espaço de coordenadas da MarkableArticleView
+    /// (já com o textContainerInset somado) — usado para posicionar a barra de marcação
+    /// flutuante logo acima/abaixo da seleção. `.zero` quando não há seleção.
+    @Published var selectionRect: CGRect = .zero
 
     var selectedRange: NSRange? {
         guard let range = textView?.selectedRange(), range.length > 0 else { return nil }
