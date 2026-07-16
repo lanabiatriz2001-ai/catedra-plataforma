@@ -28,11 +28,13 @@ struct ContentView: View {
     @State private var showAddLaw = false
     @State private var showNewCategory = false
     @State private var newCategoryName = ""
+    @State private var showPalette = false                      // command palette (⌘K)
     @AppStorage("appearance") private var appearance = "dark"   // "system" | "light" | "dark"
 
     var body: some View {
         HStack(spacing: 0) {
-            LegisSidebar(path: $path, showNewCategory: $showNewCategory)
+            LegisSidebar(path: $path, showNewCategory: $showNewCategory,
+                         openPalette: { showPalette = true })
             NavigationStack(path: $path) {
                 DashboardView(
                     openLaw: { path.append(.reader($0)) },
@@ -90,6 +92,21 @@ struct ContentView: View {
         .onChange(of: path) { _, newPath in
             StudyClock.shared.setReader(Self.readerLawID(newPath.last))
         }
+        // Command palette (⌘K): salto rápido para qualquer norma, matéria ou ação.
+        .background(
+            Button(action: { showPalette = true }) { EmptyView() }
+                .keyboardShortcut("k", modifiers: .command)
+                .opacity(0)
+        )
+        .overlay {
+            if showPalette {
+                CommandPalette(isPresented: $showPalette,
+                               openLaw: { path.append(.reader($0)) },
+                               openSection: { path = [.section($0)] },
+                               addLaw: { showAddLaw = true })
+                    .transition(.opacity)
+            }
+        }
     }
 
     private static func readerLawID(_ route: NavRoute?) -> UUID? {
@@ -105,6 +122,7 @@ private struct LegisSidebar: View {
     @EnvironmentObject var clock: StudyClock
     @Binding var path: [NavRoute]
     @Binding var showNewCategory: Bool
+    var openPalette: () -> Void = {}
 
     private var lawCount: Int { store.laws.filter(\.isRegularLaw).count }
     private var novidadesCount: Int { store.laws.filter(\.isNovidades).count }
@@ -136,7 +154,23 @@ private struct LegisSidebar: View {
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
                 }
             }
-            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 14)
+            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 10)
+
+            Button(action: openPalette) {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass").font(.system(size: 12))
+                    Text("Buscar…").font(.system(size: 12.5))
+                    Spacer()
+                    Text("⌘K").font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.7))
+                }
+                .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
+                .padding(.horizontal, 10).padding(.vertical, 7)
+                .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.08)))
+                .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 14).padding(.bottom, 12)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
@@ -209,12 +243,21 @@ private struct LegisSidebar: View {
         .background(ThemeState.t.sidebarBg)
     }
 
+    /// Cor do ícone na sidebar: matérias exibem a identidade de cor da área
+    /// (tom claro, legível sobre o navy); o resto herda o cinza padrão.
+    private func rowIconColor(_ item: SidebarItem, active: Bool) -> Color? {
+        if case .category(let cat) = item { return cat.colorLight }
+        return nil
+    }
+
     @ViewBuilder
     private func row(_ item: SidebarItem, _ label: String, _ icon: String, badge: Int? = nil) -> some View {
         let active = isActive(item)
         Button { go(item) } label: {
             HStack(spacing: 11) {
                 Image(systemName: icon).font(.system(size: 13, weight: .medium)).frame(width: 20)
+                    .foregroundStyle(rowIconColor(item, active: active) ??
+                                     (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
                 Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
                 if let b = badge, b > 0 {
@@ -391,6 +434,9 @@ struct LawListView: View {
     @ViewBuilder private func lawButton(_ law: LawEntry) -> some View {
         Button { selection = law.id } label: { LawRow(law: law) }
             .buttonStyle(.plain)
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 3, leading: 14, bottom: 3, trailing: 14))
     }
 
     private var addButton: AnyView? {
@@ -408,7 +454,10 @@ struct LawListView: View {
         let count: Int? = filtered.isEmpty ? nil : filtered.count
         return SectionShell(icon: shellIcon, title: shellTitle, subtitle: shellSubtitle,
                             count: count, search: $query, searchPrompt: "Buscar norma",
-                            trailing: addButton) {
+                            trailing: addButton,
+                            tintStops: category?.gradStops ??
+                                       customCategory.map { [CustomCategoryStyle.color(for: $0),
+                                                             CustomCategoryStyle.color(for: $0).opacity(0.7)] }) {
             lawBody(searching: searching)
         }
     }
@@ -877,6 +926,7 @@ struct NovidadesListView: View {
 struct LawRow: View {
     @EnvironmentObject var store: AppStore
     let law: LawEntry
+    @State private var hovering = false
 
     private var accent: Color {
         if law.isNovidades { return .orange }
@@ -890,8 +940,8 @@ struct LawRow: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 11) {
-            IconBubble(symbol: symbol, color: accent, size: 32)
+        HStack(alignment: .top, spacing: 12) {
+            IconBubble(symbol: symbol, color: accent, size: 34)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     if law.hasUnreadUpdate {
@@ -955,7 +1005,23 @@ struct LawRow: View {
                 }
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 11)
+        .padding(.leading, 15)
+        .padding(.trailing, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(AppTheme.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+        .overlay(alignment: .leading) {
+            // Lombada da matéria (cor da área) — dá o toque de "card por matéria".
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                .fill(accent)
+                .frame(width: 4)
+                .padding(.vertical, 12)
+        }
+        .scaleEffect(hovering ? 1.008 : 1)
+        .shadow(color: accent.opacity(hovering ? 0.18 : 0), radius: 9, y: 3)
+        .animation(.easeOut(duration: 0.15), value: hovering)
+        .onHover { hovering = $0 }
         .contextMenu {
             if law.isRegularLaw {   // feeds de Novidades não são favoritáveis
                 Button {
@@ -966,5 +1032,121 @@ struct LawRow: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Command palette (⌘K)
+
+/// Salto rápido: digite para filtrar normas, matérias e ações; Enter abre a 1ª,
+/// Esc fecha. Overlay central sobre um véu escuro — o toque "app moderno".
+struct CommandPalette: View {
+    @EnvironmentObject var store: AppStore
+    @Binding var isPresented: Bool
+    var openLaw: (UUID) -> Void
+    var openSection: (SidebarItem) -> Void
+    var addLaw: () -> Void
+    @State private var query = ""
+    @FocusState private var focused: Bool
+
+    private var laws: [LawEntry] {
+        let q = query.trimmingCharacters(in: .whitespaces)
+        let base = store.laws.filter(\.isRegularLaw)
+        let f = q.isEmpty ? base : base.filter {
+            $0.title.localizedCaseInsensitiveContains(q) || $0.reference.localizedCaseInsensitiveContains(q)
+        }
+        return Array(f.sorted { $0.title.localizedCompare($1.title) == .orderedAscending }.prefix(8))
+    }
+
+    private struct PaletteAction: Identifiable { let id = UUID(); let label: String; let icon: String; let run: () -> Void }
+    private var actions: [PaletteAction] {
+        let q = query.trimmingCharacters(in: .whitespaces).lowercased()
+        var all: [PaletteAction] = [
+            PaletteAction(label: "Todas as normas", icon: "books.vertical") { openSection(.all) },
+            PaletteAction(label: "Favoritos", icon: "star") { openSection(.favorites) },
+            PaletteAction(label: "Buscar em tudo (no texto das leis)", icon: "magnifyingglass") { openSection(.globalSearch) },
+            PaletteAction(label: "Assuntos", icon: "tag") { openSection(.subjects) },
+            PaletteAction(label: "Novidades", icon: "sparkles") { openSection(.novidades) },
+            PaletteAction(label: "Diário Oficial", icon: "newspaper") { openSection(.dou) },
+            PaletteAction(label: "Cadastrar nova norma", icon: "plus.circle") { addLaw() },
+        ]
+        for cat in LawCategory.allCases {
+            all.append(PaletteAction(label: cat.rawValue, icon: cat.symbol) { openSection(.category(cat)) })
+        }
+        if q.isEmpty { return Array(all.prefix(5)) }
+        return all.filter { $0.label.lowercased().contains(q) }
+    }
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            Rectangle().fill(Color.black.opacity(0.34)).ignoresSafeArea()
+                .onTapGesture { isPresented = false }
+            VStack(spacing: 0) {
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                    TextField("Ir para norma, matéria ou ação…", text: $query)
+                        .textFieldStyle(.plain).font(.system(size: 17)).focused($focused)
+                        .onSubmit { if let first = laws.first { choose { openLaw(first.id) } } }
+                    Text("esc").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Capsule().fill(AppTheme.hairline.opacity(0.5)))
+                }
+                .padding(16)
+                Rectangle().fill(AppTheme.hairline).frame(height: 1)
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 2) {
+                        if !laws.isEmpty {
+                            paletteHeader("Normas")
+                            ForEach(laws) { law in
+                                paletteRow(law.category.color, law.category.symbol, law.title, law.reference) {
+                                    choose { openLaw(law.id) }
+                                }
+                            }
+                        }
+                        if !actions.isEmpty {
+                            paletteHeader("Ações")
+                            ForEach(actions) { a in
+                                paletteRow(ThemeState.t.accent, a.icon, a.label, nil) { choose(a.run) }
+                            }
+                        }
+                        if laws.isEmpty && actions.isEmpty {
+                            Text("Nada encontrado.").font(.system(size: 13)).foregroundStyle(.secondary)
+                                .padding(.horizontal, 12).padding(.vertical, 16)
+                        }
+                    }
+                    .padding(8)
+                }
+                .frame(maxHeight: 380)
+            }
+            .frame(width: 580)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(AppTheme.cardBackground))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+            .shadow(color: Color.black.opacity(0.3), radius: 30, y: 14)
+            .padding(.top, 96)
+        }
+        .onAppear { focused = true }
+        .onExitCommand { isPresented = false }
+    }
+
+    private func choose(_ run: () -> Void) { run(); isPresented = false }
+
+    private func paletteHeader(_ t: String) -> some View {
+        Text(t.uppercased()).font(.system(size: 10, weight: .bold)).tracking(0.6)
+            .foregroundStyle(.secondary).padding(.horizontal, 10).padding(.top, 8).padding(.bottom, 2)
+    }
+
+    private func paletteRow(_ color: Color, _ icon: String, _ title: String, _ sub: String?, _ act: @escaping () -> Void) -> some View {
+        Button(action: act) {
+            HStack(spacing: 11) {
+                Image(systemName: icon).font(.system(size: 13, weight: .semibold)).foregroundStyle(color).frame(width: 22)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title).font(.system(size: 13.5, weight: .medium)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                    if let sub { Text(sub).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1) }
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 10).padding(.vertical, 7)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

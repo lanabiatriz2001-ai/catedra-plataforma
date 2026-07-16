@@ -212,17 +212,21 @@ struct RemissiveIndexView: View {
     let accent: Color
     var onSameArticle: (String) -> Void = { _ in }
     var onOpenLaw: (UUID, String?) -> Void = { _, _ in }
+    /// Embutido no acordeão do redesign: sem título/caixa próprios.
+    var embedded: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label("Índice remissivo", systemImage: "arrow.triangle.branch")
-                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            if !embedded {
+                Label("Índice remissivo", systemImage: "arrow.triangle.branch")
+                    .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            }
             FlowRemissions(remissions: remissions, accent: accent,
                            onSameArticle: onSameArticle, onOpenLaw: onOpenLaw)
         }
-        .padding(10)
+        .padding(embedded ? 0 : 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(.background.secondary))
+        .background { if !embedded { RoundedRectangle(cornerRadius: 10).fill(.background.secondary) } }
     }
 }
 

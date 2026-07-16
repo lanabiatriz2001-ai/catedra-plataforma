@@ -21,6 +21,7 @@ struct MarkableArticleView: NSViewRepresentable {
     let annotations: [TextAnnotation] // todas as anotações da lei
     let fontFamily: String
     let fontSize: Double
+    var lineSpacing: CGFloat = 7       // espaçamento entre linhas (popover de leitura)
     var accent: Color = .accentColor  // cor dos rótulos (Art., incisos)
     var textAlignment: NSTextAlignment = .natural  // alinhamento do texto (espelha o JURIS)
     let proposedWidth: CGFloat        // largura dada pelo SwiftUI (via GeometryReader)
@@ -74,7 +75,7 @@ struct MarkableArticleView: NSViewRepresentable {
     func updateNSView(_ textView: ReaderTextView, context: Context) {
         context.coordinator.parent = self
         controller.textView = textView
-        let key = "\(articleText.hashValue)|\(fontFamily)|\(fontSize)|\(accent.hashValue)|\(textAlignment.rawValue)"
+        let key = "\(articleText.hashValue)|\(fontFamily)|\(fontSize)|\(accent.hashValue)|\(textAlignment.rawValue)|\(lineSpacing)"
         var changed = false
         if context.coordinator.lastKey != key {
             applyText(to: textView, coordinator: context.coordinator)
@@ -181,8 +182,8 @@ struct MarkableArticleView: NSViewRepresentable {
 
         let attributed = NSMutableAttributedString(string: articleText)
         let basePara = NSMutableParagraphStyle()
-        basePara.lineSpacing = 7
-        basePara.paragraphSpacing = 16
+        basePara.lineSpacing = lineSpacing
+        basePara.paragraphSpacing = max(12, lineSpacing + 9)
         basePara.alignment = textAlignment
         attributed.addAttributes([.font: base, .foregroundColor: NSColor.labelColor,
                                   .paragraphStyle: basePara],
@@ -190,7 +191,7 @@ struct MarkableArticleView: NSViewRepresentable {
 
         func indent(_ first: CGFloat, _ head: CGFloat) -> NSParagraphStyle {
             let p = NSMutableParagraphStyle()
-            p.lineSpacing = 7; p.paragraphSpacing = 10; p.paragraphSpacingBefore = 3
+            p.lineSpacing = lineSpacing; p.paragraphSpacing = 10; p.paragraphSpacingBefore = 3
             p.firstLineHeadIndent = first; p.headIndent = head
             return p
         }
@@ -222,10 +223,42 @@ struct MarkableArticleView: NSViewRepresentable {
         textView.textStorage?.setAttributedString(attributed)
         // Mesma chave calculada em updateNSView; inclui o accent para repintar os
         // rótulos se a matéria (cor) da norma mudar com o artigo aberto.
-        coordinator.lastKey = "\(articleText.hashValue)|\(fontFamily)|\(fontSize)|\(accent.hashValue)|\(textAlignment.rawValue)"
+        coordinator.lastKey = "\(articleText.hashValue)|\(fontFamily)|\(fontSize)|\(accent.hashValue)|\(textAlignment.rawValue)|\(lineSpacing)"
         // A altura é recalculada pelo SwiftUI via sizeThatFits — invalida a medição
         // ao trocar o texto/fonte para o ScrollView externo pegar a nova altura.
         textView.invalidateIntrinsicContentSize()
+    }
+
+    // Colore só os PREFIXOS estruturais (Art. Nº / inciso romano / § / alínea) com a
+    // cor da matéria (accent), em semibold — sem tocar no corpo. Reaplicado a cada
+    // render de anotações (que reseta a cor base), então o destaque não se perde.
+    private func colorizeStructure(_ storage: NSTextStorage) {
+        let ns = storage.string as NSString
+        let accentNS = NSColor(accent)
+        var i = 0
+        while i < ns.length {
+            let lineRange = ns.lineRange(for: NSRange(location: i, length: 0))
+            defer { i = NSMaxRange(lineRange) }
+            let line = ns.substring(with: lineRange).trimmingCharacters(in: .whitespacesAndNewlines)
+            if line.isEmpty { continue }
+            func colorPrefix(_ pattern: String, _ color: NSColor, bold: Bool) {
+                guard let m = firstMatch(pattern, line) else { return }
+                let len = min((m as NSString).length, lineRange.length)
+                guard len > 0 else { return }
+                let pr = NSRange(location: lineRange.location, length: len)
+                storage.addAttribute(.foregroundColor, value: color, range: pr)
+                if bold { storage.addAttribute(.font, value: baseFont(bold: true), range: pr) }
+            }
+            if line.range(of: "^(§+\\s*\\d+[ºo°]?|Parágrafo)", options: .regularExpression) != nil {
+                colorPrefix("^(§+\\s*\\d+[ºo°]?|Parágrafo único|Parágrafo)", accentNS, bold: true)
+            } else if line.range(of: "^[IVXLCDM]+\\s*[-–—]", options: .regularExpression) != nil {
+                colorPrefix("^[IVXLCDM]+\\s*[-–—]", accentNS, bold: true)
+            } else if line.range(of: "^[a-z]\\)", options: .regularExpression) != nil {
+                colorPrefix("^[a-z]\\)", .secondaryLabelColor, bold: false)
+            } else if line.range(of: "^Art", options: [.regularExpression, .caseInsensitive]) != nil {
+                colorPrefix("^Art(?:igo)?\\.?\\s*[0-9]+[ºo°]?(?:[-–][A-Za-z])?", accentNS, bold: true)
+            }
+        }
     }
 
     private func firstMatch(_ pattern: String, _ line: String) -> String? {
@@ -265,6 +298,10 @@ struct MarkableArticleView: NSViewRepresentable {
         let baseF = baseFont(bold: false)
         storage.addAttribute(.font, value: baseF, range: full)
         storage.addAttribute(.foregroundColor, value: NSColor.labelColor, range: full)
+        // Redesign "moderno vibrante": os MARCADORES estruturais (Art. Nº, incisos, §,
+        // alíneas) ganham a cor da matéria — o CORPO do artigo continua limpo (tinta),
+        // então os grifos do usuário seguem sendo o destaque principal do conteúdo.
+        colorizeStructure(storage)
         var ranges: [NSRange] = []
         for a in localAnnotations() {
             let range = NSRange(location: a.location, length: a.length)
@@ -308,10 +345,22 @@ struct MarkableArticleView: NSViewRepresentable {
 
         func textViewDidChangeSelection(_ notification: Notification) {
             guard let tv = textView else { return }
-            let len = tv.selectedRange().length
+            let sel = tv.selectedRange()
+            let len = sel.length
+            // Retângulo da seleção (para a barra de marcação contextual) — mesmo cálculo
+            // das âncoras de comentário: bounding rect do range + inset do container.
+            var rect = CGRect.zero
+            if len > 0, let lm = tv.layoutManager, let container = tv.textContainer {
+                let gr = lm.glyphRange(forCharacterRange: sel, actualCharacterRange: nil)
+                let br = lm.boundingRect(forGlyphRange: gr, in: container)
+                let inset = tv.textContainerInset
+                rect = CGRect(x: br.minX + inset.width, y: br.minY + inset.height,
+                              width: br.width, height: br.height)
+            }
             DispatchQueue.main.async { [weak self] in
-                guard let self, self.parent.controller.selectionLength != len else { return }
-                self.parent.controller.selectionLength = len
+                guard let self else { return }
+                if self.parent.controller.selectionLength != len { self.parent.controller.selectionLength = len }
+                if self.parent.controller.selectionRect != rect { self.parent.controller.selectionRect = rect }
             }
         }
     }

@@ -89,6 +89,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .ct-home-grid > *:nth-child(5){ order:10; grid-column:span 6; }  /* Estatísticas (largura cheia) */
 .ct-home-grid > *:nth-child(11){ order:11; grid-column:span 6; } /* Dashboards (largura cheia) */
 @media (max-width:1200px){ .ct-home-grid{ grid-template-columns:1fr; } .ct-home-grid > *{ grid-column:1 / -1 !important; } }
+/* Redesign da home: elevação + vida (hover) coesa em TODOS os cards com superfície.
+   Alvo por substring do estilo inline (--surface / --heroGrad) — não pega os
+   wrappers transparentes (Estatísticas, Dashboards), e é imune ao shift de nth-child. */
+.ct-home-grid > div[style*="--surface)"], .ct-home-grid > div[style*="--heroGrad)"]{
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 26px rgba(16,24,40,.07);
+  transition:transform .16s ease, box-shadow .16s ease;
+}
+.ct-home-grid > div[style*="--surface)"]:hover, .ct-home-grid > div[style*="--heroGrad)"]:hover{
+  transform:translateY(-3px);
+  box-shadow:0 5px 12px rgba(16,24,40,.09), 0 20px 44px rgba(16,24,40,.13);
+}
 /* ---- calendário grande (grade em largura total) ---- */
 .ct-calwrap{display:flex;flex-direction:column;gap:16px;}
 .ct-calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
@@ -655,19 +666,29 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       <!-- ================= INÍCIO (layout centro de comando) ================= -->
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:18px;">
-        <!-- HERO -->
-        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(22px,3vw,34px);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;">
-          <div style="position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:99px;background:rgba(255,255,255,.08);"></div>
-          <div style="position:relative;min-width:240px;flex:1;">
-            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.8;font-weight:600;">{{ dateLabel }} · 🔥 {{ sidebarStreak }} dias<sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"> · 🛡️ {{ escudos }}</sc-if></div>
-            <h2 style="margin:8px 0 0;font-family:var(--display);font-size:clamp(26px,3.4vw,38px);font-weight:700;line-height:1.05;">{{ greeting }}, {{ userFirstName }}.</h2>
-            <p style="margin:10px 0 0;font-size:14.5px;opacity:.92;max-width:460px;line-height:1.6;display:flex;flex-wrap:wrap;gap:8px;align-items:center;"><span>Restam <b>{{ cicloRestam }} blocos</b> · <b>{{ revHoje }}</b> revisões hoje</span><sc-if value="{{ temAtrasadas }}" hint-placeholder-val="{{ false }}"><span style="background:rgba(255,255,255,.22);border-radius:99px;padding:2px 11px;font-weight:700;font-size:13px;white-space:nowrap;">⏰ {{ revAtrasadas }} atrasadas</span></sc-if></p>
+        <!-- HERO (redesenhado — comando do dia + números-chave) -->
+        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(24px,3.2vw,38px);color:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-60px;top:-70px;width:300px;height:300px;border-radius:99px;background:rgba(255,255,255,.07);"></div>
+          <div style="position:absolute;right:90px;bottom:-110px;width:220px;height:220px;border-radius:99px;background:rgba(255,255,255,.05);"></div>
+          <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;">
+            <div style="min-width:240px;flex:1;">
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:600;">{{ dateLabel }} · 🔥 {{ sidebarStreak }} dias<sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"> · 🛡️ {{ escudos }}</sc-if></div>
+              <h2 style="margin:10px 0 0;font-family:var(--display);font-size:clamp(28px,3.6vw,42px);font-weight:700;line-height:1.03;">{{ greeting }}, {{ userFirstName }}.</h2>
+              <p style="margin:12px 0 0;font-size:14.5px;opacity:.92;max-width:460px;line-height:1.6;display:flex;flex-wrap:wrap;gap:8px;align-items:center;"><span>Restam <b>{{ cicloRestam }} blocos</b> · <b>{{ revHoje }}</b> revisões hoje</span><sc-if value="{{ temAtrasadas }}" hint-placeholder-val="{{ false }}"><span style="background:rgba(255,255,255,.22);border-radius:99px;padding:2px 11px;font-weight:700;font-size:13px;white-space:nowrap;">⏰ {{ revAtrasadas }} atrasadas</span></sc-if></p>
+            </div>
+            <!-- SEU PRÓXIMO PASSO — a decisão, não só o estado -->
+            <div style="flex:0 1 300px;min-width:230px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:18px 20px;">
+              <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.85;">Seu próximo passo</div>
+              <p style="margin:9px 0 15px;font-size:14px;font-weight:500;line-height:1.4;">{{ focoSugestao }}</p>
+              <button data-view="{{ focoView }}" onclick="{{ onNav }}" style="display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--accentD);border:none;border-radius:11px;padding:11px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>{{ focoBtnLabel }}</button>
+            </div>
           </div>
-          <!-- SEU PRÓXIMO PASSO — a decisão, não só o estado -->
-          <div style="position:relative;flex:0 1 300px;min-width:230px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:16px 18px;">
-            <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.85;">Seu próximo passo</div>
-            <p style="margin:8px 0 14px;font-size:14px;font-weight:500;line-height:1.4;">{{ focoSugestao }}</p>
-            <button data-view="{{ focoView }}" onclick="{{ onNav }}" style="display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--accentD);border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>{{ focoBtnLabel }}</button>
+          <!-- Números-chave do dia, integrados ao hero -->
+          <div style="position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
+            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1;">{{ cicloRestam }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">blocos restantes</div></div>
+            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1;">{{ revHoje }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">revisões hoje</div></div>
+            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1;">{{ metaPct }}%</div><div style="font-size:11px;opacity:.85;margin-top:5px;">meta da semana</div></div>
+            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1;">🔥 {{ sidebarStreak }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">dias seguidos</div></div>
           </div>
         </div>
 
@@ -3065,7 +3086,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
             <div style="font-weight:600;color:var(--ink);font-size:15px;">Sessões <span style="color:var(--text3);font-weight:500;font-size:13px;">· {{ histCount }}</span></div>
-            <select value="{{ histFilterVal }}" onchange="{{ setHistFilter }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink);font-family:inherit;"><option value="">Todas as disciplinas</option><sc-for list="{{ histDiscs }}" as="d" hint-placeholder-count="6"><option value="{{ d }}">{{ d }}</option></sc-for></select>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <select value="{{ histFilterVal }}" onchange="{{ setHistFilter }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink);font-family:inherit;"><option value="">Todas as disciplinas</option><sc-for list="{{ histDiscs }}" as="d" hint-placeholder-count="6"><option value="{{ d }}">{{ d }}</option></sc-for></select>
+              <button onclick="{{ toggleLixeira }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">{{ histLixeiraToggleLabel }}</button>
+              <button onclick="{{ limparHistorico }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:#c0392f;cursor:pointer;font-family:inherit;font-weight:600;">Limpar histórico</button>
+            </div>
           </div>
           <sc-if value="{{ histEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:36px 12px;color:var(--text3);font-size:13.5px;">Nenhuma sessão por aqui ainda. Registre uma sessão para começar o histórico.</div></sc-if>
           <sc-if value="{{ histNotEmpty }}" hint-placeholder-val="{{ true }}">
@@ -3089,6 +3114,32 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             </div>
           </sc-if>
         </div>
+        <!-- LIXEIRA de sessões (recuperável) -->
+        <sc-if value="{{ histLixeiraOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+              <div style="font-weight:600;color:var(--ink);font-size:15px;">🗑 Lixeira <span style="color:var(--text3);font-weight:500;font-size:13px;">· {{ histLixeiraCount }}</span></div>
+              <sc-if value="{{ histLixeiraHasItems }}" hint-placeholder-val="{{ true }}"><button onclick="{{ esvaziarLixeira }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:#c0392f;cursor:pointer;font-family:inherit;font-weight:600;">Esvaziar lixeira</button></sc-if>
+            </div>
+            <sc-if value="{{ histLixeiraEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:28px 12px;color:var(--text3);font-size:13.5px;">Nada apagado. O que você remover do histórico aparece aqui para restaurar.</div></sc-if>
+            <sc-if value="{{ histLixeiraHasItems }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ histLixeiraList }}" as="s" hint-placeholder-count="4">
+                  <div style="display:grid;grid-template-columns:64px 1.3fr 1.6fr 72px 92px;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;">
+                    <span style="color:var(--text3);font-size:12px;">{{ s.dateStr }}</span>
+                    <span style="display:flex;align-items:center;gap:7px;min-width:0;"><span style="width:8px;height:8px;border-radius:99px;background:{{ s.color }};flex:none;"></span><span style="color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.discShort }}</span></span>
+                    <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.topico }}</span>
+                    <span style="font-family:var(--mono);color:var(--text2);font-size:12px;">{{ s.minStr }}</span>
+                    <span style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
+                      <button data-id="{{ s.id }}" onclick="{{ restoreSession }}" title="Restaurar" style="border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--accent);cursor:pointer;font-family:inherit;font-weight:600;">Restaurar</button>
+                      <button data-id="{{ s.id }}" onclick="{{ purgeSession }}" title="Apagar de vez" style="background:transparent;border:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;padding:4px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                    </span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
        </div>
       </sc-if>
 
@@ -3328,6 +3379,8 @@ class Component extends DCLogic {
       timerMode:'livre', pomoFocus:25, pomoBreak:5, pomoMenuOpen:false, sessionModalOpen:false,
       pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false, focusBlockIdx:null, pipMsg:'',
       sessions: (()=>{ try{ const raw=localStorage.getItem('catedra:sessions'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
+      sessionsLixeira: (()=>{ try{ const raw=localStorage.getItem('catedra:sessionsLixeira'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)) return arr; } }catch(_){} return []; })(),
+      histLixeiraOpen:false,
       sessionDraft:{ disc:'Direito Constitucional', topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
       edImportMode:'pdf', edRaw:'', edParsed:null, edExtracting:false, edAiBusy:false, edFileName:'',
       cad:{mode:'nova', discSel:'Direito Constitucional', discNova:'', cor:'#2563eb', topico:'', sub:'', peso:'', questoes:''},
@@ -3408,6 +3461,58 @@ class Component extends DCLogic {
       {t:'Constância vence intensidade. Apareça todos os dias.', a:'hábito'},
     ];
   }
+  // Edital de DIREITO CIVIL (sumário do material da Lana): 81 tópicos + 398 subitens.
+  // Formato compacto [nome, [subitens]] para não inflar o bundle.
+  _civilV1(){ return [["1.1 Primeiras palavras sobre a Lei de Introdução",[]],["1.2 A Lei de Introdução e a Lei como fonte primária do Direito Brasileiro. A vigência das normas jurídicas (arts. 1.º e 2.º da Lei de Introdução)",[]],["1.3 Características da norma jurídica e sua aplicação. Análise do art. 3.º da Lei de Introdução",[]],["1.4 As formas de integração da norma jurídica. Art. 4.º da Lei de Introdução",["1.4.1 A analogia","1.4.2 Os costumes","1.4.3 Os princípios gerais de Direito","1.4.4 A equidade"]],["1.5 Aplicação da norma jurídica no tempo. O art. 6.º da Lei de Introdução",[]],["1.6 Aplicação da norma jurídica no espaço. Os arts. 7.º a 19 da Lei de Introdução e o Direito Internacional Público e Privado",[]],["1.7 Estudo das antinomias jurídicas",[]],["1.8 Análise das inclusões feitas na Lei de Introdução pela Lei 13.655/2018. Repercussões para o Direito Público",[]],["2.1 Introdução. Visão filosófica do Código Civil de 2002. As principais teses do Direito Civil contemporâneo",["2.1.1 Direito Civil Constitucional","2.1.2 A eficácia horizontal dos direitos fundamentais","2.1.3 O diálogo das fontes","2.1.4 A interação entre as teses expostas e a visão unitária do ordenamento jurídico","2.1.5 A Reforma do Código Civil de 2002. A Comissão de Juristas nomeada no âmbito do Senado Federal, em 2023 e a sua tramitação no Congresso Nacional"]],["2.2 Parte Geral do Código Civil de 2002. Da pessoa natural",["2.2.1 Conceitos iniciais. A capacidade e conceitos correlatos","2.2.2 O início da personalidade civil. A situação jurídica do nascituro","2.2.3 Os incapazes no Código Civil de 2002","2.2.3.1 Dos absolutamente incapazes","2.2.3.2 Dos relativamente incapazes","2.2.4 A emancipação","2.2.5 Os direitos da personalidade em uma análise civil- constitucional. A ponderação de direitos e o seu tratamento no Código de Processo Civil de 2015","2.2.6 O domicílio da pessoa natural","2.2.7 A morte da pessoa natural. Modalidades e efeitos jurídicos","2.2.7.1 Morte real","2.2.7.2 Morte presumida sem declaração de ausência. A justificação","2.2.7.3 Morte presumida com declaração de ausência","2.2.7.4 A comoriência","2.2.8 O estado civil da pessoa natural. Visão crítica"]],["2.3 Parte Geral do Código Civil de 2002. Da pessoa jurídica",["2.3.1 Conceito de pessoa jurídica e suas classificações","2.3.2 Da pessoa jurídica de Direito Privado. Regras gerais e conceitos básicos. Análise do art. 44 do CC","2.3.3 Modalidades de pessoa jurídica de Direito Privado e análise de suas regras específicas","2.3.3.1 Das associações","2.3.3.2 Das fundações particulares","2.3.3.3 Das sociedades","2.3.3.4 Das corporações especiais. Partidos políticos e organizações religiosas","2.3.3.5 Dos empreendimentos de economia solidária","2.3.4 Do domicílio da pessoa jurídica de Direito Privado","2.3.5 Da extinção da pessoa jurídica de Direito Privado","2.3.6 Da desconsideração da personalidade jurídica"]],["2.4 Parte Geral do Código Civil de 2002. Dos bens. Objeto do direito",["2.4.1 Primeiras palavras. Diferenças entre bens e coisas. A teoria do patrimônio mínimo","2.4.2 Principais classificações dos bens","2.4.2.1 Classificação quanto à tangibilidade","2.4.2.2 Classificação quanto à mobilidade","2.4.2.3 Classificação quanto à fungibilidade","2.4.2.4 Classificação quanto à consuntibilidade","2.4.2.5 Classificação quanto à divisibilidade","2.4.2.6 Classificação quanto à individualidade","2.4.2.7 Classificação quanto à dependência em relação a outro bem (bens reciprocamente considerados)","2.4.2.8 Classificação em relação ao titular do domínio","2.4.3 Do bem de família. O tratamento dualista do sistema jurídico","2.4.3.1 Bem de família voluntário ou convencional","2.4.3.2 Bem de família legal"]],["2.5 Parte Geral do Código Civil de 2002. Teoria geral do negócio jurídico",["2.5.1 Conceitos básicos. Fato, ato e negócio jurídico","2.5.2 Classificações do negócio jurídico","2.5.3 Elementos estruturais do negócio jurídico. A Escada Ponteana","2.5.3.1 Plano da existência","2.5.3.2 Plano da validade","2.5.3.3 Plano da eficácia","2.5.3.4 A Escada Ponteana e o direito intertemporal. Análise do art. 2.035, caput, do CC. Exemplos práticos","2.5.4 Estudo dos elementos acidentais do negócio jurídico. Condição, termo e encargo","2.5.5 Vícios ou defeitos do negócio jurídico","2.5.5.1 Do erro e da ignorância","2.5.5.2 Do dolo","2.5.5.3 Da coação","2.5.5.4 Do estado de perigo","2.5.5.5 Da lesão","2.5.5.6 Da simulação. O enquadramento da reserva mental","2.5.5.7 Da fraude contra credores","2.5.6 Teoria das nulidades do negócio jurídico","2.5.6.1 Da inexistência do negócio jurídico","2.5.6.2 Da nulidade absoluta – negócio jurídico nulo","2.5.6.3 Da nulidade relativa ou anulabilidade. Negócio jurídico anulável","2.5.6.4 Quadro comparativo. Negócio jurídico nulo (nulidade absoluta) × negócio jurídico anulável (nulidade relativa ou anulabilidade)"]],["2.6 Prescrição e decadência",["2.6.1 Introdução. Fórmula para diferenciar a prescrição da decadência","2.6.2 Regras quanto à prescrição","2.6.3 Regras quanto à decadência","2.6.4 Quadro comparativo. Diferenças entre a prescrição e a decadência"]],["3.1 O conceito de obrigação e seus elementos constitutivos",["3.1.1 Elementos subjetivos da obrigação","3.1.2 Elemento objetivo ou material da obrigação","3.1.3 Elemento imaterial, virtual ou espiritual da obrigação"]],["3.2 Diferenças conceituais entre obrigação, dever, ônus e direito potestativo",[]],["3.3 As fontes obrigacionais no Direito Civil brasileiro",[]],["3.4 Breve estudo dos atos unilaterais como fontes do direito obrigacional",["3.4.1 Da promessa de recompensa","3.4.2 Da gestão de negócios","3.4.3 Do pagamento indevido","3.4.4 Do enriquecimento sem causa"]],["3.5 Principais classificações das obrigações. Modalidades previstas no Código Civil de 2002",["3.5.1 Classificação da obrigação quanto ao seu conteúdo ou prestação","3.5.1.1 Obrigação positiva de dar","3.5.1.2 Obrigação positiva de fazer","3.5.1.3 Obrigação negativa de não fazer","3.5.2 Classificação da obrigação quanto à complexidade do seu objeto","3.5.2.1 Obrigação simples","3.5.2.2 Obrigação composta","3.5.3 Classificação das obrigações quanto ao número de pessoas envolvidas. Estudo das obrigações solidárias","3.5.3.1 Conceitos básicos e regras gerais (arts. 264 a 266 do CC)","3.5.3.2 Da solidariedade ativa (arts. 267 a 274 do CC)","3.5.3.3 Da obrigação solidária passiva (arts. 275 a 285 do CC)","3.5.4 Classificação das obrigações quanto à divisibilidade (ou indivisibilidade) do objeto obrigacional"]],["3.6 O adimplemento das obrigações (teoria do pagamento)",["3.6.1 Primeiras palavras","3.6.2 Do pagamento direto","3.6.2.1 Elementos subjetivos do pagamento direto. O solvens e o accipiens. Quem paga e quem recebe","3.6.2.2 Do objeto e da prova do pagamento direto (elementos objetivos do pagamento direto). O que se paga e como se paga","3.6.2.3 Do lugar do pagamento direto. Onde se paga","3.6.2.4 Do tempo do pagamento. Quando se paga","3.6.3 Das regras especiais de pagamento e das formas de pagamento indireto","3.6.3.1 Do pagamento em consignação (ou da consignação em pagamento)","3.6.3.2 Da imputação do pagamento","3.6.3.3 Do pagamento com sub-rogação","3.6.3.4 Da dação em pagamento","3.6.3.5 Da novação","3.6.3.6 Da compensação","3.6.3.7 Da confusão","3.6.3.8 Da remissão de dívidas"]],["3.7 Da transmissão das obrigações",["3.7.1 Introdução","3.7.2 Da cessão de crédito","3.7.3 Da cessão de débito ou assunção de dívida","3.7.4 Da cessão de contrato"]],["3.8 Do inadimplemento obrigacional. Da responsabilidade civil contratual",["3.8.1 Modalidades de inadimplemento","3.8.2 Regras quanto ao inadimplemento relativo ou mora","3.8.3 Regras quanto ao inadimplemento absoluto da obrigação","3.8.4 Dos juros no Código Civil de 2002","3.8.5 Da cláusula penal","3.8.6 Das arras ou sinal"]],["4.1 Conceitos básicos da responsabilidade civil. Classificação quanto à origem (responsabilidade contratual × extracontratual). Ato ilícito e abuso de direito",[]],["4.2 Elementos da responsabilidade civil ou pressupostos do dever de indenizar",["4.2.1 Primeiras palavras conceituais","4.2.2 Conduta humana","4.2.3 A culpa genérica ou lato sensu","4.2.3.1 O dolo","4.2.3.2 Da culpa estrita ou stricto sensu","4.2.4 O nexo de causalidade","4.2.5 Dano ou prejuízo","4.2.5.1 Danos patrimoniais ou materiais","4.2.5.2 Danos morais","4.2.5.3 Danos estéticos","4.2.5.4 Danos morais coletivos","4.2.5.5 Danos sociais","4.2.5.6 Danos por perda de uma chance","4.2.5.7 Outras regras importantes quanto à fixação da indenização previstas no Código Civil de 2002"]],["4.3 A classificação da responsabilidade civil quanto à culpa. Responsabilidade subjetiva e objetiva",["4.3.1 Responsabilidade civil subjetiva","4.3.2 A responsabilidade civil objetiva. A cláusula geral do art. 927, parágrafo único, do CC. Aplicações práticas do dispositivo","4.3.3 A responsabilidade objetiva no Código Civil de 2002. Principais regras específicas","4.3.3.1 A responsabilidade civil objetiva por atos de terceiros ou responsabilidade civil indireta","4.3.3.2 A responsabilidade civil objetiva por danos causados por animal","4.3.3.3 A responsabilidade civil objetiva por danos causados por ruína de prédio ou construção","4.3.3.4 A responsabilidade civil objetiva por danos oriundos de coisas lançadas dos prédios (defenestramento)","4.3.3.5 A responsabilidade civil objetiva no contrato de transporte"]],["4.4 Das excludentes do dever de indenizar",["4.4.1 Da legítima defesa","4.4.2 Do estado de necessidade ou remoção de perigo iminente","4.4.3 Do exercício regular de direito ou das próprias funções","4.4.4 Das excludentes de nexo de causalidade","4.4.5 Da cláusula de não indenizar"]],["5.1 Conceito de contrato. Do clássico ao contemporâneo. Do moderno ao pós-moderno",[]],["5.2 Principais classificações contratuais",["5.2.1 Quanto aos direitos e deveres das partes envolvidas","5.2.2 Quanto ao sacrifício patrimonial das partes","5.2.3 Quanto ao momento do aperfeiçoamento do contrato","5.2.4 Quanto aos riscos que envolvem a prestação","5.2.5 Quanto à previsão legal","5.2.6 Quanto à negociação do conteúdo pelas partes. Contrato de adesão × contrato de consumo","5.2.7 Quanto à presença de formalidades ou solenidades","5.2.8 Quanto à independência contratual. Os contratos coligados ou conexos","5.2.9 Quanto ao momento do cumprimento","5.2.10 Quanto à pessoalidade","5.2.11 Quanto à definitividade do negócio"]],["5.3 Princípios contratuais no Código Civil de 2002",["5.3.1 Primeiras palavras","5.3.2 Princípio da autonomia privada","5.3.3 Princípio da função social dos contratos","5.3.4 Princípio da força obrigatória do contrato (pacta sunt servanda)","5.3.5 Princípio da boa-fé objetiva","5.3.6 Princípio da relatividade dos efeitos contratuais"]],["5.4 A formação do contrato pelo Código Civil",["5.4.1 Fase de negociações preliminares ou de puntuação","5.4.2 Fase de proposta, policitação ou oblação","5.4.3 Fase de contrato preliminar","5.4.4 Fase de contrato definitivo"]],["5.5 A revisão judicial dos contratos por fato superveniente no Código Civil e no Código de Defesa do Consumidor",["5.5.1 Primeiras palavras","5.5.2 A revisão contratual por fato superveniente no Código Civil de 2002","5.5.3 A revisão contratual por fato superveniente no Código de Defesa do Consumidor"]],["5.6 Os vícios redibitórios no Código Civil",[]],["5.7 A evicção",[]],["5.8 Extinção dos contratos",["5.8.1 Extinção normal dos contratos","5.8.2 Extinção por fatos anteriores à celebração","5.8.3 Extinção por fatos posteriores à celebração","5.8.4 Extinção por morte de um dos contratantes"]],["6.1 Da compra e venda (arts. 481 a 532 do CC)",["6.1.1 Conceito e natureza jurídica","6.1.2 Elementos constitutivos da compra e venda","6.1.3 A estrutura sinalagmática e os efeitos da compra e venda. A questão dos riscos e das despesas advindas do contrato","6.1.4 Restrições à autonomia privada na compra e venda","6.1.4.1 Da venda de ascendente a descendente (art. 496 do CC)","6.1.4.2 Da venda entre cônjuges (art. 499 do CC)","6.1.4.3 Da venda de bens sob administração (art. 497 do CC)","6.1.4.4 Da venda de bens em condomínio ou venda de coisa comum (art. 504 do CC)","6.1.5 Regras especiais da compra e venda","6.1.5.1 Venda por amostra, por protótipos ou por modelos (art. 484 do CC)","6.1.5.2 Venda a contento e sujeita à prova (arts. 509 a 512 do CC)","6.1.5.3 Venda por medida, por extensão ou ad mensuram (art. 500 do CC)","6.1.5.4 Venda de coisas conjuntas (art. 503 do CC)","6.1.6 Das cláusulas especiais da compra e venda","6.1.6.1 Cláusula de retrovenda","6.1.6.2 Cláusula de preempção, preferência ou prelação convencional","6.1.6.3 Cláusula de venda sobre documentos","6.1.6.4 Cláusula de venda com reserva de domínio"]],["6.2 Da troca ou permuta (art. 533 do CC)",["6.2.1 Conceito e natureza jurídica","6.2.2 Objeto do contrato e relação com a compra e venda","6.2.3 Troca entre ascendentes e descendentes"]],["6.3 Do contrato estimatório ou venda em consignação (arts. 534 a 537 do CC)",["6.3.1 Conceito e natureza jurídica","6.3.2 Efeitos e regras do contrato estimatório"]],["6.4 Da doação (arts. 538 a 564 do CC)",["6.4.1 Conceito e natureza jurídica","6.4.2 Efeitos e regras da doação sob o enfoque das suas modalidades ou espécies","6.4.2.1 Doação remuneratória","6.4.2.2 Doação contemplativa ou meritória","6.4.2.3 Doação a nascituro","6.4.2.4 Doação sob forma de subvenção periódica","6.4.2.5 Doação em contemplação de casamento futuro","6.4.2.6 Doação de ascendentes a descendentes e doação entre cônjuges","6.4.2.7 Doação com cláusula de reversão","6.4.2.8 Doação conjuntiva","6.4.2.9 Doação manual","6.4.2.10 Doação inoficiosa","6.4.2.11 Doação universal","6.4.2.12 Doação do cônjuge adúltero ao seu cúmplice","6.4.2.13 Doação a entidade futura","6.4.3 Da promessa de doação","6.4.4 Da revogação da doação"]],["6.5 Da locação de coisas no CC/2002 (arts. 565 a 578 do CC)",["6.5.1 Conceito, natureza jurídica e âmbito de aplicação","6.5.2 Efeitos da locação regida pelo Código Civil"]],["6.6 Do empréstimo. Comodato e mútuo",["6.6.1 Introdução. Conceitos básicos","6.6.2 Do comodato (arts. 579 a 585 do CC)","6.6.3 Do mútuo (arts. 586 a 592 do CC)"]],["6.7 Da prestação de serviço (arts. 593 a 609 do CC)",["6.7.1 Conceito e natureza jurídica","6.7.2 Regras da prestação de serviços no CC/2002"]],["6.8 Da empreitada (arts. 610 a 626 do CC)",["6.8.1 Conceito e natureza jurídica","6.8.2 Regras da empreitada no CC/2002"]],["6.9 Do depósito (arts. 627 a 652 do CC)",["6.9.1 Conceito e natureza jurídica","6.9.2 Regras quanto ao depósito voluntário ou convencional","6.9.3 Do depósito necessário","6.9.4 Da prisão do depositário infiel"]],["6.10 Do mandato (arts. 653 a 692 do CC)",["6.10.1 Conceito e natureza jurídica","6.10.2 Principais classificações do mandato","6.10.3 Principais regras do mandato no CC/2002"]],["6.11 Da comissão (arts. 693 a 709 do CC)",[]],["6.12 Da agência e distribuição (arts. 710 a 721 do CC)",[]],["6.13 Da corretagem (arts. 722 a 729 do CC)",[]],["6.14 Do transporte (arts. 730 a 756 do CC)",["6.14.1 Conceito e natureza jurídica","6.14.2 Regras gerais do transporte no CC/2002","6.14.3 Do transporte de pessoas","6.14.4 Do transporte de coisas"]],["6.15 Da constituição de renda (arts. 803 a 813 do CC)",[]],["6.16 Do jogo e da aposta (arts. 814 a 817 do CC)",[]],["6.17 Da fiança (arts. 818 a 839 do CC)",["6.17.1 Conceito e natureza jurídica","6.17.2 Efeitos e regras da fiança no CC/2002"]],["6.18 Da transação (arts. 840 a 850 do CC)",[]],["6.19 Do compromisso (arts. 851 a 853 do CC)",[]],["6.20 Do contrato de administração fiduciária de garantias (art. 853-A do CC)",[]],["7.1 Introdução. Conceitos de direito das coisas e de direitos reais. Diferenças entre os institutos e suas características gerais",[]],["7.2 Principais diferenças entre os direitos reais e os direitos pessoais patrimoniais. Revisão do quadro comparativo",[]],["7.3 Da posse (arts. 1.196 a 1.224 do CC)",["7.3.1 Conceito de posse e teorias justificadoras. A teoria da função social da posse","7.3.2 Diferenças entre a posse e a detenção. Conversão dos institutos","7.3.3 Principais classificações da posse","7.3.4 Efeitos materiais e processuais da posse","7.3.4.1 Efeitos da posse quanto aos frutos","7.3.4.2 Efeitos da posse em relação às benfeitorias","7.3.4.3 Posse e responsabilidades","7.3.4.4 Posse e usucapião. Primeira abordagem","7.3.4.5 Posse e processo civil. A faculdade de invocar os interditos possessórios","7.3.4.6 A legítima defesa da posse e o desforço imediato","7.3.5 Formas de aquisição, transmissão e perda da posse","7.3.6 Composse ou compossessão"]],["7.4 Da propriedade",["7.4.1 Conceitos fundamentais relativos à propriedade e seus atributos","7.4.2 Principais características do direito de propriedade","7.4.3 Disposições preliminares relativas à propriedade. A função social e socioambiental da propriedade","7.4.4 A desapropriação judicial privada por posse-trabalho (art. 1.228, §§ 4.º e 5.º, do CC/2002)","7.4.5 Da propriedade resolúvel e da propriedade fiduciária","7.4.6 Formas de aquisição da propriedade imóvel","7.4.6.1 Das acessões naturais e artificiais","7.4.6.2 Da usucapião de bens imóveis","7.4.6.2.1 Generalidades","7.4.6.2.2 Modalidades de usucapião de bens imóveis","7.4.6.2.3 Usucapião imobiliária e direito intertemporal no Código Civil","7.4.6.2.4 A questão da usucapião de bens públicos","7.4.6.2.5 Da usucapião administrativa ou extrajudicial incluída pelo Código de Processo Civil de 2015. Análise com base nas alterações instituídas pela Lei 13.465/2017 e pela Lei 14.382/2022","7.4.6.3 Do registro do título","7.4.6.4 Da sucessão hereditária de bens imóveis","7.4.7 Formas de aquisição da propriedade móvel","7.4.7.1 Da ocupação e do achado do tesouro. O estudo da descoberta","7.4.7.2 Da usucapião de bens móveis","7.4.7.3 Da especificação","7.4.7.4 Da confusão, da comistão e da adjunção","7.4.7.5 Da tradição","7.4.7.6 Da sucessão hereditária de bens móveis","7.4.8 Da perda da propriedade imóvel e móvel","7.4.9 Breve análise da Lei 13.465/2017 e suas principais repercussões para o direito de propriedade. A legitimação fundiária"]],["7.5 Dos fundos de investimento e a inclusão do seu tratamento no Código Civil pela Lei 13.874/2019",[]],["7.6 Direito de vizinhança (arts. 1.277 a 1.313 do CC)",["7.6.1 Conceitos básicos","7.6.2 Do uso anormal da propriedade","7.6.3 Das árvores limítrofes","7.6.4 Da passagem forçada e da passagem de cabos e tubulações","7.6.5 Das águas","7.6.6 Do direito de tapagem e dos limites entre prédios","7.6.7 Do direito de construir"]],["7.7 Do condomínio",["7.7.1 Conceito, estrutura jurídica e modalidades","7.7.2 Do condomínio voluntário ou convencional","7.7.3 Do condomínio necessário","7.7.4 Do condomínio edilício","7.7.4.1 Regras gerais básicas. Instituição e constituição. A questão da natureza jurídica do condomínio edilício","7.7.4.2 Direitos e deveres dos condôminos. Estudo das penalidades no condomínio edilício","7.7.4.3 Da administração do condomínio edilício","7.7.4.4 Da extinção do condomínio edilício","7.7.4.5 Novas modalidades de condomínios instituídas pela Lei 13.465/2017. Condomínio de lotes e condomínio urbano simples","7.7.4.6 A multipropriedade ou time sharing. Estudo da Lei 13.777/2018"]],["7.8 Do direito real de aquisição do promitente comprador (compromisso de compra e venda de imóvel registrado na matrícula)",[]],["7.9 Dos direitos reais de gozo ou fruição",["7.9.1 Generalidades","7.9.2 Da superfície","7.9.3 Das servidões","7.9.4 Do usufruto","7.9.5 Do uso","7.9.6 Da habitação","7.9.7 Das concessões especiais para uso e moradia. Direitos reais de gozo ou fruição criados pela Lei 11.481/2007","7.9.8 Do direito real de laje"]],["7.10 Dos direitos reais de garantia",["7.10.1 Princípios e regras gerais quanto aos direitos reais de garantia tratados pelo CC/2002","7.10.2 Do penhor","7.10.3 Da hipoteca","7.10.4 Da anticrese","7.10.5 Da alienação fiduciária em garantia"]],["8.1 Conceito de Direito de Família e seus princípios fundamentais",["8.1.1 Princípio de proteção da dignidade da pessoa humana (art. 1.º, III, da CF/1988)","8.1.2 Princípio da solidariedade familiar (art. 3.º, I, da CF/1988)","8.1.3 Princípio da igualdade entre filhos (art. 227, § 6.º, da CF/1988 e art. 1.596 do CC)","8.1.4 Princípio da igualdade entre cônjuges e companheiros (art. 226, § 5.º, da CF/1988 e art. 1.511 do CC)","8.1.5 Princípio da não intervenção ou da liberdade (art. 1.513 do CC)","8.1.6 Princípio do maior interesse da criança e do adolescente (art. 227, caput, da CF/1988 e arts. 1.583 e 1.584 do CC)","8.1.7 Princípio da afetividade","8.1.8 Princípio da função social da família (art. 226, caput, da CF/1988)","8.1.9 Princípio da boa-fé objetiva"]],["8.2 Concepção constitucional de família e a reforma do Código Civil",[]],["8.3 Do casamento (arts. 1.511 a 1.590 do CC)",["8.3.1 Conceito, natureza jurídica e princípios","8.3.2 Capacidade para o casamento, impedimentos matrimoniais e causas suspensivas do casamento","8.3.3 Do processo de habilitação e da celebração do casamento. Alterações promovidas pela Lei do SERP (Lei 14.382/2022). Modalidades especiais de casamento quanto à sua celebração","8.3.3.1 Casamento em caso de moléstia grave (art. 1.539 do CC)","8.3.3.2 Casamento nuncupativo (em viva voz) ou in extremis vitae momentis, ou in articulo mortis (art. 1.540 do CC)","8.3.3.3 Casamento por procuração (art. 1.542 do CC)","8.3.3.4 Casamento religioso com efeitos civis (arts. 1.515 e 1.516 do CC)","8.3.4 Da invalidade do casamento","8.3.4.1 Esclarecimentos necessários","8.3.4.2 Do casamento inexistente","8.3.4.3 Do casamento nulo","8.3.4.4 Do casamento anulável","8.3.4.5 Do casamento putativo","8.3.5 Provas do casamento","8.3.6 Efeitos pessoais do casamento e seus deveres","8.3.7 Efeitos patrimoniais do casamento. Regime de bens","8.3.7.1 Conceito de regime de bens e seus princípios. Da ação de alteração do regime de bens","8.3.7.2 Regras gerais quanto ao regime de bens","8.3.7.3 Regras quanto ao pacto antenupcial","8.3.7.4 Regime de bens. Regras especiais","8.3.8 Dissolução da sociedade conjugal e do casamento. Separação e divórcio","8.3.8.1 Conceitos iniciais. O sistema introduzido pelo Código Civil de 2002 e as alterações fundamentais instituídas pela Emenda do Divórcio (EC 66/2010). Estudo atualizado diante do Código de Processo Civil de 2015 e do julgamento do Tema 1.053 do STF, com repercussão geral","8.3.8.2 Questões pontuais relativas ao tema da dissolução da sociedade conjugal e do casamento após a Emenda Constitucional 66/2010","8.3.8.2.1 O fim da separação de direito em todas as suas modalidades e a manutenção da separação de fato","8.3.8.2.2 Manutenção do conceito de sociedade conjugal. A situação das pessoas separadas juridicamente antes da EC 66/2010","8.3.8.2.3 A existência de modalidade única de divórcio. Fim do divórcio indireto","8.3.8.2.4 Da possibilidade de se discutir culpa para o divórcio do casal","8.3.8.2.5 A questão do uso do nome pelo cônjuge após a EC 66/2010","8.3.8.2.6 O problema da guarda na dissolução do casamento. Análise atualizada com a EC 66/2010 e com a Lei da Guarda Compartilhada Obrigatória (Lei 13.058/2014)","8.3.8.2.7 Alimentos na dissolução do casamento e a Emenda do Divórcio"]],["8.4 Da união estável",["8.4.1 Conceito de união estável e seus requisitos fundamentais. Diferenças entre união estável e concubinato","8.4.2 Efeitos pessoais e patrimoniais da união estável","8.4.3 A união homoafetiva e o seu enquadramento como união estável"]],["8.5 Relações de parentesco",["8.5.1 Conceito, modalidades e disposições gerais (arts. 1.591 a 1.595 do CC)","8.5.2 Filiação (arts. 1.596 a 1.606 do CC)","8.5.3 Reconhecimento de filhos (arts. 1.607 a 1.617 do CC)","8.5.3.1 Primeiras palavras. Modalidades de reconhecimento de filhos","8.5.3.2 Reconhecimento voluntário ou perfilhação","8.5.3.3 Reconhecimento judicial. Aspectos principais da ação investigatória","8.5.4 Da adoção","8.5.5 Do poder familiar (arts. 1.630 a 1.638 do CC). O problema da alienação parental"]],["8.6 Dos alimentos no Código Civil de 2002",["8.6.1 Conceito e pressupostos da obrigação alimentar","8.6.2 Características da obrigação de alimentos","8.6.3 Principais classificações dos alimentos","8.6.4 Extinção da obrigação de alimentos"]],["8.7 Da tutela e da curatela",["8.7.1 Primeiras palavras","8.7.2 Da tutela","8.7.3 Da curatela"]],["9.1 Conceitos fundamentais do Direito das Sucessões",[]],["9.2 Da herança e de sua administração",[]],["9.3 Da herança jacente e da herança vacante",[]],["9.4 Da vocação hereditária e os legitimados a suceder",[]],["9.5 Da aceitação e renúncia da herança",[]],["9.6 Dos excluídos da sucessão. Indignidade sucessória e deserdação. Semelhanças e diferenças",[]],["9.7 Da ação de petição de herança",[]],["9.8 Da sucessão legítima",["9.8.1 Panorama geral das inovações introduzidas pelo CC/2002. Anotações sobre a decisão do STF a respeito da inconstitucionalidade do art. 1.790 do Código Civil","9.8.2 Da sucessão dos descendentes e a concorrência do cônjuge. Análise crítica, com a inclusão do companheiro na norma, diante da decisão do STF, de maio de 2017 (Informativo n. 864 da Corte)","9.8.3 Da sucessão dos ascendentes e a concorrência do cônjuge ou companheiro","9.8.4 Da sucessão do cônjuge ou companheiro, isoladamente","9.8.5 Da sucessão dos colaterais","9.8.6 Da sucessão do companheiro. O polêmico art. 1.790 do CC e suas controvérsias principais até a declaração de inconstitucionalidade pelo Supremo Tribunal Federal. As primeiras decisões do Superior Tribunal de Justiça sobre o tema. Análise do direito real de habitação do companheiro","9.8.7 Do direito de representação"]],["9.9 Da sucessão testamentária",["9.9.1 Conceito de testamento e suas características. Regras fundamentais sobre o instituto","9.9.2 Das modalidades ordinárias de testamento","9.9.2.1 Do testamento público","9.9.2.2 Do testamento cerrado","9.9.2.3 Do testamento particular","9.9.3 Das modalidades especiais de testamento","9.9.3.1 Do testamento marítimo e do testamento aeronáutico","9.9.3.2 Do testamento militar","9.9.4 Do codicilo","9.9.5 Das disposições testamentárias","9.9.6 Dos legados","9.9.6.1 Conceito e espécies","9.9.6.2 Dos efeitos do legado e do seu pagamento","9.9.6.3 Da caducidade dos legados","9.9.7 Do direito de acrescer entre herdeiros e legatários","9.9.8 Das substituições testamentárias","9.9.9 Da redução das disposições testamentárias","9.9.10 Da revogação do testamento. Diferenças fundamentais em relação à invalidade","9.9.11 Do rompimento do testamento","9.9.12 Do testamenteiro"]],["9.10 Do inventário e da partilha",["9.10.1 Do inventário. Conceito, modalidades e procedimentos","9.10.1.1 Do inventário judicial","9.10.1.1.1 Inventário judicial pelo rito ou procedimento tradicional (inventário comum)","9.10.1.1.2 Inventário judicial pelo rito sumário","9.10.1.1.3 Inventário judicial pelo rito do arrolamento comum","9.10.1.2 Do inventário extrajudicial, pela via administrativa ou por escritura pública","9.10.2 Da pena de sonegados","9.10.3 Do pagamento das dívidas","9.10.4 Da colação ou conferência","9.10.5 Da redução das doações inoficiosas","9.10.6 Da partilha","9.10.6.1 Da partilha amigável ou extrajudicial","9.10.6.2 Da partilha judicial 9.10.6.3 Da partilha em vida","9.10.7 Da garantia dos quinhões hereditários. A responsabilidade pela evicção","9.10.8 Da anulação, da rescisão e da nulidade da partilha"]]]; }
+  // Migração única: troca os tópicos antigos (lista rasa, sem subitens) pelo edital real.
+  // Roda DENTRO do app (estado + localStorage + sync), então não é sobrescrita pela nuvem.
+  // IDEMPOTENTE e sem flag: enquanto o Direito Civil não estiver no formato novo
+  // (81 tópicos), reescreve. Roda no mount E a cada sync — porque a hidratação da
+  // nuvem rehidrata o edital e sobrescreveria a migração.
+  // Estrutura do CÓDIGO CIVIL (Lei 10.406/2002): Livros como tópicos, Títulos como subtópicos.
+  _ccLeiSeca(){ return [["PARTE GERAL · Livro I — Das Pessoas",["Título I — Das Pessoas Naturais","Título II — Das Pessoas Jurídicas","Título III — Do Domicílio"]],["PARTE GERAL · Livro II — Dos Bens",["Título Único — Das Diferentes Classes de Bens"]],["PARTE GERAL · Livro III — Dos Fatos Jurídicos",["Título I — Do Negócio Jurídico","Título II — Dos Atos Jurídicos Lícitos","Título III — Dos Atos Ilícitos","Título IV — Da Prescrição e da Decadência","Título V — Da Prova"]],["PARTE ESPECIAL · Livro I — Do Direito das Obrigações",["Título I — Das Modalidades das Obrigações","Título II — Da Transmissão das Obrigações","Título III — Do Adimplemento e Extinção das Obrigações","Título IV — Do Inadimplemento das Obrigações","Título V — Dos Contratos em Geral","Título VI — Das Várias Espécies de Contrato","Título VII — Dos Atos Unilaterais","Título VIII — Dos Títulos de Crédito","Título IX — Da Responsabilidade Civil","Título X — Das Preferências e Privilégios Creditórios"]],["PARTE ESPECIAL · Livro II — Do Direito de Empresa",["Título I — Do Empresário","Título II — Da Sociedade","Título III — Do Estabelecimento","Título IV — Dos Institutos Complementares"]],["PARTE ESPECIAL · Livro III — Do Direito das Coisas",["Título I — Da Posse","Título II — Dos Direitos Reais","Título III — Da Propriedade","Título IV — Da Superfície","Título V — Das Servidões","Título VI — Do Usufruto","Título VII — Do Uso","Título VIII — Da Habitação","Título IX — Do Direito do Promitente Comprador","Título X — Do Penhor, da Hipoteca e da Anticrese","Título XI — Da Laje"]],["PARTE ESPECIAL · Livro IV — Do Direito de Família",["Título I — Do Direito Pessoal","Título II — Do Direito Patrimonial","Título III — Da União Estável","Título IV — Da Tutela, da Curatela e da Tomada de Decisão Apoiada"]],["PARTE ESPECIAL · Livro V — Do Direito das Sucessões",["Título I — Da Sucessão em Geral","Título II — Da Sucessão Legítima","Título III — Da Sucessão Testamentária","Título IV — Do Inventário e da Partilha"]],["Livro Complementar — Das Disposições Finais e Transitórias",[]]]; }
+  // Cadastra a disciplina "Código Civil - Lei Seca" no edital (idempotente). Mesmo padrão
+  // do Direito Civil: roda no mount e a cada sync, sobrevive à nuvem (edital vence local).
+  _migrarCCLeiSeca(){
+    try{
+      const ed=(this.state.edital||[]).slice();
+      const CC=this._ccLeiSeca();
+      const nome='Código Civil - Lei Seca';
+      let i=ed.findIndex(d=>(d.disc||'').trim().toLowerCase()===nome.toLowerCase());
+      const topics=CC.map(([name,subs])=>({name, done:false, subs:(subs||[]).map(s=>({name:s, done:false}))}));
+      if(i>=0){
+        if((ed[i].topics||[]).length===CC.length) return;   // já cadastrada
+        const feitos=new Set((ed[i].topics||[]).filter(t=>t&&t.done).map(t=>(t.name||'').trim()));
+        topics.forEach(t=>{ if(feitos.has(t.name.trim())) t.done=true; });
+        ed[i]={...ed[i], topics, up:Date.now()};
+      } else {
+        ed.push({id:'cc-leiseca', disc:nome, color:'#14b8a6', open:false, topics, peso:'', questoes:'', up:Date.now()});
+      }
+      try{ localStorage.setItem('catedra:edital', JSON.stringify(ed)); }catch(_){}
+      try{ localStorage.setItem('catedra:_dirty','1'); }catch(_){}
+      this.setState({edital:ed});
+      try{ this.flashSync&&this.flashSync(); }catch(_){}
+      try{ this._toast('Código Civil - Lei Seca adicionado ao edital ✦'); }catch(_){}
+    }catch(_){}
+  }
+  _migrarEditalCivil(){
+    try{
+      const ed=(this.state.edital||[]).slice();
+      const i=ed.findIndex(d=>(d.disc||'').trim().toLowerCase()==='direito civil');
+      if(i<0) return;
+      const CV=this._civilV1();
+      if((ed[i].topics||[]).length===CV.length) return;   // já está no formato novo
+      const feitos=new Set((ed[i].topics||[]).filter(t=>t&&t.done).map(t=>(t.name||'').trim()));
+      const topics=CV.map(([name,subs])=>({name, done:feitos.has(name.trim()), subs:(subs||[]).map(s=>({name:s, done:false}))}));
+      ed[i]={...ed[i], topics, up:Date.now()};
+      // grava direto no localStorage também (não depende do callback do setState)
+      try{ localStorage.setItem('catedra:edital', JSON.stringify(ed)); }catch(_){}
+      try{ localStorage.setItem('catedra:_dirty','1'); }catch(_){}
+      this.setState({edital:ed});
+      try{ this.flashSync&&this.flashSync(); }catch(_){}
+      try{ this._toast('Edital de Direito Civil atualizado — '+topics.length+' tópicos ✦'); }catch(_){}
+    }catch(_){}
+  }
   componentDidMount(){
     this._onR = ()=>{ const m = window.innerWidth<900; if(m!==this.state.isMobile) this.setState({isMobile:m}); };
     window.addEventListener('resize', this._onR);
@@ -3415,6 +3520,13 @@ class Component extends DCLogic {
       if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); if(this.state.loggedIn) this.setState(s=>({paletteOpen:!s.paletteOpen, paletteQuery:''})); }
       if(e.key==='Tab' && this._modalActive){ const panel=document.querySelector('.ct-modal-panel'); if(panel){ const f=[].slice.call(panel.querySelectorAll('input:not([type=hidden]),textarea,select,button,a[href],[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled && el.offsetParent!==null); if(f.length){ const first=f[0], last=f[f.length-1]; if(!panel.contains(document.activeElement)){ e.preventDefault(); first.focus(); } else if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); } else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); } } } } };
     window.addEventListener('keydown', this._onKey);
+    this._onHide = ()=>{ try{ this._saveTimer(); }catch(_){} };   // salva o cronômetro ao fechar/ocultar
+    window.addEventListener('pagehide', this._onHide);
+    window.addEventListener('beforeunload', this._onHide);
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden'){ try{ this._saveTimer(); }catch(_){} } });
+    try{ this._restoreTimer(); }catch(_){}   // cronômetro não zera ao fechar o app
+    try{ this._migrarEditalCivil(); }catch(_){}
+    try{ this._migrarCCLeiSeca(); }catch(_){}
     try{ window.catedraWidgetPayload = ()=>this._widgetPayload(); }catch(_){}
     // O widget da mesa (painel nativo) chama isto p/ abrir/fechar o PiP do cronômetro.
     try{ window.catedraTogglePiP = ()=>{ try{ this.togglePiP(); }catch(_){} }; }catch(_){}
@@ -3434,7 +3546,10 @@ class Component extends DCLogic {
     try{ const _ao=(this.state.orient&&this.state.orient.aoAbrir)||'foco'; if(_ao==='ciclo' && this.state.view==='inicio') this.setState({view:'ciclo'}); }catch(_){}
     // estado real de sync (emitido pelo auth.js) + re-hidratação após merge de outro aparelho
     this._onSyncState = (e)=>{ try{ this.setState({syncStatus:(e.detail&&e.detail.status)||'local'}); }catch(_){} };
-    this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){} };
+    // A hidratação da nuvem rehidrata o edital; reaplica a migração DEPOIS dela,
+    // senão a versão antiga (53 tópicos) volta por cima.
+    this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){}
+      try{ setTimeout(()=>{ try{ this._migrarEditalCivil(); }catch(_){} try{ this._migrarCCLeiSeca(); }catch(_){} }, 0); }catch(_){} };
     window.addEventListener('catedra:syncstate', this._onSyncState);
     window.addEventListener('catedra:synced', this._onSynced);
     // Ponte CátedraLEGIS → Cátedra: o app nativo chama isto (evaluateJavaScript) para
@@ -3528,6 +3643,7 @@ class Component extends DCLogic {
   _rehydrateFromLocal(){
     const patch={};
     try{ const raw=localStorage.getItem('catedra:sessions'); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
+    try{ const raw=localStorage.getItem('catedra:sessionsLixeira'); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessionsLixeira=a; } }catch(_){}
     patch.reviews=this._load('reviews', this.state.reviews);
     patch.metas=this._load('metas', this.state.metas);
     patch.eventos=this._load('eventos', this.state.eventos);
@@ -3719,13 +3835,31 @@ class Component extends DCLogic {
         return { timerSeconds:0, pomoPhase:flip, pomoCycles: s.pomoPhase==='foco' ? s.pomoCycles+1 : s.pomoCycles, studiedSeconds };
       }
       return { timerSeconds:next, studiedSeconds };
-    });
+    }, ()=>{ try{ this._saveTimer(); }catch(_){} });
   };
   toggleTimer = ()=>{
-    if(this.state.timerRunning){ if(this._tick) clearInterval(this._tick); this._tick=null; this.setState({timerRunning:false}); }
-    else { this._tick = setInterval(this.tick, 1000); this.setState({timerRunning:true}); }
+    if(this.state.timerRunning){ if(this._tick) clearInterval(this._tick); this._tick=null; this.setState({timerRunning:false}, ()=>this._saveTimer()); }
+    else { this._tick = setInterval(this.tick, 1000); this.setState({timerRunning:true}, ()=>this._saveTimer()); }
   };
-  resetTimer = ()=>{ if(this._tick) clearInterval(this._tick); this._tick=null; this.setState({timerRunning:false, timerSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
+  resetTimer = ()=>{ if(this._tick) clearInterval(this._tick); this._tick=null; try{ localStorage.removeItem('ct_timer'); }catch(_){} this.setState({timerRunning:false, timerSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
+  // Cronômetro persistente: NÃO zera ao fechar o app. Guardado LOCAL (chave sem
+  // 'catedra:' → não sobe na nuvem, é do aparelho). Restaurado no boot.
+  _saveTimer(){
+    try{ const s=this.state;
+      if(!s.timerRunning && !s.timerSeconds && !s.studiedSeconds){ localStorage.removeItem('ct_timer'); return; }
+      localStorage.setItem('ct_timer', JSON.stringify({ sec:s.timerSeconds, studied:s.studiedSeconds,
+        mode:s.timerMode, phase:s.pomoPhase, cycles:s.pomoCycles, running:s.timerRunning, ts:Date.now() }));
+    }catch(_){}
+  }
+  _restoreTimer(){
+    try{ const raw=localStorage.getItem('ct_timer'); if(!raw) return; const t=JSON.parse(raw); if(!t) return;
+      const patch={ timerSeconds:+t.sec||0, studiedSeconds:+t.studied||0, timerRunning:false };
+      if(t.mode) patch.timerMode=t.mode;
+      if(t.phase) patch.pomoPhase=t.phase;
+      if(typeof t.cycles==='number') patch.pomoCycles=t.cycles;
+      this.setState(patch, ()=>{ if(t.running){ if(this._tick) clearInterval(this._tick); this._tick=setInterval(this.tick,1000); this.setState({timerRunning:true}); } });
+    }catch(_){}
+  }
   fmtClock = (sec)=>{ const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; const p=n=>String(n).padStart(2,'0');
     return h>0 ? `${h}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`; };
 
@@ -4176,6 +4310,7 @@ class Component extends DCLogic {
     if(this._tick) clearInterval(this._tick); this._tick=null;
     this.setState({timerMode:m, pomoFocus:f, pomoBreak:b, pomoMenuOpen:false, timerRunning:false, timerSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
   _saveSessions(s){ try{ localStorage.setItem('catedra:sessions', JSON.stringify(s)); }catch(_){} }
+  _saveLixeira(l){ try{ localStorage.setItem('catedra:sessionsLixeira', JSON.stringify(l)); }catch(_){} }
   _seedSessions(){
     const discs=[['Direito Constitucional',0.80],['Direito Administrativo',0.73],['Direito Tributário',0.63],['Direito Penal',0.75],['Direito Civil',0.69],['Processo Civil',0.71]];
     const cats=['Teoria','Questões','Revisão','Lei seca','Jurisprudência','Simulado'];
@@ -4275,6 +4410,7 @@ class Component extends DCLogic {
     if(d.agendarRevisao){ const col=this.DISC_FULL_COLOR[_disc]||'#0f7a57';
       patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:_disc, topic:rec.topico, color:col, due:0, dueDate:new Date().toISOString().slice(0,10), intervalo:1, facilidade:2.5, repeticoes:0}]; }
     if(this._tick){ clearInterval(this._tick); this._tick=null; }
+    try{ localStorage.removeItem('ct_timer'); }catch(_){}   // sessão registrada → zera o cronômetro persistido
     this.setState(patch, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     const accTxt = q? ' · '+Math.round(a/q*100)+'% bruto · líquido '+(a-er) : '';
     const revTxt = d.agendarRevisao? ' · revisão agendada' : '';
@@ -4300,6 +4436,14 @@ class Component extends DCLogic {
   // ===== Picture-in-Picture do cronômetro (janela flutuante do modo foco) =====
   _docPiPReady(){ try{ return !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow); }catch(_){ return false; } }
   _videoPiPReady(){ try{ const v=document.createElement('video'); return !!(document.pictureInPictureEnabled && v.requestPictureInPicture) || !!(v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')); }catch(_){ return false; } }
+  // Cor da plataforma (accent) resolvida em HEX. O PiP é OUTRA janela (ou um canvas):
+  // não herda as CSS vars do app, então precisa da cor literal.
+  _accentHex(){
+    try{ if(this.state.accent) return this.state.accent; }catch(_){}
+    try{ const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); if(v) return v; }catch(_){}
+    return '#0f7a57';
+  }
+  _hexRgba(hex,a){ try{ let h=String(hex||'').replace('#',''); if(h.length===3) h=h.replace(/./g,'$&$&'); const n=parseInt(h.slice(0,6),16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }catch(_){ return 'rgba(19,160,107,'+a+')'; } }
   _pipVals(){
     const st=this.state, isPomo=st.timerMode==='pomo';
     const isPausa=isPomo && st.pomoPhase==='pausa';
@@ -4307,7 +4451,7 @@ class Component extends DCLogic {
     const remaining=Math.max(0, phaseDur-st.timerSeconds);
     return { disp: isPomo?this.fmtClock(remaining):this.fmtClock(st.timerSeconds),
       label: isPomo?(st.pomoPhase==='foco'?'FOCO':'PAUSA'):'SESSÃO LIVRE',
-      color: isPausa?'#e0922a':'#13a06b',
+      color: isPausa?'#e0922a':this._accentHex(),
       pct: (isPomo&&phaseDur)?Math.min(1,st.timerSeconds/phaseDur):0,
       running: st.timerRunning, isPomo, phaseText:isPomo?(isPausa?'Pausa':'Foco'):'Sessão livre' };
   }
@@ -4330,16 +4474,21 @@ class Component extends DCLogic {
     if(phase){ phase.textContent=v.phaseText; phase.style.color=v.color; }
     if(state) state.textContent=v.running?'Rodando':'Pausado';
     if(bar){ bar.style.width=Math.round(v.pct*100)+'%'; bar.style.background=v.color; bar.style.opacity=v.isPomo?'1':'0'; }
-    if(toggle) toggle.textContent=v.running?'Pausar':'Retomar';
+    if(toggle){ toggle.textContent=v.running?'Pausar':'Retomar';
+      // mantém o botão na COR DA PLATAFORMA mesmo se ela mudar com o PiP aberto
+      const acc=this._accentHex(); toggle.style.background=acc; toggle.style.borderColor=acc; }
   }
   async _openDocPiP(){
     const w=await window.documentPictureInPicture.requestWindow({width:360,height:250});
     this._pipWin=w;
     w.document.title='Cátedra · Foco';
+    // Cores derivadas da COR DA PLATAFORMA (accent) — a janela do PiP não herda as CSS vars.
+    const acc=this._accentHex();
+    const pipBg=this.mixDark(acc,0.90), pipBg2=this.mixDark(acc,0.95), pipGlow=this._hexRgba(acc,.34);
     w.document.body.innerHTML=`
       <style>
-        *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d1512;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif}
-        .wrap{height:100%;display:flex;flex-direction:column;justify-content:center;padding:20px 22px;background:radial-gradient(circle at 20% 12%,rgba(19,160,107,.34),transparent 34%),linear-gradient(135deg,#101b16,#070b09)}
+        *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:${pipBg};color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif}
+        .wrap{height:100%;display:flex;flex-direction:column;justify-content:center;padding:20px 22px;background:radial-gradient(circle at 20% 12%,${pipGlow},transparent 34%),linear-gradient(135deg,${pipBg},${pipBg2})}
         .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;font-size:12px;color:rgba(255,255,255,.58);font-weight:650;letter-spacing:.12em;text-transform:uppercase}
         .phase{font-size:13px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
         .time{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:62px;line-height:.95;font-weight:800;letter-spacing:-.06em;text-align:center;margin:7px 0 14px;white-space:nowrap}
@@ -4347,7 +4496,7 @@ class Component extends DCLogic {
         .bar{height:100%;width:0%;border-radius:99px;transition:width .4s linear,background .2s}
         .actions{display:flex;gap:8px}
         button{flex:1;border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.08);color:#fff;font:700 13px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer}
-        button.primary{background:#13a06b;border-color:#13a06b;color:#fff}
+        button.primary{background:${acc};border-color:${acc};color:#fff}
       </style>
       <div class="wrap">
         <div class="brand"><span>Cátedra</span><span id="ct-pip-state">Rodando</span></div>
@@ -4371,7 +4520,7 @@ class Component extends DCLogic {
   }
   _drawPiP(){
     const cv=this._pipCv; if(!cv) return; const ctx=cv.getContext('2d'); const W=cv.width, H=cv.height; const v=this._pipVals();
-    ctx.fillStyle='#0d1512'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=this.mixDark(this._accentHex(),0.90); ctx.fillRect(0,0,W,H);   // fundo na cor da plataforma
     if(v.isPomo){ ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fillRect(0,0,W,12); ctx.fillStyle=v.color; ctx.fillRect(0,0,W*v.pct,12); }
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillStyle=v.color; ctx.font='bold 34px -apple-system, system-ui, sans-serif';
@@ -5388,7 +5537,14 @@ class Component extends DCLogic {
 
   // ===== Histórico / Reta Final / Relatório (features adicionadas) =====
   setHistFilter = (e)=> this.setState({historicoFilter:e.currentTarget.value});
-  delSession = (e)=>{ const id=e.currentTarget.dataset.id; if(!window.confirm('Remover esta sessão do histórico?')) return; this.setState(s=>{ const sessions=s.sessions.filter(x=>x.id!==id); try{ this._saveSessions(sessions); }catch(_){} return {sessions}; }); this.flashSync(); };
+  // Remover = mandar para a LIXEIRA (recuperável), não apaga de vez.
+  delSession = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const alvo=(s.sessions||[]).find(x=>x.id===id); if(!alvo) return {}; const sessions=s.sessions.filter(x=>x.id!==id); const lix=[{...alvo, _delAt:Date.now()}, ...(s.sessionsLixeira||[])]; try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){} return {sessions, sessionsLixeira:lix}; }); try{ this._toast('Sessão movida para a lixeira ✦'); }catch(_){} this.flashSync(); };
+  // Limpar histórico inteiro = tudo para a lixeira de uma vez.
+  limparHistorico = ()=>{ const n=(this.state.sessions||[]).length; if(!n){ this._toast('Histórico já está vazio'); return; } if(!window.confirm('Mover as '+n+' sessões do histórico para a lixeira? Você poderá restaurar depois.')) return; this.setState(s=>{ const marc=(s.sessions||[]).map(x=>({...x, _delAt:Date.now()})); const lix=[...marc, ...(s.sessionsLixeira||[])]; try{ this._saveSessions([]); this._saveLixeira(lix); }catch(_){} return {sessions:[], sessionsLixeira:lix}; }); try{ this._toast(n+' sessões movidas para a lixeira ✦'); }catch(_){} this.flashSync(); };
+  toggleLixeira = ()=> this.setState(s=>({histLixeiraOpen:!s.histLixeiraOpen}));
+  restoreSession = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const alvo=(s.sessionsLixeira||[]).find(x=>x.id===id); if(!alvo) return {}; const lix=s.sessionsLixeira.filter(x=>x.id!==id); const rec={...alvo}; delete rec._delAt; const sessions=[rec, ...(s.sessions||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)); try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){} return {sessions, sessionsLixeira:lix}; }); try{ this._toast('Sessão restaurada ✦'); }catch(_){} this.flashSync(); };
+  purgeSession = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const lix=(s.sessionsLixeira||[]).filter(x=>x.id!==id); try{ this._saveLixeira(lix); }catch(_){} return {sessionsLixeira:lix}; }); this.flashSync(); };
+  esvaziarLixeira = ()=>{ const n=(this.state.sessionsLixeira||[]).length; if(!n) return; if(!window.confirm('Apagar DE VEZ as '+n+' sessões da lixeira? Isso não pode ser desfeito.')) return; this.setState(()=>{ try{ this._saveLixeira([]); }catch(_){} return {sessionsLixeira:[]}; }); try{ this._toast('Lixeira esvaziada'); }catch(_){} this.flashSync(); };
   openHistEdit = (e)=>{ const id=e.currentTarget.dataset.id; const r=this.state.sessions.find(x=>x.id===id); if(!r) return;
     const cats=(Array.isArray(r.categorias)&&r.categorias.length?r.categorias:[r.categoria].filter(Boolean));
     this.setState({histEdit:{ id, disc:r.disc||'Direito Constitucional', topico:r.topico||'', categorias:cats, minutos:String(r.min||0), acertos:String(r.acertos||0), erradas:String(r.erradas||0), brancos:String(r.brancos||0), nota:r.nota||'' }}); };
@@ -6510,6 +6666,14 @@ class Component extends DCLogic {
     const _histFilter=this.state.historicoFilter||'';
     const histList=_histFilter?histAll.filter(s=>s.disc===_histFilter):histAll;
     const histDiscs=[...new Set(this.state.sessions.map(s=>s.disc).filter(Boolean))];
+    // Lixeira de sessões (recuperável)
+    const histLixeiraList=[...(this.state.sessionsLixeira||[])].sort((a,b)=>(b._delAt||0)-(a._delAt||0)).map(s=>{ const _sc=(Array.isArray(s.categorias)&&s.categorias.length?s.categorias:[s.categoria].filter(Boolean));
+      return { id:s.id, discShort:(s.disc||'—').replace('Direito ',''), color:_histCol[s.disc]||'#0f7a57', topico:s.topico||'—', catLabel:_sc.join(' · ')||'—',
+        dateStr:(()=>{ try{ return new Date(s.ts||(s.date+'T12:00:00')).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return s.date||''; } })(),
+        minStr:(s.min||0)+' min' }; });
+    const histLixeiraCount=histLixeiraList.length;
+    const histLixeiraOpen=!!this.state.histLixeiraOpen;
+    const histLixeiraEmpty=histLixeiraCount===0;
     // disciplinas disponíveis para registro/edição: edital primeiro, depois já usadas; fallback jurídico só se vazio
     const _discPadrao=['Direito Constitucional','Direito Administrativo','Direito Tributário','Direito Civil','Direito Penal','Processo Civil'];
     const _discBase=[...new Set([...this.state.edital.map(d=>d.disc), ...histDiscs].map(x=>(x||'').trim()).filter(Boolean))];
@@ -6729,6 +6893,8 @@ class Component extends DCLogic {
       histList, histEmpty:histList.length===0, histNotEmpty:histList.length>0, histCount:String(histList.length), histFilterVal:_histFilter, histDiscs,
       histTotal:String(this.state.sessions.length), histHoras:(Math.round(_histTotMin/60*10)/10).toFixed(1), histBruto:B.brutoPct+'%', histLiq:(B.liq>0?'+'+B.liq:String(B.liq)),
       setHistFilter:this.setHistFilter, delSession:this.delSession,
+      limparHistorico:this.limparHistorico, toggleLixeira:this.toggleLixeira, restoreSession:this.restoreSession, purgeSession:this.purgeSession, esvaziarLixeira:this.esvaziarLixeira,
+      histLixeiraList, histLixeiraCount:String(histLixeiraCount), histLixeiraOpen, histLixeiraEmpty, histLixeiraHasItems:histLixeiraCount>0, histLixeiraToggleLabel:(histLixeiraOpen?'Ocultar lixeira':'Lixeira')+(histLixeiraCount?' ('+histLixeiraCount+')':''),
       histEditOpen, histEdit, histEditCats, histEditResumo, openHistEdit:this.openHistEdit, onHistEditField:this.onHistEditField, setHistEditCat:this.setHistEditCat, closeHistEdit:this.closeHistEdit, saveHistEdit:this.saveHistEdit,
       heDiscOpts, heDiscCustom, heDiscSelVal, onHistEditDisc:this.onHistEditDisc,
       // reta final
@@ -6739,7 +6905,7 @@ class Component extends DCLogic {
       cdOn, cdDias:String(cdDias), cdSemStr, cdDataFmt, cdWeekday, cdProgPct:String(cdProgPct), cdProgLabel, cdHorasPrev, cdUrg, cdUrgLabel, cdWeeksBar, cdRingColor, cdRingDash:String(Math.round(cdRingDash)), cdRingOffset:String(Math.round(cdRingOffset)),
       retaRevVenc:String(revOverdue.length), retaSim:String(B.simulados),
       retaCmds, retaNext, retaHasNext:retaNext.length>0,
-      setProvaData:this.setProvaData, toggleRetaFinal:this.toggleRetaFinal, setRetaCom:this.setRetaCom, toggleReduzTeoria:this.toggleReduzTeoria, retaCriarBloco:this.retaCriarBloco,
+      setProvaData:this.setProvaData, clearProvaData:this.clearProvaData, toggleRetaFinal:this.toggleRetaFinal, setRetaCom:this.setRetaCom, toggleReduzTeoria:this.toggleReduzTeoria, retaCriarBloco:this.retaCriarBloco,
       // relatório
       isRelatorio:this.state.view==='relatorio', navRelatorio:navStyle('relatorio'),
       relPeriodOpts, relPeriodN:String(_relDays), relMin:fmtHM(_relMin), relDias:String(_relDias), relQ:String(_relQ),

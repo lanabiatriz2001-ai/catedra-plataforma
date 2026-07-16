@@ -176,68 +176,116 @@ struct DashboardView: View {
         .contentShape(Rectangle())
     }
 
+    // Tile de matéria: gradiente da área, ícone grande, contagem — toque abre a lista.
+    private func materiaTile(_ cat: LawCategory) -> some View {
+        Button { openSection(.category(cat)) } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                Image(systemName: cat.symbol)
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(.white)
+                Spacer(minLength: 4)
+                Text(cat.shortName)
+                    .font(.system(size: 13.5, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1).minimumScaleFactor(0.75)
+                Text("\(categoryCount(cat)) norma\(categoryCount(cat) == 1 ? "" : "s")")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
+            .background(LinearGradient(colors: cat.gradStops,
+                                       startPoint: .topLeading, endPoint: .bottomTrailing))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: cat.color.opacity(0.35), radius: 9, y: 5)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Abrir \(cat.rawValue)")
+    }
+
+    // Célula de número-chave dentro do hero (fundo translúcido sobre o gradiente).
+    private func heroStat(_ value: String, _ label: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(value).font(.system(size: 20, weight: .bold).monospacedDigit()).foregroundStyle(.white)
+            Text(label).font(.system(size: 11)).foregroundStyle(.white.opacity(0.85))
+        }
+        .padding(.horizontal, 14).padding(.vertical, 11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.13)))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.white.opacity(0.16), lineWidth: 1))
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // HERO — faixa no acento do Cátedra (como o card "Bom dia" do Cátedra).
-                HStack(alignment: .top, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 6) {
+                // HERO "vitrine" — tipografia grande, CTA gradiente da matéria e números-chave.
+                VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 7) {
                         let dateText = Date().formatted(date: .complete, time: .omitted)
                         Text((dateText.prefix(1).localizedUppercase + dateText.dropFirst()).uppercased())
-                            .font(.caption.weight(.semibold)).tracking(0.7)
-                            .foregroundStyle(.white.opacity(0.72))
+                            .font(.system(size: 11, weight: .semibold)).tracking(1.4)
+                            .foregroundStyle(.white.opacity(0.8))
                             .lineLimit(1).minimumScaleFactor(0.7)
                         Text("CátedraLEGIS")
-                            .font(.system(size: 34, weight: .bold))
+                            .font(.system(size: 40, weight: .heavy)).tracking(-0.6)
                             .foregroundStyle(.white)
                             .lineLimit(1).minimumScaleFactor(0.6)
                         Text("\(lawCount) normas · \(store.annotations.count) marcações na sua biblioteca")
-                            .font(.callout)
-                            .foregroundStyle(.white.opacity(0.85))
+                            .font(.system(size: 14))
+                            .foregroundStyle(.white.opacity(0.88))
                             .lineLimit(1).minimumScaleFactor(0.8)
                     }
-                    Spacer(minLength: 8)
+                    // CTA: retomar de onde parou, no gradiente da MATÉRIA da lei.
+                    if let law = lastStudied {
+                        Button { openLaw(law.id) } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "play.fill").font(.system(size: 11, weight: .bold))
+                                Text("Continuar · \(law.title)")
+                                    .font(.system(size: 13, weight: .bold)).lineLimit(1)
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 17).padding(.vertical, 10)
+                            .background(Capsule().fill(LinearGradient(colors: law.category.gradStops,
+                                                                      startPoint: .leading, endPoint: .trailing)))
+                            .shadow(color: law.category.color.opacity(0.5), radius: 10, y: 4)
+                            .contentShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    HStack(spacing: 10) {
+                        heroStat("\(store.totalReadUnits)", "artigos lidos")
+                        heroStat("\(store.totalReviewUnits)", "p/ revisão")
+                        heroStat("🔥 \(store.currentStreak)d", "sequência")
+                        heroStat("\(store.activeDaysLastYear)", "dias ativos")
+                    }
                 }
-                .padding(22)
+                .padding(26)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous)
-                        .fill(LinearGradient(colors: ThemeState.t.heroStops,
-                                             startPoint: .topLeading, endPoint: .bottomTrailing))
-                )
-
-                // Continuar de onde parou
-                if let law = lastStudied {
-                    let record = store.record(for: law.id)
-                    Button {
-                        openLaw(law.id)
-                    } label: {
-                        HStack(spacing: 12) {
-                            IconBubble(symbol: "book.pages", color: ThemeState.t.accent, size: 38)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Continuar estudando")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(ThemeState.t.accent)
-                                    .textCase(.uppercase)
-                                Text(law.title)
-                                    .font(.headline)
-                                    .foregroundStyle(.primary)
-                                if record.unitTotal > 0 {
-                                    Text("Artigo \(min(record.lastUnitID + 1, record.unitTotal)) de \(record.unitTotal) · \(record.readKeys.count) lidos")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .appTintedSurface(ThemeState.t.accent)
-                        .contentShape(Rectangle())
+                    ZStack(alignment: .topTrailing) {
+                        LinearGradient(colors: ThemeState.t.heroStops, startPoint: .topLeading, endPoint: .bottomTrailing)
+                        Circle().fill(Color.white.opacity(0.08)).frame(width: 240, height: 240).offset(x: 70, y: -96)
+                        Circle().fill(Color.white.opacity(0.06)).frame(width: 170, height: 170).offset(x: -20, y: 118)
                     }
-                    .buttonStyle(.plain)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .shadow(color: ThemeState.t.accent.opacity(0.22), radius: 18, y: 8)
+
+                // ("Continuar estudando" virou o CTA gradiente DENTRO do hero — um caixote a menos.)
+
+                // MATÉRIAS — tiles coloridos com a identidade de cada área (linguagem vitrine).
+                let cats = LawCategory.allCases.filter { categoryCount($0) > 0 && $0 != .personalizada }
+                if !cats.isEmpty {
+                    VStack(alignment: .leading, spacing: 11) {
+                        Text("MATÉRIAS")
+                            .font(.system(size: 11, weight: .bold)).tracking(1.3)
+                            .foregroundStyle(.secondary)
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 148), spacing: 10)], spacing: 10) {
+                            ForEach(cats) { cat in materiaTile(cat) }
+                        }
+                    }
+                    .padding(.top, 4)
                 }
 
                 // Revisão espaçada do dia (só quando o método está ligado)
@@ -284,21 +332,7 @@ struct DashboardView: View {
                 // Checklist de leitura — mini app de tarefas na Início (captura rápida)
                 ChecklistMiniCard(openChecklist: { openSection(.checklist) })
 
-                // (Navegar / Por matéria migraram para a barra lateral, como no Cátedra.)
-
-                // Estudo
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    StatCard(title: "Artigos lidos", value: "\(store.totalReadUnits)",
-                             symbol: "book", color: ThemeState.t.accent)
-                    StatCard(title: "Marcados p/ revisão", value: "\(store.totalReviewUnits)",
-                             symbol: "star", color: ThemeState.t.accent)
-                    StatCard(title: "Sequência atual", value: "\(store.currentStreak)d",
-                             symbol: "flame", color: ThemeState.t.accent,
-                             detail: "dias seguidos estudando")
-                    StatCard(title: "Dias ativos", value: "\(store.activeDaysLastYear)",
-                             symbol: "calendar", color: ThemeState.t.accent,
-                             detail: "últimos 365 dias")
-                }
+                // (Os StatCards viraram os números-chave DENTRO do hero — quatro caixotes a menos.)
 
                 // Tempo de estudo por norma (alimentado pelo cronômetro do leitor)
                 tempoPorNormaSection

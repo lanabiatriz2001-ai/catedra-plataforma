@@ -387,8 +387,9 @@ struct EntryRow: View {
                 .padding(.top, 1)
                 .help(store.isLido(entry.id) ? "Marcar como não lido" : "Marcar como lido")
             }
+            // Lombada na cor do RAMO (vitrine, casa com o LEGIS) — a fonte fica no badge.
             RoundedRectangle(cornerRadius: 2)
-                .fill(entry.fonteKind.cor)
+                .fill(RamoStyle.color(entry.ramoDireito))
                 .frame(width: 3.5)
                 .padding(.vertical, 2)
 

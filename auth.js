@@ -27,7 +27,54 @@
   var _si = localStorage.setItem.bind(localStorage);
   var _ri = localStorage.removeItem.bind(localStorage);
   // _dirty/_lastSrv/notifSent são meta-estado LOCAL do aparelho — nunca sobem no blob
-  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1 };
+  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1 };
+
+  // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
+  // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
+  // do servidor) e, quando a chave some do local, o servidor a restaura (a data da prova volta).
+  // Guardamos o que foi apagado e o merge passa a IGNORAR esses itens vindos da nuvem.
+  // Meta-estado local (não sobe no blob).
+  function tombLoad() { try { return JSON.parse(localStorage.getItem('catedra:_tomb') || '{}') || {}; } catch (_) { return {}; } }
+  function tombSave(t) { try { _si('catedra:_tomb', JSON.stringify(t)); } catch (_) {} }
+  function tombIds(k) { var t = tombLoad(); return (t.arr && t.arr[k]) || {}; }
+  function tombKeyTs(k) { var t = tombLoad(); return (t.keys && t.keys[k]) || 0; }
+  // registra ids que sumiram de um array e limpa a lápide da própria chave (foi reescrita)
+  function tombOnSet(k, newVal) {
+    try {
+      var t = tombLoad();
+      if (t.keys && t.keys[k]) { delete t.keys[k]; }           // a chave voltou a existir
+      if (ARRAY_ID[k] || k === 'catedra:lib') {
+        var before = parseJ(localStorage.getItem(k)) || [], after = parseJ(newVal) || [];
+        if (Array.isArray(before) && Array.isArray(after)) {
+          var live = {}; after.forEach(function (it) { if (it && it.id != null) live[it.id] = 1; });
+          var now = Date.now();
+          before.forEach(function (it) {
+            if (it && it.id != null && !live[it.id]) {
+              t.arr = t.arr || {}; t.arr[k] = t.arr[k] || {}; t.arr[k][it.id] = now;
+            }
+          });
+          // item recriado com o mesmo id deixa de estar apagado
+          if (t.arr && t.arr[k]) { after.forEach(function (it) { if (it && it.id != null) delete t.arr[k][it.id]; }); }
+        }
+      }
+      tombSave(t);
+    } catch (_) {}
+  }
+  function tombOnRemove(k) {
+    try { var t = tombLoad(); t.keys = t.keys || {}; t.keys[k] = Date.now(); tombSave(t); } catch (_) {}
+  }
+  // tira do array mesclado tudo que foi apagado neste aparelho (a menos que seja mais novo que a lápide)
+  function dropTombed(k, arr) {
+    if (!Array.isArray(arr)) return arr;
+    var tomb = tombIds(k);
+    if (!tomb || !Object.keys(tomb).length) return arr;
+    return arr.filter(function (it) {
+      if (!it || it.id == null) return true;
+      var ts = tomb[it.id];
+      if (!ts) return true;
+      return stamp(it) > ts;   // recriado/editado DEPOIS de apagado → mantém
+    });
+  }
   function isData(k) { return k && k.indexOf('catedra:') === 0 && !EXCLUDE[k]; }
 
   function collect() { var o = {}; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (isData(k)) o[k] = localStorage.getItem(k); } return o; }
@@ -60,11 +107,11 @@
 
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
-  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:meusGrupos': 1 };
+  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:meusGrupos': 1 };
   // Config do CICLO MANUAL (agenda da semana) é de UM APARELHO: no merge sempre vence o LOCAL.
   // Assim (a) uma cópia antiga/vazia da nuvem NUNCA apaga a agenda, e (b) deletar de fato deleta
   // (o "mais conteúdo vence" trazia itens removidos de volta). Trade-off aceito: single-device.
-  var CFG_LOCAL_WINS = { 'catedra:manualFixed': 1, 'catedra:manualRot': 1, 'catedra:cycleMode': 1, 'catedra:manualFixedRoteiroAtual': 1, 'catedra:rotPointer': 1, 'catedra:agendaFeitas': 1 };
+  var CFG_LOCAL_WINS = { 'catedra:edital': 1, 'catedra:manualFixed': 1, 'catedra:manualRot': 1, 'catedra:cycleMode': 1, 'catedra:manualFixedRoteiroAtual': 1, 'catedra:rotPointer': 1, 'catedra:agendaFeitas': 1 };
   function parseJ(s) { try { return JSON.parse(s); } catch (_) { return undefined; } }
   function stamp(x) { return (x && (x.up || x.ts)) || 0; }
   function mergeArr(sv, lc, preferServer) {
@@ -110,10 +157,12 @@
       if (!isData(k)) return;
       var sv = serverObj[k], lc = localObj[k];
       if (sv == null) { out[k] = lc; return; }
-      if (lc == null) { out[k] = sv; return; }
+      // A chave sumiu do local. Se foi APAGADA aqui (tem lápide), a exclusão vale —
+      // não restaura do servidor. Sem lápide, é só um aparelho que ainda não tem o dado.
+      if (lc == null) { if (tombKeyTs(k)) return; out[k] = sv; return; }
       if (sv === lc) { out[k] = lc; return; }
-      if (k === 'catedra:lib') { var ml = mergeLibArr(parseJ(sv), parseJ(lc), !!preferServer); out[k] = ml !== undefined ? JSON.stringify(ml) : (preferServer ? sv : lc); return; }
-      if (ARRAY_ID[k]) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
+      if (k === 'catedra:lib') { var ml = mergeLibArr(parseJ(sv), parseJ(lc), !!preferServer); ml = dropTombed(k, ml); out[k] = ml !== undefined ? JSON.stringify(ml) : (preferServer ? sv : lc); return; }
+      if (ARRAY_ID[k]) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); m = dropTombed(k, m); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
       if (k === 'catedra:hl') { var h = mergeHl(parseJ(sv), parseJ(lc)); out[k] = h !== undefined ? JSON.stringify(h) : (preferServer ? sv : lc); return; }
       // Config do CICLO MANUAL (agenda da semana) pertence a este aparelho: vence quem tem
       // MAIS conteúdo; empate => local. Evita que uma cópia antiga/vazia da nuvem apague a
@@ -197,8 +246,14 @@
 
   // intercepta escritas do app/usuário para acionar a sincronização.
   // usa defineProperty com enumerable:false para NÃO poluir Object.keys(localStorage).
-  var setImpl = function (k, v) { _si(k, v); if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
-  var remImpl = function (k) { _ri(k); if (k === 'catedra:auth' && user) { logout(); return; } if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
+  // Registra as lápides ANTES de escrever/remover (precisa do valor anterior para
+  // saber o que sumiu) — é o que faz apagar cartão/erro/data da prova finalmente colar.
+  // Lápide SEM gate de `hydrating`: um setItem/removeItem vindo do APP é sempre uma
+  // ação intencional (a hidratação da nuvem grava via _si, que NÃO passa por aqui).
+  // Com o gate, apagar logo após abrir (nuvem ainda sincronizando) não registrava a
+  // lápide → o item voltava. O push segue gateado para não subir no meio da hidratação.
+  var setImpl = function (k, v) { if (isData(k)) tombOnSet(k, v); _si(k, v); if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
+  var remImpl = function (k) { if (isData(k)) tombOnRemove(k); _ri(k); if (k === 'catedra:auth' && user) { logout(); return; } if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
   try {
     Object.defineProperty(localStorage, 'setItem', { configurable: true, writable: true, enumerable: false, value: setImpl });
     Object.defineProperty(localStorage, 'removeItem', { configurable: true, writable: true, enumerable: false, value: remImpl });
@@ -311,6 +366,8 @@
         applyData(merged);
         sb.from('user_data').upsert({ user_id: u.id, data: leanForUpload(merged), updated_at: now });
         setLastSrv(now); setDirty(false);
+        // avisa o app: a hidratação trocou os dados locais e ele precisa reler/reaplicar migrações
+        try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {}
       }
       else { sb.from('user_data').upsert({ user_id: u.id, data: leanForUpload(collect()), updated_at: now }); setLastSrv(now); setDirty(false); }
       _si('catedra:auth', '1');

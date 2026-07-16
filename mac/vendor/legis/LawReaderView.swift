@@ -22,6 +22,7 @@ struct LawReaderView: View {
     @AppStorage("markerColorHex") private var markerColorHex = "#FFD60AFF"
     @AppStorage("readerMode") private var readerMode = "estudo"
     @AppStorage("cleanReading") private var cleanReading = false
+    @AppStorage("leituraAtiva") private var leituraAtiva = false
     @State private var showReaderFontPicker = false
 
     private var law: LawEntry? { store.laws.first { $0.id == lawID } }
@@ -162,11 +163,20 @@ struct LawReaderView: View {
 
     private func header(for law: LawEntry) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 12) {
-                IconBubble(symbol: headerSymbol, color: accent, size: 46)
+            HStack(alignment: .top, spacing: 13) {
+                // Tile gradiente da matéria (vitrine) no lugar do ícone chapado.
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .fill(LinearGradient(colors: law.isRegularLaw && law.customCategory == nil
+                                                 ? law.category.gradStops
+                                                 : [accent, accent.opacity(0.72)],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 48, height: 48)
+                    .overlay(Image(systemName: headerSymbol).font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white))
+                    .shadow(color: accent.opacity(0.4), radius: 8, y: 4)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(law.title)
-                        .font(.system(.title2, design: .default).weight(.semibold))
+                        .font(.system(size: 22, weight: .heavy)).tracking(-0.3)
                         .lineLimit(2)
                     Text(law.reference)
                         .font(.subheadline)
@@ -306,6 +316,17 @@ struct LawReaderView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup {
+            // Modo Leitura Ativa (só no Estudo): tela dedicada com camadas de grifo,
+            // perguntas-guia, reescrita e autoteste.
+            if effectiveMode == "estudo" {
+                Button {
+                    leituraAtiva.toggle()
+                } label: {
+                    Label("Leitura ativa", systemImage: leituraAtiva ? "book.and.wrench.fill" : "book.and.wrench")
+                }
+                .help("Leitura ativa: grifo por camadas, perguntas-guia, reescrita e autoteste")
+            }
+
             Button {
                 cleanReading.toggle()
             } label: {
@@ -353,10 +374,13 @@ struct LawReaderView: View {
                     }
                     Button { handle(.annotate) } label: { Label("Anotar", systemImage: "note.text.badge.plus") }
                         .disabled(controller.selectionLength == 0)
+                    Divider()
+                    Button(role: .destructive) { handle(.removeInSelection) } label: { Label("Apagar marcação", systemImage: "eraser") }
+                        .disabled(controller.selectionLength == 0)
                 } label: {
                     Label("Marcar", systemImage: "highlighter")
                 }
-                .help("Grifar, sublinhar, tachar ou anotar a seleção")
+                .help("Grifar, sublinhar, tachar, anotar ou apagar a seleção")
 
                 Button { controller.showFindBar() } label: {
                     Label("Buscar no texto", systemImage: "magnifyingglass")

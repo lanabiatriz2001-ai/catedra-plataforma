@@ -32,6 +32,35 @@ extension Color {
     }
 }
 
+/// Identidade de COR por RAMO do direito — a MESMA paleta por matéria do
+/// CátedraLEGIS (linguagem "vitrine"), casada pelo nome do ramo. Assim Penal é
+/// rosé nos dois apps, Civil é teal, Constitucional é azul etc.
+enum RamoStyle {
+    static func stops(_ ramo: String?) -> [Color] {
+        let n = (ramo ?? "")
+            .folding(options: .diacriticInsensitive, locale: Locale(identifier: "pt_BR"))
+            .lowercased()
+        func hit(_ parts: String...) -> Bool { parts.contains { n.contains($0) } }
+        if hit("constituc")                { return [Color(hex: "#2563EB"), Color(hex: "#38BDF8")] }
+        if hit("penal", "criminal")        { return [Color(hex: "#E11D48"), Color(hex: "#FB7185")] }
+        if hit("trabalh")                  { return [Color(hex: "#D97706"), Color(hex: "#FBBF24")] }
+        if hit("previden")                 { return [Color(hex: "#DB2777"), Color(hex: "#F472B6")] }
+        if hit("tribut")                   { return [Color(hex: "#7C3AED"), Color(hex: "#A78BFA")] }
+        if hit("empresar", "econom")       { return [Color(hex: "#65A30D"), Color(hex: "#A3E635")] }
+        if hit("administr", "eleitor")     { return [Color(hex: "#4F46E5"), Color(hex: "#818CF8")] }
+        if hit("consum")                   { return [Color(hex: "#EA580C"), Color(hex: "#FB923C")] }
+        if hit("ambient")                  { return [Color(hex: "#16A34A"), Color(hex: "#4ADE80")] }
+        if hit("digital", "propriedade")   { return [Color(hex: "#C026D3"), Color(hex: "#E879F9")] }
+        if hit("internacional", "humanos") { return [Color(hex: "#0EA5E9"), Color(hex: "#7DD3FC")] }
+        if hit("civil")                    { return [Color(hex: "#0D9488"), Color(hex: "#2DD4BF")] }
+        return [Palette.accent, Palette.accentSoft]
+    }
+    static func color(_ ramo: String?) -> Color { stops(ramo)[0] }
+    static func gradient(_ ramo: String?) -> LinearGradient {
+        LinearGradient(colors: stops(ramo), startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+}
+
 /// Paleta do app — "Jurídico premium": azul-marinho + dourado.
 /// Escuro = marinho profundo; Claro = marfim/pergaminho (revista jurídica).
 enum Palette {

@@ -21,6 +21,26 @@ final class AppStore: ObservableObject {
     @Published var editalDisciplinas: [String] = []  // espelho AO VIVO das matérias do edital do Cátedra (não persistido; vem do host a cada abertura da aba)
     @Published var coresFavoritas: [String] = MarkColorLegis.padrao  // paleta de cores de grifo favoritas
     @Published var alinhamentos: [String: String] = [:]  // "lawID|unitKey" -> left|center|right|justify (espelha o JURIS)
+    // Respostas das perguntas-guia da LEITURA ATIVA. Chave "lawID|unitKey|qIndex" -> resposta.
+    @Published var leituraRespostas: [String: String] = [:]
+    // Conteúdo gerado por IA da leitura ativa (recall + pegadinhas), JSON por "lawID|unitKey".
+    @Published var leituraIA: [String: String] = [:]
+
+    func leituraIAJSON(lawID: UUID, unitKey: String) -> String? { leituraIA["\(lawID.uuidString)|\(unitKey)"] }
+    func setLeituraIA(_ json: String, lawID: UUID, unitKey: String) {
+        leituraIA["\(lawID.uuidString)|\(unitKey)"] = json
+        save()
+    }
+
+    func leituraResposta(lawID: UUID, unitKey: String, q: Int) -> String {
+        leituraRespostas["\(lawID.uuidString)|\(unitKey)|\(q)"] ?? ""
+    }
+    func setLeituraResposta(_ v: String, lawID: UUID, unitKey: String, q: Int) {
+        let key = "\(lawID.uuidString)|\(unitKey)|\(q)"
+        let t = v.trimmingCharacters(in: .whitespacesAndNewlines)
+        if t.isEmpty { leituraRespostas.removeValue(forKey: key) } else { leituraRespostas[key] = v }
+        scheduleSave()
+    }
 
     func alinhamento(lawID: UUID, unitKey: String) -> String { alinhamentos["\(lawID.uuidString)|\(unitKey)"] ?? "natural" }
     func setAlinhamento(_ v: String, lawID: UUID, unitKey: String) {
@@ -108,6 +128,12 @@ final class AppStore: ObservableObject {
     }
     func removeChecklistItem(_ id: UUID) {
         readingChecklist.removeAll { $0.id == id }
+        save()
+    }
+    /// Reagenda (ou remove) o prazo de uma meta — o "adiar em 1 clique" do checklist.
+    func setChecklistDue(_ id: UUID, _ date: Date?) {
+        guard let i = readingChecklist.firstIndex(where: { $0.id == id }) else { return }
+        readingChecklist[i].dueDate = date
         save()
     }
     func clearCompletedChecklistItems() {
@@ -210,6 +236,8 @@ final class AppStore: ObservableObject {
             annotations = persisted.annotations ?? []
             coresFavoritas = persisted.coresFavoritas ?? MarkColorLegis.padrao
             alinhamentos = persisted.alinhamentos ?? [:]
+            leituraRespostas = persisted.leituraRespostas ?? [:]
+            leituraIA = persisted.leituraIA ?? [:]
             precedents = persisted.precedents ?? []
             srs = persisted.srs ?? [:]
             customCategories = persisted.customCategories ?? []
@@ -259,7 +287,9 @@ final class AppStore: ObservableObject {
                                     studySecondsByLaw: studySecondsByLaw,
                                     readingChecklist: readingChecklist,
                                     coresFavoritas: coresFavoritas,
-                                    alinhamentos: alinhamentos)
+                                    alinhamentos: alinhamentos,
+                                    leituraRespostas: leituraRespostas,
+                                    leituraIA: leituraIA)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         if let data = try? encoder.encode(persisted) {
