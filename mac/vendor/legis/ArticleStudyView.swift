@@ -5,6 +5,18 @@ import AppKit
 struct LeituraIAContent: Codable {
     var recall: [String] = []
     var pegadinhas: [LeituraPegadinha] = []
+    /// Sugestões da IA para a grade dos 7 elementos (Quem/O quê/Como/Quando/Onde/
+    /// Por quê/Quanto), na ordem. Opcional — JSONs antigos decodificam sem ela.
+    var grade: [String] = []
+
+    private enum CodingKeys: String, CodingKey { case recall, pegadinhas, grade }
+    init() {}
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        recall = (try? c.decode([String].self, forKey: .recall)) ?? []
+        pegadinhas = (try? c.decode([LeituraPegadinha].self, forKey: .pegadinhas)) ?? []
+        grade = (try? c.decode([String].self, forKey: .grade)) ?? []
+    }
 }
 struct LeituraPegadinha: Codable, Identifiable {
     var titulo: String = ""
@@ -170,7 +182,7 @@ struct ArticleStudyView: View {
                     .font(.caption.weight(.semibold))
             }
             .buttonStyle(.borderedProminent)
-            .tint(showIndexRail && layout == "foco" ? accent : accent)
+            .tint(accent)
 
             if layout == "foco" {
                 Button { activeSheet = .map } label: {
@@ -717,17 +729,25 @@ private struct UnitFocusView: View {
             }
             .menuStyle(.button).fixedSize().tint(hasCard ? .purple : nil).disabled(hasCard)
             .help("Gera um flashcard (lacuna, certo/errado ou pergunta direta) deste artigo")
-            Button { store.toggleReview(lawID, unitKey: unit.key) } label: {
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    store.toggleReview(lawID, unitKey: unit.key)
+                }
+            } label: {
                 Label(isReview ? "Na revisão" : "Revisar", systemImage: isReview ? "star.fill" : "star")
+                    .symbolEffect(.bounce, value: isReview)
             }
             .buttonStyle(.bordered).tint(isReview ? .orange : nil)
             Button {
                 let wasRead = isRead
-                store.toggleRead(lawID, unitKey: unit.key)
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    store.toggleRead(lawID, unitKey: unit.key)
+                }
                 if !wasRead { onNext?() }
             } label: {
                 Label(isRead ? "Lido ✓" : "Marcar como lido",
                       systemImage: isRead ? "checkmark.circle.fill" : "circle")
+                    .symbolEffect(.bounce, value: isRead)
             }
             .buttonStyle(.borderedProminent).tint(isRead ? .green : accent)
         }
@@ -829,7 +849,7 @@ private struct UnitFocusView: View {
         let open = openSections.contains(key)
         VStack(spacing: 0) {
             Button {
-                withAnimation(.easeInOut(duration: 0.16)) {
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
                     if open { openSections.remove(key) } else { openSections.insert(key) }
                 }
             } label: {
@@ -1301,8 +1321,27 @@ private struct UnitFocusView: View {
 
     private var laGrade: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Fase 1 — grade dos 7 elementos", systemImage: "square.grid.2x2")
-                .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+            HStack {
+                Label("Fase 1 — grade dos 7 elementos", systemImage: "square.grid.2x2")
+                    .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                Spacer()
+                // Preenche SÓ os campos vazios com as sugestões da IA — o que você
+                // já escreveu fica intacto. (Gere com IA na Fase 2 se ainda não gerou.)
+                if let ia = laIA, ia.grade.count == Self.laElementos.count {
+                    Button {
+                        for (i, sugestao) in ia.grade.enumerated() {
+                            let atual = store.leituraResposta(lawID: lawID, unitKey: unit.key, q: i)
+                            if atual.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                store.setLeituraResposta(sugestao, lawID: lawID, unitKey: unit.key, q: i)
+                            }
+                        }
+                    } label: {
+                        Label("Preencher com IA", systemImage: "sparkles")
+                    }
+                    .buttonStyle(.bordered).tint(accent).controlSize(.small)
+                    .help("Preenche os elementos ainda vazios com as sugestões da IA (não sobrescreve suas respostas)")
+                }
+            }
             ForEach(Array(Self.laElementos.enumerated()), id: \.offset) { i, label in
                 laElementoCard(i, label)
             }
@@ -1435,12 +1474,13 @@ private struct UnitFocusView: View {
         \(laArticleText)
         \"\"\"
         Responda APENAS um JSON válido, sem markdown e sem texto fora do JSON, neste formato exato:
-        {"recall":["pergunta 1","pergunta 2","pergunta 3"],"pegadinhas":[{"titulo":"título curto","texto":"explicação da armadilha"}]}
+        {"recall":["pergunta 1","pergunta 2","pergunta 3"],"pegadinhas":[{"titulo":"título curto","texto":"explicação da armadilha"}],"grade":["quem","o quê","como","quando","onde","por quê","quanto"]}
         - recall: 3 a 5 perguntas de recuperação ativa que uma banca cobraria sobre ESTE artigo.
         - pegadinhas: 2 a 4 armadilhas típicas de prova sobre ESTE artigo (troca de palavra/verbo, exceção esquecida, prazo ou número trocado, "direta/indiretamente", "todos/apenas" etc.), cada uma com um título curto e a explicação do porquê está errado.
+        - grade: EXATAMENTE 7 respostas curtas (1 a 2 frases) sobre ESTE artigo, nesta ordem: Quem? (sujeitos/destinatários), O quê? (comando central), Como? (procedimento/forma), Quando? (prazo/momento), Onde? (âmbito/lugar), Por quê? (fundamento/finalidade), Quanto? (números/quantidades/valores). Quando um elemento não se aplicar ao artigo, responda "— não se aplica".
         """
         do {
-            let txt = try await AIService.gerar(system: system, prompt: prompt, apiKey: key, maxTokens: 1500)
+            let txt = try await AIService.gerar(system: system, prompt: prompt, apiKey: key, maxTokens: 2200)
             let clean = txt.replacingOccurrences(of: "```json", with: "")
                            .replacingOccurrences(of: "```", with: "")
                            .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1861,15 +1901,33 @@ private struct IndexSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("Índice — \(units.count) itens").font(.headline)
+            // Cabeçalho vitrine: tile gradiente da matéria + título forte + contador.
+            HStack(spacing: 11) {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(LinearGradient(colors: [accent, accent.opacity(0.72)],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 34, height: 34)
+                    .overlay(Image(systemName: "list.bullet.indent")
+                        .font(.system(size: 14, weight: .semibold)).foregroundStyle(.white))
+                    .shadow(color: accent.opacity(0.35), radius: 6, y: 3)
+                Text("Índice").font(.system(size: 19, weight: .heavy)).tracking(-0.3)
+                Text("\(units.count)")
+                    .font(.system(size: 11, weight: .bold).monospacedDigit())
+                    .padding(.horizontal, 8).padding(.vertical, 2)
+                    .background(Capsule().fill(accent.opacity(0.14)))
+                    .foregroundStyle(accent)
                 Spacer()
                 Button("Fechar") { dismiss() }
             }
             .padding()
-            TextField("Buscar artigo…", text: $query)
-                .textFieldStyle(.roundedBorder)
-                .padding(.horizontal)
+            HStack(spacing: 7) {
+                Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(.secondary)
+                TextField("Buscar artigo…", text: $query).textFieldStyle(.plain)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .background(Capsule().fill(AppTheme.softStroke))
+            .overlay(Capsule().strokeBorder(AppTheme.hairline, lineWidth: 1))
+            .padding(.horizontal)
             ScrollViewReader { proxy in
                 List(filtered, id: \.id) { unit in
                     Button {

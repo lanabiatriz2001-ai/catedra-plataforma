@@ -5,6 +5,7 @@ import SwiftUI
 struct CartaoJuris: View {
     let entry: JurisEntry
     @Environment(LibraryStore.self) private var store
+    @State private var hovering = false
 
     var body: some View {
         Button { store.lerCheio(entry.id) } label: {
@@ -41,9 +42,13 @@ struct CartaoJuris: View {
                     .frame(width: 3).padding(.vertical, 14)
             }
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
-            .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
+            .shadow(color: hovering ? RamoStyle.color(entry.ramoDireito).opacity(0.25) : .black.opacity(0.05),
+                    radius: hovering ? 10 : 5, y: hovering ? 5 : 2)
+            .scaleEffect(hovering ? 1.02 : 1)
         }
         .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hovering)
     }
 }
 
@@ -222,25 +227,43 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 10) {
                     ForEach(store.disciplinasOrdenadas.prefix(16), id: \.nome) { ramo in
-                        Button { store.selecao = .ramoDetalhe(EscopoFiltrado(ramo: ramo.nome)); store.selectedID = nil } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Image(systemName: "books.vertical.fill").font(.system(size: 16))
-                                    .foregroundStyle(.white)
-                                Spacer(minLength: 0)
-                                Text(ramo.nome).font(.system(size: 12.5, weight: .bold))
-                                    .foregroundStyle(.white).lineLimit(2)
-                                Text("\(ramo.count) verbetes").font(.system(size: 10, weight: .medium))
-                                    .foregroundStyle(.white.opacity(0.85))
-                            }
-                            .padding(13).frame(width: 168, height: 104, alignment: .topLeading)
-                            .background(RamoStyle.gradient(ramo.nome), in: RoundedRectangle(cornerRadius: 14))
-                            .shadow(color: RamoStyle.color(ramo.nome).opacity(0.35), radius: 8, y: 4)
+                        RamoTile(nome: ramo.nome, count: ramo.count) {
+                            store.selecao = .ramoDetalhe(EscopoFiltrado(ramo: ramo.nome)); store.selectedID = nil
                         }
-                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal, 26)
             }
         }
+    }
+}
+
+/// Tile de ramo com vida: gradiente da disciplina + hover que levanta (vitrine V4).
+private struct RamoTile: View {
+    let nome: String
+    let count: Int
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 6) {
+                Image(systemName: "books.vertical.fill").font(.system(size: 16))
+                    .foregroundStyle(.white)
+                Spacer(minLength: 0)
+                Text(nome).font(.system(size: 12.5, weight: .bold))
+                    .foregroundStyle(.white).lineLimit(2)
+                Text("\(count) verbetes").font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+            .padding(13).frame(width: 168, height: 104, alignment: .topLeading)
+            .background(RamoStyle.gradient(nome), in: RoundedRectangle(cornerRadius: 14))
+            .shadow(color: RamoStyle.color(nome).opacity(hovering ? 0.5 : 0.35),
+                    radius: hovering ? 12 : 8, y: hovering ? 6 : 4)
+            .scaleEffect(hovering ? 1.03 : 1)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hovering)
     }
 }

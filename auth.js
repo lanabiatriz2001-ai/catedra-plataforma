@@ -34,10 +34,29 @@
   // do servidor) e, quando a chave some do local, o servidor a restaura (a data da prova volta).
   // Guardamos o que foi apagado e o merge passa a IGNORAR esses itens vindos da nuvem.
   // Meta-estado local (não sobe no blob).
+  // Lápides mais velhas que isto são podadas (a exclusão já propagou há muito) —
+  // evita que catedra:_tomb cresça para sempre.
+  var TOMB_TTL = 365 * 24 * 3600 * 1000;
+  function tombPrune(t) {
+    try {
+      var min = Date.now() - TOMB_TTL;
+      if (t.keys) Object.keys(t.keys).forEach(function (k) { if (t.keys[k] < min) delete t.keys[k]; });
+      if (t.arr) Object.keys(t.arr).forEach(function (k) {
+        Object.keys(t.arr[k]).forEach(function (id) { if (t.arr[k][id] < min) delete t.arr[k][id]; });
+        if (!Object.keys(t.arr[k]).length) delete t.arr[k];
+      });
+      if (t.hl) Object.keys(t.hl).forEach(function (b) {
+        Object.keys(t.hl[b]).forEach(function (id) { if (t.hl[b][id] < min) delete t.hl[b][id]; });
+        if (!Object.keys(t.hl[b]).length) delete t.hl[b];
+      });
+    } catch (_) {}
+    return t;
+  }
   function tombLoad() { try { return JSON.parse(localStorage.getItem('catedra:_tomb') || '{}') || {}; } catch (_) { return {}; } }
-  function tombSave(t) { try { _si('catedra:_tomb', JSON.stringify(t)); } catch (_) {} }
+  function tombSave(t) { try { _si('catedra:_tomb', JSON.stringify(tombPrune(t))); } catch (_) {} }
   function tombIds(k) { var t = tombLoad(); return (t.arr && t.arr[k]) || {}; }
   function tombKeyTs(k) { var t = tombLoad(); return (t.keys && t.keys[k]) || 0; }
+  function tombHlIds(book) { var t = tombLoad(); return (t.hl && t.hl[book]) || {}; }
   // registra ids que sumiram de um array e limpa a lápide da própria chave (foi reescrita)
   function tombOnSet(k, newVal) {
     try {
@@ -55,6 +74,28 @@
           });
           // item recriado com o mesmo id deixa de estar apagado
           if (t.arr && t.arr[k]) { after.forEach(function (it) { if (it && it.id != null) delete t.arr[k][it.id]; }); }
+        }
+      }
+      // Grifos (catedra:hl = {livro: [itens com id]}): mesma regra dos arrays, por livro.
+      // Sem isto, apagar um grifo não colava — o mergeHl (união por id) o trazia de volta.
+      if (k === 'catedra:hl') {
+        var b4 = parseJ(localStorage.getItem(k)), aft = parseJ(newVal);
+        if (b4 && typeof b4 === 'object' && aft && typeof aft === 'object') {
+          var now2 = Date.now();
+          Object.keys(b4).forEach(function (book) {
+            var liveH = {};
+            (Array.isArray(aft[book]) ? aft[book] : []).forEach(function (it) { if (it && it.id != null) liveH[it.id] = 1; });
+            (Array.isArray(b4[book]) ? b4[book] : []).forEach(function (it) {
+              if (it && it.id != null && !liveH[it.id]) {
+                t.hl = t.hl || {}; t.hl[book] = t.hl[book] || {}; t.hl[book][it.id] = now2;
+              }
+            });
+          });
+          // grifo recriado com o mesmo id deixa de estar apagado
+          if (t.hl) Object.keys(aft).forEach(function (book) {
+            if (!t.hl[book]) return;
+            (Array.isArray(aft[book]) ? aft[book] : []).forEach(function (it) { if (it && it.id != null) delete t.hl[book][it.id]; });
+          });
         }
       }
       tombSave(t);
@@ -141,35 +182,91 @@
       return it;
     });
   }
-  function mergeHl(sv, lc) {
+  function mergeHl(sv, lc, preferServer) {
     if (!sv || typeof sv !== 'object') return lc; if (!lc || typeof lc !== 'object') return sv;
     var out = {}; var books = {};
     Object.keys(sv).forEach(function (b) { books[b] = 1; }); Object.keys(lc).forEach(function (b) { books[b] = 1; });
-    Object.keys(books).forEach(function (b) { out[b] = mergeArr(sv[b] || [], lc[b] || [], false); });
+    Object.keys(books).forEach(function (b) {
+      var m = mergeArr(sv[b] || [], lc[b] || [], !!preferServer);
+      // grifo apagado neste aparelho não volta da nuvem (a menos que editado depois)
+      var tomb = tombHlIds(b);
+      if (tomb && Object.keys(tomb).length && Array.isArray(m)) {
+        m = m.filter(function (it) {
+          if (!it || it.id == null) return true;
+          var ts = tomb[it.id];
+          if (!ts) return true;
+          return stamp(it) > ts;
+        });
+      }
+      out[b] = m;
+    });
     return out;
+  }
+  // Carimbo local de "quando esta chave foi escrita pela última vez" — sobe no blob
+  // (é chave catedra:*, não está no EXCLUDE) e permite que um valor NOVO de outro
+  // aparelho vença uma lápide de chave ANTIGA deste (ex.: apagou a data da prova aqui,
+  // marcou uma nova no notebook → a nova deve chegar).
+  function ktsStamp(k) {
+    try {
+      var m = parseJ(localStorage.getItem('catedra:_kts')) || {};
+      m[k] = Date.now(); _si('catedra:_kts', JSON.stringify(m));
+    } catch (_) {}
   }
   // serverObj/localObj: {chave: stringJSON}. preferServer decide escalares sem carimbo.
   function mergeAll(serverObj, localObj, preferServer) {
     serverObj = serverObj || {}; localObj = localObj || {};
     var keys = {}, out = {};
+    var srvKts = parseJ(serverObj['catedra:_kts']) || {};
     Object.keys(serverObj).forEach(function (k) { keys[k] = 1; }); Object.keys(localObj).forEach(function (k) { keys[k] = 1; });
     Object.keys(keys).forEach(function (k) {
       if (!isData(k)) return;
       var sv = serverObj[k], lc = localObj[k];
+      // O mapa de carimbos por chave se mescla por MÁXIMO por chave.
+      if (k === 'catedra:_kts') {
+        var a = parseJ(sv) || {}, b = parseJ(lc) || {}, mx = {};
+        Object.keys(a).forEach(function (kk) { mx[kk] = a[kk]; });
+        Object.keys(b).forEach(function (kk) { if (!(mx[kk] >= b[kk])) mx[kk] = b[kk]; });
+        out[k] = JSON.stringify(mx); return;
+      }
       if (sv == null) { out[k] = lc; return; }
-      // A chave sumiu do local. Se foi APAGADA aqui (tem lápide), a exclusão vale —
-      // não restaura do servidor. Sem lápide, é só um aparelho que ainda não tem o dado.
-      if (lc == null) { if (tombKeyTs(k)) return; out[k] = sv; return; }
+      // A chave sumiu do local. Se foi APAGADA aqui (tem lápide), a exclusão vale — não
+      // restaura do servidor — A MENOS que outro aparelho tenha ESCRITO a chave DEPOIS
+      // da exclusão (carimbo do servidor mais novo que a lápide): aí o valor novo vence.
+      if (lc == null) {
+        var tts = tombKeyTs(k);
+        if (tts && !((srvKts[k] || 0) > tts)) return;
+        out[k] = sv; return;
+      }
       if (sv === lc) { out[k] = lc; return; }
       if (k === 'catedra:lib') { var ml = mergeLibArr(parseJ(sv), parseJ(lc), !!preferServer); ml = dropTombed(k, ml); out[k] = ml !== undefined ? JSON.stringify(ml) : (preferServer ? sv : lc); return; }
       if (ARRAY_ID[k]) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); m = dropTombed(k, m); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
-      if (k === 'catedra:hl') { var h = mergeHl(parseJ(sv), parseJ(lc)); out[k] = h !== undefined ? JSON.stringify(h) : (preferServer ? sv : lc); return; }
+      if (k === 'catedra:hl') { var h = mergeHl(parseJ(sv), parseJ(lc), !!preferServer); out[k] = h !== undefined ? JSON.stringify(h) : (preferServer ? sv : lc); return; }
       // Config do CICLO MANUAL (agenda da semana) pertence a este aparelho: vence quem tem
       // MAIS conteúdo; empate => local. Evita que uma cópia antiga/vazia da nuvem apague a
       // agenda inteira só porque o servidor está "mais novo" (bug de last-write-wins).
       if (CFG_LOCAL_WINS[k]) { out[k] = lc; return; }
       out[k] = preferServer ? sv : lc; // escalares/objetos sem carimbo: direção do merge decide
     });
+    // Reconciliação histórico × lixeira de sessões (soft-delete entre aparelhos): se a
+    // mesma sessão ficou nos DOIS após a união, decide o carimbo — exclusão (_delAt) mais
+    // nova que a última edição (up/ts) tira do histórico; edição/restauração mais nova
+    // que a exclusão tira da lixeira.
+    try {
+      var trash = parseJ(out['catedra:sessionsLixeira']);
+      var sess = parseJ(out['catedra:sessions']);
+      if (Array.isArray(trash) && trash.length && Array.isArray(sess) && sess.length) {
+        var delAt = {}; trash.forEach(function (it) { if (it && it.id != null) delAt[it.id] = it._delAt || 0; });
+        var dropFromTrash = {};
+        var sess2 = sess.filter(function (it) {
+          if (!it || it.id == null || !(it.id in delAt)) return true;
+          if (stamp(it) > delAt[it.id]) { dropFromTrash[it.id] = 1; return true; }  // restaurada/editada depois
+          return false;                                                              // exclusão é mais nova
+        });
+        var trash2 = trash.filter(function (it) { return !(it && it.id != null && dropFromTrash[it.id]); });
+        if (sess2.length !== sess.length) out['catedra:sessions'] = JSON.stringify(sess2);
+        if (trash2.length !== trash.length) out['catedra:sessionsLixeira'] = JSON.stringify(trash2);
+      }
+    } catch (_) {}
     return out;
   }
 
@@ -196,7 +293,9 @@
     setDirty(true);
     clearTimeout(pushT);
     pushT = setTimeout(pushNow, 700);
-  }, get status() { return syncStatus; } };
+  }, get status() { return syncStatus; },
+  // gancho interno de diagnóstico/teste (não usado pelo app)
+  _test: { mergeAll: mergeAll, tombOnSet: tombOnSet, tombLoad: tombLoad, mergeHl: mergeHl } };
 
   // pull + merge ao voltar para a aba / reconectar — o outro aparelho pode ter estudado
   var pulling = false;
@@ -252,7 +351,7 @@
   // ação intencional (a hidratação da nuvem grava via _si, que NÃO passa por aqui).
   // Com o gate, apagar logo após abrir (nuvem ainda sincronizando) não registrava a
   // lápide → o item voltava. O push segue gateado para não subir no meio da hidratação.
-  var setImpl = function (k, v) { if (isData(k)) tombOnSet(k, v); _si(k, v); if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
+  var setImpl = function (k, v) { if (isData(k)) { tombOnSet(k, v); if (k !== 'catedra:_kts') ktsStamp(k); } _si(k, v); if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
   var remImpl = function (k) { if (isData(k)) tombOnRemove(k); _ri(k); if (k === 'catedra:auth' && user) { logout(); return; } if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
   try {
     Object.defineProperty(localStorage, 'setItem', { configurable: true, writable: true, enumerable: false, value: setImpl });

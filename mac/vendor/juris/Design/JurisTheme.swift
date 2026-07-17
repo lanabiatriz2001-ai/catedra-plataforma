@@ -50,7 +50,7 @@ enum RamoStyle {
         if hit("administr", "eleitor")     { return [Color(hex: "#4F46E5"), Color(hex: "#818CF8")] }
         if hit("consum")                   { return [Color(hex: "#EA580C"), Color(hex: "#FB923C")] }
         if hit("ambient")                  { return [Color(hex: "#16A34A"), Color(hex: "#4ADE80")] }
-        if hit("digital", "propriedade")   { return [Color(hex: "#C026D3"), Color(hex: "#E879F9")] }
+        if hit("digital", "propriedade intelectual") { return [Color(hex: "#C026D3"), Color(hex: "#E879F9")] }
         if hit("internacional", "humanos") { return [Color(hex: "#0EA5E9"), Color(hex: "#7DD3FC")] }
         if hit("civil")                    { return [Color(hex: "#0D9488"), Color(hex: "#2DD4BF")] }
         return [Palette.accent, Palette.accentSoft]

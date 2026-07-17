@@ -178,30 +178,7 @@ struct DashboardView: View {
 
     // Tile de matéria: gradiente da área, ícone grande, contagem — toque abre a lista.
     private func materiaTile(_ cat: LawCategory) -> some View {
-        Button { openSection(.category(cat)) } label: {
-            VStack(alignment: .leading, spacing: 6) {
-                Image(systemName: cat.symbol)
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(.white)
-                Spacer(minLength: 4)
-                Text(cat.shortName)
-                    .font(.system(size: 13.5, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1).minimumScaleFactor(0.75)
-                Text("\(categoryCount(cat)) norma\(categoryCount(cat) == 1 ? "" : "s")")
-                    .font(.system(size: 10.5, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.85))
-            }
-            .padding(14)
-            .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
-            .background(LinearGradient(colors: cat.gradStops,
-                                       startPoint: .topLeading, endPoint: .bottomTrailing))
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: cat.color.opacity(0.35), radius: 9, y: 5)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .help("Abrir \(cat.rawValue)")
+        MateriaTile(cat: cat, count: categoryCount(cat)) { openSection(.category(cat)) }
     }
 
     // Célula de número-chave dentro do hero (fundo translúcido sobre o gradiente).
@@ -236,8 +213,12 @@ struct DashboardView: View {
                             .foregroundStyle(.white.opacity(0.88))
                             .lineLimit(1).minimumScaleFactor(0.8)
                     }
-                    // CTA: retomar de onde parou, no gradiente da MATÉRIA da lei.
+                    // CTA: retomar de onde parou, no gradiente da MATÉRIA da lei
+                    // (matéria personalizada usa a cor dela, como no leitor).
                     if let law = lastStudied {
+                        let ctaStops: [Color] = law.customCategory.map {
+                            let c = CustomCategoryStyle.color(for: $0); return [c, c.opacity(0.72)]
+                        } ?? law.category.gradStops
                         Button { openLaw(law.id) } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "play.fill").font(.system(size: 11, weight: .bold))
@@ -246,9 +227,9 @@ struct DashboardView: View {
                             }
                             .foregroundStyle(.white)
                             .padding(.horizontal, 17).padding(.vertical, 10)
-                            .background(Capsule().fill(LinearGradient(colors: law.category.gradStops,
+                            .background(Capsule().fill(LinearGradient(colors: ctaStops,
                                                                       startPoint: .leading, endPoint: .trailing)))
-                            .shadow(color: law.category.color.opacity(0.5), radius: 10, y: 4)
+                            .shadow(color: ctaStops[0].opacity(0.5), radius: 10, y: 4)
                             .contentShape(Capsule())
                         }
                         .buttonStyle(.plain)
@@ -707,6 +688,44 @@ struct AnkiExportSheet: View {
 /// Metas diárias (leitura + revisão) com barras de progresso e a previsão de
 /// cartões a vencer nos próximos 7 dias. As metas são editáveis (Stepper) e
 /// ficam em @AppStorage; 0 = sem meta.
+/// Tile de matéria com vida: hover levanta e intensifica a sombra colorida (vitrine V4).
+private struct MateriaTile: View {
+    let cat: LawCategory
+    let count: Int
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 6) {
+                Image(systemName: cat.symbol)
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(.white)
+                Spacer(minLength: 4)
+                Text(cat.shortName)
+                    .font(.system(size: 13.5, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1).minimumScaleFactor(0.75)
+                Text("\(count) norma\(count == 1 ? "" : "s")")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
+            .background(LinearGradient(colors: cat.gradStops,
+                                       startPoint: .topLeading, endPoint: .bottomTrailing))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: cat.color.opacity(hovering ? 0.5 : 0.35), radius: hovering ? 13 : 9, y: hovering ? 7 : 5)
+            .scaleEffect(hovering ? 1.02 : 1)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hovering)
+        .help("Abrir \(cat.rawValue)")
+    }
+}
+
 struct DailyGoalsCard: View {
     @EnvironmentObject var store: AppStore
     @AppStorage("goalReads") private var goalReads = 10
