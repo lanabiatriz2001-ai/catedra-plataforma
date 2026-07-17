@@ -114,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var statusClockItem: NSMenuItem?
     private var statusTimer: Timer?
     private var widgetTimer: Timer?
+    private var nativeRevTimer: Timer?           // agenda única: LEGIS/JURIS → Revisões do Cátedra
     // "Widget" desenhado pelo app (sem WidgetKit): painel flutuante + números no menu.
     private var widgetPanel: NSPanel?
     private var statItems: [NSMenuItem] = []
@@ -130,6 +131,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         buildMenu()
         setupMenuBarExtra()
         startWidgetSync()
+        startNativeReviewsSync()   // agenda de revisão única (lei seca + juris no Cátedra)
+        startAutoBackup()          // backup semanal automático em ~/Documents/Cátedra Backups
         UNUserNotificationCenter.current().delegate = self
 
         // configuração do WebView + pontes nativas (IA e notificações)
@@ -144,6 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraAI")
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "notifyPermission")
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "notifyShow")
+        ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraNav")  // web → trocar de aba nativa
         cfg.userContentController = ucc
         cfg.preferences.javaScriptCanOpenWindowsAutomatically = true  // necessário p/ o window.open do PiP
         cfg.preferences.setValue(true, forKey: "developerExtrasEnabled")  // "Inspecionar" no menu de contexto
@@ -341,6 +345,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         menu.addItem(.separator())
         let panelToggle = NSMenuItem(title: "Painel na área de trabalho", action: #selector(mbTogglePanel(_:)), keyEquivalent: "")
         panelToggle.target = self; menu.addItem(panelToggle); panelToggleItem = panelToggle
+        let bkp = NSMenuItem(title: "Fazer backup agora", action: #selector(mbBackupNow(_:)), keyEquivalent: "")
+        bkp.target = self; menu.addItem(bkp)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Sair da Cátedra", action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
         item.menu = menu
@@ -419,6 +425,106 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     @objc func mbTab1(_ s: Any?) { mbBringUp(); switchTo(1) }
     @objc func mbTab2(_ s: Any?) { mbBringUp(); switchTo(2) }
     @objc func mbTogglePanel(_ s: Any?) { toggleWidgetPanel() }
+    @objc func mbBackupNow(_ s: Any?) { performBackup(force: true) }
+
+    // ===== Agenda de revisão única: revisões vencidas do LEGIS/JURIS aparecem no Cátedra =====
+    // O host lê os baralhos SRS dos dois apps nativos e injeta um resumo no WebView
+    // ({legis:{due,deck}, juris:{due,deck}}); a view Revisões do Cátedra exibe e o
+    // botão "Abrir" volta por catedraNav para trocar de aba. Atualiza a cada 2 min,
+    // ao trocar para a aba Cátedra e logo após abrir o app.
+    func startNativeReviewsSync() {
+        let tm = Timer(timeInterval: 120.0, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.pushNativeReviews() }
+        }
+        RunLoop.main.add(tm, forMode: .common); nativeRevTimer = tm
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
+            guard let self else { return }
+            // Instancia o store do JURIS cedo (dados compartilhados com a aba — é o
+            // mesmo objeto reaproveitado depois), senão a contagem só existiria após
+            // a primeira visita à aba de jurisprudência.
+            if self.jurisStore == nil { self.jurisStore = LibraryStore() }
+            self.pushNativeReviews()
+        }
+    }
+    func pushNativeReviews() {
+        guard let wv = webView else { return }
+        let payload = "{\"legis\":{\"due\":\(AppStore.shared.srsDueCount()),\"deck\":\(AppStore.shared.srsDeckCount)}," +
+                      "\"juris\":{\"due\":\(jurisStore?.srsDueCount ?? 0),\"deck\":\(jurisStore?.srsDeckCount ?? 0)}}"
+        wv.evaluateJavaScript("window.catedraSetNativeRev && window.catedraSetNativeRev(\(payload))", completionHandler: nil)
+    }
+
+    // ===== Backup automático (semanal) =====
+    // Escreve em ~/Documents/Cátedra Backups: os dados do app web (localStorage
+    // catedra:*, sem PDFs pesados) + cópias do library.json (LEGIS) e state.json
+    // (JURIS). Mantém os 8 mais recentes de cada série. Roda no máximo 1×/semana.
+    func startAutoBackup() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in
+            MainActor.assumeIsolated { self?.performBackup(force: false) }
+        }
+    }
+    func performBackup(force: Bool) {
+        let last = UserDefaults.standard.double(forKey: "catedraLastBackupAt")
+        if !force && Date().timeIntervalSince1970 - last < 7 * 24 * 3600 { return }
+        guard let wv = webView else { return }
+        // Coleta o localStorage do Cátedra (sem o flag de auth e sem PDFs base64 — o
+        // mesmo corte do sync; os PDFs originais seguem na pasta da biblioteca).
+        let js = """
+        (function(){
+          var o = {};
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (!k || k.indexOf('catedra:') !== 0 || k === 'catedra:auth') continue;
+            var v = localStorage.getItem(k);
+            if (k === 'catedra:lib') {
+              try { var lib = JSON.parse(v); if (Array.isArray(lib)) v = JSON.stringify(lib.map(function(b){
+                if (b && (b.pdfB64 || b.pages || b._bytes)) { var c = {}; for (var kk in b) if (kk!=='pdfB64'&&kk!=='pages'&&kk!=='_bytes') c[kk]=b[kk]; c._pdfLocal=true; return c; }
+                return b; })); } catch(_) {}
+            }
+            o[k] = v;
+          }
+          return JSON.stringify(o);
+        })()
+        """
+        wv.evaluateJavaScript(js) { [weak self] result, _ in
+            guard let self, let s = result as? String, s.count > 2 else { return }
+            MainActor.assumeIsolated { self.writeBackupFiles(webJSON: s) }
+        }
+    }
+    private func writeBackupFiles(webJSON: String) {
+        let fm = FileManager.default
+        let dir = fm.homeDirectoryForCurrentUser
+            .appendingPathComponent("Documents/Cátedra Backups", isDirectory: true)
+        do {
+            try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            let df = DateFormatter(); df.dateFormat = "yyyy-MM-dd"
+            let stamp = df.string(from: Date())
+            // 1) app web (plataforma) — sobrescreve se rodar de novo no mesmo dia
+            try webJSON.data(using: .utf8)?
+                .write(to: dir.appendingPathComponent("catedra-web-\(stamp).json"))
+            // 2) apps nativos — cópia dos arquivos de dados
+            let appSup = fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")
+            let pares: [(URL, String)] = [
+                (appSup.appendingPathComponent("VadeMecum/library.json"), "legis-\(stamp).json"),
+                (appSup.appendingPathComponent("VadeMecumJuris/state.json"), "juris-\(stamp).json"),
+            ]
+            for (src, name) in pares where fm.fileExists(atPath: src.path) {
+                let dst = dir.appendingPathComponent(name)
+                if fm.fileExists(atPath: dst.path) { try fm.removeItem(at: dst) }
+                try fm.copyItem(at: src, to: dst)
+            }
+            // 3) poda: mantém os 8 mais recentes de cada série (nomes têm a data → sort lexical)
+            for prefix in ["catedra-web-", "legis-", "juris-"] {
+                let all = (try? fm.contentsOfDirectory(atPath: dir.path)) ?? []
+                let serie = all.filter { $0.hasPrefix(prefix) && $0.hasSuffix(".json") }.sorted(by: >)
+                for velho in serie.dropFirst(8) {
+                    try? fm.removeItem(at: dir.appendingPathComponent(velho))
+                }
+            }
+            UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "catedraLastBackupAt")
+        } catch {
+            NSLog("Cátedra backup falhou: \(error.localizedDescription)")
+        }
+    }
 
     // ===== Painel flutuante "widget" na área de trabalho (desenhado pelo app) =====
     func toggleWidgetPanel() {
@@ -484,7 +590,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             }
         default:
             applyTabVisibility(0)
-            pushWidgetData()   // voltou ao Cátedra: atualiza o widget com os dados frescos
+            pushWidgetData()      // voltou ao Cátedra: atualiza o widget com os dados frescos
+            pushNativeReviews()   // …e a agenda única (revisões vencidas do LEGIS/JURIS)
         }
     }
 
@@ -893,6 +1000,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         case "catedraAI":        handleAI(message, reply)
         case "notifyPermission": handleNotifPermission(message, reply)
         case "notifyShow":       handleNotifShow(message.body); reply(nil, nil)
+        case "catedraNav":
+            // Agenda única: o "Abrir" das revisões nativas na web troca a aba do host.
+            let dest = (message.body as? String) ?? ""
+            if dest == "legis" { switchTo(1) } else if dest == "juris" { switchTo(2) }
+            reply(nil, nil)
         default:                 reply(nil, "handler desconhecido")
         }
     }

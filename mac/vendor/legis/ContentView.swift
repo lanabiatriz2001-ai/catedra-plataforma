@@ -99,13 +99,16 @@ struct ContentView: View {
                 .opacity(0)
         )
         .overlay {
-            if showPalette {
-                CommandPalette(isPresented: $showPalette,
-                               openLaw: { path.append(.reader($0)) },
-                               openSection: { path = [.section($0)] },
-                               addLaw: { showAddLaw = true })
-                    .transition(.opacity)
+            Group {
+                if showPalette {
+                    CommandPalette(isPresented: $showPalette,
+                                   openLaw: { path.append(.reader($0)) },
+                                   openSection: { path = [.section($0)] },
+                                   addLaw: { showAddLaw = true })
+                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                }
             }
+            .animation(.easeOut(duration: 0.16), value: showPalette)
         }
     }
 
@@ -244,10 +247,11 @@ private struct LegisSidebar: View {
     }
 
     /// Cor do ícone na sidebar: matérias exibem a identidade de cor da área
-    /// (tom claro, legível sobre o navy); o resto herda o cinza padrão.
+    /// (tom claro, legível sobre o navy); quando a linha está ATIVA, o ícone
+    /// acompanha o texto ativo (contraste sobre o fundo de seleção).
     private func rowIconColor(_ item: SidebarItem, active: Bool) -> Color? {
-        if case .category(let cat) = item { return cat.colorLight }
-        return nil
+        guard !active, case .category(let cat) = item else { return nil }
+        return cat.colorLight
     }
 
     @ViewBuilder
