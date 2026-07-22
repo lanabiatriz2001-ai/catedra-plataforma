@@ -41,14 +41,17 @@ struct RamoNota: Codable, Hashable {
         }
     }
     var cor: Color {
+        // Cores SEMÂNTICAS fixas (o mapa é exportado em fundo branco forçado): os
+        // tokens Palette.fonte* hoje resolvem todos para o acento, então o código de
+        // cores do mapa mental se perdia. Aqui cada tipo tem sua cor própria.
         switch tipo {
-        case "regra": return Palette.fonteSTJ           // verde
-        case "fundamento": return Palette.fonteSTF       // azul
-        case "excecao": return Palette.fonteRG           // roxo
-        case "pegadinha": return Palette.fonteRepetitivo // laranja
-        case "cuidado": return Palette.fonteRepetitivo   // laranja
+        case "regra": return Color(hex: "#16A34A")       // verde
+        case "fundamento": return Color(hex: "#2563EB")  // azul
+        case "excecao": return Color(hex: "#7C3AED")     // roxo
+        case "pegadinha": return Color(hex: "#EA580C")   // laranja
+        case "cuidado": return Color(hex: "#EA580C")     // laranja
         case "vedacao": return .red                      // vermelho
-        case "relacionada": return Palette.fonteTSE      // ciano
+        case "relacionada": return Color(hex: "#0EA5E9") // azul-céu
         default: return Palette.secondaryInk
         }
     }

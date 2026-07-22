@@ -1094,6 +1094,14 @@ private struct UnitFocusView: View {
     // janelas estreitas, mas quebrou o clique em TODOS os botões da barra (o gesto
     // de rolagem do ScrollView engole o clique antes de chegar no Button/Menu, nesta
     // hospedagem via NSHostingView). Revertido — HStack simples, sem rolagem.
+    // Preto/branco conforme a luminância da cor do marcador — o ícone "highlighter"
+    // não some quando a cor favorita é escura (ex.: roxo, azul-marinho).
+    private var markerIconColor: Color {
+        guard let c = NSColor(Color(hexRGBA: markerColorHex)).usingColorSpace(.sRGB) else { return .black }
+        let lum = 0.299 * c.redComponent + 0.587 * c.greenComponent + 0.114 * c.blueComponent
+        return lum < 0.55 ? .white : .black
+    }
+
     private var markToolbar: some View {
         HStack(spacing: 10) {
             // Seletor de cor LIVRE, direto na barra (sem menu escondido): abre o painel
@@ -1137,7 +1145,7 @@ private struct UnitFocusView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .frame(width: 24, height: 20)
                     .background(RoundedRectangle(cornerRadius: 5).fill(Color(hexRGBA: markerColorHex)))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(markerIconColor)
             }
             .help("Grifar o trecho selecionado")
             .disabled(markController.selectionLength == 0)

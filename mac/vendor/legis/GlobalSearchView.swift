@@ -28,13 +28,16 @@ struct GlobalSearchView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 13) {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(ThemeState.t.accent.opacity(0.14)).frame(width: 40, height: 40)
-                .overlay(Image(systemName: "sparkle.magnifyingglass").font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(ThemeState.t.accent))
+        HStack(alignment: .center, spacing: 14) {
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .fill(LinearGradient(colors: [ThemeState.t.accent, ThemeState.t.accentD],
+                                     startPoint: .topLeading, endPoint: .bottomTrailing))
+                .frame(width: 46, height: 46)
+                .overlay(Image(systemName: "sparkle.magnifyingglass").font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(.white))
+                .shadow(color: ThemeState.t.accent.opacity(0.4), radius: 8, y: 4)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Buscar em tudo").font(.system(size: 20, weight: .bold)).foregroundStyle(AppTheme.ink)
+                Text("Buscar em tudo").font(.system(size: 26, weight: .heavy)).tracking(-0.4).foregroundStyle(AppTheme.ink)
                 Text("Pesquisa o texto de todas as \(lawCount) normas e leva você direto ao artigo, com o trecho destacado.")
                     .font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
@@ -64,6 +67,7 @@ struct GlobalSearchView: View {
             }
             Button("Buscar", action: runSearch)
                 .buttonStyle(.borderedProminent)
+                .tint(ThemeState.t.accent)
                 .disabled(query.trimmingCharacters(in: .whitespaces).count < 2)
         }
         .padding(.horizontal, 14).padding(.vertical, 12)

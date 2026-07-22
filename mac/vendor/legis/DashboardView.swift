@@ -6,6 +6,7 @@ struct DashboardView: View {
     let openLaw: (UUID) -> Void
     let openSection: (SidebarItem) -> Void
     let openUpdates: () -> Void
+    var openUpdate: (UUID) -> Void = { _ in }   // abre o comparativo de UMA alteração
     let newCategory: () -> Void
 
     @AppStorage("lastStudiedLawID") private var lastStudiedLawID = ""
@@ -455,7 +456,7 @@ struct DashboardView: View {
                         }
                         ForEach(store.updates.prefix(5)) { event in
                             Button {
-                                openLaw(event.lawID)
+                                openUpdate(event.id)
                             } label: {
                                 HStack {
                                     Circle().fill(ThemeState.t.accent).frame(width: 7, height: 7)

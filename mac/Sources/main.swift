@@ -115,9 +115,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var statusTimer: Timer?
     private var widgetTimer: Timer?
     private var nativeRevTimer: Timer?           // agenda única: LEGIS/JURIS → Revisões do Cátedra
+    private var autoBackupTimer: Timer?          // backup semanal automático (checa de 6 em 6h)
     // "Widget" desenhado pelo app (sem WidgetKit): painel flutuante + números no menu.
     private var widgetPanel: NSPanel?
     private var statItems: [NSMenuItem] = []
+    private var tabMenuItems: [NSMenuItem] = []   // itens ⌘1/2/3 (menu Visualizar + barra) → marca a aba ativa
     private var panelToggleItem: NSMenuItem?
     private var lastStats = CatedraStats()
 
@@ -246,6 +248,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         webView.loadFileURL(index, allowingReadAccessTo: dir)
     }
 
+    // Ao terminar de carregar o app web, se ficou um registro de estudo pendente do
+    // encerramento anterior (deliverStudyRegistration com terminating=true), injeta agora.
+    func webView(_ wv: WKWebView, didFinish navigation: WKNavigation!) {
+        guard wv === webView else { return }
+        let pend = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+        guard !pend.isEmpty else { return }
+        UserDefaults.standard.removeObject(forKey: "catedraPendingStudyRegs")
+        for (i, json) in pend.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 + Double(i) * 0.6) { [weak wv] in
+                wv?.evaluateJavaScript("window.catedraOpenStudyRegistration && window.catedraOpenStudyRegistration(\(json))", completionHandler: nil)
+            }
+        }
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ s: NSApplication) -> Bool { true }
 
     // Cronômetros de estudo (LEGIS: dentro de uma norma; JURIS: aba ativa): pausam
@@ -258,9 +274,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         StudyClock.shared.setAppActive(false)
         JurisClock.shared.setAppActive(false)
     }
+    private var terminating = false
     func applicationWillTerminate(_ n: Notification) {
+        terminating = true   // os flushes gravam o registro pendente em disco (a JS não roda no shutdown)
         flushLegisStudy()
         flushJurisStudy()
+    }
+
+    // Entrega o registro de estudo pré-preenchido ao app web. Ao ENCERRAR, a
+    // evaluateJavaScript não chegaria a rodar (processo saindo) e o tempo estudado se
+    // perderia — então guardamos o payload em disco e o injetamos no próximo launch.
+    private func deliverStudyRegistration(_ json: String) {
+        if terminating {
+            var pend = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+            pend.append(json)
+            UserDefaults.standard.set(pend, forKey: "catedraPendingStudyRegs")
+        } else {
+            webView.evaluateJavaScript("window.catedraOpenStudyRegistration && window.catedraOpenStudyRegistration(\(json))", completionHandler: nil)
+        }
     }
 
     // MARK: - Abas Cátedra ⇆ Vade Mecum
@@ -311,6 +342,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         switchTo(sender.selectedSegment)
     }
 
+    // Marca com ✓ o item de menu (Visualizar + barra) da aba ativa.
+    private func updateTabMenuState() {
+        for it in tabMenuItems { it.state = (it.tag == currentTab) ? .on : .off }
+    }
+
     // Atalhos ⌘1/⌘2/⌘3 do menu Visualizar.
     @objc func goTab0(_ sender: Any?) { switchTo(0) }
     @objc func goTab1(_ sender: Any?) { switchTo(1) }
@@ -339,9 +375,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let open = NSMenuItem(title: "Abrir Cátedra", action: #selector(mbOpen(_:)), keyEquivalent: ""); open.target = self; menu.addItem(open)
         let foco = NSMenuItem(title: "Estudar agora (abrir Cátedra)", action: #selector(mbFoco(_:)), keyEquivalent: ""); foco.target = self; menu.addItem(foco)
         menu.addItem(.separator())
-        let a = NSMenuItem(title: "Cátedra", action: #selector(mbTab0(_:)), keyEquivalent: "1"); a.target = self; menu.addItem(a)
-        let b = NSMenuItem(title: "CátedraLEGIS", action: #selector(mbTab1(_:)), keyEquivalent: "2"); b.target = self; menu.addItem(b)
-        let c = NSMenuItem(title: "CátedraJURIS", action: #selector(mbTab2(_:)), keyEquivalent: "3"); c.target = self; menu.addItem(c)
+        let a = NSMenuItem(title: "Cátedra", action: #selector(mbTab0(_:)), keyEquivalent: "1"); a.target = self; a.tag = 0; menu.addItem(a)
+        let b = NSMenuItem(title: "CátedraLEGIS", action: #selector(mbTab1(_:)), keyEquivalent: "2"); b.target = self; b.tag = 1; menu.addItem(b)
+        let c = NSMenuItem(title: "CátedraJURIS", action: #selector(mbTab2(_:)), keyEquivalent: "3"); c.target = self; c.tag = 2; menu.addItem(c)
+        tabMenuItems.append(contentsOf: [a, b, c])
         menu.addItem(.separator())
         let panelToggle = NSMenuItem(title: "Painel na área de trabalho", action: #selector(mbTogglePanel(_:)), keyEquivalent: "")
         panelToggle.target = self; menu.addItem(panelToggle); panelToggleItem = panelToggle
@@ -458,9 +495,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     // catedra:*, sem PDFs pesados) + cópias do library.json (LEGIS) e state.json
     // (JURIS). Mantém os 8 mais recentes de cada série. Roda no máximo 1×/semana.
     func startAutoBackup() {
+        // Primeiro disparo pouco após abrir; depois de 6 em 6 horas — o throttle de 7
+        // dias dentro de performBackup garante que só faz backup de fato 1×/semana,
+        // mas cobre o caso do app ficar aberto por muitos dias sem relançar.
         DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in
             MainActor.assumeIsolated { self?.performBackup(force: false) }
         }
+        let tm = Timer(timeInterval: 6 * 3600, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.performBackup(force: false) }
+        }
+        RunLoop.main.add(tm, forMode: .common); autoBackupTimer = tm
     }
     func performBackup(force: Bool) {
         let last = UserDefaults.standard.double(forKey: "catedraLastBackupAt")
@@ -487,10 +531,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         """
         wv.evaluateJavaScript(js) { [weak self] result, _ in
             guard let self, let s = result as? String, s.count > 2 else { return }
-            MainActor.assumeIsolated { self.writeBackupFiles(webJSON: s) }
+            MainActor.assumeIsolated { self.writeBackupFiles(webJSON: s, force: force) }
         }
     }
-    private func writeBackupFiles(webJSON: String) {
+    private func writeBackupFiles(webJSON: String, force: Bool) {
         let fm = FileManager.default
         let dir = fm.homeDirectoryForCurrentUser
             .appendingPathComponent("Documents/Cátedra Backups", isDirectory: true)
@@ -521,8 +565,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
                 }
             }
             UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "catedraLastBackupAt")
+            if force { NSWorkspace.shared.activateFileViewerSelecting([dir]) }   // revela no Finder
         } catch {
             NSLog("Cátedra backup falhou: \(error.localizedDescription)")
+            if force {
+                let a = NSAlert(); a.messageText = "Não foi possível fazer o backup"
+                a.informativeText = error.localizedDescription; a.alertStyle = .warning
+                a.runModal()
+            }
         }
     }
 
@@ -554,6 +604,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         WidgetModel.shared.onTogglePiP = { [weak self] in self?.toggleClockPiP() }
         WidgetModel.shared.onClose = { [weak self] in self?.hideWidgetPanel() }
         widgetPanel?.orderFrontRegardless()
+        // Se a posição salva era de um monitor que não está mais conectado, o painel
+        // abriria fora da tela — traz de volta para o canto do monitor principal.
+        if let p = widgetPanel,
+           !NSScreen.screens.contains(where: { $0.visibleFrame.intersects(p.frame) }),
+           let vf = NSScreen.main?.visibleFrame {
+            p.setFrameOrigin(NSPoint(x: vf.maxX - 320, y: vf.maxY - 170))
+        }
         UserDefaults.standard.set(true, forKey: "catedraDeskWidgetVisible")
         panelToggleItem?.state = .on
         pushWidgetData()
@@ -576,6 +633,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         JurisClock.shared.setTabActive(tab == 2)   // relógio do JURIS: só na aba 2
         currentTab = tab
         tabControl?.selectedSegment = tab
+        updateTabMenuState()
         switch tab {
         case 1:
             // Reespelha o tema do Cátedra e monta/atualiza o host; só mostra se ainda na aba 1.
@@ -674,7 +732,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             : ["queue": itens, "origem": "CátedraLEGIS"]
         guard let data = try? JSONSerialization.data(withJSONObject: payload),
               let json = String(data: data, encoding: .utf8) else { return }
-        webView.evaluateJavaScript("window.catedraOpenStudyRegistration && window.catedraOpenStudyRegistration(\(json))", completionHandler: nil)
+        deliverStudyRegistration(json)
     }
 
     // MARK: - Ponte de estudo (CátedraJURIS → Cátedra)
@@ -725,7 +783,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             : ["queue": itens, "origem": "CátedraJURIS"]
         guard let data = try? JSONSerialization.data(withJSONObject: payload),
               let json = String(data: data, encoding: .utf8) else { return }
-        webView.evaluateJavaScript("window.catedraOpenStudyRegistration && window.catedraOpenStudyRegistration(\(json))", completionHandler: nil)
+        deliverStudyRegistration(json)
     }
 
     // MARK: - Ponte de checklist (CátedraLEGIS/CátedraJURIS → ciclo do Cátedra)
@@ -1127,6 +1185,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         window?.makeKeyAndOrderFront(nil)
         if let view = response.notification.request.content.userInfo["view"] as? String, !view.isEmpty,
            let esc = view.addingPercentEncoding(withAllowedCharacters: .alphanumerics) {
+            switchTo(0)   // a navegação da notificação é no app web (aba Cátedra)
             webView?.evaluateJavaScript("window.__catedraGoView && window.__catedraGoView('\(esc)')", completionHandler: nil)
         }
         completionHandler()
@@ -1194,6 +1253,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let rect = NSRect(x: 0, y: 0, width: w, height: h)
 
         let child = WKWebView(frame: rect, configuration: cfg)
+        child.uiDelegate = self   // sem isto o window.close() do PiP não fecha o painel
         child.setValue(false, forKey: "drawsBackground")
 
         let panel = NSPanel(contentRect: rect,
@@ -1263,10 +1323,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
 
     // MARK: Ações de menu
-    @objc func reloadApp(_ s: Any?) { loadApp() }
-    @objc func zoomIn(_ s: Any?) { webView.magnification = min(webView.magnification + 0.1, 3.0) }
-    @objc func zoomOut(_ s: Any?) { webView.magnification = max(webView.magnification - 0.1, 0.5) }
-    @objc func zoomReset(_ s: Any?) { webView.magnification = 1.0 }
+    // ⌘R e o zoom valem só para a aba Cátedra (WebView). Nas abas LEGIS/JURIS o
+    // WebView está escondido — agir nele recarregava/zoomava algo invisível.
+    @objc func reloadApp(_ s: Any?) { guard currentTab == 0 else { NSSound.beep(); return }; loadApp() }
+    @objc func zoomIn(_ s: Any?) { guard currentTab == 0 else { return }; webView.magnification = min(webView.magnification + 0.1, 3.0) }
+    @objc func zoomOut(_ s: Any?) { guard currentTab == 0 else { return }; webView.magnification = max(webView.magnification - 0.1, 0.5) }
+    @objc func zoomReset(_ s: Any?) { guard currentTab == 0 else { return }; webView.magnification = 1.0 }
 
     func buildMenu() {
         let main = NSMenu()
@@ -1309,9 +1371,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let viewItem = NSMenuItem(); main.addItem(viewItem)
         let view = NSMenu(title: "Visualizar"); viewItem.submenu = view
         // Abas por teclado (⌘1/⌘2/⌘3)
-        let t0 = view.addItem(withTitle: "Cátedra", action: #selector(goTab0(_:)), keyEquivalent: "1"); t0.target = self
-        let t1 = view.addItem(withTitle: "CátedraLEGIS", action: #selector(goTab1(_:)), keyEquivalent: "2"); t1.target = self
-        let t2 = view.addItem(withTitle: "CátedraJURIS", action: #selector(goTab2(_:)), keyEquivalent: "3"); t2.target = self
+        let t0 = view.addItem(withTitle: "Cátedra", action: #selector(goTab0(_:)), keyEquivalent: "1"); t0.target = self; t0.tag = 0
+        let t1 = view.addItem(withTitle: "CátedraLEGIS", action: #selector(goTab1(_:)), keyEquivalent: "2"); t1.target = self; t1.tag = 1
+        let t2 = view.addItem(withTitle: "CátedraJURIS", action: #selector(goTab2(_:)), keyEquivalent: "3"); t2.target = self; t2.tag = 2
+        tabMenuItems.append(contentsOf: [t0, t1, t2]); updateTabMenuState()
         view.addItem(.separator())
         view.addItem(withTitle: "Recarregar", action: #selector(reloadApp(_:)), keyEquivalent: "r")
         view.addItem(.separator())

@@ -59,7 +59,7 @@ enum JurisSRSGrade: String, CaseIterable, Identifiable {
     var cor: Color {
         switch self {
         case .again: return .red; case .hard: return .orange
-        case .good: return Palette.fonteSTJ; case .easy: return .blue
+        case .good: return .green; case .easy: return .blue
         }
     }
     var simbolo: String {

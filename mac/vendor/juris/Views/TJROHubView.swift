@@ -91,7 +91,7 @@ struct TJROHubView: View {
                 .background(Palette.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
             }
             if !novos.isEmpty {
-                Text("Esses ainda não estão no acervo do app — me avise para eu incorporá-los pelo pipeline (com tese, ramo e link oficial).")
+                Text("Esses ainda não estão no acervo do app — entram numa próxima atualização do acervo (com tese, ramo e link oficial).")
                     .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -186,7 +186,7 @@ struct TJROHubView: View {
             novos = achados.sorted { $0.num > $1.num }
             resultado = achados.isEmpty
                 ? "Tudo em dia — o LIAME retornou \(total) precedentes e todos já estão no seu acervo."
-                : "\(achados.count) precedente(s) do TJRO no LIAME ainda fora do app:"
+                : "\(achados.count) \(achados.count == 1 ? "precedente" : "precedentes") do TJRO no LIAME ainda fora do app:"
         } catch {
             resultado = "Não foi possível consultar o LIAME agora (sem internet ou site fora do ar). Suas listas abaixo continuam disponíveis."
         }

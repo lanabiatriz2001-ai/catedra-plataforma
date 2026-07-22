@@ -3553,12 +3553,15 @@ class Component extends DCLogic {
     // AGENDA ÚNICA: o host do desktop injeta {legis:{due,deck}, juris:{due,deck}} com as
     // revisões espaçadas dos apps nativos — o Revisões e o hero da home exibem tudo junto.
     try{ window.catedraSetNativeRev = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativeRev:o}); }catch(_){} }; }catch(_){}
+    // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
+    try{ window.__catedraGoView = (v)=>{ try{ this.setState({view:v, menuOpen:false}); }catch(_){} }; }catch(_){}
     this._migrarSchema();
     this._reconcileStreak();
     this._reconcileReviews();
     this._reconcileCiclo();
+    this._reconcileHabitos();
     // se o app ficar aberto atravessando a meia-noite, reclassifica ao voltar o foco
-    this._onWake = ()=>{ if(document.visibilityState==='visible'){ try{ this._reconcileStreak(); }catch(_){} try{ this._reconcileReviews(); }catch(_){} try{ this._reconcileCiclo(); }catch(_){} } };
+    this._onWake = ()=>{ if(document.visibilityState==='visible'){ try{ this._reconcileStreak(); }catch(_){} try{ this._reconcileReviews(); }catch(_){} try{ this._reconcileCiclo(); }catch(_){} try{ this._reconcileHabitos(); }catch(_){} } };
     document.addEventListener('visibilitychange', this._onWake);
     window.addEventListener('focus', this._onWake);
     try{ if(this._notifSupported()) this.setState({notifPerm:Notification.permission}); }catch(_){}
@@ -3584,7 +3587,7 @@ class Component extends DCLogic {
         const now = Date.now();
         const disc = (info.disc||'Legislação').toString();
         const cat = (info.categoria||'Lei seca').toString();
-        const rec = { id:'sl'+now, ts:now, date:new Date(now).toISOString().slice(0,10),
+        const rec = { id:'sl'+now, ts:now, date:this._ymd(now),
           disc, topico:(info.topico||'Leitura de lei · CátedraLEGIS').toString(),
           categoria:cat, categorias:[cat], min,
           questoes:0, acertos:0, erradas:0, brancos:0, liquido:0,
@@ -3689,7 +3692,7 @@ class Component extends DCLogic {
   _reconcileStreak(){
     try{
       const day=864e5; const t=new Date(); t.setHours(0,0,0,0);
-      const key=(d)=>new Date(d).toISOString().slice(0,10);
+      const key=(d)=>this._ymd(d);
       const todayK=key(t), ontem=key(t.getTime()-day), anteontem=key(t.getTime()-2*day);
       const dates=new Set((this.state.sessions||[]).map(s=>s.date));
       let escudos=this.state.escudos||0; let frz=(this.state.streakFreezeUsados||[]).slice(); let mudou=false;
@@ -3725,8 +3728,11 @@ class Component extends DCLogic {
       return {diasProva:dias, revisoes:revVenc, metaPct, streak:(B.streak||0), proximo:(prox?String(prox.disc||'').replace('Direito ',''):''), updated:Date.now()};
     }catch(_){ return {diasProva:-1, revisoes:0, metaPct:0, streak:0, proximo:'', updated:Date.now()}; }
   }
-  // "hoje" e aritmética de datas no mesmo padrão do resto do app (YYYY-MM-DD via toISOString)
-  _hoje(){ return new Date().toISOString().slice(0,10); }
+  // "hoje" e aritmética de datas em YYYY-MM-DD no fuso LOCAL (antes era UTC via
+  // toISOString → no Brasil, UTC-3, o "dia" do app virava às 21h: ofensiva, revisões,
+  // hábitos e blocos do ciclo zeravam/venciam 3h antes). _ymd aceita Date ou timestamp.
+  _ymd(t){ const d=(t instanceof Date)?t:new Date(t); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+  _hoje(){ return this._ymd(new Date()); }
   _addDiasStr(ymd, n){ try{ return new Date(Date.parse(ymd+'T00:00:00Z') + (+n||0)*864e5).toISOString().slice(0,10); }catch(_){ return this._hoje(); } }
   // Revisões passam a "vencer" com o CALENDÁRIO: cada revisão tem uma dueDate absoluta e,
   // a cada carga/virada de dia, recalculamos o campo numérico `due` = dias(hoje→dueDate).
@@ -3850,7 +3856,6 @@ class Component extends DCLogic {
       const next = s.timerSeconds+1;
       if(next>=dur){
         const flip = s.pomoPhase==='foco' ? 'pausa' : 'foco';
-        const pomoCycles = s.pomoPhase==='pausa' ? s.pomoCycles : s.pomoCycles; // counted on focus complete below
         this._beep();
         return { timerSeconds:0, pomoPhase:flip, pomoCycles: s.pomoPhase==='foco' ? s.pomoCycles+1 : s.pomoCycles, studiedSeconds };
       }
@@ -3893,7 +3898,7 @@ class Component extends DCLogic {
   }
   reviewRate = (e)=>{ const id=e.currentTarget.dataset.id; const q=+e.currentTarget.dataset.q; const hoje=this._hoje();
     const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const sc=this.sm2(r, q); return {...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:Date.now()}; }); this.setState({reviews:rv}); };
-  reviewSnooze = (e)=>{ const id=e.currentTarget.dataset.id; const hoje=this._hoje(); const rv=this.state.reviews.map(r=> r.id===id?{...r, dueDate:this._addDiasStr(r.dueDate||hoje, 1), due:(r.due||0)+1, up:Date.now()}:r); this.setState({reviews:rv}); };
+  reviewSnooze = (e)=>{ const id=e.currentTarget.dataset.id; const hoje=this._hoje(); const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const base=((r.due||0)<0||!r.dueDate)?hoje:r.dueDate; return {...r, dueDate:this._addDiasStr(base,1), due:Math.max(1,(r.due||0)+1), up:Date.now()}; }); this.setState({reviews:rv}); };
   // fluxo "revisar agora" — item a item, reagendando por SM-2
   startRevSession = ()=>{ const due=this.state.reviews.filter(r=>r.due<=0).sort((a,b)=>a.due-b.due).map(r=>r.id);
     if(!due.length){ this._toast('Nenhuma revisão pendente — tudo em dia 🎉'); return; }
@@ -4184,7 +4189,7 @@ class Component extends DCLogic {
     const extra={};
     if(b[i].srcId && b[i].srcDate){ const fe={...(this.state.agendaFeitas||{})}; const k=b[i].srcId+'|'+b[i].srcDate; if(willDone) fe[k]=true; else delete fe[k]; extra.agendaFeitas=fe; }
     if(willDone && (this.state.prefs&&this.state.prefs.autoRegistro)!==false){ // concluiu → abre o registro preenchido (se "Abrir registro ao parar" estiver ligado)
-      const pre=Math.round((this.state.timerSeconds||this.state.studiedSeconds||0)/60);
+      const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60);
       this.setState(s=>({blocks:b, ...extra, sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._blockToDraft(b[i], s.sessionDraft), minutos: pre>0?String(pre):String(b[i].min||'')}}));
     } else { this.setState({blocks:b, ...extra}); } };
   // Adaptação por energia: blocos mais CURTOS em dias de baixa energia, mais longos na alta.
@@ -4311,7 +4316,7 @@ class Component extends DCLogic {
     const erradas=isDisc?0:Math.max(0,parseInt(s.erros,10)||0);
     const brancos=isDisc?0:Math.max(0,parseInt(s.brancos,10)||0);
     if(!questoes && !min && !isDisc){ this._toast('Preencha as questões (ou a duração) do simulado'); return; }
-    const rec={ id:'s'+Date.now(), ts:Date.now(), date:new Date().toISOString().slice(0,10), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:'', materialId:null, countMeta:true };
+    const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._hoje(), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:'', materialId:null, countMeta:true };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     this.setState({sessions, simNome:''}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
@@ -4350,7 +4355,7 @@ class Component extends DCLogic {
           const accR=Math.min(0.95, Math.max(0.42, di[1] + (27-d)*0.0035 + (((d+k)%5)-2)*0.02));
           a=Math.round(q*accR); br=Math.round(q*0.07); er=Math.max(0, q-a-br);
         }
-        out.push({ id:'seed'+(id++), ts, date:new Date(ts).toISOString().slice(0,10),
+        out.push({ id:'seed'+(id++), ts, date:this._ymd(ts),
           disc:di[0], topico:di[0].replace('Direito ','')+' — bloco '+(d+1), categoria:cat,
           min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, foco:3+((d+k)%3), nota:'', materialId:null, countMeta:true });
       }
@@ -4359,7 +4364,7 @@ class Component extends DCLogic {
   }
   _brain(){
     const S=this.state.sessions||[]; const now=Date.now(), day=864e5;
-    const todayStr=new Date().toISOString().slice(0,10);
+    const todayStr=this._hoje();
     const sum=(f)=>S.reduce((a,s)=>a+(f(s)||0),0);
     const totalMin=sum(s=>s.min), totalQ=sum(s=>s.questoes), totalA=sum(s=>s.acertos), totalE=sum(s=>s.erradas), totalB=sum(s=>s.brancos);
     const liq=totalA-totalE;
@@ -4372,7 +4377,7 @@ class Component extends DCLogic {
     const todayMin=S.filter(s=>s.date===todayStr).reduce((a,s)=>a+(s.min||0),0);
     const weekMin=S.filter(s=>s.ts>=now-7*day && s.countMeta!==false).reduce((a,s)=>a+(s.min||0),0);
     // streak
-    let streak=0; { const frz=new Set(this.state.streakFreezeUsados||[]); const has=(dt)=>{ const k=new Date(dt).toISOString().slice(0,10); return dates.has(k)||frz.has(k); }; let p=new Date(); p.setHours(0,0,0,0); if(!has(p)) p=new Date(p.getTime()-day); while(has(p)){ streak++; p=new Date(p.getTime()-day); } }
+    let streak=0; { const frz=new Set(this.state.streakFreezeUsados||[]); const has=(dt)=>{ const k=this._ymd(dt); return dates.has(k)||frz.has(k); }; let p=new Date(); p.setHours(0,0,0,0); if(!has(p)) p=new Date(p.getTime()-day); while(has(p)){ streak++; p=new Date(p.getTime()-day); } }
     // por disciplina
     const COL={'Direito Constitucional':'#2563eb','Direito Administrativo':'#a855f7','Direito Tributário':'#06b6d4','Direito Penal':'#dc2626','Direito Civil':'#6366f1','Processo Civil':'#84cc16'};
     const by={}; S.forEach(s=>{ const k=s.disc||'—'; (by[k]||(by[k]={disc:k,min:0,q:0,a:0,e:0,b:0,n:0})); const o=by[k]; o.min+=s.min||0;o.q+=s.questoes||0;o.a+=s.acertos||0;o.e+=s.erradas||0;o.b+=s.brancos||0;o.n++; });
@@ -4387,13 +4392,13 @@ class Component extends DCLogic {
       const q=ws.reduce((a,s)=>a+(s.questoes||0),0), a=ws.reduce((x,s)=>x+(s.acertos||0),0), e=ws.reduce((x,s)=>x+(s.erradas||0),0), mi=ws.reduce((x,s)=>x+(s.min||0),0);
       weeks.push({label:'S'+(6-w), q, bruto:q?Math.round(a/q*100):0, liq:q?Math.round((a-e)/q*100):0, min:mi}); }
     // heatmap 28 dias
-    const heat=[]; let heatMax=1; for(let d=27; d>=0; d--){ const ds=new Date(now-d*day).toISOString().slice(0,10); const mm=S.filter(s=>s.date===ds).reduce((a,s)=>a+(s.min||0),0); heatMax=Math.max(heatMax,mm); heat.push({date:ds, min:mm, isToday:d===0}); }
+    const heat=[]; let heatMax=1; for(let d=27; d>=0; d--){ const ds=this._ymd(now-d*day); const mm=S.filter(s=>s.date===ds).reduce((a,s)=>a+(s.min||0),0); heatMax=Math.max(heatMax,mm); heat.push({date:ds, min:mm, isToday:d===0}); }
     return {totalMin,totalQ,totalA,totalE,totalB,liq,brutoPct,liqPct,diasEstudados,nDiscs,simulados,todayMin,weekMin,streak,discList,weeks,heat,heatMax,byTopic,normT:_normT};
   }
   _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:_autoRev, contarMeta:true }; }
   _kindToCat(kind){ return {'Teoria':'Teoria','Questões':'Questões','Lei seca':'Lei seca','Jurisprudência':'Jurisprudência','Simulado':'Simulado','Revisão':'Revisão','Flashcards':'Revisão'}[kind]||'Teoria'; }
   _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind); return {...this._freshSessionDraft(prev), disc:b.disc||'', topico:(b.tag&&b.tag!=='Rotativa'&&b.tag!=='Fixa')?b.tag:'', categorias:[cat], categoria:cat}; }
-  openSession = ()=>{ const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
+  openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
   closeSession = ()=>{
     // Fechar no X descarta os registros restantes da fila (LEGIS/JURIS multi-matéria).
     if(this._extRegQueue && this._extRegQueue.length){
@@ -4422,13 +4427,13 @@ class Component extends DCLogic {
     const _catsArr = (Array.isArray(d.categorias)&&d.categorias.length) ? d.categorias : [d.categoria].filter(Boolean);
     const _cats0 = _catsArr[0]||'Teoria';
     const _disc=(d.disc||'').trim()||'Geral';
-    const rec={ id:'s'+Date.now(), ts:Date.now(), date:new Date().toISOString().slice(0,10),
+    const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._hoje(),
       disc:_disc, topico:d.topico.trim()|| (mat&&mat.titulo) || _cats0, categoria:_cats0, categorias:_catsArr,
       min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, foco:d.foco, nota:d.nota.trim(), materialId:d.materialId||null, countMeta:d.contarMeta!==false };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     const patch={ sessions, sessionModalOpen:false, studiedSeconds:0, timerSeconds:0, timerRunning:false, sessionDraft:this._freshSessionDraft(d) };
     if(d.agendarRevisao){ const col=this.DISC_FULL_COLOR[_disc]||'#0f7a57';
-      patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:_disc, topic:rec.topico, color:col, due:0, dueDate:new Date().toISOString().slice(0,10), intervalo:1, facilidade:2.5, repeticoes:0}]; }
+      patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:_disc, topic:rec.topico, color:col, due:0, dueDate:this._hoje(), intervalo:1, facilidade:2.5, repeticoes:0}]; }
     if(this._tick){ clearInterval(this._tick); this._tick=null; }
     try{ localStorage.removeItem('ct_timer'); }catch(_){}   // sessão registrada → zera o cronômetro persistido
     this.setState(patch, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
@@ -4587,7 +4592,7 @@ class Component extends DCLogic {
       this._pipFlash(msg);
     }
   };
-  finishFocus = ()=>{ if(this._tick){ clearInterval(this._tick); this._tick=null; } const pre=Math.round((this.state.timerSeconds|| this.state.studiedSeconds ||0)/60);
+  finishFocus = ()=>{ if(this._tick){ clearInterval(this._tick); this._tick=null; } const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60);
     this.setState(s=>{ const idx=s.focusBlockIdx; const blk=(idx!=null&&s.blocks[idx])?s.blocks[idx]:null;
       const _autoConcl=(s.prefs&&s.prefs.autoConcluir)!==false, _autoReg=(s.prefs&&s.prefs.autoRegistro)!==false;
       const blocks= (blk&&_autoConcl)? s.blocks.map((x,j)=> j===idx?{...x,done:true}:x) : s.blocks;
@@ -5296,7 +5301,7 @@ class Component extends DCLogic {
       this._toast(card.ia?'Flashcard gerado com IA ✦':'Flashcard criado (IA indisponível — usei o trecho)');
       this.flashSync(); return;
     }
-    else if(dest==='revisao'){ const rev={id:'r'+Date.now(), disc:discFull, topic:item.titulo, color:colorMap[discFull]||item.color||'#0f7a57', due:0, dueDate:new Date().toISOString().slice(0,10), intervalo:1, facilidade:2.5, repeticoes:0}; this.setState(s=>({reviews:[...s.reviews, rev]})); this._toast('Revisão agendada para hoje ✦'); }
+    else if(dest==='revisao'){ const rev={id:'r'+Date.now(), disc:discFull, topic:item.titulo, color:colorMap[discFull]||item.color||'#0f7a57', due:0, dueDate:this._hoje(), intervalo:1, facilidade:2.5, repeticoes:0}; this.setState(s=>({reviews:[...s.reviews, rev]})); this._toast('Revisão agendada para hoje ✦'); }
     this.flashSync();
   }
   _toast(msg){ try{ let t=this._toastEl; if(!t){ t=document.createElement('div'); t.setAttribute('role','status'); t.setAttribute('aria-live','polite'); t.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:9999;background:#1f2a26;color:#fff;padding:12px 20px;border-radius:12px;font:600 13.5px/1.3 var(--display),sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.4);pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;'; document.body.appendChild(t); this._toastEl=t; } t.textContent=msg; t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; clearTimeout(this._toastT); this._toastT=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 2100); }catch(e){} }
@@ -5307,7 +5312,7 @@ class Component extends DCLogic {
     try{ const blob=new Blob([out],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='destaques-'+item.titulo.replace(/[^\w]+/g,'_').slice(0,40)+'.txt'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); this._toast('Destaques exportados'); }catch(e){ this._toast('Não foi possível exportar'); }
   }
   // ===== calendário: incluir / excluir / check =====
-  onEventDraft = (e)=>{ const k=e.currentTarget.dataset.k; let v=e.currentTarget.value; if(k==='dia') v=Math.max(1,Math.min(30,parseInt(v,10)||1)); this.setState(s=>({eventDraft:{...s.eventDraft,[k]:v}})); };
+  onEventDraft = (e)=>{ const k=e.currentTarget.dataset.k; let v=e.currentTarget.value; if(k==='dia'){ const max=new Date(this.state.calYear, this.state.calMonth+1, 0).getDate(); v=Math.max(1,Math.min(max,parseInt(v,10)||1)); } this.setState(s=>({eventDraft:{...s.eventDraft,[k]:v}})); };
   addEvent = ()=>{ const d=this.state.eventDraft; if(!d.titulo.trim()) return;
     const colorMap={'Revisão':'#06b6d4','Simulado':'#0f7a57','Meta':'#c2790c','Tarefa':'#6b4fbb','Prova':'#c0392f'};
     this.setState(s=>({eventos:[...s.eventos,{id:'ev'+Date.now(), dia:+d.dia, mes:s.calMonth, ano:s.calYear, tipo:d.tipo, titulo:d.titulo.trim(), color:colorMap[d.tipo]||'#6b4fbb', done:false}], eventDraft:{...s.eventDraft, titulo:''}})); this.flashSync(); };
@@ -5321,6 +5326,9 @@ class Component extends DCLogic {
   setCalFilter = (e)=> this.setState({calFilter:e.currentTarget.dataset.f});
   // ===== hábitos saudáveis =====
   _persistHabitos(){ try{ localStorage.setItem('catedra:habitos', JSON.stringify(this.state.habitos)); }catch(_){} this._cloudPush(); }
+  // Hábitos "de hoje" (sono, água, exercício…) têm meta DIÁRIA — zeram na virada do dia.
+  // Sem isto acumulavam para sempre e o painel virava decoração após o 1º dia bom.
+  _reconcileHabitos(){ const hoje=this._hoje(); const h=this.state.habitos||{}; if(h._date!==hoje){ this.setState({habitos:{sono:0,agua:0,exercicio:0,pausas:0,alongar:0,sol:0,_date:hoje}}, ()=>this._persistHabitos()); } }
   habInc = (e)=>{ const k=e.currentTarget.dataset.k; const step=parseFloat(e.currentTarget.dataset.step)||1; const max=parseFloat(e.currentTarget.dataset.max)||999;
     this.setState(s=>({habitos:{...s.habitos, [k]:Math.min(max, Math.round(((s.habitos[k]||0)+step)*10)/10)}}), ()=>{ this._persistHabitos(); }); this.flashSync(); };
   habDec = (e)=>{ const k=e.currentTarget.dataset.k; const step=parseFloat(e.currentTarget.dataset.step)||1;
@@ -5405,7 +5413,7 @@ class Component extends DCLogic {
   errRemoveTag = (e)=>{ const t=e.currentTarget.dataset.t; this.setState(s=>({errDraft:{...s.errDraft, tags:(s.errDraft.tags||[]).filter(x=>x!==t)}})); };
   erroToRevisao = (e)=>{ const id=e.currentTarget.dataset.id; const er=this.state.errors.find(x=>x.id===id); if(!er) return;
     const col=this.DISC_FULL_COLOR[er.disc]||'#0f7a57';
-    this.setState(s=>({reviews:[...s.reviews, {id:'r'+Date.now(), disc:er.disc, topic:er.topico||er.enunciado.slice(0,40), color:col, due:0, dueDate:new Date().toISOString().slice(0,10), intervalo:1, facilidade:2.5, repeticoes:0}]})); this._toast('Revisão do erro agendada para hoje ✦'); this.flashSync(); };
+    this.setState(s=>({reviews:[...s.reviews, {id:'r'+Date.now(), disc:er.disc, topic:er.topico||er.enunciado.slice(0,40), color:col, due:0, dueDate:this._hoje(), intervalo:1, facilidade:2.5, repeticoes:0}]})); this._toast('Revisão do erro agendada para hoje ✦'); this.flashSync(); };
 
   // ===== IA no caderno de erros (auto-preencher · explicar · onde focar) =====
   _aiText = async (prompt)=>{ try{ if(window.claude&&window.claude.complete){ const r=await window.claude.complete(prompt); if(r&&(''+r).trim()) return (''+r).trim(); } }catch(_){} return ''; };
@@ -5614,7 +5622,7 @@ class Component extends DCLogic {
   async _fireLocalNotif(n){
     if(this.state.notifPush!==true) return;
     if(!this._notifSupported() || Notification.permission!=='granted') return;
-    const today=new Date().toISOString().slice(0,10);
+    const today=this._hoje();
     let sent={}; try{ sent=JSON.parse(localStorage.getItem('catedra:notifSent')||'{}'); }catch(_){}
     if(sent[n.id]===today) return;                       // no máx. 1 por gatilho por dia
     sent[n.id]=today; try{ localStorage.setItem('catedra:notifSent', JSON.stringify(sent)); }catch(_){}
@@ -5898,7 +5906,7 @@ class Component extends DCLogic {
     const hasRadar = radarTemas.length>0;
     // ===== Dashboards de tempo de estudo =====
     const fmtH = (sec)=>{ const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h>0?`${h}h${String(m).padStart(2,'0')}`:`${m}min`; };
-    const _dashDateKey=(dt)=> new Date(dt).toISOString().slice(0,10);
+    const _dashDateKey=(dt)=> this._ymd(dt);
     const _dashDayLabel=(dt)=> new Date(dt).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');
     const _dashMonthLabel=(dt)=> new Date(dt).toLocaleDateString('pt-BR',{month:'short'}).replace('.','');
     const _dashByDate={};
@@ -6008,7 +6016,7 @@ class Component extends DCLogic {
     const phasePct = isPomo ? Math.round(this.state.timerSeconds/phaseDur*100) : 0;
     // ===== sessões registradas (alimenta horas, meta, desempenho, histórico) =====
     const _sessions = this.state.sessions || [];
-    const _today = new Date().toISOString().slice(0,10);
+    const _today = this._hoje();
     const _weekAgo = Date.now() - 7*864e5;
     // ===== cérebro: tudo derivado das sessões reais =====
     const sessQ=B.totalQ, sessA=B.totalA, sessErr=B.totalE, sessLiq=B.liq;
@@ -6038,7 +6046,7 @@ class Component extends DCLogic {
       if(!ativos.size) [1,2,3,4,5,6].forEach(v=>ativos.add(v));
       const now=new Date(); const monHoje=(now.getDay()===0?7:now.getDay());
       const seg=new Date(now); seg.setDate(now.getDate()-(monHoje-1)); seg.setHours(0,0,0,0);
-      const segKey=seg.toISOString().slice(0,10);
+      const segKey=this._ymd(seg);
       const feitoMin=(this.state.sessions||[]).filter(s=> s.date>=segKey && s.countMeta!==false).reduce((a,s)=>a+(s.min||0),0);
       const faltaMin=Math.max(0, metaAlvoMin - feitoMin);
       let diasRest=0; ativos.forEach(d=>{ if(d>=monHoje) diasRest++; });
@@ -6266,7 +6274,7 @@ class Component extends DCLogic {
     // aviso de fim de dia: ofensiva em risco (após as 20h, sem estudo hoje, com sequência a proteger)
     if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=20){
       const _escN=this.state.escudos||0;
-      _liveNotifs.push({id:'ofensiva-'+new Date().toISOString().slice(0,10), tipo:'meta', icon:'🔥', titulo:'Sua ofensiva de '+B.streak+' dia'+(B.streak>1?'s':'')+' está em risco',
+      _liveNotifs.push({id:'ofensiva-'+this._hoje(), tipo:'meta', icon:'🔥', titulo:'Sua ofensiva de '+B.streak+' dia'+(B.streak>1?'s':'')+' está em risco',
         texto:_escN>0?('Estude hoje — ou um dos seus '+_escN+' escudo(s) 🛡️ será usado automaticamente amanhã.'):'Estude nem que sejam 15 minutos para não perder a sequência (você não tem escudos).', tempo:'hoje', view:'inicio'});
     }
     const notifs = _liveNotifs.map(n=>{ const read=!!_notifRead[n.id]; return {...n, read, dotOp:read?'0':'1', bgC:read?'var(--surface)':'var(--accentSoft)'}; });
@@ -6749,10 +6757,10 @@ class Component extends DCLogic {
     const _errAbertos=_errAll.filter(e=>!e.resolvido).length;
     const _errDom=_errAll.length-_errAbertos;
     const _errDiffAvg=_errAll.length?(_errAll.reduce((a,e)=>a+(e.difficulty||3),0)/_errAll.length):0;
-    const _errStreak=(()=>{ const days=new Set(_errAll.map(e=>{ try{ return new Date(e.ts).toISOString().slice(0,10); }catch(_){ return ''; } }).filter(Boolean));
-      if(!days.size) return 0; let n=0; const d=new Date(); const iso=x=>x.toISOString().slice(0,10);
-      if(!days.has(iso(d))){ d.setUTCDate(d.getUTCDate()-1); if(!days.has(iso(d))) return 0; }
-      while(days.has(iso(d))){ n++; d.setUTCDate(d.getUTCDate()-1); } return n; })();
+    const _errStreak=(()=>{ const days=new Set(_errAll.map(e=>{ try{ return this._ymd(e.ts); }catch(_){ return ''; } }).filter(Boolean));
+      if(!days.size) return 0; let n=0; const d=new Date(); const iso=x=>this._ymd(x);
+      if(!days.has(iso(d))){ d.setDate(d.getDate()-1); if(!days.has(iso(d))) return 0; }
+      while(days.has(iso(d))){ n++; d.setDate(d.getDate()-1); } return n; })();
     const errStats={total:String(_errAll.length), abertos:String(_errAbertos), resolvidos:String(_errDom),
       dominados:String(_errDom), favoritos:String(_errAll.filter(e=>e.favorite).length),
       diffAvg:_errAll.length?_errDiffAvg.toFixed(1):'—', streak:String(_errStreak),
