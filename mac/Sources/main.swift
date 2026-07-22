@@ -1257,15 +1257,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         child.setValue(false, forKey: "drawsBackground")
 
         let panel = NSPanel(contentRect: rect,
-                            styleMask: [.titled, .closable, .utilityWindow, .nonactivatingPanel],
+                            styleMask: [.titled, .closable, .utilityWindow, .nonactivatingPanel, .fullSizeContentView],
                             backing: .buffered, defer: false)
         panel.title = "Cátedra · Foco"
+        // Titlebar transparente + conteúdo sob ela: o card escuro preenche a janela toda e
+        // os semáforos flutuam sobre o gradiente (sem a barra branca que destoava).
+        panel.titlebarAppearsTransparent = true
+        panel.titleVisibility = .hidden
+        panel.appearance = NSAppearance(named: .darkAqua)
         panel.isFloatingPanel = true
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.hidesOnDeactivate = false
         panel.isMovableByWindowBackground = true
-        panel.backgroundColor = NSColor(srgbRed: 0x0d/255.0, green: 0x15/255.0, blue: 0x12/255.0, alpha: 1)
+        panel.backgroundColor = NSColor(srgbRed: 0x0b/255.0, green: 0x0e/255.0, blue: 0x14/255.0, alpha: 1)
         panel.contentView = child
         panel.delegate = self
         if let scr = NSScreen.main {
