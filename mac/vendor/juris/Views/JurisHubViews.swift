@@ -143,7 +143,8 @@ struct RamoDetalheView: View {
             SectionShell(icon: "bookmark.fill",
                          title: filtro.ramo ?? "Disciplina",
                          subtitle: escopoNome.map { "Dentro de \($0)" } ?? "Em todo o acervo",
-                         count: base.count) {
+                         count: base.count,
+                         tintStops: filtro.ramo.map { RamoStyle.stops($0) }) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         HubCard(icon: "square.stack.3d.up", titulo: "Todos os verbetes da disciplina",

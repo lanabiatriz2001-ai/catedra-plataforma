@@ -302,7 +302,7 @@ struct JurisDashboardView: View {
             }
             .buttonStyle(.plain)
             Button { mostrarBaralho = true } label: {
-                atalhoCard("Baralho", "rectangle.stack", Palette.fonteRepetitivo, badge: store.srsDeckCount == 0 ? 0 : nil)
+                atalhoCard("Baralho", "rectangle.stack", Palette.fonteRepetitivo, badge: store.srsDeckCount)
             }
             .buttonStyle(.plain)
             Button { abrirRevisao() } label: { atalhoCard("Cartões (folhear)", "sparkles.rectangle.stack", Palette.fonteTSE) }

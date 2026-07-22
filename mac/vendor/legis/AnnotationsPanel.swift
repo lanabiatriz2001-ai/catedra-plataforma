@@ -83,7 +83,7 @@ private struct AnnotationCard: View {
         let size = annotation.noteFontSize ?? 13
         switch annotation.noteFontFamily {
         case nil, "Sistema": return .system(size: size)
-        case "Sistema (Serifa)": return .system(size: size, design: .default)
+        case "Sistema (Serifa)": return .system(size: size, design: .serif)
         case let family?: return .custom(family, size: size)
         }
     }

@@ -119,9 +119,9 @@ struct RevisaoEspacadaView: View {
             let certo = card.answer?.hasPrefix("Certo") ?? false
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: certo ? "checkmark.seal.fill" : "xmark.seal.fill")
-                    .foregroundStyle(certo ? Palette.fonteSTJ : .red)
+                    .foregroundStyle(certo ? .green : .red)
                 Text(card.answer ?? "").font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(certo ? Palette.fonteSTJ : .red)
+                    .foregroundStyle(certo ? .green : .red)
                     .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
             }
         } else if let a = card.answer {
@@ -194,7 +194,7 @@ struct BaralhoView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Label("Baralho · \(itens.count) cartõe\(itens.count == 1 ? "" : "s")", systemImage: "rectangle.stack")
+                Label("Baralho · \(itens.count) \(itens.count == 1 ? "cartão" : "cartões")", systemImage: "rectangle.stack")
                     .font(.system(size: 14, weight: .bold)).foregroundStyle(Palette.titleInk)
                 Spacer()
                 let due = store.srsDueCount

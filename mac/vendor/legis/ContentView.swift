@@ -40,6 +40,7 @@ struct ContentView: View {
                     openLaw: { path.append(.reader($0)) },
                     openSection: { path.append(.section($0)) },
                     openUpdates: { path.append(.section(.updates)) },
+                    openUpdate: { path.append(.updateDetail($0)) },
                     newCategory: { showNewCategory = true }
                 )
                 .navigationDestination(for: NavRoute.self) { route in
@@ -1071,6 +1072,8 @@ struct CommandPalette: View {
             PaletteAction(label: "Assuntos", icon: "tag") { openSection(.subjects) },
             PaletteAction(label: "Novidades", icon: "sparkles") { openSection(.novidades) },
             PaletteAction(label: "Diário Oficial", icon: "newspaper") { openSection(.dou) },
+            PaletteAction(label: "Checklist de leitura", icon: "checklist") { openSection(.checklist) },
+            PaletteAction(label: "Atualizações", icon: "bell.badge") { openSection(.updates) },
             PaletteAction(label: "Cadastrar nova norma", icon: "plus.circle") { addLaw() },
         ]
         for cat in LawCategory.allCases {
@@ -1089,7 +1092,7 @@ struct CommandPalette: View {
                     Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                     TextField("Ir para norma, matéria ou ação…", text: $query)
                         .textFieldStyle(.plain).font(.system(size: 17)).focused($focused)
-                        .onSubmit { if let first = laws.first { choose { openLaw(first.id) } } }
+                        .onSubmit { if let first = laws.first { choose { openLaw(first.id) } } else if let a = actions.first { choose(a.run) } }
                     Text("esc").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
                         .padding(.horizontal, 6).padding(.vertical, 2)
                         .background(Capsule().fill(AppTheme.hairline.opacity(0.5)))

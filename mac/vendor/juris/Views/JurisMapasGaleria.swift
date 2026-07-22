@@ -68,7 +68,7 @@ struct JurisMapasGaleria: View {
             Image(systemName: "brain.head.profile").font(.system(size: 38, weight: .thin))
                 .foregroundStyle(Palette.accent.opacity(0.7))
             Text("Nenhum mapa registrado ainda").font(Typo.serifTitle(16, .semibold)).foregroundStyle(Palette.titleInk)
-            Text("Abra um verbete e use Analisar → Mapa mental — ele aparece aqui automaticamente.")
+            Text("Abra um verbete e escolha “Mapa mental / fluxograma” no menu de ferramentas do leitor — ele aparece aqui automaticamente.")
                 .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
                 .multilineTextAlignment(.center)
         }

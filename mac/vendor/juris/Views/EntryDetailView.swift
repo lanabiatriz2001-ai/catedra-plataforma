@@ -241,16 +241,8 @@ struct EntryDetailView: View {
     }
 
     private func corRamo(_ tipo: String) -> Color {
-        switch tipo {
-        case "regra": return Palette.fonteSTJ          // verde
-        case "fundamento": return Palette.fonteSTF      // azul
-        case "excecao": return Palette.fonteRG          // roxo
-        case "pegadinha": return Palette.fonteRepetitivo // laranja
-        case "cuidado": return Palette.fonteRepetitivo   // laranja
-        case "vedacao": return .red                      // vermelho
-        case "relacionada": return Palette.fonteTSE      // ciano/teal (destaque neutro)
-        default: return Palette.secondaryInk
-        }
+        // Delega para a fonte única de verdade (RamoNota.cor), evitando divergência.
+        tipo == "" ? Palette.secondaryInk : RamoNota(tipo: tipo, itens: []).cor
     }
 
     private func ramoView(_ r: RamoNota) -> some View {

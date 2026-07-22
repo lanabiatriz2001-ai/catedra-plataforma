@@ -145,6 +145,9 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 24) {
                 barraBusca
                 JurisDashboardView()
+                // Resumo semanal de informativos (IA): o que saiu dos tribunais e o
+                // que disso toca o edital da usuária — ancorado nas novidades reais.
+                ResumoSemanalCard()
                 if let d = destaque { heroCard(d) }
                 if !store.recentEntries.isEmpty {
                     Prateleira(titulo: "Continue de onde parou", simbolo: "clock.arrow.circlepath") {
@@ -187,7 +190,7 @@ struct HomeView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack(spacing: 8) {
                                 FonteBadge(fonte: d.fonteKind)
-                                if let s = d.situacao { SituacaoPill(texto: s) }
+                                if d.situacaoKind != .vigente { SituacaoPill(texto: d.situacao ?? d.situacaoKind.rawValue) }
                             }
                             Text(d.titulo).font(Typo.serifTitle(30, .bold)).foregroundStyle(Palette.titleInk)
                                 .lineLimit(2)

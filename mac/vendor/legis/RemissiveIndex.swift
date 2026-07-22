@@ -49,7 +49,6 @@ enum RemissiveIndex {
     ]
 
     private static func law(named raw: String, in laws: [LawEntry]) -> LawEntry? {
-        let n = raw.lowercased().folding(options: .diacriticInsensitive, locale: nil)
         for nn in namedNorms {
             if let re = try? NSRegularExpression(pattern: "^(?:" + nn.pattern + ")$", options: [.caseInsensitive]),
                re.firstMatch(in: raw, range: NSRange(location: 0, length: (raw as NSString).length)) != nil {
@@ -58,7 +57,6 @@ enum RemissiveIndex {
                     $0.title.lowercased().folding(options: .diacriticInsensitive, locale: nil).contains(nn.needle)
                 }
             }
-            _ = n
         }
         return nil
     }

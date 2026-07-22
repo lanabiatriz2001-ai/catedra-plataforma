@@ -485,6 +485,7 @@ struct LawReaderView: View {
                 } label: {
                     Label("Mais", systemImage: "ellipsis.circle")
                 }
+                .help("Histórico, jurisprudência, monitoramento, mover de matéria e excluir")
             }
 
             Button {
