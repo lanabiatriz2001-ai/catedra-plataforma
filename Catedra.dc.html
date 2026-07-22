@@ -170,10 +170,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
      </div>
     </sc-if>
 
-    <div style="margin-top:auto;background:var(--heroGrad);border-radius:14px;padding:15px;color:#fff;">
+    <div style="margin-top:auto;background:var(--heroGrad);border-radius:14px;padding:16px;color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.28);">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:22px;">🔥</span>
-        <div><div style="font-family:var(--display);font-weight:700;font-size:24px;line-height:1;">{{ sidebarStreak }}</div><div style="font-size:11px;opacity:.85;">dias seguidos</div></div>
+        <div><div style="font-family:var(--display);font-weight:700;font-size:30px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ sidebarStreak }}</div><div style="font-size:11px;opacity:.85;">dias seguidos</div></div>
       </div>
       <div style="display:flex;gap:4px;margin-top:12px;">
         <i style="flex:1;height:5px;border-radius:99px;background:#fff;"></i><i style="flex:1;height:5px;border-radius:99px;background:#fff;"></i><i style="flex:1;height:5px;border-radius:99px;background:#fff;"></i><i style="flex:1;height:5px;border-radius:99px;background:#fff;"></i><i style="flex:1;height:5px;border-radius:99px;background:#fff;"></i><i style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.3);"></i><i style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.3);"></i>
@@ -189,7 +189,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   <!-- ============ MAIN ============ -->
   <main id="ct-main" tabindex="-1" style="flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);">
     <!-- TOPBAR -->
-    <header class="ct-topbar" style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:14px clamp(16px,3vw,34px);background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;">
+    <header class="ct-topbar" style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:14px clamp(16px,3vw,34px);background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 6px 20px rgba(16,24,40,.05);flex-wrap:wrap;">
       <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
         <button onclick="{{ toggleMenu }}" aria-label="Abrir menu" title="Menu" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);flex:none;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"></path></svg></button>
       </sc-if>
@@ -423,15 +423,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </button>
 
         <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:{{ phaseColor }};font-weight:700;">{{ focusPhaseLabel }}</div>
-        <div style="font-family:var(--mono);font-weight:600;color:#fff;font-size:clamp(64px,18vw,150px);line-height:1;margin:10px 0 4px;letter-spacing:-.02em;">{{ sessionDisplay }}</div>
+        <div style="font-family:var(--mono);font-weight:600;color:#fff;font-size:clamp(64px,18vw,150px);line-height:1;margin:10px 0 4px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;">{{ sessionDisplay }}</div>
 
         <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}">
           <div style="width:min(420px,80vw);height:6px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:6px;"><i style="display:block;height:100%;width:{{ phasePct }}%;background:{{ phaseColor }};border-radius:99px;transition:width .9s linear;"></i></div>
-          <div style="font-size:13px;color:rgba(255,255,255,.55);margin-top:14px;">{{ pomoCycles }} ciclos de foco concluídos</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.55);margin-top:14px;"><b style="font-family:var(--mono);font-weight:600;color:rgba(255,255,255,.9);font-variant-numeric:tabular-nums;">{{ pomoCycles }}</b> ciclos de foco concluídos</div>
         </sc-if>
 
         <div style="display:flex;gap:14px;margin-top:38px;">
-          <button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:9px;background:{{ phaseColor }};color:#fff;border:none;border-radius:99px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;">
+          <button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:9px;background:{{ phaseColor }};color:#fff;border:none;border-radius:99px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px -6px rgba(0,0,0,.45);">
             <sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>Pausar</sc-if>
             <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Retomar</sc-if>
           </button>
@@ -444,7 +444,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <sc-if value="{{ focusPaused }}" hint-placeholder-val="{{ false }}">
           <button onclick="{{ finishFocus }}" style="margin-top:16px;display:flex;align-items:center;gap:9px;background:#fff;color:var(--sbg);border:none;border-radius:99px;padding:13px 26px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Encerrar e registrar sessão</button>
         </sc-if>
-        <div style="font-size:12.5px;color:rgba(255,255,255,.4);margin-top:30px;">Tudo o que importa agora é o próximo bloco. Esc para sair.</div>
+        <div style="font-size:12.5px;color:rgba(255,255,255,.4);margin-top:30px;">Tudo o que importa agora é o próximo bloco. <span style="font-family:var(--mono);font-size:11px;border:1px solid rgba(255,255,255,.22);border-radius:6px;padding:1px 6px;color:rgba(255,255,255,.6);">Esc</span> para sair.</div>
       </div>
     </sc-if>
 
@@ -667,7 +667,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:18px;">
         <!-- HERO (redesenhado — comando do dia + números-chave) -->
-        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(24px,3.2vw,38px);color:#fff;position:relative;overflow:hidden;">
+        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(24px,3.2vw,38px);color:#fff;position:relative;overflow:hidden;box-shadow:0 12px 34px rgba(16,24,40,.16),0 3px 8px rgba(16,24,40,.08);">
           <div style="position:absolute;right:-60px;top:-70px;width:300px;height:300px;border-radius:99px;background:rgba(255,255,255,.07);"></div>
           <div style="position:absolute;right:90px;bottom:-110px;width:220px;height:220px;border-radius:99px;background:rgba(255,255,255,.05);"></div>
           <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;">
@@ -685,10 +685,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
           <!-- Números-chave do dia, integrados ao hero -->
           <div style="position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
-            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1;">{{ cicloRestam }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">blocos restantes</div></div>
-            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1;">{{ revHoje }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">revisões hoje</div></div>
-            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1;">{{ metaPct }}%</div><div style="font-size:11px;opacity:.85;margin-top:5px;">meta da semana</div></div>
-            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1;">🔥 {{ sidebarStreak }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">dias seguidos</div></div>
+            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--display);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ cicloRestam }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">blocos restantes</div></div>
+            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--display);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ revHoje }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">revisões hoje</div></div>
+            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--display);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ metaPct }}%</div><div style="font-size:11px;opacity:.85;margin-top:5px;">meta da semana</div></div>
+            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--display);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">🔥 {{ sidebarStreak }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">dias seguidos</div></div>
           </div>
         </div>
 
@@ -823,7 +823,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <sc-for list="{{ statsTiles }}" as="t" hint-placeholder-count="8">
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;">
                 <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--heroGrad);"></div>
-                <div style="font-family:var(--display);font-size:26px;font-weight:700;color:var(--ink);line-height:1;">{{ t.value }}</div>
+                <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em;">{{ t.value }}</div>
                 <div style="font-size:11.5px;color:var(--text3);margin-top:7px;">{{ t.label }}</div>
               </div>
             </sc-for>
@@ -872,7 +872,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div style="font-size:12.5px;color:var(--text3);margin-bottom:16px;">cada registro soma às suas horas, ao desempenho e às revisões</div>
           <sc-if value="{{ hasSessions }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessionsCount }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">sessões</div></div>
+              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;">{{ sessionsCount }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">sessões</div></div>
               <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessTotalH }}h</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">tempo somado</div></div>
               <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessAccOverall }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">bruto</div></div>
               <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:{{ sessLiqColor }};line-height:1;">{{ sessLiqOverall }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">líquido</div></div>
@@ -892,7 +892,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             </div>
           </sc-if>
           <sc-if value="{{ noSessions }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 15px;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 15px;background:var(--accentSoft);border:1px dashed var(--accentRing);border-radius:12px;">
               <span style="font-size:22px;flex:none;">⏱️</span>
               <div style="flex:1;min-width:180px;"><div style="font-size:13px;font-weight:600;color:var(--ink);">Nenhuma sessão registrada ainda</div><div style="font-size:12px;color:var(--text3);margin-top:2px;line-height:1.45;">Registre a primeira para alimentar horas, desempenho e revisões.</div></div>
               <button onclick="{{ openSession }}" style="flex:none;background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:9px 16px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">Registrar primeira sessão</button>
@@ -1037,11 +1037,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 <circle cx="84" cy="84" r="72" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="13"></circle>
                 <circle cx="84" cy="84" r="72" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-dasharray="{{ ringCirc }}" stroke-dashoffset="{{ ringOffset }}" style="transition:stroke-dashoffset .5s ease;"></circle>
               </svg>
-              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font-family:var(--display);font-size:23px;font-weight:700;line-height:1;">{{ cicloPct }}%</span><span style="font-size:9.5px;opacity:.85;letter-spacing:.06em;text-transform:uppercase;margin-top:2px;">do dia</span></div>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font-family:var(--display);font-size:24px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;">{{ cicloPct }}%</span><span style="font-size:9.5px;opacity:.85;letter-spacing:.06em;text-transform:uppercase;margin-top:2px;">do dia</span></div>
             </div>
             <div style="flex:1;min-width:180px;">
               <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:700;">Ciclo de hoje</div>
-              <h2 style="margin:5px 0 0;font-family:var(--display);font-size:24px;font-weight:600;line-height:1.1;">{{ cicloDone }} de {{ cicloTotal }} blocos</h2>
+              <h2 style="margin:5px 0 0;font-family:var(--display);font-size:31px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;">{{ cicloDone }} de {{ cicloTotal }} blocos</h2>
               <div style="font-size:13px;opacity:.9;margin-top:5px;">{{ weekdayLabel }} · marque cada bloco conforme conclui</div>
             </div>
           </div>
@@ -1049,7 +1049,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
         <div style="display:flex;flex-direction:column;gap:10px;">
           <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="5">
-            <button data-i="{{ b.i }}" onclick="{{ toggleBlock }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-left:4px solid {{ b.kindColor }};border-radius:var(--radius);padding:16px 18px;font-family:inherit;transition:all .15s;">
+            <button data-i="{{ b.i }}" onclick="{{ toggleBlock }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-left:4px solid {{ b.kindColor }};border-radius:var(--radius);padding:16px 18px;font-family:inherit;box-shadow:0 1px 2px rgba(16,24,40,.04),0 5px 14px rgba(16,24,40,.05);transition:all .15s;">
               <span style="width:26px;height:26px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ b.checkBorder }};background:{{ b.checkBg }};color:#fff;">
                 <sc-if value="{{ b.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
               </span>
@@ -1081,7 +1081,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
 
         <!-- COMO MONTAR O CICLO (4 opções) -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 22px rgba(16,24,40,.06);">
           <div style="font-weight:600;color:var(--ink);font-size:15px;">Como montar seu ciclo</div>
           <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:16px;">escolha como gerar os blocos — você pode ajustar manualmente depois</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
@@ -1186,7 +1186,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <sc-for list="{{ edital }}" as="d" hint-placeholder-count="6">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
               <button data-i="{{ d.i }}" onclick="{{ toggleEdital }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;padding:16px 18px;font-family:inherit;">
-                <span style="width:10px;height:10px;border-radius:3px;background:{{ d.color }};flex:none;"></span>
+                <span style="width:4px;height:34px;border-radius:99px;background:{{ d.color }};flex:none;"></span>
                 <div style="flex:1;min-width:0;">
                   <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;"><span style="font-weight:600;font-size:14.5px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">{{ d.disc }}<sc-if value="{{ d.hasMeta }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ d.metaChip }}</span></sc-if><sc-if value="{{ d.hasDom }}" hint-placeholder-val="{{ false }}"><span title="Domínio médio calculado do seu desempenho real (não do checklist)" style="font-family:var(--mono);font-size:10.5px;font-weight:600;color:{{ d.domMedioColor }};background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ d.domMedioStr }}</span></sc-if></span><span style="font-family:var(--mono);font-size:12.5px;color:var(--text2);flex:none;">{{ d.done }}/{{ d.tot }} · {{ d.pct }}%</span></div>
                   <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:9px;"><i style="display:block;height:100%;width:{{ d.pct }}%;background:{{ d.color }};border-radius:99px;transition:width .4s;"></i></div>
@@ -1228,9 +1228,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:11.5px;color:var(--text3);">Conclusão do edital</div><div style="font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);margin-top:6px;">{{ edPct }}<span style="font-size:15px;color:var(--text3);font-family:var(--body);">%</span></div></div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:11.5px;color:var(--text3);">Tópicos concluídos</div><div style="font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);margin-top:6px;">{{ edDone }}<span style="font-size:15px;color:var(--text3);font-family:var(--body);">/{{ edTotal }}</span></div></div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:11.5px;color:var(--text3);">Disciplinas em dia</div><div style="font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);margin-top:6px;">{{ edAlta }}<span style="font-size:15px;color:var(--text3);font-family:var(--body);">/6</span></div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:11.5px;color:var(--text3);">Conclusão do edital</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edPct }}<span style="font-size:15px;color:var(--text3);font-family:var(--body);">%</span></div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 10px 26px rgba(16,24,40,.07);"><div style="font-size:11.5px;color:var(--text3);">Tópicos concluídos</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edDone }}<span style="font-size:15px;color:var(--text3);font-family:var(--body);">/{{ edTotal }}</span></div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Disciplinas em dia</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edAlta }}<span style="font-size:15px;color:var(--text3);font-family:var(--body);">/6</span></div></div>
         </div>
 
         <!-- ================= CADASTRO / IMPORTAÇÃO (no final) ================= -->
@@ -1242,12 +1242,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
           <div style="margin-bottom:14px;">
-            <span style="font-weight:600;color:var(--ink);font-size:15px;">Importar edital</span>
+            <span style="font-family:var(--display);font-weight:600;color:var(--ink);font-size:16px;letter-spacing:-.01em;">Importar edital</span>
             <div style="font-size:12px;color:var(--text3);margin-top:2px;">cole o conteúdo programático — reconhecemos disciplinas, tópicos, subtópicos e o nº de questões automaticamente</div>
           </div>
           <textarea oninput="{{ edSetRaw }}" rows="7" placeholder="Cole aqui o conteúdo programático. Ex.:&#10;DIREITO ADMINISTRATIVO&#10;1 Atos administrativos&#10;2 Licitações e contratos&#10;DIREITO CONSTITUCIONAL&#10;1 Direitos fundamentais" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:11px;padding:13px;font-size:13px;color:var(--ink);font-family:var(--mono);line-height:1.6;resize:vertical;"></textarea>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-            <button onclick="{{ edStructureAI }}" disabled="{{ edAiBusy }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">{{ edAiLabel }}</button>
+            <button onclick="{{ edStructureAI }}" disabled="{{ edAiBusy }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;box-shadow:0 6px 16px -6px var(--accent);">{{ edAiLabel }}</button>
             <button onclick="{{ edRecognize }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Reconhecer sem IA</button>
           </div>
 
@@ -1305,7 +1305,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
        <div style="display:flex;flex-direction:column;gap:18px;">
         <!-- chamada: revisar agora -->
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:20px 22px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:14px;"><span style="font-size:26px;">🔁</span><div><div style="font-family:var(--display);font-weight:600;font-size:18px;">Revisar agora</div><div style="font-size:12.5px;opacity:.9;margin-top:2px;">sessão guiada item a item — você avalia e a Cátedra reagenda por repetição espaçada (SM-2)</div></div></div>
+          <div style="display:flex;align-items:center;gap:14px;"><span style="font-size:26px;">🔁</span><div><div style="font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.01em;">Revisar agora</div><div style="font-size:12.5px;opacity:.9;margin-top:2px;">sessão guiada item a item — você avalia e a Cátedra reagenda por repetição espaçada (SM-2)</div></div></div>
           <button onclick="{{ startRevSession }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:10px;padding:12px 20px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Começar ({{ revPend }})</button>
         </div>
         <!-- AGENDA ÚNICA: revisões espaçadas dos apps nativos (lei seca + jurisprudência),
@@ -1329,7 +1329,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;">
             <span style="width:9px;height:9px;border-radius:99px;background:#c0392f;"></span>
             <h3 style="margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);font-weight:700;">Atrasadas</h3>
-            <span style="font-family:var(--mono);font-size:12px;color:#c0392f;font-weight:600;">{{ revOverdue.length }}</span>
+            <span style="font-family:var(--mono);font-size:12px;color:#c0392f;font-weight:700;background:var(--surface2);padding:2px 9px;border-radius:99px;font-variant-numeric:tabular-nums;">{{ revOverdue.length }}</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ revOverdue }}" as="r" hint-placeholder-count="2">
@@ -1337,7 +1337,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:140px;"><div style="font-weight:600;font-size:14.5px;color:var(--ink);">{{ r.topic }}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">{{ r.disc }}</div></div>
                 <span style="font-size:11.5px;color:#c0392f;font-weight:600;background:var(--surface2);padding:4px 10px;border-radius:99px;">vencida {{ r.dueLabel }}</span>
-                <span style="font-family:var(--mono);font-size:11.5px;color:var(--text2);">int. {{ r.interval }} · ef {{ r.ef }}</span>
+                <span style="font-family:var(--mono);font-size:11.5px;color:var(--text2);font-variant-numeric:tabular-nums;letter-spacing:.02em;">int. {{ r.interval }} · ef {{ r.ef }}</span>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                   <span style="font-size:11px;color:var(--text3);margin-right:2px;">Como foi?</span>
                   <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:#c0392f;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
@@ -1356,7 +1356,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;">
             <span style="width:9px;height:9px;border-radius:99px;background:var(--accent);"></span>
             <h3 style="margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);font-weight:700;">Para hoje</h3>
-            <span style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600;">{{ revToday.length }}</span>
+            <span style="font-family:var(--mono);font-size:12px;color:var(--accentD);font-weight:700;background:var(--accentSoft);padding:2px 9px;border-radius:99px;font-variant-numeric:tabular-nums;">{{ revToday.length }}</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ revToday }}" as="r" hint-placeholder-count="3">
@@ -1375,7 +1375,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 </div>
               </div>
             </sc-for>
-            <sc-if value="{{ revTodayEmpty }}" hint-placeholder-val="{{ false }}"><div style="background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:18px;text-align:center;font-size:13px;color:var(--text3);">Tudo revisado por hoje. ✅</div></sc-if>
+            <sc-if value="{{ revTodayEmpty }}" hint-placeholder-val="{{ false }}"><div style="background:var(--accentSoft);border:1px dashed var(--accentRing);border-radius:var(--radius);padding:24px 18px;text-align:center;font-size:13.5px;color:var(--accentD);font-weight:600;">Tudo revisado por hoje. ✅</div></sc-if>
           </div>
         </div>
         <!-- Próximas -->
@@ -1387,7 +1387,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ revUpcoming }}" as="r" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;opacity:.92;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;">
                 <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:140px;"><div style="font-weight:600;font-size:14px;color:var(--ink);">{{ r.topic }}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">{{ r.disc }}</div></div>
                 <span style="font-size:11.5px;color:var(--text3);font-weight:500;">{{ r.dueLabel }}</span>
@@ -1487,10 +1487,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <!-- resultado da correção -->
         <sc-if value="{{ redHasResult }}" hint-placeholder-val="{{ false }}">
          <div style="display:flex;flex-direction:column;gap:16px;">
-          <div style="display:flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 30px rgba(16,24,40,.08);">
             <div style="text-align:center;flex:none;">
-              <div style="font-family:var(--display);font-size:48px;font-weight:700;color:{{ redResult.notaColor }};line-height:1;">{{ redResult.notaStr }}</div>
-              <div style="font-size:11.5px;color:var(--text3);margin-top:4px;">nota / 10</div>
+              <div style="font-family:var(--display);font-size:60px;font-weight:700;color:{{ redResult.notaColor }};line-height:.95;letter-spacing:-.03em;font-variant-numeric:tabular-nums;">{{ redResult.notaStr }}</div>
+              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--text3);margin-top:6px;">nota / 10</div>
             </div>
             <div style="flex:1;min-width:220px;">
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Raio-X da resposta</span><span style="{{ redConceitoStyle }}">{{ redConceito }}</span></div>
@@ -1534,7 +1534,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <sc-for list="{{ redResult.criterios }}" as="c" hint-placeholder-count="4">
               <div style="margin-bottom:16px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:12px;"><span style="font-size:13px;color:var(--ink);font-weight:500;">{{ c.nome }}</span><span style="font-size:12.5px;color:var(--text2);font-family:var(--mono);font-weight:700;">{{ c.nota }}/10</span></div>
-                <div style="height:9px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ c.pct }}%;background:var(--accent);border-radius:99px;"></i></div>
+                <div style="height:9px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ c.pct }}%;background:linear-gradient(90deg,var(--accentD),var(--accent));border-radius:99px;"></i></div>
                 <p style="margin:6px 0 0;font-size:12px;color:var(--text3);line-height:1.5;">{{ c.comentario }}</p>
               </div>
             </sc-for>
@@ -1570,7 +1570,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 </div>
               </div>
             </sc-if>
-            <button onclick="{{ redReset }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:12px 24px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">Escrever outra redação</button>
+            <button onclick="{{ redReset }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:13px 26px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px -6px var(--accent);">Escrever outra redação</button>
           </div>
          </div>
         </sc-if>
@@ -1581,7 +1581,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       <!-- ================= SIMULADOS ================= -->
       <sc-if value="{{ isSim }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
-        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px;color:#fff;">
+        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px;color:#fff;box-shadow:0 12px 34px rgba(16,24,40,.18);">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
             <div><div style="font-family:var(--display);font-weight:600;font-size:18px;">Modo prova</div><div style="font-size:12.5px;opacity:.9;margin-top:3px;max-width:380px;line-height:1.5;">contagem regressiva em tela cheia, sem distração e sem questões na tela — no clima da prova real. Ao encerrar, registra o desempenho.</div></div>
             <button onclick="{{ startProva }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:10px;padding:12px 20px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar ({{ provaDurLabel }})</button>
@@ -1635,20 +1635,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <div style="font-size:12px;color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--accent);font-weight:700;">i</span><span>Some a nota de cada questão discursiva e peça jurídica. A pontuação total define o percentual de aproveitamento.</span></div>
             </div>
           </sc-if>
-          <button onclick="{{ saveSimulado }}" style="margin-top:18px;width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:11px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Registrar simulado no histórico</button>
+          <button onclick="{{ saveSimulado }}" style="margin-top:18px;width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:12px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;box-shadow:0 6px 16px rgba(16,24,40,.14);">Registrar simulado no histórico</button>
           <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;">soma às suas horas, ao desempenho e aparece nos "Simulados registrados"</div>
         </div>
 
         <!-- raio-x ao vivo -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Raio-X do simulado</span><span style="font-size:11px;color:var(--accent);font-weight:600;">ao vivo</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Raio-X do simulado</span><span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--accentD);font-weight:700;background:var(--accentSoft);border:1px solid var(--accentRing);padding:3px 9px;border-radius:99px;"><span style="width:6px;height:6px;border-radius:99px;background:var(--accent);"></span>ao vivo</span></div>
           <div style="display:flex;align-items:center;gap:20px;">
             <div style="position:relative;flex:none;width:108px;height:108px;">
               <svg width="108" height="108" viewBox="0 0 168 168" style="transform:rotate(-90deg);">
                 <circle cx="84" cy="84" r="72" fill="none" stroke="var(--surface2)" stroke-width="15"></circle>
                 <circle cx="84" cy="84" r="72" fill="none" stroke="{{ levelColor }}" stroke-width="15" stroke-linecap="round" stroke-dasharray="{{ ringCirc }}" stroke-dashoffset="{{ scoreOffset }}" style="transition:stroke-dashoffset .4s,stroke .3s;"></circle>
               </svg>
-              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);">{{ score }}%</span><span style="font-size:10px;color:var(--text3);">{{ scoreCaption }}</span></div>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font-family:var(--display);font-size:26px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ score }}%</span><span style="font-size:10px;color:var(--text3);">{{ scoreCaption }}</span></div>
             </div>
             <div style="flex:1;min-width:0;">
               <div style="font-weight:600;font-size:15px;color:var(--ink);">{{ diagTitle }}</div>
@@ -1738,7 +1738,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;">
                 <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--heroGrad);"></div>
                 <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);font-weight:600;">{{ k.label }}</div>
-                <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;margin-top:8px;">{{ k.value }}</div>
+                <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;margin-top:8px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ k.value }}</div>
                 <div style="font-size:11.5px;color:var(--text3);margin-top:6px;">{{ k.sub }}</div>
               </div>
             </sc-for>
@@ -2114,7 +2114,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 <sc-if value="{{ c.empty }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
                 <sc-if value="{{ c.notEmpty }}" hint-placeholder-val="{{ true }}">
                   <button data-d="{{ c.day }}" onclick="{{ calPick }}" title="Selecionar dia" class="ct-calcell" style="border-radius:11px;padding:8px 9px;display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left;font-family:inherit;background:{{ c.cellBg }};border:1px solid {{ c.cellBorder }};">
-                    <span style="font-size:15px;font-weight:600;color:{{ c.dayColor }};">{{ c.day }}</span>
+                    <span style="font-family:var(--display);font-size:16px;font-weight:700;color:{{ c.dayColor }};font-variant-numeric:tabular-nums;">{{ c.day }}</span>
                     <span style="display:flex;flex-direction:column;gap:3px;width:100%;overflow:hidden;"><sc-for list="{{ c.evs }}" as="e" hint-placeholder-count="0"><span class="ct-calev" style="color:{{ c.dayColor }};"><span style="width:7px;height:7px;border-radius:99px;background:{{ e.color }};flex:none;"></span><span class="ct-callbl">{{ e.titulo }}</span></span></sc-for></span>
                     <sc-if value="{{ c.hasMore }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;color:{{ c.dayColor }};opacity:.75;margin-top:auto;">{{ c.more }}</span></sc-if>
                   </button>
@@ -2157,7 +2157,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                   <button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
                 </div>
               </sc-for>
-              <sc-if value="{{ calProxEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;font-size:13px;color:var(--text3);padding:18px;">Sem eventos neste mês/filtro. Inclua um acima.</div></sc-if>
+              <sc-if value="{{ calProxEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:28px 18px;color:var(--text3);"><div style="font-size:28px;line-height:1;">🗓️</div><div style="font-size:13px;font-weight:600;color:var(--text2);margin-top:8px;">Nada agendado ainda</div><div style="font-size:12px;margin-top:2px;">Inclua uma tarefa ou revisão no formulário acima.</div></div></sc-if>
             </div>
           </div>
         </div>
@@ -2172,7 +2172,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <sc-for list="{{ bibStats }}" as="s" hint-placeholder-count="4">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:12px;">
               <span style="font-size:22px;flex:none;">{{ s.icon }}</span>
-              <div><div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);line-height:1;">{{ s.n }}</div><div style="font-size:11px;color:var(--text3);margin-top:3px;">{{ s.tipo }}</div></div>
+              <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;">{{ s.n }}</div><div style="font-size:11px;color:var(--text3);margin-top:3px;">{{ s.tipo }}</div></div>
             </div>
           </sc-for>
         </div>
@@ -2235,7 +2235,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <div style="display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:var(--surface2);">
                 <span style="width:9px;height:9px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ r.short }}</div><div style="font-size:11.5px;color:var(--text3);">{{ r.questoes }} questões na prova · líquido {{ r.liqStr }}</div></div>
-                <div style="text-align:right;flex:none;"><div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);">{{ r.ptsStr }}</div><div style="font-size:10.5px;color:var(--text3);">{{ r.ganhoStr }}</div></div>
+                <div style="text-align:right;flex:none;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--accent);line-height:1;font-variant-numeric:tabular-nums;">{{ r.ptsStr }}</div><div style="font-size:10.5px;color:var(--text3);">{{ r.ganhoStr }}</div></div>
               </div>
             </sc-for>
           </div>
@@ -2249,7 +2249,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <span style="width:9px;height:9px;border-radius:99px;background:{{ t.color }};flex:none;"></span>
             <div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ t.topic }}</div><div style="font-size:11.5px;color:var(--text3);">{{ t.disc }} · {{ t.metaInfo }}</div></div>
             <div style="width:110px;height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;flex:none;"><i style="display:block;height:100%;width:{{ t.barW }}%;background:{{ t.levelColor }};border-radius:99px;"></i></div>
-            <span style="font-family:var(--mono);font-size:12.5px;color:var(--ink);font-weight:600;width:38px;text-align:right;">{{ t.dom }}%</span>
+            <span style="font-family:var(--display);font-size:15px;color:var(--ink);font-weight:700;width:42px;text-align:right;font-variant-numeric:tabular-nums;">{{ t.dom }}%</span>
             <span style="font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:99px;color:#fff;background:{{ t.levelColor }};flex:none;width:82px;text-align:center;">{{ t.level }}</span>
           </div>
         </sc-for>
@@ -2269,7 +2269,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </sc-if>
         <!-- registrar erro -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Registrar um erro</div>
+          <div style="font-family:var(--display);font-weight:700;color:var(--ink);font-size:17px;margin-bottom:5px;letter-spacing:-.01em;">Registrar um erro</div>
           <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">anote a questão que você errou e, principalmente, o <b>motivo</b> — é o que revela seu padrão de erro</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ errDraftDiscSelVal }}" onchange="{{ onErrDraftDisc }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><sc-for list="{{ errDraftDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ errDraftDiscCustom }}">Outra…</option></select>
@@ -2298,7 +2298,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
           </sc-if>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px;">
-            <button onclick="{{ addErro }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:11px 20px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;">Adicionar ao caderno</button>
+            <button onclick="{{ addErro }}" style="background:linear-gradient(135deg,var(--accent),var(--accentD));color:var(--onAccent);border:none;border-radius:10px;padding:11px 20px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(16,24,40,.12);">Adicionar ao caderno</button>
             <button onclick="{{ errAutofill }}" title="A IA sugere disciplina, tópico, motivo, gabarito e tags a partir do enunciado" style="background:var(--surface2);color:var(--accentD);border:1px solid var(--accentRing);border-radius:10px;padding:11px 16px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">{{ errAutofillLabel }}</button>
             <button onclick="{{ errToggleDraftFav }}" title="Marcar como favorito" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-weight:600;font-size:12.5px;color:var(--text2);cursor:pointer;font-family:inherit;">{{ errDraftFavMark }}</button>
             <button onclick="{{ errToggleMais }}" style="background:transparent;border:none;color:var(--accentD);border-radius:10px;padding:11px 8px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;margin-left:auto;">{{ errMaisLabel }}</button>
@@ -2332,7 +2332,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
         <!-- estatísticas: tiles -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><div style="font-size:11px;color:var(--text3);">Erros no caderno</div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);margin-top:5px;">{{ errStats.total }}</div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 20px rgba(16,24,40,.06);"><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Erros no caderno</div><div style="font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ errStats.total }}</div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid #c0392f;"><div style="font-size:11px;color:var(--text3);">Em aberto</div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);margin-top:5px;">{{ errStats.abertos }}</div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid #0f9d6b;"><div style="font-size:11px;color:var(--text3);">Dominados</div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);margin-top:5px;">{{ errStats.dominados }}</div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><div style="font-size:11px;color:var(--text3);">Taxa de domínio</div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);margin-top:5px;">{{ errStats.domPct }}</div></div>
@@ -2354,7 +2354,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
             <div style="font-weight:600;color:var(--ink);font-size:13.5px;margin-bottom:14px;">Evolução (8 semanas)</div>
             <div style="display:flex;align-items:flex-end;gap:6px;">
-              <sc-for list="{{ errChartWeek }}" as="w" hint-placeholder-count="8"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;"><div style="width:100%;height:78px;display:flex;align-items:flex-end;"><div style="width:100%;max-width:24px;margin:0 auto;height:{{ w.h }}%;background:var(--accent);border-radius:4px 4px 0 0;min-height:3px;"></div></div><span style="font-size:9px;color:var(--text3);font-family:var(--mono);">{{ w.label }}</span></div></sc-for>
+              <sc-for list="{{ errChartWeek }}" as="w" hint-placeholder-count="8"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;"><div style="width:100%;height:78px;display:flex;align-items:flex-end;"><div style="width:100%;max-width:24px;margin:0 auto;height:{{ w.h }}%;background:linear-gradient(180deg,var(--accent),var(--accentD));border-radius:5px 5px 0 0;min-height:3px;"></div></div><span style="font-size:9px;color:var(--text3);font-family:var(--mono);">{{ w.label }}</span></div></sc-for>
             </div>
           </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
@@ -2400,7 +2400,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <sc-for list="{{ errFiltMotivoOpts }}" as="m" hint-placeholder-count="9"><button data-k="motivo" data-v="{{ m.k }}" onclick="{{ setErrFilt }}" style="{{ m.style }}">{{ m.label }}</button></sc-for>
           </div>
           <sc-if value="{{ errVazio }}" hint-placeholder-val="{{ true }}">
-            <div style="padding:26px 16px;text-align:center;background:var(--surface2);border:1px dashed var(--border);border-radius:12px;color:var(--text3);font-size:13px;line-height:1.5;">Seu caderno está vazio. Cada questão que você erra e registra aqui vira material de revisão dirigido ao seu ponto fraco.</div>
+            <div style="padding:36px 20px;text-align:center;background:var(--surface2);border:1px dashed var(--border);border-radius:14px;"><div style="font-size:34px;line-height:1;margin-bottom:10px;">📓</div><div style="font-family:var(--display);font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px;">Seu caderno está vazio</div><div style="color:var(--text3);font-size:13px;line-height:1.5;max-width:360px;margin:0 auto;">Cada questão que você erra e registra aqui vira material de revisão dirigido ao seu ponto fraco.</div></div>
           </sc-if>
           <sc-if value="{{ errFiltVazio }}" hint-placeholder-val="{{ false }}">
             <div style="padding:20px 16px;text-align:center;color:var(--text3);font-size:13px;">Nenhum erro com esse filtro.</div>
@@ -2473,7 +2473,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
        <div style="display:flex;flex-direction:column;gap:16px;">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
-            <div style="width:52px;height:52px;border-radius:99px;background:var(--heroGrad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:700;font-size:22px;flex:none;">{{ userInitial }}</div>
+            <div style="width:52px;height:52px;border-radius:99px;background:var(--heroGrad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:700;font-size:22px;flex:none;box-shadow:0 6px 18px rgba(0,0,0,.22);">{{ userInitial }}</div>
             <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:16px;color:var(--ink);">{{ userName }}</div><div style="font-size:12.5px;color:var(--text3);">{{ userObjetivo }} · dados locais</div></div>
             <button onclick="{{ logout }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 15px;font-size:13px;color:#c0392f;cursor:pointer;font-family:inherit;font-weight:600;">Sair</button>
           </div>
@@ -2496,7 +2496,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <h2 style="margin:16px 0 8px;font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,38px);line-height:1.05;max-width:760px;">Ajuste como a plataforma deve orientar seu estudo.</h2>
           <p style="margin:0 0 22px;font-size:13.5px;line-height:1.6;opacity:.82;max-width:680px;">Estas preferências controlam a intensidade dos alertas, o critério do Foco do dia, o comportamento do modo foco, os conselhos de relatório/estatísticas e a forma como a rotina deve ser cobrada.</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.16);border-radius:14px;overflow:hidden;">
-            <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.nivel }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">nível do aluno</div></div>
+            <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;">{{ orHero.nivel }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">nível do aluno</div></div>
             <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.tempo }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">tempo médio/dia</div></div>
             <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.cobranca }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">cobrança</div></div>
             <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.estrategia }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">estratégia</div></div>
@@ -2508,7 +2508,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <!-- SAVE BAR -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
           <span style="font-size:13px;color:var(--text2);">Estas preferências refletem em todo o app — foco do dia, meta semanal, alertas, objetivo/banca e relatórios. As mudanças valem na hora.</span>
-          <button onclick="{{ saveOrient }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:13px 26px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;flex:none;">{{ orientSaveLabel }}</button>
+          <button onclick="{{ saveOrient }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:13px 26px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;flex:none;box-shadow:0 8px 20px -6px var(--accentRing);letter-spacing:.01em;">{{ orientSaveLabel }}</button>
         </div>
 
         <!-- PERFIL + COBRANÇA -->
@@ -2642,7 +2642,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
         <!-- PLANEJAMENTO (tempo por peso × domínio × disponibilidade) -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Planejamento da semana</span><span style="font-family:var(--mono);font-weight:600;color:var(--accent);font-size:16px;">{{ planHoras }}h</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Planejamento da semana</span><span style="font-family:var(--display);font-weight:700;color:var(--accent);font-size:27px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ planHoras }}h</span></div>
           <div style="font-size:12px;color:var(--text3);margin:0 0 14px;">o tempo é dividido por <b style="color:var(--ink);">peso no edital × (100 − seu domínio)</b> — quem vale mais e você sabe menos, recebe mais tempo</div>
           <input type="range" min="6" max="60" step="1" value="{{ planHoras }}" oninput="{{ setPlanHoras }}" style="width:100%;accent-color:var(--accent);cursor:pointer;">
           <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text3);margin:3px 0 18px;"><span>6h</span><span>60h</span></div>
@@ -2658,7 +2658,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
 
         <!-- CONSELHO PERSONALIZADO -->
-        <div style="background:var(--accentSoft);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+        <div style="background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:18px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Conselho personalizado atual</span><span style="font-size:12px;color:var(--text3);">baseado nos ajustes + dados</span></div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ orConselhos }}" as="c" hint-placeholder-count="4">
@@ -4494,44 +4494,68 @@ class Component extends DCLogic {
     const w=this._pipWin; if(!w || w.closed) return;
     const v=this._pipVals();
     const $=(id)=>w.document.getElementById(id);
-    const time=$('ct-pip-time'), phase=$('ct-pip-phase'), state=$('ct-pip-state'), bar=$('ct-pip-bar'), toggle=$('ct-pip-toggle');
+    const time=$('ct-pip-time'), phase=$('ct-pip-phase'), state=$('ct-pip-state'), bar=$('ct-pip-bar'), toggle=$('ct-pip-toggle'), track=$('ct-pip-track'), status=$('ct-pip-status');
     if(time) time.textContent=v.disp;
     if(phase){ phase.textContent=v.phaseText; phase.style.color=v.color; }
     if(state) state.textContent=v.running?'Rodando':'Pausado';
-    if(bar){ bar.style.width=Math.round(v.pct*100)+'%'; bar.style.background=v.color; bar.style.opacity=v.isPomo?'1':'0'; }
+    if(status) status.setAttribute('data-on', v.running?'1':'0');
+    if(track) track.style.display=v.isPomo?'block':'none';   // sessão livre não tem duração: sem barra vazia
+    if(bar){ bar.style.width=Math.round(v.pct*100)+'%'; bar.style.background=v.color; }
     if(toggle){ toggle.textContent=v.running?'Pausar':'Retomar';
       // mantém o botão na COR DA PLATAFORMA mesmo se ela mudar com o PiP aberto
-      const acc=this._accentHex(); toggle.style.background=acc; toggle.style.borderColor=acc; }
+      const acc=this._accentHex(); toggle.style.background=acc; toggle.style.boxShadow='0 6px 18px '+this._hexRgba(acc,.42); }
   }
   async _openDocPiP(){
-    const w=await window.documentPictureInPicture.requestWindow({width:360,height:250});
+    const w=await window.documentPictureInPicture.requestWindow({width:380,height:272});
     this._pipWin=w;
     w.document.title='Cátedra · Foco';
     // Cores derivadas da COR DA PLATAFORMA (accent) — a janela do PiP não herda as CSS vars.
     const acc=this._accentHex();
-    const pipBg=this.mixDark(acc,0.90), pipBg2=this.mixDark(acc,0.95), pipGlow=this._hexRgba(acc,.34);
+    const pipBg=this.mixDark(acc,0.92), pipBg2=this.mixDark(acc,0.975);
+    const glow=this._hexRgba(acc,.30), accLine=this._hexRgba(acc,.36), accShadow=this._hexRgba(acc,.42);
     w.document.body.innerHTML=`
       <style>
-        *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:${pipBg};color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif}
-        .wrap{height:100%;display:flex;flex-direction:column;justify-content:center;padding:20px 22px;background:radial-gradient(circle at 20% 12%,${pipGlow},transparent 34%),linear-gradient(135deg,${pipBg},${pipBg2})}
-        .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;font-size:12px;color:rgba(255,255,255,.58);font-weight:650;letter-spacing:.12em;text-transform:uppercase}
-        .phase{font-size:13px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
-        .time{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:62px;line-height:.95;font-weight:800;letter-spacing:-.06em;text-align:center;margin:7px 0 14px;white-space:nowrap}
-        .track{height:6px;background:rgba(255,255,255,.13);border-radius:99px;overflow:hidden;margin:0 0 18px}
-        .bar{height:100%;width:0%;border-radius:99px;transition:width .4s linear,background .2s}
-        .actions{display:flex;gap:8px}
-        button{flex:1;border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.08);color:#fff;font:700 13px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer}
-        button.primary{background:${acc};border-color:${acc};color:#fff}
+        *{box-sizing:border-box}
+        html,body{margin:0;width:100%;height:100%;overflow:hidden;background:${pipBg};color:#fff;
+          font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased;cursor:default;user-select:none}
+        .wrap{position:relative;height:100%;display:flex;flex-direction:column;padding:32px 22px 20px;
+          background:radial-gradient(120% 95% at 16% -12%, ${glow}, transparent 55%), linear-gradient(158deg, ${pipBg} 0%, ${pipBg2} 100%);
+          box-shadow:inset 0 0 0 1px rgba(255,255,255,.05), inset 0 1px 0 rgba(255,255,255,.08)}
+        .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;height:16px}
+        .mark{font-size:10.5px;font-weight:800;letter-spacing:.26em;color:rgba(255,255,255,.4)}
+        .status{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+        .dot{width:6px;height:6px;border-radius:99px;background:#8b96a5;flex:none}
+        .status[data-on="1"] .dot{background:${acc};animation:pulse 1.9s ease-out infinite}
+        @keyframes pulse{0%{box-shadow:0 0 0 0 ${accLine}}70%{box-shadow:0 0 0 7px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+        .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+        .phase{font-size:11px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;color:${acc};text-align:center}
+        .time{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;
+          font-size:64px;line-height:1;font-weight:800;letter-spacing:-.045em;text-align:center;margin-top:7px;white-space:nowrap;text-shadow:0 2px 34px ${glow}}
+        .track{width:100%;height:5px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-top:18px}
+        .bar{height:100%;width:0%;border-radius:99px;transition:width .5s linear, background .3s;box-shadow:0 0 12px ${accLine}}
+        .actions{display:flex;gap:8px;margin-top:16px}
+        button{border:none;border-radius:13px;cursor:pointer;font:inherit;color:#fff;transition:transform .08s ease, filter .2s, background .2s}
+        button:active{transform:scale(.96)}
+        .primary{flex:1;height:42px;background:${acc};font-size:14px;font-weight:750;letter-spacing:.01em;box-shadow:0 6px 18px ${accShadow}}
+        .primary:hover{filter:brightness(1.08)}
+        .ghost{width:46px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.78)}
+        .ghost:hover{background:rgba(255,255,255,.14);color:#fff}
+        .ghost svg{width:17px;height:17px}
       </style>
       <div class="wrap">
-        <div class="brand"><span>Cátedra</span><span id="ct-pip-state">Rodando</span></div>
-        <div id="ct-pip-phase" class="phase">Foco</div>
-        <div id="ct-pip-time" class="time">00:00</div>
-        <div class="track"><div id="ct-pip-bar" class="bar"></div></div>
+        <div class="brand">
+          <span class="mark">CÁTEDRA</span>
+          <span class="status" id="ct-pip-status" data-on="1"><i class="dot"></i><span id="ct-pip-state">Rodando</span></span>
+        </div>
+        <div class="center">
+          <div id="ct-pip-phase" class="phase">Foco</div>
+          <div id="ct-pip-time" class="time">00:00</div>
+          <div class="track" id="ct-pip-track"><div id="ct-pip-bar" class="bar"></div></div>
+        </div>
         <div class="actions">
           <button id="ct-pip-toggle" class="primary">Pausar</button>
-          <button id="ct-pip-reset">Zerar</button>
-          <button id="ct-pip-open">Abrir</button>
+          <button id="ct-pip-reset" class="ghost" title="Zerar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4h4"></path></svg></button>
+          <button id="ct-pip-open" class="ghost" title="Abrir no Cátedra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></button>
         </div>
       </div>`;
     w.document.getElementById('ct-pip-toggle').addEventListener('click', ()=>this.toggleTimer());
