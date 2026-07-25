@@ -1,0 +1,287 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CátedraJURIS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,-apple-system,'Segoe UI',Roboto,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 26px 90px}
+.head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex:none;box-shadow:0 6px 16px -4px var(--accent,#0f7a57)}
+.head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.head p{font-size:12px;color:var(--text3,#7a7368);margin-top:3px}
+.search{position:relative;margin-bottom:12px}
+.search input{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:12px;padding:12px 14px 12px 40px;font-size:14px;color:var(--ink);outline:none;font-family:inherit}
+.search input:focus{border-color:var(--accent,#0f7a57)}
+.search .mag{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3,#94a3b8)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);color:var(--text2,#5c564a);border-radius:99px;padding:6px 13px;font:700 12px inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chip .dot{width:8px;height:8px;border-radius:99px}
+.chip small{color:var(--text3,#94a3b8);font-weight:600;font-variant-numeric:tabular-nums}
+.chip.on{color:#fff;border-color:transparent}
+.chip.on small{color:rgba(255,255,255,.8)}
+.statbar{display:flex;gap:20px;flex-wrap:wrap;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:12px;padding:12px 18px;margin:6px 0 16px}
+.statbar .s1{display:flex;flex-direction:column}
+.statbar .s1 b{font-family:var(--display,'Spectral',Georgia,serif);font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.statbar .s1 span{font-size:10px;color:var(--text3,#7a7368);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.vcard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
+.vcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc,#0f7a57)}
+.vhead{display:flex;align-items:flex-start;gap:12px;padding:14px 16px 14px 20px;cursor:pointer}
+.vhead:hover{background:color-mix(in srgb,var(--rc) 5%,transparent)}
+.vmeta{flex:1;min-width:0}
+.vtop{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.badge{font:800 10px inherit;letter-spacing:.03em;padding:3px 8px;border-radius:6px;background:var(--rc,#0f7a57);color:#fff}
+.badge.tb{background:var(--tc,#334155)}
+.num{font-size:11px;color:var(--text3,#7a7368);font-weight:600}
+.star{color:#e0a400;font-size:12px}
+.vtit{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:700;line-height:1.25;color:var(--ink)}
+.vsub{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+.rtag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:var(--rc)}
+.tema{font-size:11.5px;color:var(--text3,#7a7368);font-style:italic}
+.vact{display:flex;flex-direction:column;gap:6px;align-items:center;flex:none}
+.st{width:22px;height:22px;border-radius:99px;border:2px solid var(--border,#e6e1d4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;background:none;color:var(--text3,#94a3b8)}
+.st.rev{border-color:#eab308;background:#eab30822;color:#a16207}
+.st.dom{border-color:#16a34a;background:#16a34a;color:#fff}
+.fav{cursor:pointer;font-size:16px;color:var(--text3,#c9c2b2);background:none;border:none;line-height:1}
+.fav.on{color:#eab308}
+.chev{color:var(--text3,#94a3b8);font-size:12px;transition:transform .15s;margin-top:2px}
+.vcard.open .chev{transform:rotate(90deg)}
+.vbody{display:none;padding:2px 20px 18px 20px;border-top:1px solid var(--border,#e6e1d4)}
+.vcard.open .vbody{display:block}
+.enun{font-size:13.5px;line-height:1.6;color:var(--text,#2b2620);white-space:pre-wrap;margin-top:12px}
+.enun mark{background:var(--accentSoft,#ffe9a8);color:inherit;border-radius:3px;padding:0 2px}
+.block{margin-top:12px}
+.block .lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--rc,#0f7a57);margin-bottom:4px}
+.block .txt{font-size:12.5px;line-height:1.55;color:var(--text2,#5c564a);white-space:pre-wrap}
+.foot{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
+.foot .fp{font-size:11px;color:var(--text3,#7a7368)}
+.foot a{font-size:11.5px;font-weight:700;color:var(--accent,#0f7a57);text-decoration:none;border:1px solid var(--accentRing,#c2e0d1);border-radius:9px;padding:6px 11px}
+.foot a:hover{background:var(--accentSoft,#e6f0ea)}
+.loading{font-size:12px;color:var(--text3,#7a7368);padding:8px 0}
+.empty{text-align:center;padding:60px 20px;color:var(--text3,#7a7368)}
+.empty .ei{font-size:40px;opacity:.5;margin-bottom:10px}
+.more{text-align:center;padding:14px;color:var(--text3,#7a7368);font-size:12px}
+.skel{height:80px;border-radius:14px;background:linear-gradient(90deg,var(--surface2,#efeadd) 25%,var(--surface,#fffdf8) 50%,var(--surface2,#efeadd) 75%);background-size:200% 100%;animation:sh 1.3s infinite;margin-bottom:10px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+<script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'ctChecklistReady'},'*');}catch(e){}})();</script>
+<script src="juris-index.js"></script>
+</head>
+<body><div class="wrap">
+<div class="head"><div class="ic">⚖️</div><div><h1>CátedraJURIS</h1><p>Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE</p></div></div>
+<div class="search"><span class="mag">🔎</span><input id="q" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
+<div class="chips" id="trib"></div>
+<div class="chips" id="ramos"></div>
+<div class="statbar">
+  <div class="s1"><b id="sTot">0</b><span>Verbetes</span></div>
+  <div class="s1"><b id="sFilt">0</b><span>No filtro</span></div>
+  <div class="s1"><b id="sDom">0</b><span>Dominados</span></div>
+  <div class="s1"><b id="sFav">0</b><span>Favoritos</span></div>
+</div>
+<div id="list"></div>
+<div id="sentinel" style="height:1px"></div>
+<div class="more" id="more"></div>
+</div>
+<script>
+(function(){
+  var IDX = window.__JURIS_IDX__ || [];   // [id,tr,fo,nu,ti,ra,te,da,si,im]
+  var TXT = null;                          // carregado sob demanda
+  var I={id:0,tr:1,fo:2,nu:3,ti:4,ra:5,te:6,da:7,si:8,im:9};
+  var PAGE=40, page=0, filtered=IDX;
+  var f={q:'',tribunal:'',ramo:''};
+
+  // ---- estudo (localStorage)
+  var LK='catedra:jurisEstudo';
+  var est={fav:{},stat:{}}; try{est=Object.assign({fav:{},stat:{}},JSON.parse(localStorage.getItem(LK))||{})}catch(e){}
+  function saveEst(){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
+  var STAT=['','rev','dom'], STICON={'':'','rev':'◐','dom':'✓'};
+
+  // ---- cores vitrine por ramo (espelha JurisTheme.stops)
+  function ramoColor(n){
+    n=(n||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    function h(){for(var i=0;i<arguments.length;i++)if(n.indexOf(arguments[i])>=0)return true;return false;}
+    if(h('constituc'))return'#2563EB';
+    if(h('penal','criminal'))return'#E11D48';
+    if(h('trabalh'))return'#D97706';
+    if(h('previden'))return'#DB2777';
+    if(h('tribut'))return'#7C3AED';
+    if(h('empresar','econom'))return'#65A30D';
+    if(h('administr'))return'#4F46E5';
+    if(h('eleitor'))return'#4338CA';
+    if(h('consum'))return'#EA580C';
+    if(h('ambient'))return'#16A34A';
+    if(h('digital','intelectual'))return'#C026D3';
+    if(h('internacional','humanos'))return'#0EA5E9';
+    if(h('civil'))return'#0D9488';
+    return'#0f7a57';
+  }
+  var TRIBC={STF:'#1d4ed8',STJ:'#0d9488',TSE:'#7c3aed',TJRO:'#64748b'};
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+
+  // ---- contagens
+  var tribCount={}, ramoCount={};
+  IDX.forEach(function(r){
+    var t=r[I.tr]||'—'; tribCount[t]=(tribCount[t]||0)+1;
+    var ra=r[I.ra]||'Sem ramo'; ramoCount[ra]=(ramoCount[ra]||0)+1;
+  });
+
+  // ---- chips de tribunal (re-renderável)
+  var tribOrder=Object.keys(tribCount).sort(function(a,b){return tribCount[b]-tribCount[a]});
+  var ramoOrder=Object.keys(ramoCount).sort(function(a,b){return ramoCount[b]-ramoCount[a]});
+  function chipBtn(active,label,cnt,col,onclick){
+    var b=document.createElement('button'); b.className='chip'+(active?' on':'');
+    if(active)b.style.background=col||'var(--accent,#0f7a57)';
+    b.innerHTML=(col?'<span class="dot" style="background:'+col+'"></span>':'')+esc(label)+' <small>'+cnt+'</small>';
+    b.onclick=onclick; return b;
+  }
+  var showAllRamos=false;
+  function renderTribChips(){
+    var el=document.getElementById('trib'); el.innerHTML='';
+    el.appendChild(chipBtn(f.tribunal==='','Todos',IDX.length,null,function(){f.tribunal='';build();}));
+    tribOrder.forEach(function(t){ var col=TRIBC[t]||'#64748b';
+      el.appendChild(chipBtn(f.tribunal===t,t,tribCount[t],col,function(){f.tribunal=f.tribunal===t?'':t;build();})); });
+  }
+  function renderRamoChips(){
+    var el=document.getElementById('ramos'); el.innerHTML='';
+    el.appendChild(chipBtn(f.ramo==='','Todos os ramos',IDX.length,null,function(){f.ramo='';build();}));
+    var TOP=11, list=showAllRamos?ramoOrder:ramoOrder.slice(0,TOP);
+    if(f.ramo && list.indexOf(f.ramo)<0) list=list.concat([f.ramo]);   // garante o ramo ativo visível
+    list.forEach(function(r){ var col=ramoColor(r);
+      el.appendChild(chipBtn(f.ramo===r,r,ramoCount[r],col,function(){f.ramo=f.ramo===r?'':r;build();})); });
+    if(!showAllRamos && ramoOrder.length>TOP){
+      var m=document.createElement('button'); m.className='chip'; m.style.borderStyle='dashed';
+      m.innerHTML='＋ '+(ramoOrder.length-TOP)+' ramos';
+      m.onclick=function(){showAllRamos=true;renderRamoChips();};
+      el.appendChild(m);
+    } else if(showAllRamos && ramoOrder.length>TOP){
+      var l=document.createElement('button'); l.className='chip'; l.style.borderStyle='dashed';
+      l.innerHTML='▲ menos';
+      l.onclick=function(){showAllRamos=false;renderRamoChips();};
+      el.appendChild(l);
+    }
+  }
+  renderTribChips(); renderRamoChips();
+
+  // ---- filtro
+  function applyFilter(){
+    var terms=norm(f.q).split(' ').filter(Boolean);
+    filtered=IDX.filter(function(r){
+      if(f.tribunal&&r[I.tr]!==f.tribunal)return false;
+      if(f.ramo&&(r[I.ra]||'Sem ramo')!==f.ramo)return false;
+      if(terms.length){
+        var hay=norm((r[I.ti]||'')+' '+(r[I.te]||'')+' '+(r[I.nu]||'')+' '+(r[I.fo]||'')+' '+(r[I.ra]||''));
+        if(TXT){var t=TXT[r[I.id]]; if(t&&t.en)hay+=' '+norm(t.en);}
+        if(!terms.every(function(x){return hay.indexOf(x)>=0}))return false;
+      }
+      return true;
+    });
+  }
+
+  function stats(){
+    document.getElementById('sTot').textContent=IDX.length.toLocaleString('pt-BR');
+    document.getElementById('sFilt').textContent=filtered.length.toLocaleString('pt-BR');
+    document.getElementById('sDom').textContent=Object.values(est.stat).filter(function(v){return v==='dom'}).length;
+    document.getElementById('sFav').textContent=Object.keys(est.fav).length;
+  }
+
+  var listEl=document.getElementById('list'), moreEl=document.getElementById('more');
+  function build(){
+    renderTribChips(); renderRamoChips();
+    applyFilter(); page=0; listEl.innerHTML=''; stats(); renderPage();
+  }
+
+  function card(r){
+    var id=r[I.id], ra=r[I.ra], rc=ramoColor(ra), tc=TRIBC[r[I.tr]]||'#64748b';
+    var stt=est.stat[id]||'', fav=est.fav[id];
+    var d=document.createElement('div'); d.className='vcard'; d.style.setProperty('--rc',rc); d.style.setProperty('--tc',tc); d.dataset.id=id;
+    d.innerHTML=
+      '<div class="vhead">'
+      +'<div class="vmeta">'
+        +'<div class="vtop">'
+          +'<span class="badge tb">'+esc(r[I.tr]||'—')+'</span>'
+          +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="num">'+esc(r[I.fo])+'</span>':'')
+          +(r[I.im]?'<span class="star" title="Destaque">★</span>':'')
+          +(r[I.si]?'<span class="num">· '+esc(r[I.si])+'</span>':'')
+        +'</div>'
+        +'<div class="vtit">'+esc(r[I.ti]||'(sem título)')+'</div>'
+        +'<div class="vsub">'+(ra?'<span class="rtag">'+esc(ra)+'</span>':'')+(r[I.te]?'<span class="tema">'+esc(r[I.te])+'</span>':'')+'</div>'
+      +'</div>'
+      +'<div class="vact">'
+        +'<button class="st '+stt+'" title="revisar → dominado">'+STICON[stt]+'</button>'
+        +'<button class="fav'+(fav?' on':'')+'" title="Favoritar">'+(fav?'★':'☆')+'</button>'
+        +'<span class="chev">▸</span>'
+      +'</div>'
+      +'</div>'
+      +'<div class="vbody"></div>';
+
+    var vhead=d.querySelector('.vhead');
+    vhead.addEventListener('click',function(ev){
+      if(ev.target.closest('.st')||ev.target.closest('.fav'))return;
+      d.classList.toggle('open'); if(d.classList.contains('open'))fillBody(d,r);
+    });
+    d.querySelector('.st').onclick=function(){var cur=STAT.indexOf(est.stat[id]||'');var nx=STAT[(cur+1)%3];if(nx)est.stat[id]=nx;else delete est.stat[id];saveEst();var b=d.querySelector('.st');b.className='st '+nx;b.textContent=STICON[nx];stats();};
+    d.querySelector('.fav').onclick=function(){if(est.fav[id])delete est.fav[id];else est.fav[id]=1;saveEst();var b=d.querySelector('.fav');b.classList.toggle('on',!!est.fav[id]);b.textContent=est.fav[id]?'★':'☆';stats();};
+    return d;
+  }
+
+  function fillBody(d,r){
+    var body=d.querySelector('.vbody');
+    if(!TXT){ body.innerHTML='<div class="loading">Carregando textos…</div>'; loadTxt(); return; }
+    var t=TXT[r[I.id]]||{};
+    var q=norm(f.q).split(' ').filter(Boolean);
+    function hl(s){ s=esc(s); if(!q.length)return s; q.forEach(function(w){ if(w.length<2)return; try{ s=s.replace(new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>'); }catch(e){} }); return s; }
+    var html='';
+    html+='<div class="enun">'+(t.en?hl(t.en):'<span class="loading">Sem enunciado.</span>')+'</div>';
+    if(t.co)html+='<div class="block"><div class="lbl">Comentário</div><div class="txt">'+esc(t.co)+'</div></div>';
+    if(t.ob)html+='<div class="block"><div class="lbl">Observação</div><div class="txt">'+esc(t.ob)+'</div></div>';
+    var foot='';
+    if(t.fp)foot+='<span class="fp">'+esc(t.fp)+'</span>';
+    else if(t.og)foot+='<span class="fp">'+esc(t.og)+'</span>';
+    if(t.ur)foot+='<a href="'+esc(t.ur)+'" target="_blank" rel="noopener">Ver no tribunal ↗</a>';
+    if(foot)html+='<div class="foot">'+foot+'</div>';
+    body.innerHTML=html;
+  }
+
+  // ---- carregar juris-text.js (via <script>, funciona em file:// e http)
+  var txtLoading=false;
+  function loadTxt(cb){
+    if(TXT){cb&&cb();return;}
+    if(txtLoading){if(cb)txtWait.push(cb);return;}
+    txtLoading=true;
+    var s=document.createElement('script'); s.src='juris-text.js';
+    s.onload=function(){ TXT=window.__JURIS_TXT__||{}; txtLoading=false;
+      // preenche corpos abertos
+      document.querySelectorAll('.vcard.open').forEach(function(d){ var id=d.dataset.id; var r=byId[id]; if(r)fillBody(d,r); });
+      txtWait.forEach(function(fn){fn()}); txtWait=[];
+    };
+    s.onerror=function(){ txtLoading=false; document.querySelectorAll('.vcard.open .vbody .loading').forEach(function(e){e.textContent='Não foi possível carregar os textos.'}); };
+    document.body.appendChild(s);
+  }
+  var txtWait=[];
+  var byId={}; IDX.forEach(function(r){byId[r[I.id]]=r;});
+
+  // ---- paginação (infinite scroll)
+  function renderPage(){
+    var start=page*PAGE, slice=filtered.slice(start,start+PAGE);
+    var frag=document.createDocumentFragment();
+    slice.forEach(function(r){frag.appendChild(card(r))});
+    listEl.appendChild(frag);
+    page++;
+    var shown=Math.min(page*PAGE,filtered.length);
+    if(filtered.length===0){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Nenhum verbete encontrado.<br>Ajuste a busca ou os filtros.</div>'; moreEl.textContent=''; }
+    else moreEl.textContent=shown>=filtered.length?(filtered.length.toLocaleString('pt-BR')+' verbetes'):('Mostrando '+shown.toLocaleString('pt-BR')+' de '+filtered.length.toLocaleString('pt-BR')+' — role para ver mais');
+  }
+  var io=new IntersectionObserver(function(e){ if(e[0].isIntersecting && page*PAGE<filtered.length) renderPage(); },{rootMargin:'600px'});
+  io.observe(document.getElementById('sentinel'));
+
+  // ---- busca (debounce)
+  var qEl=document.getElementById('q'), qt;
+  qEl.addEventListener('input',function(){ f.q=qEl.value; clearTimeout(qt); qt=setTimeout(build,180); });
+  // ao começar a digitar, garante o texto carregado (busca em enunciado)
+  qEl.addEventListener('focus',function(){ if(!TXT)loadTxt(function(){ if(f.q)build(); }); },{once:true});
+
+  // ---- boot
+  if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Base de jurisprudência não carregou.</div>'; }
+  else { applyFilter(); stats(); renderPage(); }
+})();
+</script>
+</body></html>
