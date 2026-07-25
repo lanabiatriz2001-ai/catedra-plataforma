@@ -32,6 +32,60 @@ struct ContentView: View {
     @State private var newCategoryName = ""
     @State private var showPalette = false                      // command palette (⌘K)
     @AppStorage("appearance") private var appearance = "dark"   // "system" | "light" | "dark"
+    @ObservedObject private var clock = StudyClock.shared       // cronômetro do top bar
+
+    // Top bar no esquema do Cátedra: título + Buscar ⌘K + notificações + cronômetro EM CURSO.
+    private var legisTopBar: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("CátedraLEGIS").font(.system(size: 15, weight: .bold)).foregroundStyle(AppTheme.ink)
+                Text("Vade Mecum de leis").font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk)
+            }
+            Spacer(minLength: 12)
+            Button { showPalette = true } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "magnifyingglass").font(.system(size: 11))
+                    Text("Buscar").font(.system(size: 12.5))
+                    Text("⌘K").font(.system(size: 10.5, weight: .semibold)).foregroundStyle(AppTheme.secondaryInk)
+                }
+                .foregroundStyle(AppTheme.secondaryInk)
+                .padding(.horizontal, 13).padding(.vertical, 7)
+                .background(Capsule().fill(AppTheme.cardBackground))
+                .overlay(Capsule().strokeBorder(AppTheme.hairline, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            Button { path = [.section(.updates)] } label: {
+                Image(systemName: store.unreadCount > 0 ? "bell.badge.fill" : "bell")
+                    .font(.system(size: 13, weight: .medium)).foregroundStyle(AppTheme.secondaryInk)
+                    .frame(width: 34, height: 34)
+                    .background(Circle().fill(AppTheme.cardBackground))
+                    .overlay(Circle().strokeBorder(AppTheme.hairline, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            // Cronômetro EM CURSO (destaque, como o Cátedra)
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(.system(size: 8, weight: .heavy)).tracking(0.8)
+                        .foregroundStyle(clock.running ? ThemeState.t.accent : AppTheme.secondaryInk)
+                    Text(clock.formatted).font(.system(size: 16, weight: .bold).monospacedDigit())
+                        .foregroundStyle(AppTheme.ink)
+                }
+                Button { clock.togglePlay() } label: {
+                    Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                        .frame(width: 28, height: 28)
+                        .background(Circle().fill(clock.manualPlaying ? AppTheme.secondaryInk : ThemeState.t.accent))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 6)
+            .background(Capsule().fill(AppTheme.cardBackground))
+            .overlay(Capsule().strokeBorder(clock.running ? ThemeState.t.accent.opacity(0.45) : AppTheme.hairline, lineWidth: 1))
+        }
+        .padding(.horizontal, 20).padding(.vertical, 11)
+        .background(AppTheme.pageBackground)
+        .overlay(alignment: .bottom) { Rectangle().fill(AppTheme.hairline).frame(height: 1) }
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -59,6 +113,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .safeAreaInset(edge: .top, spacing: 0) { legisTopBar }
         }
         .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
         .sheet(isPresented: $showAddLaw) { AddLawSheet() }
