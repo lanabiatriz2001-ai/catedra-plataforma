@@ -490,14 +490,27 @@ struct ArticleStudyView: View {
             .padding(.horizontal, 16).padding(.vertical, 8)
             ScrollView {
                 LazyVStack(spacing: 14) {
-                    ForEach(visibleUnits) { unit in
-                        UnitCard(lawID: lawID, unit: unit, accent: accent)
+                    ForEach(Array(visibleUnits.enumerated()), id: \.element.id) { i, unit in
+                        if let ctx = unit.context, i == 0 || visibleUnits[i - 1].context != ctx {
+                            StructBanner(context: ctx, accent: accent)
+                        }
+                        UnitCard(lawID: lawID, unit: unit, accent: accent, fullText: text)
                     }
                 }
                 .padding(AppTheme.pageInset)
             }
-            .background(AppTheme.pageBackground)
+            .background(readerCanvas)
         }
+    }
+
+    // Canvas do leitor: fundo da página + um brilho sutil na cor da matéria (esquema web).
+    private var readerCanvas: some View {
+        ZStack {
+            AppTheme.pageBackground
+            LinearGradient(colors: [accent.opacity(0.10), .clear], startPoint: .top, endPoint: .center)
+                .allowsHitTesting(false)
+        }
+        .ignoresSafeArea()
     }
 
     private var visibleUnits: [LawUnit] {
@@ -663,14 +676,30 @@ private struct UnitFocusView: View {
 
     // Faixa "herói": trilha + nº do artigo grande + navegação + barra de progresso,
     // sobre o gradiente da matéria (texto branco funciona nos dois temas).
+    // Número do artigo p/ o badge (assinatura do leitor web): "Art. 5º" -> "5".
+    private var badgeNumber: String {
+        let n = unit.label.drop(while: { !$0.isNumber }).prefix(while: { $0.isNumber })
+        return n.isEmpty ? "§" : String(n)
+    }
+
     private var heroBand: some View {
         VStack(alignment: .leading, spacing: 13) {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .center, spacing: 14) {
+                // Badge do número em cartão (igual à web) sobre a faixa da matéria.
+                VStack(spacing: 0) {
+                    Text("ART").font(.system(size: 8, weight: .heavy)).tracking(1.5)
+                        .foregroundStyle(.white.opacity(0.82))
+                    Text(badgeNumber).font(.system(size: 21, weight: .heavy, design: .serif))
+                        .foregroundStyle(.white).minimumScaleFactor(0.6).lineLimit(1)
+                }
+                .frame(width: 56, height: 56)
+                .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(.white.opacity(0.16)))
+                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(.white.opacity(0.32), lineWidth: 1))
                 VStack(alignment: .leading, spacing: 3) {
                     Text((unit.context?.isEmpty == false ? unit.context! : lawTitle).uppercased())
                         .font(.system(size: 10.5, weight: .semibold)).tracking(0.7)
                         .foregroundStyle(.white.opacity(0.85)).lineLimit(1)
-                    Text(unit.label).font(.system(size: 28, weight: .bold)).foregroundStyle(.white)
+                    Text(unit.label).font(.system(size: 26, weight: .bold, design: .serif)).foregroundStyle(.white)
                 }
                 Spacer(minLength: 8)
                 HStack(spacing: 6) {
@@ -2027,16 +2056,48 @@ struct UnitLine: View {
 
 // MARK: - Cartão de unidade (modo Cartões)
 
+// Banner estrutural (Título/Capítulo) entre os cartões — espelha os banners do leitor web.
+private struct StructBanner: View {
+    let context: String
+    let accent: Color
+    var body: some View {
+        HStack(spacing: 10) {
+            RoundedRectangle(cornerRadius: 2).fill(accent).frame(width: 4, height: 22)
+            Text(context)
+                .font(.system(.headline, design: .serif).weight(.heavy))
+                .foregroundStyle(AppTheme.ink)
+                .lineLimit(2)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 18).padding(.vertical, 15)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            LinearGradient(colors: [accent.opacity(0.18), accent.opacity(0.04)],
+                           startPoint: .leading, endPoint: .trailing),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(accent.opacity(0.28), lineWidth: 1))
+        .padding(.top, 8)
+    }
+}
+
 private struct UnitCard: View {
     @EnvironmentObject var store: AppStore
     let lawID: UUID
     let unit: LawUnit
     let accent: Color
+    var fullText: String = ""
 
     @State private var note = ""
     @State private var noteLoaded = false
     @State private var showNote = false
     @AppStorage("readerFontSize") private var fontSize = 16.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
+    @StateObject private var markController = ReaderController()
+    @State private var articleHeight: CGFloat = 60
+    @State private var cardAnchors: [ArticleCommentAnchor] = []
 
     private var record: StudyRecord { store.record(for: lawID) }
     private var isRead: Bool { record.readKeys.contains(unit.key) }
@@ -2052,21 +2113,34 @@ private struct UnitCard: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(unit.label)
-                    .font(.system(.callout, design: .rounded).weight(.bold))
-                    .padding(.horizontal, 10).padding(.vertical, 4)
-                    .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius, style: .continuous).fill(accent.opacity(0.12)))
-                    .foregroundStyle(accent)
+                    .font(.system(.callout, design: .rounded).weight(.heavy))
+                    .padding(.horizontal, 11).padding(.vertical, 5)
+                    .background(
+                        LinearGradient(colors: [accent, accent.opacity(0.72)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: Capsule())
+                    .foregroundStyle(.white)
+                    .shadow(color: accent.opacity(0.38), radius: 6, y: 3)
                 if let context = unit.context {
                     Text(context).font(.caption).foregroundStyle(.tertiary).lineLimit(1)
                 }
                 Spacer()
                 if isRead { Label("Lido", systemImage: "checkmark.circle.fill").font(.caption).foregroundStyle(.green) }
             }
-            VStack(alignment: .leading, spacing: 7) {
-                ForEach(Array(LawParser.classify(unit).enumerated()), id: \.offset) { _, kind in
-                    UnitLine(kind: kind, accent: accent, fontSize: fontSize)
-                }
+            // Corpo do artigo pela MarkableArticleView (mesmo renderer do modo foco):
+            // os GRIFOS aparecem aqui também, com offsets globais intactos.
+            GeometryReader { geo in
+                MarkableArticleView(fullText: fullText,
+                                    unitRange: NSRange(location: unit.location, length: unit.length),
+                                    annotations: store.annotations(for: lawID),
+                                    fontFamily: fontFamily, fontSize: fontSize, lineSpacing: CGFloat(lineSpacing), accent: accent,
+                                    textAlignment: store.alinhamentoNS(lawID: lawID, unitKey: unit.key),
+                                    proposedWidth: geo.size.width,
+                                    measuredHeight: $articleHeight,
+                                    commentAnchors: $cardAnchors,
+                                    controller: markController, onCommand: { _ in })
             }
+            .frame(height: max(articleHeight, 40))
             if !remissoes.isEmpty { RemissoesView(notes: remissoes) }
             if showNote {
                 TextField("Anote pontos de atenção sobre este artigo…", text: $note, axis: .vertical)
