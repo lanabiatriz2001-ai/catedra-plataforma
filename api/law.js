@@ -35,24 +35,33 @@ function extractTitle(html) {
   return m ? decodeEntities(m[1].replace(/\s+/g, ' ').trim()) : '';
 }
 
+// Linhas de cabeçalho/navegação/margem do Planalto a descartar (casam por prefixo).
+const JUNK_LINE = /^(?:Presid[êe]ncia da Rep[úu]blica|Casa Civil|Subchefia|Este texto n[ãa]o substitui|Texto compilado|Mensagem de veto|Regulamento|Vig[êe]ncia|Imprimir|Voltar|Topo)\b/i;
+// Anotações de margem soltas ("(Vide…)", "(Regulamento)"…). As anotações legítimas
+// ficam GRUDADAS no fim do artigo, então nunca começam a linha com "(".
+const JUNK_PAREN = /^\(\s*(?:Vide|Vig[êe]ncia|Regulamento|Revogad|Reda[çc][ãa]o dada|Inclu[íi]d|Renumera)/i;
+
 // HTML → parágrafos limpos, sem DOM.
 function toParagraphs(html) {
+  // Sentinela de quebra de BLOCO. NÃO usar \n: o Planalto quebra linhas com \r\n
+  // DENTRO de cada <p>, então splitar por \n picava um artigo em vários pedaços.
+  const BRK = '\u0001';
   let s = html
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<head[\s\S]*?<\/head>/gi, ' ')
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ');
-  // quebras de bloco viram \n
-  s = s.replace(/<\s*br\s*\/?\s*>/gi, '\n')
-       .replace(/<\/\s*(p|div|tr|li|h[1-6]|table|blockquote)\s*>/gi, '\n')
-       .replace(/<[^>]+>/g, ' ');            // remove o resto das tags
-  s = decodeEntities(s).replace(/ /g, ' ');
-  return s.split('\n')
-    .map(l => l.replace(/[ \t\f\v]+/g, ' ').trim())
+  s = s.replace(/<\s*br\s*\/?\s*>/gi, BRK)
+       .replace(/<\/\s*(p|div|tr|td|li|h[1-6]|table|blockquote)\s*>/gi, BRK)
+       .replace(/<[^>]+>/g, ' ');                    // remove o resto das tags
+  s = decodeEntities(s)
+       .replace(/\u00a0/g, ' ')                     // nbsp → espaço
+       .replace(/[\r\n\t\f\v]+/g, ' ');          // colapsa quebras do fonte ANTES de splitar
+  return s.split(BRK)
+    .map(l => l.replace(/ {2,}/g, ' ').trim())
     .filter(l => l.length > 1)
-    // descarta rodapé/navegação óbvios do Planalto
-    .filter(l => !/^(Presid[êe]ncia da Rep[úu]blica|Casa Civil|Subchefia|Este texto n[ãa]o substitui|Imprimir|Voltar|Topo)\b/i.test(l));
+    .filter(l => !JUNK_LINE.test(l) && !JUNK_PAREN.test(l));
 }
 
 export default async function handler(req, res) {
