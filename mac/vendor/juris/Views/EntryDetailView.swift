@@ -68,7 +68,7 @@ struct EntryDetailView: View {
             .frame(maxWidth: 780, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .center)
         }
-        .background(Palette.detailBackground)
+        .background(detailCanvas)
         .navigationTitle(entry.titulo)
         // No embed a toolbar da JANELA pertence ao host (seletor de abas) — os botões
         // do verbete viram uma barra própria acima do conteúdo (estilo Books).
@@ -113,6 +113,17 @@ struct EntryDetailView: View {
                 .inspectorColumnWidth(min: 260, ideal: 320, max: 420)
         }
         .id(entry.id)
+    }
+
+    // Canvas do verbete: fundo + brilho sutil na cor do RAMO (espelha o leitor web).
+    private var detailCanvas: some View {
+        ZStack {
+            Palette.detailBackground
+            LinearGradient(colors: [RamoStyle.color(entry.ramoDireito).opacity(0.10), .clear],
+                           startPoint: .top, endPoint: .center)
+                .allowsHitTesting(false)
+        }
+        .ignoresSafeArea()
     }
 
     // MARK: - Cabeçalho
