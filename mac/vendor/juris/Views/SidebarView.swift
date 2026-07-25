@@ -71,12 +71,15 @@ struct JurisSidebar: View {
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
             }
-            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 14)
+            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 10)
+
+            // Busca em destaque logo abaixo do logo — igual ao CátedraLEGIS.
+            buscaRow
+                .padding(.horizontal, 14).padding(.bottom, 12)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
                     row(.inicio, "Início", "house")
-                    buscaRow
                     row(.todos, "Todos os verbetes", "square.stack.3d.up")
                     row(.favoritos, "Favoritos", "star")
                     row(.anotacoes, "Minhas anotações", "square.and.pencil")
@@ -209,9 +212,8 @@ struct JurisSidebar: View {
             }
         }
         .padding(.horizontal, 10).padding(.vertical, 7)
-        .background(Color.white.opacity(0.10), in: Capsule())
-        .overlay(Capsule().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
-        .padding(.horizontal, 3).padding(.vertical, 3)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.08)))
+        .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
     }
 
     /// Já estamos em "Todos os verbetes" (sem leitura aberta)? Aí não precisa saltar.
@@ -227,6 +229,25 @@ struct JurisSidebar: View {
             .padding(.horizontal, 12).padding(.top, 16).padding(.bottom, 5)
     }
 
+    /// Cor de identidade do ícone (como o LEGIS colore as matérias): Centrais por
+    /// tribunal + Ramos. Tons claros, legíveis sobre o navy. Nulo quando ativo
+    /// (aí o ícone acompanha o texto de seleção).
+    private func iconColor(_ sel: Selecao, active: Bool) -> Color? {
+        guard !active else { return nil }
+        switch sel {
+        case .central(let c):
+            switch c {
+            case .stf: return Color(red: 0.45, green: 0.62, blue: 0.98)   // azul
+            case .stj: return Color(red: 0.28, green: 0.80, blue: 0.70)   // teal
+            case .tse: return Color(red: 0.66, green: 0.55, blue: 0.98)   // roxo
+            case .especificos: return Color(red: 0.62, green: 0.68, blue: 0.78) // ardósia
+            case .outros: return Color(red: 0.95, green: 0.72, blue: 0.35) // âmbar
+            }
+        case .ramosHub, .ramo, .ramoDetalhe: return Color(red: 0.50, green: 0.82, blue: 0.62) // verde
+        default: return nil
+        }
+    }
+
     @ViewBuilder
     private func row(_ sel: Selecao, _ label: String, _ icon: String,
                      chevron: Bool = false, ponto: Bool = false) -> some View {
@@ -234,6 +255,8 @@ struct JurisSidebar: View {
         Button { ir(sel) } label: {
             HStack(spacing: 11) {
                 Image(systemName: icon).font(.system(size: 13, weight: .medium)).frame(width: 20)
+                    .foregroundStyle(iconColor(sel, active: active) ??
+                                     (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
                 Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
                 if ponto {   // pontinho discreto de novidades não vistas (sem número)
