@@ -36,7 +36,7 @@ function extractTitle(html) {
 }
 
 // Linhas de cabeçalho/navegação/margem do Planalto a descartar (casam por prefixo).
-const JUNK_LINE = /^(?:Presid[êe]ncia da Rep[úu]blica|Casa Civil|Subchefia|Este texto n[ãa]o substitui|Texto compilado|Mensagem de veto|Regulamento|Vig[êe]ncia|Imprimir|Voltar|Topo)\b/i;
+const JUNK_LINE = /^(?:Presid[êe]ncia da Rep[úu]blica|Casa Civil|Subchefia|Este texto n[ãa]o substitui|Texto compilado|Mensagem de veto|Regulamento|Vig[êe]ncia|Vide|Emendas Constitucionais|[ÍI]NDICE|Atos decorrentes|Secretaria|Di[áa]rio Oficial|Imprimir|Voltar|Topo)\b/i;
 // Anotações de margem soltas ("(Vide…)", "(Regulamento)"…). As anotações legítimas
 // ficam GRUDADAS no fim do artigo, então nunca começam a linha com "(".
 const JUNK_PAREN = /^\(\s*(?:Vide|Vig[êe]ncia|Regulamento|Revogad|Reda[çc][ãa]o dada|Inclu[íi]d|Renumera)/i;
@@ -113,11 +113,18 @@ export default async function handler(req, res) {
 
     const buf = new Uint8Array(await r.arrayBuffer());
     if (buf.byteLength > 12 * 1024 * 1024) { res.status(502).json({ ok: false, error: 'Página grande demais.' }); return; }
-    // charset: meta tag > header > windows-1252 (padrão histórico do Planalto)
-    const head = new TextDecoder('latin1').decode(buf.subarray(0, 2048));
-    const ctype = (r.headers.get('content-type') || '') + ' ' + head;
-    const isUtf8 = /charset\s*=\s*["']?\s*utf-?8/i.test(ctype);
-    const html = new TextDecoder(isUtf8 ? 'utf-8' : 'windows-1252').decode(buf);
+    // charset: BOM UTF-16 > meta/header utf-8/utf-16 > windows-1252 (padrão do Planalto).
+    // Algumas leis (ex.: Lei Maria da Penha) vêm em UTF-16 com BOM FF FE.
+    let enc = 'windows-1252';
+    if (buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE) enc = 'utf-16le';
+    else if (buf.length >= 2 && buf[0] === 0xFE && buf[1] === 0xFF) enc = 'utf-16be';
+    else {
+      const head = new TextDecoder('latin1').decode(buf.subarray(0, 2048));
+      const ctype = (r.headers.get('content-type') || '') + ' ' + head;
+      if (/charset\s*=\s*["']?\s*utf-?16/i.test(ctype)) enc = 'utf-16le';
+      else if (/charset\s*=\s*["']?\s*utf-?8/i.test(ctype)) enc = 'utf-8';
+    }
+    const html = new TextDecoder(enc).decode(buf);
 
     const paragraphs = toParagraphs(html);
     if (!paragraphs.length) { res.status(502).json({ ok: false, error: 'Não consegui extrair o texto desta página.' }); return; }
