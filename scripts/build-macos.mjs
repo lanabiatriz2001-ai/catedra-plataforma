@@ -87,7 +87,7 @@ const out = src.replace('<head>', '<head>' + INJECT);
 writeFileSync(join(OUT, 'index.html'), out);
 
 // copia os assets que o app referencia por caminho relativo
-for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html']) {
+for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(OUT, f));
 }
 
