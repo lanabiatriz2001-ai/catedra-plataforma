@@ -228,7 +228,19 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     if(!TXT){ body.innerHTML='<div class="loading">Carregando textos…</div>'; loadTxt(); return; }
     var t=TXT[r[I.id]]||{};
     var q=norm(f.q).split(' ').filter(Boolean);
-    function hl(s){ s=esc(s); if(!q.length)return s; q.forEach(function(w){ if(w.length<2)return; try{ s=s.replace(new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>'); }catch(e){} }); return s; }
+    function hl(s){
+      if(!q.length)return esc(s);
+      var ns=norm(s);
+      if(ns.length!==s.length)return esc(s);          // fallback seguro se normalizar mudou o tamanho
+      var hits=[];
+      q.forEach(function(w){ if(w.length<2)return; var from=0,idx; while((idx=ns.indexOf(w,from))>=0){ hits.push([idx,idx+w.length]); from=idx+w.length; } });
+      if(!hits.length)return esc(s);
+      hits.sort(function(a,b){return a[0]-b[0]});
+      var merged=[]; hits.forEach(function(h){ var last=merged[merged.length-1]; if(last&&h[0]<=last[1]){ if(h[1]>last[1])last[1]=h[1]; } else merged.push([h[0],h[1]]); });
+      var out='',pos=0;
+      merged.forEach(function(m){ out+=esc(s.slice(pos,m[0]))+'<mark>'+esc(s.slice(m[0],m[1]))+'</mark>'; pos=m[1]; });
+      return out+esc(s.slice(pos));
+    }
     var html='';
     html+='<div class="enun">'+(t.en?hl(t.en):'<span class="loading">Sem enunciado.</span>')+'</div>';
     if(t.co)html+='<div class="block"><div class="lbl">Comentário</div><div class="txt">'+esc(t.co)+'</div></div>';
@@ -236,7 +248,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     var foot='';
     if(t.fp)foot+='<span class="fp">'+esc(t.fp)+'</span>';
     else if(t.og)foot+='<span class="fp">'+esc(t.og)+'</span>';
-    if(t.ur)foot+='<a href="'+esc(t.ur)+'" target="_blank" rel="noopener">Ver no tribunal ↗</a>';
+    if(t.ur && /^https?:\/\//i.test(t.ur))foot+='<a href="'+esc(t.ur)+'" target="_blank" rel="noopener">Ver no tribunal ↗</a>';
     if(foot)html+='<div class="foot">'+foot+'</div>';
     body.innerHTML=html;
   }
@@ -245,7 +257,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   var txtLoading=false;
   function loadTxt(cb){
     if(TXT){cb&&cb();return;}
-    if(txtLoading){if(cb)txtWait.push(cb);return;}
+    if(cb)txtWait.push(cb);          // enfileira ANTES de começar (senão o 1º cb some)
+    if(txtLoading)return;
     txtLoading=true;
     var s=document.createElement('script'); s.src='juris-text.js';
     s.onload=function(){ TXT=window.__JURIS_TXT__||{}; txtLoading=false;

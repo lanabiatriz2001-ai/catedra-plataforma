@@ -66,17 +66,44 @@ export default async function handler(req, res) {
       return;
     }
 
-    const r = await fetch(url.href, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'pt-BR,pt;q=0.9'
-      },
-      redirect: 'follow'
-    });
+    // Redirecionamentos são seguidos MANUALMENTE, revalidando o host a cada
+    // salto — senão redirect:'follow' sairia da whitelist (SSRF via open-redirect).
+    // Timeout de 12s evita pendurar a função.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    const HEADERS = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+      'Accept': 'text/html,application/xhtml+xml',
+      'Accept-Language': 'pt-BR,pt;q=0.9'
+    };
+    let target = url.href, r;
+    try {
+      for (let hop = 0; hop < 5; hop++) {
+        r = await fetch(target, { headers: HEADERS, redirect: 'manual', signal: ctrl.signal });
+        if (r.status >= 300 && r.status < 400) {
+          const loc = r.headers.get('location');
+          if (!loc) break;
+          let next;
+          try { next = new URL(loc, target); } catch (_) { res.status(502).json({ ok: false, error: 'Redirecionamento inválido.' }); return; }
+          if (next.protocol !== 'https:' || !ALLOW.test(next.hostname)) {
+            res.status(403).json({ ok: false, error: 'Redirecionamento para fora do planalto.gov.br bloqueado.' });
+            return;
+          }
+          target = next.href; continue;
+        }
+        break;
+      }
+    } finally { clearTimeout(timer); }
+    if (!r) { res.status(502).json({ ok: false, error: 'Sem resposta do Planalto.' }); return; }
+    if (r.status >= 300 && r.status < 400) { res.status(502).json({ ok: false, error: 'Redirecionamentos demais.' }); return; }
     if (!r.ok) { res.status(502).json({ ok: false, error: 'Planalto respondeu ' + r.status + '.' }); return; }
 
+    // Guarda de tamanho: recusa respostas absurdamente grandes (páginas de lei < 4 MB).
+    const clen = parseInt(r.headers.get('content-length') || '0', 10);
+    if (clen && clen > 8 * 1024 * 1024) { res.status(502).json({ ok: false, error: 'Página grande demais.' }); return; }
+
     const buf = new Uint8Array(await r.arrayBuffer());
+    if (buf.byteLength > 12 * 1024 * 1024) { res.status(502).json({ ok: false, error: 'Página grande demais.' }); return; }
     // charset: meta tag > header > windows-1252 (padrão histórico do Planalto)
     const head = new TextDecoder('latin1').decode(buf.subarray(0, 2048));
     const ctype = (r.headers.get('content-type') || '') + ' ' + head;
@@ -88,7 +115,7 @@ export default async function handler(req, res) {
 
     // lei muda raramente → deixa a Vercel cachear na borda por 7 dias.
     res.setHeader('Cache-Control', 's-maxage=604800, stale-while-revalidate=86400');
-    res.status(200).json({ ok: true, title: extractTitle(html), url: url.href, paragraphs });
+    res.status(200).json({ ok: true, title: extractTitle(html), url: target, paragraphs });
   } catch (e) {
     res.status(500).json({ ok: false, error: 'Falha ao buscar a lei: ' + (e && e.message ? e.message : String(e)) });
   }
