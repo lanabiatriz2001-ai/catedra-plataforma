@@ -2088,37 +2088,44 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
       <sc-if value="{{ isCalendario }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
         <!-- barra: navegação de mês + estatísticas -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="{{ calPrev }}" aria-label="Mês anterior" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-            <span style="font-family:var(--display);font-weight:600;font-size:19px;color:var(--ink);min-width:160px;text-align:center;">{{ calTitle }}</span>
-            <button onclick="{{ calNext }}" aria-label="Próximo mês" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-            <button onclick="{{ calHoje }}" style="margin-left:6px;border:1px solid var(--border);background:var(--surface);color:var(--text2);border-radius:9px;padding:8px 15px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">Hoje</button>
+            <button onclick="{{ calPrev }}" aria-label="Anterior" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            <button onclick="{{ calHoje }}" style="border:1px solid var(--border);background:var(--surface);color:var(--text2);border-radius:9px;padding:7px 15px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">Hoje</button>
+            <button onclick="{{ calNext }}" aria-label="Próximo" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            <sc-if value="{{ calViewMes }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--display);font-weight:600;font-size:20px;color:var(--ink);margin-left:8px;">{{ calTitle }}</span></sc-if>
+            <sc-if value="{{ calViewSemana }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--display);font-weight:600;font-size:20px;color:var(--ink);margin-left:8px;">{{ calWeekTitle }}</span></sc-if>
+            <sc-if value="{{ calViewAgenda }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--display);font-weight:600;font-size:20px;color:var(--ink);margin-left:8px;">Próximos compromissos</span></sc-if>
           </div>
-          <div style="display:flex;gap:20px;">
-            <div style="text-align:center;"><div style="font-family:var(--display);font-weight:700;font-size:21px;color:var(--ink);line-height:1;">{{ calStats.total }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:3px;">no mês</div></div>
-            <div style="text-align:center;"><div style="font-family:var(--display);font-weight:700;font-size:21px;color:#0f9d6b;line-height:1;">{{ calStats.done }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:3px;">feitos</div></div>
-            <div style="text-align:center;"><div style="font-family:var(--display);font-weight:700;font-size:21px;color:#c2790c;line-height:1;">{{ calStats.pend }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:3px;">pendentes</div></div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <sc-if value="{{ calHasProva }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;background:#faeceb;border:1px solid #f0d3d1;border-radius:99px;padding:5px 12px;"><span style="width:8px;height:8px;border-radius:99px;background:#c0392f;flex:none;"></span><span style="font-size:11.5px;font-weight:600;color:#8f2b23;white-space:nowrap;">{{ calProvaChip.label }}</span></div></sc-if>
+            <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:3px;">
+              <sc-for list="{{ calViewChips }}" as="v" hint-placeholder-count="3"><button data-v="{{ v.v }}" onclick="{{ setCalView }}" style="{{ v.style }}">{{ v.label }}</button></sc-for>
+            </div>
           </div>
         </div>
         <!-- legenda / filtro por tipo -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <sc-for list="{{ calChips }}" as="c" hint-placeholder-count="6"><button data-f="{{ c.f }}" onclick="{{ setCalFilter }}" style="{{ c.style }}"><span style="{{ c.dotStyle }}"></span>{{ c.label }}</button></sc-for>
         </div>
+        <sc-if value="{{ calViewMes }}" hint-placeholder-val="{{ true }}">
         <div class="ct-calwrap">
           <!-- grade do mês -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-bottom:9px;">
-              <div style="text-align:center;font-size:12px;font-weight:700;color:var(--text3);">D</div><div style="text-align:center;font-size:12px;font-weight:700;color:var(--text3);">S</div><div style="text-align:center;font-size:12px;font-weight:700;color:var(--text3);">T</div><div style="text-align:center;font-size:12px;font-weight:700;color:var(--text3);">Q</div><div style="text-align:center;font-size:12px;font-weight:700;color:var(--text3);">Q</div><div style="text-align:center;font-size:12px;font-weight:700;color:var(--text3);">S</div><div style="text-align:center;font-size:12px;font-weight:700;color:var(--text3);">S</div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:9px;">
+              <div style="text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">dom</div><div style="text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">seg</div><div style="text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">ter</div><div style="text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">qua</div><div style="text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">qui</div><div style="text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">sex</div><div style="text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">sáb</div>
             </div>
             <div class="ct-calgrid">
               <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="35">
-                <sc-if value="{{ c.empty }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
-                <sc-if value="{{ c.notEmpty }}" hint-placeholder-val="{{ true }}">
-                  <button data-d="{{ c.day }}" onclick="{{ calPick }}" title="Selecionar dia" class="ct-calcell" style="border-radius:11px;padding:8px 9px;display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left;font-family:inherit;background:{{ c.cellBg }};border:1px solid {{ c.cellBorder }};">
-                    <span style="font-family:var(--display);font-size:16px;font-weight:700;color:{{ c.dayColor }};font-variant-numeric:tabular-nums;">{{ c.day }}</span>
-                    <span style="display:flex;flex-direction:column;gap:3px;width:100%;overflow:hidden;"><sc-for list="{{ c.evs }}" as="e" hint-placeholder-count="0"><span class="ct-calev" style="color:{{ c.dayColor }};"><span style="width:7px;height:7px;border-radius:99px;background:{{ e.color }};flex:none;"></span><span class="ct-callbl">{{ e.titulo }}</span></span></sc-for></span>
-                    <sc-if value="{{ c.hasMore }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;color:{{ c.dayColor }};opacity:.75;margin-top:auto;">{{ c.more }}</span></sc-if>
+                <sc-if value="{{ c.out }}" hint-placeholder-val="{{ false }}">
+                  <div class="ct-calcell" style="border-radius:11px;padding:7px 9px;background:var(--surface);border:1px solid var(--border);opacity:.5;"><span style="font-family:var(--display);font-size:15px;font-weight:600;color:{{ c.dayColor }};font-variant-numeric:tabular-nums;">{{ c.day }}</span></div>
+                </sc-if>
+                <sc-if value="{{ c.notOut }}" hint-placeholder-val="{{ true }}">
+                  <button data-d="{{ c.day }}" onclick="{{ calPick }}" title="Ver dia" class="ct-calcell" style="border-radius:11px;padding:7px 8px;display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left;font-family:inherit;background:{{ c.cellBg }};border:1px solid {{ c.cellBorder }};">
+                    <sc-if value="{{ c.todayDot }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:99px;background:var(--accent);color:var(--onAccent);font-family:var(--display);font-weight:700;font-size:13.5px;flex:none;">{{ c.day }}</span></sc-if>
+                    <sc-if value="{{ c.notToday }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--display);font-size:15.5px;font-weight:700;color:{{ c.dayColor }};font-variant-numeric:tabular-nums;padding:2px 2px 0;">{{ c.day }}</span></sc-if>
+                    <span style="display:flex;flex-direction:column;gap:3px;width:100%;overflow:hidden;"><sc-for list="{{ c.evs }}" as="e" hint-placeholder-count="0"><span class="ct-calev" style="background:{{ e.pillBg }};border-radius:5px;padding:1px 5px;"><span style="width:6px;height:6px;border-radius:99px;background:{{ e.color }};flex:none;"></span><span class="ct-callbl" style="color:var(--ink);">{{ e.titulo }}</span></span></sc-for></span>
+                    <sc-if value="{{ c.hasMore }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:700;color:var(--text3);margin-top:auto;padding-left:2px;">{{ c.more }}</span></sc-if>
                   </button>
                 </sc-if>
               </sc-for>
@@ -2129,13 +2136,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 <div style="font-weight:600;color:var(--ink);font-size:13.5px;margin-bottom:11px;display:flex;align-items:center;gap:7px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"></path></svg>{{ calSelLabel }}</div>
                 <div style="display:flex;flex-direction:column;gap:8px;">
                   <sc-for list="{{ calSelEvents }}" as="e" hint-placeholder-count="0">
-                    <div style="display:flex;align-items:center;gap:11px;padding:9px 12px;background:var(--surface2);border-radius:11px;border-left:4px solid {{ e.color }};">
-                      <button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:6px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-                      <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13px;color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">{{ e.tipo }}</div></div>
-                      <button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
+                    <div style="display:flex;align-items:center;gap:11px;padding:9px 12px;background:var(--surface2);border-radius:11px;border-left:4px solid {{ e.color }};flex-wrap:wrap;">
+                      <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:6px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></sc-if>
+                      <sc-if value="{{ e.notManual }}" hint-placeholder-val="{{ false }}"><span style="width:11px;height:11px;border-radius:99px;background:{{ e.color }};flex:none;"></span></sc-if>
+                      <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:13px;color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
+                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:#c0392f;border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:#c2790c;border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Ok" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Ok</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
+                      <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button></sc-if>
                     </div>
                   </sc-for>
-                  <sc-if value="{{ calSelEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text3);padding:4px 0;">Nada neste dia — inclua um evento ao lado.</div></sc-if>
+                  <sc-if value="{{ calSelEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--text3);padding:4px 0;">Nada neste dia — inclua uma tarefa abaixo.</div></sc-if>
                 </div>
               </div>
             </sc-if>
@@ -2149,20 +2158,62 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <div style="flex:1;min-width:120px;"><label style="display:block;font-size:10.5px;color:var(--text3);font-weight:500;margin-bottom:4px;">Título</label><input data-k="titulo" value="{{ eventDraft.titulo }}" oninput="{{ onEventDraft }}" placeholder="ex.: Resolver 30 questões" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--ink);font-family:inherit;"></div>
               <button onclick="{{ addEvent }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:9px 14px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">+ Incluir</button>
             </div>
-            <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:10px;">{{ calTitle }} · {{ calStats.total }} eventos</div>
+            <div style="font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:10px;">{{ calTitle }} · {{ calStats.total }} compromissos</div>
             <div style="display:flex;flex-direction:column;gap:9px;max-height:420px;overflow:auto;">
               <sc-for list="{{ calProx }}" as="e" hint-placeholder-count="4">
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--surface2);border-radius:12px;border-left:4px solid {{ e.color }};">
-                  <button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:24px;height:24px;border-radius:7px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--surface2);border-radius:12px;border-left:4px solid {{ e.color }};flex-wrap:wrap;">
                   <div style="text-align:center;flex:none;width:30px;"><div style="font-family:var(--display);font-size:18px;font-weight:700;color:var(--ink);line-height:1;">{{ e.dia }}</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;">{{ e.tipo }}</div></div>
-                  <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:11.5px;color:var(--text3);margin-top:1px;">{{ e.tipo }}</div></div>
-                  <button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
+                  <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:11.5px;color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
+                  <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:24px;height:24px;border-radius:7px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button></sc-if>
+                  <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:600;color:#06809a;background:#e0f5fa;border-radius:99px;padding:3px 9px;">revisão</span></sc-if>
+                  <sc-if value="{{ e.isProva }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:600;color:#8f2b23;background:#faeceb;border-radius:99px;padding:3px 9px;">prova</span></sc-if>
                 </div>
               </sc-for>
-              <sc-if value="{{ calProxEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:28px 18px;color:var(--text3);"><div style="font-size:28px;line-height:1;">🗓️</div><div style="font-size:13px;font-weight:600;color:var(--text2);margin-top:8px;">Nada agendado ainda</div><div style="font-size:12px;margin-top:2px;">Inclua uma tarefa ou revisão no formulário acima.</div></div></sc-if>
+              <sc-if value="{{ calProxEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:28px 18px;color:var(--text3);"><div style="font-size:28px;line-height:1;">🗓️</div><div style="font-size:13px;font-weight:600;color:var(--text2);margin-top:8px;">Nada neste mês</div><div style="font-size:12px;margin-top:2px;">Suas revisões e a prova aparecem aqui automaticamente.</div></div></sc-if>
             </div>
           </div>
         </div>
+        </sc-if>
+
+        <!-- ===== VISÃO SEMANA ===== -->
+        <sc-if value="{{ calViewSemana }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;">
+            <div style="display:grid;grid-template-columns:repeat(7,minmax(116px,1fr));gap:8px;">
+              <sc-for list="{{ calWeek }}" as="w" hint-placeholder-count="7">
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                  <div style="text-align:center;border-radius:10px;padding:7px 4px;background:{{ w.headBg }};border:1px solid {{ w.headBd }};"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:{{ w.headColor }};">{{ w.wd }}</div><div style="font-family:var(--display);font-size:19px;font-weight:700;color:{{ w.headColor }};line-height:1.15;">{{ w.day }}</div></div>
+                  <div style="display:flex;flex-direction:column;gap:5px;min-height:90px;">
+                    <sc-for list="{{ w.events }}" as="e" hint-placeholder-count="0"><div style="display:flex;align-items:flex-start;gap:6px;background:var(--surface2);border-radius:8px;border-left:3px solid {{ e.color }};padding:5px 7px;"><span style="font-size:11.5px;color:var(--ink);font-weight:500;line-height:1.3;">{{ e.titulo }}</span></div></sc-for>
+                    <sc-if value="{{ w.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0;opacity:.5;">—</div></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ===== VISÃO AGENDA (lista por data) ===== -->
+        <sc-if value="{{ calViewAgenda }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:18px;">
+            <sc-for list="{{ calAgenda }}" as="g" hint-placeholder-count="5">
+              <div style="display:flex;gap:16px;align-items:flex-start;">
+                <div style="text-align:center;flex:none;width:44px;"><div style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--text3);">{{ g.wd }}</div><div style="font-family:var(--display);font-size:24px;font-weight:700;color:{{ g.headColor }};line-height:1;">{{ g.dLabel }}</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;">{{ g.mLabel }}</div></div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
+                  <sc-for list="{{ g.events }}" as="e" hint-placeholder-count="0">
+                    <div style="display:flex;align-items:center;gap:11px;padding:9px 12px;background:var(--surface2);border-radius:11px;border-left:4px solid {{ e.color }};flex-wrap:wrap;">
+                      <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:6px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></sc-if>
+                      <sc-if value="{{ e.notManual }}" hint-placeholder-val="{{ false }}"><span style="width:11px;height:11px;border-radius:99px;background:{{ e.color }};flex:none;"></span></sc-if>
+                      <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:13px;color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
+                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:#c0392f;border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:#c2790c;border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Ok" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Ok</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
+                      <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button></sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ calAgendaEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:36px 18px;color:var(--text3);"><div style="font-size:30px;">🗓️</div><div style="font-size:13.5px;font-weight:600;color:var(--text2);margin-top:8px;">Nada nos próximos dias</div><div style="font-size:12px;margin-top:2px;">Suas revisões e a data da prova aparecem aqui automaticamente.</div></div></sc-if>
+          </div>
+        </sc-if>
        </div>
       </sc-if>
 
@@ -5366,6 +5417,7 @@ class Component extends DCLogic {
   calHoje = ()=>{ const d=new Date(); this.setState({calMonth:d.getMonth(), calYear:d.getFullYear(), calSel:d.getDate()}); };
   calPick = (e)=>{ const d=parseInt(e.currentTarget.dataset.d,10); if(!d) return; this.setState(s=>({calSel: s.calSel===d?null:d, eventDraft:{...s.eventDraft, dia:d}})); };
   setCalFilter = (e)=> this.setState({calFilter:e.currentTarget.dataset.f});
+  setCalView = (e)=> this.setState({calView:e.currentTarget.dataset.v});
   // ===== hábitos saudáveis =====
   _persistHabitos(){ try{ localStorage.setItem('catedra:habitos', JSON.stringify(this.state.habitos)); }catch(_){} this._cloudPush(); }
   // Hábitos "de hoje" (sono, água, exercício…) têm meta DIÁRIA — zeram na virada do dia.
@@ -6462,31 +6514,78 @@ class Component extends DCLogic {
     const _calMonthNames=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const _cm=this.state.calMonth, _cy=this.state.calYear, _csel=this.state.calSel, _cfilt=this.state.calFilter;
     const calTitle=_calMonthNames[_cm]+' '+_cy;
+    const _calView=this.state.calView||'mes';
+    const _calWD=['dom','seg','ter','qua','qui','sex','sáb'];
     const evById = (e)=> e.id||('seed'+e.dia+e.titulo);
-    const _evMes=(e)=> (e.mes==null?5:e.mes);
-    const _evAno=(e)=> (e.ano==null?2026:e.ano);
     const _calColors={'Prova':'#c0392f','Revisão':'#06b6d4','Simulado':'#0f7a57','Meta':'#c2790c','Tarefa':'#6b4fbb'};
-    const _monthEvents=this.state.eventos.filter(e=> _evMes(e)===_cm && _evAno(e)===_cy && (_cfilt==='todos'||e.tipo===_cfilt));
+    const _parseYmd=(s)=>{ const p=String(s).split('-'); return {ano:+p[0], mes:(+p[1]-1), dia:+p[2]}; };
+    // Fonte ÚNICA de eventos — padrão Google Agenda: manuais + revisões SM-2 (espelho,
+    // por dueDate) + data da prova. Assim o calendário mostra os compromissos REAIS.
+    const _allEv=[];
+    (this.state.eventos||[]).forEach(e=> _allEv.push({...e, mes:(e.mes==null?5:e.mes), ano:(e.ano==null?2026:e.ano), source:'manual'}));
+    (this.state.reviews||[]).forEach(r=>{ if(!r.dueDate) return; const d=_parseYmd(r.dueDate);
+      _allEv.push({ id:'rev:'+r.id, refId:r.id, dia:d.dia, mes:d.mes, ano:d.ano, tipo:'Revisão',
+        titulo:(r.topic||r.disc||'Revisão'), disc:(r.disc||''), color:(r.color||_calColors['Revisão']),
+        source:'review', done:false, interval:(r.intervalo||1), ef:(r.facilidade||2.5) }); });
+    if(this.state.provaData){ const d=_parseYmd(this.state.provaData);
+      _allEv.push({ id:'prova:'+this.state.provaData, dia:d.dia, mes:d.mes, ano:d.ano, tipo:'Prova',
+        titulo:(this.state.provaName && this.state.provaName!=='Simulado cronometrado' ? this.state.provaName : 'Dia da prova'),
+        disc:'', color:'#c0392f', source:'prova', done:false }); }
+    const _passFilt=(e)=> (_cfilt==='todos'||e.tipo===_cfilt);
+    const _dnum=(e)=> e.ano*10000+e.mes*100+e.dia;
+    const _monthEvents=_allEv.filter(e=> e.mes===_cm && e.ano===_cy && _passFilt(e));
     const evByDay = {}; _monthEvents.forEach(e=>{ (evByDay[e.dia]=evByDay[e.dia]||[]).push(e); });
     const _firstDow=new Date(_cy,_cm,1).getDay();
     const _daysInMonth=new Date(_cy,_cm+1,0).getDate();
     const _calNow=new Date(); const _isCurMonth=(_cm===_calNow.getMonth()&&_cy===_calNow.getFullYear()); const calToday=_calNow.getDate();
+    const _prevDays=new Date(_cy,_cm,0).getDate();
+    const _pill=(e)=>{ const c=(e.color||_calColors[e.tipo]||'#6b4fbb'); return {...e, key:(e.id||('k'+e.dia+e.titulo)), color:c, pillBg:(c.charAt(0)==='#'?c+'22':'var(--surface2)')}; };
     const calCells = [];
-    for(let i=0;i<_firstDow;i++) calCells.push({empty:true, notEmpty:false, key:'e'+i, cellBg:'transparent', cellBorder:'transparent', dayColor:'var(--text3)', day:0, evs:[], hasMore:false, more:''});
-    for(let d=1; d<=_daysInMonth; d++){ const isT=_isCurMonth&&d===calToday; const isSel=_csel===d; const dows=new Date(_cy,_cm,d).getDay(); const wkd=(dows===0||dows===6); const evs=(evByDay[d]||[]);
-      calCells.push({empty:false, notEmpty:true, key:'d'+d, day:d, isToday:isT,
-        cellBg: isSel?'var(--accent)':(isT?'var(--accentSoft)':(wkd?'var(--surface)':'var(--surface2)')),
+    for(let i=_firstDow-1;i>=0;i--){ const d=_prevDays-i; calCells.push({empty:false, notEmpty:true, out:true, notOut:false, key:'p'+d, day:d, isToday:false, todayDot:false, isSel:false, cellBg:'var(--surface)', cellBorder:'var(--border)', dayColor:'#b8b1a2', evs:[], hasMore:false, more:''}); }
+    for(let d=1; d<=_daysInMonth; d++){ const isT=_isCurMonth&&d===calToday; const isSel=_csel===d; const dows=new Date(_cy,_cm,d).getDay(); const wkd=(dows===0||dows===6); const evs=(evByDay[d]||[]).map(_pill);
+      calCells.push({empty:false, notEmpty:true, out:false, notOut:true, key:'d'+d, day:d, isToday:isT, todayDot:isT, notToday:!isT, isSel:isSel,
+        cellBg: (isSel&&!isT)?'var(--accentSoft)':(isT?'var(--accentSoft)':(wkd?'var(--surface)':'var(--surface2)')),
         cellBorder: isSel?'var(--accent)':(isT?'var(--accentRing)':'var(--border)'),
-        dayColor: isSel?'var(--onAccent)':(isT?'var(--accentD)':'var(--text2)'),
-        evs:evs.slice(0,3).map((e,j)=>({...e,key:'ev'+d+'-'+j})), hasMore:evs.length>3, more:evs.length>3?('+'+(evs.length-3)):''}); }
-    const _mkRow=(e)=>({...e, id:evById(e), checkBg: e.done?(e.color||'var(--accent)'):'transparent', checkBd: e.done?(e.color||'var(--accent)'):'var(--border)', strike: e.done?'line-through':'none'});
+        dayColor: isT?'var(--accentD)':'var(--text2)',
+        evs:evs.slice(0,3), hasMore:evs.length>3, more:evs.length>3?('+'+(evs.length-3)+' mais'):''}); }
+    while(calCells.length%7!==0){ const d=calCells.length-(_firstDow+_daysInMonth)+1; calCells.push({empty:false, notEmpty:true, out:true, notOut:false, key:'nx'+d, day:d, isToday:false, todayDot:false, isSel:false, cellBg:'var(--surface)', cellBorder:'var(--border)', dayColor:'#b8b1a2', evs:[], hasMore:false, more:''}); }
+    const _mkRow=(e)=>({...e, id:(e.id||evById(e)), color:(e.color||_calColors[e.tipo]||'#6b4fbb'),
+      isReview:(e.source==='review'), isProva:(e.source==='prova'), isManual:(e.source==='manual'||!e.source), notManual:!(e.source==='manual'||!e.source), refId:(e.refId||''),
+      tipoLabel:(e.source==='review'?('Revisão'+(e.disc?(' · '+e.disc):'')):(e.source==='prova'?'Prova':e.tipo)),
+      checkBg: e.done?(e.color||'var(--accent)'):'transparent', checkBd: e.done?(e.color||'var(--accent)'):'var(--border)', strike: e.done?'line-through':'none'});
     const calProx = [..._monthEvents].sort((a,b)=>a.dia-b.dia).map(_mkRow);
     const calStats={ total:String(_monthEvents.length), done:String(_monthEvents.filter(e=>e.done).length), pend:String(_monthEvents.filter(e=>!e.done).length) };
     const _calTypes=[{f:'todos',label:'Todos',c:'var(--text3)'},{f:'Prova',label:'Provas',c:'#c0392f'},{f:'Revisão',label:'Revisões',c:'#06b6d4'},{f:'Simulado',label:'Simulados',c:'#0f7a57'},{f:'Meta',label:'Metas',c:'#c2790c'},{f:'Tarefa',label:'Tarefas',c:'#6b4fbb'}];
     const calChips=_calTypes.map(x=>{ const on=_cfilt===x.f; return {f:x.f, label:x.label, c:x.c, dotStyle:`width:9px;height:9px;border-radius:99px;background:${x.c};flex:none;`, style:`display:flex;align-items:center;gap:7px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;`}; });
-    const calSelEvents = _csel!=null ? [..._monthEvents].filter(e=>e.dia===_csel).sort((a,b)=>a.dia-b.dia).map(_mkRow) : [];
-    const calSelLabel = _csel!=null ? (_csel+' de '+_calMonthNames[_cm]) : '';
+    const _tipoOrder={'Prova':0,'Revisão':1,'Simulado':2,'Meta':3,'Tarefa':4};
+    const calSelEvents = _csel!=null ? _monthEvents.filter(e=>e.dia===_csel).sort((a,b)=>(_tipoOrder[a.tipo]||9)-(_tipoOrder[b.tipo]||9)).map(_mkRow) : [];
+    const calSelLabel = _csel!=null ? (_calWD[new Date(_cy,_cm,_csel).getDay()]+', '+_csel+' de '+_calMonthNames[_cm]) : '';
     const calHasSel = _csel!=null; const calSelEmpty = _csel!=null && calSelEvents.length===0;
+    // Trocador de visão (Mês / Semana / Agenda) — o estado calView já existia.
+    const _views=[{v:'mes',label:'Mês'},{v:'semana',label:'Semana'},{v:'agenda',label:'Agenda'}];
+    const calViewChips=_views.map(x=>({v:x.v, label:x.label, style:`border:none;background:${_calView===x.v?'var(--surface)':'transparent'};color:${_calView===x.v?'var(--ink)':'var(--text3)'};border-radius:7px;padding:6px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;${_calView===x.v?'box-shadow:0 1px 2px rgba(0,0,0,.08);':''}`}));
+    const calViewMes=_calView==='mes', calViewSemana=_calView==='semana', calViewAgenda=_calView==='agenda';
+    // Chip de contagem regressiva da prova no topo.
+    let calProvaChip=null, calHasProva=false;
+    if(this.state.provaData){ try{ const dd=Math.ceil((new Date(this.state.provaData+'T00:00:00')-_calNow)/864e5); if(dd>=0){ calHasProva=true; calProvaChip={dias:String(dd), label:(dd===0?'Prova é hoje':('Prova · '+dd+(dd===1?' dia':' dias')))}; } }catch(_){} }
+    // ===== Visão SEMANA: 7 dias da semana do dia selecionado (ou de hoje) =====
+    const _weekAnchor = _csel!=null ? new Date(_cy,_cm,_csel) : new Date(_calNow.getFullYear(),_calNow.getMonth(),_calNow.getDate());
+    const _weekStart = new Date(_weekAnchor); _weekStart.setDate(_weekAnchor.getDate()-_weekAnchor.getDay());
+    const calWeek=[]; for(let i=0;i<7;i++){ const dt=new Date(_weekStart); dt.setDate(_weekStart.getDate()+i);
+      const evs=_allEv.filter(e=> e.ano===dt.getFullYear()&&e.mes===dt.getMonth()&&e.dia===dt.getDate() && _passFilt(e)).map(_mkRow);
+      const isT=dt.getFullYear()===_calNow.getFullYear()&&dt.getMonth()===_calNow.getMonth()&&dt.getDate()===_calNow.getDate();
+      calWeek.push({ key:'w'+i, wd:_calWD[dt.getDay()], day:String(dt.getDate()), isToday:isT, events:evs, empty:(evs.length===0),
+        headColor:isT?'var(--accentD)':'var(--text2)', headBg:isT?'var(--accentSoft)':'var(--surface2)', headBd:isT?'var(--accentRing)':'var(--border)' }); }
+    const calWeekTitle=(()=>{ const a=_weekStart, b=new Date(_weekStart); b.setDate(_weekStart.getDate()+6); return a.getDate()+' '+_calMonthNames[a.getMonth()].slice(0,3)+' – '+b.getDate()+' '+_calMonthNames[b.getMonth()].slice(0,3)+' '+b.getFullYear(); })();
+    // ===== Visão AGENDA: próximos compromissos a partir de hoje, agrupados por dia =====
+    const _todayNum=_calNow.getFullYear()*10000+_calNow.getMonth()*100+_calNow.getDate();
+    const _agEvents=_allEv.filter(e=> _dnum(e)>=_todayNum && _passFilt(e)).sort((a,b)=> _dnum(a)-_dnum(b)).slice(0,80);
+    const _agBy={}, _agOrder=[];
+    _agEvents.forEach(e=>{ const k=_dnum(e); if(!_agBy[k]){ _agBy[k]=[]; _agOrder.push(k); } _agBy[k].push(_mkRow(e)); });
+    const calAgenda=_agOrder.map(k=>{ const any=_agBy[k][0]; const dt=new Date(any.ano,any.mes,any.dia); const isT=(k===_todayNum);
+      return { key:'ag'+k, dLabel:String(any.dia), wd:_calWD[dt.getDay()], mLabel:_calMonthNames[any.mes].slice(0,3), isToday:isT,
+        headColor:isT?'var(--accentD)':'var(--ink)', events:_agBy[k] }; });
+    const calAgendaEmpty=(calAgenda.length===0);
 
     // ===== Hábitos saudáveis (registráveis) =====
     const _habDefs=[
@@ -7114,6 +7213,9 @@ class Component extends DCLogic {
       isCalendario:this.state.view==='calendario', navCalendario:navStyle('calendario'), calCells, calProx,
       calTitle, calStats, calChips, calSelEvents, calSelLabel, calHasSel, calSelEmpty,
       calPrev:this.calPrev, calNext:this.calNext, calHoje:this.calHoje, calPick:this.calPick, setCalFilter:this.setCalFilter,
+      calViewChips, calViewMes, calViewSemana, calViewAgenda, setCalView:this.setCalView,
+      calWeek, calWeekTitle, calAgenda, calAgendaEmpty, calProvaChip, calHasProva,
+      reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze,
       eventDraft:this.state.eventDraft, onEventDraft:this.onEventDraft, addEvent:this.addEvent, removeEvent:this.removeEvent, toggleEvent:this.toggleEvent, calProxEmpty:calProx.length===0,
       // biblioteca
       isBiblioteca:this.state.view==='biblioteca', navBiblioteca:navStyle('biblioteca'), bibList, bibCount,
