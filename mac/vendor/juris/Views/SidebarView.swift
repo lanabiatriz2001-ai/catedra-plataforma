@@ -85,7 +85,7 @@ struct JurisSidebar: View {
                     row(.anotacoes, "Minhas anotações", "square.and.pencil")
                     row(.novidades, "Novidades", "sparkles", ponto: store.novidadesNaoVistas > 0)
                     row(.mapas, "Mapas mentais", "brain.head.profile")
-                    row(.checklist, "Checklist de leitura", "checklist", ponto: store.checklistPendingCount > 0)
+                    row(.plano, "Plano de leitura", "calendar")
                     row(.indice, "Índice alfabético", "textformat.abc")
 
                     // As CENTRAIS: uma página-hub por tribunal (os botões dentro

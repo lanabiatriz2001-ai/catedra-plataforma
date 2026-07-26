@@ -154,6 +154,7 @@ enum Selecao: Hashable {
     case colecao(String)      // uma coleção "Meu edital"
     case mapas                // galeria de mapas mentais feitos
     case checklist             // checklist de leitura PRÓPRIA do JURIS (metas livres)
+    case plano                 // Plano de leitura de súmulas (roteiro por dia)
     case central(JurisCentral) // página-hub de um tribunal (Central STF, STJ…)
     case tribunal(String)     // central de UM tribunal específico (TJRO, TJGO… ou cadastrado)
     case ramosHub             // página "Ramos do Direito" (todas as disciplinas)
@@ -177,6 +178,7 @@ enum Selecao: Hashable {
         case .colecao: return "Coleção"
         case .mapas: return "Mapas mentais"
         case .checklist: return "Checklist de leitura"
+        case .plano: return "Plano de leitura"
         case .central(let c): return c.nome
         case .tribunal: return "Central do tribunal"
         case .ramosHub: return "Ramos do Direito"
@@ -202,6 +204,7 @@ enum Selecao: Hashable {
         case .colecao: return "folder.fill"
         case .mapas: return "brain.head.profile"
         case .checklist: return "checklist"
+        case .plano: return "calendar"
         case .central(let c): return c.simbolo
         case .tribunal: return "building.2.fill"
         case .ramosHub: return "books.vertical.fill"
