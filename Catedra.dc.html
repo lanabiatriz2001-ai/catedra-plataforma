@@ -1049,6 +1049,105 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           </div>
         </div>
 
+        <!-- PLANOS DE LEITURA (lei seca do LEGIS + súmulas do JURIS): a próxima meta de
+             cada plano nativo entra no ciclo. Injetado pelo host (só no app desktop). -->
+        <sc-if value="{{ cicloPLShow }}" hint-placeholder-val="{{ false }}">
+         <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="width:9px;height:9px;border-radius:99px;background:#7C3AED;"></span>
+            <h3 style="margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);font-weight:700;">Planos de leitura</h3>
+          </div>
+          <sc-if value="{{ cicloPLLegisShow }}" hint-placeholder-val="{{ true }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid {{ cicloPLLegis.color }};border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.04),0 5px 14px rgba(16,24,40,.05);">
+              <span style="font-size:22px;flex:none;">📕</span>
+              <div style="flex:1;min-width:170px;">
+                <div style="font-weight:600;font-size:13.5px;color:var(--ink);">Lei seca · Plano LEGIS</div>
+                <div style="font-size:13.5px;color:var(--text2);margin-top:3px;font-weight:600;">{{ cicloPLLegis.nextStr }}</div>
+                <div style="font-size:11.5px;color:var(--text3);margin-top:1px;">{{ cicloPLLegis.sub }}</div>
+                <div style="display:flex;align-items:center;gap:9px;margin-top:9px;">
+                  <div style="flex:1;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ cicloPLLegis.pctW }};background:{{ cicloPLLegis.color }};border-radius:99px;transition:width .4s;"></i></div>
+                  <span style="font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap;">{{ cicloPLLegis.done }}/{{ cicloPLLegis.total }} · {{ cicloPLLegis.pct }}%</span>
+                </div>
+              </div>
+              <button onclick="{{ abrirTabLegis }}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:9px;padding:9px 16px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;flex:none;">Abrir →</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ cicloPLJurisShow }}" hint-placeholder-val="{{ true }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid {{ cicloPLJuris.color }};border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.04),0 5px 14px rgba(16,24,40,.05);">
+              <span style="font-size:22px;flex:none;">⚖️</span>
+              <div style="flex:1;min-width:170px;">
+                <div style="font-weight:600;font-size:13.5px;color:var(--ink);">Súmulas · Plano JURIS</div>
+                <div style="font-size:13.5px;color:var(--text2);margin-top:3px;font-weight:600;">{{ cicloPLJuris.nextStr }}</div>
+                <div style="font-size:11.5px;color:var(--text3);margin-top:1px;">{{ cicloPLJuris.sub }}</div>
+                <div style="display:flex;align-items:center;gap:9px;margin-top:9px;">
+                  <div style="flex:1;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ cicloPLJuris.pctW }};background:{{ cicloPLJuris.color }};border-radius:99px;transition:width .4s;"></i></div>
+                  <span style="font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap;">{{ cicloPLJuris.done }}/{{ cicloPLJuris.total }} · {{ cicloPLJuris.pct }}%</span>
+                </div>
+              </div>
+              <button onclick="{{ abrirTabJuris }}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:9px;padding:9px 16px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;flex:none;">Abrir →</button>
+            </div>
+          </sc-if>
+         </div>
+        </sc-if>
+
+        <!-- modo manual: QUADRO DA SEMANA (dias lado a lado, como na agenda) -->
+        <sc-if value="{{ isManual }}" hint-placeholder-val="{{ true }}">
+          <div style="overflow-x:auto;padding-bottom:4px;">
+            <div style="display:grid;grid-template-columns:repeat(7,minmax(196px,1fr));gap:9px;align-items:start;">
+              <sc-for list="{{ cicloSemana }}" as="g" hint-placeholder-count="7">
+                <div style="border:1px solid {{ g.colBorder }};border-radius:12px;padding:10px;background:{{ g.colBg }};display:flex;flex-direction:column;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;min-height:20px;">
+                    <span style="font-weight:700;font-size:12px;color:var(--ink);white-space:nowrap;">{{ g.label }}</span>
+                    <sc-if value="{{ g.isToday }}" hint-placeholder-val="{{ false }}"><span style="font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--onAccent);background:var(--accent);padding:2px 6px;border-radius:99px;">hoje</span></sc-if>
+                    <span style="font-size:10.5px;color:var(--text3);margin-left:auto;font-family:var(--mono);white-space:nowrap;">{{ g.pendLabel }}</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:7px;">
+                    <sc-for list="{{ g.planoCards }}" as="p" hint-placeholder-count="0">
+                      <sc-if value="{{ p.isLegis }}" hint-placeholder-val="{{ false }}">
+                        <button onclick="{{ abrirTabLegis }}" title="Abrir o CátedraLEGIS nesta leitura" style="display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px dashed {{ p.cor }};border-left:3px solid {{ p.cor }};border-radius:10px;padding:8px 9px;">
+                          <span style="font-size:13px;flex:none;line-height:1.2;">{{ p.icon }}</span>
+                          <span style="flex:1;min-width:0;display:block;">
+                            <span style="display:block;font-weight:700;font-size:11px;color:var(--ink);line-height:1.35;">{{ p.titulo }}</span>
+                            <span style="display:block;white-space:pre-line;font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:3px;">{{ p.itensStr }}</span>
+                            <span style="display:block;font-size:9.5px;color:var(--text3);margin-top:3px;">{{ p.sub }}</span>
+                          </span>
+                        </button>
+                      </sc-if>
+                      <sc-if value="{{ p.isJuris }}" hint-placeholder-val="{{ false }}">
+                        <button onclick="{{ abrirTabJuris }}" title="Abrir o CátedraJURIS neste dia do plano" style="display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px dashed {{ p.cor }};border-left:3px solid {{ p.cor }};border-radius:10px;padding:8px 9px;">
+                          <span style="font-size:13px;flex:none;line-height:1.2;">{{ p.icon }}</span>
+                          <span style="flex:1;min-width:0;display:block;">
+                            <span style="display:block;font-weight:700;font-size:11px;color:var(--ink);line-height:1.35;">{{ p.titulo }}</span>
+                            <span style="display:block;white-space:pre-line;font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:3px;">{{ p.itensStr }}</span>
+                            <span style="display:block;font-size:9.5px;color:var(--text3);margin-top:3px;">{{ p.sub }}</span>
+                          </span>
+                        </button>
+                      </sc-if>
+                    </sc-for>
+                    <sc-for list="{{ g.cards }}" as="c" hint-placeholder-count="1">
+                      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid {{ c.kindColor }};border-radius:10px;padding:8px 9px;display:flex;gap:8px;align-items:flex-start;">
+                        <sc-if value="{{ c.hoje }}" hint-placeholder-val="{{ true }}">
+                          <button data-i="{{ c.i }}" onclick="{{ toggleBlock }}" title="Concluir" style="width:20px;height:20px;border-radius:6px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ c.checkBd }};background:{{ c.checkBg }};color:#fff;margin-top:1px;"><sc-if value="{{ c.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                        </sc-if>
+                        <sc-if value="{{ c.notHoje }}" hint-placeholder-val="{{ false }}">
+                          <button data-id="{{ c.id }}" data-dia="{{ c.diaK }}" onclick="{{ toggleAgendaDia }}" title="Concluir" style="width:20px;height:20px;border-radius:6px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ c.checkBd }};background:{{ c.checkBg }};color:#fff;margin-top:1px;"><sc-if value="{{ c.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                        </sc-if>
+                        <div style="flex:1;min-width:0;">
+                          <div style="font-weight:600;font-size:12px;color:var(--ink);line-height:1.35;text-decoration:{{ c.strike }};">{{ c.titulo }}</div>
+                          <div style="font-size:10.5px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">{{ c.kind }} · {{ c.min }}min<sc-if value="{{ c.atrasada }}" hint-placeholder-val="{{ false }}"><span style="color:#c0392f;font-weight:700;">atrasada</span></sc-if><sc-if value="{{ c.hasExtra }}" hint-placeholder-val="{{ false }}"><span style="color:var(--text3);background:var(--surface2);border-radius:99px;padding:1px 7px;font-weight:600;">{{ c.extra }}</span></sc-if></div>
+                          <sc-if value="{{ c.hasVinculo }}" hint-placeholder-val="{{ false }}"><div style="display:inline-flex;align-items:center;gap:4px;margin-top:4px;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:99px;padding:1px 7px;font-size:9.5px;font-weight:600;color:var(--accentD);max-width:100%;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.4" style="flex:none;"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5" stroke-linecap="round"></path></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.vinculo }}</span></div></sc-if>
+                        </div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{ g.vazio }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:var(--text3);text-align:center;padding:10px 0;">— livre —</div></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <!-- outros modos (sugestão/presets): lista única do dia -->
+        <sc-if value="{{ cicloListaFlat }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:10px;">
           <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="5">
             <button data-i="{{ b.i }}" onclick="{{ toggleBlock }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-left:4px solid {{ b.kindColor }};border-radius:var(--radius);padding:16px 18px;font-family:inherit;box-shadow:0 1px 2px rgba(16,24,40,.04),0 5px 14px rgba(16,24,40,.05);transition:all .15s;">
@@ -1058,11 +1157,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;font-size:15px;color:var(--ink);text-decoration:{{ b.strike }};">{{ b.disc }}</div>
                 <div style="font-size:12px;color:var(--text3);margin-top:2px;">{{ b.kind }} · {{ b.tag }}</div>
+                <sc-if value="{{ b.hasVinculo }}" hint-placeholder-val="{{ false }}"><div style="display:inline-flex;align-items:center;gap:5px;margin-top:5px;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:600;color:var(--accentD);max-width:100%;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4" style="flex:none;"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5" stroke-linecap="round"></path></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ b.vinculo }}</span></div></sc-if>
               </div>
               <span style="font-family:var(--mono);font-size:13px;color:var(--text2);background:var(--surface2);padding:5px 10px;border-radius:8px;">{{ b.min }}min</span>
             </button>
           </sc-for>
         </div>
+        </sc-if>
 
         <div style="display:flex;gap:14px;align-items:flex-start;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:16px 18px;">
           <span style="width:8px;height:8px;border-radius:99px;background:var(--accent);margin-top:6px;flex:none;"></span>
@@ -1101,11 +1202,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
         <!-- CONSTRUTOR MANUAL: fixas + rotativas -->
         <sc-if value="{{ isManual }}" hint-placeholder-val="{{ false }}">
-         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">
-          <!-- fixas -->
+         <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- fixas: SEMANA HORIZONTAL (dias lado a lado, como na agenda) -->
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px;"><span style="width:9px;height:9px;border-radius:99px;background:var(--accent);"></span><span style="font-weight:600;color:var(--ink);font-size:14.5px;">Agenda da semana</span></div>
-            <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">monte a semana inteira: cada dia com suas atividades. "Todo dia" repete sempre (rotina); o "Ciclo de hoje" puxa o que é de hoje + o de todo dia.</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">os dias lado a lado, como na agenda. Vincule cada atividade à disciplina e ao tópico do edital — a sessão registrada já nasce contando no progresso certo. "Todo dia" repete sempre (rotina).</div>
             <sc-if value="{{ hasRoteirosAtivos }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
                 <sc-for list="{{ roteirosAtivos }}" as="rt" hint-placeholder-count="1">
@@ -1116,29 +1217,38 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
               <input value="{{ manualFixedRoteiroAtual }}" oninput="{{ setRoteiroAtual }}" placeholder="Etiqueta do roteiro atual (ex.: Roteiro 2 · 20-25/07) — as atividades novas recebem essa etiqueta" style="flex:1;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 9px;font-size:12.5px;color:var(--ink);font-family:inherit;">
             </div>
-            <div style="display:flex;flex-direction:column;gap:13px;">
-              <sc-for list="{{ manualAgendaGroups }}" as="g" hint-placeholder-count="3">
-                <div style="border:1px solid var(--border);border-radius:12px;padding:12px 13px;background:var(--surface2);">
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
-                    <span style="font-weight:700;font-size:12.5px;color:var(--ink);">{{ g.label }}</span>
-                    <sc-if value="{{ g.isToday }}" hint-placeholder-val="{{ false }}"><span style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--onAccent);background:var(--accent);padding:2px 7px;border-radius:99px;">hoje</span></sc-if>
-                    <span style="font-size:11px;color:var(--text3);">{{ g.countLabel }}</span>
+            <div style="overflow-x:auto;padding-bottom:4px;">
+              <div style="display:grid;grid-template-columns:repeat(8,minmax(196px,1fr));gap:9px;align-items:start;">
+              <sc-for list="{{ manualAgendaGroups }}" as="g" hint-placeholder-count="8">
+                <div style="border:1px solid {{ g.colBorder }};border-radius:12px;padding:10px;background:{{ g.colBg }};display:flex;flex-direction:column;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;min-height:20px;">
+                    <span style="font-weight:700;font-size:12px;color:var(--ink);white-space:nowrap;">{{ g.label }}</span>
+                    <sc-if value="{{ g.isToday }}" hint-placeholder-val="{{ false }}"><span style="font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--onAccent);background:var(--accent);padding:2px 6px;border-radius:99px;">hoje</span></sc-if>
+                    <span style="font-size:10.5px;color:var(--text3);margin-left:auto;font-family:var(--mono);">{{ g.countLabel }}</span>
                   </div>
                   <div style="display:flex;flex-direction:column;gap:7px;">
                     <sc-for list="{{ g.items }}" as="f" hint-placeholder-count="1">
-                      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 10px;">
-                        <input data-id="{{ f.id }}" data-field="disc" value="{{ f.disc }}" oninput="{{ editFixed }}" placeholder="Atividade (ex.: Ler Cap. 1 do Tartuce)" style="flex:1;min-width:120px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:6px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;">
-                        <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" style="border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:6px 7px;font-size:12px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="Teoria">Teoria</option><option value="Questões">Questões</option><option value="Lei seca">Lei seca</option><option value="Jurisprudência">Jurisprudência</option><option value="Revisão">Revisão</option><option value="Flashcards">Flashcards</option></select>
-                        <select data-id="{{ f.id }}" data-field="dia" value="{{ f.dia }}" onchange="{{ editFixed }}" title="Mover para outro dia" style="border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:6px 7px;font-size:12px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="">Todo dia</option><option value="seg">Seg</option><option value="ter">Ter</option><option value="qua">Qua</option><option value="qui">Qui</option><option value="sex">Sex</option><option value="sab">Sáb</option><option value="dom">Dom</option></select>
-                        <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" title="Minutos" style="width:54px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:6px 7px;font-size:12.5px;color:var(--ink);font-family:inherit;flex:none;">
-                        <span style="font-size:10.5px;color:var(--text3);flex:none;">min</span>
-                        <button data-id="{{ f.id }}" onclick="{{ removeFixed }}" title="Remover" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;">×</button>
+                      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+                        <div style="display:flex;gap:5px;align-items:center;">
+                          <input data-id="{{ f.id }}" data-field="disc" value="{{ f.disc }}" oninput="{{ editFixed }}" placeholder="Atividade…" title="Nome da atividade" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:6px 7px;font-size:12px;color:var(--ink);font-family:inherit;font-weight:600;">
+                          <button data-id="{{ f.id }}" onclick="{{ removeFixed }}" title="Remover" style="width:22px;height:22px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;font-size:12px;line-height:1;">×</button>
+                        </div>
+                        <div style="display:flex;gap:5px;align-items:center;">
+                          <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" title="Tipo" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="Teoria">Teoria</option><option value="Questões">Questões</option><option value="Lei seca">Lei seca</option><option value="Jurisprudência">Jurisprudência</option><option value="Revisão">Revisão</option><option value="Flashcards">Flashcards</option></select>
+                          <select data-id="{{ f.id }}" data-field="dia" value="{{ f.dia }}" onchange="{{ editFixed }}" title="Mover para outro dia" style="width:64px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 3px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="">Todo dia</option><option value="seg">Seg</option><option value="ter">Ter</option><option value="qua">Qua</option><option value="qui">Qui</option><option value="sex">Sex</option><option value="sab">Sáb</option><option value="dom">Dom</option></select>
+                          <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" title="Minutos" style="width:44px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:var(--mono);flex:none;text-align:center;">
+                        </div>
+                        <select data-id="{{ f.id }}" data-field="discEdital" value="{{ f.discEdital }}" onchange="{{ editFixed }}" title="Vincular à disciplina do edital — a sessão registrada conta no progresso dela" style="width:100%;border:1px solid {{ f.vincBorder }};background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:{{ f.vincColor }};font-family:inherit;cursor:pointer;"><option value="">— vincular disciplina —</option><sc-for list="{{ f.discOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                        <sc-if value="{{ f.temTopicos }}" hint-placeholder-val="{{ false }}">
+                          <select data-id="{{ f.id }}" data-field="topico" value="{{ f.topico }}" onchange="{{ editFixed }}" title="Tópico da disciplina (do edital)" style="width:100%;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="">— tópico —</option><sc-for list="{{ f.topicOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                        </sc-if>
                       </div>
                     </sc-for>
                   </div>
-                  <button data-dia="{{ g.dia }}" onclick="{{ addToDay }}" style="margin-top:9px;background:var(--surface);border:1px dashed var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">+ atividade</button>
+                  <button data-dia="{{ g.dia }}" onclick="{{ addToDay }}" style="margin-top:8px;background:var(--surface);border:1px dashed var(--border);border-radius:8px;padding:6px 10px;font-size:11.5px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">+ atividade</button>
                 </div>
               </sc-for>
+              </div>
             </div>
           </div>
           <!-- rotativas -->
@@ -3437,6 +3547,7 @@ class Component extends DCLogic {
     this.state = {
       view:'inicio',
       nativeRev:null,   // agenda única: {legis:{due,deck}, juris:{due,deck}} injetado pelo host do desktop
+      nativePlano:null, // planos de leitura: {legis:{done,total,next}, juris:{done,total,next}} injetado pelo host
       dir: (()=>{ try{ const d=localStorage.getItem('catedra:dir'); if(d&&['sutil','premium','clean','moderno'].includes(d)) return d; }catch(_){} return props.direction || 'sutil'; })(),
       darkMode: (()=>{ try{ return localStorage.getItem('catedra:dark')==='1'; }catch(_){} return false; })(),
       menuOpen:false, navExpanded:false,
@@ -3622,6 +3733,9 @@ class Component extends DCLogic {
     // AGENDA ÚNICA: o host do desktop injeta {legis:{due,deck}, juris:{due,deck}} com as
     // revisões espaçadas dos apps nativos — o Revisões e o hero da home exibem tudo junto.
     try{ window.catedraSetNativeRev = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativeRev:o}); }catch(_){} }; }catch(_){}
+    // PLANOS DE LEITURA: o host injeta a próxima meta de cada plano (lei seca do LEGIS
+    // + súmulas do JURIS) + progresso — o Ciclo de Estudos mostra um bloco por plano.
+    try{ window.catedraSetNativePlano = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativePlano:o}); }catch(_){} }; }catch(_){}
     // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
     try{ window.__catedraGoView = (v)=>{ try{ this.setState({view:v, menuOpen:false}); }catch(_){} }; }catch(_){}
     this._migrarSchema();
@@ -4341,24 +4455,33 @@ class Component extends DCLogic {
     const hojeIdx=ordem.indexOf(hoje);
     const feitas=this.state.agendaFeitas||{};
     (fixed||[]).forEach(f=>{
-      if(!f.dia){ blocks.push({disc:f.disc, kind:f.kind, tag:'Fixa', min:f.min, done:false}); return; } // rotina todo dia (reseta diário)
+      const vinc={discEdital:f.discEdital||'', topico:f.topico||''}; // vínculo edital → segue no bloco e no registro de sessão
+      if(!f.dia){ blocks.push({disc:f.disc, kind:f.kind, tag:'Fixa', min:f.min, done:false, ...vinc}); return; } // rotina todo dia (reseta diário)
       const idx=ordem.indexOf(f.dia); if(idx<0) return;
       const iso=this._isoDiaSemana(f.dia); const feito=!!feitas[f.id+'|'+iso];
-      if(idx===hojeIdx){ blocks.push({disc:f.disc, kind:f.kind, tag:LBL[f.dia], min:f.min, done:feito, srcId:f.id, srcDate:iso}); }
+      if(idx===hojeIdx){ blocks.push({disc:f.disc, kind:f.kind, tag:LBL[f.dia], min:f.min, done:feito, srcId:f.id, srcDate:iso, ...vinc}); }
       // ATRASADA: dia anterior DESTA semana que não foi concluído → cai em hoje automaticamente (carry-over)
-      else if(idx<hojeIdx && !feito){ blocks.push({disc:f.disc, kind:f.kind, tag:'Atrasada · '+LBL[f.dia], min:f.min, done:false, srcId:f.id, srcDate:iso, atrasada:true}); }
+      else if(idx<hojeIdx && !feito){ blocks.push({disc:f.disc, kind:f.kind, tag:'Atrasada · '+LBL[f.dia], min:f.min, done:false, srcId:f.id, srcDate:iso, atrasada:true, ...vinc}); }
     });
     return blocks;
   }
   syncManual(extra){ const f=extra.manualFixed||this.state.manualFixed, r=extra.manualRot||this.state.manualRot, p=extra.rotPointer!=null?extra.rotPointer:this.state.rotPointer;
     this.setState({...extra, blocks:this.composeManual(f,r,p)}); }
-  addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'', kind:'Teoria', min:30, dia:'', roteiro:this.state.manualFixedRoteiroAtual||''}]});
-  addToDay = (e)=>{ const dia=e.currentTarget.dataset.dia||''; this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now()+Math.floor(Math.random()*1000), disc:'', kind:'Teoria', min:30, dia, roteiro:dia?(this.state.manualFixedRoteiroAtual||''):''}]}); };
+  addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'', kind:'Teoria', min:30, dia:'', roteiro:this.state.manualFixedRoteiroAtual||'', discEdital:'', topico:''}]});
+  addToDay = (e)=>{ const dia=e.currentTarget.dataset.dia||''; this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now()+Math.floor(Math.random()*1000), disc:'', kind:'Teoria', min:30, dia, roteiro:dia?(this.state.manualFixedRoteiroAtual||''):'', discEdital:'', topico:''}]}); };
   setRoteiroAtual = (e)=> this.setState({manualFixedRoteiroAtual:e.currentTarget.value});
+  // Quadro da semana do Ciclo: marca "feito" numa OCORRÊNCIA (item × dia desta semana),
+  // em qualquer coluna — mesma chave (id|iso) usada pelo toggleBlock/carry-over.
+  toggleAgendaDia = (e)=>{ const id=e.currentTarget.dataset.id, dia=e.currentTarget.dataset.dia; if(!id||!dia) return;
+    const iso=this._isoDiaSemana(dia); const k=id+'|'+iso;
+    const fe={...(this.state.agendaFeitas||{})}; if(fe[k]) delete fe[k]; else fe[k]=true;
+    this.setState({agendaFeitas:fe}, ()=>{ this.setState({blocks:this.composeManual(this.state.manualFixed, this.state.manualRot, this.state.rotPointer)}); }); this.flashSync(); };
   clearRoteiro = (e)=>{ const label=e.currentTarget.dataset.label; const n=(this.state.manualFixed||[]).filter(f=>f.roteiro===label).length;
     if(!n) return; if(!window.confirm('Remover as '+n+' atividades de "'+label+'"? Isso não pode ser desfeito.')) return;
     this.syncManual({manualFixed:this.state.manualFixed.filter(f=>f.roteiro!==label)}); };
-  editFixed = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=Math.max(1, parseInt(val,10)||0); this.syncManual({manualFixed:this.state.manualFixed.map(x=> x.id===id ? {...x,[field]:val} : x)}); };
+  editFixed = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=Math.max(1, parseInt(val,10)||0);
+    // trocar a disciplina vinculada zera o tópico (tópico pertence à disciplina)
+    this.syncManual({manualFixed:this.state.manualFixed.map(x=> x.id===id ? {...x,[field]:val, ...(field==='discEdital'?{topico:''}:{})} : x)}); };
   removeFixed = (e)=>{ const id=e.currentTarget.dataset.id; this.syncManual({manualFixed:this.state.manualFixed.filter(x=>x.id!==id)}); };
   addRot = ()=> this.syncManual({manualRot:[...this.state.manualRot, {id:'o'+Date.now(), disc:'', kind:'Teoria', min:45}]});
   editRot = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=Math.max(1, parseInt(val,10)||0); this.syncManual({manualRot:this.state.manualRot.map(x=> x.id===id ? {...x,[field]:val} : x)}); };
@@ -4466,7 +4589,12 @@ class Component extends DCLogic {
   }
   _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:_autoRev, contarMeta:true }; }
   _kindToCat(kind){ return {'Teoria':'Teoria','Questões':'Questões','Lei seca':'Lei seca','Jurisprudência':'Jurisprudência','Simulado':'Simulado','Revisão':'Revisão','Flashcards':'Revisão'}[kind]||'Teoria'; }
-  _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind); return {...this._freshSessionDraft(prev), disc:b.disc||'', topico:(b.tag&&b.tag!=='Rotativa'&&b.tag!=='Fixa')?b.tag:'', categorias:[cat], categoria:cat}; }
+  _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind);
+    // Se o bloco tem vínculo com o edital (disciplina + tópico da Agenda da semana),
+    // a sessão nasce vinculada — e o progresso do edital/domínio conta certo.
+    const disc = b.discEdital || b.disc || '';
+    const topico = b.topico || ((b.tag&&b.tag!=='Rotativa'&&b.tag!=='Fixa'&&!b.discEdital)?b.tag:'');
+    return {...this._freshSessionDraft(prev), disc, topico, categorias:[cat], categoria:cat}; }
   openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
   closeSession = ()=>{
     // Fechar no X descarta os registros restantes da fila (LEGIS/JURIS multi-matéria).
@@ -5808,7 +5936,7 @@ class Component extends DCLogic {
       `--sbg:${sbgVal};--stext:${T.sidebarText};--sactbg:${this.state.accent?'rgba(255,255,255,.14)':T.sidebarActiveBg};--sacttext:${this.state.accent?'#fff':T.sidebarActiveText};`+
       `--bg:${bgVal};background:${bgVal};color:${T.ink};font-family:${T.body};font-size:${fontScalePx};`;
     // largura por view: telas de grade (muitos cards/colunas) ficam largas; telas em coluna única ficam num limite de leitura confortável
-    const _wideView = ['inicio','dashboards','edital','analise','dominio','calendario','comunidade','conquistas','anki','simulados','historico','relatorio','multiformato','biblioteca','metas','erros','legis','juris'].indexOf(this.state.view)>=0;
+    const _wideView = ['inicio','dashboards','edital','analise','dominio','calendario','ciclo','comunidade','conquistas','anki','simulados','historico','relatorio','multiformato','biblioteca','metas','erros','legis','juris'].indexOf(this.state.view)>=0;
     const _cwLargo = pf0.contentWidth==='largo';
     const contentMax = (this.state.view==='legis'||this.state.view==='juris') ? 'min(1360px, 98%)' : (_wideView ? (_cwLargo?1280:1120) : (_cwLargo?1040:900)) + 'px';
 
@@ -5852,6 +5980,9 @@ class Component extends DCLogic {
       kindColor: ({'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#b08433','Jurisprudência':'#c0392f','Flashcards':'#0a7ea4'}[b.kind]||'#0f7a57'),
       checkBorder: b.done?'var(--accent)':'var(--border)',
       checkBg: b.done?'var(--accent)':'transparent',
+      // vínculo com o edital (disciplina + tópico) — definido na Agenda da semana
+      hasVinculo: !!b.discEdital,
+      vinculo: b.discEdital ? (b.discEdital.replace('Direito ','')+(b.topico?(' · '+(b.topico.length>52?b.topico.slice(0,52)+'…':b.topico)):'')) : '',
       strike: b.done?'line-through':'none'}));
     const cicloTotal = blocks.length;
     const cicloDone = blocks.filter(b=>b.done).length;
@@ -5861,11 +5992,68 @@ class Component extends DCLogic {
     const blocksHome = blocks.filter(b=>!b.done).slice(0,3);
     const cicloRestam = cicloTotal - cicloDone;
     const roteirosAtivos = (()=>{ const m={}; (this.state.manualFixed||[]).forEach(f=>{ if(f.roteiro) m[f.roteiro]=(m[f.roteiro]||0)+1; }); return Object.keys(m).map(label=>({label, count:m[label]})); })();
+    // Quadro da semana do CICLO (dias lado a lado): hoje = blocos reais (inclui rotina
+    // "todo dia" e a rotativa); demais dias = agenda fixa, com "feito" por ocorrência
+    // (agendaFeitas[id|iso]) — atrasadas ficam vermelhas na coluna do próprio dia.
+    const cicloSemana = (()=>{ if(this.state.cycleMode!=='manual') return [];
+      const ordem=['seg','ter','qua','qui','sex','sab','dom'];
+      const LBLS={seg:'Segunda',ter:'Terça',qua:'Quarta',qui:'Quinta',sex:'Sexta',sab:'Sábado',dom:'Domingo'};
+      const hojeKey=['dom','seg','ter','qua','qui','sex','sab'][new Date().getDay()];
+      const hojeIdx=ordem.indexOf(hojeKey);
+      const feitas=this.state.agendaFeitas||{};
+      const KC={'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#b08433','Jurisprudência':'#c0392f','Flashcards':'#0a7ea4'};
+      const shortV=(de,tp)=> de? (de.replace('Direito ','')+(tp?(' · '+(tp.length>40?tp.slice(0,40)+'…':tp)):'')) : '';
+      return ordem.map((dk,idx)=>{
+        const isToday=dk===hojeKey; let cards;
+        if(isToday){
+          cards=blocks.filter(b=>!b.atrasada).map(b=>({key:'hb'+b.i, hoje:true, notHoje:false, i:String(b.i), id:'', diaK:'',
+            titulo:b.disc||'—', kind:b.kind, min:String(b.min||0), done:b.done, atrasada:false, kindColor:KC[b.kind]||'#0f7a57',
+            checkBg:b.done?'var(--accent)':'transparent', checkBd:b.done?'var(--accent)':'var(--border)', strike:b.done?'line-through':'none',
+            hasVinculo:!!b.discEdital, vinculo:shortV(b.discEdital,b.topico), extra:(b.tag==='Fixa'?'rotina':(b.tag==='Rotativa'?'rotativa':'')), hasExtra:(b.tag==='Fixa'||b.tag==='Rotativa')}));
+        } else {
+          const iso=this._isoDiaSemana(dk);
+          cards=(this.state.manualFixed||[]).filter(f=>(f.dia||'')===dk).map(f=>{ const feito=!!feitas[f.id+'|'+iso]; const atras=idx<hojeIdx&&!feito;
+            return {key:f.id, hoje:false, notHoje:true, i:'', id:f.id, diaK:dk,
+              titulo:f.disc||'—', kind:f.kind, min:String(f.min||0), done:feito, atrasada:atras, kindColor:KC[f.kind]||'#0f7a57',
+              checkBg:feito?'var(--accent)':'transparent', checkBd:feito?'var(--accent)':'var(--border)', strike:feito?'line-through':'none',
+              hasVinculo:!!f.discEdital, vinculo:shortV(f.discEdital,f.topico), extra:'', hasExtra:false}; });
+        }
+        // Planos de leitura projetados nos DIAS ÚTEIS (roteiro: leitura de leis +
+        // súmulas seg→sex; sábado = questões/revisão, domingo = descanso). Hoje
+        // recebe o próximo pendente; cada dia útil seguinte, o próximo da fila.
+        const np=this.state.nativePlano; let planoCards=[];
+        if(np && hojeIdx<=4 && idx>=hojeIdx && idx<=4){ const off=idx-hojeIdx;
+          const lp=(np.legis&&np.legis.prox)||[]; const jp=(np.juris&&np.juris.prox)||[];
+          if(lp[off]){ const its=(lp[off].itens||[]);
+            planoCards.push({key:'pl'+dk, isLegis:true, isJuris:false, icon:'📕', cor:'#0D9488',
+              titulo:'Leitura de leis · '+(lp[off].dia||''), sub:'Plano LEGIS',
+              itensStr: its.length? its.map(n=>((n.law||'')+' — '+(n.arts||''))).join('\n')
+                        : ((lp[off].law||'')+' — '+(lp[off].arts||''))}); }   // compat payload antigo
+          if(jp[off]) planoCards.push({key:'pj'+dk, isLegis:false, isJuris:true, icon:'⚖️', cor:jp[off].color||'#7C3AED',
+            titulo:'Jurisprudência · Dia '+jp[off].dia, sub:'Plano JURIS',
+            itensStr:(jp[off].trilha||'')+' — Súmulas '+jp[off].faixa+(jp[off].qtd?(' ('+jp[off].qtd+')'):'')});
+        }
+        const pend=cards.filter(c=>!c.done).length;
+        return {dia:dk, label:LBLS[dk], isToday, cards, planoCards, vazio:cards.length===0&&planoCards.length===0,
+          pendLabel: cards.length? (pend? (pend+' pend.') : 'feito ✓') : '—',
+          colBg:isToday?'var(--accentSoft)':'var(--surface)', colBorder:isToday?'var(--accentRing)':'var(--border)'};
+      });
+    })();
+    const cicloListaFlat = this.state.cycleMode!=='manual';
     const manualAgendaGroups = (()=>{
       const defs=[{dia:'',label:'Todo dia'},{dia:'seg',label:'Segunda'},{dia:'ter',label:'Terça'},{dia:'qua',label:'Quarta'},{dia:'qui',label:'Quinta'},{dia:'sex',label:'Sexta'},{dia:'sab',label:'Sábado'},{dia:'dom',label:'Domingo'}];
       const hojeKey=['dom','seg','ter','qua','qui','sex','sab'][new Date().getDay()];
       const fixed=this.state.manualFixed||[];
-      return defs.map(d=>{ const items=fixed.filter(f=>(f.dia||'')===d.dia); return {dia:d.dia, label:d.label, items, isToday:d.dia!==''&&d.dia===hojeKey, countLabel: items.length===0 ? 'vazio' : (items.length+(items.length===1?' atividade':' atividades'))}; });
+      // vínculo com o edital: cada atividade ganha selects de disciplina + tópico
+      const _edList=this.state.edital||[];
+      const _mkItem=(f)=>{ const discOpts=_edList.map(d=>({v:d.disc,label:d.disc,sel:d.disc===f.discEdital}));
+        const ed=_edList.find(d=>d.disc===f.discEdital);
+        const topicOpts=((ed&&ed.topics)||[]).map(t=>({v:t.name,label:(t.name.length>70?t.name.slice(0,70)+'…':t.name),sel:t.name===f.topico}));
+        return {...f, discOpts, topicOpts, temTopicos:topicOpts.length>0,
+          vincBorder: f.discEdital?'var(--accentRing)':'var(--border)', vincColor: f.discEdital?'var(--accentD)':'var(--text3)'}; };
+      return defs.map(d=>{ const items=fixed.filter(f=>(f.dia||'')===d.dia).map(_mkItem); const isToday=d.dia!==''&&d.dia===hojeKey;
+        return {dia:d.dia, label:d.label, items, isToday, countLabel: items.length===0 ? 'vazio' : String(items.length),
+          colBg: isToday?'var(--accentSoft)':'var(--surface2)', colBorder: isToday?'var(--accentRing)':'var(--border)'}; });
     })();
     const nextAction = blocks.filter(b=>!b.done)[0] || null;
     const hr = (typeof Date!=='undefined') ? new Date().getHours() : 14;
@@ -6998,6 +7186,7 @@ class Component extends DCLogic {
       dirStyle:{ sutil:dirBtn('sutil'), premium:dirBtn('premium'), clean:dirBtn('clean'), moderno:dirBtn('moderno') },
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
       toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
+      cicloSemana, cicloListaFlat, toggleAgendaDia:this.toggleAgendaDia,
       onSim:this.onSim, fillExample:this.fillExample, simNome:this.state.simNome, onSimNome:this.onSimNome, saveSimulado:this.saveSimulado, simTempoLabel:(this.state.provaDurationMin>0?fmtHM(this.state.provaDurationMin):'—'),
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
       homeTimerLabel, homePmLivre, homePm25, homePm50, homePm90,
@@ -7018,6 +7207,19 @@ class Component extends DCLogic {
                  nativeRevLegisCor: L.due>0?'#c0392f':'var(--text3)', nativeRevJurisCor: J.due>0?'#c0392f':'var(--text3)',
                  nativeRevDueTotal:(L.due+J.due), nativeRevDueShow:(L.due+J.due)>0,
                  abrirTabLegis:this.abrirTabLegis, abrirTabJuris:this.abrirTabJuris }; })()),
+      // planos de leitura (lei seca + súmulas) → blocos no Ciclo, injetados pelo host
+      ...((()=>{ const np=this.state.nativePlano; if(!np) return { cicloPLShow:false, cicloPLLegisShow:false, cicloPLJurisShow:false };
+        const L=np.legis, J=np.juris;
+        const legisOn = !!(L && L.total>0), jurisOn = !!(J && J.total>0);
+        const mk=(x, tipo)=>{ const done=x.done||0, tot=x.total||1, pct=Math.max(0,Math.min(100,Math.round(done/tot*100)));
+          const nx=x.next; let nextStr, sub;
+          if(!nx){ nextStr='Plano concluído 🎉'; sub='todas as '+tot+' leituras feitas'; }
+          else if(tipo==='legis'){ nextStr=nx.dia+' · '+nx.law+' — '+nx.arts; sub=nx.disc; }
+          else { nextStr='Dia '+nx.dia+' · Súmulas '+nx.faixa; sub=nx.trilha+(nx.qtd?(' · '+nx.qtd+' súmulas'):''); }
+          return { done:String(done), total:String(tot), pctW:pct+'%', pct:String(pct), nextStr, sub,
+                   color:(nx&&nx.color)|| (tipo==='legis'?'#0D9488':'#7C3AED'), allDone:!nx }; };
+        return { cicloPLShow: legisOn||jurisOn, cicloPLLegisShow:legisOn, cicloPLJurisShow:jurisOn,
+                 cicloPLLegis: legisOn?mk(L,'legis'):{}, cicloPLJuris: jurisOn?mk(J,'juris'):{} }; })()),
       bnInicio, bnCiclo, bnRevisoes,
       revOverdueEmpty:revOverdue.length===0, revTodayEmpty:revToday.length===0,
       isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
