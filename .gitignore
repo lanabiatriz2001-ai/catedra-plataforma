@@ -22,3 +22,8 @@ uploads/
 # build do app nativo (binário compilado, gerado por mac/build-app.sh)
 mac/build/
 Catedra.dc.html.bak*
+
+# Windows (Electron)
+win/node_modules/
+win/dist/
+win/build/icon-256.png
