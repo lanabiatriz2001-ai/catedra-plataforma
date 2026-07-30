@@ -488,6 +488,73 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let payload = "{\"legis\":{\"due\":\(AppStore.shared.srsDueCount()),\"deck\":\(AppStore.shared.srsDeckCount)}," +
                       "\"juris\":{\"due\":\(jurisStore?.srsDueCount ?? 0),\"deck\":\(jurisStore?.srsDeckCount ?? 0)}}"
         wv.evaluateJavaScript("window.catedraSetNativeRev && window.catedraSetNativeRev(\(payload))", completionHandler: nil)
+        // Planos de leitura (LEGIS + JURIS) → blocos no Ciclo de Estudos do Cátedra.
+        if let planoJSON = nativePlanoPayload() {
+            wv.evaluateJavaScript("window.catedraSetNativePlano && window.catedraSetNativePlano(\(planoJSON))", completionHandler: nil)
+        }
+    }
+
+    // Próxima meta de cada plano de leitura + progresso — vira bloco no Ciclo.
+    // LEGIS: cronograma por disciplina (id de leitura "di_li_dyi", próximo = 1º não
+    // concluído, mesma ordem do PlanoLeituraView). JURIS: 101 dias de súmulas
+    // (próximo = 1º "dia" não lido). Lê os mesmos UserDefaults dos planos nativos.
+    func nativePlanoPayload() -> String? {
+        let ldone = PlanoStore.loadDone()
+        var lTotal = 0
+        // Agrupa as leituras PENDENTES por número do dia ("Dia 3" → CF, CC, CPC…):
+        // o roteiro dela lê a MESMA tabela-dia em todas as leis em paralelo, então o
+        // card do Ciclo lista as normas completas do dia, não só a primeira.
+        var pendPorDia: [Int: [[String: String]]] = [:]
+        for (di, disc) in ReadingData.plano.enumerated() {
+            for (li, law) in disc.laws.enumerated() {
+                for (dyi, day) in law.days.enumerated() {
+                    lTotal += 1
+                    if !ldone.contains("\(di)_\(li)_\(dyi)") {
+                        let n = Int(day.d.replacingOccurrences(of: "Dia ", with: "")) ?? 0
+                        pendPorDia[n, default: []].append(["law": law.name, "arts": day.a, "disc": disc.name])
+                    }
+                }
+            }
+        }
+        var lProx: [[String: Any]] = []   // próximos 7 DIAS do plano, cada um com a lista de normas
+        if let diaAtual = pendPorDia.keys.min() {
+            var n = diaAtual
+            while lProx.count < 7 && n <= diaAtual + 60 {   // pula dias já concluídos no meio
+                if let itens = pendPorDia[n], !itens.isEmpty {
+                    lProx.append(["dia": "Dia \(n)", "itens": itens])
+                }
+                n += 1
+            }
+        }
+        var lNext: Any = NSNull()
+        if let p0 = lProx.first, let itens = p0["itens"] as? [[String: String]], let i0 = itens.first {
+            lNext = ["dia": p0["dia"] ?? "", "law": i0["law"] ?? "", "arts": i0["arts"] ?? "",
+                     "disc": (itens.count > 1 ? "\(itens.count) normas neste dia" : (i0["disc"] ?? "")), "color": "#0D9488"] as [String: Any]
+        }
+        let legis: [String: Any] = ["done": ldone.count, "total": lTotal, "next": lNext, "prox": lProx]
+
+        let jdone = JurisPlanoStore.lidos()
+        let jTotal = JurisPlano.dias.count
+        let jDone = JurisPlano.dias.filter { jdone.contains($0.dia) }.count
+        var jProx: [[String: Any]] = []
+        for nd in JurisPlano.dias where !jdone.contains(nd.dia) {
+            if jProx.count >= 7 { break }
+            jProx.append(["dia": nd.dia, "faixa": nd.faixa, "trilha": nd.trilha, "qtd": nd.qtd, "color": jurisTrilhaColor(nd.trilha)])
+        }
+        let jNext: Any = jProx.first.map { $0 as Any } ?? NSNull()
+        let juris: [String: Any] = ["done": jDone, "total": jTotal, "next": jNext, "prox": jProx]
+
+        let dict: [String: Any] = ["legis": legis, "juris": juris]
+        guard let data = try? JSONSerialization.data(withJSONObject: dict),
+              let json = String(data: data, encoding: .utf8) else { return nil }
+        return json
+    }
+    private func jurisTrilhaColor(_ t: String) -> String {
+        switch t {
+        case "STJ": return "#0D9488"
+        case "TSE": return "#7C3AED"
+        default:    return "#2563EB"
+        }
     }
 
     // ===== Backup automático (semanal) =====
