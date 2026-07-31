@@ -1,7 +1,7 @@
 {
   "name": "catedra-desktop-win",
   "productName": "Cátedra",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Cátedra · Plataforma de estudos — app desktop para Windows",
   "author": "Lana Biatriz",
   "main": "main.js",
@@ -18,7 +18,7 @@
     },
     "files": [
       "main.js",
-      "offline.html"
+      "app/**"
     ],
     "win": {
       "target": [
