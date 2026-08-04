@@ -324,10 +324,16 @@ struct PlanoLeituraView: View {
     }
 
     private func toggleDone(_ k: String, law0: LawEntry?, day: PlanDay) {
+        let marcando = !done.contains(k)
         if done.contains(k) { done.remove(k) } else { done.insert(k) }
         PlanoStore.saveDone(done)
         // Progresso integrado: marca os artigos do dia como lidos na norma real do LEGIS.
         if let law0 { markDayRead(law0, day: day, read: done.contains(k)) }
+        // Concluiu → o host abre o registro de atividades do Cátedra pré-preenchido.
+        if marcando {
+            NotificationCenter.default.post(name: Notification.Name("catedraPlanoLegisMarcado"),
+                                            object: nil, userInfo: ["key": k])
+        }
     }
 
     /// Marca (ou desmarca) os artigos cobertos por um dia como lidos no StudyRecord da norma.

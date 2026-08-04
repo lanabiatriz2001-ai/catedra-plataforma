@@ -317,6 +317,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 <sc-if value="{{ sessDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ sessionDraft.disc }}" oninput="{{ onSessionField }}" placeholder="Digite o nome da disciplina" style="width:100%;box-sizing:border-box;border:1px solid var(--accent);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;margin-top:8px;"></sc-if>
               </div>
               <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico</label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="ex.: Controle de constitucionalidade" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
+              <sc-if value="{{ sessShowLeis }}" hint-placeholder-val="{{ false }}">
+                <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">📕 Qual lei? <span style="color:var(--text3);font-weight:400;">(catálogo do LEGIS — preenche tópico e disciplina)</span></label><select value="{{ sessLeiSel }}" onchange="{{ onSessionLei }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="" selected="{{ sessLeiVazio }}">— escolher a lei —</option><sc-for list="{{ sessLeiOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+              </sc-if>
+              <sc-if value="{{ sessShowJuris }}" hint-placeholder-val="{{ false }}">
+                <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">⚖️ Qual fonte? <span style="color:var(--text3);font-weight:400;">(catálogo do JURIS — preenche o tópico)</span></label><select value="{{ sessJurisSel }}" onchange="{{ onSessionJuris }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="" selected="{{ sessJurisVazio }}">— escolher a fonte —</option><sc-for list="{{ sessJurisOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+              </sc-if>
               <sc-if value="{{ hasBibForLink }}" hint-placeholder-val="{{ false }}">
                 <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Vincular material da biblioteca <span style="color:var(--text3);font-weight:400;">(opcional)</span></label><select data-k="materialId" value="{{ sessionDraft.materialId }}" onchange="{{ onSessionField }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option value="">— nenhum —</option><sc-for list="{{ bibLinkOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.id }}">{{ o.titulo }}</option></sc-for></select></div>
               </sc-if>
@@ -1102,28 +1108,24 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     <span style="font-size:10.5px;color:var(--text3);margin-left:auto;font-family:var(--mono);white-space:nowrap;">{{ g.pendLabel }}</span>
                   </div>
                   <div style="display:flex;flex-direction:column;gap:7px;">
-                    <sc-for list="{{ g.planoCards }}" as="p" hint-placeholder-count="0">
-                      <sc-if value="{{ p.isLegis }}" hint-placeholder-val="{{ false }}">
-                        <button onclick="{{ abrirTabLegis }}" title="Abrir o CátedraLEGIS nesta leitura" style="display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px dashed {{ p.cor }};border-left:3px solid {{ p.cor }};border-radius:10px;padding:8px 9px;">
-                          <span style="font-size:13px;flex:none;line-height:1.2;">{{ p.icon }}</span>
-                          <span style="flex:1;min-width:0;display:block;">
-                            <span style="display:block;font-weight:700;font-size:11px;color:var(--ink);line-height:1.35;">{{ p.titulo }}</span>
-                            <span style="display:block;white-space:pre-line;font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:3px;">{{ p.itensStr }}</span>
-                            <span style="display:block;font-size:9.5px;color:var(--text3);margin-top:3px;">{{ p.sub }}</span>
-                          </span>
-                        </button>
-                      </sc-if>
-                      <sc-if value="{{ p.isJuris }}" hint-placeholder-val="{{ false }}">
-                        <button onclick="{{ abrirTabJuris }}" title="Abrir o CátedraJURIS neste dia do plano" style="display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px dashed {{ p.cor }};border-left:3px solid {{ p.cor }};border-radius:10px;padding:8px 9px;">
-                          <span style="font-size:13px;flex:none;line-height:1.2;">{{ p.icon }}</span>
-                          <span style="flex:1;min-width:0;display:block;">
-                            <span style="display:block;font-weight:700;font-size:11px;color:var(--ink);line-height:1.35;">{{ p.titulo }}</span>
-                            <span style="display:block;white-space:pre-line;font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:3px;">{{ p.itensStr }}</span>
-                            <span style="display:block;font-size:9.5px;color:var(--text3);margin-top:3px;">{{ p.sub }}</span>
-                          </span>
-                        </button>
-                      </sc-if>
-                    </sc-for>
+                    <sc-if value="{{ g.temLeitura }}" hint-placeholder-val="{{ false }}">
+                      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 10px;">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+                          <span style="font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);">Leitura de leis</span>
+                          <span style="font-size:9px;color:var(--text3);">· Tabela Dia {{ g.leituraDia.num }}</span>
+                          <span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--text3);">{{ g.leituraDia.resumo }}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;">
+                          <sc-for list="{{ g.leituraDia.rows }}" as="n" hint-placeholder-count="0">
+                            <div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-top:1px solid var(--surface2);">
+                              <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" title="Marcar leitura como feita (sincroniza o plano e abre o registro)" style="width:16px;height:16px;border-radius:5px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                              <span style="font-size:10.5px;font-weight:700;color:{{ n.cor }};flex:none;text-decoration:{{ n.strike }};">{{ n.law }}</span>
+                              <span style="font-size:10.5px;color:var(--text2);text-decoration:{{ n.strike }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ n.arts }}</span>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </sc-if>
                     <sc-for list="{{ g.cards }}" as="c" hint-placeholder-count="1">
                       <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid {{ c.kindColor }};border-radius:10px;padding:8px 9px;display:flex;gap:8px;align-items:flex-start;">
                         <sc-if value="{{ c.hoje }}" hint-placeholder-val="{{ true }}">
@@ -3548,6 +3550,7 @@ class Component extends DCLogic {
       view:'inicio',
       nativeRev:null,   // agenda única: {legis:{due,deck}, juris:{due,deck}} injetado pelo host do desktop
       nativePlano:null, // planos de leitura: {legis:{done,total,next}, juris:{done,total,next}} injetado pelo host
+      nativeCatalogo:null, // catálogo p/ registro: {legis:[{disc,leis[]}], juris:[fontes]} injetado pelo host
       dir: (()=>{ try{ const d=localStorage.getItem('catedra:dir'); if(d&&['sutil','premium','clean','moderno'].includes(d)) return d; }catch(_){} return props.direction || 'sutil'; })(),
       darkMode: (()=>{ try{ return localStorage.getItem('catedra:dark')==='1'; }catch(_){} return false; })(),
       menuOpen:false, navExpanded:false,
@@ -3736,6 +3739,9 @@ class Component extends DCLogic {
     // PLANOS DE LEITURA: o host injeta a próxima meta de cada plano (lei seca do LEGIS
     // + súmulas do JURIS) + progresso — o Ciclo de Estudos mostra um bloco por plano.
     try{ window.catedraSetNativePlano = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativePlano:o}); }catch(_){} }; }catch(_){}
+    // CATÁLOGO: leis do LEGIS (por disciplina) + fontes do JURIS — os seletores do
+    // registro de sessão usam isto quando a categoria é Lei seca/Jurisprudência.
+    try{ window.catedraSetNativeCatalogo = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativeCatalogo:o}); }catch(_){} }; }catch(_){}
     // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
     try{ window.__catedraGoView = (v)=>{ try{ this.setState({view:v, menuOpen:false}); }catch(_){} }; }catch(_){}
     this._migrarSchema();
@@ -3789,19 +3795,21 @@ class Component extends DCLogic {
     this._openExtReg = (info)=>{
       info = info || {};
       const min = Math.max(0, Math.round(+info.min||0));
-      const disc = (info.disc||'Legislação').toString();
+      const disc = (info.disc||'').toString();   // vazio → mantém a disciplina padrão do rascunho
       const topico = (info.topico||'Leitura de lei · CátedraLEGIS').toString();
       const nota = (info.nota||'').toString();
       const cat = (info.categoria||'Lei seca').toString();   // CátedraJURIS envia 'Jurisprudência'
-      this.setState(s=>({
-        view:'inicio', menuOpen:false, sessionModalOpen:true, pomoMenuOpen:false,
+      this.setState(s=>{
+        const fresh=this._freshSessionDraft(s.sessionDraft);
+        return {
+        menuOpen:false, sessionModalOpen:true, pomoMenuOpen:false,   // mantém a view atual — o modal cobre tudo
         sessionDraft:{
-          ...this._freshSessionDraft(s.sessionDraft),
-          disc: disc, discCustom:false, topico: topico,
+          ...fresh,
+          disc: disc || fresh.disc, discCustom:false, topico: topico,
           categorias:[cat], categoria:cat,
           minutos: min>0 ? String(min) : '', nota: nota, foco:4
         }
-      }));
+      };});
       const resto=(this._extRegQueue||[]).length;
       const origem=(this._extRegOrigem||'CátedraLEGIS');
       try{ this._toast('Estudo no '+origem+(resto?(' — sessão 1 de '+(resto+1)+' (uma por matéria)'):'')+' — confira e registre'); }catch(_){}
@@ -3809,6 +3817,11 @@ class Component extends DCLogic {
     window.catedraOpenStudyRegistration = (info)=>{
       try{
         info = info || {};
+        // Chamadas por CHECK (atividade/leitura concluída): abrem SEMPRE — nada é
+        // gravado sozinho, o registro abre preenchido e ELA salva. Única exceção:
+        // nunca atropelar um registro já aberto (ex.: o flush de tempo do
+        // LEGIS/JURIS chegou primeiro — ele vence, pois traz o tempo real).
+        if(info.auto && this.state.sessionModalOpen) return 'busy';
         const items = (Array.isArray(info.queue) && info.queue.length) ? info.queue.slice() : [info];
         this._extRegQueue = items.slice(1);
         this._extRegOrigem = (info.origem || items[0].origem || 'CátedraLEGIS').toString();
@@ -4371,7 +4384,7 @@ class Component extends DCLogic {
     // atividade da semana feita não volte a aparecer como atrasada no dia seguinte.
     const extra={};
     if(b[i].srcId && b[i].srcDate){ const fe={...(this.state.agendaFeitas||{})}; const k=b[i].srcId+'|'+b[i].srcDate; if(willDone) fe[k]=true; else delete fe[k]; extra.agendaFeitas=fe; }
-    if(willDone && (this.state.prefs&&this.state.prefs.autoRegistro)!==false){ // concluiu → abre o registro preenchido (se "Abrir registro ao parar" estiver ligado)
+    if(willDone){ // concluiu → SEMPRE abre o registro preenchido (ela confere e salva — nada grava sozinho)
       const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60);
       this.setState(s=>({blocks:b, ...extra, sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._blockToDraft(b[i], s.sessionDraft), minutos: pre>0?String(pre):String(b[i].min||'')}}));
     } else { this.setState({blocks:b, ...extra}); } };
@@ -4470,12 +4483,37 @@ class Component extends DCLogic {
   addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'', kind:'Teoria', min:30, dia:'', roteiro:this.state.manualFixedRoteiroAtual||'', discEdital:'', topico:''}]});
   addToDay = (e)=>{ const dia=e.currentTarget.dataset.dia||''; this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now()+Math.floor(Math.random()*1000), disc:'', kind:'Teoria', min:30, dia, roteiro:dia?(this.state.manualFixedRoteiroAtual||''):'', discEdital:'', topico:''}]}); };
   setRoteiroAtual = (e)=> this.setState({manualFixedRoteiroAtual:e.currentTarget.value});
+  // Seletores do registro: escolher uma lei do catálogo preenche o tópico (e a
+  // disciplina, se ela existir no edital); escolher uma fonte do JURIS, idem.
+  onSessionLei = (e)=>{ const v=e.currentTarget.value; if(!v) return; const ix=v.indexOf('¦'); const disc=ix>0?v.slice(0,ix):''; const lei=ix>=0?v.slice(ix+1):v;
+    this.setState(s=>{ const d={...s.sessionDraft, leiSel:v, topico:'Lei seca — '+lei};
+      if(disc && (s.edital||[]).some(x=>x.disc===disc)){ d.disc=disc; d.discCustom=false; }
+      return {sessionDraft:d}; }); };
+  onSessionJuris = (e)=>{ const v=e.currentTarget.value; if(!v) return;
+    this.setState(s=>({sessionDraft:{...s.sessionDraft, jurisSel:v, topico:'Jurisprudência — '+v}})); };
+  // Checkbox de leitura da tabela-dia (quadro semanal): pede ao HOST nativo pra
+  // marcar no plano do LEGIS (e espelhar súmulas no JURIS); o host re-injeta o
+  // payload e o quadro atualiza. Fora do app desktop não há linhas (sem host).
+  togglePlanoLegis = (e)=>{ const el=e.currentTarget; const k=el.dataset.k; if(!k) return;
+    const marcando = el.dataset.done!=='1';
+    try{ window.webkit.messageHandlers.catedraPlano.postMessage(k); }catch(_){ this._toast('Disponível no app do Mac'); return; }
+    // concluiu a leitura → abre o registro pré-preenchido (Lei seca ou Jurisprudência)
+    if(marcando){ const law=el.dataset.law||'', arts=el.dataset.arts||'', disc=el.dataset.disc||'';
+      const juris=/^SÚMULAS/i.test(law);
+      window.catedraOpenStudyRegistration({auto:true, origem:juris?'Plano do JURIS':'Plano do LEGIS', min:0,
+        disc:((this.state.edital||[]).some(x=>x.disc===disc)?disc:''),
+        topico:(juris?'Jurisprudência — ':'Lei seca — ')+law+(arts?(' · '+arts):''),
+        categoria: juris?'Jurisprudência':'Lei seca', nota:''}); } };
   // Quadro da semana do Ciclo: marca "feito" numa OCORRÊNCIA (item × dia desta semana),
   // em qualquer coluna — mesma chave (id|iso) usada pelo toggleBlock/carry-over.
   toggleAgendaDia = (e)=>{ const id=e.currentTarget.dataset.id, dia=e.currentTarget.dataset.dia; if(!id||!dia) return;
     const iso=this._isoDiaSemana(dia); const k=id+'|'+iso;
-    const fe={...(this.state.agendaFeitas||{})}; if(fe[k]) delete fe[k]; else fe[k]=true;
-    this.setState({agendaFeitas:fe}, ()=>{ this.setState({blocks:this.composeManual(this.state.manualFixed, this.state.manualRot, this.state.rotPointer)}); }); this.flashSync(); };
+    const fe={...(this.state.agendaFeitas||{})}; const marcando=!fe[k]; if(marcando) fe[k]=true; else delete fe[k];
+    this.setState({agendaFeitas:fe}, ()=>{ this.setState({blocks:this.composeManual(this.state.manualFixed, this.state.manualRot, this.state.rotPointer)}); }); this.flashSync();
+    // concluiu → abre o registro de atividades pré-preenchido (tempo/questões dela)
+    if(marcando){ const f=(this.state.manualFixed||[]).find(x=>x.id===id);
+      if(f) window.catedraOpenStudyRegistration({auto:true, origem:'Ciclo de estudos', min:+f.min||0,
+        disc:f.discEdital||'', topico:f.disc||'', categoria:this._kindToCat(f.kind), nota:''}); } };
   clearRoteiro = (e)=>{ const label=e.currentTarget.dataset.label; const n=(this.state.manualFixed||[]).filter(f=>f.roteiro===label).length;
     if(!n) return; if(!window.confirm('Remover as '+n+' atividades de "'+label+'"? Isso não pode ser desfeito.')) return;
     this.syncManual({manualFixed:this.state.manualFixed.filter(f=>f.roteiro!==label)}); };
@@ -6018,23 +6056,25 @@ class Component extends DCLogic {
               checkBg:feito?'var(--accent)':'transparent', checkBd:feito?'var(--accent)':'var(--border)', strike:feito?'line-through':'none',
               hasVinculo:!!f.discEdital, vinculo:shortV(f.discEdital,f.topico), extra:'', hasExtra:false}; });
         }
-        // Planos de leitura projetados nos DIAS ÚTEIS (roteiro: leitura de leis +
-        // súmulas seg→sex; sábado = questões/revisão, domingo = descanso). Hoje
-        // recebe o próximo pendente; cada dia útil seguinte, o próximo da fila.
-        const np=this.state.nativePlano; let planoCards=[];
-        if(np && hojeIdx<=4 && idx>=hojeIdx && idx<=4){ const off=idx-hojeIdx;
-          const lp=(np.legis&&np.legis.prox)||[]; const jp=(np.juris&&np.juris.prox)||[];
-          if(lp[off]){ const its=(lp[off].itens||[]);
-            planoCards.push({key:'pl'+dk, isLegis:true, isJuris:false, icon:'📕', cor:'#0D9488',
-              titulo:'Leitura de leis · '+(lp[off].dia||''), sub:'Plano LEGIS',
-              itensStr: its.length? its.map(n=>((n.law||'')+' — '+(n.arts||''))).join('\n')
-                        : ((lp[off].law||'')+' — '+(lp[off].arts||''))}); }   // compat payload antigo
-          if(jp[off]) planoCards.push({key:'pj'+dk, isLegis:false, isJuris:true, icon:'⚖️', cor:jp[off].color||'#7C3AED',
-            titulo:'Jurisprudência · Dia '+jp[off].dia, sub:'Plano JURIS',
-            itensStr:(jp[off].trilha||'')+' — Súmulas '+jp[off].faixa+(jp[off].qtd?(' ('+jp[off].qtd+')'):'')});
+        // Leitura de leis + súmulas FIXAS por dia útil, igual à folha do roteiro:
+        // seg→sex = os 5 dias da semana do plano em curso (Tabela Dia N), cada lei
+        // numa linha com checkbox próprio — marcar sincroniza o plano nativo
+        // (súmulas espelham no JURIS). Sábado/domingo sem leitura.
+        const np=this.state.nativePlano; let leituraDia=null;
+        if(np && np.legis && np.legis.semana && idx<=4){
+          const diaObj=np.legis.semana[idx];
+          if(diaObj && (diaObj.itens||[]).length){
+            const rows=(diaObj.itens||[]).map((n,j)=>({key:'lr'+j, k:n.key||'', law:n.law||'', arts:n.arts||'', done:!!n.done,
+              disc:n.disc||'', doneN:n.done?'1':'0',
+              cor:n.cor||'#0D9488', strike:n.done?'line-through':'none',
+              checkBg:n.done?'var(--accent)':'transparent', checkBd:n.done?'var(--accent)':'var(--border)'}));
+            const feitos=rows.filter(r=>r.done).length;
+            leituraDia={num:String(diaObj.num), rows, resumo:feitos+'/'+rows.length};
+          }
         }
         const pend=cards.filter(c=>!c.done).length;
-        return {dia:dk, label:LBLS[dk], isToday, cards, planoCards, vazio:cards.length===0&&planoCards.length===0,
+        return {dia:dk, label:LBLS[dk], isToday, cards, leituraDia:leituraDia||{num:'',rows:[],resumo:''}, temLeitura:!!leituraDia,
+          vazio:cards.length===0&&!leituraDia,
           pendLabel: cards.length? (pend? (pend+' pend.') : 'feito ✓') : '—',
           colBg:isToday?'var(--accentSoft)':'var(--surface)', colBorder:isToday?'var(--accentRing)':'var(--border)'};
       });
@@ -6457,6 +6497,18 @@ class Component extends DCLogic {
     const _cats=['Teoria','Revisão','Questões','Lei seca','Jurisprudência','Simulado'];
     const _selCats=Array.isArray(_sd.categorias)?_sd.categorias:[_sd.categoria].filter(Boolean);
     const sessCats=_cats.map(v=>{ const on=_selCats.includes(v); const cm=_catMeta[v]; return {v, icon:cm.i, mark:on?'✓ ':'', style:`display:inline-flex;align-items:center;gap:5px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:.12s;`}; });
+    // Seletores do catálogo nativo (Lei seca → leis do LEGIS; Jurisprudência →
+    // fontes do JURIS). MESMO padrão do select de disciplina: value ligado ao
+    // estado + selected por option — value="" estático faz o WKWebView resetar o
+    // dropdown a cada re-render (o app re-renderiza a cada tique do relógio).
+    const _ncat=this.state.nativeCatalogo;
+    const sessLeiSel=this.state.sessionDraft.leiSel||'';
+    const sessJurisSel=this.state.sessionDraft.jurisSel||'';
+    const sessLeiOpts=(()=>{ if(!_ncat||!_ncat.legis) return []; const out=[]; _ncat.legis.forEach(g=>{ (g.leis||[]).forEach(l=>{ const v=g.disc+'¦'+l; out.push({v, label:l+'   ·   '+String(g.disc||'').replace('Direito ',''), sel:v===sessLeiSel}); }); }); return out; })();
+    const sessJurisOpts=((_ncat&&_ncat.juris)||[]).map(f=>({v:f,label:f,sel:f===sessJurisSel}));
+    const sessLeiVazio=!sessLeiSel, sessJurisVazio=!sessJurisSel;
+    const sessShowLeis=sessLeiOpts.length>0 && _selCats.includes('Lei seca');
+    const sessShowJuris=sessJurisOpts.length>0 && _selCats.includes('Jurisprudência');
     const _sdA=parseInt(_sd.acertos,10)||0; const _sdE=parseInt(_sd.erradas,10)||0; const _sdB=parseInt(_sd.brancos,10)||0;
     const _sdTotal=_sdA+_sdE+_sdB;
     const sdBrutoPct=_sdTotal?Math.round(_sdA/_sdTotal*100):0;
@@ -7186,7 +7238,7 @@ class Component extends DCLogic {
       dirStyle:{ sutil:dirBtn('sutil'), premium:dirBtn('premium'), clean:dirBtn('clean'), moderno:dirBtn('moderno') },
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
       toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
-      cicloSemana, cicloListaFlat, toggleAgendaDia:this.toggleAgendaDia,
+      cicloSemana, cicloListaFlat, toggleAgendaDia:this.toggleAgendaDia, togglePlanoLegis:this.togglePlanoLegis,
       onSim:this.onSim, fillExample:this.fillExample, simNome:this.state.simNome, onSimNome:this.onSimNome, saveSimulado:this.saveSimulado, simTempoLabel:(this.state.provaDurationMin>0?fmtHM(this.state.provaDurationMin):'—'),
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
       homeTimerLabel, homePmLivre, homePm25, homePm50, homePm90,
@@ -7299,6 +7351,7 @@ class Component extends DCLogic {
       onSessionField:this.onSessionField, setSessionCat:this.setSessionCat, setSessionFoco:this.setSessionFoco, toggleSessionFlag:this.toggleSessionFlag, sessionQuickMin:this.sessionQuickMin,
       sessDiscOpts, sessDiscCustom, sessDiscSelVal, onSessionDisc:this.onSessionDisc,
       sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary, bibLinkOpts, hasBibForLink,
+      sessLeiOpts, sessJurisOpts, sessShowLeis, sessShowJuris, sessLeiSel, sessJurisSel, sessLeiVazio, sessJurisVazio, onSessionLei:this.onSessionLei, onSessionJuris:this.onSessionJuris,
       flagRevisao:_flag(this.state.sessionDraft.agendarRevisao), switchRevisao:_switch(this.state.sessionDraft.agendarRevisao), switchRevisaoKnob:_knob(this.state.sessionDraft.agendarRevisao),
       flagMeta:_flag(this.state.sessionDraft.contarMeta!==false), switchMeta:_switch(this.state.sessionDraft.contarMeta!==false), switchMetaKnob:_knob(this.state.sessionDraft.contarMeta!==false),
       recentSessions, hasSessions, noSessions:!hasSessions, sessionsCount, sessTotalH, sessAccOverall, sessLiqOverall, sessLiqColor, metaFaltamH,
