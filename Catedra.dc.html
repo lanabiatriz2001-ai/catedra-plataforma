@@ -76,19 +76,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #ct-main:focus{outline:none;}
 @media (max-width:899px){ .ct-scroll{ padding-bottom:calc(84px + env(safe-area-inset-bottom)) !important; } }
 /* Início em LINHAS FIXAS (grade de 6 colunas): 3 cards no topo, pares no meio, largura cheia embaixo. */
-.ct-home-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:18px; align-items:stretch; }
-.ct-home-grid > *:nth-child(1){ order:1; grid-column:span 2; }   /* Contagem 365 */
-.ct-home-grid > *:nth-child(6){ order:2; grid-column:span 2; }   /* Tempo de estudo hoje */
-.ct-home-grid > *:nth-child(7){ order:3; grid-column:span 2; }   /* Meta da semana */
-.ct-home-grid > *:nth-child(2){ order:4; grid-column:span 3; }   /* Cronômetro */
-.ct-home-grid > *:nth-child(8){ order:5; grid-column:span 3; }   /* Sessões recentes */
-.ct-home-grid > *:nth-child(3){ order:6; grid-column:span 3; }   /* Agora */
-.ct-home-grid > *:nth-child(9){ order:7; grid-column:span 3; }   /* Constância / streak */
-.ct-home-grid > *:nth-child(4){ order:8; grid-column:span 3; }   /* Blocos de hoje */
-.ct-home-grid > *:nth-child(10){ order:9; grid-column:span 3; }  /* Bem-estar + hábitos */
-.ct-home-grid > *:nth-child(5){ order:10; grid-column:span 6; }  /* Estatísticas (largura cheia) */
-.ct-home-grid > *:nth-child(11){ order:11; grid-column:span 6; } /* Dashboards (largura cheia) */
-@media (max-width:1200px){ .ct-home-grid{ grid-template-columns:1fr; } .ct-home-grid > *{ grid-column:1 / -1 !important; } }
+.ct-home-grid{ column-count:2; column-gap:18px; }
+.ct-home-grid > *{ break-inside:avoid; margin-bottom:18px; }
+@media (max-width:1200px){ .ct-home-grid{ column-count:1; } }
+/* Dashboards: passe o mouse para ampliar a janela de tempo (30d→90d etc.) */
+.ct-dashwrap .ct-dx-full{ display:none; }
+.ct-dashwrap:hover .ct-dx-full{ display:flex; }
+.ct-dashwrap:hover .ct-dx-mini{ display:none; }
+.ct-dashwrap:hover .ct-dx-hint{ opacity:0; }
+.ct-dx-hint{ transition:opacity .15s; }
 /* Redesign da home: elevação + vida (hover) coesa em TODOS os cards com superfície.
    Alvo por substring do estilo inline (--surface / --heroGrad) — não pega os
    wrappers transparentes (Estatísticas, Dashboards), e é imune ao shift de nth-child. */
@@ -673,298 +669,249 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
       <!-- ================= INÍCIO (layout centro de comando) ================= -->
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
-       <div style="display:flex;flex-direction:column;gap:18px;">
-        <!-- HERO (redesenhado — comando do dia + números-chave) -->
-        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(24px,3.2vw,38px);color:#fff;position:relative;overflow:hidden;box-shadow:0 12px 34px rgba(16,24,40,.16),0 3px 8px rgba(16,24,40,.08);">
-          <div style="position:absolute;right:-60px;top:-70px;width:300px;height:300px;border-radius:99px;background:rgba(255,255,255,.07);"></div>
-          <div style="position:absolute;right:90px;bottom:-110px;width:220px;height:220px;border-radius:99px;background:rgba(255,255,255,.05);"></div>
-          <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;">
-            <div style="min-width:240px;flex:1;">
-              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:600;">{{ dateLabel }} · 🔥 {{ sidebarStreak }} dias<sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"> · 🛡️ {{ escudos }}</sc-if></div>
-              <h2 style="margin:10px 0 0;font-family:var(--display);font-size:clamp(28px,3.6vw,42px);font-weight:700;line-height:1.03;">{{ greeting }}, {{ userFirstName }}.</h2>
-              <p style="margin:12px 0 0;font-size:14.5px;opacity:.92;max-width:460px;line-height:1.6;display:flex;flex-wrap:wrap;gap:8px;align-items:center;"><span>Restam <b>{{ cicloRestam }} blocos</b> · <b>{{ revHoje }}</b> revisões hoje</span><sc-if value="{{ temAtrasadas }}" hint-placeholder-val="{{ false }}"><span style="background:rgba(255,255,255,.22);border-radius:99px;padding:2px 11px;font-weight:700;font-size:13px;white-space:nowrap;">⏰ {{ revAtrasadas }} atrasadas</span></sc-if><sc-if value="{{ nativeRevDueShow }}" hint-placeholder-val="{{ false }}"><button data-view="revisoes" onclick="{{ onNav }}" style="background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:99px;padding:2px 11px;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer;font-family:inherit;">📚 {{ nativeRevDueTotal }} de lei/juris</button></sc-if></p>
-            </div>
-            <!-- SEU PRÓXIMO PASSO — a decisão, não só o estado -->
-            <div style="flex:0 1 300px;min-width:230px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:18px 20px;">
-              <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.85;">Seu próximo passo</div>
-              <p style="margin:9px 0 15px;font-size:14px;font-weight:500;line-height:1.4;">{{ focoSugestao }}</p>
-              <button data-view="{{ focoView }}" onclick="{{ onNav }}" style="display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--accentD);border:none;border-radius:11px;padding:11px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>{{ focoBtnLabel }}</button>
-            </div>
+       <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- L0 · topo compacto: saudação + cronômetro + registrar -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div style="min-width:200px;">
+            <div style="font-family:var(--display);font-size:21px;font-weight:700;color:var(--ink);">{{ greeting }}, {{ userFirstName }}.</div>
+            <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">{{ dateLabel }}<sc-if value="{{ homeRoteiroShow }}" hint-placeholder-val="{{ false }}"> · {{ manualFixedRoteiroAtual }}</sc-if><sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"> · Tabela Dia {{ homeLeitura.num }}</sc-if> · 🔥 {{ sidebarStreak }}<sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"> · 🛡️ {{ escudos }}</sc-if></div>
           </div>
-          <!-- Números-chave do dia, integrados ao hero -->
-          <div style="position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
-            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--display);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ cicloRestam }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">blocos restantes</div></div>
-            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--display);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ revHoje }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">revisões hoje</div></div>
-            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--display);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ metaPct }}%</div><div style="font-size:11px;opacity:.85;margin-top:5px;">meta da semana</div></div>
-            <div style="flex:1;min-width:118px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 15px;"><div style="font-family:var(--display);font-size:27px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">🔥 {{ sidebarStreak }}</div><div style="font-size:11px;opacity:.85;margin-top:5px;">dias seguidos</div></div>
+          <div style="flex:1;"></div>
+          <span style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-.01em;">{{ sessionDisplay }}</span>
+          <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ true }}"><button onclick="{{ toggleTimer }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;">▶ Iniciar</button></sc-if>
+          <sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ false }}"><button onclick="{{ toggleTimer }}" style="background:var(--ink);color:var(--surface);border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;">❚❚ Pausar</button></sc-if>
+          <button onclick="{{ resetTimer }}" title="Zerar" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:10px 13px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:inherit;">Zerar</button>
+          <span style="display:flex;gap:5px;">
+            <button data-mode="livre" onclick="{{ setTimerMode }}" style="{{ homePmLivre }}">Livre</button>
+            <button data-mode="pomo" data-f="25" data-b="5" onclick="{{ setTimerMode }}" style="{{ homePm25 }}">25·5</button>
+            <button data-mode="pomo" data-f="50" data-b="10" onclick="{{ setTimerMode }}" style="{{ homePm50 }}">50·10</button>
+            <button data-mode="pomo" data-f="90" data-b="15" onclick="{{ setTimerMode }}" style="{{ homePm90 }}">90·15</button>
+          </span>
+          <button onclick="{{ openSession }}" style="background:var(--heroGrad);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;">+ Registrar sessão</button>
+        </div>
+        <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}"><div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:-8px;"><i style="display:block;height:100%;border-radius:99px;background:var(--heroGrad);width:{{ phasePct }}%;transition:width .9s linear;"></i></div></sc-if>
+
+        <!-- L1 · 4 KPIs uniformes -->
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:1;min-width:200px;">
+            <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Tempo de estudo</div>
+            <div style="display:flex;align-items:baseline;gap:7px;margin:8px 0 6px;"><b style="font-family:var(--display);font-size:30px;font-weight:800;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ sessTotalH }}h</b><span style="font-size:11px;color:var(--text3);font-weight:600;">total</span></div>
+            <div style="font-size:11px;color:var(--text3);">hoje: {{ homeHojeMin }} de {{ homeMetaHojeAlvo }} min</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:1;min-width:200px;">
+            <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Desempenho</div>
+            <div style="display:flex;align-items:baseline;gap:7px;margin:8px 0 6px;"><b style="font-family:var(--display);font-size:30px;font-weight:800;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ homeLiqPct }}</b><span style="font-size:11px;color:var(--text3);font-weight:600;">líquido</span></div>
+            <div style="font-size:11px;color:var(--text3);">bruto {{ sessAccOverall }} · {{ sessionsCount }} sessões</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:1;min-width:200px;">
+            <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Progresso no edital</div>
+            <div style="display:flex;align-items:baseline;gap:7px;margin:8px 0 6px;"><b style="font-family:var(--display);font-size:30px;font-weight:800;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ paEdPct }}%</b><span style="font-size:11px;color:var(--text3);font-weight:600;">{{ paEd }} tópicos</span></div>
+            <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;border-radius:99px;background:var(--heroGrad);width:{{ paEdPct }}%;"></i></div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:1;min-width:200px;">
+            <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Meta de hoje</div>
+            <div style="display:flex;align-items:baseline;gap:7px;margin:8px 0 6px;"><b style="font-family:var(--display);font-size:30px;font-weight:800;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ homeMetaHojePct }}%</b><span style="font-size:11px;color:var(--text3);font-weight:600;">{{ homeHojeMin }}/{{ homeMetaHojeAlvo }} min</span></div>
+            <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;border-radius:99px;background:var(--heroGrad);width:{{ homeMetaHojePct }}%;"></i></div>
           </div>
         </div>
 
-        <!-- FRASE MOTIVACIONAL -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:16px;">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--accent)" stroke-width="1.6" style="flex:none;"><path d="M7 7h4v4c0 2-1 3-3 4M15 7h4v4c0 2-1 3-3 4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          <div style="flex:1;min-width:0;">
-            <p style="margin:0;font-family:var(--display);font-size:clamp(15px,1.9vw,19px);font-weight:500;font-style:italic;color:var(--ink);line-height:1.4;">{{ quoteText }}</p>
-            <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-top:6px;">{{ quoteTag }}</div>
+        <!-- L2 · Estudo semanal (faixa) -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+            <span style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Estudo semanal</span>
+            <span style="font-size:11.5px;color:var(--text3);">🔥 {{ sidebarStreak }} dias seguidos · 🛡️ {{ escudos }} · próximo em {{ escudosProxDias }}d</span>
           </div>
-          <button onclick="{{ shuffleQuote }}" title="Nova frase" style="width:36px;height:36px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          </button>
+          <div style="display:flex;align-items:flex-end;gap:12px;height:110px;">
+            <sc-for list="{{ paSemBars }}" as="d" hint-placeholder-count="7">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;">
+                <span style="font-family:var(--mono);font-size:10px;color:var(--text3);">{{ d.minStr }}</span>
+                <div style="width:100%;background:{{ d.cor }};border-radius:6px 6px 2px 2px;height:{{ d.h }}%;min-height:3px;"></div>
+                <span style="font-family:var(--mono);font-size:10.5px;color:{{ d.lblCor }};font-weight:700;">{{ d.label }}</span>
+              </div>
+            </sc-for>
+          </div>
         </div>
 
-        <!-- GRADE 2 COLUNAS -->
-        <div class="ct-home-grid">
-        <!-- CONTAGEM REGRESSIVA (visual) -->
-        <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;display:flex;align-items:center;gap:26px;flex-wrap:wrap;">
-          <!-- anel de progresso da jornada -->
-          <div style="position:relative;flex:none;width:132px;height:132px;">
-            <svg viewBox="0 0 120 120" width="132" height="132" style="transform:rotate(-90deg);">
-              <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface2)" stroke-width="11"></circle>
-              <circle cx="60" cy="60" r="52" fill="none" stroke="{{ cdRingColor }}" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ cdRingDash }}" stroke-dashoffset="{{ cdRingOffset }}" style="transition:stroke-dashoffset .6s;"></circle>
-            </svg>
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-              <span style="font-family:var(--display);font-size:38px;font-weight:700;line-height:1;color:var(--ink);">{{ cdDias }}</span>
-              <span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;">dias</span>
+        <!-- L3 · Painel (tabela) | Prova + Meta da semana -->
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:3 1 440px;min-width:340px;">
+            <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">Painel por disciplina</div>
+            <sc-if value="{{ paPainelShow }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:8px;padding:0 0 7px;border-bottom:2px solid var(--border);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);">
+                <span style="flex:1;">Disciplina</span><span style="width:56px;text-align:right;">Tempo</span><span style="width:38px;text-align:right;color:#0f9d6b;">✓</span><span style="width:38px;text-align:right;color:#c0392f;">✗</span><span style="width:44px;text-align:right;">Quest.</span><span style="width:42px;text-align:right;">Líq.</span>
+              </div>
+              <sc-for list="{{ paPainel }}" as="p" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--surface2);font-size:12px;">
+                  <span style="flex:1;display:flex;align-items:center;gap:8px;min-width:0;"><i style="width:8px;height:8px;border-radius:3px;background:{{ p.color }};flex:none;"></i><b style="color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.short }}</b></span>
+                  <span style="width:56px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--text2);">{{ p.tempo }}</span>
+                  <span style="width:38px;text-align:right;font-family:var(--mono);font-size:11px;color:#0f9d6b;font-weight:700;">{{ p.a }}</span>
+                  <span style="width:38px;text-align:right;font-family:var(--mono);font-size:11px;color:#c0392f;font-weight:700;">{{ p.e }}</span>
+                  <span style="width:44px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--text2);">{{ p.q }}</span>
+                  <span style="width:42px;text-align:right;font-family:var(--mono);font-size:11px;font-weight:800;color:{{ p.liqCor }};">{{ p.liq }}</span>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ paPainelVazio }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:var(--text3);padding:18px 0;text-align:center;">Registre sessões para preencher o painel.</div></sc-if>
+          </div>
+          <div style="flex:2 1 300px;min-width:270px;display:flex;flex-direction:column;gap:14px;">
+            <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;">
+              <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Data da prova</div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0 5px;"><b style="font-family:var(--display);font-size:30px;font-weight:800;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ cdDias }}</b><span style="font-size:11.5px;color:var(--text2);font-weight:600;">dias · {{ cdDataFmt }}</span></div>
+              <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;border-radius:99px;background:var(--heroGrad);width:{{ cdProgPct }}%;"></i></div>
+              <div style="font-size:11px;color:var(--text3);margin-top:6px;">{{ cdProgPct }}% percorrido · ritmo {{ cdHorasPrev }} até lá</div>
+            </div>
+            </sc-if>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:1;">
+              <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Meta da semana</span><b style="font-family:var(--mono);font-size:12px;color:var(--text2);">{{ metaSemana }}</b></div>
+              <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:9px;"><i style="display:block;height:100%;border-radius:99px;background:var(--heroGrad);width:{{ metaPct }}%;"></i></div>
+              <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5;"><b style="color:var(--accent);">{{ metaPct }}%</b> da meta. Faltam {{ metaFaltamH }}h para fechar a semana.</div>
+              <sc-if value="{{ planoShow }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:flex-start;gap:8px;margin-top:9px;padding:9px 11px;background:var(--surface2);border-radius:9px;border-left:3px solid {{ planoCor }};"><span style="font-size:11.5px;color:var(--text2);line-height:1.45;">{{ planoMsg }}</span></div></sc-if>
+              <div style="display:flex;gap:6px;margin-top:11px;align-items:flex-end;height:44px;">
+                <sc-for list="{{ metaWeekBars }}" as="b" hint-placeholder-count="7"><div title="{{ b.title }}" style="flex:1;background:{{ b.barColor }};height:{{ b.h }}%;border-radius:5px;"></div></sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);margin-top:10px;border-top:1px solid var(--surface2);padding-top:8px;"><span>Questões na semana</span><b style="font-family:var(--mono);">{{ paQSemana }}</b></div>
             </div>
           </div>
-          <!-- detalhes (ocupam o meio) -->
-          <div style="flex:1;min-width:200px;">
-            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
-              <span style="font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink);">Faltam {{ cdSemStr }}</span>
-              <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:{{ cdUrg }};border-radius:99px;padding:3px 10px;">{{ cdUrgLabel }}</span>
+        </div>
+
+        <!-- L4 · Agora (lista do dia) | Leitura de leis + Juris -->
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:3 1 440px;min-width:340px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;">
+              <span style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Agora · atividades do dia</span>
+              <span style="display:flex;align-items:center;gap:9px;"><span style="font-family:var(--mono);font-size:11.5px;color:var(--text3);">{{ cicloDone }}/{{ cicloTotal }}</span><button data-view="ciclo" onclick="{{ onNav }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Ver ciclo</button></span>
             </div>
-            <div style="font-size:12.5px;color:var(--text3);margin-top:4px;">🗓️ {{ cdWeekday }}, {{ cdDataFmt }}</div>
-            <!-- barra de semanas restantes -->
-            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:14px;">
-              <sc-for list="{{ cdWeeksBar }}" as="w" hint-placeholder-count="12"><span title="semana restante" style="flex:1;min-width:12px;max-width:22px;height:14px;border-radius:4px;background:{{ cdUrg }};opacity:.85;"></span></sc-for>
+            <sc-if value="{{ cicloTemBlocos }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <sc-for list="{{ homeHoje }}" as="h" hint-placeholder-count="5">
+                  <sc-if value="{{ h.isNext }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:2px solid var(--accent);border-radius:11px;background:var(--accentSoft);">
+                      <button data-i="{{ h.i }}" onclick="{{ toggleBlock }}" title="Concluir (abre o registro)" style="width:20px;height:20px;border-radius:6px;flex:none;cursor:pointer;border:2px solid var(--accentRing);background:transparent;padding:0;"></button>
+                      <span style="width:4px;align-self:stretch;border-radius:99px;background:{{ h.rail }};flex:none;"></span>
+                      <span style="flex:1;min-width:150px;"><b style="display:block;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.35;">{{ h.titulo }}</b><span style="display:block;font-size:10.5px;color:var(--text3);margin-top:1px;">{{ h.sub }}</span></span>
+                      <span style="font-family:var(--mono);font-size:10.5px;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:3px 8px;border-radius:7px;flex:none;">{{ h.min }}min</span>
+                      <button onclick="{{ enterFocus }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:8px 14px;font-weight:700;font-size:11.5px;cursor:pointer;font-family:inherit;flex:none;">▶ Foco</button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ h.notNext }}" hint-placeholder-val="{{ true }}">
+                    <button data-i="{{ h.i }}" onclick="{{ toggleBlock }}" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;cursor:pointer;font-family:inherit;padding:9px 11px;border:1px solid var(--border);border-radius:10px;background:var(--surface);opacity:{{ h.op }};">
+                      <span style="width:18px;height:18px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ h.checkBd }};background:{{ h.checkBg }};color:#fff;"><sc-if value="{{ h.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></span>
+                      <span style="width:4px;align-self:stretch;border-radius:99px;background:{{ h.rail }};flex:none;"></span>
+                      <span style="flex:1;min-width:0;"><b style="display:block;font-size:12px;font-weight:600;color:var(--ink);line-height:1.35;text-decoration:{{ h.strike }};">{{ h.titulo }}</b><span style="display:block;font-size:10px;color:var(--text3);margin-top:1px;">{{ h.sub }}</span></span>
+                      <span style="font-family:var(--mono);font-size:10px;color:var(--text2);background:var(--surface2);padding:3px 7px;border-radius:7px;flex:none;">{{ h.min }}min</span>
+                    </button>
+                  </sc-if>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ cicloVazio }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:13px;background:var(--surface2);border:1px dashed var(--border);border-radius:11px;font-size:12px;color:var(--text3);text-align:center;">Sem blocos hoje. <button data-view="ciclo" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;">Montar ciclo →</button></div>
+            </sc-if>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:2 1 300px;min-width:270px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+              <span style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">📕 Leitura de leis<sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"> · Tabela Dia {{ homeLeitura.num }}</sc-if></span>
+              <sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--mono);font-size:10px;color:var(--text3);">{{ homeLeitura.resumo }}</span></sc-if>
+            </div>
+            <sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ homeLeitura.leis }}" as="n" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;padding:4px 0;min-width:0;overflow:hidden;border-bottom:1px solid var(--surface2);" title="{{ n.law }} — {{ n.arts }}">
+                    <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" style="width:15px;height:15px;border-radius:5px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                    <b style="font-weight:700;color:{{ n.cor }};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:{{ n.strike }};">{{ n.law }}</b>
+                    <span style="color:var(--text2);flex:none;text-decoration:{{ n.strike }};white-space:nowrap;">{{ n.arts }}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ homeLeitura.temJuris }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:7px;margin:9px 0 4px;"><span style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">⚖️ Jurisprudência</span><span style="font-family:var(--mono);font-size:10px;color:var(--text3);">{{ homeLeitura.resumoJuris }}</span></div>
+                  <sc-for list="{{ homeLeitura.juris }}" as="n" hint-placeholder-count="1">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;padding:4px 0;min-width:0;overflow:hidden;" title="{{ n.law }} — {{ n.arts }}">
+                      <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" style="width:15px;height:15px;border-radius:5px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                      <b style="font-weight:700;color:{{ n.cor }};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:{{ n.strike }};">{{ n.law }}</b>
+                      <span style="color:var(--text2);flex:none;text-decoration:{{ n.strike }};white-space:nowrap;">{{ n.arts }}</span>
+                    </div>
+                  </sc-for>
+                </sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ homeLeituraVazia }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:var(--text3);padding:14px 0;text-align:center;">A tabela do dia aparece aqui no app do Mac.</div></sc-if>
+          </div>
+        </div>
+
+        <!-- L5 · Próximas revisões | Tempo hoje (donut) -->
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:1 1 340px;min-width:300px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Próximas revisões</span><button data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">ver todas →</button></div>
+            <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <sc-for list="{{ homeProxRev }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;min-width:0;">
+                    <span style="width:9px;height:9px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
+                    <span style="flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.topic }}</span>
+                    <span style="font-family:var(--mono);font-size:10.5px;color:var(--text2);flex:none;white-space:nowrap;">{{ r.dueLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ homeProxVazio }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:var(--text3);padding:14px 0;text-align:center;">Nenhuma revisão agendada.</div></sc-if>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;flex:1 1 340px;min-width:300px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);">Tempo de estudo hoje</span><span style="font-family:var(--mono);font-size:11px;color:var(--text3);">total anual {{ dashYearTotal }}</span></div>
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+              <div style="position:relative;flex:none;width:110px;height:110px;">
+                <svg width="110" height="110" viewBox="0 0 140 140" style="transform:rotate(-90deg);">
+                  <circle cx="70" cy="70" r="52" fill="none" stroke="var(--surface2)" stroke-width="16"></circle>
+                  <sc-for list="{{ donutSegs }}" as="s" hint-placeholder-count="4">
+                    <circle cx="70" cy="70" r="52" fill="none" stroke="{{ s.color }}" stroke-width="16" stroke-dasharray="{{ s.dash }}" stroke-dashoffset="{{ s.offset }}"></circle>
+                  </sc-for>
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font-family:var(--display);font-size:19px;font-weight:700;color:var(--ink);">{{ donutCenter }}</span><span style="font-size:9px;color:var(--text3);">hoje</span></div>
+              </div>
+              <div style="flex:1;min-width:160px;">
+                <sc-for list="{{ donutSegs }}" as="s" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--surface2);">
+                    <span style="width:9px;height:9px;border-radius:3px;background:{{ s.color }};flex:none;"></span>
+                    <span style="flex:1;font-size:11.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.disc }}</span>
+                    <span style="font-family:var(--mono);font-size:10.5px;color:var(--text3);flex:none;">{{ s.label }} · {{ s.pct }}%</span>
+                  </div>
+                </sc-for>
+              </div>
             </div>
           </div>
-          <!-- métricas (coluna à direita, preenchendo a largura) -->
-          <div style="flex:none;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:16px;padding-left:26px;border-left:1px solid var(--border);min-width:160px;">
-            <div><div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink);">{{ cdHorasPrev }}</div><div style="font-size:11px;color:var(--text3);">estudo previsto até lá</div></div>
-            <div><div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink);">{{ cdProgPct }}%</div><div style="font-size:11px;color:var(--text3);">{{ cdProgLabel }}</div></div>
+        </div>
+
+        <!-- L6 · Desempenho por disciplina -->
+        <sc-if value="{{ paDesempShow }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;">
+          <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">Desempenho por disciplina · acertos × erros · % líquido</div>
+          <div style="display:flex;align-items:flex-end;gap:16px;height:120px;overflow-x:auto;padding-bottom:2px;">
+            <sc-for list="{{ paDesemp }}" as="d" hint-placeholder-count="6">
+              <div style="flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                <span style="font-family:var(--mono);font-size:10px;font-weight:800;color:{{ d.color }};">{{ d.pct }}</span>
+                <div style="display:flex;align-items:flex-end;gap:4px;width:100%;justify-content:center;">
+                  <div style="width:36%;background:#0f9d6b;border-radius:4px 4px 2px 2px;height:{{ d.aH }};"></div>
+                  <div style="width:36%;background:#df9aa6;border-radius:4px 4px 2px 2px;height:{{ d.eH }};"></div>
+                </div>
+                <span style="font-size:9px;color:var(--text3);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:76px;">{{ d.short }}</span>
+              </div>
+            </sc-for>
           </div>
         </div>
         </sc-if>
 
-        <!-- CRONÔMETRO (destaque) -->
-            <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px 24px;color:#fff;position:relative;overflow:hidden;">
-              <div style="position:absolute;right:-30px;top:-34px;width:150px;height:150px;border-radius:99px;background:rgba(255,255,255,.08);"></div>
-              <div style="position:relative;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-                <div style="flex:none;">
-                  <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:700;">{{ homeTimerLabel }}</div>
-                  <div style="font-family:var(--mono);font-size:clamp(42px,8vw,62px);font-weight:700;line-height:1;letter-spacing:-.02em;margin-top:5px;">{{ sessionDisplay }}</div>
-                </div>
-                <div style="flex:1;min-width:190px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                  <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ true }}"><button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:12px;padding:13px 24px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar</button></sc-if>
-                  <sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ false }}"><button onclick="{{ toggleTimer }}" style="display:flex;align-items:center;gap:8px;background:#fff;color:var(--accentD);border:none;border-radius:12px;padding:13px 24px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"></path></svg>Pausar</button></sc-if>
-                  <button onclick="{{ resetTimer }}" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">Zerar</button>
-                  <button onclick="{{ enterFocus }}" style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>Tela cheia</button>
-                </div>
-              </div>
-              <div style="position:relative;display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:16px;">
-                <span style="font-size:11px;opacity:.82;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-right:2px;">Modo</span>
-                <button data-mode="livre" onclick="{{ setTimerMode }}" style="{{ homePmLivre }}">Livre</button>
-                <button data-mode="pomo" data-f="25" data-b="5" onclick="{{ setTimerMode }}" style="{{ homePm25 }}">Pomodoro 25·5</button>
-                <button data-mode="pomo" data-f="50" data-b="10" onclick="{{ setTimerMode }}" style="{{ homePm50 }}">50·10</button>
-                <button data-mode="pomo" data-f="90" data-b="15" onclick="{{ setTimerMode }}" style="{{ homePm90 }}">90·15</button>
-              </div>
-              <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}">
-                <div style="position:relative;height:6px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:12px;"><i style="display:block;height:100%;width:{{ phasePct }}%;background:#fff;border-radius:99px;transition:width .9s linear;"></i></div>
-              </sc-if>
-            </div>
-            <!-- AGORA -->
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;">
-              <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--heroGrad);"></div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;">Agora</span>
-                <span style="font-family:var(--mono);font-size:12px;color:var(--text3);">{{ cicloDone }}/{{ cicloTotal }} blocos</span>
-              </div>
-              <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-                  <div style="flex:1;min-width:180px;">
-                    <div style="font-family:var(--display);font-size:23px;font-weight:600;color:var(--ink);line-height:1.15;">{{ nextAction.disc }}</div>
-                    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><span style="width:9px;height:9px;border-radius:99px;background:{{ nextAction.kindColor }};"></span><span style="font-size:13px;color:var(--text2);">{{ nextAction.kind }} · {{ nextAction.tag }} · {{ nextAction.min }}min</span></div>
-                  </div>
-                  <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <button data-i="{{ nextAction.i }}" onclick="{{ enterFocus }}" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:12px 20px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar em foco</button>
-                    <button data-view="ciclo" onclick="{{ onNav }}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:11px;padding:12px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">Ver ciclo</button>
-                  </div>
-                </div>
-              </sc-if>
-              <sc-if value="{{ allDone }}" hint-placeholder-val="{{ false }}">
-                <div style="font-family:var(--display);font-size:21px;font-weight:600;color:var(--ink);">Ciclo de hoje concluído. 🎉</div>
-                <p style="margin:8px 0 0;font-size:13.5px;color:var(--text2);">Bom trabalho. Que tal adiantar uma revisão ou um simulado?</p>
-              </sc-if>
-              <sc-if value="{{ cicloVazio }}" hint-placeholder-val="{{ false }}">
-                <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-                  <div style="flex:1;min-width:180px;">
-                    <div style="font-family:var(--display);font-size:21px;font-weight:600;color:var(--ink);line-height:1.15;">Monte seu ciclo de hoje</div>
-                    <p style="margin:8px 0 0;font-size:13.5px;color:var(--text2);">Escolha como quer estudar — pela sugestão, pelo seu edital ou pelos pesos — e o Cátedra monta os blocos do dia.</p>
-                  </div>
-                  <button data-view="ciclo" onclick="{{ onNav }}" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:12px 20px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;flex:none;">Montar ciclo</button>
-                </div>
-              </sc-if>
-              <sc-if value="{{ cicloTemBlocos }}" hint-placeholder-val="{{ true }}"><div style="height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:18px;"><i style="display:block;height:100%;width:{{ cicloPct }}%;background:var(--heroGrad);border-radius:99px;transition:width .4s;"></i></div></sc-if>
-            </div>
-
-            <!-- BLOCOS DE HOJE (interativos) -->
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-weight:600;color:var(--ink);font-size:14.5px;">Blocos de hoje</span><span style="font-size:11.5px;color:var(--text3);">toque para concluir</span></div>
-              <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="5">
-                <button data-i="{{ b.i }}" onclick="{{ toggleBlock }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-bottom:1px solid var(--border);padding:12px 0;font-family:inherit;">
-                  <span style="width:22px;height:22px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ b.checkBorder }};background:{{ b.checkBg }};color:#fff;">
-                    <sc-if value="{{ b.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
-                  </span>
-                  <span style="width:9px;height:9px;border-radius:99px;background:{{ b.kindColor }};flex:none;"></span>
-                  <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;color:var(--ink);text-decoration:{{ b.strike }};">{{ b.disc }}</div><div style="font-size:11.5px;color:var(--text3);">{{ b.kind }} · {{ b.tag }}</div></div>
-                  <span style="font-family:var(--mono);font-size:12px;color:var(--text2);">{{ b.min }}min</span>
-                </button>
-              </sc-for>
-            </div>
-
-        <!-- ESTATÍSTICAS (leitura objetiva, no topo) -->
-        <div>
-          <div style="font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink);margin-bottom:14px;">Estatísticas</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+        <!-- L7 · Estatísticas -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;">
+          <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">Estatísticas</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
             <sc-for list="{{ statsTiles }}" as="t" hint-placeholder-count="8">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;">
-                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--heroGrad);"></div>
-                <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em;">{{ t.value }}</div>
-                <div style="font-size:11.5px;color:var(--text3);margin-top:7px;">{{ t.label }}</div>
+              <div style="flex:1 1 140px;min-width:130px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;">
+                <div style="font-family:var(--display);font-size:22px;font-weight:700;color:{{ t.vc }};line-height:1;font-variant-numeric:tabular-nums;">{{ t.value }}</div>
+                <div style="font-size:10.5px;color:var(--text3);margin-top:5px;">{{ t.label }}</div>
               </div>
             </sc-for>
           </div>
-        </div>
-        <!-- TEMPO DE ESTUDO HOJE -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Tempo de estudo hoje</span><span style="font-family:var(--mono);font-size:12px;color:var(--text3);">total anual {{ dashYearTotal }}</span></div>
-          <div style="display:flex;align-items:center;gap:26px;flex-wrap:wrap;">
-            <div style="position:relative;flex:none;width:140px;height:140px;">
-              <svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg);">
-                <circle cx="70" cy="70" r="52" fill="none" stroke="var(--surface2)" stroke-width="16"></circle>
-                <sc-for list="{{ donutSegs }}" as="s" hint-placeholder-count="4">
-                  <circle cx="70" cy="70" r="52" fill="none" stroke="{{ s.color }}" stroke-width="16" stroke-dasharray="{{ s.dash }}" stroke-dashoffset="{{ s.offset }}"></circle>
-                </sc-for>
-              </svg>
-              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);">{{ donutCenter }}</span><span style="font-size:10px;color:var(--text3);">hoje</span></div>
-            </div>
-            <div style="flex:1;min-width:170px;">
-              <sc-for list="{{ donutSegs }}" as="s" hint-placeholder-count="4">
-                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-                  <span style="width:10px;height:10px;border-radius:3px;background:{{ s.color }};flex:none;"></span>
-                  <span style="flex:1;font-size:13px;color:var(--text2);">{{ s.disc }}</span>
-                  <span style="font-family:var(--mono);font-size:12px;color:var(--text3);">{{ s.label }} · {{ s.pct }}%</span>
-                </div>
-              </sc-for>
-            </div>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Meta da semana</span><span style="font-family:var(--mono);font-size:12px;color:var(--text3);">{{ metaSemana }}</span></div>
-          <div style="height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ metaPct }}%;background:var(--heroGrad);border-radius:99px;"></i></div>
-          <div style="font-size:12.5px;color:var(--text2);margin-top:10px;line-height:1.5;"><b style="color:var(--accent);">{{ metaPct }}%</b> da meta de horas. Faltam {{ metaFaltamH }}h para fechar a semana.</div>
-          <sc-if value="{{ planoShow }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:flex-start;gap:8px;margin-top:11px;padding:10px 12px;background:var(--surface2);border-radius:10px;border-left:3px solid {{ planoCor }};"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="{{ planoCor }}" stroke-width="2" style="flex:none;margin-top:1px;"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="font-size:12px;color:var(--text2);line-height:1.45;">{{ planoMsg }}</span></div></sc-if>
-          <div style="display:flex;gap:7px;margin-top:16px;align-items:flex-end;height:64px;">
-            <sc-for list="{{ metaWeekBars }}" as="b" hint-placeholder-count="7"><div title="{{ b.title }}" style="flex:1;background:{{ b.barColor }};height:{{ b.h }}%;border-radius:6px;"></div></sc-for>
-          </div>
-        </div>
-
-        <!-- SESSÕES RECENTES (registro que alimenta tudo) -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
-            <div style="display:flex;align-items:center;gap:9px;"><span style="font-size:18px;">⏱️</span><span style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);">Sessões recentes</span></div>
-            <button onclick="{{ openSession }}" style="display:flex;align-items:center;gap:7px;background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>Registrar</button>
-          </div>
-          <div style="font-size:12.5px;color:var(--text3);margin-bottom:16px;">cada registro soma às suas horas, ao desempenho e às revisões</div>
-          <sc-if value="{{ hasSessions }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;">{{ sessionsCount }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">sessões</div></div>
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessTotalH }}h</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">tempo somado</div></div>
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1;">{{ sessAccOverall }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">bruto</div></div>
-              <div style="flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;"><div style="font-family:var(--display);font-size:20px;font-weight:700;color:{{ sessLiqColor }};line-height:1;">{{ sessLiqOverall }}</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">líquido</div></div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <sc-for list="{{ recentSessions }}" as="s" hint-placeholder-count="3">
-                <div style="display:flex;gap:11px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;">
-                  <span style="width:34px;height:34px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;">{{ s.icon }}</span>
-                  <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.topico }}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">{{ s.discShort }} · {{ s.catLabel }} · {{ s.ago }}</div></div>
-                  <div style="display:flex;align-items:center;gap:10px;flex:none;">
-                    <sc-if value="{{ s.hasLiq }}" hint-placeholder-val="{{ false }}"><span title="líquido (acertos − erradas)" style="font-family:var(--mono);font-size:12px;font-weight:700;color:{{ s.liqColor }};">{{ s.liqStr }}</span></sc-if>
-                    <sc-if value="{{ s.hasAcc }}" hint-placeholder-val="{{ false }}"><span title="aproveitamento bruto" style="font-family:var(--mono);font-size:12px;font-weight:700;color:{{ s.accColor }};">{{ s.accStr }}</span></sc-if>
-                    <span style="font-family:var(--mono);font-size:12px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:4px 9px;">{{ s.minStr }}</span>
-                  </div>
-                </div>
-              </sc-for>
-            </div>
-          </sc-if>
-          <sc-if value="{{ noSessions }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 15px;background:var(--accentSoft);border:1px dashed var(--accentRing);border-radius:12px;">
-              <span style="font-size:22px;flex:none;">⏱️</span>
-              <div style="flex:1;min-width:180px;"><div style="font-size:13px;font-weight:600;color:var(--ink);">Nenhuma sessão registrada ainda</div><div style="font-size:12px;color:var(--text3);margin-top:2px;line-height:1.45;">Registre a primeira para alimentar horas, desempenho e revisões.</div></div>
-              <button onclick="{{ openSession }}" style="flex:none;background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:9px 16px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;">Registrar primeira sessão</button>
-            </div>
-          </sc-if>
-        </div>
-
-        <!-- CONSTÂNCIA (quadradinhos que se somam) -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-            <div style="display:flex;align-items:center;gap:11px;"><span style="font-size:24px;">🔥</span><div><div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);line-height:1;">{{ sidebarStreak }} dias</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">sequência de constância</div></div><span title="Escudos protegem a ofensiva num dia sem estudo — você ganha 1 a cada 7 dias (máx. 3)" style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px 11px;font-size:12px;font-weight:700;color:var(--text2);">🛡️ {{ escudos }}<span style="font-weight:500;color:var(--text3);">· próximo em {{ escudosProxDias }}d</span></span></div>
-            <div style="display:flex;align-items:flex-end;gap:3px;height:40px;">
-              <sc-for list="{{ streakBars }}" as="b" hint-placeholder-count="14">
-                <div style="width:7px;border-radius:3px 3px 0 0;height:{{ b.h }}%;background:{{ b.barColor }};"></div>
-              </sc-for>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(14,1fr);gap:5px;">
-            <sc-for list="{{ streakCells }}" as="c" hint-placeholder-count="28">
-              <div title="dia estudado" style="aspect-ratio:1;border-radius:5px;background:{{ c.bg }};border:{{ c.bd }};"></div>
-            </sc-for>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text3);margin-top:8px;"><span>4 semanas atrás</span><span>hoje</span></div>
-        </div>
-
-        <!-- BEM-ESTAR (rápido, no Início) -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
-            <div style="display:flex;align-items:center;gap:9px;"><span style="font-size:18px;">🧘</span><span style="font-family:var(--display);font-weight:600;font-size:16px;color:var(--ink);">Bem-estar</span></div>
-            <button data-view="bemestar" onclick="{{ onNav }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Abrir bem-estar →</button>
-          </div>
-          <div style="font-size:12.5px;color:var(--text3);margin-bottom:16px;">Como você está agora? O check-in ajusta a cobrança e o ritmo sugerido.</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <sc-for list="{{ moods }}" as="m" hint-placeholder-count="5">
-              <button data-k="{{ m.k }}" onclick="{{ setMood }}" style="{{ m.style }}"><span style="font-size:24px;line-height:1;">{{ m.emoji }}</span><span style="font-size:11.5px;font-weight:600;">{{ m.label }}</span></button>
-            </sc-for>
-          </div>
-          <div style="margin-top:16px;padding:13px 15px;background:var(--accentSoft);border-radius:12px;font-size:12.5px;color:var(--accentD);line-height:1.5;">{{ moodTip }}</div>
-          <!-- hábitos do dia -->
-          <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-              <span style="font-size:13px;font-weight:600;color:var(--ink);">Hábitos saudáveis de hoje</span>
-              <span style="font-size:11.5px;color:var(--text3);font-family:var(--mono);">{{ habDoneN }}/{{ habTotalN }} na meta</span>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;">
-              <sc-for list="{{ habCards }}" as="h" hint-placeholder-count="6">
-                <div style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;background:var(--surface2);">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                    <span style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text2);"><span style="font-size:15px;">{{ h.icon }}</span>{{ h.label }}</span>
-                    <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:{{ h.statusColor }};">{{ h.vStr }}{{ h.unitStr }}</span>
-                  </div>
-                  <div style="height:6px;border-radius:99px;background:var(--surface);overflow:hidden;margin:9px 0;"><i style="display:block;height:100%;width:{{ h.pctW }};background:{{ h.barColor }};border-radius:99px;transition:width .3s;"></i></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-                    <span style="font-size:10.5px;color:var(--text3);">{{ h.metaStr }}</span>
-                    <div style="display:flex;gap:6px;flex:none;">
-                      <button data-k="{{ h.k }}" data-step="{{ h.step }}" onclick="{{ habDec }}" aria-label="Diminuir {{ h.label }}" style="width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
-                      <button data-k="{{ h.k }}" data-step="{{ h.step }}" onclick="{{ habInc }}" aria-label="Aumentar {{ h.label }}" style="width:26px;height:26px;border-radius:7px;border:none;background:var(--accent);color:var(--onAccent);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
-                    </div>
-                  </div>
-                </div>
-              </sc-for>
-            </div>
-          </div>
-        </div>
         </div>
 
         <!-- DASHBOARDS DE TEMPO (no Início) -->
@@ -972,12 +919,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div style="font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink);">Dashboards de tempo</div>
           <div style="font-size:12.5px;color:var(--text3);margin-top:2px;margin-bottom:14px;">Tempo de estudo no diário, semanal, mensal e por disciplina.</div>
           <div style="display:flex;flex-direction:column;gap:16px;">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+            <div class="ct-dashwrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
                 <span style="display:flex;align-items:center;gap:9px;font-weight:600;color:var(--ink);font-size:15px;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--accent)" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.6M9 2.5h6" stroke-linecap="round"></path></svg>Tempo de Estudo Diário</span>
-                <span style="font-family:var(--mono);font-size:12px;color:var(--text3);">30 dias · {{ dashDailyTotal }}</span>
+                <span style="font-family:var(--mono);font-size:12px;color:var(--text3);"><span class="ct-dx-hint">🔍 passe o mouse: 90 dias · </span>30 dias · {{ dashDailyTotal }}</span>
               </div>
-              <div style="display:flex;align-items:flex-end;gap:3px;height:172px;">
+              <div class="ct-dx-full" style="display:flex;align-items:flex-end;gap:1px;height:172px;">
+                <sc-for list="{{ paD90 }}" as="d" hint-placeholder-count="0">
+                  <div title="{{ d.tit }}" style="flex:1;min-width:2px;background:var(--accent);border-radius:2px 2px 0 0;height:{{ d.h }}%;align-self:flex-end;"></div>
+                </sc-for>
+              </div>
+              <div class="ct-dx-mini" style="display:flex;align-items:flex-end;gap:3px;height:172px;">
                 <sc-for list="{{ dashDaily }}" as="d" hint-placeholder-count="30">
                   <div style="flex:1;min-width:4px;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;">
                     <span class="ct-dash-daylbl" style="font-family:var(--mono);font-size:8px;line-height:1;color:var(--text2);font-weight:600;white-space:nowrap;">{{ d.vlabel }}</span>
@@ -999,9 +951,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                   </sc-for>
                 </div>
               </div>
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-                <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:18px;">Tempo de Estudo Semanal</div>
-                <div style="display:flex;align-items:flex-end;gap:5px;height:140px;">
+              <div class="ct-dashwrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:18px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Tempo de Estudo Semanal</span><span class="ct-dx-hint" style="font-family:var(--mono);font-size:11px;color:var(--text3);">🔍 26 semanas</span></div>
+                <div class="ct-dx-full" style="display:flex;align-items:flex-end;gap:2px;height:140px;">
+                  <sc-for list="{{ paW26 }}" as="d" hint-placeholder-count="0">
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;" title="{{ d.tit }}">
+                      <div style="width:100%;background:#d4a017;border-radius:3px 3px 0 0;height:{{ d.h }}%;"></div>
+                      <span style="font-family:var(--mono);font-size:7.5px;color:var(--text3);white-space:nowrap;">{{ d.lb }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div class="ct-dx-mini" style="display:flex;align-items:flex-end;gap:5px;height:140px;">
                   <sc-for list="{{ dashWeek }}" as="d" hint-placeholder-count="12">
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;">
                       <span style="font-family:var(--mono);font-size:9px;color:var(--text2);font-weight:600;white-space:nowrap;">{{ d.vlabel }}</span>
@@ -1014,8 +974,56 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-                <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:18px;">Tempo de Estudo Mensal</div>
-                <div style="display:flex;align-items:flex-end;gap:18px;height:140px;">
+                <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Evolução do desempenho</div>
+                <div style="font-size:11.5px;color:var(--text3);margin-bottom:14px;">% por semana · verde = líquido · cinza = bruto</div>
+                <svg viewBox="0 0 300 100" preserveAspectRatio="none" style="width:100%;height:130px;">
+                  <line x1="0" y1="25" x2="300" y2="25" stroke="var(--surface2)"></line>
+                  <line x1="0" y1="50" x2="300" y2="50" stroke="var(--surface2)"></line>
+                  <line x1="0" y1="75" x2="300" y2="75" stroke="var(--surface2)"></line>
+                  <path d="{{ evolBrutoPath }}" fill="none" stroke="var(--border)" stroke-width="2"></path>
+                  <path d="{{ evolLiqPath }}" fill="none" stroke="var(--accent)" stroke-width="3"></path>
+                </svg>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+                <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Questões por semana</div>
+                <div style="font-size:11.5px;color:var(--text3);margin-bottom:14px;">acertos × erros · últimas 4 semanas · {{ homeQTot }} questões</div>
+                <div style="display:flex;align-items:flex-end;gap:16px;height:118px;">
+                  <sc-for list="{{ homeQSem }}" as="q" hint-placeholder-count="4">
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;">
+                      <div style="display:flex;align-items:flex-end;gap:4px;width:100%;justify-content:center;">
+                        <div title="{{ q.aStr }} acertos" style="width:38%;background:var(--accent);border-radius:5px 5px 2px 2px;height:{{ q.aH }};"></div>
+                        <div title="{{ q.eStr }} erros" style="width:38%;background:#e5b3be;border-radius:5px 5px 2px 2px;height:{{ q.eH }};"></div>
+                      </div>
+                      <span style="font-family:var(--mono);font-size:9px;color:var(--text3);">{{ q.label }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+                <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Tempo por disciplina · esta semana</div>
+                <div style="font-size:11.5px;color:var(--text3);margin-bottom:14px;">proporção do estudado na semana</div>
+                <sc-if value="{{ homeSemDiscShow }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;height:16px;border-radius:99px;overflow:hidden;">
+                    <sc-for list="{{ homeSemDisc }}" as="s" hint-placeholder-count="4"><i style="width:{{ s.pct }}%;background:{{ s.cor }};height:100%;"></i></sc-for>
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px 13px;margin-top:12px;">
+                    <sc-for list="{{ homeSemDisc }}" as="s" hint-placeholder-count="4"><span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);font-weight:600;"><i style="width:8px;height:8px;border-radius:2px;background:{{ s.cor }};"></i>{{ s.nome }} {{ s.tempo }}</span></sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ homeSemDiscVazio }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--text3);padding:18px 0;text-align:center;">Registre sessões nesta semana para ver a distribuição.</div></sc-if>
+              </div>
+              <div class="ct-dashwrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:18px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Tempo de Estudo Mensal</span><span class="ct-dx-hint" style="font-family:var(--mono);font-size:11px;color:var(--text3);">🔍 12 meses</span></div>
+                <div class="ct-dx-full" style="display:flex;align-items:flex-end;gap:6px;height:140px;">
+                  <sc-for list="{{ paM12 }}" as="d" hint-placeholder-count="0">
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+                      <span style="font-family:var(--mono);font-size:8.5px;color:#1f9d57;font-weight:700;">{{ d.lb }}</span>
+                      <div style="width:100%;background:#1f9d57;border-radius:4px 4px 0 0;height:{{ d.h }}%;"></div>
+                      <span style="font-family:var(--mono);font-size:8px;color:var(--text3);">{{ d.mo }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div class="ct-dx-mini" style="display:flex;align-items:flex-end;gap:18px;height:140px;">
                   <sc-for list="{{ dashMonth }}" as="d" hint-placeholder-count="4">
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;">
                       <span style="font-family:var(--mono);font-size:11px;color:#1f9d57;font-weight:700;">{{ d.label }}</span>
@@ -1116,13 +1124,26 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                           <span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--text3);">{{ g.leituraDia.resumo }}</span>
                         </div>
                         <div style="display:flex;flex-direction:column;">
-                          <sc-for list="{{ g.leituraDia.rows }}" as="n" hint-placeholder-count="0">
+                          <sc-for list="{{ g.leituraDia.leis }}" as="n" hint-placeholder-count="0">
                             <div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-top:1px solid var(--surface2);">
                               <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" title="Marcar leitura como feita (sincroniza o plano e abre o registro)" style="width:16px;height:16px;border-radius:5px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
-                              <span style="font-size:10.5px;font-weight:700;color:{{ n.cor }};flex:none;text-decoration:{{ n.strike }};">{{ n.law }}</span>
-                              <span style="font-size:10.5px;color:var(--text2);text-decoration:{{ n.strike }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ n.arts }}</span>
+                              <span style="font-size:10.5px;font-weight:700;color:{{ n.cor }};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:{{ n.strike }};">{{ n.law }}</span>
+                              <span style="font-size:10.5px;color:var(--text2);flex:none;text-decoration:{{ n.strike }};white-space:nowrap;">{{ n.arts }}</span>
                             </div>
                           </sc-for>
+                          <sc-if value="{{ g.leituraDia.temJuris }}" hint-placeholder-val="{{ false }}">
+                            <div style="display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:6px;border-top:1px dashed var(--surface2);">
+                              <span style="font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);">⚖️ Jurisprudência</span>
+                              <span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--text3);">{{ g.leituraDia.resumoJuris }}</span>
+                            </div>
+                            <sc-for list="{{ g.leituraDia.juris }}" as="n" hint-placeholder-count="0">
+                              <div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-top:1px solid var(--surface2);min-width:0;overflow:hidden;">
+                                <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" title="Marcar como lida (sincroniza o plano do JURIS e abre o registro)" style="width:16px;height:16px;border-radius:5px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                                <span style="font-size:10.5px;font-weight:700;color:{{ n.cor }};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:{{ n.strike }};">{{ n.law }}</span>
+                                <span style="font-size:10.5px;color:var(--text2);flex:none;text-decoration:{{ n.strike }};white-space:nowrap;">{{ n.arts }}</span>
+                              </div>
+                            </sc-for>
+                          </sc-if>
                         </div>
                       </div>
                     </sc-if>
@@ -6069,7 +6090,12 @@ class Component extends DCLogic {
               cor:n.cor||'#0D9488', strike:n.done?'line-through':'none',
               checkBg:n.done?'var(--accent)':'transparent', checkBd:n.done?'var(--accent)':'var(--border)'}));
             const feitos=rows.filter(r=>r.done).length;
-            leituraDia={num:String(diaObj.num), rows, resumo:feitos+'/'+rows.length};
+            // súmulas são JURISPRUDÊNCIA — painel separado das leis
+            const leis=rows.filter(r=>r.disc!=='Súmulas');
+            const juris=rows.filter(r=>r.disc==='Súmulas');
+            leituraDia={num:String(diaObj.num), rows, leis, juris, temJuris:juris.length>0,
+              resumo:leis.filter(r=>r.done).length+'/'+leis.length,
+              resumoJuris:juris.filter(r=>r.done).length+'/'+juris.length};
           }
         }
         const pend=cards.filter(c=>!c.done).length;
@@ -6718,6 +6744,80 @@ class Component extends DCLogic {
     const _wk=B.weeks, _n=Math.max(1,_wk.length-1), _cl=(v)=>Math.max(0,Math.min(100,v));
     const evolBrutoPath='M '+_wk.map((w,i)=>`${(i/_n*300).toFixed(1)} ${(100-_cl(w.bruto)).toFixed(1)}`).join(' L ');
     const evolLiqPath='M '+_wk.map((w,i)=>`${(i/_n*300).toFixed(1)} ${(100-_cl(w.liq)).toFixed(1)}`).join(' L ');
+
+    // ===== Início v2 (futurista claro) =====
+    const _homeCor=(d)=>{ const M={...this.DISC_FULL_COLOR,'Direito Processual Civil':'#84cc16','Direito Processual Penal':'#ea580c','Direito Eleitoral':'#0891b2','Direito Empresarial':'#b08433','Direito Ambiental':'#16a34a','Direito do Consumidor':'#f59e0b','Direito Tributário':'#06b6d4'}; return M[d]||'#0f7a57'; };
+    const homeHojeMinN=Math.round((this.state.studiedSeconds||0)/60)+B.todayMin;
+    const homeMetaHojeAlvoN=_metaIdealMin;
+    const homeMetaHojePct=Math.max(0,Math.min(100,Math.round(homeHojeMinN/Math.max(1,homeMetaHojeAlvoN)*100)));
+    const _mhFalta=Math.max(0,homeMetaHojeAlvoN-homeHojeMinN);
+    const homeMetaHojeSub=_mhFalta>0?('faltam '+(_mhFalta>=60?(Math.floor(_mhFalta/60)+'h'+String(_mhFalta%60).padStart(2,'0')):(_mhFalta+' min'))+' para a meta'):'meta de hoje batida ✓';
+    const homeRoda=(()=>{ const mf=this.state.manualFixed||[]; if(!mf.length) return null;
+      const by={}; let tot=0;
+      mf.forEach(f=>{ const m=+f.min||0; if(m<=0) return; const key=f.discEdital||(f.kind==='Revisão'?'Revisões':(f.kind==='Questões'?'Questões':'Outros')); tot+=m; by[key]=(by[key]||0)+m; });
+      if(tot<=0) return null;
+      const fixas={'Revisões':'#0f7a57','Questões':'#c2790c','Outros':'#7d8a81'};
+      const segs=Object.keys(by).map(k=>({nome:k.replace('Direito ',''), min:by[k], cor:fixas[k]||_homeCor(k)})).sort((a,b)=>b.min-a.min);
+      let acc=0; const parts=segs.map(s=>{ const a1=(acc/tot*360).toFixed(1), a2=((acc+s.min)/tot*360).toFixed(1); acc+=s.min; return s.cor+' '+a1+'deg '+a2+'deg'; });
+      const _fmt=(mm)=> mm>=60 ? (Math.floor(mm/60)+'h'+String(mm%60).padStart(2,'0')) : (mm+'min');
+      return { conic:'conic-gradient('+parts.join(',')+')', centro:_fmt(tot), legenda:segs.map(s=>({nome:s.nome, cor:s.cor, tempo:_fmt(s.min)})) };
+    })();
+    const homeLeituraObj=(()=>{ const hj=['dom','seg','ter','qua','qui','sex','sab'][new Date().getDay()];
+      const g=(cicloSemana||[]).find(x=>x.dia===hj); return (g&&g.temLeitura)?g.leituraDia:null; })();
+    let _hNext=false;
+    const homeHoje=(blocks||[]).map(b=>{ const isNext=(!b.done && !_hNext); if(isNext) _hNext=true;
+      return { i:String(b.i), titulo:b.disc||'—', done:!!b.done, isNext, notNext:!isNext,
+      sub:(((b.discEdital||'').replace('Direito ','')+(b.topico?(' · '+String(b.topico).slice(0,52)):''))||((b.kind||'')+' · '+(b.tag||''))),
+      rail:_homeCor(b.discEdital||''), kind:(b.kind||'').toUpperCase(), kindCor:b.kindColor||'#0f7a57',
+      checkBg:b.done?'var(--accent)':'transparent', checkBd:b.done?'var(--accent)':'var(--border)',
+      min:String(b.min||0), strike:b.done?'line-through':'none', op:b.done?'0.55':'1' }; });
+    const homeHojeFeitas=homeHoje.filter(x=>x.done).length;
+    const homeDesemp=(B.discList||[]).filter(d=>d.q>0).slice(0,6).map(d=>({nome:d.disc.replace('Direito ',''), pct:String(Math.max(0,Math.min(100,d.liqPct))), cor:_homeCor(d.disc)}));
+    const homeSemDisc=(()=>{ const S=this.state.sessions||[]; const now=new Date(); const ini=new Date(now); ini.setHours(0,0,0,0); ini.setDate(ini.getDate()-((ini.getDay()+6)%7));
+      const by={}; let tot=0;
+      S.forEach(s=>{ const t=s.ts||0; if(t<ini.getTime()) return; const d=s.disc||'Outros'; const m=s.min||0; if(m<=0) return; tot+=m; by[d]=(by[d]||0)+m; });
+      if(tot<=0) return [];
+      const _fmt=(mm)=> mm>=60 ? (Math.floor(mm/60)+'h'+String(mm%60).padStart(2,'0')) : (mm+'min');
+      return Object.keys(by).map(k=>({nome:k.replace('Direito ',''), cor:_homeCor(k), pct:String(Math.max(2,Math.round(by[k]/tot*100))), tempo:_fmt(by[k])})).sort((a,b)=>(+b.pct)-(+a.pct)); })();
+    const homeQSem=(()=>{ const S=this.state.sessions||[]; const now=new Date(); const out=[];
+      for(let w=3; w>=0; w--){ const ini=new Date(now); ini.setHours(0,0,0,0); ini.setDate(ini.getDate()-((ini.getDay()+6)%7)-w*7); const fim=new Date(ini); fim.setDate(ini.getDate()+7);
+        let a=0,e=0; S.forEach(s=>{ const t=s.ts||0; if(t>=ini.getTime()&&t<fim.getTime()){ a+=(+s.acertos||0); e+=(+s.erradas||0); } });
+        out.push({label:ini.getDate()+'/'+(ini.getMonth()+1), a, e}); }
+      const mx=Math.max(1,...out.map(x=>Math.max(x.a,x.e)));
+      return out.map(x=>({label:x.label, aH:Math.max(x.a?6:2,Math.round(x.a/mx*88))+'px', eH:Math.max(x.e?6:2,Math.round(x.e/mx*88))+'px', aStr:String(x.a), eStr:String(x.e)})); })();
+    const homeQTot=(this.state.sessions||[]).length? homeQSem.reduce((n,x)=>n+(+x.aStr)+(+x.eStr),0) : 0;
+
+    // ===== Painel do Aprovado (Início) =====
+    const paPainel=(B.discList||[]).map(d=>({short:d.short, color:d.color, tempo:(d.min>=60?Math.floor(d.min/60)+'h'+String(d.min%60).padStart(2,'0'):(d.min||0)+'min'), a:String(d.a||0), e:String(d.e||0), q:String(d.q||0), liq:(d.q?d.liqPct+'%':'—'), liqCor:(!d.q?'var(--text3)':(d.liqPct>=70?'#0f9d6b':(d.liqPct>=50?'#c2790c':'#c0392f')))}));
+    const paPainelShow=paPainel.length>0;
+    const paSemBars=(()=>{ const S=this.state.sessions||[]; const now=new Date(); const dow=(now.getDay()+6)%7; const seg=new Date(now); seg.setHours(0,0,0,0); seg.setDate(seg.getDate()-dow);
+      const L=['seg','ter','qua','qui','sex','sáb','dom']; const out=[];
+      for(let i=0;i<7;i++){ const d0=new Date(seg); d0.setDate(seg.getDate()+i); const d1=new Date(d0); d1.setDate(d0.getDate()+1);
+        const mm=S.filter(s=>{const t=s.ts||0; return t>=d0.getTime()&&t<d1.getTime();}).reduce((x,s)=>x+(s.min||0),0);
+        out.push({label:L[i], min:mm, hoje:i===dow}); }
+      const mx=Math.max(30,...out.map(x=>x.min));
+      return out.map(x=>({label:x.label, h:String(Math.max(x.min?8:2,Math.round(x.min/mx*100))), minStr:(x.min>=60?Math.floor(x.min/60)+'h'+String(x.min%60).padStart(2,'0'):x.min+'m'), cor:(x.hoje?'var(--accentD)':'var(--accent)'), lblCor:(x.hoje?'var(--accentD)':'var(--text3)')})); })();
+    const paQSemana=(()=>{ const S=this.state.sessions||[]; const now=new Date(); const dow=(now.getDay()+6)%7; const seg=new Date(now); seg.setHours(0,0,0,0); seg.setDate(seg.getDate()-dow);
+      return String(S.filter(s=>(s.ts||0)>=seg.getTime()).reduce((x,s)=>x+(s.questoes||0),0)); })();
+    const paDesemp=(B.discList||[]).filter(d=>d.q>0).slice(0,8).map(d=>{ const mx=Math.max(1,...(B.discList||[]).map(x=>Math.max(x.a||0,x.e||0)));
+      return {short:d.short, color:d.color, aH:String(Math.max(d.a?6:2,Math.round((d.a||0)/mx*96)))+'px', eH:String(Math.max(d.e?4:2,Math.round((d.e||0)/mx*96)))+'px', pct:(d.q?d.liqPct+'%':'—')}; });
+    const paDesempShow=paDesemp.length>0;
+    // séries ampliadas p/ o hover dos dashboards (90 dias · 26 semanas · 12 meses)
+    const _paSess=this.state.sessions||[];
+    const paD90=(()=>{ const out=[]; const now=new Date(); now.setHours(0,0,0,0); let mx=1; const by={};
+      _paSess.forEach(s=>{ if(s.date) by[s.date]=(by[s.date]||0)+(s.min||0); });
+      for(let d=89; d>=0; d--){ const dt=new Date(now); dt.setDate(now.getDate()-d); const k=this._ymd(dt.getTime()); const mm=by[k]||0; mx=Math.max(mx,mm); out.push({k, mm, dia:dt.getDate(), mes:dt.getMonth()+1}); }
+      return out.map(x=>({key:x.k, h:String(Math.max(x.mm?3:1,Math.round(x.mm/mx*100))), tit:x.dia+'/'+x.mes+' · '+x.mm+'min'})); })();
+    const paW26=(()=>{ const out=[]; const now=Date.now(); const day=864e5; let mx=1;
+      for(let w=25; w>=0; w--){ const start=now-(w*7+6)*day, end=now-w*7*day+day;
+        const mm=_paSess.filter(s=>(s.ts||0)>=start&&(s.ts||0)<end).reduce((a,s)=>a+(s.min||0),0); mx=Math.max(mx,mm);
+        const d0=new Date(start); out.push({mm, lb:(w%4===0? String(d0.getDate()).padStart(2,'0')+'/'+String(d0.getMonth()+1).padStart(2,'0') : '')}); }
+      return out.map(x=>({key:'w'+Math.random().toString(36).slice(2,7), h:String(Math.max(x.mm?3:1,Math.round(x.mm/mx*100))), lb:x.lb, tit:Math.floor(x.mm/60)+'h'+String(x.mm%60).padStart(2,'0')})); })();
+    const paM12=(()=>{ const out=[]; const now=new Date(); let mx=1; const MN=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+      for(let m=11; m>=0; m--){ const d0=new Date(now.getFullYear(), now.getMonth()-m, 1); const d1=new Date(now.getFullYear(), now.getMonth()-m+1, 1);
+        const mm=_paSess.filter(s=>(s.ts||0)>=d0.getTime()&&(s.ts||0)<d1.getTime()).reduce((a,s)=>a+(s.min||0),0); mx=Math.max(mx,mm);
+        out.push({mm, mo:MN[d0.getMonth()]}); }
+      return out.map(x=>({key:'m'+x.mo+Math.random().toString(36).slice(2,5), h:String(Math.max(x.mm?3:1,Math.round(x.mm/mx*100))), mo:x.mo, lb:(x.mm>=60?Math.floor(x.mm/60)+'h':(x.mm?x.mm+'m':''))})); })();
     const evolDots=_wk.map((w,i)=>({ x:(i/_n*300).toFixed(1), yB:(100-_cl(w.bruto)).toFixed(1), yL:(100-_cl(w.liq)).toFixed(1), label:w.label, bruto:w.bruto, liq:w.liq }));
     const evolLastBruto=_wk.length?_wk[_wk.length-1].bruto:0, evolLastLiq=_wk.length?_wk[_wk.length-1].liq:0;
     const evolDelta=_wk.length>1?(_wk[_wk.length-1].bruto-_wk[0].bruto):0;
@@ -7274,6 +7374,26 @@ class Component extends DCLogic {
                  cicloPLLegis: legisOn?mk(L,'legis'):{}, cicloPLJuris: jurisOn?mk(J,'juris'):{} }; })()),
       bnInicio, bnCiclo, bnRevisoes,
       revOverdueEmpty:revOverdue.length===0, revTodayEmpty:revToday.length===0,
+      // Início v2
+      homeHojeMin:String(homeHojeMinN), homeMetaHojeAlvo:String(homeMetaHojeAlvoN), homeMetaHojePct:String(homeMetaHojePct), homeMetaHojeSub,
+      homeLiqPct:String(Math.max(0,B.liqPct||0))+'%', homeLiqW:String(Math.max(0,Math.min(100,B.liqPct||0))),
+      homeRodaShow:!!homeRoda, homeRodaConic:homeRoda?homeRoda.conic:'', homeRodaCentro:homeRoda?homeRoda.centro:'', homeRodaLegenda:homeRoda?homeRoda.legenda:[],
+      homeLeituraShow:!!homeLeituraObj, homeLeitura:homeLeituraObj||{num:'',rows:[],resumo:''},
+      homeHoje, homeHojeFeitas:String(homeHojeFeitas),
+      homeDesemp, homeDesempShow:homeDesemp.length>0,
+      homeSemDisc, homeSemDiscShow:homeSemDisc.length>0, homeSemDiscVazio:homeSemDisc.length===0,
+      homeQSem, homeQTot:String(homeQTot),
+      paD90, paW26, paM12,
+      paPainelVazio:paPainel.length===0, homeLeituraVazia:!homeLeituraObj,
+      paEd:String(edDone)+'/'+String(edTotal), paEdPct:String(edTotal?Math.round(edDone/edTotal*100):0),
+      homeSemNext:!nextAction,
+      homeProxRev:revUpcoming.slice(0,6), homeProxTem:revUpcoming.length>0, homeProxVazio:revUpcoming.length===0,
+      paPainel, paPainelShow, paSemBars, paQSemana, paDesemp, paDesempShow,
+      homeRoteiroShow:!!(this.state.manualFixedRoteiroAtual||'').trim(),
+      homeRevTotal:String(revPend+((this.state.nativeRev&&this.state.nativeRev.legis&&this.state.nativeRev.legis.due)||0)+((this.state.nativeRev&&this.state.nativeRev.juris&&this.state.nativeRev.juris.due)||0)),
+      homeRevLegis:String((this.state.nativeRev&&this.state.nativeRev.legis&&this.state.nativeRev.legis.due)||0),
+      homeRevJuris:String((this.state.nativeRev&&this.state.nativeRev.juris&&this.state.nativeRev.juris.due)||0),
+      homeTimerDot:(this.state.timerRunning?'#34d399':'#5f7a6e'), homeTimerSub:(this.state.timerRunning?'EM CURSO · TOQUE P/ PAUSAR':'PARADO · TOQUE P/ INICIAR'),
       isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
       isMentor:this.state.view==='mentor', navMentor:navStyle('mentor'),
       mentorMsgs, mentorInput:this.state.mentorInput, mentorBusy:this.state.mentorBusy, mentorIdle:!this.state.mentorBusy, mentorSugs,
@@ -7382,14 +7502,18 @@ class Component extends DCLogic {
       onDragOver:(e)=>e.preventDefault(),
       // estatísticas (Início)
       statsTiles:[
-        {value:tempoHoje, label:'Tempo hoje'},
-        {value:tempoTotalLabel, label:'Tempo estudado'},
-        {value:String(sessQ), label:'Questões resolvidas'},
-        {value:String(B.diasEstudados), label:'Dias estudados'},
-        {value:String(B.nDiscs), label:'Matérias estudadas'},
-        {value:sessionsCount, label:'Sessões registradas'},
-        {value:edDone+'/'+edTotal, label:'Tópicos concluídos'},
-        {value:B.brutoPct+'%', label:'Acerto bruto'}
+        {value:tempoHoje, label:'Tempo hoje', vc:'var(--ink)'},
+        {value:tempoTotalLabel, label:'Tempo estudado', vc:'var(--ink)'},
+        {value:String(sessQ), label:'Questões resolvidas', vc:'var(--ink)'},
+        {value:String(B.totalA), label:'Acertos', vc:'#0f9d6b'},
+        {value:String(B.totalE), label:'Erros', vc:'#c0392f'},
+        {value:String(B.totalB), label:'Brancos', vc:'var(--text3)'},
+        {value:String(B.diasEstudados), label:'Dias estudados', vc:'var(--ink)'},
+        {value:(B.diasEstudados?(Math.floor(B.totalMin/B.diasEstudados/60)+'h'+String(Math.round(B.totalMin/B.diasEstudados)%60).padStart(2,'0')):'—'), label:'Média por dia', vc:'var(--ink)'},
+        {value:String(B.nDiscs), label:'Matérias estudadas', vc:'var(--ink)'},
+        {value:sessionsCount, label:'Sessões registradas', vc:'var(--ink)'},
+        {value:edDone+'/'+edTotal, label:'Tópicos concluídos', vc:'var(--ink)'},
+        {value:B.brutoPct+'%', label:'Acerto bruto', vc:'var(--ink)'}
       ],
       // analise
       accRows, evol, risco, radarTemas, hasRadar, noRadar:!hasRadar, analisarLacunas:this.analisarLacunas, lacunas, lacunasBusy, lacunasTem, lacunasLabel:(lacunasBusy?'Analisando…':(lacunasTem?'Refazer análise':'Analisar com IA')), histRows,
