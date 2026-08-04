@@ -135,6 +135,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         startWidgetSync()
         startNativeReviewsSync()   // agenda de revisão única (lei seca + juris no Cátedra)
         startAutoBackup()          // backup semanal automático em ~/Documents/Cátedra Backups
+        setupPlanoMarcadoObservers()   // check no LEGIS/JURIS → registro de atividades no Cátedra
         UNUserNotificationCenter.current().delegate = self
 
         // configuração do WebView + pontes nativas (IA e notificações)
@@ -150,6 +151,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "notifyPermission")
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "notifyShow")
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraNav")  // web → trocar de aba nativa
+        ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPlano") // web → marcar leitura do plano (ciclo semanal)
         cfg.userContentController = ucc
         cfg.preferences.javaScriptCanOpenWindowsAutomatically = true  // necessário p/ o window.open do PiP
         cfg.preferences.setValue(true, forKey: "developerExtrasEnabled")  // "Inspecionar" no menu de contexto
@@ -492,6 +494,109 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         if let planoJSON = nativePlanoPayload() {
             wv.evaluateJavaScript("window.catedraSetNativePlano && window.catedraSetNativePlano(\(planoJSON))", completionHandler: nil)
         }
+        // Catálogo de leis/fontes → seletores do registro de sessão.
+        if let cat = nativeCatalogoJSON() {
+            wv.evaluateJavaScript("window.catedraSetNativeCatalogo && window.catedraSetNativeCatalogo(\(cat))", completionHandler: nil)
+        }
+    }
+
+    // Checkbox do ciclo semanal (web) → marca/desmarca a leitura no plano do LEGIS.
+    // Linhas de súmulas espelham no plano do JURIS (é a MESMA leitura nos dois).
+    func togglePlanoLeitura(_ key: String) {
+        guard !key.isEmpty else { return }
+        let d = UserDefaults.standard
+        var done = Set((d.array(forKey: "catedra.plano.done.v1") as? [String]) ?? [])
+        let marcando = !done.contains(key)
+        if marcando { done.insert(key) } else { done.remove(key) }
+        d.set(Array(done), forKey: "catedra.plano.done.v1")
+        let parts = key.split(separator: "_").compactMap { Int($0) }
+        if parts.count == 3, parts[0] < ReadingData.plano.count {
+            let disc = ReadingData.plano[parts[0]]
+            if disc.name == "Súmulas", parts[1] < disc.laws.count {
+                let lawName = disc.laws[parts[1]].name
+                let dyi = parts[2]
+                var jurisDia: Int? = nil
+                if lawName.contains("VINCULANTES") { jurisDia = 1 + dyi }
+                else if lawName.contains("TSE") { jurisDia = 6 + dyi }
+                else if lawName.contains("STJ") { jurisDia = 12 + dyi }
+                else if lawName.contains("STF") { jurisDia = 50 + dyi }
+                if let jd = jurisDia {
+                    var lidos = Set((d.array(forKey: "juris.plano.done.v1") as? [Int]) ?? [])
+                    if marcando { lidos.insert(jd) } else { lidos.remove(jd) }
+                    d.set(Array(lidos), forKey: "juris.plano.done.v1")
+                }
+            }
+        }
+        pushNativeReviews()   // re-injeta o payload → o quadro semanal atualiza na hora
+    }
+
+    // Check de leitura nos apps NATIVOS (plano do LEGIS/JURIS) → volta pra aba
+    // Cátedra e abre o registro de atividades. A troca de aba já dispara o flush
+    // do cronômetro (se houve ≥1 min de estudo, o registro abre com o TEMPO real
+    // rateado); senão, abrimos com o prefill específico da leitura marcada — a
+    // chamada é "auto": respeita o toggle dela e nunca atropela um modal aberto.
+    func setupPlanoMarcadoObservers() {
+        NotificationCenter.default.addObserver(forName: Notification.Name("catedraPlanoLegisMarcado"), object: nil, queue: .main) { [weak self] n in
+            MainActor.assumeIsolated {
+                guard let self, let k = n.userInfo?["key"] as? String else { return }
+                var payload: [String: Any] = ["auto": true, "origem": "CátedraLEGIS", "min": 0,
+                                              "categoria": "Lei seca", "topico": "Leitura de leis — plano"]
+                let parts = k.split(separator: "_").compactMap { Int($0) }
+                if parts.count == 3, parts[0] < ReadingData.plano.count {
+                    let disc = ReadingData.plano[parts[0]]
+                    if parts[1] < disc.laws.count, parts[2] < disc.laws[parts[1]].days.count {
+                        let law = disc.laws[parts[1]]
+                        let day = law.days[parts[2]]
+                        let juris = disc.name == "Súmulas"
+                        payload["categoria"] = juris ? "Jurisprudência" : "Lei seca"
+                        payload["topico"] = (juris ? "Jurisprudência — " : "Lei seca — ") + law.name + " · " + day.a
+                        if !juris { payload["disc"] = disc.name }
+                    }
+                }
+                self.abrirRegistroAuto(payload)
+            }
+        }
+        NotificationCenter.default.addObserver(forName: Notification.Name("catedraPlanoJurisMarcado"), object: nil, queue: .main) { [weak self] n in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                let dia = n.userInfo?["dia"] as? Int ?? 0
+                let faixa = n.userInfo?["faixa"] as? String ?? ""
+                let trilha = n.userInfo?["trilha"] as? String ?? ""
+                self.abrirRegistroAuto(["auto": true, "origem": "CátedraJURIS", "min": 0,
+                                        "categoria": "Jurisprudência",
+                                        "topico": "Súmulas \(trilha) — \(faixa) (Dia \(dia))"])
+            }
+        }
+    }
+    func abrirRegistroAuto(_ payload: [String: Any]) {
+        switchTo(0)   // volta pro Cátedra — dispara o flush do tempo estudado
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+            guard let self, let wv = self.webView,
+                  let data = try? JSONSerialization.data(withJSONObject: payload),
+                  let json = String(data: data, encoding: .utf8) else { return }
+            wv.evaluateJavaScript("window.catedraOpenStudyRegistration && window.catedraOpenStudyRegistration(\(json))", completionHandler: nil)
+            self.pushNativeReviews()
+        }
+    }
+
+    // Catálogo p/ o registro de sessão: "Lei seca" lista as leis do plano do LEGIS
+    // (por disciplina); "Jurisprudência" lista as fontes do JURIS. Estático — cacheado.
+    private var catalogoJSONCache: String?
+    func nativeCatalogoJSON() -> String? {
+        if let c = catalogoJSONCache { return c }
+        var legis: [[String: Any]] = []
+        for disc in ReadingData.plano where disc.name != "Súmulas" {
+            legis.append(["disc": disc.name, "leis": disc.laws.map { $0.name }])
+        }
+        let fontes: [Fonte] = [.sumulaVinculante, .sumulaSTF, .sumulaSTJ, .sumulaTSE,
+                               .repercussaoGeral, .repetitivo, .jurisEmTeses,
+                               .informativoSTF, .informativoSTJ, .informativoTSE,
+                               .controleConst, .adi, .adc, .ado, .adpf, .precedentesObrig]
+        let dict: [String: Any] = ["legis": legis, "juris": fontes.map { $0.nome }]
+        guard let d = try? JSONSerialization.data(withJSONObject: dict),
+              let s = String(data: d, encoding: .utf8) else { return nil }
+        catalogoJSONCache = s
+        return s
     }
 
     // Próxima meta de cada plano de leitura + progresso — vira bloco no Ciclo.
@@ -501,37 +606,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     func nativePlanoPayload() -> String? {
         let ldone = PlanoStore.loadDone()
         var lTotal = 0
-        // Agrupa as leituras PENDENTES por número do dia ("Dia 3" → CF, CC, CPC…):
-        // o roteiro dela lê a MESMA tabela-dia em todas as leis em paralelo, então o
-        // card do Ciclo lista as normas completas do dia, não só a primeira.
-        var pendPorDia: [Int: [[String: String]]] = [:]
+        // TODAS as leituras agrupadas por número da tabela-dia ("Dia 3" → CF, CC,
+        // CPC… + a linha de súmulas), com estado feito/pendente por lei. O roteiro
+        // fixa seg→sex = os 5 dias da SEMANA do plano em curso — igual à folha dela.
+        var porDia: [Int: [[String: Any]]] = [:]
+        var pendMin: Int? = nil
         for (di, disc) in ReadingData.plano.enumerated() {
             for (li, law) in disc.laws.enumerated() {
                 for (dyi, day) in law.days.enumerated() {
                     lTotal += 1
-                    if !ldone.contains("\(di)_\(li)_\(dyi)") {
-                        let n = Int(day.d.replacingOccurrences(of: "Dia ", with: "")) ?? 0
-                        pendPorDia[n, default: []].append(["law": law.name, "arts": day.a, "disc": disc.name])
-                    }
+                    let key = "\(di)_\(li)_\(dyi)"
+                    let feito = ldone.contains(key)
+                    let n = Int(day.d.replacingOccurrences(of: "Dia ", with: "")) ?? 0
+                    porDia[n, default: []].append(["key": key, "law": law.name, "arts": day.a, "done": feito, "cor": law.color, "disc": disc.name])
+                    if !feito { pendMin = min(pendMin ?? n, n) }
                 }
             }
         }
-        var lProx: [[String: Any]] = []   // próximos 7 DIAS do plano, cada um com a lista de normas
-        if let diaAtual = pendPorDia.keys.min() {
-            var n = diaAtual
-            while lProx.count < 7 && n <= diaAtual + 60 {   // pula dias já concluídos no meio
-                if let itens = pendPorDia[n], !itens.isEmpty {
-                    lProx.append(["dia": "Dia \(n)", "itens": itens])
-                }
-                n += 1
-            }
+        // semana do plano em curso: bloco de 5 dias que contém o 1º pendente
+        let maxDia = porDia.keys.max() ?? 1
+        let alvo = pendMin ?? maxDia
+        let sIni = ((alvo - 1) / 5) * 5 + 1
+        var semana: [[String: Any]] = []
+        for n in sIni...(sIni + 4) where porDia[n] != nil {
+            semana.append(["num": n, "itens": porDia[n]!])
         }
         var lNext: Any = NSNull()
-        if let p0 = lProx.first, let itens = p0["itens"] as? [[String: String]], let i0 = itens.first {
-            lNext = ["dia": p0["dia"] ?? "", "law": i0["law"] ?? "", "arts": i0["arts"] ?? "",
-                     "disc": (itens.count > 1 ? "\(itens.count) normas neste dia" : (i0["disc"] ?? "")), "color": "#0D9488"] as [String: Any]
+        if let pm = pendMin, let itens = porDia[pm] {
+            let pend = itens.filter { !(($0["done"] as? Bool) ?? false) }
+            if let i0 = pend.first {
+                lNext = ["dia": "Dia \(pm)", "law": i0["law"] ?? "", "arts": i0["arts"] ?? "",
+                         "disc": (pend.count > 1 ? "\(pend.count) normas neste dia" : ""), "color": "#0D9488"] as [String: Any]
+            }
         }
-        let legis: [String: Any] = ["done": ldone.count, "total": lTotal, "next": lNext, "prox": lProx]
+        let legis: [String: Any] = ["done": ldone.count, "total": lTotal, "next": lNext, "semana": semana]
 
         let jdone = JurisPlanoStore.lidos()
         let jTotal = JurisPlano.dias.count
@@ -1129,6 +1237,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             // Agenda única: o "Abrir" das revisões nativas na web troca a aba do host.
             let dest = (message.body as? String) ?? ""
             if dest == "legis" { switchTo(1) } else if dest == "juris" { switchTo(2) }
+            reply(nil, nil)
+        case "catedraPlano":
+            // Ciclo semanal: checkbox de uma leitura da tabela-dia (key "di_li_dyi").
+            togglePlanoLeitura((message.body as? String) ?? "")
             reply(nil, nil)
         default:                 reply(nil, "handler desconhecido")
         }

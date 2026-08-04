@@ -93,7 +93,12 @@ struct PlanoLeituraJurisView: View {
         return HStack(spacing: 12) {
             Button {
                 if lido { lidos.remove(d.dia); JurisPlanoStore.setLido(d.dia, false) }
-                else { lidos.insert(d.dia); JurisPlanoStore.setLido(d.dia, true) }
+                else {
+                    lidos.insert(d.dia); JurisPlanoStore.setLido(d.dia, true)
+                    // Concluiu o dia → o host abre o registro do Cátedra pré-preenchido.
+                    NotificationCenter.default.post(name: Notification.Name("catedraPlanoJurisMarcado"), object: nil,
+                                                    userInfo: ["dia": d.dia, "faixa": d.faixa, "trilha": d.trilha])
+                }
             } label: {
                 Image(systemName: lido ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 18)).foregroundStyle(lido ? c : Palette.secondaryInk.opacity(0.55))
