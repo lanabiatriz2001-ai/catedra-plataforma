@@ -27,7 +27,7 @@
   var _si = localStorage.setItem.bind(localStorage);
   var _ri = localStorage.removeItem.bind(localStorage);
   // _dirty/_lastSrv/notifSent são meta-estado LOCAL do aparelho — nunca sobem no blob
-  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1 };
+  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1, 'catedra:_bkpFase2': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
   // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
@@ -357,6 +357,9 @@
     Object.defineProperty(localStorage, 'setItem', { configurable: true, writable: true, enumerable: false, value: setImpl });
     Object.defineProperty(localStorage, 'removeItem', { configurable: true, writable: true, enumerable: false, value: remImpl });
   } catch (_) { localStorage.setItem = setImpl; localStorage.removeItem = remImpl; }
+  // WebKit: o [[DefineOwnProperty]] exótico do Storage também MATERIALIZA itens literais
+  // 'setItem'/'removeItem' com o fonte das funções — limpa a sombra logo após instalar.
+  try { _ri('setItem'); _ri('removeItem'); } catch (_) {}
 
   // ---------- overlay / gate ----------
   // O gate segue a COR SELECIONADA (catedra:accent) e o modo escuro (catedra:dark).
