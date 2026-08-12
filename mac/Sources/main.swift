@@ -152,6 +152,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "notifyShow")
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraNav")  // web → trocar de aba nativa
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPlano") // web → marcar leitura do plano (ciclo semanal)
+        ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPrint") // web → imprimir/salvar PDF (window.print é mudo no WKWebView)
         cfg.userContentController = ucc
         cfg.preferences.javaScriptCanOpenWindowsAutomatically = true  // necessário p/ o window.open do PiP
         cfg.preferences.setValue(true, forKey: "developerExtrasEnabled")  // "Inspecionar" no menu de contexto
@@ -639,7 +640,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
                          "disc": (pend.count > 1 ? "\(pend.count) normas neste dia" : ""), "color": "#0D9488"] as [String: Any]
             }
         }
-        let legis: [String: Any] = ["done": ldone.count, "total": lTotal, "next": lNext, "semana": semana]
+        // Tabela COMPLETA por dia (p/ navegar entre roteiros no Ciclo: Roteiro N = dias 5N-4..5N)
+        var todosDias: [String: Any] = [:]
+        for (n, itens) in porDia { todosDias[String(n)] = itens }
+        let legis: [String: Any] = ["done": ldone.count, "total": lTotal, "next": lNext, "semana": semana, "todosDias": todosDias]
 
         let jdone = JurisPlanoStore.lidos()
         let jTotal = JurisPlano.dias.count
@@ -1241,6 +1245,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         case "catedraPlano":
             // Ciclo semanal: checkbox de uma leitura da tabela-dia (key "di_li_dyi").
             togglePlanoLeitura((message.body as? String) ?? "")
+            reply(nil, nil)
+        case "catedraPrint":
+            // Relatório → Imprimir/Salvar PDF: WKWebView não implementa window.print(),
+            // então o host roda a NSPrintOperation da própria webview (diálogo padrão do macOS).
+            DispatchQueue.main.async { [weak self] in
+                guard let self, let wv = self.webView, let win = wv.window else { return }
+                let info = NSPrintInfo.shared
+                info.horizontalPagination = .fit
+                info.verticalPagination = .automatic
+                info.topMargin = 24; info.bottomMargin = 24
+                info.leftMargin = 24; info.rightMargin = 24
+                let op = wv.printOperation(with: info)
+                op.view?.frame = wv.bounds
+                op.runModal(for: win, delegate: nil, didRun: nil, contextInfo: nil)
+            }
             reply(nil, nil)
         default:                 reply(nil, "handler desconhecido")
         }
