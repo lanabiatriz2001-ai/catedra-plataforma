@@ -133,7 +133,20 @@
 
   var user = null, hydrating = true, pushT = null, authToken = null, pushing = false;
   // mantém o token do usuário em cache (para o flush com keepalive ao fechar a aba)
-  sb.auth.onAuthStateChange(function (_e, session) { authToken = session && session.access_token; });
+  // O link de redefinição chega como #type=recovery (fluxo implícito) ou ?code=… com
+  // ?type=recovery (PKCE). Marcamos ANTES de qualquer coisa: o supabase-js abre a sessão
+  // sozinho a partir da URL, e sem esta marca o app entraria direto e a pessoa nunca
+  // chegaria a trocar a senha que esqueceu.
+  var ehRecuperacao = false;
+  try {
+    var h = String(location.hash || ''), q = String(location.search || '');
+    ehRecuperacao = /type=recovery/.test(h) || /type=recovery/.test(q);
+  } catch (_) {}
+
+  sb.auth.onAuthStateChange(function (_e, session) {
+    authToken = session && session.access_token;
+    if (_e === 'PASSWORD_RECOVERY') { ehRecuperacao = true; showNovaSenha(); }
+  });
 
   // ---------- estado real de sync (exposto ao app) ----------
   var syncStatus = 'local';
@@ -449,9 +462,22 @@
       + '<div id="cterr" style="min-height:18px;font-size:12.5px;color:#e0533f;margin:4px 0 10px;line-height:1.4;"></div>'
       + '<button id="cts" type="submit" style="width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">' + title + '</button>'
       + '<p id="ctt" style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:18px 0 0;cursor:pointer;">' + alt + '</p>'
+      + (mode === 'login' ? '<p id="ctf2" style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:10px 0 0;cursor:pointer;text-decoration:underline;">Esqueci minha senha</p>' : '')
       + '</form></div>';
     show();
     el.querySelector('#ctt').onclick = function () { mode = mode === 'login' ? 'signup' : 'login'; showForm(); };
+    // Sem isto, quem esquecesse a senha ficava trancado para fora da própria conta para
+    // sempre — não havia nenhum caminho de recuperação em lugar nenhum do app.
+    var lkEsq = el.querySelector('#ctf2');
+    if (lkEsq) lkEsq.onclick = function () {
+      var em = (el.querySelector('#cte').value || '').trim();
+      var erro = el.querySelector('#cterr');
+      if (!em) { erro.textContent = 'Escreva seu e-mail acima e clique de novo.'; return; }
+      erro.style.color = MUT; erro.textContent = 'Enviando…';
+      sb.auth.resetPasswordForEmail(em, { redirectTo: location.origin + location.pathname })
+        .then(function () { erro.style.color = MUT; erro.textContent = 'Se existir conta com esse e-mail, o link de redefinição chegou na caixa de entrada.'; })
+        .catch(function () { erro.style.color = '#e0533f'; erro.textContent = 'Não deu para enviar agora. Tente de novo.'; });
+    };
     var form = el.querySelector('#ctf'), errEl = el.querySelector('#cterr'), btn = el.querySelector('#cts');
     form.onsubmit = function (e) {
       e.preventDefault();
@@ -533,12 +559,44 @@
     }).catch(function () { _si('catedra:auth', '1'); hydrating = false; hide(); });
   }
   function showLoginState() { user = null; _ri('catedra:auth'); sessionStorage.removeItem('catedra:hydrated'); hydrating = false; showForm(); }
+
+  // Tela de NOVA SENHA — o link do e-mail de recuperação volta para cá. Sem ela o link
+  // não levaria a lugar nenhum: o supabase-js abre a sessão a partir do hash da URL e o
+  // app entraria direto, sem nunca deixar a pessoa trocar a senha que ela esqueceu.
+  function showNovaSenha() {
+    hydrating = false;
+    el.innerHTML = '<div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;">'
+      + '<form id="ctnf" style="width:100%;max-width:360px;">'
+      + '<h2 style="font-family:Georgia,serif;font-size:26px;font-weight:600;color:' + INK + ';margin:0;">Nova senha</h2>'
+      + '<p style="font-size:13.5px;color:' + MUT + ';margin:6px 0 24px;">Escolha a senha que você vai usar daqui em diante.</p>'
+      + '<input id="ctnp" type="password" autocomplete="new-password" placeholder="Nova senha (mín. 6 caracteres)" style="width:100%;box-sizing:border-box;border:1px solid ' + BRD + ';background:' + CARD + ';border-radius:10px;padding:12px 14px;font-size:14px;color:' + INK + ';margin-bottom:8px;">'
+      + '<div id="ctnerr" style="min-height:18px;font-size:12.5px;color:#e0533f;margin:4px 0 10px;line-height:1.4;"></div>'
+      + '<button id="ctnb" type="submit" style="width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">Salvar nova senha</button>'
+      + '</form></div>';
+    show();
+    var f = el.querySelector('#ctnf'), erro = el.querySelector('#ctnerr'), b = el.querySelector('#ctnb');
+    f.onsubmit = function (e) {
+      e.preventDefault();
+      var nova = el.querySelector('#ctnp').value || '';
+      if (nova.length < 6) { erro.textContent = 'A senha precisa de ao menos 6 caracteres.'; return; }
+      b.disabled = true; b.textContent = 'Salvando…';
+      sb.auth.updateUser({ password: nova }).then(function (res) {
+        if (res.error) { b.disabled = false; b.textContent = 'Salvar nova senha'; erro.textContent = translateErr(res.error.message); return; }
+        try { history.replaceState(null, '', location.pathname); } catch (_) {}
+        sb.auth.getSession().then(function (r) {
+          var s = r && r.data && r.data.session;
+          if (s && s.user) onLogin(s.user); else showLoginState();
+        });
+      }).catch(function () { b.disabled = false; b.textContent = 'Salvar nova senha'; erro.textContent = 'Não deu para salvar agora. Tente de novo.'; });
+    };
+  }
   function logout() { sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearLocal(); location.reload(); }; sb.auth.signOut().then(fin, fin); }
   window.CatedraAuth = { logout: logout, client: sb };
 
   showLoading('…');
   sb.auth.getSession().then(function (res) {
     var s = res && res.data && res.data.session;
+    if (ehRecuperacao) { showNovaSenha(); return; }
     if (s && s.user) onLogin(s.user); else showLoginState();
   }).catch(function () { showLoginState(); });
 })();

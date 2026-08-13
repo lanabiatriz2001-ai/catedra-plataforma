@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { execSync } from 'node:child_process';
 import { verificarPII } from './verificar-pii.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -63,8 +64,23 @@ const reactTag = await vendor(REACT_CDN, 'react.js');
 const reactDomTag = await vendor(REACTDOM_CDN, 'react-dom.js');
 const supabaseTag = await vendor(SUPABASE_CDN, 'supabase.js');
 
+// Carimbo do build. Sem ele, um relato de bug de testador chega sem dizer QUAL versão
+// quebrou — e aí não dá para saber se já foi corrigido. Na Vercel o sha vem do ambiente.
+function carimbo() {
+  const sha = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7);
+  if (sha) return sha;
+  try {
+    return execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim();
+  } catch (_) {
+    return 'local';
+  }
+}
+const BUILD = { versao: carimbo(), data: new Date().toISOString().slice(0, 10), alvo: 'web' };
+console.log('  · build ' + BUILD.versao + ' (' + BUILD.data + ')');
+
 const INJECT = `
 <!-- ▼ injetado pelo build de produção — NÃO existe no Catedra.dc.html original ▼ -->
+<script>window.CATEDRA_BUILD = ${JSON.stringify(BUILD)};</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#0f7a57">
 <!-- PWA instalável no iPhone (Adicionar à Tela de Início) -->

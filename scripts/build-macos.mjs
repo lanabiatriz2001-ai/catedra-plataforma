@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { execSync } from 'node:child_process';
 import { verificarPII } from './verificar-pii.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -59,8 +60,14 @@ const reactTag    = await vendor(REACT_CDN, 'react.js');
 const reactDomTag = await vendor(REACTDOM_CDN, 'react-dom.js');
 const supabaseTag = await vendor(SUPABASE_CDN, 'supabase.js');
 
+// Mesmo carimbo do build web: relato de bug precisa dizer QUAL versão quebrou.
+let _sha = 'local';
+try { _sha = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim(); } catch (_) {}
+const BUILD = { versao: _sha, data: new Date().toISOString().slice(0, 10), alvo: 'macOS' };
+
 const INJECT = `
 <!-- ▼ injetado pelo build NATIVO macOS — não existe no Catedra.dc.html original ▼ -->
+<script>window.CATEDRA_BUILD = ${JSON.stringify(BUILD)};</script>
 <meta name="color-scheme" content="dark light">
 <!-- Visual de abertura padrão: tema Clean + modo escuro + accent magenta. Só semeia
      se AINDA não houver preferência salva; roda ANTES do auth.js (setItem cru, sem
