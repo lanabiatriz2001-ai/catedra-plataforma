@@ -29,8 +29,12 @@ if (!IS_PROD) {
   });
 } else {
   // ---- produção: PWA normal ----
-  var VERSION = 'catedra-v3';
-  var ASSETS = ['./', './support.js', './manifest.webmanifest', './icon.svg'];
+  var VERSION = 'catedra-v4';
+  // './' e './index.html' são chaves de cache DIFERENTES: o PWA instalado abre em
+  // ./index.html (start_url), então sem ele na lista o app abria em branco offline.
+  var ASSETS = ['./', './index.html', './support.js', './auth.js', './manifest.webmanifest', './icon.svg'];
+  /*__EXTRA_ASSETS__*/
+  var docFresco = null; // resposta da última navegação, para o refetch do boot
 
   self.addEventListener('install', function(e){
     e.waitUntil(
@@ -52,12 +56,34 @@ if (!IS_PROD) {
   // o cache é só fallback offline. Evita servir build antigo após uma atualização.
   self.addEventListener('fetch', function(e){
     var url = new URL(e.request.url);
-    if (e.request.method !== 'GET' || url.origin !== self.location.origin) return; // React/CDN/fontes seguem direto
+    if (e.request.method !== 'GET' || url.origin !== self.location.origin) return; // fontes/CDN seguem direto
+    var ehDoc = (url.pathname === '/' || /\/index\.html$/.test(url.pathname));
+
+    // O dc-runtime rebusca o PRÓPRIO documento logo depois do boot, só para reler o
+    // template cru: ~1 MB baixado de novo em toda abertura. Aqui devolvemos a cópia
+    // EXATA que acabou de ser servida na navegação — mesmo build, sem rede. (Ler do
+    // cache não serviria: o c.put é assíncrono e o refetch pode chegar antes dele,
+    // pegando o deploy anterior — que é justamente o que o network-first evita.)
+    if (ehDoc && e.request.mode !== 'navigate' && docFresco) {
+      e.respondWith(Promise.resolve(docFresco.clone()));
+      return;
+    }
     e.respondWith(
       fetch(e.request).then(function(res){
-        if (res && res.ok) { var copy = res.clone(); caches.open(VERSION).then(function(c){ c.put(e.request, copy); }); }
+        if (res && res.ok) {
+          var copy = res.clone(); caches.open(VERSION).then(function(c){ c.put(e.request, copy); });
+          if (ehDoc && e.request.mode === 'navigate') docFresco = res.clone();
+        }
         return res;
-      }).catch(function(){ return caches.match(e.request); })
+      }).catch(function(){
+        return caches.match(e.request).then(function(hit){
+          if (hit) return hit;
+          // offline numa rota qualquer (?view=…, /algo): devolve o app inteiro,
+          // que resolve a tela sozinho — melhor que o dinossauro do navegador.
+          if (e.request.mode === 'navigate') return caches.match('./index.html').then(function(doc){ return doc || caches.match('./'); });
+          return hit;
+        });
+      })
     );
   });
 
