@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { verificarPII } from './verificar-pii.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -132,5 +133,9 @@ if (existsSync(join(ROOT, 'sw.js'))) {
     .replace('/*__EXTRA_ASSETS__*/', 'ASSETS = ASSETS.concat(' + JSON.stringify(vendorados) + ');');
   writeFileSync(join(pub, 'sw.js'), sw);
 }
+
+// Última porta antes da internet: public/ vai inteiro para a Vercel, sem autenticação.
+// Se houver marca d'água de PDF (CPF/telefone/nome) em qualquer asset, o build morre aqui.
+verificarPII(pub, { rotulo: 'public/' });
 
 console.log('✓ build OK → public/ (index.html + support.js + sw.js + manifest + icon)');
