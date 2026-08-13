@@ -42,6 +42,8 @@ export default async function handler(req, res) {
     const temperature = typeof body.temperature === 'number' ? body.temperature : 0.7;
 
     // ---------- 1) Vercel AI Gateway (OpenAI-compatível) ----------
+    // Se o Gateway recusar (ex.: 403 exigindo cartão na conta) e houver chave
+    // Gemini, seguimos para o provedor 2 em vez de devolver erro ao aluno.
     if (gwKey) {
       const model = (typeof body.model === 'string' && /^[\w.\-]+\/[\w.\-]+$/.test(body.model))
         ? body.model
@@ -61,17 +63,21 @@ export default async function handler(req, res) {
       });
       if (!r.ok) {
         const detail = await r.text();
-        res.status(r.status).json({ error: 'Erro do AI Gateway (' + r.status + ')', detail: detail.slice(0, 500) });
+        if (!gemKey) {
+          res.status(r.status).json({ error: 'Erro do AI Gateway (' + r.status + ')', detail: detail.slice(0, 500) });
+          return;
+        }
+        // com chave Gemini disponível, cai para o provedor 2 (abaixo)
+      } else {
+        const data = await r.json();
+        const text = (((data.choices || [])[0] || {}).message || {}).content || '';
+        if (!text) {
+          res.status(200).json({ completion: '', note: 'AI Gateway retornou vazio (' + ((((data.choices || [])[0] || {}).finish_reason) || 'sem texto') + ').' });
+          return;
+        }
+        res.status(200).json({ completion: text });
         return;
       }
-      const data = await r.json();
-      const text = (((data.choices || [])[0] || {}).message || {}).content || '';
-      if (!text) {
-        res.status(200).json({ completion: '', note: 'AI Gateway retornou vazio (' + ((((data.choices || [])[0] || {}).finish_reason) || 'sem texto') + ').' });
-        return;
-      }
-      res.status(200).json({ completion: text });
-      return;
     }
 
     // ---------- 2) Gemini direto (fallback) ----------
