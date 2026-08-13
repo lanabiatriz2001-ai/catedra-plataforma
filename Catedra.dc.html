@@ -1533,7 +1533,8 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
               <div title="Peso e nº de questões da disciplina — usados no ciclo, no cronograma e no ranking &quot;onde rende mais pontos&quot;" style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:0 18px 11px 42px;">
                 <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);font-weight:500;">Peso<input type="number" min="0" step="0.5" data-i="{{ d.i }}" data-k="peso" value="{{ d.pesoVal }}" oninput="{{ onDiscMeta }}" placeholder="—" style="width:52px;border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:4px 7px;font-size:12px;color:var(--ink);font-family:var(--mono);text-align:center;"></label>
                 <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);font-weight:500;">Questões<input type="number" min="0" step="1" data-i="{{ d.i }}" data-k="questoes" value="{{ d.questoesVal }}" oninput="{{ onDiscMeta }}" placeholder="—" style="width:58px;border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:4px 7px;font-size:12px;color:var(--ink);font-family:var(--mono);text-align:center;"></label>
-                <button data-i="{{ d.i }}" onclick="{{ renomearDisciplina }}" title="Renomear a disciplina — muda em todo o app (sessões, revisões, erros…)" style="margin-left:auto;width:27px;height:27px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;font-size:12px;line-height:1;">✎</button>
+                <label title="Cor da disciplina — vale em todo o app (ciclo, gráficos, revisões)" style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);font-weight:500;cursor:pointer;flex:none;">Cor<input type="color" data-i="{{ d.i }}" value="{{ d.colorHex }}" oninput="{{ setDiscCor }}" style="width:30px;height:27px;padding:0;border:1px solid var(--border);border-radius:7px;background:var(--surface);cursor:pointer;"></label>
+                <button data-i="{{ d.i }}" onclick="{{ renomearDisciplina }}" title="Renomear a disciplina — muda em todo o app (sessões, revisões, erros…)" style="width:27px;height:27px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;font-size:12px;line-height:1;">✎</button>
                 <button data-i="{{ d.i }}" onclick="{{ removeDisc }}" title="Remover disciplina do edital" style="width:27px;height:27px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;font-size:15px;line-height:1;">×</button>
               </div>
               <sc-if value="{{ d.open }}" hint-placeholder-val="{{ false }}">
@@ -4298,31 +4299,135 @@ class Component extends DCLogic {
     '2 Lei de Responsabilidade Fiscal',
     '3 Precatórios'
   ].join('\n'); }
-  titleCase(s){ if(s!==s.toUpperCase()) return s; return s.toLowerCase().replace(/(^|\s|\()([a-zà-ú])/g,(m,p,c)=>p+c.toUpperCase()); }
+  // "DIREITO DA CRIANÇA E DO ADOLESCENTE" → "Direito da Criança e do Adolescente"
+  // (preposições e conectores ficam em minúscula — antes saía "Direito Da Criança E Do…")
+  titleCase(s){ const S=String(s||'').trim(); if(S!==S.toUpperCase()) return S;
+    const MIN={de:1,da:1,do:1,das:1,dos:1,e:1,em:1,no:1,na:1,nos:1,nas:1,a:1,o:1,as:1,os:1,ao:1,aos:1,'à':1,'às':1,com:1,para:1,por:1,sobre:1,ou:1,'não':1};
+    return S.toLowerCase().split(/(\s+)/).map((w,i)=> /^\s*$/.test(w) ? w
+      : ((i>0 && MIN[w]) ? w : w.replace(/^([a-zà-ú(])/,(m,c)=>c.toUpperCase()))).join('');
+  }
+
+  // ===== IMPORTADOR DE EDITAL =====
+  // Texto colado de PDF chega sujo: linha cortada no meio, cabeçalho/rodapé de página,
+  // numeração em dialetos diferentes (1 · 1.1 · I – · a) · •) e itens com VÁRIAS frases
+  // na mesma linha. A ordem é: limpar ruído → RECOSTURAR linhas partidas → detectar o
+  // esquema de numeração → montar disciplina · tópico · subtópico.
+  _edLimpa(raw){
+    return String(raw||'').replace(/\r/g,'').replace(/­/g,'')
+      .replace(/[“”]/g,'"').replace(/[‘’]/g,"'")
+      .split('\n').map(l=>l.replace(/\t/g,' ').replace(/\s+/g,' ').trim())
+      // "8.1.1 8.1.2 Domicílio eleitoral": o PDF perdeu o título do 1º item e colou os
+      // dois números — o texto pertence ao SEGUNDO, então o número órfão sai.
+      .map(l=>l.replace(/^\d{1,3}(?:\.\d{1,3}){0,4}\s+(?=\d{1,3}(?:\.\d{1,3}){1,4}\s+\S)/,''))
+      .filter(l=> l
+        && !/^={2,}\s*P[ÁA]GINA/i.test(l)          // marcador de página
+        && !/^p[áa]g(ina)?\.?\s*\d+/i.test(l)
+        && !/^\d{1,3}$/.test(l)                     // número de página solto
+        && !/^[-–—]\s*\d{1,3}\s*[-–—]$/.test(l)
+        && !/^(www\.|https?:)/i.test(l));
+  }
+  // Numeração do item → profundidade. "1"→1, "1.1"→2, "1.1.1"→3; romano/letra/bullet → sub.
+  _edNum(l){ let m;
+    if((m=l.match(/^(\d{1,3}(?:\.\d{1,3}){0,4})[.)]?\s+(.+)$/))) return {depth:m[1].split('.').length, num:m[1], resto:m[2], tipo:'num'};
+    if((m=l.match(/^([IVXLC]{1,6})\s*[-–.)]\s+(.+)$/))) return {depth:1, num:m[1], resto:m[2], tipo:'romano'};
+    if((m=l.match(/^([a-zà-ú])\s*[.)]\s+(.+)$/))) return {depth:2, num:m[1], resto:m[2], tipo:'letra'};
+    if((m=l.match(/^[•·▪●–—-]\s+(.+)$/))) return {depth:2, num:'', resto:m[1], tipo:'bullet'};
+    return null;
+  }
+  // Recostura a linha que o PDF partiu no meio (não terminou frase + a seguinte começa
+  // em minúscula), e desfaz a hifenização de fim de linha.
+  // modoLivro = sumário todo numerado (1 / 1.1 / 1.1.1): aí QUALQUER linha sem numeração
+  // é continuação da anterior (títulos de capítulo quebram no meio e a 2ª parte começa
+  // em maiúscula — "…Inelegibilidade de" + "Magistrado e membro do MP").
+  _edRecostura(linhas, modoLivro){
+    const out=[]; let jaNumerou=false;
+    for(const l of linhas){
+      const ant=out[out.length-1];
+      if(ant && /[a-zà-ú]-$/.test(ant) && /^[a-zà-ú]/.test(l)){ out[out.length-1]=ant.slice(0,-1)+l; continue; }
+      const novoItem = !!this._edNum(l);
+      // Livro: depois do 1º item numerado, TODA linha sem numeração é rabo de título
+      // partido — inclusive siglas em caixa-alta ("(AIRC)", "RRCI") e trechos que
+      // começam em maiúscula ("…Inelegibilidade de" + "Magistrado e membro do MP").
+      const contin = ant && !novoItem && (modoLivro
+        ? jaNumerou
+        : (!/[.;:!?]$/.test(ant) && /^[a-zà-ú("]/.test(l)));         // edital: minúscula depois de linha inacabada
+      if(contin) out[out.length-1]=ant+' '+l; else out.push(l);
+      if(novoItem) jaNumerou=true;
+    }
+    return out;
+  }
+  // Quebra "Estado Democrático. Cidadania. Soberania popular." em frases — SEM cair nas
+  // armadilhas de "art. 5", "Lei n. 8.112", "STF." (abreviações e números não terminam frase).
+  _edFrases(txt){
+    const ABREV={art:1,arts:1,inc:1,incs:1,al:1,par:1,n:1,'nº':1,no:1,lei:1,dec:1,'dl':1,cf:1,cc:1,cpc:1,cp:1,cpp:1,clt:1,ctn:1,cdc:1,eca:1,stf:1,stj:1,tse:1,tst:1,trf:1,adct:1,'séc':1,cap:1,vol:1,obs:1,ex:1,etc:1,p:1,pp:1,prof:1,dr:1,sr:1,sra:1,ss:1,ltda:1,'ed':1,'org':1,'ampl':1,'atual':1};
+    const partes=String(txt||'').split('. ');
+    const out=[]; let buf='';
+    for(let i=0;i<partes.length;i++){
+      buf = buf ? (buf+'. '+partes[i]) : partes[i];
+      const fim = i===partes.length-1;
+      const ult=((partes[i].match(/([\wÀ-ÿ§º°]+)\s*$/)||[])[1]||'').toLowerCase();
+      const prox=partes[i+1]||'';
+      const quebra = !fim && !ABREV[ult] && !/^\d+$/.test(ult) && /^[A-ZÀ-Ý"(]/.test(prox);
+      if(fim || quebra){ const s=buf.replace(/\s*[.;,]+\s*$/,'').trim(); if(s.length>1) out.push(s); buf=''; }
+    }
+    return out.length?out:[String(txt||'').trim()].filter(x=>x.length>1);
+  }
   parseEdital(raw){
-    const palette=['#2563eb','#a855f7','#06b6d4','#6366f1','#dc2626','#84cc16','#0d9488','#d6457f','#b08433','#4f46e5','#e8553e','#7c5cd6'];
-    const known={'direito constitucional':'#2563eb','direito administrativo':'#a855f7','direito tributário':'#06b6d4','direito financeiro':'#b91c1c','direito civil':'#6366f1','direito penal':'#dc2626','processo civil':'#84cc16','direito processual civil':'#84cc16','direito do trabalho':'#0d9488','direito ambiental':'#10b981','língua portuguesa':'#e8553e'};
-    const clean=s=>s.replace(/^(\d+([.)]\d*)*)\s*/,'').replace(/^[a-z][.)]\s*/i,'').replace(/^[-•–\u2013]\s*/,'').replace(/[.;,]+\s*$/,'').trim();
-    const isHeader=l=>{ const letters=l.replace(/[^a-zA-ZÀ-ú]/g,''); if(letters.length>2 && letters===letters.toUpperCase()) return true;
-      return /^(direito|noç|língua|legisl|conhecimentos|racioc|informát|matem|administraç|contabil|atualidad|ética|estatíst)/i.test(l) && l.length<58 && !/^\d/.test(l); };
-    const qOf=l=>{ const m=l.match(/(\d{1,3})\s*quest/i); return m?Math.max(0,+m[1]):''; };            // "15 questões" no cabeçalho
-    const stripQ=s=>s.replace(/[(\-—:]*\s*\d{1,3}\s*quest\w*.*$/i,'').replace(/[(\-—:]\s*$/,'').trim(); // tira o "(15 questões)" do nome
-    const isSub=l=>/^[a-z][.)]\s+\S/i.test(l);                                                          // subitem: "a) ..." "b. ..."
-    const out=[]; let cur=null, ci=0, last=null;
-    raw.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).forEach(l=>{
-      let head=null, rest=null; const c=l.indexOf(':');
-      if(c>2 && c<58){ const h=l.slice(0,c).trim();
-        if(/^(direito|noç|língua|legisl|conhecimentos|racioc|informát|matem|administraç|contabil)/i.test(h) || h===h.toUpperCase()){ head=h; rest=l.slice(c+1).trim(); } }
-      if(!head){ const lh=stripQ(l); if(isHeader(lh)) head=lh; }   // tira "(15 questões)" antes de testar o cabeçalho
-      if(head){ const nome=stripQ(head)||head; const key=this.titleCase(nome).toLowerCase();
-        cur={disc:this.titleCase(nome), color:known[key]||palette[ci%palette.length], peso:'', questoes:qOf(l), topics:[]}; ci++; last=null; out.push(cur);
-        if(rest){ rest.split(/[.;]/).map(clean).filter(t=>t.length>2).forEach(t=>{ const tp={name:t, subs:[]}; cur.topics.push(tp); last=tp; }); } }
-      else if(cur){
-        if(isSub(l) && last){ const s=clean(l); if(s.length>1) last.subs.push(s); }
-        else { const t=clean(l); if(t.length>1){ const tp={name:t, subs:[]}; cur.topics.push(tp); last=tp; } }
+    const cruas=this._edLimpa(raw);
+    if(!cruas.length) return [];
+    // Estatísticas ANTES de recosturar (a recostura depende delas): edital TODO em
+    // caixa-alta não pode usar "está em maiúscula" como sinal de disciplina; sumário
+    // 1/1.1 é "modo livro" — conserva a numeração e junta as linhas partidas.
+    const numsCruas=cruas.map(l=>this._edNum(l));
+    const comNumC=numsCruas.filter(Boolean).length;
+    const multiC=numsCruas.filter(n=>n&&n.tipo==='num'&&n.depth>=2).length;
+    const modoLivro = multiC >= Math.max(3, comNumC*0.25);
+    const linhas=this._edRecostura(cruas, modoLivro);
+    const nums=linhas.map(l=>this._edNum(l));
+    const comNum=nums.filter(Boolean).length;
+    const capsN=linhas.filter(l=>{const s=l.replace(/[^a-zA-ZÀ-ÿ]/g,''); return s.length>2 && s===s.toUpperCase();}).length;
+    const capsDemais = capsN > linhas.length*0.6;
+    const NOMES=/^(direitos?|no[çc][õo]es|l[íi]ngua|legisla[çc][ãa]o|conhecimentos|racioc[íi]nio|inform[áa]tica|matem[áa]tica|administra[çc][ãa]o|contabilidade|atualidades|[ée]tica|estat[íi]stica|filosofia|sociologia|psicologia|teoria geral|medicina legal|criminologia|hermen[êe]utica|economia|portugu[êe]s|reda[çc][ãa]o|processo\s|processual)/i;
+    const qOf=l=>{ const m=l.match(/(\d{1,3})\s*quest/i); return m?Math.max(0,+m[1]):''; };
+    const pOf=l=>{ const m=l.match(/peso\s*:?\s*(\d{1,2})/i); return m?+m[1]:''; };
+    const stripQ=s=>String(s||'').replace(/[(\-—:]*\s*\d{1,3}\s*quest\w*.*$/i,'').replace(/peso\s*:?\s*\d{1,2}/i,'').replace(/[(\-—:,\s]+$/,'').trim();
+    const ehDisc=(l,n)=>{ if(n) return false;
+      const t=stripQ(l).replace(/[:.]+$/,'').trim();
+      if(t.length<3 || t.length>72) return false;
+      const caps=(()=>{ const s=t.replace(/[^a-zA-ZÀ-ÿ]/g,''); return s.length>2 && s===s.toUpperCase(); })();
+      // No sumário de livro TUDO é numerado: só CAIXA-ALTA abre disciplina (o resto
+      // já virou continuação na recostura) — senão cada título quebrado viraria uma.
+      if(modoLivro) return caps;
+      if(NOMES.test(t)) return true;
+      if(/:\s*$/.test(l)) return true;
+      if(!capsDemais) return caps;
+      return false; };
+    const out=[]; let cur=null, lastTop=null, ci=0;
+    const novaDisc=(nome, linha)=>{ const nm=this.titleCase(stripQ(nome)||nome);
+      const ja=out.find(d=>d.disc.toLowerCase()===nm.toLowerCase());
+      if(ja){ cur=ja; lastTop=null; return; }
+      cur={disc:nm, color:this._editalColor(nm.toLowerCase(), ci++), peso:pOf(linha||''), questoes:qOf(linha||''), topics:[]};
+      lastTop=null; out.push(cur); };
+    linhas.forEach((l,i)=>{
+      const n=nums[i];
+      // "DIREITO CIVIL: Lei de Introdução. Pessoas naturais." → cabeçalho + itens na mesma linha
+      const c=l.indexOf(':');
+      if(!n && c>2 && c<66 && ehDisc(l.slice(0,c+1), null)){
+        novaDisc(l.slice(0,c), l);
+        const resto=l.slice(c+1).trim();
+        if(resto) this._edFrases(resto).forEach(f=>{ const tp={name:f, subs:[]}; cur.topics.push(tp); lastTop=tp; });
+        return;
       }
+      if(ehDisc(l,n)){ novaDisc(l, l); return; }
+      if(!cur) novaDisc('Nova disciplina','');
+      const texto=n?n.resto:l;
+      const pref=(modoLivro && n && n.tipo==='num')?(n.num+' '):'';
+      const frases=this._edFrases(texto);
+      if(!frases.length) return;
+      if((n?n.depth:1)>=2 && lastTop){ frases.forEach((f,k)=> lastTop.subs.push((k===0?pref:'')+f)); }
+      else { const tp={name:pref+frases[0], subs:frases.slice(1)}; cur.topics.push(tp); lastTop=tp; }
     });
-    return out.filter(d=>d.topics.length>0 || out.length<=2);
+    return out.filter(d=>d.topics.length>0);
   }
   edSetMode = (e)=> this.setState({edImportMode:e.currentTarget.dataset.m, edParsed:null});
   edSetRaw = (e)=> this.setState({edRaw:e.currentTarget.value});
@@ -4447,6 +4552,11 @@ class Component extends DCLogic {
   onDiscMeta = (e)=>{ const i=+e.currentTarget.dataset.i, k=e.currentTarget.dataset.k, raw=e.currentTarget.value;
     const v = raw==='' ? '' : Math.max(0, k==='questoes'?Math.round(+raw||0):(+raw||0));
     const ed=this.state.edital.map((d,di)=> di===i ? {...d, [k]:v} : d); this.setState({edital:ed}); this.flashSync(); };
+  // Cor da disciplina depois de cadastrada — o edital é a fonte da cor em todo o app
+  // (ciclo, gráficos, revisões leem DISC_FULL_COLOR/_editalColor a partir daqui).
+  setDiscCor = (e)=>{ const i=+e.currentTarget.dataset.i; const v=e.currentTarget.value;
+    if(!/^#[0-9a-f]{6}$/i.test(v||'')) return;
+    this.setState(s=>({edital:(s.edital||[]).map((d,j)=> j===i?{...d, color:v}:d)}), ()=>this.flashSync()); };
   removeDisc = (e)=>{ const i=+e.currentTarget.dataset.i; const list=this.state.edital||[]; if(i<0||i>=list.length) return;
     const nome=list[i]&&list[i].disc; if(!window.confirm('Remover a disciplina "'+nome+'" e todos os seus tópicos do edital?')) return;
     this.setState({edital:list.filter((_,j)=>j!==i)}); if(this.flashSync) this.flashSync(); if(this._toast) this._toast('Disciplina removida: '+nome); };
@@ -6552,6 +6662,7 @@ class Component extends DCLogic {
         domMedio, hasDom:domMedio!=null, domMedioStr:domMedio!=null?('domínio '+domMedio+'%'):'',
         domMedioColor: domMedio==null?'var(--text3)':(domMedio>=70?'#0f9d6b':domMedio>=50?'#c2790c':'#c0392f'),
         pesoVal:_pv, questoesVal:_qv, pesoStr:_pv!==''?String(_pv):'—', questoesStr:_qv!==''?String(_qv):'—', hasMeta:_hasMeta, metaChip:(_pv!==''?('peso '+_pv):'')+(_pv!==''&&_qv!==''?' · ':'')+(_qv!==''?(_qv+'q'):''),
+        colorHex:(/^#[0-9a-f]{6}$/i.test(d.color||'')?d.color:'#0f7a57'),   // <input type=color> só aceita #rrggbb
         topics:_tops};
     });
     const edTotal = edital.reduce((a,d)=>a+d.tot,0);
@@ -8001,7 +8112,7 @@ class Component extends DCLogic {
       edital, edTotal, edDone, edPct, edAlta,
       metaTempo, metaWeeklyLabel,
       cad:this.state.cad, cadNova:this.state.cad.mode==='nova', cadExistente:this.state.cad.mode==='existente',
-      onCad:this.onCad, setCadMode:this.setCadMode, setCadCor:this.setCadCor, addCadastro:this.addCadastro, toggleSub:this.toggleSub, onDiscMeta:this.onDiscMeta, removeDisc:this.removeDisc, renomearDisciplina:this.renomearDisciplina,
+      onCad:this.onCad, setCadMode:this.setCadMode, setCadCor:this.setCadCor, addCadastro:this.addCadastro, toggleSub:this.toggleSub, onDiscMeta:this.onDiscMeta, removeDisc:this.removeDisc, renomearDisciplina:this.renomearDisciplina, setDiscCor:this.setDiscCor,
       cadModeNovaStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;background:${this.state.cad.mode==='nova'?'var(--accent)':'transparent'};color:${this.state.cad.mode==='nova'?'var(--onAccent)':'var(--text2)'};`,
       cadModeExistStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;background:${this.state.cad.mode==='existente'?'var(--accent)':'transparent'};color:${this.state.cad.mode==='existente'?'var(--onAccent)':'var(--text2)'};`,
       cadColors:['#2563eb','#a855f7','#06b6d4','#6366f1','#dc2626','#84cc16','#0d9488','#c2790c'].map(c=>({c, sel:c===this.state.cad.cor, ring:c===this.state.cad.cor?'0 0 0 2px var(--surface),0 0 0 4px '+c:'none'})),
