@@ -4048,6 +4048,13 @@ class Component extends DCLogic {
       patch[k]=(k==='prefs'||k==='profile') && v && typeof v==='object' && !Array.isArray(v)
         ? {...this.state[k], ...v} : v;
     });
+    // Tira do patch o que NÃO mudou de conteúdo: o _load devolve objeto novo a cada
+    // leitura, e uma referência nova já bastava para o _autosave regravar tudo e pedir
+    // push — ou seja, todo sync realimentava outro sync (push → aviso → regrava → push).
+    try{ Object.keys(patch).forEach(k=>{
+      try{ if(JSON.stringify(patch[k])===JSON.stringify(this.state[k])) delete patch[k]; }catch(_){}
+    }); }catch(_){}
+    if(!Object.keys(patch).length) return;   // nada veio de novo: não mexe no estado
     // aplica sem deixar o _autosave achar que tudo mudou (senão regrava e sobe tudo)
     this._lastSaved=null;
     this.setState(patch, ()=>{ const L=this._lastSaved||(this._lastSaved={});

@@ -277,8 +277,20 @@
     sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
       .then(function (res) {
         var row = res && res.data;
-        var merged = mergeAll(row && row.data, collect(), false); // subida: local prevalece nos escalares
+        var antes = collect();
+        var merged = mergeAll(row && row.data, antes, false); // subida: local prevalece nos escalares
         applyData(merged); // grava o resultado unido localmente (via _si — não redispara sync)
+        // O push TAMBÉM traz coisa do servidor (o merge une os arrays por id). Sem avisar
+        // o app, a memória dele seguia velha, o _autosave regravava por cima e — pior — o
+        // tombOnSet criava LÁPIDE nos ids recém-chegados do outro aparelho, apagando-os de
+        // vez nos dois lados. Avisa SÓ quando algo mudou de fato: aviso incondicional viraria
+        // laço (push → synced → autosave → push).
+        var mudou = false;
+        try {
+          var ks = {}; Object.keys(antes).forEach(function (k) { ks[k] = 1; }); Object.keys(merged).forEach(function (k) { ks[k] = 1; });
+          mudou = Object.keys(ks).some(function (k) { return antes[k] !== merged[k]; });
+        } catch (_) {}
+        if (mudou) { try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {} }
         var now = new Date().toISOString();
         return sb.from('user_data').upsert({ user_id: user.id, data: leanForUpload(merged), updated_at: now })
           .then(function (r2) {
