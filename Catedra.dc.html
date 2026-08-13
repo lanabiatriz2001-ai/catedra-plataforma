@@ -299,8 +299,26 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 .ct-calev{display:flex;align-items:center;gap:5px;font-size:11px;line-height:1.25;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 @media (max-width:520px){.ct-calev span.ct-callbl{display:none;}}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>try{if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}catch(e){}</script>
+<!-- pdf.js NÃO entra no boot: são ~350 KB que só servem para importar edital e para
+     o leitor de PDF. window.ctPdfLib() baixa sob demanda (uma vez só) e devolve a lib. -->
+<script>
+window.ctPdfLib = (function(){
+  var B='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/', p=null;
+  return function(){
+    if (window.pdfjsLib) { try{ if(!window.pdfjsLib.GlobalWorkerOptions.workerSrc) window.pdfjsLib.GlobalWorkerOptions.workerSrc=B+'pdf.worker.min.js'; }catch(e){}
+      return Promise.resolve(window.pdfjsLib); }
+    if (p) return p;
+    p = new Promise(function(ok, fail){
+      var s=document.createElement('script'); s.src=B+'pdf.min.js';
+      s.onload=function(){ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc=B+'pdf.worker.min.js'; }catch(e){}
+        window.pdfjsLib ? ok(window.pdfjsLib) : fail(new Error('pdfjs unavailable')); };
+      s.onerror=function(){ p=null; fail(new Error('pdfjs unavailable')); };
+      document.head.appendChild(s);
+    });
+    return p;
+  };
+})();
+</script>
 </helmet>
 
 <div data-dark="{{ isDarkAttr }}" data-dir="{{ dirAttr }}" style="{{ rootStyle }} display:flex;min-height:100vh;width:100%;letter-spacing:-.005em;">
@@ -2538,12 +2556,12 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 
       <!-- ============ CÁTEDRALEGIS (web) — catálogo + plano + índice, página nativa ============ -->
       <sc-if value="{{ isLegis }}" hint-placeholder-val="{{ false }}">
-        <iframe src="legis-web.html" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+        <iframe data-ct-frame="legis-web.html" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
 
       <!-- ============ CÁTEDRAJURIS (web) — súmulas e julgados STF/STJ/TSE, página nativa ============ -->
       <sc-if value="{{ isJuris }}" hint-placeholder-val="{{ false }}">
-        <iframe src="juris-web.html" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+        <iframe data-ct-frame="juris-web.html" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
 
       <!-- ================= BIBLIOTECA ================= -->
@@ -3869,6 +3887,7 @@ class Component extends DCLogic {
     // linha, o primeiro render marcava as 36 chaves como "sujas" e todo boot
     // regravava tudo e subia o blob inteiro pra nuvem sem nenhuma edição.
     { const L=this._lastSaved||(this._lastSaved={}); this._autosaveKeys().forEach(k=>{ L[k]=this.state[k]; }); }
+    this._montarFrames();
     this._onR = ()=>{ const m = window.innerWidth<900; if(m!==this.state.isMobile) this.setState({isMobile:m}); };
     window.addEventListener('resize', this._onR);
     this._onKey = (e)=>{ if(e.key==='Escape'){ if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.provaMode) this.exitProva(); else if(this.state.focusMode) this.setState({focusMode:false}); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
@@ -4184,7 +4203,21 @@ class Component extends DCLogic {
     }catch(_){ }
   }
   componentWillUnmount(){ if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pipMsgT) clearTimeout(this._pipMsgT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
-  componentDidUpdate(){ this._readerSync(); this._syncModalFocus(); this._autosave(); }
+  componentDidUpdate(){ this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); }
+
+  // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
+  // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
+  // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a
+  // aba abre de verdade, e uma vez só (o iframe some do DOM ao trocar de view).
+  _montarFrames(){
+    try{
+      document.querySelectorAll('iframe[data-ct-frame]').forEach((f)=>{
+        const alvo=f.getAttribute('data-ct-frame');
+        if(!alvo || f.dataset.ctSrc===alvo) return;
+        f.dataset.ctSrc=alvo; f.src=alvo;
+      });
+    }catch(e){}
+  }
   // carrega uma fatia do estado do localStorage (usado no construtor)
   _load(k, fb){ try{ const r=localStorage.getItem('catedra:'+k); if(r!=null){ const v=JSON.parse(r); if(v!=null) return v; } }catch(_){} return fb; }
   // persiste automaticamente as fatias que não tinham salvamento próprio
@@ -4365,17 +4398,36 @@ class Component extends DCLogic {
   // modoLivro = sumário todo numerado (1 / 1.1 / 1.1.1): aí QUALQUER linha sem numeração
   // é continuação da anterior (títulos de capítulo quebram no meio e a 2ª parte começa
   // em maiúscula — "…Inelegibilidade de" + "Magistrado e membro do MP").
+  // Uma linha é CABEÇALHO plausível quando é um título seco (sem frase no meio,
+  // curto, no máximo uma vírgula) em CAIXA-ALTA ou com nome de matéria. Usado pela
+  // recostura (p/ não engolir o cabeçalho da disciplina seguinte) e por ehDisc.
+  _EDNOMES = /^(direitos?|no[çc][õo]es|l[íi]ngua|legisla[çc][ãa]o|conhecimentos|racioc[íi]nio|inform[áa]tica|matem[áa]tica|administra[çc][ãa]o|contabilidade|atualidades|[ée]tica|estat[íi]stica|filosofia|sociologia|psicologia|teoria geral|medicina legal|criminologia|hermen[êe]utica|economia|portugu[êe]s|reda[çc][ãa]o|processo\s|processual)/i;
+  // Cara de cabeçalho de disciplina. Com `forte`, EXIGE que o texto seja um nome
+  // de matéria conhecido — usado no meio da recostura, onde caixa-alta sozinha não
+  // serve de prova: num sumário de livro, "RRCI", "(AIRC)", "III" e "CPC" são só o
+  // rabo de um título que quebrou de linha, e promovê-los picotava o livro inteiro.
+  _edPareceCabecalho(l, forte){
+    const t=String(l||"").replace(/[:.]+$/,"").trim();
+    if(t.length<3 || t.length>150) return false;
+    const seco=!/\.\s+\S/.test(t) && t.length<=60 && (t.match(/,/g)||[]).length<=1;
+    if(forte) return seco && this._EDNOMES.test(t);
+    const letras=t.replace(/[^a-zA-ZÀ-ÿ]/g,"");
+    const caps=letras.length>2 && letras===letras.toUpperCase();
+    return caps || (seco && this._EDNOMES.test(t));
+  }
   _edRecostura(linhas, modoLivro){
     const out=[]; let jaNumerou=false;
     for(const l of linhas){
       const ant=out[out.length-1];
       if(ant && /[a-zà-ú]-$/.test(ant) && /^[a-zà-ú]/.test(l)){ out[out.length-1]=ant.slice(0,-1)+l; continue; }
       const novoItem = !!this._edNum(l);
-      // Livro: depois do 1º item numerado, TODA linha sem numeração é rabo de título
-      // partido — inclusive siglas em caixa-alta ("(AIRC)", "RRCI") e trechos que
-      // começam em maiúscula ("…Inelegibilidade de" + "Magistrado e membro do MP").
+      // Livro: depois do 1º item numerado, linha sem numeração é rabo de título partido
+      // — siglas em caixa-alta ("(AIRC)", "RRCI") e trechos que começam em maiúscula
+      // ("…Inelegibilidade de" + "Magistrado e membro do MP"). EXCETO quando a linha
+      // tem cara de cabeçalho: senão, num edital numerado, a 2ª disciplina em diante
+      // virava subtópico e o edital inteiro caía numa "Nova disciplina" só.
       const contin = ant && !novoItem && (modoLivro
-        ? jaNumerou
+        ? (jaNumerou && !this._edPareceCabecalho(l, true))
         : (!/[.;:!?]$/.test(ant) && /^[a-zà-ú("]/.test(l)));         // edital: minúscula depois de linha inacabada
       if(contin) out[out.length-1]=ant+' '+l; else out.push(l);
       if(novoItem) jaNumerou=true;
@@ -4427,7 +4479,10 @@ class Component extends DCLogic {
       if(!caps && t.length>72) return false;
       // No sumário de livro TUDO é numerado: só CAIXA-ALTA abre disciplina (o resto
       // já virou continuação na recostura) — senão cada título quebrado viraria uma.
-      if(modoLivro) return caps;
+      // Em sumário de livro TUDO é numerado: linha nua, curta e com cara de nome de
+      // matéria também abre disciplina — senão, com nomes em Title Case, o edital
+      // inteiro caía numa única "Nova disciplina".
+      if(modoLivro) return this._edPareceCabecalho(l);
       // Cabeçalho é um TÍTULO seco ("DIREITO TRIBUTÁRIO"), não uma frase. Sem esta
       // guarda, tópicos que começam com o nome da matéria ("Direito Tributário.
       // Conceito, definições…", "Direitos do consumidor. Disposições gerais…")
@@ -4499,10 +4554,9 @@ class Component extends DCLogic {
     this._toast(p.length? 'IA indisponível — usei o reconhecimento local' : 'Não consegui estruturar; revise o texto colado');
   };
   async _extractEditalPdf(f){
-    if(!window.pdfjsLib) throw new Error('pdfjs unavailable');
-    this._ensurePdfWorker && this._ensurePdfWorker();
+    const lib = await this._pdfLib();
     const bytes = await this._readFileBytes(f);
-    const pdf = await window.pdfjsLib.getDocument({data:bytes.slice(0)}).promise;
+    const pdf = await lib.getDocument({data:bytes.slice(0)}).promise;
     const pages = [];
     const maxPages = Math.min(pdf.numPages || 0, 80);
     for(let p=1;p<=maxPages;p++){
@@ -5686,7 +5740,9 @@ class Component extends DCLogic {
   _b64ToBytes(b64){ const bin=atob(b64); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i); return u; }
   _bytesToB64(bytes){ let bin=''; const ch=0x8000; for(let i=0;i<bytes.length;i+=ch){ bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+ch)); } return btoa(bin); }
   _pdfBytes(item){ if(this._fileCache && this._fileCache[item.id]) return this._fileCache[item.id]; if(item.pdfB64) return this._b64ToBytes(item.pdfB64); return null; }
-  _ensurePdfWorker(){ try{ if(window.pdfjsLib && !window.pdfjsLib.GlobalWorkerOptions.workerSrc){ window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } }catch(e){} }
+  // Baixa o pdf.js na primeira vez que alguém precisa dele (importar edital, abrir
+  // um PDF da biblioteca) — o boot do app não carrega mais nada disso.
+  _pdfLib(){ return window.ctPdfLib ? window.ctPdfLib() : Promise.reject(new Error('pdfjs unavailable')); }
 
   onBibDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({bibDraft:{...s.bibDraft,[k]:v}})); };
   editBiblio = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field, v=el.value; this.setState(s=>({biblioteca:s.biblioteca.map(b=> b.id===id?{...b,[field]:v}:b)}), ()=>this._persistLib()); };
@@ -5706,7 +5762,7 @@ class Component extends DCLogic {
   bibPickFile = (e)=>{ const files=e.currentTarget.files; if(files&&files.length) this._ingestFiles(files); e.currentTarget.value=''; };
   _readFileBytes(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(new Uint8Array(fr.result)); fr.onerror=rej; fr.readAsArrayBuffer(file); }); }
   _readFileText(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsText(file); }); }
-  async _pdfPageCount(bytes){ try{ if(!window.pdfjsLib) return null; this._ensurePdfWorker(); const pdf=await window.pdfjsLib.getDocument({data:bytes.slice(0)}).promise; const n=pdf.numPages; pdf.destroy&&pdf.destroy(); return n; }catch(e){ return null; } }
+  async _pdfPageCount(bytes){ try{ const lib=await this._pdfLib(); const pdf=await lib.getDocument({data:bytes.slice(0)}).promise; const n=pdf.numPages; pdf.destroy&&pdf.destroy(); return n; }catch(e){ return null; } }
   async _ingestFiles(fileList){
     const files=[...fileList]; this.setState({bibBusy:true, bibBusyMsg:'Processando '+files.length+' arquivo(s)…'});
     if(!this._fileCache) this._fileCache={};
@@ -5873,13 +5929,23 @@ class Component extends DCLogic {
   async _renderPdfPages(item){
     const rd=this._rd; const bytes=this._pdfBytes(item);
     rd.pagesWrap.innerHTML=''; rd.pages=[];
-    if(!window.pdfjsLib){ rd.pagesWrap.innerHTML='<div style="color:var(--text3);font-size:13px;padding:40px;">Carregando o leitor de PDF…</div>'; return; }
     if(!bytes){ const msg=document.createElement('div'); msg.style.cssText='background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:34px;text-align:center;max-width:520px;'; msg.innerHTML='<div style="font-size:30px;">📄</div><div style="font-weight:600;color:var(--ink);margin-top:8px;">Arquivo não disponível nesta sessão</div><div style="font-size:12.5px;color:var(--text3);margin-top:5px;line-height:1.5;">Este PDF era grande demais para salvar no aparelho. Reenvie o arquivo na biblioteca para lê-lo de novo — suas marcações foram preservadas.</div>'; rd.pagesWrap.appendChild(msg); return; }
     if(this._rd&&this._rd.zoomLabel) this._rd.zoomLabel.textContent=Math.round(rd.scale*100)+'%';
-    this._ensurePdfWorker();
     const token = (rd._rtok = (rd._rtok||0)+1);
+    // 1ª abertura de PDF na sessão: a lib vem agora, com aviso na tela.
+    let lib=window.pdfjsLib;
+    if(!lib){
+      rd.pagesWrap.innerHTML='<div style="color:var(--text3);font-size:13px;padding:40px;">Carregando o leitor de PDF…</div>';
+      try{ lib=await this._pdfLib(); }catch(e){
+        if(rd._rtok!==token) return;
+        rd.pagesWrap.innerHTML='<div style="color:var(--text3);font-size:13px;padding:40px;">Não deu para carregar o leitor de PDF. Confira a conexão e tente de novo.</div>';
+        return;
+      }
+      if(rd._rtok!==token) return;
+      rd.pagesWrap.innerHTML='';
+    } else { await this._pdfLib(); }
     try{
-      const pdf=await window.pdfjsLib.getDocument({data:bytes.slice(0)}).promise; if(rd._rtok!==token) return; rd.pdf=pdf;
+      const pdf=await lib.getDocument({data:bytes.slice(0)}).promise; if(rd._rtok!==token) return; rd.pdf=pdf;
       for(let p=1;p<=pdf.numPages;p++){
         const page=await pdf.getPage(p); if(rd._rtok!==token) return; const viewport=page.getViewport({scale:rd.scale});
         const wrap=document.createElement('div'); wrap.className='rd-page'; wrap.style.cssText='position:relative;width:'+viewport.width+'px;height:'+viewport.height+'px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.12);border-radius:3px;';
