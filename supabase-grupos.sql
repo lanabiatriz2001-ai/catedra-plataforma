@@ -22,8 +22,10 @@ alter table public.grupos enable row level security;
 -- Sem policies: nenhum acesso direto à tabela. Tudo passa pelas funções abaixo.
 
 -- 2) Gerador de código curto único --------------------------------------------
+-- security definer + search_path fixo: o linter do Supabase acusa "search_path
+-- mutável" sem isso, e a função é interna (ninguém a chama pela API).
 create or replace function public._gera_codigo_grupo()
-returns text language plpgsql as $$
+returns text language plpgsql security definer set search_path = public as $$
 declare c text; n int;
 begin
   loop
@@ -110,6 +112,7 @@ language sql security definer set search_path = public as $$
 $$;
 
 -- 7) Permissões: só usuários logados executam as funções ----------------------
+revoke all on function public._gera_codigo_grupo() from public, anon, authenticated;
 revoke all on function public.criar_grupo(text, text)  from public, anon;
 revoke all on function public.entrar_grupo(text, text) from public, anon;
 revoke all on function public.sair_grupo(uuid)         from public, anon;
