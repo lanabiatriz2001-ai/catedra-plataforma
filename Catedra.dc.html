@@ -3926,9 +3926,9 @@ class Component extends DCLogic {
     try{ const _ao=(this.state.orient&&this.state.orient.aoAbrir)||'foco'; if(_ao==='ciclo' && this.state.view==='inicio') this.setState({view:'ciclo'}); }catch(_){}
     // estado real de sync (emitido pelo auth.js) + re-hidratação após merge de outro aparelho
     this._onSyncState = (e)=>{ try{ this.setState({syncStatus:(e.detail&&e.detail.status)||'local'}); }catch(_){} };
-    // A hidratação da nuvem rehidrata o edital; reaplica a migração DEPOIS dela,
-    // senão a versão antiga (53 tópicos) volta por cima.
-    this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){}    window.addEventListener('catedra:syncstate', this._onSyncState);
+    // Depois que a nuvem mescla, relê o localStorage para a memória não ficar velha.
+    this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){} };
+    window.addEventListener('catedra:syncstate', this._onSyncState);
     window.addEventListener('catedra:synced', this._onSynced);
     // Ponte CátedraLEGIS → Cátedra: o app nativo chama isto (evaluateJavaScript) para
     // registrar o estudo de leis feito na aba CátedraLEGIS como uma sessão REAL — assim o
