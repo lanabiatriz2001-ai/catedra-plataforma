@@ -22,7 +22,11 @@ NAME="Cátedra"
 EXEC="Catedra"
 BUNDLE_ID="com.catedra.desktop"
 APP="$BUILD/$NAME.app"
-AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-}"
+# Endpoint de IA padrão = a produção na Vercel. Antes vinha VAZIO, então o app saía com
+# a IA morta e dizia "a IA não respondeu" — quem recebia o app achava que era instabilidade
+# e ficava tentando de novo. A função exige a sessão do Supabase, que a ponte JS já manda,
+# então o testador logado tem IA funcionando sem configurar nada.
+AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma-fawn.vercel.app/api/complete}"
 GEMINI_KEY="${CATEDRA_GEMINI_KEY:-}"
 
 echo "→ 1/5  Gerando bundle web (Catedra.dc.html → mac/build/web)…"
@@ -53,9 +57,30 @@ PLUGIN_DIR="$(xcrun --show-sdk-platform-path 2>/dev/null)/Developer/usr/lib/swif
 PLUGIN_FLAGS=()
 if [ -d "$PLUGIN_DIR" ]; then PLUGIN_FLAGS=(-plugin-path "$PLUGIN_DIR")
 else echo "     aviso: plugins de macro não encontrados em $PLUGIN_DIR — se o build falhar em @State, confira o xcode-select"; fi
-swiftc -O -target "$TARGET" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES "$HERE/Sources/main.swift" -o "$BUILD/$EXEC" \
-  -framework Cocoa -framework WebKit -framework UserNotifications -framework SwiftUI \
-  -framework Network -framework PDFKit
+# Binário UNIVERSAL (arm64 + x86_64). Antes saía só arm64: num Mac Intel o app não
+# abria de jeito nenhum — nem com o ritual do Gatekeeper — porque simplesmente não
+# havia código para aquela arquitetura. Compilamos as duas fatias e juntamos com lipo.
+# Se a fatia Intel falhar (SDK sem suporte na máquina), seguimos só com arm64 avisando,
+# em vez de derrubar o build inteiro.
+compilar_fatia() {
+  swiftc -O -target "$1" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES "$HERE/Sources/main.swift" -o "$2" \
+    -framework Cocoa -framework WebKit -framework UserNotifications -framework SwiftUI \
+    -framework Network -framework PDFKit
+}
+
+echo "     · fatia arm64 (Apple Silicon)…"
+compilar_fatia "arm64-apple-macos14.0" "$BUILD/$EXEC.arm64"
+
+echo "     · fatia x86_64 (Macs Intel)…"
+if compilar_fatia "x86_64-apple-macos14.0" "$BUILD/$EXEC.x86_64" 2>"$BUILD/x86.log"; then
+  lipo -create "$BUILD/$EXEC.arm64" "$BUILD/$EXEC.x86_64" -output "$BUILD/$EXEC"
+  echo "     · universal: $(lipo -archs "$BUILD/$EXEC")"
+else
+  cp "$BUILD/$EXEC.arm64" "$BUILD/$EXEC"
+  echo "     aviso: a fatia Intel não compilou — o app sai SÓ para Apple Silicon."
+  echo "            Macs Intel não vão conseguir abrir. Detalhe em $BUILD/x86.log"
+fi
+rm -f "$BUILD/$EXEC.arm64" "$BUILD/$EXEC.x86_64"
 
 echo "→ 4/5  Montando $NAME.app…"
 rm -rf "$APP"

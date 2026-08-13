@@ -33,8 +33,22 @@ let bridgeJS = """
 (function () {
   window.claude = window.claude || {};
   window.claude.complete = function (prompt) {
+    // /api/complete passou a exigir a sessão do Supabase (antes era IA aberta para a
+    // internet inteira, na conta da dona do app). O host Swift não tem esse token —
+    // quem tem é a página. Então pegamos aqui e mandamos junto com o prompt.
+    var envia = function (tok) {
+      return window.webkit.messageHandlers.catedraAI.postMessage({
+        prompt: String(prompt || ''), token: String(tok || '')
+      });
+    };
     try {
-      return window.webkit.messageHandlers.catedraAI.postMessage(String(prompt || ''));
+      if (window.CatedraAuth && window.CatedraAuth.client && window.CatedraAuth.client.auth) {
+        return window.CatedraAuth.client.auth.getSession().then(
+          function (s) { return envia(s && s.data && s.data.session && s.data.session.access_token); },
+          function () { return envia(''); }
+        );
+      }
+      return envia('');
     } catch (e) {
       return Promise.reject(e);
     }
@@ -1277,17 +1291,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
 
     private func handleAI(_ message: WKScriptMessage, _ reply: @escaping (Any?, String?) -> Void) {
-        let prompt = (message.body as? String) ?? ""
-        if let url = aiEndpoint() { postEndpoint(url, prompt, reply) }
+        // A ponte antiga mandava só a string do prompt; a nova manda {prompt, token}.
+        // Aceitamos as duas formas para não quebrar um WebView com JS em cache.
+        var prompt = ""
+        var token = ""
+        if let s = message.body as? String {
+            prompt = s
+        } else if let d = message.body as? [String: Any] {
+            prompt = (d["prompt"] as? String) ?? ""
+            token = (d["token"] as? String) ?? ""
+        }
+        if let url = aiEndpoint() { postEndpoint(url, prompt, token, reply) }
         else if let key = geminiKey() { postGemini(key, prompt, reply) }
-        else { reply(nil, "IA não configurada") }
+        else {
+            // Dizer a verdade: antes isto virava "a IA não respondeu" na tela, e a pessoa
+            // ficava tentando de novo achando que era instabilidade.
+            reply(nil, "IA não configurada neste app. Use o Cátedra no navegador, ou configure o endpoint.")
+        }
     }
 
-    private func postEndpoint(_ url: URL, _ prompt: String, _ reply: @escaping (Any?, String?) -> Void) {
+    private func postEndpoint(_ url: URL, _ prompt: String, _ token: String,
+                              _ reply: @escaping (Any?, String?) -> Void) {
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.timeoutInterval = 60
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if !token.isEmpty { req.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
         req.httpBody = try? JSONSerialization.data(withJSONObject: ["prompt": prompt])
         URLSession.shared.dataTask(with: req) { data, _, err in
             if let err = err { reply(nil, err.localizedDescription); return }
