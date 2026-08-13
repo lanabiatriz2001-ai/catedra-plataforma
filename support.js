@@ -311,7 +311,13 @@
     onfocus: "onFocus",
     onblur: "onBlur",
     ondoubleclick: "onDoubleClick",
-    oncontextmenu: "onContextMenu"
+    oncontextmenu: "onContextMenu",
+    // arrastar-e-soltar: sem estas entradas o atributo era ignorado em silêncio e a
+    // zona de soltar arquivo da Biblioteca não recebia evento nenhum.
+    ondragover: "onDragOver",
+    ondragenter: "onDragEnter",
+    ondragleave: "onDragLeave",
+    ondrop: "onDrop"
   };
   var ATTRS = `(?:[^>"']|"[^"]*"|'[^']*')*`;
   var IMPORT_SELF_CLOSE_RE = new RegExp(
