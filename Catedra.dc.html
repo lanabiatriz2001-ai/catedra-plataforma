@@ -3693,11 +3693,33 @@ window.ctPdfLib = (function(){
           </div>
         </div>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-          <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Sincronização</div>
-          <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">os dados ficam neste navegador; use backup JSON para levar para outro aparelho</div>
-          <div style="display:flex;gap:10px;">
-            <button data-s="backup" onclick="{{ setSync }}" style="{{ syncBackup }}">Backup local</button>
-            <button data-s="local" onclick="{{ setSync }}" style="{{ syncLocal }}">Somente neste navegador</button>
+          <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Sincronização e privacidade</div>
+          <!-- Isto aqui dizia "os dados ficam neste navegador" e trazia um botão "Somente neste
+               navegador". Era falso: com a conta logada tudo sobe para o Supabase, e o botão só
+               mudava a própria cor (setSync gravava uma preferência que nada lia). Quem lê os
+               Ajustes antes de confiar dados ao app precisa da verdade. -->
+          <div style="font-size:12.5px;color:var(--text2);line-height:1.6;">
+            Com a conta conectada, seu conteúdo de estudo — sessões, ciclo, edital, revisões,
+            simulados, flashcards, caderno de erros, anotações e preferências — fica salvo
+            <b>neste aparelho e também na sua conta na nuvem</b>, para você continuar de onde parou
+            em qualquer aparelho. Só você tem acesso: cada conta enxerga apenas a própria linha.
+          </div>
+          <div style="font-size:12.5px;color:var(--text3);line-height:1.6;margin-top:10px;">
+            <b>Não sobem para a nuvem:</b> os PDFs da biblioteca, que ficam apenas neste aparelho
+            (só as marcações e o progresso de leitura acompanham a conta).
+          </div>
+          <div style="font-size:12.5px;color:var(--text3);line-height:1.6;margin-top:10px;">
+            Quer uma cópia sua, fora daqui? Use <b>Exportar backup JSON</b> logo abaixo — sai tudo
+            num arquivo só.
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+          <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Versão e suporte</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">achou um problema? copie o relatório e mande para quem te convidou — ele já vem com a versão exata e o estado do app</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button onclick="{{ copiarRelatorio }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 16px;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Copiar relatório de problema</button>
+            <span style="font-family:var(--mono);font-size:11.5px;color:var(--text3);">{{ buildLabel }}</span>
           </div>
         </div>
 
@@ -5423,7 +5445,40 @@ class Component extends DCLogic {
   setAccentReset = ()=>{ this.setState({accent:null}); try{ localStorage.removeItem('catedra:accent'); }catch(_){} this._toast('Cor de destaque de volta ao padrão do tema'); };
   setDensity = (e)=> this.setState(s=>({prefs:{...s.prefs,density:e.currentTarget.dataset.d}}));
   togglePref = (e)=>{ const k=e.currentTarget.dataset.k; this.setState(s=>({prefs:{...s.prefs,[k]:!s.prefs[k]}})); };
-  setSync = (e)=> this.setState(s=>({prefs:{...s.prefs,sync:e.currentTarget.dataset.s}}));
+  // Relatório de problema: sem isto, um relato de testador chega como "não funcionou" e
+  // não dá para saber nem qual build quebrou. Só estado técnico — nada do conteúdo de
+  // estudo, que é pessoal e não cabe num print colado num chat.
+  copiarRelatorio = ()=>{
+    const b = (typeof window!=='undefined' && window.CATEDRA_BUILD) || {};
+    const linhas = [
+      'Relatório do Cátedra',
+      'build: ' + (b.versao||'desconhecido') + ' · ' + (b.alvo||'?') + ' · ' + (b.data||'?'),
+      'tela: ' + (this.state.view||'?'),
+      'sync: ' + (this.state.syncStatus||'?'),
+      'sistema: ' + (navigator.userAgent||'?'),
+      'janela: ' + window.innerWidth + '×' + window.innerHeight,
+      'idioma: ' + (navigator.language||'?'),
+      'disciplinas no edital: ' + ((this.state.edital&&this.state.edital.length)||0),
+      'sessões registradas: ' + ((this.state.sessions&&this.state.sessions.length)||0),
+      '',
+      'O que eu estava fazendo: (escreva aqui)',
+      'O que aconteceu: (escreva aqui)',
+    ].join('\n');
+    const ok = ()=> this._toast('Relatório copiado — cole na mensagem');
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(linhas).then(ok, ()=>this._copiaManual(linhas)); }
+      else this._copiaManual(linhas);
+    }catch(_){ this._copiaManual(linhas); }
+  };
+  _copiaManual(txt){
+    try{
+      const ta=document.createElement('textarea'); ta.value=txt;
+      ta.style.cssText='position:fixed;left:-9999px;top:0;'; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      this._toast('Relatório copiado — cole na mensagem');
+    }catch(_){ this._toast('Não consegui copiar; tire um print desta tela'); }
+  }
+
   exportJSON = ()=>{ const data={
       version:3, exportedAt:new Date().toISOString(),
       biblioteca:this.state.biblioteca, highlights:this.state.highlights, flashcards:this.state.flashcards,
@@ -7447,7 +7502,6 @@ class Component extends DCLogic {
     const dirCard=(id)=>`flex:1;min-width:150px;text-align:left;cursor:pointer;border-radius:14px;padding:16px;font-family:inherit;border:2px solid ${this.state.dir===id?'var(--accent)':'var(--border)'};background:var(--surface);`;
     const densBtn=(d)=>`padding:9px 15px;border-radius:9px;border:1px solid ${this.state.prefs.density===d?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;background:${this.state.prefs.density===d?'var(--accentSoft)':'var(--surface)'};color:${this.state.prefs.density===d?'var(--accentD)':'var(--text2)'};`;
     const modeBtn=(isDarkBtn)=>{ const on=this.state.darkMode===isDarkBtn; return `display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:.15s;background:${on?'var(--surface)':'transparent'};color:${on?'var(--ink)':'var(--text3)'};box-shadow:${on?'0 1px 3px rgba(0,0,0,.12)':'none'};`; };
-    const syncBtn=(sv)=>`padding:9px 15px;border-radius:9px;border:1px solid ${this.state.prefs.sync===sv?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;background:${this.state.prefs.sync===sv?'var(--accentSoft)':'var(--surface)'};color:${this.state.prefs.sync===sv?'var(--accentD)':'var(--text2)'};`;
     const togStyle=(on)=>`width:42px;height:24px;border-radius:99px;border:none;cursor:pointer;position:relative;transition:all .15s;background:${on?'var(--accent)':'var(--border)'};flex:none;`;
     const togKnob=(on)=>`position:absolute;top:3px;left:${on?'21px':'3px'};width:18px;height:18px;border-radius:99px;background:#fff;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.25);`;
 
@@ -8387,10 +8441,9 @@ class Component extends DCLogic {
       setCadCorVal:this.setCadCorVal,
       densConf:densBtn('confortavel'), densComp:densBtn('compacto'), setDensity:this.setDensity,
       // ajustes
-      prefs:this.state.prefs, togglePref:this.togglePref, setSync:this.setSync, exportJSON:this.exportJSON, exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
+      prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
       togRevisao:togStyle(this.state.prefs.notifRevisao), togRevisaoKnob:togKnob(this.state.prefs.notifRevisao),
       togMeta:togStyle(this.state.prefs.notifMeta), togMetaKnob:togKnob(this.state.prefs.notifMeta),
-      syncBackup:syncBtn('backup'), syncLocal:syncBtn('local'),
       contentMax,
       // planejamento
       isPlanej:this.state.view==='planejamento', navPlanej:navStyle('planejamento'), planRows, planHoras:this.state.planHoras, setPlanHoras:this.setPlanHoras,
