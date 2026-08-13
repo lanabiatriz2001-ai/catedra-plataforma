@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { verificarPII } from './verificar-pii.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'mac', 'build', 'web');
@@ -90,5 +91,9 @@ writeFileSync(join(OUT, 'index.html'), out);
 for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'modelos-edital.js']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(OUT, f));
 }
+
+// Mesma trava do build web: o .app é distribuído para os testadores, e marca d'água
+// de PDF viajaria dentro dele.
+verificarPII(OUT, { rotulo: 'mac/build/web/' });
 
 console.log('✓ bundle web → mac/build/web/ (index.html + support.js + auth.js + supabase + ícones)');
