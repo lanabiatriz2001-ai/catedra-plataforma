@@ -16,9 +16,51 @@
 //
 // Sem dependências: usa o fetch nativo do runtime Node da Vercel.
 
+// URL e chave PUBLISHABLE do Supabase (públicas por design — as mesmas do cliente).
+const SB_URL = (process.env.SUPABASE_URL || 'https://frcnfqxniwzdyykvgqqu.supabase.co').replace(/\/+$/, '');
+const SB_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
+
+// Só quem tem sessão no Cátedra usa a IA. Antes esta função era um chatbot grátis e
+// ilimitado faturado na conta da dona do app: sem login, sem origem, sem teto — e o
+// endpoint está em texto puro no HTML, então bastava um scanner de /api/* achar o domínio.
+// Validamos o access_token contra o próprio Supabase (não confiamos em assinatura local).
+async function usuarioDoToken(req) {
+  const h = req.headers['authorization'] || req.headers['Authorization'] || '';
+  const token = /^Bearer\s+(.+)$/i.exec(String(h));
+  if (!token) return null;
+  try {
+    const r = await fetch(SB_URL + '/auth/v1/user', {
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + token[1] },
+    });
+    if (!r.ok) return null;
+    const u = await r.json();
+    return u && u.id ? u : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+// Beta fechado: opcionalmente, só e-mails desta lista (variável de ambiente
+// BETA_EMAILS, separados por vírgula). Vazia = qualquer conta autenticada entra.
+function liberado(user) {
+  const lista = (process.env.BETA_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  if (!lista.length) return true;
+  return lista.includes(String(user.email || '').toLowerCase());
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Método não permitido — use POST.' });
+    return;
+  }
+
+  const user = await usuarioDoToken(req);
+  if (!user) {
+    res.status(401).json({ error: 'Entre na sua conta do Cátedra para usar a IA.' });
+    return;
+  }
+  if (!liberado(user)) {
+    res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' });
     return;
   }
 
@@ -35,6 +77,12 @@ export default async function handler(req, res) {
     const prompt = (body.prompt || '').toString();
     if (!prompt.trim()) {
       res.status(400).json({ error: 'prompt vazio.' });
+      return;
+    }
+    // Teto de entrada: o maior prompt legítimo do app (raio-X de redação com o texto
+    // inteiro) fica bem abaixo disso. Sem teto, uma chamada só podia custar caro.
+    if (prompt.length > 60000) {
+      res.status(413).json({ error: 'Texto grande demais para a IA (máx. 60 mil caracteres).' });
       return;
     }
 

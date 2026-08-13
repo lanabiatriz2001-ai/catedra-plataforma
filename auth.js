@@ -27,7 +27,7 @@
   var _si = localStorage.setItem.bind(localStorage);
   var _ri = localStorage.removeItem.bind(localStorage);
   // _dirty/_lastSrv/notifSent são meta-estado LOCAL do aparelho — nunca sobem no blob
-  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1, 'catedra:_bkpFase2': 1 };
+  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1, 'catedra:_bkpFase2': 1, 'catedra:_owner': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
   // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
@@ -154,6 +154,16 @@
   // (o "mais conteúdo vence" trazia itens removidos de volta). Trade-off aceito: single-device.
   var CFG_LOCAL_WINS = { 'catedra:edital': 1, 'catedra:manualFixed': 1, 'catedra:manualRot': 1, 'catedra:cycleMode': 1, 'catedra:manualFixedRoteiroAtual': 1, 'catedra:rotPointer': 1, 'catedra:agendaFeitas': 1 };
   function parseJ(s) { try { return JSON.parse(s); } catch (_) { return undefined; } }
+  // "Tem conteúdo de verdade?" — separa o valor que o usuário construiu do vazio que o app
+  // semeia sozinho no primeiro render: [] , {} , "" , null e o "0" do ponteiro de rodízio.
+  function temConteudo(s) {
+    if (s === undefined || s === null || s === '') return false;
+    var v = parseJ(s);
+    if (Array.isArray(v)) return v.length > 0;
+    if (v && typeof v === 'object') return Object.keys(v).length > 0;
+    if (v === null) return false;
+    return String(s) !== '0';
+  }
   function stamp(x) { return (x && (x.up || x.ts)) || 0; }
   function mergeArr(sv, lc, preferServer) {
     if (!Array.isArray(sv)) return lc; if (!Array.isArray(lc)) return sv;
@@ -244,7 +254,12 @@
       // Config do CICLO MANUAL (agenda da semana) pertence a este aparelho: vence quem tem
       // MAIS conteúdo; empate => local. Evita que uma cópia antiga/vazia da nuvem apague a
       // agenda inteira só porque o servidor está "mais novo" (bug de last-write-wins).
-      if (CFG_LOCAL_WINS[k]) { out[k] = lc; return; }
+      // ...MAS não na HIDRATAÇÃO (preferServer). Ao entrar num aparelho novo, o app React já
+      // rodou atrás do gate e semeou catedra:edital="[]", manualFixed="[]", agendaFeitas="{}",
+      // rotPointer="0". Com "local sempre vence" esse vazio recém-nascido virava a verdade e
+      // subia por cima da nuvem: o edital e a agenda da semana sumiam em TODOS os aparelhos,
+      // sem aviso e sem desfazer. Na hidratação só o local COM CONTEÚDO tem direito de ganhar.
+      if (CFG_LOCAL_WINS[k]) { out[k] = preferServer ? (temConteudo(lc) ? lc : sv) : lc; return; }
       out[k] = preferServer ? sv : lc; // escalares/objetos sem carimbo: direção do merge decide
     });
     // Reconciliação histórico × lixeira de sessões (soft-delete entre aparelhos): se a
@@ -467,8 +482,36 @@
   }
 
   // ---------- fluxo ----------
+  // Quem é o dono do que está no localStorage. Sem isto, o acervo de quem usou o aparelho
+  // antes (sessões, caderno de erros, edital, flashcards, nome, data da prova) era MESCLADO
+  // na conta de quem entrasse depois e SUBIA para a nuvem dele — e, pior, o edital do
+  // recém-chegado era substituído pelo do anterior em todos os aparelhos dele.
+  // Acontecia sempre que a sessão expirava, ou alguém fechava o app sem clicar em Sair.
+  //
+  // Deliberadamente NÃO limpamos ao cair na tela de login: sessão que expira por estar
+  // offline é comum, e apagar ali destruiria dado local ainda não sincronizado. A limpeza
+  // acontece no login, e só quando o dono realmente muda.
+  function trocouDeDono(u) {
+    var dono = null;
+    try { dono = localStorage.getItem('catedra:_owner'); } catch (_) {}
+    if (dono === u.id) return false;
+    if (!dono) {
+      // Sem carimbo: só é suspeito se JÁ existe dado local (versão anterior do app, ou
+      // acervo de outra conta). Aparelho zerado entra direto.
+      var temDado = false;
+      try { for (var i = 0; i < localStorage.length; i++) { if (isData(localStorage.key(i))) { temDado = true; break; } } } catch (_) {}
+      if (!temDado) return false;
+      // Primeira vez com carimbo e há dado local: assume que é desta conta (upgrade do app),
+      // senão todo mundo perderia o próprio acervo ao atualizar.
+      return false;
+    }
+    return true;
+  }
+
   function onLogin(u) {
     user = u;
+    if (trocouDeDono(u)) { clearLocal(); try { sessionStorage.removeItem('catedra:hydrated'); } catch (_) {} }
+    try { _si('catedra:_owner', u.id); } catch (_) {}
     if (sessionStorage.getItem('catedra:hydrated') === '1') { _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
     showLoading('Carregando seus dados…');
     sb.from('user_data').select('data,updated_at').eq('user_id', u.id).maybeSingle().then(function (res) {
