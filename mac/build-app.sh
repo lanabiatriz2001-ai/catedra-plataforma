@@ -44,7 +44,16 @@ iconutil -c icns "$ICONSET" -o "$BUILD/AppIcon.icns"
 echo "→ 3/5  Compilando o app (Swift + WebKit + CátedraLEGIS + CátedraJURIS)…"
 LEGIS_SOURCES=$(find "$HERE/vendor/legis" -name '*.swift')
 JURIS_SOURCES=$(find "$HERE/vendor/juris" -name '*.swift')
-swiftc -O -target "$TARGET" $LEGIS_SOURCES $JURIS_SOURCES "$HERE/Sources/main.swift" -o "$BUILD/$EXEC" \
+# Macros do SwiftUI (@State, @Environment… viraram macros nos SDKs novos): o plugin
+# libSwiftUIMacros.dylib mora na PLATAFORMA, não na toolchain. O Xcode passa esse
+# caminho sozinho; o swiftc na linha de comando não — sem isto o build morre com
+# "external macro implementation type 'SwiftUIMacros.StateMacro' could not be found"
+# seguido de uma cascata enganosa de "cannot assign to property: 'self' is immutable".
+PLUGIN_DIR="$(xcrun --show-sdk-platform-path 2>/dev/null)/Developer/usr/lib/swift/host/plugins"
+PLUGIN_FLAGS=()
+if [ -d "$PLUGIN_DIR" ]; then PLUGIN_FLAGS=(-plugin-path "$PLUGIN_DIR")
+else echo "     aviso: plugins de macro não encontrados em $PLUGIN_DIR — se o build falhar em @State, confira o xcode-select"; fi
+swiftc -O -target "$TARGET" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES "$HERE/Sources/main.swift" -o "$BUILD/$EXEC" \
   -framework Cocoa -framework WebKit -framework UserNotifications -framework SwiftUI \
   -framework Network -framework PDFKit
 
