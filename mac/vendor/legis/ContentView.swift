@@ -6,6 +6,8 @@ enum SidebarItem: Hashable {
     case favorites
     case subjects
     case checklist
+    case planoLeitura
+    case indiceEstrutural
     case globalSearch
     case updates
     case novidades
@@ -181,7 +183,8 @@ private struct LegisSidebar: View {
                     row(.home, "Início", "house")
                     row(.all, "Todas as normas", "books.vertical", badge: lawCount)
                     row(.favorites, "Favoritos", "star", badge: store.favoriteCount)
-                    row(.checklist, "Checklist de leitura", "checklist", badge: store.checklistPendingCount)
+                    row(.planoLeitura, "Plano de leitura", "calendar")
+                    row(.indiceEstrutural, "Índice das normas", "list.bullet.indent")
                     row(.subjects, "Assuntos", "tag")
                     row(.globalSearch, "Buscar em tudo", "magnifyingglass")
                     row(.novidades, "Novidades", "sparkles", badge: novidadesCount)
@@ -265,12 +268,6 @@ private struct LegisSidebar: View {
                                      (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
                 Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
-                if let b = badge, b > 0 {
-                    Text("\(b)").font(.system(size: 10.5, weight: .semibold)).monospacedDigit()
-                        .padding(.horizontal, 6).padding(.vertical, 1.5)
-                        .background(Capsule().fill(active ? Color.white.opacity(0.22) : ThemeState.t.accent))
-                        .foregroundStyle(.white)
-                }
             }
             .padding(.horizontal, 11).padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -317,6 +314,10 @@ private struct SectionScreen: View {
             SubjectsView(selection: $sel)
         case .checklist:
             ChecklistView(selection: $sel)
+        case .planoLeitura:
+            PlanoLeituraView(open: openLaw)
+        case .indiceEstrutural:
+            IndiceNormasView(open: openLaw)
         case .globalSearch:
             GlobalSearchView(openAt: { id, idx in
                 store.setLastUnit(id, idx); readerMode = "estudo"; openLaw(id)
@@ -1072,7 +1073,6 @@ struct CommandPalette: View {
             PaletteAction(label: "Assuntos", icon: "tag") { openSection(.subjects) },
             PaletteAction(label: "Novidades", icon: "sparkles") { openSection(.novidades) },
             PaletteAction(label: "Diário Oficial", icon: "newspaper") { openSection(.dou) },
-            PaletteAction(label: "Checklist de leitura", icon: "checklist") { openSection(.checklist) },
             PaletteAction(label: "Atualizações", icon: "bell.badge") { openSection(.updates) },
             PaletteAction(label: "Cadastrar nova norma", icon: "plus.circle") { addLaw() },
         ]

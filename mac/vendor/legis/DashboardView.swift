@@ -311,9 +311,6 @@ struct DashboardView: View {
                 // Metas do dia (leitura + revisão) e previsão de vencimentos
                 DailyGoalsCard()
 
-                // Checklist de leitura — mini app de tarefas na Início (captura rápida)
-                ChecklistMiniCard(openChecklist: { openSection(.checklist) })
-
                 // (Os StatCards viraram os números-chave DENTRO do hero — quatro caixotes a menos.)
 
                 // Tempo de estudo por norma (alimentado pelo cronômetro do leitor)
