@@ -87,11 +87,24 @@ ${supabaseTag}
    correção de redação passam a usar a IA de verdade — não o fallback local. */
 window.claude = {
   complete: async function (prompt) {
+    // A função serverless só atende quem está logado (senão era IA grátis para a
+    // internet inteira, na conta da dona do app). Manda o access_token da sessão.
+    var token = null;
+    try {
+      var s = await window.CatedraAuth.client.auth.getSession();
+      token = s && s.data && s.data.session && s.data.session.access_token;
+    } catch (_) {}
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
     const r = await fetch('/api/complete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify({ prompt: prompt })
     });
+    if (r.status === 401 || r.status === 403) {
+      var j401 = await r.json().catch(function () { return {}; });
+      throw new Error(j401.error || 'Entre na sua conta para usar a IA.');
+    }
     if (!r.ok) throw new Error('IA HTTP ' + r.status);
     const j = await r.json();
     return j.completion || j.text || '';

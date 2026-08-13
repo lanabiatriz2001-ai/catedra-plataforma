@@ -23,6 +23,9 @@ struct LawReaderView: View {
     @AppStorage("readerMode") private var readerMode = "estudo"
     @AppStorage("cleanReading") private var cleanReading = false
     @AppStorage("leituraAtiva") private var leituraAtiva = false
+    // Lido (não escrito) só para saber se a barra do ArticleStudyView está na tela e
+    // não repetir os mesmos botões duas vezes, uma barra em cima da outra.
+    @AppStorage("studyLayout") private var studyLayout = "foco"
     @State private var showReaderFontPicker = false
 
     private var law: LawEntry? { store.laws.first { $0.id == lawID } }
@@ -52,7 +55,11 @@ struct LawReaderView: View {
                 }
             }
         }
-        .toolbar { toolbarContent }
+        // A toolbar da JANELA pertence ao host AppKit (o seletor Cátedra|LEGIS|JURIS), e o
+        // LEGIS entra como NSHostingView-subview — então .toolbar { } daqui nunca era
+        // desenhado e TODOS estes controles estavam mortos. Viram uma barra própria acima
+        // do conteúdo, como o JURIS já faz em EntryDetailView.
+        .safeAreaInset(edge: .top, spacing: 0) { readerBar }
         .inspector(isPresented: $showInspector) {
             AnnotationsPanel(lawID: lawID,
                              focusedAnnotationID: $focusedAnnotationID,
@@ -311,40 +318,83 @@ struct LawReaderView: View {
         }
     }
 
-    // MARK: - Barra de ferramentas
+    // MARK: - Barra do leitor (acima do conteúdo, não na toolbar da janela)
 
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItemGroup {
-            // Modo Leitura Ativa (só no Estudo): tela dedicada com camadas de grifo,
-            // perguntas-guia, reescrita e autoteste.
-            if effectiveMode == "estudo" {
+    // A barra do ArticleStudyView já traz Leitura ativa e Imersão, mas só neste estado.
+    // Fora dele, esta aqui é a única — e é por isso que os botões abaixo são condicionais:
+    // para não empilhar dois controles idênticos em duas barras coladas.
+    private var barraDoEstudoVisivel: Bool {
+        effectiveMode == "estudo" && !leituraAtiva && studyLayout == "foco"
+    }
+
+    private var readerBar: some View {
+        HStack(spacing: 6) {
+            if cleanReading {
+                // IMERSÃO: barra mínima — mas a saída está SEMPRE aqui, escrita por extenso.
+                // O botão antigo dizia só "Imersão" e ficava tintado quando ligado: lia-se
+                // como rótulo do modo atual, não como saída. Além disso cleanReading é
+                // @AppStorage, então fechar o app não desfazia — dava para ficar preso.
+                Button { withAnimation(.easeInOut(duration: 0.15)) { cleanReading = false } } label: {
+                    Label("Sair da imersão", systemImage: "arrow.down.right.and.arrow.up.left")
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut("i", modifiers: [.command, .shift])
+                .help("Voltar ao leitor completo (⌘⇧I)")
+
+                if !isNovidades { modoPicker }
+                Spacer(minLength: 0)
+                tipografiaMenu
+                anotacoesBotao
+            } else {
+                barraCompleta
+            }
+        }
+        .controlSize(.small)
+        .labelStyle(.titleAndIcon)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(.bar)
+        .overlay(Rectangle().fill(AppTheme.hairline).frame(height: 1), alignment: .bottom)
+    }
+
+    private var modoPicker: some View {
+        Picker("Modo", selection: $readerMode) {
+            Text("Estudo").tag("estudo")
+            Text("Leitura corrida").tag("corrido")
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .frame(width: 190)
+        .help("Alternar entre Estudo e Leitura corrida")
+    }
+
+    @ViewBuilder
+    private var barraCompleta: some View {
+        Group {
+            // Leitura ativa e Imersão só aqui quando a barra do Estudo NÃO está na tela
+            // para mostrá-las (senão apareceriam duas vezes, uma barra sobre a outra).
+            if !barraDoEstudoVisivel {
+                if effectiveMode == "estudo" {
+                    Button {
+                        leituraAtiva.toggle()
+                    } label: {
+                        Label("Leitura ativa", systemImage: leituraAtiva ? "book.and.wrench.fill" : "book.and.wrench")
+                    }
+                    .buttonStyle(.bordered)
+                    .help("Leitura ativa: grifo por camadas, perguntas-guia, reescrita e autoteste")
+                }
+
                 Button {
-                    leituraAtiva.toggle()
+                    withAnimation(.easeInOut(duration: 0.15)) { cleanReading = true }
                 } label: {
-                    Label("Leitura ativa", systemImage: leituraAtiva ? "book.and.wrench.fill" : "book.and.wrench")
+                    Label("Imersão", systemImage: "book.closed")
                 }
-                .help("Leitura ativa: grifo por camadas, perguntas-guia, reescrita e autoteste")
+                .buttonStyle(.bordered)
+                .keyboardShortcut("i", modifiers: [.command, .shift])
+                .help("Modo imersão: esconde o entorno e deixa só o texto (⌘⇧I)")
             }
 
-            Button {
-                cleanReading.toggle()
-            } label: {
-                Label("Leitura limpa", systemImage: cleanReading ? "book.closed.fill" : "book.closed")
-            }
-            .help("Leitura limpa: esconde todo o chrome e deixa só o texto")
-
-            // Na Leitura limpa o cabeçalho (com o seletor de modo) some; este seletor
-            // aparece só então, para não se perder a troca de modo.
-            if cleanReading && !isNovidades {
-                Picker("Modo", selection: $readerMode) {
-                    Text("Estudo").tag("estudo")
-                    Text("Leitura corrida").tag("corrido")
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 200)
-                .help("Alternar entre Estudo e Leitura corrida")
-            }
+            if !isNovidades && effectiveMode == "corrido" { modoPicker }
 
             // Marcação e busca no texto só valem na Leitura corrida — no Estudo a
             // marcação é pela barra do próprio artigo e a busca é pelo Índice. (Estes
@@ -380,11 +430,14 @@ struct LawReaderView: View {
                 } label: {
                     Label("Marcar", systemImage: "highlighter")
                 }
+                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
                 .help("Grifar, sublinhar, tachar, anotar ou apagar a seleção")
 
                 Button { controller.showFindBar() } label: {
-                    Label("Buscar no texto", systemImage: "magnifyingglass")
+                    Label("Buscar", systemImage: "magnifyingglass")
                 }
+                .buttonStyle(.bordered)
+                .keyboardShortcut("f", modifiers: .command)
                 .help("Busca nativa no texto (⌘F)")
 
                 Menu {
@@ -397,32 +450,54 @@ struct LawReaderView: View {
                 } label: {
                     Label("Alinhamento", systemImage: "text.alignleft")
                 }
+                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                .labelStyle(.iconOnly)
                 .help("Alinhamento do texto")
             }
 
-            Menu {
-                Button("Fonte do leitor…") { showReaderFontPicker = true }
-                Button("Aumentar") { fontSize = min(30, fontSize + 1) }
-                Button("Diminuir") { fontSize = max(10, fontSize - 1) }
-                Divider()
-                Text("\(fontFamily), \(Int(fontSize)) pt")
+            Spacer(minLength: 8)
+            tipografiaMenu
+            favoritarBotao
+            maisMenu
+            anotacoesBotao
+        }
+    }
+
+    private var tipografiaMenu: some View {
+        Menu {
+            Button("Fonte do leitor…") { showReaderFontPicker = true }
+            Button("Aumentar") { fontSize = min(30, fontSize + 1) }
+            Button("Diminuir") { fontSize = max(10, fontSize - 1) }
+            Divider()
+            Text("\(fontFamily), \(Int(fontSize)) pt")
+        } label: {
+            Label("Tipografia", systemImage: "textformat.size")
+        }
+        .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+        .labelStyle(.iconOnly)
+        .help("Fonte e tamanho do texto")
+    }
+
+    @ViewBuilder
+    private var favoritarBotao: some View {
+        if let law, law.isRegularLaw {   // feeds de Novidades não são favoritáveis
+            Button {
+                store.toggleFavorite(law.id)
             } label: {
-                Label("Tipografia", systemImage: "textformat.size")
+                Label(law.favorite == true ? "Favorita" : "Favoritar",
+                      systemImage: law.favorite == true ? "star.fill" : "star")
             }
-            .help("Fonte e tamanho do texto")
+            .buttonStyle(.bordered)
+            .labelStyle(.iconOnly)
+            .tint(law.favorite == true ? .yellow : nil)
+            .help(law.favorite == true ? "Remover dos favoritos" : "Adicionar aos favoritos")
+        }
+    }
 
-            if let law, law.isRegularLaw {   // feeds de Novidades não são favoritáveis
-                Button {
-                    store.toggleFavorite(law.id)
-                } label: {
-                    Label(law.favorite == true ? "Favorita" : "Favoritar",
-                          systemImage: law.favorite == true ? "star.fill" : "star")
-                }
-                .help(law.favorite == true ? "Remover dos favoritos" : "Adicionar aos favoritos")
-            }
-
-            if let law {
-                Menu {
+    @ViewBuilder
+    private var maisMenu: some View {
+        if let law {
+            Menu {
                     if !isNovidades {
                         Button { showHistorico = true } label: {
                             Label("Histórico da norma", systemImage: "clock.arrow.circlepath")
@@ -482,18 +557,24 @@ struct LawReaderView: View {
                             Label("Excluir norma…", systemImage: "trash")
                         }
                     }
-                } label: {
-                    Label("Mais", systemImage: "ellipsis.circle")
-                }
-                .help("Histórico, jurisprudência, monitoramento, mover de matéria e excluir")
-            }
-
-            Button {
-                showInspector.toggle()
             } label: {
-                Label("Anotações", systemImage: "sidebar.right")
+                Label("Mais", systemImage: "ellipsis.circle")
             }
-            .help("Mostrar/ocultar o painel de anotações")
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .labelStyle(.iconOnly)
+            .help("Histórico, jurisprudência, monitoramento, mover de matéria e excluir")
         }
+    }
+
+    private var anotacoesBotao: some View {
+        Button {
+            showInspector.toggle()
+        } label: {
+            Label("Anotações", systemImage: "sidebar.right")
+        }
+        .buttonStyle(.bordered)
+        .labelStyle(.iconOnly)
+        .tint(showInspector ? accent : nil)
+        .help("Mostrar/ocultar o painel de anotações")
     }
 }
