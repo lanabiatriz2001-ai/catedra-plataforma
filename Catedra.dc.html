@@ -527,12 +527,31 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
               <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ sessDiscSelVal }}" onchange="{{ onSessionDisc }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><sc-for list="{{ sessDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ sessDiscCustom }}">Outra…</option></select>
                 <sc-if value="{{ sessDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ sessionDraft.disc }}" oninput="{{ onSessionField }}" placeholder="Digite o nome da disciplina" style="width:100%;box-sizing:border-box;border:1px solid var(--accent);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;margin-top:8px;"></sc-if>
               </div>
-              <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico</label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="ex.: Controle de constitucionalidade" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
+              <sc-if value="{{ sessTopShow }}" hint-placeholder-val="{{ true }}">
+                <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ sessTopSel }}" onchange="{{ onSessionTop }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="__livre__" selected="{{ sessTopLivre }}">— escolher o tópico —</option><sc-for list="{{ sessTopOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+              </sc-if>
+              <sc-if value="{{ sessSubShow }}" hint-placeholder-val="{{ false }}">
+                <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Subtópico <span style="color:var(--text3);font-weight:400;">(opcional — deixe vazio para o tópico inteiro)</span></label><select value="{{ sessSubSel }}" onchange="{{ onSessionSub }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="" selected="{{ sessSubVazio }}">— todo o tópico —</option><sc-for list="{{ sessSubOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+              </sc-if>
+              <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico estudado <span style="color:var(--text3);font-weight:400;">(preenchido pelo edital — pode ajustar)</span></label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="ex.: Controle de constitucionalidade" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
+              <sc-if value="{{ sessMarcarShow }}" hint-placeholder-val="{{ false }}">
+                <div style="grid-column:1/-1;"><button data-k="marcarEdital" onclick="{{ toggleSessionFlag }}" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;"><span style="{{ sessMarcarStyle }}"><sc-if value="{{ sessMarcarEdital }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></span><span style="font-size:12.5px;color:var(--text2);line-height:1.4;">{{ sessMarcarLabel }}</span></button></div>
+              </sc-if>
               <sc-if value="{{ sessShowLeis }}" hint-placeholder-val="{{ false }}">
                 <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">📕 Qual lei? <span style="color:var(--text3);font-weight:400;">(catálogo do LEGIS — preenche tópico e disciplina)</span></label><select value="{{ sessLeiSel }}" onchange="{{ onSessionLei }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="" selected="{{ sessLeiVazio }}">— escolher a lei —</option><sc-for list="{{ sessLeiOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
               <sc-if value="{{ sessShowJuris }}" hint-placeholder-val="{{ false }}">
                 <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">⚖️ Qual fonte? <span style="color:var(--text3);font-weight:400;">(catálogo do JURIS — preenche o tópico)</span></label><select value="{{ sessJurisSel }}" onchange="{{ onSessionJuris }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="" selected="{{ sessJurisVazio }}">— escolher a fonte —</option><sc-for list="{{ sessJurisOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+              </sc-if>
+              <sc-if value="{{ sessTrechoShow }}" hint-placeholder-val="{{ false }}">
+                <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">{{ sessTrechoLabel }} <span style="color:var(--text3);font-weight:400;">(subtópico — entra no histórico e no domínio)</span></label>
+                  <sc-if value="{{ sessTrechoTemOpts }}" hint-placeholder-val="{{ false }}">
+                    <select value="{{ sessTrechoSel }}" onchange="{{ onSessionTrecho }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;cursor:pointer;margin-bottom:8px;"><option value="" selected="{{ sessTrechoVazio }}">— a lei/fonte inteira —</option><sc-for list="{{ sessTrechoOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for><option value="__outro__" selected="{{ sessTrechoLivre }}">Outro trecho…</option></select>
+                  </sc-if>
+                  <sc-if value="{{ sessTrechoLivre }}" hint-placeholder-val="{{ true }}">
+                    <input data-k="edSub" value="{{ sessionDraft.edSub }}" oninput="{{ onSessionField }}" placeholder="{{ sessTrechoPh }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;">
+                  </sc-if>
+                </div>
               </sc-if>
               <sc-if value="{{ hasBibForLink }}" hint-placeholder-val="{{ false }}">
                 <div style="grid-column:1/-1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Vincular material da biblioteca <span style="color:var(--text3);font-weight:400;">(opcional)</span></label><select data-k="materialId" value="{{ sessionDraft.materialId }}" onchange="{{ onSessionField }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"><option value="">— nenhum —</option><sc-for list="{{ bibLinkOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.id }}">{{ o.titulo }}</option></sc-for></select></div>
@@ -4670,12 +4689,18 @@ class Component extends DCLogic {
   setRoteiroAtual = (e)=> this.setState({manualFixedRoteiroAtual:e.currentTarget.value});
   // Seletores do registro: escolher uma lei do catálogo preenche o tópico (e a
   // disciplina, se ela existir no edital); escolher uma fonte do JURIS, idem.
+  // LEI (LEGIS) e FONTE (JURIS) entram como TÓPICO; o trecho (artigos / faixa de
+  // súmulas) entra como SUBTÓPICO — mesma dupla tópico·subtópico do edital.
   onSessionLei = (e)=>{ const v=e.currentTarget.value; if(!v) return; const ix=v.indexOf('¦'); const disc=ix>0?v.slice(0,ix):''; const lei=ix>=0?v.slice(ix+1):v;
-    this.setState(s=>{ const d={...s.sessionDraft, leiSel:v, topico:'Lei seca — '+lei};
+    this.setState(s=>{ const d={...s.sessionDraft, leiSel:v, edTop:lei, edSub:'', topico:lei};
       if(disc && (s.edital||[]).some(x=>x.disc===disc)){ d.disc=disc; d.discCustom=false; }
       return {sessionDraft:d}; }); };
   onSessionJuris = (e)=>{ const v=e.currentTarget.value; if(!v) return;
-    this.setState(s=>({sessionDraft:{...s.sessionDraft, jurisSel:v, topico:'Jurisprudência — '+v}})); };
+    this.setState(s=>({sessionDraft:{...s.sessionDraft, jurisSel:v, edTop:v, edSub:'', topico:v}})); };
+  // Trecho: escolhido da tabela de leitura (quando o host manda) ou digitado.
+  onSessionTrecho = (e)=>{ const v=e.currentTarget.value; this.setState(s=>{ const sd=s.sessionDraft;
+    if(v==='__outro__') return {sessionDraft:{...sd, edSub:'', trechoLivre:true}};
+    return {sessionDraft:{...sd, edSub:v, trechoLivre:false, topico:(sd.edTop||sd.topico)}}; }); };
   // Checkbox de leitura da tabela-dia (quadro semanal): pede ao HOST nativo pra
   // marcar no plano do LEGIS (e espelhar súmulas no JURIS); o host re-injeta o
   // payload e o quadro atualiza. Fora do app desktop não há linhas (sem host).
@@ -4825,14 +4850,22 @@ class Component extends DCLogic {
     const heat=[]; let heatMax=1; for(let d=27; d>=0; d--){ const ds=this._ymd(now-d*day); const mm=S.filter(s=>s.date===ds).reduce((a,s)=>a+(s.min||0),0); heatMax=Math.max(heatMax,mm); heat.push({date:ds, min:mm, isToday:d===0}); }
     return {totalMin,totalQ,totalA,totalE,totalB,liq,brutoPct,liqPct,diasEstudados,nDiscs,simulados,todayMin,todayMetaMin,weekMin,streak,discList,weeks,heat,heatMax,byTopic,normT:_normT};
   }
-  _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:_autoRev, contarMeta:true }; }
+  _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', edTop:'', edSub:'', marcarEdital:false, categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:_autoRev, contarMeta:true }; }
+  // Tópicos/subtópicos da disciplina, lidos do EDITAL (fonte canônica) — usados
+  // pelos selects do registro de sessão e da edição do histórico.
+  _topicosDe(disc){ const d=(this.state.edital||[]).find(x=>String(x.disc||'').trim()===String(disc||'').trim());
+    return (d&&Array.isArray(d.topics))?d.topics:[]; }
+  _subsDe(disc, topico){ const t=this._topicosDe(disc).find(x=>String(x.name||'').trim()===String(topico||'').trim());
+    return (t&&Array.isArray(t.subs))?t.subs:[]; }
   _kindToCat(kind){ return {'Teoria':'Teoria','Questões':'Questões','Lei seca':'Lei seca','Jurisprudência':'Jurisprudência','Simulado':'Simulado','Revisão':'Revisão','Flashcards':'Revisão'}[kind]||'Teoria'; }
   _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind);
     // Se o bloco tem vínculo com o edital (disciplina + tópico da Agenda da semana),
     // a sessão nasce vinculada — e o progresso do edital/domínio conta certo.
     const disc = b.discEdital || b.disc || '';
     const topico = b.topico || ((b.tag&&b.tag!=='Rotativa'&&b.tag!=='Fixa'&&!b.discEdital)?b.tag:'');
-    return {...this._freshSessionDraft(prev), disc, topico, categorias:[cat], categoria:cat}; }
+    // se o tópico do bloco é um tópico do edital, a sessão já nasce com o vínculo pronto
+    const _edTop=this._topicosDe(disc).some(t=>String(t.name||'').trim()===String(topico||'').trim())?topico:'';
+    return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, categorias:[cat], categoria:cat}; }
   openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
     const n=(this._extRegQueue||[]).length;
@@ -4847,7 +4880,37 @@ class Component extends DCLogic {
     this.setState({sessionModalOpen:false});
   };
   onSessionField = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({sessionDraft:{...s.sessionDraft,[k]:v}})); };
-  onSessionDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({sessionDraft:{...s.sessionDraft, discCustom:v==='__outra__', disc:v==='__outra__'?'':v}})); };
+  onSessionDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>{ const sd=s.sessionDraft;
+    // trocou de disciplina → o tópico/subtópico do edital anterior não vale mais
+    const limpaTop = sd.edTop ? {edTop:'', edSub:'', topico:(sd.topico===sd.edTop||sd.topico===sd.edSub)?'':sd.topico} : {};
+    return {sessionDraft:{...sd, discCustom:v==='__outra__', disc:v==='__outra__'?'':v, ...limpaTop}}; }); };
+  // Tópico do edital: preenche o campo de texto (fonte única das agregações) e
+  // abre a lista de subtópicos daquele tópico.
+  onSessionTop = (e)=>{ const v=e.currentTarget.value; this.setState(s=>{ const sd=s.sessionDraft;
+    if(v==='__livre__') return {sessionDraft:{...sd, edTop:'', edSub:''}};
+    return {sessionDraft:{...sd, edTop:v, edSub:'', topico:v}}; }); };
+  // O TÓPICO segue sendo o pai (é a régua das agregações: domínio, análise); o
+  // subtópico é a precisão — aparece no histórico como "Tópico › Subtópico".
+  onSessionSub = (e)=>{ const v=e.currentTarget.value; this.setState(s=>{ const sd=s.sessionDraft;
+    return {sessionDraft:{...sd, edSub:v, topico: sd.edTop || sd.topico}}; }); };
+  // Marca o tópico/subtópico escolhido como concluído no EDITAL (opt-in por checkbox).
+  _marcarNoEdital(disc, topico, sub){
+    try{
+      const ed=(this.state.edital||[]).map(d=>{
+        if(String(d.disc||'').trim()!==String(disc||'').trim()) return d;
+        const topics=(d.topics||[]).map(t=>{
+          if(String(t.name||'').trim()!==String(topico||'').trim()) return t;
+          if(sub){ const subs=(t.subs||[]).map(x=> String(x.name||'').trim()===String(sub).trim() ? {...x, done:true} : x);
+            const todos=subs.length>0 && subs.every(x=>x.done);
+            return {...t, subs, done: todos||t.done}; }
+          const subs=(t.subs||[]).map(x=>({...x, done:true}));
+          return {...t, subs, done:true};
+        });
+        return {...d, topics};
+      });
+      this.setState({edital:ed}); this.flashSync();
+    }catch(_){}
+  }
   onHistEditDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({histEdit:{...s.histEdit, discCustom:v==='__outra__', disc:v==='__outra__'?'':v}})); };
   setSessionCat = (e)=>{ const v=e.currentTarget.dataset.v; this.setState(s=>{ const sd=s.sessionDraft; const cur=Array.isArray(sd.categorias)?sd.categorias:[sd.categoria].filter(Boolean); let next; if(cur.includes(v)){ next=cur.filter(x=>x!==v); if(!next.length) next=[v]; } else { next=[...cur, v]; } return {sessionDraft:{...sd, categorias:next, categoria:next[0]}}; }); };
   setSessionFoco = (e)=>{ const v=+e.currentTarget.dataset.v; this.setState(s=>({sessionDraft:{...s.sessionDraft,foco:v}})); };
@@ -4871,6 +4934,7 @@ class Component extends DCLogic {
     const _ext = !!d._ext;
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000),
       disc:_disc, topico:d.topico.trim()|| (mat&&mat.titulo) || _cats0, categoria:_cats0, categorias:_catsArr,
+      edTop:(d.edTop||'').trim()||null, edSub:(d.edSub||'').trim()||null,   // vínculo com o edital (tópico · subtópico)
       min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, foco:d.foco, nota:d.nota.trim(), materialId:d.materialId||null, countMeta:d.contarMeta!==false };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     const patch={ sessions, sessionModalOpen:false, sessionDraft:this._freshSessionDraft(d) };
@@ -4880,7 +4944,9 @@ class Component extends DCLogic {
       if(!_jaTem) patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:_disc, topic:rec.topico, color:col, due:0, dueDate:this._hoje(), intervalo:1, facilidade:2.5, repeticoes:0, up:Date.now()}]; }
     if(!_ext){ if(this._tick){ clearInterval(this._tick); this._tick=null; }
       try{ localStorage.removeItem('ct_timer'); }catch(_){} }   // sessão registrada → zera o cronômetro persistido (registro externo NÃO zera)
-    this.setState(patch, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
+    this.setState(patch, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){}
+      if(d.marcarEdital && rec.edTop) { try{ this._marcarNoEdital(_disc, rec.edTop, rec.edSub); }catch(_){} } });
+    this.flashSync();
     const accTxt = q? ' · '+Math.round(a/q*100)+'% bruto · líquido '+(a-er) : '';
     const revTxt = d.agendarRevisao? ' · revisão agendada' : '';
     this._toast('Sessão registrada'+(min>0?(' · '+min+' min'):'')+accTxt+revTxt+' ✦');
@@ -6058,7 +6124,12 @@ class Component extends DCLogic {
   saveHistEdit = ()=>{ const d=this.state.histEdit; if(!d||!d.id) return;
     const min=Math.max(0,parseInt(d.minutos,10)||0), a=Math.max(0,parseInt(d.acertos,10)||0), er=Math.max(0,parseInt(d.erradas,10)||0), br=Math.max(0,parseInt(d.brancos,10)||0); const q=a+er+br;
     const cats=(Array.isArray(d.categorias)&&d.categorias.length)?d.categorias:['Teoria'];
-    const sessions=this.state.sessions.map(x=> x.id===d.id ? {...x, disc:(d.disc||'').trim()||x.disc||'Geral', topico:(d.topico||'').trim()||x.topico, categorias:cats, categoria:cats[0], min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, nota:(d.nota||'').trim(), up:Date.now()} : x);
+    const _novoTop=(d.topico||'').trim();
+    const sessions=this.state.sessions.map(x=>{ if(x.id!==d.id) return x;
+      // editar o tópico à mão desfaz o vínculo com o edital (senão o histórico mostraria o caminho antigo)
+      const _mudou=_novoTop && _novoTop!==(x.topico||'');
+      return {...x, disc:(d.disc||'').trim()||x.disc||'Geral', topico:_novoTop||x.topico, categorias:cats, categoria:cats[0], min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, nota:(d.nota||'').trim(), up:Date.now(),
+        ...(_mudou?{edTop:null, edSub:null}:{})}; });
     try{ this._saveSessions(sessions); }catch(_){} this.setState({sessions, histEdit:null}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync(); };
   setProvaData = (e)=>{ const v=e.currentTarget.value; this.setState({provaData:v||null}); try{ if(v) localStorage.setItem('catedra:prova',v); else localStorage.removeItem('catedra:prova'); }catch(_){} this.flashSync(); this._cloudPush(); };
   // Limpa a data da prova explicitamente — o <input type="date"> nativo nem sempre
@@ -6860,6 +6931,25 @@ class Component extends DCLogic {
     const sessLeiVazio=!sessLeiSel, sessJurisVazio=!sessJurisSel;
     const sessShowLeis=sessLeiOpts.length>0 && _selCats.includes('Lei seca');
     const sessShowJuris=sessJurisOpts.length>0 && _selCats.includes('Jurisprudência');
+    // TRECHO da lei/fonte (= subtópico): faixas conhecidas da SUA tabela de leitura
+    // (o host manda a semana e, quando disponível, a tabela inteira) + digitar à mão.
+    const sessTrechoShow=(sessShowLeis||sessShowJuris) && !!_sd.edTop;
+    const sessTrechoOpts=(()=>{ if(!sessTrechoShow) return [];
+      const np=this.state.nativePlano; const alvo=String(_sd.edTop||'').toLowerCase(); const vistos={}; const out=[];
+      const push=(it)=>{ const law=String(it.law||'').toLowerCase(); const a=String(it.arts||'').trim();
+        if(!a || vistos[a]) return;
+        if(law!==alvo && law.indexOf(alvo)<0 && alvo.indexOf(law)<0) return;
+        vistos[a]=1; out.push({v:a, label:a, sel:a===(_sd.edSub||'')}); };
+      try{ const L=(np&&np.legis)||{};
+        (L.semana||[]).forEach(d=>(d.itens||d.leituras||[]).forEach(push));
+        const td=L.todosDias||{}; Object.keys(td).forEach(k=>(td[k]||[]).forEach(push));
+      }catch(_){}
+      return out.slice(0,40); })();
+    const sessTrechoLivre=!!_sd.trechoLivre || (sessTrechoShow && sessTrechoOpts.length===0);
+    const sessTrechoSel=sessTrechoLivre?'__outro__':(_sd.edSub||'');
+    const sessTrechoVazio=!_sd.edSub && !sessTrechoLivre;
+    const sessTrechoLabel=sessShowJuris&&!sessShowLeis ? 'Faixa / verbete' : 'Artigos estudados';
+    const sessTrechoPh=sessShowJuris&&!sessShowLeis ? 'ex.: Súmulas 1 a 60 · Informativo 812' : 'ex.: Art. 60 a 91';
     const _sdA=parseInt(_sd.acertos,10)||0; const _sdE=parseInt(_sd.erradas,10)||0; const _sdB=parseInt(_sd.brancos,10)||0;
     const _sdTotal=_sdA+_sdE+_sdB;
     const sdBrutoPct=_sdTotal?Math.round(_sdA/_sdTotal*100):0;
@@ -7565,7 +7655,9 @@ class Component extends DCLogic {
     const _histCat={'Teoria':'📘','Questões':'❓','Revisão':'🔁','Lei seca':'⚖️','Jurisprudência':'📜','Simulado':'📝'};
     const _histCol=this.DISC_FULL_COLOR||{};
     const histAll=[...this.state.sessions].sort((a,b)=>(b.ts||0)-(a.ts||0)).map(s=>{ const q=s.questoes||0,ac=s.acertos||0,er=s.erradas||0; const acc=q?Math.round(ac/q*100):null; const liq=(s.liquido!=null?s.liquido:ac-er); const _sc=(Array.isArray(s.categorias)&&s.categorias.length?s.categorias:[s.categoria].filter(Boolean));
-      return { id:s.id, disc:s.disc||'—', discShort:(s.disc||'—').replace('Direito ',''), color:_histCol[s.disc]||'#0f7a57', topico:s.topico||'—', categoria:s.categoria||'—', catLabel:_sc.join(' · ')||'—', catEmojis:_sc.map(c=>_histCat[c]||'•').join(''), catEmoji:_histCat[s.categoria]||'•',
+      // com vínculo do edital, o histórico mostra o caminho "Tópico › Subtópico"
+      const _tLabel=(s.edTop && s.edSub) ? (s.edTop+' › '+s.edSub) : (s.topico||s.edTop||'—');
+      return { id:s.id, disc:s.disc||'—', discShort:(s.disc||'—').replace('Direito ',''), color:_histCol[s.disc]||'#0f7a57', topico:_tLabel, categoria:s.categoria||'—', catLabel:_sc.join(' · ')||'—', catEmojis:_sc.map(c=>_histCat[c]||'•').join(''), catEmoji:_histCat[s.categoria]||'•',
         dateStr:(()=>{ try{ return new Date(s.ts||(s.date+'T12:00:00')).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return s.date||''; } })(),
         minStr:(s.min||0)+' min', accStr:acc!=null?acc+'%':'—', accColor:acc==null?'var(--text3)':(acc>=80?'#0f9d6b':acc>=60?'#c2790c':'#c0392f'),
         liqStr:q?(liq>0?'+'+liq:String(liq)):'—', liqColor:liq>0?'#0f9d6b':(liq<0?'#c0392f':'var(--text3)') }; });
@@ -7588,6 +7680,22 @@ class Component extends DCLogic {
     const sessDiscCustom=!!_sd0.discCustom;
     const sessDiscOpts=[...new Set([...discListReg, ...((!sessDiscCustom && _sd0.disc && !discListReg.includes(_sd0.disc))?[_sd0.disc]:[])])].map(v=>({v, sel:!sessDiscCustom && v===_sd0.disc}));
     const sessDiscSelVal=sessDiscCustom?'__outra__':(_sd0.disc||'');
+    // ===== tópicos e subtópicos do EDITAL no registro de sessão =====
+    const _sdTopics=this._topicosDe(_sd0.disc);
+    const sessTopShow=_sdTopics.length>0;
+    const sessTopOpts=_sdTopics.map(t=>{ const n=String(t.name||'').trim(); const nsub=(t.subs||[]).length;
+      return { v:n, label:(t.done?'✓ ':'')+n+(nsub?(' ('+nsub+')'):''), sel:n===(_sd0.edTop||'') }; });
+    const sessTopSel=_sd0.edTop||'__livre__';
+    const sessTopLivre=!_sd0.edTop;
+    const _sdSubs=this._subsDe(_sd0.disc, _sd0.edTop);
+    const sessSubShow=!!_sd0.edTop && _sdSubs.length>0;
+    const sessSubOpts=_sdSubs.map(x=>{ const n=String(x.name||'').trim();
+      return { v:n, label:(x.done?'✓ ':'')+n, sel:n===(_sd0.edSub||'') }; });
+    const sessSubSel=_sd0.edSub||'';
+    const sessSubVazio=!_sd0.edSub;
+    const sessMarcarEdital=!!_sd0.marcarEdital;
+    const sessMarcarLabel=_sd0.edSub ? ('Marcar “'+_sd0.edSub+'” como estudado no edital') : (_sd0.edTop? ('Marcar “'+_sd0.edTop+'” (e seus subtópicos) como estudado no edital') : '');
+    const sessMarcarStyle=`width:19px;height:19px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ${sessMarcarEdital?'var(--accent)':'var(--border)'};background:${sessMarcarEdital?'var(--accent)':'transparent'};color:var(--onAccent);cursor:pointer;padding:0;`;
     const _he0=this.state.histEdit||{};
     const heDiscCustom=!!_he0.discCustom;
     const heDiscOpts=[...new Set([...discListReg, ...((!heDiscCustom && _he0.disc && !discListReg.includes(_he0.disc))?[_he0.disc]:[])])].map(v=>({v, sel:!heDiscCustom && v===_he0.disc}));
@@ -7879,8 +7987,13 @@ class Component extends DCLogic {
       // sessões
       onSessionField:this.onSessionField, setSessionCat:this.setSessionCat, setSessionFoco:this.setSessionFoco, toggleSessionFlag:this.toggleSessionFlag, sessionQuickMin:this.sessionQuickMin,
       sessDiscOpts, sessDiscCustom, sessDiscSelVal, onSessionDisc:this.onSessionDisc,
+      sessTopShow, sessTopOpts, sessTopSel, sessTopLivre, onSessionTop:this.onSessionTop,
+      sessSubShow, sessSubOpts, sessSubSel, sessSubVazio, onSessionSub:this.onSessionSub,
+      sessMarcarEdital, sessMarcarLabel, sessMarcarStyle, sessMarcarShow:!!_sd0.edTop,
       sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary, bibLinkOpts, hasBibForLink,
       sessLeiOpts, sessJurisOpts, sessShowLeis, sessShowJuris, sessLeiSel, sessJurisSel, sessLeiVazio, sessJurisVazio, onSessionLei:this.onSessionLei, onSessionJuris:this.onSessionJuris,
+      sessTrechoShow, sessTrechoOpts, sessTrechoSel, sessTrechoVazio, sessTrechoLivre, sessTrechoLabel, sessTrechoPh,
+      sessTrechoTemOpts:sessTrechoOpts.length>0, onSessionTrecho:this.onSessionTrecho,
       flagRevisao:_flag(this.state.sessionDraft.agendarRevisao), switchRevisao:_switch(this.state.sessionDraft.agendarRevisao), switchRevisaoKnob:_knob(this.state.sessionDraft.agendarRevisao),
       flagMeta:_flag(this.state.sessionDraft.contarMeta!==false), switchMeta:_switch(this.state.sessionDraft.contarMeta!==false), switchMetaKnob:_knob(this.state.sessionDraft.contarMeta!==false),
       recentSessions, hasSessions, noSessions:!hasSessions, sessionsCount, sessTotalH, sessAccOverall, sessLiqOverall, sessLiqColor, metaFaltamH,
