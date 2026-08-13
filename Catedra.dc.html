@@ -21,12 +21,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .ct-scroll::-webkit-scrollbar{width:8px;height:8px;}
 .ct-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
 .ct-scroll::-webkit-scrollbar-track{background:transparent;}
-@keyframes ctup{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
-@keyframes ctload{0%{transform:translateX(-100%);}100%{transform:translateX(220%);}}
-@keyframes ctfade{from{opacity:0;}to{opacity:1;}}
 @keyframes ctpop{from{opacity:0;transform:translateY(8px) scale(.98);}to{opacity:1;transform:none;}}
 @keyframes ctbreath{0%{transform:scale(.62);}21%{transform:scale(1);}58%{transform:scale(1);}100%{transform:scale(.62);}}
-@keyframes ctwave{0%{background-position:0 0;}100%{background-position:60px 0;}}
 /* ---- leitor / pdf.js ---- */
 .rd-textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;opacity:1;}
 .rd-textLayer > span{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0% 0%;}
@@ -5058,9 +5054,15 @@ class Component extends DCLogic {
     const simulados=S.filter(s=>(Array.isArray(s.categorias)?s.categorias:[s.categoria]).includes('Simulado')).length;
     const todayMin=S.filter(s=>s.date===todayStr).reduce((a,s)=>a+(s.min||0),0);
     const todayMetaMin=S.filter(s=>s.date===todayStr && s.countMeta!==false).reduce((a,s)=>a+(s.min||0),0);   // mesma régua da meta semanal
-    // semana-CALENDÁRIO (segunda 00:00 →) — mesma régua do Estudo semanal e do replanejamento
+    // semana-CALENDÁRIO (segunda →). Régua: `date` (o dia em que o estudo ACONTECEU),
+    // nunca `ts` (o instante do registro). Sessão de domingo 23h registrada 00h30 de
+    // segunda tem date=domingo e ts=segunda: por `ts` ela entrava no total da semana
+    // nova enquanto as barras (que usam `date`) ficavam vazias — os dois números saem
+    // na MESMA linha da tela e se contradiziam.
     const _segIni=(()=>{ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return d.getTime(); })();
-    const weekMin=S.filter(s=>s.ts>=_segIni && s.countMeta!==false).reduce((a,s)=>a+(s.min||0),0);
+    const _segKey=this._ymd(_segIni);
+    const weekMin=S.filter(s=>s.date>=_segKey && s.countMeta!==false).reduce((a,s)=>a+(s.min||0),0);
+    const weekMinBruto=S.filter(s=>s.date>=_segKey).reduce((a,s)=>a+(s.min||0),0);   // tempo REAL (não filtra countMeta)
     // streak
     let streak=0; { const frz=new Set(this.state.streakFreezeUsados||[]); const has=(dt)=>{ const k=this._ymd(dt); return dates.has(k)||frz.has(k); }; let p=new Date(); p.setHours(0,0,0,0); if(!has(p)) p=new Date(p.getTime()-day); while(has(p)){ streak++; p=new Date(p.getTime()-day); } }
     // por disciplina
@@ -5071,16 +5073,19 @@ class Component extends DCLogic {
     const byTopic={}; S.forEach(s=>{ const tn=_normT(s.topico); if(!tn || /— bloco \d+$/.test(s.topico||'')) return; const k=(s.disc||'—')+'¦'+tn;
       (byTopic[k]||(byTopic[k]={disc:s.disc||'—', topico:s.topico, q:0,a:0,e:0,min:0,n:0,lastTs:0}));
       const o=byTopic[k]; o.q+=s.questoes||0;o.a+=s.acertos||0;o.e+=s.erradas||0;o.min+=s.min||0;o.n++; if((s.ts||0)>o.lastTs)o.lastTs=s.ts||0; });
-    const discList=Object.values(by).filter(o=>o.disc!=='Simulado').map(o=>({...o, color:COL[o.disc]||'#0f7a57', short:o.disc.replace('Direito ',''), brutoPct:o.q?Math.round(o.a/o.q*100):0, liq:o.a-o.e, liqPct:o.q?Math.round((o.a-o.e)/o.q*100):0, horas:Math.round(o.min/60*10)/10})).sort((x,y)=>y.q-x.q);   // 'Simulado' não é disciplina — totals contam, ranking não
+    const discList=Object.values(by).filter(o=>o.disc!=='Simulado').map(o=>({...o, color:this._corDisc(o.disc)||COL[o.disc]||'#0f7a57', short:o.disc.replace('Direito ',''), brutoPct:o.q?Math.round(o.a/o.q*100):0, liq:o.a-o.e, liqPct:o.q?Math.round((o.a-o.e)/o.q*100):0, horas:Math.round(o.min/60*10)/10})).sort((x,y)=>y.q-x.q);   // 'Simulado' não é disciplina — totals contam, ranking não
     // semanas (6)
     // semanas de CALENDÁRIO (seg→dom), não janelas rolantes ancoradas na hora atual —
     // senão o mesmo dia mudava de semana conforme a hora em que você abria o app.
-    const weeks=[]; for(let w=5; w>=0; w--){ const start=_segIni-w*7*day, end=start+7*day; const ws=S.filter(s=>s.ts>=start && s.ts<end);
+    const weeks=[]; for(let w=5; w>=0; w--){
+      const _ini=new Date(_segIni); _ini.setDate(_ini.getDate()-w*7); const _fim=new Date(_ini); _fim.setDate(_fim.getDate()+7);
+      const ks=this._ymd(_ini), ke=this._ymd(_fim);   // por dia (YYYY-MM-DD), imune a horário de verão
+      const ws=S.filter(s=>s.date>=ks && s.date<ke);
       const q=ws.reduce((a,s)=>a+(s.questoes||0),0), a=ws.reduce((x,s)=>x+(s.acertos||0),0), e=ws.reduce((x,s)=>x+(s.erradas||0),0), mi=ws.reduce((x,s)=>x+(s.min||0),0);
       weeks.push({label:'S'+(6-w), q, bruto:q?Math.round(a/q*100):0, liq:q?Math.round((a-e)/q*100):0, min:mi}); }
     // heatmap 28 dias
     const heat=[]; let heatMax=1; for(let d=27; d>=0; d--){ const ds=this._ymd(now-d*day); const mm=S.filter(s=>s.date===ds).reduce((a,s)=>a+(s.min||0),0); heatMax=Math.max(heatMax,mm); heat.push({date:ds, min:mm, isToday:d===0}); }
-    return {totalMin,totalQ,totalA,totalE,totalB,liq,brutoPct,liqPct,diasEstudados,nDiscs,simulados,todayMin,todayMetaMin,weekMin,streak,discList,weeks,heat,heatMax,byTopic,normT:_normT};
+    return {totalMin,totalQ,totalA,totalE,totalB,liq,brutoPct,liqPct,diasEstudados,nDiscs,simulados,todayMin,todayMetaMin,weekMin,weekMinBruto,streak,discList,weeks,heat,heatMax,byTopic,normT:_normT};
   }
   _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', edTop:'', edSub:'', marcarEdital:false, categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:_autoRev, contarMeta:true }; }
   // Tópicos/subtópicos da disciplina, lidos do EDITAL (fonte canônica) — usados
@@ -5148,6 +5153,11 @@ class Component extends DCLogic {
   setSessionFoco = (e)=>{ const v=+e.currentTarget.dataset.v; this.setState(s=>({sessionDraft:{...s.sessionDraft,foco:v}})); };
   toggleSessionFlag = (e)=>{ const k=e.currentTarget.dataset.k; this.setState(s=>({sessionDraft:{...s.sessionDraft,[k]:!s.sessionDraft[k]}})); };
   sessionQuickMin = (e)=>{ const add=+e.currentTarget.dataset.add; this.setState(s=>({sessionDraft:{...s.sessionDraft, minutos:String(Math.max(0,(parseInt(s.sessionDraft.minutos,10)||0)+add))}})); };
+  // A cor da disciplina no EDITAL manda em todo o app (é o que a dica do seletor de
+  // cor promete). Este mapa fixo é só o fallback de quem ainda não está no edital.
+  _corDisc(disc){ const d=(this.state.edital||[]).find(x=>String(x.disc||'').trim().toLowerCase()===String(disc||'').trim().toLowerCase());
+    if(d && /^#[0-9a-f]{3,8}$/i.test(d.color||'')) return d.color;
+    return this.DISC_FULL_COLOR[disc]||null; }
   DISC_FULL_COLOR = {'Direito Constitucional':'#2563eb','Direito Administrativo':'#a855f7','Direito Tributário':'#06b6d4','Direito Civil':'#6366f1','Direito Penal':'#dc2626','Processo Civil':'#84cc16'};
   saveSession = ()=>{
     const d=this.state.sessionDraft;
@@ -5171,7 +5181,7 @@ class Component extends DCLogic {
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     const patch={ sessions, sessionModalOpen:false, sessionDraft:this._freshSessionDraft(d) };
     if(!_ext){ patch.studiedSeconds=0; patch.timerSeconds=0; patch.timerRunning=false; }
-    if(d.agendarRevisao){ const col=this.DISC_FULL_COLOR[_disc]||'#0f7a57';
+    if(d.agendarRevisao){ const col=this._corDisc(_disc)||'#0f7a57';
       const _jaTem=this.state.reviews.some(r=>r.disc===_disc && String(r.topic||'').toLowerCase()===String(rec.topico||'').toLowerCase());
       if(!_jaTem) patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:_disc, topic:rec.topico, color:col, due:0, dueDate:this._hoje(), intervalo:1, facilidade:2.5, repeticoes:0, up:Date.now()}]; }
     if(!_ext){ if(this._tick){ clearInterval(this._tick); this._tick=null; }
@@ -6175,7 +6185,7 @@ class Component extends DCLogic {
     this.setState(s=>{ const cur=Array.isArray(s.errDraft.tags)?s.errDraft.tags:[]; if(cur.includes(raw)) return {errTagInput:''}; return {errDraft:{...s.errDraft, tags:[...cur, raw]}, errTagInput:''}; }); };
   errRemoveTag = (e)=>{ const t=e.currentTarget.dataset.t; this.setState(s=>({errDraft:{...s.errDraft, tags:(s.errDraft.tags||[]).filter(x=>x!==t)}})); };
   erroToRevisao = (e)=>{ const id=e.currentTarget.dataset.id; const er=this.state.errors.find(x=>x.id===id); if(!er) return;
-    const col=this.DISC_FULL_COLOR[er.disc]||'#0f7a57';
+    const col=this._corDisc(er.disc)||'#0f7a57';
     const _tp=er.topico||er.enunciado.slice(0,40);
     if(this.state.reviews.some(r=>r.disc===er.disc && String(r.topic||'').toLowerCase()===String(_tp||'').toLowerCase())){ this._toast('Este tópico já tem revisão agendada'); return; }
     this.setState(s=>({reviews:[...s.reviews, {id:'r'+Date.now(), disc:er.disc, topic:_tp, color:col, due:0, dueDate:this._hoje(), intervalo:1, facilidade:2.5, repeticoes:0, up:Date.now()}]})); this._toast('Revisão do erro agendada para hoje ✦'); this.flashSync(); };
@@ -7452,8 +7462,11 @@ class Component extends DCLogic {
     const evolLiqPath='M '+_wk.map((w,i)=>`${(i/_n*300).toFixed(1)} ${(100-_cl(w.liq)).toFixed(1)}`).join(' L ');
 
     // ===== Início v2 (futurista claro) =====
-    const _homeCor=(d)=>{ const M={...this.DISC_FULL_COLOR,'Direito Processual Civil':'#84cc16','Direito Processual Penal':'#ea580c','Direito Eleitoral':'#0891b2','Direito Empresarial':'#b08433','Direito Ambiental':'#16a34a','Direito do Consumidor':'#f59e0b','Direito Tributário':'#06b6d4'}; return M[d]||'#0f7a57'; };
-    const homeHojeMinN=Math.round((this.state.studiedSeconds||0)/60)+(B.todayMetaMin!=null?B.todayMetaMin:B.todayMin);   // anel da meta usa a régua da meta (countMeta)
+    const _homeCor=(d)=>{ const _ed=this._corDisc(d); if(_ed) return _ed; const M={...this.DISC_FULL_COLOR,'Direito Processual Civil':'#84cc16','Direito Processual Penal':'#ea580c','Direito Eleitoral':'#0891b2','Direito Empresarial':'#b08433','Direito Ambiental':'#16a34a','Direito do Consumidor':'#f59e0b','Direito Tributário':'#06b6d4'}; return M[d]||'#0f7a57'; };
+    // Cronômetro só entra no anel se for de HOJE: com o app aberto virando o dia, o
+    // tempo de ontem continuava somando e a meta nascia quase cheia sem ela estudar.
+    const _cronoHoje=(()=>{ try{ const t=JSON.parse(localStorage.getItem('ct_timer')||'null'); return !t || !t.d || t.d===this._hoje(); }catch(_){ return true; } })();
+    const homeHojeMinN=(_cronoHoje?Math.round((this.state.studiedSeconds||0)/60):0)+(B.todayMetaMin!=null?B.todayMetaMin:B.todayMin);   // anel da meta usa a régua da meta (countMeta)
     const homeMetaHojeAlvoN=_metaIdealMin;
     const homeMetaHojePct=Math.max(0,Math.min(100,Math.round(homeHojeMinN/Math.max(1,homeMetaHojeAlvoN)*100)));
     const _mhFalta=Math.max(0,homeMetaHojeAlvoN-homeHojeMinN);
@@ -7483,7 +7496,9 @@ class Component extends DCLogic {
     const heroBloco=this.state.timerRunning ? (_nextBlk?_nextBlk.titulo:'Sessão livre') : (_nextBlk?('A seguir: '+_nextBlk.titulo):'Pronto para estudar');
     const heroObjShow=!!String(this.state.prefs.objetivo||'').trim();
     const _fmtHM2=(mm)=>{ mm=Math.max(0,Math.round(mm)); const h=Math.floor(mm/60), m=mm%60; return h>0?(h+'h'+(m?String(m).padStart(2,'0'):'')):(m+'min'); };
-    const heroSemTotal=_fmtHM2(B.weekMin||0);
+    // o total tem de ser a soma das BARRAS ao lado: tempo real, sem filtrar countMeta
+    // (a régua da meta é outra, e vive no card "Meta da semana")
+    const heroSemTotal=_fmtHM2(B.weekMinBruto!=null?B.weekMinBruto:(B.weekMin||0));
     const heroSemBars=(()=>{ const S=this.state.sessions||[]; const nd=new Date(); const dow=(nd.getDay()+6)%7; const seg=new Date(nd); seg.setHours(0,0,0,0); seg.setDate(seg.getDate()-dow);
       const L=['seg','ter','qua','qui','sex','sáb','dom']; const arr=[];
       for(let i=0;i<7;i++){ const k=this._ymd(seg.getTime()+i*864e5); const m=S.filter(s=>s.date===k).reduce((a,s)=>a+(s.min||0),0); arr.push({m,i}); }
@@ -7937,7 +7952,7 @@ class Component extends DCLogic {
 
     // ===== Histórico de sessões =====
     const _histCat={'Teoria':'📘','Questões':'❓','Revisão':'🔁','Lei seca':'⚖️','Jurisprudência':'📜','Simulado':'📝'};
-    const _histCol=this.DISC_FULL_COLOR||{};
+    const _histCol=new Proxy({}, {get:(_,k)=>this._corDisc(String(k))});   // cor do edital primeiro
     const histAll=[...this.state.sessions].sort((a,b)=>(b.ts||0)-(a.ts||0)).map(s=>{ const q=s.questoes||0,ac=s.acertos||0,er=s.erradas||0; const acc=q?Math.round(ac/q*100):null; const liq=(s.liquido!=null?s.liquido:ac-er); const _sc=(Array.isArray(s.categorias)&&s.categorias.length?s.categorias:[s.categoria].filter(Boolean));
       // com vínculo do edital, o histórico mostra o caminho "Tópico › Subtópico"
       const _tLabel=(s.edTop && s.edSub) ? (s.edTop+' › '+s.edSub) : (s.topico||s.edTop||'—');
@@ -8273,7 +8288,10 @@ class Component extends DCLogic {
       sessDiscOpts, sessDiscCustom, sessDiscSelVal, onSessionDisc:this.onSessionDisc,
       sessTopShow, sessTopOpts, sessTopSel, sessTopLivre, onSessionTop:this.onSessionTop,
       sessSubShow, sessSubOpts, sessSubSel, sessSubVazio, onSessionSub:this.onSessionSub,
-      sessMarcarEdital, sessMarcarLabel, sessMarcarStyle, sessMarcarShow:!!_sd0.edTop,
+      // só oferece "marcar no edital" quando o tópico É do edital — com lei do LEGIS
+      // ou fonte do JURIS em edTop, o checkbox aparecia e não marcava nada.
+      sessMarcarEdital, sessMarcarLabel, sessMarcarStyle,
+      sessMarcarShow:!!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim()),
       sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary, bibLinkOpts, hasBibForLink,
       sessLeiOpts, sessJurisOpts, sessShowLeis, sessShowJuris, sessLeiSel, sessJurisSel, sessLeiVazio, sessJurisVazio, onSessionLei:this.onSessionLei, onSessionJuris:this.onSessionJuris,
       sessTrechoShow, sessTrechoOpts, sessTrechoSel, sessTrechoVazio, sessTrechoLivre, sessTrechoLabel, sessTrechoPh,
