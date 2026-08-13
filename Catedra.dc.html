@@ -3335,6 +3335,12 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
             <sc-if value="{{ gruposBusy }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:var(--accent);font-weight:600;">sincronizando…</span></sc-if>
           </div>
           <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px;">crie um grupo e compartilhe o <b style="color:var(--text2);">código</b> — seus amigos entram digitando esse código e veem o mesmo grupo em qualquer aparelho</div>
+          <sc-if value="{{ comErroShow }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-left:3px solid #c2790c;border-radius:11px;padding:12px 14px;margin-bottom:14px;">
+              <span style="font-size:15px;line-height:1;flex:none;">⚠️</span>
+              <span style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ comErro }}</span>
+            </div>
+          </sc-if>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
             <div style="display:flex;gap:8px;align-items:flex-end;">
               <div style="flex:1;"><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Criar um grupo</label><input data-k="nome" value="{{ grupoDraft.nome }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: Foco PF 2026" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;"></div>
@@ -3816,7 +3822,7 @@ class Component extends DCLogic {
       metaDraft:{titulo:'', alvo:100},
       errDraft:{disc:'', discCustom:false, topico:'', enunciado:'', myAnswer:'', gabarito:'', whyWrong:'', lesson:'', source:'', difficulty:3, tags:[], favorite:false, motivo:'conteudo'}, errFiltDisc:'todas', errFiltMotivo:'todos', errAutofillBusy:false, errFoco:'', errFocoBusy:false, lacunas:'', lacunasBusy:false,
       errSearch:'', errStatus:'todos', errSort:'recentes', errTagInput:'', errMaisCampos:false, errBulk:'', errBulkBusy:false, errBulkDrafts:null, errPlano:'', errPlanoBusy:false, errShowStats:true,
-      meusGrupos:this._load('meusGrupos', []), gruposBusy:false, gruposSync:false,
+      meusGrupos:this._load('meusGrupos', []), gruposBusy:false, gruposSync:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       grupoDraft:{nome:'', codigo:''},
       ankiImported:this._load('ankiImported', false), pdfOpen:null,
@@ -6281,11 +6287,23 @@ class Component extends DCLogic {
       const r=await sb.rpc('meus_grupos'); if(r.error) throw r.error;
       const list=(r.data||[]).map((row,i)=>this._normGrupo(row,i));
       const ativo=this.state.comGrupoAtivo && list.some(g=>g.id===this.state.comGrupoAtivo) ? this.state.comGrupoAtivo : (list[0]?list[0].id:null);
-      this.setState({meusGrupos:list, gruposBusy:false, gruposSync:true, comGrupoAtivo:ativo});
+      this.setState({meusGrupos:list, gruposBusy:false, gruposSync:true, comGrupoAtivo:ativo, comErro:''});
       await this._publicarAtividade();
       if(ativo) await this._loadRankingGrupo(ativo);
     }
-    catch(err){ this.setState({gruposBusy:false}); } };
+    catch(err){ this.setState({gruposBusy:false, comErro:this._erroComunidade(err)}); } };
+  // Antes o erro era engolido e a Comunidade só ficava vazia — impossível saber que
+  // o servidor não respondia. Agora a tela DIZ o que houve (e o que fazer).
+  _erroComunidade(err){
+    const cod=(err&&(err.code||err.status))||''; const msg=String((err&&err.message)||err||'');
+    if(cod==='PGRST202' || /Could not find the function/i.test(msg))
+      return 'Os grupos ainda não estão instalados no servidor deste projeto. Rode os scripts supabase-grupos.sql e supabase-grupo-social.sql no SQL Editor do Supabase — o resto do app (login e backup) segue funcionando normalmente.';
+    if(/JWT|not authenticated|nao_autenticado/i.test(msg) || cod===401)
+      return 'Entre na sua conta para usar os grupos (a Comunidade precisa de login).';
+    if(/Failed to fetch|NetworkError|network/i.test(msg))
+      return 'Sem conexão com o servidor agora. Os grupos voltam sozinhos quando a internet estabilizar.';
+    return 'Não deu para falar com o servidor dos grupos'+(msg?(' — '+msg.slice(0,90)):'')+'.';
+  }
   // publica minhas stats semanais nos meus grupos (no máx. 1x por minuto)
   _publicarAtividade = async ()=>{ const sb=this._sb(); if(!sb || !(this.state.meusGrupos||[]).length) return;
     const agora=Date.now(); if(this._pubAtvT && agora-this._pubAtvT<60000) return; this._pubAtvT=agora;
@@ -6296,15 +6314,15 @@ class Component extends DCLogic {
     }catch(_){ } };
   _loadRankingGrupo = async (gid)=>{ const sb=this._sb(); if(!sb || !gid) return;
     try{ const r=await sb.rpc('ranking_grupo', {p_grupo_id:gid}); if(r.error) throw r.error;
-      this.setState({comRankRows:Array.isArray(r.data)?r.data:[], comGrupoAtivo:gid});
-    }catch(_){ this.setState({comRankRows:[]}); } };
+      this.setState({comRankRows:Array.isArray(r.data)?r.data:[], comGrupoAtivo:gid, comErro:''});
+    }catch(err){ this.setState({comRankRows:[], comErro:this._erroComunidade(err)}); } };
   setComGrupoAtivo = (e)=>{ const gid=e.currentTarget.dataset.id; if(gid) this._loadRankingGrupo(gid); };
   addGrupo = async ()=>{ const nome=(this.state.grupoDraft.nome||'').trim(); if(!nome){ this._toast('Dê um nome ao grupo'); return; }
     const meuNome=(this.state.prefs&&this.state.prefs.nome)||'Você'; const sb=this._sb();
     if(sb){ this.setState({gruposBusy:true});
       try{ const r=await sb.rpc('criar_grupo', {p_nome:nome, p_nome_membro:meuNome}); if(r.error) throw r.error;
         const g=this._normGrupo(r.data,0); this.setState(s=>({meusGrupos:[g, ...s.meusGrupos.filter(x=>x.id!==g.id)], grupoDraft:{nome:'', codigo:''}, gruposBusy:false, gruposSync:true, comGrupoAtivo:g.id})); this._toast('Grupo criado ✦ código '+g.codigo); try{ this._pubAtvT=0; await this._publicarAtividade(); await this._loadRankingGrupo(g.id); }catch(_){} }
-      catch(err){ this.setState({gruposBusy:false}); this._toast('Não consegui criar no servidor — verifique a conexão'); }
+      catch(err){ const m=this._erroComunidade(err); this.setState({gruposBusy:false, comErro:m}); this._toast(m.slice(0,80)); }
       return; }
     const g={id:'gr'+Date.now(), codigo:this._codigoLocal(), nome, cor:this._pal7[this.state.meusGrupos.length%this._pal7.length], membros:[{nome:meuNome}], ts:Date.now()};
     this.setState(s=>({meusGrupos:[g, ...s.meusGrupos], grupoDraft:{nome:'', codigo:''}})); this._toast('Grupo criado ✦ código '+g.codigo); this.flashSync(); };
@@ -6314,7 +6332,7 @@ class Component extends DCLogic {
       try{ const r=await sb.rpc('entrar_grupo', {p_codigo:cod, p_nome_membro:meuNome}); if(r.error) throw r.error;
         if(!r.data){ this.setState({gruposBusy:false}); this._toast('Código não encontrado'); return; }
         const g=this._normGrupo(r.data,0); this.setState(s=>({meusGrupos:[g, ...s.meusGrupos.filter(x=>x.id!==g.id)], grupoDraft:{nome:'', codigo:''}, gruposBusy:false, gruposSync:true, comGrupoAtivo:g.id})); this._toast('Você entrou no grupo ✦'); try{ this._pubAtvT=0; await this._publicarAtividade(); await this._loadRankingGrupo(g.id); }catch(_){} }
-      catch(err){ this.setState({gruposBusy:false}); this._toast('Código não encontrado ou falha ao entrar'); }
+      catch(err){ const m=this._erroComunidade(err); this.setState({gruposBusy:false, comErro:m}); this._toast(m.slice(0,80)); }
       return; }
     this._toast('Entre na sua conta para participar de grupos por código'); };
   removeGrupo = async (e)=>{ const id=e.currentTarget.dataset.id; if(!window.confirm('Sair deste grupo?')) return;
@@ -8468,6 +8486,7 @@ class Component extends DCLogic {
       comRank, comNowAvatars, comNowN, comUserPos, comUserH, comUserStreak, comGrupos, comFeed,
       comViaGrupo, comSemGrupo:!comViaGrupo, comGrupoChips, comTemGrupos, setComGrupoAtivo:this.setComGrupoAtivo, comDesafio, hasComDesafio,
       grupoDraft:this.state.grupoDraft, onGrupoDraft:this.onGrupoDraft, addGrupo:this.addGrupo, entrarGrupo:this.entrarGrupo, removeGrupo:this.removeGrupo, copiarCodigo:this.copiarCodigo,
+      comErro:this.state.comErro||'', comErroShow:!!this.state.comErro,
       gruposBusy:this.state.gruposBusy, gruposSync:this.state.gruposSync, gruposCloud:!!(typeof window!=='undefined'&&window.CatedraAuth&&window.CatedraAuth.client),
       comGruposEmpty: comGrupos.length===0, comFeedEmpty: comFeed.length===0, comOnlyYou: comRank.length<=1,
       breathAnim:_breathOn?'ctbreath 19s ease-in-out infinite':'none',
