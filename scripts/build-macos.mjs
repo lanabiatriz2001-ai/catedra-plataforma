@@ -67,7 +67,10 @@ const BUILD = { versao: _sha, data: new Date().toISOString().slice(0, 10), alvo:
 
 const INJECT = `
 <!-- ▼ injetado pelo build NATIVO macOS — não existe no Catedra.dc.html original ▼ -->
-<script>window.CATEDRA_BUILD = ${JSON.stringify(BUILD)};</script>
+<script>window.CATEDRA_BUILD = ${JSON.stringify(BUILD)};
+// A página aqui vem do bundle local, então "/api/..." não resolve — as funções
+// serverless precisam do endereço absoluto da produção.
+window.CATEDRA_API_BASE = "https://catedra-plataforma-fawn.vercel.app";</script>
 <meta name="color-scheme" content="dark light">
 <!-- Visual de abertura padrão: tema Clean + modo escuro + accent magenta. Só semeia
      se AINDA não houver preferência salva; roda ANTES do auth.js (setItem cru, sem

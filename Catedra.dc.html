@@ -3096,7 +3096,6 @@ window.ctPdfLib = (function(){
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
             <button data-k="texto" onclick="{{ setMultiFmt }}" style="{{ fmtTextoBtn }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 6h14M5 12h14M5 18h9" stroke-linecap="round"></path></svg>Texto</button>
             <button data-k="audio" onclick="{{ setMultiFmt }}" style="{{ fmtAudioBtn }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H3v6h3l5 4zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12" stroke-linecap="round" stroke-linejoin="round"></path></svg>Áudio</button>
-            <button data-k="video" onclick="{{ setMultiFmt }}" style="{{ fmtVideoBtn }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M10 9l5 3-5 3z" stroke-linejoin="round"></path></svg>Vídeo curto</button>
             <button data-k="mapa" onclick="{{ setMultiFmt }}" style="{{ fmtMapaBtn }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2.4"></circle><circle cx="5" cy="18" r="2.4"></circle><circle cx="19" cy="18" r="2.4"></circle><path d="M12 7.4v4M12 11.4 6.5 16M12 11.4 17.5 16" stroke-linecap="round"></path></svg>Mapa mental</button>
             <button data-k="cards" onclick="{{ setMultiFmt }}" style="{{ fmtCardsBtn }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="14" height="12" rx="2"></rect><path d="M7 3h14v12" stroke-linecap="round" stroke-linejoin="round"></path></svg>Flashcards</button>
           </div>
@@ -3129,7 +3128,11 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ fmtAudioShow }}" hint-placeholder-val="{{ false }}">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;">
             <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accentD);font-weight:700;margin-bottom:12px;">Roteiro de narração · {{ mfDisc }}</div>
-            <div style="font-size:12.5px;color:var(--text3);margin-bottom:12px;line-height:1.5;">Texto pronto para você ler em voz alta ou colar num leitor de voz (TTS) do celular — estudar ouvindo fixa diferente.</div>
+            <div style="font-size:12.5px;color:var(--text3);margin-bottom:12px;line-height:1.5;">Ouça a narração ou leia o texto — estudar ouvindo fixa diferente.</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
+              <button onclick="{{ narrarMf }}" disabled="{{ mfTtsBusy }}" style="{{ mfTtsBtnStyle }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z" stroke-linejoin="round"></path></svg>{{ mfTtsLabel }}</button>
+              <span style="font-size:12px;color:var(--text3);">{{ mfTtsHint }}</span>
+            </div>
             <div style="border:1px solid var(--border);border-radius:11px;background:var(--surface2);padding:14px;font-size:13px;color:var(--ink);line-height:1.7;">{{ mfAudioPreview }}</div>
           </div>
         </sc-if>
@@ -3352,7 +3355,7 @@ window.ctPdfLib = (function(){
               <div style="background:var(--surface2);border:1px solid var(--border);border-left:4px solid {{ g.cor }};border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:11px;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                   <div style="min-width:0;"><div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:{{ g.cor }};font-weight:700;">{{ g.tag }} · {{ g.membrosLabel }}</div><div style="font-weight:600;color:var(--ink);font-size:15px;margin-top:4px;text-wrap:pretty;">{{ g.nome }}</div></div>
-                  <button data-id="{{ g.id }}" onclick="{{ removeGrupo }}" title="Sair do grupo" style="background:transparent;border:none;cursor:pointer;color:var(--text3);padding:2px;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  <sc-if value="{{ g.ehDono }}" hint-placeholder-val="{{ false }}"><button data-id="{{ g.id }}" onclick="{{ apagarGrupo }}" title="Apagar o grupo para todo mundo" style="background:transparent;border:none;cursor:pointer;color:var(--text3);padding:2px;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></sc-if><button data-id="{{ g.id }}" onclick="{{ removeGrupo }}" title="Sair do grupo" style="background:transparent;border:none;cursor:pointer;color:var(--text3);padding:2px;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
                 </div>
                 <sc-if value="{{ g.hasCodigo }}" hint-placeholder-val="{{ true }}">
                   <button data-cod="{{ g.codigo }}" onclick="{{ copiarCodigo }}" title="Copiar código para compartilhar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;padding:8px 12px;cursor:pointer;font-family:inherit;"><span style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Código</span><span style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.1em;">{{ g.codigo }}</span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--text3)" stroke-width="1.9" style="flex:none;"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round"></path></svg></button>
@@ -3860,7 +3863,9 @@ class Component extends DCLogic {
       redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''),
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'',
-      multiFmt:this._load('multiFmt', 'texto'), multiSrc:this._load('multiSrc', ''), mfGen:this._load('mfGen', {}), mfBusy:'', breathOn:false, mood:'',
+      // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
+      // sem botão para sair dela (o botão não existe mais). Cai para texto.
+      multiFmt:(this._load('multiFmt', 'texto')==='video'?'texto':this._load('multiFmt', 'texto')), mfTtsBusy:false, multiSrc:this._load('multiSrc', ''), mfGen:this._load('mfGen', {}), mfBusy:'', breathOn:false, mood:'',
       orient:{
         nivel:'intermediario', tempoDia:'180', turno:'noite', energia:'normal', dias:'seg,ter,qua,qui,sex,sab', energiaPlano:'normal',
         cobranca:'equilibrado', estrategia:'ciclo', banca:'cebraspe', linguagem:'professor', focoEstrategico:false,
@@ -6357,9 +6362,9 @@ class Component extends DCLogic {
   // ===== comunidade: grupos de estudo (Supabase real, com fallback local) =====
   _pal7=['#2563eb','#a855f7','#0d9488','#d6457f','#b08433','#dc2626','#0f7a57'];
   _sb(){ try{ return (window.CatedraAuth && window.CatedraAuth.client) || null; }catch(_){ return null; } }
-  _codigoLocal(){ let c=''; const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; for(let i=0;i<6;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; }
+  _codigoLocal(){ let c=''; const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; for(let i=0;i<8;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; }
   _normGrupo(row, i){ const membros=Array.isArray(row.membros)?row.membros.map(m=>(typeof m==='string'?{nome:m}:{uid:m.uid, nome:m.nome})):[];
-    return {id:row.id, codigo:row.codigo||'', nome:row.nome||'Grupo de estudo', membros, cor:this._pal7[(i||0)%this._pal7.length], ts:row.criado_em?(Date.parse(row.criado_em)||0):(row.ts||0)}; }
+    return {id:row.id, codigo:row.codigo||'', nome:row.nome||'Grupo de estudo', membros, criador:row.criador||null, cor:this._pal7[(i||0)%this._pal7.length], ts:row.criado_em?(Date.parse(row.criado_em)||0):(row.ts||0)}; }
   onGrupoDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({grupoDraft:{...s.grupoDraft,[k]:v}})); };
   _loadGrupos = async ()=>{ const sb=this._sb(); if(!sb) return;
     this.setState({gruposBusy:true});
@@ -6379,6 +6384,8 @@ class Component extends DCLogic {
     const cod=(err&&(err.code||err.status))||''; const msg=String((err&&err.message)||err||'');
     if(cod==='PGRST202' || /Could not find the function/i.test(msg))
       return 'Os grupos ainda não estão instalados no servidor deste projeto. Rode os scripts supabase-grupos.sql e supabase-grupo-social.sql no SQL Editor do Supabase — o resto do app (login e backup) segue funcionando normalmente.';
+    if(/nao_dono/i.test(msg)) return 'Só quem criou o grupo pode apagá-lo.';
+    if(/nao_membro/i.test(msg)) return 'Você não participa mais deste grupo.';
     if(/JWT|not authenticated|nao_autenticado/i.test(msg) || cod===401)
       return 'Entre na sua conta para usar os grupos (a Comunidade precisa de login).';
     if(/Failed to fetch|NetworkError|network/i.test(msg))
@@ -6416,6 +6423,17 @@ class Component extends DCLogic {
       catch(err){ const m=this._erroComunidade(err); this.setState({gruposBusy:false, comErro:m}); this._toast(m.slice(0,80)); }
       return; }
     this._toast('Entre na sua conta para participar de grupos por código'); };
+  // Sem isto, código vazado = pessoa dentro do grupo para sempre: não havia como
+  // expulsar nem apagar. Apagar o grupo é o desfazer possível — só para quem criou.
+  apagarGrupo = async (e)=>{ const id=e.currentTarget.dataset.id;
+    if(!window.confirm('Apagar este grupo para TODO MUNDO? Quem está nele perde o acesso e o ranking some. Não dá para desfazer.')) return;
+    const sb=this._sb();
+    if(sb){ try{ const r=await sb.rpc('excluir_grupo', {p_id:id}); if(r.error) throw r.error; }
+            catch(err){ this._toast(this._erroComunidade(err)); return; } }
+    const resto=(this.state.meusGrupos||[]).filter(g=>g.id!==id);
+    const eraAtivo=this.state.comGrupoAtivo===id;
+    this.setState({meusGrupos:resto, ...(eraAtivo?{comGrupoAtivo:resto[0]?resto[0].id:null, comRankRows:[]}:{})});
+    this._toast('Grupo apagado'); this.flashSync(); };
   removeGrupo = async (e)=>{ const id=e.currentTarget.dataset.id; if(!window.confirm('Sair deste grupo?')) return;
     const sb=this._sb();
     if(sb){ try{ const r=await sb.rpc('sair_grupo', {p_id:id}); if(r.error) throw r.error; }catch(err){} }
@@ -6524,6 +6542,42 @@ class Component extends DCLogic {
   openPalette = ()=> this.setState({paletteOpen:true, paletteQuery:''});
   setMultiFmt = (e)=> this.setState({multiFmt:e.currentTarget.dataset.k});
   setMultiSrc = (e)=> this.setState({multiSrc:e.currentTarget.value});
+  // Narração em voz do Google (Gemini TTS via /api/tts). O roteiro já existia como
+  // texto na tela; isto o transforma em áudio de verdade. O servidor devolve WAV
+  // pronto — PCM cru não toca em <audio> nenhum.
+  narrarMf = async ()=>{
+    if(this.state.mfTtsBusy) return;
+    const bib=this.state.biblioteca||[]; const id=this.state.multiSrc||(bib[0]&&bib[0].id);
+    const it=bib.find(b=>b.id===id)||bib[0]; if(!it) return;
+    const gen=(this.state.mfGen||{})[(it.id||'')+':audio'];
+    const texto=(gen&&(gen.preview||gen.texto))||'';
+    if(!texto.trim()){ this._toast('Gere a narração com a IA primeiro'); return; }
+
+    // Já baixamos este áudio nesta sessão? Toca de novo sem gastar chamada.
+    const cache=this._mfAudio||(this._mfAudio={});
+    if(cache[it.id]){ this._tocarMf(cache[it.id]); return; }
+
+    this.setState({mfTtsBusy:true});
+    try{
+      let tok=null;
+      try{ const sN=await window.CatedraAuth.client.auth.getSession(); tok=sN&&sN.data&&sN.data.session&&sN.data.session.access_token; }catch(_){}
+      const base=(window.CATEDRA_API_BASE||'');
+      const r=await fetch(base+'/api/tts', { method:'POST',
+        headers: Object.assign({'Content-Type':'application/json'}, tok?{Authorization:'Bearer '+tok}:{}),
+        body: JSON.stringify({texto}) });
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok || !j.audio){ this.setState({mfTtsBusy:false}); this._toast(j.error||'Não deu para gerar a narração'); return; }
+      const url='data:'+(j.mime||'audio/wav')+';base64,'+j.audio;
+      cache[it.id]=url; this.setState({mfTtsBusy:false}); this._tocarMf(url);
+    }catch(_){ this.setState({mfTtsBusy:false}); this._toast('Não deu para gerar a narração'); }
+  };
+  _tocarMf(url){
+    try{
+      if(this._mfPlayer){ this._mfPlayer.pause(); }
+      const a=new Audio(url); this._mfPlayer=a;
+      a.play().catch(()=>this._toast('Toque de novo para o navegador liberar o áudio'));
+    }catch(_){ this._toast('Este navegador não conseguiu tocar o áudio'); }
+  }
   genMulti = async (e)=>{ const fmt=e.currentTarget.dataset.k; if(this.state.mfBusy){ this._toast('Aguarde — outra geração está em andamento'); return; }
     const bib=this.state.biblioteca||[]; const id=this.state.multiSrc||(bib[0]&&bib[0].id); const it=bib.find(b=>b.id===id)||bib[0];
     if(!it || !Array.isArray(it.content) || !it.content.length){ this._toast('Selecione um material da biblioteca com conteúdo'); return; }
@@ -6533,8 +6587,7 @@ class Component extends DCLogic {
     const spec={
       texto:'Reescreva o material como um RESUMO em texto corrido, didático e fiel ao conteúdo, em 3 a 6 parágrafos. Formato do JSON: {"paras":["parágrafo 1","parágrafo 2"]}',
       audio:'Escreva um ROTEIRO DE NARRAÇÃO em áudio (locução natural e contínua), com cerca de 120 a 160 palavras, fiel ao material. Formato do JSON: {"preview":"texto corrido da narração"}',
-      video:'Crie um ROTEIRO DE VÍDEO curto (microlearning ~90s): um título e de 4 a 6 capítulos curtos em ordem. Formato do JSON: {"title":"título do vídeo","chapters":["capítulo 1","capítulo 2"]}',
-      mapa:'Crie um MAPA MENTAL do material: de 4 a 6 nós, cada um com um título curto e uma explicação de uma frase. Formato do JSON: {"nodes":[{"title":"título do nó","text":"explicação"}]}',
+        mapa:'Crie um MAPA MENTAL do material: de 4 a 6 nós, cada um com um título curto e uma explicação de uma frase. Formato do JSON: {"nodes":[{"title":"título do nó","text":"explicação"}]}',
       cards:'Crie de 4 a 8 FLASHCARDS (frente/verso) cobrindo os pontos-chave do material. Formato do JSON: {"cards":[{"front":"pergunta","back":"resposta"}]}'
     }[fmt];
     const prompt='Você é um gerador de conteúdo de estudo para concursos. A partir do MATERIAL abaixo, '+spec+'. Responda SOMENTE com JSON válido em português do Brasil, sem nenhum texto fora do JSON.\nMATERIAL:\n"""\n'+base+'\n"""';
@@ -7201,6 +7254,8 @@ class Component extends DCLogic {
     const _meuNomeG=(this.state.prefs&&this.state.prefs.nome)||'Você';
     const comGrupos=(this.state.meusGrupos||[]).map(g=>{ const membros=Array.isArray(g.membros)?g.membros:[]; return {
       id:g.id, nome:g.nome, codigo:g.codigo||'', hasCodigo:!!g.codigo, cor:g.cor||'#0f7a57', tag:'Grupo',
+      // Só o dono vê o botão de apagar. Grupo local (sem servidor) também é dele.
+      ehDono: !!(g.criador ? (this.state.comMyUid && g.criador===this.state.comMyUid) : true),
       membrosLabel:membros.length+(membros.length===1?' membro':' membros'),
       membrosList:membros.map((m,i)=>{ const nome=(m&&m.nome)||'Membro'; const eu=nome===_meuNomeG; return {nome, nomeLabel: eu?(nome+' · você'):nome, chipBd: eu?'var(--accent)':'var(--border)', id:g.id, inicial:(nome||'?').slice(0,1).toUpperCase(), eu}; }),
       when:(()=>{ try{ return new Date(g.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })() }; });
@@ -7350,7 +7405,7 @@ class Component extends DCLogic {
     const mfHasGen=!!_mfGen;
     const mfNoGen=!_mfGen;
     const mfBusyNow=!!this.state.mfBusy;   // qualquer geração em curso desabilita (evita clique mudo)
-    const _mfFmtNames={texto:'Resumo em texto',audio:'Narração em áudio',video:'Vídeo curto',mapa:'Mapa mental',cards:'Flashcards'};
+    const _mfFmtNames={texto:'Resumo em texto',audio:'Narração em áudio',mapa:'Mapa mental',cards:'Flashcards'};
     const mfFmtLabel=_mfFmtNames[_mfFmt]||'conteúdo';
     const mfGenLabel=mfBusyNow?'Gerando com IA…':'Gerar com IA ✦';
     const multiFmtKey=_mfFmt;
@@ -8548,19 +8603,23 @@ class Component extends DCLogic {
       paletteOpen:this.state.paletteOpen, paletteQuery:this.state.paletteQuery, palItems,
       // multiformato
       isMulti:this.state.view==='multiformato', navMulti:navStyle('multiformato'), setMultiFmt:this.setMultiFmt,
+      narrarMf:this.narrarMf, mfTtsBusy:this.state.mfTtsBusy,
+      mfTtsLabel:(this.state.mfTtsBusy?'Gerando a voz…':'Ouvir a narração'),
+      mfTtsHint:(this.state.mfTtsBusy?'a primeira vez leva alguns segundos':'voz do Google · gerada na hora'),
+      mfTtsBtnStyle:'display:inline-flex;align-items:center;gap:7px;background:'+(this.state.mfTtsBusy?'var(--surface2)':'var(--accent)')+';color:'+(this.state.mfTtsBusy?'var(--text3)':'var(--onAccent)')+';border:none;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:'+(this.state.mfTtsBusy?'default':'pointer')+';font-family:inherit;',
       isFmtTexto:_mf==='texto', isFmtAudio:_mf==='audio', isFmtVideo:_mf==='video', isFmtMapa:_mf==='mapa', isFmtCards:_mf==='cards',
       fmtTextoShow, fmtAudioShow, fmtVideoShow, fmtMapaShow, fmtCardsShow,
       mfHasGen, mfNoGen, mfBusyNow, mfHasMaterial, mfGenLabel, mfFmtLabel, multiFmtKey, mfGenBtnStyle, genMulti:this.genMulti,
       mfFonte, mfDisc, mfSrcOpts, mfTextoParas, setMultiSrc:this.setMultiSrc,
       mfShort, mfAudioPreview, mfNodes, mfChapters, mfVideoTitle, mfCards, mfCardsCount, addMfCards:this.addMfCards,
-      fmtTextoBtn:fmtBtn('texto'), fmtAudioBtn:fmtBtn('audio'), fmtVideoBtn:fmtBtn('video'), fmtMapaBtn:fmtBtn('mapa'), fmtCardsBtn:fmtBtn('cards'),
+      fmtTextoBtn:fmtBtn('texto'), fmtAudioBtn:fmtBtn('audio'), fmtMapaBtn:fmtBtn('mapa'), fmtCardsBtn:fmtBtn('cards'),
       // bem-estar
       isBem:this.state.view==='bemestar', navBem:navStyle('bemestar'),
       habCards, habDoneN, habTotalN, habInc:this.habInc, habDec:this.habDec,
       isComunidade:this.state.view==='comunidade', navComunidade:navStyle('comunidade'),
       comRank, comNowAvatars, comNowN, comUserPos, comUserH, comUserStreak, comGrupos, comFeed,
       comViaGrupo, comSemGrupo:!comViaGrupo, comGrupoChips, comTemGrupos, setComGrupoAtivo:this.setComGrupoAtivo, comDesafio, hasComDesafio,
-      grupoDraft:this.state.grupoDraft, onGrupoDraft:this.onGrupoDraft, addGrupo:this.addGrupo, entrarGrupo:this.entrarGrupo, removeGrupo:this.removeGrupo, copiarCodigo:this.copiarCodigo,
+      grupoDraft:this.state.grupoDraft, onGrupoDraft:this.onGrupoDraft, addGrupo:this.addGrupo, entrarGrupo:this.entrarGrupo, removeGrupo:this.removeGrupo, apagarGrupo:this.apagarGrupo, copiarCodigo:this.copiarCodigo,
       comErro:this.state.comErro||'', comErroShow:!!this.state.comErro,
       gruposBusy:this.state.gruposBusy, comGruposEmpty: comGrupos.length===0, comFeedEmpty: comFeed.length===0, comOnlyYou: comRank.length<=1,
       breathAnim:_breathOn?'ctbreath 19s ease-in-out infinite':'none',
