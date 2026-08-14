@@ -3451,9 +3451,53 @@ window.ctPdfLib = (function(){
             </sc-for>
           </div>
 
+          <!-- INDICADORES (retenção + IA) -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+            <sc-for list="{{ admIndicadores }}" as="m" hint-placeholder-count="3">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;">
+                <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;">{{ m.v }}</div>
+                <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin-top:8px;">{{ m.k }}</div>
+                <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">{{ m.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;">
+            <!-- USO DE RECURSOS -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Uso de recursos</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">quantas contas usam cada parte do app</div>
+              <sc-for list="{{ admRecursos }}" as="r" hint-placeholder-count="9">
+                <div style="margin-bottom:12px;">
+                  <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;"><span style="color:var(--text2);font-weight:600;">{{ r.label }}</span><span style="color:var(--text3);font-family:var(--mono);">{{ r.n }} · {{ r.pctLabel }}</span></div>
+                  <div style="width:100%;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden;"><div style="{{ r.barStyle }}"></div></div>
+                </div>
+              </sc-for>
+            </div>
+            <!-- CRESCIMENTO -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Cadastros por semana</div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">últimas semanas</div>
+              <sc-if value="{{ admTemCrescimento }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:flex-end;gap:8px;height:80px;">
+                  <sc-for list="{{ admCrescimento }}" as="c" hint-placeholder-count="6">
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
+                      <span style="font-size:11px;color:var(--text2);font-weight:600;">{{ c.n }}</span>
+                      <div style="{{ c.barStyle }}"></div>
+                      <span style="font-size:9.5px;color:var(--text3);">{{ c.semana }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
           <!-- TESTADORES -->
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
-            <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Testadores</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+              <div style="font-weight:600;color:var(--ink);font-size:15px;">Testadores</div>
+              <button onclick="{{ exportarTestadoresCSV }}" style="font-size:11.5px;font-weight:600;border:1px solid var(--border);background:var(--surface2);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;color:var(--text2);">Exportar CSV</button>
+            </div>
             <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">quem entrou, há quanto tempo não volta, e quanto já usou — sem abrir o conteúdo de estudo de ninguém</div>
             <sc-if value="{{ admTemTesters }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;flex-direction:column;gap:8px;">
@@ -6520,6 +6564,20 @@ class Component extends DCLogic {
       this.setState({adminBusy:false, adminErro: /acesso_negado/i.test(msg) ? 'Esta conta não é administradora.' : (this._erroComunidade(err)||'Não foi possível carregar o painel.') });
     }
   };
+  // Exporta a tabela de testadores como CSV (dados já carregados; nada sensível de estudo).
+  exportarTestadoresCSV = ()=>{
+    const rows=(this.state.adminData&&this.state.adminData.testadores)||[];
+    if(!rows.length){ this._toast('Nada para exportar'); return; }
+    const head=['email','criado_em','ultimo_login','ultima_sync','confirmado','bloqueado','admin','sessoes','disc_edital','blob_kb'];
+    const esc=(v)=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const linhas=[head.join(',')].concat(rows.map(t=>[t.email,t.criadoEm,t.ultimoLogin,t.ultimaSync,t.confirmado,t.bloqueado,t.admin,t.nSessoes,t.nDiscEdital,t.blobKb].map(esc).join(',')));
+    try{
+      const blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download='catedra-testadores.csv'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000); this._toast('CSV exportado');
+    }catch(_){ this._toast('Não consegui exportar'); }
+  };
   _adminBloquear = async (e)=>{
     const uid=e.currentTarget.dataset.uid; const bloq=e.currentTarget.dataset.bloq==='1';
     if(!uid) return;
@@ -8462,6 +8520,24 @@ class Component extends DCLogic {
       {k:'Ativos (30d)', v:String(_admS.ativos30d!=null?_admS.ativos30d:'—'), sub:'entraram no último mês'},
       {k:'Nunca voltaram', v:String(_admS.nuncaVoltaram!=null?_admS.nuncaVoltaram:'—'), sub:'entraram uma vez só'},
     ];
+    // USO DE RECURSOS: quantas contas usam cada parte (barra proporcional ao total)
+    const _admR=_adm.recursos||{}; const _admTot=(_admS.contas||1)||1;
+    const _recDefs=[['Edital','comEdital'],['Sessões','comSessoes'],['Redação','comRedacao'],['Simulados','comSimulados'],['Anki','comAnki'],['Caderno de erros','comErros'],['Revisões','comRevisoes'],['Metas','comMetas'],['Comunidade','comGrupos']];
+    const admRecursos=_recDefs.map(([label,k])=>{ const n=_admR[k]||0; const pct=Math.round(n/_admTot*100);
+      return {label, n:String(n), pct:pct+'%', barStyle:'height:6px;border-radius:99px;background:var(--accent);width:'+pct+'%;', pctLabel:pct+'%'}; });
+    // CRESCIMENTO: cadastros por semana (mini-barras)
+    const _cr=_adm.crescimento||[]; const _crMax=Math.max(1,..._cr.map(x=>x.cadastros||0));
+    const admCrescimento=_cr.map((x)=>{ const h=Math.round((x.cadastros||0)/_crMax*60)+4;
+      let sem='—'; try{ sem=new Date(x.semana).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); }catch(_){}
+      return {semana:sem, n:String(x.cadastros||0), barStyle:'width:100%;height:'+h+'px;border-radius:6px 6px 0 0;background:var(--accent);'}; });
+    // RETENÇÃO + IA
+    const _ret=_adm.retencao||{}; const _retPct=_ret.total?Math.round((_ret.voltaram||0)/_ret.total*100):0;
+    const _admIA=_adm.ia||{};
+    const admIndicadores=[
+      {k:'Voltaram (retenção)', v:_ret.total?(_retPct+'%'):'—', sub:(_ret.voltaram||0)+' de '+(_ret.total||0)+' voltaram depois do 1º dia'},
+      {k:'Chamadas de IA', v:String(_admIA.chamadasTotal||0), sub:(_admIA.chamadas7d||0)+' nos últimos 7 dias · '+(_admIA.chamadasHoje||0)+' hoje'},
+      {k:'Contas usaram IA', v:String(_admIA.contasUsaram||0), sub:'testadores que já usaram a IA'},
+    ];
     const admTesters=(_adm.testadores||[]).map((t)=>{
       const dias=_diasDe(t.ultimoLogin);
       const cor = t.admin? '#7c3aed' : t.bloqueado? '#c0392f' : dias<=7? '#0f9d6b' : dias<=30? '#c2790c' : '#8a94a6';
@@ -8519,9 +8595,10 @@ class Component extends DCLogic {
       isAdmin:this.state.isAdmin, isAdminView:this.state.view==='admin', navAdmin:navStyle('admin'),
       adminBusy:this.state.adminBusy, adminErro:this.state.adminErro, adminTemErro:!!this.state.adminErro,
       adminCarregado:!!this.state.adminData, refreshAdmin:this._loadAdmin,
-      admSaude, admTesters, admTemTesters:admTesters.length>0,
+      admSaude, admRecursos, admCrescimento, admIndicadores, admTemCrescimento:admCrescimento.length>0,
+      admTesters, admTemTesters:admTesters.length>0,
       admFeedback, admFeedbackVazio:admFeedback.length===0, admFeedbackNaoLidos:String(admFeedbackNaoLidos),
-      adminBloquear:this._adminBloquear, adminLerFeedback:this._adminLerFeedback,
+      adminBloquear:this._adminBloquear, adminLerFeedback:this._adminLerFeedback, exportarTestadoresCSV:this.exportarTestadoresCSV,
       adminGeradoEm: _adm.geradoEm? ('atualizado '+(()=>{ try{ return new Date(_adm.geradoEm).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } })()) : '',
       rootStyle, T, isDark:T.isDark, isMobile:this.state.isMobile, menuOpen:this.state.menuOpen,
       sidebarBg:T.sidebarBg,
