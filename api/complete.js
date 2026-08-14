@@ -67,6 +67,34 @@ async function contaBloqueada(user) {
   }
 }
 
+// Allowlist gerida pelo painel de admin (tabela beta_allow). Lista vazia = beta aberto.
+// Em erro de rede, NÃO barra (fail-open) — o portão de sessão já passou.
+async function emailLiberadoDB(user) {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/meu_email_liberado', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+      body: '{}',
+    });
+    if (!r.ok) return true;
+    return (await r.json()) !== false;
+  } catch (_) {
+    return true;
+  }
+}
+
+// Registra a chamada para as métricas de custo/uso do painel. Fire-and-forget:
+// nunca deixa o log derrubar a resposta da IA.
+async function logarUsoIA(user, endpoint, chars) {
+  try {
+    await fetch(SB_URL + '/rest/v1/rpc/registrar_uso_ia', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+      body: JSON.stringify({ p_endpoint: endpoint, p_chars: chars | 0 }),
+    });
+  } catch (_) {}
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Método não permitido — use POST.' });
@@ -78,7 +106,7 @@ export default async function handler(req, res) {
     res.status(401).json({ error: 'Entre na sua conta do Cátedra para usar a IA.' });
     return;
   }
-  if (!liberado(user)) {
+  if (!liberado(user) || !(await emailLiberadoDB(user))) {
     res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' });
     return;
   }
@@ -108,6 +136,9 @@ export default async function handler(req, res) {
       res.status(413).json({ error: 'Texto grande demais para a IA (máx. 60 mil caracteres).' });
       return;
     }
+    // Registra a tentativa (inclui as que batem 429 — elas custam cota, então contam
+    // para o painel). Não bloqueia a resposta se o log falhar.
+    await logarUsoIA(user, 'complete', prompt.length);
 
     const maxTokens = Math.min(body.max_tokens || 4096, 8192);
     const temperature = typeof body.temperature === 'number' ? body.temperature : 0.7;

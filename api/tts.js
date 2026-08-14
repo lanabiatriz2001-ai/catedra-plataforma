@@ -55,6 +55,29 @@ async function contaBloqueada(user) {
   }
 }
 
+// Allowlist do painel (beta_allow). Vazia = aberto. Fail-open em erro de rede.
+async function emailLiberadoDB(user) {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/meu_email_liberado', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+      body: '{}',
+    });
+    if (!r.ok) return true;
+    return (await r.json()) !== false;
+  } catch (_) { return true; }
+}
+
+async function logarUsoIA(user, endpoint, chars) {
+  try {
+    await fetch(SB_URL + '/rest/v1/rpc/registrar_uso_ia', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+      body: JSON.stringify({ p_endpoint: endpoint, p_chars: chars | 0 }),
+    });
+  } catch (_) {}
+}
+
 /** Embrulha PCM 16-bit mono num WAV — 44 bytes de cabeçalho, sem dependência nenhuma. */
 function pcmParaWav(pcm, taxa, canais, bits) {
   const blocoAlinhamento = (canais * bits) / 8;
@@ -99,7 +122,7 @@ export default async function handler(req, res) {
 
   const user = await usuarioDoToken(req);
   if (!user) { res.status(401).json({ error: 'Entre na sua conta do Cátedra para gerar a narração.' }); return; }
-  if (!liberado(user)) { res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' }); return; }
+  if (!liberado(user) || !(await emailLiberadoDB(user))) { res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' }); return; }
   if (await contaBloqueada(user)) { res.status(403).json({ error: 'O acesso à IA desta conta foi pausado. Fale com quem te convidou.' }); return; }
 
   try {
@@ -110,6 +133,7 @@ export default async function handler(req, res) {
       res.status(413).json({ error: 'Texto longo demais para narrar (máx. ' + MAX_CHARS + ' caracteres).' });
       return;
     }
+    await logarUsoIA(user, 'tts', texto.length);
 
     const model = process.env.GEMINI_TTS_MODEL || 'gemini-2.5-flash-preview-tts';
     const voz = /^[A-Za-z]{3,20}$/.test(String(body.voz || '')) ? body.voz : (process.env.GEMINI_TTS_VOICE || 'Kore');
