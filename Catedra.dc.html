@@ -334,6 +334,7 @@ window.ctPdfLib = (function(){
       </div>
     </div>
 
+    <sc-if value="{{ naoAdmin }}" hint-placeholder-val="{{ true }}">
     <nav style="display:flex;flex-direction:column;gap:3px;padding-top:6px;">
       <button data-view="inicio" onclick="{{ onNav }}" style="{{ navStyle.inicio }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12 12 3l9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Início</span></button>
       <button data-view="ciclo" onclick="{{ onNav }}" style="{{ navStyle.ciclo }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg><span>Ciclo de Estudos</span></button>
@@ -371,12 +372,20 @@ window.ctPdfLib = (function(){
     </nav>
     <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Sistema</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
+      <button data-view="bancas" onclick="{{ onNav }}" style="{{ navBancas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Bancas</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:9px;font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
       <button data-view="biblioteca" onclick="{{ onNav }}" style="{{ navBiblioteca }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 5v15l4-2 4 2 4-2 4 2V5l-4-2-4 2-4-2zM12 5v13" stroke-linejoin="round"></path></svg><span>Biblioteca</span></button>
       <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraLEGIS</span></button>
       <button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraJURIS</span></button>
       <button data-view="ajustes" onclick="{{ onNav }}" style="{{ navStyle.ajustes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.3 2.5h4l.3-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" stroke-linejoin="round"></path></svg><span>Ajustes</span></button>
-      <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}"><button data-view="admin" onclick="{{ onNav }}" style="{{ navAdmin }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7z" stroke-linejoin="round"></path><path d="M9.5 12l1.8 1.8L15 10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Administrador</span></button></sc-if>
     </nav>
+    </sc-if>
+    <!-- Conta admin-only (ex.: 2001): não vê a plataforma de estudo, só o painel + Sair. -->
+    <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+    <nav style="display:flex;flex-direction:column;gap:3px;padding-top:6px;">
+      <button data-view="admin" onclick="{{ onNav }}" style="{{ navAdmin }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7z" stroke-linejoin="round"></path><path d="M9.5 12l1.8 1.8L15 10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Painel do administrador</span></button>
+      <button onclick="{{ logout }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:9px;padding:10px 11px;font-family:inherit;font-size:13.5px;color:var(--stext);font-weight:600;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Sair</span></button>
+    </nav>
+    </sc-if>
      </div>
     </sc-if>
 
@@ -3392,6 +3401,58 @@ window.ctPdfLib = (function(){
        </div>
       </sc-if>
 
+      <!-- ================= BANCAS (perfil + dicas por área) ================= -->
+      <sc-if value="{{ isBancas }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;">Cada banca cobra de um jeito. Aqui está o perfil de cada uma — como monta as questões, o que valoriza e as dicas práticas. Escolha uma área para receber dicas específicas dela para cada banca.</div>
+            <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span style="font-size:12px;font-weight:600;color:var(--text3);">Dicas por área:</span>
+              <select value="{{ bancaAreaAtual }}" onchange="{{ setBancaArea }}" style="border:1px solid var(--border);background:var(--surface2);border-radius:9px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;cursor:pointer;min-width:240px;"><sc-for list="{{ bancaAreaOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;">
+            <sc-for list="{{ bancasVM }}" as="b" hint-placeholder-count="6">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                  <span style="font-family:var(--display);font-size:19px;font-weight:700;color:var(--ink);">{{ b.label }}</span>
+                  <span style="{{ b.penalStyle }}">{{ b.penalLabel }}</span>
+                </div>
+                <div>
+                  <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:3px;">Formato</div>
+                  <div style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ b.formato }}</div>
+                </div>
+                <div>
+                  <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:3px;">Como cobra</div>
+                  <div style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ b.estilo }}</div>
+                </div>
+                <div>
+                  <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:3px;">Foco do estudo</div>
+                  <div style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ b.foco }}</div>
+                </div>
+                <div style="border-top:1px solid var(--border);padding-top:12px;">
+                  <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accentD);font-weight:700;margin-bottom:8px;">Dicas práticas</div>
+                  <sc-for list="{{ b.dicas }}" as="d" hint-placeholder-count="3">
+                    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;"><span style="color:var(--accent);flex:none;font-weight:700;">›</span><span style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ d }}</span></div>
+                  </sc-for>
+                </div>
+                <div style="border-top:1px dashed var(--border);padding-top:12px;">
+                  <sc-if value="{{ b.temDicasArea }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accentD);font-weight:700;margin-bottom:8px;">Dicas para {{ bancaAreaAtual }}</div>
+                    <sc-for list="{{ b.dicasArea }}" as="da" hint-placeholder-count="3">
+                      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;"><span style="color:#0f9d6b;flex:none;font-weight:700;">✦</span><span style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ da }}</span></div>
+                    </sc-for>
+                  </sc-if>
+                  <sc-if value="{{ b.temDicasArea }}" hint-placeholder-val="{{ true }}"></sc-if>
+                  <button data-banca="{{ b.key }}" data-label="{{ b.label }}" onclick="{{ gerarDicasBanca }}" disabled="{{ b.gerando }}" style="{{ b.gerarStyle }}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke-linecap="round"></path></svg>{{ b.gerarLabel }}</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
       <!-- ================= PAINEL DE ADMINISTRADOR (só a dona vê) ================= -->
       <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
        <sc-if value="{{ isAdminView }}" hint-placeholder-val="{{ false }}">
@@ -3926,6 +3987,7 @@ class Component extends DCLogic {
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'',
+      bancaAreaSel:this._load('bancaAreaSel',''), bancaDicas:this._load('bancaDicas',{}), bancaBusy:'',
       grupoDraft:{nome:'', codigo:''},
       ankiImported:this._load('ankiImported', false), pdfOpen:null,
       profile:{estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
@@ -4336,7 +4398,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush']; }
+  _autosaveKeys(){ return ['edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel']; }
   _autosave(){
     const keys=this._autosaveKeys();
     const L=this._lastSaved||(this._lastSaved={});
@@ -6466,7 +6528,10 @@ class Component extends DCLogic {
   // DevTools e chamar admin_visao_geral() sem ser admin leva 'acesso_negado'.
   _bootAdmin = async ()=>{
     const sb=this._sb(); if(!sb) return;
-    try{ const r=await sb.rpc('is_admin'); if(!r.error && r.data===true) this.setState({isAdmin:true}); }catch(_){}
+    // Conta admin (ex.: 2001) é um console à parte: entra direto no painel e não vê a
+    // plataforma de estudo (o menu de estudo fica escondido por naoAdmin). Uma conta
+    // comum nunca chega aqui — is_admin() é checado no servidor.
+    try{ const r=await sb.rpc('is_admin'); if(!r.error && r.data===true){ this.setState({isAdmin:true, view:'admin'}); this._loadAdmin(); } }catch(_){}
   };
   _loadAdmin = async ()=>{
     const sb=this._sb(); if(!sb){ this.setState({adminErro:'Sem conexão com o servidor.'}); return; }
@@ -6508,6 +6573,32 @@ class Component extends DCLogic {
     try{ const r=await sb.rpc('enviar_feedback', {p_mensagem:String(msg), p_contexto:contexto}); if(r.error) throw r.error;
       this._toast('Enviado — obrigada! 💚');
     }catch(err){ this._toast(this._erroComunidade(err)||'Não deu para enviar; tente "Copiar relatório"'); }
+  };
+
+  // ===================== ABA BANCAS (perfil + dicas por área) =====================
+  setBancaArea = (e)=>{ const v=e.currentTarget.value||''; this.setState({bancaAreaSel:v}); };
+  // Dicas específicas de uma matéria para uma banca, geradas pela IA sob demanda
+  // (mesmo padrão do Multiformato). O perfil geral de cada banca já é fixo na tela;
+  // isto complementa com o recorte por área. Fica em cache para não regerar à toa.
+  gerarDicasBanca = async (e)=>{
+    const banca=e.currentTarget.dataset.banca; const label=e.currentTarget.dataset.label||banca;
+    const area=this.state.bancaAreaSel;
+    if(!area){ this._toast('Escolha uma área primeiro'); return; }
+    if(this.state.bancaBusy){ this._toast('Aguarde — outra geração está em andamento'); return; }
+    const key=banca+'::'+area;
+    if((this.state.bancaDicas||{})[key]){ return; } // já tem
+    this.setState({bancaBusy:key});
+    const prompt='Você é um professor especialista em concursos públicos no Brasil. Dê dicas '
+      +'PRÁTICAS e específicas de como estudar a matéria "'+area+'" para a banca '+label+', '
+      +'considerando o estilo de cobrança dessa banca (formato das questões, pegadinhas típicas, '
+      +'literalidade da lei x interpretação). Seja concreto e direto. Responda SOMENTE com JSON '
+      +'válido em português do Brasil no formato {"dicas":["dica 1","dica 2","dica 3","dica 4"]}, '
+      +'sem nenhum texto fora do JSON.';
+    let data=null;
+    try{ if(window.claude && window.claude.complete){ const r=await window.claude.complete(prompt); data=this._parseJSON(r); } }catch(_){}
+    if(!data || !Array.isArray(data.dicas)){ this.setState({bancaBusy:''}); this._toast('Não consegui gerar agora — a IA pode estar sem cota. Tente mais tarde.'); return; }
+    this.setState(s=>({ bancaDicas:{...s.bancaDicas, [key]:data.dicas.slice(0,6)}, bancaBusy:'' }));
+    this._toast('Dicas geradas pela IA ✦'); this.flashSync();
   };
 
   // Antes o erro era engolido e a Comunidade só ficava vazia — impossível saber que
@@ -6801,7 +6892,7 @@ class Component extends DCLogic {
     };
     const bnInicio=bnStyle('inicio'), bnCiclo=bnStyle('ciclo'), bnRevisoes=bnStyle('revisoes');
     // ===== menu simplificado: essenciais visíveis + "Mais opções" =====
-    const _moreViews=['anki','analise','conquistas','historico','multiformato','bemestar','comunidade','biblioteca','ajustes','admin'];
+    const _moreViews=['anki','analise','conquistas','historico','multiformato','bemestar','comunidade','biblioteca','bancas','ajustes','admin'];
     const _onMore=_moreViews.indexOf(this.state.view)>=0;
     const navShowMore=this.state.navExpanded||_onMore;
     const navToggleShow=!_onMore;
@@ -8420,7 +8511,32 @@ class Component extends DCLogic {
     }));
     const admFeedbackNaoLidos=admFeedback.filter(f=>!f.lido).length;
 
+    // ── view-model da aba BANCAS (perfil fixo + dicas por área geradas sob demanda) ──
+    const _areasBanca=['Língua Portuguesa','Direito Constitucional','Direito Administrativo','Direito Civil','Direito Processual Civil','Direito Penal','Direito Processual Penal','Direito Tributário','Direito Empresarial','Direito do Trabalho','Direito Previdenciário','Raciocínio Lógico','Informática'];
+    const _areaSel=this.state.bancaAreaSel||'';
+    const bancaAreaOpts=[{v:'',label:'— escolha uma área para dicas específicas —',sel:_areaSel===''}].concat(_areasBanca.map(a=>({v:a,label:a,sel:a===_areaSel})));
+    const _bdicas=this.state.bancaDicas||{};
+    const bancasVM=Object.keys(BANCAS_INFO).map((k)=>{ const b=BANCAS_INFO[k];
+      const keyA=k+'::'+_areaSel;
+      const dicasArea=(_areaSel && _bdicas[keyA])?_bdicas[keyA]:null;
+      return { key:k, label:b.label,
+        formato:b.formato||'', estilo:b.estilo||'', foco:b.foco||'',
+        penalidade:!!b.penalidade,
+        penalLabel: b.penalidade?'Erro anula acerto':'Erro não penaliza',
+        penalStyle: 'font-size:10.5px;font-weight:700;letter-spacing:.02em;border-radius:99px;padding:3px 9px;'+(b.penalidade?'color:#c0392f;background:#c0392f1a;':'color:#0f9d6b;background:#0f9d6b1a;'),
+        dicas:(Array.isArray(b.dicas)?b.dicas:[]).map(d=>String(d)),
+        temArea:!!_areaSel,
+        dicasArea:dicasArea||[], temDicasArea:!!(dicasArea&&dicasArea.length),
+        gerando:this.state.bancaBusy===keyA,
+        gerarLabel:this.state.bancaBusy===keyA?'Gerando…':(_areaSel?('Dicas para '+_areaSel):'Escolha uma área acima'),
+        gerarStyle:'display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--text2);cursor:'+(_areaSel&&this.state.bancaBusy!==keyA?'pointer':'default')+';font-family:inherit;opacity:'+(_areaSel?'1':'.55')+';',
+      }; });
+
     return {
+      isBancas:this.state.view==='bancas', navBancas:navStyle('bancas'),
+      bancasVM, bancaAreaOpts, setBancaArea:this.setBancaArea, gerarDicasBanca:this.gerarDicasBanca,
+      bancaAreaAtual:_areaSel,
+      naoAdmin:!this.state.isAdmin,
       isAdmin:this.state.isAdmin, isAdminView:this.state.view==='admin', navAdmin:navStyle('admin'),
       adminBusy:this.state.adminBusy, adminErro:this.state.adminErro, adminTemErro:!!this.state.adminErro,
       adminCarregado:!!this.state.adminData, refreshAdmin:this._loadAdmin,
@@ -8523,8 +8639,8 @@ class Component extends DCLogic {
       redResultLivre, redCompareStudent, redCompareGab,
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Painel do administrador'}[this.state.view]),
-      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Testadores, saúde do beta, acesso e feedback'}[this.state.view]),
+      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Painel do administrador',bancas:'Bancas'}[this.state.view]),
+      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Testadores, saúde do beta, acesso e feedback',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
       syncTitle:(this.state.syncStatus==='local'?'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho':'Seus dados sincronizam com a sua conta — o merge une o progresso de todos os aparelhos'),
