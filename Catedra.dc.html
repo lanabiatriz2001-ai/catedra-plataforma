@@ -2909,24 +2909,6 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
 
-        <!-- HERO -->
-        <div style="position:relative;overflow:hidden;background:var(--heroGrad);border-radius:var(--radius);padding:30px;color:#fff;">
-          <span style="position:absolute;top:-40px;right:-30px;width:240px;height:240px;border-radius:99px;background:rgba(255,255,255,.07);"></span>
-          <span style="display:inline-block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;background:rgba(0,0,0,.22);padding:7px 13px;border-radius:99px;">Ajustes</span>
-          <h2 style="margin:16px 0 8px;font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,38px);line-height:1.05;max-width:760px;">Seu estudo, do seu jeito.</h2>
-          <p style="margin:0 0 22px;font-size:13.5px;line-height:1.6;opacity:.82;max-width:680px;">Estas preferências controlam a intensidade dos alertas, o critério do Foco do dia, o comportamento do modo foco, os conselhos de relatório/estatísticas e a forma como a rotina deve ser cobrada.</p>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.16);border-radius:14px;overflow:hidden;">
-            <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;">{{ orHero.nivel }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">nível do aluno</div></div>
-            <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.tempo }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">tempo médio/dia</div></div>
-            <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.cobranca }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">cobrança</div></div>
-            <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.estrategia }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">estratégia</div></div>
-            <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.banca }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">banca</div></div>
-            <div style="background:rgba(0,0,0,.14);padding:18px 20px;"><div style="font-family:var(--display);font-weight:700;font-size:21px;">{{ orHero.reta }}</div><div style="font-size:11.5px;opacity:.72;margin-top:3px;">gatilho de reta final</div></div>
-          </div>
-        </div>
-
-        <div style="font-size:12px;color:var(--text3);text-align:center;">Estas preferências refletem em todo o app — foco do dia, meta semanal, alertas, objetivo/banca e relatórios. <b style="color:var(--text2);">Tudo salva na hora, sozinho.</b></div>
-
         <!-- PERFIL + COBRANÇA -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -3034,18 +3016,9 @@ window.ctPdfLib = (function(){
         <!-- RELATÓRIO + ANKI -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:20px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Relatório e estatísticas</span><span style="font-size:12px;color:var(--text3);">tipo de conselho</span></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Período padrão</label><select data-k="periodo" value="{{ orient.periodo }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="diario">Diário</option><option value="semanal">Semanal</option><option value="mensal">Mensal</option></select></div>
-              <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Formato dos conselhos</label><select data-k="formatoConselho" value="{{ orient.formatoConselho }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="objetivo">Objetivo</option><option value="detalhado">Detalhado</option><option value="curto">Curto</option></select></div>
-              <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Fechamento padrão</label><select data-k="fechamento" value="{{ orient.fechamento }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="plano">Plano da próxima semana</option><option value="resumo">Resumo simples</option><option value="nenhum">Nenhum</option></select></div>
-              <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ritual de encerramento</label><select data-k="ritual" value="{{ orient.ritual }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="resumo">Resumo do dia</option><option value="gratidao">Diário de gratidão</option><option value="nenhum">Nenhum</option></select></div>
-            </div>
-          </div>
-
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:20px;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Ajustes avançados do Anki</span><span style="font-size:12px;color:var(--text3);">retenção e carga</span></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <button onclick="{{ toggleAjAnki }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;text-align:left;"><span style="display:flex;align-items:baseline;gap:8px;font-weight:600;color:var(--ink);font-size:15px;">Ajustes avançados do Anki <span style="font-size:12px;color:var(--text3);font-weight:400;">retenção e carga</span></span><span style="font-size:13px;color:var(--text3);">{{ ajAnkiChevron }}</span></button>
+            <sc-if value="{{ ajAnkiOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;">
               <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Retenção ideal mínima (%)</label><input type="number" data-k="ankiRetMin" value="{{ orient.ankiRetMin }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
               <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Retenção ideal máxima (%)</label><input type="number" data-k="ankiRetMax" value="{{ orient.ankiRetMax }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
               <div><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Alertar abaixo de (%)</label><input type="number" data-k="ankiAlerta" value="{{ orient.ankiAlerta }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
@@ -3053,6 +3026,7 @@ window.ctPdfLib = (function(){
             </div>
             <div style="margin-top:16px;"><label style="display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Limite de cartões novos/dia</label><input type="number" data-k="ankiNovos" value="{{ orient.ankiNovos }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
             <div style="font-size:11.5px;color:var(--text3);margin-top:14px;line-height:1.5;">Quando a retenção cair abaixo do limite, os conselhos passam a recomendar reduzir cartões novos, revisar erros recentes e resolver questões do tema.</div>
+            </sc-if>
           </div>
         </div>
 
@@ -3988,6 +3962,7 @@ class Component extends DCLogic {
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'',
       bancaAreaSel:this._load('bancaAreaSel',''), bancaDicas:this._load('bancaDicas',{}), bancaBusy:'',
+      ajAnkiOpen:false,
       grupoDraft:{nome:'', codigo:''},
       ankiImported:this._load('ankiImported', false), pdfOpen:null,
       profile:{estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
@@ -6575,6 +6550,9 @@ class Component extends DCLogic {
     }catch(err){ this._toast(this._erroComunidade(err)||'Não deu para enviar; tente "Copiar relatório"'); }
   };
 
+  // Ajustes: o cartão de Anki avançado (retenção, carga) é de nicho — nasce recolhido.
+  toggleAjAnki = ()=> this.setState(s=>({ajAnkiOpen:!s.ajAnkiOpen}));
+
   // ===================== ABA BANCAS (perfil + dicas por área) =====================
   setBancaArea = (e)=>{ const v=e.currentTarget.value||''; this.setState({bancaAreaSel:v}); };
   // Dicas específicas de uma matéria para uma banca, geradas pela IA sob demanda
@@ -8533,6 +8511,7 @@ class Component extends DCLogic {
       }; });
 
     return {
+      ajAnkiOpen:this.state.ajAnkiOpen, ajAnkiChevron:this.state.ajAnkiOpen?'▾':'▸', toggleAjAnki:this.toggleAjAnki,
       isBancas:this.state.view==='bancas', navBancas:navStyle('bancas'),
       bancasVM, bancaAreaOpts, setBancaArea:this.setBancaArea, gerarDicasBanca:this.gerarDicasBanca,
       bancaAreaAtual:_areaSel,
