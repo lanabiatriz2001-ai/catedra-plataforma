@@ -25,6 +25,76 @@ if ! echo "$ARCS" | grep -q x86_64; then
   echo "⚠  Este build é SÓ Apple Silicon ($ARCS). Testadores com Mac Intel não vão conseguir abrir."
 fi
 
+# ---------------------------------------------------------------------------
+# NOTARIZAÇÃO — o que faz o app abrir com duplo clique na máquina do testador.
+#
+# Ordem que IMPORTA (errar aqui entrega um app "quase pronto" que só funciona
+# online): assinar → zipar → submeter → GRAMPEAR o .app → RE-ZIPAR.
+# O `stapler` não grampeia zip, só o .app; e o zip que foi submetido não contém
+# o tíquete. Distribuir aquele zip faz o app depender de consultar a Apple toda
+# vez — offline, o testador leva bloqueio.
+#
+# Só roda com assinatura Developer ID: a Apple recusa notarizar ad-hoc.
+# ---------------------------------------------------------------------------
+NOTARIZADO=0
+if codesign -dvv "$APP" 2>&1 | grep -q "Signature=adhoc"; then
+  echo "⚠  App assinado ad-hoc — pulando notarização (a Apple só notariza Developer ID)."
+  echo "   Para distribuir sem o ritual do Gatekeeper: crie o certificado"
+  echo "   'Developer ID Application' e rode bash mac/build-app.sh de novo."
+else
+  PERFIL="${CATEDRA_NOTARY_PROFILE:-catedra-notary}"
+  echo "→ Notarizando com o perfil '$PERFIL' (a Apple costuma levar de 1 a 15 min)…"
+  TMPZIP="$BUILD/.notarizar-$VER.zip"
+  rm -f "$TMPZIP"
+  (cd "$BUILD" && ditto -c -k --sequesterRsrc --keepParent "Cátedra.app" "$TMPZIP")
+
+  # `set -e` desligado no trecho: quero TRATAR a falha, não morrer nela.
+  set +e
+  xcrun notarytool submit "$TMPZIP" --keychain-profile "$PERFIL" --wait --timeout 45m \
+    > "$BUILD/notary.log" 2>&1
+  NT_RC=$?
+  set -e
+  rm -f "$TMPZIP"
+  sed 's/^/     /' "$BUILD/notary.log"
+
+  if [ $NT_RC -eq 0 ] && grep -q "status: Accepted" "$BUILD/notary.log"; then
+    xcrun stapler staple "$APP" >/dev/null && NOTARIZADO=1
+    if [ "$NOTARIZADO" = "1" ]; then
+      echo "   ✓ notarizado e grampeado"
+      # O veredito que vale é este: é o que o Mac do testador vai perguntar.
+      spctl -a -vvv "$APP" 2>&1 | sed 's/^/     /'
+    fi
+  else
+    # O motivo NUNCA vem no output do submit — vem do log da submissão.
+    SID="$(grep -m1 -E '^ *id: ' "$BUILD/notary.log" | awk '{print $2}' || true)"
+    echo "   ✗ notarização não concluída."
+    if [ -n "$SID" ]; then
+      echo "     Motivo detalhado:  xcrun notarytool log $SID --keychain-profile $PERFIL"
+    else
+      echo "     Sem credencial configurada? Rode (uma vez só):"
+      echo "     xcrun notarytool store-credentials \"$PERFIL\" --apple-id <apple-id> --team-id <TEAMID>"
+    fi
+    echo "     O pacote sai assim mesmo, mas com o ritual do Gatekeeper."
+  fi
+fi
+
+if [ "$NOTARIZADO" = "1" ]; then
+# App notarizado pela Apple: não mandar o testador no ritual do Gatekeeper —
+# ele simplesmente não vai acontecer, e a instrução errada só assusta.
+cat > "$BUILD/COMO-INSTALAR.txt" <<TXT
+CÁTEDRA — como instalar no Mac
+==============================
+
+1. Descompacte o arquivo e arraste "Cátedra.app" para a pasta Aplicativos.
+
+2. Dê um duplo clique. Pronto — o app abre normalmente.
+
+   (Este app é assinado e notarizado pela Apple, então não aparece nenhum
+   aviso de "desenvolvedor não identificado".)
+TXT
+else
+# Sem notarização: o Gatekeeper VAI recusar, e sem esta instrução quem baixa
+# desiste no aviso.
 cat > "$BUILD/COMO-INSTALAR.txt" <<TXT
 CÁTEDRA — como instalar no Mac
 ==============================
@@ -32,8 +102,8 @@ CÁTEDRA — como instalar no Mac
 1. Descompacte o arquivo e arraste "Cátedra.app" para a pasta Aplicativos.
 
 2. Dê um duplo clique. Vai aparecer um aviso dizendo que o app não pôde ser
-   verificado. Isso é esperado: o app não passou pela notarização da Apple
-   (que exige uma conta paga de desenvolvedor). Clique em OK/Cancelar.
+   verificado. Isso é esperado: este pacote não passou pela notarização da
+   Apple. Clique em OK/Cancelar.
 
 3. Abra Ajustes do Sistema > Privacidade e Segurança e role até o fim.
    Vai ter uma linha sobre o "Cátedra" ter sido bloqueado, com o botão
@@ -44,6 +114,11 @@ CÁTEDRA — como instalar no Mac
    que ser pelos Ajustes do Sistema.)
 
 4. Da segunda vez em diante é só abrir normalmente.
+TXT
+fi
+
+# Daqui para baixo o texto é igual nos dois casos.
+cat >> "$BUILD/COMO-INSTALAR.txt" <<TXT
 
 Requisitos
 ----------
