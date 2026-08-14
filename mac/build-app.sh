@@ -122,10 +122,66 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-echo "→ 5/5  Assinando (ad-hoc)…"
-codesign --force --deep --sign - "$APP" >/dev/null 2>&1 \
-  && echo "     assinado (ad-hoc)" \
-  || echo "     aviso: codesign ad-hoc falhou — o app ainda roda"
+echo "→ 5/5  Assinando…"
+# DUAS assinaturas possíveis, e a diferença decide se o testador consegue abrir:
+#
+#   · "Developer ID Application" (conta paga da Apple) + notarização → o app abre
+#     com duplo clique na máquina de qualquer um, sem ritual nenhum.
+#   · ad-hoc (o que sempre foi feito aqui) → o Gatekeeper recusa, e quem recebe
+#     precisa do "Abrir Mesmo Assim" nos Ajustes do Sistema.
+#
+# ARMADILHA que custou caro descobrir: NÃO basta trocar o `-s -` pelo Developer ID.
+# Sem `--options runtime` (hardened runtime) e sem `--timestamp`, a notarização
+# REPROVA — e nada avisa nesta máquina, porque o app abre normalmente aqui. O erro
+# só aparece quando o testador tenta abrir. Por isso as duas flags são obrigatórias
+# e conferidas logo abaixo.
+#
+# `--deep` saiu: está DEPRECADO para assinar desde o macOS 13 (man codesign) e
+# aplica as mesmas opções a todo conteúdo aninhado — quase nunca o que se quer.
+# Aqui o bundle é plano (nenhum .appex/.framework/.dylib/.xpc dentro), então uma
+# assinatura no .app basta. No dia em que o widget entrar, a ordem inverte: assina
+# o .appex ANTES do .app.
+#
+# `--entitlements` também não: o app NÃO é sandboxed e não precisa de nenhum
+# entitlement. Em especial NÃO usar `disable-library-validation` — a doc da Apple
+# avisa que o Gatekeeper roda checagens extras em quem o desliga e pode BLOQUEAR o
+# app. E o WKWebView não exige `allow-jit`: o JavaScript roda no processo
+# com.apple.WebKit.WebContent da própria Apple, que já tem esse entitlement.
+# (mac/Catedra.entitlements pede app-groups, resquício do widget que nem é montado;
+# passá-lo aqui seria peso morto — o Group Container é ingravável sem perfil.)
+SIGN_ID="${CATEDRA_SIGN_ID:-}"
+if [ -z "$SIGN_ID" ]; then
+  # `grep` sem casar devolve 1 e, com `set -e`, derrubaria o build inteiro: || true.
+  SIGN_ID="$(security find-identity -v -p codesigning 2>/dev/null \
+             | grep 'Developer ID Application' | head -1 \
+             | sed -E 's/.*"(.*)"/\1/' || true)"
+fi
+
+if [ -n "$SIGN_ID" ]; then
+  echo "     identidade: $SIGN_ID"
+  if codesign --force --options runtime --timestamp --sign "$SIGN_ID" "$APP" 2>"$BUILD/codesign.log"; then
+    _cs="$(codesign -dvv "$APP" 2>&1)"
+    case "$_cs" in *runtime*) echo "     ✓ hardened runtime";; *) echo "     ⚠ SEM hardened runtime — a notarização vai reprovar";; esac
+    case "$_cs" in *Timestamp=*) echo "     ✓ carimbo de tempo";; *) echo "     ⚠ SEM carimbo de tempo — a notarização vai reprovar";; esac
+    echo "     assinado para DISTRIBUIÇÃO"
+  else
+    # Falha mais comum: sem internet. O --timestamp precisa alcançar
+    # timestamp.apple.com; num wifi ruim o codesign falha. Não derrubar o build
+    # por isso — cair para ad-hoc avisando.
+    echo "     ⚠ falhou assinar com Developer ID (detalhe em $BUILD/codesign.log)"
+    echo "       Causa comum: sem internet — o --timestamp precisa de rede."
+    echo "       Caindo para ad-hoc para não quebrar o build."
+    SIGN_ID=""
+  fi
+fi
+
+if [ -z "$SIGN_ID" ]; then
+  codesign --force --sign - "$APP" >/dev/null 2>&1 \
+    && echo "     assinado (ad-hoc — serve para usar aqui, não para distribuir)" \
+    || echo "     aviso: codesign ad-hoc falhou — o app ainda roda"
+  echo "     ⚠ sem certificado 'Developer ID Application' no chaveiro."
+  echo "       O testador vai precisar do ritual \"Abrir Mesmo Assim\"."
+fi
 
 echo
 echo "✓ Pronto:  $APP"
