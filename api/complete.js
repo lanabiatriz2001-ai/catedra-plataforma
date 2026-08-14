@@ -1,12 +1,17 @@
 // api/complete.js — proxy seguro para a IA, rodando na Vercel.
 //
 // Provedores (em ordem de preferência, conforme a variável de ambiente presente):
-//   1. Vercel AI Gateway  — AI_GATEWAY_API_KEY (chave vck_…). Um endpoint só,
+//   1. Anthropic (Claude) direto — ANTHROPIC_API_KEY (chave sk-ant-…). A melhor
+//      qualidade para o raciocínio jurídico em português (raio-X de redação, dicas
+//      de banca). Modelo padrão claude-sonnet-5; troque com ANTHROPIC_MODEL
+//      (ex.: claude-opus-5 para o raio-X mais exigente). O corpo pode pedir um
+//      modelo "claude…" específico.
+//   2. Vercel AI Gateway  — AI_GATEWAY_API_KEY (chave vck_…). Um endpoint só,
 //      compatível com OpenAI, roteando para qualquer modelo (Gemini, Claude, GPT…).
-//      Modelo padrão: google/gemini-2.5-flash; troque com AI_MODEL
-//      (ex.: anthropic/claude-haiku-4.5).
-//   2. Google Gemini direto — GEMINI_API_KEY (plano gratuito do AI Studio).
-//      Modelo padrão gemini-2.5-flash; troque com GEMINI_MODEL.
+//      Modelo padrão: google/gemini-2.5-flash; troque com AI_MODEL.
+//   3. Google Gemini direto — GEMINI_API_KEY (plano gratuito do AI Studio).
+//      Modelo padrão gemini-2.5-flash; troque com GEMINI_MODEL. Essa chave também
+//      move a narração (api/tts.js), que é só Gemini — por isso ela nunca sai.
 //
 // Por que existe: o app (Catedra.dc.html) é 100% client-side e chama
 // `window.claude.complete(prompt)`. Em produção o shim (ver scripts/build.mjs)
@@ -115,10 +120,11 @@ export default async function handler(req, res) {
     return;
   }
 
+  const antKey = (process.env.ANTHROPIC_API_KEY || '').trim();
   const gwKey = (process.env.AI_GATEWAY_API_KEY || '').trim();
   const gemKey = (process.env.GEMINI_API_KEY || '').trim();
-  if (!gwKey && !gemKey) {
-    res.status(500).json({ error: 'Nenhuma chave configurada — defina AI_GATEWAY_API_KEY (ou GEMINI_API_KEY) nas variáveis de ambiente da Vercel.' });
+  if (!antKey && !gwKey && !gemKey) {
+    res.status(500).json({ error: 'Nenhuma chave configurada — defina ANTHROPIC_API_KEY (ou AI_GATEWAY_API_KEY, ou GEMINI_API_KEY) nas variáveis de ambiente da Vercel.' });
     return;
   }
 
@@ -143,9 +149,56 @@ export default async function handler(req, res) {
     const maxTokens = Math.min(body.max_tokens || 4096, 8192);
     const temperature = typeof body.temperature === 'number' ? body.temperature : 0.7;
 
-    // ---------- 1) Vercel AI Gateway (OpenAI-compatível) ----------
+    // ---------- 1) Anthropic (Claude) direto ----------
+    // Provedor preferido: a melhor qualidade no raciocínio jurídico em português.
+    // Se a Anthropic falhar e houver Gateway/Gemini, seguimos para o próximo em
+    // vez de derrubar o aluno.
+    if (antKey) {
+      const model = (typeof body.model === 'string' && /^claude[\w.\-]*$/.test(body.model))
+        ? body.model
+        : (process.env.ANTHROPIC_MODEL || 'claude-sonnet-5');
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': antKey,
+          'anthropic-version': '2023-06-01',
+        },
+        // Sem temperature: os modelos Claude atuais recusam sampling fora do padrão (400).
+        // thinking desligado: o orçamento inteiro vai para a resposta visível, sem risco
+        // de truncar (mesma intenção do thinkingBudget:0 do Gemini). Para um raio-X com
+        // raciocínio mais profundo, é só religar o thinking e subir o max_tokens.
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          thinking: { type: 'disabled' },
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (!r.ok) {
+        const detail = await r.text();
+        if (!gwKey && !gemKey) {
+          res.status(r.status).json({ error: 'Erro da Anthropic (' + r.status + ')', detail: detail.slice(0, 500) });
+          return;
+        }
+        // com Gateway/Gemini disponível, cai para o próximo provedor (abaixo)
+      } else {
+        const data = await r.json();
+        const text = (Array.isArray(data.content) ? data.content : [])
+          .filter((b) => b && b.type === 'text')
+          .map((b) => b.text || '').join('');
+        if (!text) {
+          res.status(200).json({ completion: '', note: 'Claude retornou vazio (' + (data.stop_reason || 'sem texto') + ').' });
+          return;
+        }
+        res.status(200).json({ completion: text });
+        return;
+      }
+    }
+
+    // ---------- 2) Vercel AI Gateway (OpenAI-compatível) ----------
     // Se o Gateway recusar (ex.: 403 exigindo cartão na conta) e houver chave
-    // Gemini, seguimos para o provedor 2 em vez de devolver erro ao aluno.
+    // Gemini, seguimos para o próximo provedor em vez de devolver erro ao aluno.
     if (gwKey) {
       const model = (typeof body.model === 'string' && /^[\w.\-]+\/[\w.\-]+$/.test(body.model))
         ? body.model
@@ -169,7 +222,7 @@ export default async function handler(req, res) {
           res.status(r.status).json({ error: 'Erro do AI Gateway (' + r.status + ')', detail: detail.slice(0, 500) });
           return;
         }
-        // com chave Gemini disponível, cai para o provedor 2 (abaixo)
+        // com chave Gemini disponível, cai para o provedor 3 (abaixo)
       } else {
         const data = await r.json();
         const text = (((data.choices || [])[0] || {}).message || {}).content || '';
@@ -182,7 +235,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // ---------- 2) Gemini direto (fallback) ----------
+    // ---------- 3) Gemini direto (fallback) ----------
     // modelo: aceita override do corpo (se for um nome de modelo Gemini) ou da env.
     const model = (typeof body.model === 'string' && /^gemini[\w.\-]*$/.test(body.model))
       ? body.model
