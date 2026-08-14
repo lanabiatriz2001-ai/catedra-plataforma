@@ -27,7 +27,8 @@ async function usuarioDoToken(req) {
     });
     if (!r.ok) return null;
     const u = await r.json();
-    return u && u.id ? u : null;
+    if (u && u.id) { u.__token = m[1]; return u; }
+    return null;
   } catch (_) {
     return null;
   }
@@ -37,6 +38,21 @@ function liberado(user) {
   const lista = (process.env.BETA_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   if (!lista.length) return true;
   return lista.includes(String(user.email || '').toLowerCase());
+}
+
+// Conta bloqueada pela dona no painel de admin (fail-open em erro de rede).
+async function contaBloqueada(user) {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/meu_acesso_bloqueado', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+      body: '{}',
+    });
+    if (!r.ok) return false;
+    return (await r.json()) === true;
+  } catch (_) {
+    return false;
+  }
 }
 
 /** Embrulha PCM 16-bit mono num WAV — 44 bytes de cabeçalho, sem dependência nenhuma. */
@@ -84,6 +100,7 @@ export default async function handler(req, res) {
   const user = await usuarioDoToken(req);
   if (!user) { res.status(401).json({ error: 'Entre na sua conta do Cátedra para gerar a narração.' }); return; }
   if (!liberado(user)) { res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' }); return; }
+  if (await contaBloqueada(user)) { res.status(403).json({ error: 'O acesso à IA desta conta foi pausado. Fale com quem te convidou.' }); return; }
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});

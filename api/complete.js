@@ -34,7 +34,8 @@ async function usuarioDoToken(req) {
     });
     if (!r.ok) return null;
     const u = await r.json();
-    return u && u.id ? u : null;
+    if (u && u.id) { u.__token = token[1]; return u; }
+    return null;
   } catch (_) {
     return null;
   }
@@ -46,6 +47,24 @@ function liberado(user) {
   const lista = (process.env.BETA_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   if (!lista.length) return true;
   return lista.includes(String(user.email || '').toLowerCase());
+}
+
+// Bloqueio individual, controlado pela dona no painel de admin. Pergunta ao banco,
+// com o token do próprio usuário, se esta conta foi bloqueada. Em qualquer falha de
+// rede/consulta, NÃO bloqueia (fail-open) — não quero derrubar a IA de todos se o
+// Supabase piscar; o portão que importa (exigir sessão) já passou.
+async function contaBloqueada(user) {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/meu_acesso_bloqueado', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+      body: '{}',
+    });
+    if (!r.ok) return false;
+    return (await r.json()) === true;
+  } catch (_) {
+    return false;
+  }
 }
 
 export default async function handler(req, res) {
@@ -61,6 +80,10 @@ export default async function handler(req, res) {
   }
   if (!liberado(user)) {
     res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' });
+    return;
+  }
+  if (await contaBloqueada(user)) {
+    res.status(403).json({ error: 'O acesso à IA desta conta foi pausado. Fale com quem te convidou.' });
     return;
   }
 

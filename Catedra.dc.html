@@ -375,6 +375,7 @@ window.ctPdfLib = (function(){
       <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraLEGIS</span></button>
       <button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraJURIS</span></button>
       <button data-view="ajustes" onclick="{{ onNav }}" style="{{ navStyle.ajustes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.3 2.5h4l.3-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" stroke-linejoin="round"></path></svg><span>Ajustes</span></button>
+      <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}"><button data-view="admin" onclick="{{ onNav }}" style="{{ navAdmin }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7z" stroke-linejoin="round"></path><path d="M9.5 12l1.8 1.8L15 10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Administrador</span></button></sc-if>
     </nav>
      </div>
     </sc-if>
@@ -3391,6 +3392,84 @@ window.ctPdfLib = (function(){
        </div>
       </sc-if>
 
+      <!-- ================= PAINEL DE ADMINISTRADOR (só a dona vê) ================= -->
+      <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+       <sc-if value="{{ isAdminView }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:18px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button onclick="{{ refreshAdmin }}" style="display:inline-flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">↻ Atualizar</button>
+            <span style="font-size:12px;color:var(--text3);">{{ adminGeradoEm }}</span>
+          </div>
+
+          <sc-if value="{{ adminTemErro }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fdecea;border:1px solid #f5c2bd;color:#8a2a1e;border-radius:12px;padding:16px 18px;font-size:13.5px;">{{ adminErro }}</div>
+          </sc-if>
+
+          <!-- SAÚDE DO BETA -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+            <sc-for list="{{ admSaude }}" as="m" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;">
+                <div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);line-height:1;">{{ m.v }}</div>
+                <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin-top:8px;">{{ m.k }}</div>
+                <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">{{ m.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- TESTADORES -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+            <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Testadores</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">quem entrou, há quanto tempo não volta, e quanto já usou — sem abrir o conteúdo de estudo de ninguém</div>
+            <sc-if value="{{ admTemTesters }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{ admTesters }}" as="t" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;">
+                    <span style="width:9px;height:9px;border-radius:99px;background:{{ t.dot }};flex:none;"></span>
+                    <div style="flex:1;min-width:160px;">
+                      <div style="font-size:13.5px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.email }}</div>
+                      <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">entrou {{ t.criado }} · último acesso {{ t.ultimo }} · sync {{ t.sync }}</div>
+                    </div>
+                    <div style="font-size:11.5px;color:var(--text3);text-align:right;flex:none;">{{ t.sessoes }} sessões<br>{{ t.disc }} disc · {{ t.kb }}</div>
+                    <span style="{{ t.tagStyle }}">{{ t.tag }}</span>
+                    <sc-if value="{{ t.podeBloquear }}" hint-placeholder-val="{{ true }}">
+                      <button data-uid="{{ t.uid }}" data-bloq="{{ t.acaoBloq }}" onclick="{{ adminBloquear }}" style="{{ t.acaoStyle }}">{{ t.acaoLabel }}</button>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ adminBusy }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;color:var(--text3);font-size:13px;padding:20px;">Carregando…</div>
+            </sc-if>
+          </div>
+
+          <!-- FEEDBACK -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-weight:600;color:var(--ink);font-size:15px;">Bugs e feedback</span>
+              <span style="font-size:11px;font-weight:700;color:var(--onAccent);background:var(--accent);border-radius:99px;padding:2px 8px;">{{ admFeedbackNaoLidos }} novos</span>
+            </div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">o que os testadores enviaram de dentro do app</div>
+            <sc-if value="{{ admFeedbackVazio }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;color:var(--text3);font-size:13px;padding:16px;">Nenhum relato ainda.</div>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <sc-for list="{{ admFeedback }}" as="f" hint-placeholder-count="3">
+                <div style="{{ f.cardStyle }}">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+                    <span style="font-size:12px;font-weight:600;color:var(--text2);">{{ f.email }} · {{ f.quando }}</span>
+                    <button data-id="{{ f.id }}" onclick="{{ adminLerFeedback }}" style="font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:4px 10px;cursor:pointer;font-family:inherit;color:var(--text2);">Marcar lido</button>
+                  </div>
+                  <div style="font-size:13.5px;color:var(--ink);line-height:1.55;white-space:pre-wrap;">{{ f.mensagem }}</div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:8px;font-family:var(--mono);">{{ f.ctx }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+       </sc-if>
+      </sc-if>
+
       <!-- ================= (fundido em Ajustes) PERSONALIZAÇÃO ================= -->
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;align-items:center;gap:12px;margin:6px 0;">
@@ -3721,7 +3800,8 @@ window.ctPdfLib = (function(){
           <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Versão e suporte</div>
           <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">achou um problema? copie o relatório e mande para quem te convidou — ele já vem com a versão exata e o estado do app</div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <button onclick="{{ copiarRelatorio }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 16px;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Copiar relatório de problema</button>
+            <button onclick="{{ enviarFeedback }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:10px 16px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600;">Enviar problema ou sugestão</button>
+            <button onclick="{{ copiarRelatorio }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 16px;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Copiar relatório</button>
             <span style="font-family:var(--mono);font-size:11.5px;color:var(--text3);">{{ buildLabel }}</span>
           </div>
         </div>
@@ -3845,6 +3925,7 @@ class Component extends DCLogic {
       errSearch:'', errStatus:'todos', errSort:'recentes', errTagInput:'', errMaisCampos:false, errBulk:'', errBulkBusy:false, errBulkDrafts:null, errPlano:'', errPlanoBusy:false, errShowStats:true,
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
+      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'',
       grupoDraft:{nome:'', codigo:''},
       ankiImported:this._load('ankiImported', false), pdfOpen:null,
       profile:{estrategia:'ciclo', retaFinal:false, ...this._load('profile', {})},
@@ -3953,8 +4034,9 @@ class Component extends DCLogic {
     // registro de sessão usam isto quando a categoria é Lei seca/Jurisprudência.
     try{ window.catedraSetNativeCatalogo = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativeCatalogo:o}); }catch(_){} }; }catch(_){}
     // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
-    try{ window.__catedraGoView = (v)=>{ try{ if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); }catch(_){} }; }catch(_){}
+    try{ window.__catedraGoView = (v)=>{ try{ if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); }catch(_){} }; }catch(_){}
     this._migrarSchema();
+    try{ this._bootAdmin(); }catch(_){}   // descobre se esta conta é admin (mostra o item do menu)
     this._reconcileStreak();
     this._reconcileReviews();
     this._reconcileCiclo();
@@ -4827,7 +4909,7 @@ class Component extends DCLogic {
         heroGrad:'linear-gradient(120deg,#7c5cf0 0%,#0ea5e9 55%,#e0479d 110%)' } }
   };}
 
-  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); };
+  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
@@ -6378,6 +6460,56 @@ class Component extends DCLogic {
       if(ativo) await this._loadRankingGrupo(ativo);
     }
     catch(err){ this.setState({gruposBusy:false, comErro:this._erroComunidade(err)}); } };
+  // ===================== PAINEL DE ADMINISTRADOR =====================
+  // "Só a dona acessa" vale no SERVIDOR: cada RPC começa checando is_admin() e falha
+  // com exceção. Esconder o item do menu (abaixo) é só conveniência — quem abrir o
+  // DevTools e chamar admin_visao_geral() sem ser admin leva 'acesso_negado'.
+  _bootAdmin = async ()=>{
+    const sb=this._sb(); if(!sb) return;
+    try{ const r=await sb.rpc('is_admin'); if(!r.error && r.data===true) this.setState({isAdmin:true}); }catch(_){}
+  };
+  _loadAdmin = async ()=>{
+    const sb=this._sb(); if(!sb){ this.setState({adminErro:'Sem conexão com o servidor.'}); return; }
+    this.setState({adminBusy:true, adminErro:''});
+    try{
+      const [vg, fb] = await Promise.all([ sb.rpc('admin_visao_geral'), sb.rpc('admin_feedback') ]);
+      if(vg.error) throw vg.error;
+      this.setState({ adminData:vg.data||null, adminFeedback:(fb&&!fb.error&&Array.isArray(fb.data))?fb.data:[], adminBusy:false });
+    }catch(err){
+      const msg=String((err&&err.message)||err||'');
+      this.setState({adminBusy:false, adminErro: /acesso_negado/i.test(msg) ? 'Esta conta não é administradora.' : (this._erroComunidade(err)||'Não foi possível carregar o painel.') });
+    }
+  };
+  _adminBloquear = async (e)=>{
+    const uid=e.currentTarget.dataset.uid; const bloq=e.currentTarget.dataset.bloq==='1';
+    if(!uid) return;
+    if(bloq && !window.confirm('Pausar o acesso à IA desta conta?')) return;
+    const sb=this._sb(); if(!sb) return;
+    try{ const r=await sb.rpc('admin_bloquear', {p_user_id:uid, p_bloq:bloq, p_motivo:null}); if(r.error) throw r.error;
+      this._toast(bloq?'Acesso pausado':'Acesso liberado'); this._loadAdmin();
+    }catch(err){ this._toast(/nao_bloqueie_a_si/i.test(String(err&&err.message))?'Você não pode bloquear a si mesma':'Não deu para aplicar'); }
+  };
+  _adminLerFeedback = async (e)=>{
+    const id=e.currentTarget.dataset.id; const sb=this._sb(); if(!sb||!id) return;
+    try{ const r=await sb.rpc('admin_marcar_feedback', {p_id:Number(id), p_lido:true}); if(r.error) throw r.error;
+      this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(f=>String(f.id)===String(id)?{...f,lido:true}:f)}));
+    }catch(_){}
+  };
+  // Envia o relatório de problema direto para a caixa da dona (antes só copiava p/ colar).
+  enviarFeedback = async ()=>{
+    const sb=this._sb();
+    const b=(typeof window!=='undefined' && window.CATEDRA_BUILD)||{};
+    const msg = window.prompt('Descreva o problema ou a sugestão (vai direto para quem te convidou):', '');
+    if(msg===null) return;
+    if(!String(msg).trim()){ this._toast('Escreva algo antes de enviar'); return; }
+    const contexto={ build:(b.versao||'?')+' · '+(b.alvo||'?'), tela:this.state.view, sync:this.state.syncStatus,
+                     navegador:(navigator.userAgent||'').slice(0,180), janela:window.innerWidth+'x'+window.innerHeight };
+    if(!sb){ this._toast('Sem conexão — use "Copiar relatório" e mande por mensagem'); return; }
+    try{ const r=await sb.rpc('enviar_feedback', {p_mensagem:String(msg), p_contexto:contexto}); if(r.error) throw r.error;
+      this._toast('Enviado — obrigada! 💚');
+    }catch(err){ this._toast(this._erroComunidade(err)||'Não deu para enviar; tente "Copiar relatório"'); }
+  };
+
   // Antes o erro era engolido e a Comunidade só ficava vazia — impossível saber que
   // o servidor não respondia. Agora a tela DIZ o que houve (e o que fazer).
   _erroComunidade(err){
@@ -6615,7 +6747,7 @@ class Component extends DCLogic {
   saveOrient = ()=>{ this._persistOrient(); this.setState({orientFlash:true}); clearTimeout(this._ot); this._ot=setTimeout(()=>this.setState({orientFlash:false}),1600); };
   closePalette = ()=> this.setState({paletteOpen:false});
   onPaletteQuery = (e)=> this.setState({paletteQuery:e.currentTarget.value});
-  paletteGo = (e)=>{ const v=e.currentTarget.dataset.view; const act=e.currentTarget.dataset.act; if(v==='comunidade') try{ this._loadGrupos(); }catch(_){}
+  paletteGo = (e)=>{ const v=e.currentTarget.dataset.view; const act=e.currentTarget.dataset.act; if(v==='comunidade') try{ this._loadGrupos(); }catch(_){} if(v==='admin') try{ this._loadAdmin(); }catch(_){}
     if(act==='foco'){ this.setState({paletteOpen:false}); this.enterFocus(); return; }
     if(act==='registrar'){ this.setState({paletteOpen:false, sessionModalOpen:true}); return; }
     const openId=e.currentTarget.dataset.open;
@@ -6669,7 +6801,7 @@ class Component extends DCLogic {
     };
     const bnInicio=bnStyle('inicio'), bnCiclo=bnStyle('ciclo'), bnRevisoes=bnStyle('revisoes');
     // ===== menu simplificado: essenciais visíveis + "Mais opções" =====
-    const _moreViews=['anki','analise','conquistas','historico','multiformato','bemestar','comunidade','biblioteca','ajustes'];
+    const _moreViews=['anki','analise','conquistas','historico','multiformato','bemestar','comunidade','biblioteca','ajustes','admin'];
     const _onMore=_moreViews.indexOf(this.state.view)>=0;
     const navShowMore=this.state.navExpanded||_onMore;
     const navToggleShow=!_onMore;
@@ -8251,7 +8383,51 @@ class Component extends DCLogic {
     const relAtencao=[]; if(revOverdue.length) relAtencao.push('Há '+revOverdue.length+' revisão(ões) vencida(s) — zere antes de avançar para conteúdo novo.'); if(_relWeak[0]) relAtencao.push('Disciplina mais frágil: '+_relWeak[0].disc+' ('+_relWeak[0].liqPct+' líquido) — priorize questões comentadas e revisão.'); if(_relBruto && _relBruto<70) relAtencao.push('Acerto bruto no período em '+_relBruto+'% (abaixo de 70%) — reforce teoria e questões.'); if(!relAtencao.length) relAtencao.push('Sem pontos críticos no período. Mantenha a constância e o volume de questões.');
     const relPeriodOpts=[{v:7,label:'7 dias'},{v:30,label:'30 dias'},{v:90,label:'90 dias'}].map(o=>({v:o.v, label:o.label, sel:o.v===_relDays, style:`padding:7px 14px;border-radius:9px;border:1px solid ${o.v===_relDays?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;background:${o.v===_relDays?'var(--accent)':'var(--surface)'};color:${o.v===_relDays?'var(--onAccent)':'var(--text2)'};`}));
 
+    // ── view-model do PAINEL DE ADMIN (só formata o que o servidor já filtrou) ──
+    const _adm=this.state.adminData||{}; const _admS=_adm.saude||{};
+    const _fmtData=(s)=>{ if(!s) return '—'; try{ return new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return '—'; } };
+    const _diasDe=(s)=>{ if(!s) return Infinity; try{ return Math.floor((Date.now()-Date.parse(s))/86400000); }catch(_){ return Infinity; } };
+    const admSaude=[
+      {k:'Contas', v:String(_admS.contas!=null?_admS.contas:'—'), sub:'testadores no total'},
+      {k:'Ativos (7d)', v:String(_admS.ativos7d!=null?_admS.ativos7d:'—'), sub:'entraram na última semana'},
+      {k:'Ativos (30d)', v:String(_admS.ativos30d!=null?_admS.ativos30d:'—'), sub:'entraram no último mês'},
+      {k:'Nunca voltaram', v:String(_admS.nuncaVoltaram!=null?_admS.nuncaVoltaram:'—'), sub:'entraram uma vez só'},
+    ];
+    const admTesters=(_adm.testadores||[]).map((t)=>{
+      const dias=_diasDe(t.ultimoLogin);
+      const cor = t.admin? '#7c3aed' : t.bloqueado? '#c0392f' : dias<=7? '#0f9d6b' : dias<=30? '#c2790c' : '#8a94a6';
+      return {
+        uid:t.uid, email:t.email||'—',
+        criado:_fmtData(t.criadoEm), ultimo: t.ultimoLogin? _fmtData(t.ultimoLogin) : 'nunca',
+        sync: t.ultimaSync? _fmtData(t.ultimaSync) : '—',
+        sessoes:String(t.nSessoes||0), disc:String(t.nDiscEdital||0), kb:(t.blobKb!=null?t.blobKb:0)+' KB',
+        dot:cor,
+        tag: t.admin?'admin': t.bloqueado?'bloqueada': !t.confirmado?'não confirmada' : dias<=7?'ativa' : dias===Infinity?'nunca entrou':'inativa',
+        tagStyle:`font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:${cor};background:${cor}1a;border-radius:99px;padding:3px 9px;`,
+        podeBloquear: !t.admin,
+        bloqueada: !!t.bloqueado,
+        acaoLabel: t.bloqueado?'Liberar':'Pausar IA',
+        acaoBloq: t.bloqueado?'0':'1',
+        acaoStyle:`font-size:11.5px;font-weight:600;border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit;border:1px solid ${t.bloqueado?'#0f9d6b':'var(--border)'};background:${t.bloqueado?'#0f9d6b':'var(--surface2)'};color:${t.bloqueado?'#fff':'var(--text2)'};`,
+      };
+    });
+    const admFeedback=(this.state.adminFeedback||[]).map((f)=>({
+      id:String(f.id), email:f.email||'anônimo', quando:_fmtData(f.criado_em),
+      mensagem:String(f.mensagem||''),
+      ctx: f.contexto? Object.keys(f.contexto).map(k=>k+': '+f.contexto[k]).join(' · ') : '',
+      lido:!!f.lido,
+      cardStyle:`background:var(--surface2);border:1px solid ${f.lido?'var(--border)':'var(--accent)'};border-radius:12px;padding:14px 16px;`,
+    }));
+    const admFeedbackNaoLidos=admFeedback.filter(f=>!f.lido).length;
+
     return {
+      isAdmin:this.state.isAdmin, isAdminView:this.state.view==='admin', navAdmin:navStyle('admin'),
+      adminBusy:this.state.adminBusy, adminErro:this.state.adminErro, adminTemErro:!!this.state.adminErro,
+      adminCarregado:!!this.state.adminData, refreshAdmin:this._loadAdmin,
+      admSaude, admTesters, admTemTesters:admTesters.length>0,
+      admFeedback, admFeedbackVazio:admFeedback.length===0, admFeedbackNaoLidos:String(admFeedbackNaoLidos),
+      adminBloquear:this._adminBloquear, adminLerFeedback:this._adminLerFeedback,
+      adminGeradoEm: _adm.geradoEm? ('atualizado '+(()=>{ try{ return new Date(_adm.geradoEm).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } })()) : '',
       rootStyle, T, isDark:T.isDark, isMobile:this.state.isMobile, menuOpen:this.state.menuOpen,
       sidebarBg:T.sidebarBg,
       asideStyle: this.state.isMobile
@@ -8347,8 +8523,8 @@ class Component extends DCLogic {
       redResultLivre, redCompareStudent, redCompareGab,
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório'}[this.state.view]),
-      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação'}[this.state.view]),
+      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Painel do administrador'}[this.state.view]),
+      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Testadores, saúde do beta, acesso e feedback'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
       syncTitle:(this.state.syncStatus==='local'?'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho':'Seus dados sincronizam com a sua conta — o merge une o progresso de todos os aparelhos'),
@@ -8496,7 +8672,7 @@ class Component extends DCLogic {
       setCadCorVal:this.setCadCorVal,
       densConf:densBtn('confortavel'), densComp:densBtn('compacto'), setDensity:this.setDensity,
       // ajustes
-      prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
+      prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, enviarFeedback:this.enviarFeedback, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
       togRevisao:togStyle(this.state.prefs.notifRevisao), togRevisaoKnob:togKnob(this.state.prefs.notifRevisao),
       togMeta:togStyle(this.state.prefs.notifMeta), togMetaKnob:togKnob(this.state.prefs.notifMeta),
       contentMax,
