@@ -80,7 +80,7 @@ console.log('  · build ' + BUILD.versao + ' (' + BUILD.data + ')');
 
 const INJECT = `
 <!-- ▼ injetado pelo build de produção — NÃO existe no Catedra.dc.html original ▼ -->
-<script>window.CATEDRA_BUILD = ${JSON.stringify(BUILD)};</script>
+<script>window.CATEDRA_BUILD = ${JSON.stringify(BUILD)}; window.CATEDRA_API_BASE = "";</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#0f7a57">
 <!-- PWA instalável no iPhone (Adicionar à Tela de Início) -->
