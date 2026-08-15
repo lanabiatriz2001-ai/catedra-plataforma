@@ -304,6 +304,12 @@
     // read-before-write: relê o servidor e mescla antes de subir (nada de sobrescrever cego)
     sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
       .then(function (res) {
+        // Mesmo cuidado da hidratação, e aqui é PIOR: o upsert lá embaixo executa de
+        // verdade. Sem esta checagem, um select que falhou virava row=null, o
+        // mergeAll(null, ...) devolvia SÓ o local, e o local subia por cima da nuvem —
+        // apagando no servidor o que o outro aparelho tinha gravado. Falhar aqui é o
+        // certo: o .catch abaixo mantém o dirty e a próxima tentativa reconcilia.
+        if (res && res.error) throw res.error;
         var row = res && res.data;
         var antes = collect();
         var merged = mergeAll(row && row.data, antes, false); // subida: local prevalece nos escalares
@@ -366,6 +372,12 @@
     if (!user || hydrating) return;
     clearTimeout(pushT);
     if (!authToken) return; // sem JWT o POST seria rejeitado pelo RLS — deixa o dirty para a próxima sessão
+    // NÃO subir quando este aparelho não tem nada novo. Este envio é CEGO (não faz
+    // read-before-write, porque no fechamento não dá tempo), então subir sem precisar
+    // significa reescrever a nuvem inteira com o blob local — apagando no servidor o
+    // que outro aparelho gravou nesse meio-tempo. Sem esta linha, bastava o Mac ficar
+    // aberto e ocioso e ser minimizado para desfazer o que foi estudado no celular.
+    if (!isDirty()) return;
     try {
       fetch(CFG.url + '/rest/v1/user_data', {
         method: 'POST', keepalive: true,
@@ -376,7 +388,10 @@
     } catch (_) { pushNow(); }
   }
   document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'hidden') flushSync();
+    // Minimizar/trocar de aba NÃO é fechar: a página segue viva, então dá tempo do
+    // caminho seguro (pushNow faz read-before-write). O envio cego com keepalive fica
+    // só para o pagehide, onde realmente não há tempo de reler o servidor.
+    if (document.visibilityState === 'hidden') { clearTimeout(pushT); if (isDirty()) pushNow(); }
     else if (document.visibilityState === 'visible') pullAndMerge();
   });
   window.addEventListener('pagehide', flushSync);
@@ -541,6 +556,23 @@
     if (sessionStorage.getItem('catedra:hydrated') === '1') { _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
     showLoading('Carregando seus dados…');
     sb.from('user_data').select('data,updated_at').eq('user_id', u.id).maybeSingle().then(function (res) {
+      // FALHA DE LEITURA NÃO É "CONTA VAZIA".
+      // O supabase-js NÃO rejeita a promise quando a rede/JWT/RLS falha: ele RESOLVE
+      // com {data:null, error:{...}}. Como o código só olhava res.data, um erro virava
+      // "a nuvem está vazia" e seguia para o else: carimbava catedra:_lastSrv com o
+      // relógio do CLIENTE (mais novo que o updated_at real do servidor), marcava
+      // hydrated='1' e recarregava. Depois disso o app ficava logado, VAZIO e
+      // "sincronizado": o pullAndMerge não puxava mais (serverNewer=false por causa do
+      // carimbo futuro) e o primeiro salvamento subia o vazio por cima do edital.
+      // É o sintoma histórico "meu edital sumiu ao entrar em outro aparelho".
+      // Casos reais: abrir sem internet com token ainda válido, wi-fi de hotel/portal
+      // cativo devolvendo HTML, JWT recusado.
+      if (res && res.error) {
+        _si('catedra:auth', '1'); hydrating = false; hide();
+        setStatus(navigator.onLine === false ? 'offline' : 'erro');
+        return;   // NÃO carimba lastSrv, NÃO marca hydrated, NÃO recarrega — a próxima
+                  // abertura tenta hidratar de novo e o dado do servidor volta sozinho.
+      }
       var row = res && res.data;
       var now = new Date().toISOString();
       if (row && row.data && Object.keys(row.data).length) {
@@ -590,7 +622,22 @@
       }).catch(function () { b.disabled = false; b.textContent = 'Salvar nova senha'; erro.textContent = 'Não deu para salvar agora. Tente de novo.'; });
     };
   }
-  function logout() { sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearLocal(); location.reload(); }; sb.auth.signOut().then(fin, fin); }
+  // "Sair" apaga TODO o catedra:* deste aparelho (clearLocal). Antes ele fazia isso sem
+  // olhar se havia coisa por subir — e há uma janela real: o app espera 500ms para gravar
+  // e o sync espera mais 700ms para enviar. Registrar a sessão de estudo e clicar em Sair
+  // em seguida levava esse registro junto, definitivamente e sem aviso.
+  function logout() {
+    clearTimeout(pushT);
+    if (user && authToken && isDirty()) {
+      if (!confirm('Há estudos deste aparelho que ainda não subiram para a sua conta.\n\nSair agora vai apagá-los daqui. Quer sair mesmo assim?')) {
+        setStatus('enviando'); pushNow(); return;   // fica logado e termina de sincronizar
+      }
+      try { flushSync(); } catch (_) {}             // última tentativa (keepalive sobrevive ao reload)
+    }
+    sessionStorage.removeItem('catedra:hydrated');
+    var fin = function () { clearLocal(); location.reload(); };
+    sb.auth.signOut().then(fin, fin);
+  }
   window.CatedraAuth = { logout: logout, client: sb };
 
   showLoading('…');

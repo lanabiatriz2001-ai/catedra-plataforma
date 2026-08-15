@@ -154,6 +154,7 @@ export default async function handler(req, res) {
     // Se a Anthropic falhar e houver Gateway/Gemini, seguimos para o próximo em
     // vez de derrubar o aluno.
     if (antKey) {
+      try {
       const model = (typeof body.model === 'string' && /^claude[\w.\-]*$/.test(body.model))
         ? body.model
         : (process.env.ANTHROPIC_MODEL || 'claude-sonnet-5');
@@ -177,6 +178,9 @@ export default async function handler(req, res) {
       });
       if (!r.ok) {
         const detail = await r.text();
+        // Sem este log, uma chave errada/expirada fazia TUDO degradar para o Gemini em
+        // silêncio: a qualidade caía e não havia rastro de por quê. Vai para os logs da Vercel.
+        console.warn('[Catedra] Anthropic recusou (' + r.status + '): ' + detail.slice(0, 300));
         if (!gwKey && !gemKey) {
           res.status(r.status).json({ error: 'Erro da Anthropic (' + r.status + ')', detail: detail.slice(0, 500) });
           return;
@@ -194,12 +198,24 @@ export default async function handler(req, res) {
         res.status(200).json({ completion: text });
         return;
       }
+      } catch (e) {
+        // A cascata só cobria erro HTTP. Um fetch que ESTOURA (DNS, timeout, TLS) ou um
+        // JSON inválido escapava daqui direto para o catch geral lá embaixo, devolvendo
+        // 500 — ou seja: o aluno ficava sem IA mesmo havendo Gateway/Gemini configurados.
+        console.warn('[Catedra] Anthropic falhou: ' + String(e).slice(0, 300));
+        if (!gwKey && !gemKey) {
+          res.status(502).json({ error: 'Não consegui falar com a IA agora. Tente de novo.', detail: String(e).slice(0, 300) });
+          return;
+        }
+        // com Gateway/Gemini disponível, segue para o próximo provedor
+      }
     }
 
     // ---------- 2) Vercel AI Gateway (OpenAI-compatível) ----------
     // Se o Gateway recusar (ex.: 403 exigindo cartão na conta) e houver chave
     // Gemini, seguimos para o próximo provedor em vez de devolver erro ao aluno.
     if (gwKey) {
+      try {
       const model = (typeof body.model === 'string' && /^[\w.\-]+\/[\w.\-]+$/.test(body.model))
         ? body.model
         : (process.env.AI_MODEL || 'google/gemini-2.5-flash');
@@ -218,6 +234,7 @@ export default async function handler(req, res) {
       });
       if (!r.ok) {
         const detail = await r.text();
+        console.warn('[Catedra] AI Gateway recusou (' + r.status + '): ' + detail.slice(0, 300));
         if (!gemKey) {
           res.status(r.status).json({ error: 'Erro do AI Gateway (' + r.status + ')', detail: detail.slice(0, 500) });
           return;
@@ -232,6 +249,15 @@ export default async function handler(req, res) {
         }
         res.status(200).json({ completion: text });
         return;
+      }
+      } catch (e) {
+        // Mesmo motivo do bloco anterior: exceção de rede não pode matar a cascata.
+        console.warn('[Catedra] AI Gateway falhou: ' + String(e).slice(0, 300));
+        if (!gemKey) {
+          res.status(502).json({ error: 'Não consegui falar com a IA agora. Tente de novo.', detail: String(e).slice(0, 300) });
+          return;
+        }
+        // com Gemini disponível, segue para o provedor 3
       }
     }
 

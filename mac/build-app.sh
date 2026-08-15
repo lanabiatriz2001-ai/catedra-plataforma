@@ -115,6 +115,13 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSHumanReadableCopyright</key><string>Cátedra · Plataforma de Estudos</string>
+  <!-- Sem estas duas frases o macOS pede a permissão SEM dizer para quê, e quem
+       recebe o app tende a negar. Pior: negar aqui é silencioso — o backup
+       semanal simplesmente para de acontecer. Vale mais ainda agora que o app é
+       assinado com Developer ID: trocar a identidade de assinatura RESETA as
+       decisões de privacidade já dadas nesta máquina. -->
+  <key>NSDocumentsFolderUsageDescription</key><string>O Cátedra guarda um backup semanal dos seus estudos em Documentos › Cátedra Backups, para você não perder nada.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>O Cátedra salva na pasta Downloads os arquivos que você exporta (edital, calendário, relatórios).</string>
   <key>CatedraAIEndpoint</key><string>$AI_ENDPOINT</string>
   <key>CatedraGeminiKey</key><string>$GEMINI_KEY</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.education</string>
