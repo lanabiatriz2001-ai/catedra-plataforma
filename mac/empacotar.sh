@@ -41,6 +41,12 @@ if codesign -dvv "$APP" 2>&1 | grep -q "Signature=adhoc"; then
   echo "⚠  App assinado ad-hoc — pulando notarização (a Apple só notariza Developer ID)."
   echo "   Para distribuir sem o ritual do Gatekeeper: crie o certificado"
   echo "   'Developer ID Application' e rode bash mac/build-app.sh de novo."
+elif xcrun stapler validate "$APP" >/dev/null 2>&1; then
+  # Já tem o tíquete grampeado (ex.: a notarização foi concluída numa rodada
+  # anterior, ou a espera estourou e o staple foi feito depois à mão). Reenviar
+  # aqui só gastaria a fila da Apple e o limite de 75 submissões/dia.
+  echo "✓ App já notarizado e grampeado — pulando nova submissão."
+  NOTARIZADO=1
 else
   PERFIL="${CATEDRA_NOTARY_PROFILE:-catedra-notary}"
   echo "→ Notarizando com o perfil '$PERFIL' (a Apple costuma levar de 1 a 15 min)…"
