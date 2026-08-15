@@ -64,11 +64,22 @@ else
   sed 's/^/     /' "$BUILD/notary.log"
 
   if [ $NT_RC -eq 0 ] && grep -q "status: Accepted" "$BUILD/notary.log"; then
-    xcrun stapler staple "$APP" >/dev/null && NOTARIZADO=1
-    if [ "$NOTARIZADO" = "1" ]; then
+    # O `>/dev/null` daqui era um erro meu: o stapler escreve a FALHA no stdout, então
+    # jogá-lo fora tornava o problema invisível — a Apple aprovava, o grampo falhava, e o
+    # zip saía sem tíquete (funciona online, bloqueia offline) sem ninguém saber.
+    xcrun stapler staple "$APP" > "$BUILD/staple.log" 2>&1
+    ST_RC=$?
+    sed 's/^/     /' "$BUILD/staple.log"
+    if [ $ST_RC -eq 0 ]; then
+      NOTARIZADO=1
       echo "   ✓ notarizado e grampeado"
       # O veredito que vale é este: é o que o Mac do testador vai perguntar.
       spctl -a -vvv "$APP" 2>&1 | sed 's/^/     /'
+    else
+      echo "   ✗ A Apple APROVOU, mas o STAPLE falhou (rc=$ST_RC)."
+      echo "     Sem o grampo o app depende de consultar a Apple: offline o testador leva bloqueio."
+      echo "     Causa comum: tíquete ainda propagando. Com rede, tente de novo:"
+      echo "       xcrun stapler staple \"$APP\" && bash mac/empacotar.sh"
     fi
   else
     # O motivo NUNCA vem no output do submit — vem do log da submissão.

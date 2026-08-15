@@ -271,10 +271,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         guard wv === webView else { return }
         let pend = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
         guard !pend.isEmpty else { return }
-        UserDefaults.standard.removeObject(forKey: "catedraPendingStudyRegs")
+        // NÃO apagar antes de entregar — era exatamente esse o bug: a chave era removida
+        // do disco 2s ANTES da injeção acontecer. E havia uma corrida: o auth.js dá
+        // location.reload() ao terminar a hidratação, então a injeção caía numa página
+        // que estava morrendo (ou onde a ponte ainda não existia). Resultado: o tempo
+        // estudado no CátedraLEGIS/JURIS antes de fechar o app sumia sem deixar rastro.
+        // Agora: só entrega na página ESTÁVEL (já hidratada) e só risca do disco o que o
+        // app confirmar que recebeu.
+        wv.evaluateJavaScript("sessionStorage.getItem('catedra:hydrated')") { [weak self] r, _ in
+            guard let self, (r as? String) == "1" else { return }   // ainda vai recarregar: espera o próximo didFinish
+            MainActor.assumeIsolated { self.entregarEstudosPendentes(pend) }
+        }
+    }
+
+    /// Injeta os registros de estudo pendentes e remove do disco SÓ os confirmados.
+    private func entregarEstudosPendentes(_ pend: [String]) {
         for (i, json) in pend.enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0 + Double(i) * 0.6) { [weak wv] in
-                wv?.evaluateJavaScript("window.catedraOpenStudyRegistration && window.catedraOpenStudyRegistration(\(json))", completionHandler: nil)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.6) { [weak self] in
+                guard let self else { return }
+                self.webView.evaluateJavaScript(
+                    "window.catedraOpenStudyRegistration ? window.catedraOpenStudyRegistration(\(json)) : 'sem-ponte'"
+                ) { r, _ in
+                    // A ponte devolve 'ok'/'queued' quando aceita; 'busy'/'err:'/'sem-ponte'
+                    // significam que NÃO entrou — nesse caso fica no disco para a próxima vez.
+                    let s = r as? String
+                    guard s == "ok" || s == "queued" else { return }
+                    MainActor.assumeIsolated {
+                        var restante = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+                        if let idx = restante.firstIndex(of: json) { restante.remove(at: idx) }
+                        UserDefaults.standard.set(restante, forKey: "catedraPendingStudyRegs")
+                    }
+                }
             }
         }
     }
@@ -758,13 +785,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
                 }
             }
             UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "catedraLastBackupAt")
+            UserDefaults.standard.removeObject(forKey: "catedraLastBackupError")
             if force { NSWorkspace.shared.activateFileViewerSelecting([dir]) }   // revela no Finder
         } catch {
             NSLog("Cátedra backup falhou: \(error.localizedDescription)")
+            UserDefaults.standard.set(error.localizedDescription, forKey: "catedraLastBackupError")
             if force {
                 let a = NSAlert(); a.messageText = "Não foi possível fazer o backup"
                 a.informativeText = error.localizedDescription; a.alertStyle = .warning
                 a.runModal()
+            } else {
+                // O backup SEMANAL roda com force:false — e aqui a falha era MUDA:
+                // só um NSLog que ninguém lê. Resultado: o backup parava de
+                // acontecer e a pessoa só descobriria no dia em que precisasse
+                // dele. A causa mais provável é justamente negar o acesso à pasta
+                // Documentos (o macOS pergunta uma vez; trocar a assinatura do app
+                // faz ele perguntar de novo).
+                // Avisa por notificação — no máximo uma por dia, para não virar praga.
+                let ud = UserDefaults.standard
+                let agora = Date().timeIntervalSince1970
+                if agora - ud.double(forKey: "catedraLastBackupWarnAt") > 86_400 {
+                    ud.set(agora, forKey: "catedraLastBackupWarnAt")
+                    let c = UNMutableNotificationContent()
+                    c.title = "O backup do Cátedra não está funcionando"
+                    c.body = "Não consegui gravar em Documentos › Cátedra Backups. Veja Ajustes do Sistema › Privacidade e Segurança › Arquivos e Pastas."
+                    UNUserNotificationCenter.current().add(
+                        UNNotificationRequest(identifier: "catedra-backup-falhou", content: c, trigger: nil))
+                }
             }
         }
     }
@@ -1374,7 +1421,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let center = UNUserNotificationCenter.current()
         let wantsRequest = ((message.body as? [String: Any])?["request"] as? Bool) ?? false
         if wantsRequest {
-            center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, erro in
+                // O erro era descartado. A resposta ao JS continua correta (o ramo
+                // de baixo consulta o estado real), mas sem log não há como apoiar
+                // um testador que diz "não recebo lembrete nenhum".
+                if let erro { NSLog("Cátedra: pedido de permissão de notificação falhou: \(erro.localizedDescription)") }
                 if granted {
                     reply("granted", nil)
                 } else {
@@ -1459,6 +1510,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
     func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
         downloadDests.removeValue(forKey: ObjectIdentifier(download))
+        // Antes isto era um beco sem saída: a pessoa clicava "Exportar", nada
+        // acontecia, e não havia aviso, alerta nem log — parecia botão quebrado.
+        // Causa mais provável na máquina de quem RECEBE o app: permissão da pasta
+        // Downloads (o loop de deduplicação acima faz fileExists, que é LEITURA e
+        // não tem consentimento implícito como a criação de arquivo tem).
+        // Cancelar não é erro — nesse caso fica quieto.
+        let ns = error as NSError
+        if ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled { return }
+        NSLog("Cátedra export falhou: \(error.localizedDescription)")
+        let a = NSAlert()
+        a.messageText = "Não foi possível salvar o arquivo"
+        a.informativeText = error.localizedDescription
+            + "\n\nSe for permissão, veja Ajustes do Sistema › Privacidade e Segurança › Arquivos e Pastas."
+        a.alertStyle = .warning
+        a.runModal()
     }
 
     // window.open: link externo (http/https) → navegador; caso contrário (PiP do
