@@ -22,6 +22,8 @@ uploads/
 # build do app nativo (binário compilado, gerado por mac/build-app.sh)
 mac/build/
 ios/build/
+ios/Catedra.xcodeproj/xcuserdata/
+ios/Catedra.xcodeproj/project.xcworkspace/xcuserdata/
 # perfil de provisionamento: é credencial de assinatura, não vai para repo PÚBLICO
 ios/embedded.mobileprovision
 ios/build/perfil.plist
