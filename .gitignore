@@ -21,6 +21,10 @@ uploads/
 
 # build do app nativo (binário compilado, gerado por mac/build-app.sh)
 mac/build/
+ios/build/
+# perfil de provisionamento: é credencial de assinatura, não vai para repo PÚBLICO
+ios/embedded.mobileprovision
+ios/build/perfil.plist
 Catedra.dc.html.bak*
 
 # Windows (Electron)
