@@ -1,0 +1,264 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CA7E000000000000000000A1 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E000000000000000000B1 /* main.swift */; };
+		CA7E000000000000000000A2 /* web in Resources */ = {isa = PBXBuildFile; fileRef = CA7E000000000000000000B2 /* web */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		CA7E000000000000000000B1 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		CA7E000000000000000000B2 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; name = web; path = ../mac/build/web; sourceTree = "<group>"; };
+		CA7E000000000000000000B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA7E000000000000000000B4 /* Catedra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Catedra.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CA7E000000000000000000C1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CA7E000000000000000000D1 = {
+			isa = PBXGroup;
+			children = (
+				CA7E000000000000000000D3 /* Sources */,
+				CA7E000000000000000000B3 /* Info.plist */,
+				CA7E000000000000000000B2 /* web */,
+				CA7E000000000000000000D2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CA7E000000000000000000D2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CA7E000000000000000000B4 /* Catedra.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CA7E000000000000000000D3 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				CA7E000000000000000000B1 /* main.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CA7E000000000000000000E1 /* Catedra */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA7E000000000000000000F2 /* Build configuration list for PBXNativeTarget "Catedra" */;
+			buildPhases = (
+				CA7E000000000000000000C2 /* Gerar bundle web */,
+				CA7E000000000000000000C3 /* Sources */,
+				CA7E000000000000000000C1 /* Frameworks */,
+				CA7E000000000000000000C4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Catedra;
+			productName = Catedra;
+			productReference = CA7E000000000000000000B4 /* Catedra.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CA7E000000000000000000E2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					CA7E000000000000000000E1 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = CA7E000000000000000000F1 /* Build configuration list for PBXProject "Catedra" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = pt_BR;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				pt_BR,
+				Base,
+			);
+			mainGroup = CA7E000000000000000000D1;
+			productRefGroup = CA7E000000000000000000D2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CA7E000000000000000000E1 /* Catedra */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CA7E000000000000000000C4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA7E000000000000000000A2 /* web in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		CA7E000000000000000000C2 /* Gerar bundle web */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Gerar bundle web";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Regenera mac/build/web a partir do Catedra.dc.html antes de empacotar.\n# Sem isto o app embarcaria um bundle velho sem ninguem notar.\ncd \"$SRCROOT/..\" || exit 1\nif command -v node >/dev/null 2>&1; then\n  node scripts/build-macos.mjs || echo \"aviso: build-macos.mjs falhou; usando o bundle que ja estava em mac/build/web\"\nelse\n  echo \"aviso: node nao encontrado no PATH do Xcode; usando o bundle existente\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CA7E000000000000000000C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA7E000000000000000000A1 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CA7E00000000000000000101 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CA7E00000000000000000102 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CA7E00000000000000000103 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2ZT3GWTS9Z;
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.catedra.ipad;
+				PRODUCT_NAME = Catedra;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		CA7E00000000000000000104 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2ZT3GWTS9Z;
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.catedra.ipad;
+				PRODUCT_NAME = Catedra;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CA7E000000000000000000F1 /* Build configuration list for PBXProject "Catedra" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA7E00000000000000000101 /* Debug */,
+				CA7E00000000000000000102 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA7E000000000000000000F2 /* Build configuration list for PBXNativeTarget "Catedra" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA7E00000000000000000103 /* Debug */,
+				CA7E00000000000000000104 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CA7E000000000000000000E2 /* Project object */;
+}
