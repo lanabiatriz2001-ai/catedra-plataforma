@@ -39,7 +39,8 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         let ucc = WKUserContentController()
 
         // Ponte de IA + notificações, no mundo .page (o app roda no mundo principal).
-        for nome in ["catedraAI", "notifyPermission", "notifyShow", "catedraNav", "catedraPlano", "catedraPrint"] {
+        for nome in ["catedraAI", "notifyPermission", "notifyShow", "catedraLembretes",
+                     "catedraNav", "catedraPlano", "catedraPrint"] {
             ucc.addScriptMessageHandler(self, contentWorld: .page, name: nome)
         }
         ucc.addUserScript(WKUserScript(source: Self.pontesJS,
@@ -132,6 +133,53 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             .then(function (s) { N.permission = s; });
         } catch (e) {}
       }
+
+      // ===== Lembrete de revisão que toca com o APP FECHADO =====
+      // Isto é o que o site não faz. Lê as revisões do próprio armazenamento do app e
+      // manda a contagem para o Swift agendar. Escrito para NÃO depender de eu ter
+      // acertado o nome da chave: procura qualquer chave catedra:* cujo conteúdo pareça
+      // uma lista de revisões. Se não achar nada, fica quieto — nunca quebra a página.
+      function contarRevisoesPendentes() {
+        var hoje = new Date(); hoje.setHours(23, 59, 59, 999);
+        var limite = hoje.getTime();
+        var melhor = 0;
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (!k || k.indexOf('catedra:') !== 0 || !/rev/i.test(k)) continue;
+            var arr;
+            try { arr = JSON.parse(localStorage.getItem(k)); } catch (e) { continue; }
+            if (!Array.isArray(arr)) continue;
+            var n = 0;
+            for (var j = 0; j < arr.length; j++) {
+              var r = arr[j]; if (!r || r.feito || r.done) continue;
+              var t = null;
+              if (r.dueDate) { var d = new Date(r.dueDate); if (!isNaN(d)) t = d.getTime(); }
+              if (t === null && typeof r.due === 'number' && r.due > 1e11) t = r.due;
+              if (t !== null && t <= limite) n++;
+            }
+            if (n > melhor) melhor = n;
+          }
+        } catch (e) {}
+        return melhor;
+      }
+
+      function sincronizarLembrete() {
+        try {
+          if (!window.webkit || !window.webkit.messageHandlers.catedraLembretes) return;
+          var hora = 8;
+          try { var h = parseInt(localStorage.getItem('catedra:horaLembrete'), 10);
+                if (h >= 0 && h <= 23) hora = h; } catch (e) {}
+          window.webkit.messageHandlers.catedraLembretes.postMessage({
+            pendentes: contarRevisoesPendentes(), hora: hora
+          });
+        } catch (e) {}
+      }
+      // Depois do app montar (o auth.js ainda recarrega a página uma vez), e de tempos
+      // em tempos enquanto estiver aberto.
+      window.addEventListener('load', function () { setTimeout(sincronizarLembrete, 5000); });
+      setInterval(sincronizarLembrete, 10 * 60 * 1000);
+      window.catedraSincronizarLembrete = sincronizarLembrete;   // para teste manual
     })();
     """
 
@@ -142,6 +190,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case "catedraAI":        chamarIA(message, replyHandler)
         case "notifyPermission": permissaoNotificacao(message, replyHandler)
         case "notifyShow":       mostrarNotificacao(message); replyHandler(nil, nil)
+        case "catedraLembretes": agendarLembretes(message, replyHandler)
         // Exclusivos do Mac (abas nativas, impressão). Respondem para o JS não travar
         // esperando uma promessa que nunca resolve.
         default:                 replyHandler(nil, nil)
@@ -196,6 +245,45 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case .authorized, .provisional, .ephemeral: return "granted"
         case .denied: return "denied"
         default: return "default"
+        }
+    }
+
+    /// Agenda o lembrete diário de revisão — a coisa que um site NÃO consegue fazer no iOS.
+    ///
+    /// O `new Notification(...)` da web só dispara com a página ABERTA: fecha o app, acabou
+    /// o lembrete. Aqui usamos UNCalendarNotificationTrigger, que o sistema entrega no
+    /// horário mesmo com o app fechado — é o motivo de existir um app nativo em vez de só
+    /// o site, e vale tanto para a pessoa quanto para a revisão da Apple (diretriz 4.2).
+    private func agendarLembretes(_ message: WKScriptMessage, _ reply: @escaping (Any?, String?) -> Void) {
+        let c = message.body as? [String: Any] ?? [:]
+        let pendentes = (c["pendentes"] as? Int) ?? 0
+        let hora = min(23, max(0, (c["hora"] as? Int) ?? 8))
+        let centro = UNUserNotificationCenter.current()
+        let ident = "catedra-revisao-diaria"
+
+        // Sem revisão pendente não há por que incomodar: cancela o que estava agendado.
+        centro.removePendingNotificationRequests(withIdentifiers: [ident])
+        guard pendentes > 0 else { reply("cancelado", nil); return }
+
+        // Só agenda se a pessoa autorizou — pedir aqui seria um prompt do nada.
+        centro.getNotificationSettings { s in
+            guard s.authorizationStatus == .authorized || s.authorizationStatus == .provisional else {
+                reply("sem-permissao", nil); return
+            }
+            let conteudo = UNMutableNotificationContent()
+            conteudo.title = "Revisões de hoje"
+            conteudo.body = pendentes == 1
+                ? "Você tem 1 revisão pendente. Cinco minutos resolvem."
+                : "Você tem \(pendentes) revisões pendentes. Comece pela mais atrasada."
+            conteudo.sound = .default
+            var quando = DateComponents(); quando.hour = hora; quando.minute = 0
+            let req = UNNotificationRequest(
+                identifier: ident, content: conteudo,
+                trigger: UNCalendarNotificationTrigger(dateMatching: quando, repeats: true))
+            centro.add(req) { erro in
+                if let erro { reply(nil, erro.localizedDescription) }
+                else { reply("agendado", nil) }
+            }
         }
     }
 
