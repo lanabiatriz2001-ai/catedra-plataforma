@@ -134,6 +134,48 @@ window.CT_MODULOS = {
         {t:'Planos e pactuações', d:'plano de assistência social, CIB e CIT'} ]}
     ]},
 
+  contas: {
+    nome:'Controle externo', icone:'🏦', disc:'Controle Externo',
+    sub:'Como o Tribunal de Contas fiscaliza — processos, instrumentos e responsabilização',
+    legenda:'Estrutura do controle externo brasileiro. A letra da lei (CF, Lei 4.320, LRF, licitações) fica no CátedraLEGIS; aqui está a engrenagem que a prova cobra.',
+    grupos:[
+      {n:'Sistema de controle', c:'#0891b2', itens:[
+        {t:'Controle interno e externo', d:'autotutela da Administração; Legislativo com auxílio do Tribunal de Contas'},
+        {t:'Competências do Tribunal de Contas', d:'parecer prévio, julgamento de contas, fiscalização, sanção, registro de atos de pessoal'},
+        {t:'TCU, TCE e TCM', d:'âmbitos federal, estadual e municipal; simetria constitucional'},
+        {t:'Ministério Público de Contas', d:'atuação junto ao Tribunal, pareceres e recursos'},
+        {t:'Natureza das decisões', d:'mérito, eficácia de título executivo, controle judicial'} ]},
+      {n:'Processos de contas', c:'#2563eb', itens:[
+        {t:'Contas de governo', d:'prestadas pelo Chefe do Executivo; parecer prévio e julgamento pelo Legislativo'},
+        {t:'Contas de gestão', d:'ordenadores de despesa; julgamento pelo próprio Tribunal'},
+        {t:'Tomada de contas', d:'quando o gestor não presta contas ou a prestação é omissa'},
+        {t:'Tomada de contas especial', d:'dano ao erário: instauração, pressupostos, rito'},
+        {t:'Julgamento', d:'regulares, regulares com ressalva, irregulares; quitação'} ]},
+      {n:'Fiscalização', c:'#0d9488', itens:[
+        {t:'Auditoria', d:'conformidade, operacional e financeira; planejamento e execução'},
+        {t:'Inspeção', d:'apuração de fatos e denúncias in loco'},
+        {t:'Levantamento', d:'conhecimento da organização e dos sistemas do órgão'},
+        {t:'Acompanhamento e monitoramento', d:'exame concomitante; verificação do cumprimento das deliberações'},
+        {t:'Denúncia e representação', d:'legitimidade, requisitos, sigilo'} ]},
+      {n:'Responsabilização', c:'#c0392f', itens:[
+        {t:'Imputação de débito', d:'quantificação do dano, atualização, solidariedade'},
+        {t:'Multas', d:'hipóteses e gradação'},
+        {t:'Inabilitação para função de confiança', d:'prazo e pressupostos'},
+        {t:'Declaração de inidoneidade', d:'fraude a licitação; efeitos'},
+        {t:'Devido processo e ampla defesa', d:'citação, audiência, recursos'} ]},
+      {n:'Orçamento e finanças públicas', c:'#c2790c', itens:[
+        {t:'Ciclo orçamentário', d:'plano plurianual, diretrizes orçamentárias e orçamento anual'},
+        {t:'Receita e despesa públicas', d:'estágios, classificações, restos a pagar'},
+        {t:'Responsabilidade fiscal', d:'limites de pessoal e dívida, metas, relatórios de gestão fiscal'},
+        {t:'Transferências e convênios', d:'prestação de contas de recursos repassados'} ]},
+      {n:'Auditoria governamental', c:'#7c3aed', itens:[
+        {t:'Planejamento da auditoria', d:'matriz de planejamento, risco, materialidade, relevância'},
+        {t:'Evidência e papéis de trabalho', d:'suficiência, adequação, documentação'},
+        {t:'Achados de auditoria', d:'situação encontrada, critério, causa, efeito'},
+        {t:'Relatório e deliberações', d:'conclusões, determinações e recomendações; monitoramento'},
+        {t:'Normas de auditoria do setor público', d:'referenciais internacionais adotados pelos tribunais'} ]}
+    ]},
+
   juridica: {
     nome:'Processo e peças', icone:'⚖️', disc:'Direito Processual Civil',
     sub:'As fases do processo e as peças de cada momento — o esqueleto que a prova cobra',

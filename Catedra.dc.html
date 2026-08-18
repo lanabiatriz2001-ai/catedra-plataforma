@@ -290,6 +290,104 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 [data-dir="premium"][data-dark="1"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
   box-shadow:0 0 0 1px rgba(212,112,127,.08), 0 12px 32px rgba(0,0,0,.55) !important;
 }
+/* ============================================================================
+   CONSOLE DE ADMINISTRAÇÃO (.adm-*)
+   ----------------------------------------------------------------------------
+   Deliberadamente FORA do tema do app: a conta de administração não estuda, ela
+   opera. Paleta própria (escura, fixa), tabular, densa — para não se confundir,
+   nem por um segundo, com a plataforma de estudo. Nenhum var(--surface) aqui,
+   justamente para os seletores de "direção visual" lá de cima não alcançarem.
+   ========================================================================== */
+.adm{--k-bg:#0a0e16;--k-panel:#111726;--k-panel2:#161d2e;--k-line:#232c42;--k-line2:#2e3a55;
+     --k-ink:#e8eef9;--k-dim:#93a1bd;--k-dim2:#5f6d8c;--k-acc:#5b8dff;--k-ok:#2ecc8f;
+     --k-warn:#f2a93b;--k-bad:#ff5f6d;--k-roxo:#a78bfa;
+     --k-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+     background:var(--k-bg);color:var(--k-ink);min-height:100%;
+     font-family:var(--k-mono);font-size:13px;letter-spacing:0;}
+.adm ::selection{background:rgba(91,141,255,.35);}
+.adm button{font-family:var(--k-mono);}
+.adm input,.adm textarea,.adm select{font-family:var(--k-mono);}
+/* barra + abas pinam JUNTAS. O `top` é negativo de propósito: o console usa margem
+   negativa para comer o padding da área de conteúdo, mas `position:sticky` continua
+   ancorando na borda do PADDING do container que rola — sem compensar, a barra
+   descia esses mesmos pixels e cobria a fila de abas. */
+.adm-top{position:sticky;top:calc(-1 * clamp(16px,2.6vw,30px));z-index:5;
+  background:rgba(10,14,22,.94);backdrop-filter:blur(8px);}
+.adm-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:14px 20px;border-bottom:1px solid var(--k-line);}
+.adm-brand{display:flex;align-items:baseline;gap:9px;font-weight:700;letter-spacing:.16em;font-size:12px;text-transform:uppercase;}
+.adm-brand i{font-style:normal;color:var(--k-acc);}
+.adm-live{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto;}
+.adm-live b{display:inline-flex;align-items:center;gap:6px;background:var(--k-panel);border:1px solid var(--k-line);
+  border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;color:var(--k-dim);}
+.adm-live b em{font-style:normal;color:var(--k-ink);font-weight:700;}
+.adm-tabs{display:flex;gap:2px;overflow-x:auto;padding:0 20px;border-bottom:1px solid var(--k-line);}
+.adm-tabs::-webkit-scrollbar{height:0;}
+.adm-tab{position:relative;border:none;background:transparent;color:var(--k-dim);cursor:pointer;white-space:nowrap;
+  padding:11px 14px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-bottom:2px solid transparent;}
+.adm-tab:hover{color:var(--k-ink);}
+.adm-tab[data-on="1"]{color:var(--k-ink);border-bottom-color:var(--k-acc);}
+.adm-tab u{text-decoration:none;margin-left:7px;background:var(--k-bad);color:#fff;border-radius:99px;padding:1px 6px;font-size:9.5px;}
+.adm-body{padding:20px;display:flex;flex-direction:column;gap:16px;}
+.adm-panel{background:var(--k-panel);border:1px solid var(--k-line);border-radius:10px;}
+.adm-panel > header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:13px 16px;border-bottom:1px solid var(--k-line);}
+.adm-panel > header h3{margin:0;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--k-ink);}
+.adm-panel > header p{margin:0;font-size:11.5px;color:var(--k-dim2);}
+.adm-panel > .in{padding:16px;}
+.adm-grid{display:grid;gap:12px;}
+.adm-kpis{grid-template-columns:repeat(auto-fit,minmax(158px,1fr));}
+.adm-kpi{background:var(--k-panel);border:1px solid var(--k-line);border-radius:10px;padding:14px 15px;}
+.adm-kpi b{display:block;font-size:29px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;}
+.adm-kpi span{display:block;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--k-dim);margin-top:9px;font-weight:700;}
+.adm-kpi i{display:block;font-style:normal;font-size:11px;color:var(--k-dim2);margin-top:3px;}
+.adm-row{display:grid;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--k-line);}
+.adm-row:hover{background:var(--k-panel2);}
+.adm-head{display:grid;gap:10px;padding:8px 14px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--k-dim2);font-weight:700;}
+.adm-users{grid-template-columns:minmax(180px,2.2fr) 90px 96px 66px 70px 34px;}
+@media (max-width:820px){.adm-users{grid-template-columns:1fr 74px 34px;}
+  .adm-users > .hide-sm{display:none;}}
+.adm-mail{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;color:var(--k-ink);}
+.adm-sub{font-size:10.5px;color:var(--k-dim2);margin-top:2px;}
+.adm-num{font-variant-numeric:tabular-nums;font-size:11.5px;color:var(--k-dim);text-align:right;}
+.adm-pill{display:inline-flex;align-items:center;gap:5px;border-radius:5px;padding:2px 7px;font-size:9.5px;
+  font-weight:800;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;}
+.adm-btn{border:1px solid var(--k-line2);background:var(--k-panel2);color:var(--k-dim);border-radius:6px;
+  padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.adm-btn:hover{color:var(--k-ink);border-color:var(--k-acc);}
+.adm-btn.ghost{background:transparent;}
+.adm-btn.bad{border-color:#5a2530;color:var(--k-bad);background:rgba(255,95,109,.07);}
+.adm-btn.bad:hover{background:var(--k-bad);color:#fff;border-color:var(--k-bad);}
+.adm-btn.ok{border-color:#1d5842;color:var(--k-ok);background:rgba(46,204,143,.08);}
+.adm-btn.ok:hover{background:var(--k-ok);color:#04150e;}
+/* o estado "ligado" vem DEPOIS das variantes: .adm-btn.ghost tem a mesma
+   especificidade e, se viesse por último, apagava o fundo do botão ativo —
+   deixando texto escuro sobre fundo escuro (invisível). */
+.adm-btn[data-on="1"]{background:var(--k-acc);border-color:var(--k-acc);color:#06101f;}
+.adm-btn[data-on="1"]:hover{color:#06101f;}
+.adm-btn:disabled{opacity:.4;cursor:not-allowed;}
+.adm-in{background:var(--k-bg);border:1px solid var(--k-line2);border-radius:6px;padding:8px 11px;
+  font-size:12px;color:var(--k-ink);width:100%;}
+.adm-in::placeholder{color:var(--k-dim2);}
+.adm-in:focus{outline:none;border-color:var(--k-acc);}
+.adm-drawer{border-top:1px solid var(--k-acc);background:#0d1424;padding:14px 16px;display:flex;flex-direction:column;gap:14px;}
+.adm-acts{display:flex;gap:7px;flex-wrap:wrap;}
+.adm-danger{border:1px solid #4a1f28;background:rgba(255,95,109,.05);border-radius:8px;padding:13px 14px;}
+.adm-danger h4{margin:0 0 4px;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--k-bad);font-weight:800;}
+.adm-danger p{margin:0 0 10px;font-size:11.5px;color:var(--k-dim);line-height:1.5;}
+.adm-bars{display:flex;align-items:flex-end;gap:4px;height:78px;}
+.adm-bars > div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;}
+.adm-bars i{display:block;width:100%;background:var(--k-acc);border-radius:3px 3px 0 0;opacity:.85;}
+.adm-bars small{font-size:9px;color:var(--k-dim2);}
+.adm-meter{height:5px;border-radius:99px;background:var(--k-line);overflow:hidden;}
+.adm-meter i{display:block;height:100%;background:var(--k-acc);border-radius:99px;}
+.adm-empty{padding:22px;text-align:center;color:var(--k-dim2);font-size:12px;}
+.adm-sw{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-top:1px solid var(--k-line);}
+.adm-sw:first-child{border-top:none;padding-top:0;}
+.adm-sw div b{display:block;font-size:12.5px;color:var(--k-ink);font-weight:700;}
+.adm-sw div span{display:block;font-size:11.5px;color:var(--k-dim2);margin-top:3px;line-height:1.5;}
+.adm-log{display:grid;grid-template-columns:104px 128px minmax(120px,1fr) minmax(90px,.8fr);gap:10px;
+  padding:8px 14px;border-top:1px solid var(--k-line);font-size:11.5px;}
+@media (max-width:760px){.adm-log{grid-template-columns:1fr 1fr;}}
 /* ---- calendário grande (grade em largura total) ---- */
 .ct-calwrap{display:flex;flex-direction:column;gap:16px;}
 .ct-calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
@@ -384,7 +482,7 @@ window.ctPdfLib = (function(){
     <!-- Conta admin-only (ex.: 2001): não vê a plataforma de estudo, só o painel + Sair. -->
     <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
     <nav style="display:flex;flex-direction:column;gap:3px;padding-top:6px;">
-      <button data-view="admin" onclick="{{ onNav }}" style="{{ navAdmin }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7z" stroke-linejoin="round"></path><path d="M9.5 12l1.8 1.8L15 10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Painel do administrador</span></button>
+      <button data-view="admin" onclick="{{ onNav }}" style="{{ navAdmin }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7z" stroke-linejoin="round"></path><path d="M9.5 12l1.8 1.8L15 10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Console de administração</span></button>
       <button onclick="{{ logout }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:9px;padding:10px 11px;font-family:inherit;font-size:13.5px;color:var(--stext);font-weight:600;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Sair</span></button>
     </nav>
     </sc-if>
@@ -914,6 +1012,18 @@ window.ctPdfLib = (function(){
             <p style="font-size:12.5px;color:var(--text3);text-align:center;margin:18px 0 0;">Primeiro acesso? <span onclick="{{ doLogin }}" style="color:var(--accent);cursor:pointer;font-weight:600;">Criar perfil local</span></p>
           </form>
         </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ AVISO GLOBAL ============ -->
+    <!-- Publicado pelo console de administração (app_config.aviso) e lido por qualquer -->
+    <!-- conta logada via app_avisos(). É o que dá sentido ao botão "Publicar aviso": o -->
+    <!-- recado aparece na tela de todo mundo sem publicar versão nova do app.          -->
+    <sc-if value="{{ temAvisoGlobal }}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="{{ avisoGlobalStyle }}">
+        <span style="font-size:15px;flex:none;line-height:1.3;">{{ avisoGlobalIcon }}</span>
+        <span style="flex:1;min-width:0;line-height:1.5;">{{ avisoGlobalTxt }}</span>
+        <button onclick="{{ fecharAvisoGlobal }}" aria-label="Fechar aviso" style="flex:none;border:none;background:transparent;color:inherit;opacity:.6;cursor:pointer;font-family:inherit;font-size:16px;line-height:1;padding:2px 4px;">×</button>
       </div>
     </sc-if>
 
@@ -1557,6 +1667,7 @@ window.ctPdfLib = (function(){
               <sc-if value="{{ modeloTemOutras }}" hint-placeholder-val="{{ false }}">
                 <button onclick="{{ toggleModeloOutras }}" style="margin-bottom:14px;background:transparent;border:1px dashed var(--border);border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">{{ modeloOutrasLabel }}</button>
               </sc-if>
+              <sc-if value="{{ modeloTemModelo }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px;">
                 <button onclick="{{ modeloTodas }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">{{ modeloTodasLabel }}</button>
                 <span style="font-size:11.5px;color:var(--text3);">{{ modeloSelLabel }}</span>
@@ -1574,6 +1685,7 @@ window.ctPdfLib = (function(){
                 <button onclick="{{ aplicarModelo }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:10px;padding:10px 18px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">{{ modeloAplicarLabel }}</button>
                 <span style="font-size:11.5px;color:var(--text3);align-self:center;">Some ao que você já tem — não apaga nada.</span>
               </div>
+              </sc-if>
             </div>
           </sc-if>
         </div>
@@ -3016,53 +3128,57 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <!-- ================= BANCAS (recorte: área · banca · matéria · assunto) ================= -->
-      <!-- A aba deixou de ser uma parede de 12 cards iguais: agora é um RECORTE em 4 passos      -->
-      <!-- (área do concurso → banca → matéria → assunto) que abre um painel único da banca      -->
-      <!-- escolhida. O perfil é fixo/pesquisado; só as dicas do recorte passam pela IA.          -->
+      <!-- A aba deixou de ser uma parede de 12 cards iguais: é um RECORTE em 4 passos          -->
+      <!-- (área do concurso → banca → matéria → assunto) que abre o painel da banca escolhida. -->
+      <!-- A COR DA BANCA pinta a tela inteira e troca junto com a escolha.                     -->
       <sc-if value="{{ isBancas }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:18px;">
 
-          <!-- ── HERO ───────────────────────────────────────────────────────────── -->
-          <div style="position:relative;overflow:hidden;border:1px solid transparent;border-radius:var(--radius);background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--heroGrad) border-box;padding:26px 28px;">
-            <div style="position:absolute;right:-64px;top:-72px;width:210px;height:210px;border-radius:50%;background:var(--heroGrad);opacity:.14;pointer-events:none;"></div>
-            <div style="position:absolute;right:52px;bottom:-96px;width:150px;height:150px;border-radius:50%;background:var(--heroGrad);opacity:.09;pointer-events:none;"></div>
-            <div style="position:relative;">
-              <div style="font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);font-weight:800;">Perfil de banca</div>
-              <div style="font-family:var(--display);font-size:34px;line-height:1.08;font-weight:800;color:var(--ink);margin-top:7px;letter-spacing:-.015em;">Estude do jeito que a<br>sua banca cobra</div>
-              <div style="font-size:13.5px;color:var(--text2);line-height:1.6;margin-top:10px;max-width:620px;">Monte o recorte em quatro passos. O perfil de cada banca é fixo e pesquisado — o que muda com a sua escolha são as dicas sob medida.</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
-                <sc-for list="{{ bancaCrumb }}" as="c" hint-placeholder-count="4">
-                  <span style="{{ c.style }}"><span style="opacity:.55;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px;">{{ c.k }}</span><span style="font-weight:700;">{{ c.v }}</span></span>
-                </sc-for>
+          <!-- ── HERO = a banca escolhida (bloco colorido único da tela) ───────── -->
+          <div style="{{ bancaHeroStyle }}">
+            <div style="position:absolute;right:-70px;top:-118px;width:290px;height:290px;border-radius:50%;background:rgba(255,255,255,.13);pointer-events:none;"></div>
+            <div style="position:absolute;right:104px;bottom:-140px;width:210px;height:210px;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none;"></div>
+            <div style="position:absolute;left:-64px;bottom:-96px;width:180px;height:180px;border-radius:50%;background:rgba(0,0,0,.10);pointer-events:none;"></div>
+            <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+              <div style="min-width:260px;flex:1;">
+                <div style="font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:800;">Perfil de banca</div>
+                <div style="font-family:var(--display);font-size:44px;line-height:1.02;font-weight:800;color:#fff;margin-top:10px;letter-spacing:-.03em;">{{ bancaFocoLabel }}</div>
+                <div style="font-size:13.5px;color:rgba(255,255,255,.86);line-height:1.6;margin-top:12px;max-width:560px;">Monte o recorte em quatro passos abaixo. O perfil da banca é fixo e pesquisado — o que muda com a sua escolha são as dicas sob medida.</div>
               </div>
+              <span style="{{ bancaFocoPenStyle }}">{{ bancaFocoPenLabel }}</span>
+            </div>
+            <div style="position:relative;display:flex;gap:9px;flex-wrap:wrap;margin-top:24px;">
+              <sc-for list="{{ bancaCrumb }}" as="c" hint-placeholder-count="4">
+                <span style="{{ c.style }}"><span style="opacity:.6;font-weight:800;letter-spacing:.09em;text-transform:uppercase;font-size:9.5px;">{{ c.k }}</span><span style="font-weight:800;">{{ c.v }}</span></span>
+              </sc-for>
             </div>
           </div>
 
           <!-- ── SELETOR EM 4 PASSOS ────────────────────────────────────────────── -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column;gap:20px;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;display:flex;flex-direction:column;gap:22px;">
 
             <!-- 1 · ÁREA DO CONCURSO -->
             <div>
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap;">
-                <span style="width:22px;height:22px;border-radius:50%;background:var(--accentSoft);color:var(--accentD);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;">1</span>
-                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;">Área do concurso</span>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap;">
+                <span style="{{ bancaStepNum }}">1</span>
+                <span style="font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink);font-weight:800;">Área do concurso</span>
                 <span style="font-size:11.5px;color:var(--text3);margin-left:auto;">{{ bancaAreaConcDesc }}</span>
               </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;gap:9px;flex-wrap:wrap;">
                 <sc-for list="{{ bancaAreas }}" as="a" hint-placeholder-count="10">
-                  <button data-k="{{ a.k }}" onclick="{{ setBancaAreaConc }}" style="{{ a.style }}"><span style="font-size:14px;line-height:1;">{{ a.emoji }}</span>{{ a.label }}</button>
+                  <button data-k="{{ a.k }}" onclick="{{ setBancaAreaConc }}" style="{{ a.style }}"><span style="font-size:15px;line-height:1;">{{ a.emoji }}</span>{{ a.label }}</button>
                 </sc-for>
               </div>
             </div>
 
             <!-- 2 · BANCA -->
-            <div style="border-top:1px dashed var(--border);padding-top:18px;">
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap;">
-                <span style="width:22px;height:22px;border-radius:50%;background:var(--accentSoft);color:var(--accentD);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;">2</span>
-                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;">Banca</span>
+            <div style="border-top:1px solid var(--border);padding-top:20px;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap;">
+                <span style="{{ bancaStepNum }}">2</span>
+                <span style="font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink);font-weight:800;">Banca</span>
                 <span style="font-size:11.5px;color:var(--text3);margin-left:auto;">12 bancas · o selo diz se o erro anula acerto</span>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px;">
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:11px;">
                 <sc-for list="{{ bancaTiles }}" as="b" hint-placeholder-count="12">
                   <button data-k="{{ b.k }}" onclick="{{ setBancaFoco }}" style="{{ b.style }}">
                     <span style="{{ b.barStyle }}"></span>
@@ -3074,13 +3190,13 @@ window.ctPdfLib = (function(){
             </div>
 
             <!-- 3 · MATÉRIA -->
-            <div style="border-top:1px dashed var(--border);padding-top:18px;">
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap;">
-                <span style="width:22px;height:22px;border-radius:50%;background:var(--accentSoft);color:var(--accentD);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;">3</span>
-                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;">Matéria</span>
+            <div style="border-top:1px solid var(--border);padding-top:20px;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap;">
+                <span style="{{ bancaStepNum }}">3</span>
+                <span style="font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink);font-weight:800;">Matéria</span>
                 <span style="font-size:11.5px;color:var(--text3);margin-left:auto;">{{ bancaMateriaFonte }}</span>
               </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;gap:9px;flex-wrap:wrap;">
                 <sc-for list="{{ bancaMaterias }}" as="m" hint-placeholder-count="8">
                   <button data-k="{{ m.k }}" onclick="{{ setBancaArea }}" style="{{ m.style }}">{{ m.label }}</button>
                 </sc-for>
@@ -3088,75 +3204,64 @@ window.ctPdfLib = (function(){
             </div>
 
             <!-- 4 · ASSUNTO -->
-            <div style="border-top:1px dashed var(--border);padding-top:18px;">
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap;">
-                <span style="width:22px;height:22px;border-radius:50%;background:var(--accentSoft);color:var(--accentD);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;">4</span>
-                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;">Assunto</span>
+            <div style="border-top:1px solid var(--border);padding-top:20px;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap;">
+                <span style="{{ bancaStepNum }}">4</span>
+                <span style="font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink);font-weight:800;">Assunto</span>
                 <span style="font-size:11.5px;color:var(--text3);margin-left:auto;">{{ bancaAssuntoFonte }}</span>
               </div>
               <sc-if value="{{ bancaTemAssuntos }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px;">
+                <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px;">
                   <sc-for list="{{ bancaAssuntos }}" as="t" hint-placeholder-count="8">
                     <button data-k="{{ t.k }}" onclick="{{ setBancaAssunto }}" style="{{ t.style }}">{{ t.label }}</button>
                   </sc-for>
                 </div>
               </sc-if>
-              <input value="{{ bancaAssuntoTxt }}" oninput="{{ onBancaAssunto }}" placeholder="{{ bancaAssuntoPh }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:10px;padding:11px 13px;font-size:13.5px;color:var(--ink);font-family:inherit;">
+              <input value="{{ bancaAssuntoTxt }}" oninput="{{ onBancaAssunto }}" placeholder="{{ bancaAssuntoPh }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:11px;padding:12px 14px;font-size:13.5px;color:var(--ink);font-family:inherit;">
             </div>
           </div>
 
-          <!-- ── PAINEL DA BANCA ESCOLHIDA ──────────────────────────────────────── -->
+          <!-- ── PERFIL DA BANCA (sem faixa: a cor já é o hero) ─────────────────── -->
           <div style="{{ bancaFocoWrap }}">
-            <div style="{{ bancaFocoGlow }}"></div>
-            <div style="position:relative;padding:24px 26px;">
-              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
-                <div style="min-width:220px;">
-                  <div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:{{ bancaFocoCor }};">Banca escolhida</div>
-                  <div style="font-family:var(--display);font-size:29px;line-height:1.1;font-weight:800;color:var(--ink);margin-top:5px;letter-spacing:-.01em;">{{ bancaFocoLabel }}</div>
-                </div>
-                <span style="{{ bancaFocoPenStyle }}">{{ bancaFocoPenLabel }}</span>
+            <div style="padding:24px 26px 26px;">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                <span style="{{ bancaFocoTitulo }}">{{ bancaHeroTitulo }}</span>
+                <span style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);"></span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:13px;">
+                <sc-for list="{{ bancaCards }}" as="k" hint-placeholder-count="3">
+                  <div style="{{ k.style }}">
+                    <div style="{{ k.labelStyle }}"><span style="font-size:11px;">{{ k.icone }}</span>{{ k.titulo }}</div>
+                    <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ k.texto }}</div>
+                  </div>
+                </sc-for>
               </div>
 
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:20px;">
-                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 15px;">
-                  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;margin-bottom:6px;">Formato</div>
-                  <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ bancaFocoFormato }}</div>
-                </div>
-                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 15px;">
-                  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;margin-bottom:6px;">Como cobra</div>
-                  <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ bancaFocoEstilo }}</div>
-                </div>
-                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 15px;">
-                  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;margin-bottom:6px;">Foco do estudo</div>
-                  <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ bancaFocoFoco }}</div>
-                </div>
-              </div>
-
-              <div style="margin-top:20px;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;">
-                  <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--text3);">Dicas práticas da banca</span>
+              <div style="margin-top:24px;">
+                <div style="display:flex;align-items:center;gap:11px;margin-bottom:13px;">
+                  <span style="font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:var(--ink);">Dicas práticas da banca</span>
                   <span style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);"></span>
                 </div>
                 <sc-for list="{{ bancaFocoDicas }}" as="d" hint-placeholder-count="3">
-                  <div style="display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;"><span style="{{ bancaFocoMarker }}">›</span><span style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ d }}</span></div>
+                  <div style="display:flex;gap:12px;margin-bottom:11px;align-items:flex-start;"><span style="{{ d.numStyle }}">{{ d.num }}</span><span style="font-size:12.5px;color:var(--text2);line-height:1.6;padding-top:5px;">{{ d.texto }}</span></div>
                 </sc-for>
               </div>
 
               <!-- recorte: dicas sob medida (IA) -->
-              <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:18px;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;flex-wrap:wrap;">
-                  <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--accentD);">Sob medida para o seu recorte</span>
+              <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px;">
+                <div style="display:flex;align-items:center;gap:11px;margin-bottom:12px;flex-wrap:wrap;">
+                  <span style="font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:var(--accentD);">Sob medida para o seu recorte</span>
                   <span style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);min-width:30px;"></span>
                 </div>
-                <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:13px;">{{ bancaRecorteDesc }}</div>
+                <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:15px;">{{ bancaRecorteDesc }}</div>
                 <sc-if value="{{ bancaTemIA }}" hint-placeholder-val="{{ false }}">
-                  <div style="background:var(--accentSoft);border:1px solid var(--border);border-radius:12px;padding:15px 16px;margin-bottom:13px;">
+                  <div style="{{ bancaIACaixa }}">
                     <sc-for list="{{ bancaDicasIA }}" as="da" hint-placeholder-count="4">
-                      <div style="display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;"><span style="color:var(--accentD);flex:none;font-weight:800;">✦</span><span style="font-size:12.5px;color:var(--ink);line-height:1.55;">{{ da }}</span></div>
+                      <div style="display:flex;gap:11px;margin-bottom:10px;align-items:flex-start;"><span style="{{ bancaIAMarker }}">✦</span><span style="font-size:12.5px;color:var(--ink);line-height:1.6;">{{ da }}</span></div>
                     </sc-for>
                   </div>
                 </sc-if>
-                <button onclick="{{ gerarDicasBanca }}" disabled="{{ bancaIABusy }}" style="{{ bancaIAStyle }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke-linecap="round"></path></svg>{{ bancaIALabel }}</button>
+                <button onclick="{{ gerarDicasBanca }}" disabled="{{ bancaIABusy }}" style="{{ bancaIAStyle }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke-linecap="round"></path></svg>{{ bancaIALabel }}</button>
               </div>
             </div>
           </div>
@@ -3164,199 +3269,395 @@ window.ctPdfLib = (function(){
         </div>
       </sc-if>
 
-      <!-- ================= PAINEL DE ADMINISTRADOR (só a dona vê) ================= -->
+      <!-- ================= CONSOLE DE ADMINISTRAÇÃO ================= -->
+      <!-- Não é uma tela do app: é o console de quem OPERA o app. Sai do tema, sai da   -->
+      <!-- paleta, sai da tipografia — escuro, tabular, denso. A conta de administração  -->
+      <!-- não estuda; ela remove conta, derruba sessão, pausa a IA e responde suporte.  -->
+      <!-- Toda ação destrutiva é conferida NO SERVIDOR (ver supabase-admin.sql): o que  -->
+      <!-- está aqui é a ergonomia, não a tranca.                                        -->
       <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
        <sc-if value="{{ isAdminView }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;flex-direction:column;gap:18px;">
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-            <button onclick="{{ refreshAdmin }}" style="display:inline-flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">↻ Atualizar</button>
-            <span style="font-size:12px;color:var(--text3);">{{ adminGeradoEm }}</span>
-          </div>
+        <div class="adm" style="{{ admShell }}">
 
-          <sc-if value="{{ adminTemErro }}" hint-placeholder-val="{{ false }}">
-            <div style="background:#fdecea;border:1px solid #f5c2bd;color:#8a2a1e;border-radius:12px;padding:16px 18px;font-size:13.5px;">{{ adminErro }}</div>
-          </sc-if>
-
-          <!-- SAÚDE DO BETA -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
-            <sc-for list="{{ admSaude }}" as="m" hint-placeholder-count="4">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;">
-                <div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);line-height:1;">{{ m.v }}</div>
-                <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin-top:8px;">{{ m.k }}</div>
-                <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">{{ m.sub }}</div>
-              </div>
-            </sc-for>
-          </div>
-
-          <!-- INDICADORES (retenção + IA) -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
-            <sc-for list="{{ admIndicadores }}" as="m" hint-placeholder-count="3">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;">
-                <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;">{{ m.v }}</div>
-                <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin-top:8px;">{{ m.k }}</div>
-                <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">{{ m.sub }}</div>
-              </div>
-            </sc-for>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;">
-            <!-- USO DE RECURSOS -->
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
-              <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Uso de recursos</div>
-              <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">quantas contas usam cada parte do app</div>
-              <sc-for list="{{ admRecursos }}" as="r" hint-placeholder-count="9">
-                <div style="margin-bottom:12px;">
-                  <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;"><span style="color:var(--text2);font-weight:600;">{{ r.label }}</span><span style="color:var(--text3);font-family:var(--mono);">{{ r.n }} · {{ r.pctLabel }}</span></div>
-                  <div style="width:100%;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden;"><div style="{{ r.barStyle }}"></div></div>
-                </div>
+          <!-- ── BARRA + ABAS (pinam juntas no topo) ────────────────────── -->
+          <div class="adm-top">
+          <div class="adm-bar">
+            <div class="adm-brand"><i>▚</i> Cátedra <span style="color:var(--k-dim2);">/</span> console</div>
+            <div class="adm-live">
+              <sc-for list="{{ admLive }}" as="l" hint-placeholder-count="4">
+                <b>{{ l.k }} <em>{{ l.v }}</em></b>
               </sc-for>
+              <button class="adm-btn" onclick="{{ refreshAdmin }}">↻ {{ adminGeradoEm }}</button>
             </div>
-            <!-- CRESCIMENTO -->
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
-              <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Cadastros por semana</div>
-              <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">últimas semanas</div>
-              <sc-if value="{{ admTemCrescimento }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;align-items:flex-end;gap:8px;height:80px;">
-                  <sc-for list="{{ admCrescimento }}" as="c" hint-placeholder-count="6">
-                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
-                      <span style="font-size:11px;color:var(--text2);font-weight:600;">{{ c.n }}</span>
-                      <div style="{{ c.barStyle }}"></div>
-                      <span style="font-size:9.5px;color:var(--text3);">{{ c.semana }}</span>
+          </div>
+
+          <!-- ── ABAS ───────────────────────────────────────────────────── -->
+          <div class="adm-tabs">
+            <sc-for list="{{ admTabs }}" as="t" hint-placeholder-count="7">
+              <button class="adm-tab" data-on="{{ t.on }}" data-t="{{ t.k }}" onclick="{{ setAdmTab }}">{{ t.label }}<sc-if value="{{ t.temBadge }}" hint-placeholder-val="{{ false }}"><u>{{ t.badge }}</u></sc-if></button>
+            </sc-for>
+          </div>
+          </div>
+
+          <div class="adm-body">
+
+            <sc-if value="{{ adminTemErro }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-panel" style="border-color:#5a2530;background:rgba(255,95,109,.06);">
+                <div class="in" style="color:var(--k-bad);font-size:12.5px;">{{ adminErro }}</div>
+              </div>
+            </sc-if>
+
+            <!-- interruptores globais ligados aparecem em TODA aba: é estado do app -->
+            <sc-if value="{{ admAlertaGlobal }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-panel" style="border-color:#5c4413;background:rgba(242,169,59,.07);">
+                <div class="in" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--k-warn);">
+                  <span style="font-weight:800;letter-spacing:.1em;">⏻ NO AR AGORA:</span><span>{{ admAlertaGlobal }}</span>
+                  <button class="adm-btn ghost" data-t="controle" onclick="{{ setAdmTab }}" style="margin-left:auto;">Ir para Controle</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- ══════════════ VISÃO GERAL ══════════════ -->
+            <sc-if value="{{ admTabVisao }}" hint-placeholder-val="{{ true }}">
+              <div class="adm-grid adm-kpis">
+                <sc-for list="{{ admSaude }}" as="m" hint-placeholder-count="4">
+                  <div class="adm-kpi"><b style="{{ m.cor }}">{{ m.v }}</b><span>{{ m.k }}</span><i>{{ m.sub }}</i></div>
+                </sc-for>
+              </div>
+              <div class="adm-grid adm-kpis">
+                <sc-for list="{{ admIndicadores }}" as="m" hint-placeholder-count="3">
+                  <div class="adm-kpi"><b>{{ m.v }}</b><span>{{ m.k }}</span><i>{{ m.sub }}</i></div>
+                </sc-for>
+              </div>
+
+              <!-- o que pede ação hoje: a razão de abrir o console -->
+              <div class="adm-panel">
+                <header><h3>Pede atenção</h3><p>o que está torto agora</p></header>
+                <sc-if value="{{ admSemAtencao }}" hint-placeholder-val="{{ false }}">
+                  <div class="adm-empty">Nada pendente. Beta saudável.</div>
+                </sc-if>
+                <sc-for list="{{ admAtencao }}" as="a" hint-placeholder-count="3">
+                  <div class="adm-row" style="grid-template-columns:8px 1fr auto;">
+                    <span style="width:8px;height:8px;border-radius:99px;background:{{ a.cor }};"></span>
+                    <div><div style="font-size:12.5px;color:var(--k-ink);">{{ a.titulo }}</div><div class="adm-sub">{{ a.sub }}</div></div>
+                    <button class="adm-btn" data-t="{{ a.tab }}" onclick="{{ setAdmTab }}">{{ a.acao }}</button>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div class="adm-grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));">
+                <div class="adm-panel">
+                  <header><h3>Uso de recursos</h3><p>contas que tocam cada parte</p></header>
+                  <div class="in" style="display:flex;flex-direction:column;gap:11px;">
+                    <sc-for list="{{ admRecursos }}" as="r" hint-placeholder-count="9">
+                      <div>
+                        <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px;"><span style="color:var(--k-dim);">{{ r.label }}</span><span class="adm-num">{{ r.n }} · {{ r.pctLabel }}</span></div>
+                        <div class="adm-meter"><i style="{{ r.barStyle }}"></i></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="adm-panel">
+                  <header><h3>Cadastros por semana</h3><p>últimas 6 semanas</p></header>
+                  <div class="in">
+                    <sc-if value="{{ admTemCrescimento }}" hint-placeholder-val="{{ true }}">
+                      <div class="adm-bars">
+                        <sc-for list="{{ admCrescimento }}" as="c" hint-placeholder-count="6">
+                          <div><span style="font-size:10px;color:var(--k-dim);">{{ c.n }}</span><i style="{{ c.barStyle }}"></i><small>{{ c.semana }}</small></div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ admSemCrescimento }}" hint-placeholder-val="{{ false }}">
+                      <div class="adm-empty">Nenhum cadastro nas últimas semanas.</div>
+                    </sc-if>
+                  </div>
+                </div>
+              </div>
+
+              <div class="adm-panel">
+                <header><h3>Instalação</h3><p>peso dos dados, sessões e limites</p></header>
+                <div class="in" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;">
+                  <sc-for list="{{ admSistema }}" as="s" hint-placeholder-count="8">
+                    <div style="background:var(--k-panel2);border-radius:7px;padding:10px 12px;">
+                      <div style="font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;">{{ s.v }}</div>
+                      <div style="font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--k-dim2);margin-top:5px;font-weight:700;">{{ s.k }}</div>
                     </div>
                   </sc-for>
                 </div>
-              </sc-if>
-            </div>
-          </div>
+                <div class="adm-head" style="grid-template-columns:1fr 80px;border-top:1px solid var(--k-line);padding-top:10px;"><span>Contas que mais ocupam</span><span style="text-align:right;">Tamanho</span></div>
+                <sc-for list="{{ admMaiores }}" as="m" hint-placeholder-count="5">
+                  <div class="adm-row" style="grid-template-columns:1fr 80px;"><span class="adm-mail">{{ m.email }}</span><span class="adm-num">{{ m.kb }}</span></div>
+                </sc-for>
+              </div>
+            </sc-if>
 
-          <!-- TESTADORES -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
-              <div style="font-weight:600;color:var(--ink);font-size:15px;">Testadores</div>
-              <button onclick="{{ exportarTestadoresCSV }}" style="font-size:11.5px;font-weight:600;border:1px solid var(--border);background:var(--surface2);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;color:var(--text2);">Exportar CSV</button>
-            </div>
-            <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">quem entrou, há quanto tempo não volta, e quanto já usou — sem abrir o conteúdo de estudo de ninguém</div>
-            <sc-if value="{{ admTemTesters }}" hint-placeholder-val="{{ true }}">
-              <div style="display:flex;flex-direction:column;gap:8px;">
+            <!-- ══════════════ CONTAS ══════════════ -->
+            <sc-if value="{{ admTabContas }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-panel">
+                <header>
+                  <h3>Contas</h3>
+                  <p>{{ admContasResumo }}</p>
+                  <button class="adm-btn ghost" onclick="{{ exportarTestadoresCSV }}" style="margin-left:auto;">↧ CSV</button>
+                </header>
+                <div class="in" style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--k-line);">
+                  <input class="adm-in" style="flex:1;min-width:190px;width:auto;" type="search" value="{{ admBusca }}" oninput="{{ onAdmBusca }}" placeholder="buscar por e-mail ou uid…">
+                  <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <sc-for list="{{ admFiltros }}" as="f" hint-placeholder-count="6">
+                      <button class="adm-btn" data-on="{{ f.on }}" data-f="{{ f.k }}" onclick="{{ setAdmFiltro }}">{{ f.label }} {{ f.n }}</button>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-left:auto;">
+                    <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--k-dim2);align-self:center;font-weight:700;">ordenar</span>
+                    <sc-for list="{{ admOrdens }}" as="o" hint-placeholder-count="4">
+                      <button class="adm-btn ghost" data-on="{{ o.on }}" data-o="{{ o.k }}" onclick="{{ setAdmOrdem }}">{{ o.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div class="adm-head adm-users">
+                  <span>Conta</span><span class="hide-sm">Situação</span><span class="hide-sm" style="text-align:right;">Último acesso</span>
+                  <span style="text-align:right;">Sessões</span><span class="hide-sm" style="text-align:right;">Dados</span><span></span>
+                </div>
+
+                <sc-if value="{{ admSemResultado }}" hint-placeholder-val="{{ false }}">
+                  <div class="adm-empty">Nenhuma conta bate com esse filtro.</div>
+                </sc-if>
+
                 <sc-for list="{{ admTesters }}" as="t" hint-placeholder-count="6">
-                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;">
-                    <span style="width:9px;height:9px;border-radius:99px;background:{{ t.dot }};flex:none;"></span>
-                    <div style="flex:1;min-width:160px;">
-                      <div style="font-size:13.5px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.email }}</div>
-                      <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">entrou {{ t.criado }} · último acesso {{ t.ultimo }} · sync {{ t.sync }}</div>
+                  <div>
+                    <div class="adm-row adm-users">
+                      <div style="min-width:0;">
+                        <div class="adm-mail">{{ t.email }}</div>
+                        <div class="adm-sub">{{ t.uidCurto }} · entrou {{ t.criado }} · sync {{ t.sync }}</div>
+                      </div>
+                      <span class="hide-sm"><span class="adm-pill" style="{{ t.tagStyle }}">{{ t.tag }}</span></span>
+                      <span class="adm-num hide-sm">{{ t.ultimo }}</span>
+                      <span class="adm-num">{{ t.sessoes }}</span>
+                      <span class="adm-num hide-sm">{{ t.kb }}</span>
+                      <button class="adm-btn ghost" data-uid="{{ t.uid }}" onclick="{{ admToggleRow }}" title="Ações">{{ t.chev }}</button>
                     </div>
-                    <div style="font-size:11.5px;color:var(--text3);text-align:right;flex:none;">{{ t.sessoes }} sessões<br>{{ t.disc }} disc · {{ t.kb }}</div>
-                    <span style="{{ t.tagStyle }}">{{ t.tag }}</span>
-                    <button data-uid="{{ t.uid }}" onclick="{{ adminVerTestador }}" style="font-size:11.5px;font-weight:600;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit;color:var(--text2);">Ficha</button>
-                    <sc-if value="{{ t.podeBloquear }}" hint-placeholder-val="{{ true }}">
-                      <button data-uid="{{ t.uid }}" data-bloq="{{ t.acaoBloq }}" onclick="{{ adminBloquear }}" style="{{ t.acaoStyle }}">{{ t.acaoLabel }}</button>
+
+                    <!-- gaveta de ações da conta -->
+                    <sc-if value="{{ t.aberto }}" hint-placeholder-val="{{ false }}">
+                      <div class="adm-drawer">
+                        <div class="adm-acts">
+                          <button class="adm-btn" data-uid="{{ t.uid }}" onclick="{{ adminVerTestador }}">Ficha completa</button>
+                          <sc-if value="{{ t.naoConfirmado }}" hint-placeholder-val="{{ false }}">
+                            <button class="adm-btn ok" data-uid="{{ t.uid }}" onclick="{{ admConfirmarEmail }}">✓ Confirmar e-mail</button>
+                          </sc-if>
+                          <button class="adm-btn" data-uid="{{ t.uid }}" onclick="{{ admDesconectar }}">⏻ Derrubar sessões</button>
+                          <sc-if value="{{ t.podeBloquear }}" hint-placeholder-val="{{ true }}">
+                            <button class="{{ t.bloqClass }}" data-uid="{{ t.uid }}" data-bloq="{{ t.acaoBloq }}" onclick="{{ adminBloquear }}">{{ t.acaoLabel }}</button>
+                            <button class="adm-btn" data-uid="{{ t.uid }}" data-v="{{ t.admAlvo }}" onclick="{{ admSetAdmin }}">{{ t.admLabel }}</button>
+                          </sc-if>
+                          <sc-if value="{{ t.ehAdmin }}" hint-placeholder-val="{{ false }}">
+                            <span class="adm-pill" style="color:var(--k-roxo);background:rgba(167,139,250,.12);align-self:center;">conta de administração — rebaixe antes de apagar</span>
+                          </sc-if>
+                        </div>
+
+                        <sc-if value="{{ t.temFicha }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:7px;">
+                            <sc-for list="{{ admDetalhe.linhas }}" as="l" hint-placeholder-count="9">
+                              <div style="display:flex;justify-content:space-between;gap:8px;background:var(--k-panel);border:1px solid var(--k-line);border-radius:6px;padding:7px 10px;font-size:11.5px;">
+                                <span style="color:var(--k-dim);">{{ l.k }}</span><span style="font-weight:700;font-variant-numeric:tabular-nums;">{{ l.v }}</span>
+                              </div>
+                            </sc-for>
+                          </div>
+                          <div style="font-size:11px;color:var(--k-dim2);">Só contagens — o console nunca abre o conteúdo de estudo de ninguém. IA: {{ admDetalhe.iaTotal }} chamadas · última em {{ admDetalhe.iaUltimo }}</div>
+                        </sc-if>
+
+                        <sc-if value="{{ t.podeApagarLinha }}" hint-placeholder-val="{{ true }}">
+                          <div class="adm-danger">
+                            <h4>⚠ Zona de risco</h4>
+                            <p>Digite <b style="color:var(--k-ink);">{{ t.email }}</b> para liberar. <b style="color:var(--k-ink);">Zerar dados</b> apaga edital, sessões, redações e revisões desta conta e mantém o login. <b style="color:var(--k-ink);">Remover conta</b> apaga a conta inteira, tira dos grupos e não tem desfazer.</p>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                              <input class="adm-in" style="flex:1;min-width:210px;width:auto;" type="text" value="{{ admConfirmTxt }}" oninput="{{ onAdmConfirm }}" placeholder="{{ t.email }}" autocomplete="off" spellcheck="false">
+                              <sc-if value="{{ t.confirmado_p_apagar }}" hint-placeholder-val="{{ false }}">
+                                <button class="adm-btn bad" data-uid="{{ t.uid }}" onclick="{{ admZerar }}">Zerar dados</button>
+                                <button class="adm-btn bad" data-uid="{{ t.uid }}" onclick="{{ admApagarUsuario }}">Remover conta</button>
+                              </sc-if>
+                              <sc-if value="{{ t.naoConfere }}" hint-placeholder-val="{{ true }}">
+                                <button class="adm-btn" disabled>Zerar dados</button>
+                                <button class="adm-btn" disabled>Remover conta</button>
+                              </sc-if>
+                            </div>
+                          </div>
+                        </sc-if>
+                      </div>
                     </sc-if>
                   </div>
                 </sc-for>
               </div>
             </sc-if>
-            <sc-if value="{{ adminBusy }}" hint-placeholder-val="{{ false }}">
-              <div style="text-align:center;color:var(--text3);font-size:13px;padding:20px;">Carregando…</div>
-            </sc-if>
-          </div>
 
-          <!-- FEEDBACK -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-              <span style="font-weight:600;color:var(--ink);font-size:15px;">Bugs e feedback</span>
-              <span style="font-size:11px;font-weight:700;color:var(--onAccent);background:var(--accent);border-radius:99px;padding:2px 8px;">{{ admFeedbackNaoLidos }} novos</span>
-            </div>
-            <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">o que os testadores enviaram de dentro do app</div>
-            <sc-if value="{{ admFeedbackVazio }}" hint-placeholder-val="{{ true }}">
-              <div style="text-align:center;color:var(--text3);font-size:13px;padding:16px;">Nenhum relato ainda.</div>
-            </sc-if>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              <sc-for list="{{ admFeedback }}" as="f" hint-placeholder-count="3">
-                <div style="{{ f.cardStyle }}">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
-                    <span style="font-size:12px;font-weight:600;color:var(--text2);">{{ f.email }} · {{ f.quando }}</span>
-                    <span style="{{ f.statusStyle }}">{{ f.status }}</span>
-                  </div>
-                  <div style="font-size:13.5px;color:var(--ink);line-height:1.55;white-space:pre-wrap;">{{ f.mensagem }}</div>
-                  <div style="font-size:11px;color:var(--text3);margin-top:8px;font-family:var(--mono);">{{ f.ctx }}</div>
-                  <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-                    <button data-id="{{ f.id }}" data-status="novo" onclick="{{ adminFeedbackStatus }}" style="font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:4px 10px;cursor:pointer;font-family:inherit;color:var(--text2);">Novo</button>
-                    <button data-id="{{ f.id }}" data-status="andamento" onclick="{{ adminFeedbackStatus }}" style="font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:4px 10px;cursor:pointer;font-family:inherit;color:var(--text2);">Em andamento</button>
-                    <button data-id="{{ f.id }}" data-status="resolvido" onclick="{{ adminFeedbackStatus }}" style="font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:4px 10px;cursor:pointer;font-family:inherit;color:var(--text2);">Resolvido</button>
-                  </div>
-                </div>
-              </sc-for>
-            </div>
-          </div>
-
-          <!-- FICHA DO TESTADOR (drill-down) -->
-          <sc-if value="{{ admTemDetalhe }}" hint-placeholder-val="{{ false }}">
-          <div style="background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:20px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
-              <span style="font-weight:600;color:var(--ink);font-size:15px;">Ficha · {{ admDetalhe.email }}</span>
-              <button onclick="{{ adminFecharDetalhe }}" style="font-size:12px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit;color:var(--text2);">Fechar</button>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px;font-size:12px;color:var(--text3);">
-              <div>Entrou<br><b style="color:var(--text2);">{{ admDetalhe.criado }}</b></div>
-              <div>Último acesso<br><b style="color:var(--text2);">{{ admDetalhe.ultimo }}</b></div>
-              <div>Sync<br><b style="color:var(--text2);">{{ admDetalhe.sync }}</b></div>
-              <div>Confirmado<br><b style="color:var(--text2);">{{ admDetalhe.confirmado }}</b></div>
-              <div>Bloqueado<br><b style="color:var(--text2);">{{ admDetalhe.bloqueado }}</b></div>
-              <div>Dados<br><b style="color:var(--text2);">{{ admDetalhe.blobKb }}</b></div>
-              <div>Grupos<br><b style="color:var(--text2);">{{ admDetalhe.grupos }}</b></div>
-              <div>Chamadas de IA<br><b style="color:var(--text2);">{{ admDetalhe.iaTotal }}</b></div>
-            </div>
-            <div style="border-top:1px solid var(--border);padding-top:12px;">
-              <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:8px;">Quanto usou (contagens, sem abrir o conteúdo)</div>
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;">
-                <sc-for list="{{ admDetalhe.linhas }}" as="l" hint-placeholder-count="9">
-                  <div style="display:flex;justify-content:space-between;font-size:12.5px;background:var(--surface2);border-radius:8px;padding:8px 11px;"><span style="color:var(--text2);">{{ l.k }}</span><span style="color:var(--ink);font-weight:700;font-family:var(--mono);">{{ l.v }}</span></div>
+            <!-- ══════════════ IA & CUSTO ══════════════ -->
+            <sc-if value="{{ admTabIa }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-grid adm-kpis">
+                <sc-for list="{{ admIaTotais }}" as="m" hint-placeholder-count="4">
+                  <div class="adm-kpi"><b>{{ m.v }}</b><span>{{ m.k }}</span><i>{{ m.sub }}</i></div>
                 </sc-for>
               </div>
-            </div>
-          </div>
-          </sc-if>
-
-          <!-- MODERAÇÃO DA COMUNIDADE -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
-            <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Comunidade</div>
-            <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">grupos criados pelos testadores — apague um abusivo ou vazio</div>
-            <sc-if value="{{ admSemGrupos }}" hint-placeholder-val="{{ true }}">
-              <div style="text-align:center;color:var(--text3);font-size:13px;padding:14px;">Nenhum grupo criado ainda.</div>
-            </sc-if>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <sc-for list="{{ admGrupos }}" as="g" hint-placeholder-count="3">
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;">
-                  <div style="flex:1;min-width:180px;">
-                    <div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ g.nome }} <span style="font-family:var(--mono);font-size:11px;color:var(--text3);">{{ g.codigo }}</span></div>
-                    <div style="font-size:11.5px;color:var(--text3);margin-top:2px;">{{ g.nMembros }} membros · criado por {{ g.criador }} · {{ g.quando }}</div>
-                    <div style="font-size:11px;color:var(--text3);margin-top:3px;">{{ g.membros }}</div>
+              <div class="adm-panel">
+                <header><h3>Chamadas por dia</h3><p>últimos 14 dias</p></header>
+                <div class="in">
+                  <sc-if value="{{ admIaTemDias }}" hint-placeholder-val="{{ true }}">
+                    <div class="adm-bars" style="height:96px;">
+                      <sc-for list="{{ admIaDias }}" as="d" hint-placeholder-count="14">
+                        <div title="{{ d.titulo }}"><span style="font-size:9.5px;color:var(--k-dim);">{{ d.n }}</span><i style="{{ d.barStyle }}"></i><small>{{ d.dia }}</small></div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ admIaSemDias }}" hint-placeholder-val="{{ false }}">
+                    <div class="adm-empty">Nenhuma chamada de IA registrada.</div>
+                  </sc-if>
+                </div>
+              </div>
+              <div class="adm-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+                <div class="adm-panel">
+                  <header><h3>Quem mais usa</h3><p>top 20 contas</p></header>
+                  <sc-for list="{{ admIaContas }}" as="c" hint-placeholder-count="5">
+                    <div class="adm-row" style="grid-template-columns:1fr 60px;"><span class="adm-mail">{{ c.email }}</span><span class="adm-num">{{ c.n }}</span></div>
+                  </sc-for>
+                  <sc-if value="{{ admIaSemContas }}" hint-placeholder-val="{{ false }}"><div class="adm-empty">Ninguém usou a IA ainda.</div></sc-if>
+                </div>
+                <div class="adm-panel">
+                  <header><h3>Por endpoint</h3><p>de onde vem o gasto</p></header>
+                  <sc-for list="{{ admIaEndpoints }}" as="e" hint-placeholder-count="2">
+                    <div class="adm-row" style="grid-template-columns:1fr 60px;"><span>{{ e.k }}</span><span class="adm-num">{{ e.n }}</span></div>
+                  </sc-for>
+                  <div class="in" style="border-top:1px solid var(--k-line);">
+                    <div style="font-size:11.5px;color:var(--k-dim2);line-height:1.55;margin-bottom:10px;">O log cresce uma linha por chamada e nunca encolhe sozinho. Purgar não mexe em conta nenhuma — só apaga histórico de uso.</div>
+                    <div class="adm-acts">
+                      <button class="adm-btn" data-d="90" onclick="{{ admPurgarIa }}">Purgar &gt; 90 dias</button>
+                      <button class="adm-btn" data-d="30" onclick="{{ admPurgarIa }}">Purgar &gt; 30 dias</button>
+                    </div>
                   </div>
-                  <button data-id="{{ g.id }}" data-nome="{{ g.nome }}" onclick="{{ adminApagarGrupo }}" style="font-size:11.5px;font-weight:600;border:1px solid #c0392f;background:transparent;color:#c0392f;border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit;">Apagar</button>
                 </div>
-              </sc-for>
-            </div>
-          </div>
-
-          <!-- ALLOWLIST -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
-            <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:4px;">Quem pode entrar (allowlist)</div>
-            <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">com a lista VAZIA, qualquer conta usa a IA. Ao adicionar um e-mail, só os da lista passam a poder — trave o beta a quem você convidou.</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-              <input type="email" value="{{ adminAllowInput }}" oninput="{{ onAdminAllowInput }}" placeholder="email@do.testador" style="flex:1;min-width:200px;border:1px solid var(--border);background:var(--surface2);border-radius:9px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;">
-              <button onclick="{{ adminAllowAdd }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Liberar</button>
-            </div>
-            <sc-if value="{{ admAllowVazia }}" hint-placeholder-val="{{ true }}">
-              <div style="font-size:12.5px;color:var(--text3);">Lista vazia — beta aberto a qualquer conta autenticada.</div>
+              </div>
             </sc-if>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <sc-for list="{{ admAllow }}" as="a" hint-placeholder-count="2">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;">
-                  <span style="font-size:13px;color:var(--ink);">{{ a.email }}</span>
-                  <button data-email="{{ a.email }}" onclick="{{ adminAllowDel }}" style="font-size:11.5px;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--text2);border-radius:8px;padding:4px 10px;cursor:pointer;font-family:inherit;">Remover</button>
+
+            <!-- ══════════════ COMUNIDADE ══════════════ -->
+            <sc-if value="{{ admTabCom }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-panel">
+                <header><h3>Grupos</h3><p>moderação: apague o abusivo ou o vazio</p></header>
+                <sc-if value="{{ admSemGrupos }}" hint-placeholder-val="{{ true }}"><div class="adm-empty">Nenhum grupo criado ainda.</div></sc-if>
+                <sc-for list="{{ admGrupos }}" as="g" hint-placeholder-count="3">
+                  <div class="adm-row" style="grid-template-columns:1fr auto;">
+                    <div style="min-width:0;">
+                      <div style="font-size:12.5px;color:var(--k-ink);">{{ g.nome }} <span style="color:var(--k-acc);">{{ g.codigo }}</span></div>
+                      <div class="adm-sub">{{ g.nMembros }} membros · criado por {{ g.criador }} · {{ g.quando }}</div>
+                      <div class="adm-sub">{{ g.membros }}</div>
+                    </div>
+                    <button class="adm-btn bad" data-id="{{ g.id }}" data-nome="{{ g.nome }}" onclick="{{ adminApagarGrupo }}">Apagar grupo</button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- ══════════════ SUPORTE ══════════════ -->
+            <sc-if value="{{ admTabSup }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-panel">
+                <header><h3>Bugs e feedback</h3><p>o que chegou de dentro do app</p></header>
+                <sc-if value="{{ admFeedbackVazio }}" hint-placeholder-val="{{ true }}"><div class="adm-empty">Nenhum relato ainda.</div></sc-if>
+                <sc-for list="{{ admFeedback }}" as="f" hint-placeholder-count="3">
+                  <div style="border-top:1px solid var(--k-line);padding:14px 16px;">
+                    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px;">
+                      <span class="adm-pill" style="{{ f.statusStyle }}">{{ f.status }}</span>
+                      <span style="font-size:11.5px;color:var(--k-dim);">{{ f.email }} · {{ f.quando }}</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;white-space:pre-wrap;color:var(--k-ink);font-family:var(--body);">{{ f.mensagem }}</div>
+                    <sc-if value="{{ f.temNota }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:9px;border-left:2px solid var(--k-acc);padding-left:10px;font-size:11.5px;color:var(--k-dim);">nota: {{ f.nota }}</div>
+                    </sc-if>
+                    <div style="font-size:10.5px;color:var(--k-dim2);margin-top:8px;">{{ f.ctx }}</div>
+                    <div class="adm-acts" style="margin-top:10px;">
+                      <button class="adm-btn" data-on="{{ f.onNovo }}" data-id="{{ f.id }}" data-status="novo" onclick="{{ adminFeedbackStatus }}">Novo</button>
+                      <button class="adm-btn" data-on="{{ f.onAnd }}" data-id="{{ f.id }}" data-status="andamento" onclick="{{ adminFeedbackStatus }}">Em andamento</button>
+                      <button class="adm-btn" data-on="{{ f.onRes }}" data-id="{{ f.id }}" data-status="resolvido" onclick="{{ adminFeedbackStatus }}">Resolvido</button>
+                      <button class="adm-btn ghost" data-id="{{ f.id }}" onclick="{{ admNotaFeedback }}">Nota interna</button>
+                      <button class="adm-btn bad" data-id="{{ f.id }}" onclick="{{ admApagarFeedback }}">Apagar</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- ══════════════ CONTROLE DO APP ══════════════ -->
+            <sc-if value="{{ admTabCtrl }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-panel">
+                <header><h3>Interruptores globais</h3><p>valem para todo mundo, na hora, sem publicar versão</p></header>
+                <div class="in">
+                  <div class="adm-sw">
+                    <div><b>Pausar a IA de todo mundo</b><span>Corta /api/complete e /api/tts para todas as contas — sua conta de administração continua passando. É o freio de mão quando a fatura dispara.</span></div>
+                    <button class="{{ admIaBtnClass }}" onclick="{{ admToggleIa }}">{{ admIaBtnLabel }}</button>
+                  </div>
+                  <div class="adm-sw">
+                    <div><b>Modo manutenção</b><span>Marca o app como em manutenção; a plataforma avisa quem estiver logado que pode haver instabilidade.</span></div>
+                    <button class="{{ admManutBtnClass }}" onclick="{{ admToggleManut }}">{{ admManutBtnLabel }}</button>
+                  </div>
                 </div>
-              </sc-for>
-            </div>
+              </div>
+
+              <div class="adm-panel">
+                <header><h3>Aviso na tela de todo mundo</h3><p>uma faixa no topo do app, para todas as contas logadas</p></header>
+                <div class="in" style="display:flex;flex-direction:column;gap:10px;">
+                  <textarea class="adm-in" rows="3" value="{{ admAvisoTxt }}" oninput="{{ onAdmAviso }}" placeholder="Ex.: Sexta 22h o app sai do ar por ~20 min para atualização." style="resize:vertical;line-height:1.5;"></textarea>
+                  <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+                    <sc-for list="{{ admAvisoTipos }}" as="a" hint-placeholder-count="3">
+                      <button class="adm-btn" data-on="{{ a.on }}" data-tipo="{{ a.k }}" onclick="{{ setAdmAvisoTipo }}">{{ a.label }}</button>
+                    </sc-for>
+                    <button class="adm-btn ok" onclick="{{ admSalvarAviso }}" style="margin-left:auto;">Publicar aviso</button>
+                    <button class="adm-btn ghost" onclick="{{ admLimparAviso }}">Tirar do ar</button>
+                  </div>
+                  <sc-if value="{{ admAvisoNoAr }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:11.5px;color:var(--k-ok);">No ar agora: “{{ admAvisoNoAr }}”</div>
+                  </sc-if>
+                </div>
+              </div>
+
+              <div class="adm-panel">
+                <header><h3>Quem pode entrar</h3><p>lista vazia = beta aberto a qualquer conta autenticada</p></header>
+                <div class="in" style="display:flex;flex-direction:column;gap:10px;">
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <input class="adm-in" style="flex:1;min-width:200px;width:auto;" type="email" value="{{ adminAllowInput }}" oninput="{{ onAdminAllowInput }}" placeholder="email@do.testador">
+                    <button class="adm-btn ok" onclick="{{ adminAllowAdd }}">Liberar</button>
+                  </div>
+                  <sc-if value="{{ admAllowVazia }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:11.5px;color:var(--k-dim2);">Lista vazia — qualquer conta autenticada usa a IA. Ao incluir o primeiro e-mail, só os da lista passam.</div>
+                  </sc-if>
+                  <sc-for list="{{ admAllow }}" as="a" hint-placeholder-count="2">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--k-panel2);border:1px solid var(--k-line);border-radius:6px;padding:8px 11px;">
+                      <span style="font-size:12px;">{{ a.email }}</span>
+                      <button class="adm-btn ghost" data-email="{{ a.email }}" onclick="{{ adminAllowDel }}">Remover</button>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- ══════════════ AUDITORIA ══════════════ -->
+            <sc-if value="{{ admTabLog }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-panel">
+                <header><h3>Auditoria</h3><p>toda ação destrutiva do console fica registrada no servidor</p>
+                  <button class="adm-btn ghost" onclick="{{ admExportarLog }}" style="margin-left:auto;">↧ CSV</button></header>
+                <div class="adm-head" style="grid-template-columns:104px 128px minmax(120px,1fr) minmax(90px,.8fr);">
+                  <span>Quando</span><span>Ação</span><span>Alvo</span><span>Detalhe</span>
+                </div>
+                <sc-if value="{{ admLogsVazio }}" hint-placeholder-val="{{ true }}"><div class="adm-empty">Nada registrado ainda.</div></sc-if>
+                <sc-for list="{{ admLogs }}" as="l" hint-placeholder-count="6">
+                  <div class="adm-log">
+                    <span style="color:var(--k-dim2);">{{ l.quando }}</span>
+                    <span style="{{ l.acaoStyle }}">{{ l.acao }}</span>
+                    <span style="overflow:hidden;text-overflow:ellipsis;">{{ l.alvo }}</span>
+                    <span style="color:var(--k-dim2);overflow:hidden;text-overflow:ellipsis;">{{ l.detalhe }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ adminBusy }}" hint-placeholder-val="{{ false }}">
+              <div class="adm-empty">carregando…</div>
+            </sc-if>
           </div>
         </div>
        </sc-if>
@@ -3717,8 +4018,11 @@ window.ctPdfLib = (function(){
     </sc-if></div>
   </div></main>
 
-  <!-- BOTTOM-NAV fixa (só mobile) -->
-  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+  <!-- BOTTOM-NAV fixa (só mobile, e só para quem estuda) -->
+  <!-- A conta de administração não tem Início/Ciclo/Revisões: a barra levaria a telas -->
+  <!-- que o menu lateral já esconde dela, e o botão "Registrar sessão" abriria um     -->
+  <!-- registro de estudo dentro de um console de operação.                            -->
+  <sc-if value="{{ mostraBottomNav }}" hint-placeholder-val="{{ false }}">
     <nav aria-label="Navegação rápida" style="position:fixed;left:0;right:0;bottom:0;z-index:35;display:flex;align-items:flex-end;background:var(--surface);border-top:1px solid var(--border);padding:4px 6px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -2px 14px rgba(0,0,0,.10);">
       <button data-view="inicio" onclick="{{ onNav }}" aria-label="Início" style="{{ bnInicio }}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 11l9-8 9 8M5 9v11h5v-6h4v6h5V9" stroke-linecap="round" stroke-linejoin="round"></path></svg>Início</button>
       <button data-view="ciclo" onclick="{{ onNav }}" aria-label="Ciclo de Estudos" style="{{ bnCiclo }}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg>Ciclo</button>
@@ -3758,7 +4062,7 @@ const CT_AREAS = [
   {id:'saude', emoji:'🩺', label:'Saúde e Medicina', desc:'Residência, Revalida, enfermagem, farmácia, odontologia, concursos da saúde',
    juridico:false, juris:false, modulo:'Corpo humano', cats:['Caso clínico','Protocolo/diretriz'],
    discs:['Clínica Médica','Cirurgia','Pediatria','Ginecologia e Obstetrícia','Medicina Preventiva','Saúde Pública / SUS'],
-   modelos:[]},
+   modelos:['ebserhEnfermagem']},
   {id:'social', emoji:'🤝', label:'Assistência Social', desc:'Serviço social, SUAS, CRAS/CREAS, políticas públicas',
    juridico:false, juris:false, modulo:'SUAS e política social', cats:['Legislação social','Estudo de caso'],
    discs:['Serviço Social','Política Social e Seguridade','Ética e Projeto Profissional','SUAS e Assistência Social','Saúde Pública / SUS','Direitos Humanos'],
@@ -3771,6 +4075,10 @@ const CT_AREAS = [
    juridico:true, juris:true, modulo:'Tributos e controle', cats:['Lei seca','Jurisprudência'],
    discs:['Direito Tributário','Contabilidade Geral','Auditoria','Direito Administrativo','Administração Financeira e Orçamentária','Direito Constitucional'],
    modelos:['auditor']},
+  {id:'contas', emoji:'🏦', label:'Tribunais de Contas', desc:'TCU, TCE e TCM — auditor e analista de controle externo, MP de Contas',
+   juridico:true, juris:true, modulo:'Controle externo', cats:['Lei seca','Jurisprudência'],
+   discs:['Controle Externo','Direito Financeiro','Direito Administrativo','Administração Pública','Contabilidade Pública','Auditoria Governamental'],
+   modelos:['caAuditor', 'caAnalista', 'caObras', 'caTI', 'caGestao', 'caProcurador', 'caOficial']},
   {id:'administrativa', emoji:'🏛️', label:'Administrativa e Gestão', desc:'Analista e técnico administrativo, gestão pública, legislativo',
    juridico:true, juris:true, modulo:'Administração pública', cats:['Lei seca'],
    discs:['Língua Portuguesa','Direito Administrativo','Direito Constitucional','Administração Pública','Raciocínio Lógico','Informática'],
@@ -3778,15 +4086,15 @@ const CT_AREAS = [
   {id:'educacao', emoji:'📚', label:'Educação e Docência', desc:'Professor, pedagogia, magistério, provas de licenciatura',
    juridico:false, juris:false, modulo:'Fundamentos da educação', cats:['Documento normativo','Prática de ensino'],
    discs:['Fundamentos da Educação','Didática','Legislação Educacional (LDB)','Psicologia da Aprendizagem','Gestão Escolar','Conhecimentos Específicos'],
-   modelos:[]},
+   modelos:['seducSP','cnuEducacao']},
   {id:'tecnologia', emoji:'💻', label:'Tecnologia e Engenharia', desc:'TI, engenharias, exatas e carreiras técnicas',
    juridico:false, juris:false, modulo:'Fundamentos de TI', cats:['Prática/laboratório','Documentação'],
    discs:['Matemática','Raciocínio Lógico','Programação','Banco de Dados','Redes de Computadores','Segurança da Informação'],
-   modelos:[]},
+   modelos:['cnuTecnologia']},
   {id:'militar', emoji:'🎖️', label:'Militar', desc:'Forças Armadas, ESA, EsPCEx, EEAr, IME/ITA',
    juridico:false, juris:false, modulo:'Exatas militares', cats:['Exercícios'],
    discs:['Matemática','Física','Química','Língua Portuguesa','História','Geografia'],
-   modelos:[]},
+   modelos:['espcex']},
   {id:'outra', emoji:'✳️', label:'Outra área', desc:'Qualquer outra prova — o método de estudo continua o mesmo',
    juridico:false, juris:false, modulo:'', cats:[],
    discs:['Língua Portuguesa','Conhecimentos Específicos','Raciocínio Lógico','Atualidades','Informática','Conhecimentos Gerais'],
@@ -3815,6 +4123,26 @@ const CT_BANCAS = {
 const CT_BANCA_COR = { cebraspe:'#2563EB', fgv:'#0D9488', fcc:'#E11D48', vunesp:'#7C3AED',
   cesgranrio:'#EA580C', ibfc:'#0891B2', quadrix:'#B45309', iades:'#16A34A',
   aocp:'#DB2777', consulplan:'#4F46E5', fundatec:'#0F766E', idecan:'#9333EA' };
+// HSL e contraste, para as cores de banca se ADAPTAREM à identidade visual escolhida em
+// vez de serem 12 hexes fixos: o matiz de cada banca é a identidade dela (CEBRASPE é "a
+// azul"), mas saturação e luminosidade vêm do accent do tema — na Planilha saem terrosas,
+// no Neon vivas, no Terminal duras. O contraste é RECALCULADO por tema (CT_RATIO), porque
+// um accent claro faria o texto branco sumir sobre a cor.
+const CT_HSL=(hex)=>{ const h=hex.replace('#',''); let r=parseInt(h.slice(0,2),16)/255, g=parseInt(h.slice(2,4),16)/255, b=parseInt(h.slice(4,6),16)/255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn; let H=0;
+  if(d){ H = mx===r ? ((g-b)/d+(g<b?6:0)) : mx===g ? ((b-r)/d+2) : ((r-g)/d+4); H*=60; }
+  const L=(mx+mn)/2, S=d? d/(1-Math.abs(2*L-1)) : 0;
+  return [H, S*100, L*100]; };
+const CT_HEX=(H,S,L)=>{ S/=100; L/=100; const c=(1-Math.abs(2*L-1))*S, x=c*(1-Math.abs((H/60)%2-1)), m=L-c/2;
+  const t = H<60?[c,x,0]:H<120?[x,c,0]:H<180?[0,c,x]:H<240?[0,x,c]:H<300?[x,0,c]:[c,0,x];
+  return '#'+t.map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join(''); };
+const CT_LUM=(hex)=>{ const h=hex.replace('#',''); const f=(i)=>{ let c=parseInt(h.slice(i,i+2),16)/255; return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4); };
+  return 0.2126*f(0)+0.7152*f(2)+0.0722*f(4); };
+const CT_RATIO=(a,b)=>{ const x=CT_LUM(a), y=CT_LUM(b), hi=Math.max(x,y), lo=Math.min(x,y); return (hi+0.05)/(lo+0.05); };
+// cor com alfa sobre um fundo opaco, em hex — para medir o texto sobre o tile tingido
+const CT_OVER=(hex,al,bg)=>{ const p=(s,i)=>parseInt(s.replace('#','').slice(i,i+2),16);
+  return '#'+[0,2,4].map(i=>Math.round(p(hex,i)*al+p(bg,i)*(1-al)).toString(16).padStart(2,'0')).join(''); };
+
 // Sigla curta para os tiles (o rótulo longo não cabe num chip)
 const CT_BANCA_SIGLA = { cebraspe:'CEBRASPE', fgv:'FGV', fcc:'FCC', vunesp:'VUNESP',
   cesgranrio:'CESGRANRIO', ibfc:'IBFC', quadrix:'Quadrix', iades:'IADES',
@@ -3849,7 +4177,7 @@ const CT_ATIVIDADES = ['Teoria','Doutrina','Lei seca','Jurisprudência','Resumo'
 // — quem usa ajusta ao edital do próprio concurso. Formato: [nome, cor,
 // [[tópico, [subtópicos…]] …]]. Entra pelo botão "Modelos" do Edital; nunca é
 // gravado sozinho (a regra da casa é automação ABRE, não grava).
-const CT_MODELOS = [{"id": "transpetroSocial", "nome": "Serviço Social", "sub": "Transpetro (Petrobras) · nível superior", "nd": 3, "nt": 34, "ns": 0},{"id":"magistratura","nome":"Magistratura Estadual","sub":"Juiz de Direito · TJ-RO (Res. 75/CNJ)","nd":17,"nt":248,"ns":798},{"id":"enam","nome":"ENAM","sub":"Exame Nacional da Magistratura · ENFAM/CNJ","nd":8,"nt":134,"ns":849},{"id":"promotor","nome":"Promotor de Justiça","sub":"MP-MG · LXI Concurso","nd":12,"nt":268,"ns":922},{"id":"defensor","nome":"Defensor Público","sub":"DPE-PE · FGV","nd":11,"nt":248,"ns":508},{"id":"delegado","nome":"Delegado de Polícia","sub":"PCDF · Cebraspe","nd":10,"nt":125,"ns":390},{"id":"tribunais","nome":"Analista Judiciário","sub":"TRF-1 · área judiciária · FGV","nd":12,"nt":463,"ns":175},{"id":"consultor","nome":"Consultor Legislativo","sub":"ALE-RO · assessoramento","nd":17,"nt":283,"ns":151},{"id":"procurador","nome":"Procurador do Estado","sub":"PGE-PR · Cebraspe","nd":13,"nt":254,"ns":973},{"id":"auditor","nome":"Auditor-Fiscal","sub":"Receita Federal · FGV","nd":17,"nt":314,"ns":365},{"id":"escrivao","nome":"Escrivão de Polícia","sub":"PC-AL · Cebraspe","nd":20,"nt":156,"ns":152},{"id":"tj","nome":"Analista de TJ","sub":"TJ-RJ · FGV","nd":11,"nt":116,"ns":273},{"id":"juizfederal","nome":"Juiz Federal","sub":"TRF-2 · FGV","nd":22,"nt":215,"ns":1593}];
+const CT_MODELOS = [{"id": "caAuditor", "nome": "Auditor de Controle Externo", "sub": "contas públicas · TCE-PE (FGV)", "nd": 16, "nt": 199, "ns": 0}, {"id": "caAnalista", "nome": "Analista de Controle Externo", "sub": "contas públicas · TCE-PE (FGV)", "nd": 16, "nt": 197, "ns": 0}, {"id": "caObras", "nome": "Auditor de Controle Externo · Obras", "sub": "auditoria de obras públicas · TCE-PE (FGV)", "nd": 13, "nt": 212, "ns": 0}, {"id": "caTI", "nome": "Auditor de Controle Externo · TI", "sub": "auditoria de tecnologia da informação · TCU (Cebraspe)", "nd": 15, "nt": 117, "ns": 152}, {"id": "caGestao", "nome": "Analista de Gestão", "sub": "tribunal de contas · TCE-PE (FGV)", "nd": 13, "nt": 270, "ns": 0}, {"id": "caProcurador", "nome": "Procurador do Ministério Público de Contas", "sub": "TCE-PE (FGV)", "nd": 12, "nt": 644, "ns": 0}, {"id": "caOficial", "nome": "Oficial de Controle Externo", "sub": "TCE-RS (Cebraspe)", "nd": 13, "nt": 116, "ns": 270}, {"id": "seducSP", "nome": "Professor · Educação Básica", "sub": "SEDUC-SP · FGV", "nd": 15, "nt": 261, "ns": 0}, {"id": "espcex", "nome": "EsPCEx", "sub": "Escola Preparatória de Cadetes do Exército", "nd": 7, "nt": 74, "ns": 737}, {"id": "cnuEducacao", "nome": "Cultura e Educação", "sub": "CNU 2 · bloco temático 2 · FGV", "nd": 5, "nt": 21, "ns": 32}, {"id": "cnuTecnologia", "nome": "Ciência, Dados e Tecnologia", "sub": "CNU 2 · bloco temático 3 · FGV", "nd": 5, "nt": 18, "ns": 88}, {"id": "ebserhEnfermagem", "nome": "Enfermeiro", "sub": "EBSERH · hospitais universitários · FGV", "nd": 4, "nt": 85, "ns": 0}, {"id": "transpetroSocial", "nome": "Serviço Social", "sub": "Transpetro (Petrobras) · nível superior", "nd": 3, "nt": 34, "ns": 0}, {"id": "magistratura", "nome": "Magistratura Estadual", "sub": "Juiz de Direito · TJ-RO (Res. 75/CNJ)", "nd": 17, "nt": 248, "ns": 798}, {"id": "enam", "nome": "ENAM", "sub": "Exame Nacional da Magistratura · ENFAM/CNJ", "nd": 8, "nt": 134, "ns": 849}, {"id": "promotor", "nome": "Promotor de Justiça", "sub": "MP-MG · LXI Concurso", "nd": 12, "nt": 268, "ns": 922}, {"id": "defensor", "nome": "Defensor Público", "sub": "DPE-PE · FGV", "nd": 11, "nt": 248, "ns": 508}, {"id": "delegado", "nome": "Delegado de Polícia", "sub": "PCDF · Cebraspe", "nd": 10, "nt": 125, "ns": 390}, {"id": "tribunais", "nome": "Analista Judiciário", "sub": "TRF-1 · área judiciária · FGV", "nd": 12, "nt": 463, "ns": 175}, {"id": "consultor", "nome": "Consultor Legislativo", "sub": "ALE-RO · assessoramento", "nd": 17, "nt": 283, "ns": 151}, {"id": "procurador", "nome": "Procurador do Estado", "sub": "PGE-PR · Cebraspe", "nd": 13, "nt": 254, "ns": 973}, {"id": "auditor", "nome": "Auditor-Fiscal", "sub": "Receita Federal · FGV", "nd": 17, "nt": 314, "ns": 365}, {"id": "escrivao", "nome": "Escrivão de Polícia", "sub": "PC-AL · Cebraspe", "nd": 20, "nt": 156, "ns": 152}, {"id": "tj", "nome": "Analista de TJ", "sub": "TJ-RJ · FGV", "nd": 11, "nt": 116, "ns": 273}, {"id": "juizfederal", "nome": "Juiz Federal", "sub": "TRF-2 · FGV", "nd": 22, "nt": 215, "ns": 1593}];
 
 // ===== TABELA DE LEITURA DAS LEIS E SÚMULAS (roteiro da orientadora) =====
 // 103 dias × 6 leis + súmulas, extraída do PDF "1. Tabela de Leitura de Leis e
@@ -3932,6 +4260,13 @@ class Component extends DCLogic {
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'',
       adminGrupos:[], adminAllow:[], adminAllowInput:'', adminDetalhe:null, adminDetalheBusy:false,
+      // console de administração: aba aberta, recorte da lista de contas e a gaveta
+      // da conta selecionada (admConfirmTxt é o e-mail digitado na zona de risco —
+      // nasce e volta a nascer vazio a cada troca de conta).
+      adminIa:null, adminSistema:null, adminConfig:{}, adminLogs:[],
+      avisoGlobal:null, avisoFechado:'',
+      admTab:'visao', admBusca:'', admFiltro:'todas', admOrdem:'ultimo',
+      admSel:'', admConfirmTxt:'', admAvisoTxt:'', admAvisoTipo:'info', admAvisoDirty:false,
       // Recorte da aba Bancas: área do concurso + banca + matéria + assunto.
       // bancaAreaConc vazio = segue a área de estudo escolhida no app.
       bancaAreaSel:this._load('bancaAreaSel',''), bancaDicas:this._load('bancaDicas',{}), bancaBusy:'',
@@ -4067,9 +4402,11 @@ class Component extends DCLogic {
         // era feita uma única vez, no mount — se ela chegasse antes da sessão, ou
         // falhasse, a conta admin ficava indistinguível de uma comum até fechar o app.
         try{ this._bootAdmin(); }catch(_){}
+        try{ this._loadAvisos(); }catch(_){}
       });
     }catch(_){}
     try{ this._bootAdmin(); }catch(_){}   // descobre se esta conta é admin (mostra o item do menu)
+    try{ this._loadAvisos(); }catch(_){}  // faixa de aviso publicada pelo console (todas as contas)
     this._reconcileStreak();
     this._reconcileReviews();
     this._reconcileCiclo();
@@ -5059,15 +5396,30 @@ class Component extends DCLogic {
     const _kAtual=_k(_atual);
     (fixed||[]).forEach(f=>{
       const vinc={discEdital:f.discEdital||'', topico:f.topico||'', subtopico:f.subtopico||''}; // vínculo edital → segue no bloco e no registro de sessão
-      if(!f.dia){ blocks.push({disc:f.disc, kind:f.kind, tag:'Fixa', min:f.min, done:false, ...vinc}); return; } // rotina todo dia (reseta diário)
+      const _dias=this._diasDe(f);
+      if(_dias===null){ blocks.push({disc:f.disc, kind:f.kind, tag:'Fixa', min:f.min, done:false, ...vinc}); return; } // rotina todo dia (reseta diário)
       if(_k(f.roteiro||_atual)!==_kAtual) return; // roteiro anterior/futuro fica fora do hoje
-      const idx=ordem.indexOf(f.dia); if(idx<0) return;
-      const iso=this._isoDiaSemana(f.dia); const feito=!!feitas[f.id+'|'+iso];
-      if(idx===hojeIdx){ blocks.push({disc:f.disc, kind:f.kind, tag:LBL[f.dia], min:f.min, done:feito, srcId:f.id, srcDate:iso, ...vinc}); }
+      _dias.forEach(dia=>{
+      const idx=ordem.indexOf(dia); if(idx<0) return;
+      const iso=this._isoDiaSemana(dia); const feito=!!feitas[f.id+'|'+iso];
+      if(idx===hojeIdx){ blocks.push({disc:f.disc, kind:f.kind, tag:LBL[dia], min:f.min, done:feito, srcId:f.id, srcDate:iso, ...vinc}); }
       // ATRASADA: dia anterior DESTA semana que não foi concluído → cai em hoje automaticamente (carry-over)
-      else if(idx<hojeIdx && !feito){ blocks.push({disc:f.disc, kind:f.kind, tag:'Atrasada · '+LBL[f.dia], min:f.min, done:false, srcId:f.id, srcDate:iso, atrasada:true, ...vinc}); }
+      else if(idx<hojeIdx && !feito){ blocks.push({disc:f.disc, kind:f.kind, tag:'Atrasada · '+LBL[dia], min:f.min, done:false, srcId:f.id, srcDate:iso, atrasada:true, ...vinc}); }
+      });
     });
     return blocks;
+  }
+  // Dias em que a atividade se repete.
+  //   modelo NOVO  → `dias`, uma lista (Seg/Qua/Sex numa atividade só)
+  //   modelo ANTIGO→ `dia`, UM valor, com '' significando "todo dia"
+  // Ler pelos dois faz a virada ser reversível: enquanto a migração não rodou em todo
+  // aparelho (e a nuvem pode devolver o formato velho a qualquer momento), os dois
+  // convivem. `null` = "todo dia" do modelo antigo, que gera um bloco único sem srcId
+  // e reseta diariamente — comportamento diferente de "os sete dias marcados".
+  _diasDe(f){
+    if(Array.isArray(f.dias)) return f.dias.slice();
+    if(f.dia) return [f.dia];
+    return null;
   }
   syncManual(extra){ const f=extra.manualFixed||this.state.manualFixed, r=extra.manualRot||this.state.manualRot, p=extra.rotPointer!=null?extra.rotPointer:this.state.rotPointer;
     // Recompor NÃO pode apagar o "feito" do dia: rotativa e "Todo dia" não têm srcId
@@ -6523,10 +6875,14 @@ class Component extends DCLogic {
       if(ativo) await this._loadRankingGrupo(ativo);
     }
     catch(err){ this.setState({gruposBusy:false, comErro:this._erroComunidade(err)}); } };
-  // ===================== PAINEL DE ADMINISTRADOR =====================
+  // ===================== CONSOLE DE ADMINISTRAÇÃO =====================
   // "Só a dona acessa" vale no SERVIDOR: cada RPC começa checando is_admin() e falha
   // com exceção. Esconder o item do menu (abaixo) é só conveniência — quem abrir o
   // DevTools e chamar admin_visao_geral() sem ser admin leva 'acesso_negado'.
+  //
+  // As ações destrutivas (remover conta, zerar dados) mandam o e-mail digitado junto,
+  // e o SERVIDOR confere se bate com o do alvo. O campo de confirmação na tela não é
+  // a tranca: é a ergonomia de uma tranca que mora no banco.
   _bootAdmin = async ()=>{
     const sb=this._sb(); if(!sb) return;
     // Conta admin (ex.: 2001) é um console à parte: entra direto no painel e não vê a
@@ -6546,48 +6902,152 @@ class Component extends DCLogic {
       this._loadAdmin();
     }catch(err){ console.warn('[Cátedra] is_admin exceção:', err); }
   };
+  // Faixa de aviso global: qualquer conta logada lê (app_avisos é grant para
+  // authenticated), não só a administração. É o outro lado do botão "Publicar aviso".
+  _loadAvisos = async ()=>{
+    const sb=this._sb(); if(!sb) return;
+    try{ const r=await sb.rpc('app_avisos');
+      if(r.error){ return; }              // sem sessão ainda, ou banco sem a função: silencioso
+      const d=r.data||{};
+      this.setState({avisoGlobal:{ texto:String(d.aviso||''), tipo:String(d.avisoTipo||'info'), manutencao:d.manutencao===true }});
+    }catch(_){}
+  };
+  // Fechar guarda o TEXTO fechado, não um booleano: um aviso novo volta a aparecer.
+  fecharAvisoGlobal = ()=> this.setState(s=>({avisoFechado: this._avisoMsg(s.avisoGlobal)}));
+  _avisoMsg = (av)=>{ const a=av||{}; const t=String(a.texto||'').trim();
+    if(a.manutencao) return t || 'O app está em manutenção — pode haver instabilidade nos próximos minutos.';
+    return t; };
+
+  // Uma rodada só puxa tudo: as sete abas do console leem do mesmo instantâneo, senão
+  // trocar de aba viraria um piscar de tela a cada clique.
   _loadAdmin = async ()=>{
     const sb=this._sb(); if(!sb){ this.setState({adminErro:'Sem conexão com o servidor.'}); return; }
     this.setState({adminBusy:true, adminErro:''});
+    const arr=(r)=> (r && !r.error && Array.isArray(r.data)) ? r.data : [];
+    const obj=(r)=> (r && !r.error && r.data && typeof r.data==='object') ? r.data : null;
     try{
-      const [vg, fb, gr, al] = await Promise.all([
+      const [vg, fb, gr, al, ia, sis, cfg, lg] = await Promise.all([
         sb.rpc('admin_visao_geral'), sb.rpc('admin_feedback'),
-        sb.rpc('admin_grupos'), sb.rpc('admin_allow_list')
+        sb.rpc('admin_grupos'), sb.rpc('admin_allow_list'),
+        sb.rpc('admin_uso_ia'), sb.rpc('admin_sistema'),
+        sb.rpc('admin_config'), sb.rpc('admin_logs', {p_limit:200})
       ]);
       if(vg.error) throw vg.error;
+      const conf=obj(cfg)||{};
+      const av=(conf.aviso&&typeof conf.aviso==='object')?conf.aviso:{};
       this.setState({ adminData:vg.data||null,
-        adminFeedback:(fb&&!fb.error&&Array.isArray(fb.data))?fb.data:[],
-        adminGrupos:(gr&&!gr.error&&Array.isArray(gr.data))?gr.data:[],
-        adminAllow:(al&&!al.error&&Array.isArray(al.data))?al.data:[],
+        adminFeedback:arr(fb), adminGrupos:arr(gr), adminAllow:arr(al),
+        adminIa:obj(ia), adminSistema:obj(sis), adminConfig:conf, adminLogs:arr(lg),
+        // o texto do aviso só é resincronizado quando não está sendo editado, para o
+        // recarregar não apagar o que a dona acabou de digitar
+        admAvisoTxt: this.state.admAvisoDirty ? this.state.admAvisoTxt : String(av.texto||''),
+        admAvisoTipo: this.state.admAvisoDirty ? this.state.admAvisoTipo : String(av.tipo||'info'),
         adminBusy:false });
     }catch(err){
       const msg=String((err&&err.message)||err||'');
-      this.setState({adminBusy:false, adminErro: /acesso_negado/i.test(msg) ? 'Esta conta não é administradora.' : (this._erroComunidade(err)||'Não foi possível carregar o painel.') });
+      this.setState({adminBusy:false, adminErro: /acesso_negado/i.test(msg) ? 'Esta conta não é administradora.' : (this._erroComunidade(err)||'Não foi possível carregar o console.') });
     }
   };
-  // Exporta a tabela de testadores como CSV (dados já carregados; nada sensível de estudo).
-  exportarTestadoresCSV = ()=>{
-    const rows=(this.state.adminData&&this.state.adminData.testadores)||[];
-    if(!rows.length){ this._toast('Nada para exportar'); return; }
-    const head=['email','criado_em','ultimo_login','ultima_sync','confirmado','bloqueado','admin','sessoes','disc_edital','blob_kb'];
-    const esc=(v)=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-    const linhas=[head.join(',')].concat(rows.map(t=>[t.email,t.criadoEm,t.ultimoLogin,t.ultimaSync,t.confirmado,t.bloqueado,t.admin,t.nSessoes,t.nDiscEdital,t.blobKb].map(esc).join(',')));
-    try{
-      const blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
-      const url=URL.createObjectURL(blob); const a=document.createElement('a');
-      a.href=url; a.download='catedra-testadores.csv'; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),1000); this._toast('CSV exportado');
-    }catch(_){ this._toast('Não consegui exportar'); }
+  // Traduz o código que o banco levanta. Sem isto, a tela mostra "confirmacao_invalida"
+  // — que é diagnóstico de servidor, não recado para gente.
+  _admErro = (err)=>{
+    const m=String((err&&err.message)||err||'');
+    const t={ acesso_negado:'Esta conta não é administradora.',
+      nao_apague_a_si:'Você não pode apagar a própria conta.',
+      nao_zere_a_si:'Você não pode zerar os próprios dados.',
+      nao_rebaixe_a_si:'Você não pode se rebaixar — outra admin precisa fazer isso.',
+      nao_bloqueie_a_si:'Você não pode bloquear a si mesma.',
+      alvo_admin:'É uma conta de administração: rebaixe antes de apagar.',
+      ultima_admin:'Não dá para ficar sem nenhuma administradora.',
+      confirmacao_invalida:'O e-mail digitado não confere.',
+      nao_encontrado:'Conta não encontrada (já foi removida?).',
+      chave_desconhecida:'Interruptor desconhecido.' };
+    for(const k in t){ if(m.indexOf(k)>=0) return t[k]; }
+    return this._erroComunidade(err)||'Não deu para aplicar.';
+  };
+  // Navegação do console
+  setAdmTab = (e)=> this.setState({admTab:e.currentTarget.dataset.t||'visao'});
+  onAdmBusca = (e)=> this.setState({admBusca:e.currentTarget.value});
+  setAdmFiltro = (e)=> this.setState({admFiltro:e.currentTarget.dataset.f||'todas'});
+  setAdmOrdem = (e)=> this.setState({admOrdem:e.currentTarget.dataset.o||'ultimo'});
+  // Abrir a gaveta de outra conta ZERA o campo de confirmação: o texto digitado para
+  // apagar A não pode continuar armado quando a gaveta aberta passa a ser a de B.
+  admToggleRow = (e)=>{ const uid=e.currentTarget.dataset.uid;
+    this.setState(s=>({ admSel: s.admSel===uid?'':uid, admConfirmTxt:'', adminDetalhe: s.admSel===uid?null:s.adminDetalhe })); };
+  onAdmConfirm = (e)=> this.setState({admConfirmTxt:e.currentTarget.value});
+
+  // ── Ações sobre uma conta ────────────────────────────────────────────────
+  _admRpc = async (fn, args, ok)=>{
+    const sb=this._sb(); if(!sb) return null;
+    try{ const r=await sb.rpc(fn, args); if(r.error) throw r.error;
+      if(ok) this._toast(ok);
+      return r.data===undefined?null:r.data;
+    }catch(err){ this._toast(this._admErro(err)); return false; }
   };
   _adminBloquear = async (e)=>{
     const uid=e.currentTarget.dataset.uid; const bloq=e.currentTarget.dataset.bloq==='1';
     if(!uid) return;
     if(bloq && !window.confirm('Pausar o acesso à IA desta conta?')) return;
-    const sb=this._sb(); if(!sb) return;
-    try{ const r=await sb.rpc('admin_bloquear', {p_user_id:uid, p_bloq:bloq, p_motivo:null}); if(r.error) throw r.error;
-      this._toast(bloq?'Acesso pausado':'Acesso liberado'); this._loadAdmin();
-    }catch(err){ this._toast(/nao_bloqueie_a_si/i.test(String(err&&err.message))?'Você não pode bloquear a si mesma':'Não deu para aplicar'); }
+    if(await this._admRpc('admin_bloquear', {p_user_id:uid, p_bloq:bloq, p_motivo:null}, bloq?'Acesso pausado':'Acesso liberado')!==false) this._loadAdmin();
   };
+  _admConfirmarEmail = async (e)=>{
+    const uid=e.currentTarget.dataset.uid; if(!uid) return;
+    if(await this._admRpc('admin_confirmar_email', {p_uid:uid}, 'E-mail confirmado na mão')!==false) this._loadAdmin();
+  };
+  _admDesconectar = async (e)=>{
+    const uid=e.currentTarget.dataset.uid; if(!uid) return;
+    if(!window.confirm('Derrubar as sessões desta conta em todos os aparelhos? Ela vai ter de entrar de novo.')) return;
+    const r=await this._admRpc('admin_desconectar', {p_uid:uid});
+    if(r!==false){ this._toast((r&&r.sessoes?r.sessoes:0)+' sessão(ões) derrubada(s)'); this._loadAdmin(); }
+  };
+  _admSetAdmin = async (e)=>{
+    const uid=e.currentTarget.dataset.uid; const v=e.currentTarget.dataset.v==='1'; if(!uid) return;
+    if(!window.confirm(v?'Dar poderes de administração a esta conta? Ela passa a ver este console inteiro.'
+                        :'Tirar os poderes de administração desta conta?')) return;
+    if(await this._admRpc('admin_set_admin', {p_uid:uid, p_admin:v}, v?'Agora é administradora':'Rebaixada')!==false) this._loadAdmin();
+  };
+  // Zerar dados: mantém o login, apaga o estudo. O e-mail digitado vai junto e é
+  // conferido no servidor.
+  _admZerar = async (e)=>{
+    const uid=e.currentTarget.dataset.uid; const txt=(this.state.admConfirmTxt||'').trim(); if(!uid) return;
+    if(!window.confirm('Apagar TODO o conteúdo de estudo desta conta (edital, sessões, revisões, redações)? A conta continua existindo. Não tem desfazer.')) return;
+    const r=await this._admRpc('admin_zerar_dados', {p_uid:uid, p_confirmacao:txt});
+    if(r!==false){ this._toast('Dados zerados ('+((r&&r.blobKb)||0)+' KB)'); this.setState({admConfirmTxt:'', adminDetalhe:null}); this._loadAdmin(); }
+  };
+  // Remover conta: o botão que faltava. Some auth.users e, por cascata, tudo que
+  // aponta para ela; o que é jsonb (membros de grupo) o servidor limpa à mão.
+  _admApagarUsuario = async (e)=>{
+    const uid=e.currentTarget.dataset.uid; const txt=(this.state.admConfirmTxt||'').trim(); if(!uid) return;
+    if(!window.confirm('REMOVER a conta '+txt+' definitivamente?\n\nApaga login, dados de estudo, presença nos grupos e allowlist. Não tem desfazer.')) return;
+    const r=await this._admRpc('admin_apagar_usuario', {p_uid:uid, p_confirmacao:txt});
+    if(r!==false){ this._toast('Conta removida'); this.setState({admConfirmTxt:'', admSel:'', adminDetalhe:null}); this._loadAdmin(); }
+  };
+  // Exporta a tabela de contas como CSV (dados já carregados; nada sensível de estudo).
+  exportarTestadoresCSV = ()=>{
+    const rows=(this.state.adminData&&this.state.adminData.testadores)||[];
+    if(!rows.length){ this._toast('Nada para exportar'); return; }
+    const head=['uid','email','criado_em','ultimo_login','ultima_sync','confirmado','bloqueado','admin','sessoes','disc_edital','blob_kb'];
+    this._baixarCSV('catedra-contas.csv', head,
+      rows.map(t=>[t.uid,t.email,t.criadoEm,t.ultimoLogin,t.ultimaSync,t.confirmado,t.bloqueado,t.admin,t.nSessoes,t.nDiscEdital,t.blobKb]));
+  };
+  admExportarLog = ()=>{
+    const rows=this.state.adminLogs||[];
+    if(!rows.length){ this._toast('Nada para exportar'); return; }
+    this._baixarCSV('catedra-auditoria.csv', ['quando','admin','acao','alvo','detalhe'],
+      rows.map(l=>[l.quando,l.admin,l.acao,l.alvo,l.detalhe?JSON.stringify(l.detalhe):'']));
+  };
+  _baixarCSV = (nome, head, linhas)=>{
+    const esc=(v)=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const txt=[head.join(',')].concat(linhas.map(l=>l.map(esc).join(','))).join('\r\n');
+    try{
+      const blob=new Blob(['﻿'+txt],{type:'text/csv;charset=utf-8'});
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download=nome; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000); this._toast('CSV exportado');
+    }catch(_){ this._toast('Não consegui exportar'); }
+  };
+
+  // ── Suporte ──────────────────────────────────────────────────────────────
   _adminLerFeedback = async (e)=>{
     const id=e.currentTarget.dataset.id; const sb=this._sb(); if(!sb||!id) return;
     try{ const r=await sb.rpc('admin_marcar_feedback', {p_id:Number(id), p_lido:true}); if(r.error) throw r.error;
@@ -6597,11 +7057,29 @@ class Component extends DCLogic {
   // Status do feedback (novo → andamento → resolvido): mini-quadro de tarefas.
   _adminFeedbackStatus = async (e)=>{
     const id=e.currentTarget.dataset.id; const st=e.currentTarget.dataset.status; const sb=this._sb(); if(!sb||!id) return;
-    try{ const r=await sb.rpc('admin_feedback_set', {p_id:Number(id), p_status:st, p_nota:null}); if(r.error) throw r.error;
+    const nota=(this.state.adminFeedback||[]).reduce((a,f)=>String(f.id)===String(id)?(f.nota_admin||null):a,null);
+    try{ const r=await sb.rpc('admin_feedback_set', {p_id:Number(id), p_status:st, p_nota:nota}); if(r.error) throw r.error;
       this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(f=>String(f.id)===String(id)?{...f,status:st,lido:true}:f)}));
     }catch(_){ this._toast('Não deu para atualizar'); }
   };
-  // Drill-down: abre a ficha agregada de um testador (sem conteúdo de estudo).
+  _admNotaFeedback = async (e)=>{
+    const id=e.currentTarget.dataset.id; const sb=this._sb(); if(!sb||!id) return;
+    const atual=(this.state.adminFeedback||[]).reduce((a,f)=>String(f.id)===String(id)?(f.nota_admin||''):a,'');
+    const nota=window.prompt('Nota interna (só você vê):', atual);
+    if(nota===null) return;
+    const st=(this.state.adminFeedback||[]).reduce((a,f)=>String(f.id)===String(id)?(f.status||'novo'):a,'novo');
+    try{ const r=await sb.rpc('admin_feedback_set', {p_id:Number(id), p_status:st, p_nota:nota}); if(r.error) throw r.error;
+      this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(f=>String(f.id)===String(id)?{...f,nota_admin:nota,lido:true}:f)}));
+      this._toast('Nota salva');
+    }catch(_){ this._toast('Não deu para salvar a nota'); }
+  };
+  _admApagarFeedback = async (e)=>{
+    const id=e.currentTarget.dataset.id; if(!id) return;
+    if(!window.confirm('Apagar este relato? Não tem desfazer.')) return;
+    if(await this._admRpc('admin_apagar_feedback', {p_id:Number(id)}, 'Relato apagado')!==false)
+      this.setState(s=>({adminFeedback:(s.adminFeedback||[]).filter(f=>String(f.id)!==String(id))}));
+  };
+  // Drill-down: abre a ficha agregada de uma conta (sem conteúdo de estudo).
   _adminVerTestador = async (e)=>{
     const uid=e.currentTarget.dataset.uid; const sb=this._sb(); if(!sb||!uid) return;
     this.setState({adminDetalheBusy:true, adminDetalhe:null});
@@ -6614,25 +7092,60 @@ class Component extends DCLogic {
   _adminApagarGrupo = async (e)=>{
     const id=e.currentTarget.dataset.id; const nome=e.currentTarget.dataset.nome||'este grupo';
     if(!window.confirm('Apagar "'+nome+'" para todo mundo? O ranking some junto. Não dá para desfazer.')) return;
-    const sb=this._sb(); if(!sb||!id) return;
-    try{ const r=await sb.rpc('admin_apagar_grupo', {p_id:id}); if(r.error) throw r.error;
-      this._toast('Grupo apagado'); this.setState(s=>({adminGrupos:(s.adminGrupos||[]).filter(g=>g.id!==id)}));
-    }catch(_){ this._toast('Não deu para apagar'); }
+    if(!id) return;
+    if(await this._admRpc('admin_apagar_grupo', {p_id:id}, 'Grupo apagado')!==false)
+      this.setState(s=>({adminGrupos:(s.adminGrupos||[]).filter(g=>g.id!==id)}));
   };
+
+  // ── Controle do app (interruptores globais) ──────────────────────────────
+  // Pausar a IA vale no SERVIDOR: meu_acesso_bloqueado() — que a API já consulta antes
+  // de gastar token — passa a considerar esta chave. Por isso o botão surte efeito sem
+  // publicar versão nova.
+  _admToggleIa = async ()=>{
+    const on=!this._admCfgBool('ia_pausada');
+    if(on && !window.confirm('Pausar a IA para TODAS as contas? Sua conta de administração continua passando.')) return;
+    if(await this._admRpc('admin_config_set', {p_chave:'ia_pausada', p_valor:on}, on?'IA pausada para todo mundo':'IA liberada')!==false) this._loadAdmin();
+  };
+  _admToggleManut = async ()=>{
+    const on=!this._admCfgBool('manutencao');
+    if(await this._admRpc('admin_config_set', {p_chave:'manutencao', p_valor:on}, on?'Modo manutenção ligado':'Modo manutenção desligado')!==false) this._loadAdmin();
+  };
+  _admCfgBool = (k)=> (this.state.adminConfig||{})[k]===true;
+  onAdmAviso = (e)=> this.setState({admAvisoTxt:e.currentTarget.value, admAvisoDirty:true});
+  setAdmAvisoTipo = (e)=> this.setState({admAvisoTipo:e.currentTarget.dataset.tipo||'info', admAvisoDirty:true});
+  _admSalvarAviso = async ()=>{
+    const txt=String(this.state.admAvisoTxt||'').trim();
+    if(!txt){ this._toast('Escreva o aviso antes de publicar'); return; }
+    const v={texto:txt.slice(0,400), tipo:this.state.admAvisoTipo||'info'};
+    if(await this._admRpc('admin_config_set', {p_chave:'aviso', p_valor:v}, 'Aviso no ar para todo mundo')!==false){
+      this.setState({admAvisoDirty:false}); this._loadAdmin();
+    }
+  };
+  _admLimparAviso = async ()=>{
+    if(await this._admRpc('admin_config_set', {p_chave:'aviso', p_valor:{texto:'',tipo:'info'}}, 'Aviso retirado do ar')!==false){
+      this.setState({admAvisoTxt:'', admAvisoDirty:false}); this._loadAdmin();
+    }
+  };
+  _admPurgarIa = async (e)=>{
+    const d=Number(e.currentTarget.dataset.d||30);
+    if(!window.confirm('Apagar o log de uso de IA com mais de '+d+' dias? As contas não são tocadas — só o histórico de chamadas.')) return;
+    const r=await this._admRpc('admin_purgar_ia', {p_dias:d});
+    if(r!==false){ this._toast(((r&&r.linhas)||0)+' linha(s) apagada(s)'); this._loadAdmin(); }
+  };
+
   // Allowlist: liberar/remover um e-mail do beta.
   onAdminAllowInput = (e)=> this.setState({adminAllowInput:e.currentTarget.value});
   _adminAllowAdd = async ()=>{
-    const em=(this.state.adminAllowInput||'').trim(); const sb=this._sb(); if(!sb) return;
+    const em=(this.state.adminAllowInput||'').trim();
     if(!em){ this._toast('Escreva um e-mail'); return; }
-    try{ const r=await sb.rpc('admin_allow_set', {p_email:em, p_incluir:true}); if(r.error) throw r.error;
-      this.setState({adminAllowInput:''}); this._toast('E-mail liberado'); this._reloadAllow();
-    }catch(_){ this._toast('Não deu para adicionar'); }
+    if(await this._admRpc('admin_allow_set', {p_email:em, p_incluir:true}, 'E-mail liberado')!==false){
+      this.setState({adminAllowInput:''}); this._reloadAllow();
+    }
   };
   _adminAllowDel = async (e)=>{
-    const em=e.currentTarget.dataset.email; const sb=this._sb(); if(!sb||!em) return;
-    try{ const r=await sb.rpc('admin_allow_set', {p_email:em, p_incluir:false}); if(r.error) throw r.error;
-      this._toast('Removido'); this.setState(s=>({adminAllow:(s.adminAllow||[]).filter(a=>a.email!==em)}));
-    }catch(_){ this._toast('Não deu para remover'); }
+    const em=e.currentTarget.dataset.email; if(!em) return;
+    if(await this._admRpc('admin_allow_set', {p_email:em, p_incluir:false}, 'Removido')!==false)
+      this.setState(s=>({adminAllow:(s.adminAllow||[]).filter(a=>a.email!==em)}));
   };
   _reloadAllow = async ()=>{ const sb=this._sb(); if(!sb) return;
     try{ const r=await sb.rpc('admin_allow_list'); if(!r.error && Array.isArray(r.data)) this.setState({adminAllow:r.data}); }catch(_){}
@@ -6992,6 +7505,12 @@ class Component extends DCLogic {
 
   hexToRgb(h){ h=h.replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
   darken(h,f){ const [r,g,b]=this.hexToRgb(h); const d=x=>Math.round(x*(1-f)); return `rgb(${d(r)},${d(g)},${d(b)})`; }
+  // versões em HEX de darken/mixWhite: as medições de contraste (CT_RATIO/CT_OVER) leem
+  // hex, e as originais devolvem 'rgb(...)', que não dá para compor com alfa nem medir.
+  darkenHex(h,f){ const [r,g,b]=this.hexToRgb(h); const d=x=>Math.round(x*(1-f));
+    return '#'+[d(r),d(g),d(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+  lightenHex(h,f){ const [r,g,b]=this.hexToRgb(h); const m=x=>Math.round(x+(255-x)*f);
+    return '#'+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
   mixWhite(h,f){ const [r,g,b]=this.hexToRgb(h); const m=x=>Math.round(x+(255-x)*f); return `rgb(${m(r)},${m(g)},${m(b)})`; }
   mixDark(h,f){ const [r,g,b]=this.hexToRgb(h); const m=x=>Math.round(x*(1-f)); return `rgb(${m(r)},${m(g)},${m(b)})`; }
 
@@ -7346,10 +7865,16 @@ class Component extends DCLogic {
     const _mDaArea=CT_MODELOS.filter(m=>(_area.modelos||[]).indexOf(m.id)>=0);
     const modeloSemArea=_mDaArea.length===0;
     const modeloOutras=!!this.state.modeloOutras;
-    const _mLista=(modeloSemArea||modeloOutras)?CT_MODELOS:_mDaArea;
-    const modeloTemOutras=!modeloSemArea && CT_MODELOS.length>_mDaArea.length;
-    const modeloOutrasLabel=modeloOutras?'Ver só os de '+_area.label:'Ver os modelos das outras áreas';
-    const modeloAvisoArea=modeloSemArea?('Os modelos prontos são de carreiras jurídicas — para '+_area.label+', cole o conteúdo programático do seu edital abaixo.'):'';
+    // Área sem modelo NÃO cai mais para a lista jurídica: oferecer Magistratura a quem
+    // estuda para a saúde é ruído, não ajuda. Mostra o estado vazio e deixa os outros
+    // concursos atrás de um botão, para quem quiser espiar.
+    const _mLista=modeloOutras?CT_MODELOS:_mDaArea;
+    const modeloVazio=_mLista.length===0;
+    const modeloTemOutras=CT_MODELOS.length>_mDaArea.length;
+    const modeloOutrasLabel=modeloOutras?('Ver só os de '+_area.label):(modeloSemArea?'Ver os concursos de outras áreas':'Ver os modelos das outras áreas');
+    const modeloAvisoArea=(modeloSemArea&&!modeloOutras)
+      ? ('Ainda não há edital pronto de '+_area.label+' aqui. Cole o conteúdo programático do seu edital no campo abaixo — o Cátedra estrutura em disciplinas, tópicos e subtópicos.')
+      : '';
     const _mId=(_mLista.some(m=>m.id===this.state.modeloId)?this.state.modeloId:0)||(_mLista[0]&&_mLista[0].id);
     const _mDiscs=this._modeloDiscs(_mId);
     const modeloChips=_mLista.map(m=>{ const on=m.id===_mId;
@@ -7368,9 +7893,11 @@ class Component extends DCLogic {
         box:`width:18px;height:18px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent)':'transparent'};color:var(--onAccent);` }; });
     const _mAtual=CT_MODELOS.find(m=>m.id===_mId)||{};
     const _mTotT=_mAtual.nt||0, _mTotS=_mAtual.ns||0, _mND=_mAtual.nd||0;
-    const modeloResumo=(modeloMulti?(_mLista.length+' concursos · '):'')+_mND+' disciplinas · '+_mTotT+' tópicos · '+_mTotS+' subtópicos';
+    const modeloResumo=modeloVazio ? ('sem edital pronto de '+_area.label+' — cole o seu abaixo')
+      : (modeloMulti?(_mLista.length+' concursos · '):'')+_mND+' disciplinas · '+_mTotT+' tópicos · '+_mTotS+' subtópicos';
     const modeloNomeAtual=_mAtual.nome||'', modeloSubAtual=_mAtual.sub||'';
-    const modeloSelLabel=_mDiscs.length? (_mSel.length+' de '+_mDiscs.length+' selecionadas') : 'carregando o conteúdo…';
+    const modeloSelLabel=_mDiscs.length ? (_mSel.length+' de '+_mDiscs.length+' selecionadas')
+      : (modeloVazio ? '' : 'carregando o conteúdo…');
     const modeloTodasLabel=(_mDiscs.length&&_mSel.length===_mDiscs.length)?'Desmarcar todas':'Marcar todas';
     const modeloAplicarLabel='Adicionar '+(_mSel.length||0)+' disciplina'+(_mSel.length===1?'':'s')+' ao edital';
     const edTotal = edital.reduce((a,d)=>a+d.tot,0);
@@ -8661,122 +9188,316 @@ class Component extends DCLogic {
     const relAtencao=[]; if(revOverdue.length) relAtencao.push('Há '+revOverdue.length+' revisão(ões) vencida(s) — zere antes de avançar para conteúdo novo.'); if(_relWeak[0]) relAtencao.push('Disciplina mais frágil: '+_relWeak[0].disc+' ('+_relWeak[0].liqPct+' líquido) — priorize questões comentadas e revisão.'); if(_relBruto && _relBruto<70) relAtencao.push('Acerto bruto no período em '+_relBruto+'% (abaixo de 70%) — reforce teoria e questões.'); if(!relAtencao.length) relAtencao.push('Sem pontos críticos no período. Mantenha a constância e o volume de questões.');
     const relPeriodOpts=[{v:7,label:'7 dias'},{v:30,label:'30 dias'},{v:90,label:'90 dias'}].map(o=>({v:o.v, label:o.label, sel:o.v===_relDays, style:`padding:7px 14px;border-radius:9px;border:1px solid ${o.v===_relDays?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;background:${o.v===_relDays?'var(--accent)':'var(--surface)'};color:${o.v===_relDays?'var(--onAccent)':'var(--text2)'};`}));
 
-    // ── view-model do PAINEL DE ADMIN (só formata o que o servidor já filtrou) ──
+    // ── faixa de aviso global (todas as contas, não só a administração) ──
+    const _avG=this.state.avisoGlobal||{};
+    const _avMsg=this._avisoMsg(_avG);
+    const temAvisoGlobal=!!_avMsg && this.state.avisoFechado!==_avMsg;
+    // A cor vem dos tokens do tema (a faixa vive DENTRO do app, não no console), com
+    // uma barra lateral colorida dando a gravidade.
+    const _avSev=_avG.manutencao?'critico':(_avG.tipo||'info');
+    const _avCor=_avSev==='critico'?'#c0392f':_avSev==='aviso'?'#c2790c':'var(--accent)';
+    const avisoGlobalIcon=_avSev==='critico'?'⚠':_avSev==='aviso'?'!':'✦';
+    const avisoGlobalStyle='display:flex;align-items:flex-start;gap:11px;padding:11px clamp(16px,3vw,34px);'
+      +'background:var(--surface2);border-bottom:1px solid var(--border);border-left:4px solid '+_avCor+';'
+      +'color:var(--ink);font-size:13px;';
+
+    // ── view-model do CONSOLE DE ADMINISTRAÇÃO ────────────────────────────────
+    // Só formata o que o servidor já filtrou. O console é escuro e tabular de
+    // propósito: quem opera o app não pode confundir esta tela com a de estudo.
     const _adm=this.state.adminData||{}; const _admS=_adm.saude||{};
     const _fmtData=(s)=>{ if(!s) return '—'; try{ return new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return '—'; } };
+    const _fmtDH=(s)=>{ if(!s) return '—'; try{ const d=new Date(s);
+      return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }catch(_){ return '—'; } };
     const _diasDe=(s)=>{ if(!s) return Infinity; try{ return Math.floor((Date.now()-Date.parse(s))/86400000); }catch(_){ return Infinity; } };
-    const admSaude=[
-      {k:'Contas', v:String(_admS.contas!=null?_admS.contas:'—'), sub:'testadores no total'},
-      {k:'Ativos (7d)', v:String(_admS.ativos7d!=null?_admS.ativos7d:'—'), sub:'entraram na última semana'},
-      {k:'Ativos (30d)', v:String(_admS.ativos30d!=null?_admS.ativos30d:'—'), sub:'entraram no último mês'},
-      {k:'Nunca voltaram', v:String(_admS.nuncaVoltaram!=null?_admS.nuncaVoltaram:'—'), sub:'entraram uma vez só'},
+    const _nKb=(v)=> v==null?'—':(v>=1024?((v/1024).toFixed(1)+' MB'):(v+' KB'));
+    // full-bleed: o console come o padding da área de conteúdo e vira a tela inteira
+    const admShell='margin:calc(-1 * clamp(16px,2.6vw,30px));min-height:calc(100vh - 68px);';
+
+    const _cfg=this.state.adminConfig||{};
+    const _iaPausada=_cfg.ia_pausada===true, _manut=_cfg.manutencao===true;
+    const _avisoCfg=(_cfg.aviso&&typeof _cfg.aviso==='object')?_cfg.aviso:{};
+    const _admIA=_adm.ia||{}; const _sis=this.state.adminSistema||{};
+
+    const admLive=[
+      {k:'contas', v:String(_admS.contas!=null?_admS.contas:'—')},
+      {k:'ativas 7d', v:String(_admS.ativos7d!=null?_admS.ativos7d:'—')},
+      {k:'IA hoje', v:String(_admIA.chamadasHoje||0)},
+      {k:'sessões', v:String(_sis.sessoesAbertas!=null?_sis.sessoesAbertas:'—')},
     ];
-    // USO DE RECURSOS: quantas contas usam cada parte (barra proporcional ao total)
+
+    // ── feedback (usado pela aba Suporte e pelo contador da aba) ──
+    const _stCor={novo:'#f2a93b', andamento:'#5b8dff', resolvido:'#2ecc8f'};
+    const admFeedback=(this.state.adminFeedback||[]).map((f)=>{ const st=f.status||'novo';
+      return {
+      id:String(f.id), email:f.email||'anônimo', quando:_fmtDH(f.criado_em),
+      mensagem:String(f.mensagem||''),
+      ctx: f.contexto? Object.keys(f.contexto).map(k=>k+': '+f.contexto[k]).join(' · ') : '',
+      lido:!!f.lido, status:st, nota:f.nota_admin||'', temNota:!!(f.nota_admin&&String(f.nota_admin).trim()),
+      onNovo:st==='novo'?'1':'0', onAnd:st==='andamento'?'1':'0', onRes:st==='resolvido'?'1':'0',
+      statusStyle:'color:'+(_stCor[st]||'#93a1bd')+';background:'+(_stCor[st]||'#93a1bd')+'1f;',
+    };});
+    const admFeedbackAbertos=admFeedback.filter(f=>f.status!=='resolvido').length;
+
+    // ── abas ──
+    const _tab=this.state.admTab||'visao';
+    const admTabs=[['visao','Visão geral'],['contas','Contas'],['ia','IA & custo'],['comunidade','Comunidade'],
+                   ['suporte','Suporte'],['controle','Controle'],['log','Auditoria']]
+      .map(([k,label])=>({ k, label, on:_tab===k?'1':'0',
+        temBadge: k==='suporte' && admFeedbackAbertos>0, badge:String(admFeedbackAbertos) }));
+
+    // ── VISÃO GERAL ──
+    const admSaude=[
+      {k:'Contas', v:String(_admS.contas!=null?_admS.contas:'—'), sub:'no total', cor:''},
+      {k:'Ativas (7d)', v:String(_admS.ativos7d!=null?_admS.ativos7d:'—'), sub:'entraram na última semana', cor:'color:#2ecc8f;'},
+      {k:'Ativas (30d)', v:String(_admS.ativos30d!=null?_admS.ativos30d:'—'), sub:'entraram no último mês', cor:''},
+      {k:'Nunca voltaram', v:String(_admS.nuncaVoltaram!=null?_admS.nuncaVoltaram:'—'), sub:'entraram uma vez só', cor:(_admS.nuncaVoltaram>0?'color:#f2a93b;':'')},
+    ];
     const _admR=_adm.recursos||{}; const _admTot=(_admS.contas||1)||1;
     const _recDefs=[['Edital','comEdital'],['Sessões','comSessoes'],['Redação','comRedacao'],['Simulados','comSimulados'],['Anki','comAnki'],['Caderno de erros','comErros'],['Revisões','comRevisoes'],['Metas','comMetas'],['Comunidade','comGrupos']];
     const admRecursos=_recDefs.map(([label,k])=>{ const n=_admR[k]||0; const pct=Math.round(n/_admTot*100);
-      return {label, n:String(n), pct:pct+'%', barStyle:'height:6px;border-radius:99px;background:var(--accent);width:'+pct+'%;', pctLabel:pct+'%'}; });
-    // CRESCIMENTO: cadastros por semana (mini-barras)
+      return {label, n:String(n), pctLabel:pct+'%', barStyle:'width:'+pct+'%;'}; });
     const _cr=_adm.crescimento||[]; const _crMax=Math.max(1,..._cr.map(x=>x.cadastros||0));
-    const admCrescimento=_cr.map((x)=>{ const h=Math.round((x.cadastros||0)/_crMax*60)+4;
+    const admCrescimento=_cr.map((x)=>{ const h=Math.round((x.cadastros||0)/_crMax*54)+3;
       let sem='—'; try{ sem=new Date(x.semana).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); }catch(_){}
-      return {semana:sem, n:String(x.cadastros||0), barStyle:'width:100%;height:'+h+'px;border-radius:6px 6px 0 0;background:var(--accent);'}; });
-    // RETENÇÃO + IA
+      return {semana:sem, n:String(x.cadastros||0), barStyle:'height:'+h+'px;'}; });
     const _ret=_adm.retencao||{}; const _retPct=_ret.total?Math.round((_ret.voltaram||0)/_ret.total*100):0;
-    const _admIA=_adm.ia||{};
     const admIndicadores=[
-      {k:'Voltaram (retenção)', v:_ret.total?(_retPct+'%'):'—', sub:(_ret.voltaram||0)+' de '+(_ret.total||0)+' voltaram depois do 1º dia'},
-      {k:'Chamadas de IA', v:String(_admIA.chamadasTotal||0), sub:(_admIA.chamadas7d||0)+' nos últimos 7 dias · '+(_admIA.chamadasHoje||0)+' hoje'},
-      {k:'Contas usaram IA', v:String(_admIA.contasUsaram||0), sub:'testadores que já usaram a IA'},
+      {k:'Retenção', v:_ret.total?(_retPct+'%'):'—', sub:(_ret.voltaram||0)+' de '+(_ret.total||0)+' voltaram depois do 1º dia'},
+      {k:'Chamadas de IA', v:String(_admIA.chamadasTotal||0), sub:(_admIA.chamadas7d||0)+' em 7 dias · '+(_admIA.chamadasHoje||0)+' hoje'},
+      {k:'Contas com IA', v:String(_admIA.contasUsaram||0), sub:'já usaram a IA pelo menos uma vez'},
     ];
-    const admTesters=(_adm.testadores||[]).map((t)=>{
+    const admSistema=[
+      {k:'Armazenamento', v:_nKb(_sis.armazenamentoKb)},
+      {k:'Linhas user_data', v:String(_sis.linhasUserData!=null?_sis.linhasUserData:'—')},
+      {k:'Log de IA', v:String(_sis.linhasIa!=null?_sis.linhasIa:'—')},
+      {k:'Relatos', v:String(_sis.linhasFeedback!=null?_sis.linhasFeedback:'—')},
+      {k:'Grupos', v:String(_sis.grupos!=null?_sis.grupos:'—')},
+      {k:'Sessões abertas', v:String(_sis.sessoesAbertas!=null?_sis.sessoesAbertas:'—')},
+      {k:'Sem confirmar', v:String(_sis.naoConfirmados!=null?_sis.naoConfirmados:'—')},
+      {k:'Administradoras', v:String(_sis.admins!=null?_sis.admins:'—')},
+    ];
+    const admMaiores=(_sis.maiores||[]).map(m=>({email:m.email||'—', kb:_nKb(m.kb)}));
+
+    // ── contas (a aba central) ──
+    const _euEmail=String(this.state.authEmail||'').toLowerCase();
+    const _confirmTxt=String(this.state.admConfirmTxt||'').trim().toLowerCase();
+    const _sel=this.state.admSel||'';
+    const _detAtual=this.state.adminDetalhe;
+    const _brutos=(_adm.testadores||[]).map((t)=>{
       const dias=_diasDe(t.ultimoLogin);
-      const cor = t.admin? '#7c3aed' : t.bloqueado? '#c0392f' : dias<=7? '#0f9d6b' : dias<=30? '#c2790c' : '#8a94a6';
+      const email=t.email||'—';
+      const ehEu=email.toLowerCase()===_euEmail && !!_euEmail;
+      const cor = t.admin? '#a78bfa' : t.bloqueado? '#ff5f6d' : !t.confirmado? '#f2a93b' : dias<=7? '#2ecc8f' : dias<=30? '#93a1bd' : '#5f6d8c';
+      const aberto=_sel===t.uid;
+      const podeApagarLinha=!ehEu && !t.admin;
+      const confere=podeApagarLinha && _confirmTxt!=='' && _confirmTxt===email.toLowerCase();
       return {
-        uid:t.uid, email:t.email||'—',
+        uid:t.uid, email, uidCurto:String(t.uid||'').slice(0,8), _dias:dias, _t:t,
         criado:_fmtData(t.criadoEm), ultimo: t.ultimoLogin? _fmtData(t.ultimoLogin) : 'nunca',
         sync: t.ultimaSync? _fmtData(t.ultimaSync) : '—',
-        sessoes:String(t.nSessoes||0), disc:String(t.nDiscEdital||0), kb:(t.blobKb!=null?t.blobKb:0)+' KB',
-        dot:cor,
-        tag: t.admin?'admin': t.bloqueado?'bloqueada': !t.confirmado?'não confirmada' : dias<=7?'ativa' : dias===Infinity?'nunca entrou':'inativa',
-        tagStyle:`font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:${cor};background:${cor}1a;border-radius:99px;padding:3px 9px;`,
-        podeBloquear: !t.admin,
-        bloqueada: !!t.bloqueado,
-        acaoLabel: t.bloqueado?'Liberar':'Pausar IA',
+        sessoes:String(t.nSessoes||0), disc:String(t.nDiscEdital||0), kb:_nKb(t.blobKb!=null?t.blobKb:0),
+        tag: t.admin?'admin': t.bloqueado?'bloqueada': !t.confirmado?'sem confirmar' : dias<=7?'ativa' : dias===Infinity?'nunca entrou':'inativa',
+        tagStyle:'color:'+cor+';background:'+cor+'1f;',
+        ehEu, ehAdmin:!!t.admin, naoConfirmado:!t.confirmado,
+        podeBloquear:!ehEu, podeApagarLinha,
+        acaoLabel: t.bloqueado?'▶ Liberar IA':'⏸ Pausar IA',
         acaoBloq: t.bloqueado?'0':'1',
-        acaoStyle:`font-size:11.5px;font-weight:600;border-radius:8px;padding:5px 11px;cursor:pointer;font-family:inherit;border:1px solid ${t.bloqueado?'#0f9d6b':'var(--border)'};background:${t.bloqueado?'#0f9d6b':'var(--surface2)'};color:${t.bloqueado?'#fff':'var(--text2)'};`,
+        bloqClass: t.bloqueado?'adm-btn ok':'adm-btn',
+        admAlvo: t.admin?'0':'1', admLabel: t.admin?'Rebaixar admin':'Tornar admin',
+        aberto, chev: aberto?'✕':'⋯',
+        temFicha: aberto && !!_detAtual && _detAtual.uid===t.uid,
+        confirmado_p_apagar: aberto && confere,
+        naoConfere: aberto && !confere,
       };
     });
-    const _stCor={novo:'#c2790c', andamento:'#2563eb', resolvido:'#0f9d6b'};
-    const admFeedback=(this.state.adminFeedback||[]).map((f)=>{ const st=f.status||'novo';
-      return {
-      id:String(f.id), email:f.email||'anônimo', quando:_fmtData(f.criado_em),
-      mensagem:String(f.mensagem||''),
-      ctx: f.contexto? Object.keys(f.contexto).map(k=>k+': '+f.contexto[k]).join(' · ') : '',
-      lido:!!f.lido, status:st,
-      statusStyle:`font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:${_stCor[st]||'#8a94a6'};background:${(_stCor[st]||'#8a94a6')}1a;border-radius:99px;padding:3px 9px;`,
-      cardStyle:`background:var(--surface2);border:1px solid ${st==='resolvido'?'var(--border)':(f.lido?'var(--border)':'var(--accent)')};border-radius:12px;padding:14px 16px;`,
-    };});
-    const admFeedbackNaoLidos=admFeedback.filter(f=>f.status!=='resolvido').length;
+    // filtro + busca + ordenação: com 50 contas isto é instantâneo no cliente, e evita
+    // uma ida ao servidor a cada tecla digitada.
+    const _filtroDefs=[
+      ['todas','todas', ()=>true],
+      ['ativas','ativas', (r)=>r._dias<=7],
+      ['inativas','inativas 30d+', (r)=>r._dias>30],
+      ['semconf','sem confirmar', (r)=>r.naoConfirmado],
+      ['bloqueadas','bloqueadas', (r)=>!!r._t.bloqueado],
+      ['admins','admins', (r)=>!!r._t.admin],
+    ];
+    const _fk=this.state.admFiltro||'todas';
+    const _busca=String(this.state.admBusca||'').trim().toLowerCase();
+    const admFiltros=_filtroDefs.map(([k,label,fn])=>({k, label, on:_fk===k?'1':'0', n:String(_brutos.filter(fn).length)}));
+    const _fnAtual=(_filtroDefs.find(f=>f[0]===_fk)||_filtroDefs[0])[2];
+    const _ordDefs=[['ultimo','último acesso'],['novo','mais recentes'],['tamanho','tamanho'],['sessoes','sessões'],['email','a→z']];
+    const _ok=this.state.admOrdem||'ultimo';
+    const admOrdens=_ordDefs.map(([k,label])=>({k,label,on:_ok===k?'1':'0'}));
+    const _cmp={
+      ultimo:(a,b)=>a._dias-b._dias,
+      novo:(a,b)=>Date.parse(b._t.criadoEm||0)-Date.parse(a._t.criadoEm||0),
+      tamanho:(a,b)=>(b._t.blobKb||0)-(a._t.blobKb||0),
+      sessoes:(a,b)=>(b._t.nSessoes||0)-(a._t.nSessoes||0),
+      email:(a,b)=>a.email.localeCompare(b.email),
+    }[_ok]||((a,b)=>a._dias-b._dias);
+    const admTesters=_brutos
+      .filter(_fnAtual)
+      .filter(r=>!_busca || r.email.toLowerCase().indexOf(_busca)>=0 || String(r.uid||'').toLowerCase().indexOf(_busca)>=0)
+      .sort(_cmp);
+    const admTemTesters=admTesters.length>0;
+    const admSemResultado=_brutos.length>0 && admTesters.length===0;
+    const admContasResumo=admTesters.length+' de '+_brutos.length+' contas'+(_busca?(' · busca “'+_busca+'”'):'');
 
-    // MODERAÇÃO: grupos da comunidade
+    // ── o que pede ação hoje ──
+    const admAtencao=[];
+    if((_sis.naoConfirmados||0)>0) admAtencao.push({cor:'#f2a93b', titulo:_sis.naoConfirmados+' conta(s) nunca confirmaram o e-mail', sub:'não conseguem entrar — dá para confirmar na mão pela gaveta da conta', tab:'contas', acao:'Ver contas'});
+    if(admFeedbackAbertos>0) admAtencao.push({cor:'#5b8dff', titulo:admFeedbackAbertos+' relato(s) em aberto', sub:'bugs e sugestões enviados de dentro do app', tab:'suporte', acao:'Abrir suporte'});
+    const _bloqN=_brutos.filter(r=>r._t.bloqueado).length;
+    if(_bloqN>0) admAtencao.push({cor:'#ff5f6d', titulo:_bloqN+' conta(s) com a IA pausada', sub:'continuam entrando no app, mas sem IA', tab:'contas', acao:'Ver contas'});
+    const _inativas=_brutos.filter(r=>r._dias>30).length;
+    if(_inativas>0) admAtencao.push({cor:'#5f6d8c', titulo:_inativas+' conta(s) sem entrar há mais de 30 dias', sub:'candidatas a limpeza se o beta estiver apertado', tab:'contas', acao:'Ver contas'});
+    if(_iaPausada) admAtencao.push({cor:'#ff5f6d', titulo:'A IA está pausada para todo mundo', sub:'nenhuma conta consegue usar IA (a sua, sim)', tab:'controle', acao:'Controle'});
+    if(_manut) admAtencao.push({cor:'#f2a93b', titulo:'Modo manutenção ligado', sub:'o app avisa os testadores que pode haver instabilidade', tab:'controle', acao:'Controle'});
+    const admSemAtencao=admAtencao.length===0;
+    const admAlertaGlobal = _iaPausada&&_manut ? 'IA pausada para todo mundo + modo manutenção.'
+      : _iaPausada ? 'A IA está pausada para todas as contas.'
+      : _manut ? 'O app está em modo manutenção.' : '';
+
+    // ── IA & custo ──
+    const _ia=this.state.adminIa||{};
+    const _iaDias=Array.isArray(_ia.porDia)?_ia.porDia:[];
+    const _iaMax=Math.max(1,..._iaDias.map(d=>d.chamadas||0));
+    const _iaChars=_iaDias.reduce((a,d)=>a+(d.chars||0),0);
+    const admIaDias=_iaDias.map(d=>{ let dia='—'; try{ dia=new Date(d.dia).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); }catch(_){}
+      return {dia, n:String(d.chamadas||0), titulo:dia+': '+(d.chamadas||0)+' chamadas · '+(d.chars||0)+' caracteres',
+              barStyle:'height:'+(Math.round((d.chamadas||0)/_iaMax*68)+3)+'px;'}; });
+    const admIaTemDias=admIaDias.length>0, admIaSemDias=admIaDias.length===0;
+    const admIaContas=(Array.isArray(_ia.porConta)?_ia.porConta:[]).map(c=>({email:c.email||'—', n:String(c.chamadas||0)}));
+    const admIaSemContas=admIaContas.length===0;
+    const _iaEp=_ia.porEndpoint||{};
+    const admIaEndpoints=Object.keys(_iaEp).map(k=>({k, n:String(_iaEp[k])}));
+    const admIaTotais=[
+      {k:'Chamadas (total)', v:String(_ia.total||0), sub:'desde o começo do log'},
+      {k:'Últimos 14 dias', v:String(_iaDias.reduce((a,d)=>a+(d.chamadas||0),0)), sub:'soma do gráfico ao lado'},
+      {k:'Caracteres', v:(_iaChars>=1000?Math.round(_iaChars/1000)+'k':String(_iaChars)), sub:'entrada enviada em 14 dias'},
+      {k:'Contas', v:String(_admIA.contasUsaram||0), sub:'usaram a IA alguma vez'},
+    ];
+
+    // ── comunidade ──
     const admGrupos=(this.state.adminGrupos||[]).map((g)=>({
       id:g.id, nome:g.nome||'Grupo', codigo:g.codigo||'', nMembros:String(g.nMembros||0),
       criador:g.criador||'—', quando:_fmtData(g.criadoEm),
       membros:(Array.isArray(g.membros)?g.membros:[]).join(', '),
     }));
     const admSemGrupos=admGrupos.length===0;
-    // ALLOWLIST
+
+    // ── controle ──
     const admAllow=(this.state.adminAllow||[]).map((a)=>({email:a.email, quando:_fmtData(a.criadoEm)}));
     const admAllowVazia=admAllow.length===0;
-    // DRILL-DOWN de um testador
+    const admIaBtnClass=_iaPausada?'adm-btn bad':'adm-btn';
+    const admIaBtnLabel=_iaPausada?'⏻ IA PAUSADA — religar':'Pausar IA de todos';
+    const admManutBtnClass=_manut?'adm-btn bad':'adm-btn';
+    const admManutBtnLabel=_manut?'⏻ EM MANUTENÇÃO — desligar':'Ligar manutenção';
+    const _avTipo=this.state.admAvisoTipo||'info';
+    const admAvisoTipos=[['info','Informação'],['aviso','Atenção'],['critico','Crítico']]
+      .map(([k,label])=>({k,label,on:_avTipo===k?'1':'0'}));
+    const admAvisoNoAr=String(_avisoCfg.texto||'');
+
+    // ── auditoria ──
+    const _acaoCor={apagar_usuario:'#ff5f6d', zerar_dados:'#ff5f6d', apagar_feedback:'#ff5f6d',
+      promover_admin:'#a78bfa', rebaixar_admin:'#a78bfa', desconectar:'#f2a93b', purgar_ia:'#f2a93b',
+      config:'#5b8dff', confirmar_email:'#2ecc8f'};
+    const admLogs=(this.state.adminLogs||[]).map(l=>({
+      quando:_fmtDH(l.quando), acao:l.acao||'—', alvo:l.alvo||'—',
+      detalhe: l.detalhe==null?'—':(typeof l.detalhe==='object'?JSON.stringify(l.detalhe):String(l.detalhe)),
+      acaoStyle:'color:'+(_acaoCor[l.acao]||'#93a1bd')+';font-weight:700;',
+    }));
+    const admLogsVazio=admLogs.length===0;
+
+    // ── ficha (drill-down, agregado; nunca conteúdo de estudo) ──
     const _det=this.state.adminDetalhe; const admTemDetalhe=!!_det;
     let admDetalhe=null;
     if(_det){ const c=_det.conteudo||{}; const ia=_det.ia||{};
       admDetalhe={ email:_det.email||'—', criado:_fmtData(_det.criadoEm), ultimo:_det.ultimoLogin?_fmtData(_det.ultimoLogin):'nunca',
         sync:_det.ultimaSync?_fmtData(_det.ultimaSync):'—', confirmado:_det.confirmado?'sim':'não',
-        bloqueado:_det.bloqueado?'sim':'não', blobKb:(_det.blobKb!=null?_det.blobKb:0)+' KB',
+        bloqueado:_det.bloqueado?'sim':'não', blobKb:_nKb(_det.blobKb!=null?_det.blobKb:0),
         grupos:String(_det.grupos||0), iaTotal:String(ia.total||0), iaUltimo: ia.ultimoUso?_fmtData(ia.ultimoUso):'nunca',
         linhas:[['Edital (disciplinas)',c.edital],['Sessões',c.sessoes],['Revisões',c.revisoes],['Flashcards',c.flashcards],['Redações',c.redacoes],['Simulados',c.simulados],['Caderno de erros',c.erros],['Metas',c.metas],['Eventos na agenda',c.eventos]].map(([k,v])=>({k, v:String(v||0)})) };
     }
 
     // ── view-model da aba BANCAS (recorte em 4 passos + painel da banca escolhida) ──
-    // Cada passo do recorte alimenta o seguinte; os estilos saem prontos daqui porque o
-    // template não faz condicional dentro de style.
+    // A COR DA BANCA manda na tela inteira: hero, tiles, cartões, marcadores e CTA saem
+    // dela. Trocar de banca repinta a aba — é o que faz a escolha parecer uma escolha, e
+    // não um radio button. Cada passo do recorte alimenta o seguinte; os estilos vêm
+    // prontos daqui porque o template não faz condicional dentro de style.
     const _bAreaId=this._bancaAreaId();
     const _bArea=CT_AREA(_bAreaId);
     const _bMat=this.state.bancaAreaSel||'';
     const _bAss=String(this.state.bancaAssunto||'').trim();
     const _bK=this.state.bancaSel||'cebraspe';
     const _bInfo=CT_BANCAS[_bK]||CT_BANCAS.cebraspe;
-    const _bCor=CT_BANCA_COR[_bK]||CT_BANCA_COR.cebraspe;
+    // ── a paleta das bancas VESTE a identidade escolhida ──────────────────────
+    // Cada banca guarda o matiz (é o que a identifica), mas saturação e luminosidade são
+    // puxadas do accent do tema: a mesma tela sai terrosa na Planilha, viva no Neon e dura
+    // no Terminal, e acompanha o accent personalizado. A luminosidade fica presa numa
+    // faixa segura porque accent muito claro (Terminal é lima) apagaria o texto branco.
+    const _bAccH=CT_HSL(acc);
+    const _bPaleta=(k)=>{ const o=CT_HSL(CT_BANCA_COR[k]||CT_BANCA_COR.cebraspe);
+      const cl=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+      return CT_HEX(o[0], cl(o[1]*0.45+_bAccH[1]*0.55, 34, 88), cl(o[2]*0.45+_bAccH[2]*0.55, 30, 58)); };
+    // Contraste MEDIDO, não estimado: escurece até o branco passar em 4.5:1 sobre a cor, e
+    // ajusta a tinta do texto até passar sobre o tile tingido daquele tema. Assim qualquer
+    // identidade (inclusive um accent que a Lana invente depois) continua legível.
+    const _bSolido=(cor)=>{ let f=0; while(f<0.7 && CT_RATIO('#ffffff', this.darkenHex(cor,f))<4.55) f+=0.02; return f; };
+    const _bTinta=(cor)=>{ const fundo=CT_OVER(cor,0.11,T.surface); let f=0;
+      while(f<0.85 && CT_RATIO(T.isDark?this.lightenHex(cor,f):this.darkenHex(cor,f), fundo)<4.55) f+=0.03;
+      return T.isDark?this.lightenHex(cor,f):this.darkenHex(cor,f); };
+
+    const _bCor=_bPaleta(_bK);
+    const _bF=_bSolido(_bCor);
+    const _bCorD=this.darkenHex(_bCor,Math.min(0.72,_bF+0.27));
+    const _bGrad='linear-gradient(135deg,'+this.darkenHex(_bCor,_bF)+' 0%,'+_bCorD+' 100%)';
+    const _bTxt=_bTinta(_bCor);
+    // raio e sombra saem do tema: Terminal/Fibra são chapadas, Aurora é redonda
+    const _bRaio=parseInt(T.radius,10)||12;
+    const _bRaioTile=Math.max(6,_bRaio+2)+'px';
+    const _bRaioPill=_bRaio<=8?'8px':'99px';
+    const _bChapado=(this.state.dir==='clean'||this.state.dir==='terminal');
+    const _bSombra=(css)=> _bChapado?'':css;
     const _bdicas=this.state.bancaDicas||{};
 
-    // chip genérico do seletor (ligado x desligado). Duas variantes porque a cor da
-    // banca é hex (dá para compor "#RRGGBB"+alfa) e a do accent é token do tema — e
-    // 'var(--accentD)1f' não é cor nenhuma, o chip ligado sumiria.
+    // chips: ligado vira pílula CHEIA em gradiente com sombra colorida (não um contorno
+    // tímido). Duas variantes porque a cor da banca é hex — dá para compor "#RRGGBB"+alfa
+    // — e a do accent é token do tema, onde 'var(--accentD)1f' não é cor nenhuma.
     const _bChipBase='display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-family:inherit;'
-      +'border-radius:99px;padding:8px 14px;font-size:12.5px;font-weight:700;';
+      +'border-radius:'+_bRaioPill+';padding:0 18px;min-height:44px;font-size:12.5px;font-weight:700;letter-spacing:-.005em;';
     const _bChipOff='border:1px solid var(--border);background:var(--surface2);color:var(--text2);';
-    const _bChip=(on,cor)=> _bChipBase+(on ? ('border:1px solid '+cor+';background:'+cor+'1f;color:'+cor+';') : _bChipOff);
-    const _bChipAcc=(on)=> _bChipBase+(on ? 'border:1px solid var(--accent);background:var(--accentSoft);color:var(--accentD);' : _bChipOff);
+    const _bChip=(on,cor)=>{ const f=_bSolido(cor); return _bChipBase+(on
+      ? ('border:1px solid transparent;background:linear-gradient(135deg,'+this.darkenHex(cor,f)+','+this.darkenHex(cor,Math.min(0.72,f+0.27))+');'
+         +'color:#fff;'+_bSombra('box-shadow:0 8px 20px -8px '+cor+'cc;'))
+      : _bChipOff); };
+    // Neutra de propósito: a área é escolhida ANTES da banca, e pintá-la com o accent do
+    // tema colocava uma terceira cor na tela ao lado da cor da banca. Pílula de tinta
+    // resolve nos dois temas (escura no claro, clara no escuro) sem competir.
+    const _bChipAcc=(on)=> _bChipBase+(on
+      ? 'border:1px solid transparent;background:var(--ink);color:var(--surface);'+_bSombra('box-shadow:0 8px 20px -10px rgba(0,0,0,.5);')
+      : _bChipOff);
 
     const bancaAreas=CT_AREAS.map(a=>({ k:a.id, emoji:a.emoji, label:a.label,
       style:_bChipAcc(a.id===_bAreaId) }));
     const bancaAreaConcDesc=_bArea.desc;
 
+    // tiles: TODA banca aparece na própria cor (a escolhida vem cheia, em gradiente);
+    // uma grade cinza com um item colorido é o "caixote empilhado" de sempre.
     const bancaTiles=Object.keys(CT_BANCAS).map(k=>{ const b=CT_BANCAS[k]; const on=k===_bK;
-      const cor=CT_BANCA_COR[k]||CT_BANCA_COR.cebraspe;
+      const cor=_bPaleta(k); const f=_bSolido(cor);
       return { k, sigla:CT_BANCA_SIGLA[k]||b.label, label:b.label,
         penLabel: b.penalidade?'erro anula':'sem penalidade',
-        style:'position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:3px;'
-          +'text-align:left;cursor:pointer;font-family:inherit;border-radius:13px;padding:13px 14px 12px;'
-          +(on ? ('border:1px solid '+cor+';background:linear-gradient(145deg,'+cor+'24,'+cor+'0d);box-shadow:0 6px 18px -10px '+cor+'aa;')
-               : 'border:1px solid var(--border);background:var(--surface2);'),
-        barStyle:'position:absolute;left:0;top:0;bottom:0;width:3px;background:'+cor+';opacity:'+(on?'1':'.42')+';',
-        nomeStyle:'font-family:var(--display);font-size:14.5px;font-weight:800;letter-spacing:-.01em;color:'+(on?cor:'var(--ink)')+';',
-        penStyle:'font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:'
-          +(b.penalidade?'#c0392f':'var(--text3)')+';' };
+        style:'position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:4px;'
+          +'text-align:left;cursor:pointer;font-family:inherit;border-radius:'+_bRaioTile+';padding:15px 16px 14px;'
+          +(on ? ('border:1px solid transparent;background:linear-gradient(140deg,'+this.darkenHex(cor,f)+','+this.darkenHex(cor,Math.min(0.74,f+0.29))+');'
+                  +_bSombra('box-shadow:0 16px 34px -14px '+cor+';'))
+               : ('border:1px solid '+cor+'38;background:linear-gradient(150deg,'+cor+'1c,'+cor+'07);')),
+        barStyle:'position:absolute;left:-28px;top:-30px;width:78px;height:78px;border-radius:50%;'
+          +'background:'+(on?'rgba(255,255,255,.16)':cor+'1f')+';pointer-events:none;',
+        nomeStyle:'position:relative;font-family:var(--display);font-size:15.5px;font-weight:800;'
+          +'letter-spacing:-.015em;color:'+(on?'#fff':_bTinta(cor))+';',
+        penStyle:'position:relative;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:'
+          +(on ? 'rgba(255,255,255,.82)' : (b.penalidade?'#c0392f':'var(--text3)'))+';' };
     });
 
     const _bMats=this._bancaMaterias();
@@ -8793,38 +9514,65 @@ class Component extends DCLogic {
     const bancaAssuntoPh = _bMat ? ('ex.: um ponto específico de '+_bMat+' (opcional)')
       : 'escolha a matéria acima para afinar o assunto';
 
-    // trilha do recorte, no hero
-    const _bCrumbStyle='display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);'
-      +'background:var(--surface2);border-radius:99px;padding:6px 13px;font-size:12px;color:var(--ink);';
+    // Hero: um bloco colorido SÓ, e ele é a banca. Antes havia dois — este e a faixa do
+    // painel — na mesma cor, empilhados com um card no meio: o maior era o que dizia
+    // menos (frase fixa) e o menor carregava a escolha. Fundidos, o título é a banca.
+    const bancaHeroStyle='position:relative;overflow:hidden;border-radius:var(--radius);'
+      +'background:'+_bGrad+';padding:36px 34px 32px;'+_bSombra('box-shadow:0 26px 54px -26px '+_bCor+';');
+    const _bCrumbStyle='display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.26);'
+      +'background:rgba(255,255,255,.14);border-radius:99px;padding:7px 15px;font-size:12px;color:#fff;';
     const bancaCrumb=[
       {k:'Área', v:_bArea.label, style:_bCrumbStyle},
-      {k:'Banca', v:(CT_BANCA_SIGLA[_bK]||_bInfo.label), style:_bCrumbStyle+'border-color:'+_bCor+';color:'+_bCor+';'},
+      {k:'Banca', v:(CT_BANCA_SIGLA[_bK]||_bInfo.label), style:_bCrumbStyle+'background:rgba(255,255,255,.96);color:'+_bCorD+';border-color:transparent;'},
       {k:'Matéria', v:(_bMat||'todas'), style:_bCrumbStyle},
       {k:'Assunto', v:(_bAss||'—'), style:_bCrumbStyle},
     ];
 
-    // painel da banca escolhida
+    // passos numerados: bolinha em gradiente do accent, não um círculo pálido
+    const bancaStepNum='width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;'
+      +'justify-content:center;font-size:11.5px;font-weight:800;color:var(--onAccent);'
+      +'background:linear-gradient(135deg,var(--accent),var(--accentD));box-shadow:0 6px 14px -7px var(--accentD);';
+
+    // painel: faixa de cabeçalho na cor da banca + 3 cartões com lombada colorida
+    // painel: sem faixa colorida (ela virou o hero) — fica a lavagem de cor e a borda
+    const bancaFocoWrap='position:relative;overflow:hidden;border:1px solid '+_bCor+'33;border-radius:var(--radius);'
+      +'background:linear-gradient(180deg,'+_bCor+'0e,transparent 190px),var(--surface);'
+      +_bSombra('box-shadow:0 20px 46px -30px '+_bCor+';');
+    const bancaFocoTitulo='font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.015em;color:'+_bTxt+';';
+    const _bCard=(icone,titulo)=>({ icone, titulo,
+      style:'position:relative;border:1px solid var(--border);border-left:3px solid '+_bCor+';border-radius:'+_bRaioTile+';'
+        +'padding:15px 16px;background:linear-gradient(135deg,'+_bCor+'0f,transparent 65%),var(--surface2);',
+      labelStyle:'display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.13em;text-transform:uppercase;'
+        +'font-weight:800;margin-bottom:7px;color:'+_bTxt+';' });
+    const bancaCards=[
+      {..._bCard('◆','Formato'), texto:_bInfo.formato||''},
+      {..._bCard('◈','Como cobra'), texto:_bInfo.estilo||''},
+      {..._bCard('◉','Foco do estudo'), texto:_bInfo.foco||''},
+    ];
+
+    // dicas numeradas (01/02/03) em vez do chevron discreto
+    const bancaFocoDicas=(Array.isArray(_bInfo.dicas)?_bInfo.dicas:[]).map((d,i)=>({ texto:String(d),
+      num:String(i+1).padStart(2,'0'),
+      numStyle:'flex:none;min-width:28px;height:28px;border-radius:'+(_bRaio<=8?'6px':'9px')+';display:flex;align-items:center;'
+        +'justify-content:center;font-size:11px;font-weight:800;font-family:var(--mono);'
+        +'color:'+_bTxt+';background:'+_bCor+'1f;border:1px solid '+_bCor+'2e;' }));
+
+    // recorte: dicas sob medida (IA)
     const _bIaKey=this._bancaKey();
     const _bIa=(_bMat && _bdicas[_bIaKey])?_bdicas[_bIaKey]:null;
     const _bBusy=this.state.bancaBusy===_bIaKey;
-    const bancaFocoWrap='position:relative;overflow:hidden;border:1px solid transparent;border-radius:var(--radius);'
-      +'background:linear-gradient(var(--surface),var(--surface)) padding-box,'
-      +'linear-gradient(135deg,'+_bCor+','+_bCor+'55) border-box;';
-    const bancaFocoGlow='position:absolute;right:-90px;top:-110px;width:260px;height:260px;border-radius:50%;'
-      +'background:radial-gradient(circle,'+_bCor+'3d,transparent 70%);pointer-events:none;';
-
     const bancaRecorteDesc = !_bMat
       ? 'Escolha uma matéria no passo 3 para a IA montar dicas do recorte — o perfil acima já vale para a banca inteira.'
       : ((_bInfo.label+' · '+_bMat+(_bAss?(' · '+_bAss):''))+' — na área de '+_bArea.label+'.');
-
+    const bancaIACaixa='border-radius:'+_bRaioTile+';padding:18px 19px;margin-bottom:14px;border:1px solid '+_bCor+'33;'
+      +'background:linear-gradient(150deg,'+_bCor+'1a,'+_bCor+'06);';
     const bancaIALabel = _bBusy ? 'Gerando…'
       : (!_bMat ? 'Escolha uma matéria'
       : (_bIa ? 'Dicas geradas ✓' : ('Gerar dicas para '+_bMat+(_bAss?(' · '+_bAss):''))));
     const _bIaOn = !!_bMat && !_bBusy && !_bIa;
-    const bancaIAStyle='display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:10px 17px;'
-      +'font-size:12.5px;font-weight:700;font-family:inherit;cursor:'+(_bIaOn?'pointer':'default')+';'
-      +(_bIaOn ? ('border:1px solid transparent;background:linear-gradient(120deg,'+_bCor+','+_bCor+'cc);color:#fff;'
-                  +'box-shadow:0 8px 20px -10px '+_bCor+';')
+    const bancaIAStyle='display:inline-flex;align-items:center;gap:9px;border-radius:'+_bRaioTile+';padding:13px 22px;'
+      +'font-size:13px;font-weight:800;font-family:inherit;letter-spacing:-.005em;cursor:'+(_bIaOn?'pointer':'default')+';'
+      +(_bIaOn ? ('border:1px solid transparent;background:'+_bGrad+';color:#fff;'+_bSombra('box-shadow:0 14px 30px -12px '+_bCor+';'))
                : 'border:1px solid var(--border);background:var(--surface2);color:var(--text3);');
 
     return {
@@ -8835,36 +9583,65 @@ class Component extends DCLogic {
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       temAreaMod, areaModLabel, areaModFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
       bancaAreas, bancaAreaConcDesc, setBancaAreaConc:this.setBancaAreaConc,
-      bancaTiles, setBancaFoco:this.setBancaFoco,
+      bancaTiles, setBancaFoco:this.setBancaFoco, bancaStepNum,
       bancaMaterias, bancaMateriaFonte, setBancaArea:this.setBancaArea,
       bancaAssuntos, bancaTemAssuntos, bancaAssuntoFonte, bancaAssuntoPh, bancaAssuntoTxt:this.state.bancaAssunto||'',
       setBancaAssunto:this.setBancaAssunto, onBancaAssunto:this.onBancaAssunto,
-      bancaCrumb, bancaFocoWrap, bancaFocoGlow, bancaFocoCor:_bCor,
-      bancaFocoLabel:_bInfo.label, bancaFocoFormato:_bInfo.formato||'', bancaFocoEstilo:_bInfo.estilo||'',
-      bancaFocoFoco:_bInfo.foco||'', bancaFocoDicas:(Array.isArray(_bInfo.dicas)?_bInfo.dicas:[]).map(String),
-      bancaFocoMarker:'color:'+_bCor+';flex:none;font-weight:800;',
+      bancaHeroStyle, bancaCrumb, bancaFocoWrap, bancaFocoTitulo,
+      bancaFocoLabel:_bInfo.label, bancaCards, bancaFocoDicas,
+      bancaHeroTitulo:'O perfil da '+(CT_BANCA_SIGLA[_bK]||_bInfo.label),
       bancaFocoPenLabel:(_bInfo.penalidade?'Erro anula acerto':'Erro não penaliza'),
-      bancaFocoPenStyle:'font-size:11px;font-weight:800;letter-spacing:.02em;border-radius:99px;padding:6px 13px;flex:none;'
-        +(_bInfo.penalidade?'color:#c0392f;background:#c0392f1a;':'color:#0f9d6b;background:#0f9d6b1a;'),
-      bancaRecorteDesc, bancaTemIA:!!(_bIa&&_bIa.length), bancaDicasIA:_bIa||[],
+      bancaFocoPenStyle:'font-size:11.5px;font-weight:800;letter-spacing:.02em;border-radius:99px;padding:9px 17px;flex:none;'
+        +'background:rgba(255,255,255,.96);color:'+(_bInfo.penalidade?'#c0392f':'#0f7a4f')+';',
+      bancaRecorteDesc, bancaTemIA:!!(_bIa&&_bIa.length), bancaDicasIA:_bIa||[], bancaIACaixa,
+      bancaIAMarker:'color:'+_bTxt+';flex:none;font-weight:800;font-size:14px;',
       bancaIALabel, bancaIAStyle, bancaIABusy:_bBusy, gerarDicasBanca:this.gerarDicasBanca,
-      naoAdmin:!this.state.isAdmin,
+      naoAdmin:!this.state.isAdmin, mostraBottomNav:this.state.isMobile && !this.state.isAdmin,
       isAdmin:this.state.isAdmin, isAdminView:this.state.view==='admin', navAdmin:navStyle('admin'),
       // Conta logada no perfil do Ajustes. Sem sessão (ou build sem login real) cai no
       // rótulo antigo, que descreve o que o app é nesse caso: só dados locais.
       contaLabel:this.state.authEmail||'dados locais',
       adminBusy:this.state.adminBusy, adminErro:this.state.adminErro, adminTemErro:!!this.state.adminErro,
       adminCarregado:!!this.state.adminData, refreshAdmin:this._loadAdmin,
-      admSaude, admRecursos, admCrescimento, admIndicadores, admTemCrescimento:admCrescimento.length>0,
-      admTesters, admTemTesters:admTesters.length>0,
-      admFeedback, admFeedbackVazio:admFeedback.length===0, admFeedbackNaoLidos:String(admFeedbackNaoLidos),
+      temAvisoGlobal, avisoGlobalTxt:_avMsg, avisoGlobalIcon, avisoGlobalStyle,
+      fecharAvisoGlobal:this.fecharAvisoGlobal,
+      // ── console: casca, barra e abas ──
+      admShell, admLive, admTabs, setAdmTab:this.setAdmTab, admAlertaGlobal,
+      admTabVisao:_tab==='visao', admTabContas:_tab==='contas', admTabIa:_tab==='ia',
+      admTabCom:_tab==='comunidade', admTabSup:_tab==='suporte', admTabCtrl:_tab==='controle', admTabLog:_tab==='log',
+      // ── visão geral ──
+      admSaude, admRecursos, admCrescimento, admIndicadores,
+      admTemCrescimento:admCrescimento.length>0, admSemCrescimento:admCrescimento.length===0,
+      admSistema, admMaiores, admAtencao, admSemAtencao,
+      // ── contas ──
+      admTesters, admTemTesters, admSemResultado, admContasResumo,
+      admFiltros, admOrdens, admBusca:this.state.admBusca, onAdmBusca:this.onAdmBusca,
+      setAdmFiltro:this.setAdmFiltro, setAdmOrdem:this.setAdmOrdem, admToggleRow:this.admToggleRow,
+      admConfirmTxt:this.state.admConfirmTxt, onAdmConfirm:this.onAdmConfirm,
+      admConfirmarEmail:this._admConfirmarEmail, admDesconectar:this._admDesconectar,
+      admSetAdmin:this._admSetAdmin, admZerar:this._admZerar, admApagarUsuario:this._admApagarUsuario,
+      // ── IA & custo ──
+      admIaTotais, admIaDias, admIaTemDias, admIaSemDias, admIaContas, admIaSemContas, admIaEndpoints,
+      admPurgarIa:this._admPurgarIa,
+      // ── suporte ──
+      admFeedback, admFeedbackVazio:admFeedback.length===0, admFeedbackNaoLidos:String(admFeedbackAbertos),
+      admNotaFeedback:this._admNotaFeedback, admApagarFeedback:this._admApagarFeedback,
+      // ── controle ──
+      admIaBtnClass, admIaBtnLabel, admManutBtnClass, admManutBtnLabel,
+      admToggleIa:this._admToggleIa, admToggleManut:this._admToggleManut,
+      admAvisoTxt:this.state.admAvisoTxt, onAdmAviso:this.onAdmAviso, admAvisoTipos,
+      setAdmAvisoTipo:this.setAdmAvisoTipo, admSalvarAviso:this._admSalvarAviso, admLimparAviso:this._admLimparAviso,
+      admAvisoNoAr,
+      // ── auditoria ──
+      admLogs, admLogsVazio, admExportarLog:this.admExportarLog,
+      // ── comuns ──
       admGrupos, admSemGrupos, admAllow, admAllowVazia, admTemDetalhe, admDetalhe,
       adminDetalheBusy:this.state.adminDetalheBusy,
       adminBloquear:this._adminBloquear, adminLerFeedback:this._adminLerFeedback, exportarTestadoresCSV:this.exportarTestadoresCSV,
       adminFeedbackStatus:this._adminFeedbackStatus, adminVerTestador:this._adminVerTestador, adminFecharDetalhe:this._adminFecharDetalhe,
       adminApagarGrupo:this._adminApagarGrupo, adminAllowAdd:this._adminAllowAdd, adminAllowDel:this._adminAllowDel,
       onAdminAllowInput:this.onAdminAllowInput, adminAllowInput:this.state.adminAllowInput,
-      adminGeradoEm: _adm.geradoEm? ('atualizado '+(()=>{ try{ return new Date(_adm.geradoEm).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } })()) : '',
+      adminGeradoEm: _adm.geradoEm? ((()=>{ try{ return new Date(_adm.geradoEm).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }catch(_){ return 'atualizar'; } })()) : 'atualizar',
       rootStyle, T, isDark:T.isDark, isMobile:this.state.isMobile, menuOpen:this.state.menuOpen,
       sidebarBg:T.sidebarBg,
       asideStyle: this.state.isMobile
@@ -8960,8 +9737,8 @@ class Component extends DCLogic {
       redResultLivre, redCompareStudent, redCompareGab,
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({inicio:'Início',areamod:areaModLabel,ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Painel do administrador',bancas:'Bancas'}[this.state.view]),
-      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Testadores, saúde do beta, acesso e feedback',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewTitle:({inicio:'Início',areamod:areaModLabel,ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
       syncTitle:(this.state.syncStatus==='local'?'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho':'Seus dados sincronizam com a sua conta — o merge une o progresso de todos os aparelhos'),
@@ -9042,7 +9819,7 @@ class Component extends DCLogic {
       onCad:this.onCad, setCadMode:this.setCadMode, setCadCor:this.setCadCor, addCadastro:this.addCadastro, toggleSub:this.toggleSub, onDiscMeta:this.onDiscMeta, removeDisc:this.removeDisc, renomearDisciplina:this.renomearDisciplina, setDiscCor:this.setDiscCor,
       modeloOpen:this.state.modeloOpen, modeloDiscs, modeloResumo, modeloSelLabel, modeloTodasLabel, modeloAplicarLabel,
       modeloChips, modeloMulti, modeloTemOutras, modeloOutrasLabel, toggleModeloOutras:this.toggleModeloOutras,
-      modeloSemArea, modeloAvisoArea, modeloNomeAtual, modeloSubAtual, setModelo:this.setModelo,
+      modeloSemArea, modeloAvisoArea, modeloTemModelo:!modeloVazio, modeloNomeAtual, modeloSubAtual, setModelo:this.setModelo,
       modeloBtnLabel:(this.state.modeloOpen?'Fechar':'Ver modelo'), modeloBtnBg:(this.state.modeloOpen?'var(--surface2)':'var(--accent)'), modeloBtnFg:(this.state.modeloOpen?'var(--text2)':'var(--onAccent)'),
       toggleModelo:this.toggleModelo, toggleModeloDisc:this.toggleModeloDisc, modeloTodas:this.modeloTodas, aplicarModelo:this.aplicarModelo,
       cadModeNovaStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;background:${this.state.cad.mode==='nova'?'var(--accent)':'transparent'};color:${this.state.cad.mode==='nova'?'var(--onAccent)':'var(--text2)'};`,
