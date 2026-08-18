@@ -10,6 +10,52 @@
 		CA7E000000000000000000A1 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E000000000000000000B1 /* main.swift */; };
 		CA7E000000000000000000A3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA7E000000000000000000B5 /* Assets.xcassets */; };
 		CA7E000000000000000000A2 /* web in Resources */ = {isa = PBXBuildFile; fileRef = CA7E000000000000000000B2 /* web */; };
+		CA7E00000000000000020001 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010001 /* AIService.swift */; };
+		CA7E00000000000000020002 /* ChecklistSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010002 /* ChecklistSyncBridge.swift */; };
+		CA7E00000000000000020003 /* AddLawSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010003 /* AddLawSheet.swift */; };
+		CA7E00000000000000020004 /* AnnotatedTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010004 /* AnnotatedTextView.swift */; };
+		CA7E00000000000000020005 /* Annotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010005 /* Annotations.swift */; };
+		CA7E00000000000000020006 /* AnnotationsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010006 /* AnnotationsPanel.swift */; };
+		CA7E00000000000000020007 /* ArticleMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010007 /* ArticleMapView.swift */; };
+		CA7E00000000000000020008 /* ArticleStudyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010008 /* ArticleStudyView.swift */; };
+		CA7E00000000000000020009 /* ChecklistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010009 /* ChecklistView.swift */; };
+		CA7E0000000000000002000A /* CommentComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001000A /* CommentComponents.swift */; };
+		CA7E0000000000000002000B /* CompatibilidadeUIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001000B /* CompatibilidadeUIKit.swift */; };
+		CA7E0000000000000002000C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001000C /* ContentView.swift */; };
+		CA7E0000000000000002000D /* DOU.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001000D /* DOU.swift */; };
+		CA7E0000000000000002000E /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001000E /* DashboardView.swift */; };
+		CA7E0000000000000002000F /* Flashcards.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001000F /* Flashcards.swift */; };
+		CA7E00000000000000020010 /* GlobalSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010010 /* GlobalSearchView.swift */; };
+		CA7E00000000000000020011 /* Historico.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010011 /* Historico.swift */; };
+		CA7E00000000000000020012 /* IndiceNormasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010012 /* IndiceNormasView.swift */; };
+		CA7E00000000000000020013 /* LawParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010013 /* LawParser.swift */; };
+		CA7E00000000000000020014 /* LawReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010014 /* LawReaderView.swift */; };
+		CA7E00000000000000020015 /* LawSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010015 /* LawSearch.swift */; };
+		CA7E00000000000000020016 /* LawSeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010016 /* LawSeed.swift */; };
+		CA7E00000000000000020017 /* MarkableArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010017 /* MarkableArticleView.swift */; };
+		CA7E00000000000000020018 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010018 /* Models.swift */; };
+		CA7E00000000000000020019 /* Notifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010019 /* Notifier.swift */; };
+		CA7E0000000000000002001A /* Planalto.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001001A /* Planalto.swift */; };
+		CA7E0000000000000002001B /* PlanoLeituraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001001B /* PlanoLeituraView.swift */; };
+		CA7E0000000000000002001C /* PrecedentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001001C /* PrecedentsView.swift */; };
+		CA7E0000000000000002001D /* ReadingData.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001001D /* ReadingData.swift */; };
+		CA7E0000000000000002001E /* RedactionComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001001E /* RedactionComparison.swift */; };
+		CA7E0000000000000002001F /* RedactionSeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001001F /* RedactionSeed.swift */; };
+		CA7E00000000000000020020 /* RemissiveIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010020 /* RemissiveIndex.swift */; };
+		CA7E00000000000000020021 /* Remissoes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010021 /* Remissoes.swift */; };
+		CA7E00000000000000020022 /* RichNoteEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010022 /* RichNoteEditor.swift */; };
+		CA7E00000000000000020023 /* RoundedBackgroundLayoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010023 /* RoundedBackgroundLayoutManager.swift */; };
+		CA7E00000000000000020024 /* SRSReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010024 /* SRSReviewView.swift */; };
+		CA7E00000000000000020025 /* SectionShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010025 /* SectionShell.swift */; };
+		CA7E00000000000000020026 /* SeedCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010026 /* SeedCatalog.swift */; };
+		CA7E00000000000000020027 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010027 /* SettingsView.swift */; };
+		CA7E00000000000000020028 /* Sigen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010028 /* Sigen.swift */; };
+		CA7E00000000000000020029 /* SpacedRepetition.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E00000000000000010029 /* SpacedRepetition.swift */; };
+		CA7E0000000000000002002A /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001002A /* Store.swift */; };
+		CA7E0000000000000002002B /* StudyClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001002B /* StudyClock.swift */; };
+		CA7E0000000000000002002C /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001002C /* Theme.swift */; };
+		CA7E0000000000000002002D /* UpdateComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001002D /* UpdateComparison.swift */; };
+		CA7E0000000000000002002E /* UpdatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7E0000000000000001002E /* UpdatesView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,6 +64,52 @@
 		CA7E000000000000000000B5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CA7E000000000000000000B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA7E000000000000000000B4 /* Catedra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Catedra.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA7E00000000000000010001 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010002 /* ChecklistSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChecklistSyncBridge.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010003 /* AddLawSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLawSheet.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010004 /* AnnotatedTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotatedTextView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010005 /* Annotations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotations.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010006 /* AnnotationsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationsPanel.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010007 /* ArticleMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleMapView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010008 /* ArticleStudyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleStudyView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010009 /* ChecklistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChecklistView.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001000A /* CommentComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentComponents.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001000B /* CompatibilidadeUIKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilidadeUIKit.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001000C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001000D /* DOU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DOU.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001000E /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001000F /* Flashcards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flashcards.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010010 /* GlobalSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalSearchView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010011 /* Historico.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Historico.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010012 /* IndiceNormasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndiceNormasView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010013 /* LawParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LawParser.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010014 /* LawReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LawReaderView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010015 /* LawSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LawSearch.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010016 /* LawSeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LawSeed.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010017 /* MarkableArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkableArticleView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010018 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010019 /* Notifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifier.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001001A /* Planalto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planalto.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001001B /* PlanoLeituraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanoLeituraView.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001001C /* PrecedentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrecedentsView.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001001D /* ReadingData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingData.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001001E /* RedactionComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactionComparison.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001001F /* RedactionSeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactionSeed.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010020 /* RemissiveIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemissiveIndex.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010021 /* Remissoes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remissoes.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010022 /* RichNoteEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RichNoteEditor.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010023 /* RoundedBackgroundLayoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedBackgroundLayoutManager.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010024 /* SRSReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SRSReviewView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010025 /* SectionShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionShell.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010026 /* SeedCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedCatalog.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010027 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010028 /* Sigen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sigen.swift; sourceTree = "<group>"; };
+		CA7E00000000000000010029 /* SpacedRepetition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacedRepetition.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001002A /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001002B /* StudyClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyClock.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001002C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001002D /* UpdateComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateComparison.swift; sourceTree = "<group>"; };
+		CA7E0000000000000001002E /* UpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				CA7E000000000000000000D3 /* Sources */,
+				CA7E00000000000000030000 /* vendor */,
 				CA7E000000000000000000B5 /* Assets.xcassets */,
 				CA7E000000000000000000B3 /* Info.plist */,
 				CA7E000000000000000000B2 /* web */,
@@ -56,6 +149,75 @@
 				CA7E000000000000000000B1 /* main.swift */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		CA7E00000000000000030001 /* comum */ = {
+			isa = PBXGroup;
+			children = (
+				CA7E00000000000000010001 /* AIService.swift */,
+				CA7E00000000000000010002 /* ChecklistSyncBridge.swift */,
+			);
+			path = comum;
+			sourceTree = "<group>";
+		};
+		CA7E00000000000000030002 /* legis */ = {
+			isa = PBXGroup;
+			children = (
+				CA7E00000000000000010003 /* AddLawSheet.swift */,
+				CA7E00000000000000010004 /* AnnotatedTextView.swift */,
+				CA7E00000000000000010005 /* Annotations.swift */,
+				CA7E00000000000000010006 /* AnnotationsPanel.swift */,
+				CA7E00000000000000010007 /* ArticleMapView.swift */,
+				CA7E00000000000000010008 /* ArticleStudyView.swift */,
+				CA7E00000000000000010009 /* ChecklistView.swift */,
+				CA7E0000000000000001000A /* CommentComponents.swift */,
+				CA7E0000000000000001000B /* CompatibilidadeUIKit.swift */,
+				CA7E0000000000000001000C /* ContentView.swift */,
+				CA7E0000000000000001000D /* DOU.swift */,
+				CA7E0000000000000001000E /* DashboardView.swift */,
+				CA7E0000000000000001000F /* Flashcards.swift */,
+				CA7E00000000000000010010 /* GlobalSearchView.swift */,
+				CA7E00000000000000010011 /* Historico.swift */,
+				CA7E00000000000000010012 /* IndiceNormasView.swift */,
+				CA7E00000000000000010013 /* LawParser.swift */,
+				CA7E00000000000000010014 /* LawReaderView.swift */,
+				CA7E00000000000000010015 /* LawSearch.swift */,
+				CA7E00000000000000010016 /* LawSeed.swift */,
+				CA7E00000000000000010017 /* MarkableArticleView.swift */,
+				CA7E00000000000000010018 /* Models.swift */,
+				CA7E00000000000000010019 /* Notifier.swift */,
+				CA7E0000000000000001001A /* Planalto.swift */,
+				CA7E0000000000000001001B /* PlanoLeituraView.swift */,
+				CA7E0000000000000001001C /* PrecedentsView.swift */,
+				CA7E0000000000000001001D /* ReadingData.swift */,
+				CA7E0000000000000001001E /* RedactionComparison.swift */,
+				CA7E0000000000000001001F /* RedactionSeed.swift */,
+				CA7E00000000000000010020 /* RemissiveIndex.swift */,
+				CA7E00000000000000010021 /* Remissoes.swift */,
+				CA7E00000000000000010022 /* RichNoteEditor.swift */,
+				CA7E00000000000000010023 /* RoundedBackgroundLayoutManager.swift */,
+				CA7E00000000000000010024 /* SRSReviewView.swift */,
+				CA7E00000000000000010025 /* SectionShell.swift */,
+				CA7E00000000000000010026 /* SeedCatalog.swift */,
+				CA7E00000000000000010027 /* SettingsView.swift */,
+				CA7E00000000000000010028 /* Sigen.swift */,
+				CA7E00000000000000010029 /* SpacedRepetition.swift */,
+				CA7E0000000000000001002A /* Store.swift */,
+				CA7E0000000000000001002B /* StudyClock.swift */,
+				CA7E0000000000000001002C /* Theme.swift */,
+				CA7E0000000000000001002D /* UpdateComparison.swift */,
+				CA7E0000000000000001002E /* UpdatesView.swift */,
+			);
+			path = legis;
+			sourceTree = "<group>";
+		};
+		CA7E00000000000000030000 /* vendor */ = {
+			isa = PBXGroup;
+			children = (
+				CA7E00000000000000030001 /* comum */,
+				CA7E00000000000000030002 /* legis */,
+			);
+			path = vendor;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -142,7 +304,8 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Regenera mac/build/web a partir do Catedra.dc.html antes de empacotar.\n# Sem isto o app embarcaria um bundle velho sem ninguem notar.\ncd \"$SRCROOT/..\" || exit 1\nif command -v node >/dev/null 2>&1; then\n  node scripts/build-macos.mjs || echo \"aviso: build-macos.mjs falhou; usando o bundle que ja estava em mac/build/web\"\nelse\n  echo \"aviso: node nao encontrado no PATH do Xcode; usando o bundle existente\"\nfi\n";
+			shellScript = "# Regenera mac/build/web a partir do Catedra.dc.html antes de empacotar.\n# mac/build/ e gitignored: num clone limpo (Xcode Cloud) o bundle NAO existe,\n# entao aqui ele precisa ser gerado ou o build falha na copia dos recursos.\nset -e\ncd \"$SRCROOT/..\" || exit 1\nif command -v node >/dev/null 2>&1; then\n  NODE=node\nelif [ -x /opt/homebrew/bin/node ]; then\n  NODE=/opt/homebrew/bin/node\nelif [ -x /usr/local/bin/node ]; then\n  NODE=/usr/local/bin/node\nelse\n  NODE=\"\"\nfi\nif [ -n \"$NODE\" ]; then\n  \"$NODE\" scripts/build-macos.mjs\nelif [ ! -d mac/build/web ]; then\n  echo \"error: node nao encontrado e mac/build/web nao existe.\" >&2\n  echo \"error: rode ci_scripts/ci_post_clone.sh ou instale node.\" >&2\n  exit 1\nelse\n  echo \"aviso: node ausente; usando o bundle ja presente em mac/build/web\"\nfi\nif [ ! -d mac/build/web ]; then\n  echo \"error: mac/build/web nao foi gerado.\" >&2\n  exit 1\nfi\n";
+
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -152,6 +315,52 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA7E000000000000000000A1 /* main.swift in Sources */,
+				CA7E00000000000000020001 /* AIService.swift in Sources */,
+				CA7E00000000000000020002 /* ChecklistSyncBridge.swift in Sources */,
+				CA7E00000000000000020003 /* AddLawSheet.swift in Sources */,
+				CA7E00000000000000020004 /* AnnotatedTextView.swift in Sources */,
+				CA7E00000000000000020005 /* Annotations.swift in Sources */,
+				CA7E00000000000000020006 /* AnnotationsPanel.swift in Sources */,
+				CA7E00000000000000020007 /* ArticleMapView.swift in Sources */,
+				CA7E00000000000000020008 /* ArticleStudyView.swift in Sources */,
+				CA7E00000000000000020009 /* ChecklistView.swift in Sources */,
+				CA7E0000000000000002000A /* CommentComponents.swift in Sources */,
+				CA7E0000000000000002000B /* CompatibilidadeUIKit.swift in Sources */,
+				CA7E0000000000000002000C /* ContentView.swift in Sources */,
+				CA7E0000000000000002000D /* DOU.swift in Sources */,
+				CA7E0000000000000002000E /* DashboardView.swift in Sources */,
+				CA7E0000000000000002000F /* Flashcards.swift in Sources */,
+				CA7E00000000000000020010 /* GlobalSearchView.swift in Sources */,
+				CA7E00000000000000020011 /* Historico.swift in Sources */,
+				CA7E00000000000000020012 /* IndiceNormasView.swift in Sources */,
+				CA7E00000000000000020013 /* LawParser.swift in Sources */,
+				CA7E00000000000000020014 /* LawReaderView.swift in Sources */,
+				CA7E00000000000000020015 /* LawSearch.swift in Sources */,
+				CA7E00000000000000020016 /* LawSeed.swift in Sources */,
+				CA7E00000000000000020017 /* MarkableArticleView.swift in Sources */,
+				CA7E00000000000000020018 /* Models.swift in Sources */,
+				CA7E00000000000000020019 /* Notifier.swift in Sources */,
+				CA7E0000000000000002001A /* Planalto.swift in Sources */,
+				CA7E0000000000000002001B /* PlanoLeituraView.swift in Sources */,
+				CA7E0000000000000002001C /* PrecedentsView.swift in Sources */,
+				CA7E0000000000000002001D /* ReadingData.swift in Sources */,
+				CA7E0000000000000002001E /* RedactionComparison.swift in Sources */,
+				CA7E0000000000000002001F /* RedactionSeed.swift in Sources */,
+				CA7E00000000000000020020 /* RemissiveIndex.swift in Sources */,
+				CA7E00000000000000020021 /* Remissoes.swift in Sources */,
+				CA7E00000000000000020022 /* RichNoteEditor.swift in Sources */,
+				CA7E00000000000000020023 /* RoundedBackgroundLayoutManager.swift in Sources */,
+				CA7E00000000000000020024 /* SRSReviewView.swift in Sources */,
+				CA7E00000000000000020025 /* SectionShell.swift in Sources */,
+				CA7E00000000000000020026 /* SeedCatalog.swift in Sources */,
+				CA7E00000000000000020027 /* SettingsView.swift in Sources */,
+				CA7E00000000000000020028 /* Sigen.swift in Sources */,
+				CA7E00000000000000020029 /* SpacedRepetition.swift in Sources */,
+				CA7E0000000000000002002A /* Store.swift in Sources */,
+				CA7E0000000000000002002B /* StudyClock.swift in Sources */,
+				CA7E0000000000000002002C /* Theme.swift in Sources */,
+				CA7E0000000000000002002D /* UpdateComparison.swift in Sources */,
+				CA7E0000000000000002002E /* UpdatesView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
