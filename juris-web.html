@@ -61,6 +61,38 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .skel{height:80px;border-radius:14px;background:linear-gradient(90deg,var(--surface2,#efeadd) 25%,var(--surface,#fffdf8) 50%,var(--surface2,#efeadd) 75%);background-size:200% 100%;animation:sh 1.3s infinite;margin-bottom:10px}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
+/* ===== Central de Contas (TCU + TCEs) ===== */
+[hidden]{display:none!important}
+.modes{display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap}
+.mode{flex:1 1 210px;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:14px;padding:11px 15px;cursor:pointer;font-family:inherit;text-align:left;display:flex;flex-direction:column;gap:3px}
+.mode b{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:800;color:var(--ink);line-height:1.1}
+.mode small{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3,#7a7368)}
+.mode:hover{border-color:var(--accent,#0f7a57)}
+.mode.on{border-color:transparent;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));box-shadow:0 12px 26px -16px var(--accent,#0f7a57)}
+.mode.on b{color:#fff}
+.mode.on small{color:rgba(255,255,255,.82)}
+.tabs{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.tab{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);color:var(--text2,#5c564a);border-radius:10px;padding:7px 14px;font:800 12px inherit;cursor:pointer}
+.tab.on{background:var(--ink,#1f1c17);color:var(--bg,#f4f1ea);border-color:transparent}
+.tab small{font-weight:700;opacity:.6;margin-left:5px;font-variant-numeric:tabular-nums}
+.fonte{font-size:11px;color:var(--text3,#7a7368);line-height:1.55;margin:-2px 0 14px}
+.fonte a{color:var(--accent,#0f7a57);text-decoration:none;font-weight:700}
+.reg{font:800 10px inherit;letter-spacing:.14em;text-transform:uppercase;color:var(--text3,#7a7368);margin:16px 0 8px;display:flex;align-items:center;gap:9px}
+.reg::after{content:"";flex:1;height:1px;background:var(--border,#e6e1d4)}
+.tcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:10px}
+.tccard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
+.tccard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc,#0f7a57)}
+.tccard .tct{display:flex;align-items:center;gap:8px}
+.tccard .sg{font-family:var(--display,'Spectral',Georgia,serif);font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.tccard .uf{font:800 10px inherit;letter-spacing:.05em;background:color-mix(in srgb,var(--rc) 15%,transparent);color:var(--rc);border-radius:6px;padding:3px 7px}
+.tccard .nm{font-size:11.5px;line-height:1.45;color:var(--text2,#5c564a)}
+.tccard .lks{display:flex;gap:6px;flex-wrap:wrap;margin-top:1px}
+.tccard .lks a{font:700 11px inherit;text-decoration:none;color:var(--rc,#0f7a57);border:1px solid color-mix(in srgb,var(--rc) 30%,transparent);border-radius:8px;padding:5px 9px}
+.tccard .lks a:hover{background:color-mix(in srgb,var(--rc) 10%,transparent)}
+.tccard .acv{margin-top:2px;border:none;background:color-mix(in srgb,var(--rc) 12%,transparent);color:var(--rc);border-radius:9px;padding:7px 10px;font:800 11.5px inherit;cursor:pointer;text-align:left}
+.tccard .acv:hover{background:color-mix(in srgb,var(--rc) 20%,transparent)}
+.tccard .semacv{font-size:10.5px;color:var(--text3,#7a7368);font-style:italic;margin-top:2px}
+
 /* ===== leitor de verbete — esquema (mesma linguagem do LEGIS) ===== */
 .rdr{--rc:#0f7a57;--rc2:#12a06f;
   --rink:#181b24;--rdim:#59606f;--rdim2:#98a0b2;--rline:rgba(18,22,42,.09);--rcard:#ffffff;--rctext:#222732;
@@ -126,9 +158,19 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <script src="juris-index.js"></script>
 </head>
 <body><div class="wrap">
-<div class="head"><div class="ic">⚖️</div><div><h1>CátedraJURIS</h1><p>Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE</p></div></div>
+<div class="head"><div class="ic" id="hIc">⚖️</div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE</p></div></div>
+<div class="modes" id="modes">
+  <button class="mode on" data-modo="juris"><b>⚖️ Jurisprudência</b><small>STF · STJ · TSE · TJRO</small></button>
+  <button class="mode" data-modo="contas"><b>🏛️ Central de Contas</b><small>TCU · TCEs · TCMs</small></button>
+</div>
+<div class="tabs" id="tabs" hidden>
+  <button class="tab on" data-pane="acervo">Acervo</button>
+  <button class="tab" data-pane="tribunais">Tribunais de contas <small id="nTcs"></small></button>
+</div>
+<div id="paneAcervo">
 <div class="search"><span class="mag">🔎</span><input id="q" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
 <div class="chips" id="trib"></div>
+<div class="chips" id="bases"></div>
 <div class="chips" id="ramos"></div>
 <div class="statbar">
   <div class="s1"><b id="sTot">0</b><span>Verbetes</span></div>
@@ -140,15 +182,43 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <div id="sentinel" style="height:1px"></div>
 <div class="more" id="more"></div>
 </div>
+<div id="paneTribunais" hidden>
+  <div class="fonte" id="tcFonte"></div>
+  <div class="search"><span class="mag">🔎</span><input id="qtc" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
+  <div class="chips" id="regs"></div>
+  <div id="tcList"></div>
+</div>
+</div>
 <div class="rdr" id="jrdr"><div class="top"><button class="back" id="jrClose" title="Voltar">←</button><button class="nav" id="jrPrev" title="Anterior">‹</button><button class="nav" id="jrNext" title="Próximo">›</button><div class="idwrap"><div class="kicker" id="jrMat"></div><h1 id="jrTitle"></h1></div><span class="chip" id="jrTrib"></span><div class="tools"><button class="tool" id="jrMinus" title="Diminuir">A−</button><button class="tool" id="jrPlus" title="Aumentar">A+</button><button class="tool" id="jrDark" title="Modo imersão">◐</button></div></div><div class="stage"><aside class="map"><div class="maptitle">Verbetes do filtro</div><div id="jrTree"></div></aside><main class="doc" id="jrScroll"><div class="docwrap" id="jrDoc"></div></main></div></div>
 <button class="grifbtn" id="jrGrif">✎ Grifar</button>
 <script>
 (function(){
-  var IDX = window.__JURIS_IDX__ || [];   // [id,tr,fo,nu,ti,ra,te,da,si,im]
-  var TXT = null;                          // carregado sob demanda
   var I={id:0,tr:1,fo:2,nu:3,ti:4,ra:5,te:6,da:7,si:8,im:9};
+
+  // Dois acervos moram nesta mesma tela e compartilham cards, leitor, grifos e
+  // status de estudo. O que muda entre eles é só a origem dos dados e a paleta
+  // de cores da faceta "ramo" — daí o descritor abaixo em vez de duplicar a view.
+  var MODOS={
+    juris:{ idx:window.__JURIS_IDX__||[], txt:null,
+            idxSrc:null,               idxGlobal:'__JURIS_IDX__',
+            txtSrc:'juris-text.js',    txtGlobal:'__JURIS_TXT__',
+            cor:function(n){return ramoColor(n)}, comBase:false,
+            ic:'⚖️', tit:'CátedraJURIS',
+            sub:'Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE',
+            vazio:'Base de jurisprudência não carregou.' },
+    contas:{ idx:null, txt:null,
+            idxSrc:'contas-index.js',  idxGlobal:'__CONTAS_IDX__',
+            txtSrc:'contas-text.js',   txtGlobal:'__CONTAS_TXT__',
+            cor:function(n){return areaColor(n)}, comBase:true,
+            ic:'🏛️', tit:'Central de Contas',
+            sub:'Controle externo · súmulas, boletins e informativos do TCU e dos tribunais de contas',
+            vazio:'Acervo da Central de Contas não carregou.' }
+  };
+  var modo='juris', M=MODOS.juris;
+  var IDX=M.idx;                           // [id,tr,fo,nu,ti,ra,te,da,si,im]
+  var TXT=null;                            // carregado sob demanda
   var PAGE=40, page=0, filtered=IDX;
-  var f={q:'',tribunal:'',ramo:''};
+  var f={q:'',tribunal:'',ramo:'',base:''};
 
   // ---- estudo (localStorage)
   var LK='catedra:jurisEstudo';
@@ -175,21 +245,41 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     if(h('civil'))return'#0D9488';
     return'#0f7a57';
   }
-  var TRIBC={STF:'#1d4ed8',STJ:'#0d9488',TSE:'#7c3aed',TJRO:'#64748b'};
+  var TRIBC={STF:'#1d4ed8',STJ:'#0d9488',TSE:'#7c3aed',TJRO:'#64748b',
+             TCU:'#0f7a57','TCE-SP':'#b45309','TCE-MG':'#be123c','TCE-BA':'#0369a1'};
+
+  // ---- cores por área de controle externo (facetas do TCU: AREA da súmula)
+  // Separada de ramoColor porque as palavras colidem: "Direito Processual" no
+  // JURIS cai em civil/penal, e aqui precisa de cor própria.
+  function areaColor(n){
+    n=(n||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(n.indexOf('pessoal')>=0)return'#DB2777';
+    if(n.indexOf('licitac')>=0)return'#7C3AED';
+    if(n.indexOf('contrato')>=0)return'#D97706';
+    if(n.indexOf('financ')>=0)return'#16A34A';
+    if(n.indexOf('responsabil')>=0)return'#E11D48';
+    if(n.indexOf('competencia')>=0)return'#4F46E5';
+    if(n.indexOf('processual')>=0)return'#0EA5E9';
+    if(n.indexOf('gestao')>=0)return'#65A30D';
+    return'#0f7a57';
+  }
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 
-  // ---- contagens
-  var tribCount={}, ramoCount={};
-  IDX.forEach(function(r){
-    var t=r[I.tr]||'—'; tribCount[t]=(tribCount[t]||0)+1;
-    var ra=r[I.ra]||'Sem ramo'; ramoCount[ra]=(ramoCount[ra]||0)+1;
-  });
-
-  // ---- chips de tribunal (re-renderável)
-  var tribOrder=Object.keys(tribCount).sort(function(a,b){return tribCount[b]-tribCount[a]});
-  var ramoOrder=Object.keys(ramoCount).sort(function(a,b){return ramoCount[b]-ramoCount[a]});
+  // ---- contagens (refeitas a cada troca de acervo)
+  var tribCount={}, ramoCount={}, baseCount={}, tribOrder=[], ramoOrder=[], baseOrder=[], byId={};
+  function recount(){
+    tribCount={}; ramoCount={}; baseCount={}; byId={};
+    IDX.forEach(function(r){
+      var t=r[I.tr]||'—'; tribCount[t]=(tribCount[t]||0)+1;
+      var ra=r[I.ra]||'Sem ramo'; ramoCount[ra]=(ramoCount[ra]||0)+1;
+      var bs=r[I.fo]||''; if(bs)baseCount[bs]=(baseCount[bs]||0)+1;
+      byId[r[I.id]]=r;
+    });
+    function ordena(o){return Object.keys(o).sort(function(a,b){return o[b]-o[a]})}
+    tribOrder=ordena(tribCount); ramoOrder=ordena(ramoCount); baseOrder=ordena(baseCount);
+  }
   function chipBtn(active,label,cnt,col,onclick){
     var b=document.createElement('button'); b.className='chip'+(active?' on':'');
     if(active)b.style.background=col||'var(--accent,#0f7a57)';
@@ -208,7 +298,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     el.appendChild(chipBtn(f.ramo==='','Todos os ramos',IDX.length,null,function(){f.ramo='';build();}));
     var TOP=11, list=showAllRamos?ramoOrder:ramoOrder.slice(0,TOP);
     if(f.ramo && list.indexOf(f.ramo)<0) list=list.concat([f.ramo]);   // garante o ramo ativo visível
-    list.forEach(function(r){ var col=ramoColor(r);
+    list.forEach(function(r){ var col=M.cor(r);
       el.appendChild(chipBtn(f.ramo===r,r,ramoCount[r],col,function(){f.ramo=f.ramo===r?'':r;build();})); });
     if(!showAllRamos && ramoOrder.length>TOP){
       var m=document.createElement('button'); m.className='chip'; m.style.borderStyle='dashed';
@@ -222,7 +312,17 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       el.appendChild(l);
     }
   }
-  renderTribChips(); renderRamoChips();
+  // No acervo de contas o que separa os verbetes não é só o tribunal: súmula,
+  // Boletim de Jurisprudência, Boletim de Pessoal e Informativo de Licitações e
+  // Contratos têm pesos bem diferentes para quem estuda. Daí a faceta própria.
+  function renderBaseChips(){
+    var el=document.getElementById('bases'); el.innerHTML='';
+    if(!M.comBase || baseOrder.length<2){ el.hidden=true; return; }
+    el.hidden=false;
+    el.appendChild(chipBtn(f.base==='','Todas as coleções',IDX.length,null,function(){f.base='';build();}));
+    baseOrder.forEach(function(b){
+      el.appendChild(chipBtn(f.base===b,b,baseCount[b],'#475569',function(){f.base=f.base===b?'':b;build();})); });
+  }
 
   // ---- filtro
   function applyFilter(){
@@ -230,6 +330,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     filtered=IDX.filter(function(r){
       if(f.tribunal&&r[I.tr]!==f.tribunal)return false;
       if(f.ramo&&(r[I.ra]||'Sem ramo')!==f.ramo)return false;
+      if(f.base&&r[I.fo]!==f.base)return false;
       if(terms.length){
         var hay=norm((r[I.ti]||'')+' '+(r[I.te]||'')+' '+(r[I.nu]||'')+' '+(r[I.fo]||'')+' '+(r[I.ra]||''));
         if(TXT){var t=TXT[r[I.id]]; if(t&&t.en)hay+=' '+norm(t.en);}
@@ -248,12 +349,12 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 
   var listEl=document.getElementById('list'), moreEl=document.getElementById('more');
   function build(){
-    renderTribChips(); renderRamoChips();
+    renderTribChips(); renderBaseChips(); renderRamoChips();
     applyFilter(); page=0; listEl.innerHTML=''; stats(); renderPage();
   }
 
   function card(r){
-    var id=r[I.id], ra=r[I.ra], rc=ramoColor(ra), tc=TRIBC[r[I.tr]]||'#64748b';
+    var id=r[I.id], ra=r[I.ra], rc=M.cor(ra), tc=TRIBC[r[I.tr]]||'#64748b';
     var stt=est.stat[id]||'', fav=est.fav[id];
     var d=document.createElement('div'); d.className='vcard'; d.style.setProperty('--rc',rc); d.style.setProperty('--tc',tc); d.dataset.id=id;
     d.innerHTML=
@@ -316,24 +417,27 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     body.innerHTML=html;
   }
 
-  // ---- carregar juris-text.js (via <script>, funciona em file:// e http)
-  var txtLoading=false;
+  // ---- carregar o bundle de textos do acervo corrente (via <script>: funciona
+  // em file:// — no app nativo o WKWebView bloqueia fetch() de JSON local)
+  var txtLoading={}, txtWait={};
   function loadTxt(cb){
-    if(TXT){cb&&cb();return;}
-    if(cb)txtWait.push(cb);          // enfileira ANTES de começar (senão o 1º cb some)
-    if(txtLoading)return;
-    txtLoading=true;
-    var s=document.createElement('script'); s.src='juris-text.js';
-    s.onload=function(){ TXT=window.__JURIS_TXT__||{}; txtLoading=false;
-      // preenche corpos abertos
-      document.querySelectorAll('.vcard.open').forEach(function(d){ var id=d.dataset.id; var r=byId[id]; if(r)fillBody(d,r); });
-      txtWait.forEach(function(fn){fn()}); txtWait=[];
+    var alvo=M;                                     // captura: o modo pode mudar durante a carga
+    if(alvo.txt){cb&&cb();return;}
+    (txtWait[alvo.txtSrc]=txtWait[alvo.txtSrc]||[]);
+    if(cb)txtWait[alvo.txtSrc].push(cb);            // enfileira ANTES de começar (senão o 1º cb some)
+    if(txtLoading[alvo.txtSrc])return;
+    txtLoading[alvo.txtSrc]=true;
+    var s=document.createElement('script'); s.src=alvo.txtSrc;
+    s.onload=function(){ alvo.txt=window[alvo.txtGlobal]||{}; txtLoading[alvo.txtSrc]=false;
+      if(M===alvo){ TXT=alvo.txt;
+        // preenche corpos abertos
+        document.querySelectorAll('.vcard.open').forEach(function(d){ var id=d.dataset.id; var r=byId[id]; if(r)fillBody(d,r); });
+      }
+      (txtWait[alvo.txtSrc]||[]).forEach(function(fn){fn()}); txtWait[alvo.txtSrc]=[];
     };
-    s.onerror=function(){ txtLoading=false; document.querySelectorAll('.vcard.open .vbody .loading').forEach(function(e){e.textContent='Não foi possível carregar os textos.'}); };
+    s.onerror=function(){ txtLoading[alvo.txtSrc]=false; document.querySelectorAll('.vcard.open .vbody .loading').forEach(function(e){e.textContent='Não foi possível carregar os textos.'}); };
     document.body.appendChild(s);
   }
-  var txtWait=[];
-  var byId={}; IDX.forEach(function(r){byId[r[I.id]]=r;});
 
   // ---- paginação (infinite scroll)
   function renderPage(){
@@ -353,9 +457,151 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   var qEl=document.getElementById('q'), qt;
   qEl.addEventListener('input',function(){ f.q=qEl.value; clearTimeout(qt); qt=setTimeout(build,180); });
   // ao começar a digitar, garante o texto carregado (busca em enunciado)
-  qEl.addEventListener('focus',function(){ if(!TXT)loadTxt(function(){ if(f.q)build(); }); },{once:true});
+  qEl.addEventListener('focus',function(){ if(!TXT)loadTxt(function(){ if(f.q)build(); }); });
+
+  // ================= CENTRAL DE CONTAS: acervo + diretório =================
+  // 33 tribunais de contas (TCU + 26 TCEs + TCDF + 5 TCMs). Os links são os
+  // endereços oficiais de jurisprudência/súmulas de cada corte, conferidos um a
+  // um; onde o tribunal não publica uma página estável de jurisprudência, fica
+  // só o portal. `acv` marca quem tem texto integral dentro do app.
+  var TCS=[
+   ['TCU','Tribunal de Contas da União','União','Federal','https://portal.tcu.gov.br/inicio','https://pesquisa.apps.tcu.gov.br/pesquisa/jurisprudencia','https://pesquisa.apps.tcu.gov.br/pesquisa/sumula',1],
+   ['TCE-AC','Tribunal de Contas do Estado do Acre','AC','Norte','https://tceac.tc.br/site/','https://tceac.tc.br/site/inicio/jurisprudencia/','',0],
+   ['TCE-AP','Tribunal de Contas do Estado do Amapá','AP','Norte','https://www.tce.ap.gov.br/','https://www.tce.ap.gov.br/institucional/boletim-jurisprudencia','',0],
+   ['TCE-AM','Tribunal de Contas do Estado do Amazonas','AM','Norte','https://www.tceam.tc.br/','https://jurisprudencia.tce.am.gov.br','https://www.tceam.tc.br/?page_id=25633',0],
+   ['TCE-PA','Tribunal de Contas do Estado do Pará','PA','Norte','https://www.tcepa.tc.br/','https://www.tcepa.tc.br/jurisprudencia','',0],
+   ['TCE-RO','Tribunal de Contas do Estado de Rondônia','RO','Norte','https://tcero.tc.br/','https://spj.tcero.tc.br/jurisprudencia/','',0],
+   ['TCE-RR','Tribunal de Contas do Estado de Roraima','RR','Norte','https://tcerr.tc.br/','https://transparencia.tcerr.tc.br/#/sessoes/jurisprudencia/informativos','',0],
+   ['TCE-TO','Tribunal de Contas do Estado do Tocantins','TO','Norte','https://www.tceto.tc.br/','https://jurisprudencia.tceto.tc.br/','https://www.tceto.tc.br/sumulas/',0],
+   ['TCM-PA','Tribunal de Contas dos Municípios do Estado do Pará','PA','Norte','https://www.tcmpa.tc.br/','','',0],
+   ['TCE-AL','Tribunal de Contas do Estado de Alagoas','AL','Nordeste','https://www.tceal.tc.br/','https://www.tceal.tc.br/view/consulta-jurisprudencia.php','https://www.tceal.tc.br/sumulas-e-jurisprudencias',0],
+   ['TCE-BA','Tribunal de Contas do Estado da Bahia','BA','Nordeste','https://www.tce.ba.gov.br/','https://www.tce.ba.gov.br/jurisprudencia','https://www.tce.ba.gov.br/legislacao/sumulas',1],
+   ['TCE-CE','Tribunal de Contas do Estado do Ceará','CE','Nordeste','https://www.tce.ce.gov.br/','https://www.tce.ce.gov.br/jurisdicionado/jurisprudencia/consulta','https://www.tce.ce.gov.br/jurisdicionado/jurisprudencia/sumulas',0],
+   ['TCE-MA','Tribunal de Contas do Estado do Maranhão','MA','Nordeste','https://www.tcema.tc.br/','','',0],
+   ['TCE-PB','Tribunal de Contas do Estado da Paraíba','PB','Nordeste','https://tce.pb.gov.br/','https://jurisprudencia.tce.pb.gov.br/','',0],
+   ['TCE-PE','Tribunal de Contas do Estado de Pernambuco','PE','Nordeste','https://www.tcepe.tc.br/internet/','https://portal.tcepe.tc.br/jurisprudencia/consulta/deliberacoes','',0],
+   ['TCE-PI','Tribunal de Contas do Estado do Piauí','PI','Nordeste','https://www.tcepi.tc.br/','https://www.tcepi.tc.br/legislacao/jurisprudencia/','https://www.tcepi.tc.br/category/legislacao/sumulas/',0],
+   ['TCE-RN','Tribunal de Contas do Estado do Rio Grande do Norte','RN','Nordeste','https://www.tce.rn.gov.br/','https://jurisprudencia.tce.rn.gov.br/consulta','https://jurisprudencia.tce.rn.gov.br/sumula',0],
+   ['TCE-SE','Tribunal de Contas do Estado de Sergipe','SE','Nordeste','https://www.tce.se.gov.br/','https://www.tce.se.gov.br/jurisprudencia/SitePages/boletim.aspx','',0],
+   ['TCM-BA','Tribunal de Contas dos Municípios do Estado da Bahia','BA','Nordeste','https://www.tcm.ba.gov.br/','https://www.tcm.ba.gov.br/consulta/jurisprudencia/consulta-ementario-juridico/','',0],
+   ['TCDF','Tribunal de Contas do Distrito Federal','DF','Centro-Oeste','https://www2.tc.df.gov.br/','https://jurisprudencia.tc.df.gov.br/','',0],
+   ['TCE-GO','Tribunal de Contas do Estado de Goiás','GO','Centro-Oeste','https://portal.tce.go.gov.br/','https://portal.tce.go.gov.br/tce-juris','https://portal.tce.go.gov.br/sumulas-dos-tcs',0],
+   ['TCE-MT','Tribunal de Contas do Estado de Mato Grosso','MT','Centro-Oeste','https://www.tce.mt.gov.br/','','',0],
+   ['TCE-MS','Tribunal de Contas do Estado de Mato Grosso do Sul','MS','Centro-Oeste','https://www.tce.ms.gov.br/','https://jurisprudencia.tce.ms.gov.br/','https://jurisprudencia.tce.ms.gov.br/sumulas',0],
+   ['TCM-GO','Tribunal de Contas dos Municípios do Estado de Goiás','GO','Centro-Oeste','https://www.tcmgo.tc.br/site/','https://www.tcmgo.tc.br/site/jurisprudencia/','',0],
+   ['TCE-ES','Tribunal de Contas do Estado do Espírito Santo','ES','Sudeste','https://www.tcees.tc.br/','https://www.tcees.tc.br/jurisprudencia/','',0],
+   ['TCE-MG','Tribunal de Contas do Estado de Minas Gerais','MG','Sudeste','https://www.tce.mg.gov.br/','https://tcjuris.tce.mg.gov.br/','https://www.tce.mg.gov.br/Noticia/Detalhe/67',1],
+   ['TCE-RJ','Tribunal de Contas do Estado do Rio de Janeiro','RJ','Sudeste','https://www.tcerj.tc.br/portalnovo/','https://www.tcerj.tc.br/cadastro-publicacoes/public/portal-jurisprudencia','https://www.tce.rj.gov.br/consulta-processo/Sumulas',0],
+   ['TCE-SP','Tribunal de Contas do Estado de São Paulo','SP','Sudeste','https://www.tce.sp.gov.br/','https://www.tce.sp.gov.br/boletim-de-jurisprudencia','https://www.tce.sp.gov.br/boletim-de-jurisprudencia/sumulas',1],
+   ['TCM-RJ','Tribunal de Contas do Município do Rio de Janeiro','RJ','Sudeste','https://www.tcmrio.tc.br/WEB/Site/Destaques.aspx','','',0],
+   ['TCM-SP','Tribunal de Contas do Município de São Paulo','SP','Sudeste','https://portal.tcm.sp.gov.br/','https://portal.tcm.sp.gov.br/jurisprudencia','',0],
+   ['TCE-PR','Tribunal de Contas do Estado do Paraná','PR','Sul','https://www1.tce.pr.gov.br/','https://www1.tce.pr.gov.br/fiscalizado/informativos-do-tcepr/boletim-informativo-de-jurisprudencia/','https://www1.tce.pr.gov.br/fiscalizado/decisoes-do-tribunal/sumulas/',0],
+   ['TCE-RS','Tribunal de Contas do Estado do Rio Grande do Sul','RS','Sul','https://portal.tce.rs.gov.br/portal/page/portal/tcers/inicial','','',0],
+   ['TCE-SC','Tribunal de Contas do Estado de Santa Catarina','SC','Sul','https://www.tcesc.tc.br/','https://virtual.tce.sc.gov.br/jurisprudencia/jurisprudencia','https://virtual.tce.sc.gov.br/jurisprudencia/jurisprudencia/consulta-sumulas',0]
+  ];
+  var T={sg:0,nm:1,uf:2,rg:3,st:4,ju:5,su:6,ac:7};
+  var REGCOR={'Federal':'#0f7a57','Norte':'#0d9488','Nordeste':'#ea580c','Centro-Oeste':'#ca8a04','Sudeste':'#4f46e5','Sul':'#0369a1'};
+  var fTc={q:'',reg:''};
+  document.getElementById('nTcs').textContent=TCS.length;
+
+  function acervoDe(sigla){ return (MODOS.contas.idx||[]).filter(function(r){return r[I.tr]===sigla}).length; }
+
+  function renderRegChips(){
+    var el=document.getElementById('regs'); el.innerHTML='';
+    el.appendChild(chipBtn(fTc.reg==='','Todas as regiões',TCS.length,null,function(){fTc.reg='';renderTcs();}));
+    Object.keys(REGCOR).forEach(function(rg){
+      var n=TCS.filter(function(t){return t[T.rg]===rg}).length; if(!n)return;
+      el.appendChild(chipBtn(fTc.reg===rg,rg,n,REGCOR[rg],function(){fTc.reg=fTc.reg===rg?'':rg;renderTcs();}));
+    });
+  }
+
+  function renderTcs(){
+    renderRegChips();
+    var termos=norm(fTc.q).split(' ').filter(Boolean);
+    var lista=TCS.filter(function(t){
+      if(fTc.reg&&t[T.rg]!==fTc.reg)return false;
+      if(!termos.length)return true;
+      var hay=norm(t[T.sg]+' '+t[T.nm]+' '+t[T.uf]+' '+t[T.rg]);
+      return termos.every(function(x){return hay.indexOf(x)>=0});
+    });
+    var el=document.getElementById('tcList');
+    if(!lista.length){ el.innerHTML='<div class="empty"><div class="ei">\ud83c\udfdb\ufe0f</div>Nenhum tribunal encontrado.</div>'; return; }
+    var h='', reg=null;
+    lista.forEach(function(t){
+      if(t[T.rg]!==reg){ if(reg!==null)h+='</div>'; reg=t[T.rg]; h+='<div class="reg">'+esc(reg)+'</div><div class="tcgrid">'; }
+      var col=REGCOR[t[T.rg]]||'#0f7a57', n=t[T.ac]?acervoDe(t[T.sg]):0;
+      h+='<div class="tccard" style="--rc:'+col+'">'
+        +'<div class="tct"><span class="sg">'+esc(t[T.sg])+'</span><span class="uf">'+esc(t[T.uf])+'</span></div>'
+        +'<div class="nm">'+esc(t[T.nm])+'</div>'
+        +'<div class="lks">'
+          +(t[T.ju]?'<a href="'+esc(t[T.ju])+'" target="_blank" rel="noopener">Jurisprudência ↗</a>':'')
+          +(t[T.su]?'<a href="'+esc(t[T.su])+'" target="_blank" rel="noopener">Súmulas ↗</a>':'')
+          +(t[T.st]?'<a href="'+esc(t[T.st])+'" target="_blank" rel="noopener">Portal ↗</a>':'')
+        +'</div>'
+        +(n?'<button class="acv" data-sg="'+esc(t[T.sg])+'">'+n.toLocaleString('pt-BR')+' verbetes no acervo →</button>'
+           :'<div class="semacv">Sem acervo local — consulta pelo portal do tribunal.</div>')
+      +'</div>';
+    });
+    if(reg!==null)h+='</div>';
+    el.innerHTML=h;
+    el.querySelectorAll('.acv').forEach(function(b){
+      b.onclick=function(){ f.tribunal=b.dataset.sg; f.base=''; f.ramo=''; setPane('acervo'); build(); window.scrollTo({top:0,behavior:'smooth'}); };
+    });
+  }
+
+  var qtcEl=document.getElementById('qtc'), qtct;
+  qtcEl.addEventListener('input',function(){ fTc.q=qtcEl.value; clearTimeout(qtct); qtct=setTimeout(renderTcs,150); });
+
+  // ---- abas Acervo | Tribunais
+  function setPane(nome){
+    document.getElementById('paneAcervo').hidden=(nome!=='acervo');
+    document.getElementById('paneTribunais').hidden=(nome!=='tribunais');
+    document.querySelectorAll('#tabs .tab').forEach(function(b){ b.classList.toggle('on',b.dataset.pane===nome); });
+    if(nome==='tribunais'&&!document.getElementById('tcList').innerHTML)renderTcs();
+  }
+  document.querySelectorAll('#tabs .tab').forEach(function(b){ b.onclick=function(){ setPane(b.dataset.pane); }; });
+
+  // ---- troca de acervo (Jurisprudência ⇄ Central de Contas)
+  function aplicaModo(){
+    IDX=M.idx||[]; TXT=M.txt; filtered=IDX;
+    f={q:'',tribunal:'',ramo:'',base:''};
+    qEl.value=''; showAllRamos=false; page=0;
+    document.getElementById('hIc').textContent=M.ic;
+    document.getElementById('hTit').textContent=M.tit;
+    document.getElementById('hSub').textContent=M.sub;
+    document.getElementById('tabs').hidden=(modo!=='contas');
+    if(modo!=='contas')setPane('acervo');
+    document.querySelectorAll('#modes .mode').forEach(function(b){ b.classList.toggle('on',b.dataset.modo===modo); });
+    if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">'+M.ic+'</div>'+esc(M.vazio)+'</div>'; document.getElementById('more').textContent=''; recount(); renderTribChips(); renderBaseChips(); renderRamoChips(); stats(); return; }
+    recount(); build();
+  }
+  var idxLoading=false;
+  function setModo(nome){
+    if(modo===nome)return;
+    modo=nome; M=MODOS[nome];
+    document.querySelectorAll('#modes .mode').forEach(function(b){ b.classList.toggle('on',b.dataset.modo===modo); });
+    if(M.idx){ aplicaModo(); return; }
+    // primeiro acesso à Central: o índice (2,5 MB) só é baixado aqui
+    listEl.innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+    document.getElementById('tabs').hidden=false;
+    if(idxLoading)return; idxLoading=true;
+    var sc=document.createElement('script'); sc.src=M.idxSrc;
+    sc.onload=function(){ idxLoading=false; MODOS.contas.idx=window[MODOS.contas.idxGlobal]||[];
+      var meta=window.__CONTAS_META__||{};
+      document.getElementById('tcFonte').innerHTML='33 tribunais de contas — TCU, 26 estaduais, o TCDF e 5 tribunais de contas dos municípios. '
+        +'O acervo textual dentro do app vem dos <a href="https://sites.tcu.gov.br/dados-abertos/jurisprudencia/" target="_blank" rel="noopener">dados abertos de jurisprudência do TCU</a> '
+        +'e dos repertórios oficiais de súmulas do TCE-SP, TCE-MG e TCE-BA'+(meta.atualizado?' (coletado em '+esc(meta.atualizado)+')':'')+'. Os demais abrem no portal do próprio tribunal.';
+      if(modo==='contas')aplicaModo();
+    };
+    sc.onerror=function(){ idxLoading=false;
+      listEl.innerHTML='<div class="empty"><div class="ei">\ud83c\udfdb\ufe0f</div>Não foi possível carregar o acervo da Central de Contas.</div>'; };
+    document.body.appendChild(sc);
+  }
+  document.querySelectorAll('#modes .mode').forEach(function(b){ b.onclick=function(){ setModo(b.dataset.modo); }; });
 
   // ---- boot
+  recount();
+  renderTribChips(); renderBaseChips(); renderRamoChips();
   if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Base de jurisprudência não carregou.</div>'; }
   else { applyFilter(); stats(); renderPage(); }
 
@@ -396,7 +642,10 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       +(r[I.si]?'<span class="meta">· '+esc(r[I.si])+'</span>':'')
       +(r[I.im]?'<span class="star" title="Destaque">★</span>':'')
       +'</div><h2>'+esc(r[I.ti]||'Verbete')+'</h2><div class="tags">'
-      +(r[I.ra]?'<span class="rtag">'+esc(r[I.ra])+'</span>':'')+(r[I.te]?'<span class="tema">'+esc(r[I.te])+'</span>':'')+'</div></div>';
+      +(r[I.ra]?'<span class="rtag">'+esc(r[I.ra])+'</span>':'')
+      // no acervo de contas o "tema" do card é o início da própria tese: repetir
+      // logo acima do enunciado inteiro seria eco
+      +(r[I.te]&&!(t.en&&norm(t.en).indexOf(norm(String(r[I.te]).replace(/…$/,'')))===0)?'<span class="tema">'+esc(r[I.te])+'</span>':'')+'</div></div>';
     h+='<div class="venun"><div class="lbl">Enunciado</div><div class="bd">'+(t.en?jGr(t.en):'<span style="color:var(--rdim)">Sem enunciado.</span>')+'</div></div>';
     if(t.co)h+='<div class="vblk"><div class="lbl">Comentário</div><div class="bd">'+jGr(t.co)+'</div></div>';
     if(t.ob)h+='<div class="vblk"><div class="lbl">Observação</div><div class="bd">'+jGr(t.ob)+'</div></div>';
@@ -410,7 +659,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   window.openVerbete=function(idx){
     if(idx<0||idx>=filtered.length)return; curIdx=idx; jdisp=[];
     var r=filtered[idx]; curId=r[I.id];
-    var rc=ramoColor(r[I.ra]); _jr.style.setProperty('--rc',rc); _jr.style.setProperty('--rc2',toRc2(rc));
+    var rc=M.cor(r[I.ra]); _jr.style.setProperty('--rc',rc); _jr.style.setProperty('--rc2',toRc2(rc));
     document.getElementById('jrMat').textContent=r[I.ra]||'Jurisprudência';
     document.getElementById('jrTitle').textContent=r[I.ti]||'Verbete';
     document.getElementById('jrTrib').textContent=r[I.tr]||'—';
