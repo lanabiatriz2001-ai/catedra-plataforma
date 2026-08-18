@@ -5504,8 +5504,8 @@ class Component extends DCLogic {
     const _bk=(b)=> b.srcId?('s:'+b.srcId+'|'+(b.srcDate||'')):('t:'+(b.disc||'')+'|'+(b.kind||'')+'|'+(b.tag||''));
     const _done={}; (this.state.blocks||[]).forEach(b=>{ if(b.done) _done[_bk(b)]=true; });
     this.setState({...extra, blocks:this.composeManual(f,r,p).map(b=> _done[_bk(b)]?{...b,done:true}:b)}); }
-  addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'', kind:'Teoria', min:30, dia:'', roteiro:this.state.manualFixedRoteiroAtual||'', discEdital:'', topico:''}]});
-  addToDay = (e)=>{ const dia=e.currentTarget.dataset.dia||''; this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now()+Math.floor(Math.random()*1000), disc:'', kind:'Teoria', min:30, dia, roteiro:dia?(this.state.manualFixedRoteiroAtual||''):'', discEdital:'', topico:''}]}); };
+  addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'', kind:'Teoria', min:30, dia:'', roteiro:(this.state.roteiroVista||this.state.manualFixedRoteiroAtual||''), discEdital:'', topico:''}]});
+  addToDay = (e)=>{ const dia=e.currentTarget.dataset.dia||''; this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now()+Math.floor(Math.random()*1000), disc:'', kind:'Teoria', min:30, dia, roteiro:dia?((this.state.roteiroVista||this.state.manualFixedRoteiroAtual||'')):'', discEdital:'', topico:''}]}); };
   setRoteiroAtual = (e)=> this.setState({manualFixedRoteiroAtual:e.currentTarget.value});
   // Seletores do registro: escolher uma lei do catálogo preenche o tópico (e a
   // disciplina, se ela existir no edital); escolher uma fonte do JURIS, idem.
@@ -7887,7 +7887,12 @@ class Component extends DCLogic {
           subOpts, temSubs:subOpts.length>0, kindOpts:_kindOpts(f.kind),
           temRoteiro:!!f.roteiro, rotShort:(f.roteiro||'').length>16?(f.roteiro||'').slice(0,16)+'…':(f.roteiro||''),
           vincBorder: f.discEdital?'var(--accentRing)':'var(--border)', vincColor: f.discEdital?'var(--accentD)':'var(--text3)'}; };
-      return defs.map(d=>{ const items=fixed.filter(f=>(f.dia||'')===d.dia).map(_mkItem); const isToday=d.dia!==''&&d.dia===hojeKey;
+      // FILTRA PELO ROTEIRO QUE ESTÁ SENDO VISTO. Sem isto o editor empilhava as
+      // atividades dos TRÊS roteiros em cada dia — selecionar a Semana 1 mostrava 1, 2 e 3
+      // acumuladas. A folha do ciclo já filtrava assim; só o editor não filtrava.
+      return defs.map(d=>{ const items=fixed.filter(f=>(f.dia||'')===d.dia
+                                        && _rotKey(f.roteiro||_rotAtual)===_rotGrupo.key).map(_mkItem);
+        const isToday=d.dia!==''&&d.dia===hojeKey;
         return {dia:d.dia, label:d.label, items, isToday, countLabel: items.length===0 ? 'vazio' : String(items.length),
           colBg: isToday?'var(--accentSoft)':'var(--surface2)', colBorder: isToday?'var(--accentRing)':'var(--border)'}; });
     })();
