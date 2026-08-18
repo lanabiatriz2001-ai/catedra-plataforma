@@ -53,6 +53,23 @@ let bridgeJS = """
       return Promise.reject(e);
     }
   };
+
+  // Mapa de Processo e peças -> acervo. No app nativo o CátedraLEGIS e o CátedraJURIS
+  // são ABAS de verdade; sem isto o app web abriria um iframe do MESMO acervo dentro da
+  // aba Cátedra, deixando duas portas para a mesma coisa. O handler catedraNav (que já
+  // existe para a agenda única) troca a aba do host. O shim entra em atDocumentStart,
+  // portanto ANTES do listener do app web — por isso o stopImmediatePropagation basta
+  // para o web não tratar a mesma mensagem em seguida. Se a ponte não existir (site na
+  // Vercel), o postMessage lança e o caminho web continua valendo.
+  window.addEventListener('message', function (e) {
+    try {
+      if (!e || !e.data || e.data.type !== 'ctAbrirAcervo') return;
+      var alvo = String(e.data.alvo || '');
+      if (alvo !== 'legis' && alvo !== 'juris') return;
+      window.webkit.messageHandlers.catedraNav.postMessage(alvo);
+      e.stopImmediatePropagation();
+    } catch (err) {}
+  });
 })();
 """
 

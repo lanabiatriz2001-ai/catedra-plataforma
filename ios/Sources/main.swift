@@ -48,7 +48,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
         // Ponte de IA + notificações, no mundo .page (o app roda no mundo principal).
         for nome in ["catedraAI", "notifyPermission", "notifyShow", "catedraLembretes",
-                     "catedraNav", "catedraPlano", "catedraPrint"] {
+                     "catedraNav", "catedraPlano", "catedraPrint", "catedraAcervo"] {
             ucc.addScriptMessageHandler(self, contentWorld: .page, name: nome)
         }
         ucc.addUserScript(WKUserScript(source: Self.pontesJS,
@@ -196,6 +196,17 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         } catch (e) { return Promise.reject(e); }
       };
 
+      // Mapa de Processo e peças -> acervo. Dentro do app NATIVO a troca é de ABA (o
+      // LEGIS e o JURIS são telas nativas ao lado); no site, quem trata é o próprio app
+      // web. Este shim intercepta a mensagem do iframe e a repassa ao Swift.
+      window.addEventListener('message', function (e) {
+        try {
+          if (!e || !e.data || e.data.type !== 'ctAbrirAcervo') return;
+          window.webkit.messageHandlers.catedraAcervo.postMessage({ alvo: String(e.data.alvo || '') });
+          e.stopImmediatePropagation();
+        } catch (err) {}
+      });
+
       // O WKWebView não expõe a Web Notification API: shimamos para o UNUserNotificationCenter.
       if (typeof window.Notification === 'undefined') {
         var N = function (titulo, opcoes) {
@@ -277,6 +288,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case "notifyShow":       mostrarNotificacao(message); replyHandler(nil, nil)
         case "catedraLembretes": agendarLembretes(message, replyHandler)
         case "catedraNav":       abrirTelaNativa(message); replyHandler(nil, nil)
+        case "catedraAcervo":    abrirAcervoNativo(message); replyHandler(nil, nil)
         // Exclusivos do Mac (impressão). Respondem para o JS não travar esperando uma
         // promessa que nunca resolve.
         default:                 replyHandler(nil, nil)
@@ -287,6 +299,21 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     /// uso: quem troca de tela é a aba, não a página. Fica só o aceite da mensagem para o
     /// JS não travar esperando uma promessa.
     private func abrirTelaNativa(_ message: WKScriptMessage) { }
+
+    /// O mapa de Processo e peças pediu um instituto no acervo. No iPad temos as abas
+    /// NATIVAS ao lado — abrir o LEGIS/JURIS web dentro da aba Cátedra deixaria duas
+    /// portas para o mesmo acervo. Então a mensagem troca de aba em vez de trocar a
+    /// página. (O termo ainda não vai para dentro da busca nativa; isso pede um ponto de
+    /// entrada no módulo, e sem ele eu abriria a aba fingindo que buscou.)
+    private func abrirAcervoNativo(_ message: WKScriptMessage) {
+        let corpo = message.body as? [String: Any] ?? [:]
+        let alvo = (corpo["alvo"] as? String) ?? ""
+        guard alvo == "legis" || alvo == "juris" else { return }
+        DispatchQueue.main.async {
+            self.segmento.selectedSegmentIndex = (alvo == "juris") ? 2 : 1
+            self.trocarAba()
+        }
+    }
 
     private func chamarIA(_ message: WKScriptMessage, _ reply: @escaping (Any?, String?) -> Void) {
         let corpo = message.body as? [String: Any] ?? [:]
