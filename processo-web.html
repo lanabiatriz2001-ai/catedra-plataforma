@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Processo e peças</title>
+<style>
+:root{
+  --bg:#0f1720;--surface:#16212c;--surface2:#1c2936;--border:#2a3947;
+  --ink:#eef4f8;--text2:#a9bccb;--text3:#6f8496;
+  --accent:#0f9d6b;--accentD:#7fd4b5;
+  --lei:#c9a227;--juris:#e0685c;--peca:#9b86e8;--desvio:#5aa9c9;--assunto:#4a8fd4;
+  --display:Georgia,serif;--mono:ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+/* Não prender em height:100%: num visualizador que não dá altura ao documento isso
+   colapsa e a tela fica preta. O palco tem altura PRÓPRIA em px, com teto no viewport. */
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.barra{position:sticky;top:0;z-index:10;padding:10px 14px;
+  background:rgba(15,23,32,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px}
+/* Os 14 ritos rolam de LADO numa faixa só. Deixando quebrar linha, em tela estreita
+   (iPad em retrato) eles viravam uma coluna de 14 e empurravam o mapa para fora. */
+#mats{display:flex;gap:6px;overflow-x:auto;flex:1;padding-bottom:2px;scrollbar-width:thin}
+#mats .pill{flex:none;white-space:nowrap}
+.ferr{flex:none}
+.h1{font-family:var(--display);font-size:18px;font-weight:700;margin-right:6px}
+.pill{border:1px solid var(--border);background:var(--surface2);color:var(--text2);
+  border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.pill.on{background:var(--accent);border-color:var(--accent);color:#04140d}
+.ferr{margin-left:auto;display:flex;gap:6px;align-items:center}
+.ferr button{width:32px;height:30px;border:1px solid var(--border);background:var(--surface2);
+  color:var(--text2);border-radius:8px;cursor:pointer;font-size:14px}
+.zoomlbl{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:42px;text-align:center}
+
+#palco{position:relative;width:100%;height:78vh;min-height:480px;
+  overflow:hidden;touch-action:none;cursor:grab;background:var(--bg)}
+#palco.arrastando{cursor:grabbing}
+#mundo{position:absolute;left:0;top:0;transform-origin:0 0}
+svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+
+.no{position:absolute;transform:translate(-50%,-50%);border-radius:11px;padding:8px 12px;
+  font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--surface2);
+  cursor:pointer;white-space:nowrap;user-select:none}
+.no small{display:block;font-weight:400;font-size:10px;color:var(--text3)}
+.no .cnt{display:inline-block;margin-left:7px;font-family:var(--mono);font-size:10px;
+  color:var(--text3);border:1px solid var(--border);border-radius:99px;padding:0 5px}
+.raiz{background:linear-gradient(135deg,#0f9d6b,#0b7a52);border-color:#0f9d6b;color:#04140d;
+  font-family:var(--display);font-size:15px;padding:12px 16px}
+.materia{background:#123244;border-color:var(--assunto);color:#bfe0f5;font-size:14px}
+.assunto{background:#1b2b39;border-color:#2f4a5e;font-family:var(--display);font-size:14px}
+.fase{background:#1b2b39;border-color:#41627a}
+.lei{border-color:var(--lei);color:#e8cd7a;background:rgba(201,162,39,.10);font-size:12px}
+.juris{border-color:var(--juris);color:#f0a49c;background:rgba(224,104,92,.10);font-size:12px}
+.peca{border-color:var(--peca);color:#c9bcf3;background:rgba(155,134,232,.10);font-size:12px}
+.desvio{border-color:var(--desvio);color:#a7d8e8;background:rgba(90,169,201,.10);
+  font-size:11.5px;border-style:dashed}
+.fechado{opacity:.92}
+.legenda{position:sticky;bottom:0;z-index:10;padding:7px 14px;
+  background:rgba(15,23,32,.92);border-top:1px solid var(--border);
+  display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--text3)}
+.legenda span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:8px;height:8px;border-radius:2px;display:inline-block}
+</style></head><body>
+
+<div class="barra">
+  <span class="h1">Processo e peças</span><span style="font-size:11.5px;color:var(--text3);margin-right:8px">a sequência de cada rito</span>
+  <span id="mats"></span>
+  <span class="ferr">
+    <button id="menos">−</button><span class="zoomlbl" id="zl">100%</span><button id="mais">+</button>
+    <button id="ajusta" title="Enquadrar">⤢</button>
+    <button id="tudo" title="Abrir tudo">⊕</button>
+  </span>
+</div>
+
+<div id="palco"><div id="mundo"><svg id="fios"></svg></div></div>
+
+<div class="legenda">
+  <span><i class="dot" style="background:var(--assunto)"></i> matéria</span>
+  <span><i class="dot" style="background:#41627a"></i> fase do trâmite</span>
+  <span><i class="dot" style="background:var(--lei)"></i> dispositivo → CátedraLEGIS</span>
+  <span><i class="dot" style="background:var(--juris)"></i> jurisprudência → CátedraJURIS</span>
+  <span><i class="dot" style="background:var(--peca)"></i> peça</span>
+  <span><i class="dot" style="background:var(--desvio)"></i> desvio do fluxo</span>
+  <span style="margin-left:auto">toque num nó para abrir/fechar · pinça ou roda para ampliar</span>
+</div>
+
+<script src="ritos.js"></script>
+<script>
+/* ---------------------------------------------------------------------------
+   O mapa é uma ÁRVORE, não coordenadas à mão. Layout calculado (tidy tree
+   horizontal): dá para adensar à vontade sem reposicionar nada — foi o pedido
+   ("muito mais denso"). Cada nó: {t:título, k:tipo, s:subtítulo, f:[filhos]}
+   --------------------------------------------------------------------------- */
+/* Só a SEQUÊNCIA dos procedimentos. O conteúdo programático não entra aqui — ele já vive
+   no edital, e repetir seria duas verdades para a mesma coisa.
+   Cada rito é uma sequência de atos, na ordem; de cada ato saem os ramos. */
+function montarMapa(){
+  const R = window.CT_RITOS||{}, out={};
+  Object.keys(R).forEach(nome=>{
+    out[nome] = {t:nome, k:'materia', f: R[nome].map(([ato, quando, ramos])=>({
+      t: ato, k:'fase', s: quando||'',
+      f: (ramos||[]).map(([rot, tipo])=>({t:rot, k:tipo}))
+    }))};
+  });
+  return out;
+}
+const MAPA = montarMapa();
+
+/* ---------- layout: tidy tree horizontal ---------- */
+const LARG = {materia:230, assunto:250, fase:210, sub:240, lei:180, juris:180, peca:180, desvio:180};
+// GAPY é a altura RESERVADA por nó. Precisa ser maior que o nó desenhado (~44px com
+// subtítulo) senão os irmãos se sobrepõem — foi o que aconteceu na primeira versão.
+const GAPX = 78, GAPY = 66;
+let materia=Object.keys(MAPA)[0], nos=[], arestas=[], fechados=new Set();
+
+function medir(no, prof){
+  no._prof=prof;
+  const temFilhos=(no.f||[]).length>0;
+  const aberto = temFilhos && !fechados.has(no._id);
+  if(!aberto){ no._alt=GAPY; return no._alt; }
+  let soma=0; no.f.forEach(f=>{ soma += medir(f, prof+1); });
+  no._alt=Math.max(GAPY, soma); return no._alt;
+}
+function posicionar(no, x, y){
+  no._x=x; no._y=y+no._alt/2;
+  nos.push(no);
+  const aberto=(no.f||[]).length>0 && !fechados.has(no._id);
+  if(!aberto) return;
+  let cy=y;
+  no.f.forEach(f=>{ arestas.push([no,f]); posicionar(f, x+LARG[no.k||'fase']+GAPX, cy); cy+=f._alt; });
+}
+let seq=0;
+function idear(no){ no._id='n'+(seq++); (no.f||[]).forEach(idear); }
+
+const mundo=document.getElementById('mundo'), fios=document.getElementById('fios');
+const COR={materia:'#4a8fd4',assunto:'#7fd4b5',fase:'#41627a',sub:'#5f7b8f',lei:'#c9a227',juris:'#e0685c',peca:'#9b86e8',desvio:'#5aa9c9'};
+
+function desenhar(){
+  nos=[]; arestas=[];
+  const raiz=MAPA[materia];
+  medir(raiz,0); posicionar(raiz, 120, 40);
+  mundo.querySelectorAll('.no').forEach(e=>e.remove());
+  let maxX=0,maxY=0;
+  nos.forEach(n=>{
+    const d=document.createElement('div');
+    const temF=(n.f||[]).length>0, fech=fechados.has(n._id);
+    d.className='no '+(n.k||'fase')+(fech?' fechado':'');
+    d.style.left=n._x+'px'; d.style.top=n._y+'px';
+    d.innerHTML=n.t+(n.s?'<small>'+n.s+'</small>':'')
+      +(temF&&fech?'<span class="cnt">+'+n.f.length+'</span>':'');
+    d.onclick=(ev)=>{ ev.stopPropagation();
+      if(!temF) return;
+      if(fech) fechados.delete(n._id); else fechados.add(n._id);
+      desenhar(); };
+    mundo.appendChild(d);
+    maxX=Math.max(maxX,n._x+240); maxY=Math.max(maxY,n._y+60);
+  });
+  fios.setAttribute('width',maxX); fios.setAttribute('height',maxY);
+  fios.innerHTML='';
+  arestas.forEach(([a,b])=>{
+    const x1=a._x+LARG[a.k||'fase']/2-40, x2=b._x-LARG[b.k||'fase']/2+40;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',`M ${x1} ${a._y} C ${(x1+x2)/2} ${a._y}, ${(x1+x2)/2} ${b._y}, ${x2} ${b._y}`);
+    p.setAttribute('fill','none'); p.setAttribute('stroke',COR[b.k||'fase']);
+    p.setAttribute('stroke-width', b.k==='fase'||b.k==='assunto'?2.2:1.4);
+    p.setAttribute('opacity', b.k==='fase'||b.k==='assunto'?.8:.42);
+    fios.appendChild(p);
+  });
+}
+
+/* ---------- zoom e arraste (roda, pinça e dois dedos) ---------- */
+let esc=1, tx=0, ty=0;
+const palco=document.getElementById('palco'), zl=document.getElementById('zl');
+function aplicar(){ mundo.style.transform=`translate(${tx}px,${ty}px) scale(${esc})`;
+  zl.textContent=Math.round(esc*100)+'%'; }
+function zoomEm(fator, cx, cy){
+  const novo=Math.min(2.4, Math.max(0.25, esc*fator));
+  tx = cx - (cx-tx)*(novo/esc); ty = cy - (cy-ty)*(novo/esc);
+  esc=novo; aplicar();
+}
+palco.addEventListener('wheel', e=>{ e.preventDefault();
+  zoomEm(e.deltaY<0?1.12:1/1.12, e.clientX, e.clientY); }, {passive:false});
+
+const pts=new Map(); let distIni=0, escIni=1, arrast=null;
+palco.addEventListener('pointerdown', e=>{ palco.setPointerCapture(e.pointerId);
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===1){ arrast={x:e.clientX-tx, y:e.clientY-ty}; palco.classList.add('arrastando'); }
+  if(pts.size===2){ const [a,b]=[...pts.values()];
+    distIni=Math.hypot(a.x-b.x,a.y-b.y); escIni=esc; arrast=null; }
+});
+palco.addEventListener('pointermove', e=>{
+  if(!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===2){ const [a,b]=[...pts.values()];
+    const d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(distIni>0){ const alvo=escIni*(d/distIni);
+      const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2; zoomEm(alvo/esc, cx, cy); }
+    return; }
+  if(arrast){ tx=e.clientX-arrast.x; ty=e.clientY-arrast.y; aplicar(); }
+});
+['pointerup','pointercancel'].forEach(ev=>palco.addEventListener(ev, e=>{
+  pts.delete(e.pointerId); if(pts.size<2) distIni=0;
+  if(pts.size===0){ arrast=null; palco.classList.remove('arrastando'); } }));
+
+// Enquadrar NÃO significa "caber inteiro": uma disciplina com 39 tópicos caberia a 25%,
+// ilegível. Prioriza a LARGURA (que é onde está a hierarquia) e nunca desce de 55% —
+// o resto se alcança arrastando, que é o gesto natural num mapa.
+function enquadrar(){
+  let maxX=0; nos.forEach(n=>{ maxX=Math.max(maxX, n._x+240); });
+  const dispW=palco.clientWidth-40;
+  esc=Math.min(1.1, Math.max(0.55, dispW/maxX));
+  tx=20; ty=24; aplicar();
+}
+document.getElementById('mais').onclick=()=>zoomEm(1.2, innerWidth/2, innerHeight/2);
+document.getElementById('menos').onclick=()=>zoomEm(1/1.2, innerWidth/2, innerHeight/2);
+document.getElementById('ajusta').onclick=enquadrar;
+document.getElementById('tudo').onclick=()=>{ fechados.clear(); desenhar(); enquadrar(); };
+// pílulas geradas do edital — 17 disciplinas, na ordem em que ele as traz
+const mats=document.getElementById('mats');
+Object.keys(MAPA).forEach((k,i)=>{
+  const b=document.createElement('button');
+  b.className='pill'+(i===0?' on':''); b.textContent=k;
+  b.onclick=()=>{ mats.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); materia=k; iniciar(); };
+  mats.appendChild(b);
+});
+
+function iniciar(){
+  seq=0; idear(MAPA[materia]); fechados.clear();
+  // começa com as FASES fechadas: o mapa abre legível e a pessoa mergulha onde quiser
+  desenhar();
+  nos.filter(n=>n.k==='fase').forEach(n=>fechados.add(n._id));
+  desenhar(); enquadrar();
+}
+iniciar();
+</script>
+</body></html>
