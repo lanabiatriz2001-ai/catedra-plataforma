@@ -1,0 +1,2188 @@
+import SwiftUI
+import UIKit
+
+/// Conteúdo da LEITURA ATIVA gerado por IA (perguntas de recall + pegadinhas da banca).
+struct LeituraIAContent: Codable {
+    var recall: [String] = []
+    var pegadinhas: [LeituraPegadinha] = []
+    /// Sugestões da IA para a grade dos 7 elementos (Quem/O quê/Como/Quando/Onde/
+    /// Por quê/Quanto), na ordem. Opcional — JSONs antigos decodificam sem ela.
+    var grade: [String] = []
+
+    private enum CodingKeys: String, CodingKey { case recall, pegadinhas, grade }
+    init() {}
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        recall = (try? c.decode([String].self, forKey: .recall)) ?? []
+        pegadinhas = (try? c.decode([LeituraPegadinha].self, forKey: .pegadinhas)) ?? []
+        grade = (try? c.decode([String].self, forKey: .grade)) ?? []
+    }
+}
+struct LeituraPegadinha: Codable, Identifiable {
+    var titulo: String = ""
+    var texto: String = ""
+    var id: String { titulo + texto }
+}
+
+/// Ponte de navegação por SETAS do teclado: o host (main.swift) captura ←/→ e
+/// avisa por Notification; o leitor em modo Foco escuta e volta/passa o artigo.
+/// `canNavigate` evita consumir as setas quando não há leitor em Foco aberto
+/// (na Leitura corrida, listas ou digitando, as setas seguem normais).
+enum LegisReaderNav {
+    static let navNotification = Notification.Name("CatedraLegisReaderNav")
+    nonisolated(unsafe) static var canNavigate = false
+}
+
+/// Modo de estudo: leitura artigo por artigo (ou súmula/tema), com marcação de
+/// lido, revisão, anotação, flashcards e progresso.
+struct ArticleStudyView: View {
+    @EnvironmentObject var store: AppStore
+    let lawID: UUID
+    let text: String
+    let accent: Color
+    var onOpenLaw: (UUID) -> Void = { _ in }
+
+    // `units` = só os artigos VIGENTES. Redações antigas do mesmo artigo (blocos
+    // "Art. Nº" consecutivos e repetidos, ex.: CF Art. 6º com 4 redações) são
+    // COLAPSADAS: no Estudo aparece apenas o vigente, e as anteriores ficam num
+    // comparativo (botão no cartão). Navegação/índice/progresso contam só vigentes.
+    @State private var units: [LawUnit] = []
+    @State private var historyByID: [Int: [LawUnit]] = [:]  // id do vigente → redações anteriores (antigas→novas)
+    @State private var snapToVigenteID: [Int: Int] = [:]    // qualquer id (full) → id do vigente do grupo
+    @State private var parsing = true
+    @State private var focusID = 0   // id (posição no doc) do artigo vigente em foco
+    @State private var activeSheet: StudySheet?
+
+    // Um único .sheet(item:) — empilhar vários .sheet(isPresented:) no mesmo view
+    // confunde o SwiftUI (macOS) sobre qual apresentar (armadilha corrigida na v36).
+    private enum StudySheet: Int, Identifiable { case index, map; var id: Int { rawValue } }
+    @State private var filter = ""
+    @State private var onlyReview = false
+    @AppStorage("studyLayout") private var layout = "foco"   // "foco" | "cartoes"
+    @AppStorage("srsEnabled") private var srsEnabled = false // revisão espaçada ligada?
+    @AppStorage("leituraAtiva") private var leituraAtiva = false  // Modo Leitura Ativa (toggle na barra)
+    @AppStorage("cleanReading") private var cleanReading = false  // modo imersão (esconde chrome)
+    @AppStorage("readerFontSize") private var fontSize = 16.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
+    @State private var showTypography = false                // popover de leitura (Aa)
+    @AppStorage("showIndexRail") private var showIndexRail = false  // trilho lateral do índice
+    @State private var railQuery = ""                        // busca dentro do trilho
+    // Última norma estudada — alimenta o "Continuar estudando" do Início.
+    @AppStorage("lastStudiedLawID") private var lastStudiedLawID = ""
+
+    private var record: StudyRecord { store.record(for: lawID) }
+
+    var body: some View {
+        Group {
+            if parsing {
+                VStack { Spacer(); ProgressView("Organizando artigos…"); Spacer() }
+            } else if units.isEmpty {
+                ContentUnavailableView {
+                    Label("Não encontrei artigos neste texto", systemImage: "doc.questionmark")
+                } description: {
+                    Text("Use o modo de leitura corrida para este documento.")
+                }
+            } else {
+                content
+            }
+        }
+        .task(id: text.hashValue) {
+            parsing = true
+            let source = text
+            let parsed = await Task.detached(priority: .userInitiated) { LawParser.parse(source) }.value
+            guard !Task.isCancelled else { return }
+            let collapsed = Self.collapseRedactions(parsed)
+            units = collapsed.units
+            historyByID = collapsed.historyByID
+            snapToVigenteID = collapsed.snapToVigenteID
+            // record.lastUnitID e os hits da busca são índices no array COMPLETO
+            // (== LawUnit.id); mapeamos para o id do vigente do grupo.
+            let clampedFull = min(max(record.lastUnitID, 0), max(parsed.count - 1, 0))
+            focusID = collapsed.snapToVigenteID[clampedFull] ?? (collapsed.units.first?.id ?? 0)
+            store.setLastUnit(lawID, focusID) // re-grava já mapeado p/ o vigente
+            parsing = false
+            store.setUnitTotal(lawID, collapsed.units.count)
+            if !parsed.isEmpty { lastStudiedLawID = lawID.uuidString }
+        }
+        .onChange(of: record.lastUnitID) { _, newValue in
+            // A busca global pode pedir outro artigo enquanto a MESMA norma já está
+            // aberta. Aí selectedLawID/texto não mudam, o .task(id:) não re-dispara,
+            // e o foco ficaria preso no artigo antigo — reposicionamos aqui (mapeando
+            // o índice pedido para o vigente do grupo, caso caia numa redação antiga).
+            guard !units.isEmpty else { return }
+            let target = snapToVigenteID[newValue] ?? newValue
+            if target != focusID, units.contains(where: { $0.id == target }) { focusID = target }
+        }
+        // Setas ←/→ passam/voltam o artigo (modo Foco). O host captura a tecla e avisa.
+        .onReceive(NotificationCenter.default.publisher(for: LegisReaderNav.navNotification)) { note in
+            guard layout == "foco", !units.isEmpty else { return }
+            let next = (note.userInfo?["next"] as? Bool) ?? true
+            let pos = focusPosition
+            if next, pos < units.count - 1 { goTo(units[pos + 1].id) }
+            else if !next, pos > 0 { goTo(units[pos - 1].id) }
+        }
+        .onAppear { LegisReaderNav.canNavigate = (layout == "foco") }
+        .onDisappear { LegisReaderNav.canNavigate = false }
+        .onChange(of: layout) { _, v in LegisReaderNav.canNavigate = (v == "foco") }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        VStack(spacing: 0) {
+            if !leituraAtiva {   // no modo ativo a tela é imersiva (tem sua própria barra "Sair")
+                topBar
+            }
+            if layout == "foco" {
+                HStack(spacing: 0) {
+                    if showIndexRail && !leituraAtiva {
+                        indexRail
+                            .frame(width: 246)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                        Rectangle().fill(AppTheme.hairline).frame(width: 1)
+                    }
+                    focusMode
+                }
+            } else {
+                cardsMode
+            }
+        }
+        .background(AppTheme.pageBackground)
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .index:
+                IndexSheet(lawID: lawID, units: units, accent: accent, currentID: focusID) { id in
+                    layout = "foco"; activeSheet = nil
+                    goTo(id) // salva a posição, como Anterior/Próximo
+                }
+            case .map:
+                if let unit = focusUnit {
+                    ArticleMapSheet(unit: unit,
+                                    lawTitle: store.laws.first { $0.id == lawID }?.title ?? "",
+                                    accent: accent)
+                }
+            }
+        }
+    }
+
+    // MARK: - Barra superior (índice + progresso + layout)
+
+    private var topBar: some View {
+        let read = units.filter { record.readKeys.contains($0.key) }.count
+        return HStack(spacing: 10) {
+            Button {
+                // No Foco, alterna o trilho lateral; em Cartões, abre o índice em janela.
+                if layout == "foco" {
+                    withAnimation(.easeInOut(duration: 0.18)) { showIndexRail.toggle() }
+                } else {
+                    activeSheet = .index
+                }
+            } label: {
+                Label("Índice · \(units.count)", systemImage: "list.bullet.indent")
+                    .font(.caption.weight(.semibold))
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(accent)
+
+            if layout == "foco" {
+                Button { activeSheet = .map } label: {
+                    Label("Mapa", systemImage: "point.3.connected.trianglepath.dotted")
+                        .font(.caption.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .help("Gera um mapa/esquema visual deste artigo — copiar ou exportar PNG")
+
+                Button { withAnimation(.easeInOut(duration: 0.15)) { leituraAtiva.toggle() } } label: {
+                    Label("Leitura ativa", systemImage: leituraAtiva ? "book.and.wrench.fill" : "book.and.wrench")
+                        .font(.caption.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .tint(leituraAtiva ? accent : nil)
+                .help("Leitura ativa: grade dos 7 elementos, modo teste, pegadinhas da banca")
+
+                Button { showTypography.toggle() } label: {
+                    Label("Aa", systemImage: "textformat.size").font(.caption.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .popover(isPresented: $showTypography, arrowEdge: .bottom) { typographyPopover }
+                .help("Fonte, tamanho e espaçamento da leitura")
+
+                Button { withAnimation(.easeInOut(duration: 0.15)) { cleanReading.toggle() } } label: {
+                    Label("Imersão", systemImage: cleanReading ? "book.closed.fill" : "book.closed")
+                        .font(.caption.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .tint(cleanReading ? accent : nil)
+                .help("Modo imersão: esconde o entorno e deixa só o artigo")
+            }
+
+            // No modo Foco o progresso já aparece na faixa do artigo; aqui só nos Cartões.
+            if layout != "foco" {
+                ProgressView(value: Double(read), total: Double(max(units.count, 1)))
+                    .tint(accent)
+                    .frame(width: 130)
+                Text("\(read)/\(units.count)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Button {
+                srsEnabled.toggle()
+            } label: {
+                Label("Revisão espaçada", systemImage: "brain.head.profile")
+                    .font(.caption)
+            }
+            .buttonStyle(.bordered)
+            .tint(srsEnabled ? .purple : nil)
+            .help("Método de revisão espaçada (estilo Anki): quando ligado, o bloco de anotações abaixo do artigo ganha os botões Errei/Difícil/Bom/Fácil e o app agenda sozinho a próxima revisão.")
+
+            Picker("", selection: $layout) {
+                Image(systemName: "doc.text").tag("foco")
+                Image(systemName: "square.grid.2x2").tag("cartoes")
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 96)
+            .help("Foco: um artigo por vez. Cartões: todos em lista.")
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(AppTheme.cardBackground)
+        .overlay(Rectangle().fill(AppTheme.hairline).frame(height: 1), alignment: .bottom)
+    }
+
+    // Popover de leitura: fonte, tamanho e espaçamento (o tema segue a plataforma).
+    private var typographyPopover: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Leitura").font(.headline)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Fonte").font(.caption).foregroundStyle(.secondary)
+                Picker("", selection: $fontFamily) {
+                    Text("Serifa (leitura)").tag("Sistema (Serifa)")
+                    Text("Sistema").tag("Sistema")
+                    Text("Georgia").tag("Georgia")
+                    Text("New York").tag("New York")
+                    Text("Times New Roman").tag("Times New Roman")
+                    Text("Helvetica Neue").tag("Helvetica Neue")
+                }
+                .labelsHidden().pickerStyle(.menu)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Tamanho").font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Text("\(Int(fontSize)) pt").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                }
+                HStack(spacing: 10) {
+                    Button { fontSize = max(11, fontSize - 1) } label: { Image(systemName: "textformat.size.smaller") }
+                    Slider(value: $fontSize, in: 11...28, step: 1)
+                    Button { fontSize = min(28, fontSize + 1) } label: { Image(systemName: "textformat.size.larger") }
+                }
+                .buttonStyle(.borderless)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Espaçamento").font(.caption).foregroundStyle(.secondary)
+                Picker("", selection: $lineSpacing) {
+                    Text("Compacto").tag(4.0)
+                    Text("Padrão").tag(7.0)
+                    Text("Amplo").tag(11.0)
+                }
+                .labelsHidden().pickerStyle(.segmented)
+            }
+
+            Divider()
+            Toggle(isOn: $cleanReading) {
+                Label("Modo imersão", systemImage: "book.closed")
+            }
+            .toggleStyle(.switch)
+            Text("O tema (claro/escuro) acompanha o Cátedra.")
+                .font(.caption2).foregroundStyle(.tertiary)
+        }
+        .padding(16)
+        .frame(width: 288)
+    }
+
+    // MARK: - Modo Foco (um artigo por vez)
+
+    private var focusUnit: LawUnit? { units.first { $0.id == focusID } }
+    private var focusPosition: Int { units.firstIndex { $0.id == focusID } ?? 0 }
+
+    @ViewBuilder
+    private var focusMode: some View {
+        if let unit = focusUnit {
+            let pos = focusPosition
+            let readCount = units.filter { record.readKeys.contains($0.key) }.count
+            UnitFocusView(lawID: lawID, fullText: text, unit: unit, position: pos, total: units.count,
+                          readCount: readCount,
+                          accent: accent, onOpenLaw: onOpenLaw,
+                          onPrev: pos > 0 ? { goTo(units[pos - 1].id) } : nil,
+                          onNext: pos < units.count - 1 ? { goTo(units[pos + 1].id) } : nil,
+                          previousRedactions: historyByID[unit.id] ?? [],
+                          onGoToArticle: { number in
+                              if let u = units.first(where: { Self.articleNumberKey($0.label) == number }) { goTo(u.id) }
+                          })
+                // Identidade pela CHAVE, não pela posição: quando a lei muda e os
+                // índices deslocam, a view (e a nota em @State) não pode sobreviver
+                // apontando para outro artigo — gravaria a nota na chave errada.
+                .id(unit.key)
+        }
+    }
+
+    // `vigenteID` é o id (posição no doc) de um artigo vigente — não a posição no array.
+    private func goTo(_ vigenteID: Int) {
+        guard units.contains(where: { $0.id == vigenteID }) else { return }
+        focusID = vigenteID
+        store.setLastUnit(lawID, vigenteID)
+    }
+
+    // Colapsa redações: corridas de unidades consecutivas com o MESMO rótulo ("Art. 6º"
+    // repetido) viram um só item — o ÚLTIMO da corrida (redação vigente, ordem cronológica
+    // do Planalto). As anteriores ficam no histórico. `LawUnit.id` == índice no documento.
+    struct CollapsedLaw {
+        let units: [LawUnit]                 // só vigentes, em ordem do documento
+        let historyByID: [Int: [LawUnit]]    // id do vigente → redações anteriores (antigas→novas)
+        let snapToVigenteID: [Int: Int]      // qualquer id → id do vigente do grupo
+    }
+    static func collapseRedactions(_ all: [LawUnit]) -> CollapsedLaw {
+        var vigentes: [LawUnit] = []
+        var history: [Int: [LawUnit]] = [:]
+        var snap: [Int: Int] = [:]
+        var i = 0
+        while i < all.count {
+            var j = i
+            let key = articleNumberKey(all[i].label)
+            while j + 1 < all.count && articleNumberKey(all[j + 1].label) == key { j += 1 }
+            let vigente = all[j]
+            vigentes.append(vigente)
+            for k in i...j { snap[all[k].id] = vigente.id }
+            if j > i { history[vigente.id] = Array(all[i..<j]) }
+            i = j + 1
+        }
+        return CollapsedLaw(units: vigentes, historyByID: history, snapToVigenteID: snap)
+    }
+
+    // Chave do NÚMERO do artigo, tolerante às variações do Planalto que fazem o
+    // mesmo artigo repetido não casar por rótulo exato: "Art. 6º", "Art. 6",
+    // "Art. 6 o" → "6"; "Art. 121-A" → "121-A"; "Art. 1.045" → "1.045". Sem isso,
+    // uma redação antiga cujo ordinal o parser não capturou vira artigo à parte.
+    static func articleNumberKey(_ label: String) -> String {
+        var s = label.replacingOccurrences(of: "^Art(?:igo)?\\.?\\s*", with: "",
+                                            options: [.regularExpression, .caseInsensitive])
+        s = s.replacingOccurrences(of: "[ºo°]", with: "", options: .regularExpression)
+        s = s.replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
+        return s
+    }
+
+    // MARK: - Trilho lateral do índice + mini-mapa de progresso
+
+    private var railUnits: [LawUnit] {
+        let q = railQuery.trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty else { return units }
+        return units.filter {
+            $0.label.localizedCaseInsensitiveContains(q) ||
+            $0.lines.contains { $0.localizedCaseInsensitiveContains(q) }
+        }
+    }
+
+    private var indexRail: some View {
+        let read = units.filter { record.readKeys.contains($0.key) }.count
+        return VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
+                    Text("Índice").font(.system(size: 13, weight: .bold)).foregroundStyle(AppTheme.ink)
+                    Spacer()
+                    Text("\(read)/\(units.count)")
+                        .font(.system(size: 11, weight: .medium).monospacedDigit()).foregroundStyle(.secondary)
+                    Button { withAnimation(.easeInOut(duration: 0.18)) { showIndexRail = false } } label: {
+                        Image(systemName: "sidebar.left").font(.system(size: 12))
+                    }
+                    .buttonStyle(.borderless).help("Esconder o índice")
+                }
+                heatmap
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass").font(.system(size: 11)).foregroundStyle(.secondary)
+                    TextField("Buscar artigo…", text: $railQuery).textFieldStyle(.plain).font(.system(size: 12))
+                }
+                .padding(.horizontal, 8).padding(.vertical, 6)
+                .background(RoundedRectangle(cornerRadius: 8).fill(AppTheme.pageBackground))
+                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(AppTheme.hairline, lineWidth: 1))
+            }
+            .padding(10)
+            Rectangle().fill(AppTheme.hairline).frame(height: 1)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 1) {
+                        ForEach(railUnits) { unit in railRow(unit).id(unit.id) }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .onAppear { proxy.scrollTo(focusID, anchor: .center) }
+                .onChange(of: focusID) { _, id in
+                    withAnimation(.easeInOut(duration: 0.2)) { proxy.scrollTo(id, anchor: .center) }
+                }
+            }
+        }
+        .background(AppTheme.cardBackground)
+    }
+
+    private func railRow(_ unit: LawUnit) -> some View {
+        let isCurrent = unit.id == focusID
+        let isRead = record.readKeys.contains(unit.key)
+        let isReview = record.reviewKeys.contains(unit.key)
+        return Button { goTo(unit.id) } label: {
+            HStack(spacing: 7) {
+                Circle().fill(isRead ? Color.green : AppTheme.hairline).frame(width: 7, height: 7)
+                Text(unit.label)
+                    .font(.system(size: 12, weight: isCurrent ? .semibold : .regular))
+                    .foregroundStyle(isCurrent ? accent : AppTheme.ink).lineLimit(1)
+                Spacer(minLength: 4)
+                if isReview { Image(systemName: "star.fill").font(.system(size: 8)).foregroundStyle(.orange) }
+            }
+            .padding(.horizontal, 10).padding(.vertical, 5)
+            .background(RoundedRectangle(cornerRadius: 6).fill(isCurrent ? accent.opacity(0.14) : Color.clear))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 6)
+    }
+
+    // Mini-mapa (visão de pássaro): uma célula por artigo, colorida pelo estado —
+    // lido (verde), na revisão (laranja), atual (contorno accent). Toque pula pra ele.
+    private var heatmap: some View {
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 7), spacing: 2)], spacing: 2) {
+                ForEach(units) { unit in
+                    let isCurrent = unit.id == focusID
+                    let isRead = record.readKeys.contains(unit.key)
+                    let isReview = record.reviewKeys.contains(unit.key)
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(isReview ? Color.orange : (isRead ? Color.green : AppTheme.hairline))
+                        .frame(height: 7)
+                        .overlay(RoundedRectangle(cornerRadius: 2)
+                            .strokeBorder(accent, lineWidth: isCurrent ? 1.6 : 0))
+                        .onTapGesture { goTo(unit.id) }
+                        .help(unit.label)
+                }
+            }
+            .padding(.vertical, 1)
+        }
+        .frame(maxHeight: 116)
+    }
+
+    // MARK: - Modo Cartões (lista)
+
+    private var cardsMode: some View {
+        VStack(spacing: 0) {
+            HStack {
+                TextField("Filtrar (ex.: Art. 5º, prescrição…)", text: $filter)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 300)
+                Toggle(isOn: $onlyReview) {
+                    Label("Só revisão", systemImage: "star")
+                }
+                .toggleStyle(.button)
+                Spacer()
+            }
+            .padding(.horizontal, 16).padding(.vertical, 8)
+            ScrollView {
+                LazyVStack(spacing: 14) {
+                    ForEach(Array(visibleUnits.enumerated()), id: \.element.id) { i, unit in
+                        if let ctx = unit.context, i == 0 || visibleUnits[i - 1].context != ctx {
+                            StructBanner(context: ctx, accent: accent)
+                        }
+                        UnitCard(lawID: lawID, unit: unit, accent: accent, fullText: text)
+                    }
+                }
+                .padding(AppTheme.pageInset)
+            }
+            .background(readerCanvas)
+        }
+    }
+
+    // Canvas do leitor: fundo da página + um brilho sutil na cor da matéria (esquema web).
+    private var readerCanvas: some View {
+        ZStack {
+            AppTheme.pageBackground
+            LinearGradient(colors: [accent.opacity(0.10), .clear], startPoint: .top, endPoint: .center)
+                .allowsHitTesting(false)
+        }
+        .ignoresSafeArea()
+    }
+
+    private var visibleUnits: [LawUnit] {
+        var result = units
+        if onlyReview { result = result.filter { record.reviewKeys.contains($0.key) } }
+        let q = filter.trimmingCharacters(in: .whitespaces)
+        if !q.isEmpty {
+            result = result.filter {
+                $0.label.localizedCaseInsensitiveContains(q) ||
+                $0.lines.contains { $0.localizedCaseInsensitiveContains(q) }
+            }
+        }
+        return result
+    }
+}
+
+// MARK: - Artigo em foco (layout da imagem)
+
+private struct UnitFocusView: View {
+    @EnvironmentObject var store: AppStore
+    let lawID: UUID
+    let fullText: String
+    let unit: LawUnit
+    let position: Int
+    let total: Int
+    var readCount: Int = 0        // quantos artigos da lei já foram lidos (p/ o cabeçalho)
+    let accent: Color
+    var onOpenLaw: (UUID) -> Void = { _ in }
+    let onPrev: (() -> Void)?
+    let onNext: (() -> Void)?
+    var previousRedactions: [LawUnit] = []   // redações antigas deste artigo (comparativo)
+    var onGoToArticle: (String) -> Void = { _ in }  // pulo interno pelo índice remissivo
+
+    @StateObject private var markController = ReaderController()
+    @State private var showRedactions = false
+    @State private var pendingRemovalRange: NSRange?
+    @AppStorage("readerFontSize") private var fontSize = 16.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
+    @AppStorage("markerColorHex") private var markerColorHex = "#FFD60AFF"
+    @AppStorage("srsEnabled") private var srsEnabled = false
+    @AppStorage("cleanReading") private var cleanReading = false
+    @AppStorage("leituraAtiva") private var leituraAtiva = false   // Modo Leitura Ativa (tela dedicada)
+    // Estado da LEITURA ATIVA (modo teste/reveal + autoavaliação + IA)
+    @State private var laModoTeste = false
+    @State private var laRevelado: Set<Int> = []
+    @State private var laAcertos: [Int: Bool] = [:]
+    @State private var laIABusy = false
+    @State private var laIAErro: String?
+    @State private var showAddPrecedent = false
+    @State private var articleHeight: CGFloat = 300   // altura medida do artigo (Foco)
+    @State private var commentAnchors: [ArticleCommentAnchor] = []  // balões alinhados ao texto
+    @State private var editingComment: EditingComment?              // editor de comentário aberto
+    private let commentColorHex = "#3B82F6FF"                       // azul: destaca trechos comentados
+    @State private var openSections: Set<String> = []              // acordeões abertos (redesign da leitura)
+    @State private var sectionsInit = false                        // já decidiu quais abrir por padrão?
+
+    private var record: StudyRecord { store.record(for: lawID) }
+    private var isRead: Bool { record.readKeys.contains(unit.key) }
+    private var isReview: Bool { record.reviewKeys.contains(unit.key) }
+    private var articlePrecedents: [LawPrecedent] { store.precedents(for: lawID, matchingArticle: unit.label) }
+    private var remissoes: [LegislativeNote] { LegislativeNote.parse(from: unit.lines) }
+    private var remissions: [Remission] {
+        RemissiveIndex.build(for: unit, currentLawID: lawID,
+                             currentNumber: ArticleStudyView.articleNumberKey(unit.label),
+                             laws: store.laws,
+                             resolveNumbered: { type, num in store.findLaw(refType: type, refNumber: num) })
+    }
+    private var unitRange: NSRange { NSRange(location: unit.location, length: unit.length) }
+    private var hasCard: Bool { store.srsHasCard(lawID, unitKey: unit.key) }
+
+    var body: some View {
+        if leituraAtiva { ativaLayout } else { normalBody }
+    }
+
+    private var normalBody: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Redesign "moderno vibrante": faixa com o gradiente da matéria no topo, o
+            // cartão do artigo FLUTUANDO sobre ela (margem negativa), e abaixo o dock de
+            // estudo + seções em acordeão. Rola tudo junto; a navegação persiste no rodapé.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    if !cleanReading { heroBand }   // imersão esconde a faixa: só o texto
+                    VStack(alignment: .leading, spacing: 14) {
+                        card
+                        if cleanReading {
+                            cleanActionsBar
+                            if !articlePrecedents.isEmpty { inlineJuris }
+                        } else {
+                            studyDock
+                            readingSections
+                        }
+                        navRow
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.top, cleanReading ? 16 : -30)
+                    .padding(.bottom, 18)
+                }
+                .frame(maxWidth: hasComments ? 1040 : 820)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        // Coluna de leitura centralizada com largura confortável — em vez do
+        // texto de ponta a ponta (linhas larguíssimas num monitor grande).
+        // Alarga quando há comentários para abrir espaço à margem sem espremer o texto.
+        .frame(maxWidth: hasComments ? 1080 : 856)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, AppTheme.pageInset)
+        .background(AppTheme.pageBackdrop(accent))
+        .onAppear {
+            // Registra o artigo em foco — o "onde parou" do registro de sessão no Cátedra.
+            UserDefaults.standard.set(unit.label, forKey: "lastStudiedUnitLabel")
+            initSectionsIfNeeded()
+        }
+        .onChange(of: unit.key) { _, _ in
+            UserDefaults.standard.set(unit.label, forKey: "lastStudiedUnitLabel")
+        }
+        .sheet(isPresented: $showAddPrecedent) {
+            PrecedentEditView(lawID: lawID, accent: accent, existing: nil, prefillArticle: unit.label)
+        }
+        .sheet(item: $editingComment) { ec in
+            CommentEditorSheet(initial: ec.text,
+                               isEditing: ec.annotationID != nil,
+                               onSave: { text in var e = ec; e.text = text; saveComment(e) },
+                               onDelete: ec.annotationID != nil ? { deleteComment(ec.annotationID!) } : nil,
+                               onCancel: { editingComment = nil })
+        }
+        .sheet(isPresented: $showRedactions) {
+            RedactionComparisonView(articleLabel: unit.label, entries: redactionEntries, accent: accent)
+        }
+        .confirmationDialog("A seleção contém marcações com anotações escritas. Apagar mesmo assim?",
+                            isPresented: Binding(get: { pendingRemovalRange != nil },
+                                                 set: { if !$0 { pendingRemovalRange = nil } }),
+                            titleVisibility: .visible) {
+            Button("Apagar marcações e anotações", role: .destructive) {
+                if let range = pendingRemovalRange { store.removeAnnotations(lawID: lawID, overlapping: range) }
+                pendingRemovalRange = nil
+            }
+            Button("Cancelar", role: .cancel) { pendingRemovalRange = nil }
+        }
+    }
+
+    // MARK: - Redesign da leitura (cabeçalho, dock, barra contextual, acordeão)
+
+    private var lawTitle: String { store.laws.first { $0.id == lawID }?.title ?? "" }
+
+    // Gradiente vibrante DA MATÉRIA: cada lei carrega a identidade de cor da sua
+    // área (paleta por matéria da linguagem "vitrine") — Penal rosé, Civil teal,
+    // Constitucional azul… O accent já chega aqui como category.color.
+    private func matGradient() -> LinearGradient {
+        LinearGradient(colors: [accent, Self.vibrantEnd(accent)],
+                       startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+    private static func vibrantEnd(_ c: Color) -> Color {
+        // UIColor já é sRGB no iPadOS — não existe (nem é preciso) usingColorSpace.
+        let ns = NSColor(c)
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard ns.getHue(&h, saturation: &s, brightness: &b, alpha: &a) else { return c }
+        h = (h + 0.055).truncatingRemainder(dividingBy: 1.0)       // rotaciona o matiz ~20°
+        b = min(1, b + 0.07)
+        s = max(0, s - 0.04)
+        return Color(uiColor: NSColor(hue: h, saturation: s, brightness: b, alpha: a))
+    }
+
+    // Faixa "herói": trilha + nº do artigo grande + navegação + barra de progresso,
+    // sobre o gradiente da matéria (texto branco funciona nos dois temas).
+    // Número do artigo p/ o badge (assinatura do leitor web): "Art. 5º" -> "5".
+    private var badgeNumber: String {
+        let n = unit.label.drop(while: { !$0.isNumber }).prefix(while: { $0.isNumber })
+        return n.isEmpty ? "§" : String(n)
+    }
+
+    private var heroBand: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(alignment: .center, spacing: 14) {
+                // Badge do número em cartão (igual à web) sobre a faixa da matéria.
+                VStack(spacing: 0) {
+                    Text("ART").font(.system(size: 8, weight: .heavy)).tracking(1.5)
+                        .foregroundStyle(.white.opacity(0.82))
+                    Text(badgeNumber).font(.system(size: 21, weight: .heavy, design: .serif))
+                        .foregroundStyle(.white).minimumScaleFactor(0.6).lineLimit(1)
+                }
+                .frame(width: 56, height: 56)
+                .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(.white.opacity(0.16)))
+                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(.white.opacity(0.32), lineWidth: 1))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text((unit.context?.isEmpty == false ? unit.context! : lawTitle).uppercased())
+                        .font(.system(size: 10.5, weight: .semibold)).tracking(0.7)
+                        .foregroundStyle(.white.opacity(0.85)).lineLimit(1)
+                    Text(unit.label).font(.system(size: 26, weight: .bold, design: .serif)).foregroundStyle(.white)
+                }
+                Spacer(minLength: 8)
+                HStack(spacing: 6) {
+                    bandNavBtn("chevron.left", enabled: onPrev != nil) { onPrev?() }
+                    bandNavBtn("chevron.right", enabled: onNext != nil) { onNext?() }
+                }
+            }
+            HStack(spacing: 10) {
+                GeometryReader { g in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(.white.opacity(0.28))
+                        Capsule().fill(.white)
+                            .frame(width: max(6, g.size.width * CGFloat(readCount) / CGFloat(max(total, 1))))
+                    }
+                }
+                .frame(height: 5)
+                Text("\(readCount) / \(total) lidos")
+                    .font(.system(size: 11, weight: .medium).monospacedDigit())
+                    .foregroundStyle(.white.opacity(0.9)).fixedSize()
+            }
+        }
+        .padding(.horizontal, 22).padding(.top, 18).padding(.bottom, 46)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(matGradient())
+        .clipShape(UnevenRoundedRectangle(topLeadingRadius: 18, topTrailingRadius: 18, style: .continuous))
+    }
+
+    private func bandNavBtn(_ symbol: String, enabled: Bool, _ act: @escaping () -> Void) -> some View {
+        Button(action: act) {
+            Image(systemName: symbol).font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(.white.opacity(enabled ? 0.22 : 0.10)))
+        }
+        .buttonStyle(.plain).disabled(!enabled).opacity(enabled ? 1 : 0.55)
+    }
+
+    // Dock de estudo (logo abaixo do artigo): domínio + flashcard + revisar + lido.
+    private var studyDock: some View {
+        let dom = store.mastery(lawID: lawID, unitKey: unit.key)
+        return HStack(spacing: 8) {
+            Text("Domínio").font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+            domPill("Dominado", "checkmark.circle.fill", .green, dom == "dominado") {
+                store.setMastery(dom == "dominado" ? nil : "dominado", lawID: lawID, unitKey: unit.key)
+            }
+            domPill("Dúvida", "questionmark.circle.fill", .orange, dom == "duvida") {
+                store.setMastery(dom == "duvida" ? nil : "duvida", lawID: lawID, unitKey: unit.key)
+            }
+            domPill("Difícil", "exclamationmark.triangle.fill", .red, dom == "dificil") {
+                store.setMastery(dom == "dificil" ? nil : "dificil", lawID: lawID, unitKey: unit.key)
+            }
+            Spacer(minLength: 8)
+            Menu { flashcardMenuItems } label: {
+                Label(hasCard ? "No baralho" : "Flashcard",
+                      systemImage: hasCard ? "rectangle.on.rectangle.angled.fill" : "rectangle.stack.badge.plus")
+            }
+            .menuStyle(.button).fixedSize().tint(hasCard ? .purple : nil).disabled(hasCard)
+            .help("Gera um flashcard (lacuna, certo/errado ou pergunta direta) deste artigo")
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    store.toggleReview(lawID, unitKey: unit.key)
+                }
+            } label: {
+                Label(isReview ? "Na revisão" : "Revisar", systemImage: isReview ? "star.fill" : "star")
+                    .symbolEffect(.bounce, value: isReview)
+            }
+            .buttonStyle(.bordered).tint(isReview ? .orange : nil)
+            Button {
+                let wasRead = isRead
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    store.toggleRead(lawID, unitKey: unit.key)
+                }
+                if !wasRead { onNext?() }
+            } label: {
+                Label(isRead ? "Lido ✓" : "Marcar como lido",
+                      systemImage: isRead ? "checkmark.circle.fill" : "circle")
+                    .symbolEffect(.bounce, value: isRead)
+            }
+            .buttonStyle(.borderedProminent).tint(isRead ? .green : accent)
+        }
+        .controlSize(.small)
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous).fill(AppTheme.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+    }
+
+    private func domPill(_ t: String, _ icon: String, _ color: Color, _ on: Bool, _ act: @escaping () -> Void) -> some View {
+        Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.68)) { act() } } label: {
+            Label(t, systemImage: icon).font(.system(size: 11, weight: .semibold))
+                .padding(.horizontal, 9).padding(.vertical, 4)
+                .background(Capsule().fill(on ? color.opacity(0.20) : AppTheme.hairline.opacity(0.35)))
+                .foregroundStyle(on ? color : .secondary)
+                .scaleEffect(on ? 1.04 : 1)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // Seções de referência em acordeão (recolhidas por padrão).
+    @ViewBuilder
+    private var readingSections: some View {
+        disclosure("notas", "Minhas anotações", "note.text", count: nil) {
+            noteEditor
+            if srsEnabled { Divider().padding(.vertical, 2); srsSection }
+        }
+        if !remissoes.isEmpty {
+            disclosure("remissoes", "Remissões e alterações", "arrow.triangle.branch", count: remissoes.count) {
+                RemissoesView(notes: remissoes,
+                              resolve: { note in
+                                  guard let id = store.findLaw(refType: note.refType, refNumber: note.refNumber)?.id,
+                                        id != lawID else { return nil }
+                                  return id
+                              },
+                              onOpen: onOpenLaw, embedded: true)
+            }
+        }
+        disclosure("juris", "Jurisprudência deste artigo", "text.book.closed", count: articlePrecedents.count) {
+            jurisInner
+        }
+        if !remissions.isEmpty {
+            disclosure("indice", "Índice remissivo", "list.bullet.rectangle", count: remissions.count) {
+                RemissiveIndexView(remissions: remissions, accent: accent,
+                                   onSameArticle: onGoToArticle,
+                                   onOpenLaw: { id, article in
+                                       if let article, let uid = store.articleUnitID(lawID: id, number: article) {
+                                           store.setLastUnit(id, uid)
+                                       }
+                                       onOpenLaw(id)
+                                   },
+                                   embedded: true)
+            }
+        }
+    }
+
+    // Conteúdo da seção de jurisprudência (sem o box/título — o acordeão os fornece).
+    @ViewBuilder
+    private var jurisInner: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(articlePrecedents) { precedent in
+                HStack(alignment: .top, spacing: 8) {
+                    Text(precedent.kind)
+                        .font(.caption2.weight(.bold))
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Capsule().fill(PrecedentKind.color(precedent.kind).opacity(0.16)))
+                        .foregroundStyle(PrecedentKind.color(precedent.kind))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(precedent.displayTitle).font(.caption.weight(.semibold))
+                        if !precedent.summary.isEmpty {
+                            Text(precedent.summary).font(.caption).foregroundStyle(.secondary)
+                                .lineLimit(3).textSelection(.enabled)
+                        }
+                    }
+                    Spacer()
+                    if let url = URL(string: precedent.url), !precedent.url.isEmpty {
+                        Button { UIApplication.shared.open(url) } label: { Image(systemName: "safari") }
+                            .buttonStyle(.borderless)
+                    }
+                }
+            }
+            HStack {
+                if articlePrecedents.isEmpty {
+                    Text("Nenhuma súmula, tese ou decisão vinculada a este artigo ainda.")
+                        .font(.caption2).foregroundStyle(.tertiary)
+                }
+                Spacer()
+                Button { showAddPrecedent = true } label: { Label("Vincular", systemImage: "plus") }
+                    .font(.caption).buttonStyle(.borderless)
+            }
+        }
+    }
+
+    // Uma seção recolhível: cabeçalho clicável (ícone + título + contador + chevron) e,
+    // quando aberta, o conteúdo. Card com fundo e borda do tema.
+    @ViewBuilder
+    private func disclosure<Content: View>(_ key: String, _ title: String, _ icon: String,
+                                           count: Int?, @ViewBuilder content: () -> Content) -> some View {
+        let open = openSections.contains(key)
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
+                    if open { openSections.remove(key) } else { openSections.insert(key) }
+                }
+            } label: {
+                HStack(spacing: 9) {
+                    Image(systemName: icon).font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(accent).frame(width: 18)
+                    Text(title).font(.system(size: 14, weight: .semibold)).foregroundStyle(AppTheme.ink)
+                    Spacer()
+                    if let c = count, c > 0 {
+                        Text("\(c)").font(.system(size: 11, weight: .semibold))
+                            .padding(.horizontal, 7).padding(.vertical, 1)
+                            .background(Capsule().fill(accent.opacity(0.14)))
+                            .foregroundStyle(accent)
+                    }
+                    Image(systemName: "chevron.down").font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary).rotationEffect(.degrees(open ? 180 : 0))
+                }
+                .padding(.horizontal, 16).padding(.vertical, 13).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            if open {
+                content()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16).padding(.bottom, 14)
+            }
+        }
+        .background(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous).fill(AppTheme.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+    }
+
+    private func initSectionsIfNeeded() {
+        guard !sectionsInit else { return }
+        sectionsInit = true
+        // Abre "Minhas anotações" por padrão só quando já existe nota — o resto começa
+        // recolhido (leitura limpa), mas o trabalho já feito não fica escondido.
+        let hasRich = store.unitRichNote(lawID, unitKey: unit.key) != nil
+        let hasPlain = !((record.notes[unit.key] ?? "").isEmpty)
+        if hasRich || hasPlain { openSections.insert("notas") }
+    }
+
+    // MARK: - Barra de marcação contextual (flutua sobre a seleção)
+
+    @ViewBuilder
+    private func floatingBarOverlay(containerWidth: CGFloat) -> some View {
+        if markController.selectionLength > 0 {
+            let r = markController.selectionRect
+            let barW: CGFloat = 392
+            let x = min(max(r.minX - 4, 6), max(6, containerWidth - barW - 6))
+            let above = r.minY - 46
+            let y = above < 2 ? (r.maxY + 8) : above
+            floatingMarkBar
+                .offset(x: x, y: y)
+                .transition(.opacity)
+        }
+    }
+
+    // Aplica grifo diretamente com a cor tocada (caminho rápido da barra contextual).
+    private func applyHighlight(_ hex: String) {
+        guard let local = markController.selectedRange else { return }
+        markerColorHex = hex
+        _ = store.addAnnotation(lawID: lawID, range: globalRange(local), in: fullText, style: .highlight, colorHex: hex)
+    }
+
+    private func floatBtn(_ symbol: String, _ help: String, _ act: @escaping () -> Void) -> some View {
+        Button(action: act) {
+            Image(systemName: symbol).font(.system(size: 12, weight: .medium)).frame(width: 22, height: 20)
+        }
+        .buttonStyle(.plain).help(help)
+    }
+
+    private var floatDivider: some View {
+        Rectangle().fill(AppTheme.hairline).frame(width: 1, height: 16).padding(.horizontal, 1)
+    }
+
+    private var floatingMarkBar: some View {
+        HStack(spacing: 6) {
+            ColorPicker("", selection: Binding(
+                get: { Color(hexRGBA: markerColorHex) },
+                set: { markerColorHex = $0.hexRGBA }
+            ), supportsOpacity: false)
+                .labelsHidden().frame(width: 24)
+                .help("Escolher qualquer cor")
+            ForEach(store.coresFavoritas.prefix(5), id: \.self) { hex in
+                Button { applyHighlight(hex) } label: {
+                    Circle().fill(Color(hexRGBA: hex)).frame(width: 16, height: 16)
+                        .overlay(Circle().strokeBorder(.secondary.opacity(0.35), lineWidth: 0.5))
+                }
+                .buttonStyle(.plain).help("Grifar com esta cor")
+            }
+            floatDivider
+            floatBtn("highlighter", "Grifar") { handle(.apply(.highlight)) }
+            floatBtn("underline", "Sublinhar") { handle(.apply(.underline)) }
+            floatBtn("bold", "Negrito") { handle(.apply(.bold)) }
+            floatBtn("rectangle.dashed", "Transformar em lacuna (cloze)") { handle(.apply(.cloze)) }
+            floatBtn("text.bubble", "Comentar") { comment() }
+            floatBtn("eraser", "Apagar marcação do trecho") { handle(.removeInSelection) }
+            floatDivider
+            Menu {
+                Button { handle(.apply(.strikethrough)) } label: { Label("Tachar", systemImage: "strikethrough") }
+                Button { handle(.apply(.italic)) } label: { Label("Itálico", systemImage: "italic") }
+                Button { handle(.apply(.textColor)) } label: { Label("Cor no texto", systemImage: "paintpalette") }
+                Button { store.adicionarCorFavorita(markerColorHex) } label: { Label("Favoritar cor atual", systemImage: "star") }
+                    .disabled(store.coresFavoritas.contains(markerColorHex))
+                Divider()
+                Button { store.undoAnnotations() } label: { Label("Desfazer marcação", systemImage: "arrow.uturn.backward") }
+                    .disabled(!store.canUndoAnnotations)
+                Button { store.redoAnnotations() } label: { Label("Refazer marcação", systemImage: "arrow.uturn.forward") }
+                    .disabled(!store.canRedoAnnotations)
+            } label: {
+                Image(systemName: "ellipsis").font(.system(size: 12, weight: .medium)).frame(width: 20, height: 20)
+            }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+        }
+        .padding(.horizontal, 9).padding(.vertical, 6)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(.regularMaterial))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+        .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
+        .fixedSize()
+    }
+
+    // Traduz uma seleção local (dentro do artigo) para offset global no texto da lei.
+    private func globalRange(_ local: NSRange) -> NSRange {
+        NSRange(location: unit.location + local.location, length: local.length)
+    }
+
+    private func handle(_ command: ReaderCommand) {
+        guard let local = markController.selectedRange else { return }
+        let global = globalRange(local)
+        switch command {
+        case .apply(let style):
+            store.addAnnotation(lawID: lawID, range: global, in: fullText, style: style, colorHex: markerColorHex)
+        case .annotate:
+            store.addAnnotation(lawID: lawID, range: global, in: fullText, style: .highlight, colorHex: markerColorHex)
+        case .removeInSelection:
+            // Marcação com nota escrita: confirma antes (igual à Leitura corrida);
+            // sem nota, remove direto. Usa o range capturado, não a seleção futura.
+            let overlapping = store.annotationsOverlapping(lawID: lawID, range: global)
+            if overlapping.contains(where: { !$0.note.isEmpty }) {
+                pendingRemovalRange = global
+            } else {
+                store.removeAnnotations(lawID: lawID, overlapping: global)
+            }
+        }
+    }
+
+    // Abre o editor de comentário para o trecho selecionado — reaproveita um comentário
+    // existente que já cobre a seleção, senão prepara um novo (a anotação nasce ao salvar).
+    private func comment() {
+        guard let local = markController.selectedRange, local.length > 0 else { return }
+        let global = globalRange(local)
+        if let existing = store.annotationsOverlapping(lawID: lawID, range: global).first(where: { !$0.note.isEmpty }) {
+            editingComment = EditingComment(annotationID: existing.id, range: existing.range, text: existing.note)
+        } else {
+            editingComment = EditingComment(annotationID: nil, range: global, text: "")
+        }
+    }
+
+    // Salva o comentário: atualiza a nota da anotação existente ou cria uma nova (grifo azul).
+    private func saveComment(_ ec: EditingComment) {
+        let text = ec.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let id = ec.annotationID {
+            store.updateAnnotation(id) { $0.note = text }
+        } else if !text.isEmpty {
+            if let ann = store.addAnnotation(lawID: lawID, range: ec.range, in: fullText, style: .highlight, colorHex: commentColorHex) {
+                store.updateAnnotation(ann.id) { $0.note = text }
+            }
+        }
+        editingComment = nil
+    }
+
+    // Remove o comentário e o grifo do trecho — o balão desaparece.
+    private func deleteComment(_ id: UUID) {
+        store.removeAnnotation(id)
+        editingComment = nil
+    }
+
+    // Aplica a melhor lacuna automática (número/prazo/valor) no artigo, evitando as já existentes.
+    private func sugerirLacunaAutomatica() {
+        let localText = (fullText as NSString).substring(with: unitRange)
+        let usados = store.clozes(lawID: lawID)
+            .map { NSRange(location: $0.location - unit.location, length: $0.length) }
+        guard let r = Annotations.melhorLacuna(localText, evitando: usados) else { return }
+        store.addAnnotation(lawID: lawID, range: globalRange(r), in: fullText, style: .cloze, colorHex: markerColorHex)
+    }
+
+    private func clozesDoArtigo() -> [TextAnnotation] {
+        store.clozes(lawID: lawID).filter { NSIntersectionRange($0.range, unitRange).length > 0 }
+    }
+
+    private func copiarCloze() {
+        let localText = (fullText as NSString).substring(with: unitRange)
+        let locais = clozesDoArtigo().map {
+            TextAnnotation(lawID: lawID, location: $0.location - unit.location, length: $0.length,
+                          selectedText: $0.selectedText, style: .cloze, colorHex: $0.colorHex)
+        }
+        guard let cz = Annotations.clozeText(localText, locais, agrupado: false) else { return }
+        UIPasteboard.general.string = cz   // no iPadOS a área de transferência é uma propriedade
+    }
+
+    private func removerClozesArtigo() {
+        store.removeClozes(lawID: lawID, in: unitRange)
+    }
+
+    // Empurra balões que se sobreporiam para baixo, preservando a ordem por posição no
+    // texto. Devolve as âncoras com o y já ajustado (o campo y é var).
+    private func laidOutBalloons() -> [ArticleCommentAnchor] {
+        var out: [ArticleCommentAnchor] = []
+        var cursor: CGFloat = 0
+        for a in commentAnchors.sorted(by: { $0.y < $1.y }) {
+            var b = a
+            b.y = max(a.y, cursor)
+            out.append(b)
+            cursor = b.y + 66   // altura mínima reservada por balão
+        }
+        return out
+    }
+
+    private var gerarCardMenu: some View {
+        let n = clozesDoArtigo().count
+        return Menu {
+            Button { handle(.apply(.cloze)) } label: { Label("Transformar seleção em lacuna", systemImage: "rectangle.dashed.badge.record") }
+                .disabled(markController.selectionLength == 0)
+            Button { sugerirLacunaAutomatica() } label: { Label("Sugerir lacuna automática (o que mais cai)", systemImage: "wand.and.stars") }
+            Button { copiarCloze() } label: { Label("Copiar card cloze (para o Anki)", systemImage: "doc.on.clipboard") }
+                .disabled(n == 0)
+            if n > 0 {
+                Divider()
+                Text("\(n) lacuna\(n == 1 ? "" : "s") neste artigo")
+                Button(role: .destructive) { removerClozesArtigo() } label: { Label("Remover todas as lacunas", systemImage: "trash") }
+            }
+        } label: {
+            Image(systemName: "rectangle.dashed.badge.record")
+                .foregroundStyle(n > 0 ? Color.accentColor : .primary)
+        }
+        .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+        .help("Gerar card: transformar a seleção em lacuna (cloze)")
+    }
+
+    // Barra de marcação: cor + grifar / sublinhar / tachar
+    // NOTA: um ScrollView(.horizontal) aqui foi tentado para não cortar botões em
+    // janelas estreitas, mas quebrou o clique em TODOS os botões da barra (o gesto
+    // de rolagem do ScrollView engole o clique antes de chegar no Button/Menu, nesta
+    // hospedagem via NSHostingView). Revertido — HStack simples, sem rolagem.
+    // Preto/branco conforme a luminância da cor do marcador — o ícone "highlighter"
+    // não some quando a cor favorita é escura (ex.: roxo, azul-marinho).
+    private var markerIconColor: Color {
+        let c = NSColor(Color(hexRGBA: markerColorHex))
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard c.getRed(&r, green: &g, blue: &b, alpha: &a) else { return .black }
+        let lum = 0.299 * r + 0.587 * g + 0.114 * b
+        return lum < 0.55 ? .white : .black
+    }
+
+    private var markToolbar: some View {
+        HStack(spacing: 10) {
+            // Seletor de cor LIVRE, direto na barra (sem menu escondido): abre o painel
+            // nativo do macOS e escolhe QUALQUER cor. A estrela salva a cor atual nos
+            // favoritos; nas bolinhas favoritas, botão direito remove.
+            ColorPicker("", selection: Binding(
+                get: { Color(hexRGBA: markerColorHex) },
+                set: { markerColorHex = $0.hexRGBA }
+            ), supportsOpacity: false)
+                .labelsHidden()
+                .help("Escolher qualquer cor para o marcador")
+
+            Button { store.adicionarCorFavorita(markerColorHex) } label: {
+                Image(systemName: store.coresFavoritas.contains(markerColorHex) ? "star.fill" : "star")
+                    .foregroundStyle(store.coresFavoritas.contains(markerColorHex) ? Color.yellow : Color.secondary)
+            }
+            .help("Salvar esta cor nos favoritos")
+            .disabled(store.coresFavoritas.contains(markerColorHex))
+
+            // Cores favoritas: clique aplica; botão direito remove.
+            ForEach(store.coresFavoritas.prefix(6), id: \.self) { hex in
+                Button { markerColorHex = hex } label: {
+                    Circle().fill(Color(hexRGBA: hex)).frame(width: 15, height: 15)
+                        .overlay(Circle().strokeBorder(markerColorHex == hex ? Color.primary : .secondary.opacity(0.35),
+                                                       lineWidth: markerColorHex == hex ? 2 : 0.5))
+                }
+                .buttonStyle(.plain)
+                .help("Usar esta cor · botão direito para remover dos favoritos")
+                .contextMenu {
+                    Button(role: .destructive) { store.removerCorFavorita(hex) } label: {
+                        Label("Remover dos favoritos", systemImage: "star.slash")
+                    }
+                }
+            }
+            Rectangle().fill(AppTheme.hairline).frame(width: 1, height: 15).padding(.horizontal, 2)
+
+            // Grifar em destaque — é a função mais usada, precisa ser óbvia (não um
+            // ícone cinza perdido no meio dos outros).
+            Button { handle(.apply(.highlight)) } label: {
+                Image(systemName: "highlighter")
+                    .font(.system(size: 12, weight: .semibold))
+                    .frame(width: 24, height: 20)
+                    .background(RoundedRectangle(cornerRadius: 5).fill(Color(hexRGBA: markerColorHex)))
+                    .foregroundStyle(markerIconColor)
+            }
+            .help("Grifar o trecho selecionado")
+            .disabled(markController.selectionLength == 0)
+
+            ForEach(AnnotationStyle.allCases.filter { $0 != .cloze && $0 != .highlight }) { style in
+                Button { handle(.apply(style)) } label: { Image(systemName: style.symbol) }
+                    .help("\(style.label) o trecho selecionado")
+                    .disabled(markController.selectionLength == 0)
+            }
+
+            // Borracha: apaga a marcação do trecho selecionado, sempre à mão (antes só
+            // dava pra apagar clicando com o botão direito).
+            Button { handle(.removeInSelection) } label: { Image(systemName: "eraser") }
+                .help("Apagar a marcação do trecho selecionado")
+                .disabled(markController.selectionLength == 0)
+            Rectangle().fill(AppTheme.hairline).frame(width: 1, height: 15).padding(.horizontal, 2)
+            Button { store.undoAnnotations() } label: { Image(systemName: "arrow.uturn.backward") }
+                .help("Desfazer marcação").disabled(!store.canUndoAnnotations)
+            Button { store.redoAnnotations() } label: { Image(systemName: "arrow.uturn.forward") }
+                .help("Refazer marcação").disabled(!store.canRedoAnnotations)
+            Rectangle().fill(AppTheme.hairline).frame(width: 1, height: 15).padding(.horizontal, 2)
+
+            // Gerar card: lacuna (cloze) — espelha o CátedraJURIS.
+            gerarCardMenu
+            Rectangle().fill(AppTheme.hairline).frame(width: 1, height: 15).padding(.horizontal, 2)
+
+            // Alinhamento do texto deste artigo (espelha o CátedraJURIS).
+            Menu {
+                Button { store.setAlinhamento("left", lawID: lawID, unitKey: unit.key) } label: { Label("À esquerda", systemImage: "text.alignleft") }
+                Button { store.setAlinhamento("center", lawID: lawID, unitKey: unit.key) } label: { Label("Centralizado", systemImage: "text.aligncenter") }
+                Button { store.setAlinhamento("right", lawID: lawID, unitKey: unit.key) } label: { Label("À direita", systemImage: "text.alignright") }
+                Button { store.setAlinhamento("justify", lawID: lawID, unitKey: unit.key) } label: { Label("Justificado", systemImage: "text.justify") }
+                Divider()
+                Button { store.setAlinhamento("natural", lawID: lawID, unitKey: unit.key) } label: { Label("Usar padrão", systemImage: "arrow.uturn.backward") }
+            } label: {
+                Image(systemName: {
+                    switch store.alinhamento(lawID: lawID, unitKey: unit.key) {
+                    case "center": return "text.aligncenter"
+                    case "right": return "text.alignright"
+                    case "justify": return "text.justify"
+                    default: return "text.alignleft"
+                    }
+                }())
+            }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .help("Alinhamento do texto")
+            Rectangle().fill(AppTheme.hairline).frame(width: 1, height: 15).padding(.horizontal, 2)
+            Button { comment() } label: { Label("Comentar", systemImage: "text.bubble") }
+                .help("Adicionar um comentário na margem para o trecho selecionado")
+                .disabled(markController.selectionLength == 0)
+            Text("selecione um trecho e grife")
+                .font(.caption2).foregroundStyle(.tertiary)
+                .opacity(markController.selectionLength == 0 ? 1 : 0)
+            Spacer()
+        }
+        .controlSize(.small)
+    }
+
+    // Opção 2 do redesign ("mais ousado/colorido"): faixa de cor forte da matéria
+    // no topo do cartão, número do artigo grande em branco.
+    // Faixa vibrante da matéria (gradiente + título grande em branco + marca d'água
+    // do símbolo da área) — a assinatura do design "Vibrante por matéria".
+    private var header: some View {
+        let symbol = store.laws.first { $0.id == lawID }?.category.symbol ?? "book"
+        return MateriaBanner(context: unit.context, title: unit.label, color: accent, symbol: symbol)
+    }
+
+    // Cartão com o cabeçalho colorido acima do texto do artigo, com sombra —
+    // troca a caixa neutra da v24 pela versão "ousada" que a usuária escolheu.
+    //
+    // IMPORTANTE: não envolver a VStack (que contém a MarkableArticleView, um
+    // NSScrollView nativo) num .clipShape — combinado com .shadow, isso força o
+    // SwiftUI a compor a subárvore inteira num grupo offscreen e QUEBRA o
+    // roteamento de eventos de scroll-wheel/trackpad para a NSScrollView (o
+    // teclado ainda funciona, por passar pela responder chain, não por hit-test
+    // — foi assim que o bug foi isolado). O acabamento arredondado/sombra fica
+    // só no fundo decorativo (.background), que não envolve o conteúdo.
+    // ===================== MODO LEITURA ATIVA (v2 — leitura orientada) =====================
+    private static let laElementos = ["Quem?", "O quê?", "Como?", "Quando?", "Onde?", "Por quê?", "Quanto?"]
+    private var laArticleText: String {
+        let ns = fullText as NSString
+        guard unitRange.location >= 0, NSMaxRange(unitRange) <= ns.length else { return "" }
+        return ns.substring(with: unitRange)
+    }
+    private var laIA: LeituraIAContent? {
+        guard let json = store.leituraIAJSON(lawID: lawID, unitKey: unit.key),
+              let data = json.data(using: .utf8),
+              let c = try? JSONDecoder().decode(LeituraIAContent.self, from: data) else { return nil }
+        return c
+    }
+
+    private var ativaLayout: some View {
+        VStack(spacing: 0) {
+            laTopBar
+            Rectangle().fill(AppTheme.hairline).frame(height: 1)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    laArtigoCard
+                    laModoBar
+                    laGrade
+                    laFaseRecall
+                    laFasePegadinhas
+                    laFaseProximo
+                }
+                .frame(maxWidth: 860)
+                .frame(maxWidth: .infinity)
+                .padding(24)
+            }
+        }
+        .background(AppTheme.pageBackground)
+        .onChange(of: unit.key) { _, _ in laRevelado = []; laAcertos = [:] }
+        .onChange(of: laModoTeste) { _, _ in laRevelado = []; laAcertos = [:] }
+    }
+
+    private var laTopBar: some View {
+        HStack(spacing: 12) {
+            Button { withAnimation(.easeInOut(duration: 0.15)) { leituraAtiva = false } } label: {
+                Label("Sair da leitura ativa", systemImage: "xmark")
+            }.buttonStyle(.bordered)
+            Spacer()
+            VStack(spacing: 1) {
+                Text("Leitura orientada · grade dos 7 elementos")
+                    .font(.system(size: 10.5, weight: .semibold)).tracking(0.4).foregroundStyle(.secondary)
+                Text(unit.label).font(.system(size: 16, weight: .bold))
+            }
+            Spacer()
+            laDominioPills
+        }
+        .padding(.horizontal, 16).padding(.vertical, 10)
+        .background(AppTheme.cardBackground)
+    }
+
+    private var laDominioPills: some View {
+        let dom = store.mastery(lawID: lawID, unitKey: unit.key)
+        return HStack(spacing: 6) {
+            laPill("Dominado", "checkmark.circle.fill", .green, dom == "dominado") { store.setMastery(dom == "dominado" ? nil : "dominado", lawID: lawID, unitKey: unit.key) }
+            laPill("Dúvida", "questionmark.circle.fill", .orange, dom == "duvida") { store.setMastery(dom == "duvida" ? nil : "duvida", lawID: lawID, unitKey: unit.key) }
+            laPill("Difícil", "exclamationmark.triangle.fill", .red, dom == "dificil") { store.setMastery(dom == "dificil" ? nil : "dificil", lawID: lawID, unitKey: unit.key) }
+        }
+    }
+    private func laPill(_ t: String, _ icon: String, _ color: Color, _ on: Bool, _ act: @escaping () -> Void) -> some View {
+        Button(action: act) {
+            Label(t, systemImage: icon).font(.system(size: 11.5, weight: .semibold))
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(Capsule().fill(on ? color.opacity(0.22) : AppTheme.hairline.opacity(0.4)))
+                .foregroundStyle(on ? color : .secondary)
+        }.buttonStyle(.plain)
+    }
+
+    // Artigo em destaque (com grifo funcionando via MarkableArticleView).
+    private var laArtigoCard: some View {
+        GeometryReader { geo in
+            MarkableArticleView(fullText: fullText, unitRange: unitRange,
+                                annotations: store.annotations(for: lawID),
+                                fontFamily: fontFamily, fontSize: fontSize, accent: accent,
+                                textAlignment: store.alinhamentoNS(lawID: lawID, unitKey: unit.key),
+                                proposedWidth: geo.size.width,
+                                measuredHeight: $articleHeight,
+                                commentAnchors: $commentAnchors,
+                                controller: markController, onCommand: handle)
+        }
+        .frame(height: max(articleHeight, 40))
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius).fill(AppTheme.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius).strokeBorder(AppTheme.hairline, lineWidth: 1))
+    }
+
+    private var laModoBar: some View {
+        HStack {
+            Picker("", selection: $laModoTeste) {
+                Text("Modo estudo").tag(false)
+                Text("Modo teste").tag(true)
+            }.pickerStyle(.segmented).frame(width: 260).labelsHidden()
+            Spacer()
+            if laModoTeste {
+                Text("\(laRevelado.count) de \(Self.laElementos.count) revelados")
+                    .font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var laGrade: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("Fase 1 — grade dos 7 elementos", systemImage: "square.grid.2x2")
+                    .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                Spacer()
+                // Preenche SÓ os campos vazios com as sugestões da IA — o que você
+                // já escreveu fica intacto. (Gere com IA na Fase 2 se ainda não gerou.)
+                if let ia = laIA, ia.grade.count == Self.laElementos.count {
+                    Button {
+                        for (i, sugestao) in ia.grade.enumerated() {
+                            let atual = store.leituraResposta(lawID: lawID, unitKey: unit.key, q: i)
+                            if atual.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                store.setLeituraResposta(sugestao, lawID: lawID, unitKey: unit.key, q: i)
+                            }
+                        }
+                    } label: {
+                        Label("Preencher com IA", systemImage: "sparkles")
+                    }
+                    .buttonStyle(.bordered).tint(accent).controlSize(.small)
+                    .help("Preenche os elementos ainda vazios com as sugestões da IA (não sobrescreve suas respostas)")
+                }
+            }
+            ForEach(Array(Self.laElementos.enumerated()), id: \.offset) { i, label in
+                laElementoCard(i, label)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func laElementoCard(_ i: Int, _ label: String) -> some View {
+        let resp = store.leituraResposta(lawID: lawID, unitKey: unit.key, q: i)
+        let revealed = !laModoTeste || laRevelado.contains(i)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Image(systemName: laAcertos[i] == true ? "checkmark.circle.fill" : (laAcertos[i] == false ? "xmark.circle.fill" : "circle"))
+                    .foregroundStyle(laAcertos[i] == true ? .green : (laAcertos[i] == false ? .red : .secondary))
+                Text(label).font(.system(size: 14, weight: .semibold))
+                Spacer()
+            }
+            if revealed {
+                if laModoTeste {
+                    Text(resp.isEmpty ? "— (você não anotou nada aqui)" : resp)
+                        .font(.system(size: 13)).foregroundStyle(AppTheme.ink)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack(spacing: 8) {
+                        Button { laAcertos[i] = true } label: { Label("Acertei", systemImage: "checkmark") }.tint(.green)
+                        Button { laAcertos[i] = false } label: { Label("Errei", systemImage: "xmark") }.tint(.red)
+                    }.buttonStyle(.bordered).controlSize(.small)
+                } else {
+                    TextEditor(text: Binding(
+                        get: { store.leituraResposta(lawID: lawID, unitKey: unit.key, q: i) },
+                        set: { store.setLeituraResposta($0, lawID: lawID, unitKey: unit.key, q: i) }))
+                        .font(.system(size: 12.5)).scrollContentBackground(.hidden)
+                        .frame(height: 44).padding(6)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(AppTheme.pageBackground))
+                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(AppTheme.hairline, lineWidth: 1))
+                }
+            } else {
+                Button { _ = laRevelado.insert(i) } label: {
+                    Text("tente lembrar — toque para revelar")
+                        .font(.system(size: 12).italic()).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }.buttonStyle(.plain)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius).fill(AppTheme.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.compactRadius).strokeBorder(AppTheme.hairline, lineWidth: 1))
+    }
+
+    private var laGerarBtn: some View {
+        Button { Task { await laGerarIA() } } label: {
+            if laIABusy { ProgressView().controlSize(.small) }
+            else { Label(laIA == nil ? "Gerar com IA" : "Regerar", systemImage: "sparkles") }
+        }.buttonStyle(.borderedProminent).tint(accent).controlSize(.small).disabled(laIABusy)
+    }
+
+    private var laFaseRecall: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("Fase 2 — recall ativo", systemImage: "brain")
+                    .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                Spacer()
+                laGerarBtn
+            }
+            if let ia = laIA, !ia.recall.isEmpty {
+                ForEach(Array(ia.recall.enumerated()), id: \.offset) { _, q in
+                    Text("•  " + q).font(.system(size: 13)).foregroundStyle(AppTheme.ink)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                Text("Toque em “Gerar com IA” para criar perguntas de recuperação ativa deste artigo.")
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+            }
+            if let e = laIAErro { Text(e).font(.system(size: 11)).foregroundStyle(.red) }
+        }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius).fill(AppTheme.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.compactRadius).strokeBorder(AppTheme.hairline, lineWidth: 1))
+    }
+
+    private var laFasePegadinhas: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Fase 3 — pegadinhas da banca", systemImage: "exclamationmark.triangle")
+                .font(.system(size: 14, weight: .bold)).foregroundStyle(.orange)
+            if let ia = laIA, !ia.pegadinhas.isEmpty {
+                ForEach(ia.pegadinhas) { p in
+                    HStack(alignment: .top, spacing: 0) {
+                        Rectangle().fill(Color.orange).frame(width: 3)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(p.titulo).font(.system(size: 13, weight: .bold))
+                            Text(p.texto).font(.system(size: 12.5)).foregroundStyle(AppTheme.ink)
+                        }.padding(10)
+                        Spacer(minLength: 0)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.orange.opacity(0.10)))
+                }
+            } else {
+                Text("As armadilhas típicas de prova deste artigo aparecem aqui depois de gerar com a IA.")
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+            }
+        }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius).fill(AppTheme.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.compactRadius).strokeBorder(AppTheme.hairline, lineWidth: 1))
+    }
+
+    private var laFaseProximo: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Fase 4 — próximo passo", systemImage: "arrow.right")
+                .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+            HStack(spacing: 8) {
+                Button { store.srsAddCard(lawID, unit: unit) } label: { Label("Virar flashcard Anki", systemImage: "rectangle.stack.badge.plus") }
+                Button { sugerirLacunaAutomatica() } label: { Label("Criar lacuna", systemImage: "rectangle.dashed") }
+                if onNext != nil { Button { onNext?() } label: { Label("Próximo artigo", systemImage: "chevron.right") }.tint(accent) }
+            }.buttonStyle(.bordered).controlSize(.small)
+        }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func laGerarIA() async {
+        let key = UserDefaults.standard.string(forKey: "anthropicKey") ?? ""
+        guard !key.trimmingCharacters(in: .whitespaces).isEmpty else {
+            laIAErro = "Configure sua chave da API da Anthropic em Ajustes ▸ Inteligência Artificial."; return
+        }
+        laIABusy = true; laIAErro = nil
+        let system = "Você é um professor de concursos de magistratura no Brasil. A partir do TEXTO OFICIAL do artigo fornecido, gere material de estudo ativo, fiel ao texto. NUNCA invente números, prazos ou incisos que não estejam no texto."
+        let prompt = """
+        Artigo (\(unit.label)):
+        \"\"\"
+        \(laArticleText)
+        \"\"\"
+        Responda APENAS um JSON válido, sem markdown e sem texto fora do JSON, neste formato exato:
+        {"recall":["pergunta 1","pergunta 2","pergunta 3"],"pegadinhas":[{"titulo":"título curto","texto":"explicação da armadilha"}],"grade":["quem","o quê","como","quando","onde","por quê","quanto"]}
+        - recall: 3 a 5 perguntas de recuperação ativa que uma banca cobraria sobre ESTE artigo.
+        - pegadinhas: 2 a 4 armadilhas típicas de prova sobre ESTE artigo (troca de palavra/verbo, exceção esquecida, prazo ou número trocado, "direta/indiretamente", "todos/apenas" etc.), cada uma com um título curto e a explicação do porquê está errado.
+        - grade: EXATAMENTE 7 respostas curtas (1 a 2 frases) sobre ESTE artigo, nesta ordem: Quem? (sujeitos/destinatários), O quê? (comando central), Como? (procedimento/forma), Quando? (prazo/momento), Onde? (âmbito/lugar), Por quê? (fundamento/finalidade), Quanto? (números/quantidades/valores). Quando um elemento não se aplicar ao artigo, responda "— não se aplica".
+        """
+        do {
+            let txt = try await AIService.gerar(system: system, prompt: prompt, apiKey: key, maxTokens: 2200)
+            let clean = txt.replacingOccurrences(of: "```json", with: "")
+                           .replacingOccurrences(of: "```", with: "")
+                           .trimmingCharacters(in: .whitespacesAndNewlines)
+            if let data = clean.data(using: .utf8), (try? JSONDecoder().decode(LeituraIAContent.self, from: data)) != nil {
+                store.setLeituraIA(clean, lawID: lawID, unitKey: unit.key)
+            } else {
+                laIAErro = "A IA respondeu num formato inesperado. Tente de novo."
+            }
+        } catch {
+            laIAErro = (error as? AIService.AIError)?.errorDescription ?? error.localizedDescription
+        }
+        laIABusy = false
+    }
+
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Sem faixa colorida: o número/contexto do artigo agora vive no cabeçalho
+            // enxuto acima. Aqui o texto é o herói. A MarkableArticleView mede a altura
+            // e a página inteira rola no ScrollView de fora (sem NSScrollView aninhado).
+            //
+            // A barra de marcação é CONTEXTUAL: aparece flutuando sobre o trecho só
+            // quando há seleção (posicionada por markController.selectionRect).
+            //
+            // Quando há comentários, o texto divide a linha com a coluna de balões
+            // na margem direita — cada balão alinhado verticalmente ao trecho.
+            HStack(alignment: .top, spacing: 10) {
+                GeometryReader { geo in
+                    ZStack(alignment: .topLeading) {
+                        MarkableArticleView(fullText: fullText, unitRange: unitRange,
+                                            annotations: store.annotations(for: lawID),
+                                            fontFamily: fontFamily, fontSize: fontSize, lineSpacing: CGFloat(lineSpacing), accent: accent,
+                                            textAlignment: store.alinhamentoNS(lawID: lawID, unitKey: unit.key),
+                                            proposedWidth: geo.size.width,
+                                            measuredHeight: $articleHeight,
+                                            commentAnchors: $commentAnchors,
+                                            controller: markController, onCommand: handle)
+                        floatingBarOverlay(containerWidth: geo.size.width)
+                    }
+                }
+                .frame(height: max(articleHeight, 40))
+                if hasComments {
+                    commentsMargin
+                        .frame(width: 208, height: max(articleHeight, 40), alignment: .topLeading)
+                        .padding(.trailing, 8)
+                }
+            }
+            .padding(.top, 10)
+            if redactionEntries.count > 1 { redactionsFooter }
+        }
+        .background(AppTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(AppTheme.hairline, lineWidth: 1)
+        )
+        .shadow(color: accent.opacity(0.22), radius: 22, y: 10)
+        .shadow(color: .black.opacity(0.06), radius: 3, y: 1)
+    }
+
+    // Linhas do comparativo: a vigente (o próprio artigo) + redações antigas
+    // auto-detectadas (blocos repetidos no texto) + redações antigas/revogadas
+    // CURADAS (RedactionSeed) — todas as anteriores tachadas.
+    // Artigo cujo CAPUT é só o marcador "(Revogado…)" — não há texto vigente.
+    // Olha só a 1ª linha (o caput): rubricas de seção às vezes vazam p/ o corpo
+    // do artigo revogado (ex.: "Ação penal" cola no fim do art. 224).
+    private var currentRevoked: Bool {
+        guard let first = unit.lines.first?.lowercased(), first.contains("revogad") else { return false }
+        let noParen = first.replacingOccurrences(of: "\\([^)]*\\)", with: "", options: .regularExpression)
+        let noLabel = noParen.replacingOccurrences(of: "^art[\\s.]*\\d[\\d.]*[ºo°]?[\\s.·–—-]*", with: "", options: .regularExpression)
+        return noLabel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var redactionEntries: [RedactionComparisonView.Entry] {
+        var out: [RedactionComparisonView.Entry] = []
+        out.append(.init(source: currentRevoked ? "Redação atual\n(revogado)" : RedactionComparisonView.source(for: unit),
+                         status: currentRevoked ? .atualRevogado : .vigente, lines: unit.lines))
+        for u in previousRedactions.reversed() {
+            out.append(.init(source: RedactionComparisonView.source(for: u), status: .anterior, lines: u.lines))
+        }
+        if let law = store.laws.first(where: { $0.id == lawID }) {
+            let num = ArticleStudyView.articleNumberKey(unit.label)
+            for s in RedactionSeed.history(for: law, article: num).reversed() {
+                let src = s.date.map { "\(s.sourceLabel)\n· em vigor \($0)" } ?? s.sourceLabel
+                out.append(.init(source: src, status: .anterior, lines: s.lines))
+            }
+        }
+        return out
+    }
+
+    // Rodapé do cartão: só o VIGENTE é mostrado no Estudo; este botão abre o
+    // comparativo com as redações anteriores do mesmo artigo.
+    private var redactionsFooter: some View {
+        let n = redactionEntries.count - 1
+        return Button { showRedactions = true } label: {
+            HStack(spacing: 7) {
+                Image(systemName: "clock.arrow.circlepath")
+                Text("\(n) \(n == 1 ? "redação anterior" : "redações anteriores") · ver comparativo")
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption2)
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(accent)
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .overlay(Rectangle().fill(AppTheme.hairline).frame(height: 1), alignment: .top)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Comparar a redação vigente com as versões anteriores deste artigo")
+    }
+
+    private var hasComments: Bool { !commentAnchors.isEmpty }
+
+    // Coluna de balões na margem: cada um posicionado no y do seu trecho (com anti-colisão).
+    private var commentsMargin: some View {
+        ZStack(alignment: .topLeading) {
+            Color.clear
+            ForEach(laidOutBalloons()) { item in
+                CommentBalloon(note: item.note,
+                               color: Color(hexRGBA: item.colorHex),
+                               onTap: {
+                                   editingComment = EditingComment(annotationID: item.id,
+                                                                   range: NSRange(location: 0, length: 0),
+                                                                   text: item.note)
+                               })
+                    .frame(width: 208, alignment: .topLeading)
+                    .offset(y: item.y)
+            }
+        }
+    }
+
+    // Itens do menu de criação de flashcard — compartilhados pela barra compacta e
+    // pelo painel de nota. Um cartão testa UM fato (regras do Wozniak): lacuna num
+    // trecho, certo/errado, ou pergunta direta — nunca o artigo inteiro.
+    @ViewBuilder
+    private var flashcardMenuItems: some View {
+        Button { store.srsAddCard(lawID, unit: unit) } label: {
+            Label("Automático (melhor lacuna)", systemImage: "wand.and.stars")
+        }
+        Divider()
+        ForEach(FlashcardStyle.allCases) { style in
+            Button { store.srsAddCard(lawID, unit: unit, style: style) } label: {
+                Label(style.label, systemImage: style.symbol)
+            }
+        }
+    }
+
+    // Modo Leitura limpa esconde o notePanel — mas sem ele o progresso por artigo
+    // (Marcar como lido) e o flashcard ficariam inacessíveis. Barra compacta.
+    private var cleanActionsBar: some View {
+        HStack(spacing: 8) {
+            let hasCard = store.srsHasCard(lawID, unitKey: unit.key)
+            Menu {
+                flashcardMenuItems
+            } label: {
+                Image(systemName: hasCard ? "rectangle.on.rectangle.angled.fill" : "rectangle.stack.badge.plus")
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .tint(hasCard ? .purple : nil)
+            .disabled(hasCard)
+            .help(hasCard ? "Já está no baralho de flashcards" : "Criar flashcard deste artigo")
+            Spacer()
+            Button {
+                let wasRead = isRead
+                store.toggleRead(lawID, unitKey: unit.key)
+                if !wasRead { onNext?() }
+            } label: {
+                Label(isRead ? "Lido ✓" : "Marcar como lido",
+                      systemImage: isRead ? "checkmark.circle.fill" : "circle")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(isRead ? .green : accent)
+        }
+        .controlSize(.small)
+    }
+
+    private var navRow: some View {
+        HStack {
+            // ⌥⌘ e não ⌘ puro: ⌘←/⌘→ são atalhos de edição do macOS (início/fim da
+            // linha) e seriam roubados de quem digita no painel de anotação.
+            Button { onPrev?() } label: { Label("Anterior", systemImage: "chevron.left") }
+                .buttonStyle(.bordered)
+                .disabled(onPrev == nil)
+                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
+                .help("Artigo anterior (⌥⌘←)")
+            Spacer()
+            Text("Artigo \(position + 1) de \(total)")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button { onNext?() } label: { Label("Próximo", systemImage: "chevron.right") }
+                .buttonStyle(.borderedProminent)
+                .tint(accent)
+                .disabled(onNext == nil)
+                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
+                .help("Próximo artigo (⌥⌘→)")
+        }
+    }
+
+    // Bloco de revisão espaçada (só quando o método está ligado).
+    private var srsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Revisão espaçada", systemImage: "brain.head.profile")
+                .font(.headline).foregroundStyle(.purple)
+            if let card = store.srsCard(lawID, unit.key) {
+                Text(srsStatus(card))
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                Text("Fora do baralho — responda abaixo para começar a revisar este artigo.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            HStack(spacing: 6) {
+                ForEach(SRSGrade.allCases) { grade in
+                    Button {
+                        store.srsGrade(lawID, unitKey: unit.key, grade: grade)
+                    } label: {
+                        VStack(spacing: 1) {
+                            Text(grade.label).font(.caption2.weight(.semibold))
+                            Text(SpacedRepetition.intervalLabel(store.srsPreview(lawID, unit.key, grade)))
+                                .font(.system(size: 9).monospacedDigit()).foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(grade.color)
+                }
+            }
+            if store.srsCard(lawID, unit.key) != nil {
+                Button("Remover da revisão") {
+                    store.srsRemove(lawID, unitKey: unit.key)
+                }
+                .font(.caption2)
+                .buttonStyle(.borderless)
+            }
+        }
+    }
+
+    private func srsStatus(_ card: SRSCard) -> String {
+        // Mesmo calendário fixo do Store (não Calendar.current): o rótulo bate com
+        // srsIsDue/srsDueCount mesmo se o fuso do Mac diferir do de Brasília.
+        let days = store.srsDaysUntilDue(card)
+        if days <= 0 { return "Vencida — para revisar hoje." }
+        let date = card.due.formatted(date: .abbreviated, time: .omitted)
+        return "Próxima revisão em \(days) dia\(days > 1 ? "s" : "") (\(date))."
+    }
+
+
+    // Jurisprudência vinculada a ESTE artigo (casa pelo "artigo relacionado").
+    private var inlineJuris: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label("Jurisprudência deste artigo", systemImage: "text.book.closed")
+                    .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                Spacer()
+                if !cleanReading {
+                    Button { showAddPrecedent = true } label: { Label("Vincular", systemImage: "plus") }
+                        .font(.caption).buttonStyle(.borderless)
+                }
+            }
+            ForEach(articlePrecedents) { precedent in
+                HStack(alignment: .top, spacing: 8) {
+                    Text(precedent.kind)
+                        .font(.caption2.weight(.bold))
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Capsule().fill(PrecedentKind.color(precedent.kind).opacity(0.16)))
+                        .foregroundStyle(PrecedentKind.color(precedent.kind))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(precedent.displayTitle).font(.caption.weight(.semibold))
+                        if !precedent.summary.isEmpty {
+                            Text(precedent.summary).font(.caption).foregroundStyle(.secondary)
+                                .lineLimit(3).textSelection(.enabled)
+                        }
+                    }
+                    Spacer()
+                    if let url = URL(string: precedent.url), !precedent.url.isEmpty {
+                        Button { UIApplication.shared.open(url) } label: { Image(systemName: "safari") }
+                            .buttonStyle(.borderless)
+                    }
+                }
+            }
+            if articlePrecedents.isEmpty && !cleanReading {
+                Text("Vincule uma súmula, tese ou decisão a este artigo pelo botão “Vincular”.")
+                    .font(.caption2).foregroundStyle(.tertiary)
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .appSurface()
+    }
+
+    // Bloco de anotações e estudo — logo ABAIXO do artigo (antes era painel lateral).
+    private var studyBlock: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(spacing: 8) {
+                Image(systemName: "square.and.pencil").font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(accent)
+                Text("Anotações e estudo").font(.system(size: 15, weight: .bold)).foregroundStyle(AppTheme.ink)
+                Spacer()
+                if isRead {
+                    Label("Lido", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 11, weight: .medium)).foregroundStyle(Color(hex: 0x16A34A))
+                }
+                if isReview {
+                    Label("Na revisão", systemImage: "star.fill")
+                        .font(.system(size: 11, weight: .medium)).foregroundStyle(Color(hex: 0xEA580C))
+                }
+            }
+            noteEditor
+            studyActions
+            if srsEnabled {
+                Divider().padding(.vertical, 1)
+                srsSection
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous).fill(AppTheme.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+    }
+
+    private var noteEditor: some View {
+        RichNoteEditor(
+            initialRTF: store.unitRichNote(lawID, unitKey: unit.key) ?? Self.rtfFromPlain(record.notes[unit.key]),
+            placeholder: "Anote pontos de atenção, mnemônicos e pegadinhas sobre este artigo…",
+            onChange: { rtf, plain in
+                store.setUnitRichNote(lawID, unitKey: unit.key, rtf: rtf, plain: plain)
+            },
+            minHeight: 150
+        )
+        .id(unit.key)   // recria o editor ao trocar de artigo (carrega a anotação certa)
+    }
+
+    // Migra uma anotação antiga (texto puro) para RTF na primeira abertura.
+    private static func rtfFromPlain(_ s: String?) -> Data? {
+        guard let s = s, !s.isEmpty else { return nil }
+        let attr = NSAttributedString(string: s, attributes: [
+            .font: NSFont.systemFont(ofSize: 13.5), .foregroundColor: NSColor.label])
+        // .rtf(from:) é conveniência só do AppKit; no iPadOS o RTF sai por data(from:).
+        return try? attr.data(from: NSRange(location: 0, length: attr.length),
+                              documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
+    }
+
+    private var studyActions: some View {
+        let dom = store.mastery(lawID: lawID, unitKey: unit.key)
+        return HStack(spacing: 10) {
+            Menu { flashcardMenuItems } label: {
+                Label(hasCard ? "No baralho" : "Criar flashcard",
+                      systemImage: hasCard ? "rectangle.on.rectangle.angled.fill" : "rectangle.stack.badge.plus")
+            }
+            .menuStyle(.button)
+            .fixedSize()
+            .tint(hasCard ? .purple : nil)
+            .disabled(hasCard)
+            .help("Gera um flashcard (lacuna, certo/errado ou pergunta direta) deste artigo")
+
+            // Domínio do artigo (dominado/dúvida/difícil) — espelha os "dominados" do JURIS.
+            Menu {
+                Button { store.setMastery(dom == "dominado" ? nil : "dominado", lawID: lawID, unitKey: unit.key) } label: {
+                    Label("Dominado", systemImage: dom == "dominado" ? "checkmark.circle.fill" : "checkmark.circle")
+                }
+                Button { store.setMastery(dom == "duvida" ? nil : "duvida", lawID: lawID, unitKey: unit.key) } label: {
+                    Label("Em dúvida", systemImage: dom == "duvida" ? "questionmark.circle.fill" : "questionmark.circle")
+                }
+                Button { store.setMastery(dom == "dificil" ? nil : "dificil", lawID: lawID, unitKey: unit.key) } label: {
+                    Label("Difícil", systemImage: dom == "dificil" ? "exclamationmark.triangle.fill" : "exclamationmark.triangle")
+                }
+                if dom != nil { Divider(); Button("Limpar", role: .destructive) { store.setMastery(nil, lawID: lawID, unitKey: unit.key) } }
+            } label: {
+                Label(dom == "dominado" ? "Dominado" : dom == "duvida" ? "Em dúvida" : dom == "dificil" ? "Difícil" : "Domínio",
+                      systemImage: dom == "dominado" ? "brain.head.profile" : dom == "duvida" ? "questionmark.circle" : dom == "dificil" ? "exclamationmark.triangle" : "brain")
+            }
+            .menuStyle(.button).fixedSize()
+            .tint(dom == "dominado" ? .green : dom == "duvida" ? .orange : dom == "dificil" ? .red : nil)
+            .help("Marcar seu domínio deste artigo")
+
+            Spacer(minLength: 8)
+
+            Button { store.toggleReview(lawID, unitKey: unit.key) } label: {
+                Label(isReview ? "Na revisão" : "Marcar para revisar",
+                      systemImage: isReview ? "star.fill" : "star")
+            }
+            .buttonStyle(.bordered)
+            .tint(isReview ? .orange : nil)
+
+            Button {
+                let wasRead = isRead // captura ANTES de alternar (isRead é computado ao vivo)
+                store.toggleRead(lawID, unitKey: unit.key)
+                if !wasRead { onNext?() } // ao marcar como lido, avança para o próximo
+            } label: {
+                Label(isRead ? "Lido ✓" : "Marcar como lido",
+                      systemImage: isRead ? "checkmark.circle.fill" : "circle")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(isRead ? .green : accent)
+        }
+    }
+}
+
+// MARK: - Índice (sheet)
+
+private struct IndexSheet: View {
+    @EnvironmentObject var store: AppStore
+    @Environment(\.dismiss) private var dismiss
+    let lawID: UUID
+    let units: [LawUnit]
+    let accent: Color
+    let currentID: Int             // id (LawUnit.id) do artigo em foco
+    let onSelect: (Int) -> Void    // recebe o id do artigo escolhido
+
+    @State private var query = ""
+
+    private var record: StudyRecord { store.record(for: lawID) }
+    private var filtered: [LawUnit] {
+        guard !query.isEmpty else { return units }
+        return units.filter { $0.label.localizedCaseInsensitiveContains(query) ||
+            $0.lines.contains { $0.localizedCaseInsensitiveContains(query) } }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Cabeçalho vitrine: tile gradiente da matéria + título forte + contador.
+            HStack(spacing: 11) {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(LinearGradient(colors: [accent, accent.opacity(0.72)],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 34, height: 34)
+                    .overlay(Image(systemName: "list.bullet.indent")
+                        .font(.system(size: 14, weight: .semibold)).foregroundStyle(.white))
+                    .shadow(color: accent.opacity(0.35), radius: 6, y: 3)
+                Text("Índice").font(.system(size: 19, weight: .heavy)).tracking(-0.3)
+                Text("\(units.count)")
+                    .font(.system(size: 11, weight: .bold).monospacedDigit())
+                    .padding(.horizontal, 8).padding(.vertical, 2)
+                    .background(Capsule().fill(accent.opacity(0.14)))
+                    .foregroundStyle(accent)
+                Spacer()
+                Button("Fechar") { dismiss() }
+            }
+            .padding()
+            HStack(spacing: 7) {
+                Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(.secondary)
+                TextField("Buscar artigo…", text: $query).textFieldStyle(.plain)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .background(Capsule().fill(AppTheme.softStroke))
+            .overlay(Capsule().strokeBorder(AppTheme.hairline, lineWidth: 1))
+            .padding(.horizontal)
+            ScrollViewReader { proxy in
+                List(filtered, id: \.id) { unit in
+                    Button {
+                        onSelect(unit.id)
+                    } label: {
+                        HStack(spacing: 8) {
+                            if record.readKeys.contains(unit.key) {
+                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                            } else {
+                                Image(systemName: "circle").foregroundStyle(.tertiary)
+                            }
+                            Text(unit.label).fontWeight(.medium)
+                            if record.reviewKeys.contains(unit.key) {
+                                Image(systemName: "star.fill").font(.caption2).foregroundStyle(.orange)
+                            }
+                            Spacer()
+                            if let context = unit.context {
+                                Text(context).font(.caption2).foregroundStyle(.tertiary).lineLimit(1)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(unit.id == currentID ? accent.opacity(0.12) : Color.clear)
+                }
+                .onAppear {
+                    // Em leis grandes (Código Civil, CLT…) reabrir o índice sempre no
+                    // topo obrigava rolar manualmente até o artigo já aberto.
+                    proxy.scrollTo(currentID, anchor: .center)
+                }
+            }
+        }
+        .frame(width: 460, height: 560)
+    }
+}
+
+// MARK: - Renderização compartilhada de uma linha classificada
+
+struct UnitLine: View {
+    let kind: LawLineKind
+    let accent: Color
+    var fontSize: Double = 15
+
+    var body: some View {
+        switch kind {
+        case .caput(let text):
+            body(text)
+        case .inciso(let numeral, let text):
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text(numeral)
+                    .font(.system(size: fontSize - 1, weight: .bold, design: .default))
+                    .foregroundStyle(accent)
+                    .frame(minWidth: 28, alignment: .trailing)
+                body(text)
+            }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 10)
+            .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius, style: .continuous).fill(accent.opacity(0.10)))
+        case .paragrafo(let label, let text):
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(label)
+                    .font(.system(size: fontSize - 1, weight: .bold))
+                    .foregroundStyle(.purple)
+                body(text)
+            }
+        case .alinea(let letter, let text):
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text("\(letter))")
+                    .font(.system(size: fontSize - 1, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(minWidth: 28, alignment: .trailing)
+                body(text)
+            }
+            .padding(.leading, 28)
+        case .plain(let text):
+            body(text).foregroundStyle(.secondary)
+        }
+    }
+
+    private func body(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: fontSize, design: .default))
+            .lineSpacing(6)
+            .textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Cartão de unidade (modo Cartões)
+
+// Banner estrutural (Título/Capítulo) entre os cartões — espelha os banners do leitor web.
+private struct StructBanner: View {
+    let context: String
+    let accent: Color
+    var body: some View {
+        HStack(spacing: 10) {
+            RoundedRectangle(cornerRadius: 2).fill(accent).frame(width: 4, height: 22)
+            Text(context)
+                .font(.system(.headline, design: .serif).weight(.heavy))
+                .foregroundStyle(AppTheme.ink)
+                .lineLimit(2)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 18).padding(.vertical, 15)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            LinearGradient(colors: [accent.opacity(0.18), accent.opacity(0.04)],
+                           startPoint: .leading, endPoint: .trailing),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(accent.opacity(0.28), lineWidth: 1))
+        .padding(.top, 8)
+    }
+}
+
+private struct UnitCard: View {
+    @EnvironmentObject var store: AppStore
+    let lawID: UUID
+    let unit: LawUnit
+    let accent: Color
+    var fullText: String = ""
+
+    @State private var note = ""
+    @State private var noteLoaded = false
+    @State private var showNote = false
+    @AppStorage("readerFontSize") private var fontSize = 16.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
+    @StateObject private var markController = ReaderController()
+    @State private var articleHeight: CGFloat = 60
+    @State private var cardAnchors: [ArticleCommentAnchor] = []
+
+    private var record: StudyRecord { store.record(for: lawID) }
+    private var isRead: Bool { record.readKeys.contains(unit.key) }
+    private var isReview: Bool { record.reviewKeys.contains(unit.key) }
+    private var remissoes: [LegislativeNote] { LegislativeNote.parse(from: unit.lines) }
+    private var borderColor: Color {
+        if isReview { return .orange }
+        if isRead { return .green }
+        return accent.opacity(0.5)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(unit.label)
+                    .font(.system(.callout, design: .rounded).weight(.heavy))
+                    .padding(.horizontal, 11).padding(.vertical, 5)
+                    .background(
+                        LinearGradient(colors: [accent, accent.opacity(0.72)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: Capsule())
+                    .foregroundStyle(.white)
+                    .shadow(color: accent.opacity(0.38), radius: 6, y: 3)
+                if let context = unit.context {
+                    Text(context).font(.caption).foregroundStyle(.tertiary).lineLimit(1)
+                }
+                Spacer()
+                if isRead { Label("Lido", systemImage: "checkmark.circle.fill").font(.caption).foregroundStyle(.green) }
+            }
+            // Corpo do artigo pela MarkableArticleView (mesmo renderer do modo foco):
+            // os GRIFOS aparecem aqui também, com offsets globais intactos.
+            GeometryReader { geo in
+                MarkableArticleView(fullText: fullText,
+                                    unitRange: NSRange(location: unit.location, length: unit.length),
+                                    annotations: store.annotations(for: lawID),
+                                    fontFamily: fontFamily, fontSize: fontSize, lineSpacing: CGFloat(lineSpacing), accent: accent,
+                                    textAlignment: store.alinhamentoNS(lawID: lawID, unitKey: unit.key),
+                                    proposedWidth: geo.size.width,
+                                    measuredHeight: $articleHeight,
+                                    commentAnchors: $cardAnchors,
+                                    controller: markController, onCommand: { _ in })
+            }
+            .frame(height: max(articleHeight, 40))
+            if !remissoes.isEmpty { RemissoesView(notes: remissoes) }
+            if showNote {
+                TextField("Anote pontos de atenção sobre este artigo…", text: $note, axis: .vertical)
+                    .textFieldStyle(.plain).lineLimit(1...6).padding(8)
+                    .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius).fill(.yellow.opacity(0.10)))
+                    .onChange(of: note) { _, v in if noteLoaded { store.setUnitNote(lawID, unitKey: unit.key, note: v) } }
+            }
+            HStack(spacing: 10) {
+                Button { store.toggleRead(lawID, unitKey: unit.key) } label: {
+                    Label(isRead ? "Lido ✓" : "Marcar como lido", systemImage: isRead ? "checkmark.circle.fill" : "circle")
+                }.buttonStyle(.bordered).tint(isRead ? .green : nil)
+                Button { store.toggleReview(lawID, unitKey: unit.key) } label: {
+                    Label(isReview ? "Na revisão" : "Revisar", systemImage: isReview ? "star.fill" : "star")
+                }.buttonStyle(.bordered).tint(isReview ? .orange : nil)
+                Button { showNote.toggle() } label: { Label("Anotar", systemImage: "square.and.pencil") }
+                    .buttonStyle(.borderless)
+                Spacer()
+            }
+            .controlSize(.small)
+        }
+        .padding(14)
+        .appSurface(accent: borderColor)
+        .overlay(alignment: .leading) {
+            UnevenRoundedRectangle(topLeadingRadius: AppTheme.surfaceRadius, bottomLeadingRadius: AppTheme.surfaceRadius)
+                .fill(borderColor).frame(width: 4)
+        }
+        // O cartão é reciclado pela LazyVStack entre unidades: recarrega a nota
+        // quando a chave muda. Uma vez visível, o campo não some no meio da
+        // edição quando a usuária apaga todo o texto (antes a condição dependia
+        // da nota salva ser não-vazia).
+        .onAppear { loadNote() }
+        .onChange(of: unit.key) { _, _ in loadNote() }
+    }
+
+    private func loadNote() {
+        noteLoaded = false
+        note = record.notes[unit.key] ?? ""
+        showNote = showNote || !note.isEmpty
+        noteLoaded = true
+    }
+}

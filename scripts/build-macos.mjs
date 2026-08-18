@@ -65,12 +65,14 @@ let _sha = 'local';
 try { _sha = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim(); } catch (_) {}
 const BUILD = { versao: _sha, data: new Date().toISOString().slice(0, 10), alvo: 'macOS' };
 
+// Endereço absoluto das funções serverless. A página vem do bundle local (file://),
+// então "/api/..." não resolve sozinho.
+const API_BASE = 'https://catedra-plataforma-fawn.vercel.app';
+
 const INJECT = `
 <!-- ▼ injetado pelo build NATIVO macOS — não existe no Catedra.dc.html original ▼ -->
 <script>window.CATEDRA_BUILD = ${JSON.stringify(BUILD)};
-// A página aqui vem do bundle local, então "/api/..." não resolve — as funções
-// serverless precisam do endereço absoluto da produção.
-window.CATEDRA_API_BASE = "https://catedra-plataforma-fawn.vercel.app";</script>
+window.CATEDRA_API_BASE = ${JSON.stringify(API_BASE)};</script>
 <meta name="color-scheme" content="dark light">
 <!-- Visual de abertura padrão: tema Clean + modo escuro + accent magenta. Só semeia
      se AINDA não houver preferência salva; roda ANTES do auth.js (setItem cru, sem
@@ -98,8 +100,19 @@ const out = src.replace('<head>', '<head>' + INJECT);
 writeFileSync(join(OUT, 'index.html'), out);
 
 // copia os assets que o app referencia por caminho relativo
-for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'modelos-edital.js']) {
-  if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(OUT, f));
+// O LEGIS e o JURIS são documentos SEPARADOS (entram por <iframe>), então o
+// CATEDRA_API_BASE do index.html não chega até eles. Sem ele o leitor de lei ficava
+// invisível no app nativo: o botão de ler só existe com body.online, e em file:// a
+// página se declarava offline. Por isso os dois são carimbados na cópia.
+const FRAMES = new Set(['legis-web.html', 'juris-web.html']);
+const CARIMBO = `<script>window.CATEDRA_API_BASE = ${JSON.stringify(API_BASE)};</script>`;
+for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'modelos-edital.js', 'area-web.html', 'area-modulos.js']) {
+  if (!existsSync(join(ROOT, f))) continue;
+  if (FRAMES.has(f)) {
+    const html = read(f);
+    if (!html.includes('<head>')) throw new Error(f + ': sem <head> — o carimbo do API_BASE não teria onde entrar');
+    writeFileSync(join(OUT, f), html.replace('<head>', '<head>' + CARIMBO));
+  } else copyFileSync(join(ROOT, f), join(OUT, f));
 }
 
 // Mesma trava do build web: o .app é distribuído para os testadores, e marca d'água
