@@ -907,7 +907,7 @@ struct DOUView: View {
     }
 
     private func row(_ item: DOUItem) -> some View {
-        Button { if let u = URL(string: item.url) { NSWorkspace.shared.open(u) } } label: {
+        Button { if let u = URL(string: item.url) { UIApplication.shared.open(u) } } label: {
             HStack(alignment: .top, spacing: 10) {
                 VStack(spacing: 1) {
                     Image(systemName: "newspaper").foregroundStyle(ThemeState.t.accent)
@@ -1186,7 +1186,8 @@ struct CommandPalette: View {
             .padding(.top, 96)
         }
         .onAppear { focused = true }
-        .onExitCommand { isPresented = false }
+        // onExitCommand (tecla Esc) não existe no iPadOS. Quem fecha aqui é o gesto de
+        // arrastar a folha para baixo, ou o botão de fechar da própria tela.
     }
 
     private func choose(_ run: () -> Void) { run(); isPresented = false }

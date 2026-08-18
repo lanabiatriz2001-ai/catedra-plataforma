@@ -18,21 +18,21 @@ final class ReaderController: ObservableObject {
     @Published var selectionRect: CGRect = .zero
 
     var selectedRange: NSRange? {
-        guard let range = textView?.selectedRange(), range.length > 0 else { return nil }
+        guard let range = textView?.selectedRange, range.length > 0 else { return nil }
         return range
     }
 
+    /// No macOS isto abria a barra de busca nativa do NSTextView (NSTextFinder). O iPadOS
+    /// não tem equivalente numa UITextView somente-leitura — a busca de verdade do LEGIS
+    /// é a da própria tela (lupa), que não passa por aqui. Fica só o foco no texto.
     func showFindBar() {
-        guard let tv = textView else { return }
-        tv.window?.makeFirstResponder(tv)
-        let item = NSMenuItem()
-        item.tag = NSTextFinder.Action.showFindInterface.rawValue
-        tv.performTextFinderAction(item)
+        textView?.becomeFirstResponder()
     }
 
     func scroll(to range: NSRange) {
-        guard let tv = textView, let storage = tv.textStorage,
-              range.location >= 0, NSMaxRange(range) <= storage.length else { return }
+        guard let tv = textView else { return }
+        let storage = tv.textStorage   // não-opcional no iPadOS
+        guard range.location >= 0, NSMaxRange(range) <= storage.length else { return }
         // Com layout não contíguo, o primeiro scroll de um salto longo pode parar
         // em posição aproximada; repetir após o layout assentar corrige o destino.
         tv.scrollRangeToVisible(range)
@@ -40,16 +40,18 @@ final class ReaderController: ObservableObject {
             // O texto pode ter trocado (outra norma aberta) antes deste tick
             // rodar — revalida contra o textStorage ATUAL, senão um range válido
             // para a norma antiga (maior) estoura o índice na norma nova (menor).
-            guard let tv, let storage = tv.textStorage,
-                  range.location >= 0, NSMaxRange(range) <= storage.length else { return }
+            guard let tv, range.location >= 0, NSMaxRange(range) <= tv.textStorage.length else { return }
             tv.scrollRangeToVisible(range)
-            tv.showFindIndicator(for: range)
+            // showFindIndicator (o "flash" amarelo do macOS) não existe no iPadOS: em vez
+            // dele, seleciona o trecho — o destaque da seleção cumpre o mesmo papel.
+            tv.selectedRange = range
         }
     }
 
     /// Pula para "Art. N" (aceita "5", "5º", "art 5", "1045", "1.045" e "1º-A"/"1-A").
     func jump(toArticle query: String) {
-        guard let tv = textView, let storage = tv.textStorage else { return }
+        guard let tv = textView else { return }
+        let storage = tv.textStorage
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
         // Separa a parte numérica do sufixo de letra ("1º-A" → dígitos "1", sufixo "A").
@@ -81,7 +83,9 @@ final class ReaderController: ObservableObject {
                 return
             }
         }
-        NSSound.beep()
+        // Artigo não encontrado. O Mac dava um beep; no iPadOS não há equivalente e um
+        // som seria intrusivo — falha em silêncio, como já falhava quando o texto não
+        // tinha o artigo.
     }
 }
 
@@ -90,61 +94,30 @@ final class ReaderTextView: UITextView {
     var onCommand: ((ReaderCommand) -> Void)?
     var annotatedRanges: [NSRange] = []
     var allowsNoteCommand = true   // "Anotar…" só onde há painel de nota da anotação
-    private var lastMenuClickIndex = 0 // onde o botão direito foi clicado (p/ Remover marcação)
-
-    override func menu(for event: NSEvent) -> NSMenu? {
-        let menu = super.menu(for: event) ?? NSMenu()
-        var items: [NSMenuItem] = []
-        if selectedRange().length > 0 {
-            items.append(contentsOf: [
-                menuItem("Grifar", symbol: "highlighter", action: #selector(cmdHighlight)),
-                menuItem("Sublinhar", symbol: "underline", action: #selector(cmdUnderline)),
-                menuItem("Tachar", symbol: "strikethrough", action: #selector(cmdStrikethrough)),
-            ])
+    // No macOS o menu vinha do clique DIREITO, que podia cair fora da seleção — por isso
+    // existia lastMenuClickIndex. No iPadOS o menu é o da SELEÇÃO: ele só aparece quando
+    // há texto selecionado, então o ponto do clique deixa de fazer sentido e some.
+    override func editMenu(for textRange: UITextRange, suggestedActions: [UIMenuElement]) -> UIMenu? {
+        let sel = selectedRange
+        var acoes: [UIAction] = []
+        if sel.length > 0 {
+            acoes.append(item("Grifar", "highlighter") { [weak self] in self?.onCommand?(.apply(.highlight)) })
+            acoes.append(item("Sublinhar", "underline") { [weak self] in self?.onCommand?(.apply(.underline)) })
+            acoes.append(item("Tachar", "strikethrough") { [weak self] in self?.onCommand?(.apply(.strikethrough)) })
             if allowsNoteCommand {
-                items.append(menuItem("Anotar…", symbol: "note.text.badge.plus", action: #selector(cmdNote)))
+                acoes.append(item("Anotar…", "note.text.badge.plus") { [weak self] in self?.onCommand?(.annotate) })
+            }
+            if annotatedRanges.contains(where: { NSIntersectionRange($0, sel).length > 0 }) {
+                acoes.append(item("Remover marcação", "eraser") { [weak self] in self?.onCommand?(.removeInSelection) })
             }
         }
-        let clickIndex = characterIndex(for: event)
-        lastMenuClickIndex = clickIndex
-        let hitsAnnotation = selectedRange().length > 0
-            ? annotatedRanges.contains { NSIntersectionRange($0, selectedRange()).length > 0 }
-            : annotatedRanges.contains { NSLocationInRange(clickIndex, $0) }
-        if hitsAnnotation {
-            items.append(menuItem("Remover marcação", symbol: "eraser", action: #selector(cmdRemove)))
-        }
-        if !items.isEmpty {
-            items.append(NSMenuItem.separator())
-            for (offset, item) in items.enumerated() { menu.insertItem(item, at: offset) }
-        }
-        return menu
+        guard !acoes.isEmpty else { return UIMenu(children: suggestedActions) }
+        // Os comandos do Cátedra vêm primeiro; Copiar/Definir/Compartilhar seguem depois.
+        return UIMenu(children: [UIMenu(options: .displayInline, children: acoes)] + suggestedActions)
     }
 
-    private func characterIndex(for event: NSEvent) -> Int {
-        let point = convert(event.locationInWindow, from: nil)
-        return characterIndexForInsertion(at: point)
-    }
-
-    private func menuItem(_ title: String, symbol: String, action: Selector) -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
-        item.target = self
-        item.image = NSImage(systemSymbolName: symbol, accessibilityDescription: title)
-        return item
-    }
-
-    @objc private func cmdHighlight() { onCommand?(.apply(.highlight)) }
-    @objc private func cmdUnderline() { onCommand?(.apply(.underline)) }
-    @objc private func cmdStrikethrough() { onCommand?(.apply(.strikethrough)) }
-    @objc private func cmdNote() { onCommand?(.annotate) }
-    @objc private func cmdRemove() {
-        // Sem seleção, remove a marcação sob o PONTO DO CLIQUE direito — o cursor
-        // de inserção pode estar em outro lugar e o menu foi montado pelo clique.
-        if selectedRange().length == 0 {
-            if let hit = annotatedRanges.first(where: { NSLocationInRange(lastMenuClickIndex, $0) }) {
-                setSelectedRange(hit)
-            }
-        }
-        onCommand?(.removeInSelection)
+    private func item(_ titulo: String, _ simbolo: String, _ acao: @escaping () -> Void) -> UIAction {
+        UIAction(title: titulo, image: UIImage(systemName: simbolo)) { _ in acao() }
     }
 }
 
@@ -158,52 +131,48 @@ struct AnnotatedTextView: UIViewRepresentable {
     var onCommand: (ReaderCommand) -> Void
     var textAlignment: NSTextAlignment = .natural
 
+    /// Mesma fonte com um trait somado. No macOS isto era NSFontManager.convert.
+    static func comTrait(_ f: NSFont, _ t: UIFontDescriptor.SymbolicTraits) -> NSFont {
+        guard let d = f.fontDescriptor.withSymbolicTraits(f.fontDescriptor.symbolicTraits.union(t)) else { return f }
+        return UIFont(descriptor: d, size: f.pointSize)
+    }
+
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
-    func makeUIView(context: Context) -> NSScrollView {
+    func makeUIView(context: Context) -> ReaderTextView {
         let storage = NSTextStorage()
         let layoutManager = RoundedBackgroundLayoutManager()
         layoutManager.allowsNonContiguousLayout = false
-        let container = NSTextContainer(size: NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude))
+        let container = NSTextContainer(size: CGSize(width: 0, height: CGFloat.greatestFiniteMagnitude))
         container.widthTracksTextView = true
         storage.addLayoutManager(layoutManager)
         layoutManager.addTextContainer(container)
 
+        // Aqui a UITextView ROLA sozinha (isScrollEnabled fica ligado, ao contrário do
+        // MarkableArticleView do Estudo, onde quem rola é o ScrollView do SwiftUI). Some
+        // com isso o NSScrollView em volta, e some também o que era só dele:
+        // hasVerticalScroller, autohidesScrollers, minSize/maxSize, autoresizingMask e
+        // isVerticallyResizable. A busca incremental (usesFindBar) não tem equivalente
+        // no iPadOS — a lupa do LEGIS continua fazendo a busca de verdade.
         let textView = ReaderTextView(frame: .zero, textContainer: container)
         textView.isEditable = false
         textView.isSelectable = true
-        textView.isRichText = false
-        textView.usesFindBar = true
-        textView.isIncrementalSearchingEnabled = true
-        textView.textContainerInset = NSSize(width: 40, height: 28)   // margens largas p/ leitura
-        textView.autoresizingMask = [.width]
-        textView.isVerticallyResizable = true
-        textView.isHorizontallyResizable = false
-        textView.minSize = NSSize(width: 0, height: 0)
-        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
-        textView.drawsBackground = true
-        textView.backgroundColor = .textBackgroundColor
+        textView.textContainerInset = UIEdgeInsets(top: 28, left: 40, bottom: 28, right: 40)
+        textView.backgroundColor = .systemBackground   // era .textBackgroundColor
+        textView.alwaysBounceVertical = true
         textView.delegate = context.coordinator
         textView.onCommand = { [weak coordinator = context.coordinator] command in
             coordinator?.parent.onCommand(command)
         }
 
-        let scrollView = NSScrollView()
-        scrollView.documentView = textView
-        scrollView.hasVerticalScroller = true
-        scrollView.autohidesScrollers = false
-        scrollView.drawsBackground = true
-        scrollView.backgroundColor = .textBackgroundColor
-
         controller.textView = textView
         context.coordinator.textView = textView
         applyFullText(to: textView, coordinator: context.coordinator)
         applyAnnotations(to: textView, coordinator: context.coordinator)
-        return scrollView
+        return textView
     }
 
-    func updateUIView(_ scrollView: NSScrollView, context: Context) {
-        guard let textView = scrollView.documentView as? ReaderTextView else { return }
+    func updateUIView(_ textView: ReaderTextView, context: Context) {
         let coordinator = context.coordinator
         coordinator.parent = self
         controller.textView = textView
@@ -217,7 +186,7 @@ struct AnnotatedTextView: UIViewRepresentable {
         if coordinator.lastAnnotationsKey != annotationsKey {
             applyAnnotations(to: textView, coordinator: coordinator)
         }
-        let currentWidth = scrollView.contentSize.width
+        let currentWidth = textView.bounds.width   // era o contentSize do NSScrollView
         if currentWidth > 0, abs(coordinator.lastLayoutWidth - currentWidth) > 0.5 {
             coordinator.lastLayoutWidth = currentWidth
             scheduleDocumentLayout(for: textView, coordinator: coordinator)
@@ -242,14 +211,14 @@ struct AnnotatedTextView: UIViewRepresentable {
         case "Sistema (Serifa)":
             let descriptor = NSFont.systemFont(ofSize: size, weight: bold ? .semibold : .regular)
                 .fontDescriptor.withDesign(.serif)
-            if let descriptor, let font = NSFont(descriptor: descriptor, size: size) { return font }
+            if let descriptor { return UIFont(descriptor: descriptor, size: size) }   // init não-opcional no iPadOS
             return bold ? .boldSystemFont(ofSize: size) : .systemFont(ofSize: size)
         default:
-            let manager = NSFontManager.shared
-            if let font = manager.font(withFamily: fontFamily,
-                                       traits: bold ? [.boldFontMask] : [],
-                                       weight: 5, size: size) {
-                return font
+            // Sem NSFontManager no iPadOS: a família vira descriptor e o negrito é trait.
+            var desc = UIFontDescriptor(fontAttributes: [.family: fontFamily])
+            if bold, let negrito = desc.withSymbolicTraits(.traitBold) { desc = negrito }
+            if true {
+                return UIFont(descriptor: desc, size: size)
             }
             return bold ? .boldSystemFont(ofSize: size) : .systemFont(ofSize: size)
         }
@@ -267,7 +236,7 @@ struct AnnotatedTextView: UIViewRepresentable {
 
         let attributed = NSMutableAttributedString(string: text, attributes: [
             .font: regular,
-            .foregroundColor: NSColor.labelColor,
+            .foregroundColor: NSColor.label,
             .paragraphStyle: paragraphStyle,
         ])
 
@@ -275,7 +244,7 @@ struct AnnotatedTextView: UIViewRepresentable {
         // da lei fica limpo na leitura corrida; os grifos do usuário é que dão o destaque.
         _ = bold  // (mantido pra assinatura de baseFont; sem uso automático)
 
-        textView.textStorage?.setAttributedString(attributed)
+        textView.textStorage.setAttributedString(attributed)
         scheduleDocumentLayout(for: textView, coordinator: coordinator)
         coordinator.lastText = text
         coordinator.lastFontKey = "\(fontFamily)|\(fontSize)|\(textAlignment.rawValue)"
@@ -293,23 +262,19 @@ struct AnnotatedTextView: UIViewRepresentable {
         coordinator.pendingLayout?.cancel()
         let start = DispatchWorkItem { [weak textView, weak coordinator] in
             guard let textView, let coordinator, gen == coordinator.layoutGeneration,
-                  let scrollView = textView.enclosingScrollView,
-                  let container = textView.textContainer else { return }
-            let width = max(1, scrollView.contentSize.width)
+                  let container = textView.textContainer as NSTextContainer? else { return }
+            let width = max(1, textView.bounds.width)   // era o contentSize do NSScrollView
             guard width > 1 else { return }
             // Centraliza uma coluna de leitura de ~760pt (em vez do texto de ponta a
             // ponta num monitor largo); o resto vira margem lateral.
             let hInset = max(40, (width - 760) / 2)
-            textView.textContainerInset = NSSize(width: hInset, height: 28)
+            // No iPadOS o inset tem LADOS (UIEdgeInsets), e minSize/maxSize/
+            // isVerticallyResizable/autoresizingMask eram do par NSTextView+NSScrollView,
+            // que aqui não existe — a UITextView se dimensiona sozinha.
+            textView.textContainerInset = UIEdgeInsets(top: 28, left: hInset, bottom: 28, right: hInset)
             let inset = textView.textContainerInset
-            textView.minSize = NSSize(width: 0, height: scrollView.contentSize.height)
-            textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude,
-                                      height: CGFloat.greatestFiniteMagnitude)
-            textView.isVerticallyResizable = true
-            textView.isHorizontallyResizable = false
-            textView.autoresizingMask = [.width]
             container.widthTracksTextView = false
-            container.containerSize = NSSize(width: max(1, width - inset.width * 2),
+            container.size = CGSize(width: max(1, width - inset.left - inset.right),
                                              height: CGFloat.greatestFiniteMagnitude)
             coordinator.layoutChunk(gen: gen, from: 0, textView: textView, inset: inset)
         }
@@ -318,7 +283,7 @@ struct AnnotatedTextView: UIViewRepresentable {
     }
 
     private func applyAnnotations(to textView: ReaderTextView, coordinator: Coordinator) {
-        guard let storage = textView.textStorage else { return }
+        let storage = textView.textStorage
         let full = NSRange(location: 0, length: storage.length)
         storage.beginEditing()
         // Limpa apenas os trechos antes marcados (não o documento inteiro de até
@@ -334,7 +299,7 @@ struct AnnotatedTextView: UIViewRepresentable {
             storage.removeAttribute(.strikethroughColor, range: clamped)
             // desfaz negrito/itálico/cor de texto ao remover a marca (lei limpa = base uniforme)
             storage.addAttribute(.font, value: regular, range: clamped)
-            storage.addAttribute(.foregroundColor, value: NSColor.labelColor, range: clamped)
+            storage.addAttribute(.foregroundColor, value: NSColor.label, range: clamped)
         }
 
         var ranges: [NSRange] = []
@@ -354,7 +319,7 @@ struct AnnotatedTextView: UIViewRepresentable {
             case .bold:
                 storage.addAttribute(.font, value: baseFont(ofSize: CGFloat(fontSize), bold: true), range: range)
             case .italic:
-                storage.addAttribute(.font, value: NSFontManager.shared.convert(regular, toHaveTrait: .italicFontMask), range: range)
+                storage.addAttribute(.font, value: AnnotatedTextView.comTrait(regular, .traitItalic), range: range)
             case .textColor:
                 storage.addAttribute(.foregroundColor, value: color, range: range)
             case .cloze:
@@ -387,12 +352,12 @@ struct AnnotatedTextView: UIViewRepresentable {
         /// Lay out one bounded chunk, grow the text view's height to what's laid out
         /// so far, then yield to the run loop and schedule the next chunk. A newer
         /// layout pass (bump de layoutGeneration) faz esta cadeia parar sozinha.
-        func layoutChunk(gen: Int, from: Int, textView: ReaderTextView, inset: NSSize) {
-            guard gen == layoutGeneration,
-                  let scrollView = textView.enclosingScrollView,
-                  let lm = textView.layoutManager,
-                  let container = textView.textContainer,
-                  let storage = textView.textStorage else { return }
+        func layoutChunk(gen: Int, from: Int, textView: ReaderTextView, inset: UIEdgeInsets) {
+            guard gen == layoutGeneration else { return }
+            // layoutManager, textContainer e textStorage não são opcionais no iPadOS.
+            let lm = textView.layoutManager
+            let container = textView.textContainer
+            let storage = textView.textStorage
             let length = storage.length
             let chunk = 40_000   // ~1 quadro de layout por passo
             let end = min(from + chunk, length)
@@ -401,7 +366,7 @@ struct AnnotatedTextView: UIViewRepresentable {
                                            actualCharacterRange: nil)
                 lm.ensureLayout(forGlyphRange: glyphs)
             }
-            let width = max(1, scrollView.contentSize.width)
+            let width = max(1, textView.bounds.width)   // era o contentSize do NSScrollView
             // Medir só a altura do trecho JÁ posicionado [0, end]. usedRect(for:)
             // forçaria o layout do container INTEIRO de uma vez (anulando o layout em
             // pedaços e recriando o congelamento das leis grandes). boundingRect força
@@ -409,10 +374,11 @@ struct AnnotatedTextView: UIViewRepresentable {
             let laidGlyphs = lm.glyphRange(forCharacterRange: NSRange(location: 0, length: end),
                                            actualCharacterRange: nil)
             let laidHeight = lm.boundingRect(forGlyphRange: laidGlyphs, in: container).maxY
-            let height = max(ceil(laidHeight + inset.height * 2), scrollView.contentSize.height)
-            if abs(textView.frame.height - height) > 0.5 || abs(textView.frame.width - width) > 0.5 {
-                textView.setFrameSize(NSSize(width: width, height: height))
-                scrollView.reflectScrolledClipView(scrollView.contentView)
+            // Sem NSScrollView: a altura mínima é a da própria área visível, e o tamanho
+            // do conteúdo é o contentSize da UITextView (que É a scroll view).
+            let height = max(ceil(laidHeight + inset.top + inset.bottom), textView.bounds.height)
+            if abs(textView.contentSize.height - height) > 0.5 {
+                textView.contentSize = CGSize(width: width, height: height)
             }
             guard end < length else { return }
             let next = DispatchWorkItem { [weak self, weak textView] in
@@ -425,7 +391,7 @@ struct AnnotatedTextView: UIViewRepresentable {
 
         func textViewDidChangeSelection(_ notification: Notification) {
             guard let tv = textView else { return }
-            let range = tv.selectedRange()
+            let range = tv.selectedRange
             let annotations = parent.annotations
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }

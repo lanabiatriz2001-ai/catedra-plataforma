@@ -27,10 +27,10 @@ struct RichNoteEditor: View {
 
     // Marcadores coloridos estilo callout (Notion): atenção/importante/dica/revisar.
     private let tags: [(String, String, NSColor)] = [
-        ("❓", "Atenção", NSColor(srgbRed: 1.0, green: 0.60, blue: 0.42, alpha: 0.30)),
-        ("❗", "Importante", NSColor(srgbRed: 1.0, green: 0.40, blue: 0.40, alpha: 0.30)),
-        ("💡", "Dica", NSColor(srgbRed: 1.0, green: 0.86, blue: 0.35, alpha: 0.32)),
-        ("🚩", "Revisar", NSColor(srgbRed: 0.55, green: 0.80, blue: 0.95, alpha: 0.32)),
+        ("❓", "Atenção", NSColor(red: 1.0, green: 0.60, blue: 0.42, alpha: 0.30)),
+        ("❗", "Importante", NSColor(red: 1.0, green: 0.40, blue: 0.40, alpha: 0.30)),
+        ("💡", "Dica", NSColor(red: 1.0, green: 0.86, blue: 0.35, alpha: 0.32)),
+        ("🚩", "Revisar", NSColor(red: 0.55, green: 0.80, blue: 0.95, alpha: 0.32)),
     ]
 
     private var toolbar: some View {
@@ -42,8 +42,8 @@ struct RichNoteEditor: View {
                 headingBtn("H1", 1); headingBtn("H2", 2); headingBtn("H3", 3)
                 fmt("text.justify", "Texto normal") { coord.setHeading(0) }
                 sep
-                fmt("bold", "Negrito (⌘B)") { coord.toggleTrait(.boldFontMask) }
-                fmt("italic", "Itálico (⌘I)") { coord.toggleTrait(.italicFontMask) }
+                fmt("bold", "Negrito (⌘B)") { coord.toggleTrait(.traitBold) }
+                fmt("italic", "Itálico (⌘I)") { coord.toggleTrait(.traitItalic) }
                 fmt("underline", "Sublinhado (⌘U)") { coord.toggleUnderline() }
                 fmt("strikethrough", "Tachado") { coord.toggleStrikethrough() }
                 sep
@@ -78,7 +78,7 @@ struct RichNoteEditor: View {
                     Button { coord.insertTag(emoji: emoji, color: color) } label: {
                         Text(emoji).font(.system(size: 12))
                             .frame(width: 22, height: 20)
-                            .background(RoundedRectangle(cornerRadius: 5).fill(Color(nsColor: color)))
+                            .background(RoundedRectangle(cornerRadius: 5).fill(Color(uiColor: color)))
                     }
                     .buttonStyle(.plain)
                     .help(name)
@@ -142,29 +142,31 @@ private struct RichTextView: UIViewRepresentable {
     let onChange: (Data, String) -> Void
     let placeholder: String
 
-    func makeUIView(context: Context) -> NSScrollView {
-        let scroll = UITextView.scrollableTextView()
-        scroll.drawsBackground = false
-        scroll.hasVerticalScroller = true
-        guard let tv = scroll.documentView as? UITextView else { return scroll }
-        tv.isRichText = true
-        tv.allowsUndo = true
-        tv.drawsBackground = false
+    func makeUIView(context: Context) -> UITextView {
+        // No iPadOS a UITextView JÁ rola sozinha: não existe NSScrollView em volta, e
+        // `scrollableTextView()` é construtor do AppKit. Devolvemos a text view direto.
+        let tv = UITextView()
+        tv.allowsEditingTextAttributes = true      // equivale ao isRichText do macOS
+        tv.backgroundColor = .clear                // equivale ao drawsBackground = false
         tv.font = .systemFont(ofSize: 13.5)
-        tv.textColor = .labelColor
-        tv.textContainerInset = NSSize(width: 7, height: 9)
+        tv.textColor = .label
+        tv.textContainerInset = UIEdgeInsets(top: 9, left: 7, bottom: 9, right: 7)
         tv.delegate = coord
         coord.textView = tv
         coord.onChange = onChange
         coord.placeholder = placeholder
-        if let initialRTF, let s = NSAttributedString(rtf: initialRTF, documentAttributes: nil), s.length > 0 {
-            tv.textStorage?.setAttributedString(s)
+        // NSAttributedString(rtf:) é do AppKit; no iPadOS o RTF entra por data(_:options:).
+        if let initialRTF,
+           let s = try? NSAttributedString(data: initialRTF,
+                                           options: [.documentType: NSAttributedString.DocumentType.rtf],
+                                           documentAttributes: nil), s.length > 0 {
+            tv.textStorage.setAttributedString(s)
         }
         coord.refreshPlaceholder()
-        return scroll
+        return tv
     }
 
-    func updateUIView(_ nsView: NSScrollView, context: Context) {
+    func updateUIView(_ tv: UITextView, context: Context) {
         // A verdade fica na UITextView durante a edição; não sobrescrever aqui.
     }
 }
@@ -174,11 +176,12 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
     weak var textView: UITextView?
     var onChange: ((Data, String) -> Void)?
     var placeholder: String = ""
-    private var placeholderView: NSTextField?
+    private var placeholderView: UILabel?
     @Published var canUndo = false
     @Published var canRedo = false
 
-    func textDidChange(_ notification: Notification) { emit(); refreshPlaceholder(); refreshUndoState() }
+    // No iPadOS o delegate avisa por textViewDidChange(_:), não por Notification.
+    func textViewDidChange(_ textView: UITextView) { emit(); refreshPlaceholder(); refreshUndoState() }
 
     // Desfazer/refazer usa o undoManager nativo do UITextView — cobre a digitação;
     // as ações da barra (negrito, listas…) mutam o textStorage direto e não entram
@@ -191,21 +194,27 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
     }
 
     private func emit() {
-        guard let tv = textView, let ts = tv.textStorage else { return }
+        guard let tv = textView else { return }
+        let ts = tv.textStorage   // não-opcional no iPadOS
         let full = NSRange(location: 0, length: ts.length)
-        let rtf = ts.rtf(from: full, documentAttributes: [:]) ?? Data()
+        // .rtf(from:) é conveniência do AppKit; aqui o RTF sai por data(from:).
+        let rtf = (try? ts.data(from: full,
+                                documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])) ?? Data()
         onChange?(rtf, ts.string)
     }
 
     // Placeholder simples sobreposto quando vazio.
     func refreshPlaceholder() {
         guard let tv = textView else { return }
-        let empty = (tv.textStorage?.length ?? 0) == 0
+        let empty = tv.textStorage.length == 0
         if empty, placeholderView == nil {
-            let lbl = NSTextField(labelWithString: placeholder)
+            // NSTextField(labelWithString:) é do AppKit; o rótulo do iPadOS é UILabel,
+            // que já nasce não editável e sem fundo — daí sumirem quatro linhas.
+            let lbl = UILabel()
+            lbl.text = placeholder
             lbl.font = .systemFont(ofSize: 13.5)
-            lbl.textColor = .tertiaryLabelColor
-            lbl.isEditable = false; lbl.isSelectable = false; lbl.drawsBackground = false; lbl.isBordered = false
+            lbl.textColor = .tertiaryLabel
+            lbl.numberOfLines = 0
             lbl.lineBreakMode = .byWordWrapping
             lbl.translatesAutoresizingMaskIntoConstraints = false
             tv.addSubview(lbl)
@@ -220,41 +229,51 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
         }
     }
 
+    // shouldChangeText/didChangeText são do NSTextView. No iPadOS o ciclo é
+    // beginEditing/endEditing no storage, e o aviso ao delegate é MANUAL — sem ele o
+    // RTF não seria emitido e a nota sairia da tela sem ter sido salva.
     private func edit(_ apply: (UITextView, NSRange, NSMutableAttributedString) -> Void) {
-        guard let tv = textView, let ts = tv.textStorage else { return }
-        let r = tv.selectedRange()
-        guard r.length > 0 else { NSSound.beep(); return }
-        tv.shouldChangeText(in: r, replacementString: nil)
+        guard let tv = textView else { return }
+        let ts = tv.textStorage
+        let r = tv.selectedRange
+        guard r.length > 0 else { return }   // sem seleção não há o que formatar (o Mac dava beep)
         ts.beginEditing()
         apply(tv, r, ts)
         ts.endEditing()
-        tv.didChangeText()
+        textViewDidChange(tv)
     }
 
     // Como `edit`, mas age na(s) LINHA(S) inteira(s) do parágrafo — funciona mesmo
     // sem seleção (só o cursor na linha), para título/lista/citação/alinhamento.
     private func editLines(_ apply: (UITextView, NSRange, NSMutableAttributedString) -> Void) {
-        guard let tv = textView, let ts = tv.textStorage else { return }
-        let sel = tv.selectedRange()
+        guard let tv = textView else { return }
+        let ts = tv.textStorage
+        let sel = tv.selectedRange
         let nsstr = ts.string as NSString
         let lineRange = nsstr.length > 0 ? nsstr.lineRange(for: sel) : NSRange(location: 0, length: 0)
-        tv.shouldChangeText(in: lineRange, replacementString: nil)
         ts.beginEditing()
         apply(tv, lineRange, ts)
         ts.endEditing()
-        tv.didChangeText()
+        textViewDidChange(tv)
     }
 
-    func toggleTrait(_ trait: NSFontTraitMask) {
+    /// Liga/desliga negrito ou itálico no trecho. No macOS quem fazia isso era o
+    /// NSFontManager; no iPadOS o trait vive no descriptor da própria fonte.
+    func toggleTrait(_ trait: UIFontDescriptor.SymbolicTraits) {
         edit { tv, r, ts in
-            let fm = NSFontManager.shared
             ts.enumerateAttribute(.font, in: r) { val, sub, _ in
                 let font = (val as? NSFont) ?? tv.font ?? .systemFont(ofSize: 13.5)
-                let has = fm.traits(of: font).contains(trait)
-                let newFont = has ? fm.convert(font, toNotHaveTrait: trait) : fm.convert(font, toHaveTrait: trait)
-                ts.addAttribute(.font, value: newFont, range: sub)
+                var traits = font.fontDescriptor.symbolicTraits
+                if traits.contains(trait) { traits.remove(trait) } else { traits.insert(trait) }
+                guard let d = font.fontDescriptor.withSymbolicTraits(traits) else { return }
+                ts.addAttribute(.font, value: UIFont(descriptor: d, size: font.pointSize), range: sub)
             }
         }
+    }
+    /// Mesma fonte com um trait somado — usado por título e citação.
+    private static func comTrait(_ f: NSFont, _ t: UIFontDescriptor.SymbolicTraits) -> NSFont {
+        guard let d = f.fontDescriptor.withSymbolicTraits(f.fontDescriptor.symbolicTraits.union(t)) else { return f }
+        return UIFont(descriptor: d, size: f.pointSize)
     }
     func toggleUnderline() {
         edit { tv, r, ts in
@@ -277,7 +296,7 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
     }
     func clearFormatting() {
         edit { _, r, ts in
-            ts.setAttributes([.font: NSFont.systemFont(ofSize: 13.5), .foregroundColor: NSColor.labelColor], range: r)
+            ts.setAttributes([.font: NSFont.systemFont(ofSize: 13.5), .foregroundColor: NSColor.label], range: r)
         }
     }
     // Alterna marcadores (• ou 1.) nas linhas do trecho selecionado (ou só a linha do cursor).
@@ -307,7 +326,7 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
             }
             let replacement = NSAttributedString(string: newLines.joined(separator: "\n"),
                                                  attributes: [.font: tv.font ?? NSFont.systemFont(ofSize: 13.5),
-                                                              .foregroundColor: NSColor.labelColor])
+                                                              .foregroundColor: NSColor.label])
             ts.replaceCharacters(in: lineRange, with: replacement)
         }
     }
@@ -318,7 +337,7 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
             guard lineRange.length > 0 else { return }
             let size: CGFloat = level == 1 ? 20 : level == 2 ? 17 : level == 3 ? 15 : 13.5
             let base = NSFont.systemFont(ofSize: size)
-            let font = level > 0 ? NSFontManager.shared.convert(base, toHaveTrait: .boldFontMask) : base
+            let font = level > 0 ? Self.comTrait(base, .traitBold) : base
             ts.addAttribute(.font, value: font, range: lineRange)
         }
     }
@@ -344,9 +363,9 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
             para.firstLineHeadIndent = isQuoted ? 0 : 14
             ts.addAttribute(.paragraphStyle, value: para, range: lineRange)
             let base = tv.font ?? .systemFont(ofSize: 13.5)
-            let font = isQuoted ? base : NSFontManager.shared.convert(base, toHaveTrait: .italicFontMask)
+            let font = isQuoted ? base : Self.comTrait(base, .traitItalic)
             ts.addAttribute(.font, value: font, range: lineRange)
-            ts.addAttribute(.foregroundColor, value: isQuoted ? NSColor.labelColor : NSColor.secondaryLabelColor, range: lineRange)
+            ts.addAttribute(.foregroundColor, value: isQuoted ? NSColor.label : NSColor.secondaryLabel, range: lineRange)
         }
     }
 
@@ -360,27 +379,27 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
                 ts.removeAttribute(.backgroundColor, range: r)
             } else {
                 ts.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: 12.5, weight: .regular), range: r)
-                ts.addAttribute(.backgroundColor, value: NSColor.quaternaryLabelColor, range: r)
+                ts.addAttribute(.backgroundColor, value: NSColor.quaternaryLabel, range: r)
             }
         }
     }
 
     // Insere uma linha divisória no ponto do cursor.
     func insertDivider() {
-        guard let tv = textView, let ts = tv.textStorage else { return }
-        let r = tv.selectedRange()
+        guard let tv = textView else { return }
+        let ts = tv.textStorage
+        let r = tv.selectedRange
         let ns = ts.string as NSString
         let needsLeadingNewline = r.location > 0 && ns.character(at: r.location - 1) != 10
         let text = (needsLeadingNewline ? "\n" : "") + String(repeating: "─", count: 24) + "\n"
         let attr = NSAttributedString(string: text, attributes: [
-            .font: tv.font ?? .systemFont(ofSize: 13.5), .foregroundColor: NSColor.tertiaryLabelColor,
+            .font: tv.font ?? .systemFont(ofSize: 13.5), .foregroundColor: NSColor.tertiaryLabel,
         ])
-        tv.shouldChangeText(in: r, replacementString: nil)
         ts.beginEditing()
         ts.replaceCharacters(in: r, with: attr)
         ts.endEditing()
-        tv.didChangeText()
-        tv.setSelectedRange(NSRange(location: r.location + attr.length, length: 0))
+        tv.selectedRange = NSRange(location: r.location + attr.length, length: 0)
+        textViewDidChange(tv)
     }
 
     // Marcador colorido (estilo callout): prefixa a linha com o emoji e realça o fundo.
@@ -389,8 +408,8 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
             let allTags = ["❓", "❗", "💡", "🚩"]
             let baseFont = tv.font ?? .systemFont(ofSize: 13.5)
             if lineRange.length == 0 {
-                let loc = tv.selectedRange().location
-                let attr = NSAttributedString(string: emoji + " ", attributes: [.font: baseFont, .foregroundColor: NSColor.labelColor])
+                let loc = tv.selectedRange.location
+                let attr = NSAttributedString(string: emoji + " ", attributes: [.font: baseFont, .foregroundColor: NSColor.label])
                 ts.replaceCharacters(in: NSRange(location: loc, length: 0), with: attr)
                 ts.addAttribute(.backgroundColor, value: color, range: NSRange(location: loc, length: attr.length))
                 return
@@ -398,7 +417,7 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
             let nsstr = ts.string as NSString
             var body = nsstr.substring(with: lineRange)
             for tag in allTags where body.hasPrefix(tag + " ") { body = String(body.dropFirst(tag.count + 1)) }
-            let attr = NSAttributedString(string: emoji + " " + body, attributes: [.font: baseFont, .foregroundColor: NSColor.labelColor])
+            let attr = NSAttributedString(string: emoji + " " + body, attributes: [.font: baseFont, .foregroundColor: NSColor.label])
             ts.replaceCharacters(in: lineRange, with: attr)
             ts.addAttribute(.backgroundColor, value: color, range: NSRange(location: lineRange.location, length: attr.length))
         }

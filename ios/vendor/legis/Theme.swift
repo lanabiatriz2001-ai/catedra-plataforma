@@ -183,12 +183,14 @@ extension Color {
     /// Cor que muda com o tema claro/escuro (para o app ser alternável).
     static func dynamic(light: UInt32, dark: UInt32) -> Color {
         func ns(_ hex: UInt32) -> NSColor {
-            NSColor(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
+            NSColor(red: CGFloat((hex >> 16) & 0xFF) / 255,
                     green: CGFloat((hex >> 8) & 0xFF) / 255,
                     blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
         }
-        return Color(nsColor: NSColor(name: nil) { appearance in
-            appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? ns(dark) : ns(light)
+        // No macOS a cor dinâmica vinha de NSColor(name:) consultando a `appearance`;
+        // no iPadOS ela nasce do trait collection do ambiente.
+        return Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark ? ns(dark) : ns(light)
         })
     }
 
@@ -209,12 +211,15 @@ extension Color {
     }
 
     private func blended(withWhite t: Double) -> Color {
-        let n = NSColor(self).usingColorSpace(.sRGB) ?? .gray
-        return Color(.sRGB,
-                     red: Double(n.redComponent) + (1 - Double(n.redComponent)) * t,
-                     green: Double(n.greenComponent) + (1 - Double(n.greenComponent)) * t,
-                     blue: Double(n.blueComponent) + (1 - Double(n.blueComponent)) * t,
-                     opacity: 1)
+        // UIColor não tem usingColorSpace nem .redComponent: os canais saem por getRed.
+        // As três contas ficam em variáveis separadas de propósito — inline, o compilador
+        // desiste de inferir os tipos ("unable to type-check in reasonable time").
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard NSColor(self).getRed(&r, green: &g, blue: &b, alpha: &a) else { return self }
+        let rr = Double(r) + (1 - Double(r)) * t
+        let gg = Double(g) + (1 - Double(g)) * t
+        let bb = Double(b) + (1 - Double(b)) * t
+        return Color(.sRGB, red: rr, green: gg, blue: bb, opacity: 1)
     }
 
     /// Cor a partir de um valor CSS ("#rgb", "#rrggbb", "rgb(r,g,b)", "rgba(r,g,b,a)").

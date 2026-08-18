@@ -85,7 +85,7 @@ struct PlanoLeituraView: View {
             DatePicker("", selection: Binding(
                 get: { startTS > 0 ? Date(timeIntervalSince1970: startTS) : Date() },
                 set: { startTS = $0.timeIntervalSince1970 }), displayedComponents: .date)
-                .labelsHidden().datePickerStyle(.field)
+                .labelsHidden().datePickerStyle(.compact)   // .field é só do macOS
             Divider().frame(height: 18)
             Stepper(value: $pace, in: 1...7) {
                 Text("\(pace) leitura\(pace == 1 ? "" : "s") por semana")

@@ -4390,6 +4390,11 @@ class Component extends DCLogic {
     // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
     try{ window.__catedraGoView = (v)=>{ try{ if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); }catch(_){} }; }catch(_){}
     this._migrarSchema();
+    this._limparLeiturasDuplicadas();   // remove as leituras que duplicam o checklist do plano
+    // A hidratação do auth.js troca os dados locais DEPOIS do mount — sem reexecutar
+    // aqui, a limpeza olharia sempre uma lista vazia.
+    try{ window.addEventListener('catedra:synced', ()=>{ try{ this._limparLeiturasDuplicadas(); }catch(_){} }); }catch(_){}
+    try{ this._agendarLimpezaLeituras(); }catch(_){}
     // Qual conta está logada. O auth.js avisa por evento; se ele já resolveu a sessão
     // antes do app montar, o valor já está em window.CatedraAuth.user.
     try{
@@ -4658,6 +4663,78 @@ class Component extends DCLogic {
   // (fonte canônica) e canonicaliza a GRAFIA de `disc` em todos os registros — casando por
   // fold (sem acento/maiúscula) com o edital — para dedupar variações da mesma disciplina.
   // Roda UMA vez (guard por catedra:schemaVersion), com backup antes de qualquer mutação.
+  // LIMPEZA ÚNICA (18/08/2026). Uma versão antiga gerou 35 atividades no Roteiro 3 com o
+  // título "Tabela Dia N · <lei> — Art. X a Y". Elas DUPLICAM o checklist "Leitura de
+  // leis" do plano nativo — e o checklist é a fonte que vale, porque marcá-lo sincroniza
+  // com o CátedraLEGIS e o CátedraJURIS; a atividade solta não sincroniza nada.
+  //
+  // Por que aqui e não no servidor: catedra:manualFixed é chave CFG_LOCAL_WINS no
+  // auth.js — o local SEMPRE vence a nuvem nela. Apagar só no banco seria desfeito pelo
+  // primeiro aparelho que sincronizasse. A cópia integral das 77 atividades originais
+  // ficou guardada na conta, em catedra:_bkpManualFixed_20260818.
+  //
+  // A trava é uma chave própria (não o schemaVersion) para não re-disparar a migração V2,
+  // que já rodou. O padrão exige o "·" depois do número: não pega atividade escrita à mão
+  // que por acaso comece com "Tabela Dia".
+  // ARMADILHA que já custou uma rodada: componentDidMount roda ANTES de a hidratação do
+  // auth.js trazer os dados da nuvem. Na primeira versão isto rodava com a lista VAZIA,
+  // não removia nada e mesmo assim gravava a trava — a limpeza nunca mais aconteceria, e
+  // o aparelho devolvia as 35 duplicadas para o servidor no primeiro push. Por isso:
+  //   · a trava só é gravada quando havia lista para examinar (mf.length > 0);
+  //   · a limpeza é reexecutada quando os dados chegam (evento catedra:synced);
+  //   · a trava é LOCAL DO APARELHO (sem o prefixo catedra:), porque isData() no auth.js
+  //     sincroniza tudo que começa com "catedra:". Na versão anterior a trava viajava
+  //     para a nuvem: um aparelho limpava, gravava a trava, e os OUTROS recebiam a trava
+  //     sem receber a limpeza — porque manualFixed é local-wins e o dado deles vencia.
+  //     Trava sincronizada + dado que não sincroniza = limpeza que nunca acontece.
+  // Tenta de novo enquanto não houver lista para examinar. No aparelho o auth.js hidrata
+  // e RECARREGA a página no meio do caminho, e descobrir o instante exato em que os dados
+  // chegam se mostrou frágil — duas tentativas minhas erraram o momento e a limpeza nunca
+  // rodava. Repetir em intervalos crescentes tira o tempo da equação; para sozinho assim
+  // que a trava é gravada.
+  _agendarLimpezaLeituras(){
+    const tentar=(ms)=>setTimeout(()=>{ try{
+      if(localStorage.getItem('catedraLimpezaTabelaLocal3')==='1') return;
+      this._limparLeiturasDuplicadas();
+    }catch(_){} }, ms);
+    [1500, 4000, 10000, 30000, 60000].forEach(tentar);
+  }
+  // Diagnóstico: grava o que aconteceu numa chave que SINCRONIZA. Sem isto não há como
+  // saber, de fora do aparelho, em que ponto a limpeza escapa — e três tentativas minhas
+  // já falharam por eu estar adivinhando o momento em vez de medir.
+  // ACUMULA em vez de sobrescrever. Na primeira versão cada tentativa sobrescrevia a
+  // anterior, e como as tentativas se repetem, eu só via a ÚLTIMA ("trava já gravada") —
+  // exatamente a que não diz nada. O instrumento estava apagando a prova que eu procurava.
+  _diagLimpeza(onde, extra){
+    try{
+      const k='catedraDiagLimpeza';
+      let hist=[]; try{ hist=JSON.parse(localStorage.getItem(k)||'[]')||[]; }catch(_){}
+      if(!Array.isArray(hist)) hist=[];
+      hist.push({onde, ...(extra||{}), em:new Date().toISOString()});
+      localStorage.setItem(k, JSON.stringify(hist.slice(-12)));
+    }catch(_){}
+  }
+  _limparLeiturasDuplicadas(){
+    try{
+      if(localStorage.getItem('catedraLimpezaTabelaLocal3')==='1'){ this._diagLimpeza('trava-ja-gravada'); return; }
+      const mf=this.state.manualFixed||[];
+      if(!mf.length){ this._diagLimpeza('lista-vazia'); return; }   // ainda não hidratou
+      const sobra=mf.filter(f=>!/^Tabela Dia\s+\d+\s*·/.test(String((f&&f.disc)||'')));
+      const n=mf.length-sobra.length;
+      if(n>0){
+        // ORDEM IMPORTA. A trava é gravada na hora (setItem síncrono), mas o manualFixed
+        // só chegava ao localStorage pelo autosave, que é ADIADO. Encerrar o app nesse
+        // meio-tempo — coisa que acontece o tempo todo num iPad — deixava a trava salva e
+        // a lista limpa perdida: impasse permanente, a limpeza nunca mais rodava e o
+        // aparelho devolvia as duplicadas para a nuvem. Grava o dado ANTES, direto.
+        try{ localStorage.setItem('catedra:manualFixed', JSON.stringify(sobra)); }catch(_){}
+        this.syncManual({manualFixed:sobra});
+        this._toast(n+' leituras repetidas removidas do ciclo');
+      }
+      localStorage.setItem('catedraLimpezaTabelaLocal3','1');
+      this._diagLimpeza('executou', {tinha:mf.length, removidas:n, ficaram:sobra.length});
+    }catch(_){}
+  }
   _migrarSchema(){
     try{
       const V=2; let cur=1; try{ cur=parseInt(localStorage.getItem('catedra:schemaVersion')||'1',10)||1; }catch(_){}

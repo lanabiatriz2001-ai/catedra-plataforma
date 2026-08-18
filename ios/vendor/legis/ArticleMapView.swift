@@ -189,29 +189,30 @@ struct ArticleMapSheet: View {
 
     @MainActor private func makeRenderer() -> ImageRenderer<ArticleMapView> {
         let r = ImageRenderer(content: map)
-        r.scale = max(2, NSScreen.main?.backingScaleFactor ?? 2)   // nitidez de tela retina
+        r.scale = max(2, UIScreen.main.scale)   // nitidez de tela retina
         return r
     }
 
     private func copyImage() {
-        guard let img = makeRenderer().nsImage else { message = "Não consegui gerar a imagem."; return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.writeObjects([img])
-        message = "Imagem copiada — cole no Anki/Notion com ⌘V."
+        // ImageRenderer.nsImage → uiImage; e a área de transferência do iPadOS é uma
+        // propriedade, não um par clearContents/writeObjects.
+        guard let img = makeRenderer().uiImage else { message = "Não consegui gerar a imagem."; return }
+        UIPasteboard.general.image = img
+        message = "Imagem copiada — cole no Anki/Notion."
     }
 
     private func savePNG() {
-        guard let img = makeRenderer().nsImage, let tiff = img.tiffRepresentation,
-              let rep = NSBitmapImageRep(data: tiff),
-              let png = rep.representation(using: .png, properties: [:]) else {
+        // Sem NSBitmapImageRep no iPadOS: o PNG sai direto da UIImage. E sem NSSavePanel:
+        // grava na pasta Documentos do app, que aparece em Arquivos ▸ No meu iPad ▸ Cátedra
+        // (UIFileSharingEnabled) — de lá dá para mandar para onde quiser.
+        guard let img = makeRenderer().uiImage, let png = img.pngData() else {
             message = "Não consegui gerar a imagem."; return
         }
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.png]
-        panel.nameFieldStringValue = "mapa-\(safeName).png"
-        panel.canCreateDirectories = true
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        do { try png.write(to: url); message = "Salvo: \(url.lastPathComponent)." }
+        guard let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            message = "Não encontrei a pasta de documentos do app."; return
+        }
+        let url = dir.appendingPathComponent("mapa-\(safeName).png")
+        do { try png.write(to: url); message = "Salvo em Arquivos ▸ Cátedra: \(url.lastPathComponent)." }
         catch { message = "Falha ao salvar: \(error.localizedDescription)" }
     }
 

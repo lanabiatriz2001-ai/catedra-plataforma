@@ -187,7 +187,7 @@ private struct PrecedentCard: View {
             HStack(spacing: 8) {
                 if let url = URL(string: precedent.url), !precedent.url.isEmpty {
                     Button {
-                        NSWorkspace.shared.open(url)
+                        UIApplication.shared.open(url)
                     } label: { Label("Abrir íntegra", systemImage: "safari") }
                         .buttonStyle(.borderless)
                 }
