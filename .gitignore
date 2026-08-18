@@ -34,3 +34,6 @@ win/node_modules/
 win/dist/
 win/build/icon-256.png
 win/app/
+
+# cache de build do modulo de contas (14MB, regeravel)
+scripts/.cache-contas/
