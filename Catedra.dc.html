@@ -2638,7 +2638,7 @@ window.ctPdfLib = (function(){
 
       <!-- ============ CÁTEDRAJURIS (web) — súmulas e julgados STF/STJ/TSE, página nativa ============ -->
       <sc-if value="{{ isJuris }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="juris-web.html" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+        <iframe data-ct-frame="{{ jurisFrameSrc }}" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
 
       <!-- ================= BIBLIOTECA ================= -->
@@ -4258,7 +4258,7 @@ class Component extends DCLogic {
       errSearch:'', errStatus:'todos', errSort:'recentes', errTagInput:'', errMaisCampos:false, errBulk:'', errBulkBusy:false, errBulkDrafts:null, errPlano:'', errPlanoBusy:false, errShowStats:true,
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
-      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'',
+      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'', acervoBusca:'',
       adminGrupos:[], adminAllow:[], adminAllowInput:'', adminDetalhe:null, adminDetalheBusy:false,
       // console de administração: aba aberta, recorte da lista de contas e a gaveta
       // da conta selecionada (admConfirmTxt é o e-mail digitado na zona de risco —
@@ -4361,6 +4361,14 @@ class Component extends DCLogic {
         topico:e.data.sub||e.data.topico||'', categoria:'Teoria' }); }catch(_){}
     };
     window.addEventListener('message', this._areaMsg);
+    // Mapa de Processo e peças → acervo. O ⚖️/🏛️ do mapa manda o instituto; aqui a view
+    // troca e o termo viaja no ?q= do iframe (ver ctBuscaInicial no legis/juris-web).
+    this._acervoMsg = (e)=>{
+      if(!e||!e.data||e.data.type!=='ctAbrirAcervo') return;
+      const alvo=e.data.alvo==='juris'?'juris':'legis';
+      this.setState({view:alvo, acervoBusca:String(e.data.termo||'')});
+    };
+    window.addEventListener('message', this._acervoMsg);
     this._onHide = ()=>{ try{ this._saveTimer(); }catch(_){} };   // salva o cronômetro ao fechar/ocultar
     window.addEventListener('pagehide', this._onHide);
     window.addEventListener('beforeunload', this._onHide);
@@ -7623,7 +7631,11 @@ class Component extends DCLogic {
     const areaModFrameSrc = (_area.id==='juridica')
       ? 'processo-web.html'
       : ('area-web.html?area=' + encodeURIComponent(_area.id));
-    const legisFrameSrc = 'legis-web.html' + (this.state.areaEstudo ? ('?area='+encodeURIComponent(this.state.areaEstudo)) : '');
+    // O ?q= faz a página abrir já buscando o instituto que veio do mapa.
+    const _acBusca=(this.state.acervoBusca||'').trim();
+    const legisFrameSrc = 'legis-web.html?area=' + encodeURIComponent(this.state.areaEstudo||'')
+      + (_acBusca ? ('&q='+encodeURIComponent(_acBusca)) : '');
+    const jurisFrameSrc = 'juris-web.html' + (_acBusca ? ('?q='+encodeURIComponent(_acBusca)) : '');
     const areaEscolhida = !!this.state.areaEstudo;
     const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||'');
       return { id:a.id, emoji:a.emoji, label:a.label, desc:a.desc, check: on?'  ✓':'',
@@ -9691,7 +9703,7 @@ class Component extends DCLogic {
       bancaIAMarker:'color:'+_bTxt+';flex:none;font-weight:800;font-size:14px;',
       bancaIALabel, bancaIAStyle, bancaIABusy:_bBusy, gerarDicasBanca:this.gerarDicasBanca,
       naoAdmin:!this.state.isAdmin, mostraBottomNav:this.state.isMobile && !this.state.isAdmin,
-      isAdmin:this.state.isAdmin, isAdminView:this.state.view==='admin', navAdmin:navStyle('admin'),
+      isAdmin:this.state.isAdmin, isAdminView:this.state.view==='admin', navAdmin:navStyle('admin'), jurisFrameSrc,
       // Conta logada no perfil do Ajustes. Sem sessão (ou build sem login real) cai no
       // rótulo antigo, que descreve o que o app é nesse caso: só dados locais.
       contaLabel:this.state.authEmail||'dados locais',

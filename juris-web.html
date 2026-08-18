@@ -581,7 +581,12 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     document.querySelectorAll('#tabs .tab').forEach(function(b){
       b.hidden = !!b.dataset.modo && b.dataset.modo!==modo; });
   }
-  ajustaAbas();
+  // ?q= vem do mapa de Processo e peças: tocar num 🏛️ abre esta página já buscando.
+  (function ctBuscaInicial(){ try{
+    var q=new URLSearchParams(location.search).get('q'); if(!q) return;
+    var el=document.getElementById('q'); if(!el) return;
+    el.value=q; el.dispatchEvent(new Event('input',{bubbles:true}));
+  }catch(e){} })();
   document.querySelectorAll('#tabs .tab').forEach(function(b){ b.onclick=function(){ setPane(b.dataset.pane); }; });
 
   // ---- Central de Contas: o índice entra na MESMA lista, sem trocar de acervo
