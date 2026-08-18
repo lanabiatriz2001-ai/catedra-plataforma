@@ -42,7 +42,7 @@ else
   PLATAFORMA="iPhoneSimulator"; DTPLATFORM="iphonesimulator"
 fi
 rm -rf "$APP"; mkdir -p "$APP"
-swiftc -O -target "$TARGET" -sdk "$SDK" "$HERE/Sources/main.swift" -o "$APP/$EXEC" \
+swiftc -O -target "$TARGET" -sdk "$SDK" $(find "$HERE/vendor" -name "*.swift") "$HERE/Sources/main.swift" -o "$APP/$EXEC" \
   -framework UIKit -framework WebKit -framework UserNotifications
 
 echo "→ 3/4  Montando $NAME.app (bundle PLANO do iOS)…"

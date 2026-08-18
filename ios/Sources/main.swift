@@ -16,6 +16,7 @@
 //                            (o aviso de "sair com estudo não sincronizado", por exemplo).
 
 import UIKit
+import SwiftUI
 import WebKit
 import UserNotifications
 
@@ -30,6 +31,9 @@ func aiEndpoint() -> String {
 final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply {
 
     var webView: WKWebView!
+    private var segmento: UISegmentedControl!
+    private var areaConteudo: UIView!
+    private var legisVC: UIViewController?   // criado sob demanda, na 1ª vez que a aba abre
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,13 +69,49 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         webView.translatesAutoresizingMaskIntoConstraints = false
         // Sem isto o teclado do iPad empurra a página e o layout fica torto ao voltar.
         webView.scrollView.keyboardDismissMode = .interactive
-        view.addSubview(webView)
-        // Ocupa a tela inteira; o CSS do app cuida da safe area.
+
+        // ABAS NO TOPO, como no app do Mac: Cátedra | CátedraLEGIS. No Mac isso é a barra
+        // de abas do host AppKit; aqui é um UISegmentedControl acima do conteúdo. A
+        // WebView deixa de ocupar a tela inteira e passa a viver na área de conteúdo,
+        // trocada com a tela nativa do LEGIS.
+        // (CátedraJURIS entra como terceira aba quando o módulo dele for portado — não
+        // coloco uma aba morta aqui.)
+        segmento = UISegmentedControl(items: ["Cátedra", "CátedraLEGIS"])
+        // -abaLegis abre já na aba do LEGIS. Serve para verificar o porte no simulador
+        // sem depender de alguém tocar na tela; em uso normal ninguém passa esse argumento.
+        segmento.selectedSegmentIndex = ProcessInfo.processInfo.arguments.contains("-abaLegis") ? 1 : 0
+        segmento.translatesAutoresizingMaskIntoConstraints = false
+        segmento.addTarget(self, action: #selector(trocarAba), for: .valueChanged)
+
+        let barra = UIView()
+        barra.translatesAutoresizingMaskIntoConstraints = false
+        barra.backgroundColor = .secondarySystemBackground
+        barra.addSubview(segmento)
+
+        areaConteudo = UIView()
+        areaConteudo.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(barra)
+        view.addSubview(areaConteudo)
+        areaConteudo.addSubview(webView)
+
         NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: view.topAnchor),
-            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            barra.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            barra.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            barra.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            segmento.centerXAnchor.constraint(equalTo: barra.centerXAnchor),
+            segmento.topAnchor.constraint(equalTo: barra.topAnchor, constant: 6),
+            segmento.bottomAnchor.constraint(equalTo: barra.bottomAnchor, constant: -6),
+
+            areaConteudo.topAnchor.constraint(equalTo: barra.bottomAnchor),
+            areaConteudo.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            areaConteudo.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            areaConteudo.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+
+            webView.topAnchor.constraint(equalTo: areaConteudo.topAnchor),
+            webView.bottomAnchor.constraint(equalTo: areaConteudo.bottomAnchor),
+            webView.leadingAnchor.constraint(equalTo: areaConteudo.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: areaConteudo.trailingAnchor),
         ])
 
         guard let dir = Bundle.main.url(forResource: "web", withExtension: nil) else {
@@ -79,6 +119,39 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             return
         }
         webView.loadFileURL(dir.appendingPathComponent("index.html"), allowingReadAccessTo: dir)
+        trocarAba()   // aplica a aba inicial (normalmente Cátedra)
+    }
+
+    /// Troca entre a WebView do Cátedra e a tela nativa do CátedraLEGIS. O LEGIS é criado
+    /// na primeira vez que a aba é aberta (o AppStore dele carrega a biblioteca do disco,
+    /// e não faz sentido pagar isso em quem nunca abrir a aba) e depois fica vivo — sair e
+    /// voltar não perde o que estava na tela nem recarrega a norma.
+    @objc private func trocarAba() {
+        let querLegis = segmento.selectedSegmentIndex == 1
+        if querLegis {
+            if legisVC == nil {
+                let host = UIHostingController(rootView: CatedraLegisRoot(store: AppStore.shared) { [weak self] in
+                    // O botão de fechar da própria tela volta para a aba do Cátedra.
+                    self?.segmento.selectedSegmentIndex = 0
+                    self?.trocarAba()
+                })
+                addChild(host)
+                host.view.translatesAutoresizingMaskIntoConstraints = false
+                areaConteudo.addSubview(host.view)
+                NSLayoutConstraint.activate([
+                    host.view.topAnchor.constraint(equalTo: areaConteudo.topAnchor),
+                    host.view.bottomAnchor.constraint(equalTo: areaConteudo.bottomAnchor),
+                    host.view.leadingAnchor.constraint(equalTo: areaConteudo.leadingAnchor),
+                    host.view.trailingAnchor.constraint(equalTo: areaConteudo.trailingAnchor),
+                ])
+                host.didMove(toParent: self)
+                legisVC = host
+            }
+            areaConteudo.bringSubviewToFront(legisVC!.view)
+        }
+        legisVC?.view.isHidden = !querLegis
+        webView.isHidden = querLegis
+        if !querLegis { areaConteudo.bringSubviewToFront(webView) }
     }
 
     private func mostrarErro(_ t: String) {
@@ -191,9 +264,29 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case "notifyPermission": permissaoNotificacao(message, replyHandler)
         case "notifyShow":       mostrarNotificacao(message); replyHandler(nil, nil)
         case "catedraLembretes": agendarLembretes(message, replyHandler)
-        // Exclusivos do Mac (abas nativas, impressão). Respondem para o JS não travar
-        // esperando uma promessa que nunca resolve.
+        case "catedraNav":       abrirTelaNativa(message); replyHandler(nil, nil)
+        // Exclusivos do Mac (impressão). Respondem para o JS não travar esperando uma
+        // promessa que nunca resolve.
         default:                 replyHandler(nil, nil)
+        }
+    }
+
+    /// O JS pede uma tela NATIVA (catedraNav). Por enquanto só o CátedraLEGIS: no Mac ele
+    /// vive numa aba do app; aqui entra em tela cheia por cima da WebView. Sem barra de
+    /// menus no iPadOS, a saída é um botão flutuante — senão não há como voltar.
+    private func abrirTelaNativa(_ message: WKScriptMessage) {
+        let corpo = message.body
+        let alvo = (corpo as? String)
+            ?? ((corpo as? [String: Any])?["view"] as? String)
+            ?? ((corpo as? [String: Any])?["tela"] as? String) ?? ""
+        guard alvo == "legis" else { return }
+        MainActor.assumeIsolated {
+            guard self.presentedViewController == nil else { return }   // não empilhar
+            let host = UIHostingController(rootView: CatedraLegisRoot(store: AppStore.shared) { [weak self] in
+                self?.dismiss(animated: true)
+            })
+            host.modalPresentationStyle = .fullScreen
+            self.present(host, animated: true)
         }
     }
 
@@ -378,3 +471,23 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 // main.swift aceita código de topo: chamamos o UIApplicationMain à mão para não
 // precisar de @main nem de projeto Xcode (mesmo espírito do build do Mac).
 UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, nil, NSStringFromClass(AppDelegate.self))
+
+/// Raiz do CátedraLEGIS no iPadOS. Espelha o CatedraLegisRoot do Mac (mac/Sources/main.swift),
+/// com uma diferença obrigatória: o Mac tem barra de menus e abas para sair da tela; aqui
+/// não há nenhuma das duas, então o botão de fechar faz parte da view — sem ele o app
+/// entraria no LEGIS e não teria como voltar.
+struct CatedraLegisRoot: View {
+    let store: AppStore
+    var fechar: () -> Void = {}
+
+    var body: some View {
+        // Sem botão de fechar flutuante: com as abas no topo, quem volta para o Cátedra é
+        // a própria aba. O X que existia aqui (herança da versão em tela cheia) ficava
+        // POR CIMA do título da barra lateral do LEGIS.
+        ContentView()
+            .environmentObject(store)
+            .environmentObject(StudyClock.shared)
+            .tint(ThemeState.t.accent)
+            .task { Notifier.requestPermission() }
+    }
+}

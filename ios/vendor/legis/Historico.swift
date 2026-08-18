@@ -103,7 +103,7 @@ struct HistoricoView: View {
             }
             if let historyURL {
                 Button {
-                    NSWorkspace.shared.open(historyURL)
+                    UIApplication.shared.open(historyURL)
                 } label: {
                     Label("Abrir versão com histórico no Planalto", systemImage: "safari")
                 }
@@ -180,27 +180,24 @@ struct PreviousTextView: View {
 
 /// NSTextView somente-leitura, selecionável — aguenta o texto integral de uma norma
 /// (o NSTextView faz layout sob demanda, ao contrário de um SwiftUI Text único).
-struct ReadOnlyTextView: NSViewRepresentable {
+struct ReadOnlyTextView: UIViewRepresentable {
     let text: String
 
-    func makeNSView(context: Context) -> NSScrollView {
-        let textView = NSTextView()
+    // A UITextView do iPadOS já rola sozinha — sem NSScrollView em volta. E o texto é
+    // `text`, não `string`.
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
         textView.isEditable = false
         textView.isSelectable = true
-        textView.isRichText = false
-        textView.drawsBackground = false
-        textView.textContainerInset = NSSize(width: 16, height: 14)
+        textView.backgroundColor = .clear
+        textView.textContainerInset = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         textView.font = NSFont.systemFont(ofSize: 14)
-        textView.string = text
-        let scroll = NSScrollView()
-        scroll.documentView = textView
-        scroll.hasVerticalScroller = true
-        scroll.drawsBackground = false
-        return scroll
+        textView.text = text
+        return textView
     }
 
-    func updateNSView(_ scroll: NSScrollView, context: Context) {
-        guard let textView = scroll.documentView as? NSTextView, textView.string != text else { return }
-        textView.string = text
+    func updateUIView(_ textView: UITextView, context: Context) {
+        guard textView.text != text else { return }
+        textView.text = text
     }
 }

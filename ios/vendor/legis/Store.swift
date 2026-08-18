@@ -185,9 +185,16 @@ final class AppStore: ObservableObject {
         loadDOUCache()         // publicações do DOU já vistas (offline)
         autoBackupIfNeeded()   // cópia de segurança do library.json (no máx. 1/dia)
         // Grava alterações pendentes (save adiado) e faz backup ao encerrar o app.
-        NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification,
-                                               object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.saveNow(); self?.autoBackupIfNeeded() }
+        // No iPadOS o encerramento raramente avisa: o sistema costuma SUSPENDER o app em
+        // vez de terminá-lo, e willTerminate pode nunca chegar. Por isso salvamos ao ir
+        // para segundo plano, que é o momento garantido — willTerminate fica junto pelo
+        // caso raro de o sistema realmente encerrar com o app em primeiro plano.
+        for evento in [UIApplication.didEnterBackgroundNotification,
+                       UIApplication.willTerminateNotification] {
+            NotificationCenter.default.addObserver(forName: evento,
+                                                   object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.saveNow(); self?.autoBackupIfNeeded() }
+            }
         }
         // Monitor de conectividade: quando a conexão VOLTA, retoma as verificações
         // pendentes (sincronização posterior). O callback chega em outra thread; não
@@ -363,9 +370,12 @@ final class AppStore: ObservableObject {
         for url in backupFiles().dropFirst(keep) { try? FileManager.default.removeItem(at: url) }
     }
 
+    /// No Mac isto revelava a pasta no Finder. O iPadOS não tem equivalente: o app não
+    /// abre o Arquivos numa pasta específica. A pasta é criada mesmo assim porque ela
+    /// aparece sozinha em Arquivos ▸ No meu iPad ▸ Cátedra (UIFileSharingEnabled no
+    /// Info.plist) — é de lá que os backups saem.
     func revealBackupsInFinder() {
         try? FileManager.default.createDirectory(at: backupsDir, withIntermediateDirectories: true)
-        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: backupsDir.path)
     }
 
     /// Restaura a biblioteca a partir de um backup. Valida ANTES de sobrescrever e
