@@ -367,8 +367,12 @@ window.ctPdfLib = (function(){
     <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Sistema</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="bancas" onclick="{{ onNav }}" style="{{ navBancas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Bancas</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:9px;font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
+      <!-- LEGIS vale para toda área (a legislação da área vem dentro dele); só as
+           súmulas/jurisprudência ficam nas carreiras jurídicas -->
       <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraLEGIS</span></button>
+      <sc-if value="{{ areaJuris }}" hint-placeholder-val="{{ true }}">
       <button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraJURIS</span></button>
+      </sc-if>
       <button data-view="ajustes" onclick="{{ onNav }}" style="{{ navStyle.ajustes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.3 2.5h4l.3-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" stroke-linejoin="round"></path></svg><span>Ajustes</span></button>
     </nav>
     </sc-if>
@@ -828,13 +832,25 @@ window.ctPdfLib = (function(){
           <div style="height:4px;background:var(--surface2);"><i style="display:block;height:100%;width:{{ onboardPct }}%;background:var(--accent);transition:width .3s;"></i></div>
           <div style="padding:30px;">
             <sc-if value="{{ onboardStep1 }}" hint-placeholder-val="{{ true }}">
-              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 1 de 3</div>
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 1 de 4</div>
               <h2 style="font-family:var(--display);font-size:24px;font-weight:600;color:var(--ink);margin:10px 0 6px;">Bem-vindo à Cátedra 👋</h2>
-              <p style="font-size:14px;color:var(--text2);line-height:1.6;margin:0 0 22px;">Sua plataforma de estudos para concursos: ciclo inteligente, revisão espaçada SM-2, simulados com raio-X e prognóstico de aprovação. Vamos configurar em 3 passos.</p>
+              <p style="font-size:14px;color:var(--text2);line-height:1.6;margin:0 0 22px;">Sua plataforma de estudos para concursos: ciclo inteligente, revisão espaçada SM-2, simulados com raio-X e prognóstico de aprovação. Vamos configurar em 4 passos.</p>
               <button onclick="{{ onboardNext }}" style="width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">Começar</button>
             </sc-if>
             <sc-if value="{{ onboardStep2 }}" hint-placeholder-val="{{ false }}">
-              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 2 de 3</div>
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 2 de 4</div>
+              <h2 style="font-family:var(--display);font-size:22px;font-weight:600;color:var(--ink);margin:10px 0 6px;">Qual é a sua área de estudo?</h2>
+              <p style="font-size:14px;color:var(--text2);line-height:1.6;margin:0 0 16px;">A plataforma se adapta: disciplinas sugeridas, tipos de atividade do ciclo, categorias das sessões e as ferramentas que aparecem no menu.</p>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;max-height:44vh;overflow:auto;">
+                <sc-for list="{{ areaCards }}" as="a" hint-placeholder-count="10">
+                  <button data-a="{{ a.id }}" onclick="{{ setAreaEstudo }}" style="{{ a.style }}"><span style="{{ a.labelStyle }}">{{ a.emoji }} {{ a.label }}{{ a.check }}</span><span style="font-size:11px;color:var(--text3);line-height:1.45;">{{ a.desc }}</span></button>
+                </sc-for>
+              </div>
+              <button onclick="{{ onboardNext }}" style="width:100%;margin-top:18px;background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">Continuar</button>
+              <div style="text-align:center;font-size:11.5px;color:var(--text3);margin-top:9px;">Dá para mudar depois em Ajustes.</div>
+            </sc-if>
+            <sc-if value="{{ onboardStep3 }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 3 de 4</div>
               <h2 style="font-family:var(--display);font-size:22px;font-weight:600;color:var(--ink);margin:10px 0 16px;">Por onde quer começar?</h2>
               <div style="display:flex;flex-direction:column;gap:10px;">
                 <button data-c="edital" onclick="{{ onboardPick }}" style="{{ onbEdital }}"><b style="color:var(--ink);font-size:14.5px;">📋 Tenho o edital</b><div style="font-size:12.5px;color:var(--text3);margin-top:3px;">Importe o edital e a plataforma prioriza por peso e incidência.</div></button>
@@ -843,8 +859,8 @@ window.ctPdfLib = (function(){
               </div>
               <button onclick="{{ onboardNext }}" style="width:100%;margin-top:20px;background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">Continuar</button>
             </sc-if>
-            <sc-if value="{{ onboardStep3 }}" hint-placeholder-val="{{ false }}">
-              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 3 de 3</div>
+            <sc-if value="{{ onboardStep4 }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 4 de 4</div>
               <h2 style="font-family:var(--display);font-size:22px;font-weight:600;color:var(--ink);margin:10px 0 6px;">Só o essencial 🎯</h2>
               <p style="font-size:14px;color:var(--text2);line-height:1.6;margin:0 0 18px;">Duas informações e o Cátedra já monta seu ciclo e conta os dias até a prova.</p>
               <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:22px;">
@@ -1457,7 +1473,7 @@ window.ctPdfLib = (function(){
                         </div>
                         <sc-if value="{{ f.temRoteiro }}" hint-placeholder-val="{{ false }}"><span title="{{ f.roteiro }}" style="align-self:flex-start;font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--text3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ f.rotShort }}</span></sc-if>
                         <div style="display:flex;gap:5px;align-items:center;">
-                          <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" title="Tipo" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="Teoria">Teoria</option><option value="Questões">Questões</option><option value="Lei seca">Lei seca</option><option value="Jurisprudência">Jurisprudência</option><option value="Revisão">Revisão</option><option value="Flashcards">Flashcards</option></select>
+                          <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" title="Tipo" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;"><sc-for list="{{ f.kindOpts }}" as="k" hint-placeholder-count="6"><option value="{{ k.v }}" selected="{{ k.sel }}">{{ k.v }}</option></sc-for></select>
                           <select data-id="{{ f.id }}" data-field="dia" value="{{ f.dia }}" onchange="{{ editFixed }}" title="Mover para outro dia" style="width:64px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 3px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="">Todo dia</option><option value="seg">Seg</option><option value="ter">Ter</option><option value="qua">Qua</option><option value="qui">Qui</option><option value="sex">Sex</option><option value="sab">Sáb</option><option value="dom">Dom</option></select>
                           <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" title="Minutos" style="width:44px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:var(--mono);flex:none;text-align:center;">
                         </div>
@@ -1483,7 +1499,7 @@ window.ctPdfLib = (function(){
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface2);border-radius:10px;padding:10px 12px;">
                   <span style="width:22px;height:22px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;flex:none;{{ r.posStyle }}">{{ r.pos }}</span>
                   <input data-id="{{ r.id }}" data-field="disc" value="{{ r.disc }}" oninput="{{ editRot }}" placeholder="Disciplina (ex.: Direito Penal)" style="flex:1;min-width:130px;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 9px;font-size:13px;color:var(--ink);font-family:inherit;">
-                  <select data-id="{{ r.id }}" data-field="kind" value="{{ r.kind }}" onchange="{{ editRot }}" style="border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="Teoria">Teoria</option><option value="Questões">Questões</option><option value="Lei seca">Lei seca</option><option value="Jurisprudência">Jurisprudência</option><option value="Revisão">Revisão</option><option value="Flashcards">Flashcards</option></select>
+                  <select data-id="{{ r.id }}" data-field="kind" value="{{ r.kind }}" onchange="{{ editRot }}" style="border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:12.5px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><sc-for list="{{ r.kindOpts }}" as="k" hint-placeholder-count="6"><option value="{{ k.v }}" selected="{{ k.sel }}">{{ k.v }}</option></sc-for></select>
                   <input data-id="{{ r.id }}" data-field="min" type="number" min="5" step="5" value="{{ r.min }}" oninput="{{ editRot }}" title="Minutos" style="width:60px;border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:7px 8px;font-size:13px;color:var(--ink);font-family:inherit;flex:none;">
                   <span style="font-size:11px;color:var(--text3);flex:none;">min</span>
                   <sc-if value="{{ r.isNext }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:700;color:var(--accentD);background:var(--accentSoft);padding:3px 7px;border-radius:6px;flex:none;">próxima</span></sc-if>
@@ -1520,6 +1536,9 @@ window.ctPdfLib = (function(){
           </div>
           <sc-if value="{{ modeloOpen }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+              <sc-if value="{{ modeloSemArea }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-bottom:12px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:11.5px;color:var(--text2);line-height:1.5;">{{ modeloAvisoArea }}</div>
+              </sc-if>
               <sc-if value="{{ modeloMulti }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:8px;">Concurso</div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
@@ -1527,6 +1546,9 @@ window.ctPdfLib = (function(){
                     <button data-id="{{ c.id }}" onclick="{{ setModelo }}" style="{{ c.style }}"><span style="{{ c.nomeStyle }}">{{ c.nome }}</span><span style="{{ c.subStyle }}">{{ c.contagem }}</span></button>
                   </sc-for>
                 </div>
+              </sc-if>
+              <sc-if value="{{ modeloTemOutras }}" hint-placeholder-val="{{ false }}">
+                <button onclick="{{ toggleModeloOutras }}" style="margin-bottom:14px;background:transparent;border:1px dashed var(--border);border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">{{ modeloOutrasLabel }}</button>
               </sc-if>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px;">
                 <button onclick="{{ modeloTodas }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">{{ modeloTodasLabel }}</button>
@@ -2489,7 +2511,7 @@ window.ctPdfLib = (function(){
 
       <!-- ============ CÁTEDRALEGIS (web) — catálogo + plano + índice, página nativa ============ -->
       <sc-if value="{{ isLegis }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="legis-web.html" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+        <iframe data-ct-frame="{{ legisFrameSrc }}" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
 
       <!-- ============ CÁTEDRAJURIS (web) — súmulas e julgados STF/STJ/TSE, página nativa ============ -->
@@ -2597,6 +2619,24 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
 
+        <!-- ÁREA DE ESTUDO -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+            <span style="font-weight:600;color:var(--ink);font-size:15px;">Área de estudo</span>
+            <span style="font-size:12px;color:var(--text3);">{{ areaAtualEmoji }} {{ areaAtualLabel }}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">a plataforma fala a língua da sua área — disciplinas sugeridas, tipos de atividade do ciclo, categorias das sessões, modelos de edital e ferramentas do menu</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:9px;">
+            <sc-for list="{{ areaCards }}" as="a" hint-placeholder-count="10">
+              <button data-a="{{ a.id }}" onclick="{{ setAreaEstudo }}" style="{{ a.style }}"><span style="{{ a.labelStyle }}">{{ a.emoji }} {{ a.label }}{{ a.check }}</span><span style="font-size:11px;color:var(--text3);line-height:1.45;">{{ a.desc }}</span></button>
+            </sc-for>
+          </div>
+          <div style="margin-top:16px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;font-size:12px;color:var(--text2);line-height:1.6;">
+            <b style="color:var(--ink);">Nesta área:</b> categorias de estudo próprias — {{ areaCatsStr }}; {{ areaFerramentas }}.
+            <div style="color:var(--text3);margin-top:6px;">Trocar de área não apaga nada: o edital, o histórico e as revisões continuam como estão.</div>
+          </div>
+        </div>
+
         <!-- PERFIL + COBRANÇA -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -2696,7 +2736,7 @@ window.ctPdfLib = (function(){
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
               <label style="display:flex;align-items:center;gap:10px;padding:13px 15px;border:1px solid var(--border);border-radius:11px;cursor:pointer;"><input type="checkbox" data-k="ativarReta" checked="{{ orient.ativarReta }}" onchange="{{ toggleOrient }}" style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex:none;"><span style="font-size:12.5px;color:var(--ink);">Ativar modo reta final automaticamente.</span></label>
-              <label style="display:flex;align-items:center;gap:10px;padding:13px 15px;border:1px solid var(--border);border-radius:11px;cursor:pointer;"><input type="checkbox" data-k="reduzirTeoria" checked="{{ orient.reduzirTeoria }}" onchange="{{ toggleOrient }}" style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex:none;"><span style="font-size:12.5px;color:var(--ink);line-height:1.35;">Reduzir teoria nova e priorizar revisão, lei seca, súmulas, jurisprudência, erros e simulados.</span></label>
+              <label style="display:flex;align-items:center;gap:10px;padding:13px 15px;border:1px solid var(--border);border-radius:11px;cursor:pointer;"><input type="checkbox" data-k="reduzirTeoria" checked="{{ orient.reduzirTeoria }}" onchange="{{ toggleOrient }}" style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex:none;"><span style="font-size:12.5px;color:var(--ink);line-height:1.35;">{{ retaReduzDesc }}</span></label>
             </div>
           </div>
         </div>
@@ -3588,13 +3628,82 @@ window.ctPdfLib = (function(){
 
 </x-dc>
 <script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:760},&quot;direction&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sutil&quot;,&quot;premium&quot;,&quot;clean&quot;,&quot;moderno&quot;],&quot;default&quot;:&quot;sutil&quot;,&quot;tsType&quot;:&quot;'sutil'|'premium'|'clean'|'moderno'&quot;}}">
+// ===== ÁREAS DE ESTUDO =====
+// A Cátedra nasceu jurídica, mas o método (ciclo, revisão espaçada SM-2, questões,
+// simulados, raio-X) serve a qualquer prova. A área que a pessoa escolhe é o que
+// adapta o VOCABULÁRIO e os atalhos da plataforma:
+//   juridico -> vocabulário jurídico nos tipos de atividade (lei seca, jurisprudência)
+//   juris    -> mostra a aba CátedraJURIS (súmulas e teses); o LEGIS aparece em TODAS
+//               as áreas, com a legislação padrão e a específica de cada uma
+//   cats     -> categorias EXTRAS da área; Teoria/Revisão/Questões/Simulado valem p/ todas
+//   discs    -> disciplinas sugeridas enquanto o edital ainda está vazio
+//   modelos  -> ids de CT_MODELOS da área (os outros ficam atrás de "ver os outros")
+// Guardo o ID, nunca o rótulo: mudar o texto da área não pode invalidar dado salvo.
+// Sem escolha = jurídica, que é como o app sempre funcionou (quem já usa não vê diferença).
+const CT_AREAS = [
+  {id:'juridica', emoji:'⚖️', label:'Jurídica', desc:'Magistratura, MP, Defensoria, Procuradorias, tribunais, OAB',
+   juridico:true, juris:true, cats:['Lei seca','Jurisprudência'],
+   discs:['Direito Constitucional','Direito Administrativo','Direito Civil','Direito Processual Civil','Direito Penal','Direito Processual Penal'],
+   modelos:['magistratura','enam','promotor','defensor','procurador','juizfederal','tribunais','tj','consultor']},
+  {id:'saude', emoji:'🩺', label:'Saúde e Medicina', desc:'Residência, Revalida, enfermagem, farmácia, odontologia, concursos da saúde',
+   juridico:false, juris:false, cats:['Caso clínico','Protocolo/diretriz'],
+   discs:['Clínica Médica','Cirurgia','Pediatria','Ginecologia e Obstetrícia','Medicina Preventiva','Saúde Pública / SUS'],
+   modelos:[]},
+  {id:'social', emoji:'🤝', label:'Assistência Social', desc:'Serviço social, SUAS, CRAS/CREAS, políticas públicas',
+   juridico:false, juris:false, cats:['Legislação social','Estudo de caso'],
+   discs:['Serviço Social','Política Social e Seguridade','Ética e Projeto Profissional','SUAS e Assistência Social','Saúde Pública / SUS','Direitos Humanos'],
+   modelos:['transpetroSocial']},
+  {id:'policial', emoji:'🚔', label:'Policial e Segurança Pública', desc:'PF, PRF, polícias civis e militares, agente, escrivão, delegado',
+   juridico:true, juris:true, cats:['Lei seca','Jurisprudência','Procedimento operacional'],
+   discs:['Direito Constitucional','Direito Penal','Direito Processual Penal','Legislação Penal Especial','Direito Administrativo','Criminologia'],
+   modelos:['delegado','escrivao']},
+  {id:'fiscal', emoji:'📊', label:'Fiscal e Controle', desc:'Auditor-fiscal, Receita, tribunais de contas, controle interno',
+   juridico:true, juris:true, cats:['Lei seca','Jurisprudência'],
+   discs:['Direito Tributário','Contabilidade Geral','Auditoria','Direito Administrativo','Administração Financeira e Orçamentária','Direito Constitucional'],
+   modelos:['auditor']},
+  {id:'administrativa', emoji:'🏛️', label:'Administrativa e Gestão', desc:'Analista e técnico administrativo, gestão pública, legislativo',
+   juridico:true, juris:true, cats:['Lei seca'],
+   discs:['Língua Portuguesa','Direito Administrativo','Direito Constitucional','Administração Pública','Raciocínio Lógico','Informática'],
+   modelos:['tribunais','tj','consultor']},
+  {id:'educacao', emoji:'📚', label:'Educação e Docência', desc:'Professor, pedagogia, magistério, provas de licenciatura',
+   juridico:false, juris:false, cats:['Documento normativo','Prática de ensino'],
+   discs:['Fundamentos da Educação','Didática','Legislação Educacional (LDB)','Psicologia da Aprendizagem','Gestão Escolar','Conhecimentos Específicos'],
+   modelos:[]},
+  {id:'tecnologia', emoji:'💻', label:'Tecnologia e Engenharia', desc:'TI, engenharias, exatas e carreiras técnicas',
+   juridico:false, juris:false, cats:['Prática/laboratório','Documentação'],
+   discs:['Matemática','Raciocínio Lógico','Programação','Banco de Dados','Redes de Computadores','Segurança da Informação'],
+   modelos:[]},
+  {id:'militar', emoji:'🎖️', label:'Militar', desc:'Forças Armadas, ESA, EsPCEx, EEAr, IME/ITA',
+   juridico:false, juris:false, cats:['Exercícios'],
+   discs:['Matemática','Física','Química','Língua Portuguesa','História','Geografia'],
+   modelos:[]},
+  {id:'outra', emoji:'✳️', label:'Outra área', desc:'Qualquer outra prova — o método de estudo continua o mesmo',
+   juridico:false, juris:false, cats:[],
+   discs:['Língua Portuguesa','Conhecimentos Específicos','Raciocínio Lógico','Atualidades','Informática','Conhecimentos Gerais'],
+   modelos:[]},
+];
+const CT_AREA = (id)=> CT_AREAS.find(a=>a.id===id) || CT_AREAS[0];
+// Ícone e cor de CADA categoria de estudo (as básicas + as de todas as áreas), num
+// mapa só, para histórico, ciclo e gráficos não divergirem quando a área muda.
+const CT_CAT_META = {
+  'Teoria':{i:'📘',c:'#6b4fbb'}, 'Revisão':{i:'🔁',c:'#0f9d6b'}, 'Questões':{i:'❓',c:'#2563eb'},
+  'Simulado':{i:'📝',c:'#0a7ea4'}, 'Flashcards':{i:'🃏',c:'#b08433'},
+  'Lei seca':{i:'⚖️',c:'#b08433'}, 'Jurisprudência':{i:'🏛️',c:'#c0392f'},
+  'Caso clínico':{i:'🩺',c:'#c0392f'}, 'Protocolo/diretriz':{i:'📋',c:'#0d9488'},
+  'Legislação social':{i:'🤝',c:'#b08433'}, 'Estudo de caso':{i:'🗂️',c:'#0d9488'},
+  'Procedimento operacional':{i:'🚔',c:'#0d9488'},
+  'Documento normativo':{i:'📜',c:'#b08433'}, 'Prática de ensino':{i:'🏫',c:'#0d9488'},
+  'Prática/laboratório':{i:'🧪',c:'#0d9488'}, 'Documentação':{i:'📄',c:'#b08433'},
+  'Exercícios':{i:'✏️',c:'#c2790c'},
+};
+
 // ===== MODELO DE EDITAL PRÉ-CADASTRADO =====
 // Para o app não começar vazio: disciplinas, tópicos e subtópicos prontos, no
 // programa de Magistratura Estadual (padrão Res. 75/CNJ). É um PONTO DE PARTIDA
 // — quem usa ajusta ao edital do próprio concurso. Formato: [nome, cor,
 // [[tópico, [subtópicos…]] …]]. Entra pelo botão "Modelos" do Edital; nunca é
 // gravado sozinho (a regra da casa é automação ABRE, não grava).
-const CT_MODELOS = [{"id":"magistratura","nome":"Magistratura Estadual","sub":"Juiz de Direito · TJ-RO (Res. 75/CNJ)","nd":17,"nt":248,"ns":798},{"id":"enam","nome":"ENAM","sub":"Exame Nacional da Magistratura · ENFAM/CNJ","nd":8,"nt":134,"ns":849},{"id":"promotor","nome":"Promotor de Justiça","sub":"MP-MG · LXI Concurso","nd":12,"nt":268,"ns":922},{"id":"defensor","nome":"Defensor Público","sub":"DPE-PE · FGV","nd":11,"nt":248,"ns":508},{"id":"delegado","nome":"Delegado de Polícia","sub":"PCDF · Cebraspe","nd":10,"nt":125,"ns":390},{"id":"tribunais","nome":"Analista Judiciário","sub":"TRF-1 · área judiciária · FGV","nd":12,"nt":463,"ns":175},{"id":"consultor","nome":"Consultor Legislativo","sub":"ALE-RO · assessoramento","nd":17,"nt":283,"ns":151},{"id":"procurador","nome":"Procurador do Estado","sub":"PGE-PR · Cebraspe","nd":13,"nt":254,"ns":973},{"id":"auditor","nome":"Auditor-Fiscal","sub":"Receita Federal · FGV","nd":17,"nt":314,"ns":365},{"id":"escrivao","nome":"Escrivão de Polícia","sub":"PC-AL · Cebraspe","nd":20,"nt":156,"ns":152},{"id":"tj","nome":"Analista de TJ","sub":"TJ-RJ · FGV","nd":11,"nt":116,"ns":273},{"id":"juizfederal","nome":"Juiz Federal","sub":"TRF-2 · FGV","nd":22,"nt":215,"ns":1593}];
+const CT_MODELOS = [{"id": "transpetroSocial", "nome": "Serviço Social", "sub": "Transpetro (Petrobras) · nível superior", "nd": 3, "nt": 34, "ns": 0},{"id":"magistratura","nome":"Magistratura Estadual","sub":"Juiz de Direito · TJ-RO (Res. 75/CNJ)","nd":17,"nt":248,"ns":798},{"id":"enam","nome":"ENAM","sub":"Exame Nacional da Magistratura · ENFAM/CNJ","nd":8,"nt":134,"ns":849},{"id":"promotor","nome":"Promotor de Justiça","sub":"MP-MG · LXI Concurso","nd":12,"nt":268,"ns":922},{"id":"defensor","nome":"Defensor Público","sub":"DPE-PE · FGV","nd":11,"nt":248,"ns":508},{"id":"delegado","nome":"Delegado de Polícia","sub":"PCDF · Cebraspe","nd":10,"nt":125,"ns":390},{"id":"tribunais","nome":"Analista Judiciário","sub":"TRF-1 · área judiciária · FGV","nd":12,"nt":463,"ns":175},{"id":"consultor","nome":"Consultor Legislativo","sub":"ALE-RO · assessoramento","nd":17,"nt":283,"ns":151},{"id":"procurador","nome":"Procurador do Estado","sub":"PGE-PR · Cebraspe","nd":13,"nt":254,"ns":973},{"id":"auditor","nome":"Auditor-Fiscal","sub":"Receita Federal · FGV","nd":17,"nt":314,"ns":365},{"id":"escrivao","nome":"Escrivão de Polícia","sub":"PC-AL · Cebraspe","nd":20,"nt":156,"ns":152},{"id":"tj","nome":"Analista de TJ","sub":"TJ-RJ · FGV","nd":11,"nt":116,"ns":273},{"id":"juizfederal","nome":"Juiz Federal","sub":"TRF-2 · FGV","nd":22,"nt":215,"ns":1593}];
 
 // ===== TABELA DE LEITURA DAS LEIS E SÚMULAS (roteiro da orientadora) =====
 // 103 dias × 6 leis + súmulas, extraída do PDF "1. Tabela de Leitura de Leis e
@@ -3616,7 +3725,11 @@ const CT_FAIXAS_SUM = (()=>{ const m={};
 class Component extends DCLogic {
   constructor(props){
     super(props);
+    // Área de estudo escolhida (id de CT_AREAS). É lida ANTES do state porque as
+    // disciplinas-padrão dos rascunhos saem dela — sem área salva, cai na jurídica.
+    const _areaIni = CT_AREA(this._load('areaEstudo',''));
     this.state = {
+      areaEstudo:this._load('areaEstudo',''),
       view:'inicio',
       nativeRev:null,   // agenda única: {legis:{due,deck}, juris:{due,deck}} injetado pelo host do desktop
       nativePlano:null, // planos de leitura: {legis:{done,total,next}, juris:{done,total,next}} injetado pelo host
@@ -3647,10 +3760,11 @@ class Component extends DCLogic {
       sessions: (()=>{ try{ const raw=localStorage.getItem('catedra:sessions'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
       sessionsLixeira: (()=>{ try{ const raw=localStorage.getItem('catedra:sessionsLixeira'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)) return arr; } }catch(_){} return []; })(),
       histLixeiraOpen:false,
-      sessionDraft:{ disc:'Direito Constitucional', topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
+      sessionDraft:{ disc:_areaIni.discs[0], topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
       edRaw:'', edParsed:null, edAiBusy:false,
-      modeloOpen:false, modeloSel:[], modeloId:(CT_MODELOS[0]&&CT_MODELOS[0].id)||'',   // modelos de edital pré-cadastrados
-      cad:{mode:'nova', discSel:'Direito Constitucional', discNova:'', cor:'#2563eb', topico:'', sub:'', peso:'', questoes:''},
+      modeloOpen:false, modeloSel:[], modeloOutras:false,
+      modeloId:((CT_MODELOS.filter(m=>(_areaIni.modelos||[]).indexOf(m.id)>=0)[0])||CT_MODELOS[0]||{}).id||'',   // modelos de edital pré-cadastrados
+      cad:{mode:'nova', discSel:_areaIni.discs[0], discNova:'', cor:'#2563eb', topico:'', sub:'', peso:'', questoes:''},
       eventos:this._load('eventos', []),
       biblioteca:[],
       bibDraft:{tipo:'Resumo', titulo:'', disc:'Constitucional', texto:''},
@@ -4084,7 +4198,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel']; }
+  _autosaveKeys(){ return ['areaEstudo','edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel']; }
   _autosave(){
     const keys=this._autosaveKeys();
     const L=this._lastSaved||(this._lastSaved={});
@@ -4673,12 +4787,18 @@ class Component extends DCLogic {
     } else { this.setState({blocks:b, ...extra}); } };
   // Adaptação por energia: blocos mais CURTOS em dias de baixa energia, mais longos na alta.
   _enMult(){ const O=this.state.orient||{}; const e=O.energiaPlano||O.energia||'normal'; return e==='baixa'?0.7:(e==='alta'?1.2:1); }
+  // 'Lei seca' e 'Jurisprudência' só existem em prova jurídica: fora do Direito, os
+  // blocos gerados automaticamente passam por aqui e viram os tipos próprios da área.
+  _kindDaArea(k){ const A=CT_AREA(this.state.areaEstudo); if(A.juridico) return k;
+    if(k==='Lei seca') return A.cats[0]||'Teoria';
+    if(k==='Jurisprudência') return A.cats[1]||A.cats[0]||'Revisão';
+    return k; }
   _genSugestao(){
     const O=this.state.orient||{}, p=this.state.profile||{};
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*this._enMult())); const m=(f)=>Math.max(15,Math.round(base*f));
     const reta=!!p.retaFinal, nivel=O.nivel||'intermediario', estr=O.estrategia||'ciclo';
     let discs; try{ const B=this._brain(); const weak=[...B.discList].filter(d=>d.q>0).sort((a,b)=>a.liqPct-b.liqPct).map(d=>d.disc); const all=(this.state.edital||[]).map(d=>d.disc); discs=[...new Set([...weak,...all])]; }catch(_){ discs=[]; }
-    if(!discs.length) discs=['Direito Constitucional','Direito Administrativo','Direito Tributário','Direito Civil','Processo Civil'];
+    if(!discs.length) discs=CT_AREA(this.state.areaEstudo).discs.slice(0,5);
     const D=(i)=>discs[i%discs.length]; const anki={disc:'Revisão · Anki', kind:'Flashcards', tag:'Fixação', min:25, done:false};
     let out;
     if(reta){ out=[{disc:D(0),kind:'Questões',tag:'Reta · ponto fraco',min:base},{disc:D(1),kind:'Lei seca',tag:'Reta · lei seca',min:m(.8)},{disc:D(2),kind:'Jurisprudência',tag:'Reta · súmulas',min:m(.7)},{disc:'Simulado',kind:'Simulado',tag:'Reta · diagnóstico',min:m(1.4)},{...anki,tag:'Reta · erros'}]; }
@@ -4687,7 +4807,10 @@ class Component extends DCLogic {
     else if(nivel==='iniciante'){ out=[{disc:D(0),kind:'Teoria',tag:'Base',min:base},{disc:D(0),kind:'Questões',tag:'Comentadas',min:m(.8)},{disc:D(1),kind:'Teoria',tag:'Base',min:base},{disc:D(2),kind:'Revisão',tag:'Revisão',min:m(.7)},anki]; }
     else if(nivel==='avancado'){ out=[{disc:D(0),kind:'Questões',tag:'Ponto fraco',min:base},{disc:D(1),kind:'Questões',tag:'Ponto fraco',min:base},{disc:D(0),kind:'Simulado',tag:'Treino de prova',min:m(1.3)},{disc:D(2),kind:'Lei seca',tag:'Reforço',min:m(.7)},{...anki,tag:'Erros'}]; }
     else { out=[{disc:D(0),kind:'Teoria',tag:'Bloco 1',min:base},{disc:D(1),kind:'Questões',tag:'Bloco 2',min:m(.9)},{disc:D(2),kind:'Lei seca',tag:'Bloco 3',min:m(.8)},{disc:D(3),kind:'Jurisprudência',tag:'Bloco 4',min:m(.7)},{...anki,tag:'Bloco 5'}]; }
-    return out.map(b=>({done:false,...b}));
+    return out.map(b=>{ const kind=this._kindDaArea(b.kind);
+      // a etiqueta acompanha o tipo (senão sobra "Reta · lei seca" em prova de saúde)
+      const tag=(kind!==b.kind && /lei seca|súmulas/i.test(b.tag||'')) ? String(b.tag).replace(/lei seca|súmulas/i, kind.toLowerCase()) : b.tag;
+      return {done:false,...b, kind, tag}; });
   }
   // Domínio (0–1) por disciplina, a partir do desempenho líquido real (proxy de domínio).
   _domPorDisc(){
@@ -4718,7 +4841,7 @@ class Component extends DCLogic {
     const ed=(this.state.edital||[]).map(d=>{ const peso=parseFloat(d.peso)||1, q=parseInt(d.questoes,10)||0, dm=dom[d.disc]||0; return {disc:d.disc, peso, q, dom:dm, score:peso*(1-dm)}; });
     if(!ed.length || ed.every(d=>d.peso<=1 && !d.q)) return this._genSugestao();
     ed.sort((a,b)=> b.score!==a.score ? b.score-a.score : b.q-a.q);
-    const out=ed.slice(0,4).map((d,idx)=>({ disc:d.disc, kind: idx<2?'Questões':(idx===2?'Lei seca':'Teoria'), tag:'Peso '+(Math.round(d.peso*10)/10)+' · domínio '+Math.round(d.dom*100)+'%', min: idx===0?base:Math.max(20,Math.round(base*(1-idx*0.1))), done:false }));
+    const out=ed.slice(0,4).map((d,idx)=>({ disc:d.disc, kind: this._kindDaArea(idx<2?'Questões':(idx===2?'Lei seca':'Teoria')), tag:'Peso '+(Math.round(d.peso*10)/10)+' · domínio '+Math.round(d.dom*100)+'%', min: idx===0?base:Math.max(20,Math.round(base*(1-idx*0.1))), done:false }));
     out.push({disc:'Revisão · Anki', kind:'Flashcards', tag:'Erros priorizados', min:25, done:false});
     return out;
   }
@@ -4955,7 +5078,9 @@ class Component extends DCLogic {
     return (d&&Array.isArray(d.topics))?d.topics:[]; }
   _subsDe(disc, topico){ const t=this._topicosDe(disc).find(x=>String(x.name||'').trim()===String(topico||'').trim());
     return (t&&Array.isArray(t.subs))?t.subs:[]; }
-  _kindToCat(kind){ return {'Teoria':'Teoria','Questões':'Questões','Lei seca':'Lei seca','Jurisprudência':'Jurisprudência','Simulado':'Simulado','Revisão':'Revisão','Flashcards':'Revisão'}[kind]||'Teoria'; }
+  // Flashcards é o único tipo cuja categoria difere do nome; os tipos próprios de cada
+  // área (Caso clínico, Prática/laboratório…) valem como categoria com o mesmo nome.
+  _kindToCat(kind){ return {'Flashcards':'Revisão'}[kind] || (CT_CAT_META[kind]?kind:'Teoria'); }
   _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind);
     // Se o bloco tem vínculo com o edital (disciplina + tópico da Agenda da semana),
     // a sessão nasce vinculada — e o progresso do edital/domínio conta certo.
@@ -6172,7 +6297,8 @@ class Component extends DCLogic {
     const abertos=all.filter(e=>!e.resolvido); const byDisc={}, byMot={};
     abertos.forEach(e=>{ const dk=e.disc||'Geral'; byDisc[dk]=(byDisc[dk]||0)+1; const mk=(this.ERR_MOTIVOS[e.motivo]||{}).label||e.motivo; byMot[mk]=(byMot[mk]||0)+1; });
     const fmt=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+': '+v).join(', ');
-    const prompt='Você é um tutor de concursos. Com base nos erros do aluno, escreva um PLANO DE ATAQUE curto e prático em pt-BR (sem markdown pesado). Estruture em três partes: Diagnóstico (2 frases); Prioridades da semana (3 a 5 itens, os temas/disciplinas mais críticos); Plano prático (o que fazer: questões, revisão, lei seca). Seja específico e objetivo.\n'
+    const _A=CT_AREA(this.state.areaEstudo);
+    const prompt='Você é um tutor de estudos para provas na área de '+_A.label+'. Com base nos erros do aluno, escreva um PLANO DE ATAQUE curto e prático em pt-BR (sem markdown pesado). Estruture em três partes: Diagnóstico (2 frases); Prioridades da semana (3 a 5 itens, os temas/disciplinas mais críticos); Plano prático (o que fazer: questões, revisão'+(_A.cats.length?(', '+_A.cats.join(', ').toLowerCase()):'')+'). Seja específico e objetivo, com vocabulário da área de '+_A.label+'.\n'
       +'Total de erros: '+all.length+' ('+abertos.length+' em aberto).\nErros por disciplina: '+(fmt(byDisc)||'—')+'.\nErros por motivo: '+(fmt(byMot)||'—')+'.';
     const txt=await this._aiText(prompt);
     this.setState({errPlano:txt||'(a IA não respondeu — tente de novo)', errPlanoBusy:false}); };
@@ -6333,6 +6459,32 @@ class Component extends DCLogic {
   // Ajustes: o cartão de Anki avançado (retenção, carga) é de nicho — nasce recolhido.
   toggleAjAnki = ()=> this.setState(s=>({ajAnkiOpen:!s.ajAnkiOpen}));
 
+  // ===================== ÁREA DE ESTUDO =====================
+  // Uma escolha só, que reetiqueta a plataforma inteira. NÃO mexe em nada já
+  // registrado: sessões antigas continuam com as categorias que tinham, e o edital
+  // cadastrado não é tocado — a área só muda o que o app SUGERE daqui pra frente.
+  setAreaEstudo = (e)=>{ const v=e.currentTarget.dataset.a||'';
+    if(v===(this.state.areaEstudo||'')) return;
+    const A=CT_AREA(v); const patch={areaEstudo:v};
+    // O JURIS some do menu fora das carreiras jurídicas: quem estiver nele ficaria
+    // preso numa tela sem porta de saída. O LEGIS fica em todas as áreas.
+    if(!A.juris && this.state.view==='juris') patch.view='ajustes';
+    // o modelo de edital em foco tem de ser um da área nova — senão a tela destaca um
+    // concurso e o botão "aplicar" grava outro (o que o state ainda guardava)
+    const _mA=CT_MODELOS.filter(m=>(A.modelos||[]).indexOf(m.id)>=0);
+    if(_mA.length && !_mA.some(m=>m.id===this.state.modeloId)){ patch.modeloId=_mA[0].id; patch.modeloSel=[]; patch.modeloOutras=false; }
+    // rascunhos abertos ainda trazem a disciplina SUGERIDA da área anterior. Troco só
+    // quando o valor veio de catálogo (nunca o que a pessoa digitou nem o que está no
+    // edital dela) e a área nova não usa mais aquela disciplina.
+    const _cat=CT_AREAS.reduce((acc,x)=>acc.concat(x.discs),[]);
+    const _ed=(this.state.edital||[]).map(d=>String(d.disc||'').trim());
+    const _trocar=(v)=> !!v && _cat.indexOf(v)>=0 && A.discs.indexOf(v)<0 && _ed.indexOf(v)<0;
+    const _sd=this.state.sessionDraft||{}; if(_trocar(_sd.disc)) patch.sessionDraft={..._sd, disc:A.discs[0]};
+    const _cd=this.state.cad||{};          if(_trocar(_cd.discSel)) patch.cad={..._cd, discSel:A.discs[0]};
+    this.setState(patch);
+    this._toast('Área de estudo: '+A.label+' ✦'); this.flashSync(); };
+  toggleModeloOutras = ()=> this.setState(s=>({modeloOutras:!s.modeloOutras}));
+
   // ===================== ABA BANCAS (perfil + dicas por área) =====================
   setBancaArea = (e)=>{ const v=e.currentTarget.value||''; this.setState({bancaAreaSel:v}); };
   // Dicas específicas de uma matéria para uma banca, geradas pela IA sob demanda
@@ -6346,7 +6498,8 @@ class Component extends DCLogic {
     const key=banca+'::'+area;
     if((this.state.bancaDicas||{})[key]){ return; } // já tem
     this.setState({bancaBusy:key});
-    const prompt='Você é um professor especialista em concursos públicos no Brasil. Dê dicas '
+    const _A=CT_AREA(this.state.areaEstudo);
+    const prompt='Você é um professor especialista em concursos públicos no Brasil, na área de '+_A.label+'. Dê dicas '
       +'PRÁTICAS e específicas de como estudar a matéria "'+area+'" para a banca '+label+', '
       +'considerando o estilo de cobrança dessa banca (formato das questões, pegadinhas típicas, '
       +'literalidade da lei x interpretação). Seja concreto e direto. Responda SOMENTE com JSON '
@@ -6470,7 +6623,11 @@ class Component extends DCLogic {
       this._toast('Modo reta final ativado — faltam '+d+' dias para a prova'); this.flashSync(); } }
   setRetaCom = (e)=> this.setState(s=>({orient:{...s.orient, retaFinalCom:e.currentTarget.value}}), ()=>this._persistOrient());
   toggleReduzTeoria = ()=> this.setState(s=>({orient:{...s.orient, reduzirTeoria:!s.orient.reduzirTeoria}}), ()=>this._persistOrient());
-  retaCriarBloco = (e)=>{ const k=e.currentTarget.dataset.k; const map={leiseca:{disc:'Lei seca de alta incidência',kind:'Lei seca',min:30},juris:{disc:'Jurisprudência e súmulas',kind:'Jurisprudência',min:30},erros:{disc:'Questões erradas do caderno',kind:'Questões',min:30}}; const c=map[k]; if(!c) return; if((this.state.blocks||[]).some(b=>b.tag==='Reta final'&&b.disc===c.disc)){ this._toast('Este bloco já está no seu ciclo de hoje'); return; } this.setState(s=>({blocks:[{...c, tag:'Reta final', done:false}, ...s.blocks]})); this._toast('Bloco de reta final adicionado ao ciclo ✦'); this.flashSync(); };
+  retaCriarBloco = (e)=>{ const k=e.currentTarget.dataset.k; const A=CT_AREA(this.state.areaEstudo);
+    const map = A.juridico
+      ? {leiseca:{disc:'Lei seca de alta incidência',kind:'Lei seca',min:30},juris:{disc:'Jurisprudência e súmulas',kind:'Jurisprudência',min:30},erros:{disc:'Questões erradas do caderno',kind:'Questões',min:30}}
+      : {foco:{disc:'Conteúdo de maior peso',kind:'Teoria',min:30},pratica:{disc:(A.cats[0]||'Prática dirigida'),kind:(A.cats[0]||'Revisão'),min:30},erros:{disc:'Questões erradas do caderno',kind:'Questões',min:30}};
+    const c=map[k]; if(!c) return; if((this.state.blocks||[]).some(b=>b.tag==='Reta final'&&b.disc===c.disc)){ this._toast('Este bloco já está no seu ciclo de hoje'); return; } this.setState(s=>({blocks:[{...c, tag:'Reta final', done:false}, ...s.blocks]})); this._toast('Bloco de reta final adicionado ao ciclo ✦'); this.flashSync(); };
   setRelPeriod = (e)=> this.setState({relPeriod:+e.currentTarget.dataset.v});
 
   // ===== personalização / ajustes extra =====
@@ -6623,6 +6780,34 @@ class Component extends DCLogic {
     const sbgVal = this.state.accent ? this.mixDark(this.state.accent, T.isDark?0.82:0.80) : T.sidebarBg;
     const bgVal = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.90) : this.mixWhite(this.state.accent,0.93)) : T.bg;
     const pf0 = this.state.prefs;
+    // ===== Área de estudo =====
+    // Declarado AQUI, no topo: tudo abaixo (ciclo, edital, registro de sessão, bancas)
+    // lê daqui, e no dc-runtime o corpo inteiro roda a cada render — helper usado antes
+    // de ser declarado vira TDZ e derruba todas as views.
+    const _area = CT_AREA(this.state.areaEstudo);
+    const areaJuridica = !!_area.juridico;
+    const areaJuris = !!_area.juris;
+    // o LEGIS abre já na legislação da área (padrão + específica); a query string
+    // muda com a área, e o _montarFrames recarrega o iframe quando o src muda
+    const legisFrameSrc = 'legis-web.html' + (this.state.areaEstudo ? ('?area='+encodeURIComponent(this.state.areaEstudo)) : '');
+    const areaEscolhida = !!this.state.areaEstudo;
+    const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||'');
+      return { id:a.id, emoji:a.emoji, label:a.label, desc:a.desc, check: on?'  ✓':'',
+        style:`display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;cursor:pointer;font-family:inherit;padding:12px 13px;border-radius:12px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface2)'};`,
+        labelStyle:`font-size:13px;font-weight:700;color:${on?'var(--accentD)':'var(--ink)'};` }; });
+    const areaAtualLabel = _area.label;
+    const areaAtualEmoji = _area.emoji;
+    const areaAtualDesc = _area.desc;
+    // tipos de atividade do ciclo e categorias do registro, na ordem em que fazem sentido
+    const _kindsArea = [...new Set(['Teoria','Questões', ..._area.cats, 'Revisão','Flashcards'])];
+    const _kindOpts=(k)=> (_kindsArea.indexOf(k)<0&&k?[..._kindsArea,k]:_kindsArea).map(v=>({v, sel:v===k}));
+    // a reta final descreve o que ela prioriza — e isso muda com a área
+    const retaReduzDesc = 'Reduzir teoria nova e priorizar revisão, '
+      + (_area.cats.length ? (_area.cats.join(', ').toLowerCase()+', ') : '')
+      + 'erros e simulados.';
+    const areaCatsStr = _area.cats.length ? _area.cats.join(' · ') : 'nenhuma categoria extra';
+    const areaFerramentas = 'o CátedraLEGIS abre na legislação da área — padrão e específica'
+      + (areaJuris ? ', e o CátedraJURIS (súmulas e teses) fica no menu' : ' (sem a aba de súmulas, que é de carreira jurídica)');
     const radiusVal = pf0.radius==='reto'?'4px' : pf0.radius==='medio'?'10px' : pf0.radius==='arredondado'?'22px' : T.radius;
     const fontScalePx = pf0.fontScale==='grande'?'16.5px':'15px';
     const accSoft = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.78) : this.mixWhite(this.state.accent,0.88)) : T.accentSoft;
@@ -6672,7 +6857,7 @@ class Component extends DCLogic {
 
     // ===== Ciclo =====
     const blocks = this.state.blocks.map((b,i)=>({...b, i,
-      kindColor: ({'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#b08433','Jurisprudência':'#c0392f','Flashcards':'#0a7ea4'}[b.kind]||'#0f7a57'),
+      kindColor: ({'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#b08433','Jurisprudência':'#c0392f','Flashcards':'#0a7ea4'}[b.kind]||(CT_CAT_META[b.kind]||{}).c||'#0f7a57'),
       checkBorder: b.done?'var(--accent)':'var(--border)',
       checkBg: b.done?'var(--accent)':'transparent',
       // vínculo com o edital (disciplina + tópico) — definido na Agenda da semana
@@ -6702,7 +6887,7 @@ class Component extends DCLogic {
       const hojeKey=['dom','seg','ter','qua','qui','sex','sab'][new Date().getDay()];
       const hojeIdx=ordem.indexOf(hojeKey);
       const feitas=this.state.agendaFeitas||{};
-      const KC={'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#b08433','Jurisprudência':'#c0392f','Flashcards':'#0a7ea4'};
+      const KC={...Object.keys(CT_CAT_META).reduce((o,k)=>(o[k]=CT_CAT_META[k].c,o),{}), 'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#b08433','Jurisprudência':'#c0392f','Flashcards':'#0a7ea4'};
       const shortV=(de,tp)=> de? (de.replace('Direito ','')+(tp?(' · '+(tp.length>40?tp.slice(0,40)+'…':tp)):'')) : '';
       return ordem.map((dk,idx)=>{
         const isToday=dk===hojeKey; let cards;
@@ -6750,6 +6935,9 @@ class Component extends DCLogic {
     const cicloListaFlat = this.state.cycleMode!=='manual';
     // ===== Ciclo no layout da FOLHA do roteiro (cards por dia, badges, ponto) =====
     const _badgeAtiv=(texto,kind)=>{ const t=(texto||'').toLowerCase();
+      // o TIPO da atividade manda: súmula, informativo, tese e repetitivo são
+      // jurisprudência — as heurísticas de texto abaixo não podem reclassificar isso.
+      if(kind==='Jurisprudência') return {label:'JURISPRUDÊNCIA',cor:'#0d9488'};
       if(t.includes('simulado')) return {label:'SIMULADO',cor:'#c0392f'};
       if(t.includes('informativo')) return {label:'INFORMATIVO',cor:'#0f9d6b'};
       if(t.includes('assistir')||t.includes('youtube')||t.includes('videoaula')) return {label:'VÍDEO',cor:'#0a7ea4'};
@@ -6757,7 +6945,8 @@ class Component extends DCLogic {
       if(t.includes('súmulas e teses')||t.includes('repercussão geral')||t.includes('material')) return {label:'MATERIAL',cor:'#7c3aed'};
       if(t.includes('leitura dirigida')) return {label:'REVISÃO',cor:'#e11d48'};
       const M={'Teoria':['DOUTRINA','#6b4fbb'],'Questões':['QUESTÕES','#c2790c'],'Lei seca':['LEI SECA','#2563eb'],'Jurisprudência':['JURISPRUDÊNCIA','#0d9488'],'Revisão':['REVISÃO','#e11d48'],'Flashcards':['FLASHCARDS','#b08433']};
-      const m=M[kind]||['ATIVIDADE','#7a7368']; return {label:m[0],cor:m[1]}; };
+      // tipos próprios das outras áreas: etiqueta com o nome do tipo e a cor do catálogo
+      const m=M[kind]||(CT_CAT_META[kind]?[String(kind).toUpperCase(),CT_CAT_META[kind].c]:['ATIVIDADE','#7a7368']); return {label:m[0],cor:m[1]}; };
     // Etiquetas de roteiro são texto livre — 'Roteiro 2' e 'Roteiro 2 · 20-25/07' são o
     // MESMO roteiro. Agrupamos por NÚMERO (sem número = grupo próprio por string) e toda a
     // navegação/filtragem usa a chave do grupo, nunca igualdade exata de string.
@@ -6860,7 +7049,7 @@ class Component extends DCLogic {
       const _mkItem=(f)=>{ const discOpts=_edList.map(d=>({v:d.disc,label:d.disc,sel:d.disc===f.discEdital}));
         const ed=_edList.find(d=>d.disc===f.discEdital);
         const topicOpts=((ed&&ed.topics)||[]).map(t=>({v:t.name,label:(t.name.length>70?t.name.slice(0,70)+'…':t.name),sel:t.name===f.topico}));
-        return {...f, discOpts, topicOpts, temTopicos:topicOpts.length>0,
+        return {...f, discOpts, topicOpts, temTopicos:topicOpts.length>0, kindOpts:_kindOpts(f.kind),
           temRoteiro:!!f.roteiro, rotShort:(f.roteiro||'').length>16?(f.roteiro||'').slice(0,16)+'…':(f.roteiro||''),
           vincBorder: f.discEdital?'var(--accentRing)':'var(--border)', vincColor: f.discEdital?'var(--accentD)':'var(--text3)'}; };
       return defs.map(d=>{ const items=fixed.filter(f=>(f.dia||'')===d.dia).map(_mkItem); const isToday=d.dia!==''&&d.dia===hojeKey;
@@ -6915,15 +7104,25 @@ class Component extends DCLogic {
     });
     // ===== modelo de edital pré-cadastrado =====
     const _mSel=this.state.modeloSel||[];
-    const _mId=this.state.modeloId||(CT_MODELOS[0]&&CT_MODELOS[0].id);
+    // Os modelos prontos hoje são todos de carreiras jurídicas. Mostro os da área
+    // escolhida (com botão para ver os outros) e, quando a área não tem nenhum,
+    // mostro todos avisando que servem só de ponto de partida.
+    const _mDaArea=CT_MODELOS.filter(m=>(_area.modelos||[]).indexOf(m.id)>=0);
+    const modeloSemArea=_mDaArea.length===0;
+    const modeloOutras=!!this.state.modeloOutras;
+    const _mLista=(modeloSemArea||modeloOutras)?CT_MODELOS:_mDaArea;
+    const modeloTemOutras=!modeloSemArea && CT_MODELOS.length>_mDaArea.length;
+    const modeloOutrasLabel=modeloOutras?'Ver só os de '+_area.label:'Ver os modelos das outras áreas';
+    const modeloAvisoArea=modeloSemArea?('Os modelos prontos são de carreiras jurídicas — para '+_area.label+', cole o conteúdo programático do seu edital abaixo.'):'';
+    const _mId=(_mLista.some(m=>m.id===this.state.modeloId)?this.state.modeloId:0)||(_mLista[0]&&_mLista[0].id);
     const _mDiscs=this._modeloDiscs(_mId);
-    const modeloChips=CT_MODELOS.map(m=>{ const on=m.id===_mId;
+    const modeloChips=_mLista.map(m=>{ const on=m.id===_mId;
       const nd=m.nd||0, nt=m.nt||0;
       return { id:m.id, nome:m.nome, sub:m.sub||'', contagem:nd+' disc · '+nt+' tóp',
         style:`display:flex;flex-direction:column;gap:1px;align-items:flex-start;text-align:left;cursor:pointer;font-family:inherit;padding:9px 13px;border-radius:11px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface2)'};`,
         nomeStyle:`font-size:12.5px;font-weight:700;color:${on?'var(--accentD)':'var(--text2)'};`,
         subStyle:`font-size:10.5px;color:var(--text3);` }; });
-    const modeloMulti=CT_MODELOS.length>1;
+    const modeloMulti=_mLista.length>1;
     const _mTemE=(nome)=>(this.state.edital||[]).some(d=>String(d.disc||'').trim().toLowerCase()===String(nome).trim().toLowerCase());
     const modeloDiscs=_mDiscs.map(([nome,cor,tops],i)=>{ const on=_mSel.indexOf(i)>=0;
       const nsub=(tops||[]).reduce((a,t)=>a+((t[1]||[]).length),0);
@@ -6933,7 +7132,7 @@ class Component extends DCLogic {
         box:`width:18px;height:18px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent)':'transparent'};color:var(--onAccent);` }; });
     const _mAtual=CT_MODELOS.find(m=>m.id===_mId)||{};
     const _mTotT=_mAtual.nt||0, _mTotS=_mAtual.ns||0, _mND=_mAtual.nd||0;
-    const modeloResumo=(modeloMulti?(CT_MODELOS.length+' concursos · '):'')+_mND+' disciplinas · '+_mTotT+' tópicos · '+_mTotS+' subtópicos';
+    const modeloResumo=(modeloMulti?(_mLista.length+' concursos · '):'')+_mND+' disciplinas · '+_mTotT+' tópicos · '+_mTotS+' subtópicos';
     const modeloNomeAtual=_mAtual.nome||'', modeloSubAtual=_mAtual.sub||'';
     const modeloSelLabel=_mDiscs.length? (_mSel.length+' de '+_mDiscs.length+' selecionadas') : 'carregando o conteúdo…';
     const modeloTodasLabel=(_mDiscs.length&&_mSel.length===_mDiscs.length)?'Desmarcar todas':'Marcar todas';
@@ -7286,7 +7485,7 @@ class Component extends DCLogic {
     const focoSugestao = _focoVerbo+' '+_focoWin.t+'.';
     const focoView=_focoWin.v||'ciclo'; const focoBtnLabel=_focoWin.btn||'Continuar';
     // histórico recente
-    const _catMeta={Teoria:{i:'📘',c:'#6b4fbb'},'Revisão':{i:'🔁',c:'#0f9d6b'},'Questões':{i:'❓',c:'#2563eb'},'Lei seca':{i:'⚖️',c:'#b08433'},'Jurisprudência':{i:'🏛️',c:'#c0392f'},'Simulado':{i:'📝',c:'#0a7ea4'}};
+    const _catMeta=CT_CAT_META;   // ícone/cor de toda categoria, de qualquer área
     const _ago=(ts)=>{ const d=Date.now()-ts; const mi=Math.floor(d/60000); if(mi<1) return 'agora'; if(mi<60) return mi+' min atrás'; const h=Math.floor(mi/60); if(h<24) return h+'h atrás'; const dd=Math.floor(h/24); return dd===1?'ontem':dd+' dias atrás'; };
     const recentSessions = [..._sessions].sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,5).map(s=>{ const acc=s.questoes? Math.round(s.acertos/s.questoes*100):null; const cm=_catMeta[s.categoria]||{i:'📘',c:'var(--text3)'}; const liq=(s.liquido!=null?s.liquido:(s.acertos||0)-(s.erradas||0));
       return {...s, icon:cm.i, catColor:cm.c, catLabel:(Array.isArray(s.categorias)&&s.categorias.length?s.categorias.join(' · '):(s.categoria||'—')), discShort:(s.disc||'').replace('Direito ',''), minStr:(s.min||0)+' min', accStr:acc!=null?acc+'%':'', hasAcc:acc!=null,
@@ -7300,9 +7499,11 @@ class Component extends DCLogic {
     const sessLiqColor = !sessQ?'var(--text3)':(sessLiq>0?'#0f9d6b':(sessLiq<0?'#c0392f':'#c2790c'));
     // modal: estilos + prévia ao vivo
     const _sd=this.state.sessionDraft||{};
-    const _cats=['Teoria','Revisão','Questões','Lei seca','Jurisprudência','Simulado'];
     const _selCats=Array.isArray(_sd.categorias)?_sd.categorias:[_sd.categoria].filter(Boolean);
-    const sessCats=_cats.map(v=>{ const on=_selCats.includes(v); const cm=_catMeta[v]; return {v, icon:cm.i, mark:on?'✓ ':'', style:`display:inline-flex;align-items:center;gap:5px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:.12s;`}; });
+    // básicas (valem para toda área) + as próprias da área + as que o rascunho já traz
+    // (troca de área não pode fazer sumir a categoria de um registro em aberto)
+    const _cats=[...new Set(['Teoria','Revisão','Questões', ..._area.cats, 'Simulado', ..._selCats])];
+    const sessCats=_cats.map(v=>{ const on=_selCats.includes(v); const cm=_catMeta[v]||{i:'📘',c:'var(--text3)'}; return {v, icon:cm.i, mark:on?'✓ ':'', style:`display:inline-flex;align-items:center;gap:5px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:.12s;`}; });
     // Seletores do catálogo nativo (Lei seca → leis do LEGIS; Jurisprudência →
     // fontes do JURIS). MESMO padrão do select de disciplina: value ligado ao
     // estado + selected por option — value="" estático faz o WKWebView resetar o
@@ -7851,8 +8052,16 @@ class Component extends DCLogic {
     const _pesoBy={'Direito Constitucional':2,'Direito Administrativo':2,'Direito Penal':1.5,'Direito Civil':1.5,'Direito Tributário':1,'Processo Civil':1};
     const _colBy={'Direito Constitucional':'#2563eb','Direito Administrativo':'#a855f7','Direito Penal':'#dc2626','Direito Civil':'#6366f1','Direito Tributário':'#06b6d4','Processo Civil':'#84cc16'};
     const _domFallback={'Direito Constitucional':78,'Direito Administrativo':66,'Direito Penal':74,'Direito Civil':52,'Direito Tributário':41,'Processo Civil':58};
-    const planDados=['Direito Constitucional','Direito Administrativo','Direito Penal','Direito Civil','Direito Tributário','Processo Civil'].map(disc=>({
-      disc, color:_colBy[disc], peso:_pesoBy[disc], dom: (_domBy[disc]!=null?_domBy[disc]:_domFallback[disc]) }));
+    // as disciplinas do plano saem do edital cadastrado e, na falta dele, da área
+    // escolhida (a lista fixa de Direito só servia para quem estuda para carreira jurídica)
+    const _planDiscs=(this.state.edital||[]).length
+      ? this.state.edital.map(d=>String(d.disc||'').trim()).filter(Boolean).slice(0,8)
+      : _area.discs.slice(0,6);
+    const _corPlano=(disc,i)=> _colBy[disc] || this._corDisc(disc) || ['#2563eb','#a855f7','#dc2626','#6366f1','#06b6d4','#84cc16','#c2790c','#0f9d6b'][i%8];
+    const planDados=_planDiscs.map((disc,i)=>({
+      disc, color:_corPlano(disc,i), peso:(_pesoBy[disc]||1),
+      // sem histórico e sem número conhecido, 50% é neutro — o rateio passa a ser só por peso
+      dom: (_domBy[disc]!=null?_domBy[disc]:(_domFallback[disc]!=null?_domFallback[disc]:50)) }));
     // necessidade = peso * (1 - domínio): mais peso e menos domínio => mais tempo
     const planW = planDados.map(d=>({...d, need: d.peso*(1-d.dom/100)}));
     const planSum = planW.reduce((a,d)=>a+d.need,0);
@@ -8069,7 +8278,7 @@ class Component extends DCLogic {
     const histLixeiraOpen=!!this.state.histLixeiraOpen;
     const histLixeiraEmpty=histLixeiraCount===0;
     // disciplinas disponíveis para registro/edição: edital primeiro, depois já usadas; fallback jurídico só se vazio
-    const _discPadrao=['Direito Constitucional','Direito Administrativo','Direito Tributário','Direito Civil','Direito Penal','Processo Civil'];
+    const _discPadrao=_area.discs;   // enquanto o edital está vazio, sugere as disciplinas da área escolhida
     const _discBase=[...new Set([...this.state.edital.map(d=>d.disc), ...histDiscs].map(x=>(x||'').trim()).filter(Boolean))];
     const discListReg=_discBase.length?_discBase:_discPadrao;
     const _sd0=this.state.sessionDraft||{};
@@ -8208,7 +8417,9 @@ class Component extends DCLogic {
 
     // ===== Reta Final =====
     const _retaOn=!!this.state.profile.retaFinal, _retaReduz=!!this.state.orient.reduzirTeoria, _retaCom=this.state.orient.retaFinalCom||'30';
-    const retaCmds=[{k:'leiseca',icon:'⚖️',title:'Lei seca',desc:'Separe os dispositivos de maior incidência e marque os artigos que mais geram erro.'},{k:'juris',icon:'📜',title:'Jurisprudência e súmulas',desc:'Rodada curta com súmulas, teses repetitivas e informativos ligados à banca.'},{k:'erros',icon:'📕',title:'Questões erradas',desc:'Reteste as questões que você errou até acertar — sem encerrar no clique.'}];
+    const retaCmds = areaJuridica
+      ? [{k:'leiseca',icon:'⚖️',title:'Lei seca',desc:'Separe os dispositivos de maior incidência e marque os artigos que mais geram erro.'},{k:'juris',icon:'📜',title:'Jurisprudência e súmulas',desc:'Rodada curta com súmulas, teses repetitivas e informativos ligados à banca.'},{k:'erros',icon:'📕',title:'Questões erradas',desc:'Reteste as questões que você errou até acertar — sem encerrar no clique.'}]
+      : [{k:'foco',icon:'🎯',title:'Conteúdo de maior peso',desc:'Bloco curto no assunto que mais cai — o que a prova cobra, não o que é mais confortável.'},{k:'pratica',icon:'🧠',title:(_area.cats[0]||'Prática dirigida'),desc:'Rodada aplicada do tipo de estudo que a sua área cobra na prova.'},{k:'erros',icon:'📕',title:'Questões erradas',desc:'Reteste as questões que você errou até acertar — sem encerrar no clique.'}];
     const retaComOpts=['15','30','45','60'].map(v=>({v, label:v+' dias', sel:v===_retaCom}));
     const retaNext=[]; if(revOverdue.length) retaNext.push({icon:'⏰', text:'Zerar revisões vencidas', meta:revOverdue.length+' pendente(s)', view:'revisoes'}); retaNext.push({icon:'📝', text:'Registrar um simulado de diagnóstico', meta:'esta semana', view:'simulados'});
 
@@ -8305,7 +8516,8 @@ class Component extends DCLogic {
     }
 
     // ── view-model da aba BANCAS (perfil fixo + dicas por área geradas sob demanda) ──
-    const _areasBanca=['Língua Portuguesa','Direito Constitucional','Direito Administrativo','Direito Civil','Direito Processual Civil','Direito Penal','Direito Processual Penal','Direito Tributário','Direito Empresarial','Direito do Trabalho','Direito Previdenciário','Raciocínio Lógico','Informática'];
+    // as matérias oferecidas saem do edital da pessoa e, na falta dele, da área escolhida
+    const _areasBanca=[...new Set([...(this.state.edital||[]).map(d=>String(d.disc||'').trim()), ..._area.discs, 'Língua Portuguesa','Raciocínio Lógico','Informática'])].filter(Boolean);
     const _areaSel=this.state.bancaAreaSel||'';
     const bancaAreaOpts=[{v:'',label:'— escolha uma área para dicas específicas —',sel:_areaSel===''}].concat(_areasBanca.map(a=>({v:a,label:a,sel:a===_areaSel})));
     const _bdicas=this.state.bancaDicas||{};
@@ -8328,6 +8540,8 @@ class Component extends DCLogic {
     return {
       ajAnkiOpen:this.state.ajAnkiOpen, ajAnkiChevron:this.state.ajAnkiOpen?'▾':'▸', toggleAjAnki:this.toggleAjAnki,
       isBancas:this.state.view==='bancas', navBancas:navStyle('bancas'),
+      areaCards, setAreaEstudo:this.setAreaEstudo, areaAtualLabel, areaAtualEmoji, areaAtualDesc,
+      areaJuridica, areaJuris, legisFrameSrc, areaEscolhida, areaCatsStr, areaFerramentas, retaReduzDesc,
       bancasVM, bancaAreaOpts, setBancaArea:this.setBancaArea, gerarDicasBanca:this.gerarDicasBanca,
       bancaAreaAtual:_areaSel,
       naoAdmin:!this.state.isAdmin,
@@ -8451,7 +8665,7 @@ class Component extends DCLogic {
       setCycleMode:this.setCycleMode,
       isManual:this.state.cycleMode==='manual',
       manualFixed:this.state.manualFixed,
-      manualRot:this.state.manualRot.map((r,i)=>({...r, pos:i+1, isNext:i===this.state.rotPointer, posStyle:i===this.state.rotPointer?'color:var(--onAccent);background:var(--accent);':'color:var(--text3);background:var(--surface2);'})),
+      manualRot:this.state.manualRot.map((r,i)=>({...r, kindOpts:_kindOpts(r.kind), pos:i+1, isNext:i===this.state.rotPointer, posStyle:i===this.state.rotPointer?'color:var(--onAccent);background:var(--accent);':'color:var(--text3);background:var(--surface2);'})),
       manualFixedRoteiroAtual:this.state.manualFixedRoteiroAtual,
       roteirosAtivos, hasRoteirosAtivos: roteirosAtivos.length>0,
       manualAgendaGroups,
@@ -8520,7 +8734,8 @@ class Component extends DCLogic {
       cad:this.state.cad, cadNova:this.state.cad.mode==='nova', cadExistente:this.state.cad.mode==='existente',
       onCad:this.onCad, setCadMode:this.setCadMode, setCadCor:this.setCadCor, addCadastro:this.addCadastro, toggleSub:this.toggleSub, onDiscMeta:this.onDiscMeta, removeDisc:this.removeDisc, renomearDisciplina:this.renomearDisciplina, setDiscCor:this.setDiscCor,
       modeloOpen:this.state.modeloOpen, modeloDiscs, modeloResumo, modeloSelLabel, modeloTodasLabel, modeloAplicarLabel,
-      modeloChips, modeloMulti, modeloNomeAtual, modeloSubAtual, setModelo:this.setModelo,
+      modeloChips, modeloMulti, modeloTemOutras, modeloOutrasLabel, toggleModeloOutras:this.toggleModeloOutras,
+      modeloSemArea, modeloAvisoArea, modeloNomeAtual, modeloSubAtual, setModelo:this.setModelo,
       modeloBtnLabel:(this.state.modeloOpen?'Fechar':'Ver modelo'), modeloBtnBg:(this.state.modeloOpen?'var(--surface2)':'var(--accent)'), modeloBtnFg:(this.state.modeloOpen?'var(--text2)':'var(--onAccent)'),
       toggleModelo:this.toggleModelo, toggleModeloDisc:this.toggleModeloDisc, modeloTodas:this.modeloTodas, aplicarModelo:this.aplicarModelo,
       cadModeNovaStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;background:${this.state.cad.mode==='nova'?'var(--accent)':'transparent'};color:${this.state.cad.mode==='nova'?'var(--onAccent)':'var(--text2)'};`,
@@ -8619,11 +8834,11 @@ class Component extends DCLogic {
       provaTimeLeft:provaFmt(provaLeftSecs), provaElapsed:provaFmt(this.state.provaSeconds), provaTotalLabel:_durH(this.state.provaDurationMin),
       provaTimePct, provaStatusLabel, provaStatusColor, provaBarColor, provaDurLabel:_durH(this.state.provaDurationMin), provaDurOpts, provaDurationVal:this.state.provaDurationMin, onProvaDurationInput:this.onProvaDurationInput,
       // onboarding
-      onboardActive:this.state.onboardStep>0, onboardStep:this.state.onboardStep, onboardStep1:this.state.onboardStep===1, onboardStep2:this.state.onboardStep===2, onboardStep3:this.state.onboardStep===3,
+      onboardActive:this.state.onboardStep>0, onboardStep:this.state.onboardStep, onboardStep1:this.state.onboardStep===1, onboardStep2:this.state.onboardStep===2, onboardStep3:this.state.onboardStep===3, onboardStep4:this.state.onboardStep===4,
       onboardNext:this.onboardNext, onboardPick:this.onboardPick, onboardFinish:this.onboardFinish,
       onbEdital:onboardCard('edital'), onbCiclo:onboardCard('ciclo'), onbImport:onboardCard('import'),
       onbFinishLabel: this.state.onboardChoice==='edital' ? 'Cadastrar meu edital' : (this.state.onboardChoice==='import' ? 'Importar meus dados' : 'Montar meu ciclo'),
-      onboardPct: Math.round(this.state.onboardStep/3*100),
+      onboardPct: Math.round(this.state.onboardStep/4*100),
       // anki import / pdf
       ankiImported:this.state.ankiImported, ankiNotImported:!this.state.ankiImported, openPdf:this.openPdf, closePdf:this.closePdf, pdfOpen:this.state.pdfOpen, pdfIsOpen:!!this.state.pdfOpen,
       // exportar pdf
