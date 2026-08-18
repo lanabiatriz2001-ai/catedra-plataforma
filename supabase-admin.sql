@@ -87,6 +87,9 @@ as $$ select exists(select 1 from public.admins where user_id = auth.uid()); $$;
 revoke all on function public.is_admin() from public, anon;
 grant  execute on function public.is_admin() to authenticated;
 
+-- ATENÇÃO: esta é a versão 1. O CONSOLE (v2), no fim do arquivo, REDEFINE esta
+-- função para somar o kill switch global da IA ao bloqueio individual. Rodando o
+-- arquivo de cima para baixo, a definição de lá é a que fica — que é a de produção.
 create or replace function public.meu_acesso_bloqueado()
 returns boolean language sql stable security definer set search_path to 'public'
 as $$ select coalesce((select bloqueado from public.beta_acesso where user_id = auth.uid()), false); $$;
@@ -377,3 +380,318 @@ begin
 end $$;
 revoke all on function public.admin_allow_set(text, boolean) from public, anon;
 grant  execute on function public.admin_allow_set(text, boolean) to authenticated;
+
+-- ============================================================================
+-- Cátedra · CONSOLE DE ADMINISTRAÇÃO (v2) — poderes destrutivos + controle do app
+-- ----------------------------------------------------------------------------
+-- Tudo aqui é ADITIVO: nenhuma função antiga é apagada. As duas exceções são
+-- `meu_acesso_bloqueado()` (ganha o kill switch global da IA) e o menu do app.
+--
+-- REGRA DE OURO destas funções: a 1ª linha checa is_admin() e FALHA COM EXCEÇÃO.
+-- As destrutivas exigem, ALÉM disso, que o e-mail do alvo seja digitado igual —
+-- e a conferência é feita AQUI, no servidor, não na tela. Um clique errado no
+-- cliente não apaga ninguém.
+-- ============================================================================
+
+-- ── TABELAS ─────────────────────────────────────────────────────────────────
+
+-- Chaves globais do app (kill switch da IA, aviso na tela, manutenção).
+create table if not exists public.app_config (
+  chave         text primary key,
+  valor         jsonb not null default 'null'::jsonb,
+  atualizado_em timestamptz not null default now()
+);
+alter table public.app_config enable row level security;
+revoke all on table public.app_config from anon, authenticated;
+
+-- Trilha de auditoria: toda ação destrutiva do painel deixa rastro com quem fez.
+create table if not exists public.admin_log (
+  id          bigint generated always as identity primary key,
+  quando      timestamptz not null default now(),
+  admin_uid   uuid,
+  admin_email text,
+  acao        text not null,
+  alvo        text,
+  detalhe     jsonb
+);
+alter table public.admin_log enable row level security;
+revoke all on table public.admin_log from anon, authenticated;
+create index if not exists admin_log_quando_idx on public.admin_log (quando desc);
+
+-- ── HELPER INTERNO ──────────────────────────────────────────────────────────
+-- Sem grant para ninguém: só as funções definer abaixo (que rodam como postgres)
+-- conseguem chamar. Ninguém forja uma linha de auditoria pela API.
+create or replace function public._admin_log(p_acao text, p_alvo text, p_detalhe jsonb)
+returns void language plpgsql security definer set search_path to 'public'
+as $$
+begin
+  insert into public.admin_log(admin_uid, admin_email, acao, alvo, detalhe)
+  values (auth.uid(), (select email from auth.users where id = auth.uid()),
+          left(p_acao,40), left(coalesce(p_alvo,''),200), p_detalhe);
+end $$;
+revoke all on function public._admin_log(text, text, jsonb) from public, anon, authenticated;
+
+-- ── KILL SWITCH GLOBAL DA IA ────────────────────────────────────────────────
+-- A API (api/complete.js e api/tts.js) já pergunta meu_acesso_bloqueado() antes de
+-- gastar token. Pendurar o interruptor global AQUI faz o botão do painel valer no
+-- servidor sem tocar em uma linha das funções serverless. Admin nunca se tranca
+-- para fora: o interruptor global não vale para quem administra.
+create or replace function public.meu_acesso_bloqueado()
+returns boolean language plpgsql stable security definer set search_path to 'public'
+as $$
+begin
+  if coalesce((select bloqueado from public.beta_acesso where user_id = auth.uid()), false)
+    then return true; end if;
+  if coalesce((select valor = 'true'::jsonb from public.app_config where chave = 'ia_pausada'), false)
+     and not public.is_admin()
+    then return true; end if;
+  return false;
+end $$;
+revoke all on function public.meu_acesso_bloqueado() from public, anon;
+grant  execute on function public.meu_acesso_bloqueado() to authenticated;
+
+-- Aviso global + manutenção, lidos por QUALQUER conta logada (é o recado da dona
+-- aparecendo na tela de todo mundo). Só devolve o que é público por natureza.
+create or replace function public.app_avisos()
+returns jsonb language sql stable security definer set search_path to 'public'
+as $$
+  select jsonb_build_object(
+    'aviso',      coalesce((select valor->>'texto' from public.app_config where chave = 'aviso'), ''),
+    'avisoTipo',  coalesce((select valor->>'tipo'  from public.app_config where chave = 'aviso'), 'info'),
+    'manutencao', coalesce((select valor = 'true'::jsonb from public.app_config where chave = 'manutencao'), false),
+    'iaPausada',  coalesce((select valor = 'true'::jsonb from public.app_config where chave = 'ia_pausada'), false)
+  )
+$$;
+revoke all on function public.app_avisos() from public, anon;
+grant  execute on function public.app_avisos() to authenticated;
+
+-- ── CONTAS: os poderes que faltavam ─────────────────────────────────────────
+
+-- REMOVER CONTA. Apaga de verdade: auth.users cai e leva junto, por FK em cascata,
+-- user_data, admins, beta_acesso, sessões e identidades. O que NÃO tem FK (membros
+-- do grupo, que é jsonb, e grupo_atividade) é limpo à mão aqui — senão sobra um
+-- fantasma no ranking com o uid de uma conta que não existe mais.
+-- Guardas: nunca a si mesma; nunca outra admin (rebaixe antes); e o e-mail exato
+-- tem de ser digitado.
+create or replace function public.admin_apagar_usuario(p_uid uuid, p_confirmacao text)
+returns jsonb language plpgsql security definer set search_path to 'public'
+as $$
+declare em text; resumo jsonb;
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  if p_uid is null then raise exception 'nao_encontrado'; end if;
+  if p_uid = auth.uid() then raise exception 'nao_apague_a_si'; end if;
+  if exists(select 1 from public.admins where user_id = p_uid) then raise exception 'alvo_admin'; end if;
+  select email into em from auth.users where id = p_uid;
+  if em is null then raise exception 'nao_encontrado'; end if;
+  if lower(trim(coalesce(p_confirmacao,''))) <> lower(em) then raise exception 'confirmacao_invalida'; end if;
+
+  select jsonb_build_object(
+    'blobKb', coalesce((select round(pg_column_size(data)/1024.0,1) from public.user_data where user_id = p_uid), 0),
+    'grupos', (select count(*) from public.grupos g where g.membros @> jsonb_build_array(jsonb_build_object('uid', p_uid::text))),
+    'iaChamadas', (select count(*) from public.ai_uso where user_id = p_uid)
+  ) into resumo;
+
+  update public.grupos g
+     set membros = (select coalesce(jsonb_agg(m),'[]'::jsonb)
+                      from jsonb_array_elements(g.membros) m
+                     where m->>'uid' <> p_uid::text)
+   where g.membros @> jsonb_build_array(jsonb_build_object('uid', p_uid::text));
+  delete from public.grupo_atividade where user_id = p_uid;
+  update public.grupos set criador = null where criador = p_uid;
+  delete from public.beta_allow where lower(email) = lower(em);
+  delete from auth.users where id = p_uid;
+
+  perform public._admin_log('apagar_usuario', em, resumo);
+  return resumo;
+end $$;
+revoke all on function public.admin_apagar_usuario(uuid, text) from public, anon;
+grant  execute on function public.admin_apagar_usuario(uuid, text) to authenticated;
+
+-- ZERAR DADOS mantendo a conta: a pessoa entra de novo e começa do zero. Serve para
+-- o testador que pediu "reseta pra mim" sem perder o login. Mesma confirmação por
+-- e-mail, porque isto apaga edital, sessões e redações de uma vez.
+create or replace function public.admin_zerar_dados(p_uid uuid, p_confirmacao text)
+returns jsonb language plpgsql security definer set search_path to 'public'
+as $$
+declare em text; kb numeric;
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  if p_uid = auth.uid() then raise exception 'nao_zere_a_si'; end if;
+  select email into em from auth.users where id = p_uid;
+  if em is null then raise exception 'nao_encontrado'; end if;
+  if lower(trim(coalesce(p_confirmacao,''))) <> lower(em) then raise exception 'confirmacao_invalida'; end if;
+  select coalesce(round(pg_column_size(data)/1024.0,1),0) into kb from public.user_data where user_id = p_uid;
+  delete from public.user_data where user_id = p_uid;
+  perform public._admin_log('zerar_dados', em, jsonb_build_object('blobKb', coalesce(kb,0)));
+  return jsonb_build_object('blobKb', coalesce(kb,0));
+end $$;
+revoke all on function public.admin_zerar_dados(uuid, text) from public, anon;
+grant  execute on function public.admin_zerar_dados(uuid, text) to authenticated;
+
+-- PROMOVER / REBAIXAR admin. Ninguém se rebaixa sozinho (seria a única forma de
+-- ficar sem nenhuma admin no ar) e a última admin não pode sumir.
+create or replace function public.admin_set_admin(p_uid uuid, p_admin boolean)
+returns void language plpgsql security definer set search_path to 'public'
+as $$
+declare em text;
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  if p_uid = auth.uid() then raise exception 'nao_rebaixe_a_si'; end if;
+  select email into em from auth.users where id = p_uid;
+  if em is null then raise exception 'nao_encontrado'; end if;
+  if coalesce(p_admin,false) then
+    insert into public.admins(user_id) values (p_uid) on conflict do nothing;
+  else
+    if (select count(*) from public.admins) <= 1 then raise exception 'ultima_admin'; end if;
+    delete from public.admins where user_id = p_uid;
+  end if;
+  perform public._admin_log(case when coalesce(p_admin,false) then 'promover_admin' else 'rebaixar_admin' end, em, null);
+end $$;
+revoke all on function public.admin_set_admin(uuid, boolean) from public, anon;
+grant  execute on function public.admin_set_admin(uuid, boolean) to authenticated;
+
+-- CONFIRMAR E-MAIL na mão: o convite caiu no spam e a pessoa não consegue entrar.
+create or replace function public.admin_confirmar_email(p_uid uuid)
+returns void language plpgsql security definer set search_path to 'public'
+as $$
+declare em text;
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  select email into em from auth.users where id = p_uid;
+  if em is null then raise exception 'nao_encontrado'; end if;
+  -- só email_confirmed_at: auth.users.confirmed_at é coluna GERADA
+  -- (LEAST(email_confirmed_at, phone_confirmed_at)) e escrever nela dá erro.
+  update auth.users set email_confirmed_at = coalesce(email_confirmed_at, now())
+   where id = p_uid;
+  perform public._admin_log('confirmar_email', em, null);
+end $$;
+revoke all on function public.admin_confirmar_email(uuid) from public, anon;
+grant  execute on function public.admin_confirmar_email(uuid) to authenticated;
+
+-- FORÇAR LOGOUT: derruba as sessões da conta em todos os aparelhos. É o que se faz
+-- quando um celular perdido continua logado.
+create or replace function public.admin_desconectar(p_uid uuid)
+returns jsonb language plpgsql security definer set search_path to 'public'
+as $$
+declare em text; n int;
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  select email into em from auth.users where id = p_uid;
+  if em is null then raise exception 'nao_encontrado'; end if;
+  delete from auth.sessions where user_id = p_uid;
+  get diagnostics n = row_count;
+  perform public._admin_log('desconectar', em, jsonb_build_object('sessoes', n));
+  return jsonb_build_object('sessoes', n);
+end $$;
+revoke all on function public.admin_desconectar(uuid) from public, anon;
+grant  execute on function public.admin_desconectar(uuid) to authenticated;
+
+-- ── SUPORTE ─────────────────────────────────────────────────────────────────
+
+create or replace function public.admin_apagar_feedback(p_id bigint)
+returns void language plpgsql security definer set search_path to 'public'
+as $$
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  delete from public.feedback where id = p_id;
+  perform public._admin_log('apagar_feedback', p_id::text, null);
+end $$;
+revoke all on function public.admin_apagar_feedback(bigint) from public, anon;
+grant  execute on function public.admin_apagar_feedback(bigint) to authenticated;
+
+-- ── CONTROLE DO APP (interruptores globais) ─────────────────────────────────
+
+create or replace function public.admin_config()
+returns jsonb language plpgsql stable security definer set search_path to 'public'
+as $$
+declare res jsonb;
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  select coalesce(jsonb_object_agg(chave, valor), '{}'::jsonb) into res from public.app_config;
+  return res;
+end $$;
+revoke all on function public.admin_config() from public, anon;
+grant  execute on function public.admin_config() to authenticated;
+
+create or replace function public.admin_config_set(p_chave text, p_valor jsonb)
+returns void language plpgsql security definer set search_path to 'public'
+as $$
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  if coalesce(trim(p_chave),'') = '' then raise exception 'chave_vazia'; end if;
+  -- lista fechada: o painel não vira um editor de banco genérico
+  if p_chave not in ('ia_pausada','manutencao','aviso') then raise exception 'chave_desconhecida'; end if;
+  insert into public.app_config(chave, valor, atualizado_em)
+  values (p_chave, coalesce(p_valor,'null'::jsonb), now())
+  on conflict (chave) do update set valor = excluded.valor, atualizado_em = now();
+  perform public._admin_log('config', p_chave, coalesce(p_valor,'null'::jsonb));
+end $$;
+revoke all on function public.admin_config_set(text, jsonb) from public, anon;
+grant  execute on function public.admin_config_set(text, jsonb) to authenticated;
+
+-- Faxina do log de IA: a tabela cresce uma linha por chamada e nunca encolhe.
+create or replace function public.admin_purgar_ia(p_dias int)
+returns jsonb language plpgsql security definer set search_path to 'public'
+as $$
+declare n int; d int := greatest(1, coalesce(p_dias, 30));
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  delete from public.ai_uso where criado_em < now() - (d || ' days')::interval;
+  get diagnostics n = row_count;
+  perform public._admin_log('purgar_ia', d || 'd', jsonb_build_object('linhas', n));
+  return jsonb_build_object('linhas', n);
+end $$;
+revoke all on function public.admin_purgar_ia(int) from public, anon;
+grant  execute on function public.admin_purgar_ia(int) to authenticated;
+
+-- ── AUDITORIA + SAÚDE DO SISTEMA ────────────────────────────────────────────
+
+create or replace function public.admin_logs(p_limit int)
+returns jsonb language plpgsql stable security definer set search_path to 'public'
+as $$
+declare res jsonb;
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'id', id, 'quando', quando, 'admin', admin_email, 'acao', acao, 'alvo', alvo, 'detalhe', detalhe
+    ) order by quando desc), '[]'::jsonb) into res
+  from (select * from public.admin_log order by quando desc limit greatest(1, least(coalesce(p_limit,100), 500))) s;
+  return res;
+end $$;
+revoke all on function public.admin_logs(int) from public, anon;
+grant  execute on function public.admin_logs(int) to authenticated;
+
+-- Saúde da instalação: peso dos dados, sessões abertas, contas sem confirmar e as
+-- contas que mais ocupam espaço (é o que decide quando a conta grátis do Supabase
+-- vai apertar).
+create or replace function public.admin_sistema()
+returns jsonb language plpgsql stable security definer set search_path to 'public'
+as $$
+declare res jsonb;
+begin
+  if not public.is_admin() then raise exception 'acesso_negado'; end if;
+  select jsonb_build_object(
+    'armazenamentoKb', coalesce((select round(sum(pg_column_size(data))/1024.0,1) from public.user_data), 0),
+    'linhasUserData',  (select count(*) from public.user_data),
+    'linhasIa',        (select count(*) from public.ai_uso),
+    'linhasFeedback',  (select count(*) from public.feedback),
+    'linhasLog',       (select count(*) from public.admin_log),
+    'grupos',          (select count(*) from public.grupos),
+    'sessoesAbertas',  (select count(*) from auth.sessions),
+    -- mesmo recorte de admin_visao_geral: as contas internas %@catedra.app ficam
+    -- de fora, senão o "pede atenção" do console aponta para uma conta que a aba
+    -- de Contas não lista.
+    'naoConfirmados',  (select count(*) from auth.users
+                         where email_confirmed_at is null and email not like '%@catedra.app'),
+    'admins',          (select count(*) from public.admins),
+    'maiores', (select coalesce(jsonb_agg(jsonb_build_object('email', em, 'kb', kb) order by kb desc), '[]'::jsonb)
+      from (select coalesce(u.email,'(sem conta)') em, round(pg_column_size(d.data)/1024.0,1) kb
+              from public.user_data d left join auth.users u on u.id = d.user_id
+             where u.email is null or u.email not like '%@catedra.app'
+             order by pg_column_size(d.data) desc limit 5) s)
+  ) into res;
+  return res;
+end $$;
+revoke all on function public.admin_sistema() from public, anon;
+grant  execute on function public.admin_sistema() to authenticated;
