@@ -17,6 +17,11 @@
 //   · TCE-SP, TCE-MG, TCE-BA — repertórios de súmulas publicados em HTML nos
 //     portais dos tribunais (os únicos três, entre os 33, que servem o texto
 //     integral direto no HTML; os demais entram só no diretório, com link).
+//   · TCE-RO — instantâneo em scripts/fontes/tce-ro-sumulas.json. O portal do
+//     TCE-RO responde 403 a cliente HTTP comum (WAF), então a página oficial de
+//     súmulas foi capturada pelo navegador e cada enunciado conferido contra o
+//     PDF do inteiro teor no site do tribunal antes de entrar no arquivo. Para
+//     atualizar, ver o campo `_nota` de lá.
 //
 // Rode `node scripts/build-contas.mjs` para atualizar o acervo. É idempotente e
 // os CSVs ficam em cache em scripts/.cache-contas/ (fora do git).
@@ -325,6 +330,30 @@ async function sumulasTCEBA() {
   console.log(`  ✓ ${n} súmulas do TCE-BA`);
 }
 
+// ── 6. Súmulas do TCE-RO (instantâneo conferido contra os PDFs oficiais) ─────
+function sumulasTCERO() {
+  const arq = join(ROOT, 'scripts', 'fontes', 'tce-ro-sumulas.json');
+  if (!existsSync(arq)) { console.log('  ! tce-ro-sumulas.json ausente — TCE-RO fica fora do acervo'); return; }
+  const doc = JSON.parse(readFileSync(arq, 'utf8'));
+  let n = 0;
+  for (const r of doc.sumulas || []) {
+    if (!r.n || !r.en || r.en.length < 25) continue;
+    add(
+      `TCERO-SUM-${r.n}`, 'TCE-RO', 'Súmula', r.n,
+      `Súmula ${r.n} do TCE-RO${r.cancelada ? ' (cancelada)' : ''}`,
+      'Controle externo', '', r.ano || '', r.cancelada ? 'Cancelada' : null, !r.cancelada,
+      {
+        en: r.en,
+        ob: r.publicacao ? r.publicacao.charAt(0).toUpperCase() + r.publicacao.slice(1) : '',
+        og: 'Tribunal de Contas do Estado de Rondônia',
+        ur: r.pdf || doc._fonte || '',
+      }
+    );
+    n++;
+  }
+  console.log(`  ✓ ${n} súmulas do TCE-RO (instantâneo de ${doc._capturado || '—'})`);
+}
+
 // ── execução ─────────────────────────────────────────────────────────────────
 console.log('Central de Contas — coletando acervo oficial');
 await sumulasTCU();
@@ -346,10 +375,11 @@ await boletimTCU({
 await sumulasTCESP();
 await sumulasTCEMG();
 await sumulasTCEBA();
+sumulasTCERO();
 
 // Ordem de leitura: as súmulas (que valem para sempre) primeiro, depois os
 // boletins do mais novo para o mais antigo — sem isso a lista abria em 2014.
-const ORDEM_TRIB = { TCU: 0, 'TCE-SP': 1, 'TCE-MG': 2, 'TCE-BA': 3 };
+const ORDEM_TRIB = { TCU: 0, 'TCE-RO': 1, 'TCE-SP': 2, 'TCE-MG': 3, 'TCE-BA': 4 };
 const ORDEM_BASE = { 'Súmula': 0, 'Boletim de Jurisprudência': 1, 'Boletim de Pessoal': 2,
                      'Informativo de Licitações e Contratos': 3 };
 const ano = (r) => {
