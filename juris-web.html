@@ -158,15 +158,11 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <script src="juris-index.js"></script>
 </head>
 <body><div class="wrap">
-<div class="head"><div class="ic" id="hIc">⚖️</div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE</p></div></div>
-<div class="modes" id="modes">
-  <button class="mode on" data-modo="juris"><b>⚖️ Jurisprudência</b><small>STF · STJ · TSE · TJRO</small></button>
-  <button class="mode" data-modo="contas"><b>🏛️ Central de Contas</b><small>TCU · TCEs · TCMs</small></button>
-</div>
+<div class="head"><div class="ic" id="hIc">⚖️</div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
 <div class="tabs" id="tabs">
   <button class="tab on" data-pane="acervo">Acervo</button>
-  <button class="tab" data-pane="mapas" data-modo="juris">Mapas mentais</button>
-  <button class="tab" data-pane="tribunais" data-modo="contas">Tribunais de contas <small id="nTcs"></small></button>
+  <button class="tab" data-pane="mapas">Mapas mentais</button>
+  <button class="tab" data-pane="tribunais">Tribunais de contas <small id="nTcs"></small></button>
 </div>
 <div id="paneMapas" hidden>
   <!-- Mapas mentais das Súmulas Vinculantes (1 a 63). Documento próprio, carregado em
@@ -201,7 +197,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <button class="grifbtn" id="jrGrif">✎ Grifar</button>
 <script>
 (function(){
-  var I={id:0,tr:1,fo:2,nu:3,ti:4,ra:5,te:6,da:7,si:8,im:9};
+  var I={id:0,tr:1,fo:2,nu:3,ti:4,ra:5,te:6,da:7,si:8,im:9,src:10};
 
   // Dois acervos moram nesta mesma tela e compartilham cards, leitor, grifos e
   // status de estudo. O que muda entre eles é só a origem dos dados e a paleta
@@ -223,8 +219,15 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
             vazio:'Acervo da Central de Contas não carregou.' }
   };
   var modo='juris', M=MODOS.juris;
-  var IDX=M.idx;                           // [id,tr,fo,nu,ti,ra,te,da,si,im]
-  var TXT=null;                            // carregado sob demanda
+  // ACERVO ÚNICO: jurisprudência e contas na MESMA lista, e os tribunais de contas
+  // viram mais chips ao lado de STF, STJ, TSE e TJRO. Cada registro guarda no campo
+  // 10 de qual acervo veio, porque os textos moram em arquivos diferentes.
+  var IDX=(MODOS.juris.idx||[]).slice();   // [id,tr,fo,nu,ti,ra,te,da,si,im,src]
+  function fonteDe(r){ return (r&&r[I.src]==='c') ? MODOS.contas : MODOS.juris; }
+  function txtDe(r){ return fonteDe(r).txt; }
+  // faceta "ramo": os dois acervos usam vocabulários distintos (ramo do direito x
+  // área de controle externo). Tenta o do JURIS e, se cair no genérico, o de contas.
+  function corFaceta(nome){ var c=ramoColor(nome); return c==='#0f7a57'?areaColor(nome):c; }
   var PAGE=40, page=0, filtered=IDX;
   var f={q:'',tribunal:'',ramo:'',base:''};
 
@@ -306,7 +309,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     el.appendChild(chipBtn(f.ramo==='','Todos os ramos',IDX.length,null,function(){f.ramo='';build();}));
     var TOP=11, list=showAllRamos?ramoOrder:ramoOrder.slice(0,TOP);
     if(f.ramo && list.indexOf(f.ramo)<0) list=list.concat([f.ramo]);   // garante o ramo ativo visível
-    list.forEach(function(r){ var col=M.cor(r);
+    list.forEach(function(r){ var col=corFaceta(r);
       el.appendChild(chipBtn(f.ramo===r,r,ramoCount[r],col,function(){f.ramo=f.ramo===r?'':r;build();})); });
     if(!showAllRamos && ramoOrder.length>TOP){
       var m=document.createElement('button'); m.className='chip'; m.style.borderStyle='dashed';
@@ -325,7 +328,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   // Contratos têm pesos bem diferentes para quem estuda. Daí a faceta própria.
   function renderBaseChips(){
     var el=document.getElementById('bases'); el.innerHTML='';
-    if(!M.comBase || baseOrder.length<2){ el.hidden=true; return; }
+    if(baseOrder.length<2){ el.hidden=true; return; }
     el.hidden=false;
     el.appendChild(chipBtn(f.base==='','Todas as coleções',IDX.length,null,function(){f.base='';build();}));
     baseOrder.forEach(function(b){
@@ -341,7 +344,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       if(f.base&&r[I.fo]!==f.base)return false;
       if(terms.length){
         var hay=norm((r[I.ti]||'')+' '+(r[I.te]||'')+' '+(r[I.nu]||'')+' '+(r[I.fo]||'')+' '+(r[I.ra]||''));
-        if(TXT){var t=TXT[r[I.id]]; if(t&&t.en)hay+=' '+norm(t.en);}
+        var _tm=txtDe(r); if(_tm){var t=_tm[r[I.id]]; if(t&&t.en)hay+=' '+norm(t.en);}
         if(!terms.every(function(x){return hay.indexOf(x)>=0}))return false;
       }
       return true;
@@ -362,7 +365,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   }
 
   function card(r){
-    var id=r[I.id], ra=r[I.ra], rc=M.cor(ra), tc=TRIBC[r[I.tr]]||'#64748b';
+    var id=r[I.id], ra=r[I.ra], rc=corFaceta(ra), tc=TRIBC[r[I.tr]]||'#64748b';
     var stt=est.stat[id]||'', fav=est.fav[id];
     var d=document.createElement('div'); d.className='vcard'; d.style.setProperty('--rc',rc); d.style.setProperty('--tc',tc); d.dataset.id=id;
     d.innerHTML=
@@ -397,8 +400,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 
   function fillBody(d,r){
     var body=d.querySelector('.vbody');
-    if(!TXT){ body.innerHTML='<div class="loading">Carregando textos…</div>'; loadTxt(); return; }
-    var t=TXT[r[I.id]]||{};
+    var _tm=txtDe(r);
+    if(!_tm){ body.innerHTML='<div class="loading">Carregando textos…</div>'; loadTxt(fonteDe(r)); return; }
+    var t=_tm[r[I.id]]||{};
     var q=norm(f.q).split(' ').filter(Boolean);
     function hl(s){
       if(!q.length)return esc(s);
@@ -428,8 +432,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   // ---- carregar o bundle de textos do acervo corrente (via <script>: funciona
   // em file:// — no app nativo o WKWebView bloqueia fetch() de JSON local)
   var txtLoading={}, txtWait={};
-  function loadTxt(cb){
-    var alvo=M;                                     // captura: o modo pode mudar durante a carga
+  function loadTxt(alvo,cb){
+    if(typeof alvo==='function'){ cb=alvo; alvo=MODOS.juris; }
+    alvo=alvo||MODOS.juris;
     if(alvo.txt){cb&&cb();return;}
     (txtWait[alvo.txtSrc]=txtWait[alvo.txtSrc]||[]);
     if(cb)txtWait[alvo.txtSrc].push(cb);            // enfileira ANTES de começar (senão o 1º cb some)
@@ -437,10 +442,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     txtLoading[alvo.txtSrc]=true;
     var s=document.createElement('script'); s.src=alvo.txtSrc;
     s.onload=function(){ alvo.txt=window[alvo.txtGlobal]||{}; txtLoading[alvo.txtSrc]=false;
-      if(M===alvo){ TXT=alvo.txt;
-        // preenche corpos abertos
-        document.querySelectorAll('.vcard.open').forEach(function(d){ var id=d.dataset.id; var r=byId[id]; if(r)fillBody(d,r); });
-      }
+      // preenche os corpos abertos que esperavam justamente este acervo
+      document.querySelectorAll('.vcard.open').forEach(function(d){ var id=d.dataset.id; var r=byId[id]; if(r&&fonteDe(r)===alvo)fillBody(d,r); });
       (txtWait[alvo.txtSrc]||[]).forEach(function(fn){fn()}); txtWait[alvo.txtSrc]=[];
     };
     s.onerror=function(){ txtLoading[alvo.txtSrc]=false; document.querySelectorAll('.vcard.open .vbody .loading').forEach(function(e){e.textContent='Não foi possível carregar os textos.'}); };
@@ -465,7 +468,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   var qEl=document.getElementById('q'), qt;
   qEl.addEventListener('input',function(){ f.q=qEl.value; clearTimeout(qt); qt=setTimeout(build,180); });
   // ao começar a digitar, garante o texto carregado (busca em enunciado)
-  qEl.addEventListener('focus',function(){ if(!TXT)loadTxt(function(){ if(f.q)build(); }); });
+  qEl.addEventListener('focus',function(){
+    [MODOS.juris,MODOS.contas].forEach(function(a){ if(!a.txt&&a.idx&&a.idx.length)loadTxt(a,function(){ if(f.q)build(); }); }); });
 
   // ================= CENTRAL DE CONTAS: acervo + diretório =================
   // 33 tribunais de contas (TCU + 26 TCEs + TCDF + 5 TCMs). Os links são os
@@ -570,9 +574,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     document.querySelectorAll('#tabs .tab').forEach(function(b){ b.classList.toggle('on',b.dataset.pane===nome); });
     if(nome==='tribunais'&&!document.getElementById('tcList').innerHTML)renderTcs();
   }
-  // A barra serve aos DOIS acervos: cada aba declara em qual modo vive (data-modo);
-  // sem declaração, aparece nos dois. Chamada já na partida porque aplicaModo() só roda
-  // com o índice carregado — e no modo Jurisprudência pode não rodar na 1ª abertura.
+  // Acervo é um só, então todas as abas valem sempre. A função ficou porque o
+  // data-modo pode voltar se algum dia houver aba exclusiva de um acervo.
   function ajustaAbas(){
     document.getElementById('tabs').hidden=false;
     document.querySelectorAll('#tabs .tab').forEach(function(b){
@@ -581,49 +584,38 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   ajustaAbas();
   document.querySelectorAll('#tabs .tab').forEach(function(b){ b.onclick=function(){ setPane(b.dataset.pane); }; });
 
-  // ---- troca de acervo (Jurisprudência ⇄ Central de Contas)
-  function aplicaModo(){
-    IDX=M.idx||[]; TXT=M.txt; filtered=IDX;
-    f={q:'',tribunal:'',ramo:'',base:''};
-    qEl.value=''; showAllRamos=false; page=0;
-    document.getElementById('hIc').textContent=M.ic;
-    document.getElementById('hTit').textContent=M.tit;
-    document.getElementById('hSub').textContent=M.sub;
-    ajustaAbas();
-    setPane('acervo');
-    document.querySelectorAll('#modes .mode').forEach(function(b){ b.classList.toggle('on',b.dataset.modo===modo); });
-    if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">'+M.ic+'</div>'+esc(M.vazio)+'</div>'; document.getElementById('more').textContent=''; recount(); renderTribChips(); renderBaseChips(); renderRamoChips(); stats(); return; }
-    recount(); build();
-  }
+  // ---- Central de Contas: o índice entra na MESMA lista, sem trocar de acervo
+  // São 2,5 MB, então não vêm no <script> da página: carregam logo após a primeira
+  // pintura e, quando chegam, os registros são marcados com 'c' no campo 10 (para o
+  // texto vir de contas-text.js) e concatenados. Aí os tribunais de contas aparecem
+  // como mais chips, ao lado de STF, STJ, TSE e TJRO.
   var idxLoading=false;
-  function setModo(nome){
-    if(modo===nome)return;
-    modo=nome; M=MODOS[nome];
-    document.querySelectorAll('#modes .mode').forEach(function(b){ b.classList.toggle('on',b.dataset.modo===modo); });
-    if(M.idx){ aplicaModo(); return; }
-    // primeiro acesso à Central: o índice (2,5 MB) só é baixado aqui
-    listEl.innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
-    document.getElementById('tabs').hidden=false;
-    if(idxLoading)return; idxLoading=true;
-    var sc=document.createElement('script'); sc.src=M.idxSrc;
-    sc.onload=function(){ idxLoading=false; MODOS.contas.idx=window[MODOS.contas.idxGlobal]||[];
+  function carregaContas(){
+    if(idxLoading||MODOS.contas.idx)return; idxLoading=true;
+    var sc=document.createElement('script'); sc.src=MODOS.contas.idxSrc;
+    sc.onload=function(){ idxLoading=false;
+      var lista=window[MODOS.contas.idxGlobal]||[];
+      MODOS.contas.idx=lista;
+      lista.forEach(function(r){ r[I.src]='c'; });
+      IDX=IDX.concat(lista);
       var meta=window.__CONTAS_META__||{};
-      document.getElementById('tcFonte').innerHTML='33 tribunais de contas — TCU, 26 estaduais, o TCDF e 5 tribunais de contas dos municípios. '
+      var el=document.getElementById('tcFonte');
+      if(el)el.innerHTML='33 tribunais de contas — TCU, 26 estaduais, o TCDF e 5 tribunais de contas dos municípios. '
         +'O acervo textual dentro do app vem dos <a href="https://sites.tcu.gov.br/dados-abertos/jurisprudencia/" target="_blank" rel="noopener">dados abertos de jurisprudência do TCU</a> '
         +'e dos repertórios oficiais de súmulas do TCE-SP, TCE-MG e TCE-BA'+(meta.atualizado?' (coletado em '+esc(meta.atualizado)+')':'')+'. Os demais abrem no portal do próprio tribunal.';
-      if(modo==='contas')aplicaModo();
+      recount(); renderTribChips(); renderBaseChips(); renderRamoChips();
+      applyFilter(); stats(); renderPage();
     };
-    sc.onerror=function(){ idxLoading=false;
-      listEl.innerHTML='<div class="empty"><div class="ei">\ud83c\udfdb\ufe0f</div>Não foi possível carregar o acervo da Central de Contas.</div>'; };
+    sc.onerror=function(){ idxLoading=false; };   // sem a Central, a jurisprudência segue inteira
     document.body.appendChild(sc);
   }
-  document.querySelectorAll('#modes .mode').forEach(function(b){ b.onclick=function(){ setModo(b.dataset.modo); }; });
 
   // ---- boot
   recount();
   renderTribChips(); renderBaseChips(); renderRamoChips();
   if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Base de jurisprudência não carregou.</div>'; }
   else { applyFilter(); stats(); renderPage(); }
+  setTimeout(carregaContas,60);          // funde o acervo de contas assim que a tela existe
 
   // ================= LEITOR DE VERBETE (esquema) =================
   var _jr=document.getElementById('jrdr'), _jsc=document.getElementById('jrScroll'), _jdoc=document.getElementById('jrDoc'),
@@ -655,7 +647,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     var on=_jtree.querySelector('.mnode.on'); if(on)on.scrollIntoView({block:'nearest'});
   }
   function renderVerbete(r){
-    var t=(TXT&&TXT[r[I.id]])||{};
+    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
     var h='<div class="vhero"><div class="htop"><span class="tb">'+esc(r[I.tr]||'—')+'</span>'
       +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="meta">'+esc(r[I.fo])+'</span>':'')
       +(r[I.nu]?'<span class="meta">nº '+esc(r[I.nu])+'</span>':'')
@@ -679,13 +671,13 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   window.openVerbete=function(idx){
     if(idx<0||idx>=filtered.length)return; curIdx=idx; jdisp=[];
     var r=filtered[idx]; curId=r[I.id];
-    var rc=M.cor(r[I.ra]); _jr.style.setProperty('--rc',rc); _jr.style.setProperty('--rc2',toRc2(rc));
+    var rc=corFaceta(r[I.ra]); _jr.style.setProperty('--rc',rc); _jr.style.setProperty('--rc2',toRc2(rc));
     document.getElementById('jrMat').textContent=r[I.ra]||'Jurisprudência';
     document.getElementById('jrTitle').textContent=r[I.ti]||'Verbete';
     document.getElementById('jrTrib').textContent=r[I.tr]||'—';
     jApplyTheme(); _jr.classList.add('on'); document.body.style.overflow='hidden'; _jsc.scrollTop=0;
     buildMap(idx);
-    if(!TXT){ _jsc.innerHTML='<div class="rdr-spin">Carregando os textos…</div>'; loadTxt(function(){ renderVerbete(r); }); }
+    if(!txtDe(r)){ _jsc.innerHTML='<div class="rdr-spin">Carregando os textos…</div>'; loadTxt(fonteDe(r),function(){ renderVerbete(r); }); }
     else renderVerbete(r);
   };
   // grifos
