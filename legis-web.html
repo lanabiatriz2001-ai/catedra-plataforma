@@ -349,8 +349,20 @@ function _colher(alvos, jaVistos){
   render(INDICE[0].id, tabs.querySelector('button'));
 })();
 
-// ============ Leitor de lei — esquema (busca via /api/law; só no deploy web) ============
-document.body.classList.add(location.protocol.indexOf('http')===0 ? 'online' : 'offline');
+// ============ Leitor de lei — esquema (busca a função serverless /api/law) ============
+// Servido por http(s) o caminho relativo resolve sozinho. No app nativo (macOS/iPadOS)
+// a página vem do bundle em file://, onde "/api/law" viraria "file:///api/law" — então
+// vale o endereço absoluto que o build injeta em window.CATEDRA_API_BASE.
+// Antes o teste era só o protocolo: em file:// a página se declarava offline, e como o
+// botão de ler só existe com body.online (regra .lawrow .rd), o leitor SUMIA no iPad.
+var LAW_API_BASE = '';
+try {
+  LAW_API_BASE = window.CATEDRA_API_BASE
+    || (window.parent && window.parent !== window ? (window.parent.CATEDRA_API_BASE || '') : '')
+    || '';
+} catch (_) { LAW_API_BASE = ''; }   // parent de outra origem: sem acesso, segue sem base
+document.body.classList.add(
+  (location.protocol.indexOf('http') === 0 || LAW_API_BASE) ? 'online' : 'offline');
 (function(){
   var _rdr=document.getElementById('rdr'), _sc=document.getElementById('rdrScroll'), _doc=document.getElementById('rdrDoc'),
       _tree=document.getElementById('rdrTree'), _grif=document.getElementById('grifBtn'), _prog=document.getElementById('rdrProg');
@@ -450,7 +462,7 @@ document.body.classList.add(location.protocol.indexOf('http')===0 ? 'online' : '
     applyTheme();
     _sc.innerHTML='<div class="rdr-spin">Carregando o texto da lei…</div>'; _doc=document.getElementById('rdrDoc');
     _rdr.classList.add('on'); document.body.style.overflow='hidden'; _sc.scrollTop=0;
-    fetch('/api/law?u='+encodeURIComponent(law.u)).then(function(r){return r.json();}).then(function(d){
+    fetch(LAW_API_BASE+'/api/law?u='+encodeURIComponent(law.u)).then(function(r){return r.json();}).then(function(d){
       if(!d||!d.ok){ _sc.innerHTML='<div class="rdr-spin">Não consegui carregar o texto aqui.<br><small>'+esc((d&&d.error)||'')+'</small><br><br>'+link(law.u)+'</div>'; return; }
       _sc.innerHTML='<div class="docwrap" id="rdrDoc"></div>'; _doc=document.getElementById('rdrDoc');
       renderDoc(d.paragraphs||[]);

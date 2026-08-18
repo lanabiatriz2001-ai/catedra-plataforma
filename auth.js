@@ -551,6 +551,15 @@
 
   function onLogin(u) {
     user = u;
+    // O app precisa saber QUAL conta está logada. Há duas contas distintas em uso (a
+    // administradora e a pessoal) e o Ajustes só mostrava um apelido salvo no
+    // localStorage — não havia como descobrir, de dentro do app, onde se estava. Isso
+    // custou uma caçada inteira a um "bug" que era simplesmente a conta errada.
+    try {
+      var ident = { id: u.id, email: u.email || '' };
+      if (window.CatedraAuth) window.CatedraAuth.user = ident;
+      window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: ident }));
+    } catch (_) {}
     if (trocouDeDono(u)) { clearLocal(); try { sessionStorage.removeItem('catedra:hydrated'); } catch (_) {} }
     try { _si('catedra:_owner', u.id); } catch (_) {}
     if (sessionStorage.getItem('catedra:hydrated') === '1') { _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
@@ -590,7 +599,14 @@
       location.reload();
     }).catch(function () { _si('catedra:auth', '1'); hydrating = false; hide(); });
   }
-  function showLoginState() { user = null; _ri('catedra:auth'); sessionStorage.removeItem('catedra:hydrated'); hydrating = false; showForm(); }
+  function showLoginState() {
+    user = null;
+    try {
+      if (window.CatedraAuth) window.CatedraAuth.user = null;
+      window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: null }));
+    } catch (_) {}
+    _ri('catedra:auth'); sessionStorage.removeItem('catedra:hydrated'); hydrating = false; showForm();
+  }
 
   // Tela de NOVA SENHA — o link do e-mail de recuperação volta para cá. Sem ela o link
   // não levaria a lugar nenhum: o supabase-js abre a sessão a partir do hash da URL e o

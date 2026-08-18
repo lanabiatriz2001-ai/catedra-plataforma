@@ -367,6 +367,11 @@ window.ctPdfLib = (function(){
     <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Sistema</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="bancas" onclick="{{ onNav }}" style="{{ navBancas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Bancas</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:9px;font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
+      <!-- Módulo de estudo da área: o conteúdo específico da carreira (corpo humano,
+           SUAS, tributos…). Só aparece nas áreas que têm um. -->
+      <sc-if value="{{ temAreaMod }}" hint-placeholder-val="{{ true }}">
+      <button data-view="areamod" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button>
+      </sc-if>
       <!-- LEGIS vale para toda área (a legislação da área vem dentro dele); só as
            súmulas/jurisprudência ficam nas carreiras jurídicas -->
       <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraLEGIS</span></button>
@@ -1468,7 +1473,7 @@ window.ctPdfLib = (function(){
                     <sc-for list="{{ g.items }}" as="f" hint-placeholder-count="1">
                       <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;">
                         <div style="display:flex;gap:5px;align-items:center;">
-                          <input data-id="{{ f.id }}" data-field="disc" value="{{ f.disc }}" oninput="{{ editFixed }}" placeholder="Atividade…" title="Nome da atividade" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:6px 7px;font-size:12px;color:var(--ink);font-family:inherit;font-weight:600;">
+                          <select data-id="{{ f.id }}" data-field="discEdital" value="{{ f.discEdital }}" onchange="{{ editFixed }}" title="Disciplina do edital" style="flex:1;min-width:0;border:1px solid {{ f.vincBorder }};background:var(--surface2);border-radius:7px;padding:6px 7px;font-size:12px;color:{{ f.vincColor }};font-family:inherit;font-weight:600;cursor:pointer;"><option value="">— disciplina —</option><sc-for list="{{ f.discOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
                           <button data-id="{{ f.id }}" onclick="{{ removeFixed }}" title="Remover" style="width:22px;height:22px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;font-size:12px;line-height:1;">×</button>
                         </div>
                         <sc-if value="{{ f.temRoteiro }}" hint-placeholder-val="{{ false }}"><span title="{{ f.roteiro }}" style="align-self:flex-start;font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--text3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ f.rotShort }}</span></sc-if>
@@ -1477,9 +1482,11 @@ window.ctPdfLib = (function(){
                           <select data-id="{{ f.id }}" data-field="dia" value="{{ f.dia }}" onchange="{{ editFixed }}" title="Mover para outro dia" style="width:64px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 3px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><option value="">Todo dia</option><option value="seg">Seg</option><option value="ter">Ter</option><option value="qua">Qua</option><option value="qui">Qui</option><option value="sex">Sex</option><option value="sab">Sáb</option><option value="dom">Dom</option></select>
                           <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" title="Minutos" style="width:44px;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:var(--mono);flex:none;text-align:center;">
                         </div>
-                        <select data-id="{{ f.id }}" data-field="discEdital" value="{{ f.discEdital }}" onchange="{{ editFixed }}" title="Vincular à disciplina do edital — a sessão registrada conta no progresso dela" style="width:100%;border:1px solid {{ f.vincBorder }};background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:{{ f.vincColor }};font-family:inherit;cursor:pointer;"><option value="">— vincular disciplina —</option><sc-for list="{{ f.discOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
                         <sc-if value="{{ f.temTopicos }}" hint-placeholder-val="{{ false }}">
                           <select data-id="{{ f.id }}" data-field="topico" value="{{ f.topico }}" onchange="{{ editFixed }}" title="Tópico da disciplina (do edital)" style="width:100%;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="">— tópico —</option><sc-for list="{{ f.topicOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                        </sc-if>
+                        <sc-if value="{{ f.temSubs }}" hint-placeholder-val="{{ false }}">
+                          <select data-id="{{ f.id }}" data-field="subtopico" value="{{ f.subtopico }}" onchange="{{ editFixed }}" title="Subtópico (do edital) — deixe vazio para o tópico inteiro" style="width:100%;border:1px solid var(--border);background:var(--surface2);border-radius:7px;padding:5px 4px;font-size:11px;color:var(--ink);font-family:inherit;cursor:pointer;"><option value="">— todo o tópico —</option><sc-for list="{{ f.subOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
                         </sc-if>
                       </div>
                     </sc-for>
@@ -2510,6 +2517,9 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <!-- ============ CÁTEDRALEGIS (web) — catálogo + plano + índice, página nativa ============ -->
+      <sc-if value="{{ isAreaMod }}" hint-placeholder-val="{{ false }}">
+        <iframe data-ct-frame="{{ areaModFrameSrc }}" title="Módulo de estudo da área" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+      </sc-if>
       <sc-if value="{{ isLegis }}" hint-placeholder-val="{{ false }}">
         <iframe data-ct-frame="{{ legisFrameSrc }}" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
@@ -2604,7 +2614,7 @@ window.ctPdfLib = (function(){
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
             <div style="width:52px;height:52px;border-radius:99px;background:var(--heroGrad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:700;font-size:22px;flex:none;box-shadow:0 6px 18px rgba(0,0,0,.22);">{{ userInitial }}</div>
-            <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:16px;color:var(--ink);">{{ userName }}</div><div style="font-size:12.5px;color:var(--text3);">{{ userObjetivo }} · dados locais</div></div>
+            <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:16px;color:var(--ink);">{{ userName }}</div><div style="font-size:12.5px;color:var(--text3);">{{ userObjetivo }} · {{ contaLabel }}</div></div>
             <button onclick="{{ logout }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 15px;font-size:13px;color:var(--danger);cursor:pointer;font-family:inherit;font-weight:600;">Sair</button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -3005,55 +3015,152 @@ window.ctPdfLib = (function(){
        </div>
       </sc-if>
 
-      <!-- ================= BANCAS (perfil + dicas por área) ================= -->
+      <!-- ================= BANCAS (recorte: área · banca · matéria · assunto) ================= -->
+      <!-- A aba deixou de ser uma parede de 12 cards iguais: agora é um RECORTE em 4 passos      -->
+      <!-- (área do concurso → banca → matéria → assunto) que abre um painel único da banca      -->
+      <!-- escolhida. O perfil é fixo/pesquisado; só as dicas do recorte passam pela IA.          -->
       <sc-if value="{{ isBancas }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;">
-            <div style="font-size:13px;color:var(--text2);line-height:1.6;">Cada banca cobra de um jeito. Aqui está o perfil de cada uma — como monta as questões, o que valoriza e as dicas práticas. Escolha uma área para receber dicas específicas dela para cada banca.</div>
-            <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <span style="font-size:12px;font-weight:600;color:var(--text3);">Dicas por área:</span>
-              <select value="{{ bancaAreaAtual }}" onchange="{{ setBancaArea }}" style="border:1px solid var(--border);background:var(--surface2);border-radius:9px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;cursor:pointer;min-width:240px;"><sc-for list="{{ bancaAreaOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+        <div style="display:flex;flex-direction:column;gap:18px;">
+
+          <!-- ── HERO ───────────────────────────────────────────────────────────── -->
+          <div style="position:relative;overflow:hidden;border:1px solid transparent;border-radius:var(--radius);background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--heroGrad) border-box;padding:26px 28px;">
+            <div style="position:absolute;right:-64px;top:-72px;width:210px;height:210px;border-radius:50%;background:var(--heroGrad);opacity:.14;pointer-events:none;"></div>
+            <div style="position:absolute;right:52px;bottom:-96px;width:150px;height:150px;border-radius:50%;background:var(--heroGrad);opacity:.09;pointer-events:none;"></div>
+            <div style="position:relative;">
+              <div style="font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);font-weight:800;">Perfil de banca</div>
+              <div style="font-family:var(--display);font-size:34px;line-height:1.08;font-weight:800;color:var(--ink);margin-top:7px;letter-spacing:-.015em;">Estude do jeito que a<br>sua banca cobra</div>
+              <div style="font-size:13.5px;color:var(--text2);line-height:1.6;margin-top:10px;max-width:620px;">Monte o recorte em quatro passos. O perfil de cada banca é fixo e pesquisado — o que muda com a sua escolha são as dicas sob medida.</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
+                <sc-for list="{{ bancaCrumb }}" as="c" hint-placeholder-count="4">
+                  <span style="{{ c.style }}"><span style="opacity:.55;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px;">{{ c.k }}</span><span style="font-weight:700;">{{ c.v }}</span></span>
+                </sc-for>
+              </div>
             </div>
           </div>
 
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;">
-            <sc-for list="{{ bancasVM }}" as="b" hint-placeholder-count="6">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                  <span style="font-family:var(--display);font-size:19px;font-weight:700;color:var(--ink);">{{ b.label }}</span>
-                  <span style="{{ b.penalStyle }}">{{ b.penalLabel }}</span>
-                </div>
-                <div>
-                  <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:3px;">Formato</div>
-                  <div style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ b.formato }}</div>
-                </div>
-                <div>
-                  <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:3px;">Como cobra</div>
-                  <div style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ b.estilo }}</div>
-                </div>
-                <div>
-                  <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:3px;">Foco do estudo</div>
-                  <div style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ b.foco }}</div>
-                </div>
-                <div style="border-top:1px solid var(--border);padding-top:12px;">
-                  <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accentD);font-weight:700;margin-bottom:8px;">Dicas práticas</div>
-                  <sc-for list="{{ b.dicas }}" as="d" hint-placeholder-count="3">
-                    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;"><span style="color:var(--accent);flex:none;font-weight:700;">›</span><span style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ d }}</span></div>
+          <!-- ── SELETOR EM 4 PASSOS ────────────────────────────────────────────── -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column;gap:20px;">
+
+            <!-- 1 · ÁREA DO CONCURSO -->
+            <div>
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap;">
+                <span style="width:22px;height:22px;border-radius:50%;background:var(--accentSoft);color:var(--accentD);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;">1</span>
+                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;">Área do concurso</span>
+                <span style="font-size:11.5px;color:var(--text3);margin-left:auto;">{{ bancaAreaConcDesc }}</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <sc-for list="{{ bancaAreas }}" as="a" hint-placeholder-count="10">
+                  <button data-k="{{ a.k }}" onclick="{{ setBancaAreaConc }}" style="{{ a.style }}"><span style="font-size:14px;line-height:1;">{{ a.emoji }}</span>{{ a.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- 2 · BANCA -->
+            <div style="border-top:1px dashed var(--border);padding-top:18px;">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap;">
+                <span style="width:22px;height:22px;border-radius:50%;background:var(--accentSoft);color:var(--accentD);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;">2</span>
+                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;">Banca</span>
+                <span style="font-size:11.5px;color:var(--text3);margin-left:auto;">12 bancas · o selo diz se o erro anula acerto</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px;">
+                <sc-for list="{{ bancaTiles }}" as="b" hint-placeholder-count="12">
+                  <button data-k="{{ b.k }}" onclick="{{ setBancaFoco }}" style="{{ b.style }}">
+                    <span style="{{ b.barStyle }}"></span>
+                    <span style="{{ b.nomeStyle }}">{{ b.sigla }}</span>
+                    <span style="{{ b.penStyle }}">{{ b.penLabel }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- 3 · MATÉRIA -->
+            <div style="border-top:1px dashed var(--border);padding-top:18px;">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap;">
+                <span style="width:22px;height:22px;border-radius:50%;background:var(--accentSoft);color:var(--accentD);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;">3</span>
+                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;">Matéria</span>
+                <span style="font-size:11.5px;color:var(--text3);margin-left:auto;">{{ bancaMateriaFonte }}</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <sc-for list="{{ bancaMaterias }}" as="m" hint-placeholder-count="8">
+                  <button data-k="{{ m.k }}" onclick="{{ setBancaArea }}" style="{{ m.style }}">{{ m.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- 4 · ASSUNTO -->
+            <div style="border-top:1px dashed var(--border);padding-top:18px;">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap;">
+                <span style="width:22px;height:22px;border-radius:50%;background:var(--accentSoft);color:var(--accentD);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;">4</span>
+                <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;">Assunto</span>
+                <span style="font-size:11.5px;color:var(--text3);margin-left:auto;">{{ bancaAssuntoFonte }}</span>
+              </div>
+              <sc-if value="{{ bancaTemAssuntos }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px;">
+                  <sc-for list="{{ bancaAssuntos }}" as="t" hint-placeholder-count="8">
+                    <button data-k="{{ t.k }}" onclick="{{ setBancaAssunto }}" style="{{ t.style }}">{{ t.label }}</button>
                   </sc-for>
                 </div>
-                <div style="border-top:1px dashed var(--border);padding-top:12px;">
-                  <sc-if value="{{ b.temDicasArea }}" hint-placeholder-val="{{ false }}">
-                    <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accentD);font-weight:700;margin-bottom:8px;">Dicas para {{ bancaAreaAtual }}</div>
-                    <sc-for list="{{ b.dicasArea }}" as="da" hint-placeholder-count="3">
-                      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;"><span style="color:#0f9d6b;flex:none;font-weight:700;">✦</span><span style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ da }}</span></div>
-                    </sc-for>
-                  </sc-if>
-                  <sc-if value="{{ b.temDicasArea }}" hint-placeholder-val="{{ true }}"></sc-if>
-                  <button data-banca="{{ b.key }}" data-label="{{ b.label }}" onclick="{{ gerarDicasBanca }}" disabled="{{ b.gerando }}" style="{{ b.gerarStyle }}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke-linecap="round"></path></svg>{{ b.gerarLabel }}</button>
+              </sc-if>
+              <input value="{{ bancaAssuntoTxt }}" oninput="{{ onBancaAssunto }}" placeholder="{{ bancaAssuntoPh }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:10px;padding:11px 13px;font-size:13.5px;color:var(--ink);font-family:inherit;">
+            </div>
+          </div>
+
+          <!-- ── PAINEL DA BANCA ESCOLHIDA ──────────────────────────────────────── -->
+          <div style="{{ bancaFocoWrap }}">
+            <div style="{{ bancaFocoGlow }}"></div>
+            <div style="position:relative;padding:24px 26px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                <div style="min-width:220px;">
+                  <div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:{{ bancaFocoCor }};">Banca escolhida</div>
+                  <div style="font-family:var(--display);font-size:29px;line-height:1.1;font-weight:800;color:var(--ink);margin-top:5px;letter-spacing:-.01em;">{{ bancaFocoLabel }}</div>
+                </div>
+                <span style="{{ bancaFocoPenStyle }}">{{ bancaFocoPenLabel }}</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:20px;">
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 15px;">
+                  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;margin-bottom:6px;">Formato</div>
+                  <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ bancaFocoFormato }}</div>
+                </div>
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 15px;">
+                  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;margin-bottom:6px;">Como cobra</div>
+                  <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ bancaFocoEstilo }}</div>
+                </div>
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 15px;">
+                  <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);font-weight:800;margin-bottom:6px;">Foco do estudo</div>
+                  <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ bancaFocoFoco }}</div>
                 </div>
               </div>
-            </sc-for>
+
+              <div style="margin-top:20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;">
+                  <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--text3);">Dicas práticas da banca</span>
+                  <span style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);"></span>
+                </div>
+                <sc-for list="{{ bancaFocoDicas }}" as="d" hint-placeholder-count="3">
+                  <div style="display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;"><span style="{{ bancaFocoMarker }}">›</span><span style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ d }}</span></div>
+                </sc-for>
+              </div>
+
+              <!-- recorte: dicas sob medida (IA) -->
+              <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:18px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;flex-wrap:wrap;">
+                  <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--accentD);">Sob medida para o seu recorte</span>
+                  <span style="flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);min-width:30px;"></span>
+                </div>
+                <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:13px;">{{ bancaRecorteDesc }}</div>
+                <sc-if value="{{ bancaTemIA }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:var(--accentSoft);border:1px solid var(--border);border-radius:12px;padding:15px 16px;margin-bottom:13px;">
+                    <sc-for list="{{ bancaDicasIA }}" as="da" hint-placeholder-count="4">
+                      <div style="display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;"><span style="color:var(--accentD);flex:none;font-weight:800;">✦</span><span style="font-size:12.5px;color:var(--ink);line-height:1.55;">{{ da }}</span></div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <button onclick="{{ gerarDicasBanca }}" disabled="{{ bancaIABusy }}" style="{{ bancaIAStyle }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke-linecap="round"></path></svg>{{ bancaIALabel }}</button>
+              </div>
+            </div>
           </div>
+
         </div>
       </sc-if>
 
@@ -3635,6 +3742,9 @@ window.ctPdfLib = (function(){
 //   juridico -> vocabulário jurídico nos tipos de atividade (lei seca, jurisprudência)
 //   juris    -> mostra a aba CátedraJURIS (súmulas e teses); o LEGIS aparece em TODAS
 //               as áreas, com a legislação padrão e a específica de cada uma
+//   modulo   -> nome do MÓDULO DE ESTUDO próprio da área (o corpo humano em saúde, o
+//               SUAS em assistência social…). O conteúdo fica em area-modulos.js e a
+//               tela em area-web.html; vazio = área sem módulo
 //   cats     -> categorias EXTRAS da área; Teoria/Revisão/Questões/Simulado valem p/ todas
 //   discs    -> disciplinas sugeridas enquanto o edital ainda está vazio
 //   modelos  -> ids de CT_MODELOS da área (os outros ficam atrás de "ver os outros")
@@ -3642,52 +3752,80 @@ window.ctPdfLib = (function(){
 // Sem escolha = jurídica, que é como o app sempre funcionou (quem já usa não vê diferença).
 const CT_AREAS = [
   {id:'juridica', emoji:'⚖️', label:'Jurídica', desc:'Magistratura, MP, Defensoria, Procuradorias, tribunais, OAB',
-   juridico:true, juris:true, cats:['Lei seca','Jurisprudência'],
+   juridico:true, juris:true, modulo:'Processo e peças', cats:['Lei seca','Jurisprudência'],
    discs:['Direito Constitucional','Direito Administrativo','Direito Civil','Direito Processual Civil','Direito Penal','Direito Processual Penal'],
    modelos:['magistratura','enam','promotor','defensor','procurador','juizfederal','tribunais','tj','consultor']},
   {id:'saude', emoji:'🩺', label:'Saúde e Medicina', desc:'Residência, Revalida, enfermagem, farmácia, odontologia, concursos da saúde',
-   juridico:false, juris:false, cats:['Caso clínico','Protocolo/diretriz'],
+   juridico:false, juris:false, modulo:'Corpo humano', cats:['Caso clínico','Protocolo/diretriz'],
    discs:['Clínica Médica','Cirurgia','Pediatria','Ginecologia e Obstetrícia','Medicina Preventiva','Saúde Pública / SUS'],
    modelos:[]},
   {id:'social', emoji:'🤝', label:'Assistência Social', desc:'Serviço social, SUAS, CRAS/CREAS, políticas públicas',
-   juridico:false, juris:false, cats:['Legislação social','Estudo de caso'],
+   juridico:false, juris:false, modulo:'SUAS e política social', cats:['Legislação social','Estudo de caso'],
    discs:['Serviço Social','Política Social e Seguridade','Ética e Projeto Profissional','SUAS e Assistência Social','Saúde Pública / SUS','Direitos Humanos'],
    modelos:['transpetroSocial']},
   {id:'policial', emoji:'🚔', label:'Policial e Segurança Pública', desc:'PF, PRF, polícias civis e militares, agente, escrivão, delegado',
-   juridico:true, juris:true, cats:['Lei seca','Jurisprudência','Procedimento operacional'],
+   juridico:true, juris:true, modulo:'Prática policial', cats:['Lei seca','Jurisprudência','Procedimento operacional'],
    discs:['Direito Constitucional','Direito Penal','Direito Processual Penal','Legislação Penal Especial','Direito Administrativo','Criminologia'],
    modelos:['delegado','escrivao']},
   {id:'fiscal', emoji:'📊', label:'Fiscal e Controle', desc:'Auditor-fiscal, Receita, tribunais de contas, controle interno',
-   juridico:true, juris:true, cats:['Lei seca','Jurisprudência'],
+   juridico:true, juris:true, modulo:'Tributos e controle', cats:['Lei seca','Jurisprudência'],
    discs:['Direito Tributário','Contabilidade Geral','Auditoria','Direito Administrativo','Administração Financeira e Orçamentária','Direito Constitucional'],
    modelos:['auditor']},
   {id:'administrativa', emoji:'🏛️', label:'Administrativa e Gestão', desc:'Analista e técnico administrativo, gestão pública, legislativo',
-   juridico:true, juris:true, cats:['Lei seca'],
+   juridico:true, juris:true, modulo:'Administração pública', cats:['Lei seca'],
    discs:['Língua Portuguesa','Direito Administrativo','Direito Constitucional','Administração Pública','Raciocínio Lógico','Informática'],
    modelos:['tribunais','tj','consultor']},
   {id:'educacao', emoji:'📚', label:'Educação e Docência', desc:'Professor, pedagogia, magistério, provas de licenciatura',
-   juridico:false, juris:false, cats:['Documento normativo','Prática de ensino'],
+   juridico:false, juris:false, modulo:'Fundamentos da educação', cats:['Documento normativo','Prática de ensino'],
    discs:['Fundamentos da Educação','Didática','Legislação Educacional (LDB)','Psicologia da Aprendizagem','Gestão Escolar','Conhecimentos Específicos'],
    modelos:[]},
   {id:'tecnologia', emoji:'💻', label:'Tecnologia e Engenharia', desc:'TI, engenharias, exatas e carreiras técnicas',
-   juridico:false, juris:false, cats:['Prática/laboratório','Documentação'],
+   juridico:false, juris:false, modulo:'Fundamentos de TI', cats:['Prática/laboratório','Documentação'],
    discs:['Matemática','Raciocínio Lógico','Programação','Banco de Dados','Redes de Computadores','Segurança da Informação'],
    modelos:[]},
   {id:'militar', emoji:'🎖️', label:'Militar', desc:'Forças Armadas, ESA, EsPCEx, EEAr, IME/ITA',
-   juridico:false, juris:false, cats:['Exercícios'],
+   juridico:false, juris:false, modulo:'Exatas militares', cats:['Exercícios'],
    discs:['Matemática','Física','Química','Língua Portuguesa','História','Geografia'],
    modelos:[]},
   {id:'outra', emoji:'✳️', label:'Outra área', desc:'Qualquer outra prova — o método de estudo continua o mesmo',
-   juridico:false, juris:false, cats:[],
+   juridico:false, juris:false, modulo:'', cats:[],
    discs:['Língua Portuguesa','Conhecimentos Específicos','Raciocínio Lógico','Atualidades','Informática','Conhecimentos Gerais'],
    modelos:[]},
 ];
 const CT_AREA = (id)=> CT_AREAS.find(a=>a.id===id) || CT_AREAS[0];
+
+// Perfil pesquisado de cada banca (formato, estilo de cobrança, foco e dicas). Fica em
+// escopo de módulo porque a aba Bancas E o painel de Personalização leem do mesmo lugar —
+// duas cópias divergiriam na primeira atualização de uma banca.
+const CT_BANCAS = {
+    cebraspe: { label:"CEBRASPE (Cespe/UnB)", formato:"Predominantemente Certo/Errado: cada item é uma assertiva isolada a ser julgada como C ou E e, na correção padrão da banca, 1 erro anula 1 acerto (pontuação líquida = acertos − erros…", estilo:"Cobra interpretação, raciocínio crítico e aplicação prática do conteúdo, com enunciados contextualizados, jurisprudência e pegadinhas em palavras-chave, mais do que decoreba de lei seca.", penalidade:true, foco:"Dominar interpretação e aplicação do conteúdo (não só a letra da lei), treinar o julgamento Certo/Errado com gestão de risco e atenção redobrada às pegadinhas de palavras-chave.", dicas:["Treine exaustivamente questões anteriores da própria banca para internalizar o padrão de itens C/E e as armadilhas recorrentes", "Gestão de risco: como o erro anula o acerto, deixe em branco itens de que não tem certeza para não derrubar a nota líquida", "Marque palavras absolutas (sempre, nunca, somente, exclusivamente) e dupla negativa — costumam tornar o item errado"] },
+    fgv: { label:"FGV", formato:"Múltipla escolha, 5 alternativas (A-E); sem anulação de acerto por erro", estilo:"Banca camaleão, contextualizada e detalhista: enunciados longos com casos práticos que exigem interpretação e raciocínio, mas também cobra forte a literalidade da lei (lei seca), com pegadinhas de…", penalidade:false, foco:"Combinar memorização precisa da lei seca (atenção a palavras trocadas) com interpretação de texto, jurisprudência atualizada e raciocínio aplicado, resolvendo muitas questões da própria banca para…", dicas:["Treine MUITAS questões da própria FGV (ex.: QConcursos) para internalizar o padrão de enunciado longo e as pegadinhas entre alternativas semelhantes", "Decore a letra da lei com atenção a palavras-chave (poderá/deverá, prazos, exceções), pois a banca altera termos sutis do texto legal para criar a alternativa errada", "Estude jurisprudência e súmulas recentes de STF/STJ, especialmente em Direito, e reforce interpretação/inferência em Português e raciocínio aplicado em Matemática"] },
+    fcc: { label:"FCC", formato:"Múltipla escolha, 5 alternativas (A-E), uma correta; sem penalidade por erro (erro não anula acerto)", estilo:"Tradicionalmente focada na literalidade da lei seca, hoje combina texto da lei, doutrina, jurisprudência e súmulas dos tribunais superiores, com enunciados longos e pegadinhas sutis.", penalidade:false, foco:"Memorizar a literalidade da lei e súmulas/jurisprudência dos tribunais superiores, treinando leitura minuciosa para não cair nas pegadinhas sutis de palavras e exceções.", dicas:["Domine a lei seca palavra por palavra (prazos, exceções, competências, rol taxativo x exemplificativo) — a FCC adora cobrar a literalidade e inverter pequenos detalhes", "Resolva muitas questões anteriores da própria FCC: a banca repete temas, estruturas de enunciado e tipos de pegadinha", "Estude jurisprudência e súmulas atualizadas do STF e STJ, hoje fortemente cobradas nas provas de tribunais e MP"] },
+    vunesp: { label:"VUNESP", formato:"Múltipla escolha, 5 alternativas (A-E), apenas uma correta; erro não anula acerto", estilo:"Banca previsível e direta, de enunciados claros, que privilegia a literalidade da lei e exige sobretudo domínio do conteúdo e leitura atenta, sem apostar em pegadinhas muito elaboradas", penalidade:false, foco:"Dominar a literalidade da legislação (lei seca) e a Língua Portuguesa, treinando exaustivamente questões antigas da banca para reconhecer padrões e ler os comandos com atenção", dicas:["Resolva muitas questões anteriores da própria VUNESP — a banca é repetitiva e treinar revela os padrões e a profundidade cobrados", "Estude pela letra da lei (lei seca): memorize prazos, números, competências e definições exatamente como no texto legal", "Leia o comando com atenção, identificando se a questão pede a alternativa correta ou a incorreta para não errar por desatenção"] },
+    cesgranrio: { label:"CESGRANRIO", formato:"Múltipla escolha, 5 alternativas (A-E), apenas uma correta; sem anulação (erro não desconta acerto)", estilo:"Banca metódica e objetiva: enunciados curtos (2-3 linhas), abordagem horizontal cobrindo quase todo o edital sem aprofundar, com pegadinhas discretas e questões contextualizadas que exigem…", penalidade:false, foco:"Domínio técnico amplo de todo o edital combinado com leitura atenta a detalhes e muito treino de questões anteriores da banca, com atenção especial a Inglês e à gramática de Português.", dicas:["Resolva muitas questões anteriores da própria Cesgranrio — a banca repete padrões de cobrança e estrutura itens muito similares aos de seu banco de provas", "Estude o edital inteiro com profundidade equilibrada; não aposte em 'cair só os tópicos principais', pois a cobertura é horizontal e bem distribuída", "Para Inglês, treine leitura de textos longos, vocabulário e sinônimos com gestão de tempo; em Português, reforce gramática (a interpretação tende a ser mais tranquila)"] },
+    ibfc: { label:"IBFC", formato:"Múltipla escolha com uma única correta, em geral 4 alternativas (A-D), podendo ter 5 (A-E); usa também itens de julgar afirmativas (assinalar quantas estão corretas/incorretas). Sem…", estilo:"Banca técnica e direta: enunciados curtos e objetivos, forte cobrança de literalidade da lei seca e de interpretação de texto, com poucas pegadinhas elaboradas (embora as alternativas possam ser…", penalidade:false, foco:"Resolver exaustivamente provas anteriores da IBFC e dominar a literalidade da lei e do edital, com atenção especial à interpretação de texto (crônicas) e ao enunciado correto/incorreto.", dicas:["Resolva muitas provas anteriores da própria IBFC: a banca repete temas, estilos de cobrança e até questões parecidas entre concursos", "Domine a letra da lei e dos conceitos do edital, pois a banca cobra literalidade e cobre quase todos os tópicos do programa", "Treine interpretação de texto com crônicas de cronistas brasileiros e foque a redação na correção gramatical (ortografia, acentuação, coesão, morfossintaxe)"] },
+    quadrix: { label:"Quadrix", formato:"Predomina hoje o Certo/Errado (julgamento de itens, em geral 120 questões), com penalidade por erro; também usa múltipla escolha com 5 alternativas (A-E). No C/E, o desconto por erro…", estilo:"Provas longas e exaustivas que cobram fortemente a literalidade da lei seca e da doutrina, mescladas com interpretação de texto, exigindo memorização e atenção a detalhes.", penalidade:true, foco:"Dominar a literalidade da lei e da doutrina, treinando muitas questões da própria banca, e checar no edital o formato e a regra de penalidade nos itens Certo/Errado, ajustando a estratégia de chute…", dicas:["Leia SEMPRE o edital específico para confirmar o formato (C/E ou múltipla escolha) e a regra de penalidade vigente (-0,5 ou -1,0 por erro), pois varia de concurso para concurso", "Resolva o máximo de provas anteriores da própria Quadrix para captar os padrões de cobrança e a forma de redigir os itens", "Estude a lei seca e a literalidade dos textos legais/doutrinários, pois a banca cobra exatamente o que está escrito"] },
+    iades: { label:"IADES", formato:"Múltipla escolha, 5 alternativas (A-E); sem penalidade por erro (erro não anula acerto)", estilo:"Provas objetivas e diretas, sem excesso de pegadinhas, porém com enunciados longos e contextualizados com a realidade do cargo, que exigem leitura atenta; em Direito, forte ancoragem na literalidade…", penalidade:false, foco:"Domínio da letra da lei (lei seca) combinado com leitura atenta e veloz de enunciados longos e contextualizados, treinada via provas anteriores da banca.", dicas:["Resolva muitas provas anteriores da própria IADES, de preferência do mesmo cargo, para captar o padrão de enunciados longos e o recorte de cobrança", "Treine leitura rápida e gestão de tempo em simulados cronometrados, pois os enunciados extensos consomem muito tempo de prova", "Estude lei seca com profundidade, memorizando dispositivos, já que em Direito a banca cobra a literalidade"] },
+    aocp: { label:"Instituto AOCP", formato:"Predominantemente múltipla escolha com 5 alternativas (A-E), apenas uma correta (raras provas com 4 alternativas); em concursos recentes a banca também adota o estilo Certo/Errado…", estilo:"Banca de dificuldade média a alta, com enunciados diretos e objetivos, forte apego à literalidade da lei (lei seca) e crescente contextualização ao órgão/cargo após 2021, evitando questões polêmicas…", penalidade:false, foco:"Dominar a literalidade da lei (lei seca, artigos e incisos) e treinar questões contextualizadas/situações-problema típicas pós-2021, buscando nota alta dada a elevada nota de corte da banca.", dicas:["Resolver muitas provas anteriores do próprio Instituto AOCP (QConcursos, TEC, Gran Questões) para captar o padrão de cobrança e o nível de profundidade pós-2021", "Verificar no edital o formato e a pontuação: se for o estilo Certo/Errado, treinar gestão de risco, pois o erro anula o acerto (no formato múltipla escolha não há penalidade)", "Priorizar a lei seca (artigos, incisos, prazos e detalhes do texto normativo) nas disciplinas jurídicas, complementando com situações-problema contextualizadas"] },
+    consulplan: { label:"Consulplan", formato:"Multipla escolha, 4 (A-D) ou 5 alternativas (A-E), uma unica correta; comum o uso de assertivas (I, II, III) para marcar a alternativa correta. Nao usa Certo/Errado e nao ha anulacao…", estilo:"Banca objetiva e de nivel relativamente acessivel, fortemente apoiada na lei seca, com enunciados longos e contextualizados e pegadinhas que punem a falta de atencao ao comando.", penalidade:false, foco:"Dominar a lei seca (literalidade) e treinar atencao ao comando da questao em enunciados longos para nao cair nas pegadinhas.", dicas:["Memorize a lei seca: priorize a leitura repetida da letra fria da lei (artigos, prazos, numeros, excecoes), pois a banca cobra literalidade", "Leia o enunciado inteiro e grife o comando da questao antes de olhar as alternativas, para nao cair nas alternativas verdadeiras mas fora do pedido", "Resolva muitas questoes anteriores da propria Consulplan (QConcursos/TEC) para se acostumar com enunciados longos, assertivas (I, II, III) e pegadinhas"] },
+    fundatec: { label:"FUNDATEC", formato:"Múltipla escolha, 5 alternativas (A-E), uma única correta; sem penalidade por erro (pode haver fase discursiva em alguns cargos)", estilo:"Banca objetiva e previsível, de dificuldade baixa a moderada, que cobra forte literalidade da lei seca, com enunciados diretos e repetição de padrões e temas de provas anteriores.", penalidade:false, foco:"Dominar a literalidade da legislação e resolver exaustivamente provas anteriores da banca, já que a FUNDATEC é previsível e repete padrões; atenção especial à Informática, considerada a disciplina…", dicas:["Resolver o máximo de provas anteriores da própria FUNDATEC: a banca repete temas e padrões, então o histórico é o melhor preditor", "Estudar a lei seca na íntegra e memorizar redações literais, pois as alternativas costumam reproduzir o texto legal quase ipsis litteris (atenção a verbos e prazos trocados)", "Treinar Informática com prints de telas reais (Excel, Word, Windows, Chrome/Firefox), praticando identificar funções e botões em imagens"] },
+    idecan: { label:"IDECAN", formato:"Múltipla escolha, 5 alternativas (A-E); provas geralmente com 60 a 100 questões, sem anulação de acerto por erro", estilo:"Banca técnica e literal, que cobra a letra da lei seca recheada de pegadinhas e detalhes (prazos, números, conceitos), com forte exigência de interpretação de texto, sobretudo em Português.", penalidade:false, foco:"Dominar a literalidade da legislação (prazos, números e conceitos exatos) e treinar a identificação de pegadinhas resolvendo provas anteriores da banca.", dicas:["Resolva o máximo de provas anteriores da própria IDECAN (QConcursos, Tec Concursos, Gran Questões) para se acostumar ao padrão de pegadinhas e aos comandos", "Estude a lei seca pela literalidade, decorando prazos, números, percentuais e nomenclaturas exatas, pois são o combustível das pegadinhas", "Leia cada item com atenção dobrada, grifando termos como 'sempre', 'somente', 'vedado', 'obrigatório' e os números/prazos, que costumam ser alterados"] },
+};
+// Cor de assinatura de cada banca — a mesma linguagem de "cor por matéria" do resto do app.
+const CT_BANCA_COR = { cebraspe:'#2563EB', fgv:'#0D9488', fcc:'#E11D48', vunesp:'#7C3AED',
+  cesgranrio:'#EA580C', ibfc:'#0891B2', quadrix:'#B45309', iades:'#16A34A',
+  aocp:'#DB2777', consulplan:'#4F46E5', fundatec:'#0F766E', idecan:'#9333EA' };
+// Sigla curta para os tiles (o rótulo longo não cabe num chip)
+const CT_BANCA_SIGLA = { cebraspe:'CEBRASPE', fgv:'FGV', fcc:'FCC', vunesp:'VUNESP',
+  cesgranrio:'CESGRANRIO', ibfc:'IBFC', quadrix:'Quadrix', iades:'IADES',
+  aocp:'AOCP', consulplan:'Consulplan', fundatec:'FUNDATEC', idecan:'IDECAN' };
 // Ícone e cor de CADA categoria de estudo (as básicas + as de todas as áreas), num
 // mapa só, para histórico, ciclo e gráficos não divergirem quando a área muda.
 const CT_CAT_META = {
   'Teoria':{i:'📘',c:'#6b4fbb'}, 'Revisão':{i:'🔁',c:'#0f9d6b'}, 'Questões':{i:'❓',c:'#2563eb'},
-  'Simulado':{i:'📝',c:'#0a7ea4'}, 'Flashcards':{i:'🃏',c:'#b08433'},
+  'Doutrina':{i:'📖',c:'#7a5c3a'},
+  'Simulado':{i:'📋',c:'#0a7ea4'}, 'Flashcards':{i:'🃏',c:'#b08433'},
+  'Resumo':{i:'📝',c:'#0d9488'},
   'Lei seca':{i:'⚖️',c:'#b08433'}, 'Jurisprudência':{i:'🏛️',c:'#c0392f'},
   'Caso clínico':{i:'🩺',c:'#c0392f'}, 'Protocolo/diretriz':{i:'📋',c:'#0d9488'},
   'Legislação social':{i:'🤝',c:'#b08433'}, 'Estudo de caso':{i:'🗂️',c:'#0d9488'},
@@ -3696,6 +3834,14 @@ const CT_CAT_META = {
   'Prática/laboratório':{i:'🧪',c:'#0d9488'}, 'Documentação':{i:'📄',c:'#b08433'},
   'Exercícios':{i:'✏️',c:'#c2790c'},
 };
+
+// ATIVIDADES — lista ÚNICA, a mesma para toda área. O que muda entre magistratura,
+// carreira militar e assistência social é o EDITAL (disciplinas, tópicos, subtópicos),
+// não o que se FAZ com ele: em qualquer carreira se lê teoria, se lê a fonte primária,
+// se resolve questão e se revisa. Antes cada área tinha a sua lista E o ciclo lia uma
+// lista diferente da do registro de sessão — dava para registrar um simulado sem poder
+// planejar um. Tipo novo entra aqui e aparece nos dois lugares.
+const CT_ATIVIDADES = ['Teoria','Doutrina','Lei seca','Jurisprudência','Resumo','Questões','Simulado','Revisão','Flashcards'];
 
 // ===== MODELO DE EDITAL PRÉ-CADASTRADO =====
 // Para o app não começar vazio: disciplinas, tópicos e subtópicos prontos, no
@@ -3784,9 +3930,12 @@ class Component extends DCLogic {
       errSearch:'', errStatus:'todos', errSort:'recentes', errTagInput:'', errMaisCampos:false, errBulk:'', errBulkBusy:false, errBulkDrafts:null, errPlano:'', errPlanoBusy:false, errShowStats:true,
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
-      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'',
+      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'',
       adminGrupos:[], adminAllow:[], adminAllowInput:'', adminDetalhe:null, adminDetalheBusy:false,
+      // Recorte da aba Bancas: área do concurso + banca + matéria + assunto.
+      // bancaAreaConc vazio = segue a área de estudo escolhida no app.
       bancaAreaSel:this._load('bancaAreaSel',''), bancaDicas:this._load('bancaDicas',{}), bancaBusy:'',
+      bancaSel:this._load('bancaSel','cebraspe'), bancaAreaConc:this._load('bancaAreaConc',''), bancaAssunto:this._load('bancaAssunto',''),
       ajAnkiOpen:false,
       grupoDraft:{nome:'', codigo:''},
       ankiImported:this._load('ankiImported', false), pdfOpen:null,
@@ -3869,6 +4018,14 @@ class Component extends DCLogic {
     // pede o tema por postMessage e respondemos com os tokens atuais. Ver checklist-disciplinas.html.
     this._ckMsg = (e)=>{ if(!e||!e.data||e.data.type!=='ctChecklistReady') return; try{ const host=document.querySelector('[style*="--accent"]'); if(!host) return; const cs=getComputedStyle(host); const V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono']; const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); }); e.source&&e.source.postMessage({type:'ctTheme',tokens:t},'*'); }catch(_){} };
     window.addEventListener('message', this._ckMsg);
+    // Botão "Registrar" do módulo da área: abre o registro já com disciplina e tópico
+    // do ponto estudado. Mesma regra do resto da casa — abre, quem salva é ela.
+    this._areaMsg = (e)=>{
+      if(!e||!e.data||e.data.type!=='ctRegistrarArea') return;
+      try{ window.catedraOpenStudyRegistration({ origem:'Módulo da área', disc:e.data.disc||'',
+        topico:e.data.sub||e.data.topico||'', categoria:'Teoria' }); }catch(_){}
+    };
+    window.addEventListener('message', this._areaMsg);
     this._onHide = ()=>{ try{ this._saveTimer(); }catch(_){} };   // salva o cronômetro ao fechar/ocultar
     window.addEventListener('pagehide', this._onHide);
     window.addEventListener('beforeunload', this._onHide);
@@ -3898,6 +4055,20 @@ class Component extends DCLogic {
     // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
     try{ window.__catedraGoView = (v)=>{ try{ if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); }catch(_){} }; }catch(_){}
     this._migrarSchema();
+    // Qual conta está logada. O auth.js avisa por evento; se ele já resolveu a sessão
+    // antes do app montar, o valor já está em window.CatedraAuth.user.
+    try{
+      const ini=(window.CatedraAuth && window.CatedraAuth.user)||null;
+      if(ini && ini.email) this.setState({authEmail:ini.email});
+      window.addEventListener('catedra:authuser', (ev)=>{
+        const d=(ev && ev.detail)||null;
+        this.setState({authEmail:(d && d.email)||''});
+        // A sessão mudou: reperguntar se ESTA conta é administradora. Antes a pergunta
+        // era feita uma única vez, no mount — se ela chegasse antes da sessão, ou
+        // falhasse, a conta admin ficava indistinguível de uma comum até fechar o app.
+        try{ this._bootAdmin(); }catch(_){}
+      });
+    }catch(_){}
     try{ this._bootAdmin(); }catch(_){}   // descobre se esta conta é admin (mostra o item do menu)
     this._reconcileStreak();
     this._reconcileReviews();
@@ -4198,7 +4369,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo','edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel']; }
+  _autosaveKeys(){ return ['areaEstudo','edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto']; }
   _autosave(){
     const keys=this._autosaveKeys();
     const L=this._lastSaved||(this._lastSaved={});
@@ -4793,6 +4964,11 @@ class Component extends DCLogic {
     if(k==='Lei seca') return A.cats[0]||'Teoria';
     if(k==='Jurisprudência') return A.cats[1]||A.cats[0]||'Revisão';
     return k; }
+  // Fonte única das atividades (ver CT_ATIVIDADES). Não depende da área — a área já se
+  // expressa no edital. Categoria antiga de área (ex.: 'Caso clínico') que não está mais
+  // na lista continua sendo exibida por quem já a usava: quem chama acrescenta o valor
+  // atual quando ele não está aqui.
+  _atividades(){ return CT_ATIVIDADES.slice(); }
   _genSugestao(){
     const O=this.state.orient||{}, p=this.state.profile||{};
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*this._enMult())); const m=(f)=>Math.max(15,Math.round(base*f));
@@ -4882,7 +5058,7 @@ class Component extends DCLogic {
     if(!_atual){ let best=''; (fixed||[]).forEach(f=>{ if(f.roteiro&&_n(f.roteiro)>_n(best)) best=f.roteiro; }); _atual=best; }
     const _kAtual=_k(_atual);
     (fixed||[]).forEach(f=>{
-      const vinc={discEdital:f.discEdital||'', topico:f.topico||''}; // vínculo edital → segue no bloco e no registro de sessão
+      const vinc={discEdital:f.discEdital||'', topico:f.topico||'', subtopico:f.subtopico||''}; // vínculo edital → segue no bloco e no registro de sessão
       if(!f.dia){ blocks.push({disc:f.disc, kind:f.kind, tag:'Fixa', min:f.min, done:false, ...vinc}); return; } // rotina todo dia (reseta diário)
       if(_k(f.roteiro||_atual)!==_kAtual) return; // roteiro anterior/futuro fica fora do hoje
       const idx=ordem.indexOf(f.dia); if(idx<0) return;
@@ -4969,8 +5145,12 @@ class Component extends DCLogic {
     if(!n) return; if(!window.confirm('Remover as '+n+' atividades de "'+label+'"? Isso não pode ser desfeito.')) return;
     this.syncManual({manualFixed:this.state.manualFixed.filter(f=>!(f.roteiro&&key(f.roteiro)===k))}); };
   editFixed = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=(val===''?'':Math.max(1, parseInt(val,10)||0));
-    // trocar a disciplina vinculada zera o tópico (tópico pertence à disciplina)
-    this.syncManual({manualFixed:this.state.manualFixed.map(x=> x.id===id ? {...x,[field]:val, ...(field==='discEdital'?{topico:''}:{})} : x)}); };
+    // Cascata do edital: trocar a disciplina zera tópico E subtópico; trocar o tópico
+    // zera o subtópico. O nome do bloco passa a ser a própria disciplina — não existe
+    // mais campo digitado, o ciclo é só seleção.
+    const extra = field==='discEdital' ? {topico:'', subtopico:'', disc:val}
+                : field==='topico'     ? {subtopico:''} : {};
+    this.syncManual({manualFixed:this.state.manualFixed.map(x=> x.id===id ? {...x,[field]:val, ...extra} : x)}); };
   removeFixed = (e)=>{ const id=e.currentTarget.dataset.id; this.syncManual({manualFixed:this.state.manualFixed.filter(x=>x.id!==id)}); };
   addRot = ()=> this.syncManual({manualRot:[...this.state.manualRot, {id:'o'+Date.now(), disc:'', kind:'Teoria', min:45}]});
   editRot = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=(val===''?'':Math.max(1, parseInt(val,10)||0)); this.syncManual({manualRot:this.state.manualRot.map(x=> x.id===id ? {...x,[field]:val} : x)}); };
@@ -5080,7 +5260,9 @@ class Component extends DCLogic {
     return (t&&Array.isArray(t.subs))?t.subs:[]; }
   // Flashcards é o único tipo cuja categoria difere do nome; os tipos próprios de cada
   // área (Caso clínico, Prática/laboratório…) valem como categoria com o mesmo nome.
-  _kindToCat(kind){ return {'Flashcards':'Revisão'}[kind] || (CT_CAT_META[kind]?kind:'Teoria'); }
+  // Flashcards virava 'Revisão' porque o registro de sessão não oferecia Flashcards.
+  // Agora oferece (mesma lista do ciclo), então o bloco mantém o próprio tipo.
+  _kindToCat(kind){ return CT_CAT_META[kind] ? kind : 'Teoria'; }
   _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind);
     // Se o bloco tem vínculo com o edital (disciplina + tópico da Agenda da semana),
     // a sessão nasce vinculada — e o progresso do edital/domínio conta certo.
@@ -5088,7 +5270,9 @@ class Component extends DCLogic {
     const topico = b.topico || ((b.tag&&b.tag!=='Rotativa'&&b.tag!=='Fixa'&&!b.discEdital)?b.tag:'');
     // se o tópico do bloco é um tópico do edital, a sessão já nasce com o vínculo pronto
     const _edTop=this._topicosDe(disc).some(t=>String(t.name||'').trim()===String(topico||'').trim())?topico:'';
-    return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, categorias:[cat], categoria:cat}; }
+    // o subtópico do bloco vira o subtópico da sessão — é o que dá granularidade ao
+    // domínio por tópico; sem isto o registro voltava para "o tópico inteiro".
+    return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:[cat], categoria:cat}; }
   openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
     const n=(this._extRegQueue||[]).length;
@@ -6348,7 +6532,19 @@ class Component extends DCLogic {
     // Conta admin (ex.: 2001) é um console à parte: entra direto no painel e não vê a
     // plataforma de estudo (o menu de estudo fica escondido por naoAdmin). Uma conta
     // comum nunca chega aqui — is_admin() é checado no servidor.
-    try{ const r=await sb.rpc('is_admin'); if(!r.error && r.data===true){ this.setState({isAdmin:true, view:'admin'}); this._loadAdmin(); } }catch(_){}
+    try{
+      const r=await sb.rpc('is_admin');
+      // O supabase-js NÃO rejeita a promise em erro: resolve com {data:null,error:{...}}.
+      // Antes isto era um `if(!r.error && ...)` sem else — o erro sumia sem deixar
+      // rastro, e a conta admin ficava indistinguível de uma comum. O caso real: a
+      // chamada sai antes da sessão estar pronta, o servidor devolve 401 (só
+      // `authenticated` pode executar is_admin) e ninguém nunca fica sabendo.
+      if(r.error){ console.warn('[Cátedra] is_admin falhou:', (r.error&&r.error.message)||r.error); return; }
+      if(r.data!==true) return;
+      if(this.state.isAdmin) return;   // já sabido: não sequestrar a tela numa recheca
+      this.setState({isAdmin:true, view:'admin'});
+      this._loadAdmin();
+    }catch(err){ console.warn('[Cátedra] is_admin exceção:', err); }
   };
   _loadAdmin = async ()=>{
     const sb=this._sb(); if(!sb){ this.setState({adminErro:'Sem conexão com o servidor.'}); return; }
@@ -6485,22 +6681,52 @@ class Component extends DCLogic {
     this._toast('Área de estudo: '+A.label+' ✦'); this.flashSync(); };
   toggleModeloOutras = ()=> this.setState(s=>({modeloOutras:!s.modeloOutras}));
 
-  // ===================== ABA BANCAS (perfil + dicas por área) =====================
-  setBancaArea = (e)=>{ const v=e.currentTarget.value||''; this.setState({bancaAreaSel:v}); };
-  // Dicas específicas de uma matéria para uma banca, geradas pela IA sob demanda
-  // (mesmo padrão do Multiformato). O perfil geral de cada banca já é fixo na tela;
-  // isto complementa com o recorte por área. Fica em cache para não regerar à toa.
-  gerarDicasBanca = async (e)=>{
-    const banca=e.currentTarget.dataset.banca; const label=e.currentTarget.dataset.label||banca;
-    const area=this.state.bancaAreaSel;
-    if(!area){ this._toast('Escolha uma área primeiro'); return; }
+  // ===================== ABA BANCAS (recorte área · banca · matéria · assunto) =====================
+  // A tela é um recorte progressivo: a área do concurso define as matérias sugeridas,
+  // a matéria define os assuntos (lidos do edital), e o par banca+recorte é a chave do
+  // cache de dicas da IA. Trocar um passo de cima zera os de baixo — senão a tela fica
+  // dizendo "Direito Penal" numa área de Saúde.
+  _bancaAreaId(){ return this.state.bancaAreaConc || this.state.areaEstudo || CT_AREAS[0].id; }
+  // matérias oferecidas: edital da pessoa + disciplinas da área do concurso + as comuns
+  _bancaMaterias(){ const A=CT_AREA(this._bancaAreaId());
+    return [...new Set([...(this.state.edital||[]).map(d=>String(d.disc||'').trim()), ...A.discs,
+      'Língua Portuguesa','Raciocínio Lógico','Informática'])].filter(Boolean); }
+  // assuntos: tópicos daquela matéria no edital (fonte canônica); sem edital, nada — a
+  // pessoa digita no campo livre.
+  _bancaAssuntos(){ return this._topicosDe(this.state.bancaAreaSel).map(t=>String(t.name||'').trim()).filter(Boolean); }
+  // chave do cache: banca + área do concurso + matéria + assunto
+  _bancaKey(){ return [this.state.bancaSel||'cebraspe', this._bancaAreaId(),
+    this.state.bancaAreaSel||'', String(this.state.bancaAssunto||'').trim()].join('::'); }
+
+  setBancaFoco = (e)=>{ this.setState({bancaSel:e.currentTarget.dataset.k||'cebraspe'}); };
+  // trocar a área do concurso invalida matéria e assunto escolhidos na área anterior
+  setBancaAreaConc = (e)=>{ const v=e.currentTarget.dataset.k||'';
+    if(v===this._bancaAreaId()) return;
+    this.setState({bancaAreaConc:v, bancaAreaSel:'', bancaAssunto:''}); };
+  // clicar na matéria já marcada desmarca (volta para o perfil geral da banca)
+  setBancaArea = (e)=>{ const v=e.currentTarget.dataset.k||'';
+    this.setState(s=>({bancaAreaSel: s.bancaAreaSel===v?'':v, bancaAssunto:''})); };
+  setBancaAssunto = (e)=>{ const v=e.currentTarget.dataset.k||'';
+    this.setState(s=>({bancaAssunto: String(s.bancaAssunto||'').trim()===v?'':v})); };
+  onBancaAssunto = (e)=>{ this.setState({bancaAssunto:e.currentTarget.value}); };
+
+  // Dicas do RECORTE, geradas pela IA sob demanda (mesmo padrão do Multiformato). O
+  // perfil da banca já é fixo na tela; isto complementa com matéria/assunto. Fica em
+  // cache pela chave do recorte para não regerar à toa.
+  gerarDicasBanca = async ()=>{
+    const banca=this.state.bancaSel||'cebraspe';
+    const info=CT_BANCAS[banca]||CT_BANCAS.cebraspe; const label=info.label;
+    const materia=this.state.bancaAreaSel;
+    const assunto=String(this.state.bancaAssunto||'').trim();
+    if(!materia){ this._toast('Escolha uma matéria primeiro'); return; }
     if(this.state.bancaBusy){ this._toast('Aguarde — outra geração está em andamento'); return; }
-    const key=banca+'::'+area;
+    const key=this._bancaKey();
     if((this.state.bancaDicas||{})[key]){ return; } // já tem
     this.setState({bancaBusy:key});
-    const _A=CT_AREA(this.state.areaEstudo);
-    const prompt='Você é um professor especialista em concursos públicos no Brasil, na área de '+_A.label+'. Dê dicas '
-      +'PRÁTICAS e específicas de como estudar a matéria "'+area+'" para a banca '+label+', '
+    const A=CT_AREA(this._bancaAreaId());
+    const prompt='Você é um professor especialista em concursos públicos no Brasil, na área de '+A.label+' ('+A.desc+'). Dê dicas '
+      +'PRÁTICAS e específicas de como estudar a matéria "'+materia+'"'
+      +(assunto?(', com foco no assunto "'+assunto+'"'):'')+' para a banca '+label+', '
       +'considerando o estilo de cobrança dessa banca (formato das questões, pegadinhas típicas, '
       +'literalidade da lei x interpretação). Seja concreto e direto. Responda SOMENTE com JSON '
       +'válido em português do Brasil no formato {"dicas":["dica 1","dica 2","dica 3","dica 4"]}, '
@@ -6789,6 +7015,10 @@ class Component extends DCLogic {
     const areaJuris = !!_area.juris;
     // o LEGIS abre já na legislação da área (padrão + específica); a query string
     // muda com a área, e o _montarFrames recarrega o iframe quando o src muda
+    // módulo de estudo da área (iframe próprio, como o LEGIS)
+    const areaModLabel = _area.modulo || '';
+    const temAreaMod = !!areaModLabel;
+    const areaModFrameSrc = 'area-web.html?area=' + encodeURIComponent(_area.id);
     const legisFrameSrc = 'legis-web.html' + (this.state.areaEstudo ? ('?area='+encodeURIComponent(this.state.areaEstudo)) : '');
     const areaEscolhida = !!this.state.areaEstudo;
     const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||'');
@@ -6799,7 +7029,7 @@ class Component extends DCLogic {
     const areaAtualEmoji = _area.emoji;
     const areaAtualDesc = _area.desc;
     // tipos de atividade do ciclo e categorias do registro, na ordem em que fazem sentido
-    const _kindsArea = [...new Set(['Teoria','Questões', ..._area.cats, 'Revisão','Flashcards'])];
+    const _kindsArea = this._atividades();
     const _kindOpts=(k)=> (_kindsArea.indexOf(k)<0&&k?[..._kindsArea,k]:_kindsArea).map(v=>({v, sel:v===k}));
     // a reta final descreve o que ela prioriza — e isso muda com a área
     const retaReduzDesc = 'Reduzir teoria nova e priorizar revisão, '
@@ -7049,7 +7279,13 @@ class Component extends DCLogic {
       const _mkItem=(f)=>{ const discOpts=_edList.map(d=>({v:d.disc,label:d.disc,sel:d.disc===f.discEdital}));
         const ed=_edList.find(d=>d.disc===f.discEdital);
         const topicOpts=((ed&&ed.topics)||[]).map(t=>({v:t.name,label:(t.name.length>70?t.name.slice(0,70)+'…':t.name),sel:t.name===f.topico}));
-        return {...f, discOpts, topicOpts, temTopicos:topicOpts.length>0, kindOpts:_kindOpts(f.kind),
+        // Subtópicos do tópico escolhido. O edital guarda `subs` ora como string, ora
+        // como {name} (depende de ter vindo do parser ou da mesclagem) — aceito os dois.
+        const _tSel=((ed&&ed.topics)||[]).find(t=>t.name===f.topico);
+        const subOpts=((_tSel&&_tSel.subs)||[]).map(s=>{ const n=String((s&&s.name)||s||'').trim();
+          return {v:n, label:(n.length>70?n.slice(0,70)+'…':n), sel:n===f.subtopico}; }).filter(o=>o.v);
+        return {...f, discOpts, topicOpts, temTopicos:topicOpts.length>0,
+          subOpts, temSubs:subOpts.length>0, kindOpts:_kindOpts(f.kind),
           temRoteiro:!!f.roteiro, rotShort:(f.roteiro||'').length>16?(f.roteiro||'').slice(0,16)+'…':(f.roteiro||''),
           vincBorder: f.discEdital?'var(--accentRing)':'var(--border)', vincColor: f.discEdital?'var(--accentD)':'var(--text3)'}; };
       return defs.map(d=>{ const items=fixed.filter(f=>(f.dia||'')===d.dia).map(_mkItem); const isToday=d.dia!==''&&d.dia===hojeKey;
@@ -7389,20 +7625,7 @@ class Component extends DCLogic {
       return { show: metaAlvoMin>0, msg, cor };
     })();
     // objetivo + banca (Personalização → feedback em todo o painel)
-    const BANCAS_INFO = {
-      cebraspe: { label:"CEBRASPE (Cespe/UnB)", formato:"Predominantemente Certo/Errado: cada item é uma assertiva isolada a ser julgada como C ou E e, na correção padrão da banca, 1 erro anula 1 acerto (pontuação líquida = acertos − erros…", estilo:"Cobra interpretação, raciocínio crítico e aplicação prática do conteúdo, com enunciados contextualizados, jurisprudência e pegadinhas em palavras-chave, mais do que decoreba de lei seca.", penalidade:true, foco:"Dominar interpretação e aplicação do conteúdo (não só a letra da lei), treinar o julgamento Certo/Errado com gestão de risco e atenção redobrada às pegadinhas de palavras-chave.", dicas:["Treine exaustivamente questões anteriores da própria banca para internalizar o padrão de itens C/E e as armadilhas recorrentes", "Gestão de risco: como o erro anula o acerto, deixe em branco itens de que não tem certeza para não derrubar a nota líquida", "Marque palavras absolutas (sempre, nunca, somente, exclusivamente) e dupla negativa — costumam tornar o item errado"] },
-      fgv: { label:"FGV", formato:"Múltipla escolha, 5 alternativas (A-E); sem anulação de acerto por erro", estilo:"Banca camaleão, contextualizada e detalhista: enunciados longos com casos práticos que exigem interpretação e raciocínio, mas também cobra forte a literalidade da lei (lei seca), com pegadinhas de…", penalidade:false, foco:"Combinar memorização precisa da lei seca (atenção a palavras trocadas) com interpretação de texto, jurisprudência atualizada e raciocínio aplicado, resolvendo muitas questões da própria banca para…", dicas:["Treine MUITAS questões da própria FGV (ex.: QConcursos) para internalizar o padrão de enunciado longo e as pegadinhas entre alternativas semelhantes", "Decore a letra da lei com atenção a palavras-chave (poderá/deverá, prazos, exceções), pois a banca altera termos sutis do texto legal para criar a alternativa errada", "Estude jurisprudência e súmulas recentes de STF/STJ, especialmente em Direito, e reforce interpretação/inferência em Português e raciocínio aplicado em Matemática"] },
-      fcc: { label:"FCC", formato:"Múltipla escolha, 5 alternativas (A-E), uma correta; sem penalidade por erro (erro não anula acerto)", estilo:"Tradicionalmente focada na literalidade da lei seca, hoje combina texto da lei, doutrina, jurisprudência e súmulas dos tribunais superiores, com enunciados longos e pegadinhas sutis.", penalidade:false, foco:"Memorizar a literalidade da lei e súmulas/jurisprudência dos tribunais superiores, treinando leitura minuciosa para não cair nas pegadinhas sutis de palavras e exceções.", dicas:["Domine a lei seca palavra por palavra (prazos, exceções, competências, rol taxativo x exemplificativo) — a FCC adora cobrar a literalidade e inverter pequenos detalhes", "Resolva muitas questões anteriores da própria FCC: a banca repete temas, estruturas de enunciado e tipos de pegadinha", "Estude jurisprudência e súmulas atualizadas do STF e STJ, hoje fortemente cobradas nas provas de tribunais e MP"] },
-      vunesp: { label:"VUNESP", formato:"Múltipla escolha, 5 alternativas (A-E), apenas uma correta; erro não anula acerto", estilo:"Banca previsível e direta, de enunciados claros, que privilegia a literalidade da lei e exige sobretudo domínio do conteúdo e leitura atenta, sem apostar em pegadinhas muito elaboradas", penalidade:false, foco:"Dominar a literalidade da legislação (lei seca) e a Língua Portuguesa, treinando exaustivamente questões antigas da banca para reconhecer padrões e ler os comandos com atenção", dicas:["Resolva muitas questões anteriores da própria VUNESP — a banca é repetitiva e treinar revela os padrões e a profundidade cobrados", "Estude pela letra da lei (lei seca): memorize prazos, números, competências e definições exatamente como no texto legal", "Leia o comando com atenção, identificando se a questão pede a alternativa correta ou a incorreta para não errar por desatenção"] },
-      cesgranrio: { label:"CESGRANRIO", formato:"Múltipla escolha, 5 alternativas (A-E), apenas uma correta; sem anulação (erro não desconta acerto)", estilo:"Banca metódica e objetiva: enunciados curtos (2-3 linhas), abordagem horizontal cobrindo quase todo o edital sem aprofundar, com pegadinhas discretas e questões contextualizadas que exigem…", penalidade:false, foco:"Domínio técnico amplo de todo o edital combinado com leitura atenta a detalhes e muito treino de questões anteriores da banca, com atenção especial a Inglês e à gramática de Português.", dicas:["Resolva muitas questões anteriores da própria Cesgranrio — a banca repete padrões de cobrança e estrutura itens muito similares aos de seu banco de provas", "Estude o edital inteiro com profundidade equilibrada; não aposte em 'cair só os tópicos principais', pois a cobertura é horizontal e bem distribuída", "Para Inglês, treine leitura de textos longos, vocabulário e sinônimos com gestão de tempo; em Português, reforce gramática (a interpretação tende a ser mais tranquila)"] },
-      ibfc: { label:"IBFC", formato:"Múltipla escolha com uma única correta, em geral 4 alternativas (A-D), podendo ter 5 (A-E); usa também itens de julgar afirmativas (assinalar quantas estão corretas/incorretas). Sem…", estilo:"Banca técnica e direta: enunciados curtos e objetivos, forte cobrança de literalidade da lei seca e de interpretação de texto, com poucas pegadinhas elaboradas (embora as alternativas possam ser…", penalidade:false, foco:"Resolver exaustivamente provas anteriores da IBFC e dominar a literalidade da lei e do edital, com atenção especial à interpretação de texto (crônicas) e ao enunciado correto/incorreto.", dicas:["Resolva muitas provas anteriores da própria IBFC: a banca repete temas, estilos de cobrança e até questões parecidas entre concursos", "Domine a letra da lei e dos conceitos do edital, pois a banca cobra literalidade e cobre quase todos os tópicos do programa", "Treine interpretação de texto com crônicas de cronistas brasileiros e foque a redação na correção gramatical (ortografia, acentuação, coesão, morfossintaxe)"] },
-      quadrix: { label:"Quadrix", formato:"Predomina hoje o Certo/Errado (julgamento de itens, em geral 120 questões), com penalidade por erro; também usa múltipla escolha com 5 alternativas (A-E). No C/E, o desconto por erro…", estilo:"Provas longas e exaustivas que cobram fortemente a literalidade da lei seca e da doutrina, mescladas com interpretação de texto, exigindo memorização e atenção a detalhes.", penalidade:true, foco:"Dominar a literalidade da lei e da doutrina, treinando muitas questões da própria banca, e checar no edital o formato e a regra de penalidade nos itens Certo/Errado, ajustando a estratégia de chute…", dicas:["Leia SEMPRE o edital específico para confirmar o formato (C/E ou múltipla escolha) e a regra de penalidade vigente (-0,5 ou -1,0 por erro), pois varia de concurso para concurso", "Resolva o máximo de provas anteriores da própria Quadrix para captar os padrões de cobrança e a forma de redigir os itens", "Estude a lei seca e a literalidade dos textos legais/doutrinários, pois a banca cobra exatamente o que está escrito"] },
-      iades: { label:"IADES", formato:"Múltipla escolha, 5 alternativas (A-E); sem penalidade por erro (erro não anula acerto)", estilo:"Provas objetivas e diretas, sem excesso de pegadinhas, porém com enunciados longos e contextualizados com a realidade do cargo, que exigem leitura atenta; em Direito, forte ancoragem na literalidade…", penalidade:false, foco:"Domínio da letra da lei (lei seca) combinado com leitura atenta e veloz de enunciados longos e contextualizados, treinada via provas anteriores da banca.", dicas:["Resolva muitas provas anteriores da própria IADES, de preferência do mesmo cargo, para captar o padrão de enunciados longos e o recorte de cobrança", "Treine leitura rápida e gestão de tempo em simulados cronometrados, pois os enunciados extensos consomem muito tempo de prova", "Estude lei seca com profundidade, memorizando dispositivos, já que em Direito a banca cobra a literalidade"] },
-      aocp: { label:"Instituto AOCP", formato:"Predominantemente múltipla escolha com 5 alternativas (A-E), apenas uma correta (raras provas com 4 alternativas); em concursos recentes a banca também adota o estilo Certo/Errado…", estilo:"Banca de dificuldade média a alta, com enunciados diretos e objetivos, forte apego à literalidade da lei (lei seca) e crescente contextualização ao órgão/cargo após 2021, evitando questões polêmicas…", penalidade:false, foco:"Dominar a literalidade da lei (lei seca, artigos e incisos) e treinar questões contextualizadas/situações-problema típicas pós-2021, buscando nota alta dada a elevada nota de corte da banca.", dicas:["Resolver muitas provas anteriores do próprio Instituto AOCP (QConcursos, TEC, Gran Questões) para captar o padrão de cobrança e o nível de profundidade pós-2021", "Verificar no edital o formato e a pontuação: se for o estilo Certo/Errado, treinar gestão de risco, pois o erro anula o acerto (no formato múltipla escolha não há penalidade)", "Priorizar a lei seca (artigos, incisos, prazos e detalhes do texto normativo) nas disciplinas jurídicas, complementando com situações-problema contextualizadas"] },
-      consulplan: { label:"Consulplan", formato:"Multipla escolha, 4 (A-D) ou 5 alternativas (A-E), uma unica correta; comum o uso de assertivas (I, II, III) para marcar a alternativa correta. Nao usa Certo/Errado e nao ha anulacao…", estilo:"Banca objetiva e de nivel relativamente acessivel, fortemente apoiada na lei seca, com enunciados longos e contextualizados e pegadinhas que punem a falta de atencao ao comando.", penalidade:false, foco:"Dominar a lei seca (literalidade) e treinar atencao ao comando da questao em enunciados longos para nao cair nas pegadinhas.", dicas:["Memorize a lei seca: priorize a leitura repetida da letra fria da lei (artigos, prazos, numeros, excecoes), pois a banca cobra literalidade", "Leia o enunciado inteiro e grife o comando da questao antes de olhar as alternativas, para nao cair nas alternativas verdadeiras mas fora do pedido", "Resolva muitas questoes anteriores da propria Consulplan (QConcursos/TEC) para se acostumar com enunciados longos, assertivas (I, II, III) e pegadinhas"] },
-      fundatec: { label:"FUNDATEC", formato:"Múltipla escolha, 5 alternativas (A-E), uma única correta; sem penalidade por erro (pode haver fase discursiva em alguns cargos)", estilo:"Banca objetiva e previsível, de dificuldade baixa a moderada, que cobra forte literalidade da lei seca, com enunciados diretos e repetição de padrões e temas de provas anteriores.", penalidade:false, foco:"Dominar a literalidade da legislação e resolver exaustivamente provas anteriores da banca, já que a FUNDATEC é previsível e repete padrões; atenção especial à Informática, considerada a disciplina…", dicas:["Resolver o máximo de provas anteriores da própria FUNDATEC: a banca repete temas e padrões, então o histórico é o melhor preditor", "Estudar a lei seca na íntegra e memorizar redações literais, pois as alternativas costumam reproduzir o texto legal quase ipsis litteris (atenção a verbos e prazos trocados)", "Treinar Informática com prints de telas reais (Excel, Word, Windows, Chrome/Firefox), praticando identificar funções e botões em imagens"] },
-      idecan: { label:"IDECAN", formato:"Múltipla escolha, 5 alternativas (A-E); provas geralmente com 60 a 100 questões, sem anulação de acerto por erro", estilo:"Banca técnica e literal, que cobra a letra da lei seca recheada de pegadinhas e detalhes (prazos, números, conceitos), com forte exigência de interpretação de texto, sobretudo em Português.", penalidade:false, foco:"Dominar a literalidade da legislação (prazos, números e conceitos exatos) e treinar a identificação de pegadinhas resolvendo provas anteriores da banca.", dicas:["Resolva o máximo de provas anteriores da própria IDECAN (QConcursos, Tec Concursos, Gran Questões) para se acostumar ao padrão de pegadinhas e aos comandos", "Estude a lei seca pela literalidade, decorando prazos, números, percentuais e nomenclaturas exatas, pois são o combustível das pegadinhas", "Leia cada item com atenção dobrada, grifando termos como 'sempre', 'somente', 'vedado', 'obrigatório' e os números/prazos, que costumam ser alterados"] },
-    };
+    const BANCAS_INFO = CT_BANCAS;
     const _bancaSel = (this.state.orient&&this.state.orient.banca)||'cebraspe';
     const bancaInfo = BANCAS_INFO[_bancaSel] || BANCAS_INFO.cebraspe;
     const bancaPenLabel = bancaInfo.penalidade ? 'Erro anula acerto' : 'Erro não penaliza';
@@ -7502,7 +7725,9 @@ class Component extends DCLogic {
     const _selCats=Array.isArray(_sd.categorias)?_sd.categorias:[_sd.categoria].filter(Boolean);
     // básicas (valem para toda área) + as próprias da área + as que o rascunho já traz
     // (troca de área não pode fazer sumir a categoria de um registro em aberto)
-    const _cats=[...new Set(['Teoria','Revisão','Questões', ..._area.cats, 'Simulado', ..._selCats])];
+    // _selCats no fim: categoria antiga que saiu da área continua aparecendo no registro
+    // que já a usava, senão a sessão perderia o próprio rótulo ao ser reaberta.
+    const _cats=[...new Set([...this._atividades(), ..._selCats])];
     const sessCats=_cats.map(v=>{ const on=_selCats.includes(v); const cm=_catMeta[v]||{i:'📘',c:'var(--text3)'}; return {v, icon:cm.i, mark:on?'✓ ':'', style:`display:inline-flex;align-items:center;gap:5px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:.12s;`}; });
     // Seletores do catálogo nativo (Lei seca → leis do LEGIS; Jurisprudência →
     // fontes do JURIS). MESMO padrão do select de disciplina: value ligado ao
@@ -8515,37 +8740,119 @@ class Component extends DCLogic {
         linhas:[['Edital (disciplinas)',c.edital],['Sessões',c.sessoes],['Revisões',c.revisoes],['Flashcards',c.flashcards],['Redações',c.redacoes],['Simulados',c.simulados],['Caderno de erros',c.erros],['Metas',c.metas],['Eventos na agenda',c.eventos]].map(([k,v])=>({k, v:String(v||0)})) };
     }
 
-    // ── view-model da aba BANCAS (perfil fixo + dicas por área geradas sob demanda) ──
-    // as matérias oferecidas saem do edital da pessoa e, na falta dele, da área escolhida
-    const _areasBanca=[...new Set([...(this.state.edital||[]).map(d=>String(d.disc||'').trim()), ..._area.discs, 'Língua Portuguesa','Raciocínio Lógico','Informática'])].filter(Boolean);
-    const _areaSel=this.state.bancaAreaSel||'';
-    const bancaAreaOpts=[{v:'',label:'— escolha uma área para dicas específicas —',sel:_areaSel===''}].concat(_areasBanca.map(a=>({v:a,label:a,sel:a===_areaSel})));
+    // ── view-model da aba BANCAS (recorte em 4 passos + painel da banca escolhida) ──
+    // Cada passo do recorte alimenta o seguinte; os estilos saem prontos daqui porque o
+    // template não faz condicional dentro de style.
+    const _bAreaId=this._bancaAreaId();
+    const _bArea=CT_AREA(_bAreaId);
+    const _bMat=this.state.bancaAreaSel||'';
+    const _bAss=String(this.state.bancaAssunto||'').trim();
+    const _bK=this.state.bancaSel||'cebraspe';
+    const _bInfo=CT_BANCAS[_bK]||CT_BANCAS.cebraspe;
+    const _bCor=CT_BANCA_COR[_bK]||CT_BANCA_COR.cebraspe;
     const _bdicas=this.state.bancaDicas||{};
-    const bancasVM=Object.keys(BANCAS_INFO).map((k)=>{ const b=BANCAS_INFO[k];
-      const keyA=k+'::'+_areaSel;
-      const dicasArea=(_areaSel && _bdicas[keyA])?_bdicas[keyA]:null;
-      return { key:k, label:b.label,
-        formato:b.formato||'', estilo:b.estilo||'', foco:b.foco||'',
-        penalidade:!!b.penalidade,
-        penalLabel: b.penalidade?'Erro anula acerto':'Erro não penaliza',
-        penalStyle: 'font-size:10.5px;font-weight:700;letter-spacing:.02em;border-radius:99px;padding:3px 9px;'+(b.penalidade?'color:#c0392f;background:#c0392f1a;':'color:#0f9d6b;background:#0f9d6b1a;'),
-        dicas:(Array.isArray(b.dicas)?b.dicas:[]).map(d=>String(d)),
-        temArea:!!_areaSel,
-        dicasArea:dicasArea||[], temDicasArea:!!(dicasArea&&dicasArea.length),
-        gerando:this.state.bancaBusy===keyA,
-        gerarLabel:this.state.bancaBusy===keyA?'Gerando…':(_areaSel?('Dicas para '+_areaSel):'Escolha uma área acima'),
-        gerarStyle:'display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--text2);cursor:'+(_areaSel&&this.state.bancaBusy!==keyA?'pointer':'default')+';font-family:inherit;opacity:'+(_areaSel?'1':'.55')+';',
-      }; });
+
+    // chip genérico do seletor (ligado x desligado). Duas variantes porque a cor da
+    // banca é hex (dá para compor "#RRGGBB"+alfa) e a do accent é token do tema — e
+    // 'var(--accentD)1f' não é cor nenhuma, o chip ligado sumiria.
+    const _bChipBase='display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-family:inherit;'
+      +'border-radius:99px;padding:8px 14px;font-size:12.5px;font-weight:700;';
+    const _bChipOff='border:1px solid var(--border);background:var(--surface2);color:var(--text2);';
+    const _bChip=(on,cor)=> _bChipBase+(on ? ('border:1px solid '+cor+';background:'+cor+'1f;color:'+cor+';') : _bChipOff);
+    const _bChipAcc=(on)=> _bChipBase+(on ? 'border:1px solid var(--accent);background:var(--accentSoft);color:var(--accentD);' : _bChipOff);
+
+    const bancaAreas=CT_AREAS.map(a=>({ k:a.id, emoji:a.emoji, label:a.label,
+      style:_bChipAcc(a.id===_bAreaId) }));
+    const bancaAreaConcDesc=_bArea.desc;
+
+    const bancaTiles=Object.keys(CT_BANCAS).map(k=>{ const b=CT_BANCAS[k]; const on=k===_bK;
+      const cor=CT_BANCA_COR[k]||CT_BANCA_COR.cebraspe;
+      return { k, sigla:CT_BANCA_SIGLA[k]||b.label, label:b.label,
+        penLabel: b.penalidade?'erro anula':'sem penalidade',
+        style:'position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:3px;'
+          +'text-align:left;cursor:pointer;font-family:inherit;border-radius:13px;padding:13px 14px 12px;'
+          +(on ? ('border:1px solid '+cor+';background:linear-gradient(145deg,'+cor+'24,'+cor+'0d);box-shadow:0 6px 18px -10px '+cor+'aa;')
+               : 'border:1px solid var(--border);background:var(--surface2);'),
+        barStyle:'position:absolute;left:0;top:0;bottom:0;width:3px;background:'+cor+';opacity:'+(on?'1':'.42')+';',
+        nomeStyle:'font-family:var(--display);font-size:14.5px;font-weight:800;letter-spacing:-.01em;color:'+(on?cor:'var(--ink)')+';',
+        penStyle:'font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:'
+          +(b.penalidade?'#c0392f':'var(--text3)')+';' };
+    });
+
+    const _bMats=this._bancaMaterias();
+    const bancaMaterias=_bMats.map(m=>({ k:m, label:m, style:_bChip(m===_bMat,_bCor) }));
+    const bancaMateriaFonte=(this.state.edital||[]).length
+      ? 'do seu edital + sugestões da área' : 'sugestões da área (sem edital cadastrado)';
+
+    const _bTops=_bMat?this._bancaAssuntos():[];
+    const bancaAssuntos=_bTops.slice(0,14).map(t=>({ k:t, label:t.length>52?(t.slice(0,50)+'…'):t,
+      style:_bChip(t===_bAss,_bCor)+'max-width:100%;text-align:left;' }));
+    const bancaTemAssuntos=bancaAssuntos.length>0;
+    const bancaAssuntoFonte = !_bMat ? 'escolha a matéria acima'
+      : (bancaTemAssuntos ? ('tópicos de '+_bMat+' no seu edital') : 'sem tópicos no edital — digite o assunto');
+    const bancaAssuntoPh = _bMat ? ('ex.: um ponto específico de '+_bMat+' (opcional)')
+      : 'escolha a matéria acima para afinar o assunto';
+
+    // trilha do recorte, no hero
+    const _bCrumbStyle='display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);'
+      +'background:var(--surface2);border-radius:99px;padding:6px 13px;font-size:12px;color:var(--ink);';
+    const bancaCrumb=[
+      {k:'Área', v:_bArea.label, style:_bCrumbStyle},
+      {k:'Banca', v:(CT_BANCA_SIGLA[_bK]||_bInfo.label), style:_bCrumbStyle+'border-color:'+_bCor+';color:'+_bCor+';'},
+      {k:'Matéria', v:(_bMat||'todas'), style:_bCrumbStyle},
+      {k:'Assunto', v:(_bAss||'—'), style:_bCrumbStyle},
+    ];
+
+    // painel da banca escolhida
+    const _bIaKey=this._bancaKey();
+    const _bIa=(_bMat && _bdicas[_bIaKey])?_bdicas[_bIaKey]:null;
+    const _bBusy=this.state.bancaBusy===_bIaKey;
+    const bancaFocoWrap='position:relative;overflow:hidden;border:1px solid transparent;border-radius:var(--radius);'
+      +'background:linear-gradient(var(--surface),var(--surface)) padding-box,'
+      +'linear-gradient(135deg,'+_bCor+','+_bCor+'55) border-box;';
+    const bancaFocoGlow='position:absolute;right:-90px;top:-110px;width:260px;height:260px;border-radius:50%;'
+      +'background:radial-gradient(circle,'+_bCor+'3d,transparent 70%);pointer-events:none;';
+
+    const bancaRecorteDesc = !_bMat
+      ? 'Escolha uma matéria no passo 3 para a IA montar dicas do recorte — o perfil acima já vale para a banca inteira.'
+      : ((_bInfo.label+' · '+_bMat+(_bAss?(' · '+_bAss):''))+' — na área de '+_bArea.label+'.');
+
+    const bancaIALabel = _bBusy ? 'Gerando…'
+      : (!_bMat ? 'Escolha uma matéria'
+      : (_bIa ? 'Dicas geradas ✓' : ('Gerar dicas para '+_bMat+(_bAss?(' · '+_bAss):''))));
+    const _bIaOn = !!_bMat && !_bBusy && !_bIa;
+    const bancaIAStyle='display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:10px 17px;'
+      +'font-size:12.5px;font-weight:700;font-family:inherit;cursor:'+(_bIaOn?'pointer':'default')+';'
+      +(_bIaOn ? ('border:1px solid transparent;background:linear-gradient(120deg,'+_bCor+','+_bCor+'cc);color:#fff;'
+                  +'box-shadow:0 8px 20px -10px '+_bCor+';')
+               : 'border:1px solid var(--border);background:var(--surface2);color:var(--text3);');
 
     return {
       ajAnkiOpen:this.state.ajAnkiOpen, ajAnkiChevron:this.state.ajAnkiOpen?'▾':'▸', toggleAjAnki:this.toggleAjAnki,
       isBancas:this.state.view==='bancas', navBancas:navStyle('bancas'),
       areaCards, setAreaEstudo:this.setAreaEstudo, areaAtualLabel, areaAtualEmoji, areaAtualDesc,
-      areaJuridica, areaJuris, legisFrameSrc, areaEscolhida, areaCatsStr, areaFerramentas, retaReduzDesc,
-      bancasVM, bancaAreaOpts, setBancaArea:this.setBancaArea, gerarDicasBanca:this.gerarDicasBanca,
-      bancaAreaAtual:_areaSel,
+      areaJuridica, areaJuris, legisFrameSrc, areaEscolhida,
+      isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
+      temAreaMod, areaModLabel, areaModFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
+      bancaAreas, bancaAreaConcDesc, setBancaAreaConc:this.setBancaAreaConc,
+      bancaTiles, setBancaFoco:this.setBancaFoco,
+      bancaMaterias, bancaMateriaFonte, setBancaArea:this.setBancaArea,
+      bancaAssuntos, bancaTemAssuntos, bancaAssuntoFonte, bancaAssuntoPh, bancaAssuntoTxt:this.state.bancaAssunto||'',
+      setBancaAssunto:this.setBancaAssunto, onBancaAssunto:this.onBancaAssunto,
+      bancaCrumb, bancaFocoWrap, bancaFocoGlow, bancaFocoCor:_bCor,
+      bancaFocoLabel:_bInfo.label, bancaFocoFormato:_bInfo.formato||'', bancaFocoEstilo:_bInfo.estilo||'',
+      bancaFocoFoco:_bInfo.foco||'', bancaFocoDicas:(Array.isArray(_bInfo.dicas)?_bInfo.dicas:[]).map(String),
+      bancaFocoMarker:'color:'+_bCor+';flex:none;font-weight:800;',
+      bancaFocoPenLabel:(_bInfo.penalidade?'Erro anula acerto':'Erro não penaliza'),
+      bancaFocoPenStyle:'font-size:11px;font-weight:800;letter-spacing:.02em;border-radius:99px;padding:6px 13px;flex:none;'
+        +(_bInfo.penalidade?'color:#c0392f;background:#c0392f1a;':'color:#0f9d6b;background:#0f9d6b1a;'),
+      bancaRecorteDesc, bancaTemIA:!!(_bIa&&_bIa.length), bancaDicasIA:_bIa||[],
+      bancaIALabel, bancaIAStyle, bancaIABusy:_bBusy, gerarDicasBanca:this.gerarDicasBanca,
       naoAdmin:!this.state.isAdmin,
       isAdmin:this.state.isAdmin, isAdminView:this.state.view==='admin', navAdmin:navStyle('admin'),
+      // Conta logada no perfil do Ajustes. Sem sessão (ou build sem login real) cai no
+      // rótulo antigo, que descreve o que o app é nesse caso: só dados locais.
+      contaLabel:this.state.authEmail||'dados locais',
       adminBusy:this.state.adminBusy, adminErro:this.state.adminErro, adminTemErro:!!this.state.adminErro,
       adminCarregado:!!this.state.adminData, refreshAdmin:this._loadAdmin,
       admSaude, admRecursos, admCrescimento, admIndicadores, admTemCrescimento:admCrescimento.length>0,
@@ -8653,7 +8960,7 @@ class Component extends DCLogic {
       redResultLivre, redCompareStudent, redCompareGab,
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({inicio:'Início',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Painel do administrador',bancas:'Bancas'}[this.state.view]),
+      viewTitle:({inicio:'Início',areamod:areaModLabel,ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Painel do administrador',bancas:'Bancas'}[this.state.view]),
       viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Testadores, saúde do beta, acesso e feedback',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),

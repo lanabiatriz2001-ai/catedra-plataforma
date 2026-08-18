@@ -20,7 +20,7 @@ NAME="Cátedra"
 EXEC="Catedra"
 BUNDLE_ID="com.catedra.ipad"
 APP="$BUILD/$NAME.app"
-MIN_IOS="16.0"
+MIN_IOS=17.0
 AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma-fawn.vercel.app/api/complete}"
 
 mkdir -p "$BUILD"
