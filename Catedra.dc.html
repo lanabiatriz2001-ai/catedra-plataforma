@@ -7617,7 +7617,12 @@ class Component extends DCLogic {
     // módulo de estudo da área (iframe próprio, como o LEGIS)
     const areaModLabel = _area.modulo || '';
     const temAreaMod = !!areaModLabel;
-    const areaModFrameSrc = 'area-web.html?area=' + encodeURIComponent(_area.id);
+    // A área jurídica tem página PRÓPRIA: o módulo dela é o mapa dos ritos (Processo e
+    // peças), não a lista de pontos de estudo do area-web. As demais áreas seguem no
+    // area-web genérico.
+    const areaModFrameSrc = (_area.id==='juridica')
+      ? 'processo-web.html'
+      : ('area-web.html?area=' + encodeURIComponent(_area.id));
     const legisFrameSrc = 'legis-web.html' + (this.state.areaEstudo ? ('?area='+encodeURIComponent(this.state.areaEstudo)) : '');
     const areaEscolhida = !!this.state.areaEstudo;
     const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||'');
