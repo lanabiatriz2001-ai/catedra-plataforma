@@ -33,7 +33,11 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     var webView: WKWebView!
     private var segmento: UISegmentedControl!
     private var areaConteudo: UIView!
-    private var legisVC: UIViewController?   // criado sob demanda, na 1ª vez que a aba abre
+    private var legisVC: UIViewController?   // criados sob demanda, na 1ª vez que a aba abre
+    private var jurisVC: UIViewController?
+    // @Observable, sem .shared: a instância é guardada aqui, como o host do Mac faz.
+    private var jurisStore: LibraryStore?
+    private var jurisUpdater: UpdateService?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -74,12 +78,13 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // de abas do host AppKit; aqui é um UISegmentedControl acima do conteúdo. A
         // WebView deixa de ocupar a tela inteira e passa a viver na área de conteúdo,
         // trocada com a tela nativa do LEGIS.
-        // (CátedraJURIS entra como terceira aba quando o módulo dele for portado — não
-        // coloco uma aba morta aqui.)
-        segmento = UISegmentedControl(items: ["Cátedra", "CátedraLEGIS"])
-        // -abaLegis abre já na aba do LEGIS. Serve para verificar o porte no simulador
-        // sem depender de alguém tocar na tela; em uso normal ninguém passa esse argumento.
-        segmento.selectedSegmentIndex = ProcessInfo.processInfo.arguments.contains("-abaLegis") ? 1 : 0
+        segmento = UISegmentedControl(items: ["Cátedra", "CátedraLEGIS", "CátedraJURIS"])
+        // -abaLegis / -abaJuris abrem já na aba correspondente. Servem para verificar os
+        // portes no simulador sem depender de alguém tocar na tela; em uso normal ninguém
+        // passa esses argumentos.
+        let args = ProcessInfo.processInfo.arguments
+        segmento.selectedSegmentIndex = args.contains("-abaJuris") ? 2
+                                      : args.contains("-abaLegis") ? 1 : 0
         segmento.translatesAutoresizingMaskIntoConstraints = false
         segmento.addTarget(self, action: #selector(trocarAba), for: .valueChanged)
 
@@ -127,31 +132,38 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     /// e não faz sentido pagar isso em quem nunca abrir a aba) e depois fica vivo — sair e
     /// voltar não perde o que estava na tela nem recarrega a norma.
     @objc private func trocarAba() {
-        let querLegis = segmento.selectedSegmentIndex == 1
-        if querLegis {
-            if legisVC == nil {
-                let host = UIHostingController(rootView: CatedraLegisRoot(store: AppStore.shared) { [weak self] in
-                    // O botão de fechar da própria tela volta para a aba do Cátedra.
-                    self?.segmento.selectedSegmentIndex = 0
-                    self?.trocarAba()
-                })
-                addChild(host)
-                host.view.translatesAutoresizingMaskIntoConstraints = false
-                areaConteudo.addSubview(host.view)
-                NSLayoutConstraint.activate([
-                    host.view.topAnchor.constraint(equalTo: areaConteudo.topAnchor),
-                    host.view.bottomAnchor.constraint(equalTo: areaConteudo.bottomAnchor),
-                    host.view.leadingAnchor.constraint(equalTo: areaConteudo.leadingAnchor),
-                    host.view.trailingAnchor.constraint(equalTo: areaConteudo.trailingAnchor),
-                ])
-                host.didMove(toParent: self)
-                legisVC = host
-            }
-            areaConteudo.bringSubviewToFront(legisVC!.view)
+        let aba = segmento.selectedSegmentIndex
+        if aba == 1 && legisVC == nil {
+            legisVC = encaixar(UIHostingController(rootView: CatedraLegisRoot(store: AppStore.shared)))
         }
-        legisVC?.view.isHidden = !querLegis
-        webView.isHidden = querLegis
-        if !querLegis { areaConteudo.bringSubviewToFront(webView) }
+        if aba == 2 && jurisVC == nil {
+            let st = jurisStore ?? LibraryStore(); jurisStore = st
+            let up = jurisUpdater ?? UpdateService(); jurisUpdater = up
+            jurisVC = encaixar(UIHostingController(rootView: CatedraJurisRoot(store: st, updater: up)))
+        }
+        webView.isHidden  = (aba != 0)
+        legisVC?.view.isHidden = (aba != 1)
+        jurisVC?.view.isHidden = (aba != 2)
+        switch aba {
+        case 1: if let v = legisVC?.view { areaConteudo.bringSubviewToFront(v) }
+        case 2: if let v = jurisVC?.view { areaConteudo.bringSubviewToFront(v) }
+        default: areaConteudo.bringSubviewToFront(webView)
+        }
+    }
+
+    /// Encaixa uma tela nativa na área de conteúdo, do tamanho dela.
+    private func encaixar(_ host: UIViewController) -> UIViewController {
+        addChild(host)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        areaConteudo.addSubview(host.view)
+        NSLayoutConstraint.activate([
+            host.view.topAnchor.constraint(equalTo: areaConteudo.topAnchor),
+            host.view.bottomAnchor.constraint(equalTo: areaConteudo.bottomAnchor),
+            host.view.leadingAnchor.constraint(equalTo: areaConteudo.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: areaConteudo.trailingAnchor),
+        ])
+        host.didMove(toParent: self)
+        return host
     }
 
     private func mostrarErro(_ t: String) {
@@ -271,24 +283,10 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         }
     }
 
-    /// O JS pede uma tela NATIVA (catedraNav). Por enquanto só o CátedraLEGIS: no Mac ele
-    /// vive numa aba do app; aqui entra em tela cheia por cima da WebView. Sem barra de
-    /// menus no iPadOS, a saída é um botão flutuante — senão não há como voltar.
-    private func abrirTelaNativa(_ message: WKScriptMessage) {
-        let corpo = message.body
-        let alvo = (corpo as? String)
-            ?? ((corpo as? [String: Any])?["view"] as? String)
-            ?? ((corpo as? [String: Any])?["tela"] as? String) ?? ""
-        guard alvo == "legis" else { return }
-        MainActor.assumeIsolated {
-            guard self.presentedViewController == nil else { return }   // não empilhar
-            let host = UIHostingController(rootView: CatedraLegisRoot(store: AppStore.shared) { [weak self] in
-                self?.dismiss(animated: true)
-            })
-            host.modalPresentationStyle = .fullScreen
-            self.present(host, animated: true)
-        }
-    }
+    /// O JS pedia uma tela nativa por catedraNav. Com as abas no topo isso deixou de ter
+    /// uso: quem troca de tela é a aba, não a página. Fica só o aceite da mensagem para o
+    /// JS não travar esperando uma promessa.
+    private func abrirTelaNativa(_ message: WKScriptMessage) { }
 
     private func chamarIA(_ message: WKScriptMessage, _ reply: @escaping (Any?, String?) -> Void) {
         let corpo = message.body as? [String: Any] ?? [:]
@@ -478,7 +476,6 @@ UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, nil, NSStringFromCla
 /// entraria no LEGIS e não teria como voltar.
 struct CatedraLegisRoot: View {
     let store: AppStore
-    var fechar: () -> Void = {}
 
     var body: some View {
         // Sem botão de fechar flutuante: com as abas no topo, quem volta para o Cátedra é
@@ -489,5 +486,29 @@ struct CatedraLegisRoot: View {
             .environmentObject(StudyClock.shared)
             .tint(ThemeState.t.accent)
             .task { Notifier.requestPermission() }
+    }
+}
+
+/// Raiz do CátedraJURIS no iPadOS. Espelha o CatedraJurisRoot do Mac. O JURIS usa
+/// Observation (.environment), não ObservableObject — daí a diferença de sintaxe em
+/// relação ao LEGIS logo acima.
+struct CatedraJurisRoot: View {
+    let store: LibraryStore
+    let updater: UpdateService
+    @AppStorage("jurisAppearance") private var appearanceRaw = Appearance.claro.rawValue
+    private var appearance: Appearance { Appearance(rawValue: appearanceRaw) ?? .claro }
+
+    var body: some View {
+        RootView()
+            .environment(store)
+            .environment(updater)
+            .preferredColorScheme(appearance.colorScheme)
+            .tint(ThemeState.t.accent)
+            .task {
+                // load() só na 1ª vez: reconstruir por troca de tema não recarrega o acervo.
+                if store.entries.isEmpty { await store.load() }
+                updater.pedirPermissaoNotificacao()
+                await updater.verificacaoAutomatica(store: store)
+            }
     }
 }
