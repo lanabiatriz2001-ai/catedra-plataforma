@@ -530,6 +530,19 @@ enum SeedCatalog {
             law("Lei da Meia-Entrada (Eventos Culturais)", "Lei nº 13.179, de 22 de outubro de 2015", .consumidor, "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13179.htm"),
             law("Lei da Digitalização de Documentos", "Lei nº 12.682, de 9 de julho de 2012", .digital, "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12682.htm"),
             law("Marco Legal dos Jogos Eletrônicos", "Lei nº 14.852, de 3 de maio de 2024", .digital, "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/L14852.htm"),
+            // Acréscimo ago/2026 (cruzamento com biblioteca PROLegis; texto do Planalto)
+            law("Reforma da Previdência (EC 103)", "Emenda Constitucional nº 103, de 12 de novembro de 2019", .constitucional, "https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc103.htm"),
+            law("Reforma Tributária (EC 132)", "Emenda Constitucional nº 132, de 20 de dezembro de 2023", .tributario, "https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc132.htm"),
+            law("Lei do IBS, CBS e Imposto Seletivo (Reforma Tributária)", "Lei Complementar nº 214, de 16 de janeiro de 2025", .tributario, "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm"),
+            law("Lei Complementar nº 227/2026 (Reforma Tributária — regulamentação)", "Lei Complementar nº 227, de 2026", .tributario, "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm"),
+            law("Proteção do Patrimônio Histórico e Artístico Nacional (Tombamento)", "Decreto-Lei nº 25, de 30 de novembro de 1937", .administrativo, "https://www.planalto.gov.br/ccivil_03/decreto-lei/del0025.htm"),
+            law("Lei Geral das Agências Reguladoras", "Lei nº 13.848, de 25 de junho de 2019", .administrativo, "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/L13848.htm"),
+            law("Lei do CADIN", "Lei nº 10.522, de 19 de julho de 2002", .administrativo, "https://www.planalto.gov.br/ccivil_03/leis/2002/l10522.htm"),
+            law("Intervenção da União e Advocacia Pública em Juízo", "Lei nº 9.469, de 10 de julho de 1997", .administrativo, "https://www.planalto.gov.br/ccivil_03/leis/l9469.htm"),
+            law("Procuradoria-Geral Federal (PGF)", "Lei nº 10.480, de 2 de julho de 2002", .administrativo, "https://www.planalto.gov.br/ccivil_03/leis/2002/l10480.htm"),
+            law("Infrações e Sanções Administrativas Ambientais", "Decreto nº 6.514, de 22 de julho de 2008", .ambiental, "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2008/decreto/d6514.htm"),
+            law("Regimes Próprios de Previdência Social (RPPS)", "Lei nº 9.717, de 27 de novembro de 1998", .previdenciario, "https://www.planalto.gov.br/ccivil_03/leis/l9717.htm"),
+            law("Regulamento da Previdência Social", "Decreto nº 3.048, de 6 de maio de 1999", .previdenciario, "https://www.planalto.gov.br/ccivil_03/decreto/d3048.htm"),
         ]
     }
 }
