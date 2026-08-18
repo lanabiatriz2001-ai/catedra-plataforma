@@ -219,6 +219,16 @@ const AREA_LEGIS={
     padrao:['Constituição da República','13.709','12.965'],
     espec:['12.527','14.133','12.737'] },
 };
+// ?q= vem do mapa de Processo e peças: tocar num ⚖️ abre esta página já buscando o
+// instituto. Aplicado depois do primeiro render, senão o campo ainda não existe.
+(function ctBuscaInicial(){ try{
+  var q=new URLSearchParams(location.search).get('q'); if(!q) return;
+  var tenta=function(n){ var el=document.getElementById('cq');
+    if(!el){ if(n>0) setTimeout(function(){tenta(n-1);},120); return; }
+    el.value=q; el.dispatchEvent(new Event('input',{bubbles:true}));
+    el.scrollIntoView({block:'center'}); };
+  setTimeout(function(){tenta(25);},60);
+}catch(e){} })();
 const AREA_ID=(function(){ try{ return new URLSearchParams(location.search).get('area')||''; }catch(e){ return ''; } })();
 const AREA_DEF=AREA_LEGIS[AREA_ID]||null;
 const _casa=(l,alvo)=> (l.r||'').indexOf(alvo)>=0 || (l.t||'').toLowerCase()===alvo.toLowerCase() || (l.t||'').indexOf(alvo)>=0;

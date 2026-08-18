@@ -149,6 +149,14 @@ function desenhar(){
     d.innerHTML=n.t+(n.s?'<small>'+n.s+'</small>':'')
       +(temF&&fech?'<span class="cnt">+'+n.f.length+'</span>':'');
     d.onclick=(ev)=>{ ev.stopPropagation();
+      // ⚖️ e 🏛️ são folhas: em vez de abrir/fechar, pedem ao app para abrir o acervo.
+      // O rótulo vira o termo de busca — sem os emojis e sem a seta do desvio.
+      if(n.k==='lei' || n.k==='juris'){
+        const termo=String(n.t).replace(/^[^\p{L}]+/u,'').trim();
+        try{ window.parent.postMessage(
+          {type:'ctAbrirAcervo', alvo:(n.k==='lei'?'legis':'juris'), termo}, '*'); }catch(_){}
+        return;
+      }
       if(!temF) return;
       if(fech) fechados.delete(n._id); else fechados.add(n._id);
       desenhar(); };
