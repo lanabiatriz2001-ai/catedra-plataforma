@@ -6977,8 +6977,11 @@ class Component extends DCLogic {
   onAdmConfirm = (e)=> this.setState({admConfirmTxt:e.currentTarget.value});
 
   // ── Ações sobre uma conta ────────────────────────────────────────────────
+  // Devolve `false` em QUALQUER falha (inclusive sem cliente): os chamadores usam
+  // `!==false` para decidir se recarregam e se cantam vitória — devolver null aqui
+  // faria o console dizer "conta removida" com o servidor fora do ar.
   _admRpc = async (fn, args, ok)=>{
-    const sb=this._sb(); if(!sb) return null;
+    const sb=this._sb(); if(!sb){ this._toast('Sem conexão com o servidor.'); return false; }
     try{ const r=await sb.rpc(fn, args); if(r.error) throw r.error;
       if(ok) this._toast(ok);
       return r.data===undefined?null:r.data;
@@ -9273,7 +9276,7 @@ class Component extends DCLogic {
       {k:'Relatos', v:String(_sis.linhasFeedback!=null?_sis.linhasFeedback:'—')},
       {k:'Grupos', v:String(_sis.grupos!=null?_sis.grupos:'—')},
       {k:'Sessões abertas', v:String(_sis.sessoesAbertas!=null?_sis.sessoesAbertas:'—')},
-      {k:'Sem confirmar', v:String(_sis.naoConfirmados!=null?_sis.naoConfirmados:'—')},
+      {k:'Sem confirmar', v:String(_sis.naoConfirmados!=null?_sis.naoConfirmados:'—')},   // já exclui as contas internas @catedra.app
       {k:'Administradoras', v:String(_sis.admins!=null?_sis.admins:'—')},
     ];
     const admMaiores=(_sis.maiores||[]).map(m=>({email:m.email||'—', kb:_nKb(m.kb)}));
@@ -9343,8 +9346,12 @@ class Component extends DCLogic {
     const admContasResumo=admTesters.length+' de '+_brutos.length+' contas'+(_busca?(' · busca “'+_busca+'”'):'');
 
     // ── o que pede ação hoje ──
+    // Cada item conta a MESMA lista que o botão dele abre. Contar pelo servidor
+    // (admin_sistema) e abrir a lista do cliente já divergiu uma vez: uma conta
+    // interna @catedra.app entrava no total e não aparecia na aba.
     const admAtencao=[];
-    if((_sis.naoConfirmados||0)>0) admAtencao.push({cor:'#f2a93b', titulo:_sis.naoConfirmados+' conta(s) nunca confirmaram o e-mail', sub:'não conseguem entrar — dá para confirmar na mão pela gaveta da conta', tab:'contas', acao:'Ver contas'});
+    const _semConf=_brutos.filter(r=>r.naoConfirmado).length;
+    if(_semConf>0) admAtencao.push({cor:'#f2a93b', titulo:_semConf+' conta(s) nunca confirmaram o e-mail', sub:'não conseguem entrar — dá para confirmar na mão pela gaveta da conta', tab:'contas', acao:'Ver contas'});
     if(admFeedbackAbertos>0) admAtencao.push({cor:'#5b8dff', titulo:admFeedbackAbertos+' relato(s) em aberto', sub:'bugs e sugestões enviados de dentro do app', tab:'suporte', acao:'Abrir suporte'});
     const _bloqN=_brutos.filter(r=>r._t.bloqueado).length;
     if(_bloqN>0) admAtencao.push({cor:'#ff5f6d', titulo:_bloqN+' conta(s) com a IA pausada', sub:'continuam entrando no app, mas sem IA', tab:'contas', acao:'Ver contas'});
