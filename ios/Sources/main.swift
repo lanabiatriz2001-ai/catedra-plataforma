@@ -133,7 +133,23 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     /// e não faz sentido pagar isso em quem nunca abrir a aba) e depois fica vivo — sair e
     /// voltar não perde o que estava na tela nem recarrega a norma.
     @objc private func trocarAba() {
+        // Antes de montar (ou remontar) uma aba nativa, espelha o tema do Cátedra. Sem
+        // isto os módulos ficavam presos no tema de fallback — no iPad, Fibra claro com
+        // acento #4263EB — e não acompanhavam nem a direção visual nem o modo escuro
+        // escolhidos no app. Este host simplesmente não tinha ponte de tema.
+        espelharTema { [weak self] mudou in
+            guard let self else { return }
+            self.montarAba(remontar: mudou)
+        }
+    }
+
+    private func montarAba(remontar: Bool) {
         let aba = segmento.selectedSegmentIndex
+        if remontar {
+            // Tema novo: o SwiftUI leu as cores no build, então a tela precisa nascer de novo.
+            if let v = legisVC { v.willMove(toParent: nil); v.view.removeFromSuperview(); v.removeFromParent(); legisVC = nil }
+            if let v = jurisVC { v.willMove(toParent: nil); v.view.removeFromSuperview(); v.removeFromParent(); jurisVC = nil }
+        }
         if aba == 1 && legisVC == nil {
             legisVC = encaixar(UIHostingController(rootView: CatedraLegisRoot(store: AppStore.shared)))
         }
@@ -150,6 +166,81 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case 2: if let v = jurisVC?.view { areaConteudo.bringSubviewToFront(v) }
         default: areaConteudo.bringSubviewToFront(webView)
         }
+    }
+
+    // ===== PONTE DE TEMA: Cátedra (CSS vars) → ThemeState dos módulos nativos =====
+    // Espelho do que o host do Mac faz. O app escreve o tema inteiro como custom
+    // properties num elemento com --accent; aqui lemos as computadas e traduzimos.
+    private var ultimoTema: String = ""
+
+    private func espelharTema(_ done: @escaping (Bool) -> Void) {
+        let js = """
+        (function(){
+          var el = document.querySelector('[style*="--accent"]') || document.documentElement;
+          var s = getComputedStyle(el);
+          function g(n){ return (s.getPropertyValue(n)||'').trim(); }
+          return JSON.stringify({
+            bg:g('--bg'), surface:g('--surface'), surface2:g('--surface2'), border:g('--border'),
+            ink:g('--ink'), text2:g('--text2'), text3:g('--text3'),
+            accent:g('--accent'), accentD:g('--accentD'),
+            accentSoft:g('--accentSoft'), accentRing:g('--accentRing'), onAccent:g('--onAccent'),
+            radius:g('--radius'), display:g('--display'), body:g('--body'), mono:g('--mono'),
+            sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
+            heroGrad:g('--heroGrad'), dark:(localStorage.getItem('catedra:dark')||'')
+          });
+        })()
+        """
+        webView.evaluateJavaScript(js) { [weak self] r, _ in
+            done(self?.aplicarTema(r as? String) ?? false)
+        }
+    }
+
+    @discardableResult
+    private func aplicarTema(_ json: String?) -> Bool {
+        guard let json, let data = json.data(using: .utf8),
+              let d = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return false }
+        func col(_ k: String) -> Color? { (d[k] as? String).flatMap { Color(css: $0) } }
+        var t = ThemeState.t
+        if let c = col("bg")       { t.bg = c }
+        if let c = col("surface")  { t.surface = c }
+        if let c = col("surface2") { t.surface2 = c }
+        if let c = col("border")   { t.border = c }
+        if let c = col("ink")      { t.ink = c }
+        if let c = col("text2")    { t.text2 = c }
+        if let c = col("text3")    { t.text3 = c }
+        if let c = col("accent")   { t.accent = c }
+        if let c = col("accentD")  { t.accentD = c }
+        if let c = col("sbg")      { t.sidebarBg = c }
+        if let c = col("stext")    { t.sidebarText = c }
+        if let c = col("sactbg")   { t.sidebarActiveBg = c }
+        if let c = col("sacttext") { t.sidebarActiveText = c }
+        if let s = d["radius"] as? String,
+           let n = Double(s.replacingOccurrences(of: "px", with: "").trimmingCharacters(in: .whitespaces)) {
+            t.radius = min(24, max(4, CGFloat(n)))
+        }
+        t.heroStops = Self.paradasDoGradiente(d["heroGrad"] as? String, accent: t.accent, accentD: t.accentD)
+        let dk = ((d["dark"] as? String) ?? "").trimmingCharacters(in: CharacterSet(charactersIn: "\" "))
+        t.isDark = (dk == "1" || dk.lowercased() == "true")
+        ThemeState.t = t
+        // As duas chaves existem porque LEGIS e JURIS guardam o modo com vocabulários
+        // diferentes ("light"/"dark" e "claro"/"escuro"); trocá-las colidiria.
+        UserDefaults.standard.set(t.isDark ? "dark" : "light", forKey: "appearance")
+        UserDefaults.standard.set(t.isDark ? "escuro" : "claro", forKey: "jurisAppearance")
+        let mudou = (json != ultimoTema)
+        ultimoTema = json
+        return mudou
+    }
+
+    /// Extrai as paradas de cor de um `--heroGrad` (gradiente ou cor sólida).
+    private static func paradasDoGradiente(_ grad: String?, accent: Color, accentD: Color) -> [Color] {
+        guard let grad, !grad.isEmpty else { return [accent, accentD] }
+        let ns = grad as NSString
+        let cols: [Color] = (try? NSRegularExpression(pattern: "#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|rgba?\\([^)]*\\)"))?
+            .matches(in: grad, range: NSRange(location: 0, length: ns.length))
+            .compactMap { Color(css: ns.substring(with: $0.range)) } ?? []
+        if cols.count >= 2 { return cols }
+        if cols.count == 1 { return [cols[0], cols[0]] }
+        return [accent, accentD]
     }
 
     /// Encaixa uma tela nativa na área de conteúdo, do tamanho dela.

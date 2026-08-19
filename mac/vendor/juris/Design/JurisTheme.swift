@@ -68,7 +68,10 @@ enum Palette {
     // app, importadas pelo host em applyCatedraTheme) — igual ao CátedraLEGIS. Mudar
     // a identidade visual no Ajustes do Cátedra reflete aqui.
     static var accent: Color          { ThemeState.t.accent }
-    static var accentSoft: Color      { ThemeState.t.accentD }
+    // Apontava para accentD — um tom MAIS ESCURO que o acento. O "gradiente suave" do
+    // resumo semanal ia do acento para o escuro e saía sujo, e todo lugar que pedia um
+    // fundo lavado recebia um fundo pesado. Suave é o acento LAVADO no fundo do tema.
+    static var accentSoft: Color      { ThemeState.t.accent.opacity(ThemeState.t.isDark ? 0.22 : 0.12) }
     static let importante             = Color.dynamic(light: "#E0A400", dark: "#F5C542") // âmbar = destaque
 
     // Superfícies — tokens do Cátedra
