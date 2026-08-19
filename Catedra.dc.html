@@ -1988,7 +1988,8 @@ window.ctPdfLib = (function(){
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><span style="flex:none;width:34px;height:34px;background:var(--ink);color:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:800;">03</span><label style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);">Gabarito / espelho</label><span style="margin-left:auto"></span></div>
                 <button onclick="{{ importRedGab }}" style="display:flex;align-items:center;gap:7px;border:3px solid var(--ink);background:var(--surface2);border-radius:0;padding:9px 14px;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);cursor:pointer;font-family:inherit;box-shadow:4px 4px 0 var(--border);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" stroke-linecap="round" stroke-linejoin="round"></path></svg>Importar PDF/TXT</button>
               </div>
-              <textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" rows="6" placeholder="Cole aqui o gabarito oficial, o espelho de correção ou uma resposta-modelo. A plataforma compara sua resposta com este conteúdo e gera o raio-X ponto a ponto." style="width:100%;box-sizing:border-box;border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:16px;color:var(--ink);font-family:var(--body);resize:vertical;outline:none;box-shadow:6px 6px 0 var(--border);transition:box-shadow .1s, transform .1s;font-size:13.5px;line-height:1.6;"></textarea>
+              <sc-if value="{{ redEspelhoOculto }}" hint-placeholder-val="{{ false }}"><div style="border:3px solid var(--ink);background:var(--surface2);padding:18px 20px;box-shadow:6px 6px 0 var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;"><div><div style="font-family:var(--mono);font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:12px;color:var(--ink);">Espelho oficial carregado — oculto</div><div style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.5;">Treino como na prova: os quesitos e a pontuação da banca só aparecem depois que você entregar a resposta. A correção sai por quesito, na escala da banca.</div></div><button onclick="{{ revelarEspelho }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:9px 14px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;font-family:var(--mono);color:var(--ink);">Revelar mesmo assim</button></div></sc-if>
+              <sc-if value="{{ !redEspelhoOculto }}" hint-placeholder-val="{{ true }}"><textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" rows="6" placeholder="Cole aqui o gabarito oficial, o espelho de correção ou uma resposta-modelo. A plataforma compara sua resposta com este conteúdo e gera o raio-X ponto a ponto." style="width:100%;box-sizing:border-box;border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:16px;color:var(--ink);font-family:var(--body);resize:vertical;outline:none;box-shadow:6px 6px 0 var(--border);transition:box-shadow .1s, transform .1s;font-size:13.5px;line-height:1.6;"></textarea></sc-if>
               <div style="font-size:11.5px;color:var(--text2);font-family:var(--mono);font-weight:700;margin-top:10px;text-transform:uppercase;letter-spacing:.04em;">{{ redGabWords }} palavras no gabarito<sc-if value="{{ redGabBusy }}" hint-placeholder-val="{{ false }}"> · extraindo arquivo…</sc-if></div>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:22px;border-top:3px solid var(--ink);padding-top:20px;">
@@ -4338,7 +4339,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoTipo:'', discCarregado:false, discErro:false,
+      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoTipo:'', discCarregado:false, discErro:false,
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'',
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
@@ -6419,22 +6420,32 @@ class Component extends DCLogic {
     // tirar esse prefixo, a lista sai "1. 1. Sistemas…".
     const esp=(q.espelho||[]).map((x,i)=>{
       const t=String(x.quesito||'').replace(/^\s*(?:item\s*)?\(?\d+[.)\]]?\s*/i,'').trim();
-      return (i+1)+'. '+t+(x.pontos!=null?'  ('+x.pontos+' ponto'+(x.pontos===1?'':'s')+')':'');
+      // Espelhos lidos do PDF da banca trazem a ESCALA ("0,00/0,10/0,20/0,30") e os
+      // DISPOSITIVOS exigidos. O corretor precisa dos dois: nota fora da escala é erro
+      // de correção, e fundamento que o espelho pede e a peça não cita é ponto perdido.
+      const esc=x.escala&&x.escala!==String(x.pontos)?'  [escala: '+x.escala+']':(x.pontos!=null?'  ('+x.pontos+' ponto'+(x.pontos===1?'':'s')+')':'');
+      const fund=(x.dispositivos&&x.dispositivos.length)?'\n   Fundamentos exigidos: '+x.dispositivos.join('; '):'';
+      return (i+1)+'. '+t+esc+fund;
     });
+    const instr=(q.instrucoes&&q.instrucoes.length)?'\n\nInstruções gerais da banca:\n- '+q.instrucoes.join('\n- '):'';
     const cab=[q.orgao, q.cargo, q.ano].filter(Boolean).join(' · ')+(q.banca?' — banca '+q.banca:'');
     this.setState({
       redEnunciado: cab+'\n\n'+(q.enunciado||''),
-      redGabarito: esp.length ? ('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')) : '',
+      redGabarito: esp.length ? ('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')+instr) : '',
+      // Treino pelo espelho: o espelho fica ESCONDIDO até a pessoa entregar. Saber que
+      // existe um quesito de preclusão já entrega a resposta.
+      redEspelhoOculto: esp.length>0,
       redText:'', redResult:null, bancoOpen:false
     });
     try{ localStorage.setItem('catedra:redEnunciado',JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
-      localStorage.setItem('catedra:redGabarito',JSON.stringify(esp.length?('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')):''));
+      localStorage.setItem('catedra:redGabarito',JSON.stringify(esp.length?('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')+instr):''));
       localStorage.setItem('catedra:redText',JSON.stringify('')); }catch(_){}
-    this._toast(esp.length ? 'Questão e espelho carregados' : 'Questão carregada — esta banca não publicou espelho');
+    this._toast(esp.length ? 'Questão carregada — o espelho fica oculto até você entregar' : 'Questão carregada — esta banca não publicou espelho');
   };
 
   onRedEnun = (e)=> this.setState({redEnunciado:e.currentTarget.value, redResult:null});
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this.setState({redResult:null, redText:'', redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
+  revelarEspelho = ()=>{ if(!window.confirm('Revelar o espelho antes de entregar? No treino real você só vê os quesitos depois da prova.')) return; this.setState({redEspelhoOculto:false}); };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this.setState({redResult:null, redText:'', redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this.setState({redResult:h.res, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
@@ -6451,7 +6462,7 @@ class Component extends DCLogic {
     if(words<40){ this._toast('Escreva ao menos ~40 palavras para corrigir'); return; }
     if(this.state.redBusy) return;
     if(!(this.state.redGabarito||'').trim()){ this._toast('Cole ou importe o gabarito para comparar'); return; }
-    this.setState({redBusy:true, redResult:null, redSubText:text, redSubGab:this.state.redGabarito});
+    this.setState({redBusy:true, redResult:null, redSubText:text, redSubGab:this.state.redGabarito, redEspelhoOculto:false});
     const enun=(this.state.redEnunciado||'').trim();
     const _titulo=(enun? enun.replace(/\s+/g,' ').slice(0,80) : (text.replace(/\s+/g,' ').slice(0,60)||'Questão discursiva'));
     let res=null; try{ res= await this._corrigeRedacaoLivre(_titulo, text, this.state.redGabarito, enun); }catch(_){}
@@ -6464,7 +6475,7 @@ class Component extends DCLogic {
   async _corrigeRedacaoLivre(tema, text, gabarito, enun){
     const g=(gabarito||'').trim().slice(0,6000);
     const _en=(enun||'').trim().slice(0,3000);
-    const prompt='Você é corretor de provas discursivas de concursos públicos no Brasil e vai produzir um RAIO-X detalhado da resposta. Considere o ENUNCIADO da questão, o GABARITO/ESPELHO oficial e a RESPOSTA DO CANDIDATO. Compare a resposta com o gabarito e atribua uma nota realista de 0 a 10 conforme o quanto a resposta cobre e adere ao gabarito. Avalie quatro critérios (0-10): "Cobertura do gabarito", "Aderência aos pontos esperados", "Estrutura e coesão", "Norma culta e clareza". Extraia do gabarito de 4 a 8 PONTOS ESPERADOS (o que a resposta deveria conter) e, para cada um, marque o status conforme a resposta do candidato: "coberto", "parcial" ou "faltou", com um comentário curto. Devolva SOMENTE um JSON válido: {"nota":<0-10 com 1 casa>,"cobertura":<inteiro 0-100>,"conceito":"<Excelente|Bom|Regular|Insuficiente>","criterios":[{"nome":"...","nota":<0-10>,"comentario":"<uma frase>"}],"topicos":[{"ponto":"<ponto do gabarito>","status":"coberto|parcial|faltou","comentario":"<curto>"}],"fortes":["pontos do gabarito que o candidato contemplou"],"melhorar":["pontos do gabarito que faltaram ou divergiram"],"geral":"<2 a 3 frases>"} com exatamente 4 critérios e de 4 a 8 topicos. Tema: "'+tema+'".'+(_en?('\nENUNCIADO:\n"""\n'+_en+'\n"""'):'')+'\nGABARITO/ESPELHO:\n"""\n'+g+'\n"""\nRESPOSTA DO CANDIDATO:\n"""\n'+text+'\n"""';
+    const prompt='Você é corretor de provas discursivas de concursos públicos no Brasil e vai produzir um RAIO-X detalhado da resposta. Considere o ENUNCIADO da questão, o GABARITO/ESPELHO oficial e a RESPOSTA DO CANDIDATO. REGRAS QUANDO O GABARITO FOR UM ESPELHO POR QUESITO (linhas numeradas com pontuação ou [escala: …]): corrija QUESITO A QUESITO, na ordem da banca; a nota de cada quesito fica DENTRO da escala informada (escala 0,00/0,10/0,20/0,30 não admite 0,15); fundamento exigido pelo espelho e não citado na resposta não pontua; respeite as "Instruções gerais da banca" (desconto por forma, item residual). No campo "topicos" cada item é UM QUESITO, com "comentario" no formato "Nota X de Y — o que faltou para o valor cheio, com o dispositivo". Em "geral": soma obtida/total, e depois, nesta ordem e sem elogio de abertura: o que faltou (quesitos zerados, por peso), o que está errado, o que custaria ponto fora do espelho (português, estrutura, extensão), e os 3 pontos prioritários para a próxima peça. Compare a resposta com o gabarito e atribua uma nota realista de 0 a 10 conforme o quanto a resposta cobre e adere ao gabarito. Avalie quatro critérios (0-10): "Cobertura do gabarito", "Aderência aos pontos esperados", "Estrutura e coesão", "Norma culta e clareza". Extraia do gabarito de 4 a 8 PONTOS ESPERADOS (o que a resposta deveria conter) e, para cada um, marque o status conforme a resposta do candidato: "coberto", "parcial" ou "faltou", com um comentário curto. Devolva SOMENTE um JSON válido: {"nota":<0-10 com 1 casa>,"cobertura":<inteiro 0-100>,"conceito":"<Excelente|Bom|Regular|Insuficiente>","criterios":[{"nome":"...","nota":<0-10>,"comentario":"<uma frase>"}],"topicos":[{"ponto":"<ponto do gabarito>","status":"coberto|parcial|faltou","comentario":"<curto>"}],"fortes":["pontos do gabarito que o candidato contemplou"],"melhorar":["pontos do gabarito que faltaram ou divergiram"],"geral":"<2 a 3 frases>"} com exatamente 4 critérios; topicos: um por quesito do espelho quando houver espelho (até 40), senão de 4 a 8. Tema: "'+tema+'".'+(_en?('\nENUNCIADO:\n"""\n'+_en+'\n"""'):'')+'\nGABARITO/ESPELHO:\n"""\n'+g+'\n"""\nRESPOSTA DO CANDIDATO:\n"""\n'+text+'\n"""';
     try{ if(window.claude && window.claude.complete){ const r=await window.claude.complete(prompt); const j=this._parseJSON(r); if(j && j.criterios) return this._normRed(j); } }catch(e){}
     return this._redFallbackLivre(text, gabarito);
   }
@@ -6495,7 +6506,7 @@ class Component extends DCLogic {
   _parseJSON(s){ try{ const a=s.indexOf('{'), b=s.lastIndexOf('}'); if(a<0||b<0) return null; return JSON.parse(s.slice(a,b+1)); }catch(e){ return null; } }
   _redConceito(n){ return n>=8?'Excelente':n>=6.5?'Bom':n>=5?'Regular':'Insuficiente'; }
   _normTopicos(arr){
-    return (arr||[]).slice(0,8).map(t=>{ const st=String(t.status||'').toLowerCase(); const status=/cobert|ok|contempl|sim|presen/.test(st)?'coberto':/parc|incompl/.test(st)?'parcial':'faltou'; return {ponto:String(t.ponto||t.nome||'').slice(0,180), status, comentario:String(t.comentario||'')}; }).filter(t=>t.ponto);
+    return (arr||[]).slice(0,40).map(t=>{ const st=String(t.status||'').toLowerCase(); const status=/cobert|ok|contempl|sim|presen/.test(st)?'coberto':/parc|incompl/.test(st)?'parcial':'faltou'; return {ponto:String(t.ponto||t.nome||'').slice(0,180), status, comentario:String(t.comentario||'')}; }).filter(t=>t.ponto);
   }
   _normRed(j){
     const crit=(j.criterios||[]).slice(0,4).map(c=>({nome:String(c.nome||'Critério'), nota:Math.max(0,Math.min(10,+c.nota||0)), max:10, comentario:String(c.comentario||''), pct:Math.round(Math.max(0,Math.min(10,+c.nota||0))*10)}));
@@ -10013,7 +10024,8 @@ class Component extends DCLogic {
       bancoCarrOpts:[{v:'',label:'Todas as carreiras',sel:!this.state.bancoCarr}].concat(_bancoCarreiras.map(c=>({v:c,label:c,sel:c===this.state.bancoCarr}))),
       bancoTipoOpts:[{v:'',label:'Peças e discursivas',sel:!this.state.bancoTipo},
                      {v:'peca',label:'Só peças',sel:this.state.bancoTipo==='peca'},
-                     {v:'discursiva',label:'Só discursivas',sel:this.state.bancoTipo==='discursiva'}],
+                     {v:'discursiva',label:'Só discursivas',sel:this.state.bancoTipo==='discursiva'},
+                     {v:'sentenca',label:'Só sentenças (espelho oficial)',sel:this.state.bancoTipo==='sentenca'}],
       setBancoCarr:this.setBancoCarr, setBancoTipo:this.setBancoTipo,
       bancoVazio:(_bancoLista.length===0), bancoErro:this.state.discErro,
       bancoCarregando:(this.state.bancoOpen && !this.state.discCarregado && !this.state.discErro),

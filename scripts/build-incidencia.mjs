@@ -25,6 +25,14 @@ const carrega = (f) => { try { new Function('window', readFileSync(join(ROOT, f)
 carrega('juris-text.js');
 carrega('contas-text.js');
 const FONTES = [globalThis.window.__JURIS_TXT__, globalThis.window.__CONTAS_TXT__].filter(Boolean);
+// Índices (id → título, tribunal, ramo, tema, data): servem para o SEGUNDO produto deste
+// script, a lista de verbetes por artigo que o LEGIS mostra em "Jurisprudência deste
+// artigo" — automática, do nosso acervo, em vez de vínculo manual.
+carrega('juris-index.js'); carrega('contas-index.js');
+const META_ID = {};
+for (const r of [...(globalThis.window.__JURIS_IDX__ || []), ...(globalThis.window.__CONTAS_IDX__ || [])]) {
+  META_ID[r[0]] = { t: r[4] || r[0], trib: r[1] || '', ramo: r[5] || '', tema: r[6] || '', data: r[7] || '' };
+}
 if (!FONTES.length) throw new Error('nenhum acervo de texto encontrado');
 
 // Os diplomas NÃO são mais uma lista à mão: vêm do catálogo do CátedraLEGIS (const CAT
@@ -132,6 +140,7 @@ const RE_ART = /\bart(?:igo)?s?\.?\s*([\d][\d.]{0,5})\s*([º°ª]?)\s*(?:-\s*([A
 const JANELA = 90;   // caracteres à frente onde procurar o diploma
 
 const conta = {};    // k -> { artigo -> n }
+const quem = {};     // k -> { artigo -> Set(ids) }  (quais verbetes citam)
 let citacoes = 0, descartadas = 0;
 
 for (const T of FONTES) {
@@ -150,6 +159,7 @@ for (const T of FONTES) {
       const art = numero + letra;
       (conta[d.k] = conta[d.k] || {});
       conta[d.k][art] = (conta[d.k][art] || 0) + 1;
+      ((quem[d.k] = quem[d.k] || {})[art] = quem[d.k][art] || new Set()).add(id);
       citacoes++;
     }
   }
@@ -195,3 +205,22 @@ for (const k of Object.keys(saida).sort((a, b) => saida[b].total - saida[a].tota
 // MESMO conteúdo como JSON puro, que é o que o bundle do app carrega.
 writeFileSync(join(ROOT, 'incidencia.json'), JSON.stringify({ meta: META, diplomas: saida }));
 console.log('✓ incidencia.json — mesma coisa, para o módulo nativo');
+
+// Produto 2: verbetes por artigo. Não vai para o incidencia.js do web (ficaria enorme e
+// a web já tem o JURIS ao lado); vai como JSON próprio para o LEGIS nativo, que mostra
+// até 40 por artigo, os mais recentes primeiro. Só o essencial: id, título, tribunal,
+// ramo, tema, data — o texto fica no corpus do JURIS, que é quem abre o verbete.
+const dataNum = (d) => { const m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(d || ''); return m ? +(m[3] + m[2] + m[1]) : 0; };
+const porArtigo = {};
+let pares = 0;
+for (const k of Object.keys(quem)) {
+  porArtigo[k] = { nome: (saida[k] || {}).nome || k, artigos: {} };
+  for (const art of Object.keys(quem[k])) {
+    const lista = [...quem[k][art]].map((id) => ({ id, ...(META_ID[id] || { t: id, trib: '', ramo: '', tema: '', data: '' }) }))
+      .sort((a, b) => dataNum(b.data) - dataNum(a.data)).slice(0, 40);
+    porArtigo[k].artigos[art] = lista;
+    pares += lista.length;
+  }
+}
+writeFileSync(join(ROOT, 'incidencia-verbetes.json'), JSON.stringify({ meta: META, diplomas: porArtigo }));
+console.log(`✓ incidencia-verbetes.json — ${pares.toLocaleString('pt-BR')} pares artigo→verbete (até 40 por artigo)`);
