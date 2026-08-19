@@ -200,7 +200,7 @@ struct MarkableArticleView: UIViewRepresentable {
         basePara.lineSpacing = lineSpacing
         basePara.paragraphSpacing = max(12, lineSpacing + 9)
         basePara.alignment = textAlignment
-        attributed.addAttributes([.font: base, .foregroundColor: NSColor.label,
+        attributed.addAttributes([.font: base, .foregroundColor: NSColor(AppTheme.ink),
                                   .paragraphStyle: basePara],
                                  range: NSRange(location: 0, length: ns.length))
 
@@ -312,7 +312,7 @@ struct MarkableArticleView: UIViewRepresentable {
         // texto (marcas do usuário) somem corretamente quando removidos.
         let baseF = baseFont(bold: false)
         storage.addAttribute(.font, value: baseF, range: full)
-        storage.addAttribute(.foregroundColor, value: NSColor.label, range: full)
+        storage.addAttribute(.foregroundColor, value: NSColor(AppTheme.ink), range: full)
         // Redesign "moderno vibrante": os MARCADORES estruturais (Art. Nº, incisos, §,
         // alíneas) ganham a cor da matéria — o CORPO do artigo continua limpo (tinta),
         // então os grifos do usuário seguem sendo o destaque principal do conteúdo.

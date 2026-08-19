@@ -182,7 +182,7 @@ struct AnnotatedTextView: NSViewRepresentable {
         textView.minSize = NSSize(width: 0, height: 0)
         textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
         textView.drawsBackground = true
-        textView.backgroundColor = .textBackgroundColor
+        textView.backgroundColor = NSColor(AppTheme.surface)   // folha do tema, não branco do sistema
         textView.delegate = context.coordinator
         textView.onCommand = { [weak coordinator = context.coordinator] command in
             coordinator?.parent.onCommand(command)
@@ -193,7 +193,7 @@ struct AnnotatedTextView: NSViewRepresentable {
         scrollView.hasVerticalScroller = true
         scrollView.autohidesScrollers = false
         scrollView.drawsBackground = true
-        scrollView.backgroundColor = .textBackgroundColor
+        scrollView.backgroundColor = NSColor(AppTheme.surface)
 
         controller.textView = textView
         context.coordinator.textView = textView
@@ -267,7 +267,7 @@ struct AnnotatedTextView: NSViewRepresentable {
 
         let attributed = NSMutableAttributedString(string: text, attributes: [
             .font: regular,
-            .foregroundColor: NSColor.labelColor,
+            .foregroundColor: NSColor(AppTheme.ink),
             .paragraphStyle: paragraphStyle,
         ])
 
@@ -334,7 +334,7 @@ struct AnnotatedTextView: NSViewRepresentable {
             storage.removeAttribute(.strikethroughColor, range: clamped)
             // desfaz negrito/itálico/cor de texto ao remover a marca (lei limpa = base uniforme)
             storage.addAttribute(.font, value: regular, range: clamped)
-            storage.addAttribute(.foregroundColor, value: NSColor.labelColor, range: clamped)
+            storage.addAttribute(.foregroundColor, value: NSColor(AppTheme.ink), range: clamped)
         }
 
         var ranges: [NSRange] = []

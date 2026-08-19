@@ -92,20 +92,40 @@ enum Palette {
     static var selection: Color        { ThemeState.t.accent.opacity(0.12) }
 
     // Fontes seguem o ACENTO (monocromático, como as matérias no CátedraLEGIS).
-    static var fonteSV: Color          { ThemeState.t.accent }
-    static var fonteSTF: Color         { ThemeState.t.accent }
-    static var fonteSTJ: Color         { ThemeState.t.accent }
-    static var fonteTSE: Color         { ThemeState.t.accent }
-    static var fonteRG: Color          { ThemeState.t.accent }
-    static var fonteRepetitivo: Color  { ThemeState.t.accent }
-    static var fonteJT: Color          { ThemeState.t.accent }
-    static var fonteInfoSTF: Color     { ThemeState.t.accent }
-    static var fonteInfoSTJ: Color     { ThemeState.t.accent }
-    static var fonteInfoTSE: Color     { ThemeState.t.accent }
-    static var fonteDOD: Color         { ThemeState.t.accent }
-    static var fonteTJRO: Color        { ThemeState.t.accent }
-    static var fonteTJROprec: Color    { ThemeState.t.accent }
-    static var fonteContas: Color      { ThemeState.t.accent }
+    // Todas estas resolviam para ThemeState.t.accent — o app inteiro num tom só. O
+    // FonteBadge (a peça mais repetida da tela), os KPIs do painel, as barras por fonte
+    // e o mapa de calor ficavam indistinguíveis, e o mapa mental chegou a desistir dos
+    // tokens e cravar 7 hex no código por causa disso.
+    //
+    // Agora cada fonte herda a cor do TRIBUNAL a que pertence — a mesma paleta que o
+    // CátedraJURIS da web usa em TRIBC, para o STJ ser teal nos dois lados. A cor é
+    // fixa (identidade do tribunal não muda com o tema); quem acompanha o tema é o
+    // fundo, o texto e o acento da interface.
+    static func corDeTribunal(_ nome: String) -> Color {
+        switch nome {
+        case "STF":  return Color(hex: "#1D4ED8")   // azul
+        case "STJ":  return Color(hex: "#0D9488")   // teal
+        case "TSE":  return Color(hex: "#7C3AED")   // roxo
+        case "TJRO": return Color(hex: "#64748B")   // ardósia
+        case "TCU":  return Color(hex: "#0F7A57")   // verde-cofre
+        default:     return ThemeState.t.accent
+        }
+    }
+
+    static var fonteSV: Color          { corDeTribunal("STF") }
+    static var fonteSTF: Color         { corDeTribunal("STF") }
+    static var fonteInfoSTF: Color     { corDeTribunal("STF") }
+    static var fonteRG: Color          { corDeTribunal("STF") }
+    static var fonteSTJ: Color         { corDeTribunal("STJ") }
+    static var fonteInfoSTJ: Color     { corDeTribunal("STJ") }
+    static var fonteRepetitivo: Color  { corDeTribunal("STJ") }
+    static var fonteJT: Color          { corDeTribunal("STJ") }
+    static var fonteTSE: Color         { corDeTribunal("TSE") }
+    static var fonteInfoTSE: Color     { corDeTribunal("TSE") }
+    static var fonteTJRO: Color        { corDeTribunal("TJRO") }
+    static var fonteTJROprec: Color    { corDeTribunal("TJRO") }
+    static var fonteDOD: Color         { Color(hex: "#C2790C") }   // âmbar — não é tribunal
+    static var fonteContas: Color      { corDeTribunal("TCU") }
 }
 
 /// Tipografia moderna (sans). Os nomes "serif*" são mantidos por compatibilidade

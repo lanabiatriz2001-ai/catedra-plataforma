@@ -158,7 +158,7 @@ struct AnnotatedTextView: UIViewRepresentable {
         textView.isEditable = false
         textView.isSelectable = true
         textView.textContainerInset = UIEdgeInsets(top: 28, left: 40, bottom: 28, right: 40)
-        textView.backgroundColor = .systemBackground   // era .textBackgroundColor
+        textView.backgroundColor = NSColor(AppTheme.surface)   // folha do tema, não branco do sistema
         textView.alwaysBounceVertical = true
         textView.delegate = context.coordinator
         textView.onCommand = { [weak coordinator = context.coordinator] command in
@@ -236,7 +236,7 @@ struct AnnotatedTextView: UIViewRepresentable {
 
         let attributed = NSMutableAttributedString(string: text, attributes: [
             .font: regular,
-            .foregroundColor: NSColor.label,
+            .foregroundColor: NSColor(AppTheme.ink),
             .paragraphStyle: paragraphStyle,
         ])
 
@@ -299,7 +299,7 @@ struct AnnotatedTextView: UIViewRepresentable {
             storage.removeAttribute(.strikethroughColor, range: clamped)
             // desfaz negrito/itálico/cor de texto ao remover a marca (lei limpa = base uniforme)
             storage.addAttribute(.font, value: regular, range: clamped)
-            storage.addAttribute(.foregroundColor, value: NSColor.label, range: clamped)
+            storage.addAttribute(.foregroundColor, value: NSColor(AppTheme.ink), range: clamped)
         }
 
         var ranges: [NSRange] = []
