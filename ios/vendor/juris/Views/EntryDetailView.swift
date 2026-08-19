@@ -43,6 +43,13 @@ struct EntryDetailView: View {
                 header
                 alertaSituacao
                 enunciadoCard
+                // INFORMATIVO: o roteiro-widget (Em uma frase / Fundamento / Como era / O que
+                // decidiu / Pegadinha / quiz) é a interface do informativo — vem logo depois do
+                // enunciado, antes das anotações; estava enterrado no fim da página. Agora é
+                // local e instantâneo (RoteiroLocal), então nasce aberto em todo verbete.
+                if entry.fonteKind.ehInformativo {
+                    RoteiroEstudoView(entry: entry, autoGerar: true)
+                }
                 // "Minhas anotações" LOGO ABAIXO do dispositivo (pedido da Lana) —
                 // antes vinha depois da nota de estudo do app.
                 anotacaoCard
@@ -66,7 +73,9 @@ struct EntryDetailView: View {
                 // TSE e os boletins do TCU) gera o roteiro SOZINHO ao abrir — sem esperar o
                 // clique. Fora dos informativos (o grosso do acervo, 25 mil verbetes) continua
                 // sob demanda: gerar sempre em toda abertura gastaria a cota da API à toa.
-                RoteiroEstudoView(entry: entry, autoGerar: entry.fonteKind.ehInformativo)
+                if !entry.fonteKind.ehInformativo {
+                    RoteiroEstudoView(entry: entry, autoGerar: true)
+                }
                 relacionadosSection
                 footer
             }

@@ -559,11 +559,16 @@ struct ProvaOralView: View {
 /// Entra na frente da HomeView quando a aba abre: o julgado do dia e as edições de
 /// informativo mais recentes em destaque, como pedido.
 struct DestaquesEstudoView: View {
+    enum Parte { case tudo, julgado, informativos }
+    var parte: Parte = .tudo
     @Environment(LibraryStore.self) private var store
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            if parte != .informativos {
             JulgadoDoDiaView()
                 .frame(maxHeight: 520)
+            }
+            if parte != .julgado {
             HStack(alignment: .firstTextBaseline) {
                 Text("Últimos informativos").font(.system(size: 17.5, weight: .bold)).foregroundStyle(Palette.titleInk)
                 Spacer()
@@ -587,6 +592,7 @@ struct DestaquesEstudoView: View {
                 }
             }
             .padding(.horizontal, 28)
+            }
         }
     }
 }
@@ -768,7 +774,8 @@ enum ProvaOralLocal {
         let lacuna = JurisFlashcards.direta(e)
         var formatos: [String] = []
         if let f = falsa {
-            let papel = ["a defesa, em sustentação oral,", "o recorrente", "a parte autora, na inicial,", "o Ministério Público, em parecer,", "o magistrado de primeiro grau"].randomElement(using: &Gerador(e.id))!
+            var g = Gerador(e.id)
+            let papel = ["a defesa, em sustentação oral,", "o recorrente", "a parte autora, na inicial,", "o Ministério Público, em parecer,", "o magistrado de primeiro grau"].randomElement(using: &g)!
             formatos.append("Candidato(a), um caso chega ao seu gabinete. \(papel.prefix(1).uppercased() + papel.dropFirst()) sustenta que \(f.prefix(1).lowercased() + f.dropFirst()) A tese procede? Decida e fundamente, indicando a posição do \(e.tribunal).")
         }
         if !fund.isEmpty {
@@ -791,9 +798,23 @@ enum ProvaOralLocal {
         mutating func next() -> UInt64 { estado = estado &* 6364136223846793005 &+ 1442695040888963407; return estado }
     }
 
-    /// Corrige contra o ENUNCIADO OFICIAL do verbete, por cobertura de termos-chave.
+    /// Corrige contra o ENUNCIADO OFICIAL do verbete, por cobertura de termos-chave, e
+    /// AUDITA OS FUNDAMENTOS: todo artigo, súmula ou tema que a resposta cita é conferido
+    /// contra os que o verbete (enunciado + referências) cita. Numero decorado errado é o
+    /// erro mais comum de arguição — aqui ele aparece como "o verbete não menciona".
     static func corrigir(_ e: JurisEntry, resposta: String) -> ProvaOralView.Correcao {
-        corrigirContra(base: e.enunciado, resposta: resposta)
+        var c = corrigirContra(base: e.enunciado, resposta: resposta)
+        let doVerbete = RoteiroLocal.fundamentos(e.enunciado + " " + (e.referencias ?? "") + " " + (e.precedentes ?? ""))
+        let daResposta = RoteiroLocal.fundamentos(resposta)
+        guard !daResposta.isEmpty else { return c }
+        func chave(_ f: String) -> String { normaliza(f).replacingOccurrences(of: "[^a-z0-9]", with: "", options: .regularExpression) }
+        let setV = Set(doVerbete.map(chave))
+        let confirmados = daResposta.filter { setV.contains(chave($0)) || doVerbete.contains { chave($0).hasPrefix(chave($1)) || chave($1).hasPrefix(chave($0)) } }
+        let estranhos = daResposta.filter { !confirmados.contains($0) }
+        if !confirmados.isEmpty { c.acertou = (c.acertou ?? []) + ["Fundamento confirmado no verbete: " + confirmados.joined(separator: "; ")] }
+        if !estranhos.isEmpty { c.faltou = (c.faltou ?? []) + ["Fundamento citado que o verbete NÃO menciona — confira antes de levar para a banca: " + estranhos.joined(separator: "; ")] }
+        if !doVerbete.isEmpty, confirmados.isEmpty { c.faltou = (c.faltou ?? []) + ["O verbete se apoia em: " + doVerbete.prefix(3).joined(separator: "; ") + " — e a resposta não citou."] }
+        return c
     }
 
     /// Mesma correção, genérica — usada também pelo LEGIS (contra o trecho da lei).
