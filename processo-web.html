@@ -4,17 +4,19 @@
 <title>Processo e peças</title>
 <style>
 :root{
-  --bg:#0f1720;--surface:#16212c;--surface2:#1c2936;--border:#2a3947;
-  --ink:#eef4f8;--text2:#a9bccb;--text3:#6f8496;
-  --accent:#0f9d6b;--accentD:#7fd4b5;
-  --lei:#c9a227;--juris:#e0685c;--peca:#9b86e8;--desvio:#5aa9c9;--assunto:#4a8fd4;
-  --display:Georgia,serif;--mono:ui-monospace,Menlo,monospace;
+  /* Padrão CLARO, no tom do Cátedra; a ponte abaixo troca tudo pelos tokens do app
+     (acento, superfícies, fontes), então a página fica com a cara do tema que a pessoa
+     escolheu — antes era um azul-escuro fixo, estranho dentro de um app claro. */
+  --bg:#faf7f5;--surface:#ffffff;--surface2:#f3eeea;--border:#e2d9d3;
+  --ink:#1b1b1f;--text2:#4b4a52;--text3:#7d7a86;
+  --accent:#b5174e;--accentD:#8e0f3c;--onAccent:#ffffff;
+  --lei:#9a6b00;--juris:#b93a2b;--peca:#5b47b8;--desvio:#1f6f8b;--assunto:#1f5aa6;
+  --display:Georgia,serif;--body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:ui-monospace,Menlo,monospace;
 }
 *{box-sizing:border-box}
 /* Não prender em height:100%: num visualizador que não dá altura ao documento isso
    colapsa e a tela fica preta. O palco tem altura PRÓPRIA em px, com teto no viewport. */
-html,body{margin:0;background:var(--bg);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body)}
 /* Painel do roteiro de peça: entra pela direita, por cima do mapa. */
 .rot{position:fixed;top:0;right:0;bottom:0;width:min(560px,94vw);background:var(--surface);
   border-left:1px solid var(--border);z-index:40;transform:translateX(102%);transition:transform .22s ease;
@@ -41,15 +43,15 @@ html,body{margin:0;background:var(--bg);color:var(--ink);
   font:600 11.5px inherit;cursor:pointer;text-align:left}
 .blk .rf button.lei{color:var(--lei);border-color:color-mix(in srgb,var(--lei) 45%,transparent)}
 .blk .rf button.juris{color:var(--juris);border-color:color-mix(in srgb,var(--juris) 45%,transparent)}
-.blk .erro{margin-top:10px;font-size:12.5px;line-height:1.55;color:#ffc9c2;
-  background:rgba(224,104,92,.12);border-left:3px solid var(--juris);padding:9px 11px;border-radius:0 8px 8px 0}
-.blk .erro b{color:#ff9d92}
+.blk .erro{margin-top:10px;font-size:12.5px;line-height:1.55;color:var(--ink);
+  background:color-mix(in srgb,var(--juris) 10%,var(--surface));border-left:3px solid var(--juris);padding:9px 11px;border-radius:0 8px 8px 0}
+.blk .erro b{color:var(--juris)}
 .cego li{margin-bottom:9px;font-size:13.5px;line-height:1.5}
 .cego label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
 .cego input{margin-top:3px;flex:none;width:16px;height:16px;accent-color:var(--accent)}
 .rotNota{font-size:11.5px;color:var(--text3);line-height:1.55;margin-top:16px;border-top:1px solid var(--border);padding-top:12px}
 .barra{position:sticky;top:0;z-index:10;padding:10px 14px;
-  background:rgba(15,23,32,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
+  background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:10px}
 /* Os 14 ritos rolam de LADO numa faixa só. Deixando quebrar linha, em tela estreita
    (iPad em retrato) eles viravam uma coluna de 14 e empurravam o mapa para fora. */
@@ -65,7 +67,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink);
 .abas button.on{background:var(--accent);color:var(--onAccent,#04140d)}
 .painel{display:none;padding:18px 16px 40px;max-width:1300px;margin:0 auto}
 .painel.on{display:block}
-.rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+#rlist{display:block}
 .rcard{border:3px solid var(--ink);background:var(--surface2);border-radius:0;padding:16px 18px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);box-shadow:6px 6px 0 var(--border);transition:transform .08s}
 .rcard b{display:block;font-size:14.5px;font-weight:800;margin-bottom:5px}
 .rcard span{font-size:11.5px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
@@ -77,14 +80,14 @@ html,body{margin:0;background:var(--bg);color:var(--ink);
 .qcard .meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:7px}
 .qcard .meta i{font-style:normal;font:800 10.5px var(--mono);color:var(--ink)}
 .qcard .meta em{font-style:normal;font:800 10px inherit;letter-spacing:.05em;text-transform:uppercase;border-radius:0;border:2px solid var(--ink);padding:2px 9px;background:var(--peca);color:#15121f}
-.qcard .meta em.disc{background:var(--assunto);color:#06131f}
+.qcard .meta em.disc{background:var(--assunto);color:#fff}
 .qcard .meta em.esp{background:transparent;color:var(--ink)}
 .qcard b{display:block;font-size:14px;font-weight:800;margin-bottom:4px}
 .qcard p{margin:0;font-size:12.5px;color:var(--text2);line-height:1.55}
 .qcard button{margin-top:10px;border:3px solid var(--ink);background:var(--accent);color:var(--onAccent,#04140d);border-radius:0;padding:7px 14px;font:800 12px inherit;text-transform:uppercase;letter-spacing:.03em;cursor:pointer;box-shadow:3px 3px 0 var(--border)}
 .pill{border:1px solid var(--border);background:var(--surface2);color:var(--text2);
   border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
-.pill.on{background:var(--accent);border-color:var(--accent);color:#04140d}
+.pill.on{background:var(--accent);border-color:var(--accent);color:var(--onAccent,#fff)}
 .ferr{margin-left:auto;display:flex;gap:6px;align-items:center}
 .ferr button{width:32px;height:30px;border:1px solid var(--border);background:var(--surface2);
   color:var(--text2);border-radius:8px;cursor:pointer;font-size:14px}
@@ -102,27 +105,55 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
 .no small{display:block;font-weight:400;font-size:10px;color:var(--text3)}
 .no .cnt{display:inline-block;margin-left:7px;font-family:var(--mono);font-size:10px;
   color:var(--text3);border:1px solid var(--border);border-radius:99px;padding:0 5px}
-.raiz{background:linear-gradient(135deg,#0f9d6b,#0b7a52);border-color:#0f9d6b;color:#04140d;
+.raiz{background:var(--accent);border-color:var(--accent);color:var(--onAccent,#fff);
   font-family:var(--display);font-size:15px;padding:12px 16px}
-.materia{background:#123244;border-color:var(--assunto);color:#bfe0f5;font-size:14px}
-.assunto{background:#1b2b39;border-color:#2f4a5e;font-family:var(--display);font-size:14px}
-.fase{background:#1b2b39;border-color:#41627a}
-.lei{border-color:var(--lei);color:#e8cd7a;background:rgba(201,162,39,.10);font-size:12px}
-.juris{border-color:var(--juris);color:#f0a49c;background:rgba(224,104,92,.10);font-size:12px}
-.peca{border-color:var(--peca);color:#c9bcf3;background:rgba(155,134,232,.10);font-size:12px}
-.desvio{border-color:var(--desvio);color:#a7d8e8;background:rgba(90,169,201,.10);
+.materia{background:color-mix(in srgb,var(--assunto) 14%,var(--surface));border-color:var(--assunto);color:var(--ink);font-size:14px}
+.assunto{background:var(--surface2);border-color:var(--border);font-family:var(--display);font-size:14px}
+.fase{background:var(--surface2);border-color:var(--border)}
+.lei{border-color:var(--lei);color:var(--lei);background:color-mix(in srgb,var(--lei) 10%,var(--surface));font-size:12px}
+.juris{border-color:var(--juris);color:var(--juris);background:color-mix(in srgb,var(--juris) 10%,var(--surface));font-size:12px}
+.peca{border-color:var(--peca);color:var(--peca);background:color-mix(in srgb,var(--peca) 10%,var(--surface));font-size:12px}
+.desvio{border-color:var(--desvio);color:var(--desvio);background:color-mix(in srgb,var(--desvio) 10%,var(--surface));
   font-size:11.5px;border-style:dashed}
 .fechado{opacity:.92}
 .legenda{position:sticky;bottom:0;z-index:10;padding:7px 14px;
-  background:rgba(15,23,32,.92);border-top:1px solid var(--border);
+  background:color-mix(in srgb,var(--surface) 92%,transparent);border-top:1px solid var(--border);
   display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--text3)}
 .legenda span{display:inline-flex;align-items:center;gap:5px}
 .dot{width:8px;height:8px;border-radius:2px;display:inline-block}
-</style></head><body>
+
+/* ---- Linha do tempo do rito: o trâmite como SEQUÊNCIA didática, não como mapa ---- */
+#linha{display:none;padding:18px 16px 48px;max-width:1100px;margin:0 auto}
+#linha.on{display:block}
+.lt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:4px 0 18px}
+.lt-head h2{margin:0;font:800 24px var(--display);letter-spacing:-.3px}
+.lt-head small{color:var(--text3);font-size:12.5px}
+.lt{position:relative;padding-left:46px}
+.lt::before{content:"";position:absolute;left:17px;top:8px;bottom:8px;width:3px;background:var(--border)}
+.ato{position:relative;margin-bottom:14px;border:3px solid var(--ink);background:var(--surface);padding:14px 16px 12px;box-shadow:6px 6px 0 var(--border)}
+.ato .num{position:absolute;left:-46px;top:10px;width:36px;height:36px;border:3px solid var(--ink);background:var(--accent);color:var(--onAccent,#fff);
+  display:flex;align-items:center;justify-content:center;font:800 13px var(--mono)}
+.ato h3{margin:0;font:800 16px var(--display)}
+.ato .quando{margin:2px 0 0;font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.ato .grupos{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:12px}
+.ato .g{border:1px solid var(--border);background:var(--surface2);padding:9px 11px}
+.ato .g b{display:block;font:800 10.5px var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.ato .g.lei b{color:var(--lei)}.ato .g.juris b{color:var(--juris)}.ato .g.peca b{color:var(--peca)}.ato .g.desvio b{color:var(--desvio)}
+.ato .g button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:3px 0;font:600 12.5px var(--body);cursor:pointer;line-height:1.35}
+.ato .g button:hover{color:var(--accent);text-decoration:underline}
+.ato .g.desvio button{cursor:default;color:var(--text2)}
+.ato .g.desvio button:hover{color:var(--text2);text-decoration:none}
+.lt-vazio{color:var(--text3);font-size:13px;padding:20px}
+/* Roteiros: escritos em destaque; os demais, lista discreta */
+.rsec{font:800 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:16px 0 10px}
+.rcard .prev{display:block;margin-top:8px;font-size:12px;color:var(--text2);line-height:1.5;text-transform:none;letter-spacing:0;font-weight:500}
+.rpend{display:flex;flex-wrap:wrap;gap:6px}
+.rpend span{border:1px solid var(--border);background:var(--surface2);color:var(--text3);padding:4px 10px;font-size:12px;border-radius:99px}
+</style><script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script></head><body>
 
 <div class="barra">
   <span class="h1">Processo e peças</span>
-  <span class="abas" id="abas"><button data-p="mapa" class="on">Trâmite</button><button data-p="roteiros">Roteiros de peças</button><button data-p="banco">Peças e discursivas</button></span>
+  <span class="abas" id="abas"><button data-p="linha" class="on">Trâmite</button><button data-p="mapa">Mapa</button><button data-p="roteiros">Roteiros de peças</button><button data-p="banco">Peças e discursivas</button></span>
   <span id="mats"></span>
   <span class="ferr">
     <button id="menos">−</button><span class="zoomlbl" id="zl">100%</span><button id="mais">+</button>
@@ -131,6 +162,7 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
   </span>
 </div>
 
+<div id="linha"></div>
 <div id="palco"><div id="mundo"><svg id="fios"></svg></div></div>
 
 <div class="legenda">
@@ -235,20 +267,57 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
   const palco=document.getElementById('palco'), legenda=document.querySelector('.legenda');
   function abaAtiva(qual){
     document.querySelectorAll('#abas button').forEach(b=>b.classList.toggle('on',b.dataset.p===qual));
-    const mapa=(qual==='mapa');
+    const mapa=(qual==='mapa'), linha=(qual==='linha');
     if(palco)palco.style.display=mapa?'':'none';
-    if(legenda)legenda.style.display=mapa?'':'none';
-    document.getElementById('mats').style.display=mapa?'':'none';
+    if(legenda)legenda.style.display=(mapa||linha)?'':'none';
+    document.getElementById('mats').style.display=(mapa||linha)?'':'none';
     document.querySelector('.ferr').style.display=mapa?'':'none';
+    document.getElementById('linha').classList.toggle('on',linha);
     document.getElementById('pRoteiros').classList.toggle('on',qual==='roteiros');
     document.getElementById('pBanco').classList.toggle('on',qual==='banco');
+    if(linha)pintaLinha();
+    if(mapa){ desenhar(); enquadrar(); }
     if(qual==='roteiros')pintaRoteiros();
     if(qual==='banco')pintaBanco();
+    abaAtual=qual;
+  }
+  let abaAtual='linha';
+
+  // ---- Linha do tempo: o rito escolhido como sequência numerada de atos, cada um com
+  // o que manda (⚖️ → LEGIS), o que o tribunal decidiu (🏛️ → JURIS), a peça cabível
+  // (✍️ → roteiro) e para onde o processo pode desviar (↘). Lê-se de cima para baixo,
+  // como se estuda; o mapa fica como vista alternativa.
+  function pintaLinha(){
+    const host=document.getElementById('linha'); if(!host)return;
+    const rito=(window.CT_RITOS||{})[materia]||[];
+    const rot=(t)=>String(t).replace(/^[^\p{L}]+/u,'').trim();
+    const grupo=(itens,tipo,titulo)=>{
+      const l=itens.filter(f=>f[1]===tipo); if(!l.length)return '';
+      return '<div class="g '+tipo+'"><b>'+titulo+'</b>'+l.map(f=>'<button data-k="'+tipo+'" data-t="'+esc(rot(f[0]))+'">'+esc(rot(f[0]))+'</button>').join('')+'</div>';
+    };
+    host.innerHTML='<div class="lt-head"><h2>'+esc(materia)+'</h2><small>'+rito.length+' atos, na ordem em que acontecem · clique num item para abrir no acervo</small></div>'
+      +(rito.length?'<div class="lt">'+rito.map((ato,i)=>{
+        const [nome,quando,ramos]=ato; const it=ramos||[];
+        return '<div class="ato"><div class="num">'+String(i+1).padStart(2,'0')+'</div><h3>'+esc(nome)+'</h3>'
+          +(quando?'<p class="quando">'+esc(quando)+'</p>':'')
+          +'<div class="grupos">'+grupo(it,'lei','⚖️ O que manda')+grupo(it,'juris','🏛️ O que o tribunal decidiu')+grupo(it,'peca','✍️ Peça cabível')+grupo(it,'desvio','↘ Desvios possíveis')+'</div></div>';
+      }).join('')+'</div>':'<div class="lt-vazio">Este rito ainda não tem atos cadastrados.</div>');
+    host.querySelectorAll('.g button').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.k, t=b.dataset.t;
+      if(k==='peca'){ window.abrirRoteiro(t); return; }
+      if(k==='lei'||k==='juris'){ try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo:(k==='lei'?'legis':'juris'), termo:t}, '*'); }catch(_){} }
+    });
   }
   document.querySelectorAll('#abas button').forEach(b=>b.onclick=()=>abaAtiva(b.dataset.p));
   // ?aba=roteiros|banco: a mesma página serve a entrada própria do menu "Roteiros e peças"
   // (abre direto nos roteiros de sentença/peças/discursivas, sem passar pelo mapa).
-  try{ const _a=new URLSearchParams(location.search).get('aba'); if(_a==='roteiros'||_a==='banco') abaAtiva(_a); }catch(_){}
+  // A escolha da aba inicial vai para o FIM do script (depois de iniciar()): abaAtiva
+  // chama pintaLinha, que usa `materia` — declarado mais abaixo. Chamar aqui estourava
+  // "Cannot access 'materia' before initialization" e a página abria vazia.
+  window.__abaInicial = () => {
+    try{ const _a=new URLSearchParams(location.search).get('aba'); abaAtiva((_a==='roteiros'||_a==='banco'||_a==='mapa')?_a:'linha'); }
+    catch(_){ abaAtiva('linha'); }
+  };
 
   // ---- Roteiros: todas as peças que aparecem no trâmite (ritos.js), marcando quais
   // já têm roteiro escrito (pecas.js) e quais ainda não.
@@ -263,12 +332,17 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
     const host=document.getElementById('rlist'); if(!host)return;
     const tem=window.CT_PECAS||{};
     const nomes=pecasDoTramite().sort((a,b)=>(b in tem)-(a in tem)||a.localeCompare(b,'pt'));
-    host.innerHTML=nomes.map(n=>{
-      const p=tem[n];
-      return '<button class="rcard'+(p?'':' falta')+'" data-n="'+esc(n)+'"><b>'+esc(n)+'</b><span>'
-        +(p?(p.blocos||[]).length+' blocos · modo cego com '+(p.cego||[]).length+' itens':'roteiro ainda não escrito')+'</span></button>';
-    }).join('');
-    host.querySelectorAll('.rcard:not(.falta)').forEach(b=>b.onclick=()=>window.abrirRoteiro(b.dataset.n));
+    const prontos=nomes.filter(n=>tem[n]), pend=nomes.filter(n=>!tem[n]);
+    // Os roteiros ESCRITOS são o conteúdo: card com os blocos, na ordem, para a pessoa
+    // ver o esqueleto antes de abrir. Os pendentes não viram 21 caixas vazias — são uma
+    // lista discreta de "em preparação", que encolhe conforme eu escrevo.
+    host.innerHTML=(prontos.length?'<div class="rsec">Roteiros prontos · '+prontos.length+'</div><div class="rlist">'+prontos.map(n=>{
+        const p=tem[n]; const bl=(p.blocos||[]).map(b=>b.nome||b).filter(Boolean);
+        return '<button class="rcard" data-n="'+esc(n)+'"><b>'+esc(n)+'</b><span>'+bl.length+' blocos · modo cego com '+(p.cego||[]).length+' itens</span>'
+          +'<span class="prev">'+bl.map((x,i)=>(i+1)+'. '+esc(x)).join(' · ')+'</span></button>';
+      }).join('')+'</div>':'')
+      +(pend.length?'<div class="rsec">Em preparação · '+pend.length+'</div><div class="rpend">'+pend.map(n=>'<span>'+esc(n)+'</span>').join('')+'</div>':'');
+    host.querySelectorAll('.rcard').forEach(b=>b.onclick=()=>window.abrirRoteiro(b.dataset.n));
   }
 
   // ---- Banco de peças e discursivas (o MESMO discursivas.js da Redação)
@@ -474,7 +548,7 @@ Object.keys(MAPA).forEach((k,i)=>{
   const b=document.createElement('button');
   b.className='pill'+(i===0?' on':''); b.textContent=k;
   b.onclick=()=>{ mats.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on'); materia=k; iniciar(); };
+    b.classList.add('on'); materia=k; if(abaAtual==='linha'){ seq=0; idear(MAPA[materia]); pintaLinha(); } else iniciar(); };
   mats.appendChild(b);
 });
 
@@ -484,7 +558,9 @@ function iniciar(){
   desenhar();
   nos.filter(n=>n.k==='fase').forEach(n=>fechados.add(n._id));
   desenhar(); enquadrar();
+  if(typeof abaAtual!=='undefined' && abaAtual==='linha') pintaLinha();
 }
 iniciar();
+if(window.__abaInicial) window.__abaInicial();
 </script>
 </body></html>
