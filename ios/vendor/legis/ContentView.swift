@@ -248,8 +248,6 @@ private struct LegisSidebar: View {
                     row(.favorites, "Favoritos", "star", badge: store.favoriteCount)
                     row(.planoLeitura, "Plano de leitura", "calendar")
                     row(.incidencia, "Incidência", "target")
-                    row(.provaOral, "Prova oral", "mic.fill")
-                    row(.simuladoLegis, "Simulado de lei seca", "list.bullet.clipboard")
                     row(.indiceEstrutural, "Índice das normas", "list.bullet.indent")
                     row(.subjects, "Assuntos", "tag")
                     row(.globalSearch, "Buscar em tudo", "magnifyingglass")

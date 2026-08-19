@@ -439,6 +439,7 @@ window.ctPdfLib = (function(){
       <button data-view="edital" onclick="{{ onNav }}" style="{{ navStyle.edital }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"></path></svg><span>Edital</span></button>
       <button data-view="revisoes" onclick="{{ onNav }}" style="{{ navStyle.revisoes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Revisões</span><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accent);color:var(--onAccent);font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ revPendStr }}</span></sc-if></button>
       <button data-view="simulados" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Simulados</span></button>
+      <button data-view="oral" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button>
       <button data-view="redacao" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Redação</span></button>
       <button data-view="calendario" onclick="{{ onNav }}" style="{{ navCalendario }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"></path></svg><span>Calendário</span></button>
     </nav>
@@ -2119,8 +2120,243 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <!-- ================= SIMULADOS ================= -->
+      <sc-if value="{{ isOral }}" hint-placeholder-val="{{ false }}">
+       <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px;color:#fff;">
+          <div style="font-family:var(--display);font-weight:600;font-size:19px;">Prova oral</div>
+          <div style="font-size:12.5px;opacity:.9;margin-top:4px;max-width:640px;line-height:1.55;">Arguição sobre o acervo de jurisprudência, sobre a lei seca, e o material oficial das bancas — pontos sorteáveis, perguntas formuladas, padrão de resposta e critérios. Tudo local, sem IA.</div>
+          <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+            <button data-m="juris" onclick="{{ setOralModo }}" style="{{ oralAbaJuris }}">Jurisprudência</button>
+            <button data-m="lei" onclick="{{ setOralModo }}" style="{{ oralAbaLei }}">Lei seca</button>
+            <button data-m="bancas" onclick="{{ setOralModo }}" style="{{ oralAbaBancas }}">Bancas reais</button>
+          </div>
+        </div>
+
+        <sc-if value="{{ oralErro }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;color:#c0392f;font-size:13px;">{{ oralErro }}</div>
+        </sc-if>
+
+        <!-- ARGUIÇÃO SOBRE JURISPRUDÊNCIA -->
+        <sc-if value="{{ oralEhJuris }}" hint-placeholder-val="{{ true }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <sc-if value="{{ !oralPronto }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13px;color:var(--text3);">Carregando o acervo de jurisprudência…</div>
+            </sc-if>
+            <sc-if value="{{ oralPronto }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <select value="{{ oralRamo }}" onchange="{{ setOralRamo }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                  <sc-for list="{{ oralRamoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                </select>
+                <select value="{{ oralTribunal }}" onchange="{{ setOralTribunal }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                  <sc-for list="{{ oralTribOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                </select>
+                <button onclick="{{ sortearOral }}" style="border:none;background:var(--accent);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Sortear pergunta</button>
+                <span style="font-size:11.5px;color:var(--text3);">{{ oralTotal }} verbetes no acervo</span>
+              </div>
+              <sc-if value="{{ oralHistLabel }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11.5px;color:var(--text3);margin-top:10px;font-family:var(--mono);">Nesta sessão: {{ oralHistLabel }}</div>
+              </sc-if>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ oralTemAlvo }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;border-left:4px solid var(--accent);">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;">Examinador</div>
+              <div style="font-size:16.5px;font-weight:600;color:var(--ink);line-height:1.55;margin-top:8px;">{{ oralPergunta }}</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:10px;line-height:1.5;">Responda como responderia à banca: posição, fundamento (artigo, súmula ou tema), exceções e um exemplo. Dois a três minutos.</div>
+              <div style="font-size:11.5px;color:var(--text3);margin-top:10px;">{{ oralAlvoTribunal }} · {{ oralAlvoTitulo }}<sc-if value="{{ oralAlvoRamo }}" hint-placeholder-val="{{ false }}"> · {{ oralAlvoRamo }}</sc-if></div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+              <textarea value="{{ oralResposta }}" oninput="{{ onOralResposta }}" rows="8" placeholder="Escreva (ou fale e depois transcreva) a sua resposta…" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:14px;color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.6;resize:vertical;outline:none;"></textarea>
+              <div style="display:flex;gap:9px;margin-top:12px;flex-wrap:wrap;">
+                <button onclick="{{ corrigirOral }}" style="border:none;background:var(--accent);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Corrigir</button>
+                <button onclick="{{ outraPerguntaOral }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Outra pergunta sobre este verbete</button>
+                <button onclick="{{ sortearOral }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Próximo verbete</button>
+              </div>
+            </div>
+            <sc-if value="{{ oralTemCorrecao }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+                <div style="{{ oralNotaStyle }}">{{ oralNotaLabel }} · {{ oralCobertura }}% do conteúdo</div>
+                <sc-if value="{{ oralFundCitados }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:14px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:#0f9d6b;">Fundamentos que você citou:</b> {{ oralFundCitados }}</div>
+                </sc-if>
+                <sc-if value="{{ oralFundAusentes }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:8px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:#c0392f;">O verbete se apoia em, e você não citou:</b> {{ oralFundAusentes }}</div>
+                </sc-if>
+                <sc-if value="{{ oralAcertou }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:8px;font-size:12.5px;color:var(--text2);line-height:1.55;"><b>Mencionou:</b> {{ oralAcertou }}</div>
+                </sc-if>
+                <sc-if value="{{ oralFaltou }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:6px;font-size:12.5px;color:var(--text2);line-height:1.55;"><b>Não apareceu:</b> {{ oralFaltou }}</div>
+                </sc-if>
+                <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+                  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:6px;">O que a banca esperaria ouvir — texto oficial</div>
+                  <div style="font-size:13.5px;color:var(--text2);line-height:1.6;white-space:pre-wrap;">{{ oralAlvoTexto }}</div>
+                </div>
+              </div>
+            </sc-if>
+          </sc-if>
+        </sc-if>
+
+        <!-- LEI SECA -->
+        <sc-if value="{{ oralEhLei }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <div style="font-size:14px;font-weight:600;color:var(--ink);">Arguição sobre lei seca</div>
+            <div style="font-size:13px;color:var(--text3);margin-top:8px;line-height:1.6;">O texto das leis vem do Planalto pelo leitor do CátedraLEGIS. Abra a lei no LEGIS, escolha o artigo e volte — ou use o modo Jurisprudência, que já está com o acervo inteiro carregado aqui.</div>
+          </div>
+        </sc-if>
+
+        <!-- BANCAS REAIS -->
+        <sc-if value="{{ oralEhBancas }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ !oralTemSel }}" hint-placeholder-val="{{ true }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <input value="{{ oralBancaQ }}" oninput="{{ onOralBancaQ }}" placeholder="Buscar órgão, cargo, concurso…" style="flex:1;min-width:200px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <select value="{{ oralBancaCarr }}" onchange="{{ setOralBancaCarr }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                  <sc-for list="{{ oralBancaCarrOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                </select>
+                <select value="{{ oralBancaBanca }}" onchange="{{ setOralBancaBanca }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                  <sc-for list="{{ oralBancaBancaOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                </select>
+                <button onclick="{{ toggleOralOuro }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">{{ oralOuroLabel }}</button>
+              </div>
+              <div style="font-size:11.5px;color:var(--text3);margin-top:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-weight:700;">{{ oralConcTotal }} concurso(s)</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+              <sc-for list="{{ oralConcursos }}" as="c" hint-placeholder-count="6">
+                <button data-id="{{ c.id }}" onclick="{{ abrirConcursoOral }}" style="text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;font-family:inherit;">
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;">
+                    <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:99px;background:var(--accent);color:#fff;">{{ c.carreira }}</span>
+                    <sc-if value="{{ c.banca }}" hint-placeholder-val="{{ true }}"><span style="font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:99px;background:var(--surface2);color:var(--text2);">{{ c.banca }}</span></sc-if>
+                    <sc-if value="{{ c.ouro }}" hint-placeholder-val="{{ true }}"><span style="font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:99px;background:#f59e0b22;color:#b8770a;">padrão de resposta</span></sc-if>
+                  </div>
+                  <div style="font-size:16px;font-weight:700;color:var(--ink);">{{ c.titulo }}</div>
+                  <div style="font-size:12.5px;color:var(--text2);margin-top:3px;">{{ c.cargo }}</div>
+                  <div style="font-size:11.5px;color:var(--text3);margin-top:7px;line-height:1.45;">{{ c.docs }}</div>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ oralTemSel }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+              <button onclick="{{ voltarConcursoOral }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:14px;">← todos os concursos</button>
+              <div style="font-size:22px;font-weight:700;color:var(--ink);font-family:var(--display);">{{ oralSelTitulo }}</div>
+              <div style="font-size:13px;color:var(--text2);margin-top:4px;">{{ oralSelCargo }}<sc-if value="{{ oralSelBanca }}" hint-placeholder-val="{{ true }}"> · banca {{ oralSelBanca }}</sc-if></div>
+              <sc-if value="{{ oralSelConcurso }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12.5px;color:var(--text3);margin-top:8px;line-height:1.5;">{{ oralSelConcurso }}</div>
+              </sc-if>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:12px;">Documentos oficiais da banca</div>
+              <sc-for list="{{ oralSelMats }}" as="m" hint-placeholder-count="4">
+                <a href="{{ m.url }}" target="_blank" rel="noopener" style="display:block;text-decoration:none;padding:11px 0;border-bottom:1px solid var(--border);">
+                  <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;">
+                    <span style="{{ m.styleRot }}">{{ m.rotulo }}</span>
+                    <span style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ m.titulo }}</span>
+                  </div>
+                  <sc-if value="{{ m.obs }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:11.5px;color:var(--text3);margin-top:4px;line-height:1.45;">{{ m.obs }}</div>
+                  </sc-if>
+                </a>
+              </sc-for>
+              <sc-if value="{{ oralSelUrl }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ oralSelUrl }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:14px;font-size:13px;color:var(--accent);text-decoration:none;font-weight:600;">Página oficial do concurso →</a>
+              </sc-if>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:10px;">Como esta prova é avaliada</div>
+              <div style="font-size:13px;color:var(--text2);line-height:1.65;">
+                <b>Ponto sorteado</b> — o programa específico sai até 5 dias antes; o ponto é sorteado na hora, e a arguição segue a ordem sorteada.<br>
+                <b>Sessão pública</b> — é vedado o exame simultâneo de mais de um candidato.<br>
+                <b>O que se avalia</b> — domínio do conhecimento jurídico, adequação da linguagem, articulação do raciocínio, capacidade de argumentação e uso correto do vernáculo.<br>
+                <b>Nota</b> — cada examinador atribui a sua; a nota é a média aritmética, em envelope lacrado.
+              </div>
+              <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5;">Resolução CNJ 75/2009, arts. 63 a 66 — vale para a magistratura. Nas demais carreiras, confira o regulamento do próprio edital, listado acima quando publicado.</div>
+            </div>
+          </sc-if>
+        </sc-if>
+       </div>
+      </sc-if>
+
       <sc-if value="{{ isSim }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- SIMULADO JOGÁVEL — veio do CátedraJURIS. Ao encerrar, preenche o formulário
+             de registro abaixo, e o resultado passa a contar no desempenho. -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+            <div>
+              <div style="font-family:var(--display);font-weight:600;font-size:17px;color:var(--ink);">Fazer simulado agora</div>
+              <div style="font-size:12.5px;color:var(--text3);margin-top:3px;line-height:1.5;">Itens Certo/Errado montados do acervo de jurisprudência — metade com o núcleo trocado (prazo, competência, operador). Local, sem IA.</div>
+            </div>
+            <button onclick="{{ abrirSimuladoJogo }}" style="border:none;background:var(--accent);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Abrir</button>
+          </div>
+          <sc-if value="{{ sjAberto }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+              <sc-if value="{{ !sjPronto }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13px;color:var(--text3);">Carregando o acervo de jurisprudência…</div>
+              </sc-if>
+              <sc-if value="{{ sjPronto }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ !sjEmProva }}" hint-placeholder-val="{{ true }}">
+                  <sc-if value="{{ !sjFim }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                      <select value="{{ sjRamo }}" onchange="{{ setSjRamo }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                        <sc-for list="{{ sjRamoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                      </select>
+                      <input type="number" min="5" max="100" step="5" value="{{ sjN }}" oninput="{{ setSjN }}" style="width:90px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                      <span style="font-size:12px;color:var(--text3);">itens</span>
+                      <button onclick="{{ iniciarSj }}" style="border:none;background:var(--accent);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Iniciar simulado</button>
+                    </div>
+                  </sc-if>
+                </sc-if>
+                <!-- em prova -->
+                <sc-if value="{{ sjEmProva }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                    <sc-for list="{{ sjGrade }}" as="g" hint-placeholder-count="10"><button data-i="{{ g.i }}" onclick="{{ irSj }}" style="{{ g.style }}">{{ g.n }}</button></sc-for>
+                  </div>
+                  <div style="font-size:11.5px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-weight:700;">Questão {{ sjNum }} de {{ sjTotal }} · {{ sjRespondidas }} respondidas</div>
+                  <div style="font-size:11.5px;color:var(--text3);margin-top:6px;">{{ sjRef }}<sc-if value="{{ sjRamoAt }}" hint-placeholder-val="{{ false }}"> · {{ sjRamoAt }}</sc-if></div>
+                  <div style="font-size:16px;color:var(--ink);line-height:1.62;margin:12px 0 16px;">{{ sjEnunciado }}</div>
+                  <div style="display:flex;gap:10px;">
+                    <button data-v="1" onclick="{{ responderSj }}" style="{{ sjStyleCerto }}">CERTO</button>
+                    <button data-v="0" onclick="{{ responderSj }}" style="{{ sjStyleErrado }}">ERRADO</button>
+                  </div>
+                  <div style="display:flex;gap:9px;margin-top:14px;flex-wrap:wrap;">
+                    <button data-d="-1" onclick="{{ navSj }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">← Anterior</button>
+                    <button data-d="1" onclick="{{ navSj }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Próxima →</button>
+                    <button onclick="{{ encerrarSj }}" style="border:none;background:var(--accent);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Encerrar e corrigir</button>
+                  </div>
+                </sc-if>
+                <!-- relatório -->
+                <sc-if value="{{ sjFim }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:22px;flex-wrap:wrap;margin-bottom:8px;">
+                    <div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:700;">Acertos</div><div style="font-size:24px;font-weight:800;color:var(--ink);">{{ sjAcertos }}/{{ sjTotal }}</div></div>
+                    <div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:700;">Aproveitamento</div><div style="font-size:24px;font-weight:800;color:var(--ink);">{{ sjPct }}%</div></div>
+                    <div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:700;">Em branco</div><div style="font-size:24px;font-weight:800;color:var(--ink);">{{ sjBrancos }}</div></div>
+                  </div>
+                  <div style="font-size:12.5px;color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números já foram lançados no formulário abaixo — confira e clique em <b>Registrar simulado no histórico</b> para contar no seu desempenho.</div>
+                  <button onclick="{{ novoSj }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:16px;">Novo simulado</button>
+                  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:10px;">Gabarito comentado</div>
+                  <sc-for list="{{ sjGabarito }}" as="q" hint-placeholder-count="4">
+                    <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;">
+                      <div style="display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;">
+                        <span style="font-size:11.5px;font-weight:800;color:var(--text3);font-family:var(--mono);">{{ q.n }}</span>
+                        <span style="font-size:11px;font-weight:800;color:{{ q.corGab }};">GABARITO: {{ q.cert }}</span>
+                        <span style="font-size:11.5px;color:var(--text3);">você: {{ q.minha }}</span>
+                        <span style="font-size:11px;color:var(--text3);margin-left:auto;">{{ q.ref }}</span>
+                      </div>
+                      <div style="font-size:13.5px;color:var(--ink);line-height:1.55;margin-top:8px;">{{ q.enun }}</div>
+                      <sc-if value="{{ q.temTroca }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:12.5px;color:var(--text2);margin-top:8px;">O item trocou <b style="color:#0f9d6b;">“{{ q.trocaDe }}”</b> por <b style="color:#c0392f;">“{{ q.trocaPara }}”</b>.</div>
+                      </sc-if>
+                      <div style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);"><b>Texto oficial:</b> {{ q.oficial }}</div>
+                    </div>
+                  </sc-for>
+                </sc-if>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px;color:#fff;box-shadow:0 12px 34px rgba(16,24,40,.18);">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
             <div><div style="font-family:var(--display);font-weight:600;font-size:18px;">Modo prova</div><div style="font-size:12.5px;opacity:.9;margin-top:3px;max-width:380px;line-height:1.5;">contagem regressiva em tela cheia, sem distração e sem questões na tela — no clima da prova real. Ao encerrar, registra o desempenho.</div></div>
@@ -4349,7 +4585,14 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false, discCarregado:false, discErro:false,
+      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
+      // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
+      // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
+      // já preenche o formulário de registro — o resultado alimenta o desempenho.
+      sjAberto:false, sjPronto:false, sjRamo:'', sjN:20, sjItens:[], sjResp:{}, sjAtual:0, sjFim:false, sjIni:0,
+      oralModo:'juris', oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
+      oralPergunta:'', oralResposta:'', oralCorrecao:null, oralHist:[],
+      oralBancasPronto:false, oralBancaCarr:'', oralBancaBanca:'', oralBancaQ:'', oralBancaSoOuro:true, oralBancaSel:null, discCarregado:false, discErro:false,
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'',
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
@@ -5477,7 +5720,7 @@ class Component extends DCLogic {
     catch(_){ return false; }
   }
 
-  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); };
+  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); if(v==='oral') this._oralCarregarAcervo(); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
@@ -6460,6 +6703,190 @@ class Component extends DCLogic {
   };
 
   onRedEnun = (e)=> this.setState({redEnunciado:e.currentTarget.value, redResult:null});
+  // Dados derivados da Prova oral (só calculados quando a view está aberta).
+  _oralVM(){
+    const st=this.state, T=window.CT_TREINO;
+    const aba=(on)=>'border:none;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;'
+      +(on?'background:#fff;color:var(--accentD);':'background:rgba(255,255,255,.16);color:#fff;');
+    const vs=(st.oralPronto&&T)?T.verbetes():[];
+    const cont=(campo)=>{ const m={}; vs.forEach(v=>{ const k=v[campo]; if(k) m[k]=(m[k]||0)+1; });
+      return Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0,14).map(k=>({v:k,label:k+' ('+m[k]+')'})); };
+    const alvo=st.oralAlvo, c=st.oralCorrecao;
+    const CO=(window.CT_ORAL)||[];
+    const q=(st.oralBancaQ||'').trim().toLowerCase();
+    const conc=CO.filter(x=>(!st.oralBancaCarr||x.subarea===st.oralBancaCarr)
+      && (!st.oralBancaBanca||x.banca===st.oralBancaBanca)
+      && (!st.oralBancaSoOuro||x.ouro)
+      && (!q||((x.orgao||'')+' '+(x.cargo||'')+' '+(x.concurso||'')+' '+(x.banca||'')).toLowerCase().includes(q)));
+    const sel=st.oralBancaSel;
+    const ROT={padrao_resposta_oral:'Padrão de resposta',questoes_formuladas:'Perguntas formuladas',relacao_de_pontos:'Pontos sorteáveis',regulamento_criterios:'Critérios de avaliação',edital_convocacao_oral:'Edital de convocação',ata_resultado:'Ata / resultado',gravacao:'Gravação'};
+    return {
+      oralModo:st.oralModo, oralEhJuris:st.oralModo==='juris', oralEhLei:st.oralModo==='lei', oralEhBancas:st.oralModo==='bancas',
+      // O template resolve NOMES, não expressões: estilos condicionais saem prontos daqui.
+      oralAbaJuris:aba(st.oralModo==='juris'), oralAbaLei:aba(st.oralModo==='lei'), oralAbaBancas:aba(st.oralModo==='bancas'),
+      oralOuroLabel:st.oralBancaSoOuro?'Só com padrão de resposta ✓':'Só com padrão de resposta',
+      oralNotaStyle:c?('display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:99px;background:'+(c.nota==='boa'?'#0f9d6b':c.nota==='media'?'#c2790c':'#c0392f')+'1f;color:'+(c.nota==='boa'?'#0f9d6b':c.nota==='media'?'#c2790c':'#c0392f')+';'):'',
+      oralPronto:st.oralPronto, oralErro:st.oralErro,
+      oralRamoOpts:[{v:'',label:'Todas as disciplinas'}].concat(cont('ramo')).map(o=>({...o,sel:st.oralRamo===o.v})),
+      oralTribOpts:[{v:'',label:'Todos os tribunais'}].concat(cont('tribunal')).map(o=>({...o,sel:st.oralTribunal===o.v})),
+      oralTotal:vs.length,
+      oralTemAlvo:!!alvo,
+      oralAlvoTitulo:alvo?alvo.titulo:'', oralAlvoTribunal:alvo?alvo.tribunal:'', oralAlvoRamo:alvo?(alvo.ramo||''):'',
+      oralAlvoTexto:alvo?String(alvo.texto).slice(0,1600):'',
+      oralPergunta:st.oralPergunta, oralResposta:st.oralResposta,
+      oralTemCorrecao:!!c,
+      oralNotaLabel:c?(c.nota==='boa'?'Resposta consistente':c.nota==='media'?'Resposta parcial':'Resposta insuficiente'):'',
+      oralNotaCor:c?(c.nota==='boa'?'#0f9d6b':c.nota==='media'?'#c2790c':'#c0392f'):'',
+      oralCobertura:c?c.cobertura:0,
+      oralFundCitados:c&&c.fundCitados.length?c.fundCitados.join(' · '):'',
+      oralFundAusentes:c&&c.fundAusentes.length?c.fundAusentes.join(' · '):'',
+      oralAcertou:c&&c.acertou.length?c.acertou.slice(0,8).join(', '):'',
+      oralFaltou:c&&c.faltou.length?c.faltou.slice(0,8).join(', '):'',
+      oralHistLabel:(st.oralHist||[]).slice(0,10).map(h=>h.titulo.slice(0,28)+' '+(h.nota==='boa'?'✓':h.nota==='media'?'~':'✗')).join('   '),
+      // bancas reais
+      oralBancasPronto:st.oralBancasPronto,
+      oralBancaCarrOpts:[{v:'',label:'Todas as carreiras'}].concat([...new Set(CO.map(x=>x.subarea).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaCarr===o.v})),
+      oralBancaBancaOpts:[{v:'',label:'Todas as bancas'}].concat([...new Set(CO.map(x=>x.banca).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaBanca===o.v})),
+      oralBancaQ:st.oralBancaQ, oralBancaSoOuro:st.oralBancaSoOuro,
+      oralConcTotal:conc.length,
+      oralConcursos:conc.slice(0,60).map(x=>({id:x.id, titulo:(x.orgao||'')+(x.ano?(' · '+x.ano):''), cargo:x.cargo||'',
+        carreira:x.subarea||x.area||'', banca:x.banca||'', ouro:!!x.ouro,
+        docs:x.materiais.length+' documento(s): '+[...new Set(x.materiais.map(m=>ROT[m.tipo]||'Material'))].join(', ')})),
+      oralTemSel:!!sel,
+      oralSelTitulo:sel?((sel.orgao||'')+(sel.ano?(' · '+sel.ano):'')):'',
+      oralSelCargo:sel?(sel.cargo||''):'', oralSelBanca:sel?(sel.banca||''):'',
+      oralSelConcurso:sel?(sel.concurso||''):'', oralSelUrl:sel?(sel.urlConcurso||''):'',
+      oralSelMats:sel?sel.materiais.map(m=>{ const ouro=m.tipo==='padrao_resposta_oral'||m.tipo==='questoes_formuladas';
+        return {rotulo:m.rotulo||ROT[m.tipo]||'Material', titulo:m.titulo||m.url, url:m.url, obs:(m.obs||'').slice(0,180), ouro:ouro,
+          styleRot:'font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:99px;'
+            +(ouro?'background:#f59e0b22;color:#b8770a;':'background:var(--surface2);color:var(--text2);')}; }):[],
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // PROVA ORAL — motor local em treino.js (sem IA). Três modos: arguição sobre o acervo de
+  // jurisprudência, arguição sobre a lei seca, e o material oficial das bancas (oral.js).
+  _treino(){ 
+    if(window.CT_TREINO) return Promise.resolve(window.CT_TREINO);
+    if(this._treinoP) return this._treinoP;
+    this._treinoP=new Promise((ok,falha)=>{ const t=document.createElement('script'); t.src='./treino.js';
+      t.onload=()=>ok(window.CT_TREINO); t.onerror=()=>falha(new Error('treino.js')); document.head.appendChild(t); });
+    return this._treinoP;
+  }
+  // Dados derivados do simulado jogável.
+  _sjVM(){
+    const st=this.state, T=window.CT_TREINO;
+    const its=st.sjItens||[], r=st.sjResp||{};
+    const vs=(st.sjPronto&&T)?T.verbetes():[];
+    const m={}; vs.forEach(v=>{ if(v.ramo) m[v.ramo]=(m[v.ramo]||0)+1; });
+    const ramos=Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0,14);
+    const at=its[st.sjAtual]||null;
+    const acertos=its.filter(x=>r[x.id]===x.certo).length;
+    const respondidas=its.filter(x=>r[x.id]!==undefined).length;
+    return {
+      sjAberto:st.sjAberto, sjPronto:st.sjPronto, sjEmProva:its.length>0 && !st.sjFim, sjFim:st.sjFim,
+      sjN:st.sjN, sjRamo:st.sjRamo,
+      sjRamoOpts:[{v:'',label:'Todas as disciplinas',sel:!st.sjRamo}].concat(ramos.map(k=>({v:k,label:k+' ('+m[k]+')',sel:st.sjRamo===k}))),
+      sjTotal:its.length, sjAcertos:acertos, sjRespondidas:respondidas, sjBrancos:its.length-respondidas,
+      sjPct:its.length?Math.round(acertos/its.length*100):0,
+      sjNum:st.sjAtual+1,
+      sjTemAtual:!!at,
+      sjEnunciado:at?at.enunciado:'', sjRef:at?at.ref:'', sjRamoAt:at?(at.ramo||''):'',
+      sjStyleCerto:at?this._sjBotao(r[at.id]===true):'', sjStyleErrado:at?this._sjBotao(r[at.id]===false):'',
+      sjGrade:its.map((x,i)=>({i:i, n:String(i+1), style:'width:34px;height:30px;border-radius:7px;font:700 12px var(--mono);cursor:pointer;border:1px solid '
+        +(i===st.sjAtual?'var(--accent)':'var(--border)')+';background:'+(i===st.sjAtual?'var(--accent)':(r[x.id]!==undefined?'color-mix(in srgb,var(--accent) 18%,var(--surface))':'var(--surface)'))
+        +';color:'+(i===st.sjAtual?'#fff':'var(--ink)')+';'})),
+      sjGabarito:its.map((x,i)=>({n:String(i+1), enun:x.enunciado, ref:x.ref, cert:x.certo?'CERTO':'ERRADO',
+        corGab:x.certo?'#0f9d6b':'#c0392f',
+        minha:r[x.id]===undefined?'em branco':(r[x.id]?'Certo':'Errado'),
+        ok:r[x.id]===x.certo, temTroca:!x.certo&&!!x.trocaDe, trocaDe:x.trocaDe||'', trocaPara:x.trocaPara||'',
+        oficial:x.original||''})),
+    };
+  }
+  _sjBotao(on){ return 'flex:1;border-radius:10px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;border:2px solid '
+    +(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--surface)')+';color:'+(on?'#fff':'var(--ink)')+';'; }
+
+  abrirSimuladoJogo = ()=>{
+    // setState aqui é síncrono: calcular `abre` ANTES, senão a checagem lê o valor já novo
+    // e o acervo nunca começa a carregar.
+    const abre=!this.state.sjAberto;
+    this.setState({sjAberto:abre});
+    if(abre && !this.state.sjPronto){
+      this._treino().then(T=>T.acervoJuris()).then(()=>this.setState({sjPronto:true}))
+        .catch(()=>this._toast('Não consegui carregar o acervo'));
+    }
+  };
+  setSjRamo = (e)=> this.setState({sjRamo:e.currentTarget.value});
+  setSjN = (e)=> this.setState({sjN:Math.max(5,Math.min(100,parseInt(e.currentTarget.value,10)||20))});
+  iniciarSj = ()=>{
+    const T=window.CT_TREINO; if(!T) return;
+    const itens=T.simuladoJuris({n:this.state.sjN, ramo:this.state.sjRamo||null});
+    if(!itens.length){ this._toast('Não consegui montar itens com esse filtro'); return; }
+    this.setState({sjItens:itens, sjResp:{}, sjAtual:0, sjFim:false, sjIni:Date.now()});
+  };
+  responderSj = (e)=>{
+    const v=e.currentTarget.getAttribute('data-v')==='1';
+    const it=this.state.sjItens[this.state.sjAtual]; if(!it) return;
+    const r={...this.state.sjResp}; r[it.id]=v;
+    this.setState({sjResp:r});
+  };
+  navSj = (e)=>{ const d=parseInt(e.currentTarget.getAttribute('data-d'),10)||0;
+    this.setState({sjAtual:Math.max(0,Math.min(this.state.sjItens.length-1,this.state.sjAtual+d))}); };
+  irSj = (e)=> this.setState({sjAtual:parseInt(e.currentTarget.getAttribute('data-i'),10)||0});
+  encerrarSj = ()=>{
+    const its=this.state.sjItens, r=this.state.sjResp;
+    const acertos=its.filter(x=>r[x.id]===x.certo).length;
+    const respondidas=its.filter(x=>r[x.id]!==undefined).length;
+    const min=Math.max(1, Math.round((Date.now()-(this.state.sjIni||Date.now()))/60000));
+    // leva o resultado para o formulário de registro: o simulado passa a contar no desempenho
+    this.setState({sjFim:true, simAnalysis:'obj', simNome:'Simulado de jurisprudência'+(this.state.sjRamo?(' — '+this.state.sjRamo):''),
+      simMin:String(min), sim:{...(this.state.sim||{}), total:its.length, acertos:acertos, erros:respondidas-acertos, brancos:its.length-respondidas}});
+  };
+  novoSj = ()=> this.setState({sjItens:[], sjResp:{}, sjFim:false, sjAtual:0});
+  setOralModo = (e)=>{ const m=e.currentTarget.getAttribute('data-m'); this.setState({oralModo:m, oralCorrecao:null});
+    if(m==='bancas') this._oralCarregarBancas(); else if(m!=='lei') this._oralCarregarAcervo(); };
+  _oralCarregarAcervo(){
+    if(this.state.oralPronto) return;
+    this._treino().then(T=>T.acervoJuris()).then(()=>this.setState({oralPronto:true, oralErro:''}))
+      .catch(()=>this.setState({oralErro:'Não consegui carregar o acervo de jurisprudência.'}));
+  }
+  _oralCarregarBancas(){
+    if(this.state.oralBancasPronto) return;
+    this._treino().then(T=>T.acervoOral()).then(()=>this.setState({oralBancasPronto:true}))
+      .catch(()=>this.setState({oralErro:'Não consegui carregar o acervo de provas orais.'}));
+  }
+  setOralRamo = (e)=> this.setState({oralRamo:e.currentTarget.value});
+  setOralTribunal = (e)=> this.setState({oralTribunal:e.currentTarget.value});
+  sortearOral = ()=>{
+    const T=window.CT_TREINO; if(!T) return;
+    const vs=T.verbetes().filter(v=>(!this.state.oralRamo||v.ramo===this.state.oralRamo)
+      && (!this.state.oralTribunal||v.tribunal===this.state.oralTribunal) && v.texto.length>=200);
+    if(!vs.length){ this._toast('Nenhum verbete com esses filtros'); return; }
+    const v=vs[Math.floor(Math.random()*vs.length)];
+    this.setState({oralAlvo:v, oralVariante:0, oralPergunta:T.perguntaOral(v,0), oralResposta:'', oralCorrecao:null});
+  };
+  outraPerguntaOral = ()=>{
+    const T=window.CT_TREINO, v=this.state.oralAlvo; if(!T||!v) return;
+    const k=this.state.oralVariante+1;
+    this.setState({oralVariante:k, oralPergunta:T.perguntaOral(v,k), oralCorrecao:null});
+  };
+  onOralResposta = (e)=> this.setState({oralResposta:e.currentTarget.value});
+  corrigirOral = ()=>{
+    const T=window.CT_TREINO, v=this.state.oralAlvo; if(!T||!v) return;
+    const c=T.corrigirOral(v.texto, this.state.oralResposta);
+    const hist=[{quando:Date.now(), titulo:v.titulo, nota:c.nota}].concat(this.state.oralHist||[]).slice(0,40);
+    this.setState({oralCorrecao:c, oralHist:hist});
+    // a arguição conta como estudo: alimenta o desempenho, que é o motivo de ela morar aqui
+    try{ this._registrarAtividadeAuto && this._registrarAtividadeAuto({categoria:'Jurisprudência', topico:'Prova oral — '+(v.ramo||v.tribunal), min:0}); }catch(_){}
+  };
+  setOralBancaCarr = (e)=> this.setState({oralBancaCarr:e.currentTarget.value});
+  setOralBancaBanca = (e)=> this.setState({oralBancaBanca:e.currentTarget.value});
+  onOralBancaQ = (e)=> this.setState({oralBancaQ:e.currentTarget.value});
+  toggleOralOuro = ()=> this.setState({oralBancaSoOuro:!this.state.oralBancaSoOuro});
+  abrirConcursoOral = (e)=>{ const id=e.currentTarget.getAttribute('data-id');
+    const c=(window.CT_ORAL||[]).find(x=>x.id===id)||null; this.setState({oralBancaSel:c}); };
+  voltarConcursoOral = ()=> this.setState({oralBancaSel:null});
+
   revelarEspelho = ()=>{ if(!window.confirm('Revelar o espelho antes de entregar? No treino real você só vê os quesitos depois da prova.')) return; this.setState({redEspelhoOculto:false}); };
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this.setState({redResult:null, redText:'', redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
@@ -10109,6 +10536,16 @@ class Component extends DCLogic {
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
       dirStyle:{ sutil:dirBtn('sutil'), premium:dirBtn('premium'), clean:dirBtn('clean'), moderno:dirBtn('moderno') },
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
+      // Prova oral (os handlers precisam ser expostos aqui: o binding {{ }} resolve
+      // contra o objeto do render, não contra `this`).
+      abrirSimuladoJogo:this.abrirSimuladoJogo, setSjRamo:this.setSjRamo, setSjN:this.setSjN, iniciarSj:this.iniciarSj,
+      responderSj:this.responderSj, navSj:this.navSj, irSj:this.irSj, encerrarSj:this.encerrarSj, novoSj:this.novoSj,
+      setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
+      sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
+      onOralResposta:this.onOralResposta, corrigirOral:this.corrigirOral,
+      setOralBancaCarr:this.setOralBancaCarr, setOralBancaBanca:this.setOralBancaBanca,
+      onOralBancaQ:this.onOralBancaQ, toggleOralOuro:this.toggleOralOuro,
+      abrirConcursoOral:this.abrirConcursoOral, voltarConcursoOral:this.voltarConcursoOral,
       toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
       cicloFolha, cicloFolhaHeader, roteiroNav:this.roteiroNav, roteiroHoje:this.roteiroHoje,
       nativeFrameH:(this.state.isMobile?'calc(100dvh - 180px)':'calc(100vh - 108px)'), closeSessionBackdrop:this.closeSessionBackdrop, isDarkAttr:(this.state.darkMode?'1':'0'), dirAttr:this.state.dir||'sutil',
@@ -10208,9 +10645,12 @@ class Component extends DCLogic {
       redGabarito, redGabBusy, redGabFile, redGabWords:String(redGabWords),
       onRedGab:this.onRedGab, importRedGab:this.importRedGab,
       redResultLivre, redCompareStudent, redCompareGab,
+      isOral:this.state.view==='oral', navOral:navStyle('oral'),
+      ...(this.state.view==='oral' ? this._oralVM() : {}),
+      ...(this.state.view==='simulados' ? this._sjVM() : {}),
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewTitle:({inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
       viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
