@@ -4395,7 +4395,7 @@ class Component extends DCLogic {
     // Ponte de tema p/ o iframe do "Checklist de lei seca": ele é outro documento (e em
     // file:// no app nativo é cross-origin), então não herda as CSS vars. Quando ele carrega,
     // pede o tema por postMessage e respondemos com os tokens atuais. Ver checklist-disciplinas.html.
-    this._ckMsg = (e)=>{ if(!e||!e.data||e.data.type!=='ctChecklistReady') return; try{ const host=document.querySelector('[style*="--accent"]'); if(!host) return; const cs=getComputedStyle(host); const V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono']; const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); }); e.source&&e.source.postMessage({type:'ctTheme',tokens:t},'*'); }catch(_){} };
+    this._ckMsg = (e)=>{ if(!e||!e.data||e.data.type!=='ctChecklistReady') return; try{ const host=document.querySelector('[style*="--accent"]'); if(!host) return; const cs=getComputedStyle(host); const V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad']; const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); }); e.source&&e.source.postMessage({type:'ctTheme',tokens:t},'*'); }catch(_){} };
     window.addEventListener('message', this._ckMsg);
     // Botão "Registrar" do módulo da área: abre o registro já com disciplina e tópico
     // do ponto estudado. Mesma regra do resto da casa — abre, quem salva é ela.
