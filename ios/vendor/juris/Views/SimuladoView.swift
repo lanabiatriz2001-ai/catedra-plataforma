@@ -21,7 +21,7 @@ import UniformTypeIdentifiers
 
 /// Uma discursiva/peça do banco (espelho da web, convertido para JSON).
 struct DiscursivaBanco: Codable, Hashable, Identifiable {
-    struct Quesito: Codable, Hashable { var quesito: String; var pontos: Double? }
+    struct Quesito: Codable, Hashable { var quesito: String; var pontos: Double?; var escala: String?; var dispositivos: [String]? }
     var id: String
     var tipo: String
     var peca: String

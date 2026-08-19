@@ -246,6 +246,9 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
     if(qual==='banco')pintaBanco();
   }
   document.querySelectorAll('#abas button').forEach(b=>b.onclick=()=>abaAtiva(b.dataset.p));
+  // ?aba=roteiros|banco: a mesma página serve a entrada própria do menu "Roteiros e peças"
+  // (abre direto nos roteiros de sentença/peças/discursivas, sem passar pelo mapa).
+  try{ const _a=new URLSearchParams(location.search).get('aba'); if(_a==='roteiros'||_a==='banco') abaAtiva(_a); }catch(_){}
 
   // ---- Roteiros: todas as peças que aparecem no trâmite (ritos.js), marcando quais
   // já têm roteiro escrito (pecas.js) e quais ainda não.

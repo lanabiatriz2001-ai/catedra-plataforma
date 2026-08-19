@@ -38,7 +38,7 @@ const out = SRC.map((q) => ({
   tema: str(q.tema),
   enunciado: str(q.enunciado),
   espelho: Array.isArray(q.espelho)
-    ? q.espelho.map((e) => ({ quesito: str(e.quesito), pontos: num(e.pontos) }))
+    ? q.espelho.map((e) => ({ quesito: str(e.quesito), pontos: num(e.pontos), escala: str(e.escala), dispositivos: Array.isArray(e.dispositivos) ? e.dispositivos.map(str) : [] }))
     : [],
   total: num(q.total),
   fonte: str(q.fonte),
