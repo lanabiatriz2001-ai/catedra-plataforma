@@ -62,7 +62,11 @@ struct EntryDetailView: View {
                 }
                 // Roteiro de estudo (IA do app) + prova oral — o formato dos widgets de
                 // informativo: Em uma frase, Fundamento, Como era, O que decidiu, Pegadinha, quiz.
-                RoteiroEstudoView(entry: entry)
+                // "Fazer em todos os informativos": todo verbete de informativo (STF, STJ,
+                // TSE e os boletins do TCU) gera o roteiro SOZINHO ao abrir — sem esperar o
+                // clique. Fora dos informativos (o grosso do acervo, 25 mil verbetes) continua
+                // sob demanda: gerar sempre em toda abertura gastaria a cota da API à toa.
+                RoteiroEstudoView(entry: entry, autoGerar: entry.fonteKind.ehInformativo)
                 relacionadosSection
                 footer
             }

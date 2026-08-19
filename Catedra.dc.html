@@ -1929,26 +1929,26 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ redNoResult }}" hint-placeholder-val="{{ true }}">
          <div style="display:flex;flex-direction:column;gap:16px;">
 
-          <!-- ===== BANCO DE DISCURSIVAS ===== -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;">
+          <!-- ===== BANCO DE DISCURSIVAS (linguagem brutalista, igual ao composer acima) ===== -->
+          <div style="background:var(--surface);border:3px solid var(--ink);border-radius:0;padding:22px 24px;box-shadow:8px 8px 0 var(--border);">
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
               <div style="flex:1;min-width:200px;">
-                <div style="font-weight:700;font-size:14px;color:var(--ink);">Banco de discursivas</div>
-                <div style="font-size:12px;color:var(--text3);margin-top:3px;">Questões de provas aplicadas, com o espelho oficial quando a banca publicou. Escolher uma preenche o enunciado e o espelho aqui embaixo.</div>
+                <div style="font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);">Banco de discursivas</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:4px;">Questões de provas aplicadas, com o espelho oficial quando a banca publicou. Escolher uma preenche o enunciado e o espelho aqui embaixo.</div>
               </div>
-              <button onclick="{{ toggleBanco }}" style="border:1px solid var(--accent);background:var(--accentSoft);color:var(--accentD);border-radius:10px;padding:9px 16px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;flex:none;">{{ bancoLabel }}</button>
+              <button onclick="{{ toggleBanco }}" style="border:3px solid var(--ink);background:var(--accent);color:var(--onAccent);border-radius:0;padding:10px 18px;font-weight:800;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;font-family:inherit;flex:none;box-shadow:4px 4px 0 var(--border);">{{ bancoLabel }}</button>
             </div>
             <sc-if value="{{ bancoOpen }}" hint-placeholder-val="{{ false }}">
-             <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
-              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-                <input value="{{ bancoQ }}" oninput="{{ onBancoBusca }}" placeholder="Buscar por tema, órgão, banca, ano…" style="flex:1;min-width:200px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
-                <select value="{{ bancoTipo }}" onchange="{{ setBancoTipo }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+             <div style="margin-top:18px;border-top:3px solid var(--ink);padding-top:18px;">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                <input value="{{ bancoQ }}" oninput="{{ onBancoBusca }}" placeholder="Buscar por tema, órgão, banca, ano…" style="flex:1;min-width:200px;border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <select value="{{ bancoTipo }}" onchange="{{ setBancoTipo }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
                   <sc-for list="{{ bancoTipoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
                 </select>
-                <select value="{{ bancoCarr }}" onchange="{{ setBancoCarr }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <select value="{{ bancoCarr }}" onchange="{{ setBancoCarr }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
                   <sc-for list="{{ bancoCarrOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
                 </select>
-                <select value="{{ bancoDisc }}" onchange="{{ setBancoDisc }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <select value="{{ bancoDisc }}" onchange="{{ setBancoDisc }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
                   <sc-for list="{{ bancoDiscOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
                 </select>
               </div>
@@ -1961,15 +1961,15 @@ window.ctPdfLib = (function(){
               <sc-if value="{{ bancoVazio }}" hint-placeholder-val="{{ true }}">
                 <div style="font-size:12.5px;color:var(--text3);line-height:1.6;padding:10px 0;">Nenhuma questão no banco ainda. Ele é alimentado só com prova publicada pela própria banca ou pelo tribunal — enquanto não houver, use o campo abaixo e cole a questão à mão.</div>
               </sc-if>
-              <div style="display:flex;flex-direction:column;gap:9px;">
+              <div style="display:flex;flex-direction:column;gap:12px;">
                 <sc-for list="{{ bancoLista }}" as="q" hint-placeholder-count="3">
-                  <button onclick="{{ usarDiscursiva }}" data-id="{{ q.id }}" style="text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:5px;">
-                    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
-                      <span style="font-family:var(--mono);font-size:11px;color:var(--text3);font-weight:600;">{{ q.rotulo }}</span>
-                      <span style="font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--onAccent);background:var(--accent);border-radius:99px;padding:2px 9px;">{{ q.tipoLabel }}</span>
-                      <span style="font-size:10.5px;font-weight:700;color:var(--accentD);background:var(--accentSoft);border-radius:99px;padding:2px 9px;">{{ q.selo }}</span>
+                  <button onclick="{{ usarDiscursiva }}" data-id="{{ q.id }}" style="text-align:left;background:var(--surface2);border:3px solid var(--ink);border-radius:0;padding:15px 17px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:7px;box-shadow:5px 5px 0 var(--border);transition:transform .08s;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                      <span style="font-family:var(--mono);font-size:11px;color:var(--ink);font-weight:800;">{{ q.rotulo }}</span>
+                      <span style="font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--onAccent);background:var(--accent);border-radius:0;border:2px solid var(--ink);padding:2px 9px;">{{ q.tipoLabel }}</span>
+                      <span style="font-size:10.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);background:transparent;border-radius:0;border:2px solid var(--ink);padding:2px 9px;">{{ q.selo }}</span>
                     </div>
-                    <div style="font-weight:700;font-size:13.5px;color:var(--ink);">{{ q.tema }}</div>
+                    <div style="font-weight:800;font-size:14px;color:var(--ink);">{{ q.tema }}</div>
                     <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ q.resumo }}</div>
                   </button>
                 </sc-for>
@@ -7841,13 +7841,12 @@ class Component extends DCLogic {
 
     const navStyle = (id)=>{
       const on = this.state.view===id;
-      // As entradas de CátedraLEGIS e CátedraJURIS aqui embaixo VÃO sair no Mac e no iPad,
-      // porque lá o acervo é aba no topo e duas portas para a mesma coisa criam estados
-      // separados. Mas só depois que o módulo NATIVO tiver o que hoje só existe no web
-      // (grade de informativos, julgado do dia, prova oral, roteiro de estudo do verbete,
-      // mapa de incidência) — esconder antes disso tira a única porta que existe.
-      // Quando for a hora: `if((id==='legis'||id==='juris') && this._temAbasNativas())
-      // return 'display:none;';`
+      // No Mac e no iPad, CátedraLEGIS e CátedraJURIS são ABAS no topo — e agora o nativo
+      // já tem tudo que só existia no web (grade de informativos, julgado do dia, prova
+      // oral, roteiro de estudo do verbete, mapa de incidência). Duas portas para o mesmo
+      // acervo com estados separados não faz mais sentido: estas duas entradas somem.
+      // No SITE não há aba nenhuma, e ali o menu continua sendo a única porta.
+      if((id==='legis'||id==='juris') && this._temAbasNativas()) return 'display:none;';
       return `display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;cursor:pointer;`+
         `padding:11px 13px;border-radius:12px;font-size:14px;font-weight:${on?'700':'500'};font-family:inherit;`+
         `transition:all .18s;background:${on?'linear-gradient(90deg,var(--accent),var(--accentD))':'transparent'};`+

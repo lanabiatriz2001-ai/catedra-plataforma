@@ -58,28 +58,30 @@ html,body{margin:0;background:var(--bg);color:var(--ink);
 .ferr{flex:none}
 .h1{font-family:var(--display);font-size:18px;font-weight:700;margin-right:6px}
 /* Abas do módulo: Trâmite (o mapa) · Roteiros de peças · Banco de peças e discursivas */
-.abas{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:4px;margin-right:10px}
-.abas button{border:0;background:transparent;color:var(--text2);border-radius:9px;padding:6px 13px;font:700 12.5px inherit;cursor:pointer}
-.abas button.on{background:var(--accent);color:#04140d}
-.painel{display:none;padding:18px 16px 40px;max-width:1100px;margin:0 auto}
+/* Linguagem BRUTALISTA (igual à Redação): cantos retos, borda grossa de tinta,
+   sombra dura deslocada — nada de blur, nada de raio suave. */
+.abas{display:flex;gap:4px;background:var(--surface2);border:3px solid var(--ink);border-radius:0;padding:4px;margin-right:10px}
+.abas button{border:0;background:transparent;color:var(--text2);border-radius:0;padding:7px 15px;font:800 12px inherit;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
+.abas button.on{background:var(--accent);color:var(--onAccent,#04140d)}
+.painel{display:none;padding:18px 16px 40px;max-width:1300px;margin:0 auto}
 .painel.on{display:block}
 .rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
-.rcard{border:1px solid var(--border);background:var(--surface2);border-radius:13px;padding:14px 16px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);border-left:4px solid var(--peca)}
-.rcard b{display:block;font-size:14px;margin-bottom:4px}
-.rcard span{font-size:11.5px;color:var(--text3)}
-.rcard.falta{opacity:.55;border-left-color:var(--border);cursor:default}
-.bfil{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.bfil select,.bfil input{border:1px solid var(--border);background:var(--surface2);color:var(--ink);border-radius:9px;padding:8px 11px;font:13px inherit}
+.rcard{border:3px solid var(--ink);background:var(--surface2);border-radius:0;padding:16px 18px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);box-shadow:6px 6px 0 var(--border);transition:transform .08s}
+.rcard b{display:block;font-size:14.5px;font-weight:800;margin-bottom:5px}
+.rcard span{font-size:11.5px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.rcard.falta{opacity:.5;box-shadow:none;cursor:default}
+.bfil{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.bfil select,.bfil input{border:3px solid var(--ink);background:var(--surface2);color:var(--ink);border-radius:0;padding:9px 12px;font:13px inherit}
 .bfil input{flex:1;min-width:200px}
-.qcard{border:1px solid var(--border);background:var(--surface2);border-radius:13px;padding:13px 15px;margin-bottom:9px}
-.qcard .meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:5px}
-.qcard .meta i{font-style:normal;font:700 10.5px var(--mono);color:var(--text3)}
-.qcard .meta em{font-style:normal;font:800 10px inherit;letter-spacing:.04em;text-transform:uppercase;border-radius:99px;padding:2px 8px;background:var(--peca);color:#15121f}
+.qcard{border:3px solid var(--ink);background:var(--surface2);border-radius:0;padding:15px 17px;margin-bottom:12px;box-shadow:6px 6px 0 var(--border)}
+.qcard .meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:7px}
+.qcard .meta i{font-style:normal;font:800 10.5px var(--mono);color:var(--ink)}
+.qcard .meta em{font-style:normal;font:800 10px inherit;letter-spacing:.05em;text-transform:uppercase;border-radius:0;border:2px solid var(--ink);padding:2px 9px;background:var(--peca);color:#15121f}
 .qcard .meta em.disc{background:var(--assunto);color:#06131f}
-.qcard .meta em.esp{background:transparent;border:1px solid var(--border);color:var(--text2)}
-.qcard b{display:block;font-size:13.5px;margin-bottom:3px}
+.qcard .meta em.esp{background:transparent;color:var(--ink)}
+.qcard b{display:block;font-size:14px;font-weight:800;margin-bottom:4px}
 .qcard p{margin:0;font-size:12.5px;color:var(--text2);line-height:1.55}
-.qcard button{margin-top:8px;border:1px solid var(--accent);background:transparent;color:var(--accentD);border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
+.qcard button{margin-top:10px;border:3px solid var(--ink);background:var(--accent);color:var(--onAccent,#04140d);border-radius:0;padding:7px 14px;font:800 12px inherit;text-transform:uppercase;letter-spacing:.03em;cursor:pointer;box-shadow:3px 3px 0 var(--border)}
 .pill{border:1px solid var(--border);background:var(--surface2);color:var(--text2);
   border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
 .pill.on{background:var(--accent);border-color:var(--accent);color:#04140d}
