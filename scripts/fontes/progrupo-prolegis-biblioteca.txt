@@ -1,0 +1,125 @@
+# Biblioteca do PROLegis (PRO Grupo) — LISTA das normas cobertas, lida da Área do Aluno
+# em 18/08/2026. É GUIA, não fonte: aqui ficam só os NOMES das normas, para o Cátedra
+# saber o que precisa cobrir. O texto de cada lei vem do Planalto, como sempre.
+# 93 normas em 14 disciplinas.
+
+## Direito Administrativo (20)
+Decreto nº 20.910/1932
+Decreto-Lei nº 200/1967
+Decreto-Lei nº 25/1937
+Decreto-Lei nº 3.365/1941
+Lei 11.079/2004 — Lei das PPPs
+Lei da Ação Civil Pública (LACP)
+Lei 13.848/2019 — Lei das Agências Reguladoras
+Lei 9.790/1999 — Lei das OSCIP
+Lei de Acesso à Informação (LAI)
+Lei 8.429/1992 — Improbidade Administrativa
+Lei de Liberdade Econômica (LLE)
+Lei de Licitações e Contratos (LLC)
+Lei nº 11.107/2005
+Lei nº 12.846/2013
+Lei nº 13.019/2014
+Lei nº 13.303/2016
+Lei nº 8.112/1990
+Lei nº 8.987/1995
+Lei nº 9.784/1999
+Lei nº 9.873/1999
+
+## Direito Ambiental (7)
+Código Florestal
+Decreto nº 6.514/2008
+Lei Complementar nº 140/2011
+Lei de Crimes Ambientais
+Lei 9.985/2000 — SNUC
+Política Nacional de Resíduos Sólidos
+Lei 6.938/1981 — Política Nacional do Meio Ambiente
+
+## Direito Civil (10)
+Código Civil
+Código de Defesa do Consumidor
+Lei 8.069/1990 — ECA
+Lei 13.146/2015 — Estatuto da Pessoa com Deficiência
+Lei 10.741/2003 — Estatuto do Idoso
+Lei 9.307/1996 — Lei de Arbitragem
+LINDB
+Lei 8.245/1991 — Lei do Inquilinato
+Lei 6.766/1979 — Parcelamento do Solo Urbano
+LGPD
+
+## Direito Constitucional (11)
+ADCT
+Constituição da República Federativa do Brasil
+Emenda Constitucional nº 103
+Estatuto da Advocacia e da OAB
+Lei da Ação Popular
+Lei 9.868/1999 — ADI, ADC e ADO
+Lei 9.882/1999 — ADPF
+Lei 11.417/2006 — Súmula Vinculante
+Lei do Mandado de Injunção
+LC 75/1993 — Lei Orgânica do MPU
+Emenda Constitucional nº 132 — Reforma Tributária
+
+## Direito do Trabalho (1)
+CLT
+
+## Direito Eleitoral (3)
+Código Eleitoral
+Lei 9.504/1997 — Lei das Eleições
+Lei 9.096/1995 — Partidos Políticos
+
+## Direito Empresarial (3)
+Lei da Propriedade Industrial
+Lei das Sociedades Anônimas
+Lei de Recuperação e Falência
+
+## Direito Financeiro (2)
+Lei 4.320/1964
+Lei Complementar nº 101/2000
+
+## Direito Penal (8)
+Código de Trânsito Brasileiro
+Código Penal
+Lei 12.850/2013 — Organizações Criminosas
+Lei 13.869/2019 — Abuso de Autoridade
+Lei de Execução Penal
+Lei 9.613/1998 — Lavagem de Dinheiro
+Lei 8.072/1990 — Crimes Hediondos
+Lei 11.340/2006 — Maria da Penha
+
+## Direito Previdenciário (5)
+Lei Complementar nº 109/2001
+Lei nº 8.212/1991
+Lei nº 8.213/1991
+Lei nº 9.717/1998
+Decreto nº 3.048/1999 — Regulamento da Previdência Social
+
+## Direito Processual Civil (12)
+Código de Processo Civil
+Lei 13.140/2015 — Mediação
+Lei 10.522/2002 — CADIN
+Lei do Mandado de Segurança
+Lei 11.419/2006 — Processo Eletrônico
+Lei 12.153/2009 — Juizados da Fazenda Pública
+Lei 9.099/1995 — Juizados Especiais
+Lei 10.259/2001 — Juizados Especiais Federais
+Lei nº 8.038/1990
+Lei nº 8.437/1992
+Lei nº 9.469/1997
+Lei nº 9.494/1997
+
+## Direito Processual Penal (1)
+Código de Processo Penal
+
+## Direito Tributário (8)
+LC 123/2006 — Estatuto Nacional da ME e EPP
+Lei Complementar nº 116/2003
+Lei Complementar nº 214/2025
+Lei Complementar nº 227/2026
+Lei de Execução Fiscal
+LC 87/1996 — Lei Kandir
+Lei nº 5.172/1966 — CTN
+Lei nº 8.137/1990
+
+## Legislação AGU (2)
+Lei nº 10.480/2002
+LC 73/1993 — Lei Orgânica da AGU

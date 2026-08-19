@@ -15,6 +15,39 @@
    colapsa e a tela fica preta. O palco tem altura PRÓPRIA em px, com teto no viewport. */
 html,body{margin:0;background:var(--bg);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+/* Painel do roteiro de peça: entra pela direita, por cima do mapa. */
+.rot{position:fixed;top:0;right:0;bottom:0;width:min(560px,94vw);background:var(--surface);
+  border-left:1px solid var(--border);z-index:40;transform:translateX(102%);transition:transform .22s ease;
+  display:flex;flex-direction:column}
+.rot.on{transform:none}
+.rotTop{display:flex;align-items:flex-start;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border)}
+.rotTop h2{margin:0;font:800 19px var(--display);line-height:1.2}
+.rotTop p{margin:4px 0 0;font-size:12px;color:var(--text3)}
+.rotX{margin-left:auto;flex:none;border:1px solid var(--border);background:var(--surface2);color:var(--text2);
+  border-radius:9px;width:32px;height:32px;font-size:16px;cursor:pointer}
+.rotSc{flex:1;overflow:auto;padding:14px 18px 40px}
+.rotTabs{display:flex;gap:7px;padding:0 18px 12px}
+.rotTabs button{border:1px solid var(--border);background:var(--surface2);color:var(--text2);
+  border-radius:99px;padding:6px 14px;font:700 12px inherit;cursor:pointer}
+.rotTabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.blk{border:1px solid var(--border);background:var(--surface2);border-radius:13px;padding:14px 16px;margin-bottom:11px;
+  border-left:4px solid var(--peca)}
+.blk h3{margin:0 0 7px;font:800 14px inherit;display:flex;align-items:center;gap:9px}
+.blk h3 i{font-style:normal;width:22px;height:22px;border-radius:7px;background:var(--peca);color:#15121f;
+  display:flex;align-items:center;justify-content:center;font:800 11px var(--mono);flex:none}
+.blk .deve{font-size:13.5px;line-height:1.6;color:var(--ink)}
+.blk .rf{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.blk .rf button{border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:5px 10px;
+  font:600 11.5px inherit;cursor:pointer;text-align:left}
+.blk .rf button.lei{color:var(--lei);border-color:color-mix(in srgb,var(--lei) 45%,transparent)}
+.blk .rf button.juris{color:var(--juris);border-color:color-mix(in srgb,var(--juris) 45%,transparent)}
+.blk .erro{margin-top:10px;font-size:12.5px;line-height:1.55;color:#ffc9c2;
+  background:rgba(224,104,92,.12);border-left:3px solid var(--juris);padding:9px 11px;border-radius:0 8px 8px 0}
+.blk .erro b{color:#ff9d92}
+.cego li{margin-bottom:9px;font-size:13.5px;line-height:1.5}
+.cego label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.cego input{margin-top:3px;flex:none;width:16px;height:16px;accent-color:var(--accent)}
+.rotNota{font-size:11.5px;color:var(--text3);line-height:1.55;margin-top:16px;border-top:1px solid var(--border);padding-top:12px}
 .barra{position:sticky;top:0;z-index:10;padding:10px 14px;
   background:rgba(15,23,32,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:10px}
@@ -84,8 +117,97 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
   <span style="margin-left:auto">toque num nó para abrir/fechar · pinça ou roda para ampliar</span>
 </div>
 
+<div class="rot" id="rot">
+  <div class="rotTop"><div><h2 id="rotTit"></h2><p id="rotSub"></p></div><button class="rotX" id="rotX">✕</button></div>
+  <div class="rotTabs"><button id="rotTabR" class="on">Roteiro</button><button id="rotTabC">Modo cego</button></div>
+  <div class="rotSc" id="rotSc"></div>
+</div>
+
 <script src="ritos.js"></script>
+<script src="pecas.js"></script>
 <script>
+/* ===== ROTEIRO DE PEÇA =====================================================
+   O mapa dá a SEQUÊNCIA; aqui vem o esqueleto da peça. Dois modos: "Roteiro"
+   (blocos com o que deve constar, o dispositivo, a jurisprudência e o erro que
+   custa ponto) e "Modo cego" (só a checklist, para escrever sem consultar e
+   conferir depois). O que está marcado no modo cego fica gravado por peça.
+   --------------------------------------------------------------------------- */
+(function(){
+  const rot=document.getElementById('rot'), sc=document.getElementById('rotSc');
+  const tabR=document.getElementById('rotTabR'), tabC=document.getElementById('rotTabC');
+  let atual=null, modo='roteiro';
+  const CK='catedraPecasCego';                 // sem prefixo catedra: — não sobe para a nuvem
+  const lerCk=()=>{ try{ return JSON.parse(localStorage.getItem(CK))||{}; }catch(e){ return {}; } };
+  const gravaCk=(o)=>{ try{ localStorage.setItem(CK,JSON.stringify(o)); }catch(e){} };
+  const esc=(t)=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // O rótulo é escrito para LER ("Elementos essenciais da sentença — CPC, art. 489, I").
+  // Para BUSCAR, isso não serve: o catálogo do LEGIS procura pelo nome do diploma, e o
+  // acervo do JURIS pelo instituto. Então o termo é recortado do rótulo.
+  const SIGLA={CPC:'Código de Processo Civil', CPP:'Código de Processo Penal',
+    CP:'Código Penal', CC:'Código Civil', CF:'Constituição', CDC:'Código de Defesa do Consumidor',
+    CLT:'Consolidação das Leis do Trabalho', CTN:'Código Tributário Nacional'};
+  function termoBusca(rotulo, alvo){
+    const partes=String(rotulo).split('—');
+    if(alvo==='juris') return partes[0].trim();          // o instituto, não o artigo
+    const ref=(partes[1]||partes[0]).trim();             // "CPC, art. 489, I"
+    const m=/^([A-ZÇ]{2,4})\b/.exec(ref);
+    if(m&&SIGLA[m[1]]) return SIGLA[m[1]];
+    const lei=/Lei\s+[\d.]+\/\d{2,4}/i.exec(ref);       // "Lei 9.099/95"
+    return lei?lei[0]:ref;
+  }
+
+  function pinta(){
+    if(!atual) return;
+    const p=(window.CT_PECAS||{})[atual];
+    if(!p){ sc.innerHTML='<div style="color:var(--text3);font-size:13px;line-height:1.6">'
+      +'O roteiro desta peça ainda não foi escrito. As que já existem: '
+      +Object.keys(window.CT_PECAS||{}).map(k=>esc(k)).join(' · ')+'.</div>'; return; }
+    if(modo==='cego'){
+      const marc=lerCk()[atual]||{};
+      sc.innerHTML='<ul class="cego" style="list-style:none;padding:0;margin:0">'
+        +(p.cego||[]).map((t,i)=>'<li><label><input type="checkbox" data-i="'+i+'"'
+          +(marc[i]?' checked':'')+'><span>'+esc(t)+'</span></label></li>').join('')
+        +'</ul><div class="rotNota">Escreva a peça sem olhar o roteiro e depois confira aqui. '
+        +'O que você marcar fica guardado neste aparelho.</div>';
+      sc.querySelectorAll('input[type=checkbox]').forEach(cx=>{
+        cx.onchange=()=>{ const o=lerCk(); o[atual]=o[atual]||{}; o[atual][cx.dataset.i]=cx.checked; gravaCk(o); };
+      });
+      return;
+    }
+    sc.innerHTML=(p.blocos||[]).map((b,i)=>{
+      const refs=[]
+        .concat((b.lei||[]).map(t=>'<button class="lei" data-alvo="legis" data-t="'+esc(t)+'">⚖️ '+esc(t)+'</button>'))
+        .concat((b.juris||[]).map(t=>'<button class="juris" data-alvo="juris" data-t="'+esc(t)+'">🏛️ '+esc(t)+'</button>'))
+        .join('');
+      return '<div class="blk"><h3><i>'+(i+1)+'</i>'+esc(b.nome)+'</h3>'
+        +'<div class="deve">'+esc(b.deve)+'</div>'
+        +(refs?'<div class="rf">'+refs+'</div>':'')
+        +(b.erro?'<div class="erro"><b>Custa ponto:</b> '+esc(b.erro)+'</div>':'')
+        +'</div>';
+    }).join('')
+      +'<div class="rotNota">Os artigos estão aqui porque num roteiro de peça o número é o conteúdo — '
+      +'mas clique neles: o texto integral abre no CátedraLEGIS, e é lá que se confere. '
+      +'Roteiro escrito pelo Cátedra a partir da lei e da jurisprudência, não copiado de curso.</div>';
+    sc.querySelectorAll('.rf button').forEach(b=>{
+      b.onclick=()=>{ try{ window.parent.postMessage(
+        {type:'ctAbrirAcervo', alvo:b.dataset.alvo, termo:termoBusca(b.dataset.t, b.dataset.alvo)}, '*'); }catch(e){} };
+    });
+  }
+
+  window.abrirRoteiro=function(nome){
+    atual=nome; modo='roteiro';
+    const p=(window.CT_PECAS||{})[nome];
+    document.getElementById('rotTit').textContent=nome;
+    document.getElementById('rotSub').textContent=p?(p.sobre||''):'Roteiro ainda não escrito.';
+    tabR.classList.add('on'); tabC.classList.remove('on');
+    pinta(); rot.classList.add('on');
+  };
+  document.getElementById('rotX').onclick=()=>rot.classList.remove('on');
+  tabR.onclick=()=>{ modo='roteiro'; tabR.classList.add('on'); tabC.classList.remove('on'); pinta(); };
+  tabC.onclick=()=>{ modo='cego'; tabC.classList.add('on'); tabR.classList.remove('on'); pinta(); };
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape')rot.classList.remove('on'); });
+})();
 /* ---------------------------------------------------------------------------
    O mapa é uma ÁRVORE, não coordenadas à mão. Layout calculado (tidy tree
    horizontal): dá para adensar à vontade sem reposicionar nada — foi o pedido
@@ -151,6 +273,12 @@ function desenhar(){
     d.onclick=(ev)=>{ ev.stopPropagation();
       // ⚖️ e 🏛️ são folhas: em vez de abrir/fechar, pedem ao app para abrir o acervo.
       // O rótulo vira o termo de busca — sem os emojis e sem a seta do desvio.
+      // ✍️ é folha também: abre o ROTEIRO da peça no painel lateral.
+      if(n.k==='peca'){
+        const nome=String(n.t).replace(/^[^\p{L}]+/u,'').trim();
+        abrirRoteiro(nome);
+        return;
+      }
       if(n.k==='lei' || n.k==='juris'){
         const termo=String(n.t).replace(/^[^\p{L}]+/u,'').trim();
         try{ window.parent.postMessage(

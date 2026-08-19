@@ -17,6 +17,59 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .chip small{color:var(--text3,#94a3b8);font-weight:600;font-variant-numeric:tabular-nums}
 .chip.on{color:#fff;border-color:transparent}
 .chip.on small{color:rgba(255,255,255,.8)}
+.gedic{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:7px;margin:6px 0 4px}
+.edic{aspect-ratio:1;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:800 14px inherit;color:var(--text2,#5c564a);font-variant-numeric:tabular-nums}
+.edic i{font-style:normal;font-size:9px;font-weight:700;color:var(--text3,#94a3b8)}
+.edic.parcial{border-color:#eab308;background:#eab3081f;color:#a16207}
+.edic.parcial i{color:#a16207}
+.edic.lido{border-color:#16a34a;background:#16a34a1f;color:#15803d}
+.edic.lido i{color:#15803d}
+.edic:hover{border-color:var(--accent,#0f7a57)}
+.gtit{display:flex;align-items:baseline;gap:10px;margin:20px 0 2px;flex-wrap:wrap}
+.gtit b{font-family:var(--display,'Spectral',Georgia,serif);font-size:17px;font-weight:800}
+.gtit span{font-size:11.5px;color:var(--text3,#7a7368)}
+.diaCap{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.diaCap b{font-family:var(--display,'Spectral',Georgia,serif);font-size:20px;font-weight:800}
+.diaCap span{font-size:12px;color:var(--text3,#7a7368)}
+.diaCard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-left:5px solid var(--accent,#0f7a57);border-radius:14px;padding:20px 22px}
+.diaCard h3{font-family:var(--display,'Spectral',Georgia,serif);font-size:19px;font-weight:800;line-height:1.25;margin-bottom:8px}
+.diaCard .diaEn{font-size:14.5px;line-height:1.65;margin-top:10px}
+.diaTags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+.diaTag{font:800 10px inherit;letter-spacing:.04em;text-transform:uppercase;border-radius:6px;padding:3px 8px;background:color-mix(in srgb,var(--accent,#0f7a57) 15%,transparent);color:var(--accentD,#0b5e43)}
+.diaAcoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.diaAcoes button{border:1.5px solid var(--accent,#0f7a57);background:none;color:var(--accent,#0f7a57);border-radius:10px;padding:9px 15px;font:700 12.5px inherit;cursor:pointer}
+.diaAcoes button.prim{background:var(--accent,#0f7a57);color:#fff}
+.oral{margin-top:16px;border-top:1px dashed var(--border,#e6e1d4);padding-top:14px}
+.oral h4{font:800 11px inherit;letter-spacing:.7px;text-transform:uppercase;color:var(--text3,#7a7368);margin-bottom:8px}
+.oral .perg{font-size:15px;line-height:1.6;font-weight:600;margin-bottom:10px}
+.oral textarea{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:11px;padding:12px;font:14px inherit;color:var(--ink);line-height:1.6;resize:vertical;outline:none}
+.oral textarea:focus{border-color:var(--accent,#0f7a57)}
+.oralNota{display:inline-block;font:800 13px inherit;border-radius:8px;padding:4px 11px;margin-bottom:8px}
+.oralNota.b{background:#16a34a1f;color:#15803d}
+.oralNota.m{background:#eab3081f;color:#a16207}
+.oralNota.r{background:#dc26261f;color:#b91c1c}
+.estWrap{margin-top:18px;border-top:1px dashed var(--border,#e6e1d4);padding-top:14px}
+.estBtn{border:1.5px solid var(--accent,#0f7a57);background:none;color:var(--accent,#0f7a57);border-radius:10px;padding:9px 15px;font:700 12.5px inherit;cursor:pointer}
+.estBtn[disabled]{opacity:.55;cursor:default}
+.estBlk{margin-top:13px}
+.estBlk h4{font:800 11px inherit;letter-spacing:.7px;text-transform:uppercase;color:var(--text3,#7a7368);margin-bottom:5px}
+.estBlk p,.estBlk li{font-size:14px;line-height:1.6}
+.estBlk ul{padding-left:19px}
+.estBlk li{margin-bottom:5px}
+.estFrase p{background:color-mix(in srgb,var(--accent,#0f7a57) 10%,transparent);border-left:3px solid var(--accent,#0f7a57);padding:11px 13px;border-radius:0 8px 8px 0;font-weight:600}
+.estFund p,.estJur ul{background:color-mix(in srgb,var(--ink,#1f1c17) 4%,transparent);border:1px solid var(--border,#e6e1d4);padding:11px 13px;border-radius:8px}
+.estJur ul{padding-left:30px}
+.estAt p{background:#fff7ed;border-left:4px solid #ea580c;padding:11px 13px;border-radius:0 8px 8px 0;color:#7c2d12}
+.estHoje p{background:#f0fdf4;border-left:4px solid #16a34a;padding:11px 13px;border-radius:0 8px 8px 0;color:#14532d}
+.estPeg p{background:#fef2f2;border-left:4px solid #dc2626;padding:11px 13px;border-radius:0 8px 8px 0;color:#7f1d1d;font-weight:500}
+.rdr.dark .estFund p,.rdr.dark .estJur ul{background:#ffffff0a;border-color:#ffffff1f}
+.rdr.dark .estAt p{background:#7c2d1233;color:#fed7aa}
+.rdr.dark .estHoje p{background:#14532d33;color:#bbf7d0}
+.rdr.dark .estPeg p{background:#7f1d1d33;color:#fecaca}
+.estFonte{font-size:11px;color:var(--text3,#7a7368);margin-top:10px;font-style:italic}
+.avEd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--accent,#0f7a57) 9%,transparent);border:1.5px solid var(--accent,#0f7a57);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;font-weight:600;color:var(--text2,#5c564a)}
+.avEd button{border:0;background:var(--accent,#0f7a57);color:#fff;border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
+.gmais{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:10px;padding:7px 14px;font:700 12px inherit;color:var(--text2,#5c564a);cursor:pointer;margin-top:8px}
 .statbar{display:flex;gap:20px;flex-wrap:wrap;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:12px;padding:12px 18px;margin:6px 0 16px}
 .statbar .s1{display:flex;flex-direction:column}
 .statbar .s1 b{font-family:var(--display,'Spectral',Georgia,serif);font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
@@ -161,8 +214,22 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <div class="head"><div class="ic" id="hIc">⚖️</div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
 <div class="tabs" id="tabs">
   <button class="tab on" data-pane="acervo">Acervo</button>
+  <button class="tab" data-pane="dia">Julgado do dia</button>
+  <button class="tab" data-pane="infos">Informativos <small id="nInfos"></small></button>
   <button class="tab" data-pane="mapas">Mapas mentais</button>
   <button class="tab" data-pane="tribunais">Tribunais de contas <small id="nTcs"></small></button>
+</div>
+<div id="paneDia" hidden>
+  <!-- Um verbete por dia, sorteado com semente na DATA: o mesmo dia devolve sempre o
+       mesmo julgado (senão trocaria a cada re-render e não daria para voltar nele). -->
+  <div id="diaHost"></div>
+</div>
+<div id="paneInfos" hidden>
+  <!-- Uma edição por quadradinho. A cor sai do MESMO status de estudo dos cards
+       (est.stat: '' / 'rev' / 'dom'), então marcar um verbete como dominado no acervo
+       acende a edição aqui — não há segundo estado para manter em sincronia. -->
+  <div class="statbar" id="infosResumo"></div>
+  <div id="infosLista"></div>
 </div>
 <div id="paneMapas" hidden>
   <!-- Mapas mentais das Súmulas Vinculantes (1 a 63). Documento próprio, carregado em
@@ -182,6 +249,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   <div class="s1"><b id="sDom">0</b><span>Dominados</span></div>
   <div class="s1"><b id="sFav">0</b><span>Favoritos</span></div>
 </div>
+<div id="avisoEdicao" hidden></div>
 <div id="list"></div>
 <div id="sentinel" style="height:1px"></div>
 <div class="more" id="more"></div>
@@ -229,7 +297,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   // área de controle externo). Tenta o do JURIS e, se cair no genérico, o de contas.
   function corFaceta(nome){ var c=ramoColor(nome); return c==='#0f7a57'?areaColor(nome):c; }
   var PAGE=40, page=0, filtered=IDX;
-  var f={q:'',tribunal:'',ramo:'',base:''};
+  var f={q:'',tribunal:'',ramo:'',base:'',edicao:null};
 
   // ---- estudo (localStorage)
   var LK='catedra:jurisEstudo';
@@ -342,6 +410,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       if(f.tribunal&&r[I.tr]!==f.tribunal)return false;
       if(f.ramo&&(r[I.ra]||'Sem ramo')!==f.ramo)return false;
       if(f.base&&r[I.fo]!==f.base)return false;
+      if(f.edicao!=null&&r[I.nu]!==f.edicao)return false;
       if(terms.length){
         var hay=norm((r[I.ti]||'')+' '+(r[I.te]||'')+' '+(r[I.nu]||'')+' '+(r[I.fo]||'')+' '+(r[I.ra]||''));
         var _tm=txtDe(r); if(_tm){var t=_tm[r[I.id]]; if(t&&t.en)hay+=' '+norm(t.en);}
@@ -352,6 +421,15 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   }
 
   function stats(){
+    var av=document.getElementById('avisoEdicao');
+    if(av){
+      if(f.edicao!=null){
+        av.hidden=false;
+        av.innerHTML='<div class="avEd"><span>Lendo <b>'+esc(nomeColecao(f.base))+' nº '+f.edicao+'</b> — '
+          +filtered.length+' verbete(s)</span><button id="sairEdicao">Ver o acervo inteiro</button></div>';
+        av.querySelector('#sairEdicao').onclick=function(){ f.base=''; build(); };
+      } else { av.hidden=true; av.innerHTML=''; }
+    }
     document.getElementById('sTot').textContent=IDX.length.toLocaleString('pt-BR');
     document.getElementById('sFilt').textContent=filtered.length.toLocaleString('pt-BR');
     document.getElementById('sDom').textContent=Object.values(est.stat).filter(function(v){return v==='dom'}).length;
@@ -360,6 +438,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 
   var listEl=document.getElementById('list'), moreEl=document.getElementById('more');
   function build(){
+    // Mexeu em chip ou na busca? Então saiu da edição. build() é o funil de todos os
+    // filtros, e abrirEdicao() de propósito NÃO passa por aqui.
+    f.edicao=null;
     renderTribChips(); renderBaseChips(); renderRamoChips();
     applyFilter(); page=0; listEl.innerHTML=''; stats(); renderPage();
   }
@@ -445,6 +526,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       // preenche os corpos abertos que esperavam justamente este acervo
       document.querySelectorAll('.vcard.open').forEach(function(d){ var id=d.dataset.id; var r=byId[id]; if(r&&fonteDe(r)===alvo)fillBody(d,r); });
       (txtWait[alvo.txtSrc]||[]).forEach(function(fn){fn()}); txtWait[alvo.txtSrc]=[];
+      // o julgado do dia é montado antes de o texto existir: repinta quando ele chega
+      var pd=document.getElementById('paneDia'); if(pd&&!pd.hidden)renderDia();
     };
     s.onerror=function(){ txtLoading[alvo.txtSrc]=false; document.querySelectorAll('.vcard.open .vbody .loading').forEach(function(e){e.textContent='Não foi possível carregar os textos.'}); };
     document.body.appendChild(s);
@@ -565,9 +648,213 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   qtcEl.addEventListener('input',function(){ fTc.q=qtcEl.value; clearTimeout(qtct); qtct=setTimeout(renderTcs,150); });
 
   // ---- abas Acervo | Tribunais
+  // ---- Grade de informativos: uma edição por quadradinho
+  // As coleções que se leem POR EDIÇÃO (informativo, boletim) são as únicas aqui; súmula
+  // e tese não têm edição. Os rótulos ficam nesta tabela porque no índice a fonte vem
+  // como veio da origem ('informativo_stj' de um lado, 'Boletim de Pessoal' do outro).
+  var COLECOES=[
+    {fo:'informativo_stf', tb:'STF', nome:'Informativos do STF'},
+    {fo:'informativo_stj', tb:'STJ', nome:'Informativos do STJ'},
+    {fo:'informativo_tse', tb:'TSE', nome:'Informativos do TSE'},
+    {fo:'Boletim de Jurisprudência', tb:'TCU', nome:'Boletim de Jurisprudência do TCU'},
+    {fo:'Boletim de Pessoal', tb:'TCU', nome:'Boletim de Pessoal do TCU'},
+    {fo:'Informativo de Licitações e Contratos', tb:'TCU', nome:'Informativo de Licitações e Contratos'}
+  ];
+  // O índice guarda a fonte como veio da origem: slug nos acervos de tribunal superior
+  // ('repercussao_geral') e rótulo por extenso nos de contas ('Boletim de Pessoal').
+  // Esta tabela dá nome de gente aos slugs; o que não estiver aqui vira Título Com
+  // Espaços em vez de aparecer como REPERCUSSAO_GERAL na tela.
+  var ROTULO={sumula_vinculante:'Súmula Vinculante', sumula_stf:'Súmula do STF', sumula_stj:'Súmula do STJ',
+    sumula_tse:'Súmula do TSE', tjro:'Súmula do TJRO', tjro_prec:'Precedente do TJRO',
+    repercussao_geral:'Repercussão Geral', repetitivo:'Recurso Repetitivo', juris_em_teses:'Jurisprudência em Teses',
+    informativo_stf:'Informativo do STF', informativo_stj:'Informativo do STJ', informativo_tse:'Informativo do TSE',
+    precedentes_obrig:'Precedente Obrigatório', controle_const:'Controle de Constitucionalidade',
+    sel_tjgo:'Seleção TJGO', sel_tjrj:'Seleção TJRJ', sel_tjpr:'Seleção TJPR', vademecum_dod:'Vade Mecum DOD',
+    stf_adi:'ADI', stf_adc:'ADC', stf_ado:'ADO', stf_adpf:'ADPF'};
+  function nomeColecao(fo){
+    for(var i=0;i<COLECOES.length;i++)if(COLECOES[i].fo===fo)return COLECOES[i].nome;
+    if(ROTULO[fo])return ROTULO[fo];
+    if(!fo)return '';
+    if(fo.indexOf('_')<0)return fo;                  // já vem por extenso
+    return fo.split('_').map(function(w){ return w.charAt(0).toUpperCase()+w.slice(1); }).join(' ');
+  }
+  var LOTE=48;                       // quantas edições aparecem antes do "ver mais"
+  var infosAbertas={};               // fonte -> quantas já mostradas
+
+  function edicoesDe(fonte){
+    var m={};
+    for(var i=0;i<IDX.length;i++){ var r=IDX[i];
+      if(r[I.fo]!==fonte||!Number.isInteger(r[I.nu]))continue;
+      var e=m[r[I.nu]]||(m[r[I.nu]]={n:r[I.nu],total:0,lidos:0,ano:null});
+      e.total++;
+      if((est.stat[r[I.id]]||'')==='dom')e.lidos++;
+      var d=r[I.da]||''; var a=/(\d{4})/.exec(d); if(a&&!e.ano)e.ano=a[1];
+    }
+    return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return b.n-a.n});
+  }
+
+  function renderInfos(){
+    var host=document.getElementById('infosLista'); if(!host)return;
+    var h='', totalEd=0, totalLidas=0, totalParciais=0;
+    COLECOES.forEach(function(c){
+      var eds=edicoesDe(c.fo); if(!eds.length)return;
+      var mostrar=infosAbertas[c.fo]||LOTE;
+      var lidas=eds.filter(function(e){return e.lidos>=e.total}).length;
+      var parc=eds.filter(function(e){return e.lidos>0&&e.lidos<e.total}).length;
+      totalEd+=eds.length; totalLidas+=lidas; totalParciais+=parc;
+      h+='<div class="gtit"><b>'+esc(c.nome)+'</b><span>'+eds.length+' edições · '
+        +lidas+' lidas · '+parc+' começadas · até a '+eds[0].n+'</span></div><div class="gedic">';
+      eds.slice(0,mostrar).forEach(function(e){
+        var cls=e.lidos>=e.total?'lido':(e.lidos>0?'parcial':'');
+        h+='<button class="edic '+cls+'" data-fo="'+esc(c.fo)+'" data-n="'+e.n+'" '
+          +'title="'+esc(c.nome)+' nº '+e.n+' — '+e.lidos+' de '+e.total+' dominados">'
+          +e.n+'<i>'+(e.lidos?e.lidos+'/'+e.total:e.total)+'</i></button>';
+      });
+      h+='</div>';
+      if(eds.length>mostrar)h+='<button class="gmais" data-mais="'+esc(c.fo)+'">Ver mais '+esc(c.tb)+' ('+(eds.length-mostrar)+' restantes)</button>';
+    });
+    host.innerHTML=h||'<div class="empty">Nenhuma coleção por edição no acervo.</div>';
+    document.getElementById('infosResumo').innerHTML=
+      '<div class="s1"><b>'+totalEd+'</b><span>edições</span></div>'
+      +'<div class="s1"><b>'+totalLidas+'</b><span>lidas</span></div>'
+      +'<div class="s1"><b>'+totalParciais+'</b><span>começadas</span></div>'
+      +'<div class="s1"><b>'+(totalEd-totalLidas-totalParciais)+'</b><span>não lidas</span></div>';
+    var n=document.getElementById('nInfos'); if(n)n.textContent=totalEd;
+    host.querySelectorAll('.edic').forEach(function(b){
+      b.onclick=function(){ abrirEdicao(b.dataset.fo, +b.dataset.n); };
+    });
+    host.querySelectorAll('.gmais').forEach(function(b){
+      b.onclick=function(){ infosAbertas[b.dataset.mais]=(infosAbertas[b.dataset.mais]||LOTE)+LOTE*4; renderInfos(); };
+    });
+  }
+
+  // Abrir uma edição = filtrar o acervo por ela. Não existe tela separada de edição:
+  // é a mesma lista, com os mesmos cards, grifos e status.
+  function abrirEdicao(fonte, numero){
+    f.q=''; f.tribunal=''; f.ramo=''; f.base=fonte; f.edicao=numero;
+    var qi=document.getElementById('q'); if(qi)qi.value='';
+    // listEl.innerHTML='' ANTES de renderPage: sem isso a página só ACRESCENTA ao que
+    // já estava na tela e a edição aparece embaixo do acervo inteiro.
+    page=0; applyFilter(); listEl.innerHTML=''; renderPage(); stats();
+    renderTribChips(); renderBaseChips(); renderRamoChips();
+    setPane('acervo');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  // ================= JULGADO DO DIA =================
+  // Sorteio com semente na data: o mesmo dia devolve sempre o mesmo verbete. Sem semente
+  // o julgado trocaria a cada re-render e não daria para voltar nele à noite.
+  function semente(str){ var h=2166136261; for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+  function hojeISO(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+
+  // Prioriza o que a prova cobra: destaque (★) primeiro, e dentro disso o que você ainda
+  // não marcou como dominado. Se tudo estiver dominado, volta a sortear no acervo todo.
+  function verbeteDoDia(iso){
+    var pool=IDX.filter(function(r){ return r[I.im]===1 && (est.stat[r[I.id]]||'')!=='dom'; });
+    if(!pool.length)pool=IDX.filter(function(r){ return r[I.im]===1; });
+    if(!pool.length)pool=IDX;
+    if(!pool.length)return null;
+    return pool[semente(iso)%pool.length];
+  }
+
+  var DIAK='catedraJurisDia';
+  function renderDia(){
+    var host=document.getElementById('diaHost'); if(!host)return;
+    var iso=hojeISO(), r=verbeteDoDia(iso);
+    if(!r){ host.innerHTML='<div class="empty">Acervo ainda carregando.</div>'; return; }
+    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
+    // O corpo dos verbetes é um arquivo à parte, carregado sob demanda. No acervo quem
+    // dispara é abrir um card; aqui não há card para abrir, então pedimos nós mesmos.
+    if(!t.en)loadTxt(fonteDe(r), function(){ var pd=document.getElementById('paneDia'); if(pd&&!pd.hidden)renderDia(); });
+    var tags='<span class="diaTag">'+esc(r[I.tr]||'')+'</span>'
+      +(r[I.fo]?'<span class="diaTag">'+esc(nomeColecao(r[I.fo]))+'</span>':'')
+      +(r[I.ra]?'<span class="diaTag">'+esc(r[I.ra])+'</span>':'')
+      +(r[I.im]?'<span class="diaTag">Destaque</span>':'');
+    var dt=new Date(); var MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    host.innerHTML='<div class="diaCap"><b>Julgado do dia</b><span>'+dt.getDate()+' de '+MES[dt.getMonth()]+' de '+dt.getFullYear()+'</span></div>'
+      +'<div class="diaCard"><div class="diaTags">'+tags+'</div>'
+      +'<h3>'+esc(r[I.ti]||'Verbete')+'</h3>'
+      +(t.en?'<div class="diaEn">'+esc(t.en)+'</div>':'<div class="diaEn" style="color:var(--text3)">Enunciado ainda carregando…</div>')
+      +(t.fp?'<div style="font-size:11.5px;color:var(--text3,#7a7368);margin-top:10px;">'+esc(t.fp)+'</div>':'')
+      +'<div class="diaAcoes"><button class="prim" id="diaAbrir">Abrir no leitor</button>'
+      +'<button id="diaOral">Modo prova oral</button>'
+      +'<button id="diaDom">Marcar como dominado</button></div>'
+      +'<div id="diaOralHost"></div></div>';
+    document.getElementById('diaAbrir').onclick=function(){
+      f.q=''; f.tribunal=''; f.ramo=''; f.base=''; f.edicao=null;
+      var qi=document.getElementById('q'); if(qi)qi.value='';
+      applyFilter(); setPane('acervo');
+      var i=filtered.indexOf(r); if(i>=0)openVerbete(i);
+    };
+    document.getElementById('diaDom').onclick=function(){
+      est.stat[r[I.id]]='dom'; saveEst(); stats(); renderDia();
+    };
+    document.getElementById('diaOral').onclick=function(){ oralIniciar(r, document.getElementById('diaOralHost')); };
+  }
+
+  // ================= MODO PROVA ORAL =================
+  // A IA faz UMA pergunta sobre o verbete, você responde do jeito que responderia na
+  // banca, e ela corrige contra o enunciado oficial. Não é nota de concurso: é espelho.
+  function oralIniciar(r, host){
+    if(!host)return;
+    host.innerHTML='<div class="oral"><h4>Prova oral</h4><div class="perg" id="oralP">Formulando a pergunta…</div></div>';
+    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
+    var base='VERBETE OFICIAL\nTRIBUNAL: '+(r[I.tr]||'')+'\nTÍTULO: '+(r[I.ti]||'')
+      +(r[I.ra]?'\nRAMO: '+r[I.ra]:'')+'\nENUNCIADO: '+((t&&t.en)||'');
+    iaPede('Você é examinador de prova oral de concurso da magistratura brasileira. '
+      +'A partir do verbete abaixo, formule UMA pergunta de arguição — direta, de uma ou duas frases, '
+      +'do jeito que um examinador pergunta em banca. Não dê a resposta. Não use markdown. '
+      +'Responda SOMENTE com a pergunta.\n\n'+base)
+    .then(function(perg){
+      host.innerHTML='<div class="oral"><h4>Prova oral</h4>'
+        +'<div class="perg">'+esc(String(perg).trim())+'</div>'
+        +'<textarea id="oralR" rows="6" placeholder="Responda como responderia na banca — em voz alta primeiro, se quiser, e depois escreva o essencial aqui."></textarea>'
+        +'<div class="diaAcoes"><button class="prim" id="oralCorrigir">Corrigir</button>'
+        +'<button id="oralOutra">Outra pergunta</button></div>'
+        +'<div id="oralFb"></div></div>';
+      document.getElementById('oralOutra').onclick=function(){ oralIniciar(r, host); };
+      document.getElementById('oralCorrigir').onclick=function(){
+        var resp=(document.getElementById('oralR').value||'').trim();
+        if(!resp){ return; }
+        var b=document.getElementById('oralCorrigir'); b.disabled=true; b.textContent='Corrigindo…';
+        iaPede('Você é examinador de prova oral de concurso da magistratura brasileira. '
+          +'Corrija a resposta do candidato COMPARANDO com o verbete oficial. Seja exigente e específico: '
+          +'diga o que ficou de fora, o que está errado e o que a banca esperaria ouvir. '
+          +'Devolva SOMENTE um objeto JSON, sem cercas de código:\n'
+          +'{"nota": "boa" | "media" | "fraca", "acertou": ["o que a resposta acertou"], '
+          +'"faltou": ["o que faltou ou saiu errado, cada item em uma linha"], '
+          +'"modelo": "a resposta que a banca esperaria, em no máximo 5 linhas"}\n\n'
+          +base+'\n\nRESPOSTA DO CANDIDATO:\n'+resp)
+        .then(function(txt){
+          var j=null; try{ j=JSON.parse(String(txt).replace(/^[^{]*/,'').replace(/[^}]*$/,'')); }catch(e){}
+          b.disabled=false; b.textContent='Corrigir';
+          if(!j){ document.getElementById('oralFb').innerHTML='<div style="font-size:12.5px;color:var(--text3)">A IA respondeu em formato inesperado. Tente de novo.</div>'; return; }
+          var cls=j.nota==='boa'?'b':(j.nota==='media'?'m':'r');
+          var rot=j.nota==='boa'?'Boa':(j.nota==='media'?'Mediana':'Fraca');
+          function ul(arr){ return (arr&&arr.length)?('<ul style="padding-left:19px;font-size:14px;line-height:1.6">'+arr.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'):''; }
+          document.getElementById('oralFb').innerHTML='<div style="margin-top:14px">'
+            +'<span class="oralNota '+cls+'">'+rot+'</span>'
+            +(j.acertou&&j.acertou.length?'<div class="estBlk estHoje"><h4>Acertou</h4>'+ul(j.acertou)+'</div>':'')
+            +(j.faltou&&j.faltou.length?'<div class="estBlk estPeg"><h4>Faltou / saiu errado</h4>'+ul(j.faltou)+'</div>':'')
+            +(j.modelo?'<div class="estBlk estFund"><h4>O que a banca esperaria</h4><p>'+esc(j.modelo)+'</p></div>':'')
+            +'</div>';
+        }).catch(function(err){
+          b.disabled=false; b.textContent='Corrigir';
+          document.getElementById('oralFb').innerHTML='<div style="font-size:12.5px;color:var(--text3)">'+esc(String(err&&err.message||err))+'</div>';
+        });
+      };
+    }).catch(function(err){
+      host.innerHTML='<div class="oral"><h4>Prova oral</h4><div style="font-size:12.5px;color:var(--text3)">'+esc(String(err&&err.message||err))+'</div></div>';
+    });
+  }
+
   function setPane(nome){
     document.getElementById('paneAcervo').hidden=(nome!=='acervo');
     document.getElementById('paneTribunais').hidden=(nome!=='tribunais');
+    document.getElementById('paneInfos').hidden=(nome!=='infos');
+    if(nome==='infos')renderInfos();
+    document.getElementById('paneDia').hidden=(nome!=='dia');
+    if(nome==='dia')renderDia();
     document.getElementById('paneMapas').hidden=(nome!=='mapas');
     if(nome==='mapas'){ var fr=document.getElementById('mapasFrame');
       if(fr&&!fr.src){ fr.src=fr.dataset.src; } }
@@ -651,6 +938,189 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     _jtree.querySelectorAll('.mnode').forEach(function(n){ n.onclick=function(){ openVerbete(+n.dataset.idx); }; });
     var on=_jtree.querySelector('.mnode.on'); if(on)on.scrollIntoView({block:'nearest'});
   }
+  // ================= ROTEIRO DE ESTUDO (IA sob demanda) =================
+  // O acervo traz o enunciado OFICIAL. O que falta para estudar é a leitura: a tese em
+  // uma frase, o fundamento, o que mudou depois e a pegadinha de prova. Isso não existe
+  // nos 25 mil verbetes e não daria para escrever à mão — então é gerado pela IA do app
+  // na hora em que você abre o verbete e pede, e fica guardado.
+  //
+  // A chave NÃO começa com 'catedra:' de propósito: esse prefixo sobe para a nuvem no
+  // auth.js, e texto de IA de centenas de verbetes engordaria o sync sem necessidade.
+  // O preço é ser por aparelho; o roteiro é regerável a qualquer momento.
+  var RK='catedraJurisRoteiros', ROT={};
+  try{ ROT=JSON.parse(localStorage.getItem(RK))||{}; }catch(e){ ROT={}; }
+  function rotSave(){
+    try{
+      var ks=Object.keys(ROT);
+      if(ks.length>400){                       // teto: mantém os 400 mais recentes
+        ks.sort(function(a,b){return (ROT[a].ts||0)-(ROT[b].ts||0)});
+        ks.slice(0,ks.length-400).forEach(function(k){delete ROT[k]});
+      }
+      localStorage.setItem(RK,JSON.stringify(ROT));
+    }catch(e){}
+  }
+
+  // Ponte de IA: o frame não tem window.claude (a ponte nativa é só do frame principal),
+  // então o pedido vai para o app por postMessage e a resposta volta pelo mesmo canal.
+  var iaPend={}, iaSeq=0;
+  window.addEventListener('message',function(e){
+    if(!e||!e.data||e.data.type!=='ctIAResp')return;
+    var f=iaPend[e.data.reqId]; if(!f)return; delete iaPend[e.data.reqId];
+    f(e.data.texto||'', e.data.erro||'');
+  });
+  function iaPede(prompt){
+    return new Promise(function(res,rej){
+      if(window.parent===window){ rej(new Error('Abra pelo Cátedra: a IA fica no app.')); return; }
+      var id='r'+(++iaSeq)+'_'+Date.now();
+      var t=setTimeout(function(){ delete iaPend[id]; rej(new Error('A IA demorou demais.')); },75000);
+      iaPend[id]=function(texto,erro){ clearTimeout(t); if(erro&&!texto)rej(new Error(erro)); else res(texto); };
+      try{ window.parent.postMessage({type:'ctIA', reqId:id, prompt:prompt}, '*'); }
+      catch(err){ clearTimeout(t); delete iaPend[id]; rej(err); }
+    });
+  }
+
+  function promptRoteiro(r,t){
+    return 'Você prepara material de estudo para concursos jurídicos brasileiros de alto nível '
+      +'(magistratura, MP, procuradorias). Abaixo vai um verbete OFICIAL do acervo.\n\n'
+      +'TRIBUNAL: '+(r[I.tr]||'')+'\nCOLEÇÃO: '+(r[I.fo]||'')+(r[I.nu]?'\nNÚMERO: '+r[I.nu]:'')
+      +'\nTÍTULO: '+(r[I.ti]||'')+(r[I.ra]?'\nRAMO: '+r[I.ra]:'')+(r[I.da]?'\nDATA: '+r[I.da]:'')
+      +(r[I.si]?'\nSITUAÇÃO: '+r[I.si]:'')
+      +'\n\nENUNCIADO:\n'+((t&&t.en)||'(sem enunciado)')
+      +((t&&t.ob)?'\n\nOBSERVAÇÃO DA FONTE:\n'+t.ob:'')
+      +'\n\nDevolva SOMENTE um objeto JSON, sem cercas de código e sem texto fora dele, com estas chaves:\n'
+      +'{"nivel": 1 | 2 | 3,   // 1 = todo mundo tem de saber; 2 = separa quem passa; 3 = detalhe fino\n'
+      +' "segundaFase": true | false,   // tem cara de discursiva/sentença, não só de objetiva\n'
+      +' "frase": "o que o verbete decide, em UMA frase de no máximo 40 palavras, em português claro",\n'
+      +' "fundamento": "os dispositivos legais e constitucionais que sustentam o verbete, citados por artigo",\n'
+      +' "comoEra": "o entendimento ANTERIOR, se este verbete mudou alguma coisa; string vazia se não mudou nada",\n'
+      +' "decidiu": "o que exatamente ficou decidido e por qual razão de decidir",\n'
+      +' "chave": ["3 a 5 pontos que a prova cobra deste verbete, cada um em uma linha curta"],\n'
+      +' "jurisprudencia": ["julgados ou súmulas relacionados, com tribunal e identificação; lista vazia se você não tiver certeza"],\n'
+      +' "atencao": "o que costuma ser mal compreendido; string vazia se não houver",\n'
+      +' "hoje": "se o verbete estiver cancelado, superado ou alterado, o que vale hoje; string vazia se ele estiver íntegro",\n'
+      +' "pegadinha": "a troca exata que a banca faz para transformar este verbete em alternativa errada",\n'
+      +' "quiz": [   // 3 questões no estilo da banca, sobre ESTE verbete\n'
+      +'   {"en": "enunciado da questão", "alts": ["alternativa A","alternativa B", "..."], "ok": 0,\n'
+      +'    "fb": "por que essa é a correta e onde as outras erram, com o fundamento",\n'
+      +'    "fcF": "frente do flashcard — a pergunta seca", "fcV": "verso — a resposta curta"}\n'
+      +' ]}\n\n'
+      +'REGRAS: não invente número de julgado, de súmula, de tema repetitivo nem de artigo — se não tiver certeza, '
+      +'deixe a lista vazia ou descreva sem numerar. Não repita o enunciado. Escreva em português do Brasil.';
+  }
+
+  function renderEstudo(r){
+    var host=document.getElementById('jrEstudo'); if(!host)return;
+    var id=r[I.id], reg=ROT[id];
+    if(!reg){
+      host.innerHTML='<div class="estWrap"><div class="diaAcoes" style="margin-top:0">'
+        +'<button class="prim" id="estGerar" style="border-color:var(--accent,#0f7a57)">✦ Gerar roteiro de estudo</button>'
+        +'<button id="estOral">Modo prova oral</button></div>'
+        +'<div class="estFonte">Tese em uma frase, fundamento, pontos-chave e a pegadinha de prova — escritos pela IA a partir do enunciado oficial acima.</div>'
+        +'<div id="estOralHost"></div></div>';
+      document.getElementById('estOral').onclick=function(){ oralIniciar(r, document.getElementById('estOralHost')); };
+      var b=document.getElementById('estGerar');
+      b.onclick=function(){
+        b.disabled=true; b.textContent='Escrevendo…';
+        var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
+        iaPede(promptRoteiro(r,t)).then(function(txt){
+          var j=null;
+          try{ j=JSON.parse(String(txt).replace(/^[^{]*/,'').replace(/[^}]*$/,'')); }catch(e){}
+          if(!j||typeof j!=='object'){ b.disabled=false; b.textContent='✦ Gerar roteiro de estudo';
+            host.querySelector('.estFonte').textContent='A IA respondeu em formato inesperado. Tente de novo.'; return; }
+          j.ts=Date.now(); ROT[id]=j; rotSave();
+          if(curId===id)renderEstudo(r);
+        }).catch(function(err){
+          b.disabled=false; b.textContent='✦ Gerar roteiro de estudo';
+          host.querySelector('.estFonte').textContent=String(err&&err.message||err);
+        });
+      };
+      return;
+    }
+    function blk(cls,rot,txt){ return txt?'<div class="estBlk '+cls+'"><h4>'+rot+'</h4><p>'+esc(txt)+'</p></div>':''; }
+    function lista(cls,rot,arr){
+      if(!arr||!arr.length)return '';
+      return '<div class="estBlk '+cls+'"><h4>'+rot+'</h4><ul>'+arr.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></div>';
+    }
+    var etq='';
+    if(reg.nivel)etq+='<span class="diaTag">Nível '+esc(reg.nivel)+'</span>';
+    if(reg.segundaFase)etq+='<span class="diaTag">2ª fase</span>';
+    host.innerHTML='<div class="estWrap">'
+      +(etq?'<div class="diaTags" style="margin-bottom:10px">'+etq+'</div>':'')
+      +blk('estFrase','Em uma frase',reg.frase)
+      +blk('estFund','Fundamento',reg.fundamento)
+      +blk('estAt','Como era',reg.comoEra)
+      +blk('estHoje','O que decidiu',reg.decidiu)
+      +lista('estChave','Pontos que a prova cobra',reg.chave)
+      +lista('estJur','Relacionados',reg.jurisprudencia)
+      +blk('estAt','Atenção',reg.atencao)
+      +blk('estHoje','O que vale hoje',reg.hoje)
+      +blk('estPeg','Pegadinha de prova',reg.pegadinha)
+      +'<div id="estQuiz"></div>'
+      +'<div class="diaAcoes"><button id="estOral">Modo prova oral</button></div>'
+      +'<div id="estOralHost"></div>'
+      +'<div class="estFonte">Roteiro escrito pela IA a partir do enunciado oficial — confira os números antes de decorar. '
+      +'<a href="#" id="estRefazer">Refazer</a></div></div>';
+    var bo=document.getElementById('estOral');
+    if(bo)bo.onclick=function(){ oralIniciar(r, document.getElementById('estOralHost')); };
+    montaQuiz(reg, id);
+    var rf=document.getElementById('estRefazer');
+    if(rf)rf.onclick=function(ev){ ev.preventDefault(); delete ROT[id]; rotSave(); renderEstudo(r); };
+  }
+
+  // ---- quiz do verbete: correção na hora e flashcard do que errou
+  // O flashcard vai para a MESMA chave que o app usa (catedra:flashcards), então o que
+  // você errar aqui entra no baralho do Cátedra, não num baralho paralelo.
+  function montaQuiz(reg, id){
+    var host=document.getElementById('estQuiz'); if(!host)return;
+    var qs=(reg&&reg.quiz)||[]; if(!qs.length){ host.innerHTML=''; return; }
+    var respondidas={}, errou=[];
+    function pinta(){
+      host.innerHTML='<div class="estBlk"><h4>Quiz — '+qs.length+' questões</h4>'
+        +qs.map(function(q,i){
+          var esc0=respondidas[i];
+          return '<div style="margin-bottom:14px"><div style="font-size:13.5px;line-height:1.55;margin-bottom:7px">'
+            +(i+1)+'. '+esc(q.en)+'</div>'
+            +(q.alts||[]).map(function(a,j){
+              var cls='', extra='';
+              if(esc0!=null){
+                if(j===q.ok){cls='background:#16a34a1f;border-color:#16a34a;color:#15803d';}
+                else if(j===esc0){cls='background:#dc26261f;border-color:#dc2626;color:#b91c1c';}
+              }
+              return '<button class="qalt" data-q="'+i+'" data-a="'+j+'" '+(esc0!=null?'disabled':'')
+                +' style="display:block;width:100%;text-align:left;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:9px;padding:9px 12px;margin-bottom:5px;font:13px inherit;cursor:'+(esc0!=null?'default':'pointer')+';'+cls+'">'
+                +String.fromCharCode(65+j)+') '+esc(a)+'</button>';
+            }).join('')
+            +(esc0!=null?'<div class="estBlk '+(esc0===q.ok?'estHoje':'estPeg')+'" style="margin-top:6px"><p>'
+              +(esc0===q.ok?'✓ ':'✗ ')+esc(q.fb||'')+'</p></div>':'')
+            +'</div>';
+        }).join('')
+        +(errou.length?'<button class="estBtn" id="estFc">'+(errou.length===1
+            ?'Gerar flashcard da que errei'
+            :'Gerar flashcards das '+errou.length+' que errei')+'</button>':'')
+        +'</div>';
+      host.querySelectorAll('.qalt').forEach(function(b){
+        b.onclick=function(){
+          var qi=+b.dataset.q, ai=+b.dataset.a;
+          if(respondidas[qi]!=null)return;
+          respondidas[qi]=ai;
+          if(ai!==qs[qi].ok && errou.indexOf(qi)<0)errou.push(qi);
+          pinta();
+        };
+      });
+      var fc=document.getElementById('estFc');
+      if(fc)fc.onclick=function(){
+        var novos=errou.map(function(i){ return {front:qs[i].fcF||qs[i].en, back:qs[i].fcV||qs[i].fb||''}; })
+          .filter(function(c){ return c.front&&c.back; });
+        if(!novos.length)return;
+        try{
+          window.parent.postMessage({type:'ctFlashcards', cards:novos, origem:id}, '*');
+          fc.disabled=true; fc.textContent=novos.length===1?'✓ flashcard no seu baralho':('✓ '+novos.length+' flashcards no seu baralho');
+        }catch(e){ fc.textContent='Não consegui enviar os flashcards.'; }
+      };
+    }
+    pinta();
+  }
+
   function renderVerbete(r){
     var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
     var h='<div class="vhero"><div class="htop"><span class="tb">'+esc(r[I.tr]||'—')+'</span>'
@@ -670,8 +1140,10 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     if(t.fp)foot+='<span class="fp">'+esc(t.fp)+'</span>'; else if(t.og)foot+='<span class="fp">'+esc(t.og)+'</span>';
     if(t.ur && /^https?:\/\//i.test(t.ur))foot+='<a href="'+esc(t.ur)+'" target="_blank" rel="noopener">Ver no tribunal ↗</a>';
     if(foot)h+='<div class="vfoot">'+foot+'</div>';
+    h+='<div id="jrEstudo"></div>';
     _jsc.innerHTML='<div class="docwrap" id="jrDoc" style="--rfs:'+_jfs+'px">'+h+'</div>'; _jdoc=document.getElementById('jrDoc');
     jgrifos=jLoad(); var seen={}; jgrifos.forEach(function(g){ if(!seen[g.gi]){ jRenderGr(g.gi); seen[g.gi]=1; } });
+    renderEstudo(r);
   }
   window.openVerbete=function(idx){
     if(idx<0||idx>=filtered.length)return; curIdx=idx; jdisp=[];

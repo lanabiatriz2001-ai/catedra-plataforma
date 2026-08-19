@@ -96,6 +96,9 @@ JURIS_RES="$HOME/App Jurisprudências/VadeMecumJuris/Sources/VadeMecum/Resources
 for f in corpus.json notas.json indice.json; do
   [ -f "$JURIS_RES/$f" ] && cp "$JURIS_RES/$f" "$APP/Contents/Resources/$f"
 done
+# A Central de Contas (TCU + TCEs) NAO vem do repo do Vade Mecum: e gerada aqui, dos
+# mesmos dados que a web usa (scripts/build-contas-nativo.mjs -> corpus-contas.json).
+[ -f "$ROOT/corpus-contas.json" ] && cp "$ROOT/corpus-contas.json" "$APP/Contents/Resources/corpus-contas.json"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
