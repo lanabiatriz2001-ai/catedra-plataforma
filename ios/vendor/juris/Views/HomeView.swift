@@ -142,25 +142,35 @@ struct HomeView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                DestaquesEstudoView()   // julgado do dia + últimos informativos, em destaque na abertura
+            // Home em QUATRO blocos nomeados, nesta ordem: o que fazer hoje → como estudar →
+            // o que acompanhar → como estou. Antes era uma pilha sem hierarquia (destaques,
+            // busca, painel inteiro, resumo por IA, hero, prateleiras…) em que o julgado do
+            // dia brigava com o painel de métricas pela abertura.
+            VStack(alignment: .leading, spacing: 28) {
                 barraBusca
-                JurisDashboardView()
-                // Resumo semanal de informativos (IA): o que saiu dos tribunais e o
-                // que disso toca o edital da usuária — ancorado nas novidades reais.
-                ResumoSemanalCard()
-                if let d = destaque { heroCard(d) }
-                if !store.recentEntries.isEmpty {
-                    Prateleira(titulo: "Continue de onde parou", simbolo: "clock.arrow.circlepath") {
-                        ForEach(store.recentEntries.prefix(14)) { CartaoJuris(entry: $0) }
-                    }
-                }
+                cabecalhoSecao("Hoje", "sun.max.fill")
+                JurisDashboardView(partes: [.hero])
+                DestaquesEstudoView(parte: .julgado)
+                cabecalhoSecao("Estudar", "graduationcap.fill")
+                gradeEstudar
+                JurisDashboardView(partes: [.atalhos])
+                cabecalhoSecao("Acompanhar", "newspaper.fill")
+                DestaquesEstudoView(parte: .informativos)
                 if !novidadeVerbetes.isEmpty {
                     Prateleira(titulo: "Novidades dos tribunais", simbolo: "sparkles",
                                verTodos: { store.selecao = .novidades }) {
                         ForEach(novidadeVerbetes) { CartaoJuris(entry: $0) }
                     }
                 }
+                if !store.recentEntries.isEmpty {
+                    Prateleira(titulo: "Continue de onde parou", simbolo: "clock.arrow.circlepath") {
+                        ForEach(store.recentEntries.prefix(14)) { CartaoJuris(entry: $0) }
+                    }
+                }
+                cabecalhoSecao("Seu progresso", "chart.bar.fill")
+                JurisDashboardView(partes: [.checklist, .kpis, .ofensiva, .fontes])
+                cabecalhoSecao("Acervo", "books.vertical.fill")
+                if let d = destaque { heroCard(d) }
                 if store.favorites.count > 0 {
                     Prateleira(titulo: "Seus favoritos", simbolo: "star.fill",
                                verTodos: { store.selecao = .favoritos }) {
@@ -181,6 +191,46 @@ struct HomeView: View {
             .padding(.top, 22)
         }
         .background(Palette.appBackground)
+    }
+
+    private func cabecalhoSecao(_ t: String, _ simbolo: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: simbolo).font(.system(size: 13, weight: .bold)).foregroundStyle(Palette.accent)
+            Text(t.uppercased()).font(.system(size: 12, weight: .heavy)).tracking(1.2).foregroundStyle(Palette.secondaryInk)
+            Rectangle().fill(Palette.hairline).frame(height: 1)
+        }
+        .padding(.horizontal, 28).padding(.top, 6)
+    }
+
+    /// As ações de estudo que a pessoa mais usa, em azulejos grandes — antes estavam
+    /// escondidas na barra lateral ou no fim do painel.
+    private var gradeEstudar: some View {
+        let itens: [(String, String, String, Selecao)] = [
+            ("Prova oral", "Pergunta de banca sobre um verbete sorteado", "mic.fill", .provaOral),
+            ("Simulado", "Objetivas C/E + discursivas oficiais", "list.bullet.clipboard.fill", .simulado),
+            ("Grade de informativos", "Edições do STF, STJ e TSE por semana", "calendar", .gradeInformativos),
+            ("Julgado do dia", "Roteiro de estudo e quiz do destaque", "sparkles", .julgadoDoDia),
+        ]
+        return LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 12)], spacing: 12) {
+            ForEach(itens, id: \.0) { it in
+                Button { store.selecao = it.3 } label: {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: it.2).font(.system(size: 20, weight: .bold)).foregroundStyle(Palette.accent)
+                            .frame(width: 36, height: 36)
+                            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Palette.accent.opacity(0.12)))
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(it.0).font(.system(size: 15, weight: .heavy)).foregroundStyle(Palette.titleInk)
+                            Text(it.1).font(.system(size: 12)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
+                    .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+                }.buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 28)
     }
 
     private func heroCard(_ d: JurisEntry) -> some View {

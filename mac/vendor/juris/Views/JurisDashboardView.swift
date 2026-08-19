@@ -19,9 +19,18 @@ struct JurisDashboardView: View {
             .filter { store.totalDaFonte($0) > 0 }
     }
 
+    /// Quais blocos renderizar — a Home monta a página em seções nomeadas (Hoje / Estudar /
+    /// Acompanhar / Seu progresso) e pede a este view só a parte de cada uma.
+    struct Partes: OptionSet { let rawValue: Int
+        static let hero = Partes(rawValue: 1), checklist = Partes(rawValue: 2), kpis = Partes(rawValue: 4)
+        static let atalhos = Partes(rawValue: 8), ofensiva = Partes(rawValue: 16), fontes = Partes(rawValue: 32)
+        static let todas: Partes = [.hero, .checklist, .kpis, .atalhos, .ofensiva, .fontes]
+    }
+    var partes: Partes = .todas
+
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            heroResumo
+            if partes.contains(.hero) { heroResumo }
             // O "Verbete do dia" morava aqui E, separadamente, no topo da Home
             // (DestaquesEstudoView) — dois algoritmos de semente diferentes sorteando
             // verbetes DIFERENTES no mesmo dia, um em cima do outro na mesma tela. Os
@@ -30,11 +39,11 @@ struct JurisDashboardView: View {
             // fica só no topo — aqui embaixo seria repetir a mesma coisa duas vezes.
             // Checklist de leitura PRÓPRIA do CátedraJURIS — dados independentes do
             // LEGIS, cada app com o seu, para não misturar metas de leis com as de jurisprudência.
-            JurisChecklistMiniCard(openChecklist: { store.selecao = .checklist })
-            kpiGrid
-            secao("Atalhos", "bolt.horizontal.fill") { acoesRapidas }
-            secao("Sua ofensiva", "flame.fill") { heatmap }
-            if !fontesDestaque.isEmpty {
+            if partes.contains(.checklist) { JurisChecklistMiniCard(openChecklist: { store.selecao = .checklist }) }
+            if partes.contains(.kpis) { kpiGrid }
+            if partes.contains(.atalhos) { secao("Baralhos e revisão", "bolt.horizontal.fill") { acoesRapidas } }
+            if partes.contains(.ofensiva) { secao("Sua ofensiva", "flame.fill") { heatmap } }
+            if partes.contains(.fontes), !fontesDestaque.isEmpty {
                 secao("Seu progresso por fonte", "chart.bar.fill") { progressoFontes }
             }
         }
