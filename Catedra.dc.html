@@ -476,6 +476,7 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ areaJuris }}" hint-placeholder-val="{{ true }}">
       <button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraJURIS</span></button>
       </sc-if>
+      
       <button data-view="ajustes" onclick="{{ onNav }}" style="{{ navStyle.ajustes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.3 2.5h4l.3-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" stroke-linejoin="round"></path></svg><span>Ajustes</span></button>
     </nav>
     </sc-if>
@@ -5437,6 +5438,16 @@ class Component extends DCLogic {
         heroGrad:'linear-gradient(120deg,#7c5cf0 0%,#0ea5e9 55%,#e0479d 110%)' } }
   };}
 
+  // O Mac e o iPad têm CátedraLEGIS e CátedraJURIS como ABAS no topo da janela. Ter as
+  // mesmas entradas no menu lateral criava duas portas para o mesmo acervo, com estados
+  // separados — e a de cima é a certa, porque é a nativa. No SITE não há aba nenhuma, e
+  // ali o menu continua sendo a única porta; por isso a decisão é por presença da ponte
+  // nativa, não por um interruptor manual.
+  _temAbasNativas(){
+    try{ return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraNav); }
+    catch(_){ return false; }
+  }
+
   onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
@@ -7805,6 +7816,13 @@ class Component extends DCLogic {
 
     const navStyle = (id)=>{
       const on = this.state.view===id;
+      // As entradas de CátedraLEGIS e CátedraJURIS aqui embaixo VÃO sair no Mac e no iPad,
+      // porque lá o acervo é aba no topo e duas portas para a mesma coisa criam estados
+      // separados. Mas só depois que o módulo NATIVO tiver o que hoje só existe no web
+      // (grade de informativos, julgado do dia, prova oral, roteiro de estudo do verbete,
+      // mapa de incidência) — esconder antes disso tira a única porta que existe.
+      // Quando for a hora: `if((id==='legis'||id==='juris') && this._temAbasNativas())
+      // return 'display:none;';`
       return `display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;cursor:pointer;`+
         `padding:11px 13px;border-radius:12px;font-size:14px;font-weight:${on?'700':'500'};font-family:inherit;`+
         `transition:all .18s;background:${on?'linear-gradient(90deg,var(--accent),var(--accentD))':'transparent'};`+
@@ -10187,6 +10205,7 @@ class Component extends DCLogic {
       isBiblioteca:this.state.view==='biblioteca', navBiblioteca:navStyle('biblioteca'), bibList, bibCount,
       isLegis:this.state.view==='legis', navLegis:navStyle('legis'),
       isJuris:this.state.view==='juris', navJuris:navStyle('juris'),
+      mostraNavAcervo: !this._temAbasNativas(),
       bibDraft:this.state.bibDraft, onBibDraft:this.onBibDraft, addBiblio:this.addBiblio, removeBiblio:this.removeBiblio, editBiblio:this.editBiblio, setBibFilter:this.setBibFilter,
       bibStats, bibEmpty,
       // leitor + upload
