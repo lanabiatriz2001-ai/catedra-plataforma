@@ -103,6 +103,8 @@ done
 [ -f "$ROOT/incidencia.json" ] && cp "$ROOT/incidencia.json" "$APP/Contents/Resources/incidencia.json"
 # Banco de discursivas/peças (scripts/build-discursivas-nativo.mjs -> discursivas.json): alimenta o Simulado.
 [ -f "$ROOT/discursivas.json" ] && cp "$ROOT/discursivas.json" "$APP/Contents/Resources/discursivas.json"
+# Material oficial de prova oral (scripts/build-oral.mjs -> oral.json): alimenta "Oral · bancas reais".
+[ -f "$ROOT/oral.json" ] && cp "$ROOT/oral.json" "$APP/Contents/Resources/oral.json"
 [ -f "$ROOT/incidencia-verbetes.json" ] && cp "$ROOT/incidencia-verbetes.json" "$APP/Contents/Resources/incidencia-verbetes.json"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 

@@ -100,6 +100,8 @@ done
 [ -f "$ROOT/incidencia-verbetes.json" ] && cp "$ROOT/incidencia-verbetes.json" "$APP/incidencia-verbetes.json"
 # Banco de discursivas/peças (scripts/build-discursivas-nativo.mjs -> discursivas.json): alimenta o Simulado.
 [ -f "$ROOT/discursivas.json" ] && cp "$ROOT/discursivas.json" "$APP/discursivas.json"
+# Material oficial de prova oral (scripts/build-oral.mjs -> oral.json).
+[ -f "$ROOT/oral.json" ] && cp "$ROOT/oral.json" "$APP/oral.json"
 echo "     acervo do JURIS: $(ls -1 "$APP"/corpus*.json "$APP"/notas.json "$APP"/indice.json 2>/dev/null | wc -l | tr -d ' ') arquivo(s)"
 
 plutil -lint "$APP/Info.plist" >/dev/null && echo "     Info.plist válido"

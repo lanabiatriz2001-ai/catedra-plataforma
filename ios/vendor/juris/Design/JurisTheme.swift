@@ -187,7 +187,8 @@ enum Selecao: Hashable {
     case filtro(EscopoFiltrado)       // lista final de um recorte combinado
     case gradeInformativos            // uma edição por quadradinho (verde/âmbar/cinza)
     case julgadoDoDia                 // um verbete por dia, sorteado com semente na data
-    case provaOral                    // a IA pergunta sobre um verbete, você responde, ela corrige
+    case provaOral                    // arguição local sobre o acervo, sem IA
+    case oralBancas                   // material oficial de prova oral: pontos, perguntas, padrão de resposta
     case simulado                     // prova C/E + discursivas sorteadas do acervo (local, sem IA)
 
     var titulo: String {
@@ -195,6 +196,7 @@ enum Selecao: Hashable {
         case .gradeInformativos: return "Informativos"
         case .julgadoDoDia: return "Julgado do dia"
         case .provaOral: return "Prova oral"
+        case .oralBancas: return "Oral · bancas reais"
         case .simulado: return "Simulado"
         case .inicio: return "Início"
         case .todos: return "Todos os verbetes"
@@ -246,6 +248,7 @@ enum Selecao: Hashable {
         case .gradeInformativos: return "square.grid.3x3.fill"
         case .julgadoDoDia: return "sun.max.fill"
         case .provaOral: return "mic.fill"
+        case .oralBancas: return "person.wave.2.fill"
         case .simulado: return "list.bullet.clipboard.fill"
         }
     }
