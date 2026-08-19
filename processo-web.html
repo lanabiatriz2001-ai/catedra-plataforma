@@ -57,6 +57,29 @@ html,body{margin:0;background:var(--bg);color:var(--ink);
 #mats .pill{flex:none;white-space:nowrap}
 .ferr{flex:none}
 .h1{font-family:var(--display);font-size:18px;font-weight:700;margin-right:6px}
+/* Abas do módulo: Trâmite (o mapa) · Roteiros de peças · Banco de peças e discursivas */
+.abas{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:4px;margin-right:10px}
+.abas button{border:0;background:transparent;color:var(--text2);border-radius:9px;padding:6px 13px;font:700 12.5px inherit;cursor:pointer}
+.abas button.on{background:var(--accent);color:#04140d}
+.painel{display:none;padding:18px 16px 40px;max-width:1100px;margin:0 auto}
+.painel.on{display:block}
+.rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.rcard{border:1px solid var(--border);background:var(--surface2);border-radius:13px;padding:14px 16px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);border-left:4px solid var(--peca)}
+.rcard b{display:block;font-size:14px;margin-bottom:4px}
+.rcard span{font-size:11.5px;color:var(--text3)}
+.rcard.falta{opacity:.55;border-left-color:var(--border);cursor:default}
+.bfil{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bfil select,.bfil input{border:1px solid var(--border);background:var(--surface2);color:var(--ink);border-radius:9px;padding:8px 11px;font:13px inherit}
+.bfil input{flex:1;min-width:200px}
+.qcard{border:1px solid var(--border);background:var(--surface2);border-radius:13px;padding:13px 15px;margin-bottom:9px}
+.qcard .meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:5px}
+.qcard .meta i{font-style:normal;font:700 10.5px var(--mono);color:var(--text3)}
+.qcard .meta em{font-style:normal;font:800 10px inherit;letter-spacing:.04em;text-transform:uppercase;border-radius:99px;padding:2px 8px;background:var(--peca);color:#15121f}
+.qcard .meta em.disc{background:var(--assunto);color:#06131f}
+.qcard .meta em.esp{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.qcard b{display:block;font-size:13.5px;margin-bottom:3px}
+.qcard p{margin:0;font-size:12.5px;color:var(--text2);line-height:1.55}
+.qcard button{margin-top:8px;border:1px solid var(--accent);background:transparent;color:var(--accentD);border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
 .pill{border:1px solid var(--border);background:var(--surface2);color:var(--text2);
   border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
 .pill.on{background:var(--accent);border-color:var(--accent);color:#04140d}
@@ -96,7 +119,8 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
 </style></head><body>
 
 <div class="barra">
-  <span class="h1">Processo e peças</span><span style="font-size:11.5px;color:var(--text3);margin-right:8px">a sequência de cada rito</span>
+  <span class="h1">Processo e peças</span>
+  <span class="abas" id="abas"><button data-p="mapa" class="on">Trâmite</button><button data-p="roteiros">Roteiros de peças</button><button data-p="banco">Peças e discursivas</button></span>
   <span id="mats"></span>
   <span class="ferr">
     <button id="menos">−</button><span class="zoomlbl" id="zl">100%</span><button id="mais">+</button>
@@ -117,6 +141,15 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
   <span style="margin-left:auto">toque num nó para abrir/fechar · pinça ou roda para ampliar</span>
 </div>
 
+<div class="painel" id="pRoteiros">
+  <p style="font-size:12.5px;color:var(--text3);margin:0 0 12px">O esqueleto de cada peça: blocos na ordem, o dispositivo que manda, a jurisprudência e o erro que custa ponto. Também abre clicando num ato ✍️ do trâmite.</p>
+  <div class="rlist" id="rlist"></div>
+</div>
+<div class="painel" id="pBanco">
+  <p style="font-size:12.5px;color:var(--text3);margin:0 0 12px">Peças e questões discursivas de provas aplicadas, com o espelho oficial quando a banca publicou. "Praticar" leva a questão para a Redação, com o espelho no lugar.</p>
+  <div class="bfil"><input id="bq" placeholder="Buscar por tema, órgão, banca, ano…"><select id="btipo"><option value="">Peças e discursivas</option><option value="peca">Só peças</option><option value="discursiva">Só discursivas</option></select><select id="bcarr"><option value="">Todas as carreiras</option></select><select id="bdisc"><option value="">Todas as disciplinas</option></select></div>
+  <div id="blist"></div>
+</div>
 <div class="rot" id="rot">
   <div class="rotTop"><div><h2 id="rotTit"></h2><p id="rotSub"></p></div><button class="rotX" id="rotX">✕</button></div>
   <div class="rotTabs"><button id="rotTabR" class="on">Roteiro</button><button id="rotTabC">Modo cego</button></div>
@@ -125,6 +158,7 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
 
 <script src="ritos.js"></script>
 <script src="pecas.js"></script>
+<script src="discursivas.js"></script>
 <script>
 /* ===== ROTEIRO DE PEÇA =====================================================
    O mapa dá a SEQUÊNCIA; aqui vem o esqueleto da peça. Dois modos: "Roteiro"
@@ -194,6 +228,75 @@ svg#fios{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
         {type:'ctAbrirAcervo', alvo:b.dataset.alvo, termo:termoBusca(b.dataset.t, b.dataset.alvo)}, '*'); }catch(e){} };
     });
   }
+
+  // ---- Abas do módulo. O mapa fica sempre montado (é caro); só se esconde.
+  const palco=document.getElementById('palco'), legenda=document.querySelector('.legenda');
+  function abaAtiva(qual){
+    document.querySelectorAll('#abas button').forEach(b=>b.classList.toggle('on',b.dataset.p===qual));
+    const mapa=(qual==='mapa');
+    if(palco)palco.style.display=mapa?'':'none';
+    if(legenda)legenda.style.display=mapa?'':'none';
+    document.getElementById('mats').style.display=mapa?'':'none';
+    document.querySelector('.ferr').style.display=mapa?'':'none';
+    document.getElementById('pRoteiros').classList.toggle('on',qual==='roteiros');
+    document.getElementById('pBanco').classList.toggle('on',qual==='banco');
+    if(qual==='roteiros')pintaRoteiros();
+    if(qual==='banco')pintaBanco();
+  }
+  document.querySelectorAll('#abas button').forEach(b=>b.onclick=()=>abaAtiva(b.dataset.p));
+
+  // ---- Roteiros: todas as peças que aparecem no trâmite (ritos.js), marcando quais
+  // já têm roteiro escrito (pecas.js) e quais ainda não.
+  function pecasDoTramite(){
+    const nomes=new Set();
+    Object.values(window.CT_RITOS||{}).forEach(rito=>rito.forEach(ato=>(ato[2]||[]).forEach(f=>{
+      if(f[1]==='peca')nomes.add(String(f[0]).replace(/^[^\p{L}]+/u,'').trim());
+    })));
+    return [...nomes];
+  }
+  function pintaRoteiros(){
+    const host=document.getElementById('rlist'); if(!host)return;
+    const tem=window.CT_PECAS||{};
+    const nomes=pecasDoTramite().sort((a,b)=>(b in tem)-(a in tem)||a.localeCompare(b,'pt'));
+    host.innerHTML=nomes.map(n=>{
+      const p=tem[n];
+      return '<button class="rcard'+(p?'':' falta')+'" data-n="'+esc(n)+'"><b>'+esc(n)+'</b><span>'
+        +(p?(p.blocos||[]).length+' blocos · modo cego com '+(p.cego||[]).length+' itens':'roteiro ainda não escrito')+'</span></button>';
+    }).join('');
+    host.querySelectorAll('.rcard:not(.falta)').forEach(b=>b.onclick=()=>window.abrirRoteiro(b.dataset.n));
+  }
+
+  // ---- Banco de peças e discursivas (o MESMO discursivas.js da Redação)
+  function pintaBanco(){
+    const host=document.getElementById('blist'); if(!host)return;
+    const todas=window.CT_DISCURSIVAS||[];
+    const sc=document.getElementById('bcarr'), sd=document.getElementById('bdisc');
+    if(sc.options.length===1)[...new Set(todas.map(q=>q.carreira).filter(Boolean))].sort().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sc.appendChild(o);});
+    if(sd.options.length===1)[...new Set(todas.map(q=>q.disciplina).filter(Boolean))].sort().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sd.appendChild(o);});
+    const q=(document.getElementById('bq').value||'').trim().toLowerCase();
+    const tipo=document.getElementById('btipo').value, carr=sc.value, disc=sd.value;
+    const lista=todas.filter(x=>{
+      if(tipo&&(x.tipo||'discursiva')!==tipo)return false;
+      if(carr&&x.carreira!==carr)return false;
+      if(disc&&x.disciplina!==disc)return false;
+      if(!q)return true;
+      return ((x.tema||'')+' '+(x.enunciado||'')+' '+(x.orgao||'')+' '+(x.banca||'')+' '+(x.ano||'')).toLowerCase().includes(q);
+    });
+    host.innerHTML=(lista.length?'':'<p style="color:var(--text3);font-size:12.5px">Nada com esses filtros.</p>')
+      +lista.map(x=>{
+        const ehP=x.tipo==='peca';
+        const esp=(x.espelho&&x.espelho.length)?(x.espelho.length+' quesitos'+(x.total!=null?' · '+x.total+' pts':'')):'sem espelho publicado';
+        return '<div class="qcard"><div class="meta"><i>'+esc([x.orgao,x.ano,x.banca].filter(Boolean).join(' · '))+'</i>'
+          +'<em class="'+(ehP?'':'disc')+'">'+esc(ehP?(x.peca||'Peça'):'Discursiva')+'</em><em class="esp">'+esc(esp)+'</em>'
+          +(x.carreira?'<em class="esp">'+esc(x.carreira)+'</em>':'')+'</div>'
+          +'<b>'+esc(x.tema||x.disciplina||'')+'</b><p>'+esc(String(x.enunciado||'').slice(0,220))+(String(x.enunciado||'').length>220?'…':'')+'</p>'
+          +'<button data-id="'+esc(x.id)+'">Praticar na Redação →</button></div>';
+      }).join('');
+    host.querySelectorAll('.qcard button').forEach(b=>b.onclick=()=>{
+      try{ window.parent.postMessage({type:'ctPraticarDiscursiva', id:b.dataset.id}, '*'); }catch(e){}
+    });
+  }
+  ['bq','btipo','bcarr','bdisc'].forEach(id=>{ const el=document.getElementById(id); if(el){ el.oninput=pintaBanco; el.onchange=pintaBanco; } });
 
   window.abrirRoteiro=function(nome){
     atual=nome; modo='roteiro';

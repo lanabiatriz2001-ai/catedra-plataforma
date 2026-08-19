@@ -8,6 +8,8 @@ enum SidebarItem: Hashable {
     case checklist
     case planoLeitura
     case indiceEstrutural
+    case incidencia          // mapa de incidência por artigo (citações no acervo do JURIS)
+    case provaOral           // a IA pergunta sobre um artigo e corrige contra a lei
     case globalSearch
     case updates
     case novidades
@@ -239,6 +241,8 @@ private struct LegisSidebar: View {
                     row(.all, "Todas as normas", "books.vertical", badge: lawCount)
                     row(.favorites, "Favoritos", "star", badge: store.favoriteCount)
                     row(.planoLeitura, "Plano de leitura", "calendar")
+                    row(.incidencia, "Incidência", "target")
+                    row(.provaOral, "Prova oral", "mic.fill")
                     row(.indiceEstrutural, "Índice das normas", "list.bullet.indent")
                     row(.subjects, "Assuntos", "tag")
                     row(.globalSearch, "Buscar em tudo", "magnifyingglass")
@@ -373,6 +377,10 @@ private struct SectionScreen: View {
             PlanoLeituraView(open: openLaw)
         case .indiceEstrutural:
             IndiceNormasView(open: openLaw)
+        case .incidencia:
+            IncidenciaView(abrirLei: openLaw)
+        case .provaOral:
+            ProvaOralLegisView()
         case .globalSearch:
             GlobalSearchView(openAt: { id, idx in
                 store.setLastUnit(id, idx); readerMode = "estudo"; openLaw(id)

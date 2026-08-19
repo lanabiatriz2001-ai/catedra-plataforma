@@ -96,6 +96,7 @@ for f in corpus.json notas.json indice.json; do
 done
 # A Central de Contas (TCU + TCEs) é gerada NESTE repo, dos mesmos dados que a web usa.
 [ -f "$ROOT/corpus-contas.json" ] && cp "$ROOT/corpus-contas.json" "$APP/corpus-contas.json"
+[ -f "$ROOT/incidencia.json" ] && cp "$ROOT/incidencia.json" "$APP/incidencia.json"
 echo "     acervo do JURIS: $(ls -1 "$APP"/corpus*.json "$APP"/notas.json "$APP"/indice.json 2>/dev/null | wc -l | tr -d ' ') arquivo(s)"
 
 plutil -lint "$APP/Info.plist" >/dev/null && echo "     Info.plist válido"

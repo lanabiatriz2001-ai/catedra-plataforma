@@ -4426,6 +4426,17 @@ class Component extends DCLogic {
       // Então eles pedem IA por mensagem e a resposta volta pelo mesmo canal.
       // Quiz do CátedraJURIS: o que ela errou vira flashcard no baralho DO APP — não num
       // baralho paralelo dentro do iframe, que ela nunca reveria.
+      // "Praticar na Redação" vindo de Processo e peças: leva a questão para o
+      // compositor e troca de tela. Reusa o usarDiscursiva, que já sabe montar
+      // enunciado + espelho.
+      if(e.data.type==='ctPraticarDiscursiva'){
+        const id=String(e.data.id||'');
+        this._carregarDiscursivas().then(()=>{
+          this.usarDiscursiva({currentTarget:{getAttribute:()=>id}});
+          this.setState({view:'redacao'});
+        });
+        return;
+      }
       if(e.data.type==='ctFlashcards'){
         const cards=Array.isArray(e.data.cards)?e.data.cards:[];
         if(!cards.length) return;

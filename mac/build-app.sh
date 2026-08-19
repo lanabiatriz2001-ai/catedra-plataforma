@@ -99,6 +99,8 @@ done
 # A Central de Contas (TCU + TCEs) NAO vem do repo do Vade Mecum: e gerada aqui, dos
 # mesmos dados que a web usa (scripts/build-contas-nativo.mjs -> corpus-contas.json).
 [ -f "$ROOT/corpus-contas.json" ] && cp "$ROOT/corpus-contas.json" "$APP/Contents/Resources/corpus-contas.json"
+# Mapa de incidência por artigo (LEGIS nativo): mesmo dado do incidencia.js da web, em JSON.
+[ -f "$ROOT/incidencia.json" ] && cp "$ROOT/incidencia.json" "$APP/Contents/Resources/incidencia.json"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 cat > "$APP/Contents/Info.plist" <<PLIST

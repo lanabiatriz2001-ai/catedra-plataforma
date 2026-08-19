@@ -143,6 +143,7 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                DestaquesEstudoView()   // julgado do dia + últimos informativos, em destaque na abertura
                 barraBusca
                 JurisDashboardView()
                 // Resumo semanal de informativos (IA): o que saiu dos tribunais e o

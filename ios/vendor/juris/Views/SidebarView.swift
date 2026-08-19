@@ -77,6 +77,12 @@ struct JurisSidebar: View {
                     row(.favoritos, "Favoritos", "star")
                     row(.anotacoes, "Minhas anotações", "square.and.pencil")
                     row(.novidades, "Novidades", "sparkles", ponto: store.novidadesNaoVistas > 0)
+                    // ESTUDO — julgado do dia e a grade de informativos são as portas de
+                    // entrada do dia a dia; a prova oral e o roteiro moram DENTRO de cada
+                    // verbete (não são lista, são modo de ler).
+                    row(.julgadoDoDia, "Julgado do dia", "sun.max.fill")
+                    row(.gradeInformativos, "Informativos", "square.grid.3x3.fill")
+                    row(.provaOral, "Prova oral", "mic.fill")
                     row(.mapas, "Mapas mentais", "brain.head.profile")
                     row(.plano, "Plano de leitura", "calendar")
                     row(.indice, "Índice alfabético", "textformat.abc")
