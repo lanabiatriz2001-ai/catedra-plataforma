@@ -464,6 +464,18 @@ enum Fonte: String, CaseIterable, Identifiable {
         }
     }
 
+    /// "Informativo", no sentido amplo pedido: os boletins periódicos, STF/STJ/TSE e os
+    /// do TCU. É o que decide se o roteiro de estudo do verbete se gera SOZINHO ao abrir
+    /// (em vez de esperar o clique em "Gerar roteiro de estudo").
+    var ehInformativo: Bool {
+        switch self {
+        case .informativoSTF, .informativoSTJ, .informativoTSE,
+             .boletimJurisTCU, .boletimPessoalTCU, .infoLicTCU:
+            return true
+        default: return false
+        }
+    }
+
     /// Ordem de exibição na barra lateral.
     static var ordem: [Fonte] {
         [.tjro, .tjroPrec, .sumulaVinculante, .sumulaSTF, .sumulaSTJ, .sumulaTSE, .repercussaoGeral, .repetitivo,

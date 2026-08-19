@@ -230,7 +230,7 @@ struct GradeInformativosView: View {
                 Spacer()
             }
             Text("Informativos").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
-            HStack(spacing: 22) {
+            Flow(espacamento: 22) {
                 kpi("\(tot)", "edições")
                 kpi("\(lidas)", "lidas", cor: Color(hex: "#16A34A"))
                 kpi("\(comecadas)", "começadas", cor: Color(hex: "#D97706"))
@@ -294,23 +294,11 @@ struct JulgadoDoDiaView: View {
     @Environment(LibraryStore.self) private var store
     @State private var mostrarOral = false
 
-    private static func semente(_ s: String) -> UInt32 {
-        var h: UInt32 = 2166136261
-        for b in s.utf8 { h ^= UInt32(b); h = h &* 16777619 }
-        return h
-    }
-    private var hojeISO: String {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f.string(from: Date())
-    }
-    /// Prioriza o que a prova cobra: destaque (★) e ainda não dominado. Se tudo estiver
-    /// dominado, volta a sortear no acervo todo. Semente = data: o dia devolve sempre o mesmo.
-    var verbete: JurisEntry? {
-        var pool = store.entries.filter { $0.importante && !store.dominados.contains($0.id) }
-        if pool.isEmpty { pool = store.entries.filter { $0.importante } }
-        if pool.isEmpty { pool = store.entries }
-        guard !pool.isEmpty else { return nil }
-        return pool[Int(Self.semente(hojeISO) % UInt32(pool.count))]
-    }
+    /// FONTE ÚNICA: o mesmo `store.verbeteDoDia` que o painel da Home já usava (mesma
+    /// semente por data, muda à meia-noite). Antes esta tela recalculava por conta
+    /// própria com OUTRO algoritmo de semente — os dois sorteavam verbetes diferentes
+    /// no mesmo dia, e apareciam ao mesmo tempo na Home como se fossem coisas distintas.
+    var verbete: JurisEntry? { store.verbeteDoDia }
 
     var body: some View {
         ScrollView {
@@ -332,7 +320,7 @@ struct JulgadoDoDiaView: View {
     private func cartao(_ e: JurisEntry) -> some View {
         let cor = e.fonteKind.cor
         return VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
+            Flow {
                 EtiquetaEstudo(texto: e.tribunal, cor: cor)
                 EtiquetaEstudo(texto: e.fonteKind.nomeCurto, cor: cor)
                 if let r = e.ramoDireito { EtiquetaEstudo(texto: r, cor: RamoStyle.color(r)) }
@@ -350,6 +338,11 @@ struct JulgadoDoDiaView: View {
                 }.buttonStyle(.bordered).tint(cor)
             }
             if mostrarOral { ProvaOralView(entry: e) }
+            // O destaque do dia é o ÚNICO lugar que gera o roteiro sozinho, sem esperar
+            // clique — é justamente o "visual e explicação nos julgados" (Em uma frase,
+            // Fundamento, Como era, O que decidiu, Pegadinha, quiz), pedido para aparecer
+            // já na abertura. Em qualquer outro verbete continua sob demanda.
+            RoteiroEstudoView(entry: e, autoGerar: true)
         }
         .padding(22)
         .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
@@ -363,6 +356,11 @@ struct JulgadoDoDiaView: View {
 struct RoteiroEstudoView: View {
     @Environment(LibraryStore.self) private var store
     let entry: JurisEntry
+    /// true SÓ no card do Julgado do dia: é o único verbete em destaque na abertura,
+    /// então vale gastar uma chamada de IA sem esperar clique. Em qualquer outro verbete
+    /// (a lista inteira, 25 mil) o padrão continua sob demanda — gerar em toda abertura
+    /// de página gastaria a cota da API à toa.
+    var autoGerar: Bool = false
     @State private var roteiro: RoteiroEstudo?
     @State private var gerando = false
     @State private var erro: String?
@@ -380,8 +378,9 @@ struct RoteiroEstudoView: View {
                         Task { await gerar() }
                     } label: { Label(gerando ? "Escrevendo…" : "Gerar roteiro de estudo", systemImage: "sparkles") }
                     .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(gerando || !CatedraIA.disponivel)
+                    // Prova oral não depende de IA (é local): não some quando a IA está fora.
                     Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }
-                        .buttonStyle(.bordered).disabled(!CatedraIA.disponivel)
+                        .buttonStyle(.bordered)
                 }
                 Text(CatedraIA.disponivel
                      ? "Tese em uma frase, fundamento, o que mudou, pontos que a prova cobra, pegadinha e um quiz — escritos pela IA a partir do enunciado oficial acima."
@@ -393,6 +392,9 @@ struct RoteiroEstudoView: View {
         }
         .onAppear { roteiro = RoteiroCache.get(entry.id) }
         .onChange(of: entry.id) { _, _ in roteiro = RoteiroCache.get(entry.id); respostas = [:]; enviouFlash = false; erro = nil }
+        .task(id: entry.id) {
+            if autoGerar, roteiro == nil, !gerando, CatedraIA.disponivel { await gerar() }
+        }
     }
 
     private func gerar() async {
@@ -406,10 +408,9 @@ struct RoteiroEstudoView: View {
     }
 
     @ViewBuilder private func conteudo(_ r: RoteiroEstudo) -> some View {
-        HStack(spacing: 6) {
+        Flow {
             if let n = r.nivel { EtiquetaEstudo(texto: "Nível \(n)") }
             if r.segundaFase == true { EtiquetaEstudo(texto: "2ª fase") }
-            Spacer()
         }
         if let t = r.frase, !t.isEmpty { BlocoEstudo(rotulo: "Em uma frase") { Text(t).fontWeight(.semibold) } }
         if let t = r.fundamento, !t.isEmpty { BlocoEstudo(rotulo: "Fundamento", cor: Palette.secondaryInk) { Text(t) } }
@@ -496,58 +497,43 @@ struct RoteiroEstudoView: View {
 
 // MARK: - 4. Prova oral
 
+// Prova oral SEM IA: pergunta e correção geradas na hora, no aparelho, pela própria
+// plataforma (ProvaOralLocal). Antes cada pergunta e cada correção eram uma chamada
+// paga à API da Anthropic — dependente de rede e de custo por uso; agora não depende
+// de nada além do acervo que já está no bundle.
 struct ProvaOralView: View {
     let entry: JurisEntry
-    @State private var pergunta: String?
+    @State private var pergunta: String = ""
     @State private var resposta = ""
-    @State private var carregando = false
-    @State private var corrigindo = false
     @State private var correcao: Correcao?
-    @State private var erro: String?
 
     struct Correcao: Codable { var nota: String?; var acertou: [String]?; var faltou: [String]?; var modelo: String? }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             RotuloEstudo(texto: "Prova oral")
-            if !CatedraIA.disponivel {
-                Text(CatedraIA.semIA).font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
-            } else if let p = pergunta {
-                Text(p).font(.system(size: 15.5, weight: .semibold)).lineSpacing(3).foregroundStyle(Palette.titleInk)
-                TextEditor(text: $resposta)
-                    .font(.system(size: 14)).frame(minHeight: 110)
-                    .padding(8)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
-                HStack(spacing: 9) {
-                    Button(corrigindo ? "Corrigindo…" : "Corrigir") { Task { await corrigir() } }
-                        .buttonStyle(.borderedProminent).tint(Palette.accent)
-                        .disabled(corrigindo || resposta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    Button("Outra pergunta") { Task { await perguntar() } }.buttonStyle(.bordered).disabled(carregando)
-                }
-                if let c = correcao { resultado(c) }
-            } else {
-                Text(carregando ? "Formulando a pergunta…" : "Responda como responderia na banca — em voz alta primeiro, se quiser, e depois escreva o essencial.")
-                    .font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
+            Text(pergunta).font(.system(size: 15.5, weight: .semibold)).lineSpacing(3).foregroundStyle(Palette.titleInk)
+            TextEditor(text: $resposta)
+                .font(.system(size: 14)).frame(minHeight: 110)
+                .padding(8)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
+            HStack(spacing: 9) {
+                Button("Corrigir") { correcao = ProvaOralLocal.corrigir(entry, resposta: resposta) }
+                    .buttonStyle(.borderedProminent).tint(Palette.accent)
+                    .disabled(resposta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                Button("Outra pergunta") { perguntar() }.buttonStyle(.bordered)
             }
-            if let erro { Text(erro).font(.system(size: 12)).foregroundStyle(Color(hex: "#DC2626")) }
+            if let c = correcao { resultado(c) }
         }
         .padding(14)
         .background(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius - 2), style: .continuous).fill(Palette.accent.opacity(0.06)))
-        .task { if pergunta == nil, CatedraIA.disponivel { await perguntar() } }
+        .onAppear { if pergunta.isEmpty { perguntar() } }
     }
 
-    private func perguntar() async {
-        carregando = true; erro = nil; correcao = nil; resposta = ""
-        defer { carregando = false }
-        do { pergunta = try await CatedraIA.texto(PromptsEstudo.perguntaOral(entry)) }
-        catch { erro = error.localizedDescription }
-    }
-    private func corrigir() async {
-        corrigindo = true; erro = nil
-        defer { corrigindo = false }
-        do { correcao = try await CatedraIA.json(PromptsEstudo.corrigirOral(entry, resposta: resposta), como: Correcao.self) }
-        catch { erro = error.localizedDescription }
+    private func perguntar() {
+        pergunta = ProvaOralLocal.pergunta(entry)
+        correcao = nil; resposta = ""
     }
 
     @ViewBuilder private func resultado(_ c: Correcao) -> some View {
@@ -641,7 +627,7 @@ struct ProvaOralJurisView: View {
                         ForEach(candidatos) { e in
                             Button { escolhido = e; busca = "" } label: {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    HStack(spacing: 6) { EtiquetaEstudo(texto: e.tribunal, cor: e.fonteKind.cor); Text(e.titulo).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(Palette.titleInk) }
+                                    Flow { EtiquetaEstudo(texto: e.tribunal, cor: e.fonteKind.cor); Text(e.titulo).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(Palette.titleInk) }
                                     Text(e.enunciado).font(.system(size: 12)).lineLimit(2).foregroundStyle(Palette.secondaryInk)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -655,10 +641,12 @@ struct ProvaOralJurisView: View {
                 let alvo = escolhido ?? JulgadoDoDiaView().verbete
                 if let e = alvo {
                     VStack(alignment: .leading, spacing: 10) {
-                        HStack(spacing: 6) {
-                            EtiquetaEstudo(texto: e.tribunal, cor: e.fonteKind.cor)
-                            EtiquetaEstudo(texto: e.fonteKind.nomeCurto, cor: e.fonteKind.cor)
-                            if escolhido == nil { EtiquetaEstudo(texto: "Julgado do dia", cor: Palette.importante) }
+                        HStack {
+                            Flow {
+                                EtiquetaEstudo(texto: e.tribunal, cor: e.fonteKind.cor)
+                                EtiquetaEstudo(texto: e.fonteKind.nomeCurto, cor: e.fonteKind.cor)
+                                if escolhido == nil { EtiquetaEstudo(texto: "Julgado do dia", cor: Palette.importante) }
+                            }
                             Spacer()
                             Button("Abrir no leitor") { store.lerCheio(e.id) }.buttonStyle(.plain).foregroundStyle(Palette.accent)
                         }
@@ -675,5 +663,90 @@ struct ProvaOralJurisView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Palette.appBackground)
+    }
+}
+
+// MARK: - Prova oral LOCAL — sem IA, sem custo, sem depender de internet nem de chave.
+// Reaproveita o gerador de lacuna que o baralho de revisão espaçada já tinha
+// (Exporter.melhorLacuna / JurisFlashcards) para montar a pergunta, e corrige por
+// cobertura de termos-chave contra o próprio enunciado oficial — determinístico,
+// roda inteiro no aparelho.
+@MainActor
+enum ProvaOralLocal {
+    // Palavras curtas ou conectivas não contam como "termo-chave": senão qualquer
+    // resposta que use "do", "da", "não" batia com tudo.
+    private static let stop: Set<String> = ["de","do","da","dos","das","e","em","a","o","os","as",
+        "no","na","nos","nas","ao","à","com","por","para","que","não","um","uma","the","art","artigo",
+        "lei","sobre","entre","ser","é","se","direito","seu","sua","seus","suas","ou","mais","the"]
+
+    private static func normaliza(_ s: String) -> String {
+        s.folding(options: .diacriticInsensitive, locale: Locale(identifier: "pt_BR")).lowercased()
+    }
+    private static func termosChave(_ texto: String, max: Int = 14) -> [String] {
+        let brutos = texto.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+            .map { normaliza(String($0)) }
+            .filter { $0.count >= 5 && !stop.contains($0) }
+        var vistos = Set<String>(), saida: [String] = []
+        for t in brutos where !vistos.contains(t) { vistos.insert(t); saida.append(t) }
+        return Array(saida.prefix(max))
+    }
+
+    /// Pergunta de arguição sobre um VERBETE — sem IA.
+    static func pergunta(_ e: JurisEntry) -> String {
+        if let d = JurisFlashcards.direta(e), let termo = d.answer, !termo.isEmpty {
+            return "Complete e explique: \(d.prompt.replacingOccurrences(of: "Complete a tese:\n\n", with: ""))\n\n(A banca quer ouvir o raciocínio inteiro, não só a palavra que falta.)"
+        }
+        return "Explique o entendimento fixado em \"\(e.titulo)\" — o que ele decide e por quê."
+    }
+
+    /// Corrige contra o ENUNCIADO OFICIAL do verbete, por cobertura de termos-chave.
+    static func corrigir(_ e: JurisEntry, resposta: String) -> ProvaOralView.Correcao {
+        corrigirContra(base: e.enunciado, resposta: resposta)
+    }
+
+    /// Mesma correção, genérica — usada também pelo LEGIS (contra o trecho da lei).
+    static func corrigirContra(base texto: String, resposta: String) -> ProvaOralView.Correcao {
+        let chave = termosChave(texto)
+        let respN = normaliza(resposta)
+        let acertou = chave.filter { respN.contains($0) }
+        let faltou = chave.filter { !respN.contains($0) }
+        let cobertura = chave.isEmpty ? 0 : Double(acertou.count) / Double(chave.count)
+        let nota = cobertura >= 0.6 ? "boa" : (cobertura >= 0.3 ? "media" : "fraca")
+        return ProvaOralView.Correcao(
+            nota: nota,
+            acertou: acertou.isEmpty ? nil : ["Mencionou: " + acertou.prefix(6).joined(separator: ", ")],
+            faltou: faltou.isEmpty ? nil : ["Não apareceu na resposta: " + faltou.prefix(6).joined(separator: ", ")],
+            modelo: texto
+        )
+    }
+}
+
+// MARK: - Flow (fileira que QUEBRA de linha) — corrige o estouro de largura no iPad.
+// Fileiras de etiquetas/KPIs eram HStack rígido: cabiam no Mac (janela larga) e
+// ultrapassavam a borda no iPad, sobretudo em retrato ou com a barra lateral aberta,
+// porque HStack nunca quebra linha sozinho. Layout protocol (iOS 16+) resolve sem
+// depender de largura fixa nem de ScrollView horizontal escondendo conteúdo.
+struct Flow: Layout {
+    var espacamento: CGFloat = 6
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let largura = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, alturaLinha: CGFloat = 0
+        for v in subviews {
+            let t = v.sizeThatFits(.unspecified)
+            if x > 0 && x + t.width > largura { x = 0; y += alturaLinha + espacamento; alturaLinha = 0 }
+            x += t.width + espacamento
+            alturaLinha = max(alturaLinha, t.height)
+        }
+        return CGSize(width: largura, height: y + alturaLinha)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x: CGFloat = bounds.minX, y: CGFloat = bounds.minY, alturaLinha: CGFloat = 0
+        for v in subviews {
+            let t = v.sizeThatFits(.unspecified)
+            if x > bounds.minX && x + t.width > bounds.maxX { x = bounds.minX; y += alturaLinha + espacamento; alturaLinha = 0 }
+            v.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(t))
+            x += t.width + espacamento
+            alturaLinha = max(alturaLinha, t.height)
+        }
     }
 }
