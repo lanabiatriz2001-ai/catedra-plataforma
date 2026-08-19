@@ -1942,6 +1942,12 @@ window.ctPdfLib = (function(){
              <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
               <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
                 <input value="{{ bancoQ }}" oninput="{{ onBancoBusca }}" placeholder="Buscar por tema, órgão, banca, ano…" style="flex:1;min-width:200px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <select value="{{ bancoTipo }}" onchange="{{ setBancoTipo }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                  <sc-for list="{{ bancoTipoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                </select>
+                <select value="{{ bancoCarr }}" onchange="{{ setBancoCarr }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                  <sc-for list="{{ bancoCarrOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                </select>
                 <select value="{{ bancoDisc }}" onchange="{{ setBancoDisc }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
                   <sc-for list="{{ bancoDiscOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
                 </select>
@@ -1960,6 +1966,7 @@ window.ctPdfLib = (function(){
                   <button onclick="{{ usarDiscursiva }}" data-id="{{ q.id }}" style="text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:5px;">
                     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
                       <span style="font-family:var(--mono);font-size:11px;color:var(--text3);font-weight:600;">{{ q.rotulo }}</span>
+                      <span style="font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--onAccent);background:var(--accent);border-radius:99px;padding:2px 9px;">{{ q.tipoLabel }}</span>
                       <span style="font-size:10.5px;font-weight:700;color:var(--accentD);background:var(--accentSoft);border-radius:99px;padding:2px 9px;">{{ q.selo }}</span>
                     </div>
                     <div style="font-weight:700;font-size:13.5px;color:var(--ink);">{{ q.tema }}</div>
@@ -4331,7 +4338,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', discCarregado:false, discErro:false,
+      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoTipo:'', discCarregado:false, discErro:false,
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'',
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
@@ -6389,6 +6396,8 @@ class Component extends DCLogic {
   };
   onBancoBusca = (e)=> this.setState({bancoQ:e.currentTarget.value});
   setBancoDisc = (e)=> this.setState({bancoDisc:e.currentTarget.value});
+  setBancoCarr = (e)=> this.setState({bancoCarr:e.currentTarget.value});
+  setBancoTipo = (e)=> this.setState({bancoTipo:e.currentTarget.value});
   // Levar a questão para o compositor: enunciado no ①, espelho no ③. O espelho vira
   // texto com o peso de cada quesito, que é o que o raio-X já sabe ler.
   usarDiscursiva = (e)=>{
@@ -7738,11 +7747,16 @@ class Component extends DCLogic {
     const _bancoTodas=(typeof window!=='undefined'&&window.CT_DISCURSIVAS)||[];
     const _bancoDiscs=[...new Set(_bancoTodas.map(q=>q.disciplina).filter(Boolean))].sort();
     const _bq=(this.state.bancoQ||'').trim().toLowerCase();
+    const _bancoCarreiras=[...new Set(_bancoTodas.map(q=>q.carreira).filter(Boolean))].sort();
     const _bancoLista=_bancoTodas.filter(q=>{
       if(this.state.bancoDisc && q.disciplina!==this.state.bancoDisc) return false;
+      if(this.state.bancoCarr && q.carreira!==this.state.bancoCarr) return false;
+      if(this.state.bancoTipo && (q.tipo||'discursiva')!==this.state.bancoTipo) return false;
       if(!_bq) return true;
       return ((q.tema||'')+' '+(q.enunciado||'')+' '+(q.orgao||'')+' '+(q.banca||'')+' '+(q.ano||'')).toLowerCase().includes(_bq);
     }).map(q=>({ id:q.id, tema:q.tema||q.disciplina||'Questão', disciplina:q.disciplina||'',
+      ehPeca:(q.tipo==='peca'), tipoLabel:(q.tipo==='peca'?(q.peca||'Peça'):'Discursiva'),
+      carreira:q.carreira||'',
       rotulo:[q.orgao,q.ano].filter(Boolean).join(' · ')+(q.banca?(' · '+q.banca):''),
       temEspelho:!!(q.espelho&&q.espelho.length),
       selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):'')):'sem espelho publicado',
@@ -9986,6 +10000,11 @@ class Component extends DCLogic {
       onBancoBusca:this.onBancoBusca, bancoDisc:this.state.bancoDisc, setBancoDisc:this.setBancoDisc,
       usarDiscursiva:this.usarDiscursiva, bancoLista:_bancoLista,
       bancoDiscOpts:[{v:'',label:'Todas as disciplinas',sel:!this.state.bancoDisc}].concat(_bancoDiscs.map(d=>({v:d,label:d,sel:d===this.state.bancoDisc}))),
+      bancoCarrOpts:[{v:'',label:'Todas as carreiras',sel:!this.state.bancoCarr}].concat(_bancoCarreiras.map(c=>({v:c,label:c,sel:c===this.state.bancoCarr}))),
+      bancoTipoOpts:[{v:'',label:'Peças e discursivas',sel:!this.state.bancoTipo},
+                     {v:'peca',label:'Só peças',sel:this.state.bancoTipo==='peca'},
+                     {v:'discursiva',label:'Só discursivas',sel:this.state.bancoTipo==='discursiva'}],
+      setBancoCarr:this.setBancoCarr, setBancoTipo:this.setBancoTipo,
       bancoVazio:(_bancoLista.length===0), bancoErro:this.state.discErro,
       bancoCarregando:(this.state.bancoOpen && !this.state.discCarregado && !this.state.discErro),
       bancoCount:String(_bancoLista.length),
