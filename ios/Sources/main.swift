@@ -414,7 +414,8 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             guard let self else { throw CatedraIA.Erro.indisponivel }
             let token = await self.tokenDaSessao()
             let ep = aiEndpoint()
-            guard !ep.isEmpty, let url = URL(string: ep) else { throw CatedraIA.Erro.indisponivel }
+            guard !ep.isEmpty, let url = URL(string: ep) else { throw CatedraIA.Erro.servidor("Endpoint de IA não configurado neste app.") }
+            if token.isEmpty { throw CatedraIA.Erro.servidor("Não achei a sessão do Cátedra. Entre na conta na aba Cátedra e tente de novo.") }
             var req = URLRequest(url: url)
             req.httpMethod = "POST"
             req.timeoutInterval = 60
@@ -425,6 +426,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                 throw CatedraIA.Erro.vazia
             }
+            if let e = obj["error"] as? String, !e.isEmpty { throw CatedraIA.Erro.servidor(e) }
             if let t = obj["completion"] as? String { return t }
             if let t = obj["text"] as? String { return t }
             if let t = obj["content"] as? String { return t }

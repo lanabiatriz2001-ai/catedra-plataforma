@@ -205,7 +205,7 @@ struct GradeInformativosView: View {
                 }
             }
             .padding(.horizontal, 28).padding(.vertical, 24)
-            .frame(maxWidth: 1100, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Palette.appBackground)
     }
@@ -324,7 +324,7 @@ struct JulgadoDoDiaView: View {
                 else { Text("Acervo ainda carregando.").foregroundStyle(Palette.secondaryInk) }
             }
             .padding(.horizontal, 28).padding(.vertical, 24)
-            .frame(maxWidth: 900, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Palette.appBackground)
     }
@@ -672,7 +672,7 @@ struct ProvaOralJurisView: View {
                 }
             }
             .padding(.horizontal, 28).padding(.vertical, 24)
-            .frame(maxWidth: 900, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Palette.appBackground)
     }

@@ -93,6 +93,11 @@ struct ContentView: View {
         HStack(spacing: 0) {
             LegisSidebar(path: $path, showNewCategory: $showNewCategory,
                          openPalette: { showPalette = true })
+            // O cabeçalho vai como BLOCO acima do stack, não como safeAreaInset: o leitor de
+            // lei também põe a barra dele com safeAreaInset(.top), e dois insets aninhados no
+            // topo faziam o cabeçalho cobrir a barra do leitor — sobravam 6 px dela.
+            VStack(spacing: 0) {
+            legisTopBar
             NavigationStack(path: $path) {
                 DashboardView(
                     openLaw: { path.append(.reader($0)) },
@@ -115,7 +120,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .safeAreaInset(edge: .top, spacing: 0) { legisTopBar }
+            }
         }
         .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
         .sheet(isPresented: $showAddLaw) { AddLawSheet() }
