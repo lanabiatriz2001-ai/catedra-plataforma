@@ -240,6 +240,7 @@
     serverObj = serverObj || {}; localObj = localObj || {};
     var keys = {}, out = {};
     var srvKts = parseJ(serverObj['catedra:_kts']) || {};
+    var locKts = parseJ(localObj['catedra:_kts']) || {};
     Object.keys(serverObj).forEach(function (k) { keys[k] = 1; }); Object.keys(localObj).forEach(function (k) { keys[k] = 1; });
     Object.keys(keys).forEach(function (k) {
       if (!isData(k)) return;
@@ -272,7 +273,24 @@
       // rotPointer="0". Com "local sempre vence" esse vazio recém-nascido virava a verdade e
       // subia por cima da nuvem: o edital e a agenda da semana sumiam em TODOS os aparelhos,
       // sem aviso e sem desfazer. Na hidratação só o local COM CONTEÚDO tem direito de ganhar.
-      if (CFG_LOCAL_WINS[k]) { out[k] = preferServer ? (temConteudo(lc) ? lc : sv) : lc; return; }
+      // Ciclo, edital e agenda: NÃO são mais "deste aparelho". A regra antiga (local
+      // sempre vence, salvo se vazio) tinha um efeito colateral que a Lana sentiu na pele:
+      // ela montava o ciclo no Mac, entrava no iPad, e o iPad mostrava o ciclo VELHO dele
+      // — para sempre, porque local nunca cedia. Cada aparelho vivia com um ciclo próprio.
+      // Agora: entre duas versões COM CONTEÚDO, vence a mais recente pelo carimbo por
+      // chave (catedra:_kts, que os dois lados carregam); VAZIO NUNCA APAGA CHEIO, que
+      // era o buraco que a regra antiga fechava — e continua fechado.
+      if (CFG_LOCAL_WINS[k]) {
+        var lcTem = temConteudo(lc), svTem = temConteudo(sv);
+        if (lcTem && !svTem) { out[k] = lc; return; }
+        if (svTem && !lcTem) { out[k] = sv; return; }
+        if (!lcTem && !svTem) { out[k] = preferServer ? sv : lc; return; }
+        var lts = locKts[k] || 0, sts = srvKts[k] || 0;
+        if (sts > lts) { out[k] = sv; return; }
+        if (lts > sts) { out[k] = lc; return; }
+        out[k] = preferServer ? sv : lc;   // sem carimbo dos dois lados: direção do merge
+        return;
+      }
       out[k] = preferServer ? sv : lc; // escalares/objetos sem carimbo: direção do merge decide
     });
     // Reconciliação histórico × lixeira de sessões (soft-delete entre aparelhos): se a
