@@ -36,7 +36,7 @@ enum RoteiroLocal {
         // chave: da nota, senão frases-núcleo (as que têm verbo de decisão / operador)
         let ramos = nota?.ramos ?? []
         var chave = ramos.filter { ["regra", "fundamento"].contains($0.tipo) }.flatMap { $0.itens }
-        if chave.isEmpty { chave = frases.filter(ehNucleo).prefix(5).map(String.init) }
+        if chave.isEmpty { chave = Array(frases.filter(ehNucleo).prefix(5)) }
         if chave.isEmpty, let f = frases.first { chave = [f] }
         r.chave = Array(chave.prefix(5))
         r.jurisprudencia = store.relacionados(e, limite: 5).map { rel in
