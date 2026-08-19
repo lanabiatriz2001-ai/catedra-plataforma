@@ -124,6 +124,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             return
         }
         webView.loadFileURL(dir.appendingPathComponent("index.html"), allowingReadAccessTo: dir)
+        instalarProvedorIA()   // IA dos módulos nativos passa pelo mesmo /api/complete do app
         trocarAba()   // aplica a aba inicial (normalmente Cátedra)
     }
 
@@ -312,6 +313,53 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         DispatchQueue.main.async {
             self.segmento.selectedSegmentIndex = (alvo == "juris") ? 2 : 1
             self.trocarAba()
+        }
+    }
+
+    /// Mesma coisa do host do Mac: os módulos nativos usam a IA DO APP (a sessão do
+    /// Supabase que já está no WebView), e não o AIService com chave da Anthropic.
+    func instalarProvedorIA() {
+        CatedraIA.provedor = { [weak self] prompt in
+            guard let self else { throw CatedraIA.Erro.indisponivel }
+            let token = await self.tokenDaSessao()
+            let ep = aiEndpoint()
+            guard !ep.isEmpty, let url = URL(string: ep) else { throw CatedraIA.Erro.indisponivel }
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.timeoutInterval = 60
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if !token.isEmpty { req.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
+            req.httpBody = try? JSONSerialization.data(withJSONObject: ["prompt": prompt])
+            let (data, _) = try await URLSession.shared.data(for: req)
+            guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                throw CatedraIA.Erro.vazia
+            }
+            if let t = obj["completion"] as? String { return t }
+            if let t = obj["text"] as? String { return t }
+            if let t = obj["content"] as? String { return t }
+            throw CatedraIA.Erro.vazia
+        }
+    }
+
+    /// O token vive na PÁGINA (supabase-js no WebView). Para o lado nativo, buscamos.
+    private func tokenDaSessao() async -> String {
+        await withCheckedContinuation { cont in
+            DispatchQueue.main.async { [weak self] in
+                guard let wv = self?.webView else { cont.resume(returning: ""); return }
+                let js = """
+                (function(){ try{
+                  if(window.CatedraAuth && window.CatedraAuth.client && window.CatedraAuth.client.auth){
+                    return window.CatedraAuth.client.auth.getSession().then(function(s){
+                      return (s && s.data && s.data.session && s.data.session.access_token) || '';
+                    }).catch(function(){ return ''; });
+                  }
+                }catch(e){} return ''; })()
+                """
+                wv.callAsyncJavaScript(js, in: nil, in: .page) { r in
+                    if case .success(let v) = r, let t = v as? String { cont.resume(returning: t) }
+                    else { cont.resume(returning: "") }
+                }
+            }
         }
     }
 

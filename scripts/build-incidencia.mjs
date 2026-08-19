@@ -27,33 +27,105 @@ carrega('contas-text.js');
 const FONTES = [globalThis.window.__JURIS_TXT__, globalThis.window.__CONTAS_TXT__].filter(Boolean);
 if (!FONTES.length) throw new Error('nenhum acervo de texto encontrado');
 
-// Siglas → chave canônica. A chave casa com o catálogo do CátedraLEGIS pelo nome longo.
-const DIPLOMAS = [
-  { k: 'cpc',   nome: 'Código de Processo Civil',       re: /\b(CPC|C\.P\.C\.|Código de Processo Civil|Lei n?\.?\s*13\.?105)\b/i },
-  { k: 'cpp',   nome: 'Código de Processo Penal',       re: /\b(CPP|C\.P\.P\.|Código de Processo Penal|Decreto-Lei n?\.?\s*3\.?689)\b/i },
-  { k: 'cp',    nome: 'Código Penal',                   re: /\b(CP|C\.P\.|Código Penal|Decreto-Lei n?\.?\s*2\.?848)\b/i },
-  { k: 'cc',    nome: 'Código Civil',                   re: /\b(CC|C\.C\.|Código Civil|Lei n?\.?\s*10\.?406)\b/i },
-  { k: 'cf',    nome: 'Constituição Federal',           re: /\b(CF|C\.F\.|CR\/88|Constituição Federal|Constituição da República)\b/i },
-  { k: 'cdc',   nome: 'Código de Defesa do Consumidor', re: /\b(CDC|Código de Defesa do Consumidor|Lei n?\.?\s*8\.?078)\b/i },
-  { k: 'ctn',   nome: 'Código Tributário Nacional',     re: /\b(CTN|Código Tributário Nacional|Lei n?\.?\s*5\.?172)\b/i },
-  { k: 'clt',   nome: 'Consolidação das Leis do Trabalho', re: /\b(CLT|Consolidação das Leis do Trabalho|Decreto-Lei n?\.?\s*5\.?452)\b/i },
-  { k: 'eca',   nome: 'Estatuto da Criança e do Adolescente', re: /\b(ECA|Estatuto da Criança|Lei n?\.?\s*8\.?069)\b/i },
-  { k: 'lep',   nome: 'Lei de Execução Penal',          re: /\b(LEP|Lei de Execução Penal|Lei n?\.?\s*7\.?210)\b/i },
-  { k: 'lia',   nome: 'Lei de Improbidade Administrativa', re: /\b(LIA|Lei n?\.?\s*8\.?429|Improbidade Administrativa)\b/i },
-  { k: 'llc',   nome: 'Lei de Licitações e Contratos',  re: /\b(Lei n?\.?\s*14\.?133|Nova Lei de Licitações)\b/i },
-  { k: 'l8666', nome: 'Lei 8.666/1993',                 re: /\bLei n?\.?\s*8\.?666\b/i },
-  { k: 'l9099', nome: 'Lei dos Juizados Especiais',     re: /\bLei n?\.?\s*9\.?099\b/i },
-  { k: 'l8112', nome: 'Estatuto dos Servidores Públicos Federais', re: /\bLei n?\.?\s*8\.?112\b/i },
-  { k: 'l8213', nome: 'Lei nº 8.213/1991',              re: /\bLei n?\.?\s*8\.?213\b/i },
-  { k: 'l6830', nome: 'Lei de Execução Fiscal',         re: /\b(LEF|Lei n?\.?\s*6\.?830)\b/i },
-  { k: 'l9784', nome: 'Lei nº 9.784/1999',              re: /\bLei n?\.?\s*9\.?784\b/i },
-  { k: 'l11340', nome: 'Lei Maria da Penha',            re: /\b(Maria da Penha|Lei n?\.?\s*11\.?340)\b/i },
-  { k: 'l11343', nome: 'Lei de Drogas',                 re: /\b(Lei de Drogas|Lei n?\.?\s*11\.?343)\b/i },
-  { k: 'l12016', nome: 'Lei do Mandado de Segurança',   re: /\bLei n?\.?\s*12\.?016\b/i },
-  { k: 'l8443', nome: 'Lei Orgânica do TCU',            re: /\bLei n?\.?\s*8\.?443\b/i },
-  { k: 'lc101', nome: 'Lei Complementar nº 101/2000',   re: /\b(LRF|Lei de Responsabilidade Fiscal|LC n?\.?\s*101|Lei Complementar n?\.?\s*101)\b/i },
-  { k: 'lc64',  nome: 'Lei Complementar nº 64/1990',    re: /\b(LC n?\.?\s*64|Lei Complementar n?\.?\s*64)\b/i },
-];
+// Os diplomas NÃO são mais uma lista à mão: vêm do catálogo do CátedraLEGIS (const CAT
+// em legis-web.html, 268 normas) e o padrão de reconhecimento é derivado da própria
+// referência oficial de cada uma ("Lei nº 8.429, de 2 de junho de 1992" → 8.429 e 1992).
+// Assim, norma acrescentada ao catálogo entra na incidência sozinha.
+//
+// As siglas continuam à mão porque não dá para derivá-las da referência: ninguém escreve
+// "Lei nº 13.105" no meio de um acórdão, escreve "CPC".
+// Apelidos como TEXTO LITERAL — nunca como regex escrita à mão. A primeira versão
+// escrevia 'C\\.P\\.' e o escape colapsou para C.P., em que o ponto vale QUALQUER
+// caractere: isso casava com "CPP," e jogou 377 citações do Código de PROCESSO Penal
+// para dentro do Código Penal (o art. 226, do reconhecimento pessoal, virou campeão do CP).
+// Aqui tudo é escapado pelo esc() e cercado por \b, então CP não casa com CPP.
+const APELIDOS = {
+  '13105/2015': ['CPC', 'Código de Processo Civil'],
+  '3689/1941': ['CPP', 'Código de Processo Penal'],
+  '2848/1940': ['CP', 'Código Penal'],
+  '10406/2002': ['CC', 'Código Civil'],
+  '8078/1990': ['CDC', 'Código de Defesa do Consumidor'],
+  '5172/1966': ['CTN', 'Código Tributário Nacional'],
+  '5452/1943': ['CLT', 'Consolidação das Leis do Trabalho'],
+  '8069/1990': ['ECA', 'Estatuto da Criança'],
+  '7210/1984': ['LEP', 'Lei de Execução Penal'],
+  '6830/1980': ['LEF', 'Lei de Execução Fiscal'],
+  '4657/1942': ['LINDB'],
+  '8429/1992': ['LIA', 'Improbidade Administrativa'],
+  '14133/2021': ['Nova Lei de Licitações'],
+  '11340/2006': ['Maria da Penha'],
+  '11343/2006': ['Lei de Drogas'],
+  '101/2000': ['LRF', 'Lei de Responsabilidade Fiscal'],
+  '12527/2011': ['LAI', 'Lei de Acesso à Informação'],
+  '13709/2018': ['LGPD'],
+  '9503/1997': ['CTB', 'Código de Trânsito'],
+  '13146/2015': ['Estatuto da Pessoa com Deficiência'],
+  '10741/2003': ['Estatuto do Idoso'],
+  '11101/2005': ['Lei de Recuperação'],
+  '6404/1976': ['Lei das Sociedades Anônimas'],
+  '12651/2012': ['Código Florestal'],
+  '9605/1998': ['Lei de Crimes Ambientais'],
+  '12305/2010': ['Política Nacional de Resíduos'],
+};
+
+function catalogoLegis() {
+  const html = readFileSync(join(ROOT, 'legis-web.html'), 'utf8');
+  const i = html.indexOf('const CAT=') + 'const CAT='.length;
+  let d = 0, j = i;
+  for (; j < html.length; j++) { const c = html[j]; if (c === '{') d++; else if (c === '}') { d--; if (!d) { j++; break; } } }
+  return JSON.parse(html.slice(i, j)).laws || [];
+}
+
+const esc = (t) => String(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// "Lei nº 8.429, de 2 de junho de 1992" → {num:'8429', ano:'1992', tipo:'LEI'}
+function identidade(ref) {
+  if (!ref) return null;
+  const tipo = /decreto[- ]lei/i.test(ref) ? 'DL'
+    : /lei complementar/i.test(ref) ? 'LC'
+    : /^\s*decreto\b/i.test(ref) ? 'DEC'
+    : /emenda constitucional/i.test(ref) ? 'EC' : 'LEI';
+  const mn = /n[ºo°]\s*([\d.]+)/i.exec(ref);
+  const anos = ref.match(/\b(1[89]\d{2}|20\d{2})\b/g);
+  if (!mn || !anos) return null;
+  return { tipo, num: mn[1].replace(/\./g, ''), ano: anos[anos.length - 1] };
+}
+
+// Número com e sem ponto de milhar: no texto dos julgados aparece das duas formas.
+function formasDoNumero(n) {
+  const formas = new Set([n]);
+  if (n.length > 3) formas.add(n.slice(0, n.length - 3) + '.' + n.slice(n.length - 3));
+  return [...formas].map(esc);
+}
+
+const DIPLOMAS = [];
+{
+  const vistos = new Set();
+  // A Constituição não tem "Lei nº": entra à mão, e é a mais citada de todas.
+  DIPLOMAS.push({ k: 'cf', nome: 'Constituição Federal',
+    re: /\b(CF|C\.F\.|CR\/88|CF\/88|Constituição Federal|Constituição da República)\b/i });
+  for (const l of catalogoLegis()) {
+    const id = identidade(l.r);
+    if (!id) continue;
+    const chave = id.num + '/' + id.ano;
+    if (vistos.has(chave)) continue;
+    vistos.add(chave);
+    const nums = formasDoNumero(id.num).join('|');
+    const rotulo = id.tipo === 'LC' ? '(?:LC|Lei\\s+Complementar)'
+      : id.tipo === 'DL' ? '(?:DL|Decreto[-\\s]Lei)'
+      : id.tipo === 'DEC' ? 'Decreto'
+      : id.tipo === 'EC' ? '(?:EC|Emenda\\s+Constitucional)'
+      : 'Lei';
+    const apelidos = (APELIDOS[chave] || []).map((a) => esc(a));
+    const partes = [
+      rotulo + '\\s+n?[º°.]?\\s*(?:' + nums + ')\\b',
+      '(?:' + nums + ')\\s*\\/\\s*' + id.ano.slice(-4),
+      ...apelidos,
+    ];
+    DIPLOMAS.push({ k: 'l' + id.num + '_' + id.ano, nome: l.t,
+      re: new RegExp('\\b(?:' + partes.join('|') + ')\\b', 'i') });
+  }
+}
 
 // "art. 489", "arts. 5º e 6º", "artigo 1.015"
 const RE_ART = /\bart(?:igo)?s?\.?\s*([\d][\d.]{0,5})\s*([º°ª]?)\s*(?:-\s*([A-Z]))?/gi;
@@ -118,3 +190,8 @@ for (const k of Object.keys(saida).sort((a, b) => saida[b].total - saida[a].tota
   const s = saida[k];
   console.log(`  ${s.nome}: ${s.total} citações em ${s.artigos} artigos · campeão art. ${s.lista[0][0]} (${s.lista[0][1]}x)`);
 }
+
+// O módulo LEGIS nativo (Swift) não roda JS: além do incidencia.js do web, gravamos o
+// MESMO conteúdo como JSON puro, que é o que o bundle do app carrega.
+writeFileSync(join(ROOT, 'incidencia.json'), JSON.stringify({ meta: META, diplomas: saida }));
+console.log('✓ incidencia.json — mesma coisa, para o módulo nativo');

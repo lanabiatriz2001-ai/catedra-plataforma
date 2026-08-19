@@ -216,6 +216,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         window.setFrameAutosaveName("CatedraMainWindow")
         buildToolbar()   // seletor de abas (Cátedra | Vade Mecum) na barra de título
         window.makeKeyAndOrderFront(nil)
+        instalarProvedorIA()   // IA dos módulos nativos passa pelo mesmo /api/complete do app
 
         // reflete o título do documento na janela (só quando a aba Cátedra está ativa)
         titleObs = webView.observe(\.title, options: [.new]) { [weak self] wv, _ in
@@ -1352,6 +1353,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let p = Bundle.main.object(forInfoDictionaryKey: "CatedraGeminiKey") as? String
         let raw = (d ?? p ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         return (raw.isEmpty || raw.contains("YOUR-KEY")) ? nil : raw
+    }
+
+    /// Instala o provedor de IA que os módulos NATIVOS (LEGIS/JURIS) usam. Sem isto eles
+    /// cairiam no AIService, que pede uma chave da Anthropic da própria pessoa em
+    /// Configurações — e o app já tem IA pela sessão do Supabase. Uma IA só, e o kill
+    /// switch do console de administração vale para os dois lados.
+    func instalarProvedorIA() {
+        CatedraIA.provedor = { [weak self] prompt in
+            guard let self else { throw CatedraIA.Erro.indisponivel }
+            let token = await self.tokenDaSessao()
+            guard let url = aiEndpoint() else { throw CatedraIA.Erro.indisponivel }
+            return try await withCheckedThrowingContinuation { cont in
+                self.postEndpoint(url, prompt, token) { valor, erro in
+                    if let erro { cont.resume(throwing: CatedraIA.Erro.indisponivel); _ = erro }
+                    else { cont.resume(returning: (valor as? String) ?? "") }
+                }
+            }
+        }
+    }
+
+    /// O token da sessão vive na PÁGINA (supabase-js no WebView), não aqui. A ponte de IA
+    /// do JS já manda o token junto; para o lado nativo temos de ir buscar.
+    private func tokenDaSessao() async -> String {
+        await withCheckedContinuation { cont in
+            DispatchQueue.main.async { [weak self] in
+                guard let wv = self?.webView else { cont.resume(returning: ""); return }
+                let js = """
+                (function(){ try{
+                  if(window.CatedraAuth && window.CatedraAuth.client && window.CatedraAuth.client.auth){
+                    return window.CatedraAuth.client.auth.getSession().then(function(s){
+                      return (s && s.data && s.data.session && s.data.session.access_token) || '';
+                    }).catch(function(){ return ''; });
+                  }
+                }catch(e){} return ''; })()
+                """
+                wv.callAsyncJavaScript(js, in: nil, in: .page) { r in
+                    if case .success(let v) = r, let t = v as? String { cont.resume(returning: t) }
+                    else { cont.resume(returning: "") }
+                }
+            }
+        }
     }
 
     private func handleAI(_ message: WKScriptMessage, _ reply: @escaping (Any?, String?) -> Void) {
