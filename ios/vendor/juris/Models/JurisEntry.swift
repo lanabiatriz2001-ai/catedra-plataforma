@@ -197,8 +197,10 @@ struct JurisEntry: Identifiable, Codable, Hashable {
     var fonteOficialURL: URL? {
         func q(_ s: String) -> String { s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? s }
         // 1) usa a url armazenada se já for de domínio oficial (.jus.br, exceto buscadores)
+        // Tribunais de contas moram em .gov.br (pesquisa.apps.tcu.gov.br, tce.sp.gov.br…),
+        // não em .jus.br: sem isto o verbete do TCU perdia o link para a fonte oficial.
         if let u = url, let parsed = URL(string: u), let h = parsed.host,
-           h.hasSuffix("jus.br"), !h.contains("buscador") {
+           h.hasSuffix("jus.br") || h.hasSuffix("gov.br"), !h.contains("buscador") {
             return parsed
         }
         switch fonteKind {
@@ -318,6 +320,14 @@ enum Fonte: String, CaseIterable, Identifiable {
     case selTJGO = "sel_tjgo"
     case selTJRJ = "sel_tjrj"
     case selTJPR = "sel_tjpr"
+    // ── Central de Contas (controle externo): TCU + tribunais de contas estaduais.
+    // Mesmos dados que a web mostra em juris-web.html; o corpus vem de
+    // corpus-contas.json, gerado por scripts/build-contas-nativo.mjs.
+    case sumulaTCU = "sumula_tcu"
+    case sumulaTCE = "sumula_tce"
+    case boletimJurisTCU = "boletim_juris_tcu"
+    case boletimPessoalTCU = "boletim_pessoal_tcu"
+    case infoLicTCU = "info_lic_tcu"
     case outro = "outro"
 
     var id: String { rawValue }
@@ -346,6 +356,11 @@ enum Fonte: String, CaseIterable, Identifiable {
         case .selTJGO: return "Seleção TJGO"
         case .selTJRJ: return "Seleção TJRJ"
         case .selTJPR: return "Seleção TJPR / MPSC"
+        case .sumulaTCU: return "Súmulas do TCU"
+        case .sumulaTCE: return "Súmulas dos TCEs"
+        case .boletimJurisTCU: return "Boletim de Jurisprudência do TCU"
+        case .boletimPessoalTCU: return "Boletim de Pessoal do TCU"
+        case .infoLicTCU: return "Informativo de Licitações e Contratos"
         case .outro: return "Outros"
         }
     }
@@ -374,6 +389,11 @@ enum Fonte: String, CaseIterable, Identifiable {
         case .selTJGO: return "Sel. TJGO"
         case .selTJRJ: return "Sel. TJRJ"
         case .selTJPR: return "Sel. TJPR"
+        case .sumulaTCU: return "Súmula TCU"
+        case .sumulaTCE: return "Súmula TCE"
+        case .boletimJurisTCU: return "Bol. Juris TCU"
+        case .boletimPessoalTCU: return "Bol. Pessoal"
+        case .infoLicTCU: return "Info Licitações"
         case .outro: return "Outro"
         }
     }
@@ -400,6 +420,11 @@ enum Fonte: String, CaseIterable, Identifiable {
         case .ado: return "shield.slash.fill"
         case .adpf: return "exclamationmark.shield.fill"
         case .selTJGO, .selTJRJ, .selTJPR: return "graduationcap.fill"
+        case .sumulaTCU: return "checkmark.seal"
+        case .sumulaTCE: return "seal.fill"
+        case .boletimJurisTCU: return "banknote"
+        case .boletimPessoalTCU: return "person.text.rectangle"
+        case .infoLicTCU: return "doc.text.magnifyingglass"
         case .outro: return "doc.text"
         }
     }
@@ -425,6 +450,8 @@ enum Fonte: String, CaseIterable, Identifiable {
         case .selTJGO: return Palette.fonteRepetitivo
         case .selTJRJ: return Palette.fonteJT
         case .selTJPR: return Palette.fonteInfoSTJ
+        case .sumulaTCU, .sumulaTCE, .boletimJurisTCU, .boletimPessoalTCU, .infoLicTCU:
+            return Palette.fonteContas
         case .outro: return .secondary
         }
     }
@@ -442,7 +469,8 @@ enum Fonte: String, CaseIterable, Identifiable {
         [.tjro, .tjroPrec, .sumulaVinculante, .sumulaSTF, .sumulaSTJ, .sumulaTSE, .repercussaoGeral, .repetitivo,
          .adi, .adc, .ado, .adpf, .jurisEmTeses,
          .informativoSTF, .informativoSTJ, .informativoTSE,
-         .precedentesObrig, .controleConst, .selTJGO, .selTJRJ, .selTJPR, .vadeMecumDOD]
+         .precedentesObrig, .controleConst, .selTJGO, .selTJRJ, .selTJPR, .vadeMecumDOD,
+         .sumulaTCU, .sumulaTCE, .boletimJurisTCU, .boletimPessoalTCU, .infoLicTCU]
     }
 
     /// A Central (tribunal/grupo) a que esta fonte pertence na barra lateral.
@@ -457,6 +485,8 @@ enum Fonte: String, CaseIterable, Identifiable {
             return .tse
         case .tjro, .tjroPrec, .selTJGO, .selTJRJ, .selTJPR:
             return .especificos
+        case .sumulaTCU, .sumulaTCE, .boletimJurisTCU, .boletimPessoalTCU, .infoLicTCU:
+            return .contas
         case .vadeMecumDOD, .precedentesObrig, .outro:
             return .outros
         }
@@ -466,7 +496,7 @@ enum Fonte: String, CaseIterable, Identifiable {
 /// As Centrais da barra lateral: uma página-hub por tribunal/grupo, com botões
 /// que abrem as páginas de cada fonte (ex.: Central STF → Súmulas Vinculantes).
 enum JurisCentral: String, CaseIterable, Identifiable {
-    case stf, stj, tse, especificos, outros
+    case stf, stj, tse, especificos, contas, outros
     var id: String { rawValue }
 
     var nome: String {
@@ -475,6 +505,7 @@ enum JurisCentral: String, CaseIterable, Identifiable {
         case .stj: return "Central STJ"
         case .tse: return "Central TSE"
         case .especificos: return "Tribunais Específicos"
+        case .contas: return "Central de Contas"
         case .outros: return "DOD & Precedentes"
         }
     }
@@ -484,6 +515,7 @@ enum JurisCentral: String, CaseIterable, Identifiable {
         case .stj: return "Superior Tribunal de Justiça — súmulas, informativos, repetitivos e Juris em Teses"
         case .tse: return "Tribunal Superior Eleitoral — súmulas e informativos"
         case .especificos: return "Uma central para cada tribunal — TJRO, TJGO, TJRJ, TJPR e os que você cadastrar"
+        case .contas: return "Controle externo — súmulas, boletins e informativos do TCU e dos tribunais de contas estaduais"
         case .outros: return "Vade Mecum DOD, precedentes obrigatórios e demais fontes"
         }
     }
@@ -493,6 +525,7 @@ enum JurisCentral: String, CaseIterable, Identifiable {
         case .stj: return "building.columns"
         case .tse: return "checkmark.seal"
         case .especificos: return "building.2.fill"
+        case .contas: return "banknote"
         case .outros: return "book.fill"
         }
     }

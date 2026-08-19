@@ -102,6 +102,7 @@ enum Palette {
     static var fonteDOD: Color         { ThemeState.t.accent }
     static var fonteTJRO: Color        { ThemeState.t.accent }
     static var fonteTJROprec: Color    { ThemeState.t.accent }
+    static var fonteContas: Color      { ThemeState.t.accent }
 }
 
 /// Tipografia moderna (sans). Os nomes "serif*" são mantidos por compatibilidade

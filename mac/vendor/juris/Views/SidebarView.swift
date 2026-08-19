@@ -241,6 +241,7 @@ struct JurisSidebar: View {
             case .stj: return Color(red: 0.28, green: 0.80, blue: 0.70)   // teal
             case .tse: return Color(red: 0.66, green: 0.55, blue: 0.98)   // roxo
             case .especificos: return Color(red: 0.62, green: 0.68, blue: 0.78) // ardósia
+            case .contas: return Color(red: 0.24, green: 0.72, blue: 0.55)  // verde-cofre
             case .outros: return Color(red: 0.95, green: 0.72, blue: 0.35) // âmbar
             }
         case .ramosHub, .ramo, .ramoDetalhe: return Color(red: 0.50, green: 0.82, blue: 0.62) // verde

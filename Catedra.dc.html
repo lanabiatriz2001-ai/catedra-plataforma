@@ -1927,6 +1927,49 @@ window.ctPdfLib = (function(){
         <!-- composer -->
         <sc-if value="{{ redNoResult }}" hint-placeholder-val="{{ true }}">
          <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- ===== BANCO DE DISCURSIVAS ===== -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:200px;">
+                <div style="font-weight:700;font-size:14px;color:var(--ink);">Banco de discursivas</div>
+                <div style="font-size:12px;color:var(--text3);margin-top:3px;">Questões de provas aplicadas, com o espelho oficial quando a banca publicou. Escolher uma preenche o enunciado e o espelho aqui embaixo.</div>
+              </div>
+              <button onclick="{{ toggleBanco }}" style="border:1px solid var(--accent);background:var(--accentSoft);color:var(--accentD);border-radius:10px;padding:9px 16px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;flex:none;">{{ bancoLabel }}</button>
+            </div>
+            <sc-if value="{{ bancoOpen }}" hint-placeholder-val="{{ false }}">
+             <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                <input value="{{ bancoQ }}" oninput="{{ onBancoBusca }}" placeholder="Buscar por tema, órgão, banca, ano…" style="flex:1;min-width:200px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <select value="{{ bancoDisc }}" onchange="{{ setBancoDisc }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                  <sc-for list="{{ bancoDiscOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                </select>
+              </div>
+              <sc-if value="{{ bancoCarregando }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12.5px;color:var(--text3);padding:10px 0;">Carregando o banco…</div>
+              </sc-if>
+              <sc-if value="{{ bancoErro }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12.5px;color:#c0392f;padding:10px 0;">Não consegui carregar discursivas.js.</div>
+              </sc-if>
+              <sc-if value="{{ bancoVazio }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:12.5px;color:var(--text3);line-height:1.6;padding:10px 0;">Nenhuma questão no banco ainda. Ele é alimentado só com prova publicada pela própria banca ou pelo tribunal — enquanto não houver, use o campo abaixo e cole a questão à mão.</div>
+              </sc-if>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <sc-for list="{{ bancoLista }}" as="q" hint-placeholder-count="3">
+                  <button onclick="{{ usarDiscursiva }}" data-id="{{ q.id }}" style="text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:5px;">
+                    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+                      <span style="font-family:var(--mono);font-size:11px;color:var(--text3);font-weight:600;">{{ q.rotulo }}</span>
+                      <span style="font-size:10.5px;font-weight:700;color:var(--accentD);background:var(--accentSoft);border-radius:99px;padding:2px 9px;">{{ q.selo }}</span>
+                    </div>
+                    <div style="font-weight:700;font-size:13.5px;color:var(--ink);">{{ q.tema }}</div>
+                    <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ q.resumo }}</div>
+                  </button>
+                </sc-for>
+              </div>
+             </div>
+            </sc-if>
+          </div>
+
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
             <label style="display:block;font-size:11.5px;color:var(--text3);font-weight:600;margin-bottom:6px;">① Enunciado da questão</label>
             <textarea value="{{ redEnunciado }}" oninput="{{ onRedEnun }}" rows="4" placeholder="Cadastre aqui o enunciado / comando da questão que você vai responder. Ex.: Disserte sobre os limites do poder regulamentar da Administração Pública, abordando: (a) fundamento constitucional; (b) espécies; (c) controle judicial." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:14px;font-size:13.5px;color:var(--ink);font-family:var(--body);line-height:1.6;resize:vertical;outline:none;margin-bottom:18px;"></textarea>
@@ -4287,7 +4330,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''),
+      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', discCarregado:false, discErro:false,
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'',
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
@@ -4364,9 +4407,39 @@ class Component extends DCLogic {
     // Mapa de Processo e peças → acervo. O ⚖️/🏛️ do mapa manda o instituto; aqui a view
     // troca e o termo viaja no ?q= do iframe (ver ctBuscaInicial no legis/juris-web).
     this._acervoMsg = (e)=>{
-      if(!e||!e.data||e.data.type!=='ctAbrirAcervo') return;
-      const alvo=e.data.alvo==='juris'?'juris':'legis';
-      this.setState({view:alvo, acervoBusca:String(e.data.termo||'')});
+      if(!e||!e.data) return;
+      if(e.data.type==='ctAbrirAcervo'){
+        const alvo=e.data.alvo==='juris'?'juris':'legis';
+        this.setState({view:alvo, acervoBusca:String(e.data.termo||'')});
+        return;
+      }
+      // Os iframes (LEGIS, JURIS, mapa de processo) NÃO têm window.claude: no app nativo
+      // a ponte é injetada só no frame principal, e no site o shim mora aqui também.
+      // Então eles pedem IA por mensagem e a resposta volta pelo mesmo canal.
+      // Quiz do CátedraJURIS: o que ela errou vira flashcard no baralho DO APP — não num
+      // baralho paralelo dentro do iframe, que ela nunca reveria.
+      if(e.data.type==='ctFlashcards'){
+        const cards=Array.isArray(e.data.cards)?e.data.cards:[];
+        if(!cards.length) return;
+        const agora=Date.now();
+        const novos=cards.slice(0,20).map((c,i)=>({
+          id:'fc'+(agora+i), front:String(c.front||'').slice(0,600), back:String(c.back||'').slice(0,1200),
+          disc:'Jurisprudência', origem:String(e.data.origem||''), criado:agora, ia:true
+        })).filter(c=>c.front&&c.back);
+        if(!novos.length) return;
+        this.setState(st=>{ const fc=[...novos, ...st.flashcards]; this._saveFC(fc); return {flashcards:fc}; });
+        this._toast(novos.length+' flashcard'+(novos.length>1?'s':'')+' do quiz no seu baralho ✦');
+        this.flashSync();
+        return;
+      }
+      if(e.data.type==='ctIA'){
+        const src=e.source, id=e.data.reqId;
+        const responde=(texto,erro)=>{ try{ src && src.postMessage({type:'ctIAResp', reqId:id, texto:texto||'', erro:erro||''}, '*'); }catch(_){} };
+        Promise.resolve(this._aiText(String(e.data.prompt||'')))
+          .then(t=>responde(t, t?'':'A IA não respondeu.'))
+          .catch(err=>responde('', String((err&&err.message)||err||'falha na IA')));
+        return;
+      }
     };
     window.addEventListener('message', this._acervoMsg);
     this._onHide = ()=>{ try{ this._saveTimer(); }catch(_){} };   // salva o cronômetro ao fechar/ocultar
@@ -6283,6 +6356,47 @@ class Component extends DCLogic {
   _redLoad(){ try{ const r=localStorage.getItem('catedra:red'); if(r){ const a=JSON.parse(r); if(Array.isArray(a)) return a; } }catch(_){} return []; }
   _redSave(h){ try{ localStorage.setItem('catedra:red', JSON.stringify(h)); }catch(_){} }
   onRedText = (e)=> this.setState({redText:e.currentTarget.value});
+  // ===== banco de discursivas (CT_DISCURSIVAS) =====
+  // Mesmo padrão dos modelos de edital: o arquivo só é buscado quando ela abre o banco,
+  // e por <script> (não fetch) porque no app do Mac a página roda em file://.
+  _carregarDiscursivas(){
+    if(typeof window==='undefined') return Promise.resolve();
+    if(window.CT_DISCURSIVAS) return Promise.resolve();
+    if(this._discP) return this._discP;
+    this._discP=new Promise((ok)=>{ try{
+      const t=document.createElement('script'); t.src='./discursivas.js';
+      t.onload=()=>{ this.setState({discCarregado:true}); ok(); };
+      t.onerror=()=>{ this.setState({discErro:true}); ok(); };
+      document.head.appendChild(t);
+    }catch(_){ this.setState({discErro:true}); ok(); } });
+    return this._discP;
+  }
+  toggleBanco = ()=>{
+    const abre=!this.state.bancoOpen;
+    this.setState({bancoOpen:abre});
+    if(abre) this._carregarDiscursivas().then(()=>this.setState({discCarregado:true}));
+  };
+  onBancoBusca = (e)=> this.setState({bancoQ:e.currentTarget.value});
+  setBancoDisc = (e)=> this.setState({bancoDisc:e.currentTarget.value});
+  // Levar a questão para o compositor: enunciado no ①, espelho no ③. O espelho vira
+  // texto com o peso de cada quesito, que é o que o raio-X já sabe ler.
+  usarDiscursiva = (e)=>{
+    const id=e.currentTarget.getAttribute('data-id');
+    const lista=(typeof window!=='undefined'&&window.CT_DISCURSIVAS)||[];
+    const q=lista.find(x=>x.id===id); if(!q) return;
+    const esp=(q.espelho||[]).map((x,i)=> (i+1)+'. '+x.quesito+(x.pontos!=null?'  ('+x.pontos+' ponto'+(x.pontos===1?'':'s')+')':''));
+    const cab=[q.orgao, q.cargo, q.ano].filter(Boolean).join(' · ')+(q.banca?' — banca '+q.banca:'');
+    this.setState({
+      redEnunciado: cab+'\n\n'+(q.enunciado||''),
+      redGabarito: esp.length ? ('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')) : '',
+      redText:'', redResult:null, bancoOpen:false
+    });
+    try{ localStorage.setItem('catedra:redEnunciado',JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
+      localStorage.setItem('catedra:redGabarito',JSON.stringify(esp.length?('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')):''));
+      localStorage.setItem('catedra:redText',JSON.stringify('')); }catch(_){}
+    this._toast(esp.length ? 'Questão e espelho carregados' : 'Questão carregada — esta banca não publicou espelho');
+  };
+
   onRedEnun = (e)=> this.setState({redEnunciado:e.currentTarget.value, redResult:null});
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this.setState({redResult:null, redText:'', redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
@@ -7603,6 +7717,21 @@ class Component extends DCLogic {
   mixDark(h,f){ const [r,g,b]=this.hexToRgb(h); const m=x=>Math.round(x*(1-f)); return `rgb(${m(r)},${m(g)},${m(b)})`; }
 
   renderVals(){
+    // ---- banco de discursivas: lista filtrada. O arquivo é carregado sob demanda, então
+    // até ela abrir o banco (ou se o arquivo faltar) isto é uma lista vazia e a tela diz.
+    const _bancoTodas=(typeof window!=='undefined'&&window.CT_DISCURSIVAS)||[];
+    const _bancoDiscs=[...new Set(_bancoTodas.map(q=>q.disciplina).filter(Boolean))].sort();
+    const _bq=(this.state.bancoQ||'').trim().toLowerCase();
+    const _bancoLista=_bancoTodas.filter(q=>{
+      if(this.state.bancoDisc && q.disciplina!==this.state.bancoDisc) return false;
+      if(!_bq) return true;
+      return ((q.tema||'')+' '+(q.enunciado||'')+' '+(q.orgao||'')+' '+(q.banca||'')+' '+(q.ano||'')).toLowerCase().includes(_bq);
+    }).map(q=>({ id:q.id, tema:q.tema||q.disciplina||'Questão', disciplina:q.disciplina||'',
+      rotulo:[q.orgao,q.ano].filter(Boolean).join(' · ')+(q.banca?(' · '+q.banca):''),
+      temEspelho:!!(q.espelho&&q.espelho.length),
+      selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):'')):'sem espelho publicado',
+      resumo:String(q.enunciado||'').slice(0,190)+(String(q.enunciado||'').length>190?'…':''),
+      fonte:q.fonte||'' }));
     const DIR = this.THEMES()[this.state.dir] || this.THEMES().sutil;
     const mode = this.state.darkMode ? 'dark' : 'light';
     const P = DIR[mode];
@@ -9830,6 +9959,14 @@ class Component extends DCLogic {
       isRedacao:this.state.view==='redacao', navRedacao:navStyle('redacao'),
       redText:this.state.redText, redWords:String(redWords), redWordsN:redWords, redCanSubmit, redBusy:this.state.redBusy, redIdle:!this.state.redBusy,
       redEnunciado:this.state.redEnunciado, onRedEnun:this.onRedEnun,
+      bancoOpen:this.state.bancoOpen, toggleBanco:this.toggleBanco, bancoQ:this.state.bancoQ,
+      onBancoBusca:this.onBancoBusca, bancoDisc:this.state.bancoDisc, setBancoDisc:this.setBancoDisc,
+      usarDiscursiva:this.usarDiscursiva, bancoLista:_bancoLista,
+      bancoDiscOpts:[{v:'',label:'Todas as disciplinas',sel:!this.state.bancoDisc}].concat(_bancoDiscs.map(d=>({v:d,label:d,sel:d===this.state.bancoDisc}))),
+      bancoVazio:(_bancoLista.length===0), bancoErro:this.state.discErro,
+      bancoCarregando:(this.state.bancoOpen && !this.state.discCarregado && !this.state.discErro),
+      bancoCount:String(_bancoLista.length),
+      bancoLabel:(this.state.bancoOpen?'Fechar o banco':'Escolher do banco de discursivas'),
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
       redOrigemLabel:(this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local — conecte a IA':'corrigido por IA',
       redOrigemCor:(this.state.redResult&&this.state.redResult.aiUsed===false)?'#c2790c':'var(--accentD)',

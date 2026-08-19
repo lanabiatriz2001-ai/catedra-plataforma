@@ -85,6 +85,19 @@ cat > "$APP/Info.plist" <<PLIST
 </dict>
 </plist>
 PLIST
+# CátedraJURIS nativo: o acervo é um corpus.json EMBUTIDO no bundle. O build do Mac já
+# fazia isso; aqui faltava, e sem ele a aba CátedraJURIS do iPad abria com
+# "corpus.json não encontrado no bundle". No iOS o bundle é PLANO, então os arquivos vão
+# na RAIZ do .app — é lá que Bundle.main.url(forResource:) procura.
+JURIS_RES="$HOME/App Jurisprudências/VadeMecumJuris/Sources/VadeMecum/Resources"
+for f in corpus.json notas.json indice.json; do
+  if [ -f "$JURIS_RES/$f" ]; then cp "$JURIS_RES/$f" "$APP/$f"
+  else echo "     ⚠ $f não encontrado em $JURIS_RES — a aba CátedraJURIS vai abrir sem acervo"; fi
+done
+# A Central de Contas (TCU + TCEs) é gerada NESTE repo, dos mesmos dados que a web usa.
+[ -f "$ROOT/corpus-contas.json" ] && cp "$ROOT/corpus-contas.json" "$APP/corpus-contas.json"
+echo "     acervo do JURIS: $(ls -1 "$APP"/corpus*.json "$APP"/notas.json "$APP"/indice.json 2>/dev/null | wc -l | tr -d ' ') arquivo(s)"
+
 plutil -lint "$APP/Info.plist" >/dev/null && echo "     Info.plist válido"
 
 if [ "$ALVO" = "device" ]; then

@@ -158,6 +158,19 @@ final class LibraryStore {
                         items.append(e); seen.insert(e.id)
                     }
                 }
+                // Central de Contas (TCU + tribunais de contas estaduais): corpus
+                // SEPARADO, gerado por scripts/build-contas-nativo.mjs a partir dos
+                // mesmos dados que a web usa. Fica em arquivo próprio para o corpus de
+                // STF/STJ/TSE poder ser regerado sem tocar neste, e para o app abrir
+                // normalmente se um dos dois não estiver no bundle.
+                if let cu = Self.resourceURL("corpus-contas", ext: "json"),
+                   let cd = try? Data(contentsOf: cu),
+                   let contas = try? JSONDecoder().decode([JurisEntry].self, from: cd) {
+                    var vistos = Set(items.map(\.id))
+                    for e in contas where !vistos.contains(e.id) {
+                        items.append(e); vistos.insert(e.id)
+                    }
+                }
                 return (items, nil)
             } catch {
                 return ([], "Falha ao ler corpus.json: \(error.localizedDescription)")

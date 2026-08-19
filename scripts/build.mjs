@@ -137,7 +137,7 @@ const out = src.replace('<head>', '<head>' + INJECT);
 
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'area-web.html', 'processo-web.html', 'ritos.js', 'area-modulos.js']) {
+for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'area-web.html', 'processo-web.html', 'ritos.js', 'pecas.js', 'incidencia.js', 'area-modulos.js']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
 }
 
