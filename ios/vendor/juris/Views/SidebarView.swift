@@ -82,9 +82,6 @@ struct JurisSidebar: View {
                     // verbete (não são lista, são modo de ler).
                     row(.julgadoDoDia, "Julgado do dia", "sun.max.fill")
                     row(.gradeInformativos, "Informativos", "square.grid.3x3.fill")
-                    row(.provaOral, "Prova oral", "mic.fill")
-                    row(.oralBancas, "Oral · bancas reais", "person.wave.2.fill")
-                    row(.simulado, "Simulado", "list.bullet.clipboard.fill")
                     row(.mapas, "Mapas mentais", "brain.head.profile")
                     row(.plano, "Plano de leitura", "calendar")
                     row(.indice, "Índice alfabético", "textformat.abc")

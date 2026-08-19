@@ -123,7 +123,7 @@ window.CT_PECAS = {
 
 // ─────────────────────────────── SENTENÇA PENAL ───────────────────────────────
 'Sentença penal — treino guiado': {
-  rito: 'Penal — comum ordinário',
+  rito: 'Penal — procedimento comum',
   sobre: 'Absolvição ou condenação, e — se condenar — a dosimetria em três fases, que é onde a banca conta ponto por ponto. Fundamentar cada circunstância: pena aumentada sem motivo escrito é nulidade.',
   blocos: [
     { nome: 'Relatório',
@@ -301,7 +301,7 @@ window.CT_PECAS = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 'Decisão de prisão preventiva': {
-  rito: 'Penal — conhecimento',
+  rito: 'Penal — prisões e cautelares',
   sobre: 'Depois da Lei 13.964/2019 o juiz não decreta preventiva de ofício, e a fundamentação passou a ter exigências escritas na lei. A banca cobra os três andares: representação/requerimento, requisitos do art. 312 e admissibilidade do art. 313 — mais a revisão periódica.',
   blocos: [
     { nome: 'Verificar a provocação',
@@ -351,7 +351,7 @@ window.CT_PECAS = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 'Decisão de pronúncia': {
-  rito: 'Penal — júri',
+  rito: 'Penal — tribunal do júri',
   sobre: 'A pronúncia é juízo de admissibilidade, não de condenação. Todo o risco da peça está na LINGUAGEM: convencer demais anula, porque os jurados vão ler.',
   blocos: [
     { nome: 'Materialidade e indícios suficientes de autoria',
@@ -447,7 +447,7 @@ window.CT_PECAS = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 'Denúncia': {
-  rito: 'Penal — conhecimento',
+  rito: 'Penal — procedimento comum',
   sobre: 'A denúncia é medida de garantia: é a partir dela que o acusado sabe do que se defende. O espelho cobra a descrição do fato com todas as circunstâncias e, sobretudo, a individualização das condutas.',
   blocos: [
     { nome: 'Endereçamento e qualificação',
@@ -487,6 +487,513 @@ window.CT_PECAS = {
     'Classificação legal completa',
     'Rol de testemunhas apresentado',
     'Cautelares requeridas com fundamento, se cabíveis'
+  ]
+},
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOTE 2ª FASE DE MAGISTRATURA — o que o JUIZ escreve.
+// Os rótulos abaixo nomeiam a peça como ela aparece no trâmite (ritos.js), mas o
+// roteiro é o da DECISÃO que a julga: em prova de juiz não se escreve o embargo,
+// escreve-se a sentença dos embargos.
+// Fundamentos conferidos um a um contra a fonte primária (Planalto, STJ, STF).
+// ═══════════════════════════════════════════════════════════════════════════
+// ───────────────────────── SENTENÇA DO JÚRI (2ª fase) ─────────────────────────
+'Sentença do júri': {
+  rito: 'Penal — tribunal do júri',
+  sobre: 'A sentença que o juiz-presidente lê em plenário depois do veredicto. Aqui o juiz NÃO julga o mérito — ele executa o que os jurados decidiram. O que é dele: dosar a pena, fixar o regime e resolver a prisão. A banca mede exatamente isso: até onde vai a soberania dos veredictos e onde começa a jurisdição do presidente.',
+  blocos: [
+    {
+      nome: 'Ler o veredicto antes de escrever',
+      deve: 'A sentença tem de ser congruente com as respostas aos quesitos. Antes de redigir, releia a ordem votada — materialidade, autoria, quesito genérico de absolvição, causas de diminuição, qualificadoras e causas de aumento — e o que ficou registrado em ata, inclusive tese de clemência sustentada pela defesa.',
+      lei: [
+        'Ordem dos quesitos — CPP, art. 483',
+        'Quesito genérico de absolvição — CPP, art. 483, III e § 2º',
+        'Formulação e votação dos quesitos — CPP, arts. 482 a 491'
+      ],
+      juris: [
+        'Apelação contra absolvição pelo quesito genérico — STF, ARE 1.225.185, Tema 1087, tese de 04/10/2024',
+        'Clemência registrada em ata impede novo júri — STF, ARE 1.225.185, Tema 1087, 2ª parte da tese'
+      ],
+      erro: 'Fundamentar a absolvição. Absolvido pelo quesito genérico, o juiz registra o resultado e ponto — explicar o porquê invade a soberania dos veredictos (CF, art. 5º, XXXVIII, "c").'
+    },
+    {
+      nome: 'Absolvição: dispositivo e efeitos imediatos',
+      deve: 'Absolvido o réu, a sentença manda soltá-lo se estiver preso, revoga as medidas cautelares impostas e, quando a absolvição for imprópria, aplica medida de segurança.',
+      lei: [
+        'Sentença absolutória no júri — CPP, art. 492, II',
+        'Soltura, revogação de cautelares e medida de segurança — CPP, art. 492, II, "a" a "c"',
+        'Absolvição imprópria — CP, art. 97'
+      ],
+      juris: [],
+      erro: 'Absolver e esquecer o alvará de soltura e a revogação das cautelares diversas da prisão. São dois itens distintos no espelho, e cada um vale ponto.'
+    },
+    {
+      nome: 'Condenação: a base fática é o veredicto',
+      deve: 'Condenado, o juiz fixa a pena considerando as circunstâncias agravantes e atenuantes alegadas nos debates e as qualificadoras e causas de aumento reconhecidas pelos jurados. A premissa de fato não é a sua leitura da prova: é o que o conselho de sentença respondeu.',
+      lei: [
+        'Sentença condenatória no júri — CPP, art. 492, I',
+        'Agravantes e atenuantes alegadas nos debates — CPP, art. 492, I, "b"',
+        'Requisitos da sentença — CPP, art. 381'
+      ],
+      juris: [],
+      erro: 'Reconhecer qualificadora que os jurados afastaram, ou ignorar a que reconheceram. Isso não é erro de dosimetria: é sentença contrária ao veredicto.'
+    },
+    {
+      nome: 'Dosimetria — as três fases, uma a uma',
+      deve: 'Pena-base pelas circunstâncias judiciais, com fato concreto para cada uma que você valorar negativamente; depois agravantes e atenuantes; por fim causas de aumento e de diminuição, que são as únicas que podem levar a pena fora dos limites do tipo.',
+      lei: [
+        'Circunstâncias judiciais — CP, art. 59',
+        'Cálculo da pena em três fases — CP, art. 68',
+        'Concurso de crimes — CP, arts. 69 a 71',
+        'Crime hediondo — Lei 8.072/90, art. 1º, I'
+      ],
+      juris: [
+        'Atenuante não reduz abaixo do mínimo — Súmula 231 do STJ',
+        'Gravidade abstrata não motiva regime mais severo — Súmula 718 do STF'
+      ],
+      erro: 'Elevar a pena-base repetindo elementar do tipo ou a própria qualificadora já usada para qualificar. É bis in idem, e o espelho desconta.'
+    },
+    {
+      nome: 'Regime inicial, substituição e detração',
+      deve: 'Fixar o regime pelo quantum e pelas circunstâncias do art. 59, examinar substituição por restritivas e suspensão condicional (ainda que para negar, motivadamente), e computar o tempo de prisão provisória para determinar o regime.',
+      lei: [
+        'Regime inicial — CP, art. 33, §§ 2º e 3º',
+        'Substituição por penas restritivas de direitos — CP, art. 44',
+        'Suspensão condicional da pena — CP, art. 77',
+        'Detração na fixação do regime — CPP, art. 387, § 2º'
+      ],
+      juris: [
+        'Regime mais gravoso exige motivação idônea — Súmula 719 do STF',
+        'Pena-base no mínimo veda regime mais gravoso — Súmula 440 do STJ'
+      ],
+      erro: 'Fixar o fechado invocando só a gravidade do homicídio. Ser hediondo não dispensa a fundamentação concreta do regime.'
+    },
+    {
+      nome: 'Prisão depois do veredicto',
+      deve: 'Decidir, fundamentadamente, sobre a execução imediata da condenação e sobre a manutenção ou decretação da preventiva. É o ponto mais sensível da peça depois do Tema 1068.',
+      lei: [
+        'Execução provisória da condenação no júri — CPP, art. 492, I, "e"',
+        'Pressupostos da preventiva — CPP, art. 312',
+        'Motivação das decisões — CF, art. 93, IX'
+      ],
+      juris: [
+        'Execução imediata independe do total da pena — STF, RE 1.235.340, Tema 1068, j. 12/09/2024'
+      ],
+      erro: 'Repetir o piso de 15 anos do art. 492, I, "e" como se fosse condição da execução imediata. No Tema 1068 o STF desvinculou a execução do quantum da pena.'
+    },
+    {
+      nome: 'Fecho: leitura, recurso e providências',
+      deve: 'Sentença lida em plenário, custas, direito de recorrer, expedição da guia (provisória ou definitiva) e as comunicações de praxe.',
+      lei: [
+        'Leitura da sentença em plenário — CPP, art. 493',
+        'Apelação das decisões do júri — CPP, art. 593, III',
+        'Guia de recolhimento — LEP, arts. 105 e 106'
+      ],
+      juris: [],
+      erro: 'Terminar sem uma palavra sobre recorrer em liberdade. A omissão é falta de fundamentação, não descuido de redação.'
+    }
+  ],
+  cego: [
+    'Sentença congruente com as respostas aos quesitos',
+    'Absolvição pelo quesito genérico NÃO fundamentada',
+    'Absolvição: soltura + revogação das cautelares + medida de segurança se imprópria',
+    'Qualificadoras e causas de aumento conforme o veredicto',
+    'Pena-base com fato concreto para cada circunstância judicial',
+    'Agravantes e atenuantes limitadas ao alegado nos debates',
+    'Terceira fase: causas de aumento e diminuição, com fração justificada',
+    'Regime inicial fundamentado (não só pela gravidade)',
+    'Substituição e sursis enfrentados, ainda que para negar',
+    'Detração computada para o regime (CPP, art. 387, § 2º)',
+    'Execução imediata e preventiva decididas com motivação',
+    'Custas, recurso e guia de recolhimento'
+  ]
+},
+
+// ──────────────────── SENTENÇA SOCIOEDUCATIVA (2ª fase) ────────────────────
+'Sentença socioeducativa': {
+  rito: 'Criança e adolescente — ato infracional',
+  sobre: 'Não é sentença penal: é decisão que aplica medida socioeducativa, de natureza pedagógica. Duas armadilhas cobram quase todo o espelho: aplicar medida sem prova além da confissão, e internar fora das três hipóteses do art. 122. Internação é exceção — e cada exceção tem inciso próprio.',
+  blocos: [
+    {
+      nome: 'Relatório e regularidade do procedimento',
+      deve: 'Registrar a representação do Ministério Público, a oitiva do adolescente e dos pais ou responsável, a atuação da defesa técnica e o resultado do estudo social. A oitiva do adolescente não é praxe: é condição de validade.',
+      lei: [
+        'Representação do Ministério Público — ECA, art. 182',
+        'Audiência de apresentação e oitiva do adolescente — ECA, arts. 184 e 186',
+        'Defesa técnica por advogado — ECA, art. 207',
+        'Alegações finais e sentença — ECA, art. 186, § 4º'
+      ],
+      juris: [
+        'Aplicação da medida é competência exclusiva do juiz — Súmula 108 do STJ'
+      ],
+      erro: 'Passar por cima da oitiva do adolescente ou da manifestação da defesa técnica. Não é formalidade dispensável — é nulidade.'
+    },
+    {
+      nome: 'Materialidade e autoria — prova, não só confissão',
+      deve: 'Aplicar medida das previstas nos incisos II a VI do art. 112 exige prova suficiente de autoria e materialidade. Confissão do adolescente não substitui prova, e não autoriza dispensar as demais.',
+      lei: [
+        'Prova de autoria e materialidade — ECA, art. 114',
+        'Remissão — ECA, arts. 126 a 128'
+      ],
+      juris: [
+        'Nula a desistência de provas em face da confissão — Súmula 342 do STJ'
+      ],
+      erro: 'Sentenciar apoiado na confissão em sede policial, sem prova produzida em contraditório. A Súmula 342 derruba a sentença inteira.'
+    },
+    {
+      nome: 'Tipicidade, excludentes e prescrição',
+      deve: 'Verificar a correspondência da conduta com crime ou contravenção, enfrentar as excludentes alegadas e checar a prescrição — que incide, com a redução da menoridade.',
+      lei: [
+        'Conceito de ato infracional — ECA, art. 103',
+        'Adolescente sujeito às medidas do ECA — ECA, arts. 104 e 105',
+        'Redução do prazo prescricional pela menoridade — CP, art. 115'
+      ],
+      juris: [
+        'Prescrição penal aplica-se às medidas socioeducativas — Súmula 338 do STJ',
+        'Maioridade superveniente não extingue a medida até os 21 anos — Súmula 605 do STJ'
+      ],
+      erro: 'Não examinar a prescrição. Em ato infracional o prazo já é curto e cai pela metade — passa despercebido e o espelho cobra.'
+    },
+    {
+      nome: 'Escolha da medida: proporcionalidade, não tarifa',
+      deve: 'A medida se escolhe pela capacidade do adolescente de cumpri-la, pelas circunstâncias e pela gravidade do ato — nessa ordem, e não só pela gravidade. Fundamentar por que as medidas menos gravosas não servem ao caso.',
+      lei: [
+        'Elenco das medidas socioeducativas — ECA, art. 112',
+        'Critérios de escolha da medida — ECA, art. 112, § 1º',
+        'Princípios da execução socioeducativa — Lei 12.594/2012 (SINASE), art. 35'
+      ],
+      juris: [],
+      erro: 'Escolher a medida pela etiqueta do ato ("roubo é internação"). O art. 112, § 1º manda pesar a capacidade de cumprir e as circunstâncias, e a sentença precisa mostrar esse exame.'
+    },
+    {
+      nome: 'Internação: só nas três hipóteses do art. 122',
+      deve: 'Internar exige enquadrar o caso em um dos três incisos: violência ou grave ameaça à pessoa; reiteração no cometimento de outras infrações graves; descumprimento reiterado e injustificável de medida anterior — esta última limitada a três meses. E, havendo outra medida adequada, a internação não se impõe.',
+      lei: [
+        'Hipóteses de internação — ECA, art. 122, I a III',
+        'Internação-sanção: prazo máximo de três meses — ECA, art. 122, § 1º',
+        'Vedação havendo medida mais adequada — ECA, art. 122, § 2º',
+        'Prazo indeterminado, reavaliação e limites — ECA, art. 121, §§ 2º, 3º e 5º'
+      ],
+      juris: [
+        'Tráfico, por si só, não autoriza internação — Súmula 492 do STJ'
+      ],
+      erro: 'Internar por ato análogo ao tráfico invocando a gravidade em abstrato. Sem violência ou grave ameaça o inciso I não serve, e a Súmula 492 fecha o atalho.'
+    },
+    {
+      nome: 'Dispositivo e providências da execução',
+      deve: 'Aplicar a medida, determinar o plano individual de atendimento, fixar a reavaliação, e resolver o que fazer com a internação provisória cumprida. Nada de prazo certo para a internação.',
+      lei: [
+        'Reavaliação em no máximo seis meses — ECA, art. 121, § 2º',
+        'Teto de três anos e liberação compulsória aos 21 — ECA, art. 121, §§ 3º e 5º',
+        'Plano Individual de Atendimento — Lei 12.594/2012, arts. 52 e 53',
+        'Recursos e prazo de dez dias — ECA, art. 198'
+      ],
+      juris: [
+        'Oitiva do adolescente antes da regressão — Súmula 265 do STJ'
+      ],
+      erro: 'Fixar prazo determinado de internação ("internação por um ano"). A internação não comporta prazo certo: o que existe é o teto de três anos e a reavaliação semestral.'
+    }
+  ],
+  cego: [
+    'Oitiva do adolescente e dos responsáveis registrada',
+    'Defesa técnica atuante e alegações enfrentadas',
+    'Autoria e materialidade provadas — não só confissão',
+    'Tipicidade do ato infracional demonstrada',
+    'Excludentes alegadas enfrentadas',
+    'Prescrição examinada, com a redução da menoridade',
+    'Escolha da medida justificada pelo art. 112, § 1º',
+    'Medidas menos gravosas descartadas com motivo',
+    'Internação enquadrada em inciso do art. 122',
+    'Internação sem prazo determinado, com reavaliação em até 6 meses',
+    'Internação-sanção limitada a três meses',
+    'PIA determinado e providências de execução no dispositivo'
+  ]
+},
+
+// ───────────── SENTENÇA NOS EMBARGOS À EXECUÇÃO FISCAL (2ª fase) ─────────────
+'Embargos à execução fiscal': {
+  rito: 'Tributário — execução fiscal',
+  sobre: 'O rótulo é a peça do executado; em prova de magistratura o que se escreve é a SENTENÇA que a julga. São ação incidental de conhecimento, com sentença e honorários próprios. O espelho costuma cobrar quatro eixos: admissibilidade (garantia e prazo), higidez da CDA, prescrição, e o destino da execução depois do julgado.',
+  blocos: [
+    {
+      nome: 'Admissibilidade: garantia e prazo',
+      deve: 'Conferir o termo inicial dos trinta dias conforme a forma de garantia — depósito, fiança bancária ou seguro garantia, ou intimação da penhora — e a exigência de garantia do juízo, que é a regra na execução fiscal. Reconvenção e compensação não cabem aqui.',
+      lei: [
+        'Prazo de trinta dias e termo inicial — Lei 6.830/80, art. 16, I a III',
+        'Garantia do juízo — Lei 6.830/80, art. 16, § 1º',
+        'Vedação a reconvenção e compensação — Lei 6.830/80, art. 16, § 3º',
+        'Aplicação subsidiária do CPC — Lei 6.830/80, art. 1º'
+      ],
+      juris: [
+        'Exceção de pré-executividade nas matérias de ordem pública sem dilação probatória — Súmula 393 do STJ',
+        'Exceção à vedação de compensação — Súmula 394 do STJ'
+      ],
+      erro: 'Rejeitar liminarmente por falta de garantia sem examinar a alegação de insuficiência patrimonial. A exigência é afastada quando comprovada inequivocamente a inexistência de patrimônio (STJ, REsp 1.487.772/SE, 1ª Turma, j. 28/05/2019, Info 650) — acórdão de Turma, não repetitivo.'
+    },
+    {
+      nome: 'Efeito suspensivo — três requisitos, não um',
+      deve: 'Embargos não suspendem a execução automaticamente. Para suspender é preciso garantia, relevância da fundamentação e risco de dano de difícil reparação. Decidir isso expressamente.',
+      lei: [
+        'Efeito suspensivo dos embargos — CPC, art. 919, § 1º'
+      ],
+      juris: [
+        'Garantia, fumus boni iuris e periculum in mora — STJ, REsp 1.272.827/PE, Tema 526'
+      ],
+      erro: 'Dizer que os embargos "foram recebidos no efeito suspensivo" sem examinar os três requisitos. É decisão sem fundamentação (CPC, art. 489, § 1º).'
+    },
+    {
+      nome: 'A CDA: presunção, requisitos e substituição',
+      deve: 'A certidão goza de presunção de certeza e liquidez, que só cede a prova inequívoca a cargo do executado. Verificar os requisitos formais e, havendo erro material ou formal, admitir a substituição — nunca para trocar o sujeito passivo.',
+      lei: [
+        'Presunção de certeza e liquidez — Lei 6.830/80, art. 3º',
+        'Requisitos da CDA — Lei 6.830/80, art. 2º, §§ 5º e 6º',
+        'Emenda ou substituição até a decisão de primeira instância, devolvido o prazo para embargos — Lei 6.830/80, art. 2º, § 8º',
+        'Dívida ativa e título executivo — CTN, arts. 201 a 204'
+      ],
+      juris: [
+        'Substituição da CDA até a sentença de embargos, vedada a mudança do sujeito passivo — Súmula 392 do STJ',
+        'Desnecessário demonstrativo de cálculo na inicial da execução fiscal — Súmula 559 do STJ'
+      ],
+      erro: 'Anular a execução por vício formal que não causou prejuízo à defesa, ou aceitar substituição de CDA que troca o devedor. São os dois extremos que o espelho separa.'
+    },
+    {
+      nome: 'Prescrição, decadência e prescrição intercorrente',
+      deve: 'Enfrentar os três: decadência do lançamento, prescrição da cobrança e prescrição intercorrente no curso da execução. A intercorrente pressupõe a suspensão de um ano e a oitiva prévia da Fazenda.',
+      lei: [
+        'Decadência do lançamento — CTN, art. 173',
+        'Prescrição da ação de cobrança — CTN, art. 174',
+        'Suspensão, arquivamento e prescrição intercorrente — Lei 6.830/80, art. 40, §§ 2º, 4º e 5º'
+      ],
+      juris: [
+        'Suspensão de um ano e início automático do prazo quinquenal — Súmula 314 do STJ',
+        'Prescrição anterior à propositura pode ser decretada de ofício — Súmula 409 do STJ'
+      ],
+      erro: 'Tratar a falta de oitiva da Fazenda (art. 40, § 4º) como nulidade automática. A Fazenda tem de demonstrar prejuízo — presumido só na falta da intimação do termo inicial (STJ, REsp 1.340.553/RS, 1ª Seção, Temas 566 e 570/571, j. 12/09/2018) — e o § 5º dispensa a manifestação nas cobranças de baixo valor.'
+    },
+    {
+      nome: 'Responsabilidade do sócio e redirecionamento',
+      deve: 'Se os embargos discutem a legitimidade do sócio, separar inadimplemento de infração à lei. Mero não pagamento não redireciona; dissolução irregular, sim.',
+      lei: [
+        'Responsabilidade por atos com excesso de poderes ou infração à lei — CTN, art. 135, III',
+        'Responsabilidade de terceiros — CTN, art. 134'
+      ],
+      juris: [
+        'Inadimplemento, por si só, não gera responsabilidade do sócio-gerente — Súmula 430 do STJ',
+        'Dissolução irregular presumida legitima o redirecionamento — Súmula 435 do STJ'
+      ],
+      erro: 'Manter o sócio no polo passivo só porque a empresa não pagou. A Súmula 430 é das mais cobradas justamente nesse ponto.'
+    },
+    {
+      nome: 'Dispositivo, honorários e o destino da execução',
+      deve: 'Julgar procedente, parcialmente procedente ou improcedente, e dizer o que acontece com a execução: extinção, prosseguimento integral ou prosseguimento pelo saldo remanescente, com nova conta. Fechar com honorários e custas.',
+      lei: [
+        'Resolução do mérito — CPC, art. 487',
+        'Honorários contra a Fazenda por faixas — CPC, art. 85, § 3º',
+        'Majoração recursal, pelo tribunal — CPC, art. 85, § 11',
+        'Sentença nos embargos, dispensada a audiência se a prova for documental — Lei 6.830/80, art. 17, parágrafo único'
+      ],
+      juris: [
+        'Nas execuções fiscais da União o encargo de 20% do DL 1.025/69 substitui os honorários nos embargos — Súmula 168 do extinto TFR; STJ, REsp 1.143.320/RS, Tema 400'
+      ],
+      erro: 'Julgar procedente em parte e não dizer por qual valor a execução prossegue. Sem essa determinação a sentença é inexequível — e o espelho conta como item perdido.'
+    }
+  ],
+  cego: [
+    'Tempestividade aferida pelo termo inicial correto do art. 16',
+    'Garantia do juízo examinada (e a alegação de insuficiência enfrentada)',
+    'Efeito suspensivo decidido com os três requisitos',
+    'Presunção de liquidez e certeza da CDA enfrentada',
+    'Vícios da CDA: prejuízo à defesa verificado',
+    'Decadência do lançamento examinada',
+    'Prescrição da cobrança examinada',
+    'Prescrição intercorrente com prévia oitiva da Fazenda',
+    'Legitimidade do sócio enfrentada (Súmulas 430 e 435)',
+    'Destino da execução definido: extinção, prosseguimento ou saldo',
+    'Honorários fixados por faixas (CPC, art. 85, § 3º)',
+    'Custas e intimações'
+  ]
+},
+
+// ────────── SENTENÇA NOS EMBARGOS À EXECUÇÃO (título extrajudicial) ──────────
+'Embargos à execução': {
+  rito: 'Civil — cumprimento e execução',
+  sobre: 'Ação incidental de conhecimento, distribuída por dependência e autuada em apartado. Diferença que a banca adora: aqui NÃO se exige garantia para embargar — a garantia só entra quando se pede efeito suspensivo. E excesso de execução alegado sem valor correto é rejeitado de plano.',
+  blocos: [
+    {
+      nome: 'Admissibilidade: prazo e independência de garantia',
+      deve: 'Quinze dias contados na forma do art. 231, conforme o modo de citação — a juntada do mandado é apenas uma das hipóteses. Independem de penhora, depósito ou caução. Havendo vários executados, o prazo corre individualmente e não se aplica o prazo em dobro do art. 229. Autuação em apartado e distribuição por dependência.',
+      lei: [
+        'Embargos independem de garantia — CPC, art. 914',
+        'Distribuição por dependência e autuação em apartado — CPC, art. 914, § 1º',
+        'Prazo de quinze dias, contado na forma do art. 231 — CPC, art. 915',
+        'Prazo individual por executado; sem prazo em dobro do art. 229 — CPC, art. 915, §§ 1º e 3º',
+        'Contagem em dias úteis — CPC, art. 219'
+      ],
+      juris: [],
+      erro: 'Exigir penhora para conhecer dos embargos. Isso é regime da execução fiscal, não do CPC — trocar os dois custa a admissibilidade inteira.'
+    },
+    {
+      nome: 'Efeito suspensivo: requisitos cumulativos',
+      deve: 'Só suspende a execução com requerimento, garantia por penhora, depósito ou caução suficientes, e fundamentos relevantes somados ao risco de dano grave. Decidir de forma expressa e fundamentada.',
+      lei: [
+        'Efeito suspensivo dos embargos — CPC, art. 919, § 1º',
+        'Prosseguimento quanto à parte não abrangida pelo efeito suspensivo — CPC, art. 919, § 3º'
+      ],
+      juris: [],
+      erro: 'Suspender a execução inteira quando o efeito suspensivo diz respeito só a parte do objeto da execução. O § 3º manda prosseguir quanto à parte restante.'
+    },
+    {
+      nome: 'Matéria alegável e exame do título',
+      deve: 'Percorrer o rol do art. 917 e, antes dele, os requisitos do título: certeza, liquidez e exigibilidade. Falta de qualquer um leva à extinção da execução, e isso é matéria de ordem pública.',
+      lei: [
+        'Matérias alegáveis nos embargos — CPC, art. 917, I a VI',
+        'Requisitos do título executivo — CPC, art. 783',
+        'Títulos extrajudiciais — CPC, art. 784',
+        'Requisitos para realizar qualquer execução — CPC, art. 786',
+        'Nulidade da execução — CPC, art. 803'
+      ],
+      juris: [],
+      erro: 'Enfrentar só o que o embargante alegou e não conferir de ofício a exigibilidade do título. Nulidade da execução é matéria conhecível de ofício (CPC, art. 803, parágrafo único).'
+    },
+    {
+      nome: 'Excesso de execução — o ônus é do embargante',
+      deve: 'Alegado excesso, o embargante tem de declarar o valor que entende correto e apresentar a memória de cálculo. Não o fazendo, essa alegação é rejeitada liminarmente, ou não se examina, se houver outro fundamento.',
+      lei: [
+        'Excesso de execução — CPC, art. 917, § 2º',
+        'Ônus de declarar o valor correto — CPC, art. 917, § 3º',
+        'Rejeição liminar da alegação — CPC, art. 917, § 4º'
+      ],
+      juris: [],
+      erro: 'Mandar liquidar o valor correto no lugar do embargante. O ônus é dele, e a lei já diz a consequência de não cumpri-lo.'
+    },
+    {
+      nome: 'Prescrição, pagamento e demais defesas',
+      deve: 'Examinar prescrição, pagamento, novação, compensação e o que mais seria lícito deduzir em processo de conhecimento — o inciso VI abre a defesa por inteiro.',
+      lei: [
+        'Qualquer matéria deduzível como defesa — CPC, art. 917, VI',
+        'Prescrição — CC, arts. 189 e 206',
+        'Fatos supervenientes conhecíveis — CPC, art. 493'
+      ],
+      juris: [],
+      erro: 'Tratar embargos como se fossem impugnação: aqui a cognição é ampla, não limitada a um rol fechado como o do art. 525, § 1º.'
+    },
+    {
+      nome: 'Dispositivo, honorários e embargos protelatórios',
+      deve: 'Resolver o mérito, dizer o que acontece com a execução e fixar honorários. Embargos manifestamente protelatórios são conduta atentatória à dignidade da justiça, com multa própria.',
+      lei: [
+        'Resolução do mérito — CPC, art. 487',
+        'Honorários e majoração — CPC, art. 85, §§ 1º e 11',
+        'Embargos protelatórios — CPC, art. 918, III e parágrafo único',
+        'Multa por ato atentatório — CPC, art. 774, parágrafo único'
+      ],
+      juris: [],
+      erro: 'Julgar os embargos e não dizer se a execução prossegue e por quanto. A sentença precisa devolver a execução ao trilho.'
+    }
+  ],
+  cego: [
+    'Prazo de 15 dias contado na forma do art. 231, conforme o modo de citação',
+    'Garantia NÃO exigida para conhecer dos embargos',
+    'Efeito suspensivo decidido com requerimento, garantia, relevância e risco',
+    'Parte não alcançada pelo efeito suspensivo mantida em execução',
+    'Certeza, liquidez e exigibilidade do título examinadas de ofício',
+    'Rol do art. 917 percorrido quanto ao alegado',
+    'Excesso: valor correto e memória de cálculo cobrados do embargante',
+    'Prescrição e pagamento enfrentados',
+    'Dispositivo diz o destino da execução e o valor remanescente',
+    'Honorários fixados; protelatoriedade avaliada'
+  ]
+},
+
+// ────────── DECISÃO NA IMPUGNAÇÃO AO CUMPRIMENTO DE SENTENÇA ──────────
+'Impugnação ao cumprimento': {
+  rito: 'Civil — cumprimento e execução',
+  sobre: 'Defesa endoprocessual, com rol FECHADO de matérias — é o oposto dos embargos do art. 917, VI. Três pontos decidem o espelho: o rol do § 1º, o ônus de declarar o valor correto no excesso, e a multa e os honorários de dez por cento do art. 523, § 1º, que não se afastam por impugnar.',
+  blocos: [
+    {
+      nome: 'Cabimento, prazo e ausência de garantia',
+      deve: 'Quinze dias contados do fim do prazo de pagamento voluntário, independentemente de penhora ou de nova intimação. Nos próprios autos, sem autuação em apartado.',
+      lei: [
+        'Prazo e independência de penhora — CPC, art. 525, caput',
+        'Prazo para pagamento voluntário — CPC, art. 523',
+        'Multa e honorários de dez por cento — CPC, art. 523, § 1º'
+      ],
+      juris: [
+        'Honorários no cumprimento, haja ou não impugnação — Súmula 517 do STJ'
+      ],
+      erro: 'Afastar a multa do art. 523, § 1º porque o executado impugnou. Impugnar não é pagar: a multa incide pelo não pagamento no prazo.'
+    },
+    {
+      nome: 'O rol do § 1º — cognição limitada',
+      deve: 'Só cabem as matérias do § 1º: falta ou nulidade da citação no processo que correu à revelia, ilegitimidade de parte, inexequibilidade do título ou inexigibilidade da obrigação, penhora incorreta ou avaliação errônea, excesso de execução ou cumulação indevida, incompetência, e causas modificativas ou extintivas posteriores à sentença.',
+      lei: [
+        'Matérias arguíveis — CPC, art. 525, § 1º, I a VII',
+        'Causas modificativas ou extintivas supervenientes à sentença — CPC, art. 525, § 1º, VII',
+        'Fato superveniente ao prazo da impugnação, por simples petição em 15 dias — CPC, art. 525, § 11'
+      ],
+      juris: [],
+      erro: 'Reabrir discussão sobre o mérito já decidido. O que é anterior à sentença está coberto pela coisa julgada (CPC, art. 508).'
+    },
+    {
+      nome: 'Excesso de execução — o ônus é do impugnante',
+      deve: 'Alegado excesso, o executado declara de imediato o valor que entende correto e apresenta demonstrativo. Sem isso, a impugnação é rejeitada liminarmente quanto a esse fundamento, ou não se conhece dele.',
+      lei: [
+        'Ônus de declarar o valor correto — CPC, art. 525, § 4º',
+        'Consequência da omissão — CPC, art. 525, § 5º'
+      ],
+      juris: [],
+      erro: 'Determinar perícia contábil para achar o valor devido antes de exigir do impugnante o valor que ele entende correto. A lei inverte essa ordem.'
+    },
+    {
+      nome: 'Efeito suspensivo',
+      deve: 'A impugnação não suspende por si. Suspende quando garantida a execução por penhora, caução ou depósito suficientes, presentes fundamentos relevantes e risco de dano grave. E a suspensão pode ser parcial.',
+      lei: [
+        'Requisitos do efeito suspensivo — CPC, art. 525, § 6º',
+        'Efeito suspensivo não impede substituição, reforço ou redução da penhora — CPC, art. 525, § 7º',
+        'Suspensão parcial: prosseguimento quanto à parte restante — CPC, art. 525, § 8º',
+        'Prosseguimento mediante caução do exequente — CPC, art. 525, § 10'
+      ],
+      juris: [],
+      erro: 'Suspender tudo quando a impugnação atinge só parte do valor. O § 8º manda prosseguir no restante.'
+    },
+    {
+      nome: 'Inexigibilidade por inconstitucionalidade',
+      deve: 'Título fundado em norma ou interpretação declarada inconstitucional pelo STF é inexigível — mas só se a decisão do Supremo for anterior ao trânsito em julgado. Sendo posterior, o caminho é a rescisória, com prazo contado do trânsito da decisão do STF.',
+      lei: [
+        'Inexigibilidade do título — CPC, art. 525, §§ 12 e 13',
+        'Efeitos temporais e rescisória — CPC, art. 525, §§ 14 e 15'
+      ],
+      juris: [
+        'Tributo de trato sucessivo: efeitos futuros da coisa julgada cessam sem rescisória — STF, Temas 881 e 885 (RE 949.297/CE e RE 955.227/BA, Pleno, j. 08/02/2023)'
+      ],
+      erro: 'Declarar inexigível o título com base em precedente do STF posterior ao trânsito em julgado. Aí não é impugnação: é ação rescisória.'
+    },
+    {
+      nome: 'Dispositivo e honorários',
+      deve: 'Decidir a impugnação, dizer se o cumprimento prossegue e por qual valor, e fixar honorários — devidos na fase de cumprimento (art. 85, § 1º; Súmula 517 do STJ), somados aos da sucumbência na própria impugnação. A majoração do art. 85, § 11, é do tribunal ao julgar recurso, não do juízo de primeiro grau.',
+      lei: [
+        'Honorários e majoração — CPC, art. 85, §§ 1º e 11',
+        'Não extingue a execução: interlocutória, agravo de instrumento — CPC, art. 1.015, parágrafo único',
+        'Extingue a execução: sentença, apelação — CPC, arts. 203, § 1º, 925 e 1.009',
+        'Extinção da execução — CPC, art. 924',
+        'A extinção só produz efeito quando declarada por sentença — CPC, art. 925'
+      ],
+      juris: [
+        'Honorários no cumprimento de sentença — Súmula 517 do STJ'
+      ],
+      erro: 'Não indicar o valor pelo qual o cumprimento segue. Acolhida em parte a impugnação, o dispositivo tem de recalcular ou mandar recalcular expressamente.'
+    }
+  ],
+  cego: [
+    'Prazo de 15 dias após o prazo do art. 523, sem penhora e sem nova intimação',
+    'Multa e honorários de 10% mantidos apesar da impugnação',
+    'Matérias limitadas ao rol do art. 525, § 1º',
+    'Matéria anterior à sentença rejeitada pela coisa julgada',
+    'Excesso: valor correto e demonstrativo exigidos do impugnante',
+    'Efeito suspensivo com garantia, relevância e risco',
+    'Suspensão parcial quando a impugnação é parcial',
+    'Inexigibilidade por inconstitucionalidade: decisão do STF anterior ao trânsito',
+    'Dispositivo diz se o cumprimento prossegue e por quanto',
+    'Honorários fixados e majoração examinada'
   ]
 }
 
