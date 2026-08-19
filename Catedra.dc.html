@@ -2692,7 +2692,7 @@ window.ctPdfLib = (function(){
         <iframe data-ct-frame="{{ areaModFrameSrc }}" title="Módulo de estudo da área" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
       <sc-if value="{{ isRoteiros }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="processo-web.html?aba=roteiros" title="Roteiros de sentença, peças e discursivas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+        <iframe data-ct-frame="pecas-web.html" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
       <sc-if value="{{ isLegis }}" hint-placeholder-val="{{ false }}">
         <iframe data-ct-frame="{{ legisFrameSrc }}" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
@@ -7973,7 +7973,7 @@ class Component extends DCLogic {
     // peças), não a lista de pontos de estudo do area-web. As demais áreas seguem no
     // area-web genérico.
     const areaModFrameSrc = (_area.id==='juridica')
-      ? 'processo-web.html'
+      ? 'ritos-web.html'
       : ('area-web.html?area=' + encodeURIComponent(_area.id));
     // O ?q= faz a página abrir já buscando o instituto que veio do mapa.
     const _acBusca=(this.state.acervoBusca||'').trim();

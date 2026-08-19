@@ -1,0 +1,5839 @@
+/* Cátedra — MATERIAL OFICIAL DE PROVA ORAL.
+ *
+ * 562 documentos de 101 concursos, 2009–2026, todos com link para o
+ * arquivo publicado pela banca ou pelo órgão. Nada aqui é transcrição: o que o app guarda é
+ * o CATÁLOGO (quem, quando, que tipo de material, onde está). O texto continua na fonte.
+ *
+ * Gerado por scripts/build-oral.mjs a partir de scripts/fontes/acervo-prova-oral.html.
+ * Não editar à mão.
+ */
+window.CT_ORAL = [
+ {
+  "id": "pcce-2025-delegadodepolicia",
+  "orgao": "PC-CE",
+  "ano": 2025,
+  "cargo": "Delegado de Polícia",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Civil",
+  "concurso": "PC CE 2025 - Delegado de Polícia Civil",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PC_CE_25_DELEGADO",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - Malote 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_CE_25_DELEGADO/arquivos/AF1A155D4D60151AFB09F7990338E9DCAFFA5523254B72E280451DCDA4FB72FC.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - Malote 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_CE_25_DELEGADO/arquivos/38954C40385355EA34C519A5CDFD77047BF4DBC4274C679C4CA5160B35B7711E.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 15 - Retificação da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_CE_25_DELEGADO/arquivos/40CE779E2A30F4063B0ED5DDD5CD34702D5D4478236B39A48F96C41BE9149EF5.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 14 - Resultado final na avaliação psicológica e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_CE_25_DELEGADO/arquivos/B8F3DA6EF1429FBDC6F409EC30651A0CFD06E53EB0BAD73658EC449737661A6A.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 16 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_CE_25_DELEGADO/arquivos/C321907E74BD26EFC8C86B60EA03C15A5C83FF51B7C1CB2CF565D131080BC002.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 17 - Resultado final na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_CE_25_DELEGADO/arquivos/019596D1666EBAE51E27D0A815071E2EFAD0BD0D11C941F6571F8787682A31EC.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pf-2025-delegadodepoliciafederal",
+  "orgao": "PF",
+  "ano": 2025,
+  "cargo": "Delegado de Polícia Federal",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Federal",
+  "concurso": "PF 2025",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PF_25",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_25/arquivos/25884E2722C53188F09613E726AA9C1D798AC0810765EE9928BBC06C1D72276C.pdf",
+    "obs": "Nome de arquivo em hash; descrição conforme a API do Cebraspe."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - cargo delegado (aplicada em 19/7/2026) sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_25/arquivos/CDC7CFAADFFCABACF7DEEF6B1C4EC87CEAC22995AD7BC9550D017C17FE24E431.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 15 - Resultado provisório na prova oral (delegado)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_25/arquivos/6A7B6B46E40E61A047CBBEF1766C959C1F55FCFD7E1FC5DAB1C7344F47FCEDEF.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 19 - Resultado final na prova oral (delegado)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_25/arquivos/021CAF19CFBE2AC9510155129C0B1F9A628CF977CE9DFF3F69EB1297C4F63198.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgees-2025-procuradordoestado",
+  "orgao": "PGE-ES",
+  "ano": 2025,
+  "cargo": "Procurador do Estado",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso PGE-ES 2025",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PGE_ES_25_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_25_PROCURADOR/arquivos/13F3F8F0C54E35617FE2DD12D3F8EABE30DE685D6D87926161CFFD168F209222.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 13F3F8F0C54E35617FE2DD12D3F8EABE30DE685D6D87926161CFFD168F209222.pdf"
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL (APLICADA EM 29/03/2026) SUB JUDICE",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_25_PROCURADOR/arquivos/069DEE1408785FFF341DAE328FE1B1E144F5096CCFFC1817D6887D6E18B18961.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 069DEE1408785FFF341DAE328FE1B1E144F5096CCFFC1817D6887D6E18B18961.pdf"
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 10 – Resultado final na prova oral, a convocação para a investigação social, para a perícia médica e para o procedimento de heteroidentificação",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_25_PROCURADOR/arquivos/15FA420BA7EFA69CF344351F0BDFDF315D5C8A8FAE690343CAA9F63EDAB237AC.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: 15FA420BA7EFA69CF344351F0BDFDF315D5C8A8FAE690343CAA9F63EDAB237AC.pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 8 – Resultado final nas provas escritas (teórica e prática) e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_25_PROCURADOR/arquivos/1911F882ACE5E2A11E8BEA1F2F2AAACD55C54AA184B6B2392DBE2D81E1F6F663.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: 1911F882ACE5E2A11E8BEA1F2F2AAACD55C54AA184B6B2392DBE2D81E1F6F663.pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 9 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_25_PROCURADOR/arquivos/733A040ABFAD44BF26D012BBB5581508BC177BF5759E0627C7F04A6B7B31F454.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: 733A040ABFAD44BF26D012BBB5581508BC177BF5759E0627C7F04A6B7B31F454.pdf"
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tcems-2025-conselheirosubstituto",
+  "orgao": "TCE-MS",
+  "ano": 2025,
+  "cargo": "Conselheiro-Substituto",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "TCE",
+  "concurso": "TCE MS 25 CONSELHEIRO",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TCE_MS_25_CONSELHEIRO",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_25_CONSELHEIRO/arquivos/67FF1D555276DE3DFDC5028FC554E387207BA4198006C78C9DD150CFC3F44509.pdf",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Comunicado – Prorrogação do link de recursos contra o resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_25_CONSELHEIRO/arquivos/DD2C838010FCC41364DA773978D798CB8E5554E0C2A7E22671715FEA1C4C6CA2.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 11 – Resultado final na prova oral, convocação para a avaliação de sanidade física e mental e a convocação para a avaliação biopsicossocial dos candidatos que solicitaram concorrer às vagas reservadas às pessoas com deficiência",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_25_CONSELHEIRO/arquivos/D053C478AD30938AA9A0E03679193DAB835373741A579C7BAB7FCC83AFDA6BD3.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 9 – Resultado final na sindicância de vida pregressa e investigação social e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_25_CONSELHEIRO/arquivos/8B9F6F09BF69B9009DDED1AF21F816E89CD64F12C49CA140653094A5F880E1A3.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Comunicado - Divulgação do resultado na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_25_CONSELHEIRO/arquivos/F8251AA57A33D6CB3D7233814365937653CBECEC90DE02D9AA5B87BE518976E7.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 10 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_25_CONSELHEIRO/arquivos/AD3A39EA778AB63F00A4C07B554752B7BEE685C4FB74F840265258835B05A052.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "apexbrasil-2024-analistaperfisdiversos",
+  "orgao": "APEX-Brasil",
+  "ano": 2024,
+  "cargo": "Analista (perfis diversos)",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Carreiras de Estado",
+  "concurso": "APEX-Brasil 24_1",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/APEX_BRASIL_24_1",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - MALOTE 1 - PERFIL 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_24_1/arquivos/PERFIL_1_MALOTE01_APEX_ORAL_COMPADRAO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - MALOTE 1 - PERFIL 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_24_1/arquivos/PERFIL_2_MALOTE01_APEX_ORAL_COMPADRAO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - MALOTE 1 - PERFIL 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_24_1/arquivos/PERFIL_3_MALOTE01_APEX_ORAL_COMPADRAO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - MALOTE 2 - PERFIL 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_24_1/arquivos/PERFIL_4_MALOTE02_APEX_ORAL_COMPADRAO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - MALOTE 2 - PERFIL 6",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_24_1/arquivos/PERFIL_6_MALOTE02_APEX_ORAL_COMPADRAO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpeac-2024-defensorpublicosubstituto",
+  "orgao": "DPE-AC",
+  "ano": 2024,
+  "cargo": "Defensor Público Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-AC 2024 - Defensor Público Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_ADMINISTRATIVO_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_ADMINISTRATIVO_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_ADMINISTRATIVO_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_ADMINISTRATIVO_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_CIVIL_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_CIVIL_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_CIVIL_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_CIVIL_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_CONSTITUCIONAL_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_CONSTITUCIONAL_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_CONSTITUCIONAL_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_CONSTITUCIONAL_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_DA_CRIANÇA_E_DO_ADOLESCENTE_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_DA_CRIANA_E_DO_ADOLESCENTE_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_DA_CRIANÇA_E_DO_ADOLESCENTE_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_DA_CRIANA_E_DO_ADOLESCENTE_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_DO_CONSUMIDOR_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_DO_CONSUMIDOR_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_DO_CONSUMIDOR_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_DO_CONSUMIDOR_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_DO_IDOSO_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_DO_IDOSO_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_DO_IDOSO_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_DO_IDOSO_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_PENAL_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_PENAL_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_PENAL_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_PENAL_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_PROCESSUAL_CIVIL_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_PROCESSUAL_CIVIL_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_PROCESSUAL_CIVIL_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_PROCESSUAL_CIVIL_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_PROCESSUAL_PENAL_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_PROCESSUAL_PENAL_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITO_PROCESSUAL_PENAL_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_PROCESSUAL_PENAL_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITOS_HUMANOS_PONTO_1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_HUMANOS_PONTO_1.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_DIREITOS_HUMANOS_PONTO_2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/DIREITO_HUMANOS_PONTO_2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 7 – Convocação de candidato sub judice para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/ED_7_DPE_AC_CONV_SUB_JUDICE_ORAL_MADSON_____.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 6 – Resultado final nas provas escritas específicas e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/ED_6_DPE_AC_RES_FINAL_DISC_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 8 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/ED_8_DPE_AC_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 9 – Resultado final na prova oral, a convocação para a avaliação biopsicossocial e a convocação para o procedimento de heteroidentificação",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_24_DEFENSOR/arquivos/ED_9_DPE_AC_RES_FINAL_ORAL_CONV_BIO_NEG.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "irbr-2024-diplomata",
+  "orgao": "IRBr",
+  "ano": 2024,
+  "cargo": "Diplomata",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Diplomacia",
+  "concurso": "CACD 2024",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/IRBR_24_DIPLOMACIA",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrao definitivo de respostas - Prova de Politica Internacional - Segunda Fase (prova ESCRITA)",
+    "url": "https://cdn.cebraspe.org.br/concursos/IRBR_24_DIPLOMACIA/arquivos/5___PADRO_DEFINITIVO_DE_RESPOSTAS___SEGUNDA_FASE___POLTICA_INTERNACIONAL.PDF",
+    "obs": "Registrado por ser o padrao de respostas de Politica Internacional citado na demanda; na pratica e prova ESCRITA discursiva, nao oral. Caderno da prova: 1_IRBR_24_SEGUNDA_FASE_PROVA_ESCRITA_DE_POLTICA_INTERNACIONAL.PDF no mesmo diretorio."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 1 - Abertura do CACD 2024 (regras, fases e criterios de avaliacao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/IRBR_24_DIPLOMACIA/arquivos/ED_1_IRBR_CACD_24_ABERTURA_ATUALIZADO_RET_2.PDF",
+    "obs": "ATENCAO: nas edicoes 2018-2026 o CACD NAO tem prova oral autonoma. A avaliacao de Politica Internacional e prova ESCRITA de 2a fase. Este edital e o documento oficial que fixa fases e criterios. Nao ha padrao de resposta de prova oral do CACD publicado pelo Cebraspe."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "regulamento_criterios"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgepr-2024-procuradordoestado",
+  "orgao": "PGE-PR",
+  "ano": 2024,
+  "cargo": "Procurador do Estado",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso PGE-PR 2024",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PGE_PR_24_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - TURNO MANHÃ",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_PR_24_PROCURADOR/arquivos/076_PGE_PR_PROCURADOR_ORAL_001_ComPadrao.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 076_PGE_PR_PROCURADOR_ORAL_001_ComPadrao.pdf"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - TURNO TARDE",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_PR_24_PROCURADOR/arquivos/076_PGE_PR_PROCURADOR_ORAL_002_ComPadrao.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 076_PGE_PR_PROCURADOR_ORAL_002_ComPadrao.pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 10 - Resultado final na prova discursiva e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_PR_24_PROCURADOR/arquivos/Ed_10_PGE_PR_24_Res_Final_Disc_Conv_Oral.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: Ed_10_PGE_PR_24_Res_Final_Disc_Conv_Oral.pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 13 – Resultado final na prova oral e a convocação para a inscrição definitiva e para o envio da documentação da avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_PR_24_PROCURADOR/arquivos/Ed_13_PGE_PR_24_Res_Final_Oral_Conv_Insc_Tit.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: Ed_13_PGE_PR_24_Res_Final_Oral_Conv_Insc_Tit.pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 12 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_PR_24_PROCURADOR/arquivos/Ed_12_PGE_PR_24_Res_Prov_Oral.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: Ed_12_PGE_PR_24_Res_Prov_Oral.pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 37 - Retificação do resultado final de candidato inscrito sob o nº 10004780, na prova oral, divulgado por meio do subitem 1.1 do Edital nº 13 – PGE/PR, de 6 de junho de 2025, bem como do resultado final no concurso público.",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_PR_24_PROCURADOR/arquivos/1419456EDB21C3136720093D9004D07FA9658FAAD3424F68BC70C606FFEC78EC.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: 1419456EDB21C3136720093D9004D07FA9658FAAD3424F68BC70C606FFEC78EC.pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Relatório de movimentação financeira - Prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_PR_24_PROCURADOR/arquivos/Demonstrativo_PGE%20PR%2009.06.25.pdf",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: Demonstrativo_PGE PR 09.06.25.pdf"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgmcuiaba-2024-procuradordomunicipio",
+  "orgao": "PGM-Cuiabá",
+  "ano": 2024,
+  "cargo": "Procurador do Município",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso PGM Cuiabá 2024",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PGM_CUIABA_24_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - MANHÃ",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGM_CUIABA_24_PROCURADOR/arquivos/MALOTE_1___MANH_028_PGMCUIABAORAL_COMPADRAO_ATUAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: MALOTE_1___MANH_028_PGMCUIABAORAL_COMPADRAO_ATUAL.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - TARDE",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGM_CUIABA_24_PROCURADOR/arquivos/MALOTE_2___TARDE_028_PGMCUIABAORAL_COMPADRAO_ATUAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: MALOTE_2___TARDE_028_PGMCUIABAORAL_COMPADRAO_ATUAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 11 – Resultado final na inscrição definitiva e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGM_CUIABA_24_PROCURADOR/arquivos/ED_11_PGM_CUIABA_MT_24_RES_FINAL_INSC_DEF_E_CONV_PROVA_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_11_PGM_CUIABA_MT_24_RES_FINAL_INSC_DEF_E_CONV_PROVA_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 13 - Resultado final na prova oral e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGM_CUIABA_24_PROCURADOR/arquivos/ED_13_PGM_CUIABA_MT_24_RES_FINAL_ORAL_CONV_TIT.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_13_PGM_CUIABA_MT_24_RES_FINAL_ORAL_CONV_TIT.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 12 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGM_CUIABA_24_PROCURADOR/arquivos/ED_12_PGM_CUIABA_MT_24_RES_PROV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_12_PGM_CUIABA_MT_24_RES_PROV_ORAL.PDF"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tcdf-2024-procuradordoministeriopublicodecontas",
+  "orgao": "TC-DF",
+  "ano": 2024,
+  "cargo": "Procurador do Ministério Público de Contas",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "TCE",
+  "concurso": "TC DF 24 PROCURADOR",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TC_DF_24_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_24_PROCURADOR/arquivos/2A022B9A4650434F56D439A5C714260275339B7E9AE76BAFCBA23A1A4031D00F.pdf",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 13 – Tópicos específicos dos objetos de avaliação referentes à prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_24_PROCURADOR/arquivos/Ed_13_TCDF_Procurador_MPC_DF_24_Topicos_prova_oral.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 17 – Resultado final na terceira fase (inscrição definitiva, exames de higidez física e mental e sindicância de vida pregressa e investigação social) e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_24_PROCURADOR/arquivos/B1EC00711BCAD308A730D187EBAE10E767FFFF55EF5D1AA55B75C4E57E38BA92.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 18 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_24_PROCURADOR/arquivos/47E0CFA935B056F863EFC10720CBFE5B9993765B6334442E81F6A7DE8D3441BF.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 19 – Resultado final da prova oral e o resultado provisório da avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_24_PROCURADOR/arquivos/31BF405AAD5264C6514CBF72EFC5060FD0171A88CEABA821D010CDE536D80E8F.pdf",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "ctirenatoarchermcti-2023-pesquisadortecnologistatieengenharia",
+  "orgao": "CTI Renato Archer (MCTI)",
+  "ano": 2023,
+  "cargo": "Pesquisador / Tecnologista (TI e Engenharia)",
+  "banca": "CEBRASPE",
+  "area": "Tecnologia e Engenharia",
+  "subarea": "Carreiras de Estado",
+  "concurso": "CTI Renato Archer 2023",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/CTI_23",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - padrao de resposta",
+    "url": "https://cdn.cebraspe.org.br/concursos/CTI_23/arquivos/CTI_23_PROVA_ORAL_PADRAO_DE_RESPOSTA.PDF",
+    "obs": "Unico padrao de resposta de PROVA ORAL de certame de TI/engenharia publicado pelo Cebraspe no periodo."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pcpe-2023-delegadodepolicia",
+  "orgao": "PC-PE",
+  "ano": 2023,
+  "cargo": "Delegado de Polícia",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Civil",
+  "concurso": "PC PE 2023 - Polícia Civil de Pernambuco",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PC_PE_23",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral com padrão - delegado (aplicada em 16/2/2025) sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/P_MALOTE1_052_PC_PE_23_ORAL_COMPADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral com padrão de respostas - Malote 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/MALOTE1_027_PC_PE_23_ORAL_COM_PADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral com padrão de respostas - Malote 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/MALOTE2_027_PC_PE_23_ORAL_COM_PADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - delegado (aplicada em 18/5/2025) sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/087_PC_PE_DELEGADO_ORAL_SJ_001.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 23 - Convocação para a prova oral (delegado)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/ED_23_2023_PC_PE_RES_FINAL_PSIC_E_IS_CONV_ORAL_E_RES_FINAL_1_ETAPA.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 25 - Resultado provisório na prova oral (delegado)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/ED_25_2023_PC_PE_RES_PROV_ORAL_SOMENTE_DELEGADO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 26 - Resultado final na prova oral (delegado)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/ED_26_2023_PC_PE_RES_FINAL_ORAL_CONV_TITULOS_SOMENTE_DELEGADO.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tjma-2023-juizsubstituto",
+  "orgao": "TJ-MA",
+  "ano": 2023,
+  "cargo": "Juiz Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-MA Juiz de Direito Substituto 2022",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TJ_MA_22_JUIZ",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova Oral com Padrão de Resposta",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_MA_22_JUIZ/arquivos/PROVA_ORAL_TJMA.PDF",
+    "obs": "Questões formuladas na arguição + padrão de resposta oficial."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa específico da Prova Oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_MA_22_JUIZ/arquivos/TJMA_JUIZ_2022_PROGRAMA_ESPECIFICO_PROVA_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 25 - Retificação da composição da Comissão Examinadora da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_MA_22_JUIZ/arquivos/ED_25_TJMA_JUIZ_22_RET_BANCA_EXAMINADORA_PROVA_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 24 - Resultado final na inscrição definitiva e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_MA_22_JUIZ/arquivos/ED_24_TJMA_JUIZ_22_RES_FINAL_3ETAPA_CONV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 29 - Resultado na prova oral e resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_MA_22_JUIZ/arquivos/ED_29_TJMA_JUIZ_22_RES_ORAL_PROV_TTULOS.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "agu-2022-advogadodauniao",
+  "orgao": "AGU",
+  "ano": 2022,
+  "cargo": "Advogado da União",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso AGU 2022 - Advogado da União",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/AGU_22_ADVOGADO",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de Resposta - Ponto 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/909_MALOTE01_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 909_MALOTE01_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de Resposta - Ponto 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/909_MALOTE02_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 909_MALOTE02_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de Resposta - Ponto 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/909_MALOTE03_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 909_MALOTE03_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de Resposta - Ponto 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/909_MALOTE04_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 909_MALOTE04_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de Resposta - Ponto 5",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/909_MALOTE05_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 909_MALOTE05_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de Resposta - Ponto 6",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/909_MALOTE06_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 909_MALOTE06_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 11 - Resultado final na inscrição definitiva e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/ED_11_2022_AGU_ADVOGADO_RES_FINAL_INSC_DEFINITIVA_CONV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_11_2022_AGU_ADVOGADO_RES_FINAL_INSC_DEFINITIVA_CONV_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 13 - Resultado final na prova oral, a convocação para a sindicância de vida pregressa e para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/ED_13_2022_AGU_ADVOGADO_RES_FIN_PROVA_ORAL_E_CONV_SINDIC_E_TIT.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_13_2022_AGU_ADVOGADO_RES_FIN_PROVA_ORAL_E_CONV_SINDIC_E_TIT.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Comunicado - Prorrogação do período de recurso contra o resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/AGU_ADV_22_COMUNICADO_RECURSOS_NOVO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: AGU_ADV_22_COMUNICADO_RECURSOS_NOVO.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Comunicado – Novo prazo de interposição de recursos contra o resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/AGU_ADV_22_COMUNICADO_RECURSOS.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: AGU_ADV_22_COMUNICADO_RECURSOS.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 12 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_ADVOGADO/arquivos/ED_12_2022_AGU_ADVOGADO_RES_PROV_PROVA_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_12_2022_AGU_ADVOGADO_RES_PROV_PROVA_ORAL.PDF"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "agu-2022-procuradorfederal",
+  "orgao": "AGU",
+  "ano": 2022,
+  "cargo": "Procurador Federal",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso AGU 2022 - Procurador Federal",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/910_MALOTE01_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 910_MALOTE01_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/910_MALOTE02_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 910_MALOTE02_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/910_MALOTE03_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 910_MALOTE03_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/910_MALOTE04_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 910_MALOTE04_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 5",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/910_MALOTE05_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 910_MALOTE05_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 6",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/910_MALOTE06_AGU_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 910_MALOTE06_AGU_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Comunicado – Agendamento para assistir à prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/AGU_PF_22_COMUNICADO_2.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: AGU_PF_22_COMUNICADO_2.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 11 – Resultado final na inscrição definitiva e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/ED_11_2022_AGU_PROCURADOR_FEDERAL_RES_FINAL_INSC_DEF_CONV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_11_2022_AGU_PROCURADOR_FEDERAL_RES_FINAL_INSC_DEF_CONV_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 14 – Resultado final na prova oral, a convocação para a sindicância de vida pregressa e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/ED_14_2022_AGU_PROCURADOR_FEDERAL_RES_FINAL_PROVA_ORAL_CONV_SIND_TTULOS.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_14_2022_AGU_PROCURADOR_FEDERAL_RES_FINAL_PROVA_ORAL_CONV_SIND_TTULOS.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 12 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/ED_12_2022_AGU_PROCURADOR_FEDERAL_RES_PROV_PROVA_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_12_2022_AGU_PROCURADOR_FEDERAL_RES_PROV_PROVA_ORAL.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 – Inclusão de candidato sub judice no resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FEDERAL/arquivos/ED_13_2022_AGU_PROCURADOR_FEDERAL_INC_SUB_JUDICE_RES_PROV_PROVA_ORAL_HELIO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_13_2022_AGU_PROCURADOR_FEDERAL_INC_SUB_JUDICE_RES_PROV_PROVA_ORAL_HELIO.PDF"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "apexbrasil-2022-analistaperfisdiversos",
+  "orgao": "APEX-Brasil",
+  "ano": 2022,
+  "cargo": "Analista (perfis diversos)",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Carreiras de Estado",
+  "concurso": "APEX-Brasil 22_1",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/APEX_BRASIL_22_1",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - PERFIL 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_22_1/arquivos/739_APEX1_ORAL_P001_COMPADRO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - PERFIL 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_22_2/arquivos/740_APEX2_ORAL_001_REV_COM_PADRO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - PERFIL 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_22_2/arquivos/740_APEX2_ORAL_002_REV_COM_PADRO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - PERFIL 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_22_1/arquivos/739_APEX1_ORAL_P003_COMPADRO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - AVALIACAO ORAL POR COMPETENCIAS - PERFIL 7",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_22_1/arquivos/739_APEX1_ORAL_P007_COMPADRO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpero-2022-defensorpublicosubstituto",
+  "orgao": "DPE-RO",
+  "ano": 2022,
+  "cargo": "Defensor Público Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-RO 2022 - Defensor Público Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_RO_22_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRÃO DE RESPOSTAS PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_RO_22_DEFENSOR/arquivos/807_DPE_RO_DEFENSOR_ORAL_COMPADRO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mpac-2022-promotordejusticasubstituto",
+  "orgao": "MP-AC",
+  "ano": 2022,
+  "cargo": "Promotor de Justiça Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MP-AC 2022 - Promotor de Justiça Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "MPE_AC_TRIBUNA_TEMA_1_COM PADRÃO DE RESPOSTA.PDF",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/796_MPE_AC_TRIBUNA_TEMA_1_COMPADRO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "MPE_AC_TRIBUNA_TEMA_2_COM PADRÃO DE RESPOSTA.PDF",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/796_MPE_AC_TRIBUNA_TEMA_2_COMPADRO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA DE TRIBUNA - TEMA 1 - MANHÃ",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/796_MPE_AC_TRIBUNA_TEMA_1_SEMPADRO_MANH.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA DE TRIBUNA - TEMA 2 - TARDE",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/796_MPE_AC_TRIBUNA_TEMA_2_TARDE.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Comunicado - Prorrogação do link de recursos contra o resultado provisório na prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/MP_AC_COMUNICADO_PRORROGAO_RECURSO_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n° 17 - Resultado provisório na prova de tribuna e na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/ED_17_2021_MPE_AC_PROMOTOR_RES_PROV_TRIBUNA_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 12 - Resultado final na inscrição definitiva (exames de sanidade física e mental, sindicância de vida pregressa e investigação social e exame psicotécnico) e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/ED_12_2021_MPE_AC_PROMOTOR_RES_FINAL_INSC_DEFINITIVA_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 14 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/ED_14_2021_MPE_AC_PROMOTOR_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 15 - Resultado final na prova oral, a convocação para a prova de tribuna e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/ED_15_2021_MPE_AC_PROMOTOR_RES_FINAL_ORAL_CONV_TRIBUNA_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 18 – Resultado final na prova de tribuna, na avaliação de títulos e convocação para o procedimento de verificação da condição declarada para concorrer às vagas reservadas aos candidatos negros",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AC_22_PROMOTOR/arquivos/ED_18_2021_MPE_AC_PROMOTOR_RES_FINAL_TRIBUNA_TTULOS_CONV_HETERO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mpam-2022-promotordejusticasubstituto",
+  "orgao": "MP-AM",
+  "ano": 2022,
+  "cargo": "Promotor de Justiça Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MP-AM 2022 - Promotor de Justiça Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA DE TRIBUNA TEMA 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR/arquivos/858_MPE_AM_22_TRIBUNA_TEMA_01.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 20 – Banca Examinadora da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR/arquivos/ED_20_MPE_AM_PROMOTOR_2022_BANCA_EXAMINADORIA_PROVA_ORAL.PDF",
+    "obs": "Documento oficial com regras, banca examinadora ou justificativas de avaliação da prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 23 – Banca Examinadora da prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR/arquivos/ED_23_MPE_AM_PROMOTOR_2022_BANCA_EXAMINADORA_TRIBUNA.PDF",
+    "obs": "Documento oficial com regras, banca examinadora ou justificativas de avaliação da prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 19  – Resultado final na avaliação biopsicossocial, na inscrição definitiva (sindicância de vida pregressa, exame de higidez física e mental e exame psicotécnico) e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR/arquivos/ED_19_MPE_AM_PROMOTOR_2022_RES_FINAL_TTULOS_BIOP_INSC_DEF_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 21 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR/arquivos/ED_21_MPE_AM_PROMOTOR_2022_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 22 – Resultado final na prova oral e a convocação para a prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR/arquivos/ED_22_MPE_AM_PROMOTOR_2022_RES_FINAL_ORAL_CONV_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 24 – Resultado provisório na prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR/arquivos/ED_24_MPE_AM_PROMOTOR_2022_RES_PROV_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 25 – Resultado final na prova de tribuna e resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_AM_22_PROMOTOR/arquivos/ED_25_MPE_AM_PROMOTOR_2022_RES_FINAL_TRIBUNA_PROV_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "regulamento_criterios",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mppa-2022-promotordejusticasubstituto",
+  "orgao": "MP-PA",
+  "ano": 2022,
+  "cargo": "Promotor de Justiça Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MP-PA 2022 - Promotor de Justiça Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "MP_PA_22_PROMOTOR_PROVA ORAL_COM PADRÃO DE RESPOSTA",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/872_MPPA_ORAL_PONTO_04_COMPADRO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRÃO DE RESPOSTAS - PROVA DE TRIBUNA TEMA 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/873_MP_PA_TRIBUNA_001_COMPADRO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRÃO DE RESPOSTAS - PROVA DE TRIBUNA TEMA 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/873_MP_PA_TRIBUNA_002_COMPADRO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA DE TRIBUNA  - TEMA 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/873_MP_PA_TRIBUNA_TEMA_2.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA DE TRIBUNA - TEMA 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/873_MP_PA_TRIBUNA_TEMA_1.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - Recurso da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/MP_PA_PROMOTOR_22_COMUNICADO_RECURSO_PROVA_ORAL.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n º 19 - Resultado final na prova oral e a convocação para a prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/ED_19_MP_PA_PROMOTOR_22_RES_FINAL_ORAL_CONV_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 17 - Resultado final na inscrição definitiva (sindicância de vida pregressa e investigação social) e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/ED_17_MP_PA_PROMOTOR_22_RES_FINAL_INSC_DEF_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 18 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/ED_18_MP_PA_PROMOTOR_22_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 20 - Resultado provisório na Prova de Tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/ED_20_MP_PA_PROMOTOR_22_RES_PROV_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 21 – Resultado final na prova de tribuna e resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PA_22_PROMOTOR/arquivos/ED_21_MP_PA_PROMOTOR_22_RES_FINAL_TRIBUNA_PROV_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mpcsc-2022-procuradordompdecontas",
+  "orgao": "MPC-SC",
+  "ano": 2022,
+  "cargo": "Procurador do MP de Contas",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MPC-SC 2022 - Procurador de Contas",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRÃO DE RESPOSTAS - PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR/arquivos/810_MPC_SC_ORAL_COMPADRO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado – Reabertura do prazo para o candidato ter acesso à gravação da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR/arquivos/COMUNICADO_MPC_SC_PROCURADOR_REABERTURA.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n°13 - Resultado final na inscrição definitiva, nos exames médicos, na investigação da vida pregressa, na avaliação de heteroidentificação e convocação para prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR/arquivos/ED_13_2022_MPC_SC_PROCURADOR_RES_FINAL_INSC_DEFI_EXAMES_IS_HETERO_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 14 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR/arquivos/ED_14_2022_MPC_SC_PROCURADOR_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 15 - Torna sem efeito o Edital nº 14/2023 e republicação do resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR/arquivos/ED_15_2022_MPC_SC_PROCURADOR_REPUBLICACAO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 16 - Resultado final na prova oral e o resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR/arquivos/ED_16_2022_MPC_SC_PROCURADOR_RES_FINAL_ORAL_PROV_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pces-2022-delegadodepolicia",
+  "orgao": "PC-ES",
+  "ano": 2022,
+  "cargo": "Delegado de Polícia",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Civil",
+  "concurso": "PC ES 2022 - Delegado",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PC_ES_22_DELEGADO",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de respostas - prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_ES_22_DELEGADO/arquivos/PC_ES_DELEGADO_ORAL_COMPADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral (aplicada em 23/11/2025) sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_ES_22_DELEGADO/arquivos/4660FD7673B54DB11804BDC41486FFA7C5B6C56A7783DC93BD3FF6FC95A7AB15.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Comunicado - Prorrogação do prazo de recursos contra a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_ES_22_DELEGADO/arquivos/COMUNICADO_PC_ES_DELEGADO_PRORROGAO_REC_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 14 - Resultado final da 3ª etapa e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_ES_22_DELEGADO/arquivos/ED_14_22_PCES_DELEGADO_RES_FINAL_3ETAPA_CONV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 15 - Inclusão de candidatos PcD na convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_ES_22_DELEGADO/arquivos/ED_15_22_PCES_DELEGADO_INCLUSO_CANDIDATOS_PCD_NO_RES_FINAL_3ETAPA_E_NA_CONV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 16 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_ES_22_DELEGADO/arquivos/ED_16_22_PCES_DELEGADO_RES_PROV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 17 - Resultado final na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_ES_22_DELEGADO/arquivos/ED_17_22_PCES_DELEGADO_RES_FINAL_ORAL_CONV_TTULOS_COMP_PRTICA_FORENSE.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pcro-2022-delegadodepolicia",
+  "orgao": "PC-RO",
+  "ano": 2022,
+  "cargo": "Delegado de Polícia",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Civil",
+  "concurso": "PC RO 2022 - Polícia Judiciária Civil de Rondônia",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PC_RO_22",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de respostas da prova oral - Delegado - Direito Administrativo e Constitucional",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RO_22/arquivos/P_818_PC_RO_ORAL_DADM_DCONST_COMPADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de respostas da prova oral - Delegado - Direito Penal e Processual Penal",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RO_22/arquivos/P_818_PC_RO_ORAL_DPENAL_DPROCPENAL_COMPADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de respostas da prova oral - Delegado - Legislação Penal e Processual Penal Extravagante",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RO_22/arquivos/P_818_PC_RO_ORAL_LEGPENAL_PROCPENALEXTR_COMPADRAO.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pcro-2022-medicolegista",
+  "orgao": "PC-RO",
+  "ano": 2022,
+  "cargo": "Médico-Legista",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Perícia",
+  "concurso": "PC RO 2022 - Polícia Judiciária Civil de Rondônia",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PC_RO_22",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Padrão de respostas da prova oral - Médico-Legista",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RO_22/arquivos/P_818_PC_RO_ORAL_MEDLEG_COMPADRAO.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgdf-2022-procuradordodistritofederal",
+  "orgao": "PG/DF",
+  "ano": 2022,
+  "cargo": "Procurador do Distrito Federal",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Carreiras de Estado",
+  "concurso": "PG/DF 2022 - Procurador",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PG_DF_22_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - Ponto 2 - Grupo I (com padrao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PG_DF_22_PROCURADOR/arquivos/768_PGDF_ORAL_PT2_GP1_COMPADRAO.PDF",
+    "obs": "Prova oral por ponto sorteado, com padrao de resposta."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - Ponto 2 - Grupo II (com padrao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PG_DF_22_PROCURADOR/arquivos/768_PGDF_ORAL_PT2_GP2_COMPADRAO.PDF",
+    "obs": "Prova oral por ponto sorteado, com padrao de resposta."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - Ponto 2 - Grupo III (com padrao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PG_DF_22_PROCURADOR/arquivos/768_PGDF_ORAL_PT2_GP3_COMPADRAO.PDF",
+    "obs": "Prova oral por ponto sorteado, com padrao de resposta."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - Ponto 3 - Grupo I (com padrao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PG_DF_22_PROCURADOR/arquivos/768_PGDF_ORAL_PT3_GP1_COMPADRAO.PDF",
+    "obs": "Prova oral por ponto sorteado, com padrao de resposta."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - Ponto 3 - Grupo II (com padrao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PG_DF_22_PROCURADOR/arquivos/768_PGDF_ORAL_PT3_GP2_COMPADRAO.PDF",
+    "obs": "Prova oral por ponto sorteado, com padrao de resposta."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - Ponto 3 - Grupo III (com padrao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PG_DF_22_PROCURADOR/arquivos/768_PGDF_ORAL_PT3_GP3_COMPADRAO.PDF",
+    "obs": "Prova oral por ponto sorteado, com padrao de resposta."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 13 - Banca examinadora da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PG_DF_22_PROCURADOR/arquivos/ED_13_PGDF_21_BANCA_ORAL.PDF",
+    "obs": "Composicao da banca examinadora da prova oral."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "regulamento_criterios"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgees-2022-procuradordoestado",
+  "orgao": "PGE-ES",
+  "ano": 2022,
+  "cargo": "Procurador do Estado",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso PGE-ES 2022",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PGE_ES_22_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PGE_ES_22_PROCURADOR_PROVA ORAL_COM PADRÃO DE RESPOSTA",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_22_PROCURADOR/arquivos/825_PGE_ES_22_PROCURADOR_ORAL_COMPADRO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 825_PGE_ES_22_PROCURADOR_ORAL_COMPADRO.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 11 - Resultado final na prova escrita (teórica e prática) e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_22_PROCURADOR/arquivos/ED_11_PGE_ES_22_PROCURADOR_RES_FINAL_DISC_PROV_ESCRITA_ALTERAES.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_11_PGE_ES_22_PROCURADOR_RES_FINAL_DISC_PROV_ESCRITA_ALTERAES.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 14 – Resultado final na prova oral e convocação para a investigação social, para os exames de saúde física e mental e para a avaliação biopsicossocial",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_22_PROCURADOR/arquivos/ED_14_PGE_ES_22_PROCURADOR_RES_FINAL_ORAL_CONV_BIO_EXAME.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_14_PGE_ES_22_PROCURADOR_RES_FINAL_ORAL_CONV_BIO_EXAME.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 12 - Resultado provisório na prova oral e data do upload da documentação para a investigação social",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_ES_22_PROCURADOR/arquivos/ED_12_PGE_ES_22_PROCURADOR_RES_PROV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_12_PGE_ES_22_PROCURADOR_RES_PROV_ORAL.PDF"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgfn-2022-procuradordafazendanacional",
+  "orgao": "PGFN",
+  "ano": 2022,
+  "cargo": "Procurador da Fazenda Nacional",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso AGU/PGFN 2022 - Procurador da Fazenda Nacional",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_PONTO 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/911_MALOTE02_AGU_ORAL_SEM_ROTEIRO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 911_MALOTE02_AGU_ORAL_SEM_ROTEIRO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_PONTO 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/911_MALOTE03_AGU_ORAL_SEM_ROTEIRO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 911_MALOTE03_AGU_ORAL_SEM_ROTEIRO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_PONTO 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/911_MALOTE04_AGU_ORAL_SEM_ROTEIRO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 911_MALOTE04_AGU_ORAL_SEM_ROTEIRO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_PONTO 5",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/911_MALOTE05_AGU_ORAL_SEM_ROTEIRO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 911_MALOTE05_AGU_ORAL_SEM_ROTEIRO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_PONTO 6",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/911_MALOTE06_AGU_ORAL_SEM_ROTEIRO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 911_MALOTE06_AGU_ORAL_SEM_ROTEIRO.PDF"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL_COM PADRÃO DE RESPOSTA_PONTO 7",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/911_MALOTE07_AGU_ORAL_SEM_ROTEIRO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 911_MALOTE07_AGU_ORAL_SEM_ROTEIRO.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 11 – Resultado final na inscrição definitiva e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/ED_11_2022_AGU_PFN_RES_FINAL_INSC_DEFINITIVA_CONV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_11_2022_AGU_PFN_RES_FINAL_INSC_DEFINITIVA_CONV_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 12 - Inclusão de candidatos sub judice e convocações",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/ED_12_2022_AGU_PFN_CONV_SUB_JUDICE_INSC_DEFINITIVA_PROVA_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_12_2022_AGU_PFN_CONV_SUB_JUDICE_INSC_DEFINITIVA_PROVA_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 15 – Resultado final na prova oral, a convocação para a sindicância de vida pregressa e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/ED_15_2022_AGU_PFN_RES_FINAL_ORAL_CONV_SIND_TTULOS.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_15_2022_AGU_PFN_RES_FINAL_ORAL_CONV_SIND_TTULOS.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/AGU_22_PROCURADOR_FAZENDA/arquivos/ED_13_2022_AGU_PFN_RES_PROV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_13_2022_AGU_PFN_RES_PROV_ORAL.PDF"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tcepb-2022-auditordecontaspublicasconselheirosubstituto",
+  "orgao": "TCE-PB",
+  "ano": 2022,
+  "cargo": "Auditor de Contas Públicas (Conselheiro-Substituto)",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "TCE",
+  "concurso": "TCE PB 22 AUDITOR",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TCE_PB_22_AUDITOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL E PADRÃO DE RESPOSTAS",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_PB_22_AUDITOR/arquivos/785_TCE_PB_ORAL_COMPADRO.PDF",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 5 – Resultado final nas provas discursivas e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_PB_22_AUDITOR/arquivos/ED_5_2022_SUBSTITUTO_TCE_PB_AUDITOR_RES_FINAL_DISC_CONV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 7 – Resultado final na prova oral e convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_PB_22_AUDITOR/arquivos/ED_7_2022_SUBSTITUTO_TCE_PB_AUDITOR_RES_FIN_ORAL_CONV_TIT.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 6 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_PB_22_AUDITOR/arquivos/ED_6_2022_SUBSTITUTO_TCE_PB_AUDITOR_RES_PROV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tcerj-2022-procuradordoministeriopublicodecontas",
+  "orgao": "TCE-RJ",
+  "ano": 2022,
+  "cargo": "Procurador do Ministério Público de Contas",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "TCE",
+  "concurso": "TCE RJ 22 PROCURADOR",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Gabarito Prova Oral 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/845_TCE_RJ_PROVA_ORAL_1_COMPADRO.PDF",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Gabarito Prova Oral 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/845_TCE_RJ_PROVA_ORAL_2_COMPADRO.PDF",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Gabarito Prova Oral 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/845_TCE_RJ_PROVA_ORAL_3_COMPADRO.PDF",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Gabarito Prova Oral 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/845_TCE_RJ_PROVA_ORAL_4_COMPADRO.PDF",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 12 - Retificação de subitens do Edital nº 10 – TCE/RJ e convocação de candidatos subjudice para as provas orais",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/ED_12_TCE_RJ_PROCURADOR_22_NOVA_RETIFICACAO_ED_10_CONV_SUB_JUDICE_MARCELO_VITOR_CAROLINNE.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 10 - Resultado final no procedimento de heteroidentificação, resultado final na inscrição definitiva e a convocação para as provas orais",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/ED_10_TCE_RJ_PROCURADOR_22_RES_FINAL_INSC_DEFINITIVA_HETERO_CONV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 15 – Resultado final nas provas orais, resultado provisório na avaliação de títulos e convocação de candidato sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/ED_15_TCE_RJ_PROCURADOR_22_RES_FINAL_ORAL_PROV_TITULOS_CONV_SUB_JUDICE_INS_DEF_TIT.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Comunicado – Edital de resultado final nas provas orais e de resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/TCE_RJ_COMUNICADO_RES_FINAL_ORAL_PROV_TITULOS.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 - Resultado provisório nas provas orais",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RJ_22_PROCURADOR/arquivos/ED_13_TCE_RJ_PROCURADOR_22_RES_PROV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "apexbrasil-2021-analistaperfisdiversos",
+  "orgao": "APEX-Brasil",
+  "ano": 2021,
+  "cargo": "Analista (perfis diversos)",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Carreiras de Estado",
+  "concurso": "APEX-Brasil 21_ANALISTA",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/APEX_BRASIL_21_ANALISTA",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_21_2/arquivos/P_CARGO01_APEX_BRASIL_ORAL_COMPADRAO.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - PROVA ORAL - CARGO 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_21_ANALISTA/arquivos/CARGO01_APEX_BRASIL_ORAL.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - PROVA ORAL - CARGO 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_21_ANALISTA/arquivos/CARGO02_APEX_BRASIL_ORAL.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PADRAO DE RESPOSTAS - PROVA ORAL - CARGO 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_21_ANALISTA/arquivos/CARGO03_APEX_BRASIL_ORAL.PDF",
+    "obs": "Avaliacao oral por competencias com questoes formuladas e padrao de respostas publicados pela banca."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpepa-2021-defensorpublicosubstituto",
+  "orgao": "DPE-PA",
+  "ano": 2021,
+  "cargo": "Defensor Público Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-PA 2021 - Defensor Público Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 2 - QUESTÃO 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/689_DPEPA_ORAL_002_01_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 2 - QUESTÃO 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/689_DPEPA_ORAL_002_02_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 2 - QUESTÃO 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/689_DPEPA_ORAL_002_03_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PONTO 2 - QUESTÃO 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/689_DPEPA_ORAL_002_04_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA DE TRIBUNA - CASO HIPOTÉTICO - TEMA 1 - SUB JUDICE",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/074712BB463ED5E18024EA5BE5DDB13096E243AC906D7B5C51A2FA2169869A0A.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA DE TRIBUNA - CASO HIPOTÉTICO (TEMA) 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/693_DPEPA_TRIBUNA_002.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL - PONTO 2 (APLICADA EM 05/10/2025) SUB JUDICE",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/EE26ADD2A34991F4165BCA8D57F03F1B70A05FD4E5CB3DD3327EEECADCB5DE4C.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - Prova de Sustentação Oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/DPE_PA_21_COMUNICADO_PONTO2.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - Sorteio do tema da Prova de Tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/DPE_PA_21_COMUNICADO_SORTEIO_TRIBUNA.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Comunicado - Recursos contra o resultado provisório da Prova de Tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/DPE_PA_21_COMUNICADO_LINK_RECURSO2022.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Comunicado - Recursos contra o resultado provisório da Sustentação Oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/DPE_PA_21_COMUNICADO_LINK_RECURSO_SUST_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 15 – Resultado final na avaliação biopsicossocial de candidato PCD, no procedimento de verificação de candidato negro e convocação para a prova de tribuna e prova de sustentação oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/ED_15_DPE_PA_DEFENSOR_2021_RES_FINAL_BIOP_HETERO_E_CONVOCAES.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 16 - Resultado provisório na prova de tribuna e na prova de sustentação oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/ED_16_DPE_PA_DEFENSOR_2021_RES_PROV_TRIBUNA_SUST_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 17 - Resultado final na prova de tribuna, na prova de sustentação oral e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PA_21_DEFENSOR/arquivos/ED_17_DPE_PA_DEFENSOR_2021_RES_FINAL_TRIBUNA_SUST_ORAL_E_CONV_TT.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpepi-2021-defensorpublicosubstituto",
+  "orgao": "DPE-PI",
+  "ano": 2021,
+  "cargo": "Defensor Público Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-PI 2021 - Defensor Público Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_PI_21",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PADRÕES DE RESPOSTA",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PI_21/arquivos/702_DPE_PI_ORAL_COM_PADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 17 – Composição da banca examinadora da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PI_21/arquivos/ED_17_DPE_PI_DEFENSOR_2021_COMPOSIO_BANCA_EXAMINADORA_ORAL.PDF",
+    "obs": "Documento oficial com regras, banca examinadora ou justificativas de avaliação da prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 16 – Resultado final na inscrição definitiva e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PI_21/arquivos/ED_16_DPE_PI_DEFENSOR_2021_RES_FIN_INSCR_DEF_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 18 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PI_21/arquivos/ED_18_DPE_PI_DEFENSOR_2021_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 20 – Resultado final na prova oral e convocação para a prova de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PI_21/arquivos/ED_20_DPE_PI_DEFENSOR_2021_RES_FINAL_ORAL_CONV_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "regulamento_criterios",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpese-2021-defensorpublicosubstituto",
+  "orgao": "DPE-SE",
+  "ano": 2021,
+  "cargo": "Defensor Público Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-SE 2021 - Defensor Público Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_SE_21",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - GRUPO I",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_SE_21/arquivos/695_DPESE_GRUPO_001_01_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - GRUPO II",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_SE_21/arquivos/695_DPESE_GRUPO_002_02_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - GRUPO III",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_SE_21/arquivos/695_DPESE_GRUPO_003_03_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - GRUPO IV",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_SE_21/arquivos/695_DPESE_GRUPO_004_04_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 5 - Resultado final nas provas escritas específicas e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_SE_21/arquivos/ED_5_2020_DPE_SE_RES_FINAL_DISC_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 6 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_SE_21/arquivos/ED_6_2020_DPE_SE_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 7 - Resultado final na prova oral, convocação para a avaliação de títulos e para a avaliação biopsicossocial dos candidatos que se declararam com deficiência",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_SE_21/arquivos/ED_7_2020_DPE_SE_RES_FINAL_ORAL_CONV_TIT_BIO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpeto-2021-defensorpublicosubstituto",
+  "orgao": "DPE-TO",
+  "ano": 2021,
+  "cargo": "Defensor Público Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-TO 2021 - Defensor Público Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA DE TRIBUNA - CASO HIPOTÉTICO (TEMA) 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR/arquivos/708_DPE_TO_TRIBUNA_001_SEM_PADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA DE TRIBUNA - CASO HIPOTÉTICO (TEMA) 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR/arquivos/708_DPE_TO_TRIBUNA_002_SEM_PADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL  - MALOTE 1 - ATUALIZADO",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR/arquivos/707_DPE_TO_ORAL_MALOTE_1_COMPADRAO_RETIFICAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - Prova de Tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR/arquivos/DPE_TO_COMUNICADO_SORTEIO.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - prova oral e prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR/arquivos/DPE_TO_COMUNICADO_PRORROGAO.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 10 - Resultado provisório na prova oral e o resultado provisório na prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR/arquivos/ED_10_DPE_TO_RES_PROV_ORAL_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 11 - Resultado final na prova oral, o resultado final na prova de tribuna e a convocação para a avaliação de títulos e para a investigação da vida pregressa'",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR/arquivos/ED_11_DPE_TO_RES_FINAL_ORAL_TRIBUNA_CONV_TT_INV.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 9 - Retificação do Edital nº 1 – DPE/TO, o resultado final na avaliação biopsicossocial dos candidatos que se declararam com deficiência, o resultado final no procedimento de verificação da condição declarada para concorrer às vagas reservadas aos candidatos negros, indígenas e quilombolas e a convocação para a prova oral e para a prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_TO_21_DEFENSOR/arquivos/ED_9_DPE_TO_RES_FINAL_VERIFI_NEGRO_NDIO_QUIL_BIO_CONV_ORAL_MARQUINHOS_%281%29.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mpap-2021-promotordejusticasubstituto",
+  "orgao": "MP-AP",
+  "ano": 2021,
+  "cargo": "Promotor de Justiça Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MP-AP 2021 - Promotor de Justiça Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MP_AP_21_PROMOTOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "CASO HIPOTÉTICO (TEMA) 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_AP_21_PROMOTOR/arquivos/713_MPAP_TRIBUNA_001_SEMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - COM PADRÃO",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_AP_21_PROMOTOR/arquivos/712_MP_AP_ORAL_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 - Resultado final na avaliação biopsicossocial, o resultado final no procedimento de verificação da condição declarada para concorrer às vagas reservadas aos candidatos negros, resultado final na inscrição definitiva (sindicância de vida pregressa e investigação social, exames de sanidade física e mental e exame psicotécnico) e a convocação para a prova oral e para a prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_AP_21_PROMOTOR/arquivos/ED_13_MP_AP_21_PROMOTOR_RES_FINAL_INSC_DEFINITIVA_BIOP_HETERO_CONV_ORAL_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 14 - Resultado provisório na prova oral e o resultado provisório na prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_AP_21_PROMOTOR/arquivos/ED_14_MP_AP_21_PROMOTOR_RES_PROV_ORAL_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 15 - Resultado final na prova oral, o resultado final na prova de tribuna e o resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_AP_21_PROMOTOR/arquivos/ED_15_MP_AP_21_PROMOTOR_RES_FINAL_ORAL_TRIBUNA_PROV_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mpto-2021-promotordejusticasubstituto",
+  "orgao": "MP-TO",
+  "ano": 2021,
+  "cargo": "Promotor de Justiça Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MP-TO 2021 - Promotor de Justiça Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL E PADRÃO DE RESPOSTA - PONTO 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR/arquivos/684_MPETO_PONTO_2_COM_PADRO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA DE TRIBUNA - CASO HIPOTÉTICO (TEMA) 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR/arquivos/684_MPETO_TRIBUNA_002.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - Informação sobre o link de agendamento para assistir a prova oral de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR/arquivos/MPE_TO_COMUNICADO_AGENDAMENTO_PROVA_ORAL_E_TRIBUNA.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - Reabertura do agendamento para assistir a prova oral e de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR/arquivos/MPE_TO_COMUNICADO_NOVO_PERODO_AGENDAMENTO_PROVA_ORAL_E_TRIBUNA.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 14 -  Convocação para a prova oral e para a prova de tribuna de candidatos sub judice - Jeniffer Medrado Ribeiro Siqueira, Victor Soares Nunes e Vitor Hanna Pereira",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR/arquivos/ED_14_MPE_TO_2021_CONV_SUB_JUDICE_ORAL_TRIBUNA.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n° 15 -  Resultado provisório na prova oral e resultado provisório na prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR/arquivos/ED_15_MPE_TO_2021_RES_PROV_ORAL_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n° 16 -  Resultado final na prova oral, resultado  final na prova de tribuna e resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR/arquivos/ED_16_MPE_TO_2021_RES_FINAL_ORAL_TRIBUNA_PROV_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 - Resultado final na inscrição definitiva (sindicância de vida pregressa, exames de sanidade física e mental e exame psicotécnico), para todos os candidatos, na avaliação biopsicossocial dos candidatos que se declararam com deficiência e a convocação para a prova oral e para a prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPE_TO_21_PROMOTOR/arquivos/ED_13_MPE_TO_2021_RES_FINAL_INSCRIO_DEFINITIVA_BIOP_CONV_ORAL_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mpcmpa-2021-subprocuradordompdecontasdosmunicipios",
+  "orgao": "MPCM-PA",
+  "ano": 2021,
+  "cargo": "Subprocurador do MP de Contas dos Municípios",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MPCM-PA 2021 - Subprocurador de Contas",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MPCM_PA_21_SUBPROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PADRÕES DE RESPOSTA",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPCM_PA_21_SUBPROCURADOR/arquivos/709_MPCM_PA_ORAL_COM_PADRES.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 7 – Resultado final nas provas discursivas e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPCM_PA_21_SUBPROCURADOR/arquivos/ED_7_20_MPCM_PA_2020_RES_FINAL_DISC_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 8 – Resultado  provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPCM_PA_21_SUBPROCURADOR/arquivos/ED_8_20_MPCM_PA_2020_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 9 – Resultado final na prova oral e convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPCM_PA_21_SUBPROCURADOR/arquivos/ED_9_20_MPCM_PA_2020_RES_FINAL_ORAL_CONV_TTULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pf-2021-delegadodepoliciafederal",
+  "orgao": "PF",
+  "ano": 2021,
+  "cargo": "Delegado de Polícia Federal",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Federal",
+  "concurso": "PF 2021 - Concurso de Carreira Policial",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PF_21",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral e padrão de respostas - cargo de Delegado",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/616_PF_DELEGADO_ORAL_COM_PADRO.PDF",
+    "obs": "Caderno da arguição com as perguntas e os padrões de resposta usados pela banca."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral e padrão de respostas - delegado (aplicado em 11/8/2024)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/999_PF_ORAL_001_COMPADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral e padrão de respostas - sub judice (delegado)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/753_DGP_PF_ORAL_001_COMPADRAO.PDF",
+    "obs": "Aplicação a candidato sub judice."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral e padrão de respostas sub judice - delegado (aplicado em 22/1/2023)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/794_PF_21_ORAL_SUBJUDICE_001_COMPADRO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - cargo delegado (aplicada em 19/7/2026) sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/B46611F19D70F07B019A795D3367C491A414D10BDA1A195E23AFF756A8FE9CE4.pdf",
+    "obs": "Nome de arquivo em hash; descrição conforme a API do Cebraspe."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 26 - Convocação para a prova oral e para a prova prática de digitação",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/ED_26_PF_CONV_ORAL_PRATICA_DIGITACAO.PDF",
+    "obs": "Traz as regras/critérios da arguição."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 33 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/ED_33_PF_RES_PROV_ORAL_PRATICA_DIGITACAO_E_CRONOGRAMA.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 37 - Resultado final na prova oral (delegado)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/ED_37_PF_RES_FINAL_ORAL_DIGITACAO_CONV_TITULOS_BIOP_HETERO_MATRCULA_CFP.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgeal-2021-procuradordoestado",
+  "orgao": "PGE-AL",
+  "ano": 2021,
+  "cargo": "Procurador do Estado",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso PGE-AL 2021",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PGE_AL_21_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PADRÕES DE RESPOSTA",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_AL_21_PROCURADOR/arquivos/MALOTE01_PONTO2_PGE_AL_ORAL_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: MALOTE01_PONTO2_PGE_AL_ORAL_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Comunicado – Ponto a ser utilizado na arguição de todos os candidatos na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_AL_21_PROCURADOR/arquivos/PGE_AL_21_COMUNICADO_PROVA_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: PGE_AL_21_COMUNICADO_PROVA_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 5 – Resultado final nas provas discursivas e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_AL_21_PROCURADOR/arquivos/ED_5_PGE_AL_RES_FINAL_DISC_CONV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_5_PGE_AL_RES_FINAL_DISC_CONV_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 6 - Convocação de candidatos sub judice para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_AL_21_PROCURADOR/arquivos/ED_6_PGE_AL_CONV_SUB_JUDICE_PROV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_6_PGE_AL_CONV_SUB_JUDICE_PROV_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 8 -  Resultado final na prova oral e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_AL_21_PROCURADOR/arquivos/ED_8_PGE_AL_RES_FINAL_ORAL_CONV_TITULOS.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_8_PGE_AL_RES_FINAL_ORAL_CONV_TITULOS.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 7 - Resultado provisório na avaliação oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_AL_21_PROCURADOR/arquivos/ED_7_PGE_AL_RES_PROV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_7_PGE_AL_RES_PROV_ORAL.PDF"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgems-2021-procuradordoestado",
+  "orgao": "PGE-MS",
+  "ano": 2021,
+  "cargo": "Procurador do Estado",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso PGE-MS 2021",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PGE_MS_21_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PADRÕES DE RESPOSTA",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_MS_21_PROCURADOR/arquivos/PGE_MS_21_PROCURADOR_PADROES_DE_RESPOSTA_1.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: PGE_MS_21_PROCURADOR_PADROES_DE_RESPOSTA_1.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 15 – Resultado final na inscrição definitiva e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_MS_21_PROCURADOR/arquivos/ED_15_PGE_MS_21_RES_FINAL_INSC_DEFINITIVA_CONV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_15_PGE_MS_21_RES_FINAL_INSC_DEFINITIVA_CONV_ORAL.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 18 - Resultado final na prova oral e a convocação para a prova de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_MS_21_PROCURADOR/arquivos/ED_18_PGE_MS_21_RES_FINAL_ORAL_CONV_TTULOS.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_18_PGE_MS_21_RES_FINAL_ORAL_CONV_TTULOS.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 16 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_MS_21_PROCURADOR/arquivos/ED_16_PGE_MS_21_RES_PROV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_16_PGE_MS_21_RES_PROV_ORAL.PDF"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pgero-2021-procuradordoestado",
+  "orgao": "PGE-RO",
+  "ano": 2021,
+  "cargo": "Procurador do Estado",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso PGE-RO 2021",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PGE_RO_21",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL COM PADRÃO DE RESPOSTAS",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_RO_21/arquivos/706_PGERO_001_COMPADRAO.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de provas/gabaritos). Nome do arquivo: 706_PGERO_001_COMPADRAO.PDF"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n° 14 - Resultado final na entrevista e no exame psicotécnico e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_RO_21/arquivos/ED_14_PGE_RO_RES_FINAL_ENTRE_EXAME_PSICO_CONV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_14_PGE_RO_RES_FINAL_ENTRE_EXAME_PSICO_CONV_ORAL.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n° 15 -  Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_RO_21/arquivos/ED_15_PGE_RO_RES_PROV_ORAL.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_15_PGE_RO_RES_PROV_ORAL.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 17 - Resultado final na prova oral e o resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_RO_21/arquivos/ED_17_PGE_RO_RES_FINAL_ORAL_RES_PROV_TTULOS.PDF",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ED_17_PGE_RO_RES_FINAL_ORAL_RES_PROV_TTULOS.PDF"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Relação de recursos interpostos contra o resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PGE_RO_21/arquivos/ARGUMENTAES_E_RESPOSTAS_DOS_RECURSOS.XLSX",
+    "obs": "Arquivo oficial CEBRASPE (aba de editais). Nome do arquivo: ARGUMENTAES_E_RESPOSTAS_DOS_RECURSOS.XLSX"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tcdf-2020-auditorconselheirosubstituto",
+  "orgao": "TC-DF",
+  "ano": 2020,
+  "cargo": "Auditor (Conselheiro-Substituto)",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "TCE",
+  "concurso": "TCDF AUDITOR (CONSELHEIRO-SUBSTITUTO) 2020",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TC_DF_20_AUDITOR_SUB",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PADRÕES DE RESPOSTA",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_AUDITOR_SUB/arquivos/683_TCDF_ORAL_COMPADRAO_ATUALIZADO.PDF",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 11 - Resultado final na avaliação biopsicossocial e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_AUDITOR_SUB/arquivos/ED_11_20_TCDF_CONSELHEIRO_SUBSTITUTO_RES_FINAL_BIOP_CONV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 14 – Resultado final na prova oral e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_AUDITOR_SUB/arquivos/ED_14_20_TCDF_CONSELHEIRO_SUBSTITUTO_RES_FINAL_ORAL_CONV_TITULOS.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_AUDITOR_SUB/arquivos/ED_13_20_TCDF_CONSELHEIRO_SUBSTITUTO_RES_PROV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tcdf-2020-procuradordoministeriopublicodecontas",
+  "orgao": "TC-DF",
+  "ano": 2020,
+  "cargo": "Procurador do Ministério Público de Contas",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "TCE",
+  "concurso": "TCDF PROCURADOR 2020",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TC_DF_20_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PADRÕES DE RESPOSTA",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_PROCURADOR/arquivos/611_TCDF_PROCURADOR_ORAL_PADRODERESPOSTAS.PDF",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 12 – Tópicos específicos dos objetos de avaliação da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_PROCURADOR/arquivos/ED_12_TCDF_PROCURADOR_MPC_DF_20_CONTEUDO_PROVA_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Comunicado - Recurso prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_PROCURADOR/arquivos/TCDF_20_COMUNICADO_RECURSO_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 13 – Resultado final na inscrição definitiva e convocação para prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_PROCURADOR/arquivos/ED_13_TCDF_20_PROCURADOR_RES_FINAL_CONV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 14 – Resultado provisório da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_PROCURADOR/arquivos/ED_14_TCDF_20_PROCURADOR_RES_PROV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 15 – Resultado final da prova oral e resultado provisório da avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TC_DF_20_PROCURADOR/arquivos/ED_15_TCDF_PROCURADOR_MPC_DF_20_RES_FINAL_ORAL_PROV_TITULOS.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tjba-2020-juizdedireitosubstituto",
+  "orgao": "TJ-BA",
+  "ano": 2020,
+  "cargo": "Juiz de Direito Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-BA Juiz de Direito Substituto 2018 (prova oral aplicada em 06/12/2020)",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TJ_BA_18_JUIZ",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova Oral - Malote 1, Ponto 3 - Questões COM PADRÃO DE RESPOSTA (aplicada em 6/12/2020)",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_BA_18_JUIZ/arquivos/MALOTE01_PONTO3_TJBA_ORAL_COM_PADRO.PDF",
+    "obs": "Raro: espelho/padrão de resposta da arguição oral publicado pelo CEBRASPE."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões da Prova Oral (todos os malotes)",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_BA_18_JUIZ/arquivos/TJ_BA_18_JUIZ_PROVA_ORAL.PDF",
+    "obs": "Perguntas efetivamente formuladas na arguição."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa específico para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_BA_18_JUIZ/arquivos/EDITAL_CONTEDO_PROVA_ORAL_TJBA.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 42 - Retomada do concurso, comissão examinadora da prova oral e regras de aplicação",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_BA_18_JUIZ/arquivos/ED_42_TJBA_2018_JUIZ_PROVA_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 31 - Resultado final na terceira etapa e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_BA_18_JUIZ/arquivos/ED_31_TJBA_2018_JUIZ_RES_FINAL_3ETAPA_BIOPS_SEM_EFEITO_HETERO_CONV_ORAL.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tjpa-2020-juizsubstituto",
+  "orgao": "TJ-PA",
+  "ano": 2020,
+  "cargo": "Juiz Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-PA Juiz de Direito Substituto 2019",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TJ_PA_19_JUIZ",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_PA_19_JUIZ/arquivos/TJ_PA_19_JUIZ_PROVA_ORAL_QUESTOES.PDF",
+    "obs": "Perguntas efetivamente formuladas na arguição."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa específico para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_PA_19_JUIZ/arquivos/TJ_PA_19_JUIZ_PROVA_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 28 - Resultado final na terceira etapa e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_PA_19_JUIZ/arquivos/ED_28_TJPA_2019_JUIZ_FIN_3_ETAPA_E_BIOPSICO_CONV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 30 - Resultado na prova oral e resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_PA_19_JUIZ/arquivos/ED_30_TJPA_2019_JUIZ_RES_ORAL_E_PROV_TIT.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpedf-2019-defensorpublico",
+  "orgao": "DPE-DF",
+  "ano": 2019,
+  "cargo": "Defensor Público",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPDF 2019 - Defensor Público",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DP_DF_19_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/DP_DF_19_DEFENSOR/arquivos/DP_DF_19_DEFENSOR_PROVA_ORAL.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 9 - Torna público o período provável para realização da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DP_DF_19_DEFENSOR/arquivos/ED_9__2019__DPDF_DEFENSOR_DATA_PROVAVEL_DA_PROVA_ORAL.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 12 - Resultado final nas provas discursivas e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DP_DF_19_DEFENSOR/arquivos/ED_12__2019__DPDF_DEFENSOR_RES_FIN_DISC_E_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DP_DF_19_DEFENSOR/arquivos/ED_13__2019__DPDF_DEFENSOR_RES_PROV_ORAL_VEDITAIS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 14 - Resultado final na prova oral e convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/DP_DF_19_DEFENSOR/arquivos/ED_14__2019__DPDF_DEFENSOR_RES_FIN_ORAL_E_CONV_TIT.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mpce-2019-promotordejusticasubstituto",
+  "orgao": "MP-CE",
+  "ano": 2019,
+  "cargo": "Promotor de Justiça Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MP-CE 2019 - Promotor de Justiça Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL - PADRÕES DE RESPOSTA (ATUALIZADO EM 30/3/2022)",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/560_MPCE_ORAL_V2.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "CASO HIPOTÉTICO 1 (TEMA)",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/688_MPCE_TRIBUNA_001.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "CASO HIPOTÉTICO 2 (TEMA)",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/688_MPCE_TRIBUNA_002.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/MP_CE_PROMOTOR_2019_COMUNICADO_RES_FINAL_TRIBUNA_TTULOS_HETERO_CONCURSO.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - Prova de Tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/MP_CE_PROMOTOR_2019_COMUNICADO_LOCAL_SORTEIO_PROVA_ORAL.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 23 - Resultado final: na inscrição definitiva, na sindicância de vida pregressa e investigação social, nos exames de sanidade física e mental, avaliação biopsicossocial e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/ED_23_MP_CE_PROMOTOR_2019_RES_FINAL_INS_DEFINITIVA_SINDICNCIA_BIOPSICO_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 26 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/ED_26_MP_CE_PROMOTOR_2019_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 27 – Resultado final na prova oral e convocações",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/ED_27_MP_CE_PROMOTOR_2019_RES_FINAL_ORAL_CONVOCAES.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 28 - Resultado provisório na prova de tribuna, na avaliação de títulos e no  procedimento de verificação da condição declarada para concorrer às vagas reservadas aos candidatos negros",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/ED_28_MP_CE_PROMOTOR_2019_RES_PROV_TRIBUNA_TITULOS_HETERO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 29 - Retificação do resultado final na prova oral do candidato sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/ED_29_MP_CE_PROMOTOR_2019_RET_NOTA_DE_CANDIDATO_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 30 - Resultado final no procedimento de verificação da condição declarada para concorrer às vagas reservadas aos candidatos negros, o resultado final na prova de tribuna, na avaliação de títulos e o resultado final no concurso público",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_CE_19_PROMOTOR/arquivos/ED_30_MP_CE_PROMOTOR_2019_RES_FINAL_TRIBUNA_TITULOS_HETERO_E_CONCURSO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mpcpa-2019-procuradordompdecontas",
+  "orgao": "MPC-PA",
+  "ano": 2019,
+  "cargo": "Procurador do MP de Contas",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MPC-PA 2018/2019 - Procurador de Contas",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MPC_PA_19_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_PA_19_PROCURADOR/arquivos/P_MALOTE01_PONTO1_MPCPA_ORAL_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n° 10 - Convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_PA_19_PROCURADOR/arquivos/ED_10_18_MPC_PA_PROCURADOR_2018_CONV_ORAL.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 11 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_PA_19_PROCURADOR/arquivos/ED_11_18_MPC_PA_PROCURADOR_2018_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 12 - Resultado final na prova oral e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_PA_19_PROCURADOR/arquivos/ED_12_18_MPC_PA_PROCURADOR_2018_RES_FIN_ORAL_E_CONV_TIT.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tcero-2019-procuradordoministeriopublicodecontas",
+  "orgao": "TCE-RO",
+  "ano": 2019,
+  "cargo": "Procurador do Ministério Público de Contas",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "TCE",
+  "concurso": "TCE/RO - PROCURADOR",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TCE_RO_19_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RO_19_PROCURADOR/arquivos/MALOTE01_PONTO1_TCE_RO_PROCURADOR_ORAL.PDF",
+    "obs": "documento da seção Provas e Gabaritos – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 10 - Resultado final na prova oral e convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RO_19_PROCURADOR/arquivos/ED_10__2019__TCE_RO_PROCURADOR__FINAL_ORAL_CONV_TITULOS.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 8 - Resultado final na inscrição definitiva e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RO_19_PROCURADOR/arquivos/ED_8__2020__TCE_RO_PROCURADOR__RES_FIN_INSC_DEF_CONV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 9 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_RO_19_PROCURADOR/arquivos/ED_9__2019__TCE_RO_PROCURADOR__RES_PROV_PROVA_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "tjce-2019-juizsubstituto",
+  "orgao": "TJ-CE",
+  "ano": 2019,
+  "cargo": "Juiz Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-CE Juiz Substituto 2018",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TJ_CE_18_JUIZ",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova Oral - Questões e Padrões de Resposta - Malotes de 1 a 7",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_CE_18_JUIZ/arquivos/PROVA_ORAL_COMPLETO.PDF",
+    "obs": "Documento único com as perguntas de todos os malotes e os respectivos padrões de resposta."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa específico para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_CE_18_JUIZ/arquivos/TJCE_JUIZ_2017_PROGRAMA_ESPECIFICO_PROVA_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 30 - Resultado final da terceira etapa e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_CE_18_JUIZ/arquivos/ED_30_TJCE_2017_JUIZ_RES_FINAL_3_ETAPA_PER_MED_VERIF_COTAS_CONV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 34 - Resultado na quarta etapa (prova oral) e resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_CE_18_JUIZ/arquivos/ED_34_TJCE_2017_JUIZ_RES_ORAL_PROV_TT.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpepe-2018-defensorpublico",
+  "orgao": "DPE-PE",
+  "ano": 2018,
+  "cargo": "Defensor Público",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-PE (edital 2017; prova oral realizada em jul/2018)",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_PE_17_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Questões - prova oral - malote 1 - 28/7 vespertino",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PE_17_DEFENSOR/arquivos/MALOTE01_DPEPE_ORAL_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Questões - prova oral - malote 2 - 29/7 vespertino",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PE_17_DEFENSOR/arquivos/MALOTE02_DPEPE_ORAL_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Questões - prova oral - malote 3 - 29/7 matutino",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PE_17_DEFENSOR/arquivos/MALOTE03_DPEPE_ORAL_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Questões - prova oral - malote 4 - 28/7 matutino",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PE_17_DEFENSOR/arquivos/MALOTE04_DPEPE_ORAL_COMPADRAO.PDF",
+    "obs": "Caderno oficial da prova oral publicado pelo CEBRASPE COM o padrão de resposta da banca. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 18 - Resultado final na inscrição definitiva e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PE_17_DEFENSOR/arquivos/ED_18_2018_DPE_PE_17___RES_FINAL_NA_INSCRI____O_DEFINITIVA_E_CONV._PROVA_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 19 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PE_17_DEFENSOR/arquivos/ED_19_2018_DPE_PE_17___RES_PROV._PROVA_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 20 - Resultado final na prova oral e a convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_PE_17_DEFENSOR/arquivos/ED_20_2018_DPE_PE_17___RES_FINAL_PROVA_ORAL_E_CONVOCA____O_T__TULOS.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "dpu-2018-defensorpublicofederal",
+  "orgao": "DPU",
+  "ano": 2018,
+  "cargo": "Defensor Público Federal",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPU (edital 2017; prova oral realizada em jan/fev 2018)",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPU_17_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 1 – 30_01 - Grupo 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%201%20%E2%80%93%2030_01%20-%20Grupo1.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 1 – 30_01 - Grupo 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%201%20%E2%80%93%2030_01%20-%20Grupo2.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 1 – 30_01 - Grupo 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%201%20%E2%80%93%2030_01%20-%20Grupo3.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 1 – 30_01 - Grupo 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%201%20%E2%80%93%2030_01%20-%20Grupo4.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 3 – 29_01 - Grupo 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%203%20%E2%80%93%2029_01%20-%20Grupo1.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 3 – 29_01 - Grupo 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%203%20%E2%80%93%2029_01%20-%20Grupo2.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 3 – 29_01 - Grupo 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%203%20%E2%80%93%2029_01%20-%20Grupo3.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 3 – 29_01 - Grupo 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%203%20%E2%80%93%2029_01%20-%20Grupo4.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 4 – 01_02 - Grupo 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%204%20%E2%80%93%2001_02%20-%20Grupo1.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 4 – 01_02 - Grupo 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%204%20%E2%80%93%2001_02%20-%20Grupo2.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 4 – 01_02 - Grupo 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%204%20%E2%80%93%2001_02%20-%20Grupo3.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 4 – 01_02 - Grupo 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%204%20%E2%80%93%2001_02%20-%20Grupo4.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 5 – 30_01 - Grupo 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%205%20%E2%80%93%2030_01%20-%20Grupo1.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 5 – 30_01 - Grupo 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%205%20%E2%80%93%2030_01%20-%20Grupo2.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 5 – 30_01 - Grupo 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%205%20%E2%80%93%2030_01%20-%20Grupo3.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 5 – 30_01 - Grupo 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%205%20%E2%80%93%2030_01%20-%20Grupo4.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 6 – 01_02 - Grupo 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%206%20%E2%80%93%2001_02%20-%20Grupo1.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 6 – 01_02 - Grupo 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%206%20%E2%80%93%2001_02%20-%20Grupo2.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 6 – 01_02 - Grupo 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%206%20%E2%80%93%2001_02%20-%20Grupo3.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 6 – 01_02 - Grupo 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%206%20%E2%80%93%2001_02%20-%20Grupo4.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 7 – 29_01 - Grupo 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%207%20%E2%80%93%2029_01%20-%20Grupo1.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 7 – 29_01 - Grupo 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%207%20%E2%80%93%2029_01%20-%20Grupo2.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 7 – 29_01 - Grupo 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%207%20%E2%80%93%2029_01%20-%20Grupo3.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 7 – 29_01 - Grupo 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%207%20%E2%80%93%2029_01%20-%20Grupo4.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 8 – 29_01 - Grupo 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%208%20%E2%80%93%2029_01%20-%20Grupo1.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 8 – 29_01 - Grupo 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%208%20%E2%80%93%2029_01%20-%20Grupo2.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 8 – 29_01 - Grupo 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%208%20%E2%80%93%2029_01%20-%20Grupo3.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 8 – 29_01 - Grupo 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%208%20%E2%80%93%2029_01%20-%20Grupo4.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 9 – 30_01 - Grupo 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%209%20%E2%80%93%2030_01%20-%20Grupo1.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 9 – 30_01 - Grupo 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%209%20%E2%80%93%2030_01%20-%20Grupo2.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 9 – 30_01 - Grupo 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%209%20%E2%80%93%2030_01%20-%20Grupo3.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Questões - prova oral - malote 9 – 30_01 - Grupo 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPU_17_DEFENSOR/arquivos/quest%C3%B5es%20-%20prova%20oral%20-%20malote%209%20%E2%80%93%2030_01%20-%20Grupo4.pdf",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   }
+  ],
+  "tem": [
+   "questoes_formuladas"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "mppi-2018-promotordejusticasubstituto",
+  "orgao": "MP-PI",
+  "ano": 2018,
+  "cargo": "Promotor de Justiça Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MP-PI 2018 - Promotor de Justiça Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR",
+  "materiais": [
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL - PONTO 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/PONTO1_MPPI_ORAL.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL - PONTO 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/PONTO2_MPPI_ORAL.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL - PONTO 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/PONTO3_MPPI_ORAL.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL - PONTO 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/PONTO4_MPPI_ORAL.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL - PONTO 5",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/PONTO5_MPPI_ORAL.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL - PONTO 6",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/PONTO6_MPPI_ORAL.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "PROVA ORAL SUB JUDICE - PONTOS DE 1 A 6",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/PROVA_COMPLETA.PDF",
+    "obs": "Caderno oficial com as questões efetivamente formuladas na arguição oral, publicado pelo CEBRASPE. URL verificada (HTTP 200) no CDN oficial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 14 - Data provável de realização da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/ED_14_MPPI_2018_PROMOTOR_DATA_PROVA_ORAL.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 21 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/ED_21_MPPI_2018_PROMOTOR_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 22 - Resultado final na prova oral e o resultado provisório na avaliação de títulos.",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/ED_22_MPPI_2018_PROMOTOR_RES_FINAL_ORAL__E_PROV_TIT.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 24 - Resultado final da terceira etapa e convocação para a prova oral - sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/ED_24_MPPI_2018_PROMOTOR_RES_FINAL_TERCEIRA_ETAPA_PCD_COTAS_E_CONV_ORAL_SUBJUDICE_EDITAIS_17_E_20.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 28 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/ED_28_MPPI_2018_PROMOTOR_RES_PROV_ORAL_SJ.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 30 - Resultado final na prova oral e o resultado provisório na avaliação de títulos de candidatos sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/ED_30_MPPI_2018_PROMOTOR_RES_FINAL_ORAL_E_PROV_TIT_SUBJUDICE_EDITAL_28.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 31 - Resultados finais na inscrição definitiva, na sindicância de vida pregressa, nos exames de higidez física e mental, na avaliação biopsicossocial de candidatos sub judice e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/ED_31_MPPI_2018_PROMOTOR_RES_FINAL_TERCEIRA_ETAPA_PCD_COTAS_E_CONV_ORAL_SUBJUDICE.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 32 - Torna sem efeito a convocação de candidatos sub judice para a prova oral, realizada por meio do Edital nº 31 – MP/PI, de 10 de outubro de 2019 e divulga o resultado final na avaliação de títulos e o resultado final no concurso público",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_PI_18_PROMOTOR/arquivos/ED_32_MPPI_2018_PROMOTOR_TORNA_SEM_EFEITO_SUB_JUDICE_E_RES_FINAL_TIT_E_CONCURSO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pcse-2018-delegadodepolicia",
+  "orgao": "PC-SE",
+  "ano": 2018,
+  "cargo": "Delegado de Polícia",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Civil",
+  "concurso": "PC SE 2018 - Delegado",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PC_SE_18_DELEGADO",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - Malote 1 com padrões de resposta",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_SE_18_DELEGADO/arquivos/MALOTE_1_COM_PADRES_DE_RESPOSTA.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Resultado final na sindicância de vida pregressa e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_SE_18_DELEGADO/arquivos/ED_7_2018_PC_SE_DELEGADO_RESULTADO_FINAL_SINDICANCIA_DE_VIDA_PREGRESSA_CONV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado final na prova oral e convocações",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_SE_18_DELEGADO/arquivos/ED_7_2018_PC_SE_DELEGADO_RESULTADO_FINAL_ORAL_CONVOCACOES.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_SE_18_DELEGADO/arquivos/ED_7_2018_PC_SE_DELEGADO_RESULTADO_PROV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Retificação da data do edital de resultado final na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_SE_18_DELEGADO/arquivos/ED_7_2018_PC_SE_DELEGADO_RETIFICACAO_DATA_DE_RESULTADO.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "pf-2018-delegadodepoliciafederal",
+  "orgao": "PF",
+  "ano": 2018,
+  "cargo": "Delegado de Polícia Federal",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Federal",
+  "concurso": "PF 2018 - DGP/PF",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PF_18",
+  "materiais": [
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - 25/10/2020 - Malote 1 - sub judice (com padrão)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/MALOTE01_PF_ORAL_COM_PADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - 28/4/2019 - Malote 1 - sub judice (com padrão)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/P_467_MALOTE01_DGPPF_ORAL_COMPADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - 4/2/2024 - Malote 1 - sub judice (com padrão)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/960_PF_DL_SUBJUDICE_ORAL_COMPADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "padrao_resposta_oral",
+    "rotulo": "Padrão de resposta",
+    "titulo": "Prova oral - 4/8/2019 - Malote 1 - sub judice (com padrão)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/P_MALOTE01_DPF_ORAL_COMPADRAO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - 16/6/2019 - Malote 1 - sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/P_476_MALOTE01_DGPPF_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - Malote 1",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/P_MALOTE01_DGPPF_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - Malote 1 - sub judice",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/SUB_JUDICE_P_MALOTE01_DGPPF_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - Malote 2",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/P_MALOTE02_DGPPF_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - Malote 3",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/MALOTE03_DGPPF_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "questoes_formuladas",
+    "rotulo": "Perguntas formuladas",
+    "titulo": "Prova oral - Malote 4",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/P_MALOTE04_DGPPF_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 14 - Resultado final no TAF e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/ED_14_PF_2018___RES_FINAL_TAF_E_CONVOCAES_EXCETO_CARGO_4.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 16 - Convocação de candidatos sub judice para a prova oral (delegado)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/ED_16__PF__2018_CONVOCACOES___SEM_FIC.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 19 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/ED_19_PF_2018___RES_PROV_PROVA_ORAL_DIGITACAO_E_PREENCHIMENTO_FIC_EXCETO_CARGO_4.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 21 - Resultado final na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PF_18/arquivos/ED_21_PF_2018___RES_FINAL_PROVA_ORAL__DIGITAO_E_PREENCHIMENTO_FIC_E_CONV_EXAMES___TODOS_OS_CARGOS.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "padrao_resposta_oral",
+   "questoes_formuladas",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": true
+ },
+ {
+  "id": "irbr-2026-diplomata",
+  "orgao": "IRBr",
+  "ano": 2026,
+  "cargo": "Diplomata",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Diplomacia",
+  "concurso": "CACD 2026",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/IRBR_26_DIPLOMACIA",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 1 - Abertura do CACD 2026 (regras, fases e criterios de avaliacao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/IRBR_26_DIPLOMACIA/arquivos/7FA89C5320E2811FDD1A8276DD6526120704864996EA8C6DED7A6DDB5D0987D7.pdf",
+    "obs": "ATENCAO: nas edicoes 2018-2026 o CACD NAO tem prova oral autonoma. A avaliacao de Politica Internacional e prova ESCRITA de 2a fase. Este edital e o documento oficial que fixa fases e criterios. Nao ha padrao de resposta de prova oral do CACD publicado pelo Cebraspe."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "mpf-2026-procuradordarepublica",
+  "orgao": "MPF",
+  "ano": 2026,
+  "cargo": "Procurador da República",
+  "banca": "Banca própria (Comissão de Concurso do MPF/PGR)",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "31º Concurso Público para provimento de cargos de Procurador da República",
+  "urlConcurso": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Aviso nº 2/2026 – Pontos sorteados para a prova oral (18/4/2026, sessão das 8h)",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/aviso-pontos.pdf",
+    "obs": "Aviso oficial do MPF com os pontos efetivamente sorteados para a arguição oral. URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Aviso nº 3/2026 – Pontos sorteados para a prova oral (18/4/2026, sessão das 14h)",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/aviso3-2026.pdf",
+    "obs": "Aviso oficial do MPF com os pontos efetivamente sorteados para a arguição oral. URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Aviso nº 5/2026 – Pontos sorteados para a prova oral (19/4/2026, sessão das 8h)",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/aviso5-2026.pdf",
+    "obs": "Aviso oficial do MPF com os pontos efetivamente sorteados para a arguição oral. URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Aviso nº 6/2026 – Pontos sorteados para a prova oral (19/4/2026, sessão das 14h)",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/aviso6-2026.pdf",
+    "obs": "Aviso oficial do MPF com os pontos efetivamente sorteados para a arguição oral. URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Aviso nº 7/2026 – Pontos sorteados para a prova oral (20/4/2026, sessão das 8h)",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/aviso7-2026.pdf",
+    "obs": "Aviso oficial do MPF com os pontos efetivamente sorteados para a arguição oral. URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Aviso nº 4/2026 – Horário de fechamento dos portões para a prova oral",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/aviso4-2026.pdf",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital PGR/MPF nº 7/2026 – Convocação para as Provas Orais (18 a 20/4/2026)",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/edital-prova-oral.pdf",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Anexo I do Edital PGR/MPF nº 14/2026 – Candidatos aprovados nas provas orais",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/anexo_i.pdf",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Anexo II do Edital PGR/MPF nº 14/2026 – Ordem de classificação dos aprovados na prova oral",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/anexo_ii.pdf",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital PGR/MPF nº 14/2026 – Resultado da Prova Oral e classificação no 31º CPR",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/31o-concurso/documentos/edital-14-2026-resultado-prova-oral-e-classificancao.pdf",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjam-2026-juizsubstituto",
+  "orgao": "TJ-AM",
+  "ano": 2026,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-AM Juiz Substituto 2024",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjam24",
+  "materiais": [
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado Definitivo da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/487-tjam-resultado-definitivo-prova-oral.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjsc-2026-juizsubstituto",
+  "orgao": "TJ-SC",
+  "ano": 2026,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-SC Juiz Substituto 2025",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjscjuiz25",
+  "materiais": [
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n. 106/2025 - Resultado Definitivo da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n-106-2026-resultado-definitivo-da-prova-oral-magistratura.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjse-2026-juizsubstituto",
+  "orgao": "TJ-SE",
+  "ano": 2026,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-SE Juiz Substituto 2024",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjse24",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa Específico da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjse-juiz-programa-especifico-da-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Banca Examinadora da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjse-juiz-banca-examinadora-da-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Convocação para a Prova Oral (2026)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjse-juiz-convocacao-prova-oral-2026.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Ordem de Arguição da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjse-juiz-ordem-de-arguicao-da-prova-oral-2026-3_.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado da Prova Oral (01/04/2026)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/341-tjse-resultado-prova-oral-2026-04-01.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjto-2026-juizsubstituto",
+  "orgao": "TJ-TO",
+  "ano": 2026,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-TO Juiz Substituto 2025",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjto25",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa Específico da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjto-juiz-programa-especifico-da-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Banca Examinadora da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjto-juiz-banca-examinadora-da-prova-oral_0.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital de Convocação para a Prova Oral (atualizado em 13/07/2026)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjto-juiz-convocacao-prova-oral-2026-atualizado-13072026.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Ordem de Arguição da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjto-juiz-ordem-de-arguicao_0.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado da Prova Oral (22/07/2026)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/250-tjto-resultado-prova-oral-2026-07-22.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "irbr-2025-diplomata",
+  "orgao": "IRBr",
+  "ano": 2025,
+  "cargo": "Diplomata",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Diplomacia",
+  "concurso": "CACD 2025",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/IRBR_25_DIPLOMACIA",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 1 - Abertura do CACD 2025 (regras, fases e criterios de avaliacao)",
+    "url": "https://cdn.cebraspe.org.br/concursos/IRBR_25_DIPLOMACIA/arquivos/Ed_1_IRBr_CACD_25_abertura.pdf",
+    "obs": "ATENCAO: nas edicoes 2018-2026 o CACD NAO tem prova oral autonoma. A avaliacao de Politica Internacional e prova ESCRITA de 2a fase. Este edital e o documento oficial que fixa fases e criterios. Nao ha padrao de resposta de prova oral do CACD publicado pelo Cebraspe."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjam-2025-juizsubstituto",
+  "orgao": "TJ-AM",
+  "ano": 2025,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-AM Juiz Substituto 2024",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjam24",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa Específico da Prova Oral (atualizado em 10/12/2025)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjam-prova-oral-programa-especifico__1.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Banca Examinadora da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/banca-examinadora-da-prova-oral.pdf",
+    "obs": "Composição da comissão examinadora da oral."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Convocação para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjam-convocacao-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Ordem de Arguição da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjam-ordem-de-arguicao_1.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjmt-2025-juizsubstituto",
+  "orgao": "TJ-MT",
+  "ano": 2025,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-MT Juiz Substituto 2024",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjmtjuiz24",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Conteúdo Específico da Prova Oral e Comissão Examinadora (atualizado em 31/10/2025)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/conteudo-especifico-prova-oral-tjmt-2_0.pdf",
+    "obs": "Traz os pontos da oral e a composição da banca no mesmo ato."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital de Convocação para a Prova Oral (10/10/2025)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjmt-edital-de-convocacao-prova-oral-2025-10.10.25_0.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Ordem de Arguição da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjmt-ordem-de-arguicao_.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Convocação para a Sessão Pública de abertura dos envelopes com as notas da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/convocacao-sessao-publica-resultado-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado da Prova Oral (05/11/2025)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/resultado-prova-oral-tjmt-2025.11.05-_.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjpe-2025-juizsubstituto",
+  "orgao": "TJ-PE",
+  "ano": 2025,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-PE Juiz Substituto 2024",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjpe24",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa Específico da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-programa-especifico-da-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Banca Examinadora da Prova Oral (2025)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-banca-da-prova-oral-2025.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Convocação para a Prova Oral (2025)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-convocacao-prova-oral-2025.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Ordem de Arguição da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-ordem-de-arguicao-tjpe.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado Definitivo da Prova Oral (12/11/2025)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/283-tjpe-resultado-definitivo-prova-oral-2025-11-12.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjsc-2025-juizsubstituto",
+  "orgao": "TJ-SC",
+  "ano": 2025,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-SC Juiz Substituto 2024",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjscjuiz24",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital n. 42/2025 - Programa de pontos que será objeto da prova oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-42-25-programa-de-pontos-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital n. 97/2025 - Programa de pontos que será objeto da prova oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-97-2025-pontos-porva-oral-magistratura.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 103/2025 - Retificação do local do sorteio dos pontos e das arguições da prova oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n-103-2025-local-do-sorteio-de-pontos-e-das-arguicoes-da-prova-oral-magistratura-2.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 41/2025 - Convocação para a prova oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-41-25-convocacao-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 43/2025 - Ordem de arguição e grupos dos candidatos habilitados à prova oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/ed.-43-ordem-de-arguicao-e-os-grupos-dos-candidatos-habilitados-a-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 96/2025 - Convocação para a prova oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-96-2025-convocacao-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 98/2025 - Ordem de arguição e grupos dos candidatos habilitados à prova oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-98-2025-ordem-de-arguicao-da-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n. 52/2025 - Resultado Definitivo da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/magistratura-edital-n.-52-2025-prova-oral.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "trf2-2025-juizfederalsubstituto",
+  "orgao": "TRF2",
+  "ano": 2025,
+  "cargo": "Juiz Federal Substituto",
+  "banca": "TRF2 (banca própria)",
+  "area": "Jurídica",
+  "subarea": "Magistratura Federal",
+  "concurso": "XVIII Concurso para Juiz Federal Substituto da 2ª Região",
+  "urlConcurso": "https://www.trf2.jus.br/trf2/artigo/acma/18o-concurso-para-juiz-federal-substituto-da-2a-regiao",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Anexo ao Edital TRF2 nº 17/2025 - Pontos da Prova Oral do XVIII CPJFS/JF2R",
+    "url": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/18/pontos-da-prova-oral-xviii-cpjfs-jf2r.pdf",
+    "obs": "Relação completa dos pontos sorteáveis."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital TRF2 nº 17/2025 - Divulgação da relação dos pontos de arguição da prova oral (31/01/2025)",
+    "url": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/18/sei-0449545-edital-17.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital TRF2 nº 23/2025 - Deferimento da inscrição definitiva, convocação para o sorteio de pontos e realização da prova oral (12/02/2025)",
+    "url": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/18/sei-0719879-edital-23.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital TRF2 nº 32/2025 - Resultado definitivo da prova oral (21/02/2025)",
+    "url": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/18/sei-0766746-edital-32.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "trf3-2025-juizfederalsubstituto",
+  "orgao": "TRF3",
+  "ano": 2025,
+  "cargo": "Juiz Federal Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Federal",
+  "concurso": "TRF3 - Concurso para Juiz Federal Substituto (2024/2025)",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/trf3juiz",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 21/2025 - Divulgação dos pontos para as provas orais (08/09/2025)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_12324547_edital_21.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Ponto para a Prova Oral (anexo)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/pontos-prova-oral.pdf",
+    "obs": "Anexo com a relação/ponto sorteado da oral."
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "trf5-2025-juizfederalsubstituto",
+  "orgao": "TRF5",
+  "ano": 2025,
+  "cargo": "Juiz Federal Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Federal",
+  "concurso": "TRF5 - XV Concurso para Juiz Federal Substituto",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/trf5juiz",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 99 - Divulgação do resultado do sorteio do ponto para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_5591472_edital_99.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 98 - Divulgação do resultado do sorteio da ordem de arguição dos candidatos na Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_5586484_edital_98-2.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 100 - Resultado Final da Quarta Etapa (Prova Oral) e resultado provisório da Quinta Etapa (Títulos)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_5593395_edital_100.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "apexbrasil-2024-analista",
+  "orgao": "APEX-Brasil",
+  "ano": 2024,
+  "cargo": "Analista",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Carreiras de Estado",
+  "concurso": "APEX-Brasil 24_1",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/APEX_BRASIL_24_1",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 12 - Convocacao para a avaliacao oral por competencias",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_24_1/arquivos/ED_12_2023_APEX_RES_FINAL_REQUISITO_E_CONV_ORAL.PDF",
+    "obs": "Documento oficial da etapa de avaliacao oral."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 16 - Resultado final na avaliacao oral por competencias",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_24_1/arquivos/ED_16_2023_APEX_RES_FINAL_ORAL_E_FINAL_PROC_SELETIVO_.PDF",
+    "obs": "Documento oficial da etapa de avaliacao oral."
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "csjt-2024-juizdotrabalhosubstituto",
+  "orgao": "CSJT",
+  "ano": 2024,
+  "cargo": "Juiz do Trabalho Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura do Trabalho",
+  "concurso": "Concurso Público Nacional Unificado para ingresso na Magistratura do Trabalho (CSJT 2023/2024)",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/csjt23",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 36/2024 - Programa Específico e Pontos da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-no-36-programa-e-pontos-prova-oral-completo_0.pdf",
+    "obs": "Relação completa dos pontos sorteáveis da oral do concurso nacional da magistratura do trabalho."
+   },
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Pontos Sorteados - Prova Oral (atualizado em 11/06/2024)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/csjt-sorteio-prova-oral-11.06.2024.pdf",
+    "obs": "Pontos efetivamente sorteados por grupo/candidato."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 33/2024 - Sessão Pública do Sorteio da Ordem de Arguição da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sessao-publica-do-sorteio-ordem-de-arguicao-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 35/2024 - Convocação para a Prova Oral (retificado em 05/04/2024)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/2024_edital0035_concurso_magistr_rep01.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 38/2024 - Sorteio dos Pontos e da Prova Oral (candidatos do RS)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-no-38-candidatos-do-rs.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 39/2024 - Sessão Pública de Divulgação do Resultado da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-no-39-sessao-publica-resultado-da-prova-_oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 40/2024 - Resultado Definitivo da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-no-40-resultado-prova-oral-sem-anexo.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "insamcti-2024-pesquisadortecnologista",
+  "orgao": "INSA (MCTI)",
+  "ano": 2024,
+  "cargo": "Pesquisador / Tecnologista",
+  "banca": "CEBRASPE",
+  "area": "Tecnologia e Engenharia",
+  "subarea": "Carreiras de Estado",
+  "concurso": "INSA/MCTI 2024",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MCTI_INSA_24",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Comunicado - Sequencia de arguicao dos candidatos (sorteio)",
+    "url": "https://cdn.cebraspe.org.br/concursos/MCTI_INSA_24/arquivos/MCTI_INSA_24_Sorteio.pdf",
+    "obs": "Arguicao oral com banca examinadora."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 11 - Composicao final das Comissoes Examinadoras da prova oral e defesa de memorial",
+    "url": "https://cdn.cebraspe.org.br/concursos/MCTI_INSA_24/arquivos/Ed_11_2024_INSA_Comiss%C3%B5es_examinadoras.pdf",
+    "obs": "Arguicao oral com banca examinadora."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 10 - Convocacao para a prova oral e defesa publica de memorial",
+    "url": "https://cdn.cebraspe.org.br/concursos/MCTI_INSA_24/arquivos/Ed_10_2024_INSA_Res_final_bio_hetero_conv_def_pub_tit.pdf",
+    "obs": "Arguicao oral com banca examinadora."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 - Resultado final na prova oral e na defesa publica de memorial",
+    "url": "https://cdn.cebraspe.org.br/concursos/MCTI_INSA_24/arquivos/Ed_13_2024_INSA_Res_final_oral_def_mem_conv_tit.pdf",
+    "obs": "Arguicao oral com banca examinadora."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjgo-2024-juizsubstituto",
+  "orgao": "TJ-GO",
+  "ano": 2024,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-GO Juiz de Direito Substituto 2023",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjgo2023",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Relação dos candidatos por dia para a Prova Oral e Convocação para o Sorteio dos Pontos",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-ordem-dos-candidatos-convocacao-sorteio-dos-pontos-assinado.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Resultado Preliminar da Terceira Etapa e Convocação para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/resultado-inscricao-definitiva-assinados-s-a_publicacao.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital de Resultado da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-resultado-prova-oral.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjmg-2024-juizsubstituto",
+  "orgao": "TJ-MG",
+  "ano": 2024,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-MG Juiz de Direito Substituto (EDITAL 2021, oral em 2024)",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjmg21",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa da Prova Oral - DJe 22/03/2024",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/22032024magist1.pdf",
+    "obs": "Relação de pontos agrupados para sorteio na oral."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Procedimentos da Prova Oral - DJe 20/03/2024",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/20.03.2024magistratura2.pdf",
+    "obs": "Regras de condução e critérios de avaliação da arguição."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Ordem de Arguição da Prova Oral - DJe 01/04/2024",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/concurso01042024.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Resultado dos Recursos, Resultado Final da Inscrição Definitiva e Convocação para a Prova Oral - DJe 14/03/2024",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/14.03.2024-resultado-recurso-resultdo-final-inscricao-definitiva-e-convocacao-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado da Prova Oral - 10/04/2024",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/10.04.2024-resultado-prova-oral.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjpr-2024-juizsubstituto",
+  "orgao": "TJ-PR",
+  "ano": 2024,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-PR Juiz Substituto 2023",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjpr2023",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado - Resultado do sorteio da ordem de arguições da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/comunicado-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital SEI 10977424 / Edital 4813 - Resultado na Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_10977424_edital_4813-1.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjrj-2024-juizsubstituto",
+  "orgao": "TJ-RJ",
+  "ano": 2024,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-RJ Juiz de Direito Substituto 2022 (XLIX Concurso)",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjrj22",
+  "materiais": [
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Aviso TJ nº 89/2024 - Republicação do Resultado Definitivo da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/aviso-tj-no-89-2024-republicacao-do-resultado-definitivo-da-prova-oral_0.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjsc-2024-juizsubstituto",
+  "orgao": "TJ-SC",
+  "ano": 2024,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-SC Juiz Substituto 2023",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjsc2023",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital n. 78/2024 - Programa de pontos da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-78-2024-programa-de-pontos.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 74/2024 - Convocação para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-74-2024-convocacao-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 77/2024 - Grupos de arguição dos candidatos habilitados à Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-77-2024-ordem-de-arguicao-e-os-grupos-dos-candidatos-habilitados-a-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 79/2024 - Retificação da lista da ordem de arguição e dos grupos",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n.-79-2024-retificacao-da-lista-da-ordem-de-arguicao-e-os-grupos-dos-candidatos-habilitados-a-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n. 82/2024 - Resultado da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n.-82-resultado-da-prova-oral.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "ctirenatoarchermcti-2023-pesquisadortecnologista",
+  "orgao": "CTI Renato Archer (MCTI)",
+  "ano": 2023,
+  "cargo": "Pesquisador / Tecnologista",
+  "banca": "CEBRASPE",
+  "area": "Tecnologia e Engenharia",
+  "subarea": "Carreiras de Estado",
+  "concurso": "CTI Renato Archer 2023",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/CTI_23",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Comunicado - Prova Oral e Defesa Publica de Memorial (procedimentos)",
+    "url": "https://cdn.cebraspe.org.br/concursos/CTI_23/arquivos/MCTI_RENATO_ARCHER_COMUNICADO_PROVA_ORAL_DEF_MEMO.PDF",
+    "obs": "Etapa de prova oral e defesa publica de memorial."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 8 - Composicao das Comissoes Examinadoras da prova oral e da defesa publica de memorial",
+    "url": "https://cdn.cebraspe.org.br/concursos/CTI_23/arquivos/ED_8_2023_MCTI_RENATO_ARCHER_RET_CONV_PROVA_ORAL_E_COMISSOES__EXAMINADORAS.PDF",
+    "obs": "Etapa de prova oral e defesa publica de memorial."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 - Resultado final na prova oral e na defesa publica de memorial",
+    "url": "https://cdn.cebraspe.org.br/concursos/CTI_23/arquivos/ED_13_2023_MCTI_RENATO_ARCHER_RES_FINAL_ORAL_E_DEF_MEMORIAL_E_CONV_TITULOS.PDF",
+    "obs": "Etapa de prova oral e defesa publica de memorial."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "lnalaboratorionacionaldeastrofisicamcti-2023-pesquisador",
+  "orgao": "LNA - Laboratorio Nacional de Astrofisica (MCTI)",
+  "ano": 2023,
+  "cargo": "Pesquisador",
+  "banca": "CEBRASPE",
+  "area": "Tecnologia e Engenharia",
+  "subarea": "Carreiras de Estado",
+  "concurso": "LNA/MCTI 2023 - Pesquisador",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MCTI_LNA_23_PESQUISADOR",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 11 - Convocacao para a prova oral de defesa de memorial e de projeto de pesquisa e erudicao",
+    "url": "https://cdn.cebraspe.org.br/concursos/MCTI_LNA_23_PESQUISADOR/arquivos/ED_11_2023_MCTI_LNA_PESQUISADOR_RES_FINAL_ESC_DISC_E_HETERO_CONV_MEMORIAL_E_PROJETO_DE_PESQUISA.PDF",
+    "obs": "Prova oral de defesa de memorial e de projeto de pesquisa e erudicao."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 13 - Resultado final na prova oral de defesa de memorial e de projeto de pesquisa",
+    "url": "https://cdn.cebraspe.org.br/concursos/MCTI_LNA_23_PESQUISADOR/arquivos/ED_13_2023_MCTI_LNA_PESQUISADOR_RES_FINAL_MEMORIAL_E_PROJETO_DE_PESQUISA_CONV_TITULOS.PDF",
+    "obs": "Prova oral de defesa de memorial e de projeto de pesquisa e erudicao."
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "mpba-2023-promotordejusticasubstituto",
+  "orgao": "MP-BA",
+  "ano": 2023,
+  "cargo": "Promotor de Justiça Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "Concurso MP-BA 2023 - Promotor de Justiça Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 19 – Pontos da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_19_MPBA_PONTOS_DA_PROVA_ORAL.PDF",
+    "obs": "Edital oficial com a relação de pontos sorteáveis. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado – Sessão pública para a realização do sorteio da sequência de arguição dos candidatos",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/MPBA_COMUNICADO_SESSAO_SORTEIO_ORDEM_ARGUICAO.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Comunicado – Prorrogação do período de interposição de recurso contra o resultado provisório da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/MPBA_COMUNICADO_PRORROGA_REC_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 20 –  Resultado final na inscrição definitiva e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_20_MPBA_RES_FINAL_INSC_DEF_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 24 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_24_MPBA_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 25 – Reabertura do período de recurso contra o resultado provisório da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_25_MPBA_RETIFICACAO_RECURSO_ORAL_E_DATA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 25 – Reabertura do período de recurso contra o resultado provisório da prova oral, conforme publicação no Diário Oficial",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_25_MPBA_RETIFICACAO_REC_ORAL_E_DATA_DOU.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 26 – Reabertura do período de interposição de recurso contra o resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_26_MPBA_RETIFICACAO_REC_ORAL_E_DATA_.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 27 – Retificação do resultado provisório na oral e prorrogação do período de recurso contra o resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_27_MPBA_RETIFICACAO_ORAL_E_PRORROGA_RECURSO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 28 – Resultado final na prova oral, resultado provisório na avaliação de títulos e convocação para biopsicossocial e heteroidentificação",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_28_MPBA_RES_FINAL_ORAL_PROV_TITULOS_CONV_BIOP_HETERO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 29 – Republicação do resultado final na prova oral, resultado provisório na avaliação de títulos e convocação para biopsicossocial e heteroidentificação",
+    "url": "https://cdn.cebraspe.org.br/concursos/MP_BA_23_PROMOTOR/arquivos/ED_29_MPBA_REPUBLICACAO_RES_FINAL_ORAL_PROV_TITULOS_CONV_BIOP_HETERO.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "mpf-2023-procuradordarepublica",
+  "orgao": "MPF",
+  "ano": 2023,
+  "cargo": "Procurador da República",
+  "banca": "Banca própria (Comissão de Concurso do MPF/PGR)",
+  "area": "Jurídica",
+  "subarea": "Ministério Público",
+  "concurso": "30º Concurso Público para provimento de cargos de Procurador da República",
+  "urlConcurso": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/concursos-anteriores/30-concurso",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Aviso nº 2 – Instruções de comparecimento para as provas orais do 30º CPR",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/concursos-anteriores/30-concurso/documentos/aviso-no-2",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital PGR/MPF nº 29 – Convoca candidatos com inscrição definitiva deferida para as Provas Orais",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/concursos-anteriores/30-concurso/edital-pgr-mpf-no-29",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital PGR/MPF nº 32 – Convoca candidata para submeter-se às Provas Orais",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/concursos-anteriores/30-concurso/documentos/edital-pgr-mpf-no-32",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital PGR/MPF nº 35 – Resultado das Provas Orais e classificação no 30º CPR",
+    "url": "https://www.mpf.mp.br/o-mpf/concursos/concursos-de-procuradores/concursos-anteriores/30-concurso/documentos/edital-pgr-mpf-no-35",
+    "obs": "URL verificada (HTTP 200) no site oficial do MPF."
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "mre-2023-oficialdechancelaria",
+  "orgao": "MRE",
+  "ano": 2023,
+  "cargo": "Oficial de Chancelaria",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Diplomacia",
+  "concurso": "MRE 2023 - Oficial de Chancelaria",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MRE_23",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 1 - Abertura (atualizado) - Oficial de Chancelaria MRE 2023",
+    "url": "https://cdn.cebraspe.org.br/concursos/MRE_23/arquivos/ED_1_MRE_2023_ABERTURA_ATUALIZADO_RET_2.PDF",
+    "obs": "Certame de Oficial de Chancelaria 2023 (Cebraspe). O Cebraspe nao publicou material de prova oral para este certame - o edital e a fonte oficial das fases e criterios."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "pgmniteroi-2023-procuradordomunicipio",
+  "orgao": "PGM-Niterói",
+  "ano": 2023,
+  "cargo": "Procurador do Município",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Advocacia Pública",
+  "concurso": "Concurso PGM Niterói 2023 - Procurador do Município",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/pgm.niteroi23/1",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Comissão da Banca Examinadora para Prova Escrita Discursiva e Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/composicao-da-banca-examinadora-publicacao-03.04.2023.pdf",
+    "obs": "Composição oficial da banca examinadora que conduziu a prova oral."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "COMUNICADO - Divulgação do local de realização da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/comunicado-7-local-da-realizacao-da-prova-oral.pdf",
+    "obs": "Comunicado nº 7 da FGV com local e logística de realização da prova oral."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital de convocação para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-de-convocacao-prova-oral.pdf",
+    "obs": "Edital oficial de convocação para a prova oral, com regras e cronograma da fase."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado Definitivo da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/390_pgm-procurador-resultado-prova-oral-2023-11-01.pdf",
+    "obs": "Resultado definitivo da prova oral (01/11/2023), com as notas por candidato."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tcems-2023-procuradordoministeriopublicodecontas",
+  "orgao": "TCE-MS",
+  "ano": 2023,
+  "cargo": "Procurador do Ministério Público de Contas",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "TCE",
+  "concurso": "TCE MS 23",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TCE_MS_23_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Comunicado – Reabertura do prazo para a interposição de recursos contra o resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_23_PROCURADOR/arquivos/TCE_MS_2023_COMUNICADO_PROVA_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 16 – Reabertura do prazo para a interposição de recursos contra o resultado provisório na prova oral e contra o resultado provisório na avaliação de sanidade física e mental",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_23_PROCURADOR/arquivos/ED_16_2023_TCE_MS_RET_REABERTURA_REC_ORAL_E_AV_SAN.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital nº 17 – Retificação do resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_23_PROCURADOR/arquivos/ED_17_2023_TCE_MS_RET_PROV_ORAL.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 12 – Resultado final nas provas escritas discursivas, convocação para a prova oral, investigação social, avaliação de sanidade física e mental e convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_23_PROCURADOR/arquivos/ED_12_2023_TCE_MS_RES_FINAL_DISC_E_CONVOCACOES.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 15 – Resultado provisório na prova oral, na investigação social e na avaliação de sanidade física e mental",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_23_PROCURADOR/arquivos/ED_15_2023_TCE_MS_RES_PROV_ORAL_IS_E_AV_SAN.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 18 – Resultado final na prova oral, investigação social e na avaliação de sanidade física e mental e o resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TCE_MS_23_PROCURADOR/arquivos/ED_18_2023_TCE_MS_RES_FINAL_ORAL_FINAL_INVEST_SOCIAL_AV_SANIDADE_PROV_TTULOS.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjpe-2023-juizsubstituto",
+  "orgao": "TJ-PE",
+  "ano": 2023,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-PE Juiz de Direito Substituto 2022",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjpe22",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Programa Específico da Prova Oral e Comissão Examinadora",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-programa-especifico-da-prova-oral-e-comissao-examinadora.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Convocação para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-convocacao-prova-oral-1.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Ordem de Arguição da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-ordem-de-arguicao.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Convocação para a Sessão Pública de abertura dos envelopes com as notas da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-convocacao-sessao-publica-abertura-das-notas-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Resultado da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/resultado-prova-oral-tjpe-publicado.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjrj-2023-juizsubstituto",
+  "orgao": "TJ-RJ",
+  "ano": 2023,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-RJ Juiz de Direito Substituto 2022 (XLIX Concurso)",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjrj22",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Aviso TJ nº 86/2023 - Divulgação dos Pontos da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/aviso-tj-no-86-2023-divulgacao-dos-pontos-da-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Aviso TJ nº 15/2023 - Normas para a realização da Prova Oral (republicação 27/02/2023)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/27-02-2023-republicacao-do-aviso-tj-n.-15-2023-normas-da-prova-oral.pdf",
+    "obs": "Regulamento próprio da oral do TJ-RJ: forma de arguição, duração, critérios de nota."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Aviso TJ nº 85/2023 - Composição da Banca Examinadora para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/aviso-85-2023.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Aviso TJ nº 125/2023 - Ordem de Arguição dos Candidatos Habilitados para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/aviso-tj-no-125-2023.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Aviso TJ nº 84/2023 - Convocação para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/aviso-tj-84-2023.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Ata da Sessão Pública da Ordem de Arguição (20/07/2023)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/ata-da-sessao-publica-da-ordem-de-arguicao-realizada-em-20-de-julho-de-2023.pdf",
+    "obs": "Ata oficial da sessão de sorteio da ordem de arguição."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Ata da sessão pública de abertura dos envelopes com as notas atribuídas pela banca na Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/ata-da-sessao-publica-de-abertura-dos-envelopes-com-as-notas-atribuidas-pela-banca.pdf",
+    "obs": "Ata com as notas da oral."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Aviso TJ nº 183/2023 - Convite para a sessão pública de divulgação das notas na Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/aviso-tj-n.183-2023-convida-os-interessados-para-a-sessao-publica-de-divulgacao-das-notas-na-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Aviso TJ nº 187/2023 - Resultado Preliminar da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/aviso-tj-no-187-2023.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjsc-2023-juizsubstituto",
+  "orgao": "TJ-SC",
+  "ano": 2023,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-SC Juiz Substituto 2022",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjscjuiz22",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital n. 47/2023 - Pontos da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n.-47-de-2023-pontos.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 43/2023 - Convocação para a Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n.-43.2023-convocacao-para-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n. 46/2023 - Grupos de arguição dos candidatos habilitados à Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n.-46-de-2023-datas-e-horarios.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n. 50/2023 - Resultado da Prova Oral e provisório da Avaliação de Títulos",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-n.-50-resultados-prova-oral-e-provisorio-de-titulos_com-anexo.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "apexbrasil-2022-analista",
+  "orgao": "APEX-Brasil",
+  "ano": 2022,
+  "cargo": "Analista",
+  "banca": "CEBRASPE",
+  "area": "Administrativa e Gestão",
+  "subarea": "Carreiras de Estado",
+  "concurso": "APEX-Brasil 22_1",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/APEX_BRASIL_22_1",
+  "materiais": [
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 9 - Resultado final na avaliacao oral por competencias",
+    "url": "https://cdn.cebraspe.org.br/concursos/APEX_BRASIL_22_1/arquivos/ED_9_2022_APEX_1_2022_RES_FINAL_ORAL_E_PSP2.PDF",
+    "obs": "Documento oficial da etapa de avaliacao oral."
+   }
+  ],
+  "tem": [
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "mpcsc-2022-procuradordoministeriopublicodecontas",
+  "orgao": "MPC-SC",
+  "ano": 2022,
+  "cargo": "Procurador do Ministério Público de Contas",
+  "banca": "CEBRASPE",
+  "area": "Tribunais de Contas",
+  "subarea": "MP de Contas",
+  "concurso": "MPC SC 22 PROCURADOR",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "CONTEÚDO PROVA ORAL MPC_SC",
+    "url": "https://cdn.cebraspe.org.br/concursos/MPC_SC_22_PROCURADOR/arquivos/CONTEDO_PROVA_ORAL_MPC_SC.PDF",
+    "obs": "edital/comunicado oficial do certame – verificado HTTP 200 application/pdf"
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "pcro-2022-delegadodepoliciamedicolegista",
+  "orgao": "PC-RO",
+  "ano": 2022,
+  "cargo": "Delegado de Polícia / Médico-Legista",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Civil",
+  "concurso": "PC RO 2022 - Polícia Judiciária Civil de Rondônia",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PC_RO_22",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 5 - Resultado final no TAF e convocações (inclui prova oral)",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RO_22/arquivos/ED_5_PCRO_2023_RES_FINAL_TAF_CONV_PROVA_PRTICA_CONV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 8 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RO_22/arquivos/ED_8_PCRO_2023_RES_PROV_MICRO_PROV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 9 - Resultado final na prova oral e convocação para títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RO_22/arquivos/ED_9_PCRO_2023_RES_FINAL_MICRO_ORAL_CONV_TIT.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjap-2022-juizsubstituto",
+  "orgao": "TJ-AP",
+  "ano": 2022,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-AP Juiz de Direito Substituto 2021",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjap21",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 035/2022 - Resultado da inscrição definitiva e convocação para o sorteio da ordem de arguição e da prova oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital_no_035-2022-tjap-convocacao_prova_oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Resultado do Sorteio da Ordem de Arguição da Prova Oral (grupos sorteados)",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/grupos_sorteados_-_prova_oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 036/2022 - Resultado da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital_no_036-2022-tjap-resultado_prova_oral.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjpr-2022-juizsubstituto",
+  "orgao": "TJ-PR",
+  "ano": 2022,
+  "cargo": "Juiz Substituto",
+  "banca": "FGV",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-PR Juiz Substituto 2021",
+  "urlConcurso": "https://conhecimento.fgv.br/concursos/tjpr2021",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 054/2022 - Resultado final da inscrição definitiva e convocação para o sorteio dos pontos da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/54_-_edital_no_054_2022_-_inscricao_definitiva_deferia_e_convocacao-1.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 056/2022 - Resultado da Prova Oral",
+    "url": "https://conhecimento.fgv.br/sites/default/files/concursos/56_-_edital_no_056_2021_-_resultado_prova_oral87468478.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "dpers-2021-defensorpublicosubstituto",
+  "orgao": "DPE-RS",
+  "ano": 2021,
+  "cargo": "Defensor Público Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-RS 2021 - Defensor Público Substituto",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_RS_21_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 22 – Pontos da prova de tribuna e composição da Banca Examinadora da prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_RS_21_DEFENSOR/arquivos/ED_22_2021_DPRS_PONTOS_PROVA_TRIBUNA.PDF",
+    "obs": "Edital oficial com a relação de pontos sorteáveis. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Comunicado – Justificativas da banca para o deferimento ou indeferimento dos recursos interpostos contra o resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_RS_21_DEFENSOR/arquivos/DPRS_2021_COMUNICADO_NOVO.PDF",
+    "obs": "Documento oficial com regras, banca examinadora ou justificativas de avaliação da prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n° 20 - Resultado final na sindicância de vida pregressa, nos exames de sanidade física e psiquiátrica, nos exames de aptidão psicológica e na entrevista e convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_RS_21_DEFENSOR/arquivos/ED_20_DPRS_2021_RES_FINAL_SIND_EXAME_SANI_FSICA_E_PSIQUI_AV_PSICO_ENTREV_CONV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 21 – Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_RS_21_DEFENSOR/arquivos/ED_21_2021_DPRS_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 23 – Resultado final na prova oral e convocação para a prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_RS_21_DEFENSOR/arquivos/ED_23_DPRS_2021_RES_FIN_ORAL_E_CONV_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 24 – Resultado provisório na prova de tribuna",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_RS_21_DEFENSOR/arquivos/ED_24_DPRS_2021_RES_PROV_TRIBUNA.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 25 – Resultado final na prova de tribuna e convocação para a avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_RS_21_DEFENSOR/arquivos/ED_25_DPRS_2021_RES_FINAL_TRIBUNA_CONV_TT.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "regulamento_criterios",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "pcrj-2021-delegadodepolicia",
+  "orgao": "PC-RJ",
+  "ano": 2021,
+  "cargo": "Delegado de Polícia",
+  "banca": "CEBRASPE",
+  "area": "Policial e Segurança Pública",
+  "subarea": "Polícia Civil",
+  "concurso": "PC RJ 2021 - Delegado",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/PC_RJ_21_DELEGADO",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Composição da banca examinadora - prova de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RJ_21_DELEGADO/arquivos/COMPOSIO_BANCA_EXAMINADORA___PROVA_DE_TTULOS.PDF",
+    "obs": "Composição da banca do certame (etapa de títulos)."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 12 - Resultado final nas discursivas e convocação para as provas orais",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RJ_21_DELEGADO/arquivos/PCRJ_EDITAL_12_RES_FINAL_DISC_CONV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 14 - Resultado provisório nas provas orais",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RJ_21_DELEGADO/arquivos/EDITAL_14_PCRJ_RES_PROV_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 16 - Resultado final nas provas orais",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RJ_21_DELEGADO/arquivos/EDITAL_16_PCRJ_22_RES_FINAL_ORAL_CONV_PSICOTCNICO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "gravacao",
+    "rotulo": "Gravação da sessão",
+    "titulo": "Edital nº 13 - Orientações para a gravação das provas orais",
+    "url": "https://cdn.cebraspe.org.br/concursos/PC_RJ_21_DELEGADO/arquivos/PCRJ_EDITAL_13_ORIENTAES_GRAVAO_ORAL.PDF",
+    "obs": "Regras de gravação/registro audiovisual da arguição."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado",
+   "gravacao"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjba-2021-juizdedireitosubstituto",
+  "orgao": "TJ-BA",
+  "ano": 2021,
+  "cargo": "Juiz de Direito Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-BA Juiz de Direito Substituto 2018 (prova oral aplicada em 06/12/2020)",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TJ_BA_18_JUIZ",
+  "materiais": [
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 52 - Resultado na prova oral e resultado provisório na avaliação de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_BA_18_JUIZ/arquivos/ED_52_TJBA_2018_JUIZ_RES_ORAL_PROV_TIT.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjpr-2019-juizsubstituto",
+  "orgao": "TJ-PR",
+  "ano": 2019,
+  "cargo": "Juiz Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-PR Juiz Substituto 2018",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TJ_PR_18_JUIZ",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 40/2019 - Divulgação dos pontos agrupados para a prova oral (conteúdo programático e agrupamento)",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_PR_18_JUIZ/arquivos/EDITAL_40_2019____CONTEDO_PROGRAMTICO_PARA_A_PROVA_ORAL___AGRUPAMENTO.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado nº 3/2019 - Esclarecimentos sobre o sorteio e as datas de realização da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_PR_18_JUIZ/arquivos/COMUNICADO_N_3__2019____ESCLARECIMENTOS_SOBRE_OS_DIAS_PROVAS_ORAIS.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 47/2019 - Relação nominal e resultado dos candidatos submetidos à quarta etapa (prova oral)",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_PR_18_JUIZ/arquivos/EDITAL_47_2019____RELAO_RESULTADO_DOS_CANDIDATOS_SUBMETIDOS_NA_PROVA_ORAL_VF_TJ.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "tjsc-2019-juizsubstituto",
+  "orgao": "TJ-SC",
+  "ano": 2019,
+  "cargo": "Juiz Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "TJ-SC Juiz Substituto 2019",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/TJ_SC_19_JUIZ",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Edital nº 52/2019 - Programa de pontos que serão objeto da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_SC_19_JUIZ/arquivos/EDITAL_N._52_2019___PONTOS_PROVA_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 51/2019 - Resultado da inscrição definitiva, sorteio de grupos e datas da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_SC_19_JUIZ/arquivos/EDITAL_N._51_2019___MAGIS._RESULTADO_INSC._DEFINITIVA__SORTEIO_GRUPOS__DATAS_PROVA_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital nº 53/2019 - Grupos e datas de arguição para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_SC_19_JUIZ/arquivos/EDITAL_N._53_2019___GRUPOS_E_DATAS_DE_ARGUIO_PARA_A_PROVA_ORAL.PDF",
+    "obs": ""
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 55/2019 - Resultado da prova oral e de títulos",
+    "url": "https://cdn.cebraspe.org.br/concursos/TJ_SC_19_JUIZ/arquivos/EDITAL_N._55_2019___RESULTADO___PROVA_ORAL_E_TTULOS.PDF",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "trf2-2019-juizfederalsubstituto",
+  "orgao": "TRF2",
+  "ano": 2019,
+  "cargo": "Juiz Federal Substituto",
+  "banca": "TRF2 (banca própria)",
+  "area": "Jurídica",
+  "subarea": "Magistratura Federal",
+  "concurso": "XVII Concurso para Juiz Federal Substituto da 2ª Região",
+  "urlConcurso": "https://www.trf2.jus.br/trf2/artigo/acma/17o-concurso-para-juiz-federal-substituto-da-2a-regiao",
+  "materiais": [
+   {
+    "tipo": "relacao_de_pontos",
+    "rotulo": "Pontos sorteáveis",
+    "titulo": "Anexo ao Edital TRF2-EDT-2019/00022 - Pontos da Prova Oral",
+    "url": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/17/edt-2019-00022-pontos-da-prova-oral.pdf",
+    "obs": ""
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Comunicado nº 13 (30/04/2019) - Datas de realização da prova oral do XVII Concurso para JFS 2ª Região",
+    "url": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/17/comunicado-13.pdf",
+    "obs": ""
+   }
+  ],
+  "tem": [
+   "relacao_de_pontos",
+   "edital_convocacao_oral"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "dpeac-2018-defensorpublicosubstituto",
+  "orgao": "DPE-AC",
+  "ano": 2018,
+  "cargo": "Defensor Público Substituto",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-AC (edital 2017; prova oral realizada em 2018)",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_AC_17_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Edital n. 7 - Informativo da prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_17_DEFENSOR/arquivos/ED_7_2017_DPE_AC_17___INFORMATIVO_DA_PROVA_ORAL.PDF",
+    "obs": "Documento oficial com regras, banca examinadora ou justificativas de avaliação da prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "ED_11_2017_DPE_AC_17___RES_FINAL_PROVA_ORAL_E_CONVOCA____O.PDF",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_17_DEFENSOR/arquivos/ED_11_2017_DPE_AC_17___RES_FINAL_PROVA_ORAL_E_CONVOCA____O.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n° 10 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_17_DEFENSOR/arquivos/ED_10_2017_DPE_AC_17___RES_PROV_PROVA_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n° 9 - Resultado final nas provas escritas específicas e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AC_17_DEFENSOR/arquivos/ED_9_2017_DPE_AC_17___RES_FINAL_DISC_E_CONV_PROVA_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios",
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "dpeal-2018-defensorpublico",
+  "orgao": "DPE-AL",
+  "ano": 2018,
+  "cargo": "Defensor Público",
+  "banca": "CEBRASPE",
+  "area": "Jurídica",
+  "subarea": "Defensoria Pública",
+  "concurso": "Concurso DPE-AL (edital 2017; prova oral realizada em fev/2018)",
+  "urlConcurso": "https://www.cebraspe.org.br/concursos/DPE_AL_17_DEFENSOR",
+  "materiais": [
+   {
+    "tipo": "edital_convocacao_oral",
+    "rotulo": "Edital de convocação",
+    "titulo": "Edital n° 8 - Retificação da convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AL_17_DEFENSOR/arquivos/EDITAL_08___CESPE.PDF",
+    "obs": "Edital/comunicado oficial de convocação, sorteio ou instruções para a prova oral. URL verificada (HTTP 200)."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital n° 7 - Resultado final nas provas discursivas e a convocação para a prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AL_17_DEFENSOR/arquivos/ED_7_2017_DPE_AL_17_DEFENSOR_RES_FINAL_PROVA_DISC_E_CONV_PROVA_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 10 - Resultado final na prova oral e convocações",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AL_17_DEFENSOR/arquivos/ED_10_2017_DPE_AL_17_DEFENSOR_RES_FINAL_ORAL_E_CONV_INSC_DEF_E_ENTREGA_DE_T__T.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   },
+   {
+    "tipo": "ata_resultado",
+    "rotulo": "Ata / resultado",
+    "titulo": "Edital nº 9 - Resultado provisório na prova oral",
+    "url": "https://cdn.cebraspe.org.br/concursos/DPE_AL_17_DEFENSOR/arquivos/ED_9_2017_DPE_AL_17_DEFENSOR_RES_PROV_ORAL.PDF",
+    "obs": "Edital oficial com resultado (provisório ou final) da prova oral. URL verificada (HTTP 200) no CDN oficial do CEBRASPE."
+   }
+  ],
+  "tem": [
+   "edital_convocacao_oral",
+   "ata_resultado"
+  ],
+  "ouro": false
+ },
+ {
+  "id": "cnj-2009-juizsubstitutotodososramos",
+  "orgao": "CNJ",
+  "ano": 2009,
+  "cargo": "Juiz Substituto (todos os ramos)",
+  "banca": "CNJ",
+  "area": "Jurídica",
+  "subarea": "Magistratura Estadual",
+  "concurso": "Resolução CNJ nº 75/2009 - normas gerais dos concursos da magistratura",
+  "urlConcurso": "https://atos.cnj.jus.br/atos/detalhar/100",
+  "materiais": [
+   {
+    "tipo": "regulamento_criterios",
+    "rotulo": "Critérios de avaliação",
+    "titulo": "Resolução CNJ nº 75, de 12/05/2009 (texto compilado) - arts. 63 a 66 disciplinam a prova oral",
+    "url": "https://atos.cnj.jus.br/atos/detalhar/100",
+    "obs": "Norma-matriz de todo o recorte. Art. 63: edital de convocação e sorteio de pontos; art. 64: sessão pública, vedado exame simultâneo; art. 65: programa específico divulgado até 5 dias antes, sorteio de ponto, ordem de arguição por sorteio, média aritmética das notas, envelope lacrado; art. 66: títulos após a oral. Situação: Alterado (Emenda 1; Res. 118/2010, 208/2015, 381/2021, 423/2021, 439/2022, 457/2022, 476/2022, 496/2023, 531/2023, 539/2023)."
+   }
+  ],
+  "tem": [
+   "regulamento_criterios"
+  ],
+  "ouro": false
+ }
+];

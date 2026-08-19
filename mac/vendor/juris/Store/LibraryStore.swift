@@ -362,7 +362,7 @@ final class LibraryStore {
             return entries.filter { favorites.contains($0.id) }
         case .anotacoes:
             return entries.filter { hasAnnotation($0.id) }
-        case .inicio, .indice, .novidades, .tjroHub, .checklist, .plano, .gradeInformativos, .julgadoDoDia, .provaOral, .simulado:
+        case .inicio, .indice, .novidades, .tjroHub, .checklist, .plano, .gradeInformativos, .julgadoDoDia, .provaOral, .oralBancas, .simulado:
             return []   // views dedicadas cuidam da navegação
         case .fonte(let f):
             return entries.filter { $0.fonteKind == f }
