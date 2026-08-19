@@ -57,6 +57,41 @@ for (const e of fonte.espelhos) {
   chaves.add(chave);
   const total = Math.round(e.quesitos.reduce((s, q) => s + (pontosDe(q.pontuacao) || 0), 0) * 100) / 100;
   const discs = [...new Set(e.quesitos.map((q) => q.disciplina).filter(Boolean))];
+  // Prova DISCURSIVA cujos quesitos são rotulados Q01, Q02… com disciplinas distintas não é
+  // uma peça só: são N QUESTÕES INDEPENDENTES. Tratá-las como um item único fazia a pessoa
+  // responder 10 questões numa caixa e tirar 1/10 da nota. Aqui cada questão vira um item,
+  // com o seu próprio espelho e a sua própria pontuação.
+  const rotQ = (q) => /^Q\s*\d+$/i.test(String(q.rotulo || '').trim());
+  const independentes = tipo === 'discursiva' && e.quesitos.length > 1 && e.quesitos.every(rotQ)
+    && new Set(e.quesitos.map((q) => q.disciplina || '')).size > 1;
+  if (independentes) {
+    e.quesitos.forEach((q, i) => {
+      const pts = pontosDe(q.pontuacao);
+      novos.push({
+        id: norm(e.tribunal).replace(/^(tj|trf)/, '$1-') + '-' + e.ano + '-q' + String(i + 1).padStart(2, '0'),
+        tipo: 'discursiva', peca: '',
+        carreira: /^trf/i.test(e.tribunal) ? 'Magistratura federal' : 'Magistratura estadual',
+        banca: e.banca || '', orgao: e.tribunal, cargo: e.cargo || 'Juiz Substituto', ano: e.ano,
+        fase: e.tipo + ' — questão ' + (i + 1) + ' de ' + e.quesitos.length,
+        disciplina: q.disciplina || '',
+        tema: q.tema || '',
+        enunciado: [
+          `${e.tribunal} · ${e.ano} · ${e.cargo || 'Juiz Substituto'}${e.banca ? ' — banca ' + e.banca : ''} · questão ${i + 1} de ${e.quesitos.length}.`,
+          q.disciplina ? `Disciplina: ${q.disciplina}.` : '',
+          q.tema ? `Tema: ${q.tema}.` : '',
+          e.url_prova ? `Enunciado na prova oficial: ${e.url_prova}` : 'A banca não publicou a prova em PDF autônomo.',
+          `Espelho oficial: ${e.url}`,
+          'Responda em até 15 linhas.',
+        ].filter(Boolean).join('\n'),
+        espelho: [{ quesito: [q.rotulo, q.tema].filter(Boolean).join(' — ') + (q.exigencia ? ': ' + q.exigencia : ''),
+                    pontos: pts, escala: q.pontuacao || '', disciplina: q.disciplina || '', dispositivos: q.dispositivos || [] }],
+        total: pts, instrucoes: e.instrucoes_gerais || [],
+        fonte: e.url, fonte_espelho: e.url, fonte_prova: e.url_prova || '', fonte_concurso: e.url_concurso || '',
+        nota: e.nota || '',
+      });
+    });
+    continue;
+  }
   const n = String(novos.filter((x) => x.orgao === e.tribunal && x.ano === e.ano).length + 1);
   novos.push({
     id: norm(e.tribunal).replace(/^(tj|trf)/, '$1-') + '-' + e.ano + '-esp' + n,

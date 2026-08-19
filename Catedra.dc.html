@@ -1952,7 +1952,12 @@ window.ctPdfLib = (function(){
                 <select value="{{ bancoDisc }}" onchange="{{ setBancoDisc }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
                   <sc-for list="{{ bancoDiscOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
                 </select>
+                <select value="{{ bancoBanca }}" onchange="{{ setBancoBanca }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                  <sc-for list="{{ bancoBancaOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+                </select>
+                <button onclick="{{ toggleBancoSoEsp }}" style="border:3px solid var(--ink);background:var(--surface2);border-radius:0;padding:10px 14px;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);cursor:pointer;font-family:inherit;">Só com espelho</button>
               </div>
+              <div style="font-family:var(--mono);font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin:-6px 0 14px;">{{ bancoTotal }} provas encontradas · mostrando {{ bancoMostrando }}</div>
               <sc-if value="{{ bancoCarregando }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:12.5px;color:var(--text3);padding:10px 0;">Carregando o banco…</div>
               </sc-if>
@@ -4344,7 +4349,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoTipo:'', discCarregado:false, discErro:false,
+      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'',
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
@@ -6414,6 +6419,8 @@ class Component extends DCLogic {
   onBancoBusca = (e)=> this.setState({bancoQ:e.currentTarget.value});
   setBancoDisc = (e)=> this.setState({bancoDisc:e.currentTarget.value});
   setBancoCarr = (e)=> this.setState({bancoCarr:e.currentTarget.value});
+  setBancoBanca = (e)=> this.setState({bancoBanca:e.currentTarget.value});
+  toggleBancoSoEsp = ()=> this.setState({bancoSoEsp:!this.state.bancoSoEsp});
   setBancoTipo = (e)=> this.setState({bancoTipo:e.currentTarget.value});
   // Levar a questão para o compositor: enunciado no ①, espelho no ③. O espelho vira
   // texto com o peso de cada quesito, que é o que o raio-X já sabe ler.
@@ -6439,7 +6446,7 @@ class Component extends DCLogic {
       redGabarito: esp.length ? ('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')+instr) : '',
       // Treino pelo espelho: o espelho fica ESCONDIDO até a pessoa entregar. Saber que
       // existe um quesito de preclusão já entrega a resposta.
-      redEspelhoOculto: esp.length>0,
+      redEspelhoOculto: esp.length>0,   // só esconde quando o espelho já está transcrito
       // Prova cadastrada: a pessoa só RESPONDE — enunciado e espelho são os oficiais e não se editam.
       redModoProva: true,
       redText:'', redResult:null, bancoOpen:false
@@ -6447,7 +6454,9 @@ class Component extends DCLogic {
     try{ localStorage.setItem('catedra:redEnunciado',JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
       localStorage.setItem('catedra:redGabarito',JSON.stringify(esp.length?('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')+instr):''));
       localStorage.setItem('catedra:redText',JSON.stringify('')); }catch(_){}
-    this._toast(esp.length ? 'Questão carregada — o espelho fica oculto até você entregar' : 'Questão carregada — esta banca não publicou espelho');
+    this._toast(esp.length ? 'Questão carregada — o espelho fica oculto até você entregar'
+      : (q.fonte_espelho ? 'Questão carregada — o espelho está em PDF; abra o link no enunciado e cole os quesitos em ③'
+                         : 'Questão carregada — esta banca não publicou espelho'));
   };
 
   onRedEnun = (e)=> this.setState({redEnunciado:e.currentTarget.value, redResult:null});
@@ -6484,31 +6493,170 @@ class Component extends DCLogic {
     const _en=(enun||'').trim().slice(0,3000);
     const prompt='Você é corretor de provas discursivas de concursos públicos no Brasil e vai produzir um RAIO-X detalhado da resposta. Considere o ENUNCIADO da questão, o GABARITO/ESPELHO oficial e a RESPOSTA DO CANDIDATO. REGRAS QUANDO O GABARITO FOR UM ESPELHO POR QUESITO (linhas numeradas com pontuação ou [escala: …]): corrija QUESITO A QUESITO, na ordem da banca; a nota de cada quesito fica DENTRO da escala informada (escala 0,00/0,10/0,20/0,30 não admite 0,15); fundamento exigido pelo espelho e não citado na resposta não pontua; respeite as "Instruções gerais da banca" (desconto por forma, item residual). No campo "topicos" cada item é UM QUESITO, com "comentario" no formato "Nota X de Y — o que faltou para o valor cheio, com o dispositivo". Em "geral": soma obtida/total, e depois, nesta ordem e sem elogio de abertura: o que faltou (quesitos zerados, por peso), o que está errado, o que custaria ponto fora do espelho (português, estrutura, extensão), e os 3 pontos prioritários para a próxima peça. Compare a resposta com o gabarito e atribua uma nota realista de 0 a 10 conforme o quanto a resposta cobre e adere ao gabarito. Avalie quatro critérios (0-10): "Cobertura do gabarito", "Aderência aos pontos esperados", "Estrutura e coesão", "Norma culta e clareza". Extraia do gabarito de 4 a 8 PONTOS ESPERADOS (o que a resposta deveria conter) e, para cada um, marque o status conforme a resposta do candidato: "coberto", "parcial" ou "faltou", com um comentário curto. Devolva SOMENTE um JSON válido: {"nota":<0-10 com 1 casa>,"cobertura":<inteiro 0-100>,"conceito":"<Excelente|Bom|Regular|Insuficiente>","criterios":[{"nome":"...","nota":<0-10>,"comentario":"<uma frase>"}],"topicos":[{"ponto":"<ponto do gabarito>","status":"coberto|parcial|faltou","comentario":"<curto>"}],"fortes":["pontos do gabarito que o candidato contemplou"],"melhorar":["pontos do gabarito que faltaram ou divergiram"],"geral":"<2 a 3 frases>"} com exatamente 4 critérios; topicos: um por quesito do espelho quando houver espelho (até 40), senão de 4 a 8. Tema: "'+tema+'".'+(_en?('\nENUNCIADO:\n"""\n'+_en+'\n"""'):'')+'\nGABARITO/ESPELHO:\n"""\n'+g+'\n"""\nRESPOSTA DO CANDIDATO:\n"""\n'+text+'\n"""';
     try{ if(window.claude && window.claude.complete){ const r=await window.claude.complete(prompt); const j=this._parseJSON(r); if(j && j.criterios) return this._normRed(j); } }catch(e){}
-    return this._redFallbackLivre(text, gabarito);
+    return this._redFallbackLivre(text, gabarito, _en);
   }
-  _redFallbackLivre(text, gabarito){
-    const stop=new Set(['para','como','que','com','dos','das','uma','por','não','nos','nas','sua','seu','pela','pelo','este','esta','isso','sobre','entre','também','quando','ainda','mais','será','está','são','foi','ser','aos','ndash']);
-    const terms=(s)=> (String(s).toLowerCase().match(/[a-zà-ú]{5,}/gi)||[]).filter(w=>!stop.has(w));
-    const gT=terms(gabarito); const gSet={}; gT.forEach(w=>gSet[w]=(gSet[w]||0)+1);
-    const key=Object.keys(gSet).sort((a,b)=>gSet[b]-gSet[a]).slice(0,18);
-    const eSet=new Set(terms(text));
-    const hit=key.filter(w=>eSet.has(w)); const miss=key.filter(w=>!eSet.has(w));
-    const cov=key.length? Math.round(hit.length/key.length*100):0;
-    const words=(text.match(/\S+/g)||[]).length; const paras=text.split(/\n\s*\n/).filter(p=>p.trim()).length||1;
-    const cl=(x)=>Math.max(2,Math.min(10,Math.round(x)));
-    const c1=cl(cov/10), c2=cl(cov/10-(miss.length>6?1:0)), c3=cl(3+(paras>=3?4:paras*1.3)), c4=cl(7+(words>200?1:0));
-    const crit=[
-      {nome:'Cobertura do gabarito', nota:c1, max:10, pct:c1*10, comentario:'Você contemplou ~'+cov+'% dos pontos-chave do gabarito.'},
-      {nome:'Aderência aos pontos esperados', nota:c2, max:10, pct:c2*10, comentario:miss.length?('Faltaram pontos como: '+miss.slice(0,4).join(', ')+'.'):'Boa aderência ao esperado.'},
-      {nome:'Estrutura e coesão', nota:c3, max:10, pct:c3*10, comentario:paras>=3?'Introdução, desenvolvimento e conclusão presentes.':'Organize em introdução, desenvolvimento e conclusão.'},
-      {nome:'Norma culta e clareza', nota:c4, max:10, pct:c4*10, comentario:'Revise concordância, regência e pontuação.'}
+  // ---------------------------------------------------------------------------
+  // CORRETOR LOCAL (sem IA). Deixou de ser "cobertura de palavras" e passou a corrigir
+  // como uma banca corrige, com o que dá para verificar sem modelo de linguagem:
+  //   1. QUESITO A QUESITO quando o espelho é ponto a ponto — cada quesito recebe nota
+  //      DENTRO da escala que a banca publicou (0,00/0,10/0,20/0,30 não admite 0,15);
+  //   2. AUDITORIA DE FUNDAMENTOS — artigo, súmula e tema que o espelho exige e a resposta
+  //      não citou, e o que a resposta citou fora do espelho (para conferir antes da prova);
+  //   3. ESTRUTURA — introdução, desenvolvimento, conclusão;
+  //   4. EXTENSÃO — contra o limite de linhas que o enunciado impõe;
+  //   5. LINGUAGEM — 1ª pessoa, opinião pessoal, período quilométrico.
+  // Isso não substitui a IA (que lê sentido); é o piso confiável quando ela não está.
+  _redTermos(t){
+    const stop=new Set(['para','como','que','com','dos','das','uma','por','não','nos','nas','sua','seu','pela','pelo',
+      'este','esta','isso','sobre','entre','também','quando','ainda','mais','será','está','são','foi','ser','aos',
+      'seja','pode','deve','caso','sendo','quanto','ante','sob','após','nesse','nessa','qual','quais','deverá','haver']);
+    return (String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').match(/[a-z]{5,}/g)||[]).filter(w=>!stop.has(w));
+  }
+  // Artigos, súmulas e temas citados num texto — o que a banca confere primeiro.
+  _redFundamentos(t){
+    const re=/\b(?:arts?\.?\s*\d+[\dºª°\-A-Za-z]*(?:\s*,?\s*(?:§\s*\d+[ºª°]?|par[áa]grafo\s+[úu]nico|inc(?:iso)?\.?\s*[IVXLC]+|[IVXLC]{1,5})\b)*|s[úu]mula(?:\s+vinculante)?\s+n?[ºo.]?\s*\d+|tema\s+n?[ºo.]?\s*[\d.]+)/gi;
+    const out=[],vis=new Set();
+    for(const m of String(t).matchAll(re)){
+      const k=m[0].toLowerCase().replace(/[^a-z0-9§]/g,'');
+      if(!vis.has(k)){ vis.add(k); out.push(m[0].replace(/\s+/g,' ').trim()); }
+    }
+    return out;
+  }
+  _redLimiteLinhas(enun){ const m=/(?:at[ée]|m[áa]ximo de|no m[áa]ximo)\s+(\d{1,3})\s+linhas/i.exec(enun||''); return m?+m[1]:null; }
+  // Quesitos do espelho colado: linhas "1. …" com pontuação e, quando houver, [escala: …]
+  _redQuesitos(gab){
+    const linhas=String(gab||'').split('\n');
+    const out=[];
+    for(const l of linhas){
+      const m=/^\s*(\d{1,2})[.)]\s+(.{15,})$/.exec(l);
+      if(!m) continue;
+      const txt=m[2];
+      const esc=/\[escala:\s*([^\]]+)\]/i.exec(txt);
+      const pts=/\((\d+(?:[.,]\d+)?)\s*ponto/i.exec(txt) || /\bat[ée]\s+(\d+[.,]\d+)/i.exec(txt) || /(\d+[.,]\d+)/.exec(esc?esc[1]:'');
+      const escala=esc?esc[1].split('/').map(x=>parseFloat(String(x).replace(',','.'))).filter(n=>!isNaN(n)).sort((a,b)=>a-b):null;
+      out.push({ n:+m[1], texto:txt.replace(/\[escala:[^\]]+\]/i,'').trim(),
+        max: escala&&escala.length ? escala[escala.length-1] : (pts?parseFloat(String(pts[1]).replace(',','.')):null),
+        escala });
+    }
+    return out;
+  }
+  // Nota que RESPEITA a escala da banca: aproxima o valor proporcional ao degrau permitido.
+  _redNaEscala(prop, q){
+    if(q.escala&&q.escala.length){
+      const alvo=prop*q.escala[q.escala.length-1];
+      return q.escala.reduce((a,b)=>Math.abs(b-alvo)<Math.abs(a-alvo)?b:a);
+    }
+    const max=q.max!=null?q.max:1;
+    return Math.round(prop*max*100)/100;
+  }
+  _redFallbackLivre(text, gabarito, enunciado){
+    const enun=enunciado||this.state.redEnunciado||'';
+    const palavras=(text.match(/\S+/g)||[]).length;
+    const paras=text.split(/\n\s*\n/).filter(p=>p.trim()).length||1;
+    const linhasEstim=Math.ceil(palavras/11);          // ~11 palavras por linha manuscrita
+    const eSet=new Set(this._redTermos(text));
+    const bate=(termos)=>{ const t=[...new Set(termos)]; if(!t.length) return 0; return t.filter(w=>eSet.has(w)).length/t.length; };
+
+    const quesitos=this._redQuesitos(gabarito);
+    const topicos=[]; let notaFinal=null, somaObtida=0, somaTotal=0;
+
+    if(quesitos.length){
+      // ---- correção QUESITO A QUESITO, na escala da banca
+      for(const q of quesitos){
+        const prop=bate(this._redTermos(q.texto));
+        const fundQ=this._redFundamentos(q.texto);
+        const fundOk=fundQ.filter(f=>{ const k=f.toLowerCase().replace(/[^a-z0-9]/g,''); return this._redFundamentos(text).some(g=>{const h=g.toLowerCase().replace(/[^a-z0-9]/g,''); return h===k||h.startsWith(k)||k.startsWith(h);}); });
+        // fundamento exigido e não citado derruba o quesito: é assim que o espelho pune
+        const penal = fundQ.length ? (fundOk.length/fundQ.length) : 1;
+        const prop2 = prop*0.65 + penal*0.35;
+        const nota=this._redNaEscala(prop2, q);
+        const max=q.max!=null?q.max:1;
+        somaObtida+=nota; somaTotal+=max;
+        const status = prop2>=0.7?'coberto' : prop2>=0.35?'parcial':'faltou';
+        const falta = fundQ.filter(f=>!fundOk.includes(f));
+        topicos.push({ ponto:'Quesito '+q.n+' — '+q.texto.slice(0,150)+(q.texto.length>150?'…':''), status,
+          comentario:'Nota '+nota.toFixed(2).replace('.',',')+' de '+String(max).replace('.',',')
+            +(q.escala?' (escala '+q.escala.map(x=>x.toFixed(2).replace('.',',')).join('/')+')':'')
+            +(falta.length?' — não citou: '+falta.join('; ')+'.':(status==='coberto'?' — ponto contemplado.':' — desenvolva mais este ponto.')) });
+      }
+      notaFinal = somaTotal ? Math.round((somaObtida/somaTotal)*10*10)/10 : 0;
+    }
+
+    // ---- auditoria de fundamentos (global)
+    const fundGab=this._redFundamentos(gabarito), fundResp=this._redFundamentos(text);
+    const norm=(x)=>x.toLowerCase().replace(/[^a-z0-9§]/g,'');
+    const setResp=new Set(fundResp.map(norm));
+    const citados=fundGab.filter(f=>setResp.has(norm(f)));
+    const ausentes=fundGab.filter(f=>!setResp.has(norm(f)));
+    const extras=fundResp.filter(f=>!fundGab.map(norm).includes(norm(f)));
+
+    // ---- cobertura global (usada quando não há quesitos)
+    const gT=this._redTermos(gabarito);
+    const freq={}; gT.forEach(w=>freq[w]=(freq[w]||0)+1);
+    const chave=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]).slice(0,22);
+    const hit=chave.filter(w=>eSet.has(w)), miss=chave.filter(w=>!eSet.has(w));
+    const cov=chave.length?Math.round(hit.length/chave.length*100):0;
+
+    // ---- estrutura, extensão, linguagem
+    const temConclusao=/\b(portanto|conclui-se|dessa forma|diante do exposto|assim,|por conseguinte|ante o exposto)\b/i.test(text);
+    const limite=this._redLimiteLinhas(enun);
+    const estourou = limite && linhasEstim > limite;
+    const curtoDemais = limite && linhasEstim < Math.max(3, limite*0.5);
+    const primeiraPessoa=/\b(eu acho|na minha opini|penso que|acredito que|a meu ver)\b/i.test(text);
+    const periodoLongo=(text.split(/[.!?]/).filter(f=>f.trim()).some(f=>(f.match(/\S+/g)||[]).length>70));
+
+    const cl=(x)=>Math.max(0,Math.min(10,Math.round(x*10)/10));
+    const nConteudo = notaFinal!=null ? notaFinal : cl(cov/10);
+    const nFund = fundGab.length ? cl(citados.length/fundGab.length*10) : cl(fundResp.length?8:5);
+    const nEstrut = cl((paras>=3?7:paras*2.4) + (temConclusao?3:0));
+    const nForma = cl(10 - (estourou?3:0) - (curtoDemais?3:0) - (primeiraPessoa?2:0) - (periodoLongo?1:0));
+
+    const criterios=[
+      {nome: quesitos.length?'Quesitos do espelho':'Cobertura do gabarito', nota:nConteudo, max:10, pct:nConteudo*10,
+       comentario: quesitos.length ? ('Soma '+somaObtida.toFixed(2).replace('.',',')+' de '+somaTotal.toFixed(2).replace('.',',')+' nos '+quesitos.length+' quesitos.')
+                                   : ('Você contemplou ~'+cov+'% dos pontos-chave do gabarito.')},
+      {nome:'Fundamentação legal', nota:nFund, max:10, pct:nFund*10,
+       comentario: fundGab.length ? (citados.length+' de '+fundGab.length+' fundamentos exigidos foram citados'+(ausentes.length?'; faltaram '+ausentes.slice(0,4).join(', '):'')+'.')
+                                  : ('O espelho não lista dispositivos; a resposta citou '+fundResp.length+'.')},
+      {nome:'Estrutura e coesão', nota:nEstrut, max:10, pct:nEstrut*10,
+       comentario:(paras>=3?'Texto organizado em '+paras+' parágrafos':'Apenas '+paras+' parágrafo(s) — separe introdução, desenvolvimento e conclusão')+(temConclusao?', com fecho conclusivo.':'; falta um fecho conclusivo.')},
+      {nome:'Forma e extensão', nota:nForma, max:10, pct:nForma*10,
+       comentario:(limite?('~'+linhasEstim+' linhas para um limite de '+limite+(estourou?' — extrapolou, e banca desconta':curtoDemais?' — muito curto para o valor da questão':' — dentro do limite')):('~'+linhasEstim+' linhas, '+palavras+' palavras'))
+         +(primeiraPessoa?' Evite primeira pessoa e opinião pessoal.':'')+(periodoLongo?' Há período longo demais — quebre em frases.':'')}
     ];
-    const nota=Math.round((c1*0.45+c2*0.30+c3*0.15+c4*0.10)*10)/10;
-    const topicos=key.slice(0,8).map(w=>{ const ok=eSet.has(w); return {ponto:'Abordar o ponto: “'+w+'”', status:ok?'coberto':'faltou', comentario:ok?'Termo-chave presente na sua resposta.':'Termo-chave do gabarito ausente.'}; });
-    return {nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'#0f9d6b':nota>=6?'#c2790c':'#c0392f', conceito:this._redConceito(nota), cobertura:cov, topicos, criterios:crit,
-      fortes: hit.length? hit.slice(0,4).map(w=>'Abordou: '+w) : ['Estruture a resposta cobrindo os termos centrais do gabarito.'],
-      melhorar: miss.length? miss.slice(0,4).map(w=>'Faltou tratar: '+w) : ['Cobertura ampla — refine a profundidade dos argumentos.'],
-      geral:'Comparação local com o gabarito: cobertura de ~'+cov+'% dos pontos-chave. Conecte um modelo de IA para uma análise qualitativa mais detalhada.', aiUsed:false};
+    const nota = Math.round((nConteudo*0.5 + nFund*0.25 + nEstrut*0.15 + nForma*0.10)*10)/10;
+
+    if(!quesitos.length){
+      chave.slice(0,8).forEach(w=>topicos.push({ponto:'Ponto do gabarito: “'+w+'”', status:eSet.has(w)?'coberto':'faltou',
+        comentario:eSet.has(w)?'Termo-chave presente na resposta.':'Termo-chave do gabarito ausente.'}));
+    }
+
+    const fortes=[];
+    if(citados.length) fortes.push('Citou os fundamentos: '+citados.slice(0,5).join('; '));
+    if(quesitos.length) fortes.push('Quesitos contemplados: '+topicos.filter(t=>t.status==='coberto').length+' de '+quesitos.length);
+    if(temConclusao) fortes.push('Fechou com conclusão explícita');
+    if(hit.length&&!fortes.length) fortes.push('Abordou: '+hit.slice(0,4).join(', '));
+    if(!fortes.length) fortes.push('Estruture a resposta cobrindo os pontos centrais do espelho.');
+
+    const melhorar=[];
+    if(ausentes.length) melhorar.push('Fundamento exigido e não citado: '+ausentes.slice(0,5).join('; '));
+    topicos.filter(t=>t.status==='faltou').slice(0,4).forEach(t=>melhorar.push('Quesito em branco ou raso: '+t.ponto.replace(/^Quesito \d+ — /,'')));
+    if(estourou) melhorar.push('Reduza para caber no limite de '+limite+' linhas.');
+    if(curtoDemais) melhorar.push('Desenvolva: o limite é '+limite+' linhas e você usou ~'+linhasEstim+'.');
+    if(primeiraPessoa) melhorar.push('Troque a primeira pessoa pela impessoalidade da peça técnica.');
+    if(extras.length) melhorar.push('Citou fora do espelho — confira antes da prova: '+extras.slice(0,4).join('; '));
+    if(!melhorar.length) melhorar.push('Refine a profundidade dos argumentos e a precisão das citações.');
+
+    const geral = (quesitos.length
+        ? 'Soma '+somaObtida.toFixed(2).replace('.',',')+' de '+somaTotal.toFixed(2).replace('.',',')+' ('+nota.toFixed(1).replace('.',',')+'/10). '
+        : 'Correção local por comparação com o gabarito: ~'+cov+'% dos pontos-chave. ')
+      + (ausentes.length? 'O que faltou: '+ausentes.slice(0,3).join('; ')+'. ' : 'Fundamentos do espelho contemplados. ')
+      + (estourou||curtoDemais||primeiraPessoa? 'Fora do espelho, custa ponto: '+[estourou?'extensão acima do limite':'',curtoDemais?'texto curto demais':'',primeiraPessoa?'primeira pessoa':''].filter(Boolean).join(', ')+'. ':'')
+      + 'Prioridades: '+melhorar.slice(0,3).map((m,i)=>(i+1)+') '+m).join(' ');
+
+    return {nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'#0f9d6b':nota>=6?'#c2790c':'#c0392f',
+      conceito:this._redConceito(nota), cobertura: quesitos.length? Math.round((somaObtida/(somaTotal||1))*100) : cov,
+      topicos, criterios, fortes, melhorar, geral, aiUsed:false};
   }
   _parseJSON(s){ try{ const a=s.indexOf('{'), b=s.lastIndexOf('}'); if(a<0||b<0) return null; return JSON.parse(s.slice(a,b+1)); }catch(e){ return null; } }
   _redConceito(n){ return n>=8?'Excelente':n>=6.5?'Bom':n>=5?'Regular':'Insuficiente'; }
@@ -7777,18 +7925,26 @@ class Component extends DCLogic {
     const _bancoDiscs=[...new Set(_bancoTodas.map(q=>q.disciplina).filter(Boolean))].sort();
     const _bq=(this.state.bancoQ||'').trim().toLowerCase();
     const _bancoCarreiras=[...new Set(_bancoTodas.map(q=>q.carreira).filter(Boolean))].sort();
-    const _bancoLista=_bancoTodas.filter(q=>{
+    const _bancoBancas=[...new Set(_bancoTodas.map(q=>q.banca).filter(Boolean))].sort();
+    const _bancoFiltradas=_bancoTodas.filter(q=>{
       if(this.state.bancoDisc && q.disciplina!==this.state.bancoDisc) return false;
       if(this.state.bancoCarr && q.carreira!==this.state.bancoCarr) return false;
+      if(this.state.bancoBanca && q.banca!==this.state.bancoBanca) return false;
       if(this.state.bancoTipo && (q.tipo||'discursiva')!==this.state.bancoTipo) return false;
+      // "só com espelho": quesito a quesito OU link do PDF oficial — nos dois casos há
+      // critério de correção; sem nenhum dos dois a prova serve só para treinar redação.
+      if(this.state.bancoSoEsp && !((q.espelho&&q.espelho.length) || q.fonte_espelho)) return false;
       if(!_bq) return true;
-      return ((q.tema||'')+' '+(q.enunciado||'')+' '+(q.orgao||'')+' '+(q.banca||'')+' '+(q.ano||'')).toLowerCase().includes(_bq);
-    }).map(q=>({ id:q.id, tema:q.tema||q.disciplina||'Questão', disciplina:q.disciplina||'',
-      ehPeca:(q.tipo==='peca'), tipoLabel:(q.tipo==='peca'?(q.peca||'Peça'):'Discursiva'),
+      return ((q.tema||'')+' '+(q.enunciado||'')+' '+(q.orgao||'')+' '+(q.banca||'')+' '+(q.ano||'')+' '+(q.cargo||'')+' '+(q.carreira||'')).toLowerCase().includes(_bq);
+    });
+    const _bancoTotal=_bancoFiltradas.length;
+    const _bancoLista=_bancoFiltradas.slice(0,180).map(q=>({ id:q.id, tema:q.tema||q.disciplina||'Questão', disciplina:q.disciplina||'',
+      ehPeca:(q.tipo==='peca'||q.tipo==='sentenca'), tipoLabel:(q.tipo==='peca'?(q.peca||'Peça'):q.tipo==='sentenca'?'Sentença/peça':'Discursiva'),
       carreira:q.carreira||'',
-      rotulo:[q.orgao,q.ano].filter(Boolean).join(' · ')+(q.banca?(' · '+q.banca):''),
-      temEspelho:!!(q.espelho&&q.espelho.length),
-      selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):'')):'sem espelho publicado',
+      rotulo:[q.orgao,q.ano].filter(Boolean).join(' · ')+(q.banca?(' · '+q.banca):'')+(q.cargo?(' · '+q.cargo):''),
+      temEspelho:!!((q.espelho&&q.espelho.length)||q.fonte_espelho),
+      selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):''))
+           :(q.fonte_espelho?'espelho oficial em PDF':'sem espelho publicado'),
       resumo:String(q.enunciado||'').slice(0,190)+(String(q.enunciado||'').length>190?'…':''),
       fonte:q.fonte||'' }));
     const DIR = this.THEMES()[this.state.dir] || this.THEMES().sutil;
@@ -10030,6 +10186,8 @@ class Component extends DCLogic {
       usarDiscursiva:this.usarDiscursiva, bancoLista:_bancoLista,
       bancoDiscOpts:[{v:'',label:'Todas as disciplinas',sel:!this.state.bancoDisc}].concat(_bancoDiscs.map(d=>({v:d,label:d,sel:d===this.state.bancoDisc}))),
       bancoCarrOpts:[{v:'',label:'Todas as carreiras',sel:!this.state.bancoCarr}].concat(_bancoCarreiras.map(c=>({v:c,label:c,sel:c===this.state.bancoCarr}))),
+      bancoBancaOpts:[{v:'',label:'Todas as bancas',sel:!this.state.bancoBanca}].concat(_bancoBancas.map(b=>({v:b,label:b,sel:this.state.bancoBanca===b}))),
+      bancoTotal:_bancoTotal, bancoMostrando:_bancoLista.length, bancoSoEsp:this.state.bancoSoEsp,
       bancoTipoOpts:[{v:'',label:'Peças e discursivas',sel:!this.state.bancoTipo},
                      {v:'peca',label:'Só peças',sel:this.state.bancoTipo==='peca'},
                      {v:'discursiva',label:'Só discursivas',sel:this.state.bancoTipo==='discursiva'},

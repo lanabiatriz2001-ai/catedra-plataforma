@@ -224,3 +224,37 @@ for (const k of Object.keys(quem)) {
 }
 writeFileSync(join(ROOT, 'incidencia-verbetes.json'), JSON.stringify({ meta: META, diplomas: porArtigo }));
 console.log(`✓ incidencia-verbetes.json — ${pares.toLocaleString('pt-BR')} pares artigo→verbete (até 40 por artigo)`);
+
+// Produto 3: INCIDÊNCIA EM PROVA (2ª fase) — dos espelhos oficiais do banco de discursivas
+// (discursivas.js): para cada dispositivo que a banca EXIGIU num quesito, em que prova
+// (carreira, tribunal/órgão, banca, ano). É pequeno e verificável: cada contagem aponta
+// para uma prova real com link. Não é estatística de questões objetivas — isso não temos
+// (e não copiamos de serviço pago).
+carrega('discursivas.js');
+const DISC = globalThis.window.CT_DISCURSIVAS || [];
+const provas = {};   // k -> { nome, artigos: { art -> { total, carreiras:{c:n}, orgaos:{o:n}, provas:[{id,orgao,ano,carreira}] } } }
+let citProva = 0;
+for (const q of DISC) {
+  const carreira = q.carreira || 'Magistratura';
+  for (const e of (q.espelho || [])) {
+    for (const disp of (e.dispositivos || [])) {
+      // "Lei 8.112/1990 art. 98, par. 2o e 3o" / "CPC art. 55" / "CF art. 37" → diploma + artigos
+      const d = DIPLOMAS.find((x) => x.re.test(disp)); if (!d) continue;
+      const arts = [...String(disp).matchAll(/\bart(?:igo)?s?\.?\s*([\d][\d.]{0,5})\s*[º°ª]?\s*(?:-\s*([A-Z]))?/gi)]
+        .map((m) => m[1].replace(/\.$/, '').replace(/\./g, '') + (m[2] ? '-' + m[2] : ''));
+      for (const art of new Set(arts)) {
+        const P = (provas[d.k] = provas[d.k] || { nome: d.nome, artigos: {} });
+        const A = (P.artigos[art] = P.artigos[art] || { total: 0, carreiras: {}, orgaos: {}, provas: [] });
+        A.total++; citProva++;
+        A.carreiras[carreira] = (A.carreiras[carreira] || 0) + 1;
+        A.orgaos[q.orgao] = (A.orgaos[q.orgao] || 0) + 1;
+        if (!A.provas.some((p) => p.id === q.id)) A.provas.push({ id: q.id, orgao: q.orgao, ano: q.ano, carreira, banca: q.banca || '' });
+      }
+    }
+  }
+}
+const J = JSON.parse(readFileSync(join(ROOT, 'incidencia.json'), 'utf8'));
+J.provas = provas;
+J.meta.provas = { citacoes: citProva, diplomas: Object.keys(provas).length, fontes: DISC.length };
+writeFileSync(join(ROOT, 'incidencia.json'), JSON.stringify(J));
+console.log(`✓ incidência em PROVA (2ª fase): ${citProva} exigências de dispositivo em ${Object.keys(provas).length} diplomas, de ${DISC.length} provas oficiais`);

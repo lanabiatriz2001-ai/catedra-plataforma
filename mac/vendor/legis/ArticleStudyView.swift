@@ -618,14 +618,11 @@ private struct UnitFocusView: View {
                     .padding(.top, cleanReading ? 16 : -30)
                     .padding(.bottom, 18)
                 }
-                .frame(maxWidth: hasComments ? 1040 : 820)
                 .frame(maxWidth: .infinity)
             }
         }
-        // Coluna de leitura centralizada com largura confortável — em vez do
-        // texto de ponta a ponta (linhas larguíssimas num monitor grande).
-        // Alarga quando há comentários para abrir espaço à margem sem espremer o texto.
-        .frame(maxWidth: hasComments ? 1080 : 856)
+        // Largura TOTAL da página em todas as leis (pedido da Lana) — a coluna centralizada
+        // de ~850pt deixava dois terços da tela vazios no Mac e no iPad deitado.
         .frame(maxWidth: .infinity)
         .padding(.horizontal, AppTheme.pageInset)
         .background(AppTheme.pageBackdrop(accent))
@@ -1312,7 +1309,6 @@ private struct UnitFocusView: View {
                     laFasePegadinhas
                     laFaseProximo
                 }
-                .frame(maxWidth: 860)
                 .frame(maxWidth: .infinity)
                 .padding(24)
             }
