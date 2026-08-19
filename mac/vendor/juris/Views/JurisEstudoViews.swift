@@ -1,0 +1,679 @@
+import SwiftUI
+
+// =====================================================================================
+//  CátedraJURIS — telas de ESTUDO que antes só existiam na versão web:
+//    · Grade de informativos (uma edição por quadradinho, verde/âmbar/cinza)
+//    · Julgado do dia (sorteio com semente na data — o mesmo dia devolve o mesmo)
+//    · Roteiro de estudo do verbete (Em uma frase · Fundamento · Como era · O que decidiu
+//      · Pontos que a prova cobra · Pegadinha · quiz) — gerado pela IA DO APP
+//    · Prova oral (a IA pergunta, você responde, ela corrige contra o enunciado)
+//
+//  A IA vem de CatedraIA (o host instala o provedor: mesmo /api/complete do Cátedra,
+//  autenticado pela sessão). Sem host, a tela diz isso em vez de pedir chave.
+//
+//  Cores: fundo/texto/acento seguem o tema do Cátedra (ThemeState); a cor de cada
+//  fonte é a do TRIBUNAL (Palette.fonte*). Nada de hex solto aqui.
+// =====================================================================================
+
+// MARK: - Roteiro de estudo (modelo + cache)
+
+/// O que a IA devolve para um verbete. Todos os campos opcionais: a IA pode não ter
+/// "como era" para um verbete que não mudou nada, e isso é resposta legítima.
+struct RoteiroEstudo: Codable, Hashable {
+    var nivel: Int?
+    var segundaFase: Bool?
+    var frase: String?
+    var fundamento: String?
+    var comoEra: String?
+    var decidiu: String?
+    var chave: [String]?
+    var jurisprudencia: [String]?
+    var atencao: String?
+    var hoje: String?
+    var pegadinha: String?
+    var quiz: [QuestaoQuiz]?
+    var geradoEm: Date?
+
+    struct QuestaoQuiz: Codable, Hashable, Identifiable {
+        var id: String { en }
+        var en: String
+        var alts: [String]
+        var ok: Int
+        var fb: String?
+        var fcF: String?
+        var fcV: String?
+    }
+}
+
+/// Cache dos roteiros por id de verbete. Vive em Application Support ao lado dos dados
+/// do módulo. NÃO sobe para a nuvem do Cátedra de propósito: texto de IA de centenas de
+/// verbetes engordaria o sync sem necessidade — e é regerável.
+@MainActor
+enum RoteiroCache {
+    private static var mem: [String: RoteiroEstudo] = [:]
+    private static var carregado = false
+
+    private static var url: URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("VadeMecumJuris", isDirectory: true)
+        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+        return base.appendingPathComponent("roteiros-estudo.json")
+    }
+    private static func carregar() {
+        guard !carregado else { return }
+        carregado = true
+        if let d = try? Data(contentsOf: url),
+           let m = try? JSONDecoder().decode([String: RoteiroEstudo].self, from: d) { mem = m }
+    }
+    static func get(_ id: String) -> RoteiroEstudo? { carregar(); return mem[id] }
+    static func set(_ id: String, _ r: RoteiroEstudo?) {
+        carregar()
+        if let r { mem[id] = r } else { mem.removeValue(forKey: id) }
+        // teto: 400 mais recentes
+        if mem.count > 400 {
+            let ordem = mem.sorted { ($0.value.geradoEm ?? .distantPast) < ($1.value.geradoEm ?? .distantPast) }
+            for (k, _) in ordem.prefix(mem.count - 400) { mem.removeValue(forKey: k) }
+        }
+        if let d = try? JSONEncoder().encode(mem) { try? d.write(to: url, options: .atomic) }
+    }
+}
+
+enum PromptsEstudo {
+    static func roteiro(_ e: JurisEntry) -> String {
+        var s = "Você prepara material de estudo para concursos jurídicos brasileiros de alto nível (magistratura, MP, procuradorias). Abaixo vai um verbete OFICIAL do acervo.\n\n"
+        s += "TRIBUNAL: \(e.tribunal)\nCOLEÇÃO: \(e.fonteKind.nome)"
+        if let n = e.numero { s += "\nNÚMERO: \(n)" }
+        s += "\nTÍTULO: \(e.titulo)"
+        if let r = e.ramoDireito { s += "\nRAMO: \(r)" }
+        if let d = e.data { s += "\nDATA: \(d)" }
+        if let st = e.situacao { s += "\nSITUAÇÃO: \(st)" }
+        s += "\n\nENUNCIADO:\n\(e.enunciado)"
+        if let o = e.observacao, !o.isEmpty { s += "\n\nOBSERVAÇÃO DA FONTE:\n\(o)" }
+        s += """
+
+
+        Devolva SOMENTE um objeto JSON, sem cercas de código e sem texto fora dele, com estas chaves:
+        {"nivel": 1 | 2 | 3,
+         "segundaFase": true | false,
+         "frase": "o que o verbete decide, em UMA frase de no máximo 40 palavras, em português claro",
+         "fundamento": "os dispositivos legais e constitucionais que sustentam o verbete, citados por artigo",
+         "comoEra": "o entendimento ANTERIOR, se este verbete mudou alguma coisa; string vazia se não mudou nada",
+         "decidiu": "o que exatamente ficou decidido e por qual razão de decidir",
+         "chave": ["3 a 5 pontos que a prova cobra deste verbete, cada um em uma linha curta"],
+         "jurisprudencia": ["julgados ou súmulas relacionados, com tribunal e identificação; lista vazia se você não tiver certeza"],
+         "atencao": "o que costuma ser mal compreendido; string vazia se não houver",
+         "hoje": "se o verbete estiver cancelado, superado ou alterado, o que vale hoje; string vazia se ele estiver íntegro",
+         "pegadinha": "a troca exata que a banca faz para transformar este verbete em alternativa errada",
+         "quiz": [ {"en": "enunciado da questão", "alts": ["A","B","C"], "ok": 0,
+                    "fb": "por que essa é a correta e onde as outras erram, com o fundamento",
+                    "fcF": "frente do flashcard — a pergunta seca", "fcV": "verso — a resposta curta"} ]
+        }
+        O quiz tem 3 questões no estilo da banca, sobre ESTE verbete. "nivel": 1 = todo mundo tem de saber; 2 = separa quem passa; 3 = detalhe fino. "segundaFase": tem cara de discursiva/sentença.
+        REGRAS: não invente número de julgado, de súmula, de tema repetitivo nem de artigo — se não tiver certeza, deixe a lista vazia ou descreva sem numerar. Não repita o enunciado. Escreva em português do Brasil.
+        """
+        return s
+    }
+
+    static func perguntaOral(_ e: JurisEntry) -> String {
+        "Você é examinador de prova oral de concurso da magistratura brasileira. A partir do verbete abaixo, formule UMA pergunta de arguição — direta, de uma ou duas frases, do jeito que um examinador pergunta em banca. Não dê a resposta. Não use markdown. Responda SOMENTE com a pergunta.\n\n" + base(e)
+    }
+    static func corrigirOral(_ e: JurisEntry, resposta: String) -> String {
+        """
+        Você é examinador de prova oral de concurso da magistratura brasileira. Corrija a resposta do candidato COMPARANDO com o verbete oficial. Seja exigente e específico: diga o que ficou de fora, o que está errado e o que a banca esperaria ouvir. Devolva SOMENTE um objeto JSON, sem cercas de código:
+        {"nota": "boa" | "media" | "fraca", "acertou": ["o que a resposta acertou"], "faltou": ["o que faltou ou saiu errado, cada item em uma linha"], "modelo": "a resposta que a banca esperaria, em no máximo 5 linhas"}
+
+        \(base(e))
+
+        RESPOSTA DO CANDIDATO:
+        \(resposta)
+        """
+    }
+    private static func base(_ e: JurisEntry) -> String {
+        var s = "VERBETE OFICIAL\nTRIBUNAL: \(e.tribunal)\nTÍTULO: \(e.titulo)"
+        if let r = e.ramoDireito { s += "\nRAMO: \(r)" }
+        s += "\nENUNCIADO: \(e.enunciado)"
+        return s
+    }
+}
+
+// MARK: - Peças visuais compartilhadas
+
+/// Rótulo pequeno em caixa alta — a "voz de rótulo" do Cátedra.
+struct RotuloEstudo: View {
+    let texto: String
+    var body: some View {
+        Text(texto.uppercased())
+            .font(.system(size: 10.5, weight: .bold)).tracking(1.4)
+            .foregroundStyle(Palette.secondaryInk)
+    }
+}
+
+/// Bloco do roteiro: rótulo em cima, corpo com faixa colorida à esquerda.
+struct BlocoEstudo<Corpo: View>: View {
+    let rotulo: String
+    var cor: Color = Palette.accent
+    var fundo: Color? = nil
+    @ViewBuilder var corpo: Corpo
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            RotuloEstudo(texto: rotulo)
+            HStack(alignment: .top, spacing: 0) {
+                RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3)
+                corpo
+                    .font(.system(size: 14.5)).lineSpacing(3)
+                    .foregroundStyle(Palette.titleInk)
+                    .padding(.horizontal, 13).padding(.vertical, 10)
+                Spacer(minLength: 0)
+            }
+            .background(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius - 4), style: .continuous)
+                .fill(fundo ?? cor.opacity(ThemeState.t.isDark ? 0.14 : 0.08)))
+        }
+    }
+}
+
+struct EtiquetaEstudo: View {
+    let texto: String
+    var cor: Color = Palette.accent
+    var body: some View {
+        Text(texto.uppercased())
+            .font(.system(size: 10, weight: .heavy)).tracking(0.6)
+            .padding(.horizontal, 8).padding(.vertical, 3)
+            .background(Capsule().fill(cor.opacity(0.15)))
+            .foregroundStyle(cor)
+    }
+}
+
+// MARK: - 1. Grade de informativos
+
+struct GradeInformativosView: View {
+    @Environment(LibraryStore.self) private var store
+    @State private var expandidas: Set<String> = []
+
+    private static let colecoes: [Fonte] = [
+        .informativoSTF, .informativoSTJ, .informativoTSE,
+        .boletimJurisTCU, .boletimPessoalTCU, .infoLicTCU,
+    ]
+    private let lote = 48
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 26) {
+                cabecalho
+                ForEach(Self.colecoes) { f in
+                    let eds = store.edicoesInfo(f)
+                    if !eds.isEmpty { colecao(f, eds) }
+                }
+            }
+            .padding(.horizontal, 28).padding(.vertical, 24)
+            .frame(maxWidth: 1100, alignment: .leading)
+        }
+        .background(Palette.appBackground)
+    }
+
+    private var todas: [(Fonte, [InfoEdicao])] {
+        Self.colecoes.map { ($0, store.edicoesInfo($0)) }.filter { !$0.1.isEmpty }
+    }
+    private func estado(_ f: Fonte, _ e: InfoEdicao) -> (lidos: Int, total: Int) {
+        let ids = store.entries.lazy.filter { $0.fonteKind == f && $0.numero == e.numero }.map(\.id)
+        var l = 0, t = 0
+        for id in ids { t += 1; if store.dominados.contains(id) || store.lidos.contains(id) { l += 1 } }
+        return (l, max(t, e.count))
+    }
+
+    private var cabecalho: some View {
+        let tot = todas.reduce(0) { $0 + $1.1.count }
+        var lidas = 0, comecadas = 0
+        for (f, eds) in todas { for e in eds { let s = estado(f, e); if s.lidos >= s.total { lidas += 1 } else if s.lidos > 0 { comecadas += 1 } } }
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                EtiquetaEstudo(texto: "Acervo por edição")
+                Spacer()
+            }
+            Text("Informativos").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
+            HStack(spacing: 22) {
+                kpi("\(tot)", "edições")
+                kpi("\(lidas)", "lidas", cor: Color(hex: "#16A34A"))
+                kpi("\(comecadas)", "começadas", cor: Color(hex: "#D97706"))
+                kpi("\(tot - lidas - comecadas)", "não lidas")
+            }
+            .padding(.horizontal, 18).padding(.vertical, 14)
+            .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
+            .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+        }
+    }
+    private func kpi(_ v: String, _ r: String, cor: Color = Palette.titleInk) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(v).font(.system(size: 26, weight: .heavy, design: .monospaced)).foregroundStyle(cor)
+            RotuloEstudo(texto: r)
+        }
+    }
+
+    private func colecao(_ f: Fonte, _ eds: [InfoEdicao]) -> some View {
+        let cor = f.cor
+        let mostrar = expandidas.contains(f.rawValue) ? eds.count : min(lote, eds.count)
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text(f.nome).font(.system(size: 17.5, weight: .bold)).foregroundStyle(Palette.titleInk)
+                Text("\(eds.count) edições · até a \(eds.first?.numero ?? 0)")
+                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                Spacer()
+            }
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 64), spacing: 7)], spacing: 7) {
+                ForEach(eds.prefix(mostrar)) { e in
+                    let s = estado(f, e)
+                    Button { store.selecao = .infoEdicao(f, e.numero) } label: {
+                        VStack(spacing: 1) {
+                            Text("\(e.numero)").font(.system(size: 14, weight: .heavy, design: .monospaced))
+                            Text(s.lidos > 0 ? "\(s.lidos)/\(s.total)" : "\(s.total)")
+                                .font(.system(size: 9, weight: .bold))
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .foregroundStyle(cls(s) == .lida ? Color(hex: "#15803D") : cls(s) == .parcial ? Color(hex: "#A16207") : Palette.secondaryInk)
+                        .background(RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .fill(cls(s) == .lida ? Color(hex: "#16A34A").opacity(0.14) : cls(s) == .parcial ? Color(hex: "#EAB308").opacity(0.14) : Palette.cardBackground))
+                        .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .strokeBorder(cls(s) == .lida ? Color(hex: "#16A34A") : cls(s) == .parcial ? Color(hex: "#EAB308") : Palette.hairline, lineWidth: 1.5))
+                    }
+                    .buttonStyle(.plain)
+                    .help("\(f.nome) nº \(e.numero) — \(s.lidos) de \(s.total) lidos")
+                }
+            }
+            if eds.count > mostrar {
+                Button("Ver mais \(f.nomeCurto) (\(eds.count - mostrar) restantes)") { expandidas.insert(f.rawValue) }
+                    .buttonStyle(.bordered).tint(cor)
+            }
+        }
+    }
+    private enum Cls { case lida, parcial, nao }
+    private func cls(_ s: (lidos: Int, total: Int)) -> Cls { s.lidos >= s.total && s.total > 0 ? .lida : (s.lidos > 0 ? .parcial : .nao) }
+}
+
+// MARK: - 2. Julgado do dia
+
+struct JulgadoDoDiaView: View {
+    @Environment(LibraryStore.self) private var store
+    @State private var mostrarOral = false
+
+    private static func semente(_ s: String) -> UInt32 {
+        var h: UInt32 = 2166136261
+        for b in s.utf8 { h ^= UInt32(b); h = h &* 16777619 }
+        return h
+    }
+    private var hojeISO: String {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f.string(from: Date())
+    }
+    /// Prioriza o que a prova cobra: destaque (★) e ainda não dominado. Se tudo estiver
+    /// dominado, volta a sortear no acervo todo. Semente = data: o dia devolve sempre o mesmo.
+    var verbete: JurisEntry? {
+        var pool = store.entries.filter { $0.importante && !store.dominados.contains($0.id) }
+        if pool.isEmpty { pool = store.entries.filter { $0.importante } }
+        if pool.isEmpty { pool = store.entries }
+        guard !pool.isEmpty else { return nil }
+        return pool[Int(Self.semente(hojeISO) % UInt32(pool.count))]
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Text("Julgado do dia").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
+                    Text(Date().formatted(.dateTime.day().month(.wide).year().locale(Locale(identifier: "pt_BR"))))
+                        .font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
+                }
+                if let e = verbete { cartao(e) }
+                else { Text("Acervo ainda carregando.").foregroundStyle(Palette.secondaryInk) }
+            }
+            .padding(.horizontal, 28).padding(.vertical, 24)
+            .frame(maxWidth: 900, alignment: .leading)
+        }
+        .background(Palette.appBackground)
+    }
+
+    private func cartao(_ e: JurisEntry) -> some View {
+        let cor = e.fonteKind.cor
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
+                EtiquetaEstudo(texto: e.tribunal, cor: cor)
+                EtiquetaEstudo(texto: e.fonteKind.nomeCurto, cor: cor)
+                if let r = e.ramoDireito { EtiquetaEstudo(texto: r, cor: RamoStyle.color(r)) }
+                if e.importante { EtiquetaEstudo(texto: "Destaque", cor: Palette.importante) }
+            }
+            Text(e.titulo).font(.system(size: 21, weight: .heavy)).tracking(-0.3).foregroundStyle(Palette.titleInk)
+            Text(e.enunciado).font(.system(size: 15)).lineSpacing(4).foregroundStyle(Palette.titleInk)
+                .textSelection(.enabled)
+            if let fp = e.fontePublicacao { Text(fp).font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk) }
+            HStack(spacing: 9) {
+                Button("Abrir no leitor") { store.lerCheio(e.id) }.buttonStyle(.borderedProminent).tint(cor)
+                Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }.buttonStyle(.bordered).tint(cor)
+                Button(store.dominados.contains(e.id) ? "✓ Dominado" : "Marcar como dominado") {
+                    if store.dominados.contains(e.id) { store.dominados.remove(e.id) } else { store.dominados.insert(e.id) }
+                }.buttonStyle(.bordered).tint(cor)
+            }
+            if mostrarOral { ProvaOralView(entry: e) }
+        }
+        .padding(22)
+        .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
+        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 5).padding(.vertical, 14) }
+        .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+    }
+}
+
+// MARK: - 3. Roteiro de estudo do verbete (bloco para dentro do EntryDetailView)
+
+struct RoteiroEstudoView: View {
+    @Environment(LibraryStore.self) private var store
+    let entry: JurisEntry
+    @State private var roteiro: RoteiroEstudo?
+    @State private var gerando = false
+    @State private var erro: String?
+    @State private var respostas: [Int: Int] = [:]
+    @State private var enviouFlash = false
+    @State private var mostrarOral = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Divider().padding(.vertical, 4)
+            if let r = roteiro { conteudo(r) }
+            else {
+                HStack(spacing: 10) {
+                    Button {
+                        Task { await gerar() }
+                    } label: { Label(gerando ? "Escrevendo…" : "Gerar roteiro de estudo", systemImage: "sparkles") }
+                    .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(gerando || !CatedraIA.disponivel)
+                    Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }
+                        .buttonStyle(.bordered).disabled(!CatedraIA.disponivel)
+                }
+                Text(CatedraIA.disponivel
+                     ? "Tese em uma frase, fundamento, o que mudou, pontos que a prova cobra, pegadinha e um quiz — escritos pela IA a partir do enunciado oficial acima."
+                     : CatedraIA.semIA)
+                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                if let erro { Text(erro).font(.system(size: 12)).foregroundStyle(Color(hex: "#DC2626")) }
+                if mostrarOral { ProvaOralView(entry: entry) }
+            }
+        }
+        .onAppear { roteiro = RoteiroCache.get(entry.id) }
+        .onChange(of: entry.id) { _, _ in roteiro = RoteiroCache.get(entry.id); respostas = [:]; enviouFlash = false; erro = nil }
+    }
+
+    private func gerar() async {
+        gerando = true; erro = nil
+        defer { gerando = false }
+        do {
+            var r = try await CatedraIA.json(PromptsEstudo.roteiro(entry), como: RoteiroEstudo.self)
+            r.geradoEm = Date()
+            RoteiroCache.set(entry.id, r); roteiro = r
+        } catch { erro = error.localizedDescription }
+    }
+
+    @ViewBuilder private func conteudo(_ r: RoteiroEstudo) -> some View {
+        HStack(spacing: 6) {
+            if let n = r.nivel { EtiquetaEstudo(texto: "Nível \(n)") }
+            if r.segundaFase == true { EtiquetaEstudo(texto: "2ª fase") }
+            Spacer()
+        }
+        if let t = r.frase, !t.isEmpty { BlocoEstudo(rotulo: "Em uma frase") { Text(t).fontWeight(.semibold) } }
+        if let t = r.fundamento, !t.isEmpty { BlocoEstudo(rotulo: "Fundamento", cor: Palette.secondaryInk) { Text(t) } }
+        if let t = r.comoEra, !t.isEmpty { BlocoEstudo(rotulo: "Como era", cor: Color(hex: "#EA580C")) { Text(t) } }
+        if let t = r.decidiu, !t.isEmpty { BlocoEstudo(rotulo: "O que decidiu", cor: Color(hex: "#16A34A")) { Text(t) } }
+        if let l = r.chave, !l.isEmpty { lista("Pontos que a prova cobra", l, cor: Palette.accent) }
+        if let l = r.jurisprudencia, !l.isEmpty { lista("Relacionados", l, cor: Palette.secondaryInk) }
+        if let t = r.atencao, !t.isEmpty { BlocoEstudo(rotulo: "Atenção", cor: Color(hex: "#EA580C")) { Text(t) } }
+        if let t = r.hoje, !t.isEmpty { BlocoEstudo(rotulo: "O que vale hoje", cor: Color(hex: "#16A34A")) { Text(t) } }
+        if let t = r.pegadinha, !t.isEmpty { BlocoEstudo(rotulo: "Pegadinha de prova", cor: Color(hex: "#DC2626")) { Text(t).fontWeight(.medium) } }
+        if let q = r.quiz, !q.isEmpty { quiz(q) }
+        HStack(spacing: 9) {
+            Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }.buttonStyle(.bordered)
+            Button("Refazer") { RoteiroCache.set(entry.id, nil); roteiro = nil; respostas = [:]; enviouFlash = false }.buttonStyle(.plain).foregroundStyle(Palette.secondaryInk)
+        }
+        if mostrarOral { ProvaOralView(entry: entry) }
+        Text("Roteiro escrito pela IA a partir do enunciado oficial — confira os números antes de decorar.")
+            .font(.system(size: 11)).italic().foregroundStyle(Palette.secondaryInk)
+    }
+
+    private func lista(_ rotulo: String, _ itens: [String], cor: Color) -> some View {
+        BlocoEstudo(rotulo: rotulo, cor: cor) {
+            VStack(alignment: .leading, spacing: 5) {
+                ForEach(itens, id: \.self) { i in
+                    HStack(alignment: .top, spacing: 8) { Text("•"); Text(i) }
+                }
+            }
+        }
+    }
+
+    private func quiz(_ qs: [RoteiroEstudo.QuestaoQuiz]) -> some View {
+        let erradas = qs.indices.filter { i in if let r = respostas[i] { return r != qs[i].ok } else { return false } }
+        return VStack(alignment: .leading, spacing: 12) {
+            RotuloEstudo(texto: "Quiz — \(qs.count) questões")
+            ForEach(Array(qs.enumerated()), id: \.offset) { i, q in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("\(i + 1). \(q.en)").font(.system(size: 14)).foregroundStyle(Palette.titleInk)
+                    ForEach(Array(q.alts.enumerated()), id: \.offset) { j, a in
+                        let resp = respostas[i]
+                        let certa = (j == q.ok), escolhida = (resp == j)
+                        Button {
+                            if respostas[i] == nil { respostas[i] = j }
+                        } label: {
+                            HStack(alignment: .top, spacing: 8) {
+                                Text(String(UnicodeScalar(65 + j)!) + ")").font(.system(size: 13, weight: .bold, design: .monospaced))
+                                Text(a).font(.system(size: 13)).multilineTextAlignment(.leading)
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.horizontal, 12).padding(.vertical, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .foregroundStyle(resp == nil ? Palette.titleInk : (certa ? Color(hex: "#15803D") : (escolhida ? Color(hex: "#B91C1C") : Palette.secondaryInk)))
+                            .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .fill(resp == nil ? Palette.cardBackground : (certa ? Color(hex: "#16A34A").opacity(0.12) : (escolhida ? Color(hex: "#DC2626").opacity(0.12) : Palette.cardBackground))))
+                            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .strokeBorder(resp == nil ? Palette.hairline : (certa ? Color(hex: "#16A34A") : (escolhida ? Color(hex: "#DC2626") : Palette.hairline)), lineWidth: 1.5))
+                        }
+                        .buttonStyle(.plain).disabled(resp != nil)
+                    }
+                    if let resp = respostas[i], let fb = q.fb {
+                        let acertou = resp == q.ok
+                        BlocoEstudo(rotulo: acertou ? "Certo" : "Errado", cor: acertou ? Color(hex: "#16A34A") : Color(hex: "#DC2626")) { Text(fb) }
+                    }
+                }
+            }
+            if !erradas.isEmpty {
+                Button {
+                    // A questão errada vira cartão do baralho de REVISÃO ESPAÇADA do módulo — o
+                    // mesmo que já existe, não um baralho paralelo.
+                    let hoje = Calendar.current.startOfDay(for: Date())
+                    var card = store.srs[entry.id] ?? JurisSRSCard(due: hoje, added: hoje)
+                    let q = qs[erradas[0]]
+                    card.cardKind = "direta"; card.prompt = q.fcF ?? q.en; card.answer = q.fcV ?? q.fb ?? ""
+                    store.srs[entry.id] = card
+                    enviouFlash = true
+                } label: {
+                    Label(enviouFlash ? "No baralho de revisão" : (erradas.count == 1 ? "Gerar flashcard da que errei" : "Gerar flashcards das \(erradas.count) que errei"),
+                          systemImage: enviouFlash ? "checkmark" : "rectangle.stack.badge.plus")
+                }
+                .buttonStyle(.bordered).disabled(enviouFlash)
+            }
+        }
+    }
+}
+
+// MARK: - 4. Prova oral
+
+struct ProvaOralView: View {
+    let entry: JurisEntry
+    @State private var pergunta: String?
+    @State private var resposta = ""
+    @State private var carregando = false
+    @State private var corrigindo = false
+    @State private var correcao: Correcao?
+    @State private var erro: String?
+
+    struct Correcao: Codable { var nota: String?; var acertou: [String]?; var faltou: [String]?; var modelo: String? }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            RotuloEstudo(texto: "Prova oral")
+            if !CatedraIA.disponivel {
+                Text(CatedraIA.semIA).font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
+            } else if let p = pergunta {
+                Text(p).font(.system(size: 15.5, weight: .semibold)).lineSpacing(3).foregroundStyle(Palette.titleInk)
+                TextEditor(text: $resposta)
+                    .font(.system(size: 14)).frame(minHeight: 110)
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
+                HStack(spacing: 9) {
+                    Button(corrigindo ? "Corrigindo…" : "Corrigir") { Task { await corrigir() } }
+                        .buttonStyle(.borderedProminent).tint(Palette.accent)
+                        .disabled(corrigindo || resposta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    Button("Outra pergunta") { Task { await perguntar() } }.buttonStyle(.bordered).disabled(carregando)
+                }
+                if let c = correcao { resultado(c) }
+            } else {
+                Text(carregando ? "Formulando a pergunta…" : "Responda como responderia na banca — em voz alta primeiro, se quiser, e depois escreva o essencial.")
+                    .font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
+            }
+            if let erro { Text(erro).font(.system(size: 12)).foregroundStyle(Color(hex: "#DC2626")) }
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius - 2), style: .continuous).fill(Palette.accent.opacity(0.06)))
+        .task { if pergunta == nil, CatedraIA.disponivel { await perguntar() } }
+    }
+
+    private func perguntar() async {
+        carregando = true; erro = nil; correcao = nil; resposta = ""
+        defer { carregando = false }
+        do { pergunta = try await CatedraIA.texto(PromptsEstudo.perguntaOral(entry)) }
+        catch { erro = error.localizedDescription }
+    }
+    private func corrigir() async {
+        corrigindo = true; erro = nil
+        defer { corrigindo = false }
+        do { correcao = try await CatedraIA.json(PromptsEstudo.corrigirOral(entry, resposta: resposta), como: Correcao.self) }
+        catch { erro = error.localizedDescription }
+    }
+
+    @ViewBuilder private func resultado(_ c: Correcao) -> some View {
+        let nota = c.nota ?? ""
+        let cor = nota == "boa" ? Color(hex: "#16A34A") : nota == "media" ? Color(hex: "#D97706") : Color(hex: "#DC2626")
+        HStack { EtiquetaEstudo(texto: nota == "boa" ? "Boa" : nota == "media" ? "Mediana" : "Fraca", cor: cor); Spacer() }
+        if let a = c.acertou, !a.isEmpty {
+            BlocoEstudo(rotulo: "Acertou", cor: Color(hex: "#16A34A")) {
+                VStack(alignment: .leading, spacing: 4) { ForEach(a, id: \.self) { Text("• " + $0) } }
+            }
+        }
+        if let f = c.faltou, !f.isEmpty {
+            BlocoEstudo(rotulo: "Faltou / saiu errado", cor: Color(hex: "#DC2626")) {
+                VStack(alignment: .leading, spacing: 4) { ForEach(f, id: \.self) { Text("• " + $0) } }
+            }
+        }
+        if let m = c.modelo, !m.isEmpty { BlocoEstudo(rotulo: "O que a banca esperaria", cor: Palette.secondaryInk) { Text(m) } }
+    }
+}
+
+// MARK: - 5. Página inicial de estudo (julgado do dia + informativos em destaque)
+
+/// Entra na frente da HomeView quando a aba abre: o julgado do dia e as edições de
+/// informativo mais recentes em destaque, como pedido.
+struct DestaquesEstudoView: View {
+    @Environment(LibraryStore.self) private var store
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            JulgadoDoDiaView()
+                .frame(maxHeight: 520)
+            HStack(alignment: .firstTextBaseline) {
+                Text("Últimos informativos").font(.system(size: 17.5, weight: .bold)).foregroundStyle(Palette.titleInk)
+                Spacer()
+                Button("Ver a grade") { store.selecao = .gradeInformativos }.buttonStyle(.plain).foregroundStyle(Palette.accent)
+            }
+            .padding(.horizontal, 28)
+            HStack(spacing: 10) {
+                ForEach([Fonte.informativoSTF, .informativoSTJ, .informativoTSE]) { f in
+                    if let e = store.edicoesInfo(f).first {
+                        Button { store.selecao = .infoEdicao(f, e.numero) } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                EtiquetaEstudo(texto: f.nomeCurto, cor: f.cor)
+                                Text("nº \(e.numero)").font(.system(size: 24, weight: .heavy, design: .monospaced)).foregroundStyle(Palette.titleInk)
+                                Text("\(e.count) verbetes").font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
+                            }
+                            .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                            .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
+                            .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+                        }.buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(.horizontal, 28)
+        }
+    }
+}
+
+
+// MARK: - 6. Prova oral como página (entrada da barra lateral)
+
+/// A prova oral é sobre UM verbete. Esta página escolhe qual: o julgado do dia por
+/// padrão, ou qualquer outro pela busca — e embute a mesma ProvaOralView do leitor.
+struct ProvaOralJurisView: View {
+    @Environment(LibraryStore.self) private var store
+    @State private var busca = ""
+    @State private var escolhido: JurisEntry?
+
+    private var candidatos: [JurisEntry] {
+        let q = busca.trimmingCharacters(in: .whitespaces).lowercased()
+        guard q.count >= 3 else { return [] }
+        return Array(store.entries.lazy.filter {
+            $0.titulo.lowercased().contains(q) || $0.enunciado.lowercased().contains(q)
+        }.prefix(30))
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Prova oral").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
+                Text("A IA formula uma pergunta de arguição sobre o verbete, você responde como responderia na banca, e ela corrige contra o enunciado oficial.")
+                    .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass").foregroundStyle(Palette.secondaryInk)
+                    TextField("Buscar um verbete (ou use o julgado do dia)", text: $busca).textFieldStyle(.plain)
+                }
+                .padding(.horizontal, 12).padding(.vertical, 9)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
+                if !candidatos.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(candidatos) { e in
+                            Button { escolhido = e; busca = "" } label: {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) { EtiquetaEstudo(texto: e.tribunal, cor: e.fonteKind.cor); Text(e.titulo).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(Palette.titleInk) }
+                                    Text(e.enunciado).font(.system(size: 12)).lineLimit(2).foregroundStyle(Palette.secondaryInk)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 13).padding(.vertical, 9)
+                                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
+                                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
+                            }.buttonStyle(.plain)
+                        }
+                    }
+                }
+                let alvo = escolhido ?? JulgadoDoDiaView().verbete
+                if let e = alvo {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 6) {
+                            EtiquetaEstudo(texto: e.tribunal, cor: e.fonteKind.cor)
+                            EtiquetaEstudo(texto: e.fonteKind.nomeCurto, cor: e.fonteKind.cor)
+                            if escolhido == nil { EtiquetaEstudo(texto: "Julgado do dia", cor: Palette.importante) }
+                            Spacer()
+                            Button("Abrir no leitor") { store.lerCheio(e.id) }.buttonStyle(.plain).foregroundStyle(Palette.accent)
+                        }
+                        Text(e.titulo).font(.system(size: 19, weight: .heavy)).foregroundStyle(Palette.titleInk)
+                        Text(e.enunciado).font(.system(size: 14)).lineSpacing(3).foregroundStyle(Palette.titleInk)
+                        ProvaOralView(entry: e).id(e.id)
+                    }
+                    .padding(20)
+                    .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
+                    .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+                }
+            }
+            .padding(.horizontal, 28).padding(.vertical, 24)
+            .frame(maxWidth: 900, alignment: .leading)
+        }
+        .background(Palette.appBackground)
+    }
+}

@@ -185,9 +185,15 @@ enum Selecao: Hashable {
     case ramosHub             // página "Ramos do Direito" (todas as disciplinas)
     case ramoDetalhe(EscopoFiltrado)  // página de uma disciplina (assuntos + tipos), escopada ou não
     case filtro(EscopoFiltrado)       // lista final de um recorte combinado
+    case gradeInformativos            // uma edição por quadradinho (verde/âmbar/cinza)
+    case julgadoDoDia                 // um verbete por dia, sorteado com semente na data
+    case provaOral                    // a IA pergunta sobre um verbete, você responde, ela corrige
 
     var titulo: String {
         switch self {
+        case .gradeInformativos: return "Informativos"
+        case .julgadoDoDia: return "Julgado do dia"
+        case .provaOral: return "Prova oral"
         case .inicio: return "Início"
         case .todos: return "Todos os verbetes"
         case .favoritos: return "Favoritos"
@@ -235,6 +241,9 @@ enum Selecao: Hashable {
         case .ramosHub: return "books.vertical.fill"
         case .ramoDetalhe: return "bookmark.fill"
         case .filtro(let f): return f.fonte?.simbolo ?? (f.tema != nil ? "number" : "books.vertical.fill")
+        case .gradeInformativos: return "square.grid.3x3.fill"
+        case .julgadoDoDia: return "sun.max.fill"
+        case .provaOral: return "mic.fill"
         }
     }
 }

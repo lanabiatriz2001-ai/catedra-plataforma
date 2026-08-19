@@ -60,6 +60,9 @@ struct EntryDetailView: View {
                 if let r = entry.referencias, !r.isEmpty {
                     disclosure("Referências legislativas", "book.closed", r)
                 }
+                // Roteiro de estudo (IA do app) + prova oral — o formato dos widgets de
+                // informativo: Em uma frase, Fundamento, Como era, O que decidiu, Pegadinha, quiz.
+                RoteiroEstudoView(entry: entry)
                 relacionadosSection
                 footer
             }

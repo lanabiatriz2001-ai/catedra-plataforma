@@ -83,6 +83,9 @@ struct RootView: View {
         } else {
             switch store.selecao {
             case .inicio: HomeView()
+            case .gradeInformativos: GradeInformativosView()
+            case .julgadoDoDia: JulgadoDoDiaView()
+            case .provaOral: ProvaOralJurisView()
             case .tjroHub: TJROHubView()
             case .mapas: JurisMapasGaleria()
             case .checklist: JurisChecklistView()
