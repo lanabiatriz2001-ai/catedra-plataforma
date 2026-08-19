@@ -572,7 +572,16 @@ private struct UnitFocusView: View {
     private var isRead: Bool { record.readKeys.contains(unit.key) }
     private var isReview: Bool { record.reviewKeys.contains(unit.key) }
     private var articlePrecedents: [LawPrecedent] { store.precedents(for: lawID, matchingArticle: unit.label) }
+    // Jurisprudência AUTOMÁTICA do acervo do JURIS que cita este artigo (incidencia-verbetes.json).
+    // Soma-se aos vínculos manuais; não os substitui.
+    private var leiAtual: LawEntry? { store.laws.first { $0.id == lawID } }
+    private var verbetesDoArtigo: [VerbeteCitante] {
+        guard let lei = leiAtual else { return [] }
+        return JurisPorArtigo.verbetes(lei: lei, label: unit.label)
+    }
     private var remissoes: [LegislativeNote] { LegislativeNote.parse(from: unit.lines) }
+    private func abrirURL(_ u: URL) { NSWorkspace.shared.open(u) }
+
     private var remissions: [Remission] {
         RemissiveIndex.build(for: unit, currentLawID: lawID,
                              currentNumber: ArticleStudyView.articleNumberKey(unit.label),
@@ -815,8 +824,32 @@ private struct UnitFocusView: View {
                               onOpen: onOpenLaw, embedded: true)
             }
         }
-        disclosure("juris", "Jurisprudência deste artigo", "text.book.closed", count: articlePrecedents.count) {
+        disclosure("juris", "Jurisprudência deste artigo", "text.book.closed",
+                   count: articlePrecedents.count + verbetesDoArtigo.count) {
+            if !verbetesDoArtigo.isEmpty {
+                Text("Do acervo do CátedraJURIS — julgados que citam este artigo")
+                    .font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                JurisPorArtigoView(verbetes: verbetesDoArtigo, accent: accent)
+                Divider().padding(.vertical, 4)
+                Text("Vínculos seus").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            }
             jurisInner
+        }
+        // Questões de banca sobre o artigo: o Cátedra não tem banco de questões e não copia o
+        // de ninguém; abre a busca no serviço que a pessoa usa, na sessão dela.
+        disclosure("questoes", "Questões de concurso", "checklist", count: nil) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Busca por “\(unit.label)” na sua conta. O Cátedra abre, não grava: resolva lá e, se quiser, registre o erro no caderno.")
+                    .font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    ForEach(JurisPorArtigo.ServicoQuestoes.allCases, id: \.self) { sv in
+                        if let lei = leiAtual, let url = JurisPorArtigo.urlQuestoes(lei: lei, label: unit.label, servico: sv) {
+                            Button { abrirURL(url) } label: { Label(sv.rawValue, systemImage: "arrow.up.right.square") }
+                                .font(.caption).buttonStyle(.bordered)
+                        }
+                    }
+                }
+            }
         }
         if !remissions.isEmpty {
             disclosure("indice", "Índice remissivo", "list.bullet.rectangle", count: remissions.count) {

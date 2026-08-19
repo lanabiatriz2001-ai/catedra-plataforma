@@ -596,6 +596,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     // rateado); senão, abrimos com o prefill específico da leitura marcada — a
     // chamada é "auto": respeita o toggle dela e nunca atropela um modal aberto.
     func setupPlanoMarcadoObservers() {
+        // O LEGIS pediu para abrir um verbete do acervo (jurisprudência do artigo): troca
+        // para a aba JURIS e leva o store até ele. O store pode ainda não existir (aba
+        // nunca aberta) — switchTo cria; por isso o abrirVerbete vem depois.
+        NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrir, object: nil, queue: .main) { [weak self] n in
+            MainActor.assumeIsolated {
+                guard let self, let id = n.userInfo?["id"] as? String else { return }
+                self.switchTo(2)
+                self.jurisStore?.abrirVerbete(id)
+            }
+        }
         NotificationCenter.default.addObserver(forName: Notification.Name("catedraPlanoLegisMarcado"), object: nil, queue: .main) { [weak self] n in
             MainActor.assumeIsolated {
                 guard let self, let k = n.userInfo?["key"] as? String else { return }
