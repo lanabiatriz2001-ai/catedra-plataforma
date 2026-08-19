@@ -57,7 +57,8 @@ enum RoteiroCache {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("VadeMecumJuris", isDirectory: true)
         try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
-        return base.appendingPathComponent("roteiros-estudo.json")
+        // "-local": o arquivo antigo guardava roteiros escritos por IA; o novo é 100% local.
+        return base.appendingPathComponent("roteiros-estudo-local.json")
     }
     private static func carregar() {
         guard !carregado else { return }
@@ -376,15 +377,13 @@ struct RoteiroEstudoView: View {
                 HStack(spacing: 10) {
                     Button {
                         Task { await gerar() }
-                    } label: { Label(gerando ? "Escrevendo…" : "Gerar roteiro de estudo", systemImage: "sparkles") }
-                    .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(gerando || !CatedraIA.disponivel)
+                    } label: { Label(gerando ? "Montando…" : "Montar roteiro de estudo", systemImage: "list.bullet.rectangle") }
+                    .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(gerando)
                     // Prova oral não depende de IA (é local): não some quando a IA está fora.
                     Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }
                         .buttonStyle(.bordered)
                 }
-                Text(CatedraIA.disponivel
-                     ? "Tese em uma frase, fundamento, o que mudou, pontos que a prova cobra, pegadinha e um quiz — escritos pela IA a partir do enunciado oficial acima."
-                     : CatedraIA.semIA)
+                Text("Tese em uma frase, fundamento, o que mudou, pontos que a prova cobra, pegadinha e um quiz — montados aqui mesmo a partir do enunciado oficial e do acervo, sem IA.")
                     .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
                 if let erro { Text(erro).font(.system(size: 12)).foregroundStyle(Color(hex: "#DC2626")) }
                 if mostrarOral { ProvaOralView(entry: entry) }
@@ -393,18 +392,17 @@ struct RoteiroEstudoView: View {
         .onAppear { roteiro = RoteiroCache.get(entry.id) }
         .onChange(of: entry.id) { _, _ in roteiro = RoteiroCache.get(entry.id); respostas = [:]; enviouFlash = false; erro = nil }
         .task(id: entry.id) {
-            if autoGerar, roteiro == nil, !gerando, CatedraIA.disponivel { await gerar() }
+            if autoGerar, roteiro == nil, !gerando { await gerar() }
         }
     }
 
+    // Sem IA: o roteiro sai do próprio verbete e do acervo (RoteiroLocal). Instantâneo,
+    // off-line, sem custo — e igual em todos os aparelhos. O cache continua o mesmo.
     private func gerar() async {
         gerando = true; erro = nil
         defer { gerando = false }
-        do {
-            var r = try await CatedraIA.json(PromptsEstudo.roteiro(entry), como: RoteiroEstudo.self)
-            r.geradoEm = Date()
-            RoteiroCache.set(entry.id, r); roteiro = r
-        } catch { erro = error.localizedDescription }
+        let r = RoteiroLocal.gerar(entry, store: store)
+        RoteiroCache.set(entry.id, r); roteiro = r
     }
 
     @ViewBuilder private func conteudo(_ r: RoteiroEstudo) -> some View {
@@ -506,6 +504,7 @@ struct ProvaOralView: View {
     @State private var pergunta: String = ""
     @State private var resposta = ""
     @State private var correcao: Correcao?
+    @State private var variante = 0
 
     struct Correcao: Codable { var nota: String?; var acertou: [String]?; var faltou: [String]?; var modelo: String? }
 
@@ -532,7 +531,8 @@ struct ProvaOralView: View {
     }
 
     private func perguntar() {
-        pergunta = ProvaOralLocal.pergunta(entry)
+        pergunta = ProvaOralLocal.pergunta(entry, variante: variante)
+        variante += 1
         correcao = nil; resposta = ""
     }
 
@@ -600,6 +600,27 @@ struct ProvaOralJurisView: View {
     @Environment(LibraryStore.self) private var store
     @State private var busca = ""
     @State private var escolhido: JurisEntry?
+    @State private var disciplina: String? = nil
+    @State private var tribunal: String? = nil
+    @State private var assunto: String? = nil
+
+    /// Universo filtrado (disciplina / tribunal / assunto) de onde se sorteia.
+    private var universo: [JurisEntry] {
+        store.entries.filter { e in
+            (disciplina == nil || e.disciplina == disciplina!) &&
+            (tribunal == nil || e.tribunal == tribunal!) &&
+            (assunto == nil || e.tema == assunto!)
+        }
+    }
+    private var tribunais: [String] {
+        var c: [String: Int] = [:]; for e in store.entries { c[e.tribunal, default: 0] += 1 }
+        return c.sorted { $0.value > $1.value }.map(\.key).prefix(8).map { $0 }
+    }
+    private func sortear() {
+        let base = universo.filter { Exporter.afirmacaoFalsaAuto($0.enunciado) != nil || $0.enunciado.count > 80 }
+        escolhido = (base.isEmpty ? universo : base).randomElement()
+        busca = ""
+    }
 
     private var candidatos: [JurisEntry] {
         let q = busca.trimmingCharacters(in: .whitespaces).lowercased()
@@ -609,12 +630,51 @@ struct ProvaOralJurisView: View {
         }.prefix(30))
     }
 
+    private func chip(_ t: String, on: Bool, _ act: @escaping () -> Void) -> some View {
+        Button(action: act) {
+            Text(t).font(.system(size: 12, weight: .semibold))
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(Capsule().fill(on ? Palette.accent : Palette.cardBackground))
+                .overlay(Capsule().strokeBorder(on ? Palette.accent : Palette.hairline))
+                .foregroundStyle(on ? Color.white : Palette.titleInk)
+        }.buttonStyle(.plain)
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Prova oral").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
-                Text("A IA formula uma pergunta de arguição sobre o verbete, você responde como responderia na banca, e ela corrige contra o enunciado oficial.")
+                Text("Escolha a disciplina e o tribunal, sorteie um verbete do acervo e responda como responderia à banca. A pergunta vem no formato da arguição real (caso hipotético, fundamento, exceção…) e a correção é contra o enunciado oficial — tudo local, sem IA.")
                     .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
+                // Filtros — o edital por dentro: disciplina, tribunal, assunto.
+                VStack(alignment: .leading, spacing: 8) {
+                    RotuloEstudo(texto: "Disciplina")
+                    Flow {
+                        chip("Todas", on: disciplina == nil) { disciplina = nil; assunto = nil }
+                        ForEach(store.disciplinasEm(store.entries).prefix(14), id: \.nome) { d in
+                            chip("\(d.nome) · \(d.count)", on: disciplina == d.nome) { disciplina = d.nome; assunto = nil }
+                        }
+                    }
+                    RotuloEstudo(texto: "Tribunal")
+                    Flow {
+                        chip("Todos", on: tribunal == nil) { tribunal = nil }
+                        ForEach(tribunais, id: \.self) { t in chip(t, on: tribunal == t) { tribunal = t } }
+                    }
+                    if disciplina != nil {
+                        RotuloEstudo(texto: "Assunto")
+                        Flow {
+                            chip("Todos", on: assunto == nil) { assunto = nil }
+                            ForEach(store.assuntosEm(store.entries.filter { $0.disciplina == disciplina! && (tribunal == nil || $0.tribunal == tribunal!) }).prefix(16), id: \.nome) { a in
+                                chip(a.nome, on: assunto == a.nome) { assunto = a.nome }
+                            }
+                        }
+                    }
+                    HStack(spacing: 10) {
+                        Button { sortear() } label: { Label("Sortear pergunta (\(universo.count) verbetes)", systemImage: "dice") }
+                            .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(universo.isEmpty)
+                        if escolhido != nil { Button("Voltar ao julgado do dia") { escolhido = nil }.buttonStyle(.bordered) }
+                    }
+                }
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundStyle(Palette.secondaryInk)
                     TextField("Buscar um verbete (ou use o julgado do dia)", text: $busca).textFieldStyle(.plain)
@@ -691,12 +751,44 @@ enum ProvaOralLocal {
         return Array(saida.prefix(max))
     }
 
-    /// Pergunta de arguição sobre um VERBETE — sem IA.
-    static func pergunta(_ e: JurisEntry) -> String {
-        if let d = JurisFlashcards.direta(e), let termo = d.answer, !termo.isEmpty {
-            return "Complete e explique: \(d.prompt.replacingOccurrences(of: "Complete a tese:\n\n", with: ""))\n\n(A banca quer ouvir o raciocínio inteiro, não só a palavra que falta.)"
+    /// Pergunta de arguição sobre um VERBETE — sem IA, no tom de banca. `variante` roda os
+    /// formatos que as bancas realmente usam na oral (0, 1, 2… — "Outra pergunta" avança):
+    ///   0 caso hipotético: o examinador apresenta a TESE INVERTIDA como argumento da parte
+    ///     e pergunta se procede — é a pergunta mais comum de arguição, e a inversão é a
+    ///     mesma que o baralho já usa (só troca o núcleo: prazo, competência, operador);
+    ///   1 fundamento: "qual o fundamento normativo e a ratio";
+    ///   2 lacuna: complete e explique;
+    ///   3 aplicação: esse entendimento alcança o tema X? há exceção?;
+    ///   4 abertura: explique o entendimento.
+    /// Nada é inventado: todo conteúdo vem do enunciado oficial; a "história" é o molde.
+    static func pergunta(_ e: JurisEntry, variante: Int = 0) -> String {
+        let frase = RoteiroLocal.sentencas(RoteiroLocal.limpar(e.enunciado)).first ?? RoteiroLocal.limpar(e.enunciado)
+        let falsa = Exporter.afirmacaoFalsaAuto(e.enunciado)
+        let fund = RoteiroLocal.fundamentos(e.enunciado + " " + (e.referencias ?? ""))
+        let lacuna = JurisFlashcards.direta(e)
+        var formatos: [String] = []
+        if let f = falsa {
+            let papel = ["a defesa, em sustentação oral,", "o recorrente", "a parte autora, na inicial,", "o Ministério Público, em parecer,", "o magistrado de primeiro grau"].randomElement(using: &Gerador(e.id))!
+            formatos.append("Candidato(a), um caso chega ao seu gabinete. \(papel.prefix(1).uppercased() + papel.dropFirst()) sustenta que \(f.prefix(1).lowercased() + f.dropFirst()) A tese procede? Decida e fundamente, indicando a posição do \(e.tribunal).")
         }
-        return "Explique o entendimento fixado em \"\(e.titulo)\" — o que ele decide e por quê."
+        if !fund.isEmpty {
+            formatos.append("Qual é o fundamento normativo do entendimento \"\(e.titulo)\" e qual a razão de decidir? (Espera-se, entre outros: \(fund.prefix(2).joined(separator: ", ")).)")
+        }
+        if let d = lacuna, let termo = d.answer, !termo.isEmpty {
+            formatos.append("Complete e explique: \(d.prompt.replacingOccurrences(of: "Complete a tese:\n\n", with: ""))\n\n(A banca quer ouvir o raciocínio inteiro, não só a palavra que falta.)")
+        }
+        if let t = e.tema, !t.isEmpty {
+            formatos.append("Em matéria de \(t.lowercased()): esse entendimento do \(e.tribunal) — \"\(frase)\" — comporta exceção? Em que hipóteses ele não se aplica?")
+        }
+        formatos.append("Explique o entendimento fixado em \"\(e.titulo)\" — o que ele decide, por quê, e como o(a) senhor(a) o aplicaria em um caso concreto.")
+        return formatos[((variante % formatos.count) + formatos.count) % formatos.count]
+    }
+
+    /// Gerador determinístico por id — a mesma pergunta para o mesmo verbete, sempre.
+    private struct Gerador: RandomNumberGenerator {
+        var estado: UInt64
+        init(_ semente: String) { estado = semente.unicodeScalars.reduce(1469598103934665603) { ($0 ^ UInt64($1.value)) &* 1099511628211 } }
+        mutating func next() -> UInt64 { estado = estado &* 6364136223846793005 &+ 1442695040888963407; return estado }
     }
 
     /// Corrige contra o ENUNCIADO OFICIAL do verbete, por cobertura de termos-chave.
