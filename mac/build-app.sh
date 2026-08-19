@@ -101,6 +101,7 @@ done
 [ -f "$ROOT/corpus-contas.json" ] && cp "$ROOT/corpus-contas.json" "$APP/Contents/Resources/corpus-contas.json"
 # Mapa de incidência por artigo (LEGIS nativo): mesmo dado do incidencia.js da web, em JSON.
 [ -f "$ROOT/incidencia.json" ] && cp "$ROOT/incidencia.json" "$APP/Contents/Resources/incidencia.json"
+[ -f "$ROOT/incidencia-verbetes.json" ] && cp "$ROOT/incidencia-verbetes.json" "$APP/Contents/Resources/incidencia-verbetes.json"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 cat > "$APP/Contents/Info.plist" <<PLIST

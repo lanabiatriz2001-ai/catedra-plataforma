@@ -1507,5 +1507,5202 @@ window.CT_DISCURSIVAS = [
   "espelho": [],
   "total": 10,
   "fonte": "https://ejef.tjmg.jus.br/proposta_natureza_penal/"
+ },
+ {
+  "id": "tj-ms-2023-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-MS",
+  "cargo": "Juiz Substituto",
+  "ano": 2023,
+  "fase": "discursiva",
+  "disciplina": "Administrativo, Outros, Processo Civil, Penal, Processo Penal, Ambiental, Tributário, Empresarial, Consumidor",
+  "tema": "Servidor público - jornada reduzida para pai/cuidador de pessoa com deficiência; Tribunal de Contas - titularidade e execução da multa; Questão aberta - identificação e solucao de controvérsia; …",
+  "enunciado": "TJ-MS · 2023 · Juiz Substituto — discursiva (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/juiz-substitutojsub-tipo-1-discursivas.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjms_espelho-de-correcao.pdf\nTempo sugerido: 1h por questão (10 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Q01 — Servidor público - jornada reduzida para pai/cuidador de pessoa com deficiência: Reconhecer que, conforme jurisprudência do STF, aplica-se por analogia aos servidores públicos municipais que são pais (ou cuidadores legais) de pessoas com deficiência o direito a jornada reduzida (0,15+0,20), sem necessidade de compensação de horario (0,20) ou redução de vencimentos (0,20), nos moldes do Art. 98, par. 2o e 3o, da Lei 8.112/1990 (0,10); concluir pela procedencia da pretensão (0,10).",
+    "pontos": 1,
+    "escala": "1,00 (0,15 / 0,20 / 0,20 / 0,20 / 0,10 / 0,10 / 0,05)",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 8.112/1990 art. 98, par. 2o e 3o"
+    ]
+   },
+   {
+    "quesito": "Q02 — Tribunal de Contas - titularidade e execução da multa: O TCE, ao imputar débito, zelou pelo patrimônio público municipal, projeção da autonomia política do Município (0,20); a multa encontra esteio no controle externo, expressamente previsto entre as competências constitucionais do TCE (0,20); apesar de aplicada por órgão estadual, a multa decorre da proteção ao patrimônio municipal, conectada ao dano causado (0,30); a multa pertence ao Município, o que atrai sua legitimidade para executá-la (0,20); não procede a tese contrária (0,05).",
+    "pontos": 1,
+    "escala": "1,00 (0,20 / 0,20 / 0,30 / 0,20 / 0,05 / 0,05)",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q03 — Questão aberta - identificação e solucao de controvérsia: Identificação objetiva do aspecto jurídico relevante (0,35); delineamento fundamentado da controvérsia com mencao a doutrina, dispositivos legais e jurisprudência dos Tribunais Superiores (0,30); solucao a ser dada no caso concreto a luz dos pontos enfocados (0,30). A exposição não fundamentada só pontuará no item 1.",
+    "pontos": 1,
+    "escala": "1,00 (0,35 / 0,30 / 0,30 / 0,05)",
+    "disciplina": "Outros",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 — Sanções premiais e negócio jurídico processual: Indicar quatro prêmios previstos no CPC (Art. 85, par. 7o; 90, par. 3o e 4o; 338, p.u.; 603; 701, caput e par. 1o; 827, par. 1o; 916; 1.040, par. 2o), 0,10 cada; reconhecer que o negócio jurídico processual permite a estipulacao de prêmios pelas partes (Art. 190 do CPC) - 0,25; possibilidade de o juiz estabelecer medidas indutivas (sanções premiais) com base no Art. 139, IV, do CPC - 0,30.",
+    "pontos": 4,
+    "escala": "1,00 (4 x 0,10 / 0,25 / 0,30 / 0,05)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 190",
+     "CPC art. 139, IV",
+     "CPC art. 85, par. 7o",
+     "CPC art. 827, par. 1o",
+     "CPC art. 916"
+    ]
+   },
+   {
+    "quesito": "Q05 — Culpabilidade - elementos e excludentes: Imputabilidade e conceito (elemento intelectual e volitivo) - 0,20; inimputabilidade como excludente com ao menos duas causas (art. 27; art. 26; art. 28, par. 1o do CP) - 0,15; potencial conhecimento da ilicitude e conceito (consciência profana do injusto) - 0,20; erro de proibicao como excludente - 0,10; exigibilidade de conduta diversa e conceito - 0,20; inexigibilidade de conduta diversa como excludente, exemplificando coação irresistivel, obediência hierárquica (art. 22) e art. 128, II do CP, além de causas supralegais - 0,10.",
+    "pontos": 1,
+    "escala": "1,00 (0,20 / 0,15 / 0,20 / 0,10 / 0,20 / 0,10 / 0,05)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 26",
+     "CP art. 27",
+     "CP art. 28, par. 1o",
+     "CP art. 22",
+     "CP art. 128, II"
+    ]
+   },
+   {
+    "quesito": "Q06 — Suspeição do juiz, juiz das garantias e poderes instrutórios: Concluir pela improcedencia da exceção, pois não há fundamento em nenhuma das hipóteses do art. 254 do CPP (0,20); mencionar que o juiz das garantias ainda não se encontra vigente (introduzido pelo Pacote Anticrime e suspenso liminarmente pelo STF), de modo que o juiz que deferiu busca e apreensão na fase inquisitorial pode funcionar na fase processual (0,25); mencionar os poderes instrutórios do art. 156, I, do CPP para determinar de ofício confronto balístico sem parcialidade (0,25); mencionar que não se pode afirmar de antemao que a diligência e prejudicial ao réu, pois o resultado e desconhecido e pode levar a absolvição (0,25).",
+    "pontos": 1,
+    "escala": "1,00 (0,20 / 0,25 / 0,25 / 0,25 / 0,05)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP art. 254",
+     "CPP art. 156, I"
+    ]
+   },
+   {
+    "quesito": "Q07 — Danos ambientais interinos e residuais: Conceituar danos ambientais interinos (intercorrentes, transitórios) distinguindo-os dos definitivos/residuais (0,20); marco inicial do dano intercorrente e a lesão ambiental e o final a reparação da area (0,20); danos definitivos só se verificam e são indenizáveis em pecunia se a reparação integral não for possível em tempo razoável após as obrigações de fazer (PRAD), com marco inicial no termino das ações de restauração (0,20); distinguir a função compensatoria de cada um e concluir que o cumprimento da obrigação de reparar integralmente não afasta a obrigação de indenizar os danos interinos (0,35).",
+    "pontos": 1,
+    "escala": "1,00 (0,20 / 0,20 / 0,20 / 0,35 / 0,05)",
+    "disciplina": "Ambiental",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q08 — Contribuição previdenciária de servidores inativos: Sim - servidores aposentados antes da instituição da contribuição devem recolher, por se tratar de hipótese de não incidência que se tornou fato gerador (Art. 40, par. 18, CF ou Art. 5o da Lei 10.887/2004) - 0,25; Sim - inexiste isenção ou imunidade em caso de doenças graves (Art. 40, par. 18, CF) - 0,20; Não - Municípios com RPPS estão obrigados a cobrar contribuição (Art. 149, par. 1o, CF ou Art. 3o da Lei 9.717/1998) - 0,25; Não - há imunidade expressa no Art. 195, II, da CF quanto a aposentadorias e pensoes do RGPS - 0,25.",
+    "pontos": 1,
+    "escala": "1,00 (0,25 / 0,20 / 0,25 / 0,25 / 0,05)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CF art. 40, par. 18",
+     "CF art. 149, par. 1o",
+     "CF art. 195, II",
+     "Lei 10.887/2004 art. 5o",
+     "Lei 9.717/1998 art. 3o"
+    ]
+   },
+   {
+    "quesito": "Q09 — Nome empresarial - proteção e ambito territorial: Não há registro do nome empresarial no INPI, pois não se insere na propriedade industrial (Art. 2o da Lei 9.279/1996) - 0,25, a simples mencao ao artigo não pontua; a proteção decorre automaticamente do registro do ato constitutivo na Junta Comercial (Art. 33 da Lei 8.934/1994) - 0,25, a simples mencao ao artigo não pontua; improcedente o argumento fundado na Convenção da União de Paris, pois a legislação aplicável e o Código Civil - 0,10; há paridade normativa entre lei ordinaria e tratados, aplicando-se o critério cronológico ou da especialidade - 0,10; a proteção ao uso exclusivo e restrita ao Estado de registro (Art. 1.166, caput, do CC) - 0,25, a simples mencao ao artigo não pontua.",
+    "pontos": 1,
+    "escala": "1,00 (0,25 / 0,25 / 0,10 / 0,10 / 0,25 / 0,05)",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 9.279/1996 art. 2o",
+     "Lei 8.934/1994 art. 33",
+     "CC art. 1.166"
+    ]
+   },
+   {
+    "quesito": "Q10 — Transporte aéreo internacional - Convenção de Montreal x CDC: Em transporte aéreo internacional observam-se os acordos firmados pela União, ainda que contrários ao CDC (Art. 178 da CF) - 0,35; a Convenção de Montreal (Decreto 5.910/2006) limita a responsabilidade por atraso a 4.150 Direitos Especiais de Saque por passageiro (Art. 22, 1) - 0,25; o dano moral independe de previsão na Convenção, não havendo silêncio eloquente - 0,25; fundamento do dano moral no Art. 5o, V e X, da CF ou Art. 6o, VI, do CDC - 0,10.",
+    "pontos": 1,
+    "escala": "1,00 (0,35 / 0,25 / 0,25 / 0,10 / 0,05)",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "CF art. 178",
+     "CF art. 5o, V e X",
+     "Decreto 5.910/2006 art. 22",
+     "CDC art. 6o, VI"
+    ]
+   }
+  ],
+  "total": 13,
+  "instrucoes": [
+   "Dez questões discursivas, cada uma valendo 1,00 ponto ('Nota da Questão' = 1).",
+   "Em todas as questões há item residual de 0,05 para 'Abordagem geral: Desenvolvimento, correção da linguagem, fluência e coerência da exposição' ou 'Utilização correta do idioma oficial e a capacidade de exposição'.",
+   "Na Questão 03 consta expressamente que 'a exposição não fundamentada só pontuará no item 1'.",
+   "Na Questão 09 consta, em três itens, a ressalva 'A simples mencao ao artigo não pontua'."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/tjms_espelho-de-correcao.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjmsjuiz23",
+  "nota": "Gabarito definitivo da objetiva publicado dentro do Edital 06/2023; nao ha PDF de gabarito definitivo autonomo nesta pagina."
+ },
+ {
+  "id": "tj-ms-2023-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença cível",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-MS",
+  "cargo": "Juiz Substituto",
+  "ano": 2023,
+  "fase": "sentença cível (espelho retificado)",
+  "disciplina": "Processo Civil",
+  "tema": "Conexão - teoria materialista",
+  "enunciado": "TJ-MS · 2023 · Juiz Substituto — sentença cível (espelho retificado) (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/juiz-substitutojsubii-tipo-1-sentenca-civel.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelho-para-publicacao-retificacao_civel.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "1 - Afirmacao da competência — Conexão - teoria materialista: Afirmacao da competência: art. 55, par. 2o, I e 3o, do CPC. Afastamento da aplicação analógica do enunciado sumular no 235 do STJ (não porque o processo de execução não foi sentenciado, mas porque sua lógica se confina aos processos de conhecimento). Breve explicacao acerca da teoria materialista da conexão. Fundamentação teleologica.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 55, par. 2o, I e par. 3o",
+     "Sumula 235 do STJ"
+    ]
+   }
+  ],
+  "total": 0.5,
+  "instrucoes": [
+   "Versao retificada do espelho da sentença cível, publicada com o mesmo formato de tabela 'Quesito Avaliado' / 'Pontuação Possível'."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelho-para-publicacao-retificacao_civel.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjmsjuiz23",
+  "nota": "Espelho retificado cobre so a sentenca civel; a prova e o mesmo caderno de sentenca civel do certame."
+ },
+ {
+  "id": "tj-ms-2023-esp3",
+  "tipo": "sentenca",
+  "peca": "Sentença cível e penal",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-MS",
+  "cargo": "Juiz Substituto",
+  "ano": 2023,
+  "fase": "sentença cível e sentença penal",
+  "disciplina": "Processo Civil, Consumidor, Civil, Empresarial, Sentença (estrutura), Processo Penal, Penal",
+  "tema": "Competência - conexão; Defesa heterotópica e preclusão; Ilegitimidade ativa e julgamento de mérito favorável; …",
+  "enunciado": "TJ-MS · 2023 · Juiz Substituto — sentença cível e sentença penal (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/juiz-substitutojsubii-tipo-1-sentenca-civel.pdf\nSegunda peça: https://conhecimento.fgv.br/sites/default/files/concursos/juiz-substitutojsubii-tipo-1-sentenca-criminal.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjms_espelho-de-correcao-prova-pratica.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Cível 1 - COMPETENCIA — Competência - conexão: Rejeicao da preliminar com fundamentação no Art. 55, paragrafo 2o, I, do CPC. 0,25 rejeicao da preliminar com fundamentação adequada; 0,25 citacao do Art. 55, par. 2o, I, do CPC.",
+    "pontos": 0.5,
+    "escala": "0,50 (0,25 + 0,25)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 55, par. 2o, I"
+    ]
+   },
+   {
+    "quesito": "Cível 2 - CABIMENTO DA DEMANDA AUTONOMA — Defesa heterotópica e preclusão: Rejeicao da preliminar por se tratar de defesa heterotópica admitida jurisprudencial e doutrinariamente e por ser a preclusão um fenomeno endoprocessual. 0,5 rejeicao fundamentada; 0,5 reconhecimento de que a preclusão e fenomeno endoprocessual que não impede o ajuizamento de outras demandas.",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 3 - ILEGITIMIDADE ATIVA — Ilegitimidade ativa e julgamento de mérito favorável: Acolhimento da preliminar, mas avancar ao mérito nos termos do Art. 488 do CPC. 0,5 acolhimento fundamentado; 0,5 aplicação do Art. 488 do CPC.",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 488"
+    ]
+   },
+   {
+    "quesito": "Cível 4 - INAPLICABILIDADE DO CDC — Teoria finalista - relação de insumo: Relação de insumo entre a sociedade e a instituição financeira e ausência de servicos prestados pelo banco ao autor. 0,25 relação de insumo; 0,25 ausência de servicos prestados.",
+    "pontos": 0.5,
+    "escala": "0,50 (0,25 + 0,25)",
+    "disciplina": "Consumidor",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 5 - INAPLICABILIDADE DA SUMULA 332 DO STJ — Fiança - outorga uxória - união estavel x casamento: Rejeicao da tese de defesa, com base em precedente do STJ que diferencia os regimes jurídicos do casamento e da união estavel. 0,5 rejeicao fundamentada; 0,5 conhecimento da jurisprudência do STJ sobre o ponto.",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Sumula 332 do STJ"
+    ]
+   },
+   {
+    "quesito": "Cível 6 - INAPLICABILIDADE DO ART. 1.000, P.U., DO CC — Exoneração do sócio retirante e fiança: Rejeicao da tese de defesa, reconhecendo a responsabilidade autônoma por forca do contrato de fiança; referência ao entendimento do STJ de que é necessária a notificação do credor para exoneração do ex-socio retirante. 0,5 rejeicao fundamentada; 0,5 conhecimento da jurisprudência do STJ.",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "CC art. 1.000, paragrafo unico"
+    ]
+   },
+   {
+    "quesito": "Cível 7 - IRRELEVANCIA DA RENEGOCIACAO DA DIVIDA — Revisão de contrato bancario após novacao: Rejeicao da preliminar com base no enunciado sumular no 286 do STJ. 0,5 rejeicao fundamentada; 0,5 conhecimento da súmula (não é necessário citar o numero do enunciado, apenas demonstrar ciência sobre sua existencia).",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Sumula 286 do STJ"
+    ]
+   },
+   {
+    "quesito": "Cível 8 - LICITUDE DO ANATOCISMO INFORMADO A PARTE — Capitalizacao mensal de juros: Rejeicao da tese de defesa, reconhecendo a possibilidade de capitalização mensal de juros pelas instituições financeiras e que tal prática fora informada a parte, nos termos da súmula do STJ. 0,5 rejeicao fundamentada; 0,5 conhecimento da jurisprudência do STF e do STJ (sem necessidade de citar o numero do enunciado).",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 9 - LICITUDE DAS TAXAS ACIMA DE 12% A.A. E ACIMA DA MEDIA DE MERCADO — Limitacao de juros remuneratórios: Rejeicao da tese de defesa, reconhecendo a possibilidade de as instituições financeiras cobrarem taxas acima de 12% ao ano e acima da media de mercado, que é apenas um parâmetro e não um limite. 0,5 quanto a limitacao a 12% a.a.; 0,5 quanto a limitacao a media de mercado.",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 10 - INAPLICABILIDADE DA TEORIA DO ADIMPLEMENTO SUBSTANCIAL — Adimplemento substancial: Rejeicao da tese de defesa; o candidato deverá descrever a teoria e seus pressupostos, concluindo que, mesmo que se reduzissem as taxas de juros, não seria possível manejar tal teoria para validar a inadimplência. 0,5 caracterizacao da teoria; 0,5 inaplicabilidade para validar a inadimplência.",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 11 - DISPOSITIVO — Dispositivo e sucumbência: Dispositivo congruente a fundamentação, com distribuição correta dos ônus da sucumbência e revogação da liminar.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 12 - IDIOMA — Língua portuguesa e capacidade de exposição: Utilização correta do idioma oficial e a capacidade de exposição.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal 1 — Nulidade: Rejeitar a preliminar de nulidade suscitada pela defesa.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Processo Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal 2 — Furto - materialidade e autoria: Em relação ao furto: reconhecer sua prática pelo acusado, a luz das provas indicadas na questão, condenando-o como incurso no Art. 155 do CP.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 155"
+    ]
+   },
+   {
+    "quesito": "Criminal 3 — Princípio da insignificância e corpo de delito: Refutar as alegacoes defensivas que conduziriam a atipicidade material do fato: princípio da bagatela (0,5) e ausência do exame de corpo de delito direto (0,5).",
+    "pontos": 1,
+    "escala": "1,00 (0,5 + 0,5)",
+    "disciplina": "Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal 4 — Crime impossível: Negar o reconhecimento de crime impossível.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 17"
+    ]
+   },
+   {
+    "quesito": "Criminal 5 — Consumação x tentativa no furto: Afastar a desclassificação da imputação para a forma tentada do delito de furto.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal 6 — Causa de aumento - repouso noturno: Manter a causa de aumento de pena do repouso noturno.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 155, par. 1o"
+    ]
+   },
+   {
+    "quesito": "Criminal 7 — Furto privilegiado: Indeferir o pedido da defesa de reconhecimento de furto privilegiado.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 155, par. 2o"
+    ]
+   },
+   {
+    "quesito": "Criminal 8 — Dosimetria - sistema trifásico: Aplicação da pena pelo sistema trifásico: 1a fase (0,5) fixacao da pena-base no mínimo legal; 2a fase (1,0) compensação da atenuante da confissão espontanea com a agravante da reincidência, afastando-se a agravante da calamidade pública e mantendo a pena no mesmo patamar; 3a fase (1,0) incidência da causa de aumento de 1/3 do Art. 155, par. 1o, do CP, fixacao do valor unitário do dia-multa no mínimo legal e do regime inicial semiaberto, negando substituição por restritivas de direitos e sursis, mantendo as medidas cautelares e permitindo recorrer em liberdade.",
+    "pontos": 2.5,
+    "escala": "2,50 (0,5 + 1,0 + 1,0)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 68",
+     "CP art. 155, par. 1o",
+     "CP art. 44",
+     "CP art. 77"
+    ]
+   },
+   {
+    "quesito": "Criminal 9 — Abordagem geral: Desenvolvimento, correção da linguagem, fluência e coerência da exposição.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   }
+  ],
+  "total": 20,
+  "instrucoes": [
+   "Espelho organizado em duas tabelas ('Sentença Civil' e 'Sentença Criminal'), cada uma com as colunas 'Quesito Avaliado' e 'Pontuação Possível'; total de 10,00 por sentença.",
+   "Varios quesitos são subdivididos em duas fracoes de 0,5 (ou 0,25), uma pela rejeicao/acolhimento fundamentado e outra pelo conhecimento do dispositivo ou da jurisprudência.",
+   "Em diversos quesitos consta expressamente: 'não é necessário citar o numero do enunciado, apenas demonstrar ciência sobre sua existencia'.",
+   "Há quesito autônomo de 0,50 para 'Utilização correta do idioma oficial e a capacidade de exposição' (cível) é de 0,50 para 'Desenvolvimento, correção da linguagem, fluência e coerência da exposição' (criminal)."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/tjms_espelho-de-correcao-prova-pratica.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjmsjuiz23",
+  "nota": "Espelho cobre as duas sentencas; prova de sentenca criminal em https://conhecimento.fgv.br/sites/default/files/concursos/juiz-substitutojsubii-tipo-1-sentenca-criminal.pdf"
+ },
+ {
+  "id": "tj-mt-2024-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-MT",
+  "cargo": "Juiz Substituto",
+  "ano": 2024,
+  "fase": "discursiva",
+  "disciplina": "Penal, Constitucional",
+  "tema": "Culpabilidade - exigibilidade de conduta diversa; Inexigibilidade de conduta diversa - exculpacao; Coação moral irresistivel; …",
+  "enunciado": "TJ-MT · 2024 · Juiz Substituto — discursiva (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjmt-prova-discursiva.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelho_tribunal-de-justica-do-mato-grossojuiz.pdf\nTempo sugerido: 1h por questão (15 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Q01 a1 — Culpabilidade - exigibilidade de conduta diversa: Insercao da exigibilidade de comportamento diverso como elemento da concepcao normativa de culpabilidade como reprovabilidade.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q01 a2 — Inexigibilidade de conduta diversa - exculpacao: Conceito de exigibilidade de comportamento diverso como 'poder agir de outro modo' condicionado a normalidade das circunstâncias da ação, levando a inexigibilidade a exculpacao, ou seja, ao afastamento da culpabilidade no caso concreto, com a consequente absolvição.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q01 b1 — Coação moral irresistivel: Conceito e explicacao correta quanto a coação moral irresistivel (art. 22, CP) e seus requisitos, primeira hipótese legal de inexigibilidade de conduta diversa.",
+    "pontos": 0.25,
+    "escala": "0,00 / 0,25",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 22"
+    ]
+   },
+   {
+    "quesito": "Q01 b2 — Obediência hierárquica: Conceito e explicacao correta quanto a obediência hierárquica (art. 22, CP) e seus requisitos, segunda hipótese legal de inexigibilidade de conduta diversa.",
+    "pontos": 0.25,
+    "escala": "0,00 / 0,25",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 22"
+    ]
+   },
+   {
+    "quesito": "Q01 c — Causas supralegais de inexigibilidade: Sim, admitem-se hipóteses supralegais de inexigibilidade de conduta diversa. Para pontuação total no item, deve ser dado ao menos um exemplo correto de sua aplicação, a partir da jurisprudência ou da doutrina.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q02 a1 — Igualdade de genero em concurso público: As legislacoes que restringem a ampla participação de candidatas do genero feminino, sem previsão legal e legitimamente justificadas, caracterizam afronta a igualdade de genero e afrontam o princípio da igualdade (CF, Art. 5o).",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF art. 5o"
+    ]
+   },
+   {
+    "quesito": "Q02 a2 — Critérios de distinção entre homens e mulheres para cargos públicos: A lei não poderá estabelecer critérios de distinção entre homens e mulheres para acesso a cargos, empregos ou funções públicas, inclusive na area de segurança pública, exceto quando a natureza do cargo assim o exigir, diante da real e efetiva necessidade.",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q02 a3 — Acoes afirmativas: A participação feminina na formacao do efetivo das areas de segurança pública, incluindo militares estaduais, deve ser incentivada mediante ações afirmativas.",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q02 a4 — Vedacao a limitacao de vagas para mulheres: A norma do enunciado possibilita a exclusão da participação de mulheres na concorrencia pelo total das vagas; confere espaco interpretativo que permite restricao ao acesso de candidatas a totalidade das vagas ofertadas sem justificativa real e tecnicamente demonstrada; é vedada a interpretação que legitime qualquer limitacao.",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q02 a5 — Interpretação conforme a Constituição - percentual mínimo: A norma deve receber interpretação conforme a Constituição, afastando exegese que admita restricao a participação de candidatas, de maneira que o dispositivo seja interpretado como percentual mínimo de 15%, podendo as mulheres concorrer a todas as vagas. Bibliografia: STF, ADI 7.480/SE, ADI 7.482/RR, ADI 7.491/CE, Rel. Min. Alexandre de Moraes, j. 13/05/2024 - Info 1136; ADI 7.492/AM, Rel. Min. Cristiano Zanin, j. 10/02/2024.",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "ADI 7.480/SE",
+     "ADI 7.482/RR",
+     "ADI 7.491/CE",
+     "ADI 7.492/AM"
+    ]
+   },
+   {
+    "quesito": "Q02 b1 — Posse de aprovado com condenação criminal transitada em julgado: E inconstitucional, por violacao a dignidade da pessoa humana (CF, Art. 1o, III) e ao valor social do trabalho (CF, Art. 1o, III e IV), a vedacao a que candidato aprovado em concurso público venha a tomar posse no cargo.",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF art. 1o, III e IV"
+    ]
+   },
+   {
+    "quesito": "Q02 b2 — Direitos políticos e quitacao eleitoral: ...por não preencher os requisitos de gozo dos direitos políticos e quitacao eleitoral, em razao de condenação criminal transitada em julgado (CF, Art. 15, III).",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF art. 15, III"
+    ]
+   },
+   {
+    "quesito": "Q02 b3 — Fundamento unico de eliminacao: ...quando este for o unico fundamento para sua eliminacao no certame.",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q02 b4 — Reintegracao social do egresso: ...uma vez que é obrigatoriedade do Estado e da sociedade fornecer meios para que o egresso se reintegre a sociedade.",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q02 b5 — Condicionamento do exercício ao regime da pena: O início do efetivo exercício do cargo ficara condicionado ao regime da pena ou a decisão judicial do juízo de execuções, que analisara a compatibilidade de horarios. Bibliografia: STF, RE 1.282.553/RR, Rel. Min. Alexandre de Moraes, j. 4/10/2023 (Repercussão Geral - Tema 1190) (Info 1111).",
+    "pontos": 0.2,
+    "escala": "0,00 / 0,10 / 0,20",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "RE 1.282.553/RR - Tema 1190"
+    ]
+   }
+  ],
+  "total": 4,
+  "instrucoes": [
+   "Espelho em formato de tabela por questão, com coluna 'Itens' indicando o somatorio bruto dos itens e a linha final 'Nota da Questão' indicando o valor da questão (2,00 por questão).",
+   "Cada item traz a escala fechada de pontuação possível (ex.: 0,00 / 0,25 / 0,50 ou 0,00 / 0,10 / 0,20), sem valores intermediarios.",
+   "Diversos itens indicam expressamente 'Bibliografia de referência' com o precedente do STF/STJ e o numero do Informativo.",
+   "No item c) da Questão 01 consta: 'Para pontuação total no item, deve ser dado ao menos um exemplo correto de sua aplicação, a partir da jurisprudência ou da doutrina.'"
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelho_tribunal-de-justica-do-mato-grossojuiz.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjmtjuiz24",
+  "nota": ""
+ },
+ {
+  "id": "tj-to-2025-esp1",
+  "tipo": "sentenca",
+  "peca": "Sentença cível e penal",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-TO",
+  "cargo": "Juiz Substituto",
+  "ano": 2025,
+  "fase": "sentença cível e sentença penal",
+  "disciplina": "Processo Civil, Consumidor, Civil, Sentença (estrutura), Penal, Constitucional, Processo Penal",
+  "tema": "Ilegitimidade passiva do médico; Interesse de agir; Responsabilidade objetiva do hospital; …",
+  "enunciado": "TJ-TO · 2025 · Juiz Substituto — sentença cível e sentença penal (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjto-sent-civ.pdf\nSegunda peça: https://conhecimento.fgv.br/sites/default/files/concursos/tjto-sent-crim.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelho-tjto-sentenca_0.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Cível 1 — Ilegitimidade passiva do médico: Afastamento da preliminar de ilegitimidade passiva do médico. Restou comprovado pelas provas dos autos, inclusive por depoimento testemunhal, que foi ele quem estava presente no momento da queda. Por se tratar de profissional vinculado a instituição hospitalar e responsável pelo atendimento direto ao paciente, aplica-se a responsabilidade solidária do Art. 7o, paragrafo unico, do CDC, além da jurisprudência consolidada do STJ (REsp 1.145.728/MG).",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CDC art. 7o, p.u."
+    ]
+   },
+   {
+    "quesito": "Cível 2 — Interesse de agir: Rejeicao da preliminar de interesse de agir. O interesse de agir pressupoe necessidade e utilidade da tutela jurisdicional. A omissão dos réus no suporte pos-queda justifica a busca pela reparação judicial. O fato de o autor ter arcado com os custos do novo tratamento não descaracteriza o interesse processual.",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 3 — Responsabilidade objetiva do hospital: Reconhecida a aplicação do CDC, nos termos do Art. 14. A responsabilidade do hospital e objetiva, exigindo apenas a demonstracao do dano, do fato e do nexo causal; não se exige culpa. As excludentes do Art. 14, par. 3o, do CDC não foram comprovadas pelo hospital; ao contrário, a prova testemunhal trazida pelo corretu contribuiu com a narrativa autoral.",
+    "pontos": 1.5,
+    "escala": "0,00 / 0,75 / 1,50",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "CDC art. 14",
+     "CDC art. 14, par. 3o"
+    ]
+   },
+   {
+    "quesito": "Cível 4 — Responsabilidade subjetiva do profissional liberal: Ante a prova colhida nos depoimentos das testemunhas, também ficou provada a culpa do médico, na forma do Art. 14, par. 4o, do CDC.",
+    "pontos": 1.5,
+    "escala": "0,00 / 0,75 / 1,50",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "CDC art. 14, par. 4o"
+    ]
+   },
+   {
+    "quesito": "Cível 5 — Dano material: Dano material: comprovados mediante recibos e laudos médicos os gastos com cirurgia (R$ 15.000,00) e fisioterapia (R$ 2.000,00). Os réus devem restituir, solidariamente, os valores.",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 6 — Dano moral: Dano moral: restou incontroverso que o autor caiu da maca após o procedimento e fraturou o fêmur. A queda de um paciente recem-operado, sem assistencia adequada e sem equipamentos de segurança mínimos, causa abalo psíquico, dor e sofrimento que ultrapassam o mero aborrecimento.",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 7 — Dispositivo - condenação, correção e juros: Dispositivo: procedencia dos pedidos para condenar os réus ao pagamento de danos materiais de R$ 17.000,00, com correção monetária desde o desembolso (Súmula 43 do STJ) e juros de mora a partir da citacao (Art. 405 do CC), e danos morais com correção monetária do arbitramento (Súmula 362 do STJ) e juros de mora a partir da citacao (Art. 405 do CC).",
+    "pontos": 2,
+    "escala": "0,00 / 0,40 / 0,80 / 1,20 / 2,00",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "CC art. 405",
+     "Sumula 43 do STJ",
+     "Sumula 362 do STJ"
+    ]
+   },
+   {
+    "quesito": "Cível 8 — Sucumbência e providências finais: Dispositivo: condenar os réus ao pagamento das custas processuais e honorários advocaticios fixados em 10% sobre o valor da condenação, nos termos do Art. 85, par. 2o, do CPC. Publique-se. Registre-se. Intimem-se. Após o transito em julgado, arquivem-se.",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "CPC art. 85, par. 2o"
+    ]
+   },
+   {
+    "quesito": "Criminal 1.1 — Corrupção passiva: O acusado e funcionário público (art. 327 do CP) e recebeu vantagens indevidas para retardar ou deixar de praticar atos de ofício; comprovadas autoria e materialidade do art. 317, caput e par. 1o, do CP; ainda que tenha repassado informações sigilosas obtidas no exercício do cargo, não há condenação por violacao de sigilo funcional (art. 325 do CP), pois absorvida pelo crime mais grave.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 317",
+     "CP art. 325",
+     "CP art. 327"
+    ]
+   },
+   {
+    "quesito": "Criminal 1.2 — Corrupção ativa: Ciente do conluio e mediante recebimento de comissao, a corré contribuiu para o repasse de vantagens indevidas ao policial, conforme imagens de cameras, depoimentos e dados do COAF, Banco Central e Receita Federal; o corretu ordenou pagamentos de vantagens indevidas com o fim de cooptacao do agente público; comprovadas autoria e materialidade quanto ao crime de corrupção ativa (art. 333 e p.u. c/c art. 29 do CP).",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 333",
+     "CP art. 29"
+    ]
+   },
+   {
+    "quesito": "Criminal 1.3 — Organização criminosa x associação criminosa e emendatio libelli: O enunciado narra grupo estavel e estruturado com divisao de tarefas; entretanto, o art. 2o da Lei 12.850/2013 exige 4 ou mais pessoas, o que não se apresenta na hipótese; logo, o fato deve ser enquadrado no art. 288 do CP (associação criminosa) e não no art. 2o da Lei 12.850/13; deve ser aplicada a emendatio libelli, operando-se não a absolvição, mas a desclassificação, nos termos do art. 383 do CPP.",
+    "pontos": 1.5,
+    "escala": "0,00 / 0,50 / 1,00 / 1,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 12.850/2013 art. 2o",
+     "CP art. 288",
+     "CPP art. 383"
+    ]
+   },
+   {
+    "quesito": "Criminal 1.4 — Lavagem de dinheiro com criptoativos: A dissimulação dos valores provenientes da corrupção por meio de transações com criptoativos registrados em nome de pessoas inexistentes se enquadra no art. 1o, caput, da Lei 9.613/98; incide a causa de aumento do art. 1o, par. 4o, da Lei 9.613/98, pois houve utilização de ativo virtual (criptoativo).",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 9.613/1998 art. 1o, caput e par. 4o"
+    ]
+   },
+   {
+    "quesito": "Criminal 1.5 — Continuidade delitiva e concurso material: Quanto aos crimes de corrupção e lavagem, a reiteração de pagamentos configurou continuidade delitiva (art. 71 do CP); no periodo de janeiro a dezembro de 2024 foram feitos dois pagamentos semestrais, configurando dois crimes de corrupção e dois de lavagem, com unidade de desígnios e modus operandi semelhante, com aumento de 1/6; em analise conjunta dos crimes de corrupção, lavagem e associação criminosa, aplica-se a regra do concurso material (art. 69 do CP).",
+    "pontos": 1,
+    "escala": "0,00 / 0,25 / 0,50 / 1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 71",
+     "CP art. 69"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.1.1 — Dosimetria - corrupção passiva: Na esteira do art. 68 do CP, pena-base no mínimo legal de 2 anos de reclusão e 10 dias-multa (art. 59); 2a fase sem agravantes, com atenuante da confissão (art. 65, III, 'd') que não pode reduzir aquém do mínimo (Súmula 231/STJ); 3a fase com acrescimo de 1/6 pela continuidade delitiva, atingindo 2 anos e 4 meses e 11 dias-multa; incidência da causa de aumento do art. 317, par. 1o, do CP, elevando em 1/3 para 3 anos, 1 mes e 20 dias de reclusão e 14 dias-multa.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 68",
+     "CP art. 59",
+     "CP art. 65, III, d",
+     "CP art. 317, par. 1o",
+     "Sumula 231 do STJ"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.1.2 — Dosimetria - associação criminosa: Ante a ausência de moduladores legais, reiterado o comentario sobre a confissão, a pena-base equivale a pena definitiva e deve ser fixada no mínimo legal, ou seja, em 1 ano de reclusão.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 288"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.1.3 — Dosimetria - lavagem de ativos: 1a fase: pena-base no mínimo legal de 3 anos de reclusão e 10 dias-multa; 2a fase inalterada; 3a fase com acrescimo de 1/6 pela continuidade delitiva, atingindo 3 anos e 6 meses e 11 dias-multa; acrescimo de 1/3 pela majorante do art. 1o, par. 4o, da Lei 9.613/98 (emprego de ativo virtual), atingindo 4 anos e 8 meses de reclusão e 14 dias-multa.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 9.613/1998 art. 1o, par. 4o",
+     "CP art. 71"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.1.4 / 2.2.4 — Pena total e regime: Ante o concurso material (art. 69 do CP), o total da pena resta fixado em 8 anos, 9 meses e 20 dias de reclusão, além de 28 dias-multa. Regime prisional inicialmente fechado (art. 33, par. 2o, 'a', do CP).",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 69",
+     "CP art. 33, par. 2o, a"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.2.1 — Dosimetria - corrupção ativa: 1a fase: pena-base no mínimo legal de 2 anos de reclusão e 10 dias-multa; 2a fase sem agravantes, com atenuante da confissão (parcial e qualificada) que não reduz aquém do mínimo; 3a fase com acrescimo de 1/6 pela continuidade delitiva (2 anos e 4 meses e 11 dias-multa) e majoração de 1/3 pelo art. 333, p.u., do CP, para 3 anos, 1 mes e 20 dias de reclusão e 14 dias-multa.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 333, p.u."
+    ]
+   },
+   {
+    "quesito": "Criminal 2.3.1 — Perda do cargo e interdição: Decretacao obrigatoriamente motivada da perda do cargo público, nos termos do art. 92, I e par. 1o, do CP, bem como imposicao da interdição do exercício de cargo ou função pública de qualquer natureza é de diretor, membro de conselho de administração ou de gerência das pessoas jurídicas do art. 9o da Lei 9.613/98, pelo dobro do tempo da pena privativa de liberdade aplicada (art. 7o, II, do mesmo diploma).",
+    "pontos": 0.4,
+    "escala": "0,00 / 0,20 / 0,40",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 92, I e par. 1o",
+     "Lei 9.613/1998 art. 7o, II"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.3.2 — Perda do produto do crime: Decretacao automatica da perda do dinheiro sequestrado por se tratar do produto patrimonial dos crimes praticados, nos termos do art. 91, II, do CP c/c art. 7o, I, da Lei 9.613/98.",
+    "pontos": 0.4,
+    "escala": "0,00 / 0,20 / 0,40",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 91, II",
+     "Lei 9.613/1998 art. 7o, I"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.3.3 — Impossibilidade de substituição da pena: Declaração da impossibilidade de substituição da pena privativa de liberdade por penas restritivas de direitos (pena total superior a 4 anos), nos termos do art. 44, I, do CP.",
+    "pontos": 0.4,
+    "escala": "0,00 / 0,20 / 0,40",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 44, I"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.3.4 — Suspensão dos direitos políticos: Decretacao automatica da suspensão dos direitos políticos durante os efeitos da condenação, nos termos do art. 15, III, da CR/88.",
+    "pontos": 0.4,
+    "escala": "0,00 / 0,20 / 0,40",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF art. 15, III"
+    ]
+   },
+   {
+    "quesito": "Criminal 2.3.5 — Reparação mínima do art. 387, IV, do CPP: Mencao ao descabimento da fixacao, de ofício, de reparação mínima dos danos causados pelos crimes praticados, conforme o art. 387, IV, do CPP, ante a ausência de pedido expresso na denúncia.",
+    "pontos": 0.4,
+    "escala": "0,00 / 0,20 / 0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP art. 387, IV"
+    ]
+   }
+  ],
+  "total": 18.5,
+  "instrucoes": [
+   "Documento 'Conferência da Tabela de Questões - Disciplina A - Juiz Substituto'; a sentença cível indica 'Itens = 8' e a criminal 'Itens = 18', com 'Nota da Questão' = 10 em cada.",
+   "Na sentença criminal, cada bloco traz entre parenteses a escala de pontuação no próprio titulo (p. ex., '0/0,25/0,50', '0/0,50/1,0/1,5', '0/0,20/0,40').",
+   "A sentença criminal e dividida em '1. Fundamentação' e '2. Dispositivo (dosimetria e disposicoes finais) - (total: 6,0 pontos)'."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelho-tjto-sentenca_0.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjto25",
+  "nota": "Espelho cobre as duas sentencas; prova de sentenca criminal em https://conhecimento.fgv.br/sites/default/files/concursos/tjto-sent-crim.pdf"
+ },
+ {
+  "id": "tj-pe-2023-esp1",
+  "tipo": "sentenca",
+  "peca": "Sentença cível e penal",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-PE",
+  "cargo": "Juiz Substituto",
+  "ano": 2023,
+  "fase": "sentença cível e sentença penal",
+  "disciplina": "Processo Civil, Civil, Empresarial, Consumidor, Sentença (estrutura), Penal, ECA/Infância, Processo Penal",
+  "tema": "Negócio jurídico processual - limites e nulidade; Condições da ação e suspensão pela falência; Prescrição - dívida líquida em instrumento particular; …",
+  "enunciado": "TJ-PE · 2023 · Juiz Substituto — sentença cível e sentença penal (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/juiz-substituto-sentenca-civelj-subs2-tipo-1.pdf\nSegunda peça: https://conhecimento.fgv.br/sites/default/files/concursos/juiz-substituto-sentenca-criminalj-subs-tipo-1.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelhos-das-sentencas-para-publicacao-1.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Cível - Homologacao do acordo (1a e 2a cláusulas) — Negócio jurídico processual - limites e nulidade: Rejeitar a primeira cláusula por ilicitude do objeto (Art. 104, II, do CC), porquanto verse alienação direta de bem da massa falida em prejuízo aos demais credores, em desrespeito ao Art. 142 da Lei 11.101/2005; rejeitar a segunda cláusula porque extrapola os poderes de negociacao sobre o processo, repercutindo sobre os poderes do juiz e subjugando-o a proceder a ato de constricao (REsp 1.810.444/SP, Rel. Min. Luis Felipe Salomao); a luz do art. 848 do CC, sendo nula qualquer das cláusulas da transação, nula será esta, não sendo possível a homologacao parcial. A referência a incompetência do juízo, além de equivocada, não contemplava as nulidades específicas.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CC art. 104, II",
+     "CC art. 848",
+     "Lei 11.101/2005 art. 142",
+     "CPC art. 190"
+    ]
+   },
+   {
+    "quesito": "Cível - Preliminares de falta de interesse, ilegitimidade passiva e suspensão — Condições da ação e suspensão pela falência: Afastar a preliminar de falta de interesse com foco na jurisprudência do STJ (REsp 1.748.849/SP), abordando a aplicação analógica do Art. 785 do CPC e podendo referir os enunciados 446 do FPPC e 101 da I Jornada de Direito Processual Civil do CJF; rejeitar a ilegitimidade ad causam, pois os contratos de locação são res inter alios acta em relação ao condomínio e, por se tratar de obrigação propter rem, o proprietário mantem a responsabilidade pelas cotas; indeferir o pedido de suspensão, pois a ação injuntiva não se suspende (Art. 6o, par. 1o, da Lei 11.101/2005), sendo o encargo condominial crédito extraconcursal.",
+    "pontos": 1.5,
+    "escala": "1,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 785",
+     "Lei 11.101/2005 art. 6o, par. 1o"
+    ]
+   },
+   {
+    "quesito": "Cível - Prejudicial de prescrição: prazo aplicável — Prescrição - dívida líquida em instrumento particular: Reconhecimento do prazo quinquenal, conforme Art. 206, par. 5o, I, do Código Civil, a teor da tese firmada no recurso especial repetitivo no 1.483.930/DF, por se tratar de dívida líquida constante de instrumento particular. Não bastava a mencao do dispositivo legal, sem a pertinente fundamentação para sua incidência em detrimento do prazo trienal aplicável ao enriquecimento sem causa.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 206, par. 5o, I"
+    ]
+   },
+   {
+    "quesito": "Cível - Interrupcao pelo decreto de falência: rejeicao — Efeitos da falência sobre a prescrição: A decretacao de falência não interrompeu o fluxo do prazo prescricional, haja vista que o efeito do Art. 6o, I, da Lei 11.101/2005, com a nova redação, limita-se as dívidas abrangidas pelo sistema concursal. A singela asserção de que o dispositivo impoe suspensão em vez de interrupcao não pontuou, porque parte de premissa equivocada.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 11.101/2005 art. 6o, I"
+    ]
+   },
+   {
+    "quesito": "Cível - Incidência do CDC: afastamento — Relação condominial não consumerista: Afastar a incidência do Código de Defesa do Consumidor: a relação mantida entre as partes é de direito civil, notadamente de direito real decorrente da copropriedade (AgInt no REsp 1.419.490/PR).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Consumidor",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível - Mérito: cotas extraordinarias, abatimento de cessões, art. 940 e multa moratória — Despesas condominiais, compensação, cobranca indevida e multa: Afirmar que compete ao condômino arcar com sua parte nas cotas extraordinarias, ainda que referentes a rateio de despesas judiciais em processo contra si ajuizado; afastar a confusão, demonstrando que a Construtora não era credora; apreciar o abatimento das cessões de crédito; aplicar a pena do Art. 940 do CC pela omissão de má-fé; reduzir a multa moratória a 2%.",
+    "pontos": null,
+    "escala": "não discriminada",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 940"
+    ]
+   },
+   {
+    "quesito": "Cível - Desconsideração da personalidade jurídica — Desconsideração - cerceamento, limitacao temporal e rejeicao: Rejeitar a alegacao de cerceamento de defesa (0,50); rejeitar a limitacao temporal; rejeitar o pedido de desconsideração, diante da inaplicabilidade do CDC a espécie e da peculiaridade própria do caso concreto a ser enfrentada.",
+    "pontos": 0.5,
+    "escala": "0,50 (quesito do cerceamento de defesa); demais itens não discriminados",
+    "disciplina": "Empresarial",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível - Dispositivo, parcelas vincendas e sucumbência — Dispositivo, parcelas vincendas e ônus sucumbenciais: Resultado coerente com a fundamentação e abrangente de todos os aspectos abordados; juros de mora e correção sobre as mensalidades atrasadas desde o vencimento; admitir a inclusão das parcelas vincendas em nome da economia processual; reconhecer a sucumbência recíproca e fixar honorários.",
+    "pontos": 1.5,
+    "escala": "1,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal - Morte e prescrição — Extincao da punibilidade: Constatar que o ultimo marco interruptivo do prazo prescricional se materializou com o recebimento da denúncia e reconhecer a extincao da punibilidade. Fator de perda de pontos: estruturação inadequada, com analise no bojo do mérito propriamente dito.",
+    "pontos": null,
+    "escala": "não discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 107, I",
+     "CP art. 107, IV"
+    ]
+   },
+   {
+    "quesito": "Criminal - Materialidade e autoria (art. 157 do CP); consumação e tentativa — Roubo - prova, autoria e iter criminis: Citar que a materialidade restou comprovada pelo Auto de Prisão em Flagrante, Auto de Reconhecimento Pessoal, Auto de Apreensão dos bens, Laudo de Avaliacao, Auto de Apreensão da arma de fogo e da faca, Laudo de potencialidade lesiva, versao dos policiais, reconhecimento em juízo e confissão; citar que a autoria restou comprovada quanto a Guilherme, mas não quanto a Davi, até porque o reconhecimento fotografico não pode ser utilizado como elemento de prova (HC 598.886-SC); citar que em relação a duas vítimas os roubos se consumaram (art. 14, I, do CP) com a inversao da posse, aplicando o Enunciado 582 da Súmula do STJ, e que o roubo contra a terceira vítima foi tentado.",
+    "pontos": 0.8,
+    "escala": "0,80",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 157",
+     "CP art. 14, I e II",
+     "Sumula 582 do STJ"
+    ]
+   },
+   {
+    "quesito": "Criminal - Concurso de pessoas, emprego de arma branca e emprego de arma de fogo — Majorantes do roubo e sucessão de leis penais: Citar que a majorante do concurso de pessoas (art. 157, par. 2o, II, do CP) restou comprovada pela prova oral; afastar a causa de aumento do emprego de arma branca por ter sido reinserida no art. 157, par. 2o, VII, do CP apenas pela Lei 13.964/2019, posterior aos fatos, após a revogação pela Lei 13.654/2018, aplicando-se o princípio da irretroatividade da novatio legis in pejus; apreciar a majorante do emprego de arma de fogo.",
+    "pontos": null,
+    "escala": "não discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 157, par. 2o, II",
+     "CP art. 157, par. 2o, VII",
+     "Lei 13.654/2018",
+     "Lei 13.964/2019"
+    ]
+   },
+   {
+    "quesito": "Criminal - Materialidade e autoria do art. 244-B do ECA; tese defensiva — Corrupção de menores - crime formal: Citar que a materialidade restou comprovada pela certidao de nascimento, Auto de Reconhecimento Pessoal, Auto de Apreensão dos bens e versao dos policiais; citar que a autoria restou comprovada quanto a Guilherme; afastar a tese defensiva que busca a absolvição pela previa experiência criminosa do adolescente, com base na Súmula 500 do STJ; quanto ao segundo adolescente, a autoria não restou comprovada.",
+    "pontos": null,
+    "escala": "não discriminada",
+    "disciplina": "ECA/Infância",
+    "dispositivos": [
+     "ECA art. 244-B",
+     "Sumula 500 do STJ"
+    ]
+   },
+   {
+    "quesito": "Criminal - Associação criminosa — Associação criminosa - ausência de materialidade: Citar que a materialidade delitiva não foi comprovada, pela ausência de demonstracao do vinculo associativo estavel e permanente, absolvendo os acusados.",
+    "pontos": null,
+    "escala": "não discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 288"
+    ]
+   },
+   {
+    "quesito": "Criminal - Dispositivo — Dispositivo da sentença penal: Julgar parcialmente procedente a pretensão punitiva para: a) extinguir a punibilidade de Ticio pela morte (art. 107, I, do CP); b) extinguir a punibilidade de Guilherme quanto ao art. 330 pela prescrição (art. 107, IV, do CP); c) condenar Guilherme pelos crimes dos arts. 157, par. 2o, II e par. 2o-A, I, c/c art. 14, I, duas vezes; art. 157, par. 2o, II e par. 2o-A, I, c/c art. 14, II, nos termos do art. 71; art. 244-B, caput, do ECA, na forma do art. 70 do CP, absolvendo-o do art. 288, p.u., do CP (art. 386, VII, do CPP) e do art. 244-B do ECA quanto ao segundo adolescente (art. 386, VI, do CPP); d) absolver Davi de todas as imputações (art. 386, VII, do CPP).",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "CP art. 107, I e IV",
+     "CP art. 157",
+     "CP art. 70",
+     "CP art. 71",
+     "ECA art. 244-B",
+     "CPP art. 386, VI e VII"
+    ]
+   },
+   {
+    "quesito": "Criminal - Dosimetria: 1a fase — Circunstâncias judiciais do art. 59: Citar todas as circunstâncias judiciais do art. 59 do CP; poderá, no crime do art. 157, exasperar a pena-base em razao do emprego de arma branca, ante a revogação da majorante pela Lei 13.654/2018; deverá exasperar a pena-base em razao dos antecedentes (anotacao 01 da FAC - Súmula 636 do STJ), considerando o sistema da perpetuidade prestigiado pelo STF no RE 593.818 RG/SC; a anotacao 03, relacionada a processo em curso, não pode ser valorada.",
+    "pontos": 0.8,
+    "escala": "0,80",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 59",
+     "Sumula 636 do STJ",
+     "RE 593.818 RG/SC"
+    ]
+   },
+   {
+    "quesito": "Criminal - Dosimetria: 2a e 3a fases — Agravantes, atenuantes, causas de diminuição e concurso de crimes: Reconhecer, no crime do art. 157, as circunstâncias legais cabiveis, observando que o candidato que utilizar uma delas na 1a fase não poderá utiliza-la novamente; aplicar, no roubo tentado, a causa de diminuição correspondente; na corrupção de menores manter a pena no mesmo patamar; observar as modalidades de concurso de crimes. Fator de perda de pontos: afirmar que o STJ veda a dupla exasperação e considerar apenas a continuidade delitiva.",
+    "pontos": 0.4,
+    "escala": "0,30 e 0,40 (blocos distintos)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 70",
+     "CP art. 71"
+    ]
+   },
+   {
+    "quesito": "Criminal - Detração e regime prisional — Detração na sentença e regime inicial: Citar que, aplicando o art. 387, par. 2o, do CPP, não há alteracao de regime prisional; fixar o regime inicial fechado, considerando a reincidência e a pena aplicada (art. 33, par. 2o, 'a', do CP).",
+    "pontos": 0.3,
+    "escala": "0,30",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP art. 387, par. 2o",
+     "CP art. 33, par. 2o, a"
+    ]
+   },
+   {
+    "quesito": "Criminal - Arts. 44 e 77 do CP, indenização mínima e prisão preventiva — Substituição, sursis, art. 387, IV, do CPP e cautelares: Citar que os benefícios dos arts. 44 e 77 do CP não são cabiveis em razao da pena aplicada; deixar de arbitrar valor indenizatório mínimo (art. 387, IV, do CPP), pois não há pedido das vítimas e do MP; indeferir o pedido de decretacao da prisão preventiva, até porque denúncias anonimas não podem ensejar a aplicabilidade de medidas cautelares (HC 106.152, STF).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CP art. 44",
+     "CP art. 77",
+     "CPP art. 387, IV"
+    ]
+   },
+   {
+    "quesito": "Criminal - Disposicoes finais — Efeitos e providências finais: Condenar ao pagamento das custas processuais (Art. 804 do CPP); aplicar, em relação a arma de fogo, o Art. 25 da Lei 10.826/2003; determinar o perdimento da faca em favor da União (Art. 91, II, 'a', do CP).",
+    "pontos": 0.7,
+    "escala": "0,70",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP art. 804",
+     "Lei 10.826/2003 art. 25",
+     "CP art. 91, II, a"
+    ]
+   }
+  ],
+  "total": 10.4,
+  "instrucoes": [
+   "Documento 'ESPELHOS DAS SENTENCAS' do concurso TJPE, com blocos por quesito e coluna 'ITENS' com a pontuação.",
+   "Cada quesito da sentença criminal traz linha final 'Pontuação: Adequacao da resposta ao gabarito proposto. Dispositivos legais [e Súmula do STJ]'.",
+   "Cada quesito criminal traz também 'Fatores ensejadores de perda de pontos, para além da não adequacao ao gabarito proposto', com hipóteses expressas (p. ex., estruturação inadequada, analise no bojo do mérito propriamente dito, indicacao erronea de dispositivo, realização da dosimetria com base em crime diverso).",
+   "Na sentença cível consta expressamente que 'A referência a teoria da asserção deveria ser acompanhada da cabivel conceituacao, além da aplicação no caso, com os motivos concretos para afastamento das preliminares'.",
+   "Consta ainda: 'Não bastava a mencao do dispositivo legal, sem a pertinente fundamentação para sua incidência' e 'A singela asserção de que o dispositivo impoe a suspensão do prazo em vez de sua interrupcao não pontuou, porque parte da premissa equivocada'.",
+   "Ao final da sentença cível: 'Em todos os topicos, foi avaliado, também, o raciocinio jurídico, a clareza e a forca [da argumentação]'."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelhos-das-sentencas-para-publicacao-1.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjpe22",
+  "nota": "Cadernos listados como '2o Dia' (civel) e '3o Dia'; prova de sentenca criminal em https://conhecimento.fgv.br/sites/default/files/concursos/juiz-substituto-sentenca-criminalj-subs-tipo-1.pdf"
+ },
+ {
+  "id": "tj-pe-2024-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-PE",
+  "cargo": "Juiz Substituto",
+  "ano": 2024,
+  "fase": "discursiva",
+  "disciplina": "Civil, Penal, Administrativo, Consumidor, Eleitoral, Processo Civil",
+  "tema": "Escada ponteana - plano da eficácia; Saisine e frutos; Posse de boa-fé e frutos percebidos; …",
+  "enunciado": "TJ-PE · 2024 · Juiz Substituto — discursiva (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-prova-discursiva.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-2025-espelho-de-correcao-provas-discursivas-publicacao.pdf\nTempo sugerido: 1h por questão (27 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Q01 item 1 — Escada ponteana - plano da eficácia: Identificação, a luz da escada ponteana, de que o rompimento da disposicao de ultima vontade opera no plano da eficácia, conforme doutrina majoritaria. Diferenciação entre vícios congenitos e fatos supervenientes que levam a retirada de efeitos.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q01 item 2 — Saisine e frutos: Por forca da saisine, a herdeira adquiriu o bem tao logo faleceu o autor da herança. Citacao do Art. 1.784 do Código Civil. Quanto aos frutos, aplica-se o art. 1.923, par. 2o, do mesmo código.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 1.784",
+     "CC art. 1.923, par. 2o"
+    ]
+   },
+   {
+    "quesito": "Q01 item 3 — Posse de boa-fé e frutos percebidos: Reconhecimento de que sua posse era de boa-fé, porque não contaminada por vício algum, de modo que faz jus aos frutos percebidos enquanto durou. Citacao do Art. 1.214, caput, do Código Civil.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 1.214"
+    ]
+   },
+   {
+    "quesito": "Q01 item 4 — Pagamento a credor putativo e locação: Admissão da forca liberatória dos pagamentos feitos pela pessoa jurídica a credor putativo, seja porque realmente fazia jus aos frutos, seja porque só depois cessou sua condição de herdeira (Art. 309 do CC); a luz do art. 10 da Lei 8.245/91, a locação se transmitiu, sendo indiferente a qualidade de proprietária ou legitima possuidora, desde que assegurada a permanencia do inquilino no imóvel.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 309",
+     "Lei 8.245/1991 art. 10"
+    ]
+   },
+   {
+    "quesito": "Q02 a — Princípio da legalidade no sistema disciplinar da LEP: Analise qualificada do Art. 45, caput, da Lei de Execução Penal (anterioridade e taxatividade na definicao das hipóteses de faltas e sanções). Há reserva legal somente para faltas graves (Art. 49, LEP).",
+    "pontos": 0.75,
+    "escala": "0,75",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "LEP art. 45",
+     "LEP art. 49"
+    ]
+   },
+   {
+    "quesito": "Q02 b1 — Princípio da humanidade no sistema disciplinar: Analise qualificada do Art. 45, par. 1o e 2o, da LEP, com vedacao a sanções que coloquem em perigo a integridade fisica e moral do condenado e ao emprego de celas escuras, e do princípio constitucional de vedacao as penas cruéis e a tratamento desumano ou degradante (Art. 5o, III e XLVII, e, CF).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "LEP art. 45, par. 1o e 2o",
+     "CF art. 5o, III e XLVII, e"
+    ]
+   },
+   {
+    "quesito": "Q02 b2 — Limites do isolamento disciplinar: Restricoes legais a sanção de isolamento disciplinar: máximo de dez dias se isolamento preventivo, garantida a detração (Art. 60, LEP), ou de trinta dias, salvo na hipótese de Regime Disciplinar Diferenciado, e obrigação de comunicação ao juiz da execução (Art. 58, LEP).",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "LEP art. 58",
+     "LEP art. 60"
+    ]
+   },
+   {
+    "quesito": "Q02 c — Banho de sol em isolamento disciplinar: Sim, também pessoas presas em sanção de isolamento disciplinar tem direito a ao menos 2 horas diarias de pátio e 'banho de sol', conforme Art. 40 e Art. 41, V, da LEP e decisão do STF em interpretação do Art. 52, IV, da LEP (STF, HC 172.136/SP, 2a T., j. 10.10.2020).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "LEP art. 40",
+     "LEP art. 41, V",
+     "LEP art. 52, IV"
+    ]
+   },
+   {
+    "quesito": "Q03 a1 — Responsabilidade civil do Estado por atos lícitos: O Art. 37, par. 6o, da CF dispoe sobre a responsabilidade civil objetiva do Estado, acompanhado pelo Art. 43 do CC; o dever de indenizar emerge do nexo causal entre fato administrativo e dano, não sendo o ato ilícito elemento indispensável; a responsabilizacao pode advir de atos lícitos e legitimos quando ato estribado na lei e em prol da coletividade causa danos a parcela específica da sociedade (distribuição igualitaria dos ônus e encargos, p. ex. obra pública com dano anormal e especial); conforme doutrina e jurisprudência do STF, diante da teoria do risco administrativo, o alcance da responsabilidade estatal supera as regras comuns de responsabilidade civil do particular.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "CF art. 37, par. 6o",
+     "CC art. 43"
+    ]
+   },
+   {
+    "quesito": "Q03 b1 — CDC e concessionária de rodovia - animais na pista: Sim, aplicam-se as regras do CDC aos casos de reparação de danos oriundos de acidentes causados pelo ingresso de animais domésticos nas faixas de rolamento das rodovias objeto de contrato de concessão.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Consumidor",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q03 b2 — Responsabilidade objetiva da concessionária: Não se aplica a teoria da culpa administrativa, pois a concessionária responde objetivamente, independentemente da existencia de culpa, pelos danos sofridos pelo usuário, sem prejuízo da observancia dos padroes mínimos de segurança previstos no contrato.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Consumidor",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q03 b3 — Primazia do interesse da vítima: Não. O princípio da primazia do interesse da vítima, decorrente do princípio da solidariedade, impoe a reparação dos danos independentemente da identificação do proprietário do animal cujo ingresso na rodovia tenha causado o acidente.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Consumidor",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q03 b4 — Fiscalização pública e responsabilidade da concessionária: Não. O dever de fiscalização dos entes públicos não afasta a responsabilidade civil das concessionarias, nos termos do Art. 25 da Lei das Concessoes. Bibliografia: STJ, Corte Especial, REsp 1.908.738-SP, Recurso Repetitivo - Tema 1.122.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 8.987/1995 art. 25",
+     "REsp 1.908.738-SP - Tema 1.122"
+    ]
+   },
+   {
+    "quesito": "Q04 item 1 — Abuso do poder religioso - atipicidade na LC 64/1990: A situação configura hipótese de 'abuso do poder religioso', o qual não esta previsto como ilícito autônomo na Lei Complementar no 64/1990.",
+    "pontos": 0.2,
+    "escala": "0,20",
+    "disciplina": "Eleitoral",
+    "dispositivos": [
+     "LC 64/1990"
+    ]
+   },
+   {
+    "quesito": "Q04 item 1.1 — Enquadramento necessário para a AIJE: Para o ajuizamento da AIJE é necessário que seja enquadrado como abuso do poder econômico, abuso do poder político ou de autoridade ou uso indevido de meios de comunicação social ou de transportes, nos termos do Art. 22, caput, da LC 64/1990, o que não ocorreu no caso concreto.",
+    "pontos": 0.3,
+    "escala": "0,30",
+    "disciplina": "Eleitoral",
+    "dispositivos": [
+     "LC 64/1990 art. 22"
+    ]
+   },
+   {
+    "quesito": "Q04 item 2 — Litisconsórcio passivo necessário na chapa: Como o candidato a prefeito e a candidata a vice formam chapa unica, ambos devem figurar no polo passivo da AIJE, sendo hipótese de litisconsórcio passivo necessário.",
+    "pontos": 0.3,
+    "escala": "0,30",
+    "disciplina": "Eleitoral",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 2.1 — Desconhecimento dos fatos e inclusão no polo passivo: O fato de a vice desconhecer os acontecimentos não seria obice a sua inclusão no polo passivo.",
+    "pontos": 0.1,
+    "escala": "0,10",
+    "disciplina": "Eleitoral",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 2.2 — Legitimidade passiva do terceiro praticante: Ainda em relação ao polo passivo, a AIJE também poderia ser ajuizada em face do sacerdote que praticou a conduta.",
+    "pontos": 0.1,
+    "escala": "0,10",
+    "disciplina": "Eleitoral",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 2.3 — Fundamento legal: E a interpretação do Art. 22, caput, e XIV, da LC no 64/1990.",
+    "pontos": 0.1,
+    "escala": "0,10",
+    "disciplina": "Eleitoral",
+    "dispositivos": [
+     "LC 64/1990 art. 22, XIV"
+    ]
+   },
+   {
+    "quesito": "Q04 item 3 — Pedido de cassação: O requerimento de cassação da candidatura de ambos foi regularmente formulado, considerando que ambos, ao ver da autora, foram beneficiados pela conduta, sendo candidatos em chapa unica.",
+    "pontos": 0.2,
+    "escala": "0,20",
+    "disciplina": "Eleitoral",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 3.1 — Inelegibilidade restrita aos praticantes: A inelegibilidade apenas deve alcancar os praticantes da conduta, o que significa que somente poderia alcancar quem efetivamente participou da solenidade, não a candidata que a desconhecia.",
+    "pontos": 0.3,
+    "escala": "0,30",
+    "disciplina": "Eleitoral",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 3.2 — Inelegibilidade do terceiro: O sacerdote, caso figurasse no polo passivo, também poderia ser alcancado pela inelegibilidade, caso demonstrada a prática de conduta que ensejasse a sua aplicação, em razao da comprovada autoria.",
+    "pontos": 0.3,
+    "escala": "0,30",
+    "disciplina": "Eleitoral",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 3.3 — Fundamento legal da inelegibilidade: E a interpretação do Art. 1o, I, 'd', e do Art. 22, XIV, da LC no 64/1990.",
+    "pontos": 0.1,
+    "escala": "0,10",
+    "disciplina": "Eleitoral",
+    "dispositivos": [
+     "LC 64/1990 art. 1o, I, d",
+     "LC 64/1990 art. 22, XIV"
+    ]
+   },
+   {
+    "quesito": "Q05 a1 — Prazo da ação rescisória: Indicar a tempestividade da ação rescisória, com fundamento no Art. 975 do CPC.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 975"
+    ]
+   },
+   {
+    "quesito": "Q05 a2 — Termo inicial do prazo decadencial: Apontar que, pela súmula 401 do STJ, o prazo decadencial da ação rescisória só se inicia quando não for cabivel qualquer recurso do ultimo pronunciamento judicial.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Sumula 401 do STJ"
+    ]
+   },
+   {
+    "quesito": "Q05 b1 — Erro de fato como hipótese de rescisória: Apontar que o fundamento invocado não enseja o cabimento de ação rescisória, porque, embora a rescisória fundada em erro de fato pressuponha que a decisão tenha admitido fato inexistente ou considerado inexistente fato efetivamente ocorrido, em quaisquer dos casos e indispensável que não tenha havido controvérsia nem pronunciamento judicial sobre o fato.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 966, VIII"
+    ]
+   },
+   {
+    "quesito": "Q05 b2 — Ma valoração dos fatos x erro de fato: Narrar que a autora pretende desconstituir a decisão transitada em julgado em razao de ma valoração dos fatos por parte do acordao rescindendo.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   }
+  ],
+  "total": 10,
+  "instrucoes": [
+   "Documento 'Conferência da Tabela de Questões - Disciplina A - Juiz Substituto'; cada questão indica 'Itens = X' (somatorio bruto dos itens) e a linha 'Nota da Questão - Gabarito 1' com o valor final da questão (2 pontos cada).",
+   "Diversos itens indicam 'Bibliografia de referência' com doutrina ou precedente (STJ/STF) e o numero do tema repetitivo."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-2025-espelho-de-correcao-provas-discursivas-publicacao.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjpe24",
+  "nota": ""
+ },
+ {
+  "id": "tj-pe-2024-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença cível e penal",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-PE",
+  "cargo": "Juiz Substituto",
+  "ano": 2024,
+  "fase": "sentença cível e sentença penal",
+  "disciplina": "Processo Civil, Consumidor, Empresarial, Civil, Sentença (estrutura), Processo Penal, Penal",
+  "tema": "Indeferimento de prova oral - prova pericial obrigatória; Execução invertida; CDC entre imobiliária e locatário; …",
+  "enunciado": "TJ-PE · 2024 · Juiz Substituto — sentença cível e sentença penal (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-prova-de-sentenca-civel.pdf\nSegunda peça: https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-prova-de-sentenca-criminal.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tribunal-de-justica-do-estado-de-pernambuco-sentencas.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Cível 1 — Indeferimento de prova oral - prova pericial obrigatória: Indeferimento da prova oral, porque o fato só pode ser provado por prova pericial. Necessária mencao ao Art. 443, II, do CPC.",
+    "pontos": 0.5,
+    "escala": "0,00 a 0,50 (escala de 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 443, II"
+    ]
+   },
+   {
+    "quesito": "Cível 2 — Execução invertida: Cabimento da execução invertida. Construcao jurisprudencial com base nos princípios da cooperação, da economia e da celeridade processuais. Entendimento do STJ. Necessária mencao ao Art. 834 do Código Civil.",
+    "pontos": 1,
+    "escala": "0,00 a 1,00 (escala de 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CC art. 834"
+    ]
+   },
+   {
+    "quesito": "Cível 3 — CDC entre imobiliária e locatário: Aplicabilidade do Código de Defesa do Consumidor as relações entre imobiliária e locatário. Autonomia das relações jurídicas (locador e locatário; locador e administradora).",
+    "pontos": 0.5,
+    "escala": "0,00 a 0,50 (escala de 0,10)",
+    "disciplina": "Consumidor",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 4 — Arbitragem em contrato de consumo: Ausência de nulidade automatica na submissao do consumidor a procedimento arbitral, desde que haja sua concordancia. Entendimento do STJ. Ausência de impugnacao tempestiva durante o procedimento. Presunção de que não havia objecao.",
+    "pontos": 1,
+    "escala": "0,00 a 1,00 (escala de 0,10)",
+    "disciplina": "Consumidor",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 5 — Arbitragem e ação de despejo: Descabimento de arbitragem para demanda de despejo, ação executiva lato sensu.",
+    "pontos": 1,
+    "escala": "0,00 a 1,00 (escala de 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 6 — Prazo do art. 32 da Lei de Arbitragem: Impossibilidade de arguir tais matérias após o prazo nonagesimal do Art. 32 da Lei de Arbitragem. Entendimento do STJ. Prazo de natureza decadencial. Impossibilidade de renúncia. Necessária mencao ao Art. 209 do Código Civil.",
+    "pontos": 1.5,
+    "escala": "0,00 a 1,50 (escala de 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Lei 9.307/1996 art. 32",
+     "CC art. 209"
+    ]
+   },
+   {
+    "quesito": "Cível 7 — Falência do locatário e fiança: Falência do locatário que não implica a exoneração do fiador se não houver denúncia do contrato, nos termos do Art. 119 da Lei de Recuperação e Falência, de necessária mencao. Entendimento do STJ.",
+    "pontos": 1,
+    "escala": "0,00 a 1,00 (escala de 0,10)",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 11.101/2005 art. 119"
+    ]
+   },
+   {
+    "quesito": "Cível 8 — Perecimento do bem locado: Exoneração automatica do locatário pelo perecimento do bem, diante do caráter mutual do contrato de locação. Entendimento do STJ.",
+    "pontos": 1,
+    "escala": "0,00 a 1,00 (escala de 0,10)",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 9 — Legitimidade do fiador e renúncia a benfeitorias: Legitimidade ativa do fiador para propor fatos extintivos do direito do credor. Necessária mencao ao Art. 837 do Código Civil. Validade, contudo, da cláusula de renúncia as benfeitorias. Necessária mencao ao entendimento sumulado do STJ.",
+    "pontos": 1.5,
+    "escala": "0,00 a 1,50 (escala de 0,10)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 837"
+    ]
+   },
+   {
+    "quesito": "Cível 10 — Estrutura e dispositivo: Estrutura e dispositivo coerentes a fundamentação.",
+    "pontos": 1,
+    "escala": "0,00 a 1,00 (escala de 0,10)",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal 1 — Nulidade por cerceamento de defesa: Rejeitar a preliminar de nulidade processual por cerceamento de defesa, pois a juntada do laudo de exame de carregador de arma de fogo e municoes se deu anteriormente as alegacoes finais da defesa, que teve oportunidade de se manifestar, inexistindo prejuízo (Art. 563 do CPP).",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP art. 563"
+    ]
+   },
+   {
+    "quesito": "Criminal 2 — Tráfico de drogas - materialidade e autoria: Destacar que a materialidade do crime de tráfico (Lei 11.343/06, Art. 33) restou comprovada pelos laudos previo e definitivo e demais pericias, e que a autoria e inconteste a luz dos depoimentos dos policiais ouvidos como testemunhas, firmes, harmonicos e coesos; salientar que inexiste impedimento legal para que policiais envolvidos na prisão sejam ouvidos como testemunhas (Arts. 202 e 207 do CPP); explicar que a versao do interrogatorio restou isolada e que as drogas se destinavam a venda, ante a quantidade, diversidade e forma de acondicionamento, além dos radios comunicadores, bloqueador de sinal, carregador e municoes.",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006 art. 33",
+     "CPP art. 202",
+     "CPP art. 207"
+    ]
+   },
+   {
+    "quesito": "Criminal 3 — Afastamento da majorante do art. 40, IV: Afastar a causa de aumento do Art. 40, IV, da Lei 11.343/2006, visto que os policiais-testemunhas não souberam afirmar se o réu estava entre os que fizeram disparos, além de não ter sido arrecadada arma de fogo com ele é de o carregador e as municoes não estarem em seu poder.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006 art. 40, IV"
+    ]
+   },
+   {
+    "quesito": "Criminal 4 — Aplicação da majorante do art. 40, VI: Aplicar a causa de aumento do Art. 40, VI, da Lei 11.343/2006, pois o acusado foi preso em companhia de adolescente com quem foram arrecadados radio comunicador e bloqueador de sinal, de modo que o delito foi praticado com o envolvimento de adolescente.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006 art. 40, VI"
+    ]
+   },
+   {
+    "quesito": "Criminal 5 — Tráfico privilegiado: Não aplicar a causa de diminuição do Art. 33, par. 4o, da Lei 11.343/2006, como requer a defesa, porque o réu possui anotacoes criminais, sendo inclusive reincidente.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006 art. 33, par. 4o"
+    ]
+   },
+   {
+    "quesito": "Criminal 6 — Associação para o tráfico - absolvição: Absolver o acusado quanto ao crime de associação para o tráfico (Art. 35 da Lei 11.343/2006), nos termos do Art. 386, VII, do CPP, visto que, embora preso em flagrante em companhia de adolescente em favela dominada por faccao, o acervo probatório não se revelou suficiente a demonstracao de vinculo estavel e permanente.",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006 art. 35",
+     "CPP art. 386, VII"
+    ]
+   },
+   {
+    "quesito": "Criminal 7 — Resistência qualificada - absolvição: Absolver o acusado quanto ao delito de resistência qualificada (Art. 329, par. 1o, do CP), nos termos do Art. 386, VII, do CPP, pois não há provas da união de vontades entre o acusado e os individuos que se evadiram, o que afasta o concurso de pessoas (Art. 29 do CP).",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 329, par. 1o",
+     "CP art. 29",
+     "CPP art. 386, VII"
+    ]
+   },
+   {
+    "quesito": "Criminal 8 — Dosimetria trifasica: Efetuar a dosimetria seguindo o sistema trifásico: 1a fase, pena-base em 5 anos e 10 meses de reclusão e 583 dias-multa, considerando os maus antecedentes; 2a fase, reincidência (Art. 63 do CP) com agravante do Art. 61, I, do CP, agravando a pena-base de um sexto para 6 anos, 9 meses e 20 dias e 680 dias-multa; 3a fase, aplicação da causa de aumento do Art. 40, VI, da Lei 11.343/2006, majorando em um sexto, tornando as penas definitivas em 7 anos, 11 meses e 8 dias de reclusão e 793 dias-multa.",
+    "pontos": 3,
+    "escala": "0,00 a 3,00 (escala de 0,50)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 61, I",
+     "CP art. 63",
+     "Lei 11.343/2006 art. 40, VI"
+    ]
+   },
+   {
+    "quesito": "Criminal 9 — Dia-multa, regime, substituição, sursis, preventiva e perdimento: Estabelecer o valor unitário do dia-multa em 1/30 do salário mínimo (Art. 43 da Lei 11.343/2006); fixar o regime inicial fechado (Art. 33, par. 2o, 'b', e par. 3o, do CP), cabendo ao juízo da execução a detração; deixar de substituir a pena por restritivas de direitos e/ou multa (Art. 44 do CP) é de conceder sursis (Art. 77 do CP); manter a segregacao cautelar, negando o direito de recorrer em liberdade, ante os requisitos do Art. 312 do CPP; decretar a perda dos bens apreendidos (Art. 63 da Lei 11.343/2006).",
+    "pontos": 1.5,
+    "escala": "0,00 a 1,50 (escala de 0,30)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006 art. 43",
+     "Lei 11.343/2006 art. 63",
+     "CP art. 33, par. 2o, b",
+     "CP art. 44",
+     "CP art. 77",
+     "CPP art. 312"
+    ]
+   }
+  ],
+  "total": 20,
+  "instrucoes": [
+   "Espelho em tabela; cada quesito traz a escala completa de pontuação possível em incrementos de 0,10, de 0,00 até o teto do quesito.",
+   "Cada sentença vale 10 pontos ('Nota da Questão' = 10).",
+   "Varios quesitos exigem expressamente a 'necessária mencao' a um dispositivo determinado (p. ex., Art. 443, II, do CPC; Art. 834 do CC; Art. 209 do CC; Art. 119 da Lei de Recuperação e Falência; Art. 837 do CC)."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/tribunal-de-justica-do-estado-de-pernambuco-sentencas.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjpe24",
+  "nota": "Espelho cobre as duas sentencas; prova de sentenca criminal em https://conhecimento.fgv.br/sites/default/files/concursos/tjpe-prova-de-sentenca-criminal.pdf"
+ },
+ {
+  "id": "tj-pr-2021-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-PR",
+  "cargo": "Juiz Substituto",
+  "ano": 2021,
+  "fase": "discursiva",
+  "disciplina": "Processo Civil, Penal, Civil, Constitucional, Filosofia do Direito",
+  "tema": "Prova estatística - conceito e utilidade; Fundamentos normativos da prova estatística; Prova estatística em demandas coletivas e estruturais; …",
+  "enunciado": "TJ-PR · 2021 · Juiz Substituto — discursiva (banca FGV).\nA banca não publicou a prova em PDF autônomo.\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelhos_prova_discursiva_-_completo.pdf\nTempo sugerido: 1h por questão (11 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Q. Dissertativa 01 - I — Prova estatística - conceito e utilidade: Prova estatística: conceito e utilidade para o julgamento de questões envolvendo (entre outros campos, saúde e segurança pública): exigem fundamentação científica.",
+    "pontos": 2,
+    "escala": "0,4 (questão vale 2,0)",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q. Dissertativa 01 - II — Fundamentos normativos da prova estatística: Provas estatísticas: fundamentos normativos - admissibilidade no direito processual civil brasileiro.",
+    "pontos": 0.4,
+    "escala": "0,4",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q. Dissertativa 01 - III — Prova estatística em demandas coletivas e estruturais: Fundamento lógico e relevancia das provas estatísticas nas demandas coletivas, inclusive estruturais (e no controle judicial de políticas públicas).",
+    "pontos": 0.4,
+    "escala": "0,4",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q. Dissertativa 01 - IV — Meio probatório de ingresso e uso jurisprudencial: Meio probatório de ingresso no processo civil e sua utilização jurisprudencial.",
+    "pontos": 0.4,
+    "escala": "0,4",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q. Dissertativa 01 - V — Valoração da prova estatística: Valoração da prova estatística nas demandas coletivas.",
+    "pontos": 0.4,
+    "escala": "0,4",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q. Dissertativa 02 — Crime de perseguição (stalking) - art. 147-A do CP: Questão dissertativa de Direito Penal sobre o crime de perseguição (stalking), inserido no Código Penal (art. 147-A) pela Lei 14.132/2021, com referência doutrinária a Rogerio Greco (Código Penal comentado, 15. ed., 2022): caracterizacao como espécie de terrorismo psicológico e as diversas formas de prática das condutas.",
+    "pontos": 2,
+    "escala": "valor total 2,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 147-A",
+     "Lei 14.132/2021"
+    ]
+   },
+   {
+    "quesito": "Q. Civil - cláusula penal — Cláusula penal compensatoria e moratória: Definicao: obrigação acessória que comina valor a ser pago ao credor pelo devedor que incorrer em inadimplemento definitivo/absoluto do contrato, podendo o candidato referir também a cláusula penal por descumprimento de cláusula especial, sem obrigatoriedade (peso 0,25); Funções: a função primordial e a preliquidação de perdas e danos, aceitando-se adicionalmente a teoria da dupla função punitiva é de preliquidação (peso 0,25); Distinção: a cláusula penal moratória incide na hipótese de incumprimento do tempo ou modo pactuados (mora), sem caracterizar inadimplemento definitivo (peso 0,25); Indenização suplementar: incorrendo o devedor em inadimplemento, não faz jus o credor a indenização suplementar, salvo se pactuada, conforme o paragrafo unico do art. 416 do CC (peso 0,25).",
+    "pontos": 4,
+    "escala": "1,0 (4 x 0,25)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 416, p.u."
+    ]
+   },
+   {
+    "quesito": "Q. Discursiva 02 - Constitucional — Controle de constitucionalidade de ato normativo secundario: O ato normativo secundario, como o decreto regulamentar (ex. art. 84, IV, CF), não se submete ao controle abstrato de constitucionalidade, pois, destinado apenas a execução da lei que regulamenta, dela extraindo seu fundamento de validade e sem inovar a ordem jurídica, eventual violacao aos limites nela estabelecidos produz ofensa meramente reflexa e obliqua ao texto constitucional, incorrendo em crise de legalidade.",
+    "pontos": null,
+    "escala": "não discriminada",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF art. 84, IV"
+    ]
+   },
+   {
+    "quesito": "Q. Filosofia - Rawls (item 1) — Conceito de justiça em John Rawls: Para o autor, justiça deve ser vista como conceito político e não apenas com base moral ou encampacao pelo Estado; deve servir para a interpretação dos princípios constitucionais escolhidos por uma sociedade padrao e ambientada historicamente; deve ser valor político que vem a tona da vontade social, visando igualdade e liberdade entre as pessoas; e também distribuição de bens primarios oriundos de critérios jurídicos e políticos.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Filosofia do Direito",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q. Filosofia - Rawls (item 2) — Posição original e veu da ignorância: Para se chegar ao acordo, e preciso que as pessoas sejam oriundas da posição original ('veu da ignorância') mediante liberdade e igualdade, e que o discurso racional seja a base da construcao normativa; essa posição original não deve se ater a intuicao ou sentimentos próprios, mas a deliberacoes coletivas para a construcao inicial do contrato social.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Filosofia do Direito",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q. Filosofia - Rawls (item 3) — Os dois princípios de justiça: Dois princípios são essenciais para a formacao do acordo: (c1) princípio da liberdade igual ou básica (buscando igualdade substancial pela maior extensão de direitos alcancaveis pelo cidadao) e (c2) princípio da diferenca (exigencia de igualdade material, com benefício e acesso a todos). Equidade e procedimento são essenciais para o alcance da justiça.",
+    "pontos": 0.5,
+    "escala": "0,50 (0,25 para cada um dos princípios)",
+    "disciplina": "Filosofia do Direito",
+    "dispositivos": []
+   }
+  ],
+  "total": 10.6,
+  "instrucoes": [
+   "Documento reune os espelhos das varias questões dissertativas/discursivas, cada uma com seu valor total e a distribuição de pontos por item ('Critérios e distribuição dos pontos')."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelhos_prova_discursiva_-_completo.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjpr2021",
+  "nota": "A pagina publica o Espelho de Correcao da Prova Escrita Discursiva (P2), mas nao disponibiliza o caderno da prova discursiva em si."
+ },
+ {
+  "id": "tj-pr-2021-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença cível",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-PR",
+  "cargo": "Juiz Substituto",
+  "ano": 2021,
+  "fase": "sentença cível",
+  "disciplina": "Processo Civil, Civil, Sentença (estrutura)",
+  "tema": "Preliminar de ilegitimidade passiva - teoria da asserção; Prescrição quinquenal e impedimento do art. 198, I, do CC; Responsabilidade subjetiva da concessionária por atropelamento em via férrea; …",
+  "enunciado": "TJ-PR · 2021 · Juiz Substituto — sentença cível (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/prova_juiz_substituto_revisada_prova_pratica_sentenca_civel.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelho_sentenca_civel.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Aspecto 1 — Preliminar de ilegitimidade passiva - teoria da asserção: Rejeitar a preliminar de ilegitimidade passiva, pois, pela Teoria da Asserção e a versao fatica da inicial, o autor foi atingido por composicao férrea da re, concessionária de transporte ferroviário; emerge sua legitimidade, levando em conta o vinculo com o Poder Público e o disposto na CF (arts. 21, XII, 'd', 37, par. 6o e 175), na Lei 8.987/1995 (art. 25) e no Código Civil (art. 43), sendo questão de mérito a alegada responsabilidade municipal de manutencao da via férrea.",
+    "pontos": 0.5,
+    "escala": "0,00 a 0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CF art. 21, XII, d",
+     "CF art. 37, par. 6o",
+     "CF art. 175",
+     "Lei 8.987/1995 art. 25",
+     "CC art. 43"
+    ]
+   },
+   {
+    "quesito": "Aspecto 2 — Prescrição quinquenal e impedimento do art. 198, I, do CC: 2.1 Não acolher a prejudicial de prescrição trienal, pois o prazo aplicável e o quinquenal do art. 1o-C da Lei 9.494/1997, que por especialidade se sobrepoe ao art. 206, par. 3o, V, do CC; 2.2 como o evento ocorreu quando o autor tinha 15 anos, o prazo só passou a fluir quando completou 16 anos (art. 198, I, do CC), de modo que a pretensão não esta prescrita, tendo a ação sido proposta antes do decurso de 5 anos.",
+    "pontos": 1,
+    "escala": "0,00 a 1,00",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Lei 9.494/1997 art. 1o-C",
+     "CC art. 206, par. 3o, V",
+     "CC art. 198, I"
+    ]
+   },
+   {
+    "quesito": "Aspecto 3 — Responsabilidade subjetiva da concessionária por atropelamento em via férrea: 3.1 Estabelecer o regime jurídico aplicável, mencionando que, apesar da falta de uniformidade doutrinária sobre a responsabilidade por atos omissivos, o STJ consolidou em recursos repetitivos de 2012 a responsabilizacao subjetiva da concessionária (0,00 a 0,40); 3.2 a culpa configura-se quando há omissão ou negligência no dever de vedacao fisica das faixas de domínio com muros e cercas, sinalizacao e fiscalização, sendo elidível por culpa exclusiva da vítima (Tema 517, REsp 1.210.064/SP) ou mitigada por concorrencia de culpas (Tema 518, REsp 1.172.421/SP) (0,00 a 0,30); 3.3 concluir pela comprovacao do fato administrativo, do dano, do nexo causal e da culpa da re, afastando culpa exclusiva ou concorrente do autor, em razao das circunstâncias (area urbana, ausência de barreira fisica e sinalizacao, falta de manutencao, vegetacao, ausência de sinal sonoro), com fundamento no art. 927 e no art. 944 do CC (0,00 a 1,30).",
+    "pontos": 2,
+    "escala": "0,00 a 2,00 (0,40 + 0,30 + 1,30)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 927",
+     "CC art. 944",
+     "CC art. 945",
+     "REsp 1.210.064/SP - Tema 517",
+     "REsp 1.172.421/SP - Tema 518"
+    ]
+   },
+   {
+    "quesito": "Aspecto 4 — Danos materiais emergentes - prótese: Condenar ao ressarcimento de R$ 6.888,00 pelo custo da prótese, comprovado por recibo não impugnado especificamente, com correção monetária a contar do desembolso e juros de mora de 1% ao mes a partir da mesma data (arts. 395 e 398 do CC e Súmula 43 do STJ), e não do acidente nem da citacao/sentença (arts. 405 e 407 do CC), por se tratar de verba líquida e responsabilidade extracontratual.",
+    "pontos": 0.4,
+    "escala": "0,00 a 0,40",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 395",
+     "CC art. 398",
+     "CC art. 405",
+     "CC art. 407",
+     "Sumula 43 do STJ"
+    ]
+   },
+   {
+    "quesito": "Aspecto 5 — Danos estéticos e morais - cumulacao, arbitramento e encargos: 5.1 Reconhecer a cumulabilidade dos danos estético e moral, na forma da Súmula 387 do STJ (0,00 a 0,20); 5.2 demonstrar, pelas provas, a cirurgia, os 20 dias de hospitalizacao, a ausência de assistencia da re e a convivencia definitiva com a deformidade fisica (0,00 a 0,30); 5.3 arbitrar com moderacao e razoabilidade, pelo metodo bifasico do STJ, considerando gravidade e repercussão, posição social do ofendido, situação econômica do ofensor e natureza punitivo-pedagogica, sem enriquecimento sem causa (0,00 a 0,30); 5.4 afastar a alegacao de excessiva delonga na propositura da demanda, cerca de 2 anos após a maioridade (0,00 a 0,10); 5.5 fixar as indenizações sem exceder os valores postulados (até R$ 50.000,00 cada), com correção a contar do arbitramento (Súmula 362 do STJ) e juros de 1% ao mes a partir do acidente (Súmula 54 do STJ), e não da citacao (art. 405 do CC), por se tratar de ilícito puro (0,00 a 0,30).",
+    "pontos": 1.2,
+    "escala": "0,00 a 1,20 (0,20 + 0,30 + 0,30 + 0,10 + 0,30)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Sumula 387 do STJ",
+     "Sumula 362 do STJ",
+     "Sumula 54 do STJ",
+     "CC art. 405"
+    ]
+   },
+   {
+    "quesito": "Aspecto 6 — Pensão mensal vitalícia e capital garantidor: 6.1 Deferir pensão mensal com base no art. 950 do CC, ante a redução parcial e permanente da capacidade laborativa, sendo vitalícia por decorrer de diminuição da capacidade e cumulável com benefício do INSS por naturezas distintas (0,00 a 0,50); 6.2 fixar o termo inicial na maioridade civil, como requerido (art. 492 do CPC), sem 13o salário e gratificacao de ferias, pois o autor não trabalhava a epoca (0,00 a 0,10); 6.3 quanto as prestações vencidas, deferir pagamento de uma só vez, com juros a partir do vencimento de cada prestação e correção pelo salário mínimo vigente em cada vencimento (art. 397 do CC) (0,00 a 0,20); 6.4 rejeitar a pensão de um salário mínimo integral, devendo o percentual de perda funcional ser apurado em liquidação por arbitramento (arts. 509 e 491 do CPC) (0,00 a 0,20); 6.5 rejeitar a dispensa de capital garantidor (Súmula 313 do STJ), mas acolher o pedido subsidiario de inclusão do autor em folha de pagamento da re (art. 533, par. 2o, do CPC) (0,00 a 0,20).",
+    "pontos": 1.2,
+    "escala": "0,00 a 1,20 (0,50 + 0,10 + 0,20 + 0,20 + 0,20)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 950",
+     "CC art. 397",
+     "CPC art. 492",
+     "CPC art. 491",
+     "CPC art. 509",
+     "CPC art. 533, par. 2o",
+     "Sumula 313 do STJ"
+    ]
+   },
+   {
+    "quesito": "Aspecto 7 — Lucros cessantes: Julgar indevidos os lucros cessantes, pois a compensação pela redução da capacidade laborativa decorre do pensionamento vitalício, o autor não trabalhava a epoca do acidente e os lucros cessantes não se confundem com ganho imaginario e hipotetico, tratando-se de juízo de probabilidade objetiva e não de mera possibilidade.",
+    "pontos": 0.4,
+    "escala": "0,00 a 0,40",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Aspecto 8 — Dispositivo, sucumbência e honorários: 8.1 Dispositivo com rejeicao da preliminar e da prejudicial e parcial procedencia (art. 487, I, do CPC), condenando ao pagamento de danos emergentes, estéticos e morais e pensão mensal vitalícia com os respectivos encargos e forma de pagamento (0,00 a 1,50); 8.2 distribuição proporcional dos ônus de sucumbência (art. 86, caput, do CPC), pois o decaimento do autor não foi mínimo, ressalvada a Súmula 326 do STJ (0,00 a 0,30); 8.3 condenação das partes - o autor entre 10% e 30% e a re no percentual restante - com honorários sobre a condenação (art. 85, par. 2o, do CPC) (0,00 a 0,70); 8.4 inclusão, na base de calculo, quanto a pensão, da soma das prestações vencidas acrescida de 12 prestações vincendas (art. 85, par. 9o, do CPC) (0,00 a 0,50); 8.5 suspensão da exigibilidade das verbas de sucumbência do autor beneficiário da gratuidade (art. 98, par. 2o e 3o, do CPC) (0,00 a 0,15).",
+    "pontos": 3.15,
+    "escala": "0,00 a 3,15 (1,50 + 0,30 + 0,70 + 0,50 + 0,15)",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "CPC art. 487, I",
+     "CPC art. 86",
+     "CPC art. 85, par. 2o e par. 9o",
+     "CPC art. 98, par. 2o e 3o",
+     "Sumula 326 do STJ"
+    ]
+   },
+   {
+    "quesito": "Aspecto 9 — Estrutura e ordem de enfrentamento: Avaliacao de coerência/coesão na analise das questões, iniciando com a preliminar de ilegitimidade passiva, seguida da prejudicial de prescrição, para posterior enfrentamento do mérito.",
+    "pontos": 0.15,
+    "escala": "0,00 a 0,15",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Aspecto 10 — Língua portuguesa e capacidade de exposição: Conforme o edital: conteudo e desenvolvimento pertinentes ao tema, capacidade de exposição e utilização correta da Língua Portuguesa, podendo ser descontado até no máximo 10% do valor total da nota no topico de Língua Portuguesa.",
+    "pontos": 10,
+    "escala": "desconto de até 10% do valor total da nota",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   }
+  ],
+  "total": 20,
+  "instrucoes": [
+   "Cabia ao candidato redigir a sentença cível - nota entre 0,00 e 10,00 -, dando solucao ao caso, em analise das questões postas pelas partes, das matérias de fato é de direito e da prova produzida, dispensado o relatório e sem o acrescimo de fatos novos, notadamente com observancia dos incisos II (fundamentos) e III (dispositivo) do art. 489 do CPC, além dos seus paragrafos 1o a 3o.",
+   "Espelho estruturado em 'Aspectos', cada um com faixa de pontuação ('entre 0,00 a X'), acompanhados de blocos de 'Critério de pontuação' e 'Justificativa' (com os precedentes do STJ).",
+   "Critério expresso no Aspecto 1: 'para obtencao da nota integral, a rejeicao da preliminar deve conter tal fundamentação, com alusao a mais de um dos dispositivos legais referidos'.",
+   "Critério expresso no Aspecto 2: 'receberá pontuação parcial a rejeicao da prejudicial, com lastro em prazo quinquenal disposto em outra legislação'.",
+   "Critério expresso no Aspecto 3: 'receberá pontuação parcial tanto a apreciacao do mérito sob o enfoque da responsabilidade objetiva, como o eventual reconhecimento de culpa concorrente do autor, vertente que também repercutira na avaliacao dos demais pontos, em face do regramento do art. 945 do Código Civil'.",
+   "Aspecto 10, conforme o edital: '14.1.2 Na avaliacao das provas, estando correta a resposta, considerar-se-a: conteudo e desenvolvimento pertinentes ao tema, capacidade de exposição e utilização correta da Língua Portuguesa'; '14.1.2.1 No topico referente a utilização correta da Língua Portuguesa, poderá ser descontado até no máximo 10% do valor total da nota'."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelho_sentenca_civel.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjpr2021",
+  "nota": ""
+ },
+ {
+  "id": "tj-pr-2021-esp3",
+  "tipo": "sentenca",
+  "peca": "Sentença penal",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-PR",
+  "cargo": "Juiz Substituto",
+  "ano": 2021,
+  "fase": "sentença penal",
+  "disciplina": "Processo Penal, Penal, Sentença (estrutura)",
+  "tema": "Extincao da punibilidade pela morte; Preclusão e matéria de ordem pública; Verbo-nucleo do tipo; …",
+  "enunciado": "TJ-PR · 2021 · Juiz Substituto — sentença penal (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/prova_juiz_substituto_revisada_prova_pratica_sentenca_criminal.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelho_sentenca_penal.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "I - Fundamentação / Falecimento de corréus — Extincao da punibilidade pela morte: Em decorrencia do noticiado e comprovado falecimento dos corréus nas alegacoes finais, declarar no dispositivo extinta a sua punibilidade, com fundamento no art. 107, I, do CP c/c art. 397, IV, do CPP. Admissível, se devidamente motivado, o desmembramento do feito e conversao do julgamento para os fins do art. 62 do CPP.",
+    "pontos": 4.5,
+    "escala": "não discriminada (integra o bloco I - Fundamentação: 4,5)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CP art. 107, I",
+     "CPP art. 397, IV",
+     "CPP art. 62"
+    ]
+   },
+   {
+    "quesito": "I - Inépcia da denúncia I — Preclusão e matéria de ordem pública: A denúncia já foi recebida anteriormente. Respostas admissíveis: (I) preclusão temporal - art. 396-A do CPP - cabia a defesa suscitar a tese na primeira oportunidade; (II) ou invocar a natureza de ordem pública da questão e aprecia-la para refuta-la, demonstrando o atendimento dos requisitos do art. 41 do CPP.",
+    "pontos": 4.5,
+    "escala": "não discriminada (integra o bloco I - Fundamentação: 4,5)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP art. 396-A",
+     "CPP art. 41"
+    ]
+   },
+   {
+    "quesito": "I - Inépcia da denúncia II — Verbo-nucleo do tipo: Refutar a tese, apontando o verbo-nucleo do tipo imputado no Fato 1 ('dispensaram a realização da licitação, possibilitando e dando causa a contratação direta...').",
+    "pontos": 4.5,
+    "escala": "não discriminada (integra o bloco I - Fundamentação: 4,5)",
+    "disciplina": "Processo Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "I - Dispensa ilegal de licitação — Art. 89 da Lei 8.666/93 - materialidade, autoria e tipicidade: Reconhecer a dispensa de licitação fora das hipóteses legais (art. 24 da Lei 8.666/93) possibilitando a contratação direta, com dano ao erário de R$ 2.000.000,00; materialidade comprovada pelos anexos do Contrato de Gestao e pelas propostas de cobertura de fachada; autoria comprovada pela confissão dos corréus corroborada por prova documental; tipicidade com os elementos do art. 89 da Lei 8.666/93 - sucedido pelo art. 337-E do CP - além do dolo e do prejuízo ao erário.",
+    "pontos": 4.5,
+    "escala": "não discriminada (integra o bloco I - Fundamentação: 4,5)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 8.666/1993 art. 89",
+     "Lei 8.666/1993 art. 24",
+     "CP art. 337-E"
+    ]
+   },
+   {
+    "quesito": "I - Sucessão de leis penais / lex tertia — Continuidade normativo-tipica e irretroatividade: Apreciar o pedido do MP de condenação pelo preceito primario do art. 337-E do CP com o preceito secundario do art. 89 da Lei 8.666/93 sob as premissas: (a) cotejo dos preceitos primario e secundario; (b) não houve abolitio criminis, pois o novo tipo e mais extenso; (c) há continuidade normativo-tipica; (d) subsiste a tipicidade; (e) e inviavel a cominacao da pena da lei nova, mais severa qualitativa e quantitativamente, sob pena de violacao do art. 5o, XL, da CF; (f) o STF veda a combinacao de leis no tempo (lex tertia); (g) portanto, condenação pelo art. 89 da Lei 8.666/93 (preceito primario e secundario).",
+    "pontos": 4.5,
+    "escala": "não discriminada (integra o bloco I - Fundamentação: 4,5)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CF art. 5o, XL",
+     "Lei 8.666/1993 art. 89",
+     "CP art. 337-E"
+    ]
+   },
+   {
+    "quesito": "I - Lavagem de bens e valores — Art. 1o da Lei 9.613/98 e causa de aumento do par. 4o: Apontar o modo como o réu dissimulou/ocultou a origem do numerario obtido no crime anterior, simulando contrato de prestação de servicos entre empresas com pagamento mensal creditado na conta de 'laranja'; materialidade evidenciada pelo contrato e extratos bancarios e corroborada pela confissão; autoria demonstrada pela confissão e pelo benefício do sobrepreco do crime antecedente; caracterizada a causa de aumento do par. 4o do art. 1o da Lei 9.613/98 pela reiteração entre julho de 2013 e julho de 2019.",
+    "pontos": 4.5,
+    "escala": "não discriminada (integra o bloco I - Fundamentação: 4,5)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 9.613/1998 art. 1o, caput e par. 4o"
+    ]
+   },
+   {
+    "quesito": "I - Concurso de crimes — Concurso material: Os crimes narrados no Fato 1 e no Fato 2 foram cometidos em concurso material (art. 69 do CP).",
+    "pontos": 4.5,
+    "escala": "não discriminada (integra o bloco I - Fundamentação: 4,5)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 69"
+    ]
+   },
+   {
+    "quesito": "II - Dispositivo — Dispositivo da sentença penal: Julgar: 1) extinta a punibilidade dos réus falecidos (art. 107, I, do CP c/c art. 397, IV, do CPP); 2) procedente a pretensão punitiva para condenar o réu Spider, em concurso material (art. 69 do CP), como incurso no art. 89 da Lei 8.666/93 e no art. 1o da Lei 9.613/98, e os réus Estelio e Onato como incursos no art. 89 da Lei 8.666/93.",
+    "pontos": 1,
+    "escala": "1,0 (bloco II)",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "CP art. 107, I",
+     "CP art. 69",
+     "Lei 8.666/1993 art. 89",
+     "Lei 9.613/1998 art. 1o"
+    ]
+   },
+   {
+    "quesito": "III - Dosimetria — Sistema trifásico, multa, regime, substituição e sursis: Empregar o sistema trifásico (art. 68 do CP) somente em relação a um dos acusados para ambos os fatos, sem esquecer de fixar a multa (quantidade e valor unitário justificado) e o regime inicial após a unificacao das penas pelo concurso material. Na 1a fase (art. 59 do CP), ponderar a culpabilidade pelo grau de reprovabilidade (esquema complexo para burlar o certame e motivo de proveito econômico indevido); inviavel a ponderacao desfavorável dos antecedentes, pois a condenação anterior não depurada deve ser ponderada como reincidência na 2a fase; desfavoráveis as consequências pelo prejuízo ao erário; personalidade e conduta social sem informações; comportamento da vítima neutro.",
+    "pontos": 3.3,
+    "escala": "3,3 (bloco III)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 68",
+     "CP art. 59",
+     "CP art. 61, I"
+    ]
+   },
+   {
+    "quesito": "IV - Reparação de danos, perdimento e providências finais — Efeitos da condenação e providências finais: Fundamentar a presença/ausência dos requisitos para fixar (ou indeferir) o valor da reparação dos danos materiais (R$ 2.000.000,00 cobrada a maior do Município) e dos danos morais coletivos; decretar o perdimento de bens e valores (art. 91, II, 'b', do CP e art. 7o, I, da Lei 9.613/98), aduzindo a (in)ocorrencia do previo contraditorio e indicando o valor da perda da diferenca apurada (art. 91, par. 4o, do CP), sem incidir em bis in idem na cumulacao pelos fatos 1 e 2; providências finais após o transito em julgado: (a) custas processuais; (b) inclusão no rol dos culpados; (c) expedicao de guia de execução; (d) comunicações ao TRE e ao Instituto de Identificação; (e) registro de antecedentes criminais; além de publicação (art. 389 do CPP), registro e intimacoes (arts. 390 e 391 do CPP) e autenticacao (art. 381, IV, do CPP) com data e mencao a assinatura do Juiz.",
+    "pontos": 1.2,
+    "escala": "1,2 (bloco IV)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CP art. 91, II, b",
+     "CP art. 91, par. 4o",
+     "Lei 9.613/1998 art. 7o, I",
+     "CPP art. 389",
+     "CPP art. 390",
+     "CPP art. 391",
+     "CPP art. 381, IV"
+    ]
+   }
+  ],
+  "total": 37,
+  "instrucoes": [
+   "A pontuação e atribuida por BLOCOS da sentença (o relatório foi dispensado): I - Fundamentação: 4,5; II - Dispositivo: 1,0; III - Dosimetria, inclusive multa, regime inicial, substituição e sursis: 3,3; IV - Demais questões e providências (reparação de danos materiais e morais coletivos, perdimento de bens, providências finais, autenticacao): 1,2.",
+   "'Vicios da sentença que a tornem nula ou inexistente (por exemplo, ausência de dispositivo) resultarao na atribuição de nota zero a prova.'",
+   "'Serão considerados na pontuação, além do acerto das questões técnicas, também: a estruturação da sentença, a pertinencia, clareza e lógica da fundamentação, o enfrentamento abrangente das questões suscitadas e relevantes ao caso e a qualidade da redação.'",
+   "'Eventual dissenso da resposta do candidato em relação a proposta da banca será ponderada e eventualmente acolhida, desde que devidamente fundamentada no texto da prova de sentença.'",
+   "'O candidato não deve se limitar a reproduzir o texto do enunciado e sim demonstrar que tem redação própria'; 'A discussao sobre temas estranhos ao objeto da fundamentação será ponderada em desfavor do candidato'.",
+   "'A Banca reputa como erro de extrema gravidade o emprego do preceito secundario do art. 337-E do CP [para fatos de 2010], pois viola o princípio da irretroatividade da lei penal mais gravosa (CF, art. 5o, XL).'",
+   "'A qualidade da fundamentação da dosimetria e erros como bis in idem serão ponderados na nota'; 'E impositivo que o candidato fundamente os critérios empregados, não bastando o emprego de expressoes genéricas'."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelho_sentenca_penal.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjpr2021",
+  "nota": ""
+ },
+ {
+  "id": "tj-se-2024-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-SE",
+  "cargo": "Juiz Substituto",
+  "ano": 2024,
+  "fase": "discursiva",
+  "disciplina": "Penal, Sentença (estrutura), Administrativo, Constitucional, Processo Penal, Civil",
+  "tema": "Injúria; Divulgacao de segredo; Violacao de correspondencia; …",
+  "enunciado": "TJ-SE · 2024 · Juiz Substituto — discursiva (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjse-prova-discursiva.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjse-espelho-prova-discursiva.pdf\nTempo sugerido: 1h por questão (19 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Q01 item 1 — Injúria: Imputar a Alberto o crime de injúria (Código Penal, Art. 140), por ter chamado Caio de 'ladrao'.",
+    "pontos": 6,
+    "escala": "itens da questão somam 6,0; nota final 2",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 140"
+    ]
+   },
+   {
+    "quesito": "Q01 item 2 — Divulgacao de segredo: Esclarecer que Bernardo não cometeu crime de divulgacao de segredo (Código Penal, Art. 153).",
+    "pontos": 6,
+    "escala": "itens da questão somam 6,0; nota final 2",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 153"
+    ]
+   },
+   {
+    "quesito": "Q01 item 3 — Violacao de correspondencia: Responder que Bernardo não cometeu o delito de violacao de correspondencia (Código Penal, Art. 151).",
+    "pontos": 6,
+    "escala": "itens da questão somam 6,0; nota final 2",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 151"
+    ]
+   },
+   {
+    "quesito": "Q01 item 4 — Injúria qualificada (racial/discriminatoria): Atribuir a Caio o delito de injúria qualificada, pois a ofensa se valeu da utilização de elementos referentes a [raca, cor, etnia, religiao, origem ou condição de pessoa idosa ou com deficiência].",
+    "pontos": 0,
+    "escala": "0,00 e demais valores da escala",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 140, par. 3o"
+    ]
+   },
+   {
+    "quesito": "Q01 item 5 — Retorsao imediata: Explicar que, embora a ofensa de Caio contra Alberto tenha sido feita logo após ele tomar conhecimento da [injúria], [não se aplica a retorsao imediata].",
+    "pontos": 6,
+    "escala": "itens da questão somam 6,0; nota final 2",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 140, par. 1o, II"
+    ]
+   },
+   {
+    "quesito": "Q01 item 6 — Abordagem geral: Abordagem geral: Desenvolvimento, correção da linguagem, fluência e coerência da exposição.",
+    "pontos": 0.05,
+    "escala": "0,05",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q02 — Alteracao de contratos administrativos e intervencao em concessão: Indicar as hipóteses de alteracao: I - para restabelecimento do equilibrio economico-financeiro decorrente de caso fortuito ou forca maior; II - por necessidade de alteracao do projeto ou das especificacoes para melhor adequacao técnica aos objetivos [da contratação]; III - por necessidade de alteracao do projeto nas contratações semi-integradas, nos termos do par. 5o do Art. 46 da Lei [14.133/2021]; IV - por ocorrencia de evento superveniente alocado na matriz de riscos como de responsabilidade da [Administração]; e concluir que, de acordo com o STJ, em se tratando de intervencao, o direito de defesa do concessionário lhe e [assegurado posteriormente]. Bibliografia de referência: STF, ADPF 282/RO, Rel. Min. Gilmar Mendes, j. 15/05/2023.",
+    "pontos": 6,
+    "escala": "0,20 (item destacado); itens da questão somam 6,0; nota final 2",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 14.133/2021 art. 46, par. 5o",
+     "Lei 14.133/2021 art. 124",
+     "ADPF 282/RO"
+    ]
+   },
+   {
+    "quesito": "Q03 item 1 — Direito fundamental de segunda dimensão: O direito fundamental consagrado no Art. X da Constituição da República, por ser de segunda dimensão, se [caracteriza como direito prestacional dependente de integração].",
+    "pontos": 2,
+    "escala": "escala com 0,00 como piso; nota final 2",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q03 item 2 — Ausência de integração infraconstitucional: Em razao da ausência de integração pela legislação infraconstitucional, tem-se, como regra, o comprometimento [da eficácia plena do direito].",
+    "pontos": 2,
+    "escala": "escala com 0,00 como piso; nota final 2",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q03 item 3 — Dimensão objetiva dos direitos fundamentais: Além disso, a dimensão objetiva do direito fundamental não é afastada pela ausência de integração.",
+    "pontos": 2,
+    "escala": "escala com 0,00 como piso; nota final 2",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q03 item 4 — Revogação da legislação preexistente pela dimensão objetiva: Em razao da dimensão objetiva do direito fundamental previsto no Art. X, a Lei no Z/2010 foi revogada, não mais [subsistindo no ordenamento].",
+    "pontos": 2,
+    "escala": "escala com 0,00 como piso; nota final 2",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 1 — Ação penal privada subsidiaria da pública: Argumentar que, apesar de a vítima ter sofrido o crime de estelionato, a ação penal privada subsidiaria da pública não será cabivel pelo fato de o Ministério Público ter se manifestado no prazo legal promovendo o [arquivamento ou requerendo diligencias].",
+    "pontos": 5,
+    "escala": "0,10 (item); itens da questão somam 5,0; nota final 2",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP art. 29",
+     "CF art. 5o, LIX"
+    ]
+   },
+   {
+    "quesito": "Q04 item 2 — Requisito da inércia do MP: Justificar que, para o cabimento da referida ação penal subsidiaria, deveria haver uma [inércia do Ministério Público no prazo legal].",
+    "pontos": 5,
+    "escala": "itens da questão somam 5,0; nota final 2",
+    "disciplina": "Processo Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 4 — Princípio processual aplicável: Argumentar que, por forca da aplicação do princípio processual da [devida correlação / indisponibilidade], [a solucao e a indicada].",
+    "pontos": 5,
+    "escala": "itens da questão somam 5,0; nota final 2",
+    "disciplina": "Processo Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q04 item 5 — Abordagem geral: Abordagem geral: Desenvolvimento, correção da linguagem, fluência e coerência da exposição.",
+    "pontos": 0.1,
+    "escala": "0,10",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q05 item 1 — Elementos da responsabilidade civil e regimes de imputação: Breve dissertacao sobre os elementos essenciais da responsabilidade civil em cotejo com os regimes de [imputação subjetiva e objetiva].",
+    "pontos": 4,
+    "escala": "itens da questão somam 4,0; nota final 2",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q05 item 2 — Imprescindibilidade do nexo causal: Conclusão pela imprescindibilidade de demonstracao do nexo causal em todos os casos, porque 'o nexo de [causalidade e pressuposto comum a todos os regimes]'.",
+    "pontos": 4,
+    "escala": "itens da questão somam 4,0; nota final 2",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q05 item 3 — Teoria ou técnica de responsabilizacao: O enunciado da questão, de direito civil, pedia a indicacao de teoria ou técnica de responsabilizacao, de modo que [somente pontua a resposta que a indique].",
+    "pontos": 4,
+    "escala": "itens da questão somam 4,0; nota final 2",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Q05 item 4 — Fundamento legal - responsabilidade por ruina e solidariedade: Mencao aos artigos 938 e 942 do Código Civil ou aos artigos 12 e 18 do Código de Defesa do Consumidor, desde que [pertinentes ao caso].",
+    "pontos": 0.2,
+    "escala": "0,20",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 938",
+     "CC art. 942",
+     "CDC art. 12",
+     "CDC art. 18"
+    ]
+   }
+  ],
+  "total": 65.35,
+  "instrucoes": [
+   "Documento 'Conferência da Tabela de Questões - Disciplina A - Juiz Substituto'; cada questão indica 'Itens = X' e a linha 'Nota da Questão - Gabarito 1' com o valor final (2 pontos por questão).",
+   "Há item residual de 0,05 a 0,10 por questão para 'Abordagem geral: Desenvolvimento, correção da linguagem, fluência e coerência da exposição'.",
+   "Diversos itens trazem 'Bibliografia de referência' com o precedente do STF/STJ."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/tjse-espelho-prova-discursiva.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjse24",
+  "nota": ""
+ },
+ {
+  "id": "tj-se-2024-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença cível e penal",
+  "carreira": "Magistratura estadual",
+  "banca": "FGV",
+  "orgao": "TJ-SE",
+  "cargo": "Juiz Substituto",
+  "ano": 2024,
+  "fase": "sentença cível e sentença penal",
+  "disciplina": "Processo Civil, Civil, Consumidor, Sentença (estrutura), Processo Penal, Penal",
+  "tema": "Competência relativa - direito pessoal; Ilegitimidade passiva - teoria da asserção; Interesse de agir e conciliacao previa; …",
+  "enunciado": "TJ-SE · 2024 · Juiz Substituto — sentença cível e sentença penal (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/tjse-prova-de-sentenca-civel.pdf\nSegunda peça: https://conhecimento.fgv.br/sites/default/files/concursos/tjse-sentenca-criminal.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelho-tjse-juiz-sentencas.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Cível 1 — Competência relativa - direito pessoal: Rejeicao da preliminar de incompetência relativa: a demanda que versa sobre anulação de negócio jurídico envolve direito pessoal, sujeitando-se ao art. 46 do CPC, não sendo aplicável o art. 47 (0,00 a 0,25); destarte, o foro competente e o do domicilio do réu e não o foro de situação da coisa (0,00 a 0,25).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 46",
+     "CPC art. 47"
+    ]
+   },
+   {
+    "quesito": "Cível 2 — Ilegitimidade passiva - teoria da asserção: Rejeicao da preliminar de ilegitimidade passiva: as condições da ação, pela teoria da asserção, são aferidas a partir da narrativa fatica do autor na petição inicial (0,00 a 0,25); na hipótese, a autora imputa diversas condutas ao réu na inicial, tendo ele legitimidade passiva (0,00 a 0,25).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 3 — Interesse de agir e conciliacao previa: Rejeicao da preliminar de falta de interesse de agir: não se exige a previa tentativa de conciliacao para verificacao do interesse de agir (0,00 a 0,25); o interesse de agir, enquanto imprescindibilidade da tutela jurisdicional, dispensa tal requisito, e o art. 17 do CPC não estabelece tal exigencia (0,00 a 0,25).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 17"
+    ]
+   },
+   {
+    "quesito": "Cível 4 — Decadência da anulação por dolo: Rejeicao da prejudicial de prescrição: a pretensão é de anular negócio jurídico eivado por dolo, sujeito a prazo decadencial de quatro anos a contar do dia em que se realizou o negócio (art. 178, II, do CC), sendo o contrato de compra e venda perfeito quando as partes acordam no objeto e no preco (art. 482 do CC) (0,00 a 0,25); destaca-se a súmula 106 do STJ, segundo a qual a demora na citacao por motivos inerentes ao mecanismo da Justiça não justifica a arguicao de prescrição ou decadência (0,00 a 0,25).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 178, II",
+     "CC art. 482",
+     "Sumula 106 do STJ"
+    ]
+   },
+   {
+    "quesito": "Cível 5 — Caracterizacao da relação de consumo: Estabelecer que a relação jurídica travada entre as partes é de natureza consumerista, eis que um e fornecedor e a outra consumidora, amoldando-se aos artigos 2o e 3o do Código de Defesa do Consumidor (Lei 8.078/1990).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "CDC art. 2o",
+     "CDC art. 3o"
+    ]
+   },
+   {
+    "quesito": "Cível 6 — Dolo essencial como defeito do negócio jurídico: Frisar que a pretensão é de obter a anulação do negócio jurídico e destacar que o dolo, enquanto defeito do negócio jurídico, somente autoriza sua anulação se disser respeito a elemento essencial do negócio.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 7 — Dolo omissivo: Concluir pela existencia de dolo omissivo na conduta do réu.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 147"
+    ]
+   },
+   {
+    "quesito": "Cível 8 — Onus da prova: Exploracao do ônus da prova em relação a autora e ao réu, para os fins do art. 373, I e II, do Código de Processo Civil (0,00 a 1,50).",
+    "pontos": 1.2,
+    "escala": "1,20",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 373, I e II"
+    ]
+   },
+   {
+    "quesito": "Cível 9 — Efeitos da anulação - retorno ao estado anterior: Como consequência da anulação por dolo, as partes deverão ser restituidas ao estado em que antes se achavam e, não sendo possível, serão indenizadas com o equivalente (art. 182 do CC) (0,00 a 0,50); no caso concreto, por se tratar de compra e venda sobre bem infungível existente fisicamente quando da anulação, caberá ao réu restituir o valor pago (R$ 400.000,00) e a autora devolver o apartamento (0,00 a 0,50).",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC art. 182"
+    ]
+   },
+   {
+    "quesito": "Cível 10 — Danos materiais e morais: Analise do pedido de indenização por danos materiais e morais (0,00 a 1,50).",
+    "pontos": 1.5,
+    "escala": "1,50",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 11 — Dispositivo: Julgamento de procedencia dos pedidos (0,00 a 1,55).",
+    "pontos": 1.55,
+    "escala": "1,55",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 12 — Sucumbência: Sucumbência em desfavor do réu, a ser condenado ao reembolso das custas e ao pagamento de honorários advocaticios, nos termos do art. 82, par. 2o, do CPC.",
+    "pontos": 0.65,
+    "escala": "0,65",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 82, par. 2o"
+    ]
+   },
+   {
+    "quesito": "Cível 13 — Honorários e sucumbência mínima: Honorários advocaticios fixados integralmente em desfavor do réu a partir dos critérios do art. 85, par. 2o (0,00 a 0,40); indicar que a autora sucumbiu de forma mínima, obtendo apenas montante inferior ao postulado quanto ao dano moral, sendo necessário indicar a súmula 326 do STJ, segundo a qual a condenação em montante inferior ao postulado na inicial não implica sucumbência recíproca (0,00 a 0,25).",
+    "pontos": 0.65,
+    "escala": "0,65",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 85, par. 2o",
+     "Sumula 326 do STJ"
+    ]
+   },
+   {
+    "quesito": "Cível 14 — Estrutura da sentença: Estrutura da sentença.",
+    "pontos": 0.15,
+    "escala": "0,15",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível 15 — Língua portuguesa (desconto): Língua portuguesa: desconto de até 10% do valor total da prova.",
+    "pontos": 1,
+    "escala": "-1,00",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal 1 — Decadência do direito de representação no CTB: Rejeitar a preliminar de mérito de decadência do direito de representação quanto aos crimes de lesão corporal culposa na direcao de veículo automotor, pois, nos termos do Art. 291, par. 1o, I, do CTB, não se aplica o Art. 88 da Lei 9.099/95 se o agente estiver sob a influencia de álcool; explicar que, ainda que assim não fosse, a representação não exige formalidade, bastando que a conduta da vítima indique seu interesse na persecução penal, o que ocorreu, pois as vítimas compareceram em sede policial e prestaram declarações no auto de prisão em flagrante.",
+    "pontos": 1.5,
+    "escala": "1,50",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CTB art. 291, par. 1o, I",
+     "Lei 9.099/1995 art. 88"
+    ]
+   },
+   {
+    "quesito": "Criminal 2 — Art. 306 do CTB - materialidade e meios de prova: Destacar que a materialidade do crime do Art. 306 do CTB restou demonstrada pelo exame pericial de alcoolemia, interrogatorio e prova testemunhal; rejeitar a alegacao defensiva de ausência de prova da alteracao da capacidade psicomotora por não ter sido positivada concentracao igual ou superior a 0,3 mg/l por etilometro, pois o par. 2o do citado artigo admite teste de alcoolemia ou toxicologico, exame clinico, perícia, video, prova testemunhal ou outros meios de prova, observado o direito a contraprova; explicar que a autoria e inequivoca.",
+    "pontos": 1.5,
+    "escala": "1,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CTB art. 306, par. 2o"
+    ]
+   },
+   {
+    "quesito": "Criminal 3 — Concurso entre os arts. 306 e 303 do CTB: Rejeitar a alegacao defensiva de absolvição pelo crime do Art. 306 do CTB ao argumento de absorcao pelos delitos de lesão corporal culposa, já que são crimes distintos, com sujeitos passivos e objetividade jurídica diferentes: o Art. 306 tem natureza vaga, ofendendo potencialmente a coletividade e tutelando a segurança viaria, ao passo que o Art. 303 tem como vítima a pessoa lesionada; ademais, aquele delito se consumou em momento anterior.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CTB art. 303",
+     "CTB art. 306"
+    ]
+   },
+   {
+    "quesito": "Criminal 4 — Lesão corporal culposa na direcao - culpa e imprudência: Explicar que a materialidade dos crimes do Art. 303 do CTB exsurge dos autos de exame de corpo de delito e que a autoria e incontroversa; rejeitar a alegacao de culpa exclusiva do condutor da motocicleta, pois as vítimas contaram que o semáforo estava amarelo, na iminencia de mudar para vermelho, o que levou o piloto a reduzir a velocidade; o réu admite que o sinal já estava amarelo, sendo previsivel a redução do veículo a frente, e estava com a capacidade psicomotora alterada, o que retarda os reflexos, restando caracterizada a imprudência; deve o acusado ser condenado por dois crimes de lesão corporal culposa na direcao de veículo automotor.",
+    "pontos": 1.5,
+    "escala": "1,50",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CTB art. 303"
+    ]
+   },
+   {
+    "quesito": "Criminal 5 — Concurso formal e concurso material: Explicar que os crimes de lesão corporal culposa foram cometidos mediante uma só conduta, de modo que, ao contrário do assinalado na denúncia, restou caracterizado entre eles o concurso formal, com aplicação da pena de somente um deles e majoração mínima (um sexto), proporcional a quantidade de delitos (dois); acrescentar que esses crimes e o do Art. 306 do CTB foram cometidos mediante condutas diferentes, com momentos consumativos diversos, razao pela qual é necessário reconhecer o concurso material, com a soma das penas.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 69",
+     "CP art. 70"
+    ]
+   },
+   {
+    "quesito": "Criminal 6 — Dosimetria trifasica: Efetuar a dosimetria seguindo o sistema trifásico. Quanto ao Art. 303 do CTB, primeira fase: fixar as penas-base em sete meses de detenção e dois meses e dez dias de suspensão da habilitação [seguindo-se as demais fases].",
+    "pontos": null,
+    "escala": "não discriminada no extrato analisado",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 68",
+     "CTB art. 303"
+    ]
+   }
+  ],
+  "total": 17,
+  "instrucoes": [
+   "Documento 'Conferência da Tabela de Questões - Disciplina A - Juiz Substituto'; a sentença cível indica 'Itens = 15' com 'Nota da Questão' 9, e a criminal 'Itens = 10'.",
+   "Diversos quesitos da sentença cível trazem, dentro do texto, a faixa parcial de cada subitem entre parenteses (p. ex., '(0,00 a 0,25)'), ao lado do valor total do quesito na coluna de pontuação.",
+   "Há item negativo expresso: 'Língua portuguesa: Desconto de até 10% (dez por cento) do valor total da prova' - pontuação -1,00."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelho-tjse-juiz-sentencas.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/tjse24",
+  "nota": "Espelho cobre as duas sentencas; prova de sentenca criminal em https://conhecimento.fgv.br/sites/default/files/concursos/tjse-sentenca-criminal.pdf"
+ },
+ {
+  "id": "trf-1-2023-esp1",
+  "tipo": "sentenca",
+  "peca": "Sentença cível e penal",
+  "carreira": "Magistratura federal",
+  "banca": "FGV",
+  "orgao": "TRF1",
+  "cargo": "Juiz Federal Substituto",
+  "ano": 2023,
+  "fase": "sentença cível e sentença penal",
+  "disciplina": "Processo Civil, Constitucional, Tributário, Sentença (estrutura), Processo Penal, Penal",
+  "tema": "Ordem lógica de enfrentamento das questões; Preclusão quanto a tutela provisória; Conexão e competência absoluta da vara de execução fiscal; …",
+  "enunciado": "TRF1 · 2023 · Juiz Federal Substituto — sentença cível e sentença penal (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/trf1-2023-juiz-substituto-prova-pratica-sentenca-civel.pdf\nSegunda peça: https://conhecimento.fgv.br/sites/default/files/concursos/trf1-2023-juiz-substituto-prova-pratica-sentenca-criminal.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/espelho-de-correcao-provas-praticas-de-sentenca_v.f.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Cível - Primeiro Quesito — Ordem lógica de enfrentamento das questões: Demonstrar que percebe haver questões cuja resolução se antepoe logicamente a resolução de outra ou de outras. São admitidas como corretas três sequências: 1) 1-2-3-4-5-6-7-8; 2) 1-2-3-4-5-7-6-8; 3) 1-2-3-6-4-5-7-8, sendo 1 o pleito de remessa dos autos para o Juízo Federal da 12a Vara, 2 a incompetência absoluta para invalidar CDAs, 3 a inépcia da inicial por pedido genérico, 4 a incompetência do juízo singular para reconhecer inconstitucionalidade por sentença, 5 a impossibilidade de apreciacao incidental, 6 o direito de não pagar IRPJ e CSLL sobre a Selic, 7 a deducao da CSLL na base do IRPJ e 8 a distribuição dos ônus da sucumbência.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível - Segundo Quesito — Preclusão quanto a tutela provisória: Perceber que o pleito de tutela provisória já foi objeto de decisão; como não há referência a agravo de instrumento contra o indeferimento nem postulacao de concessão na sentença, operou-se a preclusão e a decisão se estabilizou, de modo que, como não existe previsão legal que autorize a concessão de ofício, o candidato não pode se referir, na fundamentação e no dispositivo, ao pleito de tutela provisória.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível - Terceiro Quesito — Conexão e competência absoluta da vara de execução fiscal: Afastar o pleito e rejeitar a reuniao por conexão, devendo a ação anulatória permanecer na 5a Vara: (i) só há conexão e seus efeitos em competência relativa, sendo absoluta a da vara especializada em execução fiscal; (ii) a ação anulatória foi proposta antes da executiva, não sendo sucedaneo de embargos; (iii) precedentes do STJ e do TRF-1. Demonstrar que reconhece a existencia de conexão (art. 55, par. 2o, I, do CPC), mas que dela não se extrai o efeito de reuniao dos processos.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 55, par. 2o, I"
+    ]
+   },
+   {
+    "quesito": "Cível - Quarto Quesito — Questão prejudicial externa e competência funcional: Rejeitar a alegacao, demonstrando que o reconhecimento de situações jurídicas com aptidao para produzir efeitos sobre a inscricao em Dívida Ativa não se confunde com 'anular' CDAs; que as questões são prejudiciais externas, devendo o conteudo da decisão ser informado ao juízo da execução fiscal; e que a resolução de questão prejudicial externa não implica invasao da competência funcional. Resposta exauriente: pontuar também que, pela organização judiciária local, a 12a Vara processa execuções fiscais (tributárias ou não) e a 5a Vara não tem competência para executivos fiscais, mas tem para demandas cognitivas sobre atos relativos a obrigações consubstanciadas em CDAs.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Cível - Quinto Quesito — Inépcia da inicial - pedido genérico: Rejeitar a alegacao de inépcia, pois os pedidos não são genéricos: os dois pleitos declaratórios versam sobre o modo de ser de uma relação jurídica, com previsão expressa no art. 19, I, do CPC; e a postulacao de abstencao de cobranca posterior materializa pleito condenatório de obrigação de não fazer, formulado de forma específica.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 19, I"
+    ]
+   },
+   {
+    "quesito": "Cível - Sexto Quesito — Controle difuso e cláusula de reserva de plenario: Rejeitar a alegacao demonstrando conhecimento de que: (i) no Brasil foi adotado sistema hibrido de controle de constitucionalidade, coexistindo os modelos difuso e concentrado; (ii) no controle concentrado somente o STF pode declarar a inconstitucionalidade como questão principal; (iii) no controle difuso, todo juiz ou tribunal com competência para julgar a causa pode e deve reconhecer a inconstitucionalidade como questão incidental. Demonstrar que a cláusula de reserva de plenario (art. 97 da CF) só e aplicável aos julgamentos dos tribunais, não guardando relação com os juízos singulares, que resolvem a questão incidenter tantum.",
+    "pontos": 1,
+    "escala": "1,00",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF art. 97"
+    ]
+   },
+   {
+    "quesito": "Cível - Setimo Quesito — IRPJ e CSLL sobre a taxa Selic na repeticao de indébito: Acolher ambos os pedidos, com fundamento na tese fixada pelo STF para o Tema 962 de repercussão geral: 'E inconstitucional a incidência do IRPJ e da CSLL sobre os valores atinentes a taxa Selic recebidos em razao de repeticao de indébito tributário'.",
+    "pontos": 2,
+    "escala": "2,00",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "STF Tema 962 de repercussao geral"
+    ]
+   },
+   {
+    "quesito": "Cível - Oitavo Quesito — Deducao da CSLL da base de calculo do IRPJ: Rejeitar o pedido, com fundamento na tese fixada pelo STF para o Tema 75 de repercussão geral: 'E constitucional a proibicao de deduzir-se o valor da Contribuição Social sobre o Lucro Líquido - CSLL do montante apurado como lucro real, que constitui a base de calculo do Imposto de Renda de Pessoa Jurídica - IRPJ'.",
+    "pontos": 2,
+    "escala": "2,00",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "STF Tema 75 de repercussao geral",
+     "Lei 9.316/1996 art. 1o"
+    ]
+   },
+   {
+    "quesito": "Cível - Nono Quesito — Sucumbência recíproca: Reconhecer que houve sucumbência parcial de ambos os contendores, razao pela qual as despesas do processo deverão ser proporcionalmente distribuidas (CPC, art. 86, caput) e cada um deverá arcar com honorários advocaticios relativamente a parcela quanto a qual sucumbiu (CPC, art. 85, caput, e par. 14).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 86",
+     "CPC art. 85, caput e par. 14"
+    ]
+   },
+   {
+    "quesito": "Cível - Decimo Quesito — Língua portuguesa: Uso correto da Língua Portuguesa.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal - Bloco I — Apreciacao e fundamentação das alegacoes de acusação e defesa: Até 3,0 para a sentença que fundamentadamente: 1) rejeitar as alegacoes de incompetência do juízo federal, de ilicitude da prova (denúncia anonima/falta de justa causa) é de insuficiencia de prova ou ausência de dolo; 2) condenar Carlos por tráfico de drogas, corrupção ativa e moeda falsa; 3) condenar Gabriel por tráfico de drogas e moeda falsa; 4) absolver Maria das Dores de todos os crimes, com revogação da preventiva; 5) absolver Carlos e Gabriel da associação para o tráfico e organização criminosa; 6) admitir que o porte de droga e a condenação antiga (furto) não geram reincidência; 7) rejeitar o tráfico privilegiado quanto a Carlos, tolerando-o quanto a Gabriel; 8) rejeitar o pedido de restituição de bens; 9) manter a preventiva de Carlos, podendo revoga-la quanto a Gabriel. Até 2,50 se deixar de apreciar uma ou mais alegacoes; até 2,5 se também condenar Gabriel por corrupção ativa; até 2,00 se também condenar Maria das Dores ou condenar os demais por associação/organização criminosa; 0,00 nas três hipóteses de nulidade/absolvição total ou acolhimento da incompetência.",
+    "pontos": 3,
+    "escala": "até 3,00 (escala 3,0 / 2,5 / 2,0 / 0,0)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Lei 11.343/2006 art. 33",
+     "Lei 11.343/2006 art. 35",
+     "CP art. 289, par. 1o",
+     "CP art. 333",
+     "Lei 12.850/2013"
+    ]
+   },
+   {
+    "quesito": "Criminal - Bloco II — Aplicação das penas e seus efeitos: Até 3,0 para a sentença que: 1) aplicou as penas privativas de liberdade é de multa a Carlos e Gabriel separadamente e as penas de cada crime autonomamente; 2) adotou o metodo trifásico (CP, arts. 59 e 68), fixando pena-base (natureza/quantidade da droga), pena provisória (reincidência, confissão espontanea, menoridade relativa) e pena definitiva (tráfico privilegiado, quando admitido), mencionando o concurso material; 3) examinou corretamente, sem bis in idem, as circunstâncias judiciais (art. 59), agravantes e atenuantes (arts. 61, 62 e 65) e causas de aumento e diminuição; 4) afastou os maus antecedentes de Gabriel com base na Súmula 444 do STJ é de Carlos por ser antiga a condenação (direito ao esquecimento); 5) referiu o regime inicial; 6) mencionou claramente quem foi condenado/absolvido, revogação/manutencao das preventivas e perdimento de bens; 7) apreciou reincidência e compensação entre agravantes e atenuantes; 8) fundamentou cada fase da dosimetria e os efeitos da condenação; 9) mencionou a detração (CP, art. 42). Até 2,00 se deixou de apreciar um ou mais temas; até 1,5 se aplicou as penas conjuntamente sem individualizar; até 1,00 se admitiu a substituição (art. 44) e não a aplicou/individualizou; 0,00 se não cumpriu o metodo trifásico ou deixou de aplicar as penas privativas de liberdade.",
+    "pontos": 3,
+    "escala": "até 3,00 (escala 3,0 / 2,0 / 1,5 / 1,0 / 0,0)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP art. 59",
+     "CP art. 68",
+     "CP art. 61",
+     "CP art. 62",
+     "CP art. 65",
+     "CP art. 42",
+     "CP art. 44",
+     "Sumula 444 do STJ"
+    ]
+   },
+   {
+    "quesito": "Criminal - Bloco III — Tipificação das condutas: Até 1,0 para a sentença que deu a tipificação: a) Carlos: art. 33, caput, c/c art. 40, I, IV e V, e 42 da Lei 11.343/2006, art. 289, par. 1o, e 333 do CP, arts. 29, 61, I, e 69 do CP; b) Gabriel: art. 33, caput, c/c art. 40, I, IV e V, e 42 da Lei 11.343/2006, e art. 289, par. 1o, c/c 65, I, 'a', do CP. A mesma pontuação se a sentença omitir os incisos IV e V do art. 40, o art. 42 da Lei, a reincidência, a menoridade relativa, a atenuante da confissão, o art. 29 ou o art. 69 do CP. Até 0,50 se admitir o tráfico privilegiado para Gabriel; 0,25 se admitido também para Carlos, desde que haja fundamentação razoável (bis in idem); sem fundamentação razoável, 0,00. 0,50 se mantiver a tipificação de associação para o tráfico ou organização criminosa, ou se imputar a Gabriel também corrupção ativa. Até 0,50 se não fizer referência a um dos tipos penais; 0,00 se não mencionar nenhum desses crimes.",
+    "pontos": 1,
+    "escala": "até 1,00 (escala 1,0 / 0,50 / 0,25 / 0,0)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006 arts. 33, 40 e 42",
+     "CP art. 289, par. 1o",
+     "CP art. 333",
+     "CP art. 29",
+     "CP art. 61, I",
+     "CP art. 65, I, a",
+     "CP art. 69"
+    ]
+   },
+   {
+    "quesito": "Criminal - Bloco IV — Conclusão da sentença: Sentença absolutória ou de incompetência do juízo: 0,00. Totalmente condenatória: 0,50. Parcialmente condenatória: 1,0.",
+    "pontos": 1,
+    "escala": "0,00 / 0,50 / 1,00",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal - Bloco V — Domínio dos institutos jurídico-penais aplicáveis: Avaliacao qualitativa do domínio dos institutos jurídico-penais aplicáveis. Insuficiente: 0. Ruim/regular: 0,50. Bom/muito bom: 1,5.",
+    "pontos": 1.5,
+    "escala": "0,00 / 0,50 / 1,50",
+    "disciplina": "Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Criminal - Bloco VI — Língua portuguesa: Uso correto da língua portuguesa. Insuficiente: 0,00. Ruim/regular: 0,25. Bom/muito bom: 0,50.",
+    "pontos": 0.5,
+    "escala": "0,00 / 0,25 / 0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   }
+  ],
+  "total": 20,
+  "instrucoes": [
+   "Na sentença cível o espelho e organizado em dez quesitos numerados por extenso ('Primeiro Quesito', 'Segundo Quesito'...), cada um com o valor entre parenteses; total 10,00.",
+   "O Primeiro Quesito exige que o candidato demonstre perceber a relação de subordinacao entre as questões, sendo admitidas como corretas três sequências alternativas de resolução expressamente listadas.",
+   "No Quarto Quesito consta que 'A resposta será considerada exauriente se o candidato pontuar, ao lado disso, que...' - há, portanto, gradacao entre resposta com aproveitamento e resposta exauriente.",
+   "No Terceiro Quesito consta que, 'Em razao da específica posição do Tribunal Regional Federal da 1a Regiao a respeito do tema, também deverá ser admitida como correta a resposta do candidato que aludir ao fato de a execução fiscal haver sido proposta depois...'.",
+   "Na sentença criminal a pontuação e por BLOCOS com faixas decrescentes conforme o grau de acerto: I) Apreciacao e fundamentação das alegacoes - até 3,0; II) Aplicação das penas e seus efeitos - até 3,0; III) Tipificação das condutas - até 1,0; IV) Conclusão da sentença - até 1,0; V) Domínio dos institutos jurídico-penais - até 1,5; VI) Uso correto da língua portuguesa - até 0,50.",
+   "Na sentença criminal há hipóteses expressas de NOTA ZERO no bloco I: sentença que acolher a alegacao de incompetência do juízo federal; que acolher nulidade do processo (ilicitude da prova ou falta de justa causa), insuficiencia de prova ou ausência de dolo; ou que absolver todos os denunciados de todos os crimes. No bloco II: sentença que não cumprir o metodo trifásico ou que deixar de aplicar as penas privativas de liberdade.",
+   "Bloco IV: 'Sentença absolutória ou de incompetência do juízo: 0,00. Totalmente condenatória: 0,50. Parcialmente condenatória: 1,0.'",
+   "Blocos V e VI usam escala qualitativa: 'Insuficiente: 0. Ruim/regular: 0,50. Bom/muito bom: 1,5' (V) e 'Insuficiente: 0,00. Ruim/regular 0,25. Bom/muito bom: 0,50' (VI)."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/espelho-de-correcao-provas-praticas-de-sentenca_v.f.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/trf1",
+  "nota": "Espelho cobre as duas sentencas; prova de sentenca criminal em https://conhecimento.fgv.br/sites/default/files/concursos/trf1-2023-juiz-substituto-prova-pratica-sentenca-criminal.pdf"
+ },
+ {
+  "id": "trf-3-2025-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura federal",
+  "banca": "FGV",
+  "orgao": "TRF3",
+  "cargo": "Juiz Federal Substituto",
+  "ano": 2025,
+  "fase": "discursiva",
+  "disciplina": "Constitucional, Administrativo, Sentença (estrutura), Tributário, Outros, Empresarial, Direitos Humanos",
+  "tema": "Constituição como sistema aberto - fundamentos nacionais e internacionais; Conceito de Constituição como sistema aberto; Pluralismo(s), paradoxos da intolerância, da liberdade e da democracia e limites da jurisdição federal; …",
+  "enunciado": "TRF3 · 2025 · Juiz Federal Substituto — discursiva (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/trf3discursiva.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/gabarito-da-prova-discursiva.pdf\nTempo sugerido: 1h por questão (14 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Tema 1 - a) Constituição como sistema aberto / Fundamentos jurídicos — Constituição como sistema aberto - fundamentos nacionais e internacionais: A expressao 'Fundamentos jurídicos' compreende preceitos normativos e seus conteudos; foram pontuadas as citacoes a preceitos normativos, avaliados os conteudos em combinacao com o conceito requerido. Exemplificativamente, na CF/88: princípios (arts. 1o, 2o, 3o, 4o e 5o, par. 2o e 3o) e conceitos jurídicos indeterminados (arts. 57, par. 6o, I; 62, caput e par. 6o; 64, par. 1o; 148, III; 167, par. 3o). Em atos normativos internacionais: Pacto de San Jose (arts. 7, 9, 12, 13, 48.2, 63.2) e PIDCP (arts. 1o, 2o, 3o, 9o, 10, 12, 4.1 e 8.3, c, iii).",
+    "pontos": 2,
+    "escala": "0,03 (P.M.) - Tema 1 vale 2,00",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF art. 1o a 5o",
+     "Pacto de San Jose da Costa Rica",
+     "PIDCP"
+    ]
+   },
+   {
+    "quesito": "Tema 1 - a) Conceito — Conceito de Constituição como sistema aberto: Trata-se do sistema aberto de princípios e regras presente na literatura constitucional brasileira e estrangeira. Há quatro elementos que integram o conceito de 'Constituição como sistema aberto' (formal, material, temporal e pessoal), além da finalidade própria desse sistema, havendo abertura semantica.",
+    "pontos": 0.1,
+    "escala": "0,10 (P.M.)",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Tema 1 - demais itens — Pluralismo(s), paradoxos da intolerância, da liberdade e da democracia e limites da jurisdição federal: Apresentar fundamentos jurídicos nacionais e internacionais, conceitos e referências teóricas sobre pluralismo(s) e os paradoxos da intolerância, da liberdade e da democracia; fazer inter-relacoes entre eles; definir os limites da competência jurisdicional federal em questões que envolvam, ao mesmo tempo, esses 3 assuntos; e dar dois exemplos de controle de constitucionalidade realizados pelo STF nos quais ao menos um desses paradoxos e conjugado com pluralismo(s) na ordem de 1988, com justificacoes que mostrem também a posição do candidato.",
+    "pontos": 2,
+    "escala": "itens com P.M. própria; Tema 1 - PONTUACAO TOTAL: 2,00",
+    "disciplina": "Constitucional",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Tema 2 - itens 1 a 3 — Agências reguladoras - definicao, exemplos e regulação: 1) demonstrar que compreende, em termos jurídicos, como se definem as agências reguladoras no direito brasileiro (0,06); 2) apresentar exemplos de agências do tipo, considerando especialmente a jurisdição federal (0,04); 3) explicitar, em tracos gerais, como essas agências são reguladas (0,05).",
+    "pontos": 0.06,
+    "escala": "0,06 / 0,04 / 0,05",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Tema 2 - itens 4 a 6 — Relatórios de impacto regulatório (AIR): 4) demonstrar que compreende, em termos jurídicos, como se definem os relatórios de impactos regulatórios (0,1); 5) abordar o objetivo desses relatórios no contexto da legislação que os regulamenta (0,05); 6) abordar as técnicas previstas na legislação para a realização dos relatórios de impacto regulatório, tentando diferencia-las (0,1).",
+    "pontos": 0.1,
+    "escala": "0,10 / 0,05 / 0,10",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Tema 2 - itens 7 a 9 — Processo administrativo e processo regulatório: 7) tratar do processo administrativo (procedimento legal de tomada de decisões pela Administração Pública), abordando a importancia atual do instituto (0,1); 8) fixar as principais diferencas entre o processo de regulação e os demais processos administrativos, tomando algum exemplo para comparacao, como o processo sancionatório (0,1); 9) situar os relatórios de impacto regulatório na fase de instrução do processo regulatório, abordando os requisitos e os efeitos deste enquanto evidência do processo (0,1).",
+    "pontos": 0.1,
+    "escala": "0,10 / 0,10 / 0,10",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Tema 2 - itens 10 a 14 — Controle jurisdicional da discricionariedade e limites da jurisdição federal: 10) abordar a importancia do controle jurisdicional no contexto do direito público contemporâneo (0,1); 11) abordar o controle jurisdicional da discricionariedade e, assim, do processo administrativo e dos elementos internos da legalidade (motivo e finalidade), associando-os a função dos relatórios de impacto regulatório (0,2); 12) abordar os desvios que podem ocorrer na realização ou não de impacto regulatório e, portanto, na instrução do processo (0,1); 13) tratar dos limites da jurisdição federal sobre processo administrativo e impactos regulatórios, localizando-os na Constituição e na Legislação (0,1); 14) apontar a jurisprudência atual e as referências teóricas sobre o tema, identificando a polêmica sobre a imunidade jurisdicional do mérito do ato discricionario (0,2).",
+    "pontos": 0.2,
+    "escala": "0,10 / 0,20 / 0,10 / 0,10 / 0,20",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Tema 2 - critérios formais — Exposição, idioma e caligrafia: Foram também examinadas: a capacidade de exposição, coerência, consistencia e profundidade na argumentação exposta pelo candidato (0,4); a aderencia da prova ao idioma oficial (0,14); a caligrafia do candidato (0,06).",
+    "pontos": 0.4,
+    "escala": "0,40 / 0,14 / 0,06",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Tema 3 - a — Benefícios fiscais x incentivos fiscais: E relevante distinguir os conceitos das expressoes 'benefícios fiscais' e 'incentivos fiscais'. O candidato deverá: [a.1] tracar uma distinção propedêutica entre os conceitos (0,05); [a.2] dialogar com o direito positivo brasileiro (0,10); [a.3] observar que o Tema Repetitivo no 1182 do STJ [trata da exclusão dos benefícios de ICMS das bases do IRPJ e da CSLL] (0,07); [a.4] registrar que o Tema de Repercussão Geral no 843 do STF [pende de definicao] (0,03).",
+    "pontos": 0.25,
+    "escala": "0,25 (0,05 + 0,10 + 0,07 + 0,03)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "STJ Tema Repetitivo 1182",
+     "STF Tema 843 de repercussao geral",
+     "ERESP 1.517.492/PR"
+    ]
+   },
+   {
+    "quesito": "Tema 3 - b — Subvencao de custeio x subvenção para investimento: Há diferenca de tratamento entre as classes 'subvenção de custeio' e 'subvenção para investimento' para fins de tributacao da renda da pessoa jurídica. O candidato deverá: [b.1] tracar uma distinção propedêutica entre os conceitos (0,10); [b.2] dialogar com os termos da Lei no 4.320/1964 (0,05); [b.3] explorar o art. 38, par. 2o, do DL no 1.598/1977 (0,05); [b.4] rememorar o conteudo das Teses 02 e 03 (0,05).",
+    "pontos": 0.25,
+    "escala": "0,25 (0,10 + 0,05 + 0,05 + 0,05)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "Lei 4.320/1964",
+     "DL 1.598/1977 art. 38, par. 2o"
+    ]
+   },
+   {
+    "quesito": "Tema 3 - c, d, e — Lucro real, princípio federativo e critério de discrimen: c) por que a fruicao de uma medida desonerativa estadual de caráter tributário e juridicamente relevante na apuração do lucro real; d) o princípio federativo impoe a exclusão das isenções de ICMS das bases de calculo do IRPJ e da CSLL; e) há critério de discrimen razoável para atribuir consequência [tributária diversa as diferentes especies de desoneração].",
+    "pontos": 0.25,
+    "escala": "0,25 por item (a, b, c, d, e)",
+    "disciplina": "Tributário",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Tema 4 — Pensão por morte - qualidade de segurado, dependentes, rateio e indignidade: A partir da situação fatica narrada (óbito do segurado em 01/02/2024, praticado por sua companheira e o amante; filho menor, filho invalido por AVC e ex-conjuge alimentada), discorrer fundamentadamente sobre: 1) qualidade de segurado do falecido a epoca do óbito; 2) provas exigidas para que a companheira, o filho menor, o outro filho e a ex-conjuge sejam considerados dependentes para fins de pensão por morte, com analise dos termos inicial e final do benefício de cada um; 3) possibilidade de rateio da pensão e extincao da cota parte. O espelho reproduz ainda a ementa sobre devolucao de valores - Tema 692 do STJ.",
+    "pontos": null,
+    "escala": "não discriminada por item no extrato analisado",
+    "disciplina": "Outros",
+    "dispositivos": [
+     "Lei 8.213/1991",
+     "STJ Tema 692"
+    ]
+   },
+   {
+    "quesito": "Tema 5 — Locação pela Administração, registro na Junta Comercial e ação renovatoria: A partir do caso da EBCT (locatária) que reduziu unilateralmente o aluguel alegando supremacia do interesse público: discutir se prevalece o regime jurídico de direito privado; a suspensão dos efeitos da alteracao contratual pelo Presidente da Junta Comercial antes da comprovacao da veracidade da assinatura; a validade da justificacao e comprovacao objetiva da contratação direta do imóvel (avaliacao previa, estado de conservação, custos de adaptação, prazo de amortizacao e singularidade do imóvel); o laudo pericial que apontou valor abaixo do mercado a partir de 12 imóveis com valores e cláusulas identicas (5 da própria locadora, 4 de outra empresa e 3 de uma mesma pessoa fisica); e a ação renovatoria ajuizada 8 meses antes de o contrato completar 5 anos.",
+    "pontos": 1,
+    "escala": "PONTUACAO TOTAL: 1,00",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 8.245/1991",
+     "Lei 14.133/2021 art. 51"
+    ]
+   },
+   {
+    "quesito": "Tema 6 — Prova de Direitos Humanos: Tema autônomo de Direitos Humanos, com espelho próprio em formato de tabela 'Perguntas / Resposta Esperada / P.M'.",
+    "pontos": null,
+    "escala": "itens com P.M. própria",
+    "disciplina": "Direitos Humanos",
+    "dispositivos": []
+   }
+  ],
+  "total": 6.71,
+  "instrucoes": [
+   "Espelho da Comissão Organizadora e Examinadora do XXI Concurso do TRF3, dividido em seis TEMAS, cada um com 'PONTUACAO TOTAL' própria.",
+   "Nos temas em formato de tabela, as colunas são 'Perguntas / Resposta Esperada / P.M', com nota de rodape '* PM - Pontuação máxima'.",
+   "No Tema 1 consta expressamente: 'Foram consideradas citacoes diretamente relacionadas a apresentação do conceito específico, não servindo mencoes genéricas ou sem vinculacao expressa a um ou outros pontos do Tema 1' e 'As notas foram atribuidas pela quantidade de referências expressas'.",
+   "No Tema 2, além do roteiro de mérito, foram examinadas: a capacidade de exposição, coerência, consistencia e profundidade na argumentação (0,4); a aderencia da prova ao idioma oficial (0,14); a caligrafia do candidato (0,06)."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/gabarito-da-prova-discursiva.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/trf3juiz",
+  "nota": "Gabarito definitivo da objetiva publicado no Edital 4/2025 (divulgacao de gabarito apos julgamento dos recursos)."
+ },
+ {
+  "id": "trf-3-2025-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença cível",
+  "carreira": "Magistratura federal",
+  "banca": "FGV",
+  "orgao": "TRF3",
+  "cargo": "Juiz Federal Substituto",
+  "ano": 2025,
+  "fase": "sentença cível",
+  "disciplina": "Processo Civil, Civil, Ambiental, Sentença (estrutura)",
+  "tema": "Competência - subsecoes, conexão e perpetuatio jurisdictionis; Condições da ação; Legitimidade ativa e passiva e litisconsórcio; …",
+  "enunciado": "TRF3 · 2025 · Juiz Federal Substituto — sentença cível (banca FGV).\nProva oficial: https://conhecimento.fgv.br/sites/default/files/concursos/trf3civil.pdf\nEspelho oficial: https://conhecimento.fgv.br/sites/default/files/concursos/gabarito-prova-de-sentenca-civel.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "A - Competência (0,40) — Competência - subsecoes, conexão e perpetuatio jurisdictionis: Quatro subitens de 0,1 cada: Subsecao de Santos - agravo retido/Funai; 14a Vara Cível/SP - conexão; São Jose dos Campos - agravo retido/União (perpetuatio); Caraguatatuba.",
+    "pontos": 4,
+    "escala": "0,40 (4 x 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "B - Inépcia da petição inicial (0,20) — Condições da ação: Dois subitens de 0,1 cada: impossibilidade jurídica do pedido; ausência de interesse de agir (condição da ação).",
+    "pontos": 2,
+    "escala": "0,20 (2 x 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "C - Ilegitimidade (0,40) — Legitimidade ativa e passiva e litisconsórcio: Quatro subitens de 0,1 cada: ativa do MPE / litisconsórcio entre MPs; passiva da Wave; passiva da Elementos é de Leonildo Pagani; litisconsórcio passivo com todos os proprietários.",
+    "pontos": 4,
+    "escala": "0,40 (4 x 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "D - Revelia (0,20) — Efeitos da revelia: Revelia de Elementos Empreendimentos é de Leonildo Pagani: elementos que tenham sido contestados por corréu, a teor do art. 345, I, do CPC, afastam a presunção; a presunção de veracidade não decorre do fato da revelia.",
+    "pontos": 0.2,
+    "escala": "0,20",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC art. 345, I"
+    ]
+   },
+   {
+    "quesito": "E - Questões probatórias (0,30) — Onus da prova pericial e laudo: Dois subitens de 0,1 cada: MP Estadual - ônus de custear o trabalho do perito - agravo retido; laudo pericial de 2015.",
+    "pontos": 0.3,
+    "escala": "0,30 (itens de 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "F - Preliminares de mérito (0,40) — Decadência e prescrição: Dois subitens de 0,2 cada: decadência; prescrição.",
+    "pontos": 2,
+    "escala": "0,40 (2 x 0,20)",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "G - Questões de mérito (1,40) — Dano ambiental, area de restinga, terreno de marinha e responsabilidade solidária: Quatorze subitens de 0,1 cada: confianca legitima; igualdade em relação aos que construiram; direito adquirido; area de restinga; atividade de mineração; area indígena demarcada posteriormente/direito a moradia; localizacao em terreno de marinha ou terrenos alodiais; linha do preamar medio de 1831/padroes atuais/ilegalidade; responsabilidade objetiva e solidária por degradação; responsabilidade solidária por danos causados aos adquirentes; responsabilizacao da Fazenda Pública Estadual; responsabilizacao do Município de São Sebastiao; desconsideração da personalidade jurídica das empresas; inércia do MPE no ajuizamento.",
+    "pontos": 14,
+    "escala": "1,40 (14 x 0,10)",
+    "disciplina": "Ambiental",
+    "dispositivos": []
+   },
+   {
+    "quesito": "H - Dispositivo (1,40) — Dispositivo, demolição, honorários e reexame necessário: Subitens: homologacao do pedido de desistencia (0,1); disposicao sobre todos os pedidos da inicial (0,4); pedido subsidiario de desmembramento/terreno de marinha (0,1); pedidos pendentes (Milton, Hilda e Eduardo) (0,1); demolição de imóveis construidos ou ampliados (0,15); desembargo de imóveis para a recuperação florestal (0,15); disposicao sobre a liminar (0,05); honorários advocaticios e custas (0,2); reexame necessário (0,1); detalhes formais - PRI, local e data (0,05).",
+    "pontos": 1.4,
+    "escala": "1,40",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "I - Caligrafia (0,30) — Caligrafia: Avaliacao da caligrafia, que influi na compreensão da resposta, além de ser exigencia normativa a atribuição de nota a esse item.",
+    "pontos": 0.3,
+    "escala": "0,30",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "J - Idioma (0,70) — Idioma: Foram avaliados padrao de linguagem, ortografia e gramática.",
+    "pontos": 0.7,
+    "escala": "0,70",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "K - Capacidade de exposição (3,00) — Capacidade de exposição: Avaliacao autônoma da capacidade de exposição do candidato.",
+    "pontos": 3,
+    "escala": "3,00",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "L - Observancia da ordem de enfrentamento das questões (1,40) — Ordem lógica de enfrentamento: Avaliacao autônoma da observancia da ordem de enfrentamento das questões.",
+    "pontos": 1.4,
+    "escala": "1,40",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   }
+  ],
+  "total": 33.3,
+  "instrucoes": [
+   "Documento 'Gabarito da Sentença Cível' da Comissão Organizadora e Examinadora do XXI Concurso do TRF3, com duas partes: uma tabela 'Itens para correção / Anotacoes sobre a resposta' e, ao final, a tabela sintetica 'Itens para correção / Pontuação' com o TOTAL 10.",
+   "Além dos itens de mérito, o espelho pontua autonomamente: I - Caligrafia (0,30); J - Idioma (0,70) ('Foram avaliados padrao de linguagem, ortografia e gramática'); K - Capacidade de exposição (3,00); L - Observancia da ordem de enfrentamento das questões (1,40).",
+   "Sobre a caligrafia consta que ela influi na compreensão da resposta, 'além de ser exigencia normativa a atribuição de nota' a esse item."
+  ],
+  "fonte": "https://conhecimento.fgv.br/sites/default/files/concursos/gabarito-prova-de-sentenca-civel.pdf",
+  "fonte_concurso": "https://conhecimento.fgv.br/concursos/trf3juiz",
+  "nota": "Espelho e so da sentenca civel; o espelho da criminal existe em separado (https://conhecimento.fgv.br/sites/default/files/concursos/gabarito-prova-de-sentenca-criminal.pdf) e sua prova em https://conhecimento.fgv.br/sites/default/files/concursos/trf3criminal.pdf"
+ },
+ {
+  "id": "tj-rj-2021-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do XLVIII Concurso - TJRJ)",
+  "orgao": "TJ-RJ",
+  "cargo": "Juiz Substituto",
+  "ano": 2021,
+  "fase": "discursiva",
+  "disciplina": "Civil, Processo Civil, Consumidor, ECA/Infância, Penal, Processo Penal, Constitucional, Eleitoral, Empresarial, Tributário, Ambiental, Administrativo, Filosofia do Direito",
+  "tema": "Inadimplemento antecipado do contrato (imovel na planta) e dano moral; Seguro de vida e embriaguez do segurado; Competencia do Juizado Especial da Fazenda Publica com litisconsorte privado; …",
+  "enunciado": "TJ-RJ · 2021 · Juiz Substituto — discursiva (banca banca propria (Comissao do XLVIII Concurso - TJRJ)).\nProva oficial: https://www.tjrj.jus.br/documents/10136/6660150/prova-discursiva.pdf/64c36c59-71b9-e4f6-27e6-c272ff153808?version=1.0\nEspelho oficial: https://www.tjrj.jus.br/documents/10136/0/espelho-da-prova-discursiva.pdf/5f727216-75cb-7d2b-ef53-c251fe5d2d97?t=1631652657101\nTempo sugerido: 1h por questão (25 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Direito Civil - 1a questao — Inadimplemento antecipado do contrato (imovel na planta) e dano moral: Julgar procedente o pedido do comprador do imovel na planta, com mencao expressa a TEORIA DO INADIMPLEMENTO ANTECIPADO DO CONTRATO; da mesma forma, julgar procedente o pedido de danos morais.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Teoria do inadimplemento antecipado do contrato"
+    ]
+   },
+   {
+    "quesito": "Direito Civil - 2a questao — Seguro de vida e embriaguez do segurado: Dizer que a mae do instituidor do seguro merece receber a indenizacao, porque no contrato de seguro de vida a embriaguez do condutor do veiculo e irrelevante; o candidato deve frisar expressamente a Sumula 620 do STJ.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Sumula 620/STJ"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Civil - 1a questao — Competencia do Juizado Especial da Fazenda Publica com litisconsorte privado: GABARITO discriminado pela banca: (a) competencia exclusiva do Juizado Especial da Fazenda Publica, observados os criterios em razao da pessoa, do valor e da materia (0,1); (b) hipotese que envolve litisconsorcio facultativo, por atribuicao de responsabilidade solidaria pela reparacao dos prejuizos (0,1); (c) irrelevancia da natureza do litisconsorcio (facultativo ou necessario) para afastar a competencia ratione personae do JEFP, prevalecendo a atracao de foro provocada pela presenca do ente publico, uma vez que a causa esta abrangida na competencia do JEFP em razao do valor e da materia (0,1); (d) mencao a decisao da Secao Civel do TJRJ (IAC 0053667-03.2017.8.19.0000), com forca vinculante, definindo a tese de que a natureza facultativa do litisconsorcio nao afasta a competencia exclusiva do JEFP (0,1).",
+    "pontos": 4,
+    "escala": "0,40 (4 subitens de 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Lei 9.099/95",
+     "Lei 10.259/01",
+     "Lei 12.153/09",
+     "IAC 0053667-03.2017.8.19.0000 - Secao Civel do TJRJ"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Civil - 2a questao — Tutela antecipada contra a Fazenda Publica em materia previdenciaria: GABARITO discriminado: (a) restricoes legais infraconstitucionais que impedem o deferimento de medidas de antecipacao da tutela contra a Fazenda Publica, como no caso de decisao que implique aumento ou extensao de remuneracao de servidor (0,1); (b) compatibilidade dessas limitacoes com o texto constitucional, conforme julgamento do STF na ADC-4 (0,1); (c) interpretacao restritiva dessas hipoteses excepcionais, nao alcancando situacoes nao expressamente previstas em lei, conforme firme orientacao jurisprudencial (0,1); (d) nao aplicacao das limitacoes nas hipoteses de acoes previdenciarias - Sumula 729 do STF -, com apreciacao do requerimento de antecipacao da tutela pelo Juizo competente para verificar a presenca dos pressupostos (0,1).",
+    "pontos": 4,
+    "escala": "0,40 (4 subitens de 0,10)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Sumula 729/STF",
+     "Lei 12.016/09, art. 7o, par. 2o e par. 5o",
+     "CPC, art. 1.059",
+     "Lei 9.494/97, art. 1o",
+     "ADC 4/STF",
+     "ADI 4296/STF"
+    ]
+   },
+   {
+    "quesito": "Direito do Consumidor - 1a questao — Conceito de consumidor e responsabilidade do site intermediador de vendas: Entender que ha relacao de consumo; o candidato devera discorrer sobre o conceito de consumidor e as teorias que tratam do tema, assim como a posicao do STJ, apontando as razoes pelas quais concluiu pela responsabilidade do site, citando os dispositivos legais pertinentes, demonstrando que conhece a legislacao a ser aplicada.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "CDC"
+    ]
+   },
+   {
+    "quesito": "Direito do Consumidor - 2a questao — Superendividamento de consumidora idosa (Lei 14.181/2021): Reconhecer situacao de superendividamento da consumidora, que e idosa; citar o novel diploma legal - Lei 14.181/2021 -; falar dos principios vetores do CDC e do novo diploma, dando destaque preferencialmente a dignidade da pessoa humana, com assento constitucional, ao principio da concessao do credito responsavel, da cooperacao e transparencia entre credor e consumidor e a preservacao do minimo existencial; destacar que, conforme a nova lei, sera possivel ao superendividado requerer ao juiz a convocacao dos credores para tentativa de recuperacao do devedor mediante plano de quitacao das dividas, a fim de evitar sua exclusao social.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "Lei 14.181/2021",
+     "CDC",
+     "CF, art. 1o, III"
+    ]
+   },
+   {
+    "quesito": "Direito da Crianca e do Adolescente - 1a questao — Sistema valorativo do Direito da Crianca e do Adolescente: norma supralegal, metaprincipios e principios derivados: 1) Norma supralegal: INTERESSE SUPERIOR DA CRIANCA E DO ADOLESCENTE, maior valor da disciplina, hoje expresso no art. 100, IV, do ECA; postulado normativo na doutrina de Humberto Avila; tambem foi considerada a resposta que mencionou tratados de direitos humanos aprovados antes da EC 45/2004, dado o status supralegal reconhecido pelo STF. 2) Metaprincipios nucleares: PROTECAO INTEGRAL e PRIORIDADE ABSOLUTA (art. 227, caput, da CF e art. 100, II, do ECA). 3) Ao menos 7 principios derivados do art. 100 do ECA: crianca e adolescente como sujeitos de direitos (I); responsabilidade primaria e solidaria do poder publico (III); privacidade (V); intervencao precoce (VI); intervencao minima (VII); proporcionalidade e atualidade (VIII); responsabilidade parental (IX), aliado ao art. 229 da CF; prevalencia da familia (X); obrigatoriedade de informacao (XI); oitiva obrigatoria e participacao (XII).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "ECA/Infância",
+    "dispositivos": [
+     "ECA, art. 100, I a XII",
+     "CF, arts. 227 e 229",
+     "Lei 12.010/2009"
+    ]
+   },
+   {
+    "quesito": "Direito da Crianca e do Adolescente - 2a questao — Vacinacao obrigatoria de criancas e adolescentes; recusa dos pais por conviccao filosofica: Aplicar o Tema 1103 do STF (ARE 1.267.879/SP, Rel. Min. Roberto Barroso, 17/12/2020): e constitucional a obrigatoriedade de imunizacao por vacina registrada e incluida no PNI ou determinada em lei ou por ente federativo com base em consenso medico-cientifico, nao havendo violacao a liberdade de consciencia e de conviccao filosofica dos pais nem ao poder familiar. Aplicar as sancoes pertinentes a genitora, sendo possivel o deferimento da suspensao da guarda e do poder familiar e a busca e apreensao dos filhos para regularizacao da vacinacao obrigatoria (ECA, art. 14, par. 1o; art. 11, par. 1o a 3o para criancas e adolescentes com deficiencia; art. 249; Titulo IV, art. 129 e ss.). Distinguir a situacao de cada filho na data de 29/02/2020: Carlos ja maior de 18 anos, nao sujeito as medidas; Carla, com sindrome de Down, ainda adolescente de 17 anos; Jose ainda crianca. Dialogar com o Estatuto da Pessoa com Deficiencia (Lei 13.146/2015) e com o Codigo Civil quanto a capacidade.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "ECA/Infância",
+    "dispositivos": [
+     "Tema 1103/STF",
+     "ECA, arts. 11, 14 par. 1o, 129 e ss., 249",
+     "Lei 13.146/2015",
+     "Codigo Civil"
+    ]
+   },
+   {
+    "quesito": "Direitos Difusos e Coletivos - 1a questao — Prescricao da repeticao de tarifas, coisa julgada coletiva e interrupcao da prescricao pela acao civil publica: Criterio de correcao discriminado pela banca: A) 0,1 para quem explicasse que nao se aplica a especie o prazo quinquenal do art. 27 do CDC, visto que nao se cuida de responsabilidade civil, prevalecendo o prazo residual decenal do Codigo Civil (referencias genericas 'ao entendimento do STJ' foram pontuadas com parte do grau); B) 0,1 para quem distinguisse representacao processual de substituicao processual, deixando claro que na segunda a coisa julgada beneficiaria mesmo o nao associado; C) 0,15 para quem, na forma do Tema Repetitivo 1005 do STJ, explicasse que para se beneficiar da interrupcao na acao coletiva deveria o particular requerer a suspensao da acao individual; D) 0,05 consoante a correcao do Portugues e a coordenacao do raciocinio.",
+    "pontos": 0.4,
+    "escala": "0,40 (0,10 + 0,10 + 0,15 + 0,05)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CDC, art. 27",
+     "Codigo Civil, art. 205",
+     "Tema Repetitivo 1005/STJ",
+     "Lei 7.347/85"
+    ]
+   },
+   {
+    "quesito": "Direito Penal - 1a questao — Roubo em concurso formal, porte de arma e dosimetria: Reconhecer, quanto a ROBERTO e TERCIO, dois crimes de roubo consumados circunstanciados pelo concurso de agentes, em concurso formal; quanto a CAETANO, alem desses, a infracao do art. 14 da Lei 10.826/03. Comentar rapidamente a consumacao e o posicionamento das Cortes Superiores; o porte de arma nao se estende aos demais agentes, pois o enunciado nao diz que tivessem conhecimento do artefato belico; e que a pistola 9 mm nao e mais considerada arma de uso restrito. Dosimetria: nao ha indicacao de que as penas extrapolem o minimo legal - pena-base no menor patamar, mais 1/3 e mais 1/6, resultado final 6 anos, 2 meses e 20 dias de reclusao, regime semiaberto e 26 dias-multa no menor valor unitario (CP, art. 72), para ROBERTO e TERCIO; para CAETANO, mais 2 anos de reclusao pelo art. 14 da Lei 10.826/03, regime fechado, resposta penal de 8 anos, 2 meses e 20 dias e 36 dias-multa.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 157, par. 2o",
+     "CP, art. 70",
+     "CP, art. 72",
+     "Lei 10.826/03, art. 14"
+    ]
+   },
+   {
+    "quesito": "Direito Penal - 2a questao — Desistencia voluntaria, tentativa, iter criminis e crimes remanescentes: Decidir quanto a existencia de tentativa ou de desistencia voluntaria, esclarecendo a diferenca entre desistencia espontanea e voluntaria e lembrando que o Codigo Penal exige o inicio da execucao (qual o ato inicial de um furto?). Houve desistencia voluntaria, respondendo os agentes pelos fatos praticados: um dano e uma violacao de domicilio cometida durante a noite e por quatro agentes. Dizer se o dano remanesceria, examinando se ocorreu ou nao a decadencia, ou a sua consuncao por se tratar de crime-meio. Quanto a pena da violacao de domicilio, examinar e justificar se, havendo duas circunstancias que integram a qualificadora (crime durante a noite e mediante quatro agentes), a pena deveria permanecer no minimo legal ou se deveria incidir aumento, que nao poderia ser maior de 1/6.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 15",
+     "CP, art. 150",
+     "CP, art. 163"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Penal - 1a questao — Alegacoes finais, ingresso domiciliar sem autorizacao e acesso a dados de celular: Demonstrar dominio da fase das alegacoes finais, em particular as defensivas, notadamente apos a reforma da Lei 11.719/2008; o arrazoado final como ato essencial a caracterizar o Due Process of Law; a integracao das alegacoes a instrucao criminal (instrucao postulatoria ao lado da probatoria). Fundamental afirmar a correta postulacao ja requerida na defesa previa e ainda nao atendida, nao havendo preclusao por ter sido reiterada no momento processual oportuno (DEMORO; RANGEL; PACELLI; STF RHC 104261, HC 88868, HC 104462; STJ HC 160.384/SP, RHC 30817/MG, HC 154945/RJ). A relevancia do conteudo do requerimento (pericia no celular) e de carater subjetivo, podendo ser superada se o candidato entender que ha ilicitude a indicar a absolvicao. Constatar a atualizacao quanto a jurisprudencia dos Tribunais Superiores que afirmam os vicios apontados, nao obstante o flagrante no interior da residencia ingressada sem autorizacao (STF RE 613.616/RO - repercussao geral; STJ HC 561329, 586474, 609072, 630369, 588445, 616584, 566818, RHC 126092, REsp 1871856), assim como o acesso desautorizado ao conteudo de mensagens e fotos do celular (STJ HC 609.221/RJ; AgRg no REsp 1.912.303/PR). Merece especial consideracao observar que a hipotese nao atrai o REsp 1.782.386/RJ, que excepciona o acesso a agenda de contatos telefonicos.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Lei 11.719/2008",
+     "STF RE 613.616/RO",
+     "STJ HC 609.221/RJ",
+     "STJ AgRg no REsp 1.912.303/PR",
+     "STJ REsp 1.782.386/RJ"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Penal - 2a questao — Terceira fase da dosimetria com duas majorantes do roubo e art. 68, paragrafo unico, do CP: Verificar o manejo das regras de dosimetria, em especial o art. 68 e paragrafo unico do CP. Nao esta em discussao o HC 463.434-MT do STJ sobre majorantes sobejantes. A pena esta, ate a terceira fase, em 4 anos de reclusao e 10 dias-multa. Optando pela aplicacao das duas circunstancias de aumento como pugna o MP, o candidato devera justificar a razao de utilizar ou nao o paragrafo unico do art. 68 e, se for o caso, justificar o aumento por cada circunstanciadora calculado independentemente sobre as penas fixadas na segunda fase - tese alternativamente favoravel aos acusados - ou cumulativamente. Optando pelo paragrafo unico do art. 68, devera justificar fundamentadamente a opcao diante do caso concreto, observando serem somente dois os agentes, o emprego de uma unica arma de fogo de pequeno calibre e a fixacao das penas-base nos respectivos minimos legais. A resposta ja incluira, natural e implicitamente, a tese sobre bis in idem sustentada pela defesa.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CP, art. 68 e paragrafo unico",
+     "CP, art. 157, par. 2o, II e par. 2o-A, I",
+     "Sumula 231/STJ"
+    ]
+   },
+   {
+    "quesito": "Direito Constitucional - 1a questao — Controle de constitucionalidade estadual: normas de reproducao obrigatoria x normas de imitacao: A resposta deve distinguir preceitos (a) criados originariamente pela Assembleia Constituinte estadual (normas genuinamente estaduais); (b) cujo conteudo repete, por absorcao federativamente obrigatoria, normas da CF (normas de reproducao obrigatoria); (c) cujo conteudo repete por processo puramente mimetico (normas de imitacao ou reproducao ociosa). As duas situacoes podiam ser submetidas ao controle na Corte estadual pela via de representacao de inconstitucionalidade (CF, art. 125, par. 2o). A jurisprudencia do STF autoriza a interposicao de recurso extraordinario na hipotese de declaracao de inconstitucionalidade por Tribunal estadual em se tratando de norma constitucional de reproducao obrigatoria; nao cabe tal recurso no caso de norma de reproducao facultativa (mera imitacao), uma vez que o controle nao confronta norma constitucional federal propriamente dita. Na atribuicao de grau sera considerada a correcao vernacular e a observancia da terminologia constitucional.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, art. 125, par. 2o"
+    ]
+   },
+   {
+    "quesito": "Direito Constitucional - 2a questao — Controle de convencionalidade e efeitos das declaracoes de invalidade: A primeira pergunta versa o denominado controle de convencionalidade, que pode ser realizado pela via da acao direta de inconvencionalidade (utilizando por simetria a ADI) nos casos de convencoes aprovadas na forma do art. 5o, par. 3o, da CF, pois passam a ostentar status de emenda constitucional. Identica modalidade de tratado, aprovada em procedimento simples, e considerada por decisao do STF como norma supralegal e, nessa qualidade, pode ser declarada invalida pela via incidental. A declaracao na via direta tem eficacia erga omnes, enquanto a realizada na via indireta tem eficacia entre as partes, podendo chegar ao conhecimento do STF mediante recurso extraordinario. Na atribuicao de grau sera considerada a correcao vernacular e a terminologia constitucional.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, art. 5o, par. 2o e par. 3o",
+     "CF, art. 47"
+    ]
+   },
+   {
+    "quesito": "Direito Eleitoral - 1a questao — Inelegibilidade que se encerra antes do dia da eleicao: A base da questao esta na Sumula 70 do TSE: 'O encerramento do prazo de inelegibilidade antes do dia da eleicao constitui fato superveniente que afasta a inelegibilidade nos termos do artigo 11, par. 10, da Lei 9.504/97'. A sumula decorreu do julgamento do P.A. 32.345 do TSE em 10/05/2016. A resposta correta seria o deferimento da candidatura com base no art. 11, par. 10, da Lei 9.504/97, com a interpretacao consolidada pela Sumula 70 do TSE.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Eleitoral",
+    "dispositivos": [
+     "Sumula 70/TSE",
+     "Lei 9.504/97, art. 11, par. 10"
+    ]
+   },
+   {
+    "quesito": "Direito Empresarial - 1a questao — Dissolucao parcial: data-base da apuracao de haveres e mutacao patrimonial: Hipotese de dissolucao parcial de sociedade empresaria; sendo por prazo indeterminado, e possivel o desligamento imotivado, mas o socio retirante deveria ter notificado os demais com antecedencia minima de 60 dias (CC, art. 1.029, caput), o que tambem se faz necessario para preparacao do balanco de determinacao 'levantado a data da resolucao' (CC, art. 1.031, caput). Como o retirante preferiu ajuizar acao, a jurisprudencia supre a lacuna legal estabelecendo como parametro a data do ajuizamento da acao judicial (ha precedentes considerando razoavel a data da citacao valida). Ainda que a formalizacao da retirada so se opere com o transito em julgado, os efeitos do provimento alcancam situacao anterior (ex tunc), momento do rompimento fatico do vinculo. O retirante nao pode colher o que nao semeou, sob pena de enriquecimento sem causa. Ressalva: havendo contratos pendentes em favor da sociedade ao tempo do desligamento fatico, tem direito a inclusao dos respectivos resultados patrimoniais no balanco, considerando-se ainda a capacidade de lucros futuros (goodwill); assim, a mutacao patrimonial posterior podera sim ser considerada para fins de haveres.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "CC, art. 1.029",
+     "CC, art. 1.031"
+    ]
+   },
+   {
+    "quesito": "Direito Empresarial - 2a questao — Alienacao de ativo em falencia por leilao eletronico e preco vil: A Lei 11.101/05, com as alteracoes da Lei 14.112/20, disciplina a materia. Em qualquer das modalidades de alienacao do art. 142 podem ser apresentadas impugnacoes por credores, devedor ou MP no prazo de 48 horas da arrematacao, decidindo o juiz em 5 dias. Conforme o paragrafo 1o, as impugnacoes baseadas no valor de venda somente serao recebidas se acompanhadas de oferta firme do impugnante ou de terceiro por valor presente superior e de deposito caucionario de 10% do valor oferecido. Nos termos do art. 142, par. 3o-A, III, a terceira chamada se da 'por qualquer preco'; o art. 142, par. 2o-A, V, dispoe que a questao nao se sujeita a aplicacao do conceito de preco vil; e o art. 142, par. 2o-A, I, estabelece que a alienacao se da independentemente de a conjuntura do mercado ser favoravel ou desfavoravel, dado o carater forcado da venda.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 11.101/05, arts. 142 e 143, com redacao da Lei 14.112/20"
+    ]
+   },
+   {
+    "quesito": "Direito Tributario - 1a questao — ISS sobre operacoes de seguros - inconstitucionalidade: A norma e inconstitucional: os seguros nao se sujeitam ao ISSQN, pois submetidos ao IOF, competencia exclusiva da Uniao (CF, art. 153, V), ficando prejudicada a ilegalidade da fixacao de aliquota de ISS inferior a 2% (art. 8o-A da LC 116/2003, com redacao da LC 157/2016) [0,20]. Alem disso, ao prever incidencia do imposto municipal sobre seguros de qualquer natureza, a norma diverge do entendimento firmado pelo Plenario do STF nos Embargos de Declaracao no RE 651.703, com repercussao geral, que estabeleceu que o regime juridico tributario das operadoras de planos de saude, tributadas pelo ISS, nao se aplica as seguradoras de saude, submetidas ao IOF [0,20].",
+    "pontos": 0.4,
+    "escala": "0,40 (0,20 + 0,20)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CF, art. 153, V",
+     "LC 116/2003, art. 8o-A",
+     "LC 157/2016",
+     "STF RE 651.703 (ED)"
+    ]
+   },
+   {
+    "quesito": "Direito Tributario - 2a questao — ICMS na transferencia entre estabelecimentos do mesmo titular: Nao haveria ICMS na operacao, por se tratar de transferencia entre estabelecimentos de um mesmo contribuinte, situacao que escapa a incidencia do imposto estadual, nos termos da Sumula 166 do STJ, visto que a hipotese de incidencia e a operacao juridica praticada por comerciante que acarrete circulacao de mercadoria e transmissao de sua titularidade; o elemento furto nao e relevante e nao traz impacto tributario [0,20]. Ao apreciar a materia na ADC 49, o Plenario do STF declarou a inconstitucionalidade dos arts. 11, par. 3o, II, 12, I (no trecho 'ainda que para outro estabelecimento do mesmo titular') e 13, par. 4o, da LC 87/1996, consagrando que o deslocamento de mercadorias entre estabelecimentos do mesmo titular nao configura fato gerador do ICMS [0,20].",
+    "pontos": 0.4,
+    "escala": "0,40 (0,20 + 0,20)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "Sumula 166/STJ",
+     "ADC 49/STF",
+     "LC 87/1996"
+    ]
+   },
+   {
+    "quesito": "Direito Ambiental - 1a questao — Supressao de vegetacao, motosserra nao legalizada: ilicitos, consequencias, competencia, dano moral coletivo e legitimados: a) Ilicitos administrativos: supressao de vegetacao sem licenca ambiental (arts. 1o e 26 da Lei 12.651/12); ilicitos civis: dano causado ao meio ambiente (CF, art. 225, e CC, arts. 186/187); ilicitos penais: violacao dos arts. 38 e 51 da Lei 9.605/98, em concurso material (CP, art. 69), nao se admitindo a consuncao, eis que ambos sao ilicitos autonomos. b) Consequencias administrativas: advertencia, multa simples e multa diaria (art. 72 da Lei 9.605/98), observado o art. 6o (gravidade do fato, antecedentes e situacao economica do infrator); civis: indenizacao individual e coletiva e reparacao do dano causado; penais: pena privativa de liberdade, restritiva de direito e multa. c) Competencia fiscalizatoria comum da Uniao, Estados, DF e Municipios: o ilicito pode ser fiscalizado pelo Municipio por prevalencia do interesse local (CF, art. 23, VI c/c art. 30, I), pelos orgaos estaduais responsaveis pelo licenciamento (art. 17 da LC 140/11) e pelos orgaos federais; a competencia para lavrar auto de infracao e de todas as autoridades do SISNAMA. d) Cabe indenizacao por dano moral coletivo, em acao civil publica proposta pelo Ministerio Publico e demais legitimados da Lei 7.347/85 (CC, arts. 186 e 927; CF, art. 5o, X). e) Legitimados: os previstos no art. 5o da Lei 7.347/85, alem daqueles que individualmente sofreram prejuizos (p.ex., diminuicao das especies da piscicultura local); no caso de dano moral coletivo, eventual condenacao seria destinada a um fundo de protecao ao meio ambiente.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Ambiental",
+    "dispositivos": [
+     "Lei 12.651/12, arts. 1o e 26",
+     "Lei 9.605/98, arts. 6o, 38, 51, 70 e 72",
+     "CP, art. 69",
+     "CF, arts. 5o X, 23 VI, 30 I e 225",
+     "LC 140/11, art. 17",
+     "Lei 7.347/85, art. 5o",
+     "CC, arts. 186, 187 e 927"
+    ]
+   },
+   {
+    "quesito": "Direito Administrativo - 1a questao — Alienacao de controle acionario de sociedade de economia mista e de subsidiarias: A pergunta foi retirada da ADI 5624 do STF: (i) a alienacao do controle acionario de empresas publicas e sociedades de economia mista exige autorizacao legislativa e licitacao; (ii) a exigencia de autorizacao legislativa nao se aplica a alienacao do controle de suas subsidiarias e controladas, podendo a operacao ser realizada sem licitacao, desde que observados os principios do art. 37 da CF e a necessaria competitividade. Pontos obrigatorios: distinguir sociedade de economia mista e sua subsidiaria, indicando o modo de criacao de cada uma; falar sobre o paralelismo das formas ou principio da simetria; mencionar a necessidade de lei para a alienacao do controle da sociedade de economia mista e a desnecessidade para a subsidiaria; mencionar a necessidade de licitacao para a sociedade de economia mista e a desnecessidade para a subsidiaria; mencionar que para a subsidiaria e dispensada a licitacao; indicar o art. 29, caput, XVIII, da Lei 13.303/16; mencionar a decisao do STF no julgamento conjunto da ADI 5624 e MC nas ADI 5846, 5924 e 6029.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "STF ADI 5624",
+     "Lei 13.303/16, art. 29, XVIII",
+     "CF, art. 37"
+    ]
+   },
+   {
+    "quesito": "Direito Administrativo - 2a questao — Controle judicial de correcao de prova de concurso publico: A pergunta foi retirada do RE 632.853 do STF (repercussao geral): nao compete ao Poder Judiciario, no controle de legalidade, substituir banca examinadora para avaliar respostas dadas pelos candidatos e notas a elas atribuidas; excepcionalmente e permitido ao Judiciario juizo de compatibilidade do conteudo das questoes com o previsto no edital. Pontos obrigatorios: a diferenca entre controle de merito e de legalidade; o Judiciario apenas pode exercer controle de legalidade nos atos discricionarios; a pergunta se coloca dentro do conteudo programatico, por isso dentro da legalidade; o gabarito segue a corrente doutrinaria que melhor se coaduna com as funcoes do cargo, mostrando-se proporcional; o Judiciario nao pode controlar o merito 'aceitando' outras respostas, sob pena de se substituir a Administracao; fazer mencao ao RE 632.853 do STF.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "STF RE 632.853 (repercussao geral)"
+    ]
+   },
+   {
+    "quesito": "Nocoes Gerais de Direito e Formacao Humanistica - 1a questao — Papel contramajoritario do STF: Expor que o STF, como as demais Cortes Constitucionais, exerce o controle de constitucionalidade dos atos normativos, podendo invalidar atos do Congresso Nacional e do Presidente da Republica; 11 ministros que sequer receberam voto popular podem sobrepor sua interpretacao a de agentes politicos com mandato representativo, o que gera a aparente contradicao apelidada de dificuldade contramajoritaria. Esse papel e amplamente aceito com base em dois fundamentos: (i) protecao dos direitos fundamentais (minimo etico e reserva de justica), que nao podem ser atropelados por simples deliberacao majoritaria; (ii) protecao as regras do jogo democratico e aos canais de participacao politica. Na visao do Ministro Luis Roberto Barroso, seria um status de 'sentinela contra o risco da tirania das maiorias'. Referir a dimensao substantiva da democracia (igualdade, liberdade e justica), a Corte como forum de principios e a independencia de seus membros em relacao ao processo eleitoral. O candidato poderia complementar com exemplos praticos da atuacao contramajoritaria do STF.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Filosofia do Direito",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Nocoes Gerais de Direito e Formacao Humanistica - 2a questao — Direito ao esquecimento x liberdade de informacao; responsabilidade do provedor de hospedagem: Reconhecer colisao aparente entre liberdade de imprensa e acesso a informacao, de um lado, e honra e imagem, de outro. Nao se vislumbra ilicitude apta a ensejar reparacao por dano moral: a materia limitou-se a narrar que o autor foi preso e investigado, sem intuito de deturpar a realidade nem animus de ofender; houve mera reproducao de informacoes fornecidas por orgaos estatais, com cunho informativo, nao caracterizado abuso (CF, art. 220). A liberdade de expressao nao e absoluta, encontrando limite em outros direitos fundamentais, cabendo ao julgador examinar as especificidades do caso concreto. O provedor de hospedagem nao produziu a reportagem, apenas a hospedou, respondendo apenas subjetivamente pelos abusos. Concluir que os argumentos tracejados pelo juiz nao estao corretos. Expor a origem do direito ao esquecimento no Brasil (casos da Chacina da Candelaria e de Vigario Geral, 4a Turma do STJ) e as tres principais posicoes sobre o tema, inclusive a que nega a existencia de um direito ao esquecimento (ADI 4815; New York Times Co. v. Sullivan).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, arts. 5o IV, IX, X e XIV, e 220",
+     "STF ADI 4815"
+    ]
+   }
+  ],
+  "total": 17.2,
+  "instrucoes": [
+   "Documento intitulado 'ESPELHO DA PROVA DISCURSIVA - 2a FASE - JUIZ SUBSTITUTO', XLVIII Concurso para Ingresso na Magistratura de Carreira do Estado do Rio de Janeiro (PDF gerado em 14/09/2021).",
+   "Cada questao vale 0,40; a prova reune 24 questoes distribuidas por disciplina.",
+   "Em Direito Constitucional o espelho consigna: 'na atribuicao de grau, sera considerada adequada correcao vernacular na elaboracao da resposta e realizacao de redacao com absoluta observancia da terminologia constitucional aplicavel a tematica vertida na pergunta'.",
+   "Em Direitos Difusos e Coletivos a banca discriminou a subdivisao do 0,40 em A) 0,1; B) 0,1; C) 0,15; D) 0,05 'consoante a correcao do Portugues, e a coordenacao do raciocinio'."
+  ],
+  "fonte": "https://www.tjrj.jus.br/documents/10136/0/espelho-da-prova-discursiva.pdf/5f727216-75cb-7d2b-ef53-c251fe5d2d97?t=1631652657101",
+  "fonte_concurso": "https://www.tjrj.jus.br/concursos/magistratura/magistratura/xlviii",
+  "nota": "Prova discursiva do XLVIII Concurso, aplicada em 11/07/2021. A propria pagina do concurso rotula o documento como 'Espelho/gabarito', ou seja, nao ha gabarito separado para esta prova."
+ },
+ {
+  "id": "tj-rj-2022-esp1",
+  "tipo": "sentenca",
+  "peca": "Sentença cível",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do XLVIII Concurso - TJRJ)",
+  "orgao": "TJ-RJ",
+  "cargo": "Juiz Substituto",
+  "ano": 2022,
+  "fase": "sentenca civel",
+  "disciplina": "Sentença (estrutura), Processo Civil, Civil",
+  "tema": "Ordem logica de enfrentamento das preliminares; Habilitacao de credito tributario e concurso de preferencias; Prazo de resposta e revelia nos embargos de terceiro; …",
+  "enunciado": "TJ-RJ · 2022 · Juiz Substituto — sentenca civel (banca banca propria (Comissao do XLVIII Concurso - TJRJ)).\nProva oficial: https://www.tjrj.jus.br/documents/10136/6660150/prova-de-sentenca-civel-27-11-2021.pdf/cb540a94-c0fe-d15b-3189-9d790b914c4e?version=1.1\nEspelho oficial: https://www.tjrj.jus.br/documents/10136/0/espelho-da-prova-sentenca-civel.pdf/f05014eb-059c-ee01-f05f-dec41dcb93d1?t=1643045358422\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "I - Estrutura e apresentacao da sentenca — Ordem logica de enfrentamento das preliminares: Enfrentamento ordenado e logico das questoes preliminares. Impropriedade do exame de questoes preliminares no juizo de merito da causa. Julgamento antecipado do merito pressupoe a presenca das condicoes para o regular exercicio do direito de acao e os requisitos de validade processual (juizo preliminar), ou seja, o previo enfrentamento de todas as questoes preliminares suscitadas.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "I.a - Competencia do juizo da execucao — Habilitacao de credito tributario e concurso de preferencias: Enfrentamento da questao atinente a habilitacao de credito tributario no juizo da execucao. Incidente de concurso de preferencias (CPC, arts. 908 e 909). Credores habilitados que assumem a condicao de parte no incidente de natureza cognitiva. Competencia funcional do juizo em que ocorreu a alienacao judicial. Fundamentacao adequada para nao haver o declinio de competencia para a Justica Federal, nos termos do art. 109, I, da CF/88. Sumula 244 do TFR. Sumula 270 do STJ.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 908 e 909",
+     "CF, art. 109, I",
+     "Sumula 244/TFR",
+     "Sumula 270/STJ"
+    ]
+   },
+   {
+    "quesito": "I.b - Tempestividade da contestacao nos embargos de terceiro — Prazo de resposta e revelia nos embargos de terceiro: Procedimento aplicavel (CPC, art. 231, par. 1o). Distincao com a defesa no processo de execucao por meio de embargos a execucao. Inaplicabilidade da regra do art. 915, par. 1o, do CPC. Revelia do executado/embargado. Inocorrencia do efeito previsto no art. 344 do CPC (presuncao de veracidade dos fatos narrados na inicial).",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 231 par. 1o, 344 e 915 par. 1o"
+    ]
+   },
+   {
+    "quesito": "I.c - Regularidade formal da peticao inicial / valor da causa — Valor da causa nos embargos de terceiro: Finalidade dos embargos de terceiro: livrar o bem do ato de constricao judicial praticado na execucao. Valor da causa: valor do bem atingido, mas sempre limitado ao valor da execucao. Precedentes do STJ. Se o valor da execucao for inferior ao valor do bem penhorado, aquele deve ser o valor da causa nos embargos de terceiro. Fundamentacao.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Precedentes do STJ"
+    ]
+   },
+   {
+    "quesito": "I.d - Litisconsorcio passivo necessario — Participacao do executado nos embargos de terceiro: Insuficiencia da regra do art. 677, par. 4o, do CPC para resolver a questao. Bem imovel indicado apenas pelo exequente. Discussao travada nos embargos de terceiro que envolve potencial prejuizo a esfera juridica do executado, com o reconhecimento do direito a meacao e ao levantamento da importancia depositada pela ex-companheira embargante. Necessidade da participacao do executado na relacao processual. Hipotese de litisconsorcio necessario pela natureza da relacao juridica envolvida no processo, na forma do art. 114 do CPC.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 114 e 677 par. 4o"
+    ]
+   },
+   {
+    "quesito": "I.e - Cabimento dos embargos de terceiro quanto aos fundamentos — Adequacao e interesse nos embargos de terceiro: Necessidade de enfrentamento, com base na boa ordem processual, da preliminar atinente ao cabimento dos embargos de terceiro (adequacao / interesse) diante de seus fundamentos. Cabimento dos embargos de terceiro para desconstituir o gravame judicial, no tocante as alegacoes de impenhorabilidade do imovel ou de nulidade de sua alienacao judicial. Descabimento dos embargos de terceiro para discutir eventual excesso de execucao. Precedentes do STJ.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Precedentes do STJ"
+    ]
+   },
+   {
+    "quesito": "II.a - Merito: impenhorabilidade do imovel do fiador locaticio — Bem de familia do fiador em locacao: Confronto da regra do art. 3o, VII, da Lei 8.009/90 com o art. 6o da CF/88. Discussao atual no ambito do STF (RE 1.307.334), em sede de repercussao geral. Recentes precedentes do STF dando primazia ao direito social a moradia. Distinguish. Locacao nao residencial. Subsistencia do entendimento consolidado no Tema 295 do STF e na Sumula 549 do STJ para as locacoes residenciais.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Lei 8.009/90, art. 3o, VII",
+     "CF, art. 6o",
+     "STF RE 1.307.334",
+     "Tema 295/STF",
+     "Sumula 549/STJ"
+    ]
+   },
+   {
+    "quesito": "II.b - Fianca prestada sem autorizacao da companheira — Outorga uxoria e uniao estavel: Nulidade ou ineficacia parcial da fianca prestada sem autorizacao da companheira. Evolucao no tratamento da disciplina juridica da uniao estavel em relacao ao casamento. Posicao do STF. Preservacao de algumas diferencas por razoes formais. Necessidade de outorga uxoria (CC, art. 1.647, III). Sumula 332 do STJ. Inaplicabilidade as relacoes de uniao estavel para fins de preservacao da seguranca das relacoes juridicas. Boa-fe dos contratantes. Precedentes do STJ. Validade da fianca locaticia. Ineficacia parcial em relacao ao companheiro preterido. Preservacao do direito a meacao, que se projeta sobre o valor alcancado com a avaliacao do imovel (CPC, art. 843).",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC, art. 1.647, III",
+     "Sumula 332/STJ",
+     "CPC, art. 843"
+    ]
+   },
+   {
+    "quesito": "II.c - Validade da arrematacao — Arrematacao x adjudicacao e preco vil: Distincao entre arrematacao e adjudicacao. Disciplinas distintas. Inaplicabilidade do art. 876 do CPC no caso em exame. Possibilidade de o exequente participar da hasta publica como unico licitante. Limite: lanco cujo valor nao seja vil (CPC, art. 891). Valor alcancado no leilao que preserva a meacao do companheiro preterido (CPC, art. 843, par. 2o).",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 843 par. 2o, 876 e 891"
+    ]
+   },
+   {
+    "quesito": "II.d - Dispositivo da sentenca — Congruencia do dispositivo: Resposta a pretensao da embargante (juizo de merito). Julgamento de procedencia parcial para garantir a autora o seu direito a meacao, que se projeta sobre o valor alcancado com a alienacao judicial do imovel e depositado a disposicao do juizo da execucao.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "II.e - Distribuicao dos onus de sucumbencia — Sucumbencia parcial e honorarios: Resistencia do exequente/embargado a pretensao autoral, sustentando inclusive o descabimento da acao de embargos de terceiro. Sucumbencia parcial. Distribuicao das despesas processuais entre as partes (embargante x embargados). Honorarios advocaticios de sucumbencia em favor dos patronos da embargante e do exequente/embargado. Base de calculo: proveito economico.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 85"
+    ]
+   }
+  ],
+  "total": null,
+  "instrucoes": [
+   "'Pontos fundamentais': ordem adequada na solucao das questoes processuais, conduzindo a perfeita estrutura da sentenca; redacao clara e escorreita, com emprego correto dos termos juridicos; fundamentacao precisa, adequada e completa na solucao de cada questao apresentada.",
+   "O espelho nao discrimina pontuacao por quesito (PDF gerado em 24/01/2022)."
+  ],
+  "fonte": "https://www.tjrj.jus.br/documents/10136/0/espelho-da-prova-sentenca-civel.pdf/f05014eb-059c-ee01-f05f-dec41dcb93d1?t=1643045358422",
+  "fonte_concurso": "https://www.tjrj.jus.br/concursos/magistratura/magistratura/xlviii",
+  "nota": "Prova de sentenca civel do XLVIII Concurso, aplicada em 27/11/2021 (espelho publicado em 24/01/2022). A propria pagina do concurso rotula o documento como 'Espelho/gabarito', ou seja, nao ha gabarito separado para esta prova."
+ },
+ {
+  "id": "tj-rj-2022-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença penal",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do XLVIII Concurso - TJRJ)",
+  "orgao": "TJ-RJ",
+  "cargo": "Juiz Substituto",
+  "ano": 2022,
+  "fase": "sentenca penal",
+  "disciplina": "Processo Penal, Penal",
+  "tema": "Incompetencia absoluta e continencia com o Juizo da Infancia; Roubo circunstanciado, emprego de arma de fogo e prova da majorante; Desvio subjetivo de conduta (CP, art. 29, par. 2o); …",
+  "enunciado": "TJ-RJ · 2022 · Juiz Substituto — sentenca penal (banca banca propria (Comissao do XLVIII Concurso - TJRJ)).\nProva oficial: https://www.tjrj.jus.br/documents/10136/6660150/prova-de-sentenca-penal-28-11-2021.pdf/4acd3b36-2a4a-f10e-bcb8-29730295b9b9?version=1.0\nEspelho oficial: https://www.tjrj.jus.br/documents/10136/0/espelho-da-prova-sentenca-penal-atualiz.pdf/b40336f2-c670-fbcd-56c3-460fa386f2e3?version=1.1\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Prejudicial de incompetencia quanto ao agente inimputavel — Incompetencia absoluta e continencia com o Juizo da Infancia: Seria recomendavel o Juiz analisar inicialmente a prejudicial de incompetencia para julgar THIAGO, que provou com documento idoneo sua inimputabilidade, ficando estabelecida a incompetencia absoluta do juizo, com declinio para a Justica Menorista e desconstituicao dos atos em relacao a ele desde o recebimento da denuncia. Ha continencia processual que exigiria unidade de processo e julgamento, nao fosse a vedacao expressa do art. 79, II, do CPP (concurso entre jurisdicao comum e Juizo de Menores). Nao se trata de rejeicao da denuncia, e sim de incidencia do art. 109 do CPP, aplicavel em qualquer fase do processo, admitindo-se que, embora nao formalmente apresentada, a defesa excepcionou a incompetencia. Nulidades do art. 564, I e II, so poderiam ser utilizadas em caso de nao reconhecimento da incompetencia.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, arts. 79 II, 109 e 564 I e II"
+    ]
+   },
+   {
+    "quesito": "Adequacao tipica - progressao criminosa de furto para roubo — Roubo circunstanciado, emprego de arma de fogo e prova da majorante: Todos intentavam cometer furto, supondo nao haver ninguem na casa; WALLACE ficou na frente dando cobertura; iniciada a subtracao, surgiu PEDRO, rendido por MAYCON, armado com pistola .380 municiada, e em seguida OLGA, havendo progressao criminosa. Analisar a circunstanciadora especial do emprego de arma de fogo diante da orientacao dos Tribunais Superiores, que em principio exigem idoneidade de prova; a palavra da vitima, em regra, possui essa idoneidade, embora cada caso guarde contexto proprio, razao pela qual a resposta deveria ser bem fundamentada, nao se afastando a possibilidade de nao ter sido reconhecida a circunstanciadora. Nao restou configurada a majorante do inciso V, pois a restricao a liberdade das vitimas nao extrapolou o tempo necessario a subtracao dos bens.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 157, par. 2o e par. 2o-A"
+    ]
+   },
+   {
+    "quesito": "Cooperacao dolosamente distinta quanto a WALLACE — Desvio subjetivo de conduta (CP, art. 29, par. 2o): WALLACE so tomou conhecimento de que ocorrera um roubo, e nao um furto, quando os demais ingressaram no veiculo por ele conduzido, apos a grave ameaca e apreensao dos bens, nao havendo indicacao de que aderiu a infracao mais grave. A adesao criminosa so pode ocorrer antes do cometimento ou durante a pratica, jamais apos os atos executorios. Hipotese de cooperacao dolosamente distinta ou desvio subjetivo de conduta: a punicao sera pelo crime idealizado ao qual aderiu, salvo prova de que aceitou ou foi indiferente ao crime mais grave (dolo eventual); afirmando-se que o resultado mais grave era previsivel, de modo fundamentado, a pena sofrera aumento ate metade. Para WALLACE subsiste furto qualificado pelo concurso de pessoas, afastada a qualificadora do repouso noturno (fato antes das 22 horas, cidade de veraneio, vizinhos acordados). Incide o art. 29, par. 2o, primeira parte; nao ha participacao de menor importancia.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 29 par. 2o",
+     "CP, art. 155 par. 4o IV"
+    ]
+   },
+   {
+    "quesito": "Corrupcao de menores e crime unico de roubo — Corrupcao de menores e unidade patrimonial: Subsiste a corrupcao de menor relacionada a JONAS, nao quanto a THIAGO, ja que o Ministerio Publico nao fez uso das disposicoes do art. 384 do CPP; nada impediria que o Juiz aplicasse o art. 384, par. 1o, do CPP. So ha um roubo, apesar de duas pessoas terem sido gravemente ameacadas, pois o enunciado deixa subentendido um patrimonio comum. Quanto a corrupcao de menor, nao importa se JONAS ja era corrompido, aplicando-se o entendimento sumular do STJ.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CPP, art. 384 e par. 1o",
+     "Sumula 500/STJ",
+     "ECA, art. 244-B"
+    ]
+   },
+   {
+    "quesito": "Porte ilegal de arma de fogo e concurso material — Contexto temporal distinto: O porte de arma foi cometido dois dias apos a distribuicao do auto de prisao em flagrante referente ao roubo; o revolver estava municiado e o acusado nao negou a potencialidade lesiva, alegando portar a arma para se defender de ameacas de faccao criminosa. Ha que se reconhecer que o crime foi cometido em contexto temporal distinto, subsistindo o concurso material de delitos.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 69",
+     "Lei 10.826/03"
+    ]
+   },
+   {
+    "quesito": "Dosimetria — Terceira fase, concurso formal x material, atenuantes e agravante: Na dosimetria, a sancao basica, fixada nos menores patamares, deve ser acrescida de 2/3 se reconhecido o emprego de arma de fogo, nos termos do art. 68, paragrafo unico, do CP, considerando que o enunciado nao indica motivacao para aplicacao, na terceira fase, de regra diversa da indicada pelo legislador; por isso, embora tenha ocorrido concurso formal entre o roubo e a corrupcao de menor, o concurso material se afigura mais benefico. Reconhecidas duas circunstancias atenuantes e uma agravante, a reincidencia deve ser compensada com a confissao espontanea, e a menoridade relativa, embora reconhecida, nao incidira na dosimetria em decorrencia do verbete sumular 231 do STJ. Para WALLACE, pena-base no minimo legal com acrescimo de 1/6 em razao do concurso ideal perfeito. Remanesce o porte ilegal de arma de fogo, com pena final no menor patamar, aplicando-se o cumulo material com o roubo e a corrupcao de menor.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 68 paragrafo unico, 69 e 70",
+     "Sumula 231/STJ"
+    ]
+   },
+   {
+    "quesito": "Disposicoes finais — Manutencao da prisao, substituicao da pena, indenizacao e comunicacoes: A pena privativa de liberdade imposta a WALLACE deve ser substituida por duas sancoes restritivas de direito, com expedicao de alvara de soltura. Em relacao a MAYCON, reincidente, deve ser mantida a custodia, sendo ele recomendado na prisao em que se encontra. Nao cabe a fixacao de indenizacao, por ausencia de pedido e contraditorio. Devem ser feitas as anotacoes e comunicacoes previstas na legislacao pertinente.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CP, art. 44",
+     "CPP, art. 387, IV"
+    ]
+   }
+  ],
+  "total": null,
+  "instrucoes": [
+   "'Considerando tratar-se de concurso para a Magistratura e em sendo uma prova para avaliacao do candidato, no momento em que prestara, efetivamente, a jurisdicao sentenciando um feito penal, impoe-se que se exija do julgador conhecimento adequado e consistente.'",
+   "'Evidente que a afericao da nota ou grau se fez pelo conjunto da sentenca prolatada e nao por etapas, ou seja, individualizando cada questao a exemplo de pontos independentes para questao preliminar; para a adequacao tipica das condutas de cada acusado; para as respectivas dosimetrias, etc.' (PDF gerado em 25/01/2022)"
+  ],
+  "fonte": "https://www.tjrj.jus.br/documents/10136/0/espelho-da-prova-sentenca-penal-atualiz.pdf/b40336f2-c670-fbcd-56c3-460fa386f2e3?version=1.1",
+  "fonte_concurso": "https://www.tjrj.jus.br/concursos/magistratura/magistratura/xlviii",
+  "nota": "Prova de sentenca penal do XLVIII Concurso, aplicada em 28/11/2021 (espelho publicado em 25/01/2022). A propria pagina do concurso rotula o documento como 'Espelho/gabarito', ou seja, nao ha gabarito separado para esta prova."
+ },
+ {
+  "id": "tj-rj-2023-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do XLIX Concurso - TJRJ)",
+  "orgao": "TJ-RJ",
+  "cargo": "Juiz Substituto",
+  "ano": 2023,
+  "fase": "discursiva",
+  "disciplina": "Civil, Processo Civil, Consumidor, ECA/Infância, Penal, Processo Penal, Constitucional, Eleitoral, Empresarial, Tributário, Ambiental, Administrativo, Filosofia do Direito, Direitos Humanos",
+  "tema": "Cumulacao de dano moral e estetico, lucros cessantes e dano hipotetico; Alimentos gravidicos, compensatorios e avoengos; Coisa julgada progressiva e termo inicial da acao rescisoria; …",
+  "enunciado": "TJ-RJ · 2023 · Juiz Substituto — discursiva (banca banca propria (Comissao do XLIX Concurso - TJRJ)).\nProva oficial: https://www.tjrj.jus.br/documents/10136/218965905/PROVA-DISCURSIVA.pdf\nEspelho oficial: https://www.tjrj.jus.br/documents/10136/218965905/ESPELHO-DE-CORRECAO-DA-PROVA-DISCURSIVA.pdf\nTempo sugerido: 1h por questão (25 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Direito Civil - 1a questao — Cumulacao de dano moral e estetico, lucros cessantes e dano hipotetico: A indenizacao por danos morais e cabivel, assim como a de dano estetico, que podem ser acumuladas a teor da Sumula 387 do STJ. Lucros cessantes: entende a banca que nao existem, porque no direito civil se indeniza o lucro certo ou razoavelmente esperado, nao obtido em razao do ilicito - no caso trata-se de mera expectativa, pois tornar-se modelo era hipotese, e nao se indeniza dano hipotetico. Mas se o candidato mencionar a teoria da perda de uma chance, que nao trata exatamente de lucros cessantes mas pode ser discutida, a banca dara os pontos, desde que faca a distincao devida. A restituicao das mensalidades e cabivel, assim como a indenizacao pelos danos materiais e o tratamento psicologico; se o candidato responder com logica, a banca admitira a resposta de negativa da indenizacao pelas mensalidades.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Sumula 387/STJ",
+     "CC, art. 402"
+    ]
+   },
+   {
+    "quesito": "Direito Civil - 2a questao — Alimentos gravidicos, compensatorios e avoengos: Alimentos gravidicos: previstos na Lei 11.804/2008, devidos a mulher gravida durante a gestacao; a assistencia psicologica encontra-se prevista na lei; o candidato TERA de mencionar a Lei. Alimentos compensatorios: devidos a um dos conjuges no caso de ruptura do vinculo (uniao estavel tambem) a fim de restabelecer o equilibrio financeiro existente antes da separacao; ocorrem em casamentos com separacao total de bens, nos quais um dos conjuges fica gravemente prejudicado em sua qualidade de vida, e nos casos em que o marido impediu a mulher de trabalhar por longos anos; nao podem ser fixados por tempo determinado pela sua propria natureza. Alimentos avoengos: sao os devidos pelos avos; requisitos: obrigacao alimentar advinda do parentesco e impossibilidade de os pais prestarem alimentos.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Lei 11.804/2008",
+     "CC, arts. 1.694 e ss."
+    ]
+   },
+   {
+    "quesito": "Direito Processual Civil - 1a questao — Coisa julgada progressiva e termo inicial da acao rescisoria: 'Coisa julgada progressiva' ou 'coisa julgada parcial': possibilidade de haver capitulo decisorio autonomo que alcance seu resultado final de merito, sobre o qual incidirao os efeitos da coisa julgada material, ainda que a mesma relacao processual tenha prosseguimento quanto a outros pedidos. Hipoteses: julgamento antecipado parcial de merito (CPC, art. 356), sobrevindo-lhe o transito em julgado; recurso parcial, quando o autor interpoe apelacao deixando voluntariamente fora da impugnacao um ou mais capitulos decisorios autonomos da sentenca (CPC, art. 1.013). Quanto a rescindibilidade, na jurisprudencia, notadamente no STJ, prevaleceu o entendimento de que o prazo para a acao rescisoria deve sempre ser contado do transito em julgado da ultima decisao proferida no processo, mesmo no caso da coisa julgada parcial, aplicando-se o enunciado n. 401 da Sumula do STJ e o art. 975 do CPC (EREsp 404777/DF; REsp 1.353.473/PR).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 356, 975 e 1.013",
+     "Sumula 401/STJ"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Civil - 2a questao — Deposito para garantia do juizo: multa e honorarios do art. 523, par. 1o, e consectarios da mora (Tema 677/STJ): O que afasta o cabimento dos honorarios advocaticios e da multa (CPC, art. 523, par. 1o) e o pagamento no prazo previsto no dispositivo; o deposito para fins de garantia e a hipoteca judiciaria nao se confundem com o pagamento da divida, de modo que a tese do executado nao lhe serve naquilo que foi objeto de impugnacao; em relacao a quantia incontroversa, que ja poderia ter sido levantada, nao deve ocorrer a incidencia de multa e honorarios. Quanto ao segundo ponto, se o executado opta por garantir o juizo para discutir a existencia ou extensao do credito, impede a imediata satisfacao, e se ao final ficar demonstrado que nao tinha razao, a demora nao pode pesar sobre o credor: os consectarios moratorios previstos no titulo sao devidos ate a extincao da obrigacao principal com o pagamento (Tema 677 do STJ). Contudo, como a controversia foi apenas parcial, a diferenca a ser perseguida pelo exequente ha de se ater a parcela tida por excessiva.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 523 par. 1o",
+     "Tema 677/STJ"
+    ]
+   },
+   {
+    "quesito": "Direito do Consumidor - 1a questao — Consumidor by stander e vicio do produto - legitimidade ativa: Objetivo: verificar se o candidato sabe o verdadeiro alcance do conceito de consumidor by stander. A preliminar deve ser acolhida: parte legitima para o ajuizamento da acao indenizatoria e o consumidor que figura na nota fiscal de compra do produto, ainda que o tenha comprado para presentear familiar. O problema intrinseco do aparelho reflete um vicio do produto, e nesse caso nao ha que se falar em consumidor por equiparacao para legitimar a autora, pois nao se trata de fato do produto ou acidente de consumo. Nesse sentido, acordaos do TJRJ e, no STJ, o REsp 1.967.728/SP.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "CDC, arts. 2o, 17, 18 e 29",
+     "STJ REsp 1.967.728/SP"
+    ]
+   },
+   {
+    "quesito": "Direito do Consumidor - 2a questao — Erro grosseiro de sistema em preco de passagem aerea e vinculacao da oferta: Objetivo: avaliar se o candidato tem o bom senso de analisar o caso concreto com suas peculiaridades, sem ser influenciado pela primeira imagem que lhe aparece. O CDC nao e somente um conjunto de artigos que protegem o consumidor a qualquer custo: e instrumento legal que pretende harmonizar as relacoes entre fornecedores e consumidores, com base na boa-fe e no equilibrio contratual, sendo principiologico. Nao houve descaso ou inoperancia, pois logo que detectou o erro a prestadora contatou o casal em tempo suficiente para nao frustrar a comemoracao futura. Considerando o erro grosseiro do sistema informatizado, com valores muito aquem dos comumente praticados, nao ha que se falar em vinculacao da oferta (CDC, art. 30). Observado o principio da razoabilidade, nao ha como condenar a agencia de viagens por falha na prestacao do servico.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "CDC, arts. 4o, 6o e 30"
+    ]
+   },
+   {
+    "quesito": "Direito da Crianca e do Adolescente - 1a questao — Deep nude produzido por IA entre alunos: responsabilidades, medidas e direitos a saude e a educacao: A questao visou aferir conhecimentos sobre o sistema constitucional e legal de protecao integral (ECA, art. 3o e paragrafo unico) e sobre os principios da cooperacao e da solidariedade do art. 227 da CF e arts. 4o e 5o do ECA, implicando responsabilidade da escola, do provedor, da familia e do Poder Publico. As vitimas - uma crianca autista e adolescentes - sofreram os efeitos da violencia e intimidacao pelo uso indevido de inteligencia artificial (deep nude). Os agentes sao adolescentes e um deles pode ser considerado maior de idade e passivel de ser criminalizado, pois a divulgacao ocorreu apos seu aniversario de 18 anos. Os atos podem ser configurados como bullying ou cyberbullying (art. 2o da Lei 13.185/2015 c/c Lei 13.718/2018), tudo de acordo com o ECA, arts. 241-B e 241-C, ou 241-A c/c art. 112, alem dos arts. 216-B e 218-C do Codigo Penal. Mesmo diante da ausencia de legislacao especifica sobre IA, o arcabouco do ECA permite que o juiz, por cautela e com base na protecao integral, use medida para impedir a continuidade da divulgacao, sem ofensa ao principio da liberdade e nao censura. Na esfera civel, a familia dos adolescentes autores e a escola podem ser responsabilizados e obrigados a indenizar as vitimas. Quanto a vitima crianca autista, invocar tambem os principios e normativas da LBI. Direito a saude: CF, arts. 6o e 196; ECA, art. 7o; LBI, arts. 4o e 5o e paragrafo unico. Educacao: LBI, art. 27, paragrafo unico.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "ECA/Infância",
+    "dispositivos": [
+     "ECA, arts. 3o, 4o, 5o, 7o, 112, 241-A, 241-B e 241-C",
+     "CF, arts. 6o, 196 e 227",
+     "Lei 13.185/2015",
+     "Lei 13.718/2018",
+     "CP, arts. 216-B e 218-C",
+     "Lei 13.146/2015 (LBI)"
+    ]
+   },
+   {
+    "quesito": "Direito da Crianca e do Adolescente - 2a questao — Titularidade de direitos fundamentais por pessoas em desenvolvimento e dimensoes do direito a vida: 1) Sim: as pessoas em desenvolvimento podem ostentar, como titulares, as prerrogativas inerentes ao exercicio dos Direitos Fundamentais, inclusive exercendo livremente os chamados Direitos Humanos; por serem pessoas em desenvolvimento, merecem todas as oportunidades e faculdades para potencializar seu estado fisico, mental, moral, espiritual e social, em condicoes de liberdade e dignidade. 2) O direito a vida, reconhecido no caput do art. 5o da CF e no art. 7o do ECA, possui posicao de destaque por sua propria natureza, sendo o primeiro direito fundamental. Segundo Jose Afonso da Silva, tem tres dimensoes protetivas: (i) existencia - direito de estar e permanecer vivo; (ii) integridade fisica - absoluto respeito a integridade corporal e psiquica, sendo qualquer agressao ao corpo humano tambem agressao a vida; (iii) integridade moral - a vida e dotada de valores imateriais que merecem protecao juridica. Destacar que a Convencao sobre os Direitos da Crianca, no art. 6o, determina que os Estados-partes reconhecam que toda crianca tem direito inerente a vida, assegurando ao maximo sua sobrevivencia e desenvolvimento; o Brasil foi signatario.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "ECA/Infância",
+    "dispositivos": [
+     "CF, art. 5o caput",
+     "ECA, art. 7o",
+     "Convencao sobre os Direitos da Crianca, art. 6o"
+    ]
+   },
+   {
+    "quesito": "Direito Penal - 1a questao — Teoria da tipicidade, condutas 'compartilhadas', reclassificacao art. 33/art. 28 e crimes de mao propria: Subitens pontuados: (1) 0,20 - trabalhar a Teoria da Tipicidade, considerando os elementos do tipo, as classificacoes das infracoes e a questao da autoria, coautoria e/ou participacao; o verbo e o nucleo do tipo; embora receptacao (CP, art. 180), trafico (Lei 11.343/06, art. 33) e porte ilegal (Lei 10.826/03, arts. 14 e 16) possuam diversas condutas e sejam crimes comuns, em regra materiais e unissubjetivos, algumas condutas nao podem ser praticadas de forma dividida, sendo afronta a gramatica e a teoria do tipo o uso do verbo 'compartilhar' para indicar autoria/coautoria; examinar se concorrem, nos termos do art. 29 do CP, aqueles que nao praticavam diretamente a acao (STJ, AgRg no REsp 1.730.026/RJ, Rel. Min. Nefi Cordeiro). (2) 0,10 - embora 'trazer consigo' seja elementar dos arts. 28 e 33 da Lei 11.343/06, por se tratar de definicao tipica a partir do elemento subjetivo do tipo (destinacao para comercio ilicito ou consumo pessoal), a orientacao dos Tribunais Superiores ainda nao esta sedimentada quanto a necessidade de aditamento ou retificacao da peca acusatoria; espera-se do candidato o exame do dolo de agir e sua configuracao como elemento do tipo. (3) 0,10 - a doutrina estrangeira e nacional orienta-se no sentido de que o crime de mao propria, distinto do crime proprio e do crime comum, nao admite coautoria ou autoria mediata (Manzanares Samaniego; Cobo del Rosal e Vives Anton; Maurach; Welzel; Nilo Batista), porem admite a participacao criminosa.",
+    "pontos": 0.4,
+    "escala": "0,40 (0,20 + 0,10 + 0,10)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 29 e 180",
+     "Lei 11.343/06, arts. 28 e 33",
+     "Lei 10.826/03, arts. 14 e 16",
+     "STJ AgRg no REsp 1.730.026/RJ"
+    ]
+   },
+   {
+    "quesito": "Direito Penal - 2a questao — Qualificadora sobejante no Tribunal do Juri e compensacao com atenuante nao debatida: Subitens pontuados: (1) 0,20 - o art. 61 do CP dispoe que sao circunstancias que sempre agravam a pena, quando nao constituem ou qualificam o crime, e o art. 68 estabelece o processo trifasico; portanto qualificadora nao e circunstancia agravante e muito menos causa especial de aumento; no homicidio duplamente qualificado a sancao vai de 12 a 30 anos; no dizer da lei nao ha margem para que qualificadoras reconhecidas pelo Conselho de Sentenca sejam admitidas como agravantes genericas na segunda fase, o que desrespeitaria a decisao soberana dos jurados e afrontaria lei federal; nao e assente, porem, na jurisprudencia dos Tribunais Superiores, que admitem a valoracao de qualificadoras remanescentes ou sobejantes na segunda fase; a questao pretende verificar como o futuro magistrado analisa o tema sem condicionamentos jurisprudenciais. (2) 0,20 - caso a resposta seja pela inexistencia de afronta a lei federal e a soberania dos veredictos, transformando qualificadora em agravante generica, como podera o juiz-presidente considerar qualquer atenuante e compensa-la se nao consta da ata que a atenuante foi alegada nos debates (CPP, art. 492, I, 'b')? Pretende-se examinar o raciocinio do candidato sem condicionamentos doutrinarios e/ou jurisprudenciais, admitindo-se, por exemplo, que atenuantes de natureza objetiva se imponham face ao processo de individualizacao da pena, de matiz constitucional.",
+    "pontos": 0.4,
+    "escala": "0,40 (0,20 + 0,20)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 59, 61, 65, 68 e 121 par. 2o",
+     "CPP, art. 492, I, 'b'"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Penal - 1a questao — Causas impeditivas de declaracao e arguicao de nulidades: Topicos necessarios: a) conceituar nulidade como qualidade negativa do ato processual (invalidade) e nao como sancao (ineficacia); b) indicar os dispositivos do CPP que tratam das causas impeditivas de declaracao ou arguicao de nulidade (arts. 563, 565 e 566); c) a sentenca penal absolutoria transitada em julgado e causa impeditiva de declaracao de nulidade, ainda que absoluta; d) a jurisprudencia do STF (RE 1.228.372 AgR, Rel. Min. Roberto Barroso, Primeira Turma, julgado em 20/12/2019) e no sentido da incidencia das causas impeditivas de declaracao ou arguicao de nulidade tambem nos casos de nulidade absoluta.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, arts. 563, 565 e 566",
+     "STF RE 1.228.372 AgR"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Penal - 2a questao — Teoria da dissonancia cognitiva e juiz das garantias: Topicos necessarios: a) a Teoria da dissonancia cognitiva, originariamente objeto de estudo da Psicologia Social, foi transposta para o processo penal pelo jurista alemao Bernd Schunemann, e pode ser resumida na busca, muitas vezes inconsciente, de algum nivel de coerencia entre valores, ideias e crencas, sendo as incoerencias a causa da dissonancia; b) e a base logica da inferencia que levou o legislador a redacao do art. 157, par. 5o, do CPP, visando fortalecer a imparcialidade do juiz e a propria figura do juiz de garantias; c) o STF (Informativo 1106) declarou a inconstitucionalidade do par. 5o do art. 157 do CPP; d) o STF (Informativo 1106) declarou a inconstitucionalidade, com reducao de texto, dos par. 3o e 4o do art. 3o-C do CPP, e atribuiu interpretacao conforme para entender que os autos que compoem as materias de competencia do juiz das garantias serao remetidos ao juiz da instrucao e julgamento; e) tais aspectos conduzem a conclusao de que, no minimo, restou mitigada a ideia de contaminacao do juiz da instrucao pelo contato com as pecas produzidas na fase anterior, nao tendo sido prestigiadas, ao menos na sua inteireza, as conclusoes da aludida Teoria.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, arts. 3o-C par. 3o e 4o, e 157 par. 5o",
+     "STF Informativo 1106"
+    ]
+   },
+   {
+    "quesito": "Direito Constitucional - 1a questao — Eliminacao em investigacao social por condenacao antiga com reabilitacao criminal: Aplicar o Tema 22 de repercussao geral do STF (RE 560.900): a idoneidade moral decorrente do principio da moralidade administrativa nao pode ser confundida com moralismo; nenhum candidato pode ser eliminado por nao compartilhar da mesma concepcao de vida boa e da mesma moral privada dos membros da banca - trata-se de moralidade publica e laica, de uma etica minima e intersubjetivamente aceitavel; todavia, alem do principio geral da moralidade, outros fatores podem exigir graus de escrutinio mais severos, a depender da relevancia e essencialidade do cargo, como na selecao de magistrados e de policiais, em que adquire relevo o bem juridico da seguranca publica (CF, art. 144). Considera-se correta a decisao administrativa, pois de natureza incompativel o crime praticado com as funcoes de agente da autoridade policial. No entanto, tambem sera considerada correta, em menor grau, resposta favoravel ao candidato fundada em ponderacao de principios constitucionais, no sentido de que o impedimento de admissao significaria conden-lo de forma perpetua a pena de proibicao do exercicio de cargo publico, inadmissivel no ordenamento (CF, art. 5o, XLVII), ate porque a reabilitacao criminal impede a expedicao de certidao que revele a condenacao.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "Tema 22/STF (RE 560.900)",
+     "CF, arts. 5o XLVII, 37 I e 144"
+    ]
+   },
+   {
+    "quesito": "Direito Constitucional - 2a questao — Regime Constitucional de Colaboracao na Educacao e universalizacao do ensino fundamental: O termo 'Regime de Colaboracao' significa trabalho elaborado de maneira coordenada entre os entes federativos (Uniao, Estados, Distrito Federal e municipios), com objetivo estabelecido no art. 205 da CF: promover e incentivar a educacao, definida como direito de todos e dever do Estado e da familia, visando ao pleno desenvolvimento da pessoa, seu preparo para o exercicio da cidadania e sua qualificacao para o trabalho. Os mecanismos funcionais direcionados a universalizacao do ensino fundamental encontram-se nos arts. 208 e 211 da CF; trata-se de direito publico subjetivo, de natureza universal, outorgado e imposto gratuitamente a todos os brasileiros. A Constituicao cobra atuacao prioritaria dos Municipios, dos Estados e do DF, competindo ao Poder Publico oferecer o ensino fundamental de maneira regular; as autoridades responderao pelo descumprimento ou cumprimento irregular; o Poder Publico deve manter constante recenseamento dos menores, fiscalizando a frequencia a escola e chamando a responsabilidade os pais ou responsaveis negligentes.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, arts. 205, 208 e 211"
+    ]
+   },
+   {
+    "quesito": "Direito Eleitoral - 1a questao — Razoabilidade e proporcionalidade na prestacao de contas de campanha: Necessario reconhecer que se trata de falhas que nao comprometam a higidez do balanco, ausencia de ma-fe e valor que nao ultrapasse R$ 1.064,00 ou 10% do movimento financeiro declarado. Dependendo do reconhecimento ou nao, implicara desaprovacao ou aprovacao com ressalvas das contas apresentadas, consoante o art. 28 e seguintes da Lei 9.504/97.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Eleitoral",
+    "dispositivos": [
+     "Lei 9.504/97, art. 28 e ss."
+    ]
+   },
+   {
+    "quesito": "Direito Empresarial - 1a questao — Habilitacao de credito fiscal na falencia com execucao fiscal em curso: Aplicar o Tema Repetitivo 1092 do STJ (REsp 1.872.759/SP): 'E possivel a Fazenda Publica habilitar em processo de falencia credito objeto de execucao fiscal em curso, mesmo antes da vigencia da Lei n. 14.112/2020, e desde que nao haja pedido de constricao no juizo executivo'. Antes da alteracao ja se admitia a coexistencia do executivo fiscal com o pedido de habilitacao. Como a execucao fiscal nao representa, por si so, salvaguarda para o credor - o que so se concretiza com a penhora ou indisponibilidade -, e cabivel a habilitacao concomitante, desde que nao haja requerimento de constricao no juizo executivo, sob pena de duplice garantia e bis in idem. Apos a Lei 14.112/20, que introduziu o art. 7o-A na Lei 11.101/05, nao ha duvida de que a Fazenda pode habilitar os creditos ainda que pendente execucao fiscal, a qual ficara suspensa ate o encerramento da falencia, sem prejuizo do prosseguimento contra os corresponsaveis (par. 4o, V); a habilitacao nao importa renuncia ao direito de cobrar pela via executiva, mas a execucao devera estar desprovida de garantia.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Tema Repetitivo 1092/STJ",
+     "Lei 11.101/05, art. 7o-A",
+     "Lei 14.112/2020"
+    ]
+   },
+   {
+    "quesito": "Direito Empresarial - 2a questao — Submissao de credito iliquido de indenizacao aos efeitos da recuperacao judicial: Aplicar o Tema Repetitivo 1051 do STJ (REsp 1.843.332/RS): 'Para o fim de submissao aos efeitos da recuperacao judicial, considera-se que a existencia do credito e determinada pela data em que ocorreu o seu fato gerador'. Nem todos os credores estao submetidos aos efeitos, apenas os titulares de creditos existentes na data do pedido, ainda que nao vencidos (Lei 11.101/05, art. 49). A existencia do credito esta ligada a relacao juridica entre devedor e credor; na responsabilidade contratual o vinculo precede o ilicito, e na extracontratual o liame se estabelece com o evento danoso; ocorrido o ato lesivo, surge o direito ao credito relativo a reparacao. Assim, submetem-se os creditos decorrentes de fatos praticados ou negocios celebrados antes do pedido, sendo o adimplemento e a responsabilidade elementos subsequentes. Concluiu o STJ que a submissao nao depende de sentenca que declare ou quantifique o credito, menos ainda de seu transito em julgado, bastando a ocorrencia do fato gerador.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Tema Repetitivo 1051/STJ",
+     "Lei 11.101/05, art. 49"
+    ]
+   },
+   {
+    "quesito": "Direito Tributario - 1a questao — Sujeicao passiva do IPTU, convencoes particulares e imunidade reciproca: De acordo com o art. 34 do CTN, o sujeito passivo do IPTU e o proprietario do imovel; as convencoes particulares nao sao oponiveis a Fazenda Publica, nos termos do art. 123 do CTN. Dessa forma, nao ha que se falar em redirecionamento das execucoes fiscais, nao se aplicando ainda a imunidade reciproca ao contrato celebrado com a autarquia federal, na medida em que essa e contribuinte de fato, e nao de direito.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CTN, arts. 34 e 123",
+     "CF, art. 150, VI, 'a'"
+    ]
+   },
+   {
+    "quesito": "Direito Tributario - 2a questao — Decadencia no lancamento por homologacao, defesa administrativa intempestiva e parcelamento inadimplido: O ICMS e tributo lancado por homologacao, sendo a decadencia regida pelo art. 150, par. 4o, do CTN; todavia, segundo entendimento do STJ, na hipotese de ausencia de pagamento de tributo sujeito a lancamento por homologacao, o prazo decadencial segue a regra do art. 173, I, do CTN (Tema Repetitivo 163). A peticao ou recurso administrativo somente suspende a exigibilidade do tributo se apresentada tempestivamente, nos termos das normas do processo administrativo tributario (CTN, art. 151, III). O parcelamento somente suspende a exigibilidade se estiver sendo adimplido pelo contribuinte. Em razao desses tres fundamentos, a liminar deve ser indeferida.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CTN, arts. 150 par. 4o, 151 III e 173 I",
+     "Tema Repetitivo 163/STJ"
+    ]
+   },
+   {
+    "quesito": "Direito Ambiental - 1a questao — Poco artesiano, ligacao a rede publica, outorga de uso de agua subterranea e competencias: Pontuacao discriminada pela banca: 1) Sim, Joaquim esta obrigado a efetuar a ligacao a rede publica e a pagar pelo servico disponibilizado - arts. 2o e 3o, I, da Lei 11.445/07 e art. 1o, II, da Lei 9.433/97 (0,1). 2) Sim, e necessaria autorizacao para utilizacao da agua subterranea - arts. 11 e seguintes da Lei 9.433/97 e art. 45 da Lei 11.445/07 ('dupla protecao') (0,1). 3) Entes competentes: Uniao para legislar (CF, arts. 21, XIX e 22, IV); Estado (CF, arts. 23, XI, 24, VI e 26, I; Lei 9.433/97, art. 4o - INEA); Municipio para legislar (CF, arts. 24, VI e 125, par. 2o); fiscalizacao como competencia comum de implementacao da Uniao, Estados e Municipios (CF, art. 23, VI e XI) (0,1). 4) Jurisprudencia: STJ, EREsp 1.335.535/RJ, Primeira Secao, Rel. Min. Herman Benjamin - necessidade de outorga e autorizacao ambiental para poco artesiano (arts. 12, II, da Lei 9.433/1997 e 45, par. 2o, da Lei 11.445/2007); e Tema 145 do STF (RE 586.224): 'O municipio e competente para legislar sobre o meio ambiente com a Uniao e o Estado, no limite do seu interesse local e desde que tal regramento seja harmonico com a disciplina estabelecida pelos demais entes federados (art. 24, VI, c/c 30, I e II, da Constituicao Federal)' (0,1).",
+    "pontos": 4,
+    "escala": "0,40 (4 subitens de 0,10)",
+    "disciplina": "Ambiental",
+    "dispositivos": [
+     "Lei 11.445/07, arts. 2o, 3o I e 45 par. 2o",
+     "Lei 9.433/97, arts. 1o II, 4o, 11 e 12 II",
+     "CF, arts. 21 XIX, 22 IV, 23 VI e XI, 24 VI, 26 I e 125 par. 2o",
+     "STJ EREsp 1.335.535/RJ",
+     "Tema 145/STF (RE 586.224)"
+    ]
+   },
+   {
+    "quesito": "Direito Administrativo - 1a questao — Responsabilidade subsidiaria do Estado por dano de concessionaria, actio nata e bens reversiveis: a) O candidato devera observar que a delegataria de servico publico e pessoa juridica distinta do Estado, respondendo diretamente por suas acoes, sendo certo que o Estado, por ser o ente delegante, apenas possui responsabilidade subsidiaria; assim, o Estado apenas sera chamado a responder quando a empresa delegataria nao possuir patrimonio para arcar com sua responsabilidade, como em casos de falencia decretada. b) O candidato devera observar que nao ocorre a prescricao, que e quinquenal (Decreto 20.910/1932), pois apenas apos o estado de insolvencia da delegataria ser reconhecido (15.08.2020) e que o particular lesado poderia postular o ressarcimento diretamente ao ente delegante; devera externar conhecimento da teoria nominada 'actio nata'. c) O candidato devera observar que os bens vinculados a prestacao do servico delegado sao considerados bens publicos, nao sendo penhoraveis; devera explicitar o que se entende por reversao, mostrando que tais bens nao podem servir ao processo falencial, pois nao pertencem a empresa de transporte publico.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Decreto 20.910/1932",
+     "Lei 8.987/95",
+     "CF, art. 37 par. 6o"
+    ]
+   },
+   {
+    "quesito": "Direito Administrativo - 2a questao — Limitacoes administrativas e dever de indenizar: O candidato devera observar que as limitacoes administrativas, em regra, nao geram o dever de indenizar, face ao carater generico a atingir a ideia de fruicao e gozo do bem em sua origem. Excepcionalmente, quando a limitacao se fizer em momento posterior a aquisicao da propriedade, retirando elementos economicos, e que se podera ter a perspectiva de indenizacao diretamente proporcional a retirada da fruicao economica. Por conseguinte, em um primeiro momento, quando adquirida a propriedade ela ja continha restricoes de uso, que influenciaram no proprio valor da aquisicao, sem que se possa falar em perda economica; ja no segundo momento, quando retirada a limitacao inicial e lancada nova restricao, o entendimento prevalecente e no sentido da nao ocorrencia de lesao, pois nao teria existido mudanca do status economico da propriedade desde quando adquirida.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Nocoes Gerais de Direito e Formacao Humanistica - 1a questao — Fundamentos da liberdade de expressao como direito fundamental: Nao se discute que a liberdade de expressao e um direito fundamental, consagrado na maioria dos paises civilizados. Os fundamentos que justificam a afirmativa estao divididos em duas categorias: a) trata-se de meio para realizacao de fim importante; e b) pressupoe que a liberdade de expressao e importante por si so, e nao somente pelas consequencias que pode acarretar. A doutrina majoritaria aponta quatro argumentos: i) garantir uma autossatisfacao (self-fulfilment) individual; ii) ser importante instrumento para a descoberta da verdade; iii) possibilitar a participacao do cidadao na democracia; iv) determinar a manutencao da balanca entre a estabilidade e a mudanca da sociedade.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Filosofia do Direito",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Nocoes Gerais de Direito e Formacao Humanistica - 2a questao — Protocolo para Julgamento com Perspectiva de Genero na aplicacao da pena em feminicidio: O Protocolo para Julgamento com Perspectiva de Genero traduz diretrizes que passaram a ser obrigatorias e tem por objetivo evitar que as decisoes judiciais acabem por perpetuar e reforcar caracteristicas socialmente construidas em relacao ao genero e a outros aspectos. O caso contem varias questoes atinentes a discriminacao: primeiramente, o feminicidio, que por si so ja demonstra a desigualdade relacionada ao genero, inclusive pela motivacao de a vitima nao cuidar bem dos filhos - expectativas socialmente construidas sobre o comportamento das mulheres, a quem se delega as atividades de cuidado e nao as laborativas; alem disso, o fato de as mulheres negras serem as que mais sofrem violencia de genero, de acordo com as pesquisas; e ainda a questao da liberdade religiosa, pois culturalmente as religioes de origem africana sao consideradas diferentes e desviantes, caracterizando mais um fato a ser levado em consideracao pelo magistrado ou magistrada.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Direitos Humanos",
+    "dispositivos": [
+     "Protocolo para Julgamento com Perspectiva de Genero (CNJ)",
+     "CP, art. 121 par. 2o VI"
+    ]
+   },
+   {
+    "quesito": "Direitos Humanos - 1a questao — Controle de convencionalidade do crime de desacato e status da CADH: A Corte Interamericana de Direitos Humanos afirmou, no Marco Juridico Interamericano sobre o Direito a Liberdade de Expressao (30/12/2009), que a liberdade de expressao nao e direito absoluto - o art. 13 da CADH dispoe, nos incisos 2, 4 e 5, que ela pode estar sujeita a certas restricoes e as condicoes para que sejam legitimas. Em julho de 2020, na ADPF 496/DF, julgada improcedente, o STF fixou a tese: 'Foi recepcionada pela Constituicao de 1988 a norma do art. 331 do Codigo Penal, que tipifica o crime de desacato'. A convencionalidade e a constitucionalidade do art. 331 foram analisadas pelo STJ (HC 379.269) e pelo STF (HC 141.949), com firme entendimento de compatibilidade com a CF e o Pacto de Sao Jose da Costa Rica. Quanto ao status: o art. 5o, par. 2o, da CF e clausula aberta de recepcao, e parte da doutrina (Cancado Trindade; Flavia Piovesan) entende que os tratados de direitos humanos possuem estatura constitucional; apos a EC 45/2004, que acrescentou o par. 3o ao art. 5o, foi conferida equivalencia as emendas constitucionais aos tratados aprovados em dois turnos por tres quintos; em dezembro de 2008, no RE 466.343 (Tema 60, repercussao geral), o STF decidiu que os tratados de direitos humanos nao incorporados como emenda tem natureza supralegal, paralisando a eficacia de todo o ordenamento infraconstitucional em sentido contrario.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Direitos Humanos",
+    "dispositivos": [
+     "CP, art. 331",
+     "CADH (Decreto 678/1992), art. 13",
+     "STF ADPF 496/DF",
+     "STF RE 466.343 - Tema 60",
+     "CF, art. 5o par. 2o e par. 3o",
+     "EC 45/2004"
+    ]
+   }
+  ],
+  "total": 13.6,
+  "instrucoes": [
+   "'ESPELHO DE CORRECAO DA PROVA DISCURSIVA (2a Etapa) - JUIZ SUBSTITUTO', XLIX Concurso para Ingresso na Magistratura de Carreira do TJRJ (PDF gerado em 12/12/2023).",
+   "Cada questao vale 0,40; 24 questoes distribuidas por disciplina.",
+   "Em Direito do Consumidor o espelho registra, para as duas questoes: 'ainda que o candidato acerte a questao, sera levada em consideracao a qualidade da redacao que se espera de um Juiz de Direito'.",
+   "Em Direito Penal e Direito Ambiental a banca discriminou subpontuacoes internas (0,10 / 0,20) por topico."
+  ],
+  "fonte": "https://www.tjrj.jus.br/documents/10136/218965905/ESPELHO-DE-CORRECAO-DA-PROVA-DISCURSIVA.pdf",
+  "fonte_concurso": "https://www.tjrj.jus.br/concursos/magistratura/magistratura/xlix",
+  "nota": "Prova discursiva do XLIX Concurso, aplicada em 26/11/2023. Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "tj-rj-2025-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do L Concurso - TJRJ)",
+  "orgao": "TJ-RJ",
+  "cargo": "Juiz(a) Substituto(a)",
+  "ano": 2025,
+  "fase": "discursiva",
+  "disciplina": "Civil, Processo Civil, Consumidor, ECA/Infância, Penal, Processo Penal, Constitucional, Eleitoral, Empresarial, Tributário, Ambiental, Administrativo, Direitos Humanos",
+  "tema": "Privacidade x intimidade de pessoa publica e dano moral; Nexo causal e responsabilidade do fabricante por defeito de airbag; Prova deferida no saneamento e nao produzida; venire contra factum proprium; preclusao sobre a distribuicao do onus da prova; …",
+  "enunciado": "TJ-RJ · 2025 · Juiz(a) Substituto(a) — discursiva (banca banca propria (Comissao do L Concurso - TJRJ)).\nProva oficial: https://www.tjrj.jus.br/documents/d/guest/prova_discursiva_aplicada_em_06-04-2025\nEspelho oficial: https://www.tjrj.jus.br/documents/d/guest/espelho_de_correcao_da_prova_discursiva\nTempo sugerido: 1h por questão (25 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Direito Civil - 1a questao — Privacidade x intimidade de pessoa publica e dano moral: Trata-se de diferenciar privacidade de intimidade. A privacidade pode ser comprometida diante da conduta do individuo que, pela atividade profissional, exige exposicao publica, como a dos artistas de TV. A intimidade esta ligada ao amago emocional do homem, a porcao mais intima do seu ser, e tem de ser respeitada por todos, inclusive a imprensa; sua ofensa gera ato ilicito e atrai a indenizacao por danos morais.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CF, art. 5o X",
+     "CC, arts. 20 e 21"
+    ]
+   },
+   {
+    "quesito": "Direito Civil - 2a questao — Nexo causal e responsabilidade do fabricante por defeito de airbag: Deve ser analisado o conflito em si, ou seja, a pretensao e sua resistencia. Nao ha discussao entre as partes acerca da aplicacao do CDC; a materia da questao e direito civil. A cadeia causal do evento e o cerne da questao: o motorista foi culpado pelo acidente, mas o airbag foi instalado no veiculo para funcionar em eventos com ou sem culpa do condutor; a culpa pelo acidente pode ter sido do motorista, mas a culpa pelos danos por ele sofridos foi do defeito do airbag. Dai a responsabilidade do fabricante. A do vendedor dependeria do CDC - por certo inexiste.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC, arts. 186, 927 e 931"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Civil - 1a questao — Prova deferida no saneamento e nao produzida; venire contra factum proprium; preclusao sobre a distribuicao do onus da prova: A finalidade do oficio ao sindico era comprovar o exercicio da posse continua e ininterrupta, elemento essencial para o reconhecimento da usucapiao; foi deferido pelo 1o juiz, mas nao efetivado, pois os autos foram imediatamente remetidos ao grupo de sentenca. Ao julgar a reconvencao improcedente por ausencia de provas, o 2o magistrado afirmou que caberia ao reu ter produzido tal prova diretamente, alterando o entendimento anteriormente adotado - mudanca que configura venire contra factum proprium. A atitude contraditoria entre os juizes tambem enseja violacao ao principio da nao surpresa, ja que o reu/reconvinte tinha legitima expectativa de que a prova seria obtida mediante a diligencia deferida, gerando prejuizo direto a ampla defesa e ao contraditorio; viola ainda o dever de cooperacao processual, pois o juiz nao pode impor onus excessivo a parte e dela exigir a obtencao direta de documento cuja producao ja havia sido determinada. Ademais, como o juiz entendeu pela necessidade da prova no saneamento e dela se incumbiu, operou-se para ele a preclusao sobre a analise da distribuicao da carga probatoria. Isso posto, ambos os magistrados agiram em error in procedendo, sendo a sentenca nula, devendo a instrucao ser reaberta e a prova (oficio ao sindico) efetivamente produzida.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 6o, 9o, 10, 357 e 373"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Civil - 2a questao — Sistema de precedentes: tese, ratio decidendi e obiter dictum: Precedente e a decisao judicial que, embora voltada a solucao de um caso concreto, produz um elemento normativo usado posteriormente em julgamentos de casos analogos; compoe-se das circunstancias faticas, da argumentacao juridica usada para a solucao e da tese final do julgamento. Ratio decidendi e o conjunto das razoes adotadas pelo juiz para a decisao, isto e, as premissas do raciocinio que suportam a conclusao, incluindo toda a cadeia argumentativa necessaria e suficiente a fundamentacao, bem como a sua conclusao - e a soma da fundamentacao juridica com a tese final do julgado. A tese e o elemento da ratio decidendi correspondente a conclusao do julgado, formulada como norma abstrata, com estrutura semelhante a lei, voltada a decidir demandas repetitivas sobre casos identicos. Obiter dictum e tudo aquilo que consta da decisao mas e desnecessario para sustentar a cadeia logica do resultado. A eficacia vinculante dos precedentes esta na ratio decidendi, em ambas as suas partes: tanto na fundamentacao juridica como na tese.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 926 e 927"
+    ]
+   },
+   {
+    "quesito": "Direito do Consumidor - 1a questao — Resolucao de promessa de compra e venda por iniciativa do comprador: restituicao, corretagem, juros e prescricao: Objetivo: avaliar se o candidato conhece o entendimento consolidado do STJ. Aplicar o Tema 577 (e abusiva a clausula que determina a restituicao dos valores somente ao termino da obra ou de forma parcelada); o Tema 938 (i - prescricao trienal da pretensao de restituicao dos valores pagos a titulo de comissao de corretagem ou SATI, art. 206, par. 3o, IV, do CC; ii - validade da clausula que transfere ao promitente-comprador a comissao de corretagem, desde que previamente informado o preco total com destaque do valor; ii, parte final - abusividade da cobranca de SATI); o Tema 1002 (nos compromissos anteriores a Lei 13.786/2018, resolvidos por iniciativa do promitente comprador de forma diversa da clausula penal convencionada, os juros de mora incidem a partir do transito em julgado); e a Sumula 543. Resumindo: como o desfazimento ocorre por vontade da promitente compradora, a restituicao deve ser parcial (retencao de 10% a 25%) e imediata; os juros contam-se do transito em julgado, pois o contrato e anterior a Lei 13.786/2018; a prescricao para devolucao das parcelas e decenal (CC, art. 205), mas a pretensao de restituicao da comissao de corretagem esta prescrita (prazo trienal).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "Temas 577, 938 e 1002/STJ",
+     "Sumula 543/STJ",
+     "CC, arts. 205 e 206 par. 3o IV",
+     "Lei 13.786/2018"
+    ]
+   },
+   {
+    "quesito": "Direito do Consumidor - 2a questao — Repeticao em dobro e engano justificavel em fraude de terceiro: A questao envolve o paragrafo unico do art. 42 do CDC. De acordo com a jurisprudencia, nesses casos de fraude perpetrada por terceiro entende-se que a instituicao financeira igualmente foi vitima do engodo, o que caracteriza o 'engano justificavel' que ressalva a devolucao em dobro. Alem disso, a propria fraude evidencia a ausencia de dolo ou ma-fe - para quem entende necessario esse elemento volitivo. Por outro lado, ha quem entenda prescindivel o elemento volitivo, sendo a devolucao em dobro cabivel somente quando a cobranca indevida consubstanciar conduta contraria a boa-fe objetiva, restando fixado como parametro excludente da repeticao dobrada a boa-fe objetiva do fornecedor (onus da defesa), para apurar, no ambito da causalidade, o engano justificavel da cobranca. Por todos os lados, constata-se que nao foi acertada a repeticao do indebito por valor igual ao dobro do que foi descontado.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Consumidor",
+    "dispositivos": [
+     "CDC, art. 42 paragrafo unico"
+    ]
+   },
+   {
+    "quesito": "Direito da Crianca e do Adolescente - 1a questao — Familia eudemonista e adocao: Art. 39 do ECA: adocao concebida com a finalidade de plena integracao do adotando a familia pretendente, que passa a assumir verdadeira posicao juridico-social de filho/pai, consoante arts. 226 e 227, par. 6o, ambos da CF; art. 39, par. 1o: adocao irrevogavel. Familia eudemonista: de 'eudaimonia' (grego = felicidade); Aristoteles - 'a felicidade e o objetivo final da vida humana' e 'felicidade e um principio, e para alcanca-la realizamos todos os atos'. A familia eudemonista e tendencia no Direito brasileiro, abrindo leque de novos modelos familiares nos quais o vinculo afetivo, a dedicacao, o companheirismo e a uniao valem mais do que a relacao biologica; novas formacoes familiares embasadas no afeto garantem estrutura com ideais e valores necessarios a uma vida digna. O STF reconheceu, como decorrencia direta do valor constitucional dignidade da pessoa humana, o AFETO como premissa maior das relacoes familiares, retirando da familia o carater patrimonialista e reconhecendo implicito o DIREITO FUNDAMENTAL A FELICIDADE (eudemonismo); a jurisprudencia do STJ reconhece a familia eudemonista em casos de adocao. A jurisprudencia entende validos arranjos como a familia homoafetiva e a anaparental (grupo sem pais, apenas parentes colaterais), assim como a novel pratica da inseminacao artificial caseira.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "ECA/Infância",
+    "dispositivos": [
+     "ECA, art. 39 e par. 1o",
+     "CF, arts. 226 e 227 par. 6o"
+    ]
+   },
+   {
+    "quesito": "Direito da Crianca e do Adolescente - 2a questao — Principios da educacao inclusiva e judicializacao da omissao escolar: Os principios da educacao inclusiva sao fundamentais para garantir a igualdade e a equidade dos sistemas educativos: respeito a diversidade; acessibilidade; igualdade de oportunidades; aprendizagem colaborativa; resposta as necessidades individuais; e cooperacao e participacao de todos - principios interdependentes que se reforcam mutuamente. A escola, publica ou particular, deve promover a educacao inclusiva; caso falhe, pode-se recorrer ao Poder Judiciario. O suporte tem base constitucional e legal variada: Constituicao Federal, ECA, Lei Berenice Piana, Lei Brasileira de Inclusao (derivada da Convencao de Nova Iorque de 2009) e o Parecer 50/2023 do Conselho Nacional de Educacao, que estabeleceu diretrizes para a educacao de alunos com TEA; alem de tratados e convencoes de que o Brasil e signatario (Declaracao de Salamanca de 1994, Convencao da Guatemala de 1999, Declaracao de Incheon/Coreia do Sul de 2015). A jurisprudencia quase pacificada do TJRJ obriga as escolas a contratar mediadores escolares.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "ECA/Infância",
+    "dispositivos": [
+     "Lei 13.146/2015 (LBI)",
+     "Lei 12.764/2012 (Berenice Piana)",
+     "Parecer CNE 50/2023",
+     "ECA",
+     "CF, art. 208 III"
+    ]
+   },
+   {
+    "quesito": "Direito Penal - 1a questao — Violencia domestica: vedacao de multa isolada (Tema 1189/STJ), concurso formal homogeneo e dano moral in re ipsa (Tema 983/STJ): Como houve compensacao entre a agravante e a atenuante da confissao, o candidato devera estabelecer a dosimetria considerando, na fixacao da pena-base, a pena privativa de liberdade prevista no art. 147 do CP (minimo e maximo), tendo em vista o Tema 1189 do STJ: 'A vedacao constante do art. 17 da Lei n. 11.340/2006 (Lei Maria da Penha) obsta a imposicao, nos casos de violencia domestica e familiar contra a mulher, de pena de multa isoladamente, ainda que prevista de forma autonoma no preceito secundario do tipo penal imputado'. Trata-se de concurso formal homogeneo de delitos, porquanto uma unica acao criminosa foi praticada, dirigida a duas vitimas determinadas, em contexto unico, o que se distingue do crime unico. Quanto a indenizacao por dano moral, este e in re ipsa, presumido, nao necessitando de especificacao de valor certo e definido, desde que formulado o pedido expressamente na denuncia, para garantir ampla defesa e contraditorio - Tema 983 do STJ: 'Nos casos de violencia contra a mulher praticados no ambito domestico e familiar, e possivel a fixacao de valor minimo indenizatorio a titulo de dano moral, desde que haja pedido expresso da acusacao ou da parte ofendida, ainda que nao especificada a quantia, e independentemente de instrucao probatoria'. Finalmente, indicar a fracao de aumento de pena em razao do concurso formal de delitos.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 59, 61 II 'f', 70 e 147",
+     "Lei 11.340/2006, art. 17",
+     "CPP, art. 387 IV",
+     "Temas 983 e 1189/STJ"
+    ]
+   },
+   {
+    "quesito": "Direito Penal - 2a questao — Concurso formal entre tipos omissivos: Sim. A resposta e positiva, pouco importando se o concurso formal de delitos for proprio ou improprio, homogeneo ou heterogeneo, podendo ainda se tratar de crimes omissivos proprios ou comissivos por omissao. Com uma unica acao, em um mesmo contexto fatico, pode o agente se omitir, deixando dolosamente de impedir dois resultados proibidos. O exemplo dado por ZAFFARONI, citado por NUCCI, esclarece a hipotese: se um funcionario do presidio deixa uma porta aberta para que um preso fuja e outro se vingue, matando o carcereiro, temos homicidio e favorecimento. Tal nao ocorreria, entretanto, quando se esta diante de concurso aparente de normas, seja pela absorcao de um crime por outro, seja pela consuncao.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 13 par. 2o e 70"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Penal - 1a questao — Standard probatorio na admissibilidade da acusacao: Poe-se em destaque o principio constitucional da presuncao de inocencia (CF, art. 5o, LVII) e a exigencia de fundamentacao de todas as decisoes judiciais (CF, art. 93, IX), o que inclui a decisao de recebimento da denuncia. Embora essa decisao necessite de standard probatorio menos rigoroso do que a prisao preventiva ou a sentenca, o juizo positivo de admissibilidade so e possivel diante da demonstracao de que a acusacao 'nao e temeraria ou leviana, por isso que lastreada em um minimo de prova'. Citar Afranio Silva Jardim (o suporte probatorio minimo se relaciona com os indicios de autoria, existencia material de conduta tipica e alguma prova de antijuridicidade e culpabilidade) e a Ministra Maria Thereza de Assis Moura (a justa causa nao sobressai apenas dos elementos formais, mas de sua fidelidade a prova que demonstre a legitimidade da imputacao). Irrefutavel a incidencia do in dubio pro reo, o que enseja um standard de probabilidade prevalente - hipotese mais provavel do que improvavel. Observar a relacao entre onus da prova, presuncao de inocencia e decisao judicial, invocando Gustavo Badaro. Inadmissivel qualquer referencia a estranha figura do in dubio pro societate, principio sem base constitucional. Por tudo, exige-se 'a demonstracao - fundada em elementos probatorios minimos e licitos - da realidade material do evento delituoso e da existencia de indicios de sua possivel autoria' (STF Inq. 3.507/MG, Rel. Min. Gilmar Mendes; STF Inq. 3.719/DF, Rel. Min. Fachin).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CF, art. 5o LVII e art. 93 IX",
+     "CPP, arts. 395 e 396",
+     "STF Inq. 3.507/MG",
+     "STF Inq. 3.719/DF"
+    ]
+   },
+   {
+    "quesito": "Direito Processual Penal - 2a questao — Foro por prerrogativa de funcao - crime praticado antes da investidura: TESE FIXADA: 'A prerrogativa de foro para julgamento de crimes praticados no cargo e em razao das funcoes subsiste mesmo apos o afastamento do cargo, ainda que o inquerito ou a acao penal sejam iniciados depois de cessado seu exercicio' (STF, HC 232.627/DF, Rel. Min. Gilmar Mendes, Plenario, julgamento virtual finalizado em 11.03.2024). Expor a finalidade do foro especial (CF, art. 102, I, 'b'), que nao e privilegio pessoal mas garantia do adequado exercicio das funcoes publicas; a oscilacao jurisprudencial (regra da contemporaneidade/pertinencia tematica x regra da atualidade); o cancelamento da Sumula 394/STF na QO no Inq. 687/SP; a QO na AP 937/RJ; e a razao da perpetuacao da competencia para crimes funcionais, centrada na natureza do crime e nao em criterios temporais manipulaveis pelo acusado. Ponto decisivo: a saida do cargo somente afasta o foro privativo na hipotese de crimes perpetrados antes da investidura no cargo ou que nao possuam relacao com o seu exercicio - como o estupro praticado antes da eleicao.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CF, art. 102 I 'b'",
+     "STF HC 232.627/DF",
+     "STF QO no Inq. 687/SP",
+     "STF QO na AP 937/RJ",
+     "Sumula 394/STF (cancelada)"
+    ]
+   },
+   {
+    "quesito": "Direito Constitucional - 1a questao — Iniciativa parlamentar de lei municipal que cria despesa (Tema 917/STF): A jurisprudencia do STF registra que a iniciativa privativa do Chefe do Poder Executivo para legislar sobre a organizacao administrativa proibe que os demais legitimados proponham leis que criem, alterem ou extingam orgaos publicos, ou que lhes cominem novas atribuicoes. No caso em exame, a norma municipal cria despesas para o Poder Executivo, mas nao trata da sua estrutura ou da atribuicao de seus orgaos, nem do regime juridico de servidores publicos. A situacao descrita nao incorre em inconstitucionalidade, conforme assentado no Tema 917 do STF: 'Nao usurpa competencia privativa do Chefe do Poder Executivo lei que, embora crie despesa para a Administracao, nao trata da sua estrutura ou da atribuicao de seus orgaos nem do regime juridico de servidores publicos (art. 61, par. 1o, II, a, c e e, da Constituicao Federal)'.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "Tema 917/STF",
+     "CF, art. 61 par. 1o II 'a', 'c' e 'e'"
+    ]
+   },
+   {
+    "quesito": "Direito Constitucional - 2a questao — Apatrida clandestina, prevalencia dos direitos humanos, SUS e assistencia social: O art. 5o da CF estabelece igualdade de direito aos brasileiros e estrangeiros residentes no pais. O problema reconduz a equacionamento pela vertente humanitaria porque, embora se trate de estrangeira clandestina, e de se reconhecer em seu beneficio a prevalencia dos direitos humanos no que tange a regencia das relacoes internacionais brasileiras (CF, art. 4o, II). E de se invocar o art. 196, que estabelece o acesso universal as acoes e servicos para promocao e recuperacao da saude, pois se trata de pessoa em situacao de vulnerabilidade (apatridia e idade avancada). E de se lhe franquear o acesso a assistencia social, com percepcao, inclusive, de um salario minimo de beneficio mensal, nos termos do art. 203.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, arts. 4o II, 5o caput, 196 e 203 V"
+    ]
+   },
+   {
+    "quesito": "Direito Eleitoral - 1a questao — Pesquisa eleitoral sem registro, inelegibilidade por trafico privilegiado e prazo dos embargos de declaracao: A divulgacao de pesquisa eleitoral sem previo registro pode gerar multa ou constituir crime (Lei 9.504/97, art. 33, par. 2o, 3o e 4o), mas nao e causa de inelegibilidade. A inelegibilidade imposta pela LC 64/90 aplica-se a pratica de trafico de drogas, independentemente de se tratar de trafico privilegiado. O pedido de registro de candidatura deve ser negado pelo segundo motivo. Os Embargos de Declaracao nao devem ser conhecidos, pois o ponto que lhes deu causa deve ser alegado no prazo do recurso, que e de 3 dias.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Eleitoral",
+    "dispositivos": [
+     "Lei 9.504/97, art. 33 par. 2o, 3o e 4o",
+     "LC 64/90",
+     "Codigo Eleitoral, art. 275 par. 3o"
+    ]
+   },
+   {
+    "quesito": "Direito Empresarial - 1a questao — Supressao de garantias reais e fidejussorias no plano de recuperacao judicial e credor que se absteve de votar: Sem embargo da soberania da decisao da Assembleia Geral de Credores, devem ser respeitados os limites legais, sendo possivel o controle judicial da legalidade do plano. A Segunda Secao do STJ, no REsp 1.333.349/SP (Tema 885, repetitivo), consolidou que a recuperacao judicial do devedor principal nao impede o prosseguimento das execucoes nem induz suspensao ou extincao de acoes contra terceiros devedores solidarios ou coobrigados, por garantia cambial, real ou fidejussoria, nao se lhes aplicando os arts. 6o, caput, 52, III, ou a novacao do art. 59, caput, por forca do art. 49, par. 1o, da Lei 11.101/2005; no mesmo sentido a Sumula 581 do STJ. A jurisprudencia consolidou-se no sentido de que a clausula que estende a novacao aos coobrigados e legitima e oponivel apenas aos credores que aprovaram o plano sem ressalva, nao sendo eficaz em relacao aos ausentes, aos que se abstiveram de votar ou se posicionaram contra (REsp 2.114.437/CE; AgInt no AREsp 1.859.659/RS; AgInt nos EDcl no CC 172.379/PE; AREsp 2.552.547/MT). Nao e possivel a Assembleia suprimir garantias reais e fidejussorias sem a anuencia do credor (REsp 1.794.209/SP), pois o art. 49, par. 2o, da Lei 11.101/2005, ao mencionar que as obrigacoes observarao as condicoes originalmente contratadas salvo se de modo diverso ficar estabelecido no plano, refere-se a obrigacao, desagios, prazos e encargos, e nao a garantias; a novacao da lei falimentar difere da do Codigo Civil e nao atinge as garantias prestadas por terceiros. Assim, embora valida, a clausula de supressao de garantias nao sera eficaz para aqueles que a ela nao anuiram expressamente; e caso particular em que o silencio nao e interpretado como concordancia, mas opera em favor do credor inerte. Devem ser observadas a natureza contratual do plano, a necessidade de anuencia expressa e a ineficacia da clausula de exoneracao relativamente ao credor que com ela nao concordou.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 11.101/2005, arts. 6o, 49 par. 1o e 2o, 52 III e 59",
+     "Tema 885/STJ (REsp 1.333.349/SP)",
+     "Sumula 581/STJ",
+     "STJ REsp 1.794.209/SP"
+    ]
+   },
+   {
+    "quesito": "Direito Empresarial - 2a questao — Extensao da falencia aos socios e desconsideracao da personalidade juridica no ambito falimentar: Na sociedade sob regime de responsabilidade ilimitada, os socios submetem-se a todos os efeitos da falencia (Lei 11.101/05, art. 81), quebrando e respondendo com patrimonio pessoal, com responsabilidade solidaria pelas obrigacoes sociais (art. 77), instituindo-se excecao ao principio da autonomia da pessoa juridica; e desnecessaria a desconsideracao, ja que a falencia arrasta o socio de responsabilidade ilimitada (AgInt no AREsp 1.868.007/SP). Na sociedade limitada, a responsabilidade pessoal de socios, controladores e administradores e disciplinada no art. 82, sendo que o art. 82-A, com a redacao da Lei 14.112/20, passou a vedar a extensao da falencia ou de seus efeitos, admitindo, contudo, a desconsideracao da personalidade juridica com base na Teoria Maior (CC, art. 50); tal disposicao so se aplica as falencias decretadas apos a vigencia da Lei 14.112/20 (30 dias apos a publicacao - art. 7o). Antes da alteracao, o art. 82-A admitia a extensao quando presentes os requisitos do art. 50 do CC; parte minoritaria da doutrina admite a extensao a outras pessoas juridicas, ao argumento de que o art. 82-A limitou-se a proibir a extensao aos socios pessoas fisicas. A extensao da falencia foi criada pela jurisprudencia para instrumentalizar a desconsideracao no processo falimentar, mas e mais gravosa, pois alem dos efeitos patrimoniais sujeita o devedor a obrigacoes de outras naturezas e restricoes de direito (arts. 102 a 104 da Lei 11.101/05). A desconsideracao somente pode ser decretada com observancia do art. 50 do CC e dos arts. 133 a 137 do CPC, nao se aplicando a suspensao do art. 134, par. 3o, do CPC. Segundo o STJ (CC 200.775/SP, Rel. Min. Nancy Andrighi, j. 28/08/2024), o proposito do art. 82-A, paragrafo unico, nao e conferir ao Juizo Universal competencia exclusiva para determinar a desconsideracao, mas estabelecer que ela so podera ser decretada com observancia dos requisitos legais, nada impedindo que outros juizos a decretem em demandas diversas.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 11.101/05, arts. 77, 81, 82, 82-A e 102 a 104",
+     "Lei 14.112/2020",
+     "CC, art. 50",
+     "CPC, arts. 133 a 137"
+    ]
+   },
+   {
+    "quesito": "Direito Tributario - 1a questao — ITCMD na doacao com reserva de usufruto e diferimento do pagamento (RE 1.363.013): De acordo com o recente julgado do STF no RE 1.363.013, julgado sob o regime de repercussao geral, o art. 42 da Lei 7.174/15 e constitucional ao exigir o pagamento dos 50% de ITCMD restantes na extincao do usufruto. Segundo o voto do Ministro Relator, Dias Toffoli, nao se trata de criar novo fato gerador do ITCMD na extincao do usufruto, mas sim de diferimento do pagamento do tributo devido a partir da doacao realizada.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "STF RE 1.363.013 (repercussao geral)",
+     "Lei estadual 7.174/15, art. 42"
+    ]
+   },
+   {
+    "quesito": "Direito Tributario - 2a questao — Excecao de pre-executividade, dissolucao irregular presumida (Sumula 435/STJ) e Tema 981: A excecao de pre-executividade e cabivel na medida em que os argumentos apresentados nao necessitam de dilacao probatoria. O cumprimento negativo de mandado de citacao em execucao fiscal no endereco desatualizado da contribuinte, por culpa da Secretaria de Fazenda - ja que a contribuinte procedeu a atualizacao dos dados -, nao autoriza a presuncao de dissolucao irregular que determine o redirecionamento da execucao para os socios, nos termos da Sumula 435 do STJ. Como Luci nao estava mais na sociedade na epoca da suposta dissolucao irregular, nao ha que se falar em responsabilidade, nos termos do julgamento do STJ submetido ao rito dos recursos repetitivos (Tema 981).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "Sumula 435/STJ",
+     "Tema 981/STJ",
+     "CTN, art. 135 III"
+    ]
+   },
+   {
+    "quesito": "Direito Ambiental - 1a questao — Ligacao de energia eletrica em APP, teoria do fato consumado e reducao de area de preservacao: Pontuacao discriminada pela banca: A) mencionar a jurisprudencia e a Sumula 613 do STJ, afastando a teoria do fato consumado (0,15). O STJ consolidou que e induvidosa a posicao intangivel e o carater non aedificandi da APP, interditando ocupacao ou construcao com pouquissimas excecoes (utilidade publica e interesse social) submetidas a licenciamento; constatada a existencia de edificacoes em APP, a demolicao e medida que se impoe; nao incide a teoria do fato consumado (REsp 1.989.227/SC, Rel. Min. Herman Benjamin, 2a Turma, j. 11/6/2024; Sumula 613/STJ). No STF, a teoria do fato consumado nao pode ser invocada para conceder direito inexistente sob alegacao de consolidacao da situacao fatica pelo decurso do tempo (RE 609.748/RJ AgR; RE 1.513.787, Rel. Min. Gilmar Mendes, 17/03/2025). B) ponderacao de interesses constitucionais - direito a moradia versus direito ambiental; preservacao do meio ambiente como preservacao da vida e das futuras geracoes; preponderancia do direito ambiental/direito a vida - CF, arts. 6o e 225 (0,10). C) possibilidade de reducao da area - Lei 12.651/2012, art. 3o, IX, 'd', e art. 8o; Lei 14.285/2021, art. 4o - area urbana consolidada, porem via lei e desde que nao incidam as hipoteses do par. 10 do citado artigo (nao ocupacao de areas com risco de desastres; observancia das diretrizes do plano de recursos hidricos, de bacia, de drenagem ou de saneamento basico; e previsao de que as atividades observem os casos de utilidade publica, interesse social ou baixo impacto ambiental) (0,15).",
+    "pontos": 0.4,
+    "escala": "0,40 (0,15 + 0,10 + 0,15)",
+    "disciplina": "Ambiental",
+    "dispositivos": [
+     "Sumula 613/STJ",
+     "STJ REsp 1.989.227/SC",
+     "STF RE 609.748/RJ AgR",
+     "STF RE 1.513.787",
+     "CF, arts. 6o e 225",
+     "Lei 12.651/2012, arts. 3o IX 'd' e 8o",
+     "Lei 14.285/2021, art. 4o"
+    ]
+   },
+   {
+    "quesito": "Direito Administrativo - 1a questao — Conservacao e aproveitamento de atos administrativos viciados: Pontuacao discriminada: (1) 0,20 - a inercia da Administracao em anular seus proprios atos pode levar ao aproveitamento irreversivel de atos viciados; fora da estabilizacao temporal, admite-se a convalidacao, quando os defeitos sao sanaveis e podem ser legal e racionalmente supridos; tambem e possivel a confirmacao, hipotese em que o ato, embora ilegal, e aceito tal como foi praticado, com preservacao de seus efeitos. (2) 0,20 - a Lei 9.784/1999 fixa o prazo de cinco anos para a Administracao Federal anular seus proprios atos; o STJ pacificou que a lei pode ser aplicada subsidiariamente a estados e municipios (Sumula 633); o STF declarou inconstitucional lei local que previa prazo superior a cinco anos (ADI 6.019); a LINDB, apos a Lei 13.655/2018, traz hipoteses de conservacao de efeitos de atos administrativos viciados (arts. 21, 23 e 24); do ponto de vista jurisdicional, ate mesmo atos administrativos inconstitucionais podem ser preservados pela modulacao, conforme as Leis 9.868/1999 (art. 27) e 9.882/1999 (art. 11).",
+    "pontos": 0.4,
+    "escala": "0,40 (0,20 + 0,20)",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 9.784/1999, art. 54",
+     "Sumula 633/STJ",
+     "STF ADI 6.019",
+     "LINDB, arts. 21, 23 e 24 (Lei 13.655/2018)",
+     "Lei 9.868/1999, art. 27",
+     "Lei 9.882/1999, art. 11"
+    ]
+   },
+   {
+    "quesito": "Direito Administrativo - 2a questao — Lei 14.230/2021: alteracoes relevantes, teses vinculantes do STF e prosseguimento do feito apos prescricao da pretensao sancionatoria: Pontuacao discriminada: (1) 0,20 - as alteracoes da LIA sao a exigencia do dolo para configuracao do ato improbo, com exclusao de qualquer conduta ou omissao culposa, bem como as novas restricoes para acolhimento dos pedidos de indisponibilidade de bens in limine. O STF afirmou que a Lei 14.230/2021 nao excluiu a natureza civil dos atos de improbidade e, por isso, o principio da retroatividade da lei penal mais benefica nao se aplica perante coisa julgada, inclusive durante a execucao das penalidades e seus incidentes; a Corte assentou ainda que a nova lei excluiu a modalidade culposa tambem dos atos praticados na vigencia da lei anterior, o que devera ser considerado nos processos sem condenacao transitada em julgado; e que o novo regime prescricional e irretroativo. (2) 0,20 - as acoes de ressarcimento ao erario nao sao necessariamente imprescritiveis, mesmo nos casos de danos dolosos: apenas os atos dolosos tipificados na Lei de Improbidade atraem a imprescritibilidade (RE 852.475-SP). Por isso, ainda que prescrita a pretensao sancionatoria, a audiencia devera ser realizada para o exame do merito, nos termos do art. 18 da LIA e do Tema 1.089 do STJ.",
+    "pontos": 0.4,
+    "escala": "0,40 (0,20 + 0,20)",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 8.429/1992, art. 18",
+     "Lei 14.230/2021",
+     "STF RE 852.475-SP",
+     "STF ADI 7.236 / Tema 1.199",
+     "Tema 1.089/STJ"
+    ]
+   },
+   {
+    "quesito": "Nocoes Gerais de Direito e Formacao Humanistica - 1a questao — Resolucao CNJ 125/2010, meios adequados de solucao de conflitos e principio da competencia-competencia: O CNJ, pela Resolucao 125, utilizou a denominacao Meios Adequados de Solucao de Conflitos, numa perspectiva mais democratizante e condizente com a ordem juridica brasileira, ja que do ponto de vista social o Estado nao e o unico detentor do poder jurisdicional. Foram incorporados a legislacao equivalentes jurisdicionais, incentivando uma nova cultura dialogica e menos beligerante: AUTOCOMPOSICAO, MEDIACAO e ARBITRAGEM. Os incisos II, III e V do art. 487 do CPC permitem a homologacao por sentenca de merito da autocomposicao; a mediacao foi disciplinada por lei propria; a arbitragem esta prevista na Lei 9.307/96, com reforco no art. 3o, par. 1o, no art. 485, V e VII, e no art. 1.012, par. 1o, IV, do CPC. O principio da competencia-competencia (Lei 9.307/96) determina caber ao arbitro reconhecer, de oficio ou por provocacao das partes, sua propria competencia para julgar as questoes acerca da validade e eficacia da convencao de arbitragem e do contrato que contenha a clausula compromissoria; mesmo em contrato de adesao o STJ tem prestigiado o principio. Se o arbitro reconhecer sua competencia e houver acao judicial em curso sobre o mesmo tema, o juiz devera julgar o feito extinto sem resolucao de merito. Registre-se que o controle da convencao de arbitragem podera ser feito pelo Poder Judiciario, mas somente em futura acao anulatoria da sentenca arbitral (art. 32 da Lei de Arbitragem).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Resolucao CNJ 125/2010",
+     "CPC, arts. 3o par. 1o, 485 V, 487 II, III e V, e 1.012 par. 1o IV",
+     "Lei 9.307/96, arts. 8o e 32"
+    ]
+   },
+   {
+    "quesito": "Nocoes Gerais de Direito e Formacao Humanistica - 2a questao — Direito Antidiscriminatorio: sujeito, objeto e base constitucional: O Direito Antidiscriminatorio parte da ideia de que a igualdade prevista na lei pode perpetuar e promover desigualdades sociais graves. Busca, portanto, anular as praticas discriminatorias, visando uma adaptacao razoavel das normas e a aplicacao de politicas afirmativas publicas e privadas. Os sujeitos do Direito Antidiscriminatorio sao as minorias vulnerabilizadas; o objeto sao as praticas, normas ou ambientes que impliquem a negacao de reconhecimento, gozo ou exercicio de direitos e liberdades fundamentais na vida em sociedade pelas minorias e grupos vulnerabilizados. A base constitucional e o art. 3o, IV, da Constituicao (no documento consta 'art. 30, inciso IV') e os tratados e convencoes internacionais de direitos humanos que tratem das pessoas vulnerabilizadas.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Direitos Humanos",
+    "dispositivos": [
+     "CF, art. 3o IV",
+     "Tratados e convencoes internacionais de direitos humanos"
+    ]
+   },
+   {
+    "quesito": "Direitos Humanos - 1a questao — Tema 944/STF - imunidade de jurisdicao de Estado estrangeiro e violacao a direitos humanos: Em 2021 o STF apreciou recurso extraordinario com repercussao geral relativo a imunidade de jurisdicao invocada pela Alemanha em face do afundamento do barco de pesca brasileiro Changri-la pelo submarino alemao U-199, na 2a Guerra Mundial, proximo a Cabo Frio/RJ, em 1943, reconhecido pelo Tribunal Maritimo em 2001; os familiares das vitimas requereram indenizacao. O STF fixou a tese do Tema 944 (ARE 954.858, Rel. Min. Edson Fachin): 'Os atos ilicitos praticados por Estados estrangeiros em violacao a direitos humanos, dentro do territorio nacional, nao gozam de imunidade de jurisdicao'. Soberania e o poder que detem o Estado de impor, dentro do seu territorio, suas decisoes, editando leis e executando-as por si proprio; poder que internamente nao encontra outro superior, aferivel e executavel somente no plano domestico. Nao ha soberania no plano das relacoes internacionais, pois os Estados encontram-se em situacao de igualdade juridica, com o mesmo status independentemente de extensao territorial ou poder economico ou militar. Segundo a decisao do STF, as imunidades dos Estados continuam validas, nos termos do direito costumeiro, quando se tratar de atos de imperio, salvo se o ilicito violar direitos humanos - que constituem excecao, demonstrando que tais imunidades nao sao absolutas (diferentemente do decidido pela Corte da Haia em 2012). A imunidade de jurisdicao decorre de regra costumeira e tambem da Convencao das Nacoes Unidas sobre as Imunidades Jurisdicionais dos Estados e dos seus Bens (par in parem non habet judicium); o Brasil ratificou apenas a Convencao de Viena sobre Relacoes Diplomaticas. Estados da Comunidade Europeia (Convencao Europeia sobre Imunidade de Jurisdicao, 1972), alem de EUA, Inglaterra, Australia e Argentina, preveem imunidade relativa.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Direitos Humanos",
+    "dispositivos": [
+     "Tema 944/STF (ARE 954.858/RJ)",
+     "Convencao das Nacoes Unidas sobre Imunidades Jurisdicionais dos Estados e dos seus Bens",
+     "Convencao Europeia sobre Imunidade de Jurisdicao (1972)"
+    ]
+   }
+  ],
+  "total": 10,
+  "instrucoes": [
+   "'ESPELHO DE CORRECAO DA PROVA DISCURSIVA (2a Etapa) - JUIZ(A) SUBSTITUTO(A)', L Concurso para Ingresso na Magistratura de Carreira do TJRJ (PDF gerado em 11/04/2025).",
+   "Cada questao vale 0,40; 25 questoes distribuidas por disciplina.",
+   "Em Direito Ambiental e Direito Administrativo a banca discriminou subpontuacoes internas (0,10/0,15/0,20) por topico."
+  ],
+  "fonte": "https://www.tjrj.jus.br/documents/d/guest/espelho_de_correcao_da_prova_discursiva",
+  "fonte_concurso": "https://www.tjrj.jus.br/cidadao/concursos/magistratura/magistratura/l",
+  "nota": "Prova discursiva do L Concurso, aplicada em 06/04/2025. Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "tj-rj-2025-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença cível",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do L Concurso - TJRJ)",
+  "orgao": "TJ-RJ",
+  "cargo": "Juiz Substituto",
+  "ano": 2025,
+  "fase": "sentenca civel",
+  "disciplina": "Processo Civil, Civil, Empresarial",
+  "tema": "Conexao por prejudicialidade externa; Teoria da assercao; Intervencao do MP; …",
+  "enunciado": "TJ-RJ · 2025 · Juiz Substituto — sentenca civel (banca banca propria (Comissao do L Concurso - TJRJ)).\nProva oficial: https://www.tjrj.jus.br/documents/d/guest/prova-sentenca-civel\nEspelho oficial: https://www.tjrj.jus.br/documents/d/guest/espelho_de_correcao_prova_de_sentenca_civel\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Preliminar 1 - Suspensao do processo por acao movida pela tia do falecido — Conexao por prejudicialidade externa: Trata-se de fenomeno processual equiparado a 'conexao por prejudicabilidade externa', situacao na qual os dois processos conexos devem ser reunidos pelo risco de decisoes conflitantes; nao sendo possivel a reuniao, um deles fica suspenso a aguardar a solucao do outro (o mais recente). O fenomeno nao se deu na questao: as decisoes podem ser diversas, como de fato seriam.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 55 e 313"
+    ]
+   },
+   {
+    "quesito": "Preliminar 2 - Falta de interesse de agir — Teoria da assercao: Aplica-se a teoria processual da assercao. 'Nada mais a explicar a um concursando.' Improcedente.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Preliminar 3 - Atuacao do Ministerio Publico — Intervencao do MP: A vitima era menor de idade, mas os autores sao maiores e capazes; o Ministerio Publico nao atua no feito.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 178"
+    ]
+   },
+   {
+    "quesito": "Preliminar 4 - Atuacao da Curadoria Especial — Curador especial de reu preso: Ticio esta preso, mas e autor da acao, com advogado particular; a Curadoria nao atua.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 72 II"
+    ]
+   },
+   {
+    "quesito": "Merito - Responsabilidade da concessionaria ferroviaria e nexo causal — Atropelamento em passagem clandestina; culpa exclusiva da vitima embriagada: Aplica-se ao caso o Tema Repetitivo 517 do STJ: a despeito de situacoes faticas variadas no descumprimento do dever de seguranca e vigilancia continua das vias ferreas, a responsabilizacao da concessionaria e uma constante, passivel de ser elidida tao somente quando cabalmente comprovada a culpa exclusiva da vitima. A legislacao aplicavel e o art. 25 da Lei 8.987/95, lastreado no par. 6o do art. 36 (sic) da CF. O principio da especialidade afasta o CDC, mas quem mencionar o CDC e a lei especifica nao perdera pontos. O importante e reconhecer a responsabilidade objetiva. O problema e resolvido pela analise do nexo de causalidade - o CC agasalhou a teoria da causalidade adequada (definicao de Sergio Cavalieri Filho: a causalidade nao e apenas liame fatico, mas juizo de valor que considera a previsibilidade do dano e a adequacao entre conduta e resultado). No caso, a vitima estava embriagada e atravessou a passagem clandestina as tres horas da manha; retirando-se a embriaguez da linha fatica, o acidente nao teria acontecido; a passagem ilegal e desinfluente. Reconhecida a culpa exclusiva da vitima. Quem reconhecer culpa concorrente nao tera a resposta considerada errada em sua totalidade; quem reconhecer a culpa da concessionaria tera sua argumentacao avaliada.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Tema Repetitivo 517/STJ",
+     "Lei 8.987/95, art. 25",
+     "CC, art. 403"
+    ]
+   },
+   {
+    "quesito": "Danos morais - Mevia (mae) — Dano moral in re ipsa dos pais e prova em contrario: Mevia, mae da vitima fatal, nao o criou - Johnwayne foi criado pela tia, Sarah Conoor. A dor moral indenizavel dos pais caracteriza-se por ser in re ipsa, presumida, mas admite prova e conclusao em contrario; a sentir do examinador, quem merece reparacao pela dor moral e Sarah Conoor. Todavia, reconhecendo o ditado de que 'mae e mae', nao se considerara errado o deferimento do dano moral a Mevia.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Danos morais - Ticio (pai preso) — Afastamento da presuncao de dor moral: O pai de Johnwayne esta preso por triplo latrocinio e nunca viu o filho; nesse caso a presuncao de dor moral nao pode ser aplicada. A indenizacao por danos morais nao se coaduna com hipersensibilidade emotiva. Indeferida a indenizacao.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Danos morais - irmas — Vinculo afetivo entre irmaos: No caso de irmaos, a demonstracao de vinculo afetivo e indispensavel; presume-se a dor moral em caso de proximidade comprovada ou convivio familiar. No conflito em analise, as irmas vivem em outra regiao do pais e nao veem o irmao ha dez anos: nao ha dor moral passivel de indenizacao.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Pensao por morte de filho menor — Dano hipotetico e presuncao de auxilio ao nucleo familiar: Construiu-se jurisprudencia segundo a qual, no caso de morte de menor de familia humilde, presume-se que ele trabalharia no futuro em favor do nucleo familiar, fixando-se indenizacao em salarios minimos mensais. O espelho qualifica isso como dano hipotetico, entendimento afastado do direito positivo, pois o Judiciario nao pode impor a um reu o peso de indenizar algo que nao se sabe se ocorreria. Alem disso, a mae e doente (alcoolismo e doenca) e nao morava com ele desde a infancia; o pai esta preso e sequer o conheceu; as irmas moram no Nordeste - nao ha nucleo familiar a auxiliar, sendo possivel apenas que viesse a ajudar Sarah Conoor. Por essas razoes, o pleito de pensionamento deve ser julgado improcedente.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Arresto — Vedacao de constricao em face de empresa em falencia/recuperacao: O arresto pretendido nao e possivel em decorrencia do que estabelece o inciso III do art. 6o da Lei 11.101/2005.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 11.101/2005, art. 6o III"
+    ]
+   },
+   {
+    "quesito": "Verbas sucumbenciais — Sucumbencia: No mais, as verbas sucumbenciais serao analisadas dependendo da resposta do candidato.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 85"
+    ]
+   }
+  ],
+  "total": null,
+  "instrucoes": [
+   "Examinadores: Direito Civil - Desembargador Gabriel de Oliveira Zefiro; Direito Processual Civil - Desembargador Paulo Wunder de Alencar.",
+   "'IMPORTANTE: Sera avaliado o raciocinio juridico e sua exposicao. O examinador nao e o dono da verdade.'",
+   "'Sempre e sempre o que nos interessa e o raciocinio juridico e a sua escorreita exposicao.'",
+   "O espelho nao discrimina pontuacao por quesito (PDF gerado em 24/07/2025)."
+  ],
+  "fonte": "https://www.tjrj.jus.br/documents/d/guest/espelho_de_correcao_prova_de_sentenca_civel",
+  "fonte_concurso": "https://www.tjrj.jus.br/cidadao/concursos/magistratura/magistratura/l",
+  "nota": "Prova de sentenca civel do L Concurso, aplicada em 05/07/2025. Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "tj-rj-2025-esp3",
+  "tipo": "sentenca",
+  "peca": "Sentença penal",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do L Concurso - TJRJ)",
+  "orgao": "TJ-RJ",
+  "cargo": "Juiz Substituto",
+  "ano": 2025,
+  "fase": "sentenca penal",
+  "disciplina": "Penal, Processo Penal",
+  "tema": "Crimes contra a dignidade sexual: materialidade e autoria; Estupro de vulneravel (art. 217-A) e criterio biologico; Crime continuado em crimes sexuais; …",
+  "enunciado": "TJ-RJ · 2025 · Juiz Substituto — sentenca penal (banca banca propria (Comissao do L Concurso - TJRJ)).\nProva oficial: https://www.tjrj.jus.br/documents/d/guest/prova-sentenca-penal\nEspelho oficial: https://www.tjrj.jus.br/documents/d/guest/espelho_de_correcao_da_prova_de_sentenca_penal\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Direito Penal - suficiencia probatoria e palavra da vitima — Crimes contra a dignidade sexual: materialidade e autoria: Superadas as prejudiciais, caberia ao candidato, por primeiro, enfrentar as questoes faticas, concluindo pela suficiencia probatoria tanto da materialidade dos supostos delitos como da autoria (nao ha que se falar em qualquer forma de participacao), com destaque para a relevancia da palavra da vitima, no ponto.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Direito Penal - adequacao tipica e imputabilidade — Estupro de vulneravel (art. 217-A) e criterio biologico: Os demais questionamentos defensivos estao vinculados a adequacao tipica, pois o afastamento da imputabilidade penal - com adocao legislativa do criterio exclusivamente biologico como opcao de politica criminal - esta umbilicalmente ligado a existencia da(s) infracao(oes), da mesma forma que a pretensa continuidade delitiva ou tese de crime unico. A banca entende que a hipotese mereceria procedencia parcial: os fatos praticados as 2h da madrugada e reiterados as 4h se tipificam, ambos, no art. 217-A do CP, sendo caso de considerar a suposta importunacao sexual como integrante do crime mais grave, mesmo que em progressao criminosa, eis que de carater subsidiario - expressamente assim dispondo a norma - e diante do aparente conflito de normas, resolvido pela especialidade. Ha propositais lacunas que a denuncia nao esclareceu, a exemplo de coabitar o autor na mesma casa com a vitima e/ou se sobre ela mantinha alguma autoridade. Afastada, por muito, a adequacao de qualquer dos atos ao crime do art. 218 do CP.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 217-A e 218",
+     "Lei 13.718/2018 (importunacao sexual)"
+    ]
+   },
+   {
+    "quesito": "Direito Penal - continuidade delitiva — Crime continuado em crimes sexuais: Em evidencia se extraem dois crimes de estupro de vulneravel e presente, na hipotese, por tudo (especie criminosa; tempo; lugar; maneira de execucao), a continuidade delitiva na forma do art. 71 do CP. O REsp 1.957.637/MG, julgado em 08/06/22 pela Colenda Terceira Secao do STJ, sob relatoria do Ministro Ribeiro Dantas, e lastro sedimentado para a devida compreensao.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 71",
+     "STJ REsp 1.957.637/MG"
+    ]
+   },
+   {
+    "quesito": "Direito Penal - dosimetria e consequencias — Menoridade relativa, art. 226 do CP e substituicao da pena: A banca flexibilizou o rigor nos fundamentos para o exame das circunstancias judiciais na fixacao da pena-base e nas possiveis agravantes, mas nao admitiu o afastamento da menoridade relativa em sede penal, nem considerar in malam partem a causa especial de aumento do art. 226 do CP. Diante da sancao minima a ser imposta, naturalmente afastada estaria a substituicao da privacao de liberdade por restricoes de direitos, sendo desnecessario atrair a orientacao dos Tribunais Superiores quanto a ser o estupro de vulneravel crime cometido com violencia.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 44, 65 I e 226"
+    ]
+   },
+   {
+    "quesito": "Processo Penal - Preliminar A — Depoimento especial de crianca/adolescente e indeferimento de perguntas da defesa: Fundamentos indicados pela banca: arts. 227 e par. 4o da CF; Lei 13.431/17; Lei 13.344/22, art. 12; arts. 212, 403, 571 e 572 do CPP. Precedente transcrito: STJ, AgRg no HC 951.243/GO, Rel. Min. Og Fernandes, Sexta Turma, j. 06/05/2025 - o depoimento especial consiste em procedimento com regras especificas da Lei 13.431/2017 para oitiva de criancas e adolescentes vitimas de violencia, visando efetivar a protecao integral e evitar a revitimizacao, permitindo o contraditorio ainda que mitigado; a Resolucao 299/2019 do CNJ orienta que as perguntas sejam concentradas em um bloco; o indeferimento de questionamentos impertinentes nao afronta o contraditorio (CPP, art. 400, par. 1o).",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CF, art. 227 e par. 4o",
+     "Lei 13.431/17",
+     "Lei 13.344/22, art. 12",
+     "CPP, arts. 212, 400 par. 1o, 403, 571 e 572",
+     "Resolucao CNJ 299/2019",
+     "STJ AgRg no HC 951.243/GO"
+    ]
+   },
+   {
+    "quesito": "Processo Penal - Preliminar B — Fundamentacao das decisoes e valoracao de elementos informativos: Fundamentos indicados pela banca: art. 93, IX, da CF; arts. 155 e paragrafo unico, 167, 402, 403, 571 e 572 do CPP.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CF, art. 93 IX",
+     "CPP, arts. 155, 167, 402, 403, 571 e 572"
+    ]
+   },
+   {
+    "quesito": "Processo Penal - Preliminar C — Cadeia de custodia da prova: Fundamentos indicados pela banca: arts. 158-A a 158-F, 403, 571 e 572 do CPP. Precedentes transcritos: STJ, AgRg no HC 966.080/SP, Rel. Min. Ribeiro Dantas, Quinta Turma, j. 14/05/2025 - nao ha quebra da cadeia de custodia quando nao evidenciado risco concreto de adulteracao da prova, e a questao nao se trata de nulidade processual, mas de eficacia da prova, a ser sopesada pelo julgador; STJ, EDcl no AgRg no RHC 185.119/SC, Rel. Min. Reynaldo Soares da Fonseca, Quinta Turma, j. 17/06/2025 - eventuais irregularidades formais na cadeia de custodia devem ser apreciadas em conjunto com os demais elementos de prova, nao implicando nulidade automatica quando preservada sua integridade e ausente demonstracao de prejuizo.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, arts. 158-A a 158-F, 403, 571 e 572",
+     "STJ AgRg no HC 966.080/SP",
+     "STJ EDcl no AgRg no RHC 185.119/SC"
+    ]
+   }
+  ],
+  "total": null,
+  "instrucoes": [
+   "Examinadores: Direito Penal - Desembargador Jose Muinos Pineiro Filho; Direito Processual Penal - Desembargador Paulo Cesar Vieira de Carvalho Filho.",
+   "'No mais, a banca flexibilizou, no exame, o rigor nos fundamentos apresentados pelo candidato para examinar eventuais circunstancias judiciais na fixacao da(s) pena(s) base e nas possiveis circunstancias agravantes, mas nao admitindo afastamento da menoridade relativa em sede penal, bem como considerar in malam partem causa especial de aumento prevista no art. 226 do CP.'",
+   "O espelho nao discrimina pontuacao por quesito (PDF gerado em 24/07/2025)."
+  ],
+  "fonte": "https://www.tjrj.jus.br/documents/d/guest/espelho_de_correcao_da_prova_de_sentenca_penal",
+  "fonte_concurso": "https://www.tjrj.jus.br/cidadao/concursos/magistratura/magistratura/l",
+  "nota": "Prova de sentenca penal do L Concurso, aplicada em 06/07/2025. Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "tj-go-2024-esp1",
+  "tipo": "sentenca",
+  "peca": "Sentença cível e penal",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do 58o Concurso - TJGO)",
+  "orgao": "TJ-GO",
+  "cargo": "Juiz Substituto",
+  "ano": 2024,
+  "fase": "sentenca civel e sentenca criminal",
+  "disciplina": "Processo Civil, Civil, Sentença (estrutura), Outros, Processo Penal, Penal",
+  "tema": "Competencia, prevencao e conexao; Acao negatoria de paternidade e interesse sucessorio dos herdeiros; Alteracao subjetiva da demanda; …",
+  "enunciado": "TJ-GO · 2024 · Juiz Substituto — sentenca civel e sentenca criminal (banca banca propria (Comissao do 58o Concurso - TJGO)).\nProva oficial: https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso58/TJGO_2023_Juiz_Substituto_ProvaEscritaPraticaSentencaCivel.pdf\nSegunda peça: https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso58/TJGO_2023_Juiz_Substituto_ProvaEscritaPraticaSentencaCriminal.pdf.\nEspelho oficial: https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso58/50-Espelho-da-prova-Prova-Sentencas.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 1 — Competencia, prevencao e conexao: Afirmacao da competencia. Inexistencia de prevencao do juizo de Cidade Vizinha. Entendimento do Superior Tribunal de Justica quanto a inexistencia de conexao entre as demandas.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00/0,10/0,20/0,30/0,40/0,50)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Jurisprudencia do STJ"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 2 — Acao negatoria de paternidade e interesse sucessorio dos herdeiros: Possibilidade de os herdeiros continuarem na demanda negatoria iniciada por Silverio, diante de seu interesse sucessorio, apesar da natureza personalissima.",
+    "pontos": 0.5,
+    "escala": "ate 0,50",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 3 — Alteracao subjetiva da demanda: Diferenciacao entre alteracao subjetiva da demanda por substituicao e sucessao processual. Possibilidade de sucessao. Mencao expressa aos Arts. 110 e 313 do Codigo de Processo Civil.",
+    "pontos": 0.5,
+    "escala": "ate 0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 110 e 313"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 4 — Sumula 301 do STJ e direito a identidade genetica: Impossibilidade de aplicar o enunciado sumular n. 301 do STJ em desfavor do menor. Protecao integral. Direito a conhecer sua identidade genetica.",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/0,20/0,40/0,60/0,80/1,00)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Sumula 301/STJ"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 5 — Valoracao do conjunto probatorio e documento impugnado: Procedencia dos pedidos pela analise do conjunto probatorio: existencia de laudo anterior desfavoravel, ausencia de corroboracao do documento cuja autenticidade fora contestada (Art. 429, II, do CPC).",
+    "pontos": 0.5,
+    "escala": "ate 0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 429 II"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 6 — Reconhecimento da procedencia do pedido e fim vedado em lei: Impossibilidade de homologar o reconhecimento da procedencia do pedido. Fim vedado em lei. Pretensao a anular testamento por discordancia a seu conteudo. Mencao ao Art. 142 do CPC.",
+    "pontos": 0.5,
+    "escala": "ate 0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 142"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 7 — Legitimidade ativa e teoria da assercao: Rejeicao da preliminar de ilegitimidade ativa com base na teoria da assercao.",
+    "pontos": 0.5,
+    "escala": "ate 0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 8 — Interesse de agir na acao de nulidade de testamento: Rejeicao da preliminar de falta de interesse de agir, com mencao expressa ao Art. 1.971 do Codigo Civil. Referencia ao fato de que os motivos alegados serviriam, tambem, para anular o outro testamento (incapacidade de testar).",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/0,20/0,40/0,60/0,80/1,00)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC, art. 1.971"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 9 — Rompimento do testamento por superveniencia de herdeiro: Rejeicao a tese de rompimento. Silverio conhecia o herdeiro, embora discutisse essa condicao. Entendimento do Superior Tribunal de Justica.",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/0,25/0,50/0,75/1,00)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC, arts. 1.973 a 1.975",
+     "Jurisprudencia do STJ"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 10 — Capacidade testamentaria do prodigo: Capacidade do prodigo para testar. Mencao ao Art. 1.782 do Codigo Civil. Interpretacao teleologica da interdicao, que visa a proteger a dilapidacao patrimonial em vida.",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/0,25/0,50/0,75/1,00)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC, art. 1.782"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 11 — Vicios formais do testamento e vontade do testador: Mitigacao do rigor formal. Aproveitamento da real vontade do testador. Rejeicao a nulidade por vicio causado exclusivamente pelo tabelionato.",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/0,25/0,50/0,75/1,00)",
+    "disciplina": "Civil",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 12 — Reducao das disposicoes testamentarias e doacao com clausula de reversao: Reducao das disposicoes testamentarias. Validade e eficacia da doacao com clausula de reversao em favor de terceiro, celebrada na vigencia do Codigo de 1916. Protecao ao direito expectativo. Entendimento do Superior Tribunal de Justica.",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/0,25/0,50/0,75/1,00)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC/1916",
+     "CC, art. 547",
+     "Jurisprudencia do STJ"
+    ]
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 13 — Dispositivo e disposicoes finais: Dispositivo coerente com a fundamentacao. Disposicoes finais.",
+    "pontos": 0.75,
+    "escala": "ate 0,75 (escala 0,00/0,25/0,50/0,75)",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 01 (Sentenca Civel) - item 14 — Idioma oficial e capacidade de exposicao: Utilizacao correta do idioma oficial e capacidade de exposicao.",
+    "pontos": 0.25,
+    "escala": "ate 0,25 (escala 0,00/0,25)",
+    "disciplina": "Outros",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 1 — Preliminar de nulidade suscitada pela defesa: Rejeitar a preliminar de nulidade suscitada pela defesa.",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/1,00)",
+    "disciplina": "Processo Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 2 — Trafico de drogas - condenacao e valor do depoimento policial: Em relacao ao trafico de drogas, condenar os acusados, a luz das provas indicadas na questao (laudos periciais e depoimentos dos policiais), devendo ser destacada a validade dos depoimentos policiais como prova testemunhal.",
+    "pontos": 2,
+    "escala": "ate 2,00 (escala 0,00/1,00/2,00)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006, art. 33"
+    ]
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 3 — Desclassificacao para posse para uso pessoal: Afastar a tese defensiva de desclassificacao do crime de trafico de drogas para o delito de posse de drogas para uso pessoal, considerando os elementos de prova.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00/0,50)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006, art. 28"
+    ]
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 4 — Associacao para o trafico - vinculo estavel e permanente: Em relacao a associacao para o trafico, absolver os acusados, a falta de prova de vinculo estavel e permanente entre eles.",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/1,00)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006, art. 35"
+    ]
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 5 — Causa de aumento do art. 40, III, da Lei de Drogas: Afastar a incidencia da causa de aumento de pena prevista no Art. 40, III, da Lei n. 11.343/2006, pois a escola estava fechada na ocasiao dos fatos.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00/0,50)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006, art. 40 III"
+    ]
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 6 — Dosimetria trifasica individualizada e trafico privilegiado: Efetuar a dosimetria da pena de cada acusado, de forma individualizada, seguindo o sistema trifasico, com incidencia da causa de diminuicao de pena prevista no Art. 33, par. 4o, da Lei n. 11.343/2006: 1a fase: 5 anos de reclusao e 500 dias-multa; 2a fase: 5 anos de reclusao e 500 dias-multa; 3a fase: 1 ano e 8 meses de reclusao e 166 dias-multa, no valor unitario minimo (ate 1,00 para cada acusado).",
+    "pontos": 3,
+    "escala": "ate 3,00 (escala 0,00/0,50/1,00/1,50/2,00/2,50/3,00)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/2006, art. 33 par. 4o",
+     "CP, art. 68"
+    ]
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 7 — Regime prisional e substituicao da pena: Fixar o regime prisional aberto, com a substituicao da pena privativa de liberdade por duas penas restritivas de direitos ou por uma pena restritiva de direitos e uma pena de multa.",
+    "pontos": 1,
+    "escala": "ate 1,00 (escala 0,00/0,50/1,00)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 33 e 44"
+    ]
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 8 — Perdimento de valores, recurso em liberdade e medidas cautelares: Determinar a perda da importancia em dinheiro apreendida, conceder aos acusados o direito de recorrer da sentenca em liberdade e manter as medidas cautelares.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00/0,25/0,50)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Lei 11.343/2006, art. 63",
+     "CPP, art. 319"
+    ]
+   },
+   {
+    "quesito": "Questao 02 (Sentenca Criminal) - item 9 — Idioma oficial e capacidade de exposicao: Utilizacao correta do idioma oficial e capacidade de exposicao.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00/0,50)",
+    "disciplina": "Outros",
+    "dispositivos": []
+   }
+  ],
+  "total": 20,
+  "instrucoes": [
+   "'CONCURSO PUBLICO 2023 - ESPELHOS DE CORRECAO (SENTENCAS) - PROVAS APLICADAS NO DIA 20/03/2024'.",
+   "'Conferencia da Tabela de Questoes - Disciplina A - Juiz Substituto'.",
+   "Questao 01 (Sentenca Civel): 14 itens, 'Nota da Questao 01 - Gabarito 1' = 10. Questao 02 (Sentenca Criminal): 9 itens, 'Nota da Questao 02 - Gabarito 1' = 10.",
+   "Cada item tem escala fechada de pontuacao (ex.: 0,00 / 0,10 / 0,20 / 0,30 / 0,40 / 0,50); o valor registrado abaixo e o teto do item."
+  ],
+  "fonte": "https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso58/50-Espelho-da-prova-Prova-Sentencas.pdf",
+  "fonte_concurso": "https://www.tjgo.jus.br/index.php/juiz-substituto",
+  "nota": "O espelho cobre as duas sentencas, mas as provas sao cadernos separados: url_prova e a de sentenca civel; a de sentenca criminal e https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso58/TJGO_2023_Juiz_Substituto_ProvaEscritaPraticaSentencaCriminal.pdf. Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "tj-go-2023-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do 58o Concurso - TJGO)",
+  "orgao": "TJ-GO",
+  "cargo": "Juiz Substituto",
+  "ano": 2023,
+  "fase": "discursiva",
+  "disciplina": "Civil, Outros, Penal, Constitucional, Tributário, Empresarial, Processo Civil, Processo Penal",
+  "tema": "Poder de administracao dos bens dos filhos e nulidade da garantia; Impenhorabilidade do bem de familia e novacao; Idioma oficial; …",
+  "enunciado": "TJ-GO · 2023 · Juiz Substituto — discursiva (banca banca propria (Comissao do 58o Concurso - TJGO)).\nProva oficial: https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso58/TJGO_2023_Juiz_Substituto_ProvaEscritaDiscursiva.pdf\nEspelho oficial: https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso58/Espelho_TJGO.pdf\nTempo sugerido: 1h por questão (21 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Questao 01 - item 1 (nota da questao: 2,0) — Poder de administracao dos bens dos filhos e nulidade da garantia: Acolhimento da tese de nulidade, com base na extrapolacao do poder geral de administracao dos bens dos filhos. Mencao aos Arts. 1.691, paragrafo unico, e 1.689, II, ambos do Codigo Civil. Interpretacao teleologica dos dispositivos.",
+    "pontos": 0.65,
+    "escala": "ate 0,65 (escala 0,00/0,20/0,40/0,65)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC, arts. 1.689 II e 1.691 paragrafo unico"
+    ]
+   },
+   {
+    "quesito": "Questao 01 - item 2 — Impenhorabilidade do bem de familia e novacao: Rejeicao da tese de impenhorabilidade. Subsistencia da garantia mesmo diante da novacao. Mencao aos Arts. 364 e 1.500 do Codigo Civil. Irrelevancia da novacao para fins de infirmar a excecao a intangibilidade do bem de familia. Fonte obrigacional (aquisicao do imovel) compreendida na excecao do Art. 3o, II, da Lei n. 8.009/1990.",
+    "pontos": 1.25,
+    "escala": "ate 1,25 (escala 0,00/0,20/0,40/0,60/0,80/1,00/1,25)",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "CC, arts. 364 e 1.500",
+     "Lei 8.009/1990, art. 3o II"
+    ]
+   },
+   {
+    "quesito": "Questao 01 - item 3 — Idioma oficial: Utilizacao correta do idioma oficial e capacidade de exposicao.",
+    "pontos": 0.1,
+    "escala": "ate 0,10",
+    "disciplina": "Outros",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 02 - item 1 (nota da questao: 2,0) — Porte ilegal de arma de fogo - lesividade e dolo: Nao imputacao a Alberto do crime de porte ilegal de arma de fogo de uso permitido, por ausencia de lesividade e de dolo - Lei n. 10.826/2003, Art. 14.",
+    "pontos": 0.3,
+    "escala": "ate 0,30 (escala 0,00/0,10/0,20/0,30)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 10.826/2003, art. 14"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - item 2 — Adulteracao de sinal identificador de veiculo - dolo: Nao imputacao a Alberto do crime de adulteracao de sinal identificador de veiculo, por ausencia de dolo - Codigo Penal, Art. 311, caput.",
+    "pontos": 0.3,
+    "escala": "ate 0,30 (escala 0,00/0,15/0,30)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 311 caput"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - item 3 — Forma equiparada do art. 311, par. 2o, III, do CP: Nao imputacao a Alberto da forma equiparada do crime de adulteracao de sinal identificador de veiculo, por ausencia de tipicidade - Codigo Penal, Art. 311, par. 2o, III.",
+    "pontos": 0.3,
+    "escala": "ate 0,30 (escala 0,00/0,30)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 311 par. 2o III"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - item 4 — Concussao: Imputacao ao policial do crime de concussao - Codigo Penal, Art. 316.",
+    "pontos": 0.4,
+    "escala": "ate 0,40 (escala 0,00/0,40)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 316"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - item 5 — Momento consumativo da concussao: Esclarecimento de que o crime de concussao restou consumado no momento da exigencia da vantagem indevida.",
+    "pontos": 0.3,
+    "escala": "ate 0,30 (escala 0,00/0,30)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 316"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - item 6 — Vitima de concussao nao responde por corrupcao ativa: Nao imputacao de crime a Alberto por haver tentado transferir vantagem indevida a companheira do policial, pois ele agiu como vitima do crime de concussao.",
+    "pontos": 0.3,
+    "escala": "ate 0,30 (escala 0,00/0,30)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 316 e 333"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - item 7 — Idioma oficial: Utilizacao correta do idioma oficial e capacidade de exposicao.",
+    "pontos": 0.1,
+    "escala": "ate 0,10",
+    "disciplina": "Outros",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 03 - item 1 (nota da questao: 1,0) — Requisitos de criacao de CPI: Estao presentes os requisitos para a criacao da CPI, previstos no par. 3o do Art. 58 da Constituicao da Republica: 1) requerimento de, ao menos, um terco dos parlamentares; 2) apuracao de fato determinado; e 3) prazo certo.",
+    "pontos": 0.15,
+    "escala": "ate 0,15 (escala 0,00/0,15)",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, art. 58 par. 3o"
+    ]
+   },
+   {
+    "quesito": "Questao 03 - item 2 (letra a) — Sustacao de contratos pela Casa Legislativa: Competencia da Casa Legislativa para sustar a execucao de contratos, nos termos do par. 1o do Art. 71 c/c Art. 75 da Constituicao da Republica.",
+    "pontos": 0.2,
+    "escala": "ate 0,20 (escala 0,00/0,20)",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, arts. 71 par. 1o e 75"
+    ]
+   },
+   {
+    "quesito": "Questao 03 - item 3 (letra b) — Autonomia dos Tribunais de Contas: Autonomia dos Tribunais de Contas em relacao as Casas Legislativas e falta de atribuicao constitucional das Cortes de Contas para declarar a nulidade de contrato firmado por outro Poder ou orgao autonomo.",
+    "pontos": 0.2,
+    "escala": "ate 0,20 (escala 0,00/0,20)",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, art. 71"
+    ]
+   },
+   {
+    "quesito": "Questao 03 - item 4 (letra c) — Convocacao do chefe do Executivo por CPI: A regra do par. 2o do Art. 58 da Constituicao da Republica nao autoriza a convocacao, por CPI, do chefe do Poder Executivo, pois menciona apenas os seus auxiliares.",
+    "pontos": 0.2,
+    "escala": "ate 0,20 (escala 0,00/0,20)",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, art. 58 par. 2o"
+    ]
+   },
+   {
+    "quesito": "Questao 03 - item 5 (letra d) — Quebra de sigilo fiscal por CPI: A quebra de sigilo fiscal nao e competencia exclusiva das autoridades jurisdicionais, podendo ser decretada por CPI e, no caso, esta devidamente fundamentada.",
+    "pontos": 0.2,
+    "escala": "ate 0,20 (escala 0,00/0,20)",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, art. 58 par. 3o"
+    ]
+   },
+   {
+    "quesito": "Questao 03 - item 6 — Idioma oficial: Utilizacao correta do idioma oficial e capacidade de exposicao.",
+    "pontos": 0.05,
+    "escala": "ate 0,05",
+    "disciplina": "Outros",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Questao 04 - itens 1 a 7 (nota da questao: 1,0) — Existencia, validade e eficacia da norma; suspensao de eficacia de lei estadual e cabimento de ADI: Itens pontuados individualmente: (1) uma norma legal existira caso emane de um orgao estatal, seja editada e revelada ao mundo exterior conforme um procedimento contemplado no sistema e tenha um objeto (ate 0,15); (2) sera valida, em perspectiva juridica, caso se harmonize com a Constituicao da Republica (ate 0,10); (3) sera eficaz caso esteja apta a produzir efeitos (ate 0,15); (4) a Constituicao, no Art. 24, par. 4o, admite que norma legal de cunho estadual tenha sua eficacia suspensa em razao da superveniencia de lei federal sobre normas gerais (ate 0,15); (5) nesse caso, a norma estadual existira, mas nao produzira efeitos (ate 0,10); (6) na acao direta de inconstitucionalidade, o STF analisa a compatibilidade da norma legal com a ordem constitucional, tal qual preceitua o Art. 102, I, 'a', da Constituicao, sendo discutida a sua validade (ate 0,15); (7) portanto, mesmo uma norma ineficaz pode ser objeto de acao direta de inconstitucionalidade (ate 0,15); alem do item de idioma oficial (ate 0,05).",
+    "pontos": 1,
+    "escala": "1,00 no total (itens de 0,05 a 0,15)",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, arts. 24 par. 4o e 102 I 'a'"
+    ]
+   },
+   {
+    "quesito": "Questao 05 - itens a.1, a.2, b e c (nota da questao: 1,0) — ITCMD, imunidade da entidade beneficiaria, fato gerador no registro, ITR x IPTU e responsabilidade por sucessao: a.1) Nao. A entidade beneficiaria (donataria) e entidade imune, razao pela qual a transmissao de imovel que compora seu patrimonio fica imunizada da incidencia do ITCMD, cf. Art. 150, VI, 'c' e par. 4o, CF/88 (ate 0,15). a.2) O fato gerador do ITCMD nao ocorre no ato da lavratura da escritura, mas sim no efetivo registro da propriedade imobiliaria junto ao Registro de Imoveis, uma vez que no direito brasileiro a transmissao imobiliaria se da pelo registro, cf. Art. 1.245 do Codigo Civil E/OU jurisprudencia pacifica do STJ e STF (STJ REsp 1.841.771 e REsp 1.841.798 - repetitivos; STF ARE 1.294.969 - repercussao geral) (ate 0,20). b) O imposto que incidia sobre a propriedade quando de titularidade de Jose era o ITR, devendo-se levar em consideracao o criterio da destinacao do imovel: caso destinado a exploracao agricola, pecuaria, extrativa vegetal ou agroindustrial, ainda que localizado em area urbana, sobre ele incidira o ITR, nos termos do Art. 15 do Decreto-Lei n. 57/1966 E/OU STJ REsp 1.112.646 (repetitivo) (ate 0,30). c) Sim, as dividas pretéritas referentes ao tempo em que Jose era proprietario poderiam ser cobradas pelo Fisco da fundacao partidaria apos esta se tornar proprietaria, pois, como o ITR era devido quando o imovel era de propriedade de Jose (pessoa fisica nao imune), a fundacao partidaria, embora imune, e responsavel tributaria por sucessao quanto aos impostos passados devidos sobre o imovel e nao pagos, cf. Art. 130 do CTN E/OU STF RE 599.176 (repercussao geral), Rel. Min. Joaquim Barbosa, Pleno, julg. 05/06/2014 (ate 0,30). Idioma oficial (ate 0,05).",
+    "pontos": 1,
+    "escala": "1,00 no total",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CF, art. 150 VI 'c' e par. 4o",
+     "CC, art. 1.245",
+     "CTN, art. 130",
+     "Decreto-Lei 57/1966, art. 15",
+     "STJ REsp 1.841.771, REsp 1.841.798 e REsp 1.112.646",
+     "STF ARE 1.294.969 e RE 599.176"
+    ]
+   },
+   {
+    "quesito": "Questao 06 - itens 1 a 3 (nota da questao: 1,0) — DIP Finance e credor parceiro na recuperacao judicial: (1) DIP Finance (ate 0,45): conceituacao - modalidade de financiamento em que a recuperanda mantem a posse e o controle dos bens ou direitos dados em garantia, para que a empresa possa se manter operante; modalidade garantida pela oneracao ou pela alienacao fiduciaria de bens e direitos, proprios (pertencentes ao ativo nao circulante do devedor) ou de terceiros, desde que o 'dinheiro novo' (fresh money) seja utilizado para financiar as atividades e as despesas de reestruturacao ou de preservacao do valor de ativos da recuperanda; fundamento legal - Arts. 69-A e ss. da Lei n. 11.101/2005; requisitos - autorizacao do juiz, ouvido o comite de credores, e vinculacao do dinheiro novo; modalidades - loan-oriented e loan-to-own; vantagem para a recuperanda - injecao de capital sem a retirada de seus ativos. (2) Credor parceiro (ate 0,40): conceituacao - aquele que recebe vantagens e privilegios caso continue a fornecer insumos, mercadorias, creditos ou que adquira papeis e debentures da recuperanda; fundamento legal - Art. 67 da Lei n. 11.101/2005; requisitos - previsao no plano de recuperacao judicial, imprescindibilidade dos bens e servicos que continuarem a ser prestados, razoabilidade dos privilegios outorgados; vantagem - continuidade de servicos essenciais pelo emparceiramento com seus credores. (3) Diferenciacao entre os institutos (ate 0,10). Idioma oficial (ate 0,05).",
+    "pontos": 1,
+    "escala": "1,00 no total",
+    "disciplina": "Empresarial",
+    "dispositivos": [
+     "Lei 11.101/2005, arts. 67 e 69-A e ss."
+    ]
+   },
+   {
+    "quesito": "Questao 07 (nota da questao: 1,0) — Omissoes e inercias do juizo e respectivos meios de impugnacao: Indicar as hipoteses e os meios de impugnacao: inobservancia dos marcos temporais estabelecidos pelo legislador (Art. 226 do CPC), meio de impugnacao (inercia): representacao (Art. 235 do CPC); ausencia de fixacao dos honorarios sucumbenciais ou nao indicacao do valor (omissao): acao autonoma para cobranca (Art. 85, par. 18, do CPC); decisoes judiciais sem fundamentacao adequada ou sem distincao (Arts. 489, par. 1o c/c 1.022, paragrafo unico, I e II, do CPC) transitadas em julgado (omissao): acao rescisoria por violacao a norma juridica (Art. 966 do CPC); inercia em cumprir determinacao do orgao julgador superior, ou quando o orgao inferior demorar excessivamente para remeter o recurso interposto (inercia): reclamacao (Art. 988 do CPC); decisao de saneamento que nao tenha apreciado alguma questao especifica (omissao): pedido de esclarecimentos ou ajustes (Art. 357, par. 1o, do CPC).",
+    "pontos": 1,
+    "escala": "dois blocos de ate 0,48 e 0,47 (escala 0,00/0,24/0,48 e 0,00/0,24/0,47), mais idioma oficial (ate 0,05); nota da questao 1,0",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 85 par. 18, 226, 235, 357 par. 1o, 489 par. 1o, 966, 988 e 1.022 paragrafo unico"
+    ]
+   },
+   {
+    "quesito": "Questao 08 - itens 1 a 4 (nota da questao: 1,0) — Prisao temporaria e acordo de colaboracao premiada: (1) ate 0,20: relativamente a prisao temporaria de Fernando, nao poderia ser esta decretada sem a previa oitiva do Ministerio Publico, pois, no caso de representacao da autoridade policial, deve o juiz ouvir previamente o Parquet, na qualidade de titular do direito de acao penal, consoante o Art. 2o, par. 1o, da Lei n. 7.960/1989. (2) ate 0,25: ha ilegalidade no fato de o juiz participar das negociacoes relativas ao acordo de colaboracao premiada, ferindo de morte a sua imparcialidade, segundo o par. 6o do Art. 4o da Lei n. 12.850/2013, e o fato de o possivel beneficio acordado envolver o perdao judicial nao afasta a incidencia do referido dispositivo. (3) ate 0,25: quanto ao outro beneficio homologado pelo juiz, referente ao colaborador nao ser denunciado, tambem nao seria possivel a sua concessao, pois Fernando era o lider da organizacao criminosa, o que encontra vedacao no Art. 4o, par. 4o, I, da Lei n. 12.850/2013. (4) ate 0,25: como o acordo de colaboracao foi entabulado pelo delegado de policia, deve contar necessariamente com a manifestacao do Ministerio Publico, ainda que se considere que tal manifestacao nao seja vinculante, segundo o par. 6o do Art. 4o da Lei n. 12.850/2013, e o possivel beneficio de o colaborador nao ser denunciado nao afasta a incidencia desse dispositivo. Idioma oficial (ate 0,05).",
+    "pontos": 1,
+    "escala": "1,00 no total",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Lei 7.960/1989, art. 2o par. 1o",
+     "Lei 12.850/2013, art. 4o par. 4o I e par. 6o"
+    ]
+   }
+  ],
+  "total": 10,
+  "instrucoes": [
+   "'Conferencia da Tabela de Questoes - Disciplina A - Juiz Substituto'; 58o Concurso, identificado no portal do TJGO como concurso de 2023 (o documento nao traz data).",
+   "8 questoes, cada uma com 'Itens = N' e nota final por questao: Questoes 01 e 02 valem 2,0; Questoes 03 a 08 valem 1,0 cada (total 10).",
+   "Todos os itens tem escala fechada de pontuacao; em todas as questoes ha item final de 'Utilizacao correta do idioma oficial e capacidade de exposicao'."
+  ],
+  "fonte": "https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso58/Espelho_TJGO.pdf",
+  "fonte_concurso": "https://www.tjgo.jus.br/index.php/juiz-substituto",
+  "nota": "Prova escrita discursiva do 58o Concurso. Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "tj-go-2025-esp1",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura estadual",
+  "banca": "banca propria (Comissao do 59o Concurso - TJGO)",
+  "orgao": "TJ-GO",
+  "cargo": "Juiz Substituto",
+  "ano": 2025,
+  "fase": "discursiva",
+  "disciplina": "Tributário, Constitucional, Administrativo, Civil, Processo Civil, Processo Penal, Penal",
+  "tema": "Competencia legislativa concorrente e competencia plena do Estado em materia de IPVA; Iniciativa parlamentar e simetria; Sujeicao passiva do IPVA na alienacao fiduciaria - propriedade resoluvel x posse direta; …",
+  "enunciado": "TJ-GO · 2025 · Juiz Substituto — discursiva (banca banca propria (Comissao do 59o Concurso - TJGO)).\nProva oficial: https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso59/56-Prova-Discursiva.pdf\nEspelho oficial: https://www.tjgo.jus.br/files/concursos/juizsubstituto/concurso59/EspelhoProvaDiscursiva.pdf\nTempo sugerido: 1h por questão (16 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Questao 01 - itens 1, 1.1 e 1.2 (nota da questao: 2,5) — Competencia legislativa concorrente e competencia plena do Estado em materia de IPVA: 1) O IPVA e imposto de competencia estadual, nos termos do Art. 155, III, da CRFB/1988, indicativo de que o Estado Delta tem competencia legislativa concorrente com a Uniao para legislar sobre a materia (Art. 24, I, da CRFB/1988) - ate 0,25. 1.1) Caso nao haja norma geral editada pela Uniao sobre a tematica, a competencia de Delta sera plena (Art. 24, par. 3o, CRFB/1988) - ate 0,20. 1.2) Na situacao concreta, a Uniao nao editou lei complementar sobre a tematica objeto do Art. X da Lei Estadual n. Y, tal qual dispoe o Art. 146, III, 'a', da CRFB/1988, indicativo de que o Estado Delta exerceu a competencia legislativa plena - ate 0,25.",
+    "pontos": 0.25,
+    "escala": "0,25 + 0,20 + 0,25",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CF, arts. 24 I e par. 3o, 146 III 'a' e 155 III"
+    ]
+   },
+   {
+    "quesito": "Questao 01 - item 2 — Iniciativa parlamentar e simetria: Ainda na perspectiva formal, nao ha que se falar em inconstitucionalidade pelo fato de a proposicao ter sido apresentada por deputado estadual, pois nao se trata de materia de iniciativa legislativa do chefe do Poder Executivo (Art. 61, par. 1o, CRFB/1988), aplicavel aos estados por forca da simetria (Art. 25, caput, CRFB/1988).",
+    "pontos": 0.25,
+    "escala": "ate 0,25",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, arts. 25 caput e 61 par. 1o"
+    ]
+   },
+   {
+    "quesito": "Questao 01 - itens 3 a 3.5 — Sujeicao passiva do IPVA na alienacao fiduciaria - propriedade resoluvel x posse direta: 3) Na perspectiva material, o Art. X dispos que o credor fiduciario e o contribuinte, enquanto o devedor fiduciante e responsavel solidario (ate 0,20). 3.1) Por se tratar de propriedade resoluvel, titularizada pelo credor fiduciario, nao apresenta todos os atributos afetos a propriedade plena, sendo certo que o devedor fiduciante possui a posse direta (ate 0,25). 3.2) No plano constitucional, consoante o entendimento do Supremo Tribunal Federal, somente a posse direta tem densidade material suficiente para a incidencia do IPVA, nao a propriedade resoluvel, desprovida dos atributos essenciais da propriedade plena (ate 0,30). 3.3) E a posse direta do devedor fiduciante, visando a aquisicao dominial, que estabelece a presuncao de riqueza para fins tributarios (ate 0,25). 3.4) Caso se entendesse que o credor fiduciario pode figurar como sujeito passivo da obrigacao tributaria, ainda ocorreria a concentracao da arrecadacao tributaria no domicilio das instituicoes financeiras, o que comprometeria a propria distribuicao dessa arrecadacao (ate 0,25). 3.5) Portanto, e inconstitucional, por afronta ao Art. 155, III, da CRFB/1988, a indicacao do credor fiduciario como contribuinte do IPVA, ressalvada a ulterior consolidacao da propriedade plena (ate 0,30).",
+    "pontos": 0.3,
+    "escala": "0,20 + 0,25 + 0,30 + 0,25 + 0,25 + 0,30",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CF, art. 155 III",
+     "Jurisprudencia do STF"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - letra a (nota da questao: 2,5) — Sujeito passivo de ato de improbidade: sindicatos, conselhos profissionais e partidos politicos: O candidato devera demonstrar conhecimento sobre em que consiste ser sujeito passivo de ato de improbidade administrativa. Com relacao aos sindicatos, devera esclarecer que, em regra, nao podem mais ser sujeitos passivos desde a reforma trabalhista de 2017, pois a Lei n. 13.467/2017 extinguiu a obrigatoriedade da contribuicao sindical, regra considerada constitucional pelo STF no julgamento da ADI 5.794, em 29/06/2018. Os conselhos de fiscalizacao do exercicio profissional podem ser sujeitos passivos, uma vez que os integrantes da categoria sao obrigados a recolher contribuicoes que se enquadram na categoria das parafiscais, como decidido pelo STF no MS 21.797-9, em 09/03/2000. Os partidos politicos, pessoas juridicas de direito privado, estao legitimados a receber recursos do Fundo Especial de Assistencia Financeira aos Partidos Politicos (Fundo Partidario), composto em sua maior parte por receitas de origem publica, na forma do Art. 38 da Lei n. 9.096/1995, motivo pelo qual se aplica a regra do Art. 1o, par. 7o, da Lei n. 8.429/1992, podendo ser sujeito passivo de atos de improbidade.",
+    "pontos": 0.6,
+    "escala": "ate 0,60 (escala 0,00 a 0,60, de 0,10 em 0,10)",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 8.429/1992, art. 1o par. 7o",
+     "Lei 13.467/2017",
+     "Lei 9.096/1995, art. 38",
+     "STF ADI 5.794",
+     "STF MS 21.797-9"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - letra b — Reexame necessario na improbidade e direito intertemporal (Tema 1.284/STJ): O candidato devera demonstrar conhecimento sobre em que consiste o reexame obrigatorio de sentenca, explicando se a vedacao ao reexame obrigatorio da sentenca de improcedencia ou de extincao sem resolucao de merito, contida no Art. 17, par. 19, da Lei n. 8.429/1992, se aplica a qualquer processo em curso ja sentenciado. Devera esclarecer que, sob o rito dos recursos repetitivos, a Primeira Secao do STJ estabeleceu que a vedacao ao reexame necessario (Art. 17, par. 19, IV c/c Art. 17-C, par. 3o, com redacao da Lei n. 14.230/2021) nao se aplica aos processos em curso quando a sentenca for anterior a vigencia da Lei n. 14.230/2021. No Tema 1.284 ficou decidido que vigora o sistema de isolamento dos atos processuais, aplicando-se de imediato a legislacao processual nova aos atos ainda nao praticados, respeitados os ja realizados; assim, a regra da vedacao ao reexame necessario, de carater processual, tem aplicacao imediata aos processos em curso, respeitando o principio tempus regit actum. A interpretacao depende do momento em que a sentenca tiver sido prolatada, aplicando-se a lei vigente nesse momento e afastando-se a retroatividade das normas processuais, conforme o Art. 14 do CPC; a alteracao legislativa nao deve retroagir as decisoes proferidas antes de sua entrada em vigor, ocorrida na data da publicacao, em 26 de outubro de 2021 (REsp 2.117.355).",
+    "pontos": 0.4,
+    "escala": "ate 0,40 (escala 0,00 a 0,40, de 0,10 em 0,10)",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 8.429/1992, arts. 17 par. 19 IV e 17-C par. 3o",
+     "Lei 14.230/2021",
+     "CPC, art. 14",
+     "Tema 1.284/STJ",
+     "STJ REsp 2.117.355"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - letra c — Frustracao da licitude de processo licitatorio - art. 11, V x art. 10, VIII da LIA: O candidato devera demonstrar conhecimento esclarecendo em que consiste a frustracao de licitude de processo licitatorio, pontuando mais ao dar exemplos. Devera esclarecer que, ainda que nao haja dano ao erario, a conduta descrita configura ato de improbidade administrativa, amoldando-se ao tipo do Art. 11, V, da Lei n. 8.429/1992. Devera ainda esclarecer que, caso se constate dano ao erario, a tipificacao adequada sera a do Art. 10, VIII, da Lei n. 8.429/1992. O candidato que apontar as diferencas de sancoes e consequencias em razao da tipificacao no Art. 10 ou no Art. 11 recebera pontuacao extra de 0,1.",
+    "pontos": 0.7,
+    "escala": "ate 0,70 (escala 0,00/0,20/0,40/0,70) + 0,10 extra",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 8.429/1992, arts. 10 VIII e 11 V"
+    ]
+   },
+   {
+    "quesito": "Questao 02 - letra d — Unificacao de sancoes no cumprimento de sentenca (art. 18-A da LIA): O candidato devera demonstrar conhecimento sobre em que consiste o cumprimento de sentenca, apontando que a resposta encontra respaldo no Art. 18-A da Lei n. 8.429/1992: a requerimento do reu, na fase de cumprimento da sentenca, o juiz unificara eventuais sancoes aplicadas com outras ja impostas em outros processos, em virtude de eventual continuidade de ilicito ou da pratica de diversas ilicitudes; no caso de continuidade de ilicito, o juiz promovera a maior sancao aplicada, aumentada de 1/3, ou a soma das penas, o que for mais benefico ao reu; no caso de pratica de novos atos ilicitos pelo mesmo sujeito, o juiz somara as sancoes, observando o limite maximo de 20 anos para a suspensao de direitos politicos e a proibicao de contratar ou receber incentivos fiscais ou crediticios. Devera indicar como definir continuidade de ilicitos para fins de unificacao das penas: no silencio da Lei, o doutrinador Landolfo Andrade, em 'Interesses Difusos e Coletivos', v. I, 13a ed. (fl. 848), ensina que o magistrado deve valer-se, por analogia, do conceito de crime continuado do Art. 71 do Codigo Penal - duas ou mais condutas, dois ou mais atos de improbidade da mesma especie, e, pelas condicoes de tempo, local, modo de execucao e outras semelhantes, os subsequentes havidos como continuacao do primeiro.",
+    "pontos": 0.8,
+    "escala": "ate 0,80 (escala 0,00/0,40/0,60/0,80)",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "Lei 8.429/1992, art. 18-A",
+     "CP, art. 71"
+    ]
+   },
+   {
+    "quesito": "Questao 03 - itens a.1 a a.5 (nota da questao: 2,5) — Correcao monetaria e juros de mora em relacao contratual apos a Lei 14.905/2024: a.1) Em se tratando de relacao contratual, para a correcao monetaria o marco inicial sera o do efetivo prejuizo, conforme Sumula n. 43 do STJ (0,20). a.2) Em se tratando de relacao contratual, o marco inicial dos juros de mora sera o vencimento da obrigacao inadimplida (CC, art. 397) (0,20). a.3) Quanto a correcao monetaria, o parametro sera o IPCA, na forma do art. 389, paragrafo unico, do Codigo Civil (0,20). a.4) Quanto aos juros de mora, o parametro sera a SELIC, deduzido o IPCA (CC, art. 406, par. 1o) (0,20). a.5) O STJ, no julgamento do Tema 1368, estabeleceu a aplicacao da SELIC mesmo antes da entrada em vigor da Lei 14.905/2024 (0,20).",
+    "pontos": 5,
+    "escala": "5 itens de 0,20",
+    "disciplina": "Civil",
+    "dispositivos": [
+     "Sumula 43/STJ",
+     "CC, arts. 389 paragrafo unico, 397 e 406 par. 1o",
+     "Lei 14.905/2024",
+     "Tema 1368/STJ"
+    ]
+   },
+   {
+    "quesito": "Questao 03 - itens b.1 e b.2 — Consectarios como pedidos implicitos e materia de ordem publica: b.1) Os consectarios da condenacao sao pedidos implicitos, conforme disposicao do art. 322, par. 1o, do CPC (0,25). b.2) O STJ ja se posicionou ratificando esse entendimento: 'Os juros moratorios e a correcao monetaria, por se tratar de materia de ordem publica, podem ser apreciadas de oficio pelo magistrado, independentemente de solicitacao ou recurso da parte, e a modificacao dos seus termos nao caracteriza reformatio in pejus' (STJ, 1a Turma, AgInt no AREsp 2.821.566-DF, Rel. Min. Benedito Goncalves, julgado em 22/9/2025, Info 28 - Edicao Extraordinaria) (0,25).",
+    "pontos": 2,
+    "escala": "2 itens de 0,25",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 322 par. 1o",
+     "STJ AgInt no AREsp 2.821.566-DF"
+    ]
+   },
+   {
+    "quesito": "Questao 03 - itens c.1 e c.2 — Honorarios advocaticios em condenacoes de valor elevado (Temas 1076/STJ e 1255/STF): c.1) A condenacao em valores elevados nao justifica a fixacao equitativa de honorarios advocaticios, conforme tese fixada pelo STJ no julgamento do Tema 1076; ressalte-se que, apesar de o Tema 1255 do STF tratar sobre a possibilidade de fixacao equitativa em condenacoes elevadas, a discussao diz respeito a condenacao da Fazenda Publica, nao se aplicando ao caso em tela (0,50). c.2) Consoante o entendimento fixado no STJ (2a Secao, REsp 1.746.072-PR, Rel. Min. Nancy Andrighi, Rel. p/ acordao Min. Raul Araujo, julgado em 13/02/2019, Info 645), a ordem do art. 85, par. 2o, do CPC e de observancia obrigatoria, razao pela qual a fixacao dos honorarios deve incidir sobre o valor da condenacao (0,50).",
+    "pontos": 2,
+    "escala": "2 itens de 0,50",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 85 par. 2o",
+     "Tema 1076/STJ",
+     "Tema 1255/STF",
+     "STJ REsp 1.746.072-PR"
+    ]
+   },
+   {
+    "quesito": "Questao 04 - letra a (nota da questao: 2,5) — Competencia por conexao probatoria e prevencao por medidas protetivas: Em razao da conexao probatoria entre as infracoes (art. 76, III, do CPP), diante do concurso de jurisdicoes da mesma categoria, devem ser observadas as disposicoes do art. 78, II, 'a' e 'b', do CPP, preponderando o local da infracao com pena mais grave e, se as penas forem de igual gravidade, o local com o maior numero de infracoes, o que atrai a competencia do Juizado de Violencia Domestica da Comarca de Goiania. A concessao das medidas protetivas de urgencia pelo Juizo da Comarca de Anapolis nao gera a prevencao do Juizo para julgar a futura acao penal, ainda que se trate de crime de descumprimento de tais medidas, diante do carater autonomo das medidas protetivas de urgencia, que nao estao vinculadas e nao dependem da tipificacao penal da violencia, conforme art. 19, par. 5o e 6o, da Lei n. 11.340/06 e jurisprudencia atual do STJ.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00 a 0,50, de 0,10 em 0,10)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, arts. 76 III e 78 II 'a' e 'b'",
+     "Lei 11.340/06, art. 19 par. 5o e 6o"
+    ]
+   },
+   {
+    "quesito": "Questao 04 - letra b — Cadeia de custodia de prints e representacao no crime de ameaca (Lei 14.994/24): Vicios na cadeia de custodia nao invalidam automaticamente a prova, apenas afetam sua eficacia probatoria, cabendo ao juiz avalia-la junto aos demais elementos. No caso analisado, a propria vitima forneceu os prints a policia, e a defesa nao comprovou adulteracao; tambem nao foi demonstrado prejuizo a defesa, conforme exigem os arts. 563 e 566 do CPP, pois a conversa apresentada nao sustenta a condenacao, mas sugere um possivel consentimento da vitima a reaproximacao, conferindo substrato probatorio a tese defensiva de atipicidade do crime de descumprimento de medidas protetivas. Conforme a reforma legislativa promovida pela Lei n. 14.994/24, que introduziu o par. 2o ao art. 147 do Codigo Penal, nao mais se exige representacao para o crime de ameaca cometido contra mulher por razoes da condicao do sexo feminino; alem da reforma, a jurisprudencia do STJ ja era sedimentada no sentido de que a representacao nao exige maiores formalidades, sendo suficiente a demonstracao do interesse da vitima na persecucao criminal.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00 a 0,50, de 0,10 em 0,10)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, arts. 563 e 566",
+     "CP, art. 147 par. 2o",
+     "Lei 14.994/2024"
+    ]
+   },
+   {
+    "quesito": "Questao 04 - letra c — Vias de fato x lesao corporal; emendatio libelli e prova da materialidade: Quanto a lesao corporal do dia 15 de janeiro, nao ha materialidade para o crime do art. 129, par. 13, do CP, pois o empurrao e o puxao de cabelo nao resultaram em lesao a integridade fisica, conforme laudo de corpo de delito negativo; tais condutas configuram a contravencao penal de vias de fato (art. 21 do DL 3.688/41), com a majorante do par. 2o introduzida pela Lei n. 14.994/2024, cabendo a emendatio libelli (art. 383 do CPP) para readequar a tipificacao. Tambem foram aceitas as respostas que enquadraram a conduta na injuria real do art. 140, par. 2o, do CP. Ja em relacao a lesao corporal do dia 29 de janeiro, embora o exame de corpo de delito seja o meio tecnico mais adequado, sua ausencia nao impede o reconhecimento do crime quando existam outros elementos probatorios idoneos, nos termos dos arts. 167 e 182 do CPP; no caso, ha relatorio medico de profissional habilitado atestando as lesoes, elemento probatorio admitido pelo art. 12, par. 3o, da Lei 11.340/2006, corroborado pelas declaracoes coerentes e firmes da vitima, da testemunha e do proprio acusado, cenario suficiente para a comprovacao da materialidade.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00 a 0,50, de 0,10 em 0,10)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 129 par. 13 e 140 par. 2o",
+     "DL 3.688/41, art. 21",
+     "CPP, arts. 167, 182 e 383",
+     "Lei 11.340/2006, art. 12 par. 3o",
+     "Lei 14.994/2024"
+    ]
+   },
+   {
+    "quesito": "Questao 04 - letra d — Violacao de domicilio como tipo misto alternativo e consuncao: Embora o ingresso inicial no apartamento tenha sido autorizado por Amanda, o art. 150 do CP e tipo misto alternativo, contemplando os verbos 'entrar' ou 'permanecer', bastando a pratica de qualquer deles para configurar o delito. A partir do momento em que Amanda ordenou a saida de Gustavo e ele insistiu em permanecer, consumou-se o crime na modalidade de permanencia indevida. Quanto a aplicacao do principio da consuncao entre a violacao de domicilio e a lesao corporal, a tese nao merece acolhimento, pois os crimes tutelam bens juridicos distintos, foram praticados com designios autonomos, e nao ha relacao de meio e fim entre as infracoes, ja que a invasao domiciliar nao constitui etapa necessaria para a consumacao da lesao corporal, conforme jurisprudencia atual do STJ.",
+    "pontos": 0.5,
+    "escala": "ate 0,50 (escala 0,00 a 0,50, de 0,10 em 0,10)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, art. 150",
+     "Jurisprudencia do STJ"
+    ]
+   },
+   {
+    "quesito": "Questao 04 - letra e — Atipicidade do descumprimento de medida protetiva por consentimento da vitima: Quanto ao crime de descumprimento de medidas protetivas de urgencia, a conduta e atipica em razao do consentimento da vitima, conforme jurisprudencia do STJ. Os autos demonstram que foi a propria vitima quem tomou a iniciativa de contatar o reu via WhatsApp, concordando que ele fosse a sua residencia para retirar seus pertences. O reu nao praticou qualquer ato intimidatorio ou ameacador capaz de viciar o consentimento da vitima quando ela restabeleceu o contato, sendo inaplicaveis os precedentes do STJ nesse sentido.",
+    "pontos": 0.2,
+    "escala": "ate 0,20 (escala 0,00/0,10/0,20)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.340/2006, art. 24-A",
+     "Jurisprudencia do STJ"
+    ]
+   },
+   {
+    "quesito": "Questao 04 - letra f — Desclassificacao de ameaca para coacao no curso do processo: Quanto ao segundo crime de ameaca descrito na denuncia, a conduta narrada configura, na verdade, o crime de coacao no curso do processo, previsto no art. 344 do Codigo Penal. A expressao proferida pelo reu, no sentido de que a vitima sofreria consequencias caso prestasse depoimento em juizo, revela nitido proposito de constrange-la a abster-se de prestar depoimento. E irrelevante a inexistencia de acao penal no momento da coacao, pois o tipo penal contempla intervencao em procedimento policial, e no caso ja havia registro da ocorrencia em sede policial e processo de medidas protetivas de urgencia. Nao foram aceitas como respostas validas a tipificacao no crime de ameaca, ou a desclassificacao para tipo penal diverso, haja vista o especial fim de agir na conduta (principio da especialidade), sendo certo que a questao indaga expressamente acerca da desclassificacao.",
+    "pontos": 0.3,
+    "escala": "ate 0,30 (escala 0,00/0,10/0,20/0,30)",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 147 e 344"
+    ]
+   }
+  ],
+  "total": 14.8,
+  "instrucoes": [
+   "'Tribunal de Justica do Estado de Goias - Juiz Substituto'. 59o Concurso (identificado no portal do TJGO como concurso de 2025).",
+   "4 questoes, cada uma valendo 2,5 (total 10), com itens de escala fechada ('Itens = N').",
+   "Na Questao 02, letra 'c', o espelho preve pontuacao extra: 'O candidato que apontar as diferencas de sancoes e consequencias em razao da tipificacao no Art. 10 ou no Art. 11 recebera pontuacao extra em 0,1'.",
+   "Na Questao 04, letra 'c', o espelho registra que 'tambem foram aceitas as respostas que enquadraram a conduta na injuria real do art. 140, par. 2o do CP'; na letra 'f', que 'nao foram aceitas como respostas validas a tipificacao no crime de ameaca, ou a desclassificacao para tipo penal diverso'."
+  ],
+  "fonte": "https://www.tjgo.jus.br/files/concursos/juizsubstituto/concurso59/EspelhoProvaDiscursiva.pdf",
+  "fonte_concurso": "https://www.tjgo.jus.br/index.php/juiz-substituto",
+  "nota": "Prova discursiva do 59o Concurso. Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva. As provas de sentenca do 59o Concurso estao publicadas (https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso59/57-Sentenca-Civel.pdf e https://docs.tjgo.jus.br/concursos/juizsubstituto/concurso59/58-Sentenca-Criminal.pdf), mas nao ha espelho correspondente na base."
+ },
+ {
+  "id": "trf-2-2025-esp1",
+  "tipo": "sentenca",
+  "peca": "Sentença cível",
+  "carreira": "Magistratura federal",
+  "banca": "banca propria (Comissao do XVIII Concurso - TRF da 2a Regiao)",
+  "orgao": "TRF2",
+  "cargo": "Juiz Federal Substituto",
+  "ano": 2025,
+  "fase": "sentenca civel",
+  "disciplina": "Processo Civil, Tributário, Sentença (estrutura)",
+  "tema": "Competencia da Justica Federal em execucao fiscal movida pela Uniao (art. 109, I, da CF); Capacidade tributaria ativa quanto as contribuicoes de terceiros (Sistema S) apos a Lei 11.457/2007; Contagem do prazo do art. 40 da LEF e Tema 566/STJ; …",
+  "enunciado": "TRF2 · 2025 · Juiz Federal Substituto — sentenca civel (banca banca propria (Comissao do XVIII Concurso - TRF da 2a Regiao)).\nProva oficial: https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/24/prova-sentenca-civil.pdf\nEspelho oficial: https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/18/espelho-prova-de-sentenca-civel-rev1.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Aspecto 1 - Preliminar de competencia — Competencia da Justica Federal em execucao fiscal movida pela Uniao (art. 109, I, da CF): O candidato deve iniciar a analise pela afirmacao da competencia da Justica Federal, questionada nos embargos. Basta dizer que a Uniao Federal e a parte exequente, o que faz incidir a regra do art. 109, I, da Lei Maior; por ser a Justica Federal competente, ela examinara se o exequente e parte legitima. A inversao e erro: e incorreto iniciar o exame pelo tema da legitimidade ativa, desafiando a ordem tecnica e logica que exige, primeiramente, o exame dos pressupostos processuais a partir da competencia do juizo - apenas o juizo competente pode examinar a legitimidade da parte. E equivocado dizer que competencia se confunde com legitimidade, ou que, fixada a legitimidade, existe a competencia federal. E a presenca, na posicao legalmente indicada, das pessoas listadas no art. 109, I, da CF, que afirma a competencia civel da Justica Federal, e nao o eventual interesse abstrato. Disputa no maximo 0,5 quem afirma que competencia se confunde com legitimidade, ou inverte a analise, ou comete os dois erros - e, para obter esse saldo de 0,5, e necessario que, apesar da confusao, afirme claramente que o bastante e a incidencia do art. 109, I, da Lei Maior.",
+    "pontos": 1,
+    "escala": "1,0",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CF, art. 109 I"
+    ]
+   },
+   {
+    "quesito": "Aspecto 2 - Legitimidade ativa da Uniao — Capacidade tributaria ativa quanto as contribuicoes de terceiros (Sistema S) apos a Lei 11.457/2007: A legitimidade ativa da Uniao e ordinaria, na qualidade de detentora da capacidade tributaria ativa e de titular do direito/dever de fiscalizar e arrecadar as contribuicoes em favor do Sistema 'S', desde o advento da Lei 11.457/2007 (Lei da SuperReceita): ate 1,40 para a explanacao e 0,10 para a citacao do art. 3o, caput, da Lei 11.457/2007. Mesmo sem citar o art. 3o, o candidato pode apontar a legitimacao ordinaria com raciocinio a partir de posicao do STJ, ainda que sem citar a numeracao do enunciado 666 da Sumula do STJ (a legitimidade passiva em demandas de restituicao de contribuicoes de terceiros esta vinculada a capacidade tributaria ativa; as entidades terceiras, meras destinatarias, nao tem legitimidade). Como sao meras destinatarias e nao podem figurar no polo passivo de demandas de repeticao, tampouco podem ser sujeito ativo desta cobranca (CTN, art. 7o). Observacoes da banca: e erro centrar o argumento sobre a legitimidade ad causam na teoria da assercao, pois aqui nao ha assercao a ser discutida como merito; e tambem e impreciso dizer que a titularidade do direito equivale a legitimacao ad causam ativa, pois isso ignora a legitimacao extraordinaria. Precedente citado: STJ, EREsp 1.571.933/SC, Rel. Min. Gurgel de Faria, 1a Secao, j. 13/12/2023.",
+    "pontos": 1.5,
+    "escala": "1,5 (ate 1,40 explanacao + 0,10 dispositivo)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "Lei 11.457/2007, art. 3o caput",
+     "Sumula 666/STJ",
+     "CTN, art. 7o",
+     "STJ EREsp 1.571.933/SC"
+    ]
+   },
+   {
+    "quesito": "Aspecto 3 - Prescricao intercorrente — Contagem do prazo do art. 40 da LEF e Tema 566/STJ: Quem acata a prescricao perde os pontos do item e, ao nao examinar os aspectos 4 e 5, ou ao faze-lo erradamente, tambem perde os pontos desses itens subsequentes. Os dois pontos sao divididos em duas analises. No primeiro aspecto (valor total 1,5), o candidato deve abordar a contagem do prazo e afirmar que a prescricao intercorrente nao se consumou, ja que os cinco anos do art. 40 da LEF (mencao obrigatoria) so se iniciam apos transcorrido um ano da decisao que suspendeu a execucao fiscal (art. 40, par. 4o, da LEF): no prazo de 5 anos nao se computa o ano de suspensao, de modo que a afirmacao da prescricao exigiria o total de 6 anos (Sumula 314/STJ). No caso, a penhora se deu 5 anos e 9 meses apos a decisao que suspendeu o curso da execucao, de modo que nao ha consumacao do tempo exigido. O meio ponto restante advem da identificacao de que a ausencia de decisao de arquivamento nao afeta a contagem (0,40) e da mencao a existencia de posicao do STJ, ainda que sem citar numeracao de tese (0,10) - Tema 566 do STJ.",
+    "pontos": 2,
+    "escala": "2,0 (1,5 + 0,40 + 0,10)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "Lei 6.830/80 (LEF), art. 40 e par. 1o, 2o, 3o e 4o",
+     "Sumula 314/STJ",
+     "Tema 566/STJ"
+    ]
+   },
+   {
+    "quesito": "Aspecto 4 - Recepcao das contribuicoes do Sistema S — EC 33/2001, art. 149, par. 2o, III, 'a', e art. 240 da CF (Tema 325/STF): O candidato deve afirmar a recepcao, pela Constituicao de 1988, das contribuicoes do Sistema 'S'. Por dois caminhos pode obter a pontuacao plena. Caminho 1: explanacao de que o rol de bases de calculo do art. 149, par. 2o, III, 'a', da CF/1988 (redacao da EC 33/2001) e meramente exemplificativo e nao exclui a incidencia de contribuicoes do Sistema 'S' sobre folha de salarios, conforme o Tema 325 do STF ('As contribuicoes devidas ao SEBRAE, a APEX e a ABDI com fundamento na Lei 8.029/1990 foram recepcionadas pela EC 33/2001') - 1,8 pela explanacao, 0,1 pela mencao obrigatoria ao art. 149, par. 2o, III, 'a', e 0,1 pela citacao da existencia de decisao do STF com repercussao geral. Caminho 2: anotar que o art. 240 da CF/1988 expressamente ressalva as atuais contribuicoes compulsorias dos empregadores sobre a folha de salarios destinadas as entidades privadas de servico social e de formacao profissional vinculadas ao sistema sindical - ate 1,80 para a explanacao, 0,10 para a citacao do art. 240 e 0,10 para a citacao da existencia de posicao especifica do STF ou do STJ (EREsp 1.571.933/SC).",
+    "pontos": 2,
+    "escala": "2,0 (1,8 + 0,1 + 0,1)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CF, arts. 149 par. 2o III 'a' e 240",
+     "EC 33/2001",
+     "Tema 325/STF",
+     "STJ EREsp 1.571.933/SC"
+    ]
+   },
+   {
+    "quesito": "Aspecto 5 - Limite de 20 salarios minimos — Base de calculo das contribuicoes ao Sistema S (Tema Repetitivo 1079/STJ): O candidato deve afastar o limite de 20 salarios-minimos como teto a base de calculo das contribuicoes ao SENAC: 2,00 pontos, sendo ate 1,90 para a explanacao e 0,10 para a citacao da existencia de posicao especifica do STJ em recurso repetitivo, sem necessidade de citar a numeracao. O STJ, no Tema Repetitivo 1079, decidiu que, para fatos geradores ocorridos em 2016, nao subsiste a limitacao de 20 salarios-minimos da base de calculo das contribuicoes parafiscais devidas ao SENAI, SESI, SESC e SENAC (Decreto-Lei 1.861/1981 com a redacao do DL 1.867/1981; Lei 6.950/1981, art. 4o e paragrafo unico; Decreto-Lei 2.318/1986, arts. 1o, I, e 3o). E incorreto falar, quanto ao item, que os embargos sao ineptos com o argumento de que nao discriminam o valor devido, pois a imputacao e de erro de lancamento, materia que - se correta a tese - poderia ser conhecida de oficio.",
+    "pontos": 2,
+    "escala": "2,0 (1,9 + 0,1)",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "Tema Repetitivo 1079/STJ",
+     "Decreto-Lei 1.861/1981",
+     "Lei 6.950/1981, art. 4o",
+     "Decreto-Lei 2.318/1986, art. 1o I"
+    ]
+   },
+   {
+    "quesito": "Aspecto 6 - Dispositivo — Improcedencia dos embargos, custas, honorarios e remessa necessaria: No caso de ter seguido a linha correta, o candidato deve julgar improcedentes os embargos a execucao fiscal, com resolucao do merito - essa simples referencia vale 0,50. Nao ha custas (0,50 - art. 7o da Lei 9.289/1996) e os honorarios advocaticios em favor da Uniao estao abrangidos pelo encargo legal presente na CDA (0,50), conforme art. 1o do Decreto-Lei 1.025/69, Sumula 168 do TFR ou REsp 1.143.320 (repetitivo), sem necessidade de citacao de dispositivo ou sumula. Nao ha necessidade de indicar a inexistencia de remessa necessaria; caso o candidato submeta erroneamente o feito ao reexame necessario, perde 0,25; e errado dizer, para quem rejeitou os embargos, que o feito nao se submete a remessa por nao ter atingido o valor de alcada. Dois candidatos julgaram procedente a execucao, 'em erro colossal', pois sao os embargos que estao em julgamento - aplicado zero no item e perda de pontos. Os candidatos que acataram os embargos, no todo ou em parte, tiveram o dispositivo avaliado (tambem ate 1,5) a partir da congruencia com a fundamentacao; e tumultuario julgar procedente em parte os embargos e abrir posterior liquidacao; considerou-se adequada a determinacao de substituicao da CDA para permitir a continuidade da execucao, com nova intimacao; tambem nesse caso nao ha custas e os honorarios continuam computados no encargo legal da CDA ajustada; aceitou-se, com justificacao, tanto a afirmacao da submissao ao duplo grau obrigatorio, diante do valor iliquido, quanto a aplicacao do art. 496, par. 3o, do CPC.",
+    "pontos": 1.5,
+    "escala": "1,5 (0,50 + 0,50 + 0,50)",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "Lei 9.289/1996, art. 7o",
+     "Decreto-Lei 1.025/69, art. 1o",
+     "Sumula 168/TFR",
+     "STJ REsp 1.143.320",
+     "CPC, art. 496 par. 3o"
+    ]
+   },
+   {
+    "quesito": "Aspecto 7 - Estrutura e portugues — Aspectos estruturais e de redacao (apenas retira pontos): Perda de 0,1 por erro claro de portugues (crase, concordancia nominal, regencia verbal e falta de aspas ou de sublinha em palavras latinas ou estrangeiras). Perda de pelo menos 0,2 por falta de coesao ou erro estrutural - exemplo: examinar a prescricao apos o exame da adequacao do credito cobrado. Embora nao seja pratica rara, e equivocado inserir, no bojo da sentenca, despacho instruindo sobre como o feito deve tramitar se houver recurso; tambem e erro estrutural comandar, nos embargos, deliberacoes sobre imediato leilao de bens ou conversao em renda, aspectos que devem ser determinados nos autos da execucao.",
+    "pontos": 0.2,
+    "escala": "apenas retira pontos (0,1 por erro de portugues; ao menos 0,2 por erro estrutural)",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   }
+  ],
+  "total": 10.2,
+  "instrucoes": [
+   "'ESPELHO DE CORRECAO - PROVA PRATICA DE SENTENCA CIVEL' (publicado em 15/01/2025; prova aplicada em 02/11/2024).",
+   "'Sao sete itens examinados, para efeito de pontuacao': 1) Competencia da Justica Federal (1 ponto); 2) Legitimidade ativa da Uniao Federal (1,5); 3) Nao consumacao da prescricao intercorrente (2 pontos); 4) Recepcao das contribuicoes do Sistema S (2 pontos); 5) Ausencia da limitacao da base de calculo (2 pontos); 6) Dispositivo da sentenca (1,5); 7) somatorio de 10,0 (nota maxima). No topico 7 (Aspectos estruturais e de redacao) 'o melhor resultado e a neutralidade, e os erros de portugues e de estruturacao apenas retiram pontos'.",
+   "'Em cada um dos itens, caso a explanacao seja parcial ou insuficiente, a pontuacao e proporcional a proximidade da resposta para com o gabarito, e com abate dos erros.'"
+  ],
+  "fonte": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/18/espelho-prova-de-sentenca-civel-rev1.pdf",
+  "fonte_concurso": "https://www.trf2.jus.br/trf2/artigo/acma/18o-concurso-para-juiz-federal-substituto-da-2a-regiao",
+  "nota": "Prova pratica de sentenca civel do XVIII Concurso, aplicada em 02/11/2024 (espelho publicado em 15/01/2025). Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "trf-2-2025-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença penal",
+  "carreira": "Magistratura federal",
+  "banca": "banca propria (Comissao do XVIII Concurso - TRF da 2a Regiao)",
+  "orgao": "TRF2",
+  "cargo": "Juiz Federal Substituto",
+  "ano": 2025,
+  "fase": "sentenca criminal",
+  "disciplina": "Processo Penal, Penal, Sentença (estrutura)",
+  "tema": "Nulidade das gravacoes ambientais provocadas pelo MPRJ e competencia aparente; Captacao ambiental por um dos interlocutores sem autorizacao judicial (Tema 237/STF); Alegada infiltracao de agentes; …",
+  "enunciado": "TRF2 · 2025 · Juiz Federal Substituto — sentenca criminal (banca banca propria (Comissao do XVIII Concurso - TRF da 2a Regiao)).\nProva oficial: https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/24/prova-sentenca-criminal.pdf\nEspelho oficial: https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/18/espelho-de-sentenca-criminal.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "Preliminar 1 — Nulidade das gravacoes ambientais provocadas pelo MPRJ e competencia aparente: Rejeicao da alegacao de nulidade das gravacoes ambientais, ante a competencia aparente do MPRJ, por ausencia de indicios de transnacionalidade ate aquele momento. As investigacoes iniciaram-se com a prisao em flagrante de ROGERIO, sem indicio de transnacionalidade (Sumula 522 do STF); somente com a entrega das gravacoes identificaram-se indicios de crimes de competencia da Justica Federal, tendo o material sido enviado ao MPF. Precedente: STJ, AgRg no HC 901.038/SC, Rel. Min. Antonio Saldanha Palheiro, 6a Turma, j. 20/5/2024.",
+    "pontos": 2,
+    "escala": "0,40 (dentro de 2,00 das preliminares)",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Sumula 522/STF",
+     "STJ AgRg no HC 901.038/SC"
+    ]
+   },
+   {
+    "quesito": "Preliminar 2 — Captacao ambiental por um dos interlocutores sem autorizacao judicial (Tema 237/STF): Rejeicao da alegacao de nulidade das gravacoes ambientais feitas pelo correu ROGERIO: possibilidade de captacao por interlocutor, sem necessidade de autorizacao judicial. Tema 237 do STF: 'E licita a prova consistente em gravacao ambiental realizada por um dos interlocutores sem conhecimento do outro'. O entendimento nao se alterou apos a Lei 13.964/19, que introduziu o art. 8o-A na Lei 9.296/96 (precedentes do STF e do STJ posteriores a alteracao: STF ARE 1.431.397 AgR; STJ AgRg no AREsp 2.466.415/MG; STJ AgRg no RHC 173.004/RS; STF RHC 242.551 AgR).",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Tema 237/STF",
+     "Lei 9.296/96, art. 8o-A",
+     "Lei 13.964/2019"
+    ]
+   },
+   {
+    "quesito": "Preliminar 3 — Alegada infiltracao de agentes: Rejeicao da alegacao de nulidade da tecnica de investigacao consistente no uso de agente infiltrado: a situacao nao se confunde com infiltracao, pois o integrante do grupo criminoso que, por conta propria, realiza a gravacao ambiental de conversas com outros integrantes e assume postura colaborativa nao se equipara ao agente policial infiltrado de que tratam o art. 53, I, da Lei 11.343/06 e os arts. 10 a 14 da Lei 12.850/13.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Lei 11.343/06, art. 53 I",
+     "Lei 12.850/13, arts. 10 a 14"
+    ]
+   },
+   {
+    "quesito": "Preliminar 4 — Provas derivadas, interceptacoes telefonicas e prorrogacoes (Tema 661/STF): Rejeicao da alegacao de nulidade de todas as provas que derivaram das gravacoes e de seu desentranhamento, notadamente as interceptacoes telefonicas e a apreensao da substancia entorpecente. Sendo licita a gravacao ambiental produzida pelo correu colaborador, nao ha provas ilicitas por derivacao; as interceptacoes foram autorizadas por juiz competente, as prorrogacoes respeitaram o prazo de 15 dias e foram renovadas de maneira fundamentada entre 15.09.22 e 23.12.22, o que se coaduna com a jurisprudencia do STF (Tema 661: sao licitas as sucessivas renovacoes de interceptacao telefonica, desde que verificados os requisitos do art. 2o da Lei 9.296/1996 e demonstrada a necessidade, com decisoes motivadas; sao ilegais as motivacoes padronizadas). O mandado de busca e apreensao tambem foi expedido pelo juiz competente.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Tema 661/STF",
+     "Lei 9.296/1996, art. 2o"
+    ]
+   },
+   {
+    "quesito": "Preliminar 5 — Compartilhamento de RIFs do COAF sem autorizacao judicial (Tema 990/STF): Rejeicao da alegacao de nulidade dos relatorios do COAF juntados aos autos, encaminhados ao MPF sem autorizacao judicial, e, em decorrencia, rejeicao da nulidade da quebra de sigilo fiscal dos reus como prova derivada. O tema foi apreciado pelo STF em repercussao geral (Tema 990), reputando constitucional o compartilhamento dos RIFs do COAF (atual UIF) sem previa autorizacao judicial, bastando que a comunicacao seja feita por meio oficial e mantido o sigilo. Na hipotese nao houve requisicao do MPF ao COAF, mas compartilhamento por iniciativa do proprio orgao de fiscalizacao; nao ha ilegalidade na quebra de sigilo fiscal deferida pelo juiz federal competente.",
+    "pontos": 0.4,
+    "escala": "0,40",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "Tema 990/STF"
+    ]
+   },
+   {
+    "quesito": "Preliminar 6 (ineptia da denuncia quanto a Maria) — Inepcia da denuncia arguida pela defesa de Maria: A Banca considerou admissivel o acolhimento da alegacao de inepcia ou o exame do tema como merito (a pontuacao ocorre em conjunto com o merito). Nao houve conduta tipica atribuivel a Maria: ha mera mencao a suposta participacao ativa, sem liga-la a qualquer fato, e ha diversos precedentes do STJ permitindo a alegacao de vicios da denuncia ate as alegacoes finais. Era igualmente admissivel deixar para o merito a analise da tese defensiva.",
+    "pontos": null,
+    "escala": "pontuada em conjunto com o merito",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, arts. 395 I e 41",
+     "STJ AgRg nos EDcl no AREsp 879.614/SC"
+    ]
+   },
+   {
+    "quesito": "Merito - materialidade — Comprovacao da materialidade: Mencao, conforme espelho, aos documentos mencionados no enunciado: auto de apreensao da droga, laudo pericial de constatacao de quantidade e natureza, dialogos gravados por captacao ambiental, dialogos interceptados, relatorios do COAF, quebra de sigilo fiscal e prova oral produzida no processo.",
+    "pontos": 5,
+    "escala": "0,25 (dentro de 5,00 do merito)",
+    "disciplina": "Processo Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "Merito - autoria de JOSE — Condenacao por trafico internacional, associacao e lavagem, em concurso material: Condenacao por todos os crimes, em concurso material, com rejeicao expressa de todas as teses defensivas de Jose. Jose deve ser condenado por associacao para o trafico internacional (posicao de lider), por trafico internacional de drogas (apreensao de 23.12.22) e por lavagem de dinheiro (uso da offshore e da empresa de Cristina, dialogos interceptados e transacoes atipicas). Nao assiste razao a defesa quanto a nao incidencia do art. 40, I, da Lei 11.343/06, pois o MPF pediu a causa de aumento em alegacoes finais e a propria denuncia descreve a transnacionalidade; nao merece acolhida o pedido de incidencia do art. 2o da Lei 12.850/13, por especialidade do art. 35 c/c art. 40, I, e por ausencia da elementar de 4 pessoas; nao se aplica o art. 29, par. 1o, do CP.",
+    "pontos": 0.75,
+    "escala": "0,75",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/06, arts. 33, 35 e 40 I",
+     "Lei 9.613/98, art. 1o",
+     "CP, arts. 29 par. 1o e 69",
+     "Lei 12.850/13, art. 2o"
+    ]
+   },
+   {
+    "quesito": "Merito - autoria de ANTONIO — Condenacao e rejeicao da inexigibilidade de conduta diversa: Condenacao por todos os crimes, em concurso material, com rejeicao expressa de todas as teses defensivas. Devem ser rejeitadas as alegacoes de inexigibilidade de conduta diversa, pois nao ha situacao limite que o tenha compelido a aderir ao grupo criminoso; Antonio e coautor dos crimes e nao participe, nao se caracterizando participacao de menor importancia.",
+    "pontos": 0.75,
+    "escala": "0,75",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/06, arts. 33, 35 e 40 I",
+     "Lei 9.613/98, art. 1o",
+     "CP, arts. 29 par. 1o e 69"
+    ]
+   },
+   {
+    "quesito": "Merito - autoria de MARIA — Absolvicao por atipicidade ou rejeicao da denuncia por inepcia: Absolvicao de todos os delitos por atipicidade da conduta ou rejeicao da denuncia por inepcia. Maria deve ser absolvida, pois o fato de figurar como socia na empresa utilizada para o trafico nao e suficiente para condena-la; o MPF nao imputou nenhum fato tipico nem especificou como se deu sua participacao, restringindo-se a afirmar que, por ser socia-gerente da GRAO DO BRASIL LTDA, teria contribuido para a pratica criminosa.",
+    "pontos": 0.75,
+    "escala": "0,75",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CPP, arts. 386 III e 395 I"
+    ]
+   },
+   {
+    "quesito": "Merito - autoria de ROGERIO — Condenacao com perdao judicial ao colaborador e extincao da punibilidade: Condenacao por associacao e trafico, mas com perdao judicial e extincao da punibilidade. Tendo em vista a participacao decisiva de Rogerio no desbaratamento da associacao criminosa, na apreensao da droga no Porto de Itaguai e na prisao dos agentes, deve ser aplicado o perdao judicial nos termos do art. 13 da Lei 9.807/1999 e do art. 4o da Lei 12.850/13, declarando-se extinta a punibilidade (CP, art. 107, IX). As regras sao aplicaveis a qualquer colaboracao, admitindo o processo penal interpretacao extensiva e analogica (STJ, HC 582.678/RJ, Rel. Min. Laurita Vaz, 6a Turma, j. 14/6/2022, Informativo 742).",
+    "pontos": 0.75,
+    "escala": "0,75",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 9.807/1999, art. 13",
+     "Lei 12.850/13, art. 4o",
+     "CP, art. 107 IX",
+     "STJ HC 582.678/RJ"
+    ]
+   },
+   {
+    "quesito": "Merito - autoria de PAULO — Condenacao por trafico internacional com trafico privilegiado e absolvicao da associacao: Rejeicao da tese defensiva de ausencia de dolo e condenacao por trafico internacional de drogas, com a causa de diminuicao relativa ao trafico privilegiado, e absolvicao quanto ao delito de associacao para o trafico, por ausencia de provas (CPP, art. 386, V ou VII). Paulo transportou a droga apreendida no Porto de Itaguai, mas nao ha evidencia de que integrasse a associacao criminosa ou participasse de outros eventos de trafico internacional.",
+    "pontos": 0.75,
+    "escala": "0,75",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 11.343/06, arts. 33 par. 4o e 40 I",
+     "CPP, art. 386 V e VII"
+    ]
+   },
+   {
+    "quesito": "Merito - autoria de CRISTINA — Condenacao apenas por lavagem de dinheiro: Rejeicao da tese defensiva de desconhecimento da origem ilicita dos recursos, com condenacao por lavagem de dinheiro e absolvicao quanto a imputacao de associacao para o trafico, por ausencia de provas (CPP, art. 386, V ou VII). Cristina nao praticou o crime antecedente como autora ou participe, mas tinha ciencia da origem criminosa do dinheiro, evidenciada nos dialogos interceptados.",
+    "pontos": 0.75,
+    "escala": "0,75",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "Lei 9.613/98, art. 1o",
+     "CPP, art. 386 V e VII"
+    ]
+   },
+   {
+    "quesito": "Dispositivo — Parte dispositiva da sentenca criminal: O pedido formulado na denuncia deve ser julgado parcialmente procedente, para: CONDENAR JOSE e ANTONIO nas penas dos arts. 33 e 35 c/c art. 40, I, da Lei 11.343/06 e art. 1o da Lei 9.613/98; ABSOLVER MARIA de todas as imputacoes (CPP, art. 386, III) ou REJEITAR A DENUNCIA (CPP, art. 395, I); DECLARAR A EXTINCAO DA PUNIBILIDADE DE ROGERIO (CP, art. 107, IX, e art. 13 da Lei 9.807/99) ou CONDENA-LO nas penas dos arts. 33 e 35 c/c arts. 40, I, e 41 da Lei 11.343/06, em concurso material (CP, art. 69); CONDENAR PAULO somente no art. 33, par. 4o, c/c art. 40, I, da Lei 11.343, pelo envio dos 230 quilos, absolvendo-o (CPP, art. 386, V ou VII) quanto a associacao; CONDENAR CRISTINA somente no art. 1o da Lei 9.613/98, absolvendo-a (CPP, art. 386, V ou VII) quanto ao trafico e a associacao.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "Lei 11.343/06, arts. 33, 35, 40 I e 41",
+     "Lei 9.613/98, art. 1o",
+     "CP, arts. 69 e 107 IX",
+     "CPP, arts. 386 III, V e VII, e 395 I"
+    ]
+   },
+   {
+    "quesito": "Diretrizes para a dosimetria — Sistema trifasico, art. 42 da Lei de Drogas, agravante de lideranca, causas de aumento e diminuicao: O candidato devera efetuar a dosimetria das penas de JOSE e ANTONIO (arts. 33 e 35 c/c art. 40, I, da Lei 11.343/2006 e art. 1o da Lei 9.613/1998, na forma do art. 69 do CP), de PAULO (art. 33, par. 4o) e de CRISTINA (art. 1o da Lei 9.613/98). Na 1a fase, valorar as circunstancias judiciais do art. 59 do CP (excetuado o comportamento da vitima); quanto aos arts. 33 e 35 da Lei 11.343/2006, sopesar a natureza e a qualidade da droga (art. 42) na circunstancia 'circunstancias do crime'. O criterio de fixacao da pena-base deve ser o de exasperacao de 1/8 do intervalo entre as penas minima e maxima para cada circunstancia judicial negativa, admitida certa discricionariedade. Na 2a fase, analisar atenuantes e agravantes, evitando bis in idem; poderia ser reconhecida a agravante de lideranca (CP, art. 62, I) em desfavor de Jose, desde que nao valorada negativamente sua culpabilidade pelo mesmo fato. Na 3a fase, a causa de diminuicao do art. 33, par. 4o, nao deve ser considerada para os reus que integram o grupo de forma estavel e permanente, sendo possivel para o que teve participacao episodica, com fracao concretamente fundamentada; a causa de aumento do art. 40, I, deve ser aplicada, embora sem pedido na denuncia, pois houve pedido expresso em alegacoes finais e a denuncia descreve a transnacionalidade, com fracao fundamentada e incidencia em cascata. Quanto a lavagem, nao deve ser aplicada a causa de aumento do par. 4o do art. 1o da Lei 9.613/1998, por ausencia de imputacao de organizacao criminosa e de pedido expresso. A atenuante da confissao espontanea (CP, art. 65, III, 'd') deve ser aplicada ao reu que confessou integralmente e a re que confessou parcialmente (Sumula 545 do STJ), sendo admissivel afasta-la em favor de Rogerio por bis in idem. Fixadas as penas individualmente, fazer o somatorio (CP, art. 69), fixar o valor do dia-multa, os regimes iniciais (CP, art. 33), a eventual detracao (CPP, art. 387, par. 2o) e analisar a substituicao (CP, art. 44). Realizada ou nao a dosimetria, deve ser concedido o perdao judicial (Lei 9.807/1999, art. 13) ao colaborador, com extincao da punibilidade; caso nao concedido, aplicar a fracao maxima do art. 41 da Lei 11.343/2006, com justificativa expressa.",
+    "pontos": 2,
+    "escala": "2,0",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 33, 44, 59, 62 I, 65 III 'd', 68 e 69",
+     "Lei 11.343/2006, arts. 33 par. 4o, 40 I, 41 e 42",
+     "Lei 9.613/1998, art. 1o par. 4o",
+     "Sumula 545/STJ",
+     "CPP, art. 387 par. 2o",
+     "Lei 9.807/1999, art. 13"
+    ]
+   },
+   {
+    "quesito": "Disposicoes finais — Perdimento de bens, prisao preventiva, custas, art. 387, IV, do CPP e comandos finais: Nao deve ser declarado o perdimento de todos os bens imoveis sequestrados e ativos financeiros bloqueados, mas apenas daqueles em relacao aos quais a acusacao estabeleceu link com a pratica dos crimes, quantificando o proveito auferido; deve ser decretado o perdimento dos bens comprovadamente havidos com a pratica do crime e utilizados na lavagem (CF, art. 243, paragrafo unico; Lei 11.343, art. 63, I; Lei 9.613/98, art. 4o, par. 10), liberando-se as constricoes sem comprovacao do link. Nao deve ser decretada a prisao preventiva da re absolvida nem do reu com perdao judicial; tampouco dos reus condenados, pois nao ha fato novo ou alteracao do quadro fatico - alternativamente, podem ser estabelecidas medidas cautelares (retencao de passaporte, autorizacao judicial previa para viagens internacionais); nao deve ser decretada prisao preventiva de reus cujo regime inicial seja aberto ou semiaberto, por incompatibilidade. Os reus condenados devem arcar com custas judiciais pro rata. Nao deve ser fixado valor minimo de reparacao (CPP, art. 387, IV), pois nao houve pedido do MPF na denuncia nem nas alegacoes finais, nao podendo o juiz faze-lo de oficio (STF RE 1.107.923 AgR; STJ REsp 2.149.880/MG). Deve haver comando de destruicao da droga, expedicao da carta de execucao apos o transito em julgado e oficio ao TRE.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CF, art. 243 paragrafo unico",
+     "Lei 11.343/06, art. 63 I",
+     "Lei 9.613/98, art. 4o par. 10",
+     "CPP, arts. 312, 319 e 387 IV",
+     "STF RE 1.107.923 AgR",
+     "STJ REsp 2.149.880/MG"
+    ]
+   }
+  ],
+  "total": 16.1,
+  "instrucoes": [
+   "'ESPELHO DA CORRECAO - PROVA PRATICA DE SENTENCA CRIMINAL' (publicado em 15/01/2025; prova aplicada em 03/11/2024).",
+   "Distribuicao: Preliminares 2,00 (0,40 para cada um dos 5 itens); Merito 5,00; Dispositivo 0,50; Diretrizes para a dosimetria 2,0; Disposicoes Finais 0,50.",
+   "PENALIDADES: 'Tratou-se de prova de tempo, em que os candidatos tiveram exiguo periodo para resolver prova longa. Mas isso se impos a todos, e fez parte do teste. A sentenca com plena ausencia de dispositivo ou de dosimetria foi apenada com nota zero. Varios candidatos pularam uma ou mais dosimetrias... optou-se por apena-las com perda de um a dois pontos, conforme a grandeza da omissao.'"
+  ],
+  "fonte": "https://static.trf2.jus.br/nas-internet/documento/consultas/concursos/magistrados/18/espelho-de-sentenca-criminal.pdf",
+  "fonte_concurso": "https://www.trf2.jus.br/trf2/artigo/acma/18o-concurso-para-juiz-federal-substituto-da-2a-regiao",
+  "nota": "Prova pratica de sentenca criminal do XVIII Concurso, aplicada em 03/11/2024 (espelho publicado em 15/01/2025). Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "trf-3-2022-esp1",
+  "tipo": "sentenca",
+  "peca": "Sentença penal",
+  "carreira": "Magistratura federal",
+  "banca": "banca propria (Comissao do XX Concurso - TRF da 3a Regiao)",
+  "orgao": "TRF3",
+  "cargo": "Juiz Federal Substituto",
+  "ano": 2022,
+  "fase": "sentenca criminal",
+  "disciplina": "Processo Penal, Penal, Sentença (estrutura)",
+  "tema": "Nulidades do acordo de colaboracao, da investigacao pela Policia Civil, do reconhecimento fotografico e da busca e apreensao; Definicao da responsabilidade penal de cada acusado; Enquadramento tipico, bis in idem e concurso formal entre roubo e extorsao; …",
+  "enunciado": "TRF3 · 2022 · Juiz Federal Substituto — sentenca criminal (banca banca propria (Comissao do XX Concurso - TRF da 3a Regiao)).\nProva oficial: https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/Prova_sentenca_criminal_editada.pdf\nEspelho oficial: https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/ESPELHO_criminal_definitivo.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "1) Preliminares — Nulidades do acordo de colaboracao, da investigacao pela Policia Civil, do reconhecimento fotografico e da busca e apreensao: Bloco de preliminares, com subdivisao: nulidades do acordo de colaboracao (0,25); nulidades da investigacao pela Policia Civil (0,25); nulidade do reconhecimento fotografico (0,50); nulidade da busca e apreensao (0,25); bonus por fundamentacao solida (ate 0,25).",
+    "pontos": 1.5,
+    "escala": "1,5",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, art. 226",
+     "Lei 12.850/2013"
+    ]
+   },
+   {
+    "quesito": "2) Autoria — Definicao da responsabilidade penal de cada acusado: Bloco de autoria, com subdivisao por reu: Ewerton (condenacao) 0,25; Antonio (condenacao) 0,25; Daiane (condenacao) 0,25; Bernardo (absolvicao) 0,25; Fabio (absolvicao) 0,25; bonus por analise completa de provas (ate 0,50).",
+    "pontos": 1.75,
+    "escala": "1,75",
+    "disciplina": "Penal",
+    "dispositivos": []
+   },
+   {
+    "quesito": "3) Tipificacao — Enquadramento tipico, bis in idem e concurso formal entre roubo e extorsao: Bloco de tipificacao: enquadramento correto no art. 158, par. 3o, c/c art. 14, II, do CP (1,25); absolvicao por bis in idem (ate 1,0); concurso formal roubo/extorsao (0,25); discussao sobre aumento de pena (0,25); bonus por fundamentacao rica (ate 0,50).",
+    "pontos": 1.75,
+    "escala": "1,75",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 14 II, 70, 157 e 158 par. 3o"
+    ]
+   },
+   {
+    "quesito": "4) Dosimetria — Reincidencia, maus antecedentes, pena-base, acordo de colaboracao, regime e detracao: Bloco de dosimetria: reincidencia de Ewerton (0,25); afastamento de maus antecedentes de Antonio (0,25); majoracao da pena-base (0,25); respeito ao acordo de colaboracao (0,25); regime correto e detracao (0,50); bonus por conhecimento demonstrado (ate 0,50).",
+    "pontos": 2,
+    "escala": "2,0",
+    "disciplina": "Penal",
+    "dispositivos": [
+     "CP, arts. 33, 59, 61 I e 68",
+     "CPP, art. 387 par. 2o"
+    ]
+   },
+   {
+    "quesito": "5) Consectarios — Prisao preventiva, soltura e formalidades de encerramento: Bloco de consectarios: manutencao/alteracao de prisao preventiva (0,50); soltura de Bernardo (0,25); formalidades de encerramento (0,25).",
+    "pontos": 1,
+    "escala": "1,0",
+    "disciplina": "Processo Penal",
+    "dispositivos": [
+     "CPP, arts. 312 e 387"
+    ]
+   },
+   {
+    "quesito": "6) Linguagem e coerencia — Correcao lexical e gramatical; omissoes, obscuridade e contradicoes: Bloco de linguagem e coerencia: correcao lexical e gramatical, com penalidades por omissoes, obscuridade ou contradicoes.",
+    "pontos": 2,
+    "escala": "2,0",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   }
+  ],
+  "total": 10,
+  "instrucoes": [
+   "Espelho de correcao da prova pratica de sentenca criminal do XX Concurso do TRF3 (provas escritas aplicadas em 14, 15 e 16 de outubro de 2022).",
+   "Distribuicao total de 10,0 pontos em seis blocos: 1) Preliminares 1,5; 2) Autoria 1,75; 3) Tipificacao 1,75; 4) Dosimetria 2,0; 5) Consectarios 1,0; 6) Linguagem e coerencia 2,0.",
+   "Varios blocos preveem 'bonus' por fundamentacao solida/analise completa, ate o limite indicado."
+  ],
+  "fonte": "https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/ESPELHO_criminal_definitivo.pdf",
+  "fonte_concurso": "https://www.trf3.jus.br/concurso-magistrado/concursos-anteriores/19o-concurso/default-title",
+  "nota": "2a Prova Escrita (Sentenca Criminal) do XX Concurso, aplicada em 16/10/2022. URL listada na pagina oficial do XX Concurso do TRF3; o dominio trf3.jus.br bloqueia download direto deste ambiente (o espelho correspondente foi lido via fetch da propria URL). Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "trf-3-2022-esp2",
+  "tipo": "sentenca",
+  "peca": "Sentença cível",
+  "carreira": "Magistratura federal",
+  "banca": "banca propria (Comissao do XX Concurso - TRF da 3a Regiao)",
+  "orgao": "TRF3",
+  "cargo": "Juiz Federal Substituto",
+  "ano": 2022,
+  "fase": "sentenca civel",
+  "disciplina": "Processo Civil, Sentença (estrutura), Administrativo, Ambiental",
+  "tema": "Legitimidade ativa de associacao com menos de um ano em acao coletiva (art. 5o, V, 'a', e par. 4o, da LACP); Falta de interesse processual e desnecessidade de previa tentativa de TAC; Litispendencia entre acao civil publica e acao popular; …",
+  "enunciado": "TRF3 · 2022 · Juiz Federal Substituto — sentenca civel (banca banca propria (Comissao do XX Concurso - TRF da 3a Regiao)).\nProva oficial: https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/PrEscrita-SentencaCivil_reduzida.pdf\nEspelho oficial: https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/Espelho_-_Prova_Sentenca_Civil_denitivoRevisado2_.pdf\nTempo sugerido: 4h.",
+  "espelho": [
+   {
+    "quesito": "1) Preliminares - legitimidade da Associacao (letras a e b) — Legitimidade ativa de associacao com menos de um ano em acao coletiva (art. 5o, V, 'a', e par. 4o, da LACP): a) Refutar a primeira preliminar quanto a legitimidade da Associacao (0,25). b) Apresentar fundamentacao no sentido de que, apesar da constituicao ha menos de um ano, dada a relevancia do tema e a protecao de bem juridico coletivo, alem do objetivo associativo de defesa dos interesses da Comunidade Indigena, ha legitimidade com base no art. 232 da CF; o alcance da norma restritiva e combater a criacao artificial de associacoes, o que nao ocorre no caso. Os pontos so sao atribuidos com a referencia legal expressa a LACP, art. 5o, V, 'a', c/c par. 4o, e ao art. 232 da CF (0,50).",
+    "pontos": 2,
+    "escala": "0,25 + 0,50 (bloco de preliminares: 2,0)",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Lei 7.347/85, art. 5o V 'a' e par. 4o",
+     "CF, art. 232"
+    ]
+   },
+   {
+    "quesito": "1) Preliminares - interesse de agir e TAC (letras c e d) — Falta de interesse processual e desnecessidade de previa tentativa de TAC: c) Refutar a falta de interesse de agir, relacionando essa condicao da acao a ausencia de utilidade e adequacao processual (CPC, art. 485, VI), com referencia expressa ao TAC - e nao ao inquerito civil, conforme o enunciado (0,25). d) Fundamentar que o TAC constitui negocio juridico bilateral expressamente previsto no par. 6o do art. 5o da Lei 7.347/1985, servindo como instrumento de conciliacao que exige interesse conciliatorio de ambas as partes; o sistema processual nao condiciona o ajuizamento da acao a previa tentativa de conciliacao, conforme o STJ (AgRg no AREsp 707.547/RS, Rel. Min. Benedito Goncalves, 17/11/2015). Os pontos sao atribuidos quando o candidato referencia a norma e a natureza conciliatoria do instituto; o conhecimento da decisao do STJ pode ser creditado na secao geral (portugues, raciocinio logico, erudicao) (0,25).",
+    "pontos": 0.25,
+    "escala": "0,25 + 0,25",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 485 VI",
+     "Lei 7.347/1985, art. 5o par. 6o",
+     "STJ AgRg no AREsp 707.547/RS"
+    ]
+   },
+   {
+    "quesito": "1) Preliminares - litispendencia (letras e e f) — Litispendencia entre acao civil publica e acao popular: e) Examinar a preliminar de litispendencia entre a acao civil publica e a acao popular (CPC, art. 485, V), demonstrando a ausencia da triplice identidade, especificamente pela divergencia de pedidos, em que um pedido abrange o outro (0,25). f) Fundamentar que, embora o STJ entenda que os autores do processo coletivo atuam como substitutos processuais dos titulares do direito material coletivo (AgRg no REsp 1.505.359/PE, Rel. Min. Herman Benjamin, 2a Turma, j. 22/11/2016), falta identidade de pedidos; as acoes foram reunidas por conexao (CPC, art. 55, III, e Lei 7.347/1985, art. 2o, paragrafo unico), para evitar decisoes contraditorias, abrangendo a decisao os autos da acao popular. Os 0,25 sao atribuidos apenas quando o candidato examina o caso concreto e o processo coletivo especificamente (0,25).",
+    "pontos": 0.25,
+    "escala": "0,25 + 0,25",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, arts. 55 III e 485 V",
+     "Lei 7.347/1985, art. 2o paragrafo unico",
+     "STJ AgRg no REsp 1.505.359/PE"
+    ]
+   },
+   {
+    "quesito": "2) Parte processual do dispositivo - aspectos gerais — Ordem de exame dos pedidos, limites da lide e providencias finais: Exame na ordem adequada dos pedidos principais e subsidiarios, julgamento nos limites do pedido, determinacao de publicacao/registro/intimacao e cumprimento.",
+    "pontos": 1,
+    "escala": "0,25 (bloco de 1,0)",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "CPC, arts. 141 e 492"
+    ]
+   },
+   {
+    "quesito": "2) Parte processual do dispositivo - sucumbencia — Regime especial de sucumbencia no processo coletivo (arts. 17 e 18 da LACP): O candidato deve referir o regime especial de sucumbencia: nao ha condenacao do MP ou da Associacao em honorarios, salvo ma-fe, nao apresentada no enunciado (art. 17 da Lei 7.347/1985); pelo principio da simetria adotado na jurisprudencia do STJ, a regra do art. 18 da Lei 7.347/1985 aplica-se em favor do reu em acao civil publica, isentando-o de sucumbencia salvo prova de ma-fe (AgInt nos EREsp 1.531.578/CE, Rel. Min. Napoleao Nunes Maia Filho, Corte Especial, j. 07/11/2018).",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Lei 7.347/1985, arts. 17 e 18",
+     "STJ AgInt nos EREsp 1.531.578/CE"
+    ]
+   },
+   {
+    "quesito": "2) Parte processual do dispositivo - multa diaria — Astreintes contra concessionaria de servico publico: Quanto ao pedido de multa diaria, ha abundante jurisprudencia que admite a cobranca de multa diaria de concessionaria de servico publico; o candidato deve examinar sua aplicabilidade.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "CPC, art. 537"
+    ]
+   },
+   {
+    "quesito": "2) Parte processual do dispositivo - honorarios periciais — Adiantamento de honorarios periciais em acao civil publica (Tema 510/STJ e Sumula 232): O candidato deve referir expressamente o regime especial do processo civil coletivo e as decisoes do STJ: quanto aos honorarios periciais, recordar o Tema 510 - nao e exigivel adiantamento de honorarios periciais pelo MP em acoes civis publicas (art. 18 da Lei 7.347/1985); a Fazenda Publica, parte no processo, submete-se a exigencia de deposito previo (Sumula 232), determinando-se que a Fazenda vinculada ao Parquet arque com as despesas.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Processo Civil",
+    "dispositivos": [
+     "Lei 7.347/1985, art. 18",
+     "Tema 510/STJ",
+     "Sumula 232/STJ"
+    ]
+   },
+   {
+    "quesito": "3) Direito Administrativo - manutencao da linha de transmissao — Legalidade do contrato de servidao e permanencia da linha de transmissao: Manutencao da linha de transmissao no local de instalacao. O candidato deve usar argumentos que valorizem a legalidade do contrato original. Os pedidos de desativacao, destruicao ou inativacao nao rendem pontos.",
+    "pontos": 1,
+    "escala": "0,50 (bloco de 1,0, em intervalos de 0,25)",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "3) Direito Administrativo - interesse publico — Prevalencia do interesse publico e alto valor do empreendimento: Discussao ou mencao a prevalencia do interesse publico, ao alto valor da linha de transmissao e ao interesse da comunidade em receber energia (fora da terra indigena). Espera-se que o candidato demonstre visao ampla da questao, percebendo o alto investimento que beneficia a comunidade necessitada de energia.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "3) Direito Administrativo - marcos temporais e demarcacao — Datas do contrato de servidao x demarcacao de terra indigena: Abordagem que analisa as datas do contrato de servidao e da demarcacao da terra indigena, concluindo que a presenca do povo indigena representa marco temporal mais determinante do que a demarcacao, que tem natureza declaratoria. O candidato deve tratar da possibilidade de servidao de passagem em terras indigenas, respeitadas as tradicoes indigenas.",
+    "pontos": 0.25,
+    "escala": "0,25",
+    "disciplina": "Administrativo",
+    "dispositivos": [
+     "CF, art. 231"
+    ]
+   },
+   {
+    "quesito": "4) Servidao - natureza juridica — Instituto da servidao administrativa e nao indenizabilidade: Abordagem do instituto da servidao. O candidato deve tratar da natureza juridica e da caracteristica de nao indenizabilidade pelo onus da servidao. Se discutir a nao indenizabilidade via contrato (o particular deve suportar o onus), apresentando as caracteristicas da servidao sem referencia expressa ao instituto, mas demonstrando conhecimento do assunto, atribui-se 0,25.",
+    "pontos": 1,
+    "escala": "0,50 (bloco de 1,0, em intervalos de 0,25)",
+    "disciplina": "Administrativo",
+    "dispositivos": []
+   },
+   {
+    "quesito": "4) Licenciamento ambiental — Instalacao de linha de transmissao como empreendimento sujeito a licenciamento: A instalacao da linha de transmissao na area de servidao e empreendimento de impacto ambiental sujeito a licenciamento. O candidato deve analisar o cumprimento das normas ambientais e das exigencias do orgao licenciador, e tratar dos problemas detectados durante a operacao da linha e das alegacoes posteriores da comunidade indigena afetada. Se mencionar aspectos do licenciamento, cumprimento de normas e estudos ambientais conforme solicitado pelo orgao licenciador, atribui-se 0,25; o mesmo se aborda apenas a responsabilidade pos-licenciamento, discutindo problemas atuais nao detectaveis no momento do licenciamento (0,25).",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Ambiental",
+    "dispositivos": [
+     "Lei 6.938/81",
+     "Resolucoes CONAMA"
+    ]
+   },
+   {
+    "quesito": "5) Reparacao e praticas culturais — Reparacao material, medidas futuras e turbacao de posse: Abordagem da reparacao e das praticas culturais: o candidato deve tratar da reparacao material (indenizacao parcial) e de medidas futuras, como barreira acustica ou supressao de barreira (1,0). Restringir a discussao a analise da turbacao de posse pela manutencao da linha - ruido, morte de animais - vale 0,5.",
+    "pontos": 1,
+    "escala": "escala 1,0 / 0,75 / 0,50 / 0,25",
+    "disciplina": "Ambiental",
+    "dispositivos": []
+   },
+   {
+    "quesito": "6) Dano moral coletivo — Requisitos e caracteristicas do dano moral coletivo: Abordagem do dano moral coletivo. A pontuacao desconsidera a opcao por condenar ou nao; a avaliacao diz respeito ao conhecimento do instituto e a apreciacao de suas caracteristicas conforme doutrina e jurisprudencia. Para demonstrar conhecimento e aplicar ou afastar o instituto e preciso mencionar: a) ofensa a bem juridico ou violacao de direitos protetivos coletivos/comunitarios; b) desgosto coletivo ou violacao de valores compartilhados. Alem disso, a violacao deve ser significativa, intoleravel e de gravidade que produza intranquilidade social; o onus comum e toleravel do convivio em sociedade nao caracteriza dano coletivo. Para ser indenizavel, o dano moral coletivo exige evidencia de angustia/fadiga/sofrimento que desvie do normal e seja prejudicial a coletividade; por fim, a aferição do dano moral coletivo nao exige demonstracao de que determinada coletividade sentiu dor, repulsa ou indignacao. O candidato que apresentar algumas caracteristicas do instituto recebe 0,25.",
+    "pontos": 1,
+    "escala": "0,50 (bloco de 1,0)",
+    "disciplina": "Ambiental",
+    "dispositivos": [
+     "Lei 7.347/1985, art. 1o"
+    ]
+   },
+   {
+    "quesito": "6) Fauna — Fauna silvestre e domestica; medidas compensatorias e dano material: Abordagem da fauna silvestre/domestica: o candidato deve discutir possiveis medidas compensatorias e a existencia ou ausencia de dano material (animais domesticos). O candidato que se referir apenas ao Santuario - analise parcial - recebe 0,25.",
+    "pontos": 0.5,
+    "escala": "0,50",
+    "disciplina": "Ambiental",
+    "dispositivos": []
+   },
+   {
+    "quesito": "7) Dispositivo — Julgamento de todos os pedidos com coerencia: O candidato deve julgar TODOS OS PEDIDOS FORMULADOS, de forma coerente com a fundamentacao.",
+    "pontos": 1,
+    "escala": "escala 1,0 / 0,75 / 0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": [
+     "CPC, art. 492"
+    ]
+   },
+   {
+    "quesito": "8) Coerencia argumentativa/global — Coerencia global da peca: Bloco de coerencia argumentativa e global da sentenca (o documento nao detalha o conteudo do bloco).",
+    "pontos": 1,
+    "escala": "escala 1,0 / 0,75 / 0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   },
+   {
+    "quesito": "9) Adequacao da linguagem juridica — Linguagem juridica: Bloco de adequacao da linguagem juridica (o documento nao detalha o conteudo do bloco).",
+    "pontos": 1,
+    "escala": "escala 1,0 / 0,75 / 0,50",
+    "disciplina": "Sentença (estrutura)",
+    "dispositivos": []
+   }
+  ],
+  "total": 12.75,
+  "instrucoes": [
+   "Documento intitulado 'SENTENCA CIVIL - APONTAMENTOS SOBRE A CORRECAO', do XX Concurso do TRF3 (provas escritas aplicadas em 14, 15 e 16 de outubro de 2022).",
+   "A pontuacao e distribuida em blocos, com subitens de 0,25 em 0,25; varios itens exigem referencia legal expressa, sob pena de nao pontuacao.",
+   "Ha blocos finais de coerencia argumentativa/global e de adequacao da linguagem juridica, com escalas de 1,0 / 0,75 / 0,50."
+  ],
+  "fonte": "https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/Espelho_-_Prova_Sentenca_Civil_denitivoRevisado2_.pdf",
+  "fonte_concurso": "https://www.trf3.jus.br/concurso-magistrado/concursos-anteriores/19o-concurso/default-title",
+  "nota": "2a Prova Escrita (Sentenca Civil) do XX Concurso, aplicada em 15/10/2022. URL listada na pagina oficial do XX Concurso do TRF3; o dominio trf3.jus.br bloqueia download direto deste ambiente (o espelho correspondente foi lido via fetch da propria URL). Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
+ },
+ {
+  "id": "trf-3-2022-esp3",
+  "tipo": "discursiva",
+  "peca": "",
+  "carreira": "Magistratura federal",
+  "banca": "banca propria (Comissao do XX Concurso - TRF da 3a Regiao)",
+  "orgao": "TRF3",
+  "cargo": "Juiz Federal Substituto",
+  "ano": 2022,
+  "fase": "discursiva",
+  "disciplina": "Constitucional, Outros, Tributário, Direitos Humanos, Filosofia do Direito",
+  "tema": "Direito ao esquecimento x liberdade de expressao; Aposentadoria especial do contribuinte individual (Previdenciario); Interpretacao de tratado internacional em materia tributaria e incidencia de PIS/COFINS; …",
+  "enunciado": "TRF3 · 2022 · Juiz Federal Substituto — discursiva (banca banca propria (Comissao do XX Concurso - TRF da 3a Regiao)).\nProva oficial: https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/Prova_escrita_discursiva_editada.pdf\nEspelho oficial: https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/Espelho_da_Prova_Discursiva-DESKTOP-GKN4R60.pdf\nTempo sugerido: 1h por questão (5 quesitos).",
+  "espelho": [
+   {
+    "quesito": "Questao 1 — Direito ao esquecimento x liberdade de expressao: Roteiro de resposta ancorado na premissa de que 'nao se pode propriamente falar de um direito a obstar que fatos ou dados verdadeiros sejam tornados amplamente inacessiveis' pelo mero decurso do tempo - ou seja, fatos verdadeiros nao podem ser tornados inacessiveis apenas pela passagem do tempo.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Constitucional",
+    "dispositivos": [
+     "CF, arts. 5o IV, IX, X e 220",
+     "STF Tema 786 (RE 1.010.606)"
+    ]
+   },
+   {
+    "quesito": "Questao 2 — Aposentadoria especial do contribuinte individual (Previdenciario): A resposta deve conter quatro componentes principais: a base legal da aposentadoria especial; as distincoes aplicaveis ao segurado contribuinte individual em relacao as demais categorias; as fontes de custeio; e os requisitos de prova da exposicao a agentes nocivos.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Outros",
+    "dispositivos": [
+     "Lei 8.213/91, arts. 57 e 58",
+     "CF, art. 201 par. 1o"
+    ]
+   },
+   {
+    "quesito": "Questao 3 — Interpretacao de tratado internacional em materia tributaria e incidencia de PIS/COFINS: A resposta deve conter quatro componentes principais: os criterios de interpretacao do tratado; as praticas internacionais aplicaveis; as alteracoes da natureza juridica das exacoes; e a interpretacao harmonica entre o tratado e a legislacao interna.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Tributário",
+    "dispositivos": [
+     "CTN, arts. 98 e 111",
+     "Convencao de Viena sobre o Direito dos Tratados"
+    ]
+   },
+   {
+    "quesito": "Questao 4 — Direitos das pessoas com deficiencia (Direito Internacional): A questao se desdobra em cinco subquestoes (a a e), abrangendo a diferenca entre o modelo medico e o modelo biopsicossocial de deficiencia, a eficacia horizontal dos direitos e os direitos de participacao das pessoas com deficiencia.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Direitos Humanos",
+    "dispositivos": [
+     "Convencao de Nova York sobre os Direitos das Pessoas com Deficiencia (Decreto 6.949/2009)",
+     "Lei 13.146/2015"
+    ]
+   },
+   {
+    "quesito": "Questao 5 — Concordancia pratica entre justica e seguranca juridica (Formacao Humanistica): A resposta deve conter cinco secoes: estrutura da resposta; concepcoes de justica; seguranca juridica; harmonizacao pratica entre os dois valores; e conclusao.",
+    "pontos": null,
+    "escala": "nao discriminada",
+    "disciplina": "Filosofia do Direito",
+    "dispositivos": []
+   }
+  ],
+  "total": null,
+  "instrucoes": [
+   "Espelho da prova discursiva do XX Concurso do TRF3 (prova discursiva aplicada em 14/10/2022).",
+   "O documento apresenta o roteiro de resposta esperado para 5 questoes, sem discriminar pontuacao por quesito."
+  ],
+  "fonte": "https://www.trf3.jus.br/documentos/roco/XX_CONCURSO/Espelho_da_Prova_Discursiva-DESKTOP-GKN4R60.pdf",
+  "fonte_concurso": "https://www.trf3.jus.br/concurso-magistrado/concursos-anteriores/19o-concurso/default-title",
+  "nota": "1a Prova Escrita (Discursiva) do XX Concurso, aplicada em 14/10/2022. URL listada na pagina oficial do XX Concurso do TRF3; o dominio trf3.jus.br bloqueia download direto deste ambiente (o espelho correspondente foi lido via fetch da propria URL). Nao ha gabarito distinto do espelho para esta prova; o unico gabarito publicado no concurso e o da prova objetiva."
  }
 ];
