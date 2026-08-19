@@ -809,7 +809,10 @@ enum ProvaOralLocal {
         guard !daResposta.isEmpty else { return c }
         func chave(_ f: String) -> String { normaliza(f).replacingOccurrences(of: "[^a-z0-9]", with: "", options: .regularExpression) }
         let setV = Set(doVerbete.map(chave))
-        let confirmados = daResposta.filter { setV.contains(chave($0)) || doVerbete.contains { chave($0).hasPrefix(chave($1)) || chave($1).hasPrefix(chave($0)) } }
+        let confirmados = daResposta.filter { r in
+            let kr = chave(r)
+            return setV.contains(kr) || doVerbete.contains { v in let kv = chave(v); return kv.hasPrefix(kr) || kr.hasPrefix(kv) }
+        }
         let estranhos = daResposta.filter { !confirmados.contains($0) }
         if !confirmados.isEmpty { c.acertou = (c.acertou ?? []) + ["Fundamento confirmado no verbete: " + confirmados.joined(separator: "; ")] }
         if !estranhos.isEmpty { c.faltou = (c.faltou ?? []) + ["Fundamento citado que o verbete NÃO menciona — confira antes de levar para a banca: " + estranhos.joined(separator: "; ")] }
