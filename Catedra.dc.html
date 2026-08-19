@@ -6384,7 +6384,12 @@ class Component extends DCLogic {
     const id=e.currentTarget.getAttribute('data-id');
     const lista=(typeof window!=='undefined'&&window.CT_DISCURSIVAS)||[];
     const q=lista.find(x=>x.id===id); if(!q) return;
-    const esp=(q.espelho||[]).map((x,i)=> (i+1)+'. '+x.quesito+(x.pontos!=null?'  ('+x.pontos+' ponto'+(x.pontos===1?'':'s')+')':''));
+    // Vários espelhos já vêm com o quesito numerado ("1. Sistemas de aplicação…"). Sem
+    // tirar esse prefixo, a lista sai "1. 1. Sistemas…".
+    const esp=(q.espelho||[]).map((x,i)=>{
+      const t=String(x.quesito||'').replace(/^\s*(?:item\s*)?\(?\d+[.)\]]?\s*/i,'').trim();
+      return (i+1)+'. '+t+(x.pontos!=null?'  ('+x.pontos+' ponto'+(x.pontos===1?'':'s')+')':'');
+    });
     const cab=[q.orgao, q.cargo, q.ano].filter(Boolean).join(' · ')+(q.banca?' — banca '+q.banca:'');
     this.setState({
       redEnunciado: cab+'\n\n'+(q.enunciado||''),
