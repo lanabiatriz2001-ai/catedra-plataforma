@@ -414,7 +414,7 @@ let esc=1, tx=0, ty=0;
 const palco=document.getElementById('palco'), zl=document.getElementById('zl');
 function aplicar(){ mundo.style.transform=`translate(${tx}px,${ty}px) scale(${esc})`;
   zl.textContent=Math.round(esc*100)+'%'; }
-function zoomEm(fator, cx, cy){
+function zoomEm(fator, cx, cy){ zoomManual=true;
   const novo=Math.min(2.4, Math.max(0.25, esc*fator));
   tx = cx - (cx-tx)*(novo/esc); ty = cy - (cy-ty)*(novo/esc);
   esc=novo; aplicar();
@@ -446,12 +446,21 @@ palco.addEventListener('pointermove', e=>{
 // Enquadrar NÃO significa "caber inteiro": uma disciplina com 39 tópicos caberia a 25%,
 // ilegível. Prioriza a LARGURA (que é onde está a hierarquia) e nunca desce de 55% —
 // o resto se alcança arrastando, que é o gesto natural num mapa.
+// BUG que deixava o mapa minúsculo: a página carrega dentro de um iframe que ainda está
+// ESCONDIDO (aba não selecionada), então palco.clientWidth é 0, dispW sai negativo e a
+// escala cai no piso de 55% — e fica assim para sempre. Agora: se o palco não tem tamanho,
+// não enquadra (espera); e um ResizeObserver reenquadra quando ele ganhar tamanho ou mudar,
+// enquanto a pessoa não tiver mexido no zoom à mão.
+let zoomManual=false;
 function enquadrar(){
-  let maxX=0; nos.forEach(n=>{ maxX=Math.max(maxX, n._x+240); });
-  const dispW=palco.clientWidth-40;
+  const dispW=palco.clientWidth-40, dispH=palco.clientHeight-40;
+  if(dispW<100 || dispH<100) return;
+  let maxX=0, maxY=0; nos.forEach(n=>{ maxX=Math.max(maxX, n._x+240); maxY=Math.max(maxY, n._y+60); });
   esc=Math.min(1.1, Math.max(0.55, dispW/maxX));
-  tx=20; ty=24; aplicar();
+  // centraliza na vertical quando sobra altura (árvore curta com as fases fechadas)
+  tx=20; ty=Math.max(24, (palco.clientHeight-maxY*esc)/2); zoomManual=false; aplicar();
 }
+new ResizeObserver(()=>{ if(!zoomManual) enquadrar(); }).observe(palco);
 document.getElementById('mais').onclick=()=>zoomEm(1.2, innerWidth/2, innerHeight/2);
 document.getElementById('menos').onclick=()=>zoomEm(1/1.2, innerWidth/2, innerHeight/2);
 document.getElementById('ajusta').onclick=enquadrar;

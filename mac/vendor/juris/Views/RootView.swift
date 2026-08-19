@@ -86,6 +86,7 @@ struct RootView: View {
             case .gradeInformativos: GradeInformativosView()
             case .julgadoDoDia: JulgadoDoDiaView()
             case .provaOral: ProvaOralJurisView()
+            case .simulado: SimuladoView()
             case .tjroHub: TJROHubView()
             case .mapas: JurisMapasGaleria()
             case .checklist: JurisChecklistView()

@@ -42,6 +42,16 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        // LEGIS → JURIS: "abrir este verbete" (jurisprudência por artigo). Troca a aba e,
+        // com o store montado, leva até o verbete.
+        NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrir, object: nil, queue: .main) { [weak self] n in
+            MainActor.assumeIsolated {
+                guard let self, let id = n.userInfo?["id"] as? String else { return }
+                self.segmento.selectedSegmentIndex = 2
+                self.trocarAba()
+                self.jurisStore?.abrirVerbete(id)
+            }
+        }
 
         let cfg = WKWebViewConfiguration()
         let ucc = WKUserContentController()
