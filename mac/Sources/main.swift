@@ -1363,10 +1363,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         CatedraIA.provedor = { [weak self] prompt in
             guard let self else { throw CatedraIA.Erro.indisponivel }
             let token = await self.tokenDaSessao()
-            guard let url = aiEndpoint() else { throw CatedraIA.Erro.indisponivel }
+            guard let url = aiEndpoint() else { throw CatedraIA.Erro.servidor("Endpoint de IA não configurado neste app.") }
+            if token.isEmpty { throw CatedraIA.Erro.servidor("Não achei a sessão do Cátedra. Entre na conta na aba Cátedra e tente de novo.") }
             return try await withCheckedThrowingContinuation { cont in
                 self.postEndpoint(url, prompt, token) { valor, erro in
-                    if let erro { cont.resume(throwing: CatedraIA.Erro.indisponivel); _ = erro }
+                    // Antes eu trocava QUALQUER erro pela mensagem genérica de "IA
+                    // indisponível" — e escondia a causa real (sessão expirada, chave da
+                    // API não configurada na Vercel…). A tela mostra o que o servidor disse.
+                    if let erro { cont.resume(throwing: CatedraIA.Erro.servidor(erro)) }
                     else { cont.resume(returning: (valor as? String) ?? "") }
                 }
             }

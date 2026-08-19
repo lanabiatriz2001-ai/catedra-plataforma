@@ -99,6 +99,7 @@ struct IncidenciaView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     if let d = sel { detalhe(d) } else { lista }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)   // largura total, alinhado à esquerda
                 .padding(22)
             }
         }

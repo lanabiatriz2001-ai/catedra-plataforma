@@ -68,7 +68,7 @@ struct EntryDetailView: View {
             }
             .padding(.horizontal, 34)
             .padding(.vertical, 30)
-            .frame(maxWidth: 780, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)   // largura total — a Lana pediu; era 780pt
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .background(detailCanvas)

@@ -47,11 +47,13 @@ enum CatedraIA {
 
     enum Erro: LocalizedError {
         case indisponivel, vazia, formato
+        case servidor(String)   // o que o /api/complete respondeu, palavra por palavra
         var errorDescription: String? {
             switch self {
             case .indisponivel: return CatedraIA.semIA
             case .vazia:        return "A IA não respondeu."
             case .formato:      return "A IA respondeu em um formato que não consegui ler. Tente de novo."
+            case .servidor(let m): return m
             }
         }
     }
