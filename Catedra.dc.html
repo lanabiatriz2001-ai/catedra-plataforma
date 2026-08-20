@@ -1924,257 +1924,264 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <!-- ================= REDAÇÃO ================= -->
+            <!-- ═══════════════════ REDAÇÃO ═══════════════════
+           Três telas, uma de cada vez: ESCOLHER a prova · RESPONDER · CORREÇÃO.
+           Antes era tudo na mesma rolagem (banco + enunciado + resposta + espelho), com
+           bordas de 3px e sombra dura que não existem em nenhuma outra tela do Cátedra.
+           Agora segue a linguagem da plataforma: superfície clara, raio do tema, sombra
+           suave, gradiente do acento nos destaques. -->
       <sc-if value="{{ isRedacao }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
-        <!-- Trilho das 3 etapas: escolher · responder · analisar. Fica FORA do bloco
-             "sem resultado" — senão desaparece justamente na etapa 3, que é onde a pessoa
-             mais precisa saber onde está. -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <span style="{{ redPasso1 }}">1 · Escolher a prova</span>
-          <span style="color:var(--text3);font-size:12px;">→</span>
+       <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <!-- trilho das etapas -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <span style="{{ redPasso1 }}">1 · Escolher</span>
+          <span style="color:var(--text3);font-size:13px;">›</span>
           <span style="{{ redPasso2 }}">2 · Responder</span>
-          <span style="color:var(--text3);font-size:12px;">→</span>
-          <span style="{{ redPasso3 }}">3 · Análise e espelho</span>
+          <span style="color:var(--text3);font-size:13px;">›</span>
+          <span style="{{ redPasso3 }}">3 · Correção</span>
+          <sc-if value="{{ redEtapa2 }}" hint-placeholder-val="{{ false }}">
+            <button onclick="{{ redReset }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:12px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:auto;">Trocar de prova</button>
+          </sc-if>
+          <sc-if value="{{ redEtapa3 }}" hint-placeholder-val="{{ false }}">
+            <button onclick="{{ redReset }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:12px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:auto;">Nova prova</button>
+          </sc-if>
         </div>
 
-
-        <!-- composer -->
-        <sc-if value="{{ redNoResult }}" hint-placeholder-val="{{ true }}">
-         <div style="display:flex;flex-direction:column;gap:16px;">
-
-          <!-- CABEÇALHO: o acervo é o ativo desta tela (632 provas oficiais, 75 com espelho
-               quesito a quesito). Antes a página abria no formulário em branco, e o banco
-               ficava atrás de um botão — a pessoa escrevia sem prova de verdade na frente. -->
-          <div style="background:var(--heroGrad);border-radius:var(--radius);padding:26px;color:#fff;position:relative;overflow:hidden;">
-            <div style="position:absolute;right:-70px;top:-70px;width:230px;height:230px;border-radius:999px;background:rgba(255,255,255,.08);pointer-events:none;"></div>
+        <!-- ─────────── ETAPA 1 · ESCOLHER A PROVA ─────────── -->
+        <sc-if value="{{ redEtapa1 }}" hint-placeholder-val="{{ true }}">
+          <div style="background:var(--heroGrad);border-radius:var(--radius);padding:30px;color:#fff;position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-80px;top:-80px;width:260px;height:260px;border-radius:999px;background:rgba(255,255,255,.09);pointer-events:none;"></div>
             <div style="position:relative;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.82;">Discursivas e peças</div>
-              <div style="font-family:var(--display);font-weight:600;font-size:30px;line-height:1.12;margin-top:6px;letter-spacing:-.5px;">Escreva como na prova</div>
-              <div style="font-size:13px;opacity:.92;margin-top:8px;line-height:1.6;max-width:620px;">Escolha uma prova aplicada, responda no tempo dela e receba a correção quesito a quesito — na escala que a banca publicou, apontando o dispositivo que o espelho exige e você não citou.</div>
-              <div style="display:flex;gap:26px;margin-top:18px;flex-wrap:wrap;">
-                <div><div style="font-size:26px;font-weight:800;line-height:1;">{{ redKpiProvas }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.8;margin-top:4px;font-weight:700;">provas no acervo</div></div>
-                <div><div style="font-size:26px;font-weight:800;line-height:1;">{{ redKpiEspelho }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.8;margin-top:4px;font-weight:700;">com espelho oficial</div></div>
-                <div><div style="font-size:26px;font-weight:800;line-height:1;">{{ redKpiFeitas }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.8;margin-top:4px;font-weight:700;">você já corrigiu</div></div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:800;opacity:.8;">Discursivas e peças</div>
+              <div style="font-family:var(--display);font-weight:600;font-size:34px;line-height:1.1;margin-top:8px;letter-spacing:-.6px;">Escolha a prova</div>
+              <div style="font-size:13.5px;opacity:.93;margin-top:10px;line-height:1.6;max-width:640px;">Provas aplicadas de verdade. Você responde no formato da banca e recebe a correção contra o espelho oficial — quesito a quesito, na escala que ela publicou.</div>
+              <div style="display:flex;gap:30px;margin-top:22px;flex-wrap:wrap;">
+                <div><div style="font-size:28px;font-weight:800;line-height:1;">{{ redKpiProvas }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;opacity:.82;margin-top:5px;font-weight:700;">provas</div></div>
+                <div><div style="font-size:28px;font-weight:800;line-height:1;">{{ redKpiEspelho }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;opacity:.82;margin-top:5px;font-weight:700;">com espelho</div></div>
+                <div><div style="font-size:28px;font-weight:800;line-height:1;">{{ redKpiFeitas }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;opacity:.82;margin-top:5px;font-weight:700;">já corrigidas</div></div>
               </div>
             </div>
           </div>
 
-          <!-- ===== BANCO DE DISCURSIVAS (linguagem brutalista, igual ao composer acima) ===== -->
-          <div style="background:var(--surface);border:3px solid var(--ink);border-radius:0;padding:22px 24px;box-shadow:8px 8px 0 var(--border);">
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-              <div style="flex:1;min-width:200px;">
-                <div style="font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);">Banco de discursivas</div>
-                <div style="font-size:12px;color:var(--text2);margin-top:4px;">Questões de provas aplicadas, com o espelho oficial quando a banca publicou. Escolher uma preenche o enunciado e o espelho aqui embaixo.</div>
-              </div>
-              <button onclick="{{ toggleBanco }}" style="border:3px solid var(--ink);background:var(--accent);color:var(--onAccent);border-radius:0;padding:10px 18px;font-weight:800;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;font-family:inherit;flex:none;box-shadow:4px 4px 0 var(--border);">{{ bancoLabel }}</button>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:20px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <input value="{{ bancoQ }}" oninput="{{ onBancoBusca }}" placeholder="Buscar por tema, órgão, banca, cargo…" style="flex:1;min-width:230px;border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+              <select value="{{ bancoCarr }}" onchange="{{ setBancoCarr }}" style="border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <sc-for list="{{ bancoCarrOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+              </select>
+              <select value="{{ bancoBanca }}" onchange="{{ setBancoBanca }}" style="border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <sc-for list="{{ bancoBancaOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+              </select>
+              <select value="{{ bancoTipo }}" onchange="{{ setBancoTipo }}" style="border:1px solid var(--border);background:var(--surface);border-radius:11px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
+                <sc-for list="{{ bancoTipoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+              </select>
+              <button onclick="{{ toggleBancoSoEsp }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:12px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">{{ redSoEspLabel }}</button>
             </div>
-            <sc-if value="{{ bancoOpen }}" hint-placeholder-val="{{ false }}">
-             <div style="margin-top:18px;border-top:3px solid var(--ink);padding-top:18px;">
-              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-                <input value="{{ bancoQ }}" oninput="{{ onBancoBusca }}" placeholder="Buscar por tema, órgão, banca, ano…" style="flex:1;min-width:200px;border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
-                <select value="{{ bancoTipo }}" onchange="{{ setBancoTipo }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ bancoTipoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
-                <select value="{{ bancoCarr }}" onchange="{{ setBancoCarr }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ bancoCarrOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
-                <select value="{{ bancoDisc }}" onchange="{{ setBancoDisc }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ bancoDiscOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
-                <select value="{{ bancoBanca }}" onchange="{{ setBancoBanca }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ bancoBancaOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
-                <button onclick="{{ toggleBancoSoEsp }}" style="border:3px solid var(--ink);background:var(--surface2);border-radius:0;padding:10px 14px;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);cursor:pointer;font-family:inherit;">Só com espelho</button>
-              </div>
-              <div style="font-family:var(--mono);font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin:-6px 0 14px;">{{ bancoTotal }} provas encontradas · mostrando {{ bancoMostrando }}</div>
-              <sc-if value="{{ bancoCarregando }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:12.5px;color:var(--text3);padding:10px 0;">Carregando o banco…</div>
-              </sc-if>
-              <sc-if value="{{ bancoErro }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:12.5px;color:#c0392f;padding:10px 0;">Não consegui carregar discursivas.js.</div>
-              </sc-if>
-              <sc-if value="{{ bancoVazio }}" hint-placeholder-val="{{ true }}">
-                <div style="font-size:12.5px;color:var(--text3);line-height:1.6;padding:10px 0;">Nenhuma questão no banco ainda. Ele é alimentado só com prova publicada pela própria banca ou pelo tribunal — enquanto não houver, use o campo abaixo e cole a questão à mão.</div>
-              </sc-if>
-              <div style="display:flex;flex-direction:column;gap:12px;">
-                <sc-for list="{{ bancoLista }}" as="q" hint-placeholder-count="3">
-                  <button onclick="{{ usarDiscursiva }}" data-id="{{ q.id }}" style="text-align:left;background:var(--surface2);border:3px solid var(--ink);border-radius:0;padding:15px 17px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;gap:7px;box-shadow:5px 5px 0 var(--border);transition:transform .08s;">
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                      <span style="font-family:var(--mono);font-size:11px;color:var(--ink);font-weight:800;">{{ q.rotulo }}</span>
-                      <span style="font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--onAccent);background:var(--accent);border-radius:0;border:2px solid var(--ink);padding:2px 9px;">{{ q.tipoLabel }}</span>
-                      <span style="font-size:10.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);background:transparent;border-radius:0;border:2px solid var(--ink);padding:2px 9px;">{{ q.selo }}</span>
-                    </div>
-                    <div style="font-weight:800;font-size:14px;color:var(--ink);">{{ q.tema }}</div>
-                    <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ q.resumo }}</div>
-                  </button>
-                </sc-for>
-              </div>
-             </div>
-            </sc-if>
+            <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);margin-top:14px;">{{ bancoTotal }} provas · mostrando {{ bancoMostrando }}</div>
           </div>
 
-          <div style="background:var(--surface);border:3px solid var(--ink);border-radius:0;padding:26px;box-shadow:10px 10px 0 var(--accent);">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><span style="flex:none;width:34px;height:34px;background:var(--ink);color:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:800;">01</span><label style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);">Enunciado da questão</label></div>
-            <sc-if value="{{ redModoProva }}" hint-placeholder-val="{{ false }}"><div style="margin-bottom:10px;font-family:var(--mono);font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);border:3px solid var(--ink);display:inline-block;padding:6px 10px;background:var(--surface2);">Prova cadastrada · você só responde — enunciado e espelho são os oficiais</div></sc-if>
-            <textarea value="{{ redEnunciado }}" oninput="{{ onRedEnun }}" readonly="{{ redModoProva }}" rows="4" placeholder="Cadastre aqui o enunciado / comando da questão que você vai responder. Ex.: Disserte sobre os limites do poder regulamentar da Administração Pública, abordando: (a) fundamento constitucional; (b) espécies; (c) controle judicial." style="width:100%;box-sizing:border-box;border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:16px;color:var(--ink);font-family:var(--body);resize:vertical;outline:none;box-shadow:6px 6px 0 var(--border);transition:box-shadow .1s, transform .1s;font-size:13.5px;line-height:1.6;margin-bottom:26px;"></textarea>
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><span style="flex:none;width:34px;height:34px;background:var(--ink);color:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:800;">02</span><label style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);">Sua resposta</label></div>
-            <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" rows="14" placeholder="Desenvolva sua resposta aqui. Estruture em introdução, desenvolvimento e conclusão; fundamente com dispositivos legais e, quando couber, jurisprudência." style="width:100%;box-sizing:border-box;border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:16px;color:var(--ink);font-family:var(--body);resize:vertical;outline:none;box-shadow:6px 6px 0 var(--border);transition:box-shadow .1s, transform .1s;font-size:14.5px;line-height:1.7;"></textarea>
-            <div style="margin-top:26px;border-top:3px solid var(--ink);padding-top:22px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><span style="flex:none;width:34px;height:34px;background:var(--ink);color:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:800;">03</span><label style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);">Gabarito / espelho</label><span style="margin-left:auto"></span></div>
-                <sc-if value="{{ !redModoProva }}" hint-placeholder-val="{{ true }}"><button onclick="{{ importRedGab }}" style="display:flex;align-items:center;gap:7px;border:3px solid var(--ink);background:var(--surface2);border-radius:0;padding:9px 14px;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);cursor:pointer;font-family:inherit;box-shadow:4px 4px 0 var(--border);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" stroke-linecap="round" stroke-linejoin="round"></path></svg>Importar PDF/TXT</button></sc-if>
-              </div>
-              <sc-if value="{{ redEspelhoOculto }}" hint-placeholder-val="{{ false }}"><div style="border:3px solid var(--ink);background:var(--surface2);padding:18px 20px;box-shadow:6px 6px 0 var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;"><div><div style="font-family:var(--mono);font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:12px;color:var(--ink);">Espelho oficial carregado — oculto</div><div style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.5;">Treino como na prova: os quesitos e a pontuação da banca só aparecem depois que você entregar a resposta. A correção sai por quesito, na escala da banca.</div></div><button onclick="{{ revelarEspelho }}" style="border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:9px 14px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;font-family:var(--mono);color:var(--ink);">Revelar mesmo assim</button></div></sc-if>
-              <sc-if value="{{ !redEspelhoOculto }}" hint-placeholder-val="{{ true }}"><textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" readonly="{{ redModoProva }}" rows="6" placeholder="Cole aqui o gabarito oficial, o espelho de correção ou uma resposta-modelo. A plataforma compara sua resposta com este conteúdo e gera o raio-X ponto a ponto." style="width:100%;box-sizing:border-box;border:3px solid var(--ink);background:var(--surface);border-radius:0;padding:16px;color:var(--ink);font-family:var(--body);resize:vertical;outline:none;box-shadow:6px 6px 0 var(--border);transition:box-shadow .1s, transform .1s;font-size:13.5px;line-height:1.6;"></textarea></sc-if>
-              <div style="font-size:11.5px;color:var(--text2);font-family:var(--mono);font-weight:700;margin-top:10px;text-transform:uppercase;letter-spacing:.04em;">{{ redGabWords }} palavras no gabarito<sc-if value="{{ redGabBusy }}" hint-placeholder-val="{{ false }}"> · extraindo arquivo…</sc-if></div>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:22px;border-top:3px solid var(--ink);padding-top:20px;">
-              <span style="font-size:12.5px;color:var(--ink);font-family:var(--mono);font-weight:800;text-transform:uppercase;letter-spacing:.04em;">{{ redWords }} palavras · mínimo ~40 + gabarito colado</span>
-              <button onclick="{{ submitRed }}" disabled="{{ redBusy }}" style="{{ redBtnStyle }}border-radius:0!important;border:3px solid var(--ink)!important;box-shadow:5px 5px 0 var(--border);text-transform:uppercase;letter-spacing:.05em;font-weight:800!important;">{{ redBtnLabel }}</button>
-            </div>
-          </div>
-
-          <sc-if value="{{ redHistEmpty }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;gap:14px;align-items:flex-start;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:16px 18px;">
-              <span style="width:8px;height:8px;border-radius:99px;background:var(--accent);margin-top:6px;flex:none;"></span>
-              <p style="margin:0;font-size:13px;color:var(--text2);line-height:1.55;">Cadastre o enunciado da sua questão, escreva a resposta e cadastre o gabarito. Ao final você recebe um <strong>raio-X ponto a ponto</strong> — o que foi coberto, o que ficou parcial e o que faltou — com nota, critérios e cobertura. A análise usa IA; sem conexão, uma estimativa local é exibida.</p>
-            </div>
+          <sc-if value="{{ bancoCarregando }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px;font-size:13px;color:var(--text3);">Carregando o acervo…</div>
           </sc-if>
 
-          <sc-if value="{{ redHistTem }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:12px;margin-top:6px;"><div style="flex:1;height:1px;background:var(--border);"></div><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:700;">Correções anteriores — toque para reabrir</span><div style="flex:1;height:1px;background:var(--border);"></div></div></sc-if>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <sc-for list="{{ redHist }}" as="h" hint-placeholder-count="0">
-              <button data-id="{{ h.id }}" onclick="{{ redOpenHist }}" title="Reabrir a correção" style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;width:100%;text-align:left;cursor:pointer;font-family:inherit;">
-                <div style="width:42px;height:42px;border-radius:11px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:17px;color:{{ h.notaColor }};flex:none;">{{ h.notaStr }}</div>
-                <div style="flex:1;min-width:0;"><div style="font-size:13.5px;color:var(--ink);font-weight:500;text-wrap:pretty;">{{ h.temaShort }}</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">{{ h.tipo }} · {{ h.words }} palavras · {{ h.when }}</div></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;">
+            <sc-for list="{{ bancoLista }}" as="q" hint-placeholder-count="6">
+              <button data-id="{{ q.id }}" onclick="{{ usarDiscursiva }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:0;text-align:left;cursor:pointer;font-family:inherit;overflow:hidden;display:flex;flex-direction:column;">
+                <div style="{{ q.faixa }}"></div>
+                <div style="padding:18px;display:flex;flex-direction:column;gap:8px;flex:1;">
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <span style="{{ q.seloTipo }}">{{ q.tipoLabel }}</span>
+                    <span style="{{ q.seloEsp }}">{{ q.selo }}</span>
+                  </div>
+                  <div style="font-family:var(--display);font-size:16.5px;font-weight:600;color:var(--ink);line-height:1.3;">{{ q.tema }}</div>
+                  <div style="font-size:12px;color:var(--text3);">{{ q.rotulo }}</div>
+                  <div style="font-size:12.5px;color:var(--text2);line-height:1.55;">{{ q.resumo }}</div>
+                  <div style="margin-top:auto;padding-top:12px;font-size:12.5px;font-weight:700;color:var(--accent);">Responder esta prova →</div>
+                </div>
               </button>
             </sc-for>
           </div>
-         </div>
+          <sc-if value="{{ bancoVazio }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;text-align:center;color:var(--text3);font-size:13.5px;">Nenhuma prova com esses filtros.</div>
+          </sc-if>
+
+          <sc-if value="{{ redHistTem }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px;">
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Suas correções</div>
+              <div style="display:flex;flex-direction:column;gap:9px;margin-top:12px;">
+                <sc-for list="{{ redHist }}" as="h" hint-placeholder-count="3">
+                  <button data-id="{{ h.id }}" onclick="{{ redOpenHist }}" style="display:flex;align-items:center;gap:12px;border:1px solid var(--border);background:var(--surface2);border-radius:12px;padding:12px 14px;cursor:pointer;font-family:inherit;text-align:left;">
+                    <span style="font-family:var(--display);font-size:19px;font-weight:700;color:{{ h.notaColor }};min-width:44px;">{{ h.notaStr }}</span>
+                    <span style="flex:1;min-width:0;">
+                      <span style="display:block;font-size:13px;font-weight:600;color:var(--ink);">{{ h.temaShort }}</span>
+                      <span style="display:block;font-size:11.5px;color:var(--text3);margin-top:2px;">{{ h.when }} · {{ h.words }} palavras · {{ h.tipo }}</span>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
         </sc-if>
 
-        <!-- resultado da correção -->
-        <sc-if value="{{ redHasResult }}" hint-placeholder-val="{{ false }}">
-         <div style="display:flex;flex-direction:column;gap:16px;">
-          <div style="display:flex;align-items:center;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 30px rgba(16,24,40,.08);">
-            <div style="text-align:center;flex:none;">
-              <div style="font-family:var(--display);font-size:60px;font-weight:700;color:{{ redResult.notaColor }};line-height:.95;letter-spacing:-.03em;font-variant-numeric:tabular-nums;">{{ redResult.notaStr }}</div>
-              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--text3);margin-top:6px;">nota / 10</div><div style="font-size:10px;font-weight:700;margin-top:6px;color:{{ redOrigemCor }};background:{{ redOrigemBg }};border-radius:99px;padding:3px 9px;">{{ redOrigemLabel }}</div>
+        <!-- ─────────── ETAPA 2 · RESPONDER ─────────── -->
+        <sc-if value="{{ redEtapa2 }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:0;overflow:hidden;">
+            <div style="background:var(--heroGrad);padding:22px 26px;color:#fff;">
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.85;">Enunciado da prova</div>
+              <div style="font-family:var(--display);font-size:21px;font-weight:600;margin-top:6px;line-height:1.3;">{{ redProvaTitulo }}</div>
             </div>
-            <div style="flex:1;min-width:220px;">
-              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-weight:600;color:var(--ink);font-size:15px;">Raio-X da resposta</span><span style="{{ redConceitoStyle }}">{{ redConceito }}</span></div>
-              <p style="margin:6px 0 0;font-size:13.5px;color:var(--text2);line-height:1.55;text-wrap:pretty;">{{ redResult.geral }}</p>
+            <div style="padding:24px 26px;">
+              <div style="font-size:15px;color:var(--ink);line-height:1.75;white-space:pre-wrap;">{{ redEnunciado }}</div>
+              <sc-if value="{{ redTemLinkProva }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
+              </sc-if>
             </div>
           </div>
 
-          <sc-if value="{{ redEnunciadoShow }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;">
-              <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:6px;">Enunciado da questão</div>
-              <p style="margin:0;font-size:13px;color:var(--text2);line-height:1.55;white-space:pre-wrap;text-wrap:pretty;">{{ redEnunciadoResult }}</p>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:24px 26px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Sua resposta</div>
+              <div style="font-size:12px;color:var(--text3);font-family:var(--mono);">{{ redWords }} palavras{{ redLimiteTxt }}</div>
+            </div>
+            <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" rows="18" placeholder="Escreva como escreveria na prova: enfrente o comando na ordem em que ele foi feito, fundamente com o dispositivo e conclua de forma expressa." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:14px;padding:20px;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.85;resize:vertical;outline:none;"></textarea>
+            <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;align-items:center;">
+              <button onclick="{{ submitRed }}" style="{{ redBtnStyle }}">{{ redBtnLabel }}</button>
+              <span style="font-size:12px;color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
+            </div>
+          </div>
+
+          <!-- o espelho fica guardado até a entrega; treino de prova é assim -->
+          <sc-if value="{{ redEspelhoOculto }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+              <div>
+                <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Espelho oficial · guardado</div>
+                <div style="font-size:12.5px;color:var(--text2);margin-top:5px;line-height:1.55;max-width:520px;">Os quesitos e a pontuação aparecem depois que você entregar. Saber que existe um quesito de preclusão já entrega a resposta.</div>
+              </div>
+              <button onclick="{{ revelarEspelho }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:12px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Ver mesmo assim</button>
             </div>
           </sc-if>
+          <sc-if value="{{ redEspelhoAberto }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px 26px;">
+              <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
+                <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Espelho / gabarito</div>
+                <button onclick="{{ importRedGab }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:12px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Importar PDF/TXT</button>
+              </div>
+              <textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" rows="7" placeholder="Cole aqui o espelho oficial ou uma resposta-modelo." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:14px;padding:16px;color:var(--ink);font-family:var(--body);font-size:13.5px;line-height:1.7;resize:vertical;outline:none;margin-top:12px;"></textarea>
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);margin-top:9px;">{{ redGabWords }} palavras no espelho</div>
+            </div>
+          </sc-if>
+        </sc-if>
 
-          <sc-if value="{{ redHasTopicos }}" hint-placeholder-val="{{ true }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
-                <span style="font-weight:600;color:var(--ink);font-size:15px;">Raio-X ponto a ponto</span>
-                <span style="font-size:12px;color:var(--text3);">{{ redTopResumo }}</span>
+        <!-- ─────────── ETAPA 3 · CORREÇÃO ─────────── -->
+        <sc-if value="{{ redEtapa3 }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--heroGrad);border-radius:var(--radius);padding:30px;color:#fff;position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-70px;bottom:-90px;width:240px;height:240px;border-radius:999px;background:rgba(255,255,255,.08);pointer-events:none;"></div>
+            <div style="position:relative;display:flex;gap:28px;align-items:center;flex-wrap:wrap;">
+              <div>
+                <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.82;">Sua nota</div>
+                <div style="font-family:var(--display);font-size:62px;font-weight:700;line-height:1;margin-top:4px;">{{ redResult.notaStr }}</div>
+                <div style="font-size:13px;font-weight:700;opacity:.92;margin-top:4px;">{{ redConceito }}</div>
               </div>
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
-                <div style="flex:1;height:9px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ redCobBarW }};background:{{ redCobColor }};border-radius:99px;"></i></div>
-                <span style="font-size:12.5px;font-family:var(--mono);font-weight:700;color:{{ redCobColor }};white-space:nowrap;">{{ redCobertura }} de cobertura</span>
+              <div style="flex:1;min-width:230px;">
+                <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.82;">Cobertura do espelho</div>
+                <div style="height:10px;border-radius:99px;background:rgba(255,255,255,.22);margin-top:10px;overflow:hidden;"><div style="width:{{ redCobBarW }};height:100%;border-radius:99px;background:#fff;"></div></div>
+                <div style="font-size:12.5px;opacity:.92;margin-top:8px;">{{ redCobertura }} dos pontos do espelho · {{ redOrigemLabel }}</div>
               </div>
-              <div style="display:flex;flex-direction:column;gap:10px;">
-                <sc-for list="{{ redTopicos }}" as="t" hint-placeholder-count="5">
-                  <div style="display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
-                    <span style="{{ t.badgeStyle }}">{{ t.ic }}</span>
-                    <div style="flex:1;min-width:0;">
-                      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:13px;color:var(--ink);font-weight:500;line-height:1.45;">{{ t.ponto }}</span><span style="{{ t.chipStyle }}">{{ t.statusLabel }}</span></div>
-                      <sc-if value="{{ t.hasComent }}" hint-placeholder-val="{{ false }}"><p style="margin:5px 0 0;font-size:12px;color:var(--text3);line-height:1.5;">{{ t.comentario }}</p></sc-if>
-                    </div>
+            </div>
+            <div style="position:relative;font-size:13.5px;line-height:1.7;margin-top:20px;opacity:.95;max-width:760px;">{{ redResult.geral }}</div>
+          </div>
+
+          <sc-if value="{{ redTemPlano }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;">
+              <div style="font-family:var(--display);font-size:19px;font-weight:600;color:var(--ink);">Como corrigir esta resposta</div>
+              <div style="font-size:12.5px;color:var(--text3);margin-top:4px;">Na ordem em que a banca desconta — comece pelo primeiro.</div>
+              <sc-for list="{{ redPlano }}" as="p" hint-placeholder-count="3">
+                <div style="display:flex;gap:14px;margin-top:18px;align-items:flex-start;">
+                  <span style="flex:none;width:30px;height:30px;border-radius:10px;background:var(--accent);color:var(--onAccent,#fff);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:var(--mono);">{{ p.n }}</span>
+                  <div><div style="font-size:14.5px;font-weight:700;color:var(--ink);">{{ p.t }}</div>
+                    <div style="font-size:13px;color:var(--text2);line-height:1.65;margin-top:4px;">{{ p.d }}</div></div>
+                </div>
+              </sc-for>
+              <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);">
+                <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);margin-bottom:11px;">Dicas de banca</div>
+                <sc-for list="{{ redDicas }}" as="d" hint-placeholder-count="3">
+                  <div style="display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;">
+                    <span style="color:var(--accent);font-weight:800;">•</span>
+                    <span style="font-size:13px;color:var(--text2);line-height:1.65;">{{ d }}</span>
                   </div>
                 </sc-for>
               </div>
             </div>
           </sc-if>
 
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-            <div style="font-weight:600;color:var(--ink);font-size:15px;margin-bottom:18px;">Notas por critério</div>
+          <sc-if value="{{ redHasTopicos }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;">
+              <div style="font-family:var(--display);font-size:19px;font-weight:600;color:var(--ink);margin-bottom:6px;">Quesito a quesito</div>
+              <sc-for list="{{ redTopicos }}" as="t" hint-placeholder-count="4">
+                <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+                  <span style="{{ t.chipStyle }}">{{ t.ic }}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:13.5px;color:var(--ink);line-height:1.6;">{{ t.ponto }}</div>
+                    <sc-if value="{{ t.hasComent }}" hint-placeholder-val="{{ true }}">
+                      <div style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-top:5px;">{{ t.comentario }}</div>
+                    </sc-if>
+                  </div>
+                  <span style="{{ t.badgeStyle }}">{{ t.statusLabel }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px;">
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);color:#0f9d6b;">Pontos fortes</div>
+              <sc-for list="{{ redResult.fortes }}" as="f" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-top:11px;align-items:flex-start;"><span style="color:#0f9d6b;font-weight:800;">✓</span><span style="font-size:13px;color:var(--text2);line-height:1.6;">{{ f }}</span></div></sc-for>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px;">
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);color:#c2790c;">A melhorar</div>
+              <sc-for list="{{ redResult.melhorar }}" as="mlb" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-top:11px;align-items:flex-start;"><span style="color:#c2790c;font-weight:800;">!</span><span style="font-size:13px;color:var(--text2);line-height:1.6;">{{ mlb }}</span></div></sc-for>
+            </div>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;">
+            <div style="font-family:var(--display);font-size:19px;font-weight:600;color:var(--ink);margin-bottom:14px;">Critérios</div>
             <sc-for list="{{ redResult.criterios }}" as="c" hint-placeholder-count="4">
-              <div style="margin-bottom:16px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:12px;"><span style="font-size:13px;color:var(--ink);font-weight:500;">{{ c.nome }}</span><span style="font-size:12.5px;color:var(--text2);font-family:var(--mono);font-weight:700;">{{ c.nota }}/10</span></div>
-                <div style="height:9px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ c.pct }}%;background:linear-gradient(90deg,var(--accentD),var(--accent));border-radius:99px;"></i></div>
-                <p style="margin:6px 0 0;font-size:12px;color:var(--text3);line-height:1.5;">{{ c.comentario }}</p>
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;"><span style="color:var(--ink);font-weight:600;">{{ c.nome }}</span><span style="font-family:var(--mono);color:var(--text3);">{{ c.nota }}/10</span></div>
+                <div style="height:7px;border-radius:99px;background:var(--border);margin-top:6px;overflow:hidden;"><div style="width:{{ c.pct }}%;height:100%;border-radius:99px;background:var(--accent);"></div></div>
+                <div style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-top:6px;">{{ c.comentario }}</div>
               </div>
             </sc-for>
           </div>
 
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-              <div style="font-weight:600;color:#0f9d6b;font-size:14px;margin-bottom:12px;">Pontos fortes</div>
-              <sc-for list="{{ redResult.fortes }}" as="f" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-bottom:9px;align-items:flex-start;"><span style="color:#0f9d6b;flex:none;font-weight:700;">+</span><span style="font-size:13px;color:var(--text2);line-height:1.5;">{{ f }}</span></div></sc-for>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-              <div style="font-weight:600;color:#c2790c;font-size:14px;margin-bottom:12px;">A melhorar</div>
-              <sc-for list="{{ redResult.melhorar }}" as="mlb" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-bottom:9px;align-items:flex-start;"><span style="color:#c2790c;flex:none;font-weight:700;">→</span><span style="font-size:13px;color:var(--text2);line-height:1.5;">{{ mlb }}</span></div></sc-for>
-            </div>
-          </div>
-
-          <!-- PLANO DE CORREÇÃO: o que fazer com o resultado, na ordem que rende ponto. -->
-          <sc-if value="{{ redTemPlano }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-              <div style="font-weight:600;color:var(--ink);font-size:15px;">Como corrigir esta resposta</div>
-              <div style="font-size:12.5px;color:var(--text3);margin-top:3px;line-height:1.5;">Na ordem em que a banca desconta — comece pelo primeiro.</div>
-              <sc-for list="{{ redPlano }}" as="p" hint-placeholder-count="3">
-                <div style="display:flex;gap:12px;margin-top:16px;align-items:flex-start;">
-                  <span style="flex:none;width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;font-family:var(--mono);">{{ p.n }}</span>
-                  <div>
-                    <div style="font-size:14px;font-weight:700;color:var(--ink);">{{ p.t }}</div>
-                    <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:3px;">{{ p.d }}</div>
-                  </div>
-                </div>
-              </sc-for>
-              <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:10px;">Dicas de banca</div>
-                <sc-for list="{{ redDicas }}" as="d" hint-placeholder-count="3">
-                  <div style="display:flex;gap:9px;margin-bottom:8px;align-items:flex-start;">
-                    <span style="color:var(--accent);font-weight:800;font-size:13px;">•</span>
-                    <span style="font-size:13px;color:var(--text2);line-height:1.6;">{{ d }}</span>
-                  </div>
-                </sc-for>
-              </div>
-            </div>
-          </sc-if>
-
           <sc-if value="{{ redResultLivre }}" hint-placeholder-val="{{ false }}">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-                  <span style="font-weight:600;color:var(--ink);font-size:15px;">Comparativo com o gabarito</span>
-                  <span style="font-size:11px;color:var(--text3);"><span style="background:rgba(15,157,107,.20);padding:2px 7px;border-radius:5px;color:var(--ink);">coberto</span> <span style="background:rgba(194,121,12,.22);padding:2px 7px;border-radius:5px;color:var(--ink);margin-left:6px;">faltou no seu texto</span></span>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
-                  <div>
-                    <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:8px;">Sua resposta</div>
-                    <div style="border:1px solid var(--border);border-radius:11px;padding:14px;background:var(--surface2);font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-wrap;max-height:340px;overflow:auto;"><sc-for list="{{ redCompareStudent }}" as="sg" hint-placeholder-count="0"><span style="{{ sg.style }}">{{ sg.t }}</span></sc-for></div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;">
+              <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+                <div style="font-family:var(--display);font-size:19px;font-weight:600;color:var(--ink);">Sua resposta × o espelho</div>
+                <span style="font-size:11px;color:var(--text3);"><span style="background:rgba(15,157,107,.2);padding:2px 7px;border-radius:6px;">coberto</span> · <span style="background:rgba(192,57,47,.16);padding:2px 7px;border-radius:6px;">faltou no seu texto</span></span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;">
+                <div>
+                  <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);margin-bottom:8px;">Sua resposta</div>
+                  <div style="border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--surface2);font-size:13px;line-height:1.75;color:var(--ink);max-height:420px;overflow:auto;">
+                    <sc-for list="{{ redCompareStudent }}" as="sg" hint-placeholder-count="6"><span style="{{ sg.style }}">{{ sg.t }}</span></sc-for>
                   </div>
-                  <div>
-                    <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:8px;">Gabarito</div>
-                    <div style="border:1px solid var(--border);border-radius:11px;padding:14px;background:var(--surface2);font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-wrap;max-height:340px;overflow:auto;"><sc-for list="{{ redCompareGab }}" as="sg" hint-placeholder-count="0"><span style="{{ sg.style }}">{{ sg.t }}</span></sc-for></div>
+                </div>
+                <div>
+                  <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);margin-bottom:8px;">Espelho oficial</div>
+                  <div style="border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--surface2);font-size:13px;line-height:1.75;color:var(--ink);max-height:420px;overflow:auto;">
+                    <sc-for list="{{ redCompareGab }}" as="sg" hint-placeholder-count="6"><span style="{{ sg.style }}">{{ sg.t }}</span></sc-for>
                   </div>
                 </div>
               </div>
+            </div>
           </sc-if>
-          <div style="display:flex;justify-content:flex-end;">
-            <button onclick="{{ redReset }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:13px 26px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px -6px var(--accent);">Escrever outra redação</button>
-          </div>
-         </div>
         </sc-if>
-
        </div>
       </sc-if>
 
-      <!-- ================= SIMULADOS ================= -->
-      <sc-if value="{{ isOral }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ isOral }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px;color:#fff;">
           <div style="font-family:var(--display);font-weight:600;font-size:19px;">Prova oral</div>
@@ -8674,6 +8681,13 @@ class Component extends DCLogic {
       temEspelho:!!((q.espelho&&q.espelho.length)||q.fonte_espelho),
       selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):''))
            :(q.fonte_espelho?'espelho oficial em PDF':'sem espelho publicado'),
+      // cor por tipo de prova: a faixa no topo do card dá a leitura antes da leitura
+      faixa:'height:4px;background:'+((q.tipo==='sentenca')?'#7c3aed':(q.tipo==='peca')?'#0ea5e9':'var(--accent)')+';',
+      seloTipo:'font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:99px;'
+        +'background:'+((q.tipo==='sentenca')?'rgba(124,58,237,.13);color:#6d28d9;':(q.tipo==='peca')?'rgba(14,165,233,.13);color:#0369a1;':'color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);'),
+      seloEsp:'font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;'
+        +((q.espelho&&q.espelho.length)?'background:rgba(15,157,107,.14);color:#0f7f57;'
+          :(q.fonte_espelho?'background:rgba(245,158,11,.15);color:#b8770a;':'background:var(--surface2);color:var(--text3);')),
       resumo:String(q.enunciado||'').slice(0,190)+(String(q.enunciado||'').length>190?'…':''),
       fonte:q.fonte||'' }));
     const DIR = this.THEMES()[this.state.dir] || this.THEMES().sutil;
@@ -10931,6 +10945,22 @@ class Component extends DCLogic {
       redPasso1:this._passo(1, !this.state.redResult && !((this.state.redEnunciado||'').trim())),
       redPasso2:this._passo(2, !this.state.redResult && !!((this.state.redEnunciado||'').trim())),
       redPasso3:this._passo(3, !!this.state.redResult),
+      // ---- dados da Redação em 3 telas
+      redSoEspLabel:this.state.bancoSoEsp?'Só com espelho ✓':'Só com espelho',
+      redEspelhoAberto:!!(this.state.redEnunciado||'').trim() && !this.state.redEspelhoOculto && !this.state.redResult,
+      bancoVazio:_bancoTotal===0 && !!this.state.discCarregado,
+      // título curto da prova em foco (1ª linha do enunciado carregado)
+      redProvaTitulo:(()=>{const e=(this.state.redEnunciado||'').trim(); if(!e) return 'Prova';
+        return e.split('\n')[0].replace(/\.$/,'').slice(0,120);})(),
+      redLinkProva:(()=>{const m=/(https?:\/\/\S+)/.exec((this.state.redEnunciado||'')); return m?m[1]:'';})(),
+      redTemLinkProva:/https?:\/\//.test(this.state.redEnunciado||''),
+      redLimiteTxt:(()=>{const m=/(?:at[ée]|m[áa]ximo de|no m[áa]ximo)\s+(\d{1,3})\s+linhas/i.exec(this.state.redEnunciado||'');
+        if(!m) return '';
+        const linhas=Math.ceil(((this.state.redText||'').match(/\S+/g)||[]).length/11);
+        return ' · ~'+linhas+' de '+m[1]+' linhas';})(),
+      redDicaEtapa2:(()=>{const g=(this.state.redGabarito||'').trim();
+        return g? 'A correção sai contra o espelho oficial desta prova: quesito a quesito, na escala da banca.'
+                : 'Sem espelho cadastrado, a correção sai por critérios gerais — cole o espelho acima para a nota por quesito.';})(),
       redKpiProvas:String(_bancoTodas.length||'—'),
       redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.fonte_espelho).length||'—'),
       redKpiFeitas:String((this.state.redHistory||[]).length),
