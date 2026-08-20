@@ -67,6 +67,49 @@ const CSS = `
   border-left:4px solid var(--juris);padding:10px 13px;border-radius:0 10px 10px 0}
 .ctr .erro b{color:var(--juris);font-weight:800}
 
+/* sub-itens: a ordem interna do bloco ("1.1 competência, 1.2 nulidades…") */
+.ctr ol.itens{list-style:none;margin:12px 0 0;padding:0;counter-reset:si}
+.ctr ol.itens li{counter-increment:si;position:relative;padding:7px 0 7px 34px;font-size:13.2px;line-height:1.6;
+  color:var(--text2);border-top:1px dashed var(--border)}
+.ctr ol.itens li:first-child{border-top:0}
+.ctr ol.itens li::before{content:counter(si);position:absolute;left:0;top:8px;width:23px;height:23px;
+  border-radius:7px;border:1.5px solid var(--rc,#5b47b8);color:var(--rc,#5b47b8);
+  font:700 10.5px/20px var(--mono);text-align:center}
+.ctr ol.itens li b{display:block;color:var(--ink);font-weight:700;font-size:13.5px;margin-bottom:2px}
+
+/* fórmula de redação: o texto que vai para a folha */
+.ctr details.modelo{margin-top:13px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);
+  overflow:hidden}
+.ctr details.modelo>summary{cursor:pointer;list-style:none;padding:10px 14px;font:700 11.5px var(--mono);
+  text-transform:uppercase;letter-spacing:.06em;color:var(--text3);display:flex;align-items:center;gap:8px}
+.ctr details.modelo>summary::-webkit-details-marker{display:none}
+.ctr details.modelo>summary::before{content:"▸";font-size:13px;transition:transform .15s}
+.ctr details.modelo[open]>summary::before{transform:rotate(90deg)}
+.ctr details.modelo>summary:hover{color:var(--ink)}
+.ctr .mtexto{padding:0 14px 13px;font:13px/1.75 Georgia,serif;color:var(--ink);white-space:pre-wrap;
+  border-top:1px solid var(--border);padding-top:12px}
+.ctr .mtexto i{font-style:italic;color:var(--text3)}
+.ctr .mcopia{margin:0 14px 13px;border:1px solid var(--border);background:var(--surface);color:var(--text2);
+  border-radius:8px;padding:6px 11px;font:600 11.5px var(--body);cursor:pointer}
+.ctr .mcopia:hover{border-color:var(--text3);color:var(--ink)}
+
+/* aba de dicas e casos especiais */
+.ctr .dica{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 15px;
+  margin-bottom:9px;font-size:13.3px;line-height:1.65;color:var(--text2);display:flex;gap:11px}
+.ctr .dica i{font-style:normal;flex:none;width:22px;height:22px;border-radius:7px;background:var(--surface2);
+  color:var(--text3);font:700 10px/22px var(--mono);text-align:center}
+.ctr .dica.alerta{border-color:color-mix(in srgb,var(--juris) 30%,var(--border));
+  background:color-mix(in srgb,var(--juris) 5%,var(--surface))}
+.ctr .dica.alerta i{background:var(--juris);color:#fff}
+.ctr .esp{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--rc,#5b47b8);
+  border-radius:0 12px 12px 0;padding:12px 15px;margin-bottom:9px}
+.ctr .esp b{display:block;font:800 14px var(--display);margin-bottom:5px;color:var(--ink)}
+.ctr .esp span{font-size:13px;line-height:1.65;color:var(--text2)}
+.ctr h4.sec{margin:22px 0 11px;font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.07em;
+  color:var(--text3);display:flex;align-items:center;gap:10px}
+.ctr h4.sec::after{content:"";flex:1;height:1px;background:var(--border)}
+.ctr h4.sec:first-child{margin-top:0}
+
 .ctr .cegoTopo{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;
   margin-bottom:14px;box-shadow:0 1px 2px rgba(20,15,10,.05)}
 .ctr .cegoTopo .n{display:flex;align-items:baseline;gap:9px}
@@ -116,7 +159,16 @@ const RAMOS = {
   'Tributário':            '#9a6b00',
   'Eleitoral':             '#b5174e',
   'Criança e adolescente': '#c2185b',
-  'Empresarial':           '#00695c'
+  'Empresarial':           '#00695c',
+  'Trabalho':              '#8d5524',
+  'Previdenciário':        '#00838f',
+  'Consumidor':            '#ad1457',
+  'Família':               '#7b1fa2',
+  'Sucessões':             '#4527a0',
+  'Registros públicos':    '#455a64',
+  'Controle externo':      '#37474f',
+  'Juizado Especial Cível':    '#546e7a',
+  'Juizado Especial Criminal': '#5d4037'
 };
 function ramoDe(nome){
   const base = String(nome||'').split('—')[0].trim();
@@ -173,7 +225,7 @@ function montar(){
     +'<div class="lin1"><h2 data-r="tit"></h2><button class="x" data-r="x" title="Fechar (Esc)">✕</button></div>'
     +'<p class="sobre" data-r="sobre"></p></div>'
     +'<div class="bar"><span class="seg"><button data-r="tabR" class="on">Roteiro</button>'
-    +'<button data-r="tabC">Modo cego</button></span>'
+    +'<button data-r="tabC">Modo cego</button><button data-r="tabD" hidden>Dicas</button></span>'
     +'<span class="ac"><button data-r="copy" title="Copiar o esqueleto em texto">⧉ Copiar</button>'
     +'<button data-r="print" title="Imprimir / salvar em PDF">⎙ Imprimir</button></span></div>'
     +'<div class="sc" data-r="sc"></div>';
@@ -181,12 +233,15 @@ function montar(){
 
   el={rot, velo, sc:rot.querySelector('[data-r=sc]'), tit:rot.querySelector('[data-r=tit]'),
       sobre:rot.querySelector('[data-r=sobre]'), tag:rot.querySelector('[data-r=tag]'),
-      tabR:rot.querySelector('[data-r=tabR]'), tabC:rot.querySelector('[data-r=tabC]')};
+      tabR:rot.querySelector('[data-r=tabR]'), tabC:rot.querySelector('[data-r=tabC]'),
+      tabD:rot.querySelector('[data-r=tabD]')};
 
   rot.querySelector('[data-r=x]').onclick=fechar;
   velo.onclick=fechar;
-  el.tabR.onclick=()=>{ modo='roteiro'; el.tabR.classList.add('on'); el.tabC.classList.remove('on'); pinta(); el.sc.scrollTop=0; };
-  el.tabC.onclick=()=>{ modo='cego';    el.tabC.classList.add('on'); el.tabR.classList.remove('on'); pinta(); el.sc.scrollTop=0; };
+  const marca=(b)=>[el.tabR,el.tabC,el.tabD].forEach(x=>x.classList.toggle('on',x===b));
+  el.tabR.onclick=()=>{ modo='roteiro'; marca(el.tabR); pinta(); el.sc.scrollTop=0; };
+  el.tabC.onclick=()=>{ modo='cego';    marca(el.tabC); pinta(); el.sc.scrollTop=0; };
+  el.tabD.onclick=()=>{ modo='dicas';   marca(el.tabD); pinta(); el.sc.scrollTop=0; };
   rot.querySelector('[data-r=print]').onclick=()=>window.print();
   rot.querySelector('[data-r=copy]').onclick=function(){ copiar(this); };
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') fechar(); });
@@ -196,6 +251,7 @@ function copiar(btn){
   const p=(window.CT_PECAS||{})[atual]; if(!p) return;
   const txt=atual+'\n'+'='.repeat(atual.length)+'\n\n'
     +(p.blocos||[]).map((b,i)=>(i+1)+'. '+b.nome+'\n   '+b.deve
+      +((b.itens||[]).length?'\n'+b.itens.map((x,j)=>'   '+(i+1)+'.'+(j+1)+' '+(x.t?x.t+' — ':'')+(x.d||'')).join('\n'):'')
       +((b.lei||[]).length?'\n   ⚖️ '+b.lei.join('\n   ⚖️ '):'')
       +((b.juris||[]).length?'\n   🏛️ '+b.juris.join('\n   🏛️ '):'')
       +(b.erro?'\n   ⚠ Custa ponto: '+b.erro:'')).join('\n\n')
@@ -211,6 +267,21 @@ function pinta(){
   if(!p){
     el.sc.innerHTML='<div class="vazio">O roteiro desta peça ainda não foi escrito.<br><br>Prontos hoje: '
       +Object.keys(window.CT_PECAS||{}).map(esc).join(' · ')+'.</div>';
+    return;
+  }
+
+  /* ----- DICAS E CASOS ESPECIAIS: o que a banca cobra e o rito não diz ----- */
+  if(modo==='dicas'){
+    const dicas=(p.dicas||[]).map((d,i)=>{
+      const alerta=typeof d==='object' && d.alerta;
+      const txt=typeof d==='object' ? d.t : d;
+      return '<div class="dica'+(alerta?' alerta':'')+'"><i>'+(alerta?'!':(i+1))+'</i><span>'+esc(txt)+'</span></div>';
+    }).join('');
+    const esp=(p.especiais||[]).map(x=>'<div class="esp"><b>'+esc(x.t)+'</b><span>'+esc(x.d)+'</span></div>').join('');
+    el.sc.innerHTML=(dicas?'<h4 class="sec">Dicas de prova</h4>'+dicas:'')
+      +(esp?'<h4 class="sec">Casos especiais</h4>'+esp:'')
+      +'<div class="nota">Regras de ofício da peça — o que economiza tempo, o que anula e o que a banca '
+      +'costuma esconder no enunciado. Não substitui o roteiro: é o que se lê na véspera.</div>';
     return;
   }
 
@@ -250,10 +321,21 @@ function pinta(){
   el.sc.innerHTML=(p.blocos||[]).map((b,i)=>{
     const lei=(b.lei||[]).map(t=>'<button class="lei" data-alvo="legis" data-t="'+esc(t)+'">⚖️ '+esc(t)+'</button>').join('');
     const jur=(b.juris||[]).map(t=>'<button class="juris" data-alvo="juris" data-t="'+esc(t)+'">🏛️ '+esc(t)+'</button>').join('');
+    // sub-itens: a ordem DENTRO do bloco. É onde a prova se perde — "preliminar de
+    // prescrição" na hora errada custa a estrutura inteira.
+    const itens=(b.itens||[]).map(x=>'<li>'+(x.t?'<b>'+esc(x.t)+'</b>':'')+esc(x.d||'')+'</li>').join('');
+    // fórmula de redação: fica fechada, para não virar muleta de leitura
+    const modelo=b.modelo
+      ? '<details class="modelo"><summary>Como isso vai para a folha</summary>'
+        +'<div class="mtexto">'+esc(b.modelo)+'</div>'
+        +'<button class="mcopia" data-m="'+esc(b.modelo)+'">⧉ Copiar o trecho</button></details>'
+      : '';
     return '<div class="blk"><h3><i>'+(i+1)+'</i>'+esc(b.nome)+'</h3>'
       +'<div class="deve">'+esc(b.deve)+'</div>'
+      +(itens?'<ol class="itens">'+itens+'</ol>':'')
       +(lei?'<div class="grp"><span class="lb">O que manda</span><div class="rf">'+lei+'</div></div>':'')
       +(jur?'<div class="grp"><span class="lb">O que o tribunal decidiu</span><div class="rf">'+jur+'</div></div>':'')
+      +modelo
       +(b.erro?'<div class="erro"><b>⚠ Custa ponto:</b> '+esc(b.erro)+'</div>':'')
       +'</div>';
   }).join('')
@@ -262,6 +344,10 @@ function pinta(){
     +'Roteiro escrito pelo Cátedra a partir da lei e da jurisprudência, não copiado de curso.</div>';
   el.sc.querySelectorAll('.rf button').forEach(b=>{
     b.onclick=()=>abrirAcervo(b.dataset.alvo, termoBusca(b.dataset.t, b.dataset.alvo));
+  });
+  el.sc.querySelectorAll('.mcopia').forEach(b=>{
+    b.onclick=()=>{ try{ navigator.clipboard.writeText(b.dataset.m).then(()=>{
+      b.textContent='✓ Copiado'; setTimeout(()=>b.textContent='⧉ Copiar o trecho',1600); },()=>{}); }catch(e){} };
   });
 }
 
@@ -275,7 +361,9 @@ function abrir(nome){
   el.tit.textContent=nome;
   el.sobre.textContent=p?(p.sobre||''):'Roteiro ainda não escrito.';
   el.sobre.style.display=(p&&p.sobre)?'':'none';
-  el.tabR.classList.add('on'); el.tabC.classList.remove('on');
+  const temDicas = !!(p && ((p.dicas||[]).length || (p.especiais||[]).length));
+  el.tabD.hidden = !temDicas;
+  el.tabR.classList.add('on'); el.tabC.classList.remove('on'); el.tabD.classList.remove('on');
   pinta();
   el.rot.classList.add('on'); el.velo.classList.add('on'); el.rot.setAttribute('aria-hidden','false');
   el.sc.scrollTop=0;
