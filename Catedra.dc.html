@@ -1926,6 +1926,17 @@ window.ctPdfLib = (function(){
       <!-- ================= REDAÇÃO ================= -->
       <sc-if value="{{ isRedacao }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Trilho das 3 etapas: escolher · responder · analisar. Fica FORA do bloco
+             "sem resultado" — senão desaparece justamente na etapa 3, que é onde a pessoa
+             mais precisa saber onde está. -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <span style="{{ redPasso1 }}">1 · Escolher a prova</span>
+          <span style="color:var(--text3);font-size:12px;">→</span>
+          <span style="{{ redPasso2 }}">2 · Responder</span>
+          <span style="color:var(--text3);font-size:12px;">→</span>
+          <span style="{{ redPasso3 }}">3 · Análise e espelho</span>
+        </div>
+
 
         <!-- composer -->
         <sc-if value="{{ redNoResult }}" hint-placeholder-val="{{ true }}">
@@ -2108,6 +2119,32 @@ window.ctPdfLib = (function(){
               <sc-for list="{{ redResult.melhorar }}" as="mlb" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-bottom:9px;align-items:flex-start;"><span style="color:#c2790c;flex:none;font-weight:700;">→</span><span style="font-size:13px;color:var(--text2);line-height:1.5;">{{ mlb }}</span></div></sc-for>
             </div>
           </div>
+
+          <!-- PLANO DE CORREÇÃO: o que fazer com o resultado, na ordem que rende ponto. -->
+          <sc-if value="{{ redTemPlano }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+              <div style="font-weight:600;color:var(--ink);font-size:15px;">Como corrigir esta resposta</div>
+              <div style="font-size:12.5px;color:var(--text3);margin-top:3px;line-height:1.5;">Na ordem em que a banca desconta — comece pelo primeiro.</div>
+              <sc-for list="{{ redPlano }}" as="p" hint-placeholder-count="3">
+                <div style="display:flex;gap:12px;margin-top:16px;align-items:flex-start;">
+                  <span style="flex:none;width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;font-family:var(--mono);">{{ p.n }}</span>
+                  <div>
+                    <div style="font-size:14px;font-weight:700;color:var(--ink);">{{ p.t }}</div>
+                    <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:3px;">{{ p.d }}</div>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:10px;">Dicas de banca</div>
+                <sc-for list="{{ redDicas }}" as="d" hint-placeholder-count="3">
+                  <div style="display:flex;gap:9px;margin-bottom:8px;align-items:flex-start;">
+                    <span style="color:var(--accent);font-weight:800;font-size:13px;">•</span>
+                    <span style="font-size:13px;color:var(--text2);line-height:1.6;">{{ d }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
 
           <sc-if value="{{ redResultLivre }}" hint-placeholder-val="{{ false }}">
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;">
@@ -6990,6 +7027,34 @@ class Component extends DCLogic {
         oficial:x.original||''})),
     };
   }
+  // Da correção para a AÇÃO: o resultado dizia a nota e o que faltou, mas não o que fazer
+  // com isso. Aqui viram passos concretos, na ordem em que rendem ponto na próxima prova.
+  _redPlano(){
+    const r=this.state.redResult; if(!r) return {redTemPlano:false, redPlano:[], redDicas:[]};
+    const passos=[], dicas=[];
+    const crit=(nome)=>(r.criterios||[]).find(c=>new RegExp(nome,'i').test(c.nome||''));
+    const cFund=crit('fundament'), cEstr=crit('estrutura'), cForma=crit('forma|extens'), cCob=crit('quesito|cobertura');
+    // 1. fundamentos ausentes — é o que a banca corta primeiro
+    const ausentes=(r.melhorar||[]).find(m=>/não citado|nao citado|exigido/i.test(m));
+    if(ausentes) passos.push({n:'1', t:'Cite os dispositivos que faltaram', d:ausentes.replace(/^[^:]*:\s*/,'')+' — abra cada um no CátedraLEGIS e escreva a regra com suas palavras antes de refazer.'});
+    // 2. quesitos rasos
+    const rasos=(r.topicos||[]).filter(t=>t.status!=='coberto').slice(0,3);
+    if(rasos.length) passos.push({n:String(passos.length+1), t:'Desenvolva os quesitos em branco', d:rasos.map(t=>t.ponto.replace(/^Quesito \d+ — /,'').slice(0,90)).join(' · ')});
+    // 3. forma
+    if(cForma && cForma.nota<7) passos.push({n:String(passos.length+1), t:'Ajuste a forma', d:cForma.comentario});
+    if(cEstr && cEstr.nota<7) passos.push({n:String(passos.length+1), t:'Reorganize o texto', d:cEstr.comentario});
+    if(!passos.length) passos.push({n:'1', t:'Aprofunde os argumentos', d:'A cobertura está boa: o próximo salto vem de fundamentar melhor cada afirmação e fechar com conclusão que responda exatamente ao comando.'});
+    // dicas fixas de banca, ligadas ao que o resultado mostrou
+    if(cFund && cFund.nota<8) dicas.push('Na 2ª fase, o quesito quase sempre exige o dispositivo por escrito. Cite artigo, parágrafo e inciso — "conforme a lei" não pontua.');
+    if(cCob && cCob.nota<7) dicas.push('Responda na ordem do comando: cada item pedido no enunciado vira um parágrafo. É assim que o corretor acha o ponto.');
+    if(cForma && /extrapol/i.test(cForma.comentario||'')) dicas.push('Extrapolar o limite de linhas costuma valer desconto: o que passa do limite muitas vezes nem é lido.');
+    dicas.push('Antes de entregar, releia procurando: enfrentou o pedido? citou o dispositivo? concluiu de forma expressa?');
+    return {redTemPlano:true, redPlano:passos, redDicas:dicas.slice(0,4)};
+  }
+  _passo(n, ativo){
+    return 'display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:99px;font-size:12.5px;font-weight:700;'
+      +(ativo?'background:var(--accent);color:#fff;':'background:var(--surface2);color:var(--text3);');
+  }
   _chip(on){ return 'border:1px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--surface)')
     +';color:'+(on?'#fff':'var(--ink)')+';border-radius:99px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;'; }
   _sjBotao(on){ return 'flex:1;border-radius:10px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;border:2px solid '
@@ -10858,6 +10923,14 @@ class Component extends DCLogic {
       homeTimerDot:(this.state.timerRunning?'#34d399':'#5f7a6e'), homeTimerSub:(this.state.timerRunning?'EM CURSO · TOQUE P/ PAUSAR':'PARADO · TOQUE P/ INICIAR'),
       isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
       isRedacao:this.state.view==='redacao', navRedacao:navStyle('redacao'),
+      // Redação em 3 etapas: 1 escolher a prova · 2 responder · 3 análise.
+      ...this._redPlano(),
+      redEtapa1:!this.state.redResult && !((this.state.redEnunciado||'').trim()),
+      redEtapa2:!this.state.redResult && !!((this.state.redEnunciado||'').trim()),
+      redEtapa3:!!this.state.redResult,
+      redPasso1:this._passo(1, !this.state.redResult && !((this.state.redEnunciado||'').trim())),
+      redPasso2:this._passo(2, !this.state.redResult && !!((this.state.redEnunciado||'').trim())),
+      redPasso3:this._passo(3, !!this.state.redResult),
       redKpiProvas:String(_bancoTodas.length||'—'),
       redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.fonte_espelho).length||'—'),
       redKpiFeitas:String((this.state.redHistory||[]).length),
