@@ -223,9 +223,11 @@
   // ------------------------------------------------------------------ SIMULADO
   /** Simulado de JURISPRUDÊNCIA: itens Certo/Errado do acervo. */
   function simuladoJuris(opc) {
-    var n = (opc && opc.n) || 20, ramo = opc && opc.ramo, tribunal = opc && opc.tribunal;
+    var n = (opc && opc.n) || 20, tribunal = opc && opc.tribunal;
+    // aceita uma disciplina (ramo) ou VÁRIAS (ramos) — a prova real mistura matérias
+    var ramos = (opc && opc.ramos && opc.ramos.length) ? opc.ramos : ((opc && opc.ramo) ? [opc.ramo] : null);
     var base = verbetes().filter(function (v) {
-      return (!ramo || v.ramo === ramo) && (!tribunal || v.tribunal === tribunal) && v.texto.length >= 120;
+      return (!ramos || ramos.indexOf(v.ramo) >= 0) && (!tribunal || v.tribunal === tribunal) && v.texto.length >= 120;
     });
     embaralhar(base);
     var querErrados = Math.floor(n / 2), errados = [], certos = [];
@@ -283,6 +285,85 @@
     var t = String(texto || '').replace(/\r/g, '');
     var partes = t.split(/\n(?=\s*Art\.?\s*[\d]+)/i);
     return partes.filter(function (p) { return /^\s*Art\.?\s*\d/i.test(p) && p.length >= 80; });
+  }
+
+  /** SIMULADO MISTO: jurisprudência + lei seca, várias disciplinas, proporção configurável.
+   *  É o formato da prova real — a banca não separa "agora só jurisprudência".
+   *  opc: {n, ramos:[], leis:[], pctLei:0..100}
+   */
+  function simuladoMisto(opc) {
+    var o = opc || {};
+    var n = o.n || 30;
+    var pctLei = (o.pctLei == null) ? 40 : o.pctLei;
+    var qLei = Math.round(n * pctLei / 100);
+    var qJur = n - qLei;
+    var itens = [];
+    if (qJur > 0) itens = itens.concat(simuladoJuris({ n: qJur, ramos: o.ramos }));
+    if (qLei > 0 && (w.CT_LEIS || []).length) itens = itens.concat(simuladoLeisEmbutidas(o.leis, qLei));
+    embaralhar(itens);
+    return itens;
+  }
+
+  /** Itens C/E das leis embutidas (leis-seca.js) — sem depender de rede. */
+  function simuladoLeisEmbutidas(siglas, n) {
+    var leis = (w.CT_LEIS || []).filter(function (l) { return !siglas || !siglas.length || siglas.indexOf(l.sigla) >= 0; });
+    var pool = [];
+    leis.forEach(function (l) {
+      l.artigos.forEach(function (a) {
+        proposicoesDoArtigo(limpa(a.txt)).forEach(function (p) {
+          if (p.txt.length >= 70 && p.txt.length <= 480) pool.push({ lei: l.sigla, nome: l.nome, rot: p.rot || a.rot, txt: p.txt });
+        });
+      });
+    });
+    embaralhar(pool);
+    var querErrados = Math.floor(n / 2), errados = [], certos = [];
+    for (var i = 0; i < pool.length && (errados.length < querErrados || certos.length < n - querErrados); i++) {
+      var p = pool[i];
+      var inv = errados.length < querErrados ? inverter(p.txt) : null;
+      if (inv) errados.push(mk(p, inv.texto, false, inv.de, inv.para));
+      else if (certos.length < n - querErrados) certos.push(mk(p, p.txt, true, null, null));
+    }
+    return errados.concat(certos);
+    function mk(p, enun, certo, de, para) {
+      return { id: 'lei|' + p.lei + '|' + p.rot + '|' + enun.slice(0, 24), origem: 'lei',
+               enunciado: enun, certo: certo, original: p.txt, trocaDe: de, trocaPara: para,
+               ref: p.lei + ' · ' + p.rot, ramo: p.nome, tema: p.rot, data: '', contexto: p.txt };
+    }
+  }
+
+  /** Relatório de desempenho do simulado: por origem, por disciplina, e o que revisar. */
+  function relatorio(itens, respostas) {
+    var r = respostas || {};
+    var porRamo = {}, porOrigem = { juris: { n: 0, ok: 0 }, lei: { n: 0, ok: 0 } };
+    var erradas = [];
+    itens.forEach(function (it) {
+      var acertou = r[it.id] === it.certo;
+      var k = it.ramo || '—';
+      (porRamo[k] = porRamo[k] || { n: 0, ok: 0 });
+      porRamo[k].n++; if (acertou) porRamo[k].ok++;
+      var o = porOrigem[it.origem] || (porOrigem[it.origem] = { n: 0, ok: 0 });
+      o.n++; if (acertou) o.ok++;
+      if (!acertou) erradas.push(it);
+    });
+    var ramos = Object.keys(porRamo).map(function (k) {
+      return { nome: k, n: porRamo[k].n, ok: porRamo[k].ok, pct: Math.round(porRamo[k].ok / porRamo[k].n * 100) };
+    }).sort(function (a, b) { return a.pct - b.pct || b.n - a.n; });
+    var acertos = itens.filter(function (it) { return r[it.id] === it.certo; }).length;
+    var respondidas = itens.filter(function (it) { return r[it.id] !== undefined; }).length;
+    // o que a banca puniria: item errado cujo núcleo trocado a pessoa não percebeu
+    var pegadinhas = erradas.filter(function (it) { return !it.certo && it.trocaDe; })
+      .map(function (it) { return { ref: it.ref, de: it.trocaDe, para: it.trocaPara }; });
+    return {
+      total: itens.length, acertos: acertos, respondidas: respondidas,
+      brancos: itens.length - respondidas,
+      pct: itens.length ? Math.round(acertos / itens.length * 100) : 0,
+      ramos: ramos,
+      pior: ramos.filter(function (x) { return x.n >= 2; }).slice(0, 3),
+      melhor: ramos.slice().reverse().filter(function (x) { return x.n >= 2; }).slice(0, 3),
+      origens: porOrigem,
+      pegadinhas: pegadinhas.slice(0, 8),
+      erradas: erradas
+    };
   }
 
   /** Simulado de LEI SECA a partir do texto já baixado das leis escolhidas. */
@@ -414,6 +495,7 @@
     acervoJuris: acervoJuris, acervoOral: acervoOral, acervoOralQ: acervoOralQ, acervoLeis: acervoLeis,
     verbetes: verbetes, sortearArtigo: sortearArtigo, perguntaLei: perguntaLei,
     simuladoJuris: simuladoJuris, simuladoLeis: simuladoLeis,
+    simuladoMisto: simuladoMisto, simuladoLeisEmbutidas: simuladoLeisEmbutidas, relatorio: relatorio,
     artigosDaLei: artigosDaLei, proposicoesDoArtigo: proposicoesDoArtigo,
     perguntaOral: perguntaOral, corrigirOral: corrigirOral,
     inverter: inverter, primeiraFrase: primeiraFrase, fundamentos: fundamentos, limpa: limpa,

@@ -2413,12 +2413,20 @@ window.ctPdfLib = (function(){
               <sc-if value="{{ sjPronto }}" hint-placeholder-val="{{ false }}">
                 <sc-if value="{{ !sjEmProva }}" hint-placeholder-val="{{ true }}">
                   <sc-if value="{{ !sjFim }}" hint-placeholder-val="{{ true }}">
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                      <select value="{{ sjRamo }}" onchange="{{ setSjRamo }}" style="border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
-                        <sc-for list="{{ sjRamoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                      </select>
-                      <input type="number" min="5" max="100" step="5" value="{{ sjN }}" oninput="{{ setSjN }}" style="width:90px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">
-                      <span style="font-size:12px;color:var(--text3);">itens</span>
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:8px;">Disciplinas — escolha quantas quiser</div>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;">
+                      <sc-for list="{{ sjRamoChips }}" as="c" hint-placeholder-count="8"><button data-v="{{ c.v }}" onclick="{{ toggleSjRamo }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+                    </div>
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:8px;">Leis — para os itens de lei seca</div>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;">
+                      <sc-for list="{{ sjLeiChips }}" as="c" hint-placeholder-count="6"><button data-v="{{ c.v }}" onclick="{{ toggleSjLei }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+                    </div>
+                    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding-top:14px;border-top:1px solid var(--border);">
+                      <label style="font-size:12.5px;color:var(--text2);display:flex;align-items:center;gap:8px;">Itens
+                        <input type="number" min="10" max="120" step="10" value="{{ sjN }}" oninput="{{ setSjN }}" style="width:80px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;"></label>
+                      <label style="font-size:12.5px;color:var(--text2);display:flex;align-items:center;gap:8px;">Lei seca
+                        <input type="number" min="0" max="100" step="10" value="{{ sjPctLei }}" oninput="{{ setSjPctLei }}" style="width:80px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;">%</label>
+                      <span style="font-size:12px;color:var(--text3);">{{ sjPctJur }}% jurisprudência · {{ sjPctLei }}% lei seca</span>
                       <button onclick="{{ iniciarSj }}" style="border:none;background:var(--accent);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Iniciar simulado</button>
                     </div>
                   </sc-if>
@@ -2450,6 +2458,30 @@ window.ctPdfLib = (function(){
                   </div>
                   <div style="font-size:12.5px;color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números já foram lançados no formulário abaixo — confira e clique em <b>Registrar simulado no histórico</b> para contar no seu desempenho.</div>
                   <button onclick="{{ novoSj }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:16px;">Novo simulado</button>
+                  <sc-if value="{{ sjTemRel }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px;">
+                      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;">Leitura do resultado</div>
+                      <div style="font-size:14.5px;color:var(--ink);line-height:1.6;margin-top:8px;font-weight:600;">{{ sjRelVeredito }}</div>
+                      <div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--text2);">
+                        <span><b style="color:var(--ink);">Jurisprudência</b> {{ sjRelJur }}</span>
+                        <span><b style="color:var(--ink);">Lei seca</b> {{ sjRelLei }}</span>
+                      </div>
+                      <div style="margin-top:16px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;">Onde você mais errou</div>
+                      <sc-for list="{{ sjRelPior }}" as="r" hint-placeholder-count="3">
+                        <div style="margin-top:9px;">
+                          <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink);"><span>{{ r.nome }}</span><span style="font-family:var(--mono);color:var(--text3);">{{ r.txt }}</span></div>
+                          <div style="height:7px;border-radius:99px;background:var(--border);margin-top:4px;overflow:hidden;"><div style="{{ r.style }}"></div></div>
+                        </div>
+                      </sc-for>
+                      <sc-if value="{{ sjRelPegadinhas }}" hint-placeholder-val="{{ true }}">
+                        <div style="margin-top:18px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;">As trocas que passaram por você</div>
+                        <sc-for list="{{ sjRelPegadinhas }}" as="p" hint-placeholder-count="3">
+                          <div style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-top:6px;">{{ p.ref }} — trocou <b style="color:#0f9d6b;">“{{ p.de }}”</b> por <b style="color:#c0392f;">“{{ p.para }}”</b></div>
+                        </sc-for>
+                        <div style="font-size:11.5px;color:var(--text3);margin-top:10px;line-height:1.5;">É assim que a banca monta o item errado: troca o núcleo e mantém o resto igual. Leia sempre o prazo, a competência e o operador (pode/não pode).</div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
                   <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:10px;">Gabarito comentado</div>
                   <sc-for list="{{ sjGabarito }}" as="q" hint-placeholder-count="4">
                     <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;">
@@ -4704,7 +4736,8 @@ class Component extends DCLogic {
       // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
       // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
-      sjAberto:false, sjPronto:false, sjRamo:'', sjN:20, sjItens:[], sjResp:{}, sjAtual:0, sjFim:false, sjIni:0,
+      sjAberto:false, sjPronto:false, sjRamo:'', sjN:30, sjItens:[], sjResp:{}, sjAtual:0, sjFim:false, sjIni:0,
+      sjRamos:[], sjLeis:[], sjPctLei:40, sjRel:null,   // simulado misto: várias disciplinas, juris + lei seca
       oralModo:'juris', oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
       oralPergunta:'', oralResposta:'', oralCorrecao:null, oralHist:[],
       oralBancasPronto:false, oralBancaCarr:'', oralBancaBanca:'', oralBancaQ:'', oralBancaSoOuro:true, oralBancaSel:null,
@@ -6927,6 +6960,20 @@ class Component extends DCLogic {
       sjAberto:st.sjAberto, sjBotaoLabel:(st.sjAberto?'Fechar':'Começar'), sjPronto:st.sjPronto, sjEmProva:its.length>0 && !st.sjFim, sjFim:st.sjFim,
       sjN:st.sjN, sjRamo:st.sjRamo,
       sjRamoOpts:[{v:'',label:'Todas as disciplinas',sel:!st.sjRamo}].concat(ramos.map(k=>({v:k,label:k+' ('+m[k]+')',sel:st.sjRamo===k}))),
+      // chips multisseleção: disciplinas do acervo e leis embutidas
+      sjRamoChips:ramos.map(k=>({v:k,label:k.replace('Direito ','')+' · '+m[k],style:this._chip(st.sjRamos.indexOf(k)>=0)})),
+      sjLeiChips:((window.CT_LEIS)||[]).map(l=>({v:l.sigla,label:l.sigla+' · '+l.artigos.length,style:this._chip(st.sjLeis.indexOf(l.sigla)>=0)})),
+      sjRamosSel:st.sjRamos.length?st.sjRamos.join(', '):'todas as disciplinas',
+      sjLeisSel:st.sjLeis.length?st.sjLeis.join(', '):'todas as leis',
+      sjPctLei:st.sjPctLei, sjPctJur:100-st.sjPctLei,
+      // relatório final
+      sjTemRel:!!st.sjRel,
+      sjRelPior:st.sjRel?st.sjRel.pior.map(x=>({nome:x.nome,txt:x.ok+'/'+x.n+' · '+x.pct+'%',style:'width:'+x.pct+'%;height:100%;border-radius:99px;background:'+(x.pct<50?'#c0392f':x.pct<75?'#c2790c':'#0f9d6b')+';'})):[],
+      sjRelMelhor:st.sjRel?st.sjRel.melhor.map(x=>({nome:x.nome,txt:x.ok+'/'+x.n+' · '+x.pct+'%'})):[],
+      sjRelPegadinhas:st.sjRel?st.sjRel.pegadinhas.map(p=>({ref:p.ref,de:p.de,para:p.para})):[],
+      sjRelJur:st.sjRel?(st.sjRel.origens.juris.ok+'/'+st.sjRel.origens.juris.n):'0/0',
+      sjRelLei:st.sjRel?(st.sjRel.origens.lei.ok+'/'+st.sjRel.origens.lei.n):'0/0',
+      sjRelVeredito:st.sjRel?(st.sjRel.pct>=80?'Domínio consistente — mantenha o ritmo de revisão.':st.sjRel.pct>=60?'Base firme, com lacunas pontuais: ataque primeiro as matérias abaixo.':st.sjRel.pct>=40?'Conteúdo reconhecido, mas sem segurança: refaça a leitura das matérias abaixo antes de novo simulado.':'Sinal de que a matéria ainda não foi estudada a fundo — volte à teoria antes de treinar questão.'):'',
       sjTotal:its.length, sjAcertos:acertos, sjRespondidas:respondidas, sjBrancos:its.length-respondidas,
       sjPct:its.length?Math.round(acertos/its.length*100):0,
       sjNum:st.sjAtual+1,
@@ -6943,6 +6990,8 @@ class Component extends DCLogic {
         oficial:x.original||''})),
     };
   }
+  _chip(on){ return 'border:1px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--surface)')
+    +';color:'+(on?'#fff':'var(--ink)')+';border-radius:99px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;'; }
   _sjBotao(on){ return 'flex:1;border-radius:10px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;border:2px solid '
     +(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--surface)')+';color:'+(on?'#fff':'var(--ink)')+';'; }
 
@@ -6952,15 +7001,23 @@ class Component extends DCLogic {
     const abre=!this.state.sjAberto;
     this.setState({sjAberto:abre});
     if(abre && !this.state.sjPronto){
-      this._treino().then(T=>T.acervoJuris()).then(()=>this.setState({sjPronto:true}))
+      this._treino().then(T=>Promise.all([T.acervoJuris(),T.acervoLeis()])).then(()=>this.setState({sjPronto:true}))
         .catch(()=>this._toast('Não consegui carregar o acervo'));
     }
   };
   setSjRamo = (e)=> this.setState({sjRamo:e.currentTarget.value});
+  // multisseleção: disciplina e lei entram e saem da lista com um toque
+  toggleSjRamo = (e)=>{ const v=e.currentTarget.getAttribute('data-v');
+    const l=this.state.sjRamos.slice(); const i=l.indexOf(v); i>=0?l.splice(i,1):l.push(v);
+    this.setState({sjRamos:l}); };
+  toggleSjLei = (e)=>{ const v=e.currentTarget.getAttribute('data-v');
+    const l=this.state.sjLeis.slice(); const i=l.indexOf(v); i>=0?l.splice(i,1):l.push(v);
+    this.setState({sjLeis:l}); };
+  setSjPctLei = (e)=> this.setState({sjPctLei:Math.max(0,Math.min(100,parseInt(e.currentTarget.value,10)||0))});
   setSjN = (e)=> this.setState({sjN:Math.max(5,Math.min(100,parseInt(e.currentTarget.value,10)||20))});
   iniciarSj = ()=>{
     const T=window.CT_TREINO; if(!T) return;
-    const itens=T.simuladoJuris({n:this.state.sjN, ramo:this.state.sjRamo||null});
+    const itens=T.simuladoMisto({n:this.state.sjN, ramos:this.state.sjRamos, leis:this.state.sjLeis, pctLei:this.state.sjPctLei});
     if(!itens.length){ this._toast('Não consegui montar itens com esse filtro'); return; }
     this.setState({sjItens:itens, sjResp:{}, sjAtual:0, sjFim:false, sjIni:Date.now()});
   };
@@ -6974,12 +7031,14 @@ class Component extends DCLogic {
     this.setState({sjAtual:Math.max(0,Math.min(this.state.sjItens.length-1,this.state.sjAtual+d))}); };
   irSj = (e)=> this.setState({sjAtual:parseInt(e.currentTarget.getAttribute('data-i'),10)||0});
   encerrarSj = ()=>{
+    const T=window.CT_TREINO;
     const its=this.state.sjItens, r=this.state.sjResp;
+    const rel=T?T.relatorio(its,r):null;
     const acertos=its.filter(x=>r[x.id]===x.certo).length;
     const respondidas=its.filter(x=>r[x.id]!==undefined).length;
     const min=Math.max(1, Math.round((Date.now()-(this.state.sjIni||Date.now()))/60000));
     // leva o resultado para o formulário de registro: o simulado passa a contar no desempenho
-    this.setState({sjFim:true, simAnalysis:'obj', simNome:'Simulado de jurisprudência'+(this.state.sjRamo?(' — '+this.state.sjRamo):''),
+    this.setState({sjFim:true, sjRel:rel, simAnalysis:'obj', simNome:'Simulado'+(this.state.sjRamos.length?(' — '+this.state.sjRamos.slice(0,2).join(', ')):' misto'),
       simMin:String(min), sim:{...(this.state.sim||{}), total:its.length, acertos:acertos, erros:respondidas-acertos, brancos:its.length-respondidas}});
   };
   novoSj = ()=> this.setState({sjItens:[], sjResp:{}, sjFim:false, sjAtual:0});
@@ -10717,6 +10776,7 @@ class Component extends DCLogic {
       // Prova oral (os handlers precisam ser expostos aqui: o binding {{ }} resolve
       // contra o objeto do render, não contra `this`).
       abrirSimuladoJogo:this.abrirSimuladoJogo, setSjRamo:this.setSjRamo, setSjN:this.setSjN, iniciarSj:this.iniciarSj,
+      toggleSjRamo:this.toggleSjRamo, toggleSjLei:this.toggleSjLei, setSjPctLei:this.setSjPctLei,
       responderSj:this.responderSj, navSj:this.navSj, irSj:this.irSj, encerrarSj:this.encerrarSj, novoSj:this.novoSj,
       setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
       sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
