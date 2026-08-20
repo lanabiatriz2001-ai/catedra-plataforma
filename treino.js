@@ -147,6 +147,63 @@
     if (w.CT_ORAL) return Promise.resolve(true);
     return carregarScript('oral.js');
   }
+  /** 999 perguntas reais de banca com o padrão de resposta oficial (oral-conteudo.js). */
+  function acervoOralQ() {
+    if (w.CT_ORAL_Q) return Promise.resolve(true);
+    return carregarScript('oral-conteudo.js');
+  }
+  /** Texto das 14 leis mais cobradas, em artigos (leis-seca.js) — funciona off-line. */
+  function acervoLeis() {
+    if (w.CT_LEIS) return Promise.resolve(true);
+    return carregarScript('leis-seca.js');
+  }
+
+  /** Um artigo sorteado das leis escolhidas, com proposições grandes o bastante para arguir. */
+  function sortearArtigo(siglas) {
+    var leis = (w.CT_LEIS || []).filter(function (l) { return !siglas || !siglas.length || siglas.indexOf(l.sigla) >= 0; });
+    if (!leis.length) return null;
+    for (var tent = 0; tent < 60; tent++) {
+      var l = leis[Math.floor(Math.random() * leis.length)];
+      var a = l.artigos[Math.floor(Math.random() * l.artigos.length)];
+      if (!a || a.txt.length < 140) continue;
+      return { sigla: l.sigla, nome: l.nome, url: l.url, rot: a.rot, txt: limpa(a.txt) };
+    }
+    return null;
+  }
+
+  /** "do CPC", "da CF": sigla feminina x masculina — "da CPC" denuncia texto gerado. */
+  var FEMININO = { CF: 1, CLT: 1, LIA: 1, LEP: 1, 'Maria da Penha': 1 };
+  function daSigla(sig) { return (FEMININO[sig] ? 'da ' : 'do ') + sig; }
+
+  /** Pergunta de arguição sobre um ARTIGO de lei, no formato da banca. */
+  function perguntaLei(art, variante) {
+    var props = proposicoesDoArtigo(art.txt);
+    var base = (props[0] && props[0].txt) || primeiraFrase(art.txt) || encurtar(art.txt, 220);
+    var inv = inverter(base);
+    var f = [];
+    if (inv) {
+      f.push('Candidato(a): a parte sustenta que ' + encurtar(inv.texto, 230).charAt(0).toLowerCase() + encurtar(inv.texto, 230).slice(1) +
+             ' A tese encontra amparo no ' + art.rot + ' ' + daSigla(art.sigla) + '? Decida e fundamente.');
+    }
+    f.push('O que dispõe o ' + art.rot + ' ' + daSigla(art.sigla) + '? Explique a regra, a razão de ser dela e como o(a) senhor(a) a aplicaria a um caso concreto.');
+    var lac = melhorLacuna(base);
+    if (lac) f.push('Complete e explique: "' + lac + '" — e diga por que o legislador fixou exatamente isso.');
+    f.push('O ' + art.rot + ' ' + daSigla(art.sigla) + ' comporta exceção? Em que hipóteses não se aplica, e qual a consequência do descumprimento?');
+    if (props.length > 1) f.push('O ' + art.rot + ' traz um rol. Ele é taxativo ou exemplificativo? Enumere os itens que lembrar e explique o critério que os une.');
+    var i = ((variante || 0) % f.length + f.length) % f.length;
+    return f[i];
+  }
+
+  /** Esconde o trecho mais cobrado de uma proposição (número, prazo, competência). */
+  function melhorLacuna(t) {
+    var s = String(t || '');
+    var alvos = [/\b\d{1,3}\s*(?:dias?|anos?|meses|m[êe]s|horas?)\b/i, /\b\d{1,3}\s*%/, /\b(?:um|dois|tr[êe]s)\s+(?:quintos?|ter[çc]os?|quartos?)\b/i];
+    for (var i = 0; i < alvos.length; i++) {
+      var m = alvos[i].exec(s);
+      if (m) return encurtar(s.replace(m[0], '_______'), 260);
+    }
+    return null;
+  }
 
   /** Verbetes como objetos {id, tribunal, fonte, titulo, ramo, tema, data, texto}. */
   function verbetes() {
@@ -354,7 +411,8 @@
   function hash(s) { var h = 2166136261; for (var i = 0; i < String(s).length; i++) { h ^= String(s).charCodeAt(i); h = (h * 16777619) >>> 0; } return h; }
 
   w.CT_TREINO = {
-    acervoJuris: acervoJuris, acervoOral: acervoOral, verbetes: verbetes,
+    acervoJuris: acervoJuris, acervoOral: acervoOral, acervoOralQ: acervoOralQ, acervoLeis: acervoLeis,
+    verbetes: verbetes, sortearArtigo: sortearArtigo, perguntaLei: perguntaLei,
     simuladoJuris: simuladoJuris, simuladoLeis: simuladoLeis,
     artigosDaLei: artigosDaLei, proposicoesDoArtigo: proposicoesDoArtigo,
     perguntaOral: perguntaOral, corrigirOral: corrigirOral,

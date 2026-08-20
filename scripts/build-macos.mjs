@@ -106,7 +106,7 @@ writeFileSync(join(OUT, 'index.html'), out);
 // página se declarava offline. Por isso os dois são carimbados na cópia.
 const FRAMES = new Set(['legis-web.html', 'juris-web.html']);
 const CARIMBO = `<script>window.CATEDRA_API_BASE = ${JSON.stringify(API_BASE)};</script>`;
-for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'oral.js', 'treino.js', 'area-web.html', 'processo-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js']) {
+for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'oral.js', 'oral-conteudo.js', 'treino.js', 'leis-seca.js', 'area-web.html', 'processo-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js']) {
   if (!existsSync(join(ROOT, f))) continue;
   if (FRAMES.has(f)) {
     const html = read(f);
