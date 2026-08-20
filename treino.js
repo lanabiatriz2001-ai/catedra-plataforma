@@ -255,22 +255,70 @@
   }
 
   // ---------------------------------------------------------------- PROVA ORAL
-  /** Pergunta de arguição sobre um verbete, no formato que a banca usa. */
+  /** Encurta uma tese para caber numa pergunta falada, cortando em fronteira de frase. */
+  function encurtar(t, max) {
+    var s = String(t || '').trim();
+    if (s.length <= max) return s;
+    var corte = s.slice(0, max);
+    var ponto = Math.max(corte.lastIndexOf('; '), corte.lastIndexOf(', '), corte.lastIndexOf(' — '));
+    if (ponto > max * 0.5) corte = corte.slice(0, ponto);
+    else { var esp = corte.lastIndexOf(' '); if (esp > max * 0.6) corte = corte.slice(0, esp); }
+    return corte.replace(/[\s,;:—-]+$/, '') + '…';
+  }
+
+  /** O `tema` do acervo às vezes é assunto ("Furto"), às vezes é a tese inteira, às vezes
+   *  é sigla ("IR"). Só serve para "em matéria de X" quando é assunto: curto, sem verbo. */
+  function ehAssunto(t) {
+    var s = String(t || '').trim();
+    return s.length >= 8 && s.length <= 58 && !ehProposicao(s) && !/[.;:]/.test(s);
+  }
+
+  /** Título que é só código ("Info 803 · STJ", "Ed. 205 · Tese 9") não identifica nada para
+   *  quem responde — nesses casos a pergunta precisa apoiar-se no tema ou na própria tese. */
+  function tituloVago(t) {
+    return /^(info|ed\.?|tema|s[úu]mula|aginte|resp|are|agrg)\b/i.test(String(t || '').trim())
+        || String(t || '').trim().length < 18;
+  }
+
+  /** Pergunta de arguição sobre um verbete, no formato que a banca usa.
+   *  `variante` roda os formatos (0,1,2… — "Outra pergunta" avança). Formatos que não têm
+   *  material suficiente no verbete são DESCARTADOS: melhor três perguntas boas do que cinco
+   *  com aspas vazias ou "Em matéria de ir".
+   */
   function perguntaOral(v, variante) {
-    var frase = primeiraFrase(limpa(v.texto));
-    var inv = inverter(frase);
-    var fund = fundamentos(v.texto);
+    var texto = limpa(v.texto);
+    var frase = primeiraFrase(texto);
+    var tese = frase || encurtar(texto, 220);            // sempre há algo a citar
+    var teseCurta = encurtar(tese, 210);
+    var inv = frase ? inverter(frase) : null;
+    var fund = fundamentos(texto);
+    var assunto = ehAssunto(v.tema) ? String(v.tema).toLowerCase() : '';
+    var rotulo = tituloVago(v.titulo)
+      ? (assunto ? 'o entendimento do ' + v.tribunal + ' sobre ' + assunto : 'este entendimento do ' + v.tribunal)
+      : '"' + v.titulo + '"';
     var f = [];
+
+    // 1) caso hipotético com a tese invertida — o formato mais usado na arguição
     if (inv) {
-      var papeis = ['a defesa, em sustentação oral,', 'o recorrente', 'a parte autora', 'o Ministério Público, em parecer,', 'o juízo de primeiro grau'];
+      var papeis = ['a defesa', 'o recorrente', 'a parte autora', 'o Ministério Público, em parecer,', 'o juízo de primeiro grau'];
       var papel = papeis[Math.abs(hash(v.id)) % papeis.length];
       f.push('Candidato(a), um caso chega ao seu gabinete. ' + papel.charAt(0).toUpperCase() + papel.slice(1) +
-             ' sustenta que ' + inv.texto.charAt(0).toLowerCase() + inv.texto.slice(1) +
+             ' sustenta que ' + encurtar(inv.texto, 230).charAt(0).toLowerCase() + encurtar(inv.texto, 230).slice(1) +
              ' A tese procede? Decida e fundamente, indicando a posição do ' + v.tribunal + '.');
     }
-    if (fund.length) f.push('Qual é o fundamento normativo de "' + v.titulo + '" e qual a razão de decidir? (Espera-se, entre outros: ' + fund.slice(0, 2).join(', ') + '.)');
-    if (v.tema) f.push('Em matéria de ' + String(v.tema).toLowerCase() + ': o entendimento do ' + v.tribunal + ' — "' + frase + '" — comporta exceção? Em que hipóteses não se aplica?');
-    f.push('Explique o entendimento fixado em "' + v.titulo + '": o que decide, por quê, e como o(a) senhor(a) o aplicaria a um caso concreto.');
+    // 2) fundamento e ratio — só quando o verbete de fato cita dispositivos
+    if (fund.length) {
+      f.push('Sobre ' + rotulo + ': qual é o fundamento normativo e qual a razão de decidir? ' +
+             '(Espera-se, entre outros: ' + fund.slice(0, 2).join(', ') + '.)');
+    }
+    // 3) exceções — exige uma tese legível para ancorar a pergunta
+    if (frase) {
+      f.push((assunto ? 'Em matéria de ' + assunto + ': o ' : 'O ') + v.tribunal + ' fixou que "' + teseCurta +
+             '". Esse entendimento comporta exceção? Em que hipóteses não se aplica?');
+    }
+    // 4) aplicação a caso concreto — sempre disponível
+    f.push('Explique ' + rotulo + ': o que decide, por quê, e como o(a) senhor(a) o aplicaria a um caso concreto.');
+
     var i = ((variante || 0) % f.length + f.length) % f.length;
     return f[i];
   }
@@ -311,6 +359,7 @@
     artigosDaLei: artigosDaLei, proposicoesDoArtigo: proposicoesDoArtigo,
     perguntaOral: perguntaOral, corrigirOral: corrigirOral,
     inverter: inverter, primeiraFrase: primeiraFrase, fundamentos: fundamentos, limpa: limpa,
+    encurtar: encurtar, ehAssunto: ehAssunto,
     ehProposicao: ehProposicao
   };
 })(typeof window !== 'undefined' ? window : this);

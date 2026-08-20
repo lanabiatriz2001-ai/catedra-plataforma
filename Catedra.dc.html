@@ -1931,6 +1931,23 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ redNoResult }}" hint-placeholder-val="{{ true }}">
          <div style="display:flex;flex-direction:column;gap:16px;">
 
+          <!-- CABEÇALHO: o acervo é o ativo desta tela (632 provas oficiais, 75 com espelho
+               quesito a quesito). Antes a página abria no formulário em branco, e o banco
+               ficava atrás de um botão — a pessoa escrevia sem prova de verdade na frente. -->
+          <div style="background:var(--heroGrad);border-radius:var(--radius);padding:26px;color:#fff;position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-70px;top:-70px;width:230px;height:230px;border-radius:999px;background:rgba(255,255,255,.08);pointer-events:none;"></div>
+            <div style="position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.82;">Discursivas e peças</div>
+              <div style="font-family:var(--display);font-weight:600;font-size:30px;line-height:1.12;margin-top:6px;letter-spacing:-.5px;">Escreva como na prova</div>
+              <div style="font-size:13px;opacity:.92;margin-top:8px;line-height:1.6;max-width:620px;">Escolha uma prova aplicada, responda no tempo dela e receba a correção quesito a quesito — na escala que a banca publicou, apontando o dispositivo que o espelho exige e você não citou.</div>
+              <div style="display:flex;gap:26px;margin-top:18px;flex-wrap:wrap;">
+                <div><div style="font-size:26px;font-weight:800;line-height:1;">{{ redKpiProvas }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.8;margin-top:4px;font-weight:700;">provas no acervo</div></div>
+                <div><div style="font-size:26px;font-weight:800;line-height:1;">{{ redKpiEspelho }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.8;margin-top:4px;font-weight:700;">com espelho oficial</div></div>
+                <div><div style="font-size:26px;font-weight:800;line-height:1;">{{ redKpiFeitas }}</div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.8;margin-top:4px;font-weight:700;">você já corrigiu</div></div>
+              </div>
+            </div>
+          </div>
+
           <!-- ===== BANCO DE DISCURSIVAS (linguagem brutalista, igual ao composer acima) ===== -->
           <div style="background:var(--surface);border:3px solid var(--ink);border-radius:0;padding:22px 24px;box-shadow:8px 8px 0 var(--border);">
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -2279,19 +2296,25 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <sc-if value="{{ isSim }}" hint-placeholder-val="{{ true }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div style="display:flex;flex-direction:column;gap:18px;">
         <!-- SIMULADO JOGÁVEL — veio do CátedraJURIS. Ao encerrar, preenche o formulário
-             de registro abaixo, e o resultado passa a contar no desempenho. -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
-            <div>
-              <div style="font-family:var(--display);font-weight:600;font-size:17px;color:var(--ink);">Fazer simulado agora</div>
-              <div style="font-size:12.5px;color:var(--text3);margin-top:3px;line-height:1.5;">Itens Certo/Errado montados do acervo de jurisprudência — metade com o núcleo trocado (prazo, competência, operador). Local, sem IA.</div>
+             de registro abaixo, e o resultado passa a contar no desempenho.
+             O card deixou de ser uma linha discreta com botão "Abrir": simulado é a ação
+             principal desta página, então ele abre a tela. -->
+        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:26px;color:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:999px;background:rgba(255,255,255,.08);pointer-events:none;"></div>
+          <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;">
+            <div style="max-width:560px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.82;">Treino cronometrado</div>
+              <div style="font-family:var(--display);font-weight:600;font-size:30px;line-height:1.12;margin-top:6px;letter-spacing:-.5px;">Fazer simulado agora</div>
+              <div style="font-size:13px;opacity:.92;margin-top:8px;line-height:1.6;">Itens Certo/Errado montados do acervo de jurisprudência — metade com o núcleo trocado (prazo, competência, operador). Ao encerrar, o resultado desce para o histórico e conta no seu desempenho.</div>
             </div>
-            <button onclick="{{ abrirSimuladoJogo }}" style="border:none;background:var(--accent);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Abrir</button>
+            <button onclick="{{ abrirSimuladoJogo }}" style="border:none;background:#fff;color:var(--accentD);border-radius:12px;padding:14px 26px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 8px 22px rgba(0,0,0,.16);white-space:nowrap;">{{ sjBotaoLabel }}</button>
           </div>
-          <sc-if value="{{ sjAberto }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        </div>
+        <sc-if value="{{ sjAberto }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+            <div>
               <sc-if value="{{ !sjPronto }}" hint-placeholder-val="{{ true }}">
                 <div style="font-size:13px;color:var(--text3);">Carregando o acervo de jurisprudência…</div>
               </sc-if>
@@ -2354,8 +2377,8 @@ window.ctPdfLib = (function(){
                 </sc-if>
               </sc-if>
             </div>
-          </sc-if>
-        </div>
+          </div>
+        </sc-if>
 
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px;color:#fff;box-shadow:0 12px 34px rgba(16,24,40,.18);">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
@@ -5720,7 +5743,7 @@ class Component extends DCLogic {
     catch(_){ return false; }
   }
 
-  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); if(v==='oral') this._oralCarregarAcervo(); };
+  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); if(v==='oral') this._oralCarregarAcervo(); if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true})); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
@@ -6784,7 +6807,7 @@ class Component extends DCLogic {
     const acertos=its.filter(x=>r[x.id]===x.certo).length;
     const respondidas=its.filter(x=>r[x.id]!==undefined).length;
     return {
-      sjAberto:st.sjAberto, sjPronto:st.sjPronto, sjEmProva:its.length>0 && !st.sjFim, sjFim:st.sjFim,
+      sjAberto:st.sjAberto, sjBotaoLabel:(st.sjAberto?'Fechar':'Começar'), sjPronto:st.sjPronto, sjEmProva:its.length>0 && !st.sjFim, sjFim:st.sjFim,
       sjN:st.sjN, sjRamo:st.sjRamo,
       sjRamoOpts:[{v:'',label:'Todas as disciplinas',sel:!st.sjRamo}].concat(ramos.map(k=>({v:k,label:k+' ('+m[k]+')',sel:st.sjRamo===k}))),
       sjTotal:its.length, sjAcertos:acertos, sjRespondidas:respondidas, sjBrancos:its.length-respondidas,
@@ -10616,6 +10639,9 @@ class Component extends DCLogic {
       homeTimerDot:(this.state.timerRunning?'#34d399':'#5f7a6e'), homeTimerSub:(this.state.timerRunning?'EM CURSO · TOQUE P/ PAUSAR':'PARADO · TOQUE P/ INICIAR'),
       isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
       isRedacao:this.state.view==='redacao', navRedacao:navStyle('redacao'),
+      redKpiProvas:String(_bancoTodas.length||'—'),
+      redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.fonte_espelho).length||'—'),
+      redKpiFeitas:String((this.state.redHistory||[]).length),
       redText:this.state.redText, redWords:String(redWords), redWordsN:redWords, redCanSubmit, redBusy:this.state.redBusy, redIdle:!this.state.redBusy,
       redEnunciado:this.state.redEnunciado, onRedEnun:this.onRedEnun,
       bancoOpen:this.state.bancoOpen, toggleBanco:this.toggleBanco, bancoQ:this.state.bancoQ,
