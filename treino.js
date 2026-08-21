@@ -157,6 +157,21 @@
     if (w.CT_LEIS) return Promise.resolve(true);
     return carregarScript('leis-seca.js');
   }
+  /** Questões de provas oficiais de magistratura (A-E, gabarito e % de acerto) — questoes-prova.js. */
+  function acervoQuestoesProva() {
+    if (w.CT_QUESTOES_PROVA) return Promise.resolve(true);
+    return carregarScript('questoes-prova.js');
+  }
+
+  /** n questões de prova sorteadas, sem repetição, opcionalmente filtradas por trecho da disciplina. */
+  function sortearQuestoesProva(n, discs) {
+    var pool = (w.CT_QUESTOES_PROVA || []).slice();
+    if (discs && discs.length) pool = pool.filter(function (q) {
+      return discs.some(function (d) { return norm(q.disciplina).indexOf(norm(d)) >= 0 || norm(d).indexOf(norm(q.disciplina)) >= 0; });
+    });
+    for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    return pool.slice(0, Math.max(0, n | 0));
+  }
 
   /** Um artigo sorteado das leis escolhidas, com proposições grandes o bastante para arguir. */
   function sortearArtigo(siglas) {
@@ -493,6 +508,7 @@
 
   w.CT_TREINO = {
     acervoJuris: acervoJuris, acervoOral: acervoOral, acervoOralQ: acervoOralQ, acervoLeis: acervoLeis,
+    acervoQuestoesProva: acervoQuestoesProva, sortearQuestoesProva: sortearQuestoesProva,
     verbetes: verbetes, sortearArtigo: sortearArtigo, perguntaLei: perguntaLei,
     simuladoJuris: simuladoJuris, simuladoLeis: simuladoLeis,
     simuladoMisto: simuladoMisto, simuladoLeisEmbutidas: simuladoLeisEmbutidas, relatorio: relatorio,
