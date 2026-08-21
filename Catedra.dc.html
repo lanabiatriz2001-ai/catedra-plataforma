@@ -1051,6 +1051,7 @@ window.ctPdfLib = (function(){
               <div class="cth-chips">
                 <span class="cth-chip">🔥 <b>{{ sidebarStreak }}</b></span>
                 <sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip">🛡️ <b>{{ escudos }}</b> escudos</span></sc-if>
+                <sc-if value="{{ simNudgeShow }}" hint-placeholder-val="{{ false }}"><button data-view="simulados" onclick="{{ onNav }}" class="cth-chip" style="cursor:pointer;border:none;font:inherit;">📋 {{ simNudge }}</button></sc-if>
                 <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip">📅 <b>{{ cdDias }}</b> dias p/ prova</span></sc-if>
               </div>
             </div>
@@ -11178,6 +11179,11 @@ class Component extends DCLogic {
         titleColor: on?'var(--accentD)':'var(--ink)' }; }),
       cicloRestam, nextAction, hasNext:!!nextAction, allDone:(!nextAction && cicloTotal>0), cicloVazio:cicloTotal===0, cicloTemBlocos:cicloTotal>0, greeting, dateLabel, weekdayLabel,
       sidebarStreak:String(B.streak), tempoHoje,
+      // ritual do simulado semanal: cutuca quando passa de 7 dias sem simulado registrado
+      ...(()=>{ const ss=(this.state.sessions||[]).filter(x=>x.disc==='Simulado'||((x.categorias||[]).indexOf('Simulado')>=0)||x.categoria==='Simulado');
+        const ult=ss.length?ss.map(x=>x.date||'').sort().pop():'';
+        const dias=ult?Math.floor((Date.now()-new Date(ult+'T12:00:00').getTime())/864e5):null;
+        return { simNudgeShow:(dias===null||dias>=7), simNudge:(dias===null?'Nenhum simulado ainda — fazer o primeiro':dias+' dias sem simulado — fazer agora') }; })(),
       escudos:String(this.state.escudos||0), escudoOn:(this.state.escudos||0)>0, escudosProxDias:String(B.streak>0?(7-(B.streak%7))%7||7:7),
       escudoProxLabel:(()=>{ const e=this.state.escudos||0; if(e>=3) return '🛡️ 3/3 escudos (máx)';
         const d=B.streak>0?(7-(B.streak%7))%7||7:7; return '🛡️ '+e+' escudo(s) · próximo em '+d+'d'; })(),
