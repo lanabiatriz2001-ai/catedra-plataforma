@@ -17,7 +17,8 @@ import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 globalThis.window = globalThis.window || {};
-new Function('window', readFileSync(join(ROOT, 'discursivas.js'), 'utf8'))(globalThis.window);
+const FONTE = (() => { try { readFileSync(join(ROOT, 'discursivas-completo.js')); return 'discursivas-completo.js'; } catch { return 'discursivas.js'; } })();
+new Function('window', readFileSync(join(ROOT, FONTE), 'utf8'))(globalThis.window);
 
 const SRC = globalThis.window.CT_DISCURSIVAS || [];
 if (!SRC.length) throw new Error('discursivas.js não trouxe questão nenhuma');
