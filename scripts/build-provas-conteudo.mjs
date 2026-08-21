@@ -16,6 +16,7 @@ import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const DISC_ARQ = (() => { try { readFileSync(join(ROOT, 'discursivas-completo.js')); return 'discursivas-completo.js'; } catch { return 'discursivas.js'; } })();  // pós-split (21/08): a fonte íntegra é o -completo; rode build-discursivas-split.mjs depois
 const [PROVAS, ESPELHOS] = process.argv.slice(2);
 if (!PROVAS || !existsSync(PROVAS)) { console.error('uso: node scripts/build-provas-conteudo.mjs <provas> <espelhos>'); process.exit(1); }
 
@@ -103,7 +104,7 @@ function extrairEspelhoTexto(t) {
 }
 
 globalThis.window = {};
-new Function('window', readFileSync(join(ROOT, 'discursivas.js'), 'utf8'))(globalThis.window);
+new Function('window', readFileSync(join(ROOT, DISC_ARQ), 'utf8'))(globalThis.window);
 const LISTA = globalThis.window.CT_DISCURSIVAS || [];
 
 let comEnun = 0, comEsp = 0, comEspTexto = 0, ilegivel = 0, semArquivo = 0;
@@ -158,9 +159,9 @@ for (const q of LISTA) {
   }
 }
 
-const src = readFileSync(join(ROOT, 'discursivas.js'), 'utf8');
+const src = readFileSync(join(ROOT, DISC_ARQ), 'utf8');
 const cab = src.slice(0, src.indexOf('window.CT_DISCURSIVAS'));
-writeFileSync(join(ROOT, 'discursivas.js'), cab + 'window.CT_DISCURSIVAS = ' + JSON.stringify(LISTA, null, 1) + ';\n');
+writeFileSync(join(ROOT, DISC_ARQ), cab + 'window.CT_DISCURSIVAS = ' + JSON.stringify(LISTA, null, 1) + ';\n');
 console.log(`enunciados extraídos: ${comEnun} · espelhos (quesito) extraídos: ${comEsp} · espelhos (texto) extraídos: ${comEspTexto}`);
 console.log(`PDFs ilegíveis (fonte codificada): ${ilegivel} · sem arquivo baixado: ${semArquivo}`);
 console.log(`banco: ${LISTA.length} provas · com texto: ${LISTA.filter((q) => q.temTexto || !/Prova oficial|Enunciado na prova/i.test(q.enunciado)).length} · com espelho: ${LISTA.filter((q) => q.espelho && q.espelho.length).length}`);

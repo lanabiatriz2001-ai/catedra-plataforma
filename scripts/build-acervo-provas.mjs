@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const DISC_ARQ = (() => { try { readFileSync(join(ROOT, 'discursivas-completo.js')); return 'discursivas-completo.js'; } catch { return 'discursivas.js'; } })();  // pós-split (21/08): a fonte íntegra é o -completo; rode build-discursivas-split.mjs depois
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 
 // ---- ler o acervo do HTML (const D={...})
@@ -43,7 +44,7 @@ for (const q of QUE) {
 }
 
 globalThis.window = {};
-const srcJs = readFileSync(join(ROOT, 'discursivas.js'), 'utf8');
+const srcJs = readFileSync(join(ROOT, DISC_ARQ), 'utf8');
 new Function('window', srcJs)(globalThis.window);
 const atual = globalThis.window.CT_DISCURSIVAS || [];
 
@@ -123,7 +124,7 @@ for (const r of REG) {
 
 const lista = [...atual, ...novos];
 const cab = srcJs.slice(0, srcJs.indexOf('window.CT_DISCURSIVAS'));
-writeFileSync(join(ROOT, 'discursivas.js'), cab + 'window.CT_DISCURSIVAS = ' + JSON.stringify(lista, null, 1) + ';\n');
+writeFileSync(join(ROOT, DISC_ARQ), cab + 'window.CT_DISCURSIVAS = ' + JSON.stringify(lista, null, 1) + ';\n');
 console.log(`discursivas.js: ${atual.length} + ${novos.length} do acervo = ${lista.length} provas`);
 console.log(`  com espelho ponto a ponto: ${lista.filter((q) => q.espelho && q.espelho.length).length}`);
 console.log(`  com link do espelho oficial: ${lista.filter((q) => q.fonte_espelho).length}`);

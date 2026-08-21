@@ -24,10 +24,11 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const DISC_ARQ = (() => { try { readFileSync(join(ROOT, 'discursivas-completo.js')); return 'discursivas-completo.js'; } catch { return 'discursivas.js'; } })();  // pós-split (21/08): a fonte íntegra é o -completo; rode build-discursivas-split.mjs depois
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 
 globalThis.window = {};
-const srcJs = readFileSync(join(ROOT, 'discursivas.js'), 'utf8');
+const srcJs = readFileSync(join(ROOT, DISC_ARQ), 'utf8');
 new Function('window', srcJs)(globalThis.window);
 const atual = globalThis.window.CT_DISCURSIVAS || [];
 const fonte = JSON.parse(readFileSync(join(ROOT, 'scripts/fontes/espelhos-magistratura.json'), 'utf8'));
@@ -127,7 +128,7 @@ for (const e of fonte.espelhos) {
 
 const lista = [...atual, ...novos];
 const cab = srcJs.slice(0, srcJs.indexOf('window.CT_DISCURSIVAS'));
-writeFileSync(join(ROOT, 'discursivas.js'), cab + 'window.CT_DISCURSIVAS = ' + JSON.stringify(lista, null, 1) + ';\n');
+writeFileSync(join(ROOT, DISC_ARQ), cab + 'window.CT_DISCURSIVAS = ' + JSON.stringify(lista, null, 1) + ';\n');
 console.log(`discursivas.js: ${atual.length} existentes + ${novos.length} espelhos oficiais = ${lista.length} itens`);
 console.log(`  quesitos adicionados: ${novos.reduce((s, x) => s + x.espelho.length, 0)}`);
 console.log(`  não localizados registrados na fonte: ${(fonte.nao_localizados || []).length} (não entram)`);

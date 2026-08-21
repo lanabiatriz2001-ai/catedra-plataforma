@@ -3145,7 +3145,7 @@ window.ctPdfLib = (function(){
         <iframe data-ct-frame="{{ areaModFrameSrc }}" title="Módulo de estudo da área" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
       <sc-if value="{{ isRoteiros }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="pecas-web.html" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+        <iframe data-ct-frame="{{ roteirosFrameSrc }}" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
       <sc-if value="{{ isLegis }}" hint-placeholder-val="{{ false }}">
         <iframe data-ct-frame="{{ legisFrameSrc }}" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
@@ -4854,6 +4854,9 @@ class Component extends DCLogic {
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'', acervoBusca:'',
+      // De onde a pessoa saiu para o acervo (bloco do roteiro ou ato do fluxograma) e,
+      // no sentido inverso, para onde a volta deve cair. Sem isto o ⚖️ era mão única.
+      acervoOrigem:null, voltaAlvo:null,
       adminGrupos:[], adminAllow:[], adminAllowInput:'', adminDetalhe:null, adminDetalheBusy:false,
       // console de administração: aba aberta, recorte da lista de contas e a gaveta
       // da conta selecionada (admConfirmTxt é o e-mail digitado na zona de risco —
@@ -4949,6 +4952,7 @@ class Component extends DCLogic {
     // regravava tudo e subia o blob inteiro pra nuvem sem nenhuma edição.
     { const L=this._lastSaved||(this._lastSaved={}); this._autosaveKeys().forEach(k=>{ L[k]=this.state[k]; }); }
     this._montarFrames();
+    this._prevView=this.state.view;
     this._onR = ()=>{ const m = window.innerWidth<900; if(m!==this.state.isMobile) this.setState({isMobile:m}); };
     window.addEventListener('resize', this._onR);
     this._onKey = (e)=>{ if(e.key==='Escape'){ if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.provaMode) this.exitProva(); else if(this.state.focusMode) this.setState({focusMode:false}); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
@@ -4974,7 +4978,20 @@ class Component extends DCLogic {
       if(!e||!e.data) return;
       if(e.data.type==='ctAbrirAcervo'){
         const alvo=e.data.alvo==='juris'?'juris':'legis';
-        this.setState({view:alvo, acervoBusca:String(e.data.termo||'')});
+        const o=e.data.origem||null;
+        // a origem viaja no ?de= do iframe e a barra de volta aparece lá dentro
+        this._acervoJump=true;
+        this.setState({view:alvo, acervoBusca:String(e.data.termo||''),
+          acervoOrigem:(o&&o.rotulo)?o:null});
+        return;
+      }
+      // Caminho de volta: o botão "voltar ao roteiro/fluxograma" do legis/juris pede
+      // para reabrir a tela de origem no ponto exato — a peça no bloco, o rito no ato.
+      if(e.data.type==='ctVoltarOrigem'){
+        const o=this.state.acervoOrigem; if(!o) return;
+        const destino=(o.view==='areamod')?'areamod':'roteiros';
+        this._voltaJump=true; this._acervoJump=true;
+        this.setState({view:destino, voltaAlvo:o, acervoOrigem:null});
         return;
       }
       // Os iframes (LEGIS, JURIS, mapa de processo) NÃO têm window.claude: no app nativo
@@ -5415,7 +5432,19 @@ class Component extends DCLogic {
     }catch(_){ }
   }
   componentWillUnmount(){ if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pipMsgT) clearTimeout(this._pipMsgT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
-  componentDidUpdate(){ this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); }
+  componentDidUpdate(){ this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); }
+  // Trocou de tela por conta própria (menu, atalho)? Então a origem guardada e o alvo da
+  // volta morrem — senão a barra "você veio de…" reaparece numa visita solta ao acervo.
+  _limpaOrigem(){
+    if(this._prevView===this.state.view) return;
+    this._prevView=this.state.view;
+    const patch={};
+    if(this._acervoJump) this._acervoJump=false;
+    else if(this.state.acervoOrigem) patch.acervoOrigem=null;
+    if(this._voltaJump) this._voltaJump=false;
+    else if(this.state.voltaAlvo) patch.voltaAlvo=null;
+    if(Object.keys(patch).length) this.setState(patch);
+  }
 
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
@@ -6968,12 +6997,28 @@ class Component extends DCLogic {
   setBancoBanca = (e)=> this.setState({bancoBanca:e.currentTarget.value});
   toggleBancoSoEsp = ()=> this.setState({bancoSoEsp:!this.state.bancoSoEsp});
   setBancoTipo = (e)=> this.setState({bancoTipo:e.currentTarget.value});
+  // Textões (enunciado completo + padrão de resposta) moram em discursivas-textos.js e
+  // só carregam quando a pessoa ABRE uma prova — o catálogo de 7,6 MB estourava a
+  // memória do processo web no iPad físico e derrubava filtros e cards (21/08/2026).
+  _discTextos(){
+    if(window.CT_DISCURSIVAS_TEXTOS) return Promise.resolve(window.CT_DISCURSIVAS_TEXTOS);
+    if(this._discTextosP) return this._discTextosP;
+    this._discTextosP=new Promise((ok)=>{ const t=document.createElement('script'); t.src='./discursivas-textos.js';
+      t.onload=()=>ok(window.CT_DISCURSIVAS_TEXTOS||{}); t.onerror=()=>ok({}); document.head.appendChild(t); });
+    return this._discTextosP;
+  }
   // Levar a questão para o compositor: enunciado no ①, espelho no ③. O espelho vira
   // texto com o peso de cada quesito, que é o que o raio-X já sabe ler.
-  usarDiscursiva = (e)=>{
+  usarDiscursiva = async (e)=>{
     const id=e.currentTarget.getAttribute('data-id');
     const lista=(typeof window!=='undefined'&&window.CT_DISCURSIVAS)||[];
-    const q=lista.find(x=>x.id===id); if(!q) return;
+    const q0=lista.find(x=>x.id===id); if(!q0) return;
+    // funde o texto completo por cima do resumo do catálogo
+    let q=q0;
+    if(q0.temTextoFull||q0.temEspelhoTexto){
+      const T=await this._discTextos(); const tx=T[id]||{};
+      q={...q0, enunciado:(tx.en||q0.enunciado), espelhoTexto:(tx.et||'')};
+    }
     // Vários espelhos já vêm com o quesito numerado ("1. Sistemas de aplicação…"). Sem
     // tirar esse prefixo, a lista sai "1. 1. Sistemas…".
     const esp=(q.espelho||[]).map((x,i)=>{
@@ -8810,7 +8855,7 @@ class Component extends DCLogic {
       if(this.state.bancoTipo && (q.tipo||'discursiva')!==this.state.bancoTipo) return false;
       // "só com espelho": quesito a quesito OU link do PDF oficial — nos dois casos há
       // critério de correção; sem nenhum dos dois a prova serve só para treinar redação.
-      if(this.state.bancoSoEsp && !((q.espelho&&q.espelho.length) || q.espelhoTexto || q.fonte_espelho)) return false;
+      if(this.state.bancoSoEsp && !((q.espelho&&q.espelho.length) || q.temEspelhoTexto || q.fonte_espelho)) return false;
       if(!_bq) return true;
       return ((q.tema||'')+' '+(q.enunciado||'')+' '+(q.orgao||'')+' '+(q.banca||'')+' '+(q.ano||'')+' '+(q.cargo||'')+' '+(q.carreira||'')).toLowerCase().includes(_bq);
     });
@@ -8819,15 +8864,15 @@ class Component extends DCLogic {
       ehPeca:(q.tipo==='peca'||q.tipo==='sentenca'), tipoLabel:(q.tipo==='peca'?(q.peca||'Peça'):q.tipo==='sentenca'?'Sentença/peça':'Discursiva'),
       carreira:q.carreira||'',
       rotulo:[q.orgao,q.ano].filter(Boolean).join(' · ')+(q.banca?(' · '+q.banca):'')+(q.cargo?(' · '+q.cargo):''),
-      temEspelho:!!((q.espelho&&q.espelho.length)||q.espelhoTexto||q.fonte_espelho),
+      temEspelho:!!((q.espelho&&q.espelho.length)||q.temEspelhoTexto||q.fonte_espelho),
       selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):''))
-           :(q.espelhoTexto?'padrão de resposta oficial':(q.fonte_espelho?'espelho oficial em PDF':'sem espelho publicado')),
+           :(q.temEspelhoTexto?'padrão de resposta oficial':(q.fonte_espelho?'espelho oficial em PDF':'sem espelho publicado')),
       // cor por tipo de prova: a faixa no topo do card dá a leitura antes da leitura
       faixa:'height:4px;background:'+((q.tipo==='sentenca')?'#7c3aed':(q.tipo==='peca')?'#0ea5e9':'var(--accent)')+';',
       seloTipo:'font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:99px;'
         +'background:'+((q.tipo==='sentenca')?'rgba(124,58,237,.13);color:#6d28d9;':(q.tipo==='peca')?'rgba(14,165,233,.13);color:#0369a1;':'color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);'),
       seloEsp:'font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;'
-        +((q.espelho&&q.espelho.length)||q.espelhoTexto?'background:rgba(15,157,107,.14);color:#0f7f57;'
+        +((q.espelho&&q.espelho.length)||q.temEspelhoTexto?'background:rgba(15,157,107,.14);color:#0f7f57;'
           :(q.fonte_espelho?'background:rgba(245,158,11,.15);color:#b8770a;':'background:var(--surface2);color:var(--text3);')),
       resumo:String(q.enunciado||'').slice(0,190)+(String(q.enunciado||'').length>190?'…':''),
       fonte:q.fonte||'' }));
@@ -8856,14 +8901,29 @@ class Component extends DCLogic {
     // A área jurídica tem página PRÓPRIA: o módulo dela é o mapa dos ritos (Processo e
     // peças), não a lista de pontos de estudo do area-web. As demais áreas seguem no
     // area-web genérico.
+    // volta do acervo: o ponto de origem entra na URL do iframe, que é o único jeito de
+    // sobreviver à remontagem do frame quando a tela troca (ver _montarFrames)
+    const _volta=this.state.voltaAlvo;
     const areaModFrameSrc = (_area.id==='juridica')
-      ? 'ritos-web.html'
+      ? ('ritos-web.html' + ((_volta && _volta.view==='areamod' && _volta.rito)
+          ? ('?rito='+encodeURIComponent(_volta.rito)+'&passo='+(_volta.passo||0)) : ''))
       : ('area-web.html?area=' + encodeURIComponent(_area.id));
-    // O ?q= faz a página abrir já buscando o instituto que veio do mapa.
+    const roteirosFrameSrc = 'pecas-web.html'
+      + ((_volta && _volta.view!=='areamod' && _volta.peca)
+          ? ('?peca='+encodeURIComponent(_volta.peca)+'&bloco='+(_volta.bloco||0)) : '');
+    // O ?q= faz a página abrir já buscando o instituto que veio do mapa; o ?de= é o
+    // rótulo do ponto de origem, que vira a barra de volta dentro do acervo.
     const _acBusca=(this.state.acervoBusca||'').trim();
+    const _acOrig=this.state.acervoOrigem;
+    const _acQS=[];
+    if(_acBusca) _acQS.push('q='+encodeURIComponent(_acBusca));
+    if(_acOrig && _acOrig.rotulo){
+      _acQS.push('de='+encodeURIComponent(_acOrig.rotulo));
+      _acQS.push('deTipo='+encodeURIComponent(_acOrig.view||'roteiros'));
+    }
     const legisFrameSrc = 'legis-web.html?area=' + encodeURIComponent(this.state.areaEstudo||'')
-      + (_acBusca ? ('&q='+encodeURIComponent(_acBusca)) : '');
-    const jurisFrameSrc = 'juris-web.html' + (_acBusca ? ('?q='+encodeURIComponent(_acBusca)) : '');
+      + (_acQS.length ? ('&'+_acQS.join('&')) : '');
+    const jurisFrameSrc = 'juris-web.html' + (_acQS.length ? ('?'+_acQS.join('&')) : '');
     const areaEscolhida = !!this.state.areaEstudo;
     const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||'');
       return { id:a.id, emoji:a.emoji, label:a.label, desc:a.desc, check: on?'  ✓':'',
@@ -10936,7 +10996,7 @@ class Component extends DCLogic {
       areaJuridica, areaJuris, legisFrameSrc, areaEscolhida,
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
-      temAreaMod, areaModLabel, areaModFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
+      temAreaMod, areaModLabel, areaModFrameSrc, roteirosFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
       bancaAreas, bancaAreaConcDesc, setBancaAreaConc:this.setBancaAreaConc,
       bancaTiles, setBancaFoco:this.setBancaFoco, bancaStepNum,
       bancaMaterias, bancaMateriaFonte, setBancaArea:this.setBancaArea,
@@ -11117,7 +11177,7 @@ class Component extends DCLogic {
         return g? 'A correção sai contra o espelho oficial desta prova: quesito a quesito, na escala da banca.'
                 : 'Sem espelho cadastrado, a correção sai por critérios gerais — cole o espelho acima para a nota por quesito.';})(),
       redKpiProvas:String(_bancoTodas.length||'—'),
-      redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.espelhoTexto||q.fonte_espelho).length||'—'),
+      redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.temEspelhoTexto||q.fonte_espelho).length||'—'),
       redKpiFeitas:String((this.state.redHistory||[]).length),
       redText:this.state.redText, redWords:String(redWords), redWordsN:redWords, redCanSubmit, redBusy:this.state.redBusy, redIdle:!this.state.redBusy,
       redEnunciado:this.state.redEnunciado, onRedEnun:this.onRedEnun,
