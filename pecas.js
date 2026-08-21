@@ -26,105 +26,209 @@ window.CT_PECAS = {
 // ─────────────────────────────── SENTENÇA CÍVEL ───────────────────────────────
 'Sentença — treino guiado': {
   rito: 'Civil — conhecimento',
+  freq: 223,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
-  sobre: 'A peça que decide a prova de magistratura. Três elementos essenciais (relatório, fundamentação, dispositivo) e um punhado de itens que a banca conta um a um no espelho: prescrição enfrentada, congruência com o pedido, juros e correção com termo inicial, sucumbência, e o que fazer com a tutela concedida antes.',
+  sobre: 'A peça que decide a prova. Três elementos essenciais no art. 489 e um punhado de itens que o espelho conta um a um: preliminar enfrentada, prescrição decidida com contraditório, congruência com o pedido, juros e correção com índice e termo inicial, sucumbência pela regra certa e a sorte da tutela concedida no começo. Cada bloco abaixo abre a fórmula de redação correspondente.',
   blocos: [
     { nome: 'Cabeçalho e relatório',
-      deve: 'Nomes das partes, suma do pedido e da defesa, e o registro das principais ocorrências do processo. Relatório é histórico, não é opinião: nada de adiantar convencimento aqui.',
+      deve: 'Relatório é histórico, não é convencimento. Situa o examinador: quem pediu o quê, o que o réu respondeu e o que aconteceu no processo. Sintético, mas sem omitir pedido nenhum.',
+      itens: [
+        { t:'Partes e objeto', d:'nome das partes, natureza da ação e o que se pede — em duas ou três linhas.' },
+        { t:'Suma do pedido', d:'a causa de pedir e os pedidos, um a um. Pedido não relatado tende a virar pedido não julgado.' },
+        { t:'Suma da defesa', d:'preliminares suscitadas e teses de mérito. É a metade que mais se esquece.' },
+        { t:'Ocorrências relevantes', d:'tutela deferida ou indeferida, revelia, saneamento, provas produzidas, alegações finais.' }
+      ],
       lei: ['Elementos essenciais da sentença — CPC, art. 489, I',
             'Relatório dispensado no Juizado — Lei 9.099/95, art. 38'],
       juris: [],
-      erro: 'Escrever meia página de fatos e esquecer a suma da CONTESTAÇÃO. O espelho cobra os dois lados.' },
-
+      modelo: 'Vistos etc.\n\nFULANO DE TAL ajuizou a presente AÇÃO DE ... em face de BELTRANO DE TAL, ambos qualificados nos autos, alegando, em síntese, que ... . Requereu, ao final, ... . Atribuiu à causa o valor de R$ ... e juntou documentos.\n\nA tutela de urgência foi ... (deferida/indeferida) à fl. ... .\n\nRegularmente citado, o réu apresentou contestação (fls. ...), na qual suscitou preliminar de ... e, no mérito, sustentou que ... .\n\nHouve réplica (fls. ...). O feito foi saneado à fl. ..., oportunidade em que se fixaram como pontos controvertidos ... . Em audiência de instrução, foram colhidos ... . As partes apresentaram alegações finais.\n\nÉ o relatório. DECIDO.',
+      erro: 'Escrever meia página de fatos e esquecer a suma da contestação. O espelho cobra os dois lados, e o relatório é a parte mais barata de pontuar.' },
     { nome: 'Questões prévias e preliminares',
-      deve: 'Enfrentar, antes do mérito, o que impede julgá-lo: pressupostos processuais, condições da ação, e as preliminares que a parte levantou. Rejeitar também é enfrentar — e tem de vir fundamentado.',
+      deve: 'Antes do mérito, o que impede julgá-lo. Rejeitar também é enfrentar, e tem de vir fundamentado — uma linha de motivo por preliminar já basta.',
+      itens: [
+        { t:'De ofício', d:'pressupostos processuais, condições da ação, litispendência, coisa julgada, perempção — o juiz conhece a qualquer tempo.' },
+        { t:'Só se alegadas', d:'convenção de arbitragem e incompetência relativa não se conhecem de ofício.' },
+        { t:'Que geram providência', d:'incapacidade, defeito de representação, ausência de caução — saneia-se em vez de extinguir.' },
+        { t:'Ordem de exame', d:'primeiro o que extingue, depois o que sanea. Acolhida uma que extingue, as demais ficam prejudicadas — e diga isso.' }
+      ],
       lei: ['Extinção sem resolução de mérito — CPC, art. 485',
             'Preliminares de contestação — CPC, art. 337',
-            'Matérias cognoscíveis de ofício — CPC, art. 337, § 5º'],
+            'Matérias não cognoscíveis de ofício — CPC, art. 337, § 5º',
+            'Saneamento de vícios — CPC, art. 352'],
       juris: [],
-      erro: 'Ir direto ao mérito deixando uma preliminar sem resposta. Preliminar não enfrentada é ponto perdido no espelho e nulidade por omissão na vida real.' },
-
+      modelo: 'DAS PRELIMINARES\n\nO réu suscitou preliminar de ilegitimidade passiva, ao argumento de que ... . Não lhe assiste razão. A legitimidade se afere in statu assertionis, e a inicial imputa ao réu a conduta de ..., o que basta para colocá-lo no polo passivo. Rejeito a preliminar.\n\nSuperadas as questões preliminares, e presentes os pressupostos processuais e as condições da ação, passo ao exame do mérito.',
+      erro: 'Ir direto ao mérito deixando uma preliminar sem resposta. É ponto perdido no espelho e nulidade por omissão na vida real.' },
     { nome: 'Prescrição e decadência',
-      deve: 'Se houver, decidir. Reconhecer de ofício é possível, mas só depois de ouvir as partes — decisão surpresa é vedada.',
+      deve: 'Havendo, decidir. O juiz pode reconhecer de ofício — mas só depois de ouvir as partes. Decisão surpresa é vedada em qualquer grau.',
+      itens: [
+        { t:'Contraditório prévio', d:'antes de reconhecer de ofício, abra prazo. O art. 487, parágrafo único, é expresso, e dialoga com o art. 10.' },
+        { t:'Termo inicial', d:'da violação do direito, pela teoria da actio nata; em responsabilidade civil, da ciência do dano e da autoria.' },
+        { t:'Causas de impedimento e suspensão', d:'verificar antes de contar o prazo — a citação válida interrompe e retroage à propositura.' },
+        { t:'Decadência legal', d:'não se suspende nem se interrompe e é conhecível de ofício sem ressalva.' }
+      ],
       lei: ['Resolução de mérito por prescrição ou decadência — CPC, art. 487, II',
             'Contraditório prévio antes de decidir de ofício — CPC, art. 487, parágrafo único',
-            'Vedação à decisão surpresa — CPC, art. 10'],
-      juris: ['Prescrição — termo inicial'],
-      erro: 'Reconhecer prescrição de ofício sem abrir prazo. O art. 487, parágrafo único, é exatamente esse ponto e é dos mais cobrados.' },
-
+            'Vedação à decisão surpresa — CPC, art. 10',
+            'Interrupção pela citação — CPC, art. 240, § 1º',
+            'Prazos prescricionais — CC, arts. 189, 205 e 206',
+            'Decadência legal — CC, art. 207'],
+      juris: [],
+      modelo: 'DA PRESCRIÇÃO\n\nAntes do exame do mérito propriamente dito, e observado o contraditório prévio determinado à fl. ... (art. 487, parágrafo único, do CPC), passo a examinar a prescrição.\n\nA pretensão de ... sujeita-se ao prazo de ... anos (art. 206, § ..., do Código Civil). O termo inicial é a data em que ..., ou seja, .../.../... . A ação foi proposta em .../.../..., e a citação, ocorrida em .../.../..., retroage à data da propositura (art. 240, § 1º, do CPC).\n\nAssim, decorridos ... anos entre o termo inicial e a propositura, RECONHEÇO A PRESCRIÇÃO da pretensão.',
+      erro: 'Reconhecer prescrição de ofício sem abrir prazo. É dos pontos mais cobrados, e a sentença cai por vício de procedimento antes de discutir o mérito.' },
     { nome: 'Fundamentação — os fatos',
-      deve: 'Dizer o que ficou provado e por quê, apontando a prova. Distribuir o ônus da prova quando ele decidir a causa, e justificar se houver distribuição dinâmica.',
+      deve: 'Dizer o que ficou provado e por quê, apontando a prova concreta. Quando o ônus decidir a causa, distribuí-lo expressamente.',
+      itens: [
+        { t:'Fatos incontroversos', d:'separe-os logo: não dependem de prova e encurtam a fundamentação.' },
+        { t:'Prova de cada ponto controvertido', d:'documento de fl. ..., depoimento de ..., laudo de fl. ... — sempre com a remissão.' },
+        { t:'Ônus da prova', d:'ao autor o fato constitutivo; ao réu o impeditivo, modificativo ou extintivo. Quem não se desincumbe, perde.' },
+        { t:'Distribuição dinâmica', d:'só por decisão fundamentada, e nunca criando prova impossível para a outra parte.' },
+        { t:'Livre convencimento motivado', d:'o juiz aprecia livremente, mas indica na decisão as razões da formação do convencimento.' }
+      ],
       lei: ['Ônus da prova — CPC, art. 373',
-            'Distribuição dinâmica — CPC, art. 373, § 1º',
-            'Livre apreciação motivada — CPC, art. 371'],
+            'Distribuição dinâmica — CPC, art. 373, §§ 1º e 2º',
+            'Livre apreciação motivada — CPC, art. 371',
+            'Fatos que independem de prova — CPC, art. 374',
+            'Valoração da prova pericial — CPC, art. 479'],
       juris: [],
-      erro: 'Dizer "restou comprovado" sem apontar QUAL prova. O art. 489, § 1º, é a régua da banca: fundamentação genérica não é fundamentação.' },
-
+      modelo: 'DO MÉRITO\n\nÉ incontroverso nos autos que ... .\n\nA controvérsia cinge-se a ... .\n\nO conjunto probatório favorece a tese do autor. O documento de fl. ... demonstra que ... . No mesmo sentido, a testemunha ..., ouvida sob o crivo do contraditório, afirmou que ... (fl. ...). O laudo pericial de fls. ..., por sua vez, concluiu que ..., e não foi infirmado por prova em contrário.\n\nO réu, a quem incumbia a prova do fato impeditivo que alegou (art. 373, II, do CPC), dele não se desincumbiu, limitando-se a ... .',
+      erro: 'Escrever "restou comprovado" sem dizer QUAL prova comprovou. O art. 489, § 1º, é a régua da banca: fundamentação genérica não é fundamentação.' },
     { nome: 'Fundamentação — o direito',
-      deve: 'Enfrentar todos os argumentos capazes de infirmar a conclusão. Se invocar súmula, precedente ou enunciado, identificar seus fundamentos determinantes e mostrar que o caso se ajusta. Se deixar de aplicar precedente invocado pela parte, distinguir ou superar.',
-      lei: ['Sentença não fundamentada — CPC, art. 489, § 1º',
-            'Colisão de normas — CPC, art. 489, § 2º',
+      deve: 'Enfrentar todos os argumentos capazes de infirmar a conclusão. Invocando precedente, mostrar por que ele se ajusta ao caso; afastando o que a parte invocou, distinguir ou superar.',
+      itens: [
+        { t:'Subsunção', d:'norma aplicável, com o dispositivo, e a razão pela qual ela incide sobre os fatos provados.' },
+        { t:'Argumentos da parte', d:'enfrentar os que, se acolhidos, mudariam o resultado. Argumento irrelevante pode ser descartado, dizendo que é irrelevante.' },
+        { t:'Precedente invocado', d:'identificar os fundamentos determinantes e demonstrar o ajuste ao caso — ementa colada não fundamenta.' },
+        { t:'Distinguishing e overruling', d:'para não aplicar precedente invocado pela parte, é preciso distinguir o caso ou demonstrar a superação do entendimento.' },
+        { t:'Colisão de normas', d:'havendo ponderação, justificar o objeto, os critérios e as premissas fáticas que a fundamentam.' }
+      ],
+      lei: ['Sentença não fundamentada — CPC, art. 489, § 1º, I a VI',
+            'Ponderação e colisão de normas — CPC, art. 489, § 2º',
             'Precedentes obrigatórios — CPC, art. 927',
-            'Distinção e superação — CPC, art. 489, § 1º, V e VI'],
-      juris: ['Fundamentação — dever de enfrentamento'],
-      erro: 'Citar a ementa de um precedente sem mostrar por que ele se aplica AQUI. O inciso V pune exatamente isso.' },
-
-    { nome: 'Dispositivo',
-      deve: 'Acolher ou rejeitar, no todo ou em parte, os pedidos — nos limites do que foi pedido. Decisão certa, líquida sempre que possível, com a extensão da obrigação definida desde logo.',
-      lei: ['Resolução do mérito — CPC, art. 487, I',
-            'Limites do pedido — CPC, art. 490 e art. 492',
-            'Congruência — CPC, art. 141',
-            'Obrigação de pagar: extensão, índice, juros e termo inicial — CPC, art. 491',
-            'Prestações periódicas — CPC, art. 323'],
+            'Dever de uniformidade e estabilidade — CPC, art. 926'],
       juris: [],
-      erro: 'Julgar ultra ou extra petita. E, no pedido de pagar quantia, esquecer que o art. 491 manda definir índice, juros e termos iniciais NA SENTENÇA — não deixar para a liquidação.' },
-
+      modelo: 'A questão se resolve pela aplicação do art. ... do Código Civil, segundo o qual ... .\n\nNo caso, provado que ..., incide o dispositivo, e a consequência é ... .\n\nO réu invocou o precedente firmado no ... . O caso, porém, não se ajusta: naquele julgado a razão de decidir foi ..., premissa ausente nestes autos, em que ... . Trata-se, pois, de hipótese distinta (distinguishing).\n\nOs demais argumentos deduzidos não têm aptidão para infirmar a conclusão, uma vez que ... .',
+      erro: 'Colar a ementa de um precedente sem mostrar por que ele se aplica aqui. O inciso V do § 1º pune exatamente isso, e o inciso VI pune o contrário — deixar de seguir sem distinguir.' },
+    { nome: 'Dispositivo',
+      deve: 'Acolher ou rejeitar os pedidos, nos limites do que foi pedido. Decisão certa, líquida sempre que possível, com a extensão da obrigação definida desde logo.',
+      itens: [
+        { t:'Congruência', d:'nem ultra, nem extra, nem citra petita. Pedido não apreciado é omissão; pedido a mais é nulidade.' },
+        { t:'Pedido por pedido', d:'diga o que acontece com cada um — procedente, improcedente ou prejudicado.' },
+        { t:'Liquidez', d:'na obrigação de pagar, a sentença define desde logo a extensão, o índice, os juros e os termos iniciais. Não empurre para a liquidação.' },
+        { t:'Prestações periódicas', d:'incluem-se as vincendas enquanto durar a obrigação, ainda que não pedidas expressamente.' },
+        { t:'Obrigação de fazer', d:'fixar o prazo, o modo e a multa, com periodicidade e teto.' }
+      ],
+      lei: ['Resolução do mérito — CPC, art. 487, I',
+            'Limites do pedido — CPC, arts. 141, 490 e 492',
+            'Extensão, índice, juros e termos iniciais — CPC, art. 491',
+            'Prestações periódicas — CPC, art. 323',
+            'Tutela específica e multa — CPC, arts. 497 e 537'],
+      juris: [],
+      modelo: 'Ante o exposto, com fundamento no art. 487, I, do Código de Processo Civil, JULGO PARCIALMENTE PROCEDENTES os pedidos, para:\n\na) CONDENAR o réu a pagar ao autor a quantia de R$ ... (...), a título de danos materiais, corrigida monetariamente desde o efetivo prejuízo (.../.../...) e acrescida de juros de mora desde a citação;\n\nb) CONDENAR o réu ao pagamento de R$ ... (...), a título de danos morais, corrigidos monetariamente a partir desta data e acrescidos de juros de mora desde o evento danoso (.../.../...);\n\nc) JULGAR IMPROCEDENTE o pedido de ..., ante ... .',
+      erro: 'Julgar ultra ou extra petita — e, no pedido de pagar quantia, esquecer que o art. 491 manda definir índice, juros e termos iniciais NA SENTENÇA.' },
     { nome: 'Juros, correção e termos iniciais',
-      deve: 'Fixar índice e termo inicial de cada um, e dizer de onde vêm. Dano moral corrige do arbitramento; responsabilidade extracontratual tem juros do evento danoso; dano material corrige do efetivo prejuízo. Contra a Fazenda, o regime é próprio.',
-      lei: ['Juros e correção — CC, arts. 389 e 406',
-            'Atualização das condenações contra a Fazenda — CPC, art. 534'],
-      juris: ['Súmula 362 do STJ', 'Súmula 54 do STJ', 'Súmula 43 do STJ',
-              'Tema 810 do STF', 'Tema 905 do STJ'],
-      erro: 'Escrever "juros e correção na forma da lei". A banca quer o índice, o termo inicial e a fonte de cada um — é onde a sentença mais perde ponto por preguiça.' },
-
+      deve: 'Índice e termo inicial de cada verba, com a fonte de cada um. É o bloco em que a sentença mais perde ponto por preguiça de escrever.',
+      itens: [
+        { t:'Índice legal desde 2024', d:'a Lei 14.905/2024 alterou o Código Civil: a correção segue o índice do parágrafo único do art. 389 (IPCA) e os juros, a taxa legal do art. 406 — Selic deduzida a correção, e zero se o resultado for negativo.' },
+        { t:'Dano moral', d:'correção a partir do arbitramento — a data da sentença.' },
+        { t:'Dano material', d:'correção desde o efetivo prejuízo.' },
+        { t:'Responsabilidade extracontratual', d:'juros desde o evento danoso.' },
+        { t:'Responsabilidade contratual', d:'juros da citação, ou do vencimento se a obrigação for positiva e líquida com termo certo.' },
+        { t:'Contra a Fazenda', d:'regime próprio, definido nos temas de repercussão geral e de repetitivo.' }
+      ],
+      lei: ['Perdas e danos e atualização — CC, art. 389 e parágrafo único',
+            'Taxa legal de juros — CC, art. 406 e §§',
+            'Juros nas obrigações a termo — CC, art. 397',
+            'Cumprimento contra a Fazenda — CPC, art. 534'],
+      juris: ['Correção do dano moral a partir do arbitramento — Súmula 362 do STJ',
+              'Juros do evento danoso na responsabilidade extracontratual — Súmula 54 do STJ',
+              'Correção do dano material desde o efetivo prejuízo — Súmula 43 do STJ',
+              'Correção das condenações contra a Fazenda — STF, RE 870.947, Tema 810',
+              'Índices de correção e juros nas condenações contra a Fazenda — STJ, REsp 1.495.146, Tema 905'],
+      modelo: 'Sobre a condenação incidirão correção monetária pelo índice previsto no parágrafo único do art. 389 do Código Civil e juros de mora à taxa legal do art. 406 do mesmo diploma, na redação da Lei 14.905/2024, observados os seguintes termos iniciais:\n\n— danos materiais: correção desde o efetivo prejuízo (Súmula 43 do STJ) e juros desde o evento danoso (Súmula 54 do STJ);\n\n— danos morais: correção a partir desta data, do arbitramento (Súmula 362 do STJ), e juros desde o evento danoso.',
+      erro: 'Escrever "juros e correção na forma da lei". A banca quer o índice, o termo inicial e a fonte de cada um — três informações, não uma remissão genérica.' },
     { nome: 'Sucumbência',
-      deve: 'Custas e honorários ao vencido, com o percentual dentro da faixa legal. Se cada parte perdeu em algo, distribuir proporcionalmente; se a perda de uma foi mínima, a outra responde por tudo. Contra a Fazenda, os percentuais escalonados por faixa de valor.',
-      lei: ['Honorários advocatícios — CPC, art. 85, §§ 2º e 3º',
-            'Honorários por equidade — CPC, art. 85, § 8º',
-            'Sucumbência recíproca e mínima — CPC, art. 86',
+      deve: 'Custas e honorários ao vencido, com o percentual dentro da faixa legal. Havendo perda recíproca, distribuir proporcionalmente; sendo mínima a de uma parte, a outra responde por tudo.',
+      itens: [
+        { t:'Percentual', d:'de 10% a 20% sobre o valor da condenação, do proveito econômico ou, não havendo, do valor atualizado da causa.' },
+        { t:'Contra a Fazenda', d:'faixas escalonadas do § 3º, aplicadas por faixa e não sobre o total.' },
+        { t:'Equidade', d:'só quando o proveito for inestimável ou irrisório, ou o valor da causa muito baixo. Causa de valor alto não comporta arbitramento equitativo.' },
+        { t:'Sucumbência recíproca', d:'proporcional; vedada a compensação entre os honorários das partes.' },
+        { t:'Gratuidade', d:'o beneficiário é condenado, mas a exigibilidade fica suspensa por cinco anos.' }
+      ],
+      lei: ['Honorários e faixas — CPC, art. 85, §§ 2º e 3º',
+            'Base de cálculo — CPC, art. 85, § 6º-A',
+            'Arbitramento por equidade — CPC, art. 85, § 8º',
+            'Vedação à compensação — CPC, art. 85, § 14',
+            'Sucumbência recíproca e mínima — CPC, art. 86 e parágrafo único',
             'Custas ao vencido — CPC, art. 82, § 2º',
-            'Gratuidade: suspensão da exigibilidade — CPC, art. 98, § 3º'],
-      juris: ['Honorários — sucumbência recíproca', 'Tema 1076 do STJ'],
-      erro: 'Arbitrar honorários "por equidade" numa causa de valor alto. O § 8º só entra quando o proveito é inestimável, irrisório ou o valor da causa muito baixo — fora disso, é a faixa do § 2º.' },
-
+            'Suspensão da exigibilidade na gratuidade — CPC, art. 98, § 3º'],
+      juris: ['Inaplicabilidade da equidade quando os valores são elevados — STJ, REsp 1.850.512, Tema 1076'],
+      modelo: 'Diante da sucumbência recíproca, e considerando que o autor decaiu de aproximadamente ...% de seus pedidos, distribuo os ônus na proporção de ...% para o autor e ...% para o réu, na forma do art. 86 do Código de Processo Civil, vedada a compensação (art. 85, § 14).\n\nCONDENO ainda as partes ao pagamento de honorários advocatícios, que fixo em ...% sobre o valor atualizado da condenação, na forma do art. 85, § 2º, do Código de Processo Civil, atendidos o grau de zelo do profissional, o lugar da prestação do serviço, a natureza e a importância da causa e o trabalho realizado.\n\nSuspensa a exigibilidade em relação ao autor, beneficiário da gratuidade, nos termos do art. 98, § 3º, do CPC.',
+      erro: 'Arbitrar honorários "por equidade" numa causa de valor elevado. O Tema 1076 do STJ fechou essa porta: fora das hipóteses do § 8º, é a faixa do § 2º.' },
     { nome: 'Providências finais',
-      deve: 'Confirmar, revogar ou modificar a tutela concedida antes. Verificar se cabe remessa necessária. Publique-se, registre-se, intimem-se.',
-      lei: ['Tutela: confirmação na sentença — CPC, art. 296',
+      deve: 'Resolver a sorte da tutela concedida antes, verificar a remessa necessária e fechar com as publicações. Sentença sem essas três linhas fica inacabada.',
+      itens: [
+        { t:'Tutela provisória', d:'confirmar, revogar ou modificar expressamente. Silêncio aqui é item em branco no espelho.' },
+        { t:'Remessa necessária', d:'verificar se é caso e se incide alguma das dispensas por valor ou por precedente.' },
+        { t:'Hipoteca judiciária', d:'a decisão que condena a pagar vale como título de hipoteca judiciária, independentemente de pedido.' },
+        { t:'Limites da alteração', d:'publicada a sentença, o juiz só a altera para corrigir erro material ou por embargos de declaração.' },
+        { t:'Fecho', d:'custas, publique-se, registre-se, intimem-se, e o arquivamento após o trânsito.' }
+      ],
+      lei: ['Confirmação da tutela na sentença — CPC, art. 296',
             'Remessa necessária — CPC, art. 496',
-            'Dispensa da remessa — CPC, art. 496, §§ 3º e 4º',
+            'Dispensas da remessa — CPC, art. 496, §§ 3º e 4º',
             'Hipoteca judiciária — CPC, art. 495',
             'Alteração da sentença publicada — CPC, art. 494'],
       juris: [],
-      erro: 'Não dizer nada sobre a liminar que foi deferida no começo do processo. A sentença tem de resolver a sorte dela — silêncio aqui é item em branco no espelho.' }
+      modelo: 'CONFIRMO a tutela de urgência deferida à fl. ... .\n\nDeixo de submeter a sentença ao reexame necessário, por se tratar de condenação em valor certo inferior ao limite do art. 496, § 3º, ..., do Código de Processo Civil.\n\nCustas na forma acima.\n\nPublique-se. Registre-se. Intimem-se.\n\nTransitada em julgado, arquivem-se com as cautelas de estilo.\n\nLocal, data.\nJuiz de Direito',
+      erro: 'Não dizer nada sobre a liminar deferida no começo do processo. A sentença tem de resolver a sorte dela — e o art. 296 existe exatamente para isso.' }
   ],
   cego: [
     'Relatório com a suma do pedido E da defesa',
-    'Preliminares enfrentadas uma a uma',
-    'Prescrição/decadência decidida (e, se de ofício, com contraditório prévio)',
-    'Prova apontada, não só afirmada',
+    'Todos os pedidos e todas as teses relatados',
+    'Preliminares enfrentadas uma a uma, com motivo',
+    'Prescrição ou decadência decidida, com contraditório prévio se de ofício',
+    'Fatos incontroversos separados dos controvertidos',
+    'Prova apontada com a folha, não só afirmada',
     'Ônus da prova distribuído quando decide a causa',
+    'Precedente invocado com os fundamentos determinantes',
+    'Distinção ou superação, ao afastar precedente da parte',
     'Todos os argumentos capazes de infirmar a conclusão enfrentados',
     'Dispositivo dentro dos limites do pedido',
-    'Extensão da obrigação, índice, juros e termos iniciais fixados',
+    'Cada pedido com destino declarado',
+    'Extensão da obrigação definida na sentença',
+    'Índice, juros e termos iniciais de cada verba',
     'Sucumbência com percentual e regra (art. 85 ou 86)',
+    'Vedação à compensação observada',
     'Sorte da tutela provisória resolvida',
-    'Remessa necessária verificada'
+    'Remessa necessária verificada',
+    'P. R. I. e arquivamento'
+  ],
+  dicas: [
+    { t:'Antes de escrever, liste os pedidos numa margem e vá riscando conforme o dispositivo os resolve. É o que impede a sentença citra petita, que é o erro mais caro da peça.', alerta:false },
+    'Grife no enunciado tudo que tem data: prescrição, termo inicial de juros, termo inicial de correção. Datas no enunciado quase nunca são decorativas.',
+    'Fato incontroverso não precisa de prova nem de fundamentação longa. Reconhecê-lo logo economiza meia página.',
+    'Se for rejeitar tudo por uma preliminar, ainda assim enfrente o mérito em caráter subsidiário quando a banca der elementos — muitos espelhos pontuam os dois.',
+    'A ordem do art. 489 é obrigatória, mas dentro da fundamentação você escolhe a sequência. Fatos antes do direito rende mais que o contrário.',
+    'Honorários: primeiro identifique a base (condenação, proveito ou valor da causa), depois o percentual. Invertendo a ordem, o cálculo sai errado.',
+    { t:'Reconhecer prescrição ou decadência de ofício exige contraditório prévio (art. 487, parágrafo único, e art. 10). Não é formalidade: é o vício mais fácil de anular a sentença.', alerta:true },
+    { t:'O art. 491 manda definir extensão, índice, juros e termos iniciais NA SENTENÇA. Empurrar para a liquidação é item perdido, e em alguns espelhos vale mais de um ponto.', alerta:true },
+    { t:'Desde a Lei 14.905/2024 a correção e os juros legais mudaram de base: IPCA para correção e taxa legal (Selic deduzida a correção) para juros. Escrever "1% ao mês" está desatualizado.', alerta:true }
+  ],
+  especiais: [
+    { t:'Sentença contra a Fazenda Pública', d:'Honorários pelas faixas do art. 85, § 3º, aplicadas por faixa, não sobre o total. Remessa necessária, salvo as dispensas do § 3º por valor e do § 4º por precedente. Correção e juros seguem o Tema 810 do STF e o Tema 905 do STJ, e o cumprimento é o do art. 534, por precatório ou RPV.' },
+    { t:'Revelia', d:'A presunção do art. 344 é relativa e não alcança as hipóteses do art. 345. Réu revel citado por edital ou por hora certa tem curador especial (art. 72, II), e aí não há efeito material da revelia. Revelia não dispensa fundamentação — dispensa prova, não a decisão.' },
+    { t:'Julgamento parcial do mérito', d:'Quando um dos pedidos estiver maduro, o art. 356 permite julgá-lo desde logo, por decisão interlocutória impugnável por agravo de instrumento (§ 5º). A parte julgada é liquidável e executável de imediato, inclusive definitivamente após o trânsito.' },
+    { t:'Obrigação de fazer e astreintes', d:'A multa do art. 537 pode ser fixada de ofício, alterada a qualquer tempo se insuficiente ou excessiva, e não faz coisa julgada material quanto ao valor. Fixe periodicidade e teto — multa sem limite é reduzida em grau recursal.' },
+    { t:'Sentença ilíquida', d:'Só se admite nas hipóteses do art. 491, I e II: quando não for possível determinar o valor devido de modo definitivo, ou quando a apuração depender de prova demorada ou excessivamente dispendiosa. Fora disso, a sentença tem de ser líquida — e no Juizado a ilíquida é vedada (Lei 9.099/95, art. 38, parágrafo único).' },
+    { t:'Dano moral', d:'O arbitramento exige método: diga os critérios que usou — extensão do dano, capacidade econômica das partes, caráter pedagógico — e o valor. Correção a partir do arbitramento (Súmula 362 do STJ), e os juros seguem a natureza da responsabilidade: evento danoso na extracontratual, citação na contratual.' }
   ]
 },
 
 // ─────────────────────────────── SENTENÇA PENAL ───────────────────────────────
 'Sentença penal — treino guiado': {
   rito: 'Penal — procedimento comum',
+  freq: 36,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
   sobre: 'A peça mais cobrada na segunda fase criminal. O esqueleto vem do art. 381 do CPP; o que separa a nota boa da nota média é a ORDEM interna — preliminar no lugar certo, mérito crime por crime, e dosimetria individualizada por réu, em três fases explícitas. Cada bloco abaixo abre a fórmula de redação correspondente.',
   blocos: [
@@ -365,159 +469,387 @@ window.CT_PECAS = {
 // ─────────────────────────────────────────────────────────────────────────────
 'Decisão saneadora': {
   rito: 'Civil — conhecimento',
+  freq: 4,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
-  sobre: 'O art. 357 do CPC é uma lista de cinco providências, e o espelho cobra uma a uma. Sanear não é despachar "especifiquem provas": é resolver o que ficou pendente, fixar o que vai ser provado, dizer de quem é o ônus e organizar a instrução.',
+  sobre: 'O art. 357 é uma lista de cinco providências, e o espelho cobra uma a uma. Sanear não é despachar "especifiquem provas": é resolver o que ficou pendente, dizer o que vai ser provado, de quem é o ônus, quais questões de direito decidem a causa e como será a instrução. Decisão interlocutória — mas a que mais organiza o processo.',
   blocos: [
     { nome: 'Resolver as questões processuais pendentes',
-      deve: 'Decidir o que sobrou de processual — preliminares da contestação, irregularidades de representação, ilegitimidade, conexão, competência. Rejeitar também é decidir: tem de vir fundamentado.',
-      lei: ['Providências preliminares e saneamento — CPC, art. 357, I', 'Preliminares de contestação — CPC, art. 337', 'Extinção sem resolução de mérito — CPC, art. 485'],
+      deve: 'Decidir o que sobrou de processual. Rejeitar também é decidir, e tem de vir fundamentado — uma linha de motivo por questão.',
+      itens: [
+        { t:'Preliminares da contestação', d:'percorrer o rol do art. 337 quanto ao que foi suscitado, acolhendo ou rejeitando expressamente.' },
+        { t:'Vícios sanáveis', d:'irregularidade de representação, falta de procuração, ausência de documento — o saneamento é o momento de mandar corrigir, não de extinguir.' },
+        { t:'Competência e conexão', d:'resolver o que ficou pendente; conexão gera reunião, não extinção.' },
+        { t:'Legitimidade e interesse', d:'aferidos in statu assertionis; havendo ilegitimidade manifesta, extingue-se aqui, sem esperar a sentença.' },
+        { t:'Prejudiciais que encurtam', d:'se houver prescrição ou decadência já madura, é possível julgar antecipadamente o mérito em vez de sanear — mas com contraditório prévio.' }
+      ],
+      lei: ['Saneamento e organização — CPC, art. 357, I',
+            'Preliminares de contestação — CPC, art. 337',
+            'Extinção sem resolução de mérito — CPC, art. 485',
+            'Saneamento de vícios — CPC, art. 352',
+            'Julgamento antecipado do mérito — CPC, art. 355'],
       juris: [],
-      erro: 'Deixar uma preliminar sem resposta e ir direto para as provas. No espelho isso é ponto perdido; no processo, nulidade por omissão.' },
+      modelo: 'Vistos em saneamento.\n\n1. DAS QUESTÕES PROCESSUAIS PENDENTES\n\nO réu suscitou preliminar de ..., ao argumento de que ... . Rejeito-a, porquanto ... .\n\nNão há outras nulidades a sanar. Presentes os pressupostos processuais e as condições da ação, DECLARO SANEADO o processo.',
+      erro: 'Deixar uma preliminar sem resposta e ir direto para as provas. No espelho é ponto perdido; no processo, nulidade por omissão.' },
     { nome: 'Delimitar as questões de fato e definir os meios de prova',
       deve: 'Dizer QUAIS fatos ficaram controvertidos e, para cada um, qual prova será produzida. É aqui que se defere ou indefere perícia, testemunhal e depoimento pessoal — com motivo.',
-      lei: ['Delimitação das questões de fato — CPC, art. 357, II', 'Indeferimento de provas inúteis ou protelatórias — CPC, art. 370, parágrafo único', 'Fatos que independem de prova — CPC, art. 374'],
+      itens: [
+        { t:'Separar o incontroverso', d:'fato admitido, notório ou confessado não precisa de prova. Registrar isso encurta a instrução.' },
+        { t:'Um ponto controvertido por vez', d:'liste-os numerados: "1) se houve o defeito; 2) a extensão do dano; 3) o nexo".' },
+        { t:'Prova para cada ponto', d:'perícia para o ponto 1, testemunhal para o ponto 2, e assim por diante. Prova sem finalidade é prova indeferida.' },
+        { t:'Indeferimento motivado', d:'prova inútil, impertinente ou meramente protelatória se indefere — mas dizendo por quê, sob pena de cerceamento.' },
+        { t:'Perícia', d:'nomear o perito, fixar prazo, e abrir 15 dias para quesitos e assistente técnico.' }
+      ],
+      lei: ['Delimitação das questões de fato — CPC, art. 357, II',
+            'Fatos que independem de prova — CPC, art. 374',
+            'Indeferimento de provas inúteis ou protelatórias — CPC, art. 370, parágrafo único',
+            'Nomeação do perito e prazo para quesitos — CPC, art. 465'],
       juris: [],
+      modelo: '2. DAS QUESTÕES DE FATO CONTROVERTIDAS E DOS MEIOS DE PROVA\n\nSão incontroversos: a existência do contrato de fls. ... e a data do pagamento.\n\nFixo como pontos controvertidos:\n(i) se o serviço foi prestado nos moldes contratados;\n(ii) a extensão do dano material alegado;\n(iii) a ocorrência de dano moral.\n\nPara o ponto (i), DEFIRO a prova testemunhal e o depoimento pessoal das partes. Para o ponto (ii), DEFIRO a prova pericial contábil, nomeando desde já o perito ..., que deverá apresentar proposta de honorários em 5 dias; facultado às partes, em 15 dias, indicar assistente técnico e apresentar quesitos (art. 465, § 1º, do CPC). Para o ponto (iii), a prova é documental e já se encontra nos autos.\n\nINDEFIRO a prova ... requerida pelo autor, por impertinente ao objeto da lide (art. 370, parágrafo único, do CPC).',
       erro: 'Escrever "defiro a produção de provas" sem dizer quais fatos elas servem para provar. Isso não delimita nada e devolve a bagunça para a audiência.' },
     { nome: 'Distribuir o ônus da prova',
-      deve: 'Fixar o ônus na regra do art. 373 e, se for o caso, invertê-lo de forma motivada — sempre dando à parte a oportunidade de se desincumbir do encargo.',
-      lei: ['Ônus da prova — CPC, art. 373', 'Distribuição dinâmica — CPC, art. 373, § 1º', 'Vedação à prova diabólica — CPC, art. 373, § 2º', 'Inversão no consumo — CDC, art. 6º, VIII'],
+      deve: 'Fixar o ônus pela regra do art. 373 e, se for o caso, invertê-lo de forma motivada — sempre dando à parte a oportunidade de se desincumbir do encargo.',
+      itens: [
+        { t:'Regra estática', d:'ao autor o fato constitutivo; ao réu o impeditivo, modificativo ou extintivo.' },
+        { t:'Distribuição dinâmica', d:'por decisão fundamentada, quando houver peculiaridades ou dificuldade excessiva — e o juiz dá à parte a chance de se desincumbir.' },
+        { t:'Prova diabólica', d:'a inversão não pode gerar encargo impossível ou excessivamente difícil para a outra parte (§ 2º).' },
+        { t:'Consumo', d:'a inversão do art. 6º, VIII, do CDC é ope judicis e depende de verossimilhança ou hipossuficiência — decidida aqui, não na sentença.' },
+        { t:'Momento', d:'o saneamento é o momento próprio. Inverter na sentença surpreende quem já perdeu a chance de produzir a prova.' }
+      ],
+      lei: ['Ônus da prova — CPC, art. 373',
+            'Distribuição dinâmica — CPC, art. 373, § 1º',
+            'Vedação à prova diabólica — CPC, art. 373, § 2º',
+            'Convenção sobre o ônus — CPC, art. 373, §§ 3º e 4º',
+            'Inversão no consumo — CDC, art. 6º, VIII'],
       juris: [],
+      modelo: '3. DO ÔNUS DA PROVA\n\nO ônus da prova permanece distribuído na forma do art. 373, I e II, do Código de Processo Civil.\n\nOU\n\nTratando-se de relação de consumo, e presente a hipossuficiência técnica do autor para demonstrar ..., INVERTO o ônus da prova quanto ao ponto controvertido (i), com fundamento no art. 6º, VIII, do Código de Defesa do Consumidor e no art. 373, § 1º, do Código de Processo Civil, assegurando ao réu a oportunidade de se desincumbir do encargo, sem que disso resulte prova de difícil ou impossível produção (art. 373, § 2º).',
       erro: 'Inverter o ônus só na sentença. A inversão surpreende quem já perdeu a chance de produzir a prova; o momento próprio é o saneamento.' },
     { nome: 'Delimitar as questões de direito relevantes',
-      deve: 'Apontar as questões jurídicas que decidirão a causa. Serve para a instrução não gastar tempo com o que é irrelevante e para as partes saberem onde mirar.',
-      lei: ['Questões de direito relevantes — CPC, art. 357, IV'],
+      deve: 'Apontar as questões jurídicas que decidirão a causa. Serve para a instrução não gastar tempo com o irrelevante e para as partes saberem onde mirar.',
+      itens: [
+        { t:'O que entra', d:'a tese jurídica de que depende o resultado: prescrição, natureza da responsabilidade, incidência do CDC, validade de cláusula.' },
+        { t:'O que não entra', d:'questão que não muda o resultado, ainda que discutida pelas partes — diga que é irrelevante e por quê.' },
+        { t:'Precedente aplicável', d:'havendo tema repetitivo ou súmula vinculante sobre o ponto, registrar desde já, para orientar a instrução.' }
+      ],
+      lei: ['Questões de direito relevantes — CPC, art. 357, IV',
+            'Precedentes obrigatórios — CPC, art. 927'],
       juris: [],
+      modelo: '4. DAS QUESTÕES DE DIREITO RELEVANTES\n\nSão relevantes para o julgamento:\n(a) a incidência ou não do Código de Defesa do Consumidor à relação em exame;\n(b) a natureza da responsabilidade do réu — objetiva ou subjetiva;\n(c) os critérios de arbitramento do dano moral.\n\nRegistro que a questão (a) é orientada pelo entendimento firmado no ..., cuja aplicação ao caso será examinada na sentença.',
       erro: 'Pular este inciso. É o mais esquecido dos cinco e costuma valer ponto autônomo no espelho.' },
     { nome: 'Designar audiência de instrução, se necessária',
-      deve: 'Designar a audiência e fixar o prazo comum para o rol de testemunhas (até 15 dias), com o limite de 10 testemunhas — 3 por fato.',
-      lei: ['Designação de audiência — CPC, art. 357, V', 'Rol de testemunhas e prazo — CPC, art. 357, § 4º', 'Número de testemunhas — CPC, art. 357, § 6º'],
+      deve: 'Designar a audiência e fixar o prazo comum para o rol de testemunhas, observando os limites de número.',
+      itens: [
+        { t:'Prazo do rol', d:'comum, não superior a 15 dias, fixado pelo juiz — não é prazo automático.' },
+        { t:'Número', d:'até 10 testemunhas no total, e no máximo 3 para cada fato.' },
+        { t:'Intimação', d:'cabe ao advogado informar ou intimar a testemunha por carta com AR; a intimação judicial é excepcional.' },
+        { t:'Dispensa', d:'não sendo necessária a audiência, o processo segue para conclusão — e diga isso expressamente.' }
+      ],
+      lei: ['Designação de audiência — CPC, art. 357, V',
+            'Prazo comum para o rol — CPC, art. 357, § 4º',
+            'Número de testemunhas — CPC, art. 357, § 6º',
+            'Intimação da testemunha pelo advogado — CPC, art. 455'],
       juris: [],
-      erro: 'Designar audiência sem abrir prazo para o rol, ou não limitar o número de testemunhas.' },
+      modelo: '5. DA AUDIÊNCIA\n\nDESIGNO audiência de instrução e julgamento para o dia .../.../..., às ...h.\n\nFixo o prazo comum de 15 dias para apresentação do rol de testemunhas, observado o limite de 10 no total e 3 para cada fato (art. 357, §§ 4º e 6º, do CPC).\n\nCabe ao advogado informar ou intimar a testemunha por carta com aviso de recebimento, na forma do art. 455 do CPC, juntando o comprovante aos autos com pelo menos 3 dias de antecedência.',
+      erro: 'Designar audiência sem abrir prazo para o rol, ou não limitar o número de testemunhas. São dois itens distintos do § 4º e do § 6º.' },
     { nome: 'Estabilizar a decisão e, quando couber, sanear em cooperação',
-      deve: 'Registrar o prazo de 5 dias para pedido de esclarecimento ou ajuste, findo o qual a decisão se torna estável. Em causa complexa, designar o saneamento compartilhado em audiência; havendo consenso, homologar a delimitação apresentada pelas partes.',
-      lei: ['Estabilidade em 5 dias — CPC, art. 357, § 1º', 'Delimitação consensual homologada — CPC, art. 357, § 2º', 'Saneamento compartilhado em causa complexa — CPC, art. 357, § 3º'],
+      deve: 'Registrar o prazo de 5 dias para pedido de esclarecimento ou ajuste, findo o qual a decisão se torna estável. Em causa complexa, designar o saneamento compartilhado em audiência.',
+      itens: [
+        { t:'Estabilização', d:'cinco dias para esclarecimento ou ajuste; passado o prazo, a decisão é estável e a matéria não volta.' },
+        { t:'Delimitação consensual', d:'as partes podem apresentar em conjunto a delimitação das questões de fato e de direito; homologada, vincula.' },
+        { t:'Saneamento compartilhado', d:'causa complexa em matéria de fato ou de direito comporta audiência para sanear em cooperação com as partes.' },
+        { t:'Recorribilidade', d:'a decisão de saneamento em geral não é agravável, salvo capítulo que se enquadre no art. 1.015 — como a redistribuição do ônus da prova.' }
+      ],
+      lei: ['Estabilidade em 5 dias — CPC, art. 357, § 1º',
+            'Delimitação consensual homologada — CPC, art. 357, § 2º',
+            'Saneamento compartilhado em causa complexa — CPC, art. 357, § 3º',
+            'Agravo contra redistribuição do ônus da prova — CPC, art. 1.015, XI'],
       juris: [],
-      erro: 'Ignorar o § 1º. Sem a estabilização, a discussão volta na apelação e o espelho cobra exatamente essa menção.' }
+      modelo: '6. Nos termos do art. 357, § 1º, do Código de Processo Civil, as partes têm o prazo comum de 5 (cinco) dias para pedir esclarecimentos ou solicitar ajustes, findo o qual esta decisão torna-se ESTÁVEL.\n\nIntimem-se.\n\nLocal, data.\nJuiz de Direito',
+      erro: 'Ignorar o § 1º. Sem a estabilização, a discussão volta na apelação — e o espelho cobra exatamente essa menção.' }
   ],
-  cego: [
-    'Preliminares e questões processuais pendentes decididas',
-    'Questões de fato controvertidas delimitadas, uma a uma',
-    'Meios de prova definidos para cada fato',
-    'Ônus da prova distribuído (art. 373) e, se invertido, motivado',
-    'Oportunidade de desincumbência assegurada na inversão',
-    'Questões de direito relevantes apontadas',
-    'Audiência designada quando necessária',
-    'Prazo comum para rol de testemunhas fixado',
-    'Limite de testemunhas observado',
-    'Prazo de 5 dias para ajuste e estabilização registrado'
+  cego: ['Preliminares e questões processuais pendentes decididas','Vícios sanáveis mandados corrigir',
+    'Fatos incontroversos separados','Questões de fato controvertidas numeradas',
+    'Meio de prova definido para cada ponto','Prova indeferida com motivo',
+    'Perícia com perito, prazo e quesitos','Ônus da prova distribuído (art. 373)',
+    'Inversão motivada e com oportunidade de desincumbência','Questões de direito relevantes apontadas',
+    'Audiência designada quando necessária','Prazo comum para rol de testemunhas fixado',
+    'Limite de 10 testemunhas e 3 por fato','Prazo de 5 dias para ajuste e estabilização registrado'],
+  dicas: [
+    'Escreva o saneamento em seis blocos numerados, na ordem do art. 357. O espelho é conferido item por item, e a numeração faz o corretor achar cada um.',
+    'Separe o incontroverso antes de tudo. Cada fato que sai da lista é uma prova a menos e meia página a menos.',
+    'Ponto controvertido bem escrito é uma pergunta fechada: "se houve o defeito", não "a questão da qualidade do serviço".',
+    'Indeferir prova exige motivo escrito. Indeferimento sem motivo é cerceamento de defesa, e é matéria de apelação garantida.',
+    { t:'A inversão do ônus da prova é decisão de saneamento, não de sentença. Inverter na sentença surpreende quem já perdeu a chance de produzir a prova — e é agravável pelo art. 1.015, XI.', alerta:true },
+    { t:'O inciso IV — questões de direito relevantes — é o mais esquecido dos cinco. Ele vale ponto autônomo em quase todo espelho de sentença cível prática.', alerta:true }
+  ],
+  especiais: [
+    { t:'Julgamento antecipado parcial', d:'Se um dos pedidos estiver maduro e o outro depender de prova, não sanei tudo: julgue parcialmente o mérito pelo art. 356 e saneie o restante. A decisão é interlocutória, agravável pelo § 5º, e a parte julgada já é liquidável e executável.' },
+    { t:'Negócio jurídico processual', d:'As partes plenamente capazes podem convencionar sobre ônus, poderes, faculdades e deveres processuais (art. 190) e apresentar calendário processual (art. 191). O juiz controla a validade e recusa apenas nos casos de nulidade, inserção abusiva em contrato de adesão ou vulnerabilidade manifesta.' },
+    { t:'Causa complexa', d:'O § 3º autoriza designar audiência para sanear em cooperação. É o caminho quando há muitas partes, muitos pedidos ou prova técnica difícil — e evita que a delimitação seja rediscutida no meio da instrução.' },
+    { t:'Prova emprestada e prova pericial simplificada', d:'A prova emprestada é admitida com contraditório (art. 372). Sendo o ponto de menor complexidade, cabe prova técnica simplificada, com o especialista inquirido em audiência (art. 464, §§ 2º a 4º) — mais rápida e frequentemente suficiente.' }
   ]
 },
 
 // ─────────────────────────────────────────────────────────────────────────────
 'Decisão da tutela': {
   rito: 'Civil — conhecimento',
+  freq: 84,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
-  sobre: 'Conceder ou negar tutela provisória é o teste de fundamentação da prova. A banca quer ver os requisitos ENFRENTADOS com os fatos do caso — não a fórmula "presentes os requisitos, defiro".',
+  sobre: 'Conceder ou negar tutela provisória é o teste de fundamentação da prova. A banca quer ver os requisitos ENFRENTADOS com os fatos do caso — não a fórmula "presentes os requisitos, defiro". E quer ver a espécie corretamente identificada, porque cada uma tem requisito próprio.',
   blocos: [
     { nome: 'Identificar a espécie pedida',
-      deve: 'Dizer se é tutela de urgência (cautelar ou antecipada) ou de evidência, e se é antecedente ou incidental. O requisito muda conforme a espécie, e trocar de espécie no meio do caminho derruba a fundamentação.',
-      lei: ['Espécies de tutela provisória — CPC, art. 294', 'Tutela antecipada antecedente — CPC, art. 303', 'Tutela cautelar antecedente — CPC, art. 305'],
+      deve: 'Dizer se é urgência (cautelar ou antecipada) ou evidência, e se é antecedente ou incidental. O requisito muda conforme a espécie, e trocar de espécie no meio derruba a fundamentação.',
+      itens: [
+        { t:'Urgência x evidência', d:'a urgência exige probabilidade e perigo; a evidência dispensa o perigo e se apoia na robustez do direito.' },
+        { t:'Antecipada x cautelar', d:'a antecipada satisfaz desde logo o que se pede; a cautelar assegura o resultado útil do processo.' },
+        { t:'Antecedente x incidental', d:'antecedente é pedida antes do pedido principal, com rito próprio; incidental, no curso do processo.' },
+        { t:'Fungibilidade', d:'pedida como cautelar e sendo o caso de antecipada — ou o contrário —, o juiz pode conceder na espécie correta.' }
+      ],
+      lei: ['Espécies de tutela provisória — CPC, art. 294 e parágrafo único',
+            'Tutela antecipada antecedente — CPC, art. 303',
+            'Tutela cautelar antecedente — CPC, art. 305 e parágrafo único',
+            'Poder geral de cautela — CPC, art. 301'],
       juris: [],
+      modelo: 'Vistos.\n\nTrata-se de pedido de tutela provisória de urgência, de natureza ANTECIPADA e em caráter INCIDENTAL, formulado por ... para que ... .\n\nPasso a examinar os requisitos do art. 300 do Código de Processo Civil.',
       erro: 'Tratar tutela de evidência com o vocabulário da urgência. Na evidência não se exige perigo — exigi-lo é erro de premissa.' },
     { nome: 'Enfrentar os requisitos da urgência com os fatos',
-      deve: 'Demonstrar a probabilidade do direito apontando a prova que já está nos autos, e o perigo de dano ou risco ao resultado útil apontando o fato concreto que o gera.',
-      lei: ['Requisitos da tutela de urgência — CPC, art. 300', 'Caução como contracautela — CPC, art. 300, § 1º', 'Vedação à irreversibilidade — CPC, art. 300, § 3º'],
+      deve: 'Demonstrar a probabilidade do direito apontando a prova que já está nos autos, e o perigo apontando o fato concreto que o gera. Cada requisito em um parágrafo próprio.',
+      itens: [
+        { t:'Probabilidade do direito', d:'não é certeza: é a plausibilidade que a prova existente sustenta. Aponte o documento, o laudo, o contrato.' },
+        { t:'Perigo de dano', d:'na antecipada — o dano que se produz enquanto o processo tramita.' },
+        { t:'Risco ao resultado útil', d:'na cautelar — o risco de que a decisão final não sirva para nada.' },
+        { t:'Contemporaneidade', d:'perigo antigo e não alegado antes enfraquece o pedido; explique por que a urgência é agora.' },
+        { t:'Contraditório prévio', d:'a liminar sem ouvir a parte contrária é possível, mas é exceção — justifique por que a oitiva frustraria a medida.' }
+      ],
+      lei: ['Requisitos da tutela de urgência — CPC, art. 300',
+            'Concessão liminar ou após justificação prévia — CPC, art. 300, § 2º',
+            'Dever de fundamentar — CPC, art. 298',
+            'Fundamentação das decisões — CPC, art. 489, § 1º'],
       juris: [],
+      modelo: 'A PROBABILIDADE DO DIREITO está demonstrada pelo contrato de fls. ..., que prevê expressamente ..., e pelo documento de fl. ..., que comprova ... . Os elementos até aqui produzidos tornam plausível a tese de que ... .\n\nO PERIGO DE DANO também se verifica: o autor demonstrou que ... (fato concreto), e a espera pelo desfecho do processo acarretará ..., consequência que a decisão final não terá como desfazer.\n\nA urgência é contemporânea, porquanto o fato gerador ocorreu em .../.../..., e o autor postulou imediatamente.',
       erro: 'Repetir o texto do art. 300 sem amarrar nos fatos. É exatamente a decisão que o art. 489, § 1º, considera não fundamentada.' },
     { nome: 'Tutela de evidência: apontar o inciso',
-      deve: 'Quando for evidência, dizer qual dos quatro incisos autoriza a medida — e lembrar que liminar, sem ouvir a outra parte, só nos incisos II e III.',
-      lei: ['Hipóteses de tutela de evidência — CPC, art. 311', 'Liminar apenas nos incisos II e III — CPC, art. 311, parágrafo único'],
+      deve: 'Sendo evidência, dizer qual dos quatro incisos autoriza a medida — e lembrar que liminar, sem ouvir a outra parte, só nos incisos II e III.',
+      itens: [
+        { t:'Inciso I', d:'abuso do direito de defesa ou manifesto propósito protelatório — depende do comportamento do réu, e por isso não cabe liminar.' },
+        { t:'Inciso II', d:'prova documental suficiente dos fatos e tese firmada em repetitivos ou súmula vinculante — cabe liminar.' },
+        { t:'Inciso III', d:'contrato de depósito, com pedido de entrega da coisa — cabe liminar.' },
+        { t:'Inciso IV', d:'petição instruída com prova documental suficiente e o réu não opõe prova capaz de gerar dúvida — não cabe liminar.' }
+      ],
+      lei: ['Hipóteses de tutela de evidência — CPC, art. 311, I a IV',
+            'Liminar apenas nos incisos II e III — CPC, art. 311, parágrafo único'],
       juris: [],
-      erro: 'Deferir liminarmente evidência com base no inciso I (abuso de defesa) ou IV. O parágrafo único não permite.' },
-    { nome: 'Decidir sobre reversibilidade e contracautela',
-      deve: 'Avaliar se a medida é reversível; sendo o risco relevante, exigir caução real ou fidejussória, salvo hipossuficiência.',
-      lei: ['Irreversibilidade — CPC, art. 300, § 3º', 'Caução e dispensa ao hipossuficiente — CPC, art. 300, § 1º'],
+      modelo: 'O pedido é de TUTELA DA EVIDÊNCIA, fundada no art. 311, II, do Código de Processo Civil.\n\nOs fatos estão comprovados documentalmente às fls. ..., e a tese jurídica invocada corresponde à firmada no julgamento de ..., de observância obrigatória (art. 927 do CPC).\n\nPresente a hipótese do inciso II, é cabível a concessão LIMINAR, independentemente da oitiva da parte contrária, na forma do parágrafo único do art. 311.',
+      erro: 'Deferir liminarmente evidência com base no inciso I ou no IV. O parágrafo único só autoriza a liminar nos incisos II e III.' },
+    { nome: 'Reversibilidade e contracautela',
+      deve: 'Avaliar se a medida é reversível; sendo o risco relevante, exigir caução real ou fidejussória, salvo hipossuficiência. E, havendo irreversibilidade dos dois lados, ponderar.',
+      itens: [
+        { t:'Irreversibilidade', d:'a antecipada não se concede quando houver perigo de irreversibilidade dos efeitos — mas o dispositivo é lido com ponderação.' },
+        { t:'Irreversibilidade recíproca', d:'em saúde e alimentos, negar também é irreversível. A decisão tem de mostrar que pesou os dois lados.' },
+        { t:'Caução', d:'real ou fidejussória, para ressarcir eventual dano — dispensada ao economicamente hipossuficiente.' },
+        { t:'Responsabilidade objetiva', d:'a parte responde pelo prejuízo causado pela efetivação da tutela nas hipóteses do art. 302, independentemente de culpa.' }
+      ],
+      lei: ['Vedação à irreversibilidade — CPC, art. 300, § 3º',
+            'Caução e dispensa ao hipossuficiente — CPC, art. 300, § 1º',
+            'Responsabilidade pelo dano da efetivação — CPC, art. 302'],
       juris: [],
-      erro: 'Negar a tutela apenas invocando "irreversibilidade" quando a irreversibilidade maior está do outro lado (saúde, alimentos). A ponderação tem de aparecer.' },
-    { nome: 'Fundamentar, delimitar e sancionar o descumprimento',
-      deve: 'Fundamentar de modo claro e preciso, delimitar exatamente o que fica determinado, o prazo e a multa — com valor e periodicidade compatíveis.',
-      lei: ['Dever de fundamentar a tutela — CPC, art. 298', 'Fundamentação das decisões — CPC, art. 489, § 1º', 'Multa por descumprimento — CPC, art. 537'],
+      modelo: 'Quanto à reversibilidade, a medida ora deferida é reversível, uma vez que ... .\n\nOU\n\nEmbora se possa cogitar de irreversibilidade parcial dos efeitos, a vedação do art. 300, § 3º, do CPC não é absoluta: a irreversibilidade também se verifica na hipótese inversa, pois o indeferimento acarretaria ..., dano de maior monta e igualmente irreparável. Ponderados os bens em conflito, prevalece ... .\n\nDeixo de exigir caução, ante a hipossuficiência do autor, beneficiário da gratuidade (art. 300, § 1º, parte final).',
+      erro: 'Negar a tutela apenas invocando "irreversibilidade" quando a irreversibilidade maior está do outro lado — saúde, alimentos, emprego. A ponderação tem de aparecer.' },
+    { nome: 'Delimitar o comando e sancionar o descumprimento',
+      deve: 'Dizer exatamente o que fica determinado, em que prazo e sob qual multa. Comando vago não se executa e astreinte sem parâmetro é reduzida em grau recursal.',
+      itens: [
+        { t:'O quê', d:'a obrigação, com objeto certo: "abster-se de inscrever o nome do autor nos cadastros", não "abster-se de praticar atos lesivos".' },
+        { t:'Em quanto tempo', d:'prazo para cumprimento, contado da intimação.' },
+        { t:'Sob qual sanção', d:'multa com valor, periodicidade e, preferencialmente, teto.' },
+        { t:'Revisibilidade', d:'a multa pode ser modificada de ofício a qualquer tempo se insuficiente ou excessiva, e não faz coisa julgada material quanto ao valor.' },
+        { t:'Efetivação', d:'indicar as medidas de apoio necessárias — ofício, busca e apreensão, bloqueio.' }
+      ],
+      lei: ['Efetivação da tutela e medidas de apoio — CPC, art. 297',
+            'Multa por descumprimento — CPC, art. 537 e §§ 1º e 3º',
+            'Tutela específica — CPC, art. 497',
+            'Dever de fundamentar de modo claro e preciso — CPC, art. 298'],
       juris: [],
-      erro: 'Fixar astreintes sem prazo de cumprimento nem teto, ou em valor desproporcional ao da obrigação.' },
-    { nome: 'Antecedente: registrar aditamento e estabilização',
-      deve: 'Na antecipada antecedente, intimar para aditar a inicial em 15 dias e advertir que, não havendo recurso, a tutela se estabiliza e o processo se extingue.',
-      lei: ['Aditamento da inicial — CPC, art. 303, § 1º, I', 'Estabilização da tutela — CPC, art. 304', 'Prazo de 2 anos para rever — CPC, art. 304, § 5º'],
+      modelo: 'Ante o exposto, DEFIRO a tutela de urgência para DETERMINAR que o réu ... (comando específico), no prazo de ... dias contados da intimação, sob pena de multa diária de R$ ..., limitada a R$ ... (art. 537 do CPC), sem prejuízo da adoção das medidas de apoio necessárias (art. 297 do CPC).\n\nIntime-se o réu com urgência, servindo esta decisão como mandado.\n\nCite-se para os demais termos.',
+      erro: 'Fixar astreintes sem prazo de cumprimento nem teto, ou em valor desproporcional ao da obrigação. Multa desproporcional é reduzida, e o efeito coercitivo se perde.' },
+    { nome: 'Antecedente: aditamento e estabilização',
+      deve: 'Na antecipada antecedente, intimar para aditar em 15 dias e advertir que, não havendo recurso, a tutela se estabiliza e o processo se extingue.',
+      itens: [
+        { t:'Aditamento', d:'concedida a tutela, o autor adita a inicial em 15 dias ou outro prazo maior fixado pelo juiz, sob pena de extinção.' },
+        { t:'Estabilização', d:'não interposto recurso pelo réu, a tutela se estabiliza e o processo é extinto — sem coisa julgada.' },
+        { t:'Prazo de dois anos', d:'qualquer das partes pode ajuizar ação para rever, reformar ou invalidar a tutela estabilizada, em dois anos contados da ciência da extinção.' },
+        { t:'Cautelar antecedente', d:'rito diferente: efetivada a cautelar, o pedido principal é formulado em 30 dias, nos mesmos autos, sem novas custas.' }
+      ],
+      lei: ['Aditamento da inicial — CPC, art. 303, § 1º, I',
+            'Extinção pela falta de aditamento — CPC, art. 303, § 2º',
+            'Estabilização da tutela — CPC, art. 304',
+            'Prazo de dois anos para rever — CPC, art. 304, §§ 5º e 6º',
+            'Pedido principal na cautelar antecedente — CPC, art. 308'],
       juris: [],
+      modelo: 'Tratando-se de tutela antecipada requerida em caráter ANTECEDENTE, INTIME-SE o autor para, no prazo de 15 (quinze) dias, aditar a petição inicial, complementando a argumentação, juntando novos documentos e confirmando o pedido de tutela final, sob pena de extinção sem resolução do mérito (art. 303, §§ 1º, I, e 2º, do CPC).\n\nADVIRTA-SE o réu de que, não interposto o respectivo recurso, a tutela ora concedida tornar-se-á ESTÁVEL e o processo será extinto, nos termos do art. 304 do Código de Processo Civil, facultada a qualquer das partes, no prazo de 2 (dois) anos, a propositura de ação para revê-la, reformá-la ou invalidá-la.',
       erro: 'Esquecer a advertência da estabilização. É o ponto que separa quem estudou o art. 304 de quem decorou o 300.' }
   ],
-  cego: [
-    'Espécie de tutela identificada (urgência ou evidência; antecedente ou incidental)',
-    'Probabilidade do direito demonstrada com a prova dos autos',
-    'Perigo de dano apontado com fato concreto',
-    'Na evidência, inciso do art. 311 indicado',
-    'Liminar sem contraditório só nos incisos II e III',
-    'Reversibilidade analisada',
-    'Caução examinada quando havia risco',
-    'Comando delimitado: o que, em que prazo',
-    'Multa fixada em valor proporcional',
-    'Aditamento e estabilização tratados, se antecedente'
+  cego: ['Espécie identificada (urgência ou evidência; antecedente ou incidental)',
+    'Probabilidade do direito demonstrada com a prova dos autos','Perigo de dano apontado com fato concreto',
+    'Contemporaneidade da urgência justificada','Concessão sem contraditório justificada, se liminar',
+    'Na evidência, inciso do art. 311 indicado','Liminar sem contraditório só nos incisos II e III',
+    'Reversibilidade analisada','Irreversibilidade recíproca ponderada, se for o caso',
+    'Caução examinada quando havia risco','Comando delimitado: o quê, em que prazo',
+    'Multa com valor, periodicidade e teto','Medidas de apoio indicadas',
+    'Aditamento e estabilização tratados, se antecedente'],
+  dicas: [
+    'Escreva um parágrafo para a probabilidade e outro para o perigo. Requisito examinado em bloco é requisito que a banca lê como não examinado.',
+    'Probabilidade do direito não é certeza. Se você escrever "está comprovado", está antecipando o mérito — escreva "os elementos tornam plausível".',
+    'Perigo de dano tem de ter data. Fato antigo, alegado agora, precisa de explicação para a urgência.',
+    'Deferindo parcialmente, diga o que defere e o que indefere. Tutela parcial sem delimitação é tutela inexequível.',
+    'Astreinte: fixe periodicidade e teto. Multa diária sem limite vira quantia absurda e é reduzida no agravo.',
+    { t:'A vedação do art. 300, § 3º não é absoluta. Quando negar também produz efeito irreversível — saúde, alimentos —, a decisão tem de ponderar, e não apenas invocar o dispositivo.', alerta:true },
+    { t:'Liminar em tutela de evidência só nos incisos II e III do art. 311. Nos incisos I e IV é preciso ouvir a parte contrária.', alerta:true },
+    { t:'Da decisão sobre tutela provisória cabe agravo de instrumento (art. 1.015, I) — deferindo ou indeferindo. Isso significa que a fundamentação será lida pelo tribunal.', alerta:true }
+  ],
+  especiais: [
+    { t:'Tutela contra a Fazenda Pública', d:'Permanecem as vedações das Leis 8.437/92 e 9.494/97 quanto a reclassificação, aumento de vencimentos, pagamento de vantagens e liberação de bens do exterior. Concedida a liminar, cabe pedido de suspensão ao presidente do tribunal, por grave lesão à ordem, à saúde, à segurança e à economia públicas.' },
+    { t:'Saúde e fornecimento de medicamento', d:'Ponderação com a reserva do possível e o mínimo existencial. Registre a prescrição médica, a evidência científica e a imprescindibilidade, e considere a solidariedade dos entes federativos — a decisão precisa dizer contra quem se dirige o comando.' },
+    { t:'Estabilização e coisa julgada', d:'A tutela estabilizada NÃO faz coisa julgada material (art. 304, § 6º). Ela se torna imutável apenas depois dos dois anos do § 5º, e nesse prazo qualquer das partes pode discutir o direito em ação própria.' },
+    { t:'Tutela em recurso', d:'No agravo de instrumento, o pedido ao relator é de efeito suspensivo (para paralisar decisão que concedeu) ou de antecipação da tutela recursal (para conceder o que o juiz negou) — art. 1.019, I. Pedir suspensivo contra uma negativa não devolve nada.' }
   ]
 },
 
 // ─────────────────────────────────────────────────────────────────────────────
 'Decisão de prisão preventiva': {
   rito: 'Penal — prisões e cautelares',
+  freq: 26,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
-  sobre: 'Depois da Lei 13.964/2019 o juiz não decreta preventiva de ofício, e a fundamentação passou a ter exigências escritas na lei. A banca cobra os três andares: representação/requerimento, requisitos do art. 312 e admissibilidade do art. 313 — mais a revisão periódica.',
+  sobre: 'Depois da Lei 13.964/2019 o juiz não decreta preventiva de ofício, e a fundamentação passou a ter exigências escritas na lei. A Lei 15.272/2025 acrescentou critérios de aferição da periculosidade e reforçou a vedação à gravidade abstrata. A banca cobra três andares: provocação, requisitos do art. 312 e admissibilidade do art. 313 — mais a revisão periódica.',
   blocos: [
     { nome: 'Verificar a provocação',
-      deve: 'Registrar que houve requerimento do Ministério Público, do querelante ou do assistente, ou representação da autoridade policial. Sem provocação, não há preventiva — nem na conversão do flagrante.',
-      lei: ['Vedação à decretação de ofício — CPP, art. 311', 'Audiência de custódia e conversão — CPP, art. 310, II'],
+      deve: 'Registrar quem pediu. Sem requerimento ou representação não há preventiva — nem na conversão do flagrante.',
+      itens: [
+        { t:'Legitimados', d:'Ministério Público, querelante, assistente de acusação, ou representação da autoridade policial.' },
+        { t:'Na custódia', d:'a conversão do flagrante em preventiva também depende de provocação; o juiz não converte de ofício.' },
+        { t:'Contraditório', d:'ouvida a defesa sempre que possível — a decisão em audiência de custódia já assegura isso.' },
+        { t:'Descumprimento de cautelar', d:'descumprida medida diversa, a substituição por prisão também exige requerimento.' }
+      ],
+      lei: ['Vedação à decretação de ofício — CPP, art. 311',
+            'Audiência de custódia e conversão — CPP, art. 310, II',
+            'Substituição por descumprimento — CPP, art. 282, § 4º'],
       juris: [],
+      modelo: 'Vistos.\n\nTrata-se de representação da autoridade policial (ou requerimento do Ministério Público) pela decretação da prisão preventiva de FULANO DE TAL, nos autos do inquérito policial nº ... .\n\nO Ministério Público manifestou-se favoravelmente à fl. ... . A defesa foi ouvida em audiência de custódia realizada nesta data.\n\nDecido.',
       erro: 'Converter flagrante em preventiva de ofício. É o erro mais cobrado desde 2020 e derruba a decisão inteira.' },
     { nome: 'Fumus commissi delicti',
-      deve: 'Apontar a prova da materialidade e o indício suficiente de autoria, indicando as peças concretas do inquérito que os sustentam.',
-      lei: ['Prova da materialidade e indício de autoria — CPP, art. 312, caput'],
+      deve: 'Apontar a prova da materialidade e o indício suficiente de autoria, indicando as peças concretas que os sustentam.',
+      itens: [
+        { t:'Prova da materialidade', d:'auto de prisão, laudo, auto de apreensão, boletim de ocorrência com elementos — diga qual peça e a folha.' },
+        { t:'Indício suficiente de autoria', d:'não é certeza, mas exige elemento concreto: reconhecimento, apreensão em poder do agente, depoimento.' },
+        { t:'Individualização', d:'havendo vários investigados, o indício tem de ser apontado para cada um.' },
+        { t:'Excludente evidente', d:'havendo prova de excludente de ilicitude, a preventiva não se decreta.' }
+      ],
+      lei: ['Prova da materialidade e indício de autoria — CPP, art. 312, caput',
+            'Vedação da preventiva havendo excludente — CPP, art. 314'],
       juris: [],
-      erro: 'Afirmar que "há indícios" sem dizer quais. Fundamentação por referência genérica é nula.' },
+      modelo: 'O FUMUS COMMISSI DELICTI está presente. A materialidade decorre do auto de apreensão de fl. ... e do laudo preliminar de fl. ..., que atestam ... .\n\nOs indícios suficientes de autoria emergem do depoimento da vítima (fl. ...), que reconheceu o investigado, e da apreensão, em seu poder, de ... (fl. ...).',
+      erro: 'Afirmar que "há indícios" sem dizer quais. Fundamentação por referência genérica é nula — art. 315, § 2º, III.' },
     { nome: 'Periculum libertatis com fato concreto',
-      deve: 'Demonstrar o perigo gerado pelo estado de liberdade do imputado — garantia da ordem pública, da ordem econômica, conveniência da instrução ou aplicação da lei penal — com base em fatos novos ou contemporâneos.',
-      lei: ['Fundamentos da preventiva — CPP, art. 312, caput', 'Perigo gerado pelo estado de liberdade — CPP, art. 312, § 2º', 'Motivação com fatos novos ou contemporâneos — CPP, art. 315, § 1º'],
+      deve: 'Demonstrar o perigo gerado pelo estado de liberdade, com base em fatos novos ou contemporâneos. Desde a Lei 15.272/2025 há critérios legais expressos para aferir a periculosidade.',
+      itens: [
+        { t:'Os quatro fundamentos', d:'garantia da ordem pública, da ordem econômica, conveniência da instrução criminal e asseguração da aplicação da lei penal.' },
+        { t:'Perigo gerado pela liberdade', d:'o § 2º exige que a decisão indique o perigo concreto — não a hipótese teórica.' },
+        { t:'Aferição da periculosidade', d:'a lei de 2025 lista critérios: modus operandi, uso reiterado de violência ou premeditação, participação em organização criminosa, natureza e quantidade de drogas, armas ou munições, e fundado receio de reiteração.' },
+        { t:'Vedação expressa', d:'a mesma lei veda decretar a preventiva com base na gravidade abstrata do delito, exigindo demonstração concreta.' },
+        { t:'Contemporaneidade', d:'fatos novos ou contemporâneos justificam a aplicação da medida — perigo de anos atrás não sustenta prisão de hoje.' }
+      ],
+      lei: ['Fundamentos da preventiva — CPP, art. 312, caput',
+            'Perigo gerado pelo estado de liberdade — CPP, art. 312, § 2º',
+            'Critérios de aferição da periculosidade — CPP, art. 312, § 3º (incluído pela Lei 15.272/2025)',
+            'Vedação à gravidade abstrata — CPP, art. 312, § 4º (incluído pela Lei 15.272/2025)',
+            'Motivação com fatos novos ou contemporâneos — CPP, art. 315, § 1º',
+            'Circunstâncias que recomendam a conversão — CPP, art. 310, §§ 5º e 6º (incluídos pela Lei 15.272/2025)'],
       juris: [],
-      erro: 'Sustentar a prisão na gravidade abstrata do crime ou no clamor social. Nenhum dos dois é fundamento válido.' },
+      modelo: 'O PERICULUM LIBERTATIS igualmente se verifica, na modalidade de garantia da ordem pública.\n\nNão se trata de invocar a gravidade abstrata do delito, expressamente vedada pelo art. 312, § 4º, do Código de Processo Penal. O risco concreto decorre do modus operandi empregado — o investigado agiu ... —, da apreensão de ... e do fundado receio de reiteração, evidenciado por ..., circunstâncias que o art. 312, § 3º, do CPP indica como critérios de aferição da periculosidade.\n\nOs fatos são contemporâneos: ocorreram em .../.../..., há menos de ... dias, o que atende à exigência do art. 315, § 1º, do Código de Processo Penal.',
+      erro: 'Sustentar a prisão na gravidade abstrata do crime ou no clamor social. O § 4º do art. 312 hoje veda a primeira em texto expresso, e o art. 315, § 2º, lista as seis fórmulas que não valem como fundamentação.' },
     { nome: 'Admissibilidade do art. 313',
-      deve: 'Enquadrar o caso em uma das hipóteses: crime doloso com pena máxima superior a 4 anos, reincidência em crime doloso, violência doméstica para garantir medidas protetivas, ou dúvida sobre a identidade civil.',
-      lei: ['Hipóteses de admissibilidade — CPP, art. 313', 'Descumprimento de medida cautelar anterior — CPP, art. 282, § 4º'],
+      deve: 'Enquadrar o caso em uma das hipóteses de admissibilidade. Presença dos requisitos do art. 312 sem hipótese do art. 313 não autoriza a prisão.',
+      itens: [
+        { t:'Inciso I', d:'crime doloso punido com pena privativa de liberdade máxima superior a 4 anos.' },
+        { t:'Inciso II', d:'reincidência em crime doloso, observado o prazo depurador de 5 anos.' },
+        { t:'Inciso III', d:'crime que envolva violência doméstica e familiar, para garantir a execução das medidas protetivas de urgência.' },
+        { t:'Parágrafo único', d:'dúvida sobre a identidade civil ou falta de elementos para esclarecê-la, com soltura imediata após a identificação.' },
+        { t:'Descumprimento de cautelar', d:'hipótese autônoma do art. 282, § 4º, independentemente do quantum da pena.' }
+      ],
+      lei: ['Hipóteses de admissibilidade — CPP, art. 313, I a III',
+            'Dúvida sobre a identidade civil — CPP, art. 313, parágrafo único',
+            'Descumprimento de medida cautelar anterior — CPP, art. 282, § 4º',
+            'Reincidência e prazo depurador — CP, arts. 63 e 64'],
       juris: [],
-      erro: 'Decretar preventiva por crime com pena máxima igual ou inferior a 4 anos fora das exceções do art. 313.' },
+      modelo: 'A hipótese é admissível na forma do art. 313, I, do Código de Processo Penal, uma vez que o crime imputado — art. ... do Código Penal — é doloso e punido com pena privativa de liberdade máxima superior a 4 (quatro) anos.',
+      erro: 'Decretar preventiva por crime com pena máxima igual ou inferior a 4 anos fora das exceções do art. 313. Requisito e admissibilidade são coisas distintas, e a banca separa as duas.' },
     { nome: 'Esgotar as cautelares diversas',
-      deve: 'Justificar por que as medidas cautelares diversas da prisão são inadequadas ou insuficientes no caso — a prisão é a última opção, não a primeira.',
-      lei: ['Subsidiariedade da prisão — CPP, art. 282, § 6º', 'Rol de cautelares diversas — CPP, art. 319', 'Vedações do art. 315, § 2º à motivação inidônea'],
+      deve: 'Justificar por que as medidas diversas da prisão são inadequadas ou insuficientes no caso. A prisão é a última opção, não a primeira.',
+      itens: [
+        { t:'Necessidade e adequação', d:'os dois critérios do art. 282, I e II — necessidade para o processo, adequação à gravidade, às circunstâncias e às condições pessoais.' },
+        { t:'Rol do art. 319', d:'comparecimento periódico, proibição de acesso a lugares, proibição de contato, recolhimento domiciliar noturno, monitoração eletrônica, fiança, entre outras.' },
+        { t:'Análise concreta', d:'diga por que cada uma das cabíveis não serve. "Insuficientes" sem explicação é fórmula vazia.' },
+        { t:'Prisão domiciliar', d:'examinar as hipóteses do art. 318 e a substituição do art. 318-A para gestante e mãe ou pai de criança.' }
+      ],
+      lei: ['Necessidade e adequação — CPP, art. 282, I e II',
+            'Subsidiariedade da prisão — CPP, art. 282, § 6º',
+            'Rol de cautelares diversas — CPP, art. 319',
+            'Prisão domiciliar — CPP, arts. 317, 318 e 318-A',
+            'O que não é fundamentação — CPP, art. 315, § 2º'],
       juris: [],
-      erro: 'Não dizer uma palavra sobre monitoração, comparecimento periódico ou proibição de contato. O § 6º exige a justificativa expressa.' },
-    { nome: 'Prazo, revisão e comunicações',
-      deve: 'Consignar a necessidade de revisão da necessidade da prisão a cada 90 dias, mediante decisão fundamentada, e determinar as comunicações e a expedição do mandado.',
-      lei: ['Revisão a cada 90 dias — CPP, art. 316, parágrafo único', 'Revogação quando cessar o motivo — CPP, art. 316, caput'],
+      modelo: 'Examino, por fim, a suficiência das medidas cautelares diversas da prisão (art. 282, § 6º, do CPP).\n\nO comparecimento periódico em juízo e a proibição de ausentar-se da comarca não são idôneos a conter o risco de reiteração demonstrado, dado que ... . A monitoração eletrônica, por sua vez, mostra-se insuficiente porque ... . A proibição de contato com a vítima já foi descumprida, conforme certidão de fl. ... .\n\nNão é caso de prisão domiciliar, uma vez que não se verifica nenhuma das hipóteses do art. 318 do Código de Processo Penal.\n\nAssim, nenhuma medida menos gravosa se revela adequada e suficiente.',
+      erro: 'Não dizer uma palavra sobre monitoração, comparecimento periódico ou proibição de contato. O § 6º exige justificativa expressa da insuficiência.' },
+    { nome: 'Dispositivo, revisão e comunicações',
+      deve: 'Decretar, consignar a revisão periódica de 90 dias e determinar mandado e comunicações. E lembrar que a revogação é dever quando cessar o motivo.',
+      itens: [
+        { t:'Revisão em 90 dias', d:'de ofício, mediante decisão fundamentada, sob pena de a prisão se tornar ilegal — mas o descumprimento não gera soltura automática.' },
+        { t:'Revogação', d:'dever do juiz quando cessar o motivo, e nova decretação é possível se sobrevierem razões.' },
+        { t:'Duração razoável', d:'o excesso de prazo é aferido pela razoabilidade e pela complexidade, não por soma aritmética.' },
+        { t:'Providências', d:'mandado de prisão, cadastro no banco nacional, comunicação à família e ao advogado, e ao juízo da execução se houver outra pena.' }
+      ],
+      lei: ['Revogação quando cessar o motivo — CPP, art. 316, caput',
+            'Revisão a cada 90 dias — CPP, art. 316, parágrafo único',
+            'Comunicação da prisão — CPP, art. 306',
+            'Mandado de prisão e banco nacional — CPP, arts. 289-A e 285'],
       juris: [],
-      erro: 'Omitir a revisão periódica. É item de espelho e, na prática, causa de relaxamento.' }
+      modelo: 'Ante o exposto, DEFIRO a representação e DECRETO A PRISÃO PREVENTIVA de FULANO DE TAL, qualificado nos autos, com fundamento nos arts. 311, 312 e 313, I, do Código de Processo Penal.\n\nExpeça-se mandado de prisão, com registro no Banco Nacional de Mandados de Prisão (art. 289-A do CPP).\n\nCONSIGNO que a necessidade da manutenção desta prisão será revista de ofício, mediante decisão fundamentada, a cada 90 (noventa) dias, nos termos do art. 316, parágrafo único, do Código de Processo Penal.\n\nComunique-se à família do preso e à pessoa por ele indicada, bem como à Defensoria Pública, se não houver advogado constituído (art. 306 do CPP).\n\nCiência ao Ministério Público. Intimem-se.\n\nLocal, data.\nJuiz de Direito',
+      erro: 'Omitir a revisão periódica. É item de espelho e, na prática, gera pedido de relaxamento com base no art. 316, parágrafo único.' }
   ],
-  cego: [
-    'Requerimento ou representação registrado (nunca de ofício)',
+  cego: ['Requerimento ou representação registrado (nunca de ofício)',
+    'Manifestação do MP e oitiva da defesa consignadas',
     'Materialidade apontada com a peça que a comprova',
-    'Indício suficiente de autoria individualizado',
+    'Indício suficiente de autoria individualizado por investigado',
+    'Ausência de excludente evidente verificada (art. 314)',
     'Fundamento do art. 312 escolhido e demonstrado com fato concreto',
+    'Critérios de periculosidade do § 3º examinados',
+    'Gravidade abstrata expressamente afastada (§ 4º)',
     'Contemporaneidade do perigo justificada',
     'Hipótese de admissibilidade do art. 313 indicada',
-    'Cautelares diversas expressamente afastadas',
-    'Proporcionalidade examinada',
+    'Cautelares diversas do art. 319 afastadas uma a uma',
+    'Prisão domiciliar examinada (arts. 318 e 318-A)',
     'Revisão em 90 dias consignada',
-    'Mandado e comunicações determinados'
+    'Mandado, banco nacional e comunicações determinados'],
+  dicas: [
+    'Escreva em três andares numerados: provocação, requisitos do art. 312, admissibilidade do art. 313. O corretor procura os três, e a numeração entrega.',
+    'Requisito e admissibilidade não são a mesma coisa. Pode haver fumus e periculum e ainda assim não caber preventiva, por faltar hipótese do art. 313.',
+    'O art. 315, § 2º lista seis fórmulas que NÃO são fundamentação. Leia esse parágrafo como uma lista de coisas a não escrever.',
+    'Contemporaneidade é data. Diga quando o fato ocorreu e quantos dias se passaram.',
+    'Havendo vários investigados, individualize. Decisão em bloco é nula quanto a quem não teve a conduta apontada.',
+    { t:'A Lei 15.272/2025 incluiu os §§ 3º e 4º no art. 312: o § 3º lista os critérios de aferição da periculosidade e o § 4º veda expressamente a preventiva fundada na gravidade abstrata. Usar os critérios do § 3º pelo nome joga a favor da fundamentação.', alerta:true },
+    { t:'A mesma lei incluiu os §§ 5º e 6º no art. 310, com circunstâncias que recomendam a conversão do flagrante e o dever de o juiz examiná-las expressamente. Em decisão de custódia, percorra essa lista.', alerta:true },
+    { t:'Nunca de ofício — nem na conversão do flagrante. O art. 311 é categórico desde a Lei 13.964/2019, e é o erro que mais anula decisão em prova.', alerta:true }
+  ],
+  especiais: [
+    { t:'Violência doméstica', d:'A preventiva é admissível pelo art. 313, III, independentemente do quantum da pena, para garantir a execução das medidas protetivas. A Lei 11.340/2006 prevê a decretação em qualquer fase (art. 20) e o descumprimento de medida protetiva é crime autônomo do art. 24-A.' },
+    { t:'Gestante e mãe de criança', d:'O art. 318, IV e V, e o art. 318-A tratam da substituição por prisão domiciliar para gestante e para mulher com filho de até 12 anos incompletos, com as ressalvas dos incisos I e II. A decisão precisa enfrentar essa hipótese quando os autos revelarem a condição.' },
+    { t:'Prisão temporária', d:'Não se confunde com a preventiva. Rege-se pela Lei 7.960/89, exige um dos incisos do art. 1º combinado com o rol de crimes do inciso III, dura 5 dias prorrogáveis por 5 (30 + 30 nos hediondos), e é cabível apenas na fase de investigação.' },
+    { t:'Revisão dos 90 dias', d:'A falta de revisão no prazo não gera soltura automática. O STF entendeu que o descumprimento do art. 316, parágrafo único, não torna a prisão ilegal por si só, cabendo ao juízo competente sanar a omissão — mas a omissão continua sendo item perdido no espelho.' },
+    { t:'Excesso de prazo', d:'Aferido pela razoabilidade, não por soma aritmética de prazos. Súmula 21 do STJ: pronunciado o réu, fica superada a alegação de constrangimento por excesso de prazo na instrução. Súmula 52: encerrada a instrução, fica superada a alegação de excesso.' }
   ]
 },
 
 // ─────────────────────────────────────────────────────────────────────────────
 'Decisão de pronúncia': {
   rito: 'Penal — tribunal do júri',
+  freq: 16,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
   sobre: 'A pronúncia é juízo de admissibilidade, não de condenação. Todo o risco da peça está na LINGUAGEM: convencer demais anula, porque os jurados vão ler.',
   blocos: [
@@ -563,6 +895,7 @@ window.CT_PECAS = {
 // ─────────────────────────────────────────────────────────────────────────────
 'Sentença em MS': {
   rito: 'Civil — conhecimento',
+  freq: 11,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
   sobre: 'Mandado de segurança tem regras próprias que a banca cobra justamente porque quem escreve no automático usa as do CPC: prova pré-constituída, prazo decadencial, efeitos patrimoniais e — o clássico — honorários.',
   blocos: [
@@ -616,6 +949,7 @@ window.CT_PECAS = {
 // ─────────────────────────────────────────────────────────────────────────────
 'Denúncia': {
   rito: 'Penal — procedimento comum',
+  freq: 37,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Ministério Público'],
   sobre: 'A denúncia é medida de garantia: é a partir dela que o acusado sabe do que se defende. O espelho cobra a descrição do fato com todas as circunstâncias e, sobretudo, a individualização das condutas.',
   blocos: [
@@ -669,222 +1003,297 @@ window.CT_PECAS = {
 // ───────────────────────── SENTENÇA DO JÚRI (2ª fase) ─────────────────────────
 'Sentença do júri': {
   rito: 'Penal — tribunal do júri',
+  freq: 6,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
   sobre: 'A sentença que o juiz-presidente lê em plenário depois do veredicto. Aqui o juiz NÃO julga o mérito — ele executa o que os jurados decidiram. O que é dele: dosar a pena, fixar o regime e resolver a prisão. A banca mede exatamente isso: até onde vai a soberania dos veredictos e onde começa a jurisdição do presidente.',
   blocos: [
-    {
-      nome: 'Ler o veredicto antes de escrever',
-      deve: 'A sentença tem de ser congruente com as respostas aos quesitos. Antes de redigir, releia a ordem votada — materialidade, autoria, quesito genérico de absolvição, causas de diminuição, qualificadoras e causas de aumento — e o que ficou registrado em ata, inclusive tese de clemência sustentada pela defesa.',
-      lei: [
-        'Ordem dos quesitos — CPP, art. 483',
-        'Quesito genérico de absolvição — CPP, art. 483, III e § 2º',
-        'Formulação e votação dos quesitos — CPP, arts. 482 a 491'
+    { nome: 'Ler o veredicto antes de escrever',
+      deve: 'A sentença tem de ser congruente com as respostas aos quesitos. Antes de redigir, releia a ordem votada e o que ficou registrado em ata — inclusive tese de clemência sustentada pela defesa.',
+      itens: [
+        { t:'Ordem votada', d:'materialidade, autoria ou participação, quesito genérico de absolvição, causa de diminuição, qualificadora e causa de aumento — nessa sequência.' },
+        { t:'Quesito genérico', d:'redação obrigatória: "O jurado absolve o acusado?". Respondido sim, a absolvição não se fundamenta.' },
+        { t:'Ata da sessão', d:'registra as teses sustentadas, os incidentes e os protestos. Tese de clemência lançada em ata muda o cabimento do novo júri.' },
+        { t:'Maioria basta', d:'apurados mais de três votos num sentido, a votação daquele quesito se encerra, para preservar o sigilo.' }
       ],
-      juris: [
-        'Apelação contra absolvição pelo quesito genérico — STF, ARE 1.225.185, Tema 1087, tese fixada em 03/10/2024 (red. p/ acórdão Min. Edson Fachin)',
-        'Clemência registrada em ata impede novo júri, desde que compatível com a Constituição, com os precedentes vinculantes do STF e com as circunstâncias fáticas dos autos — STF, ARE 1.225.185, Tema 1087, 2ª parte da tese'
-      ],
-      erro: 'Fundamentar a absolvição. Absolvido pelo quesito genérico, o juiz registra o resultado e ponto — explicar o porquê invade a soberania dos veredictos (CF, art. 5º, XXXVIII, "c").'
-    },
-    {
-      nome: 'Absolvição: dispositivo e efeitos imediatos',
+      lei: ['Ordem dos quesitos — CPP, art. 483',
+            'Quesito genérico de absolvição — CPP, art. 483, III e § 2º',
+            'Formulação e votação dos quesitos — CPP, arts. 482 a 491'],
+      juris: ['Apelação contra absolvição pelo quesito genérico — STF, ARE 1.225.185, Tema 1087, tese fixada em 03/10/2024 (red. p/ acórdão Min. Edson Fachin)',
+              'Clemência registrada em ata impede novo júri, desde que compatível com a Constituição, com os precedentes vinculantes do STF e com as circunstâncias fáticas dos autos — STF, ARE 1.225.185, Tema 1087, 2ª parte da tese'],
+      modelo: 'O Conselho de Sentença, respondendo aos quesitos que lhe foram formulados, reconheceu a materialidade do fato e a autoria atribuída ao acusado, negou a absolvição, e reconheceu a qualificadora prevista no art. 121, § 2º, ..., do Código Penal, na forma da ata de julgamento.\n\nEm obediência à soberania dos veredictos (art. 5º, XXXVIII, "c", da Constituição), passo a proferir a sentença em conformidade com a decisão dos jurados, nos termos do art. 492 do Código de Processo Penal.',
+      erro: 'Fundamentar a absolvição. Absolvido pelo quesito genérico, o juiz registra o resultado e ponto — explicar o porquê invade a soberania dos veredictos (CF, art. 5º, XXXVIII, "c").' },
+    { nome: 'Absolvição: dispositivo e efeitos imediatos',
       deve: 'Absolvido o réu, a sentença manda colocá-lo em liberdade se por outro motivo não estiver preso, revoga as medidas restritivas provisoriamente decretadas e, quando a absolvição for imprópria, aplica medida de segurança.',
-      lei: [
-        'Sentença absolutória no júri — CPP, art. 492, II',
-        'Soltura, revogação de cautelares e medida de segurança — CPP, art. 492, II, "a" a "c"',
-        'Absolvição imprópria — CP, art. 97'
+      itens: [
+        { t:'Soltura', d:'a lei diz "se por outro motivo não estiver preso" — a ressalva é a prisão por outro título, não a existência da prisão neste processo.' },
+        { t:'Medidas restritivas', d:'revogam-se as provisoriamente decretadas, sejam cautelares pessoais ou reais.' },
+        { t:'Absolvição imprópria', d:'reconhecida a inimputabilidade, aplica-se medida de segurança, com a espécie e o prazo mínimo definidos.' },
+        { t:'Fiança', d:'absolvido, devolve-se o valor prestado.' }
       ],
+      lei: ['Sentença absolutória no júri — CPP, art. 492, II',
+            'Soltura, revogação de cautelares e medida de segurança — CPP, art. 492, II, "a" a "c"',
+            'Absolvição imprópria — CP, art. 97',
+            'Devolução da fiança — CPP, art. 337'],
       juris: [],
-      erro: 'Absolver e esquecer o alvará de soltura e a revogação das cautelares diversas da prisão. São dois itens distintos no espelho, e cada um vale ponto.'
-    },
-    {
-      nome: 'Condenação: a base fática é o veredicto',
-      deve: 'Condenado, o juiz fixa a pena considerando as circunstâncias agravantes e atenuantes alegadas nos debates e as qualificadoras e causas de aumento reconhecidas pelos jurados. A premissa de fato não é a sua leitura da prova: é o que o conselho de sentença respondeu.',
-      lei: [
-        'Sentença condenatória no júri — CPP, art. 492, I',
-        'Agravantes e atenuantes alegadas nos debates — CPP, art. 492, I, "b"',
-        'Requisitos da sentença — CPP, art. 381'
+      modelo: 'Ante a decisão soberana do Conselho de Sentença, que respondeu afirmativamente ao quesito da absolvição, ABSOLVO o acusado FULANO DE TAL da imputação que lhe foi feita, com fundamento no art. 492, inciso II, do Código de Processo Penal.\n\nExpeça-se alvará de soltura, se por outro motivo não estiver preso. Revogo as medidas restritivas provisoriamente decretadas. Devolva-se o valor da fiança prestada. Sem custas.\n\nPublique-se em plenário. Registre-se. Intimem-se.',
+      erro: 'Absolver e esquecer o alvará de soltura e a revogação das medidas restritivas. São dois itens distintos no espelho, e cada um vale ponto.' },
+    { nome: 'Condenação: a base fática é o veredicto',
+      deve: 'Condenado, o juiz fixa a pena considerando as circunstâncias agravantes e atenuantes alegadas nos debates e as qualificadoras e causas de aumento reconhecidas pelos jurados. A premissa de fato é o veredicto, não a sua leitura da prova.',
+      itens: [
+        { t:'Vinculação ao veredicto', d:'reconhecer qualificadora que os jurados afastaram, ou ignorar a que reconheceram, é sentença contrária à decisão dos jurados.' },
+        { t:'Agravantes e atenuantes', d:'só as alegadas nos debates entram — é a regra própria do júri, diferente do procedimento comum.' },
+        { t:'Qualificadora excedente', d:'havendo mais de uma reconhecida, uma qualifica e as demais podem valer como agravante, se houver previsão legal, ou como circunstância judicial.' },
+        { t:'Requisitos formais', d:'a sentença do júri é sentença: obedece ao art. 381 do CPP em tudo o que não colidir com o rito.' }
       ],
+      lei: ['Sentença condenatória no júri — CPP, art. 492, I',
+            'Agravantes e atenuantes alegadas nos debates — CPP, art. 492, I, "b"',
+            'Requisitos da sentença — CPP, art. 381'],
       juris: [],
-      erro: 'Reconhecer qualificadora que os jurados afastaram, ou ignorar a que reconheceram. Isso não é erro de dosimetria: é sentença contrária ao veredicto.'
-    },
-    {
-      nome: 'Dosimetria — as três fases, uma a uma',
-      deve: 'Pena-base pelas circunstâncias judiciais, com fato concreto para cada uma que você valorar negativamente; depois agravantes e atenuantes; por fim causas de aumento e de diminuição, que são as únicas que podem levar a pena fora dos limites do tipo.',
-      lei: [
-        'Circunstâncias judiciais — CP, art. 59',
-        'Cálculo da pena em três fases — CP, art. 68',
-        'Concurso de crimes — CP, arts. 69 a 71',
-        'Crime hediondo — Lei 8.072/90, art. 1º, I (homicídio qualificado, red. da Lei 15.159/2025); feminicídio no art. 1º, I-B'
+      erro: 'Reconhecer qualificadora que os jurados afastaram. Isso não é erro de dosimetria: é sentença contrária ao veredicto, e o recurso é o do art. 593, III, "b".' },
+    { nome: 'Dosimetria — as três fases, uma a uma',
+      deve: 'Pena-base pelas circunstâncias judiciais, com fato concreto para cada uma que você valorar negativamente; depois agravantes e atenuantes; por fim causas de aumento e de diminuição, as únicas que rompem os limites do tipo.',
+      itens: [
+        { t:'Primeira fase', d:'parte-se do mínimo. Patamar de trabalho usual de 1/8 do intervalo por circunstância negativa — critério jurisprudencial, não legal, que precisa ser explicitado.' },
+        { t:'Segunda fase', d:'atenuantes antes das agravantes, patamar usual de 1/6, sem ultrapassar mínimo nem máximo.' },
+        { t:'Terceira fase', d:'aplicação cumulativa, cada operação sobre o resultado da anterior. Havendo mais de uma causa na Parte Especial, o juiz pode limitar-se a um só aumento.' },
+        { t:'Sem bis in idem', d:'elementar do tipo, qualificadora já usada e agravante não voltam a valer na fase anterior.' },
+        { t:'Concurso de crimes', d:'entra depois de fechada a dosimetria de cada delito — não é quarta fase.' }
       ],
-      juris: [
-        'Atenuante não reduz abaixo do mínimo — Súmula 231 do STJ',
-        'Gravidade abstrata não motiva regime mais severo — Súmula 718 do STF'
+      lei: ['Circunstâncias judiciais — CP, art. 59',
+            'Cálculo da pena em três fases — CP, art. 68',
+            'Concurso de causas de aumento na Parte Especial — CP, art. 68, parágrafo único',
+            'Concurso de crimes — CP, arts. 69 a 71',
+            'Crime hediondo — Lei 8.072/90, art. 1º, I (homicídio qualificado, red. da Lei 15.159/2025); feminicídio no art. 1º, I-B'],
+      juris: ['Atenuante não reduz abaixo do mínimo — Súmula 231 do STJ',
+              'Gravidade abstrata não motiva regime mais severo — Súmula 718 do STF'],
+      modelo: 'Passo a dosar a pena, na forma do art. 68 do Código Penal.\n\nPRIMEIRA FASE. A culpabilidade é normal à espécie. O réu não registra antecedentes. Nada a valorar quanto à conduta social e à personalidade. Os motivos integram a qualificadora reconhecida, e por isso não os valoro nesta fase, sob pena de bis in idem. As circunstâncias do crime são desfavoráveis, pois ... . Ausentes elementos sobre as consequências e o comportamento da vítima. Presente uma circunstância judicial negativa, e adotado como parâmetro 1/8 do intervalo da pena, fixo a PENA-BASE em ... anos de reclusão.\n\nSEGUNDA FASE. Reconhecida nos debates a atenuante da confissão espontânea (art. 65, III, "d", do CP), atenuo a pena em 1/6, fixando a PENA INTERMEDIÁRIA em ... anos de reclusão. Ausentes agravantes alegadas nos debates.\n\nTERCEIRA FASE. Ausentes causas de aumento e de diminuição reconhecidas pelo Conselho de Sentença, torno DEFINITIVA a pena em ... anos de reclusão.',
+      erro: 'Elevar a pena-base repetindo elementar do tipo ou a própria qualificadora já usada para qualificar. É bis in idem, e o espelho desconta.' },
+    { nome: 'Regime inicial, substituição e detração',
+      deve: 'Fixar o regime pelo quantum e pelas circunstâncias do art. 59, examinar substituição e sursis ainda que para negar, e computar o tempo de prisão provisória para determinar o regime.',
+      itens: [
+        { t:'Detração antes do regime', d:'o tempo de prisão provisória é computado para DETERMINAR o regime inicial, ainda na sentença.' },
+        { t:'Regime', d:'acima de 8 anos, fechado; acima de 4 até 8, semiaberto se primário; até 4, aberto se primário. Circunstância desfavorável autoriza agravar, com motivação concreta.' },
+        { t:'Hediondez', d:'homicídio qualificado é hediondo, mas isso não impõe por si regime inicial fechado — o regime se define pelas regras gerais, com fundamentação.' },
+        { t:'Substituição e sursis', d:'em crime cometido com violência ou grave ameaça a substituição é vedada; ainda assim, diga isso expressamente.' }
       ],
-      erro: 'Elevar a pena-base repetindo elementar do tipo ou a própria qualificadora já usada para qualificar. É bis in idem, e o espelho desconta.'
-    },
-    {
-      nome: 'Regime inicial, substituição e detração',
-      deve: 'Fixar o regime pelo quantum e pelas circunstâncias do art. 59, examinar substituição por restritivas e suspensão condicional (ainda que para negar, motivadamente), e computar o tempo de prisão provisória para determinar o regime.',
-      lei: [
-        'Regime inicial — CP, art. 33, §§ 2º e 3º',
-        'Substituição por penas restritivas de direitos — CP, art. 44',
-        'Suspensão condicional da pena — CP, art. 77',
-        'Detração na fixação do regime — CPP, art. 387, § 2º'
-      ],
-      juris: [
-        'Regime mais gravoso exige motivação idônea — Súmula 719 do STF',
-        'Pena-base no mínimo veda regime mais gravoso com base apenas na gravidade abstrata do delito — Súmula 440 do STJ'
-      ],
-      erro: 'Fixar o fechado invocando só a gravidade do homicídio. Ser hediondo não dispensa a fundamentação concreta do regime.'
-    },
-    {
-      nome: 'Prisão depois do veredicto',
+      lei: ['Regime inicial — CP, art. 33, §§ 2º e 3º',
+            'Substituição por penas restritivas de direitos — CP, art. 44',
+            'Suspensão condicional da pena — CP, art. 77',
+            'Detração na fixação do regime — CPP, art. 387, § 2º'],
+      juris: ['Regime mais gravoso exige motivação idônea — Súmula 719 do STF',
+              'Pena-base no mínimo veda regime mais gravoso com base apenas na gravidade abstrata do delito — Súmula 440 do STJ'],
+      modelo: 'Considerado o tempo de prisão provisória (art. 387, § 2º, do CPP), e nos termos do art. 33, § 2º, "a", do Código Penal, o condenado iniciará o cumprimento da pena em regime FECHADO, o que se justifica pelo quantum aplicado.\n\nIncabível a substituição por penas restritivas de direitos, por se tratar de crime cometido com violência à pessoa (art. 44, I, do Código Penal), e, pelo mesmo motivo e pelo quantum, incabível a suspensão condicional da pena (art. 77 do Código Penal).',
+      erro: 'Fixar o fechado invocando só a gravidade do homicídio. Ser hediondo não dispensa a fundamentação concreta do regime.' },
+    { nome: 'Prisão depois do veredicto',
       deve: 'Decidir, fundamentadamente, sobre a execução imediata da condenação e sobre a manutenção ou decretação da preventiva. É o ponto mais sensível da peça depois do Tema 1068.',
-      lei: [
-        'Execução provisória da condenação no júri — CPP, art. 492, I, "e"',
-        'Pressupostos da preventiva — CPP, art. 312',
-        'Motivação das decisões — CF, art. 93, IX'
+      itens: [
+        { t:'Execução imediata', d:'a soberania dos veredictos autoriza a execução da condenação independentemente do total da pena — o piso de 15 anos da alínea "e" foi excluído pelo STF.' },
+        { t:'Preventiva', d:'decidir sobre manter, decretar ou revogar, com fato concreto e não com a gravidade em abstrato.' },
+        { t:'Motivação', d:'o art. 315, § 2º, do CPP lista o que NÃO é fundamentação — evite todas as seis fórmulas.' }
       ],
-      juris: [
-        'Execução imediata independe do total da pena — STF, RE 1.235.340, Tema 1068, j. 12/09/2024'
+      lei: ['Execução provisória da condenação no júri — CPP, art. 492, I, "e"',
+            'Pressupostos da preventiva — CPP, art. 312',
+            'O que não é fundamentação — CPP, art. 315, § 2º',
+            'Motivação das decisões — CF, art. 93, IX'],
+      juris: ['Execução imediata independe do total da pena — STF, RE 1.235.340, Tema 1068, j. 12/09/2024'],
+      modelo: 'Diante da soberania dos veredictos, e nos termos do art. 492, I, "e", do Código de Processo Penal, com a interpretação conforme fixada pelo Supremo Tribunal Federal no Tema 1068, DETERMINO a execução imediata da condenação, independentemente do total da pena aplicada.\n\nExpeça-se mandado de prisão e guia de execução provisória.\n\nOU\n\nAusentes os pressupostos do art. 312 do Código de Processo Penal, e por não ser caso de execução imediata, PODERÁ o sentenciado recorrer em liberdade.',
+      erro: 'Repetir o piso de 15 anos do art. 492, I, "e" como se fosse condição da execução imediata. No Tema 1068 o STF deu interpretação conforme com redução de texto e excluiu o limite.' },
+    { nome: 'Fecho: leitura, recurso e providências',
+      deve: 'Sentença lida em plenário, custas, direito de recorrer, expedição da guia e as comunicações de praxe.',
+      itens: [
+        { t:'Leitura em plenário', d:'a sentença é lida antes de encerrada a sessão, e a intimação se dá nesse ato.' },
+        { t:'Guia', d:'a definitiva sai após o trânsito; a provisória, quando houver execução imediata.' },
+        { t:'Providências', d:'rol dos culpados, ofício ao TRE para suspensão dos direitos políticos, comunicação ao instituto de identificação.' },
+        { t:'Recurso', d:'apelação nas hipóteses fechadas do art. 593, III, em 5 dias.' }
       ],
-      erro: 'Repetir o piso de 15 anos do art. 492, I, "e" como se fosse condição da execução imediata. No Tema 1068 o STF desvinculou a execução do quantum da pena.'
-    },
-    {
-      nome: 'Fecho: leitura, recurso e providências',
-      deve: 'Sentença lida em plenário, custas, direito de recorrer, expedição da guia (provisória ou definitiva) e as comunicações de praxe.',
-      lei: [
-        'Leitura da sentença em plenário — CPP, art. 493',
-        'Apelação das decisões do júri — CPP, art. 593, III',
-        'Guia de recolhimento definitiva — LEP, arts. 105 e 106; guia de execução provisória — Res. CNJ 113/2010 e Súmulas 716 e 717 do STF'
-      ],
+      lei: ['Leitura da sentença em plenário — CPP, art. 493',
+            'Apelação das decisões do júri — CPP, art. 593, III',
+            'Guia de recolhimento definitiva — LEP, arts. 105 e 106; guia de execução provisória — Res. CNJ 113/2010 e Súmulas 716 e 717 do STF',
+            'Suspensão dos direitos políticos — CF, art. 15, III'],
       juris: [],
-      erro: 'Terminar sem uma palavra sobre recorrer em liberdade. A omissão é falta de fundamentação, não descuido de redação.'
-    }
+      modelo: 'Condeno o sentenciado ao pagamento das custas processuais.\n\nExpeça-se guia de execução provisória, encaminhando-se ao Juízo da Execução Penal.\n\nCertificado o trânsito em julgado: a) lance-se o nome no rol dos culpados; b) oficie-se ao Tribunal Regional Eleitoral, para os fins do art. 15, III, da Constituição; c) oficie-se ao instituto de identificação; d) expeça-se guia de execução definitiva.\n\nSentença lida em plenário, saindo os presentes intimados.\n\nPublique-se. Registre-se. Intimem-se.\n\nLocal, data.\nJuiz de Direito — Presidente do Tribunal do Júri',
+      erro: 'Terminar sem uma palavra sobre recorrer em liberdade. A omissão é falta de fundamentação, não descuido de redação.' }
   ],
   cego: [
     'Sentença congruente com as respostas aos quesitos',
     'Absolvição pelo quesito genérico NÃO fundamentada',
-    'Absolvição: soltura + revogação das cautelares + medida de segurança se imprópria',
+    'Absolvição: soltura ressalvada a prisão por outro motivo',
+    'Revogação das medidas restritivas e devolução da fiança',
+    'Medida de segurança na absolvição imprópria',
     'Qualificadoras e causas de aumento conforme o veredicto',
-    'Pena-base com fato concreto para cada circunstância judicial',
     'Agravantes e atenuantes limitadas ao alegado nos debates',
-    'Terceira fase: causas de aumento e diminuição, com fração justificada',
-    'Regime inicial fundamentado (não só pela gravidade)',
-    'Substituição e sursis enfrentados, ainda que para negar',
+    'Pena-base com fato concreto para cada circunstância judicial',
+    'Fração de trabalho explicitada como critério jurisprudencial',
+    'Terceira fase com fração justificada',
+    'Sem bis in idem entre elementar, qualificadora e agravante',
     'Detração computada para o regime (CPP, art. 387, § 2º)',
+    'Regime inicial fundamentado, não pela hediondez em abstrato',
+    'Substituição e sursis enfrentados, ainda que para negar',
     'Execução imediata e preventiva decididas com motivação',
-    'Custas, recurso e guia de recolhimento'
+    'Custas, guia, rol dos culpados, TRE e P. R. I.'
+  ],
+  dicas: [
+    'Leia a ata antes de escrever. Ela diz quais teses foram sustentadas, e sem isso você não sabe quais agravantes e atenuantes podem entrar na segunda fase.',
+    'No júri, agravante e atenuante só entram se alegadas nos debates. É a diferença mais cobrada em relação ao procedimento comum, onde podem ser reconhecidas de ofício.',
+    'Absolveu? A sentença é curta. Não escreva fundamentação: o veredicto é soberano e explicar o motivo é o erro clássico.',
+    'Havendo duas qualificadoras, uma qualifica e a outra vai para a segunda fase se tiver previsão como agravante; não tendo, vai para a primeira, como circunstância judicial.',
+    { t:'O piso de 15 anos do art. 492, I, "e" não existe mais como condição. O STF, no Tema 1068, deu interpretação conforme com redução de texto — mas o texto do Planalto ainda exibe a redação original, o que confunde.', alerta:true },
+    { t:'Feminicídio não está mais no art. 1º, I, da Lei 8.072/90: está no inciso I-B, pela Lei 14.994/2024, e o inciso I foi reescrito pela Lei 15.159/2025. Citar o inciso I para feminicídio está errado.', alerta:true },
+    { t:'A tese do Tema 1087 sobre clemência é condicional: só não haverá novo júri se a absolvição for compatível com a Constituição, com os precedentes vinculantes do STF e com as circunstâncias fáticas dos autos.', alerta:true }
+  ],
+  especiais: [
+    { t:'Desclassificação em plenário', d:'Se os jurados desclassificarem para crime não doloso contra a vida, a competência para julgar passa ao juiz-presidente (CPP, art. 492, § 1º), que aplica a pena do crime desclassificado. Sendo infração de menor potencial ofensivo, o presidente aplica os institutos da Lei 9.099/95 (§ 2º).' },
+    { t:'Tentativa de homicídio', d:'A causa de diminuição do art. 14, II, do CP é objeto de quesito próprio, e a fração — de 1/3 a 2/3 — depende do iter criminis percorrido. Quanto mais próximo da consumação, menor a redução. Fundamente pela distância do resultado, não pela gravidade.' },
+    { t:'Concurso de agentes', d:'A dosimetria é individualizada por réu, mesmo com veredicto único. Participação de menor importância (CP, art. 29, § 1º) e cooperação dolosamente distinta (§ 2º) precisam ter sido objeto de quesito para serem reconhecidas.' },
+    { t:'Feminicídio', d:'Depois da Lei 14.994/2024 o feminicídio é crime autônomo (CP, art. 121-A) e figura no rol de hediondos no art. 1º, I-B, da Lei 8.072/90. Verifique a data do fato: para fatos anteriores, aplica-se a lei do tempo, e a mais grave não retroage.' }
   ]
 },
 
 // ──────────────────── SENTENÇA SOCIOEDUCATIVA (2ª fase) ────────────────────
 'Sentença socioeducativa': {
   rito: 'Criança e adolescente — ato infracional',
+  freq: 5,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura'],
-  sobre: 'Não é sentença penal: é decisão que aplica medida socioeducativa, de natureza pedagógica. Duas armadilhas cobram quase todo o espelho: aplicar medida sem prova além da confissão, e internar fora das três hipóteses do art. 122. Internação é exceção — e cada exceção tem inciso próprio.',
+  sobre: 'Não é sentença penal: é decisão que aplica medida socioeducativa, de natureza pedagógica. Duas armadilhas cobram quase todo o espelho — aplicar medida sem prova além da confissão, e internar fora das três hipóteses do art. 122. Internação é exceção, e cada exceção tem inciso próprio.',
   blocos: [
-    {
-      nome: 'Relatório e regularidade do procedimento',
-      deve: 'Registrar a representação do Ministério Público, a oitiva do adolescente e dos pais ou responsável, a atuação da defesa técnica e o resultado do estudo social. A oitiva do adolescente não é praxe: é condição de validade.',
-      lei: [
-        'Representação do Ministério Público — ECA, art. 182',
-        'Audiência de apresentação e oitiva do adolescente — ECA, arts. 184 e 186',
-        'Defesa técnica por advogado — ECA, art. 207',
-        'Alegações finais e sentença — ECA, art. 186, § 4º'
+    { nome: 'Relatório e regularidade do procedimento',
+      deve: 'Registrar a representação, a oitiva do adolescente e dos responsáveis, a atuação da defesa técnica e o resultado do estudo social. A oitiva não é praxe: é condição de validade.',
+      itens: [
+        { t:'Representação', d:'oferecida pelo Ministério Público após a oitiva informal, com a descrição do ato e a indicação das provas.' },
+        { t:'Audiência de apresentação', d:'oitiva do adolescente e dos pais ou responsável — sua falta é nulidade insanável.' },
+        { t:'Defesa técnica', d:'nenhum adolescente é processado sem defensor; a defesa deficiente equivale à ausência.' },
+        { t:'Estudo social', d:'relatório da equipe interprofissional, base da escolha da medida — se houver, cite; se não houver, diga por quê.' },
+        { t:'Internação provisória', d:'registre se houve, desde quando e se o prazo de 45 dias foi observado.' }
       ],
-      juris: [
-        'Aplicação da medida é competência exclusiva do juiz — Súmula 108 do STJ'
+      lei: ['Representação do Ministério Público — ECA, art. 182',
+            'Audiência de apresentação e oitiva do adolescente — ECA, arts. 184 e 186',
+            'Defesa técnica por advogado — ECA, art. 207',
+            'Alegações finais e sentença — ECA, art. 186, § 4º',
+            'Prazo máximo da internação provisória — ECA, arts. 108 e 183'],
+      juris: ['Aplicação da medida é competência exclusiva do juiz — Súmula 108 do STJ'],
+      modelo: 'Vistos etc.\n\nO MINISTÉRIO PÚBLICO ofereceu representação em face do adolescente F. T., nascido em .../.../..., pela prática de ato infracional análogo ao crime previsto no art. ... do Código Penal, ocorrido em .../.../..., nas circunstâncias descritas na peça inicial.\n\nO adolescente foi apreendido em .../.../... e ... (liberado aos responsáveis / mantido em internação provisória, com o prazo do art. 183 do ECA observado).\n\nRealizada a audiência de apresentação, o adolescente foi ouvido na presença de sua genitora e de defensor constituído (fl. ...). Na audiência em continuação foram ouvidas as testemunhas ... e ... . Foi juntado estudo social às fls. ... .\n\nEm alegações finais, o Ministério Público pugnou por ...; a defesa, por ... .\n\nÉ o relatório. DECIDO.',
+      erro: 'Passar por cima da oitiva do adolescente ou da manifestação da defesa técnica. Não é formalidade dispensável — é nulidade.' },
+    { nome: 'Materialidade e autoria — prova, não só confissão',
+      deve: 'Aplicar medida dos incisos II a VI do art. 112 exige prova suficiente de autoria e materialidade. Confissão não substitui prova e não autoriza dispensar as demais.',
+      itens: [
+        { t:'Exigência do art. 114', d:'prova suficiente de autoria e materialidade, ressalvada apenas a hipótese de remissão.' },
+        { t:'Advertência é exceção', d:'a medida do inciso I pode ser aplicada com prova da materialidade e indícios de autoria (art. 114, parágrafo único).' },
+        { t:'Confissão', d:'não dispensa as outras provas, e desistir delas por causa dela é nulidade.' },
+        { t:'Prova em contraditório', d:'elemento colhido só na fase de apuração policial não sustenta a medida sozinho.' }
       ],
-      erro: 'Passar por cima da oitiva do adolescente ou da manifestação da defesa técnica. Não é formalidade dispensável — é nulidade.'
-    },
-    {
-      nome: 'Materialidade e autoria — prova, não só confissão',
-      deve: 'Aplicar medida das previstas nos incisos II a VI do art. 112 exige prova suficiente de autoria e materialidade. Confissão do adolescente não substitui prova, e não autoriza dispensar as demais.',
-      lei: [
-        'Prova de autoria e materialidade — ECA, art. 114',
-        'Remissão — ECA, arts. 126 a 128'
-      ],
-      juris: [
-        'Nula a desistência de provas em face da confissão — Súmula 342 do STJ'
-      ],
-      erro: 'Sentenciar apoiado na confissão em sede policial, sem prova produzida em contraditório. A Súmula 342 derruba a sentença inteira.'
-    },
-    {
-      nome: 'Tipicidade, excludentes e prescrição',
+      lei: ['Prova de autoria e materialidade — ECA, art. 114',
+            'Advertência com indícios de autoria — ECA, art. 114, parágrafo único',
+            'Remissão — ECA, arts. 126 a 128'],
+      juris: ['Nula a desistência de provas em face da confissão — Súmula 342 do STJ'],
+      modelo: 'A materialidade do ato infracional está demonstrada pelo auto de apreensão de fl. ..., pelo laudo de fl. ... e pelo depoimento da vítima, ouvida em juízo.\n\nA autoria também é certa. O adolescente, ouvido na audiência de apresentação, admitiu ... . Sua confissão, porém, não é o único elemento: encontra respaldo no depoimento de ... (fl. ...) e no reconhecimento realizado na forma do art. 226 do Código de Processo Penal.\n\nAssim, presentes prova suficiente da autoria e da materialidade, na forma exigida pelo art. 114 do Estatuto da Criança e do Adolescente, a representação é procedente.',
+      erro: 'Sentenciar apoiado na confissão colhida na fase policial, sem prova produzida em contraditório. A Súmula 342 derruba a sentença inteira.' },
+    { nome: 'Tipicidade, excludentes e prescrição',
       deve: 'Verificar a correspondência da conduta com crime ou contravenção, enfrentar as excludentes alegadas e checar a prescrição — que incide, com a redução da menoridade.',
-      lei: [
-        'Conceito de ato infracional — ECA, art. 103',
-        'Adolescente inimputável, sujeito às medidas do ECA, aferida a idade à data do fato — ECA, art. 104 e parágrafo único',
-        'Criança sujeita às medidas protetivas — ECA, arts. 101 e 105',
-        'Redução de metade do prazo prescricional pela menoridade, salvo crime que envolva violência sexual contra a mulher — CP, art. 115 (red. da Lei 15.160/2025)'
+      itens: [
+        { t:'Correspondência típica', d:'ato infracional é a conduta descrita como crime ou contravenção; sem tipo correspondente, não há ato infracional.' },
+        { t:'Idade na data do fato', d:'é o que define a sujeição ao ECA — e não a idade na data da sentença.' },
+        { t:'Excludentes', d:'ilicitude e culpabilidade aplicam-se por analogia, e precisam ser enfrentadas uma a uma.' },
+        { t:'Prescrição', d:'aplica-se, com a redução pela metade — mas verifique a exceção introduzida em 2025 para crime que envolva violência sexual contra a mulher.' }
       ],
-      juris: [
-        'Prescrição penal aplica-se às medidas socioeducativas — Súmula 338 do STJ',
-        'Maioridade superveniente não extingue a medida até os 21 anos — Súmula 605 do STJ'
+      lei: ['Conceito de ato infracional — ECA, art. 103',
+            'Adolescente inimputável, sujeito às medidas do ECA, aferida a idade à data do fato — ECA, art. 104 e parágrafo único',
+            'Criança sujeita às medidas protetivas — ECA, arts. 101 e 105',
+            'Redução de metade do prazo prescricional pela menoridade, salvo crime que envolva violência sexual contra a mulher — CP, art. 115 (red. da Lei 15.160/2025)'],
+      juris: ['Prescrição penal aplica-se às medidas socioeducativas — Súmula 338 do STJ',
+              'Maioridade superveniente não extingue a medida até os 21 anos — Súmula 605 do STJ'],
+      modelo: 'A conduta apurada corresponde ao tipo do art. ... do Código Penal, configurando ato infracional na forma do art. 103 do Estatuto da Criança e do Adolescente.\n\nO adolescente contava ... anos na data do fato, o que o sujeita às medidas socioeducativas (art. 104, parágrafo único, do ECA).\n\nA defesa sustentou a excludente de ... . A tese não prospera, porque ... .\n\nQuanto à prescrição, aplicável às medidas socioeducativas (Súmula 338 do STJ), o prazo do art. 109, ..., do Código Penal, reduzido de metade pela menoridade (art. 115 do Código Penal), não se consumou entre ... e ... .',
+      erro: 'Não examinar a prescrição. Em ato infracional o prazo já é curto e cai pela metade — passa despercebido e o espelho cobra.' },
+    { nome: 'Escolha da medida: proporcionalidade, não tarifa',
+      deve: 'A medida se escolhe pela capacidade do adolescente de cumpri-la, pelas circunstâncias e pela gravidade — nessa ordem, e não só pela gravidade. Fundamentar por que as menos gravosas não servem.',
+      itens: [
+        { t:'A ordem do § 1º', d:'capacidade de cumprir vem primeiro no texto legal; a gravidade é o último critério, não o único.' },
+        { t:'Elenco', d:'advertência, obrigação de reparar o dano, prestação de serviços à comunidade, liberdade assistida, semiliberdade e internação — do menos ao mais gravoso.' },
+        { t:'Descarte motivado', d:'diga por que cada medida menos gravosa é insuficiente no caso. Sem isso a escolha não se sustenta.' },
+        { t:'Adolescente com deficiência', d:'atendimento individualizado e em local adequado às suas condições.' },
+        { t:'Princípios da execução', d:'legalidade, excepcionalidade, brevidade, proporcionalidade e mínima intervenção regem o cumprimento.' }
       ],
-      erro: 'Não examinar a prescrição. Em ato infracional o prazo já é curto e cai pela metade — passa despercebido e o espelho cobra.'
-    },
-    {
-      nome: 'Escolha da medida: proporcionalidade, não tarifa',
-      deve: 'A medida se escolhe pela capacidade do adolescente de cumpri-la, pelas circunstâncias e pela gravidade do ato — nessa ordem, e não só pela gravidade. Fundamentar por que as medidas menos gravosas não servem ao caso.',
-      lei: [
-        'Elenco das medidas socioeducativas — ECA, art. 112',
-        'Critérios de escolha da medida — ECA, art. 112, § 1º',
-        'Princípios da execução socioeducativa — Lei 12.594/2012 (SINASE), art. 35'
-      ],
+      lei: ['Elenco das medidas socioeducativas — ECA, art. 112',
+            'Critérios de escolha da medida — ECA, art. 112, § 1º',
+            'Adolescente com deficiência — ECA, art. 112, § 3º',
+            'Princípios da execução socioeducativa — Lei 12.594/2012 (SINASE), art. 35'],
       juris: [],
-      erro: 'Escolher a medida pela etiqueta do ato ("roubo é internação"). O art. 112, § 1º manda pesar a capacidade de cumprir e as circunstâncias, e a sentença precisa mostrar esse exame.'
-    },
-    {
-      nome: 'Internação: só nas três hipóteses do art. 122',
-      deve: 'Internar exige enquadrar o caso em um dos três incisos: violência ou grave ameaça à pessoa; reiteração no cometimento de outras infrações graves; descumprimento reiterado e injustificável de medida anterior — esta última limitada a três meses. E, havendo outra medida adequada, a internação não se impõe.',
-      lei: [
-        'Hipóteses de internação — ECA, art. 122, I a III',
-        'Internação-sanção: prazo máximo de três meses — ECA, art. 122, § 1º',
-        'Vedação havendo medida mais adequada — ECA, art. 122, § 2º',
-        'Prazo indeterminado, reavaliação e limites — ECA, art. 121, §§ 2º, 3º e 5º'
+      modelo: 'Passo à escolha da medida, observados os critérios do art. 112, § 1º, do Estatuto da Criança e do Adolescente.\n\nO estudo social de fls. ... revela que o adolescente ... (contexto familiar, escolar e comunitário), o que indica capacidade de cumprir medida em meio aberto, com acompanhamento.\n\nAs circunstâncias do ato revelam ... . A gravidade, embora relevante, não é o único critério, e o Estatuto a coloca ao lado da capacidade de cumprimento.\n\nA advertência e a obrigação de reparar mostram-se insuficientes, porque ... . A prestação de serviços à comunidade, isoladamente, não atende à finalidade pedagógica, uma vez que ... .\n\nEntendo adequada, proporcional e suficiente a medida de LIBERDADE ASSISTIDA, pelo prazo mínimo de seis meses (art. 118, § 2º, do ECA).',
+      erro: 'Escolher a medida pela etiqueta do ato ("roubo é internação"). O art. 112, § 1º manda pesar a capacidade de cumprir e as circunstâncias, e a sentença precisa mostrar esse exame.' },
+    { nome: 'Internação: só nas três hipóteses do art. 122',
+      deve: 'Internar exige enquadrar o caso em um dos três incisos. E, havendo outra medida adequada, a internação não se impõe.',
+      itens: [
+        { t:'Inciso I', d:'ato cometido mediante grave ameaça ou violência a pessoa — violência contra a coisa não basta.' },
+        { t:'Inciso II', d:'reiteração no cometimento de outras infrações graves — reiteração é mais de uma anterior, não a primeira reincidência.' },
+        { t:'Inciso III', d:'descumprimento reiterado e injustificável de medida anteriormente imposta — a internação-sanção, limitada a três meses, com contraditório prévio.' },
+        { t:'Subsidiariedade', d:'o § 2º é expresso: havendo outra medida adequada, a internação não se impõe.' },
+        { t:'Regime da internação', d:'sem prazo determinado, reavaliação em no máximo seis meses, teto de três anos e liberação compulsória aos 21.' }
       ],
-      juris: [
-        'Tráfico, por si só, não autoriza internação — Súmula 492 do STJ'
+      lei: ['Hipóteses de internação — ECA, art. 122, I a III',
+            'Internação-sanção: prazo máximo de três meses — ECA, art. 122, § 1º',
+            'Vedação havendo medida mais adequada — ECA, art. 122, § 2º',
+            'Prazo indeterminado, reavaliação e limites — ECA, art. 121, §§ 2º, 3º e 5º'],
+      juris: ['Tráfico, por si só, não autoriza internação — Súmula 492 do STJ'],
+      modelo: 'A internação é medida excepcional, sujeita aos princípios da brevidade, da excepcionalidade e do respeito à condição peculiar de pessoa em desenvolvimento (art. 121 do ECA), e só cabe nas hipóteses taxativas do art. 122.\n\nNo caso, o ato infracional foi praticado mediante grave ameaça a pessoa, com o emprego de ..., o que atrai o inciso I do art. 122.\n\nNão há medida menos gravosa adequada, uma vez que ... (art. 122, § 2º).\n\nAplico ao adolescente a medida socioeducativa de INTERNAÇÃO, sem prazo determinado, a ser reavaliada, mediante decisão fundamentada, no máximo a cada seis meses (art. 121, § 2º, do ECA), observados o limite de três anos e a liberação compulsória aos vinte e um anos de idade.',
+      erro: 'Internar por ato análogo ao tráfico invocando a gravidade em abstrato. Sem violência ou grave ameaça o inciso I não serve, e a Súmula 492 fecha o atalho.' },
+    { nome: 'Dispositivo e providências da execução',
+      deve: 'Aplicar a medida, determinar o plano individual de atendimento, fixar a reavaliação e resolver o que fazer com a internação provisória cumprida. Nada de prazo certo para a internação.',
+      itens: [
+        { t:'Sem prazo certo', d:'internação não comporta prazo determinado — o que existe é o teto e a reavaliação semestral.' },
+        { t:'Detração', d:'o tempo de internação provisória é computado no cumprimento da medida.' },
+        { t:'PIA', d:'determinar a elaboração do plano individual de atendimento pela equipe técnica do programa.' },
+        { t:'Recurso e prazo', d:'apelação, sem preparo, com prazo de dez dias para o MP e para a defesa.' },
+        { t:'Regressão futura', d:'registrar que qualquer regressão exigirá oitiva prévia do adolescente.' }
       ],
-      erro: 'Internar por ato análogo ao tráfico invocando a gravidade em abstrato. Sem violência ou grave ameaça o inciso I não serve, e a Súmula 492 fecha o atalho.'
-    },
-    {
-      nome: 'Dispositivo e providências da execução',
-      deve: 'Aplicar a medida, determinar o plano individual de atendimento, fixar a reavaliação, e resolver o que fazer com a internação provisória cumprida. Nada de prazo certo para a internação.',
-      lei: [
-        'Reavaliação em no máximo seis meses — ECA, art. 121, § 2º',
-        'Teto de três anos e liberação compulsória aos 21 — ECA, art. 121, §§ 3º e 5º',
-        'Plano Individual de Atendimento — Lei 12.594/2012, arts. 52 e 53',
-        'Recursos: prazo de dez dias para o MP e para a defesa em todos os recursos, salvo embargos de declaração — ECA, art. 198, II'
-      ],
-      juris: [
-        'Oitiva do adolescente antes da regressão — Súmula 265 do STJ'
-      ],
-      erro: 'Fixar prazo determinado de internação ("internação por um ano"). A internação não comporta prazo certo: o que existe é o teto de três anos e a reavaliação semestral.'
-    }
+      lei: ['Reavaliação em no máximo seis meses — ECA, art. 121, § 2º',
+            'Teto de três anos e liberação compulsória aos 21 — ECA, art. 121, §§ 3º e 5º',
+            'Detração da internação provisória — Lei 12.594/2012, art. 46, § 1º',
+            'Plano Individual de Atendimento — Lei 12.594/2012, arts. 52 e 53',
+            'Recursos: prazo de dez dias para o MP e para a defesa em todos os recursos, salvo embargos de declaração — ECA, art. 198, II'],
+      juris: ['Oitiva do adolescente antes da regressão — Súmula 265 do STJ'],
+      modelo: 'Ante o exposto, JULGO PROCEDENTE a representação, para aplicar ao adolescente F. T. a medida socioeducativa de ..., na forma do art. 112, ..., do Estatuto da Criança e do Adolescente.\n\nDetermino a elaboração do Plano Individual de Atendimento pela equipe técnica do programa, no prazo do art. 56 da Lei 12.594/2012.\n\nCompute-se o período de internação provisória já cumprido.\n\nA medida será reavaliada, mediante decisão fundamentada, no máximo a cada seis meses.\n\nSem custas (art. 141, § 2º, do ECA).\n\nPublique-se. Registre-se. Intimem-se, inclusive o adolescente e seus responsáveis, pessoalmente.',
+      erro: 'Fixar prazo determinado de internação ("internação por um ano"). A internação não comporta prazo certo: o que existe é o teto de três anos e a reavaliação semestral.' }
   ],
   cego: [
     'Oitiva do adolescente e dos responsáveis registrada',
     'Defesa técnica atuante e alegações enfrentadas',
+    'Prazo da internação provisória verificado',
     'Autoria e materialidade provadas — não só confissão',
     'Tipicidade do ato infracional demonstrada',
+    'Idade aferida na data do fato',
     'Excludentes alegadas enfrentadas',
     'Prescrição examinada, com a redução da menoridade',
     'Escolha da medida justificada pelo art. 112, § 1º',
     'Medidas menos gravosas descartadas com motivo',
     'Internação enquadrada em inciso do art. 122',
+    'Subsidiariedade do § 2º enfrentada',
     'Internação sem prazo determinado, com reavaliação em até 6 meses',
     'Internação-sanção limitada a três meses',
-    'PIA determinado e providências de execução no dispositivo'
+    'Detração da internação provisória',
+    'PIA determinado e intimação pessoal do adolescente'
+  ],
+  dicas: [
+    'A idade que importa é a da DATA DO FATO. Adolescente que completou 18 no curso do processo continua sujeito à medida, até os 21.',
+    'Não use vocabulário penal. Não é réu, é adolescente; não é condenação, é aplicação de medida; não é pena, é medida socioeducativa. A banca lê isso.',
+    'A ordem do art. 112, § 1º começa pela capacidade de cumprir a medida. Sentença que começa pela gravidade já inverteu o critério legal.',
+    'Reiteração do art. 122, II não é a segunda passagem. Exige prática reiterada de outras infrações graves — e a jurisprudência não fixa número, exige análise concreta.',
+    'Internação-sanção do inciso III tem teto de três meses e exige contraditório prévio: não se decreta no mesmo despacho que constata o descumprimento.',
+    { t:'Prescrição em ato infracional cai pela metade pelo art. 115 do CP — mas a Lei 15.160/2025 excepcionou o crime que envolva violência sexual contra a mulher. Verifique a natureza do ato antes de reduzir.', alerta:true },
+    { t:'O art. 105 do ECA é de CRIANÇA, e remete às medidas protetivas do art. 101. Citar o art. 105 para adolescente é erro de dispositivo.', alerta:true },
+    { t:'O prazo recursal de dez dias está no art. 198, II, e não alcança os embargos de declaração. Citar "art. 198" sem o inciso é impreciso.', alerta:true }
+  ],
+  especiais: [
+    { t:'Remissão', d:'Pode ser ministerial, antes de iniciado o procedimento (exclusão do processo), ou judicial, depois de iniciado (suspensão ou extinção). Não implica reconhecimento nem comprovação de responsabilidade e não prevalece para efeito de antecedentes (ECA, art. 127). Cumulável com medida em meio aberto — nunca com internação ou semiliberdade (Súmula 108 do STJ e art. 127, parte final).' },
+    { t:'Ato análogo ao tráfico', d:'A Súmula 492 do STJ impede a internação automática. Sem violência ou grave ameaça, o inciso I do art. 122 não incide; a internação só cabe pela reiteração (II) ou pelo descumprimento (III), e cada uma exige demonstração própria.' },
+    { t:'Adolescente com transtorno mental ou dependência', d:'O art. 112, § 3º, do ECA determina tratamento individual e especializado, em local adequado. A medida socioeducativa não se converte em medida de segurança, e a internação psiquiátrica segue a legislação de saúde mental, não o art. 122.' },
+    { t:'Prática em concurso com maior de idade', d:'O adolescente responde no juízo da infância, e o adulto no juízo criminal — não há reunião. Para o adulto, verifique a corrupção de menores do art. 244-B do ECA, crime formal que dispensa prova da efetiva corrupção (Súmula 500 do STJ).' },
+    { t:'Execução da medida', d:'O SINASE (Lei 12.594/2012) rege o cumprimento: PIA obrigatório, reavaliação semestral, e regressão só com oitiva prévia (Súmula 265 do STJ). O descumprimento reiterado e injustificável autoriza a internação-sanção do art. 122, III, limitada a três meses.' }
   ]
 },
 
 // ───────────── SENTENÇA NOS EMBARGOS À EXECUÇÃO FISCAL (2ª fase) ─────────────
 'Embargos à execução fiscal': {
   rito: 'Tributário — execução fiscal',
+  freq: 18,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura','Procuradorias'],
   sobre: 'O rótulo é a peça do executado; em prova de magistratura o que se escreve é a SENTENÇA que a julga. São ação incidental de conhecimento, com sentença e honorários próprios. O espelho costuma cobrar quatro eixos: admissibilidade (garantia e prazo), higidez da CDA, prescrição, e o destino da execução depois do julgado.',
   blocos: [
@@ -990,6 +1399,7 @@ window.CT_PECAS = {
 // ────────── SENTENÇA NOS EMBARGOS À EXECUÇÃO (título extrajudicial) ──────────
 'Embargos à execução': {
   rito: 'Civil — cumprimento e execução',
+  freq: 8,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura','Advocacia'],
   sobre: 'Ação incidental de conhecimento, distribuída por dependência e autuada em apartado. Diferença que a banca adora: aqui NÃO se exige garantia para embargar — a garantia só entra quando se pede efeito suspensivo. E excesso de execução alegado sem valor correto é rejeitado de plano.',
   blocos: [
@@ -1081,6 +1491,7 @@ window.CT_PECAS = {
 // ────────── DECISÃO NA IMPUGNAÇÃO AO CUMPRIMENTO DE SENTENÇA ──────────
 'Impugnação ao cumprimento': {
   rito: 'Civil — cumprimento e execução',
+  freq: 6,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Magistratura','Advocacia'],
   sobre: 'Defesa endoprocessual, com rol FECHADO de matérias — é o oposto dos embargos do art. 917, VI. Três pontos decidem o espelho: o rol do § 1º, o ônus de declarar o valor correto no excesso, e a multa e os honorários de dez por cento do art. 523, § 1º, que não se afastam por impugnar.',
   blocos: [
@@ -1174,6 +1585,7 @@ window.CT_PECAS = {
 // ═══════════════════════ DEFENSORIA E ADVOCACIA ═══════════════════════
 'Habeas corpus': {
   rito: 'Constitucional — remédios',
+  freq: 20,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Defensoria','Advocacia','Ministério Público'],
   sobre: 'Ação constitucional de rito sumaríssimo, sem dilação probatória. Três coisas decidem a peça: identificar corretamente a autoridade coatora (dela depende a competência), demonstrar a ilegalidade com prova pré-constituída, e pedir o que o writ pode dar — soltura, trancamento, anulação —, não o reexame de prova.',
   blocos: [
@@ -1233,6 +1645,7 @@ window.CT_PECAS = {
 
 'Resposta à acusação': {
   rito: 'Penal — procedimento comum',
+  freq: 7,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Defensoria','Advocacia'],
   sobre: 'Peça obrigatória e a única chance de encerrar o processo antes da instrução. Ela tem duas ambições distintas: as preliminares, que atacam o processo, e o mérito, que busca a absolvição sumária do art. 397. E tem uma função silenciosa que decide a instrução inteira: arrolar testemunhas — não o fazer aqui gera preclusão.',
   blocos: [
@@ -1284,6 +1697,7 @@ window.CT_PECAS = {
 // ═══════════════════════ MINISTÉRIO PÚBLICO ═══════════════════════
 'ACP ambiental': {
   rito: 'Ambiental — ação civil pública',
+  freq: 31,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Ministério Público','Advocacia pública'],
   sobre: 'Inicial de tutela coletiva. O que a banca conta: legitimidade e objeto, a responsabilidade civil ambiental como objetiva, solidária e propter rem, o pedido cumulado de reparação e o alcance da coisa julgada — que deixou de ser limitado ao território do juízo.',
   blocos: [
@@ -1339,6 +1753,7 @@ window.CT_PECAS = {
 
 'Petição inicial de improbidade': {
   rito: 'Administrativo — improbidade',
+  freq: 27,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Ministério Público'],
   sobre: 'Depois da Lei 14.230/2021 a peça mudou de eixo: legitimidade agora é exclusiva do Ministério Público, não existe modalidade culposa, o rol do art. 11 é taxativo, e o dolo exigido é específico — a vontade livre e consciente de alcançar o resultado ilícito, não basta a voluntariedade da conduta.',
   blocos: [
@@ -1399,6 +1814,7 @@ window.CT_PECAS = {
 // ═══════════════════════ PROCURADORIAS ═══════════════════════
 'Contestação da Fazenda Pública': {
   rito: 'Previdenciário — concessão de benefício',
+  freq: 4,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Procuradorias','Advocacia pública'],
   sobre: 'Contestação com prerrogativas próprias e preliminares típicas. O que separa a peça boa da genérica é usar as defesas que só a Fazenda tem — prazo em dobro, prescrição quinquenal do trato sucessivo, remessa necessária — sem esquecer o ônus da impugnação especificada, que vale para ela como para qualquer réu.',
   blocos: [
@@ -1456,6 +1872,7 @@ window.CT_PECAS = {
 // ═══════════════════════ POLÍCIA JUDICIÁRIA ═══════════════════════
 'Relatório de inquérito': {
   rito: 'Penal — procedimento comum',
+  freq: 5,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Delegado'],
   sobre: 'Peça que encerra o inquérito. Não é acusação nem sentença: é a exposição minuciosa do que foi apurado, com a conclusão da autoridade sobre autoria, materialidade e tipificação provisória. Onde o candidato perde ponto é excedendo — opinando sobre a viabilidade da ação penal — ou faltando: deixando de fundamentar o indiciamento.',
   blocos: [
@@ -1541,6 +1958,7 @@ window.CT_PECAS = {
 // ═══════════════════════ DEFESA ═══════════════════════
 'Alegações finais da defesa': {
   rito: 'Penal — procedimento comum',
+  freq: 16,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Defensoria','Advocacia'],
   sobre: 'A última palavra da defesa antes da sentença. A peça vale pela ARQUITETURA: preliminares primeiro, mérito depois, e — mesmo pedindo absolvição — os pedidos subsidiários de dosimetria no fim. Defesa que só pede absolvição e é vencida entrega a dosimetria de presente à acusação.',
   blocos: [
@@ -1746,6 +2164,7 @@ window.CT_PECAS = {
 // ═══════════════════════ CÍVEL — POSTULATÓRIAS ═══════════════════════
 'Petição inicial': {
   rito: 'Civil — conhecimento',
+  freq: 45,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Advocacia','Defensoria','Ministério Público','Procuradorias'],
   sobre: 'A peça que fixa os limites de tudo o que vem depois. O juiz decidirá nos limites do que foi pedido, e a causa de pedir narrada aqui é a única que poderá ser julgada. Inicial mal delimitada não se conserta na réplica.',
   blocos: [
@@ -1828,6 +2247,7 @@ window.CT_PECAS = {
 
 'Contestação': {
   rito: 'Civil — conhecimento',
+  freq: 46,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Advocacia','Defensoria','Procuradorias'],
   sobre: 'Peça regida por dois princípios que se cobram juntos: eventualidade — tudo o que é defesa vem agora, de uma vez — e impugnação especificada — fato não impugnado é fato incontroverso. A defesa que "nega genericamente" perde antes de discutir.',
   blocos: [
@@ -1898,6 +2318,7 @@ window.CT_PECAS = {
 
 'Reconvenção': {
   rito: 'Civil — conhecimento',
+  freq: 2,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Advocacia','Procuradorias'],
   sobre: 'Ação do réu contra o autor, dentro do mesmo processo. Depois do CPC/2015 ela vem NA contestação, não em peça separada — e ganhou autonomia: desistir da ação principal não a atinge.',
   blocos: [
@@ -2041,6 +2462,7 @@ window.CT_PECAS = {
 // ═══════════════════════ CÍVEL — RECURSOS ═══════════════════════
 'Apelação': {
   rito: 'Civil — recursos',
+  freq: 21,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Advocacia','Defensoria','Procuradorias','Ministério Público'],
   sobre: 'Recurso de fundamentação livre contra sentença. O que decide a peça é a dialeticidade — atacar os fundamentos da sentença, um a um — e a consciência de que o tribunal pode julgar o mérito mesmo quando a sentença foi terminativa.',
   blocos: [
@@ -2118,6 +2540,7 @@ window.CT_PECAS = {
 
 'Agravo de instrumento': {
   rito: 'Civil — recursos',
+  freq: 1,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Advocacia','Defensoria','Procuradorias','Ministério Público'],
   sobre: 'Recurso de cabimento restrito e formação instrumental. Duas causas de não conhecimento dominam: matéria fora do rol do art. 1.015 e instrumento mal formado. As duas têm remédio, e a peça precisa mostrar que conhece os dois.',
   blocos: [
@@ -2183,6 +2606,7 @@ window.CT_PECAS = {
 
 'Embargos de declaração': {
   rito: 'Civil — recursos',
+  freq: 13,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   carreiras: ['Advocacia','Defensoria','Procuradorias','Ministério Público','Magistratura'],
   sobre: 'Recurso de fundamentação vinculada: só cabe nas hipóteses do art. 1.022. Tem duas funções que a prova separa — integrar a decisão e prequestionar. E tem uma armadilha: usado fora das hipóteses, gera multa.',
   blocos: [
@@ -2248,6 +2672,225 @@ window.CT_PECAS = {
     'Vício apontado com precisão, não em bloco','Efeito modificativo pedido expressamente, se for o caso',
     'Contraditório observado no efeito modificativo','Dispositivos indicados para prequestionamento',
     'Sem reiteração de matéria já enfrentada']
+},
+// ═══════════════════ TRANSVERSAIS — TODAS AS CARREIRAS ═══════════════════
+'Questão discursiva': {
+  rito: '',
+  freq: 325,   // vezes em que o tema aparece nas 648 provas de discursivas.js
+  ramo: 'Transversal',
+  carreiras: ['Magistratura','Ministério Público','Defensoria','Procuradorias','Advocacia','Delegado','Analista / Técnico','Auditoria e Controle'],
+  sobre: 'É o formato MAIS COBRADO de todos — 325 das 648 questões do banco de provas aplicadas, e o único formato em carreiras de analista, tribunais de contas e boa parte da advocacia pública. Não é peça: é resposta jurídica fundamentada, com limite de linhas. O que separa a nota alta é responder na primeira linha e fundamentar na segunda.',
+  blocos: [
+    { nome: 'Ler o comando antes de ler o caso',
+      deve: 'O enunciado tem duas partes: o caso e o comando. Leia o comando primeiro — ele diz o que procurar no caso. Ler na ordem inversa faz você grifar o que não será perguntado.',
+      itens: [
+        { t:'O verbo', d:'"disserte" pede exposição; "analise" pede exame do caso; "responda fundamentadamente" pede resposta objetiva com base legal; "posicione-se" pede tomada de posição.' },
+        { t:'Quantos itens', d:'conte as perguntas. Comando com "a), b) e c)" quer três respostas, e o espelho pontua as três separadamente.' },
+        { t:'O limite', d:'linhas ou parágrafos. Ultrapassar costuma zerar o excedente; ficar muito abaixo entrega que faltou conteúdo.' },
+        { t:'A vedação', d:'algumas bancas proíbem identificação, citação de doutrinador pelo nome ou uso de jurisprudência não indicada. Leia as instruções.' },
+        { t:'O recorte', d:'se o comando pergunta sobre a validade do ato, não escreva sobre a competência — por mais que você saiba.' }
+      ],
+      lei: [],
+      juris: [],
+      erro: 'Responder o que você sabe em vez do que foi perguntado. É o erro mais comum e o mais caro: conteúdo correto fora do comando não pontua.' },
+    { nome: 'Planejar em dois minutos',
+      deve: 'Antes da primeira linha, escreva na folha de rascunho o esqueleto. Dois minutos aqui economizam dez de reescrita e evitam a resposta que não chega à conclusão.',
+      itens: [
+        { t:'A tese', d:'uma frase com a sua resposta. Se você não consegue escrevê-la, ainda não sabe o que vai responder.' },
+        { t:'Os fundamentos', d:'liste os dispositivos e as súmulas que sustentam a tese, na ordem em que vai usá-los.' },
+        { t:'A exceção', d:'anote a hipótese em que a resposta seria outra — é o que demonstra domínio.' },
+        { t:'A distribuição', d:'divida o limite de linhas pelos itens do comando, proporcionalmente ao peso de cada um.' }
+      ],
+      lei: [],
+      juris: [],
+      modelo: 'RASCUNHO (não vai na folha definitiva)\n\nTESE: ... (uma frase)\nFUNDAMENTO 1: art. ... — porque ...\nFUNDAMENTO 2: Súmula ... — porque ...\nEXCEÇÃO: se ..., a resposta seria ...\nCONCLUSÃO: ...\n\nLinhas: item a) 10 · item b) 10 · item c) 10',
+      erro: 'Começar a escrever direto. Sem esqueleto, a resposta chega ao fim do limite de linhas antes de chegar à conclusão.' },
+    { nome: 'Abrir respondendo',
+      deve: 'A primeira frase é a resposta. Não escreva introdução, não contextualize, não recapitule o enunciado — o examinador acabou de lê-lo.',
+      itens: [
+        { t:'Resposta direta', d:'"Sim, o ato é nulo." / "Não, a pretensão está prescrita." / "A competência é da Justiça Federal."' },
+        { t:'Sem preâmbulo', d:'nada de "trata-se de questão que envolve relevante tema do direito administrativo".' },
+        { t:'Um item por parágrafo', d:'comando com três perguntas rende três blocos identificáveis. Se a banca numerou, numere também.' },
+        { t:'Sem repetir o caso', d:'referir o fato é preciso; narrar o enunciado de novo é gastar linha que faltará no fim.' }
+      ],
+      lei: [],
+      juris: [],
+      modelo: 'a) NÃO. A pretensão não está prescrita.\n\nO prazo aplicável é o quinquenal do art. 1º do Decreto 20.910/32, contado da ... . Como a ação foi proposta em ..., dentro do quinquênio, não se consumou a prescrição.\n\nb) SIM. A responsabilidade é objetiva.\n\nNos termos do art. 37, § 6º, da Constituição, ...',
+      erro: 'Gastar as três primeiras linhas dizendo que a questão é relevante. Em resposta com limite de 20 linhas, isso é 15% da nota jogada fora.' },
+    { nome: 'Fundamentar — o que é obrigatório e o que é bônus',
+      deve: 'Toda afirmação jurídica precisa de âncora. A hierarquia do que pontua: dispositivo legal primeiro, precedente qualificado depois, doutrina por último — e só se acrescentar algo.',
+      itens: [
+        { t:'Dispositivo', d:'artigo, parágrafo e inciso. "Nos termos do art. 37, § 6º, da Constituição" vale mais que "segundo o princípio da responsabilidade objetiva".' },
+        { t:'Precedente qualificado', d:'súmula vinculante, tema de repercussão geral, tema repetitivo e súmula de tribunal superior — com o número.' },
+        { t:'Jurisprudência comum', d:'útil quando o tema não tem precedente qualificado; identifique o tribunal e o órgão.' },
+        { t:'Doutrina', d:'só se a banca permitir e só se acrescentar. Nome de autor sem tese não pontua.' },
+        { t:'Número incerto', d:'na dúvida sobre o número, descreva o conteúdo sem inventar: "conforme entendimento sumulado do STJ sobre a matéria". Número errado desconta; ausência, não.' }
+      ],
+      lei: [],
+      juris: [],
+      erro: 'Inventar número de artigo ou de súmula. O corretor confere, e número errado desconta mais do que a ausência da citação.' },
+    { nome: 'Mostrar o outro lado',
+      deve: 'Resposta que só afirma parece decorada. Resposta que reconhece a exceção, a divergência ou a evolução do entendimento parece de quem entendeu.',
+      itens: [
+        { t:'A exceção', d:'"A regra é X; excepciona-se quando Y, hipótese em que ...". Uma linha basta.' },
+        { t:'Divergência STF x STJ', d:'quando existir, registre-a e diga qual prevalece — e por quê.' },
+        { t:'Entendimento superado', d:'se a matéria mudou, diga que mudou. Aplicar tese revogada é erro de conteúdo, não de forma.' },
+        { t:'Sem ficar em cima do muro', d:'apresentar as duas correntes e não escolher é resposta incompleta. Escolha e justifique.' }
+      ],
+      lei: [],
+      juris: [],
+      modelo: 'A regra é a de que ..., nos termos do art. ... .\n\nHá, contudo, exceção: quando ..., aplica-se ..., por força de ... .\n\nRegistre-se que o tema comportava divergência, prevalecendo hoje o entendimento de que ..., firmado em ... .',
+      erro: 'Expor duas correntes e não se posicionar. O comando pediu uma resposta, e "há divergência" não é resposta.' },
+    { nome: 'Fechar e revisar',
+      deve: 'A conclusão amarra a resposta ao comando. Depois, dois minutos de revisão de forma — é onde se recupera nota barata.',
+      itens: [
+        { t:'Conclusão', d:'retome a resposta em uma frase, agora com o fundamento embutido. Não introduza argumento novo aqui.' },
+        { t:'Limite de linhas', d:'confira. Excedente costuma não ser lido, e alguns editais preveem desconto.' },
+        { t:'Português', d:'frases curtas, período direto, sem adjetivo desnecessário. Erro de concordância desconta em quase toda banca.' },
+        { t:'Correção sem rasura', d:'errou? Vírgula, "digo", vírgula, e segue. Rasura e corretivo costumam ser vedados.' },
+        { t:'Identificação', d:'nunca assine, nunca cite sua cidade, nunca dê pista de identidade — é anulação certa.' }
+      ],
+      lei: [],
+      juris: [],
+      erro: 'Terminar a resposta no meio porque as linhas acabaram. Melhor cortar um fundamento no meio do texto do que não concluir.' }
+  ],
+  cego: ['Comando lido antes do caso','Verbo do comando identificado',
+    'Todos os itens do comando respondidos','Limite de linhas respeitado',
+    'Resposta direta na primeira frase','Sem introdução genérica',
+    'Cada afirmação com dispositivo, súmula ou tema','Números conferidos, nada inventado',
+    'Exceção ou divergência registrada','Posição tomada, não só exposta',
+    'Conclusão amarrando ao comando','Português revisado','Sem identificação'],
+  dicas: [
+    { t:'Este é o formato mais cobrado do banco: 325 das 648 questões de provas aplicadas. Em Analista/Técnico e Tribunais de Contas, é praticamente o único.', alerta:false },
+    'Grife o comando com caneta diferente do caso. Ao revisar, você confere item por item se respondeu tudo.',
+    'Conte as linhas do seu parágrafo médio uma vez, no início da prova. Depois você estima o resto sem contar.',
+    'Se o comando tem três itens e você só sabe dois, responda os dois bem e escreva algo defensável no terceiro. Item em branco é zero garantido.',
+    'Fundamento genérico ("princípio da legalidade") pontua menos que dispositivo específico. Quando souber o artigo, cite o artigo.',
+    { t:'Nunca invente número de artigo ou súmula. Número errado desconta mais que a ausência — descreva o conteúdo se não lembrar o número.', alerta:true },
+    { t:'Qualquer marca de identificação anula a prova: nome, assinatura, cidade, número de inscrição fora do campo próprio, e até desenho na margem.', alerta:true }
+  ],
+  especiais: [
+    { t:'Tribunais de Contas', d:'O comando costuma misturar direito administrativo, financeiro e controle externo. Ancore em CF, arts. 70 a 75, na Lei 14.133/2021 quando for contratação, e na LRF quando for despesa. Distinga sempre contas de governo (parecer prévio, julgamento pelo Legislativo) de contas de gestão (julgamento pelo Tribunal).' },
+    { t:'Advocacia pública', d:'A pergunta quase sempre tem um lado: você responde como procurador do ente. Isso não autoriza sustentar tese insustentável, mas orienta a ordem — prerrogativas, preliminares típicas, prescrição quinquenal e, no mérito, a defesa da presunção de legitimidade do ato.' },
+    { t:'Analista e técnico de tribunal', d:'Predominam questões de processo civil, administrativo e constitucional, com comando curto e limite apertado — 15 a 30 linhas. Aqui a economia de palavras vale mais que a profundidade: responda, fundamente com o artigo e conclua.' },
+    { t:'OAB 2ª fase', d:'A discursiva vem junto com a peça e vale menos, mas é onde se recupera nota. São quatro questões curtas, cada uma com dois itens; o espelho é objetivo e aceita resposta enxuta desde que fundamentada com o dispositivo.' },
+    { t:'Questão com item "justifique"', d:'"Responda e justifique" pede duas coisas, e o espelho pontua as duas separadamente. Responder sem justificar perde metade do item; justificar sem responder perde a outra metade.' }
+  ]
+},
+
+'Parecer jurídico': {
+  rito: '',
+  freq: 76,   // vezes em que o tema aparece nas 648 provas de discursivas.js
+  ramo: 'Transversal',
+  carreiras: ['Advocacia pública','Procuradorias','Ministério Público','Auditoria e Controle','Advocacia'],
+  sobre: 'Segunda peça mais cobrada do banco depois da sentença cível — 76 ocorrências, concentradas em advocacia pública, tribunais de contas e Ministério Público. Não é petição: não há parte adversa nem pedido. É análise técnica que responde a uma consulta e assume uma posição — e a responsabilidade do parecerista muda conforme o parecer seja facultativo, obrigatório ou vinculante.',
+  blocos: [
+    { nome: 'Ementa e identificação',
+      deve: 'O parecer abre por uma ementa que permite localizá-lo depois. Ela resume a consulta e a conclusão em poucas linhas, em tópicos.',
+      itens: [
+        { t:'Ementa', d:'temas tratados, em tópicos separados por ponto, terminando pela conclusão. É o que vai para o índice de pareceres do órgão.' },
+        { t:'Número e referência', d:'número do parecer, processo administrativo de origem e órgão consulente.' },
+        { t:'Interessado', d:'quem consulta e em que qualidade.' }
+      ],
+      lei: [],
+      juris: [],
+      modelo: 'PARECER Nº .../....\nPROCESSO Nº ....\nINTERESSADO: Secretaria Municipal de ....\nASSUNTO: Consulta sobre a possibilidade de ....\n\nEMENTA: DIREITO ADMINISTRATIVO. CONTRATAÇÃO DIRETA. INEXIGIBILIDADE DE LICITAÇÃO. Art. 74 da Lei 14.133/2021. Inviabilidade de competição não demonstrada nos autos. Ausência de justificativa de preço. Impossibilidade de contratação nos termos propostos. Necessidade de saneamento. PELO NÃO ACOLHIMENTO, na forma exposta.',
+      erro: 'Escrever a ementa depois de terminar e não revisar a conclusão. Ementa que anuncia o oposto do que o parecer conclui é erro grosseiro e evidente.' },
+    { nome: 'Relatório — o que foi perguntado e o que consta dos autos',
+      deve: 'Descrever a consulta e o que existe no processo, sem opinar. O relatório do parecer é curto: ele situa, não argumenta.',
+      itens: [
+        { t:'A consulta', d:'transcreva ou resuma com precisão a pergunta formulada. É ela que delimita o parecer.' },
+        { t:'Os documentos', d:'aponte as peças relevantes com a folha: estudo técnico, termo de referência, pesquisa de preços, minuta de contrato.' },
+        { t:'O histórico', d:'os atos administrativos já praticados e as manifestações anteriores.' },
+        { t:'O que falta', d:'registre desde o relatório a ausência de documento essencial — é o que sustentará a devolução para saneamento.' }
+      ],
+      lei: [],
+      juris: [],
+      erro: 'Adiantar conclusão no relatório. Parecer com juízo de valor antes da fundamentação perde a estrutura e confunde o corretor.' },
+    { nome: 'Delimitar a consulta',
+      deve: 'Dizer o que se vai responder e — principalmente — o que não se vai. É a defesa do parecerista contra a responsabilização por matéria que não lhe foi submetida.',
+      itens: [
+        { t:'O objeto', d:'liste as questões jurídicas que serão enfrentadas, numeradas.' },
+        { t:'O que fica de fora', d:'juízo de conveniência e oportunidade, aspectos técnicos e de engenharia, aferição de preços de mercado — o parecer jurídico não os alcança.' },
+        { t:'A premissa fática', d:'o parecer opina sobre os fatos como descritos pelo consulente; registre isso expressamente.' },
+        { t:'A extensão da análise', d:'na contratação pública, a análise jurídica prévia examina os elementos indispensáveis e expõe os pressupostos de fato e de direito considerados.' }
+      ],
+      lei: ['Análise jurídica prévia na contratação — Lei 14.133/2021, art. 53 e §§',
+            'Consultoria e assessoramento jurídico do Poder Executivo — CF, art. 131',
+            'Funções da AGU e força dos pareceres — LC 73/93, arts. 40 a 42'],
+      juris: [],
+      modelo: 'DA DELIMITAÇÃO DA CONSULTA\n\nO presente parecer restringe-se ao exame dos seguintes pontos: (i) a adequação da hipótese de contratação direta invocada; (ii) a suficiência da justificativa de preço; e (iii) a conformidade da minuta contratual com a Lei 14.133/2021.\n\nNão são objeto desta manifestação o juízo de conveniência e oportunidade da contratação, os aspectos técnicos do objeto e a aferição da compatibilidade dos preços com o mercado, matérias afetas à área técnica do órgão consulente.\n\nA análise parte das premissas fáticas tal como descritas no processo administrativo, cuja veracidade não é atestada por este parecer.',
+      erro: 'Não delimitar. Parecer que não diz o que ficou de fora é parecer que responde por tudo — inclusive pelo que a área técnica errou.' },
+    { nome: 'Fundamentação jurídica',
+      deve: 'Enfrentar cada ponto delimitado, na ordem, com dispositivo, precedente e — quando útil — orientação normativa do próprio órgão.',
+      itens: [
+        { t:'Um tópico por ponto', d:'numerado igual à delimitação, para que o consulente encontre a resposta de cada pergunta.' },
+        { t:'Norma aplicável', d:'lei, decreto regulamentador e ato normativo interno, nessa ordem de hierarquia.' },
+        { t:'Precedente qualificado', d:'súmula vinculante, tema de repercussão geral, repetitivo — e, em contratação, a jurisprudência do Tribunal de Contas.' },
+        { t:'Orientação normativa', d:'pareceres referenciais e enunciados do próprio órgão vinculam a atuação administrativa; cite-os quando existirem.' },
+        { t:'Consequências jurídicas', d:'a Lei de Introdução manda considerar as consequências práticas da decisão e vedar decisão com base em valores abstratos.' }
+      ],
+      lei: ['Motivação e consequências práticas — LINDB, arts. 20 a 22',
+            'Contratação direta e inexigibilidade — Lei 14.133/2021, arts. 74 e 75',
+            'Processo administrativo federal — Lei 9.784/99, arts. 2º e 50',
+            'Controle externo e competência do Tribunal de Contas — CF, art. 71'],
+      juris: [],
+      modelo: 'DA FUNDAMENTAÇÃO\n\n1. DA HIPÓTESE DE INEXIGIBILIDADE\n\nA contratação direta por inexigibilidade pressupõe a inviabilidade de competição, na forma do art. 74 da Lei 14.133/2021. Não basta a alegação de exclusividade: exige-se a demonstração documental, na forma do § 1º do mesmo artigo.\n\nNo caso, o processo não contém ... . Ausente esse elemento, a hipótese invocada não se sustenta.\n\n2. DA JUSTIFICATIVA DE PREÇO\n\nO art. 72, VII, da Lei 14.133/2021 exige a justificativa de preço no processo de contratação direta. Consta dos autos apenas ..., o que não atende à exigência, na medida em que ... .',
+      erro: 'Responder a consulta com uma exposição doutrinária sobre o instituto. O consulente quer saber se pode ou não pode fazer, e por quê.' },
+    { nome: 'Risco, alternativas e ressalvas',
+      deve: 'O parecer útil não só diz "não pode": diz o que aconteceria se fizesse, e o que fazer para poder. É o bloco que separa o parecer de aluno do parecer de procurador.',
+      itens: [
+        { t:'Risco jurídico', d:'nulidade do ato, responsabilização do gestor, glosa pelo controle externo, improbidade — com o dispositivo de cada consequência.' },
+        { t:'Caminho alternativo', d:'havendo forma lícita de atingir o mesmo fim, aponte-a. Parecer que só barra sem oferecer saída é pouco aproveitado.' },
+        { t:'Saneamento', d:'quando o vício for sanável, indique exatamente o que juntar ou corrigir e devolva o processo, em vez de rejeitar.' },
+        { t:'Ressalvas', d:'condicione a aprovação ao cumprimento de exigências, listadas em tópicos verificáveis.' }
+      ],
+      lei: ['Invalidação e convalidação de atos administrativos — Lei 9.784/99, arts. 53 a 55',
+            'Regime de responsabilização e dosimetria — LINDB, arts. 22 e 28',
+            'Nulidade da contratação e efeitos — Lei 14.133/2021, art. 147',
+            'Improbidade: dolo específico — Lei 8.429/92, art. 1º, §§ 1º a 3º'],
+      juris: [],
+      modelo: 'DO RISCO E DAS ALTERNATIVAS\n\nA contratação nos moldes propostos sujeita o gestor à declaração de nulidade do ajuste (art. 147 da Lei 14.133/2021), à glosa pelo Tribunal de Contas e à eventual responsabilização, observado que a improbidade exige dolo específico (art. 1º, §§ 1º a 3º, da Lei 8.429/92).\n\nHá, contudo, caminho juridicamente viável: ... .\n\nAlternativamente, o vício apontado no item 1 é sanável mediante a juntada de ..., o que recomenda a devolução do processo à área técnica antes de nova manifestação jurídica.',
+      erro: 'Apontar o problema e parar aí. O consulente precisa decidir; parecer sem alternativa nem caminho de saneamento não resolve o processo.' },
+    { nome: 'Conclusão e fecho',
+      deve: 'Conclusão numerada, respondendo cada ponto da delimitação, e o registro da natureza do parecer — porque dela depende a responsabilidade de quem o assina e de quem o segue.',
+      itens: [
+        { t:'Respostas numeradas', d:'uma conclusão por ponto delimitado, na mesma ordem e com a mesma numeração.' },
+        { t:'Natureza do parecer', d:'facultativo, obrigatório ou vinculante. O STF firmou que o parecer meramente opinativo não gera responsabilidade do parecerista; quando obrigatório ou vinculante, o exame é outro.' },
+        { t:'Ressalvas finais', d:'que o parecer se apoia nas premissas fáticas do consulente e que a decisão é da autoridade.' },
+        { t:'Encaminhamento', d:'a quem se submete e o que se sugere que seja feito.' }
+      ],
+      lei: ['Decisão da autoridade e motivação — Lei 9.784/99, art. 50',
+            'Pareceres da AGU e efeito vinculante quando aprovados — LC 73/93, arts. 40 e 41'],
+      juris: ['Parecer meramente opinativo não gera responsabilidade do parecerista — STF, MS 24.073/DF, Pleno',
+              'Parecer obrigatório ou vinculante e responsabilidade solidária do parecerista — STF, MS 24.584/DF, Pleno'],
+      modelo: 'DA CONCLUSÃO\n\nAnte o exposto, respondo à consulta:\n\n1. A hipótese de inexigibilidade invocada NÃO está caracterizada, ante a ausência de demonstração da inviabilidade de competição (art. 74, § 1º, da Lei 14.133/2021);\n\n2. A justificativa de preço é INSUFICIENTE, por não atender ao art. 72, VII, da Lei 14.133/2021;\n\n3. A minuta contratual, no mais, está em conformidade com a legislação, ressalvada a necessidade de adequação da cláusula ... .\n\nEm face do exposto, MANIFESTO-ME PELO NÃO ACOLHIMENTO da proposta nos termos em que formulada, sugerindo a devolução do processo à área técnica para saneamento dos pontos 1 e 2.\n\nRegistro que o presente parecer tem natureza OPINATIVA, não vinculando a autoridade competente, a quem cabe a decisão, devidamente motivada (art. 50 da Lei 9.784/99).\n\nÉ o parecer, que submeto à consideração superior.\n\nLocal, data.\nProcurador',
+      erro: 'Concluir de forma genérica ("pelo prosseguimento do feito"). A conclusão tem de responder cada pergunta da delimitação, na ordem, e de forma inequívoca.' }
+  ],
+  cego: ['Ementa em tópicos, coerente com a conclusão','Número do parecer e processo de origem',
+    'Consulta descrita com precisão','Documentos relevantes apontados com a folha',
+    'Delimitação: o que se responde e o que fica de fora','Premissas fáticas ressalvadas',
+    'Um tópico de fundamentação por ponto delimitado','Norma, precedente e orientação normativa citados',
+    'Consequências práticas consideradas (LINDB, arts. 20 a 22)','Risco jurídico apontado com o dispositivo',
+    'Alternativa ou caminho de saneamento indicado','Conclusão numerada, respondendo cada ponto',
+    'Natureza do parecer registrada','Encaminhamento à autoridade'],
+  dicas: [
+    { t:'Segunda peça mais cobrada do banco de provas aplicadas: 76 ocorrências, concentradas em Advocacia Pública, Tribunais de Contas e Ministério Público.', alerta:false },
+    'Parecer não tem parte adversa nem pedido. Se você escreveu "requer", saiu do formato.',
+    'Delimitar é proteção. O bloco que diz o que ficou de fora é o que impede a responsabilização por matéria técnica que não é sua.',
+    'Numere a delimitação e repita a numeração na fundamentação e na conclusão. O corretor confere ponto a ponto.',
+    'Sempre ofereça saída. Parecer que só barra é parecer que a Administração ignora.',
+    'A LINDB entrou nos espelhos: considerar as consequências práticas (art. 20) e não decidir com base em valores jurídicos abstratos é item pontuado.',
+    { t:'Registre a natureza do parecer. O STF distingue: o meramente opinativo não gera responsabilidade do parecerista (MS 24.073); o obrigatório ou vinculante muda o quadro (MS 24.584). Não escrever isso é perder um item fácil.', alerta:true },
+    { t:'Ementa que contradiz a conclusão é erro grosseiro. Escreva a ementa por último e confira contra o dispositivo final.', alerta:true }
+  ],
+  especiais: [
+    { t:'Parecer em licitação e contrato', d:'A análise jurídica prévia do art. 53 da Lei 14.133/2021 é mais ampla que a da lei anterior: examina os elementos indispensáveis e expõe os pressupostos de fato e de direito considerados. O § 4º admite dispensa da análise em contratações de baixo valor com minuta padronizada, e o § 5º permite parecer referencial para casos repetitivos.' },
+    { t:'Parecer do Ministério Público', d:'Aqui o MP atua como fiscal da ordem jurídica (custos legis). O formato é o de manifestação: relatório, fundamentação e conclusão pelo acolhimento ou não do pedido. Não confunda com a peça de parte — no parecer o MP não postula em nome próprio.' },
+    { t:'Parecer em processo de contas', d:'No Tribunal de Contas o parecer técnico precede o voto do relator. Distinga parecer prévio sobre contas de governo (CF, art. 71, I — quem julga é o Legislativo) de manifestação em contas de gestão (art. 71, II — quem julga é o próprio Tribunal). Confundir os dois é erro de base.' },
+    { t:'Responsabilidade do parecerista', d:'A distinção clássica do STF é entre parecer facultativo, obrigatório e vinculante. No opinativo, o parecerista em regra não responde (MS 24.073/DF). Quando a lei torna o parecer obrigatório ou vinculante, o STF admite examinar a responsabilidade (MS 24.584/DF). O tema voltou ao STF recentemente sem alteração substancial do quadro.' },
+    { t:'Parecer referencial', d:'Aplicável a casos materialmente idênticos e repetitivos, dispensa manifestação individualizada, desde que o gestor ateste a identidade e a atualidade do parecer. É previsto no art. 53, § 5º, da Lei 14.133/2021 e reduz drasticamente o volume de manifestações — item frequente em prova de advocacia pública.' }
+  ]
 }
 
 };

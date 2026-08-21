@@ -168,7 +168,8 @@ const RAMOS = {
   'Registros públicos':    '#455a64',
   'Controle externo':      '#37474f',
   'Juizado Especial Cível':    '#546e7a',
-  'Juizado Especial Criminal': '#5d4037'
+  'Juizado Especial Criminal': '#5d4037',
+  'Transversal':               '#5f6368'
 };
 function ramoDe(nome){
   const base = String(nome||'').split('—')[0].trim();

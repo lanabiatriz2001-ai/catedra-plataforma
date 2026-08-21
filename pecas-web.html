@@ -68,6 +68,9 @@ button,input,select{font-family:inherit}
   border-radius:99px;padding:4px 10px;margin-bottom:9px}
 .rcard h3{margin:0;font:800 17px/1.25 var(--display);letter-spacing:-.01em}
 .rcard .meta{font-size:11.5px;color:var(--text3);font-weight:600;margin-top:5px}
+.rcard .freq{display:flex;align-items:center;gap:8px;margin-top:9px}
+.rcard .freq i{display:block;height:4px;border-radius:99px;background:var(--rc);opacity:.55;flex:none;max-width:110px}
+.rcard .freq span{font:700 10px var(--mono);letter-spacing:.03em;color:var(--text3)}
 .rcard .carr{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .rcard .carr span{font:700 9.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);
   border:1px solid var(--border);border-radius:99px;padding:2px 8px}
@@ -98,13 +101,17 @@ button,input,select{font-family:inherit}
     <small>o esqueleto de cada peça, bloco a bloco</small></div></div>
   <span class="busca"><span class="mag">🔎</span>
     <input id="q" placeholder="Buscar peça, bloco ou artigo…  (tecle /)" autocomplete="off"></span>
+  <select class="sel" id="ordem">
+    <option value="freq">Mais cobradas primeiro</option>
+    <option value="az">Ordem alfabética</option>
+  </select>
   <select class="sel" id="carreira"><option value="">Todas as carreiras</option></select>
   <select class="sel" id="ramo"><option value="">Todos os ramos</option></select>
 </div></header>
 
 <main class="wrap">
   <div class="stats" id="stats"></div>
-  <p class="dica">Cada roteiro traz os blocos <b>na ordem em que a peça se escreve</b>, o dispositivo que manda, a jurisprudência que o tribunal firmou e o erro que custa ponto no espelho. O <b>modo cego</b> esconde tudo e deixa só a checklist: escreva sem consultar, cronometre, e confira depois.</p>
+  <p class="dica">Ordenado por <b>quantas vezes o tema aparece nas 648 provas aplicadas</b> do banco de discursivas. Cada roteiro traz os blocos <b>na ordem em que a peça se escreve</b>, o dispositivo que manda, a jurisprudência que o tribunal firmou e o erro que custa ponto no espelho. O <b>modo cego</b> esconde tudo e deixa só a checklist: escreva sem consultar, cronometre, e confira depois.</p>
   <div id="lista"></div>
 </main>
 
@@ -120,17 +127,25 @@ const R=window.CTRoteiro, $=id=>document.getElementById(id), esc=R.esc;
 
 /* Toda peça que aparece como ✍️ em algum rito entra na lista — as que já têm
    roteiro escrito viram card; as demais, uma linha discreta de "em preparação". */
+/* Toda peça escrita entra na lista. Antes a fonte era só o que aparecia como ✍️ num
+   rito — o que deixava de fora as transversais (parecer, discursiva), que não pertencem
+   a rito nenhum e são justamente as mais cobradas. */
 function pecasDoTramite(){
-  const s=new Set();
+  const s=new Set(Object.keys(window.CT_PECAS||{}));
   Object.values(window.CT_RITOS||{}).forEach(rito=>rito.forEach(ato=>(ato[2]||[]).forEach(f=>{
     if(f[1]==='peca') s.add(R.limpa(f[0]));
   })));
   return [...s];
 }
+/* o ramo vem do campo próprio quando a peça não tem rito */
+const ramoDaPeca = p => p.ramo ? {n:p.ramo, c:(R.RAMOS[p.ramo]||'#5f6368')} : R.ramoDe(p.rito);
 
 function pinta(){
   const tem=window.CT_PECAS||{}, nomes=pecasDoTramite();
-  const prontos=nomes.filter(n=>tem[n]).sort((a,b)=>a.localeCompare(b,'pt'));
+  const ord=($('ordem')||{}).value||'freq';
+  const prontos=nomes.filter(n=>tem[n]).sort((a,b)=> ord==='freq'
+    ? (tem[b].freq||0)-(tem[a].freq||0) || a.localeCompare(b,'pt')
+    : a.localeCompare(b,'pt'));
   const pend=nomes.filter(n=>!tem[n]).sort((a,b)=>a.localeCompare(b,'pt'));
 
   /* ---- números do topo ---- */
@@ -143,12 +158,13 @@ function pinta(){
       +'<div class="mini"><i style="width:'+(t?f/t*100:0)+'%"></i></div></div>'
     +'<div class="stat"><b>'+new Set(prontos.flatMap(n=>tem[n].carreiras||[])).size
       +'</b><span>Carreiras cobertas</span></div>'
-    +'<div class="stat"><b>'+pend.length+'</b><span>Em preparação</span></div>';
+    +'<div class="stat"><b>'+prontos.reduce((s,n)=>s+(tem[n].freq||0),0)
+      +'</b><span>Ocorrências cobertas</span></div>';
 
   /* ---- seletores, montados uma vez ---- */
   const sel=$('carr' in window ? 'ramo' : 'ramo');
   if(sel.options.length===1){
-    [...new Set(prontos.map(n=>R.ramoDe(tem[n].rito).n))].sort().forEach(r=>{
+    [...new Set(prontos.map(n=>ramoDaPeca(tem[n]).n))].sort().forEach(r=>{
       const o=document.createElement('option'); o.value=r; o.textContent=r; sel.appendChild(o);
     });
   }
@@ -164,7 +180,7 @@ function pinta(){
   const q=($('q').value||'').trim().toLowerCase(), rf=sel.value, cf=selC.value;
   const casa=n=>{
     const p=tem[n];
-    if(rf && R.ramoDe(p.rito).n!==rf) return false;
+    if(rf && ramoDaPeca(p).n!==rf) return false;
     if(cf && !(p.carreiras||[]).includes(cf)) return false;
     if(!q) return true;
     const alvo=(n+' '+(p.sobre||'')+' '
@@ -176,7 +192,7 @@ function pinta(){
 
   /* ---- card ---- */
   const card=n=>{
-    const p=tem[n], r=R.ramoDe(p.rito);
+    const p=tem[n], r=ramoDaPeca(p);
     const bl=(p.blocos||[]).map(b=>b.nome||b).filter(Boolean);
     const mostra=bl.slice(0,5), resto=bl.length-mostra.length;
     const s=R.feitos(n);
@@ -184,6 +200,9 @@ function pinta(){
       +'<span class="tag">'+esc(p.rito||r.n)+'</span>'
       +'<h3>'+esc(n)+'</h3>'
       +'<div class="meta">'+bl.length+' blocos · '+(p.cego||[]).length+' itens no modo cego</div>'
+      +(p.freq?'<div class="freq" title="ocorrências nas 648 provas de discursivas.js">'
+        +'<i style="width:'+Math.max(6,Math.round(p.freq/325*100))+'%"></i>'
+        +'<span>'+p.freq+' em provas aplicadas</span></div>':'')
       +((p.carreiras||[]).length?'<div class="carr">'+p.carreiras.map(c=>'<span>'+esc(c)+'</span>').join('')+'</div>':'')
       +'<ol>'+mostra.map(x=>'<li>'+esc(x)+'</li>').join('')
         +(resto>0?'<li class="extra">mais '+resto+' bloco'+(resto>1?'s':'')+'</li>':'')+'</ol>'
@@ -193,8 +212,10 @@ function pinta(){
 
   /* ---- agrupado por ramo: penal junto de penal, cível junto de cível ---- */
   const porRamo={};
-  vis.forEach(n=>{ const r=R.ramoDe(tem[n].rito); (porRamo[r.n]=porRamo[r.n]||{c:r.c,itens:[]}).itens.push(n); });
-  const ordem=Object.keys(porRamo).sort();
+  vis.forEach(n=>{ const r=ramoDaPeca(tem[n]); (porRamo[r.n]=porRamo[r.n]||{c:r.c,itens:[]}).itens.push(n); });
+  const ordem=Object.keys(porRamo).sort((a,b)=> ord==='freq'
+    ? porRamo[b].itens.reduce((s,n)=>s+(tem[n].freq||0),0) - porRamo[a].itens.reduce((s,n)=>s+(tem[n].freq||0),0)
+    : a.localeCompare(b,'pt'));
 
   $('lista').innerHTML = vis.length
     ? ordem.map(g=>'<section class="grupo" style="--rc:'+porRamo[g].c+'">'
@@ -213,7 +234,7 @@ function pinta(){
 
 /* o painel avisa quando o modo cego muda: as barras dos cards acompanham na hora */
 R.aoMudar=()=>pinta();
-$('q').oninput=pinta; $('ramo').onchange=pinta; $('carreira').onchange=pinta;
+$('q').oninput=pinta; $('ramo').onchange=pinta; $('carreira').onchange=pinta; $('ordem').onchange=pinta;
 document.addEventListener('keydown',e=>{
   if(e.key==='/' && document.activeElement!==$('q')){ e.preventDefault(); $('q').focus(); }
 });
