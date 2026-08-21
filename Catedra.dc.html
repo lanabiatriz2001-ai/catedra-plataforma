@@ -2016,7 +2016,7 @@ window.ctPdfLib = (function(){
             </sc-for>
           </div>
           <sc-if value="{{ bancoVazio }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;text-align:center;color:var(--text3);font-size:var(--fs-base);">Nenhuma prova com esses filtros.</div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;text-align:center;color:var(--text3);font-size:var(--fs-base);">Nenhuma prova com esses filtros. Limpe a busca ou troque a carreira — o banco tem 648 provas.</div>
           </sc-if>
 
           <sc-if value="{{ redHistTem }}" hint-placeholder-val="{{ false }}">
@@ -2456,7 +2456,7 @@ window.ctPdfLib = (function(){
             <div style="max-width:560px;">
               <div style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.82;">Treino cronometrado</div>
               <div style="font-family:var(--display);font-weight:600;font-size:30px;line-height:1.12;margin-top:6px;letter-spacing:-.5px;">Fazer simulado agora</div>
-              <div style="font-size:var(--fs-base);opacity:.92;margin-top:8px;line-height:1.6;">Itens Certo/Errado montados do acervo de jurisprudência — metade com o núcleo trocado (prazo, competência, operador). Ao encerrar, o resultado desce para o histórico e conta no seu desempenho.</div>
+              <div style="font-size:var(--fs-base);opacity:.92;margin-top:8px;line-height:1.6;">Jurisprudência e lei seca em Certo/Errado — metade com o núcleo trocado (prazo, competência, operador) — e, fechando o caderno, questões A-E de provas reais de magistratura com o gabarito da banca. Ao encerrar, o resultado desce para o histórico e conta no seu desempenho.</div>
             </div>
             <button onclick="{{ abrirSimuladoJogo }}" style="border:none;background:#fff;color:var(--accentD);border-radius:var(--radius);padding:14px 26px;font-size:var(--fs-md);font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 8px 22px rgba(0,0,0,.16);white-space:nowrap;">{{ sjBotaoLabel }}</button>
           </div>
@@ -7213,7 +7213,7 @@ class Component extends DCLogic {
         enunciado:q.enunciado, alternativas:q.alternativas, certo:q.gabarito, pct:q.pct,
         ref:[q.banca,q.orgao,q.ano].filter(Boolean).join(' · ')}));
       const todos=itens.concat(extras);
-      if(!todos.length){ this._toast('Não consegui montar itens com esse filtro'); return; }
+      if(!todos.length){ this._toast('Nenhum item com esse filtro — desmarque disciplinas ou ajuste o % de lei seca'); return; }
       this.setState({sjItens:todos, sjResp:{}, sjAtual:0, sjFim:false, sjIni:Date.now()});
     };
     if(nProva>0) T.acervoQuestoesProva().then(()=>montar(T.sortearQuestoesProva(nProva, this.state.sjRamos))).catch(()=>montar([]));
