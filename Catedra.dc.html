@@ -32,7 +32,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .rd-hl{position:absolute;border-radius:2px;pointer-events:auto;cursor:pointer;transition:filter .12s,box-shadow .12s;mix-blend-mode:multiply;}
 .rd-hl:hover{filter:brightness(.93);box-shadow:0 0 0 1.5px rgba(0,0,0,.18);}
 .rd-hl.uline{background:transparent!important;border-bottom:2.5px solid;border-radius:0;mix-blend-mode:normal;}
-.rd-hl.has-note::after{content:'';position:absolute;top:-5px;right:-5px;width:9px;height:9px;border-radius:99px;background:#c2790c;box-shadow:0 0 0 2px #fff;}
+.rd-hl.has-note::after{content:'';position:absolute;top:-5px;right:-5px;width:9px;height:9px;border-radius:99px;background:var(--warn);box-shadow:0 0 0 2px #fff;}
 .rd-scroll::-webkit-scrollbar{width:10px;height:10px;}
 .rd-scroll::-webkit-scrollbar-thumb{background:rgba(150,150,160,.5);border-radius:99px;border:2px solid transparent;background-clip:content-box;}
 .rd-scroll::-webkit-scrollbar-track{background:transparent;}
@@ -538,7 +538,7 @@ window.ctPdfLib = (function(){
       <div style="position:relative;flex:none;">
         <button onclick="{{ toggleNotif }}" title="Notificações" style="position:relative;border:1px solid var(--border);background:var(--surface2);border-radius:99px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 4a4 4 0 0 1 4 4v2.4c0 .9.3 1.8.9 2.5L18.5 15H5.5l1.6-2.1c.6-.7.9-1.6.9-2.5V8a4 4 0 0 1 4-4Z" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"></path></svg>
-          <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;border-radius:99px;background:#c0392f;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);">{{ notifUnreadStr }}</span></sc-if>
+          <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;border-radius:99px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);">{{ notifUnreadStr }}</span></sc-if>
         </button>
         <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
           <div style="position:absolute;top:46px;right:0;z-index:70;width:340px;max-width:86vw;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.22);overflow:hidden;">
@@ -681,7 +681,7 @@ window.ctPdfLib = (function(){
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:12.5px;font-weight:600;color:var(--ink);">Desempenho em questões</span><span style="font-size:11px;color:var(--text3);">para análise líquida · opcional</span></div>
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
                 <div><label style="display:block;font-size:11px;color:var(--ok);font-weight:600;margin-bottom:4px;">✓ Acertos</label><input type="number" data-k="acertos" value="{{ sessionDraft.acertos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
-                <div><label style="display:block;font-size:11px;color:#c0392f;font-weight:600;margin-bottom:4px;">✗ Erradas</label><input type="number" data-k="erradas" value="{{ sessionDraft.erradas }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
+                <div><label style="display:block;font-size:11px;color:var(--danger);font-weight:600;margin-bottom:4px;">✗ Erradas</label><input type="number" data-k="erradas" value="{{ sessionDraft.erradas }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
                 <div><label style="display:block;font-size:11px;color:var(--text3);font-weight:600;margin-bottom:4px;">○ Em branco</label><input type="number" data-k="brancos" value="{{ sessionDraft.brancos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
               </div>
               <div style="display:flex;align-items:center;gap:14px;margin-top:13px;flex-wrap:wrap;">
@@ -747,7 +747,7 @@ window.ctPdfLib = (function(){
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:12.5px;font-weight:600;color:var(--ink);">Desempenho em questões</span><span style="font-size:11px;color:var(--text3);">{{ histEditResumo }}</span></div>
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
                 <div><label style="display:block;font-size:11px;color:var(--ok);font-weight:600;margin-bottom:4px;">✓ Acertos</label><input type="number" min="0" data-k="acertos" value="{{ histEdit.acertos }}" oninput="{{ onHistEditField }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
-                <div><label style="display:block;font-size:11px;color:#c0392f;font-weight:600;margin-bottom:4px;">✗ Erradas</label><input type="number" min="0" data-k="erradas" value="{{ histEdit.erradas }}" oninput="{{ onHistEditField }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
+                <div><label style="display:block;font-size:11px;color:var(--danger);font-weight:600;margin-bottom:4px;">✗ Erradas</label><input type="number" min="0" data-k="erradas" value="{{ histEdit.erradas }}" oninput="{{ onHistEditField }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
                 <div><label style="display:block;font-size:11px;color:var(--text3);font-weight:600;margin-bottom:4px;">○ Em branco</label><input type="number" min="0" data-k="brancos" value="{{ histEdit.brancos }}" oninput="{{ onHistEditField }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
               </div>
               <div style="font-size:10.5px;color:var(--text3);margin-top:9px;">Líquido = acertos − erradas · questões = acertos + erradas + brancos</div>
@@ -920,7 +920,7 @@ window.ctPdfLib = (function(){
             <div style="background:var(--surface);border-radius:18px;width:100%;max-width:440px;padding:30px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.4);color:var(--ink);">
               <div style="font-size:34px;">🎯</div>
               <div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--ink);margin-top:8px;">Treino concluído</div>
-              <div style="display:flex;justify-content:center;gap:20px;margin:18px 0;"><div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:#0f9d6b;">{{ treinoRight }}</div><div style="font-size:11.5px;color:var(--text3);">acertos</div></div><div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:#c0392f;">{{ treinoWrong }}</div><div style="font-size:11.5px;color:var(--text3);">erros</div></div></div>
+              <div style="display:flex;justify-content:center;gap:20px;margin:18px 0;"><div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);">{{ treinoRight }}</div><div style="font-size:11.5px;color:var(--text3);">acertos</div></div><div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--danger);">{{ treinoWrong }}</div><div style="font-size:11.5px;color:var(--text3);">erros</div></div></div>
               <sc-if value="{{ treinoTemWrong }}" hint-placeholder-val="{{ false }}">
                 <button onclick="{{ treinoAgendarRevisoes }}" style="width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:11px;padding:13px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:9px;">Agendar revisão dos {{ treinoWrongN }} que errei</button>
               </sc-if>
@@ -1173,15 +1173,15 @@ window.ctPdfLib = (function(){
               <div class="cth-chead"><h3>Painel por disciplina</h3><span class="meta">todas as sessões</span></div>
               <sc-if value="{{ paPainelShow }}" hint-placeholder-val="{{ false }}">
                 <table class="cth-tbl">
-                  <thead><tr><th>Matéria</th><th>Tempo</th><th>Q</th><th style="color:#0f9d6b;">A</th><th style="color:#c0392f;">E</th><th>Líquido</th></tr></thead>
+                  <thead><tr><th>Matéria</th><th>Tempo</th><th>Q</th><th style="color:var(--ok);">A</th><th style="color:var(--danger);">E</th><th>Líquido</th></tr></thead>
                   <tbody>
                     <sc-for list="{{ paPainel }}" as="p" hint-placeholder-count="6">
                       <tr>
                         <td><span class="cth-mname"><i style="background:{{ p.color }};"></i>{{ p.short }}</span></td>
                         <td>{{ p.tempo }}</td>
                         <td>{{ p.q }}</td>
-                        <td style="color:#0f9d6b;font-weight:700;">{{ p.a }}</td>
-                        <td style="color:#c0392f;font-weight:700;">{{ p.e }}</td>
+                        <td style="color:var(--ok);font-weight:700;">{{ p.a }}</td>
+                        <td style="color:var(--danger);font-weight:700;">{{ p.e }}</td>
                         <td><span class="cth-liq"><b style="color:{{ p.liqCor }};">{{ p.liq }}</b><i><b style="width:{{ p.liq }};background:{{ p.color }};"></b></i></span></td>
                       </tr>
                     </sc-for>
@@ -1270,7 +1270,7 @@ window.ctPdfLib = (function(){
               <div style="flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
                 <span style="font-family:var(--mono);font-size:10px;font-weight:800;color:{{ d.color }};">{{ d.pct }}</span>
                 <div style="display:flex;align-items:flex-end;gap:4px;width:100%;justify-content:center;">
-                  <div style="width:36%;background:#0f9d6b;border-radius:4px 4px 2px 2px;height:{{ d.aH }};"></div>
+                  <div style="width:36%;background:var(--ok);border-radius:4px 4px 2px 2px;height:{{ d.aH }};"></div>
                   <div style="width:36%;background:#df9aa6;border-radius:4px 4px 2px 2px;height:{{ d.eH }};"></div>
                 </div>
                 <span style="font-size:9px;color:var(--text3);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:76px;">{{ d.short }}</span>
@@ -1612,7 +1612,7 @@ window.ctPdfLib = (function(){
           </div>
           <!-- rotativas -->
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-            <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px;"><span style="width:9px;height:9px;border-radius:99px;background:#c2790c;"></span><span style="font-weight:600;color:var(--ink);font-size:14.5px;">Atividades rotativas</span></div>
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px;"><span style="width:9px;height:9px;border-radius:99px;background:var(--warn);"></span><span style="font-weight:600;color:var(--ink);font-size:14.5px;">Atividades rotativas</span></div>
             <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">giram pelo ciclo — uma por dia, na ordem</div>
             <div style="display:flex;flex-direction:column;gap:8px;">
               <sc-for list="{{ manualRot }}" as="r" hint-placeholder-count="5">
@@ -1847,21 +1847,21 @@ window.ctPdfLib = (function(){
         <!-- Atrasadas -->
         <div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;">
-            <span style="width:9px;height:9px;border-radius:99px;background:#c0392f;"></span>
+            <span style="width:9px;height:9px;border-radius:99px;background:var(--danger);"></span>
             <h3 style="margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);font-weight:700;">Atrasadas</h3>
-            <span style="font-family:var(--mono);font-size:12px;color:#c0392f;font-weight:700;background:var(--surface2);padding:2px 9px;border-radius:99px;font-variant-numeric:tabular-nums;">{{ revOverdue.length }}</span>
+            <span style="font-family:var(--mono);font-size:12px;color:var(--danger);font-weight:700;background:var(--surface2);padding:2px 9px;border-radius:99px;font-variant-numeric:tabular-nums;">{{ revOverdue.length }}</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ revOverdue }}" as="r" hint-placeholder-count="2">
-              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:4px solid #c0392f;border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--danger);border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;">
                 <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:140px;"><div style="font-weight:600;font-size:14.5px;color:var(--ink);">{{ r.topic }}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">{{ r.disc }}</div></div>
-                <span style="font-size:11.5px;color:#c0392f;font-weight:600;background:var(--surface2);padding:4px 10px;border-radius:99px;">vencida {{ r.dueLabel }}</span>
+                <span style="font-size:11.5px;color:var(--danger);font-weight:600;background:var(--surface2);padding:4px 10px;border-radius:99px;">vencida {{ r.dueLabel }}</span>
                 <span style="font-family:var(--mono);font-size:11.5px;color:var(--text2);font-variant-numeric:tabular-nums;letter-spacing:.02em;">int. {{ r.interval }} · ef {{ r.ef }}</span>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                   <span style="font-size:11px;color:var(--text3);margin-right:2px;">Como foi?</span>
-                  <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:#c0392f;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
-                  <button data-id="{{ r.id }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil (q=3)" style="background:var(--surface2);color:#c2790c;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button>
+                  <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:var(--danger);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
+                  <button data-id="{{ r.id }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil (q=3)" style="background:var(--surface2);color:var(--warn);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button>
                   <button data-id="{{ r.id }}" data-q="4" onclick="{{ reviewRate }}" title="Bom (q=4)" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Bom</button>
                   <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewSnooze }}" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">Adiar</button>
@@ -1887,8 +1887,8 @@ window.ctPdfLib = (function(){
                 <span style="font-family:var(--mono);font-size:11.5px;color:var(--text2);">int. {{ r.interval }} · ef {{ r.ef }}</span>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                   <span style="font-size:11px;color:var(--text3);margin-right:2px;">Como foi?</span>
-                  <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:#c0392f;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
-                  <button data-id="{{ r.id }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil (q=3)" style="background:var(--surface2);color:#c2790c;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button>
+                  <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:var(--danger);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
+                  <button data-id="{{ r.id }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil (q=3)" style="background:var(--surface2);color:var(--warn);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button>
                   <button data-id="{{ r.id }}" data-q="4" onclick="{{ reviewRate }}" title="Bom (q=4)" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Bom</button>
                   <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewSnooze }}" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">Adiar</button>
@@ -2135,12 +2135,12 @@ window.ctPdfLib = (function(){
 
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px;">
-              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);color:#0f9d6b;">Pontos fortes</div>
-              <sc-for list="{{ redResult.fortes }}" as="f" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-top:11px;align-items:flex-start;"><span style="color:#0f9d6b;font-weight:800;">✓</span><span style="font-size:13px;color:var(--text2);line-height:1.6;">{{ f }}</span></div></sc-for>
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);color:var(--ok);">Pontos fortes</div>
+              <sc-for list="{{ redResult.fortes }}" as="f" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-top:11px;align-items:flex-start;"><span style="color:var(--ok);font-weight:800;">✓</span><span style="font-size:13px;color:var(--text2);line-height:1.6;">{{ f }}</span></div></sc-for>
             </div>
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px;">
-              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);color:#c2790c;">A melhorar</div>
-              <sc-for list="{{ redResult.melhorar }}" as="mlb" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-top:11px;align-items:flex-start;"><span style="color:#c2790c;font-weight:800;">!</span><span style="font-size:13px;color:var(--text2);line-height:1.6;">{{ mlb }}</span></div></sc-for>
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);color:var(--warn);">A melhorar</div>
+              <sc-for list="{{ redResult.melhorar }}" as="mlb" hint-placeholder-count="2"><div style="display:flex;gap:9px;margin-top:11px;align-items:flex-start;"><span style="color:var(--warn);font-weight:800;">!</span><span style="font-size:13px;color:var(--text2);line-height:1.6;">{{ mlb }}</span></div></sc-for>
             </div>
           </div>
 
@@ -2194,7 +2194,7 @@ window.ctPdfLib = (function(){
         </div>
 
         <sc-if value="{{ oralErro }}" hint-placeholder-val="{{ false }}">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;color:#c0392f;font-size:13px;">{{ oralErro }}</div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;color:var(--danger);font-size:13px;">{{ oralErro }}</div>
         </sc-if>
 
         <!-- ARGUIÇÃO SOBRE JURISPRUDÊNCIA -->
@@ -2239,10 +2239,10 @@ window.ctPdfLib = (function(){
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
                 <div style="{{ oralNotaStyle }}">{{ oralNotaLabel }} · {{ oralCobertura }}% do conteúdo</div>
                 <sc-if value="{{ oralFundCitados }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top:14px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:#0f9d6b;">Fundamentos que você citou:</b> {{ oralFundCitados }}</div>
+                  <div style="margin-top:14px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:var(--ok);">Fundamentos que você citou:</b> {{ oralFundCitados }}</div>
                 </sc-if>
                 <sc-if value="{{ oralFundAusentes }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top:8px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:#c0392f;">O verbete se apoia em, e você não citou:</b> {{ oralFundAusentes }}</div>
+                  <div style="margin-top:8px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:var(--danger);">O verbete se apoia em, e você não citou:</b> {{ oralFundAusentes }}</div>
                 </sc-if>
                 <sc-if value="{{ oralAcertou }}" hint-placeholder-val="{{ false }}">
                   <div style="margin-top:8px;font-size:12.5px;color:var(--text2);line-height:1.55;"><b>Mencionou:</b> {{ oralAcertou }}</div>
@@ -2298,10 +2298,10 @@ window.ctPdfLib = (function(){
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
                 <div style="{{ oralNotaStyle }}">{{ oralNotaLabel }} · {{ oralCobertura }}% do conteúdo</div>
                 <sc-if value="{{ oralAcertou }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top:12px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:#0f9d6b;">Mencionou:</b> {{ oralAcertou }}</div>
+                  <div style="margin-top:12px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:var(--ok);">Mencionou:</b> {{ oralAcertou }}</div>
                 </sc-if>
                 <sc-if value="{{ oralFaltou }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top:8px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:#c0392f;">Não apareceu:</b> {{ oralFaltou }}</div>
+                  <div style="margin-top:8px;font-size:13px;color:var(--ink);line-height:1.55;"><b style="color:var(--danger);">Não apareceu:</b> {{ oralFaltou }}</div>
                 </sc-if>
               </div>
             </sc-if>
@@ -2355,8 +2355,8 @@ window.ctPdfLib = (function(){
               </div>
             </div>
             <sc-if value="{{ oralQMostrarPadrao }}" hint-placeholder-val="{{ false }}">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;border-left:4px solid #0f9d6b;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#0f9d6b;font-weight:800;">Padrão de resposta — o que a banca esperava ouvir</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;border-left:4px solid var(--ok);">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ok);font-weight:800;">Padrão de resposta — o que a banca esperava ouvir</div>
                 <div style="font-size:13.5px;color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ oralQPadrao }}</div>
               </div>
             </sc-if>
@@ -2520,7 +2520,7 @@ window.ctPdfLib = (function(){
                       <sc-if value="{{ sjRelPegadinhas }}" hint-placeholder-val="{{ true }}">
                         <div style="margin-top:18px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;">As trocas que passaram por você</div>
                         <sc-for list="{{ sjRelPegadinhas }}" as="p" hint-placeholder-count="3">
-                          <div style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-top:6px;">{{ p.ref }} — trocou <b style="color:#0f9d6b;">“{{ p.de }}”</b> por <b style="color:#c0392f;">“{{ p.para }}”</b></div>
+                          <div style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-top:6px;">{{ p.ref }} — trocou <b style="color:var(--ok);">“{{ p.de }}”</b> por <b style="color:var(--danger);">“{{ p.para }}”</b></div>
                         </sc-for>
                         <div style="font-size:11.5px;color:var(--text3);margin-top:10px;line-height:1.5;">É assim que a banca monta o item errado: troca o núcleo e mantém o resto igual. Leia sempre o prazo, a competência e o operador (pode/não pode).</div>
                       </sc-if>
@@ -2537,7 +2537,7 @@ window.ctPdfLib = (function(){
                       </div>
                       <div style="font-size:13.5px;color:var(--ink);line-height:1.55;margin-top:8px;">{{ q.enun }}</div>
                       <sc-if value="{{ q.temTroca }}" hint-placeholder-val="{{ false }}">
-                        <div style="font-size:12.5px;color:var(--text2);margin-top:8px;">O item trocou <b style="color:#0f9d6b;">“{{ q.trocaDe }}”</b> por <b style="color:#c0392f;">“{{ q.trocaPara }}”</b>.</div>
+                        <div style="font-size:12.5px;color:var(--text2);margin-top:8px;">O item trocou <b style="color:var(--ok);">“{{ q.trocaDe }}”</b> por <b style="color:var(--danger);">“{{ q.trocaPara }}”</b>.</div>
                       </sc-if>
                       <div style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);"><b>Texto oficial:</b> {{ q.oficial }}</div>
                     </div>
@@ -2579,7 +2579,7 @@ window.ctPdfLib = (function(){
               <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Erros</label><input type="number" data-f="erros" value="{{ sim.erros }}" oninput="{{ onSim }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
               <div><label style="display:block;font-size:11.5px;color:var(--text3);font-weight:500;margin-bottom:5px;">Brancos</label><input type="number" data-f="brancos" value="{{ sim.brancos }}" oninput="{{ onSim }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink);font-family:var(--mono);"></div>
             </div>
-            <div style="font-size:12px;color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:#c0392f;font-weight:700;">!</span><span>Banca estilo CEBRASPE/CESPE: cada erro anula um acerto. A nota líquida (C−E) é o que vale.</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--danger);font-weight:700;">!</span><span>Banca estilo CEBRASPE/CESPE: cada erro anula um acerto. A nota líquida (C−E) é o que vale.</span></div>
           </sc-if>
 
           <!-- discursiva / peças -->
@@ -2643,7 +2643,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;">
             <div style="text-align:center;background:var(--surface2);border-radius:10px;padding:12px 6px;"><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink);">{{ sim.total }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px;">questões</div></div>
-            <div style="text-align:center;background:var(--surface2);border-radius:10px;padding:12px 6px;"><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:#c0392f;">{{ loss }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px;">erros+brancos</div></div>
+            <div style="text-align:center;background:var(--surface2);border-radius:10px;padding:12px 6px;"><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--danger);">{{ loss }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px;">erros+brancos</div></div>
             <div style="text-align:center;background:var(--surface2);border-radius:10px;padding:12px 6px;"><div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink);">{{ simTempoLabel }}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px;">tempo</div></div>
           </div>
           <div style="margin-top:18px;">
@@ -2733,14 +2733,14 @@ window.ctPdfLib = (function(){
             <!-- Evolução semanal -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-weight:600;color:var(--ink);font-size:15px;">Evolução do acerto</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px;">últimas 6 semanas</div></div><div style="text-align:right;"><div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);line-height:1;">{{ evolLastBruto }}%</div><div style="font-size:11px;color:var(--text3);">bruto atual</div></div></div>
-              <div style="display:flex;gap:14px;margin:14px 0 6px;"><span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);"><span style="width:14px;height:3px;border-radius:2px;background:var(--accent);"></span>Bruto</span><span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);"><span style="width:14px;height:3px;border-radius:2px;background:#0f9d6b;"></span>Líquido</span></div>
+              <div style="display:flex;gap:14px;margin:14px 0 6px;"><span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);"><span style="width:14px;height:3px;border-radius:2px;background:var(--accent);"></span>Bruto</span><span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);"><span style="width:14px;height:3px;border-radius:2px;background:var(--ok);"></span>Líquido</span></div>
               <div style="position:relative;width:100%;height:150px;">
                 <svg viewBox="0 0 300 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
                   <line x1="0" y1="25" x2="300" y2="25" stroke="var(--border)" stroke-width="0.5"></line>
                   <line x1="0" y1="50" x2="300" y2="50" stroke="var(--border)" stroke-width="0.5"></line>
                   <line x1="0" y1="75" x2="300" y2="75" stroke="var(--border)" stroke-width="0.5"></line>
                   <path d="{{ evolBrutoPath }}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
-                  <path d="{{ evolLiqPath }}" fill="none" stroke="#0f9d6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"></path>
+                  <path d="{{ evolLiqPath }}" fill="none" stroke="var(--ok)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"></path>
                 </svg>
               </div>
               <div style="display:flex;justify-content:space-between;margin-top:8px;"><sc-for list="{{ evolDots }}" as="e" hint-placeholder-count="6"><span style="font-size:10px;color:var(--text3);font-family:var(--mono);">{{ e.label }}</span></sc-for></div>
@@ -2954,7 +2954,7 @@ window.ctPdfLib = (function(){
 
         <!-- Conquistadas -->
         <div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;"><span style="width:9px;height:9px;border-radius:99px;background:#0f9d6b;"></span><h3 style="margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);font-weight:700;">Conquistadas</h3></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;"><span style="width:9px;height:9px;border-radius:99px;background:var(--ok);"></span><h3 style="margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);font-weight:700;">Conquistadas</h3></div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;">
             <sc-for list="{{ achDone }}" as="a" hint-placeholder-count="4">
               <div style="background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:18px;display:flex;gap:14px;align-items:center;">
@@ -3037,7 +3037,7 @@ window.ctPdfLib = (function(){
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:6px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><sc-if value="{{ e.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button></sc-if>
                       <sc-if value="{{ e.notManual }}" hint-placeholder-val="{{ false }}"><span style="width:11px;height:11px;border-radius:99px;background:{{ e.color }};flex:none;"></span></sc-if>
                       <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:13px;color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
-                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:#c0392f;border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:#c2790c;border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Bom" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Bom</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
+                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:var(--danger);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:var(--warn);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Bom" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Bom</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button></sc-if>
                     </div>
                   </sc-for>
@@ -3101,7 +3101,7 @@ window.ctPdfLib = (function(){
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:6px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><sc-if value="{{ e.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button></sc-if>
                       <sc-if value="{{ e.notManual }}" hint-placeholder-val="{{ false }}"><span style="width:11px;height:11px;border-radius:99px;background:{{ e.color }};flex:none;"></span></sc-if>
                       <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:13px;color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
-                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:#c0392f;border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:#c2790c;border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Bom" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Bom</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
+                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:var(--danger);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:var(--warn);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Bom" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Bom</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button></sc-if>
                     </div>
                   </sc-for>
@@ -3467,7 +3467,7 @@ window.ctPdfLib = (function(){
         <!-- COMUNIDADE -->
         <div style="display:grid;grid-template-columns:1fr;gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div style="font-weight:600;color:var(--ink);font-size:15px;">Comunidade</div><sc-if value="{{ comViaGrupo }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:#0f9d6b;display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:99px;background:#0f9d6b;"></span>{{ comNowN }} estudando agora</span></sc-if></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div style="font-weight:600;color:var(--ink);font-size:15px;">Comunidade</div><sc-if value="{{ comViaGrupo }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;font-weight:600;color:var(--ok);display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:99px;background:var(--ok);"></span>{{ comNowN }} estudando agora</span></sc-if></div>
             <sc-if value="{{ comViaGrupo }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;flex-direction:column;gap:12px;">
                 <sc-for list="{{ comFeed }}" as="f" hint-placeholder-count="3">
@@ -3504,11 +3504,11 @@ window.ctPdfLib = (function(){
 
         <!-- AO VIVO -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;">
-          <div style="font-weight:600;color:var(--ink);font-size:14px;margin-bottom:13px;display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:99px;background:#0f9d6b;"></span>Ao vivo na sala de estudos</div>
+          <div style="font-weight:600;color:var(--ink);font-size:14px;margin-bottom:13px;display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:99px;background:var(--ok);"></span>Ao vivo na sala de estudos</div>
           <div style="display:flex;gap:14px;flex-wrap:wrap;">
             <sc-for list="{{ comNowAvatars }}" as="m" hint-placeholder-count="6">
               <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:62px;">
-                <span style="position:relative;width:46px;height:46px;border-radius:99px;background:{{ m.col }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;">{{ m.av }}<span style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:99px;background:#0f9d6b;border:2px solid var(--surface);"></span></span>
+                <span style="position:relative;width:46px;height:46px;border-radius:99px;background:{{ m.col }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;">{{ m.av }}<span style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:99px;background:var(--ok);border:2px solid var(--surface);"></span></span>
                 <span style="font-size:11px;color:var(--text2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62px;">{{ m.nome }}</span>
               </div>
             </sc-for>
@@ -3560,7 +3560,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px;">crie um grupo e compartilhe o <b style="color:var(--text2);">código</b> — seus amigos entram digitando esse código e veem o mesmo grupo em qualquer aparelho</div>
           <sc-if value="{{ comErroShow }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-left:3px solid #c2790c;border-radius:11px;padding:12px 14px;margin-bottom:14px;">
+            <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:11px;padding:12px 14px;margin-bottom:14px;">
               <span style="font-size:15px;line-height:1;flex:none;">⚠️</span>
               <span style="font-size:12.5px;color:var(--text2);line-height:1.5;">{{ comErro }}</span>
             </div>
@@ -4278,7 +4278,7 @@ window.ctPdfLib = (function(){
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <select value="{{ histFilterVal }}" onchange="{{ setHistFilter }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--ink);font-family:inherit;"><option value="">Todas as disciplinas</option><sc-for list="{{ histDiscs }}" as="d" hint-placeholder-count="6"><option value="{{ d }}">{{ d }}</option></sc-for></select>
               <button onclick="{{ toggleLixeira }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">{{ histLixeiraToggleLabel }}</button>
-              <button onclick="{{ limparHistorico }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:#c0392f;cursor:pointer;font-family:inherit;font-weight:600;">Limpar histórico</button>
+              <button onclick="{{ limparHistorico }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--danger);cursor:pointer;font-family:inherit;font-weight:600;">Limpar histórico</button>
             </div>
           </div>
           <sc-if value="{{ histEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:36px 12px;color:var(--text3);font-size:13.5px;">Nenhuma sessão por aqui ainda. Registre uma sessão para começar o histórico.</div></sc-if>
@@ -4310,7 +4310,7 @@ window.ctPdfLib = (function(){
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
               <div style="font-weight:600;color:var(--ink);font-size:15px;">🗑 Lixeira <span style="color:var(--text3);font-weight:500;font-size:13px;">· {{ histLixeiraCount }}</span></div>
-              <sc-if value="{{ histLixeiraHasItems }}" hint-placeholder-val="{{ true }}"><button onclick="{{ esvaziarLixeira }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:#c0392f;cursor:pointer;font-family:inherit;font-weight:600;">Esvaziar lixeira</button></sc-if>
+              <sc-if value="{{ histLixeiraHasItems }}" hint-placeholder-val="{{ true }}"><button onclick="{{ esvaziarLixeira }}" style="border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--danger);cursor:pointer;font-family:inherit;font-weight:600;">Esvaziar lixeira</button></sc-if>
             </div>
             <sc-if value="{{ histLixeiraEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:28px 12px;color:var(--text3);font-size:13.5px;">Nada apagado. O que você remover do histórico aparece aqui para restaurar.</div></sc-if>
             <sc-if value="{{ histLixeiraHasItems }}" hint-placeholder-val="{{ true }}">
@@ -4361,7 +4361,7 @@ window.ctPdfLib = (function(){
           </sc-for>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid #c2790c;"><div style="font-family:var(--display);font-weight:700;font-size:24px;color:var(--ink);">{{ retaRevVenc }}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">revisões vencidas</div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid var(--warn);"><div style="font-family:var(--display);font-weight:700;font-size:24px;color:var(--ink);">{{ retaRevVenc }}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">revisões vencidas</div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid var(--accent);"><div style="font-family:var(--display);font-weight:700;font-size:24px;color:var(--ink);">{{ retaSim }}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">simulados feitos</div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid var(--accent);"><div style="font-family:var(--display);font-weight:700;font-size:24px;color:var(--ink);">{{ retaDias }}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">dias para a prova</div></div>
         </div>
@@ -4639,17 +4639,17 @@ const CT_BANCA_SIGLA = { cebraspe:'CEBRASPE', fgv:'FGV', fcc:'FCC', vunesp:'VUNE
 // Ícone e cor de CADA categoria de estudo (as básicas + as de todas as áreas), num
 // mapa só, para histórico, ciclo e gráficos não divergirem quando a área muda.
 const CT_CAT_META = {
-  'Teoria':{i:'📘',c:'#6b4fbb'}, 'Revisão':{i:'🔁',c:'#0f9d6b'}, 'Questões':{i:'❓',c:'#2563eb'},
+  'Teoria':{i:'📘',c:'#6b4fbb'}, 'Revisão':{i:'🔁',c:'var(--ok)'}, 'Questões':{i:'❓',c:'#2563eb'},
   'Doutrina':{i:'📖',c:'#7a5c3a'},
   'Simulado':{i:'📋',c:'#0a7ea4'}, 'Flashcards':{i:'🃏',c:'#b08433'},
   'Resumo':{i:'📝',c:'#0d9488'},
-  'Lei seca':{i:'⚖️',c:'#b08433'}, 'Jurisprudência':{i:'🏛️',c:'#c0392f'},
-  'Caso clínico':{i:'🩺',c:'#c0392f'}, 'Protocolo/diretriz':{i:'📋',c:'#0d9488'},
+  'Lei seca':{i:'⚖️',c:'#b08433'}, 'Jurisprudência':{i:'🏛️',c:'var(--danger)'},
+  'Caso clínico':{i:'🩺',c:'var(--danger)'}, 'Protocolo/diretriz':{i:'📋',c:'#0d9488'},
   'Legislação social':{i:'🤝',c:'#b08433'}, 'Estudo de caso':{i:'🗂️',c:'#0d9488'},
   'Procedimento operacional':{i:'🚔',c:'#0d9488'},
   'Documento normativo':{i:'📜',c:'#b08433'}, 'Prática de ensino':{i:'🏫',c:'#0d9488'},
   'Prática/laboratório':{i:'🧪',c:'#0d9488'}, 'Documentação':{i:'📄',c:'#b08433'},
-  'Exercícios':{i:'✏️',c:'#c2790c'},
+  'Exercícios':{i:'✏️',c:'var(--warn)'},
 };
 
 // ATIVIDADES — lista ÚNICA, a mesma para toda área. O que muda entre magistratura,
@@ -6568,7 +6568,7 @@ class Component extends DCLogic {
     ts.wrongIds.forEach(id=>{ const er=(this.state.errors||[]).find(x=>x.id===id); if(!er) return;
       const topic=er.topico||String(er.enunciado||'').slice(0,44);
       const jaTem=(this.state.reviews||[]).some(rv=> rv.disc===er.disc && String(rv.topic||'').toLowerCase()===String(topic).toLowerCase());
-      if(!jaTem) novos.push({id:'r'+Date.now()+'-'+novos.length, disc:er.disc, topic, color:'#c0392f', due:0, dueDate:hoje, intervalo:1, facilidade:2.5, repeticoes:0}); });
+      if(!jaTem) novos.push({id:'r'+Date.now()+'-'+novos.length, disc:er.disc, topic, color:'var(--danger)', due:0, dueDate:hoje, intervalo:1, facilidade:2.5, repeticoes:0}); });
     if(novos.length) this.setState(s=>({reviews:[...s.reviews, ...novos], treino:null}), ()=>{ this._toast(novos.length+' revisão(ões) dos seus erros agendada(s) ✦'); });
     else this.setState({treino:null}); this.flashSync(); };
 
@@ -6927,7 +6927,7 @@ class Component extends DCLogic {
       // O template resolve NOMES, não expressões: estilos condicionais saem prontos daqui.
       oralAbaJuris:aba(st.oralModo==='juris'), oralAbaLei:aba(st.oralModo==='lei'), oralAbaBancas:aba(st.oralModo==='bancas'),
       oralOuroLabel:st.oralBancaSoOuro?'Só com padrão de resposta ✓':'Só com padrão de resposta',
-      oralNotaStyle:c?('display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:99px;background:'+(c.nota==='boa'?'#0f9d6b':c.nota==='media'?'#c2790c':'#c0392f')+'1f;color:'+(c.nota==='boa'?'#0f9d6b':c.nota==='media'?'#c2790c':'#c0392f')+';'):'',
+      oralNotaStyle:c?('display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:99px;background:'+(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)')+'1f;color:'+(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)')+';'):'',
       oralPronto:st.oralPronto, oralErro:st.oralErro,
       oralRamoOpts:[{v:'',label:'Todas as disciplinas'}].concat(cont('ramo')).map(o=>({...o,sel:st.oralRamo===o.v})),
       oralTribOpts:[{v:'',label:'Todos os tribunais'}].concat(cont('tribunal')).map(o=>({...o,sel:st.oralTribunal===o.v})),
@@ -6938,7 +6938,7 @@ class Component extends DCLogic {
       oralPergunta:st.oralPergunta, oralResposta:st.oralResposta,
       oralTemCorrecao:!!c,
       oralNotaLabel:c?(c.nota==='boa'?'Resposta consistente':c.nota==='media'?'Resposta parcial':'Resposta insuficiente'):'',
-      oralNotaCor:c?(c.nota==='boa'?'#0f9d6b':c.nota==='media'?'#c2790c':'#c0392f'):'',
+      oralNotaCor:c?(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)'):'',
       oralCobertura:c?c.cobertura:0,
       oralFundCitados:c&&c.fundCitados.length?c.fundCitados.join(' · '):'',
       oralFundAusentes:c&&c.fundAusentes.length?c.fundAusentes.join(' · '):'',
@@ -7018,7 +7018,7 @@ class Component extends DCLogic {
       sjPctLei:st.sjPctLei, sjPctJur:100-st.sjPctLei,
       // relatório final
       sjTemRel:!!st.sjRel,
-      sjRelPior:st.sjRel?st.sjRel.pior.map(x=>({nome:x.nome,txt:x.ok+'/'+x.n+' · '+x.pct+'%',style:'width:'+x.pct+'%;height:100%;border-radius:99px;background:'+(x.pct<50?'#c0392f':x.pct<75?'#c2790c':'#0f9d6b')+';'})):[],
+      sjRelPior:st.sjRel?st.sjRel.pior.map(x=>({nome:x.nome,txt:x.ok+'/'+x.n+' · '+x.pct+'%',style:'width:'+x.pct+'%;height:100%;border-radius:99px;background:'+(x.pct<50?'var(--danger)':x.pct<75?'var(--warn)':'var(--ok)')+';'})):[],
       sjRelMelhor:st.sjRel?st.sjRel.melhor.map(x=>({nome:x.nome,txt:x.ok+'/'+x.n+' · '+x.pct+'%'})):[],
       sjRelPegadinhas:st.sjRel?st.sjRel.pegadinhas.map(p=>({ref:p.ref,de:p.de,para:p.para})):[],
       sjRelJur:st.sjRel?(st.sjRel.origens.juris.ok+'/'+st.sjRel.origens.juris.n):'0/0',
@@ -7034,7 +7034,7 @@ class Component extends DCLogic {
         +(i===st.sjAtual?'var(--accent)':'var(--border)')+';background:'+(i===st.sjAtual?'var(--accent)':(r[x.id]!==undefined?'color-mix(in srgb,var(--accent) 18%,var(--surface))':'var(--surface)'))
         +';color:'+(i===st.sjAtual?'#fff':'var(--ink)')+';'})),
       sjGabarito:its.map((x,i)=>({n:String(i+1), enun:x.enunciado, ref:x.ref, cert:x.certo?'CERTO':'ERRADO',
-        corGab:x.certo?'#0f9d6b':'#c0392f',
+        corGab:x.certo?'var(--ok)':'var(--danger)',
         minha:r[x.id]===undefined?'em branco':(r[x.id]?'Certo':'Errado'),
         ok:r[x.id]===x.certo, temTroca:!x.certo&&!!x.trocaDe, trocaDe:x.trocaDe||'', trocaPara:x.trocaPara||'',
         oficial:x.original||''})),
@@ -7396,7 +7396,7 @@ class Component extends DCLogic {
       + (estourou||curtoDemais||primeiraPessoa? 'Fora do espelho, custa ponto: '+[estourou?'extensão acima do limite':'',curtoDemais?'texto curto demais':'',primeiraPessoa?'primeira pessoa':''].filter(Boolean).join(', ')+'. ':'')
       + 'Prioridades: '+melhorar.slice(0,3).map((m,i)=>(i+1)+') '+m).join(' ');
 
-    return {nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'#0f9d6b':nota>=6?'#c2790c':'#c0392f',
+    return {nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'var(--ok)':nota>=6?'var(--warn)':'var(--danger)',
       conceito:this._redConceito(nota), cobertura: quesitos.length? Math.round((somaObtida/(somaTotal||1))*100) : cov,
       topicos, criterios, fortes, melhorar, geral, aiUsed:false};
   }
@@ -7411,7 +7411,7 @@ class Component extends DCLogic {
     const topicos=this._normTopicos(j.topicos);
     let cobertura=+j.cobertura; if(!(cobertura>=0)) cobertura=topicos.length?Math.round(topicos.reduce((a,t)=>a+(t.status==='coberto'?1:t.status==='parcial'?0.5:0),0)/topicos.length*100):Math.round(nota*10); cobertura=Math.max(0,Math.min(100,Math.round(cobertura)));
     const conceito=String(j.conceito||'')||this._redConceito(nota);
-    return {nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'#0f9d6b':nota>=6?'#c2790c':'#c0392f', conceito, cobertura, topicos, criterios:crit, fortes:(j.fortes||[]).slice(0,4).map(String), melhorar:(j.melhorar||[]).slice(0,4).map(String), geral:String(j.geral||''), aiUsed:true};
+    return {nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'var(--ok)':nota>=6?'var(--warn)':'var(--danger)', conceito, cobertura, topicos, criterios:crit, fortes:(j.fortes||[]).slice(0,4).map(String), melhorar:(j.melhorar||[]).slice(0,4).map(String), geral:String(j.geral||''), aiUsed:true};
   }
 
   // ===== mais formas de calcular desempenho =====
@@ -7657,7 +7657,7 @@ class Component extends DCLogic {
         page.getTextContent().then(tc=>{ if(rd._rtok!==token) return; this._buildTextLayer(tl, tc, viewport); });
       }
       this._rdRepaint(); this._rdReapplyNight();
-    }catch(e){ if(rd._rtok===token){ rd.pagesWrap.innerHTML='<div style="color:#c0392f;font-size:13px;padding:30px;">Não foi possível abrir este PDF.</div>'; } }
+    }catch(e){ if(rd._rtok===token){ rd.pagesWrap.innerHTML='<div style="color:var(--danger);font-size:13px;padding:30px;">Não foi possível abrir este PDF.</div>'; } }
   }
 
   _onReaderMouseUp(ev){
@@ -7715,7 +7715,7 @@ class Component extends DCLogic {
       row.appendChild(mk('✎ Nota','Anotar',()=>this._openHlPopover(h)));
       row.appendChild(mk('Anki','Criar flashcard',()=>this._routeHl(h,'anki'),'rgba(99,102,241,.12)','#5b53d6'));
       row.appendChild(mk('Revisão','Agendar revisão',()=>this._routeHl(h,'revisao'),'rgba(15,157,107,.14)','#0b7a52'));
-      row.appendChild(mk('✕','Remover',()=>this._removeHl(h.id),'transparent','#c0392f'));
+      row.appendChild(mk('✕','Remover',()=>this._removeHl(h.id),'transparent','var(--danger)'));
       card.appendChild(row); rd.sList.appendChild(card); });
   }
   _jumpToHl(h){ const rd=this._rd; if(!rd) return; const rc=h.rects[0]; const pg=rd.pages.find(p=>p.page===rc.page); if(!pg) return; const top=pg.wrap.offsetTop + rc.y*pg.wrap.clientHeight - 80; rd.scroll.scrollTo({top:Math.max(0,top), behavior:'smooth'});
@@ -7740,7 +7740,7 @@ class Component extends DCLogic {
     actions.appendChild(mk('Salvar nota',()=>{ this._updateHl(h.id,{note:ta.value.trim()}); this._closeHlPopover(); }, true));
     actions.appendChild(mk('→ Anki',()=>{ this._updateHl(h.id,{note:ta.value.trim()}); this._routeHl(h,'anki'); this._closeHlPopover(); }, false,'#5b53d6'));
     actions.appendChild(mk('→ Revisão',()=>{ this._routeHl(h,'revisao'); this._closeHlPopover(); }, false,'#0b7a52'));
-    actions.appendChild(mk('Remover',()=>{ this._removeHl(h.id); }, false,'#c0392f'));
+    actions.appendChild(mk('Remover',()=>{ this._removeHl(h.id); }, false,'var(--danger)'));
     bodyP.appendChild(actions);
     box.appendChild(bodyP); ov.appendChild(box); this._readerEl.appendChild(ov); this._rd._pop=ov; ta.focus();
   }
@@ -7778,7 +7778,7 @@ class Component extends DCLogic {
   // ===== calendário: incluir / excluir / check =====
   onEventDraft = (e)=>{ const k=e.currentTarget.dataset.k; let v=e.currentTarget.value; if(k==='dia'&&v!==''){ const max=new Date(this.state.calYear, this.state.calMonth+1, 0).getDate(); v=Math.max(1,Math.min(max,parseInt(v,10)||1)); } this.setState(s=>({eventDraft:{...s.eventDraft,[k]:v}})); };
   addEvent = ()=>{ const d=this.state.eventDraft; if(!d.titulo.trim()) return;
-    const colorMap={'Revisão':'#06b6d4','Simulado':'#0f7a57','Meta':'#c2790c','Tarefa':'#6b4fbb','Prova':'#c0392f'};
+    const colorMap={'Revisão':'#06b6d4','Simulado':'#0f7a57','Meta':'var(--warn)','Tarefa':'#6b4fbb','Prova':'var(--danger)'};
     this.setState(s=>{ const max=new Date(s.calYear, s.calMonth+1, 0).getDate();
       const dia=Math.max(1,Math.min(max,parseInt(d.dia,10)||1));
       return {eventos:[...s.eventos,{id:'ev'+Date.now(), dia, mes:s.calMonth, ano:s.calYear, tipo:d.tipo, titulo:d.titulo.trim(), color:colorMap[d.tipo]||'#6b4fbb', done:false}], eventDraft:{...s.eventDraft, titulo:''}}; }); this.flashSync(); };
@@ -7867,7 +7867,7 @@ class Component extends DCLogic {
   removeMeta = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.filter(m=>m.id!==id)})); };
 
   // ===== caderno de erros (motivo do erro → vira flashcard/revisão) =====
-  ERR_MOTIVOS = {conteudo:{label:'Falta de conteúdo',color:'#c0392f',desc:'Não dominava a matéria'}, interpretacao:{label:'Interpretação',color:'#b08433',desc:'Interpretei mal o enunciado'}, decoreba:{label:'Decoreba / lei seca',color:'#6b4fbb',desc:'Letra da lei / decoreba'}, desatencao:{label:'Desatenção',color:'#2563eb',desc:'Erro bobo / desatenção'}, calculo:{label:'Cálculo / RLM',color:'#d6559b',desc:'Errei uma conta / passagem'}, tempo:{label:'Faltou tempo',color:'#d97706',desc:'Faltou tempo'}, esqueci:{label:'Sabia e esqueci',color:'#0d9488',desc:'Sabia, mas esqueci'}, chute:{label:'Chute',color:'#0f9d6b',desc:'Chutei sem certeza'}};
+  ERR_MOTIVOS = {conteudo:{label:'Falta de conteúdo',color:'var(--danger)',desc:'Não dominava a matéria'}, interpretacao:{label:'Interpretação',color:'#b08433',desc:'Interpretei mal o enunciado'}, decoreba:{label:'Decoreba / lei seca',color:'#6b4fbb',desc:'Letra da lei / decoreba'}, desatencao:{label:'Desatenção',color:'#2563eb',desc:'Erro bobo / desatenção'}, calculo:{label:'Cálculo / RLM',color:'#d6559b',desc:'Errei uma conta / passagem'}, tempo:{label:'Faltou tempo',color:'#d97706',desc:'Faltou tempo'}, esqueci:{label:'Sabia e esqueci',color:'#0d9488',desc:'Sabia, mas esqueci'}, chute:{label:'Chute',color:'var(--ok)',desc:'Chutei sem certeza'}};
   onErrDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({errDraft:{...s.errDraft,[k]:v}})); };
   onErrDraftDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({errDraft:{...s.errDraft, discCustom:v==='__outra__', disc:v==='__outra__'?'':v}})); };
   addErro = ()=>{ const d=this.state.errDraft; const enun=(d.enunciado||'').trim(); if(!enun){ this._toast('Escreva o enunciado (ou o resumo) da questão'); return; }
@@ -8756,7 +8756,7 @@ class Component extends DCLogic {
       `--ink:${T.ink};--text2:${T.text2};--text3:${T.text3};--accent:${acc};--accentD:${accD};`+
       `--accentSoft:${accSoft};--accentRing:${accRing};--onAccent:${accOn};--radius:${radiusVal};`+
       `--display:${T.display};--body:${T.body};--mono:${T.mono};--heroGrad:${heroGrad};`+
-      `--danger:${T.isDark?'#ff7b6e':'#c0392f'};--dangerSoft:${T.isDark?'rgba(255,123,110,.14)':'#faeceb'};--dangerBd:${T.isDark?'rgba(255,123,110,.35)':'#f0d3d1'};--ok:${T.isDark?'#3ddba0':'#0f9d6b'};--info:${T.isDark?'#54cfe8':'#06809a'};--infoSoft:${T.isDark?'rgba(84,207,232,.14)':'#e0f5fa'};`+
+      `--danger:${T.isDark?'#ff7b6e':'#c0392f'};--dangerSoft:${T.isDark?'rgba(255,123,110,.14)':'#faeceb'};--dangerBd:${T.isDark?'rgba(255,123,110,.35)':'#f0d3d1'};--ok:${T.isDark?'#3ddba0':'#0f9d6b'};--warn:${T.isDark?'#f0a24a':'#c2790c'};--warnSoft:${T.isDark?'rgba(240,162,74,.14)':'#faf0e0'};--info:${T.isDark?'#54cfe8':'#06809a'};--infoSoft:${T.isDark?'rgba(84,207,232,.14)':'#e0f5fa'};`+
       `--sbg:${sbgVal};--stext:${T.sidebarText};--sactbg:${this.state.accent?'rgba(255,255,255,.14)':T.sidebarActiveBg};--sacttext:${this.state.accent?'#fff':T.sidebarActiveText};`+
       `--bg:${bgVal};background:${bgVal};color:${T.ink};font-family:${T.body};font-size:${fontScalePx};`;
     // largura por view: telas de grade (muitos cards/colunas) ficam largas; telas em coluna única ficam num limite de leitura confortável
@@ -8802,7 +8802,7 @@ class Component extends DCLogic {
 
     // ===== Ciclo =====
     const blocks = this.state.blocks.map((b,i)=>({...b, i,
-      kindColor: ({'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#b08433','Jurisprudência':'#c0392f','Flashcards':'#0a7ea4'}[b.kind]||(CT_CAT_META[b.kind]||{}).c||'#0f7a57'),
+      kindColor: ({'Teoria':'#0f7a57','Questões':'var(--warn)','Lei seca':'#b08433','Jurisprudência':'var(--danger)','Flashcards':'#0a7ea4'}[b.kind]||(CT_CAT_META[b.kind]||{}).c||'#0f7a57'),
       checkBorder: b.done?'var(--accent)':'var(--border)',
       checkBg: b.done?'var(--accent)':'transparent',
       // vínculo com o edital (disciplina + tópico) — definido na Agenda da semana
@@ -8832,7 +8832,7 @@ class Component extends DCLogic {
       const hojeKey=['dom','seg','ter','qua','qui','sex','sab'][new Date().getDay()];
       const hojeIdx=ordem.indexOf(hojeKey);
       const feitas=this.state.agendaFeitas||{};
-      const KC={...Object.keys(CT_CAT_META).reduce((o,k)=>(o[k]=CT_CAT_META[k].c,o),{}), 'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#b08433','Jurisprudência':'#c0392f','Flashcards':'#0a7ea4'};
+      const KC={...Object.keys(CT_CAT_META).reduce((o,k)=>(o[k]=CT_CAT_META[k].c,o),{}), 'Teoria':'#0f7a57','Questões':'var(--warn)','Lei seca':'#b08433','Jurisprudência':'var(--danger)','Flashcards':'#0a7ea4'};
       const shortV=(de,tp)=> de? (de.replace('Direito ','')+(tp?(' · '+(tp.length>40?tp.slice(0,40)+'…':tp)):'')) : '';
       return ordem.map((dk,idx)=>{
         const isToday=dk===hojeKey; let cards;
@@ -8883,13 +8883,13 @@ class Component extends DCLogic {
       // o TIPO da atividade manda: súmula, informativo, tese e repetitivo são
       // jurisprudência — as heurísticas de texto abaixo não podem reclassificar isso.
       if(kind==='Jurisprudência') return {label:'JURISPRUDÊNCIA',cor:'#0d9488'};
-      if(t.includes('simulado')) return {label:'SIMULADO',cor:'#c0392f'};
-      if(t.includes('informativo')) return {label:'INFORMATIVO',cor:'#0f9d6b'};
+      if(t.includes('simulado')) return {label:'SIMULADO',cor:'var(--danger)'};
+      if(t.includes('informativo')) return {label:'INFORMATIVO',cor:'var(--ok)'};
       if(t.includes('assistir')||t.includes('youtube')||t.includes('videoaula')) return {label:'VÍDEO',cor:'#0a7ea4'};
       if(t.startsWith('texto ')||t.includes('texto "')||t.includes('texto “')) return {label:'TEXTO',cor:'#7c3aed'};
       if(t.includes('súmulas e teses')||t.includes('repercussão geral')||t.includes('material')) return {label:'MATERIAL',cor:'#7c3aed'};
       if(t.includes('leitura dirigida')) return {label:'REVISÃO',cor:'#e11d48'};
-      const M={'Teoria':['DOUTRINA','#6b4fbb'],'Questões':['QUESTÕES','#c2790c'],'Lei seca':['LEI SECA','#2563eb'],'Jurisprudência':['JURISPRUDÊNCIA','#0d9488'],'Revisão':['REVISÃO','#e11d48'],'Flashcards':['FLASHCARDS','#b08433']};
+      const M={'Teoria':['DOUTRINA','#6b4fbb'],'Questões':['QUESTÕES','var(--warn)'],'Lei seca':['LEI SECA','#2563eb'],'Jurisprudência':['JURISPRUDÊNCIA','#0d9488'],'Revisão':['REVISÃO','#e11d48'],'Flashcards':['FLASHCARDS','#b08433']};
       // tipos próprios das outras áreas: etiqueta com o nome do tipo e a cor do catálogo
       const m=M[kind]||(CT_CAT_META[kind]?[String(kind).toUpperCase(),CT_CAT_META[kind].c]:['ATIVIDADE','#7a7368']); return {label:m[0],cor:m[1]}; };
     // Etiquetas de roteiro são texto livre — 'Roteiro 2' e 'Roteiro 2 · 20-25/07' são o
@@ -8943,7 +8943,7 @@ class Component extends DCLogic {
       const porDisc={}; mf.forEach(f=>{ if(f.discEdital) porDisc[f.discEdital]=(porDisc[f.discEdital]||0)+(+f.min||0); });
       let badge={label:'REVISÃO & FIXAÇÃO',cor:'#0f7a57'};
       const top=Object.keys(porDisc).sort((a,b)=>porDisc[b]-porDisc[a])[0];
-      if(mf.some(f=>(f.disc||'').toLowerCase().includes('simulado'))) badge={label:'SIMULADO',cor:'#c0392f'};
+      if(mf.some(f=>(f.disc||'').toLowerCase().includes('simulado'))) badge={label:'SIMULADO',cor:'var(--danger)'};
       else if(top) badge={label:top.toUpperCase(),cor:this.DISC_FULL_COLOR[top]||'#0f7a57'};
       else if(!mf.length) badge={label:'DESCANSO',cor:'#0f7a57'};
       const pontoItem=mf.find(f=>f.kind==='Teoria'&&f.topico);
@@ -9032,7 +9032,7 @@ class Component extends DCLogic {
       const liq=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100)));
       if(ag.q<6){ return {has:true, pct:liq, level:'Poucos dados', color:'var(--text3)', str:'poucos dados ('+ag.q+'q)'}; }
       const level= liq>=70?'Dominado':liq>=50?'Em curso':'Frágil';
-      const color= liq>=70?'#0f9d6b':liq>=50?'#c2790c':'#c0392f';
+      const color= liq>=70?'var(--ok)':liq>=50?'var(--warn)':'var(--danger)';
       return {has:true, pct:liq, level, color, str:level+' · '+liq+'%'}; };
     const edital = this.state.edital.map((d,i)=>{
       const done=d.topics.filter(t=>t.done).length, tot=d.topics.length;
@@ -9053,7 +9053,7 @@ class Component extends DCLogic {
       const domMedio=_domTops.length?Math.round(_domTops.reduce((a,t)=>a+t.domPct,0)/_domTops.length):null;
       return {...d, i, done, tot, pct, actHoras:act.horas, actQ:act.q, actLiq:act.liqPct, actStr, hasAct:act.min>0,
         domMedio, hasDom:domMedio!=null, domMedioStr:domMedio!=null?('domínio '+domMedio+'%'):'',
-        domMedioColor: domMedio==null?'var(--text3)':(domMedio>=70?'#0f9d6b':domMedio>=50?'#c2790c':'#c0392f'),
+        domMedioColor: domMedio==null?'var(--text3)':(domMedio>=70?'var(--ok)':domMedio>=50?'var(--warn)':'var(--danger)'),
         pesoVal:_pv, questoesVal:_qv, pesoStr:_pv!==''?String(_pv):'—', questoesStr:_qv!==''?String(_qv):'—', hasMeta:_hasMeta, metaChip:(_pv!==''?('peso '+_pv):'')+(_pv!==''&&_qv!==''?' · ':'')+(_qv!==''?(_qv+'q'):''),
         colorHex:(/^#[0-9a-f]{6}$/i.test(d.color||'')?d.color:'#0f7a57'),   // <input type=color> só aceita #rrggbb
         topics:_tops};
@@ -9135,17 +9135,17 @@ class Component extends DCLogic {
     const loss = s.erros + s.brancos;
     let level, levelColor, diagTitle, diagText, action;
     if(s.total===0){ level='—'; levelColor='var(--text3)'; diagTitle='Sem dados'; diagText='Preencha total e acertos para ver o diagnóstico.'; action='registrar'; }
-    else if(score>=80){ level='Excelente'; levelColor='#0f9d6b'; diagTitle='Desempenho de aprovação'; diagText='Acima da nota de corte típica. Mantenha o ritmo e foque em manter a constância nas revisões.'; action='manter'; }
+    else if(score>=80){ level='Excelente'; levelColor='var(--ok)'; diagTitle='Desempenho de aprovação'; diagText='Acima da nota de corte típica. Mantenha o ritmo e foque em manter a constância nas revisões.'; action='manter'; }
     else if(score>=70){ level='Bom'; levelColor='#1366d6'; diagTitle='No caminho certo'; diagText='Perto da nota de corte. Ataque os pontos fracos para garantir a margem de segurança.'; action='reforçar fracos'; }
-    else if(score>=60){ level='Regular'; levelColor='#c2790c'; diagTitle='Precisa de ajuste'; diagText='Risco na nota líquida. Reduza chutes e converta erros em cartões no Anki.'; action='revisar erros'; }
-    else { level='Atenção'; levelColor='#c0392f'; diagTitle='Zona de risco'; diagText='Abaixo do corte. Volte à teoria dos temas com mais erros antes de novos simulados.'; action='voltar à teoria'; }
+    else if(score>=60){ level='Regular'; levelColor='var(--warn)'; diagTitle='Precisa de ajuste'; diagText='Risco na nota líquida. Reduza chutes e converta erros em cartões no Anki.'; action='revisar erros'; }
+    else { level='Atenção'; levelColor='var(--danger)'; diagTitle='Zona de risco'; diagText='Abaixo do corte. Volte à teoria dos temas com mais erros antes de novos simulados.'; action='voltar à teoria'; }
     const simBars = (B.discList.length?B.discList:edital.map(d=>({short:d.disc.replace('Direito ',''), color:d.color, liqPct:0})))
       .filter(d=>d.q||B.discList.length===0).sort((a,b)=>(a.liqPct||0)-(b.liqPct||0)).slice(0,3)
       .map(d=>({disc:d.short||d.disc, color:d.color||'#0f7a57', pct:Math.max(0,Math.min(100,d.liqPct||0))}));
     const simHist = _allSessionsForDash.filter(x=>(Array.isArray(x.categorias)?x.categorias:[x.categoria]).includes('Simulado')).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,5).map((x,i)=>{
       const q=x.questoes||0;
       const score = (x.discPct!=null) ? x.discPct : (q?Math.round((x.acertos||0)/q*100):0);
-      return {name:x.topico||('Simulado '+(i+1)), date:new Date(x.ts||Date.now()).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}), score, scoreColor: score>=70?'#0f9d6b':score>=60?'#c2790c':'#c0392f'};
+      return {name:x.topico||('Simulado '+(i+1)), date:new Date(x.ts||Date.now()).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}), score, scoreColor: score>=70?'var(--ok)':score>=60?'var(--warn)':'var(--danger)'};
     });
     const simChart = simHist.slice().reverse().map((h,i)=>({v:h.score||0, i, h: Math.round((h.score||0)/100*120), lbl:'S'+(i+1)}));
     const simTemHist = simHist.length>0;
@@ -9154,7 +9154,7 @@ class Component extends DCLogic {
     const accRows = (B.discList.length?B.discList:edital.map(d=>({disc:d.disc,color:d.color,liqPct:0}))).map(d=>{
       const pct=Math.max(0,Math.min(100,d.liqPct||0));
       const risk=pct>=70?'Sólido':pct>=55?'Atenção':'Risco';
-      return {disc:d.disc, color:d.color||'#0f7a57', pct, risk, riskColor: risk==='Sólido'?'#0f9d6b':risk==='Atenção'?'#c2790c':'#c0392f'};
+      return {disc:d.disc, color:d.color||'#0f7a57', pct, risk, riskColor: risk==='Sólido'?'var(--ok)':risk==='Atenção'?'var(--warn)':'var(--danger)'};
     }).sort((a,b)=>b.pct-a.pct);
     const _evolSource = _allSessionsForDash.filter(x=>x.questoes).sort((a,b)=>(a.ts||0)-(b.ts||0)).slice(-8);
     const evol = (_evolSource.length?_evolSource:[{questoes:0, acertos:0}]).map((x,i)=>{
@@ -9163,9 +9163,9 @@ class Component extends DCLogic {
     });
     const risco = accRows.filter(r=>r.pct<70).sort((a,b)=>a.pct-b.pct).slice(0,3).map(r=>{
       const tag=r.pct<50?'Crítico':r.pct<60?'Alto':'Médio';
-      return {disc:r.disc, why:r.pct+'% líquido/acerto registrado · priorize revisão e questões comentadas', tag, color:tag==='Crítico'?'#c0392f':tag==='Alto'?'#c2790c':'#b08433'};
+      return {disc:r.disc, why:r.pct+'% líquido/acerto registrado · priorize revisão e questões comentadas', tag, color:tag==='Crítico'?'var(--danger)':tag==='Alto'?'var(--warn)':'#b08433'};
     });
-    if(!risco.length) risco.push({disc:'Sem risco crítico', why:'As disciplinas com dados registrados estão acima de 70%.', tag:'Ok', color:'#0f9d6b'});
+    if(!risco.length) risco.push({disc:'Sem risco crítico', why:'As disciplinas com dados registrados estão acima de 70%.', tag:'Ok', color:'var(--ok)'});
     // ===== Radar de prioridades POR TEMA (Fase 3): esquecimento + fraqueza × incidência =====
     const radarTemas = (()=>{
       const now=Date.now(); const TAU=45, MINQ=6; const out=[];
@@ -9183,7 +9183,7 @@ class Component extends DCLogic {
           if(!motivo) return;
           const score=Math.round(base + inc*0.15);           // incidência (questões do edital) pondera
           out.push({disc:short, topic:tp.name, motivo, score, incStr:(inc>0?(inc+'q no edital'):''), color:d.color||'#0f7a57',
-            tag:(score>=80?'Urgente':score>=64?'Alto':'Médio'), tagColor:(score>=80?'#c0392f':score>=64?'#c2790c':'#b08433')});
+            tag:(score>=80?'Urgente':score>=64?'Alto':'Médio'), tagColor:(score>=80?'var(--danger)':score>=64?'var(--warn)':'#b08433')});
         });
       });
       return out.sort((a,b)=>b.score-a.score).slice(0,8);
@@ -9265,7 +9265,7 @@ class Component extends DCLogic {
         time:fmtH((s.min||0)*60),
         acc:q?(accN+'%'):'-',
         accN,
-        accColor:q?(accN>=70?'#0f9d6b':accN>=55?'#c2790c':'#c0392f'):'var(--text3)'
+        accColor:q?(accN>=70?'var(--ok)':accN>=55?'var(--warn)':'var(--danger)'):'var(--text3)'
       };
     });
 
@@ -9286,7 +9286,7 @@ class Component extends DCLogic {
       revRun={ active:true, total, pos:Math.min(idx+1,total), pct: total?Math.round(idx/total*100):0, revealed:RS.revealed, done,
         disc: cur?cur.disc:'', discShort: cur?cur.disc.replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
         intervalo: cur?cur.intervalo:0, ef: cur?cur.facilidade.toFixed(2):'', reps: cur?cur.repeticoes:0,
-        opts: cur?[ {q:2,label:'Errei',sub:'1 dia',color:'#c0392f'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'#c2790c'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'#0f9d6b'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
+        opts: cur?[ {q:2,label:'Errei',sub:'1 dia',color:'var(--danger)'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'var(--warn)'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'var(--ok)'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
         again:RS.again, hard:RS.hard, good:RS.good, easy:RS.easy, reviewedN, acertos:RS.good+RS.easy };
     }
 
@@ -9296,7 +9296,7 @@ class Component extends DCLogic {
     const phaseDur = (this.state.pomoPhase==='foco'?this.state.pomoFocus:this.state.pomoBreak)*60;
     const remaining = Math.max(0, phaseDur - this.state.timerSeconds);
     const sessionDisplay = isPomo ? this.fmtClock(remaining) : this.fmtClock(this.state.timerSeconds);
-    const phaseColor = isPausa ? '#c2790c' : 'var(--accent)';
+    const phaseColor = isPausa ? 'var(--warn)' : 'var(--accent)';
     const phaseColorSoft = isPausa ? 'rgba(194,121,12,.14)' : 'var(--accentSoft)';
     const phasePct = isPomo ? Math.round(this.state.timerSeconds/phaseDur*100) : 0;
     // ===== sessões registradas (alimenta horas, meta, desempenho, histórico) =====
@@ -9347,9 +9347,9 @@ class Component extends DCLogic {
       const atras = !concluida && !semDias && porDiaMin > _metaIdealMin*1.12;   // precisa mais que o normal/dia → atrás
       let msg, cor;
       if(metaAlvoMin<=0){ msg=''; cor='var(--text3)'; }
-      else if(concluida){ msg='Meta da semana batida — bom trabalho! 🎉'; cor='#0f9d6b'; }
-      else if(semDias){ msg='Sem dias ativos restantes — '+_fmtHM(faltaMin)+' abaixo da meta. Compense no reforço ou ajuste a meta.'; cor='#c2790c'; }
-      else { msg=(atras?'Você perdeu ritmo: ':'No plano: ')+'faltam '+_fmtHM(faltaMin)+' em '+diasRest+' dia'+(diasRest>1?'s':'')+' ativo'+(diasRest>1?'s':'')+' → ~'+_fmtHM(porDiaMin)+'/dia para fechar.'; cor=atras?'#c2790c':'var(--accent)'; }
+      else if(concluida){ msg='Meta da semana batida — bom trabalho! 🎉'; cor='var(--ok)'; }
+      else if(semDias){ msg='Sem dias ativos restantes — '+_fmtHM(faltaMin)+' abaixo da meta. Compense no reforço ou ajuste a meta.'; cor='var(--warn)'; }
+      else { msg=(atras?'Você perdeu ritmo: ':'No plano: ')+'faltam '+_fmtHM(faltaMin)+' em '+diasRest+' dia'+(diasRest>1?'s':'')+' ativo'+(diasRest>1?'s':'')+' → ~'+_fmtHM(porDiaMin)+'/dia para fechar.'; cor=atras?'var(--warn)':'var(--accent)'; }
       return { show: metaAlvoMin>0, msg, cor };
     })();
     // objetivo + banca (Personalização → feedback em todo o painel)
@@ -9357,7 +9357,7 @@ class Component extends DCLogic {
     const _bancaSel = (this.state.orient&&this.state.orient.banca)||'cebraspe';
     const bancaInfo = BANCAS_INFO[_bancaSel] || BANCAS_INFO.cebraspe;
     const bancaPenLabel = bancaInfo.penalidade ? 'Erro anula acerto' : 'Erro não penaliza';
-    const bancaPenStyle = 'font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;'+(bancaInfo.penalidade?'background:rgba(192,57,47,.12);color:#c0392f;':'background:rgba(15,157,107,.14);color:#0f9d6b;');
+    const bancaPenStyle = 'font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;'+(bancaInfo.penalidade?'background:rgba(192,57,47,.12);color:var(--danger);':'background:rgba(15,157,107,.14);color:var(--ok);');
 
     // ===== Comunidade — ranking semanal REAL do grupo (Supabase) com fallback local =====
     const _comUserMin = B.weekMin;
@@ -9373,7 +9373,7 @@ class Component extends DCLogic {
       _comAll=[{nome:'Você', av:(((this.state.prefs&&this.state.prefs.nome)||'A').trim()[0]||'A').toUpperCase(), col:'var(--accent)', min:_comUserMin, now:!!this.state.timerRunning, eu:true, streakM:B.streak, revsM:0, upTs:Date.now()}];
     }
     const _comMedal=['🥇','🥈','🥉']; const _comTop=Math.max(1,(_comAll[0]&&_comAll[0].min)||1);
-    const comRank=_comAll.map((m,i)=>({...m, posStr:(i+1)+'º', medal:_comMedal[i]||'', hStr:fmtHM(m.min), barW:Math.round(m.min/_comTop*100)+'%', rowBg: m.eu?'var(--accentSoft)':'transparent', rowBd: m.eu?'1px solid var(--accentRing)':'1px solid transparent', nameW: m.eu?'700':'600', nowDot: m.now?'#0f9d6b':'var(--border)'}));
+    const comRank=_comAll.map((m,i)=>({...m, posStr:(i+1)+'º', medal:_comMedal[i]||'', hStr:fmtHM(m.min), barW:Math.round(m.min/_comTop*100)+'%', rowBg: m.eu?'var(--accentSoft)':'transparent', rowBd: m.eu?'1px solid var(--accentRing)':'1px solid transparent', nameW: m.eu?'700':'600', nowDot: m.now?'var(--ok)':'var(--border)'}));
     const _comNowList=_comAll.filter(m=>m.now);
     const comNowAvatars=_comNowList.slice(0,8).map(m=>({...m}));
     const comNowN=String(_comNowList.length);
@@ -9440,14 +9440,14 @@ class Component extends DCLogic {
     const _ago=(ts)=>{ const d=Date.now()-ts; const mi=Math.floor(d/60000); if(mi<1) return 'agora'; if(mi<60) return mi+' min atrás'; const h=Math.floor(mi/60); if(h<24) return h+'h atrás'; const dd=Math.floor(h/24); return dd===1?'ontem':dd+' dias atrás'; };
     const recentSessions = [..._sessions].sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,5).map(s=>{ const acc=s.questoes? Math.round(s.acertos/s.questoes*100):null; const cm=_catMeta[s.categoria]||{i:'📘',c:'var(--text3)'}; const liq=(s.liquido!=null?s.liquido:(s.acertos||0)-(s.erradas||0));
       return {...s, icon:cm.i, catColor:cm.c, catLabel:(Array.isArray(s.categorias)&&s.categorias.length?s.categorias.join(' · '):(s.categoria||'—')), discShort:(s.disc||'').replace('Direito ',''), minStr:(s.min||0)+' min', accStr:acc!=null?acc+'%':'', hasAcc:acc!=null,
-        accColor: acc==null?'var(--text3)':(acc>=80?'#0f9d6b':acc>=60?'#c2790c':'#c0392f'),
-        liqStr:(liq>0?'+'+liq:String(liq)), hasLiq:!!s.questoes, liqColor:(liq>0?'#0f9d6b':(liq<0?'#c0392f':'#c2790c')), ago:_ago(s.ts) }; });
+        accColor: acc==null?'var(--text3)':(acc>=80?'var(--ok)':acc>=60?'var(--warn)':'var(--danger)'),
+        liqStr:(liq>0?'+'+liq:String(liq)), hasLiq:!!s.questoes, liqColor:(liq>0?'var(--ok)':(liq<0?'var(--danger)':'var(--warn)')), ago:_ago(s.ts) }; });
     const hasSessions = _sessions.length>0;
     const sessionsCount = String(_sessions.length);
     const sessTotalH = Math.round((_sessions.reduce((a,s)=>a+(s.min||0),0))/60*10)/10;
     const sessAccOverall = sessQ? Math.round(sessA/sessQ*100)+'%' : '—';
     const sessLiqOverall = sessQ? (sessLiq>0?'+'+sessLiq:String(sessLiq)) : '—';
-    const sessLiqColor = !sessQ?'var(--text3)':(sessLiq>0?'#0f9d6b':(sessLiq<0?'#c0392f':'#c2790c'));
+    const sessLiqColor = !sessQ?'var(--text3)':(sessLiq>0?'var(--ok)':(sessLiq<0?'var(--danger)':'var(--warn)'));
     // modal: estilos + prévia ao vivo
     const _sd=this.state.sessionDraft||{};
     const _selCats=Array.isArray(_sd.categorias)?_sd.categorias:[_sd.categoria].filter(Boolean);
@@ -9510,10 +9510,10 @@ class Component extends DCLogic {
     const _sdTotal=_sdA+_sdE+_sdB;
     const sdBrutoPct=_sdTotal?Math.round(_sdA/_sdTotal*100):0;
     const sdBrutoLabel=_sdTotal? sdBrutoPct+'%' : '—';
-    const sdAccColor=_sdTotal? (sdBrutoPct>=80?'#0f9d6b':sdBrutoPct>=60?'#c2790c':'#c0392f') : 'var(--text3)';
+    const sdAccColor=_sdTotal? (sdBrutoPct>=80?'var(--ok)':sdBrutoPct>=60?'var(--warn)':'var(--danger)') : 'var(--text3)';
     const sdLiquido=_sdA-_sdE;
     const sdLiquidoPct=_sdTotal?Math.round(sdLiquido/_sdTotal*100):0;
-    const sdLiqColor=!_sdTotal?'var(--text3)':(sdLiquido>0?'#0f9d6b':(sdLiquido<0?'#c0392f':'#c2790c'));
+    const sdLiqColor=!_sdTotal?'var(--text3)':(sdLiquido>0?'var(--ok)':(sdLiquido<0?'var(--danger)':'var(--warn)'));
     const sdLiqLabel=_sdTotal? (sdLiquido>0?'+'+sdLiquido:String(sdLiquido)) : '—';
     const sdTotalLabel=_sdTotal? String(_sdTotal) : '—';
     const _focoLabels=['','Disperso','Instável','Ok','Concentrado','Imersão total'];
@@ -9632,7 +9632,7 @@ class Component extends DCLogic {
       return {...a, id:'ach'+idx, level, done, nextTarget, pct,
         valLabel:fmtNum(a.value)+(a.unit==='%'?'%':''), nextLabel:fmtNum(nextTarget)+(a.unit==='%'?'%':''),
         levelLabel:'Nível '+level, title:done?('Máximo · '+a.cat):(a.cat+' · meta '+fmtNum(nextTarget)+' '+a.unit),
-        barColor: done?'#0f9d6b':'var(--accent)' };
+        barColor: done?'var(--ok)':'var(--accent)' };
     });
     const achDone = achievements.filter(a=>a.level>0);
     const achProgress = achievements.filter(a=>!a.done && a.level===0);   // com nível já aparece em 'Conquistadas' (com a barra do próximo)
@@ -9660,9 +9660,9 @@ class Component extends DCLogic {
     let ankiStatus, ankiStatusColor, ankiStatusMsg;
     { const _o=this.state.orient||{}; const _min=parseInt(_o.ankiRetMin,10)||85, _al=parseInt(_o.ankiAlerta,10)||80, _max=parseInt(_o.ankiRetMax,10)||90;
       if(!ankiHist.length){ ankiStatus='Sem dados'; ankiStatusColor='var(--text3)'; ankiStatusMsg='Registre uma sessão de flashcards para acompanhar a retenção.'; }
-      else if(ankiLast>=_min){ ankiStatus='Saudável'; ankiStatusColor='#0f9d6b'; ankiStatusMsg='Retenção na faixa ideal ('+_min+'–'+_max+'%). Mantenha o volume de cartões novos.'; }
-      else if(ankiLast>=_al){ ankiStatus='Atenção'; ankiStatusColor='#c2790c'; ankiStatusMsg='Levemente abaixo do ideal. Não aumente cartões novos esta semana.'; }
-      else { ankiStatus='Risco'; ankiStatusColor='#c0392f'; ankiStatusMsg='Retenção baixa. Reduza novos cartões e revise os temas com mais erros.'; } }
+      else if(ankiLast>=_min){ ankiStatus='Saudável'; ankiStatusColor='var(--ok)'; ankiStatusMsg='Retenção na faixa ideal ('+_min+'–'+_max+'%). Mantenha o volume de cartões novos.'; }
+      else if(ankiLast>=_al){ ankiStatus='Atenção'; ankiStatusColor='var(--warn)'; ankiStatusMsg='Levemente abaixo do ideal. Não aumente cartões novos esta semana.'; }
+      else { ankiStatus='Risco'; ankiStatusColor='var(--danger)'; ankiStatusMsg='Retenção baixa. Reduza novos cartões e revise os temas com mais erros.'; } }
     const ankiMax=100, ankiW=420, ankiH=120;
     const ankiPts = ankiHist.map((p,i)=>({ x: ankiHist.length>1? (i/(ankiHist.length-1))*ankiW : 0, y: ankiH-(p.ret/ankiMax)*ankiH, ret:p.ret, date:p.date }));
     const ankiPoly = ankiPts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
@@ -9676,13 +9676,13 @@ class Component extends DCLogic {
           ? {tone:'warn', title:'Pouco abaixo da retenção ideal ('+_aMin+'%)', text:'Em '+ankiLast+'%. Segure os cartões novos perto de '+_aNovos+'/dia e priorize as revisões pendentes para recuperar a curva.'}
           : {tone:'good', title:'Retenção na meta ('+ankiIdealRange+')', text:'Em '+ankiLast+'%. Pode manter '+_aNovos+' cartões novos/dia; para acelerar, suba aos poucos sem passar de '+_aMaxRev+' revisões/dia.'} ),
       {tone:'info', title:'Ritmo de revisão', text:`Cerca de ${Math.round(ankiTotalRev/Math.max(1,ankiHist.length))} revisões por registro · seu teto configurado é ${_aMaxRev}/dia.`}
-    ].map(i=>({...i, dot: i.tone==='good'?'#0f9d6b':i.tone==='warn'?'#c2790c':'var(--accent)'}));
+    ].map(i=>({...i, dot: i.tone==='good'?'var(--ok)':i.tone==='warn'?'var(--warn)':'var(--accent)'}));
 
     // ===== cronômetro: pomodoro / modal =====
     const pomoChip = (m)=>`width:100%;text-align:left;border:none;cursor:pointer;font-family:inherit;font-size:13px;padding:9px 12px;border-radius:8px;background:${(this.state.timerMode==='livre'&&m==='livre')||(this.state.timerMode==='pomo'&&m!=='livre')?'var(--accentSoft)':'transparent'};color:var(--ink);`;
 
     // ===== Personalização / Ajustes =====
-    const accentOpts = ['#0f7a57','#0d9488','#2563eb','#0a7ea4','#7c3aed','#6244f5','#d6457f','#c0392f','#c2790c','#84cc16'];
+    const accentOpts = ['#0f7a57','#0d9488','#2563eb','#0a7ea4','#7c3aed','#6244f5','#d6457f','var(--danger)','var(--warn)','#84cc16'];
     const accentSel = this.state.accent;
     const dirCard=(id)=>`flex:1;min-width:150px;text-align:left;cursor:pointer;border-radius:14px;padding:16px;font-family:inherit;border:2px solid ${this.state.dir===id?'var(--accent)':'var(--border)'};background:var(--surface);`;
     const densBtn=(d)=>`padding:9px 15px;border-radius:9px;border:1px solid ${this.state.prefs.density===d?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;background:${this.state.prefs.density===d?'var(--accentSoft)':'var(--surface)'};color:${this.state.prefs.density===d?'var(--accentD)':'var(--text2)'};`;
@@ -9709,7 +9709,7 @@ class Component extends DCLogic {
     const _maxQ=Math.max(1,...B.discList.map(d=>d.q));
     const discBars=B.discList.map(d=>({ disc:d.disc, short:d.short, color:d.color, q:d.q, horas:d.horas,
       brutoPct:d.brutoPct, liqPct:d.liqPct, brutoW:Math.max(2,d.brutoPct), liqW:Math.max(0,Math.min(100,d.liqPct)),
-      liqColor: d.liqPct>=70?'#0f9d6b':(d.liqPct>=50?'#c2790c':'#c0392f'), liqStr:(d.liq>0?'+':'')+d.liq, qW:Math.round(d.q/_maxQ*100) }));
+      liqColor: d.liqPct>=70?'var(--ok)':(d.liqPct>=50?'var(--warn)':'var(--danger)'), liqStr:(d.liq>0?'+':'')+d.liq, qW:Math.round(d.q/_maxQ*100) }));
     const _wk=B.weeks, _n=Math.max(1,_wk.length-1), _cl=(v)=>Math.max(0,Math.min(100,v));
     const evolBrutoPath='M '+_wk.map((w,i)=>`${(i/_n*300).toFixed(1)} ${(100-_cl(w.bruto)).toFixed(1)}`).join(' L ');
     const evolLiqPath='M '+_wk.map((w,i)=>`${(i/_n*300).toFixed(1)} ${(100-_cl(w.liq)).toFixed(1)}`).join(' L ');
@@ -9728,7 +9728,7 @@ class Component extends DCLogic {
       const by={}; let tot=0;
       mf.forEach(f=>{ const m=+f.min||0; if(m<=0) return; const key=f.discEdital||(f.kind==='Revisão'?'Revisões':(f.kind==='Questões'?'Questões':'Outros')); tot+=m; by[key]=(by[key]||0)+m; });
       if(tot<=0) return null;
-      const fixas={'Revisões':'#0f7a57','Questões':'#c2790c','Outros':'#7d8a81'};
+      const fixas={'Revisões':'#0f7a57','Questões':'var(--warn)','Outros':'#7d8a81'};
       const segs=Object.keys(by).map(k=>({nome:k.replace('Direito ',''), min:by[k], cor:fixas[k]||_homeCor(k)})).sort((a,b)=>b.min-a.min);
       let acc=0; const parts=segs.map(s=>{ const a1=(acc/tot*360).toFixed(1), a2=((acc+s.min)/tot*360).toFixed(1); acc+=s.min; return s.cor+' '+a1+'deg '+a2+'deg'; });
       const _fmt=(mm)=> mm>=60 ? (Math.floor(mm/60)+'h'+String(mm%60).padStart(2,'0')) : (mm+'min');
@@ -9786,7 +9786,7 @@ class Component extends DCLogic {
     const homeQTot=(this.state.sessions||[]).length? homeQSem.reduce((n,x)=>n+(+x.aStr)+(+x.eStr),0) : 0;
 
     // ===== Painel do Aprovado (Início) =====
-    const paPainel=(B.discList||[]).map(d=>({short:d.short, color:d.color, tempo:(d.min>=60?Math.floor(d.min/60)+'h'+String(d.min%60).padStart(2,'0'):(d.min||0)+'min'), a:String(d.a||0), e:String(d.e||0), q:String(d.q||0), liq:(d.q?d.liqPct+'%':'—'), liqCor:(!d.q?'var(--text3)':(d.liqPct>=70?'#0f9d6b':(d.liqPct>=50?'#c2790c':'#c0392f')))}));
+    const paPainel=(B.discList||[]).map(d=>({short:d.short, color:d.color, tempo:(d.min>=60?Math.floor(d.min/60)+'h'+String(d.min%60).padStart(2,'0'):(d.min||0)+'min'), a:String(d.a||0), e:String(d.e||0), q:String(d.q||0), liq:(d.q?d.liqPct+'%':'—'), liqCor:(!d.q?'var(--text3)':(d.liqPct>=70?'var(--ok)':(d.liqPct>=50?'var(--warn)':'var(--danger)')))}));
     const paPainelShow=paPainel.length>0;
     const paSemBars=(()=>{ const S=this.state.sessions||[]; const now=new Date(); const dow=(now.getDay()+6)%7; const seg=new Date(now); seg.setHours(0,0,0,0); seg.setDate(seg.getDate()-dow);
       const L=['seg','ter','qua','qui','sex','sáb','dom']; const out=[];
@@ -9855,7 +9855,7 @@ class Component extends DCLogic {
     const _calView=this.state.calView||'mes';
     const _calWD=['dom','seg','ter','qua','qui','sex','sáb'];
     const evById = (e)=> e.id||('seed'+e.dia+e.titulo);
-    const _calColors={'Prova':'#c0392f','Revisão':'#06b6d4','Ciclo':'#0d9488','Simulado':'#0f7a57','Meta':'#c2790c','Tarefa':'#6b4fbb'};
+    const _calColors={'Prova':'var(--danger)','Revisão':'#06b6d4','Ciclo':'#0d9488','Simulado':'#0f7a57','Meta':'var(--warn)','Tarefa':'#6b4fbb'};
     const _parseYmd=(s)=>{ const p=String(s).split('-'); return {ano:+p[0], mes:(+p[1]-1), dia:+p[2]}; };
     // Fonte ÚNICA de eventos — padrão Google Agenda: manuais + revisões SM-2 (espelho,
     // por dueDate) + data da prova. Assim o calendário mostra os compromissos REAIS.
@@ -9868,13 +9868,13 @@ class Component extends DCLogic {
     if(this.state.provaData){ const d=_parseYmd(this.state.provaData);
       _allEv.push({ id:'prova:'+this.state.provaData, dia:d.dia, mes:d.mes, ano:d.ano, tipo:'Prova',
         titulo:(this.state.provaName && this.state.provaName!=='Simulado cronometrado' ? this.state.provaName : 'Dia da prova'),
-        disc:'', color:'#c0392f', source:'prova', done:false }); }
+        disc:'', color:'var(--danger)', source:'prova', done:false }); }
     // Planejamento da semana (Ciclo) — espelho no calendário: cada atividade do roteiro
     // no seu dia; Roteiro N cai na semana correspondente (atual = roteiro atual, anteriores
     // p/ trás). "Feito" vem de agendaFeitas[id|iso] — mesma chave do Ciclo. Sem checkbox
     // aqui: marcar continua no Ciclo (o calendário é espelho, como as revisões).
     if(this.state.cycleMode==='manual'){
-      const _KCCAL={'Teoria':'#0f7a57','Questões':'#c2790c','Lei seca':'#2563eb','Jurisprudência':'#0d9488','Revisão':'#e11d48','Flashcards':'#b08433'};
+      const _KCCAL={'Teoria':'#0f7a57','Questões':'var(--warn)','Lei seca':'#2563eb','Jurisprudência':'#0d9488','Revisão':'#e11d48','Flashcards':'#b08433'};
       const _feCal=this.state.agendaFeitas||{};
       const _numAtualCal=_num(_rotAtual);
       const _isoDesloc=(dk,delta)=>{ const isoBase=this._isoDiaSemana(dk); if(!isoBase) return null;
@@ -9931,7 +9931,7 @@ class Component extends DCLogic {
       checkBg: e.done?(e.color||'var(--accent)'):'transparent', checkBd: e.done?(e.color||'var(--accent)'):'var(--border)', strike: e.done?'line-through':'none'});
     const calProx = [..._monthEvents].sort((a,b)=>a.dia-b.dia).map(_mkRow);
     const calStats={ total:String(_monthEvents.length), done:String(_monthEvents.filter(e=>e.done).length), pend:String(_monthEvents.filter(e=>!e.done).length) };
-    const _calTypes=[{f:'todos',label:'Todos',c:'var(--text3)'},{f:'Prova',label:'Provas',c:'#c0392f'},{f:'Ciclo',label:'Ciclo',c:'#0d9488'},{f:'Revisão',label:'Revisões',c:'#06b6d4'},{f:'Simulado',label:'Simulados',c:'#0f7a57'},{f:'Meta',label:'Metas',c:'#c2790c'},{f:'Tarefa',label:'Tarefas',c:'#6b4fbb'}];
+    const _calTypes=[{f:'todos',label:'Todos',c:'var(--text3)'},{f:'Prova',label:'Provas',c:'var(--danger)'},{f:'Ciclo',label:'Ciclo',c:'#0d9488'},{f:'Revisão',label:'Revisões',c:'#06b6d4'},{f:'Simulado',label:'Simulados',c:'#0f7a57'},{f:'Meta',label:'Metas',c:'var(--warn)'},{f:'Tarefa',label:'Tarefas',c:'#6b4fbb'}];
     const calChips=_calTypes.map(x=>{ const on=_cfilt===x.f; return {f:x.f, label:x.label, c:x.c, dotStyle:`width:9px;height:9px;border-radius:99px;background:${x.c};flex:none;`, style:`display:flex;align-items:center;gap:7px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;`}; });
     const _tipoOrder={'Prova':0,'Ciclo':1,'Revisão':2,'Simulado':3,'Meta':4,'Tarefa':5};
     const calSelEvents = _csel!=null ? _monthEvents.filter(e=>e.dia===_csel).sort((a,b)=>(_tipoOrder[a.tipo]||9)-(_tipoOrder[b.tipo]||9)).map(_mkRow) : [];
@@ -9965,9 +9965,9 @@ class Component extends DCLogic {
 
     // ===== Hábitos saudáveis (registráveis) =====
     const _habDefs=[
-      {k:'sono', icon:'🛌', label:'Sono', unit:'h', goal:8, step:0.5, color:'#0f9d6b'},
+      {k:'sono', icon:'🛌', label:'Sono', unit:'h', goal:8, step:0.5, color:'var(--ok)'},
       {k:'agua', icon:'💧', label:'Hidratação', unit:'copos', goal:8, step:1, color:'#2563eb'},
-      {k:'exercicio', icon:'🏃', label:'Exercício', unit:'min', goal:30, step:5, color:'#c2790c'},
+      {k:'exercicio', icon:'🏃', label:'Exercício', unit:'min', goal:30, step:5, color:'var(--warn)'},
       {k:'pausas', icon:'☕', label:'Pausas', unit:'', goal:8, step:1, color:'#a855f7'},
       {k:'alongar', icon:'🧘', label:'Alongamento', unit:'min', goal:10, step:5, color:'#0d9488'},
       {k:'sol', icon:'☀️', label:'Luz natural', unit:'min', goal:20, step:5, color:'#f5b301'}
@@ -9975,16 +9975,16 @@ class Component extends DCLogic {
     const _hb=this.state.habitos||{};
     const _fmtHab=(v,step)=> step<1 ? (Math.round(v*10)/10).toString().replace('.',',') : String(Math.round(v));
     const habCards=_habDefs.map(h=>{ const v=_hb[h.k]||0; const pct=Math.min(100,Math.round(v/h.goal*100)); const done=v>=h.goal;
-      return {...h, v, vStr:_fmtHab(v,h.step), unitStr:(h.unit?(' '+h.unit):''), pctW:pct+'%', barColor: done?'#0f9d6b':h.color,
+      return {...h, v, vStr:_fmtHab(v,h.step), unitStr:(h.unit?(' '+h.unit):''), pctW:pct+'%', barColor: done?'var(--ok)':h.color,
         metaStr:'meta '+(_fmtHab(h.goal,h.step))+(h.unit?(' '+h.unit):''), done,
         statusHab: done?'na meta ✓':((h.goal-v)>0?('faltam '+_fmtHab(h.goal-v,h.step)+(h.unit?(' '+h.unit):'')):('meta '+_fmtHab(h.goal,h.step)+(h.unit?(' '+h.unit):''))),
-        statusColor: done?'#0f9d6b':'var(--text3)' }; });
+        statusColor: done?'var(--ok)':'var(--text3)' }; });
     const habDoneN=String(habCards.filter(h=>h.done).length);
     const habTotalN=String(habCards.length);
 
     // ===== Biblioteca =====
     const bibFilters=['todos','Resumo','Lei seca','Jurisprudência','PDF'];
-    const bibTipoMeta={'Resumo':{ic:'📝',c:'#6b4fbb'},'Lei seca':{ic:'⚖️',c:'#b08433'},'Jurisprudência':{ic:'🏛️',c:'#c0392f'},'PDF':{ic:'📄',c:'#0a7ea4'}};
+    const bibTipoMeta={'Resumo':{ic:'📝',c:'#6b4fbb'},'Lei seca':{ic:'⚖️',c:'#b08433'},'Jurisprudência':{ic:'🏛️',c:'var(--danger)'},'PDF':{ic:'📄',c:'#0a7ea4'}};
     const hlMap = this.state.highlights||{};
     const bibList = (this.state.bibFilter==='todos'?this.state.biblioteca:this.state.biblioteca.filter(b=>b.tipo===this.state.bibFilter))
       .map(b=>{ const hc=(hlMap[b.id]||[]).length; const pages=b.pages||((b.content&&b.content.length)?Math.max(1,Math.ceil(b.content.join(' ').length/1800)):1);
@@ -10010,7 +10010,7 @@ class Component extends DCLogic {
     const _planDiscs=(this.state.edital||[]).length
       ? this.state.edital.map(d=>String(d.disc||'').trim()).filter(Boolean).slice(0,8)
       : _area.discs.slice(0,6);
-    const _corPlano=(disc,i)=> _colBy[disc] || this._corDisc(disc) || ['#2563eb','#a855f7','#dc2626','#6366f1','#06b6d4','#84cc16','#c2790c','#0f9d6b'][i%8];
+    const _corPlano=(disc,i)=> _colBy[disc] || this._corDisc(disc) || ['#2563eb','#a855f7','#dc2626','#6366f1','#06b6d4','#84cc16','var(--warn)','var(--ok)'][i%8];
     const planDados=_planDiscs.map((disc,i)=>({
       disc, color:_corPlano(disc,i), peso:(_pesoBy[disc]||1),
       // sem histórico e sem número conhecido, 50% é neutro — o rateio passa a ser só por peso
@@ -10036,7 +10036,7 @@ class Component extends DCLogic {
       if(_js){ const pdms=new Date(this.state.provaData+'T00:00:00').getTime(); const total=pdms-_js, done=Date.now()-_js; cdProgPct=total>0?Math.max(0,Math.min(100,Math.round(done/total*100))):0; }
       cdProgLabel = cdProgPct>0 ? (cdProgPct+'% da preparação percorrida') : 'registre sessões para acompanhar sua jornada';
       cdHorasPrev = String(Math.round((cdDias/7)*(this.state.planHoras||24)))+'h';
-      cdUrg = cdDias<=7 ? '#c0392f' : (cdDias<=30 ? '#c2790c' : 'var(--accent)');
+      cdUrg = cdDias<=7 ? 'var(--danger)' : (cdDias<=30 ? 'var(--warn)' : 'var(--accent)');
       cdUrgLabel = cdDias<=7 ? 'reta final' : (cdDias<=30 ? 'último mês' : (cdDias<=90?'aproximando':'no prazo'));
       cdRingOffset = _cdCirc*(1 - cdProgPct/100);
       // barra de semanas restantes (até 24 blocos)
@@ -10069,7 +10069,7 @@ class Component extends DCLogic {
       .map(t=>({...t,
         domStr: (!t.hasData&&t.samples===0)?'—':(t.dom+'%'),
         level: !t.hasData?(t.samples>0?'Poucos dados':'Sem dados'):(t.emRisco?'Em risco':(t.dom>=70?'Dominado':t.dom>=50?'Em curso':'Frágil')),
-        levelColor: !t.hasData?'var(--text3)':(t.emRisco?'#b08433':(t.dom>=70?'#0f9d6b':t.dom>=50?'#c2790c':'#c0392f')),
+        levelColor: !t.hasData?'var(--text3)':(t.emRisco?'#b08433':(t.dom>=70?'var(--ok)':t.dom>=50?'var(--warn)':'var(--danger)')),
         barW: t.hasData?t.dom:(t.samples>0?t.dom:0)}))
       .sort((a,b)=>{ const ra=a.hasData?0:1, rb=b.hasData?0:1; if(ra!==rb) return ra-rb; return a.dom-b.dom; });
 
@@ -10109,7 +10109,7 @@ class Component extends DCLogic {
     const segOpt=(cur,v)=>`padding:8px 13px;border-radius:9px;border:1px solid ${cur===v?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;background:${cur===v?'var(--accentSoft)':'var(--surface)'};color:${cur===v?'var(--accentD)':'var(--text2)'};`;
     const perfBarRows = accForPerf.map(r=>({ disc:r.disc, pct:r.pct,
       wlabel: pm==='peso'?('peso '+r.peso) : pm==='incidencia'?('inc. '+r.inc) : pm==='liquido'?'C−E':'média',
-      color: r.pct>=70?'#0f9d6b':r.pct>=55?'#c2790c':'#c0392f' }));
+      color: r.pct>=70?'var(--ok)':r.pct>=55?'var(--warn)':'var(--danger)' }));
 
     // ===== paleta de comando =====
     const palItemsAll=[
@@ -10157,8 +10157,8 @@ class Component extends DCLogic {
     // (removidos os stores paralelos orient.al*/foco toggles — órfãos, nunca renderizados;
     //  a fonte ÚNICA de alertas é prefs (alertRows) e de toggles de foco é prefs também.)
     const _conselhos=[
-      {dot:'#c2790c',t:'Meta mínima ainda não batida',d:`Faça ao menos ${O.metaMin} min hoje. Com energia ${O.energiaPlano}, conduta sugerida: ${_estrategiaL} com foco em revisões vencidas e bloco principal.`},
-      {dot:'#c0392f',t:'Revisões vencidas',d:`Há ${revPend} revisão(ões) vencida(s). Antes de avançar, faça uma rodada curta de revisão.`},
+      {dot:'var(--warn)',t:'Meta mínima ainda não batida',d:`Faça ao menos ${O.metaMin} min hoje. Com energia ${O.energiaPlano}, conduta sugerida: ${_estrategiaL} com foco em revisões vencidas e bloco principal.`},
+      {dot:'var(--danger)',t:'Revisões vencidas',d:`Há ${revPend} revisão(ões) vencida(s). Antes de avançar, faça uma rodada curta de revisão.`},
       {dot:'#7c5cd6',t:`Ajuste para ${(O.banca||"cebraspe").toUpperCase()}`,d:'Inclua certo/errado, literalidade, exceções e pegadinhas conceituais na correção.'}
     ];
 
@@ -10176,7 +10176,7 @@ class Component extends DCLogic {
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
       temaShort:(h.tema||'').replace(/^(Discursiva|Peça)\s—\s/,''), tipo:(h.tema||'').startsWith('Peça')?'Peça':'Discursiva',
-      notaColor:h.nota>=8?'#0f9d6b':h.nota>=6?'#c2790c':'#c0392f'}));
+      notaColor:h.nota>=8?'var(--ok)':h.nota>=6?'var(--warn)':'var(--danger)'}));
     // comparativo lado a lado (modo livre): destaca os termos-chave do gabarito
     const redResultLivre = !!(this.state.redResult && this.state.redResult.livre);
     let redCompareStudent=[], redCompareGab=[];
@@ -10193,12 +10193,12 @@ class Component extends DCLogic {
     // raio-X: checklist de pontos esperados (espelho de correção)
     const _redRes=this.state.redResult;
     const redHasTopicos=!!(_redRes && _redRes.topicos && _redRes.topicos.length);
-    const _topMeta={coberto:{ic:'✓',c:'#0f9d6b',bg:'rgba(15,157,107,.13)',label:'Coberto'},parcial:{ic:'~',c:'#c2790c',bg:'rgba(194,121,12,.13)',label:'Parcial'},faltou:{ic:'✗',c:'#c0392f',bg:'rgba(192,57,47,.11)',label:'Faltou'}};
+    const _topMeta={coberto:{ic:'✓',c:'var(--ok)',bg:'rgba(15,157,107,.13)',label:'Coberto'},parcial:{ic:'~',c:'var(--warn)',bg:'rgba(194,121,12,.13)',label:'Parcial'},faltou:{ic:'✗',c:'var(--danger)',bg:'rgba(192,57,47,.11)',label:'Faltou'}};
     const redTopicos=(redHasTopicos?_redRes.topicos:[]).map(t=>{ const m=_topMeta[t.status]||_topMeta.faltou; return {ponto:t.ponto, comentario:t.comentario, hasComent:!!t.comentario, statusLabel:m.label,
       badgeStyle:`display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;background:${m.bg};color:${m.c};font-weight:800;font-size:13px;flex:none;line-height:1;`,
       chipStyle:`font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:${m.c};background:${m.bg};padding:2px 8px;border-radius:99px;flex:none;`, ic:m.ic}; });
     const redCobertura=(_redRes && _redRes.cobertura!=null)?_redRes.cobertura:0;
-    const redCobColor=redCobertura>=75?'#0f9d6b':redCobertura>=50?'#c2790c':'#c0392f';
+    const redCobColor=redCobertura>=75?'var(--ok)':redCobertura>=50?'var(--warn)':'var(--danger)';
     const redConceito=_redRes?(_redRes.conceito||''):'';
     const _redConcColor=_redRes?(_redRes.notaColor||'var(--accent)'):'var(--accent)';
     const redConceitoStyle=`font-size:11.5px;font-weight:700;color:${_redConcColor};background:${_redRes&&_redRes.notaColor?_redRes.notaColor+'1e':'var(--accentSoft)'};padding:4px 11px;border-radius:99px;`;
@@ -10217,8 +10217,8 @@ class Component extends DCLogic {
       const _tLabel=(s.edTop && s.edSub) ? (s.edTop+' › '+s.edSub) : (s.topico||s.edTop||'—');
       return { id:s.id, disc:s.disc||'—', discShort:(s.disc||'—').replace('Direito ',''), color:_histCol[s.disc]||'#0f7a57', topico:_tLabel, categoria:s.categoria||'—', catLabel:_sc.join(' · ')||'—', catEmojis:_sc.map(c=>_histCat[c]||'•').join(''), catEmoji:_histCat[s.categoria]||'•',
         dateStr:(()=>{ try{ return new Date(s.ts||(s.date+'T12:00:00')).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return s.date||''; } })(),
-        minStr:(s.min||0)+' min', accStr:acc!=null?acc+'%':'—', accColor:acc==null?'var(--text3)':(acc>=80?'#0f9d6b':acc>=60?'#c2790c':'#c0392f'),
-        liqStr:q?(liq>0?'+'+liq:String(liq)):'—', liqColor:liq>0?'#0f9d6b':(liq<0?'#c0392f':'var(--text3)') }; });
+        minStr:(s.min||0)+' min', accStr:acc!=null?acc+'%':'—', accColor:acc==null?'var(--text3)':(acc>=80?'var(--ok)':acc>=60?'var(--warn)':'var(--danger)'),
+        liqStr:q?(liq>0?'+'+liq:String(liq)):'—', liqColor:liq>0?'var(--ok)':(liq<0?'var(--danger)':'var(--text3)') }; });
     const _histFilter=this.state.historicoFilter||'';
     const histList=_histFilter?histAll.filter(s=>s.disc===_histFilter):histAll;
     const histDiscs=[...new Set(this.state.sessions.map(s=>s.disc).filter(Boolean))];
@@ -10311,7 +10311,7 @@ class Component extends DCLogic {
     const _discErrArr=Object.entries(_byDiscErr).sort((a,b)=>b[1].n-a[1].n);
     const _maxDiscErr=Math.max(1,..._discErrArr.map(([,v])=>v.n));
     const _DC=this.DISC_FULL_COLOR||{};
-    const errChartDisc=_discErrArr.slice(0,10).map(([k,v])=>({disc:k, discShort:k.replace('Direito ',''), n:v.n, pct:Math.round(v.n/_maxDiscErr*100), color:_DC[k]||'#c0392f'}));
+    const errChartDisc=_discErrArr.slice(0,10).map(([k,v])=>({disc:k, discShort:k.replace('Direito ',''), n:v.n, pct:Math.round(v.n/_maxDiscErr*100), color:_DC[k]||'var(--danger)'}));
     const errMastery=_discErrArr.slice(0,10).map(([k,v])=>({disc:k, discShort:k.replace('Direito ',''), dom:v.dom, n:v.n, pct:Math.round(v.dom/Math.max(1,v.n)*100)}));
     const _byMotErr={}; _errAll.forEach(e=>{ _byMotErr[e.motivo]=(_byMotErr[e.motivo]||0)+1; });
     const _maxMot=Math.max(1,...Object.values(_byMotErr));
@@ -10382,9 +10382,9 @@ class Component extends DCLogic {
     const _relMin=_relSess.reduce((a,s)=>a+(s.min||0),0), _relQ=_relSess.reduce((a,s)=>a+(s.questoes||0),0), _relA=_relSess.reduce((a,s)=>a+(s.acertos||0),0), _relE=_relSess.reduce((a,s)=>a+(s.erradas||0),0);
     const _relDias=new Set(_relSess.map(s=>s.date)).size, _relBruto=_relQ?Math.round(_relA/_relQ*100):0, _relLiq=_relA-_relE;
     const _relBy={}; _relSess.forEach(s=>{ const k=s.disc||'—'; (_relBy[k]||(_relBy[k]={disc:k,min:0,q:0,a:0,e:0})); const o=_relBy[k]; o.min+=s.min||0;o.q+=s.questoes||0;o.a+=s.acertos||0;o.e+=s.erradas||0; });
-    const relDiscRows=Object.values(_relBy).map(o=>{ const lp=o.q?Math.round((o.a-o.e)/o.q*100):0; return {disc:(o.disc||'—').replace('Direito ',''), color:_histCol[o.disc]||'#0f7a57', liqStr:lp+'%', barW:Math.max(3,Math.min(100,lp))+'%', barColor:lp>=70?'#0f9d6b':lp>=55?'#c2790c':'#c0392f', q:o.q}; }).sort((a,b)=>b.q-a.q);
+    const relDiscRows=Object.values(_relBy).map(o=>{ const lp=o.q?Math.round((o.a-o.e)/o.q*100):0; return {disc:(o.disc||'—').replace('Direito ',''), color:_histCol[o.disc]||'#0f7a57', liqStr:lp+'%', barW:Math.max(3,Math.min(100,lp))+'%', barColor:lp>=70?'var(--ok)':lp>=55?'var(--warn)':'var(--danger)', q:o.q}; }).sort((a,b)=>b.q-a.q);
     const _relWeak=Object.values(_relBy).filter(d=>d.q>0).map(d=>{ const liq=Math.max(0,Math.min(100,Math.round(Math.max(0,d.a-d.e)/d.q*100)));
-      return {disc:String(d.disc||'').replace('Direito ',''), liqN:liq, liqPct:liq+'%', color:liq>=70?'#0f9d6b':liq>=55?'#c2790c':'#c0392f'}; })
+      return {disc:String(d.disc||'').replace('Direito ',''), liqN:liq, liqPct:liq+'%', color:liq>=70?'var(--ok)':liq>=55?'var(--warn)':'var(--danger)'}; })
       .sort((a,b)=>a.liqN-b.liqN).slice(0,3);
     const relAtencao=[]; if(revOverdue.length) relAtencao.push('Há '+revOverdue.length+' revisão(ões) vencida(s) — zere antes de avançar para conteúdo novo.'); if(_relWeak[0]) relAtencao.push('Disciplina mais frágil: '+_relWeak[0].disc+' ('+_relWeak[0].liqPct+' líquido) — priorize questões comentadas e revisão.'); if(_relBruto && _relBruto<70) relAtencao.push('Acerto bruto no período em '+_relBruto+'% (abaixo de 70%) — reforce teoria e questões.'); if(!relAtencao.length) relAtencao.push('Sem pontos críticos no período. Mantenha a constância e o volume de questões.');
     const relPeriodOpts=[{v:7,label:'7 dias'},{v:30,label:'30 dias'},{v:90,label:'90 dias'}].map(o=>({v:o.v, label:o.label, sel:o.v===_relDays, style:`padding:7px 14px;border-radius:9px;border:1px solid ${o.v===_relDays?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;background:${o.v===_relDays?'var(--accent)':'var(--surface)'};color:${o.v===_relDays?'var(--onAccent)':'var(--text2)'};`}));
@@ -10396,7 +10396,7 @@ class Component extends DCLogic {
     // A cor vem dos tokens do tema (a faixa vive DENTRO do app, não no console), com
     // uma barra lateral colorida dando a gravidade.
     const _avSev=_avG.manutencao?'critico':(_avG.tipo||'info');
-    const _avCor=_avSev==='critico'?'#c0392f':_avSev==='aviso'?'#c2790c':'var(--accent)';
+    const _avCor=_avSev==='critico'?'var(--danger)':_avSev==='aviso'?'var(--warn)':'var(--accent)';
     const avisoGlobalIcon=_avSev==='critico'?'⚠':_avSev==='aviso'?'!':'✦';
     const avisoGlobalStyle='display:flex;align-items:flex-start;gap:11px;padding:11px clamp(16px,3vw,34px);'
       +'background:var(--surface2);border-bottom:1px solid var(--border);border-left:4px solid '+_avCor+';'
@@ -10702,7 +10702,7 @@ class Component extends DCLogic {
         nomeStyle:'position:relative;font-family:var(--display);font-size:15.5px;font-weight:800;'
           +'letter-spacing:-.015em;color:'+(on?'#fff':_bTinta(cor))+';',
         penStyle:'position:relative;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:'
-          +(on ? 'rgba(255,255,255,.82)' : (b.penalidade?'#c0392f':'var(--text3)'))+';' };
+          +(on ? 'rgba(255,255,255,.82)' : (b.penalidade?'var(--danger)':'var(--text3)'))+';' };
     });
 
     const _bMats=this._bancaMaterias();
@@ -10798,7 +10798,7 @@ class Component extends DCLogic {
       bancaHeroTitulo:'O perfil da '+(CT_BANCA_SIGLA[_bK]||_bInfo.label),
       bancaFocoPenLabel:(_bInfo.penalidade?'Erro anula acerto':'Erro não penaliza'),
       bancaFocoPenStyle:'font-size:11.5px;font-weight:800;letter-spacing:.02em;border-radius:99px;padding:9px 17px;flex:none;'
-        +'background:rgba(255,255,255,.96);color:'+(_bInfo.penalidade?'#c0392f':'#0f7a4f')+';',
+        +'background:rgba(255,255,255,.96);color:'+(_bInfo.penalidade?'var(--danger)':'#0f7a4f')+';',
       bancaRecorteDesc, bancaTemIA:!!(_bIa&&_bIa.length), bancaDicasIA:_bIa||[], bancaIACaixa,
       bancaIAMarker:'color:'+_bTxt+';flex:none;font-weight:800;font-size:14px;',
       bancaIALabel, bancaIAStyle, bancaIABusy:_bBusy, gerarDicasBanca:this.gerarDicasBanca,
@@ -10896,7 +10896,7 @@ class Component extends DCLogic {
         const str=(x)=> x.deck>0 ? (x.due>0 ? (x.due+' vencida'+(x.due>1?'s':'')+' · baralho de '+x.deck) : ('em dia · baralho de '+x.deck)) : 'sem cartões no baralho';
         return { nativeRevShow: !!this.state.nativeRev && (L.deck>0||J.deck>0),
                  nativeRevLegisStr:str(L), nativeRevJurisStr:str(J),
-                 nativeRevLegisCor: L.due>0?'#c0392f':'var(--text3)', nativeRevJurisCor: J.due>0?'#c0392f':'var(--text3)',
+                 nativeRevLegisCor: L.due>0?'var(--danger)':'var(--text3)', nativeRevJurisCor: J.due>0?'var(--danger)':'var(--text3)',
                  nativeRevDueTotal:(L.due+J.due), nativeRevDueShow:(L.due+J.due)>0,
                  abrirTabLegis:this.abrirTabLegis, abrirTabJuris:this.abrirTabJuris }; })()),
       // planos de leitura (lei seca + súmulas) → blocos no Ciclo, injetados pelo host
@@ -10929,10 +10929,10 @@ class Component extends DCLogic {
       paEd:String(edDone)+'/'+String(edTotal), paEdPct:String(edTotal?Math.round(edDone/edTotal*100):0),
       homeSemNext:!nextAction,
       homeProxRev:(()=>{ const pend=[...revOverdue,...revToday].map(r=>({...r, pendChip:true, dueLabel:(r.due<0?'vencida':'hoje')}));
-        return [...pend, ...revUpcoming].slice(0,6).map(r=>({...r, pendChip:!!r.pendChip, dueCor:r.pendChip?'#c0392f':'var(--text2)',
+        return [...pend, ...revUpcoming].slice(0,6).map(r=>({...r, pendChip:!!r.pendChip, dueCor:r.pendChip?'var(--danger)':'var(--text2)',
           short:String(r.disc||'').replace('Direito ',''),
           intLabel:'D+'+(r.intervalo||1)+' · '+((r.repeticoes||0)+1)+'ª rev.',
-          chipStyle:'font-size:12px;font-weight:700;border-radius:20px;padding:4px 11px;'+(r.pendChip?'background:rgba(224,71,157,.16);color:#e0479d;border:1px solid rgba(224,71,157,.4);':(r.due===1?'background:rgba(245,158,11,.13);color:#c2790c;border:1px solid rgba(245,158,11,.35);':'background:var(--surface2);color:var(--text2);border:1px solid var(--border);')) })); })(),
+          chipStyle:'font-size:12px;font-weight:700;border-radius:20px;padding:4px 11px;'+(r.pendChip?'background:rgba(224,71,157,.16);color:#e0479d;border:1px solid rgba(224,71,157,.4);':(r.due===1?'background:rgba(245,158,11,.13);color:var(--warn);border:1px solid rgba(245,158,11,.35);':'background:var(--surface2);color:var(--text2);border:1px solid var(--border);')) })); })(),
       revHojeN:String(revOverdue.length+revToday.length),
       homeProxTem:(revOverdue.length+revToday.length+revUpcoming.length)>0, homeProxVazio:(revOverdue.length+revToday.length+revUpcoming.length)===0,
       paPainel, paPainelShow, paSemBars, paQSemana, paDesemp, paDesempShow,
@@ -10990,7 +10990,7 @@ class Component extends DCLogic {
       bancoLabel:(this.state.bancoOpen?'Fechar o banco':'Escolher do banco de discursivas'),
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
       redOrigemLabel:(this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local — conecte a IA':'corrigido por IA',
-      redOrigemCor:(this.state.redResult&&this.state.redResult.aiUsed===false)?'#c2790c':'var(--accentD)',
+      redOrigemCor:(this.state.redResult&&this.state.redResult.aiUsed===false)?'var(--warn)':'var(--accentD)',
       redOrigemBg:(this.state.redResult&&this.state.redResult.aiUsed===false)?'rgba(194,121,12,.14)':'var(--accentSoft)',
       redEnunciadoShow, redEnunciadoResult,
       redResult:this.state.redResult, redHasResult:!!this.state.redResult, redNoResult:!this.state.redResult,
@@ -11009,7 +11009,7 @@ class Component extends DCLogic {
       notLoggedIn:!this.state.loggedIn,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
       syncTitle:(this.state.syncStatus==='local'?'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho':'Seus dados sincronizam com a sua conta — o merge une o progresso de todos os aparelhos'),
-      syncDot:({enviando:'#c2790c', salvo:'#0f9d6b', offline:'#8a8f98', erro:'#c0392f', local:(this.state.syncFlash?'#c2790c':'#0f9d6b')}[this.state.syncStatus]||'#0f9d6b'), syncBg:'var(--surface2)',
+      syncDot:({enviando:'var(--warn)', salvo:'var(--ok)', offline:'#8a8f98', erro:'var(--danger)', local:(this.state.syncFlash?'var(--warn)':'var(--ok)')}[this.state.syncStatus]||'var(--ok)'), syncBg:'var(--surface2)',
       dashDaily, dashDailyTotal, dashLast7, dashWeek, dashMonth, dashYearTotal, donutSegs, donutCenter, donutC:C,
       // ciclo
       blocks, cicloTotal, cicloDone, cicloPct, ringCirc, ringOffset, blocksHome,
@@ -11060,7 +11060,7 @@ class Component extends DCLogic {
       // relatório
       isRelatorio:this.state.view==='relatorio', navRelatorio:navStyle('relatorio'),
       relPeriodOpts, relPeriodN:String(_relDays), relMin:fmtHM(_relMin), relDias:String(_relDias), relQ:String(_relQ),
-      relBruto:_relBruto+'%', relLiqStr:(_relLiq>0?'+'+_relLiq:String(_relLiq)), relLiqColor:_relLiq>0?'#0f9d6b':(_relLiq<0?'#c0392f':'var(--text3)'),
+      relBruto:_relBruto+'%', relLiqStr:(_relLiq>0?'+'+_relLiq:String(_relLiq)), relLiqColor:_relLiq>0?'var(--ok)':(_relLiq<0?'var(--danger)':'var(--text3)'),
       relStreak:String(B.streak), relDiscRows, relDiscEmpty:relDiscRows.length===0, relWeak:_relWeak, relAtencao,
       setRelPeriod:this.setRelPeriod, relPrint:this.exportPDF,
       // sessões
@@ -11091,7 +11091,7 @@ class Component extends DCLogic {
       toggleModelo:this.toggleModelo, toggleModeloDisc:this.toggleModeloDisc, modeloTodas:this.modeloTodas, aplicarModelo:this.aplicarModelo,
       cadModeNovaStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;background:${this.state.cad.mode==='nova'?'var(--accent)':'transparent'};color:${this.state.cad.mode==='nova'?'var(--onAccent)':'var(--text2)'};`,
       cadModeExistStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;background:${this.state.cad.mode==='existente'?'var(--accent)':'transparent'};color:${this.state.cad.mode==='existente'?'var(--onAccent)':'var(--text2)'};`,
-      cadColors:['#2563eb','#a855f7','#06b6d4','#6366f1','#dc2626','#84cc16','#0d9488','#c2790c'].map(c=>({c, sel:c===this.state.cad.cor, ring:c===this.state.cad.cor?'0 0 0 2px var(--surface),0 0 0 4px '+c:'none'})),
+      cadColors:['#2563eb','#a855f7','#06b6d4','#6366f1','#dc2626','#84cc16','#0d9488','var(--warn)'].map(c=>({c, sel:c===this.state.cad.cor, ring:c===this.state.cad.cor?'0 0 0 2px var(--surface),0 0 0 4px '+c:'none'})),
       cadDiscOpts: this.state.edital.map(d=>d.disc),
       cadDiscSelVal: (()=>{ const names=this.state.edital.map(d=>d.disc); const s=this.state.cad.discSel;
         return names.some(n=>String(n).toLowerCase()===String(s||'').toLowerCase())?s:(names[0]||''); })(),
@@ -11110,8 +11110,8 @@ class Component extends DCLogic {
         {value:tempoHoje, label:'Tempo hoje', vc:'var(--ink)'},
         {value:tempoTotalLabel, label:'Tempo estudado', vc:'var(--ink)'},
         {value:String(sessQ), label:'Questões resolvidas', vc:'var(--ink)'},
-        {value:String(B.totalA), label:'Acertos', vc:'#0f9d6b'},
-        {value:String(B.totalE), label:'Erros', vc:'#c0392f'},
+        {value:String(B.totalA), label:'Acertos', vc:'var(--ok)'},
+        {value:String(B.totalE), label:'Erros', vc:'var(--danger)'},
         {value:String(B.totalB), label:'Brancos', vc:'var(--text3)'},
         {value:String(B.diasEstudados), label:'Dias estudados', vc:'var(--ink)'},
         {value:(B.diasEstudados?(()=>{ const m=Math.round(B.totalMin/B.diasEstudados); return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0'); })():'—'), label:'Média por dia', vc:'var(--ink)'},
@@ -11246,7 +11246,7 @@ class Component extends DCLogic {
       requestNotifPerm:this.requestNotifPerm,
       notifPermBtnLabel:(this.state.notifPerm==='granted'&&this.state.notifPush)?'Notificações ativadas ✓':'Ativar notificações',
       notifPermStatus:({granted:this.state.notifPush?'permissão concedida':'permissão concedida — clique para ligar', denied:'permissão negada no navegador', default:'ainda não solicitada'}[this.state.notifPerm])||(this._notifSupported()?'':'não suportado neste navegador'),
-      notifPermColor:this.state.notifPerm==='granted'?'#0f9d6b':(this.state.notifPerm==='denied'?'#c0392f':'var(--text3)'),
+      notifPermColor:this.state.notifPerm==='granted'?'var(--ok)':(this.state.notifPerm==='denied'?'var(--danger)':'var(--text3)'),
       // menu suspenso de usuário
       userMenuOpen:this.state.userMenuOpen, toggleUserMenu:this.toggleUserMenu, userMenuGo:this.userMenuGo, userInitial:(pf0.nome||'A').slice(0,1).toUpperCase(), userName:pf0.nome, userFirstName:(pf0.nome||'Aluno').trim().split(/\s+/)[0]||'Aluno', userObjetivo:pf0.objetivo,
       // login
