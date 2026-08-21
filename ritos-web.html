@@ -60,6 +60,7 @@ button,input,select{font-family:inherit}
 /* ───────────────────────── o fluxograma ───────────────────────── */
 .fluxo{margin-top:26px}
 .passo{display:grid;grid-template-columns:1fr minmax(0,430px) 1fr;gap:14px;align-items:center;position:relative}
+.passo.alvo .centro>.cx,.passo.alvo .centro>.dec .losango{border-color:var(--rc);box-shadow:0 0 0 4px color-mix(in srgb,var(--rc) 20%,transparent)}
 .passo .centro{grid-column:2;display:flex;flex-direction:column;align-items:center}
 .passo .esq{grid-column:1;justify-self:end;display:flex;align-items:center;gap:0}
 .passo .dir{grid-column:3;justify-self:start;display:flex;align-items:center;gap:0}
@@ -283,8 +284,8 @@ function pinta(){
   $('fluxo').innerHTML=F.passos.map((p,i)=>{
     const esq=(p.saidas||[]).filter(s=>s.lado==='esq').map(saida).join('');
     const dir=(p.saidas||[]).filter(s=>s.lado!=='esq').map(saida).join('');
-    return (i?'<div class="passo"><span class="liga"></span></div>':'')
-      +'<div class="passo">'
+    return (i?'<div class="passo lig"><span class="liga"></span></div>':'')
+      +'<div class="passo" data-p="'+i+'">'
       +'<div class="esq">'+esq+'</div>'
       +'<div class="centro">'+(p.k==='decisao'?losango(p):caixa(p))+'</div>'
       +'<div class="dir">'+dir+'</div>'
@@ -292,8 +293,13 @@ function pinta(){
       +'</div>';
   }).join('');
 
-  $('fluxo').querySelectorAll('[data-legis]').forEach(b=>b.onclick=()=>R.abrirAcervo('legis', b.dataset.legis));
-  $('fluxo').querySelectorAll('[data-juris]').forEach(b=>b.onclick=()=>R.abrirAcervo('juris', b.dataset.juris));
+  const origemDe=b=>{
+    const cel=b.closest('.passo[data-p]'), i=cel?(+cel.dataset.p||0):0;
+    const t=((fluxoDe(atual).passos||[])[i]||{}).t||'';
+    return {view:'areamod', rito:atual, passo:i, rotulo:atual+(t?(' · '+t):'')};
+  };
+  $('fluxo').querySelectorAll('[data-legis]').forEach(b=>b.onclick=()=>R.abrirAcervo('legis', b.dataset.legis, origemDe(b)));
+  $('fluxo').querySelectorAll('[data-juris]').forEach(b=>b.onclick=()=>R.abrirAcervo('juris', b.dataset.juris, origemDe(b)));
   $('fluxo').querySelectorAll('[data-peca]').forEach(b=>b.onclick=()=>R.abrir(b.dataset.peca));
 
   try{ const u=new URL(location.href); u.searchParams.set('rito',atual); history.replaceState(null,'',u); }catch(e){}
@@ -315,10 +321,22 @@ $('bNotas').onclick=function(){ document.body.classList.toggle('semnotas');
   this.classList.toggle('on', !document.body.classList.contains('semnotas')); };
 $('bPrint').onclick=()=>window.print();
 
-/* ---- partida: ?rito=Nome ---- */
-try{ const q=new URLSearchParams(location.search).get('rito');
-  if(q && ORDEM.includes(q)) atual=q; }catch(e){}
+/* ---- partida: ?rito=Nome&passo=N ---- */
+let passoInicial=null;
+try{ const P=new URLSearchParams(location.search), q=P.get('rito');
+  if(q && ORDEM.includes(q)) atual=q;
+  const n=P.get('passo'); if(n!==null && n!=='' && !isNaN(+n)) passoInicial=+n; }catch(e){}
 [...mats.children].forEach(b=>b.classList.toggle('on', b.dataset.k===atual));
 pinta();
+/* volta do acervo: cai no ato exato de onde o artigo foi consultado */
+function irAoPasso(i){
+  const cel=$('fluxo').querySelector('.passo[data-p="'+i+'"]');
+  if(!cel) return;
+  $('fluxo').querySelectorAll('.passo.alvo').forEach(x=>x.classList.remove('alvo'));
+  cel.classList.add('alvo');
+  cel.scrollIntoView({block:'center', behavior:'smooth'});
+  setTimeout(()=>cel.classList.remove('alvo'), 3200);
+}
+if(passoInicial!==null) setTimeout(()=>irAoPasso(passoInicial), 120);
 </script>
 </body></html>

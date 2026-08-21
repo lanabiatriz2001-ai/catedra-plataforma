@@ -240,8 +240,10 @@ function renderIncid(){
       +'é incidência em julgado, que é outro sinal. Clique num artigo para ver os julgados que o citam.</div>';
     document.getElementById('incVoltar').onclick=()=>{ incSel=null; renderIncid(); };
     det.querySelectorAll('.art').forEach(b=>{
+      // o salto legis→juris não pode perder a origem: quem veio do roteiro continua
+      // com o caminho de volta depois de pular para a jurisprudência
       b.onclick=()=>{ try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo:'juris',
-        termo:'art. '+b.dataset.a}, '*'); }catch(e){} };
+        termo:'art. '+b.dataset.a, origem:(window.CT_ORIGEM||null)}, '*'); }catch(e){} };
     });
     return;
   }
@@ -607,4 +609,50 @@ document.body.classList.add(
     _tree.querySelectorAll('.mnode').forEach(function(n){ n.classList.toggle('on', n.dataset.go===cur); }); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape' && _rdr.classList.contains('on')) closeR(); });
 })();
-</script></body></html>
+</script><script>
+/* ==========================================================================
+   Barra de volta ao ponto de origem.
+   Quando o acervo é aberto por um clique num artigo do roteiro de peça ou do
+   fluxograma de um rito, o app manda ?de= com o rótulo daquele ponto e ?deTipo=
+   com a tela de onde veio. A barra devolve a pessoa exatamente para lá — antes
+   o caminho era de mão única e ela se perdia na lei seca.
+   Contraparte: ctAbrirAcervo / ctVoltarOrigem no Catedra.dc.html.
+   ========================================================================== */
+(function ctBarraVolta(){
+  try{
+    var P=new URLSearchParams(location.search);
+    var rot=P.get('de'), tipo=P.get('deTipo')||'';
+    window.CT_ORIGEM = rot ? {rotulo:rot, view:tipo} : null;   // repassado adiante nos saltos legis→juris
+    if(!rot) return;
+    var volta=function(){ try{ window.parent.postMessage({type:'ctVoltarOrigem'}, '*'); }catch(e){} };
+    var barra=document.createElement('div');
+    barra.setAttribute('role','navigation');
+    barra.setAttribute('aria-label','Voltar ao ponto de origem');
+    barra.style.cssText='position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;'
+      +'flex-wrap:wrap;padding:9px 15px;background:var(--accentSoft,#f3ecef);'
+      +'border-bottom:1px solid var(--border,#e4dcd6);'
+      +'font:600 12.5px/1.4 var(--body,-apple-system,system-ui,sans-serif);color:var(--text2,#4b4a52)';
+    var bt=document.createElement('button');
+    bt.type='button';
+    bt.style.cssText='cursor:pointer;font:inherit;font-weight:800;flex:none;'
+      +'border:1px solid var(--border,#e4dcd6);background:var(--surface,#fff);'
+      +'color:var(--accentD,#8e0f3c);border-radius:99px;padding:6px 14px';
+    bt.textContent = tipo==='areamod' ? '← Voltar ao fluxograma'
+                   : tipo==='prioridade' ? '← Voltar ao painel'
+                   : tipo==='segundafase' ? '← Voltar à correção'
+                   : '← Voltar ao roteiro';
+    bt.onclick=volta;
+    var txt=document.createElement('span');
+    txt.style.cssText='min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    txt.textContent='você veio de ' + rot;
+    barra.appendChild(bt); barra.appendChild(txt);
+    var por=function(){ document.body.insertBefore(barra, document.body.firstChild); };
+    if(document.body) por(); else document.addEventListener('DOMContentLoaded', por);
+    document.addEventListener('keydown', function(e){
+      if(e.key==='Escape' && !document.querySelector('.on[role=dialog]')) { /* Esc já é usado pelos leitores */ }
+      if(e.altKey && e.key==='ArrowLeft'){ e.preventDefault(); volta(); }
+    });
+  }catch(e){}
+})();
+</script>
+</body></html>
