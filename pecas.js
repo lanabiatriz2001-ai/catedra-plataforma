@@ -681,14 +681,14 @@ window.CT_PECAS = {
         'Formulação e votação dos quesitos — CPP, arts. 482 a 491'
       ],
       juris: [
-        'Apelação contra absolvição pelo quesito genérico — STF, ARE 1.225.185, Tema 1087, tese de 04/10/2024',
-        'Clemência registrada em ata impede novo júri — STF, ARE 1.225.185, Tema 1087, 2ª parte da tese'
+        'Apelação contra absolvição pelo quesito genérico — STF, ARE 1.225.185, Tema 1087, tese fixada em 03/10/2024 (red. p/ acórdão Min. Edson Fachin)',
+        'Clemência registrada em ata impede novo júri, desde que compatível com a Constituição, com os precedentes vinculantes do STF e com as circunstâncias fáticas dos autos — STF, ARE 1.225.185, Tema 1087, 2ª parte da tese'
       ],
       erro: 'Fundamentar a absolvição. Absolvido pelo quesito genérico, o juiz registra o resultado e ponto — explicar o porquê invade a soberania dos veredictos (CF, art. 5º, XXXVIII, "c").'
     },
     {
       nome: 'Absolvição: dispositivo e efeitos imediatos',
-      deve: 'Absolvido o réu, a sentença manda soltá-lo se estiver preso, revoga as medidas cautelares impostas e, quando a absolvição for imprópria, aplica medida de segurança.',
+      deve: 'Absolvido o réu, a sentença manda colocá-lo em liberdade se por outro motivo não estiver preso, revoga as medidas restritivas provisoriamente decretadas e, quando a absolvição for imprópria, aplica medida de segurança.',
       lei: [
         'Sentença absolutória no júri — CPP, art. 492, II',
         'Soltura, revogação de cautelares e medida de segurança — CPP, art. 492, II, "a" a "c"',
@@ -715,7 +715,7 @@ window.CT_PECAS = {
         'Circunstâncias judiciais — CP, art. 59',
         'Cálculo da pena em três fases — CP, art. 68',
         'Concurso de crimes — CP, arts. 69 a 71',
-        'Crime hediondo — Lei 8.072/90, art. 1º, I'
+        'Crime hediondo — Lei 8.072/90, art. 1º, I (homicídio qualificado, red. da Lei 15.159/2025); feminicídio no art. 1º, I-B'
       ],
       juris: [
         'Atenuante não reduz abaixo do mínimo — Súmula 231 do STJ',
@@ -734,7 +734,7 @@ window.CT_PECAS = {
       ],
       juris: [
         'Regime mais gravoso exige motivação idônea — Súmula 719 do STF',
-        'Pena-base no mínimo veda regime mais gravoso — Súmula 440 do STJ'
+        'Pena-base no mínimo veda regime mais gravoso com base apenas na gravidade abstrata do delito — Súmula 440 do STJ'
       ],
       erro: 'Fixar o fechado invocando só a gravidade do homicídio. Ser hediondo não dispensa a fundamentação concreta do regime.'
     },
@@ -757,7 +757,7 @@ window.CT_PECAS = {
       lei: [
         'Leitura da sentença em plenário — CPP, art. 493',
         'Apelação das decisões do júri — CPP, art. 593, III',
-        'Guia de recolhimento — LEP, arts. 105 e 106'
+        'Guia de recolhimento definitiva — LEP, arts. 105 e 106; guia de execução provisória — Res. CNJ 113/2010 e Súmulas 716 e 717 do STF'
       ],
       juris: [],
       erro: 'Terminar sem uma palavra sobre recorrer em liberdade. A omissão é falta de fundamentação, não descuido de redação.'
@@ -816,8 +816,9 @@ window.CT_PECAS = {
       deve: 'Verificar a correspondência da conduta com crime ou contravenção, enfrentar as excludentes alegadas e checar a prescrição — que incide, com a redução da menoridade.',
       lei: [
         'Conceito de ato infracional — ECA, art. 103',
-        'Adolescente sujeito às medidas do ECA — ECA, arts. 104 e 105',
-        'Redução do prazo prescricional pela menoridade — CP, art. 115'
+        'Adolescente inimputável, sujeito às medidas do ECA, aferida a idade à data do fato — ECA, art. 104 e parágrafo único',
+        'Criança sujeita às medidas protetivas — ECA, arts. 101 e 105',
+        'Redução de metade do prazo prescricional pela menoridade, salvo crime que envolva violência sexual contra a mulher — CP, art. 115 (red. da Lei 15.160/2025)'
       ],
       juris: [
         'Prescrição penal aplica-se às medidas socioeducativas — Súmula 338 do STJ',
@@ -857,7 +858,7 @@ window.CT_PECAS = {
         'Reavaliação em no máximo seis meses — ECA, art. 121, § 2º',
         'Teto de três anos e liberação compulsória aos 21 — ECA, art. 121, §§ 3º e 5º',
         'Plano Individual de Atendimento — Lei 12.594/2012, arts. 52 e 53',
-        'Recursos e prazo de dez dias — ECA, art. 198'
+        'Recursos: prazo de dez dias para o MP e para a defesa em todos os recursos, salvo embargos de declaração — ECA, art. 198, II'
       ],
       juris: [
         'Oitiva do adolescente antes da regressão — Súmula 265 do STJ'
@@ -1451,314 +1452,802 @@ window.CT_PECAS = {
     'Prescrição quinquenal das parcelas alegada','Impugnação especificada, fato por fato',
     'Provas requeridas, inclusive perícia','Honorários por faixas',
     'Remessa necessária e suas exceções','Forma de cumprimento indicada']
-}
-,
+},
+// ═══════════════════════ POLÍCIA JUDICIÁRIA ═══════════════════════
+'Relatório de inquérito': {
+  rito: 'Penal — procedimento comum',
+  carreiras: ['Delegado'],
+  sobre: 'Peça que encerra o inquérito. Não é acusação nem sentença: é a exposição minuciosa do que foi apurado, com a conclusão da autoridade sobre autoria, materialidade e tipificação provisória. Onde o candidato perde ponto é excedendo — opinando sobre a viabilidade da ação penal — ou faltando: deixando de fundamentar o indiciamento.',
+  blocos: [
+    { nome: 'Cabeçalho e identificação',
+      deve: 'Abrir com a identificação do procedimento e das pessoas, e situar o examinador em quatro linhas: o que se apurou, quando, onde e contra quem.',
+      itens: [
+        { t:'Dados do procedimento', d:'número do inquérito, data e forma de instauração — portaria de ofício, requisição do MP ou do juiz, requerimento do ofendido ou auto de prisão em flagrante.' },
+        { t:'Qualificação completa', d:'do investigado e do ofendido: nome, filiação, nascimento, naturalidade, estado civil, profissão, documentos e endereço.' },
+        { t:'Prazo', d:'registrar se o investigado está preso — 10 dias, improrrogáveis — ou solto — 30 dias, prorrogáveis. O prazo é o primeiro item que a banca confere.' }
+      ],
+      lei: ['Formas de instauração — CPP, art. 5º',
+            'Prazos de conclusão — CPP, art. 10',
+            'Prisão temporária e prazos — Lei 7.960/89, art. 2º'],
+      juris: [],
+      modelo: 'PORTARIA nº .../..., instaurada em .../.../..., a partir de ... (requisição / requerimento / auto de prisão em flagrante).\n\nINVESTIGADO: ..., brasileiro, ..., filho de ... e ..., nascido em .../.../..., natural de ..., portador do RG nº ... e do CPF nº ..., residente e domiciliado em ....\n\nVÍTIMA: ....\n\nSituação prisional: o investigado encontra-se PRESO desde .../.../..., em razão de ..., razão pela qual o prazo de conclusão é de 10 dias (art. 10 do CPP).',
+      erro: 'Omitir a situação prisional. Dela dependem o prazo, a urgência da remessa e a eventual representação por prorrogação — três itens de espelho de uma vez.' },
+    { nome: 'Histórico dos fatos e diligências realizadas',
+      deve: 'Narrar o fato apurado e, em seguida, listar o que foi feito. Cada diligência com a folha em que está documentada — o relatório é um mapa dos autos, não um resumo de impressões.',
+      itens: [
+        { t:'Narrativa do fato', d:'com data, local, modo de execução e resultado, na sequência cronológica.' },
+        { t:'Prova pericial', d:'exame de corpo de delito, laudo de local, laudo da arma, exame nos instrumentos do crime — e, faltando, a razão da ausência.' },
+        { t:'Prova oral', d:'depoimentos do ofendido, das testemunhas e o interrogatório do investigado, com a síntese do que cada um disse.' },
+        { t:'Cadeia de custódia', d:'registrar o rastreamento dos vestígios: coleta, acondicionamento, transporte e recebimento. É item novo no CPP e cobrado com frequência.' },
+        { t:'Medidas cautelares deferidas', d:'busca e apreensão, quebras de sigilo, interceptação — com o número do processo incidental e a decisão que as autorizou.' }
+      ],
+      lei: ['Providências da autoridade policial — CPP, art. 6º',
+            'Reconhecimento de pessoas — CPP, art. 226',
+            'Cadeia de custódia — CPP, arts. 158-A a 158-F',
+            'Apreensão dos instrumentos do crime — CPP, art. 11',
+            'Interceptação telefônica — Lei 9.296/96, arts. 1º e 2º'],
+      juris: ['Acesso do defensor aos elementos já documentados — Súmula Vinculante 14',
+              'Inobservância do procedimento do art. 226 do CPP invalida o reconhecimento — STJ, HC 598.886/SC, 6ª Turma, j. 27/10/2020'],
+      erro: 'Relatar diligência sem indicar a folha. O relatório serve para o promotor e o juiz localizarem a prova; sem a remissão, ele não cumpre a função.' },
+    { nome: 'Indiciamento — ato privativo e fundamentado',
+      deve: 'O indiciamento é ato privativo do delegado e exige fundamentação: indicar por que os elementos convergem para aquela pessoa. Não é etapa automática do encerramento.',
+      itens: [
+        { t:'Fundamentação', d:'apontar os elementos de autoria e materialidade que sustentam a atribuição, um a um.' },
+        { t:'Quem não se indicia', d:'não há indiciamento depois de oferecida a denúncia, nem de quem tem foro por prerrogativa de função sem prévia autorização do tribunal.' },
+        { t:'Formalização', d:'lavratura do termo, identificação criminal quando cabível e comunicação aos órgãos de identificação.' }
+      ],
+      lei: ['Indiciamento como ato privativo, mediante despacho fundamentado — Lei 12.830/2013, art. 2º, § 6º',
+            'Identificação criminal — Lei 12.037/2009, arts. 3º e 5º-A',
+            'Comunicação ao instituto de identificação — CPP, art. 23'],
+      juris: ['Não cabe indiciamento após o recebimento da denúncia'],
+      modelo: 'Do conjunto probatório colhido, extrai-se que ... (síntese dos elementos de autoria).\n\nPresentes indícios suficientes de autoria e prova da materialidade, INDICIO FULANO DE TAL, já qualificado, pela prática, em tese, do delito previsto no art. ... do Código Penal, lavrando-se o respectivo termo, com as anotações e comunicações de praxe.',
+      erro: 'Indiciar em uma linha ("indicio o investigado pelo crime tal"). O § 6º do art. 2º da Lei 12.830/2013 exige despacho fundamentado — indiciamento sem motivo escrito é nulo e trancável por habeas corpus.' },
+    { nome: 'Tipificação provisória e circunstâncias',
+      deve: 'Classificar o fato, sempre em caráter provisório, e apontar as circunstâncias que importam para a acusação — qualificadoras, causas de aumento, concurso de agentes, tentativa.',
+      itens: [
+        { t:'Capitulação provisória', d:'a classificação da autoridade não vincula o Ministério Público, que é o titular da ação penal.' },
+        { t:'Circunstâncias relevantes', d:'qualificadoras e causas de aumento com o fato que as sustenta; concurso de pessoas com a conduta de cada um; tentativa com o iter percorrido.' },
+        { t:'Causas de extinção da punibilidade', d:'verificar prescrição, decadência e representação — se já extintas, o relatório aponta e remete, mas não arquiva.' }
+      ],
+      lei: ['Titularidade da ação penal — CF, art. 129, I',
+            'Extinção da punibilidade — CP, art. 107',
+            'Prazo decadencial da representação — CPP, art. 38'],
+      juris: [],
+      erro: 'Tratar a capitulação como definitiva. O relatório sugere; quem classifica na denúncia é o Ministério Público, e o juiz ainda pode corrigir por emendatio.' },
+    { nome: 'Conclusão, representações e remessa',
+      deve: 'Fechar com a conclusão sobre o apurado, as representações necessárias e a remessa. Havendo diligência faltante, dizer qual é e por que é imprescindível.',
+      itens: [
+        { t:'Conclusão', d:'apurado o fato e a autoria, ou não apurados — e, nesse caso, o que falta.' },
+        { t:'Representações', d:'por prisão preventiva, temporária, medidas cautelares diversas ou dilação de prazo, cada uma fundamentada em dispositivo próprio.' },
+        { t:'Remessa', d:'autos ao juízo competente, com os instrumentos do crime e os objetos apreendidos.' },
+        { t:'Se faltar diligência', d:'a devolução do inquérito ao delegado só cabe para diligências imprescindíveis ao oferecimento da denúncia.' }
+      ],
+      lei: ['Remessa dos autos ao juízo — CPP, art. 10, § 1º',
+            'Devolução para diligências imprescindíveis — CPP, art. 16',
+            'Instrumentos e objetos apreendidos — CPP, arts. 11 e 12',
+            'Representação por prisão preventiva — CPP, art. 311'],
+      juris: [],
+      modelo: 'Diante de todo o apurado, entendo esclarecidas a materialidade e a autoria do delito, motivo pelo qual RELATO o presente inquérito policial.\n\nRepresento pela decretação da prisão preventiva do indiciado, com fundamento nos arts. 311, 312 e 313, I, do Código de Processo Penal, uma vez que ....\n\nRemetam-se os autos ao Juízo da ... Vara Criminal da Comarca de ..., acompanhados dos instrumentos do crime e dos objetos apreendidos, dando-se ciência ao Ministério Público.\n\nCumpra-se.\n\nLocal, data.\nDelegado de Polícia',
+      erro: 'Concluir opinando sobre a conveniência da denúncia ou pedindo o arquivamento. A autoridade policial não pode arquivar inquérito — o art. 17 do CPP é expresso, e o arquivamento é atribuição do Ministério Público, com submissão à instância de revisão.' }
+  ],
+  cego: ['Número, data e forma de instauração','Qualificação completa do investigado e da vítima',
+    'Situação prisional e prazo indicados','Fato narrado com data, local e modo',
+    'Diligências listadas com a folha de cada uma','Cadeia de custódia registrada',
+    'Indiciamento fundamentado, não automático','Capitulação provisória com as circunstâncias',
+    'Extinção da punibilidade verificada','Representações cautelares fundamentadas',
+    'Remessa ao juízo com instrumentos e objetos','Sem pedido de arquivamento (art. 17)']
+},
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ═══════════════════════ DEFESA ═══════════════════════
+'Alegações finais da defesa': {
+  rito: 'Penal — procedimento comum',
+  carreiras: ['Defensoria','Advocacia'],
+  sobre: 'A última palavra da defesa antes da sentença. A peça vale pela ARQUITETURA: preliminares primeiro, mérito depois, e — mesmo pedindo absolvição — os pedidos subsidiários de dosimetria no fim. Defesa que só pede absolvição e é vencida entrega a dosimetria de presente à acusação.',
+  blocos: [
+    { nome: 'Forma, prazo e delimitação',
+      deve: 'Memoriais em 5 dias quando os debates são convertidos; orais em 20 minutos, prorrogáveis por 10, na audiência. Abrir delimitando o que se vai sustentar, na ordem em que se vai sustentar.',
+      itens: [
+        { t:'Debates orais', d:'20 minutos para cada parte, prorrogáveis por mais 10; o assistente fala depois do Ministério Público, por 10 minutos.' },
+        { t:'Memoriais escritos', d:'5 dias, quando a causa for complexa ou houver muitos acusados, ou quando houver diligências do art. 402.' },
+        { t:'Ausência é nulidade', d:'a falta de alegações finais da defesa é nulidade absoluta — o juiz deve intimar e, persistindo a omissão, nomear defensor.' }
+      ],
+      lei: ['Debates orais — CPP, art. 403',
+            'Conversão em memoriais — CPP, art. 403, § 3º',
+            'Memoriais após diligências — CPP, art. 404, parágrafo único',
+            'Nulidade por falta de defesa — CPP, art. 564, IV'],
+      juris: ['Nenhum acusado será processado ou julgado sem defensor — CPP, art. 261'],
+      erro: 'Apresentar memorial genérico de meia página. Súmula 523 do STF: no processo penal a falta de defesa constitui nulidade absoluta, e a defesa deficiente só anula se houver prova de prejuízo — mas em prova, defesa rasa é nota rasa.' },
+    { nome: 'Preliminares e nulidades',
+      deve: 'Antes do mérito, tudo que pode encerrar ou anular: incompetência, ilicitude da prova, cerceamento, quebra da cadeia de custódia, inépcia remanescente e extinção da punibilidade.',
+      itens: [
+        { t:'Prova ilícita e derivada', d:'pedir o desentranhamento e apontar a contaminação por derivação, salvo fonte independente ou descoberta inevitável.' },
+        { t:'Cadeia de custódia', d:'a quebra compromete a confiabilidade do vestígio; sustentar a inadmissibilidade ou, ao menos, o valor probatório reduzido.' },
+        { t:'Reconhecimento pessoal', d:'a inobservância do art. 226 do CPP é ponto sensível na jurisprudência recente.' },
+        { t:'Extinção da punibilidade', d:'prescrição, decadência, perempção, retratação nos casos legais.' }
+      ],
+      lei: ['Provas ilícitas e derivadas — CPP, art. 157 e §§',
+            'Cadeia de custódia — CPP, arts. 158-A a 158-F',
+            'Reconhecimento de pessoas — CPP, art. 226',
+            'Nulidades — CPP, arts. 563 a 573',
+            'Extinção da punibilidade — CP, art. 107'],
+      juris: ['Inobservância do art. 226 do CPP invalida o reconhecimento — STJ, HC 598.886/SC, 6ª Turma, j. 27/10/2020'],
+      modelo: 'DAS PRELIMINARES\n\n1. DA ILICITUDE DA PROVA E DE SUAS DERIVADAS\n\nA prova de fl. ... foi obtida mediante ..., em violação ao art. ... da Constituição. Nos termos do art. 157, caput e § 1º, do Código de Processo Penal, é inadmissível a prova ilícita e a dela derivada, quando evidenciado o nexo de causalidade.\n\nRequer-se, pois, o desentranhamento da prova de fl. ... e o reconhecimento da contaminação de ..., por derivação.',
+      erro: 'Alegar nulidade sem apontar o prejuízo concreto. O art. 563 do CPP consagra o pas de nullité sans grief, e nulidade afirmada em abstrato é rejeitada em uma linha.' },
+    { nome: 'Mérito — atacar o que a acusação precisa provar',
+      deve: 'A defesa não precisa provar inocência: precisa mostrar que a acusação não provou. Percorrer, na ordem, materialidade, autoria e tipicidade, e mostrar onde a prova não fecha.',
+      itens: [
+        { t:'Materialidade', d:'ausência de laudo, laudo inconclusivo, vestígio não periciado quando a infração deixa vestígios.' },
+        { t:'Autoria', d:'fragilidade do reconhecimento, contradição entre depoimentos, prova apoiada só no inquérito.' },
+        { t:'Tipicidade', d:'falta de elementar, ausência de dolo, atipicidade material pela insignificância.' },
+        { t:'Excludentes', d:'legítima defesa, estado de necessidade, inexigibilidade de conduta diversa — sustentadas depois de firmado o fato.' },
+        { t:'In dubio pro reo', d:'não sendo possível a certeza, o resultado é a absolvição do art. 386, VII, e não a condenação por probabilidade.' }
+      ],
+      lei: ['Vedação à condenação apoiada só no inquérito — CPP, art. 155',
+            'Ônus da prova — CPP, art. 156',
+            'Exame de corpo de delito — CPP, art. 158',
+            'Excludentes de ilicitude — CP, art. 23',
+            'Erro de tipo e erro de proibição — CP, arts. 20 e 21'],
+      juris: [],
+      erro: 'Inverter o ônus e tentar provar a inocência. A tese que ganha é "a acusação não se desincumbiu do ônus do art. 156", não "o réu comprovou que não fez".' },
+    { nome: 'Pedido principal — absolvição pelo inciso certo',
+      deve: 'Pedir a absolvição indicando o inciso do art. 386. Cada inciso tem consequência diferente na esfera cível, e a banca observa a escolha.',
+      itens: [
+        { t:'Inexistência ou atipicidade', d:'incisos I, II e III — os mais fortes, porque fecham a discussão cível.' },
+        { t:'Não concorreu para a infração', d:'incisos IV e V.' },
+        { t:'Excludente ou dúvida sobre ela', d:'inciso VI, que abrange a fundada dúvida.' },
+        { t:'Prova insuficiente', d:'inciso VII — a tese residual, sempre cumulável em caráter subsidiário.' }
+      ],
+      lei: ['Hipóteses de absolvição — CPP, art. 386, I a VII'],
+      juris: [],
+      modelo: 'Ante o exposto, requer a defesa:\n\na) preliminarmente, o desentranhamento da prova de fl. ... e o reconhecimento das nulidades apontadas;\n\nb) no mérito, a ABSOLVIÇÃO do acusado, com fundamento no art. 386, inciso III, do Código de Processo Penal, por não constituir o fato infração penal;\n\nc) subsidiariamente, a absolvição com fundamento no art. 386, inciso VII, do mesmo diploma, por não existir prova suficiente para a condenação;',
+      erro: 'Pedir "a absolvição" sem inciso. É o mesmo erro da sentença, do lado da defesa — e custa igual.' },
+    { nome: 'Pedidos subsidiários — a dosimetria antecipada',
+      deve: 'Mesmo convicto da absolvição, formular os pedidos de dosimetria. Se o juiz condenar, a defesa já terá fixado o terreno: desclassificação, atenuantes, causas de diminuição, regime, substituição e detração.',
+      itens: [
+        { t:'Desclassificação', d:'para o tipo mais brando, ou reconhecimento da tentativa, ou da forma privilegiada.' },
+        { t:'Primeira fase', d:'pena-base no mínimo, ausência de circunstâncias judiciais desfavoráveis, vedação ao uso de inquéritos em curso.' },
+        { t:'Segunda fase', d:'confissão, menoridade relativa, coação resistível, motivo de relevante valor social ou moral.' },
+        { t:'Terceira fase', d:'causas de diminuição no patamar máximo, com fundamento no iter percorrido ou na participação de menor importância.' },
+        { t:'Efeitos da pena', d:'regime mais brando, substituição por restritivas, sursis, detração, direito de recorrer em liberdade e gratuidade da justiça.' }
+      ],
+      lei: ['Circunstâncias judiciais — CP, art. 59',
+            'Atenuantes — CP, arts. 65 e 66',
+            'Participação de menor importância — CP, art. 29, § 1º',
+            'Regime inicial — CP, art. 33, §§ 2º e 3º',
+            'Substituição — CP, art. 44',
+            'Detração e recorrer em liberdade — CPP, art. 387, §§ 1º e 2º'],
+      juris: ['Inquéritos e ações em curso não agravam a pena-base — Súmula 444 do STJ',
+              'Confissão usada na convicção gera a atenuante — Súmula 545 do STJ',
+              'Atenuante não reduz abaixo do mínimo — Súmula 231 do STJ'],
+      erro: 'Não fazer os pedidos subsidiários por achar que enfraquece a tese principal. Não enfraquece — e sem eles, condenado o réu, a defesa perde a dosimetria sem ter disputado.' }
+  ],
+  cego: ['Forma e prazo corretos (orais ou memoriais)','Preliminares antes do mérito',
+    'Prejuízo concreto apontado em cada nulidade','Prova ilícita: desentranhamento e derivação',
+    'Materialidade atacada','Autoria atacada','Tipicidade e excludentes enfrentadas',
+    'Ônus da prova imputado à acusação (art. 156)','Absolvição pedida com o inciso do art. 386',
+    'Tese subsidiária do inciso VII','Desclassificação pedida, se cabível',
+    'Atenuantes e causas de diminuição requeridas','Regime, substituição, sursis e detração',
+    'Direito de recorrer em liberdade e gratuidade']
+},
+
+// ═══════════════════════ RECURSO CRIMINAL ═══════════════════════
+'Apelação criminal': {
+  rito: 'Penal — recursos',
+  carreiras: ['Defensoria','Advocacia','Ministério Público'],
+  sobre: 'Duas peças em uma: o termo de interposição, curto e no prazo de 5 dias, e as razões, em 8 dias. O que decide a nota é a DELIMITAÇÃO — o tribunal só devolve o que foi impugnado, e recurso exclusivo da defesa nunca pode piorar a situação do réu.',
+  blocos: [
+    { nome: 'Interposição — prazo, forma e legitimidade',
+      deve: 'Interpor em 5 dias, por petição ou por termo nos autos. As razões vêm depois, em 8 dias — e podem ser apresentadas diretamente no tribunal.',
+      itens: [
+        { t:'Prazos', d:'5 dias para interpor, 8 para arrazoar; nas contravenções, 3 dias para as razões. No Juizado, a apelação é única, em 10 dias, já com as razões.' },
+        { t:'Legitimidade', d:'o réu e o defensor podem apelar; havendo divergência, prevalece a vontade que amplia a defesa.' },
+        { t:'Tempestividade', d:'o prazo corre da intimação; para o réu preso, da intimação pessoal; para o defensor público, da intimação pessoal com vista dos autos.' }
+      ],
+      lei: ['Cabimento da apelação — CPP, art. 593',
+            'Prazo de interposição e razões — CPP, arts. 593 e 600',
+            'Razões no tribunal — CPP, art. 600, § 4º',
+            'Interposição por petição ou termo — CPP, art. 578',
+            'Apelação no Juizado — Lei 9.099/95, art. 82'],
+      juris: ['A renúncia do réu não impede o conhecimento da apelação do defensor — Súmula 705 do STF',
+              'O conhecimento da apelação independe da prisão do réu — Súmula 347 do STJ'],
+      modelo: 'EXCELENTÍSSIMO SENHOR DOUTOR JUIZ DE DIREITO DA ... VARA CRIMINAL DA COMARCA DE ...\n\nAutos nº ...\n\nFULANO DE TAL, já qualificado nos autos da ação penal em epígrafe, por seu defensor que esta subscreve, inconformado com a r. sentença de fls. ..., que o condenou às penas do art. ... do Código Penal, vem, respeitosamente e tempestivamente, com fundamento no art. 593, inciso I, do Código de Processo Penal, interpor APELAÇÃO CRIMINAL, requerendo o recebimento e a intimação para apresentação das razões no prazo legal, com posterior remessa ao Egrégio Tribunal de Justiça.\n\nTermos em que pede deferimento.',
+      erro: 'Juntar as razões junto com a interposição e depois perceber que faltou matéria. Não é erro fatal, mas a lei separa os prazos justamente para dar fôlego — use os 8 dias.' },
+    { nome: 'Delimitação do efeito devolutivo',
+      deve: 'Dizer, logo no início das razões, se a apelação é total ou parcial. O tribunal conhece do que foi impugnado — o que não se pede, não se devolve.',
+      itens: [
+        { t:'Apelação parcial', d:'o recorrente pode limitar o recurso a parte da decisão, declarando-o na petição ou nas razões.' },
+        { t:'Matéria de ordem pública', d:'nulidade absoluta e prescrição são conhecíveis de ofício, mesmo fora da delimitação.' },
+        { t:'Efeito suspensivo', d:'a apelação da sentença condenatória suspende a execução, salvo no júri, onde a execução é imediata.' }
+      ],
+      lei: ['Apelação parcial — CPP, art. 599',
+            'Efeitos da apelação — CPP, art. 597',
+            'Prisão e liberdade na sentença — CPP, art. 387, § 1º'],
+      juris: ['Execução imediata da condenação pelo júri — STF, RE 1.235.340, Tema 1068, j. 12/09/2024'],
+      erro: 'Delimitar o recurso à dosimetria e depois pedir absolvição nas razões. O tribunal não conhece do que ficou fora da delimitação, salvo matéria de ordem pública.' },
+    { nome: 'Razões — preliminares',
+      deve: 'Abrir pelas nulidades e pelas questões que dispensam o exame da prova: incompetência, cerceamento de defesa, prova ilícita, ausência de fundamentação e prescrição.',
+      itens: [
+        { t:'Nulidades', d:'com o prejuízo demonstrado e o momento em que foram arguidas, para afastar a preclusão.' },
+        { t:'Falta de fundamentação', d:'sentença que não enfrenta tese relevante da defesa é nula por omissão.' },
+        { t:'Prescrição', d:'verificar a superveniente e a retroativa, calculadas pela pena aplicada, agora que ela existe.' }
+      ],
+      lei: ['Nulidades — CPP, arts. 563 a 573',
+            'Motivação das decisões — CF, art. 93, IX',
+            'Prescrição pela pena aplicada — CP, art. 110, § 1º'],
+      juris: ['Nulidade não arguida no recurso da acusação não se declara em prejuízo do réu — Súmula 160 do STF'],
+      erro: 'Deixar a prescrição retroativa para a sustentação oral. Ela se calcula pela pena aplicada e é a tese mais barata da apelação — vai nas razões, em primeiro lugar.' },
+    { nome: 'Razões — mérito',
+      deve: 'Confrontar a prova com o que a sentença concluiu. Não basta discordar: é preciso mostrar em que ponto a valoração não se sustenta.',
+      itens: [
+        { t:'Materialidade e autoria', d:'apontar a prova que a sentença desprezou e a que ela superestimou, com remissão às folhas.' },
+        { t:'Tipicidade e excludentes', d:'atipicidade, erro, excludentes de ilicitude e de culpabilidade.' },
+        { t:'Desclassificação', d:'pedido de reclassificação para tipo mais brando, com o fundamento fático.' },
+        { t:'Contradição interna', d:'sentença que reconhece um fato na fundamentação e o desconsidera no dispositivo é atacável por si.' }
+      ],
+      lei: ['Vedação à condenação apoiada só no inquérito — CPP, art. 155',
+            'Absolvição — CPP, art. 386',
+            'Emendatio libelli em grau recursal — CPP, art. 617'],
+      juris: ['Mutatio libelli não se aplica em segunda instância — Súmula 453 do STF'],
+      erro: 'Repetir as alegações finais palavra por palavra. Apelação é recurso contra a SENTENÇA: o alvo é o raciocínio do juiz, não a acusação.' },
+    { nome: 'Razões — dosimetria, regime e efeitos',
+      deve: 'Percorrer as três fases apontando o erro de cada uma. É onde a apelação mais ganha, porque o erro de dosimetria é objetivo e o tribunal o corrige sem reexaminar prova.',
+      itens: [
+        { t:'Primeira fase', d:'circunstância valorada sem fato concreto, bis in idem com elementar ou qualificadora, uso de inquérito em curso.' },
+        { t:'Segunda fase', d:'atenuante não reconhecida, compensação indevida, redução abaixo do mínimo.' },
+        { t:'Terceira fase', d:'fração de aumento sem fundamentação concreta, cumulação indevida de majorantes.' },
+        { t:'Efeitos', d:'regime mais gravoso sem motivação, substituição negada sem dizer qual requisito faltou, detração não computada.' }
+      ],
+      lei: ['Cálculo da pena — CP, art. 68',
+            'Circunstâncias judiciais — CP, art. 59',
+            'Regime inicial — CP, art. 33, §§ 2º e 3º',
+            'Substituição — CP, art. 44',
+            'Detração para o regime — CPP, art. 387, § 2º'],
+      juris: ['Inquéritos e ações em curso não agravam a pena-base — Súmula 444 do STJ',
+              'Gravidade abstrata não motiva regime mais severo — Súmula 718 do STF',
+              'Pena-base no mínimo veda regime mais gravoso — Súmula 440 do STJ',
+              'Roubo majorado: aumento exige fundamentação concreta — Súmula 443 do STJ'],
+      erro: 'Pedir "redução da pena" sem apontar a fase e o vício. O tribunal precisa saber qual operação refazer.' },
+    { nome: 'Pedidos e fecho',
+      deve: 'Fechar com pedidos escalonados, do mais amplo ao mais restrito, e requerer o que depende de pedido: sustentação oral, prioridade e liberdade.',
+      itens: [
+        { t:'Escalonamento', d:'nulidade, absolvição, desclassificação, redução da pena, abrandamento do regime, substituição.' },
+        { t:'Liberdade', d:'pedido de concessão do direito de recorrer em liberdade ou de revogação da preventiva, quando for o caso.' },
+        { t:'Prerrogativas', d:'sustentação oral e, sendo o caso, prioridade de tramitação.' }
+      ],
+      lei: ['Julgamento no tribunal — CPP, arts. 609 a 618',
+            'Vedação à reformatio in pejus — CPP, art. 617',
+            'Revogação da preventiva — CPP, art. 316'],
+      juris: [],
+      modelo: 'Ante o exposto, requer o apelante seja DADO PROVIMENTO ao recurso, para:\n\na) anular a r. sentença, em razão de ...;\n\nb) sucessivamente, ABSOLVER o apelante, com fundamento no art. 386, inciso ..., do Código de Processo Penal;\n\nc) sucessivamente, DESCLASSIFICAR a conduta para o tipo do art. ... do Código Penal;\n\nd) sucessivamente, REDUZIR a pena, reconhecendo-se ..., com o consequente abrandamento do regime inicial para o ... e a substituição da pena privativa de liberdade por restritivas de direitos;\n\ne) em qualquer hipótese, seja assegurado ao apelante o direito de recorrer em liberdade.\n\nRequer, por fim, a intimação para sustentação oral, nos termos do art. 610, parágrafo único, do Código de Processo Penal.\n\nTermos em que pede deferimento.',
+      erro: 'Formular pedidos alternativos em vez de sucessivos. Alternativo deixa o tribunal escolher; sucessivo obriga a examinar na ordem que interessa à defesa.' }
+  ],
+  cego: ['Interposição em 5 dias, por petição ou termo','Razões em 8 dias (3 nas contravenções)',
+    'Tempestividade demonstrada','Delimitação do efeito devolutivo declarada',
+    'Preliminares e nulidades com prejuízo apontado','Prescrição retroativa calculada pela pena aplicada',
+    'Mérito atacando o raciocínio da sentença','Desclassificação pedida, se cabível',
+    'Erro apontado fase a fase na dosimetria','Regime, substituição e detração impugnados',
+    'Pedidos sucessivos, do mais amplo ao mais restrito','Recorrer em liberdade requerido',
+    'Sustentação oral requerida'],
+  dicas: [
+    { t:'Recurso exclusivo da defesa nunca piora a situação do réu — art. 617 do CPP. A vedação alcança também a reformatio in pejus indireta: anulada a sentença, a nova não pode impor pena maior.', alerta:true },
+    'Prescrição retroativa é a primeira coisa a calcular depois de conhecida a pena aplicada. Muitas apelações se resolvem só nisso.',
+    'Erro de dosimetria é a tese de maior retorno: é objetiva, não exige reexame de prova e o tribunal corrige diretamente.',
+    'Delimite o recurso com cuidado. O que não for impugnado não é devolvido, salvo matéria de ordem pública.',
+    'No júri, as hipóteses do art. 593, III são fechadas, e a decisão manifestamente contrária à prova só admite um recurso por esse fundamento.',
+    { t:'Cuidado com a Súmula 160 do STF: nulidade não arguida no recurso da acusação não pode ser declarada em prejuízo do réu — nem de ofício.', alerta:true }
+  ],
+  especiais: [
+    { t:'Apelação do júri', d:'As hipóteses são taxativas (art. 593, III): nulidade posterior à pronúncia, sentença contrária à lei ou à decisão dos jurados, erro na aplicação da pena e decisão manifestamente contrária à prova. No último caso o tribunal não absolve — determina novo júri, e só uma vez (art. 593, § 3º).' },
+    { t:'Apelação no Juizado', d:'Prazo único de 10 dias, já com as razões (Lei 9.099/95, art. 82, § 1º). Julga a turma recursal, e não cabe recurso especial da decisão dela (Súmula 203 do STJ), apenas extraordinário (Súmula 640 do STF).' },
+    { t:'Apelação do Ministério Público', d:'Quando a acusação recorre, abre-se ao tribunal a possibilidade de agravar a pena, nos limites da devolução. Mas o MP também pode recorrer em favor do réu — ele atua como fiscal da ordem jurídica.' },
+    { t:'Réu foragido', d:'A fuga não impede o conhecimento do recurso. Súmula 347 do STJ afastou a antiga exigência de recolhimento à prisão, e o art. 595 do CPP, que previa a deserção, foi revogado pela Lei 12.403/2011.' }
+  ]
+},
+// ═══════════════════════ CÍVEL — POSTULATÓRIAS ═══════════════════════
 'Petição inicial': {
   rito: 'Civil — conhecimento',
-  sobre: 'É a peça que fixa os limites do que o juiz pode decidir. Erro aqui não se conserta depois: pedido mal formulado vira sentença sem o que a parte queria, e causa de pedir esquecida não volta na apelação.',
+  carreiras: ['Advocacia','Defensoria','Ministério Público','Procuradorias'],
+  sobre: 'A peça que fixa os limites de tudo o que vem depois. O juiz decidirá nos limites do que foi pedido, e a causa de pedir narrada aqui é a única que poderá ser julgada. Inicial mal delimitada não se conserta na réplica.',
   blocos: [
-    { nome: 'Endereçamento, partes e competência',
-      deve: 'Endereçar ao juízo competente e qualificar autor e réu com o que a lei pede — nome, estado civil, existência de união estável, profissão, CPF/CNPJ, endereço eletrônico e domicílio.',
-      lei: ['Requisitos da inicial — CPC, art. 319, I e II', 'Dispensa de dados não obtidos — CPC, art. 319, §§ 1º a 3º', 'Foro de domicílio do réu — CPC, art. 46'],
+    { nome: 'Endereçamento, partes e valor',
+      deve: 'Os três primeiros requisitos do art. 319 são de conferência mecânica — e é por eles que a inicial é emendada.',
+      itens: [
+        { t:'Juízo competente', d:'com a regra que o justifica: foro do domicílio do réu como regra, e as competências especiais dos arts. 47 a 53.' },
+        { t:'Qualificação completa', d:'nomes, estado civil, existência de união estável, profissão, CPF ou CNPJ, endereço eletrônico e domicílio de ambas as partes.' },
+        { t:'Valor da causa', d:'sempre obrigatório, ainda que sem conteúdo econômico imediato; segue os critérios do art. 292.' }
+      ],
+      lei: ['Requisitos da petição inicial — CPC, art. 319, I a VII',
+            'Dados do réu desconhecidos — CPC, art. 319, §§ 1º a 3º',
+            'Valor da causa — CPC, arts. 291 e 292',
+            'Foro geral e foros especiais — CPC, arts. 46 a 53'],
       juris: [],
-      erro: 'Pedir a extinção porque falta um dado de qualificação. Os §§ do art. 319 mandam prosseguir quando obtê-lo for impossível ou tornar o acesso à justiça muito oneroso.' },
-    { nome: 'Fato e fundamentos jurídicos',
-      deve: 'Narrar os fatos e deles extrair a consequência jurídica. É a causa de pedir — próxima (fundamento jurídico) e remota (os fatos) — e ela delimita a coisa julgada.',
-      lei: ['Fato e fundamentos jurídicos do pedido — CPC, art. 319, III', 'Estabilização da demanda — CPC, art. 329', 'Limites da coisa julgada — CPC, art. 503'],
+      erro: 'Atribuir valor simbólico à causa por comodidade de custas. O art. 292, § 3º autoriza a correção de ofício, e a inicial volta para emenda.' },
+    { nome: 'Causa de pedir — fato e fundamento',
+      deve: 'Narrar o fato e o fundamento jurídico do pedido. Adotamos a teoria da substanciação: são os FATOS que delimitam a demanda, e não o rótulo jurídico que você lhes der.',
+      itens: [
+        { t:'Causa de pedir remota', d:'o fato gerador do direito afirmado.' },
+        { t:'Causa de pedir próxima', d:'as consequências jurídicas que dele decorrem.' },
+        { t:'Narrativa cronológica', d:'com remissão ao documento que prova cada fato — o juiz precisa poder conferir enquanto lê.' }
+      ],
+      lei: ['Fato e fundamento jurídico — CPC, art. 319, III',
+            'Estabilização da demanda — CPC, art. 329',
+            'Julgamento nos limites do pedido — CPC, arts. 141 e 492'],
       juris: [],
-      erro: 'Narrar o fato e esquecer de qualificá-lo juridicamente, ou o contrário: citar teses sem contar o que aconteceu. O juiz decide sobre fatos, não sobre teses soltas.' },
-    { nome: 'Pedido certo e determinado',
-      deve: 'Formular o pedido com todas as suas especificações. Pedido genérico só nas três hipóteses legais; havendo cumulação, verificar compatibilidade, competência e rito comum.',
-      lei: ['Pedido certo — CPC, art. 322', 'Pedido genérico — CPC, art. 324, § 1º', 'Prestações sucessivas incluídas — CPC, art. 323', 'Cumulação de pedidos — CPC, art. 327'],
+      erro: 'Narrar mal o fato e capitular bem o direito. O juiz conhece o direito; ele não pode adivinhar o fato que você não contou.' },
+    { nome: 'Pedido — certo e determinado',
+      deve: 'Pedido certo quanto ao gênero, determinado quanto à quantidade. As exceções do art. 324 são taxativas, e a cumulação exige compatibilidade, mesmo juízo e mesmo procedimento.',
+      itens: [
+        { t:'Interpretação do pedido', d:'interpreta-se conforme a boa-fé e o conjunto da postulação, mas isso não supre pedido que não existe.' },
+        { t:'Pedido genérico', d:'só nas três hipóteses do art. 324, § 1º — ação universal, impossibilidade de determinar as consequências, ou dependência de ato do réu.' },
+        { t:'Cumulação', d:'simples, sucessiva, eventual ou alternativa — indicar qual é, para o juiz saber a ordem de exame.' },
+        { t:'Pedidos implícitos', d:'juros legais, correção monetária, verbas de sucumbência e prestações vincendas — mas peça expressamente, é mais seguro.' }
+      ],
+      lei: ['Pedido certo — CPC, art. 322',
+            'Pedido determinado e exceções — CPC, art. 324',
+            'Pedidos implícitos — CPC, art. 322, § 1º',
+            'Prestações sucessivas — CPC, art. 323',
+            'Cumulação de pedidos — CPC, art. 327'],
       juris: [],
-      erro: 'Pedir "o que for de direito". Fora do art. 324, § 1º, o pedido genérico leva a emenda e, mantido, a indeferimento.' },
-    { nome: 'O que já vem incluído — e o que não vem',
-      deve: 'Lembrar que juros legais, correção monetária e verbas de sucumbência são pedidos implícitos; tudo o mais precisa ser pedido. E o pedido interpreta-se a partir do conjunto da postulação, com boa-fé.',
-      lei: ['Pedidos implícitos — CPC, art. 322, § 1º', 'Interpretação do pedido — CPC, art. 322, § 2º', 'Congruência — CPC, arts. 141 e 492'],
+      modelo: 'Ante o exposto, requer:\n\na) a citação do réu, na forma do art. 246 do Código de Processo Civil, para, querendo, apresentar contestação, sob pena de revelia;\n\nb) a procedência dos pedidos, para condenar o réu a ..., no valor de R$ ..., acrescido de correção monetária desde ... e juros de mora desde ...;\n\nc) a condenação do réu ao pagamento das custas processuais e dos honorários advocatícios, na forma do art. 85, § 2º, do Código de Processo Civil.\n\nProtesta provar o alegado por todos os meios de prova em direito admitidos, especialmente ....\n\nDeclara, para os fins do art. 319, VII, do Código de Processo Civil, que TEM interesse na realização da audiência de conciliação ou mediação.\n\nDá-se à causa o valor de R$ ....',
+      erro: 'Esquecer a manifestação sobre a audiência de conciliação. É requisito do art. 319, VII, e a ausência dela por si só não impede a audiência — ela só não se realiza se AMBAS as partes disserem que não querem.' },
+    { nome: 'Tutela provisória',
+      deve: 'Havendo urgência, formular o pedido de tutela em tópico próprio, com os requisitos separados: probabilidade do direito e perigo de dano. Na evidência, não se exige perigo.',
+      itens: [
+        { t:'Urgência antecipada', d:'satisfaz desde logo; atenção à irreversibilidade do art. 300, § 3º.' },
+        { t:'Urgência cautelar', d:'assegura o resultado útil; admite qualquer medida idônea (art. 301).' },
+        { t:'Antecedente e estabilização', d:'requerida em caráter antecedente e não recorrida, a tutela antecipada estabiliza-se (art. 304).' },
+        { t:'Evidência', d:'nas hipóteses do art. 311, dispensa-se o perigo; nos incisos II e III cabe liminar.' }
+      ],
+      lei: ['Requisitos da tutela de urgência — CPC, art. 300',
+            'Tutela antecipada antecedente — CPC, art. 303',
+            'Estabilização — CPC, art. 304',
+            'Tutela de evidência — CPC, art. 311'],
       juris: [],
-      erro: 'Não pedir a tutela específica da obrigação de fazer e depois querer executá-la. Implícitos são só os do § 1º.' },
-    { nome: 'Valor da causa, provas e audiência',
-      deve: 'Atribuir valor à causa segundo o proveito econômico pretendido, indicar as provas que pretende produzir e dizer se opta ou não pela audiência de conciliação ou mediação.',
-      lei: ['Valor da causa — CPC, arts. 291 e 292', 'Provas — CPC, art. 319, VI', 'Opção pela audiência — CPC, art. 319, VII', 'Audiência do art. 334 — CPC, art. 334, § 5º'],
+      erro: 'Pedir tutela "pelos fundamentos acima". Os requisitos da tutela não são os mesmos do mérito, e o juiz precisa de um parágrafo próprio para cada um.' },
+    { nome: 'Provas, documentos e fecho',
+      deve: 'Indicar as provas com que se pretende demonstrar a verdade dos fatos, juntar os documentos indispensáveis e fechar com custas ou gratuidade.',
+      itens: [
+        { t:'Documentos indispensáveis', d:'os que a lei exige e os que constituem o próprio direito afirmado — a falta leva à emenda, não ao indeferimento imediato.' },
+        { t:'Especificação de provas', d:'não basta o protesto genérico; indique o que cada prova vai demonstrar.' },
+        { t:'Gratuidade', d:'pedida na própria inicial, com presunção de veracidade para a pessoa natural (art. 99, § 3º).' }
+      ],
+      lei: ['Documentos indispensáveis — CPC, art. 320',
+            'Emenda em 15 dias — CPC, art. 321',
+            'Indeferimento da inicial — CPC, art. 330',
+            'Gratuidade da justiça — CPC, arts. 98 e 99'],
       juris: [],
-      erro: 'Omitir a opção pela audiência: sem manifestação das duas partes, ela é designada e o prazo de contestação corre da audiência.' },
-    { nome: 'Documentos, gratuidade e tutela',
-      deve: 'Instruir com os documentos indispensáveis à propositura, requerer gratuidade quando for o caso e, havendo urgência, deduzir a tutela provisória com os requisitos próprios.',
-      lei: ['Documentos indispensáveis — CPC, art. 320', 'Emenda em 15 dias — CPC, art. 321', 'Gratuidade — CPC, art. 98', 'Tutela de urgência — CPC, art. 300'],
-      juris: [],
-      erro: 'Deixar de juntar o documento indispensável e ser indeferido sem emenda. O art. 321 exige que o juiz aponte com precisão o que corrigir e conceda prazo.' }
+      erro: 'Não emendar no prazo do art. 321. O parágrafo único é seco: não cumprida a diligência, o juiz indeferirá a inicial — e aí a discussão vira apelação.' }
   ],
-  cego: [
-    'Juízo competente endereçado',
-    'Partes qualificadas (art. 319, I e II)',
-    'Fatos narrados e qualificados juridicamente',
-    'Pedido certo e determinado, com especificações',
-    'Cumulação verificada quanto a compatibilidade e rito',
-    'Prestações sucessivas consideradas',
-    'Valor da causa atribuído conforme o proveito econômico',
-    'Provas indicadas',
-    'Opção pela audiência de conciliação declarada',
-    'Documentos indispensáveis juntados',
-    'Tutela provisória deduzida com os requisitos, se havia urgência'
-  ]
+  cego: ['Juízo competente com a regra que o justifica','Qualificação completa das duas partes',
+    'Fatos narrados com remissão ao documento','Fundamento jurídico exposto',
+    'Pedido certo e determinado','Cumulação identificada e compatível',
+    'Juros, correção e sucumbência pedidos','Tutela provisória em tópico próprio, com requisitos separados',
+    'Provas especificadas, não protestadas em bloco','Documentos indispensáveis juntados',
+    'Manifestação sobre a audiência de conciliação','Valor da causa atribuído pelo critério legal']
 },
 
-// ─────────────────────────────────────────────────────────────────────────────
 'Contestação': {
   rito: 'Civil — conhecimento',
-  sobre: 'Uma peça, uma chance: vale a eventualidade — tudo o que se tem a alegar vai aqui, ainda que contraditório entre si. E o que não for impugnado especificadamente presume-se verdadeiro.',
+  carreiras: ['Advocacia','Defensoria','Procuradorias'],
+  sobre: 'Peça regida por dois princípios que se cobram juntos: eventualidade — tudo o que é defesa vem agora, de uma vez — e impugnação especificada — fato não impugnado é fato incontroverso. A defesa que "nega genericamente" perde antes de discutir.',
   blocos: [
-    { nome: 'Tempestividade e prazo',
-      deve: 'Conferir o termo inicial conforme a hipótese: audiência de conciliação frustrada, protocolo do pedido de cancelamento, ou juntada do mandado — e o prazo em dobro quando couber.',
-      lei: ['Prazo e termo inicial — CPC, art. 335', 'Litisconsortes com procuradores distintos — CPC, art. 229', 'Fazenda Pública e Defensoria — CPC, arts. 183 e 186'],
+    { nome: 'Prazo e termo inicial',
+      deve: 'Quinze dias úteis, mas o termo inicial varia conforme o caminho até aqui. Errar o termo é perder o prazo.',
+      itens: [
+        { t:'Houve audiência de conciliação', d:'conta-se da audiência, ou da última sessão, se não houve acordo.' },
+        { t:'Ambas as partes dispensaram', d:'conta-se do protocolo do pedido de cancelamento apresentado pelo réu.' },
+        { t:'Não houve audiência', d:'conta-se na forma do art. 231, conforme o modo de citação.' },
+        { t:'Prazos diferenciados', d:'em dobro para litisconsortes com procuradores distintos de escritórios diferentes em autos físicos, para a Fazenda, o MP e a Defensoria.' }
+      ],
+      lei: ['Prazo e termos iniciais — CPC, art. 335, I a III',
+            'Contagem conforme o modo de citação — CPC, art. 231',
+            'Prazo em dobro para litisconsortes — CPC, art. 229',
+            'Prazo em dobro para Fazenda, MP e Defensoria — CPC, arts. 180, 183 e 186'],
       juris: [],
-      erro: 'Contar da citação quando houve audiência designada. O prazo corre da audiência, não do mandado.' },
-    { nome: 'Preliminares do art. 337',
-      deve: 'Alegar, antes do mérito, tudo o que impede ou retarda o julgamento: incompetência, inépcia, litispendência, coisa julgada, conexão, incapacidade, convenção de arbitragem, ilegitimidade, falta de interesse, indevida concessão de gratuidade.',
-      lei: ['Rol das preliminares — CPC, art. 337', 'Matérias cognoscíveis de ofício — CPC, art. 337, § 5º', 'Incompetência relativa e absoluta — CPC, art. 64'],
+      erro: 'Contar da juntada do AR quando houve audiência de conciliação designada. O art. 335, I é claro: o prazo corre da audiência.' },
+    { nome: 'Preliminares — antes do mérito, todas de uma vez',
+      deve: 'Percorrer o rol do art. 337. São treze incisos e não é lista decorativa: cada um tem consequência distinta, e a maioria é conhecível de ofício.',
+      itens: [
+        { t:'Que extinguem sem mérito', d:'inexistência ou nulidade da citação, incompetência absoluta, litispendência, coisa julgada, perempção, ilegitimidade, falta de interesse.' },
+        { t:'Que só se alegam agora', d:'convenção de arbitragem e incompetência relativa — o juiz não conhece de ofício (art. 337, § 5º).' },
+        { t:'Que geram providência', d:'incapacidade da parte, defeito de representação, indevida concessão de gratuidade, ausência de caução.' },
+        { t:'Conexão e continência', d:'levam à reunião dos processos, não à extinção.' }
+      ],
+      lei: ['Rol das preliminares — CPC, art. 337, I a XIII',
+            'Matérias não conhecíveis de ofício — CPC, art. 337, § 5º',
+            'Incompetência alegada na contestação — CPC, art. 64',
+            'Conexão e continência — CPC, arts. 55 e 56'],
       juris: [],
-      erro: 'Deixar a convenção de arbitragem e a incompetência relativa para depois. Nenhuma das duas o juiz conhece de ofício: não alegadas aqui, precluem.' },
-    { nome: 'Impugnação especificada dos fatos',
-      deve: 'Enfrentar fato por fato. O que não for impugnado presume-se verdadeiro, salvo se houver direito indisponível, documento essencial faltando ou contradição com a própria defesa.',
-      lei: ['Ônus da impugnação especificada — CPC, art. 341', 'Exceções à presunção — CPC, art. 341, I a III', 'Defensor público, advogado dativo e curador especial — CPC, art. 341, parágrafo único'],
+      erro: 'Deixar a convenção de arbitragem para depois. Não alegada na contestação, há aceitação da jurisdição estatal e renúncia ao juízo arbitral (art. 337, § 6º).' },
+    { nome: 'Mérito — impugnação especificada',
+      deve: 'Manifestar-se precisamente sobre cada fato da inicial. O que não for impugnado presume-se verdadeiro, com as três exceções do parágrafo único do art. 341.',
+      itens: [
+        { t:'Defesa direta', d:'nega o fato constitutivo ou nega a consequência jurídica que dele se extrai.' },
+        { t:'Defesa indireta', d:'admite o fato e opõe fato impeditivo, modificativo ou extintivo — pagamento, prescrição, compensação, novação.' },
+        { t:'Ônus da prova', d:'o fato impeditivo, modificativo ou extintivo é ônus do réu (art. 373, II) — alegá-lo é assumir o encargo de prová-lo.' },
+        { t:'Exceções ao ônus de impugnar', d:'fatos que não admitem confissão, que exigem instrumento público, ou que estejam em contradição com a defesa como um todo.' }
+      ],
+      lei: ['Ônus da impugnação especificada — CPC, art. 341',
+            'Princípio da eventualidade — CPC, art. 336',
+            'Matérias supervenientes — CPC, art. 342',
+            'Ônus da prova — CPC, art. 373',
+            'Prescrição e decadência — CC, arts. 189 e 207'],
       juris: [],
-      erro: 'Negação geral dos fatos. Vale o mesmo que não contestar: os fatos ficam incontroversos e a instrução perde objeto.' },
-    { nome: 'Mérito por eventualidade',
-      deve: 'Deduzir toda a defesa de mérito de uma vez — direta (nega o fato ou seus efeitos) e indireta (fato impeditivo, modificativo ou extintivo), ainda que as teses sejam entre si incompatíveis.',
-      lei: ['Concentração da defesa — CPC, art. 336', 'Fatos impeditivos, modificativos e extintivos — CPC, art. 373, II', 'Prescrição e decadência — CC, arts. 189 e 210'],
+      erro: 'Reservar uma tese "para o momento oportuno". O art. 336 é expresso: toda a matéria de defesa vai na contestação. O que não vier agora, precluiu.' },
+    { nome: 'Provas, pedidos e reconvenção',
+      deve: 'Especificar as provas, formular os pedidos e, havendo pretensão própria, reconvir na mesma peça.',
+      itens: [
+        { t:'Especificação de provas', d:'com a indicação do que cada uma demonstrará.' },
+        { t:'Reconvenção', d:'apresentada na própria contestação (art. 343), não mais em peça autônoma.' },
+        { t:'Pedidos', d:'extinção sem mérito pelas preliminares, improcedência no mérito, e condenação em sucumbência.' }
+      ],
+      lei: ['Especificação de provas — CPC, art. 336',
+            'Reconvenção na contestação — CPC, art. 343',
+            'Honorários — CPC, art. 85, §§ 2º e 6º'],
       juris: [],
-      erro: 'Guardar uma tese "para a apelação". Fora das exceções do art. 342, alegação nova depois da contestação não é conhecida.' },
-    { nome: 'Provas, reconvenção e pedidos finais',
-      deve: 'Especificar as provas a produzir, apresentar reconvenção na própria peça quando cabível, e pedir a improcedência com honorários.',
-      lei: ['Reconvenção na contestação — CPC, art. 343', 'Especificação de provas — CPC, art. 336', 'Honorários — CPC, art. 85'],
-      juris: [],
-      erro: 'Protocolar a reconvenção em peça apartada. Desde 2015 ela vai na contestação.' }
+      modelo: 'Ante o exposto, requer:\n\na) o acolhimento da preliminar de ..., com a extinção do processo sem resolução do mérito, nos termos do art. 485, ..., do Código de Processo Civil;\n\nb) sucessivamente, a IMPROCEDÊNCIA dos pedidos, ante ...;\n\nc) a condenação do autor ao pagamento das custas e dos honorários advocatícios, na forma do art. 85, § 2º, do Código de Processo Civil.\n\nProtesta provar o alegado por meio de prova documental suplementar, depoimento pessoal do autor, sob pena de confesso, e oitiva de testemunhas, cujo rol será apresentado na forma do art. 357, § 4º.',
+      erro: 'Pedir a improcedência e esquecer o depoimento pessoal do autor. É a prova mais barata da defesa e, requerida, gera confissão se ele não comparecer.' }
   ],
-  cego: [
-    'Tempestividade verificada no termo inicial correto',
-    'Preliminares do art. 337 alegadas',
-    'Incompetência relativa e arbitragem alegadas (não são de ofício)',
-    'Cada fato da inicial impugnado especificadamente',
-    'Defesa direta apresentada',
-    'Defesa indireta (impeditivo/modificativo/extintivo) apresentada',
-    'Prescrição e decadência examinadas',
-    'Eventualidade observada: tudo alegado de uma vez',
-    'Provas especificadas',
-    'Reconvenção deduzida na própria peça, se cabível',
-    'Pedido de improcedência com honorários'
-  ]
+  cego: ['Termo inicial do prazo aferido pelo inciso certo do art. 335',
+    'Rol do art. 337 percorrido','Arbitragem e incompetência relativa alegadas, se cabíveis',
+    'Cada fato da inicial impugnado especificamente','Defesa indireta com o fato extintivo nomeado',
+    'Prescrição e decadência examinadas','Toda a matéria de defesa concentrada (art. 336)',
+    'Provas especificadas com a finalidade de cada uma','Depoimento pessoal requerido',
+    'Reconvenção apresentada na mesma peça, se houver','Pedidos escalonados e sucumbência']
 },
 
-// ─────────────────────────────────────────────────────────────────────────────
 'Reconvenção': {
   rito: 'Civil — conhecimento',
-  sobre: 'Ação do réu contra o autor, no mesmo processo. O que a banca cobra é o vínculo: precisa ser conexa com a ação principal ou com o fundamento da defesa — e ela vive por conta própria.',
+  carreiras: ['Advocacia','Procuradorias'],
+  sobre: 'Ação do réu contra o autor, dentro do mesmo processo. Depois do CPC/2015 ela vem NA contestação, não em peça separada — e ganhou autonomia: desistir da ação principal não a atinge.',
   blocos: [
     { nome: 'Cabimento e conexão',
-      deve: 'Demonstrar a conexão com a ação principal ou com o fundamento da defesa. Sem esse vínculo não há reconvenção — há ação autônoma.',
-      lei: ['Reconvenção — CPC, art. 343, caput', 'Conexão — CPC, art. 55'],
+      deve: 'A reconvenção exige conexão com a ação principal ou com o fundamento da defesa. Sem esse liame, a pretensão do réu é ação autônoma.',
+      itens: [
+        { t:'Conexão com a ação', d:'mesma causa de pedir ou mesmo objeto.' },
+        { t:'Conexão com a defesa', d:'a pretensão nasce do próprio fundamento defensivo — é a hipótese mais cobrada.' },
+        { t:'Competência', d:'o juízo da causa principal tem de ser competente também para a reconvenção; a incompetência absoluta impede.' },
+        { t:'Procedimento compatível', d:'o rito da reconvenção não pode ser incompatível com o da ação principal.' }
+      ],
+      lei: ['Cabimento e conexão — CPC, art. 343, caput',
+            'Competência — CPC, art. 343 e arts. 62 e 63'],
       juris: [],
-      erro: 'Reconvir para cobrar dívida sem relação nenhuma com a causa. A peça é rejeitada e o réu perde o prazo da ação própria.' },
-    { nome: 'Autonomia',
-      deve: 'Registrar que a reconvenção prossegue ainda que a ação principal seja extinta, e que pode ser oferecida mesmo sem contestação.',
-      lei: ['Independência da reconvenção — CPC, art. 343, § 2º', 'Desnecessidade de contestar — CPC, art. 343, § 6º'],
+      erro: 'Reconvir sem apontar o liame. A conexão é requisito, não formalidade: sem ela a reconvenção não é conhecida.' },
+    { nome: 'Forma e autonomia',
+      deve: 'Apresentar na própria contestação, em tópico destacado. E registrar a autonomia: a reconvenção sobrevive à extinção ou à desistência da ação principal.',
+      itens: [
+        { t:'Na mesma peça', d:'não há mais peça autônoma; a reconvenção é capítulo da contestação, com pedido e valor próprios.' },
+        { t:'Autonomia', d:'a desistência da ação ou a ocorrência de causa extintiva não obsta o prosseguimento da reconvenção (art. 343, § 2º).' },
+        { t:'Sem contestação', d:'é possível reconvir sem contestar — a lei não exige as duas peças (art. 343, § 6º).' },
+        { t:'Intimação, não citação', d:'o autor-reconvindo é intimado na pessoa do advogado para responder em 15 dias (art. 343, § 1º).' }
+      ],
+      lei: ['Apresentação na contestação — CPC, art. 343, caput',
+            'Intimação do reconvindo — CPC, art. 343, § 1º',
+            'Autonomia — CPC, art. 343, § 2º',
+            'Reconvenção sem contestação — CPC, art. 343, § 6º'],
       juris: [],
-      erro: 'Achar que a desistência do autor leva a reconvenção junto. Não leva: ela segue.' },
+      erro: 'Protocolar a reconvenção em apartado. Além de errado, cria dois processos onde a lei quis um.' },
     { nome: 'Ampliação subjetiva',
-      deve: 'Quando for o caso, reconvir contra o autor e terceiro, ou reconvir o réu em litisconsórcio com terceiro — a lei autoriza expressamente as duas hipóteses.',
-      lei: ['Reconvenção contra terceiro — CPC, art. 343, § 3º', 'Reconvinte com terceiro — CPC, art. 343, § 4º', 'Autor substituto processual — CPC, art. 343, § 5º'],
+      deve: 'A reconvenção pode trazer gente nova para o processo — terceiro ao lado do réu-reconvinte, ou terceiro ao lado do autor-reconvindo.',
+      itens: [
+        { t:'Contra o autor e terceiro', d:'permitido pelo § 3º do art. 343.' },
+        { t:'Pelo réu e terceiro', d:'permitido pelo § 4º.' },
+        { t:'Substituto processual', d:'proposta a ação pelo substituto, a reconvenção deve ser dirigida contra o substituído (§ 5º).' }
+      ],
+      lei: ['Litisconsórcio na reconvenção — CPC, art. 343, §§ 3º a 5º'],
       juris: [],
-      erro: 'Reconvir contra quem só figura como substituto processual sem observar o § 5º: nessa hipótese a reconvenção é contra o substituído.' },
-    { nome: 'Requisitos de petição inicial e valor',
-      deve: 'Cumprir os requisitos do art. 319, atribuir valor próprio à causa e recolher as custas correspondentes; o autor-reconvindo é intimado, na pessoa do advogado, para responder em 15 dias.',
-      lei: ['Requisitos da inicial — CPC, art. 319', 'Intimação para responder — CPC, art. 343, § 1º', 'Valor da causa — CPC, art. 292'],
+      erro: 'Reconvir contra quem não é parte sem invocar o § 3º. A ampliação subjetiva é permitida, mas precisa ser justificada.' },
+    { nome: 'Requisitos próprios de inicial',
+      deve: 'A reconvenção é ação: tem de ter todos os requisitos de uma petição inicial, inclusive valor da causa e recolhimento de custas.',
+      itens: [
+        { t:'Requisitos do art. 319', d:'partes, fato, fundamento, pedido certo e determinado, provas, valor.' },
+        { t:'Custas', d:'a reconvenção é ação nova e gera custas próprias, salvo gratuidade.' },
+        { t:'Sucumbência autônoma', d:'gera honorários próprios, independentes dos da ação principal.' }
+      ],
+      lei: ['Requisitos da inicial — CPC, art. 319',
+            'Valor da causa — CPC, art. 292',
+            'Honorários — CPC, art. 85'],
       juris: [],
-      erro: 'Não atribuir valor à reconvenção. Sem valor não há base para custas nem para honorários próprios.' }
+      modelo: 'DA RECONVENÇÃO\n\nNos termos do art. 343 do Código de Processo Civil, o réu apresenta RECONVENÇÃO em face do autor-reconvindo, pelos fundamentos a seguir expostos, conexos com o fundamento da defesa acima deduzida.\n\n[fatos e fundamentos]\n\nAnte o exposto, requer o réu-reconvinte:\n\na) a intimação do autor-reconvindo, na pessoa de seu advogado, para responder no prazo de 15 (quinze) dias;\n\nb) a procedência da reconvenção, para condenar o autor-reconvindo a ...;\n\nc) a condenação em custas e honorários, de forma autônoma em relação à ação principal.\n\nDá-se à reconvenção o valor de R$ ....',
+      erro: 'Não atribuir valor à reconvenção. Sem valor não há custas, e sem custas ela pode ser indeferida como qualquer inicial.' }
   ],
-  cego: [
-    'Conexão com a ação ou com o fundamento da defesa demonstrada',
-    'Apresentada na própria contestação',
-    'Autonomia registrada (sobrevive à extinção da principal)',
-    'Requisitos do art. 319 cumpridos',
-    'Valor da causa próprio atribuído',
-    'Intimação do reconvindo em 15 dias',
-    'Ampliação subjetiva tratada, quando havia',
-    'Pedido próprio formulado com clareza'
-  ]
+  cego: ['Conexão com a ação ou com a defesa demonstrada','Competência do juízo verificada',
+    'Apresentada dentro da contestação','Intimação do reconvindo pelo advogado requerida',
+    'Autonomia registrada','Requisitos do art. 319 presentes',
+    'Pedido certo e determinado','Valor da causa próprio','Custas recolhidas',
+    'Honorários pedidos de forma autônoma']
 },
 
-// ─────────────────────────────────────────────────────────────────────────────
-'Apelação': {
-  rito: 'Civil — recursos',
-  sobre: 'O recurso que devolve tudo. O erro que mais derruba apelação não é de mérito: é não atacar especificamente os fundamentos da sentença — recurso que repete a inicial não é conhecido.',
-  blocos: [
-    { nome: 'Cabimento, prazo e preparo',
-      deve: 'Verificar que se trata de sentença, o prazo de 15 dias úteis e o recolhimento do preparo, sob pena de deserção — com atenção à intimação para complementar quando o recolhimento for insuficiente.',
-      lei: ['Cabimento — CPC, art. 1.009', 'Prazo — CPC, art. 1.003, § 5º', 'Preparo e deserção — CPC, art. 1.007', 'Complementação e relevação — CPC, art. 1.007, §§ 2º e 4º'],
-      juris: [],
-      erro: 'Não recolher o preparo confiando em intimação posterior. Ela só existe nas hipóteses dos §§ do art. 1.007.' },
-    { nome: 'Impugnação específica dos fundamentos',
-      deve: 'Expor os fundamentos de fato e de direito e as razões do pedido de reforma ou decretação de nulidade, enfrentando cada fundamento autônomo da sentença.',
-      lei: ['Requisitos das razões — CPC, art. 1.010, II e III', 'Fundamentação das decisões — CPC, art. 489, § 1º', 'Dialeticidade — CPC, art. 932, III'],
-      juris: ['Súmula 283 do STF — fundamento não impugnado mantém a decisão'],
-      erro: 'Copiar a inicial. Sem dialeticidade o relator nem conhece do recurso (art. 932, III).' },
-    { nome: 'Interlocutórias não agraváveis',
-      deve: 'Levar na apelação (ou nas contrarrazões) as decisões interlocutórias que não constam do rol do agravo — é a única oportunidade, e não há preclusão antes dela.',
-      lei: ['Impugnação das interlocutórias na apelação — CPC, art. 1.009, § 1º', 'Contrarrazões — CPC, art. 1.009, § 2º'],
-      juris: [],
-      erro: 'Deixar de repetir a impugnação da interlocutória não agravável, achando que já ficou decidida. Ela precisa ser renovada aqui.' },
-    { nome: 'Efeitos',
-      deve: 'Indicar se há efeito suspensivo — regra geral — ou se o caso está entre as exceções do § 1º do art. 1.012; havendo eficácia imediata, requerer a suspensão ao tribunal quando presente risco de dano grave.',
-      lei: ['Efeito suspensivo como regra — CPC, art. 1.012, caput', 'Exceções — CPC, art. 1.012, § 1º', 'Pedido de efeito suspensivo ao tribunal — CPC, art. 1.012, §§ 3º e 4º'],
-      juris: [],
-      erro: 'Afirmar que a apelação contra sentença que confirma tutela provisória suspende os efeitos. Não suspende: é exceção do § 1º.' },
-    { nome: 'Profundidade e causa madura',
-      deve: 'Lembrar que o tribunal aprecia todas as questões suscitadas e discutidas, ainda que não decididas por inteiro, e que, decretada a nulidade ou reformada a sentença terminativa, pode julgar desde logo o mérito se a causa estiver madura.',
-      lei: ['Profundidade do efeito devolutivo — CPC, art. 1.013, §§ 1º e 2º', 'Teoria da causa madura — CPC, art. 1.013, § 3º', 'Questões de fato não propostas — CPC, art. 1.014'],
-      juris: [],
-      erro: 'Pedir apenas a anulação quando a causa está madura. Peça também o julgamento do mérito, subsidiariamente.' }
-  ],
-  cego: [
-    'Tempestividade e preparo conferidos',
-    'Cada fundamento autônomo da sentença atacado',
-    'Pedido de reforma ou de nulidade explícito',
-    'Interlocutórias não agraváveis impugnadas aqui',
-    'Efeito da apelação identificado (regra ou exceção do § 1º)',
-    'Efeito suspensivo requerido quando havia risco',
-    'Prequestionamento das matérias federais/constitucionais',
-    'Causa madura invocada subsidiariamente',
-    'Pedido final claro'
-  ]
-},
-
-// ─────────────────────────────────────────────────────────────────────────────
-'Agravo de instrumento': {
-  rito: 'Civil — recursos',
-  sobre: 'O recurso das interlocutórias — e o único cujo cabimento a banca cobra pelo rol. Depois do Tema 988 do STJ, o rol é de taxatividade mitigada: fora dele, só com urgência demonstrada.',
-  blocos: [
-    { nome: 'Cabimento: o rol e a taxatividade mitigada',
-      deve: 'Enquadrar a decisão numa das hipóteses do art. 1.015. Fora do rol, demonstrar a urgência decorrente da inutilidade do julgamento da questão apenas na apelação.',
-      lei: ['Rol do agravo — CPC, art. 1.015', 'Agravo na liquidação, cumprimento, execução e inventário — CPC, art. 1.015, parágrafo único'],
-      juris: ['Tema 988 do STJ — taxatividade mitigada do art. 1.015'],
-      erro: 'Agravar de qualquer interlocutória. Fora do rol e sem urgência demonstrada, o recurso não é conhecido — e a matéria vai para a apelação.' },
-    { nome: 'Peças obrigatórias e formação do instrumento',
-      deve: 'Instruir com as peças obrigatórias — decisão agravada, certidão da intimação ou outro documento que prove a tempestividade, e procurações — além das facultativas úteis à compreensão.',
-      lei: ['Peças obrigatórias — CPC, art. 1.017, I', 'Peças facultativas — CPC, art. 1.017, III', 'Sanabilidade dos vícios — CPC, art. 1.017, § 3º, c/c art. 932, parágrafo único'],
-      juris: [],
-      erro: 'Deixar de juntar a certidão de intimação sem explicar. O § 3º manda intimar para sanar; mas o relator não adivinha a data.' },
-    { nome: 'Efeito suspensivo ou antecipação da tutela recursal',
-      deve: 'Requerer, quando necessário, a suspensão da decisão ou a antecipação da tutela recursal, demonstrando probabilidade do direito e risco de dano.',
-      lei: ['Poderes do relator — CPC, art. 1.019, I', 'Requisitos da tutela de urgência — CPC, art. 300'],
-      juris: [],
-      erro: 'Pedir "efeito suspensivo" sem demonstrar o risco. O relator decide por fundamentação concreta, não por pedido genérico.' },
-    { nome: 'Comunicação ao juízo de origem',
-      deve: 'Nos processos em autos físicos, informar ao juízo de primeiro grau a interposição, em 3 dias, juntando cópia e a relação de documentos — sob pena de inadmissibilidade, se arguida pelo agravado.',
-      lei: ['Comunicação em 3 dias — CPC, art. 1.018, § 2º', 'Inadmissibilidade se arguida — CPC, art. 1.018, § 3º'],
-      juris: [],
-      erro: 'Ignorar o art. 1.018 nos autos físicos. Arguido pelo agravado e comprovado, o recurso não é admitido.' }
-  ],
-  cego: [
-    'Hipótese do art. 1.015 identificada',
-    'Fora do rol: urgência demonstrada (Tema 988/STJ)',
-    'Peças obrigatórias juntadas',
-    'Tempestividade comprovada',
-    'Efeito suspensivo ou tutela recursal requerida com fundamento',
-    'Comunicação ao juízo de origem em 3 dias (autos físicos)',
-    'Razões atacam a decisão agravada, não a inicial',
-    'Pedido de reforma delimitado'
-  ]
-},
-
-// ─────────────────────────────────────────────────────────────────────────────
-'Embargos de declaração': {
-  rito: 'Civil — recursos',
-  sobre: 'Existem para consertar defeito do julgado, não para reabrir a discussão. Usado como recurso de revisão, vira multa; usado direito, é o que abre a porta das instâncias superiores.',
-  blocos: [
-    { nome: 'Hipótese de cabimento',
-      deve: 'Apontar com precisão a obscuridade, a contradição, a omissão ou o erro material — e mostrar onde, no acórdão ou na sentença, o vício está.',
-      lei: ['Hipóteses — CPC, art. 1.022, I a III', 'Omissão qualificada — CPC, art. 1.022, parágrafo único', 'Fundamentação — CPC, art. 489, § 1º'],
-      juris: [],
-      erro: 'Chamar de "omissão" a rejeição de um argumento. Enfrentado e rejeitado não é omisso; omisso é o que a decisão sequer considerou, ou o que o art. 489, § 1º, exigia.' },
-    { nome: 'Prazo e interrupção',
-      deve: 'Opor em 5 dias, lembrando que interrompem o prazo para os demais recursos — inclusive quando inadmitidos, salvo se intempestivos.',
-      lei: ['Prazo de 5 dias e interrupção — CPC, art. 1.023 e art. 1.026, caput'],
-      juris: [],
-      erro: 'Tratar como suspensão. É interrupção: o prazo do outro recurso recomeça do zero.' },
-    { nome: 'Efeitos infringentes e contraditório',
-      deve: 'Quando o acolhimento puder alterar o resultado, requerer expressamente o efeito infringente — e lembrar que o embargado será ouvido em 5 dias.',
-      lei: ['Contraditório prévio ao efeito infringente — CPC, art. 1.023, § 2º'],
-      juris: [],
-      erro: 'Modificar o julgado sem ouvir a outra parte. É nulidade, e o § 2º é expresso.' },
-    { nome: 'Prequestionamento',
-      deve: 'Usar os embargos para obter o pronunciamento sobre a matéria constitucional ou federal — os elementos suscitados consideram-se incluídos no acórdão ainda que inadmitidos ou rejeitados.',
-      lei: ['Prequestionamento ficto — CPC, art. 1.025'],
-      juris: ['Súmula 211 do STJ — matéria não apreciada não é prequestionada', 'Súmula 356 do STF'],
-      erro: 'Ir ao especial sem opor embargos quando o acórdão silenciou. O art. 1.025 pressupõe que a matéria foi suscitada nos embargos.' },
-    { nome: 'Não protelar',
-      deve: 'Evitar a reiteração do já decidido: embargos protelatórios rendem multa de até 2% e, na reiteração, até 10%, com depósito prévio para novos recursos.',
-      lei: ['Multa por protelação — CPC, art. 1.026, §§ 2º e 3º', 'Dispensa de depósito para Fazenda e beneficiário da gratuidade — CPC, art. 1.026, § 3º'],
-      juris: [],
-      erro: 'Repetir os embargos com o mesmo argumento. A segunda vez custa até 10% do valor da causa.' }
-  ],
-  cego: [
-    'Vício identificado e localizado no julgado',
-    'Enquadramento em obscuridade, contradição, omissão ou erro material',
-    'Omissão do art. 489, § 1º, invocada quando era o caso',
-    'Prazo de 5 dias observado',
-    'Efeito infringente requerido expressamente, se pretendido',
-    'Contraditório do § 2º considerado',
-    'Prequestionamento explicitado (art. 1.025)',
-    'Sem reiteração do já enfrentado'
-  ]
-},
-
-// ─────────────────────────────────────────────────────────────────────────────
 'Ata de audiência': {
   rito: 'Civil — conhecimento',
-  sobre: 'A ata é a memória do que aconteceu — e o que não está nela, para efeito de recurso, não aconteceu. Protesto não consignado é preclusão consumada.',
+  carreiras: ['Magistratura'],
+  sobre: 'Peça curta e subestimada. A ata é o registro público do que aconteceu e, sobretudo, do que foi DECIDIDO em audiência — e decisão que não consta da ata não existe para efeito de recurso. Em prova prática, ela cobra domínio da ordem dos atos.',
   blocos: [
     { nome: 'Abertura e presenças',
-      deve: 'Registrar dia, hora e local, o juízo, as partes, os advogados com OAB, o Ministério Público quando intervir, e as ausências com a consequência aplicada.',
-      lei: ['Registro do ocorrido — CPC, art. 367', 'Consequência da ausência à conciliação — CPC, art. 334, § 8º', 'Intervenção do MP — CPC, art. 178'],
+      deve: 'Identificar o processo, a data, o juízo e quem compareceu. A ausência tem consequência e por isso precisa ser registrada com precisão.',
+      itens: [
+        { t:'Identificação', d:'número dos autos, natureza da audiência, data, hora de início, vara e nome do juiz.' },
+        { t:'Presenças', d:'partes, advogados com OAB, Ministério Público quando intervir, testemunhas, perito e intérprete.' },
+        { t:'Ausências', d:'quem faltou, se justificou e o que se decidiu quanto a isso — a ausência do depoente intimado gera confissão.' }
+      ],
+      lei: ['Registro dos atos da audiência — CPC, art. 367',
+            'Confissão pela ausência ao depoimento pessoal — CPC, art. 385, § 1º',
+            'Adiamento da audiência — CPC, art. 362'],
       juris: [],
-      erro: 'Não registrar a ausência injustificada à audiência de conciliação — é ato atentatório à dignidade da justiça, com multa de até 2%.' },
+      erro: 'Registrar "ausente o réu" sem dizer se estava intimado pessoalmente para depor. Sem esse dado, a confissão ficta não se sustenta.' },
     { nome: 'Tentativa de conciliação',
-      deve: 'Consignar a tentativa de autocomposição e o seu resultado; havendo acordo, reduzi-lo a termo e homologar por sentença.',
-      lei: ['Conciliação na audiência de instrução — CPC, art. 359', 'Homologação do acordo — CPC, art. 487, III, b', 'Audiência de conciliação — CPC, art. 334'],
+      deve: 'Registrar que a conciliação foi tentada e o resultado. É dever do juiz em qualquer estado do processo, e a omissão é falha de procedimento.',
+      itens: [
+        { t:'Resultado', d:'acordo, ausência de acordo ou impossibilidade momentânea.' },
+        { t:'Havendo acordo', d:'transcrever os termos com precisão executiva: quem paga o quê, quando, como, e o que acontece no descumprimento.' },
+        { t:'Homologação', d:'o acordo homologado extingue o processo com resolução do mérito.' }
+      ],
+      lei: ['Dever de conciliar — CPC, art. 359',
+            'Autocomposição e extinção — CPC, art. 487, III, "b"',
+            'Título executivo judicial — CPC, art. 515, II'],
       juris: [],
-      erro: 'Encerrar a audiência sem uma linha sobre conciliação. O art. 359 impõe a tentativa mesmo depois de frustrada a do art. 334.' },
-    { nome: 'Prova oral produzida',
-      deve: 'Registrar depoimento pessoal, oitiva de testemunhas com qualificação e compromisso (ou o motivo da dispensa), contraditas e as respostas ao juízo e às partes.',
-      lei: ['Ordem dos atos — CPC, art. 361', 'Depoimento pessoal — CPC, art. 385', 'Compromisso e contradita — CPC, arts. 457 e 457, § 1º', 'Registro por gravação — CPC, art. 367, §§ 5º e 6º'],
+      erro: 'Homologar acordo em termos vagos ("as partes se comporão"). Acordo é título executivo: se não for líquido, certo e exigível, não executa.' },
+    { nome: 'Ordem da instrução',
+      deve: 'A ordem do art. 361 é imperativa, e a ata prova que foi seguida. Registrar cada ato na sequência em que ocorreu.',
+      itens: [
+        { t:'1. Perito e assistentes', d:'esclarecimentos, se intimados na forma do art. 477, § 4º.' },
+        { t:'2. Depoimento pessoal', d:'autor e depois réu, com a advertência da pena de confesso.' },
+        { t:'3. Testemunhas', d:'as do autor, depois as do réu, inquiridas separadamente.' },
+        { t:'Contradita', d:'arguida antes do compromisso, com o registro da decisão e do protesto.' },
+        { t:'Perguntas', d:'as partes perguntam diretamente à testemunha; o juiz indefere as impertinentes, registrando as indeferidas.' }
+      ],
+      lei: ['Ordem dos atos — CPC, art. 361',
+            'Depoimento pessoal e pena de confesso — CPC, arts. 385 e 386',
+            'Contradita — CPC, art. 457, § 1º',
+            'Perguntas diretas às testemunhas — CPC, art. 459',
+            'Registro das perguntas indeferidas — CPC, art. 459, § 2º'],
       juris: [],
-      erro: 'Deixar de consignar a contradita e a decisão sobre ela. Sem isso não há como impugnar o depoimento depois.' },
-    { nome: 'Requerimentos, decisões e protestos',
-      deve: 'Registrar os requerimentos das partes, as decisões proferidas em audiência — que são interlocutórias e devem vir fundamentadas — e os protestos consignados contra o indeferimento.',
-      lei: ['Decisões em audiência — CPC, art. 367 c/c art. 203, § 2º', 'Fundamentação — CPC, art. 489, § 1º', 'Interlocutórias não agraváveis vão na apelação — CPC, art. 1.009, § 1º'],
+      erro: 'Indeferir pergunta e não registrar na ata a pergunta indeferida. O § 2º do art. 459 manda transcrever — sem isso a parte não consegue impugnar depois.' },
+    { nome: 'Decisões proferidas em audiência',
+      deve: 'Tudo o que o juiz decide em audiência entra na ata, fundamentado. Aqui é onde a ata deixa de ser burocracia e vira decisão recorrível.',
+      itens: [
+        { t:'Saneamento em cooperação', d:'quando a causa é complexa, o saneamento se faz em audiência, e as questões delimitadas na ata ficam estabilizadas.' },
+        { t:'Decisões de prova', d:'indeferimento de prova, substituição de testemunha, determinação de nova perícia.' },
+        { t:'Poder de polícia', d:'advertências e providências para manter a ordem, com registro do fato.' },
+        { t:'Publicação em audiência', d:'a decisão proferida em audiência tem-se por publicada, e o prazo corre daí — registre isso expressamente.' }
+      ],
+      lei: ['Saneamento em cooperação — CPC, art. 357, § 3º',
+            'Poderes do juiz na audiência — CPC, art. 360',
+            'Publicação em audiência — CPC, art. 1.003, § 1º'],
       juris: [],
-      erro: 'Indeferir prova sem fundamentar e sem consignar o protesto da parte. Some a base do recurso e sobra nulidade.' },
-    { nome: 'Encerramento',
-      deve: 'Consignar alegações finais orais ou a conversão em memoriais com prazos, os atos ordenados, a designação de nova data se houver, e colher as assinaturas.',
-      lei: ['Alegações finais e memoriais — CPC, art. 364 e § 2º', 'Assinatura da ata — CPC, art. 367, § 2º', 'Continuação da audiência — CPC, art. 362'],
+      erro: 'Decidir de viva voz e não lançar na ata. Decisão que não consta do registro não corre prazo, não preclui e cria nulidade.' },
+    { nome: 'Alegações finais e encerramento',
+      deve: 'Registrar as alegações finais — orais ou a conversão em memoriais — e encerrar com as intimações, o horário e as assinaturas.',
+      itens: [
+        { t:'Alegações orais', d:'20 minutos para cada parte, prorrogáveis por 10; havendo litisconsorte ou terceiro, 30 minutos divididos.' },
+        { t:'Memoriais', d:'quando a causa for complexa ou houver questão de direito nova — prazos sucessivos de 15 dias.' },
+        { t:'Encerramento', d:'hora do término, intimações feitas em audiência, e assinatura do juiz, dos advogados e do servidor.' }
+      ],
+      lei: ['Alegações finais orais e memoriais — CPC, art. 364 e § 2º',
+            'Termo de audiência e gravação — CPC, art. 367, §§ 1º a 6º',
+            'Intimação em audiência — CPC, art. 1.003, § 1º'],
       juris: [],
-      erro: 'Converter em memoriais sem fixar prazo e ordem. Depois ninguém sabe de quem era a vez.' }
+      modelo: 'Aos ... dias do mês de ... de ..., às ...h, na sala de audiências da ... Vara Cível da Comarca de ..., presente o MM. Juiz de Direito Dr. ..., foi aberta a audiência de instrução e julgamento nos autos nº ....\n\nPRESENTES: o autor, acompanhado de seu advogado Dr. ..., OAB/... nº ...; o réu, acompanhado de seu advogado Dr. ..., OAB/... nº ....\n\nCONCILIAÇÃO: renovada a proposta conciliatória, não houve acordo.\n\nINSTRUÇÃO: foi colhido o depoimento pessoal do autor e do réu, e inquiridas as testemunhas ... (arroladas pelo autor) e ... (arroladas pelo réu), tudo registrado em meio audiovisual, na forma do art. 367, § 5º, do CPC.\n\nDELIBERAÇÃO: indeferido o pedido de oitiva da testemunha ..., por ..., saindo as partes intimadas.\n\nALEGAÇÕES FINAIS: convertidas em memoriais, prazo sucessivo de 15 dias, na forma do art. 364, § 2º, do CPC, saindo os presentes intimados.\n\nNada mais havendo, encerrou-se a audiência às ...h. Eu, ..., servidor, digitei.',
+      erro: 'Encerrar sem consignar que as partes saíram intimadas. Sem isso a secretaria terá de intimar de novo, e o processo perde semanas.' }
   ],
-  cego: [
-    'Data, hora, juízo e presenças registradas',
-    'Ausências e suas consequências consignadas',
-    'Tentativa de conciliação e resultado',
-    'Acordo reduzido a termo e homologado, se houve',
-    'Depoimento pessoal registrado',
-    'Testemunhas qualificadas, compromissadas ou dispensadas',
-    'Contraditas e decisões sobre elas',
-    'Requerimentos das partes',
-    'Decisões proferidas em audiência, fundamentadas',
-    'Protestos consignados',
-    'Alegações finais ou memoriais com prazo',
-    'Assinaturas colhidas'
-  ]
+  cego: ['Identificação do processo, data e juízo','Presenças e ausências registradas com precisão',
+    'Intimação pessoal para depor consignada','Conciliação tentada e resultado registrado',
+    'Acordo transcrito em termos executáveis','Ordem do art. 361 observada e registrada',
+    'Contradita e decisão sobre ela','Perguntas indeferidas transcritas',
+    'Decisões proferidas em audiência lançadas e fundamentadas',
+    'Alegações finais ou conversão em memoriais','Partes saíram intimadas','Hora de encerramento e assinaturas']
+},
+
+// ═══════════════════════ CÍVEL — RECURSOS ═══════════════════════
+'Apelação': {
+  rito: 'Civil — recursos',
+  carreiras: ['Advocacia','Defensoria','Procuradorias','Ministério Público'],
+  sobre: 'Recurso de fundamentação livre contra sentença. O que decide a peça é a dialeticidade — atacar os fundamentos da sentença, um a um — e a consciência de que o tribunal pode julgar o mérito mesmo quando a sentença foi terminativa.',
+  blocos: [
+    { nome: 'Cabimento, prazo e preparo',
+      deve: 'Quinze dias úteis da intimação da sentença, com preparo comprovado no ato da interposição. Sem preparo, deserção — mas há remédio.',
+      itens: [
+        { t:'Prazo', d:'15 dias úteis; em dobro para Fazenda, MP, Defensoria e litisconsortes com procuradores distintos.' },
+        { t:'Preparo', d:'comprovado no ato da interposição; insuficiente, intima-se para complementar em 5 dias; não recolhido, intima-se para pagar em dobro.' },
+        { t:'Dispensados', d:'Fazenda, MP, Defensoria e beneficiários da gratuidade.' },
+        { t:'Sem juízo de admissibilidade na origem', d:'o juiz não examina os requisitos: recebe as contrarrazões e remete.' }
+      ],
+      lei: ['Cabimento — CPC, art. 1.009',
+            'Prazo — CPC, art. 1.003, § 5º',
+            'Preparo e deserção — CPC, art. 1.007 e §§ 2º e 4º',
+            'Remessa sem admissibilidade — CPC, art. 1.010, § 3º'],
+      juris: [],
+      erro: 'Confundir preparo insuficiente com preparo ausente. O § 2º manda complementar em 5 dias; o § 4º manda recolher em dobro. Consequências diferentes.' },
+    { nome: 'Requisitos da peça e dialeticidade',
+      deve: 'Os quatro requisitos do art. 1.010 são de conferência rápida, mas o terceiro é o que se cobra: as razões do pedido de reforma têm de dialogar com a fundamentação da sentença.',
+      itens: [
+        { t:'Nomes e qualificação', d:'das partes.' },
+        { t:'Exposição do fato e do direito', d:'sintética, para situar o tribunal.' },
+        { t:'Razões do pedido de reforma ou de decretação de nulidade', d:'o coração da peça — cada fundamento da sentença atacado especificamente.' },
+        { t:'Pedido de nova decisão', d:'expresso, e não implícito.' }
+      ],
+      lei: ['Requisitos da apelação — CPC, art. 1.010, I a IV',
+            'Não conhecimento por ausência de impugnação específica — CPC, art. 932, III',
+            'Vício sanável — CPC, art. 932, parágrafo único'],
+      juris: ['Súmula 182 do STJ, por analogia: é inviável o recurso que não ataca especificamente os fundamentos da decisão recorrida'],
+      erro: 'Repetir a petição inicial ou a contestação. Apelação que não enfrenta os fundamentos da sentença não é conhecida — e o relator decide isso sozinho.' },
+    { nome: 'Efeitos',
+      deve: 'A regra é o duplo efeito. Registrar quando a hipótese é de eficácia imediata, e pedir efeito suspensivo ao relator quando for o caso.',
+      itens: [
+        { t:'Regra', d:'efeito devolutivo e suspensivo (art. 1.012, caput).' },
+        { t:'Exceções do § 1º', d:'homologação de arbitragem, alimentos, sentença arbitral, interdição, tutela provisória confirmada ou concedida, entre outras — produzem efeitos desde logo.' },
+        { t:'Cumprimento provisório', d:'nas exceções, o apelado pode promovê-lo desde a publicação (art. 1.012, § 2º).' },
+        { t:'Suspensivo por decisão', d:'pedido dirigido ao tribunal, com risco de dano grave e probabilidade de provimento (art. 1.012, § 4º).' }
+      ],
+      lei: ['Efeitos da apelação — CPC, art. 1.012 e §§'],
+      juris: [],
+      erro: 'Ajuizar apelação de sentença que confirmou tutela provisória e supor que ela suspende. Não suspende — e sem o pedido do § 4º o cumprimento provisório corre.' },
+    { nome: 'Extensão do devolutivo e causa madura',
+      deve: 'O tribunal devolve o que foi impugnado, mas dentro do capítulo impugnado devolve tudo — inclusive fundamento não apreciado pela sentença. E pode julgar o mérito direto.',
+      itens: [
+        { t:'Profundidade', d:'todas as questões suscitadas e discutidas, ainda que a sentença não as tenha resolvido (art. 1.013, § 1º).' },
+        { t:'Fundamento não acolhido', d:'se houver mais de um fundamento e o juiz acolher só um, a apelação devolve os demais (art. 1.013, § 2º).' },
+        { t:'Causa madura', d:'sentença terminativa, ou nula por falta de fundamentação, ou omissa — o tribunal julga o mérito se o processo estiver em condições (art. 1.013, § 3º).' },
+        { t:'Questão de fato nova', d:'admitida se a parte provar que deixou de propô-la por motivo de força maior (art. 1.014).' }
+      ],
+      lei: ['Efeito devolutivo em extensão e profundidade — CPC, art. 1.013 e §§ 1º e 2º',
+            'Teoria da causa madura — CPC, art. 1.013, § 3º',
+            'Questões de fato não propostas — CPC, art. 1.014'],
+      juris: [],
+      erro: 'Não pedir a aplicação do § 3º quando a sentença foi terminativa. Sem o pedido o tribunal ainda pode aplicar, mas a peça que o formula joga a favor do apelante.' },
+    { nome: 'Pedidos e fecho',
+      deve: 'Fechar com pedidos escalonados e requerer o que depende de requerimento: sustentação oral, prioridade e efeito suspensivo.',
+      itens: [
+        { t:'Escalonamento', d:'nulidade da sentença, reforma total, reforma parcial, redução de honorários.' },
+        { t:'Honorários recursais', d:'lembrar que o tribunal majora os honorários ao julgar o recurso (art. 85, § 11) — e pedir isso quando se é apelado.' },
+        { t:'Prequestionamento', d:'indicar expressamente os dispositivos violados, com vistas aos recursos excepcionais.' }
+      ],
+      lei: ['Julgamento monocrático pelo relator — CPC, art. 932',
+            'Honorários recursais — CPC, art. 85, § 11',
+            'Sustentação oral — CPC, art. 937, I'],
+      juris: [],
+      modelo: 'Ante o exposto, requer o apelante o CONHECIMENTO e o PROVIMENTO do presente recurso, para:\n\na) anular a r. sentença, ante ..., determinando-se o retorno dos autos à origem;\n\nb) sucessivamente, REFORMAR a r. sentença, julgando procedentes os pedidos formulados na inicial, com a condenação do apelado a ...;\n\nc) sucessivamente, reduzir os honorários fixados, adequando-os ao art. 85, § 2º, do Código de Processo Civil;\n\nd) em qualquer hipótese, a inversão dos ônus sucumbenciais.\n\nRequer, ainda, a intimação para sustentação oral, na forma do art. 937, I, do Código de Processo Civil.\n\nPara fins de prequestionamento, tem-se por violados os arts. ... .',
+      erro: 'Não prequestionar. Sem o dispositivo indicado e enfrentado no acórdão, o recurso especial não passa — Súmula 211 do STJ.' }
+  ],
+  cego: ['Prazo de 15 dias úteis observado','Preparo comprovado na interposição',
+    'Requisitos do art. 1.010 presentes','Cada fundamento da sentença atacado especificamente',
+    'Efeitos identificados (regra ou exceção do § 1º)','Efeito suspensivo requerido, se cabível',
+    'Profundidade do devolutivo invocada','Causa madura pedida, se terminativa',
+    'Pedidos escalonados','Sustentação oral requerida','Dispositivos prequestionados']
+},
+
+'Agravo de instrumento': {
+  rito: 'Civil — recursos',
+  carreiras: ['Advocacia','Defensoria','Procuradorias','Ministério Público'],
+  sobre: 'Recurso de cabimento restrito e formação instrumental. Duas causas de não conhecimento dominam: matéria fora do rol do art. 1.015 e instrumento mal formado. As duas têm remédio, e a peça precisa mostrar que conhece os dois.',
+  blocos: [
+    { nome: 'Cabimento — o rol e sua mitigação',
+      deve: 'Enquadrar a decisão em um inciso do art. 1.015. Não sendo possível, sustentar a taxatividade mitigada, demonstrando a urgência.',
+      itens: [
+        { t:'Rol do art. 1.015', d:'tutelas provisórias, mérito do processo, rejeição da arbitragem, incidente de desconsideração, gratuidade, exibição, exclusão de litisconsorte, entre outros.' },
+        { t:'Taxatividade mitigada', d:'cabe agravo fora do rol quando houver urgência decorrente da inutilidade do julgamento da questão no recurso de apelação.' },
+        { t:'Fase de execução e liquidação', d:'no cumprimento de sentença, na execução e no inventário, todas as interlocutórias são agraváveis (art. 1.015, parágrafo único).' },
+        { t:'Fora do rol e sem urgência', d:'a questão não preclui e se impugna nas razões ou contrarrazões de apelação (art. 1.009, § 1º).' }
+      ],
+      lei: ['Hipóteses de cabimento — CPC, art. 1.015',
+            'Interlocutórias na execução — CPC, art. 1.015, parágrafo único',
+            'Não preclusão das não agraváveis — CPC, art. 1.009, § 1º'],
+      juris: ['Taxatividade mitigada — STJ, REsp 1.704.520, Tema 988, j. 05/12/2018'],
+      erro: 'Agravar de decisão fora do rol sem uma linha sobre urgência. É o caminho mais curto para o não conhecimento monocrático.' },
+    { nome: 'Formação do instrumento',
+      deve: 'O agravo é autuado em separado e por isso precisa carregar as peças. As obrigatórias, faltando, geram intimação para sanar — mas não conte com isso.',
+      itens: [
+        { t:'Obrigatórias', d:'cópia da petição inicial, da contestação, da petição que originou a decisão, da própria decisão agravada, da certidão da intimação e das procurações.' },
+        { t:'Facultativas', d:'as que o agravante entenda úteis; junte tudo o que sustenta a urgência.' },
+        { t:'Declaração de inexistência', d:'quando a peça obrigatória não existir nos autos, declare isso sob pena de responsabilidade.' },
+        { t:'Processo eletrônico', d:'dispensa a juntada das peças obrigatórias (art. 1.017, § 5º).' },
+        { t:'Vício sanável', d:'o relator intima para sanar em 5 dias antes de não conhecer (art. 932, parágrafo único, e art. 1.017, § 3º).' }
+      ],
+      lei: ['Peças do instrumento — CPC, art. 1.017, I a III',
+            'Sanação do vício — CPC, art. 1.017, § 3º',
+            'Dispensa no processo eletrônico — CPC, art. 1.017, § 5º'],
+      juris: [],
+      erro: 'Esquecer a certidão de intimação em autos físicos. Sem ela o tribunal não afere a tempestividade, e é a peça mais esquecida das seis.' },
+    { nome: 'Requisitos da peça e comunicação ao juízo',
+      deve: 'Além dos requisitos do art. 1.016, existe um dever pouco lembrado: comunicar ao juízo de origem, em 3 dias, que o agravo foi interposto.',
+      itens: [
+        { t:'Requisitos', d:'nomes das partes, exposição do fato e do direito, razões do pedido de reforma ou invalidação, nome e endereço dos advogados.' },
+        { t:'Comunicação em 3 dias', d:'juntar aos autos de origem cópia da petição, do comprovante de interposição e a relação de documentos (art. 1.018).' },
+        { t:'Consequência', d:'a inadmissibilidade por falta de comunicação só é declarada se o agravado a arguir e provar (art. 1.018, § 3º).' },
+        { t:'Retratação', d:'o juiz pode reformar a decisão agravada; comunicando isso ao tribunal, o agravo perde o objeto.' }
+      ],
+      lei: ['Requisitos do agravo — CPC, art. 1.016',
+            'Comunicação ao juízo de origem — CPC, art. 1.018 e §§',
+            'Retratação — CPC, art. 1.018, § 1º'],
+      juris: [],
+      erro: 'Não comunicar ao juízo de origem em autos físicos. É vício alegável pelo agravado e leva à inadmissibilidade — dispensado apenas no processo eletrônico.' },
+    { nome: 'Efeito suspensivo e tutela recursal',
+      deve: 'O agravo, em regra, não suspende. Pedir ao relator o efeito suspensivo ou a antecipação da tutela recursal, com os dois requisitos separados.',
+      itens: [
+        { t:'Efeito suspensivo', d:'para paralisar os efeitos da decisão agravada.' },
+        { t:'Antecipação da tutela recursal', d:'para conceder desde logo o que a decisão negou — pedidos distintos, com consequências distintas.' },
+        { t:'Requisitos', d:'probabilidade de provimento do recurso e risco de dano grave ou de difícil reparação.' }
+      ],
+      lei: ['Poderes do relator — CPC, art. 1.019, I',
+            'Efeito suspensivo aos recursos — CPC, art. 995, parágrafo único'],
+      juris: [],
+      modelo: 'DO PEDIDO DE EFEITO SUSPENSIVO\n\nNos termos do art. 1.019, I, do Código de Processo Civil, requer o agravante a concessão de EFEITO SUSPENSIVO ao presente recurso.\n\nA probabilidade de provimento decorre de ..., conforme demonstrado nas razões acima.\n\nO risco de dano grave e de difícil reparação está em que, mantida a decisão agravada até o julgamento do colegiado, ....\n\nAnte o exposto, requer:\n\na) a concessão do efeito suspensivo, para sustar os efeitos da r. decisão agravada até o julgamento final do recurso;\n\nb) a intimação do agravado para responder no prazo de 15 dias, na forma do art. 1.019, II;\n\nc) ao final, o PROVIMENTO do agravo, para reformar a r. decisão e ....',
+      erro: 'Pedir "efeito suspensivo" quando o que se quer é a concessão da tutela que o juiz negou. Suspender uma negativa não devolve nada — o pedido certo é a antecipação da tutela recursal.' }
+  ],
+  cego: ['Decisão enquadrada no rol do art. 1.015','Taxatividade mitigada sustentada, se fora do rol',
+    'Prazo de 15 dias úteis','Peças obrigatórias do art. 1.017 juntadas',
+    'Certidão de intimação presente ou dispensada','Requisitos do art. 1.016',
+    'Fundamentos da decisão atacados especificamente','Comunicação ao juízo em 3 dias',
+    'Efeito suspensivo ou tutela recursal, com os dois requisitos','Pedido de reforma expresso']
+},
+
+'Embargos de declaração': {
+  rito: 'Civil — recursos',
+  carreiras: ['Advocacia','Defensoria','Procuradorias','Ministério Público','Magistratura'],
+  sobre: 'Recurso de fundamentação vinculada: só cabe nas hipóteses do art. 1.022. Tem duas funções que a prova separa — integrar a decisão e prequestionar. E tem uma armadilha: usado fora das hipóteses, gera multa.',
+  blocos: [
+    { nome: 'Hipóteses de cabimento',
+      deve: 'Três hipóteses no caput e duas equiparações no parágrafo único. As equiparações são a novidade do CPC/2015 e o que mais se cobra.',
+      itens: [
+        { t:'Obscuridade ou contradição', d:'inciso I — a decisão não se entende, ou afirma e nega ao mesmo tempo.' },
+        { t:'Omissão', d:'inciso II — ponto ou questão sobre a qual o juiz deveria ter se pronunciado, de ofício ou a requerimento.' },
+        { t:'Erro material', d:'inciso III — corrigível a qualquer tempo, inclusive de ofício.' },
+        { t:'Omissão equiparada', d:'decisão que deixa de se manifestar sobre tese firmada em repetitivos ou IAC, ou que incide em qualquer das condutas do art. 489, § 1º.' }
+      ],
+      lei: ['Hipóteses — CPC, art. 1.022, I a III',
+            'Omissão equiparada — CPC, art. 1.022, parágrafo único',
+            'Fundamentação das decisões — CPC, art. 489, § 1º'],
+      juris: [],
+      erro: 'Embargar por inconformismo. Se a decisão está clara, coerente e completa, o remédio é o recurso próprio — e embargos aqui geram multa.' },
+    { nome: 'Prazo, forma e ausência de preparo',
+      deve: 'Cinco dias, em petição dirigida ao próprio julgador, com a indicação do erro, obscuridade, contradição ou omissão. Não há preparo.',
+      itens: [
+        { t:'Prazo', d:'5 dias úteis, em dobro nos casos legais.' },
+        { t:'Sem preparo', d:'o art. 1.023 é expresso.' },
+        { t:'Contraditório', d:'havendo possibilidade de efeito modificativo, o embargado é intimado para responder em 5 dias.' }
+      ],
+      lei: ['Prazo e forma — CPC, art. 1.023',
+            'Contraditório no efeito modificativo — CPC, art. 1.023, § 2º'],
+      juris: [],
+      erro: 'Acolher embargos com efeito modificativo sem ouvir a parte contrária. É nulidade — e do lado do juiz, item perdido no espelho.' },
+    { nome: 'Efeito interruptivo',
+      deve: 'Os embargos INTERROMPEM o prazo dos demais recursos, para todas as partes. Interromper não é suspender: o prazo recomeça do zero.',
+      itens: [
+        { t:'Interrupção', d:'o prazo do recurso seguinte volta a correr integralmente da intimação da decisão dos embargos.' },
+        { t:'Para todas as partes', d:'ainda que embargue apenas uma delas.' },
+        { t:'Inadmissíveis não interrompem', d:'embargos intempestivos não produzem o efeito; os apenas rejeitados, sim.' }
+      ],
+      lei: ['Efeito interruptivo — CPC, art. 1.026, caput'],
+      juris: [],
+      erro: 'Tratar como suspensão e devolver só os dias restantes. É a conta errada mais comum em prazo recursal.' },
+    { nome: 'Prequestionamento',
+      deve: 'Embargos opostos para prequestionar não são protelatórios, e o CPC criou o prequestionamento ficto: rejeitados os embargos, consideram-se prequestionados os elementos apontados, se o tribunal superior reconhecer a existência do vício.',
+      itens: [
+        { t:'Prequestionamento ficto', d:'art. 1.025 — os elementos suscitados nos embargos consideram-se incluídos no acórdão.' },
+        { t:'Indicação expressa', d:'aponte o dispositivo e a tese, não apenas "prequestiona-se a matéria".' }
+      ],
+      lei: ['Prequestionamento ficto — CPC, art. 1.025'],
+      juris: ['Embargos com fim de prequestionamento não têm caráter protelatório — Súmula 98 do STJ',
+              'Inadmissível o recurso especial quando a questão não foi apreciada, apesar da oposição de embargos — Súmula 211 do STJ'],
+      modelo: 'Ante o exposto, requer o embargante o CONHECIMENTO e o ACOLHIMENTO dos presentes embargos, para que seja sanada a omissão apontada, com o pronunciamento expresso sobre ..., atribuindo-se-lhes, se necessário, efeito modificativo.\n\nRequer, ainda, para fins de prequestionamento e nos termos do art. 1.025 do Código de Processo Civil, o pronunciamento expresso sobre os arts. ..., tidos por violados.',
+      erro: 'Escrever "prequestiona-se todo o ordenamento". Sem indicar o dispositivo e a tese, o prequestionamento ficto do art. 1.025 não opera.' },
+    { nome: 'Protelatoriedade e multa',
+      deve: 'Embargos manifestamente protelatórios geram multa de até 2% e, na reiteração, de até 10%. E a partir dos terceiros protelatórios, não se admitem novos.',
+      itens: [
+        { t:'Primeira multa', d:'até 2% sobre o valor atualizado da causa (art. 1.026, § 2º).' },
+        { t:'Reiteração', d:'até 10%, e o recurso seguinte fica condicionado ao depósito (art. 1.026, § 3º).' },
+        { t:'Terceiros embargos', d:'não são admitidos se os dois anteriores foram protelatórios (art. 1.026, § 4º).' },
+        { t:'Fazenda e gratuidade', d:'recolhem a multa ao final (art. 1.026, § 3º, parte final).' }
+      ],
+      lei: ['Multa por embargos protelatórios — CPC, art. 1.026, §§ 2º a 4º'],
+      juris: [],
+      erro: 'Reiterar embargos sobre a mesma questão já enfrentada. Além da multa, o recurso seguinte fica condicionado ao depósito prévio.' }
+  ],
+  cego: ['Hipótese do art. 1.022 identificada','Omissão equiparada invocada, se for o caso',
+    'Prazo de 5 dias observado','Sem recolhimento de preparo',
+    'Vício apontado com precisão, não em bloco','Efeito modificativo pedido expressamente, se for o caso',
+    'Contraditório observado no efeito modificativo','Dispositivos indicados para prequestionamento',
+    'Sem reiteração de matéria já enfrentada']
 }
 
 };

@@ -133,6 +133,7 @@ window.CT_RITOS = {
   ['Inquérito policial', 'investigação preliminar', [
     ['⚖️ Formas de instauração','lei'], ['⚖️ Prazos','lei'], ['⚖️ Indiciamento','lei'],
     ['🏛️ Arquivamento','juris'], ['🏛️ Investigação pelo MP','juris'],
+    ['✍️ Relatório de inquérito','peca'],
     ['↘ trancamento por habeas corpus','desvio']]],
   ['Denúncia ou queixa', 'deflagração da ação penal', [
     ['⚖️ Requisitos','lei'], ['⚖️ Prazo','lei'], ['⚖️ Rejeição','lei'],
@@ -150,9 +151,10 @@ window.CT_RITOS = {
     ['⚖️ Interrogatório','lei'],
     ['🏛️ Interrogatório por último','juris'], ['🏛️ Prova ilícita por derivação','juris'],
     ['↘ diligências complementares','desvio']]],
-  ['Alegações finais', 'memoriais', [
-    ['⚖️ Memoriais','lei'],
-    ['🏛️ Ausência de alegações · nulidade','juris']]],
+  ['Alegações finais', 'memoriais ou debates orais', [
+    ['⚖️ Memoriais','lei'], ['⚖️ Prazo e ordem','lei'],
+    ['🏛️ Ausência de alegações · nulidade','juris'],
+    ['✍️ Alegações finais da defesa','peca']]],
   ['Sentença penal', 'condenatória ou absolutória', [
     ['⚖️ Emendatio libelli','lei'], ['⚖️ Mutatio libelli','lei'],
     ['⚖️ Dosimetria — 1ª fase','lei'], ['⚖️ Dosimetria — 2ª fase','lei'],
@@ -606,6 +608,30 @@ window.CT_RITOS = {
     ['⚖️ Recursos no processo de contas','lei'],
     ['🏛️ Controle judicial limitado à legalidade do procedimento','juris'],
     ['↘ mandado de segurança contra o acórdão','desvio']]],
+],
+
+'Penal — recursos': [
+  ['Embargos de declaração', 'omissão, ambiguidade, obscuridade ou contradição', [
+    ['⚖️ Hipóteses e prazo de 2 dias','lei'], ['🏛️ Efeito interruptivo','juris'],
+    ['✍️ Embargos de declaração','peca']]],
+  ['Recurso em sentido estrito', 'rol taxativo', [
+    ['⚖️ Hipóteses de cabimento','lei'], ['⚖️ Prazo e juízo de retratação','lei'],
+    ['🏛️ Taxatividade do rol','juris'],
+    ['↘ carta testemunhável','desvio']]],
+  ['Apelação criminal', 'contra sentença definitiva', [
+    ['⚖️ Hipóteses de cabimento','lei'], ['⚖️ Prazo de interposição e de razões','lei'],
+    ['⚖️ Efeito devolutivo e suspensivo','lei'],
+    ['🏛️ Reformatio in pejus','juris'], ['🏛️ Apelação no júri','juris'],
+    ['✍️ Apelação criminal','peca']]],
+  ['Recursos aos tribunais superiores', 'especial e extraordinário', [
+    ['⚖️ Cabimento do recurso especial','lei'], ['⚖️ Repercussão geral','lei'],
+    ['🏛️ Prequestionamento','juris'],
+    ['↘ agravo em recurso especial','desvio']]],
+  ['Ações autônomas de impugnação', 'fora do sistema recursal', [
+    ['⚖️ Habeas corpus','lei'], ['⚖️ Revisão criminal','lei'],
+    ['⚖️ Mandado de segurança em matéria criminal','lei'],
+    ['🏛️ Revisão criminal e prova nova','juris'],
+    ['✍️ Habeas corpus','peca']]],
 ],
 
 };
