@@ -33,6 +33,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .rd-hl:hover{filter:brightness(.93);box-shadow:0 0 0 1.5px rgba(0,0,0,.18);}
 .rd-hl.uline{background:transparent!important;border-bottom:2.5px solid;border-radius:0;mix-blend-mode:normal;}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent)!important;outline-offset:2px!important}
+.aj-meta{font-family:var(--display)!important;font-size:24px!important;font-weight:700!important;text-align:center}
 .aj-ess{transition:border-color .15s,transform .15s,box-shadow .15s;border-top:3px solid var(--accent)!important}
 .aj-ess:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.10)}
 .rd-hl.has-note::after{content:'';position:absolute;top:-5px;right:-5px;width:9px;height:9px;border-radius:99px;background:var(--warn);box-shadow:0 0 0 2px #fff;}
@@ -3296,25 +3297,24 @@ window.ctPdfLib = (function(){
           </sc-if>
         </div>
 
-        <!-- atalhos das seções: os Ajustes são longos; daqui se chega a qualquer bloco num clique -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button data-s="perfil" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Perfil</button>
-          <button data-s="banca" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Método da banca</button>
-          <button data-s="ritmo" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Ritmo</button>
-          <button data-s="metas" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Metas</button>
-          <button data-s="plan" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Planejamento</button>
-          <button data-s="conselho" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Conselho</button>
+        <!-- abas reais: uma tela por vez — refeito em 21/08 a pedido da Lana ("refazer, não reorganizar") -->
+        <div style="display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:6px;flex-wrap:wrap;">
+          <button data-t="voce" onclick="{{ setAjTab }}" style="{{ ajTabBtnVoce }}">Você</button>
+          <button data-t="estudo" onclick="{{ setAjTab }}" style="{{ ajTabBtnEstudo }}">Estudo & metas</button>
+          <button data-t="banca" onclick="{{ setAjTab }}" style="{{ ajTabBtnBanca }}">Método da banca</button>
+          <button data-t="dados" onclick="{{ setAjTab }}" style="{{ ajTabBtnDados }}">Dados & conselho</button>
         </div>
 
+<sc-if value="{{ ajTabVoce }}" hint-placeholder-val="{{ true }}">
         <!-- PERFIL + COBRANÇA -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:20px;"><h2 id="aj-perfil" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Perfil de estudo</h2><span style="font-size:var(--fs-sm);color:var(--text3);">base dos conselhos</span></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div><label for="aj-f-nivel" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Nível atual</label><select id="aj-f-nivel" data-k="nivel" value="{{ orient.nivel }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="iniciante">Iniciante</option><option value="intermediario">Intermediário</option><option value="avancado">Avançado</option></select></div>
+              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Nível atual</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orNivelChips }}" as="c" hint-placeholder-count="3"><button data-k="nivel" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
               <div><label for="aj-f-tempoDia" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Tempo médio por dia (min)</label><input id="aj-f-tempoDia" type="number" data-k="tempoDia" value="{{ orient.tempoDia }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orTempoHHMM }}</div></div>
-              <div><label for="aj-f-turno" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno</label><select id="aj-f-turno" data-k="turno" value="{{ orient.turno }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="manha">Manhã</option><option value="tarde">Tarde</option><option value="noite">Noite</option></select></div>
-              <div><label for="aj-f-energia" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Energia padrão</label><select id="aj-f-energia" data-k="energia" value="{{ orient.energia }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option></select></div>
+              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orTurnoChips }}" as="c" hint-placeholder-count="3"><button data-k="turno" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
+              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Energia padrão</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orEnergiaChips }}" as="c" hint-placeholder-count="3"><button data-k="energia" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
             </div>
             <div style="margin-top:16px;"><label for="aj-f-dias" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Dias disponíveis</label><input id="aj-f-dias" data-k="dias" value="{{ orient.dias }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;"></div>
             <div style="margin-top:18px;"><div style="font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:10px;">Plano por energia mental</div>
@@ -3338,6 +3338,8 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+</sc-if>
+<sc-if value="{{ ajTabBanca }}" hint-placeholder-val="{{ false }}">
         <!-- MÉTODO DA BANCA (pesquisado, orienta o estudo) -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
@@ -3367,6 +3369,8 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+</sc-if>
+<sc-if value="{{ ajTabEstudo }}" hint-placeholder-val="{{ false }}">
         <!-- FOCO + ALERTAS -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -3381,6 +3385,8 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+</sc-if>
+<sc-if value="{{ ajTabEstudo }}" hint-placeholder-val="{{ false }}">
         <!-- CRITÉRIOS + METAS -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -3398,9 +3404,9 @@ window.ctPdfLib = (function(){
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:20px;"><h2 id="aj-metas" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Metas adaptativas e reta final</h2><span style="font-size:var(--fs-sm);color:var(--text3);">mínimo · ideal · forte</span></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div><label for="aj-f-metaMin" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta mínima diária (min)</label><input id="aj-f-metaMin" type="number" data-k="metaMin" value="{{ orient.metaMin }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
-              <div><label for="aj-f-metaIdeal" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta ideal diária (min)</label><input id="aj-f-metaIdeal" type="number" data-k="metaIdeal" value="{{ orient.metaIdeal }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
-              <div><label for="aj-f-metaForte" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta forte diária (min)</label><input id="aj-f-metaForte" type="number" data-k="metaForte" value="{{ orient.metaForte }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
+              <div><label for="aj-f-metaMin" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta mínima diária (min)</label><input id="aj-f-metaMin" type="number" data-k="metaMin" class="aj-meta" value="{{ orient.metaMin }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
+              <div><label for="aj-f-metaIdeal" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta ideal diária (min)</label><input id="aj-f-metaIdeal" type="number" data-k="metaIdeal" class="aj-meta" value="{{ orient.metaIdeal }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
+              <div><label for="aj-f-metaForte" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta forte diária (min)</label><input id="aj-f-metaForte" type="number" data-k="metaForte" class="aj-meta" value="{{ orient.metaForte }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
               <div><label for="aj-f-retaFinalCom" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ativar reta final com</label><select id="aj-f-retaFinalCom" data-k="retaFinalCom" value="{{ orient.retaFinalCom }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="15">15 dias</option><option value="30">30 dias</option><option value="45">45 dias</option><option value="60">60 dias</option></select></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
@@ -3410,6 +3416,8 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+</sc-if>
+<sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <!-- RELATÓRIO + ANKI -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -3427,6 +3435,8 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+</sc-if>
+<sc-if value="{{ ajTabEstudo }}" hint-placeholder-val="{{ false }}">
         <!-- PLANEJAMENTO (tempo por peso × domínio × disponibilidade) -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;"><h2 id="aj-plan" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Planejamento da semana</h2><span style="font-family:var(--display);font-weight:700;color:var(--accent);font-size:27px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ planHoras }}h</span></div>
@@ -3444,6 +3454,8 @@ window.ctPdfLib = (function(){
           </sc-for>
         </div>
 
+</sc-if>
+<sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <!-- CONSELHO PERSONALIZADO -->
         <div style="background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:18px;"><h2 id="aj-conselho" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Conselho personalizado atual</h2><span style="font-size:var(--fs-sm);color:var(--text3);">baseado nos ajustes + dados</span></div>
@@ -3456,6 +3468,7 @@ window.ctPdfLib = (function(){
             </sc-for>
           </div>
         </div>
+</sc-if>
        </div>
       </sc-if>
 
@@ -8496,6 +8509,10 @@ class Component extends DCLogic {
   // registrado: sessões antigas continuam com as categorias que tinham, e o edital
   // cadastrado não é tocado — a área só muda o que o app SUGERE daqui pra frente.
   toggleAreaSel = ()=> this.setState(s=>({areaSelOpen:!s.areaSelOpen}));
+  setAjTab = (e)=> this.setState({ajTab:e.currentTarget.dataset.t||'voce'});
+  // chips do perfil: mesmo destino do setOrient, mas por clique (selects não funcionam bem no toque)
+  setOrientVal = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.dataset.v;
+    this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>{ try{ localStorage.setItem('catedra:orient',JSON.stringify(this.state.orient)); }catch(_){} }); };
   // rolagem para uma seção dos Ajustes — os chips do topo apontam para os ids aj-*
   ajIr = (e)=>{ const el=document.getElementById('aj-'+(e.currentTarget.dataset.s||'')); if(!el) return; const suave=!window.matchMedia('(prefers-reduced-motion: reduce)').matches; el.scrollIntoView({behavior:suave?'smooth':'auto',block:'start'}); };
   setAreaEstudo = (e)=>{ const v=e.currentTarget.dataset.a||'';
@@ -8938,6 +8955,18 @@ class Component extends DCLogic {
     const temEssenciais = areaEssenciais.length>0;
     const areaSelOpen = !!this.state.areaSelOpen || !this.state.areaEstudo;   // sem área escolhida, o seletor fica aberto
     const areaSelLabel = this.state.areaSelOpen ? 'Fechar' : 'Trocar de área';
+    // Ajustes em abas (refeito 21/08): uma tela por vez
+    const _ajTab = this.state.ajTab || 'voce';
+    const _ajBtn = (on)=>`border:none;cursor:pointer;font-family:inherit;border-radius:99px;padding:11px 20px;font-size:var(--fs-md);font-weight:700;transition:all .15s;`+
+      (on?'background:linear-gradient(90deg,var(--accent),var(--accentD));color:var(--onAccent);box-shadow:0 6px 16px -6px var(--accent);':'background:transparent;color:var(--text2);');
+    const ajuTabs = { ajTabVoce:_ajTab==='voce', ajTabEstudo:_ajTab==='estudo', ajTabBanca:_ajTab==='banca', ajTabDados:_ajTab==='dados',
+      ajTabBtnVoce:_ajBtn(_ajTab==='voce'), ajTabBtnEstudo:_ajBtn(_ajTab==='estudo'), ajTabBtnBanca:_ajBtn(_ajTab==='banca'), ajTabBtnDados:_ajBtn(_ajTab==='dados') };
+    const _orChip=(on)=>`border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--ink)'};`+
+      `border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;`;
+    const _orc=(k,opts)=>opts.map(([v,label])=>({v,label,style:_orChip((this.state.orient&&this.state.orient[k])===v)}));
+    const orNivelChips=_orc('nivel',[['iniciante','Iniciante'],['intermediario','Intermediário'],['avancado','Avançado']]);
+    const orTurnoChips=_orc('turno',[['manha','Manhã'],['tarde','Tarde'],['noite','Noite']]);
+    const orEnergiaChips=_orc('energia',[['baixa','Baixa'],['normal','Normal'],['alta','Alta']]);
     // tipos de atividade do ciclo e categorias do registro, na ordem em que fazem sentido
     const _kindsArea = this._atividades();
     const _kindOpts=(k)=> (_kindsArea.indexOf(k)<0&&k?[..._kindsArea,k]:_kindsArea).map(v=>({v, sel:v===k}));
@@ -10993,6 +11022,7 @@ class Component extends DCLogic {
       isBancas:this.state.view==='bancas', navBancas:navStyle('bancas'),
       areaCards, setAreaEstudo:this.setAreaEstudo, areaAtualLabel, areaAtualEmoji, areaAtualDesc,
       areaEssenciais, temEssenciais, areaSelOpen, areaSelLabel, toggleAreaSel:this.toggleAreaSel, ajIr:this.ajIr,
+      ...ajuTabs, setAjTab:this.setAjTab, orNivelChips, orTurnoChips, orEnergiaChips, setOrientVal:this.setOrientVal,
       areaJuridica, areaJuris, legisFrameSrc, areaEscolhida,
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
