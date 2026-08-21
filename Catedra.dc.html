@@ -4645,14 +4645,14 @@ const CT_CORES_RAMO = {
   'tributario':          {c:'#0891b2', d:'#4fc3dd'},
   'civil':               {c:'#6366f1', d:'#9ba0f7'},
   'penal':               {c:'#dc2626', d:'#f27d7d'},
-  'processual civil':    {c:'#84cc16', d:'#a8e04d'},
-  'processo civil':      {c:'#84cc16', d:'#a8e04d'},
+  'processual civil':    {c:'#4d7c0f', d:'#a8e04d'},
+  'processo civil':      {c:'#4d7c0f', d:'#a8e04d'},
   'processual penal':    {c:'#ea580c', d:'#f79a63'},
   'processo penal':      {c:'#ea580c', d:'#f79a63'},
   'eleitoral':           {c:'#0891b2', d:'#4fc3dd'},
   'empresarial':         {c:'#b08433', d:'#d4ab5e'},
   'ambiental':           {c:'#16a34a', d:'#57ce85'},
-  'consumidor':          {c:'#f59e0b', d:'#f8bc52'},
+  'consumidor':          {c:'#b45309', d:'#f8bc52'},
   'trabalho':            {c:'#7c3aed', d:'#a97ef5'},
   'previdenciario':      {c:'#0d9488', d:'#45c4b8'},
   'financeiro':          {c:'#0a7ea4', d:'#4bb3d6'},
@@ -8855,7 +8855,7 @@ class Component extends DCLogic {
       `--ink:${T.ink};--text2:${T.text2};--text3:${T.text3};--accent:${acc};--accentD:${accD};`+
       `--accentSoft:${accSoft};--accentRing:${accRing};--onAccent:${accOn};--radius:${radiusVal};--r-sm:${rSm};--r-md:${rMd};`+
       `--display:${T.display};--body:${T.body};--mono:${T.mono};--heroGrad:${heroGrad};`+
-      `--danger:${T.isDark?'#ff7b6e':'#c0392f'};--dangerSoft:${T.isDark?'rgba(255,123,110,.14)':'#faeceb'};--dangerBd:${T.isDark?'rgba(255,123,110,.35)':'#f0d3d1'};--ok:${T.isDark?'#3ddba0':'#0f9d6b'};--warn:${T.isDark?'#f0a24a':'#c2790c'};--warnSoft:${T.isDark?'rgba(240,162,74,.14)':'#faf0e0'};--info:${T.isDark?'#54cfe8':'#06809a'};--infoSoft:${T.isDark?'rgba(84,207,232,.14)':'#e0f5fa'};`+
+      `--danger:${T.isDark?'#ff7b6e':'#c0392f'};--dangerSoft:${T.isDark?'rgba(255,123,110,.14)':'#faeceb'};--dangerBd:${T.isDark?'rgba(255,123,110,.35)':'#f0d3d1'};--ok:${T.isDark?'#3ddba0':'#0e7f58'};--warn:${T.isDark?'#f0a24a':'#a36306'};--warnSoft:${T.isDark?'rgba(240,162,74,.14)':'#faf0e0'};--info:${T.isDark?'#54cfe8':'#06809a'};--infoSoft:${T.isDark?'rgba(84,207,232,.14)':'#e0f5fa'};`+
       `--sbg:${sbgVal};--stext:${T.sidebarText};--sactbg:${this.state.accent?'rgba(255,255,255,.14)':T.sidebarActiveBg};--sacttext:${this.state.accent?'#fff':T.sidebarActiveText};`+
       `--bg:${bgVal};background:${bgVal};color:${T.ink};font-family:${T.body};font-size:${fontScalePx};`;
     // largura por view: telas de grade (muitos cards/colunas) ficam largas; telas em coluna única ficam num limite de leitura confortável
