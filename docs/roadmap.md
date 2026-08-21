@@ -19,6 +19,7 @@
 | Bloco de Penal + Processo Penal no ciclo | métrica de 21/08: 3% e ~0% do tempo em 30d | gancho: sentença criminal TJ-GO |
 | Decidir: import do desempenho TEC (`tec-desempenho`) | decisão da Lana — em aberto, não aprovado | fecharia o retrovisor do histórico de questões |
 | A11y restantes: `aria-label` nos selects, chips a 44px | — | menor; itens 6/8 da auditoria |
+| Separar cor-identidade (gráficos, ≥3:1 ok) de cor-texto (escurecida ≥4,5:1) nos ~6 consumidores textuais de `_corDisc` | achado 2 do code review de 21/08 | paliativo: `color-mix(… 75%, black)` nos badges |
 
 ## Depois (1–3 meses)
 

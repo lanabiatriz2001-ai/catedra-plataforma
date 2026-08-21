@@ -149,7 +149,7 @@ extension LawCategory {
         case .consumidor:     return Color(hex: 0xEA580C)   // laranja
         case .ambiental:      return Color(hex: 0x16A34A)   // verde
         case .digital:        return Color(hex: 0xC026D3)   // fúcsia
-        case .internacional:  return Color(hex: 0x0EA5E9)   // azul-céu
+        case .internacional:  return Color(hex: 0x0284C7)   // azul-céu (escurecido p/ contraste AA — igual ao CT_CORES_RAMO da web)
         case .especial:       return Color(hex: 0x64748B)   // grafite
         case .personalizada:  return ThemeState.t.accent
         }
