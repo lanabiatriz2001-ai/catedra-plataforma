@@ -76,7 +76,7 @@ for (const e of fonte.espelhos) {
         disciplina: q.disciplina || '',
         tema: q.tema || '',
         enunciado: [
-          `${e.tribunal} · ${e.ano} · ${e.cargo || 'Juiz Substituto'}${e.banca ? ' — banca ' + e.banca : ''} · questão ${i + 1} de ${e.quesitos.length}.`,
+          `${e.tribunal} · ${e.ano} · ${e.cargo || 'Juiz Substituto'}${e.banca ? (/^banca/i.test(e.banca) ? ' — ' + e.banca : ' — banca ' + e.banca) : ''} · questão ${i + 1} de ${e.quesitos.length}.`,
           q.disciplina ? `Disciplina: ${q.disciplina}.` : '',
           q.tema ? `Tema: ${q.tema}.` : '',
           e.url_prova ? `Enunciado na prova oficial: ${e.url_prova}` : 'A banca não publicou a prova em PDF autônomo.',
