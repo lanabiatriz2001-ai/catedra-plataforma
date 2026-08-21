@@ -98,7 +98,7 @@ for (const r of REG) {
     tema: qs.length ? qs.slice(0, 3).map((q) => q.tm).filter(Boolean).join('; ') : (r.concurso || `${r.orgao} ${r.ano || ''}`),
     // Sem transcrição inventada: o enunciado é o cartão da prova + o link oficial.
     enunciado: [
-      `${r.orgao} · ${r.ano || ''} · ${r.cargo || ''}${r.banca ? ' — banca ' + r.banca : ''}.`,
+      `${r.orgao} · ${r.ano || ''} · ${r.cargo || ''}${r.banca ? (/^banca/i.test(r.banca) ? ' — ' + r.banca : ' — banca ' + r.banca) : ''}.`,
       r.url_prova ? `Prova oficial (PDF): ${r.url_prova}` : 'A banca não publicou o PDF da prova nesta página.',
       r.url_espelho ? `Espelho oficial (PDF): ${r.url_espelho}` : '',
       r.url_concurso ? `Página do concurso: ${r.url_concurso}` : '',

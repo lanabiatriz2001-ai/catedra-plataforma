@@ -6880,22 +6880,28 @@ class Component extends DCLogic {
     });
     const instr=(q.instrucoes&&q.instrucoes.length)?'\n\nInstruções gerais da banca:\n- '+q.instrucoes.join('\n- '):'';
     const cab=[q.orgao, q.cargo, q.ano].filter(Boolean).join(' · ')+(q.banca?' — banca '+q.banca:'');
+    // Sem quesito numerado: quando a banca publicou o padrão de resposta em prosa
+    // (extraído do PDF oficial), usa esse texto como gabarito — sem pontuação por
+    // quesito, mas com o que a banca de fato aceitava como resposta correta.
+    const gabTexto = esp.length ? ('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')+instr)
+      : (q.espelhoTexto ? ('Padrão de resposta oficial (' + q.orgao + ')\n\n' + q.espelhoTexto) : '');
     this.setState({
       redEnunciado: cab+'\n\n'+(q.enunciado||''),
-      redGabarito: esp.length ? ('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')+instr) : '',
+      redGabarito: gabTexto,
       // Treino pelo espelho: o espelho fica ESCONDIDO até a pessoa entregar. Saber que
       // existe um quesito de preclusão já entrega a resposta.
-      redEspelhoOculto: esp.length>0,   // só esconde quando o espelho já está transcrito
+      redEspelhoOculto: !!gabTexto,   // só esconde quando já existe gabarito oficial transcrito
       // Prova cadastrada: a pessoa só RESPONDE — enunciado e espelho são os oficiais e não se editam.
       redModoProva: true,
       redText:'', redResult:null, bancoOpen:false
     });
     try{ localStorage.setItem('catedra:redEnunciado',JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
-      localStorage.setItem('catedra:redGabarito',JSON.stringify(esp.length?('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')+instr):''));
+      localStorage.setItem('catedra:redGabarito',JSON.stringify(gabTexto));
       localStorage.setItem('catedra:redText',JSON.stringify('')); }catch(_){}
     this._toast(esp.length ? 'Questão carregada — o espelho fica oculto até você entregar'
+      : (q.espelhoTexto ? 'Questão carregada — padrão de resposta oficial fica oculto até você entregar'
       : (q.fonte_espelho ? 'Questão carregada — o espelho está em PDF; abra o link no enunciado e cole os quesitos em ③'
-                         : 'Questão carregada — esta banca não publicou espelho'));
+                         : 'Questão carregada — esta banca não publicou espelho')));
   };
 
   onRedEnun = (e)=> this.setState({redEnunciado:e.currentTarget.value, redResult:null});
@@ -8669,7 +8675,7 @@ class Component extends DCLogic {
       if(this.state.bancoTipo && (q.tipo||'discursiva')!==this.state.bancoTipo) return false;
       // "só com espelho": quesito a quesito OU link do PDF oficial — nos dois casos há
       // critério de correção; sem nenhum dos dois a prova serve só para treinar redação.
-      if(this.state.bancoSoEsp && !((q.espelho&&q.espelho.length) || q.fonte_espelho)) return false;
+      if(this.state.bancoSoEsp && !((q.espelho&&q.espelho.length) || q.espelhoTexto || q.fonte_espelho)) return false;
       if(!_bq) return true;
       return ((q.tema||'')+' '+(q.enunciado||'')+' '+(q.orgao||'')+' '+(q.banca||'')+' '+(q.ano||'')+' '+(q.cargo||'')+' '+(q.carreira||'')).toLowerCase().includes(_bq);
     });
@@ -8678,15 +8684,15 @@ class Component extends DCLogic {
       ehPeca:(q.tipo==='peca'||q.tipo==='sentenca'), tipoLabel:(q.tipo==='peca'?(q.peca||'Peça'):q.tipo==='sentenca'?'Sentença/peça':'Discursiva'),
       carreira:q.carreira||'',
       rotulo:[q.orgao,q.ano].filter(Boolean).join(' · ')+(q.banca?(' · '+q.banca):'')+(q.cargo?(' · '+q.cargo):''),
-      temEspelho:!!((q.espelho&&q.espelho.length)||q.fonte_espelho),
+      temEspelho:!!((q.espelho&&q.espelho.length)||q.espelhoTexto||q.fonte_espelho),
       selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):''))
-           :(q.fonte_espelho?'espelho oficial em PDF':'sem espelho publicado'),
+           :(q.espelhoTexto?'padrão de resposta oficial':(q.fonte_espelho?'espelho oficial em PDF':'sem espelho publicado')),
       // cor por tipo de prova: a faixa no topo do card dá a leitura antes da leitura
       faixa:'height:4px;background:'+((q.tipo==='sentenca')?'#7c3aed':(q.tipo==='peca')?'#0ea5e9':'var(--accent)')+';',
       seloTipo:'font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:99px;'
         +'background:'+((q.tipo==='sentenca')?'rgba(124,58,237,.13);color:#6d28d9;':(q.tipo==='peca')?'rgba(14,165,233,.13);color:#0369a1;':'color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);'),
       seloEsp:'font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;'
-        +((q.espelho&&q.espelho.length)?'background:rgba(15,157,107,.14);color:#0f7f57;'
+        +((q.espelho&&q.espelho.length)||q.espelhoTexto?'background:rgba(15,157,107,.14);color:#0f7f57;'
           :(q.fonte_espelho?'background:rgba(245,158,11,.15);color:#b8770a;':'background:var(--surface2);color:var(--text3);')),
       resumo:String(q.enunciado||'').slice(0,190)+(String(q.enunciado||'').length>190?'…':''),
       fonte:q.fonte||'' }));
@@ -10962,7 +10968,7 @@ class Component extends DCLogic {
         return g? 'A correção sai contra o espelho oficial desta prova: quesito a quesito, na escala da banca.'
                 : 'Sem espelho cadastrado, a correção sai por critérios gerais — cole o espelho acima para a nota por quesito.';})(),
       redKpiProvas:String(_bancoTodas.length||'—'),
-      redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.fonte_espelho).length||'—'),
+      redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.espelhoTexto||q.fonte_espelho).length||'—'),
       redKpiFeitas:String((this.state.redHistory||[]).length),
       redText:this.state.redText, redWords:String(redWords), redWordsN:redWords, redCanSubmit, redBusy:this.state.redBusy, redIdle:!this.state.redBusy,
       redEnunciado:this.state.redEnunciado, onRedEnun:this.onRedEnun,

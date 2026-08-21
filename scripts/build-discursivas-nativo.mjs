@@ -40,6 +40,7 @@ const out = SRC.map((q) => ({
   espelho: Array.isArray(q.espelho)
     ? q.espelho.map((e) => ({ quesito: str(e.quesito), pontos: num(e.pontos), escala: str(e.escala), dispositivos: Array.isArray(e.dispositivos) ? e.dispositivos.map(str) : [] }))
     : [],
+  espelhoTexto: str(q.espelhoTexto),
   total: num(q.total),
   fonte: str(q.fonte),
 })).filter((q) => q.id && q.enunciado);
@@ -47,4 +48,5 @@ const out = SRC.map((q) => ({
 const dest = join(ROOT, 'discursivas.json');
 writeFileSync(dest, JSON.stringify(out));
 const comEspelho = out.filter((q) => q.espelho.length).length;
-console.log(`discursivas.json: ${out.length} questões (${comEspelho} com espelho publicado) → ${dest}`);
+const comEspelhoTexto = out.filter((q) => q.espelhoTexto).length;
+console.log(`discursivas.json: ${out.length} questões (${comEspelho} com espelho por quesito, ${comEspelhoTexto} com padrão de resposta em texto) → ${dest}`);
