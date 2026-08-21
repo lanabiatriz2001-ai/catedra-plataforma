@@ -46,6 +46,7 @@ const CSS = `
 
 .ctr .blk{background:var(--surface);border:1px solid var(--border);border-radius:14px;
   padding:15px 17px;margin-bottom:12px;box-shadow:0 1px 2px rgba(20,15,10,.05)}
+.ctr .blk.alvo{border-color:var(--rc,#5b47b8);box-shadow:0 0 0 3px color-mix(in srgb,var(--rc,#5b47b8) 22%,transparent)}
 .ctr .blk h3{margin:0 0 9px;font:800 15.5px inherit;display:flex;align-items:flex-start;gap:11px;line-height:1.35}
 .ctr .blk h3 i{font-style:normal;width:25px;height:25px;border-radius:8px;background:var(--rc,#5b47b8);color:#fff;
   display:flex;align-items:center;justify-content:center;font:800 12px var(--mono);flex:none;margin-top:-1px}
@@ -202,8 +203,13 @@ function termoBusca(rotulo, alvo){
   const lei=/Lei\s+[\d.]+\/\d{2,4}/i.exec(ref);
   return lei?lei[0]:ref;
 }
-function abrirAcervo(alvo, termo){
-  try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo, termo}, '*'); }catch(e){}
+// O acervo precisa saber DE ONDE veio o clique, senão a pessoa cai na lei seca e não
+// acha mais o caminho de volta. A origem viaja junto e o app a devolve ao bloco exato
+// (ver ctVoltarOrigem no Catedra.dc.html e a barra de volta em legis/juris-web).
+function abrirAcervo(alvo, termo, origem){
+  let o=origem||null;
+  if(!o && typeof API.origemDe==='function'){ try{ o=API.origemDe(); }catch(e){} }
+  try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo, termo, origem:o}, '*'); }catch(e){}
 }
 
 /* ---------- montagem do painel ---------- */
@@ -320,8 +326,9 @@ function pinta(){
   }
 
   el.sc.innerHTML=(p.blocos||[]).map((b,i)=>{
-    const lei=(b.lei||[]).map(t=>'<button class="lei" data-alvo="legis" data-t="'+esc(t)+'">⚖️ '+esc(t)+'</button>').join('');
-    const jur=(b.juris||[]).map(t=>'<button class="juris" data-alvo="juris" data-t="'+esc(t)+'">🏛️ '+esc(t)+'</button>').join('');
+    const _o=' data-b="'+i+'" data-bn="'+esc(b.nome||'')+'"';
+    const lei=(b.lei||[]).map(t=>'<button class="lei" data-alvo="legis" data-t="'+esc(t)+'"'+_o+'>⚖️ '+esc(t)+'</button>').join('');
+    const jur=(b.juris||[]).map(t=>'<button class="juris" data-alvo="juris" data-t="'+esc(t)+'"'+_o+'>🏛️ '+esc(t)+'</button>').join('');
     // sub-itens: a ordem DENTRO do bloco. É onde a prova se perde — "preliminar de
     // prescrição" na hora errada custa a estrutura inteira.
     const itens=(b.itens||[]).map(x=>'<li>'+(x.t?'<b>'+esc(x.t)+'</b>':'')+esc(x.d||'')+'</li>').join('');
@@ -331,7 +338,7 @@ function pinta(){
         +'<div class="mtexto">'+esc(b.modelo)+'</div>'
         +'<button class="mcopia" data-m="'+esc(b.modelo)+'">⧉ Copiar o trecho</button></details>'
       : '';
-    return '<div class="blk"><h3><i>'+(i+1)+'</i>'+esc(b.nome)+'</h3>'
+    return '<div class="blk" data-b="'+i+'"><h3><i>'+(i+1)+'</i>'+esc(b.nome)+'</h3>'
       +'<div class="deve">'+esc(b.deve)+'</div>'
       +(itens?'<ol class="itens">'+itens+'</ol>':'')
       +(lei?'<div class="grp"><span class="lb">O que manda</span><div class="rf">'+lei+'</div></div>':'')
@@ -344,7 +351,10 @@ function pinta(){
     +'mas clique neles: o texto integral abre no CátedraLEGIS, e é lá que se confere. '
     +'Roteiro escrito pelo Cátedra a partir da lei e da jurisprudência, não copiado de curso.</div>';
   el.sc.querySelectorAll('.rf button').forEach(b=>{
-    b.onclick=()=>abrirAcervo(b.dataset.alvo, termoBusca(b.dataset.t, b.dataset.alvo));
+    b.onclick=()=>abrirAcervo(b.dataset.alvo, termoBusca(b.dataset.t, b.dataset.alvo), {
+      view:'roteiros', peca:atual, bloco:(+b.dataset.b||0),
+      rotulo:atual+(b.dataset.bn?(' · '+b.dataset.bn):'')
+    });
   });
   el.sc.querySelectorAll('.mcopia').forEach(b=>{
     b.onclick=()=>{ try{ navigator.clipboard.writeText(b.dataset.m).then(()=>{
@@ -352,7 +362,7 @@ function pinta(){
   });
 }
 
-function abrir(nome){
+function abrir(nome, bloco){
   montar();
   atual=nome; modo='roteiro'; cronZera();
   const p=(window.CT_PECAS||{})[nome];
@@ -368,6 +378,19 @@ function abrir(nome){
   pinta();
   el.rot.classList.add('on'); el.velo.classList.add('on'); el.rot.setAttribute('aria-hidden','false');
   el.sc.scrollTop=0;
+  // volta do acervo: abre já no bloco de onde o artigo foi consultado
+  if(bloco!=null && bloco!=='' && !isNaN(+bloco)) irAoBloco(+bloco);
+}
+function irAoBloco(i){
+  if(!el.sc) return;
+  setTimeout(()=>{
+    const alvo=el.sc.querySelector('.blk[data-b="'+i+'"]');
+    if(!alvo) return;
+    el.sc.querySelectorAll('.blk.alvo').forEach(x=>x.classList.remove('alvo'));
+    alvo.classList.add('alvo');
+    alvo.scrollIntoView({block:'center', behavior:'smooth'});
+    setTimeout(()=>alvo.classList.remove('alvo'), 3200);
+  }, 60);
 }
 function fechar(){
   if(!el.rot) return;
@@ -375,7 +398,7 @@ function fechar(){
   el.rot.classList.remove('on'); el.velo.classList.remove('on'); el.rot.setAttribute('aria-hidden','true');
 }
 
-const API={abrir, fechar, feitos, ramoDe, RAMOS, esc, limpa, abrirAcervo, aoMudar:null};
+const API={abrir, fechar, feitos, ramoDe, RAMOS, esc, limpa, abrirAcervo, irAoBloco, aoMudar:null, origemDe:null};
 window.CTRoteiro=API;
 window.abrirRoteiro=abrir;   // compatibilidade com quem já chamava assim
 })();

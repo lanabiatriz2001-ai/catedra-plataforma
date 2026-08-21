@@ -502,6 +502,148 @@
     };
   }
 
+  // ================================================================ 2ª FASE
+  // Simulado de segunda fase corrigido pelo ESPELHO OFICIAL da própria prova.
+  // Nada aqui inventa critério: os quesitos, a exigência literal da banca, a
+  // pontuação e os dispositivos vêm de espelhos.js, gerado de banco-espelhos.html.
+  // O que a máquina faz sozinha é o que ela sabe fazer com honestidade — detectar
+  // se o dispositivo foi citado e medir a cobertura do vocabulário da exigência.
+  // O juízo sobre o mérito continua sendo dela: cada quesito recebe um veredito.
+
+  function acervoEspelhos() {
+    if (w.CT_ESPELHOS) return Promise.resolve(w.CT_ESPELHOS);
+    return carregarScript('./espelhos.js').then(function () { return w.CT_ESPELHOS || null; });
+  }
+
+  /** Lista de provas do banco de espelhos, filtrada. filtro:{tipo,trib,ano,q} */
+  function provasEspelho(filtro) {
+    var E = w.CT_ESPELHOS || { provas: [] }, f = filtro || {};
+    var alvo = norm(f.q || '');
+    return (E.provas || []).filter(function (p) {
+      if (f.tipo === 'sentenca' && !/sentenc|sentença|peça/i.test(p.tipoRaw)) return false;
+      if (f.tipo === 'discursiva' && !/discursiva/i.test(p.tipoRaw)) return false;
+      if (f.trib && p.trib !== f.trib) return false;
+      if (f.ano && String(p.ano) !== String(f.ano)) return false;
+      if (alvo && norm([p.trib, p.ano, p.banca, p.tipo,
+        (p.quesitos || []).map(function (q) { return q.tema + ' ' + q.disc; }).join(' ')].join(' ')).indexOf(alvo) < 0) return false;
+      return true;
+    });
+  }
+
+  // Um dispositivo do espelho ("CPC art. 55, par. 2o, I", "Sumula 235 do STJ",
+  // "Tema 1068 do STF") reduzido ao par (marcador, número) que dá para procurar
+  // na folha de resposta sem gerar falso positivo com qualquer número solto.
+  var SIGLAS_DISP = ['cpc','cpp','cp','cf','cc','cdc','ctn','clt','eca','lep','lindb','ctb','lacp','lia','licc'];
+  function alvoDoDispositivo(d) {
+    var t = norm(d);
+    var sum = /\b(?:sumula|s[uú]mula)\s*(?:vinculante\s*)?(\d{1,4})/.exec(t);
+    if (sum) return { tipo: 'sumula', num: sum[1], rotulo: d };
+    var tema = /\btema\s*(\d{1,4})/.exec(t);
+    if (tema) return { tipo: 'tema', num: tema[1], rotulo: d };
+    var art = /\bart(?:igo)?s?\.?\s*(\d{1,4}(?:\s*-\s*[a-z])?)/.exec(t);
+    var lei = /\blei\s*(?:n[oº.]?\s*)?([\d.]{4,})/.exec(t);
+    var sig = null;
+    for (var i = 0; i < SIGLAS_DISP.length; i++) {
+      if (new RegExp('\\b' + SIGLAS_DISP[i] + '\\b').test(t)) { sig = SIGLAS_DISP[i]; break; }
+    }
+    if (art) return { tipo: 'artigo', num: art[1].replace(/\s+/g, ''), sigla: sig,
+                      lei: lei ? lei[1].replace(/\./g, '') : null, rotulo: d };
+    if (lei) return { tipo: 'lei', num: lei[1].replace(/\./g, ''), rotulo: d };
+    return { tipo: 'texto', rotulo: d };
+  }
+
+  /** O dispositivo foi citado na folha? Devolve true/false — sem meio-termo. */
+  function citou(alvo, textoNorm) {
+    if (!alvo) return false;
+    if (alvo.tipo === 'sumula')
+      return new RegExp('s[uú]?mula[^.]{0,40}\\b' + alvo.num + '\\b').test(textoNorm)
+          || new RegExp('\\b' + alvo.num + '\\b[^.]{0,20}(?:do stj|do stf|sumular)').test(textoNorm);
+    if (alvo.tipo === 'tema')
+      return new RegExp('tema[^.]{0,30}\\b' + alvo.num + '\\b').test(textoNorm);
+    if (alvo.tipo === 'lei')
+      return textoNorm.replace(/\./g, '').indexOf(alvo.num) >= 0;
+    if (alvo.tipo === 'artigo') {
+      var temArt = new RegExp('\\bart(?:igo)?s?\\.?\\s*' + alvo.num.replace('-', '\\s*-\\s*') + '\\b').test(textoNorm);
+      if (!temArt) return false;
+      if (alvo.lei && textoNorm.replace(/\./g, '').indexOf(alvo.lei) < 0 && !alvo.sigla) return false;
+      if (alvo.sigla) return new RegExp('\\b' + alvo.sigla + '\\b').test(textoNorm);
+      return true;
+    }
+    // dispositivo em prosa: exige as palavras longas do rótulo
+    var chaves = norm(alvo.rotulo).split(/[^a-z0-9]+/).filter(function (x) { return x.length >= 6; });
+    if (!chaves.length) return false;
+    return chaves.every(function (x) { return textoNorm.indexOf(x) >= 0; });
+  }
+
+  var STOP_ESP = { de:1,do:1,da:1,dos:1,das:1,e:1,em:1,a:1,o:1,os:1,as:1,no:1,na:1,nos:1,nas:1,ao:1,aos:1,
+    com:1,por:1,para:1,que:1,'nao':1,um:1,uma:1,art:1,arts:1,artigo:1,artigos:1,lei:1,sobre:1,entre:1,ser:1,
+    se:1,seu:1,sua:1,ou:1,mais:1,como:1,pelo:1,pela:1,qual:1,quais:1,deve:1,item:1,itens:1,ainda:1,tambem:1,
+    reconhecer:1,indicar:1,apontar:1,mencionar:1,citar:1,abordar:1,fundamentar:1,concluir:1,exposicao:1 };
+
+  /** Palavras que a exigência da banca cobra e que a folha de resposta trouxe. */
+  function coberturaExigencia(exig, textoNorm) {
+    var chave = [], vis = {};
+    norm(exig).split(/[^a-z0-9]+/).forEach(function (t) {
+      if (t.length >= 6 && !STOP_ESP[t] && !vis[t] && chave.length < 18) { vis[t] = 1; chave.push(t); }
+    });
+    if (!chave.length) return { pct: 0, achou: [], faltou: [] };
+    var achou = chave.filter(function (t) { return textoNorm.indexOf(t) >= 0; });
+    return { pct: Math.round(achou.length / chave.length * 100), achou: achou,
+             faltou: chave.filter(function (t) { return textoNorm.indexOf(t) < 0; }) };
+  }
+
+  /**
+   * Corrige a folha contra o espelho da prova, quesito a quesito.
+   * prova  — item de CT_ESPELHOS.provas
+   * texto  — a folha de resposta inteira
+   * Devolve {quesitos:[...], total, valorTotal, incertos}. O veredito de cada
+   * quesito nasce sugerido; quem decide é ela, no painel.
+   */
+  function corrigirPorEspelho(prova, texto) {
+    var tn = norm(texto || '');
+    var itens = (prova.quesitos || []).map(function (q, i) {
+      var alvos = (q.disp || []).map(alvoDoDispositivo);
+      var cit = alvos.map(function (a) { return { rotulo: a.rotulo, citado: citou(a, tn) }; });
+      var nCit = cit.filter(function (c) { return c.citado; }).length;
+      var cob = coberturaExigencia(q.exig, tn);
+      // sugestão: dispositivo citado pesa mais que vocabulário, porque é o que a
+      // banca confere primeiro — mas nenhum dos dois prova que o mérito foi enfrentado
+      var forca = (cit.length ? (nCit / cit.length) * 0.6 : 0) + (cob.pct / 100) * (cit.length ? 0.4 : 1);
+      return {
+        i: i, rot: q.rot, disc: q.disc, tema: q.tema, exig: q.exig,
+        pont: q.pont, valor: q.valor, incerto: q.incerto, desconto: q.desconto,
+        dispositivos: cit, dispCitados: nCit, dispTotal: cit.length,
+        cobertura: cob.pct, faltou: cob.faltou,
+        sugestao: forca >= 0.6 ? 'atendeu' : forca >= 0.3 ? 'parcial' : 'nao'
+      };
+    });
+    var somaveis = itens.filter(function (q) { return !q.desconto && q.valor != null; });
+    return {
+      quesitos: itens,
+      valorTotal: somaveis.reduce(function (a, q) { return a + q.valor; }, 0),
+      incertos: itens.filter(function (q) { return q.incerto; }).length,
+      semValor: itens.length - somaveis.length
+    };
+  }
+
+  /** Soma a nota a partir dos veredictos: atendeu=1, parcial=0,5, não=0. */
+  function notaPorEspelho(correcao, veredictos) {
+    var peso = { atendeu: 1, parcial: 0.5, nao: 0 };
+    var ganho = 0, poss = 0, atendidos = 0, parciais = 0, zerados = 0, semNota = 0;
+    (correcao.quesitos || []).forEach(function (q) {
+      var v = veredictos[q.i] || q.sugestao;
+      if (v === 'atendeu') atendidos++; else if (v === 'parcial') parciais++; else zerados++;
+      if (q.desconto || q.valor == null) { semNota++; return; }
+      poss += q.valor;
+      ganho += q.valor * peso[v];
+    });
+    return {
+      ganho: ganho, possivel: poss,
+      pct: poss ? Math.round(ganho / poss * 1000) / 10 : null,
+      atendidos: atendidos, parciais: parciais, zerados: zerados, semNota: semNota
+    };
+  }
+
   // --------------------------------------------------------------------- misc
   function embaralhar(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function hash(s) { var h = 2166136261; for (var i = 0; i < String(s).length; i++) { h ^= String(s).charCodeAt(i); h = (h * 16777619) >>> 0; } return h; }
@@ -514,6 +656,9 @@
     simuladoMisto: simuladoMisto, simuladoLeisEmbutidas: simuladoLeisEmbutidas, relatorio: relatorio,
     artigosDaLei: artigosDaLei, proposicoesDoArtigo: proposicoesDoArtigo,
     perguntaOral: perguntaOral, corrigirOral: corrigirOral,
+    acervoEspelhos: acervoEspelhos, provasEspelho: provasEspelho,
+    corrigirPorEspelho: corrigirPorEspelho, notaPorEspelho: notaPorEspelho,
+    alvoDoDispositivo: alvoDoDispositivo, citou: citou,
     inverter: inverter, primeiraFrase: primeiraFrase, fundamentos: fundamentos, limpa: limpa,
     encurtar: encurtar, ehAssunto: ehAssunto,
     ehProposicao: ehProposicao

@@ -240,8 +240,10 @@ document.addEventListener('keydown',e=>{
 });
 pinta();
 
-/* ?peca=Nome abre o roteiro direto (o ✍️ do fluxo dos ritos usa este link) */
-try{ const p=new URLSearchParams(location.search).get('peca');
-  if(p && (window.CT_PECAS||{})[p]) R.abrir(p); }catch(e){}
+/* ?peca=Nome abre o roteiro direto (o ✍️ do fluxo dos ritos usa este link).
+   ?bloco=N vem da volta do acervo: reabre o painel no bloco de onde o artigo foi
+   consultado, em vez de largar a pessoa no topo (ver ctVoltarOrigem no app). */
+try{ const P=new URLSearchParams(location.search), p=P.get('peca'), b=P.get('bloco');
+  if(p && (window.CT_PECAS||{})[p]) R.abrir(p, (b!==null && b!=='' && !isNaN(+b)) ? +b : undefined); }catch(e){}
 </script>
 </body></html>

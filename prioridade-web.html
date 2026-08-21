@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Painel de prioridade</title>
+<style>
+:root{
+  --bg:#faf7f5;--surface:#ffffff;--surface2:#f5f0ec;--border:#e4dcd6;
+  --ink:#1b1b1f;--text2:#4b4a52;--text3:#7d7a86;
+  --accent:#b5174e;--accentD:#8e0f3c;--accentSoft:#fbeef3;--onAccent:#ffffff;
+  --alto:#b93a2b;--medio:#9a6b00;--baixo:#12795a;--cego:#5b47b8;
+  --display:Georgia,serif;--body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:ui-monospace,Menlo,monospace;
+  --sh:0 1px 2px rgba(20,15,10,.05),0 4px 14px rgba(20,15,10,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+button,select{font-family:inherit}
+::-webkit-scrollbar{width:10px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;border:2px solid var(--bg)}
+
+.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border)}
+.l1{display:flex;align-items:center;gap:14px;padding:13px 18px;max-width:1180px;margin:0 auto;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;flex:none}
+.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+.brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
+.brand small{display:block;font-size:11.5px;color:var(--text3);margin-top:4px}
+.sp{flex:1}
+.sel{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:11px;
+  padding:9px 12px;font-size:13px;cursor:pointer;outline:none;flex:none}
+.sel:focus{border-color:var(--accent)}
+.lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+
+.wrap{padding:20px 18px 70px;max-width:1180px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 15px;box-shadow:var(--sh)}
+.stat b{display:block;font:800 23px/1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{display:block;font-size:10.5px;color:var(--text3);font-weight:800;text-transform:uppercase;
+  letter-spacing:.06em;margin-top:5px}
+.dica{font-size:12.8px;color:var(--text3);line-height:1.65;margin:0 0 18px;max-width:82ch}
+.dica b{color:var(--text2)}
+.dica code{font:600 12px var(--mono);background:var(--surface2);border-radius:5px;padding:1px 6px}
+
+.alerta{display:flex;gap:12px;align-items:flex-start;background:color-mix(in srgb,var(--cego) 8%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--cego) 35%,var(--border));border-radius:14px;padding:14px 16px;margin:0 0 18px}
+.alerta .bt{font-size:20px;line-height:1;flex:none}
+.alerta h4{margin:0 0 4px;font:800 14.5px var(--display)}
+.alerta p{margin:0;font-size:12.8px;color:var(--text2);line-height:1.6}
+
+.linha{background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--fx,var(--border));
+  border-radius:14px;padding:13px 16px;margin-bottom:10px;box-shadow:var(--sh)}
+.lh{display:flex;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer}
+.pos{font:800 15px/1 var(--mono);color:var(--text3);width:26px;flex:none;text-align:right;font-variant-numeric:tabular-nums}
+.nm{font:800 15.5px var(--display);letter-spacing:-.01em;flex:1;min-width:150px}
+.tagc{font:800 9.5px var(--mono);letter-spacing:.07em;text-transform:uppercase;border-radius:99px;padding:3px 9px;flex:none}
+.tagc.cego{color:var(--cego);background:color-mix(in srgb,var(--cego) 13%,transparent)}
+.tagc.alto{color:var(--alto);background:color-mix(in srgb,var(--alto) 13%,transparent)}
+.tagc.ok{color:var(--baixo);background:color-mix(in srgb,var(--baixo) 13%,transparent)}
+.num{font:800 17px var(--mono);font-variant-numeric:tabular-nums;flex:none;color:var(--fx,var(--ink))}
+.barra{height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:9px}
+.barra i{display:block;height:100%;border-radius:99px;background:var(--fx,var(--accent));transition:width .3s}
+.mini{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--text3);font-weight:600}
+.mini b{color:var(--text2);font-variant-numeric:tabular-nums}
+.det{display:none;margin-top:13px;padding-top:13px;border-top:1px dashed var(--border)}
+.linha.on .det{display:block}
+.dh{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:0 0 8px}
+.arts{display:flex;flex-wrap:wrap;gap:6px}
+.arts button{cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--ink);
+  border-radius:10px;padding:6px 11px;font-size:12px;text-align:left;line-height:1.35}
+.arts button:hover{border-color:var(--accent);background:var(--accentSoft)}
+.arts button em{font-style:normal;font:800 10.5px var(--mono);color:var(--accentD);margin-left:6px}
+.arts button small{display:block;color:var(--text3);font-size:10.5px;margin-top:2px}
+.dips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.dips span{font-size:11.5px;color:var(--text2);border:1px solid var(--border);border-radius:99px;padding:3px 10px}
+.dips span i{font-style:normal;font:800 10px var(--mono);color:var(--text3);margin-left:5px}
+.rodape{font-size:11.8px;color:var(--text3);line-height:1.65;margin-top:22px;border-top:1px solid var(--border);padding-top:14px}
+@media (max-width:640px){ .l1{padding:11px 12px} .wrap{padding:16px 12px 60px} .brand small{display:none} }
+</style>
+<script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
+</head><body>
+
+<header class="top"><div class="l1">
+  <div class="brand"><span class="ic">◎</span><div><b>Painel de prioridade</b>
+    <small>o que cai vezes o que você erra</small></div></div>
+  <span class="sp"></span>
+  <span class="lbl">incidência</span>
+  <select class="sel" id="fonte">
+    <option value="prova">Citação em prova de concurso</option>
+    <option value="julgado">Citação em julgado do acervo</option>
+    <option value="misto">As duas, ponderadas</option>
+  </select>
+  <select class="sel" id="filtro">
+    <option value="">Todas as disciplinas</option>
+    <option value="cego">Só os pontos cegos</option>
+    <option value="feito">Só as que já tenho questão</option>
+  </select>
+</div></header>
+
+<main class="wrap">
+  <div class="stats" id="stats"></div>
+  <div id="alerta"></div>
+  <p class="dica">A ordem é <b>incidência × taxa de erro</b>. A incidência vem de <code>incidencia.json</code>
+    (dispositivos citados em provas reais e em julgados do acervo); a taxa de erro, do
+    <code>tec-desempenho</code>. Duas questões com dois erros não são 100% de erro — são ruído: a taxa é puxada
+    para a média geral com peso <b>K=10</b>, então quem respondeu pouco se comporta como a média em vez do acidente.
+    Disciplina com incidência alta e <b>nenhuma</b> questão respondida não some da lista: vira <b>ponto cego</b>.
+    Clique numa linha para ver os dispositivos exatos — e clique no dispositivo para abrir a lei seca.</p>
+  <div id="lista"></div>
+  <div class="rodape" id="rodape"></div>
+</main>
+
+<script src="prioridade-dados.js"></script>
+<script>
+/* ==========================================================================
+   Painel de prioridade — cruzamento de incidencia.json com tec-desempenho.
+   Os números não são calculados aqui: vêm prontos de prioridade-dados.js, que
+   scripts/build-prioridade.mjs gera. Esta página só ordena e desenha.
+   ========================================================================== */
+const D=window.__CT_PRIORIDADE__||{meta:{},disciplinas:[]};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct=x=>(x*100).toFixed(0)+'%';
+const abertos={};
+
+/* o clique num dispositivo abre a lei seca no app — e leva a origem junto, para
+   a barra de volta do CátedraLEGIS devolver a pessoa a esta linha */
+function abrirAcervo(termo, disc){
+  try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo:'legis', termo,
+    origem:{view:'prioridade', disc, rotulo:'Painel de prioridade · '+disc}}, '*'); }catch(e){}
+}
+
+function score(l, fonte){
+  return fonte==='julgado' ? l.scoreJulgado : fonte==='misto' ? l.scoreMisto : l.scoreProva;
+}
+function incid(l, fonte){
+  return fonte==='julgado' ? l.julgado : fonte==='prova' ? l.prova : null;
+}
+
+function pinta(){
+  const fonte=$('fonte').value, filtro=$('filtro').value;
+  let ls=D.disciplinas.slice()
+    .filter(l=> filtro==='cego' ? (l.cego && l.prova>0) : filtro==='feito' ? !l.cego : true)
+    .filter(l=> score(l,fonte)>0 || l.prova>0 || l.julgado>0)
+    .sort((a,b)=>score(b,fonte)-score(a,fonte));
+  const topo=Math.max(1, ...ls.map(l=>score(l,fonte)));
+
+  const m=D.meta||{}, cegas=D.disciplinas.filter(l=>l.cego && l.prova>0);
+  $('stats').innerHTML=
+     '<div class="stat"><b>'+ls.length+'</b><span>Disciplinas no cruzamento</span></div>'
+    +'<div class="stat"><b>'+(m.provasCitacoes||0)+'</b><span>Citações em '+(m.provasFontes||0)+' provas reais</span></div>'
+    +'<div class="stat"><b>'+((m.tecTotal||{}).questoes||0)+'</b><span>Questões respondidas no TEC</span></div>'
+    +'<div class="stat"><b>'+pct(m.mediaErro||0)+'</b><span>Taxa de erro geral</span></div>'
+    +'<div class="stat"><b>'+cegas.length+'</b><span>Pontos cegos</span></div>';
+
+  if(cegas.length){
+    const top=cegas.slice().sort((a,b)=>b.prova-a.prova);
+    $('alerta').innerHTML='<div class="alerta"><span class="bt">◑</span><div>'
+      +'<h4>'+top.length+' disciplina'+(top.length>1?'s':'')+' com cobrança e nenhuma questão respondida</h4>'
+      +'<p>'+top.map(l=>'<b>'+esc(l.disc)+'</b> ('+l.prova+' citações em prova)').join(' · ')
+      +'. Sem questão respondida não existe taxa de erro — e o que não tem taxa não sobe no ranking sozinho. '
+      +'Aqui essas disciplinas entram com a taxa média e ficam marcadas, porque zero questão em '
+      +'matéria cobrada é o pior lugar para se estar às vésperas da prova.</p></div></div>';
+  } else $('alerta').innerHTML='';
+
+  $('lista').innerHTML=ls.map((l,i)=>{
+    const s=score(l,fonte), n=incid(l,fonte);
+    const cor = l.cego ? 'var(--cego)' : (l.erroAjustado>=0.42 ? 'var(--alto)'
+              : l.erroAjustado>=0.33 ? 'var(--medio)' : 'var(--baixo)');
+    const selo = l.cego ? '<span class="tagc cego">ponto cego</span>'
+      : (l.erroBruto!=null && l.erroBruto>=0.5) ? '<span class="tagc alto">erra mais da metade</span>'
+      : (l.erroBruto!=null && l.erroBruto<=0.25 && l.questoes>=20) ? '<span class="tagc ok">sob controle</span>' : '';
+    return '<article class="linha'+(abertos[l.disc]?' on':'')+'" style="--fx:'+cor+'" data-d="'+esc(l.disc)+'">'
+      +'<div class="lh"><span class="pos">'+(i+1)+'</span>'
+      +'<span class="nm">'+esc(l.disc)+'</span>'+selo
+      +'<span class="num">'+s.toFixed(1)+'</span></div>'
+      +'<div class="barra"><i style="width:'+Math.max(2,s/topo*100)+'%"></i></div>'
+      +'<div class="mini">'
+        +'<span>incidência <b>'+(n==null?(l.prova+' prova · '+l.julgado+' julgado'):n)+'</b></span>'
+        +'<span>TEC <b>'+l.questoes+'</b> questões · <b>'+l.erros+'</b> erros</span>'
+        +'<span>erro bruto <b>'+(l.erroBruto==null?'—':pct(l.erroBruto))+'</b></span>'
+        +'<span>erro ajustado <b>'+pct(l.erroAjustado)+'</b></span>'
+      +'</div>'
+      +'<div class="det">'
+        +(l.diplomas.length?'<p class="dh">Diplomas cobrados</p><div class="dips">'
+          +l.diplomas.map(d=>'<span>'+esc(d.nome)+'<i>'+d.n+'</i></span>').join('')+'</div>':'')
+        +(l.artigos.length?'<p class="dh">Dispositivos mais cobrados — clique para abrir a lei seca</p>'
+          +'<div class="arts">'+l.artigos.slice(0,24).map(a=>{
+            const anos=Object.keys(a.anos||{}).sort();
+            const org=Object.keys(a.orgaos||{}).slice(0,3).join(', ');
+            return '<button data-t="'+esc(a.dip+', art. '+a.art)+'">'
+              +esc(a.dip.replace(/^Código /,'C. ').replace(/^Lei d[eoa] /,''))+' · art. '+esc(a.art)
+              +'<em>'+a.n+'×</em>'
+              +'<small>'+esc(org||'—')+(anos.length?(' · '+anos.join('/')):'')+'</small></button>';
+          }).join('')+'</div>':'<p class="dh">Sem dispositivo mapeado nas provas do acervo</p>')
+      +'</div></article>';
+  }).join('') || '<div class="alerta"><span class="bt">·</span><div><h4>Nada neste recorte</h4>'
+      +'<p>Troque o filtro para ver as demais disciplinas.</p></div></div>';
+
+  document.querySelectorAll('.linha .lh').forEach(h=>{
+    h.onclick=()=>{ const a=h.closest('.linha'), d=a.dataset.d;
+      abertos[d]=!abertos[d]; a.classList.toggle('on', !!abertos[d]); };
+  });
+  document.querySelectorAll('.arts button').forEach(b=>{
+    b.onclick=()=>abrirAcervo(b.dataset.t, b.closest('.linha').dataset.d);
+  });
+
+  const mm=D.meta||{};
+  $('rodape').innerHTML='Incidência em prova apurada em '+(mm.provasFontes||0)+' provas reais ('
+    +(mm.provasCitacoes||0)+' citações de dispositivo); incidência em julgado, em '
+    +(mm.julgadoCitacoes||0)+' citações do acervo de jurisprudência — <b>são sinais diferentes</b>: '
+    +'o primeiro é cobrança, o segundo é relevância no tribunal. '
+    +'Desempenho do TEC extraído em '+esc(mm.tecExtraido||'—')+' ('+esc(mm.tecArquivo||'')+'). '
+    +'Dados gerados em '+esc(mm.gerado||'—')+' por scripts/build-prioridade.mjs — rode de novo depois de '
+    +'atualizar o desempenho no TEC.'
+    +(((mm.semMapa)||[]).length?'<br><b>Diplomas sem disciplina atribuída:</b> '+esc(mm.semMapa.join(', ')):'');
+}
+
+$('fonte').onchange=pinta; $('filtro').onchange=pinta;
+
+/* ?disc=Nome abre a disciplina já expandida (volta do acervo) */
+try{ const d=new URLSearchParams(location.search).get('disc'); if(d) abertos[d]=true; }catch(e){}
+pinta();
+try{ const d=new URLSearchParams(location.search).get('disc');
+  if(d){ const el=document.querySelector('.linha[data-d="'+d.replace(/"/g,'\\"')+'"]');
+    if(el) setTimeout(()=>el.scrollIntoView({block:'center',behavior:'smooth'}),120); } }catch(e){}
+</script>
+</body></html>

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulado de 2ª fase</title>
+<style>
+:root{
+  --bg:#faf7f5;--surface:#ffffff;--surface2:#f5f0ec;--border:#e4dcd6;
+  --ink:#1b1b1f;--text2:#4b4a52;--text3:#7d7a86;
+  --accent:#b5174e;--accentD:#8e0f3c;--accentSoft:#fbeef3;--onAccent:#ffffff;
+  --ok:#12795a;--meio:#9a6b00;--nao:#b93a2b;--neutro:#5f6368;
+  --display:Georgia,serif;--body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:ui-monospace,Menlo,monospace;
+  --sh:0 1px 2px rgba(20,15,10,.05),0 4px 14px rgba(20,15,10,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:10px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;border:2px solid var(--bg)}
+
+.top{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--border)}
+.l1{display:flex;align-items:center;gap:12px;padding:12px 18px;max-width:1120px;margin:0 auto;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;flex:none}
+.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
+  display:flex;align-items:center;justify-content:center;font:800 15px var(--mono);flex:none}
+.brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
+.brand small{display:block;font-size:11.5px;color:var(--text3);margin-top:4px}
+.sp{flex:1}
+.sel,.inp{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:11px;
+  padding:9px 12px;font-size:13px;outline:none;flex:none}
+.sel{cursor:pointer}.inp{min-width:180px;flex:1}
+.sel:focus,.inp:focus{border-color:var(--accent)}
+.bt{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);
+  border-radius:11px;padding:9px 15px;font-size:13px;font-weight:700}
+.bt:hover{border-color:var(--accent);background:var(--accentSoft)}
+.bt.pri{background:var(--accent);border-color:var(--accent);color:var(--onAccent)}
+.bt.pri:hover{background:var(--accentD)}
+.bt[disabled]{opacity:.45;cursor:default}
+
+.wrap{padding:20px 18px 80px;max-width:1120px;margin:0 auto}
+.dica{font-size:12.8px;color:var(--text3);line-height:1.65;margin:0 0 18px;max-width:84ch}
+.dica b{color:var(--text2)}
+
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;
+  box-shadow:var(--sh);display:flex;flex-direction:column;gap:8px}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.pcab{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.pcab b{font:800 16px var(--display)}
+.pcab span{font:700 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text3)}
+.pmeta{font-size:12px;color:var(--text2)}
+.pmeta i{font-style:normal;font-weight:800;font-variant-numeric:tabular-nums}
+.temas{font-size:11.5px;color:var(--text3);line-height:1.5}
+.plinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.plinks a{font-size:11.5px;color:var(--accentD);text-decoration:none;border-bottom:1px solid var(--border)}
+.plinks a:hover{border-color:var(--accent)}
+.pacoes{display:flex;gap:8px;margin-top:4px}
+
+.barra{position:sticky;top:60px;z-index:35;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:11px 15px;margin-bottom:14px;
+  box-shadow:var(--sh)}
+.cron{font:800 26px var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cron.fim{color:var(--nao)}
+.cronlb{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.folha{width:100%;min-height:56vh;border:1px solid var(--border);border-radius:14px;background:var(--surface);
+  padding:18px 20px;font-family:var(--display);font-size:15.5px;line-height:1.75;color:var(--ink);
+  outline:none;resize:vertical}
+.folha:focus{border-color:var(--accent)}
+.conta{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--text3);font-weight:600;margin-top:8px}
+.conta b{color:var(--text2);font-variant-numeric:tabular-nums}
+details.instr{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:14px}
+details.instr summary{cursor:pointer;font-weight:800;font-size:13px}
+details.instr ul{margin:10px 0 0;padding-left:20px;font-size:12.5px;color:var(--text2);line-height:1.6}
+.aviso{background:color-mix(in srgb,var(--nao) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--nao) 35%,var(--border));
+  border-radius:14px;padding:12px 15px;margin-bottom:14px;font-size:13px;color:var(--text2)}
+.aviso b{color:var(--nao)}
+
+.nota{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.nota div{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 15px;box-shadow:var(--sh)}
+.nota b{display:block;font:800 24px/1 var(--display);font-variant-numeric:tabular-nums}
+.nota span{display:block;font-size:10.5px;color:var(--text3);font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
+
+.q{background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--vc,var(--neutro));
+  border-radius:14px;padding:13px 16px;margin-bottom:10px;box-shadow:var(--sh)}
+.qh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.qh b{font:800 13.5px var(--mono);color:var(--text2)}
+.qh .tema{font:800 14.5px var(--display);flex:1;min-width:160px}
+.qh .pt{font:800 12px var(--mono);color:var(--accentD);background:var(--accentSoft);border-radius:99px;padding:3px 10px}
+.qh .dc{font:700 9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text3);
+  border:1px solid var(--border);border-radius:99px;padding:2px 9px}
+.exig{font-size:13px;color:var(--text2);line-height:1.6;margin:0 0 9px}
+.disp{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.disp span{font-size:11.5px;border-radius:99px;padding:3px 11px;border:1px solid var(--border);color:var(--text3)}
+.disp span.sim{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--border));
+  background:color-mix(in srgb,var(--ok) 8%,transparent);cursor:pointer}
+.disp span.nao{color:var(--nao);border-color:color-mix(in srgb,var(--nao) 35%,var(--border));cursor:pointer}
+.cob{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--text3);font-weight:600;margin-bottom:9px}
+.cob .pb{flex:1;max-width:220px;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.cob .pb i{display:block;height:100%;background:var(--meio);border-radius:99px}
+.faltou{font-size:11.5px;color:var(--text3);line-height:1.55;margin-bottom:9px}
+.faltou b{color:var(--text2)}
+.ver{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.ver button{cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--text2);
+  border-radius:99px;padding:5px 13px;font-size:12px;font-weight:700}
+.ver button.on[data-v=atendeu]{background:var(--ok);border-color:var(--ok);color:#fff}
+.ver button.on[data-v=parcial]{background:var(--meio);border-color:var(--meio);color:#fff}
+.ver button.on[data-v=nao]{background:var(--nao);border-color:var(--nao);color:#fff}
+.ver .sug{font-size:11px;color:var(--text3);margin-left:4px}
+
+.hist{margin-top:26px;border-top:1px solid var(--border);padding-top:16px}
+.hist h3{margin:0 0 10px;font:800 15px var(--display)}
+.hrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:9px 14px;margin-bottom:8px;font-size:12.5px}
+.hrow b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.hrow .sp{flex:1}
+.vazio{padding:40px 16px;text-align:center;color:var(--text3);font-size:13px;line-height:1.7;
+  background:var(--surface);border:1px dashed var(--border);border-radius:14px}
+@media print{ .top,.barra,.pacoes,.ver,.bt{display:none!important} .q{break-inside:avoid} }
+@media (max-width:640px){ .l1{padding:11px 12px} .wrap{padding:16px 12px 60px} .brand small{display:none}
+  .barra{position:static} }
+</style>
+<script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
+</head><body>
+
+<header class="top"><div class="l1" id="cab"></div></header>
+<main class="wrap" id="tela"></main>
+
+<script src="espelhos.js"></script>
+<script src="treino.js"></script>
+<script>
+/* ==========================================================================
+   Simulado de 2ª fase — prova real, cronômetro e correção pelo espelho oficial.
+   O motor está em treino.js (CT_TREINO.corrigirPorEspelho / notaPorEspelho);
+   os espelhos, em espelhos.js. Esta página é só a mesa de prova.
+   O estado fica em localStorage SEM o prefixo 'catedra:': a folha de resposta é
+   deste aparelho e não tem por que subir para a nuvem.
+   ========================================================================== */
+const T=window.CT_TREINO, E=window.CT_ESPELHOS||{provas:[],meta:{}};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CHAVE='catedraSegundaFase';
+const ler=()=>{ try{ return JSON.parse(localStorage.getItem(CHAVE)||'{}'); }catch(e){ return {}; } };
+const grava=o=>{ try{ localStorage.setItem(CHAVE, JSON.stringify(o)); }catch(e){} };
+
+let S=ler();                      // {sessao:{...}, hist:[...]}
+S.hist=S.hist||[];
+let tick=null;
+
+const ehSentenca=p=>/sentenc|sentença|peça/i.test(p.tipoRaw);
+const rotulo=p=>p.trib+' '+p.ano+' · '+p.tipo;
+const mmss=ms=>{ const t=Math.max(0,Math.floor(ms/1000));
+  return String(Math.floor(t/3600)).padStart(2,'0')+':'+String(Math.floor(t/60)%60).padStart(2,'0')
+    +':'+String(t%60).padStart(2,'0'); };
+
+/* ------------------------------------------------------------------ escolha */
+function telaEscolha(){
+  clearInterval(tick); tick=null;
+  $('cab').innerHTML=
+     '<div class="brand"><span class="ic">2ª</span><div><b>Simulado de 2ª fase</b>'
+    +'<small>prova real, cronômetro e espelho oficial</small></div></div><span class="sp"></span>'
+    +'<select class="sel" id="ftipo"><option value="sentenca">Sentenças e peças</option>'
+      +'<option value="discursiva">Discursivas</option><option value="">Tudo</option></select>'
+    +'<select class="sel" id="ftrib"><option value="">Todos os tribunais</option></select>'
+    +'<input class="inp" id="fq" placeholder="Buscar tema, disciplina, banca…" autocomplete="off">';
+  const tribs=[...new Set(E.provas.map(p=>p.trib))].sort();
+  tribs.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; $('ftrib').appendChild(o); });
+  $('ftipo').onchange=$('ftrib').onchange=listar; $('fq').oninput=listar;
+  $('tela').innerHTML='<p class="dica">Cada prova aqui é uma prova <b>aplicada de verdade</b>, com o '
+    +'<b>espelho que a banca publicou</b>. O cronômetro roda no tempo do edital; ao entregar, a correção '
+    +'percorre quesito a quesito: mostra a exigência literal, quanto vale, e marca sozinha quais '
+    +'dispositivos você citou. O veredito de mérito é seu — a máquina não sabe se você enfrentou a tese, '
+    +'só se você citou o artigo. São <b>'+(E.meta.provas||0)+' provas</b> e <b>'+(E.meta.quesitos||0)+' quesitos</b>.</p>'
+    +'<div id="lista"></div><div class="hist" id="hist"></div>';
+  listar(); pintaHist();
+}
+function listar(){
+  const provas=T.provasEspelho({tipo:$('ftipo').value, trib:$('ftrib').value, q:$('fq').value});
+  $('lista').innerHTML = provas.length ? '<div class="plist">'+provas.map(p=>{
+    const temas=[...new Set(p.quesitos.map(q=>q.disc).filter(Boolean))].slice(0,6).join(' · ');
+    const semNota=p.quesitos.filter(q=>q.valor==null).length;
+    return '<article class="pcard">'
+      +'<div class="pcab"><b>'+esc(p.trib)+' '+p.ano+'</b><span>'+esc(p.banca)+'</span></div>'
+      +'<div class="pmeta">'+esc(p.tipo)+' · <i>'+p.quesitos.length+'</i> quesitos'
+        +(p.total>0?' · total <i>'+p.total.toFixed(2).replace('.',',')+'</i>':'')
+        +(semNota?' · <i>'+semNota+'</i> sem pontuação publicada':'')+'</div>'
+      +(temas?'<div class="temas">'+esc(temas)+'</div>':'')
+      +'<div class="plinks">'
+        +(p.prova?'<a href="'+esc(p.prova)+'" target="_blank" rel="noopener">caderno da prova</a>':'')
+        +(p.prova2?'<a href="'+esc(p.prova2)+'" target="_blank" rel="noopener">2º caderno</a>':'')
+        +(p.url?'<a href="'+esc(p.url)+'" target="_blank" rel="noopener">espelho oficial</a>':'')+'</div>'
+      +'<div class="pacoes"><button class="bt pri" data-id="'+esc(p.id)+'">Começar</button>'
+        +'<select class="sel" data-h="'+esc(p.id)+'">'
+          +[2,3,4,5].map(h=>'<option value="'+h+'"'+(h===p.horas?' selected':'')+'>'+h+' h</option>').join('')
+        +'</select></div>'
+      +'</article>';
+  }).join('')+'</div>'
+  : '<div class="vazio">Nenhuma prova com esse filtro.</div>';
+  document.querySelectorAll('.pacoes .bt').forEach(b=>{
+    b.onclick=()=>{ const h=document.querySelector('[data-h="'+b.dataset.id.replace(/"/g,'\\"')+'"]');
+      comecar(b.dataset.id, parseInt(h&&h.value||4,10)*60); };
+  });
+}
+
+/* -------------------------------------------------------------------- prova */
+function comecar(id, minutos){
+  S.sessao={ id, minutos, inicio:Date.now(), acc:0, rodando:true, folha:'', entregue:false };
+  grava(S); telaProva();
+}
+function provaAtual(){ return E.provas.find(p=>p.id===(S.sessao||{}).id); }
+function decorrido(){ const s=S.sessao; if(!s) return 0; return s.acc + (s.rodando ? Date.now()-s.inicio : 0); }
+
+function telaProva(){
+  const p=provaAtual(); if(!p) return telaEscolha();
+  const s=S.sessao;
+  $('cab').innerHTML='<div class="brand"><span class="ic">2ª</span><div><b>'+esc(rotulo(p))+'</b>'
+    +'<small>'+p.quesitos.length+' quesitos'+(p.total>0?' · '+p.total.toFixed(2).replace('.',',')+' pontos':'')+'</small></div></div>'
+    +'<span class="sp"></span><button class="bt" id="bSair">Sair sem entregar</button>';
+  $('tela').innerHTML=
+     '<div class="barra"><div><div class="cronlb">tempo restante</div><div class="cron" id="cron">--:--:--</div></div>'
+    +'<button class="bt" id="bPausa">'+(s.rodando?'Pausar':'Retomar')+'</button>'
+    +'<span class="sp"></span>'
+    +(p.prova?'<a class="bt" href="'+esc(p.prova)+'" target="_blank" rel="noopener">Abrir o caderno</a>':'')
+    +'<button class="bt pri" id="bEntregar">Entregar e corrigir</button></div>'
+    +'<div id="fim"></div>'
+    +(p.instr&&p.instr.length?'<details class="instr"><summary>Instruções que a banca publicou ('+p.instr.length+')</summary>'
+      +'<ul>'+p.instr.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></details>':'')
+    +'<textarea class="folha" id="folha" placeholder="Escreva aqui a sua peça. O texto fica guardado neste aparelho enquanto você escreve."></textarea>'
+    +'<div class="conta" id="conta"></div>';
+  $('folha').value=s.folha||'';
+  $('folha').oninput=()=>{ S.sessao.folha=$('folha').value; grava(S); conta(); };
+  $('bPausa').onclick=function(){
+    const st=S.sessao;
+    if(st.rodando){ st.acc+=Date.now()-st.inicio; st.rodando=false; this.textContent='Retomar'; }
+    else { st.inicio=Date.now(); st.rodando=true; this.textContent='Pausar'; }
+    grava(S); relogio();
+  };
+  $('bEntregar').onclick=entregar;
+  $('bSair').onclick=()=>{ S.sessao=null; grava(S); telaEscolha(); };
+  conta(); relogio();
+  clearInterval(tick); tick=setInterval(relogio,1000);
+  $('folha').focus();
+}
+function conta(){
+  const t=($('folha').value||'').trim();
+  const pal=t?t.split(/\s+/).length:0;
+  const lin=t?t.split(/\n/).filter(x=>x.trim()).length:0;
+  const arts=(T.fundamentos?T.fundamentos(t):[]).length;
+  $('conta').innerHTML='<span><b>'+pal+'</b> palavras</span><span><b>'+t.length+'</b> caracteres</span>'
+    +'<span><b>'+lin+'</b> parágrafos</span><span><b>'+arts+'</b> dispositivos citados</span>'
+    +'<span>salvo neste aparelho</span>';
+}
+function relogio(){
+  const s=S.sessao; if(!s) return;
+  const rest=s.minutos*60000-decorrido();
+  const el=$('cron'); if(!el){ clearInterval(tick); return; }
+  el.textContent=mmss(Math.abs(rest))+(rest<0?' a mais':'');
+  el.classList.toggle('fim', rest<=0);
+  if(rest<=0 && !document.getElementById('fimAviso')){
+    $('fim').innerHTML='<div class="aviso" id="fimAviso"><b>Tempo esgotado.</b> Na prova real a folha seria '
+      +'recolhida agora. O cronômetro passou a contar o excedente — entregue e veja quanto tempo faltava.</div>';
+  }
+}
+
+/* ----------------------------------------------------------------- correção */
+function entregar(){
+  const s=S.sessao, p=provaAtual(); if(!s||!p) return;
+  if(!(s.folha||'').trim()){
+    $('fim').innerHTML='<div class="aviso"><b>Folha em branco.</b> Escreva a peça antes de entregar — '
+      +'a correção compara o seu texto com o espelho.</div>';
+    $('folha').focus(); return;
+  }
+  if(s.rodando){ s.acc+=Date.now()-s.inicio; s.rodando=false; }
+  s.entregue=true; s.gasto=decorrido(); grava(S);
+  clearInterval(tick); tick=null;
+  telaCorrecao();
+}
+function telaCorrecao(){
+  const p=provaAtual(), s=S.sessao;
+  const c=T.corrigirPorEspelho(p, s.folha);
+  s.veredictos=s.veredictos|| {};
+  c.quesitos.forEach(q=>{ if(s.veredictos[q.i]==null) s.veredictos[q.i]=q.sugestao; });
+  grava(S);
+
+  $('cab').innerHTML='<div class="brand"><span class="ic">2ª</span><div><b>Correção · '+esc(rotulo(p))+'</b>'
+    +'<small>pelo espelho oficial da banca</small></div></div><span class="sp"></span>'
+    +'<button class="bt" id="bVoltarFolha">Ver a folha</button>'
+    +'<button class="bt" id="bImprimir">Imprimir</button>'
+    +'<button class="bt pri" id="bFechar">Salvar e sair</button>';
+
+  const pinta=()=>{
+    const n=T.notaPorEspelho(c, s.veredictos);
+    $('nota').innerHTML=
+       '<div><b>'+(n.pct==null?'—':String(n.pct).replace('.',',')+'%')+'</b><span>do que era possível</span></div>'
+      +'<div><b>'+n.ganho.toFixed(2).replace('.',',')+'</b><span>de '+n.possivel.toFixed(2).replace('.',',')+' pontos</span></div>'
+      +'<div><b>'+n.atendidos+'</b><span>quesitos atendidos</span></div>'
+      +'<div><b>'+n.parciais+'</b><span>parciais</span></div>'
+      +'<div><b>'+n.zerados+'</b><span>não atendidos</span></div>'
+      +'<div><b>'+mmss(s.gasto||0)+'</b><span>tempo gasto de '+s.minutos/60+'h</span></div>';
+  };
+
+  $('tela').innerHTML='<div class="nota" id="nota"></div>'
+    +(c.semValor?'<div class="aviso"><b>'+c.semValor+' quesito'+(c.semValor>1?'s':'')+' sem pontuação publicada.</b> '
+      +'A banca não discriminou o valor desses itens no espelho; eles entram na conferência, mas ficam fora da soma.</div>':'')
+    +'<p class="dica">A marcação de <b>dispositivo citado</b> é automática: procura o artigo, a súmula ou o tema '
+      +'na sua folha. Ela não julga o mérito — citar o art. 489 do CPC não é o mesmo que fundamentar. '
+      +'Por isso cada quesito abre com uma <b>sugestão</b>, e quem decide é você.</p>'
+    +'<div id="qs"></div>'
+    +'<div class="hist" id="hist"></div>';
+
+  $('qs').innerHTML=c.quesitos.map(q=>{
+    const v=s.veredictos[q.i];
+    const cor=v==='atendeu'?'var(--ok)':v==='parcial'?'var(--meio)':'var(--nao)';
+    return '<article class="q" style="--vc:'+cor+'" data-i="'+q.i+'">'
+      +'<div class="qh"><b>'+esc(q.rot||('Quesito '+(q.i+1)))+'</b>'
+        +'<span class="tema">'+esc(q.tema||'—')+'</span>'
+        +(q.disc?'<span class="dc">'+esc(q.disc)+'</span>':'')
+        +'<span class="pt">'+esc(q.pont||'sem valor')+'</span></div>'
+      +'<p class="exig">'+esc(q.exig)+'</p>'
+      +(q.dispositivos.length?'<div class="disp">'+q.dispositivos.map(d=>
+          '<span class="'+(d.citado?'sim':'nao')+'" data-legis="'+esc(d.rotulo)+'">'
+          +(d.citado?'citou · ':'não citou · ')+esc(d.rotulo)+'</span>').join('')+'</div>':'')
+      +'<div class="cob">vocabulário da exigência <span class="pb"><i style="width:'+q.cobertura+'%"></i></span>'
+        +'<b>'+q.cobertura+'%</b></div>'
+      +(q.faltou.length?'<div class="faltou"><b>Não apareceu na sua folha:</b> '+esc(q.faltou.slice(0,10).join(', '))+'</div>':'')
+      +'<div class="ver">'
+        +['atendeu','parcial','nao'].map(x=>'<button data-v="'+x+'" class="'+(v===x?'on':'')+'">'
+          +(x==='atendeu'?'Atendeu':x==='parcial'?'Parcial':'Não atendeu')+'</button>').join('')
+        +'<span class="sug">sugestão da máquina: '+(q.sugestao==='atendeu'?'atendeu':q.sugestao==='parcial'?'parcial':'não atendeu')+'</span>'
+      +'</div></article>';
+  }).join('');
+
+  $('qs').querySelectorAll('.ver button').forEach(b=>{
+    b.onclick=()=>{ const art=b.closest('.q'), i=+art.dataset.i;
+      s.veredictos[i]=b.dataset.v; grava(S);
+      art.querySelectorAll('.ver button').forEach(x=>x.classList.toggle('on', x===b));
+      art.style.setProperty('--vc', b.dataset.v==='atendeu'?'var(--ok)':b.dataset.v==='parcial'?'var(--meio)':'var(--nao)');
+      pinta(); };
+  });
+  /* o dispositivo do espelho abre na lei seca, com caminho de volta */
+  $('qs').querySelectorAll('[data-legis]').forEach(el=>{
+    el.onclick=()=>{ try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo:'legis',
+      termo:el.dataset.legis, origem:{view:'segundafase', rotulo:'Correção · '+rotulo(p)}}, '*'); }catch(e){} };
+  });
+  $('bVoltarFolha').onclick=()=>{ S.sessao.entregue=false; grava(S); telaProva(); };
+  $('bImprimir').onclick=()=>window.print();
+  $('bFechar').onclick=()=>{
+    const n=T.notaPorEspelho(c, s.veredictos);
+    S.hist.unshift({ id:p.id, rotulo:rotulo(p), quando:new Date().toISOString().slice(0,10),
+      pct:n.pct, ganho:n.ganho, possivel:n.possivel, gasto:s.gasto, minutos:s.minutos,
+      palavras:(s.folha||'').trim().split(/\s+/).filter(Boolean).length });
+    S.hist=S.hist.slice(0,40); S.sessao=null; grava(S); telaEscolha();
+  };
+  pinta(); pintaHist();
+}
+
+function pintaHist(){
+  const el=$('hist'); if(!el) return;
+  if(!S.hist.length){ el.innerHTML=''; return; }
+  el.innerHTML='<h3>Treinos anteriores</h3>'+S.hist.map(x=>
+     '<div class="hrow"><b>'+(x.pct==null?'—':String(x.pct).replace('.',',')+'%')+'</b>'
+    +'<span>'+esc(x.rotulo)+'</span><span class="sp"></span>'
+    +'<span>'+x.ganho.toFixed(2).replace('.',',')+'/'+x.possivel.toFixed(2).replace('.',',')+' pts</span>'
+    +'<span>'+mmss(x.gasto||0)+' de '+(x.minutos/60)+'h</span>'
+    +'<span>'+x.palavras+' palavras</span><span>'+esc(x.quando)+'</span></div>').join('');
+}
+
+/* ---- partida: retoma a sessão em aberto, se houver ---- */
+if(S.sessao && provaAtual()) (S.sessao.entregue ? telaCorrecao() : telaProva());
+else telaEscolha();
+</script>
+</body></html>

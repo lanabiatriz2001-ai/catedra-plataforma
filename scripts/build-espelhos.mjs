@@ -1,134 +1,110 @@
-// scripts/build-espelhos.mjs — funde o banco de ESPELHOS DE CORREÇÃO oficiais
-// (scripts/fontes/espelhos-magistratura.json: 35 espelhos, 566 quesitos, 11 tribunais,
-// 2021-2025, todos lidos do PDF publicado pela banca) no banco de discursivas da web
-// (discursivas.js → window.CT_DISCURSIVAS), que é o que a Redação carrega no compositor
-// e o que o Simulado nativo sorteia.
-//
-// O que muda em relação ao banco que já existia: ali cada item tinha o ENUNCIADO
-// transcrito; aqui a fonte traz só o LINK da prova + o espelho por quesito com a
-// pontuação na escala da banca. Então o item entra com `enunciado` apontando para a prova
-// oficial e `espelho` completo, e ganha dois campos novos que a Redação vai usar para
-// corrigir "por quesito, na escala da banca":
-//   escala     texto da pontuação como a banca redigiu ("0,00/0,10/0,20/0,30", "até 0,40")
-//   dispositivos  fundamentos que o espelho exige naquele quesito
-//   instrucoes  regras gerais da banca (desconto por forma, item residual etc.)
-//
-// Regra do treino: o espelho NÃO pode ser revelado antes de a pessoa entregar a peça —
-// isso é tratado na tela (campo ③ escondido até enviar), não aqui.
-//
-// Merge por orgao+ano+tipo normalizado: item que já existe em discursivas.js com
-// enunciado transcrito NÃO é substituído (enunciado transcrito > link), só ganha os
-// campos novos se ainda não tiver.
-import { readFileSync, writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+/* ==========================================================================
+   Gera espelhos.js — os espelhos oficiais em formato consumível pelo motor de
+   treino (treino.js) e pelo Simulado de 2ª fase (segunda-fase-web.html).
+   A fonte é o próprio banco-espelhos.html, que já traz as 586 linhas de quesito
+   embutidas: aqui elas são reagrupadas por PROVA, que é a unidade do simulado.
+   Rode com:  node scripts/build-espelhos.mjs
+   ========================================================================== */
+import fs from 'node:fs';
+import path from 'node:path';
+const raiz = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const DISC_ARQ = (() => { try { readFileSync(join(ROOT, 'discursivas-completo.js')); return 'discursivas-completo.js'; } catch { return 'discursivas.js'; } })();  // pós-split (21/08): a fonte íntegra é o -completo; rode build-discursivas-split.mjs depois
-const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+const html = fs.readFileSync(path.join(raiz,'banco-espelhos.html'),'utf8');
+const i = html.indexOf('const D = ');
+if(i<0) throw new Error('banco-espelhos.html sem o bloco "const D = "');
+const D = JSON.parse(html.slice(i+'const D = '.length, html.indexOf('\n', i)).trim().replace(/;$/,''));
 
-globalThis.window = {};
-const srcJs = readFileSync(join(ROOT, DISC_ARQ), 'utf8');
-new Function('window', srcJs)(globalThis.window);
-const atual = globalThis.window.CT_DISCURSIVAS || [];
-const fonte = JSON.parse(readFileSync(join(ROOT, 'scripts/fontes/espelhos-magistratura.json'), 'utf8'));
+/* --------------------------------------------------------------------------
+   Quanto vale o quesito. A banca escreve a pontuação em prosa e cada uma
+   escreve de um jeito: "0,50", "ate 0,50", "0,00 a 0,15", "1,00 (4 x 0,25)",
+   "0,10 / 0,10 / 0,10", "desconto de até 10%", "não discriminada". O valor sai
+   por melhor esforço e o texto original NUNCA é descartado — quando a leitura
+   é ambígua, o quesito vai marcado como incerto e o total do espelho aparece
+   como aproximado, em vez de fingir precisão que a banca não deu.
+   -------------------------------------------------------------------------- */
+function valorDoQuesito(txt){
+  const s = String(txt||'').trim();
+  if(!s) return {valor:null, incerto:true, desconto:false};
+  const baixo = s.toLowerCase();
+  if(/^desconto|^perda|^abatimento/.test(baixo)) return {valor:0, incerto:false, desconto:true};
+  const nums = (s.match(/\d+(?:[.,]\d+)?/g)||[]).map(n=>parseFloat(n.replace(',','.')));
+  if(!nums.length) return {valor:null, incerto:true, desconto:false};
 
-// Pontuação "1,00 (0,15 / 0,20 ...)", "0,40", "até 0,40", "0,00 / 0,75 / 1,50" → o valor
-// do quesito é o MÁXIMO da escala (a primeira versão pegava o primeiro número e zerava
-// todo espelho escrito como "0,00 / … / 1,50").
-function pontosDe(p) {
-  const ns = (String(p || '').replace(/,/g, '.').match(/\d+(?:\.\d+)?/g) || []).map(parseFloat);
-  return ns.length ? Math.max(...ns) : null;
-}
-const tipoDe = (t) => /senten/i.test(t) ? 'sentenca' : 'discursiva';
-const pecaDe = (t) => {
-  const s = norm(t);
-  if (s.includes('civel') && (s.includes('penal') || s.includes('criminal'))) return 'Sentença cível e penal';
-  if (s.includes('civel')) return 'Sentença cível';
-  if (s.includes('penal') || s.includes('criminal')) return 'Sentença penal';
-  return '';
-};
+  // A banca às vezes diz que o item NÃO tem valor próprio — e ainda assim escreve um
+  // número (o total do bloco, o que os itens somam, a nota final da questão). Somar
+  // esse número por quesito multiplicaria o bloco inteiro pelo número de itens.
+  // Só escapa quando o texto ABRE com o valor do item ("0,20 (item destacado); ...").
+  const abreComValor = /^\s*(?:at[ée]\s+)?\d/.test(s);
+  const semValorProprio = /n[aã]o\s+discriminad|em\s+conjunto|somam|p\.m\.|nota\s+final|escala com/i;
+  if((!abreComValor && semValorProprio.test(baixo)) || /demais valores/i.test(baixo))
+    return {valor:null, incerto:true, desconto:false};
 
-const chaves = new Set(atual.map((q) => norm(q.orgao) + '|' + q.ano + '|' + norm(q.tipo || 'discursiva') + '|' + norm(q.peca)));
-const novos = [];
-for (const e of fonte.espelhos) {
-  const tipo = tipoDe(e.tipo), peca = pecaDe(e.tipo);
-  const chave = norm(e.tribunal) + '|' + e.ano + '|' + tipo + '|' + norm(peca);
-  if (chaves.has(chave)) continue;
-  chaves.add(chave);
-  const total = Math.round(e.quesitos.reduce((s, q) => s + (pontosDe(q.pontuacao) || 0), 0) * 100) / 100;
-  const discs = [...new Set(e.quesitos.map((q) => q.disciplina).filter(Boolean))];
-  // Prova DISCURSIVA cujos quesitos são rotulados Q01, Q02… com disciplinas distintas não é
-  // uma peça só: são N QUESTÕES INDEPENDENTES. Tratá-las como um item único fazia a pessoa
-  // responder 10 questões numa caixa e tirar 1/10 da nota. Aqui cada questão vira um item,
-  // com o seu próprio espelho e a sua própria pontuação.
-  const rotQ = (q) => /^Q\s*\d+$/i.test(String(q.rotulo || '').trim());
-  const independentes = tipo === 'discursiva' && e.quesitos.length > 1 && e.quesitos.every(rotQ)
-    && new Set(e.quesitos.map((q) => q.disciplina || '')).size > 1;
-  if (independentes) {
-    e.quesitos.forEach((q, i) => {
-      const pts = pontosDe(q.pontuacao);
-      novos.push({
-        id: norm(e.tribunal).replace(/^(tj|trf)/, '$1-') + '-' + e.ano + '-q' + String(i + 1).padStart(2, '0'),
-        tipo: 'discursiva', peca: '',
-        carreira: /^trf/i.test(e.tribunal) ? 'Magistratura federal' : 'Magistratura estadual',
-        banca: e.banca || '', orgao: e.tribunal, cargo: e.cargo || 'Juiz Substituto', ano: e.ano,
-        fase: e.tipo + ' — questão ' + (i + 1) + ' de ' + e.quesitos.length,
-        disciplina: q.disciplina || '',
-        tema: q.tema || '',
-        enunciado: [
-          `${e.tribunal} · ${e.ano} · ${e.cargo || 'Juiz Substituto'}${e.banca ? (/^banca/i.test(e.banca) ? ' — ' + e.banca : ' — banca ' + e.banca) : ''} · questão ${i + 1} de ${e.quesitos.length}.`,
-          q.disciplina ? `Disciplina: ${q.disciplina}.` : '',
-          q.tema ? `Tema: ${q.tema}.` : '',
-          e.url_prova ? `Enunciado na prova oficial: ${e.url_prova}` : 'A banca não publicou a prova em PDF autônomo.',
-          `Espelho oficial: ${e.url}`,
-          'Responda em até 15 linhas.',
-        ].filter(Boolean).join('\n'),
-        espelho: [{ quesito: [q.rotulo, q.tema].filter(Boolean).join(' — ') + (q.exigencia ? ': ' + q.exigencia : ''),
-                    pontos: pts, escala: q.pontuacao || '', disciplina: q.disciplina || '', dispositivos: q.dispositivos || [] }],
-        total: pts, instrucoes: e.instrucoes_gerais || [],
-        fonte: e.url, fonte_espelho: e.url, fonte_prova: e.url_prova || '', fonte_concurso: e.url_concurso || '',
-        nota: e.nota || '',
-      });
-    });
-    continue;
+  // "5 itens de 0,20" e "4 x 0,25" são multiplicação, não soma nem primeiro número
+  const mult = /^(\d+)\s*(?:itens?|questões|questoes|subitens?)?\s*(?:de|x|×)\s*(\d+(?:[.,]\d+)?)/i.exec(s);
+  if(mult) return {valor:parseInt(mult[1],10)*parseFloat(mult[2].replace(',','.')),
+                   incerto:false, desconto:false};
+
+  const faixa = /(\d+(?:[.,]\d+)?)\s*(?:a|até|ate)\s*(\d+(?:[.,]\d+)?)/i.exec(s);
+  if(faixa) return {valor:Math.max(parseFloat(faixa[1].replace(',','.')),
+                                   parseFloat(faixa[2].replace(',','.'))), incerto:false, desconto:false};
+  if(/^(até|ate)\b/i.test(baixo)) return {valor:nums[0], incerto:false, desconto:false};
+
+  const antesDoParenteses = s.split('(')[0];
+  const numsFora = (antesDoParenteses.match(/\d+(?:[.,]\d+)?/g)||[]).map(n=>parseFloat(n.replace(',','.')));
+
+  if(numsFora.length>1){
+    const cresce = numsFora.every((v,k)=>k===0||v>numsFora[k-1]);
+    const iguais = numsFora.every(v=>v===numsFora[0]);
+    if(/escala/i.test(baixo) || (cresce && numsFora[0]===0))
+      return {valor:Math.max(...numsFora), incerto:false, desconto:false};   // escala de nota
+    if(iguais)
+      return {valor:numsFora.reduce((a,b)=>a+b,0), incerto:false, desconto:false};  // subitens somados
+    // "0,25 + 0,20 + 0,25": a banca escreveu a soma com todas as parcelas — não é ambíguo
+    if(/\+/.test(antesDoParenteses))
+      return {valor:numsFora.reduce((a,b)=>a+b,0), incerto:false, desconto:false};
+    return {valor:numsFora.reduce((a,b)=>a+b,0), incerto:true, desconto:false};
   }
-  const n = String(novos.filter((x) => x.orgao === e.tribunal && x.ano === e.ano).length + 1);
-  novos.push({
-    id: norm(e.tribunal).replace(/^(tj|trf)/, '$1-') + '-' + e.ano + '-esp' + n,
-    tipo, peca,
-    carreira: /^trf/i.test(e.tribunal) ? 'Magistratura federal' : 'Magistratura estadual',
-    banca: e.banca || '', orgao: e.tribunal, cargo: e.cargo || 'Juiz Substituto', ano: e.ano,
-    fase: e.tipo,
-    disciplina: discs.join(', '),
-    tema: e.quesitos.slice(0, 3).map((q) => q.tema).filter(Boolean).join('; ') + (e.quesitos.length > 3 ? '; …' : ''),
-    // A fonte não traz o enunciado transcrito: a prova oficial é o link. O compositor
-    // mostra isso como "abra a prova, escreva aqui, e só então veja o espelho".
-    enunciado: [
-      `${e.tribunal} · ${e.ano} · ${e.cargo || 'Juiz Substituto'} — ${e.tipo}${e.banca ? ' (banca ' + e.banca + ')' : ''}.`,
-      e.url_prova ? `Prova oficial: ${e.url_prova}` : 'A banca não publicou a prova em PDF autônomo.',
-      e.url_prova2 ? `Segunda peça: ${e.url_prova2}` : '',
-      `Espelho oficial: ${e.url}`,
-      tipo === 'sentenca' ? 'Tempo sugerido: 4h.' : `Tempo sugerido: 1h por questão (${e.quesitos.length} quesitos).`,
-    ].filter(Boolean).join('\n'),
-    espelho: e.quesitos.map((q) => ({
-      quesito: [q.rotulo, q.tema].filter(Boolean).join(' — ') + (q.exigencia ? ': ' + q.exigencia : ''),
-      pontos: pontosDe(q.pontuacao),
-      escala: q.pontuacao || '',
-      disciplina: q.disciplina || '',
-      dispositivos: q.dispositivos || [],
-    })),
-    total: total || null,
-    instrucoes: e.instrucoes_gerais || [],
-    fonte: e.url,
-    fonte_concurso: e.url_concurso || '',
-    nota: e.nota || '',
+  return {valor:numsFora.length?numsFora[0]:nums[0], incerto:false, desconto:false};
+}
+
+/* quanto tempo a banca costuma dar; usado só como sugestão do cronômetro */
+const HORAS = t => /sentenc|sentença|peça/i.test(t) ? 4 : 5;
+
+const provas = new Map();
+for(const r of D.rows){
+  const id = [r.trib, r.ano, r.tipoRaw].join(' · ');
+  if(!provas.has(id)) provas.set(id, {
+    id, trib:r.trib, ano:r.ano, banca:r.banca, cargo:r.cargo||'',
+    tipo:r.tipo, tipoRaw:r.tipoRaw, url:r.url||'', prova:r.prova||'', prova2:r.prova2||'',
+    gab:r.gab||'', conc:r.conc||'', nota:r.nota||'',
+    horas:HORAS(r.tipoRaw), quesitos:[]
+  });
+  const v = valorDoQuesito(r.pont);
+  provas.get(id).quesitos.push({
+    rot:r.rot||'', disc:r.disc||'', tema:r.tema||'', exig:r.exig||'',
+    pont:r.pont||'', valor:v.valor, incerto:v.incerto, desconto:v.desconto,
+    disp:Array.isArray(r.disp)?r.disp:[]
   });
 }
 
-const lista = [...atual, ...novos];
-const cab = srcJs.slice(0, srcJs.indexOf('window.CT_DISCURSIVAS'));
-writeFileSync(join(ROOT, DISC_ARQ), cab + 'window.CT_DISCURSIVAS = ' + JSON.stringify(lista, null, 1) + ';\n');
-console.log(`discursivas.js: ${atual.length} existentes + ${novos.length} espelhos oficiais = ${lista.length} itens`);
-console.log(`  quesitos adicionados: ${novos.reduce((s, x) => s + x.espelho.length, 0)}`);
-console.log(`  não localizados registrados na fonte: ${(fonte.nao_localizados || []).length} (não entram)`);
+const lista = [...provas.values()].map(p=>{
+  const somaveis = p.quesitos.filter(q=>!q.desconto && q.valor!=null);
+  p.total = somaveis.reduce((a,q)=>a+q.valor,0);
+  p.incertos = p.quesitos.filter(q=>q.incerto).length;
+  p.instr = (D.instr||[]).filter(x=>x.o===(p.trib+' '+p.ano)).map(x=>x.t);
+  return p;
+}).sort((a,b)=> b.ano-a.ano || a.trib.localeCompare(b.trib,'pt') || a.tipoRaw.localeCompare(b.tipoRaw,'pt'));
+
+const saida = {
+  meta:{ gerado:new Date().toISOString().slice(0,10), provas:lista.length,
+    quesitos:D.rows.length, fonte:'banco-espelhos.html',
+    naoLocalizados:(D.naoLoc||[]).length },
+  provas: lista
+};
+fs.writeFileSync(path.join(raiz,'espelhos.js'),
+  '// Gerado por scripts/build-espelhos.mjs a partir de banco-espelhos.html. Não editar à mão.\n'
+ +'// Espelhos oficiais agrupados por prova — a unidade do Simulado de 2ª fase.\n'
+ +'window.CT_ESPELHOS='+JSON.stringify(saida)+';\n','utf8');
+
+console.log('espelhos.js escrito ·', lista.length, 'provas ·', D.rows.length, 'quesitos ·',
+  lista.reduce((a,p)=>a+p.incertos,0), 'quesitos com pontuação ambígua');

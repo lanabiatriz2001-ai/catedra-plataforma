@@ -33,7 +33,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .rd-hl:hover{filter:brightness(.93);box-shadow:0 0 0 1.5px rgba(0,0,0,.18);}
 .rd-hl.uline{background:transparent!important;border-bottom:2.5px solid;border-radius:0;mix-blend-mode:normal;}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent)!important;outline-offset:2px!important}
-.aj-meta{font-family:var(--display)!important;font-size:24px!important;font-weight:700!important;text-align:center}
 .aj-ess{transition:border-color .15s,transform .15s,box-shadow .15s;border-top:3px solid var(--accent)!important}
 .aj-ess:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.10)}
 .rd-hl.has-note::after{content:'';position:absolute;top:-5px;right:-5px;width:9px;height:9px;border-radius:99px;background:var(--warn);box-shadow:0 0 0 2px #fff;}
@@ -475,6 +474,8 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ temAreaMod }}" hint-placeholder-val="{{ true }}">
       <button data-view="areamod" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button>
       <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
+      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="prioridade" onclick="{{ onNav }}" style="{{ navPrioridade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round"></path></svg><span>Prioridade</span></button></sc-if>
+      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>2ª fase</span></button></sc-if>
       </sc-if>
       <!-- LEGIS vale para toda área (a legislação da área vem dentro dele); só as
            súmulas/jurisprudência ficam nas carreiras jurídicas -->
@@ -3148,6 +3149,12 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ isRoteiros }}" hint-placeholder-val="{{ false }}">
         <iframe data-ct-frame="{{ roteirosFrameSrc }}" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
+      <sc-if value="{{ isPrioridade }}" hint-placeholder-val="{{ false }}">
+        <iframe data-ct-frame="{{ prioridadeFrameSrc }}" title="Painel de prioridade — incidência em prova vezes taxa de erro" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+      </sc-if>
+      <sc-if value="{{ isSegundaFase }}" hint-placeholder-val="{{ false }}">
+        <iframe data-ct-frame="segunda-fase-web.html" title="Simulado de 2ª fase — prova real corrigida pelo espelho oficial" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+      </sc-if>
       <sc-if value="{{ isLegis }}" hint-placeholder-val="{{ false }}">
         <iframe data-ct-frame="{{ legisFrameSrc }}" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
@@ -3297,24 +3304,25 @@ window.ctPdfLib = (function(){
           </sc-if>
         </div>
 
-        <!-- abas reais: uma tela por vez — refeito em 21/08 a pedido da Lana ("refazer, não reorganizar") -->
-        <div style="display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:6px;flex-wrap:wrap;">
-          <button data-t="voce" onclick="{{ setAjTab }}" style="{{ ajTabBtnVoce }}">Você</button>
-          <button data-t="estudo" onclick="{{ setAjTab }}" style="{{ ajTabBtnEstudo }}">Estudo & metas</button>
-          <button data-t="banca" onclick="{{ setAjTab }}" style="{{ ajTabBtnBanca }}">Método da banca</button>
-          <button data-t="dados" onclick="{{ setAjTab }}" style="{{ ajTabBtnDados }}">Dados & conselho</button>
+        <!-- atalhos das seções: os Ajustes são longos; daqui se chega a qualquer bloco num clique -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button data-s="perfil" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Perfil</button>
+          <button data-s="banca" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Método da banca</button>
+          <button data-s="ritmo" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Ritmo</button>
+          <button data-s="metas" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Metas</button>
+          <button data-s="plan" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Planejamento</button>
+          <button data-s="conselho" onclick="{{ ajIr }}" style="background:transparent;border:1px solid var(--border);border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">Conselho</button>
         </div>
 
-<sc-if value="{{ ajTabVoce }}" hint-placeholder-val="{{ true }}">
         <!-- PERFIL + COBRANÇA -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:20px;"><h2 id="aj-perfil" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Perfil de estudo</h2><span style="font-size:var(--fs-sm);color:var(--text3);">base dos conselhos</span></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Nível atual</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orNivelChips }}" as="c" hint-placeholder-count="3"><button data-k="nivel" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
+              <div><label for="aj-f-nivel" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Nível atual</label><select id="aj-f-nivel" data-k="nivel" value="{{ orient.nivel }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="iniciante">Iniciante</option><option value="intermediario">Intermediário</option><option value="avancado">Avançado</option></select></div>
               <div><label for="aj-f-tempoDia" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Tempo médio por dia (min)</label><input id="aj-f-tempoDia" type="number" data-k="tempoDia" value="{{ orient.tempoDia }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orTempoHHMM }}</div></div>
-              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orTurnoChips }}" as="c" hint-placeholder-count="3"><button data-k="turno" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
-              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Energia padrão</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orEnergiaChips }}" as="c" hint-placeholder-count="3"><button data-k="energia" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
+              <div><label for="aj-f-turno" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno</label><select id="aj-f-turno" data-k="turno" value="{{ orient.turno }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="manha">Manhã</option><option value="tarde">Tarde</option><option value="noite">Noite</option></select></div>
+              <div><label for="aj-f-energia" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Energia padrão</label><select id="aj-f-energia" data-k="energia" value="{{ orient.energia }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option></select></div>
             </div>
             <div style="margin-top:16px;"><label for="aj-f-dias" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Dias disponíveis</label><input id="aj-f-dias" data-k="dias" value="{{ orient.dias }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;"></div>
             <div style="margin-top:18px;"><div style="font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:10px;">Plano por energia mental</div>
@@ -3338,8 +3346,6 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
-</sc-if>
-<sc-if value="{{ ajTabBanca }}" hint-placeholder-val="{{ false }}">
         <!-- MÉTODO DA BANCA (pesquisado, orienta o estudo) -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
@@ -3369,8 +3375,6 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
-</sc-if>
-<sc-if value="{{ ajTabEstudo }}" hint-placeholder-val="{{ false }}">
         <!-- FOCO + ALERTAS -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -3385,8 +3389,6 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
-</sc-if>
-<sc-if value="{{ ajTabEstudo }}" hint-placeholder-val="{{ false }}">
         <!-- CRITÉRIOS + METAS -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -3404,9 +3406,9 @@ window.ctPdfLib = (function(){
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:20px;"><h2 id="aj-metas" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Metas adaptativas e reta final</h2><span style="font-size:var(--fs-sm);color:var(--text3);">mínimo · ideal · forte</span></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div><label for="aj-f-metaMin" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta mínima diária (min)</label><input id="aj-f-metaMin" type="number" data-k="metaMin" class="aj-meta" value="{{ orient.metaMin }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
-              <div><label for="aj-f-metaIdeal" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta ideal diária (min)</label><input id="aj-f-metaIdeal" type="number" data-k="metaIdeal" class="aj-meta" value="{{ orient.metaIdeal }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
-              <div><label for="aj-f-metaForte" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta forte diária (min)</label><input id="aj-f-metaForte" type="number" data-k="metaForte" class="aj-meta" value="{{ orient.metaForte }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
+              <div><label for="aj-f-metaMin" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta mínima diária (min)</label><input id="aj-f-metaMin" type="number" data-k="metaMin" value="{{ orient.metaMin }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
+              <div><label for="aj-f-metaIdeal" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta ideal diária (min)</label><input id="aj-f-metaIdeal" type="number" data-k="metaIdeal" value="{{ orient.metaIdeal }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
+              <div><label for="aj-f-metaForte" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Meta forte diária (min)</label><input id="aj-f-metaForte" type="number" data-k="metaForte" value="{{ orient.metaForte }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
               <div><label for="aj-f-retaFinalCom" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ativar reta final com</label><select id="aj-f-retaFinalCom" data-k="retaFinalCom" value="{{ orient.retaFinalCom }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="15">15 dias</option><option value="30">30 dias</option><option value="45">45 dias</option><option value="60">60 dias</option></select></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
@@ -3416,8 +3418,6 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
-</sc-if>
-<sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <!-- RELATÓRIO + ANKI -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -3435,8 +3435,6 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
-</sc-if>
-<sc-if value="{{ ajTabEstudo }}" hint-placeholder-val="{{ false }}">
         <!-- PLANEJAMENTO (tempo por peso × domínio × disponibilidade) -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;"><h2 id="aj-plan" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Planejamento da semana</h2><span style="font-family:var(--display);font-weight:700;color:var(--accent);font-size:27px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ planHoras }}h</span></div>
@@ -3454,8 +3452,6 @@ window.ctPdfLib = (function(){
           </sc-for>
         </div>
 
-</sc-if>
-<sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <!-- CONSELHO PERSONALIZADO -->
         <div style="background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:18px;"><h2 id="aj-conselho" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Conselho personalizado atual</h2><span style="font-size:var(--fs-sm);color:var(--text3);">baseado nos ajustes + dados</span></div>
@@ -3468,7 +3464,6 @@ window.ctPdfLib = (function(){
             </sc-for>
           </div>
         </div>
-</sc-if>
        </div>
       </sc-if>
 
@@ -5002,7 +4997,7 @@ class Component extends DCLogic {
       // para reabrir a tela de origem no ponto exato — a peça no bloco, o rito no ato.
       if(e.data.type==='ctVoltarOrigem'){
         const o=this.state.acervoOrigem; if(!o) return;
-        const destino=(o.view==='areamod')?'areamod':'roteiros';
+        const destino=(o.view==='areamod'||o.view==='prioridade'||o.view==='segundafase')?o.view:'roteiros';
         this._voltaJump=true; this._acervoJump=true;
         this.setState({view:destino, voltaAlvo:o, acervoOrigem:null});
         return;
@@ -7010,28 +7005,12 @@ class Component extends DCLogic {
   setBancoBanca = (e)=> this.setState({bancoBanca:e.currentTarget.value});
   toggleBancoSoEsp = ()=> this.setState({bancoSoEsp:!this.state.bancoSoEsp});
   setBancoTipo = (e)=> this.setState({bancoTipo:e.currentTarget.value});
-  // Textões (enunciado completo + padrão de resposta) moram em discursivas-textos.js e
-  // só carregam quando a pessoa ABRE uma prova — o catálogo de 7,6 MB estourava a
-  // memória do processo web no iPad físico e derrubava filtros e cards (21/08/2026).
-  _discTextos(){
-    if(window.CT_DISCURSIVAS_TEXTOS) return Promise.resolve(window.CT_DISCURSIVAS_TEXTOS);
-    if(this._discTextosP) return this._discTextosP;
-    this._discTextosP=new Promise((ok)=>{ const t=document.createElement('script'); t.src='./discursivas-textos.js';
-      t.onload=()=>ok(window.CT_DISCURSIVAS_TEXTOS||{}); t.onerror=()=>ok({}); document.head.appendChild(t); });
-    return this._discTextosP;
-  }
   // Levar a questão para o compositor: enunciado no ①, espelho no ③. O espelho vira
   // texto com o peso de cada quesito, que é o que o raio-X já sabe ler.
-  usarDiscursiva = async (e)=>{
+  usarDiscursiva = (e)=>{
     const id=e.currentTarget.getAttribute('data-id');
     const lista=(typeof window!=='undefined'&&window.CT_DISCURSIVAS)||[];
-    const q0=lista.find(x=>x.id===id); if(!q0) return;
-    // funde o texto completo por cima do resumo do catálogo
-    let q=q0;
-    if(q0.temTextoFull||q0.temEspelhoTexto){
-      const T=await this._discTextos(); const tx=T[id]||{};
-      q={...q0, enunciado:(tx.en||q0.enunciado), espelhoTexto:(tx.et||'')};
-    }
+    const q=lista.find(x=>x.id===id); if(!q) return;
     // Vários espelhos já vêm com o quesito numerado ("1. Sistemas de aplicação…"). Sem
     // tirar esse prefixo, a lista sai "1. 1. Sistemas…".
     const esp=(q.espelho||[]).map((x,i)=>{
@@ -8509,10 +8488,6 @@ class Component extends DCLogic {
   // registrado: sessões antigas continuam com as categorias que tinham, e o edital
   // cadastrado não é tocado — a área só muda o que o app SUGERE daqui pra frente.
   toggleAreaSel = ()=> this.setState(s=>({areaSelOpen:!s.areaSelOpen}));
-  setAjTab = (e)=> this.setState({ajTab:e.currentTarget.dataset.t||'voce'});
-  // chips do perfil: mesmo destino do setOrient, mas por clique (selects não funcionam bem no toque)
-  setOrientVal = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.dataset.v;
-    this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>{ try{ localStorage.setItem('catedra:orient',JSON.stringify(this.state.orient)); }catch(_){} }); };
   // rolagem para uma seção dos Ajustes — os chips do topo apontam para os ids aj-*
   ajIr = (e)=>{ const el=document.getElementById('aj-'+(e.currentTarget.dataset.s||'')); if(!el) return; const suave=!window.matchMedia('(prefers-reduced-motion: reduce)').matches; el.scrollIntoView({behavior:suave?'smooth':'auto',block:'start'}); };
   setAreaEstudo = (e)=>{ const v=e.currentTarget.dataset.a||'';
@@ -8872,7 +8847,7 @@ class Component extends DCLogic {
       if(this.state.bancoTipo && (q.tipo||'discursiva')!==this.state.bancoTipo) return false;
       // "só com espelho": quesito a quesito OU link do PDF oficial — nos dois casos há
       // critério de correção; sem nenhum dos dois a prova serve só para treinar redação.
-      if(this.state.bancoSoEsp && !((q.espelho&&q.espelho.length) || q.temEspelhoTexto || q.fonte_espelho)) return false;
+      if(this.state.bancoSoEsp && !((q.espelho&&q.espelho.length) || q.espelhoTexto || q.fonte_espelho)) return false;
       if(!_bq) return true;
       return ((q.tema||'')+' '+(q.enunciado||'')+' '+(q.orgao||'')+' '+(q.banca||'')+' '+(q.ano||'')+' '+(q.cargo||'')+' '+(q.carreira||'')).toLowerCase().includes(_bq);
     });
@@ -8881,15 +8856,15 @@ class Component extends DCLogic {
       ehPeca:(q.tipo==='peca'||q.tipo==='sentenca'), tipoLabel:(q.tipo==='peca'?(q.peca||'Peça'):q.tipo==='sentenca'?'Sentença/peça':'Discursiva'),
       carreira:q.carreira||'',
       rotulo:[q.orgao,q.ano].filter(Boolean).join(' · ')+(q.banca?(' · '+q.banca):'')+(q.cargo?(' · '+q.cargo):''),
-      temEspelho:!!((q.espelho&&q.espelho.length)||q.temEspelhoTexto||q.fonte_espelho),
+      temEspelho:!!((q.espelho&&q.espelho.length)||q.espelhoTexto||q.fonte_espelho),
       selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):''))
-           :(q.temEspelhoTexto?'padrão de resposta oficial':(q.fonte_espelho?'espelho oficial em PDF':'sem espelho publicado')),
+           :(q.espelhoTexto?'padrão de resposta oficial':(q.fonte_espelho?'espelho oficial em PDF':'sem espelho publicado')),
       // cor por tipo de prova: a faixa no topo do card dá a leitura antes da leitura
       faixa:'height:4px;background:'+((q.tipo==='sentenca')?'#7c3aed':(q.tipo==='peca')?'#0ea5e9':'var(--accent)')+';',
       seloTipo:'font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:99px;'
         +'background:'+((q.tipo==='sentenca')?'rgba(124,58,237,.13);color:#6d28d9;':(q.tipo==='peca')?'rgba(14,165,233,.13);color:#0369a1;':'color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);'),
       seloEsp:'font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;'
-        +((q.espelho&&q.espelho.length)||q.temEspelhoTexto?'background:rgba(15,157,107,.14);color:#0f7f57;'
+        +((q.espelho&&q.espelho.length)||q.espelhoTexto?'background:rgba(15,157,107,.14);color:#0f7f57;'
           :(q.fonte_espelho?'background:rgba(245,158,11,.15);color:#b8770a;':'background:var(--surface2);color:var(--text3);')),
       resumo:String(q.enunciado||'').slice(0,190)+(String(q.enunciado||'').length>190?'…':''),
       fonte:q.fonte||'' }));
@@ -8925,8 +8900,11 @@ class Component extends DCLogic {
       ? ('ritos-web.html' + ((_volta && _volta.view==='areamod' && _volta.rito)
           ? ('?rito='+encodeURIComponent(_volta.rito)+'&passo='+(_volta.passo||0)) : ''))
       : ('area-web.html?area=' + encodeURIComponent(_area.id));
+    const prioridadeFrameSrc = 'prioridade-web.html'
+      + ((_volta && _volta.view==='prioridade' && _volta.disc)
+          ? ('?disc='+encodeURIComponent(_volta.disc)) : '');
     const roteirosFrameSrc = 'pecas-web.html'
-      + ((_volta && _volta.view!=='areamod' && _volta.peca)
+      + ((_volta && _volta.view==='roteiros' && _volta.peca)
           ? ('?peca='+encodeURIComponent(_volta.peca)+'&bloco='+(_volta.bloco||0)) : '');
     // O ?q= faz a página abrir já buscando o instituto que veio do mapa; o ?de= é o
     // rótulo do ponto de origem, que vira a barra de volta dentro do acervo.
@@ -8955,18 +8933,6 @@ class Component extends DCLogic {
     const temEssenciais = areaEssenciais.length>0;
     const areaSelOpen = !!this.state.areaSelOpen || !this.state.areaEstudo;   // sem área escolhida, o seletor fica aberto
     const areaSelLabel = this.state.areaSelOpen ? 'Fechar' : 'Trocar de área';
-    // Ajustes em abas (refeito 21/08): uma tela por vez
-    const _ajTab = this.state.ajTab || 'voce';
-    const _ajBtn = (on)=>`border:none;cursor:pointer;font-family:inherit;border-radius:99px;padding:11px 20px;font-size:var(--fs-md);font-weight:700;transition:all .15s;`+
-      (on?'background:linear-gradient(90deg,var(--accent),var(--accentD));color:var(--onAccent);box-shadow:0 6px 16px -6px var(--accent);':'background:transparent;color:var(--text2);');
-    const ajuTabs = { ajTabVoce:_ajTab==='voce', ajTabEstudo:_ajTab==='estudo', ajTabBanca:_ajTab==='banca', ajTabDados:_ajTab==='dados',
-      ajTabBtnVoce:_ajBtn(_ajTab==='voce'), ajTabBtnEstudo:_ajBtn(_ajTab==='estudo'), ajTabBtnBanca:_ajBtn(_ajTab==='banca'), ajTabBtnDados:_ajBtn(_ajTab==='dados') };
-    const _orChip=(on)=>`border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--ink)'};`+
-      `border-radius:99px;padding:10px 16px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;`;
-    const _orc=(k,opts)=>opts.map(([v,label])=>({v,label,style:_orChip((this.state.orient&&this.state.orient[k])===v)}));
-    const orNivelChips=_orc('nivel',[['iniciante','Iniciante'],['intermediario','Intermediário'],['avancado','Avançado']]);
-    const orTurnoChips=_orc('turno',[['manha','Manhã'],['tarde','Tarde'],['noite','Noite']]);
-    const orEnergiaChips=_orc('energia',[['baixa','Baixa'],['normal','Normal'],['alta','Alta']]);
     // tipos de atividade do ciclo e categorias do registro, na ordem em que fazem sentido
     const _kindsArea = this._atividades();
     const _kindOpts=(k)=> (_kindsArea.indexOf(k)<0&&k?[..._kindsArea,k]:_kindsArea).map(v=>({v, sel:v===k}));
@@ -11022,11 +10988,12 @@ class Component extends DCLogic {
       isBancas:this.state.view==='bancas', navBancas:navStyle('bancas'),
       areaCards, setAreaEstudo:this.setAreaEstudo, areaAtualLabel, areaAtualEmoji, areaAtualDesc,
       areaEssenciais, temEssenciais, areaSelOpen, areaSelLabel, toggleAreaSel:this.toggleAreaSel, ajIr:this.ajIr,
-      ...ajuTabs, setAjTab:this.setAjTab, orNivelChips, orTurnoChips, orEnergiaChips, setOrientVal:this.setOrientVal,
       areaJuridica, areaJuris, legisFrameSrc, areaEscolhida,
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
-      temAreaMod, areaModLabel, areaModFrameSrc, roteirosFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
+      isPrioridade:this.state.view==='prioridade', navPrioridade:navStyle('prioridade'),
+      isSegundaFase:this.state.view==='segundafase', navSegundaFase:navStyle('segundafase'),
+      temAreaMod, areaModLabel, areaModFrameSrc, roteirosFrameSrc, prioridadeFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
       bancaAreas, bancaAreaConcDesc, setBancaAreaConc:this.setBancaAreaConc,
       bancaTiles, setBancaFoco:this.setBancaFoco, bancaStepNum,
       bancaMaterias, bancaMateriaFonte, setBancaArea:this.setBancaArea,
@@ -11207,7 +11174,7 @@ class Component extends DCLogic {
         return g? 'A correção sai contra o espelho oficial desta prova: quesito a quesito, na escala da banca.'
                 : 'Sem espelho cadastrado, a correção sai por critérios gerais — cole o espelho acima para a nota por quesito.';})(),
       redKpiProvas:String(_bancoTodas.length||'—'),
-      redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.temEspelhoTexto||q.fonte_espelho).length||'—'),
+      redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||q.espelhoTexto||q.fonte_espelho).length||'—'),
       redKpiFeitas:String((this.state.redHistory||[]).length),
       redText:this.state.redText, redWords:String(redWords), redWordsN:redWords, redCanSubmit, redBusy:this.state.redBusy, redIdle:!this.state.redBusy,
       redEnunciado:this.state.redEnunciado, onRedEnun:this.onRedEnun,
