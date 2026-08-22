@@ -4555,7 +4555,18 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:4px;">Seus dados</div>
-          <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:16px;">backup completo de sessões, ciclos, revisões, simulados, edital e Anki</div>
+          <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:16px;">backup completo de sessões, ciclos, revisões, simulados, edital e flashcards</div>
+          <sc-if value="{{ backupNuvemShow }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:0 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface2);">
+            <div style="font-weight:600;color:var(--ink);">Backup na sua nuvem pessoal</div>
+            <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 10px;line-height:1.5;">{{ backupNuvemDica }}</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <sc-if value="{{ backupNativoShow }}" hint-placeholder-val="{{ false }}"><button onclick="{{ backupICloud }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">☁️ Salvar no iCloud Drive</button><button onclick="{{ restaurarICloud }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Restaurar do iCloud Drive</button></sc-if>
+              <sc-if value="{{ driveShow }}" hint-placeholder-val="{{ false }}"><button onclick="{{ backupDrive }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Salvar no Google Drive</button><button onclick="{{ restaurarDrive }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Restaurar do Google Drive</button></sc-if>
+            </div>
+            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;">{{ backupNuvemStatus }}</div>
+          </div>
+          </sc-if>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button onclick="{{ exportJSON }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Exportar backup JSON</button>
             <button onclick="{{ exportFlashcardsCSV }}" title="Flashcards em .txt que o Anki importa direto" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Flashcards → Anki</button>
@@ -6773,7 +6784,7 @@ class Component extends DCLogic {
     }catch(_){ this._toast('Não consegui copiar; tire um print desta tela'); }
   }
 
-  exportJSON = ()=>{ const data={
+  _backupObjeto(){ return {
       version:3, exportedAt:new Date().toISOString(),
       biblioteca:this.state.biblioteca, highlights:this.state.highlights, flashcards:this.state.flashcards,
       errors:this.state.errors, reviews:this.state.reviews, metas:this.state.metas, eventos:this.state.eventos, sessions:this.state.sessions,
@@ -6784,7 +6795,8 @@ class Component extends DCLogic {
       // gabarito ainda não arquivados no redHistory) e a lixeira de sessões. Quem
       // restaurasse o backup perdia a redação que estava escrevendo.
       redText:this.state.redText, redGabarito:this.state.redGabarito, redEnunciado:this.state.redEnunciado,
-      sessionsLixeira:this.state.sessionsLixeira};
+      sessionsLixeira:this.state.sessionsLixeira}; }
+  exportJSON = ()=>{ const data=this._backupObjeto();
     try{ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
       const a=document.createElement('a'); a.href=url; a.download='catedra-backup.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
       this._toast('Backup completo exportado ✦');
@@ -6947,10 +6959,8 @@ class Component extends DCLogic {
     return new Uint8Array(bytes);
   }
 
-  importData = ()=>{ try{
-      const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
-      inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return; const fr=new FileReader();
-        fr.onload=()=>{ try{ const d=JSON.parse(fr.result); const patch={};
+  /** Aplica um backup (objeto do exportJSON) em todo o estado — usado pelo arquivo, iCloud Drive e Google Drive. */
+  _restaurarBackup(d){ const patch={};
             ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','discItems','planHoras','agendaFeitas','manualFixedRoteiroAtual','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','meusGrupos','redText','redGabarito','redEnunciado'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
             if(d.highlights!=null) patch.highlights=d.highlights;
             if(Array.isArray(d.ciclo)) patch.blocks=d.ciclo;
@@ -6961,7 +6971,49 @@ class Component extends DCLogic {
             if(typeof d.darkMode==='boolean') patch.darkMode=d.darkMode;
             if(d.accent!==undefined) patch.accent=d.accent;
             this.setState(patch, ()=>{ try{ if(patch.highlights) this._saveHL(patch.highlights); if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.biblioteca) this._persistLib(); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem('catedra:cycleMode', patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
-            this.flashSync(); this._toast('Backup restaurado em todo o sistema ✦');
+            this.flashSync(); this._toast('Backup restaurado em todo o sistema ✦'); }
+  // ===== Backup na nuvem PESSOAL (iCloud Drive / Google Drive) — além da conta Cátedra =====
+  // Nativo (Mac/iPad): a ponte catedraBackup grava/lê o arquivo (Mac: pasta Cátedra do iCloud
+  // Drive; iPad: seletor de Arquivos, onde o iCloud Drive aparece). Web: Google Drive via
+  // OAuth do próprio Google (só quando CATEDRA_GOOGLE.clientId está configurado no deploy).
+  _nativoBackup(){ try{ return !!(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.catedraBackup); }catch(_){ return false; } }
+  _gdriveCfg(){ try{ return (window.CATEDRA_GOOGLE&&window.CATEDRA_GOOGLE.clientId)||''; }catch(_){ return ''; } }
+  _bkpCarimbo(k){ try{ const t=+localStorage.getItem(k)||0; return t?new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''; }catch(_){ return ''; } }
+  backupICloud = ()=>{ const json=JSON.stringify(this._backupObjeto(),null,2);
+    if(!this._nativoBackup()){ this.exportJSON(); return; }
+    window.webkit.messageHandlers.catedraBackup.postMessage({acao:'salvar', json, nome:'catedra-backup.json'}).then(r=>{
+      if(r&&r.ok){ try{ localStorage.setItem('catedra:_bkpICloud',String(Date.now())); }catch(_){} this.setState({}); this._toast('Backup salvo'+(r.onde?(' em '+r.onde):'')+' ✦'); }
+      else if(r&&r.cancelado){ /* a pessoa desistiu */ }
+      else this._toast('Não deu para salvar: '+((r&&r.erro)||'erro desconhecido'));
+    }).catch(()=>this._toast('Não deu para salvar o backup')); };
+  restaurarICloud = ()=>{ if(!this._nativoBackup()){ this.importData(); return; }
+    window.webkit.messageHandlers.catedraBackup.postMessage({acao:'ler', nome:'catedra-backup.json'}).then(r=>{
+      if(r&&r.json){ if(!window.confirm('Restaurar o backup'+(r.quando?(' de '+r.quando):'')+'? Os dados atuais deste aparelho serão substituídos pelos do arquivo.')) return;
+        try{ this._restaurarBackup(JSON.parse(r.json)); }catch(_){ this._toast('Arquivo inválido — esperado um backup .json'); } }
+      else if(r&&r.cancelado){ }
+      else this._toast((r&&r.erro)||'Nenhum backup encontrado');
+    }).catch(()=>this._toast('Não deu para ler o backup')); };
+  _gdriveToken(){ return new Promise((ok,fail)=>{ const cid=this._gdriveCfg(); if(!cid) return fail(new Error('Google Drive não configurado'));
+    const go=()=>{ try{ const tc=google.accounts.oauth2.initTokenClient({client_id:cid, scope:'https://www.googleapis.com/auth/drive.file', callback:(r)=> (r&&r.access_token)?ok(r.access_token):fail(new Error('acesso negado'))}); tc.requestAccessToken(); }catch(e){ fail(e); } };
+    if(window.google&&window.google.accounts) return go();
+    const sc=document.createElement('script'); sc.src='https://accounts.google.com/gsi/client'; sc.async=true; sc.onload=go; sc.onerror=()=>fail(new Error('não carregou o Google')); document.head.appendChild(sc); }); }
+  async _gdriveAcha(h){ const q=encodeURIComponent("name='catedra-backup.json' and trashed=false"); const r=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,modifiedTime)&orderBy=modifiedTime desc',{headers:h}); if(!r.ok) throw new Error('HTTP '+r.status); const j=await r.json(); return (j.files&&j.files[0])||null; }
+  backupDrive = async ()=>{ try{ const tok=await this._gdriveToken(); const h={Authorization:'Bearer '+tok}; const f=await this._gdriveAcha(h);
+      const json=JSON.stringify(this._backupObjeto(),null,2); const meta=f?{}:{name:'catedra-backup.json', mimeType:'application/json'};
+      const b='ctbkp'+Date.now(); const body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+json+'\r\n--'+b+'--';
+      const r=await fetch('https://www.googleapis.com/upload/drive/v3/files'+(f?('/'+f.id):'')+'?uploadType=multipart',{method:f?'PATCH':'POST', headers:{...h,'Content-Type':'multipart/related; boundary='+b}, body}); if(!r.ok) throw new Error('HTTP '+r.status);
+      try{ localStorage.setItem('catedra:_bkpDrive',String(Date.now())); }catch(_){} this.setState({}); this._toast('Backup salvo no Google Drive ✦');
+    }catch(e){ this._toast('Google Drive: '+((e&&e.message)||'falhou')); } };
+  restaurarDrive = async ()=>{ try{ const tok=await this._gdriveToken(); const h={Authorization:'Bearer '+tok}; const f=await this._gdriveAcha(h);
+      if(!f){ this._toast('Nenhum backup do Cátedra no seu Google Drive'); return; }
+      if(!window.confirm('Restaurar o backup do Google Drive de '+new Date(f.modifiedTime).toLocaleString('pt-BR')+'? Os dados atuais serão substituídos.')) return;
+      const r=await fetch('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media',{headers:h}); if(!r.ok) throw new Error('HTTP '+r.status);
+      this._restaurarBackup(await r.json());
+    }catch(e){ this._toast('Google Drive: '+((e&&e.message)||'falhou')); } };
+  importData = ()=>{ try{
+      const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
+      inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return; const fr=new FileReader();
+        fr.onload=()=>{ try{ this._restaurarBackup(JSON.parse(fr.result));
           }catch(err){ this._toast('Arquivo inválido — esperado um backup .json'); } };
         fr.readAsText(f); };
       inp.click();
@@ -11396,7 +11448,7 @@ class Component extends DCLogic {
       setCadCorVal:this.setCadCorVal,
       densConf:densBtn('confortavel'), densComp:densBtn('compacto'), setDensity:this.setDensity,
       // ajustes
-      prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, enviarFeedback:this.enviarFeedback, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
+      prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, enviarFeedback:this.enviarFeedback, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, backupICloud:this.backupICloud, restaurarICloud:this.restaurarICloud, backupDrive:this.backupDrive, restaurarDrive:this.restaurarDrive, backupNativoShow:this._nativoBackup(), driveShow:(!this._nativoBackup()&&!!this._gdriveCfg()), backupNuvemShow:(this._nativoBackup()||!!this._gdriveCfg()), backupNuvemDica:(this._nativoBackup()?'Uma cópia sua, fora da conta Cátedra. No Mac vai para a pasta Cátedra do iCloud Drive; no iPad você escolhe a pasta em Arquivos (o iCloud Drive aparece lá).':'Uma cópia sua, fora da conta Cátedra, guardada no seu Google Drive (arquivo catedra-backup.json).'), backupNuvemStatus:((()=>{ const a=this._bkpCarimbo('catedra:_bkpICloud'), b=this._bkpCarimbo('catedra:_bkpDrive'); return [a?('iCloud Drive: último backup '+a):'', b?('Google Drive: último backup '+b):''].filter(Boolean).join(' · ')||'Nenhum backup feito ainda neste aparelho.'; })()), exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
       togRevisao:togStyle(this.state.prefs.notifRevisao), togRevisaoKnob:togKnob(this.state.prefs.notifRevisao),
       togMeta:togStyle(this.state.prefs.notifMeta), togMetaKnob:togKnob(this.state.prefs.notifMeta),
       contentMax,
