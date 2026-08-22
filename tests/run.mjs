@@ -1491,6 +1491,227 @@ await page.setViewportSize({ width: 1280, height: 720 });
   await ctx.close();
 }
 
+/* ===== D6/D7/D8/D10 — pente fino visual do fluxo dos ritos e dos roteiros ===== */
+/* Ferramentas medidas dentro da página, compartilhadas pelos casos abaixo:
+   · vazamento: um retângulo l×a centrado cabe num losango L×A se l/L + a/A ≤ 1;
+     medimos as linhas de texto de verdade (rects de Range) e o chip da lei;
+   · contraste: compõe os fundos translúcidos até achar cor sólida (color-mix vira
+     color(srgb …) no valor computado, por isso o parser passa pelo canvas). */
+const FERRAMENTAS = `
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  const paraRGB = s => {
+    const m = String(s||'').match(/rgba?\\(([^)]+)\\)/);
+    if (m) { const p = m[1].split(',').map(Number); return [p[0],p[1],p[2], p.length>3?p[3]:1]; }
+    try { ctx.clearRect(0,0,1,1); ctx.fillStyle = '#000'; ctx.fillStyle = s; ctx.fillRect(0,0,1,1);
+      const d = ctx.getImageData(0,0,1,1).data; return [d[0],d[1],d[2],d[3]/255]; } catch (e) { return null; }
+  };
+  const fundoDe = el => {
+    let n = el; const camadas = [];
+    while (n && n.nodeType === 1) {
+      const p = paraRGB(getComputedStyle(n).backgroundColor);
+      if (p && p[3] > 0) { camadas.push(p); if (p[3] >= 1) break; }
+      n = n.parentElement;
+    }
+    camadas.push([255,255,255,1]);
+    let [r,g,b] = camadas[camadas.length-1];
+    for (let i = camadas.length-2; i >= 0; i--) { const [R,G,B,A] = camadas[i];
+      r = R*A + r*(1-A); g = G*A + g*(1-A); b = B*A + b*(1-A); }
+    return [r,g,b];
+  };
+  const lum = ([r,g,b]) => { const f = v => { v/=255; return v <= .03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); };
+    return .2126*f(r) + .7152*f(g) + .0722*f(b); };
+  const contraste = (fg,bg) => { const a = lum(fg)+.05, b = lum(bg)+.05; return a>b ? a/b : b/a; };
+  const contrasteDe = el => contraste(paraRGB(getComputedStyle(el).color), fundoDe(el));
+  const miudos = () => [...document.querySelectorAll('body *')].filter(el => {
+    const t = [...el.childNodes].some(n => n.nodeType === 3 && n.nodeValue.trim());
+    if (!t) return false;
+    const cs = getComputedStyle(el);
+    return cs.display !== 'none' && cs.visibility !== 'hidden' && el.getClientRects().length
+      && parseFloat(cs.fontSize) < 13;
+  });
+  const vazamento = () => [...document.querySelectorAll('.dec')].map(dec => {
+    const los = dec.querySelector('.losango') || dec;
+    if (getComputedStyle(los).clipPath === 'none') return null;   // virou caixa: não é losango
+    const R = los.getBoundingClientRect();
+    const cx = R.left + R.width/2, cy = R.top + R.height/2, a = R.width/2, b = R.height/2;
+    const alvos = [];
+    const w = document.createTreeWalker(dec, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      if (!String(n.nodeValue).trim()) continue;
+      const rg = document.createRange(); rg.selectNodeContents(n);
+      [...rg.getClientRects()].forEach(x => { if (x.width && x.height) alvos.push(x); });
+    }
+    dec.querySelectorAll('.art').forEach(x => { const rr = x.getBoundingClientRect(); if (rr.width) alvos.push(rr); });
+    let pior = 0;
+    alvos.forEach(rr => [[rr.left,rr.top],[rr.right,rr.top],[rr.left,rr.bottom],[rr.right,rr.bottom]]
+      .forEach(([x,y]) => { const v = Math.abs(x-cx)/a + Math.abs(y-cy)/b; if (v > pior) pior = v; }));
+    return { t: (dec.querySelector('.tt')||{}).textContent, pior: +pior.toFixed(3) };
+  }).filter(Boolean);
+`;
+
+// D6(a) — o texto da decisão dentro do losango, em coluna larga e em coluna estreita.
+// Antes da correção, a 940px (a largura do satélite dentro do app) 10 dos 26 losangos
+// destes ritos vazavam, e a 905px, 23 — o título e a lei escapavam pela lateral.
+{
+  const ritos = ['Administrativo — improbidade', 'Civil — conhecimento', 'Penal — procedimento sumário',
+                 'Penal — tribunal do júri', 'Empresarial — recuperação e falência'];
+  for (const larg of [1280, 940]) {
+    await page.setViewportSize({ width: larg, height: 900 });
+    let total = 0, vazam = [], pior = 0;
+    for (const rito of ritos) {
+      await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent(rito));
+      await page.waitForTimeout(250);
+      const m = await page.evaluate(FERRAMENTAS + '; vazamento()');
+      m.forEach(x => { total++; if (x.pior > 1) vazam.push(x.t); if (x.pior > pior) pior = x.pior; });
+    }
+    ok(total > 0 && vazam.length === 0,
+      'D6 nenhum texto escapa do losango a ' + larg + 'px (' + total + ' losangos, pior=' + pior.toFixed(2) +
+      (vazam.length ? '; vazam: ' + vazam.slice(0, 3).join(' / ') : '') + ')');
+  }
+}
+
+// D6(a) — e continua cabendo quando a coluna muda de largura SEM recarregar (é o caso
+// do iframe dentro do app: a janela muda, o texto reflui, a forma precisa remedir)
+await page.setViewportSize({ width: 1280, height: 900 });
+await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent('Civil — conhecimento'));
+await page.waitForTimeout(400);
+await page.setViewportSize({ width: 980, height: 900 });
+await page.waitForTimeout(400);
+const d6r = await page.evaluate(FERRAMENTAS + '; vazamento()');
+ok(d6r.length > 0 && d6r.every(x => x.pior <= 1),
+  'D6 a forma remede sozinha ao mudar a largura (' + d6r.length + ' losangos, pior=' +
+  Math.max(0, ...d6r.map(x => x.pior)).toFixed(2) + ')');
+
+// D6(b) — o rótulo da seta é o que separa os caminhos: contraste e pílula própria
+await page.setViewportSize({ width: 1280, height: 900 });
+await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent('Administrativo — improbidade'));
+await page.waitForTimeout(300);
+const d6b = await page.evaluate(FERRAMENTAS + `; (() => {
+  const rot = [...document.querySelectorAll('.saida .fio .rot')].filter(x => (x.textContent||'').trim());
+  if (!rot.length) return { erro: 'sem rótulo de seta' };
+  const cs = getComputedStyle(rot[0]);
+  return {
+    achou: rot.map(x => x.textContent.trim()).join(' | ').slice(0, 40),
+    piorContraste: +Math.min(...rot.map(contrasteDe)).toFixed(2),
+    temPill: (paraRGB(cs.backgroundColor)||[0,0,0,0])[3] > 0 && parseFloat(cs.borderTopWidth) > 0,
+    naoUsaText3: cs.color !== getComputedStyle(document.documentElement).getPropertyValue('--text3').trim(),
+  };
+})()`);
+if (d6b.erro) ok(false, 'D6 ' + d6b.erro);
+else {
+  ok(d6b.piorContraste >= 4.5, 'D6 rótulo da seta com contraste ≥ 4.5:1 (' + d6b.piorContraste + ':1 — ' + d6b.achou + ')');
+  ok(d6b.temPill, 'D6 rótulo da seta ganhou fundo pill para descolar da linha');
+}
+
+// D7 — dois níveis de microlabel, e os dois em uso nas duas páginas
+for (const pg of ['ritos-web.html', 'pecas-web.html']) {
+  await page.goto(URL0 + '/' + pg);
+  await page.waitForTimeout(400);
+  const d7 = await page.evaluate(FERRAMENTAS + `; (() => {
+    const f = document.querySelector('.ml-forte'), w = document.querySelector('.ml-fraca');
+    if (!f || !w) return { erro: 'faltou nível ' + (!f ? 'forte' : 'fraco') };
+    const cf = getComputedStyle(f), cw = getComputedStyle(w);
+    return {
+      usaOsDois: true,
+      monoSoNoForte: /mono|Menlo|ui-monospace/i.test(cf.fontFamily) && !/mono|Menlo|ui-monospace/i.test(cw.fontFamily),
+      // Chrome serializa letter-spacing:0 como 'normal' — parseFloat daria NaN
+      espacamentoSoNoForte: (parseFloat(cf.letterSpacing) || 0) > (parseFloat(cw.letterSpacing) || 0),
+      coresDiferentes: cf.color !== cw.color,
+      fracoLegivel: +contrasteDe(w).toFixed(2) >= 4.5,
+    };
+  })()`);
+  if (d7.erro) ok(false, 'D7 ' + pg + ': ' + d7.erro);
+  else for (const [k, v] of Object.entries(d7)) ok(v, 'D7 ' + pg + ' ' + k);
+}
+
+// D8 — celular: pílula ativa visível já no load, alvos de 44px e as ações no "⋯"
+await page.setViewportSize({ width: 390, height: 844 });
+await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent('Tributário — execução fiscal'));
+await page.waitForTimeout(500);
+const d8rp = await page.evaluate(`(() => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const mats = document.getElementById('mats'), on = mats.querySelector('.pill.on');
+  const rm = mats.getBoundingClientRect(), rp = on ? on.getBoundingClientRect() : null;
+  const r = {
+    pilulaAtivaInteiraNoLoad: !!rp && rp.left >= rm.left - 1 && rp.right <= rm.right + 1,
+    temScrollSnap: /x/.test(getComputedStyle(mats).scrollSnapType || ''),
+    // sem o scroll da fileira a pílula escolhida nasceria fora da tela
+    fileiraRolou: mats.scrollLeft > 0,
+    alvosDe44: [...document.querySelectorAll('.pill, header button')]
+      .filter(b => b.getClientRects().length)
+      .every(b => b.getBoundingClientRect().height >= 44),
+    maisVisivel: document.getElementById('bMais').getClientRects().length > 0,
+    acoesRecolhidas: document.getElementById('bNotas').getClientRects().length === 0,
+  };
+  return new Promise(async ok2 => {
+    document.getElementById('bMais').click(); await w(120);
+    r.menuAbre = document.getElementById('bNotas').getClientRects().length > 0;
+    r.avisaEstado = document.getElementById('bMais').getAttribute('aria-expanded') === 'true';
+    document.body.click(); await w(120);
+    r.menuFechaClicandoFora = document.getElementById('bNotas').getClientRects().length === 0;
+    ok2(r);
+  });
+})()`);
+for (const [k, v] of Object.entries(d8rp)) ok(v, 'D8 ' + k);
+
+await page.goto(URL0 + '/pecas-web.html');
+await page.waitForTimeout(400);
+const d8p = await page.evaluate(`(() => ({
+  alvos: [...document.querySelectorAll('header input, header select')]
+    .every(b => b.getBoundingClientRect().height >= 44),
+  // sem 16px na busca o iOS dá zoom ao focar — foi por isso que a página proibia ampliar
+  buscaGrande: parseFloat(getComputedStyle(document.getElementById('q')).fontSize) >= 16,
+  deixaAmpliar: !/user-scalable\\s*=\\s*no|maximum-scale/.test(
+    (document.querySelector('meta[name=viewport]')||{}).content || ''),
+}))()`);
+for (const [k, v] of Object.entries(d8p)) ok(v, 'D8/D10 peças no celular ' + k);
+
+// D10 — nome acessível, foco visível e contraste do texto miúdo nas duas páginas
+for (const pg of ['ritos-web.html', 'pecas-web.html']) {
+  for (const larg of [1280, 390]) {
+    await page.setViewportSize({ width: larg, height: 844 });
+    await page.goto(URL0 + '/' + pg);
+    await page.waitForTimeout(400);
+    const d10 = await page.evaluate(FERRAMENTAS + `; (() => ({
+      semNome: [...document.querySelectorAll('button')]
+        .filter(b => b.getClientRects().length)
+        .filter(b => !((b.textContent||'').trim() || b.getAttribute('aria-label') || b.getAttribute('title')))
+        .map(b => b.className || b.id),
+      miudosRuins: miudos().map(el => ({ q: el.className || el.tagName, c: +contrasteDe(el).toFixed(2),
+        t: (el.textContent||'').trim().slice(0, 24) })).filter(x => x.c < 4.5),
+    }))()`);
+    ok(d10.semNome.length === 0, 'D10 ' + pg + ' @' + larg + ': todo botão tem nome acessível' +
+      (d10.semNome.length ? ' (sem nome: ' + d10.semNome.join(', ') + ')' : ''));
+    ok(d10.miudosRuins.length === 0, 'D10 ' + pg + ' @' + larg + ': texto abaixo de 13px com ≥ 4.5:1' +
+      (d10.miudosRuins.length ? ' (' + JSON.stringify(d10.miudosRuins.slice(0, 3)) + ')' : ''));
+  }
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto(URL0 + '/' + pg);
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Tab');
+  const foco = await page.evaluate(`(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return { erro: 'nada recebeu o foco' };
+    const cs = getComputedStyle(el);
+    return { visivel: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0, quem: el.tagName + '.' + el.className };
+  })()`);
+  ok(!foco.erro && foco.visivel, 'D10 ' + pg + ': o primeiro Tab mostra o foco (' + (foco.quem || foco.erro) + ')');
+}
+// O host acrescenta ?embed=1 ao src dos iframes (D2): as duas páginas precisam
+// continuar inteiras nesse modo — nada do pente fino pode depender do cabeçalho grande.
+for (const [pg, alvo] of [['ritos-web.html', '#fluxo .passo'], ['pecas-web.html', '.rcard']]) {
+  await page.goto(URL0 + '/' + pg + '?embed=1');
+  await page.waitForTimeout(500);
+  const emb = await page.evaluate(`(() => ({
+    conteudo: document.querySelectorAll('${alvo}').length,
+    semNome: [...document.querySelectorAll('button')].filter(b => b.getClientRects().length)
+      .filter(b => !((b.textContent||'').trim() || b.getAttribute('aria-label') || b.getAttribute('title'))).length,
+  }))()`);
+  ok(emb.conteudo > 0 && emb.semNome === 0, 'D10 ' + pg + ' inteira também com ?embed=1 (' + emb.conteudo + ' itens)');
+}
+await page.setViewportSize({ width: 1280, height: 720 });
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
