@@ -11,6 +11,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cátedra · Plataforma de estudos</title>
 <meta name="description" content="Protótipo funcional da Cátedra para organizar estudos, revisões, simulados e materiais.">
+<script src="./prioridade-calc.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -1254,6 +1255,36 @@ window.ctPdfLib = (function(){
         </div>
 
         <!-- REVISÕES -->
+        <!-- ONDE ESTOU FRACA (item 1): a decisão nº 1 do dia, com o porquê -->
+        <div class="cth-sec"><span class="eyebrow">Diagnóstico</span><h2>Onde estou fraca</h2><span class="rule"></span><span class="meta">erros, revisões vencidas, tempo parada e peso do edital</span></div>
+        <sc-if value="{{ prioTem }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:26px;">
+            <sc-for list="{{ prioLista }}" as="p" hint-placeholder-count="3">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;">
+                <div style="display:flex;align-items:baseline;gap:10px;">
+                  <span style="flex:1;min-width:0;font-weight:600;color:var(--ink);">{{ p.disc }}</span>
+                  <span style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:{{ p.cor }};">{{ p.nota }}</span>
+                </div>
+                <span style="display:block;height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin:9px 0 10px;"><i style="{{ p.barra }}"></i></span>
+                <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;">{{ p.motivo }}</div>
+                <sc-if value="{{ p.temDados }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                    <button data-d="{{ p.disc }}" onclick="{{ prioRevisar }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Revisar agora</button>
+                    <button data-d="{{ p.disc }}" onclick="{{ prioErros }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;">Ver desempenho</button>
+                    <button data-d="{{ p.disc }}" onclick="{{ prioEstudar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;">Estudar</button>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ prioVazio }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;color:var(--text3);font-size:var(--fs-sm);line-height:1.6;margin-bottom:26px;">
+            Aqui vão aparecer as disciplinas do seu edital ordenadas por prioridade — quem tem mais erros recentes,
+            revisões vencidas e mais tempo sem estudo sobe. <b style="color:var(--text2);">Cadastre o edital</b> e registre
+            uma sessão para o diagnóstico começar.
+          </div>
+        </sc-if>
         <div class="cth-sec"><span class="eyebrow">Memória</span><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
         <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
           <div class="cth-revs">
@@ -7450,6 +7481,42 @@ class Component extends DCLogic {
   voltarConcursoOral = ()=> this.setState({oralBancaSel:null});
 
   revelarEspelho = ()=>{ if(!window.confirm('Revelar o espelho antes de entregar? No treino real você só vê os quesitos depois da prova.')) return; this.setState({redEspelhoOculto:false}); };
+
+  // ===== ONDE ESTOU FRACA (item 1 da especificação) ====================================
+  // Cruza caderno de erros, revisões vencidas, tempo sem estudar, desempenho e peso do
+  // edital para ordenar as disciplinas por prioridade — com o porquê à vista. A fórmula
+  // vive em prioridade-calc.js (pura e testável); aqui só se monta a entrada e a tela.
+  _prioridadeIncidencia(){
+    // incidência por disciplina, 0..1, a partir do mapa diploma→citações já embutido
+    try{
+      const I=window.__INCIDENCIA__; if(!I) return {};
+      const POR_DISC={cf:'direito constitucional', cc:'direito civil', cpc:'direito processual civil',
+        cp:'direito penal', cpp:'direito processual penal', ctn:'direito tributário', clt:'direito do trabalho',
+        cdc:'direito do consumidor', eca:'direito da criança e do adolescente'};
+      const tot=Object.keys(I).reduce((a,k)=>a+((I[k]&&I[k].total)||0),0)||1;
+      const out={};
+      Object.keys(I).forEach(k=>{ const d=POR_DISC[k]; if(!d) return; out[d]=Math.min(1,((I[k].total||0)/tot)*3); });
+      return out;
+    }catch(_){ return {}; }
+  }
+  _prioridade(){
+    try{
+      const calc=window.CT_PRIORIDADE_CALC; if(!calc) return [];
+      return calc.prioridadeDisciplinas({
+        edital:this.state.edital, errors:this.state.errors, reviews:this.state.reviews,
+        sessions:this.state.sessions, incidencia:this._prioridadeIncidencia(), hoje:this._hoje()
+      });
+    }catch(_){ return []; }
+  }
+  /** "Revisar agora": abre as revisões (a lista já traz a disciplina em destaque). */
+  prioRevisar = (e)=>{ this.setState({view:'revisoes', menuOpen:false}); };
+  /** "Ver desempenho": aba por disciplina do Desempenho, onde a linha dela aparece. */
+  prioErros = (e)=>{ this.setState({view:'analise', anaTab:'disciplina', menuOpen:false}); };
+  /** "Estudar": abre o registro de sessão já preenchido (nada é gravado sozinho). */
+  prioEstudar = (e)=>{ const d=e.currentTarget.dataset.d||'';
+    try{ window.catedraOpenStudyRegistration({disc:d, origem:'Onde estou fraca'}); }
+    catch(_){ this.setState({sessionModalOpen:true, sessionDraft:{...this.state.sessionDraft, disc:d}}); } };
+
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this.setState({redResult:null, redText:'', redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
@@ -10460,6 +10527,14 @@ class Component extends DCLogic {
     const redCanSubmit=redWords>=40 && !!(this.state.redGabarito||'').trim() && !this.state.redBusy;
     const redBtnStyle=`background:${redCanSubmit?'var(--accent)':'var(--surface2)'};color:${redCanSubmit?'var(--onAccent)':'var(--text3)'};border:1px solid ${redCanSubmit?'var(--accent)':'var(--border)'};border-radius:var(--r-md);padding:12px 24px;font-weight:600;font-size:var(--fs-md);cursor:${redCanSubmit?'pointer':'default'};font-family:inherit;`;
     const redBtnLabel=this.state.redBusy?'⏳ Corrigindo com IA — pode levar ~30s…':'Comparar com o gabarito ✦';
+    // ONDE ESTOU FRACA (item 1): cartões ordenados por prioridade, com o porquê
+    const prioLista=this._prioridade().slice(0,8).map(p=>({
+      disc:p.disc, nota:String(p.nota),
+      cor:(p.nota>=60?'var(--danger)':p.nota>=35?'var(--warn)':'var(--ok)'),
+      barra:'width:'+Math.max(4,Math.min(100,p.nota))+'%;height:100%;border-radius:99px;background:'+(p.nota>=60?'var(--danger)':p.nota>=35?'var(--warn)':'var(--ok)')+';display:block;',
+      motivo:(p.semDados?'sem dados ainda — registre uma sessão ou um simulado para esta disciplina entrar na conta':p.motivos.join(' · ')),
+      temDados:!p.semDados
+    }));
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
       temaShort:(h.tema||'').replace(/^(Discursiva|Peça)\s—\s/,''), tipo:(h.tema||'').startsWith('Peça')?'Peça':'Discursiva',
@@ -11283,6 +11358,8 @@ class Component extends DCLogic {
       redOrigemBg:(this.state.redResult&&this.state.redResult.aiUsed===false)?'rgba(194,121,12,.14)':'var(--accentSoft)',
       redEnunciadoShow, redEnunciadoResult,
       redResult:this.state.redResult, redHasResult:!!this.state.redResult, redNoResult:!this.state.redResult,
+      prioLista, prioTem:prioLista.length>0, prioVazio:prioLista.length===0, prioRevisar:this.prioRevisar,
+      prioErros:this.prioErros, prioEstudar:this.prioEstudar,
       redHist, redHistTem:redHist.length>0, redHistEmpty:redHist.length===0, redBtnStyle, redBtnLabel,
       onRedText:this.onRedText, submitRed:this.submitRed, redReset:this.redReset, redOpenHist:this.redOpenHist,
       redGabarito, redGabBusy, redGabFile, redGabWords:String(redGabWords),

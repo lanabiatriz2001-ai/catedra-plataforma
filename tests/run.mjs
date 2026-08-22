@@ -200,6 +200,76 @@ const a7 = await page.evaluate(() => {
 });
 ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado');
 
+/* ============= ONDE ESTOU FRACA (item 1) ============= */
+await page.goto(URL0 + '/tests/harness-prioridade.html');
+await page.waitForFunction(() => !!window.CT_PRIORIDADE_CALC);
+
+const prio = await page.evaluate(() => {
+  const { prioridadeDisciplinas, PESOS } = window.CT_PRIORIDADE_CALC;
+  const hoje = '2026-08-22';
+  const dia = 864e5, hojeMs = Date.parse(hoje + 'T00:00:00Z');
+  const r = {};
+
+  const base = {
+    hoje,
+    edital: [{ disc: 'Direito Processual Penal', peso: 2 }, { disc: 'Direito Civil', peso: 1 }],
+    errors: [], reviews: [],
+    sessions: [
+      { disc: 'Direito Processual Penal', date: '2026-08-21', questoes: 20, acertos: 15, erradas: 5 },
+      { disc: 'Direito Civil', date: '2026-08-21', questoes: 20, acertos: 15, erradas: 5 }
+    ]
+  };
+
+  // pesos somam 1 e estão num lugar só
+  r.pesosSomam1 = Math.abs(Object.values(PESOS).reduce((a, b) => a + b, 0) - 1) < 1e-9;
+
+  // mais erros → sobe
+  const comErros = prioridadeDisciplinas({ ...base,
+    errors: [1, 2, 3].map(i => ({ disc: 'Direito Civil', ts: hojeMs - i * dia })) });
+  r.errosSobem = comErros[0].disc === 'Direito Civil';
+
+  // erro fora da janela de 30 dias não conta
+  const errosVelhos = prioridadeDisciplinas({ ...base,
+    errors: [1, 2, 3].map(i => ({ disc: 'Direito Civil', ts: hojeMs - (40 + i) * dia })) });
+  r.janela30 = errosVelhos[0].disc !== 'Direito Civil' || errosVelhos[0].nota === errosVelhos[1].nota;
+
+  // revisões vencidas sobem; revisar (dueDate no futuro) desce
+  const vencidas = prioridadeDisciplinas({ ...base, reviews: [
+    { disc: 'Direito Civil', dueDate: '2026-08-10' }, { disc: 'Direito Civil', dueDate: '2026-08-12' }] });
+  const revisou = prioridadeDisciplinas({ ...base, reviews: [
+    { disc: 'Direito Civil', dueDate: '2026-09-10' }, { disc: 'Direito Civil', dueDate: '2026-09-12' }] });
+  const notaDe = (lista, d) => lista.find(x => x.disc === d).nota;
+  r.revisoesSobem = notaDe(vencidas, 'Direito Civil') > notaDe(revisou, 'Direito Civil');
+  r.revisarDesce = notaDe(revisou, 'Direito Civil') < notaDe(vencidas, 'Direito Civil');
+
+  // tempo sem estudar pesa; nunca estudada é o máximo do fator
+  const parada = prioridadeDisciplinas({ ...base,
+    sessions: [{ disc: 'Direito Processual Penal', date: '2026-08-21', questoes: 20, acertos: 15, erradas: 5 }] });
+  r.nuncaEstudada = parada[0].disc === 'Direito Civil' && parada[0].diasSem === null;
+
+  // desempenho: amostra pequena não vira sinal
+  const poucas = prioridadeDisciplinas({ ...base,
+    sessions: [{ disc: 'Direito Civil', date: '2026-08-21', questoes: 3, acertos: 0, erradas: 3 },
+               { disc: 'Direito Processual Penal', date: '2026-08-21', questoes: 20, acertos: 15, erradas: 5 }] });
+  r.amostraMinima = poucas.find(x => x.disc === 'Direito Civil').liqPct === null;
+
+  // nome com caixa/acento diferente casa (strings livres no app)
+  const acento = prioridadeDisciplinas({ ...base,
+    errors: [{ disc: '  direito civil  ', ts: hojeMs - dia }] });
+  r.normalizaNome = acento.find(x => x.disc === 'Direito Civil').erros30 === 1;
+
+  // sem dado nenhum: marca semDados (a tela explica em vez de mostrar zeros)
+  const vazio = prioridadeDisciplinas({ hoje, edital: [{ disc: 'Direito Civil' }], errors: [], reviews: [], sessions: [] });
+  r.semDados = vazio.length === 1 && vazio[0].semDados === true;
+  r.semEdital = prioridadeDisciplinas({ hoje, edital: [] }).length === 0;
+
+  // cada cartão explica o porquê
+  r.temMotivos = comErros[0].motivos.length > 0 && comErros[0].fatores.length === 5;
+  r.notaLimitada = comErros.every(x => x.nota >= 0 && x.nota <= 100);
+  return r;
+});
+for (const [k, v] of Object.entries(prio)) ok(v, 'PRIORIDADE ' + k);
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
