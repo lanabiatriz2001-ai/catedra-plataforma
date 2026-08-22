@@ -484,7 +484,6 @@ window.ctPdfLib = (function(){
       <button data-view="bemestar" onclick="{{ onNav }}" style="{{ navBem }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21C7 17.5 4 14 4 10.2 4 7.3 6.2 5 9 5c1.7 0 3 .9 3 .9s1.3-.9 3-.9c2.8 0 5 2.3 5 5.2 0 3.8-3 7.3-8 10.8Z" stroke-linejoin="round"></path></svg><span>Bem-estar</span></button>
       <button data-view="ajustes" onclick="{{ onNav }}" style="{{ navStyle.ajustes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.3 2.5h4l.3-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" stroke-linejoin="round"></path></svg><span>Ajustes</span></button>
     </nav>
-     </div>
     </sc-if>
     <!-- Conta admin-only (ex.: 2001): não vê a plataforma de estudo, só o painel + Sair. -->
     <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
