@@ -304,16 +304,33 @@ $('bNotas').onclick=function(){ document.body.classList.toggle('semnotas');
   this.classList.toggle('on', !document.body.classList.contains('semnotas')); };
 $('bPrint').onclick=()=>window.print();
 
-/* ---- partida: ?rito=Nome ---- */
-try{ const q=new URLSearchParams(location.search).get('rito');
+/* U1: uma função só para "abrir neste ponto", chamada pela URL (1ª carga, deep-link,
+   testes) E pela mensagem do host (iframe vivo, sem recarregar). Dois caminhos separados
+   divergiriam na primeira correção. */
+window.ctAbrirPonto = function (rito, peca, bloco) {
+  try {
+    if (rito && ORDEM.includes(rito)) {
+      atual = rito;
+      [...mats.children].forEach(b => b.classList.toggle('on', b.dataset.k === atual));
+      pinta();
+    }
+    if (peca && PECAS[peca]) setTimeout(() => R.abrir(peca, (bloco == null ? undefined : bloco)), 60);
+  } catch (e) {}
+};
+
+/* ---- partida e volta do acervo: ?rito=Nome, ?peca=Nome (+ &bloco=N) ---- */
+try{ const u=new URLSearchParams(location.search);
+  const q=u.get('rito');
   if(q && ORDEM.includes(q)) atual=q; }catch(e){}
 [...mats.children].forEach(b=>b.classList.toggle('on', b.dataset.k===atual));
 pinta();
-
-/* ---- volta do acervo: ?peca=Nome (+ &bloco=N) reabre o roteiro no bloco exato.
-   O host manda estes parâmetros quando ela toca "voltar" no LEGIS/JURIS — o iframe
-   recarregou na ida, então o ponto só sobrevive viajando na URL. ---- */
 try{ const u=new URLSearchParams(location.search), pc=u.get('peca');
   if(pc && PECAS[pc]) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
+
+window.addEventListener('message', function (e) {
+  if (e && e.data && e.data.type === 'ctAbrirBloco') {
+    window.ctAbrirPonto(e.data.rito, e.data.peca, e.data.bloco);
+  }
+});
 </script>
 </body></html>
