@@ -11,6 +11,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cátedra · Plataforma de estudos</title>
 <meta name="description" content="Protótipo funcional da Cátedra para organizar estudos, revisões, simulados e materiais.">
+<!-- "O que mudou esta semana" (item 7): recorte dos informativos, gerado no build -->
+<script src="./semana-juris.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -1254,6 +1256,33 @@ window.ctPdfLib = (function(){
         </div>
 
         <!-- REVISÕES -->
+        <!-- O QUE MUDOU ESTA SEMANA (item 7) -->
+        <sc-if value="{{ semanaTem }}" hint-placeholder-val="{{ true }}">
+          <div class="cth-sec"><span class="eyebrow">Jurisprudência</span><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE · <button onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button></span></div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:26px;">
+            <sc-for list="{{ semanaLista }}" as="s" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+                <div style="flex:1;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <sc-if value="{{ s.temSelo }}" hint-placeholder-val="{{ true }}">
+                      <span style="{{ s.seloStyle }}font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-radius:99px;padding:3px 9px;">{{ s.selo }}</span>
+                    </sc-if>
+                    <span style="font-weight:600;color:var(--ink);font-size:var(--fs-base);">{{ s.titulo }}</span>
+                    <span style="font-size:var(--fs-xs);color:var(--text3);">{{ s.ondeQuem }} · {{ s.quando }}</span>
+                  </div>
+                  <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.55;margin-top:6px;">{{ s.tese }}</div>
+                  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+                    <button data-t="{{ s.titulo }}" onclick="{{ semanaAbrir }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);font-weight:600;color:var(--accentD);cursor:pointer;font-family:inherit;">Abrir no JURIS</button>
+                    <button data-id="{{ s.id }}" onclick="{{ semanaLido }}" style="background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);color:var(--text3);cursor:pointer;font-family:inherit;">Já vi</button>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ semanaTemMais }}" hint-placeholder-val="{{ true }}">
+              <button onclick="{{ semanaMais }}" style="align-self:flex-start;background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:4px 0;">{{ semanaMaisLabel }}</button>
+            </sc-if>
+          </div>
+        </sc-if>
         <div class="cth-sec"><span class="eyebrow">Memória</span><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
         <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
           <div class="cth-revs">
@@ -4916,7 +4945,7 @@ class Component extends DCLogic {
       // bancas reais: as 999 perguntas com padrão de resposta (oral-conteudo.js)
       oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'', discCarregado:false, discErro:false,
       perfMode:'liquido',
-      paletteOpen:false, paletteQuery:'',
+      paletteOpen:false, paletteQuery:'', semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
       // sem botão para sair dela (o botão não existe mais). Cai para texto.
       multiFmt:(this._load('multiFmt', 'texto')==='video'?'texto':this._load('multiFmt', 'texto')), mfTtsBusy:false, multiSrc:this._load('multiSrc', ''), mfGen:this._load('mfGen', {}), mfBusy:'', breathOn:false, mood:'',
@@ -5493,7 +5522,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo','edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto']; }
+  _autosaveKeys(){ return ['areaEstudo','edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','semanaLidos','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto']; }
   _autosave(){
     const keys=this._autosaveKeys();
     const L=this._lastSaved||(this._lastSaved={});
@@ -7450,6 +7479,30 @@ class Component extends DCLogic {
   voltarConcursoOral = ()=> this.setState({oralBancaSel:null});
 
   revelarEspelho = ()=>{ if(!window.confirm('Revelar o espelho antes de entregar? No treino real você só vê os quesitos depois da prova.')) return; this.setState({redEspelhoOculto:false}); };
+
+  // ===== O QUE MUDOU ESTA SEMANA (item 7 da especificação) =============================
+  // Bloco no Início com os informativos recentes do STF/STJ/TSE, os marcados primeiro
+  // (entendimento superado, divergência entre tribunais, tese vinculante nova). O recorte
+  // e o marcador vêm de semana-juris.js, gerado no build: NADA de rede em runtime.
+  SEMANA_N = 6;
+  _semanaItens(){
+    try{
+      const S=window.CT_SEMANA; if(!S || !Array.isArray(S.itens)) return [];
+      const lidos=new Set(this.state.semanaLidos||[]);
+      return S.itens.filter(x=>!lidos.has(x.id));
+    }catch(_){ return []; }
+  }
+  /** Abre o verbete no CátedraJURIS pelo título — o mesmo canal do ⌘K e do mapa. */
+  semanaAbrir = (e)=>{ const t=e.currentTarget.dataset.t||''; if(!t) return;
+    this.setState({view:'juris', acervoBusca:t, acervoDe:null, origemAbrir:'', menuOpen:false}); };
+  /** "Já vi": some do bloco e sincroniza (escalar em _autosaveKeys). */
+  semanaLido = (e)=>{ const id=e.currentTarget.dataset.id; if(!id) return;
+    this.setState(st=>({semanaLidos:[...(st.semanaLidos||[]), id].slice(-400)}),
+      ()=>{ try{ localStorage.setItem('catedra:semanaLidos', JSON.stringify(this.state.semanaLidos)); }catch(_){} this.flashSync(); });
+  };
+  semanaMais = ()=> this.setState({semanaTudo:!this.state.semanaTudo});
+  semanaVerTudo = ()=> this.setState({view:'juris', acervoBusca:'', acervoDe:null, origemAbrir:'', menuOpen:false});
+
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this.setState({redResult:null, redText:'', redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
@@ -10460,6 +10513,17 @@ class Component extends DCLogic {
     const redCanSubmit=redWords>=40 && !!(this.state.redGabarito||'').trim() && !this.state.redBusy;
     const redBtnStyle=`background:${redCanSubmit?'var(--accent)':'var(--surface2)'};color:${redCanSubmit?'var(--onAccent)':'var(--text3)'};border:1px solid ${redCanSubmit?'var(--accent)':'var(--border)'};border-radius:var(--r-md);padding:12px 24px;font-weight:600;font-size:var(--fs-md);cursor:${redCanSubmit?'pointer':'default'};font-family:inherit;`;
     const redBtnLabel=this.state.redBusy?'⏳ Corrigindo com IA — pode levar ~30s…':'Comparar com o gabarito ✦';
+    // O QUE MUDOU ESTA SEMANA (item 7): marcados primeiro, com selo por tipo
+    const _SEMSELO={superacao:{t:'entendimento superado', c:'var(--danger)'},
+      divergencia:{t:'divergência STF × STJ', c:'var(--warn)'},
+      vinculante:{t:'tese vinculante', c:'var(--accent)'}};
+    const _semanaTodos=this._semanaItens();
+    const semanaLista=_semanaTodos.slice(0, this.state.semanaTudo?18:this.SEMANA_N).map(x=>{
+      const sel=_SEMSELO[x.marcador];
+      return { id:x.id, titulo:x.titulo, tese:x.tese, quando:x.quando,
+        ondeQuem:[x.tribunal, x.ramo].filter(Boolean).join(' · '),
+        temSelo:!!sel, selo:(sel?sel.t:''), seloStyle:(sel?('background:'+sel.c+';color:#fff;'):'') };
+    });
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
       temaShort:(h.tema||'').replace(/^(Discursiva|Peça)\s—\s/,''), tipo:(h.tema||'').startsWith('Peça')?'Peça':'Discursiva',
@@ -11283,6 +11347,10 @@ class Component extends DCLogic {
       redOrigemBg:(this.state.redResult&&this.state.redResult.aiUsed===false)?'rgba(194,121,12,.14)':'var(--accentSoft)',
       redEnunciadoShow, redEnunciadoResult,
       redResult:this.state.redResult, redHasResult:!!this.state.redResult, redNoResult:!this.state.redResult,
+      semanaLista, semanaTem:semanaLista.length>0, semanaVazio:semanaLista.length===0,
+      semanaAbrir:this.semanaAbrir, semanaLido:this.semanaLido, semanaMais:this.semanaMais,
+      semanaVerTudo:this.semanaVerTudo, semanaMaisLabel:(this.state.semanaTudo?'ver menos':'ver mais'),
+      semanaTemMais:_semanaTodos.length>this.SEMANA_N,
       redHist, redHistTem:redHist.length>0, redHistEmpty:redHist.length===0, redBtnStyle, redBtnLabel,
       onRedText:this.onRedText, submitRed:this.submitRed, redReset:this.redReset, redOpenHist:this.redOpenHist,
       redGabarito, redGabBusy, redGabFile, redGabWords:String(redGabWords),
