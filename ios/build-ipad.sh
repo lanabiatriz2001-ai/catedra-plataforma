@@ -13,6 +13,11 @@
 set -euo pipefail
 
 ALVO="${1:-sim}"
+# sim         → simulador (padrão)
+# device      → iPad de verdade, perfil de DESENVOLVIMENTO (só os aparelhos registrados)
+# testflight  → .ipa assinado para DISTRIBUIÇÃO, pronto para subir ao App Store Connect
+[ "$ALVO" = "testflight" ] && ALVO_REAL="testflight" || ALVO_REAL="$ALVO"
+[ "$ALVO" = "testflight" ] && ALVO="device"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 BUILD="$HERE/build"
@@ -124,11 +129,31 @@ done
 [ -f "$ROOT/oral.json" ] && cp "$ROOT/oral.json" "$APP/oral.json"
 echo "     acervo do JURIS: $(ls -1 "$APP"/corpus*.json "$APP"/notas.json "$APP"/indice.json 2>/dev/null | wc -l | tr -d ' ') arquivo(s)"
 
+# Conformidade de exportação. Sem esta chave, cada build fica parado no TestFlight
+# esperando alguém responder um formulário sobre criptografia.
+#
+# Verificado no código (22/08/2026), não presumido: os 194 arquivos Swift importam CryptoKit
+# em 2 lugares, e o único uso é SHA256.hash() como impressão digital do texto de uma lei, para
+# saber se o Planalto mudou a norma — hash, não cifra. O binário não linka OpenSSL, libsodium
+# nem BoringSSL. No bundle web, `crypto.subtle` aparece só dentro da biblioteca do Supabase,
+# para o desafio PKCE (hash) e a verificação de assinatura do JWT (autenticação). O backup
+# em iCloud/Drive sai como JSON em texto puro. Toda a rede é HTTPS do sistema.
+#
+# Isso cai nas isenções: criptografia do próprio sistema operacional e uso restrito a
+# autenticação. Se um dia o app passar a CIFRAR dado (backup cifrado, ponta a ponta), esta
+# linha precisa sair e a resposta muda.
+/usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$APP/Info.plist" 2>/dev/null \
+  || /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$APP/Info.plist"
+
 plutil -lint "$APP/Info.plist" >/dev/null && echo "     Info.plist válido"
 
 if [ "$ALVO" = "device" ]; then
   echo "→ 4/4  Assinando para dispositivo…"
-  IOS_ID="$(security find-identity -v -p codesigning 2>/dev/null | grep -E 'Apple Development|Apple Distribution' | head -1 | sed -E 's/.*"(.*)"/\1/' || true)"
+  # O certificado depende do destino: Development instala no iPad registrado;
+  # Distribution é o único que o App Store Connect aceita. Escolher "o primeiro da
+  # lista" pegava sempre o Development — e o TestFlight recusa em silêncio.
+  if [ "$ALVO_REAL" = "testflight" ]; then PADRAO_CERT='Apple Distribution'; else PADRAO_CERT='Apple Development'; fi
+  IOS_ID="$(security find-identity -v -p codesigning 2>/dev/null | grep -E "$PADRAO_CERT" | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/')"
   if [ -z "$IOS_ID" ]; then
     echo "     ✗ Nenhum certificado de iOS no chaveiro."
     echo "       Para instalar no iPad de verdade é preciso 'Apple Development' + um PERFIL"
@@ -138,7 +163,17 @@ if [ "$ALVO" = "device" ]; then
   # O perfil de provisionamento é o que autoriza ESTE app a rodar NAQUELE iPad. Basta
   # baixar o .mobileprovision do portal e deixá-lo em ios/embedded.mobileprovision —
   # daqui para a frente o script cuida de tudo.
-  PERFIL="$HERE/embedded.mobileprovision"
+  # O perfil também muda: o de desenvolvimento traz a lista de UDIDs; o de loja traz
+  # `beta-reports-active`, que é o que o TestFlight exige.
+  if [ "$ALVO_REAL" = "testflight" ]; then
+    PERFIL="$HERE/appstore.mobileprovision"
+    if [ ! -f "$PERFIL" ]; then
+      ACHADO="$(grep -rl 'beta-reports-active' "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/" 2>/dev/null | head -1)"
+      [ -n "$ACHADO" ] && PERFIL="$ACHADO"
+    fi
+  else
+    PERFIL="$HERE/embedded.mobileprovision"
+  fi
   if [ -f "$PERFIL" ]; then
     cp "$PERFIL" "$APP/embedded.mobileprovision"
     # Os entitlements TÊM de bater com o perfil (application-identifier, team-identifier,
@@ -151,8 +186,27 @@ if [ "$ALVO" = "device" ]; then
       echo "     assinado com perfil: $(/usr/libexec/PlistBuddy -c 'Print :Name' "$BUILD/perfil.plist" 2>/dev/null)"
       echo "     expira em: $(/usr/libexec/PlistBuddy -c 'Print :ExpirationDate' "$BUILD/perfil.plist" 2>/dev/null)"
       echo
-      echo "  Instalar no iPad (precisa estar plugado e destravado):"
-      echo "      xcrun devicectl device install app --device <UDID> \"$APP\""
+      if [ "$ALVO_REAL" = "testflight" ]; then
+        # O App Store Connect não recebe um .app solto: quer um zip com o bundle dentro de
+        # uma pasta chamada Payload/, com a extensão .ipa. É só isso — não há mágica aqui.
+        IPA="$BUILD/Catedra.ipa"
+        rm -rf "$BUILD/Payload" "$IPA"
+        mkdir -p "$BUILD/Payload"
+        cp -R "$APP" "$BUILD/Payload/"
+        ( cd "$BUILD" && zip -qry "$IPA" Payload )
+        rm -rf "$BUILD/Payload"
+        echo "     empacotado: $IPA ($(du -h "$IPA" | cut -f1 | tr -d ' '))"
+        echo
+        echo "  Subir para o TestFlight (precisa da chave da API do App Store Connect):"
+        echo "      xcrun altool --upload-app -f \"$IPA\" -t ios \\"
+        echo "        --apiKey <KEY_ID> --apiIssuer <ISSUER_ID>"
+        echo
+        echo "  A chave (.p8) fica em ~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8"
+        echo "  Gere em: App Store Connect → Users and Access → Integrations → App Store Connect API"
+      else
+        echo "  Instalar no iPad (precisa estar plugado e destravado):"
+        echo "      xcrun devicectl device install app --device <UDID> \"$APP\""
+      fi
     else
       echo "     ✗ não consegui ler os entitlements do perfil — ele está íntegro?"
     fi
