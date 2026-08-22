@@ -344,6 +344,17 @@ function telaCorrecao(){
   $('bImprimir').onclick=()=>window.print();
   $('bFechar').onclick=()=>{
     const n=T.notaPorEspelho(c, s.veredictos);
+    /* Quesito não atendido (ou parcial que valeu menos da metade) vira erro, flashcard e
+       revisão no app — o host faz o trabalho, aqui só se manda o que falhou. Sem isto a
+       correção morria na tela: a pessoa via o que errou e tinha que recadastrar à mão. */
+    try{
+      const falhos=c.quesitos.filter(q=>{ const v=s.veredictos[q.i]; return v==='nao' || v==='parcial'; })
+        .map(q=>({ titulo:(q.rot?(q.rot+' — '):'')+String(q.exig||'').slice(0,600),
+                   disc:q.disc||p.cargo||'2ª fase', tema:q.tema||'',
+                   nota:(s.veredictos[q.i]==='parcial'?0.5:0), max:1,
+                   fundamento:(q.dispositivos||[]).map(d=>d.rotulo).join(' · ') || String(q.exig||'').slice(0,600) }));
+      if(falhos.length) window.parent.postMessage({type:'ctErrosSegundaFase', prova:rotulo(p), quesitos:falhos}, '*');
+    }catch(e){}
     S.hist.unshift({ id:p.id, rotulo:rotulo(p), quando:new Date().toISOString().slice(0,10),
       pct:n.pct, ganho:n.ganho, possivel:n.possivel, gasto:s.gasto, minutos:s.minutos,
       palavras:(s.folha||'').trim().split(/\s+/).filter(Boolean).length });

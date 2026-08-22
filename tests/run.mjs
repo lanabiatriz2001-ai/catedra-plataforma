@@ -200,6 +200,87 @@ const a7 = await page.evaluate(() => {
 });
 ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado');
 
+/* ================ ERRO VIRA REVISÃO (item 2) ================ */
+await page.goto(URL0 + '/tests/harness-erros.html');
+await page.waitForFunction(() => !!window.colherErros);
+
+const err = await page.evaluate(async () => {
+  const r = {};
+  const limpa = () => ['errors', 'fc', 'reviews'].forEach(k => localStorage.removeItem('catedra:' + k));
+  const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
+
+  // 1. N erradas → N erros + N flashcards (com gabarito) + 1 revisão por disciplina
+  limpa();
+  const lote = [
+    { enunciado: 'Cabe HC contra decisão de turma recursal?', gabarito: 'Súmula 690 superada', disc: 'Processo Penal', topico: 'HC' },
+    { enunciado: 'Prazo da impugnação ao cumprimento de sentença', gabarito: 'art. 525 CPC', disc: 'Processo Civil', topico: 'Cumprimento' },
+    { enunciado: 'Prescrição intercorrente na execução fiscal', gabarito: 'Súmula 314 STJ', disc: 'Processo Civil', topico: 'Prescrição' },
+  ];
+  const a = window.colherErros(lote, 'Simulado');
+  r.criouTudo = a.erros === 3 && a.cards === 3;
+  r.umaRevisaoPorDisc = a.revs === 2;
+  r.revisaoAmanha = ler('reviews').every(x => x.dueDate > new Date().toISOString().slice(0, 10) && x.due === 1);
+  r.temIdEUp = ler('errors').every(x => x.id && x.up) && ler('fc').every(x => x.id && x.up);
+
+  // 2. refazer a mesma prova não duplica
+  const b = window.colherErros(lote, 'Simulado');
+  r.dedup = b === null && ler('errors').length === 3;
+
+  // 3. desfazer remove exatamente o lote
+  limpa();
+  window.colherErros(lote, 'Simulado');
+  const antes = ler('errors').length + ler('fc').length + ler('reviews').length;
+  window.desfazerLote();
+  r.desfez = antes === 8 && ler('errors').length === 0 && ler('fc').length === 0 && ler('reviews').length === 0;
+
+  // 4. teto de 20 por correção
+  limpa();
+  const c = window.colherErros(Array.from({ length: 30 }, (_, i) => ({ enunciado: 'questão ' + i, gabarito: 'g' + i, disc: 'Civil' })), 'Simulado');
+  r.teto = c.erros === 20;
+
+  // 5. canal da 2ª fase (postMessage) cai no mesmo caminho
+  limpa();
+  window.postMessage({ type: 'ctErrosSegundaFase', prova: 'TJ-RJ 2026 · discursiva', quesitos: [
+    { titulo: 'Quesito 1 — enfrentar a preliminar de ilegitimidade', disc: 'Processo Civil', nota: 0, max: 1, fundamento: 'art. 485, VI, CPC' },
+    { titulo: 'Quesito 2 — dosimetria', disc: 'Penal', nota: 0.5, max: 1, fundamento: 'art. 59 CP' },
+  ] }, '*');
+  await new Promise(res => setTimeout(res, 200));
+  const es = ler('errors');
+  r.segundaFase = es.length === 2 && es.every(x => /2ª fase — TJ-RJ/.test(x.source)) && ler('reviews').length === 2;
+  limpa();
+  return r;
+});
+for (const [k, v] of Object.entries(err)) ok(v, 'ERROS ' + k);
+
+// o iframe da 2ª fase realmente posta o lote ao fechar a correção
+await page.goto(URL0 + '/segunda-fase-web.html');
+await page.waitForTimeout(700);
+const sf = await page.evaluate(async () => {
+  const P = (window.CT_ESPELHOS || {}).provas || [];
+  if (!P.length) return { erro: 'sem provas' };
+  const alvo = P.find(p => (p.quesitos || []).length >= 2) || P[0];
+  localStorage.setItem('catedraSegundaFase', JSON.stringify({ hist: [], sessao: {
+    id: alvo.id, minutos: 300, inicio: Date.now(), acc: 60000, rodando: false,
+    folha: 'texto qualquer da peça para a correção rodar', entregue: true, gasto: 60000, veredictos: {} } }));
+  return { ok: true, prova: alvo.id };
+});
+if (!sf.erro) {
+  await page.goto(URL0 + '/segunda-fase-web.html');   // recarrega já com a sessão entregue
+  await page.waitForTimeout(1200);
+  const post = await page.evaluate(async () => {
+    const got = new Promise(r => { window.addEventListener('message', e => { if (e.data && e.data.type === 'ctErrosSegundaFase') r(e.data); }); setTimeout(() => r(null), 1500); });
+    const btns = [...document.querySelectorAll('button')];
+    const naos = [...document.querySelectorAll('.q .ver button[data-v="nao"]')];
+    naos.slice(0, 2).forEach(b => b.click());
+    const fechar = btns.find(b => /Salvar e sair/.test(b.textContent || ''));
+    if (!fechar) return null;
+    fechar.click();
+    return await got;
+  });
+  ok(!!post && Array.isArray(post.quesitos) && post.quesitos.length > 0, 'ERROS 2ª fase posta ctErrosSegundaFase ao fechar');
+  ok(!!post && !!post.prova, 'ERROS 2ª fase manda o rótulo da prova');
+}
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
