@@ -2222,12 +2222,8 @@ window.ctPdfLib = (function(){
             </sc-if>
             <sc-if value="{{ oralPronto }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                <select value="{{ oralRamo }}" onchange="{{ setOralRamo }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ oralRamoOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
-                <select value="{{ oralTribunal }}" onchange="{{ setOralTribunal }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ oralTribOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralRamoOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralRamo }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralTribOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralTribunal }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
                 <button onclick="{{ sortearOral }}" style="border:none;background:var(--accent);color:#fff;border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:600;cursor:pointer;font-family:inherit;">Sortear pergunta</button>
                 <span style="font-size:var(--fs-xs);color:var(--text3);">{{ oralTotal }} verbetes no acervo</span>
               </div>
@@ -2286,9 +2282,7 @@ window.ctPdfLib = (function(){
             </sc-if>
             <sc-if value="{{ oralLeisPronto }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                <select value="{{ oralLeiSig }}" onchange="{{ setOralLeiSig }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ oralLeiOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralLeiOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralLeiSig }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
                 <button onclick="{{ sortearArtigoOral }}" style="border:none;background:var(--accent);color:#fff;border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:600;cursor:pointer;font-family:inherit;">Sortear artigo</button>
                 <span style="font-size:var(--fs-xs);color:var(--text3);">{{ oralLeisTotal }} artigos</span>
               </div>
@@ -2338,12 +2332,8 @@ window.ctPdfLib = (function(){
             </div>
             <sc-if value="{{ oralQPronto }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;">
-                <select value="{{ oralQCarr }}" onchange="{{ setOralQCarr }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ oralQCarrOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
-                <select value="{{ oralQDisc }}" onchange="{{ setOralQDisc }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ oralQDiscOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralQCarrOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralQCarr }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralQDiscOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralQDisc }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
                 <button onclick="{{ sortearPerguntaBanca }}" style="border:none;background:var(--accent);color:#fff;border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:600;cursor:pointer;font-family:inherit;">Sortear pergunta real</button>
               </div>
             </sc-if>
@@ -2382,12 +2372,8 @@ window.ctPdfLib = (function(){
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                 <input value="{{ oralBancaQ }}" oninput="{{ onOralBancaQ }}" placeholder="Buscar órgão, cargo, concurso…" style="flex:1;min-width:200px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
-                <select value="{{ oralBancaCarr }}" onchange="{{ setOralBancaCarr }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ oralBancaCarrOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
-                <select value="{{ oralBancaBanca }}" onchange="{{ setOralBancaBanca }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
-                  <sc-for list="{{ oralBancaBancaOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
-                </select>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralBancaCarrOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralBancaCarr }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralBancaBancaOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralBancaBanca }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
                 <button onclick="{{ toggleOralOuro }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:600;cursor:pointer;font-family:inherit;">{{ oralOuroLabel }}</button>
               </div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-weight:700;">{{ oralConcTotal }} concurso(s)</div>
@@ -7079,6 +7065,9 @@ class Component extends DCLogic {
       && (!q||((x.orgao||'')+' '+(x.cargo||'')+' '+(x.concurso||'')+' '+(x.banca||'')).toLowerCase().includes(q)));
     const sel=st.oralBancaSel;
     const ROT={padrao_resposta_oral:'Padrão de resposta',questoes_formuladas:'Perguntas formuladas',relacao_de_pontos:'Pontos sorteáveis',regulamento_criterios:'Critérios de avaliação',edital_convocacao_oral:'Edital de convocação',ata_resultado:'Ata / resultado',gravacao:'Gravação'};
+    const _chipO=(on)=>`border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--ink)'};border-radius:99px;padding:8px 14px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;`;
+    const _chipz=(arr)=>arr.map(o=>({...o, style:_chipO(!!o.sel)}));
+
     return {
       oralModo:st.oralModo, oralEhJuris:st.oralModo==='juris', oralEhLei:st.oralModo==='lei', oralEhBancas:st.oralModo==='bancas',
       // O template resolve NOMES, não expressões: estilos condicionais saem prontos daqui.
@@ -7086,8 +7075,8 @@ class Component extends DCLogic {
       oralOuroLabel:st.oralBancaSoOuro?'Só com padrão de resposta ✓':'Só com padrão de resposta',
       oralNotaStyle:c?('display:inline-block;font-size:var(--fs-xs);font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:99px;background:'+(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)')+'1f;color:'+(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)')+';'):'',
       oralPronto:st.oralPronto, oralErro:st.oralErro,
-      oralRamoOpts:[{v:'',label:'Todas as disciplinas'}].concat(cont('ramo')).map(o=>({...o,sel:st.oralRamo===o.v})),
-      oralTribOpts:[{v:'',label:'Todos os tribunais'}].concat(cont('tribunal')).map(o=>({...o,sel:st.oralTribunal===o.v})),
+      oralRamoOpts:_chipz([{v:'',label:'Todas as disciplinas'}].concat(cont('ramo')).map(o=>({...o,sel:st.oralRamo===o.v}))),
+      oralTribOpts:_chipz([{v:'',label:'Todos os tribunais'}].concat(cont('tribunal')).map(o=>({...o,sel:st.oralTribunal===o.v}))),
       oralTotal:vs.length,
       oralTemAlvo:!!alvo,
       oralAlvoTitulo:alvo?alvo.titulo:'', oralAlvoTribunal:alvo?alvo.tribunal:'', oralAlvoRamo:alvo?(alvo.ramo||''):'',
@@ -7104,7 +7093,7 @@ class Component extends DCLogic {
       oralHistLabel:(st.oralHist||[]).slice(0,10).map(h=>h.titulo.slice(0,28)+' '+(h.nota==='boa'?'✓':h.nota==='media'?'~':'✗')).join('   '),
       // lei seca
       oralLeisPronto:st.oralLeisPronto,
-      oralLeiOpts:[{v:'',label:'Todas as leis',sel:!st.oralLeiSig}].concat(((w.CT_LEIS)||[]).map(l=>({v:l.sigla,label:l.sigla+' — '+l.nome.slice(0,34)+' ('+l.artigos.length+')',sel:st.oralLeiSig===l.sigla}))),
+      oralLeiOpts:_chipz([{v:'',label:'Todas as leis',sel:!st.oralLeiSig}].concat(((w.CT_LEIS)||[]).map(l=>({v:l.sigla,label:l.sigla+' — '+l.nome.slice(0,34)+' ('+l.artigos.length+')',sel:st.oralLeiSig===l.sigla})))),
       oralTemArt:!!st.oralArt,
       oralArtRot:st.oralArt?(st.oralArt.rot+' · '+st.oralArt.sigla):'',
       oralArtNome:st.oralArt?st.oralArt.nome:'',
@@ -7112,8 +7101,8 @@ class Component extends DCLogic {
       oralLeisTotal:((w.CT_LEIS)||[]).reduce((a,l)=>a+l.artigos.length,0),
       // bancas reais — perguntas que caíram, com padrão de resposta
       oralQPronto:st.oralQPronto,
-      oralQDiscOpts:[{v:'',label:'Todas as disciplinas',sel:!st.oralQDisc}].concat([...new Set(((w.CT_ORAL_Q)||[]).map(q=>q.disciplina).filter(Boolean))].sort().map(d=>({v:d,label:d,sel:st.oralQDisc===d}))),
-      oralQCarrOpts:[{v:'',label:'Todas as carreiras',sel:!st.oralQCarr}].concat([...new Set(((w.CT_ORAL_Q)||[]).map(q=>q.carreira).filter(Boolean))].sort().map(d=>({v:d,label:d,sel:st.oralQCarr===d}))),
+      oralQDiscOpts:_chipz([{v:'',label:'Todas as disciplinas',sel:!st.oralQDisc}].concat([...new Set(((w.CT_ORAL_Q)||[]).map(q=>q.disciplina).filter(Boolean))].sort().map(d=>({v:d,label:d,sel:st.oralQDisc===d})))),
+      oralQCarrOpts:_chipz([{v:'',label:'Todas as carreiras',sel:!st.oralQCarr}].concat([...new Set(((w.CT_ORAL_Q)||[]).map(q=>q.carreira).filter(Boolean))].sort().map(d=>({v:d,label:d,sel:st.oralQCarr===d})))),
       oralQTotal:((w.CT_ORAL_Q)||[]).filter(q=>q.padrao&&q.padrao.length>200).length,
       oralQTem:!!st.oralQAtual,
       oralQRef:st.oralQAtual?[st.oralQAtual.orgao,st.oralQAtual.ano,st.oralQAtual.cargo].filter(Boolean).join(' · '):'',
@@ -7125,8 +7114,8 @@ class Component extends DCLogic {
       oralQUrl:st.oralQAtual?st.oralQAtual.url:'',
       oralQResposta:st.oralQResposta, oralQMostrarPadrao:st.oralQMostrarPadrao,
       oralBancasPronto:st.oralBancasPronto,
-      oralBancaCarrOpts:[{v:'',label:'Todas as carreiras'}].concat([...new Set(CO.map(x=>x.subarea).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaCarr===o.v})),
-      oralBancaBancaOpts:[{v:'',label:'Todas as bancas'}].concat([...new Set(CO.map(x=>x.banca).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaBanca===o.v})),
+      oralBancaCarrOpts:_chipz([{v:'',label:'Todas as carreiras'}].concat([...new Set(CO.map(x=>x.subarea).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaCarr===o.v}))),
+      oralBancaBancaOpts:_chipz([{v:'',label:'Todas as bancas'}].concat([...new Set(CO.map(x=>x.banca).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaBanca===o.v}))),
       oralBancaQ:st.oralBancaQ, oralBancaSoOuro:st.oralBancaSoOuro,
       oralConcTotal:conc.length,
       oralConcursos:conc.slice(0,60).map(x=>({id:x.id, titulo:(x.orgao||'')+(x.ano?(' · '+x.ano):''), cargo:x.cargo||'',
@@ -7319,8 +7308,8 @@ class Component extends DCLogic {
     this._treino().then(T=>T.acervoOral()).then(()=>this.setState({oralBancasPronto:true}))
       .catch(()=>this.setState({oralErro:'Não consegui carregar o acervo de provas orais.'}));
   }
-  setOralRamo = (e)=> this.setState({oralRamo:e.currentTarget.value});
-  setOralTribunal = (e)=> this.setState({oralTribunal:e.currentTarget.value});
+  setOralRamo = (e)=> this.setState({oralRamo:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
+  setOralTribunal = (e)=> this.setState({oralTribunal:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
   sortearOral = ()=>{
     const T=window.CT_TREINO; if(!T) return;
     const vs=T.verbetes().filter(v=>(!this.state.oralRamo||v.ramo===this.state.oralRamo)
@@ -7349,7 +7338,7 @@ class Component extends DCLogic {
     this._treino().then(T=>T.acervoLeis()).then(()=>this.setState({oralLeisPronto:true}))
       .catch(()=>this.setState({oralErro:'Não consegui carregar o texto das leis.'}));
   }
-  setOralLeiSig = (e)=> this.setState({oralLeiSig:e.currentTarget.value});
+  setOralLeiSig = (e)=> this.setState({oralLeiSig:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
   sortearArtigoOral = ()=>{
     const T=window.CT_TREINO; if(!T) return;
     const a=T.sortearArtigo(this.state.oralLeiSig?[this.state.oralLeiSig]:null);
@@ -7371,8 +7360,8 @@ class Component extends DCLogic {
     this._treino().then(T=>T.acervoOralQ()).then(()=>this.setState({oralQPronto:true}))
       .catch(()=>this.setState({oralErro:'Não consegui carregar as perguntas das bancas.'}));
   }
-  setOralQDisc = (e)=> this.setState({oralQDisc:e.currentTarget.value});
-  setOralQCarr = (e)=> this.setState({oralQCarr:e.currentTarget.value});
+  setOralQDisc = (e)=> this.setState({oralQDisc:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
+  setOralQCarr = (e)=> this.setState({oralQCarr:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
   sortearPerguntaBanca = ()=>{
     const L=(window.CT_ORAL_Q||[]).filter(q=>(!this.state.oralQDisc||q.disciplina===this.state.oralQDisc)
       && (!this.state.oralQCarr||q.carreira===this.state.oralQCarr) && q.padrao && q.padrao.length>200);
@@ -7381,8 +7370,8 @@ class Component extends DCLogic {
   };
   onOralQResposta = (e)=> this.setState({oralQResposta:e.currentTarget.value});
   verPadraoBanca = ()=> this.setState({oralQMostrarPadrao:true});
-  setOralBancaCarr = (e)=> this.setState({oralBancaCarr:e.currentTarget.value});
-  setOralBancaBanca = (e)=> this.setState({oralBancaBanca:e.currentTarget.value});
+  setOralBancaCarr = (e)=> this.setState({oralBancaCarr:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
+  setOralBancaBanca = (e)=> this.setState({oralBancaBanca:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
   onOralBancaQ = (e)=> this.setState({oralBancaQ:e.currentTarget.value});
   toggleOralOuro = ()=> this.setState({oralBancaSoOuro:!this.state.oralBancaSoOuro});
   abrirConcursoOral = (e)=>{ const id=e.currentTarget.getAttribute('data-id');
