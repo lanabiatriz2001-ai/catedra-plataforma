@@ -162,10 +162,6 @@
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
   var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:meusGrupos': 1 };
-  // Config do CICLO MANUAL (agenda da semana) é de UM APARELHO: no merge sempre vence o LOCAL.
-  // Assim (a) uma cópia antiga/vazia da nuvem NUNCA apaga a agenda, e (b) deletar de fato deleta
-  // (o "mais conteúdo vence" trazia itens removidos de volta). Trade-off aceito: single-device.
-  var CFG_LOCAL_WINS = { 'catedra:edital': 1, 'catedra:manualFixed': 1, 'catedra:manualRot': 1, 'catedra:cycleMode': 1, 'catedra:manualFixedRoteiroAtual': 1, 'catedra:rotPointer': 1, 'catedra:agendaFeitas': 1 };
   function parseJ(s) { try { return JSON.parse(s); } catch (_) { return undefined; } }
   // "Tem conteúdo de verdade?" — separa o valor que o usuário construiu do vazio que o app
   // semeia sozinho no primeiro render: [] , {} , "" , null e o "0" do ponteiro de rodízio.
@@ -265,33 +261,24 @@
       if (k === 'catedra:lib') { var ml = mergeLibArr(parseJ(sv), parseJ(lc), !!preferServer); ml = dropTombed(k, ml); out[k] = ml !== undefined ? JSON.stringify(ml) : (preferServer ? sv : lc); return; }
       if (ARRAY_ID[k]) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); m = dropTombed(k, m); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
       if (k === 'catedra:hl') { var h = mergeHl(parseJ(sv), parseJ(lc), !!preferServer); out[k] = h !== undefined ? JSON.stringify(h) : (preferServer ? sv : lc); return; }
-      // Config do CICLO MANUAL (agenda da semana) pertence a este aparelho: vence quem tem
-      // MAIS conteúdo; empate => local. Evita que uma cópia antiga/vazia da nuvem apague a
-      // agenda inteira só porque o servidor está "mais novo" (bug de last-write-wins).
-      // ...MAS não na HIDRATAÇÃO (preferServer). Ao entrar num aparelho novo, o app React já
-      // rodou atrás do gate e semeou catedra:edital="[]", manualFixed="[]", agendaFeitas="{}",
-      // rotPointer="0". Com "local sempre vence" esse vazio recém-nascido virava a verdade e
-      // subia por cima da nuvem: o edital e a agenda da semana sumiam em TODOS os aparelhos,
-      // sem aviso e sem desfazer. Na hidratação só o local COM CONTEÚDO tem direito de ganhar.
-      // Ciclo, edital e agenda: NÃO são mais "deste aparelho". A regra antiga (local
-      // sempre vence, salvo se vazio) tinha um efeito colateral que a Lana sentiu na pele:
-      // ela montava o ciclo no Mac, entrava no iPad, e o iPad mostrava o ciclo VELHO dele
-      // — para sempre, porque local nunca cedia. Cada aparelho vivia com um ciclo próprio.
-      // Agora: entre duas versões COM CONTEÚDO, vence a mais recente pelo carimbo por
-      // chave (catedra:_kts, que os dois lados carregam); VAZIO NUNCA APAGA CHEIO, que
-      // era o buraco que a regra antiga fechava — e continua fechado.
-      if (CFG_LOCAL_WINS[k]) {
-        var lcTem = temConteudo(lc), svTem = temConteudo(sv);
-        if (lcTem && !svTem) { out[k] = lc; return; }
-        if (svTem && !lcTem) { out[k] = sv; return; }
-        if (!lcTem && !svTem) { out[k] = preferServer ? sv : lc; return; }
-        var lts = locKts[k] || 0, sts = srvKts[k] || 0;
-        if (sts > lts) { out[k] = sv; return; }
-        if (lts > sts) { out[k] = lc; return; }
-        out[k] = preferServer ? sv : lc;   // sem carimbo dos dois lados: direção do merge
-        return;
-      }
-      out[k] = preferServer ? sv : lc; // escalares/objetos sem carimbo: direção do merge decide
+      // Escalares e objetos sem merge por id (prefs, perfil, ciclo, edital, agenda,
+      // metas de hora, rascunhos…): entre duas versões COM CONTEÚDO vence a mais
+      // recente pelo carimbo por chave (catedra:_kts, que os dois lados carregam);
+      // VAZIO NUNCA APAGA CHEIO — num aparelho novo o app roda atrás do gate e semeia
+      // []/{}/""/0 com carimbo fresco, e esse recém-nascido não pode virar a verdade
+      // (era o "meu edital sumiu ao entrar no iPad"). Sem carimbo dos dois lados,
+      // decide a direção do merge. Esta regra valia só para ciclo/edital/agenda
+      // (CFG_LOCAL_WINS); as demais chaves caíam direto na direção do merge — e um
+      // aparelho ocioso com prefs velhas as subia por cima das novas do outro. Era o
+      // último resquício de last-write-wins.
+      var lcTem = temConteudo(lc), svTem = temConteudo(sv);
+      if (lcTem && !svTem) { out[k] = lc; return; }
+      if (svTem && !lcTem) { out[k] = sv; return; }
+      if (!lcTem && !svTem) { out[k] = preferServer ? sv : lc; return; }
+      var lts = locKts[k] || 0, sts = srvKts[k] || 0;
+      if (sts > lts) { out[k] = sv; return; }
+      if (lts > sts) { out[k] = lc; return; }
+      out[k] = preferServer ? sv : lc;   // sem carimbo dos dois lados: direção do merge
     });
     // Reconciliação histórico × lixeira de sessões (soft-delete entre aparelhos): se a
     // mesma sessão ficou nos DOIS após a união, decide o carimbo — exclusão (_delAt) mais
@@ -350,7 +337,11 @@
             setDirty(false); setLastSrv(now); setStatus('salvo');
           });
       })
-      .catch(function (err) { console.warn('[Cátedra] sync erro:', err && err.message); setStatus(navigator.onLine === false ? 'offline' : 'erro'); })
+      .catch(function (err) { console.warn('[Cátedra] sync erro:', err && err.message); setStatus(navigator.onLine === false ? 'offline' : 'erro');
+        // Sem isto, um envio que falhava ficava em "erro" até a PRÓXIMA escrita ou troca
+        // de aba — meia sessão de estudo podia passar sem nada subir. O dirty continua
+        // marcado; uma nova tentativa em 30s resolve a falha passageira sozinha.
+        clearTimeout(pushT); pushT = setTimeout(pushNow, 30000); })
       .then(function () { pushing = false; });
   }
   window.CatedraSync = { push: function () {

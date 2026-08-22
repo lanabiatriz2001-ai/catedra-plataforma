@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harness ida-e-volta</title></head>
+<body style="margin:0">
+<iframe id="fr" style="width:100vw;height:100vh;border:0"></iframe>
+<script>
+// Reproduz a lógica do host (Catedra.dc.html) para validar o protocolo ida-e-volta.
+var state={view:'areamod', acervoBusca:'', acervoDe:null, origemAbrir:''};
+window.__log=[];
+function render(){
+  var _abrir=state.origemAbrir||'';
+  var src;
+  if(state.view==='areamod') src='/ritos-web.html'+(_abrir?('?'+_abrir):'');
+  else if(state.view==='roteiros') src='/pecas-web.html'+(_abrir?('?'+_abrir):'');
+  else{
+    var q=[state.acervoBusca?('q='+encodeURIComponent(state.acervoBusca)):'', state.acervoDe?'volta=1':'']
+      .filter(Boolean).join('&');
+    src=(state.view==='juris'?'/juris-web.html':'/legis-web.html?area=juridica'+(q?('&'+q):''));
+    if(state.view==='juris'&&q) src+='?'+q;
+  }
+  document.getElementById('fr').src=src;
+  window.__log.push({view:state.view, src:src});
+}
+window.addEventListener('message', function(e){
+  if(!e||!e.data) return;
+  if(e.data.type==='ctAbrirAcervo'){
+    var alvo=e.data.alvo==='juris'?'juris':'legis';
+    var v=state.view, d=e.data.de, de=state.acervoDe;
+    if(d && typeof d==='object' && (v==='areamod'||v==='roteiros')){
+      de={view:v, rito:String(d.rito||''), peca:String(d.peca||''),
+          bloco:(d.bloco!=null&&isFinite(d.bloco))?+d.bloco:null};
+    } else if(v!=='legis'&&v!=='juris'){ de=null; }
+    state.view=alvo; state.acervoBusca=String(e.data.termo||''); state.acervoDe=de; state.origemAbrir='';
+    render(); return;
+  }
+  if(e.data.type==='ctVoltarAcervo'){
+    var de=state.acervoDe;
+    var v=(de&&de.view==='roteiros')?'roteiros':'areamod';
+    var q=[];
+    if(de&&de.rito) q.push('rito='+encodeURIComponent(de.rito));
+    if(de&&de.peca){ q.push('peca='+encodeURIComponent(de.peca));
+      if(de.bloco!=null) q.push('bloco='+de.bloco); }
+    state.view=v; state.acervoDe=null; state.acervoBusca=''; state.origemAbrir=q.join('&');
+    render(); return;
+  }
+});
+render();
+</script>
+</body></html>
