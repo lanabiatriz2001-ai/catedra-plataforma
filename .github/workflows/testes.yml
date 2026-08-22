@@ -1,0 +1,21 @@
+# Testes a cada push: o build precisa compilar e a suíte de navegador precisa passar.
+name: Testes
+on:
+  push:
+  pull_request:
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Dependências
+        run: npm install --no-audit --no-fund
+      - name: Build da plataforma
+        run: node scripts/build.mjs
+      - name: Testes de navegador (sync + acervo ida-e-volta)
+        run: npm test
+        env:
+          CT_CHROME: /usr/bin/google-chrome
