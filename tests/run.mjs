@@ -30,8 +30,11 @@ const srv = http.createServer((req, res) => {
     res.end(data);
   } catch (e) { res.writeHead(404); res.end('nao encontrado'); }
 });
-await new Promise(r => srv.listen(8123, r));
-const URL0 = 'http://localhost:8123';
+// A porta sai do ambiente (CT_PORT) para que duas sessões trabalhando no mesmo repositório
+// possam rodar a suíte ao mesmo tempo — sem isso a segunda morre com EADDRINUSE.
+const PORTA = +(process.env.CT_PORT || 8123);
+await new Promise(r => srv.listen(PORTA, r));
+const URL0 = 'http://localhost:' + PORTA;
 
 const browser = await chromium.launch({ executablePath: exe });
 const page = await browser.newPage();
@@ -944,6 +947,315 @@ const u1b = await page.evaluate(async () => {
 });
 if (!u1b.erro) { for (const [k, v] of Object.entries(u1b)) ok(v, 'U1 ' + k); }
 else ok(false, 'U1 ida-e-volta: ' + u1b.erro);
+
+/* ============= U2 — ESQUELETO DE CARREGAMENTO ============= */
+// O que se prova aqui: o vazio sem explicação acabou na PRIMEIRA carga de cada acervo, e
+// que a volta a uma tela já carregada não pisca esqueleto (com o iframe vivo, seria mentira).
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u2 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const skel = () => !!document.querySelector('.ct-skelbox');
+  const r = {};
+  r.inicioSemEsqueleto = !skel();                       // só as telas de iframe têm esqueleto
+
+  document.querySelector('button[data-view="legis"]').click();
+  await w(80);
+  r.primeiraCargaMostra = skel();
+
+  const fr = document.querySelector('iframe[data-ct-view="legis"]');
+  for (let i = 0; i < 200 && fr.dataset.ctLoad !== '1'; i++) await w(100);
+  await w(250);
+  r.someQuandoAPaginaCarrega = !skel();
+  r.esqueletoFicaAtras = true;                          // conferido pelo z-order do CSS abaixo
+
+  // sair e voltar: iframe vivo, nada recarrega, nada pisca
+  document.querySelector('button[data-view="inicio"]').click(); await w(350);
+  document.querySelector('button[data-view="legis"]').click(); await w(120);
+  r.voltaNaoPisca = !skel();
+  return r;
+});
+for (const [k, v] of Object.entries(u2)) ok(v, 'U2 ' + k);
+// o esqueleto é FUNDO: fica atrás do iframe (que é `position:relative`), então mesmo que um
+// satélite antigo nunca avise, a página carregada o cobre — nunca tapa conteúdo
+const u2css = await page.evaluate(() => {
+  const fr = document.querySelector('iframe[data-ct-view="legis"]');
+  return { framePosicionado: getComputedStyle(fr).position === 'relative',
+           molduraRelativa: getComputedStyle(fr.parentElement).position === 'relative' };
+});
+ok(u2css.framePosicionado && u2css.molduraRelativa, 'U2 o esqueleto é fundo (o iframe pinta por cima)');
+
+/* ============= U9 — SCROLL ÚNICO ============= */
+const u9 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const sc = () => document.querySelector('.ct-scroll');
+  const r = {};
+  document.querySelector('button[data-view="legis"]').click(); await w(500);
+  r.hostNaoRola = (sc().scrollHeight - sc().clientHeight) <= 1;
+  r.paginaNaoRola = (document.documentElement.scrollHeight - document.documentElement.clientHeight) <= 1;
+  const fr = document.querySelector('iframe[data-ct-view="legis"]').getBoundingClientRect();
+  r.quadroOcupaOEspaco = fr.height > window.innerHeight * 0.6 && fr.bottom <= window.innerHeight + 1;
+  const topo = document.querySelector('.ct-topbar').getBoundingClientRect();
+  r.topoAlcancavel = topo.top >= 0 && topo.height > 20;
+  const menu = document.querySelector('aside button[data-view="inicio"]');
+  r.menuAlcancavel = !!menu && menu.getBoundingClientRect().height > 10;
+
+  // fora do acervo, o host volta a rolar como sempre
+  document.querySelector('button[data-view="revisoes"]').click(); await w(500);
+  r.foraDoAcervoRolaDeNovo = /auto|scroll/.test(getComputedStyle(sc()).overflowY);
+  return r;
+});
+for (const [k, v] of Object.entries(u9)) ok(v, 'U9 ' + k);
+
+/* ============= U8 — ATALHOS VISÍVEIS (tecla ?) ============= */
+// A tecla ? é gateada por conta conectada, como o ⌘K: na tela de entrar não há o que
+// atalhar. Por isso este bloco entra com a sessão local ligada.
+await page.evaluate(() => localStorage.setItem('catedra:auth', '1'));
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u8 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const modal = () => [...document.querySelectorAll('div[role=dialog]')]
+    .find(d => /Atalhos do teclado/.test(d.getAttribute('aria-label') || ''));
+  const tecla = k => window.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+  const r = {};
+  r.fechadoPorPadrao = !modal();
+
+  tecla('?'); await w(300);
+  r.interrogacaoAbre = !!modal();
+  const linhas = modal() ? modal().querySelectorAll('span[style*="mono"]').length : 0;
+  r.listaTemAtalhos = linhas >= 4;
+  r.listaTemOCmdK = /⌘K/.test(modal() ? modal().innerText : '');
+
+  tecla('Escape'); await w(300);
+  r.escFecha = !modal();
+
+  // dentro de um campo de texto, ? é só uma interrogação
+  const inp = document.createElement('input'); document.body.appendChild(inp); inp.focus();
+  tecla('?'); await w(250);
+  r.dentroDeInputNaoAbre = !modal();
+  inp.remove();
+  return r;
+});
+for (const [k, v] of Object.entries(u8)) ok(v, 'U8 ' + k);
+
+// a lista da tela e o item da paleta saem da MESMA constante (fonte única)
+const u8b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const fonte = [...document.querySelectorAll('script')].map(s => s.textContent || '').find(t => t.includes('ATALHOS =')) || '';
+  const bloco = fonte.slice(fonte.indexOf('ATALHOS ='), fonte.indexOf('ATALHOS =') + 900);
+  const naConstante = (bloco.slice(0, bloco.indexOf('];')).match(/\{tecla:/g) || []).length;
+
+  document.querySelector('button[title^="Buscar"]').click(); await w(300);
+  const campo = document.querySelector('div[role=dialog] input');
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+  setter.call(campo, 'atalho'); campo.dispatchEvent(new Event('input', { bubbles: true }));
+  await w(400);
+  const item = [...document.querySelectorAll('div[role=dialog] button')].find(b => /Atalhos do teclado/.test(b.textContent || ''));
+  const temItemNaPaleta = !!item;
+  if (item) item.click();
+  await w(400);
+  const modal = [...document.querySelectorAll('div[role=dialog]')]
+    .find(d => /Atalhos do teclado/.test(d.getAttribute('aria-label') || ''));
+  const naTela = modal ? modal.querySelectorAll('span[style*="mono"]').length : 0;
+  if (modal) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await w(200);
+  return { temItemNaPaleta, mesmaFonte: naConstante > 0 && naConstante === naTela };
+});
+ok(u8b.temItemNaPaleta, 'U8 a paleta ⌘K também leva aos atalhos');
+ok(u8b.mesmaFonte, 'U8 a lista da tela sai da constante única ATALHOS');
+await page.evaluate(() => localStorage.removeItem('catedra:auth'));
+
+const hojeStr = new Date().toISOString().slice(0, 10);
+/* ============= U11 — REGISTRO DE ESTUDO EM UM TOQUE ============= */
+// O cronômetro anda pelo RELÓGIO (Date.now), então adiantar o relógio adianta a sessão —
+// mesmo truque do U5 acima. Assim dá para pausar com 32 min sem esperar 32 min.
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate((hoje) => {
+  localStorage.setItem('catedra:sessions', JSON.stringify([{ id: 's-u11', ts: Date.now() - 3600e3, date: hoje,
+    disc: 'Direito Penal', topico: 'Crimes contra a vida', categoria: 'Teoria', categorias: ['Teoria'],
+    min: 40, questoes: 0, acertos: 0, erradas: 0, brancos: 0, liquido: 0 }]));
+}, hojeStr);
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const u11 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const toast = () => [...document.querySelectorAll('div[role=status]')].find(d => /Registrar/.test(d.textContent || ''));
+  const play = () => document.querySelector('button[title="Iniciar / pausar"]');
+  const r = {};
+  if (!play()) return { erro: 'sem botão de cronômetro na barra' };
+
+  const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
+  play().click(); await w(300);          // começa a contar
+  delta = 32 * 60000;                    // 32 minutos de estudo
+  await w(1400);                         // um tique com o relógio adiantado
+  play().click(); await w(600);          // pausa → oferta
+  Date.now = orig;
+
+  const t = toast();
+  r.ofereceAoPausar = !!t && /Registrar 32 min em Direito Penal/.test(t.textContent || '');
+  const bt = n => [...(t ? t.querySelectorAll('button') : [])].find(b => (b.textContent || '').trim() === n);
+  r.tresCaminhos = !!bt('Registrar') && !!bt('Editar') && !!bt('Ignorar');
+  if (!bt('Registrar')) return r;
+
+  bt('Registrar').click(); await w(900);
+  const ss = JSON.parse(localStorage.getItem('catedra:sessions') || '[]');
+  const nova = ss.find(s => s.id !== 's-u11');
+  r.registraDireto = !!nova && nova.min === 32 && nova.disc === 'Direito Penal';
+  r.herdaCategoria = !!nova && nova.categoria === 'Teoria';
+  r.zeraOCronometro = !localStorage.getItem('ct_timer');   // sem isso o mesmo tempo entraria duas vezes
+  return r;
+});
+if (!u11.erro) { for (const [k, v] of Object.entries(u11)) ok(v, 'U11 ' + k); }
+else ok(false, 'U11 ' + u11.erro);
+
+// menos de 5 min é ruído: não oferece nada
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u11b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const play = () => document.querySelector('button[title="Iniciar / pausar"]');
+  const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
+  play().click(); await w(300);
+  delta = 2 * 60000;
+  await w(1400);
+  play().click(); await w(600);
+  Date.now = orig;
+  const t = [...document.querySelectorAll('div[role=status]')].find(d => /Registrar/.test(d.textContent || ''));
+  return !t || t.style.opacity !== '1';
+});
+ok(u11b, 'U11 dois minutos não viram oferta de registro');
+
+/* ============= U4 — RETOMADA EXPLÍCITA DA REDAÇÃO ============= */
+// (O outro caso do U4, o simulado pausado, NÃO existe: _restoreProva consome ct_prova no
+// boot e reabre a prova em tela cheia — o teste do U3 acima guarda essa decisão.)
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => {
+  localStorage.setItem('catedra:redEnunciado', JSON.stringify('TJ-XX 2024 · Sentença cível\n\nProfira sentença.'));
+  localStorage.setItem('catedra:redText', JSON.stringify('Vistos etc. Trata-se de ação de cobrança...'));
+  localStorage.setItem('catedra:redTextTs', JSON.stringify(Date.now() - 3 * 3600e3));
+  localStorage.removeItem('catedra:redGabarito');
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const u4 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const M = () => document.querySelector('main').innerText;
+  const r = {};
+  document.querySelector('button[data-view="redacao"]').click(); await w(2500);
+  r.mostraAFaixa = /rascunho salvo/i.test(M());
+  r.dizDeQuando = /há 3h/.test(M());
+  const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
+  r.ofereceOsDoisCaminhos = !!btn('Continuar') && !!btn('Começar do zero');
+
+  // "Começar do zero" pergunta antes (é destruição de texto) e limpa só a resposta
+  let perguntou = false; window.confirm = () => { perguntou = true; return true; };
+  btn('Começar do zero').click(); await w(600);
+  r.zerarPergunta = perguntou;
+  r.zerarLimpaOTexto = JSON.parse(localStorage.getItem('catedra:redText') || '""') === '';
+  r.zerarMantemAProva = !!JSON.parse(localStorage.getItem('catedra:redEnunciado') || '""');
+  r.faixaSaiDepois = !/rascunho salvo/i.test(M());
+  return r;
+});
+for (const [k, v] of Object.entries(u4)) ok(v, 'U4 ' + k);
+
+// escrever faz a faixa sair sozinha — ela não fica pedindo passagem durante o trabalho
+await page.evaluate(() => {
+  localStorage.setItem('catedra:redText', JSON.stringify('Rascunho de outra sessão.'));
+  localStorage.setItem('catedra:redTextTs', JSON.stringify(Date.now() - 26 * 3600e3));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const u4b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const M = () => document.querySelector('main').innerText;
+  document.querySelector('button[data-view="redacao"]').click(); await w(2500);
+  const antes = /rascunho salvo/i.test(M());
+  const ta = document.querySelector('main textarea');
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+  setter.call(ta, 'Rascunho de outra sessão. Continuando agora.');
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+  await w(500);
+  return { antes, depois: /rascunho salvo/i.test(M()) };
+});
+ok(u4b.antes && !u4b.depois, 'U4 a faixa some assim que a pessoa volta a escrever');
+
+/* ============= U12 — LEMBRETE DE REVISÃO NO HORÁRIO ============= */
+// Notification é substituído ANTES do app subir: o headless não dá permissão de verdade.
+await page.addInitScript(() => {
+  const N = function (titulo, opts) { window.__notifs = (window.__notifs || []).concat([{ titulo, opts }]); this.close = () => {}; };
+  N.permission = 'granted';
+  N.requestPermission = async () => 'granted';
+  window.Notification = N;
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => {
+  localStorage.removeItem('catedra:notifRevDia');
+  localStorage.setItem('catedra:prefs', JSON.stringify({ revLembrete: true, revHora: '00:01' }));
+  localStorage.setItem('catedra:reviews', JSON.stringify([
+    { id: 'r-u12a', disc: 'Direito Civil', topic: 'Prescrição', due: -2, dueDate: '2020-01-01', intervalo: 1, facilidade: 2.5, repeticoes: 0 },
+    { id: 'r-u12b', disc: 'Direito Penal', topic: 'Dolo', due: -1, dueDate: '2020-01-02', intervalo: 1, facilidade: 2.5, repeticoes: 0 },
+  ]));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(6500);   // o verificador roda 4s depois do boot
+const u12 = await page.evaluate(() => ({
+  disparou: (window.__notifs || []).length === 1,
+  dizQuantasEQuantoTempo: /revis/i.test(((window.__notifs || [])[0] || {}).titulo || '') || /revis/i.test((((window.__notifs || [])[0] || {}).opts || {}).body || ''),
+  corpoTemONumero: /2 revisões esperando/.test((((window.__notifs || [])[0] || {}).opts || {}).body || ''),
+  marcouODia: localStorage.getItem('catedra:notifRevDia') === new Date().toISOString().slice(0, 10),
+}));
+for (const [k, v] of Object.entries(u12)) ok(v, 'U12 ' + k);
+
+// segundo boot no mesmo dia: não repete
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(6500);
+const u12b = await page.evaluate(() => (window.__notifs || []).length === 0);
+ok(u12b, 'U12 não repete o aviso no mesmo dia');
+
+// desligado (o padrão) não dispara nada
+await page.evaluate(() => {
+  localStorage.removeItem('catedra:notifRevDia');
+  localStorage.setItem('catedra:prefs', JSON.stringify({ revLembrete: false, revHora: '00:01' }));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(6500);
+const u12c = await page.evaluate(() => (window.__notifs || []).length === 0 && !localStorage.getItem('catedra:notifRevDia'));
+ok(u12c, 'U12 desligado (padrão) não avisa nada');
+
+/* ============= U7 (a) — TEMA AUTOMÁTICO ============= */
+await page.evaluate(() => { localStorage.setItem('catedra:prefs', JSON.stringify({ temaAuto: true })); localStorage.setItem('catedra:dark', '0'); });
+await page.emulateMedia({ colorScheme: 'dark' });
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const escuroAuto = await page.evaluate(() => document.querySelector('[data-dark]').getAttribute('data-dark'));
+ok(escuroAuto === '1', 'U7 com tema automático, sistema escuro deixa o app escuro');
+
+await page.emulateMedia({ colorScheme: 'light' });
+await page.waitForTimeout(600);
+const claroDepois = await page.evaluate(() => document.querySelector('[data-dark]').getAttribute('data-dark'));
+ok(claroDepois === '0', 'U7 o app acompanha a mudança do sistema sem recarregar');
+
+const u7 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) mais.click(); await w(300);
+  document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+  const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
+  const r = { temBotaoAuto: !!btn('Auto') };
+  if (btn('Escuro')) btn('Escuro').click();
+  await w(1200);
+  const prefs = JSON.parse(localStorage.getItem('catedra:prefs') || '{}');
+  r.manualDesligaOAutomatico = prefs.temaAuto === false;
+  r.manualVale = document.querySelector('[data-dark]').getAttribute('data-dark') === '1';
+  if (btn('Auto')) btn('Auto').click();
+  await w(800);
+  r.autoVoltaAoSistema = document.querySelector('[data-dark]').getAttribute('data-dark') === '0'
+    && JSON.parse(localStorage.getItem('catedra:prefs') || '{}').temaAuto === true;
+  return r;
+});
+for (const [k, v] of Object.entries(u7)) ok(v, 'U7 ' + k);
+await page.emulateMedia({ colorScheme: 'no-preference' });
 
 await browser.close();
 srv.close();
