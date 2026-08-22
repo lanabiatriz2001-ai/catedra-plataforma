@@ -922,6 +922,9 @@ const d1 = await page.evaluate(async () => {
   const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+  // D11 mudou a cor de destaque de lugar: ela mora na aba Aparência, nao mais solta na pagina
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  if (abaAp) { abaAp.click(); await w(700); }
   const cores = [...document.querySelectorAll('main button[data-c]')];
   const alvo = cores.find(c => c.dataset.c && c.dataset.c !== a.accent);
   if (!alvo) return { ...r, erro: 'sem paleta de cores nos Ajustes' };
@@ -2142,15 +2145,25 @@ await page.waitForTimeout(1800);
 const u11 = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const toast = () => [...document.querySelectorAll('div[role=status]')].find(d => /Registrar/.test(d.textContent || ''));
-  const play = () => document.querySelector('button[title="Iniciar / pausar"]');
+  // D12 recolheu os botões soltos do cronômetro para dentro do chip de foco. O play
+  // continua a um clique — é justamente o que o item promete ("nada se perde").
+  const abrirChip = async () => {
+    if (document.querySelector('[role=menu][aria-label="Cronômetro e foco"]')) return;
+    const chip = [...document.querySelectorAll('header.ct-topbar button')]
+      .find(b => /Focar|\d\d:\d\d/.test(b.textContent || ''));
+    if (chip) { chip.click(); await w(300); }
+  };
+  const play = () => { const m = document.querySelector('[role=menu][aria-label="Cronômetro e foco"]');
+    return m && [...m.querySelectorAll('button')].find(b => /Iniciar|Pausar|Retomar/.test(b.textContent || '')); };
   const r = {};
-  if (!play()) return { erro: 'sem botão de cronômetro na barra' };
+  await abrirChip();
+  if (!play()) return { erro: 'sem botão de cronômetro no chip de foco' };
 
   const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
-  play().click(); await w(300);          // começa a contar
+  await abrirChip(); play().click(); await w(300);          // começa a contar
   delta = 32 * 60000;                    // 32 minutos de estudo
   await w(1400);                         // um tique com o relógio adiantado
-  play().click(); await w(600);          // pausa → oferta
+  await abrirChip(); play().click(); await w(600);          // pausa → oferta
   Date.now = orig;
 
   const t = toast();
@@ -2177,10 +2190,10 @@ const u11b = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const play = () => document.querySelector('button[title="Iniciar / pausar"]');
   const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
-  play().click(); await w(300);
+  await abrirChip(); play().click(); await w(300);
   delta = 2 * 60000;
   await w(1400);
-  play().click(); await w(600);
+  await abrirChip(); play().click(); await w(600);
   Date.now = orig;
   const t = [...document.querySelectorAll('div[role=status]')].find(d => /Registrar/.test(d.textContent || ''));
   return !t || t.style.opacity !== '1';
@@ -2317,6 +2330,344 @@ const u7 = await page.evaluate(async () => {
 });
 for (const [k, v] of Object.entries(u7)) ok(v, 'U7 ' + k);
 await page.emulateMedia({ colorScheme: 'no-preference' });
+
+/* ===== C1: qualidade do texto extraído dos PDFs das bancas =====
+   A extração crua publicava, em 267 das 561 provas, o regulamento do caderno no lugar do
+   enunciado. A receita mora em scripts/extrair_prova.py e a régua em
+   scripts/qualidade-texto.mjs — a MESMA que o build usa para recusar publicar e que o
+   portão usa para reprovar. Estes casos travam a régua e o resultado publicado. */
+const { audita: auditaTxt, juntaEspelho: juntaEsp } = await import('../scripts/qualidade-texto.mjs');
+
+const _limpo = 'Considerando a situação hipotética apresentada, redija um texto dissertativo '
+  + 'a respeito da responsabilidade civil do Estado por ato omissivo, abordando '
+  + 'necessariamente os pressupostos do dever de indenizar, a teoria adotada pelo '
+  + 'ordenamento brasileiro e o entendimento do Supremo Tribunal Federal sobre o tema, '
+  + 'com fundamento no artigo 37, parágrafo 6.º, da Constituição Federal de 1988.';
+ok(auditaTxt(_limpo).length === 0, 'C1 régua aprova enunciado limpo');
+ok(auditaTxt('NÃO SERÁ PERMITIDO o uso de aparelhos. ' + _limpo).includes('instrucoes-de-caderno'),
+  'C1 régua reprova regulamento do caderno no lugar do enunciado');
+ok(auditaTxt(_limpo + ('\nCEBRASPE – TRF DA 6.ª REGIÃO – Edital 2024').repeat(4)).includes('cabecalho-repetido'),
+  'C1 régua reprova cabeçalho de página repetido');
+ok(auditaTxt('<<D01_dAdm_A0100422_2321>> ' + _limpo).includes('marcador-interno'),
+  'C1 régua reprova código interno do PDF da banca');
+ok(auditaTxt('oi').includes('curto'), 'C1 régua reprova texto curto demais (PDF escaneado)');
+
+// A armadilha que fazia a auditoria acusar 59 espelhos bons de "curtos": o espelho
+// estruturado é um array de OBJETOS, e array.join() devolve "[object Object]".
+const _esp = juntaEsp([{ quesito: 'Identificar a competência do juízo', escala: '0,00 a 2,00' },
+  { quesito: 'Apontar a prescrição intercorrente', escala: '0,00 a 3,00' }]);
+ok(!/\[object Object\]/.test(_esp), 'C1 espelho estruturado não vira "[object Object]" ao ser medido');
+ok(/compet[êe]ncia do ju[íi]zo/i.test(_esp) && /prescri[çc][ãa]o/i.test(_esp),
+  'C1 espelho estruturado é medido pelo texto do quesito');
+
+// O acervo PUBLICADO tem de passar na mesma régua — é o portão, dentro da suíte.
+const _carrega = (arq) => { const w = {};
+  new Function('window', fs.readFileSync(path.join(RAIZ, arq), 'utf8'))(w);
+  return w[Object.keys(w)[0]]; };
+const _TEXTOS = _carrega('discursivas-textos.js');
+const _DISC = _carrega('discursivas-completo.js');
+const _ORAL = _carrega('oral-conteudo.js');
+
+let _ruimEn = [];
+for (const [id, it] of Object.entries(_TEXTOS)) {
+  if (it.en != null && auditaTxt(it.en).length) _ruimEn.push(id + ':' + auditaTxt(it.en).join(','));
+}
+ok(_ruimEn.length === 0, 'C1 nenhum enunciado publicado reprova na régua (' + _ruimEn.slice(0, 3).join(' | ') + ')');
+
+let _ruimEsp = [];
+for (const q of (Array.isArray(_DISC) ? _DISC : Object.values(_DISC))) {
+  const t = juntaEsp(q.espelho) || String(q.espelhoTexto || '')
+    || String((_TEXTOS[q.id] || {}).et || '');
+  if (t.trim() && auditaTxt(t).length) _ruimEsp.push(q.id + ':' + auditaTxt(t).join(','));
+}
+ok(_ruimEsp.length === 0, 'C1 nenhum espelho publicado reprova na régua (' + _ruimEsp.slice(0, 3).join(' | ') + ')');
+
+const _oralRuim = Object.values(_ORAL).filter(x => /<<[A-Za-z0-9_]{6,}>>/.test(String(x.enunciado) + String(x.padrao || '')));
+ok(_oralRuim.length === 0, 'C1 prova oral sem código interno do PDF no meio da pergunta (' + _oralRuim.length + ')');
+
+/* ===== C1: a tela diz a verdade sobre a falta de espelho =====
+   "Sem espelho" tem duas causas — a banca não publicou, ou o PDF existe e não deu para
+   transcrever. Sair com a mesma palavra faria a pessoa procurar um espelho que não existe. */
+const _lista = Array.isArray(_DISC) ? _DISC : Object.values(_DISC);
+const _semEspelho = _lista.filter(q => !(q.espelho && q.espelho.length) && !q.espelhoTexto);
+const _semMotivo = _semEspelho.filter(q => !q.espelhoSituacao);
+ok(_semEspelho.length === 0 || _semMotivo.length === 0,
+  'C1 toda prova sem espelho registra POR QUE (' + _semMotivo.length + ' sem motivo de ' + _semEspelho.length + ')');
+
+const c1tela = await page.evaluate(async () => {
+  const L = (window.CT_DISCURSIVAS || []);
+  const alvo = L.find(q => q.espelhoSituacao === 'nao-publicado');
+  const falho = L.find(q => q.espelhoSituacao && q.espelhoSituacao !== 'nao-publicado');
+  return { temCampo: L.some(q => !!q.espelhoSituacao),
+    naoPublicado: alvo ? alvo.id : null, naoTranscrito: falho ? falho.id : null };
+});
+ok(c1tela.temCampo, 'C1 catálogo leve carrega a situação do espelho (o split preserva o campo)');
+
+/* ===== C2: ponte para as plataformas de questões (só link de saída) =====
+   A regra dura: o Cátedra NUNCA raspa, embute por iframe nem copia conteúdo dessas
+   plataformas, e nenhuma credencial delas passa por aqui. O teste trava as duas coisas
+   que podem quebrar em silêncio: a montagem da URL e a preferência que sincroniza. */
+const c2 = await page.evaluate(async () => {
+  const P = window.CT_PLATAFORMAS;
+  if (!P) return { erro: 'CT_PLATAFORMAS não carregou' };
+  const tec = P.link('tec', { disciplina: 'Direito Administrativo', assunto: 'improbidade' });
+  const qc = P.link('qc', { banca: 'CEBRASPE', ano: 2024 });
+  const fallback = P.link('plataforma-que-nao-existe', { assunto: 'prescrição' });
+  return { tec, qc, fallback, nomes: P.ordem.map(k => P.nome(k)) };
+});
+ok(!c2.erro, 'C2 mapa de plataformas carrega no host');
+ok(/tecconcursos\.com\.br/.test(c2.tec || '') && /improbidade/.test(c2.tec || ''),
+  'C2 TEC recebe a busca já filtrada no assunto fraco');
+ok(/qconcursos\.com/.test(c2.qc || '') && /CEBRASPE/i.test(decodeURIComponent(c2.qc || '')),
+  'C2 QConcursos recebe banca e ano');
+ok(/tecconcursos/.test(c2.fallback || ''), 'C2 plataforma desconhecida cai na padrão em vez de quebrar');
+ok((c2.nomes || []).length >= 2, 'C2 há mais de uma plataforma no menu');
+
+// Nada de embutir: a regra do item proíbe iframe/raspagem dessas plataformas.
+const fonteHost = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+ok(!/<iframe[^>]+(tecconcursos|qconcursos|estrategia)/i.test(fonteHost),
+  'C2 nenhuma plataforma de questões é embutida por iframe');
+const fontePlat = fs.readFileSync(path.join(RAIZ, 'plataformas-questoes.js'), 'utf8');
+ok(!/fetch\(|XMLHttpRequest|password|senha|token/i.test(fontePlat),
+  'C2 o mapa só monta URL — não busca conteúdo nem toca em credencial');
+
+// A preferência sincroniza: a chave precisa estar na lista do autosave.
+ok(/'plataformaQuestoes'/.test(fonteHost) && /_autosaveKeys\(\)\{[^}]*plataformaQuestoes/.test(fonteHost),
+  'C2 plataforma preferida entra no autosave (sincroniza entre aparelhos)');
+const c2ui = await page.evaluate(() => ({
+  ajustes: !!document.querySelector('#aj-plataforma'),
+  fonte: [...document.querySelectorAll('script')].map(s => s.textContent || '')
+    .some(t => t.includes('praticarDisciplina') && t.includes('praticarQuestao')),
+}));
+ok(c2ui.fonte, 'C2 os botões de praticar existem no host (diagnóstico, edital e gabarito)');
+
+/* ===== C3: espelho sugerido — o selo é o item =====
+   Sem rotulagem inequívoca, um espelho de IA vira "espelho da banca" na cabeça de quem
+   estuda. O miolo mora em espelho-sugerido.js, puro: fundamento obrigatório por quesito
+   e texto que se declara não oficial. */
+const c3 = await page.evaluate(() => {
+  const M = window.CT_ESPELHO_SUGERIDO;
+  if (!M) return { erro: 'CT_ESPELHO_SUGERIDO não carregou' };
+  // um quesito COM fundamento, um SEM e um com fundamento de fachada ("n/a")
+  const sug = M.interpretar({ total: 10, quesitos: [
+    { quesito: 'Identificar a responsabilidade civil objetiva do Estado', pontos: 6, fundamento: 'art. 37, §6.º, da CF/88' },
+    { quesito: 'Discorrer sobre o que o examinador quiser', pontos: 2, fundamento: '' },
+    { quesito: 'Apontar a excludente de culpa exclusiva da vítima', pontos: 2, fundamento: 'STF, RE 841.526' },
+    { quesito: 'Falar sobre o tema de modo geral e abrangente', pontos: 2, fundamento: 'n/a' },
+  ] }, 'p-teste');
+  const txt = sug ? M.texto(sug) : '';
+  const soLixo = M.interpretar({ quesitos: [
+    { quesito: 'Um quesito bonito porém sem lastro nenhum', pontos: 5, fundamento: '' } ] }, 'p2');
+  const prompt = M.montarPrompt({ enunciado: 'Disserte sobre responsabilidade civil do Estado.',
+    orgao: 'TJ-GO', ano: 2025, banca: 'FGV' });
+  return {
+    quesitos: sug ? sug.quesitos.length : 0,
+    todosComFundamento: !!sug && sug.quesitos.every(q => (q.fundamento || '').trim().length >= 6),
+    temSelo: /SUGERIDO/.test(txt) && /N[ÃA]O OFICIAL/i.test(txt),
+    dizQueBancaNaoPublicou: /banca n[ãa]o publicou/i.test(txt),
+    fundamentoNoTexto: /Fundamento:/.test(txt),
+    carimbo: !!(sug && sug.up),
+    semNadaUsavel: soLixo === null,
+    promptExigeFundamento: /N[ÃA]O crie o quesito/i.test(prompt) && /fundamento concreto/i.test(prompt),
+    promptTemFicha: /TJ-GO/.test(prompt) && /FGV/.test(prompt),
+  };
+});
+ok(!c3.erro && c3.quesitos === 2, 'C3 quesito sem fundamento é descartado (vieram 4, ficaram 2)');
+ok(!c3.erro && c3.todosComFundamento, 'C3 todo quesito publicado traz fundamento conferível');
+ok(!c3.erro && c3.temSelo, 'C3 o espelho sugerido sai rotulado "SUGERIDO — NÃO OFICIAL"');
+ok(!c3.erro && c3.dizQueBancaNaoPublicou, 'C3 o texto repete que a banca não publicou espelho');
+ok(!c3.erro && c3.fundamentoNoTexto, 'C3 o fundamento aparece no texto, quesito a quesito');
+ok(!c3.erro && c3.carimbo, 'C3 o espelho gerado leva carimbo up (sincroniza e a exclusão gruda)');
+ok(!c3.erro && c3.semNadaUsavel, 'C3 sem quesito fundamentado o resultado é nulo — não publica meia coisa');
+ok(!c3.erro && c3.promptExigeFundamento, 'C3 o prompt proíbe quesito sem fundamento');
+ok(!c3.erro && c3.promptTemFicha, 'C3 o prompt leva banca, órgão e ano da prova');
+
+ok(/'espelhosSugeridos'/.test(fonteHost) && /_autosaveKeys\(\)\{[^}]*espelhosSugeridos/.test(fonteHost),
+  'C3 o cache de espelhos sugeridos entra no autosave');
+ok(/aproximada/.test(fonteHost) && /espelho-sugerido/.test(fonteHost),
+  'C3 a nota tirada de espelho sugerido é marcada como aproximada');
+const authSrc = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
+ok(/catedra:espelhosSugeridos/.test(authSrc), 'C3 espelhosSugeridos está no ARRAY_ID (apagar gruda)');
+
+/* ===== D12 · BARRA DO TOPO + D13 · SALA DE FOCO =====
+   O topo empilhava 8 controles no mesmo nível (busca, pílula de sync com texto longo, sino,
+   ◎ de foco, avatar e um bloco inteiro de cronômetro que parecia um segundo app). Agora são
+   quatro cidadãos e um chip; e o modo foco virou uma sala. A regra do item: nenhuma função
+   se perde — tudo continua alcançável em no máximo dois cliques. */
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const d12 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  const topo = document.querySelector('header.ct-topbar');
+  if (!topo) return { erro: 'sem barra do topo' };
+  r.semPilulaSync = !document.querySelector('.ct-synclabel');
+  // controles VISÍVEIS no topo (fora do título): no máximo quatro
+  const visiveis = [...topo.querySelectorAll(':scope > div > button, :scope > div > div > button')]
+    .filter(b => b.offsetParent !== null);
+  r.noMaximoQuatro = visiveis.length <= 5;   // busca, sino, avatar, chip (+ alarme de sync, raro)
+  const chip = [...topo.querySelectorAll('button')].find(b => /Focar|\d\d:\d\d/.test(b.textContent || ''));
+  r.temChipDeFoco = !!chip;
+  if (!chip) return r;
+  chip.click(); await w(350);
+  const menu = document.querySelector('[role=menu][aria-label="Cronômetro e foco"]');
+  r.chipAbreOPoder = !!menu;
+  const txt = menu ? menu.textContent : '';
+  // nenhuma função de hoje se perde: play, zerar, presets, PiP, foco e registrar
+  r.temPlay = /Iniciar|Retomar|Pausar/.test(txt);
+  r.temPresets = /25 \/ 5/.test(txt) && /50 \/ 10/.test(txt) && /90 \/ 15/.test(txt);
+  r.temPiP = /flutuante/i.test(txt);
+  r.temModoFoco = /modo foco/i.test(txt);
+  r.temRegistrar = /Registrar sessão/i.test(txt);
+  // o pontinho de sync mudou-se para o avatar
+  const avatar = [...topo.querySelectorAll('button')].find(b => /Conta e sincroniza/i.test(b.getAttribute('aria-label') || ''));
+  r.syncNoAvatar = !!avatar && avatar.querySelectorAll('span').length >= 2;
+  return r;
+});
+if (d12.erro) ok(false, 'D12 ' + d12.erro);
+else for (const [k, v] of Object.entries(d12)) ok(v, 'D12 ' + k);
+
+const d13 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  const menu = document.querySelector('[role=menu][aria-label="Cronômetro e foco"]');
+  const btn = menu && [...menu.querySelectorAll('button')].find(b => /modo foco/i.test(b.textContent));
+  if (!btn) return { erro: 'não achei "entrar no modo foco" no chip' };
+  btn.click(); await w(600);
+  const sala = document.querySelector('[aria-label="Sala de foco"]');
+  r.salaAbre = !!sala;
+  if (!sala) return r;
+  r.ocupaATelaToda = getComputedStyle(sala).position === 'fixed' && sala.getBoundingClientRect().width >= window.innerWidth - 2;
+  r.temAnel = sala.querySelectorAll('svg circle').length >= 2;      // trilho + progresso
+  r.anelUsaODash = !!sala.querySelector('circle[stroke-dasharray]');
+  r.temCronometroGrande = [...sala.querySelectorAll('div')].some(d => /^\d\d:\d\d/.test((d.textContent || '').trim()) && parseFloat(getComputedStyle(d).fontSize) >= 40);
+  r.temFraseDeEntrada = (sala.textContent || '').length > 60;
+  const acoes = [...sala.querySelectorAll('button')].filter(b => b.offsetParent !== null && (b.textContent || '').trim());
+  r.tresAcoes = acoes.length <= 4;                                   // pausar, encerrar, PiP (+ fechar)
+  r.temEncerrar = acoes.some(b => /Encerrar/i.test(b.textContent));
+  // espaço pausa e retoma, sem sair da sala
+  const antes = !!document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true }));
+  await w(300);
+  r.espacoNaoFechaASala = antes && !!document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true }));
+  await w(400);
+  r.fSaiDaSala = !document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true }));
+  await w(400);
+  r.fEntraDeNovo = !!document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await w(400);
+  r.escSai = !document.querySelector('[aria-label="Sala de foco"]');
+  return r;
+});
+if (d13.erro) ok(false, 'D13 ' + d13.erro);
+else for (const [k, v] of Object.entries(d13)) ok(v, 'D13 ' + k);
+
+/* ===== D11 · AJUSTES REFEITOS =====
+   Nasce de uso real: a Lana precisou do backup e não o achou. As abas ficavam no meio da
+   página e "Dados & conselho" misturava dois assuntos. A régua do item: a personalização
+   visual NÃO se perde, e "quero fazer backup" se resolve em dois gestos. */
+const d11 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
+  await w(1200);
+  const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-t]')];
+  const abas = abasEl().map(b => b.textContent.trim());
+  r.seisAbas = abas.length === 6;
+  r.abasPorAssunto = ['Você', 'Estudo', 'banca', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  const barra = document.querySelector('main .aj-abas');
+  r.abasGrudamNoTopo = !!barra && getComputedStyle(barra).position === 'sticky';
+
+  // busca interna: acha em QUALQUER aba, inclusive nas que não estão no DOM
+  const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
+  r.temBusca = !!busca;
+  const procurar = async (q) => { busca.value = q; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(450);
+    return [...document.querySelectorAll('main .aj-abas button[data-t]')].map(b => b.textContent).join(' '); };
+  if (busca) {
+    r.achaBackup = /[Bb]ackup/.test(await procurar('backup'));
+    r.achaSair = /sair/i.test(await procurar('sair'));
+    r.achaTema = /[Tt]ema/.test(await procurar('tema'));
+    await procurar('');
+  }
+  const clicaAba = async (re) => { const b = abasEl().find(x => re.test(x.textContent)); if (!b) return false; b.click(); await w(700); return true; };
+
+  // Aparência: nada de personalização se perde
+  r.abreAparencia = await clicaAba(/Aparência/);
+  r.temPresets = document.querySelectorAll('main button[data-p]').length >= 3;
+  const corpo = () => document.body.innerText;
+  r.temAvancada = /Personalização avançada/.test(corpo());
+  r.temDirecaoVisual = /Direção visual/.test(corpo());
+  r.temCorDestaque = /Cor de destaque/.test(corpo());
+  r.temTamanhoTexto = /Tamanho do texto/.test(corpo());
+  const abrir = [...document.querySelectorAll('main button')].find(b => /^(abrir|recolher)$/.test((b.textContent || '').trim()));
+  if (abrir) { abrir.click(); await w(400); }
+  r.avancadaTemOsFinos = /Cantos/.test(corpo());
+
+  // Dados & backup: backup no topo, perigo isolado no fim
+  r.abreDados = await clicaAba(/Dados/);
+  const t = corpo();
+  r.backupAntesDoPerigo = t.indexOf('Seus dados') >= 0 && t.indexOf('Zona de perigo') > t.indexOf('Seus dados');
+  r.temBackupAutomatico = /Backup automático semanal/.test(t);
+  r.perigoIsolado = /Zona de perigo/.test(t) && /Não dá para desfazer/.test(t);
+
+  r.abreConta = await clicaAba(/^Conta$/);
+  r.contaTemSair = /Sair da conta/.test(corpo());
+  return r;
+});
+for (const [k, v] of Object.entries(d11)) ok(v, 'D11 ' + k);
+
+/* ===== D14: VARREDURA DE LIGAÇÕES PERDIDAS =====
+   Duas falhas do mesmo tipo passaram meses despercebidas: um botão da barra usava
+   `style="{{ navPrioridade }}"`, variável que nunca entrou no render() (o dc-runtime
+   resolve ausente como string vazia — nada reclama), e trocava a view para uma tela cujo
+   bloco tinha se perdido num merge. O runtime não avisa; o CI passa a avisar. */
+const D14 = await page.evaluate(() => {
+  const html = document.documentElement.outerHTML;
+  return { ok: !!html };
+});
+ok(D14.ok, 'D14 página carregou para a varredura');
+
+const fonteTpl = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+// o template é tudo que está fora do <script> inline; o render() está dentro dele
+const semComentario = fonteTpl.replace(/<!--[\s\S]*?-->/g, '');
+const soTemplate = semComentario.replace(/<script[\s\S]*?<\/script>/g, '');
+
+// --- 1) todo data-view leva a uma tela que existe
+const views = [...new Set([...soTemplate.matchAll(/data-view="([a-z0-9_-]+)"/gi)].map(m => m[1]))]
+  .filter(v => v && !v.includes('{'));
+const semTela = views.filter(v => !new RegExp("view *=== *'" + v + "'").test(fonteTpl));
+ok(semTela.length === 0, 'D14 todo data-view tem tela no render (' + (semTela.join(', ') || 'nenhum órfão') + ')');
+
+// as views que são página satélite precisam do iframe montado no template
+const SATELITES = { legis: 'legis-web.html', juris: 'juris-web.html', areamod: 'area-web.html',
+  segundafase: 'segunda-fase-web.html', prioridade: 'prioridade-web.html' };
+const semIframe = Object.keys(SATELITES).filter(v =>
+  views.includes(v) && !new RegExp('data-ct-view="' + v + '"').test(soTemplate));
+ok(semIframe.length === 0, 'D14 toda view de satélite tem o iframe no template (' + (semIframe.join(', ') || 'todas montadas') + ')');
+
+// --- 2) variável órfã: {{ nome }} de escopo global que o render() não devolve
+// Fora de <sc-for> (lá o nome vem do item) e sem ponto (p.short pertence ao item).
+const semFor = soTemplate.replace(/<sc-for[\s\S]*?<\/sc-for>/g, '');
+const vars = [...new Set([...semFor.matchAll(/\{\{\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\}\}/g)].map(m => m[1]))];
+// O render() devolve um objeto literal gigante; procurar "nome:" ou "nome," (atalho) basta.
+const resolvida = (n) => new RegExp('(^|[\\s,{])' + n + '\\s*[:,]').test(fonteTpl)
+  || new RegExp('\\.\\.\\.' + n + '\\b').test(fonteTpl);
+const orfas = vars.filter(v => !resolvida(v));
+ok(orfas.length === 0, 'D14 nenhuma variável órfã no template (' + (orfas.slice(0, 6).join(', ') || 'nenhuma') + ')');
+
+// --- 3) a regressão que originou o item: os dois botões da barra
+const d14barra = await page.evaluate(() => {
+  const r = {};
+  for (const v of ['prioridade', 'segundafase']) {
+    const b = document.querySelector('button[data-view="' + v + '"]');
+    r[v + 'TemBotao'] = !!b;
+    r[v + 'TemEstilo'] = !!b && (b.getAttribute('style') || '').length > 20;
+  }
+  return r;
+});
+for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
 
 await browser.close();
 srv.close();
