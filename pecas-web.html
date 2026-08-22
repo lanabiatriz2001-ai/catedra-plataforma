@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<!-- D10: `user-scalable=no` proibia o pinça-para-ampliar (WCAG 1.4.4). Ele estava aí
+     para evitar o zoom automático do iOS ao focar a busca; a busca passou a 16px no
+     celular, que é o que desliga esse zoom — agora dá para ampliar de novo. -->
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Roteiros de peças</title>
 <style>
 :root{
@@ -19,21 +22,35 @@ button,input,select{font-family:inherit}
 ::-webkit-scrollbar{width:10px;height:9px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;border:2px solid var(--bg)}
 
+/* D10 — foco visível: só o card tinha marca de foco; os selects e a busca não. */
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px}
+
+/* D7 — os dois níveis de microlabel da casa (mesma regra do ritos-web):
+   forte = o que estrutura a leitura (o ramo/rito do card, em cor do ramo);
+   fraca = metadado (carreiras atendidas, contagens do topo). O nível fraco usa
+   --text2 e não --text3 porque abaixo de 13px o cinza claro não chega a 4.5:1. */
+.ml-forte{font:700 10px var(--mono);letter-spacing:.07em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--rc,var(--accent)) 76%,var(--ink))}
+.ml-fraca{font:600 10px var(--body);letter-spacing:0;text-transform:uppercase;color:var(--text2)}
+
 .top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border)}
 .l1{display:flex;align-items:center;gap:14px;padding:13px 18px;max-width:1320px;margin:0 auto;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:11px;flex:none}
 .brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
 .brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
-.brand small{display:block;font-size:11.5px;color:var(--text3);margin-top:4px}
+.brand small{display:block;font-size:11.5px;color:var(--text2);margin-top:4px}
 .busca{position:relative;flex:1;min-width:200px}
+/* o `outline:none` daqui apagava o anel de foco do teclado — a busca é o primeiro
+   Tab da página, e quem não usa mouse ficava sem saber onde estava */
 .busca input{width:100%;border:1px solid var(--border);background:var(--bg);border-radius:11px;
-  padding:10px 14px 10px 38px;font-size:13.5px;color:var(--ink);outline:none}
+  padding:10px 14px 10px 38px;font-size:13.5px;color:var(--ink)}
 .busca input:focus{border-color:var(--accent);background:var(--surface);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 13%,transparent)}
 .busca .mag{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
 .sel{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:11px;
-  padding:10px 12px;font-size:13px;cursor:pointer;outline:none;flex:none;max-width:230px}
+  padding:10px 12px;font-size:13px;cursor:pointer;flex:none;max-width:230px}
 .sel:focus{border-color:var(--accent)}
 
 .wrap{padding:20px 18px 70px;max-width:1320px;margin:0 auto}
@@ -41,19 +58,18 @@ button,input,select{font-family:inherit}
 .stat{flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:14px;
   padding:12px 15px;box-shadow:var(--sh)}
 .stat b{display:block;font:800 24px/1 var(--display);font-variant-numeric:tabular-nums}
-.stat b em{font-style:normal;font-size:14px;color:var(--text3);font-weight:600}
-.stat>span{display:block;font-size:10.5px;color:var(--text3);font-weight:700;text-transform:uppercase;
-  letter-spacing:.06em;margin-top:5px}
+.stat b em{font-style:normal;font-size:14px;color:var(--text2);font-weight:600}
+.stat>span{display:block;margin-top:5px}
 .stat .mini{height:5px;border-radius:99px;background:var(--surface2);margin-top:9px;overflow:hidden}
 .stat .mini i{display:block;height:100%;background:var(--ok);border-radius:99px;transition:width .3s}
-.dica{font-size:12.8px;color:var(--text3);line-height:1.65;margin:0 0 20px;max-width:78ch}
-.dica b{color:var(--text2)}
+.dica{font-size:12.8px;color:var(--text2);line-height:1.65;margin:0 0 20px;max-width:78ch}
+.dica b{color:var(--ink)}
 
 .grupo{margin-bottom:26px}
 .gh{display:flex;align-items:center;gap:11px;margin:0 2px 13px}
 .gh i{width:11px;height:22px;border-radius:4px;background:var(--rc);flex:none}
 .gh b{font:800 18px var(--display);letter-spacing:-.02em}
-.gh span{font-size:11.5px;color:var(--text3);font-weight:600}
+.gh span{font-size:11.5px;color:var(--text2);font-weight:600}
 .gh hr{flex:1;border:0;border-top:1px solid var(--border);margin:0}
 
 .rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
@@ -63,32 +79,39 @@ button,input,select{font-family:inherit}
   transition:transform .12s ease,box-shadow .12s ease}
 .rcard:hover{transform:translateY(-2px);box-shadow:var(--shUp)}
 .rcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.rcard .tag{display:inline-flex;align-self:flex-start;font:700 10px var(--mono);text-transform:uppercase;
-  letter-spacing:.07em;color:var(--rc);background:color-mix(in srgb,var(--rc) 11%,transparent);
+.rcard .tag{display:inline-flex;align-self:flex-start;background:color-mix(in srgb,var(--rc) 11%,transparent);
   border-radius:99px;padding:4px 10px;margin-bottom:9px}
 .rcard h3{margin:0;font:800 17px/1.25 var(--display);letter-spacing:-.01em}
-.rcard .meta{font-size:11.5px;color:var(--text3);font-weight:600;margin-top:5px}
+.rcard .meta{font-size:11.5px;color:var(--text2);font-weight:600;margin-top:5px}
 .rcard .carr{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
-.rcard .carr span{font:700 9.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);
-  border:1px solid var(--border);border-radius:99px;padding:2px 8px}
+.rcard .carr span{border:1px solid var(--border);border-radius:99px;padding:2px 8px}
 .rcard ol{margin:12px 0 0;padding:0;list-style:none;counter-reset:b}
 .rcard ol li{counter-increment:b;position:relative;padding:3px 0 3px 27px;font-size:12.8px;line-height:1.45;color:var(--text2)}
 .rcard ol li::before{content:counter(b);position:absolute;left:0;top:3px;width:19px;height:19px;border-radius:6px;
-  background:var(--surface2);color:var(--text3);font:700 10.5px/19px var(--mono);text-align:center}
-.rcard ol li.extra{color:var(--text3);font-style:italic}
+  background:var(--surface2);color:var(--text2);font:700 10.5px/19px var(--mono);text-align:center}
+.rcard ol li.extra{color:var(--text2);font-style:italic}
 .rcard ol li.extra::before{content:"+";background:transparent}
 .rcard .prog{display:flex;align-items:center;gap:9px;margin-top:auto;padding-top:12px;
   border-top:1px solid var(--border);margin-top:14px}
 .rcard .prog .pb{flex:1;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden}
 .rcard .prog .pb i{display:block;height:100%;border-radius:99px;background:var(--ok);transition:width .3s}
-.rcard .prog span{font:700 11px var(--mono);color:var(--text3);flex:none}
+.rcard .prog span{font:700 11px var(--mono);color:var(--text2);flex:none}
 .rcard .prog span.feito{color:var(--ok)}
 
 .rpend{display:flex;flex-wrap:wrap;gap:7px}
-.rpend span{border:1px dashed var(--border);color:var(--text3);padding:5px 12px;font-size:12px;border-radius:99px}
-.vazio{padding:44px 16px;text-align:center;color:var(--text3);font-size:13px;line-height:1.7;
+.rpend span{border:1px dashed var(--border);color:var(--text2);padding:5px 12px;font-size:12px;border-radius:99px}
+.vazio{padding:44px 16px;text-align:center;color:var(--text2);font-size:13px;line-height:1.7;
   background:var(--surface);border:1px dashed var(--border);border-radius:14px}
-@media (max-width:640px){ .l1{padding:11px 12px} .wrap{padding:16px 12px 60px} .brand small{display:none} }
+
+/* D8 — no celular o dedo precisa de 44px: busca e filtros vinham com ~40px de altura
+   e ficavam espremidos lado a lado numa linha só. */
+@media (max-width:640px){
+  .l1{padding:11px 12px} .wrap{padding:16px 12px 60px} .brand small{display:none}
+  .busca{flex:1 0 100%;order:3}
+  .busca input,.sel{min-height:44px}
+  .busca input{font-size:16px}          /* abaixo de 16px o iOS dá zoom sozinho ao focar */
+  .sel{flex:1;max-width:none}
+}
 </style>
 <script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
 <script src="./tema-satelite.js"></script>
@@ -97,10 +120,11 @@ button,input,select{font-family:inherit}
 <header class="top"><div class="l1">
   <div class="brand"><span class="ic">✍️</span><div><b>Roteiros de peças</b>
     <small>o esqueleto de cada peça, bloco a bloco</small></div></div>
-  <span class="busca"><span class="mag">🔎</span>
-    <input id="q" placeholder="Buscar peça, bloco ou artigo…  (tecle /)" autocomplete="off"></span>
-  <select class="sel" id="carreira"><option value="">Todas as carreiras</option></select>
-  <select class="sel" id="ramo"><option value="">Todos os ramos</option></select>
+  <span class="busca"><span class="mag" aria-hidden="true">🔎</span>
+    <input id="q" type="search" aria-label="Buscar peça, bloco ou artigo"
+      placeholder="Buscar peça, bloco ou artigo…  (tecle /)" autocomplete="off"></span>
+  <select class="sel" id="carreira" aria-label="Filtrar por carreira"><option value="">Todas as carreiras</option></select>
+  <select class="sel" id="ramo" aria-label="Filtrar por ramo do direito"><option value="">Todos os ramos</option></select>
 </div></header>
 
 <main class="wrap">
@@ -137,14 +161,15 @@ function pinta(){
   /* ---- números do topo ---- */
   let blocos=0, f=0, t=0;
   prontos.forEach(n=>{ blocos+=(tem[n].blocos||[]).length; const s=R.feitos(n); f+=s.f; t+=s.t; });
+  /* D7: rótulo de contagem é metadado — nível fraco, para não competir com o número */
   $('stats').innerHTML=
-     '<div class="stat"><b>'+prontos.length+'</b><span>Roteiros prontos</span></div>'
-    +'<div class="stat"><b>'+blocos+'</b><span>Blocos mapeados</span></div>'
-    +'<div class="stat"><b>'+f+'<em>/'+t+'</em></b><span>Modo cego conferido</span>'
+     '<div class="stat"><b>'+prontos.length+'</b><span class="ml-fraca">Roteiros prontos</span></div>'
+    +'<div class="stat"><b>'+blocos+'</b><span class="ml-fraca">Blocos mapeados</span></div>'
+    +'<div class="stat"><b>'+f+'<em>/'+t+'</em></b><span class="ml-fraca">Modo cego conferido</span>'
       +'<div class="mini"><i style="width:'+(t?f/t*100:0)+'%"></i></div></div>'
     +'<div class="stat"><b>'+new Set(prontos.flatMap(n=>tem[n].carreiras||[])).size
-      +'</b><span>Carreiras cobertas</span></div>'
-    +'<div class="stat"><b>'+pend.length+'</b><span>Em preparação</span></div>';
+      +'</b><span class="ml-fraca">Carreiras cobertas</span></div>'
+    +'<div class="stat"><b>'+pend.length+'</b><span class="ml-fraca">Em preparação</span></div>';
 
   /* ---- seletores, montados uma vez ---- */
   const sel=$('carr' in window ? 'ramo' : 'ramo');
@@ -181,11 +206,13 @@ function pinta(){
     const bl=(p.blocos||[]).map(b=>b.nome||b).filter(Boolean);
     const mostra=bl.slice(0,5), resto=bl.length-mostra.length;
     const s=R.feitos(n);
-    return '<button class="rcard" style="--rc:'+r.c+'" data-n="'+esc(n)+'">'
-      +'<span class="tag">'+esc(p.rito||r.n)+'</span>'
+    /* D7: o rito/ramo estrutura a leitura do card (nível forte, na cor do ramo);
+       as carreiras atendidas são metadado (nível fraco). */
+    return '<button type="button" class="rcard" style="--rc:'+r.c+'" data-n="'+esc(n)+'">'
+      +'<span class="tag ml-forte">'+esc(p.rito||r.n)+'</span>'
       +'<h3>'+esc(n)+'</h3>'
       +'<div class="meta">'+bl.length+' blocos · '+(p.cego||[]).length+' itens no modo cego</div>'
-      +((p.carreiras||[]).length?'<div class="carr">'+p.carreiras.map(c=>'<span>'+esc(c)+'</span>').join('')+'</div>':'')
+      +((p.carreiras||[]).length?'<div class="carr">'+p.carreiras.map(c=>'<span class="ml-fraca">'+esc(c)+'</span>').join('')+'</div>':'')
       +'<ol>'+mostra.map(x=>'<li>'+esc(x)+'</li>').join('')
         +(resto>0?'<li class="extra">mais '+resto+' bloco'+(resto>1?'s':'')+'</li>':'')+'</ol>'
       +'<div class="prog"><span class="pb"><i style="width:'+s.pc+'%"></i></span>'
