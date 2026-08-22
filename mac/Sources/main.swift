@@ -67,7 +67,13 @@ let bridgeJS = """
       if (!e || !e.data || e.data.type !== 'ctAbrirAcervo') return;
       var alvo = String(e.data.alvo || '');
       if (alvo !== 'legis' && alvo !== 'juris') return;
-      window.webkit.messageHandlers.catedraNav.postMessage(alvo);
+      // Item 5: o termo e o ponto de origem viajam junto — antes só o nome da aba ia, e a
+      // pessoa chegava no acervo inteiro, sem busca e sem caminho de volta.
+      window.webkit.messageHandlers.catedraNav.postMessage({
+        alvo: alvo, termo: String(e.data.termo || ''),
+        de: (e.data.de && typeof e.data.de === 'object') ? e.data.de
+          : (e.data.origem && typeof e.data.origem === 'object' ? e.data.origem : null)
+      });
       e.stopImmediatePropagation();
     } catch (err) {}
   });
@@ -139,6 +145,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var jurisUpdater: UpdateService?     //   com o app de jurisprudência autônomo (VadeMecumJuris)
     private var jurisSettingsWindow: NSWindow?
     private weak var tabControl: NSSegmentedControl?
+    private weak var voltaButton: NSButton?     // item 5: volta ao ponto do processo
     private var currentTab = 0                   // 0 = Cátedra, 1 = CátedraLEGIS
 
     // Menu bar extra (NSStatusItem): acesso rápido + relógio de estudo ao vivo.
@@ -375,6 +382,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
 
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier id: NSToolbarItem.Identifier,
                  willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+        if id == AppDelegate.voltaItemID { return makeVoltaItem(id) }
         guard id == AppDelegate.tabItemID else { return nil }
         let seg = NSSegmentedControl(labels: ["Cátedra", "CátedraLEGIS", "CátedraJURIS"],
                                      trackingMode: .selectOne,
@@ -396,10 +404,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
 
     func toolbarDefaultItemIdentifiers(_ tb: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace, AppDelegate.tabItemID, .flexibleSpace]
+        [AppDelegate.voltaItemID, .flexibleSpace, AppDelegate.tabItemID, .flexibleSpace]
     }
     func toolbarAllowedItemIdentifiers(_ tb: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace, AppDelegate.tabItemID]
+        [.flexibleSpace, AppDelegate.tabItemID, AppDelegate.voltaItemID]
+    }
+
+    // Item 5: "← Voltar ao ponto do processo". Nasce escondido; só aparece quando a pessoa
+    // chegou ao acervo por um chip do mapa de Processo e peças (antes, mão única).
+    static let voltaItemID = NSToolbarItem.Identifier("catedraVoltaAcervo")
+    private func makeVoltaItem(_ id: NSToolbarItem.Identifier) -> NSToolbarItem {
+        let b = NSButton(title: "← Voltar ao processo", target: self, action: #selector(voltarAoProcesso))
+        b.bezelStyle = .rounded
+        b.controlSize = .small
+        b.isHidden = true
+        voltaButton = b
+        let item = NSToolbarItem(itemIdentifier: id)
+        item.view = b
+        item.label = "Voltar ao processo"
+        item.visibilityPriority = .low
+        return item
+    }
+
+    /// Mostra/esconde o botão conforme haja um ponto de origem vivo e estejamos numa aba nativa.
+    func atualizarBotaoVoltarAcervo() {
+        let o = AcervoEntrada.shared.origem
+        voltaButton?.isHidden = (o == nil || currentTab == 0)
+        if let o { voltaButton?.title = "← " + o.rotulo }
+    }
+
+    @objc func voltarAoProcesso() {
+        guard let o = AcervoEntrada.shared.origem else { return }
+        AcervoEntrada.shared.limpar()
+        switchTo(0)
+        atualizarBotaoVoltarAcervo()
+        // O app web reabre o mapa/roteiro no ponto exato (window.catedraVoltarAcervo).
+        webView?.evaluateJavaScript("window.catedraVoltarAcervo && window.catedraVoltarAcervo(\(o.jsonJS))", completionHandler: nil)
     }
 
     @objc private func tabChanged(_ sender: NSSegmentedControl) {
@@ -904,6 +944,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         currentTab = tab
         tabControl?.selectedSegment = tab
         updateTabMenuState()
+        // Voltou ao Cátedra pela aba: a volta ao ponto do processo deixou de fazer sentido.
+        if tab == 0 { AcervoEntrada.shared.limpar() }
+        atualizarBotaoVoltarAcervo()
         switch tab {
         case 1:
             // Reespelha o tema do Cátedra e monta/atualiza o host; só mostra se ainda na aba 1.
@@ -1410,8 +1453,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         case "notifyShow":       handleNotifShow(message.body); reply(nil, nil)
         case "catedraNav":
             // Agenda única: o "Abrir" das revisões nativas na web troca a aba do host.
-            let dest = (message.body as? String) ?? ""
-            if dest == "legis" { switchTo(1) } else if dest == "juris" { switchTo(2) }
+            // Item 5: o mapa de Processo e peças manda um DICIONÁRIO {alvo, termo, de} —
+            // a String continua aceita (revisões nativas e versões antigas do bundle).
+            var dest = ""
+            var termo = ""
+            var origem: AcervoEntrada.Origem?
+            if let s = message.body as? String {
+                dest = s
+            } else if let d = message.body as? [String: Any] {
+                dest = (d["alvo"] as? String) ?? ""
+                termo = (d["termo"] as? String) ?? ""
+                origem = AcervoEntrada.origem(de: d["de"] as? [String: Any])
+            }
+            if dest == "legis" || dest == "juris" {
+                AcervoEntrada.shared.chegou(termo: termo, origem: origem)
+                if dest == "legis" { switchTo(1) } else { switchTo(2) }
+                atualizarBotaoVoltarAcervo()   // switchTo já rodou: agora o botão sabe da origem
+                // O JURIS é um store do host: dá para aplicar a busca direto.
+                if dest == "juris", !termo.isEmpty {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                        guard let store = self?.jurisStore else { return }
+                        store.ir(.todos)          // ir() zera a busca: o termo entra DEPOIS
+                        store.searchText = termo
+                    }
+                }
+            }
             reply(nil, nil)
         case "catedraPlano":
             // Ciclo semanal: checkbox de uma leitura da tabela-dia (key "di_li_dyi").
