@@ -41,29 +41,101 @@ const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
 const pub = join(ROOT, 'public');
 mkdirSync(join(pub, 'vendor'), { recursive: true });
 
-// Devolve a <script> local; se o build estiver offline, cai para o CDN (que ainda
-// funciona online) em vez de gerar um deploy quebrado.
+// D9: vendoring que falha FAZ O BUILD FALHAR. Antes caía para o CDN, e aí o site
+// publicado dependia de cdn.jsdelivr.net/unpkg em runtime — numa rede que bloqueia CDN
+// (faculdade, tribunal, sandbox) o app simplesmente não abria. Foi exatamente o que
+// aconteceu no ambiente de teste. Degradar em silêncio é pior que não publicar.
+//
+// Escape hatch consciente: CT_PERMITE_CDN=1 volta ao comportamento antigo, para depurar.
+// Não use em deploy — o aviso abaixo diz isso em voz alta.
+const PERMITE_CDN = process.env.CT_PERMITE_CDN === '1';
 const vendorados = [];
+async function baixar(url, minLen) {
+  // uma tentativa e mais duas: rede treme, e falhar o build por soluço seria pior
+  let ultimo;
+  for (let tentativa = 1; tentativa <= 3; tentativa++) {
+    try {
+      const r = await fetch(url, { redirect: 'follow' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const txt = await r.text();
+      if (!txt || txt.length < minLen) throw new Error('corpo suspeito (' + (txt ? txt.length : 0) + ' bytes)');
+      return txt;
+    } catch (e) {
+      ultimo = e;
+      if (tentativa < 3) await new Promise((r) => setTimeout(r, 400 * tentativa));
+    }
+  }
+  throw ultimo;
+}
+function abortar(oque, url, e) {
+  console.error('\n✗ BUILD ABORTADO: não consegui vendorar ' + oque + '.');
+  console.error('  fonte: ' + url);
+  console.error('  erro:  ' + (e && e.message ? e.message : e));
+  console.error('\n  Publicar assim deixaria o site dependendo de um CDN em runtime — e em');
+  console.error('  rede que bloqueia CDN o app não abre. Conserte a rede do build, ou rode');
+  console.error('  com CT_PERMITE_CDN=1 se for DEBUG (nunca para deploy).\n');
+  process.exit(1);
+}
 async function vendor(url, file, minLen = 1000) {
   try {
-    const r = await fetch(url, { redirect: 'follow' });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const js = await r.text();
-    if (!js || js.length < minLen) throw new Error('corpo suspeito');
+    const js = await baixar(url, minLen);
     writeFileSync(join(pub, 'vendor', file), js);
     console.log('  · ' + file + ' vendorado (' + js.length + ' bytes)');
     vendorados.push('./vendor/' + file);
     return `<script src="./vendor/${file}"></script>`;
   } catch (e) {
-    console.log('  · ' + file + ' via CDN (não deu para vendorar: ' + e.message + ')');
+    if (!PERMITE_CDN) abortar(file, url, e);
+    console.log('  ⚠ ' + file + ' via CDN (CT_PERMITE_CDN=1 — deploy NÃO deve sair assim): ' + e.message);
     return `<script src="${url}"></script>`;
   }
+}
+
+// ── fontes: mesmo tratamento (resolve o offline junto) ──────────────────────
+// O CSS do Google Fonts é o mesmo arquivo com URLs .woff2 dentro. Baixamos o CSS,
+// puxamos cada .woff2 e reescrevemos as URLs para o nosso domínio. font-display:swap
+// já vem do parâmetro &display=swap da própria URL.
+const FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700'
+  + '&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600'
+  + '&family=Space+Grotesk:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap';
+async function vendorarFontes() {
+  mkdirSync(join(pub, 'fonts'), { recursive: true });
+  let css;
+  try {
+    // UA de navegador moderno: sem isso o Google devolve .ttf em vez de .woff2
+    const r = await fetch(FONTS_CSS, { redirect: 'follow', headers: {
+      'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36' } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    css = await r.text();
+    if (!css || css.length < 500) throw new Error('CSS suspeito');
+  } catch (e) {
+    if (!PERMITE_CDN) abortar('as fontes (Google Fonts)', FONTS_CSS, e);
+    console.log('  ⚠ fontes via Google (CT_PERMITE_CDN=1): ' + e.message);
+    return null;
+  }
+  const urls = [...new Set([...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map((m) => m[1]))];
+  let n = 0;
+  for (const u of urls) {
+    const nome = u.split('/').slice(-2).join('-').replace(/[^\w.-]/g, '_');
+    try {
+      const r = await fetch(u, { redirect: 'follow' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      writeFileSync(join(pub, 'fonts', nome), Buffer.from(await r.arrayBuffer()));
+      css = css.split(u).join('./fonts/' + nome);
+      n++;
+    } catch (e) {
+      if (!PERMITE_CDN) abortar('o arquivo de fonte ' + nome, u, e);
+    }
+  }
+  writeFileSync(join(pub, 'fonts.css'), css);
+  console.log('  · fontes vendoradas (' + n + ' arquivos, css ' + css.length + ' bytes)');
+  return './fonts.css';
 }
 
 // React antes de ReactDOM (que usa o global React), ambos antes do support.js.
 const reactTag = await vendor(REACT_CDN, 'react.js');
 const reactDomTag = await vendor(REACTDOM_CDN, 'react-dom.js');
 const supabaseTag = await vendor(SUPABASE_CDN, 'supabase.js');
+const fontsHref = await vendorarFontes();
 
 // Carimbo do build. Sem ele, um relato de bug de testador chega sem dizer QUAL versão
 // quebrou — e aí não dá para saber se já foi corrigido. Na Vercel o sha vem do ambiente.
@@ -136,7 +208,17 @@ if ('serviceWorker' in navigator) {
 <!-- ▲ fim do trecho injetado ▲ -->
 `;
 
-const out = src.replace('<head>', '<head>' + INJECT);
+// D9: as fontes passam a ser servidas do próprio domínio. O <link> do Google e os dois
+// preconnect saem — senão o navegador ainda bate lá, e numa rede que bloqueia o Google
+// a página trava esperando o CSS.
+let out = src.replace('<head>', '<head>' + INJECT);
+if (fontsHref) {
+  out = out
+    .replace(/<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com">\s*/g, '')
+    .replace(/<link rel="preconnect" href="https:\/\/fonts\.gstatic\.com"[^>]*>\s*/g, '')
+    .replace(/<link href="https:\/\/fonts\.googleapis\.com\/css2[^"]*" rel="stylesheet">/g,
+             '<link href="' + fontsHref + '" rel="stylesheet">');
+}
 
 writeFileSync(join(pub, 'index.html'), out);
 
