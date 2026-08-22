@@ -734,3 +734,43 @@ para dentro do app; nenhuma credencial delas passa pelo Cátedra. Só link de sa
 
 **Aceite.** Do painel de prioridade dá para cair no TEC ou no QConcursos já filtrado
 no assunto fraco; a plataforma preferida é lembrada e sincroniza entre aparelhos.
+
+## C3. Espelho sugerido para provas sem espelho oficial
+
+**Objetivo.** Nas provas em que a banca não publicou espelho (ou padrão de resposta,
+na oral), oferecer um **espelho sugerido pelo Cátedra** — gerado por IA a partir do
+enunciado — SEM jamais se passar pelo oficial. Complementa o C1: o aviso honesto
+("a banca não publicou") continua, e ganha ao lado o botão "Gerar espelho sugerido".
+
+**O que existe.** Canal de IA pronto: os iframes postam `{type:'ctIA', prompt,
+reqId}` e o host responde via `/api/complete` (chave no servidor) com fallback
+Gemini. O motor de correção por quesito (`treino.js` / segunda-fase) já consome
+espelhos no formato quesito+valor. As provas sem espelho estão listadas na
+auditoria (`docs/auditoria-provas.md`).
+
+**O que construir.**
+1. Botão "Gerar espelho sugerido" no lugar do aviso de ausência (2ª fase e oral).
+   O prompt manda: enunciado íntegro, matéria, banca/ano, e instrui a devolver
+   quesitos no formato do motor (título, o que se exige, valor sugerido somando a
+   pontuação da prova) com **fundamento legal/jurisprudencial em cada quesito** —
+   quesito sem fundamento não entra.
+2. **Rotulagem inequívoca**: selo "SUGERIDO — não oficial" em cor própria no topo e
+   em cada quesito; o texto do aviso segue visível ("A banca não publicou espelho.
+   Este é um espelho sugerido pelo Cátedra, gerado por IA — confira os fundamentos.").
+   Nunca misturar com espelho oficial na mesma lista sem o selo.
+3. **Cache**: o espelho gerado grava em `catedra:espelhosSugeridos` (array por prova,
+   `id`+`up`, registrar em `_autosaveKeys` e `ARRAY_ID`) — gera uma vez, sincroniza
+   entre aparelhos, com botão "Regenerar" discreto. Nada de gerar em lote as ~570:
+   só sob demanda, quando ela abre a prova.
+4. A correção contra espelho sugerido marca a nota como **aproximada** (o motor já
+   tem o conceito de total aproximado nos quesitos incertos) e, se alimentar o
+   "erro vira revisão" (item 2), o item criado carrega `origem:'espelho-sugerido'`.
+
+**Aceite.** Prova sem espelho mostra aviso + botão; gerar produz quesitos com
+fundamento e selo visível em tudo; segunda visita usa o cache; nota sai como
+aproximada; espelho oficial, quando existir, nunca exibe o selo nem o botão.
+
+**Armadilhas.** IA erra fundamento: por isso o fundamento obrigatório por quesito
+(dá para conferir no LEGIS/JURIS em um toque — reusar os chips ⚖️/🏛️ do padrão da
+casa). Custo por geração: sob demanda + cache resolve. E o selo não é decoração —
+é o que mantém a promessa de honestidade do C1; sem ele, este item não existe.
