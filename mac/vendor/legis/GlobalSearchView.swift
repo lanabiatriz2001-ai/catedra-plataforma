@@ -18,60 +18,23 @@ struct GlobalSearchView: View {
     private var lawCount: Int { store.laws.filter { $0.isRegularLaw && $0.isDownloaded }.count }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            searchBar
-            Rectangle().fill(AppTheme.hairline).frame(height: 1)
+        // O mesmo SectionShell das outras páginas (antes era uma cópia manual do cabeçalho).
+        SectionShell(icon: "sparkle.magnifyingglass", title: "Buscar em tudo",
+                     subtitle: "Pesquisa o texto de todas as \(lawCount) normas e leva você direto ao artigo, com o trecho destacado.",
+                     count: hits.isEmpty ? nil : hits.count,
+                     search: $query, searchPrompt: "Buscar em todas as \(lawCount) normas… (Enter)",
+                     onSearchSubmit: runSearch,
+                     trailing: AnyView(
+                        Button("Buscar", action: runSearch)
+                            .buttonStyle(.legisPrimary)
+                            .disabled(query.trimmingCharacters(in: .whitespaces).count < 2))) {
             content
         }
-        .background(AppTheme.pageBackground)
-    }
-
-    private var header: some View {
-        HStack(alignment: .center, spacing: 14) {
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .fill(LinearGradient(colors: [ThemeState.t.accent, ThemeState.t.accentD],
-                                     startPoint: .topLeading, endPoint: .bottomTrailing))
-                .frame(width: 46, height: 46)
-                .overlay(Image(systemName: "sparkle.magnifyingglass").font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(.white))
-                .shadow(color: ThemeState.t.accent.opacity(0.4), radius: 8, y: 4)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Buscar em tudo").font(.system(size: 26, weight: .heavy)).tracking(-0.4).foregroundStyle(AppTheme.ink)
-                Text("Pesquisa o texto de todas as \(lawCount) normas e leva você direto ao artigo, com o trecho destacado.")
-                    .font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 8)
+        .onChange(of: query) { _, q in
+            // O "x" do shell só esvazia o texto; aqui invalidamos a busca em voo (o guard
+            // gen == searchGeneration passa a falhar) e limpamos os resultados.
+            if q.isEmpty { searchGeneration += 1; searching = false; hits = []; searchedQuery = ""; truncated = false }
         }
-        .padding(.horizontal, 22).padding(.top, 20).padding(.bottom, 12)
-    }
-
-    private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-            TextField("Buscar em todas as \(lawCount) normas…", text: $query)
-                .textFieldStyle(.plain)
-                .font(.title3)
-                .onSubmit(runSearch)
-            if !query.isEmpty {
-                Button {
-                    // Bumpar a geração invalida a Task de busca em voo (o guard
-                    // gen == searchGeneration passa a falhar) e searching=false tira já o spinner.
-                    searchGeneration += 1; searching = false
-                    query = ""; hits = []; searchedQuery = ""; truncated = false
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                }
-                .buttonStyle(.plain).foregroundStyle(.secondary)
-            }
-            Button("Buscar", action: runSearch)
-                .buttonStyle(.borderedProminent)
-                .tint(ThemeState.t.accent)
-                .disabled(query.trimmingCharacters(in: .whitespaces).count < 2)
-        }
-        .padding(.horizontal, 14).padding(.vertical, 12)
-        .background(AppTheme.elevatedSurface)
     }
 
     @ViewBuilder
@@ -128,7 +91,7 @@ struct GlobalSearchView: View {
             Image(systemName: "chevron.right").foregroundStyle(.tertiary).font(.caption)
         }
         .padding(12)
-        .appSurface(accent: hit.accent)
+        .legisCard(tint: hit.accent, spine: true, hover: true)
         .contentShape(Rectangle())
     }
 
@@ -144,7 +107,7 @@ struct GlobalSearchView: View {
     }
 
     private func accent(for law: LawEntry) -> Color {
-        if law.isNovidades { return .orange }
+        if law.isNovidades { return AppTheme.warn }
         if let custom = law.customCategory { return CustomCategoryStyle.color(for: custom) }
         return law.category.color
     }

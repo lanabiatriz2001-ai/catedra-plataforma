@@ -58,7 +58,7 @@ struct AddLawSheet: View {
                 if !sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !urlIsValid {
                     Text("Endereço inválido — precisa começar com http:// ou https://")
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(AppTheme.danger)
                 }
                 Text("Dica: no Planalto, prefira a versão “texto compilado”, que já incorpora as alterações. Normas com URL são verificadas automaticamente e você é avisada quando mudarem. PDFs na web também funcionam.")
                     .font(.caption)
@@ -77,11 +77,11 @@ struct AddLawSheet: View {
                     } else if let pdfText {
                         Label("\(pdfText.count) caracteres extraídos", systemImage: "checkmark.circle")
                             .font(.caption)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(AppTheme.ok)
                     }
                 }
                 if let pdfError {
-                    Text(pdfError).font(.caption).foregroundStyle(.red)
+                    Text(pdfError).font(.caption).foregroundStyle(AppTheme.danger)
                 }
                 Text("O texto é extraído do PDF e guardado na biblioteca (pesquisável e anotável). PDFs locais não são monitorados — não há fonte para comparar.")
                     .font(.caption)

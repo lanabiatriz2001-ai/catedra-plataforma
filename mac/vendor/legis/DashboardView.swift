@@ -11,11 +11,13 @@ struct DashboardView: View {
 
     @AppStorage("lastStudiedLawID") private var lastStudiedLawID = ""
     @AppStorage("srsEnabled") private var srsEnabled = false
-    @AppStorage("appearance") private var appearance = "dark"   // "system" | "light" | "dark"
+    @AppStorage("appearance") private var appearance = "light"  // "system" | "light" | "dark" (default casa com o fallback claro)
     // Um único .sheet(item:) — empilhar vários .sheet(isPresented:) no mesmo view
     // faz o SwiftUI (macOS) confundir qual apresentar/dispensar, e uma folha
     // acabava "sequestrando" a outra (ex.: apagar um flashcard abria a revisão).
     @State private var activeSheet: DashSheet?
+    // Observado para o tile "Simulado" refletir "prova em curso" sem sair do Início.
+    @ObservedObject private var simulado = SimuladoLegisSessao.shared
 
     private enum DashSheet: Int, Identifiable {
         case review, ankiExport, flashManager
@@ -32,82 +34,89 @@ struct DashboardView: View {
         store.laws.filter { $0.isRegularLaw && $0.customCategory == name }.count
     }
 
-    // Atalhos de seção — monocromáticos no acento do Cátedra.
-    private var sections: [(String, String, Color, SidebarItem)] {
-        let a = ThemeState.t.accent
-        return [("Todas as normas", "books.vertical.fill", a, .all),
-         ("Favoritos", "star.fill", a, .favorites),
-         ("Assuntos", "tag.fill", a, .subjects),
-         ("Buscar em tudo", "sparkle.magnifyingglass", a, .globalSearch),
-         ("Novidades 2026", "sparkles", a, .novidades),
-         ("Diário Oficial", "newspaper.fill", a, .dou),
-         ("Atualizações", "bell.badge.fill", a, .updates)]
-    }
-
-    private func sectionBadge(_ item: SidebarItem) -> Int? {
-        switch item {
-        case .all: return lawCount
-        case .favorites: let n = store.favoriteCount; return n > 0 ? n : nil
-        case .novidades: return novidadesCount
-        case .dou: let n = store.douItems.count; return n > 0 ? n : nil
-        case .updates: let n = store.unreadCount; return n > 0 ? n : nil
-        default: return nil
-        }
+    // Tiles do bloco TREINAR — as telas que antes não apareciam em lugar nenhum do Início.
+    private var treinoTiles: [(String, String, String, SidebarItem)] {
+        [("Plano de leitura", "720 dias por disciplina", "calendar", .planoLeitura),
+         ("Simulado de lei seca", simulado.emCurso ? "prova em curso" : "C/E do texto oficial", "checkmark.seal", .simuladoLegis),
+         ("Prova oral", "arguição sobre o artigo", "mic", .provaOral),
+         ("Incidência", "artigos mais cobrados", "target", .incidencia),
+         ("Índice das normas", "livros, títulos, capítulos", "list.bullet.indent", .indiceEstrutural),
+         ("Checklist", "\(store.readingChecklist.filter { !$0.done }.count) metas pendentes", "checklist", .checklist)]
     }
 
     @ViewBuilder
-    private func navCard(_ title: String, _ symbol: String, _ color: Color, _ item: SidebarItem) -> some View {
+    private func treinoTile(_ title: String, _ subtitle: String, _ symbol: String, _ item: SidebarItem) -> some View {
+        let emCurso = item == .simuladoLegis && simulado.emCurso
         Button { openSection(item) } label: {
             HStack(spacing: 10) {
-                IconBubble(symbol: symbol, color: color, size: 32)
-                Text(title).font(.callout.weight(.medium)).foregroundStyle(.primary).lineLimit(1)
-                Spacer(minLength: 4)
-                if let b = sectionBadge(item) {
-                    Text("\(b)").font(.caption2.weight(.semibold).monospacedDigit())
-                        .foregroundStyle(.secondary)
+                IconBubble(symbol: symbol, color: emCurso ? AppTheme.warn : ThemeState.t.accent, size: 34)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                    Text(subtitle).font(.system(size: 11)).foregroundStyle(emCurso ? AppTheme.warn : AppTheme.secondaryInk).lineLimit(1)
                 }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(AppTheme.secondaryInk.opacity(0.5))
             }
             .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .appSurface()
+            .legisCard(tint: emCurso ? AppTheme.warn : ThemeState.t.accent, spine: emCurso, hover: true)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder
-    private func materiaCard(_ title: String, _ symbol: String, _ color: Color, count: Int, _ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                IconBubble(symbol: symbol, color: color, size: 32)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title).font(.callout.weight(.medium)).foregroundStyle(.primary).lineLimit(1)
-                    Text("\(count) norma\(count == 1 ? "" : "s")").font(.caption2).foregroundStyle(.secondary)
+    /// Revisão espaçada + gestão do baralho num cartão só (antes eram dois, com os
+    /// mesmos números). Aparece quando o método está ligado ou já há cartões.
+    @ViewBuilder private var srsCard: some View {
+        if srsEnabled || store.srsDeckCount > 0 {
+            let due = store.srsDueCount()
+            VStack(alignment: .leading, spacing: 12) {
+                Button { activeSheet = .review } label: {
+                    HStack(spacing: 12) {
+                        IconBubble(symbol: "brain.head.profile", color: AppTheme.srs, size: 38)
+                        VStack(alignment: .leading, spacing: 3) {
+                            LegisSectionHeader(title: "Revisão espaçada", tint: AppTheme.srs)
+                            Text(due > 0 ? "\(due) artigo\(due > 1 ? "s" : "") para revisar hoje" : "Você está em dia!")
+                                .font(AppTheme.displayFont(15, .bold)).foregroundStyle(AppTheme.ink)
+                            Text("\(store.srsDeckCount) artigo\(store.srsDeckCount == 1 ? "" : "s") no baralho")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if due > 0 {
+                            Text("Revisar").font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                                .padding(.horizontal, 14).padding(.vertical, 7)
+                                .background(Capsule().fill(AppTheme.srs))
+                        } else {
+                            Image(systemName: "checkmark.circle.fill").font(.title2).foregroundStyle(AppTheme.ok)
+                        }
+                    }
+                    .contentShape(Rectangle())
                 }
-                Spacer(minLength: 0)
+                .buttonStyle(.plain)
+                if store.srsDeckCount > 0 {
+                    HStack(spacing: 8) {
+                        Button { activeSheet = .flashManager } label: {
+                            Label("Gerenciar", systemImage: "rectangle.stack.badge.minus")
+                        }
+                        .buttonStyle(.bordered).help("Ver e apagar flashcards")
+                        Button { activeSheet = .ankiExport } label: {
+                            Label("Exportar para o Anki", systemImage: "square.and.arrow.up")
+                        }
+                        .buttonStyle(.bordered).help("Um arquivo .txt por formato (Cloze, Certo/Errado…) para importar no Anki")
+                        Spacer()
+                    }
+                    .controlSize(.small)
+                }
             }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .appTintedSurface(color)
-            .contentShape(Rectangle())
+            .padding(14)
+            .legisCard(tint: AppTheme.srs, spine: true)
         }
-        .buttonStyle(.plain)
     }
 
     /// Norma do "Continuar estudando" (a última aberta no modo Estudo, se ainda existir).
     private var lastStudied: LawEntry? {
         guard let uuid = UUID(uuidString: lastStudiedLawID) else { return nil }
         return store.laws.first { $0.id == uuid }
-    }
-
-    private func statChip(symbol: String, color: Color, label: String, value: Int) -> some View {
-        VStack(spacing: 4) {
-            Image(systemName: symbol).font(.title3).foregroundStyle(color)
-            Text("\(value)").font(.title3.weight(.semibold).monospacedDigit())
-            Text(label).font(.caption2).foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
     }
 
     // Tempo de estudo somado por norma (do cronômetro do leitor). Só normas com ≥ 30s.
@@ -131,14 +140,10 @@ struct DashboardView: View {
         let entries = tempoEntries
         let maxSecs = entries.first?.secs ?? 1
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                SectionTitle(title: "Tempo de estudo por norma", symbol: "hourglass", color: ThemeState.t.accent)
-                Spacer()
-                if !entries.isEmpty {
-                    Text("total \(Self.fmtDur(store.totalStudySeconds))")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-            }
+            LegisSectionHeader(title: "Tempo de estudo por norma", icon: "hourglass", tint: ThemeState.t.accent,
+                               trailing: entries.isEmpty ? nil : AnyView(
+                                Text("total \(Self.fmtDur(store.totalStudySeconds))")
+                                    .font(.caption).foregroundStyle(.secondary)))
             if entries.isEmpty {
                 Text("Leia uma norma no leitor (o cronômetro corre dentro da norma) para começar a somar o tempo aqui.")
                     .font(.caption).foregroundStyle(.secondary)
@@ -162,7 +167,7 @@ struct DashboardView: View {
                 Text(law.title).font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(AppTheme.ink).lineLimit(1)
                 Spacer(minLength: 8)
-                Text(Self.fmtDur(secs)).font(.system(size: 12, weight: .semibold).monospacedDigit())
+                Text(Self.fmtDur(secs)).font(Typo.num(12, .semibold))
                     .foregroundStyle(ThemeState.t.accent)
             }
             GeometryReader { geo in
@@ -185,13 +190,13 @@ struct DashboardView: View {
     // Célula de número-chave dentro do hero (fundo translúcido sobre o gradiente).
     private func heroStat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(value).font(.system(size: 20, weight: .bold).monospacedDigit()).foregroundStyle(.white)
+            Text(value).font(Typo.num(20)).foregroundStyle(.white)
             Text(label).font(.system(size: 11)).foregroundStyle(.white.opacity(0.85))
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.13)))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.white.opacity(0.16), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(Color.white.opacity(0.13)))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(Color.white.opacity(0.16), lineWidth: 1))
     }
 
     var body: some View {
@@ -206,7 +211,7 @@ struct DashboardView: View {
                             .foregroundStyle(.white.opacity(0.8))
                             .lineLimit(1).minimumScaleFactor(0.7)
                         Text("CátedraLEGIS")
-                            .font(.system(size: 40, weight: .heavy)).tracking(-0.6)
+                            .font(AppTheme.displayFont(40, .heavy)).tracking(-0.6)
                             .foregroundStyle(.white)
                             .lineLimit(1).minimumScaleFactor(0.6)
                         Text("\(lawCount) normas · \(store.annotations.count) marcações na sua biblioteca")
@@ -223,17 +228,10 @@ struct DashboardView: View {
                         Button { openLaw(law.id) } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "play.fill").font(.system(size: 11, weight: .bold))
-                                Text("Continuar · \(law.title)")
-                                    .font(.system(size: 13, weight: .bold)).lineLimit(1)
+                                Text("Continuar · \(law.title)").lineLimit(1)
                             }
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 17).padding(.vertical, 10)
-                            .background(Capsule().fill(LinearGradient(colors: ctaStops,
-                                                                      startPoint: .leading, endPoint: .trailing)))
-                            .shadow(color: ctaStops[0].opacity(0.5), radius: 10, y: 4)
-                            .contentShape(Capsule())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.legisPrimary(ctaStops))
                     }
                     HStack(spacing: 10) {
                         heroStat("\(store.totalReadUnits)", "artigos lidos")
@@ -251,18 +249,33 @@ struct DashboardView: View {
                         Circle().fill(Color.white.opacity(0.06)).frame(width: 170, height: 170).offset(x: -20, y: 118)
                     }
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous))
                 .shadow(color: ThemeState.t.accent.opacity(0.22), radius: 18, y: 8)
 
-                // ("Continuar estudando" virou o CTA gradiente DENTRO do hero — um caixote a menos.)
+                // Três blocos, na ordem de uso (pente fino 21/08): HOJE (o que fazer agora),
+                // TREINAR (as ferramentas de estudo) e BIBLIOTECA (o acervo e sua saúde).
+                // Os StatCards e o "Painel de revisão" repetiam números do hero/SRS — saíram.
+
+                // ── HOJE ──────────────────────────────────────────────────────────
+                LegisSectionHeader(title: "Hoje", icon: "sun.max", tint: ThemeState.t.accent).padding(.top, 6)
+                srsCard
+                DailyGoalsCard()
+                ChecklistMiniCard(openChecklist: { openSection(.checklist) })
+
+                // ── TREINAR ───────────────────────────────────────────────────────
+                LegisSectionHeader(title: "Treinar", icon: "figure.run", tint: ThemeState.t.accent).padding(.top, 6)
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: 10)], spacing: 10) {
+                    ForEach(treinoTiles, id: \.0) { t in treinoTile(t.0, t.1, t.2, t.3) }
+                }
+
+                // ── BIBLIOTECA ────────────────────────────────────────────────────
+                LegisSectionHeader(title: "Biblioteca", icon: "books.vertical", tint: ThemeState.t.accent).padding(.top, 6)
 
                 // MATÉRIAS — tiles coloridos com a identidade de cada área (linguagem vitrine).
                 let cats = LawCategory.allCases.filter { categoryCount($0) > 0 && $0 != .personalizada }
                 if !cats.isEmpty {
                     VStack(alignment: .leading, spacing: 11) {
-                        Text("MATÉRIAS")
-                            .font(.system(size: 11, weight: .bold)).tracking(1.3)
-                            .foregroundStyle(.secondary)
+                        LegisSectionHeader(title: "Matérias", count: cats.count)
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 148), spacing: 10)], spacing: 10) {
                             ForEach(cats) { cat in materiaTile(cat) }
                         }
@@ -270,89 +283,12 @@ struct DashboardView: View {
                     .padding(.top, 4)
                 }
 
-                // Revisão espaçada do dia (só quando o método está ligado)
-                if srsEnabled {
-                    Button {
-                        activeSheet = .review
-                    } label: {
-                        let due = store.srsDueCount()
-                        HStack(spacing: 12) {
-                            IconBubble(symbol: "brain.head.profile", color: ThemeState.t.accent, size: 38)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Revisão espaçada")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(ThemeState.t.accent)
-                                    .textCase(.uppercase)
-                                Text(due > 0 ? "\(due) artigo\(due > 1 ? "s" : "") para revisar hoje" : "Você está em dia!")
-                                    .font(.headline).foregroundStyle(.primary)
-                                Text("\(store.srsDeckCount) artigo\(store.srsDeckCount == 1 ? "" : "s") no baralho")
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            if due > 0 {
-                                Text("Revisar")
-                                    .font(.callout.weight(.semibold))
-                                    .padding(.horizontal, 14).padding(.vertical, 7)
-                                    .background(Capsule().fill(ThemeState.t.accent))
-                                    .foregroundStyle(.white)
-                            } else {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.title2).foregroundStyle(.green)
-                            }
-                        }
-                        .padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .appTintedSurface(ThemeState.t.accent)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                // Metas do dia (leitura + revisão) e previsão de vencimentos
-                DailyGoalsCard()
-
-                // (Os StatCards viraram os números-chave DENTRO do hero — quatro caixotes a menos.)
-
                 // Tempo de estudo por norma (alimentado pelo cronômetro do leitor)
                 tempoPorNormaSection
 
-                // Painel de revisão: flashcards
-                if store.srsDeckCount > 0 {
-                    VStack(alignment: .leading, spacing: 10) {
-                        SectionTitle(title: "Painel de revisão", symbol: "brain.head.profile", color: ThemeState.t.accent)
-                        HStack(spacing: 10) {
-                            statChip(symbol: "rectangle.stack.badge.plus", color: ThemeState.t.accent,
-                                     label: "Flashcards", value: store.srsDeckCount)
-                            Divider()
-                            statChip(symbol: "checklist", color: ThemeState.t.accent,
-                                     label: "Revisar hoje", value: store.srsDueCount())
-                        }
-                        Divider().padding(.vertical, 2)
-                        HStack(spacing: 8) {
-                            Button { activeSheet = .flashManager } label: {
-                                Label("Gerenciar", systemImage: "rectangle.stack.badge.minus")
-                                    .font(.callout.weight(.medium))
-                            }
-                            .buttonStyle(.bordered)
-                            .help("Ver e apagar flashcards")
-                            Button { activeSheet = .ankiExport } label: {
-                                Label("Exportar para o Anki", systemImage: "square.and.arrow.up")
-                                    .font(.callout.weight(.medium))
-                            }
-                            .buttonStyle(.bordered)
-                            .help("Um arquivo .txt por formato (Cloze, Certo/Errado…) para importar no Anki")
-                        }
-                        Text("Gerencie ou exporte seus flashcards (um arquivo por formato do Anki).")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .appSurface()
-                }
-
                 // Heatmap de leitura
                 VStack(alignment: .leading, spacing: 8) {
-                    SectionTitle(title: "Heatmap de leitura", symbol: "square.grid.3x3.fill")
+                    LegisSectionHeader(title: "Heatmap de leitura", icon: "square.grid.3x3.fill", tint: ThemeState.t.accent)
                     Text("Atividade dos últimos 119 dias.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -370,7 +306,7 @@ struct DashboardView: View {
                 }
                 .sorted { $0.1.readKeys.count > $1.1.readKeys.count }
                 VStack(alignment: .leading, spacing: 10) {
-                    SectionTitle(title: "Por norma", symbol: "chart.line.uptrend.xyaxis")
+                    LegisSectionHeader(title: "Por norma", icon: "chart.line.uptrend.xyaxis", tint: ThemeState.t.accent)
                     if progressed.isEmpty {
                         Text("Você ainda não marcou nenhum artigo como lido. Abra uma norma no modo Estudo e comece!")
                             .font(.caption)
@@ -385,7 +321,7 @@ struct DashboardView: View {
                                     Text(law.title).font(.callout).lineLimit(1)
                                     Spacer()
                                     Text("\(record.readKeys.count)/\(record.unitTotal)")
-                                        .font(.caption.monospacedDigit())
+                                        .font(Typo.num(11, .regular))
                                         .foregroundStyle(.secondary)
                                 }
                                 ProgressView(value: min(1, Double(record.readKeys.count) / Double(record.unitTotal)))
@@ -400,35 +336,17 @@ struct DashboardView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .appSurface()
 
-                // Biblioteca
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    StatCard(title: "Normas", value: "\(lawCount)",
-                             symbol: "books.vertical", color: ThemeState.t.accent,
-                             detail: "\(monitoredCount) fontes monitoradas")
-                    StatCard(title: "Novidades 2026", value: "\(novidadesCount)",
-                             symbol: "sparkles", color: ThemeState.t.accent,
-                             detail: "índices oficiais de legislação nova")
-                    StatCard(title: "Grifos e anotações", value: "\(store.annotations.count)",
-                             symbol: "highlighter", color: ThemeState.t.accent,
-                             detail: "marcações e notas nas normas")
-                    StatCard(title: "Jurisprudências vinculadas", value: "\(store.precedents.count)",
-                             symbol: "text.book.closed", color: .indigo,
-                             detail: "súmulas, teses e decisões suas")
-                }
-
                 // Verificação
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        SectionTitle(title: "Monitoramento", symbol: "bell.badge")
-                        Spacer()
-                        if store.isChecking {
-                            ProgressView().controlSize(.small)
-                        }
-                        Button(store.isChecking ? "Verificando…" : "Verificar agora") {
-                            Task { await store.checkAllUpdates(manual: true) }
-                        }
-                        .disabled(store.isChecking)
-                    }
+                    LegisSectionHeader(title: "Monitoramento", icon: "bell.badge", tint: ThemeState.t.accent,
+                                       trailing: AnyView(HStack(spacing: 8) {
+                                           if store.isChecking { ProgressView().controlSize(.small) }
+                                           Button(store.isChecking ? "Verificando…" : "Verificar agora") {
+                                               Task { await store.checkAllUpdates(manual: true) }
+                                           }
+                                           .buttonStyle(.legisPrimary)
+                                           .disabled(store.isChecking)
+                                       }))
                     if store.isChecking && !store.checkProgress.isEmpty {
                         Text(store.checkProgress).font(.caption).foregroundStyle(.secondary)
                     } else {
@@ -445,12 +363,9 @@ struct DashboardView: View {
                 // Últimas alterações
                 if !store.updates.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            SectionTitle(title: "Últimas alterações", symbol: "clock.arrow.circlepath", color: ThemeState.t.accent)
-                            Spacer()
-                            Button("Ver todas") { openUpdates() }
-                                .buttonStyle(.link)
-                        }
+                        LegisSectionHeader(title: "Últimas alterações", icon: "clock.arrow.circlepath",
+                                           count: store.updates.count, tint: ThemeState.t.accent,
+                                           trailing: AnyView(Button("Ver todas") { openUpdates() }.buttonStyle(.legisGhost)))
                         ForEach(store.updates.prefix(5)) { event in
                             Button {
                                 openUpdate(event.id)
@@ -476,7 +391,7 @@ struct DashboardView: View {
                 let recent = store.annotations.sorted { $0.createdAt > $1.createdAt }.prefix(5)
                 if !recent.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        SectionTitle(title: "Anotações recentes", symbol: "highlighter", color: ThemeState.t.accent)
+                        LegisSectionHeader(title: "Anotações recentes", icon: "highlighter", tint: ThemeState.t.accent)
                         ForEach(Array(recent)) { annotation in
                             Button {
                                 openLaw(annotation.lawID)
@@ -526,9 +441,9 @@ struct FlashcardsManagerSheet: View {
 
     private func kindInfo(_ k: String) -> (label: String, symbol: String, color: Color) {
         switch k {
-        case FlashKind.cloze:       return ("Lacuna", "rectangle.dashed", .blue)
-        case FlashKind.clozeType:   return ("Lacuna (escrever)", "square.and.pencil", .indigo)
-        case FlashKind.certoErrado: return ("Certo/errado", "checkmark.circle", .green)
+        case FlashKind.cloze:       return ("Lacuna", "rectangle.dashed", AppTheme.info)
+        case FlashKind.clozeType:   return ("Lacuna (escrever)", "square.and.pencil", AppTheme.srs)
+        case FlashKind.certoErrado: return ("Certo/errado", "checkmark.circle", AppTheme.ok)
         case FlashKind.direta:      return ("Pergunta direta", "questionmark.circle", ThemeState.t.accent)
         default:                    return ("Antigo", "clock.arrow.circlepath", .gray)
         }
@@ -537,7 +452,7 @@ struct FlashcardsManagerSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Meus flashcards").font(.title2.weight(.semibold))
+                Text("Meus flashcards").font(AppTheme.displayFont(20, .semibold))
                 Spacer()
                 Button("Fechar") { dismiss() }
             }
@@ -614,7 +529,7 @@ struct AnkiExportSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Exportar para o Anki").font(.title2.weight(.semibold))
+            Text("Exportar para o Anki").font(AppTheme.displayFont(20, .semibold))
             Text("Gera um arquivo .txt por formato. Confirme os nomes EXATOS dos seus note types no Anki (com acentos e maiúsculas) — o Anki casa por nome ao importar.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
 
@@ -645,7 +560,7 @@ struct AnkiExportSheet: View {
                 Spacer()
                 Button("Fechar") { dismiss() }
                 Button("Salvar arquivos…") { save() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.legisPrimary)
                     .disabled(store.srsDeckCount == 0)
             }
         }
@@ -712,7 +627,7 @@ private struct MateriaTile: View {
             .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
             .background(LinearGradient(colors: cat.gradStops,
                                        startPoint: .topLeading, endPoint: .bottomTrailing))
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous))
             .shadow(color: cat.color.opacity(hovering ? 0.5 : 0.35), radius: hovering ? 13 : 9, y: hovering ? 7 : 5)
             .scaleEffect(hovering ? 1.02 : 1)
             .contentShape(Rectangle())
@@ -734,7 +649,7 @@ struct DailyGoalsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle(title: "Metas do dia", symbol: "target", color: ThemeState.t.accent)
+            LegisSectionHeader(title: "Metas do dia", icon: "target", tint: ThemeState.t.accent)
             goalRow(icon: "book.fill", tint: ThemeState.t.accent, label: "Leitura",
                     current: store.readsToday, goal: $goalReads)
             if hasDeck {
@@ -764,10 +679,10 @@ struct DailyGoalsCard: View {
                     if g > 0 {
                         Text("\(current) / \(g)")
                             .font(.caption.monospacedDigit())
-                            .foregroundStyle(done ? Color.green : Color.secondary)
+                            .foregroundStyle(done ? AppTheme.ok : Color.secondary)
                         if done {
                             Image(systemName: "checkmark.circle.fill")
-                                .font(.caption).foregroundStyle(.green)
+                                .font(.caption).foregroundStyle(AppTheme.ok)
                         }
                     } else {
                         Text("sem meta").font(.caption).foregroundStyle(.tertiary)
@@ -775,7 +690,7 @@ struct DailyGoalsCard: View {
                 }
                 if g > 0 {
                     ProgressView(value: Double(min(current, g)), total: Double(g))
-                        .tint(done ? .green : tint)
+                        .tint(done ? AppTheme.ok : tint)
                 }
             }
             Stepper("", value: goal, in: 0...300, step: 5)
@@ -789,7 +704,7 @@ struct DailyGoalsCard: View {
         return VStack(alignment: .leading, spacing: 6) {
             Text("Próximos 7 dias").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
             HStack(alignment: .bottom, spacing: 6) {
-                ForEach(Array(forecast.enumerated()), id: \.offset) { i, d in
+                ForEach(Array(forecast.enumerated()), id: \.element.date) { i, d in
                     VStack(spacing: 3) {
                         Text(d.count > 0 ? "\(d.count)" : " ")
                             .font(.system(size: 9).monospacedDigit()).foregroundStyle(.secondary)
@@ -832,9 +747,9 @@ struct ActivityHeatmap: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top, spacing: 3) {
-                ForEach(Array(columns.enumerated()), id: \.offset) { _, week in
+                ForEach(columns, id: \.first?.date) { week in
                     VStack(spacing: 3) {
-                        ForEach(Array(week.enumerated()), id: \.offset) { _, day in
+                        ForEach(week, id: \.date) { day in
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(color(for: day.count))
                                 .frame(width: 13, height: 13)

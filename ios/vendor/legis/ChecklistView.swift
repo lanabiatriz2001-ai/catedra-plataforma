@@ -66,7 +66,7 @@ fileprivate struct DuePill: View {
             EmptyView()
         case .overdue(let dias):
             pill("há \(dias) dia\(dias == 1 ? "" : "s")", icon: "alarm.fill",
-                 fg: .white, bg: Color(hex: 0xE11D48))
+                 fg: .white, bg: AppTheme.danger)
         case .today:
             pill("Hoje", icon: "sun.max.fill",
                  fg: .white, bg: ThemeState.t.accent)
@@ -76,13 +76,9 @@ fileprivate struct DuePill: View {
         }
     }
     private func pill(_ t: String, icon: String, fg: Color, bg: Color) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon).font(.system(size: 8.5, weight: .bold))
-            Text(t).font(.system(size: 10.5, weight: .bold))
-        }
-        .padding(.horizontal, 8).padding(.vertical, 3.5)
-        .background(Capsule().fill(bg))
-        .foregroundStyle(fg)
+        // Mesmo chip das listas: cápsula cheia quando pede atenção, suave quando é só data.
+        fg == .white ? LegisChip(t, icon: icon, tint: bg, variant: .filled)
+                     : LegisChip(t, icon: icon, tint: fg, variant: .soft)
     }
 }
 
@@ -138,27 +134,21 @@ struct ChecklistMiniCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous)
                     .fill(LinearGradient(colors: [ThemeState.t.accent, ThemeState.t.accentD],
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 30, height: 30)
                     .overlay(Image(systemName: "checklist").font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white))
                 Text("Checklist de leitura")
-                    .font(.system(size: 15, weight: .bold)).foregroundStyle(AppTheme.ink)
+                    .font(AppTheme.displayFont(15, .bold)).foregroundStyle(AppTheme.ink)
                 Spacer()
                 if total > 0 {
                     ChecklistRing(frac: Double(doneCount) / Double(max(total, 1)),
                                   size: 30, line: 4)
                 }
-                Button(action: openChecklist) {
-                    Text("Ver tudo")
-                        .font(.system(size: 11, weight: .bold))
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Capsule().fill(ThemeState.t.accent.opacity(0.13)))
-                        .foregroundStyle(ThemeState.t.accent)
-                }
-                .buttonStyle(.plain)
+                Button("Ver tudo", action: openChecklist)
+                    .buttonStyle(.legisGhost)
             }
 
             HStack(spacing: 8) {
@@ -191,16 +181,12 @@ struct ChecklistMiniCard: View {
                 }
                 if extra > 0 {
                     Button("+ \(extra) meta\(extra == 1 ? "" : "s") pendente\(extra == 1 ? "" : "s")") { openChecklist() }
-                        .buttonStyle(.plain).font(.caption.weight(.semibold))
-                        .foregroundStyle(ThemeState.t.accent)
+                        .buttonStyle(.legisGhost)
                 }
             }
         }
         .padding(15)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(AppTheme.cardBackground))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
-        .shadow(color: ThemeState.t.accent.opacity(0.10), radius: 12, y: 5)
+        .legisCard(tint: ThemeState.t.accent)
     }
 
     private func addQuick() {
@@ -232,7 +218,7 @@ struct ChecklistMiniCard: View {
                 DuePill(kind: dueKind(item))
             }
             .padding(.horizontal, 9).padding(.vertical, 6)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(tint.opacity(0.05)))
+            .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(tint.opacity(0.05)))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -315,7 +301,7 @@ struct ChecklistView: View {
                         VStack(alignment: .leading, spacing: 22) {
                             statsHeader
                             if !atrasadas.isEmpty {
-                                itemsSection(title: "Atrasadas", tint: Color(hex: 0xE11D48),
+                                itemsSection(title: "Atrasadas", tint: AppTheme.danger,
                                              icon: "alarm.fill", items: atrasadas, dimmed: false)
                             }
                             if !hoje.isEmpty {
@@ -355,7 +341,7 @@ struct ChecklistView: View {
                 HStack(spacing: 7) {
                     statChip("\(hoje.count) hoje", tint: ThemeState.t.accent, on: !hoje.isEmpty)
                     statChip("\(atrasadas.count) atrasada\(atrasadas.count == 1 ? "" : "s")",
-                             tint: Color(hex: 0xE11D48), on: !atrasadas.isEmpty)
+                             tint: AppTheme.danger, on: !atrasadas.isEmpty)
                     statChip("\(proximas.count + semPrazo.count) na fila",
                              tint: AppTheme.secondaryInk, on: false)
                 }
@@ -367,23 +353,15 @@ struct ChecklistView: View {
                         store.clearCompletedChecklistItems()
                     }
                 }
-                .buttonStyle(.plain).font(.system(size: 11.5, weight: .semibold))
-                .foregroundStyle(ThemeState.t.accent)
+                .buttonStyle(.legisGhost)
             }
         }
         .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(AppTheme.cardBackground))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
-        .shadow(color: ThemeState.t.accent.opacity(0.12), radius: 14, y: 6)
+        .legisCard(tint: ThemeState.t.accent, radius: AppTheme.rHero)
     }
 
     private func statChip(_ t: String, tint: Color, on: Bool) -> some View {
-        Text(t)
-            .font(.system(size: 11, weight: .bold))
-            .padding(.horizontal, 9).padding(.vertical, 3.5)
-            .background(Capsule().fill(on ? tint : tint.opacity(0.12)))
-            .foregroundStyle(on ? .white : tint)
+        LegisChip(t, tint: tint, variant: on ? .filled : .soft, size: 11)
     }
 
     // MARK: - Formulário de adicionar
@@ -426,7 +404,7 @@ struct ChecklistView: View {
                 }
                 Spacer(minLength: 0)
                 Button("Adicionar", action: addItem)
-                    .buttonStyle(.borderedProminent).tint(ThemeState.t.accent).controlSize(.small)
+                    .buttonStyle(.legisPrimary)
                     .disabled(newText.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
@@ -509,17 +487,7 @@ struct ChecklistView: View {
     private func itemsSection(title: String, tint: Color, icon: String,
                               items: [ReadingChecklistItem], dimmed: Bool) -> some View {
         VStack(alignment: .leading, spacing: 9) {
-            HStack(spacing: 6) {
-                Image(systemName: icon).font(.system(size: 10, weight: .bold)).foregroundStyle(tint)
-                Text(title.uppercased())
-                    .font(.system(size: 10.5, weight: .bold)).tracking(1)
-                    .foregroundStyle(tint)
-                Text("\(items.count)")
-                    .font(.system(size: 9.5, weight: .bold).monospacedDigit())
-                    .padding(.horizontal, 5.5).padding(.vertical, 1)
-                    .background(Capsule().fill(tint.opacity(0.13)))
-                    .foregroundStyle(tint)
-            }
+            LegisSectionHeader(title: title, icon: icon, count: items.count, tint: tint)
             VStack(spacing: 7) {
                 ForEach(items) { item in
                     ChecklistRow(item: item, dimmed: dimmed,
@@ -588,25 +556,13 @@ private struct ChecklistRow: View {
                     DuePill(kind: item.done ? .none : kind)
                     if let law = linkedLaw {
                         Button { onOpenLaw(law.id) } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "book.closed.fill").font(.system(size: 9))
-                                Text(law.title).font(.system(size: 10.5, weight: .semibold)).lineLimit(1)
-                            }
-                            .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(Capsule().fill(tint.opacity(0.13)))
-                            .foregroundStyle(tint)
+                            LegisChip(law.title, icon: "book.closed.fill", tint: tint, variant: .soft)
                         }
                         .buttonStyle(.plain)
                         .help("Abrir esta norma")
                     } else if let label = item.linkedCategoryLabel {
                         let fromEdital = store.editalDisciplinas.contains(label)
-                        HStack(spacing: 4) {
-                            Image(systemName: fromEdital ? "graduationcap.fill" : "tag.fill").font(.system(size: 9))
-                            Text(label).font(.system(size: 10.5, weight: .semibold)).lineLimit(1)
-                        }
-                        .padding(.horizontal, 8).padding(.vertical, 3)
-                        .background(Capsule().fill(tint.opacity(0.13)))
-                        .foregroundStyle(tint)
+                        LegisChip(label, icon: fromEdital ? "graduationcap.fill" : "tag.fill", tint: tint, variant: .soft)
                     }
                 }
             }
@@ -623,19 +579,8 @@ private struct ChecklistRow: View {
             }
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(AppTheme.cardBackground))
-        .overlay(alignment: .leading) {
-            // Lombada da matéria vinculada — a paleta vitrine no checklist.
-            RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(item.done ? tint.opacity(0.35) : tint)
-                .frame(width: 3)
-                .padding(.vertical, 9).padding(.leading, 1.5)
-        }
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .strokeBorder(overdue ? Color(hex: 0xE11D48).opacity(0.4) : AppTheme.hairline, lineWidth: 1))
-        .shadow(color: (hovering ? tint : .black).opacity(hovering ? 0.16 : 0.03), radius: hovering ? 9 : 3, y: 3)
-        .scaleEffect(hovering ? 1.004 : 1)
-        .animation(.easeOut(duration: 0.14), value: hovering)
+        .legisCard(tint: item.done ? tint.opacity(0.35) : tint, spine: true, hover: true,
+                   stroke: overdue ? AppTheme.danger.opacity(0.4) : nil)
         .opacity(dimmed ? 0.6 : 1)
         .onHover { hovering = $0 }
         .contextMenu {

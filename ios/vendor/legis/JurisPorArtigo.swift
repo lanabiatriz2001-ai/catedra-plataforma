@@ -92,7 +92,7 @@ enum JurisPorArtigo {
 /// Lista compacta para o acordeão do artigo.
 struct JurisPorArtigoView: View {
     let verbetes: [VerbeteCitante]
-    var accent: Color = .accentColor
+    var accent: Color = ThemeState.t.accent
     @State private var mostrarTodos = false
 
     var body: some View {

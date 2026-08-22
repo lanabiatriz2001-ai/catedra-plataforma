@@ -42,7 +42,7 @@ struct IndiceNormasView: View {
                         HStack(spacing: 7) {
                             Text(c.abbr).font(.system(size: 12, weight: .heavy))
                                 .foregroundStyle(on ? .white : col)
-                            Text(c.ct).font(.system(size: 10, weight: .semibold).monospacedDigit())
+                            Text(c.ct).font(Typo.num(10, .semibold))
                                 .foregroundStyle(on ? Color.white.opacity(0.85) : AppTheme.secondaryInk)
                         }
                         .padding(.horizontal, 12).padding(.vertical, 8)
@@ -64,7 +64,7 @@ struct IndiceNormasView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 hero(c, col, law0)
-                ForEach(Array(filteredTitulos(c).enumerated()), id: \.offset) { _, t in
+                ForEach(filteredTitulos(c), id: \.self) { t in   // num repete entre Livros; o struct inteiro é único
                     titRow(c, t, col, law0)
                 }
                 if filteredTitulos(c).isEmpty {
@@ -80,18 +80,15 @@ struct IndiceNormasView: View {
 
     private func hero(_ c: IdxCode, _ col: Color, _ law0: LawEntry?) -> some View {
         HStack(alignment: .top, spacing: 14) {
-            RoundedRectangle(cornerRadius: 13, style: .continuous).fill(col)
+            RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous).fill(col)
                 .frame(width: 52, height: 52)
                 .overlay(Text(c.abbr).font(.system(size: 15, weight: .heavy)).foregroundStyle(.white))
             VStack(alignment: .leading, spacing: 5) {
-                Text(c.name).font(.system(size: 19, weight: .heavy)).foregroundStyle(AppTheme.ink)
+                Text(c.name).font(AppTheme.displayFont(19, .heavy)).foregroundStyle(AppTheme.ink)
                 Text(c.full).font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
                 HStack(spacing: 6) {
-                    ForEach(Array(c.meta.enumerated()), id: \.offset) { _, m in
-                        Text(m).font(.system(size: 10.5, weight: .semibold))
-                            .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(Capsule().fill(col.opacity(0.12)))
-                            .foregroundStyle(col)
+                    ForEach(c.meta, id: \.self) { m in
+                        LegisChip(m, tint: col, variant: .soft)
                     }
                 }
                 .padding(.top, 2)
@@ -106,13 +103,13 @@ struct IndiceNormasView: View {
         }
         .padding(16)
         .background(LinearGradient(colors: [col.opacity(0.14), AppTheme.cardBackground], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(col.opacity(0.25), lineWidth: 1))
+                    in: RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous).strokeBorder(col.opacity(0.25), lineWidth: 1))
     }
 
     @ViewBuilder
     private func titRow(_ c: IdxCode, _ t: IdxTitulo, _ col: Color, _ law0: LawEntry?) -> some View {
-        let key = c.id + "|" + t.num
+        let key = c.id + "|" + t.num + "|" + t.name
         let hasCaps = !t.caps.isEmpty
         let isOpen = hasCaps && !collapsed.contains(key)
         VStack(spacing: 0) {
@@ -121,9 +118,7 @@ struct IndiceNormasView: View {
                     if hasCaps { if collapsed.contains(key) { collapsed.remove(key) } else { collapsed.insert(key) } }
                 } label: {
                     HStack(spacing: 10) {
-                        Text(t.num).font(.system(size: 11, weight: .heavy))
-                            .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(Capsule().fill(col.opacity(0.14))).foregroundStyle(col)
+                        LegisChip(t.num, tint: col, variant: .soft, size: 11)
                         Text(t.name).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(AppTheme.ink)
                             .lineLimit(2)
                         Spacer(minLength: 6)
@@ -150,7 +145,7 @@ struct IndiceNormasView: View {
                 LazyVGrid(columns: [GridItem(.flexible(), alignment: .topLeading),
                                     GridItem(.flexible(), alignment: .topLeading)],
                           alignment: .leading, spacing: 4) {
-                    ForEach(Array(t.caps.enumerated()), id: \.offset) { _, cap in
+                    ForEach(Array(t.caps.enumerated()), id: \.offset) { _, cap in   // capítulos não são filtrados
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(cap.k).font(.system(size: 10.5, weight: .heavy)).foregroundStyle(col)
                                 .frame(minWidth: 44, alignment: .leading)
@@ -164,9 +159,7 @@ struct IndiceNormasView: View {
                 .padding(.horizontal, 16).padding(.bottom, 9).padding(.top, 2)
             }
         }
-        .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
-        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(col).frame(width: 3).padding(.vertical, 10) }
+        .legisCard(tint: col, spine: true)
     }
 
     // MARK: helpers
