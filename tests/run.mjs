@@ -232,8 +232,15 @@ const bu = await page.evaluate(() => {
     && B.pontuar('codigo de processo civil', 'processo') === 2
     && B.pontuar('codigo de processo civil', 'rocess') === 1;
 
-  // repetido no acervo aparece uma vez só
+  // repetido no acervo aparece uma vez só — MAS súmula homônima de tribunais diferentes
+  // são duas coisas: a chave inclui o extra (tribunal · situação)
   r.dedup = B.buscar(IDX, 'súmula 619').verbete.length === 1;
+  const doisTribunais = B.indexar({ verbetes: [
+    ['A', 'STF', 'sumula_stf', 619, 'Súmula 619', 'Constitucional', 'x', null, 'Revogada', 0],
+    ['B', 'STJ', 'sumula_stj', 619, 'Súmula 619', 'Administrativo', 'y', null, null, 1]] });
+  const d2 = B.buscar(doisTribunais, 'súmula 619').verbete;
+  r.homonimasSeparadas = d2.length === 2;
+  r.revogadaPorUltimo = d2[0].extra.includes('STJ') && /Revogada/.test(d2[1].extra);
 
   // teto por tipo e piso de 2 letras
   r.teto = B.buscar(IDX, 'lei', { porTipo: 3 }).lei.length <= 3;

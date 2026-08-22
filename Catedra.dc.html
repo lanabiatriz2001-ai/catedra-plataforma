@@ -821,7 +821,7 @@ window.ctPdfLib = (function(){
                 <div style="padding:10px 12px 5px;font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">{{ p.secao }}</div>
               </sc-if>
               <button data-view="{{ p.view }}" data-act="{{ p.act }}" data-open="{{ p.open }}" data-kind="{{ p.kind }}" data-arg="{{ p.arg }}" onclick="{{ paletteGo }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:11px 12px;font-family:inherit;" style-hover="background:var(--surface2);">
-                <span style="width:28px;height:28px;border-radius:var(--r-md);background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+                <span style="width:28px;height:28px;border-radius:var(--r-md);background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none;font-size:15px;"><sc-if value="{{ p.ehTela }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if><sc-if value="{{ p.ehConteudo }}" hint-placeholder-val="{{ false }}">{{ p.ico }}</sc-if></span>
                 <span style="flex:1;min-width:0;font-size:var(--fs-base);color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.label }}</span>
                 <span style="font-size:var(--fs-xs);color:var(--text3);max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.hint }}</span>
               </button>
@@ -8827,7 +8827,7 @@ class Component extends DCLogic {
   userMenuGo = (e)=>{ const v=e.currentTarget.dataset.view; this.setState({view:v, userMenuOpen:false, menuOpen:false}); };
 
   // ===== paleta de comando (Ctrl/Cmd+K) =====
-  openPalette = ()=> this.setState({paletteOpen:true, paletteQuery:''});
+  openPalette = ()=>{ this._palMontar(); this.setState({paletteOpen:true, paletteQuery:''}); };
   setMultiFmt = (e)=> this.setState({multiFmt:e.currentTarget.dataset.k});
   setMultiSrc = (e)=> this.setState({multiSrc:e.currentTarget.value});
   // Narração em voz do Google (Gemini TTS via /api/tts). O roteiro já existia como
@@ -8919,28 +8919,32 @@ class Component extends DCLogic {
     if(!window.__JURIS_IDX__) precisa.push('juris-index.js');
     if(!window.CT_PECAS) precisa.push('pecas.js');
     if(!window.CT_RITOS) precisa.push('ritos.js');
+    if(!window.CT_FLUXOS) precisa.push('fluxos.js');   // há rito que só existe aqui (ex.: procedimento sumário)
     // cada fonte que falhar simplesmente não entra no índice (o resto continua buscável)
     Promise.all(precisa.map(f=>this._palScript(f).catch(()=>null))).then(()=>{
       try{
         this._palIndice=(window.CT_BUSCA||{}).indexar ? window.CT_BUSCA.indexar({
           leis:window.CT_LEIS_CAT, verbetes:window.__JURIS_IDX__,
-          pecas:window.CT_PECAS, ritos:window.CT_RITOS }) : [];
+          pecas:window.CT_PECAS,
+          // o ritos-web.html aceita a UNIÃO dos dois: indexar só CT_RITOS deixava rito inalcançável
+          ritos:Object.assign({}, window.CT_FLUXOS||{}, window.CT_RITOS||{}) }) : [];
       }catch(_){ this._palIndice=[]; }
       this._palCarregando=false;
       this.setState({palBuscaPronta:true});
     });
   }
   /** Resultados de conteúdo para a paleta, já achatados em itens de lista com seção. */
-  _palConteudo(q){
+  _palConteudo(q, permite){
     if(!this._palIndice || !window.CT_BUSCA) return [];
     const SEC={lei:'Leis', verbete:'Jurisprudência', peca:'Peças', rito:'Ritos'};
     const ICO={lei:'⚖️', verbete:'🏛️', peca:'✍️', rito:'🧭'};
     const r=window.CT_BUSCA.buscar(this._palIndice, q, {porTipo:8});
     const out=[];
     window.CT_BUSCA.ORDEM.forEach(t=>{
+      if(permite && permite[t]===false) return;   // fora da área jurídica, JURIS/peças/ritos não abrem
       (r[t]||[]).forEach((it,i)=>{
         out.push({ kind:t, arg:it.arg, label:it.titulo, hint:it.extra,
-                   ico:ICO[t], secao:SEC[t], secaoShow:i===0 });
+                   ico:ICO[t], secao:SEC[t], secaoShow:i===0, ehTela:false, ehConteudo:true });
       });
     });
     return out;
@@ -10483,8 +10487,12 @@ class Component extends DCLogic {
     const pq=(this.state.paletteQuery||'').toLowerCase();
     // "Telas e ações" primeiro (é o que a paleta sempre fez), depois o CONTEÚDO por seção
     const palTelas=(pq?palPool.filter(x=>x.label.toLowerCase().includes(pq)||(x.hint||'').toLowerCase().includes(pq)):palItemsAll).slice(0,6)
-      .map((x,i)=>({...x, secao:'Telas e ações', secaoShow:i===0, ico:''}));
-    const palConteudo=pq?this._palConteudo(this.state.paletteQuery||''):[];
+      .map((x,i)=>({...x, secao:'Telas e ações', secaoShow:i===0, ico:'', ehTela:true, ehConteudo:false}));
+    // fora de carreira jurídica a view 'juris' nem existe e 'rito=' é ignorado: não
+    // oferecer resultado que não leva a lugar nenhum
+    const _palJuridica=(_area.id==='juridica' && !!areaModLabel);
+    const _palPode={ lei:true, verbete:areaJuris, peca:_palJuridica, rito:_palJuridica };
+    const palConteudo=pq?this._palConteudo(this.state.paletteQuery||'', _palPode):[];
     const palItems=palTelas.concat(palConteudo).slice(0,40);
     const palBuscando=!!(pq && pq.length>=2 && !this._palIndice);
     const palSemNada=!!(pq && pq.length>=2 && this._palIndice && !palItems.length);
