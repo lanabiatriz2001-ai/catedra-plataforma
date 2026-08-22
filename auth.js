@@ -161,7 +161,7 @@
 
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
-  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:meusGrupos': 1 };
+  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:redHist': 1, 'catedra:meusGrupos': 1 };
   function parseJ(s) { try { return JSON.parse(s); } catch (_) { return undefined; } }
   // "Tem conteúdo de verdade?" — separa o valor que o usuário construiu do vazio que o app
   // semeia sozinho no primeiro render: [] , {} , "" , null e o "0" do ponteiro de rodízio.
