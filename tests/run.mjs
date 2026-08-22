@@ -408,6 +408,69 @@ const prio = await page.evaluate(() => {
   return r;
 });
 for (const [k, v] of Object.entries(prio)) ok(v, 'PRIORIDADE ' + k);
+/* ============= BUSCA ÚNICA NO ⌘K (item 6) ============= */
+await page.goto(URL0 + '/tests/harness-busca.html');
+await page.waitForFunction(() => !!window.__IDX);
+
+const bu = await page.evaluate(() => {
+  const B = window.CT_BUSCA, IDX = window.__IDX, r = {};
+  const t = (q, tipo) => (B.buscar(IDX, q)[tipo][0] || {}).titulo || null;
+
+  r.indexou = IDX.length > 300 && IDX.some(x => x.tipo === 'lei') && IDX.some(x => x.tipo === 'peca') && IDX.some(x => x.tipo === 'rito');
+
+  // acervo: lei, jurisprudência, peça e rito no mesmo campo
+  r.achaLei = t('improbidade', 'lei') === 'Lei de Improbidade Administrativa';
+  r.achaSumula = /Súmula 619/.test(t('súmula 619', 'verbete') || '');
+  r.achaPeca = /Senten/.test(t('sentença', 'peca') || '');
+  r.achaRito = /júri/i.test(t('júri', 'rito') || '');
+
+  // sigla é como se procura lei na prática — e vale SÓ para lei
+  r.sigla = t('cpc', 'lei') === 'Código de Processo Civil' && t('ctn', 'lei') === 'Código Tributário Nacional';
+  r.siglaCF = t('cf', 'lei') === 'Constituição Federal';           // não pode ser "Código Florestal"
+  r.siglaNaoVazaProVerbete = B.buscar(IDX, 'cpc').verbete.every(v => /cpc|processo civil/i.test(B.normalizar(v.titulo + ' ' + v.extra)));
+
+  // número da lei (a referência é buscável)
+  r.numeroDaLei = t('8.429', 'lei') === 'Lei de Improbidade Administrativa';
+
+  // acento e caixa não importam
+  r.semAcento = t('sentenca', 'peca') === t('sentença', 'peca') && t('JÚRI', 'rito') === t('júri', 'rito');
+
+  // prefixo ganha de pedaço no meio
+  r.ranking = B.pontuar('codigo de processo civil', 'codigo') === 3
+    && B.pontuar('codigo de processo civil', 'processo') === 2
+    && B.pontuar('codigo de processo civil', 'rocess') === 1;
+
+  // repetido no acervo aparece uma vez só — MAS súmula homônima de tribunais diferentes
+  // são duas coisas: a chave inclui o extra (tribunal · situação)
+  r.dedup = B.buscar(IDX, 'súmula 619').verbete.length === 1;
+  const doisTribunais = B.indexar({ verbetes: [
+    ['A', 'STF', 'sumula_stf', 619, 'Súmula 619', 'Constitucional', 'x', null, 'Revogada', 0],
+    ['B', 'STJ', 'sumula_stj', 619, 'Súmula 619', 'Administrativo', 'y', null, null, 1]] });
+  const d2 = B.buscar(doisTribunais, 'súmula 619').verbete;
+  r.homonimasSeparadas = d2.length === 2;
+  r.revogadaPorUltimo = d2[0].extra.includes('STJ') && /Revogada/.test(d2[1].extra);
+
+  // teto por tipo e piso de 2 letras
+  r.teto = B.buscar(IDX, 'lei', { porTipo: 3 }).lei.length <= 3;
+  r.pisoDuasLetras = B.buscar(IDX, 'l').lei.length === 0;
+
+  // o índice monta rápido o bastante para caber na primeira tecla
+  r.rapido = window.__idxPronto < 400;
+  const t0 = performance.now(); B.buscar(IDX, 'sentença'); r.buscaRapida = (performance.now() - t0) < 150;
+  return r;
+});
+for (const [k, v] of Object.entries(bu)) ok(v, 'BUSCA ' + k);
+
+// o app não carrega os acervos da paleta no boot (juris-index.js tem 2,4 MB)
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1500);
+const boot = await page.evaluate(() => ({
+  motor: !!window.CT_BUSCA,            // o motor é leve e vem junto
+  juris: !!window.__JURIS_IDX__,       // o acervo NÃO
+  cat: !!window.CT_LEIS_CAT,
+}));
+ok(boot.motor, 'BUSCA motor carrega no boot');
+ok(!boot.juris && !boot.cat, 'BUSCA acervos NÃO carregam no boot (só na 1ª busca)');
 
 await browser.close();
 srv.close();
