@@ -672,3 +672,293 @@ texto/aria-label).
 `D9 → D1 → D2 → D3 → D5 → D4 → D7 → D6 → D8 → D10` — D9 é risco real de
 disponibilidade (primeiro); D1+D2 mudam a percepção do app inteiro de uma vez; o
 resto é polimento por tela e pode ir num único PR de "pente fino visual".
+
+---
+---
+
+# Parte 4 — Conteúdo e fontes
+
+Nasce da constatação da Lana (22/08): parte dos textos de prova publicados não é o
+texto real — deformado, com página de instruções no lugar do enunciado, ou ausente.
+A auditoria em `scripts/auditar-provas.mjs` mediu (relatório em
+`docs/auditoria-provas.md`). Decisão de fonte, tomada com ela: **o material vem dos
+PDFs oficiais das bancas** — público, gratuito e idêntico à prova real. Plataformas
+de questões (TEC Concursos, QConcursos e afins) entram só como PONTE POR LINK: seus
+termos de uso proíbem extração, e o Cátedra tem comunidade — redistribuir conteúdo
+delas seria infração, não zona cinzenta.
+
+## C1. Reprocessamento dos textos de prova + portão de qualidade
+
+**Objetivo.** Nenhum texto deformado publicado; ausência declarada com honestidade.
+
+**O que existe.** `build-provas-conteudo.mjs` (extração crua dos PDFs),
+`auditar-provas.mjs` (heurísticas + relatório + `--portao`), e o relatório com os
+ids reprovados por sintoma: 267/561 enunciados de discursivas, 59 espelhos com
+defeito e 570 provas sem espelho; 187/999 perguntas da oral (186 por código interno
+`<<…>>` — remoção mecânica); objetivas sãs.
+
+**O que construir.** Na sessão que tem os PDFs:
+1. Aplicar a receita do relatório na extração: cortar capa/instruções por marcador;
+   remover cabeçalho/rodapé por frequência de linha; espelho em tabela via
+   `page.find_tables()`; OCR no escaneado; strip de `<<…>>` na geração da oral.
+2. Reprocessar TODOS os ids do relatório e regenerar os .js publicados.
+3. Ligar `auditar-provas.mjs --portao` no fim do build de conteúdo: prova reprovada
+   NÃO publica texto — cai para "somente link".
+4. **Regra da honestidade na tela**: onde a banca não publicou espelho/padrão, o app
+   diz isso ("espelho não publicado pela banca") com o link do caderno oficial —
+   nunca preenche com texto de terceiros nem deixa vazio sem explicação. Separar,
+   nos 570 sem espelho, "banca não publicou" de "falta extrair".
+
+**Aceite.** `auditar-provas.mjs` zera os reprovados (ou o que restar está
+documentado como caso de banca); toda prova sem espelho mostra o aviso honesto.
+
+## C2. Ponte para plataformas de questões (TEC, QConcursos e afins)
+
+**Objetivo.** Aproveitar as plataformas que a Lana já assina SEM copiar conteúdo:
+um clique leva do ponto de estudo no Cátedra para praticar lá.
+
+**O que construir.**
+1. Mapa único de plataformas (`plataformas-questoes.js`):
+   `{tec:{nome:'TEC Concursos', busca:(q)=>'https://www.tecconcursos.com.br/questoes?…'},
+    qc:{nome:'QConcursos', busca:(q)=>…}}` — URLs de busca num só lugar (elas mudam;
+   um arquivo só para consertar).
+2. Links "Praticar no {plataforma}" em três lugares: no painel "onde estou fraca"
+   (query: disciplina + assunto fraco), na tela de assunto/edital, e em cada questão
+   do simulado (query: banca + ano + trecho do enunciado). Abrem em aba nova; o
+   paywall/login é problema da plataforma, não nosso.
+3. Ajustes → preferência de plataforma padrão (`catedra:plataformaQuestoes`,
+   registrar em `_autosaveKeys`); as demais ficam num menu secundário.
+
+**Regras.** NUNCA raspar, embutir por iframe ou copiar conteúdo dessas plataformas
+para dentro do app; nenhuma credencial delas passa pelo Cátedra. Só link de saída.
+
+**Aceite.** Do painel de prioridade dá para cair no TEC ou no QConcursos já filtrado
+no assunto fraco; a plataforma preferida é lembrada e sincroniza entre aparelhos.
+
+## C3. Espelho sugerido para provas sem espelho oficial
+
+**Objetivo.** Nas provas em que a banca não publicou espelho (ou padrão de resposta,
+na oral), oferecer um **espelho sugerido pelo Cátedra** — gerado por IA a partir do
+enunciado — SEM jamais se passar pelo oficial. Complementa o C1: o aviso honesto
+("a banca não publicou") continua, e ganha ao lado o botão "Gerar espelho sugerido".
+
+**O que existe.** Canal de IA pronto: os iframes postam `{type:'ctIA', prompt,
+reqId}` e o host responde via `/api/complete` (chave no servidor) com fallback
+Gemini. O motor de correção por quesito (`treino.js` / segunda-fase) já consome
+espelhos no formato quesito+valor. As provas sem espelho estão listadas na
+auditoria (`docs/auditoria-provas.md`).
+
+**O que construir.**
+1. Botão "Gerar espelho sugerido" no lugar do aviso de ausência (2ª fase e oral).
+   O prompt manda: enunciado íntegro, matéria, banca/ano, e instrui a devolver
+   quesitos no formato do motor (título, o que se exige, valor sugerido somando a
+   pontuação da prova) com **fundamento legal/jurisprudencial em cada quesito** —
+   quesito sem fundamento não entra.
+2. **Rotulagem inequívoca**: selo "SUGERIDO — não oficial" em cor própria no topo e
+   em cada quesito; o texto do aviso segue visível ("A banca não publicou espelho.
+   Este é um espelho sugerido pelo Cátedra, gerado por IA — confira os fundamentos.").
+   Nunca misturar com espelho oficial na mesma lista sem o selo.
+3. **Cache**: o espelho gerado grava em `catedra:espelhosSugeridos` (array por prova,
+   `id`+`up`, registrar em `_autosaveKeys` e `ARRAY_ID`) — gera uma vez, sincroniza
+   entre aparelhos, com botão "Regenerar" discreto. Nada de gerar em lote as ~570:
+   só sob demanda, quando ela abre a prova.
+4. A correção contra espelho sugerido marca a nota como **aproximada** (o motor já
+   tem o conceito de total aproximado nos quesitos incertos) e, se alimentar o
+   "erro vira revisão" (item 2), o item criado carrega `origem:'espelho-sugerido'`.
+
+**Aceite.** Prova sem espelho mostra aviso + botão; gerar produz quesitos com
+fundamento e selo visível em tudo; segunda visita usa o cache; nota sai como
+aproximada; espelho oficial, quando existir, nunca exibe o selo nem o botão.
+
+**Armadilhas.** IA erra fundamento: por isso o fundamento obrigatório por quesito
+(dá para conferir no LEGIS/JURIS em um toque — reusar os chips ⚖️/🏛️ do padrão da
+casa). Custo por geração: sob demanda + cache resolve. E o selo não é decoração —
+é o que mantém a promessa de honestidade do C1; sem ele, este item não existe.
+
+## D11. Ajustes refeitos — por funcionalidade efetiva
+
+Nasce de uso real (22/08): a Lana precisou do backup e não o achou (abas no meio da
+página, aba "Dados & conselho" com dois assuntos, backup abaixo de Aparência). E ao
+reformular, a régua que ela pediu: **não rearrumar as prateleiras — decidir quais
+botões merecem existir**.
+
+**Princípio.** Um ajuste só existe se passar no teste: *muda O QUE ela estuda,
+QUANDO estuda, ou COMO o app se comporta*. O que não passa: some, vira preset, ou
+vira comportamento automático. E todo ajuste que fica ganha UMA frase dizendo o que
+acontece ao mexer ("Desligar: o app para de criar revisões dos seus erros") —
+ajuste cujo efeito não dá para descrever numa frase não existe.
+
+**O que existe hoje** (~18 itens em prefs + avulsos): nome, objetivo, metaDiaria,
+data da prova, área de estudo, banca-alvo, density, radius/cantos, fontScale,
+accent, dark, mostrarContagem, notifRevisao, notifMeta, focoPausa, focoBloco,
+autoRevisao, autoRegistro, autoConcluir, flashcards retenção/carga,
+provaDurationMin, planHoras — vários decorativos, e as automações valiosas
+(autoRevisao/autoRegistro/autoConcluir) escondidas sem explicação.
+
+**O conjunto novo, por aba (sticky no topo, antes de qualquer conteúdo):**
+
+1. **Você** — 4 campos, uma tela: nome, objetivo/cargo-alvo, **data da prova**
+   (motor da contagem e da reta final), área de estudo.
+2. **Estudo & metas** — o coração funcional:
+   - Meta diária (min) e meta semanal;
+   - **Horário habitual de estudo** (novo) → alimenta o lembrete de revisões (U12);
+   - Duração padrão do simulado (provaDurationMin) e **tempo de resposta da
+     arguição** (item 3);
+   - **Automações com nome honesto**, cada uma com a frase de efeito:
+     "Errei → vira revisão" (autoRevisao) · "Cronômetro parado com ≥5 min →
+     oferece registro" (autoRegistro/U11) · autoConcluir · foco/pomodoro
+     (focoBloco/focoPausa);
+   - Flashcards por dia (retenção/carga traduzido para gente);
+   - **Plataforma de questões preferida** (C2).
+3. **Método da banca** — banca-alvo (muda as dicas da correção) + reta final.
+4. **Aparência** — a personalização do visual FICA (decisão da Lana: quem passa
+   horas por dia no app tem direito de deixá-lo com a própria cara), organizada em
+   dois andares:
+   - **Andar de cima (escolhas rápidas)**: tema (claro/escuro/**automático**, U7),
+     cor de destaque, tamanho do texto, e 2–3 **presets** de partida ("Padrão",
+     "Compacto", "Conforto de leitura") que configuram o conjunto de uma vez;
+   - **"Personalização avançada"** (seção expansível): TODOS os controles finos de
+     hoje sobrevivem — cantos/radius, densidade, contagem regressiva, e o que mais
+     existir — para quem quer ajustar peça a peça. Escolher um preset preenche os
+     finos; mexer num fino marca o preset como "Personalizado".
+5. **Dados & backup** — backup da nuvem pessoal NO TOPO; **backup automático
+   semanal** (novo: toggle que salva no Drive/iCloud sem clique, com data do
+   último); exportações; importar; **zona de perigo** ("Apagar tudo") isolada no
+   fim, em vermelho, com confirmação por texto.
+6. **Conta** — e-mail logado, trocar senha, sair; futuro: aparelhos conectados,
+   assinatura.
+
+Fora dos Ajustes: "Conselho personalizado" vai para o início (é leitura diária,
+não configuração); notificações viram parte de Estudo & metas (notifRevisao/
+notifMeta junto do horário de estudo, onde fazem sentido).
+
+**Busca interna**: campo que filtra ajustes por nome e sinônimos (`data-aj`),
+como nos Ajustes do iPhone — "backup", "tema", "sair" acham o bloco com destaque.
+
+**Aceite.** Fora da Aparência, a contagem de ajustes DIMINUI (alvo: ~2/3 dos
+atuais) e cada ajuste exibe a frase de efeito; na Aparência, nenhum controle de
+personalização é perdido — os finos moram em "Personalização avançada", os
+presets preenchem-nos e o estado atual de quem já personalizou migra intacto
+(preset marcado como "Personalizado"); backup automático semanal grava sozinho e
+mostra a data;
+"quero fazer backup" se resolve em 2 gestos; busca interna acha "backup", "tema"
+e "sair"; abas visíveis sem rolagem em 1280×800 e 390×844.
+
+**Armadilhas.** Não renomear as CHAVES de estado (prefs.*) — migração de valores,
+não de nomes; sync intocado. O backup automático usa o token do Drive já
+autorizado — se expirou, avisa em vez de falhar em silêncio. As frases de efeito
+são conteúdo de UI, não tooltip escondido: visíveis sob cada controle.
+
+## D12. Barra do topo refeita — hierarquia em vez de fileira
+
+**Problema visto (print da Lana, 22/08).** O topo empilha 8+ controles no mesmo
+nível: Buscar ⌘K · pílula "Sincronizado na nuvem" (texto longo ocupando espaço
+nobre) · sino com badge · botão de foco (◎) · avatar · e um bloco inteiro de
+cronômetro ("PARADO 00:00" + play + zerar + PiP + "+") que parece um segundo app
+grudado. Tudo grita, nada orienta.
+
+**O que construir.**
+1. **Quatro cidadãos de primeira classe**, nesta ordem: Buscar (⌘K) · **chip de
+   foco** (abaixo) · sino · avatar. O resto se recolhe.
+2. **Chip de foco único** substitui o bloco do cronômetro: parado mostra "▶ Focar";
+   rodando mostra o tempo corrente + a disciplina do bloco (e pulsa discreto).
+   Clicar abre um popover com tudo que hoje é botão solto: iniciar/pausar, zerar,
+   presets de pomodoro (25/50/90/livre — já existem), PiP, entrar no modo foco, e
+   "registrar sessão" (o atual "+"). Um controle no topo, o poder inteiro a um
+   clique.
+3. **Sync vira selo discreto** (integra o U5): o texto "Sincronizado na nuvem" sai;
+   fica um pontinho de estado no avatar (verde/girando/âmbar) e o detalhe ("salvo
+   às 00:42") dentro do menu do avatar. Estado de ERRO persistente é a exceção:
+   aí sim vira aviso visível na barra.
+4. **Menu do avatar** concentra: conta logada, estado do sync, atalho para Ajustes,
+   sair. O ◎ de foco solto some (mora no chip).
+5. **Mobile**: topo reduz a Buscar + chip de foco + avatar; sino entra no menu do
+   avatar com badge.
+
+**Aceite.** No desktop, a barra tem no máximo 4 controles visíveis + título;
+nenhuma função de hoje se perde (tudo alcançável em ≤2 cliques via chip/avatar);
+com o cronômetro rodando, o tempo é visível sem abrir nada; o teste de U5 (estado
+de sync visível e honesto) continua satisfeito.
+
+**Armadilha.** O cronômetro tem estado vivo (persiste ao fechar, PiP nativo no
+Mac) — o chip é uma nova CASCA sobre os mesmos handlers (toggleTimer, resetTimer,
+togglePiP, enterFocus…); não reimplementar a lógica.
+
+## D13. Modo foco — novo visual
+
+**O que existe.** `focusMode` já funciona: overlay (linha ~774), entra pelo menu
+do pomodoro ou por um bloco do ciclo (`enterFocus`/`focusBlockIdx`), Esc sai,
+pomodoro com fases foco/pausa (`pomoPhase`, presets 25/50/90/custom), PiP nativo,
+e `finishFocus` já oferece o registro da sessão ao terminar. A lógica fica; a
+roupa muda.
+
+**O que construir — uma sala, não um overlay:**
+1. **Tela imersiva em tela cheia**: fundo calmo derivado do tema dela (gradiente
+   escurecido da cor de destaque — usa os tokens, respeita claro/escuro),
+   cronômetro GRANDE centrado (tipografia display), abaixo dele a disciplina/bloco
+   em uma linha e a fase atual ("foco · 2º ciclo" / "pausa").
+2. **Progresso visível sem número**: um anel ao redor do cronômetro (SVG, sem lib)
+   preenchendo o bloco atual; na pausa, o anel troca de cor.
+3. **Três ações só**, discretas na base: pausar/retomar · encerrar (vai para o
+   registro, como o finishFocus já faz) · PiP. Esc continua saindo. Todo o resto
+   da interface some de verdade (sidebar, topo, notificações internas silenciadas
+   enquanto durar o foco).
+4. **Momentos**: ao entrar, transição suave (fade ~300ms) e uma frase da casa
+   (reusar `QUOTES`, que já existem) por 3s; ao fim de cada ciclo de foco, aviso
+   gentil de pausa (som opcional curto — gerado por WebAudio, sem arquivo
+   externo, respeitando um toggle em Estudo & metas).
+5. **Teclas**: espaço pausa/retoma; F entra/sai do foco (registrar no modal de
+   atalhos do U8).
+
+**Aceite.** Entrar no foco esconde TODA a interface exceto a sala; o anel reflete
+o preset escolhido; encerrar cai no fluxo de registro existente; Esc/F saem; tema
+claro/escuro respeitado; nenhuma regressão no PiP nem no cronômetro persistente.
+
+**Armadilha.** O overlay atual convive com o cronômetro persistente e o PiP — a
+sala nova reusa os mesmos estados (`pomoPhase`, `studiedSeconds`, `focusBlockIdx`);
+mexer só na camada visual. Silenciar notificações = adiar os toasts internos,
+não perder os eventos.
+
+---
+
+## D14. Varredura de ligações perdidas — todo botão leva a uma tela, todo `{{ var }}` resolve
+
+**Por quê.** Duas falhas do mesmo tipo apareceram no mesmo dia, e as duas passaram
+despercebidas por meses. Os botões *Simulado 2ª fase* e *Prioridade* da barra
+lateral (a) usavam `style="{{ navSegundaFase }}"`/`{{ navPrioridade }}`, que nunca
+entraram no `render()` — o dc-runtime resolve variável ausente como string vazia,
+então os dois caíam no estilo padrão do navegador (pílula branca na barra escura);
+e (b) trocavam a `view` para telas que não existiam mais no template — o bloco
+`<sc-if isPrioridade>`/`<sc-if isSegundaFase>` com o iframe tinha se perdido numa
+resolução de conflito de merge (fbd002c), e clicar não abria nada. As páginas
+`prioridade-web.html` e `segunda-fase-web.html` seguiam no bundle, nos builds e nos
+testes esse tempo todo. Corrigido em 22/08; o que falta é impedir a reincidência.
+
+**O risco é estrutural**, não um descuido: o `Catedra.dc.html` tem ~12 mil linhas,
+o template e o `render()` ficam a milhares de linhas de distância um do outro, e o
+runtime não reclama de nada — variável órfã vira vazio, view sem bloco vira tela em
+branco. Merge de duas sessões (Mac e web) no mesmo arquivo é o cenário em que isso
+acontece.
+
+**O que fazer.**
+1. **Teste de ligação de views** em `tests/run.mjs`: extrair do template todos os
+   `data-view="…"` e conferir que, para cada um, existe `view==='…'` no `render()` —
+   e, para as views de página satélite, um `<sc-if>` com o iframe correspondente.
+   Falhar o CI quando um botão levar a lugar nenhum.
+2. **Teste de variável órfã**: extrair os `{{ nome }}` do template (ignorando os de
+   escopo de `<sc-for>`, que vêm do item) e conferir que cada um aparece como chave
+   no objeto devolvido pelo `render()`. Começar com a lista atual de pendências
+   registrada como exceção explícita e ir zerando — inclusive o `{{ p.short }}` que
+   já aparece no console.
+3. **Varredura única agora**: rodar os dois testes, listar tudo que falha e
+   consertar item a item (é onde mora a família de avisos `never resolved` do
+   console).
+
+**Aceite.** Os dois testes entram no `npm test`/CI; nenhum `data-view` sem tela;
+a lista de exceções de variáveis órfãs só encolhe. Um merge que derrube uma ligação
+passa a quebrar o CI em vez de quebrar a tela da Lana.
+
+**Armadilha.** O parser não precisa ser um parser de verdade — regex sobre o texto
+do template basta, desde que ignore o que está dentro de `<sc-for>` (escopo do item)
+e os `{{ }}` em comentários HTML. Melhor um teste simples com poucas exceções
+declaradas do que um analisador esperto que ninguém entende depois.
