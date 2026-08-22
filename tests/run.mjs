@@ -885,9 +885,10 @@ const u1 = await page.evaluate(async () => {
   const fr = v => document.querySelector('iframe[data-ct-view="' + v + '"]');
   const r = {};
 
-  // os quatro existem no DOM, mas SEM src: quem nunca abriu o LEGIS não paga por ele
+  // os seis existem no DOM (mapa, roteiros, prioridade, 2ª fase, LEGIS, JURIS), mas SEM
+  // src: quem nunca abriu o LEGIS não paga por ele
   const todos = [...document.querySelectorAll('iframe[data-ct-view]')];
-  r.quatroMontados = todos.length === 4;
+  r.seisMontados = todos.length === 6;
   r.nenhumCarregaNoBoot = todos.every(f => !f.getAttribute('src'));
   r.todosEscondidos = todos.every(f => f.style.display === 'none');
 
@@ -944,6 +945,26 @@ const u1b = await page.evaluate(async () => {
 });
 if (!u1b.erro) { for (const [k, v] of Object.entries(u1b)) ok(v, 'U1 ' + k); }
 else ok(false, 'U1 ida-e-volta: ' + u1b.erro);
+
+/* ===== BARRA: todo botão leva a uma tela (regressão dos botões mudos) =====
+   Prioridade e Simulado de 2ª fase trocavam a view para telas que não existiam
+   mais no template — clicar não abria nada. As páginas seguiam no bundle. */
+const barra = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  for (const [view, arquivo] of [['prioridade', 'prioridade-web.html'], ['segundafase', 'segunda-fase-web.html']]) {
+    const b = document.querySelector('button[data-view="' + view + '"]');
+    if (!b) { r[view + 'TemBotao'] = false; continue; }
+    r[view + 'TemBotao'] = true;
+    b.click(); await w(1800);
+    const f = document.querySelector('iframe[data-ct-view="' + view + '"]');
+    r[view + 'Abre'] = !!f && f.getAttribute('src') === arquivo && f.style.display === 'block';
+    let texto = ''; try { texto = (f.contentDocument.body.innerText || '').trim(); } catch (e) {}
+    r[view + 'TemConteudo'] = texto.length > 200;
+  }
+  return r;
+});
+for (const [k, v] of Object.entries(barra)) ok(v, 'BARRA ' + k);
 
 await browser.close();
 srv.close();

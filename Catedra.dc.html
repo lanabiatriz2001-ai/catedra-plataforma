@@ -3333,9 +3333,14 @@ window.ctPdfLib = (function(){
            do DOM, e voltar recarregava a página — tela branca, busca e scroll perdidos.
            Agora ficam sempre montados e só a visibilidade muda. O `src` continua entrando
            preguiçosamente (só na primeira vez que a tela é aberta), então quem nunca abriu
-           o LEGIS não paga por ele. -->
+           o LEGIS não paga por ele.
+           Prioridade e Simulado de 2ª fase entram na mesma prateleira: as páginas existem
+           desde o bfa1056, mas as linhas que as ligavam ao host se perderam num merge
+           (fbd002c) e os dois botões da barra abriam tela em branco até 22/08. -->
       <iframe data-ct-frame="{{ areaModFrameSrc }}" data-ct-view="areamod" title="Módulo de estudo da área" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispAreaMod }};"></iframe>
       <iframe data-ct-frame="{{ pecasFrameSrc }}" data-ct-view="roteiros" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispRoteiros }};"></iframe>
+      <iframe data-ct-frame="{{ prioridadeFrameSrc }}" data-ct-view="prioridade" title="Painel de prioridade — incidência em prova vezes taxa de erro" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispPrioridade }};"></iframe>
+      <iframe data-ct-frame="{{ segundaFaseFrameSrc }}" data-ct-view="segundafase" title="Simulado de 2ª fase — prova real corrigida pelo espelho oficial" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispSegundaFase }};"></iframe>
       <iframe data-ct-frame="{{ legisFrameSrc }}" data-ct-view="legis" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispLegis }};"></iframe>
       <iframe data-ct-frame="{{ jurisFrameSrc }}" data-ct-view="juris" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispJuris }};"></iframe>
 
@@ -5791,6 +5796,9 @@ class Component extends DCLogic {
   /** Chave do que precisa chegar ao iframe — muda quando busca/ponto mudam. */
   _frameChave(dono){
     if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?'1':'0');
+    // Prioridade e 2ª fase não recebem nada do host depois de montados: chave fixa
+    // para não mandar ctAbrirBloco (que é do mapa de ritos) a cada volta do acervo.
+    if(dono==='prioridade'||dono==='segundafase') return '-';
     return 'p:'+(this.state.origemAbrir||'');
   }
   /** Os mesmos dados, em querystring — usados só na PRIMEIRA carga (e em deep-link). */
@@ -9830,6 +9838,8 @@ class Component extends DCLogic {
     const areaModFrameSrc = ((_area.id==='juridica') ? 'ritos-web.html'
       : ('area-web.html?area=' + encodeURIComponent(_area.id)));
     const pecasFrameSrc = 'pecas-web.html';
+    const prioridadeFrameSrc = 'prioridade-web.html';
+    const segundaFaseFrameSrc = 'segunda-fase-web.html';
     // O ?q= faz a página abrir já buscando o instituto que veio do mapa; o &volta=1
     // acende a pílula de voltar quando há um ponto de origem guardado.
     const _acBusca=(this.state.acervoBusca||'').trim();
@@ -11983,14 +11993,21 @@ class Component extends DCLogic {
       areaEssenciais, temEssenciais, areaSelOpen, areaSelLabel, toggleAreaSel:this.toggleAreaSel, ajIr:this.ajIr,
       ...ajuTabs, setAjTab:this.setAjTab, orNivelChips, orTurnoChips, orEnergiaChips, setOrientVal:this.setOrientVal,
       areaJuridica, areaJuris, legisFrameSrc, areaEscolhida,
-      // U1: os quatro iframes ficam montados; só a visibilidade muda de tela para tela
+      // U1: os iframes ficam montados; só a visibilidade muda de tela para tela
       dispAreaMod:(this.state.view==='areamod'?'block':'none'),
       dispRoteiros:(this.state.view==='roteiros'?'block':'none'),
+      dispPrioridade:(this.state.view==='prioridade'?'block':'none'),
+      dispSegundaFase:(this.state.view==='segundafase'?'block':'none'),
       dispLegis:(this.state.view==='legis'?'block':'none'),
       dispJuris:(this.state.view==='juris'?'block':'none'),
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
-      temAreaMod, areaModLabel, areaModFrameSrc, pecasFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
+      // Sem estas duas, o {{ navSegundaFase }}/{{ navPrioridade }} do template resolvia
+      // como vazio e os botões caíam no estilo padrão do navegador (pílula branca
+      // destoando na barra escura).
+      navSegundaFase:navStyle('segundafase'), navPrioridade:navStyle('prioridade'),
+      temAreaMod, areaModLabel, areaModFrameSrc, pecasFrameSrc, prioridadeFrameSrc, segundaFaseFrameSrc,
+      areaCatsStr, areaFerramentas, retaReduzDesc,
       bancaAreas, bancaAreaConcDesc, setBancaAreaConc:this.setBancaAreaConc,
       bancaTiles, setBancaFoco:this.setBancaFoco, bancaStepNum,
       bancaMaterias, bancaMateriaFonte, setBancaArea:this.setBancaArea,
