@@ -945,6 +945,255 @@ const u1b = await page.evaluate(async () => {
 if (!u1b.erro) { for (const [k, v] of Object.entries(u1b)) ok(v, 'U1 ' + k); }
 else ok(false, 'U1 ida-e-volta: ' + u1b.erro);
 
+/* ============= LEGIS — D5, D4, D7, D8, D10 e U7(b) =============
+   O leitor de norma busca /api/law (função serverless). O servidor destes testes é
+   estático, então a rota é servida aqui: sem texto de lei não dá para medir coluna,
+   serifa nem entrelinha do modo leitura. */
+await page.route('**/api/law*', r => r.fulfill({
+  contentType: 'application/json',
+  body: JSON.stringify({ ok: true, paragraphs: [
+    'TÍTULO I', 'DAS DISPOSIÇÕES PRELIMINARES', 'CAPÍTULO I', 'DA APLICAÇÃO DA LEI',
+    'Art. 1º Toda pessoa é capaz de direitos e deveres na ordem civil, e este parágrafo é '
+      + 'longo de propósito para que a medida da coluna de leitura tenha o que medir.',
+    '§ 1º Parágrafo de teste com texto suficiente para medir a entrelinha.',
+    'I - inciso de teste', 'a) alínea de teste', 'Art. 2º Segundo artigo de teste.'] }),
+}));
+await page.setViewportSize({ width: 1280, height: 800 });
+await page.goto(URL0 + '/legis-web.html');
+await page.evaluate(() => ['catedra:legisEstudo', 'catedra:leitorLeitura', 'catedra:leitorDark']
+  .forEach(k => localStorage.removeItem(k)));
+await page.goto(URL0 + '/legis-web.html');
+await page.waitForTimeout(600);
+
+const lg = await page.evaluate(() => {
+  const cs = el => getComputedStyle(el);
+  const row = document.querySelector('.lawrow');
+  const link = row.querySelector('a');
+  const r = {};
+  // D5 — um botão só: a linha é a ação primária, o Planalto é apoio
+  r.d5SemBotaoVerde = document.querySelectorAll('.lawrow .rd').length === 0
+    && !/ler aqui/i.test(document.getElementById('catalog').innerText);
+  r.d5LinhaClicavel = row.classList.contains('abrivel') && cs(row).cursor === 'pointer';
+  r.d5TituloEhBotao = row.querySelector('.lt').tagName === 'BUTTON';
+  r.d5PlanaltoDiscreto = /planalto/i.test(link.textContent)
+    && cs(link).borderTopWidth === '0px' && cs(link).borderLeftWidth === '0px';
+  r.d5EstrelaTemNome = /favorito/i.test(row.querySelector('.fav').getAttribute('aria-label') || '');
+  r.d5Alvo44 = row.getBoundingClientRect().height >= 44;
+  // o overlay que estende o clique não pode engolir os controles da própria linha
+  const bl = link.getBoundingClientRect();
+  const emCima = document.elementFromPoint(bl.left + bl.width / 2, bl.top + bl.height / 2);
+  r.d5PlanaltoContinuaClicavel = emCima === link || link.contains(emCima);
+  const br = row.getBoundingClientRect();
+  const meio = document.elementFromPoint(br.left + br.width * 0.5, br.top + br.height / 2);
+  r.d5MeioDaLinhaAbre = !!(meio && meio.closest && meio.closest('.lt'));
+
+  // D4 — zero absoluto vira convite
+  const fav = document.getElementById('st-fav');
+  r.d4ZeroViraConvite = fav.classList.contains('zero')
+    && /marque/i.test(fav.innerText) && !/^0/.test(fav.innerText.trim())
+    && !/\b0\b/.test(document.querySelector('.statbar').innerText.split('LEIS')[0]);
+
+  // D7 — dois níveis de microlabel
+  const forte = cs(document.getElementById('rdrMat'));
+  const fraca = cs(document.querySelector('.statbar .ml-fraca'));
+  r.d7Forte = /mono|Menlo|SFMono/i.test(forte.fontFamily) && forte.textTransform === 'uppercase'
+    && parseFloat(forte.letterSpacing) > 1;
+  r.d7Fraca = fraca.textTransform === 'uppercase' && fraca.letterSpacing === 'normal'
+    && parseFloat(fraca.fontSize) <= 11 && fraca.color !== forte.color;
+
+  // D10 — nome acessível em tudo que é botão/link (inclusive os só-ícone do leitor)
+  r.d10TodosComNome = [...document.querySelectorAll('button, a')]
+    .every(el => ((el.getAttribute('aria-label') || el.textContent || '').trim().length > 0));
+
+  return r;
+});
+ok(lg.d5SemBotaoVerde, 'D5 o botão verde "Ler aqui" sumiu (era 1 por lei, 268 no total)');
+ok(lg.d5LinhaClicavel, 'D5 a linha inteira abre o leitor (cursor pointer)');
+ok(lg.d5TituloEhBotao, 'D5 o alvo primário é um botão de verdade (alcançável por teclado)');
+ok(lg.d5PlanaltoDiscreto, 'D5 "Planalto ↗" virou link discreto, sem borda');
+ok(lg.d5EstrelaTemNome, 'D5 a ★ ganhou aria-label');
+ok(lg.d5Alvo44, 'D5 a área de toque da linha tem 44px ou mais');
+ok(lg.d5PlanaltoContinuaClicavel, 'D5 o clique estendido não engole o link do Planalto');
+ok(lg.d5MeioDaLinhaAbre, 'D5 clicar no meio da linha cai no botão de ler');
+ok(lg.d4ZeroViraConvite, 'D4 métrica zerada vira convite em vez de "0 FAVORITAS"');
+ok(lg.d7Forte, 'D7 microlabel forte: mono, caixa alta e espaçamento (cor do ramo)');
+ok(lg.d7Fraca, 'D7 microlabel fraca: menor, sem espaçamento extra e sem a cor do forte');
+ok(lg.d10TodosComNome, 'D10 nenhum botão ou link sem nome acessível');
+
+// D10 — contraste do texto miúdo nas QUATRO abas (pane escondido não é medível, então
+// cada uma tem de ser aberta; foi assim que apareceram os --text3 de 12px do Plano).
+// Ficam DE FORA as pastilhas pintadas com a cor da matéria (`--c`, branco sobre a cor ou a
+// cor sobre um tinte dela): ali o contraste depende da paleta por disciplina, não do degrau
+// de --text3 que a D10 pede — corrigir aquilo é escurecer o código de cores do app inteiro,
+// que é outra decisão (medido: .ab branco sobre #f5872f dá 2.50:1; .tn e .cap b, ~4.3:1).
+const magros = [];
+for (const t of ['catalog', 'plano', 'indice', 'incid']) {
+  await page.evaluate(tt => document.querySelector('#tabsTopo button[data-t="' + tt + '"]').click(), t);
+  await page.waitForTimeout(t === 'incid' ? 1200 : 300);
+  magros.push(...await page.evaluate(() => {
+    const cs = el => getComputedStyle(el);
+    const lum = c => { const m = c.match(/[\d.]+/g).map(Number);
+      const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+      return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
+    const fundo = el => { let n = el; while (n && n !== document.documentElement) {
+        const c = cs(n).backgroundColor;
+        if (c && c !== 'rgba(0, 0, 0, 0)' && !/, 0\)$/.test(c)) return c; n = n.parentElement; }
+      return cs(document.body).backgroundColor; };
+    const ruins = [];
+    document.querySelectorAll('body *').forEach(el => {
+      const c = cs(el);
+      if (parseFloat(c.fontSize) >= 13 || c.backgroundImage !== 'none') return;
+      if (!el.offsetParent) return;
+      if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return;
+      if (lum(c.color) > 0.6) return;          // texto claro = pastilha colorida (ver acima)
+      const cor = c.getPropertyValue('--c').trim();          // cor da matéria em escopo
+      const hex = h => { h = h.replace('#', '');
+        if (h.length === 3) h = h.split('').map(x => x + x).join('');
+        return 'rgb(' + [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)).join(', ') + ')'; };
+      if (cor && (cor[0] === '#' ? hex(cor) : cor) === c.color) return;
+      const a = lum(c.color), b = lum(fundo(el));
+      const k = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      if (k < 4.5) ruins.push((el.className || el.tagName) + ' ' + k.toFixed(2));
+    });
+    return ruins;
+  }));
+}
+ok(magros.length === 0, 'D10 texto abaixo de 13px com contraste ≥ 4.5:1 nas 4 abas ('
+   + magros.slice(0, 5).join(', ') + ')');
+await page.evaluate(() => document.querySelector('#tabsTopo button[data-t="catalog"]').click());
+await page.waitForTimeout(200);
+
+// clicar na ★ não pode abrir o leitor — e com 1 favorita a métrica volta a ser número
+await page.locator('.lawrow .fav').first().click();
+await page.waitForTimeout(250);
+const lgFav = await page.evaluate(() => ({
+  naoAbriu: !document.getElementById('rdr').classList.contains('on'),
+  viraNumero: !document.getElementById('st-fav').classList.contains('zero')
+    && /^1\b/.test(document.getElementById('st-fav').innerText.trim()),
+}));
+ok(lgFav.naoAbriu, 'D5 clicar na ★ marca o favorito sem abrir o leitor');
+ok(lgFav.viraNumero, 'D4 com 1 favorita o slot volta a ser número');
+
+// D10 — foco visível na pílula: numa página recém-carregada a primeira parada do Tab é a
+// fileira de abas (um clique anterior movimenta o ponto de partida do Tab, mesmo com blur)
+await page.goto(URL0 + '/legis-web.html');
+await page.waitForTimeout(400);
+await page.keyboard.press('Tab');
+const foco = await page.evaluate(() => { const el = document.activeElement, c = getComputedStyle(el);
+  return { alvo: el.closest('.tabs') ? 'pilula' : el.tagName, w: c.outlineWidth, cor: c.outlineColor,
+           accent: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() }; });
+ok(foco.alvo === 'pilula' && parseFloat(foco.w) >= 2 && /15, 122, 87/.test(foco.cor),
+   'D10 pílula com foco visível na cor de destaque (' + foco.w + ' ' + foco.cor + ')');
+
+// D5/U7 — abrir pelo clique na linha e medir o modo leitura
+const cx = await page.locator('.lawrow').first().boundingBox();
+await page.mouse.click(cx.x + cx.width * 0.5, cx.y + cx.height / 2);
+await page.waitForTimeout(500);
+ok(await page.evaluate(() => document.getElementById('rdr').classList.contains('on')),
+   'D5 o clique na linha abre mesmo o leitor');
+const u7a = await page.evaluate(() => { const cs = el => getComputedStyle(el);
+  const d = document.querySelector('#rdr .docwrap'), c = document.querySelector('#rdr .caput');
+  return { w: d.getBoundingClientRect().width, fs: parseFloat(cs(d).fontSize),
+           // "sans-serif" contém "serif": a serifa se reconhece pelo NOME da fonte
+           serif: /Spectral|Georgia/i.test(cs(c).fontFamily), lh: parseFloat(cs(c).lineHeight) }; });
+await page.click('#rdrLeitura');
+await page.waitForTimeout(250);
+const u7b = await page.evaluate(() => { const cs = el => getComputedStyle(el);
+  const d = document.querySelector('#rdr .docwrap'), c = document.querySelector('#rdr .caput');
+  return { w: d.getBoundingClientRect().width, fs: parseFloat(cs(d).fontSize),
+           // "sans-serif" contém "serif": a serifa se reconhece pelo NOME da fonte
+           serif: /Spectral|Georgia/i.test(cs(c).fontFamily), lh: parseFloat(cs(c).lineHeight),
+           aria: document.getElementById('rdrLeitura').getAttribute('aria-pressed'),
+           guardado: localStorage.getItem('catedra:leitorLeitura'),
+           soLocal: !JSON.stringify(Object.keys(localStorage)).includes('catedra:leitorLeitura:sync') }; });
+ok(!u7a.serif && u7a.w > u7b.w, 'U7 o leitor normal segue largo e sem serifa (o modo leitura é escolha)');
+ok(u7b.serif && u7b.fs >= 17 && u7b.lh / u7b.fs >= 1.68 && u7b.w <= 700,
+   'U7 modo leitura: ~68ch, corpo serifado ' + u7b.fs + 'px, entrelinha ' + (u7b.lh / u7b.fs).toFixed(2));
+ok(u7b.aria === 'true', 'U7 o botão do modo leitura diz o estado (aria-pressed)');
+ok(u7b.guardado === '1' && u7b.soLocal, 'U7 a escolha fica no localStorage do aparelho (sem sync)');
+
+// e continua valendo na próxima abertura
+await page.goto(URL0 + '/legis-web.html');
+await page.waitForTimeout(600);
+await page.evaluate(() => document.querySelector('.lawrow .lt').click());
+await page.waitForTimeout(400);
+ok(await page.evaluate(() => document.getElementById('rdr').classList.contains('leitura')),
+   'U7 o modo leitura é lembrado entre aberturas');
+
+/* ---- D8: o mesmo exercício no celular ---- */
+await page.setViewportSize({ width: 375, height: 780 });
+await page.goto(URL0 + '/legis-web.html');
+await page.waitForTimeout(600);
+const gordos = [];
+for (const t of ['catalog', 'plano', 'indice', 'incid']) {
+  await page.evaluate(tt => { const b = document.querySelector('#tabsTopo button[data-t="' + tt + '"]');
+    b.click();
+    // abre a primeira seção do Plano: os dias só existem depois de abrir
+    const s = document.querySelector('#plano .sec-h'); if (s && tt === 'plano') s.click();
+    const g = document.querySelector('#plano .grp-h'); if (g && tt === 'plano') g.click(); }, t);
+  await page.waitForTimeout(t === 'incid' ? 1200 : 350);
+  gordos.push(...await page.evaluate(() => {
+    const p = [];
+    document.querySelectorAll('button, a, input, .day').forEach(el => {
+      if (!el.offsetParent) return;
+      const b = el.getBoundingClientRect();
+      if (!b.width || !b.height) return;
+      if (b.height < 44 || b.width < 44) p.push((el.className || el.tagName)
+        + ' ' + Math.round(b.width) + 'x' + Math.round(b.height));
+    });
+    return p;
+  }));
+}
+await page.evaluate(() => document.querySelector('#tabsTopo button[data-t="catalog"]').click());
+await page.waitForTimeout(250);
+const d8 = await page.evaluate(() => {
+  const cs = el => getComputedStyle(el);
+  const tabs = document.getElementById('tabsTopo'), on = tabs.querySelector('button.on');
+  const t = tabs.getBoundingClientRect(), o = on.getBoundingClientRect();
+  return { rola: cs(tabs).overflowX === 'auto', snap: /x/.test(cs(tabs).scrollSnapType),
+    snapItem: cs(on).scrollSnapAlign === 'center',
+    ativaVisivel: o.left >= t.left - 1 && o.right <= t.right + 1 };
+});
+ok(gordos.length === 0, 'D8 nenhum alvo de toque abaixo de 44px no celular, nas 4 abas ('
+   + gordos.slice(0, 6).join(', ') + ')');
+ok(d8.rola && d8.snap && d8.snapItem, 'D8 a fileira de pílulas rola com scroll-snap');
+ok(d8.ativaVisivel, 'D8 a pílula ativa já está à vista na carga');
+
+// as ferramentas secundárias do leitor recolhem no ⋯ (e o esquema vira gaveta no ☰)
+await page.evaluate(() => document.querySelector('.lawrow .lt').click());
+await page.waitForTimeout(500);
+const d8b = await page.evaluate(() => getComputedStyle(document.getElementById('rdrTools')).display);
+await page.click('#rdrMore');
+await page.waitForTimeout(250);
+const d8c = await page.evaluate(() => {
+  const t = document.getElementById('rdrTools'), cs = el => getComputedStyle(el);
+  const pequenas = [...t.querySelectorAll('button, a')]
+    .filter(el => { const b = el.getBoundingClientRect(); return b.height < 44 || b.width < 44; });
+  return { aberto: cs(t).display === 'flex', dentroDaTela: t.getBoundingClientRect().right <= 375,
+    diz: document.getElementById('rdrMore').getAttribute('aria-expanded') === 'true',
+    alvosOk: pequenas.length === 0 };
+});
+ok(d8b === 'none' && d8c.aberto && d8c.diz && d8c.dentroDaTela && d8c.alvosOk,
+   'D8 no celular as ações secundárias do leitor ficam recolhidas num ⋯');
+await page.click('#rdrMapa');
+await page.waitForTimeout(350);
+const d8d = await page.evaluate(() => ({
+  gaveta: document.querySelector('#rdr .map').getBoundingClientRect().left > -1,
+  fechouOMais: !document.getElementById('rdrTools').classList.contains('aberto'),
+}));
+ok(d8d.gaveta && d8d.fechouOMais, 'D8 o esquema da lei vira gaveta no celular (260px não cabem em 375)');
+
+// trocar de aba não pode apagar o "você está aqui" das pílulas do Índice
+const d8e = await page.evaluate(() => {
+  document.querySelector('#tabsTopo button[data-t="indice"]').click();
+  const tabs = document.querySelector('#indice .tabs');
+  return !!(tabs && tabs.querySelector('button.on'));
+});
+ok(d8e, 'D8 trocar de aba não apaga a pílula ativa do Índice');
+
+await page.unroute('**/api/law*');
+await page.setViewportSize({ width: 1280, height: 720 });
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
