@@ -11734,6 +11734,10 @@ class Component extends DCLogic {
       areaJuridica, areaJuris, legisFrameSrc, areaEscolhida,
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
+      // Sem estas duas, o {{ navSegundaFase }}/{{ navPrioridade }} do template resolvia
+      // como vazio e os botões caíam no estilo padrão do navegador (pílula branca
+      // destoando na barra escura).
+      navSegundaFase:navStyle('segundafase'), navPrioridade:navStyle('prioridade'),
       temAreaMod, areaModLabel, areaModFrameSrc, pecasFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
       bancaAreas, bancaAreaConcDesc, setBancaAreaConc:this.setBancaAreaConc,
       bancaTiles, setBancaFoco:this.setBancaFoco, bancaStepNum,
