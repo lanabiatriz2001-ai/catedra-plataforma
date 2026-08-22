@@ -67,3 +67,8 @@ Racional: ver o dia → revisar → treinar (o que gera nota) → consultar. O q
 - 21/08/2026 — Build B2 (correção da barra lateral + merge do PR #5) publicado no GitHub; commit assinado pelo GitHub para o deploy da Vercel.
 - 22/08/2026 — Login v2 (auth.js) + backup na nuvem pessoal (iCloud Drive no Mac/iPad, Google Drive na web com GOOGLE_CLIENT_ID). Build C (JURIS) pronto no worktree; LEGIS em andamento.
 - 22/08/2026 — Build C (LEGIS + JURIS padronizados) integrado e publicado.
+
+## Especificação — Parte 1 concluída (22/08/2026)
+Os 7 itens da Parte 1 foram implementados e mesclados: 1 (onde estou fraca), 2 (erro vira revisão),
+3 (prova oral em modo arguição), 4 (evolução da redação), 5 (bidirecional nativo), 6 (busca única no ⌘K)
+e 7 (o que mudou esta semana). Suíte: 104 casos verdes.
