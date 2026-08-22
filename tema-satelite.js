@@ -74,6 +74,41 @@
     } catch (e) {}
   }
 
+  /* ===== D2: MODO EMBUTIDO (?embed=1) ==================================================
+     Dentro do app, o satélite repetia a identidade que a tela já mostra: ícone grande,
+     título em h1 e subtítulo — uns 100 px verticais de "CátedraLEGIS" para quem já está
+     no CátedraLEGIS. Com ?embed=1 o cabeçalho vira uma linha fina; aberto direto pela URL,
+     nada muda.
+
+     O CSS mora AQUI e não em cada página: são sete satélites, e sete cópias divergiriam. */
+  function modoEmbutido() {
+    var embed = false;
+    try { embed = new URLSearchParams(location.search).get('embed') === '1'; } catch (e) {}
+    if (!embed) return;
+    try { document.documentElement.setAttribute('data-ct-embed', '1'); } catch (e) {}
+    var css = document.createElement('style');
+    css.textContent = [
+      /* família .head (LEGIS, JURIS, módulo da área) */
+      '[data-ct-embed] .head{gap:9px;margin-bottom:8px;align-items:baseline}',
+      '[data-ct-embed] .head .ic{display:none}',
+      '[data-ct-embed] .head h1{font-size:15px;font-weight:700;margin:0;letter-spacing:0}',
+      '[data-ct-embed] .head p{display:none}',
+      /* família .brand (ritos, peças, 2ª fase, prioridade) */
+      '[data-ct-embed] .brand{gap:8px}',
+      '[data-ct-embed] .brand .ic{display:none}',
+      '[data-ct-embed] .brand b{font-size:14px}',
+      '[data-ct-embed] .brand small{display:none}',
+      /* A barra do topo também aperta: com o cabeçalho em uma linha, o padding de 12–13px
+         de cada lado é respiro para uma identidade que não está mais ali. */
+      '[data-ct-embed] .l1{padding-top:7px;padding-bottom:7px}',
+      /* o respiro do topo também encolhe: o app já dá o seu */
+      '[data-ct-embed] .wrap{padding-top:10px}',
+      '[data-ct-embed] body{padding-top:0}'
+    ].join('');
+    (document.head || document.documentElement).appendChild(css);
+  }
+
+  modoEmbutido();
   tentarDireto();
   avisar();
   // A página pode carregar antes do host montar o listener: pede de novo uma vez.

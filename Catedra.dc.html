@@ -3338,6 +3338,11 @@ window.ctPdfLib = (function(){
       <iframe data-ct-frame="{{ pecasFrameSrc }}" data-ct-view="roteiros" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispRoteiros }};"></iframe>
       <iframe data-ct-frame="{{ legisFrameSrc }}" data-ct-view="legis" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispLegis }};"></iframe>
       <iframe data-ct-frame="{{ jurisFrameSrc }}" data-ct-view="juris" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispJuris }};"></iframe>
+      <!-- REGRESSÃO CORRIGIDA (22/08): estes dois sumiram do template no commit 0f3da43 e os
+           botões continuaram no menu — "Simulado 2ª fase" e "Prioridade" abriam tela VAZIA.
+           Voltam já no formato vivo do U1. -->
+      <iframe data-ct-frame="{{ segundaFaseFrameSrc }}" data-ct-view="segundafase" title="Simulado de 2ª fase — prova real corrigida pelo espelho oficial" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispSegundaFase }};"></iframe>
+      <iframe data-ct-frame="{{ prioridadeFrameSrc }}" data-ct-view="prioridade" title="Painel de prioridade — incidência em prova vezes taxa de erro" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispPrioridade }};"></iframe>
 
       <!-- ================= BIBLIOTECA ================= -->
 
@@ -9827,16 +9832,21 @@ class Component extends DCLogic {
     // busca (?q=) iam na URL, e qualquer mudança recarregava a página. Agora a URL só é
     // usada na PRIMEIRA montagem (deep-link e testes continuam valendo) e, com o iframe já
     // vivo, o host manda por postMessage. `_montarFrames` cuida dessa distinção.
-    const areaModFrameSrc = ((_area.id==='juridica') ? 'ritos-web.html'
-      : ('area-web.html?area=' + encodeURIComponent(_area.id)));
-    const pecasFrameSrc = 'pecas-web.html';
+    // D2: `embed=1` diz ao satélite que ele está DENTRO do app — o cabeçalho dele encolhe
+    // para uma linha, porque a identidade já está na tela. Entra na base (estável): não
+    // provoca recarregamento.
+    const areaModFrameSrc = ((_area.id==='juridica') ? 'ritos-web.html?embed=1'
+      : ('area-web.html?embed=1&area=' + encodeURIComponent(_area.id)));
+    const pecasFrameSrc = 'pecas-web.html?embed=1';
+    const segundaFaseFrameSrc = 'segunda-fase-web.html?embed=1';
+    const prioridadeFrameSrc = 'prioridade-web.html?embed=1';
     // O ?q= faz a página abrir já buscando o instituto que veio do mapa; o &volta=1
     // acende a pílula de voltar quando há um ponto de origem guardado.
     const _acBusca=(this.state.acervoBusca||'').trim();
     const _acQ=[_acBusca?('q='+encodeURIComponent(_acBusca)):'', this.state.acervoDe?'volta=1':'']
       .filter(Boolean).join('&');
-    const legisFrameSrc = 'legis-web.html?area=' + encodeURIComponent(this.state.areaEstudo||'');
-    const jurisFrameSrc = 'juris-web.html';
+    const legisFrameSrc = 'legis-web.html?embed=1&area=' + encodeURIComponent(this.state.areaEstudo||'');
+    const jurisFrameSrc = 'juris-web.html?embed=1';
     const areaEscolhida = !!this.state.areaEstudo;
     const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||'');
       return { id:a.id, emoji:a.emoji, label:a.label, desc:a.desc, check: on?'  ✓':'',
@@ -11988,6 +11998,9 @@ class Component extends DCLogic {
       dispRoteiros:(this.state.view==='roteiros'?'block':'none'),
       dispLegis:(this.state.view==='legis'?'block':'none'),
       dispJuris:(this.state.view==='juris'?'block':'none'),
+      dispSegundaFase:(this.state.view==='segundafase'?'block':'none'),
+      dispPrioridade:(this.state.view==='prioridade'?'block':'none'),
+      segundaFaseFrameSrc, prioridadeFrameSrc,
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
       temAreaMod, areaModLabel, areaModFrameSrc, pecasFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
