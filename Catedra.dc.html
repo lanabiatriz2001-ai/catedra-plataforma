@@ -97,6 +97,24 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 .ct-skip{position:fixed;left:10px;top:-60px;z-index:200;background:var(--accent);color:var(--onAccent);padding:10px 16px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;text-decoration:none;transition:top .15s;}
 .ct-skip:focus{top:10px;}
 #ct-main:focus{outline:none;}
+/* ===== U2 — ESQUELETO DE CARREGAMENTO DOS ACERVOS =====
+   O <iframe> nasce TRANSPARENTE: entre clicar em CátedraLEGIS e a página satélite pintar
+   (megabytes de lei seca no aparelho), o que se via era um vazio sem explicação — parecia
+   que o clique não pegou. Estes retângulos ficam ATRÁS do iframe e somem quando o quadro
+   termina de carregar (evento `load` — sem timer arbitrário e sem lib; o porquê de não ser
+   só o `ctPronto` está comentado no `_ckMsg`). Se nenhum sinal chegar, o esqueleto não
+   atrapalha: ele é FUNDO, e a página carregada pinta POR CIMA dele.
+   Quem desligou animação no sistema vê os blocos parados (regra global de reduced-motion). */
+.ct-skelbox{position:absolute;inset:0;display:flex;flex-direction:column;gap:14px;overflow:hidden;pointer-events:none;}
+.ct-skelbox i{display:block;border-radius:var(--r-md);background:var(--surface2);border:1px solid var(--border);animation:ctSkel 1.5s ease-in-out infinite;}
+.ct-skelbox .l1{height:30px;width:40%;}
+.ct-skelbox .l2{height:16px;width:62%;}
+.ct-skelbox .row{display:flex;gap:10px;flex-wrap:wrap;}
+.ct-skelbox .chip{height:30px;width:104px;border-radius:99px;}
+.ct-skelbox .card{flex:1;min-height:64px;}
+.ct-skelbox i:nth-child(2n){animation-delay:.18s;}
+.ct-skelbox i:nth-child(3n){animation-delay:.36s;}
+@keyframes ctSkel{0%,100%{opacity:.5;}50%{opacity:1;}}
 @media (max-width:899px){ .ct-scroll{ padding-bottom:calc(84px + env(safe-area-inset-bottom)) !important; } }
 /* ===== INÍCIO "VITRINE EDITORIAL" (Take 1 aprovado) ===== */
 .cth-hero{ position:relative; overflow:hidden; border-radius:var(--radius);
@@ -846,6 +864,32 @@ window.ctPdfLib = (function(){
       </div>
     </sc-if>
 
+    <!-- U8: ATALHOS DO TECLADO (tecla ?) — a lista sai da constante ATALHOS, que é também
+         a fonte do item "Atalhos do teclado" na paleta. Atalho novo entra numa linha só. -->
+    <sc-if value="{{ atalhosOpen }}" hint-placeholder-val="{{ false }}">
+      <div onclick="{{ fecharAtalhos }}" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:135;display:flex;align-items:center;justify-content:center;padding:24px 18px;">
+        <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Atalhos do teclado" class="ct-modal-panel" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.4);overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border);">
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);line-height:1.15;">Atalhos do teclado</div>
+              <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;">funcionam fora dos campos de texto</div>
+            </div>
+            <button onclick="{{ fecharAtalhos }}" aria-label="Fechar" style="border:1px solid var(--border);background:var(--surface2);color:var(--text2);border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Esc</button>
+          </div>
+          <!-- sem a classe ct-scroll de propósito: no mobile ela reserva 84px embaixo (a
+               barra de navegação), e aqui isso viraria um buraco no fim da lista. -->
+          <div style="max-height:min(60vh,420px);overflow:auto;padding:8px 12px 14px;">
+            <sc-for list="{{ atalhosList }}" as="a" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:14px;padding:11px 8px;border-bottom:1px solid var(--border);">
+                <span style="font-family:var(--mono);font-size:var(--fs-sm);font-weight:700;color:var(--ink);background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:4px 10px;flex:none;min-width:44px;text-align:center;">{{ a.tecla }}</span>
+                <span style="flex:1;min-width:0;font-size:var(--fs-base);color:var(--text2);line-height:1.45;">{{ a.faz }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
     <!-- MODO PROVA (tela cheia, cronometrado) -->
     <sc-if value="{{ provaMode }}" hint-placeholder-val="{{ false }}">
       <div role="dialog" aria-modal="true" aria-label="Simulado cronometrado" class="ct-modal-panel" tabindex="-1" style="position:fixed;inset:0;z-index:150;background:var(--sbg);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
@@ -1059,9 +1103,13 @@ window.ctPdfLib = (function(){
       </div>
     </sc-if>
 
-    <!-- CONTENT -->
-    <div class="ct-scroll" style="flex:1;overflow-y:auto;padding:clamp(16px,2.6vw,30px);">
-     <div style="max-width:{{ contentMax }};margin:0 auto;">
+    <!-- CONTENT
+         U9 (scroll único): nas telas de iframe o host PARA de rolar. Antes, o acervo rolava
+         por dentro e a página do app rolava por fora ao mesmo tempo — no iPad um dedo
+         arrastava as duas, e o conteúdo do acervo escapava por baixo. Agora a moldura do
+         iframe estica até o fim do espaço útil (flex) e só o scroll de dentro existe. -->
+    <div class="ct-scroll" style="{{ contentBoxStyle }}">
+     <div style="{{ contentInnerStyle }}">
 
       <!-- ================= INÍCIO (Vitrine Editorial · Take 1 aprovado) ================= -->
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
@@ -2178,6 +2226,22 @@ window.ctPdfLib = (function(){
 
         <!-- ─────────── ETAPA 2 · RESPONDER ─────────── -->
         <sc-if value="{{ redEtapa2 }}" hint-placeholder-val="{{ false }}">
+          <!-- U4: retomada explícita do rascunho. O texto sempre voltou para a caixa, mas
+               em silêncio: nada dizia de quando era nem oferecia recomeçar sem perder a
+               prova carregada. "Começar do zero" pergunta antes — é destruição de texto. -->
+          <sc-if value="{{ redRascunhoTem }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 6px 20px -12px var(--accent);">
+              <span style="font-size:20px;flex:none;">✍️</span>
+              <div style="flex:1;min-width:190px;">
+                <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Rascunho salvo</div>
+                <div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;margin-top:2px;line-height:1.35;">{{ redRascunhoQuando }} · {{ redRascunhoPalavras }}</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="{{ redRascunhoOk }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">Continuar</button>
+                <button onclick="{{ redZerarRascunho }}" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:600;cursor:pointer;font-family:inherit;">Começar do zero</button>
+              </div>
+            </div>
+          </sc-if>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:0;overflow:hidden;">
             <div style="background:var(--heroGrad);padding:22px 26px;color:#fff;">
               <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.85;">Enunciado da prova</div>
@@ -3333,11 +3397,35 @@ window.ctPdfLib = (function(){
            do DOM, e voltar recarregava a página — tela branca, busca e scroll perdidos.
            Agora ficam sempre montados e só a visibilidade muda. O `src` continua entrando
            preguiçosamente (só na primeira vez que a tela é aberta), então quem nunca abriu
-           o LEGIS não paga por ele. -->
-      <iframe data-ct-frame="{{ areaModFrameSrc }}" data-ct-view="areamod" title="Módulo de estudo da área" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispAreaMod }};"></iframe>
-      <iframe data-ct-frame="{{ pecasFrameSrc }}" data-ct-view="roteiros" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispRoteiros }};"></iframe>
-      <iframe data-ct-frame="{{ legisFrameSrc }}" data-ct-view="legis" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispLegis }};"></iframe>
-      <iframe data-ct-frame="{{ jurisFrameSrc }}" data-ct-view="juris" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispJuris }};"></iframe>
+           o LEGIS não paga por ele.
+           U2: cada iframe ganhou uma moldura com o esqueleto ATRÁS (some no `ctPronto`).
+           U9: a moldura é o item que estica (flex:1) — é o que tira o scroll do host e
+           deixa rolar só o de dentro. O `display` continua REPETIDO no iframe de propósito:
+           é por ele que o teste do U1 confere se a tela está montada. -->
+      <div style="position:relative;flex:1;min-height:0;display:{{ dispAreaMod }};">
+        <sc-if value="{{ skelAreaMod }}" hint-placeholder-val="{{ false }}">
+          <div class="ct-skelbox" aria-hidden="true"><i class="l1"></i><i class="l2"></i><div class="row"><i class="chip"></i><i class="chip"></i><i class="chip"></i></div><i class="card"></i><i class="card"></i><i class="card"></i></div>
+        </sc-if>
+        <iframe data-ct-frame="{{ areaModFrameSrc }}" data-ct-view="areamod" title="Módulo de estudo da área" style="position:relative;width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispAreaMod }};"></iframe>
+      </div>
+      <div style="position:relative;flex:1;min-height:0;display:{{ dispRoteiros }};">
+        <sc-if value="{{ skelRoteiros }}" hint-placeholder-val="{{ false }}">
+          <div class="ct-skelbox" aria-hidden="true"><i class="l1"></i><i class="l2"></i><div class="row"><i class="chip"></i><i class="chip"></i><i class="chip"></i></div><i class="card"></i><i class="card"></i><i class="card"></i></div>
+        </sc-if>
+        <iframe data-ct-frame="{{ pecasFrameSrc }}" data-ct-view="roteiros" title="Roteiros de peças — o esqueleto de cada peça" style="position:relative;width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispRoteiros }};"></iframe>
+      </div>
+      <div style="position:relative;flex:1;min-height:0;display:{{ dispLegis }};">
+        <sc-if value="{{ skelLegis }}" hint-placeholder-val="{{ false }}">
+          <div class="ct-skelbox" aria-hidden="true"><i class="l1"></i><i class="l2"></i><div class="row"><i class="chip"></i><i class="chip"></i><i class="chip"></i></div><i class="card"></i><i class="card"></i><i class="card"></i></div>
+        </sc-if>
+        <iframe data-ct-frame="{{ legisFrameSrc }}" data-ct-view="legis" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="position:relative;width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispLegis }};"></iframe>
+      </div>
+      <div style="position:relative;flex:1;min-height:0;display:{{ dispJuris }};">
+        <sc-if value="{{ skelJuris }}" hint-placeholder-val="{{ false }}">
+          <div class="ct-skelbox" aria-hidden="true"><i class="l1"></i><i class="l2"></i><div class="row"><i class="chip"></i><i class="chip"></i><i class="chip"></i></div><i class="card"></i><i class="card"></i><i class="card"></i></div>
+        </sc-if>
+        <iframe data-ct-frame="{{ jurisFrameSrc }}" data-ct-view="juris" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="position:relative;width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispJuris }};"></iframe>
+      </div>
 
       <!-- ================= BIBLIOTECA ================= -->
 
@@ -4430,6 +4518,9 @@ window.ctPdfLib = (function(){
             <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px;">
               <button data-v="light" onclick="{{ toggleDark }}" style="{{ modeLightBtn }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" stroke-linecap="round"></path></svg>Claro</button>
               <button data-v="dark" onclick="{{ toggleDark }}" style="{{ modeDarkBtn }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" stroke-linejoin="round"></path></svg>Escuro</button>
+              <!-- U7 (a): "Auto" segue o modo do sistema (media query + listener). Claro e
+                   Escuro continuam valendo como escolha manual, e desligam o automático. -->
+              <button onclick="{{ temaAuto }}" title="Seguir o modo claro/escuro do sistema" style="{{ modeAutoBtn }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"></path></svg>Auto</button>
             </div>
           </div>
           <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:16px;">muda tipografia, cores e formas em toda a plataforma — claro e escuro para cada uma</div>
@@ -4712,6 +4803,20 @@ window.ctPdfLib = (function(){
             <button onclick="{{ requestNotifPerm }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ notifPermBtnLabel }}</button>
             <span style="font-size:var(--fs-sm);color:{{ notifPermColor }};font-weight:600;">{{ notifPermStatus }}</span>
           </div>
+          <!-- U12: lembrete de revisão no horário escolhido. Vem DESLIGADO: aviso que a
+               pessoa não pediu vira ruído e ela desliga tudo. O texto diz a verdade sobre o
+               limite — sem servidor de push, o lembrete só sai com o app aberto. -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0 0;margin-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Lembrar revisões às</div>
+              <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;line-height:1.45;">Um aviso por dia, e só se houver revisão esperando. Precisa do app aberto (ou minimizado) no horário — sem isso, ninguém consegue te avisar de fora.</div>
+            </div>
+            <input data-k="revHora" type="time" value="{{ prefRevHora }}" oninput="{{ setPrefVal }}" aria-label="Horário do lembrete de revisões" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 11px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;flex:none;">
+            <button data-k="revLembrete" onclick="{{ togglePref }}" aria-label="Lembrar revisões no horário" style="{{ togRevLembrete }}"><span style="{{ togRevLembreteKnob }}"></span></button>
+          </div>
+          <sc-if value="{{ revLembreteLigadoSemPerm }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:var(--fs-sm);color:var(--warn);font-weight:600;margin-top:10px;line-height:1.45;">O lembrete está ligado, mas o navegador ainda não deu permissão de notificação — toque em "Ativar notificações" acima.</div>
+          </sc-if>
         </div>
         <sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -5099,7 +5204,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist2:this._load('redHist',[]), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
+      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist2:this._load('redHist',[]), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
       // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
       // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
@@ -5115,6 +5220,11 @@ class Component extends DCLogic {
       argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'', lastPonto:this._load('lastPonto',null), lastPontoDispensado:this._load('lastPontoDispensado',0), palBuscaPronta:false, semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
+      // U2: quais satélites já avisaram que pintaram. Vive só na memória desta sessão — é
+      // exatamente o que se quer: esqueleto na PRIMEIRA carga de cada um, nunca depois.
+      framesProntos:{},
+      atalhosOpen:false,          // U8: modal da tecla ?
+      redRascunhoOculto:false,    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
       // sem botão para sair dela (o botão não existe mais). Cai para texto.
       multiFmt:(this._load('multiFmt', 'texto')==='video'?'texto':this._load('multiFmt', 'texto')), mfTtsBusy:false, multiSrc:this._load('multiSrc', ''), mfGen:this._load('mfGen', {}), mfBusy:'', breathOn:false, mood:'',
@@ -5167,10 +5277,21 @@ class Component extends DCLogic {
     // regravava tudo e subia o blob inteiro pra nuvem sem nenhuma edição.
     { const L=this._lastSaved||(this._lastSaved={}); this._autosaveKeys().forEach(k=>{ L[k]=this.state[k]; }); }
     this._montarFrames();
+    // U4: o rascunho que veio do disco. Enquanto o texto na tela for IGUAL a este, ele é de
+    // outra sessão — é essa comparação (e não um relógio) que decide se a faixa aparece.
+    this._redBoot=String(this.state.redText||'');
     this._prevView=this.state.view;
     this._onR = ()=>{ const m = window.innerWidth<900; if(m!==this.state.isMobile) this.setState({isMobile:m}); };
     window.addEventListener('resize', this._onR);
-    this._onKey = (e)=>{ if(e.key==='Escape'){ if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.provaMode) this.exitProva(); else if(this.state.focusMode) this.setState({focusMode:false}); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+    this._onKey = (e)=>{
+      // U8: `?` fora de campo de texto abre a lista de atalhos. Dentro de input/textarea a
+      // tecla é só uma interrogação — quem está escrevendo uma redação não quer um modal.
+      if(e.key==='?' && !e.metaKey && !e.ctrlKey && !e.altKey){
+        const el=document.activeElement, tag=el&&el.tagName;
+        const digitando = !!(el && (tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || el.isContentEditable));
+        if(!digitando && this.state.loggedIn && !this.state.atalhosOpen){ e.preventDefault(); this.setState({atalhosOpen:true, paletteOpen:false}); return; }
+      }
+      if(e.key==='Escape'){ if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.provaMode) this.exitProva(); else if(this.state.focusMode) this.setState({focusMode:false}); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); if(this.state.loggedIn) this.setState(s=>({paletteOpen:!s.paletteOpen, paletteQuery:''})); }
       if(e.key==='Tab' && this._modalActive){ const panel=document.querySelector('.ct-modal-panel'); if(panel){ const f=[].slice.call(panel.querySelectorAll('input:not([type=hidden]),textarea,select,button,a[href],[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled && el.offsetParent!==null); if(f.length){ const first=f[0], last=f[f.length-1]; if(!panel.contains(document.activeElement)){ e.preventDefault(); first.focus(); } else if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); } else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); } } } } };
     window.addEventListener('keydown', this._onKey);
@@ -5198,6 +5319,17 @@ class Component extends DCLogic {
       if(!e||!e.data) return;
       // `ctChecklistReady` continua aceito: o app nativo pode estar com bundle anterior.
       if(e.data.type!=='ctPronto' && e.data.type!=='ctChecklistReady') return;
+      // U2: descobrimos de qual tela veio comparando a janela que mandou (funciona também
+      // em file://, onde não dá para ler a origem). MEDIDO: o `ctPronto` sai do <head> do
+      // satélite — no LEGIS ele chega aos 428 ms e a página só fica pronta aos 641 ms (e
+      // essa distância cresce muito no aparelho lento, porque a lei seca tem megabytes).
+      // Sozinho, o aviso tiraria o esqueleto cedo demais e devolveria o vazio que ele veio
+      // resolver; por isso quem manda é o `load` do quadro, e o aviso só CONFIRMA depois.
+      try{
+        const alvo=[].slice.call(document.querySelectorAll('iframe[data-ct-view]'))
+          .find(f=>{ try{ return f.contentWindow===e.source; }catch(_){ return false; } });
+        if(alvo && alvo.dataset.ctLoad==='1') this._marcarFramePronto(alvo.getAttribute('data-ct-view'));
+      }catch(_){}
       const t=this._temaTokens(); if(!t) return;
       try{ e.source && e.source.postMessage({type:'ctTheme', tokens:t}, '*'); }catch(_){}
     };
@@ -5391,6 +5523,24 @@ class Component extends DCLogic {
     this._lastDia=this._hoje();
     this._dayT=setInterval(()=>{ try{ const h=this._hoje(); if(h!==this._lastDia){ this._lastDia=h; this._onWake(); } }catch(_){} }, 60000);
     try{ if(this._notifSupported()) this.setState({notifPerm:Notification.permission}); }catch(_){}
+    // U12: verificador do lembrete de revisão — um passo por minuto, do mesmo tamanho do
+    // relógio que já vira o dia. Roda uma vez logo no início para o caso de abrir o app
+    // depois do horário combinado.
+    this._revT=setInterval(this._revLembreteTick, 60000);
+    setTimeout(()=>{ try{ this._revLembreteTick(); }catch(_){} }, 4000);
+    // ===== U7 (a): TEMA AUTOMÁTICO =====
+    // Quem estuda de dia e de noite trocava claro/escuro na mão duas vezes por dia. Com o
+    // automático ligado, o app segue o sistema; qualquer clique em Claro/Escuro desliga o
+    // automático — o manual continua sendo a palavra final, nunca um botão que "não pega".
+    try{
+      this._mqDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+      if(this._mqDark){
+        this._onMqDark = ()=>{ try{ if((this.state.prefs||{}).temaAuto) this._seguirTemaDoSistema(); }catch(_){} };
+        if(this._mqDark.addEventListener) this._mqDark.addEventListener('change', this._onMqDark);
+        else if(this._mqDark.addListener) this._mqDark.addListener(this._onMqDark);
+        if((this.state.prefs||{}).temaAuto) this._seguirTemaDoSistema();
+      }
+    }catch(_){}
     // "Ao abrir a plataforma" (Orientação): ciclo abre o Ciclo; foco/início ficam no Início
     try{ const _ao=(this.state.orient&&this.state.orient.aoAbrir)||'foco'; if(_ao==='ciclo' && this.state.view==='inicio') this.setState({view:'ciclo'}); }catch(_){}
     // estado real de sync (emitido pelo auth.js) + re-hidratação após merge de outro aparelho
@@ -5736,7 +5886,9 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pipMsgT) clearTimeout(this._pipMsgT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
+  componentWillUnmount(){ if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
+    try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
+    if(this._pipMsgT) clearTimeout(this._pipMsgT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
   componentDidUpdate(){ this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); }
   // Trocou de tela por conta própria (menu, atalho)? Então a origem guardada e o alvo da
   // volta morrem — senão a barra "você veio de…" reaparece numa visita solta ao acervo.
@@ -5768,6 +5920,7 @@ class Component extends DCLogic {
         if(!f.dataset.ctSrc){
           if(dono && dono!==view) return;
           f.dataset.ctSrc=base;
+          this._frameEsperar(f, dono);                // U2: esqueleto até o `load` deste quadro
           f.src=base+this._frameExtras(dono, base);   // 1ª carga leva os extras na URL
           f.dataset.ctExtras=this._frameChave(dono);
           return;
@@ -5776,6 +5929,9 @@ class Component extends DCLogic {
         // recarrega — é outra página. Senão, os extras vão por mensagem, sem recarregar.
         if(f.dataset.ctSrc!==base){
           f.dataset.ctSrc=base;
+          // U2: recarga DE VERDADE (só a troca de área de estudo faz isso) merece esqueleto
+          // de novo — a tela vai ficar em branco outra vez enquanto a outra página carrega.
+          this._frameEsperar(f, dono);
           f.src=base+this._frameExtras(dono, base);
           f.dataset.ctExtras=this._frameChave(dono);
           return;
@@ -5787,6 +5943,18 @@ class Component extends DCLogic {
         }
       });
     }catch(e){}
+  }
+  /** U2: quadro entrando em carga — esqueleto de volta e um `load` para tirá-lo. */
+  _frameEsperar(f, dono){
+    try{
+      f.dataset.ctLoad='0';
+      if(dono && this.state.framesProntos[dono]) this.setState(s=>{ const p={...s.framesProntos}; delete p[dono]; return {framesProntos:p}; });
+      f.onload=()=>{ f.dataset.ctLoad='1'; this._marcarFramePronto(dono); };
+    }catch(_){}
+  }
+  _marcarFramePronto(dono){
+    if(!dono || this.state.framesProntos[dono]) return;
+    this.setState(s=>({framesProntos:{...s.framesProntos, [dono]:true}}));
   }
   /** Chave do que precisa chegar ao iframe — muda quando busca/ponto mudam. */
   _frameChave(dono){
@@ -5827,7 +5995,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redGabarito', 'redEnunciado', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos']; }
+  _autosaveKeys(){ return ['areaEstudo', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos']; }
   _autosave(){
     const keys=this._autosaveKeys();
     const L=this._lastSaved||(this._lastSaved={});
@@ -5883,10 +6051,62 @@ class Component extends DCLogic {
     }, ()=>{ try{ this._saveTimer(); }catch(_){} });
   };
   toggleTimer = ()=>{
-    if(this.state.timerRunning){ if(this._tick) clearInterval(this._tick); this._tick=null; this.setState({timerRunning:false}, ()=>this._saveTimer()); }
+    if(this.state.timerRunning){ if(this._tick) clearInterval(this._tick); this._tick=null;
+      const _min=this._minCronometro();
+      this.setState({timerRunning:false}, ()=>{ this._saveTimer(); this._ofertarRegistro(_min); }); }
     else { this._tickLast=Date.now(); this._tick = setInterval(this.tick, 1000); this.setState({timerRunning:true}, ()=>this._saveTimer()); }
   };
-  resetTimer = ()=>{ if(this._tick) clearInterval(this._tick); this._tick=null; try{ localStorage.removeItem('ct_timer'); }catch(_){} this.setState({timerRunning:false, timerSeconds:0, studiedSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
+  resetTimer = ()=>{ if(this._tick) clearInterval(this._tick); this._tick=null; try{ localStorage.removeItem('ct_timer'); }catch(_){}
+    const _min=this._minCronometro();   // lido ANTES de zerar, senão a oferta viria com 0
+    this.setState({timerRunning:false, timerSeconds:0, studiedSeconds:0, pomoPhase:'foco', pomoCycles:0}, ()=>this._ofertarRegistro(_min, true)); };
+
+  // ===== U11: REGISTRO DE ESTUDO EM UM TOQUE ==========================================
+  // O caminho comum era: parar o cronômetro → abrir o modal → escolher disciplina →
+  // conferir os minutos → salvar. Cinco passos para dizer "estudei 32 min de Civil", e
+  // por isso muita sessão real ficava sem registro (e sumia do desempenho e da ofensiva).
+  // Agora parar/zerar com 5+ min oferece o registro pronto, com a disciplina e a categoria
+  // da última sessão. O modal completo continua a UM clique ("Editar"), e "Ignorar" não
+  // grava nada — a regra da casa (abre, não grava sozinho) continua de pé.
+  _minCronometro(){ const s=this.state; return Math.round(((s.timerMode==='pomo'?s.studiedSeconds:s.timerSeconds)||s.studiedSeconds||0)/60); }
+  /** A última sessão manda na disciplina/categoria sugeridas — é o palpite com mais chance. */
+  _ultimaSessao(){
+    try{ let melhor=null, tm=-1;
+      (this.state.sessions||[]).forEach(s=>{ if(!s) return;
+        const t=+s.ts || (s.date? Date.parse(String(s.date)+'T12:00:00') : 0) || 0;
+        if(t>tm){ tm=t; melhor=s; } });
+      return melhor;
+    }catch(_){ return null; }
+  }
+  _ofertarRegistro(min, jaZerado){
+    try{
+      if(!(min>=5)) return;                       // menos de 5 min é ruído, não sessão
+      if(this.state.sessionModalOpen || this.state.focusMode) return;   // já tem registro na tela
+      const ult=this._ultimaSessao();
+      const disc=(ult&&String(ult.disc||'').trim())||'';
+      const cat=(ult&&(ult.categoria||(Array.isArray(ult.categorias)&&ult.categorias[0])))||'Teoria';
+      const topico=(ult&&String(ult.topico||'').trim())||'';
+      const zerar=()=>{ if(jaZerado) return;
+        if(this._tick){ clearInterval(this._tick); this._tick=null; }
+        try{ localStorage.removeItem('ct_timer'); }catch(_){}
+        this.setState({timerRunning:false, timerSeconds:0, studiedSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
+      this._toastAcoes('Registrar '+min+' min'+(disc?(' em '+disc):'')+'?', [
+        {rotulo:'Registrar', destaque:true, on:()=>{
+          this._registrarAtividadeAuto({categoria:cat, topico:topico||cat, min, disc:disc||'Geral'});
+          zerar(); try{ this.flashSync(); }catch(_){}
+          this._toast('Sessão registrada · '+min+' min'+(disc?(' em '+disc):'')+' ✦');
+        }},
+        {rotulo:'Editar', on:()=>{
+          // O modal de sempre, já preenchido. Sem `_ext`: salvar por aqui zera o cronômetro
+          // (o tempo veio dele), que é o que evita registrar o mesmo tempo duas vezes.
+          this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false,
+            sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos:String(min),
+              disc:disc||(this._freshSessionDraft(s.sessionDraft).disc), discCustom:false,
+              topico, categorias:[cat], categoria:cat}}));
+        }},
+        {rotulo:'Ignorar', on:()=>{}},
+      ], 12);
+    }catch(_){}
+  }
   // Cronômetro persistente: NÃO zera ao fechar o app. Guardado LOCAL (chave sem
   // 'catedra:' → não sobe na nuvem, é do aparelho). Restaurado no boot.
   _saveTimer(){
@@ -6412,7 +6632,21 @@ class Component extends DCLogic {
 
   onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); this._marcarPonto(v); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); if(v==='oral') this._oralCarregarAcervo(); if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true})); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
-  toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}, ()=>this._temaBroadcast()); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
+  // Claro/Escuro é escolha MANUAL e por isso desliga o automático (U7): botão que a pessoa
+  // aperta e volta sozinho na próxima mudança do sistema é botão quebrado.
+  toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode;
+    this.setState(s=>({darkMode:nv, prefs:{...s.prefs, temaAuto:false}}), ()=>this._temaBroadcast()); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
+  /** Aplica AGORA o que o sistema pede (usado ao ligar o automático e a cada mudança dele). */
+  _seguirTemaDoSistema(){
+    try{
+      const escuro = !!(this._mqDark ? this._mqDark.matches
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches));
+      if(escuro===!!this.state.darkMode) return;
+      this.setState({darkMode:escuro}, ()=>this._temaBroadcast());
+      try{ localStorage.setItem('catedra:dark', escuro?'1':'0'); }catch(_){}
+    }catch(_){}
+  }
+  temaAuto = ()=>{ this.setState(s=>({prefs:{...s.prefs, temaAuto:true}}), ()=>this._seguirTemaDoSistema()); };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
   toggleNav = ()=> this.setState(s=>({navExpanded:!s.navExpanded}));
   toggleBlock = (e)=>{ const i=+e.currentTarget.dataset.i; const b=this.state.blocks.slice(); const willDone=!b[i].done; b[i]={...b[i],done:willDone};
@@ -7381,7 +7615,24 @@ class Component extends DCLogic {
   // ===== redação =====
   _redLoad(){ try{ const r=localStorage.getItem('catedra:red'); if(r){ const a=JSON.parse(r); if(Array.isArray(a)) return a; } }catch(_){} return []; }
   _redSave(h){ try{ localStorage.setItem('catedra:red', JSON.stringify(h)); }catch(_){} }
-  onRedText = (e)=> this.setState({redText:e.currentTarget.value});
+  // O carimbo do rascunho (U4): sem ele a faixa "rascunho de …" não teria data para dizer,
+  // e é a data que responde a única pergunta que importa ao reabrir — isto aqui é de hoje
+  // ou é de três semanas atrás? É escalar, então o carimbo por chave do sync já resolve.
+  onRedText = (e)=> this.setState({redText:e.currentTarget.value, redTextTs:Date.now()});
+  // ===== U4: RETOMADA EXPLÍCITA DA REDAÇÃO =============================================
+  // O rascunho voltava para a tela em silêncio: o texto estava lá, sem dizer de quando era
+  // nem oferecer recomeço. Quem voltava depois de duas semanas achava que era da prova de
+  // agora e continuava escrevendo por cima do que já não servia. A faixa aparece só quando
+  // o rascunho é de OUTRA sessão (o texto ainda é igual ao que veio do disco no boot) e
+  // some assim que a pessoa escreve — não fica pedindo passagem enquanto se trabalha.
+  redRascunhoOk = ()=>{ this.setState({redRascunhoOculto:true}); try{ const t=document.querySelector('main textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }catch(_){} };
+  redZerarRascunho = ()=>{
+    if(!window.confirm('Apagar o rascunho e começar do zero? A prova e o espelho continuam carregados — só a sua resposta sai da tela.')) return;
+    this._redBoot='';
+    this.setState({redText:'', redTextTs:0, redResult:null, redRascunhoOculto:true});
+    try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redTextTs',JSON.stringify(0)); }catch(_){}
+    this._toast('Rascunho apagado — a folha está limpa');
+  };
   // ===== banco de discursivas (CT_DISCURSIVAS) =====
   // Mesmo padrão dos modelos de edital: o arquivo só é buscado quando ela abre o banco,
   // e por <script> (não fetch) porque no app do Mac a página roda em file://.
@@ -7432,6 +7683,7 @@ class Component extends DCLogic {
     // quesito, mas com o que a banca de fato aceitava como resposta correta.
     const gabTexto = esp.length ? ('Espelho oficial'+(q.total!=null?' — total '+q.total:'')+'\n\n'+esp.join('\n')+instr)
       : (q.espelhoTexto ? ('Padrão de resposta oficial (' + q.orgao + ')\n\n' + q.espelhoTexto) : '');
+    this._redBoot='';   // prova nova: o rascunho antigo saiu, não há retomada a oferecer (U4)
     this.setState({
       redEnunciado: cab+'\n\n'+(q.enunciado||''),
       redGabarito: gabTexto,
@@ -7440,7 +7692,7 @@ class Component extends DCLogic {
       redEspelhoOculto: !!gabTexto,   // só esconde quando já existe gabarito oficial transcrito
       // Prova cadastrada: a pessoa só RESPONDE — enunciado e espelho são os oficiais e não se editam.
       redModoProva: true,
-      redText:'', redResult:null, bancoOpen:false
+      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false
     });
     try{ localStorage.setItem('catedra:redEnunciado',JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
       localStorage.setItem('catedra:redGabarito',JSON.stringify(gabTexto));
@@ -7777,22 +8029,26 @@ class Component extends DCLogic {
     this._toast('Lote desfeito');
   };
   /** Toast com ação (o _toast comum é só texto e ignora clique). */
-  _toastDesfazer(msg, acao){
+  _toastDesfazer(msg, acao){ this._toastAcoes(msg, [{rotulo:'desfazer', on:acao}]); }
+  /** Mesmo toast, com um ou mais botões — é o que o registro em um toque (U11) precisa. */
+  _toastAcoes(msg, botoes, segundos){
     try{
       let t=this._toastAcaoEl;
       if(!t){ t=document.createElement('div'); t.setAttribute('role','status'); t.setAttribute('aria-live','polite');
-        t.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:9999;background:#1f2a26;color:#fff;padding:12px 16px 12px 20px;border-radius:var(--radius);font:600 13.5px/1.3 var(--display),sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.4);display:flex;align-items:center;gap:14px;opacity:0;transition:opacity .2s,transform .2s;';
+        t.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:9999;background:#1f2a26;color:#fff;padding:12px 16px 12px 20px;border-radius:var(--radius);font:600 13.5px/1.3 var(--display),sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.4);display:flex;align-items:center;gap:14px;opacity:0;transition:opacity .2s,transform .2s;max-width:min(92vw,560px);flex-wrap:wrap;';
         document.body.appendChild(t); this._toastAcaoEl=t; }
       t.innerHTML='';
       const sp=document.createElement('span'); sp.textContent=msg; t.appendChild(sp);
-      const b=document.createElement('button'); b.type='button'; b.textContent='desfazer';
-      b.style.cssText='background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;';
-      b.onclick=()=>{ t.style.opacity='0'; try{ acao&&acao(); }catch(_){} };
-      t.appendChild(b);
+      (botoes||[]).forEach(bt=>{
+        const b=document.createElement('button'); b.type='button'; b.textContent=bt.rotulo;
+        b.style.cssText='background:'+(bt.destaque?'#fff':'transparent')+';border:1px solid rgba(255,255,255,.35);color:'+(bt.destaque?'#1f2a26':'#fff')+';border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;';
+        b.onclick=()=>{ t.style.opacity='0'; try{ bt.on&&bt.on(); }catch(_){} };
+        t.appendChild(b);
+      });
       try{ t.style.bottom=(window.innerWidth<900?'92px':'30px'); }catch(_){}
       t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
       clearTimeout(this._toastAcaoT);
-      this._toastAcaoT=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 7000);
+      this._toastAcaoT=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, (segundos||7)*1000);
     }catch(e){ this._toast(msg); }
   }
 
@@ -8120,7 +8376,7 @@ class Component extends DCLogic {
   semanaMais = ()=> this.setState({semanaTudo:!this.state.semanaTudo});
   semanaVerTudo = ()=> this.setState({view:'juris', acervoBusca:'', acervoDe:null, origemAbrir:'', menuOpen:false});
 
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this.setState({redResult:null, redText:'', redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this.setState({redResult:h.res, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
@@ -9523,6 +9779,38 @@ class Component extends DCLogic {
     }catch(_){}
     try{ new Notification(n.titulo, opts); }catch(_){}
   }
+  // ===== U12: LEMBRETE DE REVISÃO NO HORÁRIO CERTO ====================================
+  // A revisão vencida só cobrava quem já tinha aberto o app — quem esqueceu do app esqueceu
+  // da revisão, e o intervalo da repetição espaçada passava do ponto. Um verificador por
+  // minuto olha o horário escolhido e dispara UMA notificação por dia. `catedra:notifRevDia`
+  // guarda o dia do último aviso: sem ele, cada minuto depois das 19h viraria um alarme.
+  // Limite honesto (dito também nos Ajustes): sem servidor de push, isto só roda com o app
+  // aberto ou minimizado. Por isso dispara a partir do horário, e não exatamente nele — quem
+  // abriu o app às 21h com o lembrete das 19h ainda recebe o aviso do dia.
+  _revLembreteTick = ()=>{
+    try{
+      const p=this.state.prefs||{};
+      if(!p.revLembrete) return;
+      const hora=/^\d{1,2}:\d{2}$/.test(String(p.revHora||''))?String(p.revHora):'19:00';
+      const ag=new Date();
+      const agora=String(ag.getHours()).padStart(2,'0')+':'+String(ag.getMinutes()).padStart(2,'0');
+      const alvo=hora.length===4?('0'+hora):hora;
+      if(agora<alvo) return;
+      const hoje=this._hoje();
+      let dia=''; try{ dia=localStorage.getItem('catedra:notifRevDia')||''; }catch(_){}
+      if(dia===hoje) return;
+      const n=(this.state.reviews||[]).filter(r=>r && +r.due<=0).length;
+      if(!n) return;                                   // nada esperando: nada a dizer
+      if(!this._notifSupported() || Notification.permission!=='granted') return;
+      try{ localStorage.setItem('catedra:notifRevDia', hoje); }catch(_){}
+      const min=Math.max(5, Math.round(n*1.5));
+      const txt=n+(n>1?' revisões':' revisão')+' esperando — '+min+' min resolvem';
+      try{
+        const nt=new Notification('Hora da revisão', {body:txt, icon:'./icon-180.png', badge:'./icon.svg', tag:'ct-rev-hora'});
+        nt.onclick=()=>{ try{ window.focus(); }catch(_){} try{ window.__catedraGoView && window.__catedraGoView('revisoes'); }catch(_){} try{ nt.close(); }catch(_){} };
+      }catch(_){}
+    }catch(_){}
+  };
   toggleNotif = ()=> this.setState(s=>({notifOpen:!s.notifOpen, userMenuOpen:false}));
   closeNotif = ()=> this.setState({notifOpen:false});
   readNotif = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({notifsRead:{...s.notifsRead,[id]:true}})); };
@@ -9532,6 +9820,20 @@ class Component extends DCLogic {
   // ===== menu suspenso de usuário =====
   toggleUserMenu = ()=> this.setState(s=>({userMenuOpen:!s.userMenuOpen, notifOpen:false}));
   userMenuGo = (e)=>{ const v=e.currentTarget.dataset.view; this.setState({view:v, userMenuOpen:false, menuOpen:false}); };
+
+  // ===== U8: ATALHOS VISÍVEIS =========================================================
+  // ⌘K, Esc e / sempre existiram e ninguém tinha como descobrir: atalho que não se anuncia
+  // é atalho de quem escreveu o código. Esta é a fonte ÚNICA — a tecla ?, o item da paleta
+  // e a lista da tela saem daqui. Atalho novo entra somando uma linha nesta constante.
+  ATALHOS = [
+    {tecla:'?',      faz:'Mostrar esta lista de atalhos'},
+    {tecla:'⌘K',     faz:'Buscar tudo: telas, leis, súmulas, peças e ritos (Ctrl+K no Windows)'},
+    {tecla:'Esc',    faz:'Fechar o que estiver aberto — busca, registro, modo foco, simulado'},
+    {tecla:'Tab',    faz:'Circular pelos campos de um formulário aberto, sem escapar dele'},
+    {tecla:'/',      faz:'Buscar dentro do roteiro de peças, com a tela de peças aberta'},
+  ];
+  abrirAtalhos = ()=> this.setState({atalhosOpen:true, paletteOpen:false, menuOpen:false});
+  fecharAtalhos = ()=> this.setState({atalhosOpen:false});
 
   // ===== paleta de comando (Ctrl/Cmd+K) =====
   openPalette = ()=>{ this._palMontar(); this.setState({paletteOpen:true, paletteQuery:''}); };
@@ -9741,6 +10043,7 @@ class Component extends DCLogic {
     if(kind==='rito'){ this.setState({paletteOpen:false, menuOpen:false, view:'areamod', acervoBusca:'', acervoDe:null, origemAbrir:'rito='+encodeURIComponent(arg)}); return; }
     if(act==='foco'){ this.setState({paletteOpen:false}); this.enterFocus(); return; }
     if(act==='registrar'){ this.setState({paletteOpen:false, sessionModalOpen:true}); return; }
+    if(act==='atalhos'){ this.abrirAtalhos(); return; }
     const openId=e.currentTarget.dataset.open;
     // Abrir um destaque pelo ⌘K: NÃO mudar de view. Antes ia para 'biblioteca', que
     // deixou de existir no template — o leitor (overlay global) abria por cima, mas ao
@@ -9895,6 +10198,21 @@ class Component extends DCLogic {
       `--bg:${bgVal};background:${bgVal};color:${T.ink};font-family:${T.body};font-size:${fontScalePx};`;
     // largura por view: telas de grade (muitos cards/colunas) ficam largas; telas em coluna única ficam num limite de leitura confortável
     const contentMax = '100%';   // largura TOTAL em todas as telas — pedido da dona: sem espaços sobrando nas laterais
+    // ===== U9: SCROLL ÚNICO NAS TELAS DE IFRAME =====
+    // Fora delas nada muda (o host rola como sempre). Nelas o contêiner vira uma coluna
+    // flex SEM rolagem, e a moldura do iframe (flex:1) come exatamente o espaço que sobrou:
+    // some a segunda barra e some o "arrasta a página de trás" do toque no iPad. O
+    // padding-bottom de 84px do mobile continua vindo do CSS (!important), que é o que
+    // reserva a barra de navegação de baixo — a moldura já nasce descontando isso.
+    const _ehFrameView = ['areamod','roteiros','legis','juris'].indexOf(this.state.view)>=0;
+    const contentBoxStyle = _ehFrameView
+      ? 'flex:1;min-height:0;overflow:hidden;padding:clamp(16px,2.6vw,30px);display:flex;flex-direction:column;'
+      : 'flex:1;overflow-y:auto;padding:clamp(16px,2.6vw,30px);';
+    // `width:100%` é obrigatório aqui: item de flex com margens automáticas não estica
+    // sozinho, e sem largura definida o iframe de dentro cairia para os 300px do padrão.
+    const contentInnerStyle = _ehFrameView
+      ? ('max-width:'+contentMax+';margin:0 auto;width:100%;flex:1;min-height:0;display:flex;flex-direction:column;')
+      : ('max-width:'+contentMax+';margin:0 auto;');
 
     const navStyle = (id)=>{
       const on = this.state.view===id;
@@ -10821,7 +11139,10 @@ class Component extends DCLogic {
     const accentSel = this.state.accent;
     const dirCard=(id)=>`flex:1;min-width:150px;text-align:left;cursor:pointer;border-radius:var(--radius);padding:16px;font-family:inherit;border:2px solid ${this.state.dir===id?'var(--accent)':'var(--border)'};background:var(--surface);`;
     const densBtn=(d)=>`padding:9px 15px;border-radius:var(--r-md);border:1px solid ${this.state.prefs.density===d?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;background:${this.state.prefs.density===d?'var(--accentSoft)':'var(--surface)'};color:${this.state.prefs.density===d?'var(--accentD)':'var(--text2)'};`;
-    const modeBtn=(isDarkBtn)=>{ const on=this.state.darkMode===isDarkBtn; return `display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;border:none;cursor:pointer;font-size:var(--fs-sm);font-weight:600;font-family:inherit;transition:.15s;background:${on?'var(--surface)':'transparent'};color:${on?'var(--ink)':'var(--text3)'};box-shadow:${on?'0 1px 3px rgba(0,0,0,.12)':'none'};`; };
+    // U7: com o automático ligado, o par Claro/Escuro fica apagado — quem manda é o sistema.
+    const _temaAutoOn = !!pf0.temaAuto;
+    const modeAutoStyle = `display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;border:none;cursor:pointer;font-size:var(--fs-sm);font-weight:600;font-family:inherit;transition:.15s;background:${_temaAutoOn?'var(--surface)':'transparent'};color:${_temaAutoOn?'var(--ink)':'var(--text3)'};box-shadow:${_temaAutoOn?'0 1px 3px rgba(0,0,0,.12)':'none'};`;
+    const modeBtn=(isDarkBtn)=>{ const on=!_temaAutoOn && this.state.darkMode===isDarkBtn; return `display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;border:none;cursor:pointer;font-size:var(--fs-sm);font-weight:600;font-family:inherit;transition:.15s;background:${on?'var(--surface)':'transparent'};color:${on?'var(--ink)':'var(--text3)'};box-shadow:${on?'0 1px 3px rgba(0,0,0,.12)':'none'};`; };
     const togStyle=(on)=>`width:42px;height:24px;border-radius:99px;border:none;cursor:pointer;position:relative;transition:all .15s;background:${on?'var(--accent)':'var(--border)'};flex:none;`;
     const togKnob=(on)=>`position:absolute;top:3px;left:${on?'21px':'3px'};width:18px;height:18px;border-radius:99px;background:#fff;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.25);`;
 
@@ -11260,6 +11581,8 @@ class Component extends DCLogic {
       {view:'ajustes', label:'Ir para Ajustes', hint:'personalização, orientação, tema, conta e dados'},
       {act:'foco', label:'Iniciar Modo foco', hint:'cronômetro tela cheia'},
       {act:'registrar', label:'Registrar sessão', hint:'nova sessão'},
+      // U8: quem não sabe da tecla ? acha os atalhos pela busca que já usa
+      {act:'atalhos', label:'Atalhos do teclado', hint:'tecla ?'},
     ];
     const palLib = [];  // Biblioteca removida do menu — não indexa mais os docs no ⌘K (os dados seguem salvos)
     const palHl = _allHls.slice(0,40).map(h=>({open:h.itemId, label:'“'+(h.text||'').slice(0,52)+(h.text&&h.text.length>52?'…':'')+'”', hint:'destaque · '+h.titulo}));
@@ -11988,6 +12311,14 @@ class Component extends DCLogic {
       dispRoteiros:(this.state.view==='roteiros'?'block':'none'),
       dispLegis:(this.state.view==='legis'?'block':'none'),
       dispJuris:(this.state.view==='juris'?'block':'none'),
+      // U2: esqueleto só enquanto a tela do iframe está aberta e a página ainda não avisou
+      // que pintou. Como `framesProntos` só zera quando o `src` muda de verdade (troca de
+      // área de estudo), voltar para uma tela já carregada NÃO pisca esqueleto — com os
+      // iframes vivos (U1) a volta é instantânea e um esqueleto ali seria mentira.
+      skelAreaMod:(this.state.view==='areamod' && !this.state.framesProntos.areamod),
+      skelRoteiros:(this.state.view==='roteiros' && !this.state.framesProntos.roteiros),
+      skelLegis:(this.state.view==='legis' && !this.state.framesProntos.legis),
+      skelJuris:(this.state.view==='juris' && !this.state.framesProntos.juris),
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
       temAreaMod, areaModLabel, areaModFrameSrc, pecasFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
@@ -12078,7 +12409,11 @@ class Component extends DCLogic {
       abrirConcursoOral:this.abrirConcursoOral, voltarConcursoOral:this.voltarConcursoOral,
       toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
       cicloFolha, cicloFolhaHeader, roteiroNav:this.roteiroNav, roteiroHoje:this.roteiroHoje,
-      nativeFrameH:(this.state.isMobile?'calc(100dvh - 180px)':'calc(100vh - 108px)'), closeSessionBackdrop:this.closeSessionBackdrop, isDarkAttr:(this.state.darkMode?'1':'0'), dirAttr:this.state.dir||'sutil',
+      // U9: na tela de iframe a altura vem do espaço que sobrou (a moldura estica), não de
+      // uma conta de vh contra a barra de cima — era essa conta que sobrava alguns pixels e
+      // dava a segunda barra de rolagem. Fora dessas telas o valor não é usado (a moldura
+      // está escondida), mas fica a conta antiga como rede.
+      nativeFrameH:(_ehFrameView?'100%':(this.state.isMobile?'calc(100dvh - 180px)':'calc(100vh - 108px)')), closeSessionBackdrop:this.closeSessionBackdrop, isDarkAttr:(this.state.darkMode?'1':'0'), dirAttr:this.state.dir||'sutil',
       cicloSemana, cicloListaFlat, toggleAgendaDia:this.toggleAgendaDia, togglePlanoLegis:this.togglePlanoLegis,
       onSim:this.onSim, simNome:this.state.simNome, onSimNome:this.onSimNome, saveSimulado:this.saveSimulado, simMin:this.state.simMin, onSimMin:this.onSimMin, simTempoLabel:(this.state.provaDurationMin>0?fmtHM(this.state.provaDurationMin):'—'),
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
@@ -12152,6 +12487,19 @@ class Component extends DCLogic {
       redEtapa1:!this.state.redResult && !((this.state.redEnunciado||'').trim()),
       redEtapa2:!this.state.redResult && !!((this.state.redEnunciado||'').trim()),
       redEtapa3:!!this.state.redResult,
+      // U4: faixa de retomada do rascunho — só quando o texto na tela ainda é o que veio do
+      // disco (rascunho de outra sessão) e a pessoa não dispensou a faixa nesta sessão.
+      ...(()=>{ const t=String(this.state.redText||'');
+        const tem = !!t.trim() && t===String(this._redBoot||'') && !this.state.redRascunhoOculto
+                    && !this.state.redResult && !!((this.state.redEnunciado||'').trim());
+        const ts=+this.state.redTextTs||0;
+        const quando = ts ? (this._idade(ts)+' · '+(()=>{ try{ return new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})
+            .replace('.','')+', '+new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } })())
+          : 'de uma sessão anterior';
+        const pal=(t.match(/\S+/g)||[]).length;
+        return { redRascunhoTem:tem, redRascunhoQuando:quando, redRascunhoPalavras:pal+(pal===1?' palavra':' palavras') };
+      })(),
+      redRascunhoOk:this.redRascunhoOk, redZerarRascunho:this.redZerarRascunho,
       redPasso1:this._passo(1, !this.state.redResult && !((this.state.redEnunciado||'').trim())),
       redPasso2:this._passo(2, !this.state.redResult && !!((this.state.redEnunciado||'').trim())),
       redPasso3:this._passo(3, !!this.state.redResult),
@@ -12384,6 +12732,7 @@ class Component extends DCLogic {
       dirIsSutil:this.state.dir==='sutil', dirIsPremium:this.state.dir==='premium', dirIsClean:this.state.dir==='clean', dirIsModerno:this.state.dir==='moderno',
       dirIsAurora:this.state.dir==='aurora', dirIsSolar:this.state.dir==='solar', dirIsTerminal:this.state.dir==='terminal', dirIsHolo:this.state.dir==='holo',
       toggleDark:this.toggleDark, modeLightBtn:modeBtn(false), modeDarkBtn:modeBtn(true),
+      temaAuto:this.temaAuto, modeAutoBtn:modeAutoStyle,
       setAccent:this.setAccent, setAccentColor:this.setAccentColor, accentValue:this.state.accent||T.accent,
       setAccentReset:this.setAccentReset, accentTemaCor:T.accent, accentTemaRing:(this.state.accent?'0 0 0 1px var(--border)':'0 0 0 3px var(--surface),0 0 0 5px '+T.accent),
       setCadCorVal:this.setCadCorVal,
@@ -12392,7 +12741,7 @@ class Component extends DCLogic {
       prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, enviarFeedback:this.enviarFeedback, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, backupICloud:this.backupICloud, restaurarICloud:this.restaurarICloud, backupDrive:this.backupDrive, restaurarDrive:this.restaurarDrive, backupNativoShow:this._nativoBackup(), driveShow:(!this._nativoBackup()&&!!this._gdriveCfg()), backupNuvemShow:(this._nativoBackup()||!!this._gdriveCfg()), backupNuvemDica:(this._nativoBackup()?'Uma cópia sua, fora da conta Cátedra. No Mac vai para a pasta Cátedra do iCloud Drive; no iPad você escolhe a pasta em Arquivos (o iCloud Drive aparece lá).':'Uma cópia sua, fora da conta Cátedra, guardada no seu Google Drive (arquivo catedra-backup.json).'), backupNuvemStatus:((()=>{ const a=this._bkpCarimbo('catedra:_bkpICloud'), b=this._bkpCarimbo('catedra:_bkpDrive'); return [a?('iCloud Drive: último backup '+a):'', b?('Google Drive: último backup '+b):''].filter(Boolean).join(' · ')||'Nenhum backup feito ainda neste aparelho.'; })()), exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
       togRevisao:togStyle(this.state.prefs.notifRevisao), togRevisaoKnob:togKnob(this.state.prefs.notifRevisao),
       togMeta:togStyle(this.state.prefs.notifMeta), togMetaKnob:togKnob(this.state.prefs.notifMeta),
-      contentMax,
+      contentMax, contentBoxStyle, contentInnerStyle,
       // planejamento
       isPlanej:this.state.view==='planejamento', navPlanej:navStyle('planejamento'), planRows, planHoras:this.state.planHoras, setPlanHoras:this.setPlanHoras,
       // domínio por tópico
@@ -12479,6 +12828,10 @@ class Component extends DCLogic {
       notifs,
       notifUnread, notifUnreadStr:String(notifUnread), hasUnread:notifUnread>0,
       requestNotifPerm:this.requestNotifPerm,
+      // U12: lembrete de revisão no horário escolhido
+      prefRevHora:(pf0.revHora||'19:00'),
+      togRevLembrete:togStyle(!!pf0.revLembrete), togRevLembreteKnob:togKnob(!!pf0.revLembrete),
+      revLembreteLigadoSemPerm:(!!pf0.revLembrete && this._notifSupported() && this.state.notifPerm!=='granted'),
       notifPermBtnLabel:(this.state.notifPerm==='granted'&&this.state.notifPush)?'Notificações ativadas ✓':'Ativar notificações',
       notifPermStatus:({granted:this.state.notifPush?'permissão concedida':'permissão concedida — clique para ligar', denied:'permissão negada no navegador', default:'ainda não solicitada'}[this.state.notifPerm])||(this._notifSupported()?'':'não suportado neste navegador'),
       notifPermColor:this.state.notifPerm==='granted'?'var(--ok)':(this.state.notifPerm==='denied'?'var(--danger)':'var(--text3)'),
@@ -12495,6 +12848,8 @@ class Component extends DCLogic {
       perfModes, perfActive, perfBarRows, setPerfMode:this.setPerfMode,
       // paleta de comando
       paletteOpen:this.state.paletteOpen, paletteQuery:this.state.paletteQuery, palItems, palBuscando, palSemNada,
+      // U8: atalhos visíveis — a lista vem da constante única
+      atalhosOpen:this.state.atalhosOpen, atalhosList:this.ATALHOS, fecharAtalhos:this.fecharAtalhos,
       // multiformato
       isMulti:this.state.view==='multiformato', navMulti:navStyle('multiformato'), setMultiFmt:this.setMultiFmt,
       narrarMf:this.narrarMf, mfTtsBusy:this.state.mfTtsBusy,
