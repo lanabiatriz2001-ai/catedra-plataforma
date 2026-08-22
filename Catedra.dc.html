@@ -5168,8 +5168,38 @@ class Component extends DCLogic {
     // Ponte de tema p/ o iframe do "Checklist de lei seca": ele é outro documento (e em
     // file:// no app nativo é cross-origin), então não herda as CSS vars. Quando ele carrega,
     // pede o tema por postMessage e respondemos com os tokens atuais. Ver checklist-disciplinas.html.
-    this._ckMsg = (e)=>{ if(!e||!e.data||e.data.type!=='ctChecklistReady') return; try{ const host=document.querySelector('[style*="--accent"]'); if(!host) return; const cs=getComputedStyle(host); const V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad']; const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); }); e.source&&e.source.postMessage({type:'ctTheme',tokens:t},'*'); }catch(_){} };
+    // ===== D1: TEMA ÚNICO — os satélites herdam cor, modo escuro e fonte do host =====
+    // Antes isto valia só para o checklist (ctChecklistReady). Agora qualquer satélite
+    // avisa `ctPronto` e recebe os tokens; e o host REENVIA a todos quando o tema muda,
+    // senão trocar a cor de destaque só pegava depois de recarregar o iframe.
+    this._temaTokens = ()=>{
+      try{
+        const host=document.querySelector('[style*="--accent"]'); if(!host) return null;
+        const cs=getComputedStyle(host);
+        const V=['--bg','--surface','--surface2','--border','--ink','--text','--text2','--text3',
+                 '--accent','--accentD','--accentSoft','--accentRing','--onAccent',
+                 '--ok','--warn','--danger','--radius','--r-sm','--r-md',
+                 '--display','--body','--mono','--heroGrad'];
+        const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); });
+        t.__dark=!!this.state.darkMode;      // o satélite usa isto para o color-scheme nativo
+        return t;
+      }catch(_){ return null; }
+    };
+    this._ckMsg = (e)=>{
+      if(!e||!e.data) return;
+      // `ctChecklistReady` continua aceito: o app nativo pode estar com bundle anterior.
+      if(e.data.type!=='ctPronto' && e.data.type!=='ctChecklistReady') return;
+      const t=this._temaTokens(); if(!t) return;
+      try{ e.source && e.source.postMessage({type:'ctTheme', tokens:t}, '*'); }catch(_){}
+    };
     window.addEventListener('message', this._ckMsg);
+    /** Reenvia o tema a TODOS os iframes — chamado quando cor, modo escuro ou fonte mudam. */
+    this._temaBroadcast = ()=>{
+      const t=this._temaTokens(); if(!t) return;
+      try{ document.querySelectorAll('iframe').forEach(f=>{
+        try{ f.contentWindow && f.contentWindow.postMessage({type:'ctTheme', tokens:t}, '*'); }catch(_){}
+      }); }catch(_){}
+    };
     // Botão "Registrar" do módulo da área: abre o registro já com disciplina e tópico
     // do ponto estudado. Mesma regra do resto da casa — abre, quem salva é ela.
     this._areaMsg = (e)=>{
@@ -6317,7 +6347,7 @@ class Component extends DCLogic {
 
   onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); if(v==='oral') this._oralCarregarAcervo(); if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true})); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
-  toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
+  toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}, ()=>this._temaBroadcast()); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
   toggleNav = ()=> this.setState(s=>({navExpanded:!s.navExpanded}));
   toggleBlock = (e)=>{ const i=+e.currentTarget.dataset.i; const b=this.state.blocks.slice(); const willDone=!b[i].done; b[i]={...b[i],done:willDone};
@@ -6983,7 +7013,7 @@ class Component extends DCLogic {
     else this.setState({treino:null}); this.flashSync(); };
 
   // ===== Personalização / Ajustes =====
-  setAccent = (e)=> this.setState({accent:e.currentTarget.dataset.c});
+  setAccent = (e)=> this.setState({accent:e.currentTarget.dataset.c}, ()=>this._temaBroadcast());
   setAccentColor = (e)=> this.setState({accent:e.currentTarget.value});
   setAccentReset = ()=>{ this.setState({accent:null}); try{ localStorage.removeItem('catedra:accent'); }catch(_){} this._toast('Cor de destaque de volta ao padrão do tema'); };
   setDensity = (e)=> this.setState(s=>({prefs:{...s.prefs,density:e.currentTarget.dataset.d}}));
@@ -9392,7 +9422,9 @@ class Component extends DCLogic {
 
   // ===== personalização / ajustes extra =====
   setPrefVal = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({prefs:{...s.prefs,[k]:v}})); };
-  setPrefOpt = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.dataset.v; this.setState(s=>({prefs:{...s.prefs,[k]:v}})); };
+  setPrefOpt = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.dataset.v;
+    // fontScale/densidade mudam tokens que os satélites herdam (D1): reenvia o tema
+    this.setState(s=>({prefs:{...s.prefs,[k]:v}}), ()=>{ if(k==='fontScale'||k==='density') this._temaBroadcast(); }); };
   setMetaDiaria = (e)=>{ const h=Math.max(1, +e.currentTarget.value||1); this.setState(s=>({prefs:{...s.prefs,metaDiaria:h}, orient:{...s.orient, metaIdeal:String(h*60)}}), ()=>this._persistOrient()); };
   setFocoNum = (e)=>{ const k=e.currentTarget.dataset.k; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({prefs:{...s.prefs,[k]:v}})); };
 
