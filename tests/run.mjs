@@ -885,9 +885,10 @@ const u1 = await page.evaluate(async () => {
   const fr = v => document.querySelector('iframe[data-ct-view="' + v + '"]');
   const r = {};
 
-  // os quatro existem no DOM, mas SEM src: quem nunca abriu o LEGIS não paga por ele
+  // os seis existem no DOM, mas SEM src: quem nunca abriu o LEGIS não paga por ele
+  // (eram quatro até o D2 devolver 2ª fase e Prioridade ao template)
   const todos = [...document.querySelectorAll('iframe[data-ct-view]')];
-  r.quatroMontados = todos.length === 4;
+  r.seisMontados = todos.length === 6;
   r.nenhumCarregaNoBoot = todos.every(f => !f.getAttribute('src'));
   r.todosEscondidos = todos.every(f => f.style.display === 'none');
 
@@ -897,8 +898,13 @@ const u1 = await page.evaluate(async () => {
     && !fr('legis').getAttribute('src') && !fr('juris').getAttribute('src');
   r.visivel = fr('areamod').style.display === 'block';
 
-  // o src NÃO leva mais o ponto/busca: é estável entre trocas
-  r.srcEstavel = fr('areamod').getAttribute('src') === 'ritos-web.html';
+  // o src NÃO leva mais o ponto/busca: fica IGUAL entre idas e vindas (é o que "estável"
+  // quer dizer) — o embed=1 do D2 faz parte da base e também não muda
+  const src1 = fr('areamod').getAttribute('src');
+  r.srcSemPonto = !/rito=|peca=|bloco=|[?&]q=/.test(src1 || '');
+  document.querySelector('button[data-view="inicio"]').click(); await w(400);
+  document.querySelector('button[data-view="areamod"]').click(); await w(600);
+  r.srcEstavel = fr('areamod').getAttribute('src') === src1;
 
   // sair e voltar NÃO recarrega (a marca sobrevive) — é o coração do U1
   try { fr('areamod').contentWindow.__u1 = 42; } catch (e) {}
@@ -944,6 +950,72 @@ const u1b = await page.evaluate(async () => {
 });
 if (!u1b.erro) { for (const [k, v] of Object.entries(u1b)) ok(v, 'U1 ' + k); }
 else ok(false, 'U1 ida-e-volta: ' + u1b.erro);
+
+/* ============= D2 — MODO EMBUTIDO (?embed=1) ============= */
+const d2 = await page.evaluate(async (base) => {
+  const paginas = ['legis-web.html', 'juris-web.html', 'ritos-web.html', 'pecas-web.html',
+                   'segunda-fase-web.html', 'prioridade-web.html', 'area-web.html'];
+  const r = { semParametro: {}, comParametro: {} };
+  for (const p of paginas) {
+    const t = await (await fetch(base + '/' + p)).text();
+    r.semParametro[p] = t.includes('tema-satelite.js');   // a ponte é quem aplica o embed
+  }
+  return r;
+}, URL0);
+ok(Object.values(d2.semParametro).every(Boolean), 'D2 os 7 satélites carregam a ponte que aplica o embed');
+
+// a página avulsa mantém o cabeçalho inteiro; com ?embed=1 ele encolhe
+for (const pag of ['legis-web.html', 'ritos-web.html']) {
+  await page.goto(URL0 + '/' + pag);
+  await page.waitForTimeout(700);
+  const cheio = await page.evaluate(() => {
+    const h = document.querySelector('.head') || document.querySelector('.brand');
+    const ic = h && h.querySelector('.ic');
+    return { marca: document.documentElement.getAttribute('data-ct-embed'),
+             iconeVisivel: !!(ic && getComputedStyle(ic).display !== 'none'),
+             alturaCab: h ? Math.round(h.getBoundingClientRect().height) : 0 };
+  });
+  await page.goto(URL0 + '/' + pag + '?embed=1');
+  await page.waitForTimeout(700);
+  const magro = await page.evaluate(() => {
+    const h = document.querySelector('.head') || document.querySelector('.brand');
+    const ic = h && h.querySelector('.ic');
+    return { marca: document.documentElement.getAttribute('data-ct-embed'),
+             iconeVisivel: !!(ic && getComputedStyle(ic).display !== 'none'),
+             alturaCab: h ? Math.round(h.getBoundingClientRect().height) : 0 };
+  });
+  ok(!cheio.marca && cheio.iconeVisivel, 'D2 ' + pag + ' avulsa mantém o cabeçalho inteiro');
+  ok(magro.marca === '1' && !magro.iconeVisivel, 'D2 ' + pag + ' com embed=1 esconde a identidade');
+  ok(magro.alturaCab < cheio.alturaCab, 'D2 ' + pag + ' encolhe de ' + cheio.alturaCab + 'px para ' + magro.alturaCab + 'px');
+}
+
+// dentro do app: todos os iframes pedem embed=1, e as SEIS telas abrem de verdade
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const d2b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = { telas: {} };
+  const views = ['areamod', 'roteiros', 'legis', 'juris', 'segundafase', 'prioridade'];
+  r.seisIframes = document.querySelectorAll('iframe[data-ct-view]').length === 6;
+  for (const v of views) {
+    const b = document.querySelector('button[data-view="' + v + '"]');
+    if (!b) { r.telas[v] = 'sem botão no menu'; continue; }
+    b.click(); await w(1900);
+    const f = document.querySelector('iframe[data-ct-view="' + v + '"]');
+    if (!f) { r.telas[v] = 'sem iframe'; continue; }
+    const src = f.getAttribute('src') || '';
+    let corpo = 0, embed = null;
+    try { corpo = (f.contentDocument.body.innerText || '').trim().length;
+          embed = f.contentDocument.documentElement.getAttribute('data-ct-embed'); } catch (e) {}
+    r.telas[v] = { embedNaURL: /embed=1/.test(src), embedAplicado: embed === '1', temConteudo: corpo > 200 };
+  }
+  return r;
+});
+ok(d2b.seisIframes, 'D2 as seis telas de iframe existem (2ª fase e Prioridade voltaram)');
+for (const [v, t] of Object.entries(d2b.telas)) {
+  ok(typeof t === 'object' && t.embedNaURL && t.embedAplicado, 'D2 ' + v + ' abre em modo embutido');
+  ok(typeof t === 'object' && t.temConteudo, 'REGRESSÃO ' + v + ' abre com conteúdo (não fica em branco)');
+}
 
 await browser.close();
 srv.close();
