@@ -6,7 +6,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex:none;box-shadow:0 6px 16px -4px var(--accent,#0f7a57)}
 .head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
-.head p{font-size:12px;color:var(--text3,#7a7368);margin-top:3px}
+.head p{font-size:12px;color:var(--text2,#5c564a);margin-top:3px}
 .search{position:relative;margin-bottom:12px}
 .search input{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:12px;padding:12px 14px 12px 40px;font-size:14px;color:var(--ink);outline:none;font-family:inherit}
 .search input:focus{border-color:var(--accent,#0f7a57)}
@@ -14,12 +14,12 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
 .chip{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);color:var(--text2,#5c564a);border-radius:99px;padding:6px 13px;font:700 12px inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .chip .dot{width:8px;height:8px;border-radius:99px}
-.chip small{color:var(--text3,#94a3b8);font-weight:600;font-variant-numeric:tabular-nums}
+.chip small{color:var(--text2,#5c564a);font-weight:600;font-variant-numeric:tabular-nums}
 .chip.on{color:#fff;border-color:transparent}
 .chip.on small{color:rgba(255,255,255,.8)}
 .gedic{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:7px;margin:6px 0 4px}
 .edic{aspect-ratio:1;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:800 14px inherit;color:var(--text2,#5c564a);font-variant-numeric:tabular-nums}
-.edic i{font-style:normal;font-size:9px;font-weight:700;color:var(--text3,#94a3b8)}
+.edic i{font-style:normal;font-size:9px;font-weight:700;color:var(--text2,#5c564a)}
 .edic.parcial{border-color:#eab308;background:#eab3081f;color:#a16207}
 .edic.parcial i{color:#a16207}
 .edic.lido{border-color:#16a34a;background:#16a34a1f;color:#15803d}
@@ -27,10 +27,10 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .edic:hover{border-color:var(--accent,#0f7a57)}
 .gtit{display:flex;align-items:baseline;gap:10px;margin:20px 0 2px;flex-wrap:wrap}
 .gtit b{font-family:var(--display,'Spectral',Georgia,serif);font-size:17px;font-weight:800}
-.gtit span{font-size:11.5px;color:var(--text3,#7a7368)}
+.gtit span{font-size:11.5px;color:var(--text2,#5c564a)}
 .diaCap{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .diaCap b{font-family:var(--display,'Spectral',Georgia,serif);font-size:20px;font-weight:800}
-.diaCap span{font-size:12px;color:var(--text3,#7a7368)}
+.diaCap span{font-size:12px;color:var(--text2,#5c564a)}
 .diaCard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-left:5px solid var(--accent,#0f7a57);border-radius:14px;padding:20px 22px}
 .diaCard h3{font-family:var(--display,'Spectral',Georgia,serif);font-size:19px;font-weight:800;line-height:1.25;margin-bottom:8px}
 .diaCard .diaEn{font-size:14.5px;line-height:1.65;margin-top:10px}
@@ -40,7 +40,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .diaAcoes button{border:1.5px solid var(--accent,#0f7a57);background:none;color:var(--accent,#0f7a57);border-radius:10px;padding:9px 15px;font:700 12.5px inherit;cursor:pointer}
 .diaAcoes button.prim{background:var(--accent,#0f7a57);color:#fff}
 .oral{margin-top:16px;border-top:1px dashed var(--border,#e6e1d4);padding-top:14px}
-.oral h4{font:800 11px inherit;letter-spacing:.7px;text-transform:uppercase;color:var(--text3,#7a7368);margin-bottom:8px}
+.oral h4{margin-bottom:8px}
 .oral .perg{font-size:15px;line-height:1.6;font-weight:600;margin-bottom:10px}
 .oral textarea{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:11px;padding:12px;font:14px inherit;color:var(--ink);line-height:1.6;resize:vertical;outline:none}
 .oral textarea:focus{border-color:var(--accent,#0f7a57)}
@@ -52,7 +52,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .estBtn{border:1.5px solid var(--accent,#0f7a57);background:none;color:var(--accent,#0f7a57);border-radius:10px;padding:9px 15px;font:700 12.5px inherit;cursor:pointer}
 .estBtn[disabled]{opacity:.55;cursor:default}
 .estBlk{margin-top:13px}
-.estBlk h4{font:800 11px inherit;letter-spacing:.7px;text-transform:uppercase;color:var(--text3,#7a7368);margin-bottom:5px}
+.estBlk h4{margin-bottom:5px}
 .estBlk p,.estBlk li{font-size:14px;line-height:1.6}
 .estBlk ul{padding-left:19px}
 .estBlk li{margin-bottom:5px}
@@ -66,14 +66,14 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .rdr.dark .estAt p{background:#7c2d1233;color:#fed7aa}
 .rdr.dark .estHoje p{background:#14532d33;color:#bbf7d0}
 .rdr.dark .estPeg p{background:#7f1d1d33;color:#fecaca}
-.estFonte{font-size:11px;color:var(--text3,#7a7368);margin-top:10px;font-style:italic}
+.estFonte{font-size:11px;color:var(--text2,#5c564a);margin-top:10px;font-style:italic}
 .avEd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--accent,#0f7a57) 9%,transparent);border:1.5px solid var(--accent,#0f7a57);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;font-weight:600;color:var(--text2,#5c564a)}
 .avEd button{border:0;background:var(--accent,#0f7a57);color:#fff;border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
 .gmais{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:10px;padding:7px 14px;font:700 12px inherit;color:var(--text2,#5c564a);cursor:pointer;margin-top:8px}
 .statbar{display:flex;gap:20px;flex-wrap:wrap;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:12px;padding:12px 18px;margin:6px 0 16px}
 .statbar .s1{display:flex;flex-direction:column}
 .statbar .s1 b{font-family:var(--display,'Spectral',Georgia,serif);font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
-.statbar .s1 span{font-size:10px;color:var(--text3,#7a7368);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.statbar .s1 span{margin-top:3px}
 .vcard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
 .vcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc,#0f7a57)}
 .vhead{display:flex;align-items:flex-start;gap:12px;padding:14px 16px 14px 20px;cursor:pointer}
@@ -82,35 +82,35 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .vtop{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
 .badge{font:800 10px inherit;letter-spacing:.03em;padding:3px 8px;border-radius:6px;background:var(--rc,#0f7a57);color:#fff}
 .badge.tb{background:var(--tc,#334155)}
-.num{font-size:11px;color:var(--text3,#7a7368);font-weight:600}
+.num{font-size:11px;color:var(--text2,#5c564a);font-weight:600}
 .star{color:#e0a400;font-size:12px}
 .vtit{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:700;line-height:1.25;color:var(--ink)}
 .vsub{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
 .rtag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:var(--rc)}
-.tema{font-size:11.5px;color:var(--text3,#7a7368);font-style:italic}
+.tema{font-size:11.5px;color:var(--text2,#5c564a);font-style:italic}
 .vact{display:flex;flex-direction:column;gap:6px;align-items:center;flex:none}
 .st{width:22px;height:22px;border-radius:99px;border:2px solid var(--border,#e6e1d4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;background:none;color:var(--text3,#94a3b8)}
 .st.rev{border-color:#eab308;background:#eab30822;color:#a16207}
 .st.dom{border-color:#16a34a;background:#16a34a;color:#fff}
 .fav{cursor:pointer;font-size:16px;color:var(--text3,#c9c2b2);background:none;border:none;line-height:1}
 .fav.on{color:#eab308}
-.chev{color:var(--text3,#94a3b8);font-size:12px;transition:transform .15s;margin-top:2px}
+.chev{color:var(--text2,#5c564a);font-size:12px;transition:transform .15s;margin-top:2px}
 .vcard.open .chev{transform:rotate(90deg)}
 .vbody{display:none;padding:2px 20px 18px 20px;border-top:1px solid var(--border,#e6e1d4)}
 .vcard.open .vbody{display:block}
 .enun{font-size:13.5px;line-height:1.6;color:var(--text,#2b2620);white-space:pre-wrap;margin-top:12px}
 .enun mark{background:var(--accentSoft,#ffe9a8);color:inherit;border-radius:3px;padding:0 2px}
 .block{margin-top:12px}
-.block .lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--rc,#0f7a57);margin-bottom:4px}
+.block .lbl{margin-bottom:4px}
 .block .txt{font-size:12.5px;line-height:1.55;color:var(--text2,#5c564a);white-space:pre-wrap}
 .foot{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
-.foot .fp{font-size:11px;color:var(--text3,#7a7368)}
+.foot .fp{font-size:11px;color:var(--text2,#5c564a)}
 .foot a{font-size:11.5px;font-weight:700;color:var(--accent,#0f7a57);text-decoration:none;border:1px solid var(--accentRing,#c2e0d1);border-radius:9px;padding:6px 11px}
 .foot a:hover{background:var(--accentSoft,#e6f0ea)}
-.loading{font-size:12px;color:var(--text3,#7a7368);padding:8px 0}
-.empty{text-align:center;padding:60px 20px;color:var(--text3,#7a7368)}
+.loading{font-size:12px;color:var(--text2,#5c564a);padding:8px 0}
+.empty{text-align:center;padding:60px 20px;color:var(--text2,#5c564a)}
 .empty .ei{font-size:40px;opacity:.5;margin-bottom:10px}
-.more{text-align:center;padding:14px;color:var(--text3,#7a7368);font-size:12px}
+.more{text-align:center;padding:14px;color:var(--text2,#5c564a);font-size:12px}
 .skel{height:80px;border-radius:14px;background:linear-gradient(90deg,var(--surface2,#efeadd) 25%,var(--surface,#fffdf8) 50%,var(--surface2,#efeadd) 75%);background-size:200% 100%;animation:sh 1.3s infinite;margin-bottom:10px}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
@@ -128,9 +128,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .tab{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);color:var(--text2,#5c564a);border-radius:10px;padding:7px 14px;font:800 12px inherit;cursor:pointer}
 .tab.on{background:var(--ink,#1f1c17);color:var(--bg,#f4f1ea);border-color:transparent}
 .tab small{font-weight:700;opacity:.6;margin-left:5px;font-variant-numeric:tabular-nums}
-.fonte{font-size:11px;color:var(--text3,#7a7368);line-height:1.55;margin:-2px 0 14px}
+.fonte{font-size:11px;color:var(--text2,#5c564a);line-height:1.55;margin:-2px 0 14px}
 .fonte a{color:var(--accent,#0f7a57);text-decoration:none;font-weight:700}
-.reg{font:800 10px inherit;letter-spacing:.14em;text-transform:uppercase;color:var(--text3,#7a7368);margin:16px 0 8px;display:flex;align-items:center;gap:9px}
+.reg{margin:16px 0 8px;display:flex;align-items:center;gap:9px}
 .reg::after{content:"";flex:1;height:1px;background:var(--border,#e6e1d4)}
 .tcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:10px}
 .tccard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
@@ -144,7 +144,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .tccard .lks a:hover{background:color-mix(in srgb,var(--rc) 10%,transparent)}
 .tccard .acv{margin-top:2px;border:none;background:color-mix(in srgb,var(--rc) 12%,transparent);color:var(--rc);border-radius:9px;padding:7px 10px;font:800 11.5px inherit;cursor:pointer;text-align:left}
 .tccard .acv:hover{background:color-mix(in srgb,var(--rc) 20%,transparent)}
-.tccard .semacv{font-size:10.5px;color:var(--text3,#7a7368);font-style:italic;margin-top:2px}
+.tccard .semacv{font-size:10.5px;color:var(--text2,#5c564a);font-style:italic;margin-top:2px}
 
 /* ===== leitor de verbete — esquema (mesma linguagem do LEGIS) ===== */
 .rdr{--rc:#0f7a57;--rc2:#12a06f;
@@ -171,7 +171,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .rdr .tool:hover{color:var(--rc);border-color:color-mix(in srgb,var(--rc) 45%,transparent)}
 .rdr .stage{position:relative;z-index:2;flex:1;display:flex;overflow:hidden}
 .rdr .map{width:270px;flex:none;overflow-y:auto;padding:18px 10px 60px 18px;border-right:1px solid var(--rline)}
-.rdr .maptitle{font:800 10px var(--rbody);letter-spacing:.16em;text-transform:uppercase;color:var(--rdim2);margin:0 0 12px 4px}
+.rdr .maptitle{margin:0 0 12px 4px}
 .rdr .mnode{position:relative;padding:9px 11px;border-radius:10px;cursor:pointer;color:var(--rdim);margin-bottom:3px;border:1px solid transparent}
 .rdr .mnode b{display:block;font-size:12.5px;font-weight:700;color:var(--rink);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rdr .mnode small{font-size:10px;font-weight:700;color:var(--rdim2);letter-spacing:.03em}
@@ -191,11 +191,11 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .rdr .vhero .rtag{font:700 11px var(--rbody);color:var(--rc);background:color-mix(in srgb,var(--rc) 14%,transparent);border:1px solid color-mix(in srgb,var(--rc) 28%,transparent);border-radius:99px;padding:3px 11px}
 .rdr .vhero .tema{font:italic 500 12.5px var(--rbody);color:var(--rdim)}
 .rdr .venun{background:var(--rcard);border:1px solid var(--rline);border-radius:16px;padding:20px 22px;box-shadow:0 8px 26px -20px color-mix(in srgb,var(--rc) 60%,transparent)}
-.rdr .venun .lbl{font:800 10px var(--rbody);letter-spacing:.14em;text-transform:uppercase;color:var(--rc);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.rdr .venun .lbl{margin-bottom:9px;display:flex;align-items:center;gap:8px}
 .rdr .venun .lbl::before{content:"";width:14px;height:2px;background:var(--rc);border-radius:2px}
 .rdr .venun .bd{font-family:var(--rbody);font-size:calc(var(--rfs,15px) + 1px);line-height:1.68;color:var(--rctext)}
 .rdr .vblk{margin-top:13px;background:color-mix(in srgb,var(--rc) 5%,var(--rcard));border:1px solid var(--rline);border-radius:14px;padding:15px 18px}
-.rdr .vblk .lbl{font:800 10px var(--rbody);letter-spacing:.1em;text-transform:uppercase;color:var(--rdim2);margin-bottom:6px}
+.rdr .vblk .lbl{margin-bottom:6px}
 .rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar)}
 .rdr .vfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
 .rdr .vfoot .fp{font:600 11.5px var(--rbody);color:var(--rdim2)}
@@ -206,6 +206,90 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .rdr .gr mark{background:color-mix(in srgb,var(--rc) 26%,transparent);color:inherit;border-radius:4px;padding:0 2px;cursor:pointer;box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 34%,transparent)}
 .grifbtn{position:fixed;z-index:310;transform:translate(-50%,-120%);background:linear-gradient(140deg,var(--rc,#0f7a57),var(--rc2,#12a06f));color:#fff;border:none;border-radius:9px;padding:7px 13px;font:800 12px var(--body,sans-serif);cursor:pointer;box-shadow:0 8px 20px -4px rgba(0,0,0,.4);display:none}
 .grifbtn.on{display:block}
+
+/* ===== D7 — microlabels em DOIS níveis =====
+   Antes todo rótulo era mono-caps-espaçado com o mesmo peso: "ENUNCIADO" (que estrutura
+   a leitura) e "VERBETES" (que é contagem) gritavam igual — quando tudo destaca, nada
+   destaca. Nível forte só para o que organiza a leitura; nível fraco para metadado.
+   Os dois níveis moram SÓ aqui: mudar de nível é trocar a classe, não reescrever fonte. */
+.mlF,.block .lbl,.oral h4,.estBlk h4,.rdr .venun .lbl{font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--rc,var(--accent,#0f7a57))}
+.mlW,.reg,.rdr .vblk .lbl{font-weight:700;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;color:var(--text2,#5c564a)}
+/* Dentro do leitor a paleta é própria e vira do claro para o escuro no modo imersão:
+   puxar --text2 do host apagaria o rótulo justamente no escuro. */
+.rdr .mlF,.rdr .venun .lbl{font-family:var(--rbody);color:var(--rc)}
+.rdr .mlW,.rdr .vblk .lbl{font-family:var(--rbody);color:var(--rdim)}
+
+/* ===== D4 — zero absoluto vira convite =====
+   "0 DOMINADOS · 0 FAVORITOS" é contabilidade do nada: quem nunca marcou nada não
+   aprende com o zero, aprende com o gesto que falta fazer. Com 1 ou mais volta a ser
+   número. */
+.statbar .s1.convite{justify-content:center;max-width:200px}
+.statbar .s1 .cv{font-size:11.5px;line-height:1.35;font-weight:600;color:var(--text2,#5c564a)}
+
+/* ===== D3 — filtros rotulados e recolhidos =====
+   Três fileiras de chips empurravam o acervo para fora da primeira dobra. Tribunal é o
+   corte que a pessoa usa toda hora e continua à vista; coleção e ramo entram no botão. */
+.fbar{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.fbtn{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);color:var(--text2,#5c564a);border-radius:99px;padding:7px 14px;font:800 12px inherit;cursor:pointer;display:inline-flex;align-items:center;gap:7px;min-height:38px;white-space:nowrap}
+/* seta de "abre e fecha": triângulo geométrico, que existe em qualquer fonte — glifo
+   de engrenagem vira quadradinho vazio em parte dos sistemas. */
+.fbtn::after{content:"▾";font-size:11px;line-height:1;opacity:.75}
+.fbtn[aria-expanded="true"]::after{content:"▴"}
+.fbtn.on{border-color:var(--accent,#0f7a57);color:var(--accent,#0f7a57)}
+.chip.ativo{gap:8px}
+.chip.ativo .x{font-size:11px;opacity:.85}
+.pop{position:absolute;left:0;top:calc(100% + 6px);z-index:60;width:min(560px,calc(100vw - 40px));max-height:52vh;overflow:auto;background:var(--surface,#fffdf8);border:1.5px solid var(--border,#e6e1d4);border-radius:14px;padding:13px 15px;box-shadow:0 22px 46px -26px rgba(20,15,10,.55)}
+.popsec + .popsec{margin-top:13px;border-top:1px dashed var(--border,#e6e1d4);padding-top:12px}
+.popt{margin-bottom:7px}
+.pop .chips,.fbar .chips{margin-bottom:0}
+
+/* ===== U7(b) — modo leitura no leitor de verbete =====
+   Medida de linha curta (~68ch), corpo serifado e entrelinha larga: o mesmo texto,
+   lido sem a vista escorregar de linha. Só CSS; a escolha fica no aparelho. */
+.rdr.leitura .docwrap{max-width:68ch}
+.rdr.leitura .venun .bd,.rdr.leitura .vblk .bd,.rdr.leitura .estBlk p,.rdr.leitura .estBlk li{
+  font-family:var(--rdisplay);font-size:max(17px,calc(var(--rfs,15px) + 2px));line-height:1.7}
+.rdr .toolset{display:flex;gap:6px}
+.rdr .tool.mais{display:none}
+.rdr .tool[aria-pressed="true"]{color:var(--rc);border-color:color-mix(in srgb,var(--rc) 55%,transparent);background:color-mix(in srgb,var(--rc) 12%,var(--rcard))}
+
+/* ===== D10 — foco visível =====
+   Chips e pílulas eram operáveis pelo teclado e não mostravam onde o foco estava. */
+.chip:focus-visible,.tab:focus-visible,.fbtn:focus-visible,.edic:focus-visible,.st:focus-visible,
+.fav:focus-visible,.acv:focus-visible,.gmais:focus-visible,.diaAcoes button:focus-visible,
+.estBtn:focus-visible,.tccard .lks a:focus-visible,.foot a:focus-visible{
+  outline:2px solid var(--accent,#0f7a57);outline-offset:2px}
+.rdr .tool:focus-visible,.rdr .nav:focus-visible,.rdr .back:focus-visible,.rdr .mnode:focus-visible{
+  outline:2px solid var(--rc);outline-offset:2px}
+
+/* ===== D8 — celular =====
+   Alvo de toque de 44px, fileiras que rolam com encaixe em vez de quebrar a pílula no
+   meio da palavra, e as ferramentas do leitor recolhidas num "⋯" — no telefone a barra
+   do leitor não cabia com título, tribunal e quatro botões. */
+@media (max-width:640px){
+  .wrap{padding:16px 14px 90px}
+  .tabs,#trib{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:-14px;margin-right:-14px;padding:2px 14px}
+  .tabs::-webkit-scrollbar,#trib::-webkit-scrollbar{display:none}
+  .tab,#trib .chip{flex:none;scroll-snap-align:start}
+  .tab,.chip,.fbtn,.gmais,.estBtn,.diaAcoes button,.tccard .acv{min-height:44px}
+  .tab,.chip{display:inline-flex;align-items:center}
+  .pop{width:calc(100vw - 28px);max-height:58vh}
+  .pop .chips{flex-wrap:wrap;overflow:visible;margin-left:0;margin-right:0;padding:0}
+  .edic{min-height:56px}
+  .vact{gap:4px}
+  .st{width:44px;height:44px;font-size:16px}
+  .fav{min-width:44px;min-height:44px;font-size:20px;display:flex;align-items:center;justify-content:center}
+  .vhead{padding:14px 12px 14px 18px}
+  .rdr .map{display:none}
+  .rdr .doc{padding:18px 15px 120px}
+  .rdr .top{position:relative;flex-wrap:nowrap;padding:10px 12px}
+  .rdr .top h1{font-size:15px}
+  .rdr .chip{display:none}
+  .rdr .back,.rdr .nav,.rdr .tool{min-width:44px;min-height:44px}
+  .rdr .tool.mais{display:flex}
+  .rdr .toolset{position:absolute;right:10px;top:100%;margin-top:6px;flex-direction:column;z-index:6;background:var(--rcard);border:1px solid var(--rline);border-radius:12px;padding:6px;box-shadow:0 18px 34px -20px rgba(0,0,0,.65)}
+  .rdr .toolset:not(.aberto){display:none}
+}
 </style>
 <script src="./tema-satelite.js"></script>
 <script src="ct-dados.js"></script>
@@ -214,11 +298,11 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <body><div class="wrap">
 <div class="head"><div class="ic" id="hIc">⚖️</div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
 <div class="tabs" id="tabs">
-  <button class="tab on" data-pane="acervo">Acervo</button>
-  <button class="tab" data-pane="dia">Julgado do dia</button>
-  <button class="tab" data-pane="infos">Informativos <small id="nInfos"></small></button>
-  <button class="tab" data-pane="mapas">Mapas mentais</button>
-  <button class="tab" data-pane="tribunais">Tribunais de contas <small id="nTcs"></small></button>
+  <button class="tab on" data-pane="acervo" aria-pressed="true">Acervo</button>
+  <button class="tab" data-pane="dia" aria-pressed="false">Julgado do dia</button>
+  <button class="tab" data-pane="infos" aria-pressed="false">Informativos <small id="nInfos"></small></button>
+  <button class="tab" data-pane="mapas" aria-pressed="false">Mapas mentais</button>
+  <button class="tab" data-pane="tribunais" aria-pressed="false">Tribunais de contas <small id="nTcs"></small></button>
 </div>
 <div id="paneDia" hidden>
   <!-- Um verbete por dia, sorteado com semente na DATA: o mesmo dia devolve sempre o
@@ -241,14 +325,24 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 </div>
 <div id="paneAcervo">
 <div class="search"><span class="mag">🔎</span><input id="q" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
-<div class="chips" id="trib"></div>
-<div class="chips" id="bases"></div>
-<div class="chips" id="ramos"></div>
+<div class="chips" id="trib" role="group" aria-label="Filtrar por tribunal"></div>
+<!-- D3: tribunal é o corte usado toda hora e fica à vista; coleção e ramo empurravam o
+     acervo para fora da primeira dobra e agora vivem dentro do botão. O que estiver
+     ligado volta como chip removível ao lado dele — filtro escondido que ninguém vê é
+     filtro que a pessoa esquece que ligou. -->
+<div class="fbar">
+  <button class="fbtn" id="btFiltros" aria-expanded="false" aria-controls="popFiltros">Filtros</button>
+  <div class="chips" id="fAtivos" role="group" aria-label="Filtros ativos"></div>
+  <div class="pop" id="popFiltros" hidden>
+    <div class="popsec" id="secBases"><div class="mlW popt">Coleções</div><div class="chips" id="bases"></div></div>
+    <div class="popsec" id="secRamos"><div class="mlW popt">Ramos do direito</div><div class="chips" id="ramos"></div></div>
+  </div>
+</div>
 <div class="statbar">
-  <div class="s1"><b id="sTot">0</b><span>Verbetes</span></div>
-  <div class="s1"><b id="sFilt">0</b><span>No filtro</span></div>
-  <div class="s1"><b id="sDom">0</b><span>Dominados</span></div>
-  <div class="s1"><b id="sFav">0</b><span>Favoritos</span></div>
+  <div class="s1" id="s1Tot"><b id="sTot">0</b><span class="mlW">Verbetes</span></div>
+  <div class="s1" id="s1Filt"><b id="sFilt">0</b><span class="mlW">No filtro</span></div>
+  <div class="s1" id="s1Dom"></div>
+  <div class="s1" id="s1Fav"></div>
 </div>
 <div id="avisoEdicao" hidden></div>
 <div id="list"></div>
@@ -262,7 +356,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   <div id="tcList"></div>
 </div>
 </div>
-<div class="rdr" id="jrdr"><div class="top"><button class="back" id="jrClose" title="Voltar">←</button><button class="nav" id="jrPrev" title="Anterior">‹</button><button class="nav" id="jrNext" title="Próximo">›</button><div class="idwrap"><div class="kicker" id="jrMat"></div><h1 id="jrTitle"></h1></div><span class="chip" id="jrTrib"></span><div class="tools"><button class="tool" id="jrMinus" title="Diminuir">A−</button><button class="tool" id="jrPlus" title="Aumentar">A+</button><button class="tool" id="jrDark" title="Modo imersão">◐</button></div></div><div class="stage"><aside class="map"><div class="maptitle">Verbetes do filtro</div><div id="jrTree"></div></aside><main class="doc" id="jrScroll"><div class="docwrap" id="jrDoc"></div></main></div></div>
+<div class="rdr" id="jrdr"><div class="top"><button class="back" id="jrClose" title="Voltar" aria-label="Fechar o leitor">←</button><button class="nav" id="jrPrev" title="Anterior" aria-label="Verbete anterior">‹</button><button class="nav" id="jrNext" title="Próximo" aria-label="Próximo verbete">›</button><div class="idwrap"><div class="kicker" id="jrMat"></div><h1 id="jrTitle"></h1></div><span class="chip" id="jrTrib"></span><div class="tools"><button class="tool mais" id="jrMais" title="Mais opções" aria-label="Mais opções de leitura" aria-expanded="false">⋯</button><div class="toolset" id="jrTools"><button class="tool" id="jrMinus" title="Diminuir" aria-label="Diminuir o texto">A−</button><button class="tool" id="jrPlus" title="Aumentar" aria-label="Aumentar o texto">A+</button><button class="tool" id="jrDark" title="Modo imersão" aria-label="Modo imersão" aria-pressed="false">◐</button><button class="tool" id="jrLeitura" title="Modo leitura" aria-label="Modo leitura" aria-pressed="false">¶</button></div></div></div><div class="stage"><aside class="map"><div class="maptitle mlW">Verbetes do filtro</div><div id="jrTree"></div></aside><main class="doc" id="jrScroll"><div class="docwrap" id="jrDoc"></div></main></div></div>
 <button class="grifbtn" id="jrGrif">✎ Grifar</button>
 <script>
 (function(){
@@ -305,6 +399,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   var est={fav:{},stat:{}}; try{est=Object.assign({fav:{},stat:{}},JSON.parse(localStorage.getItem(LK))||{})}catch(e){}
   function saveEst(){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
   var STAT=['','rev','dom'], STICON={'':'','rev':'◐','dom':'✓'};
+  // D10 — o botão de status é só um glifo (e às vezes glifo nenhum): sem isto quem usa
+  // leitor de tela ouve "botão" e não sabe nem o que ele faz nem em que ponto está.
+  function rotStat(v){ return v==='dom'?'dominado':(v==='rev'?'em revisão':'ainda não estudado'); }
 
   // ---- cores vitrine por ramo (espelha JurisTheme.stops)
   function ramoColor(n){
@@ -363,23 +460,29 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   function chipBtn(active,label,cnt,col,onclick){
     var b=document.createElement('button'); b.className='chip'+(active?' on':'');
     if(active)b.style.background=col||'var(--accent,#0f7a57)';
-    b.innerHTML=(col?'<span class="dot" style="background:'+col+'"></span>':'')+esc(label)+' <small>'+cnt+'</small>';
+    b.setAttribute('aria-pressed',active?'true':'false');
+    b.innerHTML=(col?'<span class="dot" aria-hidden="true" style="background:'+col+'"></span>':'')+esc(label)+' <small>'+cnt+'</small>';
     b.onclick=onclick; return b;
   }
   var showAllRamos=false;
+  /* D8 — no celular a fileira deixou de quebrar linha e virou rolagem com encaixe.
+     Quem chega pelo diretório de tribunais de contas cai num chip lá do fim da fila:
+     sem isto ele ficaria fora da tela e a pessoa não veria por que o acervo encolheu. */
+  function trazAFoco(el){ try{ if(el&&el.scrollIntoView)el.scrollIntoView({block:'nearest',inline:'nearest'}); }catch(e){} }
   function renderTribChips(){
     var el=document.getElementById('trib'); el.innerHTML='';
     el.appendChild(chipBtn(f.tribunal==='','Todos',IDX.length,null,function(){f.tribunal='';build();}));
     tribOrder.forEach(function(t){ var col=TRIBC[t]||'#64748b';
       el.appendChild(chipBtn(f.tribunal===t,t,tribCount[t],col,function(){f.tribunal=f.tribunal===t?'':t;build();})); });
+    if(f.tribunal)trazAFoco(el.querySelector('.chip.on'));
   }
   function renderRamoChips(){
     var el=document.getElementById('ramos'); el.innerHTML='';
-    el.appendChild(chipBtn(f.ramo==='','Todos os ramos',IDX.length,null,function(){f.ramo='';build();}));
+    el.appendChild(chipBtn(f.ramo==='','Todos os ramos',IDX.length,null,function(){f.ramo='';build();popFiltros(false);}));
     var TOP=11, list=showAllRamos?ramoOrder:ramoOrder.slice(0,TOP);
     if(f.ramo && list.indexOf(f.ramo)<0) list=list.concat([f.ramo]);   // garante o ramo ativo visível
     list.forEach(function(r){ var col=corFaceta(r);
-      el.appendChild(chipBtn(f.ramo===r,r,ramoCount[r],col,function(){f.ramo=f.ramo===r?'':r;build();})); });
+      el.appendChild(chipBtn(f.ramo===r,r,ramoCount[r],col,function(){f.ramo=f.ramo===r?'':r;build();popFiltros(false);})); });
     if(!showAllRamos && ramoOrder.length>TOP){
       var m=document.createElement('button'); m.className='chip'; m.style.borderStyle='dashed';
       m.innerHTML='＋ '+(ramoOrder.length-TOP)+' ramos';
@@ -396,12 +499,57 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   // Boletim de Jurisprudência, Boletim de Pessoal e Informativo de Licitações e
   // Contratos têm pesos bem diferentes para quem estuda. Daí a faceta própria.
   function renderBaseChips(){
-    var el=document.getElementById('bases'); el.innerHTML='';
-    if(baseOrder.length<2){ el.hidden=true; return; }
-    el.hidden=false;
-    el.appendChild(chipBtn(f.base==='','Todas as coleções',IDX.length,null,function(){f.base='';build();}));
+    var el=document.getElementById('bases'), sec=document.getElementById('secBases'); el.innerHTML='';
+    if(baseOrder.length<2){ if(sec)sec.hidden=true; return; }
+    if(sec)sec.hidden=false;
+    el.appendChild(chipBtn(f.base==='','Todas as coleções',IDX.length,null,function(){f.base='';build();popFiltros(false);}));
+    // D3(a): o índice guarda a fonte como veio da origem ('informativo_stj'); quem
+    // aparece na tela é sempre o rótulo do nomeColecao — o valor interno não muda.
     baseOrder.forEach(function(b){
-      el.appendChild(chipBtn(f.base===b,b,baseCount[b],'#475569',function(){f.base=f.base===b?'':b;build();})); });
+      el.appendChild(chipBtn(f.base===b,nomeColecao(b),baseCount[b],'#475569',function(){f.base=f.base===b?'':b;build();popFiltros(false);})); });
+  }
+
+  /* D3(b) — o painel de filtros. Coleção e ramo somavam duas fileiras de chips antes do
+     conteúdo; agora ficam aqui dentro e o acervo volta para a primeira dobra. Filtro
+     ligado reaparece como chip removível ao lado do botão: filtro invisível é filtro
+     que a pessoa esquece que ligou e depois acha que o acervo sumiu. */
+  var _pop=document.getElementById('popFiltros'), _btF=document.getElementById('btFiltros');
+  function popFiltros(on){ if(!_pop)return; _pop.hidden=!on; _btF.setAttribute('aria-expanded',on?'true':'false'); }
+  function filtrosLigados(){
+    var a=[];
+    if(f.base)a.push({k:'base',rot:nomeColecao(f.base)});
+    if(f.ramo)a.push({k:'ramo',rot:f.ramo});
+    return a;
+  }
+  function renderFiltroBar(){
+    var host=document.getElementById('fAtivos'); if(!host||!_btF)return;
+    var at=filtrosLigados();
+    _btF.textContent=at.length?('Filtros ('+at.length+')'):'Filtros';
+    _btF.classList.toggle('on',at.length>0);
+    host.innerHTML='';
+    at.forEach(function(x){
+      var c=document.createElement('button');
+      c.className='chip on ativo'; c.style.background='var(--accent,#0f7a57)';
+      c.setAttribute('aria-label','Remover filtro '+x.rot);
+      c.innerHTML=esc(x.rot)+' <span class="x" aria-hidden="true">✕</span>';
+      c.onclick=function(){ if(x.k==='base')f.base=''; else f.ramo=''; build(); };
+      host.appendChild(c);
+    });
+  }
+  if(_btF){
+    _btF.onclick=function(){ popFiltros(_pop.hidden); };
+    /* Clique dentro da barra não conta como "clique fora". Precisa ser aqui, e não na
+       comparação lá embaixo: botões daqui ("＋ N ramos") re-renderizam a lista, e o alvo
+       do clique já não existe quando o documento vai perguntar se ele estava dentro. */
+    var _fbar=document.querySelector('.fbar');
+    if(_fbar)_fbar.addEventListener('click',function(e){ e.stopPropagation(); });
+    document.addEventListener('click',function(e){
+      if(!_pop||_pop.hidden)return;
+      popFiltros(false);
+    });
+    document.addEventListener('keydown',function(e){
+      if(e.key==='Escape'&&_pop&&!_pop.hidden){ popFiltros(false); try{_btF.focus();}catch(err){} }
+    });
   }
 
   // ---- filtro
@@ -433,8 +581,23 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     }
     document.getElementById('sTot').textContent=IDX.length.toLocaleString('pt-BR');
     document.getElementById('sFilt').textContent=filtered.length.toLocaleString('pt-BR');
-    document.getElementById('sDom').textContent=Object.values(est.stat).filter(function(v){return v==='dom'}).length;
-    document.getElementById('sFav').textContent=Object.keys(est.fav).length;
+    metrica('s1Dom',Object.values(est.stat).filter(function(v){return v==='dom'}).length,
+            'Dominados','marque ✓ quando dominar um verbete');
+    metrica('s1Fav',Object.keys(est.fav).length,
+            'Favoritos','marque ★ no que cai no seu edital');
+  }
+
+  /* D4 — métrica zerada não vira número. "0 dominados · 0 favoritos" é contabilidade do
+     nada: quem nunca marcou não aprende com o zero, aprende com o gesto que falta. Com
+     1 ou mais o slot volta a ser número normal. */
+  function metrica(id,n,rotulo,convite){
+    var host=document.getElementById(id); if(!host)return;
+    if(n>0){ host.className='s1'; host.innerHTML='<b>'+n.toLocaleString('pt-BR')+'</b><span class="mlW">'+esc(rotulo)+'</span>'; }
+    else { host.className='s1 convite'; host.innerHTML='<span class="cv">'+esc(convite)+'</span>'; }
+  }
+  function metricaHtml(n,rotulo,convite){
+    return n>0 ? '<div class="s1"><b>'+n.toLocaleString('pt-BR')+'</b><span class="mlW">'+esc(rotulo)+'</span></div>'
+               : '<div class="s1 convite"><span class="cv">'+esc(convite)+'</span></div>';
   }
 
   var listEl=document.getElementById('list'), moreEl=document.getElementById('more');
@@ -442,7 +605,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     // Mexeu em chip ou na busca? Então saiu da edição. build() é o funil de todos os
     // filtros, e abrirEdicao() de propósito NÃO passa por aqui.
     f.edicao=null;
-    renderTribChips(); renderBaseChips(); renderRamoChips();
+    renderTribChips(); renderBaseChips(); renderRamoChips(); renderFiltroBar();
     applyFilter(); page=0; listEl.innerHTML=''; stats(); renderPage();
   }
 
@@ -455,7 +618,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       +'<div class="vmeta">'
         +'<div class="vtop">'
           +'<span class="badge tb">'+esc(r[I.tr]||'—')+'</span>'
-          +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="num">'+esc(r[I.fo])+'</span>':'')
+          +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="num">'+esc(nomeColecao(r[I.fo]))+'</span>':'')
           +(r[I.im]?'<span class="star" title="Destaque">★</span>':'')
           +(r[I.si]?'<span class="num">· '+esc(r[I.si])+'</span>':'')
         +'</div>'
@@ -463,9 +626,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
         +'<div class="vsub">'+(ra?'<span class="rtag">'+esc(ra)+'</span>':'')+(r[I.te]?'<span class="tema">'+esc(r[I.te])+'</span>':'')+'</div>'
       +'</div>'
       +'<div class="vact">'
-        +'<button class="st '+stt+'" title="revisar → dominado">'+STICON[stt]+'</button>'
-        +'<button class="fav'+(fav?' on':'')+'" title="Favoritar">'+(fav?'★':'☆')+'</button>'
-        +'<span class="chev">↗</span>'
+        +'<button class="st '+stt+'" title="revisar → dominado" aria-label="Estudo: '+rotStat(stt)+'">'+STICON[stt]+'</button>'
+        +'<button class="fav'+(fav?' on':'')+'" title="Favoritar" aria-label="'+(fav?'Remover dos favoritos':'Favoritar')+'">'+(fav?'★':'☆')+'</button>'
+        +'<span class="chev" aria-hidden="true">↗</span>'
       +'</div>'
       +'</div>'
       +'<div class="vbody"></div>';
@@ -475,8 +638,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       if(ev.target.closest('.st')||ev.target.closest('.fav'))return;
       var idx=filtered.indexOf(r); if(idx<0)idx=0; openVerbete(idx);
     });
-    d.querySelector('.st').onclick=function(){var cur=STAT.indexOf(est.stat[id]||'');var nx=STAT[(cur+1)%3];if(nx)est.stat[id]=nx;else delete est.stat[id];saveEst();var b=d.querySelector('.st');b.className='st '+nx;b.textContent=STICON[nx];stats();};
-    d.querySelector('.fav').onclick=function(){if(est.fav[id])delete est.fav[id];else est.fav[id]=1;saveEst();var b=d.querySelector('.fav');b.classList.toggle('on',!!est.fav[id]);b.textContent=est.fav[id]?'★':'☆';stats();};
+    d.querySelector('.st').onclick=function(){var cur=STAT.indexOf(est.stat[id]||'');var nx=STAT[(cur+1)%3];if(nx)est.stat[id]=nx;else delete est.stat[id];saveEst();var b=d.querySelector('.st');b.className='st '+nx;b.textContent=STICON[nx];b.setAttribute('aria-label','Estudo: '+rotStat(nx));stats();};
+    d.querySelector('.fav').onclick=function(){if(est.fav[id])delete est.fav[id];else est.fav[id]=1;saveEst();var b=d.querySelector('.fav');b.classList.toggle('on',!!est.fav[id]);b.textContent=est.fav[id]?'★':'☆';b.setAttribute('aria-label',est.fav[id]?'Remover dos favoritos':'Favoritar');stats();};
     return d;
   }
 
@@ -771,8 +934,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
         +lidas+' lidas · '+parc+' começadas · até a '+eds[0].n+'</span></div><div class="gedic">';
       eds.slice(0,mostrar).forEach(function(e){
         var cls=e.lidos>=e.total?'lido':(e.lidos>0?'parcial':'');
+        var rotEd=c.nome+' nº '+e.n+' — '+e.lidos+' de '+e.total+' dominados';
         h+='<button class="edic '+cls+'" data-fo="'+esc(c.fo)+'" data-n="'+e.n+'" '
-          +'title="'+esc(c.nome)+' nº '+e.n+' — '+e.lidos+' de '+e.total+' dominados">'
+          +'title="'+esc(rotEd)+'" aria-label="'+esc(rotEd)+'">'
           +e.n+'<i>'+(e.lidos?e.lidos+'/'+e.total:e.total)+'</i></button>';
       });
       h+='</div>';
@@ -780,10 +944,10 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     });
     host.innerHTML=h||'<div class="empty">Nenhuma coleção por edição no acervo.</div>';
     document.getElementById('infosResumo').innerHTML=
-      '<div class="s1"><b>'+totalEd+'</b><span>edições</span></div>'
-      +'<div class="s1"><b>'+totalLidas+'</b><span>lidas</span></div>'
-      +'<div class="s1"><b>'+totalParciais+'</b><span>começadas</span></div>'
-      +'<div class="s1"><b>'+(totalEd-totalLidas-totalParciais)+'</b><span>não lidas</span></div>';
+      '<div class="s1"><b>'+totalEd.toLocaleString('pt-BR')+'</b><span class="mlW">edições</span></div>'
+      +metricaHtml(totalLidas,'lidas','nenhuma edição fechada ainda')
+      +metricaHtml(totalParciais,'começadas','abra uma edição e marque o que dominou')
+      +'<div class="s1"><b>'+(totalEd-totalLidas-totalParciais).toLocaleString('pt-BR')+'</b><span class="mlW">não lidas</span></div>';
     var n=document.getElementById('nInfos'); if(n)n.textContent=totalEd;
     host.querySelectorAll('.edic').forEach(function(b){
       b.onclick=function(){ abrirEdicao(b.dataset.fo, +b.dataset.n); };
@@ -801,7 +965,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     // listEl.innerHTML='' ANTES de renderPage: sem isso a página só ACRESCENTA ao que
     // já estava na tela e a edição aparece embaixo do acervo inteiro.
     page=0; applyFilter(); listEl.innerHTML=''; renderPage(); stats();
-    renderTribChips(); renderBaseChips(); renderRamoChips();
+    renderTribChips(); renderBaseChips(); renderRamoChips(); renderFiltroBar();
     setPane('acervo');
     window.scrollTo({top:0,behavior:'smooth'});
   }
@@ -841,8 +1005,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     host.innerHTML='<div class="diaCap"><b>Julgado do dia</b><span>'+dt.getDate()+' de '+MES[dt.getMonth()]+' de '+dt.getFullYear()+'</span></div>'
       +'<div class="diaCard"><div class="diaTags">'+tags+'</div>'
       +'<h3>'+esc(r[I.ti]||'Verbete')+'</h3>'
-      +(t.en?'<div class="diaEn">'+esc(t.en)+'</div>':'<div class="diaEn" style="color:var(--text3)">Enunciado ainda carregando…</div>')
-      +(t.fp?'<div style="font-size:11.5px;color:var(--text3,#7a7368);margin-top:10px;">'+esc(t.fp)+'</div>':'')
+      +(t.en?'<div class="diaEn">'+esc(t.en)+'</div>':'<div class="diaEn" style="color:var(--text2,#5c564a)">Enunciado ainda carregando…</div>')
+      +(t.fp?'<div style="font-size:11.5px;color:var(--text2,#5c564a);margin-top:10px;">'+esc(t.fp)+'</div>':'')
       +'<div class="diaAcoes"><button class="prim" id="diaAbrir">Abrir no leitor</button>'
       +'<button id="diaOral">Modo prova oral</button>'
       +'<button id="diaDom">Marcar como dominado</button></div>'
@@ -895,7 +1059,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
         .then(function(txt){
           var j=null; try{ j=JSON.parse(String(txt).replace(/^[^{]*/,'').replace(/[^}]*$/,'')); }catch(e){}
           b.disabled=false; b.textContent='Corrigir';
-          if(!j){ document.getElementById('oralFb').innerHTML='<div style="font-size:12.5px;color:var(--text3)">A IA respondeu em formato inesperado. Tente de novo.</div>'; return; }
+          if(!j){ document.getElementById('oralFb').innerHTML='<div style="font-size:12.5px;color:var(--text2,#5c564a)">A IA respondeu em formato inesperado. Tente de novo.</div>'; return; }
           var cls=j.nota==='boa'?'b':(j.nota==='media'?'m':'r');
           var rot=j.nota==='boa'?'Boa':(j.nota==='media'?'Mediana':'Fraca');
           function ul(arr){ return (arr&&arr.length)?('<ul style="padding-left:19px;font-size:14px;line-height:1.6">'+arr.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'):''; }
@@ -907,11 +1071,11 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
             +'</div>';
         }).catch(function(err){
           b.disabled=false; b.textContent='Corrigir';
-          document.getElementById('oralFb').innerHTML='<div style="font-size:12.5px;color:var(--text3)">'+esc(String(err&&err.message||err))+'</div>';
+          document.getElementById('oralFb').innerHTML='<div style="font-size:12.5px;color:var(--text2,#5c564a)">'+esc(String(err&&err.message||err))+'</div>';
         });
       };
     }).catch(function(err){
-      host.innerHTML='<div class="oral"><h4>Prova oral</h4><div style="font-size:12.5px;color:var(--text3)">'+esc(String(err&&err.message||err))+'</div></div>';
+      host.innerHTML='<div class="oral"><h4>Prova oral</h4><div style="font-size:12.5px;color:var(--text2,#5c564a)">'+esc(String(err&&err.message||err))+'</div></div>';
     });
   }
 
@@ -925,7 +1089,11 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     document.getElementById('paneMapas').hidden=(nome!=='mapas');
     if(nome==='mapas'){ var fr=document.getElementById('mapasFrame');
       if(fr&&!fr.src){ fr.src=fr.dataset.src; } }
-    document.querySelectorAll('#tabs .tab').forEach(function(b){ b.classList.toggle('on',b.dataset.pane===nome); });
+    document.querySelectorAll('#tabs .tab').forEach(function(b){
+      var on=b.dataset.pane===nome; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); });
+    // D8 — no celular a fileira de pílulas rola em vez de quebrar; a ativa precisa
+    // aparecer sozinha (antes só o clique trazia, e no load ela podia nascer fora da tela).
+    trazAFoco(document.querySelector('#tabs .tab.on'));
     if(nome==='tribunais'&&!document.getElementById('tcList').innerHTML)renderTcs();
   }
   // Acervo é um só, então todas as abas valem sempre. A função ficou porque o
@@ -1007,7 +1175,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       if(el)el.innerHTML='33 tribunais de contas — TCU, 26 estaduais, o TCDF e 5 tribunais de contas dos municípios. '
         +'O acervo textual dentro do app vem dos <a href="https://sites.tcu.gov.br/dados-abertos/jurisprudencia/" target="_blank" rel="noopener">dados abertos de jurisprudência do TCU</a> '
         +'e dos repertórios oficiais de súmulas do TCE-SP, TCE-MG e TCE-BA'+(meta.atualizado?' (coletado em '+esc(meta.atualizado)+')':'')+'. Os demais abrem no portal do próprio tribunal.';
-      recount(); renderTribChips(); renderBaseChips(); renderRamoChips();
+      recount(); renderTribChips(); renderBaseChips(); renderRamoChips(); renderFiltroBar();
       applyFilter(); stats(); renderPage();
     };
     sc.onerror=function(){ idxLoading=false; };   // sem a Central, a jurisprudência segue inteira
@@ -1016,7 +1184,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 
   // ---- boot
   recount();
-  renderTribChips(); renderBaseChips(); renderRamoChips();
+  renderTribChips(); renderBaseChips(); renderRamoChips(); renderFiltroBar();
   if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Base de jurisprudência não carregou.</div>'; }
   else { applyFilter(); stats(); renderPage(); }
   setTimeout(carregaContas,60);          // funde o acervo de contas assim que a tela existe
@@ -1039,7 +1207,22 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       var m=col.match(/(\d+)\D+(\d+)\D+(\d+)/); if(m)return (0.299*+m[1]+0.587*+m[2]+0.114*+m[3])/255; }catch(e){} return 1; }
   function jApplyTheme(){ var pref=null; try{pref=localStorage.getItem('catedra:leitorDark');}catch(e){}
     var dark = pref==='1'?true:(pref==='0'?false:(jlum(getComputedStyle(document.documentElement).getPropertyValue('--bg')||'#fff')<0.42));
-    _jr.classList.toggle('dark',dark); }
+    _jr.classList.toggle('dark',dark);
+    var bd=document.getElementById('jrDark'); if(bd)bd.setAttribute('aria-pressed',dark?'true':'false'); }
+
+  /* U7(b) — MODO LEITURA. O leitor nasceu com 760px de medida e corpo de interface: dá
+     para consultar, não para ler cinquenta verbetes seguidos. Aqui a linha encolhe para
+     ~68 caracteres, o corpo vira serifado maior e a entrelinha abre — só CSS, o conteúdo
+     é o mesmo.
+     A chave NÃO leva o prefixo 'catedra:' de propósito: esse prefixo é o que o auth.js
+     sobe para a nuvem, e conforto de leitura é do APARELHO (a tela do iPad na cama não
+     pede o mesmo que o Mac na mesa), não da conta. */
+  var LEITK='catedraJurisLeitura';
+  function jLeitura(){ try{ return localStorage.getItem(LEITK)==='1'; }catch(e){ return false; } }
+  function jApplyLeitura(){
+    var on=jLeitura(); _jr.classList.toggle('leitura',on);
+    var b=document.getElementById('jrLeitura'); if(b)b.setAttribute('aria-pressed',on?'true':'false');
+  }
   function jGr(text){ var gi=jdisp.length; jdisp.push(text); return '<span class="gr" data-gi="'+gi+'">'+esc(text)+'</span>'; }
 
   function buildMap(idx){
@@ -1094,7 +1277,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   function promptRoteiro(r,t){
     return 'Você prepara material de estudo para concursos jurídicos brasileiros de alto nível '
       +'(magistratura, MP, procuradorias). Abaixo vai um verbete OFICIAL do acervo.\n\n'
-      +'TRIBUNAL: '+(r[I.tr]||'')+'\nCOLEÇÃO: '+(r[I.fo]||'')+(r[I.nu]?'\nNÚMERO: '+r[I.nu]:'')
+      +'TRIBUNAL: '+(r[I.tr]||'')+'\nCOLEÇÃO: '+nomeColecao(r[I.fo])+(r[I.nu]?'\nNÚMERO: '+r[I.nu]:'')
       +'\nTÍTULO: '+(r[I.ti]||'')+(r[I.ra]?'\nRAMO: '+r[I.ra]:'')+(r[I.da]?'\nDATA: '+r[I.da]:'')
       +(r[I.si]?'\nSITUAÇÃO: '+r[I.si]:'')
       +'\n\nENUNCIADO:\n'+((t&&t.en)||'(sem enunciado)')
@@ -1236,7 +1419,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   function renderVerbete(r){
     var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
     var h='<div class="vhero"><div class="htop"><span class="tb">'+esc(r[I.tr]||'—')+'</span>'
-      +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="meta">'+esc(r[I.fo])+'</span>':'')
+      +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="meta">'+esc(nomeColecao(r[I.fo]))+'</span>':'')
       +(r[I.nu]?'<span class="meta">nº '+esc(r[I.nu])+'</span>':'')
       +(r[I.si]?'<span class="meta">· '+esc(r[I.si])+'</span>':'')
       +(r[I.im]?'<span class="star" title="Destaque">★</span>':'')
@@ -1264,7 +1447,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     document.getElementById('jrMat').textContent=r[I.ra]||'Jurisprudência';
     document.getElementById('jrTitle').textContent=r[I.ti]||'Verbete';
     document.getElementById('jrTrib').textContent=r[I.tr]||'—';
-    jApplyTheme(); _jr.classList.add('on'); document.body.style.overflow='hidden'; _jsc.scrollTop=0;
+    jApplyTheme(); jApplyLeitura(); _jr.classList.add('on'); document.body.style.overflow='hidden'; _jsc.scrollTop=0;
     buildMap(idx);
     var _tmR=txtDe(r);
     if(!_tmR || !_tmR[r[I.id]]){ _jsc.innerHTML='<div class="rdr-spin">Carregando os textos…</div>'; garanteTexto(r,function(){ renderVerbete(r); }); }
@@ -1298,7 +1481,22 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   document.getElementById('jrNext').onclick=function(){ if(curIdx<filtered.length-1)openVerbete(curIdx+1); };
   document.getElementById('jrMinus').onclick=function(){ jFS(_jfs-1); };
   document.getElementById('jrPlus').onclick=function(){ jFS(_jfs+1); };
-  document.getElementById('jrDark').onclick=function(){ _jr.classList.toggle('dark'); try{localStorage.setItem('catedra:leitorDark',_jr.classList.contains('dark')?'1':'0');}catch(e){} };
+  document.getElementById('jrDark').onclick=function(){ _jr.classList.toggle('dark');
+    var dk=_jr.classList.contains('dark');
+    document.getElementById('jrDark').setAttribute('aria-pressed',dk?'true':'false');
+    try{localStorage.setItem('catedra:leitorDark',dk?'1':'0');}catch(e){} };
+  document.getElementById('jrLeitura').onclick=function(){
+    try{ localStorage.setItem(LEITK, jLeitura()?'0':'1'); }catch(e){}
+    jApplyLeitura();
+  };
+  // D8 — no celular a barra do leitor não cabia com título, tribunal e quatro botões:
+  // as ferramentas viram um "⋯" que abre a coluna. No desktop o "⋯" nem existe.
+  var _jtools=document.getElementById('jrTools'), _jmais=document.getElementById('jrMais');
+  _jmais.onclick=function(e){ e.stopPropagation();
+    var on=!_jtools.classList.contains('aberto');
+    _jtools.classList.toggle('aberto',on); _jmais.setAttribute('aria-expanded',on?'true':'false'); };
+  _jtools.addEventListener('click',function(){
+    _jtools.classList.remove('aberto'); _jmais.setAttribute('aria-expanded','false'); });
   document.addEventListener('keydown',function(e){ if(!_jr.classList.contains('on'))return; if(e.key==='Escape')jClose(); else if(e.key==='ArrowLeft'&&curIdx>0)openVerbete(curIdx-1); else if(e.key==='ArrowRight'&&curIdx<filtered.length-1)openVerbete(curIdx+1); });
 
 })();
