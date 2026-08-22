@@ -2,10 +2,21 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,-apple-system,'Segoe UI',Roboto,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding:20px 26px 70px}
+
+/* D10 — foco visível: a bolinha de status e a ★ eram alcançáveis pelo teclado mas
+   não mostravam onde o foco estava. */
+:where(a,button,select,input,textarea,summary,[tabindex]):focus-visible{
+  outline:2px solid var(--accent,#0f7a57);outline-offset:2px}
+
+/* D7 — nível FRACO de rótulo (metadado: contagens e legendas de número). O nível forte
+   não entra aqui: quem estrutura a leitura desta tela são os títulos de grupo, que já
+   são títulos de verdade — transformá-los em mono-caps seria redesenho, não hierarquia. */
+.rot-fraco{font:700 10px/1.3 var(--body,-apple-system,sans-serif);letter-spacing:0;
+  text-transform:uppercase;color:var(--text2,#5c564a)}
 .head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));display:flex;align-items:center;justify-content:center;color:#fff;font-size:23px;flex:none}
 .head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
-.head p{font-size:12px;color:var(--text3,#7a7368);margin-top:3px}
+.head p{font-size:12px;color:var(--text2,#5c564a);margin-top:3px}
 .search{position:relative;margin-bottom:16px}
 .search input{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:12px;padding:12px 14px 12px 40px;font-size:14px;color:var(--ink);outline:none;font-family:inherit}
 .search input:focus{border-color:var(--accent,#0f7a57)}
@@ -13,19 +24,18 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .statbar{display:flex;gap:20px;flex-wrap:wrap;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:12px;padding:13px 18px;margin-bottom:16px}
 .statbar .st1{display:flex;flex-direction:column}
 .statbar .st1 b{font-family:var(--display,'Spectral',Georgia,serif);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
-.statbar .st1 span{font-size:10.5px;color:var(--text3,#7a7368);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.statbar .st1 span{margin-top:3px}
 .grp{margin-bottom:18px}
 .grph{display:flex;align-items:center;gap:9px;margin:0 2px 9px}
 .grph .dot{width:10px;height:10px;border-radius:3px;flex:none}
 .grph b{font-family:var(--display,'Spectral',Georgia,serif);font-size:16px;font-weight:700}
-.grph span{font-size:11px;color:var(--text3,#7a7368);font-weight:600}
 .grph .bar{flex:1;height:6px;border-radius:99px;background:var(--surface2,#efeadd);overflow:hidden;min-width:60px;margin-left:6px}
 .grph .bar i{display:block;height:100%;border-radius:99px;transition:width .3s}
 .row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:11px;margin-bottom:7px;border-left:4px solid var(--lc,#0f7a57)}
 .row.hide{display:none}
 .row .lt{flex:1;min-width:0}
 .row .lt b{font-size:13.5px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
-.row .lt small{font-size:11px;color:var(--text3,#7a7368);display:block;margin-top:2px;line-height:1.4}
+.row .lt small{font-size:11px;color:var(--text2,#5c564a);display:block;margin-top:2px;line-height:1.4}
 .row .st{flex:none;width:22px;height:22px;border-radius:99px;border:2px solid var(--border,#e6e1d4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;background:transparent;color:inherit}
 .row .st.estudando{border-color:#eab308;background:#eab30822;color:#a16207}
 .row .st.dominado{border-color:#16a34a;background:#16a34a;color:#fff}
@@ -33,15 +43,29 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .row .fav.on{color:#eab308}
 .row .rg{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:#fff;background:var(--accent,#0f7a57);border:none;border-radius:9px;padding:7px 12px;cursor:pointer;font-family:inherit}
 .row .rg:hover{filter:brightness(.94)}
-.vazio{padding:40px 20px;text-align:center;color:var(--text3,#7a7368);font-size:13px;line-height:1.6}
-.legenda{font-size:11.5px;color:var(--text3,#7a7368);margin:0 2px 14px;line-height:1.55}
+.vazio{padding:40px 20px;text-align:center;color:var(--text2,#5c564a);font-size:13px;line-height:1.6}
+.legenda{font-size:11.5px;color:var(--text2,#5c564a);margin:0 2px 14px;line-height:1.55}
+
+/* D8 — no celular, alvo de toque de 44px. A bolinha de status tinha 22px e a ★ nem
+   isso: marcar um tópico dominado no telefone era loteria. A área cresce por baixo
+   (::after) para o desenho continuar do mesmo tamanho. */
+@media (max-width:640px){
+  .wrap{padding:16px 12px 60px}
+  .row{gap:8px;padding:10px 11px}
+  .row .st{position:relative}
+  .row .st::after{content:'';position:absolute;left:50%;top:50%;width:44px;height:44px;
+    transform:translate(-50%,-50%)}
+  .row .fav{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .row .rg{position:relative;z-index:1;min-height:44px;padding:8px 13px}
+  .search input{min-height:44px}
+}
 </style><script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script><script src="./tema-satelite.js"></script>
 </head>
 <body><div class="wrap">
 <div class="head"><div class="ic" id="ic">📚</div><div><h1 id="tt">Módulo da área</h1><p id="sb"></p></div></div>
 <div class="legenda" id="lg"></div>
 <div class="search"><span class="mag">🔎</span><input id="q" placeholder="Buscar…" autocomplete="off"></div>
-<div class="statbar"><div class="st1"><b id="sd">0</b><span>Dominados</span></div><div class="st1"><b id="se">0</b><span>Estudando</span></div><div class="st1"><b id="sf">0</b><span>Favoritos</span></div><div class="st1" style="margin-left:auto"><b id="stt">0</b><span>Itens no módulo</span></div></div>
+<div class="statbar"><div class="st1"><b id="sd">0</b><span class="rot-fraco">Dominados</span></div><div class="st1"><b id="se">0</b><span class="rot-fraco">Estudando</span></div><div class="st1"><b id="sf">0</b><span class="rot-fraco">Favoritos</span></div><div class="st1" style="margin-left:auto"><b id="stt">0</b><span class="rot-fraco">Itens no módulo</span></div></div>
 <div id="lista"></div>
 </div>
 <script src="area-modulos.js"></script>
@@ -60,6 +84,11 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   var STAT=['','estudando','dominado'], ICON={'':'','estudando':'◐','dominado':'✓'};
   var el=function(t,c,h){ var e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
   var esc=function(s){ return (s||'').replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];}); };
+  var att=function(s){ return esc(s).replace(/"/g,'&quot;'); };
+  // D10 — o botão de status é só ícone (e no estado "não estudado" não tem NEM ícone):
+  // sem nome acessível o leitor de tela anunciava "botão" e a pessoa não sabia o que era.
+  var NOME={'':'não estudado','estudando':'estudando','dominado':'dominado'};
+  var rotStat=function(t,st){ return 'Progresso de '+t+': '+NOME[st]+'. Ativar para avançar o estado.'; };
   // id ESTÁVEL por texto (não por índice): acrescentar item ao módulo não pode
   // renumerar o que a pessoa já marcou como dominado.
   var slug=function(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); };
@@ -85,25 +114,29 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   M.grupos.forEach(function(g){
     var gs=slug(g.n);
     var box=el('div','grp');
-    var head=el('div','grph','<span class="dot" style="background:'+g.c+'"></span><b>'+esc(g.n)+'</b><span>'+g.itens.length+' itens</span><span class="bar"><i data-bar="'+gs+'" style="background:'+g.c+';width:0%"></i></span>');
+    var head=el('div','grph','<span class="dot" style="background:'+g.c+'"></span><b>'+esc(g.n)+'</b><span class="rot-fraco">'+g.itens.length+' itens</span><span class="bar"><i data-bar="'+gs+'" style="background:'+g.c+';width:0%"></i></span>');
     box.appendChild(head);
     g.itens.forEach(function(it){
       var id=AREA+'|'+gs+'|'+slug(it.t);
       var r=el('div','row'); r.style.setProperty('--lc',g.c);
       r.dataset.s=(it.t+' '+(it.d||'')).toLowerCase(); r.dataset.g=gs;
       var st=est.stat[id]||'', fav=est.fav[id];
-      r.innerHTML='<button class="st '+st+'" title="não estudado → estudando → dominado">'+ICON[st]+'</button>'
+      r.innerHTML='<button class="st '+st+'" aria-label="'+att(rotStat(it.t,st))+'"'
+        +' title="não estudado → estudando → dominado">'+ICON[st]+'</button>'
         +'<div class="lt"><b>'+esc(it.t)+'</b>'+(it.d?('<small>'+esc(it.d)+'</small>'):'')+'</div>'
-        +'<button class="fav'+(fav?' on':'')+'" title="Favoritar">'+(fav?'★':'☆')+'</button>'
+        +'<button class="fav'+(fav?' on':'')+'" aria-pressed="'+(fav?'true':'false')
+        +'" aria-label="Favoritar '+att(it.t)+'" title="Favoritar">'+(fav?'★':'☆')+'</button>'
         +'<button class="rg" title="Abrir o registro de sessão com este tópico">✎ Registrar</button>';
       r.querySelector('.st').onclick=function(){
         var cur=STAT.indexOf(est.stat[id]||''), nx=STAT[(cur+1)%3];
         if(nx) est.stat[id]=nx; else delete est.stat[id];
-        save(); var b=r.querySelector('.st'); b.className='st '+nx; b.textContent=ICON[nx]; stats();
+        save(); var b=r.querySelector('.st'); b.className='st '+nx; b.textContent=ICON[nx];
+        b.setAttribute('aria-label', rotStat(it.t,nx)); stats();
       };
       r.querySelector('.fav').onclick=function(){
         if(est.fav[id]) delete est.fav[id]; else est.fav[id]=1;
-        save(); var b=r.querySelector('.fav'); b.classList.toggle('on',!!est.fav[id]); b.textContent=est.fav[id]?'★':'☆'; stats();
+        save(); var b=r.querySelector('.fav'); b.classList.toggle('on',!!est.fav[id]); b.textContent=est.fav[id]?'★':'☆';
+        b.setAttribute('aria-pressed', est.fav[id]?'true':'false'); stats();
       };
       // ABRE o registro de sessão preenchido — nunca grava sozinho (regra da casa).
       r.querySelector('.rg').onclick=function(){
