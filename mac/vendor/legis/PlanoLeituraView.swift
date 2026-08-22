@@ -46,7 +46,9 @@ struct PlanoLeituraView: View {
                 ScrollView {
                     LazyVStack(spacing: 10) {
                         if terms.isEmpty && filter == "todas" { dashboard }
-                        ForEach(Array(ReadingData.plano.enumerated()), id: \.offset) { di, disc in
+                        // id estável (nome da disciplina): com \.offset a busca fazia o
+                        // SwiftUI reaproveitar linhas erradas ao filtrar.
+                        ForEach(Array(ReadingData.plano.enumerated()), id: \.element.name) { di, disc in
                             if discMatches(di, disc) { discCard(di, disc) }
                         }
                         Color.clear.frame(height: 30)
@@ -93,8 +95,7 @@ struct PlanoLeituraView: View {
             }
             Spacer()
             if startTS > 0 {
-                Button("Limpar cronograma") { startTS = 0 }.buttonStyle(.plain)
-                    .font(.system(size: 11.5)).foregroundStyle(ThemeState.t.accent)
+                Button("Limpar cronograma") { startTS = 0 }.buttonStyle(.legisGhost)
             } else {
                 Text("Defina o início para calcular a data de cada leitura")
                     .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk.opacity(0.8))
@@ -112,10 +113,9 @@ struct PlanoLeituraView: View {
         return HStack(alignment: .center, spacing: 20) {
             ChecklistRing(frac: frac, size: 78, line: 9, center: "\(Int(frac * 100))%")
             VStack(alignment: .leading, spacing: 7) {
-                Text("SEU PROGRESSO").font(.system(size: 10, weight: .heavy)).tracking(1.0)
-                    .foregroundStyle(ThemeState.t.accent)
+                LegisSectionHeader(title: "Seu progresso", tint: ThemeState.t.accent)
                 Text("\(doneN) de \(total) leituras concluídas")
-                    .font(.system(size: 16, weight: .heavy)).foregroundStyle(AppTheme.ink)
+                    .font(AppTheme.displayFont(16, .heavy)).foregroundStyle(AppTheme.ink)
                 if let nx = nextPending() {
                     HStack(spacing: 7) {
                         Image(systemName: "arrow.right.circle.fill").font(.system(size: 12))
@@ -131,12 +131,12 @@ struct PlanoLeituraView: View {
                     let atr = overdueCount()
                     Text(atr > 0 ? "⏰ \(atr) leitura\(atr == 1 ? "" : "s") atrasada\(atr == 1 ? "" : "s")" : "Em dia com o cronograma ✓")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(atr > 0 ? (Color(css: "#e11d48") ?? .red) : ThemeState.t.accent)
+                        .foregroundStyle(atr > 0 ? AppTheme.danger : ThemeState.t.accent)
                 }
             }
             Spacer(minLength: 8)
             VStack(alignment: .leading, spacing: 5) {
-                ForEach(Array(ReadingData.plano.prefix(7).enumerated()), id: \.offset) { di, disc in
+                ForEach(Array(ReadingData.plano.prefix(7).enumerated()), id: \.element.name) { di, disc in
                     let c = Color(css: disc.color) ?? ThemeState.t.accent
                     let nD = disc.laws.reduce(0) { $0 + $1.days.count }
                     HStack(spacing: 8) {
@@ -152,8 +152,7 @@ struct PlanoLeituraView: View {
             }
         }
         .padding(20)
-        .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+        .legisCard(radius: AppTheme.rHero)
     }
 
     private func nextPending() -> String? {
@@ -191,11 +190,11 @@ struct PlanoLeituraView: View {
         VStack(spacing: 0) {
             Button { toggle(&openDisc, di) } label: {
                 HStack(spacing: 13) {
-                    RoundedRectangle(cornerRadius: 9, style: .continuous).fill(c)
+                    RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(c)
                         .frame(width: 42, height: 34)
                         .overlay(Text(abbr(disc.name)).font(.system(size: 12.5, weight: .heavy)).foregroundStyle(.white))
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(disc.name).font(.system(size: 15.5, weight: .bold)).foregroundStyle(AppTheme.ink)
+                        Text(disc.name).font(AppTheme.displayFont(15.5, .bold)).foregroundStyle(AppTheme.ink)
                         Text("\(disc.laws.count) leis · \(nDays) leituras")
                             .font(.system(size: 11)).foregroundStyle(AppTheme.secondaryInk)
                     }
@@ -210,16 +209,14 @@ struct PlanoLeituraView: View {
             .buttonStyle(.plain)
             if isOpen {
                 VStack(spacing: 0) {
-                    ForEach(Array(disc.laws.enumerated()), id: \.offset) { li, law in
+                    ForEach(Array(disc.laws.enumerated()), id: \.element.name) { li, law in
                         lawGroup(di, li, law, c)
                     }
                 }
                 .padding(.horizontal, 10).padding(.bottom, 6)
             }
         }
-        .background(AppTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
-        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(c).frame(width: 3).padding(.vertical, 12) }
+        .legisCard(tint: c, spine: true)
     }
 
     // MARK: law group (collapsible into days)
@@ -237,11 +234,7 @@ struct PlanoLeituraView: View {
                         Image(systemName: "book").font(.system(size: 10)).foregroundStyle(AppTheme.secondaryInk.opacity(0.7))
                     }
                     Spacer(minLength: 6)
-                    Text("\(lawDone(di, li, law))/\(law.days.count)")
-                        .font(.system(size: 10.5, weight: .bold).monospacedDigit())
-                        .foregroundStyle(AppTheme.secondaryInk)
-                        .padding(.horizontal, 8).padding(.vertical, 2)
-                        .background(Capsule().fill(AppTheme.softStroke))
+                    LegisChip("\(lawDone(di, li, law))/\(law.days.count)", tint: AppTheme.secondaryInk, variant: .soft)
                     Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(AppTheme.secondaryInk.opacity(0.5))
                         .rotationEffect(.degrees(isOpen ? 90 : 0))
@@ -251,7 +244,7 @@ struct PlanoLeituraView: View {
             .buttonStyle(.plain)
             .overlay(alignment: .top) { Rectangle().fill(AppTheme.hairline).frame(height: 1) }
             if isOpen {
-                ForEach(Array(law.days.enumerated()), id: \.offset) { dyi, day in
+                ForEach(Array(law.days.enumerated()), id: \.element.d) { dyi, day in
                     if dayMatches(di, li, dyi, day, law) {
                         dayRow(di, li, dyi, day, law, law0, c)
                     }
@@ -271,11 +264,11 @@ struct PlanoLeituraView: View {
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
                     .fill(isDone ? c : Color.clear)
                     .frame(width: 17, height: 17)
-                    .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(isDone ? c : AppTheme.secondaryInk.opacity(0.45), lineWidth: 2))
+                    .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).strokeBorder(isDone ? c : AppTheme.secondaryInk.opacity(0.45), lineWidth: 2))
                     .overlay(Image(systemName: "checkmark").font(.system(size: 9, weight: .black)).foregroundStyle(.white).opacity(isDone ? 1 : 0))
             }
             .buttonStyle(.plain)
-            Text(day.d).font(.system(size: 12, weight: .heavy).monospacedDigit())
+            Text(day.d).font(Typo.num(12, .heavy))
                 .foregroundStyle(AppTheme.ink).frame(width: 54, alignment: .leading)
                 .strikethrough(isDone, color: AppTheme.secondaryInk).opacity(isDone ? 0.5 : 1)
             Text(day.a).font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
@@ -292,11 +285,8 @@ struct PlanoLeituraView: View {
                 .layoutPriority(1)
             }
             if showCrono, startTS > 0 {
-                Text(cronoLabel(globalIndex(di, li, dyi)))
-                    .font(.system(size: 10.5, weight: .semibold))
-                    .foregroundStyle(cronoOverdue(globalIndex(di, li, dyi), isDone) ? Color(css: "#e11d48")! : ThemeState.t.accent)
-                    .padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Capsule().fill((cronoOverdue(globalIndex(di, li, dyi), isDone) ? Color(css: "#e11d48")! : ThemeState.t.accent).opacity(0.12)))
+                let atrasada = cronoOverdue(globalIndex(di, li, dyi), isDone)
+                LegisChip(cronoLabel(globalIndex(di, li, dyi)), tint: atrasada ? AppTheme.danger : ThemeState.t.accent, variant: .soft)
             }
             if law0 != nil {
                 Button { openArticle(law0!, firstArt(day.a)) } label: {
@@ -387,8 +377,8 @@ struct PlanoLeituraView: View {
     }
     private func artRange(_ a: String) -> (Int, Int) {
         let ns = a.split(whereSeparator: { !$0.isNumber }).compactMap { Int($0) }
-        if ns.isEmpty { return (0, -1) }
-        return (ns.first!, ns.last!)
+        guard let lo = ns.first, let hi = ns.last else { return (0, -1) }
+        return (lo, hi)
     }
     private func artNumber(_ label: String) -> Int? {
         let after = label.drop(while: { !$0.isNumber })
@@ -447,7 +437,7 @@ struct ProgressPill: View {
                     RoundedRectangle(cornerRadius: 99).fill(color)
                         .frame(width: total > 0 ? 56 * CGFloat(done) / CGFloat(total) : 0, height: 6)
                 }
-            Text("\(done) / \(total)").font(.system(size: 11, weight: .bold).monospacedDigit())
+            Text("\(done) / \(total)").font(Typo.num(11))
                 .foregroundStyle(AppTheme.secondaryInk)
         }
     }

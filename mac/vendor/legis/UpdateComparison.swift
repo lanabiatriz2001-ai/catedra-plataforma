@@ -139,9 +139,9 @@ struct UpdateComparisonTable: View {
 
     private var headerRow: some View {
         HStack(alignment: .top, spacing: 0) {
-            cellLabel("Redação anterior", "minus.circle.fill", .red)
+            cellLabel("Redação anterior", "minus.circle.fill", AppTheme.danger)
             Rectangle().fill(.quaternary).frame(width: 1)
-            cellLabel("Redação atual", "plus.circle.fill", .green)
+            cellLabel("Redação atual", "plus.circle.fill", AppTheme.ok)
         }
         .background(Color.secondary.opacity(0.08))
     }
@@ -159,17 +159,17 @@ struct UpdateComparisonTable: View {
         HStack(alignment: .top, spacing: 0) {
             switch row {
             case .modified(_, let old, let new):
-                cell(inlineText(old, changed: .red, strike: true), tint: .red.opacity(0.06))
+                cell(inlineText(old, changed: AppTheme.danger, strike: true), tint: AppTheme.danger.opacity(0.06))
                 separator
-                cell(inlineText(new, changed: .green, strike: false), tint: .green.opacity(0.06))
+                cell(inlineText(new, changed: AppTheme.ok, strike: false), tint: AppTheme.ok.opacity(0.06))
             case .removed(_, let old):
-                cell(Text(old).foregroundStyle(.primary), tint: .red.opacity(0.08))
+                cell(Text(old).foregroundStyle(.primary), tint: AppTheme.danger.opacity(0.08))
                 separator
                 cell(placeholder("revogado / sem correspondente"), tint: .clear)
             case .added(_, let new):
                 cell(placeholder("não existia antes"), tint: .clear)
                 separator
-                cell(Text(new).foregroundStyle(.primary), tint: .green.opacity(0.08))
+                cell(Text(new).foregroundStyle(.primary), tint: AppTheme.ok.opacity(0.08))
             }
         }
     }

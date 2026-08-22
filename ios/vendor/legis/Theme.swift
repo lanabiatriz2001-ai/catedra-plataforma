@@ -37,6 +37,11 @@ enum ThemeState {
 enum AppTheme {
     static var surfaceRadius: CGFloat { ThemeState.t.radius }
     static var compactRadius: CGFloat { max(6, ThemeState.t.radius - 3) }
+    // Três raios, derivados do `--radius` do Cátedra (pente fino 21/08/2026 — Build C):
+    // rCard = cartão/linha, rInner = controles e caixas internas, rHero = hero/paleta/vazios.
+    static var rCard: CGFloat  { surfaceRadius }
+    static var rInner: CGFloat { compactRadius }
+    static var rHero: CGFloat  { ThemeState.t.radius + 6 }
     static let pageInset: CGFloat = 20
     static var pageBackground: Color   { ThemeState.t.bg }
     static var cardBackground: Color   { ThemeState.t.surface }
@@ -48,6 +53,10 @@ enum AppTheme {
     static var ok: Color               { ThemeState.t.ok }
     static var warn: Color             { ThemeState.t.warn }
     static var danger: Color           { ThemeState.t.danger }
+    /// Informativo (azul) — o quarto semântico; e a cor única de "domínio/revisão/SRS"
+    /// (antes era `.purple`/`.indigo` solto em cada tela).
+    static let info: Color  = Color(hex: 0x2563EB)
+    static let srs: Color   = Color(hex: 0x7C3AED)
     /// Fonte de TÍTULO no padrão da casa: serifada quando o tema do Cátedra é serifado.
     static func displayFont(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
         .system(size: size, weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
@@ -71,42 +80,6 @@ struct SurfaceCard<Content: View>: View {
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .appSurface(accent: accent)
-    }
-}
-
-struct AccentCallout<Content: View>: View {
-    let symbol: String
-    let color: Color
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        HStack(spacing: 12) {
-            IconBubble(symbol: symbol, color: color, size: 40)
-            content
-            Spacer(minLength: 0)
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous)
-                .fill(color.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous)
-                        .stroke(color.opacity(0.22), lineWidth: 1)
-                )
-        )
-    }
-}
-
-struct SectionTitle: View {
-    let title: String
-    let symbol: String
-    var color: Color? = nil
-
-    var body: some View {
-        Label(title, systemImage: symbol)
-            .font(.headline.weight(.semibold))
-            .foregroundStyle(color ?? .primary)
     }
 }
 
@@ -265,11 +238,21 @@ struct MateriaBanner: View {
     let title: String
     let color: Color
     var symbol: String? = nil
+    /// Controles à direita (ex.: seletor Estudo/Leitura corrida do leitor).
+    var trailing: AnyView? = nil
+    /// `false` = só o conteúdo, sem a moldura própria (quando já vive dentro de um card).
+    var framed: Bool = true
 
     var body: some View {
-        HStack(spacing: 13) {
+        HStack(alignment: .top, spacing: 13) {
             if let symbol {
-                IconBubble(symbol: symbol, color: color, size: 46)
+                RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous)
+                    .fill(LinearGradient(colors: [color, color.opacity(0.72)],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 48, height: 48)
+                    .overlay(Image(systemName: symbol).font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white))
+                    .shadow(color: color.opacity(0.4), radius: 8, y: 4)
             }
             VStack(alignment: .leading, spacing: 3) {
                 if let context, !context.isEmpty {
@@ -279,22 +262,23 @@ struct MateriaBanner: View {
                         .lineLimit(1)
                 }
                 Text(title)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(AppTheme.displayFont(24, .bold))
                     .foregroundStyle(AppTheme.ink)
                     .lineLimit(2)
             }
             Spacer(minLength: 0)
+            if let trailing { trailing }
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 15)
+        .padding(.horizontal, framed ? 18 : 0)
+        .padding(.vertical, framed ? 15 : 0)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous)
-                .fill(AppTheme.cardBackground)
+            RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous)
+                .fill(framed ? AppTheme.cardBackground : Color.clear)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous)
-                .strokeBorder(AppTheme.hairline, lineWidth: 1)
+            RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous)
+                .strokeBorder(framed ? AppTheme.hairline : Color.clear, lineWidth: 1)
         )
     }
 }
@@ -322,11 +306,8 @@ struct IconBubble: View {
     }
 }
 
-/// Etiqueta pequena de status (chips das listas).
-/// `filled` (padrão) desenha a cápsula colorida — bom para o que exige atenção
-/// (ex.: "Não baixada"). Com `filled: false` o chip fica discreto (só ícone+texto
-/// na cor `color`, sem cápsula) para não poluir a linha da norma. Em ambos os
-/// casos o texto respeita `color`; passe `.secondary` para um cinza neutro.
+/// Etiqueta pequena de status (chips das listas) — açúcar sobre `LegisChip`
+/// (LegisComponents.swift): `filled` = .soft, `filled: false` = .ghost.
 struct Chip: View {
     let text: String
     let symbol: String
@@ -334,45 +315,6 @@ struct Chip: View {
     var filled: Bool = true
 
     var body: some View {
-        Label(text, systemImage: symbol)
-            .font(.caption2.weight(filled ? .semibold : .regular))
-            .padding(.horizontal, filled ? 7 : 0)
-            .padding(.vertical, filled ? 3 : 0)
-            .background(filled ? AnyView(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(color.opacity(0.12))) : AnyView(Color.clear))
-            .foregroundStyle(color)
-    }
-}
-
-/// Cartão do painel inicial.
-struct StatCard: View {
-    let title: String
-    let value: String
-    let symbol: String
-    let color: Color
-    var detail: String? = nil
-
-    var body: some View {
-        SurfaceCard(accent: color) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    IconBubble(symbol: symbol, color: color, size: 34)
-                    Spacer()
-                }
-                Text(value)
-                    .font(.system(size: 30, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.primary)
-                    .monospacedDigit()
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.callout.weight(.medium))
-                        .foregroundStyle(.primary)
-                    if let detail {
-                        Text(detail)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        }
+        LegisChip(text, icon: symbol, tint: color, variant: filled ? .soft : .ghost)
     }
 }

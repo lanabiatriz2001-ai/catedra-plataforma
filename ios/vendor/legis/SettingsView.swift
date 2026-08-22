@@ -42,7 +42,7 @@ struct SettingsView: View {
                 LabeledContent("Conexão") {
                     Label(store.isOnline ? "Online" : "Offline",
                           systemImage: store.isOnline ? "wifi" : "wifi.slash")
-                        .foregroundStyle(store.isOnline ? .green : .orange)
+                        .foregroundStyle(store.isOnline ? AppTheme.ok : AppTheme.warn)
                 }
                 LabeledContent("Leis salvas para uso offline", value: "\(downloadedCount) de \(regularCount)")
                 Button {
