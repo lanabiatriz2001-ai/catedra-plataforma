@@ -25,6 +25,29 @@ const PADROES = [
 // Só texto: binários (png, ico, woff) não têm marca d'água de PDF e dariam ruído.
 const EXTS = new Set(['.js', '.html', '.json', '.webmanifest', '.txt', '.css', '.svg', '.mjs']);
 
+/** CPF de gente passa no dígito verificador; CPF de exemplo, não.
+ *
+ *  POR QUE ISTO EXISTE: o espelho da DPE-SE 2021 ensina a qualificar a parte numa petição e
+ *  escreve, na prosa da própria banca, "Maria Silva … inscrita no CPF sob o nº 111.222.333-33
+ *  …, residente e domiciliada na rua …". É documento público, e o número é um espaço em
+ *  branco com cara de número. Barrar o build por causa dele é o alarme falso que este
+ *  arquivo já se preocupava em evitar — e uma trava que grita à toa é uma trava que alguém
+ *  desliga. Marca d'água de PDF de curso carrega CPF DE VERDADE, e CPF de verdade valida.
+ */
+function cpfValido(bruto) {
+  const d = String(bruto).replace(/\D/g, '');
+  if (d.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(d)) return false;              // 000…, 111… não são CPF de ninguém
+  for (let corte = 9; corte <= 10; corte++) {
+    let soma = 0;
+    for (let i = 0; i < corte; i++) soma += +d[i] * (corte + 1 - i);
+    let dig = (soma * 10) % 11;
+    if (dig === 10) dig = 0;
+    if (dig !== +d[corte]) return false;
+  }
+  return true;
+}
+
 function arquivos(dir) {
   const saida = [];
   for (const nome of readdirSync(dir)) {
@@ -43,8 +66,11 @@ export function verificarPII(dir, { abortar = true, rotulo = dir } = {}) {
     const txt = readFileSync(arq, 'utf8');
     for (const { nome, re } of PADROES) {
       re.lastIndex = 0;
-      const hits = txt.match(re);
-      if (hits) achados.push({ arq, tipo: nome, quantos: hits.length, exemplo: hits[0] });
+      let hits = txt.match(re);
+      // Nos padrões de CPF, só conta o que valida: número de exemplo em modelo de peça
+      // (o "111.222.333-33" dos espelhos) não é dado de ninguém.
+      if (hits && /CPF/i.test(nome)) hits = hits.filter(cpfValido);
+      if (hits && hits.length) achados.push({ arq, tipo: nome, quantos: hits.length, exemplo: hits[0] });
     }
   }
 

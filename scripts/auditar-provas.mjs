@@ -19,6 +19,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { audita, juntaEspelho } from './qualidade-texto.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -35,54 +36,9 @@ function carregaGlobal(arquivo) {
   return w[nomes[0]];
 }
 
-/* ---------- as heurísticas: cada uma detecta um jeito de o texto estar errado ---------- */
-
-// A capa/instruções do caderno entrou como se fosse o enunciado.
-const RE_INSTRUCOES = /N[ÃA]O\s+SER[ÁA]\s+PERMITIDO|INFORMA[ÇC][ÕO]ES\s+GERAIS|SUA\s+PROVA\b|retirar-?se\s+da\s+sala|ser[áa]\s+eliminado\s+do\s+concurso|fiscal\s+de\s+sala|caderno\s+de\s+(?:provas?|quest[õo]es)\s+e\s+a\s+folha/i;
-function temInstrucoesDeCaderno(txt) {
-  // só conta quando aparece no PRIMEIRO terço — instruções no fim são anexo legítimo raro
-  const cabeca = txt.slice(0, Math.max(1200, Math.floor(txt.length / 3)));
-  return RE_INSTRUCOES.test(cabeca);
-}
-
-// Cabeçalho/rodapé de página vazando: a mesma linha longa repetida várias vezes.
-function temCabecalhoRepetido(txt) {
-  const cont = {};
-  for (const l of txt.split('\n')) {
-    const s = l.trim();
-    if (s.length < 20) continue;
-    cont[s] = (cont[s] || 0) + 1;
-    if (cont[s] >= 4) return true;
-  }
-  return false;
-}
-
-// Extração falhou ou PDF é imagem: sobrou texto de menos para ser uma prova real.
-const CURTO_MIN = 300;
-
-// Lixo de codificação: proporção alta de caracteres fora do esperado em português.
-function proporcaoLixo(txt) {
-  if (!txt.length) return 0;
-  //   (espaço não-quebrável) e ­ (hífen suave) são normais em texto de banca
-  const lixo = (txt.match(/[^\x20-\x7EÀ-ÿ ­§ºª°–—‘’“”…\n\r\t•·]/g) || []).length;
-  return lixo / txt.length;
-}
-
-// Códigos internos do PDF da banca vazando no texto (ex.: <<D01_dAdm_A0100422_...>>).
-const RE_MARCADOR_INTERNO = /<<[A-Za-z0-9_]{6,}>>|\[\[[A-Za-z0-9_]{6,}\]\]/;
-
-function audita(txt, { minChars = CURTO_MIN } = {}) {
-  const t = String(txt || '');
-  const problemas = [];
-  if (t.length < minChars) problemas.push('curto');
-  else {
-    if (temInstrucoesDeCaderno(t)) problemas.push('instrucoes-de-caderno');
-    if (temCabecalhoRepetido(t)) problemas.push('cabecalho-repetido');
-    if (RE_MARCADOR_INTERNO.test(t)) problemas.push('marcador-interno');
-    if (proporcaoLixo(t) > 0.02) problemas.push('lixo-encoding');
-  }
-  return problemas;
-}
+/* ---------- as heurísticas moram em qualidade-texto.mjs ----------
+   O build que PUBLICA o texto (build-provas-conteudo.mjs) usa o mesmo módulo, para que
+   a régua de publicar e a régua de auditar não possam divergir. ------------------- */
 
 /* ---------- roda sobre os dois acervos publicados ---------- */
 
@@ -98,7 +54,10 @@ const marca = (sintomas, id, campo) => sintomas.forEach(s => {
 let totalEn = 0, totalEsp = 0, reprovadosEn = 0, reprovadosEsp = 0;
 const idsReprovados = new Set();
 
+const espelhoEmProsa = new Map();       // id -> padrão de resposta em prosa (campo `et`)
 for (const [id, item] of Object.entries(TEXTOS)) {
+  if (item.et) espelhoEmProsa.set(id, item.et);
+  if (item.en == null) continue;        // registro só de espelho em prosa
   totalEn++;
   const p = audita(item.en);
   if (p.length) { reprovadosEn++; idsReprovados.add(id); marca(p, id, 'enunciado'); }
@@ -106,8 +65,11 @@ for (const [id, item] of Object.entries(TEXTOS)) {
 const lista = Array.isArray(DISC) ? DISC : Object.values(DISC);
 let semEspelho = 0;
 for (const item of lista) {
-  const bruto = item.espelho ?? item.esp;
-  const esp = String(bruto == null ? '' : (Array.isArray(bruto) ? bruto.join('\n') : bruto)).trim();
+  // O espelho vive em três formas: quesitos estruturados, prosa no próprio registro
+  // (espelhoTexto) ou prosa no arquivo de textões (`et`). As três são espelho.
+  const esp = juntaEspelho(item.espelho ?? item.esp)
+    || String(item.espelhoTexto || '').trim()
+    || String(espelhoEmProsa.get(item.id) || '').trim();
   // Espelho AUSENTE é outra doença (falta extrair/publicar) — conta à parte, não
   // como deformação. Deformação é texto presente e errado.
   if (!esp) { semEspelho++; continue; }

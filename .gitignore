@@ -1,6 +1,10 @@
 # build / deploy gerados
 public/
 node_modules/
+# e o ARQUIVO com esse nome: um `git add -A` num worktree pegou o symlink node_modules
+# (que apontava para si mesmo) e o versionou — isso quebra `npm install` em qualquer
+# clone com "Too many levels of symbolic links". O padrão com barra só cobre diretório.
+node_modules
 .vercel
 
 # segredos (a chave da API vive só nas variáveis de ambiente da Vercel)

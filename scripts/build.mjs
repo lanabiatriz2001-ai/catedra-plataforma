@@ -9,9 +9,10 @@
 //     do service worker (PWA).
 //  3. Escreve o resultado em public/index.html.
 //  4. Copia support.js, sw.js, manifest.webmanifest e icon.svg para public/.
-//  5. Ajusta o sw.js para cachear index.html (e não Catedra.dc.html).
+//  5. Ajusta o sw.js: entrada em index.html (e não Catedra.dc.html) e as três
+//     listas de precache do U10 (casca, acervo e "baixar tudo") já MEDIDAS em bytes.
 
-import { cpSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
+import { cpSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { execSync } from 'node:child_process';
@@ -204,6 +205,77 @@ window.claude = {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
 }
+/* U10 — ponte de instalação e de acervo offline para os Ajustes do host.
+   Por que aqui e não lá dentro: o navegador dispara 'beforeinstallprompt' UMA vez,
+   antes de a interface existir. Quem não segurar o evento neste ponto perde o
+   direito de chamar prompt() depois — e o item "Instalar no aparelho" viraria um
+   botão que não faz nada. O host só lê window.__catedraInstall / __catedraOffline;
+   fora do deploy web (preview local, app do Mac/iPad) eles não existem, e o item
+   deve simplesmente não aparecer. */
+window.__catedraInstall = (function () {
+  var ev = null, ouvintes = [];
+  var ua = navigator.userAgent || '';
+  var iOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  function jaInstalado() {
+    try { if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true; } catch (_) {}
+    return navigator.standalone === true;
+  }
+  var api = {
+    plataforma: iOS ? 'ios' : 'outros',
+    instalado: jaInstalado(),
+    // No iOS não existe prompt nenhum: o caminho é manual, e a instrução abaixo é
+    // a única coisa honesta a mostrar.
+    promptDisponivel: false,
+    instrucao: iOS
+      ? 'No Safari, toque em Compartilhar e escolha "Adicionar à Tela de Início".'
+      : 'No menu do navegador, escolha "Instalar aplicativo".',
+    aoMudar: function (fn) { if (typeof fn === 'function') ouvintes.push(fn); },
+    instalar: function () {
+      if (!ev) return Promise.resolve('indisponivel');
+      var p = ev; ev = null; api.promptDisponivel = false; avisa();
+      try { p.prompt(); } catch (_) { return Promise.resolve('indisponivel'); }
+      return Promise.resolve(p.userChoice).then(function (r) {
+        return (r && r.outcome === 'accepted') ? 'aceito' : 'recusado';
+      }).catch(function () { return 'indisponivel'; });
+    }
+  };
+  function avisa() { ouvintes.forEach(function (f) { try { f(api); } catch (_) {} }); }
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); ev = e; api.promptDisponivel = true; avisa();
+  });
+  window.addEventListener('appinstalled', function () {
+    api.instalado = true; api.promptDisponivel = false; ev = null; avisa();
+  });
+  return api;
+})();
+/* Quanto do acervo já está guardado neste aparelho, e o botão de baixar o resto.
+   O worker traz sozinho os ~11 MB do estudo do dia; baixar() acrescenta os ~18 MB
+   pesados (texto do JURIS para o simulado de súmulas, perguntas da arguição oral,
+   leis das outras áreas), que só descem quando ela manda. estado() devolve
+   { prontos, total, bytes, totalBytes, auto:{...} } — o campo "auto" é a parte
+   automática, para o Ajuste poder dizer "o dia a dia está pronto" sem uma barra
+   eternamente pela metade. baixar() também é o único caminho para quem está com
+   "economizar dados" ligado, porque aí o aquecimento automático não roda. */
+window.__catedraOffline = (function () {
+  function fala(msg) {
+    return new Promise(function (ok, falha) {
+      var sw = navigator.serviceWorker;
+      if (!sw) return falha(new Error('sem service worker'));
+      sw.ready.then(function (reg) {
+        var alvo = reg.active || sw.controller;
+        if (!alvo) return falha(new Error('worker não ativo'));
+        var canal = new MessageChannel();
+        var t = setTimeout(function () { falha(new Error('sem resposta do worker')); }, 20000);
+        canal.port1.onmessage = function (e) { clearTimeout(t); ok(e.data); };
+        alvo.postMessage(msg, [canal.port2]);
+      }).catch(falha);
+    });
+  }
+  return {
+    estado: function () { return fala({ type: 'ctEstadoOffline' }).then(function (r) { return (r && r.estado) || null; }); },
+    baixar: function () { return fala({ type: 'ctAquecerAcervos' }).then(function (r) { return (r && r.resultado) || null; }); }
+  };
+})();
 </script>
 <!-- ▲ fim do trecho injetado ▲ -->
 `;
@@ -222,7 +294,7 @@ if (fontsHref) {
 
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js']) {
+for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
 }
 // fatias dos acervos (ct-dados/sw): pasta inteira, nomes com hash
@@ -241,12 +313,115 @@ cpSync(join(ROOT, 'dados'), join(pub, 'dados'), { recursive: true });
   writeFileSync(join(pub, 'manifest.webmanifest'), JSON.stringify(mani, null, 2));
 }
 
+// ── U10: precache MEDIDO ─────────────────────────────────────────────────────
+// O sw.js não chuta tamanho de arquivo nenhum: as listas saem daqui já com o byte
+// real de cada arquivo, para que o orçamento de cota lá dentro seja aritmética.
+const bytesDe = (rel) => { try { return statSync(join(pub, rel)).size; } catch (_) { return 0; } };
+const pastasDeDados = () => {
+  try {
+    return readdirSync(join(pub, 'dados'), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+  } catch (_) { return []; }
+};
+
+/* CAMADA 1 — a casca, precache bloqueante do install. Só o que o app precisa para
+   ABRIR. Antes, os três <script> do <head> e as fontes só entravam no cache DEPOIS
+   da primeira navegação — quem instalasse e entrasse no avião em seguida abria o
+   app sem eles. */
+const casca = [...vendorados, './prioridade-calc.js', './busca-unica.js', './semana-juris.js',
+  // C2 e C3 tambem sao <script> do <head>: fora da casca, o app instalado abriria sem
+  // o mapa das plataformas e sem o miolo do espelho sugerido.
+  './plataformas-questoes.js', './espelho-sugerido.js', './icon-180.png'];
+if (fontsHref) {
+  casca.push('./fonts.css');
+  // Só os subconjuntos latinos. O Google fatia cada família por unicode-range e o
+  // build vendorou os 48 arquivos (860 KB); precachear cirílico, grego e vietnamita
+  // num app de direito brasileiro seria pagar install mais lento e cota do aparelho
+  // por bytes que ninguém vai renderizar. Os outros continuam publicados e entram no
+  // cache pela rede se algum dia forem pedidos.
+  try {
+    const css = readFileSync(join(pub, 'fonts.css'), 'utf8');
+    const re = /\/\*\s*([a-z-]+)\s*\*\/\s*@font-face\s*\{[^}]*?url\(\.\/fonts\/([^)]+)\)/g;
+    const latinos = new Set();
+    for (let m; (m = re.exec(css));) if (m[1] === 'latin' || m[1] === 'latin-ext') latinos.add(m[2]);
+    for (const f of latinos) casca.push('./fonts/' + f);
+  } catch (_) {}
+}
+// Manifestos dos acervos fatiados: 3 arquivos de ~1 KB cada. Sem eles guardados, no
+// primeiro voo offline o CTDados nem descobre que os blocos existem, dá o acervo por
+// indisponível e cai no monolito de 4 MB — que também não está lá. É o arquivo com a
+// melhor relação tamanho/estrago do deploy inteiro.
+for (const nome of pastasDeDados()) {
+  const rel = './dados/' + nome + '/manifesto.json';
+  if (bytesDe(rel)) casca.push(rel);
+}
+
+/* CAMADA 2 — os acervos, aquecidos DEPOIS de ativar, em ordem de prioridade.
+   A ordem é o que se perde primeiro quando a cota do aparelho é apertada:
+   quem não couber no orçamento do sw.js é cortado do fim para o começo. */
+const acervoOffline = [
+  // 1. as telas satélite — sem elas, abrir LEGIS/JURIS/roteiros offline dá tela branca
+  './tema-satelite.js', './ritos-web.html', './pecas-web.html', './area-web.html',
+  './legis-web.html', './juris-web.html', './segunda-fase-web.html', './prioridade-web.html',
+  // 2. os scripts que cada satélite carrega
+  './ritos.js', './pecas.js', './fluxos.js', './peca-roteiro.js', './area-modulos.js',
+  './treino.js', './leis-catalogo.js', './prioridade-dados.js', './incidencia.js',
+  // 3. lei seca em blocos (4,3 MB): é o treino diário, e o acervoLeis() do treino.js
+  //    pede o acervo INTEIRO — offline, bloco faltando vira lista de leis vazia,
+  //    em silêncio. Vão para o cache de dados, não para o da casca.
+  ...(() => {
+    try {
+      const m = JSON.parse(readFileSync(join(pub, 'dados', 'leis-seca', 'manifesto.json'), 'utf8'));
+      return (m.arquivos || []).map((a) => './dados/leis-seca/' + a);
+    } catch (_) { return []; }
+  })(),
+  // 4. os acervos do estudo do dia
+  './questoes-prova.js', './espelhos.js', './oral.js', './modelos-edital.js', './discursivas.js',
+  // 5. JURIS: o índice dos 14,6 mil verbetes (busca e navegação offline). O TEXTO
+  //    fica de fora — são 10 MB, e é exatamente para isso que ele foi fatiado.
+  './juris-index.js', './juris-mapas-sv.html',
+];
+/* CAMADA 3 — os pesados, baixados só quando ela pedir ("Baixar tudo" nos Ajustes,
+   via window.__catedraOffline.baixar()). Cada um desbloqueia UMA tela offline e
+   custa caro; trazer isso sozinho é que seria estourar a cota do aparelho. */
+const acervoSobPedido = [
+  './juris-text.js',        // Simulado de súmulas: treino.js monta os itens com __JURIS_TXT__ inteiro
+  './oral-conteudo.js',     // as 999 perguntas de banca da arguição oral
+  './leis-seca-areas.js',   // as 35 leis das áreas não jurídicas
+];
+const medir = (lista) => lista.map((p) => [p, bytesDe(p)]).filter(([p, b]) => {
+  if (!b) console.log('  ⚠ acervo offline ausente do deploy, fora do precache: ' + p);
+  return b > 0;
+});
+const acervos = medir(acervoOffline);
+const sobPedido = medir(acervoSobPedido);
+const somaAcervo = acervos.reduce((s, [, b]) => s + b, 0);
+const somaSobPedido = sobPedido.reduce((s, [, b]) => s + b, 0);
+const somaCasca = casca.reduce((s, p) => s + bytesDe(p), 0) + bytesDe('./index.html');
+const mb = (n) => (n / 1048576).toFixed(1) + ' MB';
+console.log('  · precache: casca ' + mb(somaCasca) + ' (' + (casca.length + 1) + ' arquivos) + acervo '
+  + mb(somaAcervo) + ' (' + acervos.length + ' arquivos) + sob pedido ' + mb(somaSobPedido)
+  + ' (' + sobPedido.length + ' arquivos)');
+// Os tetos estão declarados no sw.js; estourá-los não quebra nada (a cauda é cortada
+// em silêncio lá), mas passar por isso sem avisar seria perder um acervo sem saber.
+const TETO_SW = 14 * 1024 * 1024;
+const TETO_PEDIDO_SW = 34 * 1024 * 1024;
+if (somaAcervo > TETO_SW) {
+  console.log('  ⚠ o acervo offline (' + mb(somaAcervo) + ') passou do orçamento do sw.js ('
+    + mb(TETO_SW) + '): a cauda da lista NÃO será baixada. Meça e reordene ACERVO_OFFLINE.');
+}
+if (somaAcervo + somaSobPedido > TETO_PEDIDO_SW) {
+  console.log('  ⚠ acervo + sob pedido (' + mb(somaAcervo + somaSobPedido) + ') passou do orçamento de pedido do sw.js ('
+    + mb(TETO_PEDIDO_SW) + '): "Baixar tudo" não trará a cauda.');
+}
+
 // sw.js: entrada é index.html (não Catedra.dc.html) e as libs vendoradas entram
 // no precache — assim o app instalado abre offline sem depender de CDN nenhum.
 if (existsSync(join(ROOT, 'sw.js'))) {
   const sw = read('sw.js')
     .replace(/\.\/Catedra\.dc\.html/g, './index.html')
-    .replace('/*__EXTRA_ASSETS__*/', 'ASSETS = ASSETS.concat(' + JSON.stringify(vendorados) + ');');
+    .replace('/*__EXTRA_ASSETS__*/', 'ASSETS = ASSETS.concat(' + JSON.stringify(casca) + ');')
+    .replace('/*__ACERVOS__*/', 'ACERVOS = ' + JSON.stringify(acervos) + ';')
+    .replace('/*__ACERVOS_SOB_PEDIDO__*/', 'ACERVOS_SOB_PEDIDO = ' + JSON.stringify(sobPedido) + ';');
   writeFileSync(join(pub, 'sw.js'), sw);
 }
 
