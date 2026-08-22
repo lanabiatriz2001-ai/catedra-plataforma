@@ -799,6 +799,81 @@ if (!d1.erro) {
 } else {
   ok(false, 'D1 não deu para exercitar o satélite: ' + d1.erro);
 }
+/* ============= U3 — CONTINUAR DE ONDE PAREI ============= */
+// atenção: o rótulo do cartão é maiúsculo por CSS — comparar sem diferenciar caixa
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => {
+  ['catedra:lastPonto', 'catedra:lastPontoDispensado', 'ct_prova'].forEach(k => localStorage.removeItem(k));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1600);
+
+const u3a = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const tem = () => /continuar de onde parei/i.test(document.querySelector('main').innerText);
+  const r = {};
+  r.semPontoNaoMostra = !tem();                       // app novo não inventa cartão
+
+  // visitar um satélite grava o ponto
+  document.querySelector('button[data-view="areamod"]').click(); await w(1500);
+  const p = JSON.parse(localStorage.getItem('catedra:lastPonto') || 'null');
+  r.gravaPonto = !!p && p.view === 'areamod' && !!p.rotulo && typeof p.ts === 'number';
+
+  // estando NA view do ponto, o cartão não aparece (seria conselho para ficar onde já está)
+  r.naViewNaoMostra = !tem();
+
+  document.querySelector('button[data-view="inicio"]').click(); await w(700);
+  r.mostraNoInicio = tem();
+  return r;
+});
+for (const [k, v] of Object.entries(u3a)) ok(v, 'U3 ' + k);
+
+// ponto com rito reabre no ponto exato
+await page.evaluate(() => {
+  localStorage.setItem('catedra:lastPonto', JSON.stringify({ view: 'areamod', rito: 'Civil — conhecimento',
+    peca: '', bloco: null, termo: '', rotulo: 'Processo e peças — Civil — conhecimento', ts: Date.now() - 2 * 3600e3 }));
+  localStorage.setItem('catedra:lastPontoDispensado', '0');
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u3b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const M = () => document.querySelector('main').innerText;
+  const r = {};
+  r.idadeRelativa = /há 2h/.test(M());                // ts em ms vira idade legível
+  const btn = [...document.querySelectorAll('main button')].find(b => /^Continuar$/i.test((b.textContent || '').trim()));
+  if (!btn) return { ...r, erro: 'sem botão Continuar' };
+  btn.click(); await w(2200);
+  const fr = [...document.querySelectorAll('iframe')].find(f => /ritos-web/.test(f.getAttribute('src') || ''));
+  r.reabreNoPonto = !!fr && /rito=Civil/.test(decodeURIComponent(fr.getAttribute('src') || ''));
+
+  document.querySelector('button[data-view="inicio"]').click(); await w(700);
+  const x = [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === '✕');
+  r.temDispensar = !!x;
+  if (x) { x.click(); await w(600); }
+  r.dispensaSome = !/continuar de onde parei/i.test(M());
+  r.dispensaPersiste = +(localStorage.getItem('catedra:lastPontoDispensado') || '0') > 0;
+  return r;
+});
+if (!u3b.erro) { for (const [k, v] of Object.entries(u3b)) ok(v, 'U3 ' + k); }
+else ok(false, 'U3 ' + u3b.erro);
+
+// O app já reabre a prova pausada em TELA CHEIA no boot (_restoreProva consome ct_prova),
+// e descarta prova de outro dia de propósito: por isso o cartão NÃO trata simulado — seria
+// um botão que nunca aparece. Este teste guarda a decisão.
+await page.evaluate(() => {
+  localStorage.setItem('ct_prova', JSON.stringify({ d: new Date().toISOString().slice(0, 10), min: 60, sec: 1800 }));
+  localStorage.removeItem('catedra:lastPonto');
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u3c = await page.evaluate(() => ({
+  consumiuAChave: !localStorage.getItem('ct_prova'),
+  semCartaoDeProva: !/simulado cronometrado pausado/i.test(document.querySelector('main').innerText),
+}));
+ok(u3c.consumiuAChave, 'U3 a prova pausada é retomada pelo app (a chave é consumida no boot)');
+ok(u3c.semCartaoDeProva, 'U3 o cartão não duplica a retomada da prova');
+await page.evaluate(() => { ['catedra:lastPonto', 'catedra:lastPontoDispensado', 'ct_prova'].forEach(k => localStorage.removeItem(k)); });
 
 await browser.close();
 srv.close();
