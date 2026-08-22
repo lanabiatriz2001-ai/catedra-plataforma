@@ -945,6 +945,165 @@ const u1b = await page.evaluate(async () => {
 if (!u1b.erro) { for (const [k, v] of Object.entries(u1b)) ok(v, 'U1 ' + k); }
 else ok(false, 'U1 ida-e-volta: ' + u1b.erro);
 
+/* ====== D7/D8/D10 — PENTE FINO: 2ª FASE, PRIORIDADE E MÓDULO DA ÁREA ======
+   Fica por último de propósito: mexe no tamanho da janela (breakpoint móvel) e
+   devolve 1280×720 no fim, para não contaminar os blocos anteriores. */
+{
+  // botão sem texto E sem aria-label é botão que o leitor de tela anuncia como "botão"
+  const semNome = () => page.evaluate(() => [...document.querySelectorAll('button')]
+    .filter(b => !((b.textContent || '').trim()) && !b.getAttribute('aria-label'))
+    .map(b => b.className || b.outerHTML.slice(0, 50)));
+  // alvo de toque medido pelo DEDO, não pela caixa do elemento: quem amplia a área
+  // com ::after (a bolinha de status) continua desenhada com 22px e clicável com 44
+  const alvo44 = sel => page.evaluate(s => {
+    const b = document.querySelector(s); if (!b) return null;
+    const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, p = 21;
+    return [[cx - p, cy - p], [cx + p, cy - p], [cx - p, cy + p], [cx + p, cy + p]]
+      .every(([x, y]) => { const e = document.elementFromPoint(x, y); return e === b || b.contains(e); });
+  }, sel);
+  const correcao = async largura => {          // deixa a 2ª fase na tela de correção
+    await page.setViewportSize({ width: largura, height: 800 });
+    await page.goto(URL0 + '/segunda-fase-web.html');
+    await page.waitForTimeout(700);
+    await page.evaluate(() => {
+      const P = (window.CT_ESPELHOS || {}).provas || [];
+      const alvo = P.find(p => (p.quesitos || []).length >= 3) || P[0];
+      localStorage.setItem('catedraSegundaFase', JSON.stringify({ hist: [], sessao: {
+        id: alvo.id, minutos: 300, inicio: Date.now(), acc: 6e4, rodando: false,
+        folha: 'peça de teste citando o art. 5', entregue: true, gasto: 6e4, veredictos: {} } }));
+    });
+    await page.goto(URL0 + '/segunda-fase-web.html');
+    await page.waitForTimeout(900);
+  };
+
+  /* -- D10: nome acessível em todo botão -- */
+  const semNomePorPagina = {};
+  for (const p of ['area-web.html?area=saude', 'prioridade-web.html', 'segunda-fase-web.html']) {
+    await page.goto(URL0 + '/' + p); await page.waitForTimeout(600);
+    semNomePorPagina[p] = await semNome();
+  }
+  await correcao(1280);
+  semNomePorPagina['segunda-fase (correção)'] = await semNome();
+  ok(Object.values(semNomePorPagina).every(v => v.length === 0),
+     'D10 nenhum botão sem nome acessível nas satélites ' + JSON.stringify(semNomePorPagina));
+
+  /* -- D7: os dois níveis de rótulo são visivelmente diferentes -- */
+  const d7 = await page.evaluate(() => {
+    const f = document.querySelector('.rot-forte'), m = document.querySelector('.rot-fraco');
+    if (!f || !m) return { erro: 'faltou um dos níveis na tela' };
+    const a = getComputedStyle(f), b = getComputedStyle(m);
+    const mono = s => /mono|Menlo|Courier/i.test(s);
+    return { corDiferente: a.color !== b.color,
+             forteMaior: parseFloat(a.fontSize) > parseFloat(b.fontSize),
+             espacoSoNoForte: parseFloat(a.letterSpacing) > 0 && !(parseFloat(b.letterSpacing) > 0),
+             monoSoNoForte: mono(a.fontFamily) && !mono(b.fontFamily) };
+  });
+  if (d7.erro) ok(false, 'D7 ' + d7.erro);
+  else for (const [k, v] of Object.entries(d7)) ok(v, 'D7 ' + k);
+
+  /* -- D10: foco visível ao chegar de teclado (área, que é onde estão os só-ícone) -- */
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(URL0 + '/area-web.html?area=saude');
+  await page.waitForTimeout(500);
+  let foco = null;
+  for (let i = 0; i < 8 && !foco; i++) {
+    await page.keyboard.press('Tab');
+    foco = await page.evaluate(() => { const a = document.activeElement;
+      if (!a || a.tagName !== 'BUTTON') return null;
+      const cs = getComputedStyle(a);
+      return { cls: a.className, w: cs.outlineWidth, estilo: cs.outlineStyle }; });
+  }
+  ok(!!foco && parseFloat(foco.w) >= 2 && foco.estilo === 'solid',
+     'D10 pílula/chip mostra foco visível ao teclado ' + JSON.stringify(foco));
+
+  /* -- D10: a linha do painel de prioridade é botão de verdade (teclado + estado) -- */
+  await page.goto(URL0 + '/prioridade-web.html');
+  await page.waitForTimeout(800);
+  const prio = await page.evaluate(() => {
+    const h = document.querySelector('.linha .lh');
+    if (!h) return { erro: 'sem linha' };
+    const r = { ehBotao: h.tagName === 'BUTTON', fechado: h.getAttribute('aria-expanded') === 'false',
+                aponta: !!document.getElementById(h.getAttribute('aria-controls') || '') };
+    h.click();
+    r.abriuEAnuncia = h.getAttribute('aria-expanded') === 'true' && h.closest('.linha').classList.contains('on');
+    // e aqui também os dois níveis convivem: seção (.dh) forte, legenda de número fraca
+    const f = getComputedStyle(document.querySelector('.det .rot-forte'));
+    const m = getComputedStyle(document.querySelector('.stat .rot-fraco'));
+    r.doisNiveis = f.color !== m.color && parseFloat(f.letterSpacing) > 0 && !(parseFloat(m.letterSpacing) > 0);
+    return r;
+  });
+  if (prio.erro) ok(false, 'D10 prioridade: ' + prio.erro);
+  else for (const [k, v] of Object.entries(prio)) ok(v, 'D10 prioridade ' + k);
+
+  /* -- D8: alvos de 44px no breakpoint móvel -- */
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto(URL0 + '/area-web.html?area=saude');
+  await page.waitForTimeout(500);
+  ok(await alvo44('.row .st'), 'D8 a bolinha de status tem 44px de alvo no celular (desenho segue com 22)');
+  ok(await alvo44('.row .fav'), 'D8 a ★ tem 44px de alvo no celular');
+  const pequenos = await page.evaluate(() => [...document.querySelectorAll('button,select,input')]
+    .filter(e => e.offsetParent !== null && !e.classList.contains('st'))
+    .filter(e => e.getBoundingClientRect().height < 44).length);
+  ok(pequenos === 0, 'D8 nenhum controle abaixo de 44px no módulo da área (' + pequenos + ')');
+
+  await page.goto(URL0 + '/prioridade-web.html');
+  await page.waitForTimeout(800);
+  const prioPeq = await page.evaluate(() => [...document.querySelectorAll('button,select')]
+    .filter(e => e.offsetParent !== null).filter(e => e.getBoundingClientRect().height < 44).length);
+  ok(prioPeq === 0, 'D8 nenhum controle abaixo de 44px no painel de prioridade (' + prioPeq + ')');
+
+  /* -- D8: o "⋯" recolhe as ações secundárias no celular e some no desktop -- */
+  await correcao(375);
+  const mais = await page.evaluate(() => {
+    const b = document.getElementById('bMais'), it = document.getElementById('maisIt');
+    if (!b || !it) return { erro: 'sem menu ⋯' };
+    const r = { aparece: getComputedStyle(b).display !== 'none',
+                temNome: !!b.getAttribute('aria-label'),
+                comecaFechado: getComputedStyle(it).display === 'none',
+                primariaVisivel: getComputedStyle(document.getElementById('bFechar')).display !== 'none' };
+    b.click();
+    r.abre = getComputedStyle(it).display !== 'none' && b.getAttribute('aria-expanded') === 'true';
+    r.guardaImprimir = [...it.querySelectorAll('button')].some(x => /imprimir/i.test(x.textContent));
+    document.body.click();
+    r.fechaClicandoFora = getComputedStyle(it).display === 'none';
+    return r;
+  });
+  if (mais.erro) ok(false, 'D8 ' + mais.erro);
+  else for (const [k, v] of Object.entries(mais)) ok(v, 'D8 menu ⋯ ' + k);
+
+  const deskMais = await (async () => { await correcao(1280);
+    return page.evaluate(() => ({
+      some: getComputedStyle(document.getElementById('bMais')).display === 'none',
+      itensNaLinha: getComputedStyle(document.getElementById('maisIt')).display === 'contents' })); })();
+  ok(deskMais.some && deskMais.itensNaLinha, 'D8 no desktop o ⋯ some e os botões voltam para a linha');
+
+  /* -- D8: fileira de veredictos com encaixe e a marcada visível já no load.
+     320px é onde as três pílulas deixam de caber lado a lado. -- */
+  await correcao(320);
+  const trilho = await page.evaluate(() => {
+    const sc = document.querySelector('.q .vb'); if (!sc) return { erro: 'sem fileira' };
+    const on = sc.querySelector('button.on'); if (!on) return { erro: 'sem veredicto marcado' };
+    const a = on.getBoundingClientRect(), b = sc.getBoundingClientRect();
+    return { rolaHorizontal: sc.scrollWidth > sc.clientWidth,
+             comEncaixe: getComputedStyle(sc).scrollSnapType.indexOf('x') === 0,
+             marcadaVisivelNoLoad: a.left >= b.left - 1 && a.right <= b.right + 1,
+             semCorteVertical: sc.scrollHeight <= sc.clientHeight + 2 };
+  });
+  if (trilho.erro) ok(false, 'D8 trilho: ' + trilho.erro);
+  else for (const [k, v] of Object.entries(trilho)) ok(v, 'D8 veredictos ' + k);
+
+  // os seletores dirigidos pelos testes de cima continuam de pé depois do pente fino
+  const seletores = await page.evaluate(() => ({
+    ver: document.querySelectorAll('.q .ver button[data-v]').length > 0,
+    salvar: [...document.querySelectorAll('button')].some(b => /Salvar e sair/.test(b.textContent || '')),
+    disp: document.querySelectorAll('.disp [data-legis]').length > 0,
+  }));
+  for (const [k, v] of Object.entries(seletores)) ok(v, 'D8/D10 seletor preservado: ' + k);
+
+  await page.evaluate(() => localStorage.removeItem('catedraSegundaFase'));
+  await page.setViewportSize({ width: 1280, height: 720 });
+}
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
