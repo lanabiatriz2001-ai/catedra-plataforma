@@ -774,3 +774,47 @@ aproximada; espelho oficial, quando existir, nunca exibe o selo nem o botão.
 (dá para conferir no LEGIS/JURIS em um toque — reusar os chips ⚖️/🏛️ do padrão da
 casa). Custo por geração: sob demanda + cache resolve. E o selo não é decoração —
 é o que mantém a promessa de honestidade do C1; sem ele, este item não existe.
+
+## D11. Ajustes refeitos
+
+Nasce de uso real (22/08): a Lana precisou do backup e não o achou — as abas dos
+Ajustes ficam no MEIO da página (abaixo do perfil e do card de área de estudo,
+invisíveis sem rolar), a aba certa se chama "Dados & conselho" (dois assuntos num
+nome só), e dentro dela o backup mora ABAIXO de "Personalização & Aparência", que
+nem é assunto de dados. Três violações de arquitetura numa tela só.
+
+**O que existe.** Ajustes v3 (Build B): abas Você · Estudo & metas · Método da
+banca · Dados & conselho (botões em ~linha 3287 de Catedra.dc.html, conteúdo em
+blocos `<sc-if value="{{ ajTabX }}">`); "Conselho personalizado" e "Personalização
+& Aparência" renderizam dentro da aba Dados; perfil + área de estudo ocupam o topo
+fora das abas.
+
+**O que construir.**
+1. **Abas no topo, sempre visíveis** (sticky, logo abaixo do título "Ajustes"),
+   ANTES de qualquer conteúdo. Perfil vira a primeira seção da aba "Você", não um
+   preâmbulo fora das abas.
+2. **Uma aba por assunto, nome que diz o que tem**:
+   Você · Estudo & metas · Método da banca · **Aparência** · **Dados & backup** · Conta.
+   - "Conselho personalizado" SAI dos Ajustes — é leitura diária, não configuração;
+     vai para o início (ou o painel de prioridade do item 1).
+   - "Dados & backup" abre com o backup no TOPO (nuvem pessoal → exportações →
+     importar → zona de perigo "Apagar tudo" por último, visualmente separada).
+   - "Conta": e-mail logado, trocar senha, sair, plataforma de questões preferida
+     (C2) e, no futuro, assinatura.
+3. **Busca dentro dos Ajustes**: campo que filtra os ajustes por nome (como a busca
+   dos Ajustes do iPhone) — digitar "backup" ou "tema" rola/troca para o item, com
+   destaque. Implementação: cada bloco de ajuste ganha `data-aj="rotulo palavras
+   chave"`; a busca esconde os que não casam. É a resposta definitiva para "não
+   acho onde fica".
+4. **Regras herdadas**: estados vazios que convidam (D4), alvos de toque ≥44px e
+   rótulos acessíveis (D10), microlabels com hierarquia (D7). No celular, as abas
+   viram lista (uma tela por seção, com voltar).
+
+**Aceite.** "Quero fazer backup" se resolve em 2 gestos de qualquer estado da tela
+(aba visível → primeiro bloco). Buscar "backup" nos Ajustes acha o bloco. Nenhuma
+seção mistura assuntos. O conselho aparece no início, não nos Ajustes. Testes:
+abas visíveis sem rolagem em 1280×800 e 390×844; busca interna acha "backup",
+"tema" e "sair".
+
+**Armadilha.** Não renomear as CHAVES de estado existentes (prefs etc.) — a
+reforma é de arquitetura da tela, não de dados; sync e migrações ficam intocados.
