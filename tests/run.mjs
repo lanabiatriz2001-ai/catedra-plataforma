@@ -1016,6 +1016,27 @@ for (const [v, t] of Object.entries(d2b.telas)) {
   ok(typeof t === 'object' && t.embedNaURL && t.embedAplicado, 'D2 ' + v + ' abre em modo embutido');
   ok(typeof t === 'object' && t.temConteudo, 'REGRESSÃO ' + v + ' abre com conteúdo (não fica em branco)');
 }
+/* ===== BARRA: todo botão leva a uma tela (regressão dos botões mudos) =====
+   Prioridade e Simulado de 2ª fase trocavam a view para telas que não existiam
+   mais no template — clicar não abria nada. As páginas seguiam no bundle. */
+const barra = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  for (const [view, arquivo] of [['prioridade', 'prioridade-web.html'], ['segundafase', 'segunda-fase-web.html']]) {
+    const b = document.querySelector('button[data-view="' + view + '"]');
+    if (!b) { r[view + 'TemBotao'] = false; continue; }
+    r[view + 'TemBotao'] = true;
+    b.click(); await w(1800);
+    const f = document.querySelector('iframe[data-ct-view="' + view + '"]');
+    // o src pode trazer parâmetros (o D2 acrescenta ?embed=1): compara a PÁGINA, não a string
+    const src = (f && f.getAttribute('src')) || '';
+    r[view + 'Abre'] = !!f && src.split('?')[0] === arquivo && f.style.display === 'block';
+    let texto = ''; try { texto = (f.contentDocument.body.innerText || '').trim(); } catch (e) {}
+    r[view + 'TemConteudo'] = texto.length > 200;
+  }
+  return r;
+});
+for (const [k, v] of Object.entries(barra)) ok(v, 'BARRA ' + k);
 
 await browser.close();
 srv.close();
