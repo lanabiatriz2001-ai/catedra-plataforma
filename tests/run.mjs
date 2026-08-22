@@ -2015,6 +2015,14 @@ await page.setViewportSize({ width: 1280, height: 720 });
 /* ============= U2 — ESQUELETO DE CARREGAMENTO ============= */
 // O que se prova aqui: o vazio sem explicação acabou na PRIMEIRA carga de cada acervo, e
 // que a volta a uma tela já carregada não pisca esqueleto (com o iframe vivo, seria mentira).
+// O esqueleto existe para a carga LENTA. Medi-lo com um `await w(80)` depois do clique é
+// uma corrida: servindo de localhost, o LEGIS às vezes carrega antes disso e o esqueleto
+// já saiu — passava aqui e falhava na CI. Em vez de dar mais tempo (que só adia o
+// problema), atrasamos a resposta da página, que é a condição em que o recurso importa.
+await page.route('**/legis-web.html*', async (rota) => {
+  await new Promise(r => setTimeout(r, 900));
+  await rota.continue();
+});
 await page.goto(URL0 + '/Catedra.dc.html');
 await page.waitForTimeout(1700);
 const u2 = await page.evaluate(async () => {
@@ -2024,13 +2032,13 @@ const u2 = await page.evaluate(async () => {
   r.inicioSemEsqueleto = !skel();                       // só as telas de iframe têm esqueleto
 
   document.querySelector('button[data-view="legis"]').click();
-  await w(80);
-  r.primeiraCargaMostra = skel();
+  await w(250);
+  r.primeiraCargaMostra = skel();                       // a página ainda está a caminho
 
   const fr = document.querySelector('iframe[data-ct-view="legis"]');
   for (let i = 0; i < 200 && fr.dataset.ctLoad !== '1'; i++) await w(100);
   await w(250);
-  r.someQuandoAPaginaCarrega = !skel();
+  r.someQuandoAPaginaCarrega = !skel();                 // e sai assim que ela chega
   r.esqueletoFicaAtras = true;                          // conferido pelo z-order do CSS abaixo
 
   // sair e voltar: iframe vivo, nada recarrega, nada pisca
@@ -2040,6 +2048,7 @@ const u2 = await page.evaluate(async () => {
   return r;
 });
 for (const [k, v] of Object.entries(u2)) ok(v, 'U2 ' + k);
+await page.unroute('**/legis-web.html*');  // o atraso era só para medir o esqueleto
 // o esqueleto é FUNDO: fica atrás do iframe (que é `position:relative`), então mesmo que um
 // satélite antigo nunca avise, a página carregada o cobre — nunca tapa conteúdo
 const u2css = await page.evaluate(() => {
