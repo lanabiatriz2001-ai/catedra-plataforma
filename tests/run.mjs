@@ -39,6 +39,45 @@ const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 
+/* ============= D9 — BUILD SEM CDN: FALHAR EM VEZ DE DEGRADAR ============= */
+// Este é o único teste que não usa navegador: o que se prova aqui é o comportamento do
+// processo de build. Um deploy que depende de CDN em runtime não abre em rede que
+// bloqueia CDN — foi o que aconteceu no ambiente de teste.
+{
+  const { execFileSync } = await import('child_process');
+  const stub = path.join(RAIZ, 'tests', 'offline-stub.cjs');
+  const rodar = (env) => {
+    try {
+      execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build.mjs')],
+        { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
+      return { code: 0, saida: '' };
+    } catch (e) {
+      return { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') };
+    }
+  };
+
+  const semRede = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '' });
+  ok(semRede.code === 1, 'D9 build sem rede FALHA (exit 1) em vez de publicar dependendo de CDN');
+  ok(/BUILD ABORTADO/.test(semRede.saida), 'D9 a falha explica o que houve');
+  ok(/CT_PERMITE_CDN/.test(semRede.saida), 'D9 a falha diz qual é a saída de emergência');
+
+  const comFlag = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '1' });
+  ok(comFlag.code === 0, 'D9 CT_PERMITE_CDN=1 ainda permite build degradado (debug)');
+
+  // build normal: nada de terceiro sobra no HTML publicado
+  const normal = rodar({});
+  ok(normal.code === 0, 'D9 build com rede passa');
+  const html = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
+  const terceiros = (html.match(/(?:src|href)="https:\/\/[^"]*(?:jsdelivr|unpkg|fonts\.googleapis|fonts\.gstatic)[^"]*"/g) || []);
+  ok(terceiros.length === 0, 'D9 HTML publicado não carrega nada de CDN nem do Google Fonts');
+  ok(/href="\.\/fonts\.css"/.test(html), 'D9 as fontes vêm do próprio domínio');
+  const cssFontes = fs.readFileSync(path.join(RAIZ, 'public', 'fonts.css'), 'utf8');
+  ok(/font-display:\s*swap/.test(cssFontes), 'D9 font-display:swap preservado');
+  ok(!/fonts\.gstatic\.com/.test(cssFontes), 'D9 o CSS das fontes aponta para arquivos locais');
+  ok(fs.readdirSync(path.join(RAIZ, 'public', 'fonts')).length > 10, 'D9 os .woff2 estão no deploy');
+}
+
+
 /* ============================ SYNC (mergeAll) ============================ */
 await page.goto(URL0 + '/tests/sync-fixture.html');
 await page.waitForFunction(() => window.CatedraSync && window.CatedraSync._test);
