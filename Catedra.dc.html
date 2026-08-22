@@ -2020,6 +2020,47 @@ window.ctPdfLib = (function(){
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;text-align:center;color:var(--text3);font-size:var(--fs-base);">Nenhuma prova com esses filtros. Limpe a busca ou troque a carreira — o banco tem {{ redKpiProvas }} provas.</div>
           </sc-if>
 
+          <!-- MINHA EVOLUÇÃO (item 4): a curva por quesito, e o que menos evoluiu primeiro -->
+          <sc-if value="{{ redEvoTem }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                <div>
+                  <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Minha evolução</div>
+                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">nota por quesito ao longo das tentativas — o que menos evoluiu vem primeiro</div>
+                </div>
+                <button onclick="{{ toggleRedEvo }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 14px;font-size:var(--fs-sm);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">{{ redEvoLabel }}</button>
+              </div>
+              <sc-if value="{{ redEvoOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:14px;margin-top:16px;">
+                  <sc-for list="{{ redEvo }}" as="p" hint-placeholder-count="2">
+                    <div style="border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;background:var(--surface2);">
+                      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <span style="font-weight:600;color:var(--ink);flex:1;min-width:160px;">{{ p.prova }}</span>
+                        <span style="font-size:var(--fs-xs);color:var(--text3);">{{ p.origemLabel }} · {{ p.tentativas }}</span>
+                        <span style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);">{{ p.pctStr }}</span>
+                        <span style="font-size:var(--fs-xs);font-weight:700;color:{{ p.deltaColor }};">{{ p.deltaStr }}</span>
+                        <sc-if value="{{ p.sparkShow }}" hint-placeholder-val="{{ true }}">
+                          <svg viewBox="0 0 120 28" width="120" height="28" aria-hidden="true" style="flex:none;"><path d="{{ p.spark }}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </sc-if>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                        <sc-for list="{{ p.quesitos }}" as="q" hint-placeholder-count="3">
+                          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <span style="flex:1;min-width:160px;font-size:var(--fs-sm);color:var(--text2);">{{ q.titulo }}</span>
+                            <span style="height:8px;width:110px;border-radius:99px;background:var(--border);overflow:hidden;flex:none;"><i style="{{ q.barra }}display:block;"></i></span>
+                            <span style="font-size:var(--fs-xs);color:var(--text3);font-variant-numeric:tabular-nums;">{{ q.de }} → {{ q.para }}</span>
+                            <span style="font-size:var(--fs-xs);font-weight:700;color:{{ q.deltaColor }};min-width:34px;text-align:right;">{{ q.delta }}</span>
+                            <button data-t="{{ q.titulo }}" onclick="{{ redParaCiclo }}" style="background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:5px 12px;font-size:var(--fs-2xs);font-weight:600;color:var(--accentD);cursor:pointer;font-family:inherit;">levar para o ciclo</button>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
           <sc-if value="{{ redHistTem }}" hint-placeholder-val="{{ false }}">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:22px;">
               <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Suas correções</div>
@@ -4902,7 +4943,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
+      redText:this._load('redText', ''), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist2:this._load('redHist',[]), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
       // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
       // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
@@ -5047,6 +5088,15 @@ class Component extends DCLogic {
         this.setState(st=>{ const fc=[...novos, ...st.flashcards]; this._saveFC(fc); return {flashcards:fc}; });
         this._toast(novos.length+' flashcard'+(novos.length>1?'s':'')+' do quiz no seu baralho ✦');
         this.flashSync();
+        return;
+      }
+      // 2ª fase: nota por quesito entra na curva de evolução (item 4)
+      if(e.data.type==='ctRedacaoResultado'){
+        try{
+          this._redRegistrar({ origem:'segunda-fase', prova:String(e.data.prova||''),
+            quesitos:(Array.isArray(e.data.quesitos)?e.data.quesitos:[]).map(q=>({titulo:q.titulo, nota:q.nota, max:q.max})),
+            notaTotal:(e.data.notaTotal!=null?+e.data.notaTotal:null) });
+        }catch(_){}
         return;
       }
       if(e.data.type==='ctIA'){
@@ -5493,7 +5543,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo','edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto']; }
+  _autosaveKeys(){ return ['areaEstudo','edital','reviews','blocks','blocksDate','manualFixed','manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim','prefs','profile','accent','discItems','ankiHist','redText','redGabarito','redEnunciado','redHist','planHoras','simAnalysis','relPeriod','notifsRead','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','meusGrupos','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','notifPush','bancaDicas','bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto']; }
   _autosave(){
     const keys=this._autosaveKeys();
     const L=this._lastSaved||(this._lastSaved={});
@@ -7450,6 +7500,69 @@ class Component extends DCLogic {
   voltarConcursoOral = ()=> this.setState({oralBancaSel:null});
 
   revelarEspelho = ()=>{ if(!window.confirm('Revelar o espelho antes de entregar? No treino real você só vê os quesitos depois da prova.')) return; this.setState({redEspelhoOculto:false}); };
+
+  // ===== EVOLUÇÃO DA REDAÇÃO NO TEMPO (item 4 da especificação) =========================
+  // Cada correção deixa registro POR QUESITO em catedra:redHist (array com id+up: entra em
+  // _autosaveKeys e em ARRAY_ID do auth.js). Guarda só notas e títulos curtos — o texto da
+  // peça NÃO entra, senão o blob de sync cresce sem limite.
+  RED_HIST_MAX = 60;
+  /** Casa quesitos entre tentativas por prova+índice (o texto é longo e muda de espelho). */
+  _redChaveQuesito(origem, prova, i){ return String(origem||'')+'|'+String(prova||'')+'|'+i; }
+  /**
+   * @param reg {origem:'redacao'|'segunda-fase', prova, quesitos:[{titulo,nota,max}], notaTotal}
+   */
+  _redRegistrar(reg){
+    if(!reg || !Array.isArray(reg.quesitos) || !reg.quesitos.length) return null;
+    const agora=Date.now();
+    const item={ id:'rh'+agora, up:agora, quando:new Date(agora).toISOString().slice(0,10), ts:agora,
+      origem:(reg.origem==='segunda-fase'?'segunda-fase':'redacao'),
+      prova:String(reg.prova||'').slice(0,140),
+      quesitos:reg.quesitos.slice(0,40).map((q,i)=>({ i, titulo:String(q.titulo||('Quesito '+(i+1))).slice(0,120),
+        nota:Math.round((+q.nota||0)*100)/100, max:Math.round((+q.max||1)*100)/100 })),
+      notaTotal:(reg.notaTotal!=null?Math.round((+reg.notaTotal)*100)/100:null) };
+    const hist=[item, ...(this.state.redHist2||[])].slice(0,this.RED_HIST_MAX);
+    this.setState({redHist2:hist}, ()=>this.flashSync());
+    return item;
+  }
+  /** Tentativas da mesma prova, e o delta por quesito entre a primeira e a última. */
+  _redEvolucao(){
+    const hist=(this.state.redHist2||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const porProva={};
+    hist.forEach(h=>{ const k=h.origem+'|'+h.prova; (porProva[k]=porProva[k]||[]).push(h); });
+    const provas=Object.keys(porProva).map(k=>{
+      const tent=porProva[k];
+      const primeira=tent[0], ultima=tent[tent.length-1];
+      const pct=(h)=>{ const tot=h.quesitos.reduce((a,q)=>a+(q.max||0),0); const g=h.quesitos.reduce((a,q)=>a+(q.nota||0),0);
+        return tot?Math.round(g/tot*100):null; };
+      const quesitos=primeira.quesitos.map(q=>{
+        const u=ultima.quesitos.find(x=>x.i===q.i);
+        const p0=q.max?Math.round(q.nota/q.max*100):null, p1=(u&&u.max)?Math.round(u.nota/u.max*100):null;
+        return { titulo:q.titulo, de:p0, para:p1, delta:(p0!=null&&p1!=null)?(p1-p0):null };
+      }).filter(q=>q.delta!=null || tent.length===1);
+      return { chave:k, prova:primeira.prova, origem:primeira.origem, tentativas:tent.length,
+        serie:tent.map(pct).filter(x=>x!=null), primeiroPct:pct(primeira), ultimoPct:pct(ultima),
+        quesitos:quesitos.sort((a,b)=>(a.delta==null?999:a.delta)-(b.delta==null?999:b.delta)) };
+    }).sort((a,b)=>(b.tentativas-a.tentativas)||0);
+    return provas;
+  }
+  /** Sparkline SVG inline (sem lib): série de percentuais 0..100. */
+  _redSpark(serie){
+    const n=(serie||[]).length; if(n<2) return '';
+    const W=120, H=28, P=3;
+    const pts=serie.map((v,i)=>[P+i*((W-2*P)/(n-1)), H-P-(Math.max(0,Math.min(100,v))/100)*(H-2*P)]);
+    return pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  }
+  toggleRedEvo = ()=> this.setState({redEvoOpen:!this.state.redEvoOpen});
+  /** "Levar para o ciclo": o quesito fraco vira evento na agenda desta semana. */
+  redParaCiclo = (e)=>{
+    const t=e.currentTarget.dataset.t||''; if(!t) return;
+    const hoje=new Date();
+    const ev={id:'ev'+Date.now(), dia:hoje.getDate(), mes:hoje.getMonth(), ano:hoje.getFullYear(),
+      tipo:'tarefa', titulo:('Refazer: '+t).slice(0,120), color:'var(--accent)', done:false, up:Date.now()};
+    this.setState(st=>({eventos:[...st.eventos, ev]}), ()=>this.flashSync());
+    this._toast('Tarefa criada na agenda de hoje ✦');
+  };
+
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this.setState({redResult:null, redText:'', redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
@@ -7476,6 +7589,12 @@ class Component extends DCLogic {
     const entry={id:'rd'+Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now(), res, texto:text, gabarito:this.state.redGabarito};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
     this.setState({redBusy:false, redResult:res, redHistory:hist}); this.flashSync();
+    // registro por quesito para a curva de evolução (item 4)
+    try{
+      const qs=(res.quesitos&&res.quesitos.length? res.quesitos.map((q,i)=>({titulo:q.quesito||q.titulo||('Quesito '+(i+1)), nota:+q.obtido||0, max:+q.pontos||1}))
+              : (res.criterios||[]).map(c=>({titulo:c.nome, nota:+c.nota||0, max:+c.max||10})));
+      this._redRegistrar({origem:'redacao', prova:_titulo, quesitos:qs, notaTotal:res.nota});
+    }catch(_){}
   };
   async _corrigeRedacaoLivre(tema, text, gabarito, enun){
     const g=(gabarito||'').trim().slice(0,6000);
@@ -10460,6 +10579,22 @@ class Component extends DCLogic {
     const redCanSubmit=redWords>=40 && !!(this.state.redGabarito||'').trim() && !this.state.redBusy;
     const redBtnStyle=`background:${redCanSubmit?'var(--accent)':'var(--surface2)'};color:${redCanSubmit?'var(--onAccent)':'var(--text3)'};border:1px solid ${redCanSubmit?'var(--accent)':'var(--border)'};border-radius:var(--r-md);padding:12px 24px;font-weight:600;font-size:var(--fs-md);cursor:${redCanSubmit?'pointer':'default'};font-family:inherit;`;
     const redBtnLabel=this.state.redBusy?'⏳ Corrigindo com IA — pode levar ~30s…':'Comparar com o gabarito ✦';
+    // evolução por quesito (item 4): tentativas da mesma prova e o delta do primeiro ao último
+    const redEvo=this._redEvolucao().map(p=>({
+      chave:p.chave, prova:p.prova||'(sem título)', tentativas:String(p.tentativas)+(p.tentativas>1?' tentativas':' tentativa'),
+      origemLabel:(p.origem==='segunda-fase'?'2ª fase':'Redação'),
+      pctStr:(p.ultimoPct!=null?p.ultimoPct+'%':'—'),
+      deltaStr:((p.primeiroPct!=null&&p.ultimoPct!=null&&p.tentativas>1)?((p.ultimoPct-p.primeiroPct>=0?'+':'')+(p.ultimoPct-p.primeiroPct)+' pts vs. a 1ª'):'primeira tentativa'),
+      deltaColor:((p.primeiroPct!=null&&p.ultimoPct!=null&&p.ultimoPct-p.primeiroPct<0)?'var(--danger)':'var(--ok)'),
+      spark:this._redSpark(p.serie), sparkShow:(p.serie||[]).length>1,
+      quesitos:p.quesitos.slice(0,8).map(q=>({
+        titulo:q.titulo,
+        de:(q.de!=null?q.de+'%':'—'), para:(q.para!=null?q.para+'%':'—'),
+        delta:(q.delta==null?'—':((q.delta>=0?'+':'')+q.delta)),
+        deltaColor:(q.delta==null?'var(--text3)':q.delta>0?'var(--ok)':q.delta<0?'var(--danger)':'var(--text3)'),
+        barra:'width:'+Math.max(0,Math.min(100,(q.para!=null?q.para:0)))+'%;height:100%;border-radius:99px;background:'+((q.para!=null&&q.para>=70)?'var(--ok)':(q.para!=null&&q.para>=55)?'var(--warn)':'var(--danger)')+';'
+      }))
+    }));
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
       temaShort:(h.tema||'').replace(/^(Discursiva|Peça)\s—\s/,''), tipo:(h.tema||'').startsWith('Peça')?'Peça':'Discursiva',
@@ -11284,6 +11419,8 @@ class Component extends DCLogic {
       redEnunciadoShow, redEnunciadoResult,
       redResult:this.state.redResult, redHasResult:!!this.state.redResult, redNoResult:!this.state.redResult,
       redHist, redHistTem:redHist.length>0, redHistEmpty:redHist.length===0, redBtnStyle, redBtnLabel,
+      redEvo, redEvoTem:redEvo.length>0, redEvoOpen:this.state.redEvoOpen, toggleRedEvo:this.toggleRedEvo,
+      redEvoLabel:(this.state.redEvoOpen?'ocultar':'ver'), redParaCiclo:this.redParaCiclo,
       onRedText:this.onRedText, submitRed:this.submitRed, redReset:this.redReset, redOpenHist:this.redOpenHist,
       redGabarito, redGabBusy, redGabFile, redGabWords:String(redGabWords),
       onRedGab:this.onRedGab, importRedGab:this.importRedGab,

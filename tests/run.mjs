@@ -200,6 +200,84 @@ const a7 = await page.evaluate(() => {
 });
 ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado');
 
+/* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
+await page.goto(URL0 + '/tests/harness-redhist.html');
+await page.waitForFunction(() => !!window.redRegistrar);
+
+const evo = await page.evaluate(() => {
+  const r = {};
+  const limpa = () => localStorage.removeItem('catedra:redHist');
+  const ler = () => JSON.parse(localStorage.getItem('catedra:redHist') || '[]');
+  const dia = 864e5;
+
+  // duas tentativas da mesma prova → uma linha, delta por quesito
+  limpa();
+  window.redRegistrar({ origem: 'segunda-fase', prova: 'TJ-RJ 2026 · discursiva', ts: Date.now() - 3 * dia, notaTotal: 40,
+    quesitos: [ { titulo: 'Preliminar', nota: 0, max: 1 }, { titulo: 'Mérito', nota: 1, max: 1 }, { titulo: 'Dosimetria', nota: 0.5, max: 1 } ] });
+  window.redRegistrar({ origem: 'segunda-fase', prova: 'TJ-RJ 2026 · discursiva', ts: Date.now(), notaTotal: 75,
+    quesitos: [ { titulo: 'Preliminar', nota: 1, max: 1 }, { titulo: 'Mérito', nota: 1, max: 1 }, { titulo: 'Dosimetria', nota: 0.5, max: 1 } ] });
+  const e1 = window.redEvolucao();
+  r.umaLinhaPorProva = e1.length === 1 && e1[0].tentativas === 2;
+  r.curvaSubiu = e1[0].primeiroPct === 50 && e1[0].ultimoPct === 83;
+  // o que menos evoluiu vem primeiro (Mérito e Dosimetria: delta 0; Preliminar: +100)
+  r.piorPrimeiro = e1[0].quesitos[0].delta === 0 && e1[0].quesitos[e1[0].quesitos.length - 1].delta === 100;
+  r.casaPorIndice = e1[0].quesitos.some(q => q.titulo === 'Preliminar' && q.de === 0 && q.para === 100);
+
+  // provas diferentes não se misturam; a origem separa
+  window.redRegistrar({ origem: 'redacao', prova: 'TJ-RJ 2026 · discursiva', ts: Date.now(), notaTotal: 60,
+    quesitos: [{ titulo: 'Estrutura', nota: 6, max: 10 }] });
+  r.origemSepara = window.redEvolucao().length === 2;
+
+  // id + up (regra da casa: merge por id no auth.js)
+  r.temIdEUp = ler().every(x => x.id && x.up && Array.isArray(x.quesitos));
+  // não guarda o texto da peça
+  r.semTexto = ler().every(x => !('texto' in x) && !('folha' in x));
+
+  // sparkline: n pontos, começa em M e não estoura a caixa
+  const d = window.redSpark([50, 83]);
+  r.spark = /^M[\d. ]+L[\d. ]+$/.test(d) && !/-\d/.test(d);
+  r.sparkVazio = window.redSpark([50]) === '';
+
+  // canal da 2ª fase
+  limpa();
+  window.postMessage({ type: 'ctRedacaoResultado', prova: 'TJ-SP 2025 · sentença', notaTotal: 66,
+    quesitos: [{ titulo: 'Relatório', nota: 1, max: 1 }, { titulo: 'Fundamentação', nota: 0, max: 1 }] }, '*');
+  return new Promise(res => setTimeout(() => {
+    const h = ler();
+    r.canal = h.length === 1 && h[0].origem === 'segunda-fase' && h[0].quesitos.length === 2 && h[0].notaTotal === 66;
+    limpa();
+    res(r);
+  }, 200));
+});
+for (const [k, v] of Object.entries(evo)) ok(v, 'REDHIST ' + k);
+
+// a página real da 2ª fase posta o resultado por quesito ao fechar a correção
+await page.goto(URL0 + '/segunda-fase-web.html');
+await page.waitForTimeout(700);
+const pre = await page.evaluate(() => {
+  const P = (window.CT_ESPELHOS || {}).provas || [];
+  const alvo = P.find(p => (p.quesitos || []).length >= 2) || P[0];
+  if (!alvo) return { erro: 'sem provas' };
+  localStorage.setItem('catedraSegundaFase', JSON.stringify({ hist: [], sessao: {
+    id: alvo.id, minutos: 300, inicio: Date.now(), acc: 60000, rodando: false,
+    folha: 'texto qualquer da peça para a correção rodar', entregue: true, gasto: 60000, veredictos: {} } }));
+  return { ok: true };
+});
+if (!pre.erro) {
+  await page.goto(URL0 + '/segunda-fase-web.html');
+  await page.waitForTimeout(1200);
+  const msg = await page.evaluate(async () => {
+    const got = new Promise(r => { window.addEventListener('message', e => { if (e.data && e.data.type === 'ctRedacaoResultado') r(e.data); }); setTimeout(() => r(null), 1500); });
+    const fechar = [...document.querySelectorAll('button')].find(b => /Salvar e sair/.test(b.textContent || ''));
+    if (!fechar) return null;
+    fechar.click();
+    return await got;
+  });
+  ok(!!msg && Array.isArray(msg.quesitos) && msg.quesitos.length >= 2, 'REDHIST 2ª fase posta ctRedacaoResultado');
+  ok(!!msg && msg.quesitos.every(q => q.max === 1 && q.nota >= 0 && q.nota <= 1), 'REDHIST notas por quesito normalizadas');
+  ok(!!msg && !JSON.stringify(msg).includes('texto qualquer da peça'), 'REDHIST não manda o texto da peça');
+}
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
