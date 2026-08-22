@@ -310,3 +310,219 @@ marcador: conservadora, com os padrões de texto num só lugar comentado.
 `2 → 4 → 1 → 6 → 7 → 3 → 5` — o 2 cria o canal de erros que o 4 e o 3 reusam; o 1
 consome tudo; o 5 é o único que exige Xcode e pode andar em paralelo por outra sessão.
 Um PR por item, cada um com seus casos novos em `tests/run.mjs`.
+
+---
+---
+
+# Parte 2 — Experiência de uso
+
+Doze itens sobre COMO o app se sente, não sobre o que ele faz. As regras da casa da
+Parte 1 continuam valendo. Os três de maior impacto: **U1, U3 e U5**.
+
+## U1. Iframes vivos — troca de tela instantânea
+
+**Objetivo.** Sair do LEGIS/JURIS/ritos/peças e voltar não recarrega a página nem
+perde busca, scroll e painel abertos.
+
+**O que existe.** Os iframes vivem dentro de `<sc-if>` por view (Catedra.dc.html
+~linha 3119 em diante): trocar de view os REMOVE do DOM; `_montarFrames` põe o `src`
+quando remontam. Toda a ida-e-volta do acervo (PR #5) foi desenhada em cima desse
+recarregamento (o ponto viaja na URL).
+
+**O que construir.**
+1. Tirar os 4 iframes (areamod, pecas, legis, juris) de dentro dos `<sc-if>` e
+   renderizá-los sempre, controlando visibilidade por variável de template no style
+   (`display:{{ legisDisplay }}` etc.). `_montarFrames` continua pondo o `src` — mas
+   agora só na PRIMEIRA vez que a view abre (lazy como hoje; iframe sem src não pesa).
+2. Com o iframe vivo, o termo da ida e o ponto da volta deixam de viajar na URL entre
+   trocas: o host passa a postar PARA DENTRO do iframe — `{type:'ctBusca', termo}`
+   (legis/juris) e `{type:'ctAbrirBloco', rito, peca, bloco}` (ritos/pecas). As
+   páginas ganham um listener que reusa a lógica que hoje lê `?q=`/`?peca=`
+   (`ctBuscaInicial` e o bloco "volta do acervo" — extrair cada um para função e
+   chamar dos dois lugares). Os parâmetros de URL CONTINUAM funcionando (primeira
+   carga, deep-link, testes).
+3. A pílula "← Voltar" passa a ser mostrada/escondida por mensagem
+   (`{type:'ctVoltaDisponivel', on:true|false}`) em vez de `?volta=1`.
+
+**Aceite.** Ritos → LEGIS → voltar: sem tela branca, busca e scroll preservados, bloco
+destacado; os testes "ACERVO" de `tests/run.mjs` adaptados e verdes; trocar de área de
+estudo ainda recarrega o iframe do módulo (o src muda de verdade nesse caso).
+
+**Armadilhas.** Memória no iPad: 4 webviews vivas dentro do WKWebView — se pesar,
+manter vivos só LEGIS/JURIS + módulo da área e deixar peças remontar. O
+`legisFrameSrc` muda quando a área de estudo muda — `_montarFrames` já recarrega
+quando `src` difere; preservar esse comportamento. Não deixar dois caminhos de busca
+divergirem: URL e mensagem devem chamar A MESMA função.
+
+## U2. Esqueleto de carregamento
+
+**O que existe.** Iframe abre em branco até a página satélite pintar; telas pesadas do
+host (relatório, acervos) montam de uma vez.
+
+**O que construir.** Um fundo de esqueleto (retângulos pulsando em CSS puro, no padrão
+visual da casa) atrás de cada iframe, visível até a página avisar `{type:'ctPronto'}`
+(uma linha em cada satélite). Sem timer arbitrário; sem lib.
+
+**Aceite.** Abrir LEGIS pela primeira vez mostra esqueleto → conteúdo, nunca branco.
+**Armadilha.** O esqueleto só na PRIMEIRA carga; com U1 feito, as demais trocas são
+instantâneas e não devem piscar esqueleto.
+
+## U3. "Continuar de onde parei" na home
+
+**O que existe.** O app não grava a última tela; o mecanismo `?rito=&peca=&bloco=`
+(PR #5) já sabe reabrir um ponto exato; `_restoreProva`/`_restoreTimer` já retomam
+simulado e cronômetro.
+
+**O que construir.**
+1. Chave escalar `catedra:lastPonto` (registrar em `_autosaveKeys`): gravar
+   `{view, rito, peca, bloco, rotulo, ts}` a cada troca de view relevante (areamod,
+   roteiros, legis, juris, redação, oral, 2ª fase) e nos eventos de acervo — um
+   `setState` centralizado num helper `\_goView(v)` evita espalhar a gravação.
+2. Cartão no topo do `inicio`: "Continuar: Rito ordinário — Sentença, bloco 4 · há 2h"
+   com um botão que reusa `origemAbrir`/`acervoBusca` para reabrir o ponto. Se houver
+   simulado pausado (`_restoreProva`), esse aviso tem prioridade no mesmo cartão.
+3. Descartar com um ✕ (grava `lastPontoDispensado:ts` e some até haver ponto novo).
+
+**Aceite.** Estudar um bloco, fechar o app, reabrir: o cartão leva ao bloco exato em
+um clique; com simulado pausado, o cartão oferece retomá-lo.
+**Armadilha.** `ts` sempre em ms e o cartão mostra idade relativa; entre aparelhos o
+`lastPonto` sincroniza como escalar (carimbo por chave já resolve o conflito).
+
+## U4. Retomada explícita de simulado e redação
+
+**O que existe.** `_restoreProva` reabre o simulado pausado em silêncio;
+`catedra:redText` guarda o rascunho da redação.
+
+**O que construir.** Ao abrir a view de simulados com prova pausada, banner no topo:
+"Simulado de ontem pausado — 12 questões restantes · Retomar / Descartar". Idem na
+redação com rascunho não vazio ("rascunho de {data} — Continuar / Começar do zero",
+começar do zero pede confirmação). O U3 aponta para cá.
+
+**Aceite.** Nenhum estado pausado fica invisível; descartar zera de verdade.
+
+## U5. Sincronização visível e honesta
+
+**O que existe.** `auth.js` emite `catedra:syncstate`
+(`local|enviando|salvo|offline|erro`); o app escuta num único ponto (~linha 5121) e
+mostra pouco. O retry automático de 30s já existe (PR #6).
+
+**O que construir.**
+1. Selo permanente e discreto no rodapé da barra lateral (e no menu mobile):
+   "✓ salvo às 00:42" / "↻ enviando…" / "⚠ sem conexão — suas alterações estão
+   guardadas aqui" / "⚠ erro ao salvar — tentando de novo". Guardar o horário do
+   último `salvo` em memória (não precisa persistir).
+2. Se `erro` persistir por 5 minutos, o selo vira aviso clicável com o texto do
+   problema e botão "tentar agora" (chama `window.CatedraSync.push()`).
+
+**Aceite.** Estudando offline, o selo diz que está tudo guardado localmente; ao voltar
+a conexão, vira "salvo" sozinho (o `online` listener já puxa e empurra).
+**Armadilha.** Não usar o selo para bloquear nada — é informação, nunca trava.
+
+## U6. Desfazer em vez de confirmar
+
+**O que existe.** 8+ `confirm()` no host (linhas ~5941, 6283, 6419, 6970, 7400,
+7980, 8331…) para exclusões; as lápides do sync (auth.js) já tratam recriação com o
+mesmo id ("item recriado deixa de estar apagado").
+
+**O que construir.** Helper único `\_excluirComDesfazer(rotulo, aplicar, reverter)`:
+aplica na hora, mostra toast "{rotulo} excluído · Desfazer" por 6s (o `\_toast` da
+casa, com botão). Migrar as exclusões de ITEM (sessão, flashcard, erro, meta, evento)
+para ele. Manter `confirm()` só no destrutivo em massa (zerar tudo, sair da conta).
+
+**Aceite.** Excluir uma sessão e desfazer restaura idêntica (mesmo id) e o sync não a
+mata depois (lápide limpa na recriação — comportamento já garantido pelo auth.js).
+**Armadilha.** `reverter` deve regravar o MESMO objeto com `up` novo, senão a lápide
+do outro aparelho pode vencer.
+
+## U7. Conforto de leitura
+
+**O que existe.** `darkMode` manual, `prefs.fontScale` (normal/grande), `prefs.radius`;
+os acervos (legis/juris) têm layout próprio de leitura.
+
+**O que construir.** (a) Opção "tema automático" nos Ajustes: segue
+`prefers-color-scheme` do sistema (uma media query + listener; manter manual como
+override). (b) Nos acervos, um botão "modo leitura" no leitor de norma/verbete:
+largura ~68ch, corpo serifado 17px+, entrelinha 1.7 — só CSS, persistindo a escolha
+por aparelho (`localStorage` local dos iframes, sem sync).
+
+**Aceite.** Sistema em modo escuro à noite → app acompanha; leitor de lei seca com
+modo leitura lembrado entre aberturas.
+
+## U8. Atalhos visíveis (tecla ?)
+
+**O que existe.** ⌘K (paleta), Esc (fecha camadas), `/` (busca em pecas-web) — todos
+secretos. O handler global é `_onKey` (~linha 4964).
+
+**O que construir.** `?` (fora de input) abre um modal simples listando os atalhos —
+gerado de uma constante única `ATALHOS=[{tecla,faz}]`, que também vira itens da
+paleta ("Atalhos do teclado"). Novo atalho só entra somando na constante.
+
+**Aceite.** `?` mostra o modal; Esc fecha; digitar `?` dentro de um input não abre.
+
+## U9. Scroll único no iPad
+
+**O que existe.** Os iframes têm altura `calc(100dvh - 180px)` (mobile) /
+`calc(100vh - 108px)` (desktop) — a página satélite rola DENTRO do iframe enquanto o
+host também pode rolar: duas barras brigando, pior no toque.
+
+**O que construir.** Nas views de iframe, travar o scroll do host
+(`overflow:hidden` no contêiner da view enquanto ela é um iframe de altura cheia) e
+deixar só o scroll interno; conferir que topo/menu continuam alcançáveis. No mobile,
+revisar o `-180px` contra o teclado virtual (usar `100dvh`, já usado, e testar com a
+barra do Safari recolhida).
+
+**Aceite.** No iPad, um dedo rolando o LEGIS nunca arrasta a página de trás junto.
+
+## U10. PWA instalável e offline de verdade
+
+**O que existe.** `manifest.webmanifest`, `sw.js` com stale-while-revalidate em
+produção e kill-switch em dev (bem resolvido); ícones icon.svg/icon-180.
+
+**O que construir.**
+1. Conferir no sw.js que o precache cobre os acervos grandes (`juris-index.js`,
+   `juris-text.js`, `leis-seca.js`, `oral-conteudo.js` etc.) e as páginas satélites —
+   é o que torna o estudo offline completo.
+2. Página/fallback offline decente para o que não estiver em cache.
+3. Nos Ajustes, um item "Instalar no aparelho" com instrução por plataforma (iOS:
+   Compartilhar → Tela de Início; Android/desktop: prompt `beforeinstallprompt`).
+
+**Aceite.** Instalar no celular, ativar modo avião: home, revisões, acervos e roteiros
+abrem; simulado funciona; o selo do U5 explica o estado.
+**Armadilha.** O blob de contas (`contas-*.js`, 2,5 MB) é lazy — decidir
+explicitamente se entra no precache ou fica só-online, e comentar a decisão no sw.js.
+
+## U11. Registro de estudo em um toque
+
+**O que existe.** O cronômetro da home e o modal completo de registro
+(`catedraOpenStudyRegistration`); no Mac, o flush por rajada já pré-preenche.
+
+**O que construir.** Ao pausar/zerar o cronômetro com ≥5 min acumulados, um toast-ação:
+"Registrar 32 min em {última disciplina}? · Registrar / Editar / Ignorar" —
+"Registrar" grava direto com disciplina e categoria da última sessão; "Editar" abre o
+modal de sempre. Última disciplina vem de `catedra:sessions` (item mais recente).
+
+**Aceite.** O caminho comum (estudou, pausou, registrar) cai para um toque; o modal
+completo continua a um clique.
+
+## U12. Lembrete de revisão no horário certo
+
+**O que existe.** Revisões vencidas calculadas no host; shim de notificação nativa no
+Mac (`notifShimJS` → UNUserNotificationCenter); chave `catedra:notifPush`;
+`window.Notification` no site (permissão do navegador).
+
+**O que construir.** Nos Ajustes: "Lembrar revisões às HH:MM" (padrão desligado). Com
+o app aberto, um verificador por minuto dispara UMA notificação/dia se houver revisão
+vencida ("12 revisões esperando — 15 min resolvem"), via `Notification` (no Mac cai no
+shim nativo sozinho). Registrar o dia do último aviso (`catedra:notifRevDia`) para não
+repetir.
+
+**Aceite.** Com horário configurado e revisões vencidas, a notificação chega uma vez ao
+dia; clicar leva à view de revisões (`window.__catedraGoView('revisoes')` já existe).
+**Armadilha.** Sem serviço de push de servidor, o lembrete só dispara com o app
+aberto/minimizado — dizer isso honestamente no texto do Ajuste.
+
+## Ordem sugerida da Parte 2
+
+`U5 → U6 → U3 → U4 → U1 → U2 → U9 → U8 → U7 → U11 → U10 → U12` — U5/U6 são pequenos e
+pagam confiança imediata; U1 é o maior ganho, mas mexe na estrutura das views (fazer
+com calma, num PR só dele); U10/U12 fecham o ciclo mobile.
