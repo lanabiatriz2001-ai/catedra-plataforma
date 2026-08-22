@@ -15,7 +15,12 @@ import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const ALVOS = [
+// Uso alternativo (leis de OUTRAS áreas de estudo): node scripts/build-leis-seca.mjs <alvos.json> <saida.js> <NOME_GLOBAL>
+//   alvos.json = [["SIGLA","título como está no catálogo do legis-web"], …]
+const ARGV = process.argv.slice(2);
+const SAIDA = ARGV[1] || 'leis-seca.js';
+const GLOBAL = ARGV[2] || 'CT_LEIS';
+const ALVOS = ARGV[0] ? JSON.parse(readFileSync(ARGV[0], 'utf8')) : [
   ['CF', 'Constituição Federal'], ['CC', 'Código Civil'], ['CPC', 'Código de Processo Civil'],
   ['CP', 'Código Penal'], ['CPP', 'Código de Processo Penal'], ['CDC', 'Código de Defesa do Consumidor'],
   ['CTN', 'Código Tributário Nacional'], ['CLT', 'Consolidação das Leis do Trabalho'],
@@ -98,7 +103,7 @@ function artigosCorrido(texto) {
 
 const CAT = catalogo();
 const saida = [];
-for (const [sigla, nome] of ALVOS) {
+for (const [sigla, nome, extra] of ALVOS) {
   // Casamento pelo título INTEIRO normalizado. Comparar só o começo fazia "Código de
   // Processo Civil" e "Código de Processo Penal" caírem no mesmo prefixo ("Código de
   // Processo") — e o CPP saía com o texto do CPC, com 1227 artigos idênticos.
@@ -117,7 +122,7 @@ for (const [sigla, nome] of ALVOS) {
     // fica com o parser que achou mais artigos: nenhuma lei da lista tem menos de 30
     if (alt.length > arts.length * 1.3) arts = alt;
     if (arts.length < 20) throw new Error('só ' + arts.length + ' artigos — parse suspeito');
-    saida.push({ sigla, nome: lei.t, url: lei.u, artigos: arts });
+    saida.push({ sigla, nome: lei.t, url: lei.u, artigos: arts, ...(extra || {}) });
     console.log(`  ✓ ${sigla.padEnd(16)} ${String(arts.length).padStart(4)} artigos`);
   } catch (e) {
     console.log(`  ✗ ${sigla}: ${e.message}`);
@@ -133,6 +138,6 @@ const cab = `/* Cátedra — TEXTO DAS LEIS MAIS COBRADAS, em artigos.
  * Não editar à mão: rode o script para atualizar quando a lei mudar.
  */
 `;
-writeFileSync(join(ROOT, 'leis-seca.js'), cab + 'window.CT_LEIS = ' + JSON.stringify(saida) + ';\n');
+writeFileSync(join(ROOT, SAIDA), cab + 'window.' + GLOBAL + ' = ' + JSON.stringify(saida) + ';\n');
 const tot = saida.reduce((s, l) => s + l.artigos.length, 0);
-console.log(`\nleis-seca.js: ${saida.length} leis, ${tot.toLocaleString('pt-BR')} artigos`);
+console.log(`\n${SAIDA}: ${saida.length} leis, ${tot.toLocaleString('pt-BR')} artigos`);

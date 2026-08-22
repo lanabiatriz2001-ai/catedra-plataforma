@@ -190,6 +190,30 @@
     if (w.CT_LEIS) return Promise.resolve(true);
     return carregarScript('leis-seca.js');
   }
+  /**
+   * Leis-base das OUTRAS áreas de estudo (saúde, social, policial, fiscal, contas,
+   * administrativa, educação, tecnologia) — leis-seca-areas.js, 35 leis do catálogo
+   * oficial, cada uma etiquetada com `areas`. Entram no mesmo CT_LEIS, então Simulado
+   * (itens de lei seca) e Prova oral (modo Lei seca) passam a oferecer a legislação da
+   * área escolhida, não só as 14 leis da magistratura. Área jurídica: não carrega nada.
+   *
+   * @param {string} area id em CT_AREAS ('saude', 'policial'…)
+   */
+  function acervoLeisArea(area) {
+    if (!area || area === 'juridica') return Promise.resolve(true);
+    var junta = function () {
+      var lista = w.CT_LEIS_AREAS || [];
+      w.CT_LEIS = w.CT_LEIS || [];
+      var daArea = lista.filter(function (l) { return (l.areas || []).indexOf(area) >= 0; });
+      if (!daArea.length) daArea = lista;             // área sem mapa próprio: oferece tudo
+      daArea.forEach(function (l) {
+        if (!w.CT_LEIS.some(function (x) { return x.sigla === l.sigla; })) w.CT_LEIS.push(l);
+      });
+      return true;
+    };
+    if (w.CT_LEIS_AREAS) return Promise.resolve(junta());
+    return carregarScript('leis-seca-areas.js').then(junta);
+  }
   /** Questões de provas oficiais de magistratura (A-E, gabarito e % de acerto) — questoes-prova.js. */
   function acervoQuestoesProva() {
     if (w.CT_QUESTOES_PROVA) return Promise.resolve(true);
@@ -682,7 +706,7 @@
   function hash(s) { var h = 2166136261; for (var i = 0; i < String(s).length; i++) { h ^= String(s).charCodeAt(i); h = (h * 16777619) >>> 0; } return h; }
 
   w.CT_TREINO = {
-    acervoJuris: acervoJuris, acervoOral: acervoOral, acervoOralQ: acervoOralQ, acervoLeis: acervoLeis,
+    acervoJuris: acervoJuris, acervoOral: acervoOral, acervoOralQ: acervoOralQ, acervoLeis: acervoLeis, acervoLeisArea: acervoLeisArea,
     acervoQuestoesProva: acervoQuestoesProva, sortearQuestoesProva: sortearQuestoesProva,
     verbetes: verbetes, sortearArtigo: sortearArtigo, perguntaLei: perguntaLei,
     simuladoJuris: simuladoJuris, simuladoLeis: simuladoLeis,
