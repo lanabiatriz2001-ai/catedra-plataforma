@@ -220,6 +220,12 @@ const sem = await page.evaluate(() => {
   // a tese é recorte curto: o arquivo não pode virar um segundo acervo
   r.teseCurta = it.every(x => x.tese.length <= 340);
   r.arquivoLeve = JSON.stringify(S).length < 120000;
+  // sem tese repetida (o acervo republica o mesmo julgado em edição extraordinária)
+  const teses = it.map(x => x.tese.toLowerCase().replace(/\s+/g, ' ').slice(0, 160));
+  r.semRepetida = new Set(teses).size === teses.length;
+  // marcador vem calibrado: alguma coisa TEM de estar marcada, senão o bloco perde a graça
+  r.temAlgumMarcado = it.some(x => x.marcador);
+
   // ordenado do mais novo para o mais velho dentro de cada grupo
   const ms = s => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s); return new Date(+m[3], +m[2] - 1, +m[1]).getTime(); };
   const semMarc = it.filter(x => !x.marcador).map(x => ms(x.quando));
