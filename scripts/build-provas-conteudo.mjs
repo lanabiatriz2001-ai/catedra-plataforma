@@ -25,7 +25,27 @@ const DISC_ARQ = (() => { try { readFileSync(join(ROOT, 'discursivas-completo.js
 const argv = process.argv.slice(2);
 const SEM_PORTAO = argv.includes('--sem-portao');
 const [PROVAS, ESPELHOS] = argv.filter((a) => !a.startsWith('--'));
-if (!PROVAS || !existsSync(PROVAS)) { console.error('uso: node scripts/build-provas-conteudo.mjs <provas> <espelhos>'); process.exit(1); }
+// As DUAS pastas são obrigatórias. Com o 2º argumento opcional, rodar só com as provas
+// apagava os 503 espelhos já publicados (o reset abaixo limpa antes de reextrair) e o
+// build ainda saía verde — espelho ausente conta como "sem espelho", nunca como reprovado.
+if (!PROVAS || !existsSync(PROVAS) || !ESPELHOS || !existsSync(ESPELHOS)) {
+  console.error('uso: node scripts/build-provas-conteudo.mjs <pasta-provas> <pasta-espelhos>');
+  console.error('  as duas pastas são obrigatórias: sem a de espelhos, o reprocessamento apagaria os espelhos publicados.');
+  process.exit(1);
+}
+
+// ===== B4: falha NOSSA não é característica do PDF da banca =====
+// O catch de lerPdf cobria python3 ausente, PyMuPDF faltando, timeout e JSON inválido — e
+// tudo isso virava `ilegivel`, que a tela mostra como "o PDF usa fonte codificada". Com o
+// fitz ausente, o build marcava 600 provas legíveis como ilegíveis e saía com código 0.
+try {
+  execFileSync('python3', ['-c', 'import fitz'], { stdio: 'pipe' });
+} catch {
+  console.error('\n✗ ABORTADO — python3 com PyMuPDF (fitz) não está disponível.');
+  console.error('  Sem ele nada pode ser extraído, e seguir marcaria PDF legível como');
+  console.error('  "ilegível" no acervo. Instale com: python3 -m pip install pymupdf\n');
+  process.exit(1);
+}
 
 const md5 = (s) => createHash('md5').update(String(s)).digest('hex').slice(0, 16);
 const RECEITA = join(ROOT, 'scripts', 'extrair_prova.py');
@@ -51,7 +71,10 @@ function situacao(r) {
   if (sintomas.includes('curto')) return 'escaneado';
   // mojibake é ASCII ("yyy/syDKZDhE"): a régua de caracteres não o pega, só a ausência
   // de palavras portuguesas — e essa checagem precisa de texto suficiente para valer.
-  if (!textoLegivel(r.texto)) return 'ilegivel';
+  // Só a partir de 400 chars, que é a régua do textoLegivel: entre 300 e 399 ele diz
+  // "não" por falta de amostra, não por defeito, e o texto (que o portão aprovaria)
+  // acabava recusado e rotulado "fonte codificada" na tela.
+  if (r.texto.length >= 400 && !textoLegivel(r.texto)) return 'ilegivel';
   if (sintomas.length) return 'deformado';
   return '';
 }
@@ -108,13 +131,32 @@ const cacheE = new Map(), cacheS = new Map();
 // Reprocessamento: a rodada anterior publicou texto deformado em 267 provas, e a ficha
 // original ficou guardada em `enunciadoOriginal`. Restaurar a ficha antes de reextrair é o
 // que permite rodar de novo — sem isso, a prova "já tem enunciado" e nunca seria revista.
+//
+// O ESPELHO precisa da mesma rede. Ele era limpo antes de se saber se dava para reextrair:
+// PDF que sumiu da pasta (o /tmp é purgado), python que falhou, extração que piorou — em
+// qualquer desses o espelho publicado ia embora e nada o trazia de volta. Agora ele é
+// guardado em `_espelhoAnterior` e devolvido quando a reextração não acontece ou não presta.
+const anterior = new Map();
 for (const q of LISTA) {
   if (q.enunciadoOriginal) { q.enunciado = q.enunciadoOriginal; delete q.enunciadoOriginal; }
   delete q.temTexto; delete q.textoSituacao; delete q.espelhoSituacao;
   if (q.espelhoExtraido) {
+    anterior.set(q, { espelho: Array.isArray(q.espelho) ? q.espelho : [],
+                      total: q.total, texto: q.espelhoTexto || '' });
     delete q.espelhoExtraido; delete q.espelhoTexto;
     if (Array.isArray(q.espelho)) { q.espelho = []; q.total = null; }
   }
+}
+
+/** Devolve o espelho que estava publicado. Melhor o de ontem que nenhum. */
+function devolverEspelho(q, porque) {
+  const a = anterior.get(q);
+  if (!a || (!a.texto && !(a.espelho && a.espelho.length))) return false;
+  if (a.espelho && a.espelho.length) { q.espelho = a.espelho; q.total = a.total; }
+  if (a.texto) q.espelhoTexto = a.texto;
+  q.espelhoExtraido = true;
+  q.espelhoPreservado = porque;          // a tela pode dizer que este é o texto da rodada anterior
+  return true;
 }
 
 for (const q of LISTA) {
@@ -151,7 +193,7 @@ for (const q of LISTA) {
     q.espelhoSituacao = 'nao-publicado';
   } else if (!jaTemEspelho && ESPELHOS) {
     const f = join(ESPELHOS, md5(q.fonte_espelho) + '.pdf');
-    if (!existsSync(f)) q.espelhoSituacao = 'sem-pdf';
+    if (!existsSync(f)) { if (!devolverEspelho(q, 'sem-pdf')) q.espelhoSituacao = 'sem-pdf'; }
     else {
       if (!cacheS.has(q.fonte_espelho)) {
         const r = lerPdf(f, 'espelho');
@@ -167,7 +209,7 @@ for (const q of LISTA) {
         }
       }
       const { mal, estruturado, texto } = cacheS.get(q.fonte_espelho);
-      if (mal) { q.espelhoSituacao = mal; conta(mal); }
+      if (mal) { if (!devolverEspelho(q, mal)) q.espelhoSituacao = mal; conta(mal); }
       else if (estruturado && estruturado.length) {
         q.espelho = estruturado;
         q.total = Math.round(estruturado.reduce((s, x) => s + (x.pontos || 0), 0) * 100) / 100 || null;
@@ -178,9 +220,31 @@ for (const q of LISTA) {
         q.espelhoTexto = texto;
         q.espelhoExtraido = true;
         comEspTexto++;
-      } else q.espelhoSituacao = 'escaneado';
+      } else if (!devolverEspelho(q, 'escaneado')) q.espelhoSituacao = 'escaneado';
     }
   }
+}
+
+// Gravar é a última coisa. Antes, o resultado passa pela MESMA régua do portão — e, se
+// reprovar, o acervo publicado fica como estava. Escrever primeiro e auditar depois
+// deixava um acervo pior no disco mesmo quando o build falhava.
+const reprovadosAgora = [];
+for (const q of LISTA) {
+  if (q.temTexto) {
+    const p = audita(String(q.enunciado || ''));
+    if (p.length) reprovadosAgora.push(q.id + ' (enunciado: ' + p.join(', ') + ')');
+  }
+  const esp = juntaEspelho(q.espelho) || String(q.espelhoTexto || '');
+  if (esp.trim()) {
+    const p = audita(esp);
+    if (p.length) reprovadosAgora.push(q.id + ' (espelho: ' + p.join(', ') + ')');
+  }
+}
+if (reprovadosAgora.length) {
+  console.error(`\n✗ NADA FOI GRAVADO — ${reprovadosAgora.length} textos reprovariam na régua:`);
+  reprovadosAgora.slice(0, 10).forEach((x) => console.error('    ' + x));
+  console.error('  O acervo publicado continua como estava.\n');
+  process.exit(1);
 }
 
 const src = readFileSync(join(ROOT, DISC_ARQ), 'utf8');

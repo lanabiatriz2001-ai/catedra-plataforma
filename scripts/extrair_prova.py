@@ -49,8 +49,11 @@ RE_INSTRUCOES = re.compile(
 # Marcador FORTE: onde a prova começa, sem ambiguidade.
 RE_INICIO_FORTE = re.compile(
     r"(-{2,}\s*PROVA\s+DISCURSIVA\s*-{2,}|PE[ÇC]A\s+PR[ÁA]TICO"
-    r"|QUEST[ÃA]O\s*(?:N?[º°.]?\s*)?0?1\b|DISSERTA[ÇC][ÃA]O\b"
-    r"|PROVA\s+ESCRITA\s+DISCURSIVA|Texto\s+1\b)", re.I)
+    # QUESTÃO de qualquer número: com só "QUESTÃO 1", a página que trazia a QUESTÃO 3 e
+    # que por acaso transcrevia o edital ("será eliminado do concurso") era descartada
+    # inteira como se fosse regulamento (dpers-2021-ac1).
+    r"|QUEST[ÃA]O\s*(?:N?[º°.]?\s*)?\d{1,2}\b|^\s*DISSERTA[ÇC][ÃA]O\b"
+    r"|PROVA\s+ESCRITA\s+DISCURSIVA|^\s*Texto\s+1\b)", re.I | re.M)
 
 # Layout da FGV: a disciplina abre em linha própria e o número da questão vem logo abaixo,
 # sem a palavra "QUESTÃO". Sem isto, o corte parava na capa de instruções em duas colunas.
@@ -59,10 +62,13 @@ RE_INICIO_FGV = re.compile(
     re.I | re.M)
 
 # Marcador FRACO: aparece também dentro do regulamento ("…DA PROVA DISCURSIVA, nos locais…"),
-# por isso só vale quando nenhum forte serve.
+# por isso só vale quando nenhum forte serve — e só no COMEÇO DE LINHA. Sem a âncora,
+# "SENTENÇA" e "Na qualidade de" casavam no meio de uma frase e o corte levava embora o
+# estudo de caso inteiro: o enunciado publicado mandava responder "no caso apresentado" e o
+# caso não existia mais (sefazal-2021-ac2 caía de 3.870 para 1.116 caracteres).
 RE_INICIO_FRACO = re.compile(
-    r"(PROVA\s+DISCURSIVA\b|SENTEN[ÇC]A\b|Considerando\s+a\s+situa[çc][ãa]o"
-    r"|Considere\s+a\s+seguinte\s+situa[çc][ãa]o|Na\s+qualidade\s+de)", re.I)
+    r"^\s*(PROVA\s+DISCURSIVA\b|SENTEN[ÇC]A\b|Considerando\s+a\s+situa[çc][ãa]o"
+    r"|Considere\s+a\s+seguinte\s+situa[çc][ãa]o|Na\s+qualidade\s+de)", re.I | re.M)
 
 RE_INICIO_ESPELHO = re.compile(
     r"(PADR[ÃA]O\s+DE\s+RESPOSTA|GABARITO\s+(?:OFICIAL|DEFINITIVO)|ESPELHO\s+DE\s+CORRE[ÇC][ÃA]O"
@@ -134,6 +140,19 @@ def _pagina_e_so_regulamento(pagina):
     if RE_INICIO_FORTE.search(pagina):
         return False
     return len(pagina.strip()) < 6000
+
+
+def _corte_exagerado(antes, depois):
+    """Corte que descarta mais de 70% do documento não é corte — é perda.
+
+    O marcador certo tira capa e regulamento, que são uma fração do PDF. Quando o corte
+    come a maior parte, quase sempre foi um casamento infeliz no meio do texto; melhor
+    ficar com o documento inteiro (com alguma sobra de instrução) do que publicar um
+    enunciado que manda responder sobre um caso que não está mais lá.
+    """
+    if not antes:
+        return False
+    return len(depois) < len(antes) * 0.30
 
 
 def _bom_comeco(texto, pos, modo):
@@ -237,6 +256,15 @@ def extrair(caminho, modo="enunciado"):
     reserva = texto           # rede de segurança: estágio anterior a cada corte
 
     # 4. espelho em tabela: get_text() embaralha as colunas; find_tables monta certo
+    # 3. corte no começo real — ANTES de prepender as tabelas.
+    #    Ordem que custou caro: com o bloco de tabelas colado na frente, o corte procurava
+    #    "PADRÃO DE RESPOSTA" (que está na prosa, DEPOIS do bloco) e jogava fora justamente
+    #    a grade de quesitos que o passo seguinte existe para montar — 29 quesitos e 4,80
+    #    pontos viravam zero no espelho da OAB.
+    cortado = _cortar_no_comeco(texto, modo)
+    if len(cortado) >= MIN_TEXTO and not _corte_exagerado(texto, cortado):
+        texto, reserva = cortado, cortado
+
     tabelas = 0
     if modo == "espelho":
         pedacos = []
@@ -262,11 +290,6 @@ def extrair(caminho, modo="enunciado"):
             # a tabela é a fonte boa; o texto corrido entra como complemento
             texto = limpar("\n\n".join(pedacos) + "\n\n" + texto)
             reserva = texto
-
-    # 3. corte no começo real
-    cortado = _cortar_no_comeco(texto, modo)
-    if len(cortado) >= MIN_TEXTO:
-        texto, reserva = cortado, cortado
 
     # regulamento que sobrou solto no meio
     enxuto = limpar(_tirar_linhas_de_regulamento(texto))
