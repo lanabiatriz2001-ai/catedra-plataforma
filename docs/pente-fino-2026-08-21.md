@@ -215,3 +215,35 @@ os chamava, e nada que chegasse ao objeto do `render()`:
 Os três foram religados. É o defeito exato que o item descreve: o dc-runtime resolve
 variável ausente como string vazia e não reclama.
 
+## Revisão adversarial do lote — 22/08/2026
+
+Antes de propor a mescla, 106 agentes passaram por cima do diff: seis lentes independentes
+(extração, portão, honestidade, regra do C2, host/UI, resolução de merge) e **três céticos por
+achado**, cada um instruído a *refutar* e a devolver "não é defeito" na dúvida. Dos 33 achados
+brutos, **27 sobreviveram** e foram consertados. Os que mais custam:
+
+| O que estava errado | Por que passou despercebido |
+|---|---|
+| O corte por marcador jogava fora **o bloco de tabelas do espelho que o próprio script acabara de montar** | o comentário do código chamava a tabela de "a fonte boa" e o passo seguinte a descartava; o portão não pega, porque espelho sem quesito conta como "sem espelho", não como reprovado |
+| Reprocessar **sem a pasta de espelhos apagava os 503 espelhos** e o build saía **verde** | o 2º argumento era opcional de fato, e o reset limpava antes de saber se conseguiria reextrair |
+| A gravação acontecia **antes** do portão | o build falhava depois de já ter piorado o acervo no disco |
+| O **backup automático carimbava sucesso antes de tentar** | o `.catch` era inalcançável: `backupICloud` não devolvia a promessa e `backupDrive` engolia a exceção |
+| Marcador fraco casando **no meio de uma frase** | o enunciado publicado mandava responder "no caso apresentado" e o caso não existia mais |
+| Falha **nossa** publicada como "o PDF da banca usa fonte codificada" | o `catch` nu cobria python ausente, PyMuPDF faltando e timeout — tudo virava `ilegivel` |
+| A nota de espelho sugerido chegava à tela da correção **sem selo** | as etapas 1 e 2, onde o selo vivia, somem quando a nota aparece |
+| O painel de Aparência **vazava para todas as telas** | os blocos trocaram `sc-if isConfig` por `sc-if ajTabAparencia` e ficaram sem portão de view |
+| O **F ligava a sala de foco por baixo do simulado**, e o Esc seguinte **apagava a prova** | a guarda só checava `paletteOpen` |
+| O fallback de `plataformaOpcoes` **lançava por construção** | a guarda protegia a leitura de `ordem`, não o corpo do `map` — o app renderizaria vazio |
+
+**Ganho medido do conserto do espelho:** espelhos com quesito estruturado passaram de **11 para
+89** (78 provas recuperaram a grade de pontuação que virava prosa).
+
+**O que a revisão ensinou sobre revisar:** quatro dos achados de alta gravidade estavam em
+código que eu tinha lido, testado no navegador e considerado correto. O que os pegou não foi
+ler de novo — foi um cético *tentando derrubar* uma afirmação concreta, com o PDF na mão.
+
+### Estado final
+`npm test` 515 asserções verdes · `auditar-provas.mjs --portao` verde (0 reprovados nos cinco
+acervos) · `verificar-pii.mjs` limpo · `npm run build` OK · Mac e iPad recompilados e
+instalados.
+
