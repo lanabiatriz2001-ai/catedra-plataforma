@@ -945,6 +945,212 @@ const u1b = await page.evaluate(async () => {
 if (!u1b.erro) { for (const [k, v] of Object.entries(u1b)) ok(v, 'U1 ' + k); }
 else ok(false, 'U1 ida-e-volta: ' + u1b.erro);
 
+/* ============= JURIS — D3, D4, D7, D8, D10 e U7(b) ============= */
+// Contexto próprio: estes casos mexem no localStorage do acervo e medem tamanho de
+// tela, e não podem sujar o estado que os testes do app usam.
+// O índice tem 25 mil verbetes; os TEXTOS são 10 MB e só entram quando um verbete é
+// realmente aberto — o último caso do bloco guarda essa fronteira.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1200, height: 800 } });
+  const jp = await ctx.newPage();
+  const errosJuris = [];
+  const pedidos = [];
+  jp.on('pageerror', e => errosJuris.push(e.message));
+  jp.on('request', r => pedidos.push(r.url()));
+  await jp.goto(URL0 + '/juris-web.html');
+  await jp.waitForTimeout(2400);
+
+  // ---- D3(a): nenhum identificador técnico na interface
+  const d3a = await jp.evaluate(() => ({
+    semSnakeNaTela: !/[a-z]{3,}_[a-z]{3,}/.test(document.getElementById('paneAcervo').innerText),
+    semSnakeNosChips: ![...document.querySelectorAll('#bases .chip, #ramos .chip, #trib .chip')]
+      .some(c => /[a-z]{3,}_[a-z]{3,}/.test(c.textContent || '')),
+    colecaoRotulada: [...document.querySelectorAll('#bases .chip')]
+      .some(c => /Informativos? do STJ/i.test(c.textContent || '')),
+    cardRotulado: ![...document.querySelectorAll('.vcard .num')]
+      .some(n => /[a-z]{3,}_[a-z]{3,}/.test(n.textContent || '')),
+  }));
+  for (const [k, v] of Object.entries(d3a)) ok(v, 'D3 ' + k);
+
+  // ---- D3(b): as duas fileiras recolhidas, tribunais à vista, acervo na 1ª dobra
+  const d3b = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const o = {};
+    o.tribunaisContinuamAVista = document.querySelectorAll('#trib .chip').length > 3;
+    o.painelComecaFechado = document.getElementById('popFiltros').hidden === true;
+    o.acervoNaPrimeiraDobra = document.querySelector('.vcard').getBoundingClientRect().top < 460;
+    document.getElementById('btFiltros').click(); await w(150);
+    o.botaoAbreOPainel = !document.getElementById('popFiltros').hidden
+      && document.getElementById('btFiltros').getAttribute('aria-expanded') === 'true';
+    const chip = [...document.querySelectorAll('#ramos .chip')].find(c => /^Direito Penal\s/.test(c.textContent.trim()));
+    if (!chip) return { ...o, erro: 'sem chip de ramo no painel' };
+    chip.click(); await w(350);
+    o.contaNoBotao = /Filtros \(1\)/.test(document.getElementById('btFiltros').textContent);
+    const ativo = document.querySelector('#fAtivos .chip');
+    o.chipAtivoAoLado = !!ativo && /Direito Penal/.test(ativo.textContent);
+    o.chipAtivoTemNome = !!ativo && /remover filtro/i.test(ativo.getAttribute('aria-label') || '');
+    o.filtroValeu = document.querySelectorAll('.vcard').length > 0
+      && [...document.querySelectorAll('.vcard .rtag')].every(t => /Direito Penal/.test(t.textContent));
+    ativo.click(); await w(350);
+    o.chipRemoveOFiltro = document.querySelectorAll('#fAtivos .chip').length === 0
+      && document.getElementById('btFiltros').textContent.trim() === 'Filtros';
+    // "＋ N ramos" mexe na lista de dentro: não pode ser lido como clique fora e fechar
+    document.getElementById('btFiltros').click(); await w(150);
+    const mais = [...document.querySelectorAll('#ramos .chip')].find(c => /ramos$/.test(c.textContent.trim()));
+    if (mais) { mais.click(); await w(250); }
+    o.verMaisNaoFechaOPainel = !mais || !document.getElementById('popFiltros').hidden;
+    document.body.click(); await w(150);
+    o.cliqueForaFecha = document.getElementById('popFiltros').hidden;
+    return o;
+  });
+  if (d3b.erro) ok(false, 'D3 ' + d3b.erro);
+  else for (const [k, v] of Object.entries(d3b)) ok(v, 'D3 ' + k);
+
+  // ---- D4: zero absoluto vira convite; com 1 volta a ser número
+  const d4 = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const sb = () => document.querySelector('#paneAcervo .statbar').innerText;
+    const o = {};
+    o.zeroNaoVira0 = !/\b0\b/.test(sb()) && /marque/i.test(sb());
+    const card = document.querySelector('.vcard');
+    card.querySelector('.st').click(); card.querySelector('.st').click();   // '' → rev → dom
+    card.querySelector('.fav').click(); await w(120);
+    o.comUmViraNumero = /\b1\b/.test(sb()) && /dominados/i.test(sb()) && /favoritos/i.test(sb());
+    return o;
+  });
+  for (const [k, v] of Object.entries(d4)) ok(v, 'D4 ' + k);
+
+  // ---- D7: dois níveis de microlabel, e eles são mesmo diferentes
+  // O par vivo mora no leitor: "ENUNCIADO" estrutura a leitura (forte) e "VERBETES DO
+  // FILTRO" é rótulo de coluna (fraco). Antes os dois saíam em 10px/800 e só mudavam de
+  // cor — era esse o "tudo destaca, nada destaca".
+  const d7 = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.openVerbete(0); await w(1600);
+    const g = e => { const c = getComputedStyle(e); return { fs: parseFloat(c.fontSize), w: +c.fontWeight, cor: c.color, caixa: c.textTransform }; };
+    const forte = g(document.querySelector('#jrdr .venun .lbl'));
+    const fraca = g(document.querySelector('#jrdr .maptitle'));
+    const daPagina = g(document.querySelector('#paneAcervo .statbar .mlW'));
+    document.getElementById('jrClose').click(); await w(200);
+    return { forte, fraca,
+      hierarquia: forte.fs > fraca.fs && forte.w > fraca.w && forte.cor !== fraca.cor,
+      ambosCaps: forte.caixa === 'uppercase' && fraca.caixa === 'uppercase' && daPagina.caixa === 'uppercase',
+      paginaSegueOFraco: daPagina.fs === fraca.fs && daPagina.w === fraca.w };
+  });
+  ok(d7.hierarquia, 'D7 o nível forte se distingue do fraco em tamanho, peso e cor ('
+     + d7.forte.fs + 'px/' + d7.forte.w + ' × ' + d7.fraca.fs + 'px/' + d7.fraca.w + ')');
+  ok(d7.ambosCaps, 'D7 os dois níveis continuam mono-caps (a linguagem da casa não muda)');
+  ok(d7.paginaSegueOFraco, 'D7 metadado da página usa o mesmo nível fraco do leitor');
+
+  // ---- D10: nome acessível em todo botão, foco visível e contraste do cinza pequeno
+  const d10 = await jp.evaluate(() => {
+    const o = {};
+    o.todoBotaoTemNome = [...document.querySelectorAll('button')]
+      .every(b => (b.textContent || '').trim() || b.getAttribute('aria-label'));
+    o.semNome = [...document.querySelectorAll('button')]
+      .filter(b => !(b.textContent || '').trim() && !b.getAttribute('aria-label'))
+      .map(b => b.id || b.className).join(', ');
+    // contraste real do rótulo pequeno contra o fundo da página
+    const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    const lum = s => { const m = s.match(/\d+/g).map(Number); return 0.2126 * lin(m[0]) + 0.7152 * lin(m[1]) + 0.0722 * lin(m[2]); };
+    const razao = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const alvo = document.querySelector('#paneAcervo .statbar .mlW');
+    o.contraste = +razao(getComputedStyle(alvo).color, getComputedStyle(document.body).backgroundColor).toFixed(2);
+    o.contrasteAA = o.contraste >= 4.5;
+    return o;
+  });
+  ok(d10.todoBotaoTemNome, 'D10 nenhum botão sem nome acessível (' + (d10.semNome || 'nenhum') + ')');
+  ok(d10.contrasteAA, 'D10 rótulo pequeno passa no AA (' + d10.contraste + ':1, antes 4.16 com --text3)');
+
+  // foco visível de verdade: chega no chip pelo teclado e ele se acende
+  await jp.click('#q');
+  await jp.keyboard.press('Tab');
+  const foco = await jp.evaluate(() => {
+    const a = document.activeElement, c = getComputedStyle(a);
+    return { ehChip: a.classList.contains('chip') || a.classList.contains('tab') || a.classList.contains('fbtn'),
+             temContorno: c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0 };
+  });
+  ok(foco.ehChip && foco.temContorno, 'D10 chip alcançado pelo teclado mostra o foco');
+
+  // ---- U7(b): modo leitura no leitor de verbete
+  const u7 = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const o = {};
+    window.openVerbete(0); await w(1600);
+    const dw = () => document.querySelector('#jrdr .docwrap');
+    o.medidaAntes = parseFloat(getComputedStyle(dw()).maxWidth);
+    document.getElementById('jrLeitura').click(); await w(200);
+    o.ligou = document.getElementById('jrdr').classList.contains('leitura');
+    o.medidaDepois = parseFloat(getComputedStyle(dw()).maxWidth);
+    const c = getComputedStyle(document.querySelector('#jrdr .venun .bd'));
+    o.corpo = parseFloat(c.fontSize);
+    o.entrelinha = +(parseFloat(c.lineHeight) / parseFloat(c.fontSize)).toFixed(2);
+    o.serifado = /Spectral|Georgia|serif/i.test(c.fontFamily);
+    o.pressionado = document.getElementById('jrLeitura').getAttribute('aria-pressed') === 'true';
+    // sem sync: a chave não leva o prefixo que o auth.js sobe para a nuvem
+    o.foraDoSync = !Object.keys(localStorage).some(k => k.indexOf('catedra:') === 0 && /leitura/i.test(k))
+      && localStorage.getItem('catedraJurisLeitura') === '1';
+    return o;
+  });
+  ok(u7.ligou, 'U7 modo leitura liga no leitor de verbete');
+  ok(u7.medidaDepois < u7.medidaAntes && u7.medidaDepois < 640,
+     'U7 a medida da linha encolhe para ~68ch (' + Math.round(u7.medidaAntes) + 'px → ' + Math.round(u7.medidaDepois) + 'px)');
+  ok(u7.corpo >= 17 && u7.entrelinha >= 1.69 && u7.serifado,
+     'U7 corpo serifado ≥17px com entrelinha 1.7 (' + u7.corpo + 'px / ' + u7.entrelinha + ')');
+  ok(u7.pressionado, 'U7 o botão informa o estado (aria-pressed)');
+  ok(u7.foraDoSync, 'U7 a escolha fica no aparelho — chave fora do prefixo que sincroniza');
+
+  // lembrado entre aberturas
+  await jp.goto(URL0 + '/juris-web.html');
+  await jp.waitForTimeout(2200);
+  const u7b = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.openVerbete(0); await w(1600);
+    return document.getElementById('jrdr').classList.contains('leitura');
+  });
+  ok(u7b, 'U7 o modo leitura sobrevive a reabrir a página');
+
+  // ---- D8: celular — alvo de 44px, pílulas com rolagem e ferramentas no "⋯"
+  const mctx = await browser.newContext({ viewport: { width: 375, height: 780 }, isMobile: true, hasTouch: true });
+  const mp = await mctx.newPage();
+  mp.on('pageerror', e => errosJuris.push('mobile: ' + e.message));
+  await mp.goto(URL0 + '/juris-web.html');
+  await mp.waitForTimeout(2400);
+  const d8 = await mp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const alt = s => Math.round(document.querySelector(s).getBoundingClientRect().height);
+    const o = {};
+    const tabs = document.getElementById('tabs');
+    o.pilulasRolamComEncaixe = tabs.scrollWidth > tabs.clientWidth
+      && getComputedStyle(tabs).scrollSnapType.indexOf('x') === 0
+      && getComputedStyle(document.querySelector('.tab')).scrollSnapAlign !== 'none';
+    o.alvoDaPilula = alt('.tab') >= 44;
+    o.alvoDoChip = alt('#trib .chip') >= 44;
+    o.alvoDoStatus = alt('.vcard .st') >= 44 && alt('.vcard .fav') >= 44;
+    // a ativa tem de aparecer sozinha: no celular a última pílula nasce fora da tela
+    document.querySelector('.tab[data-pane="tribunais"]').click(); await w(400);
+    const r = document.querySelector('#tabs .tab.on').getBoundingClientRect();
+    o.ativaVisivelSemRolarNaMao = r.left >= -1 && r.right <= window.innerWidth + 1;
+    document.querySelector('.tab[data-pane="acervo"]').click(); await w(300);
+    window.openVerbete(0); await w(1600);
+    o.ferramentasNoMais = getComputedStyle(document.getElementById('jrMais')).display !== 'none'
+      && getComputedStyle(document.getElementById('jrTools')).display === 'none';
+    document.getElementById('jrMais').click(); await w(200);
+    o.oMaisAbre = getComputedStyle(document.getElementById('jrTools')).display !== 'none'
+      && document.getElementById('jrMais').getAttribute('aria-expanded') === 'true';
+    o.leitorCabeNaTela = getComputedStyle(document.querySelector('#jrdr .map')).display === 'none';
+    return o;
+  });
+  for (const [k, v] of Object.entries(d8)) ok(v, 'D8 ' + k);
+
+  ok(errosJuris.length === 0, 'JURIS nenhuma exceção na página (' + errosJuris.join(' | ') + ')');
+  // a fronteira do acervo: abrir verbete puxa o BLOCO do texto, nunca o arquivo de 10 MB
+  ok(!pedidos.some(u => /juris-text\.js/.test(u)), 'JURIS abrir verbete não baixa o juris-text.js inteiro');
+
+  await mctx.close();
+  await ctx.close();
+}
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
