@@ -811,10 +811,16 @@ provaDurationMin, planHoras — vários decorativos, e as automações valiosas
    - Flashcards por dia (retenção/carga traduzido para gente);
    - **Plataforma de questões preferida** (C2).
 3. **Método da banca** — banca-alvo (muda as dicas da correção) + reta final.
-4. **Aparência** — REDUZIR a três escolhas: tema (claro/escuro/**automático**, U7),
-   cor de destaque, tamanho do texto (acessibilidade). **Morrem como opções
-   soltas**: cantos/radius, density, mostrarContagem — viram 2–3 **presets**
-   ("Padrão", "Compacto", "Conforto de leitura") em vez de cinco botões isolados.
+4. **Aparência** — a personalização do visual FICA (decisão da Lana: quem passa
+   horas por dia no app tem direito de deixá-lo com a própria cara), organizada em
+   dois andares:
+   - **Andar de cima (escolhas rápidas)**: tema (claro/escuro/**automático**, U7),
+     cor de destaque, tamanho do texto, e 2–3 **presets** de partida ("Padrão",
+     "Compacto", "Conforto de leitura") que configuram o conjunto de uma vez;
+   - **"Personalização avançada"** (seção expansível): TODOS os controles finos de
+     hoje sobrevivem — cantos/radius, densidade, contagem regressiva, e o que mais
+     existir — para quem quer ajustar peça a peça. Escolher um preset preenche os
+     finos; mexer num fino marca o preset como "Personalizado".
 5. **Dados & backup** — backup da nuvem pessoal NO TOPO; **backup automático
    semanal** (novo: toggle que salva no Drive/iCloud sem clique, com data do
    último); exportações; importar; **zona de perigo** ("Apagar tudo") isolada no
@@ -829,10 +835,12 @@ notifMeta junto do horário de estudo, onde fazem sentido).
 **Busca interna**: campo que filtra ajustes por nome e sinônimos (`data-aj`),
 como nos Ajustes do iPhone — "backup", "tema", "sair" acham o bloco com destaque.
 
-**Aceite.** A contagem de ajustes DIMINUI (alvo: ~2/3 dos atuais); cada ajuste
-exibe a frase de efeito; presets substituem os knobs decorativos sem perder o
-estado de quem já personalizou (migração: radius/density atuais mapeiam para o
-preset mais próximo); backup automático semanal grava sozinho e mostra a data;
+**Aceite.** Fora da Aparência, a contagem de ajustes DIMINUI (alvo: ~2/3 dos
+atuais) e cada ajuste exibe a frase de efeito; na Aparência, nenhum controle de
+personalização é perdido — os finos moram em "Personalização avançada", os
+presets preenchem-nos e o estado atual de quem já personalizou migra intacto
+(preset marcado como "Personalizado"); backup automático semanal grava sozinho e
+mostra a data;
 "quero fazer backup" se resolve em 2 gestos; busca interna acha "backup", "tema"
 e "sair"; abas visíveis sem rolagem em 1280×800 e 390×844.
 
