@@ -2188,7 +2188,15 @@ await page.goto(URL0 + '/Catedra.dc.html');
 await page.waitForTimeout(1700);
 const u11b = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
-  const play = () => document.querySelector('button[title="Iniciar / pausar"]');
+  // D12: o play mora dentro do chip de foco (o menu fecha a cada estado, então reabre)
+  const abrirChip = async () => {
+    if (document.querySelector('[role=menu][aria-label="Cronômetro e foco"]')) return;
+    const chip = [...document.querySelectorAll('header.ct-topbar button')]
+      .find(b => /Focar|\d\d:\d\d/.test(b.textContent || ''));
+    if (chip) { chip.click(); await w(300); }
+  };
+  const play = () => { const m = document.querySelector('[role=menu][aria-label="Cronômetro e foco"]');
+    return m && [...m.querySelectorAll('button')].find(b => /Iniciar|Pausar|Retomar/.test(b.textContent || '')); };
   const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
   await abrirChip(); play().click(); await w(300);
   delta = 2 * 60000;
@@ -2315,6 +2323,9 @@ const u7 = await page.evaluate(async () => {
   const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+  // D11: Claro/Escuro/Auto vivem na aba Aparência, junto do resto do visual
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  if (abaAp) { abaAp.click(); await w(700); }
   const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
   const r = { temBotaoAuto: !!btn('Auto') };
   if (btn('Escuro')) btn('Escuro').click();
@@ -2395,13 +2406,83 @@ ok(_semEspelho.length === 0 || _semMotivo.length === 0,
   'C1 toda prova sem espelho registra POR QUE (' + _semMotivo.length + ' sem motivo de ' + _semEspelho.length + ')');
 
 const c1tela = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  // o catálogo só é buscado ao entrar na Redação (script sob demanda, não no boot)
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) { mais.click(); await w(300); }
+  const nav = document.querySelector('button[data-view="redacao"]');
+  if (nav) { nav.click(); await w(3000); }
   const L = (window.CT_DISCURSIVAS || []);
   const alvo = L.find(q => q.espelhoSituacao === 'nao-publicado');
   const falho = L.find(q => q.espelhoSituacao && q.espelhoSituacao !== 'nao-publicado');
-  return { temCampo: L.some(q => !!q.espelhoSituacao),
+  return { carregou: L.length > 0, temCampo: L.some(q => !!q.espelhoSituacao),
     naoPublicado: alvo ? alvo.id : null, naoTranscrito: falho ? falho.id : null };
 });
+ok(c1tela.carregou, 'C1 catálogo de discursivas carrega ao entrar na Redação');
 ok(c1tela.temCampo, 'C1 catálogo leve carrega a situação do espelho (o split preserva o campo)');
+
+/* ===== C1: o textão chega à tela =====
+   Do split de 21/08 até 22/08, discursivas-textos.js era publicado no bundle, copiado pelos
+   builds e testado — e NENHUMA linha do app o carregava. A prova abria com o resumo de 320
+   caracteres e sem padrão de resposta. Este caso trava o caminho inteiro: catálogo leve →
+   clique na prova → textão sob demanda → enunciado íntegro na tela. */
+await page.goto(URL0 + '/Catedra.dc.html');
+// a Redação precisa estar na etapa 1 (o banco): prova aberta por um teste anterior fica
+// gravada e a tela abriria direto na etapa 2, sem card nenhum para clicar
+await page.evaluate(() => ['redEnunciado', 'redGabarito', 'redText', 'redProvaId']
+  .forEach(k => localStorage.removeItem('catedra:' + k)));
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const c1texto = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const out = {};
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) { mais.click(); await w(300); }
+  const nav = document.querySelector('button[data-view="redacao"]');
+  if (!nav) return { erro: 'sem botão da Redação no menu' };
+  nav.click(); await w(3000);
+  const L = window.CT_DISCURSIVAS;
+  if (!L) return { erro: 'o catálogo de discursivas não carregou' };
+  out.catalogoCarregou = true;
+  out.textoesNaoVieramJunto = !window.CT_DISCURSIVAS_TEXTOS;   // só sob demanda
+  // a lista mostra as 180 primeiras: escolher pelo que ESTÁ na tela, não pelo banco inteiro
+  const naTela = [...document.querySelectorAll('main button[data-id]')].map(b => b.getAttribute('data-id'));
+  const alvo = L.find(q => q.temTextoFull && naTela.includes(q.id));
+  if (!alvo) return { ...out, erro: 'nenhuma prova com texto completo entre as exibidas (' + naTela.length + ' cards)' };
+  out.resumoCurtoNoCatalogo = String(alvo.enunciado || '').length <= 340;
+  const card = document.querySelector('main button[data-id="' + alvo.id + '"]');
+  if (!card) return { ...out, erro: 'a prova não apareceu como card' };
+  card.click(); await w(3000);
+  out.textoesCarregaramSobDemanda = !!window.CT_DISCURSIVAS_TEXTOS;
+  let guardado = ''; try { guardado = JSON.parse(localStorage.getItem('catedra:redEnunciado') || '""'); } catch (e) {}
+  out.enunciadoInteiro = guardado.length > 340;
+  const trecho = guardado.slice(80, 140).trim();
+  out.enunciadoNaTela = trecho.length > 20 && (document.body.innerText || '').includes(trecho);
+  return out;
+});
+if (c1texto.erro) ok(false, 'C1 textão: ' + c1texto.erro);
+else for (const [k, v] of Object.entries(c1texto)) ok(v, 'C1 textão ' + k);
+
+/* ===== C1: a trava de PII acusa CPF de gente, não CPF de exemplo =====
+   O espelho da DPE-SE 2021 ensina a qualificar a parte numa petição e escreve, na prosa da
+   própria banca, "inscrita no CPF sob o nº 111.222.333-33 …". É documento público e o número
+   é um espaço em branco com cara de número — mas ele abortava o build. Trava que grita à toa
+   é trava que alguém desliga; agora só conta CPF que passa no dígito verificador, que é o que
+   a marca d'água de PDF de curso carrega. */
+const { verificarPII } = await import('../scripts/verificar-pii.mjs');
+{
+  const dir = fs.mkdtempSync(path.join(RAIZ, '.pii-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'exemplo.txt'), 'Maria Silva, inscrita no CPF sob o nº 111.222.333-33, residente…');
+    const semRuido = verificarPII(dir, { abortar: false, rotulo: 'fixture' });
+    ok(semRuido.length === 0, 'C1 PII ignora CPF de exemplo do espelho (111.222.333-33)');
+    fs.writeFileSync(path.join(dir, 'vazamento.txt'), 'material de curso — CPF: 529.982.247-25 — não distribuir');
+    const warn = console.warn; console.warn = () => {};
+    const comVazamento = verificarPII(dir, { abortar: false, rotulo: 'fixture' });
+    console.warn = warn;
+    ok(comVazamento.length > 0, 'C1 PII continua acusando CPF válido (marca d\'água de verdade)');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
 
 /* ===== C2: ponte para as plataformas de questões (só link de saída) =====
    A regra dura: o Cátedra NUNCA raspa, embute por iframe nem copia conteúdo dessas
@@ -2494,6 +2575,9 @@ ok(/catedra:espelhosSugeridos/.test(authSrc), 'C3 espelhosSugeridos está no ARR
    ◎ de foco, avatar e um bloco inteiro de cronômetro que parecia um segundo app). Agora são
    quatro cidadãos e um chip; e o modo foco virou uma sala. A regra do item: nenhuma função
    se perde — tudo continua alcançável em no máximo dois cliques. */
+await page.goto(URL0 + '/Catedra.dc.html');
+// as teclas do D13 (espaco/F) e o `?` do U8 valem so com sessao iniciada, como o ⌘K
+await page.evaluate(() => localStorage.setItem('catedra:auth', '1'));
 await page.goto(URL0 + '/Catedra.dc.html');
 await page.waitForTimeout(1800);
 const d12 = await page.evaluate(async () => {
@@ -2601,9 +2685,10 @@ const d11 = await page.evaluate(async () => {
   r.temDirecaoVisual = /Direção visual/.test(corpo());
   r.temCorDestaque = /Cor de destaque/.test(corpo());
   r.temTamanhoTexto = /Tamanho do texto/.test(corpo());
-  const abrir = [...document.querySelectorAll('main button')].find(b => /^(abrir|recolher)$/.test((b.textContent || '').trim()));
-  if (abrir) { abrir.click(); await w(400); }
-  r.avancadaTemOsFinos = /Cantos/.test(corpo());
+  const abrir = document.querySelector('main button[aria-expanded]');
+  r.avancadaTemBotao = !!abrir;
+  if (abrir) { abrir.click(); await w(500); }
+  r.avancadaTemOsFinos = /cantos/i.test(corpo());   // o rótulo é uppercase por CSS: innerText devolve CANTOS
 
   // Dados & backup: backup no topo, perigo isolado no fim
   r.abreDados = await clicaAba(/Dados/);
