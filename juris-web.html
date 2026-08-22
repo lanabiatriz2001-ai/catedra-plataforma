@@ -208,6 +208,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .grifbtn.on{display:block}
 </style>
 <script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'ctChecklistReady'},'*');}catch(e){}})();</script>
+<script src="ct-dados.js"></script>
 <script src="juris-index.js"></script>
 </head>
 <body><div class="wrap">
@@ -273,14 +274,14 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   var MODOS={
     juris:{ idx:window.__JURIS_IDX__||[], txt:null,
             idxSrc:null,               idxGlobal:'__JURIS_IDX__',
-            txtSrc:'juris-text.js',    txtGlobal:'__JURIS_TXT__',
+            txtSrc:'juris-text.js',    txtGlobal:'__JURIS_TXT__', fatia:'juris-text',
             cor:function(n){return ramoColor(n)}, comBase:false,
             ic:'⚖️', tit:'CátedraJURIS',
             sub:'Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE',
             vazio:'Base de jurisprudência não carregou.' },
     contas:{ idx:null, txt:null,
             idxSrc:'contas-index.js',  idxGlobal:'__CONTAS_IDX__',
-            txtSrc:'contas-text.js',   txtGlobal:'__CONTAS_TXT__',
+            txtSrc:'contas-text.js',   txtGlobal:'__CONTAS_TXT__', fatia:'contas-text',
             cor:function(n){return areaColor(n)}, comBase:true,
             ic:'🏛️', tit:'Central de Contas',
             sub:'Controle externo · súmulas, boletins e informativos do TCU e dos tribunais de contas',
@@ -482,7 +483,11 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   function fillBody(d,r){
     var body=d.querySelector('.vbody');
     var _tm=txtDe(r);
-    if(!_tm){ body.innerHTML='<div class="loading">Carregando textos…</div>'; loadTxt(fonteDe(r)); return; }
+    if(!_tm || !_tm[r[I.id]]){
+      body.innerHTML='<div class="loading">Carregando textos…</div>';
+      garanteTexto(r, function(){ fillBody(d,r); });
+      return;
+    }
     var t=_tm[r[I.id]]||{};
     var q=norm(f.q).split(' ').filter(Boolean);
     function hl(s){
@@ -510,19 +515,79 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     body.innerHTML=html;
   }
 
-  // ---- carregar o bundle de textos do acervo corrente (via <script>: funciona
-  // em file:// — no app nativo o WKWebView bloqueia fetch() de JSON local)
+  // ---- textos do acervo: por BLOCO quando dados/ existe, senão o arquivo inteiro
+  //
+  // O corpo dos verbetes some de 9,6 MB (juris) e 8,6 MB (contas) para ~160 KB por
+  // bloco: abrir um verbete baixa o bloco dele, e só. Quem faz isso é o CTDados
+  // (ct-dados.js), que ainda guarda o bloco no IndexedDB — logo o segundo acesso
+  // não toca a rede nem repete o JSON.parse.
+  //
+  // O caminho antigo continua inteiro, porque ele é necessário: no app nativo a
+  // página roda em file:// e o WKWebView bloqueia fetch() de JSON local, então lá
+  // o <script> monolítico é o único que funciona. CTDados.pronto() decide qual dos
+  // dois vale nesta execução.
+  var fatiaOk={};
+  ['juris','contas'].forEach(function(k){
+    var alvo=MODOS[k];
+    if(!alvo.fatia || !window.CTDados) return;
+    window.CTDados.pronto(alvo.fatia).then(function(tem){
+      fatiaOk[alvo.fatia]=!!tem;
+      if(tem){
+        alvo.txt=alvo.txt||{};                 // mapa que se preenche verbete a verbete
+      }
+    }).catch(function(){ fatiaOk[alvo.fatia]=false; });
+  });
+  function porFatia(alvo){ return !!(alvo && alvo.fatia && fatiaOk[alvo.fatia]); }
+
+  /* Garante APENAS o texto deste verbete. Guarda {} quando o acervo não tem texto
+     para a chave — sem isso, quem checa "não veio ainda" repetiria o pedido em laço. */
+  function garanteTexto(r, cb){
+    var alvo=fonteDe(r), id=r[I.id];
+    if(alvo.txt && alvo.txt[id]){ cb&&cb(); return; }
+    if(porFatia(alvo)){
+      alvo.txt=alvo.txt||{};
+      window.CTDados.get(alvo.fatia, id).then(function(v){ alvo.txt[id]=v||{}; cb&&cb(); })
+        .catch(function(){ alvo.txt[id]={}; cb&&cb(); });
+      return;
+    }
+    loadTxt(alvo, cb);
+  }
+
+  /* Não há pré-busca por página. A fatia de cada verbete sai do HASH da chave, então
+     os 40 cards de uma tela caem em ~34 blocos diferentes: "aquecer a página" baixaria
+     quase o acervo inteiro e desfaria o ganho. Busca-se um bloco quando um verbete é
+     realmente aberto — 160 KB em vez de 9,6 MB. */
+  function aquecerVisiveis(){}
+
   var txtLoading={}, txtWait={};
   function loadTxt(alvo,cb){
     if(typeof alvo==='function'){ cb=alvo; alvo=MODOS.juris; }
     alvo=alvo||MODOS.juris;
-    if(alvo.txt){cb&&cb();return;}
+    // acervo INTEIRO — só a busca por enunciado precisa disso
+    if(porFatia(alvo)){
+      if(alvo.txtCompleto){ cb&&cb(); return; }
+      (txtWait[alvo.fatia]=txtWait[alvo.fatia]||[]);
+      if(cb)txtWait[alvo.fatia].push(cb);
+      if(txtLoading[alvo.fatia])return;
+      txtLoading[alvo.fatia]=true;
+      window.CTDados.tudo(alvo.fatia).then(function(m){
+        alvo.txt=alvo.txt||{};
+        if(m)Object.keys(m).forEach(function(k){ alvo.txt[k]=m[k]; });
+        alvo.txtCompleto=true; txtLoading[alvo.fatia]=false;
+        document.querySelectorAll('.vcard.open').forEach(function(d){ var id=d.dataset.id; var rr=byId[id]; if(rr&&fonteDe(rr)===alvo)fillBody(d,rr); });
+        (txtWait[alvo.fatia]||[]).forEach(function(fn){fn()}); txtWait[alvo.fatia]=[];
+        var pd=document.getElementById('paneDia'); if(pd&&!pd.hidden)renderDia();
+      }).catch(function(){ txtLoading[alvo.fatia]=false;
+        (txtWait[alvo.fatia]||[]).forEach(function(fn){fn()}); txtWait[alvo.fatia]=[]; });
+      return;
+    }
+    if(alvo.txtCompleto){cb&&cb();return;}
     (txtWait[alvo.txtSrc]=txtWait[alvo.txtSrc]||[]);
     if(cb)txtWait[alvo.txtSrc].push(cb);            // enfileira ANTES de começar (senão o 1º cb some)
     if(txtLoading[alvo.txtSrc])return;
     txtLoading[alvo.txtSrc]=true;
     var s=document.createElement('script'); s.src=alvo.txtSrc;
-    s.onload=function(){ alvo.txt=window[alvo.txtGlobal]||{}; txtLoading[alvo.txtSrc]=false;
+    s.onload=function(){ alvo.txt=window[alvo.txtGlobal]||{}; alvo.txtCompleto=true; txtLoading[alvo.txtSrc]=false;
       // preenche os corpos abertos que esperavam justamente este acervo
       document.querySelectorAll('.vcard.open').forEach(function(d){ var id=d.dataset.id; var r=byId[id]; if(r&&fonteDe(r)===alvo)fillBody(d,r); });
       (txtWait[alvo.txtSrc]||[]).forEach(function(fn){fn()}); txtWait[alvo.txtSrc]=[];
@@ -552,7 +617,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   qEl.addEventListener('input',function(){ f.q=qEl.value; clearTimeout(qt); qt=setTimeout(build,180); });
   // ao começar a digitar, garante o texto carregado (busca em enunciado)
   qEl.addEventListener('focus',function(){
-    [MODOS.juris,MODOS.contas].forEach(function(a){ if(!a.txt&&a.idx&&a.idx.length)loadTxt(a,function(){ if(f.q)build(); }); }); });
+    [MODOS.juris,MODOS.contas].forEach(function(a){ if(!a.txtCompleto&&a.idx&&a.idx.length)loadTxt(a,function(){ if(f.q)build(); }); }); });
 
   // ================= CENTRAL DE CONTAS: acervo + diretório =================
   // 33 tribunais de contas (TCU + 26 TCEs + TCDF + 5 TCMs). Os links são os
@@ -765,7 +830,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
     // O corpo dos verbetes é um arquivo à parte, carregado sob demanda. No acervo quem
     // dispara é abrir um card; aqui não há card para abrir, então pedimos nós mesmos.
-    if(!t.en)loadTxt(fonteDe(r), function(){ var pd=document.getElementById('paneDia'); if(pd&&!pd.hidden)renderDia(); });
+    // pede só este verbete; a checagem é "a chave chegou?", e não "tem enunciado?",
+    // senão um verbete sem texto reentraria em laço
+    if(!(_tm && _tm[r[I.id]]))garanteTexto(r, function(){ var pd=document.getElementById('paneDia'); if(pd&&!pd.hidden)renderDia(); });
     var tags='<span class="diaTag">'+esc(r[I.tr]||'')+'</span>'
       +(r[I.fo]?'<span class="diaTag">'+esc(nomeColecao(r[I.fo]))+'</span>':'')
       +(r[I.ra]?'<span class="diaTag">'+esc(r[I.ra])+'</span>':'')
@@ -1154,7 +1221,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     document.getElementById('jrTrib').textContent=r[I.tr]||'—';
     jApplyTheme(); _jr.classList.add('on'); document.body.style.overflow='hidden'; _jsc.scrollTop=0;
     buildMap(idx);
-    if(!txtDe(r)){ _jsc.innerHTML='<div class="rdr-spin">Carregando os textos…</div>'; loadTxt(fonteDe(r),function(){ renderVerbete(r); }); }
+    var _tmR=txtDe(r);
+    if(!_tmR || !_tmR[r[I.id]]){ _jsc.innerHTML='<div class="rdr-spin">Carregando os textos…</div>'; garanteTexto(r,function(){ renderVerbete(r); }); }
     else renderVerbete(r);
   };
   // grifos
