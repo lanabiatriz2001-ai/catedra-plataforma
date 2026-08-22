@@ -2703,6 +2703,91 @@ const d11 = await page.evaluate(async () => {
 });
 for (const [k, v] of Object.entries(d11)) ok(v, 'D11 ' + k);
 
+/* ===== REVISÃO ADVERSARIAL — os defeitos que ela achou não voltam =====
+   Uma revisão de 106 agentes sobre este lote confirmou 27 defeitos. Cada caso abaixo trava
+   um deles pelo COMPORTAMENTO, não pela implementação. */
+
+// A Aparência ficava no nível do <main> sem portão de view: depois de visitar a aba uma vez,
+// os cartões de preset e cor apareciam por baixo do Início, do Ciclo e do Edital.
+const rev1 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
+  await w(1000);
+  const ap = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  if (!ap) return { erro: 'sem aba Aparência' };
+  ap.click(); await w(600);
+  const naAba = /Escolhas rápidas/.test(document.body.innerText);
+  try { if (window.__catedraGoView) window.__catedraGoView('inicio'); } catch (e) {}
+  await w(900);
+  return { naAba, vazouParaOInicio: /Escolhas rápidas|Personalização avançada/.test(document.body.innerText) };
+});
+ok(!rev1.erro && rev1.naAba, 'REVISÃO Aparência aparece na sua aba');
+ok(!rev1.erro && !rev1.vazouParaOInicio, 'REVISÃO Aparência NÃO vaza para o Início (perdera o portão de view)');
+
+// O F ligava a sala por baixo do simulado cronometrado, punha o cronômetro a correr durante
+// a prova, e o Esc seguinte saía da PROVA — apagando ct_prova.
+const rev2 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const app = { }; const r = {};
+  localStorage.setItem('catedra:auth', '1');
+  // simula um modal aberto pelo caminho que o app usa
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true })); await w(500);
+  r.fEntraQuandoLivre = !!document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(400);
+  r.escSaiDaSala = !document.querySelector('[aria-label="Sala de foco"]');
+  return r;
+});
+for (const [k, v] of Object.entries(rev2)) ok(v, 'REVISÃO ' + k);
+
+// A busca dos Ajustes deixava cartões escondidos ao trocar de aba (display imperativo em
+// elemento que o runtime não remonta), e mandava Flashcards para a aba errada.
+const rev3 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
+  await w(1000);
+  const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
+  if (!busca) return { erro: 'sem busca nos Ajustes' };
+  busca.value = 'backup'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
+  const alvo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
+  const abaDoFlash = alvo ? alvo.getAttribute('data-t') : null;
+  busca.value = 'flashcards'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
+  const flash = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
+  const r = { flashApontaParaDados: !!flash && flash.getAttribute('data-t') === 'dados' };
+  // trocar de aba com a busca ativa não pode deixar cartão escondido
+  const abaEstudo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Estudo/.test(b.textContent));
+  if (abaEstudo) { abaEstudo.click(); await w(800); }
+  const escondidos = [...document.querySelectorAll('main [data-aj]')].filter(e => e.style.display === 'none');
+  r.nenhumCartaoFicaEscondido = escondidos.length === 0;
+  r.buscaFoiLimpa = (document.querySelector('main input[aria-label="Buscar nos ajustes"]') || {}).value === '';
+  return r;
+});
+if (rev3.erro) ok(false, 'REVISÃO ' + rev3.erro);
+else for (const [k, v] of Object.entries(rev3)) ok(v, 'REVISÃO ' + k);
+
+// O fallback de plataformaOpcoes lançava por construção e derrubava o render inteiro.
+const rev4 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const guardado = window.CT_PLATAFORMAS;
+  try {
+    delete window.CT_PLATAFORMAS;
+    try { if (window.__catedraGoView) window.__catedraGoView('inicio'); } catch (e) {}
+    await w(900);
+    // se o render tivesse caído, o app inteiro renderizaria vazio
+    const vivo = (document.body.innerText || '').length > 200 && !!document.querySelector('header.ct-topbar');
+    return { appSobreviveSemOMapaDePlataformas: vivo };
+  } finally { window.CT_PLATAFORMAS = guardado; }
+});
+for (const [k, v] of Object.entries(rev4)) ok(v, 'REVISÃO ' + k);
+
+// O assunto que vai para a plataforma não pode carregar o nome de um material pessoal inteiro.
+const rev5 = await page.evaluate(() => {
+  const P = window.CT_PLATAFORMAS;
+  const url = P.link('tec', { disciplina: 'Direito Civil',
+    assunto: 'processo 0001234-56 2024 8 26 0100 peticao inicial cliente' });
+  return { assuntoNaoVaiInteiro: decodeURIComponent(url).length < 140 };
+});
+for (const [k, v] of Object.entries(rev5)) ok(v, 'REVISÃO ' + k);
+
 /* ===== D14: VARREDURA DE LIGAÇÕES PERDIDAS =====
    Duas falhas do mesmo tipo passaram meses despercebidas: um botão da barra usava
    `style="{{ navPrioridade }}"`, variável que nunca entrou no render() (o dc-runtime

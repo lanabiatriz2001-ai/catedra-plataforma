@@ -26,7 +26,9 @@
     tec: {
       nome: 'TEC Concursos',
       cor: '#0f766e',
-      busca: (q) => 'https://www.tecconcursos.com.br/questoes/pesquisa?texto=' + enc(termos(q)),
+      // caminho alinhado com o que os apps Swift deste repositório e a especificação já
+      // usam; /questoes/pesquisa devolveu 404 na medição
+      busca: (q) => 'https://www.tecconcursos.com.br/questoes?texto=' + enc(termos(q)),
     },
     qc: {
       nome: 'QConcursos',

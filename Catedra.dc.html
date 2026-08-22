@@ -68,6 +68,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .ct-synclabel{display:none!important;}
   .ct-sm-hide{display:none!important;}
 }
+/* D12: o sino da barra e o item do menu da conta são o MESMO sino em dois lugares. O item
+   do menu segue `isMobile` (<900px) e este limiar precisa ser o mesmo — com 680 aqui, entre
+   681 e 899 os dois apareciam ao mesmo tempo, cada um com seu badge. */
+@media (max-width:899px){ .ct-sino-barra{display:none!important;} }
 @media (max-width:540px){
   .ct-topbar{gap:8px!important;padding-left:14px!important;padding-right:14px!important;}
   .ct-sm-hide2{display:none!important;}
@@ -583,7 +587,7 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <!-- notificações -->
-      <div class="ct-sm-hide" style="position:relative;flex:none;">
+      <div class="ct-sino-barra" style="position:relative;flex:none;">
         <button onclick="{{ toggleNotif }}" title="Notificações" style="position:relative;border:1px solid var(--border);background:var(--surface2);border-radius:99px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 4a4 4 0 0 1 4 4v2.4c0 .9.3 1.8.9 2.5L18.5 15H5.5l1.6-2.1c.6-.7.9-1.6.9-2.5V8a4 4 0 0 1 4-4Z" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"></path></svg>
           <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;border-radius:99px;background:var(--danger);color:#fff;font-size:var(--fs-2xs);font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);">{{ notifUnreadStr }}</span></sc-if>
@@ -2378,6 +2382,14 @@ window.ctPdfLib = (function(){
                 <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.82;">Cobertura do espelho</div>
                 <div style="height:10px;border-radius:99px;background:rgba(255,255,255,.22);margin-top:10px;overflow:hidden;"><div style="width:{{ redCobBarW }};height:100%;border-radius:99px;background:#fff;"></div></div>
                 <div style="font-size:var(--fs-sm);opacity:.92;margin-top:8px;">{{ redCobertura }} dos pontos do espelho · {{ redOrigemLabel }}</div>
+                <!-- C3: a nota tirada de espelho sugerido não pode chegar aqui sem o selo.
+                     As etapas 1 e 2 (onde o selo vivia) somem quando a correção aparece. -->
+                <sc-if value="{{ redResultAprox }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:6px 13px;">
+                    <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.07em;">Nota aproximada</span>
+                    <span style="font-size:var(--fs-xs);opacity:.9;">corrigida por espelho sugerido, não pelo da banca</span>
+                  </div>
+                </sc-if>
               </div>
             </div>
             <div style="position:relative;font-size:var(--fs-base);line-height:1.7;margin-top:20px;opacity:.95;max-width:760px;">{{ redResult.geral }}</div>
@@ -2460,7 +2472,7 @@ window.ctPdfLib = (function(){
                   </div>
                 </div>
                 <div>
-                  <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);margin-bottom:8px;">Espelho oficial</div>
+                  <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:{{ redGabRotuloCor }};margin-bottom:8px;">{{ redGabRotulo }}</div>
                   <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface2);font-size:var(--fs-base);line-height:1.75;color:var(--ink);max-height:420px;overflow:auto;">
                     <sc-for list="{{ redCompareGab }}" as="sg" hint-placeholder-count="6"><span style="{{ sg.style }}">{{ sg.t }}</span></sc-for>
                   </div>
@@ -4625,7 +4637,7 @@ window.ctPdfLib = (function(){
            é a ordem: em cima, o punhado de escolhas que resolve a vida da maioria (e os
            presets, que preenchem tudo de uma vez); os controles finos descem para
            "Personalização avançada", que continua com todos eles. -->
-      <sc-if value="{{ ajTabAparencia }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ ajTabAparenciaVisivel }}" hint-placeholder-val="{{ false }}">
        <div data-aj="aparência tema cor destaque texto preset" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
         <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:4px;">Escolhas rápidas</div>
         <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:16px;">um clique arruma o conjunto; o ajuste peça a peça fica logo abaixo</div>
@@ -4638,7 +4650,7 @@ window.ctPdfLib = (function(){
         <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;line-height:1.5;">{{ apPresetEfeito }}</div>
        </div>
       </sc-if>
-      <sc-if value="{{ ajTabAparencia }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ ajTabAparenciaVisivel }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
         <!-- PERSONALIZAÇÃO AVANÇADA: os controles finos, todos eles, recolhidos -->
         <div data-aj="personalização avançada cantos densidade contagem layout" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -5393,7 +5405,7 @@ class Component extends DCLogic {
       espelhosSugeridos:this._load('espelhosSugeridos',[]), espSugBusy:false, espSugAtual:null,
       // guarda qual prova está aberta: sem isso, recarregar o app deixava o gabarito
       // sugerido na tela mas sem o selo que diz que ele é sugerido
-      redProvaId:this._load('redProvaId',''), redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
+      redProvaId:this._load('redProvaId',''), redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
       // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
       // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
@@ -5480,13 +5492,19 @@ class Component extends DCLogic {
         const digitando = !!(el && (tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || el.isContentEditable));
         if(!digitando && this.state.loggedIn && !this.state.atalhosOpen){ e.preventDefault(); this.setState({atalhosOpen:true, paletteOpen:false}); return; }
       }
-      if(e.key==='Escape'){ if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.provaMode) this.exitProva(); else if(this.state.focusMode) this.exitFocus(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+      if(e.key==='Escape'){ if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
       // vale enquanto ela digita — senão um espaço no meio da redação pararia o cronômetro.
       const _dig=(()=>{ try{ const el=document.activeElement; if(!el) return false;
         const t=(el.tagName||'').toLowerCase();
         return t==='input'||t==='textarea'||t==='select'||el.isContentEditable; }catch(_){ return false; } })();
-      if(!_dig && this.state.loggedIn && !this.state.paletteOpen){
+      // Nenhum modal aberto: senão o F ligava a sala POR BAIXO do simulado cronometrado
+      // (z120 sob z150 opaco), punha o cronômetro de estudo a correr durante a prova e
+      // engolia todos os avisos — e o Esc seguinte saía da PROVA, apagando `ct_prova`.
+      const _ocupado = !!(this.state.paletteOpen || this.state.provaMode || this.state.treino
+        || this.state.revSession || this.state.atalhosOpen || this.state.sessionModalOpen
+        || this.state.histEdit);
+      if(!_dig && this.state.loggedIn && !_ocupado){
         if(this.state.focusMode && (e.key===' '||e.code==='Space')){ e.preventDefault(); this.toggleTimer(); return; }
         if(e.key==='f'||e.key==='F'){
           if(!e.metaKey && !e.ctrlKey && !e.altKey){ e.preventDefault();
@@ -7323,11 +7341,14 @@ class Component extends DCLogic {
     clearTimeout(this._salaT);
     this._salaT=setTimeout(()=>{ try{ this.setState({salaFraseVisivel:false}); }catch(_){} }, 3000);
     if(!this.state.timerRunning) this.toggleTimer(); };
-  exitFocus = ()=>{ clearTimeout(this._salaT);
-    // D13: os avisos que a sala silenciou voltam assim que ela sai — adiar, não perder
+  /** Solta os avisos que a sala calou. Reemite TODOS, em fila — "adiar, não perder". */
+  _drenarToasts(){
     const fila=this._toastFila||[]; this._toastFila=null;
+    fila.forEach((msg,i)=>setTimeout(()=>{ try{ this._toast(msg); }catch(_){} }, 350+i*2400));
+  }
+  exitFocus = ()=>{ clearTimeout(this._salaT);
     this.setState({focusMode:false, focusBlockIdx:null, salaFraseVisivel:false});
-    if(fila.length) setTimeout(()=>this._toast(fila[fila.length-1]), 350); };
+    this._drenarToasts(); };
   // ===== Picture-in-Picture do cronômetro (janela flutuante do modo foco) =====
   _docPiPReady(){ try{ return !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow); }catch(_){ return false; } }
   _videoPiPReady(){ try{ const v=document.createElement('video'); return !!(document.pictureInPictureEnabled && v.requestPictureInPicture) || !!(v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')); }catch(_){ return false; } }
@@ -7492,7 +7513,10 @@ class Component extends DCLogic {
       const blocks= (blk&&_autoConcl)? s.blocks.map((x,j)=> j===idx?{...x,done:true}:x) : s.blocks;
       const draft= blk? this._blockToDraft(blk, s.sessionDraft) : this._freshSessionDraft(s.sessionDraft);
       return {focusMode:false, timerRunning:false, sessionModalOpen:_autoReg, focusBlockIdx:null, blocks,
-        sessionDraft:{...draft, minutos: pre>0?String(pre):(blk?String(blk.min||''):'')}}; }); };
+        sessionDraft:{...draft, minutos: pre>0?String(pre):(blk?String(blk.min||''):'')}}; });
+    // Encerrar também sai da sala: os avisos calados precisam sair com ela, senão somem
+    // nesta sessão e reaparecem fora de contexto na próxima saída pelo X.
+    clearTimeout(this._salaT); this._drenarToasts(); };
 
   // ===== Anki =====
   onAnkiInput = (e)=> this.setState({ankiInput:e.currentTarget.value});
@@ -7779,21 +7803,31 @@ class Component extends DCLogic {
       if(!this.state.prefs || !this.state.prefs.backupAuto) return;
       const ultimo=+(localStorage.getItem('catedra:_bkpAutoTs')||0);
       if(ultimo && (Date.now()-ultimo) < 7*864e5) return;
+      // tentou há pouco e falhou: não insiste de hora em hora
+      const tentou=+(localStorage.getItem('catedra:_bkpAutoTry')||0);
+      if(tentou && (Date.now()-tentou) < 6*36e5) return;
       const nativo=this._nativoBackup();
       if(!nativo && !this._gdriveCfg()) return;                 // sem destino, nada a fazer
-      localStorage.setItem('catedra:_bkpAutoTs', String(Date.now()));
+      // marca a TENTATIVA (para não repetir de hora em hora quando falha), mas o carimbo
+      // de sucesso só é gravado quando o backup de fato deu certo
+      localStorage.setItem('catedra:_bkpAutoTry', String(Date.now()));
       Promise.resolve(nativo ? this.backupICloud() : this.backupDrive())
-        .catch(()=>{ this.setState({backupAutoErro:true});
-          this._toast('O backup automático falhou — reconecte o Drive nos Ajustes'); });
+        .then(()=>{ try{ localStorage.setItem('catedra:_bkpAutoTs', String(Date.now())); }catch(_){}
+          this.setState({backupAutoErro:false}); })
+        .catch((e)=>{ this.setState({backupAutoErro:true});
+          this._toast('O backup automático falhou — '+((e&&e.message)||'reconecte a nuvem nos Ajustes')); });
     }catch(_){}
   }
+  // Devolve a promessa e REJEITA quando não salvou — sem isso o backup automático semanal
+  // não tinha como saber que falhou, e passava a afirmar na tela que tinha dado certo.
   backupICloud = ()=>{ const json=JSON.stringify(this._backupObjeto(),null,2);
-    if(!this._nativoBackup()){ this.exportJSON(); return; }
-    window.webkit.messageHandlers.catedraBackup.postMessage({acao:'salvar', json, nome:'catedra-backup.json'}).then(r=>{
+    if(!this._nativoBackup()){ this.exportJSON(); return Promise.resolve(); }
+    return window.webkit.messageHandlers.catedraBackup.postMessage({acao:'salvar', json, nome:'catedra-backup.json'}).then(r=>{
       if(r&&r.ok){ try{ localStorage.setItem('catedra:_bkpICloud',String(Date.now())); }catch(_){} this.setState({}); this._toast('Backup salvo'+(r.onde?(' em '+r.onde):'')+' ✦'); }
-      else if(r&&r.cancelado){ /* a pessoa desistiu */ }
-      else this._toast('Não deu para salvar: '+((r&&r.erro)||'erro desconhecido'));
-    }).catch(()=>this._toast('Não deu para salvar o backup')); };
+      else if(r&&r.cancelado){ throw new Error('você cancelou a escolha da pasta'); }
+      else { this._toast('Não deu para salvar: '+((r&&r.erro)||'erro desconhecido'));
+        throw new Error((r&&r.erro)||'não deu para salvar'); }
+    }); };
   restaurarICloud = ()=>{ if(!this._nativoBackup()){ this.importData(); return; }
     window.webkit.messageHandlers.catedraBackup.postMessage({acao:'ler', nome:'catedra-backup.json'}).then(r=>{
       if(r&&r.json){ if(!window.confirm('Restaurar o backup'+(r.quando?(' de '+r.quando):'')+'? Os dados atuais deste aparelho serão substituídos pelos do arquivo.')) return;
@@ -7811,7 +7845,9 @@ class Component extends DCLogic {
       const b='ctbkp'+Date.now(); const body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+json+'\r\n--'+b+'--';
       const r=await fetch('https://www.googleapis.com/upload/drive/v3/files'+(f?('/'+f.id):'')+'?uploadType=multipart',{method:f?'PATCH':'POST', headers:{...h,'Content-Type':'multipart/related; boundary='+b}, body}); if(!r.ok) throw new Error('HTTP '+r.status);
       try{ localStorage.setItem('catedra:_bkpDrive',String(Date.now())); }catch(_){} this.setState({}); this._toast('Backup salvo no Google Drive ✦');
-    }catch(e){ this._toast('Google Drive: '+((e&&e.message)||'falhou')); } };
+    // relança depois de avisar: o backup automático semanal precisa saber que falhou —
+    // engolir aqui fazia a tela afirmar que a cópia foi feita quando o token tinha expirado
+    }catch(e){ this._toast('Google Drive: '+((e&&e.message)||'falhou')); throw e; } };
   restaurarDrive = async ()=>{ try{ const tok=await this._gdriveToken(); const h={Authorization:'Bearer '+tok}; const f=await this._gdriveAcha(h);
       if(!f){ this._toast('Nenhum backup do Cátedra no seu Google Drive'); return; }
       if(!window.confirm('Restaurar o backup do Google Drive de '+new Date(f.modifiedTime).toLocaleString('pt-BR')+'? Os dados atuais serão substituídos.')) return;
@@ -7920,7 +7956,10 @@ class Component extends DCLogic {
         const liq=(o.a-o.e)/o.q;
         if(!pior || liq<pior.liq) pior={liq, topico:o.topico};
       });
-      return pior ? String(pior.topico||'') : '';
+      // poda como se faz com o trecho do enunciado: com o campo Tópico vazio, a sessão
+      // herda o nome do material vinculado, que pode ser o arquivo pessoal dela (já vi
+      // número de processo em nome de arquivo). Três palavras bastam para filtrar assunto.
+      return pior ? String(pior.topico||'').split(/\s+/).slice(0,3).join(' ').slice(0,60) : '';
     }catch(_){ return ''; }
   }
   _plataforma(){ return this.state.plataformaQuestoes || 'tec'; }
@@ -7996,6 +8035,8 @@ class Component extends DCLogic {
     const _gab = gabTexto || (_sug ? this._espSugTexto(_sug) : '');
     this.setState({
       redProvaId: q.id, espSugAtual: _sug,
+      // guarda POR QUE não há espelho, para a faixa dizer a verdade em vez de chutar
+      redEspSituacao: (q.espelhoSituacao || ''), redEspTemPdf: !!q.fonte_espelho,
       redEnunciado: cab+'\n\n'+(q.enunciado||''),
       redGabarito: _gab,
       // Treino pelo espelho: o espelho fica ESCONDIDO até a pessoa entregar. Saber que
@@ -8193,7 +8234,8 @@ class Component extends DCLogic {
         pctBanca:(mult&&x.pct)?(x.pct+'% dos candidatos acertaram'):'',
         // C2: o que vai na busca da plataforma — matéria, banca, ano e um trecho curto
         // do enunciado (o enunciado inteiro não acha nada em banco de questões)
-        disc:String(x.disciplina||x.ramo||''), banca:String(x.banca||''), ano:String(x.ano||''),
+        disc:String(x.assunto||x.tema||x.disciplina||x.ramo||''),
+        banca:String(x.banca||''), ano:String(x.ano||''),
         termo:String(x.enunciado||'').split(/\s+/).slice(0,10).join(' '),
         oficial:x.original||''}; }),
     };
@@ -8259,6 +8301,9 @@ class Component extends DCLogic {
       // as questões de prova fecham o caderno, como o bloco final de uma prova real
       const extras=(qps||[]).map(q=>({id:'qp'+q.id, origem:'prova', ramo:q.disciplina.replace(/\s*\(.*$/,''),
         enunciado:q.enunciado, alternativas:q.alternativas, certo:q.gabarito, pct:q.pct,
+        // C2: sem isto o "Praticar" do gabarito só mandava a disciplina, e doze itens de
+        // CPC abriam exatamente a mesma busca lá fora
+        disciplina:q.disciplina||'', assunto:q.assunto||q.tema||'', banca:q.banca||'', ano:q.ano||'',
         ref:[q.banca,q.orgao,q.ano].filter(Boolean).join(' · ')}));
       const todos=itens.concat(extras);
       if(!todos.length){ this._toast('Nenhum item com esse filtro — desmarque disciplinas ou ajuste o % de lei seca'); return; }
@@ -8725,11 +8770,23 @@ class Component extends DCLogic {
     try{ localStorage.setItem('catedra:redGabarito',JSON.stringify(texto)); }catch(_){}
     this._toast('Espelho sugerido gerado — confira os fundamentos antes de usar a nota');
   };
-  onRedGab = (e)=> this.setState({redGabarito:e.currentTarget.value});
+  // Colou ou importou espelho por fora? Então o que está no campo não é mais o sugerido —
+  // o selo tem de sair, e a nota volta a ser oficial. Sem isto, a nota tirada do espelho
+  // da banca era arquivada como "aproximada", que é o caminho que o próprio toast sugere.
+  _deixaDeSerSugerido = ()=>{
+    const id=this.state.redProvaId;
+    if(!this.state.espSugAtual && !id) return;
+    this.setState(st=>({ espSugAtual:null,
+      espelhosSugeridos:(st.espelhosSugeridos||[]).filter(x=>!x||x.id!==id) }));
+  };
+  onRedGab = (e)=>{ const v=e.currentTarget.value;
+    if(this.state.espSugAtual && v!==this.state.redGabarito) this._deixaDeSerSugerido();
+    this.setState({redGabarito:v}); };
   importRedGab = ()=>{ try{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/pdf,.pdf,text/plain,.txt';
     inp.onchange=async ()=>{ const f=inp.files&&inp.files[0]; if(!f) return; this.setState({redGabBusy:true, redGabFile:f.name});
       try{ let txt=''; if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){ txt=await this._extractEditalPdf(f); }
         else { txt=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result||'')); r.onerror=rej; r.readAsText(f); }); }
+        this._deixaDeSerSugerido();   // espelho vindo de fora não é mais o sugerido
         this.setState({redGabarito:(txt||'').trim(), redGabBusy:false}); this._toast('Gabarito importado ✦');
       }catch(err){ this.setState({redGabBusy:false}); this._toast('Não consegui ler o arquivo'); } };
     inp.click(); }catch(e){} };
@@ -8748,6 +8805,7 @@ class Component extends DCLogic {
     // isso. Uma nota tirada de um espelho que a banca nunca publicou não pode entrar na
     // evolução com o mesmo peso de uma tirada do espelho oficial.
     const _aprox=!!this.state.espSugAtual;
+    try{ if(res && typeof res==='object') res.aproximada=_aprox; }catch(_){}
     const entry={id:'rd'+Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now(), res, texto:text, gabarito:this.state.redGabarito, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial')};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
     this.setState({redBusy:false, redResult:res, redHistory:hist}); this.flashSync();
@@ -9873,7 +9931,12 @@ class Component extends DCLogic {
   // registrado: sessões antigas continuam com as categorias que tinham, e o edital
   // cadastrado não é tocado — a área só muda o que o app SUGERE daqui pra frente.
   toggleAreaSel = ()=> this.setState(s=>({areaSelOpen:!s.areaSelOpen}));
-  setAjTab = (e)=> this.setState({ajTab:e.currentTarget.dataset.t||'voce'});
+  setAjTab = (e)=>{
+    this.setState({ajTab:e.currentTarget.dataset.t||'voce', ajBusca:'', ajBuscaN:0});
+    // limpa o display imperativo antes de trocar de aba: cartão que não está dentro de um
+    // sc-if de aba não é remontado, e ficaria escondido para sempre
+    setTimeout(()=>{ try{ this._filtrarAjustes(''); }catch(_){} }, 0);
+  };
   // ===== D11 =====
   // Busca interna dos Ajustes, como no iPhone. Ela pergunta "onde está o backup", não "em
   // que aba ele mora" — e a aba que não está aberta NÃO está no DOM (é um sc-if). Por isso o
@@ -9893,7 +9956,7 @@ class Component extends DCLogic {
     {t:'estudo',    nome:'Notificações e alertas',      chaves:'notificação alerta aviso lembrete push revisão'},
     {t:'estudo',    nome:'Onde praticar questões',      chaves:'questões tec qconcursos estratégia praticar plataforma'},
     {t:'estudo',    nome:'Critérios de prioridade',     chaves:'prioridade critério peso foco do dia'},
-    {t:'estudo',    nome:'Flashcards',                  chaves:'flashcards anki retenção carga cartões'},
+    {t:'dados',     nome:'Flashcards',                  chaves:'flashcards anki retenção carga cartões'},
     {t:'banca',     nome:'Método da banca',             chaves:'banca cebraspe fgv fcc método dicas'},
     {t:'voce',      nome:'Perfil de estudo',            chaves:'nome objetivo cargo perfil área data da prova'},
   ];
@@ -10609,6 +10672,12 @@ class Component extends DCLogic {
       +';color:'+(on?'var(--accentD)':'var(--ink)')+';border-radius:99px;padding:9px 15px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;';
     const ajuTabs = { ajTabVoce:_ajTab==='voce', ajTabEstudo:_ajTab==='estudo', ajTabBanca:_ajTab==='banca', ajTabDados:_ajTab==='dados',
       ajTabAparencia:_ajTab==='aparencia', ajTabConta:_ajTab==='conta',
+      // Estes dois blocos ficam no nível do <main>, fora de qualquer portão de view. Sem
+      // somar `isConfig` aqui, visitar a aba Aparência uma vez fazia os cartões de preset,
+      // cor e tamanho aparecerem por baixo do Início, do Ciclo e do Edital — nada zera
+      // `ajTab` ao navegar.
+      ajTabAparenciaVisivel:(_ajTab==='aparencia' && (this.state.view==='ajustes'
+        || this.state.view==='personalizacao' || this.state.view==='orientacao')),
       ajTabBtnVoce:_ajBtn(_ajTab==='voce'), ajTabBtnEstudo:_ajBtn(_ajTab==='estudo'), ajTabBtnBanca:_ajBtn(_ajTab==='banca'), ajTabBtnDados:_ajBtn(_ajTab==='dados'),
       ajTabBtnAparencia:_ajBtn(_ajTab==='aparencia'), ajTabBtnConta:_ajBtn(_ajTab==='conta'),
       ajBusca:this.state.ajBusca, onAjBusca:this.onAjBusca, limparAjBusca:this.limparAjBusca,
@@ -13077,9 +13146,21 @@ class Component extends DCLogic {
       bancoLabel:(this.state.bancoOpen?'Fechar o banco':'Escolher do banco de discursivas'),
       // C3: estado do espelho sugerido nesta prova
       redSemEspelho:!!(this.state.redModoProva && this.state.redProvaId && !this.state.redGabarito),
-      redSemEspelhoMsg:'A banca não publicou espelho de correção desta prova. Dá para treinar a redação '
-        +'do mesmo jeito; para ter uma nota aproximada, o Cátedra pode sugerir um espelho por IA — com '
-        +'fundamento legal em cada quesito, para você conferir.',
+      // Três causas, três frases. Dizer "a banca não publicou" quando o espelho existe em
+      // PDF manda a pessoa procurar o que já está lá — e é o oposto do que o próprio toast
+      // desta tela diz no mesmo clique.
+      redSemEspelhoMsg:(()=>{
+        const base=' Dá para treinar a redação do mesmo jeito; para ter uma nota aproximada, o '
+          +'Cátedra pode sugerir um espelho por IA — com fundamento legal em cada quesito, para você conferir.';
+        const st=this.state.redEspSituacao;
+        if(st==='nao-publicado') return 'A banca não publicou espelho de correção desta prova.'+base;
+        if(st==='escaneado')  return 'O espelho desta prova existe, mas o PDF da banca é imagem digitalizada e não deu para transcrever.'+base;
+        if(st==='ilegivel')   return 'O espelho desta prova existe em PDF, mas não conseguimos transcrever o texto deste lado.'+base;
+        if(st==='deformado')  return 'A transcrição do espelho desta prova saiu deformada e preferimos não publicá-la.'+base;
+        if(st==='sem-pdf' || this.state.redEspTemPdf)
+          return 'O espelho oficial desta prova está em PDF e ainda não foi transcrito — o link fica no enunciado.'+base;
+        return 'Esta prova está sem espelho de correção aqui.'+base;
+      })(),
       redEspSugerido:!!this.state.espSugAtual,
       redEspeloTitulo:(this.state.espSugAtual?'Espelho sugerido · guardado':'Espelho oficial · guardado'),
       espSugBtn:(this.state.espSugBusy?'Gerando…':'Gerar espelho sugerido'),
@@ -13087,6 +13168,13 @@ class Component extends DCLogic {
       gerarEspelhoSugerido:this.gerarEspelhoSugerido,
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
       redOrigemLabel:(this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local — conecte a IA':'corrigido por IA',
+      // C3 na tela da nota: o selo vem do resultado (que carrega `aproximada`), não do
+      // estado da etapa 2 — reabrir pelo histórico também precisa mostrá-lo.
+      redResultAprox:!!((this.state.redResult&&this.state.redResult.aproximada)||(!this.state.redResult&&this.state.espSugAtual)),
+      redGabRotulo:(((this.state.redResult&&this.state.redResult.aproximada)||this.state.espSugAtual)
+        ?'Espelho sugerido — não oficial':'Espelho oficial'),
+      redGabRotuloCor:(((this.state.redResult&&this.state.redResult.aproximada)||this.state.espSugAtual)
+        ?'var(--warn)':'var(--text3)'),
       redOrigemCor:(this.state.redResult&&this.state.redResult.aiUsed===false)?'var(--warn)':'var(--accentD)',
       redOrigemBg:(this.state.redResult&&this.state.redResult.aiUsed===false)?'rgba(194,121,12,.14)':'var(--accentSoft)',
       redEnunciadoShow, redEnunciadoResult,
@@ -13100,7 +13188,10 @@ class Component extends DCLogic {
       praticarTitulo:'Abre a busca no '+this._plataformaNome()+' em outra aba. O Cátedra não copia conteúdo dessas plataformas — só leva o link.',
       plataformaQuestoes:this.state.plataformaQuestoes, setPlataforma:this.setPlataforma,
       plataformaOpcoes:((window.CT_PLATAFORMAS&&window.CT_PLATAFORMAS.ordem)||['tec']).map(k=>({
-        v:k, label:window.CT_PLATAFORMAS.lista[k].nome, sel:this._plataforma()===k })),
+        // sem guarda aqui, o "fallback" era o próprio caminho de erro: a global ausente
+        // levava a lista a lançar, o support.js capturava e o app inteiro renderizava vazio
+        v:k, label:((((window.CT_PLATAFORMAS||{}).lista||{})[k]||{}).nome)||'TEC Concursos',
+        sel:this._plataforma()===k })),
       prioErros:this.prioErros, prioEstudar:this.prioEstudar,
       semanaLista, semanaTem:semanaLista.length>0, semanaVazio:semanaLista.length===0,
       semanaAbrir:this.semanaAbrir, semanaLido:this.semanaLido, semanaMais:this.semanaMais,
@@ -13290,7 +13381,10 @@ class Component extends DCLogic {
       densConf:densBtn('confortavel'), densComp:densBtn('compacto'), setDensity:this.setDensity,
       // ajustes
       backupAutoEfeito:(()=>{
-        if(this.state.backupAutoErro) return '⚠ o último backup automático falhou — reconecte a nuvem e clique em salvar acima.';
+        const _falhou=this.state.backupAutoErro || (()=>{ try{
+          const t=+(localStorage.getItem('catedra:_bkpAutoTry')||0), ok=+(localStorage.getItem('catedra:_bkpAutoTs')||0);
+          return t>0 && t>ok; }catch(_){ return false; } })();
+        if(_falhou) return '⚠ o último backup automático não completou — reconecte a nuvem e clique em salvar acima.';
         if(!this.state.prefs || !this.state.prefs.backupAuto) return 'Desligado: o backup só acontece quando você clicar em salvar acima.';
         const ts=+((()=>{ try{ return localStorage.getItem('catedra:_bkpAutoTs')||0; }catch(_){ return 0; } })());
         const quando=ts?(new Date(ts)).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):null;
