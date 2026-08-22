@@ -500,7 +500,19 @@ window.ctPdfLib = (function(){
      </div>
     </sc-if>
 
-    <div style="margin-top:auto;background:var(--heroGrad);border-radius:var(--radius);padding:16px;color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.28);">
+    <!-- U5: selo de sincronização — permanente, discreto e sempre honesto sobre onde os
+         dados estão. Nunca bloqueia nada: é informação. -->
+    <div style="margin-top:auto;padding:10px 4px 6px;" aria-live="polite">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span style="width:7px;height:7px;border-radius:99px;background:{{ seloSync.cor }};flex:none;"></span>
+        <span style="font-size:var(--fs-xs);color:var(--stext);opacity:.85;line-height:1.35;">{{ seloSync.txt }}</span>
+      </div>
+      <sc-if value="{{ seloSync.acao }}" hint-placeholder-val="{{ false }}">
+        <button onclick="{{ syncTentarAgora }}" style="margin-top:7px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);border-radius:99px;padding:5px 12px;font-size:var(--fs-2xs);font-weight:700;color:#fff;cursor:pointer;font-family:inherit;">tentar agora</button>
+      </sc-if>
+    </div>
+
+    <div style="background:var(--heroGrad);border-radius:var(--radius);padding:16px;color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.28);">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:22px;">🔥</span>
         <div><div style="font-family:var(--display);font-weight:700;font-size:30px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ sidebarStreak }}</div><div style="font-size:var(--fs-xs);opacity:.85;">dias seguidos</div></div>
@@ -5113,7 +5125,7 @@ class Component extends DCLogic {
       notifPush:this._load('notifPush', false), notifPerm:'default',
       notifs:[],
       quoteIdx: (typeof Date!=='undefined' ? new Date().getDate() : 0),
-      synced:true, syncFlash:false, syncStatus:'local',
+      synced:true, syncFlash:false, syncStatus:'local', syncHora:'', syncErroDesde:0, syncTick:0,
       historicoFilter:'', histEdit:null, relPeriod:this._load('relPeriod', 30),
       provaData:(()=>{ try{ const d=localStorage.getItem('catedra:prova'); if(d) return d; }catch(_){} return null; })(),
       highlights: this._loadHL(), flashcards: this._loadFC()
@@ -5341,7 +5353,19 @@ class Component extends DCLogic {
     // "Ao abrir a plataforma" (Orientação): ciclo abre o Ciclo; foco/início ficam no Início
     try{ const _ao=(this.state.orient&&this.state.orient.aoAbrir)||'foco'; if(_ao==='ciclo' && this.state.view==='inicio') this.setState({view:'ciclo'}); }catch(_){}
     // estado real de sync (emitido pelo auth.js) + re-hidratação após merge de outro aparelho
-    this._onSyncState = (e)=>{ try{ this.setState({syncStatus:(e.detail&&e.detail.status)||'local'}); }catch(_){} };
+    this._onSyncState = (e)=>{ try{
+      const st=(e.detail&&e.detail.status)||'local';
+      const patch={syncStatus:st};
+      // "salvo às 00:42" é a informação que responde à pergunta real: já foi?
+      if(st==='salvo'||st==='local'){ patch.syncHora=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); patch.syncErroDesde=0; }
+      // erro que PERSISTE é diferente de erro que passou: guarda desde quando dura
+      else if(st==='erro'){ if(!this.state.syncErroDesde) patch.syncErroDesde=Date.now(); }
+      else patch.syncErroDesde=0;
+      this.setState(patch);
+    }catch(_){} };
+    // um pulso por minuto só para o selo reavaliar "erro há mais de 5 min" sem depender
+    // de outro evento chegar (num erro persistente, nada mais chega)
+    this._syncTickT=setInterval(()=>{ if(this.state.syncErroDesde) this.setState({syncTick:Date.now()}); }, 60000);
     // Depois que a nuvem mescla, relê o localStorage para a memória não ficar velha.
     this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){} };
     window.addEventListener('catedra:syncstate', this._onSyncState);
@@ -9496,6 +9520,13 @@ class Component extends DCLogic {
     return out;
   }
 
+  /** U5: "tentar agora" quando o erro de sincronização persiste. Informa, nunca trava. */
+  syncTentarAgora = ()=>{
+    try{
+      if(window.CatedraSync && window.CatedraSync.push){ window.CatedraSync.push(); this._toast('Tentando enviar…'); }
+      else this._toast('Sincronização não está ativa neste aparelho');
+    }catch(_){ this._toast('Não consegui tentar agora'); }
+  };
   closePalette = ()=> this.setState({paletteOpen:false});
   onPaletteQuery = (e)=>{ const v=e.currentTarget.value; this.setState({paletteQuery:v});
     if((v||'').trim().length>=2) this._palMontar(); };   // índice sob demanda, nunca no boot
@@ -11963,6 +11994,21 @@ class Component extends DCLogic {
       viewTitle:({inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
       viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
+      // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
+      // O estado vem do auth.js (local|enviando|salvo|offline|erro). O texto diz o que
+      // aconteceu com os SEUS dados, não o que a máquina está fazendo.
+      seloSync:(()=>{
+        const st=this.state.syncStatus, h=this.state.syncHora;
+        const erroLongo=!!(this.state.syncErroDesde && (Date.now()-this.state.syncErroDesde)>5*60000);
+        if(st==='enviando') return {txt:'↻ enviando…', cor:'var(--warn)', acao:false};
+        if(st==='offline')  return {txt:'⚠ sem conexão — guardado aqui', cor:'#8a8f98', acao:false};
+        if(st==='erro')     return erroLongo
+          ? {txt:'⚠ não consegui salvar há alguns minutos', cor:'var(--danger)', acao:true}
+          : {txt:'⚠ erro ao salvar — tentando de novo', cor:'var(--danger)', acao:false};
+        if(st==='local')    return {txt:(h?('✓ salvo neste aparelho às '+h):'✓ salvo neste aparelho'), cor:'var(--ok)', acao:false};
+        return {txt:(h?('✓ salvo às '+h):'✓ salvo'), cor:'var(--ok)', acao:false};
+      })(),
+      syncTentarAgora:this.syncTentarAgora,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
       syncTitle:(this.state.syncStatus==='local'?'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho':'Seus dados sincronizam com a sua conta — o merge une o progresso de todos os aparelhos'),
       syncDot:({enviando:'var(--warn)', salvo:'var(--ok)', offline:'#8a8f98', erro:'var(--danger)', local:(this.state.syncFlash?'var(--warn)':'var(--ok)')}[this.state.syncStatus]||'var(--ok)'), syncBg:'var(--surface2)',
