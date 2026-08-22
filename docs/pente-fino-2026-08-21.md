@@ -72,3 +72,7 @@ Racional: ver o dia → revisar → treinar (o que gera nota) → consultar. O q
 Os 7 itens da Parte 1 foram implementados e mesclados: 1 (onde estou fraca), 2 (erro vira revisão),
 3 (prova oral em modo arguição), 4 (evolução da redação), 5 (bidirecional nativo), 6 (busca única no ⌘K)
 e 7 (o que mudou esta semana). Suíte: 104 casos verdes.
+
+## Lote 22/08 (Partes 2 e 3)
+U5 (sync visível), U6 (desfazer), D9 (build sem CDN), D1 (tema único), U3 (continuar de onde parei)
+e U1 (iframes vivos) mesclados. Suíte: 164 casos verdes.
