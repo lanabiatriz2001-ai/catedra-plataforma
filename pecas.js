@@ -948,49 +948,278 @@ window.CT_PECAS = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 'Denúncia': {
-  rito: 'Penal — procedimento comum',
-  freq: 37,   // vezes em que o tema aparece nas 648 provas de discursivas.js
-  carreiras: ['Ministério Público'],
-  sobre: 'A denúncia é medida de garantia: é a partir dela que o acusado sabe do que se defende. O espelho cobra a descrição do fato com todas as circunstâncias e, sobretudo, a individualização das condutas.',
-  blocos: [
-    { nome: 'Endereçamento e qualificação',
-      deve: 'Endereçar ao juízo competente e qualificar o acusado, ou fornecer os esclarecimentos que permitam identificá-lo.',
-      lei: ['Requisitos da denúncia — CPP, art. 41', 'Competência pelo lugar da infração — CPP, art. 70'],
-      juris: [],
-      erro: 'Denunciar sem qualificação nem elementos de identificação, o que impede a citação.' },
-    { nome: 'Exposição do fato com todas as circunstâncias',
-      deve: 'Narrar o fato criminoso com tempo, lugar, modo de execução e resultado — o suficiente para que a defesa saiba exatamente o que responder.',
-      lei: ['Exposição do fato criminoso — CPP, art. 41', 'Rejeição por inépcia — CPP, art. 395, I'],
-      juris: [],
-      erro: 'Narrativa genérica que repete o tipo penal. Denúncia que não descreve o fato é inepta.' },
-    { nome: 'Individualização das condutas no concurso de agentes',
-      deve: 'Havendo vários acusados, descrever o que cada um fez e o liame subjetivo entre eles.',
-      lei: ['Concurso de pessoas — CP, art. 29', 'Exposição do fato — CPP, art. 41'],
-      juris: [],
-      erro: 'Denúncia genérica em crime societário, imputando a todos os sócios pela simples condição de sócio.' },
-    { nome: 'Justa causa e classificação',
-      deve: 'Apontar os elementos de informação que dão suporte probatório mínimo à imputação e classificar o crime, inclusive concurso e causas de aumento.',
-      lei: ['Justa causa — CPP, art. 395, III', 'Classificação do crime — CPP, art. 41', 'Concurso de crimes — CP, arts. 69 a 71'],
-      juris: [],
-      erro: 'Oferecer denúncia com base em inquérito que não indica autoria — falta justa causa e a peça é rejeitada.' },
-    { nome: 'Requerimentos finais',
-      deve: 'Requerer o recebimento, a citação, o rol de testemunhas e, se for o caso, as medidas cautelares — com fundamento próprio.',
-      lei: ['Rol de testemunhas — CPP, art. 41', 'Recebimento e citação — CPP, arts. 396 e 396-A', 'Medidas cautelares — CPP, arts. 282 e 319'],
-      juris: [],
-      erro: 'Esquecer o rol de testemunhas: a prova oral da acusação preclui.' }
-  ],
-  cego: [
-    'Juízo competente identificado',
-    'Acusado qualificado ou identificável',
-    'Fato narrado com tempo, lugar e modo',
-    'Resultado e nexo descritos',
-    'Condutas individualizadas no concurso de agentes',
-    'Liame subjetivo apontado',
-    'Elementos de informação indicados (justa causa)',
-    'Classificação legal completa',
-    'Rol de testemunhas apresentado',
-    'Cautelares requeridas com fundamento, se cabíveis'
-  ]
+ "rito": "Penal — procedimento comum",
+ "freq": 37,
+ "carreiras": [
+  "Ministério Público",
+  "Magistratura"
+ ],
+ "sobre": "A denúncia é medida de garantia: é a partir dela que o acusado sabe do que se defende. O espelho cobra a descrição do fato com todas as circunstâncias, a individualização das condutas e — item que a maioria esquece — a manifestação sobre o acordo de não persecução penal.",
+ "blocos": [
+  {
+   "nome": "Endereçamento, prazo e qualificação",
+   "deve": "Endereçar ao juízo competente, demonstrar o prazo e qualificar o acusado — ou fornecer os elementos que permitam identificá-lo.",
+   "itens": [
+    {
+     "t": "Competência",
+     "d": "em regra o lugar da consumação (CPP, art. 70, teoria do resultado); na tentativa, o lugar do último ato de execução. Atenção ao § 4º do art. 70, incluído pela Lei 14.155/2021: no estelionato por depósito, cheque sem fundo, pagamento frustrado ou transferência de valores, a competência é do domicílio da vítima."
+    },
+    {
+     "t": "Infração continuada ou permanente em duas comarcas",
+     "d": "a competência é firmada por prevenção (CPP, art. 71) — que é dispositivo processual, e não o crime continuado do art. 71 do Código Penal."
+    },
+    {
+     "t": "Prazo",
+     "d": "cinco dias com investigado preso e quinze dias solto, contados do recebimento dos autos do inquérito pelo Ministério Público (CPP, art. 46). O § 1º cuida do termo inicial quando o inquérito é dispensado. Prazos especiais existem em leis próprias — por exemplo, dez dias na Lei 11.343/2006, art. 54, III."
+    },
+    {
+     "t": "Qualificação",
+     "d": "nome e demais dados; não os tendo, os esclarecimentos pelos quais se possa identificar o acusado (CPP, art. 41)."
+    }
+   ],
+   "lei": [
+    "Requisitos da denúncia — CPP, art. 41",
+    "Prazo para denunciar — CPP, art. 46",
+    "Competência pelo lugar da infração — CPP, art. 70",
+    "Estelionato: domicílio da vítima — CPP, art. 70, § 4º",
+    "Prevenção em infração continuada ou permanente — CPP, art. 71"
+   ],
+   "juris": [],
+   "modelo": "Excelentíssimo Senhor Doutor Juiz de Direito da ... Vara Criminal da Comarca de ...\n\nInquérito Policial nº ...\n\nO MINISTÉRIO PÚBLICO DO ESTADO DE ..., por seu Promotor de Justiça, no uso de suas atribuições e com fundamento no art. 129, I, da Constituição da República, vem oferecer DENÚNCIA em face de\n\nFULANO DE TAL, brasileiro, solteiro, pedreiro, nascido em .../.../..., filho de ... e de ..., RG nº ..., CPF nº ..., residente em ...,\n\npela prática do fato criminoso a seguir descrito.",
+   "erro": "Denunciar sem qualificação e sem os elementos de identificação, o que inviabiliza a citação — e sem uma linha sobre a competência, que costuma ser o primeiro item do espelho."
+  },
+  {
+   "nome": "Exposição do fato com todas as circunstâncias",
+   "deve": "Narrar o fato criminoso de modo que a defesa saiba exatamente o que responder: quem, o quê, quando, onde, como e com que resultado.",
+   "itens": [
+    {
+     "t": "Elementares e circunstâncias",
+     "d": "todas as elementares do tipo precisam aparecer descritas no fato, não apenas na capitulação. Qualificadoras, causas de aumento e agravantes só podem ser reconhecidas na sentença se estiverem narradas."
+    },
+    {
+     "t": "Tempo e lugar",
+     "d": "data (ou período, nos permanentes e continuados) e local exatos — de que dependem prescrição, competência e, em alguns tipos, a própria elementar."
+    },
+    {
+     "t": "Nexo causal e resultado",
+     "d": "a ligação entre a conduta e o resultado, com o suporte probatório indicado."
+    },
+    {
+     "t": "Dolo e finalidade especial",
+     "d": "quando o tipo exige elemento subjetivo especial, ele tem de estar narrado como fato, e não afirmado como conclusão."
+    },
+    {
+     "t": "Inépcia",
+     "d": "narrativa que apenas repete a fórmula do tipo penal é inepta e leva à rejeição (CPP, art. 395, I)."
+    }
+   ],
+   "lei": [
+    "Exposição do fato criminoso — CPP, art. 41",
+    "Rejeição por inépcia — CPP, art. 395, I",
+    "Emendatio libelli — CPP, art. 383",
+    "Mutatio libelli — CPP, art. 384"
+   ],
+   "juris": [
+    "Mutatio libelli não se aplica em segunda instância — Súmula 453 do STF"
+   ],
+   "modelo": "No dia .../.../..., por volta das ...h, na Rua ..., nº ..., no Bairro ..., nesta Comarca, o denunciado, agindo com vontade livre e consciente e com o fim de ..., subtraiu para si ..., mediante grave ameaça exercida com emprego de arma de fogo, consistente em ... .\n\nApurou-se que ... (indicação dos elementos de informação: auto de prisão em flagrante de fl. ..., laudo pericial de fl. ..., depoimento de fl. ...).",
+   "erro": "Narrar em termos genéricos e deixar a qualificadora só na capitulação. O que não foi narrado não pode ser reconhecido na sentença — e o espelho pontua a narrativa, não a etiqueta."
+  },
+  {
+   "nome": "Individualização das condutas no concurso de agentes",
+   "deve": "Havendo mais de um acusado, descrever o que cada um fez e o liame subjetivo entre eles.",
+   "itens": [
+    {
+     "t": "Regra do concurso",
+     "d": "quem concorre para o crime incide nas penas a ele cominadas, na medida de sua culpabilidade (CP, art. 29). A participação de menor importância reduz de um sexto a um terço (§ 1º) e a cooperação dolosamente distinta segue o § 2º."
+    },
+    {
+     "t": "Denúncia geral × denúncia genérica",
+     "d": "a distinção é doutrinária, mas corresponde ao que os tribunais aplicam: admite-se a denúncia que, em crime societário ou de autoria coletiva, não pormenoriza a conduta de cada agente, desde que estabeleça o vínculo mínimo entre o acusado e o fato. É inepta a que imputa o crime pela simples condição de sócio, diretor ou administrador."
+    },
+    {
+     "t": "Não há súmula sobre o tema",
+     "d": "nem no STF nem no STJ. A tese se sustenta em precedentes ordinários — no STJ, por exemplo, a 5ª Turma reafirmou a inépcia quando ausente o vínculo entre o cargo e o crime (AgRg no AgRg no REsp 2.038.919/PR, Rel. Min. Joel Ilan Paciornik, 2023). Não invente número de súmula aqui."
+    },
+    {
+     "t": "Autoria e domínio do fato",
+     "d": "a teoria do domínio do fato não substitui a prova da conduta: não se presume a autoria pela posição hierárquica."
+    }
+   ],
+   "lei": [
+    "Concurso de pessoas — CP, art. 29",
+    "Participação de menor importância — CP, art. 29, § 1º",
+    "Cooperação dolosamente distinta — CP, art. 29, § 2º",
+    "Exposição do fato — CPP, art. 41"
+   ],
+   "juris": [
+    "Inépcia por ausência de vínculo entre o cargo e o fato — STJ, 5ª Turma, AgRg no AgRg no REsp 2.038.919/PR, Rel. Min. Joel Ilan Paciornik, 2023"
+   ],
+   "erro": "Denúncia genérica em crime societário, imputando a todos os sócios pela simples condição de sócio. É a hipótese clássica de trancamento por inépcia."
+  },
+  {
+   "nome": "Justa causa, classificação e concurso",
+   "deve": "Apontar o suporte probatório mínimo e classificar corretamente o crime, inclusive concurso e causas de aumento.",
+   "itens": [
+    {
+     "t": "Justa causa",
+     "d": "indicar os elementos de informação que sustentam materialidade e indícios de autoria. Faltando, a denúncia é rejeitada (CPP, art. 395, III)."
+    },
+    {
+     "t": "Arquivamento anterior",
+     "d": "se o inquérito havia sido arquivado, a ação penal só pode ser iniciada com prova nova (Súmula 524 do STF). Cuidado com a premissa do enunciado: ele fala em arquivamento \"por despacho do juiz\", o que não corresponde ao art. 28 na redação da Lei 13.964/2019 — o arquivamento é hoje ato do Ministério Público, submetido a controle. O núcleo da súmula (exigência de prova nova) permanece."
+    },
+    {
+     "t": "Classificação",
+     "d": "o dispositivo, o concurso (CP, arts. 69 a 71) e as causas de aumento. A classificação errada não invalida a denúncia — o juiz aplica o art. 383 (emendatio libelli) —, mas o espelho pontua a capitulação correta."
+    },
+    {
+     "t": "Rejeição × absolvição sumária",
+     "d": "a rejeição do art. 395 é juízo de admissibilidade, sem mérito; a absolvição sumária do art. 397 é decisão de mérito, com coisa julgada material, salvo a extinção da punibilidade do inciso IV. Note a ressalva do inciso II: a inimputabilidade não leva à absolvição sumária, porque pode conduzir à medida de segurança."
+    }
+   ],
+   "lei": [
+    "Justa causa — CPP, art. 395, III",
+    "Rejeição da denúncia — CPP, art. 395",
+    "Absolvição sumária — CPP, art. 397",
+    "Concurso de crimes — CP, arts. 69 a 71",
+    "Arquivamento pelo Ministério Público — CPP, art. 28"
+   ],
+   "juris": [
+    "Prova nova para desarquivar — Súmula 524 do STF",
+    "Art. 28 do CPP e juiz das garantias: mérito julgado — STF, Plenário, ADIs 6298, 6299, 6300 e 6305, Rel. Min. Luiz Fux, 24/08/2023"
+   ],
+   "erro": "Denunciar com base em inquérito que não indica autoria. Sem justa causa a peça é rejeitada, e a rejeição por esse fundamento vale ponto negativo dobrado quando o enunciado plantou a ausência de prova."
+  },
+  {
+   "nome": "Acordo de não persecução penal — a manifestação obrigatória",
+   "deve": "Antes de fechar, dizer expressamente se o caso comporta ou não o acordo do art. 28-A — e por quê.",
+   "itens": [
+    {
+     "t": "Cabimento",
+     "d": "infração sem violência ou grave ameaça, pena mínima inferior a quatro anos (consideradas causas de aumento e diminuição, § 1º), confissão formal e circunstanciada, e o acordo sendo necessário e suficiente para reprovação e prevenção."
+    },
+    {
+     "t": "Condições",
+     "d": "os incisos I a V do art. 28-A: reparar o dano ou restituir a coisa, renunciar a bens e direitos indicados como instrumentos ou proveito, prestar serviço à comunidade, pagar prestação pecuniária e cumprir outra condição indicada pelo Ministério Público."
+    },
+    {
+     "t": "Vedações",
+     "d": "os quatro incisos do § 2º: cabimento de transação penal; reincidência ou conduta criminal habitual, salvo infrações penais pretéritas insignificantes; benefício nos cinco anos anteriores; crime praticado no âmbito de violência doméstica ou familiar, ou contra a mulher por razões da condição do sexo feminino."
+    },
+    {
+     "t": "Processos em curso",
+     "d": "o STF decidiu que o acordo é cabível em processos que estavam em andamento quando a Lei 13.964/2019 entrou em vigor, mesmo sem confissão até então, desde que o pedido seja anterior ao trânsito em julgado (Plenário, HC 185.913, 18/09/2024). O STJ alinhou-se no Tema Repetitivo 1098. Não é matéria de repercussão geral — não a chame de tema do STF."
+    },
+    {
+     "t": "Na prova",
+     "d": "quando o caso não comporta o acordo, diga o inciso que o veda. Silêncio sobre o ANPP é item perdido em praticamente todo espelho recente de MP."
+    }
+   ],
+   "lei": [
+    "Acordo de não persecução penal — CPP, art. 28-A",
+    "Vedações — CPP, art. 28-A, § 2º",
+    "Condições — CPP, art. 28-A, I a V"
+   ],
+   "juris": [
+    "Retroatividade do ANPP a processos em curso — STF, Plenário, HC 185.913, 18/09/2024",
+    "Alinhamento do STJ — Tema Repetitivo 1098, REsp 1.890.344/RS, 3ª Seção, Rel. Min. Reynaldo Soares da Fonseca, 23/10/2024"
+   ],
+   "modelo": "Deixa-se de propor o acordo de não persecução penal porque o crime foi praticado mediante grave ameaça à pessoa, o que afasta o cabimento na forma do caput do art. 28-A do Código de Processo Penal.\n\n— ou —\n\nPropõe-se, desde logo, o acordo de não persecução penal, nos termos do art. 28-A do Código de Processo Penal, mediante as seguintes condições: ... , designando-se audiência para homologação (§ 4º).",
+   "erro": "Não dizer nada sobre o ANPP. A manifestação é obrigatória e o examinador reserva item para ela."
+  },
+  {
+   "nome": "Requerimentos finais e cautelares",
+   "deve": "Fechar com recebimento, citação, rol de testemunhas e, se for o caso, as medidas cautelares — cada uma com fundamento próprio.",
+   "itens": [
+    {
+     "t": "Recebimento e citação",
+     "d": "requerer o recebimento e a citação do denunciado para responder por escrito em dez dias (CPP, arts. 396 e 396-A)."
+    },
+    {
+     "t": "Rol de testemunhas",
+     "d": "apresentado com a denúncia, sob pena de preclusão da prova oral da acusação (CPP, art. 41)."
+    },
+    {
+     "t": "Cautelares diversas da prisão",
+     "d": "as do art. 319, aplicadas na forma do art. 282 — necessidade e adequação, sempre motivadas."
+    },
+    {
+     "t": "Prisão preventiva",
+     "d": "requerida com os pressupostos do art. 312, e não pela gravidade abstrata. A Lei 15.272/2025 acrescentou ao art. 312 o § 3º, que lista os fatores de aferição da periculosidade geradora de risco à ordem pública (modus operandi, participação em organização criminosa, natureza e quantidade de drogas, armas ou munições, e fundado receio de reiteração), e o § 4º, que veda expressamente a preventiva fundada na gravidade abstrata do delito."
+    },
+    {
+     "t": "Vítima",
+     "d": "requerer a fixação de valor mínimo de reparação (CPP, art. 387, IV) exige pedido expresso na denúncia — sem ele, a sentença não pode fixá-lo."
+    }
+   ],
+   "lei": [
+    "Recebimento e citação — CPP, arts. 396 e 396-A",
+    "Medidas cautelares — CPP, arts. 282 e 319",
+    "Prisão preventiva — CPP, art. 312",
+    "Periculosidade e vedação da gravidade abstrata — CPP, art. 312, §§ 3º e 4º (Lei 15.272/2025)",
+    "Valor mínimo de reparação — CPP, art. 387, IV"
+   ],
+   "juris": [],
+   "modelo": "Requer, ao final:\na) o recebimento da denúncia e a citação do denunciado para responder à acusação, no prazo de 10 (dez) dias (arts. 396 e 396-A do CPP);\nb) a oitiva das testemunhas abaixo arroladas;\nc) a decretação da prisão preventiva, nos termos dos arts. 312 e 313, I, do CPP, pelas razões concretas expostas;\nd) ao final, a procedência da pretensão punitiva, com a condenação nas penas do art. ..., e a fixação do valor mínimo de reparação dos danos, na forma do art. 387, IV, do CPP.\n\nRol de testemunhas: 1) ...; 2) ...; 3) ... .",
+   "erro": "Esquecer o rol de testemunhas e o pedido do art. 387, IV. São dois itens que não custam raciocínio nenhum e caem em quase todo espelho."
+  }
+ ],
+ "cego": [
+  "Endereçamento ao juízo competente, com a regra de competência dita",
+  "Tempestividade pelo art. 46 (5 dias preso / 15 solto)",
+  "Acusado qualificado ou identificável",
+  "Fato narrado com tempo, lugar, modo e resultado",
+  "Todas as elementares e circunstâncias descritas como fato",
+  "Condutas individualizadas no concurso de agentes",
+  "Liame subjetivo apontado",
+  "Elementos de informação indicados (justa causa)",
+  "Classificação legal completa, com concurso e majorantes",
+  "Manifestação expressa sobre o ANPP (cabimento ou vedação)",
+  "Rol de testemunhas apresentado",
+  "Cautelares requeridas com fundamento concreto, se cabíveis",
+  "Pedido de valor mínimo de reparação (art. 387, IV)"
+ ],
+ "dicas": [
+  {
+   "t": "Sétima peça mais cobrada do banco de provas aplicadas: 37 ocorrências, concentradas em MP.",
+   "alerta": false
+  },
+  "Escreva o fato antes da capitulação. Quem começa pela etiqueta acaba narrando o tipo em vez do fato — e é isso que caracteriza a inépcia do art. 395, I.",
+  {
+   "t": "A manifestação sobre o acordo de não persecução penal é obrigatória e é o item mais esquecido da denúncia. Cabendo ou não, diga por quê.",
+   "alerta": true
+  },
+  {
+   "t": "Desde a Lei 15.272/2025, o art. 312 do CPP tem § 3º (fatores de periculosidade) e § 4º (veda a preventiva por gravidade abstrata). Pedir preventiva pela gravidade do crime, em abstrato, virou erro com dispositivo expresso contra.",
+   "alerta": true
+  },
+  "O art. 71 do CPP é prevenção em infração continuada ou permanente; o art. 71 do CP é crime continuado. Trocar um pelo outro é erro que o examinador lê de longe.",
+  "A Súmula 524 do STF continua válida no núcleo (prova nova para desarquivar), mas a premissa do arquivamento judicial não corresponde ao art. 28 vigente — cite-a com essa ressalva.",
+  "Na Lei Maria da Penha a retratação da representação vai até o recebimento da denúncia, em audiência específica (Lei 11.340/2006, art. 16) — regra especial diante do art. 25 do CPP."
+ ],
+ "especiais": [
+  {
+   "t": "Denúncia em crime de tráfico",
+   "d": "Prazo de dez dias (Lei 11.343/2006, art. 54, III), procedimento especial com defesa prévia em dez dias antes do recebimento (art. 55) e atenção à causa de diminuição do art. 33, § 4º, cuja aplicação depende de primariedade, bons antecedentes e não dedicação a atividades criminosas nem integração de organização criminosa."
+  },
+  {
+   "t": "Denúncia em crime doloso contra a vida",
+   "d": "Rito do júri: a peça pede a pronúncia (CPP, art. 413), e não a condenação. O ANPP é incabível por haver violência. Descreva as qualificadoras uma a uma — a que não for narrada não pode ir a plenário."
+  },
+  {
+   "t": "Denúncia contra pessoa jurídica em crime ambiental",
+   "d": "Lei 9.605/1998, art. 3º: a responsabilização da pessoa jurídica não exclui a das pessoas físicas. O STF abandonou a exigência de dupla imputação — a denúncia pode ser oferecida só contra a pessoa jurídica."
+  },
+  {
+   "t": "Denúncia em violência doméstica",
+   "d": "ANPP vedado pelo art. 28-A, § 2º, IV. Atenção às medidas protetivas de urgência (Lei 11.340/2006, arts. 22 a 24) e ao crime autônomo de descumprimento (art. 24-A)."
+  },
+  {
+   "t": "Aditamento",
+   "d": "Aditamento próprio (inclui fato ou acusado novo) e impróprio (corrige a peça). Havendo prova de elementar não contida na denúncia, o caminho é a mutatio libelli do art. 384, com aditamento em cinco dias — e ela não se aplica em segunda instância (Súmula 453 do STF)."
+  }
+ ]
 },
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1696,119 +1925,609 @@ window.CT_PECAS = {
 
 // ═══════════════════════ MINISTÉRIO PÚBLICO ═══════════════════════
 'ACP ambiental': {
-  rito: 'Ambiental — ação civil pública',
-  freq: 31,   // vezes em que o tema aparece nas 648 provas de discursivas.js
-  carreiras: ['Ministério Público','Advocacia pública'],
-  sobre: 'Inicial de tutela coletiva. O que a banca conta: legitimidade e objeto, a responsabilidade civil ambiental como objetiva, solidária e propter rem, o pedido cumulado de reparação e o alcance da coisa julgada — que deixou de ser limitado ao território do juízo.',
-  blocos: [
-    { nome: 'Legitimidade, competência e objeto',
-      deve: 'Indicar o legitimado e o bem tutelado, e justificar a competência pelo local do dano — funcional e absoluta.',
-      lei: ['Objeto da ACP — Lei 7.347/85, art. 1º',
-            'Legitimados — Lei 7.347/85, art. 5º',
-            'Competência do local do dano — Lei 7.347/85, art. 2º',
-            'Competência coletiva de âmbito nacional ou regional — CDC, art. 93, II'],
-      juris: ['Inconstitucionalidade da limitação territorial da coisa julgada — STF, RE 1.101.937, Tema 1075, j. 08/04/2021'],
-      erro: 'Ajuizar no domicílio do réu. A competência do art. 2º é funcional e absoluta: é o foro do local onde ocorreu ou deve ocorrer o dano.' },
-    { nome: 'Causa de pedir — a responsabilidade ambiental',
-      deve: 'Narrar o dano e sustentar o regime próprio: responsabilidade objetiva, fundada no risco da atividade, solidária entre os poluidores e aderente à coisa.',
-      lei: ['Dever de reparar independentemente de culpa — Lei 6.938/81, art. 14, § 1º',
-            'Poluidor e degradação — Lei 6.938/81, art. 3º',
-            'Sanções penais e administrativas independem da reparação — CF, art. 225, § 3º',
-            'Função socioambiental da propriedade — CF, art. 186, II'],
-      juris: ['Obrigações ambientais são propter rem — Súmula 623 do STJ',
-              'Inversão do ônus da prova na degradação ambiental — Súmula 618 do STJ',
-              'Não se aplica a teoria do fato consumado — Súmula 613 do STJ',
-              'Imprescritibilidade da reparação civil por dano ambiental — STF, RE 654.833, Tema 999, j. 20/04/2020'],
-      erro: 'Discutir culpa do degradador. A responsabilidade é objetiva — provar culpa é ônus que você não tem e que enfraquece a inicial.' },
-    { nome: 'Pedidos — cumulação é a regra',
-      deve: 'Cumular obrigação de fazer, de não fazer e indenização. A recomposição in natura é preferencial, mas não exclui a indenização pelo dano intercorrente e pelo dano moral coletivo.',
-      lei: ['Obrigação de fazer e não fazer — Lei 7.347/85, art. 3º',
-            'Tutela específica e multa — Lei 7.347/85, art. 11',
-            'Fundo de reconstituição dos bens lesados — Lei 7.347/85, art. 13',
-            'Tutela específica das obrigações — CPC, art. 497'],
-      juris: ['Cumulação de obrigação de fazer e indenização é possível na reparação ambiental'],
-      erro: 'Pedir só a indenização. Dinheiro não recompõe o bem ambiental — o pedido principal é a recuperação, e a indenização é complemento.' },
-    { nome: 'Tutela de urgência e provas',
-      deve: 'Requerer liminar para fazer cessar o dano, apontando o risco concreto de agravamento. Instruir com o inquérito civil e com a prova técnica disponível.',
-      lei: ['Liminar na ACP — Lei 7.347/85, art. 12',
-            'Inquérito civil — Lei 7.347/85, art. 8º, § 1º',
-            'Tutela de urgência — CPC, art. 300',
-            'Princípio da precaução — Lei 6.938/81, art. 4º, I'],
-      juris: [],
-      erro: 'Requerer liminar sem descrever o que se agrava enquanto o processo tramita. Em matéria ambiental, o perigo é a espinha do pedido liminar.' },
-    { nome: 'Fecho — coisa julgada, TAC e custas',
-      deve: 'Registrar o regime da coisa julgada erga omnes, ressalvar a possibilidade de compromisso de ajustamento e observar que o autor não adianta custas nem honorários, salvo má-fé.',
-      lei: ['Coisa julgada erga omnes — Lei 7.347/85, art. 16',
-            'Compromisso de ajustamento de conduta — Lei 7.347/85, art. 5º, § 6º',
-            'Isenção de custas e honorários — Lei 7.347/85, art. 18'],
-      juris: [],
-      erro: 'Reproduzir a limitação territorial do art. 16 como se ainda valesse. O STF declarou inconstitucional a redação dada pela Lei 9.494/97 no Tema 1075.' }
-  ],
-  cego: ['Legitimidade do autor demonstrada','Competência do local do dano justificada',
-    'Responsabilidade objetiva e solidária sustentada','Natureza propter rem invocada, se cabível',
-    'Imprescritibilidade da reparação registrada','Pedido de recomposição in natura formulado',
-    'Indenização e dano moral coletivo cumulados','Liminar com risco concreto de agravamento',
-    'Inquérito civil e prova técnica juntados','Coisa julgada erga omnes sem limitação territorial']
+ "rito": "Ambiental — ação civil pública",
+ "freq": 31,
+ "carreiras": [
+  "Ministério Público",
+  "Magistratura",
+  "Advocacia Pública",
+  "Defensoria Pública"
+ ],
+ "sobre": "A ACP ambiental é a peça em que o candidato mostra que entende a diferença entre responsabilidade objetiva e culpa, entre reparação integral e indenização, e entre o macrobem ambiental e o dano individual reflexo. O espelho quase sempre cobra a cumulação de obrigação de fazer com indenização e a solidariedade entre os poluidores.",
+ "blocos": [
+  {
+   "nome": "Endereçamento, competência e legitimidade",
+   "deve": "Fixar o juízo do local do dano e demonstrar a legitimidade ativa e passiva.",
+   "itens": [
+    {
+     "t": "Competência",
+     "d": "foro do local onde ocorrer o dano, com competência funcional — portanto absoluta e improrrogável (Lei 7.347/1985, art. 2º). O parágrafo único fixa a prevenção pela propositura."
+    },
+    {
+     "t": "Justiça Federal",
+     "d": "quando houver interesse da União, autarquia ou empresa pública federal (CF, art. 109, I). A Súmula 183 do STJ, que mandava o juiz estadual julgar nas comarcas sem vara federal, está CANCELADA desde 08/11/2000 — não a cite como fundamento vivo."
+    },
+    {
+     "t": "Dano de alcance nacional ou regional",
+     "d": "a competência observa o art. 93, II, do CDC, e a prevenção do juízo que primeiro conheceu de uma das ações, conforme os itens II e III da tese do Tema 1075 do STF."
+    },
+    {
+     "t": "Legitimados ativos",
+     "d": "o rol do art. 5º da LACP — MP, Defensoria, União, Estados, DF e Municípios, autarquias, empresas públicas, fundações, sociedades de economia mista e associações constituídas há pelo menos um ano com pertinência temática (§ 4º autoriza dispensar o requisito temporal)."
+    },
+    {
+     "t": "Polo passivo",
+     "d": "poluidor é a pessoa física ou jurídica, de direito público ou privado, responsável direta ou indiretamente pela degradação (Lei 6.938/1981, art. 3º, IV). A responsabilidade entre poluidores é solidária, com litisconsórcio facultativo — não é preciso demandar todos."
+    }
+   ],
+   "lei": [
+    "Foro do local do dano, competência funcional — Lei 7.347/1985, art. 2º",
+    "Objeto da ACP — Lei 7.347/1985, art. 1º",
+    "Legitimados — Lei 7.347/1985, art. 5º",
+    "Poluidor direto e indireto — Lei 6.938/1981, art. 3º, IV",
+    "Solidariedade entre coautores — CC, art. 942",
+    "Competência da Justiça Federal — CF, art. 109, I"
+   ],
+   "juris": [
+    "Art. 16 da LACP é inconstitucional; competência nacional pelo art. 93, II, do CDC — Tema 1075 do STF, RE 1.101.937, Pleno, Rel. Min. Alexandre de Moraes, 08/04/2021",
+    "Responsabilidade do Estado por omissão no dever de fiscalizar: solidária, de execução subsidiária — Súmula 652 do STJ"
+   ],
+   "modelo": "Excelentíssimo Senhor Doutor Juiz de Direito da ... Vara da Fazenda Pública da Comarca de ...\n\nO MINISTÉRIO PÚBLICO DO ESTADO DE ..., por seu Promotor de Justiça, com fundamento no art. 129, III, da Constituição da República, nos arts. 1º, I, 3º e 5º, I, da Lei 7.347/1985 e no art. 14, § 1º, da Lei 6.938/1981, vem propor\n\nAÇÃO CIVIL PÚBLICA AMBIENTAL, com pedido de tutela provisória de urgência,\n\nem face de ..., pelos fundamentos a seguir.",
+   "erro": "Propor no foro do domicílio do réu. A competência do art. 2º da LACP é funcional, logo absoluta — e o erro contamina a peça inteira."
+  },
+  {
+   "nome": "Fatos e o dano ambiental",
+   "deve": "Descrever a degradação com precisão técnica e documental: o que foi degradado, em que extensão, por qual conduta e com que prova.",
+   "itens": [
+    {
+     "t": "Identificação do bem",
+     "d": "APP, reserva legal, unidade de conservação, recurso hídrico, fauna, ar — cada um tem regime próprio e o espelho confere se o candidato acertou o regime."
+    },
+    {
+     "t": "Extensão e prova",
+     "d": "auto de infração, laudo do órgão ambiental, imagens de satélite, inquérito civil. Sem base documental, a inicial vira alegação."
+    },
+    {
+     "t": "Dano moral coletivo",
+     "d": "quando houver lesão intolerável a valores da coletividade, deve ser pedido de modo autônomo e fundamentado — não é decorrência automática do dano material."
+    },
+    {
+     "t": "Macrobem e microbem",
+     "d": "a ACP tutela o macrobem — o meio ambiente como bem difuso. O dano individual reflexo (microbem) é pretensão de titular determinado e segue outro regime, inclusive de prescrição."
+    }
+   ],
+   "lei": [
+    "Meio ambiente como bem de uso comum do povo — CF, art. 225",
+    "Definição de degradação e poluição — Lei 6.938/1981, art. 3º, II e III",
+    "Áreas de preservação permanente — Lei 12.651/2012, art. 4º",
+    "Reserva legal — Lei 12.651/2012, art. 12"
+   ],
+   "juris": [
+    "Constitucionalidade do Código Florestal, com interpretações conforme — STF, Pleno, ADC 42 e ADIs 4901, 4902, 4903 e 4937, Rel. Min. Luiz Fux, 28/02/2018",
+    "Embargos de declaração no Código Florestal: compensação de reserva legal volta ao critério do mesmo bioma e modulação quanto a aterros sanitários — STF, 24/10/2024"
+   ],
+   "erro": "Descrever o dano sem dizer a extensão nem indicar o laudo. O espelho pontua a demonstração, não a indignação."
+  },
+  {
+   "nome": "Fundamento jurídico — responsabilidade objetiva e integral",
+   "deve": "Assentar o regime: responsabilidade objetiva, pela teoria do risco integral, com reparação integral e solidariedade.",
+   "itens": [
+    {
+     "t": "Objetividade",
+     "d": "o poluidor é obrigado, independentemente da existência de culpa, a indenizar ou reparar os danos causados (Lei 6.938/1981, art. 14, § 1º). É a base literal — cite-a."
+    },
+    {
+     "t": "Risco integral",
+     "d": "no dano ambiental não se admitem as excludentes do fortuito, da força maior ou do fato de terceiro. Consequência prática: basta demonstrar a conduta e o nexo."
+    },
+    {
+     "t": "Reparação integral",
+     "d": "restauração do bem ao estado anterior; sendo inviável, compensação ecológica; e, em qualquer caso, indenização pelo dano residual e pelo período em que o bem esteve degradado (dano intercorrente)."
+    },
+    {
+     "t": "Cumulação",
+     "d": "a condenação em obrigação de fazer ou de não fazer pode ser cumulada com a de indenizar — não há escolha excludente."
+    },
+    {
+     "t": "Natureza propter rem",
+     "d": "as obrigações ambientais aderem à coisa e podem ser cobradas do proprietário ou possuidor atual e/ou dos anteriores, à escolha do credor. O STJ refinou o enunciado em repetitivo: fica isento o alienante cujo direito real cessou antes da causação do dano, desde que não tenha concorrido para ele."
+    },
+    {
+     "t": "Inversão do ônus da prova",
+     "d": "aplica-se às ações de degradação ambiental, por força do princípio da precaução."
+    },
+    {
+     "t": "Fato consumado",
+     "d": "não se admite a teoria do fato consumado em direito ambiental — o tempo de ocupação irregular não convalida a degradação."
+    }
+   ],
+   "lei": [
+    "Responsabilidade objetiva do poluidor — Lei 6.938/1981, art. 14, § 1º",
+    "Dever de reparar — CF, art. 225, § 3º",
+    "Condenação em dinheiro ou obrigação de fazer — Lei 7.347/1985, art. 3º"
+   ],
+   "juris": [
+    "Inversão do ônus da prova nas ações de degradação ambiental — Súmula 618 do STJ",
+    "Obrigações ambientais têm natureza propter rem — Súmula 623 do STJ",
+    "Isenção do alienante cujo direito real cessou antes do dano — Tema Repetitivo 1204 do STJ, REsp 1.953.359/SP e REsp 1.962.089/MS, 1ª Seção, Rel. Min. Assusete Magalhães, setembro de 2023",
+    "Não se aplica a teoria do fato consumado em direito ambiental — Súmula 613 do STJ",
+    "Cumulação de obrigação de fazer com indenização — Súmula 629 do STJ"
+   ],
+   "modelo": "A responsabilidade civil por dano ambiental é objetiva e informada pela teoria do risco integral, nos termos do art. 14, § 1º, da Lei 6.938/1981 e do art. 225, § 3º, da Constituição da República, bastando a demonstração da conduta e do nexo de causalidade, sendo inoponíveis as excludentes de caso fortuito, força maior e fato de terceiro.\n\nA reparação há de ser integral: impõe-se a recuperação in natura da área degradada e, cumulativamente, a indenização pelo dano residual e pelo dano interino — cumulação expressamente admitida pela Súmula 629 do Superior Tribunal de Justiça.",
+   "erro": "Pedir só a indenização, ou só a recuperação. A cumulação é o item de espelho mais recorrente da matéria (Súmula 629 do STJ)."
+  },
+  {
+   "nome": "Prescrição — o ponto de divergência",
+   "deve": "Enfrentar a prescrição com a distinção correta, sinalizando o que é STF e o que é STJ.",
+   "itens": [
+    {
+     "t": "Regra do STF",
+     "d": "é imprescritível a pretensão de reparação civil de dano ambiental — Tema 999 da repercussão geral, RE 654.833/AC, Pleno, Rel. Min. Alexandre de Moraes, julgado em 20/04/2020. A tese alcança o macrobem."
+    },
+    {
+     "t": "Recorte do STJ",
+     "d": "quando o dano atinge o microbem — o patrimônio individual do lesado —, a pretensão indenizatória é prescritível, pelo prazo trienal do art. 206, § 3º, V, do Código Civil (STJ, 4ª Turma, AgInt no REsp 2.029.870/MA, Rel. Min. Maria Isabel Gallotti, 26/02/2024)."
+    },
+    {
+     "t": "Como escrever",
+     "d": "as duas posições convivem por distinção de objeto, não por superação. Afirmar imprescritibilidade sem a distinção custa ponto em prova de magistratura."
+    },
+    {
+     "t": "Cuidado com o número",
+     "d": "existe também um Tema 999 no STJ, que é previdenciário (revisão da vida toda). Nunca escreva \"Tema 999\" sem dizer o tribunal."
+    }
+   ],
+   "lei": [
+    "Prescrição da reparação civil — CC, art. 206, § 3º, V"
+   ],
+   "juris": [
+    "Imprescritibilidade da reparação de dano ambiental — Tema 999 do STF, RE 654.833/AC, Pleno, Rel. Min. Alexandre de Moraes, 20/04/2020",
+    "Prescrição trienal do dano ambiental individual reflexo — STJ, 4ª Turma, AgInt no REsp 2.029.870/MA, Rel. Min. Maria Isabel Gallotti, 26/02/2024"
+   ],
+   "erro": "Citar \"Tema 999\" sem o tribunal, ou afirmar imprescritibilidade sem distinguir macrobem de microbem."
+  },
+  {
+   "nome": "Tutela provisória e pedidos",
+   "deve": "Pedir a paralisação imediata da degradação e, ao final, a reparação integral — com pedidos que possam virar dispositivo.",
+   "itens": [
+    {
+     "t": "Tutela de urgência",
+     "d": "a LACP ainda fala em \"ação cautelar\" no art. 4º, mas o processo cautelar autônomo foi extinto pelo CPC/2015: peça tutela provisória de urgência dos arts. 300 e seguintes. O art. 12 da LACP autoriza o mandado liminar."
+    },
+    {
+     "t": "Astreintes",
+     "d": "multa diária pelo descumprimento (LACP, art. 11; CPC, art. 537), com valor e periodicidade indicados."
+    },
+    {
+     "t": "Pedidos típicos",
+     "d": "(i) cessação da atividade degradante; (ii) apresentação e execução de projeto de recuperação de área degradada, com prazo; (iii) indenização pelo dano residual e pelo dano interino, revertida ao fundo; (iv) abstenção de nova intervenção sem licença; (v) inscrição da obrigação na matrícula do imóvel, dada a natureza propter rem."
+    },
+    {
+     "t": "Destino da condenação em dinheiro",
+     "d": "reverte ao fundo de reconstituição dos bens lesados, gerido por conselho com participação obrigatória do Ministério Público (LACP, art. 13)."
+    },
+    {
+     "t": "Ônus da sucumbência",
+     "d": "o MP não adianta custas nem honorários periciais (LACP, art. 18); a associação autora só responde por honorários em caso de má-fé (art. 17)."
+    }
+   ],
+   "lei": [
+    "Tutela de urgência — CPC, art. 300",
+    "Mandado liminar na ACP — Lei 7.347/1985, art. 12",
+    "Multa por descumprimento — Lei 7.347/1985, art. 11",
+    "Fundo de reconstituição — Lei 7.347/1985, art. 13",
+    "Isenção de custas — Lei 7.347/1985, art. 18",
+    "Litigância de má-fé da associação — Lei 7.347/1985, art. 17"
+   ],
+   "juris": [],
+   "modelo": "Ante o exposto, requer:\na) a concessão da tutela provisória de urgência, inaudita altera parte, para determinar a imediata paralisação de toda e qualquer intervenção na área, sob pena de multa diária de R$ ... (art. 300 do CPC c/c art. 12 da Lei 7.347/1985);\nb) a citação dos réus;\nc) ao final, a procedência dos pedidos para condenar os réus, solidariamente, (i) à obrigação de fazer consistente na apresentação de Projeto de Recuperação de Área Degradada — PRAD, no prazo de ... dias, e à sua integral execução; (ii) à obrigação de não fazer consistente em abster-se de nova intervenção sem prévio licenciamento; (iii) ao pagamento de indenização pelo dano ambiental residual e pelo dano interino, a ser apurada em liquidação, revertida ao fundo do art. 13 da Lei 7.347/1985; (iv) ao pagamento de indenização por dano moral coletivo, no valor de R$ ...;\nd) a averbação da obrigação de recuperar na matrícula do imóvel.",
+   "erro": "Pedir a indenização sem dizer para onde ela vai. A destinação ao fundo do art. 13 é item de espelho e não custa nada lembrar."
+  },
+  {
+   "nome": "Compromisso de ajustamento de conduta e inquérito civil",
+   "deve": "Fechar o quadro extrajudicial — o examinador costuma perguntar por que não houve acordo.",
+   "itens": [
+    {
+     "t": "TAC",
+     "d": "os órgãos públicos legitimados podem tomar dos interessados compromisso de ajustamento de conduta às exigências legais, com eficácia de título executivo extrajudicial (LACP, art. 5º, § 6º). Atenção: associações civis NÃO podem celebrar TAC — dizer que \"os legitimados do art. 5º\" podem é erro clássico de espelho."
+    },
+    {
+     "t": "Inquérito civil",
+     "d": "é do Ministério Público (CF, art. 129, III; LACP, art. 8º, § 1º) e instrui a inicial. Arquivamento é submetido ao Conselho Superior (art. 9º)."
+    },
+    {
+     "t": "Vedação temática",
+     "d": "não cabe ACP para veicular pretensões que envolvam tributos, contribuições previdenciárias, FGTS ou outros fundos de natureza institucional cujos beneficiários podem ser individualmente determinados (LACP, art. 1º, parágrafo único)."
+    }
+   ],
+   "lei": [
+    "Compromisso de ajustamento de conduta — Lei 7.347/1985, art. 5º, § 6º",
+    "Inquérito civil — Lei 7.347/1985, arts. 8º e 9º",
+    "Funções do Ministério Público — CF, art. 129, III",
+    "Vedação de ACP tributária — Lei 7.347/1985, art. 1º, parágrafo único"
+   ],
+   "juris": [],
+   "erro": "Atribuir a associações a possibilidade de celebrar TAC. O § 6º fala em órgãos públicos legitimados."
+  }
+ ],
+ "cego": [
+  "Foro do local do dano, com a competência funcional explicitada",
+  "Legitimidade ativa fundamentada (art. 5º da LACP e art. 129, III, da CF)",
+  "Polo passivo com poluidor direto e indireto (art. 3º, IV, da Lei 6.938/1981)",
+  "Dano descrito com extensão e prova documental",
+  "Responsabilidade objetiva pelo art. 14, § 1º, da Lei 6.938/1981",
+  "Teoria do risco integral e afastamento das excludentes",
+  "Solidariedade entre os poluidores",
+  "Cumulação de obrigação de fazer com indenizar (Súmula 629 do STJ)",
+  "Natureza propter rem e o recorte do Tema 1204 do STJ",
+  "Inversão do ônus da prova (Súmula 618 do STJ)",
+  "Prescrição enfrentada com a distinção macrobem × microbem",
+  "Tutela de urgência com astreintes",
+  "Destinação da indenização ao fundo do art. 13",
+  "Dano moral coletivo pedido de modo autônomo"
+ ],
+ "dicas": [
+  {
+   "t": "Oitava peça mais cobrada do banco de provas aplicadas: 31 ocorrências.",
+   "alerta": false
+  },
+  "O art. 16 da LACP foi declarado inconstitucional e a redação original foi repristinada (Tema 1075 do STF, 08/04/2021). O Planalto ainda exibe o texto da Lei 9.494/1997 — quem transcreve do site transcreve dispositivo inconstitucional.",
+  {
+   "t": "\"Tema 999\" sem o tribunal é armadilha: no STF é imprescritibilidade do dano ambiental; no STJ é revisão da vida toda, matéria previdenciária.",
+   "alerta": true
+  },
+  "A responsabilidade do Estado por omissão no dever de fiscalizar é solidária, mas de execução subsidiária — Súmula 652 do STJ. Não existe tema repetitivo sobre isso; quem cita \"Tema 1204\" para o Estado troca o dispositivo.",
+  "O art. 4º da LACP fala em ação cautelar, mas o CPC/2015 extinguiu o processo cautelar autônomo. Escreva tutela provisória de urgência.",
+  {
+   "t": "O julgamento do Código Florestal não parou em 2018: nos embargos de declaração de 24/10/2024 o STF voltou ao critério do mesmo bioma para a compensação de reserva legal e modulou a situação dos aterros sanitários em APP.",
+   "alerta": true
+  },
+  "Súmula 183 do STJ está cancelada desde 2000. Havendo ente federal, a competência é da Justiça Federal (CF, art. 109, I)."
+ ],
+ "especiais": [
+  {
+   "t": "ACP por dano a unidade de conservação",
+   "d": "Lei 9.985/2000 (SNUC): identificar a categoria da unidade, o regime da zona de amortecimento e o plano de manejo. A degradação em unidade de proteção integral tem regime mais severo que em uso sustentável."
+  },
+  {
+   "t": "ACP contra o Poder Público por omissão fiscalizatória",
+   "d": "Fundamento na Súmula 652 do STJ: solidariedade com execução subsidiária. O ente entra no título executivo como devedor-reserva, só sendo convocado se o degradador original não quitar. Precedente-líder: STJ, 2ª Turma, REsp 1.071.741/SP, Rel. Min. Herman Benjamin."
+  },
+  {
+   "t": "ACP e licenciamento ambiental",
+   "d": "A existência de licença não exclui a responsabilidade civil, que é objetiva. Licença regular afasta a ilicitude administrativa, não o dever de reparar."
+  },
+  {
+   "t": "ACP em área urbana consolidada",
+   "d": "O Código Florestal tem regime próprio para áreas rurais consolidadas em APP (art. 61-A, declarado constitucional em 2018). Em área urbana, verificar a legislação municipal e o plano diretor antes de aplicar as faixas do art. 4º."
+  },
+  {
+   "t": "Execução da sentença coletiva",
+   "d": "Decorridos sessenta dias do trânsito em julgado sem execução pela associação autora, o Ministério Público deve promovê-la, facultado igual iniciativa aos demais legitimados (LACP, art. 15)."
+  }
+ ]
 },
 
 'Petição inicial de improbidade': {
-  rito: 'Administrativo — improbidade',
-  freq: 27,   // vezes em que o tema aparece nas 648 provas de discursivas.js
-  carreiras: ['Ministério Público'],
-  sobre: 'Depois da Lei 14.230/2021 a peça mudou de eixo: legitimidade agora é exclusiva do Ministério Público, não existe modalidade culposa, o rol do art. 11 é taxativo, e o dolo exigido é específico — a vontade livre e consciente de alcançar o resultado ilícito, não basta a voluntariedade da conduta.',
-  blocos: [
-    { nome: 'Legitimidade e sujeitos',
-      deve: 'A ação é proposta pelo Ministério Público. Identificar o agente público e, havendo particular, demonstrar que ele concorreu dolosamente ou se beneficiou — o terceiro não responde sozinho.',
-      lei: ['Legitimidade do Ministério Público — Lei 8.429/92, art. 17, caput',
-            'Sujeito ativo — Lei 8.429/92, arts. 1º e 2º',
-            'Terceiro que concorre ou se beneficia — Lei 8.429/92, art. 3º'],
-      juris: ['Independência das instâncias — Lei 8.429/92, art. 21, §§'],
-      erro: 'Incluir o particular no polo passivo sem apontar a conduta dolosa dele. Sem agente público não há ação de improbidade contra terceiro.' },
-    { nome: 'Tipificação e dolo específico',
-      deve: 'Enquadrar a conduta em um dos três blocos e demonstrar o dolo específico. No art. 11, o rol é taxativo: conduta fora dos incisos não é improbidade, por mais reprovável que seja.',
-      lei: ['Enriquecimento ilícito — Lei 8.429/92, art. 9º',
-            'Prejuízo ao erário — Lei 8.429/92, art. 10',
-            'Violação de princípios, rol taxativo — Lei 8.429/92, art. 11',
-            'Exigência de dolo — Lei 8.429/92, art. 1º, §§ 1º a 3º',
-            'Perda patrimonial efetiva no art. 10 — Lei 8.429/92, art. 10, caput'],
-      juris: ['Responsabilidade subjetiva com dolo nos arts. 9º, 10 e 11 — STF, ARE 843.989, Tema 1199, j. 18/08/2022',
-              'Revogação da modalidade culposa é irretroativa — STF, Tema 1199, tese 2',
-              'Nova lei alcança atos culposos sem condenação transitada em julgado — STF, Tema 1199, tese 3'],
-      erro: 'Narrar a conduta e concluir pelo dolo "presumido da própria ilegalidade". Depois do Tema 1199, ilegalidade não é improbidade — o dolo específico tem de ser descrito com fatos.' },
-    { nome: 'Causa de pedir e prova',
-      deve: 'Descrever a conduta, o resultado e o nexo, com individualização por réu. A inicial vem instruída com documentos ou justificação da impossibilidade de apresentá-los.',
-      lei: ['Requisitos da inicial de improbidade — Lei 8.429/92, art. 17, § 6º',
-            'Inquérito civil — Lei 7.347/85, art. 8º, § 1º',
-            'Rejeição da inicial — Lei 8.429/92, art. 17, § 6º-B'],
-      juris: [],
-      erro: 'Petição inicial genérica contra todos os integrantes de uma comissão. A individualização da conduta é requisito expresso, e a inicial genérica é rejeitada.' },
-    { nome: 'Indisponibilidade de bens e tutela',
-      deve: 'A indisponibilidade não é automática: exige demonstração de perigo de dilapidação e recai sobre o valor do dano ou do acréscimo patrimonial, preservando o mínimo existencial e os bens impenhoráveis.',
-      lei: ['Indisponibilidade de bens — Lei 8.429/92, art. 16 e §§',
-            'Limite ao valor do ressarcimento — Lei 8.429/92, art. 16, § 5º',
-            'Tutela de urgência — CPC, art. 300'],
-      juris: [],
-      erro: 'Pedir indisponibilidade genérica invocando periculum in mora presumido. A lei reformada exige demonstração concreta do risco.' },
-    { nome: 'Sanções pedidas e dosimetria',
-      deve: 'Pedir as sanções do art. 12 de forma fundamentada, observando que elas não são cumulativas por obrigação e que a aplicação segue proporcionalidade e individualização.',
-      lei: ['Sanções por espécie de ato — Lei 8.429/92, art. 12, I a III',
-            'Critérios de dosimetria — Lei 8.429/92, art. 17-C, IV',
-            'Ressarcimento integral do dano — Lei 8.429/92, art. 12, caput'],
-      juris: ['Imprescritibilidade do ressarcimento por ato doloso de improbidade — STF, RE 852.475, Tema 897, j. 08/08/2018'],
-      erro: 'Pedir todas as sanções em bloco, sem dizer por que cada uma cabe. A dosimetria é exigida por lei e o pedido genérico enfraquece a condenação.' },
-    { nome: 'Prescrição e fecho',
-      deve: 'Verificar o prazo de oito anos e a prescrição intercorrente, e fechar com o pedido de citação, provas e valor da causa.',
-      lei: ['Prazo prescricional de oito anos — Lei 8.429/92, art. 23',
-            'Prescrição intercorrente — Lei 8.429/92, art. 23, §§ 4º e 5º',
-            'Interrupção da prescrição — Lei 8.429/92, art. 23, § 4º'],
-      juris: ['Novo regime prescricional é irretroativo — STF, Tema 1199, tese 4'],
-      erro: 'Aplicar o prazo novo a fato anterior à Lei 14.230/2021. Os novos marcos temporais só correm a partir da publicação da lei.' }
-  ],
-  cego: ['Legitimidade exclusiva do MP registrada','Agente público identificado e terceiro justificado',
-    'Conduta enquadrada em ato do art. 9º, 10 ou 11','Rol taxativo do art. 11 respeitado',
-    'Dolo específico descrito com fatos','Conduta individualizada por réu',
-    'Indisponibilidade com perigo concreto demonstrado','Sanções pedidas com dosimetria',
-    'Prescrição de oito anos verificada','Irretroatividade do novo regime observada']
+ "rito": "Administrativo — improbidade",
+ "freq": 27,
+ "carreiras": [
+  "Ministério Público",
+  "Advocacia Pública",
+  "Magistratura"
+ ],
+ "sobre": "Depois da Lei 14.230/2021 e da onda de julgamentos do STF nas ADI 7156 e ADI 7236, a inicial de improbidade virou peça de tipicidade estrita: dolo descrito como fato, tipo indicado com precisão e sanções pedidas com dosimetria. O espelho cobra o elemento subjetivo em primeiro lugar — sem dolo narrado, não há ato de improbidade.",
+ "blocos": [
+  {
+   "nome": "Endereçamento, legitimidade e competência",
+   "deve": "Fixar o juízo e demonstrar quem pode propor — ponto que mudou duas vezes desde 2021.",
+   "itens": [
+    {
+     "t": "Legitimidade ativa",
+     "d": "o caput do art. 17, na redação da Lei 14.230/2021, atribuiu a ação apenas ao Ministério Público. O STF, nas ADI 7042 e ADI 7043 (Pleno, Rel. Min. Alexandre de Moraes, 31/08/2022), declarou a inconstitucionalidade parcial sem redução de texto do caput e dos §§ 6º-A e 10-C do art. 17 e do caput e dos §§ 5º e 7º do art. 17-B, restabelecendo a legitimidade ativa CONCORRENTE E DISJUNTIVA entre o Ministério Público e as pessoas jurídicas interessadas — inclusive para celebrar o acordo de não persecução civil."
+    },
+    {
+     "t": "Como escrever",
+     "d": "é decisão em ADI, controle concentrado: fale em dispositivo do acórdão, não em \"tese\". E não diga que o § 14 do art. 17 caiu — ele constava da cautelar de 17/02/2022, mas não do dispositivo final."
+    },
+    {
+     "t": "Legitimidade passiva",
+     "d": "agente público (art. 2º) e o terceiro que induza, concorra dolosamente ou dele se beneficie (art. 3º). O art. 3º, § 1º, exige que o particular tenha agido com dolo."
+    },
+    {
+     "t": "Competência",
+     "d": "juízo cível de primeiro grau do local do dano. Não há foro por prerrogativa de função em ação de improbidade — salvo a hipótese específica do art. 17, § 4º-A, que remete às regras de competência do CPC."
+    },
+    {
+     "t": "Procedimento",
+     "d": "procedimento comum do CPC, salvo o disposto na própria LIA (art. 17, caput)."
+    }
+   ],
+   "lei": [
+    "Legitimidade e procedimento — Lei 8.429/1992, art. 17",
+    "Sujeito ativo — Lei 8.429/1992, art. 2º",
+    "Terceiro beneficiário — Lei 8.429/1992, art. 3º"
+   ],
+   "juris": [
+    "Legitimidade concorrente e disjuntiva do MP e das pessoas jurídicas interessadas — STF, Pleno, ADI 7042 e ADI 7043, Rel. Min. Alexandre de Moraes, 31/08/2022"
+   ],
+   "modelo": "Excelentíssimo Senhor Doutor Juiz de Direito da ... Vara da Fazenda Pública da Comarca de ...\n\nO MINISTÉRIO PÚBLICO DO ESTADO DE ..., por seu Promotor de Justiça, com fundamento no art. 129, III, da Constituição da República e no art. 17 da Lei 8.429/1992, vem propor\n\nAÇÃO POR ATO DE IMPROBIDADE ADMINISTRATIVA, com pedido de indisponibilidade de bens,\n\nem face de ..., agente público, e de ..., particular beneficiário, pelos fundamentos a seguir.",
+   "erro": "Escrever que a legitimidade é exclusiva do Ministério Público. O texto legal diz isso, mas o STF o declarou parcialmente inconstitucional em 2022 — e o examinador conta com que o candidato saiba."
+  },
+  {
+   "nome": "O dolo — o primeiro item de todo espelho",
+   "deve": "Descrever o dolo como fato, e não afirmá-lo como conclusão. Sem dolo narrado, não há tipicidade.",
+   "itens": [
+    {
+     "t": "Regra geral",
+     "d": "consideram-se atos de improbidade as condutas DOLOSAS tipificadas nos arts. 9º, 10 e 11 (art. 1º, § 1º)."
+    },
+    {
+     "t": "Conceito legal de dolo",
+     "d": "a vontade livre e consciente de alcançar o resultado ilícito tipificado nos arts. 9º, 10 e 11, não bastando a voluntariedade do agente (art. 1º, § 2º)."
+    },
+    {
+     "t": "Cláusula de fechamento",
+     "d": "o mero exercício da função ou o desempenho de competências públicas, sem comprovação de ato doloso com fim ilícito, afasta a responsabilidade (art. 1º, § 3º)."
+    },
+    {
+     "t": "Não diga \"dolo específico\"",
+     "d": "a lei não usa a expressão. A finalidade específica de obter proveito ou benefício indevido está no art. 11, §§ 1º e 2º — cite o dispositivo do tipo que você está imputando, e não um rótulo doutrinário."
+    },
+    {
+     "t": "Constitucionalidade",
+     "d": "o STF declarou constitucionais o art. 1º, §§ 1º, 2º e 3º, e o art. 10, na ADI 7236 (Pleno, Rel. Min. Alexandre de Moraes, sessão de 28/05/2026), e deu interpretação conforme ao art. 1º, § 8º, para assentar que a divergência interpretativa não configura improbidade, exceto quando evidenciado dolo ou erro grosseiro, nos termos do art. 14 do Decreto 9.830/2019."
+    },
+    {
+     "t": "Culposo não existe mais",
+     "d": "e a lei nova se aplica aos atos culposos praticados antes, desde que não haja condenação transitada em julgado — cabendo ao juízo analisar eventual dolo (tese 3 do Tema 1199)."
+    }
+   ],
+   "lei": [
+    "Dolo como elemento dos tipos — Lei 8.429/1992, art. 1º, § 1º",
+    "Conceito de dolo — Lei 8.429/1992, art. 1º, § 2º",
+    "Exercício regular da função — Lei 8.429/1992, art. 1º, § 3º",
+    "Divergência interpretativa — Lei 8.429/1992, art. 1º, § 8º"
+   ],
+   "juris": [
+    "Exigência de dolo e regime de transição — Tema 1199 do STF, ARE 843.989, Pleno, Rel. Min. Alexandre de Moraes, 18/08/2022",
+    "Constitucionalidade do art. 1º, §§ 1º a 3º, e do art. 10 — STF, ADI 7236, sessão de 28/05/2026"
+   ],
+   "modelo": "O requerido agiu com vontade livre e consciente de alcançar o resultado ilícito, como demonstram: (i) a dispensa de licitação formalizada em .../.../..., quando já havia parecer da própria Procuradoria (fl. ...) apontando a inviabilidade jurídica da contratação; (ii) a assinatura do contrato no mesmo dia do parecer contrário; (iii) o vínculo societário do contratado com o requerido, documentado à fl. ... .\n\nNão se trata, portanto, de mero exercício de competência pública nem de divergência interpretativa (art. 1º, §§ 2º, 3º e 8º, da Lei 8.429/1992), mas de conduta dolosa dirigida ao fim ilícito.",
+   "erro": "Afirmar \"o requerido agiu dolosamente\" sem descrever os fatos que revelam o dolo. É o erro que mais derruba nota nessa peça desde 2021."
+  },
+  {
+   "nome": "Tipificação — art. 9º, 10 ou 11",
+   "deve": "Escolher o tipo e narrar a conduta que se ajusta a ele. A imputação por tipo errado tem consequências processuais próprias.",
+   "itens": [
+    {
+     "t": "Art. 9º",
+     "d": "enriquecimento ilícito — auferir vantagem patrimonial indevida em razão do cargo. Exige acréscimo patrimonial."
+    },
+    {
+     "t": "Art. 10",
+     "d": "prejuízo ao erário — ação ou omissão dolosa que enseje perda patrimonial efetiva. O dano deve ser efetivo e comprovado; dano presumido não basta, salvo a hipótese legal do art. 10, VIII, na leitura que exige demonstração."
+    },
+    {
+     "t": "Art. 11",
+     "d": "violação de princípios. O caput passou a exigir ação ou omissão dolosa \"caracterizada por uma das seguintes condutas\" — daí a taxatividade. Atenção ao rol vigente: a Lei 14.230/2021 (art. 4º, VI) revogou apenas os incisos I, II, IX e X; VII e VIII permanecem; XI e XII foram acrescidos. Rol atual: III, IV, V, VI, VII, VIII, XI e XII."
+    },
+    {
+     "t": "Não diga que a lei chama o rol de taxativo",
+     "d": "ela não usa essa palavra. A taxatividade decorre da cláusula \"caracterizada por uma das seguintes condutas\"."
+    },
+    {
+     "t": "Constitucionalidade",
+     "d": "o STF declarou constitucionais o art. 11, caput, e a revogação dos incisos I e II (ADI 7236, vencido o Min. Edson Fachin) e o art. 11, caput, incisos I e II e §§ 3º e 4º (ADI 7156), na sessão de 28/05/2026."
+    }
+   ],
+   "lei": [
+    "Enriquecimento ilícito — Lei 8.429/1992, art. 9º",
+    "Prejuízo ao erário — Lei 8.429/1992, art. 10",
+    "Violação de princípios — Lei 8.429/1992, art. 11",
+    "Rol e parágrafos do art. 11 — Lei 8.429/1992, art. 11, §§ 1º a 5º"
+   ],
+   "juris": [
+    "Constitucionalidade do art. 11, caput, e da revogação dos incisos I e II — STF, ADI 7156 e ADI 7236, sessão de 28/05/2026"
+   ],
+   "erro": "Imputar violação de princípios por conduta que não corresponde a nenhum inciso vigente do art. 11. Depois de 2021 o tipo aberto acabou."
+  },
+  {
+   "nome": "Indisponibilidade de bens — o pedido que mais mudou",
+   "deve": "Pedir a indisponibilidade com o regime atual, que não é o da lei escrita nem o do STJ de 2014.",
+   "itens": [
+    {
+     "t": "Base legal",
+     "d": "art. 16 da LIA: pedido em caráter antecedente ou incidente, para garantir a integral recomposição do erário ou do acréscimo patrimonial resultante de enriquecimento ilícito. O § 8º manda aplicar, no que couber, o regime da tutela provisória de urgência do CPC."
+    },
+    {
+     "t": "O que o STF derrubou",
+     "d": "nas ADI 7156 e ADI 7236 (Pleno, sessão de 24/06/2026, com efeitos ex nunc), foram declaradas inconstitucionais as expressões \"apenas\" e \"mediante a demonstração no caso concreto de perigo de dano irreparável ou de risco ao resultado útil do processo\" (§ 3º); \"não podendo a urgência ser presumida\" (§ 4º); e \"sem incidir sobre os valores a serem eventualmente aplicados a título de multa civil ou sobre acréscimo patrimonial decorrente de atividade lícita\" (§ 10)."
+    },
+    {
+     "t": "O que passou a valer",
+     "d": "com interpretação conforme aos §§ 3º, 4º e 10, o STF admitiu, em hipóteses excepcionais e com decisão fundamentada, a indisponibilidade com base em tutela de evidência e a presunção de urgência; e assentou, como regra geral, que a medida recai sobre montante suficiente para garantir o integral ressarcimento, podendo abranger a multa civil e o enriquecimento ilícito, e alcançando, até esse limite, a integralidade dos bens dos requeridos, independentemente da origem, observadas as impenhorabilidades legais."
+    },
+    {
+     "t": "Temas do STJ que não podem mais ser citados",
+     "d": "o Tema 701 (periculum in mora presumido, REsp 1.366.721/BA, 2014) e o Tema 1055 (inclusão da multa civil) foram CANCELADOS em razão do Tema Repetitivo 1257 (REsp 2.074.601/MG, 1ª Seção, Rel. Min. Afrânio Vilela, 06/02/2025, DJEN 13/02/2025)."
+    },
+    {
+     "t": "Tema 1257",
+     "d": "as disposições da Lei 14.230/2021 aplicam-se aos processos em curso para regular o procedimento da tutela de indisponibilidade, podendo as medidas já deferidas ser reapreciadas para adequação."
+    },
+    {
+     "t": "Limites objetivos",
+     "d": "§ 13 (40 salários mínimos) e § 14 (bem de família) continuam vigentes."
+    }
+   ],
+   "lei": [
+    "Indisponibilidade de bens — Lei 8.429/1992, art. 16",
+    "Regime da tutela de urgência — Lei 8.429/1992, art. 16, § 8º",
+    "Tutela de urgência — CPC, art. 300",
+    "Tutela de evidência — CPC, art. 311"
+   ],
+   "juris": [
+    "Indisponibilidade: inconstitucionalidade parcial dos §§ 3º, 4º e 10 do art. 16, com efeitos ex nunc — STF, ADI 7156 e ADI 7236, sessão de 24/06/2026",
+    "Aplicação da Lei 14.230/2021 aos processos em curso quanto à indisponibilidade — Tema Repetitivo 1257 do STJ, REsp 2.074.601/MG, 1ª Seção, Rel. Min. Afrânio Vilela, 06/02/2025",
+    "Temas 701 e 1055 do STJ cancelados em razão do Tema 1257 — DJEN de 13/02/2025"
+   ],
+   "modelo": "Requer, em caráter incidente, a decretação da indisponibilidade dos bens dos requeridos, nos termos do art. 16 da Lei 8.429/1992, em montante suficiente a garantir o integral ressarcimento do dano ao erário, a multa civil e o acréscimo patrimonial decorrente do enriquecimento ilícito, alcançando a integralidade dos bens até esse limite, independentemente de sua origem, observadas as impenhorabilidades legais — na exata linha do que assentaram o Supremo Tribunal Federal nas ADI 7156 e 7236 (sessão de 24/06/2026) e o § 8º do art. 16, que remete ao regime da tutela provisória de urgência.",
+   "erro": "Fundamentar a indisponibilidade no Tema 701 do STJ. Ele foi cancelado em fevereiro de 2025 — citá-lo é assinar que o material de estudo parou em 2014."
+  },
+  {
+   "nome": "Sanções e dosimetria",
+   "deve": "Pedir as sanções do art. 12 correspondentes ao tipo imputado, com proporcionalidade fundamentada.",
+   "itens": [
+    {
+     "t": "Art. 12, I (art. 9º)",
+     "d": "perda dos bens ou valores acrescidos ilicitamente, perda da função pública, suspensão dos direitos políticos até 14 anos, multa civil equivalente ao valor do acréscimo patrimonial e proibição de contratar ou receber benefícios por até 14 anos."
+    },
+    {
+     "t": "Art. 12, II (art. 10)",
+     "d": "ressarcimento integral, perda dos bens se houver acréscimo, perda da função pública, suspensão até 12 anos, multa equivalente ao valor do dano e proibição de contratar por até 12 anos."
+    },
+    {
+     "t": "Art. 12, III (art. 11)",
+     "d": "multa civil de até 24 vezes a remuneração do agente e proibição de contratar por até 4 anos. NÃO há perda da função pública nem suspensão de direitos políticos na violação de princípios."
+    },
+    {
+     "t": "Onde está a proporcionalidade",
+     "d": "não no § 1º. Está no caput do art. 12 (\"de acordo com a gravidade do fato\"), no § 5º (atos de menor ofensa, sanção limitada à multa) e, sobretudo, no art. 17-C, IV, \"a\", que manda observar os princípios da proporcionalidade e da razoabilidade, com os critérios de dosimetria das alíneas seguintes."
+    },
+    {
+     "t": "O que o STF mexeu no art. 12",
+     "d": "na sessão de 28/05/2026 declarou inconstitucional o § 4º e constitucionais os incisos I e II e o § 9º; na sessão de 24/06/2026 declarou inconstitucional o § 10 e, no § 1º, as expressões \"apenas\" e \", na hipótese do inciso I do caput deste artigo, e em caráter excepcional,\", dando interpretação conforme à expressão \"podendo\", que passa a ser poder-dever. Quanto ao inciso III, manteve-se a autoridade da cautelar da ADI 6.678/DF, que afasta a suspensão de direitos políticos nos atos violadores de princípios desde 1º/10/2021."
+    }
+   ],
+   "lei": [
+    "Sanções — Lei 8.429/1992, art. 12",
+    "Atos de menor ofensa — Lei 8.429/1992, art. 12, § 5º",
+    "Requisitos da sentença e dosimetria — Lei 8.429/1992, art. 17-C, IV"
+   ],
+   "juris": [
+    "Inconstitucionalidade do art. 12, §§ 4º e 10, e das expressões do § 1º — STF, ADI 7156 e ADI 7236, sessões de 28/05/2026 e 24/06/2026"
+   ],
+   "modelo": "Requer, ao final, a procedência dos pedidos para condenar os requeridos, pela prática do ato de improbidade descrito no art. 10, VIII, da Lei 8.429/1992, às sanções do art. 12, II, do mesmo diploma, a saber: (i) ressarcimento integral do dano, no valor de R$ ..., corrigido e acrescido de juros; (ii) perda da função pública; (iii) suspensão dos direitos políticos pelo prazo de ... anos; (iv) multa civil equivalente ao valor do dano; (v) proibição de contratar com o Poder Público ou receber benefícios fiscais ou creditícios pelo prazo de ... anos — observados, na dosimetria, os critérios do art. 17-C, IV, da Lei 8.429/1992.",
+   "erro": "Pedir perda da função pública e suspensão de direitos políticos em imputação fundada no art. 11. O art. 12, III, não as prevê."
+  },
+  {
+   "nome": "Prescrição, acordo e o procedimento",
+   "deve": "Antecipar as defesas processuais — prescrição, ANPC e a independência das instâncias.",
+   "itens": [
+    {
+     "t": "Prazo",
+     "d": "oito anos, contados da ocorrência do fato ou, nas infrações permanentes, do dia em que cessou a permanência (art. 23, caput)."
+    },
+    {
+     "t": "Interrupção e a regra da metade",
+     "d": "os marcos interruptivos estão no § 4º (declarados constitucionais na ADI 7156, sessão de 01/07/2026, quanto aos incisos II a V). O § 5º dizia que, interrompida a prescrição, o prazo recomeçava pela metade — o STF declarou inconstitucional a expressão \"pela metade do prazo previsto no caput deste artigo\", fixando prazo máximo de 20 anos de prescrição (ADI 7156 e ADI 7236, sessão de 01/07/2026)."
+    },
+    {
+     "t": "Prescrição intercorrente",
+     "d": "está no § 8º, e não no § 5º. O juiz a reconhece e decreta de ofício quando, entre os marcos do § 4º, transcorre o prazo do § 5º. Trocar os parágrafos é erro que a banca lê como desconhecimento do sistema."
+    },
+    {
+     "t": "Regime de transição",
+     "d": "o novo regime prescricional é irretroativo, aplicando-se os novos marcos a partir da publicação da lei — DOU de 26/10/2021 (tese 4 do Tema 1199). E cuidado: o Tema 1199 tem quatro teses e nenhuma delas é sobre prescrição intercorrente. Não invente uma quinta."
+    },
+    {
+     "t": "Acordo de não persecução civil",
+     "d": "art. 17-B. Resultados mínimos: integral ressarcimento do dano e reversão à pessoa jurídica lesada da vantagem indevida. Requisitos cumulativos do § 1º: oitiva do ente lesado, aprovação em até 60 dias pelo órgão do MP competente para apreciar promoções de arquivamento de inquérito civil (se anterior ao ajuizamento) e homologação judicial. Pode ser celebrado na investigação, no curso da ação ou na execução (§ 4º). Descumprido, impede novo acordo por cinco anos (§ 7º). Duas atualizações: o acordo também pode ser celebrado pelas pessoas jurídicas interessadas (ADI 7042/7043) e o § 3º, que exigia oitiva do Tribunal de Contas, foi declarado inconstitucional em 24/06/2026."
+    },
+    {
+     "t": "Independência das instâncias",
+     "d": "art. 21. O inciso I dispensa a efetiva ocorrência de dano, salvo quanto ao ressarcimento e às condutas do art. 10; o inciso II dispensa a aprovação ou rejeição das contas. O § 4º, na letra da lei, faz a absolvição criminal por qualquer dos fundamentos do art. 386 do CPP impedir a ação — mas o STF, na sessão de 25/06/2026 (ADI 7156 e ADI 7236, por unanimidade), deu interpretação conforme: só impedem a tramitação as hipóteses dos arts. 65, 386, I, e 386, IV, do CPP, e exige-se decisão criminal transitada em julgado, e não apenas confirmada por colegiado."
+    },
+    {
+     "t": "Rito",
+     "d": "não há mais notificação prévia para defesa preliminar: a Lei 14.230/2021 (art. 4º, X) revogou os antigos §§ 8º e 9º do art. 17, e o § 7º ganhou redação nova — estando a inicial em devida forma, o juiz manda autuá-la e cita os requeridos para contestar em 30 dias comuns. O controle de admissibilidade está no § 6º-B, que manda REJEITAR a inicial nos casos do art. 330 do CPC, quando não preenchidos os requisitos dos incisos I e II do § 6º, ou quando manifestamente inexistente o ato imputado."
+    },
+    {
+     "t": "Requisitos da inicial na LIA",
+     "d": "o § 6º do art. 17 exige (I) individualizar a conduta do réu e apontar os elementos probatórios mínimos que demonstrem a ocorrência das hipóteses dos arts. 9º, 10 e 11 e sua autoria, salvo impossibilidade devidamente fundamentada; e (II) instruir com documentos ou justificação que contenham indícios suficientes ou com razões fundamentadas da impossibilidade. A emenda segue o art. 321 do CPC, aplicável por força do caput do art. 17 — a LIA não tem regra própria de emenda."
+    },
+    {
+     "t": "O que caiu do procedimento",
+     "d": "o § 10-C (o juiz indicaria com precisão a tipificação, vedada a modificação do fato principal e da capitulação) e o § 10-F, I (nulidade da decisão que condenasse por tipo diverso do da inicial) foram declarados inconstitucionais na sessão de 24/06/2026. Ou seja: não há mais vinculação do juiz à capitulação da inicial."
+    }
+   ],
+   "lei": [
+    "Prescrição — Lei 8.429/1992, art. 23",
+    "Prescrição intercorrente — Lei 8.429/1992, art. 23, § 8º",
+    "Acordo de não persecução civil — Lei 8.429/1992, art. 17-B",
+    "Independência das instâncias — Lei 8.429/1992, art. 21",
+    "Requisitos da inicial — Lei 8.429/1992, art. 17, § 6º",
+    "Rejeição da inicial — Lei 8.429/1992, art. 17, § 6º-B",
+    "Citação e prazo de contestação — Lei 8.429/1992, art. 17, § 7º",
+    "Emenda da inicial — CPC, art. 321"
+   ],
+   "juris": [
+    "Quatro teses sobre dolo, irretroatividade e regime prescricional — Tema 1199 do STF, ARE 843.989, Pleno, Rel. Min. Alexandre de Moraes, 18/08/2022",
+    "Inconstitucionalidade da regra da metade no art. 23, § 5º, com teto de 20 anos — STF, ADI 7156 e ADI 7236, sessão de 01/07/2026",
+    "Interpretação conforme ao art. 21, § 4º: só arts. 65, 386, I, e 386, IV, do CPP impedem a ação — STF, ADI 7156 e ADI 7236, sessão de 25/06/2026",
+    "Inconstitucionalidade dos arts. 17, §§ 10-C, 10-D e 10-F, I, e 17-B, § 3º — STF, ADI 7156 e ADI 7236, sessão de 24/06/2026"
+   ],
+   "erro": "Sustentar que a prescrição intercorrente corre pela metade do prazo. A expressão foi declarada inconstitucional em 01/07/2026 e o STF fixou teto de 20 anos."
+  }
+ ],
+ "cego": [
+  "Legitimidade ativa fundamentada com a ADI 7042/7043",
+  "Legitimidade passiva do agente (art. 2º) e do terceiro (art. 3º, com dolo)",
+  "Competência do juízo cível de primeiro grau",
+  "Dolo descrito como fato, não afirmado como conclusão",
+  "Afastamento expresso do art. 1º, §§ 3º e 8º (exercício da função e divergência interpretativa)",
+  "Tipo escolhido entre arts. 9º, 10 e 11, com o inciso vigente",
+  "Dano efetivo demonstrado, quando a imputação for do art. 10",
+  "Indisponibilidade pedida no regime pós-24/06/2026",
+  "Sanções do art. 12 correspondentes ao tipo imputado",
+  "Dosimetria fundamentada pelo art. 17-C, IV",
+  "Prescrição enfrentada (art. 23, caput, § 4º e § 8º)",
+  "Manifestação sobre o acordo de não persecução civil",
+  "Requisitos do art. 17, § 6º, I e II, atendidos",
+  "Pedido de citação para contestar em 30 dias (art. 17, § 7º)"
+ ],
+ "dicas": [
+  {
+   "t": "Nona peça mais cobrada do banco de provas aplicadas: 27 ocorrências.",
+   "alerta": false
+  },
+  {
+   "t": "A improbidade é a matéria que mais mudou entre 2021 e 2026. O texto da Lei 8.429/1992 no Planalto não reflete o que o STF decidiu nas ADI 7042, 7043, 7156 e 7236 — escrever pela letra da lei, hoje, é escrever errado em pelo menos quatro pontos.",
+   "alerta": true
+  },
+  "Comece pelo dolo. Sem ele narrado como fato, o resto da peça não sustenta imputação nenhuma (art. 1º, §§ 1º a 3º).",
+  {
+   "t": "O Tema 1199 tem exatamente quatro teses e nenhuma trata de prescrição intercorrente. Atribuir-lhe uma quinta tese é erro que o examinador identifica na hora.",
+   "alerta": true
+  },
+  "A tese 2 do Tema 1199 (irretroatividade da revogação da culpa) só vale contra a coisa julgada e a execução. Para processo em curso sem trânsito, a lei nova se aplica e o juízo analisa eventual dolo (tese 3). Citar a tese 2 sozinha é meia-verdade.",
+  "Prescrição intercorrente é o § 8º do art. 23; a regra da metade era o § 5º — e a expressão foi declarada inconstitucional em 01/07/2026.",
+  "O art. 11 não tem mais os incisos I, II, IX e X. Conferir o inciso antes de citar evita imputar por dispositivo revogado.",
+  "Não existe mais defesa prévia antes do recebimento. A inicial é rejeitada pelo § 6º-B ou os réus são citados para contestar em 30 dias (§ 7º)."
+ ],
+ "especiais": [
+  {
+   "t": "Improbidade e ressarcimento ao erário",
+   "d": "A pretensão de ressarcimento por ato doloso de improbidade é imprescritível — Tema 897 do STF, RE 852.475, Pleno, 08/08/2018. Confira o número antes de citar: é o único ponto em que a imprescritibilidade sobreviveu, e não alcança as demais sanções."
+  },
+  {
+   "t": "Improbidade de agente político",
+   "d": "O STF admite a concomitância entre o regime da Lei 8.429/1992 e o de crime de responsabilidade, salvo para os agentes submetidos à Lei 1.079/1950 nas hipóteses ali previstas. Verifique o cargo antes de imputar."
+  },
+  {
+   "t": "Improbidade e Tribunal de Contas",
+   "d": "O art. 21, II, dispensa a aprovação ou rejeição das contas. A decisão do Tribunal de Contas não vincula o juízo cível — e o § 3º do art. 17-B, que exigia sua oitiva para apurar o dano no acordo, foi declarado inconstitucional em 24/06/2026."
+  },
+  {
+   "t": "Improbidade e ação civil pública",
+   "d": "São ações distintas: a de improbidade tem procedimento próprio na LIA e sanções pessoais; a ACP tutela o patrimônio público sem aplicar as sanções do art. 12. Cumular pedidos das duas na mesma inicial é erro de estrutura."
+  },
+  {
+   "t": "Improbidade contra pessoa jurídica de direito privado",
+   "d": "A responsabilização da empresa por atos contra a administração segue a Lei 12.846/2013 (anticorrupção). Na LIA, o particular responde como terceiro do art. 3º, e o § 1º exige dolo."
+  }
+ ]
 },
 
 // ═══════════════════════ PROCURADORIAS ═══════════════════════
@@ -2163,157 +2882,465 @@ window.CT_PECAS = {
 },
 // ═══════════════════════ CÍVEL — POSTULATÓRIAS ═══════════════════════
 'Petição inicial': {
-  rito: 'Civil — conhecimento',
-  freq: 45,   // vezes em que o tema aparece nas 648 provas de discursivas.js
-  carreiras: ['Advocacia','Defensoria','Ministério Público','Procuradorias'],
-  sobre: 'A peça que fixa os limites de tudo o que vem depois. O juiz decidirá nos limites do que foi pedido, e a causa de pedir narrada aqui é a única que poderá ser julgada. Inicial mal delimitada não se conserta na réplica.',
-  blocos: [
-    { nome: 'Endereçamento, partes e valor',
-      deve: 'Os três primeiros requisitos do art. 319 são de conferência mecânica — e é por eles que a inicial é emendada.',
-      itens: [
-        { t:'Juízo competente', d:'com a regra que o justifica: foro do domicílio do réu como regra, e as competências especiais dos arts. 47 a 53.' },
-        { t:'Qualificação completa', d:'nomes, estado civil, existência de união estável, profissão, CPF ou CNPJ, endereço eletrônico e domicílio de ambas as partes.' },
-        { t:'Valor da causa', d:'sempre obrigatório, ainda que sem conteúdo econômico imediato; segue os critérios do art. 292.' }
-      ],
-      lei: ['Requisitos da petição inicial — CPC, art. 319, I a VII',
-            'Dados do réu desconhecidos — CPC, art. 319, §§ 1º a 3º',
-            'Valor da causa — CPC, arts. 291 e 292',
-            'Foro geral e foros especiais — CPC, arts. 46 a 53'],
-      juris: [],
-      erro: 'Atribuir valor simbólico à causa por comodidade de custas. O art. 292, § 3º autoriza a correção de ofício, e a inicial volta para emenda.' },
-    { nome: 'Causa de pedir — fato e fundamento',
-      deve: 'Narrar o fato e o fundamento jurídico do pedido. Adotamos a teoria da substanciação: são os FATOS que delimitam a demanda, e não o rótulo jurídico que você lhes der.',
-      itens: [
-        { t:'Causa de pedir remota', d:'o fato gerador do direito afirmado.' },
-        { t:'Causa de pedir próxima', d:'as consequências jurídicas que dele decorrem.' },
-        { t:'Narrativa cronológica', d:'com remissão ao documento que prova cada fato — o juiz precisa poder conferir enquanto lê.' }
-      ],
-      lei: ['Fato e fundamento jurídico — CPC, art. 319, III',
-            'Estabilização da demanda — CPC, art. 329',
-            'Julgamento nos limites do pedido — CPC, arts. 141 e 492'],
-      juris: [],
-      erro: 'Narrar mal o fato e capitular bem o direito. O juiz conhece o direito; ele não pode adivinhar o fato que você não contou.' },
-    { nome: 'Pedido — certo e determinado',
-      deve: 'Pedido certo quanto ao gênero, determinado quanto à quantidade. As exceções do art. 324 são taxativas, e a cumulação exige compatibilidade, mesmo juízo e mesmo procedimento.',
-      itens: [
-        { t:'Interpretação do pedido', d:'interpreta-se conforme a boa-fé e o conjunto da postulação, mas isso não supre pedido que não existe.' },
-        { t:'Pedido genérico', d:'só nas três hipóteses do art. 324, § 1º — ação universal, impossibilidade de determinar as consequências, ou dependência de ato do réu.' },
-        { t:'Cumulação', d:'simples, sucessiva, eventual ou alternativa — indicar qual é, para o juiz saber a ordem de exame.' },
-        { t:'Pedidos implícitos', d:'juros legais, correção monetária, verbas de sucumbência e prestações vincendas — mas peça expressamente, é mais seguro.' }
-      ],
-      lei: ['Pedido certo — CPC, art. 322',
-            'Pedido determinado e exceções — CPC, art. 324',
-            'Pedidos implícitos — CPC, art. 322, § 1º',
-            'Prestações sucessivas — CPC, art. 323',
-            'Cumulação de pedidos — CPC, art. 327'],
-      juris: [],
-      modelo: 'Ante o exposto, requer:\n\na) a citação do réu, na forma do art. 246 do Código de Processo Civil, para, querendo, apresentar contestação, sob pena de revelia;\n\nb) a procedência dos pedidos, para condenar o réu a ..., no valor de R$ ..., acrescido de correção monetária desde ... e juros de mora desde ...;\n\nc) a condenação do réu ao pagamento das custas processuais e dos honorários advocatícios, na forma do art. 85, § 2º, do Código de Processo Civil.\n\nProtesta provar o alegado por todos os meios de prova em direito admitidos, especialmente ....\n\nDeclara, para os fins do art. 319, VII, do Código de Processo Civil, que TEM interesse na realização da audiência de conciliação ou mediação.\n\nDá-se à causa o valor de R$ ....',
-      erro: 'Esquecer a manifestação sobre a audiência de conciliação. É requisito do art. 319, VII, e a ausência dela por si só não impede a audiência — ela só não se realiza se AMBAS as partes disserem que não querem.' },
-    { nome: 'Tutela provisória',
-      deve: 'Havendo urgência, formular o pedido de tutela em tópico próprio, com os requisitos separados: probabilidade do direito e perigo de dano. Na evidência, não se exige perigo.',
-      itens: [
-        { t:'Urgência antecipada', d:'satisfaz desde logo; atenção à irreversibilidade do art. 300, § 3º.' },
-        { t:'Urgência cautelar', d:'assegura o resultado útil; admite qualquer medida idônea (art. 301).' },
-        { t:'Antecedente e estabilização', d:'requerida em caráter antecedente e não recorrida, a tutela antecipada estabiliza-se (art. 304).' },
-        { t:'Evidência', d:'nas hipóteses do art. 311, dispensa-se o perigo; nos incisos II e III cabe liminar.' }
-      ],
-      lei: ['Requisitos da tutela de urgência — CPC, art. 300',
-            'Tutela antecipada antecedente — CPC, art. 303',
-            'Estabilização — CPC, art. 304',
-            'Tutela de evidência — CPC, art. 311'],
-      juris: [],
-      erro: 'Pedir tutela "pelos fundamentos acima". Os requisitos da tutela não são os mesmos do mérito, e o juiz precisa de um parágrafo próprio para cada um.' },
-    { nome: 'Provas, documentos e fecho',
-      deve: 'Indicar as provas com que se pretende demonstrar a verdade dos fatos, juntar os documentos indispensáveis e fechar com custas ou gratuidade.',
-      itens: [
-        { t:'Documentos indispensáveis', d:'os que a lei exige e os que constituem o próprio direito afirmado — a falta leva à emenda, não ao indeferimento imediato.' },
-        { t:'Especificação de provas', d:'não basta o protesto genérico; indique o que cada prova vai demonstrar.' },
-        { t:'Gratuidade', d:'pedida na própria inicial, com presunção de veracidade para a pessoa natural (art. 99, § 3º).' }
-      ],
-      lei: ['Documentos indispensáveis — CPC, art. 320',
-            'Emenda em 15 dias — CPC, art. 321',
-            'Indeferimento da inicial — CPC, art. 330',
-            'Gratuidade da justiça — CPC, arts. 98 e 99'],
-      juris: [],
-      erro: 'Não emendar no prazo do art. 321. O parágrafo único é seco: não cumprida a diligência, o juiz indeferirá a inicial — e aí a discussão vira apelação.' }
-  ],
-  cego: ['Juízo competente com a regra que o justifica','Qualificação completa das duas partes',
-    'Fatos narrados com remissão ao documento','Fundamento jurídico exposto',
-    'Pedido certo e determinado','Cumulação identificada e compatível',
-    'Juros, correção e sucumbência pedidos','Tutela provisória em tópico próprio, com requisitos separados',
-    'Provas especificadas, não protestadas em bloco','Documentos indispensáveis juntados',
-    'Manifestação sobre a audiência de conciliação','Valor da causa atribuído pelo critério legal']
+ "rito": "Civil — conhecimento",
+ "freq": 45,
+ "carreiras": [
+  "Magistratura",
+  "Advocacia Pública",
+  "Defensoria Pública",
+  "Ministério Público"
+ ],
+ "sobre": "A inicial é peça de requisitos: o art. 319 lista sete e o espelho confere um por um. O que separa a nota boa da mediana não é a narrativa, é a coerência entre causa de pedir, pedido e valor da causa — e o pedido escrito de modo que possa virar dispositivo de sentença sem reescrita.",
+ "blocos": [
+  {
+   "nome": "Endereçamento, partes e competência",
+   "deve": "Indicar o juízo e qualificar as partes, justificando a competência quando ela não for evidente.",
+   "itens": [
+    {
+     "t": "Juízo",
+     "d": "art. 319, I. Em prova, dizer POR QUE aquele juízo — foro do domicílio do réu (art. 46), foro de eleição, competência absoluta em razão da matéria ou da pessoa."
+    },
+    {
+     "t": "Qualificação",
+     "d": "art. 319, II: nomes, prenomes, estado civil, existência de união estável, profissão, CPF/CNPJ, endereço eletrônico e domicílio de autor e réu."
+    },
+    {
+     "t": "Dados que o autor não tem",
+     "d": "os §§ 1º a 3º do art. 319 impedem o indeferimento quando a obtenção dos dados do réu for impossível ou tornar inviável o acesso à justiça — o juiz determina diligências."
+    }
+   ],
+   "lei": [
+    "Requisitos da inicial — CPC, art. 319",
+    "Foro do domicílio do réu — CPC, art. 46",
+    "Impossibilidade de obter dados do réu — CPC, art. 319, §§ 1º a 3º"
+   ],
+   "juris": [],
+   "modelo": "Excelentíssimo Senhor Doutor Juiz de Direito da ... Vara Cível da Comarca de ...\n\nFULANO DE TAL, brasileiro, casado, engenheiro, CPF nº ..., endereço eletrônico ..., residente e domiciliado em ..., por seu advogado (procuração anexa), vem propor\n\nAÇÃO DE ... (com pedido de tutela provisória de urgência)\n\nem face de BELTRANO LTDA., pessoa jurídica de direito privado, CNPJ nº ..., com sede em ..., pelos fundamentos a seguir.",
+   "erro": "Endereçar a juízo incompetente sem uma linha de justificação. Em prova, competência costuma ser o primeiro item do espelho."
+  },
+  {
+   "nome": "Fatos e fundamentos jurídicos — a causa de pedir",
+   "deve": "Narrar os fatos e extrair deles a consequência jurídica. Causa de pedir remota (o fato) e próxima (o direito) precisam estar as duas.",
+   "itens": [
+    {
+     "t": "Narrativa",
+     "d": "cronológica, com data, lugar e documento que a comprove. Cada fato relevante amarrado à prova que o demonstra."
+    },
+    {
+     "t": "Fundamento jurídico",
+     "d": "não é fundamento LEGAL: é a qualificação jurídica do fato. Ainda assim, nomear o dispositivo é o que o espelho pontua."
+    },
+    {
+     "t": "Teoria da substanciação",
+     "d": "o CPC exige a exposição do fato constitutivo; a mudança da causa de pedir depois da citação depende de consentimento do réu (art. 329, II) e, após o saneamento, não é mais possível."
+    },
+    {
+     "t": "Congruência",
+     "d": "todo fato narrado deve levar a algum pedido, e todo pedido deve ter fato que o sustente. Fato órfão de pedido é ruído; pedido órfão de fato é inépcia (art. 330, § 1º, III)."
+    }
+   ],
+   "lei": [
+    "Causa de pedir — CPC, art. 319, III",
+    "Estabilização da demanda — CPC, art. 329",
+    "Inépcia — CPC, art. 330, § 1º",
+    "Interpretação do pedido — CPC, art. 322, § 2º"
+   ],
+   "juris": [],
+   "erro": "Narrar fatos que não sustentam pedido nenhum e pedir o que nenhum fato sustenta. É a inépcia do art. 330, § 1º, III."
+  },
+  {
+   "nome": "Pedido — certo, determinado e escrito como dispositivo",
+   "deve": "Formular o pedido de modo que o juiz possa copiá-lo no dispositivo. Pedido é o limite da sentença (arts. 141 e 492).",
+   "itens": [
+    {
+     "t": "Certeza e determinação",
+     "d": "art. 322 (certo) e art. 324 (determinado). Pedido genérico só nas três hipóteses do art. 324, § 1º: ações universais sem individuação dos bens, impossibilidade de determinar de modo definitivo a extensão do que é devido, e quando a determinação do valor depender de ato do réu ou de terceiro."
+    },
+    {
+     "t": "Pedidos implícitos",
+     "d": "juros legais, correção monetária e verbas de sucumbência compreendem-se no principal (art. 322, § 1º); prestações sucessivas seguem o art. 323."
+    },
+    {
+     "t": "Cumulação",
+     "d": "art. 327: compatibilidade entre os pedidos, competência do mesmo juízo e procedimento adequado — ou o procedimento comum para todos (§ 2º)."
+    },
+    {
+     "t": "Alternativo e subsidiário",
+     "d": "alternativo, art. 325; subsidiário (eventual), art. 326, com a ordem de preferência explícita."
+    },
+    {
+     "t": "Tutela provisória",
+     "d": "requerida na própria inicial, com os pressupostos do art. 300 (probabilidade do direito e perigo de dano ou risco ao resultado útil) ou do art. 311 (evidência), e com pedido de decisão liminar quando for o caso."
+    }
+   ],
+   "lei": [
+    "Pedido certo — CPC, art. 322",
+    "Pedidos implícitos — CPC, art. 322, § 1º",
+    "Pedido determinado e exceções — CPC, art. 324",
+    "Cumulação — CPC, art. 327",
+    "Tutela de urgência — CPC, art. 300",
+    "Tutela de evidência — CPC, art. 311",
+    "Limites da sentença — CPC, arts. 141 e 492"
+   ],
+   "juris": [],
+   "modelo": "Ante o exposto, requer:\na) a concessão da tutela provisória de urgência, inaudita altera parte, para determinar que a ré ..., sob pena de multa diária de R$ ... (art. 300 c/c art. 297, parágrafo único, do CPC);\nb) a citação da ré para, querendo, contestar, sob pena de revelia;\nc) ao final, a procedência dos pedidos para (i) declarar ...; (ii) condenar a ré ao pagamento de R$ ..., corrigidos monetariamente desde ... e acrescidos de juros de mora desde ...; (iii) condenar a ré à obrigação de fazer consistente em ..., no prazo de ... dias;\nd) a condenação da ré nas custas e em honorários advocatícios, na forma do art. 85, § 2º, do CPC.",
+   "erro": "Pedido que não pode virar dispositivo. Se o juiz precisa reescrever o pedido para julgar procedente, o item está incompleto."
+  },
+  {
+   "nome": "Valor da causa, provas e opção pela conciliação",
+   "deve": "Fechar os requisitos formais restantes — cada um deles é um item independente no espelho.",
+   "itens": [
+    {
+     "t": "Valor da causa",
+     "d": "art. 319, V, com o critério do art. 292 conforme o pedido: cobrança pelo principal com juros e multa (I), ato jurídico pelo valor do ato (II), alimentos por doze prestações (III), divisão/demarcação pelo valor de avaliação (IV), indenização por dano moral pelo valor pretendido (V), pedidos cumulados pela soma (VI), alternativos pelo de maior valor (VII), subsidiários pelo principal (VIII)."
+    },
+    {
+     "t": "Provas",
+     "d": "art. 319, VI — especificar, e não protestar genericamente."
+    },
+    {
+     "t": "Audiência do art. 334",
+     "d": "art. 319, VII — a opção pela realização ou não da audiência de conciliação. Só não se designa se ambas as partes manifestarem desinteresse ou se a autocomposição não for admissível (art. 334, § 4º)."
+    },
+    {
+     "t": "Documentos indispensáveis",
+     "d": "art. 320. Faltando, o juiz manda emendar em quinze dias, indicando com precisão o que deve ser corrigido (art. 321)."
+    }
+   ],
+   "lei": [
+    "Valor da causa — CPC, art. 292",
+    "Documentos indispensáveis — CPC, art. 320",
+    "Emenda da inicial — CPC, art. 321",
+    "Audiência de conciliação — CPC, art. 334",
+    "Gratuidade — CPC, art. 98"
+   ],
+   "juris": [],
+   "erro": "Omitir o inciso VII (opção pela audiência) e o valor da causa. São dois itens de espelho que não dependem de saber direito nenhum."
+  },
+  {
+   "nome": "Indeferimento, improcedência liminar e o que evitar",
+   "deve": "Escrever já sabendo por onde a inicial pode cair — é isso que o examinador está testando.",
+   "itens": [
+    {
+     "t": "Indeferimento",
+     "d": "art. 330: inépcia, ilegitimidade, falta de interesse, e não atendimento aos arts. 106 e 321. O § 1º define inépcia: falta de pedido ou de causa de pedir; pedido indeterminado fora das exceções; narração da qual não decorra logicamente a conclusão; pedidos incompatíveis entre si."
+    },
+    {
+     "t": "Recurso",
+     "d": "da sentença de indeferimento cabe apelação, com juízo de retratação em cinco dias (art. 331). Não retratando, o réu é citado para responder ao recurso (§ 1º)."
+    },
+    {
+     "t": "Improcedência liminar do pedido",
+     "d": "art. 332 — contraria enunciado de súmula do STF ou do STJ, acórdão em repetitivo ou em repercussão geral, entendimento firmado em IRDR ou IAC, ou súmula de tribunal local sobre direito local; e ainda a decadência ou a prescrição (§ 1º)."
+    }
+   ],
+   "lei": [
+    "Indeferimento da inicial — CPC, art. 330",
+    "Apelação e retratação — CPC, art. 331",
+    "Improcedência liminar — CPC, art. 332"
+   ],
+   "juris": [],
+   "erro": "Escrever inicial cuja narração não conduz logicamente ao pedido. É a hipótese mais cobrada de inépcia (art. 330, § 1º, III)."
+  }
+ ],
+ "cego": [
+  "Juízo indicado e competência justificada",
+  "Qualificação completa das duas partes (art. 319, II)",
+  "Fatos narrados com data, lugar e prova",
+  "Fundamento jurídico do pedido explicitado",
+  "Pedido certo e determinado, redigido como dispositivo",
+  "Pedidos cumulados compatíveis e com o mesmo procedimento",
+  "Tutela provisória com os pressupostos do art. 300 ou 311",
+  "Valor da causa pelo critério do art. 292",
+  "Provas especificadas com a respectiva finalidade",
+  "Opção pela audiência do art. 334 (inciso VII)",
+  "Documentos indispensáveis juntados",
+  "Pedido de citação e de sucumbência"
+ ],
+ "dicas": [
+  {
+   "t": "Sexta peça mais cobrada do banco de provas aplicadas: 45 ocorrências.",
+   "alerta": false
+  },
+  "O art. 319 tem sete incisos e o espelho costuma ter sete itens. Escreva com a lista ao lado e confira antes de entregar.",
+  "Pedido é limite da sentença (arts. 141 e 492). Se você não pediu, o juiz não pode dar — salvo os implícitos do art. 322, § 1º.",
+  {
+   "t": "Desde a Lei 14.905/2024, correção e juros no direito civil seguem o novo art. 389 e o art. 406 do CC: o índice é o IPCA e a taxa legal é a Selic deduzida a correção. Pedir \"juros de 1% ao mês\" sem base contratual ficou errado nas obrigações civis regidas pela nova redação.",
+   "alerta": true
+  },
+  "O inciso VII (audiência de conciliação) é o item mais esquecido da inicial — e o mais barato de lembrar.",
+  "Interpretação do pedido é feita conforme o conjunto da postulação e o princípio da boa-fé (art. 322, § 2º) — mas isso é regra de salvamento, não licença para escrever mal."
+ ],
+ "especiais": [
+  {
+   "t": "Inicial no Juizado Especial Cível",
+   "d": "Pedido pode ser oral e o valor limita a competência a quarenta salários mínimos (Lei 9.099/1995, art. 3º, I). Não cabe pedido ilíquido nem intervenção de terceiros (art. 10). Sem advogado até vinte salários mínimos (art. 9º)."
+  },
+  {
+   "t": "Inicial contra a Fazenda Pública",
+   "d": "Não há audiência do art. 334 quando a autocomposição não for admissível; observar a remessa necessária (art. 496) e, na execução, o regime de precatório (CF, art. 100)."
+  },
+  {
+   "t": "Inicial de ação de família",
+   "d": "O art. 693 e seguintes impõem que a citação venha desacompanhada de cópia da inicial (art. 695, § 1º), e o esforço de solução consensual é regra (art. 694)."
+  },
+  {
+   "t": "Inicial com pedido de tutela antecedente",
+   "d": "Requerida em caráter antecedente, a inicial pode limitar-se ao requerimento da tutela, à indicação do pedido final e à exposição da lide (art. 303). Concedida, o autor adita em quinze dias (§ 1º, I), sob pena de extinção (§ 2º)."
+  },
+  {
+   "t": "Gratuidade da justiça",
+   "d": "Pedida na própria inicial (art. 99). Presume-se verdadeira a alegação de pessoa natural (§ 3º), e o juiz só indefere depois de dar oportunidade de comprovação (§ 2º)."
+  }
+ ]
 },
 
 'Contestação': {
-  rito: 'Civil — conhecimento',
-  freq: 46,   // vezes em que o tema aparece nas 648 provas de discursivas.js
-  carreiras: ['Advocacia','Defensoria','Procuradorias'],
-  sobre: 'Peça regida por dois princípios que se cobram juntos: eventualidade — tudo o que é defesa vem agora, de uma vez — e impugnação especificada — fato não impugnado é fato incontroverso. A defesa que "nega genericamente" perde antes de discutir.',
-  blocos: [
-    { nome: 'Prazo e termo inicial',
-      deve: 'Quinze dias úteis, mas o termo inicial varia conforme o caminho até aqui. Errar o termo é perder o prazo.',
-      itens: [
-        { t:'Houve audiência de conciliação', d:'conta-se da audiência, ou da última sessão, se não houve acordo.' },
-        { t:'Ambas as partes dispensaram', d:'conta-se do protocolo do pedido de cancelamento apresentado pelo réu.' },
-        { t:'Não houve audiência', d:'conta-se na forma do art. 231, conforme o modo de citação.' },
-        { t:'Prazos diferenciados', d:'em dobro para litisconsortes com procuradores distintos de escritórios diferentes em autos físicos, para a Fazenda, o MP e a Defensoria.' }
-      ],
-      lei: ['Prazo e termos iniciais — CPC, art. 335, I a III',
-            'Contagem conforme o modo de citação — CPC, art. 231',
-            'Prazo em dobro para litisconsortes — CPC, art. 229',
-            'Prazo em dobro para Fazenda, MP e Defensoria — CPC, arts. 180, 183 e 186'],
-      juris: [],
-      erro: 'Contar da juntada do AR quando houve audiência de conciliação designada. O art. 335, I é claro: o prazo corre da audiência.' },
-    { nome: 'Preliminares — antes do mérito, todas de uma vez',
-      deve: 'Percorrer o rol do art. 337. São treze incisos e não é lista decorativa: cada um tem consequência distinta, e a maioria é conhecível de ofício.',
-      itens: [
-        { t:'Que extinguem sem mérito', d:'inexistência ou nulidade da citação, incompetência absoluta, litispendência, coisa julgada, perempção, ilegitimidade, falta de interesse.' },
-        { t:'Que só se alegam agora', d:'convenção de arbitragem e incompetência relativa — o juiz não conhece de ofício (art. 337, § 5º).' },
-        { t:'Que geram providência', d:'incapacidade da parte, defeito de representação, indevida concessão de gratuidade, ausência de caução.' },
-        { t:'Conexão e continência', d:'levam à reunião dos processos, não à extinção.' }
-      ],
-      lei: ['Rol das preliminares — CPC, art. 337, I a XIII',
-            'Matérias não conhecíveis de ofício — CPC, art. 337, § 5º',
-            'Incompetência alegada na contestação — CPC, art. 64',
-            'Conexão e continência — CPC, arts. 55 e 56'],
-      juris: [],
-      erro: 'Deixar a convenção de arbitragem para depois. Não alegada na contestação, há aceitação da jurisdição estatal e renúncia ao juízo arbitral (art. 337, § 6º).' },
-    { nome: 'Mérito — impugnação especificada',
-      deve: 'Manifestar-se precisamente sobre cada fato da inicial. O que não for impugnado presume-se verdadeiro, com as três exceções do parágrafo único do art. 341.',
-      itens: [
-        { t:'Defesa direta', d:'nega o fato constitutivo ou nega a consequência jurídica que dele se extrai.' },
-        { t:'Defesa indireta', d:'admite o fato e opõe fato impeditivo, modificativo ou extintivo — pagamento, prescrição, compensação, novação.' },
-        { t:'Ônus da prova', d:'o fato impeditivo, modificativo ou extintivo é ônus do réu (art. 373, II) — alegá-lo é assumir o encargo de prová-lo.' },
-        { t:'Exceções ao ônus de impugnar', d:'fatos que não admitem confissão, que exigem instrumento público, ou que estejam em contradição com a defesa como um todo.' }
-      ],
-      lei: ['Ônus da impugnação especificada — CPC, art. 341',
-            'Princípio da eventualidade — CPC, art. 336',
-            'Matérias supervenientes — CPC, art. 342',
-            'Ônus da prova — CPC, art. 373',
-            'Prescrição e decadência — CC, arts. 189 e 207'],
-      juris: [],
-      erro: 'Reservar uma tese "para o momento oportuno". O art. 336 é expresso: toda a matéria de defesa vai na contestação. O que não vier agora, precluiu.' },
-    { nome: 'Provas, pedidos e reconvenção',
-      deve: 'Especificar as provas, formular os pedidos e, havendo pretensão própria, reconvir na mesma peça.',
-      itens: [
-        { t:'Especificação de provas', d:'com a indicação do que cada uma demonstrará.' },
-        { t:'Reconvenção', d:'apresentada na própria contestação (art. 343), não mais em peça autônoma.' },
-        { t:'Pedidos', d:'extinção sem mérito pelas preliminares, improcedência no mérito, e condenação em sucumbência.' }
-      ],
-      lei: ['Especificação de provas — CPC, art. 336',
-            'Reconvenção na contestação — CPC, art. 343',
-            'Honorários — CPC, art. 85, §§ 2º e 6º'],
-      juris: [],
-      modelo: 'Ante o exposto, requer:\n\na) o acolhimento da preliminar de ..., com a extinção do processo sem resolução do mérito, nos termos do art. 485, ..., do Código de Processo Civil;\n\nb) sucessivamente, a IMPROCEDÊNCIA dos pedidos, ante ...;\n\nc) a condenação do autor ao pagamento das custas e dos honorários advocatícios, na forma do art. 85, § 2º, do Código de Processo Civil.\n\nProtesta provar o alegado por meio de prova documental suplementar, depoimento pessoal do autor, sob pena de confesso, e oitiva de testemunhas, cujo rol será apresentado na forma do art. 357, § 4º.',
-      erro: 'Pedir a improcedência e esquecer o depoimento pessoal do autor. É a prova mais barata da defesa e, requerida, gera confissão se ele não comparecer.' }
-  ],
-  cego: ['Termo inicial do prazo aferido pelo inciso certo do art. 335',
-    'Rol do art. 337 percorrido','Arbitragem e incompetência relativa alegadas, se cabíveis',
-    'Cada fato da inicial impugnado especificamente','Defesa indireta com o fato extintivo nomeado',
-    'Prescrição e decadência examinadas','Toda a matéria de defesa concentrada (art. 336)',
-    'Provas especificadas com a finalidade de cada uma','Depoimento pessoal requerido',
-    'Reconvenção apresentada na mesma peça, se houver','Pedidos escalonados e sucumbência']
+ "rito": "Civil — conhecimento",
+ "freq": 46,
+ "carreiras": [
+  "Magistratura",
+  "Advocacia Pública",
+  "Defensoria Pública"
+ ],
+ "sobre": "A contestação é a peça da eventualidade: tudo o que o réu tem a dizer, ele diz agora, na ordem certa, sob pena de precluir. O espelho quase nunca cobra \"a melhor tese\" — cobra se todas as preliminares cabíveis foram deduzidas antes do mérito e se cada fato da inicial foi impugnado especificadamente.",
+ "blocos": [
+  {
+   "nome": "Endereçamento, qualificação e tempestividade",
+   "deve": "Endereçar ao juízo da causa, qualificar o réu e demonstrar o prazo — na discursiva o marco inicial vale ponto sozinho.",
+   "itens": [
+    {
+     "t": "Endereçamento",
+     "d": "ao juízo em que tramita o feito, sem repetir a distribuição."
+    },
+    {
+     "t": "Qualificação do réu",
+     "d": "nome, estado civil, existência de união estável, profissão, CPF/CNPJ, endereço eletrônico e domicílio (o mesmo rol do art. 319, II, do CPC)."
+    },
+    {
+     "t": "Termo inicial do prazo",
+     "d": "quinze dias úteis contados na forma do art. 335: da audiência de conciliação, do protocolo do pedido de cancelamento pelo réu, ou da juntada do aviso de recebimento/mandado — conforme o caso. Prazo em dobro para litisconsortes com procuradores distintos em autos físicos (art. 229), para a Fazenda (art. 183) e para a Defensoria (art. 186)."
+    }
+   ],
+   "lei": [
+    "Prazo e termo inicial — CPC, art. 335",
+    "Requisitos da qualificação — CPC, art. 319, II",
+    "Contagem em dias úteis — CPC, art. 219",
+    "Prazo em dobro da Fazenda — CPC, art. 183",
+    "Prazo em dobro da Defensoria — CPC, art. 186"
+   ],
+   "juris": [],
+   "modelo": "Excelentíssimo Senhor Doutor Juiz de Direito da ... Vara Cível da Comarca de ...\n\nAutos nº ...\n\nFULANO DE TAL, já qualificado nos autos, por seu advogado que esta subscreve, vem, tempestivamente — porquanto a audiência do art. 334 do CPC realizou-se em .../.../..., iniciando-se o prazo do art. 335, I, do CPC —, apresentar CONTESTAÇÃO à ação que lhe move ..., pelas razões de fato e de direito a seguir expostas.",
+   "erro": "Não demonstrar a tempestividade. Se a peça é entregue sem o marco inicial, o examinador não tem como pontuar o item e o candidato perde ponto que não dependia de tese nenhuma."
+  },
+  {
+   "nome": "Preliminares do art. 337 — todas, na ordem",
+   "deve": "Deduzir, antes do mérito, todas as defesas processuais cabíveis. O art. 337 traz um rol e o espelho costuma conferir item por item.",
+   "itens": [
+    {
+     "t": "Ordem de dedução",
+     "d": "inexistência ou nulidade da citação; incompetência absoluta e relativa; incorreção do valor da causa; inépcia da inicial; perempção; litispendência; coisa julgada; conexão; incapacidade da parte, defeito de representação ou falta de autorização; convenção de arbitragem; ausência de legitimidade ou de interesse processual; falta de caução ou de outra prestação que a lei exige como preliminar; indevida concessão da gratuidade."
+    },
+    {
+     "t": "Incompetência relativa",
+     "d": "desde 2015 vai na própria contestação, e não mais em exceção autônoma. Alegada, o processo pode ser protocolado no foro do domicílio do réu (art. 340)."
+    },
+    {
+     "t": "O que o juiz não conhece de ofício",
+     "d": "convenção de arbitragem e incompetência relativa — nas duas, o silêncio do réu implica aceitação (art. 337, §§ 5º e 6º). Todo o resto é matéria de ordem pública."
+    },
+    {
+     "t": "Impugnação à gratuidade",
+     "d": "na própria contestação, e não em incidente apartado (art. 337, XIII, e art. 100)."
+    }
+   ],
+   "lei": [
+    "Rol das preliminares — CPC, art. 337",
+    "Matérias cognoscíveis de ofício — CPC, art. 337, § 5º",
+    "Alegação de incompetência e foro de protocolo — CPC, art. 340",
+    "Impugnação à gratuidade — CPC, art. 100",
+    "Ordem pública e art. 485, § 3º — CPC, art. 485, § 3º"
+   ],
+   "juris": [],
+   "modelo": "I — DAS PRELIMINARES\n\nI.1 — DA ILEGITIMIDADE PASSIVA (art. 337, XI, do CPC)\nA relação jurídica de direito material descrita na inicial não vincula o contestante, porquanto ...\nRequer, em consequência, a extinção do processo sem resolução do mérito, na forma do art. 485, VI, do CPC.",
+   "erro": "Guardar preliminar \"para depois\". Fora das hipóteses do art. 342, a matéria não alegada na contestação preclui — e o espelho desconta o item inteiro."
+  },
+  {
+   "nome": "Impugnação especificada dos fatos",
+   "deve": "Enfrentar um a um os fatos narrados na inicial. Contestação por negativa geral não impugna nada — salvo as exceções legais.",
+   "itens": [
+    {
+     "t": "Ônus da impugnação especificada",
+     "d": "presumem-se verdadeiros os fatos não impugnados (art. 341, caput)."
+    },
+    {
+     "t": "Exceções ao ônus",
+     "d": "não se aplica ao defensor público, ao advogado dativo e ao curador especial (art. 341, parágrafo único)."
+    },
+    {
+     "t": "Fatos que não se presumem",
+     "d": "os que não admitem confissão, os que dependem de instrumento público quanto à substância do ato, e os que estiverem em contradição com a defesa considerada em conjunto (art. 341, I a III)."
+    },
+    {
+     "t": "Técnica",
+     "d": "reproduzir o fato alegado e responder na sequência. Impugnar em bloco é o mesmo que não impugnar."
+    }
+   ],
+   "lei": [
+    "Impugnação especificada — CPC, art. 341",
+    "Exceções ao ônus — CPC, art. 341, parágrafo único",
+    "Efeitos da revelia — CPC, art. 344",
+    "Revelia sem presunção — CPC, art. 345"
+   ],
+   "juris": [],
+   "modelo": "II — DOS FATOS\n\nAlega o autor, no item 4 da inicial, que ... . Não procede: o documento de fl. ... demonstra que ... .\nImpugna-se, ainda, especificadamente, o alegado nos itens 6, 7 e 9 da inicial, porquanto ... .",
+   "erro": "Impugnação genérica (\"impugnam-se todos os fatos\"). Vale como não impugnação e faz o item cair inteiro."
+  },
+  {
+   "nome": "Mérito, prejudiciais e defesas indiretas",
+   "deve": "Depois das preliminares, as prejudiciais de mérito e a defesa de fundo — com o ônus da prova em mente.",
+   "itens": [
+    {
+     "t": "Prescrição e decadência",
+     "d": "são mérito, não preliminar: acolhidas, resolvem o mérito (art. 487, II). O juiz as conhece de ofício, ouvidas as partes (art. 487, parágrafo único)."
+    },
+    {
+     "t": "Defesa indireta de mérito",
+     "d": "fato impeditivo, modificativo ou extintivo do direito do autor — pagamento, compensação, novação, exceção de contrato não cumprido. Aqui o ônus da prova é do réu (art. 373, II)."
+    },
+    {
+     "t": "Distribuição dinâmica",
+     "d": "se for o caso de inversão por impossibilidade ou excessiva dificuldade, requerer com fundamento no art. 373, § 1º, lembrando que a decisão precisa dar à parte oportunidade de se desincumbir (§ 2º veda a prova diabólica reversa)."
+    },
+    {
+     "t": "Prequestionamento",
+     "d": "em prova de segunda fase, prequestionar não é obrigatório na contestação, mas nomear o dispositivo em cada tese é o que o espelho pontua."
+    }
+   ],
+   "lei": [
+    "Resolução de mérito por prescrição e decadência — CPC, art. 487, II",
+    "Ônus da prova — CPC, art. 373",
+    "Distribuição dinâmica — CPC, art. 373, §§ 1º e 2º",
+    "Prescrição — CC, art. 189",
+    "Prazos de prescrição — CC, arts. 205 e 206"
+   ],
+   "juris": [],
+   "erro": "Alegar prescrição como preliminar. Prescrição é mérito e resolve o processo com resolução do mérito — trocar isso mostra desconhecimento da estrutura do art. 487."
+  },
+  {
+   "nome": "Reconvenção e pedidos contrapostos",
+   "deve": "Se houver pretensão própria conexa, ela vem na própria contestação — e não em peça autônoma.",
+   "itens": [
+    {
+     "t": "Forma",
+     "d": "a reconvenção é proposta na própria contestação (art. 343, caput). Cabe reconvenção mesmo sem contestar (§ 6º)."
+    },
+    {
+     "t": "Autonomia",
+     "d": "a desistência da ação ou a extinção sem mérito não obsta o prosseguimento da reconvenção (§ 2º)."
+    },
+    {
+     "t": "Ampliação subjetiva",
+     "d": "a reconvenção pode ser proposta contra o autor e terceiro (§ 3º) ou pelo réu em litisconsórcio com terceiro (§ 4º)."
+    },
+    {
+     "t": "Custas e valor",
+     "d": "a reconvenção tem valor próprio e recolhimento próprio; sem isso, não é conhecida."
+    }
+   ],
+   "lei": [
+    "Reconvenção — CPC, art. 343",
+    "Reconvenção sem contestação — CPC, art. 343, § 6º",
+    "Autonomia — CPC, art. 343, § 2º"
+   ],
+   "juris": [],
+   "erro": "Apresentar reconvenção como peça apartada, ou esquecer o valor da causa da reconvenção."
+  },
+  {
+   "nome": "Provas, requerimentos e fecho",
+   "deve": "Fechar com o protesto por provas especificado, o rol, e os requerimentos de estilo.",
+   "itens": [
+    {
+     "t": "Especificação de provas",
+     "d": "nomear cada meio e dizer o que se pretende provar com ele. \"Protesta por todos os meios de prova em direito admitidos\" não especifica nada."
+    },
+    {
+     "t": "Documentos",
+     "d": "os que instruem a defesa vêm com ela (art. 434); documento novo, na forma do art. 435."
+    },
+    {
+     "t": "Audiência de conciliação",
+     "d": "se o réu não quiser a autocomposição, o pedido de cancelamento vai por petição própria, com dez dias de antecedência (art. 334, § 5º) — e é dele que corre o prazo de contestação (art. 335, II)."
+    },
+    {
+     "t": "Honorários e sucumbência",
+     "d": "requerer a condenação do autor nos ônus da sucumbência, com honorários na forma do art. 85, §§ 2º e 3º."
+    }
+   ],
+   "lei": [
+    "Momento de produção da prova documental — CPC, art. 434",
+    "Documento novo — CPC, art. 435",
+    "Desinteresse na conciliação — CPC, art. 334, § 5º",
+    "Honorários de sucumbência — CPC, art. 85"
+   ],
+   "juris": [],
+   "modelo": "Ante o exposto, requer:\na) o acolhimento das preliminares, com a extinção do processo sem resolução do mérito (art. 485, VI, do CPC);\nb) subsidiariamente, a improcedência dos pedidos;\nc) a produção de prova documental suplementar, testemunhal — cujo rol segue — e pericial contábil, destinada a demonstrar ...;\nd) a condenação do autor ao pagamento das custas e dos honorários advocatícios, na forma do art. 85, § 2º, do CPC.\n\nTermos em que pede deferimento.\nLocal, data. Advogado. OAB/... nº ...",
+   "erro": "Fechar sem especificar provas e sem pedir a sucumbência. São dois itens de espelho perdidos por descuido de fecho."
+  }
+ ],
+ "cego": [
+  "Endereçamento ao juízo da causa",
+  "Qualificação completa do réu",
+  "Tempestividade demonstrada com o marco do art. 335",
+  "Todas as preliminares cabíveis do art. 337",
+  "Incompetência relativa na contestação (e não em exceção)",
+  "Impugnação especificada de cada fato da inicial",
+  "Prescrição e decadência tratadas como mérito",
+  "Defesa indireta com o ônus do art. 373, II",
+  "Reconvenção na própria peça, com valor próprio",
+  "Provas especificadas, com a finalidade de cada uma",
+  "Pedido de improcedência e de sucumbência"
+ ],
+ "dicas": [
+  {
+   "t": "Quinta peça mais cobrada do banco de provas aplicadas: 46 ocorrências.",
+   "alerta": false
+  },
+  "A ordem é eventualidade pura: preliminares, prejudiciais, mérito. Inverter custa o item da estrutura mesmo quando a tese está certa.",
+  {
+   "t": "Prescrição NÃO é preliminar. É prejudicial de mérito e leva ao art. 487, II — extinção COM resolução do mérito.",
+   "alerta": true
+  },
+  "Incompetência relativa deixou de ser exceção autônoma no CPC/2015: vai na contestação (art. 337, II) e permite o protocolo no foro do domicílio do réu (art. 340).",
+  "Impugnação especificada é item de espelho quase garantido. Responda fato por fato, citando o item da inicial.",
+  {
+   "t": "O réu que não contesta nem sempre é revel para todos os efeitos: os incisos do art. 345 afastam a presunção (litisconsorte que contesta, direitos indisponíveis, instrumento público exigido, alegações inverossímeis ou contraditórias com a prova).",
+   "alerta": false
+  },
+  "Reconvenção sem valor da causa e sem custas não é conhecida — e o examinador confere."
+ ],
+ "especiais": [
+  {
+   "t": "Contestação da Fazenda Pública",
+   "d": "Prazo em dobro (art. 183), remessa necessária nos limites do art. 496 e §§, e as matérias próprias do regime de direito público. Há roteiro próprio no catálogo."
+  },
+  {
+   "t": "Contestação da Defensoria e do curador especial",
+   "d": "O ônus da impugnação especificada não se aplica (art. 341, parágrafo único), o que autoriza a contestação por negativa geral. Prazo em dobro (art. 186). O curador especial é atribuição da Defensoria (art. 72, parágrafo único)."
+  },
+  {
+   "t": "Contestação no Juizado Especial Cível",
+   "d": "Não há reconvenção: cabe pedido contraposto fundado nos mesmos fatos (Lei 9.099/1995, art. 31). A defesa é oral ou escrita, na audiência de instrução."
+  },
+  {
+   "t": "Contestação em ação de consumo",
+   "d": "Vale examinar a inversão do ônus da prova do art. 6º, VIII, do CDC — que é ope judicis e depende de verossimilhança ou hipossuficiência — e distingui-la da inversão legal do art. 12, § 3º, e do art. 14, § 3º."
+  },
+  {
+   "t": "Alegações supervenientes",
+   "d": "Depois da contestação só cabe deduzir novas alegações nas três hipóteses do art. 342: direito ou fato superveniente, matéria cognoscível de ofício, e autorização legal expressa para alegação em qualquer tempo e grau."
+  }
+ ]
 },
 
 'Reconvenção': {

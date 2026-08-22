@@ -30,9 +30,17 @@ if (!IS_PROD) {
 } else {
   // ---- produção: PWA normal ----
   var VERSION = 'catedra-v4';
+  // Os blocos de dados/ (ver scripts/build-fatias.mjs) trazem o hash do conteúdo no
+  // nome: são IMUTÁVEIS. Ficam num cache próprio, que não é apagado a cada deploy —
+  // senão o app rebaixaria dezenas de megabytes de acervo a cada publicação. Quando
+  // o conteúdo muda, o nome muda, e o bloco velho é lixo inerte: o ct-dados.js
+  // descarta o registro no IndexedDB e este cache é limpo sob demanda pela mensagem
+  // ctPurgarDados (CTDados.limpar()).
+  var CACHE_DADOS = 'catedra-dados-v1';
+  var EH_DADO = /\/dados\/[^/]+\/[^/]+\.json$/;
   // './' e './index.html' são chaves de cache DIFERENTES: o PWA instalado abre em
   // ./index.html (start_url), então sem ele na lista o app abria em branco offline.
-  var ASSETS = ['./', './index.html', './support.js', './auth.js', './manifest.webmanifest', './icon.svg'];
+  var ASSETS = ['./', './index.html', './support.js', './auth.js', './ct-dados.js', './manifest.webmanifest', './icon.svg'];
   /*__EXTRA_ASSETS__*/
   var docFresco = null; // resposta da última navegação, para o refetch do boot
 
@@ -47,7 +55,7 @@ if (!IS_PROD) {
   self.addEventListener('activate', function(e){
     e.waitUntil(
       caches.keys()
-        .then(function(keys){ return Promise.all(keys.filter(function(k){ return k !== VERSION; }).map(function(k){ return caches.delete(k); })); })
+        .then(function(keys){ return Promise.all(keys.filter(function(k){ return k !== VERSION && k !== CACHE_DADOS; }).map(function(k){ return caches.delete(k); })); })
         .then(function(){ return self.clients.claim(); })
     );
   });
@@ -58,6 +66,23 @@ if (!IS_PROD) {
     var url = new URL(e.request.url);
     if (e.request.method !== 'GET' || url.origin !== self.location.origin) return; // fontes/CDN seguem direto
     var ehDoc = (url.pathname === '/' || /\/index\.html$/.test(url.pathname));
+
+    // Bloco de acervo: cache-first puro. O manifesto NÃO entra aqui — ele precisa ser
+    // sempre fresco, porque é ele que anuncia quais blocos existem nesta versão.
+    if (EH_DADO.test(url.pathname) && !/manifesto\.json$/.test(url.pathname)) {
+      e.respondWith(
+        caches.open(CACHE_DADOS).then(function (c) {
+          return c.match(e.request).then(function (hit) {
+            if (hit) return hit;
+            return fetch(e.request).then(function (res) {
+              if (res && res.ok) c.put(e.request, res.clone());
+              return res;
+            });
+          });
+        })
+      );
+      return;
+    }
 
     // O dc-runtime rebusca o PRÓPRIO documento logo depois do boot, só para reler o
     // template cru: ~1 MB baixado de novo em toda abertura. Aqui devolvemos a cópia
@@ -85,6 +110,13 @@ if (!IS_PROD) {
         });
       })
     );
+  });
+
+  // CTDados.limpar() pede a limpeza do acervo guardado neste aparelho.
+  self.addEventListener('message', function(e){
+    var d = (e && e.data) || {};
+    if (d.type !== 'ctPurgarDados') return;
+    e.waitUntil(caches.delete(CACHE_DADOS).catch(function(){}));
   });
 
   // clique numa notificação: foca a aba do app (ou abre uma nova)

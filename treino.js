@@ -152,8 +152,41 @@
     if (w.CT_ORAL_Q) return Promise.resolve(true);
     return carregarScript('oral-conteudo.js');
   }
-  /** Texto das 14 leis mais cobradas, em artigos (leis-seca.js) — funciona off-line. */
-  function acervoLeis() {
+  /**
+   * Texto das 14 leis mais cobradas, em artigos — funciona off-line.
+   *
+   * leis-seca.js tem 4,2 MB e a Constituição sozinha responde por quase um quarto
+   * disso. Quando dados/leis-seca/ existe (ver scripts/build-fatias.mjs), cada lei
+   * é um bloco próprio: pedir o CPC baixa o CPC, e não o acervo inteiro. Sem os
+   * blocos publicados — ou em file://, onde o WKWebView bloqueia fetch de JSON
+   * local —, cai no arquivo monolítico, que continua funcionando igual.
+   *
+   * @param {string[]} [siglas] só estas leis; omitido, o acervo inteiro.
+   */
+  function acervoLeis(siglas) {
+    var tem = function (sig) { return (w.CT_LEIS || []).some(function (l) { return l.sigla === sig; }); };
+    if (siglas && siglas.length && siglas.every(tem)) return Promise.resolve(true);
+    if (!siglas && w.CT_LEIS && w.CT_LEIS.__completo) return Promise.resolve(true);
+    if (!siglas && w.CT_LEIS && !w.CTDados) return Promise.resolve(true);
+
+    if (w.CTDados) {
+      return w.CTDados.pronto('leis-seca').then(function (ok) {
+        if (!ok) { if (w.CT_LEIS) return true; return carregarScript('leis-seca.js'); }
+        var junta = function (mapa) {
+          w.CT_LEIS = w.CT_LEIS || [];
+          Object.keys(mapa || {}).forEach(function (sig) {
+            if (!tem(sig)) w.CT_LEIS.push(mapa[sig]);
+          });
+          return true;
+        };
+        if (siglas && siglas.length) return w.CTDados.varios('leis-seca', siglas).then(junta);
+        return w.CTDados.tudo('leis-seca').then(function (m) {
+          junta(m);
+          try { w.CT_LEIS.__completo = true; } catch (e) {}
+          return true;
+        });
+      }).catch(function () { return w.CT_LEIS ? true : carregarScript('leis-seca.js'); });
+    }
     if (w.CT_LEIS) return Promise.resolve(true);
     return carregarScript('leis-seca.js');
   }
