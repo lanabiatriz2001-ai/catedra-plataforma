@@ -10,12 +10,7 @@ import SwiftUI
 
 // MARK: - Tipografia numérica
 
-extension Typo {
-    /// Números na fonte da UI com dígitos monoespaçados (cronômetro, contagens, KPIs).
-    static func num(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        Font.system(size: size, weight: weight).monospacedDigit()
-    }
-}
+// `Typo.num` vive em vendor/juris/Design/JurisTheme.swift (módulo plano: uma definição só).
 
 // MARK: - Fonte de leitura (respeita os Ajustes do leitor fora do leitor)
 
