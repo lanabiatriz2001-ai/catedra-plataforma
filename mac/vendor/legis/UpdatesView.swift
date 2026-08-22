@@ -39,10 +39,10 @@ struct UpdatesListView: View {
                 HStack(spacing: 8) {
                     Label("\(event.addedParagraphs.count) novos", systemImage: "plus.circle.fill")
                         .font(.system(size: 10.5, weight: .medium))
-                        .foregroundStyle(Color(hex: 0x16A34A))
+                        .foregroundStyle(AppTheme.ok)
                     Label("\(event.removedParagraphs.count) removidos", systemImage: "minus.circle.fill")
                         .font(.system(size: 10.5, weight: .medium))
-                        .foregroundStyle(Color(hex: 0xDC2626))
+                        .foregroundStyle(AppTheme.danger)
                 }
                 .padding(.top, 1)
             }
@@ -106,9 +106,9 @@ struct UpdateDetailView: View {
             if hasDiff {
                 HStack(spacing: 14) {
                     Label("\(event.addedParagraphs.count) incluídos/alterados", systemImage: "plus.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(AppTheme.ok)
                     Label("\(event.removedParagraphs.count) removidos", systemImage: "minus.circle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(AppTheme.danger)
                 }
                 .font(.caption)
             }
@@ -135,12 +135,12 @@ struct UpdateDetailView: View {
                                 .textSelection(.enabled)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(6)
-                                .background(RoundedRectangle(cornerRadius: 4).fill(.green.opacity(0.12)))
+                                .background(RoundedRectangle(cornerRadius: 4).fill(AppTheme.ok.opacity(0.12)))
                         }
                     }
                 } label: {
                     Label("Trechos adicionados ou alterados (\(event.addedParagraphs.count))", systemImage: "plus.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(AppTheme.ok)
                 }
             }
             if !event.removedParagraphs.isEmpty {
@@ -151,12 +151,12 @@ struct UpdateDetailView: View {
                                 .textSelection(.enabled)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(6)
-                                .background(RoundedRectangle(cornerRadius: 4).fill(.red.opacity(0.12)))
+                                .background(RoundedRectangle(cornerRadius: 4).fill(AppTheme.danger.opacity(0.12)))
                         }
                     }
                 } label: {
                     Label("Trechos removidos (\(event.removedParagraphs.count))", systemImage: "minus.circle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(AppTheme.danger)
                 }
             }
         }

@@ -103,7 +103,7 @@ struct ArticleMapView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 16).fill(accent.gradient))
+        .background(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous).fill(accent.gradient))
     }
 }
 

@@ -108,8 +108,8 @@ private struct AnnotationCard: View {
                                 Text("trecho não encontrado no texto atual")
                                     .font(.caption2)
                                     .padding(.horizontal, 5).padding(.vertical, 1)
-                                    .background(Capsule().fill(.orange.opacity(0.2)))
-                                    .foregroundStyle(.orange)
+                                    .background(Capsule().fill(AppTheme.warn.opacity(0.2)))
+                                    .foregroundStyle(AppTheme.warn)
                             }
                             Spacer()
                         }

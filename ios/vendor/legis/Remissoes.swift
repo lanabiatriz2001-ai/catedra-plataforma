@@ -36,12 +36,12 @@ struct LegislativeNote: Hashable {
         }
         var color: Color {
             switch self {
-            case .revogado: return .red
-            case .redacao: return .orange
-            case .incluido: return .green
-            case .vide: return .blue
-            case .vigencia: return .purple
-            case .regulamento: return .teal
+            case .revogado: return AppTheme.danger
+            case .redacao: return AppTheme.warn
+            case .incluido: return AppTheme.ok
+            case .vide: return AppTheme.info
+            case .vigencia: return AppTheme.srs
+            case .regulamento: return AppTheme.info
             case .renumerado: return .brown
             case .outro: return .gray
             }

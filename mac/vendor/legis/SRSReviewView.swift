@@ -44,7 +44,7 @@ struct SRSReviewView: View {
 
     private var headerBar: some View {
         HStack(spacing: 12) {
-            Image(systemName: "brain.head.profile").font(.title3).foregroundStyle(.purple)
+            Image(systemName: "brain.head.profile").font(.title3).foregroundStyle(AppTheme.srs)
             VStack(alignment: .leading, spacing: 1) {
                 Text("Revisão espaçada").font(.headline)
                 if !loading && !queue.isEmpty && index < queue.count {
@@ -242,10 +242,10 @@ struct SRSReviewView: View {
             let isCorrect = answer.hasPrefix("Certo")
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: isCorrect ? "checkmark.seal.fill" : "xmark.seal.fill")
-                    .foregroundStyle(isCorrect ? .green : .red)
+                    .foregroundStyle(isCorrect ? AppTheme.ok : AppTheme.danger)
                 Text(answer)
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(isCorrect ? .green : .red)
+                    .foregroundStyle(isCorrect ? AppTheme.ok : AppTheme.danger)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
             }
@@ -296,7 +296,7 @@ struct SRSReviewView: View {
     }
 
     private func accent(for law: LawEntry) -> Color {
-        if law.isNovidades { return .orange }
+        if law.isNovidades { return AppTheme.warn }
         if let custom = law.customCategory { return CustomCategoryStyle.color(for: custom) }
         return law.category.color
     }

@@ -34,8 +34,8 @@ struct LawReaderView: View {
     private var isNovidades: Bool { law?.isNovidades ?? false }
     private var effectiveMode: String { isNovidades ? "corrido" : readerMode }
     private var accent: Color {
-        guard let law else { return .accentColor }
-        if law.isNovidades { return .orange }
+        guard let law else { return ThemeState.t.accent }
+        if law.isNovidades { return AppTheme.warn }
         if let custom = law.customCategory { return CustomCategoryStyle.color(for: custom) }
         return law.category.color
     }
@@ -170,27 +170,10 @@ struct LawReaderView: View {
 
     private func header(for law: LawEntry) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 13) {
-                // Tile gradiente da matéria (vitrine) no lugar do ícone chapado.
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(LinearGradient(colors: law.isRegularLaw && law.customCategory == nil
-                                                 ? law.category.gradStops
-                                                 : [accent, accent.opacity(0.72)],
-                                         startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 48, height: 48)
-                    .overlay(Image(systemName: headerSymbol).font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(.white))
-                    .shadow(color: accent.opacity(0.4), radius: 8, y: 4)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(law.title)
-                        .font(.system(size: 22, weight: .heavy)).tracking(-0.3)
-                        .lineLimit(2)
-                    Text(law.reference)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 6) {
+            // O mesmo MateriaBanner do Estudo (Theme.swift) — era um cabeçalho próprio aqui.
+            MateriaBanner(context: law.reference, title: law.title, color: accent, symbol: headerSymbol,
+                          trailing: AnyView(headerControls(for: law)), framed: false)
+            HStack(spacing: 8) {
                     if isNovidades {
                         Label("Índice de novidades", systemImage: "sparkles")
                             .font(.caption).foregroundStyle(.secondary)
@@ -203,34 +186,24 @@ struct LawReaderView: View {
                         .frame(width: 210)
                         .help("Estudo: artigo por artigo, com progresso. Leitura corrida: texto contínuo com grifos e ⌘F.")
                     }
-                    if effectiveMode == "corrido" && !isNovidades {
-                        TextField("Ir para artigo…", text: $articleQuery)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 150)
-                            .onSubmit { controller.jump(toArticle: articleQuery) }
-                            .help("Digite o número do artigo e pressione Enter (busca no texto: ⌘F)")
-                    }
-                }
-            }
-            HStack(spacing: 8) {
                 if let fetched = law.lastFetched {
                     Chip(text: "Verificada \(fetched.formatted(date: .abbreviated, time: .shortened))",
-                         symbol: "checkmark.circle", color: .green)
+                         symbol: "checkmark.circle", color: AppTheme.ok)
                 }
                 if let changed = law.lastChanged {
                     Chip(text: "Alterada \(changed.formatted(date: .abbreviated, time: .omitted))",
-                         symbol: "clock.arrow.circlepath", color: .orange)
+                         symbol: "clock.arrow.circlepath", color: AppTheme.warn)
                 }
                 if law.sourceURL != nil && !law.monitored {
                     Chip(text: "Monitoramento desligado", symbol: "bell.slash", color: .gray)
                 }
                 if (law.checkFailures ?? 0) >= 3 {
                     Chip(text: "Verificação falhando há \(law.checkFailures ?? 0) tentativas",
-                         symbol: "exclamationmark.triangle", color: .red)
+                         symbol: "exclamationmark.triangle", color: AppTheme.danger)
                 }
                 let count = store.annotations(for: lawID).count
                 if count > 0 {
-                    Chip(text: "\(count) anotações", symbol: "highlighter", color: .pink)
+                    Chip(text: "\(count) anotações", symbol: "highlighter", color: accent)
                 }
                 if !isNovidades {
                     let jurisCount = store.precedentCount(for: lawID)
@@ -270,6 +243,32 @@ struct LawReaderView: View {
         .appTintedSurface(accent)
         .padding(12)
         .background(AppTheme.pageBackground)
+    }
+
+    /// Controles à direita do banner: modo de leitura e "ir para artigo".
+    @ViewBuilder
+    private func headerControls(for law: LawEntry) -> some View {
+        VStack(alignment: .trailing, spacing: 6) {
+            if isNovidades {
+                Label("Índice de novidades", systemImage: "sparkles")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                Picker("", selection: $readerMode) {
+                    Text("Estudo").tag("estudo")
+                    Text("Leitura corrida").tag("corrido")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 210)
+                .help("Estudo: artigo por artigo, com progresso. Leitura corrida: texto contínuo com grifos e ⌘F.")
+            }
+            if effectiveMode == "corrido" && !isNovidades {
+                TextField("Ir para artigo…", text: $articleQuery)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 150)
+                    .onSubmit { controller.jump(toArticle: articleQuery) }
+                    .help("Digite o número do artigo e pressione Enter (busca no texto: ⌘F)")
+            }
+        }
     }
 
     // MARK: - Comandos de marcação

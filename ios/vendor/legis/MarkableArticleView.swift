@@ -22,7 +22,7 @@ struct MarkableArticleView: UIViewRepresentable {
     let fontFamily: String
     let fontSize: Double
     var lineSpacing: CGFloat = 7       // espaçamento entre linhas (popover de leitura)
-    var accent: Color = .accentColor  // cor dos rótulos (Art., incisos)
+    var accent: Color = ThemeState.t.accent  // cor dos rótulos (Art., incisos)
     var textAlignment: NSTextAlignment = .natural  // alinhamento do texto (espelha o JURIS)
     let proposedWidth: CGFloat        // largura dada pelo SwiftUI (via GeometryReader)
     @Binding var measuredHeight: CGFloat // altura medida do artigo, devolvida ao SwiftUI

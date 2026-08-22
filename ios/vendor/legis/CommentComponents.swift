@@ -32,8 +32,8 @@ struct CommentBalloon: View {
             }
             .padding(.horizontal, 9).padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(AppTheme.cardBackground))
-            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(AppTheme.cardBackground))
+            .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
             .shadow(color: Color.black.opacity(0.06), radius: 4, y: 1)
         }
         .buttonStyle(.plain)

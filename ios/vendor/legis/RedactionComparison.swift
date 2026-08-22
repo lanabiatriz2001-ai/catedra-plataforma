@@ -118,9 +118,9 @@ private struct RedactionRow: View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
                 switch entry.status {
-                case .vigente:        tag("VIGENTE", .white, Color.green)
-                case .atualRevogado:  tag("REVOGADO", .white, Color.red)
-                case .anterior:       tag("NÃO VIGENTE", Color.red, Color.red.opacity(0.14))
+                case .vigente:        tag("VIGENTE", .white, AppTheme.ok)
+                case .atualRevogado:  tag("REVOGADO", .white, AppTheme.danger)
+                case .anterior:       tag("NÃO VIGENTE", AppTheme.danger, AppTheme.danger.opacity(0.14))
                 }
                 Text(entry.source)
                     .font(.subheadline.weight(.semibold))
@@ -141,7 +141,7 @@ private struct RedactionRow: View {
         }
         .padding(16)
         .background(entry.status == .vigente ? accent.opacity(0.06)
-                    : entry.status == .atualRevogado ? Color.red.opacity(0.05) : Color.clear)
+                    : entry.status == .atualRevogado ? AppTheme.danger.opacity(0.05) : Color.clear)
     }
 
     private func tag(_ text: String, _ fg: Color, _ bg: Color) -> some View {
