@@ -63,17 +63,22 @@ const CURTO_MIN = 300;
 // Lixo de codificação: proporção alta de caracteres fora do esperado em português.
 function proporcaoLixo(txt) {
   if (!txt.length) return 0;
-  const lixo = (txt.match(/[^\x20-\x7EÀ-ÿ§ºª°–—‘’“”…\n\r\t•·]/g) || []).length;
+  //   (espaço não-quebrável) e ­ (hífen suave) são normais em texto de banca
+  const lixo = (txt.match(/[^\x20-\x7EÀ-ÿ ­§ºª°–—‘’“”…\n\r\t•·]/g) || []).length;
   return lixo / txt.length;
 }
 
-function audita(txt) {
+// Códigos internos do PDF da banca vazando no texto (ex.: <<D01_dAdm_A0100422_...>>).
+const RE_MARCADOR_INTERNO = /<<[A-Za-z0-9_]{6,}>>|\[\[[A-Za-z0-9_]{6,}\]\]/;
+
+function audita(txt, { minChars = CURTO_MIN } = {}) {
   const t = String(txt || '');
   const problemas = [];
-  if (t.length < CURTO_MIN) problemas.push('curto');
+  if (t.length < minChars) problemas.push('curto');
   else {
     if (temInstrucoesDeCaderno(t)) problemas.push('instrucoes-de-caderno');
     if (temCabecalhoRepetido(t)) problemas.push('cabecalho-repetido');
+    if (RE_MARCADOR_INTERNO.test(t)) problemas.push('marcador-interno');
     if (proporcaoLixo(t) > 0.02) problemas.push('lixo-encoding');
   }
   return problemas;
@@ -111,10 +116,51 @@ for (const item of lista) {
   if (p.length) { reprovadosEsp++; idsReprovados.add(item.id); marca(p, item.id, 'espelho'); }
 }
 
+/* ---------- prova oral (999 perguntas + padrões de resposta) ---------- */
+
+const ORAL = carregaGlobal('oral-conteudo.js');
+let totalOralQ = 0, reprovadosOralQ = 0, totalOralP = 0, reprovadosOralP = 0, semPadrao = 0;
+for (const item of Object.values(ORAL)) {
+  totalOralQ++;
+  // pergunta de oral é curta por natureza: o limiar de "curto" cai para 40
+  const pq = audita(item.enunciado, { minChars: 40 });
+  if (pq.length) { reprovadosOralQ++; idsReprovados.add('oral:' + item.id); marca(pq, 'oral:' + item.id, 'pergunta'); }
+  const padrao = String(item.padrao || '').trim();
+  if (!padrao) { semPadrao++; continue; }
+  totalOralP++;
+  const pp = audita(padrao, { minChars: 80 });
+  if (pp.length) { reprovadosOralP++; idsReprovados.add('oral:' + item.id); marca(pp, 'oral:' + item.id, 'padrao-de-resposta'); }
+}
+
+/* ---------- simulado: questões objetivas de prova real ---------- */
+
+const QUESTOES = carregaGlobal('questoes-prova.js');
+const qLista = Array.isArray(QUESTOES) ? QUESTOES : Object.values(QUESTOES);
+let totalQ = 0, reprovadosQ = 0;
+for (const q of qLista) {
+  totalQ++;
+  // Em questão objetiva o enunciado pode ser um caule curto que as alternativas
+  // completam ("É nulo o casamento contraído…") — o comprimento conta o conjunto.
+  const alternativasTxt = (Array.isArray(q.alternativas) ? q.alternativas : [])
+    .map(a => String(a.texto || '')).join('\n');
+  const probs = audita(String(q.enunciado || '') + '\n' + alternativasTxt, { minChars: 60 });
+  // estrutura da questão: sem isso a questão não é respondível, ainda que o texto pareça são
+  const alts = Array.isArray(q.alternativas) ? q.alternativas : [];
+  if (alts.length < 2) probs.push('sem-alternativas');
+  else if (alts.some(a => !String(a.texto || '').trim())) probs.push('alternativa-vazia');
+  const letras = alts.map(a => String(a.letra || '').toUpperCase());
+  if (q.gabarito != null && String(q.gabarito).trim() && !letras.includes(String(q.gabarito).toUpperCase()))
+    probs.push('gabarito-sem-alternativa');
+  if (probs.length) { reprovadosQ++; idsReprovados.add('questao:' + q.id); marca(probs, 'questao:' + q.id, 'questao-objetiva'); }
+}
+
 /* ---------- saída ---------- */
 
-console.log(`Enunciados extraídos: ${totalEn} · reprovados: ${reprovadosEn}`);
-console.log(`Espelhos embutidos:   ${totalEsp} · reprovados: ${reprovadosEsp} · sem espelho: ${semEspelho}`);
+console.log(`Discursivas — enunciados: ${totalEn} · reprovados: ${reprovadosEn}`);
+console.log(`Discursivas — espelhos:   ${totalEsp} · reprovados: ${reprovadosEsp} · sem espelho: ${semEspelho}`);
+console.log(`Prova oral — perguntas:   ${totalOralQ} · reprovadas: ${reprovadosOralQ}`);
+console.log(`Prova oral — padrões:     ${totalOralP} · reprovados: ${reprovadosOralP} · sem padrão: ${semPadrao}`);
+console.log(`Simulado — questões:      ${totalQ} · reprovadas: ${reprovadosQ}`);
 for (const [s, itens] of Object.entries(porSintoma).sort((a, b) => b[1].length - a[1].length)) {
   console.log(`  ${s}: ${itens.length}`);
 }
@@ -128,10 +174,13 @@ if (MD) {
   linhas.push('PDF original** (ou rebaixado para "somente link" até lá — texto errado é pior');
   linhas.push('que ausente).');
   linhas.push('');
-  linhas.push(`- Enunciados extraídos: **${totalEn}**, reprovados: **${reprovadosEn}**`);
-  linhas.push(`- Espelhos embutidos: **${totalEsp}**, reprovados: **${reprovadosEsp}**`);
+  linhas.push(`- Discursivas — enunciados: **${totalEn}**, reprovados: **${reprovadosEn}**`);
+  linhas.push(`- Discursivas — espelhos: **${totalEsp}**, reprovados: **${reprovadosEsp}**`);
   linhas.push(`- Provas **sem espelho nenhum**: **${semEspelho}** — doença separada: falta extrair`);
   linhas.push('  dos PDFs de espelho (ou a banca não publicou; nesse caso, dizer isso na tela).');
+  linhas.push(`- Prova oral — perguntas: **${totalOralQ}**, reprovadas: **${reprovadosOralQ}**`);
+  linhas.push(`- Prova oral — padrões de resposta: **${totalOralP}**, reprovados: **${reprovadosOralP}**; **${semPadrao}** perguntas sem padrão`);
+  linhas.push(`- Simulado — questões objetivas: **${totalQ}**, reprovadas: **${reprovadosQ}**`);
   linhas.push('');
   linhas.push('## Receita de correção (no build-provas-conteudo.mjs, onde estão os PDFs)');
   linhas.push('');
@@ -144,7 +193,10 @@ if (MD) {
   linhas.push('   célula a célula), nunca com `get_text()` cru.');
   linhas.push('4. **PDF escaneado** (texto < 300 chars): OCR (`fitz` + Tesseract) ou rebaixar a');
   linhas.push('   prova para "somente link", com aviso honesto na tela.');
-  linhas.push('5. **Portão de qualidade**: rodar `auditar-provas.mjs --portao` no fim do build —');
+  linhas.push('5. **Prova oral — marcador interno**: as perguntas extraídas trazem códigos do PDF');
+  linhas.push('   da banca no meio do texto (ex.: `<<D01_dAdm_A0100422_...>>`). Remover na geração');
+  linhas.push('   do oral-conteudo com `texto.replace(/<<[A-Za-z0-9_]+>>/g, "")` + trim.');
+  linhas.push('6. **Portão de qualidade**: rodar `auditar-provas.mjs --portao` no fim do build —');
   linhas.push('   prova que reprovar NÃO publica texto.');
   linhas.push('');
   for (const [s, itens] of Object.entries(porSintoma).sort((a, b) => b[1].length - a[1].length)) {
