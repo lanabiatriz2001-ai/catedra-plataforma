@@ -16,6 +16,13 @@ enum JurisHostBridge {
 /// Barra lateral navy do CátedraJURIS — mesma família visual da sidebar do
 /// Cátedra e do CátedraLEGIS (cores de --sbg/--stext/--sactbg espelhadas em
 /// ThemeState.t). Menu limpo, SEM contagens (as contagens vivem nas páginas).
+///
+/// Organizada pela ROTINA de quem treina magistratura:
+///   HOJE       — o que fazer agora (Início, Revisar hoje, Novidades)
+///   TREINAR    — o que gera nota (Simulado, Prova oral, Oral das bancas, Plano, Mapas)
+///   ACERVO     — por força vinculante (Todos, Ramos, Informativos, STF/STJ/TSE,
+///                Tribunais, Contas, DOD)
+///   MEU ESTUDO — biblioteca pessoal (Favoritos, Anotações, Checklist, Coleções, Índice)
 struct JurisSidebar: View {
     @Environment(LibraryStore.self) private var store
     @Environment(UpdateService.self) private var updater
@@ -42,12 +49,6 @@ struct JurisSidebar: View {
     }
 
     private func ativa(_ s: Selecao) -> Bool { store.leituraID == nil && selecaoAtual == s }
-    private func ir(_ s: Selecao) {
-        store.searchText = ""        // navegar por uma linha zera a busca (escopo limpo)
-        store.leituraID = nil
-        store.selecao = s
-        store.selectedID = nil
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -72,33 +73,35 @@ struct JurisSidebar: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
+                    secao("HOJE")
                     row(.inicio, "Início", "house")
+                    row(.hoje, "Revisar hoje", "sun.horizon", badge: store.srsDueCount + store.checklistPendingCount)
+                    row(.novidades, "Novidades", "sparkles", ponto: store.novidadesNaoVistas > 0)
+
+                    secao("TREINAR")
+                    row(.simulado, "Simulado", "list.bullet.clipboard")
+                    row(.provaOral, "Prova oral", "mic")
+                    row(.oralBancas, "Prova oral · bancas", "person.wave.2")
+                    row(.julgadoDoDia, "Julgado do dia", "sun.max")
+                    row(.plano, "Plano de leitura", "calendar")
+                    row(.mapas, "Mapas mentais", "brain.head.profile")
+
+                    secao("ACERVO")
                     row(.todos, "Todos os verbetes", "square.stack.3d.up")
+                    row(.ramosHub, "Ramos do Direito", "books.vertical", chevron: true)
+                    row(.gradeInformativos, "Informativos", "square.grid.3x3")
+                    row(.central(.stf), "STF", "building.columns")
+                    row(.central(.stj), "STJ", "building.columns")
+                    row(.central(.tse), "TSE", "building.columns")
+                    row(.central(.especificos), "Tribunais (TJRO, TJGO…)", "building.2", chevron: true)
+                    row(.central(.contas), "Cortes de contas", "banknote")
+                    row(.central(.outros), "DOD & Precedentes", "text.book.closed")
+
+                    secao("MEU ESTUDO")
                     row(.favoritos, "Favoritos", "star")
                     row(.anotacoes, "Minhas anotações", "square.and.pencil")
-                    row(.novidades, "Novidades", "sparkles", ponto: store.novidadesNaoVistas > 0)
-                    // ESTUDO — julgado do dia e a grade de informativos são as portas de
-                    // entrada do dia a dia; a prova oral e o roteiro moram DENTRO de cada
-                    // verbete (não são lista, são modo de ler).
-                    row(.julgadoDoDia, "Julgado do dia", "sun.max.fill")
-                    row(.gradeInformativos, "Informativos", "square.grid.3x3.fill")
-                    row(.mapas, "Mapas mentais", "brain.head.profile")
-                    row(.plano, "Plano de leitura", "calendar")
+                    row(.checklist, "Checklist de leitura", "checklist", badge: store.checklistPendingCount)
                     row(.indice, "Índice alfabético", "textformat.abc")
-
-                    // As CENTRAIS: uma página-hub por tribunal (os botões dentro
-                    // abrem as páginas de cada fonte — ex.: Súmulas Vinculantes).
-                    secao("CENTRAIS")
-                    ForEach(JurisCentral.allCases) { c in
-                        row(.central(c), c.nome, c.simbolo)
-                    }
-
-                    // Ramos do Direito: BOTÃO que abre a página das disciplinas
-                    // (dentro dela, assuntos e tipos de jurisprudência).
-                    secao("NAVEGAR")
-                    row(.ramosHub, "Ramos do Direito", "books.vertical", chevron: true)
-
-                    secao("COLEÇÕES")
                     ForEach(store.colecoes) { c in
                         row(.colecao(c.id), c.nome, "folder")
                     }
@@ -175,7 +178,7 @@ struct JurisSidebar: View {
             Button("Criar") {
                 let nome = nomeColecao.trimmingCharacters(in: .whitespaces)
                 let c = store.criarColecao(nome.isEmpty ? "Nova coleção" : nome)
-                ir(.colecao(c.id))
+                store.ir(.colecao(c.id))
             }
             Button("Cancelar", role: .cancel) {}
         }
@@ -227,37 +230,35 @@ struct JurisSidebar: View {
             .padding(.horizontal, 12).padding(.top, 16).padding(.bottom, 5)
     }
 
-    /// Cor de identidade do ícone (como o LEGIS colore as matérias): Centrais por
-    /// tribunal + Ramos. Tons claros, legíveis sobre o navy. Nulo quando ativo
-    /// (aí o ícone acompanha o texto de seleção).
+    /// Cor de identidade do ícone (como o LEGIS colore as matérias): Centrais na cor do
+    /// TRIBUNAL (Palette.corDeCentral, a mesma do FonteBadge) + Ramos. Clareadas para
+    /// ler sobre o navy. Nulo quando ativo (aí o ícone acompanha o texto de seleção).
     private func iconColor(_ sel: Selecao, active: Bool) -> Color? {
         guard !active else { return nil }
         switch sel {
-        case .central(let c):
-            switch c {
-            case .stf: return Color(red: 0.45, green: 0.62, blue: 0.98)   // azul
-            case .stj: return Color(red: 0.28, green: 0.80, blue: 0.70)   // teal
-            case .tse: return Color(red: 0.66, green: 0.55, blue: 0.98)   // roxo
-            case .especificos: return Color(red: 0.62, green: 0.68, blue: 0.78) // ardósia
-            case .contas: return Color(red: 0.24, green: 0.72, blue: 0.55)  // verde-cofre
-            case .outros: return Color(red: 0.95, green: 0.72, blue: 0.35) // âmbar
-            }
-        case .ramosHub, .ramo, .ramoDetalhe: return Color(red: 0.50, green: 0.82, blue: 0.62) // verde
+        case .central(let c): return Palette.corDeCentral(c, clara: true)
+        case .ramosHub, .ramo, .ramoDetalhe: return Color(hex: "#80D19E")   // verde (ramo) clareado p/ navy
         default: return nil
         }
     }
 
     @ViewBuilder
     private func row(_ sel: Selecao, _ label: String, _ icon: String,
-                     chevron: Bool = false, ponto: Bool = false) -> some View {
+                     chevron: Bool = false, ponto: Bool = false, badge: Int = 0) -> some View {
         let active = ativa(sel)
-        Button { ir(sel) } label: {
+        Button { store.ir(sel) } label: {
             HStack(spacing: 11) {
                 Image(systemName: icon).font(.system(size: 13, weight: .medium)).frame(width: 20)
                     .foregroundStyle(iconColor(sel, active: active) ??
                                      (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
                 Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
+                if badge > 0 {   // contagem só onde é fila de trabalho (revisar hoje / checklist)
+                    Text("\(badge)").font(.system(size: 10, weight: .bold).monospacedDigit())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6).padding(.vertical, 1)
+                        .background(Capsule().fill(ThemeState.t.accent.opacity(active ? 0.6 : 0.9)))
+                }
                 if ponto {   // pontinho discreto de novidades não vistas (sem número)
                     Circle().fill(ThemeState.t.accent).frame(width: 7, height: 7)
                 }

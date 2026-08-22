@@ -5,11 +5,11 @@ import SwiftUI
 //    · Grade de informativos (uma edição por quadradinho, verde/âmbar/cinza)
 //    · Julgado do dia (sorteio com semente na data — o mesmo dia devolve o mesmo)
 //    · Roteiro de estudo do verbete (Em uma frase · Fundamento · Como era · O que decidiu
-//      · Pontos que a prova cobra · Pegadinha · quiz) — gerado pela IA DO APP
-//    · Prova oral (a IA pergunta, você responde, ela corrige contra o enunciado)
+//      · Pontos que a prova cobra · Pegadinha · quiz) — montado LOCALMENTE (RoteiroLocal)
+//    · Prova oral (pergunta e correção locais, ProvaOralLocal — sem IA)
 //
-//  A IA vem de CatedraIA (o host instala o provedor: mesmo /api/complete do Cátedra,
-//  autenticado pela sessão). Sem host, a tela diz isso em vez de pedir chave.
+//  Peças visuais (RotuloEstudo, BlocoEstudo, EtiquetaEstudo, Flow, chips) moram em
+//  Views/Components.swift.
 //
 //  Cores: fundo/texto/acento seguem o tema do Cátedra (ThemeState); a cor de cada
 //  fonte é a do TRIBUNAL (Palette.fonte*). Nada de hex solto aqui.
@@ -137,53 +137,6 @@ enum PromptsEstudo {
     }
 }
 
-// MARK: - Peças visuais compartilhadas
-
-/// Rótulo pequeno em caixa alta — a "voz de rótulo" do Cátedra.
-struct RotuloEstudo: View {
-    let texto: String
-    var body: some View {
-        Text(texto.uppercased())
-            .font(.system(size: 10.5, weight: .bold)).tracking(1.4)
-            .foregroundStyle(Palette.secondaryInk)
-    }
-}
-
-/// Bloco do roteiro: rótulo em cima, corpo com faixa colorida à esquerda.
-struct BlocoEstudo<Corpo: View>: View {
-    let rotulo: String
-    var cor: Color = Palette.accent
-    var fundo: Color? = nil
-    @ViewBuilder var corpo: Corpo
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            RotuloEstudo(texto: rotulo)
-            HStack(alignment: .top, spacing: 0) {
-                RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3)
-                corpo
-                    .font(.system(size: 14.5)).lineSpacing(3)
-                    .foregroundStyle(Palette.titleInk)
-                    .padding(.horizontal, 13).padding(.vertical, 10)
-                Spacer(minLength: 0)
-            }
-            .background(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius - 4), style: .continuous)
-                .fill(fundo ?? cor.opacity(ThemeState.t.isDark ? 0.14 : 0.08)))
-        }
-    }
-}
-
-struct EtiquetaEstudo: View {
-    let texto: String
-    var cor: Color = Palette.accent
-    var body: some View {
-        Text(texto.uppercased())
-            .font(.system(size: 10, weight: .heavy)).tracking(0.6)
-            .padding(.horizontal, 8).padding(.vertical, 3)
-            .background(Capsule().fill(cor.opacity(0.15)))
-            .foregroundStyle(cor)
-    }
-}
-
 // MARK: - 1. Grade de informativos
 
 struct GradeInformativosView: View {
@@ -197,18 +150,22 @@ struct GradeInformativosView: View {
     private let lote = 48
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
-                cabecalho
-                ForEach(Self.colecoes) { f in
-                    let eds = store.edicoesInfo(f)
-                    if !eds.isEmpty { colecao(f, eds) }
+        SectionShell(icon: Selecao.gradeInformativos.simbolo, title: Selecao.gradeInformativos.titulo,
+                     subtitle: "Uma edição por quadradinho — verde lida, âmbar começada.",
+                     count: todas.reduce(0) { $0 + $1.1.count }) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 26) {
+                    cabecalho
+                    ForEach(Self.colecoes) { f in
+                        let eds = store.edicoesInfo(f)
+                        if !eds.isEmpty { colecao(f, eds) }
+                    }
                 }
+                .padding(.horizontal, 28).padding(.vertical, 24)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.horizontal, 28).padding(.vertical, 24)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(Palette.appBackground)
     }
 
     private var todas: [(Fonte, [InfoEdicao])] {
@@ -225,28 +182,15 @@ struct GradeInformativosView: View {
         let tot = todas.reduce(0) { $0 + $1.1.count }
         var lidas = 0, comecadas = 0
         for (f, eds) in todas { for e in eds { let s = estado(f, e); if s.lidos >= s.total { lidas += 1 } else if s.lidos > 0 { comecadas += 1 } } }
-        return VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                EtiquetaEstudo(texto: "Acervo por edição")
-                Spacer()
-            }
-            Text("Informativos").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
-            Flow(espacamento: 22) {
-                kpi("\(tot)", "edições")
-                kpi("\(lidas)", "lidas", cor: Color(hex: "#16A34A"))
-                kpi("\(comecadas)", "começadas", cor: Color(hex: "#D97706"))
-                kpi("\(tot - lidas - comecadas)", "não lidas")
-            }
-            .padding(.horizontal, 18).padding(.vertical, 14)
-            .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
-            .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+        return Flow(espacamento: 22) {
+            JurisKPI(valor: "\(tot)", rotulo: "edições")
+            JurisKPI(valor: "\(lidas)", rotulo: "lidas", cor: Palette.ok)
+            JurisKPI(valor: "\(comecadas)", rotulo: "começadas", cor: Palette.warn)
+            JurisKPI(valor: "\(tot - lidas - comecadas)", rotulo: "não lidas")
         }
-    }
-    private func kpi(_ v: String, _ r: String, cor: Color = Palette.titleInk) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(v).font(.system(size: 26, weight: .heavy, design: .monospaced)).foregroundStyle(cor)
-            RotuloEstudo(texto: r)
-        }
+        .padding(.horizontal, 18).padding(.vertical, 14)
+        .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
     }
 
     private func colecao(_ f: Fonte, _ eds: [InfoEdicao]) -> some View {
@@ -254,26 +198,25 @@ struct GradeInformativosView: View {
         let mostrar = expandidas.contains(f.rawValue) ? eds.count : min(lote, eds.count)
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(f.nome).font(.system(size: 17.5, weight: .bold)).foregroundStyle(Palette.titleInk)
-                Text("\(eds.count) edições · até a \(eds.first?.numero ?? 0)")
+                JurisSecaoTitulo(titulo: f.nome, simbolo: f.simbolo, cor: cor, count: eds.count)
+                Text("até a \(eds.first?.numero ?? 0)")
                     .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
-                Spacer()
             }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 64), spacing: 7)], spacing: 7) {
                 ForEach(eds.prefix(mostrar)) { e in
                     let s = estado(f, e)
-                    Button { store.selecao = .infoEdicao(f, e.numero) } label: {
+                    Button { store.ir(.infoEdicao(f, e.numero)) } label: {
                         VStack(spacing: 1) {
-                            Text("\(e.numero)").font(.system(size: 14, weight: .heavy, design: .monospaced))
+                            Text("\(e.numero)").font(Typo.num(14, .heavy))
                             Text(s.lidos > 0 ? "\(s.lidos)/\(s.total)" : "\(s.total)")
                                 .font(.system(size: 9, weight: .bold))
                         }
                         .frame(maxWidth: .infinity, minHeight: 56)
-                        .foregroundStyle(cls(s) == .lida ? Color(hex: "#15803D") : cls(s) == .parcial ? Color(hex: "#A16207") : Palette.secondaryInk)
-                        .background(RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .fill(cls(s) == .lida ? Color(hex: "#16A34A").opacity(0.14) : cls(s) == .parcial ? Color(hex: "#EAB308").opacity(0.14) : Palette.cardBackground))
-                        .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .strokeBorder(cls(s) == .lida ? Color(hex: "#16A34A") : cls(s) == .parcial ? Color(hex: "#EAB308") : Palette.hairline, lineWidth: 1.5))
+                        .foregroundStyle(cls(s) == .lida ? Palette.okInk : cls(s) == .parcial ? Palette.warn : Palette.secondaryInk)
+                        .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
+                            .fill(cls(s) == .lida ? Palette.ok.opacity(0.14) : cls(s) == .parcial ? Palette.warn.opacity(0.14) : Palette.cardBackground))
+                        .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
+                            .strokeBorder(cls(s) == .lida ? Palette.ok : cls(s) == .parcial ? Palette.warn : Palette.hairline, lineWidth: 1.5))
                     }
                     .buttonStyle(.plain)
                     .help("\(f.nome) nº \(e.numero) — \(s.lidos) de \(s.total) lidos")
@@ -301,30 +244,35 @@ struct JulgadoDoDiaView: View {
     /// no mesmo dia, e apareciam ao mesmo tempo na Home como se fossem coisas distintas.
     var verbete: JurisEntry? { store.verbeteDoDia }
 
+    /// true na página própria (sidebar): ganha o SectionShell. Embutido na Home vem só o cartão.
+    var pagina: Bool = false
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    Text("Julgado do dia").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
-                    Text(Date().formatted(.dateTime.day().month(.wide).year().locale(Locale(identifier: "pt_BR"))))
-                        .font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
+        if pagina {
+            SectionShell(icon: Selecao.julgadoDoDia.simbolo, title: Selecao.julgadoDoDia.titulo,
+                         subtitle: Date().formatted(.dateTime.weekday(.wide).day().month(.wide).year().locale(Locale(identifier: "pt_BR")))) {
+                ScrollView {
+                    conteudo.padding(.horizontal, 28).padding(.vertical, 24)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                if let e = verbete { cartao(e) }
-                else { Text("Acervo ainda carregando.").foregroundStyle(Palette.secondaryInk) }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding(.horizontal, 28).padding(.vertical, 24)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            conteudo.padding(.horizontal, 28)
         }
-        .background(Palette.appBackground)
+    }
+
+    @ViewBuilder private var conteudo: some View {
+        if let e = verbete { cartao(e) }
+        else { Text("Acervo ainda carregando.").foregroundStyle(Palette.secondaryInk) }
     }
 
     private func cartao(_ e: JurisEntry) -> some View {
-        let cor = e.fonteKind.cor
+        let cor = RamoStyle.color(e.ramoDireito)
         return VStack(alignment: .leading, spacing: 12) {
             Flow {
-                EtiquetaEstudo(texto: e.tribunal, cor: cor)
-                EtiquetaEstudo(texto: e.fonteKind.nomeCurto, cor: cor)
-                if let r = e.ramoDireito { EtiquetaEstudo(texto: r, cor: RamoStyle.color(r)) }
+                FonteBadge(fonte: e.fonteKind)
+                if let r = e.ramoDireito { EtiquetaEstudo(texto: r, cor: cor) }
                 if e.importante { EtiquetaEstudo(texto: "Destaque", cor: Palette.importante) }
             }
             Text(e.titulo).font(.system(size: 21, weight: .heavy)).tracking(-0.3).foregroundStyle(Palette.titleInk)
@@ -332,11 +280,11 @@ struct JulgadoDoDiaView: View {
                 .textSelection(.enabled)
             if let fp = e.fontePublicacao { Text(fp).font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk) }
             HStack(spacing: 9) {
-                Button("Abrir no leitor") { store.lerCheio(e.id) }.buttonStyle(.borderedProminent).tint(cor)
-                Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }.buttonStyle(.bordered).tint(cor)
+                Button("Abrir no leitor") { store.lerCheio(e.id) }.buttonStyle(.borderedProminent).tint(Palette.accent)
+                Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }.buttonStyle(.bordered).tint(Palette.accent)
                 Button(store.dominados.contains(e.id) ? "✓ Dominado" : "Marcar como dominado") {
                     if store.dominados.contains(e.id) { store.dominados.remove(e.id) } else { store.dominados.insert(e.id) }
-                }.buttonStyle(.bordered).tint(cor)
+                }.buttonStyle(.bordered).tint(Palette.accent)
             }
             if mostrarOral { ProvaOralView(entry: e) }
             // O destaque do dia é o ÚNICO lugar que gera o roteiro sozinho, sem esperar
@@ -346,9 +294,9 @@ struct JulgadoDoDiaView: View {
             RoteiroEstudoView(entry: e, autoGerar: true)
         }
         .padding(22)
-        .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
-        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 5).padding(.vertical, 14) }
-        .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+        .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
+        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 4).padding(.vertical, 14) }
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
     }
 }
 
@@ -385,7 +333,7 @@ struct RoteiroEstudoView: View {
                 }
                 Text("Tese em uma frase, fundamento, o que mudou, pontos que a prova cobra, pegadinha e um quiz — montados aqui mesmo a partir do enunciado oficial e do acervo, sem IA.")
                     .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
-                if let erro { Text(erro).font(.system(size: 12)).foregroundStyle(Color(hex: "#DC2626")) }
+                if let erro { Text(erro).font(.system(size: 12)).foregroundStyle(Palette.bad) }
                 if mostrarOral { ProvaOralView(entry: entry) }
             }
         }
@@ -412,20 +360,20 @@ struct RoteiroEstudoView: View {
         }
         if let t = r.frase, !t.isEmpty { BlocoEstudo(rotulo: "Em uma frase") { Text(t).fontWeight(.semibold) } }
         if let t = r.fundamento, !t.isEmpty { BlocoEstudo(rotulo: "Fundamento", cor: Palette.secondaryInk) { Text(t) } }
-        if let t = r.comoEra, !t.isEmpty { BlocoEstudo(rotulo: "Como era", cor: Color(hex: "#EA580C")) { Text(t) } }
-        if let t = r.decidiu, !t.isEmpty { BlocoEstudo(rotulo: "O que decidiu", cor: Color(hex: "#16A34A")) { Text(t) } }
+        if let t = r.comoEra, !t.isEmpty { BlocoEstudo(rotulo: "Como era", cor: Palette.warn) { Text(t) } }
+        if let t = r.decidiu, !t.isEmpty { BlocoEstudo(rotulo: "O que decidiu", cor: Palette.ok) { Text(t) } }
         if let l = r.chave, !l.isEmpty { lista("Pontos que a prova cobra", l, cor: Palette.accent) }
         if let l = r.jurisprudencia, !l.isEmpty { lista("Relacionados", l, cor: Palette.secondaryInk) }
-        if let t = r.atencao, !t.isEmpty { BlocoEstudo(rotulo: "Atenção", cor: Color(hex: "#EA580C")) { Text(t) } }
-        if let t = r.hoje, !t.isEmpty { BlocoEstudo(rotulo: "O que vale hoje", cor: Color(hex: "#16A34A")) { Text(t) } }
-        if let t = r.pegadinha, !t.isEmpty { BlocoEstudo(rotulo: "Pegadinha de prova", cor: Color(hex: "#DC2626")) { Text(t).fontWeight(.medium) } }
+        if let t = r.atencao, !t.isEmpty { BlocoEstudo(rotulo: "Atenção", cor: Palette.warn) { Text(t) } }
+        if let t = r.hoje, !t.isEmpty { BlocoEstudo(rotulo: "O que vale hoje", cor: Palette.ok) { Text(t) } }
+        if let t = r.pegadinha, !t.isEmpty { BlocoEstudo(rotulo: "Pegadinha de prova", cor: Palette.bad) { Text(t).fontWeight(.medium) } }
         if let q = r.quiz, !q.isEmpty { quiz(q) }
         HStack(spacing: 9) {
             Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }.buttonStyle(.bordered)
             Button("Refazer") { RoteiroCache.set(entry.id, nil); roteiro = nil; respostas = [:]; enviouFlash = false }.buttonStyle(.plain).foregroundStyle(Palette.secondaryInk)
         }
         if mostrarOral { ProvaOralView(entry: entry) }
-        Text("Roteiro escrito pela IA a partir do enunciado oficial — confira os números antes de decorar.")
+        Text("Roteiro montado localmente a partir do enunciado oficial e do acervo (sem IA) — confira os números antes de decorar.")
             .font(.system(size: 11)).italic().foregroundStyle(Palette.secondaryInk)
     }
 
@@ -453,23 +401,23 @@ struct RoteiroEstudoView: View {
                             if respostas[i] == nil { respostas[i] = j }
                         } label: {
                             HStack(alignment: .top, spacing: 8) {
-                                Text(String(UnicodeScalar(65 + j)!) + ")").font(.system(size: 13, weight: .bold, design: .monospaced))
+                                Text(String(Character(UnicodeScalar(UInt8(65 + min(j, 25))))) + ")").font(Typo.num(13))
                                 Text(a).font(.system(size: 13)).multilineTextAlignment(.leading)
                                 Spacer(minLength: 0)
                             }
                             .padding(.horizontal, 12).padding(.vertical, 8)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .foregroundStyle(resp == nil ? Palette.titleInk : (certa ? Color(hex: "#15803D") : (escolhida ? Color(hex: "#B91C1C") : Palette.secondaryInk)))
-                            .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                .fill(resp == nil ? Palette.cardBackground : (certa ? Color(hex: "#16A34A").opacity(0.12) : (escolhida ? Color(hex: "#DC2626").opacity(0.12) : Palette.cardBackground))))
-                            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                .strokeBorder(resp == nil ? Palette.hairline : (certa ? Color(hex: "#16A34A") : (escolhida ? Color(hex: "#DC2626") : Palette.hairline)), lineWidth: 1.5))
+                            .foregroundStyle(resp == nil ? Palette.titleInk : (certa ? Palette.okInk : (escolhida ? Palette.badInk : Palette.secondaryInk)))
+                            .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
+                                .fill(resp == nil ? Palette.cardBackground : (certa ? Palette.ok.opacity(0.12) : (escolhida ? Palette.bad.opacity(0.12) : Palette.cardBackground))))
+                            .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
+                                .strokeBorder(resp == nil ? Palette.hairline : (certa ? Palette.ok : (escolhida ? Palette.bad : Palette.hairline)), lineWidth: 1.5))
                         }
                         .buttonStyle(.plain).disabled(resp != nil)
                     }
                     if let resp = respostas[i], let fb = q.fb {
                         let acertou = resp == q.ok
-                        BlocoEstudo(rotulo: acertou ? "Certo" : "Errado", cor: acertou ? Color(hex: "#16A34A") : Color(hex: "#DC2626")) { Text(fb) }
+                        BlocoEstudo(rotulo: acertou ? "Certo" : "Errado", cor: acertou ? Palette.ok : Palette.bad) { Text(fb) }
                     }
                 }
             }
@@ -512,11 +460,14 @@ struct ProvaOralView: View {
         VStack(alignment: .leading, spacing: 10) {
             RotuloEstudo(texto: "Prova oral")
             Text(pergunta).font(.system(size: 15.5, weight: .semibold)).lineSpacing(3).foregroundStyle(Palette.titleInk)
+            // A resposta digitada é RASCUNHO por verbete (JurisRascunhoCache): navegar
+            // ⌘→ para o próximo verbete ou trocar de aba e voltar não apaga o que foi escrito.
             TextEditor(text: $resposta)
                 .font(.system(size: 14)).frame(minHeight: 110)
                 .padding(8)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
+                .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.cardBackground))
+                .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline))
+                .onChange(of: resposta) { _, novo in JurisRascunhoCache.set("oral", entry.id, novo) }
             HStack(spacing: 9) {
                 Button("Corrigir") { correcao = ProvaOralLocal.corrigir(entry, resposta: resposta) }
                     .buttonStyle(.borderedProminent).tint(Palette.accent)
@@ -526,27 +477,31 @@ struct ProvaOralView: View {
             if let c = correcao { resultado(c) }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius - 2), style: .continuous).fill(Palette.accent.opacity(0.06)))
-        .onAppear { if pergunta.isEmpty { perguntar() } }
+        .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.accent.opacity(0.06)))
+        .onAppear {
+            if pergunta.isEmpty { perguntar(limparResposta: false) }
+            resposta = JurisRascunhoCache.get("oral", entry.id) ?? ""
+        }
     }
 
-    private func perguntar() {
+    private func perguntar(limparResposta: Bool = true) {
         pergunta = ProvaOralLocal.pergunta(entry, variante: variante)
         variante += 1
-        correcao = nil; resposta = ""
+        correcao = nil
+        if limparResposta { resposta = ""; JurisRascunhoCache.set("oral", entry.id, nil) }
     }
 
     @ViewBuilder private func resultado(_ c: Correcao) -> some View {
         let nota = c.nota ?? ""
-        let cor = nota == "boa" ? Color(hex: "#16A34A") : nota == "media" ? Color(hex: "#D97706") : Color(hex: "#DC2626")
+        let cor = nota == "boa" ? Palette.ok : nota == "media" ? Palette.warn : Palette.bad
         HStack { EtiquetaEstudo(texto: nota == "boa" ? "Boa" : nota == "media" ? "Mediana" : "Fraca", cor: cor); Spacer() }
         if let a = c.acertou, !a.isEmpty {
-            BlocoEstudo(rotulo: "Acertou", cor: Color(hex: "#16A34A")) {
+            BlocoEstudo(rotulo: "Acertou", cor: Palette.ok) {
                 VStack(alignment: .leading, spacing: 4) { ForEach(a, id: \.self) { Text("• " + $0) } }
             }
         }
         if let f = c.faltou, !f.isEmpty {
-            BlocoEstudo(rotulo: "Faltou / saiu errado", cor: Color(hex: "#DC2626")) {
+            BlocoEstudo(rotulo: "Faltou / saiu errado", cor: Palette.bad) {
                 VStack(alignment: .leading, spacing: 4) { ForEach(f, id: \.self) { Text("• " + $0) } }
             }
         }
@@ -566,27 +521,23 @@ struct DestaquesEstudoView: View {
         VStack(alignment: .leading, spacing: 16) {
             if parte != .informativos {
             JulgadoDoDiaView()
-                .frame(maxHeight: 520)
             }
             if parte != .julgado {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Últimos informativos").font(.system(size: 17.5, weight: .bold)).foregroundStyle(Palette.titleInk)
-                Spacer()
-                Button("Ver a grade") { store.selecao = .gradeInformativos }.buttonStyle(.plain).foregroundStyle(Palette.accent)
-            }
+            JurisSecaoTitulo(titulo: "Últimos informativos", simbolo: "newspaper",
+                             verTodos: { store.ir(.gradeInformativos) })
             .padding(.horizontal, 28)
             HStack(spacing: 10) {
                 ForEach([Fonte.informativoSTF, .informativoSTJ, .informativoTSE]) { f in
                     if let e = store.edicoesInfo(f).first {
-                        Button { store.selecao = .infoEdicao(f, e.numero) } label: {
+                        Button { store.ir(.infoEdicao(f, e.numero)) } label: {
                             VStack(alignment: .leading, spacing: 4) {
                                 EtiquetaEstudo(texto: f.nomeCurto, cor: f.cor)
-                                Text("nº \(e.numero)").font(.system(size: 24, weight: .heavy, design: .monospaced)).foregroundStyle(Palette.titleInk)
+                                Text("nº \(e.numero)").font(Typo.num(24, .heavy)).foregroundStyle(Palette.titleInk)
                                 Text("\(e.count) verbetes").font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
                             }
                             .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
-                            .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+                            .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
+                            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
                         }.buttonStyle(.plain)
                     }
                 }
@@ -636,43 +587,38 @@ struct ProvaOralJurisView: View {
         }.prefix(30))
     }
 
-    private func chip(_ t: String, on: Bool, _ act: @escaping () -> Void) -> some View {
-        Button(action: act) {
-            Text(t).font(.system(size: 12, weight: .semibold))
-                .padding(.horizontal, 10).padding(.vertical, 5)
-                .background(Capsule().fill(on ? Palette.accent : Palette.cardBackground))
-                .overlay(Capsule().strokeBorder(on ? Palette.accent : Palette.hairline))
-                .foregroundStyle(on ? Color.white : Palette.titleInk)
-        }.buttonStyle(.plain)
+    var body: some View {
+        SectionShell(icon: Selecao.provaOral.simbolo, title: Selecao.provaOral.titulo,
+                     subtitle: "Escolha a disciplina e o tribunal, sorteie um verbete do acervo e responda como responderia à banca. Pergunta no formato da arguição real e correção contra o enunciado oficial — tudo local, sem IA.",
+                     search: $busca, searchPrompt: "Buscar um verbete (ou use o julgado do dia)") {
+            ScrollView { corpo }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Prova oral").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
-                Text("Escolha a disciplina e o tribunal, sorteie um verbete do acervo e responda como responderia à banca. A pergunta vem no formato da arguição real (caso hipotético, fundamento, exceção…) e a correção é contra o enunciado oficial — tudo local, sem IA.")
-                    .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
-                // Filtros — o edital por dentro: disciplina, tribunal, assunto.
+    private var corpo: some View {
+        let discs = store.disciplinasEm(store.entries).map(\.nome)
+        let assuntos: [String] = disciplina == nil ? [] :
+            store.assuntosEm(store.entries.filter { $0.disciplina == disciplina! && (tribunal == nil || $0.tribunal == tribunal!) }).map(\.nome)
+        return VStack(alignment: .leading, spacing: 16) {
+                // Filtros — o edital por dentro: disciplina, tribunal, assunto. Sem
+                // prefix() escondendo disciplinas: o chip "mais N…" abre o resto.
                 VStack(alignment: .leading, spacing: 8) {
                     RotuloEstudo(texto: "Disciplina")
                     Flow {
-                        chip("Todas", on: disciplina == nil) { disciplina = nil; assunto = nil }
-                        ForEach(store.disciplinasEm(store.entries).prefix(14), id: \.nome) { d in
-                            chip("\(d.nome) · \(d.count)", on: disciplina == d.nome) { disciplina = d.nome; assunto = nil }
-                        }
+                        JurisChip(texto: "Todas", ativo: disciplina == nil) { disciplina = nil; assunto = nil }
+                        JurisChipsLimitados(itens: discs, limite: 14, rotulo: { $0 }, ativo: { disciplina == $0 }) { disciplina = $0; assunto = nil }
                     }
                     RotuloEstudo(texto: "Tribunal")
                     Flow {
-                        chip("Todos", on: tribunal == nil) { tribunal = nil }
-                        ForEach(tribunais, id: \.self) { t in chip(t, on: tribunal == t) { tribunal = t } }
+                        JurisChip(texto: "Todos", ativo: tribunal == nil) { tribunal = nil }
+                        ForEach(tribunais, id: \.self) { t in JurisChip(texto: t, ativo: tribunal == t) { tribunal = t } }
                     }
                     if disciplina != nil {
                         RotuloEstudo(texto: "Assunto")
                         Flow {
-                            chip("Todos", on: assunto == nil) { assunto = nil }
-                            ForEach(store.assuntosEm(store.entries.filter { $0.disciplina == disciplina! && (tribunal == nil || $0.tribunal == tribunal!) }).prefix(16), id: \.nome) { a in
-                                chip(a.nome, on: assunto == a.nome) { assunto = a.nome }
-                            }
+                            JurisChip(texto: "Todos", ativo: assunto == nil) { assunto = nil }
+                            JurisChipsLimitados(itens: assuntos, limite: 16, rotulo: { $0 }, ativo: { assunto == $0 }) { assunto = $0 }
                         }
                     }
                     HStack(spacing: 10) {
@@ -681,30 +627,14 @@ struct ProvaOralJurisView: View {
                         if escolhido != nil { Button("Voltar ao julgado do dia") { escolhido = nil }.buttonStyle(.bordered) }
                     }
                 }
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(Palette.secondaryInk)
-                    TextField("Buscar um verbete (ou use o julgado do dia)", text: $busca).textFieldStyle(.plain)
-                }
-                .padding(.horizontal, 12).padding(.vertical, 9)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
                 if !candidatos.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(candidatos) { e in
-                            Button { escolhido = e; busca = "" } label: {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Flow { EtiquetaEstudo(texto: e.tribunal, cor: e.fonteKind.cor); Text(e.titulo).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(Palette.titleInk) }
-                                    Text(e.enunciado).font(.system(size: 12)).lineLimit(2).foregroundStyle(Palette.secondaryInk)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 13).padding(.vertical, 9)
-                                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
-                                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
-                            }.buttonStyle(.plain)
+                            CartaoJuris(entry: e, estilo: .row, acao: { escolhido = e; busca = "" })
                         }
                     }
                 }
-                let alvo = escolhido ?? JulgadoDoDiaView().verbete
+                let alvo = escolhido ?? store.verbeteDoDia
                 if let e = alvo {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
@@ -721,14 +651,12 @@ struct ProvaOralJurisView: View {
                         ProvaOralView(entry: e).id(e.id)
                     }
                     .padding(20)
-                    .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
-                    .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
+                    .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
+                    .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
                 }
             }
             .padding(.horizontal, 28).padding(.vertical, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .background(Palette.appBackground)
     }
 }
 
@@ -834,35 +762,5 @@ enum ProvaOralLocal {
             faltou: faltou.isEmpty ? nil : ["Não apareceu na resposta: " + faltou.prefix(6).joined(separator: ", ")],
             modelo: texto
         )
-    }
-}
-
-// MARK: - Flow (fileira que QUEBRA de linha) — corrige o estouro de largura no iPad.
-// Fileiras de etiquetas/KPIs eram HStack rígido: cabiam no Mac (janela larga) e
-// ultrapassavam a borda no iPad, sobretudo em retrato ou com a barra lateral aberta,
-// porque HStack nunca quebra linha sozinho. Layout protocol (iOS 16+) resolve sem
-// depender de largura fixa nem de ScrollView horizontal escondendo conteúdo.
-struct Flow: Layout {
-    var espacamento: CGFloat = 6
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let largura = proposal.width ?? .infinity
-        var x: CGFloat = 0, y: CGFloat = 0, alturaLinha: CGFloat = 0
-        for v in subviews {
-            let t = v.sizeThatFits(.unspecified)
-            if x > 0 && x + t.width > largura { x = 0; y += alturaLinha + espacamento; alturaLinha = 0 }
-            x += t.width + espacamento
-            alturaLinha = max(alturaLinha, t.height)
-        }
-        return CGSize(width: largura, height: y + alturaLinha)
-    }
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x: CGFloat = bounds.minX, y: CGFloat = bounds.minY, alturaLinha: CGFloat = 0
-        for v in subviews {
-            let t = v.sizeThatFits(.unspecified)
-            if x > bounds.minX && x + t.width > bounds.maxX { x = bounds.minX; y += alturaLinha + espacamento; alturaLinha = 0 }
-            v.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(t))
-            x += t.width + espacamento
-            alturaLinha = max(alturaLinha, t.height)
-        }
     }
 }

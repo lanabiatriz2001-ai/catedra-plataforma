@@ -76,8 +76,8 @@ struct ResumoSemanalCard: View {
                 vazio
             }
         }
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: Palette.accent.opacity(0.12), radius: 14, y: 6)
         .padding(.horizontal, 26)
     }
@@ -85,7 +85,7 @@ struct ResumoSemanalCard: View {
     // Faixa gradiente (vitrine) com título serifado + estado do cache.
     private var header: some View {
         HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 11, style: .continuous)
+            RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
                 .fill(LinearGradient(colors: [Palette.accent, Palette.accentSoft],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(width: 38, height: 38)
@@ -141,7 +141,7 @@ struct ResumoSemanalCard: View {
                 .lineSpacing(2.5)
                 .padding(.horizontal, 18).padding(.vertical, 13)
             if let erro {
-                Text(erro).font(.system(size: 11.5)).foregroundStyle(.red)
+                Text(erro).font(.system(size: 11.5)).foregroundStyle(Palette.bad)
                     .padding(.horizontal, 18).padding(.bottom, 12)
             }
         }
@@ -194,7 +194,7 @@ struct ResumoSemanalCard: View {
                             }
                             .padding(10)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(RoundedRectangle(cornerRadius: 10)
+                            .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
                                 .fill(RamoStyle.color(hit.disciplina).opacity(0.06)))
                         }
                     }
@@ -202,17 +202,17 @@ struct ResumoSemanalCard: View {
                 if !r.alerta.isEmpty {
                     HStack(alignment: .top, spacing: 9) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 12)).foregroundStyle(.orange)
+                            .font(.system(size: 12)).foregroundStyle(Palette.warn)
                         Text(r.alerta).font(.system(size: 12, weight: .medium))
                             .foregroundStyle(Palette.titleInk)
                             .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(11)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.orange.opacity(0.10)))
+                    .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.warn.opacity(0.10)))
                 }
                 HStack {
-                    Button { store.selecao = .novidades; store.selectedID = nil } label: {
+                    Button { store.ir(.novidades) } label: {
                         Label("Ver os julgados", systemImage: "arrow.right")
                             .font(.system(size: 11.5, weight: .semibold))
                             .foregroundStyle(Palette.accent)
@@ -220,7 +220,7 @@ struct ResumoSemanalCard: View {
                     .buttonStyle(.plain)
                     Spacer()
                     if let erro {
-                        Text(erro).font(.system(size: 11)).foregroundStyle(.red)
+                        Text(erro).font(.system(size: 11)).foregroundStyle(Palette.bad)
                     }
                 }
             }

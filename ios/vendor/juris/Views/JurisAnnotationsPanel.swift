@@ -58,7 +58,7 @@ private struct JurisAnnotationCard: View {
         VStack(alignment: .leading, spacing: 8) {
             Button(action: onJump) {
                 HStack(alignment: .top, spacing: 8) {
-                    RoundedRectangle(cornerRadius: 2).fill(Color(hex: mark.colorHex ?? "#8FBEF0")).frame(width: 3)
+                    RoundedRectangle(cornerRadius: 2).fill(mark.colorHex.map { Color(hex: $0) } ?? Palette.accent).frame(width: 3)
                     Label(mark.kind.nome, systemImage: mark.kind.simbolo)
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(Palette.secondaryInk)

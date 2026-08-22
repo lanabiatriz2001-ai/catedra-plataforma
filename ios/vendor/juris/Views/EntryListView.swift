@@ -263,7 +263,7 @@ struct EdicoesListView: View {
             } label: {
                 HStack(spacing: 12) {
                     Text("\(ed.numero)")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(Palette.fonteJT)
                         .frame(width: 44, height: 34)
                         .background(Palette.fonteJT.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
@@ -577,7 +577,7 @@ struct InfoEdicoesView: View {
                 HStack(spacing: 12) {
                     VStack(spacing: 0) {
                         Text("\(ed.numero)")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(fonte.cor)
                     }
                     .frame(width: 52, height: 34)

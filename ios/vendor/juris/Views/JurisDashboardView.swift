@@ -39,7 +39,7 @@ struct JurisDashboardView: View {
             // fica só no topo — aqui embaixo seria repetir a mesma coisa duas vezes.
             // Checklist de leitura PRÓPRIA do CátedraJURIS — dados independentes do
             // LEGIS, cada app com o seu, para não misturar metas de leis com as de jurisprudência.
-            if partes.contains(.checklist) { JurisChecklistMiniCard(openChecklist: { store.selecao = .checklist }) }
+            if partes.contains(.checklist) { JurisChecklistMiniCard(openChecklist: { store.ir(.checklist) }) }
             if partes.contains(.kpis) { kpiGrid }
             if partes.contains(.atalhos) { secao("Baralhos e revisão", "bolt.horizontal.fill") { acoesRapidas } }
             if partes.contains(.ofensiva) { secao("Sua ofensiva", "flame.fill") { heatmap } }
@@ -54,13 +54,10 @@ struct JurisDashboardView: View {
         .sheet(isPresented: $mostrarBaralho) { BaralhoView() }
     }
 
-    /// Cabeçalho de seção idêntico ao das prateleiras (símbolo em acento + título serifado).
+    /// Cabeçalho de seção idêntico ao das prateleiras (JurisSecaoTitulo).
     private func secao<C: View>(_ titulo: String, _ simbolo: String, @ViewBuilder _ conteudo: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 11) {
-            HStack(spacing: 7) {
-                Image(systemName: simbolo).font(.system(size: 12)).foregroundStyle(Palette.accent)
-                Text(titulo).font(Typo.serifTitle(17, .bold)).foregroundStyle(Palette.titleInk)
-            }
+            JurisSecaoTitulo(titulo: titulo, simbolo: simbolo)
             conteudo()
         }
     }
@@ -110,14 +107,14 @@ struct JurisDashboardView: View {
                 }
             }
             .padding(14)
-            .background(Color.white.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
+            .background(Color.white.opacity(0.14), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
         }
         .padding(22)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             LinearGradient(colors: ThemeState.t.heroStops,
                            startPoint: .topLeading, endPoint: .bottomTrailing),
-            in: RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)))
+            in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
     }
 
     // Botões ± da meta — vivem no hero (gradiente): vidro branco.
@@ -136,7 +133,7 @@ struct JurisDashboardView: View {
         let s = store.streak
         return HStack(spacing: 8) {
             Image(systemName: "flame.fill").font(.system(size: 18))
-                .foregroundStyle(s > 0 ? Color.orange : .white.opacity(0.45))
+                .foregroundStyle(s > 0 ? Palette.warn : .white.opacity(0.45))
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(s)").font(Typo.serifTitle(19, .bold)).foregroundStyle(.white)
                 Text(s == 1 ? "dia seguido" : "dias seguidos")
@@ -144,46 +141,7 @@ struct JurisDashboardView: View {
             }
         }
         .padding(.horizontal, 13).padding(.vertical, 8)
-        .background(Color.white.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
-    }
-
-    // MARK: Verbete do dia
-
-    private func verbeteDoDiaCard(_ e: JurisEntry) -> some View {
-        Button { store.lerCheio(e.id) } label: {
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        FonteBadge(fonte: e.fonteKind)
-                        if let s = e.situacao { SituacaoPill(texto: s) }
-                    }
-                    Text(e.titulo).font(Typo.serifTitle(20, .bold)).foregroundStyle(Palette.titleInk)
-                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                    Text(e.enunciado).font(Typo.serifBody(13)).foregroundStyle(Palette.bodyInk)
-                        .lineLimit(3).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
-                    HStack(spacing: 6) {
-                        Image(systemName: "book.fill").font(.system(size: 10))
-                        Text("Ler inteiro teor").font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .background(Palette.accent, in: Capsule())
-                    .padding(.top, 2)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                LinearGradient(colors: [e.fonteKind.cor.opacity(0.14), Palette.cardBackground],
-                               startPoint: .topLeading, endPoint: .bottomTrailing),
-                in: RoundedRectangle(cornerRadius: 16))
-            .overlay(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2).fill(e.fonteKind.cor).frame(width: 3.5).padding(.vertical, 16)
-            }
-            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Palette.hairline, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
+        .background(Color.white.opacity(0.14), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
     }
 
     // MARK: Calendário de ofensiva (heatmap estilo GitHub, lê leiturasPorDia)
@@ -217,8 +175,8 @@ struct JurisDashboardView: View {
             }
         }
         .padding(15)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
     }
 
@@ -240,10 +198,10 @@ struct JurisDashboardView: View {
     private func corIntensidade(_ n: Int) -> Color {
         switch n {
         case 0: return Palette.secondaryInk.opacity(0.12)
-        case 1...2: return Palette.fonteSTJ.opacity(0.35)
-        case 3...5: return Palette.fonteSTJ.opacity(0.55)
-        case 6...9: return Palette.fonteSTJ.opacity(0.78)
-        default: return Palette.fonteSTJ
+        case 1...2: return Palette.ok.opacity(0.35)
+        case 3...5: return Palette.ok.opacity(0.55)
+        case 6...9: return Palette.ok.opacity(0.78)
+        default: return Palette.ok
         }
     }
 
@@ -252,21 +210,20 @@ struct JurisDashboardView: View {
     private var kpiGrid: some View {
         let cols = [GridItem(.adaptive(minimum: 158), spacing: 12)]
         return LazyVGrid(columns: cols, spacing: 12) {
-            kpi("Verbetes", store.totalCount, "square.stack.3d.up.fill", Palette.accent) { store.selecao = .todos }
-            kpi("Lidos", store.totalLidos, "checkmark.circle.fill", Palette.fonteSTJ) { store.selecao = .todos }
-            kpi("Favoritos", store.favorites.count, "star.fill", Palette.importante) { store.selecao = .favoritos }
-            kpi("Anotações", store.richNotes.count, "square.and.pencil", Palette.fonteJT) { store.selecao = .anotacoes }
+            kpi("Verbetes", store.totalCount, "square.stack.3d.up.fill", Palette.accent) { store.ir(.todos); store.filtro = .todos }
+            // "Lidos" abre a lista de LIDOS (Filtro.lidos) — antes caía em "Todos" sem filtro.
+            kpi("Lidos", store.totalLidos, "checkmark.circle.fill", Palette.ok) { store.ir(.todos); store.filtro = .lidos }
+            kpi("Favoritos", store.favorites.count, "star.fill", Palette.importante) { store.ir(.favoritos) }
+            kpi("Anotações", store.richNotes.count, "square.and.pencil", Palette.fonteJT) { store.ir(.anotacoes) }
             kpi("Coleções", store.colecoes.count, "folder.fill", Palette.fonteRG) {
-                if let c = store.colecoes.first { store.selecao = .colecao(c.id) } else { store.selecao = .todos }
+                if let c = store.colecoes.first { store.ir(.colecao(c.id)) } else { store.ir(.todos) }
             }
-            kpi("Novidades", store.novidadesNaoVistas, "sparkles", Palette.fonteInfoSTF) { store.selecao = .novidades }
+            kpi("Novidades", store.novidadesNaoVistas, "sparkles", Palette.fonteInfoSTF) { store.ir(.novidades) }
         }
     }
 
     private func kpi(_ titulo: String, _ valor: Int, _ icone: String, _ cor: Color, _ acao: @escaping () -> Void) -> some View {
-        Button {
-            store.selectedID = nil; store.leituraID = nil; acao()
-        } label: {
+        Button(action: acao) {
             HStack(spacing: 11) {
                 ZStack {
                     Circle().fill(cor.opacity(0.14)).frame(width: 34, height: 34)
@@ -280,11 +237,11 @@ struct JurisDashboardView: View {
             }
             .padding(13)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
             .overlay(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3).padding(.vertical, 12)
             }
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
             .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
         }
         .buttonStyle(.plain)
@@ -319,9 +276,9 @@ struct JurisDashboardView: View {
             .buttonStyle(.plain)
             Button { abrirRevisao() } label: { atalhoCard("Cartões (folhear)", "sparkles.rectangle.stack", Palette.fonteTSE) }
                 .buttonStyle(.plain)
-            Button { store.selectedID = nil; store.leituraID = nil; store.selecao = .tjroHub } label: { atalhoCard("Central TJRO", "building.2.fill", Palette.fonteTJRO) }
+            Button { store.ir(.tjroHub) } label: { atalhoCard("Central TJRO", "building.2.fill", Palette.fonteTJRO) }
                 .buttonStyle(.plain)
-            Button { store.selectedID = nil; store.selecao = .indice } label: { atalhoCard("Índice", "textformat.abc", Palette.fonteRG) }
+            Button { store.ir(.indice) } label: { atalhoCard("Índice", "textformat.abc", Palette.fonteRG) }
                 .buttonStyle(.plain)
         }
     }
@@ -347,8 +304,8 @@ struct JurisDashboardView: View {
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
         .frame(maxWidth: .infinity)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 
     private func abrirFlash(_ deck: [JurisEntry], _ titulo: String) {
@@ -370,8 +327,8 @@ struct JurisDashboardView: View {
             ForEach(fontesDestaque, id: \.self) { f in fonteLinha(f) }
         }
         .padding(15)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
     }
 
@@ -379,7 +336,7 @@ struct JurisDashboardView: View {
         let total = store.totalDaFonte(f)
         let lidos = store.lidosDaFonte(f)
         let frac = total == 0 ? 0 : Double(lidos) / Double(total)
-        return Button { store.selectedID = nil; store.leituraID = nil; store.selecao = .fonte(f) } label: {
+        return Button { store.ir(.fonte(f)) } label: {
             HStack(spacing: 10) {
                 Image(systemName: f.simbolo).font(.system(size: 12)).foregroundStyle(f.cor).frame(width: 20)
                 Text(f.nome).font(.system(size: 12.5, weight: .medium)).foregroundStyle(Palette.bodyInk)

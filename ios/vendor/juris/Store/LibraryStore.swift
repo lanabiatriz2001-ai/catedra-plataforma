@@ -71,6 +71,17 @@ final class LibraryStore {
 
     var checklistPendingCount: Int { readingChecklist.filter { !$0.done }.count }
 
+    /// NAVEGAÇÃO ÚNICA: toda troca de página passa por aqui (sidebar, Home, painel,
+    /// hubs). Zera a busca global e sai da leitura — antes havia cinco cópias desta
+    /// função e a Home navegava sem limpar o `searchText`, abrindo Favoritos já
+    /// filtrados por um termo antigo sem aviso.
+    func ir(_ s: Selecao) {
+        searchText = ""
+        leituraID = nil
+        selectedID = nil
+        selecao = s
+    }
+
     /// Adiciona uma meta de leitura livre. Pode ser vinculada a uma matéria (do
     /// edital ou de "Ramos do Direito") via linkedCategoryLabel — sem vínculo a
     /// norma (linkedLawID fica sempre nil aqui, é conceito exclusivo do LEGIS).
@@ -137,6 +148,7 @@ final class LibraryStore {
 
     init() {
         loadState()
+        registrarFlushNoCicloDeVida()
     }
 
     // MARK: - Carregamento do corpus
@@ -362,7 +374,7 @@ final class LibraryStore {
             return entries.filter { favorites.contains($0.id) }
         case .anotacoes:
             return entries.filter { hasAnnotation($0.id) }
-        case .inicio, .indice, .novidades, .tjroHub, .checklist, .plano, .gradeInformativos, .julgadoDoDia, .provaOral, .oralBancas, .simulado:
+        case .inicio, .hoje, .indice, .novidades, .tjroHub, .checklist, .plano, .gradeInformativos, .julgadoDoDia, .provaOral, .oralBancas, .simulado:
             return []   // views dedicadas cuidam da navegação
         case .fonte(let f):
             return entries.filter { $0.fonteKind == f }
@@ -468,6 +480,7 @@ final class LibraryStore {
         switch filtro {
         case .todos: return true
         case .naoLidos: return !lidos.contains(e.id)
+        case .lidos: return lidos.contains(e.id)
         case .vigentes: return e.situacaoKind == .vigente
         case .canceladas: return e.situacaoKind == .cancelada
         case .superadas: return e.situacaoKind == .superada
@@ -564,6 +577,7 @@ final class LibraryStore {
         switch f {
         case .todos: return base.count
         case .naoLidos: return base.lazy.filter { !self.lidos.contains($0.id) }.count
+        case .lidos: return base.lazy.filter { self.lidos.contains($0.id) }.count
         case .vigentes: return base.lazy.filter { $0.situacaoKind == .vigente }.count
         case .canceladas: return base.lazy.filter { $0.situacaoKind == .cancelada }.count
         case .superadas: return base.lazy.filter { $0.situacaoKind == .superada }.count
@@ -1168,7 +1182,49 @@ final class LibraryStore {
         }
     }
 
+    // DEBOUNCE da gravação: cada `didSet` chamava persist() na hora — marcar 20 lidos
+    // eram 40 gravações síncronas do estado inteiro (com RTF) + 40 synchronize() no KVS.
+    // Agora a gravação espera ~300 ms de silêncio; o formato do arquivo é o MESMO, e a
+    // última alteração nunca se perde: `flushPersist()` grava na hora ao fechar/suspender
+    // o app (observadores registrados no init) e em `exportarBackup`.
+    private var persistTask: Task<Void, Never>?
+    private var persistPendente = false
+
     private func persist() {
+        persistPendente = true
+        persistTask?.cancel()
+        persistTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            self?.persistAgora()
+        }
+    }
+
+    /// Grava imediatamente o que estiver pendente (fechar/suspender o app, backup).
+    func flushPersist() {
+        persistTask?.cancel(); persistTask = nil
+        if persistPendente { persistAgora() }
+    }
+
+    private func registrarFlushNoCicloDeVida() {
+        #if canImport(UIKit)
+        let nomes: [Notification.Name] = [UIApplication.willTerminateNotification,
+                                          UIApplication.didEnterBackgroundNotification,
+                                          UIApplication.willResignActiveNotification]
+        #else
+        let nomes: [Notification.Name] = [NSApplication.willTerminateNotification,
+                                          NSApplication.didResignActiveNotification,
+                                          NSApplication.willHideNotification]
+        #endif
+        for n in nomes {
+            NotificationCenter.default.addObserver(forName: n, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.flushPersist() }
+            }
+        }
+    }
+
+    private func persistAgora() {
+        persistPendente = false
         let s = Persisted(favorites: Array(favorites), recents: recents,
                           importantes: Array(marcadosImportantes),
                           annotations: nil,
@@ -1200,6 +1256,7 @@ final class LibraryStore {
 
     /// Exporta todos os dados pessoais para um arquivo (backup).
     func exportarBackup() -> Data? {
+        flushPersist()
         let s = Persisted(favorites: Array(favorites), recents: recents,
                           importantes: Array(marcadosImportantes), annotations: nil,
                           richNotes: richNotes, marks: marks,
