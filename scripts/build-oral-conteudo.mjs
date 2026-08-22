@@ -37,10 +37,37 @@ const texto = (arquivo) => execFileSync('python3', ['-c',
   'import sys,fitz;print("\\n".join(p.get_text() for p in fitz.open(sys.argv[1])))', arquivo],
   { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 
-const limpa = (s) => String(s || '')
+/** Fonte de símbolo (Symbol/Wingdings) codifica na área de uso privativo do Unicode: a
+ *  bolinha vira \uf0b7 e o hífen \uf02d. A convenção é o código Latin-1 somado a 0xF000,
+ *  então basta subtrair — sem isso, 263 bolinhas contavam como lixo de codificação. */
+const semPUA = (s) => String(s || '').replace(/[\uF020-\uF0FF]/g,
+  (c) => String.fromCharCode(c.charCodeAt(0) - 0xF000));
+
+/** Linha idêntica repetida 4+ vezes DENTRO DO MESMO ITEM é boilerplate, não conteúdo.
+ *  Por item, nunca no documento inteiro: um título de tópico que se repete em quatro
+ *  perguntas diferentes é legítimo nas quatro — deduplicá-lo global roubaria três delas. */
+const semRepeticao = (s) => {
+  const linhas = String(s || '').split('\n');
+  const conta = {};
+  for (const l of linhas) { const t = l.trim(); if (t.length >= 20) conta[t] = (conta[t] || 0) + 1; }
+  const repetidas = new Set(Object.keys(conta).filter((k) => conta[k] >= 4));
+  if (!repetidas.size) return s;
+  const vistas = new Set();
+  return linhas.filter((l) => {
+    const t = l.trim();
+    if (!repetidas.has(t)) return true;
+    if (vistas.has(t)) return false;
+    vistas.add(t); return true;
+  }).join('\n');
+};
+
+const limpa = (s) => (semPUA(s)
   .replace(/CEBRASPE[^\n]*\d+\/\d+\s*/g, ' ')          // rodapé de página
+  // Código interno do PDF da banca (<<D01_dAdm_A0100422_2321_130001A01>>): identifica o
+  // item no sistema do CEBRASPE e vazava para dentro da pergunta em 186 das 999.
+  .replace(/<<[A-Za-z0-9_]+>>|\[\[[A-Za-z0-9_]+\]\]/g, ' ')
   .replace(/­/g, '').replace(/[ \t]+/g, ' ')
-  .replace(/\n{3,}/g, '\n\n').trim();
+  .replace(/\n{3,}/g, '\n\n').trim());
 
 /** Reparte o PDF por PONTO e por QUESTÃO, casando cada questão ao seu padrão de resposta. */
 function extrair(t, m) {
@@ -83,8 +110,8 @@ function extrair(t, m) {
       orgao: m.orgao, ano: m.ano, cargo: m.cargo, banca: m.banca, carreira: m.carreira,
       ponto: pt ? pt.n : '', disciplina: disc,
       questao: marcas[k].n,
-      enunciado: enun.slice(0, 2600),
-      padrao: padrao.slice(0, 9000),
+      enunciado: semRepeticao(enun).slice(0, 2600),
+      padrao: semRepeticao(padrao).slice(0, 9000),
       topicos: topicos.slice(0, 1800),
       fonte: m.titulo || '', url: m.url,
     });

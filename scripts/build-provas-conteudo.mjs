@@ -8,26 +8,53 @@
 // Fonte: os próprios PDFs das bancas (CEBRASPE, FGV, TJs, OAB…), baixados dos endereços
 // que já estavam no acervo. Documentos públicos de concurso.
 //
-// Uso: node scripts/build-provas-conteudo.mjs <pasta-provas> <pasta-espelhos>
+// A extração em si mora em scripts/extrair_prova.py (a receita da auditoria: moldura fora,
+// página de regulamento fora, corte no marcador de início, espelho por find_tables). Aqui
+// ficam só a decisão de o que publicar e o registro honesto do que não deu para publicar.
+//
+// Uso: node scripts/build-provas-conteudo.mjs <pasta-provas> <pasta-espelhos> [--sem-portao]
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { audita, juntaEspelho } from './qualidade-texto.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DISC_ARQ = (() => { try { readFileSync(join(ROOT, 'discursivas-completo.js')); return 'discursivas-completo.js'; } catch { return 'discursivas.js'; } })();  // pós-split (21/08): a fonte íntegra é o -completo; rode build-discursivas-split.mjs depois
-const [PROVAS, ESPELHOS] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const SEM_PORTAO = argv.includes('--sem-portao');
+const [PROVAS, ESPELHOS] = argv.filter((a) => !a.startsWith('--'));
 if (!PROVAS || !existsSync(PROVAS)) { console.error('uso: node scripts/build-provas-conteudo.mjs <provas> <espelhos>'); process.exit(1); }
 
 const md5 = (s) => createHash('md5').update(String(s)).digest('hex').slice(0, 16);
-const lerPdf = (f) => {
+const RECEITA = join(ROOT, 'scripts', 'extrair_prova.py');
+
+/** Roda a receita de extração sobre um PDF. Devolve {texto, paginas, escaneado, tabelas}. */
+const lerPdf = (f, modo) => {
   try {
-    return execFileSync('python3', ['-c',
-      'import sys,fitz;print("\\n".join(p.get_text() for p in fitz.open(sys.argv[1])))', f],
-      { encoding: 'utf8', maxBuffer: 96 * 1024 * 1024, timeout: 60000 });
-  } catch { return ''; }
+    const saida = execFileSync('python3', [RECEITA, f, modo],
+      { encoding: 'utf8', maxBuffer: 96 * 1024 * 1024, timeout: 180000 });
+    return JSON.parse(saida);
+  } catch { return { texto: '', paginas: 0, escaneado: false, tabelas: 0, falhou: true }; }
 };
+
+/** Por que um texto não pôde ser publicado — em uma palavra, para a tela dizer a verdade.
+ *
+ *  A régua de recusa é a MESMA do portão (`qualidade-texto.mjs`). Publicar por um critério
+ *  e auditar por outro deixaria o portão vermelho sem conserto possível.
+ */
+function situacao(r) {
+  if (r.falhou) return 'ilegivel';
+  if (r.escaneado || !r.texto) return 'escaneado';
+  const sintomas = audita(r.texto);
+  if (sintomas.includes('curto')) return 'escaneado';
+  // mojibake é ASCII ("yyy/syDKZDhE"): a régua de caracteres não o pega, só a ausência
+  // de palavras portuguesas — e essa checagem precisa de texto suficiente para valer.
+  if (!textoLegivel(r.texto)) return 'ilegivel';
+  if (sintomas.length) return 'deformado';
+  return '';
+}
 
 /** PDF com fonte de codificação própria devolve mojibake ("yyy/syDKZDhE"). Detecta pela
  *  ausência de palavras portuguesas comuns num texto que deveria ser jurídico. */
@@ -45,24 +72,6 @@ const limpa = (t) => String(t || '')
   .replace(/[ \t ]+/g, ' ')
   .replace(/\n{3,}/g, '\n\n')
   .trim();
-
-/** Onde a prova de fato começa: as primeiras páginas são capa e instruções. */
-const RE_INICIO = /(PE[ÇC]A\s+PR[ÁA]TICO[-\s]PROFISSIONAL|QUEST[ÃA]O\s*(?:N?[º°.]?\s*)?0?1\b|DISSERTA[ÇC][ÃA]O|PROVA\s+DISCURSIVA\b(?!\s*P?\d*\s*,)|TEXTO\s+DEFINITIVO)/i;
-const RE_LIXO = /(ATEN[ÇC][ÃA]O|VERIFIQUE SE|INSTRU[ÇC][ÕO]ES|APARELHOS ELETR[ÔO]NICOS|FISCAL DE SALA|CADERNO DE RASCUNHO|folha de texto definitivo|ser[áa] desconsiderado|AGUARDE A ORDEM|BOA SORTE|^NOME DO\(A\)|^RG\s*$|^INCRI[ÇC][ÃA]O\s*$|^PR[ÉE]DIO\s*$|^SALA\s*$)/i;
-
-/** Enunciado: do primeiro marcador de questão/peça até o fim útil, sem as instruções. */
-function extrairEnunciado(t) {
-  const T = limpa(t);
-  const m = RE_INICIO.exec(T);
-  let corpo = m ? T.slice(m.index) : T;
-  // corta blocos de instrução que sobrevivem no meio
-  const paras = corpo.split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > 40 && !RE_LIXO.test(p));
-  corpo = paras.join('\n\n').trim();
-  if (corpo.length < 220) return '';
-  return corpo.slice(0, 7000);
-}
 
 /** Espelho: quesitos com pontuação. Aceita "1. …  0,50", "QUESITO 1", "ITEM 1 …" */
 function extrairEspelho(t) {
@@ -87,28 +96,27 @@ function extrairEspelho(t) {
   return out;
 }
 
-/** Fallback para espelhos sem quesito numerado (padrão CEBRASPE: prosa corrida sob
- *  "PADRÃO DE RESPOSTA DEFINITIVO"). Sem pontuação por item, mas com o texto oficial
- *  do que a banca aceitava como resposta — melhor que só o link do PDF. */
-const RE_INICIO_ESP = /(PADR[ÃA]O\s+DE\s+RESPOSTA|GABARITO\s+(?:OFICIAL|DEFINITIVO)|ESPELHO\s+DE\s+CORRE[ÇC][ÃA]O)/i;
-function extrairEspelhoTexto(t) {
-  const T = limpa(t);
-  const m = RE_INICIO_ESP.exec(T);
-  let corpo = m ? T.slice(m.index) : T;
-  const paras = corpo.split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > 40 && !RE_LIXO.test(p));
-  corpo = paras.join('\n\n').trim();
-  if (corpo.length < 220) return '';
-  return corpo.slice(0, 9000);
-}
-
 globalThis.window = {};
 new Function('window', readFileSync(join(ROOT, DISC_ARQ), 'utf8'))(globalThis.window);
 const LISTA = globalThis.window.CT_DISCURSIVAS || [];
 
-let comEnun = 0, comEsp = 0, comEspTexto = 0, ilegivel = 0, semArquivo = 0;
+let comEnun = 0, comEsp = 0, comEspTexto = 0, semArquivo = 0;
+const recusados = {};                       // situação -> quantas
+const conta = (s) => { if (s) recusados[s] = (recusados[s] || 0) + 1; };
 const cacheE = new Map(), cacheS = new Map();
+
+// Reprocessamento: a rodada anterior publicou texto deformado em 267 provas, e a ficha
+// original ficou guardada em `enunciadoOriginal`. Restaurar a ficha antes de reextrair é o
+// que permite rodar de novo — sem isso, a prova "já tem enunciado" e nunca seria revista.
+for (const q of LISTA) {
+  if (q.enunciadoOriginal) { q.enunciado = q.enunciadoOriginal; delete q.enunciadoOriginal; }
+  delete q.temTexto; delete q.textoSituacao; delete q.espelhoSituacao;
+  if (q.espelhoExtraido) {
+    delete q.espelhoExtraido; delete q.espelhoTexto;
+    if (Array.isArray(q.espelho)) { q.espelho = []; q.total = null; }
+  }
+}
+
 for (const q of LISTA) {
   const precisaEnun = /Prova oficial|Enunciado na prova oficial|não publicou a prova|nao publicou a prova/i.test(q.enunciado || '');
   // fallback: registros antigos (dataset de espelhos) não têm fonte_prova — a URL está
@@ -117,17 +125,18 @@ for (const q of LISTA) {
   // ---- enunciado
   if (precisaEnun && provaUrl) {
     const f = join(PROVAS, md5(provaUrl) + '.pdf');
-    if (!existsSync(f)) semArquivo++;
+    if (!existsSync(f)) { semArquivo++; q.textoSituacao = 'sem-pdf'; }
     else {
       if (!cacheE.has(provaUrl)) {
-        const t = lerPdf(f);
-        cacheE.set(provaUrl, textoLegivel(t) ? extrairEnunciado(t) : (t ? '__ILEGIVEL__' : ''));
+        const r = lerPdf(f, 'enunciado');
+        const mal = situacao(r);
+        cacheE.set(provaUrl, mal ? { mal } : { texto: r.texto.slice(0, 7000) });
       }
       const e = cacheE.get(provaUrl);
-      if (e === '__ILEGIVEL__') ilegivel++;
-      else if (e) {
+      if (e.mal) { q.textoSituacao = e.mal; conta(e.mal); }
+      else {
         q.enunciadoOriginal = q.enunciado;             // preserva a ficha da prova
-        q.enunciado = e;
+        q.enunciado = e.texto;
         q.temTexto = true;
         if (!q.fonte_prova) q.fonte_prova = provaUrl;
         comEnun++;
@@ -135,16 +144,31 @@ for (const q of LISTA) {
     }
   }
   // ---- espelho
-  if ((!q.espelho || !q.espelho.length) && !q.espelhoTexto && q.fonte_espelho && ESPELHOS) {
+  const jaTemEspelho = (q.espelho && q.espelho.length) || q.espelhoTexto;
+  if (!jaTemEspelho && !q.fonte_espelho) {
+    // A banca não publicou espelho para esta prova. Não é falha da extração, e a tela
+    // precisa dizer as duas coisas com palavras diferentes.
+    q.espelhoSituacao = 'nao-publicado';
+  } else if (!jaTemEspelho && ESPELHOS) {
     const f = join(ESPELHOS, md5(q.fonte_espelho) + '.pdf');
-    if (existsSync(f)) {
+    if (!existsSync(f)) q.espelhoSituacao = 'sem-pdf';
+    else {
       if (!cacheS.has(q.fonte_espelho)) {
-        const t = lerPdf(f);
-        if (!textoLegivel(t)) cacheS.set(q.fonte_espelho, { estruturado: [], texto: '' });
-        else cacheS.set(q.fonte_espelho, { estruturado: extrairEspelho(t), texto: extrairEspelhoTexto(t) });
+        const r = lerPdf(f, 'espelho');
+        // Os QUESITOS vêm primeiro: quando a banca publicou o espelho em tabela, os
+        // quesitos estruturados são o produto bom mesmo que a prosa da página seja curta
+        // ou suja. Descartá-los por causa da prosa jogaria fora o melhor que temos.
+        const estruturado = r.texto ? extrairEspelho(r.texto) : [];
+        if (estruturado.length >= 2 && !audita(juntaEspelho(estruturado)).length) {
+          cacheS.set(q.fonte_espelho, { estruturado });
+        } else {
+          const mal = situacao(r);
+          cacheS.set(q.fonte_espelho, mal ? { mal } : { texto: r.texto.slice(0, 9000) });
+        }
       }
-      const { estruturado, texto } = cacheS.get(q.fonte_espelho);
-      if (estruturado && estruturado.length) {
+      const { mal, estruturado, texto } = cacheS.get(q.fonte_espelho);
+      if (mal) { q.espelhoSituacao = mal; conta(mal); }
+      else if (estruturado && estruturado.length) {
         q.espelho = estruturado;
         q.total = Math.round(estruturado.reduce((s, x) => s + (x.pontos || 0), 0) * 100) / 100 || null;
         q.espelhoExtraido = true;
@@ -154,7 +178,7 @@ for (const q of LISTA) {
         q.espelhoTexto = texto;
         q.espelhoExtraido = true;
         comEspTexto++;
-      }
+      } else q.espelhoSituacao = 'escaneado';
     }
   }
 }
@@ -163,5 +187,15 @@ const src = readFileSync(join(ROOT, DISC_ARQ), 'utf8');
 const cab = src.slice(0, src.indexOf('window.CT_DISCURSIVAS'));
 writeFileSync(join(ROOT, DISC_ARQ), cab + 'window.CT_DISCURSIVAS = ' + JSON.stringify(LISTA, null, 1) + ';\n');
 console.log(`enunciados extraídos: ${comEnun} · espelhos (quesito) extraídos: ${comEsp} · espelhos (texto) extraídos: ${comEspTexto}`);
-console.log(`PDFs ilegíveis (fonte codificada): ${ilegivel} · sem arquivo baixado: ${semArquivo}`);
-console.log(`banco: ${LISTA.length} provas · com texto: ${LISTA.filter((q) => q.temTexto || !/Prova oficial|Enunciado na prova/i.test(q.enunciado)).length} · com espelho: ${LISTA.filter((q) => q.espelho && q.espelho.length).length}`);
+console.log(`banco: ${LISTA.length} provas · com texto: ${LISTA.filter((q) => q.temTexto || !/Prova oficial|Enunciado na prova/i.test(q.enunciado)).length} · com espelho: ${LISTA.filter((q) => (q.espelho && q.espelho.length) || q.espelhoTexto).length}`);
+console.log(`sem arquivo baixado: ${semArquivo} · recusados pelo portão: ${JSON.stringify(recusados)}`);
+
+// O split precisa rodar antes do portão: a auditoria lê discursivas-textos.js, que é
+// justamente o que o split produz. Auditar antes seria auditar a rodada passada.
+execFileSync('node', [join(ROOT, 'scripts', 'build-discursivas-split.mjs')], { stdio: 'inherit' });
+
+if (!SEM_PORTAO) {
+  // Portão de qualidade: texto deformado não é publicado (foi recusado acima), então o
+  // portão só pode ficar vermelho se algo escapou — e aí o build FALHA, de propósito.
+  execFileSync('node', [join(ROOT, 'scripts', 'auditar-provas.mjs'), '--portao'], { stdio: 'inherit' });
+}
