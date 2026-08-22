@@ -13,15 +13,20 @@ struct CatedraTheme {
     var sidebarBg: Color, sidebarText: Color, sidebarActiveBg: Color, sidebarActiveText: Color
     var heroStops: [Color]
     var isDark: Bool
+    // Semânticos e display espelhados do Cátedra (21/08/2026 — unificação visual)
+    var ok: Color = Color(hex: 0x0E7F58)
+    var warn: Color = Color(hex: 0xA36306)
+    var danger: Color = Color(hex: 0xC0392F)
+    var displaySerif: Bool = true
 
-    // Fallback (tema "clean" do Cátedra, claro, acento azul-royal) até a leitura chegar.
+    // Fallback = identidade PLANILHA (a aprovada): a 1ª pintura já nasce com a cara da casa.
     static let fallback = CatedraTheme(
-        bg: Color(hex: 0xF7F7F9), surface: Color(hex: 0xFFFFFF), surface2: Color(hex: 0xF5F5F5), border: Color(hex: 0xECECEC),
-        ink: Color(hex: 0x18181B), text2: Color(hex: 0x52525B), text3: Color(hex: 0x74747A),
-        accent: Color(hex: 0x4263EB), accentD: Color(hex: 0x2F49C0), radius: 12,
-        sidebarBg: Color(hex: 0x14192B), sidebarText: Color(hex: 0xB8C0D8),
-        sidebarActiveBg: Color.white.opacity(0.13), sidebarActiveText: Color(hex: 0xFFFFFF),
-        heroStops: [Color(hex: 0x4263EB), Color(hex: 0x2F49C0)], isDark: false)
+        bg: Color(hex: 0xF4F1EA), surface: Color(hex: 0xFFFDF8), surface2: Color(hex: 0xF0ECE1), border: Color(hex: 0xE3DDCE),
+        ink: Color(hex: 0x1F1C17), text2: Color(hex: 0x5C564A), text3: Color(hex: 0x7A7368),
+        accent: Color(hex: 0x0F7A57), accentD: Color(hex: 0x0B5E43), radius: 12,
+        sidebarBg: Color(hex: 0x1E2B3A), sidebarText: Color(hex: 0xB9C3CF),
+        sidebarActiveBg: Color(hex: 0x7FD4B5).opacity(0.18), sidebarActiveText: Color(hex: 0x7FD4B5),
+        heroStops: [Color(hex: 0x1E2B3A), Color(hex: 0x0F7A57)], isDark: false)
 }
 
 /// Estado global do tema (mutável; `main.swift` atualiza antes de montar/rebuild o host).
@@ -40,6 +45,13 @@ enum AppTheme {
     static var secondaryInk: Color     { ThemeState.t.text2 }
     static var stroke: Color           { ThemeState.t.border }
     static var softStroke: Color       { ThemeState.t.surface2 }
+    static var ok: Color               { ThemeState.t.ok }
+    static var warn: Color             { ThemeState.t.warn }
+    static var danger: Color           { ThemeState.t.danger }
+    /// Fonte de TÍTULO no padrão da casa: serifada quando o tema do Cátedra é serifado.
+    static func displayFont(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
+        .system(size: size, weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
+    }
     static var surface: Color          { ThemeState.t.surface }
     static var elevatedSurface: Color  { ThemeState.t.surface }
 

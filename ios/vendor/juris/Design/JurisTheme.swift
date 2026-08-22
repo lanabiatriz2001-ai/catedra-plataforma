@@ -73,7 +73,7 @@ enum Palette {
     // resumo semanal ia do acento para o escuro e saía sujo, e todo lugar que pedia um
     // fundo lavado recebia um fundo pesado. Suave é o acento LAVADO no fundo do tema.
     static var accentSoft: Color      { ThemeState.t.accent.opacity(ThemeState.t.isDark ? 0.22 : 0.12) }
-    static let importante             = Color.dynamic(light: "#E0A400", dark: "#F5C542") // âmbar = destaque
+    static var importante: Color      { ThemeState.t.warn }   // âmbar = destaque (espelhado do --warn do Cátedra)
 
     // Superfícies — tokens do Cátedra
     static var appBackground: Color    { ThemeState.t.bg }
@@ -139,7 +139,9 @@ enum Typo {
     }
     static func serifTitle(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
         if let fam = readingFamily { return Font.custom(fam, size: size).weight(weight) }
-        return .system(size: size, weight: weight, design: .default)
+        // Unificação (21/08/2026): título segue o display do tema do Cátedra — serifado
+        // no Planilha/Tribunal, sans nos temas frios. Um produto, uma tipografia.
+        return .system(size: size, weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
     }
     static func serifBody(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
         if let fam = readingFamily { return Font.custom(fam, size: size).weight(weight) }
