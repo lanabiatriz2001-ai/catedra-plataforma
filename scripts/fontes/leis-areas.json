@@ -1,0 +1,483 @@
+[
+ [
+  "SUS",
+  "Lei Orgânica da Saúde (SUS)",
+  {
+   "areas": [
+    "saude"
+   ]
+  }
+ ],
+ [
+  "Controle Social SUS",
+  "Participação e Controle Social no SUS",
+  {
+   "areas": [
+    "saude"
+   ]
+  }
+ ],
+ [
+  "ANVISA",
+  "Lei da Vigilância Sanitária (ANVISA)",
+  {
+   "areas": [
+    "saude"
+   ]
+  }
+ ],
+ [
+  "Planos de Saúde",
+  "Lei dos Planos de Saúde",
+  {
+   "areas": [
+    "saude"
+   ]
+  }
+ ],
+ [
+  "Saúde Mental",
+  "Lei da Saúde Mental",
+  {
+   "areas": [
+    "saude"
+   ]
+  }
+ ],
+ [
+  "Transplantes",
+  "Lei de Transplante de Órgãos",
+  {
+   "areas": [
+    "saude"
+   ]
+  }
+ ],
+ [
+  "Biossegurança",
+  "Lei de Biossegurança",
+  {
+   "areas": [
+    "saude"
+   ]
+  }
+ ],
+ [
+  "LOAS",
+  "Lei Orgânica da Assistência Social (LOAS)",
+  {
+   "areas": [
+    "social"
+   ]
+  }
+ ],
+ [
+  "SUAS",
+  "Lei do SUAS (altera a LOAS)",
+  {
+   "areas": [
+    "social"
+   ]
+  }
+ ],
+ [
+  "Profissão AS",
+  "Lei de Regulamentação da Profissão de Assistente Social",
+  {
+   "areas": [
+    "social"
+   ]
+  }
+ ],
+ [
+  "Ética AS",
+  "Código de Ética Profissional do/a Assistente Social",
+  {
+   "areas": [
+    "social"
+   ]
+  }
+ ],
+ [
+  "Estatuto do Idoso",
+  "Estatuto do Idoso",
+  {
+   "areas": [
+    "social"
+   ]
+  }
+ ],
+ [
+  "PNI",
+  "Política Nacional do Idoso",
+  {
+   "areas": [
+    "social"
+   ]
+  }
+ ],
+ [
+  "Estatuto PcD",
+  "Estatuto da Pessoa com Deficiência",
+  {
+   "areas": [
+    "social"
+   ]
+  }
+ ],
+ [
+  "SISAN",
+  "Lei da Segurança Alimentar (SISAN)",
+  {
+   "areas": [
+    "social"
+   ]
+  }
+ ],
+ [
+  "Abuso de Autoridade",
+  "Lei de Abuso de Autoridade",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "Desarmamento",
+  "Estatuto do Desarmamento",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "ORCRIM",
+  "Lei de Organização Criminosa",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "Interceptação",
+  "Lei de Interceptação Telefônica",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "Lavagem",
+  "Lei de Lavagem de Dinheiro",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "Hediondos",
+  "Lei dos Crimes Hediondos",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "Tortura",
+  "Lei de Tortura",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "Prisão Temporária",
+  "Lei da Prisão Temporária",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "Identificação Criminal",
+  "Lei da Identificação Criminal",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "CTB",
+  "Código de Trânsito Brasileiro",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "Tráfico de Pessoas",
+  "Lei de Tráfico de Pessoas",
+  {
+   "areas": [
+    "policial"
+   ]
+  }
+ ],
+ [
+  "LRF",
+  "Lei de Responsabilidade Fiscal",
+  {
+   "areas": [
+    "contas",
+    "fiscal"
+   ]
+  }
+ ],
+ [
+  "Lei 4.320",
+  "Normas Gerais de Direito Financeiro",
+  {
+   "areas": [
+    "contas",
+    "fiscal"
+   ]
+  }
+ ],
+ [
+  "LEF",
+  "Lei de Execução Fiscal",
+  {
+   "areas": [
+    "fiscal"
+   ]
+  }
+ ],
+ [
+  "Lei Kandir",
+  "Lei Kandir (ICMS)",
+  {
+   "areas": [
+    "fiscal"
+   ]
+  }
+ ],
+ [
+  "ISS",
+  "Lei do ISS (Imposto Sobre Serviços)",
+  {
+   "areas": [
+    "fiscal"
+   ]
+  }
+ ],
+ [
+  "Crimes Tributários",
+  "Crimes contra a Ordem Tributária e Econômica",
+  {
+   "areas": [
+    "fiscal"
+   ]
+  }
+ ],
+ [
+  "IBS/CBS",
+  "Lei do IBS, CBS e Imposto Seletivo (Reforma Tributária)",
+  {
+   "areas": [
+    "fiscal"
+   ]
+  }
+ ],
+ [
+  "Anticorrupção",
+  "Lei Anticorrupção",
+  {
+   "areas": [
+    "administrativa",
+    "contas"
+   ]
+  }
+ ],
+ [
+  "LAI",
+  "Lei de Acesso à Informação",
+  {
+   "areas": [
+    "administrativa",
+    "contas"
+   ]
+  }
+ ],
+ [
+  "Estatais",
+  "Lei das Estatais",
+  {
+   "areas": [
+    "contas"
+   ]
+  }
+ ],
+ [
+  "Concessões",
+  "Lei das Concessões e Permissões de Serviços Públicos",
+  {
+   "areas": [
+    "contas"
+   ]
+  }
+ ],
+ [
+  "PPP",
+  "Lei das Parcerias Público-Privadas (PPP)",
+  {
+   "areas": [
+    "contas"
+   ]
+  }
+ ],
+ [
+  "Lei 8.112",
+  "Estatuto dos Servidores Públicos Federais",
+  {
+   "areas": [
+    "administrativa"
+   ]
+  }
+ ],
+ [
+  "Lei 9.784",
+  "Lei do Processo Administrativo Federal",
+  {
+   "areas": [
+    "administrativa"
+   ]
+  }
+ ],
+ [
+  "Concursos",
+  "Lei Geral dos Concursos Públicos",
+  {
+   "areas": [
+    "administrativa"
+   ]
+  }
+ ],
+ [
+  "Ação Popular",
+  "Lei da Ação Popular",
+  {
+   "areas": [
+    "administrativa"
+   ]
+  }
+ ],
+ [
+  "DL 200",
+  "Organização da Administração Federal",
+  {
+   "areas": [
+    "administrativa"
+   ]
+  }
+ ],
+ [
+  "LDB",
+  "Lei de Diretrizes e Bases da Educação (LDB)",
+  {
+   "areas": [
+    "educacao"
+   ]
+  }
+ ],
+ [
+  "FUNDEB",
+  "Lei do FUNDEB",
+  {
+   "areas": [
+    "educacao"
+   ]
+  }
+ ],
+ [
+  "Primeira Infância",
+  "Marco Legal da Primeira Infância",
+  {
+   "areas": [
+    "educacao"
+   ]
+  }
+ ],
+ [
+  "Bullying",
+  "Lei de Combate ao Bullying",
+  {
+   "areas": [
+    "educacao"
+   ]
+  }
+ ],
+ [
+  "Celulares nas Escolas",
+  "Lei dos Celulares nas Escolas",
+  {
+   "areas": [
+    "educacao"
+   ]
+  }
+ ],
+ [
+  "LGPD",
+  "Lei Geral de Proteção de Dados (LGPD)",
+  {
+   "areas": [
+    "tecnologia"
+   ]
+  }
+ ],
+ [
+  "Marco Civil",
+  "Marco Civil da Internet",
+  {
+   "areas": [
+    "tecnologia"
+   ]
+  }
+ ],
+ [
+  "Lei do Software",
+  "Lei do Software",
+  {
+   "areas": [
+    "tecnologia"
+   ]
+  }
+ ],
+ [
+  "Direitos Autorais",
+  "Lei de Direitos Autorais",
+  {
+   "areas": [
+    "tecnologia"
+   ]
+  }
+ ],
+ [
+  "Digitalização",
+  "Lei da Digitalização de Documentos",
+  {
+   "areas": [
+    "tecnologia"
+   ]
+  }
+ ]
+]

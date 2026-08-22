@@ -437,56 +437,48 @@ window.ctPdfLib = (function(){
     </div>
 
     <sc-if value="{{ naoAdmin }}" hint-placeholder-val="{{ true }}">
+    <!-- Menu (21/08/2026): ordem = rotina de quem treina para concurso — ver o dia → treinar → consultar o acervo.
+         O que era "Sistema" (2ª fase, roteiros, LEGIS, JURIS, prioridade) sobe para Treino/Acervo. -->
     <nav style="display:flex;flex-direction:column;gap:3px;padding-top:6px;">
       <button data-view="inicio" onclick="{{ onNav }}" style="{{ navStyle.inicio }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12 12 3l9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Início</span></button>
       <button data-view="ciclo" onclick="{{ onNav }}" style="{{ navStyle.ciclo }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg><span>Ciclo de Estudos</span></button>
-      <button data-view="edital" onclick="{{ onNav }}" style="{{ navStyle.edital }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"></path></svg><span>Edital</span></button>
       <button data-view="revisoes" onclick="{{ onNav }}" style="{{ navStyle.revisoes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Revisões</span><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accent);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ revPendStr }}</span></sc-if></button>
-      <button data-view="simulados" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Simulados</span></button>
-      <button data-view="oral" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button>
-      <button data-view="redacao" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Redação</span></button>
       <button data-view="calendario" onclick="{{ onNav }}" style="{{ navCalendario }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"></path></svg><span>Calendário</span></button>
     </nav>
-
+    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Treino</div>
+    <nav style="display:flex;flex-direction:column;gap:3px;">
+      <button data-view="simulados" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Simulados</span></button>
+      <button data-view="redacao" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Redação</span></button>
+      <button data-view="oral" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button>
+      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
+      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>Simulado 2ª fase</span></button></sc-if>
+      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="prioridade" onclick="{{ onNav }}" style="{{ navPrioridade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round"></path></svg><span>Prioridade</span></button></sc-if>
+    </nav>
+    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Acervo</div>
+    <nav style="display:flex;flex-direction:column;gap:3px;">
+      <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraLEGIS</span></button>
+      <sc-if value="{{ areaJuris }}" hint-placeholder-val="{{ true }}"><button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraJURIS</span></button></sc-if>
+      <sc-if value="{{ temAreaMod }}" hint-placeholder-val="{{ true }}"><button data-view="areamod" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button></sc-if>
+      <button data-view="edital" onclick="{{ onNav }}" style="{{ navStyle.edital }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"></path></svg><span>Edital</span></button>
+      <button data-view="bancas" onclick="{{ onNav }}" style="{{ navBancas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Bancas</span></button>
+    </nav>
     <sc-if value="{{ navToggleShow }}" hint-placeholder-val="{{ true }}">
       <button onclick="{{ toggleNav }}" aria-label="Mostrar mais opções" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;cursor:pointer;padding:11px 13px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;font-family:inherit;background:transparent;color:var(--stext);opacity:.85;margin-top:6px;">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" style="{{ navChevStyle }}"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ navMoreLabel }}</span>
       </button>
     </sc-if>
-
     <sc-if value="{{ navShowMore }}" hint-placeholder-val="{{ false }}">
      <div>
-    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Desempenho</div>
+    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Mais opções</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="analise" onclick="{{ onNav }}" style="{{ navStyle.analise }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 3v18h18M7 14l3-4 4 3 5-7" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Desempenho</span></button>
       <button data-view="conquistas" onclick="{{ onNav }}" style="{{ navStyle.conquistas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M7 4h10v4a5 5 0 0 1-10 0V4ZM5 4H3v2a3 3 0 0 0 3 3M19 4h2v2a3 3 0 0 1-3 3M9 17h6M8 21h8M12 13v4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Metas &amp; Conquistas</span></button>
-      <button data-view="historico" onclick="{{ onNav }}" style="{{ navHistorico }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3M3 4v3.3h3.3M12 8v4l3 2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Histórico</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
-    </nav>
-    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Bem-estar</div>
-    <nav style="display:flex;flex-direction:column;gap:3px;">
-      <button data-view="bemestar" onclick="{{ onNav }}" style="{{ navBem }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21C7 17.5 4 14 4 10.2 4 7.3 6.2 5 9 5c1.7 0 3 .9 3 .9s1.3-.9 3-.9c2.8 0 5 2.3 5 5.2 0 3.8-3 7.3-8 10.8Z" stroke-linejoin="round"></path></svg><span>Bem-estar</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
-      <button data-view="comunidade" onclick="{{ onNav }}" style="{{ navComunidade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M16 14a4 4 0 1 0-8 0M12 7a3 3 0 1 0 0 0M3 20a6 6 0 0 1 18 0" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="3"></circle></svg><span>Comunidade</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
-    </nav>
-    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Sistema</div>
-    <nav style="display:flex;flex-direction:column;gap:3px;">
-      <button data-view="bancas" onclick="{{ onNav }}" style="{{ navBancas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Bancas</span><span style="margin-left:auto;background:#f5b301;color:#3a2c00;font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;height:18px;border-radius:99px;display:flex;align-items:center;padding:0 7px;">NOVO</span></button>
-      <!-- Módulo de estudo da área: o conteúdo específico da carreira (corpo humano,
-           SUAS, tributos…). Só aparece nas áreas que têm um. -->
-      <sc-if value="{{ temAreaMod }}" hint-placeholder-val="{{ true }}">
-      <button data-view="areamod" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button>
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="prioridade" onclick="{{ onNav }}" style="{{ navPrioridade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round"></path></svg><span>Prioridade</span></button></sc-if>
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>2ª fase</span></button></sc-if>
-      </sc-if>
-      <!-- LEGIS vale para toda área (a legislação da área vem dentro dele); só as
-           súmulas/jurisprudência ficam nas carreiras jurídicas -->
-      <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraLEGIS</span></button>
-      <sc-if value="{{ areaJuris }}" hint-placeholder-val="{{ true }}">
-      <button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraJURIS</span></button>
-      </sc-if>
-      
+      <button data-view="historico" onclick="{{ onNav }}" style="{{ navHistorico }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3M3 4v3.3h3.3M12 8v4l3 2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Histórico</span></button>
+      <button data-view="comunidade" onclick="{{ onNav }}" style="{{ navComunidade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M16 14a4 4 0 1 0-8 0M12 7a3 3 0 1 0 0 0M3 20a6 6 0 0 1 18 0" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="3"></circle></svg><span>Comunidade</span></button>
+      <button data-view="bemestar" onclick="{{ onNav }}" style="{{ navBem }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21C7 17.5 4 14 4 10.2 4 7.3 6.2 5 9 5c1.7 0 3 .9 3 .9s1.3-.9 3-.9c2.8 0 5 2.3 5 5.2 0 3.8-3 7.3-8 10.8Z" stroke-linejoin="round"></path></svg><span>Bem-estar</span></button>
       <button data-view="ajustes" onclick="{{ onNav }}" style="{{ navStyle.ajustes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.3 2.5h4l.3-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" stroke-linejoin="round"></path></svg><span>Ajustes</span></button>
     </nav>
+     </div>
     </sc-if>
     <!-- Conta admin-only (ex.: 2001): não vê a plataforma de estudo, só o painel + Sair. -->
     <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
@@ -1257,7 +1249,7 @@ window.ctPdfLib = (function(){
         </div>
 
         <!-- REVISÕES -->
-        <div class="cth-sec"><span class="eyebrow">Memória</span><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeN }}</b> para hoje · <button data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
+        <div class="cth-sec"><span class="eyebrow">Memória</span><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
         <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
           <div class="cth-revs">
             <sc-for list="{{ homeProxRev }}" as="r" hint-placeholder-count="5">
@@ -1442,7 +1434,7 @@ window.ctPdfLib = (function(){
         <!-- CICLO NO LAYOUT DA FOLHA DO ROTEIRO (cards por dia) -->
         <div style="background:#1e2b3a;border-radius:var(--radius);padding:22px 26px;color:#fff;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;">
           <div>
-            <div style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:700;letter-spacing:.22em;color:#7fd4b5;">PLANEJAMENTO SEMANAL · MAGISTRATURA ESTADUAL</div>
+            <div style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:700;letter-spacing:.22em;color:#7fd4b5;">PLANEJAMENTO SEMANAL · {{ objetivoShortUp }}</div>
             <div style="display:flex;align-items:center;gap:11px;margin-top:5px;">
               <sc-if value="{{ isManual }}" hint-placeholder-val="{{ true }}"><button data-dir="-1" onclick="{{ roteiroNav }}" disabled="{{ cicloFolhaHeader.antDis }}" title="Roteiro anterior" style="width:30px;height:30px;border-radius:99px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.10);color:#fff;font-size:var(--fs-xl);line-height:1;cursor:{{ cicloFolhaHeader.antCur }};flex:none;padding:0;opacity:{{ cicloFolhaHeader.antOp }};">‹</button></sc-if>
               <div style="font-family:var(--display);font-size:26px;font-weight:700;">{{ cicloFolhaHeader.titulo }}</div>
@@ -1767,7 +1759,7 @@ window.ctPdfLib = (function(){
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:var(--fs-xs);color:var(--text3);">Conclusão do edital</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edPct }}<span style="font-size:var(--fs-lg);color:var(--text3);font-family:var(--body);">%</span></div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:var(--fs-xs);color:var(--text3);">Tópicos concluídos</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edDone }}<span style="font-size:var(--fs-lg);color:var(--text3);font-family:var(--body);">/{{ edTotal }}</span></div></div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:var(--fs-xs);color:var(--text3);">Disciplinas em dia</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edAlta }}<span style="font-size:var(--fs-lg);color:var(--text3);font-family:var(--body);">/{{ edTotal }}</span></div></div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:var(--fs-xs);color:var(--text3);">Disciplinas em dia</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edAlta }}<span style="font-size:var(--fs-lg);color:var(--text3);font-family:var(--body);">/{{ edDiscN }}</span></div></div>
         </div>
 
         <!-- ================= CADASTRO / IMPORTAÇÃO (no final) ================= -->
@@ -2020,7 +2012,7 @@ window.ctPdfLib = (function(){
             </sc-for>
           </div>
           <sc-if value="{{ bancoVazio }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;text-align:center;color:var(--text3);font-size:var(--fs-base);">Nenhuma prova com esses filtros. Limpe a busca ou troque a carreira — o banco tem 648 provas.</div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(16,24,40,.04);padding:26px;text-align:center;color:var(--text3);font-size:var(--fs-base);">Nenhuma prova com esses filtros. Limpe a busca ou troque a carreira — o banco tem {{ redKpiProvas }} provas.</div>
           </sc-if>
 
           <sc-if value="{{ redHistTem }}" hint-placeholder-val="{{ false }}">
@@ -3375,7 +3367,7 @@ window.ctPdfLib = (function(){
               <div><label for="aj-f-modoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Modo padrão</label><select id="aj-f-modoPadrao" data-k="modoPadrao" value="{{ orient.modoPadrao }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="livre">Livre</option><option value="pomodoro">Pomodoro</option><option value="imersao">Imersão</option></select></div>
               <div><label for="aj-f-aoAbrir" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ao abrir a plataforma</label><select id="aj-f-aoAbrir" data-k="aoAbrir" value="{{ orient.aoAbrir }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="foco">Mostrar foco do dia</option><option value="inicio">Ir para o Início</option><option value="ciclo">Abrir o Ciclo</option></select></div>
             </div>
-            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:14px;line-height:1.5;">O comportamento ao registrar (abrir registro ao parar, marcar bloco concluído, criar revisão automática) fica logo abaixo, no card <b style="color:var(--text2);">Automação ao registrar</b>.</div>
+            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:14px;line-height:1.5;">O comportamento ao registrar (abrir registro ao parar, marcar bloco concluído, criar revisão automática) fica logo abaixo, no card <b style="color:var(--text2);">Ajustes de foco</b>.</div>
           </div>
         </div>
 
@@ -3415,7 +3407,7 @@ window.ctPdfLib = (function(){
         <!-- RELATÓRIO + ANKI -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-            <button onclick="{{ toggleAjAnki }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;text-align:left;"><span style="display:flex;align-items:baseline;gap:8px;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Ajustes avançados do Anki <span style="font-size:var(--fs-sm);color:var(--text3);font-weight:400;">retenção e carga</span></span><span style="font-size:var(--fs-base);color:var(--text3);">{{ ajAnkiChevron }}</span></button>
+            <button onclick="{{ toggleAjAnki }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;text-align:left;"><span style="display:flex;align-items:baseline;gap:8px;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Flashcards — ajustes avançados <span style="font-size:var(--fs-sm);color:var(--text3);font-weight:400;">retenção e carga</span></span><span style="font-size:var(--fs-base);color:var(--text3);">{{ ajAnkiChevron }}</span></button>
             <sc-if value="{{ ajAnkiOpen }}" hint-placeholder-val="{{ false }}">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;">
               <div><label for="aj-f-ankiRetMin" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Retenção ideal mínima (%)</label><input id="aj-f-ankiRetMin" type="number" data-k="ankiRetMin" value="{{ orient.ankiRetMin }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
@@ -4469,14 +4461,17 @@ window.ctPdfLib = (function(){
       </sc-if>
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
+        <sc-if value="{{ ajTabVoce }}" hint-placeholder-val="{{ true }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;"><span style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Meta diária de estudo</span><span style="font-family:var(--mono);font-weight:600;color:var(--accent);font-size:var(--fs-lg);">{{ prefMetaDiaria }}h / dia</span></div>
           <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 14px;">alimenta o anel de progresso, o prognóstico e os lembretes</div>
           <input type="range" min="1" max="10" step="1" value="{{ prefMetaDiaria }}" oninput="{{ setMetaDiaria }}" style="width:100%;accent-color:var(--accent);cursor:pointer;">
           <div style="display:flex;justify-content:space-between;font-size:var(--fs-2xs);color:var(--text3);margin-top:3px;"><span>1h</span><span>10h</span></div>
         </div>
+        </sc-if>
 
         <!-- AJUSTES DE FOCO -->
+        <sc-if value="{{ ajTabEstudo }}" hint-placeholder-val="{{ false }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:16px;">Ajustes de foco</div>
           <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
@@ -4500,6 +4495,7 @@ window.ctPdfLib = (function(){
             <button data-k="mostrarContagem" onclick="{{ togglePref }}" aria-label="Mostrar contagem regressiva da prova" style="{{ togContagem }}"><span style="{{ togContagemKnob }}"></span></button>
           </div>
         </div>
+        </sc-if>
 
         <!-- ALERTAS INTELIGENTES -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -4521,6 +4517,7 @@ window.ctPdfLib = (function(){
             <span style="font-size:var(--fs-sm);color:{{ notifPermColor }};font-weight:600;">{{ notifPermStatus }}</span>
           </div>
         </div>
+        <sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:4px;">Sincronização e privacidade</div>
           <!-- Isto aqui dizia "os dados ficam neste navegador" e trazia um botão "Somente neste
@@ -4542,7 +4539,9 @@ window.ctPdfLib = (function(){
             num arquivo só.
           </div>
         </div>
+        </sc-if>
 
+        <sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:4px;">Versão e suporte</div>
           <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:14px;">achou um problema? copie o relatório e mande para quem te convidou — ele já vem com a versão exata e o estado do app</div>
@@ -4552,7 +4551,9 @@ window.ctPdfLib = (function(){
             <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);">{{ buildLabel }}</span>
           </div>
         </div>
+        </sc-if>
 
+        <sc-if value="{{ ajTabDados }}" hint-placeholder-val="{{ false }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:4px;">Seus dados</div>
           <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:16px;">backup completo de sessões, ciclos, revisões, simulados, edital e Anki</div>
@@ -4565,6 +4566,7 @@ window.ctPdfLib = (function(){
             <button onclick="{{ wipeAll }}" style="background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--danger);cursor:pointer;font-family:inherit;font-weight:500;">Apagar tudo</button>
           </div>
         </div>
+        </sc-if>
        </div>
       
 
@@ -6461,6 +6463,16 @@ class Component extends DCLogic {
   _corDisc(disc){ const d=(this.state.edital||[]).find(x=>String(x.disc||'').trim().toLowerCase()===String(disc||'').trim().toLowerCase());
     if(d && /^#[0-9a-f]{3,8}$/i.test(d.color||'')) return d.color;
     return CT_COR_RAMO(disc, !!this.state.darkMode); }
+  // Registro programático de uma atividade (arguição da prova oral…): vira sessão real no
+  // histórico/desempenho sem abrir o modal. Não zera cronômetro nem cria revisão. (21/08)
+  _registrarAtividadeAuto = ({categoria='Jurisprudência', topico='', min=0, disc='Geral'}={})=>{
+    const m=Math.max(1, Math.round(min||0)||3);
+    const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()), disc:disc||'Geral', topico:topico||categoria, categoria, categorias:[categoria],
+      edTop:null, edSub:null, min:m, questoes:0, acertos:0, erradas:0, brancos:0, liquido:0, foco:'', nota:'', materialId:null, countMeta:true, auto:true };
+    const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
+    this.setState({sessions}, ()=>{ try{ this._reconcileStreak(); }catch(_){} });
+    return rec;
+  };
   saveSession = ()=>{
     const d=this.state.sessionDraft;
     const min=Math.max(0, parseInt(d.minutos,10)||0);
@@ -6485,7 +6497,7 @@ class Component extends DCLogic {
     if(!_ext){ patch.studiedSeconds=0; patch.timerSeconds=0; patch.timerRunning=false; }
     if(d.agendarRevisao){ const col=this._corDisc(_disc);
       const _jaTem=this.state.reviews.some(r=>r.disc===_disc && String(r.topic||'').toLowerCase()===String(rec.topico||'').toLowerCase());
-      if(!_jaTem) patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:_disc, topic:rec.topico, color:col, due:0, dueDate:this._hoje(), intervalo:1, facilidade:2.5, repeticoes:0, up:Date.now()}]; }
+      if(!_jaTem) patch.reviews=[...this.state.reviews, {id:'r'+Date.now(), disc:_disc, topic:rec.topico, color:col, due:1, dueDate:this._addDiasStr(this._hoje(),1), intervalo:1, facilidade:2.5, repeticoes:0, up:Date.now()}]; }
     if(!_ext){ if(this._tick){ clearInterval(this._tick); this._tick=null; }
       try{ localStorage.removeItem('ct_timer'); }catch(_){} }   // sessão registrada → zera o cronômetro persistido (registro externo NÃO zera)
     this.setState(patch, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){}
@@ -7043,7 +7055,7 @@ class Component extends DCLogic {
       localStorage.setItem('catedra:redText',JSON.stringify('')); }catch(_){}
     this._toast(esp.length ? 'Questão carregada — o espelho fica oculto até você entregar'
       : (q.espelhoTexto ? 'Questão carregada — padrão de resposta oficial fica oculto até você entregar'
-      : (q.fonte_espelho ? 'Questão carregada — o espelho está em PDF; abra o link no enunciado e cole os quesitos em ③'
+      : (q.fonte_espelho ? 'Questão carregada — o espelho está em PDF; abra o link no enunciado e cole o espelho no campo Espelho/gabarito da etapa 2'
                          : 'Questão carregada — esta banca não publicou espelho')));
   };
 
@@ -7238,7 +7250,7 @@ class Component extends DCLogic {
     const abre=!this.state.sjAberto;
     this.setState({sjAberto:abre});
     if(abre && !this.state.sjPronto){
-      this._treino().then(T=>Promise.all([T.acervoJuris(),T.acervoLeis()])).then(()=>this.setState({sjPronto:true}))
+      this._treino().then(T=>Promise.all([T.acervoJuris(),T.acervoLeis().then(()=>T.acervoLeisArea(this.state.areaEstudo))])).then(()=>this.setState({sjPronto:true}))
         .catch(()=>this._toast('Não consegui carregar o acervo'));
     }
   };
@@ -7251,7 +7263,7 @@ class Component extends DCLogic {
     const l=this.state.sjLeis.slice(); const i=l.indexOf(v); i>=0?l.splice(i,1):l.push(v);
     this.setState({sjLeis:l}); };
   setSjPctLei = (e)=> this.setState({sjPctLei:Math.max(0,Math.min(100,parseInt(e.currentTarget.value,10)||0))});
-  setSjN = (e)=> this.setState({sjN:Math.max(5,Math.min(100,parseInt(e.currentTarget.value,10)||20))});
+  setSjN = (e)=> this.setState({sjN:Math.max(10,Math.min(120,parseInt(e.currentTarget.value,10)||20))});
   iniciarSj = ()=>{
     const T=window.CT_TREINO; if(!T) return;
     const nProva=Math.max(0, parseInt(this.state.sjProvaN,10)||0);
@@ -7292,7 +7304,7 @@ class Component extends DCLogic {
     const respondidas=its.filter(x=>r[x.id]!==undefined).length;
     const min=Math.max(1, Math.round((Date.now()-(this.state.sjIni||Date.now()))/60000));
     // leva o resultado para o formulário de registro: o simulado passa a contar no desempenho
-    this.setState({sjFim:true, sjRel:rel, simAnalysis:'obj', simNome:'Simulado'+(this.state.sjRamos.length?(' — '+this.state.sjRamos.slice(0,2).join(', ')):' misto'),
+    this.setState({sjFim:true, sjRel:rel, simAnalysis:'liquida', simNome:'Simulado'+(this.state.sjRamos.length?(' — '+this.state.sjRamos.slice(0,2).join(', ')):' misto'),
       simMin:String(min), sim:{...(this.state.sim||{}), total:its.length, acertos:acertos, erros:respondidas-acertos, brancos:its.length-respondidas}});
   };
   novoSj = ()=> this.setState({sjItens:[], sjResp:{}, sjFim:false, sjAtual:0});
@@ -7330,12 +7342,12 @@ class Component extends DCLogic {
     const hist=[{quando:Date.now(), titulo:v.titulo, nota:c.nota}].concat(this.state.oralHist||[]).slice(0,40);
     this.setState({oralCorrecao:c, oralHist:hist});
     // a arguição conta como estudo: alimenta o desempenho, que é o motivo de ela morar aqui
-    try{ this._registrarAtividadeAuto && this._registrarAtividadeAuto({categoria:'Jurisprudência', topico:'Prova oral — '+(v.ramo||v.tribunal), min:0}); }catch(_){}
+    try{ this._registrarAtividadeAuto({categoria:'Jurisprudência', topico:'Prova oral — '+(v.ramo||v.tribunal), min:3, disc:v.ramo||'Geral'}); }catch(_){}
   };
   // ---- LEI SECA: arguição sobre artigo das leis embutidas (funciona off-line no app)
   _oralCarregarLeis(){
     if(this.state.oralLeisPronto) return;
-    this._treino().then(T=>T.acervoLeis()).then(()=>this.setState({oralLeisPronto:true}))
+    this._treino().then(T=>T.acervoLeis().then(()=>T.acervoLeisArea(this.state.areaEstudo))).then(()=>this.setState({oralLeisPronto:true}))
       .catch(()=>this.setState({oralErro:'Não consegui carregar o texto das leis.'}));
   }
   setOralLeiSig = (e)=> this.setState({oralLeiSig:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
@@ -7353,6 +7365,7 @@ class Component extends DCLogic {
   corrigirOralLei = ()=>{
     const T=window.CT_TREINO, a=this.state.oralArt; if(!T||!a) return;
     this.setState({oralCorrecao:T.corrigirOral(a.txt, this.state.oralResposta)});
+    try{ this._registrarAtividadeAuto({categoria:'Lei seca', topico:'Prova oral — '+(a.sigla||a.lei||'lei seca'), min:3, disc:'Lei seca'}); }catch(_){}
   };
   // ---- BANCAS REAIS: perguntas que caíram, com o padrão de resposta oficial
   _oralCarregarQ(){
@@ -7941,7 +7954,7 @@ class Component extends DCLogic {
       this._toast(card.ia?'Flashcard gerado com IA ✦':'Flashcard criado (IA indisponível — usei o trecho)');
       this.flashSync(); return;
     }
-    else if(dest==='revisao'){ const rev={id:'r'+Date.now(), disc:discFull, topic:item.titulo, color:colorMap[discFull]||item.color||'#0f7a57', due:0, dueDate:this._hoje(), intervalo:1, facilidade:2.5, repeticoes:0}; this.setState(s=>({reviews:[...s.reviews, rev]})); this._toast('Revisão agendada para hoje ✦'); }
+    else if(dest==='revisao'){ const rev={id:'r'+Date.now(), disc:discFull, topic:item.titulo, color:colorMap[discFull]||item.color||'#0f7a57', due:1, dueDate:this._addDiasStr(this._hoje(),1), intervalo:1, facilidade:2.5, repeticoes:0}; this.setState(s=>({reviews:[...s.reviews, rev]})); this._toast('Revisão agendada para amanhã ✦'); }
     this.flashSync();
   }
   _toast(msg){ try{ let t=this._toastEl; if(!t){ t=document.createElement('div'); t.setAttribute('role','status'); t.setAttribute('aria-live','polite'); t.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:9999;background:#1f2a26;color:#fff;padding:12px 20px;border-radius:var(--radius);font:600 13.5px/1.3 var(--display),sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.4);pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;'; document.body.appendChild(t); this._toastEl=t; } t.textContent=msg; try{ t.style.bottom=(window.innerWidth<900?'92px':'30px'); }catch(_){} t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; clearTimeout(this._toastT); this._toastT=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 2100); }catch(e){} }
@@ -8037,7 +8050,7 @@ class Component extends DCLogic {
     // infere a unidade do título → metas de questões/simulados/revisões progridem sozinhas
     const t=d.titulo.toLowerCase();
     const unidade = /quest/.test(t)?'questões' : /simulad/.test(t)?'simulados' : /revis/.test(t)?'revisões' : /\bhora|\bmin/.test(t)?'min':'un.';
-    this.setState(s=>({metas:[...s.metas,{id:'m'+Date.now(), titulo:d.titulo.trim(), prog:0, alvo:parseInt(d.alvo,10)||100, unidade}], metaDraft:{titulo:'',alvo:100}})); this.flashSync(); };
+    this.setState(s=>({metas:[...s.metas,{id:'m'+Date.now(), titulo:d.titulo.trim(), prog:0, alvo:(/\bhora/.test(t)?60:1)*(parseInt(d.alvo,10)||100), unidade}], metaDraft:{titulo:'',alvo:100}})); this.flashSync(); };
   metaPlus = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,prog:Math.min(m.alvo,m.prog+1)}:m)})); this.flashSync(); };
   editMeta = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let v=el.value; if(field==='alvo'&&v!=='') v=Math.max(1,parseInt(v,10)||0); this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,[field]:v}:m)})); };
   removeMeta = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.filter(m=>m.id!==id)})); };
@@ -9011,7 +9024,7 @@ class Component extends DCLogic {
     };
     const bnInicio=bnStyle('inicio'), bnCiclo=bnStyle('ciclo'), bnRevisoes=bnStyle('revisoes');
     // ===== menu simplificado: essenciais visíveis + "Mais opções" =====
-    const _moreViews=['analise','conquistas','historico','bemestar','comunidade','bancas','ajustes','admin'];
+    const _moreViews=['analise','conquistas','historico','comunidade','bemestar','ajustes','admin'];
     const _onMore=_moreViews.indexOf(this.state.view)>=0;
     const navShowMore=this.state.navExpanded||_onMore;
     const navToggleShow=!_onMore;
@@ -9258,8 +9271,8 @@ class Component extends DCLogic {
       if(!ag || !ag.q){ return {has:false, pct:null, level:'Sem dados', color:'var(--text3)', str:'sem dados'}; }
       const liq=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100)));
       if(ag.q<6){ return {has:true, pct:liq, level:'Poucos dados', color:'var(--text3)', str:'poucos dados ('+ag.q+'q)'}; }
-      const level= liq>=70?'Dominado':liq>=50?'Em curso':'Frágil';
-      const color= liq>=70?'var(--ok)':liq>=50?'var(--warn)':'var(--danger)';
+      const level= liq>=70?'Dominado':liq>=55?'Em curso':'Frágil';
+      const color= liq>=70?'var(--ok)':liq>=55?'var(--warn)':'var(--danger)';
       return {has:true, pct:liq, level, color, str:level+' · '+liq+'%'}; };
     const edital = this.state.edital.map((d,i)=>{
       const done=d.topics.filter(t=>t.done).length, tot=d.topics.length;
@@ -9280,7 +9293,7 @@ class Component extends DCLogic {
       const domMedio=_domTops.length?Math.round(_domTops.reduce((a,t)=>a+t.domPct,0)/_domTops.length):null;
       return {...d, i, done, tot, pct, actHoras:act.horas, actQ:act.q, actLiq:act.liqPct, actStr, hasAct:act.min>0,
         domMedio, hasDom:domMedio!=null, domMedioStr:domMedio!=null?('domínio '+domMedio+'%'):'',
-        domMedioColor: domMedio==null?'var(--text3)':(domMedio>=70?'var(--ok)':domMedio>=50?'var(--warn)':'var(--danger)'),
+        domMedioColor: domMedio==null?'var(--text3)':(domMedio>=70?'var(--ok)':domMedio>=55?'var(--warn)':'var(--danger)'),
         pesoVal:_pv, questoesVal:_qv, pesoStr:_pv!==''?String(_pv):'—', questoesStr:_qv!==''?String(_qv):'—', hasMeta:_hasMeta, metaChip:(_pv!==''?('peso '+_pv):'')+(_pv!==''&&_qv!==''?' · ':'')+(_qv!==''?(_qv+'q'):''),
         colorHex:(/^#[0-9a-f]{6}$/i.test(d.color||'')?d.color:'#0f7a57'),   // <input type=color> só aceita #rrggbb
         topics:_tops};
@@ -9372,7 +9385,7 @@ class Component extends DCLogic {
     const simHist = _allSessionsForDash.filter(x=>(Array.isArray(x.categorias)?x.categorias:[x.categoria]).includes('Simulado')).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,5).map((x,i)=>{
       const q=x.questoes||0;
       const score = (x.discPct!=null) ? x.discPct : (q?Math.round((x.acertos||0)/q*100):0);
-      return {name:x.topico||('Simulado '+(i+1)), date:new Date(x.ts||Date.now()).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}), score, scoreColor: score>=70?'var(--ok)':score>=60?'var(--warn)':'var(--danger)'};
+      return {name:x.topico||('Simulado '+(i+1)), date:new Date(x.ts||Date.now()).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}), score, scoreColor: score>=70?'var(--ok)':score>=55?'var(--warn)':'var(--danger)'};
     });
     const simChart = simHist.slice().reverse().map((h,i)=>({v:h.score||0, i, h: Math.round((h.score||0)/100*120), lbl:'S'+(i+1)}));
     const simTemHist = simHist.length>0;
@@ -9532,7 +9545,8 @@ class Component extends DCLogic {
     const _weekAgo = Date.now() - 7*864e5;
     // ===== cérebro: tudo derivado das sessões reais =====
     const sessQ=B.totalQ, sessA=B.totalA, sessErr=B.totalE, sessLiq=B.liq;
-    const tempoHojeSecs = this.state.studiedSeconds + B.todayMin*60;
+    const _cronoHojeOk=(()=>{ try{ const t=JSON.parse(localStorage.getItem('ct_timer')||'null'); return !t || !t.d || t.d===this._hoje(); }catch(_){ return true; } })();
+    const tempoHojeSecs = (_cronoHojeOk?this.state.studiedSeconds:0) + B.todayMin*60;
     const tempoHoje = tempoHojeSecs>=3600 ? `${Math.floor(tempoHojeSecs/3600)}h${String(Math.floor(tempoHojeSecs%3600/60)).padStart(2,'0')}` : `${Math.floor(tempoHojeSecs/60)}min`;
     const tempoTotalH = (B.totalMin/60);
     const tempoTotalLabel = tempoTotalH>=10 ? Math.round(tempoTotalH)+'h' : (Math.round(tempoTotalH*10)/10)+'h';
@@ -9667,7 +9681,7 @@ class Component extends DCLogic {
     const _ago=(ts)=>{ const d=Date.now()-ts; const mi=Math.floor(d/60000); if(mi<1) return 'agora'; if(mi<60) return mi+' min atrás'; const h=Math.floor(mi/60); if(h<24) return h+'h atrás'; const dd=Math.floor(h/24); return dd===1?'ontem':dd+' dias atrás'; };
     const recentSessions = [..._sessions].sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,5).map(s=>{ const acc=s.questoes? Math.round(s.acertos/s.questoes*100):null; const cm=_catMeta[s.categoria]||{i:'📘',c:'var(--text3)'}; const liq=(s.liquido!=null?s.liquido:(s.acertos||0)-(s.erradas||0));
       return {...s, icon:cm.i, catColor:cm.c, catLabel:(Array.isArray(s.categorias)&&s.categorias.length?s.categorias.join(' · '):(s.categoria||'—')), discShort:(s.disc||'').replace('Direito ',''), minStr:(s.min||0)+' min', accStr:acc!=null?acc+'%':'', hasAcc:acc!=null,
-        accColor: acc==null?'var(--text3)':(acc>=80?'var(--ok)':acc>=60?'var(--warn)':'var(--danger)'),
+        accColor: acc==null?'var(--text3)':(acc>=70?'var(--ok)':acc>=55?'var(--warn)':'var(--danger)'),
         liqStr:(liq>0?'+'+liq:String(liq)), hasLiq:!!s.questoes, liqColor:(liq>0?'var(--ok)':(liq<0?'var(--danger)':'var(--warn)')), ago:_ago(s.ts) }; });
     const hasSessions = _sessions.length>0;
     const sessionsCount = String(_sessions.length);
@@ -9737,7 +9751,7 @@ class Component extends DCLogic {
     const _sdTotal=_sdA+_sdE+_sdB;
     const sdBrutoPct=_sdTotal?Math.round(_sdA/_sdTotal*100):0;
     const sdBrutoLabel=_sdTotal? sdBrutoPct+'%' : '—';
-    const sdAccColor=_sdTotal? (sdBrutoPct>=80?'var(--ok)':sdBrutoPct>=60?'var(--warn)':'var(--danger)') : 'var(--text3)';
+    const sdAccColor=_sdTotal? (sdBrutoPct>=70?'var(--ok)':sdBrutoPct>=55?'var(--warn)':'var(--danger)') : 'var(--text3)';
     const sdLiquido=_sdA-_sdE;
     const sdLiquidoPct=_sdTotal?Math.round(sdLiquido/_sdTotal*100):0;
     const sdLiqColor=!_sdTotal?'var(--text3)':(sdLiquido>0?'var(--ok)':(sdLiquido<0?'var(--danger)':'var(--warn)'));
@@ -9861,8 +9875,8 @@ class Component extends DCLogic {
         levelLabel:'Nível '+level, title:done?('Máximo · '+a.cat):(a.cat+' · meta '+fmtNum(nextTarget)+' '+a.unit),
         barColor: done?'var(--ok)':'var(--accent)' };
     });
-    const achDone = achievements.filter(a=>a.level>0);
-    const achProgress = achievements.filter(a=>!a.done && a.level===0);   // com nível já aparece em 'Conquistadas' (com a barra do próximo)
+    const achDone = achievements.filter(a=>a.done);          // só as que chegaram ao último nível
+    const achProgress = achievements.filter(a=>!a.done);     // tudo que ainda tem próximo alvo fica puxando (21/08)
     const conqEarned = achievements.reduce((s,a)=>s+a.level,0);
     const conqTotalLevels = achievements.reduce((s,a)=>s+a.targets.length,0);
     const conqMaxed = achievements.filter(a=>a.done).length;
@@ -9936,7 +9950,7 @@ class Component extends DCLogic {
     const _maxQ=Math.max(1,...B.discList.map(d=>d.q));
     const discBars=B.discList.map(d=>({ disc:d.disc, short:d.short, color:d.color, q:d.q, horas:d.horas,
       brutoPct:d.brutoPct, liqPct:d.liqPct, brutoW:Math.max(2,d.brutoPct), liqW:Math.max(0,Math.min(100,d.liqPct)),
-      liqColor: d.liqPct>=70?'var(--ok)':(d.liqPct>=50?'var(--warn)':'var(--danger)'), liqStr:(d.liq>0?'+':'')+d.liq, qW:Math.round(d.q/_maxQ*100) }));
+      liqColor: d.liqPct>=70?'var(--ok)':(d.liqPct>=55?'var(--warn)':'var(--danger)'), liqStr:(d.liq>0?'+':'')+d.liq, qW:Math.round(d.q/_maxQ*100) }));
     const _wk=B.weeks, _n=Math.max(1,_wk.length-1), _cl=(v)=>Math.max(0,Math.min(100,v));
     const evolBrutoPath='M '+_wk.map((w,i)=>`${(i/_n*300).toFixed(1)} ${(100-_cl(w.bruto)).toFixed(1)}`).join(' L ');
     const evolLiqPath='M '+_wk.map((w,i)=>`${(i/_n*300).toFixed(1)} ${(100-_cl(w.liq)).toFixed(1)}`).join(' L ');
@@ -11164,6 +11178,7 @@ class Component extends DCLogic {
           intLabel:'D+'+(r.intervalo||1)+' · '+((r.repeticoes||0)+1)+'ª rev.',
           chipStyle:'font-size:var(--fs-sm);font-weight:700;border-radius:20px;padding:4px 11px;'+(r.pendChip?'background:rgba(224,71,157,.16);color:#e0479d;border:1px solid rgba(224,71,157,.4);':(r.due===1?'background:rgba(245,158,11,.13);color:var(--warn);border:1px solid rgba(245,158,11,.35);':'background:var(--surface2);color:var(--text2);border:1px solid var(--border);')) })); })(),
       revHojeN:String(revOverdue.length+revToday.length),
+      revHojeLabel:(revOverdue.length?(revOverdue.length+' vencida'+(revOverdue.length>1?'s':'')+' · '):'')+revToday.length+' para hoje',
       homeProxTem:(revOverdue.length+revToday.length+revUpcoming.length)>0, homeProxVazio:(revOverdue.length+revToday.length+revUpcoming.length)===0,
       paPainel, paPainelShow, paSemBars, paQSemana, paDesemp, paDesempShow,
       homeRoteiroShow:!!(this.state.manualFixedRoteiroAtual||'').trim(),
@@ -11235,7 +11250,7 @@ class Component extends DCLogic {
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
       viewTitle:({inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
-      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Registre e diagnostique seu desempenho',redacao:'Cadastre a questão, responda e receba o raio-X',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       syncLabel:({enviando:'Sincronizando…', salvo:'Sincronizado na nuvem', offline:'Offline — salvo neste aparelho', erro:'Falha ao sincronizar — vai tentar de novo', local:(this.state.syncFlash?'Salvando localmente…':'Salvo neste navegador')}[this.state.syncStatus]||'Salvo neste navegador'),
       syncTitle:(this.state.syncStatus==='local'?'Os dados ficam neste navegador; exporte um backup JSON para usar em outro aparelho':'Seus dados sincronizam com a sua conta — o merge une o progresso de todos os aparelhos'),
@@ -11273,7 +11288,7 @@ class Component extends DCLogic {
       escudoProxLabel:(()=>{ const e=this.state.escudos||0; if(e>=3) return '🛡️ 3/3 escudos (máx)';
         const d=B.streak>0?(7-(B.streak%7))%7||7:7; return '🛡️ '+e+' escudo(s) · próximo em '+d+'d'; })(),
       paSemMedia:(()=>{ const dias=((new Date().getDay()+6)%7)+1; const m=Math.round((B.weekMin||0)/dias); return m>=60?(Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')):(m+'min'); })(),   // divide pelos dias JÁ decorridos da semana, não por 7 fixo
-      dashToggle:this.dashToggle, diasProva:((this.state.prefs.mostrarContagem!==false && this.state.provaData)?String(_diasProvaN):'—'), showContagem:this.state.prefs.mostrarContagem!==false, retencao:String(B.brutoPct), metaSemana, metaPct, metaWeekBars, planoMsg:_planoSemana.msg, planoCor:_planoSemana.cor, planoShow:_planoSemana.show, focoSugestao, objetivoShort, bancaLabel, bancaInfo, bancaPenLabel, bancaPenStyle,
+      dashToggle:this.dashToggle, diasProva:((this.state.prefs.mostrarContagem!==false && this.state.provaData)?String(_diasProvaN):'—'), showContagem:this.state.prefs.mostrarContagem!==false, retencao:String(B.brutoPct), metaSemana, metaPct, metaWeekBars, planoMsg:_planoSemana.msg, planoCor:_planoSemana.cor, planoShow:_planoSemana.show, focoSugestao, objetivoShort, objetivoShortUp:String(objetivoShort||'').toUpperCase(), bancaLabel, bancaInfo, bancaPenLabel, bancaPenStyle,
       // histórico
       isHistorico:this.state.view==='historico', navHistorico:navStyle('historico'),
       histList, histEmpty:histList.length===0, histNotEmpty:histList.length>0, histCount:String(histList.length), histFilterVal:_histFilter, histDiscs,
@@ -11315,7 +11330,7 @@ class Component extends DCLogic {
       flagMeta:_flag(this.state.sessionDraft.contarMeta!==false), switchMeta:_switch(this.state.sessionDraft.contarMeta!==false), switchMetaKnob:_knob(this.state.sessionDraft.contarMeta!==false),
       recentSessions, hasSessions, noSessions:!hasSessions, sessionsCount, sessTotalH, sessAccOverall, sessLiqOverall, sessLiqColor, metaFaltamH,
       // edital
-      edital, edTotal, edDone, edPct, edAlta,
+      edital, edTotal, edDone, edPct, edAlta, edDiscN:String(edital.length),
       metaTempo, metaWeeklyLabel,
       cad:this.state.cad, cadNova:this.state.cad.mode==='nova', cadExistente:this.state.cad.mode==='existente',
       onCad:this.onCad, setCadMode:this.setCadMode, setCadCor:this.setCadCor, addCadastro:this.addCadastro, toggleSub:this.toggleSub, onDiscMeta:this.onDiscMeta, removeDisc:this.removeDisc, renomearDisciplina:this.renomearDisciplina, setDiscCor:this.setDiscCor,

@@ -82,9 +82,29 @@ cat > "$APP/Info.plist" <<PLIST
   <key>CatedraAIEndpoint</key><string>$AI_ENDPOINT</string>
   <key>UIFileSharingEnabled</key><true/>
   <key>LSSupportsOpeningDocumentsInPlace</key><true/>
+  <!-- Ícone: PNGs na raiz do bundle (sem asset catalog). iOS acrescenta @2x/@3x sozinho. -->
+  <key>CFBundleIcons</key><dict><key>CFBundlePrimaryIcon</key><dict>
+    <key>CFBundleIconFiles</key><array><string>AppIcon60x60</string><string>AppIcon76x76</string><string>AppIcon83.5x83.5</string></array>
+  </dict></dict>
+  <key>CFBundleIcons~ipad</key><dict><key>CFBundlePrimaryIcon</key><dict>
+    <key>CFBundleIconFiles</key><array><string>AppIcon60x60</string><string>AppIcon76x76</string><string>AppIcon83.5x83.5</string></array>
+  </dict></dict>
 </dict>
 </plist>
 PLIST
+# ── Ícone: mesmo renderizador do Mac (mac/Sources/icon.swift → iconset 16…1024), depois os
+#    tamanhos que o iPad usa. Antes o app chegava ao iPad sem logo nenhuma.
+ICONSET="$BUILD/Catedra.iconset"; rm -rf "$ICONSET"; mkdir -p "$ICONSET"
+if swiftc -O -target arm64-apple-macos14.0 "$ROOT/mac/Sources/icon.swift" -o "$BUILD/makeicon" -framework AppKit 2>/dev/null \
+   && "$BUILD/makeicon" "$ICONSET" >/dev/null 2>&1 && [ -f "$ICONSET/icon_512x512@2x.png" ]; then
+  for par in "AppIcon60x60@2x:120" "AppIcon60x60@3x:180" "AppIcon76x76@2x:152" "AppIcon83.5x83.5@2x:167" "AppIcon76x76:76"; do
+    nome="${par%%:*}"; px="${par##*:}"
+    sips -z "$px" "$px" "$ICONSET/icon_512x512@2x.png" --out "$APP/$nome.png" >/dev/null 2>&1
+  done
+  echo "     ícone: $(ls "$APP"/AppIcon*.png 2>/dev/null | wc -l | tr -d ' ') PNG(s)"
+else
+  echo "     ⚠ ícone não gerado (icon.swift/makeicon) — o app vai sem logo"
+fi
 # CátedraJURIS nativo: o acervo é um corpus.json EMBUTIDO no bundle. O build do Mac já
 # fazia isso; aqui faltava, e sem ele a aba CátedraJURIS do iPad abria com
 # "corpus.json não encontrado no bundle". No iOS o bundle é PLANO, então os arquivos vão
