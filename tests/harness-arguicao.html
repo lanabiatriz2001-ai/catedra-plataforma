@@ -1,0 +1,35 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harness modo arguição</title></head>
+<body style="margin:0;font:14px system-ui">
+<!-- Acervo real das perguntas de banca; a lógica de sorteio/limpeza é traduzida do host. -->
+<script src="/oral-conteudo.js"></script>
+<script>
+var ARG_MIN_PADRAO = 200;
+var ARG_CARR_AREA = {
+  juridica:['Magistratura Estadual','Ministério Público','Defensoria Pública','Advocacia Pública'],
+  policial:['Polícia Civil','Polícia Federal','Perícia'],
+  contas:['TCE'], fiscal:['TCE','Carreiras de Estado'], administrativa:['Carreiras de Estado']
+};
+window.argLimpa = function (t) {
+  return String(t || '').replace(/<<[^>]{4,80}>>/g, '').replace(/\n{3,}/g, '\n\n').trim();
+};
+window.argPool = function (st) {
+  st = st || {};
+  var base = (window.CT_ORAL_Q || []).filter(function (q) {
+    return (!st.oralQDisc || q.disciplina === st.oralQDisc)
+      && (!st.oralQCarr || q.carreira === st.oralQCarr)
+      && q.padrao && q.padrao.length > ARG_MIN_PADRAO;
+  });
+  if (st.oralQCarr) return base;
+  var pref = ARG_CARR_AREA[st.areaEstudo || 'juridica'];
+  if (!pref) return base;
+  var daArea = base.filter(function (q) { return pref.indexOf(q.carreira) >= 0; });
+  return daArea.length >= 5 ? daArea : base;
+};
+window.argSortear = function (st, n) {
+  var pool = window.argPool(st).slice();
+  for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+  return pool.slice(0, n || 5);
+};
+</script>
+</body></html>

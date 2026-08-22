@@ -200,6 +200,79 @@ const a7 = await page.evaluate(() => {
 });
 ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado');
 
+/* ============= PROVA ORAL — MODO ARGUIÇÃO (item 3) ============= */
+await page.goto(URL0 + '/tests/harness-arguicao.html');
+await page.waitForFunction(() => !!window.CT_ORAL_Q && !!window.argPool);
+
+const arg = await page.evaluate(() => {
+  const r = {};
+  const Q = window.CT_ORAL_Q;
+  r.acervo = Q.length > 900;
+
+  // só entra pergunta com padrão de resposta útil — é ele que corrige
+  const pool = window.argPool({ areaEstudo: 'juridica' });
+  r.soComPadrao = pool.every(q => q.padrao && q.padrao.length > 200);
+
+  // o sorteio respeita a ÁREA: quem estuda magistratura não recebe pergunta de fotônica
+  const carrJur = ['Magistratura Estadual', 'Ministério Público', 'Defensoria Pública', 'Advocacia Pública'];
+  r.poolDaArea = pool.length >= 100 && pool.every(q => carrJur.includes(q.carreira));
+  const poolPol = window.argPool({ areaEstudo: 'policial' });
+  r.areaPolicial = poolPol.length > 0 && poolPol.every(q => ['Polícia Civil', 'Polícia Federal', 'Perícia'].includes(q.carreira));
+
+  // filtro escolhido à mão manda mais que a área
+  const escolhido = window.argPool({ areaEstudo: 'juridica', oralQCarr: 'Polícia Civil' });
+  r.filtroManda = escolhido.length > 0 && escolhido.every(q => q.carreira === 'Polícia Civil');
+
+  // sessão de 5 sem repetir pergunta. Atenção: `id` no acervo é do DOCUMENTO (o malote),
+  // não da questão — 417 perguntas jurídicas compartilham 190 ids. O que identifica a
+  // pergunta é o enunciado, e ele é único nas 892.
+  const fila = window.argSortear({ areaEstudo: 'juridica' }, 5);
+  r.cinco = fila.length === 5 && new Set(fila.map(q => q.enunciado)).size === 5;
+  r.enunciadoEhAChave = new Set(pool.map(q => q.enunciado)).size === pool.length;
+
+  // o carimbo de controle do CEBRASPE não pode aparecer na tela
+  const sujos = Q.filter(q => /<<[^>]{4,80}>>/.test(q.enunciado || ''));
+  r.temSujos = sujos.length > 0;
+  r.limpa = sujos.every(q => !/<</.test(window.argLimpa(q.enunciado)) && window.argLimpa(q.enunciado).length > 40);
+  return r;
+});
+for (const [k, v] of Object.entries(arg)) ok(v, 'ARGUICAO ' + k);
+
+// a sessão roda de ponta a ponta na tela: pergunta → padrão só depois → autoavaliação → resumo
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1600);
+const fluxo = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const M = () => document.querySelector('main').innerText;
+  document.querySelector('button[data-view="oral"]').click(); await w(400);
+  const bm = [...document.querySelectorAll('button')].find(b => b.dataset.m === 'bancas');
+  if (bm) bm.click(); await w(2500);
+  const cartao = [...document.querySelectorAll('main div')].find(d => /^Modo arguição/.test(d.textContent.trim()));
+  if (!cartao) return { erro: 'sem cartão de arguição' };
+  const comecar = [...cartao.closest('div[style*="surface2"]').querySelectorAll('button')].find(b => b.textContent.trim() === 'Começar');
+  comecar.click(); await w(1000);
+  const abriu = /ARGUIÇÃO · PERGUNTA 1 DE 5|Arguição · pergunta 1 de 5/i.test(M());
+  // sinal exato: os botões de autoavaliação só existem DENTRO do bloco do padrão — o texto
+  // "padrão de resposta" também aparece na apresentação da página, e enganava o teste
+  const temPadrao = () => !!document.querySelector('main button[data-v="bem"]');
+  const padraoAntes = temPadrao();
+  [...document.querySelectorAll('main button')].find(b => /Respondi — ver o padrão/.test(b.textContent || '')).click(); await w(500);
+  const padraoDepois = temPadrao();
+  for (let i = 0; i < 5; i++) {
+    const ver = [...document.querySelectorAll('main button')].find(b => /Respondi — ver o padrão/.test(b.textContent || ''));
+    if (ver) { ver.click(); await w(350); }
+    const b = [...document.querySelectorAll('main button')].find(x => x.dataset.v === 'nao');
+    if (!b) break;
+    b.click(); await w(500);
+  }
+  const fim = /Fim da arguição/.test(M());
+  const erros = JSON.parse(localStorage.getItem('catedra:errors') || '[]');
+  return { abriu, padraoAntes, padraoDepois, fim, errosCriados: erros.length };
+});
+ok(!fluxo.erro && fluxo.abriu, 'ARGUICAO sessão abre com a pergunta');
+ok(!fluxo.erro && !fluxo.padraoAntes && fluxo.padraoDepois, 'ARGUICAO padrão só aparece depois de responder');
+ok(!fluxo.erro && fluxo.fim, 'ARGUICAO cinco perguntas levam ao resumo');
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
