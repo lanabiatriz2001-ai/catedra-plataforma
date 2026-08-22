@@ -219,8 +219,9 @@ document.addEventListener('keydown',e=>{
 });
 pinta();
 
-/* ?peca=Nome abre o roteiro direto (o ✍️ do fluxo dos ritos usa este link) */
-try{ const p=new URLSearchParams(location.search).get('peca');
-  if(p && (window.CT_PECAS||{})[p]) R.abrir(p); }catch(e){}
+/* ?peca=Nome abre o roteiro direto (o ✍️ do fluxo dos ritos usa este link);
+   &bloco=N é a volta do acervo — reabre já rolado no bloco de onde ela saiu */
+try{ const u=new URLSearchParams(location.search), p=u.get('peca');
+  if(p && (window.CT_PECAS||{})[p]) R.abrir(p, u.get('bloco')); }catch(e){}
 </script>
 </body></html>

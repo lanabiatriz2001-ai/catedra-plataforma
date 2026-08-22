@@ -3119,7 +3119,7 @@ window.ctPdfLib = (function(){
         <iframe data-ct-frame="{{ areaModFrameSrc }}" title="Módulo de estudo da área" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
       <sc-if value="{{ isRoteiros }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="pecas-web.html" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
+        <iframe data-ct-frame="{{ pecasFrameSrc }}" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
       </sc-if>
       <sc-if value="{{ isLegis }}" hint-placeholder-val="{{ false }}">
         <iframe data-ct-frame="{{ legisFrameSrc }}" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
@@ -4748,6 +4748,7 @@ class Component extends DCLogic {
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'', acervoBusca:'',
+      acervoDe:null, origemAbrir:'',
       adminGrupos:[], adminAllow:[], adminAllowInput:'', adminDetalhe:null, adminDetalheBusy:false,
       // console de administração: aba aberta, recorte da lista de contas e a gaveta
       // da conta selecionada (admConfirmTxt é o e-mail digitado na zona de risco —
@@ -4868,7 +4869,28 @@ class Component extends DCLogic {
       if(!e||!e.data) return;
       if(e.data.type==='ctAbrirAcervo'){
         const alvo=e.data.alvo==='juris'?'juris':'legis';
-        this.setState({view:alvo, acervoBusca:String(e.data.termo||'')});
+        // Guarda o PONTO DE ORIGEM (view + rito/peça/bloco) para a pílula "voltar"
+        // do acervo. Salto DENTRO do acervo (LEGIS→JURIS, incidência) não traz `de`
+        // — a origem anterior continua valendo; vindo de outra tela sem `de`, não
+        // há para onde voltar.
+        const v=this.state.view, d=e.data.de; let de=this.state.acervoDe;
+        if(d && typeof d==='object' && (v==='areamod'||v==='roteiros')){
+          de={view:v, rito:String(d.rito||''), peca:String(d.peca||''),
+              bloco:(d.bloco!=null&&isFinite(d.bloco))?+d.bloco:null};
+        } else if(v!=='legis'&&v!=='juris'){ de=null; }
+        this.setState({view:alvo, acervoBusca:String(e.data.termo||''), acervoDe:de, origemAbrir:''});
+        return;
+      }
+      // A volta: o iframe de origem saiu do DOM na ida, então recarrega — e o ponto
+      // (rito/peça/bloco) viaja na URL, pelo mesmo canal do ?q= da ida.
+      if(e.data.type==='ctVoltarAcervo'){
+        const de=this.state.acervoDe;
+        const v=(de&&de.view==='roteiros')?'roteiros':'areamod';
+        const q=[];
+        if(de&&de.rito) q.push('rito='+encodeURIComponent(de.rito));
+        if(de&&de.peca){ q.push('peca='+encodeURIComponent(de.peca));
+          if(de.bloco!=null) q.push('bloco='+de.bloco); }
+        this.setState({view:v, acervoDe:null, acervoBusca:'', origemAbrir:q.join('&')});
         return;
       }
       // Os iframes (LEGIS, JURIS, mapa de processo) NÃO têm window.claude: no app nativo
@@ -8715,14 +8737,20 @@ class Component extends DCLogic {
     // A área jurídica tem página PRÓPRIA: o módulo dela é o mapa dos ritos (Processo e
     // peças), não a lista de pontos de estudo do area-web. As demais áreas seguem no
     // area-web genérico.
-    const areaModFrameSrc = (_area.id==='juridica')
-      ? 'ritos-web.html'
-      : ('area-web.html?area=' + encodeURIComponent(_area.id));
-    // O ?q= faz a página abrir já buscando o instituto que veio do mapa.
+    // A volta do acervo (?rito=&peca=&bloco=) reabre o mapa/roteiro no ponto exato.
+    const _abrir=(this.state.origemAbrir||'');
+    const areaModFrameSrc = ((_area.id==='juridica')
+      ? ('ritos-web.html' + (_abrir?('?'+_abrir):''))
+      : ('area-web.html?area=' + encodeURIComponent(_area.id)));
+    const pecasFrameSrc = 'pecas-web.html' + (_abrir?('?'+_abrir):'');
+    // O ?q= faz a página abrir já buscando o instituto que veio do mapa; o &volta=1
+    // acende a pílula de voltar quando há um ponto de origem guardado.
     const _acBusca=(this.state.acervoBusca||'').trim();
+    const _acQ=[_acBusca?('q='+encodeURIComponent(_acBusca)):'', this.state.acervoDe?'volta=1':'']
+      .filter(Boolean).join('&');
     const legisFrameSrc = 'legis-web.html?area=' + encodeURIComponent(this.state.areaEstudo||'')
-      + (_acBusca ? ('&q='+encodeURIComponent(_acBusca)) : '');
-    const jurisFrameSrc = 'juris-web.html' + (_acBusca ? ('?q='+encodeURIComponent(_acBusca)) : '');
+      + (_acQ ? ('&'+_acQ) : '');
+    const jurisFrameSrc = 'juris-web.html' + (_acQ ? ('?'+_acQ) : '');
     const areaEscolhida = !!this.state.areaEstudo;
     const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||'');
       return { id:a.id, emoji:a.emoji, label:a.label, desc:a.desc, check: on?'  ✓':'',
@@ -10781,7 +10809,7 @@ class Component extends DCLogic {
       areaJuridica, areaJuris, legisFrameSrc, areaEscolhida,
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
-      temAreaMod, areaModLabel, areaModFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
+      temAreaMod, areaModLabel, areaModFrameSrc, pecasFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,
       bancaAreas, bancaAreaConcDesc, setBancaAreaConc:this.setBancaAreaConc,
       bancaTiles, setBancaFoco:this.setBancaFoco, bancaStepNum,
       bancaMaterias, bancaMateriaFonte, setBancaArea:this.setBancaArea,
