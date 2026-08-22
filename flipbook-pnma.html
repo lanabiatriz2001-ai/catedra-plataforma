@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PNMA — Lei 6.938/1981">
+<meta name="theme-color" content="#f4efe4">
+<title>PNMA — Lei 6.938/1981</title>
+<style>
+:root{
+--paper:#fffdf8;--desk:#f4efe4;--sunk:#f2ece0;--line:#e7e0d1;--line2:#d5cbb6;--line3:#b8ab90;
+--ink:#221f19;--ink2:#5a5346;--ink3:#8d8573;
+--serif:ui-serif,"New York","Iowan Old Style",Palatino,Georgia,serif;
+--sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+--sh:0 1px 2px rgba(60,50,30,.05),0 10px 30px rgba(60,50,30,.08);
+--ex-bg:#fbf1dc;--ex-tx:#63410d;--ex-ln:#c9992f;
+--up-bg:#fbeae6;--up-tx:#832d1c;--up-ln:#c25a42;
+--cr-bg:#efeaf8;--cr-tx:#493780;--cr-ln:#8874c4;
+--g0:#7f7052;--g0b:#f1ebdb;--g1:#20618f;--g1b:#e5eff8;--g2:#5d4192;--g2b:#ece7f7;--g3:#2f6b3c;--g3b:#e6f1e8;
+--mk:#fbe7a0;--mkt:#4a3406;
+--ac:var(--g0);--acb:var(--g0b);
+--acc-bg:var(--g1b);--acc-tx:var(--g1);--pro-bg:var(--g2b);--pro-tx:var(--g2);
+--suc-bg:var(--g3b);--suc-tx:var(--g3);--dan-bg:var(--up-bg);--dan-tx:var(--up-tx);
+--sf1:var(--sunk);--tx2:var(--ink2);--tx3:var(--ink3);
+--sc:1;--lh:1.72;--ls:0em;--dur:.3s;
+--ha:#fdeb96;--hr:#fbcbd6;--hv:#cfe8c6;--hink:#231f16;
+}
+@media (prefers-color-scheme:dark){:root{
+--paper:#1c1b1e;--desk:#131215;--sunk:#252428;--line:#34333a;--line2:#454450;--line3:#5e5c6b;
+--ink:#efece5;--ink2:#b6b1a6;--ink3:#8a8578;
+--sh:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+--ex-bg:#3a2d16;--ex-tx:#f2d59c;--ex-ln:#a97f22;
+--up-bg:#3d211c;--up-tx:#f5c1b2;--up-ln:#b1523c;
+--cr-bg:#2b2447;--cr-tx:#d3c8f5;--cr-ln:#7a68b8;
+--g0:#cbb98f;--g0b:#33301f;--g1:#9cc6ec;--g1b:#1b2c3d;--g2:#c2afee;--g2b:#2a2340;--g3:#9bcfa7;--g3b:#1e3226;
+--mk:#5d4708;--mkt:#ffe9a8;
+--ha:#d9bd48;--hr:#dd9fae;--hv:#9dc98f;--hink:#1a1813;
+}}
+html[data-calmo="1"]{--g0:#6a6558;--g0b:#efece4;--g1:#4e5a66;--g1b:#eaedf0;--g2:#5f5a68;--g2b:#eeecf0;--g3:#4d5f52;--g3b:#eaefeb;
+--mk:transparent;--mkt:inherit;--ex-bg:#f4f1ea;--ex-tx:#4a463c;--ex-ln:#b9b2a2;--up-bg:#f2eeed;--up-tx:#4a4340;--up-ln:#b3a29e;--cr-bg:#efeef1;--cr-tx:#454150;--cr-ln:#a8a3b3;--sh:none}
+@media (prefers-color-scheme:dark){html[data-calmo="1"]{--g0:#b6b0a1;--g0b:#2b2a27;--g1:#a9b8c6;--g1b:#242a30;--g2:#b6afc2;--g2b:#2a2830;--g3:#a5b8aa;--g3b:#252c27;
+--ex-bg:#292723;--ex-tx:#d8d3c7;--ex-ln:#6d675a;--up-bg:#2b2626;--up-tx:#dccdc9;--up-ln:#6f5f5b;--cr-bg:#28272d;--cr-tx:#cfcad9;--cr-ln:#665f74}}
+html[data-calmo="1"] mark{background:transparent;color:inherit;padding:0;border-bottom:2px solid var(--line3);font-weight:600;border-radius:0}
+html[data-calmo="1"] .wm{display:none}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--desk);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:var(--lh);letter-spacing:var(--ls)}
+@media (prefers-reduced-motion:reduce){:root{--dur:0s}}
+.bk{max-width:820px;margin:0 auto;padding:12px 16px 0}
+button{font:inherit;cursor:pointer;touch-action:manipulation;border:none;background:none;color:inherit}
+.btn{font-size:14px;padding:11px 17px;border-radius:12px;border:1.5px solid var(--line2);background:var(--paper);color:var(--ink);min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn:disabled{opacity:.3}
+.btn.on{background:var(--acb);border-color:var(--ac);color:var(--ac);font-weight:600}
+.btn.solid{background:var(--ac);border-color:var(--ac);color:var(--paper);font-weight:600}
+
+/* barra de leitura */
+.tools{display:flex;flex-wrap:wrap;gap:7px;align-items:center;background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:9px;margin-bottom:12px}
+.tb{font-size:13.5px;padding:9px 13px;border-radius:10px;border:1.5px solid transparent;background:var(--sunk);color:var(--ink2);min-height:42px;display:inline-flex;align-items:center;gap:6px}
+.tb.on{background:var(--acb);border-color:var(--ac);color:var(--ac);font-weight:600}
+.tsep{width:1px;align-self:stretch;background:var(--line);margin:2px 3px}
+
+.hd{display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap}
+.badge{font-size:13px;letter-spacing:.02em;padding:8px 15px;border-radius:999px;background:var(--acb);color:var(--ac);font-weight:600}
+
+.toc{display:none;background:var(--paper);border:1.5px solid var(--line);border-radius:18px;padding:12px;margin-bottom:12px;box-shadow:var(--sh)}
+.toc.on{display:block}
+.tocg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:4px}
+.ti{display:flex;align-items:center;gap:11px;width:100%;text-align:left;font-size:14.5px;padding:12px 13px;border-radius:12px;color:var(--ink2);min-height:48px}
+.ti[aria-current=true]{background:var(--sunk);color:var(--ink);font-weight:600}
+.ti.grp{background:var(--sunk);font-weight:700;color:var(--ink);margin-top:6px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.tn{font-variant-numeric:tabular-nums;color:var(--ink3);font-size:12.5px;min-width:19px}
+.tk{margin-left:auto;color:var(--g3);font-weight:700;font-size:15px}
+
+.stage{perspective:2200px;position:relative;touch-action:pan-y}
+.pg{position:relative;background:var(--paper);border:1.5px solid var(--line);border-left:6px solid var(--ac);border-radius:3px 18px 18px 3px;padding:26px 30px 20px;min-height:360px;transform-origin:left center;transition:transform var(--dur) cubic-bezier(.4,0,.2,1);backface-visibility:hidden;box-shadow:var(--sh);font-size:calc(16px * var(--sc))}
+
+.rh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);padding-bottom:10px;border-bottom:1.5px solid var(--line);margin-bottom:16px}
+.rh b{color:var(--ac);font-weight:700}
+.wm{position:absolute;top:40px;right:26px;font-family:var(--serif);font-size:70px;line-height:1;color:var(--ac);opacity:.1;pointer-events:none;font-weight:600}
+
+h1{font-family:var(--serif);font-size:2.3em;font-weight:600;letter-spacing:-.015em;line-height:1.14;margin:0 0 10px}
+h2{font-family:var(--serif);font-size:1.62em;font-weight:600;letter-spacing:-.01em;line-height:1.26;margin:0 0 16px;max-width:26ch}
+.lat{display:inline-block;font-family:var(--serif);font-style:italic;font-size:.88em;padding:6px 14px;border-radius:999px;background:var(--acb);color:var(--ac);margin-bottom:14px}
+
+/* seções numeradas */
+.blk{margin:0 0 6px;border-top:1.5px solid var(--line);padding-top:4px}
+.blk:first-of-type{border-top:none}
+.sh{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:14px 2px;min-height:52px}
+.sn{flex:none;width:27px;height:27px;border-radius:9px;background:var(--acb);color:var(--ac);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.st{font-size:14.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);font-weight:700;flex:1}
+.sx{color:var(--ink3);font-size:19px;line-height:1;transition:transform var(--dur)}
+.blk.closed .sx{transform:rotate(-90deg)}
+.blk.closed .sc{display:none}
+.sc{padding:2px 0 16px}
+
+.law{margin-bottom:12px;padding:2px 0 2px 17px;border-left:3px solid var(--line2)}
+.law>b{display:block;font-family:var(--sans);font-size:.72em;letter-spacing:.07em;text-transform:uppercase;color:var(--ac);font-weight:700;margin-bottom:6px}
+.law i b,.law i mark{display:inline;font-family:inherit;font-size:inherit;letter-spacing:normal;text-transform:none;font-weight:600;margin:0}
+.law i b{color:inherit}
+.law i{font-family:var(--serif);font-style:normal;font-size:1em;line-height:1.6;color:var(--ink2);display:block;max-width:64ch}
+
+.bl{font-size:1em;line-height:var(--lh);margin:0 0 13px;padding-left:21px;position:relative;max-width:64ch}
+.bl:before{content:"";position:absolute;left:0;top:.72em;width:11px;height:3px;background:var(--ac);border-radius:2px}
+
+mark{background:var(--mk);color:var(--mkt);padding:1px 5px;border-radius:5px;font-weight:600;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.linha{background:var(--acb);border-radius:18px;padding:19px 22px}
+.linha p{font-family:var(--serif);font-size:1.2em;line-height:1.44;margin:0;color:var(--ac);font-weight:600;max-width:36ch}
+
+.esq{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:15px 0;border-bottom:2px dotted var(--line2)}
+.esq:last-child{border-bottom:none;padding-bottom:2px}
+.el{font-size:.76em;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--ac);padding-top:4px;line-height:1.4}
+.ev{font-size:.96em;line-height:var(--lh);max-width:58ch}
+
+.box{border-radius:16px;padding:17px 20px;font-size:.96em;line-height:1.66;max-width:66ch}
+.ex{background:var(--ex-bg);color:var(--ex-tx);border-left:5px solid var(--ex-ln)}
+.up{background:var(--up-bg);color:var(--up-tx);border-left:5px solid var(--up-ln)}
+.cr{background:var(--cr-bg);color:var(--cr-tx);border-left:5px solid var(--cr-ln)}
+.box .kk,.bkq .kk{display:inline-block;font-size:.7em;letter-spacing:.09em;font-weight:700;opacity:.68;margin-right:7px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.gc{border-radius:14px;padding:14px 16px}
+.gc b{display:block;font-size:.92em;font-weight:700;line-height:1.35}
+.gc span{display:block;font-size:.85em;opacity:.85;margin-top:4px;line-height:1.4}
+
+.bkq{border:1.5px solid var(--line);border-left:5px solid var(--ac);border-radius:0 16px 16px 0;padding:17px 20px;margin-bottom:12px;background:var(--paper)}
+.bkq h4{font-family:var(--serif);font-size:1.05em;font-weight:600;margin:0 0 10px;color:var(--ac);line-height:1.3}
+.bkq p{font-size:.94em;line-height:1.65;margin:0 0 8px;color:var(--ink2);max-width:60ch}
+.bkq p:last-child{margin:0}
+
+.hlbar{display:none;gap:6px;align-items:center;width:100%;padding-top:8px;margin-top:2px;border-top:1.5px solid var(--line)}
+.hlbar.on{display:flex;flex-wrap:wrap}
+.hc{width:40px;height:40px;border-radius:12px;border:2.5px solid transparent;padding:0}
+.hc[data-c=a]{background:var(--ha)}.hc[data-c=r]{background:var(--hr)}.hc[data-c=v]{background:var(--hv)}
+.hc[aria-pressed=true]{border-color:var(--ink);transform:scale(1.06)}
+.hl{border-radius:5px;box-shadow:0 0 0 3px var(--hcor);background:var(--hcor);color:var(--hink)}
+.hl b,.hl i,.hl mark{color:inherit;background:transparent}
+.hl.a{--hcor:var(--ha)}.hl.r{--hcor:var(--hr)}.hl.v{--hcor:var(--hv)}
+body[data-hl="1"] .pg{outline:3px dashed var(--ac);outline-offset:5px}
+body[data-hl="1"] [data-h]{cursor:cell}
+body[data-hl="1"] [data-h]:hover{box-shadow:0 0 0 3px var(--line2);border-radius:5px}
+.dvn{font-family:var(--serif);font-size:4em;line-height:.95;color:var(--ac);font-weight:600;letter-spacing:-.03em}
+.dvt{font-size:.78em;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin:9px 0 3px}
+.jump{display:block;width:100%;text-align:left;border:1.5px solid var(--line);border-radius:16px;padding:16px 19px;margin-bottom:10px;background:var(--paper);min-height:56px}
+.jump b{display:block;font-family:var(--serif);font-size:1.06em;font-weight:600;color:var(--ac);margin-bottom:5px;line-height:1.3}
+.jump span{display:block;font-size:.9em;line-height:1.55;color:var(--ink2)}
+.jump em{float:right;font-style:normal;font-size:.72em;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)}
+.subh{font-size:.76em;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin:20px 0 10px}
+
+.q{border:1.5px solid var(--line);border-radius:18px;padding:19px 21px;margin-bottom:14px;background:var(--paper)}
+.qn{font-size:.76em;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin-bottom:9px}
+.qe{font-size:1.02em;line-height:1.6;margin:0 0 15px;font-weight:600;max-width:58ch}
+.alt{display:flex;gap:13px;align-items:flex-start;width:100%;text-align:left;font-size:.96em;line-height:1.55;padding:13px 16px;margin-bottom:8px;border:1.5px solid var(--line);border-radius:14px;color:var(--ink);min-height:52px}
+.lt{flex:none;width:26px;height:26px;border-radius:50%;background:var(--sunk);color:var(--ink2);font-size:.85em;font-weight:700;display:flex;align-items:center;justify-content:center}
+.alt.ok{background:var(--g3b);border-color:var(--g3);color:var(--g3);font-weight:600}
+.alt.ok .lt{background:var(--g3);color:var(--paper)}
+.alt.no{background:var(--up-bg);border-color:var(--up-ln);color:var(--up-tx)}
+.alt.no .lt{background:var(--up-ln);color:var(--paper)}
+.cm{font-size:.9em;line-height:1.6;margin:-3px 0 12px 39px;color:var(--ink2);display:none;padding-left:14px;border-left:3px solid var(--line)}
+.cm.on{display:block}
+.nota{font-size:.94em;line-height:1.62;padding:15px 19px;border-radius:16px;background:var(--sunk);color:var(--ink2);margin-bottom:16px;max-width:64ch}
+
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.card3{perspective:1100px;height:200px;cursor:pointer}
+.c3i{position:relative;width:100%;height:100%;transition:transform calc(var(--dur) * 1.6) cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+.card3.flip .c3i{transform:rotateY(180deg)}
+.c3f,.c3b{position:absolute;top:0;left:0;right:0;bottom:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:18px 20px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.c3f{background:var(--paper);border:1.5px solid var(--line2);font-size:1em;line-height:1.5;font-weight:600}
+.c3b{background:var(--ac);color:var(--paper);transform:rotateY(180deg);font-size:.9em;line-height:1.55}
+.c3t{font-size:.68em;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin-bottom:9px;font-weight:700}
+
+/* modo foco */
+.foco{margin-top:6px}
+.fmeta{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink2);margin-bottom:14px;flex-wrap:wrap}
+.fdots{display:flex;gap:6px}
+.fd{width:11px;height:11px;border-radius:50%;background:var(--line2);border:none;padding:0}
+.fd.on{background:var(--ac);transform:scale(1.25)}
+.fnav{display:flex;gap:10px;margin-top:18px}
+.fnav .btn{flex:1}
+
+.done{display:flex;align-items:center;gap:11px;width:100%;margin-top:20px;padding:14px 17px;border-radius:14px;border:2px dashed var(--line2);color:var(--ink2);font-size:14.5px;min-height:54px}
+.done.on{border-style:solid;border-color:var(--g3);background:var(--g3b);color:var(--g3);font-weight:600}
+.dbox{width:24px;height:24px;border-radius:7px;border:2px solid var(--line3);flex:none;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700}
+.done.on .dbox{background:var(--g3);border-color:var(--g3);color:var(--paper)}
+
+.pf{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:13px;border-top:1.5px solid var(--line);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)}
+.pnum{font-family:var(--serif);font-size:1.1em;letter-spacing:0;color:var(--ac);font-weight:700}
+
+.nav{position:sticky;bottom:0;display:flex;align-items:center;gap:11px;padding:12px 0 calc(12px + env(safe-area-inset-bottom));margin-top:14px;background:linear-gradient(to top,var(--desk) 72%,transparent)}
+.bar{flex:1;height:6px;background:var(--line);border-radius:999px;overflow:hidden}
+.fl{height:100%;background:var(--ac);width:0;transition:width var(--dur) ease}
+.cnt{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+
+.cov-rule{height:4px;width:70px;background:var(--ac);border-radius:2px;margin:0 0 22px}
+.cov-n{font-family:var(--serif);font-size:.85em;letter-spacing:.26em;text-transform:uppercase;color:var(--ink3);margin-bottom:16px}
+.legs{display:flex;flex-wrap:wrap;gap:9px;margin:24px 0}
+.leg{font-size:.82em;padding:8px 15px;border-radius:999px;font-weight:600}
+
+@media (max-width:600px){
+.bk{padding:10px 12px 0}
+.pg{padding:20px 18px 16px;border-radius:3px 14px 14px 3px;border-left-width:5px}
+.wm{font-size:52px;top:34px;right:14px}
+.esq{grid-template-columns:1fr;gap:6px;padding:14px 0}
+.el{padding-top:0}
+.card3{height:215px}
+.tools{gap:6px;padding:8px}
+}
+@media print{.tools,.hd,.toc,.nav,.done,.fnav,.fmeta{display:none!important}
+body{background:#fff}.pg{transform:none!important;min-height:0;box-shadow:none;border:none;border-left:4px solid #999;page-break-after:always;padding:0 0 20px}
+.blk.closed .sc{display:block!important}.bk{max-width:none;padding:0}}
+</style>
+</head>
+<body>
+<div class="bk">
+  <div class="tools" id="tools">
+    <button class="tb" id="t-foco">Um bloco por vez</button>
+    <div class="tsep"></div>
+    <button class="tb" id="t-menor">A−</button>
+    <button class="tb" id="t-maior">A+</button>
+    <button class="tb" id="t-esp">Espaço</button>
+    <div class="tsep"></div>
+    <button class="tb" id="t-calmo">Cores calmas</button>
+    <button class="tb" id="t-anim">Animação</button>
+    <button class="tb" id="t-hl">Marca-texto</button>
+    <div class="hlbar" id="hlbar"><button class="hc" data-c="a" aria-label="amarelo"></button><button class="hc" data-c="r" aria-label="rosa"></button><button class="hc" data-c="v" aria-label="verde"></button><button class="tb" id="t-hlclear">Limpar esta página</button><span id="hlmsg" style="font-size:13px;color:var(--ink2)">toque no texto para marcar</span></div>
+  </div>
+  <div class="hd">
+    <button class="btn" id="tocb">Sumário</button>
+    <span class="badge" id="grp"></span>
+  </div>
+  <div class="toc" id="toc"><div class="tocg" id="tocg"></div></div>
+  <div class="stage" id="stage"><article class="pg" id="pg"></article></div>
+  <div class="nav">
+    <button class="btn" id="prev">‹ Voltar</button>
+    <div class="bar"><div class="fl" id="fl"></div></div>
+    <span class="cnt" id="cnt"></span>
+    <button class="btn solid" id="next">Seguir ›</button>
+  </div>
+</div>
+<script>
+var M={"marca": "Lei 6.938/81 · PNMA", "fonte": "Texto vigente do Planalto + acervo CátedraJURIS · 21/08/2026", "eyebrow": "Direito Ambiental"};
+var S=[
+ {
+  "toc": "Capa",
+  "g": 0,
+  "cover": 1,
+  "tit": "PNMA — Lei 6.938/1981",
+  "sub": "Política Nacional do Meio Ambiente · conceitos, SISNAMA, instrumentos e responsabilidade",
+  "fonte": "Texto vigente do Planalto (com as alterações da LC 140/2011 e da Lei 15.190/2025) · jurisprudência do acervo CátedraJURIS",
+  "b": [
+   "A lei-mãe do Direito Ambiental brasileiro: anterior à CF/88 e recepcionada por ela. É dela que saem os conceitos que toda outra norma ambiental pressupõe — meio ambiente, poluição, poluidor — e a regra de responsabilidade objetiva que a jurisprudência transformou em risco integral.",
+   "Três grupos: fundamentos e conceitos (arts. 2º a 4º) · sistema e instrumentos (arts. 6º a 10) · responsabilidade e teses (art. 14 e jurisprudência). Ao final, questões e flashcards."
+  ]
+ },
+ {
+  "toc": "Grupo 1",
+  "g": 1,
+  "custom": "div",
+  "num": "1",
+  "tit": "Grupo 1 — fundamentos e conceitos",
+  "arts": "arts. 2º, 3º e 4º",
+  "linha": "O art. 2º diz por quê, o art. 3º diz o quê, o art. 4º diz para quê — princípios, definições legais e objetivos.",
+  "por": [
+   "Estes três artigos andam juntos porque são o vocabulário da lei: sem as definições do art. 3º, nenhum outro dispositivo ambiental se aplica com precisão.",
+   "A oposição interna do grupo: princípios e objetivos são programáticos; as definições do art. 3º são operativas — é nelas que a banca cobra literalidade."
+  ],
+  "itens": [
+   [
+    "",
+    "Art. 2º",
+    "Objetivo e princípios",
+    "Preservação, melhoria e recuperação da qualidade ambiental — meio ambiente como patrimônio público."
+   ],
+   [
+    "",
+    "Art. 3º",
+    "As cinco definições legais",
+    "Meio ambiente, degradação, poluição, poluidor e recursos ambientais — decoreba obrigatória."
+   ],
+   [
+    "",
+    "Art. 4º",
+    "O que a política visa",
+    "Compatibilizar desenvolvimento e preservação; inciso VII consagra poluidor-pagador e usuário-pagador."
+   ]
+  ]
+ },
+ {
+  "toc": "Art. 2º",
+  "g": 1,
+  "tag": "grupo 1 · princípios",
+  "tit": "Art. 2º — objetivo e princípios da política",
+  "linha": "A PNMA existe para preservar, melhorar e recuperar a qualidade ambiental propícia à vida — e trata o meio ambiente como patrimônio público de uso coletivo.",
+  "law": [
+   [
+    "art. 2º, caput",
+    "“A Política Nacional do Meio Ambiente tem por objetivo a <mark>preservação, melhoria e recuperação</mark> da qualidade ambiental propícia à vida, visando assegurar, no País, condições ao desenvolvimento sócio-econômico, aos interesses da segurança nacional e à proteção da dignidade da vida humana (…)”"
+   ],
+   [
+    "art. 2º, I",
+    "“ação governamental na manutenção do equilíbrio ecológico, considerando o meio ambiente como um <mark>patrimônio público</mark> a ser necessariamente assegurado e protegido, tendo em vista o <mark>uso coletivo</mark>”"
+   ],
+   [
+    "art. 2º, X",
+    "“educação ambiental a <mark>todos os níveis de ensino</mark>, inclusive a educação da comunidade (…)”"
+   ]
+  ],
+  "esq": [
+   [
+    "Regra",
+    "O tripé do caput: preservação, melhoria e recuperação — a banca costuma suprimir um dos três."
+   ],
+   [
+    "Alcance",
+    "Patrimônio público aqui significa bem de uso comum do povo, não propriedade do Estado."
+   ],
+   [
+    "Correlato",
+    "O art. 225 da CF/88, sete anos depois, constitucionalizou a mesma lógica: bem de uso comum do povo, essencial à sadia qualidade de vida."
+   ],
+   [
+    "Pegadinha",
+    "O caput não opõe desenvolvimento e ambiente: ele manda ASSEGURAR condições ao desenvolvimento socioeconômico junto com a proteção."
+   ]
+  ],
+  "ex": "Em prova objetiva: “A PNMA tem por objetivo apenas a preservação da qualidade ambiental, vedada a exploração econômica dos recursos naturais.” — Errado: o caput inclui melhoria e recuperação e visa compatibilizar com o desenvolvimento socioeconômico."
+ },
+ {
+  "toc": "Art. 3º",
+  "g": 1,
+  "tag": "grupo 1 · definições legais",
+  "tit": "Art. 3º — as cinco definições que a banca cobra literais",
+  "linha": "Meio ambiente, degradação, poluição, poluidor e recursos ambientais: o vocabulário legal de todo o Direito Ambiental está neste artigo.",
+  "law": [
+   [
+    "art. 3º, I",
+    "“<mark>meio ambiente</mark>, o conjunto de condições, leis, influências e interações de ordem física, química e biológica, que permite, abriga e rege a vida <mark>em todas as suas formas</mark>”"
+   ],
+   [
+    "art. 3º, II",
+    "“<mark>degradação</mark> da qualidade ambiental, a alteração adversa das características do meio ambiente”"
+   ],
+   [
+    "art. 3º, III",
+    "“<mark>poluição</mark>, a degradação da qualidade ambiental resultante de atividades que direta ou indiretamente: a) prejudiquem a saúde, a segurança e o bem-estar da população; b) criem condições adversas às atividades sociais e econômicas; c) afetem desfavoravelmente a biota (…)”"
+   ],
+   [
+    "art. 3º, IV",
+    "“<mark>poluidor</mark>, a pessoa física ou jurídica, de direito público <mark>ou privado</mark>, responsável, <mark>direta ou indiretamente</mark>, por atividade causadora de degradação ambiental”"
+   ]
+  ],
+  "esq": [
+   [
+    "Não confunda",
+    "Toda poluição é degradação, mas nem toda degradação é poluição — poluição exige resultado de ATIVIDADE; degradação é qualquer alteração adversa."
+   ],
+   [
+    "Alcance",
+    "Poluidor indireto: quem financia, autoriza ou se omite também responde — é daqui que a jurisprudência tira a responsabilidade do adquirente do imóvel degradado."
+   ],
+   [
+    "Pegadinha",
+    "O poluidor pode ser pessoa de direito PÚBLICO — o Estado responde como qualquer um."
+   ],
+   [
+    "Verbo",
+    "Na definição de meio ambiente, o trio é permite, abriga e rege — trocar um verbo é a pegadinha clássica."
+   ]
+  ],
+  "ex": "Concessionária de rodovia não impede queimadas na faixa de domínio e a fumaça causa acidente. É poluidora? — Sim: responsável indireta por atividade causadora de degradação (art. 3º, IV)."
+ },
+ {
+  "toc": "Art. 4º",
+  "g": 1,
+  "tag": "grupo 1 · objetivos",
+  "tit": "Art. 4º — para que a política existe (e o inciso VII)",
+  "latin": "poluidor-pagador · usuário-pagador",
+  "linha": "O art. 4º lista o que a PNMA visa — e no inciso VII estão, juntos, o poluidor-pagador (recuperar e indenizar) e o usuário-pagador (contribuir pelo uso econômico).",
+  "law": [
+   [
+    "art. 4º, I",
+    "“à compatibilização do <mark>desenvolvimento econômico-social</mark> com a <mark>preservação</mark> da qualidade do meio ambiente e do equilíbrio ecológico”"
+   ],
+   [
+    "art. 4º, VII",
+    "“à imposição, <mark>ao poluidor e ao predador</mark>, da obrigação de recuperar e/ou indenizar os danos causados e, <mark>ao usuário</mark>, da contribuição pela utilização de recursos ambientais <mark>com fins econômicos</mark>”"
+   ]
+  ],
+  "esq": [
+   [
+    "Regra",
+    "Poluidor-pagador não é licença para poluir pagando: é internalizar o custo do dano — primeiro recuperar, e/ou indenizar."
+   ],
+   [
+    "Não confunda",
+    "Usuário-pagador incide SEM dano: paga-se pelo uso econômico do recurso, ainda que lícito."
+   ],
+   [
+    "Contraste",
+    "Inciso I é a semente do desenvolvimento sustentável antes do relatório Brundtland (1987)."
+   ]
+  ],
+  "ex": "Cobrança pelo uso da água bruta em bacia hidrográfica é sanção? — Não: é expressão do usuário-pagador (art. 4º, VII, parte final), devida ainda sem qualquer dano."
+ },
+ {
+  "toc": "Grupo 2",
+  "g": 2,
+  "custom": "div",
+  "num": "2",
+  "tit": "Grupo 2 — o sistema e seus instrumentos",
+  "arts": "arts. 6º, 8º, 9º e 10",
+  "linha": "Quem faz a política (SISNAMA), quem delibera (CONAMA) e com que ferramentas (instrumentos e licenciamento).",
+  "por": [
+   "Estes artigos formam a engrenagem institucional: estrutura (6º), competência normativa (8º), caixa de ferramentas (9º) e a ferramenta mais cobrada de todas, o licenciamento (10).",
+   "Atenção redobrada aqui: é o trecho da lei mais alterado — Lei 8.028/1990, LC 140/2011 e agora a Lei 15.190/2025 mexeram nestes dispositivos."
+  ],
+  "itens": [
+   [
+    "",
+    "Art. 6º",
+    "SISNAMA",
+    "Órgão superior: Conselho de Governo · CONAMA é consultivo e deliberativo — não é o superior."
+   ],
+   [
+    "",
+    "Art. 8º",
+    "CONAMA",
+    "Compete estabelecer normas e critérios para o licenciamento."
+   ],
+   [
+    "",
+    "Art. 9º",
+    "Instrumentos",
+    "Rol dos meios de ação: padrões, zoneamento, AIA, licenciamento, servidão…"
+   ],
+   [
+    "",
+    "Art. 10",
+    "Licenciamento",
+    "Atividade poluidora depende de prévio licenciamento ambiental (redação da LC 140/2011)."
+   ]
+  ]
+ },
+ {
+  "toc": "Art. 6º",
+  "g": 2,
+  "tag": "grupo 2 · SISNAMA",
+  "tit": "Art. 6º — SISNAMA: quem é quem",
+  "linha": "O órgão superior do SISNAMA é o Conselho de Governo; o CONAMA é o órgão consultivo e deliberativo — dizer que o CONAMA é o superior é a pegadinha número um do artigo.",
+  "law": [
+   [
+    "art. 6º, caput",
+    "“Os órgãos e entidades da União, dos Estados, do Distrito Federal, dos Territórios e dos Municípios, bem como as fundações instituídas pelo Poder Público, responsáveis pela proteção e melhoria da qualidade ambiental, constituirão o <mark>Sistema Nacional do Meio Ambiente — SISNAMA</mark>”"
+   ],
+   [
+    "art. 6º, I (redação da Lei 15.190/2025)",
+    "“<mark>órgão superior</mark>: o <mark>Conselho de Governo</mark>, com a função de assessorar o Presidente da República na formulação da política nacional e nas diretrizes governamentais para o meio ambiente e os recursos ambientais, inclusive de propor obras, serviços, projetos e atividades para a <mark>lista de empreendimentos estratégicos</mark>, para fins de licenciamento ambiental”"
+   ],
+   [
+    "art. 6º, II",
+    "“Órgão <mark>Consultivo e Deliberativo</mark>: o Conselho Nacional do Meio Ambiente — <mark>CONAMA</mark> (…)”"
+   ]
+  ],
+  "esq": [
+   [
+    "Hierarquia",
+    "Superior: Conselho de Governo · Consultivo/deliberativo: CONAMA · Central: Ministério do Meio Ambiente · Executor: IBAMA (e ICMBio) · Seccionais: órgãos estaduais · Locais: órgãos municipais."
+   ],
+   [
+    "Pegadinha",
+    "CONAMA como órgão superior — era a redação ORIGINAL de 1981, superada desde a Lei 8.028/1990."
+   ],
+   [
+    "Vigência",
+    "A Lei 15.190/2025 acrescentou ao Conselho de Governo a proposição da lista de empreendimentos estratégicos para licenciamento — texto novo, alta chance de prova."
+   ]
+  ],
+  "ex": "“No SISNAMA, o CONAMA é o órgão superior, incumbido de assessorar o Presidente da República.” — Errado: o superior é o Conselho de Governo (art. 6º, I); o CONAMA é consultivo e deliberativo (art. 6º, II).",
+  "up": "<b>Lei 15.190/2025</b> — a nova lei do licenciamento ambiental alterou o inciso I. Texto colhido do Planalto já consolidado, com marcação expressa de vigência."
+ },
+ {
+  "toc": "Art. 8º",
+  "g": 2,
+  "tag": "grupo 2 · CONAMA",
+  "tit": "Art. 8º — o que compete ao CONAMA",
+  "linha": "O CONAMA estabelece normas e critérios para o licenciamento e padrões de controle — é o legislador técnico do sistema.",
+  "law": [
+   [
+    "art. 8º, I (redação da Lei 7.804/1989)",
+    "“estabelecer, mediante proposta do IBAMA, <mark>normas e critérios para o licenciamento</mark> de atividades efetiva ou potencialmente poluidoras, a ser concedido pelos Estados e supervisionado pelo IBAMA”"
+   ],
+   [
+    "art. 8º, II",
+    "“determinar, quando julgar necessário, a realização de <mark>estudos das alternativas</mark> e das possíveis consequências ambientais de projetos públicos ou privados (…)”"
+   ]
+  ],
+  "esq": [
+   [
+    "Regra",
+    "CONAMA normatiza; quem licencia é o ente competente (hoje, repartição da LC 140/2011)."
+   ],
+   [
+    "Correlato",
+    "As resoluções CONAMA 01/1986 (EIA) e 237/1997 (licenciamento) nasceram desta competência."
+   ],
+   [
+    "Não confunda",
+    "Determinar estudo de alternativas (art. 8º, II) não é conceder licença — o CONAMA não licencia."
+   ]
+  ],
+  "ex": "“Compete ao CONAMA licenciar atividades efetivamente poluidoras de âmbito nacional.” — Errado: ao CONAMA compete estabelecer normas e critérios; licenciar é do órgão executor competente."
+ },
+ {
+  "toc": "Art. 9º",
+  "g": 2,
+  "tag": "grupo 2 · instrumentos",
+  "tit": "Art. 9º — a caixa de ferramentas",
+  "linha": "Doze e tantos instrumentos num rol que a banca cobra por troca: padrões de qualidade, zoneamento, avaliação de impactos, licenciamento, servidão ambiental…",
+  "law": [
+   [
+    "art. 9º, I a IV",
+    "“São instrumentos da Política Nacional do Meio Ambiente: I — o estabelecimento de <mark>padrões de qualidade ambiental</mark>; II — o <mark>zoneamento</mark> ambiental; III — a <mark>avaliação de impactos ambientais</mark>; IV — o <mark>licenciamento</mark> e a revisão de atividades efetiva ou potencialmente poluidoras”"
+   ]
+  ],
+  "esq": [
+   [
+    "Regra",
+    "AIA (inciso III) é gênero; EIA/RIMA é a espécie mais famosa, exigida para significativa degradação (CF, art. 225, § 1º, IV)."
+   ],
+   [
+    "Pegadinha",
+    "Zoneamento ambiental é instrumento da PNMA — não do Estatuto da Cidade; a banca troca a lei de origem."
+   ],
+   [
+    "Correlato",
+    "A servidão ambiental (arts. 9º-A a 9º-C, incluídos pela Lei 12.651/2012) também é instrumento — o proprietário limita voluntariamente o uso do imóvel."
+   ]
+  ],
+  "ex": "“O licenciamento ambiental, por seu caráter autoexecutório, dispensa previsão em rol legal de instrumentos.” — Errado: é instrumento expresso (art. 9º, IV)."
+ },
+ {
+  "toc": "Art. 10",
+  "g": 2,
+  "tag": "grupo 2 · licenciamento",
+  "tit": "Art. 10 — prévio licenciamento ambiental",
+  "linha": "Atividade efetiva ou potencialmente poluidora depende de PRÉVIO licenciamento ambiental — a redação atual, dada pela LC 140/2011, não fala mais em “órgão estadual”.",
+  "law": [
+   [
+    "art. 10, caput (redação da LC 140/2011)",
+    "“A construção, instalação, ampliação e funcionamento de estabelecimentos e atividades utilizadores de recursos ambientais, efetiva ou potencialmente poluidores ou capazes, sob qualquer forma, de causar degradação ambiental <mark>dependerão de prévio licenciamento ambiental</mark>.”"
+   ]
+  ],
+  "esq": [
+   [
+    "Vigência",
+    "A redação original mandava licenciar “por órgão estadual competente” — a LC 140/2011 apagou isso: a competência agora segue a repartição da própria LC 140 (União/IBAMA, Estados, Municípios)."
+   ],
+   [
+    "Pegadinha",
+    "Citar a redação antiga (órgão estadual + supervisão do IBAMA) como vigente é erro clássico de material desatualizado."
+   ],
+   [
+    "Alcance",
+    "Prévio: sem licença não se constrói nem se amplia — operar sem licença é crime (Lei 9.605/1998, art. 60) e infração administrativa."
+   ],
+   [
+    "Atualização",
+    "A Lei 15.190/2025 (Lei Geral do Licenciamento Ambiental) passou a reger o regime geral das licenças — estudar em conjunto daqui em diante."
+   ]
+  ],
+  "ex": "“Compete privativamente ao órgão estadual licenciar toda atividade poluidora, sob supervisão do IBAMA.” — Errado: essa era a redação original do art. 10; desde a LC 140/2011 a competência é repartida entre os entes.",
+  "up": "<b>LC 140/2011</b> — repartiu a competência do licenciamento entre os entes federativos.<br><b>Lei 15.190/2025</b> — nova lei geral do licenciamento; alterou também o art. 6º, I, desta lei."
+ },
+ {
+  "toc": "Grupo 3",
+  "g": 3,
+  "custom": "div",
+  "num": "3",
+  "tit": "Grupo 3 — responsabilidade e as teses dos tribunais",
+  "arts": "art. 14, § 1º + jurisprudência",
+  "linha": "Um parágrafo de 1981 sustenta todo o edifício: responsabilidade objetiva que o STJ leu como risco integral, obrigação propter rem e pretensão imprescritível.",
+  "por": [
+   "O art. 14, § 1º, é o dispositivo mais citado da lei em segunda fase — e as quatro teses desta seção são as que os espelhos de banca pagam.",
+   "A oposição interna: a lei diz “independentemente de culpa”; foi a jurisprudência que disse “sem excludentes” (risco integral) — saber de onde vem cada pedaço vale ponto."
+  ],
+  "itens": [
+   [
+    "",
+    "Art. 14 §1º",
+    "Responsabilidade objetiva",
+    "Poluidor indeniza independentemente de culpa; MP com legitimidade expressa."
+   ],
+   [
+    "",
+    "Teses",
+    "O que os tribunais fixaram",
+    "Risco integral · propter rem · imprescritibilidade (conhecimento e execução)."
+   ]
+  ]
+ },
+ {
+  "toc": "Art. 14 §1º",
+  "g": 3,
+  "tag": "grupo 3 · responsabilidade civil",
+  "tit": "Art. 14, § 1º — objetiva por texto, integral por jurisprudência",
+  "latin": "alterum non laedere",
+  "linha": "O poluidor é obrigado, independentemente de culpa, a indenizar ou reparar — e o MP tem legitimidade expressa para a ação de responsabilidade.",
+  "law": [
+   [
+    "art. 14, § 1º",
+    "“Sem obstar a aplicação das penalidades previstas neste artigo, é o poluidor obrigado, <mark>independentemente da existência de culpa</mark>, a indenizar ou reparar os danos causados ao meio ambiente e a terceiros, afetados por sua atividade. O <mark>Ministério Público</mark> da União e dos Estados terá legitimidade para propor ação de responsabilidade civil e criminal, por danos causados ao meio ambiente.”"
+   ]
+  ],
+  "esq": [
+   [
+    "Regra",
+    "Objetiva: basta atividade, dano e nexo — culpa não entra na conta."
+   ],
+   [
+    "Alcance",
+    "Indenizar OU reparar: a prioridade é a reparação específica (restaurar); indenização é subsidiária ou cumulativa quando a restauração não basta."
+   ],
+   [
+    "Correlato",
+    "Recepcionado pelo art. 225, § 3º, da CF/88 — a tríplice responsabilização (civil, administrativa e penal) é independente."
+   ],
+   [
+    "Não confunda",
+    "Este § 1º é anterior à Lei 7.347/1985: a legitimidade do MP aqui é para ação de responsabilidade — a ACP veio depois e convive com ela."
+   ]
+  ],
+  "ex": "Rompimento de barragem por chuva extraordinária. A mineradora alega força maior. Afasta a responsabilidade? — Não: risco integral, sem excludentes (ver página de teses)."
+ },
+ {
+  "toc": "Teses",
+  "g": 3,
+  "tag": "grupo 3 · jurisprudência verificada",
+  "tit": "As quatro teses que os espelhos pagam",
+  "linha": "Risco integral, propter rem, imprescritibilidade da reparação e da execução — todas conferidas no acervo, com o número certo.",
+  "law": [
+   [
+    "origem",
+    "Teses extraídas do acervo CátedraJURIS (súmulas, repetitivos e repercussão geral), conferidas na literalidade em 21/08/2026."
+   ]
+  ],
+  "esq": [
+   [
+    "Risco integral",
+    "“A responsabilidade por dano ambiental é OBJETIVA, informada pela teoria do RISCO INTEGRAL. Não são admitidas excludentes (…) caso fortuito, força maior” — STJ, recurso repetitivo (Tema 707)."
+   ],
+   [
+    "Propter rem",
+    "“As obrigações ambientais possuem natureza propter rem, sendo admissível cobrá-las do proprietário ou possuidor atual e/ou dos anteriores, à escolha do credor” — Súmula 623 do STJ (detalhada no Tema repetitivo 1.204)."
+   ],
+   [
+    "Imprescritível (conhecimento)",
+    "“É imprescritível a pretensão de reparação civil de dano ambiental” — STF, repercussão geral, Tema 999."
+   ],
+   [
+    "Imprescritível (execução)",
+    "Pelo caráter transindividual, transgeracional e indisponível do bem, é imprescritível também a pretensão EXECUTÓRIA do título que reconhece o dano — STF, repercussão geral, Tema 1.194."
+   ]
+  ],
+  "ex": "Adquirente de fazenda com APP desmatada pelo antigo dono alega fato de terceiro e prescrição. Duas defesas, zero êxito: obrigação propter rem (Súmula 623/STJ) e pretensão imprescritível (Tema 999/STF).",
+  "up": "<b>Marque o recorte:</b> o risco integral (Tema 707) foi fixado em responsabilidade por DANO — não transporta automaticamente para sanção administrativa, onde o STJ exige ao menos a conduta do autuado."
+ },
+ {
+  "toc": "Questões",
+  "g": 0,
+  "custom": "quiz",
+  "tag": "treino · 5 questões",
+  "tit": "Questões com gabarito comentado",
+  "nota": "Questões autorais, escritas a partir da letra da lei vigente e das teses conferidas no acervo — não são reprodução de provas anteriores.",
+  "q": [
+   {
+    "e": "Segundo o art. 3º da Lei 6.938/81, poluidor é a pessoa física ou jurídica, de direito privado, responsável diretamente por atividade causadora de degradação ambiental.",
+    "ok": 1,
+    "alts": [
+     [
+      "Certo",
+      "Errado marcar certo: a definição legal foi mutilada duas vezes."
+     ],
+     [
+      "Errado",
+      "Correto: o inciso IV inclui pessoa de direito público OU privado e responsabilidade direta OU indireta — a supressão dos dois “ou” é a pegadinha."
+     ]
+    ]
+   },
+   {
+    "e": "No SISNAMA, o órgão superior é:",
+    "ok": 2,
+    "alts": [
+     [
+      "o CONAMA",
+      "Errada — era a redação original de 1981; o CONAMA é hoje órgão consultivo e deliberativo (art. 6º, II)."
+     ],
+     [
+      "o Ministério do Meio Ambiente",
+      "Errada — é o órgão central."
+     ],
+     [
+      "o Conselho de Governo",
+      "Correta — art. 6º, I, na redação atual (inclusive após a Lei 15.190/2025, que lhe acresceu a proposição da lista de empreendimentos estratégicos)."
+     ],
+     [
+      "o IBAMA",
+      "Errada — órgão executor."
+     ]
+    ]
+   },
+   {
+    "e": "A construção de estabelecimento potencialmente poluidor depende de prévio licenciamento por órgão estadual competente, integrante do SISNAMA, supervisionado pelo IBAMA.",
+    "ok": 1,
+    "alts": [
+     [
+      "Certo",
+      "Errado marcar certo: essa é a redação REVOGADA do art. 10."
+     ],
+     [
+      "Errado",
+      "Correto: desde a LC 140/2011 o caput exige apenas “prévio licenciamento ambiental”, com competência repartida pela própria LC 140."
+     ]
+    ]
+   },
+   {
+    "e": "Empresa comprova que o vazamento decorreu exclusivamente de evento climático extremo e imprevisível. Quanto à reparação civil do dano ambiental:",
+    "ok": 0,
+    "alts": [
+     [
+      "responde mesmo assim, pois a responsabilidade é objetiva sob risco integral",
+      "Correta — STJ, repetitivo (Tema 707): não se admitem excludentes como caso fortuito e força maior."
+     ],
+     [
+      "não responde, por rompimento do nexo causal",
+      "Errada — no risco integral a excludente não rompe o dever de reparar."
+     ],
+     [
+      "responde apenas administrativamente",
+      "Errada — a esfera civil é exatamente a do risco integral; as esferas são independentes (CF, art. 225, § 3º)."
+     ],
+     [
+      "responde só se comprovada culpa in vigilando",
+      "Errada — culpa não integra a equação (art. 14, § 1º)."
+     ]
+    ]
+   },
+   {
+    "e": "Proposta ação de reparação de dano ambiental 30 anos após o desmatamento, contra o atual proprietário que nada desmatou. A ação:",
+    "ok": 3,
+    "alts": [
+     [
+      "está prescrita",
+      "Errada — Tema 999/STF: pretensão imprescritível."
+     ],
+     [
+      "improcede por ilegitimidade passiva",
+      "Errada — obrigação propter rem alcança o atual proprietário (Súmula 623/STJ)."
+     ],
+     [
+      "só procede contra o desmatador original",
+      "Errada — o credor escolhe: atual, anteriores ou ambos (Tema 1.204/STJ)."
+     ],
+     [
+      "pode prosseguir contra o atual proprietário",
+      "Correta — soma das duas teses: imprescritibilidade (Tema 999/STF) + propter rem (Súmula 623/STJ)."
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "toc": "Flashcards",
+  "g": 0,
+  "custom": "cards",
+  "tag": "revisão ativa · 8 cartões",
+  "tit": "Flashcards — toque para virar",
+  "nota": "Leia a frente, responda em voz alta, e só então toque para conferir.",
+  "c": [
+   [
+    "Os três verbos do objetivo da PNMA (art. 2º)",
+    "Preservação, melhoria e RECUPERAÇÃO da qualidade ambiental propícia à vida."
+   ],
+   [
+    "Meio ambiente, na definição legal, rege a vida…",
+    "…em TODAS as suas formas (art. 3º, I) — não só a humana."
+   ],
+   [
+    "Poluidor pode ser pessoa de direito público?",
+    "Sim — art. 3º, IV: pessoa física ou jurídica, de direito público OU privado, responsável direta OU indiretamente."
+   ],
+   [
+    "Quem é o órgão superior do SISNAMA?",
+    "O Conselho de Governo (art. 6º, I). O CONAMA é consultivo e deliberativo."
+   ],
+   [
+    "O que a Lei 15.190/2025 acrescentou ao art. 6º, I?",
+    "A proposição da lista de empreendimentos estratégicos para fins de licenciamento ambiental."
+   ],
+   [
+    "Redação atual do art. 10: quem licencia?",
+    "O caput só exige prévio licenciamento ambiental — a competência segue a repartição da LC 140/2011."
+   ],
+   [
+    "Fundamento legal da responsabilidade objetiva ambiental",
+    "Art. 14, § 1º, da Lei 6.938/81 — independentemente da existência de culpa."
+   ],
+   [
+    "As 4 teses de responsabilidade e seus números",
+    "Risco integral (Tema 707/STJ) · propter rem (Súmula 623/STJ e Tema 1.204/STJ) · imprescritibilidade do conhecimento (Tema 999/STF) e da execução (Tema 1.194/STF)."
+   ]
+  ]
+ }
+];
+
+var GC={0:["--g0","--g0b","contexto"],1:["--g1","--g1b","grupo 1 · clareza normativa"],2:["--g2","--g2b","grupo 2 · responsabilização hermenêutica"],3:["--g3","--g3b","grupo 3 · invalidade do ato"]};
+var TONE={n:"var(--ink3)",a:"var(--g1)",s:"var(--g3)",w:"var(--ex-ln)",d:"var(--up-ln)",p:"var(--g2)"};
+var i=0,busy=false,done={},hits=0,fi=0,secs=[];
+var pg=E('pg'),toc=E('toc'),tocg=E('tocg'),grp=E('grp'),fl=E('fl'),cnt=E('cnt'),root=document.documentElement;
+function E(x){return document.getElementById(x)}
+function LS(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+
+var cfg={hl:false,hcor:LS('c-hcor')||'a',foco:LS('c-foco')==='1',sc:parseFloat(LS('c-sc')||'1'),esp:LS('c-esp')==='1',calmo:LS('c-calmo')==='1',
+ anim:LS('c-anim')===null?!matchMedia('(prefers-reduced-motion:reduce)').matches:LS('c-anim')==='1'};
+var lidas={};try{lidas=JSON.parse(LS('c-lidas')||'{}')}catch(e){}
+var marcas={};try{marcas=JSON.parse(LS('c-marcas')||'{}')}catch(e){}
+var SELH='.bl,.ev,.law i,.qe,.bkq p,.jump span,.alt>span:last-child';
+
+function aplicar(){
+  root.style.setProperty('--sc',cfg.sc);
+  root.style.setProperty('--lh',cfg.esp?'2.02':'1.72');
+  root.style.setProperty('--ls',cfg.esp?'.012em':'0em');
+  root.style.setProperty('--dur',cfg.anim?'.3s':'0s');
+  root.setAttribute('data-calmo',cfg.calmo?'1':'0');
+  E('t-foco').className='tb'+(cfg.foco?' on':'');
+  E('t-esp').className='tb'+(cfg.esp?' on':'');
+  E('t-calmo').className='tb'+(cfg.calmo?' on':'');
+  E('t-anim').className='tb'+(cfg.anim?' on':'');
+  E('t-hl').className='tb'+(cfg.hl?' on':'');
+  E('hlbar').className='hlbar'+(cfg.hl?' on':'');
+  document.body.setAttribute('data-hl',cfg.hl?'1':'0');
+  var cs=document.querySelectorAll('.hc');for(var q=0;q<cs.length;q++)cs[q].setAttribute('aria-pressed',cs[q].dataset.c===cfg.hcor?'true':'false');
+  LS('c-hcor',cfg.hcor);
+  E('t-menor').disabled=cfg.sc<=1;E('t-maior').disabled=cfg.sc>=1.34;
+  LS('c-foco',cfg.foco?1:0);LS('c-sc',cfg.sc);LS('c-esp',cfg.esp?1:0);LS('c-calmo',cfg.calmo?1:0);LS('c-anim',cfg.anim?1:0);
+}
+E('t-foco').onclick=function(){cfg.foco=!cfg.foco;fi=0;aplicar();paint()};
+E('t-menor').onclick=function(){cfg.sc=Math.max(1,+(cfg.sc-.17).toFixed(2));aplicar()};
+E('t-maior').onclick=function(){cfg.sc=Math.min(1.34,+(cfg.sc+.17).toFixed(2));aplicar()};
+E('t-esp').onclick=function(){cfg.esp=!cfg.esp;aplicar()};
+E('t-calmo').onclick=function(){cfg.calmo=!cfg.calmo;aplicar()};
+E('t-anim').onclick=function(){cfg.anim=!cfg.anim;aplicar()};
+E('t-hl').onclick=function(){cfg.hl=!cfg.hl;aplicar()};
+E('hlbar').addEventListener('click',function(e){
+  var c=e.target.closest('.hc');
+  if(c){cfg.hcor=c.dataset.c;aplicar();return}
+  if(e.target.id==='t-hlclear'){delete marcas[i];LS('c-marcas',JSON.stringify(marcas));paint()}
+});
+function indexar(){
+  var conts=pg.querySelectorAll('[data-s]'),sal=marcas[i]||{};
+  for(var a=0;a<conts.length;a++){
+    var alvos=conts[a].querySelectorAll(SELH);
+    for(var j=0;j<alvos.length;j++){
+      var id=conts[a].dataset.s+':'+j;
+      alvos[j].dataset.h=id;
+      if(sal[id])alvos[j].className+=' hl '+sal[id];
+    }
+  }
+}
+pg.addEventListener('click',function(e){
+  if(!cfg.hl)return;
+  e.preventDefault();e.stopPropagation();
+  var el=e.target.closest('[data-h]');if(!el)return;
+  var id=el.dataset.h;
+  if(!marcas[i])marcas[i]={};
+  if(el.classList.contains('hl')&&marcas[i][id]===cfg.hcor){el.classList.remove('hl','a','r','v');delete marcas[i][id]}
+  else{el.classList.remove('a','r','v');el.classList.add('hl',cfg.hcor);marcas[i][id]=cfg.hcor}
+  if(!Object.keys(marcas[i]).length)delete marcas[i];
+  LS('c-marcas',JSON.stringify(marcas));
+},true);
+
+function wm(t){var m=t.match(/Art\. (\d+)/);return m?m[1]:''}
+function cardsHtml(c){
+  return c.map(function(x,k){
+    return '<div class="card3" onclick="this.classList.toggle(\'flip\')"><div class="c3i">'+
+      '<div class="c3f"><div class="c3t">cartão '+(k+1)+' — pergunta</div><div>'+x[0]+'</div></div>'+
+      '<div class="c3b"><div class="c3t">resposta</div><div>'+x[1]+'</div></div></div></div>';
+  }).join('');
+}
+function pick(qi,ai){
+  var d=S[i];if(done[qi])return;done[qi]=1;
+  var q=d.q[qi];
+  for(var k=0;k<q.alts.length;k++){
+    E('c'+qi+'_'+k).classList.add('on');
+    var b=E('a'+qi+'_'+k);
+    if(k===q.ok)b.classList.add('ok');else if(k===ai)b.classList.add('no');
+  }
+  if(ai===q.ok)hits++;
+  var tot=0;for(var z in done)tot++;
+  var s=E('sc-q');if(s)s.innerHTML='Acertos: <b>'+hits+'</b> de '+tot+' respondidas · '+d.q.length+' no total.';
+}
+function shuffle(){var c=S[i].c.slice();for(var k=c.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=c[k];c[k]=c[j];c[j]=t}S[i].c=c;E('cg').innerHTML=cardsHtml(c)}
+function resetCards(){var n=document.querySelectorAll('.card3');for(var k=0;k<n.length;k++)n[k].classList.remove('flip')}
+function goTo(name){for(var k=0;k<S.length;k++)if(S[k].toc===name){flip(k);return}}
+function qHtml(q,qi,tot){
+  return '<div class="q"><div class="qn">questão '+(qi+1)+' de '+tot+'</div><p class="qe">'+q.e+'</p>'+
+    q.alts.map(function(a,ai){
+      return '<button class="alt" id="a'+qi+'_'+ai+'" onclick="pick('+qi+','+ai+')"><span class="lt">'+String.fromCharCode(97+ai)+'</span><span>'+a[0]+'</span></button>'+
+        '<div class="cm" id="c'+qi+'_'+ai+'">'+a[1]+'</div>';
+    }).join('')+'</div>';
+}
+
+/* monta as seções da página */
+function montar(d){
+  var s=[];
+  if(d.linha)s.push(['Em uma linha','<div class="linha"><p>'+d.linha+'</p></div>']);
+  if(d.law)s.push([d.lawlab||'A lei, literal',d.law.map(function(l){return '<div class="law"><b>'+l[0]+'</b><i>'+l[1]+'</i></div>'}).join('')]);
+  if(d.por)s.push(['Por que estão juntos',d.por.map(function(x){return '<p class="bl">'+x+'</p>'}).join('')]);
+  if(d.itens){var sub='';s.push(['O que vem nesta seção',d.itens.map(function(x){var h='';if(x[0]&&x[0]!==sub){sub=x[0];h='<div class="subh">'+sub+'</div>'}
+    return h+'<button class="jump" onclick="goTo(\''+x[1]+'\')"><b>'+x[1]+' — '+x[2]+' <em>ver ›</em></b><span>'+x[3]+'</span></button>'}).join('')]);}
+  if(d.grid)s.push([d.gridlab||'Quadro','<div class="grid">'+d.grid.map(function(g){return '<div class="gc" style="background:'+g[2]+';color:'+g[3]+'"><b>'+g[0]+'</b><span>'+g[1]+'</span></div>'}).join('')+'</div>']);
+  if(d.blocks)s.push([d.blab||'Blocos',d.blocks.map(function(x){return '<div class="bkq" style="border-left-color:'+TONE[x[1]]+'"><h4 style="color:'+TONE[x[1]]+'">'+x[0]+'</h4>'+x[2]+'</div>'}).join('')]);
+  if(d.esq)s.push([d.esqlab||'Esquema','<div>'+d.esq.map(function(x){return '<div class="esq"><div class="el">'+x[0]+'</div><div class="ev">'+x[1]+'</div></div>'}).join('')+'</div>']);
+  if(d.b&&!d.cover)s.push([d.blabel||'O que a banca cobra',d.b.map(function(x){return '<p class="bl">'+x+'</p>'}).join('')]);
+  if(d.ex)s.push(['Exemplo','<div class="box ex">'+d.ex+'</div>']);
+  if(d.up)s.push(['Atualização e alerta','<div class="box up">'+d.up+'</div>']);
+  if(d.cr)s.push(['Crítica da doutrina','<div class="box cr">'+d.cr+'</div>']);
+  if(d.q){s.push(['Como responder','<div class="nota" id="sc-q">'+d.nota+'</div>']);
+    d.q.forEach(function(q,qi){s.push(['Questão '+(qi+1),qHtml(q,qi,d.q.length)])});}
+  if(d.c)s.push(['Cartões','<div class="nota">'+d.nota+'</div><div style="display:flex;gap:10px;margin-bottom:16px"><button class="btn" onclick="shuffle()">Embaralhar</button><button class="btn" onclick="resetCards()">Desvirar</button></div><div class="cgrid" id="cg">'+cardsHtml(d.c)+'</div>']);
+  return s;
+}
+function secHtml(k,fechado){
+  return '<section class="blk'+(fechado?' closed':'')+'" id="b'+k+'" data-s="'+k+'">'+
+    '<button class="sh" onclick="document.getElementById(\'b'+k+'\').classList.toggle(\'closed\')">'+
+    '<span class="sn">'+(k+1)+'</span><span class="st">'+secs[k][0]+'</span><span class="sx">⌄</span></button>'+
+    '<div class="sc">'+secs[k][1]+'</div></section>';
+}
+var META=(typeof M==='object'&&M)||{};
+var MARCA=META.marca||'',FONTE=META.fonte||'';
+function foot(){return '<div class="pf"><span>'+FONTE+'</span><span class="pnum">'+(i+1)+' / '+S.length+'</span></div>'}
+function topo(d){
+  if(d.cover)return '<div class="rh"><b>'+(META.capaEsq||'resumo de estudo')+'</b><span>'+(META.capaDir||MARCA)+'</span></div>';
+  if(d.custom==='div')return '<div class="rh"><b>abertura de grupo</b><span>'+MARCA+'</span></div>'+
+    '<div class="dvn">'+d.num+'</div><div class="dvt">'+d.arts+'</div><h2>'+d.tit+'</h2>';
+  var n=wm(d.tit);
+  return '<div class="rh"><b>'+(d.tag||GC[d.g][2])+'</b><span>'+MARCA+'</span></div>'+
+    (n?'<div class="wm">'+n+'</div>':'')+'<h2>'+d.tit+'</h2>'+(d.latin?'<div class="lat">'+d.latin+'</div>':'');
+}
+
+function paint(){
+  var d=S[i];
+  root.style.setProperty('--ac','var('+GC[d.g][0]+')');
+  root.style.setProperty('--acb','var('+GC[d.g][1]+')');
+
+  if(d.cover){
+    pg.innerHTML=topo(d)+'<div style="padding:22px 0 4px"><div class="cov-n">'+(META.eyebrow||MARCA)+'</div><h1>'+d.tit+'</h1><div class="cov-rule"></div>'+
+      '<p style="font-family:var(--serif);font-size:1.15em;line-height:1.5;color:var(--ink2);margin:0 0 6px;max-width:34ch">'+d.sub+'</p>'+
+      '<p style="font-size:.86em;color:var(--ink3);margin:0">'+d.fonte+'</p>'+
+      '<div class="legs">'+[1,2,3].map(function(k){return '<span class="leg" style="background:var('+GC[k][1]+');color:var('+GC[k][0]+')">'+GC[k][2]+'</span>'}).join('')+'</div>'+
+      d.b.map(function(x){return '<p class="bl">'+x+'</p>'}).join('')+'</div>'+foot();
+  }else{
+    secs=montar(d);
+    if(fi>=secs.length)fi=0;
+    var body;
+    if(cfg.foco){
+      body='<div class="foco"><div class="fmeta"><span><b>Bloco '+(fi+1)+' de '+secs.length+'</b> · '+secs[fi][0]+'</span>'+
+        '<span class="fdots">'+secs.map(function(_,k){return '<button class="fd'+(k===fi?' on':'')+'" onclick="setFoco('+k+')" aria-label="bloco '+(k+1)+'"></button>'}).join('')+'</span></div>'+
+        '<div class="sc" data-s="'+fi+'">'+secs[fi][1]+'</div>'+
+        '<div class="fnav">'+
+        (fi>0?'<button class="btn" onclick="setFoco('+(fi-1)+')">‹ Bloco anterior</button>':'')+
+        (fi<secs.length-1?'<button class="btn solid" onclick="setFoco('+(fi+1)+')">Próximo bloco ›</button>':'<button class="btn solid" onclick="flip(i+1)">Terminei esta página ›</button>')+
+        '</div></div>';
+    }else{
+      body=secs.map(function(_,k){return secHtml(k,false)}).join('');
+    }
+    pg.innerHTML=topo(d)+body+
+      '<button class="done'+(lidas[i]?' on':'')+'" onclick="marcar()"><span class="dbox">'+(lidas[i]?'✓':'')+'</span><span>'+(lidas[i]?'Página revisada':'Marcar como revisada')+'</span></button>'+foot();
+    if(d.q){done={};hits=0}
+  }
+  var ch=tocg.children;for(var k=0;k<ch.length;k++){ch[k].setAttribute('aria-current',k===i?'true':'false');
+    var mk=ch[k].querySelector('.tk');if(mk)mk.textContent=lidas[k]?'✓':''}
+  grp.textContent=d.toc;
+  fl.style.width=Math.round((i+1)/S.length*100)+'%';
+  cnt.textContent=(i+1)+' / '+S.length;
+  E('prev').disabled=i===0;E('next').disabled=i===S.length-1;
+  LS('lindb-pg',i);
+  indexar();
+}
+function setFoco(k){fi=k;paint();pg.scrollIntoView({block:'start',behavior:cfg.anim?'smooth':'auto'})}
+function marcar(){lidas[i]=!lidas[i];LS('c-lidas',JSON.stringify(lidas));paint()}
+
+tocg.innerHTML=S.map(function(s,k){
+  return '<button class="ti'+(s.custom==='div'?' grp':'')+'" data-k="'+k+'"><span class="tn">'+(k+1)+'</span><span class="dot" style="background:var('+GC[s.g][0]+')"></span><span>'+(s.custom==='div'?s.tit.replace(/^Grupo (\d) — /,'Grupo $1 · '):s.toc)+'</span><span class="tk"></span></button>';
+}).join('');
+
+function flip(k){
+  if(busy||k<0||k>=S.length)return;
+  fi=0;
+  if(!cfg.anim){i=k;paint();window.scrollTo(0,0);try{LS('lindb-pg',i)}catch(e){}return}
+  busy=true;var fw=k>i;
+  pg.style.transform='rotateY('+(fw?-94:94)+'deg)';
+  setTimeout(function(){
+    i=k;paint();window.scrollTo(0,0);try{LS('lindb-pg',i)}catch(e){}
+    pg.style.transition='none';pg.style.transform='rotateY('+(fw?90:-90)+'deg)';
+    requestAnimationFrame(function(){pg.style.transition='transform var(--dur) cubic-bezier(.4,0,.2,1)';pg.style.transform='rotateY(0deg)';
+      setTimeout(function(){busy=false},310)});
+  },300);
+}
+tocg.addEventListener('click',function(e){var b=e.target.closest('.ti');if(b){flip(+b.dataset.k);toc.classList.remove('on')}});
+E('tocb').onclick=function(){toc.classList.toggle('on')};
+E('prev').onclick=function(){flip(i-1)};
+E('next').onclick=function(){flip(i+1)};
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight')flip(i+1);if(e.key==='ArrowLeft')flip(i-1)});
+var x0=null,y0=null,st=E('stage');
+st.addEventListener('touchstart',function(e){x0=e.changedTouches[0].clientX;y0=e.changedTouches[0].clientY},{passive:true});
+st.addEventListener('touchend',function(e){
+  if(x0===null)return;var dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.7)flip(dx<0?i+1:i-1);
+  x0=null;y0=null;
+},{passive:true});
+var sv=parseInt(LS('lindb-pg'),10);if(!isNaN(sv)&&sv>=0&&sv<S.length)i=sv;
+aplicar();paint();
+</script>
+</body>
+</html>

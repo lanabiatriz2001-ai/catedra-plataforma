@@ -1,0 +1,77 @@
+{
+  "extraido_em": "2026-08-21",
+  "recorte": "Total geral (picker 'Tudo': 11/10/2021 a 21/08/2026). TEC nao tem preset de 30/90 dias; recortes de 22/07-21/08/2026 (30d) e 23/05-21/08/2026 (90d) aplicados como periodo customizado e incluidos em recortes_adicionais.",
+  "total": {
+    "questoes": 330,
+    "acertos": 212,
+    "erros": 118,
+    "pct": ""
+  },
+  "por_disciplina": [
+    { "disciplina": "AFO, Direito Financeiro e Contabilidade Pública", "questoes": 5, "acertos": 3, "erros": 2, "pct": "60%" },
+    { "disciplina": "Atualidades e Conhecimentos Gerais", "questoes": 1, "acertos": 1, "erros": 0, "pct": "100%" },
+    { "disciplina": "Direito Administrativo (Doutrina e Leis Federais)", "questoes": 94, "acertos": 72, "erros": 22, "pct": "77%" },
+    { "disciplina": "Direito Ambiental", "questoes": 29, "acertos": 21, "erros": 8, "pct": "73%" },
+    { "disciplina": "Direito Civil", "questoes": 6, "acertos": 3, "erros": 3, "pct": "50%" },
+    { "disciplina": "Direito Constitucional (CF/1988 e Doutrina)", "questoes": 123, "acertos": 71, "erros": 52, "pct": "58%" },
+    { "disciplina": "Direito Empresarial (Comercial)", "questoes": 2, "acertos": 0, "erros": 2, "pct": "0%" },
+    { "disciplina": "Direito Previdenciário", "questoes": 7, "acertos": 3, "erros": 4, "pct": "43%" },
+    { "disciplina": "Direito Processual Civil", "questoes": 12, "acertos": 7, "erros": 5, "pct": "59%" },
+    { "disciplina": "Direito Processual do Trabalho", "questoes": 6, "acertos": 3, "erros": 3, "pct": "50%" },
+    { "disciplina": "Direito Sanitário e Saúde", "questoes": 5, "acertos": 3, "erros": 2, "pct": "60%" },
+    { "disciplina": "Direito Tributário", "questoes": 7, "acertos": 6, "erros": 1, "pct": "86%" },
+    { "disciplina": "Direito do Trabalho", "questoes": 11, "acertos": 7, "erros": 4, "pct": "64%" },
+    { "disciplina": "Direitos Humanos", "questoes": 1, "acertos": 0, "erros": 1, "pct": "0%" },
+    { "disciplina": "Legislação Civil e Processual Civil Especial", "questoes": 5, "acertos": 3, "erros": 2, "pct": "60%" },
+    { "disciplina": "Legislação Específica das Agências Reguladoras", "questoes": 2, "acertos": 0, "erros": 2, "pct": "0%" },
+    { "disciplina": "Legislação Geral Federal", "questoes": 1, "acertos": 0, "erros": 1, "pct": "0%" },
+    { "disciplina": "Língua Portuguesa (Português)", "questoes": 13, "acertos": 9, "erros": 4, "pct": "70%" }
+  ],
+  "serie": [
+    { "data": "2026-06-23", "faixa_exibida": "23/06 a 27/06", "questoes": 0, "acertos": 0 },
+    { "data": "2026-06-28", "faixa_exibida": "28/06 a 03/07", "questoes": 0, "acertos": 0 },
+    { "data": "2026-07-04", "faixa_exibida": "04/07 a 09/07", "questoes": 0, "acertos": 0 },
+    { "data": "2026-07-10", "faixa_exibida": "10/07 a 15/07", "questoes": 0, "acertos": 0 },
+    { "data": "2026-07-16", "faixa_exibida": "16/07 a 21/07", "questoes": 0, "acertos": 0 },
+    { "data": "2026-07-22", "faixa_exibida": "22/07 a 27/07", "questoes": 0, "acertos": 0 },
+    { "data": "2026-07-28", "faixa_exibida": "28/07 a 02/08", "questoes": 0, "acertos": 0 },
+    { "data": "2026-08-03", "faixa_exibida": "03/08 a 08/08", "questoes": 0, "acertos": 0 },
+    { "data": "2026-08-09", "faixa_exibida": "09/08 a 14/08", "questoes": 0, "acertos": 0 },
+    { "data": "2026-08-15", "faixa_exibida": "15/08 a 21/08", "questoes": 24, "acertos": 19, "erros": 5 }
+  ],
+  "recortes_adicionais": {
+    "ultimos_30_dias": {
+      "periodo": "22/07/2026 a 21/08/2026",
+      "total": { "questoes": 24, "acertos": 19, "erros": 5, "pct": "" },
+      "por_disciplina": [
+        { "disciplina": "Direito Ambiental", "questoes": 24, "acertos": 19, "erros": 5, "pct": "80%" }
+      ]
+    },
+    "ultimos_90_dias": {
+      "periodo": "23/05/2026 a 21/08/2026",
+      "total": { "questoes": 158, "acertos": 98, "erros": 60, "pct": "" },
+      "por_disciplina": [
+        { "disciplina": "AFO, Direito Financeiro e Contabilidade Pública", "questoes": 5, "acertos": 3, "erros": 2, "pct": "60%" },
+        { "disciplina": "Direito Administrativo (Doutrina e Leis Federais)", "questoes": 15, "acertos": 7, "erros": 8, "pct": "47%" },
+        { "disciplina": "Direito Ambiental", "questoes": 29, "acertos": 21, "erros": 8, "pct": "73%" },
+        { "disciplina": "Direito Civil", "questoes": 5, "acertos": 3, "erros": 2, "pct": "60%" },
+        { "disciplina": "Direito Constitucional (CF/1988 e Doutrina)", "questoes": 53, "acertos": 34, "erros": 19, "pct": "65%" },
+        { "disciplina": "Direito Empresarial (Comercial)", "questoes": 2, "acertos": 0, "erros": 2, "pct": "0%" },
+        { "disciplina": "Direito Previdenciário", "questoes": 6, "acertos": 3, "erros": 3, "pct": "50%" },
+        { "disciplina": "Direito Processual Civil", "questoes": 11, "acertos": 6, "erros": 5, "pct": "55%" },
+        { "disciplina": "Direito Processual do Trabalho", "questoes": 6, "acertos": 3, "erros": 3, "pct": "50%" },
+        { "disciplina": "Direito Sanitário e Saúde", "questoes": 1, "acertos": 1, "erros": 0, "pct": "100%" },
+        { "disciplina": "Direito Tributário", "questoes": 7, "acertos": 6, "erros": 1, "pct": "86%" },
+        { "disciplina": "Direito do Trabalho", "questoes": 11, "acertos": 7, "erros": 4, "pct": "64%" },
+        { "disciplina": "Legislação Civil e Processual Civil Especial", "questoes": 2, "acertos": 1, "erros": 1, "pct": "50%" },
+        { "disciplina": "Língua Portuguesa (Português)", "questoes": 5, "acertos": 3, "erros": 2, "pct": "60%" }
+      ]
+    }
+  },
+  "avisos": [
+    "O TEC nao exibe percentual geral consolidado na tela de Desempenho, apenas contagens (por isso pct do total vazio; os pct por disciplina sao os exibidos pelo site).",
+    "A serie temporal do TEC (Minha evolucao) agrupa em faixas de ~6 dias, nao por dia; campo data = inicio da faixa, faixa_exibida = rotulo exato do site.",
+    "Serie extraida com periodo de 60 dias (23/06 a 21/08/2026): toda a atividade do periodo concentrada na faixa 15/08 a 21/08 (24 questoes).",
+    "Percentuais sao os arredondados pelo proprio site (ex.: 19/24 exibido como 80%)."
+  ]
+}

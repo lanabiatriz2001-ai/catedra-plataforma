@@ -355,6 +355,13 @@ function telaCorrecao(){
                    fundamento:(q.dispositivos||[]).map(d=>d.rotulo).join(' · ') || String(q.exig||'').slice(0,600) }));
       if(falhos.length) window.parent.postMessage({type:'ctErrosSegundaFase', prova:rotulo(p), quesitos:falhos}, '*');
     }catch(e){}
+    /* A nota por quesito sobe para o host virar curva de evolução (item 4). Só notas e
+       títulos curtos — o texto da peça fica aqui, para não inchar o blob de sync. */
+    try{
+      window.parent.postMessage({type:'ctRedacaoResultado', prova:rotulo(p), notaTotal:n.pct,
+        quesitos:c.quesitos.map(q=>({ titulo:(q.rot?(q.rot+' — '):'')+String(q.tema||q.exig||'').slice(0,100),
+          nota:(s.veredictos[q.i]==='atendeu'?1:s.veredictos[q.i]==='parcial'?0.5:0), max:1 }))}, '*');
+    }catch(e){}
     S.hist.unshift({ id:p.id, rotulo:rotulo(p), quando:new Date().toISOString().slice(0,10),
       pct:n.pct, ganho:n.ganho, possivel:n.possivel, gasto:s.gasto, minutos:s.minutos,
       palavras:(s.folha||'').trim().split(/\s+/).filter(Boolean).length });
