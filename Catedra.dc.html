@@ -1055,6 +1055,20 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:14px;">
 
+        <!-- U3: CONTINUAR DE ONDE PAREI — antes do hero, porque é a primeira decisão do dia -->
+        <sc-if value="{{ contTem }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 6px 20px -12px var(--accent);">
+            <span style="font-size:20px;flex:none;">↩️</span>
+            <div style="flex:1;min-width:180px;">
+              <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Continuar de onde parei</div>
+              <div style="font-weight:600;color:var(--ink);margin-top:3px;">{{ contP.rotulo }}</div>
+              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ contP.quando }}</div>
+            </div>
+            <button onclick="{{ voltarAoPonto }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ contP.acao }}</button>
+            <button onclick="{{ dispensarPonto }}" aria-label="Dispensar" title="Dispensar" style="background:transparent;border:none;color:var(--text3);font-size:var(--fs-lg);cursor:pointer;font-family:inherit;padding:4px 8px;flex:none;">✕</button>
+          </div>
+        </sc-if>
+
         <!-- HERO: manchete + cronômetro em vidro -->
         <div class="cth-hero">
           <div class="cth-hero-grid">
@@ -5093,7 +5107,7 @@ class Component extends DCLogic {
       oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'',
       argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
-      paletteOpen:false, paletteQuery:'', palBuscaPronta:false, semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
+      paletteOpen:false, paletteQuery:'', lastPonto:this._load('lastPonto',null), lastPontoDispensado:this._load('lastPontoDispensado',0), palBuscaPronta:false, semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
       // sem botão para sair dela (o botão não existe mais). Cai para texto.
       multiFmt:(this._load('multiFmt', 'texto')==='video'?'texto':this._load('multiFmt', 'texto')), mfTtsBusy:false, multiSrc:this._load('multiSrc', ''), mfGen:this._load('mfGen', {}), mfBusy:'', breathOn:false, mood:'',
@@ -5182,6 +5196,7 @@ class Component extends DCLogic {
               bloco:(d.bloco!=null&&isFinite(d.bloco))?+d.bloco:null};
         } else if(v!=='legis'&&v!=='juris'){ de=null; }
         this.setState({view:alvo, acervoBusca:String(e.data.termo||''), acervoDe:de, origemAbrir:''});
+        this._marcarPonto(alvo, {termo:String(e.data.termo||'')});   // U3: dá para voltar aqui depois
         return;
       }
       // A volta: o iframe de origem saiu do DOM na ida, então recarrega — e o ponto
@@ -5194,6 +5209,7 @@ class Component extends DCLogic {
         if(de&&de.peca){ q.push('peca='+encodeURIComponent(de.peca));
           if(de.bloco!=null) q.push('bloco='+de.bloco); }
         this.setState({view:v, acervoDe:null, acervoBusca:'', origemAbrir:q.join('&')});
+        this._marcarPonto(v, {rito:(de&&de.rito)||'', peca:(de&&de.peca)||'', bloco:(de&&de.bloco)});   // U3
         return;
       }
       // Os iframes (LEGIS, JURIS, mapa de processo) NÃO têm window.claude: no app nativo
@@ -5708,7 +5724,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redGabarito', 'redEnunciado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos']; }
+  _autosaveKeys(){ return ['areaEstudo', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redGabarito', 'redEnunciado', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos']; }
   _autosave(){
     const keys=this._autosaveKeys();
     const L=this._lastSaved||(this._lastSaved={});
@@ -6291,7 +6307,7 @@ class Component extends DCLogic {
     catch(_){ return false; }
   }
 
-  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); if(v==='oral') this._oralCarregarAcervo(); if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true})); };
+  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); this._marcarPonto(v); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); if(v==='oral') this._oralCarregarAcervo(); if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true})); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode; this.setState({darkMode:nv}); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
@@ -9496,6 +9512,54 @@ class Component extends DCLogic {
     return out;
   }
 
+
+  // ===== U3: CONTINUAR DE ONDE PAREI ===================================================
+  // O app não lembrava a última tela. Quem fechava no meio de um roteiro voltava para o
+  // Início e refazia o caminho — inclusive achar de novo o bloco onde parou. Guardamos um
+  // ponto só (escalar `catedra:lastPonto`; o carimbo por chave resolve o conflito entre
+  // aparelhos) e o Início oferece a volta em um clique.
+  PONTO_VIEWS = {areamod:'Processo e peças', roteiros:'Roteiros e peças', legis:'CátedraLEGIS',
+                 juris:'CátedraJURIS', redacao:'Redação', oral:'Prova oral', segundafase:'Simulado de 2ª fase',
+                 simulados:'Simulados', prioridade:'Prioridade'};
+  /** Grava o ponto atual. Chamado na troca de view e quando o acervo abre por um chip. */
+  _marcarPonto(view, extra){
+    const nome=this.PONTO_VIEWS[view]; if(!nome) return;
+    const e=extra||{};
+    const partes=[];
+    if(e.rito) partes.push(e.rito);
+    if(e.peca) partes.push(e.peca);
+    if(e.bloco!=null && e.bloco!=='') partes.push('bloco '+(Number(e.bloco)+1));
+    if(!partes.length && e.termo) partes.push(e.termo);
+    const ponto={ view, rito:String(e.rito||''), peca:String(e.peca||''),
+      bloco:(e.bloco!=null&&e.bloco!==''&&isFinite(e.bloco))?Number(e.bloco):null,
+      termo:String(e.termo||''), rotulo:(partes.length?(nome+' — '+partes.join(' · ')):nome), ts:Date.now() };
+    this.setState({lastPonto:ponto}, ()=>{ try{ localStorage.setItem('catedra:lastPonto', JSON.stringify(ponto)); }catch(_){} });
+  }
+  /** Idade em texto curto: "há 2h", "há 3 dias". */
+  _idade(ts){
+    const d=Math.max(0, Date.now()-(+ts||0));
+    const min=Math.round(d/60000);
+    if(min<2) return 'agora há pouco';
+    if(min<60) return 'há '+min+' min';
+    const h=Math.round(min/60); if(h<24) return 'há '+h+'h';
+    const dias=Math.round(h/24); return 'há '+dias+(dias>1?' dias':' dia');
+  }
+  /** Volta ao ponto: reusa origemAbrir/acervoBusca — o mesmo canal do ida-e-volta. */
+  voltarAoPonto = ()=>{
+    const p=this.state.lastPonto; if(!p) return;
+    const q=[];
+    if(p.rito) q.push('rito='+encodeURIComponent(p.rito));
+    if(p.peca){ q.push('peca='+encodeURIComponent(p.peca));
+      if(p.bloco!=null) q.push('bloco='+p.bloco); }
+    this.setState({view:p.view, menuOpen:false, acervoDe:null,
+      acervoBusca:(p.view==='legis'||p.view==='juris')?(p.termo||''):'',
+      origemAbrir:q.join('&')});
+  };
+  dispensarPonto = ()=>{
+    const ts=Date.now();
+    this.setState({lastPontoDispensado:ts}, ()=>{ try{ localStorage.setItem('catedra:lastPontoDispensado', JSON.stringify(ts)); }catch(_){} });
+  };
+
   closePalette = ()=> this.setState({paletteOpen:false});
   onPaletteQuery = (e)=>{ const v=e.currentTarget.value; this.setState({paletteQuery:v});
     if((v||'').trim().length>=2) this._palMontar(); };   // índice sob demanda, nunca no boot
@@ -11100,6 +11164,23 @@ class Component extends DCLogic {
         barra:'width:'+Math.max(0,Math.min(100,(q.para!=null?q.para:0)))+'%;height:100%;border-radius:99px;background:'+((q.para!=null&&q.para>=70)?'var(--ok)':(q.para!=null&&q.para>=55)?'var(--warn)':'var(--danger)')+';'
       }))
     }));
+    // U3: o cartão de voltar ao último ponto de estudo. O ✕ dispensa até haver ponto NOVO
+    // (compara pelo ts).
+    //
+    // A especificação pedia que o simulado pausado tivesse prioridade AQUI. Não tem caso
+    // real: `_restoreProva` já reabre a prova em TELA CHEIA no boot (e consome a chave
+    // ct_prova ao fazê-lo), e prova de outro dia é descartada de propósito. Um cartão para
+    // isso ou nunca apareceria, ou competiria com a retomada que já acontece.
+    const _contP=(()=>{
+      try{
+        const p=this.state.lastPonto;
+        if(!p || !p.rotulo) return null;
+        if(this.state.view===p.view) return null;                  // já está lá
+        if((this.state.lastPontoDispensado||0) >= (p.ts||0)) return null;
+        if(Date.now()-(p.ts||0) > 30*864e5) return null;            // ponto de um mês atrás não ajuda
+        return {rotulo:p.rotulo, quando:this._idade(p.ts), acao:'Continuar'};
+      }catch(_){ return null; }
+    })();
     // ONDE ESTOU FRACA (item 1): cartões ordenados por prioridade, com o porquê
     const prioLista=this._prioridade().slice(0,8).map(p=>({
       disc:p.disc, nota:String(p.nota),
@@ -11942,6 +12023,9 @@ class Component extends DCLogic {
       redOrigemBg:(this.state.redResult&&this.state.redResult.aiUsed===false)?'rgba(194,121,12,.14)':'var(--accentSoft)',
       redEnunciadoShow, redEnunciadoResult,
       redResult:this.state.redResult, redHasResult:!!this.state.redResult, redNoResult:!this.state.redResult,
+      // ===== U3: cartão "continuar de onde parei" ================================
+      contP:_contP, contTem:!!_contP,
+      voltarAoPonto:this.voltarAoPonto, dispensarPonto:this.dispensarPonto,
       prioLista, prioTem:prioLista.length>0, prioVazio:prioLista.length===0, prioRevisar:this.prioRevisar,
       prioErros:this.prioErros, prioEstudar:this.prioEstudar,
       semanaLista, semanaTem:semanaLista.length>0, semanaVazio:semanaLista.length===0,
