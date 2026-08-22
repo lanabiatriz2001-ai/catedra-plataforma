@@ -596,6 +596,73 @@ ok(!fluxo.erro && fluxo.abriu, 'ARGUICAO sessão abre com a pergunta');
 ok(!fluxo.erro && !fluxo.padraoAntes && fluxo.padraoDepois, 'ARGUICAO padrão só aparece depois de responder');
 ok(!fluxo.erro && fluxo.fim, 'ARGUICAO cinco perguntas levam ao resumo');
 
+/* ============= D1 — TEMA ÚNICO NOS SATÉLITES ============= */
+// Todo satélite carrega a mesma ponte
+const d1arqs = await page.evaluate(async (base) => {
+  const paginas = ['legis-web.html', 'juris-web.html', 'ritos-web.html', 'pecas-web.html',
+                   'segunda-fase-web.html', 'prioridade-web.html', 'area-web.html'];
+  const r = {};
+  for (const p of paginas) {
+    const t = await (await fetch(base + '/' + p)).text();
+    r[p] = t.includes('tema-satelite.js');
+  }
+  return r;
+}, URL0);
+ok(Object.values(d1arqs).every(Boolean), 'D1 os 7 satélites carregam a ponte de tema (' +
+   Object.entries(d1arqs).filter(([, v]) => !v).map(([k]) => k).join(', ') + ')');
+
+// Satélite avulso (sem host) mantém a paleta própria — o fallback do var() continua valendo
+await page.goto(URL0 + '/ritos-web.html');
+await page.waitForTimeout(700);
+const avulso = await page.evaluate(() => ({
+  marcado: document.documentElement.getAttribute('data-ct-tema'),
+  accent: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(),
+}));
+ok(!avulso.marcado, 'D1 página avulsa não é pintada pelo host (segue com a cara própria)');
+
+// Dentro do app: o satélite herda cor e fundo, e a troca de cor atravessa
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const d1 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  const btn = document.querySelector('button[data-view="areamod"]');
+  if (!btn) return { erro: 'sem satélite nesta área' };
+  btn.click(); await w(2400);
+  const frame = () => [...document.querySelectorAll('iframe')].find(f => /ritos-web/.test(f.getAttribute('src') || ''));
+  if (!frame()) return { erro: 'iframe não montou' };
+  const dentro = () => { const d = frame().contentDocument;
+    const cs = d.defaultView.getComputedStyle(d.documentElement);
+    return { accent: cs.getPropertyValue('--accent').trim(), bg: cs.getPropertyValue('--bg').trim(),
+             marcado: d.documentElement.getAttribute('data-ct-tema'), esquema: d.documentElement.style.colorScheme }; };
+  const host = getComputedStyle(document.querySelector('[style*="--accent"]'));
+  const a = dentro();
+  r.herdaCor = a.accent === host.getPropertyValue('--accent').trim() && !!a.accent;
+  r.herdaFundo = a.bg === host.getPropertyValue('--bg').trim() && !!a.bg;
+  r.marcado = a.marcado === '1';
+
+  // trocar a cor de destaque atravessa até o satélite
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) mais.click(); await w(300);
+  document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+  const cores = [...document.querySelectorAll('main button[data-c]')];
+  const alvo = cores.find(c => c.dataset.c && c.dataset.c !== a.accent);
+  if (!alvo) return { ...r, erro: 'sem paleta de cores nos Ajustes' };
+  const nova = alvo.dataset.c;
+  alvo.click(); await w(500);
+  document.querySelector('button[data-view="areamod"]').click(); await w(2200);
+  r.trocaDeCorAtravessa = frame() && dentro().accent === nova;
+  return r;
+});
+if (!d1.erro) {
+  ok(d1.herdaCor, 'D1 satélite herda a cor de destaque do host');
+  ok(d1.herdaFundo, 'D1 satélite herda o fundo (modo escuro deixa de piscar branco)');
+  ok(d1.marcado, 'D1 satélite se marca como tematizado');
+  ok(d1.trocaDeCorAtravessa, 'D1 trocar a cor nos Ajustes muda o satélite');
+} else {
+  ok(false, 'D1 não deu para exercitar o satélite: ' + d1.erro);
+}
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
