@@ -5049,6 +5049,20 @@ class Component extends DCLogic {
         this.flashSync();
         return;
       }
+      // 2ª fase: quesitos não atendidos viram erro/flashcard/revisão pelo mesmo caminho
+      if(e.data.type==='ctErrosSegundaFase'){
+        const qs=Array.isArray(e.data.quesitos)?e.data.quesitos:[];
+        if(!qs.length) return;
+        const prova=String(e.data.prova||'2ª fase');
+        this._colherErros(qs.map(q=>({
+          enunciado:String(q.titulo||'').slice(0,1200),
+          disc:String(q.disc||'').trim()||'2ª fase',
+          topico:String(q.tema||'').slice(0,120),
+          gabarito:String(q.fundamento||'').slice(0,1200),
+          lesson:(q.nota!=null&&q.max!=null)?('Você tirou '+q.nota+' de '+q.max+' neste quesito.'):''
+        })), 'Simulado 2ª fase — '+prova);
+        return;
+      }
       if(e.data.type==='ctIA'){
         const src=e.source, id=e.data.reqId;
         const responde=(texto,erro)=>{ try{ src && src.postMessage({type:'ctIAResp', reqId:id, texto:texto||'', erro:erro||''}, '*'); }catch(_){} };
@@ -7354,6 +7368,90 @@ class Component extends DCLogic {
   navSj = (e)=>{ const d=parseInt(e.currentTarget.getAttribute('data-d'),10)||0;
     this.setState({sjAtual:Math.max(0,Math.min(this.state.sjItens.length-1,this.state.sjAtual+d))}); };
   irSj = (e)=> this.setState({sjAtual:parseInt(e.currentTarget.getAttribute('data-i'),10)||0});
+
+  // ===== ERRO VIRA REVISÃO SOZINHO (item 2 da especificação) =============================
+  // Errou no simulado ou zerou quesito na 2ª fase → entra no caderno de erros, vira
+  // flashcard e agenda revisão, sem cadastro manual. Um caminho só para as duas origens,
+  // com desfazer (o lote fica em _ultimoLoteErros até a próxima colheita).
+  ERRO_AUTO_MAX = 20;          // teto por correção — mesmo do ctFlashcards
+  ERRO_AUTO_DIAS = 30;         // janela de deduplicação: refazer prova não duplica tudo
+  /** Hash estável e curto do enunciado, para deduplicar sem guardar o texto duas vezes. */
+  _hashErro(txt){ const t=String(txt||'').toLowerCase().replace(/\s+/g,' ').trim().slice(0,300);
+    let h=5381; for(let i=0;i<t.length;i++){ h=((h*33)^t.charCodeAt(i))>>>0; } return 'h'+h.toString(36); }
+  /**
+   * Colhe um lote de erros.
+   * @param itens [{enunciado, gabarito, disc, topico, fonte, lesson}]
+   * @param origem rótulo curto ('Simulado', 'Simulado 2ª fase — TJ-RJ 2026')
+   */
+  _colherErros(itens, origem){
+    const lista=(Array.isArray(itens)?itens:[]).filter(x=>x&&String(x.enunciado||'').trim()).slice(0,this.ERRO_AUTO_MAX);
+    if(!lista.length) return null;
+    const agora=Date.now(), limite=agora-this.ERRO_AUTO_DIAS*864e5;
+    const jaTem=new Set((this.state.errors||[]).filter(e=>(e.ts||0)>limite).map(e=>e.hash||this._hashErro(e.enunciado)));
+    const erros=[], cards=[], revs=[];
+    lista.forEach((x,i)=>{
+      const h=this._hashErro(x.enunciado);
+      if(jaTem.has(h)) return; jaTem.add(h);
+      const disc=String(x.disc||'').trim()||'Geral', topico=String(x.topico||'').trim();
+      erros.push({id:'e'+(agora+i), ts:agora, up:agora, hash:h, disc, topico,
+        enunciado:String(x.enunciado).slice(0,1200), myAnswer:'', gabarito:String(x.gabarito||'').slice(0,1200),
+        whyWrong:'', lesson:String(x.lesson||'').slice(0,600), source:String(origem||''), difficulty:3,
+        tags:[], favorite:false, motivo:'conteudo', resolvido:false, reviewCount:0, auto:true});
+      if(x.gabarito) cards.push({id:'fc'+(agora+i), front:String(x.enunciado).slice(0,600),
+        back:String(x.gabarito).slice(0,1200), disc, origem:String(origem||''), criado:agora, up:agora, auto:true});
+    });
+    if(!erros.length) return null;
+    // uma revisão por disciplina do lote (não uma por questão: viraria enxurrada em D+1)
+    const temRev=(d,t)=>(this.state.reviews||[]).some(r=>r.disc===d && String(r.topic||'').toLowerCase()===String(t).toLowerCase());
+    const porDisc={}; erros.forEach(e=>{ (porDisc[e.disc]=porDisc[e.disc]||[]).push(e); });
+    Object.keys(porDisc).forEach((d,i)=>{
+      const topico=(porDisc[d].length===1 && porDisc[d][0].topico) ? porDisc[d][0].topico : ('Erros — '+(origem||'treino'));
+      if(temRev(d,topico)) return;
+      revs.push({id:'r'+(agora+i)+'-auto', disc:d, topic:topico, color:this._corDisc(d), due:1,
+        dueDate:this._addDiasStr(this._hoje(),1), intervalo:1, facilidade:2.5, repeticoes:0, up:agora, auto:true});
+    });
+    this.setState(st=>{
+      const fc=[...cards, ...st.flashcards];
+      if(cards.length) this._saveFC(fc);
+      return {errors:[...erros, ...st.errors], flashcards:fc, reviews:[...st.reviews, ...revs]};
+    }, ()=>this.flashSync());
+    this._ultimoLoteErros={erros:erros.map(e=>e.id), cards:cards.map(c=>c.id), revs:revs.map(r=>r.id)};
+    const partes=[erros.length+' erro'+(erros.length>1?'s':'')];
+    if(cards.length) partes.push(cards.length+' flashcard'+(cards.length>1?'s':''));
+    if(revs.length) partes.push(revs.length+' revisão'+(revs.length>1?'es':''));
+    this._toastDesfazer(partes.join(' · ')+' ✦', ()=>this.desfazerLoteErros());
+    return {erros:erros.length, cards:cards.length, revs:revs.length};
+  }
+  desfazerLoteErros = ()=>{
+    const L=this._ultimoLoteErros; if(!L) return;
+    this._ultimoLoteErros=null;
+    const fora=(arr,ids)=>arr.filter(x=>ids.indexOf(x.id)<0);
+    this.setState(st=>{
+      const fc=fora(st.flashcards, L.cards); this._saveFC(fc);
+      return {errors:fora(st.errors, L.erros), flashcards:fc, reviews:fora(st.reviews, L.revs)};
+    }, ()=>this.flashSync());
+    this._toast('Lote desfeito');
+  };
+  /** Toast com ação (o _toast comum é só texto e ignora clique). */
+  _toastDesfazer(msg, acao){
+    try{
+      let t=this._toastAcaoEl;
+      if(!t){ t=document.createElement('div'); t.setAttribute('role','status'); t.setAttribute('aria-live','polite');
+        t.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:9999;background:#1f2a26;color:#fff;padding:12px 16px 12px 20px;border-radius:var(--radius);font:600 13.5px/1.3 var(--display),sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.4);display:flex;align-items:center;gap:14px;opacity:0;transition:opacity .2s,transform .2s;';
+        document.body.appendChild(t); this._toastAcaoEl=t; }
+      t.innerHTML='';
+      const sp=document.createElement('span'); sp.textContent=msg; t.appendChild(sp);
+      const b=document.createElement('button'); b.type='button'; b.textContent='desfazer';
+      b.style.cssText='background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;';
+      b.onclick=()=>{ t.style.opacity='0'; try{ acao&&acao(); }catch(_){} };
+      t.appendChild(b);
+      try{ t.style.bottom=(window.innerWidth<900?'92px':'30px'); }catch(_){}
+      t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+      clearTimeout(this._toastAcaoT);
+      this._toastAcaoT=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 7000);
+    }catch(e){ this._toast(msg); }
+  }
+
   encerrarSj = ()=>{
     const T=window.CT_TREINO;
     const its=this.state.sjItens, r=this.state.sjResp;
@@ -7364,6 +7462,16 @@ class Component extends DCLogic {
     // leva o resultado para o formulário de registro: o simulado passa a contar no desempenho
     this.setState({sjFim:true, sjRel:rel, simAnalysis:'liquida', simNome:'Simulado'+(this.state.sjRamos.length?(' — '+this.state.sjRamos.slice(0,2).join(', ')):' misto'),
       simMin:String(min), sim:{...(this.state.sim||{}), total:its.length, acertos:acertos, erros:respondidas-acertos, brancos:its.length-respondidas}});
+    // erradas viram erro + flashcard + revisão, sem cadastro manual (item 2)
+    try{
+      const erradas=its.filter(x=>r[x.id]!==undefined && r[x.id]!==x.certo);
+      this._colherErros(erradas.map(it=>({
+        enunciado:it.enunciado, disc:it.ramo||'Geral', topico:it.tema||'',
+        gabarito:(it.alternativas ? ('Gabarito: '+String(it.certo)+(it.original?(' — '+String(it.original).slice(0,600)):''))
+                                  : ((it.certo?'CERTO':'ERRADO')+(it.original?(' — '+String(it.original).slice(0,600)):''))),
+        lesson:(it.trocaDe&&it.trocaPara)?('A banca trocou "'+it.trocaDe+'" por "'+it.trocaPara+'".'):''
+      })), 'Simulado');
+    }catch(_){}
   };
   novoSj = ()=> this.setState({sjItens:[], sjResp:{}, sjFim:false, sjAtual:0});
   setOralModo = (e)=>{ const m=e.currentTarget.getAttribute('data-m'); this.setState({oralModo:m, oralCorrecao:null});

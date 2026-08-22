@@ -1,0 +1,72 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harness erro vira revisão</title></head>
+<body style="margin:0;font:14px system-ui">
+<!-- Reproduz o _colherErros do host (Catedra.dc.html) sobre localStorage, para testar o
+     item 2 sem subir o app inteiro: mesmo hash, mesma janela de dedup, mesmo teto de lote,
+     mesma regra de uma revisão por disciplina. O código abaixo é uma tradução fiel do
+     método; se ele mudar no app, este harness precisa mudar junto (o teste compara os
+     dois pelos MESMOS parâmetros, não o texto). -->
+<script>
+var ERRO_AUTO_MAX = 20, ERRO_AUTO_DIAS = 30;
+function hashErro(txt){
+  var t=String(txt||'').toLowerCase().replace(/\s+/g,' ').trim().slice(0,300);
+  var h=5381; for(var i=0;i<t.length;i++){ h=((h*33)^t.charCodeAt(i))>>>0; } return 'h'+h.toString(36);
+}
+function hoje(){ return new Date().toISOString().slice(0,10); }
+function addDias(ymd,n){ return new Date(Date.parse(ymd+'T00:00:00Z')+n*864e5).toISOString().slice(0,10); }
+function ler(k,f){ try{ return JSON.parse(localStorage.getItem('catedra:'+k)||'null')||f; }catch(e){ return f; } }
+function grava(k,v){ localStorage.setItem('catedra:'+k, JSON.stringify(v)); }
+
+window.__ultimoLote = null;
+window.colherErros = function(itens, origem){
+  var lista=(Array.isArray(itens)?itens:[]).filter(function(x){ return x && String(x.enunciado||'').trim(); }).slice(0,ERRO_AUTO_MAX);
+  if(!lista.length) return null;
+  var agora=Date.now(), limite=agora-ERRO_AUTO_DIAS*864e5;
+  var errors=ler('errors',[]), fcs=ler('fc',[]), revs0=ler('reviews',[]);
+  var jaTem={};
+  errors.filter(function(e){ return (e.ts||0)>limite; }).forEach(function(e){ jaTem[e.hash||hashErro(e.enunciado)]=1; });
+  var erros=[], cards=[], revs=[];
+  lista.forEach(function(x,i){
+    var h=hashErro(x.enunciado);
+    if(jaTem[h]) return; jaTem[h]=1;
+    var disc=String(x.disc||'').trim()||'Geral', topico=String(x.topico||'').trim();
+    erros.push({id:'e'+(agora+i), ts:agora, up:agora, hash:h, disc:disc, topico:topico,
+      enunciado:String(x.enunciado).slice(0,1200), gabarito:String(x.gabarito||'').slice(0,1200),
+      source:String(origem||''), motivo:'conteudo', resolvido:false, auto:true});
+    if(x.gabarito) cards.push({id:'fc'+(agora+i), front:String(x.enunciado).slice(0,600),
+      back:String(x.gabarito).slice(0,1200), disc:disc, origem:String(origem||''), criado:agora, up:agora, auto:true});
+  });
+  if(!erros.length) return null;
+  var porDisc={}; erros.forEach(function(e){ (porDisc[e.disc]=porDisc[e.disc]||[]).push(e); });
+  Object.keys(porDisc).forEach(function(d,i){
+    var topico=(porDisc[d].length===1 && porDisc[d][0].topico) ? porDisc[d][0].topico : ('Erros — '+(origem||'treino'));
+    var tem=revs0.some(function(r){ return r.disc===d && String(r.topic||'').toLowerCase()===String(topico).toLowerCase(); });
+    if(tem) return;
+    revs.push({id:'r'+(agora+i)+'-auto', disc:d, topic:topico, due:1, dueDate:addDias(hoje(),1),
+      intervalo:1, facilidade:2.5, repeticoes:0, up:agora, auto:true});
+  });
+  grava('errors', erros.concat(errors));
+  grava('fc', cards.concat(fcs));
+  grava('reviews', revs0.concat(revs));
+  window.__ultimoLote={erros:erros.map(function(e){return e.id;}), cards:cards.map(function(c){return c.id;}), revs:revs.map(function(r){return r.id;})};
+  return {erros:erros.length, cards:cards.length, revs:revs.length};
+};
+window.desfazerLote = function(){
+  var L=window.__ultimoLote; if(!L) return false;
+  var fora=function(arr,ids){ return arr.filter(function(x){ return ids.indexOf(x.id)<0; }); };
+  grava('errors', fora(ler('errors',[]), L.erros));
+  grava('fc', fora(ler('fc',[]), L.cards));
+  grava('reviews', fora(ler('reviews',[]), L.revs));
+  window.__ultimoLote=null; return true;
+};
+// canal do iframe da 2ª fase → mesmo caminho
+window.addEventListener('message', function(e){
+  if(!e||!e.data||e.data.type!=='ctErrosSegundaFase') return;
+  var qs=Array.isArray(e.data.quesitos)?e.data.quesitos:[];
+  window.__ultimoPost=window.colherErros(qs.map(function(q){
+    return {enunciado:String(q.titulo||''), disc:String(q.disc||'').trim()||'2ª fase',
+            topico:String(q.tema||''), gabarito:String(q.fundamento||'')};
+  }), 'Simulado 2ª fase — '+String(e.data.prova||''));
+});
+</script>
+</body></html>
