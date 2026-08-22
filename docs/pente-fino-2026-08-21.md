@@ -65,3 +65,4 @@ Racional: ver o dia → revisar → treinar (o que gera nota) → consultar. O q
 
 ## Publicação
 - 21/08/2026 — Build B2 (correção da barra lateral + merge do PR #5) publicado no GitHub; commit assinado pelo GitHub para o deploy da Vercel.
+- 22/08/2026 — Login v2 (auth.js) + backup na nuvem pessoal (iCloud Drive no Mac/iPad, Google Drive na web com GOOGLE_CLIENT_ID). Build C (JURIS) pronto no worktree; LEGIS em andamento.
