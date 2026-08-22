@@ -30,8 +30,11 @@ const srv = http.createServer((req, res) => {
     res.end(data);
   } catch (e) { res.writeHead(404); res.end('nao encontrado'); }
 });
-await new Promise(r => srv.listen(8123, r));
-const URL0 = 'http://localhost:8123';
+// A porta sai do ambiente (CT_PORT) para que duas sessões trabalhando no mesmo repositório
+// possam rodar a suíte ao mesmo tempo — sem isso a segunda morre com EADDRINUSE.
+const PORTA = +(process.env.CT_PORT || 8123);
+await new Promise(r => srv.listen(PORTA, r));
+const URL0 = 'http://localhost:' + PORTA;
 
 const browser = await chromium.launch({ executablePath: exe });
 const page = await browser.newPage();
@@ -75,6 +78,143 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
   ok(/font-display:\s*swap/.test(cssFontes), 'D9 font-display:swap preservado');
   ok(!/fonts\.gstatic\.com/.test(cssFontes), 'D9 o CSS das fontes aponta para arquivos locais');
   ok(fs.readdirSync(path.join(RAIZ, 'public', 'fonts')).length > 10, 'D9 os .woff2 estão no deploy');
+}
+
+/* ============= U10 — PWA INSTALÁVEL E OFFLINE DE VERDADE ============= */
+// Estes testes rodam em http://localhost, onde o sw.js se AUTODESTRÓI de propósito
+// (senão o preview passa a servir asset velho). Registrar o worker aqui provaria o
+// contrário do que interessa. Então o caminho de PRODUÇÃO é simulado: o público
+// public/sw.js (gerado pelo build acima) é avaliado com um `self` de mentira, e o
+// que se afere são as FUNÇÕES DE DECISÃO — orçamento, fallback, listas de cache.
+{
+  const swSrc = fs.readFileSync(path.join(RAIZ, 'public', 'sw.js'), 'utf8');
+  const carregarSW = (origem, cota) => {
+    const eventos = {};
+    const self = {
+      location: new URL(origem + '/sw.js'),
+      addEventListener: (t, fn) => { (eventos[t] = eventos[t] || []).push(fn); },
+      navigator: { storage: { estimate: () => Promise.resolve(cota || { quota: 2e9, usage: 0 }) } },
+    };
+    new Function('self', swSrc)(self);
+    return { api: self.__ctSW, eventos };
+  };
+
+  // 1. o kill-switch continua de pé: fora de produção, ZERO handler de fetch
+  const dev = carregarSW('http://localhost:8123');
+  ok(!dev.api, 'U10 fora de produção o worker não expõe política de cache (kill-switch intacto)');
+  ok(!(dev.eventos.fetch || []).length, 'U10 fora de produção o worker não intercepta fetch nenhum');
+  const devFile = carregarSW('http://127.0.0.1:5500');
+  ok(!(devFile.eventos.fetch || []).length, 'U10 o kill-switch também vale para 127.0.0.1');
+
+  const { api: SW, eventos: evProd } = carregarSW('https://catedra.exemplo.app');
+  ok(!!SW && (evProd.fetch || []).length === 1, 'U10 em produção o worker instala o handler de fetch');
+
+  // 2. a casca cobre tudo o que o app precisa para ABRIR offline
+  const casca = SW.ASSETS;
+  const naCasca = (p) => casca.indexOf(p) >= 0;
+  ok(['./index.html', './support.js', './auth.js', './ct-dados.js'].every(naCasca),
+    'U10 a casca traz o documento e os scripts do runtime');
+  ok(['./prioridade-calc.js', './busca-unica.js', './semana-juris.js'].every(naCasca),
+    'U10 a casca traz os três scripts do <head> (antes só entravam depois da 1a visita)');
+  ok(casca.some(p => /^\.\/vendor\//.test(p)) && naCasca('./fonts.css') && casca.some(p => /^\.\/fonts\//.test(p)),
+    'U10 a casca traz as libs vendoradas e as fontes locais');
+  ok(!casca.some(p => /cyrillic|greek|vietnamese/.test(p)) && casca.filter(p => /^\.\/fonts\//.test(p)).length < 20,
+    'U10 só os subconjuntos latinos das fontes entram no precache');
+  ok(casca.filter(p => /\/dados\/[^/]+\/manifesto\.json$/.test(p)).length >= 1,
+    'U10 os manifestos dos acervos fatiados entram na casca (sem eles o CTDados desiste offline)');
+
+  // 3. o acervo é MEDIDO, não chutado, e cabe no orçamento
+  ok(SW.ACERVOS.length > 20, 'U10 o precache do acervo tem os satélites e os bancos (' + SW.ACERVOS.length + ' arquivos)');
+  ok(SW.ACERVOS.every(([p, b]) => typeof p === 'string' && b > 0),
+    'U10 todo item do acervo carrega o tamanho real do arquivo');
+  const totalAcervo = SW.ACERVOS.reduce((s, [, b]) => s + b, 0);
+  ok(totalAcervo <= SW.ORCAMENTO_ACERVO,
+    'U10 o acervo (' + (totalAcervo / 1048576).toFixed(1) + ' MB) cabe no orçamento de '
+    + (SW.ORCAMENTO_ACERVO / 1048576).toFixed(0) + ' MB');
+  const temAcervo = (p) => SW.ACERVOS.some(([c]) => c === p);
+  ok(['./legis-web.html', './juris-web.html', './ritos-web.html', './segunda-fase-web.html'].every(temAcervo),
+    'U10 as páginas satélite entram no precache');
+  ok(temAcervo('./juris-index.js') && temAcervo('./espelhos.js') && temAcervo('./questoes-prova.js'),
+    'U10 os acervos do estudo do dia entram no precache');
+  ok(SW.ACERVOS.filter(([c]) => /\/dados\/leis-seca\//.test(c)).length >= 10,
+    'U10 a lei seca entra em blocos (acervoLeis pede o acervo inteiro: bloco faltando vira lista vazia)');
+
+  // 4. a armadilha declarada na especificação: o blob de contas fica SÓ-ONLINE
+  const tudoQueSeCacheia = casca.concat(SW.ACERVOS.map(([c]) => c));
+  ok(!tudoQueSeCacheia.some(p => /contas-(index|text)\.js$/.test(p)
+    || /\/dados\/contas-text\/(?!manifesto\.json$)/.test(p)),
+    'U10 o blob de contas (11,2 MB) fica fora do precache — decisão comentada no sw.js');
+  // …mas o manifesto dele FICA: é o que faz o CTDados usar os blocos que ela já leu
+  // (IndexedDB/Cache) em vez de desistir e pedir o monolito de 8,7 MB que não está lá.
+  ok(casca.indexOf('./dados/contas-text/manifesto.json') >= 0,
+    'U10 o manifesto de contas fica em cache para o que ela já leu continuar abrindo offline');
+  ok(!tudoQueSeCacheia.some(p => /leis-seca\.js$/.test(p) || /discursivas-textos\.js$/.test(p)),
+    'U10 monolito de lei seca e discursivas-textos ficam fora (duplicado e não-usado)');
+
+  // 4b. camada 3: os pesados só descem quando ELA pede
+  const pedido = SW.ACERVOS_SOB_PEDIDO.map(([c]) => c);
+  ok(!tudoQueSeCacheia.some(p => /juris-text\.js$/.test(p) || /oral-conteudo\.js$/.test(p)
+    || /leis-seca-areas\.js$/.test(p)),
+    'U10 os três pesados não entram no aquecimento automático');
+  ok(['./juris-text.js', './oral-conteudo.js', './leis-seca-areas.js'].every(p => pedido.indexOf(p) >= 0),
+    'U10 …mas estão na lista de "Baixar tudo" (senão o simulado de súmulas nunca abriria offline)');
+  const somaPedido = SW.ACERVOS.concat(SW.ACERVOS_SOB_PEDIDO).reduce((s, [, b]) => s + b, 0);
+  ok(somaPedido <= SW.ORCAMENTO_PEDIDO && SW.ORCAMENTO_PEDIDO > SW.ORCAMENTO_ACERVO,
+    'U10 o pedido explícito tem orçamento próprio e maior (' + (somaPedido / 1048576).toFixed(1)
+    + ' MB de ' + (SW.ORCAMENTO_PEDIDO / 1048576).toFixed(0) + ' MB)');
+  const semEspaco = carregarSW('https://catedra.exemplo.app', { quota: 30 * 1048576, usage: 25 * 1048576 });
+  ok((await semEspaco.api.orcamentoDisponivel(true)) < SW.ORCAMENTO_PEDIDO,
+    'U10 pedido dela não cria espaço no aparelho: a cota continua limitando');
+
+  // 5. o orçamento é aritmética: corta a cauda, e item grande não trava a fila
+  const plano = SW.planoDeAquecimento([['a', 100], ['gigante', 5000], ['c', 50]], 200);
+  ok(plano.itens.length === 2 && plano.bytes === 150 && plano.cortados[0] === 'gigante',
+    'U10 o que não cabe é pulado sem interromper os itens seguintes');
+  ok(SW.planoDeAquecimento(SW.ACERVOS, 0).itens.length === 0,
+    'U10 orçamento zero não baixa nada (em vez de estourar a cota)');
+  const apertado = carregarSW('https://catedra.exemplo.app', { quota: 20 * 1048576, usage: 18 * 1048576 });
+  const orc = await apertado.api.orcamentoDisponivel();
+  ok(orc > 0 && orc < SW.ORCAMENTO_ACERVO,
+    'U10 com a cota do aparelho apertada o orçamento encolhe sozinho (' + Math.round(orc / 1024) + ' KB)');
+
+  // 6. fallback offline: cada tipo de pedido recebe a resposta certa
+  ok(SW.modoDeFallback({ url: 'https://x.app/legis-web.html', mode: 'navigate', destination: 'iframe' }) === 'pagina',
+    'U10 satélite em iframe recebe página própria (e não o app inteiro dentro do iframe)');
+  ok(SW.modoDeFallback({ url: 'https://x.app/juris-web.html', mode: 'navigate', destination: '' }) === 'pagina',
+    'U10 satélite sem destination (Safari antigo) também recebe a página própria');
+  ok(SW.modoDeFallback({ url: 'https://x.app/algo', mode: 'navigate', destination: 'document' }) === 'app',
+    'U10 rota qualquer do app cai no app inteiro, que resolve a tela sozinho');
+  ok(SW.modoDeFallback({ url: 'https://x.app/index.html', mode: 'navigate', destination: '' }) === 'app',
+    'U10 a entrada do app nunca é confundida com satélite');
+  ok(SW.modoDeFallback({ url: 'https://x.app/treino.js', mode: 'no-cors', destination: 'script' }) === 'recurso',
+    'U10 script sem cópia guardada é tratado como recurso');
+
+  const pg = SW.paginaOffline('Sem rede', 'texto');
+  const pgTxt = await pg.text();
+  ok(pg.status === 200 && /text\/html/.test(pg.headers.get('content-type') || ''),
+    'U10 a página de indisponível é HTML de verdade (200), não erro de rede cru');
+  ok(/Tentar de novo/.test(pgTxt) && /prefers-color-scheme/i.test(pgTxt),
+    'U10 a página de indisponível tem ação de recarregar e segue o tema do aparelho');
+
+  const rJs = SW.recursoOffline({ url: 'https://x.app/oral-conteudo.js' });
+  ok(rJs.status === 503, 'U10 script sem cache devolve 503 (dispara o onerror de quem pediu)');
+  const rJson = SW.recursoOffline({ url: 'https://x.app/dados/juris-text/a.json' });
+  ok(rJson.status === 503 && /application\/json/.test(rJson.headers.get('content-type') || ''),
+    'U10 bloco de acervo sem cache devolve 503 em JSON, não promessa quebrada');
+  // um .js vazio com 200 seria pior que o erro: o app acharia que o acervo carregou
+  ok(!/^\s*$/.test(await rJs.text()), 'U10 o corpo do 503 explica o que houve');
+
+  // 7. manifesto e ponte de instalação — o que o host dos Ajustes vai consumir
+  const mani = JSON.parse(fs.readFileSync(path.join(RAIZ, 'public', 'manifest.webmanifest'), 'utf8'));
+  ok(mani.id && mani.start_url === './index.html' && mani.display === 'standalone',
+    'U10 o manifesto publicado tem id estável, start_url do deploy e display standalone');
+  ok(mani.theme_color === '#0f7a57', 'U10 a cor do manifesto é a mesma do app (splash e barra combinam)');
+  ok((mani.icons || []).some(i => /\.png$/.test(i.src)), 'U10 o manifesto publicado tem ícone PNG (iOS)');
+  const idxHtml = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
+  ok(/window\.__catedraInstall\s*=/.test(idxHtml) && /beforeinstallprompt/.test(idxHtml),
+    'U10 o build segura o beforeinstallprompt (senão o item dos Ajustes não teria o que chamar)');
+  ok(/window\.__catedraOffline\s*=/.test(idxHtml) && /ctAquecerAcervos/.test(idxHtml),
+    'U10 o host tem por onde ler o estado do acervo offline e mandar baixar o resto');
 }
 
 
@@ -782,6 +922,9 @@ const d1 = await page.evaluate(async () => {
   const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+  // D11 mudou a cor de destaque de lugar: ela mora na aba Aparência, nao mais solta na pagina
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  if (abaAp) { abaAp.click(); await w(700); }
   const cores = [...document.querySelectorAll('main button[data-c]')];
   const alvo = cores.find(c => c.dataset.c && c.dataset.c !== a.accent);
   if (!alvo) return { ...r, erro: 'sem paleta de cores nos Ajustes' };
@@ -1037,6 +1180,1673 @@ const barra = await page.evaluate(async () => {
   return r;
 });
 for (const [k, v] of Object.entries(barra)) ok(v, 'BARRA ' + k);
+/* ============= LEGIS — D5, D4, D7, D8, D10 e U7(b) =============
+   O leitor de norma busca /api/law (função serverless). O servidor destes testes é
+   estático, então a rota é servida aqui: sem texto de lei não dá para medir coluna,
+   serifa nem entrelinha do modo leitura. */
+await page.route('**/api/law*', r => r.fulfill({
+  contentType: 'application/json',
+  body: JSON.stringify({ ok: true, paragraphs: [
+    'TÍTULO I', 'DAS DISPOSIÇÕES PRELIMINARES', 'CAPÍTULO I', 'DA APLICAÇÃO DA LEI',
+    'Art. 1º Toda pessoa é capaz de direitos e deveres na ordem civil, e este parágrafo é '
+      + 'longo de propósito para que a medida da coluna de leitura tenha o que medir.',
+    '§ 1º Parágrafo de teste com texto suficiente para medir a entrelinha.',
+    'I - inciso de teste', 'a) alínea de teste', 'Art. 2º Segundo artigo de teste.'] }),
+}));
+await page.setViewportSize({ width: 1280, height: 800 });
+await page.goto(URL0 + '/legis-web.html');
+await page.evaluate(() => ['catedra:legisEstudo', 'catedra:leitorLeitura', 'catedra:leitorDark']
+  .forEach(k => localStorage.removeItem(k)));
+await page.goto(URL0 + '/legis-web.html');
+await page.waitForTimeout(600);
+
+const lg = await page.evaluate(() => {
+  const cs = el => getComputedStyle(el);
+  const row = document.querySelector('.lawrow');
+  const link = row.querySelector('a');
+  const r = {};
+  // D5 — um botão só: a linha é a ação primária, o Planalto é apoio
+  r.d5SemBotaoVerde = document.querySelectorAll('.lawrow .rd').length === 0
+    && !/ler aqui/i.test(document.getElementById('catalog').innerText);
+  r.d5LinhaClicavel = row.classList.contains('abrivel') && cs(row).cursor === 'pointer';
+  r.d5TituloEhBotao = row.querySelector('.lt').tagName === 'BUTTON';
+  r.d5PlanaltoDiscreto = /planalto/i.test(link.textContent)
+    && cs(link).borderTopWidth === '0px' && cs(link).borderLeftWidth === '0px';
+  r.d5EstrelaTemNome = /favorito/i.test(row.querySelector('.fav').getAttribute('aria-label') || '');
+  r.d5Alvo44 = row.getBoundingClientRect().height >= 44;
+  // o overlay que estende o clique não pode engolir os controles da própria linha
+  const bl = link.getBoundingClientRect();
+  const emCima = document.elementFromPoint(bl.left + bl.width / 2, bl.top + bl.height / 2);
+  r.d5PlanaltoContinuaClicavel = emCima === link || link.contains(emCima);
+  const br = row.getBoundingClientRect();
+  const meio = document.elementFromPoint(br.left + br.width * 0.5, br.top + br.height / 2);
+  r.d5MeioDaLinhaAbre = !!(meio && meio.closest && meio.closest('.lt'));
+
+  // D4 — zero absoluto vira convite
+  const fav = document.getElementById('st-fav');
+  r.d4ZeroViraConvite = fav.classList.contains('zero')
+    && /marque/i.test(fav.innerText) && !/^0/.test(fav.innerText.trim())
+    && !/\b0\b/.test(document.querySelector('.statbar').innerText.split('LEIS')[0]);
+
+  // D7 — dois níveis de microlabel
+  const forte = cs(document.getElementById('rdrMat'));
+  const fraca = cs(document.querySelector('.statbar .ml-fraca'));
+  r.d7Forte = /mono|Menlo|SFMono/i.test(forte.fontFamily) && forte.textTransform === 'uppercase'
+    && parseFloat(forte.letterSpacing) > 1;
+  r.d7Fraca = fraca.textTransform === 'uppercase' && fraca.letterSpacing === 'normal'
+    && parseFloat(fraca.fontSize) <= 11 && fraca.color !== forte.color;
+
+  // D10 — nome acessível em tudo que é botão/link (inclusive os só-ícone do leitor)
+  r.d10TodosComNome = [...document.querySelectorAll('button, a')]
+    .every(el => ((el.getAttribute('aria-label') || el.textContent || '').trim().length > 0));
+
+  return r;
+});
+ok(lg.d5SemBotaoVerde, 'D5 o botão verde "Ler aqui" sumiu (era 1 por lei, 268 no total)');
+ok(lg.d5LinhaClicavel, 'D5 a linha inteira abre o leitor (cursor pointer)');
+ok(lg.d5TituloEhBotao, 'D5 o alvo primário é um botão de verdade (alcançável por teclado)');
+ok(lg.d5PlanaltoDiscreto, 'D5 "Planalto ↗" virou link discreto, sem borda');
+ok(lg.d5EstrelaTemNome, 'D5 a ★ ganhou aria-label');
+ok(lg.d5Alvo44, 'D5 a área de toque da linha tem 44px ou mais');
+ok(lg.d5PlanaltoContinuaClicavel, 'D5 o clique estendido não engole o link do Planalto');
+ok(lg.d5MeioDaLinhaAbre, 'D5 clicar no meio da linha cai no botão de ler');
+ok(lg.d4ZeroViraConvite, 'D4 métrica zerada vira convite em vez de "0 FAVORITAS"');
+ok(lg.d7Forte, 'D7 microlabel forte: mono, caixa alta e espaçamento (cor do ramo)');
+ok(lg.d7Fraca, 'D7 microlabel fraca: menor, sem espaçamento extra e sem a cor do forte');
+ok(lg.d10TodosComNome, 'D10 nenhum botão ou link sem nome acessível');
+
+// D10 — contraste do texto miúdo nas QUATRO abas (pane escondido não é medível, então
+// cada uma tem de ser aberta; foi assim que apareceram os --text3 de 12px do Plano).
+// Ficam DE FORA as pastilhas pintadas com a cor da matéria (`--c`, branco sobre a cor ou a
+// cor sobre um tinte dela): ali o contraste depende da paleta por disciplina, não do degrau
+// de --text3 que a D10 pede — corrigir aquilo é escurecer o código de cores do app inteiro,
+// que é outra decisão (medido: .ab branco sobre #f5872f dá 2.50:1; .tn e .cap b, ~4.3:1).
+const magros = [];
+for (const t of ['catalog', 'plano', 'indice', 'incid']) {
+  await page.evaluate(tt => document.querySelector('#tabsTopo button[data-t="' + tt + '"]').click(), t);
+  await page.waitForTimeout(t === 'incid' ? 1200 : 300);
+  magros.push(...await page.evaluate(() => {
+    const cs = el => getComputedStyle(el);
+    const lum = c => { const m = c.match(/[\d.]+/g).map(Number);
+      const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+      return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
+    const fundo = el => { let n = el; while (n && n !== document.documentElement) {
+        const c = cs(n).backgroundColor;
+        if (c && c !== 'rgba(0, 0, 0, 0)' && !/, 0\)$/.test(c)) return c; n = n.parentElement; }
+      return cs(document.body).backgroundColor; };
+    const ruins = [];
+    document.querySelectorAll('body *').forEach(el => {
+      const c = cs(el);
+      if (parseFloat(c.fontSize) >= 13 || c.backgroundImage !== 'none') return;
+      if (!el.offsetParent) return;
+      if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return;
+      if (lum(c.color) > 0.6) return;          // texto claro = pastilha colorida (ver acima)
+      const cor = c.getPropertyValue('--c').trim();          // cor da matéria em escopo
+      const hex = h => { h = h.replace('#', '');
+        if (h.length === 3) h = h.split('').map(x => x + x).join('');
+        return 'rgb(' + [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)).join(', ') + ')'; };
+      if (cor && (cor[0] === '#' ? hex(cor) : cor) === c.color) return;
+      const a = lum(c.color), b = lum(fundo(el));
+      const k = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      if (k < 4.5) ruins.push((el.className || el.tagName) + ' ' + k.toFixed(2));
+    });
+    return ruins;
+  }));
+}
+ok(magros.length === 0, 'D10 texto abaixo de 13px com contraste ≥ 4.5:1 nas 4 abas ('
+   + magros.slice(0, 5).join(', ') + ')');
+await page.evaluate(() => document.querySelector('#tabsTopo button[data-t="catalog"]').click());
+await page.waitForTimeout(200);
+
+// clicar na ★ não pode abrir o leitor — e com 1 favorita a métrica volta a ser número
+await page.locator('.lawrow .fav').first().click();
+await page.waitForTimeout(250);
+const lgFav = await page.evaluate(() => ({
+  naoAbriu: !document.getElementById('rdr').classList.contains('on'),
+  viraNumero: !document.getElementById('st-fav').classList.contains('zero')
+    && /^1\b/.test(document.getElementById('st-fav').innerText.trim()),
+}));
+ok(lgFav.naoAbriu, 'D5 clicar na ★ marca o favorito sem abrir o leitor');
+ok(lgFav.viraNumero, 'D4 com 1 favorita o slot volta a ser número');
+
+// D10 — foco visível na pílula: numa página recém-carregada a primeira parada do Tab é a
+// fileira de abas (um clique anterior movimenta o ponto de partida do Tab, mesmo com blur)
+await page.goto(URL0 + '/legis-web.html');
+await page.waitForTimeout(400);
+await page.keyboard.press('Tab');
+const foco = await page.evaluate(() => { const el = document.activeElement, c = getComputedStyle(el);
+  return { alvo: el.closest('.tabs') ? 'pilula' : el.tagName, w: c.outlineWidth, cor: c.outlineColor,
+           accent: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() }; });
+ok(foco.alvo === 'pilula' && parseFloat(foco.w) >= 2 && /15, 122, 87/.test(foco.cor),
+   'D10 pílula com foco visível na cor de destaque (' + foco.w + ' ' + foco.cor + ')');
+
+// D5/U7 — abrir pelo clique na linha e medir o modo leitura
+const cx = await page.locator('.lawrow').first().boundingBox();
+await page.mouse.click(cx.x + cx.width * 0.5, cx.y + cx.height / 2);
+await page.waitForTimeout(500);
+ok(await page.evaluate(() => document.getElementById('rdr').classList.contains('on')),
+   'D5 o clique na linha abre mesmo o leitor');
+const u7a = await page.evaluate(() => { const cs = el => getComputedStyle(el);
+  const d = document.querySelector('#rdr .docwrap'), c = document.querySelector('#rdr .caput');
+  return { w: d.getBoundingClientRect().width, fs: parseFloat(cs(d).fontSize),
+           // "sans-serif" contém "serif": a serifa se reconhece pelo NOME da fonte
+           serif: /Spectral|Georgia/i.test(cs(c).fontFamily), lh: parseFloat(cs(c).lineHeight) }; });
+await page.click('#rdrLeitura');
+await page.waitForTimeout(250);
+const u7b = await page.evaluate(() => { const cs = el => getComputedStyle(el);
+  const d = document.querySelector('#rdr .docwrap'), c = document.querySelector('#rdr .caput');
+  return { w: d.getBoundingClientRect().width, fs: parseFloat(cs(d).fontSize),
+           // "sans-serif" contém "serif": a serifa se reconhece pelo NOME da fonte
+           serif: /Spectral|Georgia/i.test(cs(c).fontFamily), lh: parseFloat(cs(c).lineHeight),
+           aria: document.getElementById('rdrLeitura').getAttribute('aria-pressed'),
+           guardado: localStorage.getItem('catedra:leitorLeitura'),
+           soLocal: !JSON.stringify(Object.keys(localStorage)).includes('catedra:leitorLeitura:sync') }; });
+ok(!u7a.serif && u7a.w > u7b.w, 'U7 o leitor normal segue largo e sem serifa (o modo leitura é escolha)');
+ok(u7b.serif && u7b.fs >= 17 && u7b.lh / u7b.fs >= 1.68 && u7b.w <= 700,
+   'U7 modo leitura: ~68ch, corpo serifado ' + u7b.fs + 'px, entrelinha ' + (u7b.lh / u7b.fs).toFixed(2));
+ok(u7b.aria === 'true', 'U7 o botão do modo leitura diz o estado (aria-pressed)');
+ok(u7b.guardado === '1' && u7b.soLocal, 'U7 a escolha fica no localStorage do aparelho (sem sync)');
+
+// e continua valendo na próxima abertura
+await page.goto(URL0 + '/legis-web.html');
+await page.waitForTimeout(600);
+await page.evaluate(() => document.querySelector('.lawrow .lt').click());
+await page.waitForTimeout(400);
+ok(await page.evaluate(() => document.getElementById('rdr').classList.contains('leitura')),
+   'U7 o modo leitura é lembrado entre aberturas');
+
+/* ---- D8: o mesmo exercício no celular ---- */
+await page.setViewportSize({ width: 375, height: 780 });
+await page.goto(URL0 + '/legis-web.html');
+await page.waitForTimeout(600);
+const gordos = [];
+for (const t of ['catalog', 'plano', 'indice', 'incid']) {
+  await page.evaluate(tt => { const b = document.querySelector('#tabsTopo button[data-t="' + tt + '"]');
+    b.click();
+    // abre a primeira seção do Plano: os dias só existem depois de abrir
+    const s = document.querySelector('#plano .sec-h'); if (s && tt === 'plano') s.click();
+    const g = document.querySelector('#plano .grp-h'); if (g && tt === 'plano') g.click(); }, t);
+  await page.waitForTimeout(t === 'incid' ? 1200 : 350);
+  gordos.push(...await page.evaluate(() => {
+    const p = [];
+    document.querySelectorAll('button, a, input, .day').forEach(el => {
+      if (!el.offsetParent) return;
+      const b = el.getBoundingClientRect();
+      if (!b.width || !b.height) return;
+      if (b.height < 44 || b.width < 44) p.push((el.className || el.tagName)
+        + ' ' + Math.round(b.width) + 'x' + Math.round(b.height));
+    });
+    return p;
+  }));
+}
+await page.evaluate(() => document.querySelector('#tabsTopo button[data-t="catalog"]').click());
+await page.waitForTimeout(250);
+const d8 = await page.evaluate(() => {
+  const cs = el => getComputedStyle(el);
+  const tabs = document.getElementById('tabsTopo'), on = tabs.querySelector('button.on');
+  const t = tabs.getBoundingClientRect(), o = on.getBoundingClientRect();
+  return { rola: cs(tabs).overflowX === 'auto', snap: /x/.test(cs(tabs).scrollSnapType),
+    snapItem: cs(on).scrollSnapAlign === 'center',
+    ativaVisivel: o.left >= t.left - 1 && o.right <= t.right + 1 };
+});
+ok(gordos.length === 0, 'D8 nenhum alvo de toque abaixo de 44px no celular, nas 4 abas ('
+   + gordos.slice(0, 6).join(', ') + ')');
+ok(d8.rola && d8.snap && d8.snapItem, 'D8 a fileira de pílulas rola com scroll-snap');
+ok(d8.ativaVisivel, 'D8 a pílula ativa já está à vista na carga');
+
+// as ferramentas secundárias do leitor recolhem no ⋯ (e o esquema vira gaveta no ☰)
+await page.evaluate(() => document.querySelector('.lawrow .lt').click());
+await page.waitForTimeout(500);
+const d8b = await page.evaluate(() => getComputedStyle(document.getElementById('rdrTools')).display);
+await page.click('#rdrMore');
+await page.waitForTimeout(250);
+const d8c = await page.evaluate(() => {
+  const t = document.getElementById('rdrTools'), cs = el => getComputedStyle(el);
+  const pequenas = [...t.querySelectorAll('button, a')]
+    .filter(el => { const b = el.getBoundingClientRect(); return b.height < 44 || b.width < 44; });
+  return { aberto: cs(t).display === 'flex', dentroDaTela: t.getBoundingClientRect().right <= 375,
+    diz: document.getElementById('rdrMore').getAttribute('aria-expanded') === 'true',
+    alvosOk: pequenas.length === 0 };
+});
+ok(d8b === 'none' && d8c.aberto && d8c.diz && d8c.dentroDaTela && d8c.alvosOk,
+   'D8 no celular as ações secundárias do leitor ficam recolhidas num ⋯');
+await page.click('#rdrMapa');
+await page.waitForTimeout(350);
+const d8d = await page.evaluate(() => ({
+  gaveta: document.querySelector('#rdr .map').getBoundingClientRect().left > -1,
+  fechouOMais: !document.getElementById('rdrTools').classList.contains('aberto'),
+}));
+ok(d8d.gaveta && d8d.fechouOMais, 'D8 o esquema da lei vira gaveta no celular (260px não cabem em 375)');
+
+// trocar de aba não pode apagar o "você está aqui" das pílulas do Índice
+const d8e = await page.evaluate(() => {
+  document.querySelector('#tabsTopo button[data-t="indice"]').click();
+  const tabs = document.querySelector('#indice .tabs');
+  return !!(tabs && tabs.querySelector('button.on'));
+});
+ok(d8e, 'D8 trocar de aba não apaga a pílula ativa do Índice');
+
+await page.unroute('**/api/law*');
+await page.setViewportSize({ width: 1280, height: 720 });
+/* ============= JURIS — D3, D4, D7, D8, D10 e U7(b) ============= */
+// Contexto próprio: estes casos mexem no localStorage do acervo e medem tamanho de
+// tela, e não podem sujar o estado que os testes do app usam.
+// O índice tem 25 mil verbetes; os TEXTOS são 10 MB e só entram quando um verbete é
+// realmente aberto — o último caso do bloco guarda essa fronteira.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1200, height: 800 } });
+  const jp = await ctx.newPage();
+  const errosJuris = [];
+  const pedidos = [];
+  jp.on('pageerror', e => errosJuris.push(e.message));
+  jp.on('request', r => pedidos.push(r.url()));
+  await jp.goto(URL0 + '/juris-web.html');
+  await jp.waitForTimeout(2400);
+
+  // ---- D3(a): nenhum identificador técnico na interface
+  const d3a = await jp.evaluate(() => ({
+    semSnakeNaTela: !/[a-z]{3,}_[a-z]{3,}/.test(document.getElementById('paneAcervo').innerText),
+    semSnakeNosChips: ![...document.querySelectorAll('#bases .chip, #ramos .chip, #trib .chip')]
+      .some(c => /[a-z]{3,}_[a-z]{3,}/.test(c.textContent || '')),
+    colecaoRotulada: [...document.querySelectorAll('#bases .chip')]
+      .some(c => /Informativos? do STJ/i.test(c.textContent || '')),
+    cardRotulado: ![...document.querySelectorAll('.vcard .num')]
+      .some(n => /[a-z]{3,}_[a-z]{3,}/.test(n.textContent || '')),
+  }));
+  for (const [k, v] of Object.entries(d3a)) ok(v, 'D3 ' + k);
+
+  // ---- D3(b): as duas fileiras recolhidas, tribunais à vista, acervo na 1ª dobra
+  const d3b = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const o = {};
+    o.tribunaisContinuamAVista = document.querySelectorAll('#trib .chip').length > 3;
+    o.painelComecaFechado = document.getElementById('popFiltros').hidden === true;
+    o.acervoNaPrimeiraDobra = document.querySelector('.vcard').getBoundingClientRect().top < 460;
+    document.getElementById('btFiltros').click(); await w(150);
+    o.botaoAbreOPainel = !document.getElementById('popFiltros').hidden
+      && document.getElementById('btFiltros').getAttribute('aria-expanded') === 'true';
+    const chip = [...document.querySelectorAll('#ramos .chip')].find(c => /^Direito Penal\s/.test(c.textContent.trim()));
+    if (!chip) return { ...o, erro: 'sem chip de ramo no painel' };
+    chip.click(); await w(350);
+    o.contaNoBotao = /Filtros \(1\)/.test(document.getElementById('btFiltros').textContent);
+    const ativo = document.querySelector('#fAtivos .chip');
+    o.chipAtivoAoLado = !!ativo && /Direito Penal/.test(ativo.textContent);
+    o.chipAtivoTemNome = !!ativo && /remover filtro/i.test(ativo.getAttribute('aria-label') || '');
+    o.filtroValeu = document.querySelectorAll('.vcard').length > 0
+      && [...document.querySelectorAll('.vcard .rtag')].every(t => /Direito Penal/.test(t.textContent));
+    ativo.click(); await w(350);
+    o.chipRemoveOFiltro = document.querySelectorAll('#fAtivos .chip').length === 0
+      && document.getElementById('btFiltros').textContent.trim() === 'Filtros';
+    // "＋ N ramos" mexe na lista de dentro: não pode ser lido como clique fora e fechar
+    document.getElementById('btFiltros').click(); await w(150);
+    const mais = [...document.querySelectorAll('#ramos .chip')].find(c => /ramos$/.test(c.textContent.trim()));
+    if (mais) { mais.click(); await w(250); }
+    o.verMaisNaoFechaOPainel = !mais || !document.getElementById('popFiltros').hidden;
+    document.body.click(); await w(150);
+    o.cliqueForaFecha = document.getElementById('popFiltros').hidden;
+    return o;
+  });
+  if (d3b.erro) ok(false, 'D3 ' + d3b.erro);
+  else for (const [k, v] of Object.entries(d3b)) ok(v, 'D3 ' + k);
+
+  // ---- D4: zero absoluto vira convite; com 1 volta a ser número
+  const d4 = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const sb = () => document.querySelector('#paneAcervo .statbar').innerText;
+    const o = {};
+    o.zeroNaoVira0 = !/\b0\b/.test(sb()) && /marque/i.test(sb());
+    const card = document.querySelector('.vcard');
+    card.querySelector('.st').click(); card.querySelector('.st').click();   // '' → rev → dom
+    card.querySelector('.fav').click(); await w(120);
+    o.comUmViraNumero = /\b1\b/.test(sb()) && /dominados/i.test(sb()) && /favoritos/i.test(sb());
+    return o;
+  });
+  for (const [k, v] of Object.entries(d4)) ok(v, 'D4 ' + k);
+
+  // ---- D7: dois níveis de microlabel, e eles são mesmo diferentes
+  // O par vivo mora no leitor: "ENUNCIADO" estrutura a leitura (forte) e "VERBETES DO
+  // FILTRO" é rótulo de coluna (fraco). Antes os dois saíam em 10px/800 e só mudavam de
+  // cor — era esse o "tudo destaca, nada destaca".
+  const d7 = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.openVerbete(0); await w(1600);
+    const g = e => { const c = getComputedStyle(e); return { fs: parseFloat(c.fontSize), w: +c.fontWeight, cor: c.color, caixa: c.textTransform }; };
+    const forte = g(document.querySelector('#jrdr .venun .lbl'));
+    const fraca = g(document.querySelector('#jrdr .maptitle'));
+    const daPagina = g(document.querySelector('#paneAcervo .statbar .mlW'));
+    document.getElementById('jrClose').click(); await w(200);
+    return { forte, fraca,
+      hierarquia: forte.fs > fraca.fs && forte.w > fraca.w && forte.cor !== fraca.cor,
+      ambosCaps: forte.caixa === 'uppercase' && fraca.caixa === 'uppercase' && daPagina.caixa === 'uppercase',
+      paginaSegueOFraco: daPagina.fs === fraca.fs && daPagina.w === fraca.w };
+  });
+  ok(d7.hierarquia, 'D7 o nível forte se distingue do fraco em tamanho, peso e cor ('
+     + d7.forte.fs + 'px/' + d7.forte.w + ' × ' + d7.fraca.fs + 'px/' + d7.fraca.w + ')');
+  ok(d7.ambosCaps, 'D7 os dois níveis continuam mono-caps (a linguagem da casa não muda)');
+  ok(d7.paginaSegueOFraco, 'D7 metadado da página usa o mesmo nível fraco do leitor');
+
+  // ---- D10: nome acessível em todo botão, foco visível e contraste do cinza pequeno
+  const d10 = await jp.evaluate(() => {
+    const o = {};
+    o.todoBotaoTemNome = [...document.querySelectorAll('button')]
+      .every(b => (b.textContent || '').trim() || b.getAttribute('aria-label'));
+    o.semNome = [...document.querySelectorAll('button')]
+      .filter(b => !(b.textContent || '').trim() && !b.getAttribute('aria-label'))
+      .map(b => b.id || b.className).join(', ');
+    // contraste real do rótulo pequeno contra o fundo da página
+    const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    const lum = s => { const m = s.match(/\d+/g).map(Number); return 0.2126 * lin(m[0]) + 0.7152 * lin(m[1]) + 0.0722 * lin(m[2]); };
+    const razao = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const alvo = document.querySelector('#paneAcervo .statbar .mlW');
+    o.contraste = +razao(getComputedStyle(alvo).color, getComputedStyle(document.body).backgroundColor).toFixed(2);
+    o.contrasteAA = o.contraste >= 4.5;
+    return o;
+  });
+  ok(d10.todoBotaoTemNome, 'D10 nenhum botão sem nome acessível (' + (d10.semNome || 'nenhum') + ')');
+  ok(d10.contrasteAA, 'D10 rótulo pequeno passa no AA (' + d10.contraste + ':1, antes 4.16 com --text3)');
+
+  // foco visível de verdade: chega no chip pelo teclado e ele se acende
+  await jp.click('#q');
+  await jp.keyboard.press('Tab');
+  const foco = await jp.evaluate(() => {
+    const a = document.activeElement, c = getComputedStyle(a);
+    return { ehChip: a.classList.contains('chip') || a.classList.contains('tab') || a.classList.contains('fbtn'),
+             temContorno: c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0 };
+  });
+  ok(foco.ehChip && foco.temContorno, 'D10 chip alcançado pelo teclado mostra o foco');
+
+  // ---- U7(b): modo leitura no leitor de verbete
+  const u7 = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const o = {};
+    window.openVerbete(0); await w(1600);
+    const dw = () => document.querySelector('#jrdr .docwrap');
+    o.medidaAntes = parseFloat(getComputedStyle(dw()).maxWidth);
+    document.getElementById('jrLeitura').click(); await w(200);
+    o.ligou = document.getElementById('jrdr').classList.contains('leitura');
+    o.medidaDepois = parseFloat(getComputedStyle(dw()).maxWidth);
+    const c = getComputedStyle(document.querySelector('#jrdr .venun .bd'));
+    o.corpo = parseFloat(c.fontSize);
+    o.entrelinha = +(parseFloat(c.lineHeight) / parseFloat(c.fontSize)).toFixed(2);
+    o.serifado = /Spectral|Georgia|serif/i.test(c.fontFamily);
+    o.pressionado = document.getElementById('jrLeitura').getAttribute('aria-pressed') === 'true';
+    // sem sync: a chave não leva o prefixo que o auth.js sobe para a nuvem
+    o.foraDoSync = !Object.keys(localStorage).some(k => k.indexOf('catedra:') === 0 && /leitura/i.test(k))
+      && localStorage.getItem('catedraJurisLeitura') === '1';
+    return o;
+  });
+  ok(u7.ligou, 'U7 modo leitura liga no leitor de verbete');
+  ok(u7.medidaDepois < u7.medidaAntes && u7.medidaDepois < 640,
+     'U7 a medida da linha encolhe para ~68ch (' + Math.round(u7.medidaAntes) + 'px → ' + Math.round(u7.medidaDepois) + 'px)');
+  ok(u7.corpo >= 17 && u7.entrelinha >= 1.69 && u7.serifado,
+     'U7 corpo serifado ≥17px com entrelinha 1.7 (' + u7.corpo + 'px / ' + u7.entrelinha + ')');
+  ok(u7.pressionado, 'U7 o botão informa o estado (aria-pressed)');
+  ok(u7.foraDoSync, 'U7 a escolha fica no aparelho — chave fora do prefixo que sincroniza');
+
+  // lembrado entre aberturas
+  await jp.goto(URL0 + '/juris-web.html');
+  await jp.waitForTimeout(2200);
+  const u7b = await jp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.openVerbete(0); await w(1600);
+    return document.getElementById('jrdr').classList.contains('leitura');
+  });
+  ok(u7b, 'U7 o modo leitura sobrevive a reabrir a página');
+
+  // ---- D8: celular — alvo de 44px, pílulas com rolagem e ferramentas no "⋯"
+  const mctx = await browser.newContext({ viewport: { width: 375, height: 780 }, isMobile: true, hasTouch: true });
+  const mp = await mctx.newPage();
+  mp.on('pageerror', e => errosJuris.push('mobile: ' + e.message));
+  await mp.goto(URL0 + '/juris-web.html');
+  await mp.waitForTimeout(2400);
+  const d8 = await mp.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const alt = s => Math.round(document.querySelector(s).getBoundingClientRect().height);
+    const o = {};
+    const tabs = document.getElementById('tabs');
+    o.pilulasRolamComEncaixe = tabs.scrollWidth > tabs.clientWidth
+      && getComputedStyle(tabs).scrollSnapType.indexOf('x') === 0
+      && getComputedStyle(document.querySelector('.tab')).scrollSnapAlign !== 'none';
+    o.alvoDaPilula = alt('.tab') >= 44;
+    o.alvoDoChip = alt('#trib .chip') >= 44;
+    o.alvoDoStatus = alt('.vcard .st') >= 44 && alt('.vcard .fav') >= 44;
+    // a ativa tem de aparecer sozinha: no celular a última pílula nasce fora da tela
+    document.querySelector('.tab[data-pane="tribunais"]').click(); await w(400);
+    const r = document.querySelector('#tabs .tab.on').getBoundingClientRect();
+    o.ativaVisivelSemRolarNaMao = r.left >= -1 && r.right <= window.innerWidth + 1;
+    document.querySelector('.tab[data-pane="acervo"]').click(); await w(300);
+    window.openVerbete(0); await w(1600);
+    o.ferramentasNoMais = getComputedStyle(document.getElementById('jrMais')).display !== 'none'
+      && getComputedStyle(document.getElementById('jrTools')).display === 'none';
+    document.getElementById('jrMais').click(); await w(200);
+    o.oMaisAbre = getComputedStyle(document.getElementById('jrTools')).display !== 'none'
+      && document.getElementById('jrMais').getAttribute('aria-expanded') === 'true';
+    o.leitorCabeNaTela = getComputedStyle(document.querySelector('#jrdr .map')).display === 'none';
+    return o;
+  });
+  for (const [k, v] of Object.entries(d8)) ok(v, 'D8 ' + k);
+
+  ok(errosJuris.length === 0, 'JURIS nenhuma exceção na página (' + errosJuris.join(' | ') + ')');
+  // a fronteira do acervo: abrir verbete puxa o BLOCO do texto, nunca o arquivo de 10 MB
+  ok(!pedidos.some(u => /juris-text\.js/.test(u)), 'JURIS abrir verbete não baixa o juris-text.js inteiro');
+
+  await mctx.close();
+  await ctx.close();
+}
+
+/* ===== D6/D7/D8/D10 — pente fino visual do fluxo dos ritos e dos roteiros ===== */
+/* Ferramentas medidas dentro da página, compartilhadas pelos casos abaixo:
+   · vazamento: um retângulo l×a centrado cabe num losango L×A se l/L + a/A ≤ 1;
+     medimos as linhas de texto de verdade (rects de Range) e o chip da lei;
+   · contraste: compõe os fundos translúcidos até achar cor sólida (color-mix vira
+     color(srgb …) no valor computado, por isso o parser passa pelo canvas). */
+const FERRAMENTAS = `
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  const paraRGB = s => {
+    const m = String(s||'').match(/rgba?\\(([^)]+)\\)/);
+    if (m) { const p = m[1].split(',').map(Number); return [p[0],p[1],p[2], p.length>3?p[3]:1]; }
+    try { ctx.clearRect(0,0,1,1); ctx.fillStyle = '#000'; ctx.fillStyle = s; ctx.fillRect(0,0,1,1);
+      const d = ctx.getImageData(0,0,1,1).data; return [d[0],d[1],d[2],d[3]/255]; } catch (e) { return null; }
+  };
+  const fundoDe = el => {
+    let n = el; const camadas = [];
+    while (n && n.nodeType === 1) {
+      const p = paraRGB(getComputedStyle(n).backgroundColor);
+      if (p && p[3] > 0) { camadas.push(p); if (p[3] >= 1) break; }
+      n = n.parentElement;
+    }
+    camadas.push([255,255,255,1]);
+    let [r,g,b] = camadas[camadas.length-1];
+    for (let i = camadas.length-2; i >= 0; i--) { const [R,G,B,A] = camadas[i];
+      r = R*A + r*(1-A); g = G*A + g*(1-A); b = B*A + b*(1-A); }
+    return [r,g,b];
+  };
+  const lum = ([r,g,b]) => { const f = v => { v/=255; return v <= .03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); };
+    return .2126*f(r) + .7152*f(g) + .0722*f(b); };
+  const contraste = (fg,bg) => { const a = lum(fg)+.05, b = lum(bg)+.05; return a>b ? a/b : b/a; };
+  const contrasteDe = el => contraste(paraRGB(getComputedStyle(el).color), fundoDe(el));
+  const miudos = () => [...document.querySelectorAll('body *')].filter(el => {
+    const t = [...el.childNodes].some(n => n.nodeType === 3 && n.nodeValue.trim());
+    if (!t) return false;
+    const cs = getComputedStyle(el);
+    return cs.display !== 'none' && cs.visibility !== 'hidden' && el.getClientRects().length
+      && parseFloat(cs.fontSize) < 13;
+  });
+  const vazamento = () => [...document.querySelectorAll('.dec')].map(dec => {
+    const los = dec.querySelector('.losango') || dec;
+    if (getComputedStyle(los).clipPath === 'none') return null;   // virou caixa: não é losango
+    const R = los.getBoundingClientRect();
+    const cx = R.left + R.width/2, cy = R.top + R.height/2, a = R.width/2, b = R.height/2;
+    const alvos = [];
+    const w = document.createTreeWalker(dec, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      if (!String(n.nodeValue).trim()) continue;
+      const rg = document.createRange(); rg.selectNodeContents(n);
+      [...rg.getClientRects()].forEach(x => { if (x.width && x.height) alvos.push(x); });
+    }
+    dec.querySelectorAll('.art').forEach(x => { const rr = x.getBoundingClientRect(); if (rr.width) alvos.push(rr); });
+    let pior = 0;
+    alvos.forEach(rr => [[rr.left,rr.top],[rr.right,rr.top],[rr.left,rr.bottom],[rr.right,rr.bottom]]
+      .forEach(([x,y]) => { const v = Math.abs(x-cx)/a + Math.abs(y-cy)/b; if (v > pior) pior = v; }));
+    return { t: (dec.querySelector('.tt')||{}).textContent, pior: +pior.toFixed(3) };
+  }).filter(Boolean);
+`;
+
+// D6(a) — o texto da decisão dentro do losango, em coluna larga e em coluna estreita.
+// Antes da correção, a 940px (a largura do satélite dentro do app) 10 dos 26 losangos
+// destes ritos vazavam, e a 905px, 23 — o título e a lei escapavam pela lateral.
+{
+  const ritos = ['Administrativo — improbidade', 'Civil — conhecimento', 'Penal — procedimento sumário',
+                 'Penal — tribunal do júri', 'Empresarial — recuperação e falência'];
+  for (const larg of [1280, 940]) {
+    await page.setViewportSize({ width: larg, height: 900 });
+    let total = 0, vazam = [], pior = 0;
+    for (const rito of ritos) {
+      await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent(rito));
+      await page.waitForTimeout(250);
+      const m = await page.evaluate(FERRAMENTAS + '; vazamento()');
+      m.forEach(x => { total++; if (x.pior > 1) vazam.push(x.t); if (x.pior > pior) pior = x.pior; });
+    }
+    ok(total > 0 && vazam.length === 0,
+      'D6 nenhum texto escapa do losango a ' + larg + 'px (' + total + ' losangos, pior=' + pior.toFixed(2) +
+      (vazam.length ? '; vazam: ' + vazam.slice(0, 3).join(' / ') : '') + ')');
+  }
+}
+
+// D6(a) — e continua cabendo quando a coluna muda de largura SEM recarregar (é o caso
+// do iframe dentro do app: a janela muda, o texto reflui, a forma precisa remedir)
+await page.setViewportSize({ width: 1280, height: 900 });
+await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent('Civil — conhecimento'));
+await page.waitForTimeout(400);
+await page.setViewportSize({ width: 980, height: 900 });
+await page.waitForTimeout(400);
+const d6r = await page.evaluate(FERRAMENTAS + '; vazamento()');
+ok(d6r.length > 0 && d6r.every(x => x.pior <= 1),
+  'D6 a forma remede sozinha ao mudar a largura (' + d6r.length + ' losangos, pior=' +
+  Math.max(0, ...d6r.map(x => x.pior)).toFixed(2) + ')');
+
+// D6(b) — o rótulo da seta é o que separa os caminhos: contraste e pílula própria
+await page.setViewportSize({ width: 1280, height: 900 });
+await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent('Administrativo — improbidade'));
+await page.waitForTimeout(300);
+const d6b = await page.evaluate(FERRAMENTAS + `; (() => {
+  const rot = [...document.querySelectorAll('.saida .fio .rot')].filter(x => (x.textContent||'').trim());
+  if (!rot.length) return { erro: 'sem rótulo de seta' };
+  const cs = getComputedStyle(rot[0]);
+  return {
+    achou: rot.map(x => x.textContent.trim()).join(' | ').slice(0, 40),
+    piorContraste: +Math.min(...rot.map(contrasteDe)).toFixed(2),
+    temPill: (paraRGB(cs.backgroundColor)||[0,0,0,0])[3] > 0 && parseFloat(cs.borderTopWidth) > 0,
+    naoUsaText3: cs.color !== getComputedStyle(document.documentElement).getPropertyValue('--text3').trim(),
+  };
+})()`);
+if (d6b.erro) ok(false, 'D6 ' + d6b.erro);
+else {
+  ok(d6b.piorContraste >= 4.5, 'D6 rótulo da seta com contraste ≥ 4.5:1 (' + d6b.piorContraste + ':1 — ' + d6b.achou + ')');
+  ok(d6b.temPill, 'D6 rótulo da seta ganhou fundo pill para descolar da linha');
+}
+
+// D7 — dois níveis de microlabel, e os dois em uso nas duas páginas
+for (const pg of ['ritos-web.html', 'pecas-web.html']) {
+  await page.goto(URL0 + '/' + pg);
+  await page.waitForTimeout(400);
+  const d7 = await page.evaluate(FERRAMENTAS + `; (() => {
+    const f = document.querySelector('.ml-forte'), w = document.querySelector('.ml-fraca');
+    if (!f || !w) return { erro: 'faltou nível ' + (!f ? 'forte' : 'fraco') };
+    const cf = getComputedStyle(f), cw = getComputedStyle(w);
+    return {
+      usaOsDois: true,
+      monoSoNoForte: /mono|Menlo|ui-monospace/i.test(cf.fontFamily) && !/mono|Menlo|ui-monospace/i.test(cw.fontFamily),
+      // Chrome serializa letter-spacing:0 como 'normal' — parseFloat daria NaN
+      espacamentoSoNoForte: (parseFloat(cf.letterSpacing) || 0) > (parseFloat(cw.letterSpacing) || 0),
+      coresDiferentes: cf.color !== cw.color,
+      fracoLegivel: +contrasteDe(w).toFixed(2) >= 4.5,
+    };
+  })()`);
+  if (d7.erro) ok(false, 'D7 ' + pg + ': ' + d7.erro);
+  else for (const [k, v] of Object.entries(d7)) ok(v, 'D7 ' + pg + ' ' + k);
+}
+
+// D8 — celular: pílula ativa visível já no load, alvos de 44px e as ações no "⋯"
+await page.setViewportSize({ width: 390, height: 844 });
+await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent('Tributário — execução fiscal'));
+await page.waitForTimeout(500);
+const d8rp = await page.evaluate(`(() => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const mats = document.getElementById('mats'), on = mats.querySelector('.pill.on');
+  const rm = mats.getBoundingClientRect(), rp = on ? on.getBoundingClientRect() : null;
+  const r = {
+    pilulaAtivaInteiraNoLoad: !!rp && rp.left >= rm.left - 1 && rp.right <= rm.right + 1,
+    temScrollSnap: /x/.test(getComputedStyle(mats).scrollSnapType || ''),
+    // sem o scroll da fileira a pílula escolhida nasceria fora da tela
+    fileiraRolou: mats.scrollLeft > 0,
+    alvosDe44: [...document.querySelectorAll('.pill, header button')]
+      .filter(b => b.getClientRects().length)
+      .every(b => b.getBoundingClientRect().height >= 44),
+    maisVisivel: document.getElementById('bMais').getClientRects().length > 0,
+    acoesRecolhidas: document.getElementById('bNotas').getClientRects().length === 0,
+  };
+  return new Promise(async ok2 => {
+    document.getElementById('bMais').click(); await w(120);
+    r.menuAbre = document.getElementById('bNotas').getClientRects().length > 0;
+    r.avisaEstado = document.getElementById('bMais').getAttribute('aria-expanded') === 'true';
+    document.body.click(); await w(120);
+    r.menuFechaClicandoFora = document.getElementById('bNotas').getClientRects().length === 0;
+    ok2(r);
+  });
+})()`);
+for (const [k, v] of Object.entries(d8rp)) ok(v, 'D8 ' + k);
+
+await page.goto(URL0 + '/pecas-web.html');
+await page.waitForTimeout(400);
+const d8p = await page.evaluate(`(() => ({
+  alvos: [...document.querySelectorAll('header input, header select')]
+    .every(b => b.getBoundingClientRect().height >= 44),
+  // sem 16px na busca o iOS dá zoom ao focar — foi por isso que a página proibia ampliar
+  buscaGrande: parseFloat(getComputedStyle(document.getElementById('q')).fontSize) >= 16,
+  deixaAmpliar: !/user-scalable\\s*=\\s*no|maximum-scale/.test(
+    (document.querySelector('meta[name=viewport]')||{}).content || ''),
+}))()`);
+for (const [k, v] of Object.entries(d8p)) ok(v, 'D8/D10 peças no celular ' + k);
+
+// D10 — nome acessível, foco visível e contraste do texto miúdo nas duas páginas
+for (const pg of ['ritos-web.html', 'pecas-web.html']) {
+  for (const larg of [1280, 390]) {
+    await page.setViewportSize({ width: larg, height: 844 });
+    await page.goto(URL0 + '/' + pg);
+    await page.waitForTimeout(400);
+    const d10 = await page.evaluate(FERRAMENTAS + `; (() => ({
+      semNome: [...document.querySelectorAll('button')]
+        .filter(b => b.getClientRects().length)
+        .filter(b => !((b.textContent||'').trim() || b.getAttribute('aria-label') || b.getAttribute('title')))
+        .map(b => b.className || b.id),
+      miudosRuins: miudos().map(el => ({ q: el.className || el.tagName, c: +contrasteDe(el).toFixed(2),
+        t: (el.textContent||'').trim().slice(0, 24) })).filter(x => x.c < 4.5),
+    }))()`);
+    ok(d10.semNome.length === 0, 'D10 ' + pg + ' @' + larg + ': todo botão tem nome acessível' +
+      (d10.semNome.length ? ' (sem nome: ' + d10.semNome.join(', ') + ')' : ''));
+    ok(d10.miudosRuins.length === 0, 'D10 ' + pg + ' @' + larg + ': texto abaixo de 13px com ≥ 4.5:1' +
+      (d10.miudosRuins.length ? ' (' + JSON.stringify(d10.miudosRuins.slice(0, 3)) + ')' : ''));
+  }
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto(URL0 + '/' + pg);
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Tab');
+  const foco = await page.evaluate(`(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return { erro: 'nada recebeu o foco' };
+    const cs = getComputedStyle(el);
+    return { visivel: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0, quem: el.tagName + '.' + el.className };
+  })()`);
+  ok(!foco.erro && foco.visivel, 'D10 ' + pg + ': o primeiro Tab mostra o foco (' + (foco.quem || foco.erro) + ')');
+}
+// O host acrescenta ?embed=1 ao src dos iframes (D2): as duas páginas precisam
+// continuar inteiras nesse modo — nada do pente fino pode depender do cabeçalho grande.
+for (const [pg, alvo] of [['ritos-web.html', '#fluxo .passo'], ['pecas-web.html', '.rcard']]) {
+  await page.goto(URL0 + '/' + pg + '?embed=1');
+  await page.waitForTimeout(500);
+  const emb = await page.evaluate(`(() => ({
+    conteudo: document.querySelectorAll('${alvo}').length,
+    semNome: [...document.querySelectorAll('button')].filter(b => b.getClientRects().length)
+      .filter(b => !((b.textContent||'').trim() || b.getAttribute('aria-label') || b.getAttribute('title'))).length,
+  }))()`);
+  ok(emb.conteudo > 0 && emb.semNome === 0, 'D10 ' + pg + ' inteira também com ?embed=1 (' + emb.conteudo + ' itens)');
+}
+await page.setViewportSize({ width: 1280, height: 720 });
+/* ====== D7/D8/D10 — PENTE FINO: 2ª FASE, PRIORIDADE E MÓDULO DA ÁREA ======
+   Fica por último de propósito: mexe no tamanho da janela (breakpoint móvel) e
+   devolve 1280×720 no fim, para não contaminar os blocos anteriores. */
+{
+  // botão sem texto E sem aria-label é botão que o leitor de tela anuncia como "botão"
+  const semNome = () => page.evaluate(() => [...document.querySelectorAll('button')]
+    .filter(b => !((b.textContent || '').trim()) && !b.getAttribute('aria-label'))
+    .map(b => b.className || b.outerHTML.slice(0, 50)));
+  // alvo de toque medido pelo DEDO, não pela caixa do elemento: quem amplia a área
+  // com ::after (a bolinha de status) continua desenhada com 22px e clicável com 44
+  const alvo44 = sel => page.evaluate(s => {
+    const b = document.querySelector(s); if (!b) return null;
+    const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, p = 21;
+    return [[cx - p, cy - p], [cx + p, cy - p], [cx - p, cy + p], [cx + p, cy + p]]
+      .every(([x, y]) => { const e = document.elementFromPoint(x, y); return e === b || b.contains(e); });
+  }, sel);
+  const correcao = async largura => {          // deixa a 2ª fase na tela de correção
+    await page.setViewportSize({ width: largura, height: 800 });
+    await page.goto(URL0 + '/segunda-fase-web.html');
+    await page.waitForTimeout(700);
+    await page.evaluate(() => {
+      const P = (window.CT_ESPELHOS || {}).provas || [];
+      const alvo = P.find(p => (p.quesitos || []).length >= 3) || P[0];
+      localStorage.setItem('catedraSegundaFase', JSON.stringify({ hist: [], sessao: {
+        id: alvo.id, minutos: 300, inicio: Date.now(), acc: 6e4, rodando: false,
+        folha: 'peça de teste citando o art. 5', entregue: true, gasto: 6e4, veredictos: {} } }));
+    });
+    await page.goto(URL0 + '/segunda-fase-web.html');
+    await page.waitForTimeout(900);
+  };
+
+  /* -- D10: nome acessível em todo botão -- */
+  const semNomePorPagina = {};
+  for (const p of ['area-web.html?area=saude', 'prioridade-web.html', 'segunda-fase-web.html']) {
+    await page.goto(URL0 + '/' + p); await page.waitForTimeout(600);
+    semNomePorPagina[p] = await semNome();
+  }
+  await correcao(1280);
+  semNomePorPagina['segunda-fase (correção)'] = await semNome();
+  ok(Object.values(semNomePorPagina).every(v => v.length === 0),
+     'D10 nenhum botão sem nome acessível nas satélites ' + JSON.stringify(semNomePorPagina));
+
+  /* -- D7: os dois níveis de rótulo são visivelmente diferentes -- */
+  const d7 = await page.evaluate(() => {
+    const f = document.querySelector('.rot-forte'), m = document.querySelector('.rot-fraco');
+    if (!f || !m) return { erro: 'faltou um dos níveis na tela' };
+    const a = getComputedStyle(f), b = getComputedStyle(m);
+    const mono = s => /mono|Menlo|Courier/i.test(s);
+    return { corDiferente: a.color !== b.color,
+             forteMaior: parseFloat(a.fontSize) > parseFloat(b.fontSize),
+             espacoSoNoForte: parseFloat(a.letterSpacing) > 0 && !(parseFloat(b.letterSpacing) > 0),
+             monoSoNoForte: mono(a.fontFamily) && !mono(b.fontFamily) };
+  });
+  if (d7.erro) ok(false, 'D7 ' + d7.erro);
+  else for (const [k, v] of Object.entries(d7)) ok(v, 'D7 ' + k);
+
+  /* -- D10: foco visível ao chegar de teclado (área, que é onde estão os só-ícone) -- */
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(URL0 + '/area-web.html?area=saude');
+  await page.waitForTimeout(500);
+  let foco = null;
+  for (let i = 0; i < 8 && !foco; i++) {
+    await page.keyboard.press('Tab');
+    foco = await page.evaluate(() => { const a = document.activeElement;
+      if (!a || a.tagName !== 'BUTTON') return null;
+      const cs = getComputedStyle(a);
+      return { cls: a.className, w: cs.outlineWidth, estilo: cs.outlineStyle }; });
+  }
+  ok(!!foco && parseFloat(foco.w) >= 2 && foco.estilo === 'solid',
+     'D10 pílula/chip mostra foco visível ao teclado ' + JSON.stringify(foco));
+
+  /* -- D10: a linha do painel de prioridade é botão de verdade (teclado + estado) -- */
+  await page.goto(URL0 + '/prioridade-web.html');
+  await page.waitForTimeout(800);
+  const prio = await page.evaluate(() => {
+    const h = document.querySelector('.linha .lh');
+    if (!h) return { erro: 'sem linha' };
+    const r = { ehBotao: h.tagName === 'BUTTON', fechado: h.getAttribute('aria-expanded') === 'false',
+                aponta: !!document.getElementById(h.getAttribute('aria-controls') || '') };
+    h.click();
+    r.abriuEAnuncia = h.getAttribute('aria-expanded') === 'true' && h.closest('.linha').classList.contains('on');
+    // e aqui também os dois níveis convivem: seção (.dh) forte, legenda de número fraca
+    const f = getComputedStyle(document.querySelector('.det .rot-forte'));
+    const m = getComputedStyle(document.querySelector('.stat .rot-fraco'));
+    r.doisNiveis = f.color !== m.color && parseFloat(f.letterSpacing) > 0 && !(parseFloat(m.letterSpacing) > 0);
+    return r;
+  });
+  if (prio.erro) ok(false, 'D10 prioridade: ' + prio.erro);
+  else for (const [k, v] of Object.entries(prio)) ok(v, 'D10 prioridade ' + k);
+
+  /* -- D8: alvos de 44px no breakpoint móvel -- */
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto(URL0 + '/area-web.html?area=saude');
+  await page.waitForTimeout(500);
+  ok(await alvo44('.row .st'), 'D8 a bolinha de status tem 44px de alvo no celular (desenho segue com 22)');
+  ok(await alvo44('.row .fav'), 'D8 a ★ tem 44px de alvo no celular');
+  const pequenos = await page.evaluate(() => [...document.querySelectorAll('button,select,input')]
+    .filter(e => e.offsetParent !== null && !e.classList.contains('st'))
+    .filter(e => e.getBoundingClientRect().height < 44).length);
+  ok(pequenos === 0, 'D8 nenhum controle abaixo de 44px no módulo da área (' + pequenos + ')');
+
+  await page.goto(URL0 + '/prioridade-web.html');
+  await page.waitForTimeout(800);
+  const prioPeq = await page.evaluate(() => [...document.querySelectorAll('button,select')]
+    .filter(e => e.offsetParent !== null).filter(e => e.getBoundingClientRect().height < 44).length);
+  ok(prioPeq === 0, 'D8 nenhum controle abaixo de 44px no painel de prioridade (' + prioPeq + ')');
+
+  /* -- D8: o "⋯" recolhe as ações secundárias no celular e some no desktop -- */
+  await correcao(375);
+  const mais = await page.evaluate(() => {
+    const b = document.getElementById('bMais'), it = document.getElementById('maisIt');
+    if (!b || !it) return { erro: 'sem menu ⋯' };
+    const r = { aparece: getComputedStyle(b).display !== 'none',
+                temNome: !!b.getAttribute('aria-label'),
+                comecaFechado: getComputedStyle(it).display === 'none',
+                primariaVisivel: getComputedStyle(document.getElementById('bFechar')).display !== 'none' };
+    b.click();
+    r.abre = getComputedStyle(it).display !== 'none' && b.getAttribute('aria-expanded') === 'true';
+    r.guardaImprimir = [...it.querySelectorAll('button')].some(x => /imprimir/i.test(x.textContent));
+    document.body.click();
+    r.fechaClicandoFora = getComputedStyle(it).display === 'none';
+    return r;
+  });
+  if (mais.erro) ok(false, 'D8 ' + mais.erro);
+  else for (const [k, v] of Object.entries(mais)) ok(v, 'D8 menu ⋯ ' + k);
+
+  const deskMais = await (async () => { await correcao(1280);
+    return page.evaluate(() => ({
+      some: getComputedStyle(document.getElementById('bMais')).display === 'none',
+      itensNaLinha: getComputedStyle(document.getElementById('maisIt')).display === 'contents' })); })();
+  ok(deskMais.some && deskMais.itensNaLinha, 'D8 no desktop o ⋯ some e os botões voltam para a linha');
+
+  /* -- D8: fileira de veredictos com encaixe e a marcada visível já no load.
+     320px é onde as três pílulas deixam de caber lado a lado. -- */
+  await correcao(320);
+  const trilho = await page.evaluate(() => {
+    const sc = document.querySelector('.q .vb'); if (!sc) return { erro: 'sem fileira' };
+    const on = sc.querySelector('button.on'); if (!on) return { erro: 'sem veredicto marcado' };
+    const a = on.getBoundingClientRect(), b = sc.getBoundingClientRect();
+    return { rolaHorizontal: sc.scrollWidth > sc.clientWidth,
+             comEncaixe: getComputedStyle(sc).scrollSnapType.indexOf('x') === 0,
+             marcadaVisivelNoLoad: a.left >= b.left - 1 && a.right <= b.right + 1,
+             semCorteVertical: sc.scrollHeight <= sc.clientHeight + 2 };
+  });
+  if (trilho.erro) ok(false, 'D8 trilho: ' + trilho.erro);
+  else for (const [k, v] of Object.entries(trilho)) ok(v, 'D8 veredictos ' + k);
+
+  // os seletores dirigidos pelos testes de cima continuam de pé depois do pente fino
+  const seletores = await page.evaluate(() => ({
+    ver: document.querySelectorAll('.q .ver button[data-v]').length > 0,
+    salvar: [...document.querySelectorAll('button')].some(b => /Salvar e sair/.test(b.textContent || '')),
+    disp: document.querySelectorAll('.disp [data-legis]').length > 0,
+  }));
+  for (const [k, v] of Object.entries(seletores)) ok(v, 'D8/D10 seletor preservado: ' + k);
+
+  await page.evaluate(() => localStorage.removeItem('catedraSegundaFase'));
+  await page.setViewportSize({ width: 1280, height: 720 });
+}
+/* ============= U2 — ESQUELETO DE CARREGAMENTO ============= */
+// O que se prova aqui: o vazio sem explicação acabou na PRIMEIRA carga de cada acervo, e
+// que a volta a uma tela já carregada não pisca esqueleto (com o iframe vivo, seria mentira).
+// O esqueleto existe para a carga LENTA. Medi-lo com um `await w(80)` depois do clique é
+// uma corrida: servindo de localhost, o LEGIS às vezes carrega antes disso e o esqueleto
+// já saiu — passava aqui e falhava na CI. Em vez de dar mais tempo (que só adia o
+// problema), atrasamos a resposta da página, que é a condição em que o recurso importa.
+await page.route('**/legis-web.html*', async (rota) => {
+  await new Promise(r => setTimeout(r, 900));
+  await rota.continue();
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u2 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const skel = () => !!document.querySelector('.ct-skelbox');
+  const r = {};
+  r.inicioSemEsqueleto = !skel();                       // só as telas de iframe têm esqueleto
+
+  document.querySelector('button[data-view="legis"]').click();
+  await w(250);
+  r.primeiraCargaMostra = skel();                       // a página ainda está a caminho
+
+  const fr = document.querySelector('iframe[data-ct-view="legis"]');
+  for (let i = 0; i < 200 && fr.dataset.ctLoad !== '1'; i++) await w(100);
+  await w(250);
+  r.someQuandoAPaginaCarrega = !skel();                 // e sai assim que ela chega
+  r.esqueletoFicaAtras = true;                          // conferido pelo z-order do CSS abaixo
+
+  // sair e voltar: iframe vivo, nada recarrega, nada pisca
+  document.querySelector('button[data-view="inicio"]').click(); await w(350);
+  document.querySelector('button[data-view="legis"]').click(); await w(120);
+  r.voltaNaoPisca = !skel();
+  return r;
+});
+for (const [k, v] of Object.entries(u2)) ok(v, 'U2 ' + k);
+await page.unroute('**/legis-web.html*');  // o atraso era só para medir o esqueleto
+// o esqueleto é FUNDO: fica atrás do iframe (que é `position:relative`), então mesmo que um
+// satélite antigo nunca avise, a página carregada o cobre — nunca tapa conteúdo
+const u2css = await page.evaluate(() => {
+  const fr = document.querySelector('iframe[data-ct-view="legis"]');
+  return { framePosicionado: getComputedStyle(fr).position === 'relative',
+           molduraRelativa: getComputedStyle(fr.parentElement).position === 'relative' };
+});
+ok(u2css.framePosicionado && u2css.molduraRelativa, 'U2 o esqueleto é fundo (o iframe pinta por cima)');
+
+/* ============= U9 — SCROLL ÚNICO ============= */
+const u9 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const sc = () => document.querySelector('.ct-scroll');
+  const r = {};
+  document.querySelector('button[data-view="legis"]').click(); await w(500);
+  r.hostNaoRola = (sc().scrollHeight - sc().clientHeight) <= 1;
+  r.paginaNaoRola = (document.documentElement.scrollHeight - document.documentElement.clientHeight) <= 1;
+  const fr = document.querySelector('iframe[data-ct-view="legis"]').getBoundingClientRect();
+  r.quadroOcupaOEspaco = fr.height > window.innerHeight * 0.6 && fr.bottom <= window.innerHeight + 1;
+  const topo = document.querySelector('.ct-topbar').getBoundingClientRect();
+  r.topoAlcancavel = topo.top >= 0 && topo.height > 20;
+  const menu = document.querySelector('aside button[data-view="inicio"]');
+  r.menuAlcancavel = !!menu && menu.getBoundingClientRect().height > 10;
+
+  // fora do acervo, o host volta a rolar como sempre
+  document.querySelector('button[data-view="revisoes"]').click(); await w(500);
+  r.foraDoAcervoRolaDeNovo = /auto|scroll/.test(getComputedStyle(sc()).overflowY);
+  return r;
+});
+for (const [k, v] of Object.entries(u9)) ok(v, 'U9 ' + k);
+
+/* ============= U8 — ATALHOS VISÍVEIS (tecla ?) ============= */
+// A tecla ? é gateada por conta conectada, como o ⌘K: na tela de entrar não há o que
+// atalhar. Por isso este bloco entra com a sessão local ligada.
+await page.evaluate(() => localStorage.setItem('catedra:auth', '1'));
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u8 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const modal = () => [...document.querySelectorAll('div[role=dialog]')]
+    .find(d => /Atalhos do teclado/.test(d.getAttribute('aria-label') || ''));
+  const tecla = k => window.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+  const r = {};
+  r.fechadoPorPadrao = !modal();
+
+  tecla('?'); await w(300);
+  r.interrogacaoAbre = !!modal();
+  const linhas = modal() ? modal().querySelectorAll('span[style*="mono"]').length : 0;
+  r.listaTemAtalhos = linhas >= 4;
+  r.listaTemOCmdK = /⌘K/.test(modal() ? modal().innerText : '');
+
+  tecla('Escape'); await w(300);
+  r.escFecha = !modal();
+
+  // dentro de um campo de texto, ? é só uma interrogação
+  const inp = document.createElement('input'); document.body.appendChild(inp); inp.focus();
+  tecla('?'); await w(250);
+  r.dentroDeInputNaoAbre = !modal();
+  inp.remove();
+  return r;
+});
+for (const [k, v] of Object.entries(u8)) ok(v, 'U8 ' + k);
+
+// a lista da tela e o item da paleta saem da MESMA constante (fonte única)
+const u8b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const fonte = [...document.querySelectorAll('script')].map(s => s.textContent || '').find(t => t.includes('ATALHOS =')) || '';
+  const bloco = fonte.slice(fonte.indexOf('ATALHOS ='), fonte.indexOf('ATALHOS =') + 900);
+  const naConstante = (bloco.slice(0, bloco.indexOf('];')).match(/\{tecla:/g) || []).length;
+
+  document.querySelector('button[title^="Buscar"]').click(); await w(300);
+  const campo = document.querySelector('div[role=dialog] input');
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+  setter.call(campo, 'atalho'); campo.dispatchEvent(new Event('input', { bubbles: true }));
+  await w(400);
+  const item = [...document.querySelectorAll('div[role=dialog] button')].find(b => /Atalhos do teclado/.test(b.textContent || ''));
+  const temItemNaPaleta = !!item;
+  if (item) item.click();
+  await w(400);
+  const modal = [...document.querySelectorAll('div[role=dialog]')]
+    .find(d => /Atalhos do teclado/.test(d.getAttribute('aria-label') || ''));
+  const naTela = modal ? modal.querySelectorAll('span[style*="mono"]').length : 0;
+  if (modal) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await w(200);
+  return { temItemNaPaleta, mesmaFonte: naConstante > 0 && naConstante === naTela };
+});
+ok(u8b.temItemNaPaleta, 'U8 a paleta ⌘K também leva aos atalhos');
+ok(u8b.mesmaFonte, 'U8 a lista da tela sai da constante única ATALHOS');
+await page.evaluate(() => localStorage.removeItem('catedra:auth'));
+
+const hojeStr = new Date().toISOString().slice(0, 10);
+/* ============= U11 — REGISTRO DE ESTUDO EM UM TOQUE ============= */
+// O cronômetro anda pelo RELÓGIO (Date.now), então adiantar o relógio adianta a sessão —
+// mesmo truque do U5 acima. Assim dá para pausar com 32 min sem esperar 32 min.
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate((hoje) => {
+  localStorage.setItem('catedra:sessions', JSON.stringify([{ id: 's-u11', ts: Date.now() - 3600e3, date: hoje,
+    disc: 'Direito Penal', topico: 'Crimes contra a vida', categoria: 'Teoria', categorias: ['Teoria'],
+    min: 40, questoes: 0, acertos: 0, erradas: 0, brancos: 0, liquido: 0 }]));
+}, hojeStr);
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const u11 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const toast = () => [...document.querySelectorAll('div[role=status]')].find(d => /Registrar/.test(d.textContent || ''));
+  // D12 recolheu os botões soltos do cronômetro para dentro do chip de foco. O play
+  // continua a um clique — é justamente o que o item promete ("nada se perde").
+  const abrirChip = async () => {
+    if (document.querySelector('[role=menu][aria-label="Cronômetro e foco"]')) return;
+    const chip = [...document.querySelectorAll('header.ct-topbar button')]
+      .find(b => /Focar|\d\d:\d\d/.test(b.textContent || ''));
+    if (chip) { chip.click(); await w(300); }
+  };
+  const play = () => { const m = document.querySelector('[role=menu][aria-label="Cronômetro e foco"]');
+    return m && [...m.querySelectorAll('button')].find(b => /Iniciar|Pausar|Retomar/.test(b.textContent || '')); };
+  const r = {};
+  await abrirChip();
+  if (!play()) return { erro: 'sem botão de cronômetro no chip de foco' };
+
+  const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
+  await abrirChip(); play().click(); await w(300);          // começa a contar
+  delta = 32 * 60000;                    // 32 minutos de estudo
+  await w(1400);                         // um tique com o relógio adiantado
+  await abrirChip(); play().click(); await w(600);          // pausa → oferta
+  Date.now = orig;
+
+  const t = toast();
+  r.ofereceAoPausar = !!t && /Registrar 32 min em Direito Penal/.test(t.textContent || '');
+  const bt = n => [...(t ? t.querySelectorAll('button') : [])].find(b => (b.textContent || '').trim() === n);
+  r.tresCaminhos = !!bt('Registrar') && !!bt('Editar') && !!bt('Ignorar');
+  if (!bt('Registrar')) return r;
+
+  bt('Registrar').click(); await w(900);
+  const ss = JSON.parse(localStorage.getItem('catedra:sessions') || '[]');
+  const nova = ss.find(s => s.id !== 's-u11');
+  r.registraDireto = !!nova && nova.min === 32 && nova.disc === 'Direito Penal';
+  r.herdaCategoria = !!nova && nova.categoria === 'Teoria';
+  r.zeraOCronometro = !localStorage.getItem('ct_timer');   // sem isso o mesmo tempo entraria duas vezes
+  return r;
+});
+if (!u11.erro) { for (const [k, v] of Object.entries(u11)) ok(v, 'U11 ' + k); }
+else ok(false, 'U11 ' + u11.erro);
+
+// menos de 5 min é ruído: não oferece nada
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u11b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  // D12: o play mora dentro do chip de foco (o menu fecha a cada estado, então reabre)
+  const abrirChip = async () => {
+    if (document.querySelector('[role=menu][aria-label="Cronômetro e foco"]')) return;
+    const chip = [...document.querySelectorAll('header.ct-topbar button')]
+      .find(b => /Focar|\d\d:\d\d/.test(b.textContent || ''));
+    if (chip) { chip.click(); await w(300); }
+  };
+  const play = () => { const m = document.querySelector('[role=menu][aria-label="Cronômetro e foco"]');
+    return m && [...m.querySelectorAll('button')].find(b => /Iniciar|Pausar|Retomar/.test(b.textContent || '')); };
+  const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
+  await abrirChip(); play().click(); await w(300);
+  delta = 2 * 60000;
+  await w(1400);
+  await abrirChip(); play().click(); await w(600);
+  Date.now = orig;
+  const t = [...document.querySelectorAll('div[role=status]')].find(d => /Registrar/.test(d.textContent || ''));
+  return !t || t.style.opacity !== '1';
+});
+ok(u11b, 'U11 dois minutos não viram oferta de registro');
+
+/* ============= U4 — RETOMADA EXPLÍCITA DA REDAÇÃO ============= */
+// (O outro caso do U4, o simulado pausado, NÃO existe: _restoreProva consome ct_prova no
+// boot e reabre a prova em tela cheia — o teste do U3 acima guarda essa decisão.)
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => {
+  localStorage.setItem('catedra:redEnunciado', JSON.stringify('TJ-XX 2024 · Sentença cível\n\nProfira sentença.'));
+  localStorage.setItem('catedra:redText', JSON.stringify('Vistos etc. Trata-se de ação de cobrança...'));
+  localStorage.setItem('catedra:redTextTs', JSON.stringify(Date.now() - 3 * 3600e3));
+  localStorage.removeItem('catedra:redGabarito');
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const u4 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const M = () => document.querySelector('main').innerText;
+  const r = {};
+  document.querySelector('button[data-view="redacao"]').click(); await w(2500);
+  r.mostraAFaixa = /rascunho salvo/i.test(M());
+  r.dizDeQuando = /há 3h/.test(M());
+  const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
+  r.ofereceOsDoisCaminhos = !!btn('Continuar') && !!btn('Começar do zero');
+
+  // "Começar do zero" pergunta antes (é destruição de texto) e limpa só a resposta
+  let perguntou = false; window.confirm = () => { perguntou = true; return true; };
+  btn('Começar do zero').click(); await w(600);
+  r.zerarPergunta = perguntou;
+  r.zerarLimpaOTexto = JSON.parse(localStorage.getItem('catedra:redText') || '""') === '';
+  r.zerarMantemAProva = !!JSON.parse(localStorage.getItem('catedra:redEnunciado') || '""');
+  r.faixaSaiDepois = !/rascunho salvo/i.test(M());
+  return r;
+});
+for (const [k, v] of Object.entries(u4)) ok(v, 'U4 ' + k);
+
+// escrever faz a faixa sair sozinha — ela não fica pedindo passagem durante o trabalho
+await page.evaluate(() => {
+  localStorage.setItem('catedra:redText', JSON.stringify('Rascunho de outra sessão.'));
+  localStorage.setItem('catedra:redTextTs', JSON.stringify(Date.now() - 26 * 3600e3));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const u4b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const M = () => document.querySelector('main').innerText;
+  document.querySelector('button[data-view="redacao"]').click(); await w(2500);
+  const antes = /rascunho salvo/i.test(M());
+  const ta = document.querySelector('main textarea');
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+  setter.call(ta, 'Rascunho de outra sessão. Continuando agora.');
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+  await w(500);
+  return { antes, depois: /rascunho salvo/i.test(M()) };
+});
+ok(u4b.antes && !u4b.depois, 'U4 a faixa some assim que a pessoa volta a escrever');
+
+/* ============= U12 — LEMBRETE DE REVISÃO NO HORÁRIO ============= */
+// Notification é substituído ANTES do app subir: o headless não dá permissão de verdade.
+await page.addInitScript(() => {
+  const N = function (titulo, opts) { window.__notifs = (window.__notifs || []).concat([{ titulo, opts }]); this.close = () => {}; };
+  N.permission = 'granted';
+  N.requestPermission = async () => 'granted';
+  window.Notification = N;
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => {
+  localStorage.removeItem('catedra:notifRevDia');
+  localStorage.setItem('catedra:prefs', JSON.stringify({ revLembrete: true, revHora: '00:01' }));
+  localStorage.setItem('catedra:reviews', JSON.stringify([
+    { id: 'r-u12a', disc: 'Direito Civil', topic: 'Prescrição', due: -2, dueDate: '2020-01-01', intervalo: 1, facilidade: 2.5, repeticoes: 0 },
+    { id: 'r-u12b', disc: 'Direito Penal', topic: 'Dolo', due: -1, dueDate: '2020-01-02', intervalo: 1, facilidade: 2.5, repeticoes: 0 },
+  ]));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(6500);   // o verificador roda 4s depois do boot
+const u12 = await page.evaluate(() => ({
+  disparou: (window.__notifs || []).length === 1,
+  dizQuantasEQuantoTempo: /revis/i.test(((window.__notifs || [])[0] || {}).titulo || '') || /revis/i.test((((window.__notifs || [])[0] || {}).opts || {}).body || ''),
+  corpoTemONumero: /2 revisões esperando/.test((((window.__notifs || [])[0] || {}).opts || {}).body || ''),
+  marcouODia: localStorage.getItem('catedra:notifRevDia') === new Date().toISOString().slice(0, 10),
+}));
+for (const [k, v] of Object.entries(u12)) ok(v, 'U12 ' + k);
+
+// segundo boot no mesmo dia: não repete
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(6500);
+const u12b = await page.evaluate(() => (window.__notifs || []).length === 0);
+ok(u12b, 'U12 não repete o aviso no mesmo dia');
+
+// desligado (o padrão) não dispara nada
+await page.evaluate(() => {
+  localStorage.removeItem('catedra:notifRevDia');
+  localStorage.setItem('catedra:prefs', JSON.stringify({ revLembrete: false, revHora: '00:01' }));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(6500);
+const u12c = await page.evaluate(() => (window.__notifs || []).length === 0 && !localStorage.getItem('catedra:notifRevDia'));
+ok(u12c, 'U12 desligado (padrão) não avisa nada');
+
+/* ============= U7 (a) — TEMA AUTOMÁTICO ============= */
+await page.evaluate(() => { localStorage.setItem('catedra:prefs', JSON.stringify({ temaAuto: true })); localStorage.setItem('catedra:dark', '0'); });
+await page.emulateMedia({ colorScheme: 'dark' });
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const escuroAuto = await page.evaluate(() => document.querySelector('[data-dark]').getAttribute('data-dark'));
+ok(escuroAuto === '1', 'U7 com tema automático, sistema escuro deixa o app escuro');
+
+await page.emulateMedia({ colorScheme: 'light' });
+await page.waitForTimeout(600);
+const claroDepois = await page.evaluate(() => document.querySelector('[data-dark]').getAttribute('data-dark'));
+ok(claroDepois === '0', 'U7 o app acompanha a mudança do sistema sem recarregar');
+
+const u7 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) mais.click(); await w(300);
+  document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+  // D11: Claro/Escuro/Auto vivem na aba Aparência, junto do resto do visual
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  if (abaAp) { abaAp.click(); await w(700); }
+  const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
+  const r = { temBotaoAuto: !!btn('Auto') };
+  if (btn('Escuro')) btn('Escuro').click();
+  await w(1200);
+  const prefs = JSON.parse(localStorage.getItem('catedra:prefs') || '{}');
+  r.manualDesligaOAutomatico = prefs.temaAuto === false;
+  r.manualVale = document.querySelector('[data-dark]').getAttribute('data-dark') === '1';
+  if (btn('Auto')) btn('Auto').click();
+  await w(800);
+  r.autoVoltaAoSistema = document.querySelector('[data-dark]').getAttribute('data-dark') === '0'
+    && JSON.parse(localStorage.getItem('catedra:prefs') || '{}').temaAuto === true;
+  return r;
+});
+for (const [k, v] of Object.entries(u7)) ok(v, 'U7 ' + k);
+await page.emulateMedia({ colorScheme: 'no-preference' });
+
+/* ===== C1: qualidade do texto extraído dos PDFs das bancas =====
+   A extração crua publicava, em 267 das 561 provas, o regulamento do caderno no lugar do
+   enunciado. A receita mora em scripts/extrair_prova.py e a régua em
+   scripts/qualidade-texto.mjs — a MESMA que o build usa para recusar publicar e que o
+   portão usa para reprovar. Estes casos travam a régua e o resultado publicado. */
+const { audita: auditaTxt, juntaEspelho: juntaEsp } = await import('../scripts/qualidade-texto.mjs');
+
+const _limpo = 'Considerando a situação hipotética apresentada, redija um texto dissertativo '
+  + 'a respeito da responsabilidade civil do Estado por ato omissivo, abordando '
+  + 'necessariamente os pressupostos do dever de indenizar, a teoria adotada pelo '
+  + 'ordenamento brasileiro e o entendimento do Supremo Tribunal Federal sobre o tema, '
+  + 'com fundamento no artigo 37, parágrafo 6.º, da Constituição Federal de 1988.';
+ok(auditaTxt(_limpo).length === 0, 'C1 régua aprova enunciado limpo');
+ok(auditaTxt('NÃO SERÁ PERMITIDO o uso de aparelhos. ' + _limpo).includes('instrucoes-de-caderno'),
+  'C1 régua reprova regulamento do caderno no lugar do enunciado');
+ok(auditaTxt(_limpo + ('\nCEBRASPE – TRF DA 6.ª REGIÃO – Edital 2024').repeat(4)).includes('cabecalho-repetido'),
+  'C1 régua reprova cabeçalho de página repetido');
+ok(auditaTxt('<<D01_dAdm_A0100422_2321>> ' + _limpo).includes('marcador-interno'),
+  'C1 régua reprova código interno do PDF da banca');
+ok(auditaTxt('oi').includes('curto'), 'C1 régua reprova texto curto demais (PDF escaneado)');
+
+// A armadilha que fazia a auditoria acusar 59 espelhos bons de "curtos": o espelho
+// estruturado é um array de OBJETOS, e array.join() devolve "[object Object]".
+const _esp = juntaEsp([{ quesito: 'Identificar a competência do juízo', escala: '0,00 a 2,00' },
+  { quesito: 'Apontar a prescrição intercorrente', escala: '0,00 a 3,00' }]);
+ok(!/\[object Object\]/.test(_esp), 'C1 espelho estruturado não vira "[object Object]" ao ser medido');
+ok(/compet[êe]ncia do ju[íi]zo/i.test(_esp) && /prescri[çc][ãa]o/i.test(_esp),
+  'C1 espelho estruturado é medido pelo texto do quesito');
+
+// O acervo PUBLICADO tem de passar na mesma régua — é o portão, dentro da suíte.
+const _carrega = (arq) => { const w = {};
+  new Function('window', fs.readFileSync(path.join(RAIZ, arq), 'utf8'))(w);
+  return w[Object.keys(w)[0]]; };
+const _TEXTOS = _carrega('discursivas-textos.js');
+const _DISC = _carrega('discursivas-completo.js');
+const _ORAL = _carrega('oral-conteudo.js');
+
+let _ruimEn = [];
+for (const [id, it] of Object.entries(_TEXTOS)) {
+  if (it.en != null && auditaTxt(it.en).length) _ruimEn.push(id + ':' + auditaTxt(it.en).join(','));
+}
+ok(_ruimEn.length === 0, 'C1 nenhum enunciado publicado reprova na régua (' + _ruimEn.slice(0, 3).join(' | ') + ')');
+
+let _ruimEsp = [];
+for (const q of (Array.isArray(_DISC) ? _DISC : Object.values(_DISC))) {
+  const t = juntaEsp(q.espelho) || String(q.espelhoTexto || '')
+    || String((_TEXTOS[q.id] || {}).et || '');
+  if (t.trim() && auditaTxt(t).length) _ruimEsp.push(q.id + ':' + auditaTxt(t).join(','));
+}
+ok(_ruimEsp.length === 0, 'C1 nenhum espelho publicado reprova na régua (' + _ruimEsp.slice(0, 3).join(' | ') + ')');
+
+const _oralRuim = Object.values(_ORAL).filter(x => /<<[A-Za-z0-9_]{6,}>>/.test(String(x.enunciado) + String(x.padrao || '')));
+ok(_oralRuim.length === 0, 'C1 prova oral sem código interno do PDF no meio da pergunta (' + _oralRuim.length + ')');
+
+/* ===== C1: a tela diz a verdade sobre a falta de espelho =====
+   "Sem espelho" tem duas causas — a banca não publicou, ou o PDF existe e não deu para
+   transcrever. Sair com a mesma palavra faria a pessoa procurar um espelho que não existe. */
+const _lista = Array.isArray(_DISC) ? _DISC : Object.values(_DISC);
+const _semEspelho = _lista.filter(q => !(q.espelho && q.espelho.length) && !q.espelhoTexto);
+const _semMotivo = _semEspelho.filter(q => !q.espelhoSituacao);
+ok(_semEspelho.length === 0 || _semMotivo.length === 0,
+  'C1 toda prova sem espelho registra POR QUE (' + _semMotivo.length + ' sem motivo de ' + _semEspelho.length + ')');
+
+const c1tela = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  // o catálogo só é buscado ao entrar na Redação (script sob demanda, não no boot)
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) { mais.click(); await w(300); }
+  const nav = document.querySelector('button[data-view="redacao"]');
+  if (nav) { nav.click(); await w(3000); }
+  const L = (window.CT_DISCURSIVAS || []);
+  const alvo = L.find(q => q.espelhoSituacao === 'nao-publicado');
+  const falho = L.find(q => q.espelhoSituacao && q.espelhoSituacao !== 'nao-publicado');
+  return { carregou: L.length > 0, temCampo: L.some(q => !!q.espelhoSituacao),
+    naoPublicado: alvo ? alvo.id : null, naoTranscrito: falho ? falho.id : null };
+});
+ok(c1tela.carregou, 'C1 catálogo de discursivas carrega ao entrar na Redação');
+ok(c1tela.temCampo, 'C1 catálogo leve carrega a situação do espelho (o split preserva o campo)');
+
+/* ===== C1: o textão chega à tela =====
+   Do split de 21/08 até 22/08, discursivas-textos.js era publicado no bundle, copiado pelos
+   builds e testado — e NENHUMA linha do app o carregava. A prova abria com o resumo de 320
+   caracteres e sem padrão de resposta. Este caso trava o caminho inteiro: catálogo leve →
+   clique na prova → textão sob demanda → enunciado íntegro na tela. */
+await page.goto(URL0 + '/Catedra.dc.html');
+// a Redação precisa estar na etapa 1 (o banco): prova aberta por um teste anterior fica
+// gravada e a tela abriria direto na etapa 2, sem card nenhum para clicar
+await page.evaluate(() => ['redEnunciado', 'redGabarito', 'redText', 'redProvaId']
+  .forEach(k => localStorage.removeItem('catedra:' + k)));
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const c1texto = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const out = {};
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) { mais.click(); await w(300); }
+  const nav = document.querySelector('button[data-view="redacao"]');
+  if (!nav) return { erro: 'sem botão da Redação no menu' };
+  nav.click(); await w(3000);
+  const L = window.CT_DISCURSIVAS;
+  if (!L) return { erro: 'o catálogo de discursivas não carregou' };
+  out.catalogoCarregou = true;
+  out.textoesNaoVieramJunto = !window.CT_DISCURSIVAS_TEXTOS;   // só sob demanda
+  // a lista mostra as 180 primeiras: escolher pelo que ESTÁ na tela, não pelo banco inteiro
+  const naTela = [...document.querySelectorAll('main button[data-id]')].map(b => b.getAttribute('data-id'));
+  const alvo = L.find(q => q.temTextoFull && naTela.includes(q.id));
+  if (!alvo) return { ...out, erro: 'nenhuma prova com texto completo entre as exibidas (' + naTela.length + ' cards)' };
+  out.resumoCurtoNoCatalogo = String(alvo.enunciado || '').length <= 340;
+  const card = document.querySelector('main button[data-id="' + alvo.id + '"]');
+  if (!card) return { ...out, erro: 'a prova não apareceu como card' };
+  card.click(); await w(3000);
+  out.textoesCarregaramSobDemanda = !!window.CT_DISCURSIVAS_TEXTOS;
+  let guardado = ''; try { guardado = JSON.parse(localStorage.getItem('catedra:redEnunciado') || '""'); } catch (e) {}
+  out.enunciadoInteiro = guardado.length > 340;
+  const trecho = guardado.slice(80, 140).trim();
+  out.enunciadoNaTela = trecho.length > 20 && (document.body.innerText || '').includes(trecho);
+  return out;
+});
+if (c1texto.erro) ok(false, 'C1 textão: ' + c1texto.erro);
+else for (const [k, v] of Object.entries(c1texto)) ok(v, 'C1 textão ' + k);
+
+/* ===== C1: a trava de PII acusa CPF de gente, não CPF de exemplo =====
+   O espelho da DPE-SE 2021 ensina a qualificar a parte numa petição e escreve, na prosa da
+   própria banca, "inscrita no CPF sob o nº 111.222.333-33 …". É documento público e o número
+   é um espaço em branco com cara de número — mas ele abortava o build. Trava que grita à toa
+   é trava que alguém desliga; agora só conta CPF que passa no dígito verificador, que é o que
+   a marca d'água de PDF de curso carrega. */
+const { verificarPII } = await import('../scripts/verificar-pii.mjs');
+{
+  const dir = fs.mkdtempSync(path.join(RAIZ, '.pii-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'exemplo.txt'), 'Maria Silva, inscrita no CPF sob o nº 111.222.333-33, residente…');
+    const semRuido = verificarPII(dir, { abortar: false, rotulo: 'fixture' });
+    ok(semRuido.length === 0, 'C1 PII ignora CPF de exemplo do espelho (111.222.333-33)');
+    fs.writeFileSync(path.join(dir, 'vazamento.txt'), 'material de curso — CPF: 529.982.247-25 — não distribuir');
+    const warn = console.warn; console.warn = () => {};
+    const comVazamento = verificarPII(dir, { abortar: false, rotulo: 'fixture' });
+    console.warn = warn;
+    ok(comVazamento.length > 0, 'C1 PII continua acusando CPF válido (marca d\'água de verdade)');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+
+/* ===== C2: ponte para as plataformas de questões (só link de saída) =====
+   A regra dura: o Cátedra NUNCA raspa, embute por iframe nem copia conteúdo dessas
+   plataformas, e nenhuma credencial delas passa por aqui. O teste trava as duas coisas
+   que podem quebrar em silêncio: a montagem da URL e a preferência que sincroniza. */
+const c2 = await page.evaluate(async () => {
+  const P = window.CT_PLATAFORMAS;
+  if (!P) return { erro: 'CT_PLATAFORMAS não carregou' };
+  const tec = P.link('tec', { disciplina: 'Direito Administrativo', assunto: 'improbidade' });
+  const qc = P.link('qc', { banca: 'CEBRASPE', ano: 2024 });
+  const fallback = P.link('plataforma-que-nao-existe', { assunto: 'prescrição' });
+  return { tec, qc, fallback, nomes: P.ordem.map(k => P.nome(k)) };
+});
+ok(!c2.erro, 'C2 mapa de plataformas carrega no host');
+ok(/tecconcursos\.com\.br/.test(c2.tec || '') && /improbidade/.test(c2.tec || ''),
+  'C2 TEC recebe a busca já filtrada no assunto fraco');
+ok(/qconcursos\.com/.test(c2.qc || '') && /CEBRASPE/i.test(decodeURIComponent(c2.qc || '')),
+  'C2 QConcursos recebe banca e ano');
+ok(/tecconcursos/.test(c2.fallback || ''), 'C2 plataforma desconhecida cai na padrão em vez de quebrar');
+ok((c2.nomes || []).length >= 2, 'C2 há mais de uma plataforma no menu');
+
+// Nada de embutir: a regra do item proíbe iframe/raspagem dessas plataformas.
+const fonteHost = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+ok(!/<iframe[^>]+(tecconcursos|qconcursos|estrategia)/i.test(fonteHost),
+  'C2 nenhuma plataforma de questões é embutida por iframe');
+const fontePlat = fs.readFileSync(path.join(RAIZ, 'plataformas-questoes.js'), 'utf8');
+ok(!/fetch\(|XMLHttpRequest|password|senha|token/i.test(fontePlat),
+  'C2 o mapa só monta URL — não busca conteúdo nem toca em credencial');
+
+// A preferência sincroniza: a chave precisa estar na lista do autosave.
+ok(/'plataformaQuestoes'/.test(fonteHost) && /_autosaveKeys\(\)\{[^}]*plataformaQuestoes/.test(fonteHost),
+  'C2 plataforma preferida entra no autosave (sincroniza entre aparelhos)');
+const c2ui = await page.evaluate(() => ({
+  ajustes: !!document.querySelector('#aj-plataforma'),
+  fonte: [...document.querySelectorAll('script')].map(s => s.textContent || '')
+    .some(t => t.includes('praticarDisciplina') && t.includes('praticarQuestao')),
+}));
+ok(c2ui.fonte, 'C2 os botões de praticar existem no host (diagnóstico, edital e gabarito)');
+
+/* ===== C3: espelho sugerido — o selo é o item =====
+   Sem rotulagem inequívoca, um espelho de IA vira "espelho da banca" na cabeça de quem
+   estuda. O miolo mora em espelho-sugerido.js, puro: fundamento obrigatório por quesito
+   e texto que se declara não oficial. */
+const c3 = await page.evaluate(() => {
+  const M = window.CT_ESPELHO_SUGERIDO;
+  if (!M) return { erro: 'CT_ESPELHO_SUGERIDO não carregou' };
+  // um quesito COM fundamento, um SEM e um com fundamento de fachada ("n/a")
+  const sug = M.interpretar({ total: 10, quesitos: [
+    { quesito: 'Identificar a responsabilidade civil objetiva do Estado', pontos: 6, fundamento: 'art. 37, §6.º, da CF/88' },
+    { quesito: 'Discorrer sobre o que o examinador quiser', pontos: 2, fundamento: '' },
+    { quesito: 'Apontar a excludente de culpa exclusiva da vítima', pontos: 2, fundamento: 'STF, RE 841.526' },
+    { quesito: 'Falar sobre o tema de modo geral e abrangente', pontos: 2, fundamento: 'n/a' },
+  ] }, 'p-teste');
+  const txt = sug ? M.texto(sug) : '';
+  const soLixo = M.interpretar({ quesitos: [
+    { quesito: 'Um quesito bonito porém sem lastro nenhum', pontos: 5, fundamento: '' } ] }, 'p2');
+  const prompt = M.montarPrompt({ enunciado: 'Disserte sobre responsabilidade civil do Estado.',
+    orgao: 'TJ-GO', ano: 2025, banca: 'FGV' });
+  return {
+    quesitos: sug ? sug.quesitos.length : 0,
+    todosComFundamento: !!sug && sug.quesitos.every(q => (q.fundamento || '').trim().length >= 6),
+    temSelo: /SUGERIDO/.test(txt) && /N[ÃA]O OFICIAL/i.test(txt),
+    dizQueBancaNaoPublicou: /banca n[ãa]o publicou/i.test(txt),
+    fundamentoNoTexto: /Fundamento:/.test(txt),
+    carimbo: !!(sug && sug.up),
+    semNadaUsavel: soLixo === null,
+    promptExigeFundamento: /N[ÃA]O crie o quesito/i.test(prompt) && /fundamento concreto/i.test(prompt),
+    promptTemFicha: /TJ-GO/.test(prompt) && /FGV/.test(prompt),
+  };
+});
+ok(!c3.erro && c3.quesitos === 2, 'C3 quesito sem fundamento é descartado (vieram 4, ficaram 2)');
+ok(!c3.erro && c3.todosComFundamento, 'C3 todo quesito publicado traz fundamento conferível');
+ok(!c3.erro && c3.temSelo, 'C3 o espelho sugerido sai rotulado "SUGERIDO — NÃO OFICIAL"');
+ok(!c3.erro && c3.dizQueBancaNaoPublicou, 'C3 o texto repete que a banca não publicou espelho');
+ok(!c3.erro && c3.fundamentoNoTexto, 'C3 o fundamento aparece no texto, quesito a quesito');
+ok(!c3.erro && c3.carimbo, 'C3 o espelho gerado leva carimbo up (sincroniza e a exclusão gruda)');
+ok(!c3.erro && c3.semNadaUsavel, 'C3 sem quesito fundamentado o resultado é nulo — não publica meia coisa');
+ok(!c3.erro && c3.promptExigeFundamento, 'C3 o prompt proíbe quesito sem fundamento');
+ok(!c3.erro && c3.promptTemFicha, 'C3 o prompt leva banca, órgão e ano da prova');
+
+ok(/'espelhosSugeridos'/.test(fonteHost) && /_autosaveKeys\(\)\{[^}]*espelhosSugeridos/.test(fonteHost),
+  'C3 o cache de espelhos sugeridos entra no autosave');
+ok(/aproximada/.test(fonteHost) && /espelho-sugerido/.test(fonteHost),
+  'C3 a nota tirada de espelho sugerido é marcada como aproximada');
+const authSrc = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
+ok(/catedra:espelhosSugeridos/.test(authSrc), 'C3 espelhosSugeridos está no ARRAY_ID (apagar gruda)');
+
+/* ===== D12 · BARRA DO TOPO + D13 · SALA DE FOCO =====
+   O topo empilhava 8 controles no mesmo nível (busca, pílula de sync com texto longo, sino,
+   ◎ de foco, avatar e um bloco inteiro de cronômetro que parecia um segundo app). Agora são
+   quatro cidadãos e um chip; e o modo foco virou uma sala. A regra do item: nenhuma função
+   se perde — tudo continua alcançável em no máximo dois cliques. */
+await page.goto(URL0 + '/Catedra.dc.html');
+// as teclas do D13 (espaco/F) e o `?` do U8 valem so com sessao iniciada, como o ⌘K
+await page.evaluate(() => localStorage.setItem('catedra:auth', '1'));
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const d12 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  const topo = document.querySelector('header.ct-topbar');
+  if (!topo) return { erro: 'sem barra do topo' };
+  r.semPilulaSync = !document.querySelector('.ct-synclabel');
+  // controles VISÍVEIS no topo (fora do título): no máximo quatro
+  const visiveis = [...topo.querySelectorAll(':scope > div > button, :scope > div > div > button')]
+    .filter(b => b.offsetParent !== null);
+  r.noMaximoQuatro = visiveis.length <= 5;   // busca, sino, avatar, chip (+ alarme de sync, raro)
+  const chip = [...topo.querySelectorAll('button')].find(b => /Focar|\d\d:\d\d/.test(b.textContent || ''));
+  r.temChipDeFoco = !!chip;
+  if (!chip) return r;
+  chip.click(); await w(350);
+  const menu = document.querySelector('[role=menu][aria-label="Cronômetro e foco"]');
+  r.chipAbreOPoder = !!menu;
+  const txt = menu ? menu.textContent : '';
+  // nenhuma função de hoje se perde: play, zerar, presets, PiP, foco e registrar
+  r.temPlay = /Iniciar|Retomar|Pausar/.test(txt);
+  r.temPresets = /25 \/ 5/.test(txt) && /50 \/ 10/.test(txt) && /90 \/ 15/.test(txt);
+  r.temPiP = /flutuante/i.test(txt);
+  r.temModoFoco = /modo foco/i.test(txt);
+  r.temRegistrar = /Registrar sessão/i.test(txt);
+  // o pontinho de sync mudou-se para o avatar
+  const avatar = [...topo.querySelectorAll('button')].find(b => /Conta e sincroniza/i.test(b.getAttribute('aria-label') || ''));
+  r.syncNoAvatar = !!avatar && avatar.querySelectorAll('span').length >= 2;
+  return r;
+});
+if (d12.erro) ok(false, 'D12 ' + d12.erro);
+else for (const [k, v] of Object.entries(d12)) ok(v, 'D12 ' + k);
+
+const d13 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  const menu = document.querySelector('[role=menu][aria-label="Cronômetro e foco"]');
+  const btn = menu && [...menu.querySelectorAll('button')].find(b => /modo foco/i.test(b.textContent));
+  if (!btn) return { erro: 'não achei "entrar no modo foco" no chip' };
+  btn.click(); await w(600);
+  const sala = document.querySelector('[aria-label="Sala de foco"]');
+  r.salaAbre = !!sala;
+  if (!sala) return r;
+  r.ocupaATelaToda = getComputedStyle(sala).position === 'fixed' && sala.getBoundingClientRect().width >= window.innerWidth - 2;
+  r.temAnel = sala.querySelectorAll('svg circle').length >= 2;      // trilho + progresso
+  r.anelUsaODash = !!sala.querySelector('circle[stroke-dasharray]');
+  r.temCronometroGrande = [...sala.querySelectorAll('div')].some(d => /^\d\d:\d\d/.test((d.textContent || '').trim()) && parseFloat(getComputedStyle(d).fontSize) >= 40);
+  r.temFraseDeEntrada = (sala.textContent || '').length > 60;
+  const acoes = [...sala.querySelectorAll('button')].filter(b => b.offsetParent !== null && (b.textContent || '').trim());
+  r.tresAcoes = acoes.length <= 4;                                   // pausar, encerrar, PiP (+ fechar)
+  r.temEncerrar = acoes.some(b => /Encerrar/i.test(b.textContent));
+  // espaço pausa e retoma, sem sair da sala
+  const antes = !!document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true }));
+  await w(300);
+  r.espacoNaoFechaASala = antes && !!document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true }));
+  await w(400);
+  r.fSaiDaSala = !document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true }));
+  await w(400);
+  r.fEntraDeNovo = !!document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await w(400);
+  r.escSai = !document.querySelector('[aria-label="Sala de foco"]');
+  return r;
+});
+if (d13.erro) ok(false, 'D13 ' + d13.erro);
+else for (const [k, v] of Object.entries(d13)) ok(v, 'D13 ' + k);
+
+/* ===== D11 · AJUSTES REFEITOS =====
+   Nasce de uso real: a Lana precisou do backup e não o achou. As abas ficavam no meio da
+   página e "Dados & conselho" misturava dois assuntos. A régua do item: a personalização
+   visual NÃO se perde, e "quero fazer backup" se resolve em dois gestos. */
+const d11 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
+  await w(1200);
+  const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-t]')];
+  const abas = abasEl().map(b => b.textContent.trim());
+  r.seisAbas = abas.length === 6;
+  r.abasPorAssunto = ['Você', 'Estudo', 'banca', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  const barra = document.querySelector('main .aj-abas');
+  r.abasGrudamNoTopo = !!barra && getComputedStyle(barra).position === 'sticky';
+
+  // busca interna: acha em QUALQUER aba, inclusive nas que não estão no DOM
+  const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
+  r.temBusca = !!busca;
+  const procurar = async (q) => { busca.value = q; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(450);
+    return [...document.querySelectorAll('main .aj-abas button[data-t]')].map(b => b.textContent).join(' '); };
+  if (busca) {
+    r.achaBackup = /[Bb]ackup/.test(await procurar('backup'));
+    r.achaSair = /sair/i.test(await procurar('sair'));
+    r.achaTema = /[Tt]ema/.test(await procurar('tema'));
+    await procurar('');
+  }
+  const clicaAba = async (re) => { const b = abasEl().find(x => re.test(x.textContent)); if (!b) return false; b.click(); await w(700); return true; };
+
+  // Aparência: nada de personalização se perde
+  r.abreAparencia = await clicaAba(/Aparência/);
+  r.temPresets = document.querySelectorAll('main button[data-p]').length >= 3;
+  const corpo = () => document.body.innerText;
+  r.temAvancada = /Personalização avançada/.test(corpo());
+  r.temDirecaoVisual = /Direção visual/.test(corpo());
+  r.temCorDestaque = /Cor de destaque/.test(corpo());
+  r.temTamanhoTexto = /Tamanho do texto/.test(corpo());
+  const abrir = document.querySelector('main button[aria-expanded]');
+  r.avancadaTemBotao = !!abrir;
+  if (abrir) { abrir.click(); await w(500); }
+  r.avancadaTemOsFinos = /cantos/i.test(corpo());   // o rótulo é uppercase por CSS: innerText devolve CANTOS
+
+  // Dados & backup: backup no topo, perigo isolado no fim
+  r.abreDados = await clicaAba(/Dados/);
+  const t = corpo();
+  r.backupAntesDoPerigo = t.indexOf('Seus dados') >= 0 && t.indexOf('Zona de perigo') > t.indexOf('Seus dados');
+  r.temBackupAutomatico = /Backup automático semanal/.test(t);
+  r.perigoIsolado = /Zona de perigo/.test(t) && /Não dá para desfazer/.test(t);
+
+  r.abreConta = await clicaAba(/^Conta$/);
+  r.contaTemSair = /Sair da conta/.test(corpo());
+  return r;
+});
+for (const [k, v] of Object.entries(d11)) ok(v, 'D11 ' + k);
+
+/* ===== REVISÃO ADVERSARIAL — os defeitos que ela achou não voltam =====
+   Uma revisão de 106 agentes sobre este lote confirmou 27 defeitos. Cada caso abaixo trava
+   um deles pelo COMPORTAMENTO, não pela implementação. */
+
+// A Aparência ficava no nível do <main> sem portão de view: depois de visitar a aba uma vez,
+// os cartões de preset e cor apareciam por baixo do Início, do Ciclo e do Edital.
+const rev1 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
+  await w(1000);
+  const ap = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  if (!ap) return { erro: 'sem aba Aparência' };
+  ap.click(); await w(600);
+  const naAba = /Escolhas rápidas/.test(document.body.innerText);
+  try { if (window.__catedraGoView) window.__catedraGoView('inicio'); } catch (e) {}
+  await w(900);
+  return { naAba, vazouParaOInicio: /Escolhas rápidas|Personalização avançada/.test(document.body.innerText) };
+});
+ok(!rev1.erro && rev1.naAba, 'REVISÃO Aparência aparece na sua aba');
+ok(!rev1.erro && !rev1.vazouParaOInicio, 'REVISÃO Aparência NÃO vaza para o Início (perdera o portão de view)');
+
+// O F ligava a sala por baixo do simulado cronometrado, punha o cronômetro a correr durante
+// a prova, e o Esc seguinte saía da PROVA — apagando ct_prova.
+const rev2 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const app = { }; const r = {};
+  localStorage.setItem('catedra:auth', '1');
+  // simula um modal aberto pelo caminho que o app usa
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true })); await w(500);
+  r.fEntraQuandoLivre = !!document.querySelector('[aria-label="Sala de foco"]');
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(400);
+  r.escSaiDaSala = !document.querySelector('[aria-label="Sala de foco"]');
+  return r;
+});
+for (const [k, v] of Object.entries(rev2)) ok(v, 'REVISÃO ' + k);
+
+// A busca dos Ajustes deixava cartões escondidos ao trocar de aba (display imperativo em
+// elemento que o runtime não remonta), e mandava Flashcards para a aba errada.
+const rev3 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
+  await w(1000);
+  const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
+  if (!busca) return { erro: 'sem busca nos Ajustes' };
+  busca.value = 'backup'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
+  const alvo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
+  const abaDoFlash = alvo ? alvo.getAttribute('data-t') : null;
+  busca.value = 'flashcards'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
+  const flash = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
+  const r = { flashApontaParaDados: !!flash && flash.getAttribute('data-t') === 'dados' };
+  // trocar de aba com a busca ativa não pode deixar cartão escondido
+  const abaEstudo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Estudo/.test(b.textContent));
+  if (abaEstudo) { abaEstudo.click(); await w(800); }
+  const escondidos = [...document.querySelectorAll('main [data-aj]')].filter(e => e.style.display === 'none');
+  r.nenhumCartaoFicaEscondido = escondidos.length === 0;
+  r.buscaFoiLimpa = (document.querySelector('main input[aria-label="Buscar nos ajustes"]') || {}).value === '';
+  return r;
+});
+if (rev3.erro) ok(false, 'REVISÃO ' + rev3.erro);
+else for (const [k, v] of Object.entries(rev3)) ok(v, 'REVISÃO ' + k);
+
+// O fallback de plataformaOpcoes lançava por construção e derrubava o render inteiro.
+const rev4 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const guardado = window.CT_PLATAFORMAS;
+  try {
+    delete window.CT_PLATAFORMAS;
+    try { if (window.__catedraGoView) window.__catedraGoView('inicio'); } catch (e) {}
+    await w(900);
+    // se o render tivesse caído, o app inteiro renderizaria vazio
+    const vivo = (document.body.innerText || '').length > 200 && !!document.querySelector('header.ct-topbar');
+    return { appSobreviveSemOMapaDePlataformas: vivo };
+  } finally { window.CT_PLATAFORMAS = guardado; }
+});
+for (const [k, v] of Object.entries(rev4)) ok(v, 'REVISÃO ' + k);
+
+// O assunto que vai para a plataforma não pode carregar o nome de um material pessoal inteiro.
+const rev5 = await page.evaluate(() => {
+  const P = window.CT_PLATAFORMAS;
+  const url = P.link('tec', { disciplina: 'Direito Civil',
+    assunto: 'processo 0001234-56 2024 8 26 0100 peticao inicial cliente' });
+  return { assuntoNaoVaiInteiro: decodeURIComponent(url).length < 140 };
+});
+for (const [k, v] of Object.entries(rev5)) ok(v, 'REVISÃO ' + k);
+
+/* ===== D14: VARREDURA DE LIGAÇÕES PERDIDAS =====
+   Duas falhas do mesmo tipo passaram meses despercebidas: um botão da barra usava
+   `style="{{ navPrioridade }}"`, variável que nunca entrou no render() (o dc-runtime
+   resolve ausente como string vazia — nada reclama), e trocava a view para uma tela cujo
+   bloco tinha se perdido num merge. O runtime não avisa; o CI passa a avisar. */
+const D14 = await page.evaluate(() => {
+  const html = document.documentElement.outerHTML;
+  return { ok: !!html };
+});
+ok(D14.ok, 'D14 página carregou para a varredura');
+
+const fonteTpl = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+// o template é tudo que está fora do <script> inline; o render() está dentro dele
+const semComentario = fonteTpl.replace(/<!--[\s\S]*?-->/g, '');
+const soTemplate = semComentario.replace(/<script[\s\S]*?<\/script>/g, '');
+
+// --- 1) todo data-view leva a uma tela que existe
+const views = [...new Set([...soTemplate.matchAll(/data-view="([a-z0-9_-]+)"/gi)].map(m => m[1]))]
+  .filter(v => v && !v.includes('{'));
+const semTela = views.filter(v => !new RegExp("view *=== *'" + v + "'").test(fonteTpl));
+ok(semTela.length === 0, 'D14 todo data-view tem tela no render (' + (semTela.join(', ') || 'nenhum órfão') + ')');
+
+// as views que são página satélite precisam do iframe montado no template
+const SATELITES = { legis: 'legis-web.html', juris: 'juris-web.html', areamod: 'area-web.html',
+  segundafase: 'segunda-fase-web.html', prioridade: 'prioridade-web.html' };
+const semIframe = Object.keys(SATELITES).filter(v =>
+  views.includes(v) && !new RegExp('data-ct-view="' + v + '"').test(soTemplate));
+ok(semIframe.length === 0, 'D14 toda view de satélite tem o iframe no template (' + (semIframe.join(', ') || 'todas montadas') + ')');
+
+// --- 2) variável órfã: {{ nome }} de escopo global que o render() não devolve
+// Fora de <sc-for> (lá o nome vem do item) e sem ponto (p.short pertence ao item).
+const semFor = soTemplate.replace(/<sc-for[\s\S]*?<\/sc-for>/g, '');
+const vars = [...new Set([...semFor.matchAll(/\{\{\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\}\}/g)].map(m => m[1]))];
+// O render() devolve um objeto literal gigante; procurar "nome:" ou "nome," (atalho) basta.
+const resolvida = (n) => new RegExp('(^|[\\s,{])' + n + '\\s*[:,]').test(fonteTpl)
+  || new RegExp('\\.\\.\\.' + n + '\\b').test(fonteTpl);
+const orfas = vars.filter(v => !resolvida(v));
+ok(orfas.length === 0, 'D14 nenhuma variável órfã no template (' + (orfas.slice(0, 6).join(', ') || 'nenhuma') + ')');
+
+// --- 3) a regressão que originou o item: os dois botões da barra
+const d14barra = await page.evaluate(() => {
+  const r = {};
+  for (const v of ['prioridade', 'segundafase']) {
+    const b = document.querySelector('button[data-view="' + v + '"]');
+    r[v + 'TemBotao'] = !!b;
+    r[v + 'TemEstilo'] = !!b && (b.getAttribute('style') || '').length > 20;
+  }
+  return r;
+});
+for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
 
 await browser.close();
 srv.close();
