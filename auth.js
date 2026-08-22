@@ -27,7 +27,11 @@
   var _si = localStorage.setItem.bind(localStorage);
   var _ri = localStorage.removeItem.bind(localStorage);
   // _dirty/_lastSrv/notifSent são meta-estado LOCAL do aparelho — nunca sobem no blob
-  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1, 'catedra:_bkpFase2': 1, 'catedra:_owner': 1 };
+  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1, 'catedra:_bkpFase2': 1, 'catedra:_owner': 1,
+    // notifRevDia marca que o lembrete de revisão do dia JÁ TOCOU NESTE APARELHO (U12) e
+    // _bkpAutoTs, quando o backup semanal rodou aqui (D11). São meta-estado local: subir
+    // faria o segundo aparelho herdar "já avisei" e ficar em silêncio sem nunca ter avisado.
+    'catedra:notifRevDia': 1, 'catedra:_bkpAutoTs': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
   // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
