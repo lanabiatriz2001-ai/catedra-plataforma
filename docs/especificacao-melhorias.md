@@ -526,3 +526,149 @@ aberto/minimizado — dizer isso honestamente no texto do Ajuste.
 `U5 → U6 → U3 → U4 → U1 → U2 → U9 → U8 → U7 → U11 → U10 → U12` — U5/U6 são pequenos e
 pagam confiança imediata; U1 é o maior ganho, mas mexe na estrutura das views (fazer
 com calma, num PR só dele); U10/U12 fecham o ciclo mobile.
+
+---
+---
+
+# Parte 3 — Interface e design
+
+Baseada em screenshots reais das páginas renderizadas (ritos, roteiro de peça, LEGIS,
+JURIS, roteiros, 2ª fase, mobile). O design de base é bom — cards consistentes,
+respiro, cor por ramo; os itens abaixo são lapidação. Ao validar qualquer um deles,
+renderize a página no Chromium headless e compare o antes/depois (o servidor estático
+de `tests/run.mjs` serve de base para um script de screenshot).
+
+## D1. Tema único: satélites herdam cor, modo escuro e fonte do host
+
+**Problema visto.** Cada satélite tem paleta própria fixa: ritos e 2ª fase em vinho
+(`#b5174e`), LEGIS/JURIS em verde (`#0f7a57`) — e nenhum respeita a cor de destaque
+escolhida nos Ajustes nem o modo escuro: com o host escuro, os iframes seguem claros
+(flash branco ao trocar de tela).
+
+**O que existe.** A ponte de tema já funciona para UM caso: o iframe do checklist
+posta `ctChecklistReady` e o host responde `{type:'ctTheme', tokens:{--bg, --accent,
+--ink, …}}` (handler `_ckMsg` no `componentDidMount`). Todos os satélites já usam CSS
+vars com fallback (`var(--accent,#0f7a57)`).
+
+**O que construir.** Generalizar: cada satélite posta `{type:'ctPronto'}` ao carregar
+(o mesmo aviso do U2/esqueleto); o host responde com os tokens atuais e REENVIA quando
+o tema muda (accent, dark, fontScale). O satélite aplica com
+`document.documentElement.style.setProperty` — como as páginas já usam vars com
+fallback, standalone continua com a cara própria. Renomear o handler `_ckMsg` para
+genérico e manter compatibilidade com `ctChecklistReady`.
+
+**Aceite.** Host em modo escuro → LEGIS/JURIS/ritos/2ª fase escuros; trocar a cor de
+destaque muda todas as telas; página aberta avulsa (sem host) mantém a paleta atual.
+**Armadilha.** Contraste: os tokens do host já calculam `--onAccent`; usar os tokens
+prontos, nunca derivar cor no satélite.
+
+## D2. Modo embutido (?embed=1): sem cabeçalho duplicado
+
+**Problema visto.** Cada satélite traz logo + título grande ("CátedraLEGIS", "Ritos
+processuais") dentro do app que já mostra onde a pessoa está — ~120px verticais
+repetindo identidade em toda tela.
+
+**O que construir.** Parâmetro `?embed=1` (o host acrescenta aos `src` dos iframes):
+o satélite compacta o header — some o ícone/logo grande, o título vira uma linha fina
+com as ações (Notas/Imprimir) à direita. Standalone (sem o parâmetro) fica como está.
+
+**Aceite.** Dentro do app, o conteúdo começa ~100px mais alto em todas as satélites;
+abrir a página direto pela URL mantém o header completo.
+
+## D3. JURIS: filtros rotulados e recolhidos
+
+**Problema visto.** Três fileiras de chips antes do conteúdo, com identificador
+técnico cru vazando na interface: `informativo_stj`, `sel_tjgo`, `repercussao_geral`,
+`juris_em_teses`, `controle_const`…
+
+**O que construir.** (a) Mapa de rótulos num só lugar (`{informativo_stj:'Informativo
+STJ', sel_tjgo:'Seleção TJGO', …}`) aplicado nos chips — o valor interno não muda.
+(b) Recolher as fileiras de coleções e ramos num botão "Filtros (2)" que abre popover;
+tribunais continuam visíveis. Filtro ativo aparece como chip removível ao lado do
+botão.
+
+**Aceite.** Nenhum snake_case visível; o acervo aparece na primeira dobra; filtros
+ativos visíveis e removíveis com um toque.
+
+## D4. Estados vazios que convidam (fim dos zeros)
+
+**Problema visto.** LEGIS abre com "0 DOMINADAS · 0 LENDO · 0 FAVORITAS" em destaque
+— contabilidade do nada; JURIS idem ("0 dominados · 0 favoritos").
+
+**O que construir.** Métrica zerada não vira número: o slot mostra convite curto
+("marque ★ nas leis do seu edital" / "✓ quando dominar uma lei"). Com ≥1, vira número
+normal. Vale para qualquer painel de estatística da casa: zero absoluto = convite.
+
+## D5. Catálogo do LEGIS: linha clicável, um botão só
+
+**Problema visto.** 268 leis × 2 botões verdes de mesmo peso ("Ler aqui" +
+"Planalto") = 536 botões; a ação primária não se distingue.
+
+**O que construir.** A linha inteira abre o leitor (ação primária; cursor pointer +
+hover no card); "Planalto ↗" vira link discreto (texto pequeno, sem borda), e a ★ de
+favorito ganha `aria-label`. Manter a área de toque da linha ≥44px.
+
+## D6. Fluxograma: losango, rótulos de seta e contraste
+
+**Problema visto.** O texto da decisão vaza do losango ("Legitimidade" + a lei
+escapam da forma); os rótulos das setas (ENTE LESADO / MINISTÉRIO PÚBLICO) estão em
+cinza claro pequeno — baixo contraste na informação que diferencia os caminhos.
+
+**O que construir.** (a) Losango: conteúdo com `max-width` e o shape crescendo com o
+texto (ou texto FORA do losango, abaixo, como legenda — mais simples e legível).
+(b) Rótulos de seta: subir o contraste para ≥4.5:1 (usar `--text2` em vez de
+`--text3`) e leve fundo pill para descolar da linha.
+
+## D7. Microlabels mono com hierarquia
+
+**Problema visto.** "NOTA", "O QUE MANDA", "COMO ISSO VAI PARA A FOLHA", "BANCA
+PRÓPRIA", "FLUXO" — o mesmo tratamento mono-caps-espaçado em tudo; quando tudo
+destaca, nada destaca.
+
+**O que construir.** Definir DOIS níveis e aplicar: nível forte (mono caps + cor do
+ramo) só para o que estrutura a leitura (NOTA, seções); nível fraco (caps menor,
+`--text3`, sem espaçamento extra) para metadados (BANCA PRÓPRIA, contagens). Passar
+um pente nos satélites trocando classe — sem redesign.
+
+## D8. Mobile: toque e pílulas
+
+**Problema visto.** Pílulas de rito cortadas no meio ("Ambienta…"), alvos de toque do
+topo < 44px, "Imprimir" ocupando lugar nobre no celular.
+
+**O que construir.** No breakpoint móvel: alvos ≥44px; a fileira de pílulas com
+scroll-snap e a pílula ativa sempre visível (`scrollIntoView` já existe no clique —
+falta no load); "Imprimir" e "Notas" recolhem num menu "⋯". Conferir o mesmo padrão
+nas demais satélites.
+
+## D9. Build sem CDN: falhar em vez de degradar
+
+**Problema visto (de verdade: foi o que impediu o app de abrir no ambiente de
+teste).** Quando o vendoring do React falha no build, `scripts/build.mjs` publica o
+site apontando para `cdn.jsdelivr.net`/`unpkg.com` — numa rede que bloqueia CDNs
+(faculdade, tribunal, sandbox), o app não abre. O supabase-js idem.
+
+**O que construir.** No `build.mjs`: vendoring que falha = **build falha** (exit 1)
+com mensagem clara, em vez de cair para CDN. Manter o fallback só atrás de uma flag
+explícita (`CT_PERMITE_CDN=1`) para debug. Vendorar também o supabase-js. A fonte
+Inter (Google Fonts) entra no mesmo tratamento: baixar no build para `public/fonts/`
+com `font-display:swap` — resolve também o offline do U10.
+
+**Aceite.** `node scripts/build.mjs` num ambiente sem rede externa: ou o build já tem
+os arquivos vendorados (cache no repo/CI) e passa, ou falha ruidosamente — nunca
+publica dependendo de terceiro. O site abre com todas as fontes/scripts servidos do
+próprio domínio.
+
+## D10. Acessibilidade mínima dos satélites
+
+**O que construir.** Uma passada única: `aria-label` em todo botão só-ícone (★, ✕,
+setas, ⋯); foco visível (outline com `--accent`) em chips e pills; contraste dos
+subtítulos `--text3` (#7d7a86 sobre #faf7f5 fica no limite) — subir um degrau onde o
+texto for < 13px. Teste em `tests/run.mjs`: nenhuma página com botão sem nome
+acessível (checagem simples via `document.querySelectorAll('button')` sem
+texto/aria-label).
+
+## Ordem sugerida da Parte 3
+
+`D9 → D1 → D2 → D3 → D5 → D4 → D7 → D6 → D8 → D10` — D9 é risco real de
+disponibilidade (primeiro); D1+D2 mudam a percepção do app inteiro de uma vez; o
+resto é polimento por tela e pode ir num único PR de "pente fino visual".
