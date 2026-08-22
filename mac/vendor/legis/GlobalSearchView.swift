@@ -14,6 +14,8 @@ struct GlobalSearchView: View {
     // Cada busca ganha um número; só a mais recente pode escrever os resultados,
     // senão uma busca lenta anterior sobrescreveria uma mais nova.
     @State private var searchGeneration = 0
+    /// Termo que chegou pelo mapa de Processo e peças (item 5): entra na busca ao abrir.
+    @State private var pendenteAplicado = false
 
     private var lawCount: Int { store.laws.filter { $0.isRegularLaw && $0.isDownloaded }.count }
 
@@ -29,6 +31,16 @@ struct GlobalSearchView: View {
                             .buttonStyle(.legisPrimary)
                             .disabled(query.trimmingCharacters(in: .whitespaces).count < 2))) {
             content
+        }
+        // Item 5: o termo que veio do mapa de Processo e peças entra aqui e já busca.
+        // `pendenteAplicado` evita reaplicar quando a tela reaparece numa navegação futura.
+        .onAppear {
+            guard !pendenteAplicado else { return }
+            let t = AcervoEntrada.shared.consumirTermo()
+            guard !t.isEmpty else { return }
+            pendenteAplicado = true
+            query = t
+            runSearch()
         }
         .onChange(of: query) { _, q in
             // O "x" do shell só esvazia o texto; aqui invalidamos a busca em voo (o guard

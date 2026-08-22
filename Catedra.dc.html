@@ -5086,6 +5086,21 @@ class Component extends DCLogic {
     // registro de sessão usam isto quando a categoria é Lei seca/Jurisprudência.
     try{ window.catedraSetNativeCatalogo = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativeCatalogo:o}); }catch(_){} }; }catch(_){}
     // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
+    // O app NATIVO (Mac/iPad) abre o LEGIS/JURIS em ABA nativa, então a volta ao ponto do
+    // processo não passa por postMessage — o host Swift chama esta função depois de trocar
+    // para a aba Cátedra. Reusa exatamente o caminho do ctVoltarAcervo. (item 5)
+    try{ window.catedraVoltarAcervo = (de)=>{
+      try{
+        de = de || {};
+        const v = (de.view==='roteiros') ? 'roteiros' : 'areamod';
+        const q = [];
+        if(de.rito) q.push('rito='+encodeURIComponent(de.rito));
+        if(de.peca){ q.push('peca='+encodeURIComponent(de.peca));
+          if(de.bloco!=null && de.bloco!=='') q.push('bloco='+de.bloco); }
+        this.setState({view:v, acervoDe:null, acervoBusca:'', origemAbrir:q.join('&'), menuOpen:false});
+        return true;
+      }catch(_){ return false; }
+    }; }catch(_){}
     try{ window.__catedraGoView = (v)=>{ try{ if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); }catch(_){} }; }catch(_){}
     this._migrarSchema();
     this._limparLeiturasDuplicadas();   // remove as leituras que duplicam o checklist do plano

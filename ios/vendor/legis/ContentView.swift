@@ -127,6 +127,12 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
+        // Item 5: o chip ⚖️ do mapa de Processo e peças manda o TERMO junto. Sem isto a aba
+        // abria no acervo inteiro e a busca era refeita à mão.
+        .onReceive(NotificationCenter.default.publisher(for: AcervoEntrada.notificacaoBuscar)) { n in
+            guard let t = n.userInfo?["termo"] as? String, !t.isEmpty else { return }
+            path = [.section(.globalSearch)]
+        }
         .sheet(isPresented: $showAddLaw) { AddLawSheet() }
         .alert("Nova matéria", isPresented: $showNewCategory) {
             TextField("Nome (ex.: Militar, Agrário, Concurso X)", text: $newCategoryName)

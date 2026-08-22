@@ -33,6 +33,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
     var webView: WKWebView!
     private var segmento: UISegmentedControl!
+    var botaoVoltarAcervo: UIButton!   // item 5: volta ao ponto do processo (só com origem viva)
     private var areaConteudo: UIView!
     private var legisVC: UIViewController?   // criados sob demanda, na 1ª vez que a aba abre
     private var jurisVC: UIViewController?
@@ -104,6 +105,16 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         barra.backgroundColor = .secondarySystemBackground
         barra.addSubview(segmento)
 
+        // Item 5: "← Voltar ao ponto do processo". Fica escondido até alguém chegar aqui
+        // por um chip do mapa de Processo e peças — antes o caminho era de mão única.
+        botaoVoltarAcervo = UIButton(type: .system)
+        botaoVoltarAcervo.translatesAutoresizingMaskIntoConstraints = false
+        botaoVoltarAcervo.setTitle("← Voltar ao processo", for: .normal)
+        botaoVoltarAcervo.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+        botaoVoltarAcervo.isHidden = true
+        botaoVoltarAcervo.addTarget(self, action: #selector(voltarAoProcesso), for: .touchUpInside)
+        barra.addSubview(botaoVoltarAcervo)
+
         areaConteudo = UIView()
         areaConteudo.translatesAutoresizingMaskIntoConstraints = false
 
@@ -118,6 +129,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             segmento.centerXAnchor.constraint(equalTo: barra.centerXAnchor),
             segmento.topAnchor.constraint(equalTo: barra.topAnchor, constant: 6),
             segmento.bottomAnchor.constraint(equalTo: barra.bottomAnchor, constant: -6),
+            botaoVoltarAcervo.leadingAnchor.constraint(equalTo: barra.leadingAnchor, constant: 14),
+            botaoVoltarAcervo.centerYAnchor.constraint(equalTo: segmento.centerYAnchor),
+            botaoVoltarAcervo.trailingAnchor.constraint(lessThanOrEqualTo: segmento.leadingAnchor, constant: -12),
 
             areaConteudo.topAnchor.constraint(equalTo: barra.bottomAnchor),
             areaConteudo.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -156,6 +170,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
     private func montarAba(remontar: Bool) {
         let aba = segmento.selectedSegmentIndex
+        // Voltou ao Cátedra pela aba: a volta ao ponto do processo deixou de fazer sentido.
+        if aba == 0 { AcervoEntrada.shared.limpar() }
+        atualizarBotaoVoltarAcervo()
         if remontar {
             // Tema novo: o SwiftUI leu as cores no build, então a tela precisa nascer de novo.
             if let v = legisVC { v.willMove(toParent: nil); v.view.removeFromSuperview(); v.removeFromParent(); legisVC = nil }
@@ -314,7 +331,12 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
       window.addEventListener('message', function (e) {
         try {
           if (!e || !e.data || e.data.type !== 'ctAbrirAcervo') return;
-          window.webkit.messageHandlers.catedraAcervo.postMessage({ alvo: String(e.data.alvo || '') });
+          // Item 5: o termo e o ponto de origem viajam junto (antes ia só a aba).
+          window.webkit.messageHandlers.catedraAcervo.postMessage({
+            alvo: String(e.data.alvo || ''), termo: String(e.data.termo || ''),
+            de: (e.data.de && typeof e.data.de === 'object') ? e.data.de
+              : (e.data.origem && typeof e.data.origem === 'object' ? e.data.origem : null)
+          });
           e.stopImmediatePropagation();
         } catch (err) {}
       });
@@ -506,10 +528,39 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         let corpo = message.body as? [String: Any] ?? [:]
         let alvo = (corpo["alvo"] as? String) ?? ""
         guard alvo == "legis" || alvo == "juris" else { return }
+        // Item 5: além de trocar a aba, leva o TERMO e guarda o ponto de origem para a volta.
+        let termo = (corpo["termo"] as? String) ?? ""
+        let origem = AcervoEntrada.origem(de: corpo["de"] as? [String: Any])
         DispatchQueue.main.async {
+            AcervoEntrada.shared.chegou(termo: termo, origem: origem)
             self.segmento.selectedSegmentIndex = (alvo == "juris") ? 2 : 1
             self.trocarAba()
+            self.atualizarBotaoVoltarAcervo()
+            if alvo == "juris", !termo.isEmpty {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                    guard let store = self?.jurisStore else { return }
+                    store.ir(.todos)          // ir() zera a busca: o termo entra DEPOIS
+                    store.searchText = termo
+                }
+            }
         }
+    }
+
+    /// Botão "voltar ao ponto do processo" na barra de abas — só quando há origem viva.
+    func atualizarBotaoVoltarAcervo() {
+        let temOrigem = AcervoEntrada.shared.origem != nil && segmento.selectedSegmentIndex != 0
+        botaoVoltarAcervo?.isHidden = !temOrigem
+        if let o = AcervoEntrada.shared.origem { botaoVoltarAcervo?.setTitle("← " + o.rotulo, for: .normal) }
+    }
+
+    @objc func voltarAoProcesso() {
+        guard let o = AcervoEntrada.shared.origem else { return }
+        AcervoEntrada.shared.limpar()
+        segmento.selectedSegmentIndex = 0
+        trocarAba()
+        atualizarBotaoVoltarAcervo()
+        // O app web reabre o mapa/roteiro no ponto exato (window.catedraVoltarAcervo).
+        webView.evaluateJavaScript("window.catedraVoltarAcervo && window.catedraVoltarAcervo(\(o.jsonJS))", completionHandler: nil)
     }
 
     /// Mesma coisa do host do Mac: os módulos nativos usam a IA DO APP (a sessão do
