@@ -75,6 +75,23 @@ enum Palette {
     static var accentSoft: Color      { ThemeState.t.accent.opacity(ThemeState.t.isDark ? 0.22 : 0.12) }
     static let importante             = Color.dynamic(light: "#E0A400", dark: "#F5C542") // âmbar = destaque
 
+    // SEMÂNTICOS (verde/âmbar/vermelho) — espelham --ok/--warn/--bad do Cátedra e
+    // seguem o claro/escuro espelhado em ThemeState.t.isDark. Antes cada tela cravava
+    // "#16A34A"/"#D97706"/"#DC2626" no código e o escuro ficava com verde de tela clara.
+    static var ok: Color   { ThemeState.t.isDark ? Color(hex: "#4ADE80") : Color(hex: "#16A34A") }
+    static var warn: Color { ThemeState.t.isDark ? Color(hex: "#FBBF24") : Color(hex: "#D97706") }
+    static var bad: Color  { ThemeState.t.isDark ? Color(hex: "#F87171") : Color(hex: "#DC2626") }
+    /// Tinta "forte" dos semânticos (texto sobre fundo lavado).
+    static var okInk: Color  { ThemeState.t.isDark ? Color(hex: "#86EFAC") : Color(hex: "#15803D") }
+    static var badInk: Color { ThemeState.t.isDark ? Color(hex: "#FCA5A5") : Color(hex: "#B91C1C") }
+
+    // RAIOS — três tamanhos, todos derivados do --radius do Cátedra. Antes havia
+    // 9/10/11/12/14/16/18 cravados por tela; agora: cartão, interno (chips, campos,
+    // blocos dentro de cartão) e hero (destaques grandes).
+    static var rCard: CGFloat  { ThemeState.t.radius }
+    static var rInner: CGFloat { max(6, ThemeState.t.radius - 4) }
+    static var rHero: CGFloat  { ThemeState.t.radius + 4 }
+
     // Superfícies — tokens do Cátedra
     static var appBackground: Color    { ThemeState.t.bg }
     static var sidebarBackground: Color { ThemeState.t.surface }   // barras/painéis claros
@@ -110,6 +127,19 @@ enum Palette {
         case "TJRO": return Color(hex: "#64748B")   // ardósia
         case "TCU":  return Color(hex: "#0F7A57")   // verde-cofre
         default:     return ThemeState.t.accent
+        }
+    }
+
+    /// Cor de identidade de uma Central — a mesma do tribunal que ela reúne.
+    /// `clara`: variante clareada para ícones sobre o navy da sidebar (mesma família).
+    static func corDeCentral(_ c: JurisCentral, clara: Bool = false) -> Color {
+        switch c {
+        case .stf: return clara ? Color(hex: "#739EFA") : corDeTribunal("STF")
+        case .stj: return clara ? Color(hex: "#47CCB3") : corDeTribunal("STJ")
+        case .tse: return clara ? Color(hex: "#A98CFA") : corDeTribunal("TSE")
+        case .especificos: return clara ? Color(hex: "#9EADC7") : corDeTribunal("TJRO")
+        case .contas: return clara ? Color(hex: "#3DB88C") : corDeTribunal("TCU")
+        case .outros: return clara ? Color(hex: "#F2B859") : fonteDOD
         }
     }
 
@@ -149,6 +179,11 @@ enum Typo {
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
         .system(size: size, weight: weight, design: .default)
     }
+    /// Números/KPIs: a fonte da interface com dígitos tabulares — no lugar do
+    /// `design: .monospaced` que saía em Menlo no meio de uma tela SF Pro.
+    static func num(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
+        Font.system(size: size, weight: weight, design: .default).monospacedDigit()
+    }
 }
 
 /// Recorte combinado de verbetes: central OU tribunal específico, refinado por
@@ -165,6 +200,7 @@ struct EscopoFiltrado: Hashable {
 /// Escopo do que está sendo exibido na lista central.
 enum Selecao: Hashable {
     case inicio
+    case hoje                 // fila do dia: revisão espaçada vencida + checklist + julgado do dia
     case todos
     case favoritos
     case anotacoes            // verbetes com anotação pessoal
@@ -196,9 +232,10 @@ enum Selecao: Hashable {
         case .gradeInformativos: return "Informativos"
         case .julgadoDoDia: return "Julgado do dia"
         case .provaOral: return "Prova oral"
-        case .oralBancas: return "Oral · bancas reais"
+        case .oralBancas: return "Prova oral · bancas"
         case .simulado: return "Simulado"
         case .inicio: return "Início"
+        case .hoje: return "Revisar hoje"
         case .todos: return "Todos os verbetes"
         case .favoritos: return "Favoritos"
         case .anotacoes: return "Minhas anotações"
@@ -225,6 +262,7 @@ enum Selecao: Hashable {
     var simbolo: String {
         switch self {
         case .inicio: return "house.fill"
+        case .hoje: return "sun.horizon.fill"
         case .todos: return "square.stack.3d.up.fill"
         case .favoritos: return "star.fill"
         case .anotacoes: return "square.and.pencil"
@@ -285,6 +323,7 @@ enum Appearance: String, CaseIterable, Identifiable {
 enum Filtro: String, CaseIterable, Identifiable {
     case todos = "Todos"
     case naoLidos = "Não lidos"
+    case lidos = "Lidos"
     case vigentes = "Vigentes"
     case canceladas = "Canceladas"
     case superadas = "Superadas"
@@ -295,6 +334,7 @@ enum Filtro: String, CaseIterable, Identifiable {
         switch self {
         case .todos: return "line.3.horizontal.decrease.circle"
         case .naoLidos: return "circle"
+        case .lidos: return "checkmark.circle.fill"
         case .vigentes: return "checkmark.seal"
         case .canceladas: return "xmark.seal"
         case .superadas: return "clock.arrow.circlepath"
@@ -306,9 +346,10 @@ enum Filtro: String, CaseIterable, Identifiable {
         switch self {
         case .todos: return .secondary
         case .naoLidos: return Palette.accent
+        case .lidos: return Palette.ok
         case .vigentes: return Palette.fonteSTJ
-        case .canceladas: return .red
-        case .superadas: return .orange
+        case .canceladas: return Palette.bad
+        case .superadas: return Palette.warn
         case .importantes: return Palette.importante
         }
     }

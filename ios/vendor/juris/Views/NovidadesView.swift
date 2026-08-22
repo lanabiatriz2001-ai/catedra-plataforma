@@ -13,7 +13,11 @@ struct NovidadesView: View {
     }()
 
     var body: some View {
-        Group {
+        SectionShell(icon: Selecao.novidades.simbolo, title: Selecao.novidades.titulo,
+                     subtitle: "Atualizações vindas dos sites oficiais — STF, STJ e TSE.",
+                     count: store.novidades.isEmpty ? nil : store.novidades.count,
+                     trailing: AnyView(botaoVerificar)) {
+            Group {
             if store.novidades.isEmpty {
                 vazio
             } else {
@@ -24,7 +28,7 @@ struct NovidadesView: View {
                                 disciplinaLinha(grupo.disciplina, grupo.itens.count)
                                 ForEach(grupo.itens) { entry in
                                     Button {
-                                        store.selectedID = entry.id
+                                        store.lerCheio(entry.id)
                                     } label: {
                                         EntryRow(entry: entry, query: "",
                                                  isFavorite: store.isFavorite(entry.id),
@@ -44,12 +48,23 @@ struct NovidadesView: View {
                 .scrollContentBackground(.hidden)
                 .background(Palette.appBackground)
             }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(Palette.appBackground)
-        .subtituloNav(store.novidades.isEmpty ? "" :
-            "\(store.novidades.count) atualização\(store.novidades.count == 1 ? "" : "ões")")
         .onAppear { store.marcarNovidadesVistas() }
         .onDisappear { store.marcarNovidadesVistas() }
+    }
+
+    private var botaoVerificar: some View {
+        Button {
+            Task { await updater.atualizar(store: store) }
+        } label: {
+            Label(estaExecutando ? "Verificando…" : "Verificar agora", systemImage: "arrow.triangle.2.circlepath")
+                .font(.system(size: 12, weight: .semibold))
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Palette.accent)
+        .disabled(estaExecutando)
     }
 
     private var estaExecutando: Bool {
@@ -97,32 +112,8 @@ struct NovidadesView: View {
     }
 
     private var vazio: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 38, weight: .thin))
-                .foregroundStyle(Palette.accent.opacity(0.7))
-            Text("Sem novidades ainda")
-                .font(Typo.serifTitle(17, .semibold))
-                .foregroundStyle(Palette.titleInk)
-            Text("Quando o STF, o STJ ou o TSE publicarem novos informativos ou súmulas,\neles aparecem aqui automaticamente.")
-                .font(.system(size: 12))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Palette.secondaryInk)
-            Button {
-                Task { await updater.atualizar(store: store) }
-            } label: {
-                Label(estaExecutando ? "Verificando…" : "Verificar agora", systemImage: "arrow.triangle.2.circlepath")
-                    .font(.system(size: 12, weight: .semibold))
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(Palette.accent)
-            .disabled(estaExecutando)
-            if let d = updater.ultimaVerificacao {
-                Text("Última verificação: \(d.formatted(date: .abbreviated, time: .shortened))")
-                    .font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(40)
+        let ultima = updater.ultimaVerificacao.map { " Última verificação: \($0.formatted(date: .abbreviated, time: .shortened))." } ?? ""
+        return LegisEmpty(icon: "sparkles", title: "Sem novidades ainda",
+                          message: "Quando o STF, o STJ ou o TSE publicarem novos informativos ou súmulas, eles aparecem aqui automaticamente." + ultima)
     }
 }

@@ -32,8 +32,8 @@ struct MarkCommentBalloon: View {
             }
             .padding(.horizontal, 9).padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Palette.cardBackground))
-            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.cardBackground))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
             .shadow(color: Color.black.opacity(0.06), radius: 4, y: 1)
         }
         .buttonStyle(.plain)
