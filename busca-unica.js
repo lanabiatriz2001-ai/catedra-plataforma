@@ -47,14 +47,19 @@
   function indexar(fontes) {
     var f = fontes || {};
     var out = [];
-    var põe = function (tipo, titulo, extra, arg) {
+    var põe = function (tipo, titulo, extra, arg, meta) {
       var t = String(titulo || '').trim();
       if (!t) return;
       // _i = posição na fonte. O catálogo do LEGIS vem em ordem de importância (CF, CC,
       // CPC…), e isso é o desempate certo: sem ele, "cf" acha o Código Florestal antes da
       // Constituição Federal, porque o título é mais curto.
       out.push({ tipo: tipo, titulo: t, extra: String(extra || ''), arg: arg == null ? t : arg,
-                 _t: normalizar(t), _e: normalizar(extra), _s: iniciais(t), _i: out.length });
+                 _t: normalizar(t), _e: normalizar(extra),
+                 // iniciais só valem para lei — calculá-las nos 15 mil verbetes custa ~25 ms à toa
+                 _s: (tipo === 'lei' ? iniciais(t) : ''), _i: out.length,
+                 // súmula revogada vai para o fim; verbete marcado como importante sobe
+                 _rev: (meta && /revogad|cancelad/i.test(String(meta.si || ''))) ? 1 : 0,
+                 _w: (meta && meta.im) ? 1 : 0 });
     };
 
     (Array.isArray(f.leis) ? f.leis : []).forEach(function (l) {
@@ -67,15 +72,17 @@
     (Array.isArray(f.verbetes) ? f.verbetes : []).forEach(function (v) {
       if (!v) return;
       var titulo = v[4] || ((v[1] || '') + ' ' + (v[3] || ''));
-      var extra = [v[1], v[5], v[6]].filter(Boolean).join(' · ');
+      // v[8] = situação ("Revogada"/"Cancelada"): entra no hint porque decorar súmula
+      // caída é o pior desperdício de estudo que existe.
+      var extra = [v[1], v[8], v[5], v[6]].filter(Boolean).join(' · ');
       // arg = TÍTULO, não o id: o CátedraJURIS abre por ?q= (busca textual) e não conhece
       // o id interno do índice — mandar "STJ-SUM-619" abriria a página sem resultado.
-      põe('verbete', titulo, extra, titulo);
+      põe('verbete', titulo, extra, titulo, { si: v[8], im: v[9] });
     });
 
     Object.keys(f.pecas || {}).forEach(function (nome) {
       var p = f.pecas[nome] || {};
-      põe('peca', nome, p.rito || 'roteiro de peça', nome);
+      põe('peca', nome, [p.rito || 'roteiro de peça', SINONIMOS[nome]].filter(Boolean).join(' · '), nome);
     });
 
     Object.keys(f.ritos || {}).forEach(function (nome) {
@@ -84,6 +91,10 @@
 
     return out;
   }
+
+  /* As duas peças cujo nome depende de sigla: sem isto, "mandado de segurança" e "ação
+     civil pública" não alcançam a peça — só o rito. */
+  var SINONIMOS = { 'Sentença em MS': 'mandado de segurança', 'ACP ambiental': 'ação civil pública' };
 
   var ORDEM = ['lei', 'verbete', 'peca', 'rito'];
 
@@ -111,7 +122,7 @@
       // o extra (referência da lei, tribunal/ramo do verbete) vale menos que o título
       if (!p) { var pe = pontuar(it._e, q); if (pe) p = Math.min(1, pe); }
       if (!p) return;
-      res[it.tipo].push({ tipo: it.tipo, titulo: it.titulo, extra: it.extra, arg: it.arg, _p: p, _i: it._i });
+      res[it.tipo].push({ tipo: it.tipo, titulo: it.titulo, extra: it.extra, arg: it.arg, _p: p, _i: it._i, _rev: it._rev, _w: it._w });
     });
 
     ORDEM.forEach(function (t) {
@@ -121,6 +132,8 @@
       var porFonte = (t === 'lei');
       res[t].sort(function (a, b) {
         return (b._p - a._p)
+          || (a._rev - b._rev)                 // súmula revogada nunca vem em primeiro
+          || (b._w - a._w)                     // verbete marcado como importante sobe
           || (porFonte ? (a._i - b._i) : 0)
           || (a.titulo.length - b.titulo.length)
           || a.titulo.localeCompare(b.titulo);
@@ -128,7 +141,10 @@
       // o acervo tem entradas repetidas (mesma tese em fontes diferentes): uma só na lista
       var visto = {}, limpo = [];
       res[t].forEach(function (x) {
-        var k = normalizar(x.titulo);
+        // STF e STJ gravam títulos idênticos ("Súmula 619") — só o extra (tribunal e
+        // situação) os separa. Deduplicar só pelo título escondia uma das duas, e a que
+        // sobrava podia ser justamente a REVOGADA.
+        var k = normalizar(x.titulo + '|' + x.extra);
         if (visto[k]) return;
         visto[k] = 1; limpo.push(x);
       });
