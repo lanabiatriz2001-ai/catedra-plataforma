@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harness evolução da redação</title></head>
+<body style="margin:0;font:14px system-ui">
+<!-- Tradução fiel de _redRegistrar/_redEvolucao/_redSpark do host, para testar a curva sem
+     subir o app inteiro. Se o método mudar lá, este harness muda junto. -->
+<script>
+var RED_HIST_MAX = 60;
+function ler(){ try{ return JSON.parse(localStorage.getItem('catedra:redHist')||'[]'); }catch(e){ return []; } }
+function grava(v){ localStorage.setItem('catedra:redHist', JSON.stringify(v)); }
+window.redRegistrar = function(reg){
+  if(!reg || !Array.isArray(reg.quesitos) || !reg.quesitos.length) return null;
+  var agora = (reg.ts || Date.now());
+  var item = { id:'rh'+agora, up:agora, quando:new Date(agora).toISOString().slice(0,10), ts:agora,
+    origem:(reg.origem==='segunda-fase'?'segunda-fase':'redacao'),
+    prova:String(reg.prova||'').slice(0,140),
+    quesitos:reg.quesitos.slice(0,40).map(function(q,i){ return { i:i, titulo:String(q.titulo||('Quesito '+(i+1))).slice(0,120),
+      nota:Math.round((+q.nota||0)*100)/100, max:Math.round((+q.max||1)*100)/100 }; }),
+    notaTotal:(reg.notaTotal!=null?Math.round((+reg.notaTotal)*100)/100:null) };
+  grava([item].concat(ler()).slice(0,RED_HIST_MAX));
+  return item;
+};
+window.redEvolucao = function(){
+  var hist = ler().slice().sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
+  var porProva = {};
+  hist.forEach(function(h){ var k=h.origem+'|'+h.prova; (porProva[k]=porProva[k]||[]).push(h); });
+  return Object.keys(porProva).map(function(k){
+    var tent=porProva[k], primeira=tent[0], ultima=tent[tent.length-1];
+    var pct=function(h){ var tot=h.quesitos.reduce(function(a,q){return a+(q.max||0);},0);
+      var g=h.quesitos.reduce(function(a,q){return a+(q.nota||0);},0); return tot?Math.round(g/tot*100):null; };
+    var quesitos=primeira.quesitos.map(function(q){
+      var u=ultima.quesitos.filter(function(x){ return x.i===q.i; })[0];
+      var p0=q.max?Math.round(q.nota/q.max*100):null, p1=(u&&u.max)?Math.round(u.nota/u.max*100):null;
+      return { titulo:q.titulo, de:p0, para:p1, delta:(p0!=null&&p1!=null)?(p1-p0):null };
+    }).filter(function(q){ return q.delta!=null || tent.length===1; });
+    return { chave:k, prova:primeira.prova, origem:primeira.origem, tentativas:tent.length,
+      serie:tent.map(pct).filter(function(x){ return x!=null; }), primeiroPct:pct(primeira), ultimoPct:pct(ultima),
+      quesitos:quesitos.sort(function(a,b){ return (a.delta==null?999:a.delta)-(b.delta==null?999:b.delta); }) };
+  }).sort(function(a,b){ return b.tentativas-a.tentativas; });
+};
+window.redSpark = function(serie){
+  var n=(serie||[]).length; if(n<2) return '';
+  var W=120,H=28,P=3;
+  return serie.map(function(v,i){
+    var x=P+i*((W-2*P)/(n-1)), y=H-P-(Math.max(0,Math.min(100,v))/100)*(H-2*P);
+    return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);
+  }).join(' ');
+};
+window.addEventListener('message', function(e){
+  if(!e||!e.data||e.data.type!=='ctRedacaoResultado') return;
+  window.__ultimoReg = window.redRegistrar({ origem:'segunda-fase', prova:String(e.data.prova||''),
+    quesitos:(Array.isArray(e.data.quesitos)?e.data.quesitos:[]), notaTotal:e.data.notaTotal });
+});
+</script>
+</body></html>
