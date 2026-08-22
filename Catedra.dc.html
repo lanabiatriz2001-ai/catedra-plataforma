@@ -8586,7 +8586,14 @@ class Component extends DCLogic {
     this.setState(s=>{ const max=new Date(s.calYear, s.calMonth+1, 0).getDate();
       const dia=Math.max(1,Math.min(max,parseInt(d.dia,10)||1));
       return {eventos:[...s.eventos,{id:'ev'+Date.now(), dia, mes:s.calMonth, ano:s.calYear, tipo:d.tipo, titulo:d.titulo.trim(), color:colorMap[d.tipo]||'#6b4fbb', done:false}], eventDraft:{...s.eventDraft, titulo:''}}; }); this.flashSync(); };
-  removeEvent = (e)=>{ const id=e.currentTarget.dataset.id; if(!window.confirm('Excluir este evento do calendário?')) return; this.setState(s=>({eventos:s.eventos.filter(x=>(x.id||('seed'+x.dia+x.titulo))!==id)})); this.flashSync(); };
+  _evId(x){ return x.id||('seed'+x.dia+x.titulo); }
+  removeEvent = (e)=>{ const id=e.currentTarget.dataset.id;
+    const alvo=(this.state.eventos||[]).find(x=>this._evId(x)===id);
+    if(!alvo) return;
+    this._excluirComDesfazer('Evento',
+      ()=>{ this.setState(s=>({eventos:s.eventos.filter(x=>this._evId(x)!==id)}), ()=>this.flashSync()); },
+      ()=>{ this.setState(s=>({eventos:[...s.eventos, {...alvo, up:Date.now()}]}), ()=>this.flashSync()); });
+  };
   toggleEvent = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({eventos:s.eventos.map(x=>((x.id||('seed'+x.dia+x.titulo))===id?{...x,done:!x.done}:x))})); this.flashSync(); };
   // ===== calendário: navegação / seleção / filtro =====
   _calShift = (dir)=> this.setState(s=>{
@@ -8615,7 +8622,12 @@ class Component extends DCLogic {
     this.setState(s=>({habitos:{...s.habitos, [k]:Math.max(0, Math.round(((s.habitos[k]||0)-step)*10)/10)}}), ()=>{ this._persistHabitos(); }); this.flashSync(); };
   openPdf = (e)=> this.setState({pdfOpen:e.currentTarget.dataset.t});
   closePdf = ()=> this.setState({pdfOpen:null});
-  removeCard = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const fc=s.flashcards.filter(c=>c.id!==id); this._saveFC(fc); return {flashcards:fc}; }); this.flashSync(); };
+  removeCard = (e)=>{ const id=e.currentTarget.dataset.id;
+    const alvo=(this.state.flashcards||[]).find(c=>c.id===id); if(!alvo) return;
+    this._excluirComDesfazer('Flashcard',
+      ()=>{ this.setState(s=>{ const fc=s.flashcards.filter(c=>c.id!==id); this._saveFC(fc); return {flashcards:fc}; }, ()=>this.flashSync()); },
+      ()=>{ this.setState(s=>{ const fc=[{...alvo, up:Date.now()}, ...s.flashcards]; this._saveFC(fc); return {flashcards:fc}; }, ()=>this.flashSync()); });
+  };
 
   // ===== planejamento =====
   setPlanHoras = (e)=> this.setState({planHoras:+e.currentTarget.value});
@@ -8668,7 +8680,12 @@ class Component extends DCLogic {
     this.setState(s=>({metas:[...s.metas,{id:'m'+Date.now(), titulo:d.titulo.trim(), prog:0, alvo:(/\bhora/.test(t)?60:1)*(parseInt(d.alvo,10)||100), unidade}], metaDraft:{titulo:'',alvo:100}})); this.flashSync(); };
   metaPlus = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,prog:Math.min(m.alvo,m.prog+1)}:m)})); this.flashSync(); };
   editMeta = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let v=el.value; if(field==='alvo'&&v!=='') v=Math.max(1,parseInt(v,10)||0); this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,[field]:v}:m)})); };
-  removeMeta = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.filter(m=>m.id!==id)})); };
+  removeMeta = (e)=>{ const id=e.currentTarget.dataset.id;
+    const alvo=(this.state.metas||[]).find(m=>m.id===id); if(!alvo) return;
+    this._excluirComDesfazer('Meta',
+      ()=>{ this.setState(s=>({metas:s.metas.filter(m=>m.id!==id)}), ()=>this.flashSync()); },
+      ()=>{ this.setState(s=>({metas:[...s.metas, {...alvo, up:Date.now()}]}), ()=>this.flashSync()); });
+  };
 
   // ===== caderno de erros (motivo do erro → vira flashcard/revisão) =====
   ERR_MOTIVOS = {conteudo:{label:'Falta de conteúdo',color:'var(--danger)',desc:'Não dominava a matéria'}, interpretacao:{label:'Interpretação',color:'#b08433',desc:'Interpretei mal o enunciado'}, decoreba:{label:'Decoreba / lei seca',color:'#6b4fbb',desc:'Letra da lei / decoreba'}, desatencao:{label:'Desatenção',color:'#2563eb',desc:'Erro bobo / desatenção'}, calculo:{label:'Cálculo / RLM',color:'#d6559b',desc:'Errei uma conta / passagem'}, tempo:{label:'Faltou tempo',color:'#d97706',desc:'Faltou tempo'}, esqueci:{label:'Sabia e esqueci',color:'#0d9488',desc:'Sabia, mas esqueci'}, chute:{label:'Chute',color:'var(--ok)',desc:'Chutei sem certeza'}};
@@ -8682,7 +8699,12 @@ class Component extends DCLogic {
       motivo:d.motivo||'conteudo', resolvido:false, reviewCount:0};
     this.setState(s=>({errors:[rec, ...s.errors], errDraft:this._freshErrDraft(s.errDraft), errMaisCampos:false, errTagInput:''})); this._toast('Erro registrado no caderno ✦'); this.flashSync(); };
   _freshErrDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||''; return {disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', enunciado:'', myAnswer:'', gabarito:'', whyWrong:'', lesson:'', source:(prev&&prev.source)||'', difficulty:3, tags:[], favorite:false, motivo:(prev&&prev.motivo)||'conteudo'}; }
-  removeErro = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({errors:s.errors.filter(x=>x.id!==id)})); this.flashSync(); };
+  removeErro = (e)=>{ const id=e.currentTarget.dataset.id;
+    const alvo=(this.state.errors||[]).find(x=>x.id===id); if(!alvo) return;
+    this._excluirComDesfazer('Erro',
+      ()=>{ this.setState(s=>({errors:s.errors.filter(x=>x.id!==id)}), ()=>this.flashSync()); },
+      ()=>{ this.setState(s=>({errors:[{...alvo, up:Date.now()}, ...s.errors]}), ()=>this.flashSync()); });
+  };
   toggleErroResolvido = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({errors:s.errors.map(x=> x.id===id?{...x,resolvido:!x.resolvido}:x)})); this.flashSync(); };
   setErrFilt = (e)=>{ const el=e.currentTarget; const k=el.dataset.k; const v=el.dataset.v!=null?el.dataset.v:el.value; this.setState({[k==='disc'?'errFiltDisc':'errFiltMotivo']:v}); };
   // Verso do flashcard/anki montado dos campos ricos do erro (resposta + por que + aprendizado + meu erro).
@@ -9281,7 +9303,25 @@ class Component extends DCLogic {
   // ===== Histórico / Reta Final / Relatório (features adicionadas) =====
   setHistFilter = (e)=> this.setState({historicoFilter:e.currentTarget.value});
   // Remover = mandar para a LIXEIRA (recuperável), não apaga de vez.
-  delSession = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const alvo=(s.sessions||[]).find(x=>x.id===id); if(!alvo) return {}; const sessions=s.sessions.filter(x=>x.id!==id); const lix=[{...alvo, _delAt:Date.now()}, ...(s.sessionsLixeira||[])]; try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){} return {sessions, sessionsLixeira:lix}; }); try{ this._toast('Sessão movida para a lixeira ✦'); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} this.flashSync(); };
+  delSession = (e)=>{ const id=e.currentTarget.dataset.id;
+    const alvo=(this.state.sessions||[]).find(x=>x.id===id); if(!alvo) return;
+    // A sessão já ia para a lixeira (restaurável); o desfazer imediato evita a viagem até lá.
+    this._excluirComDesfazer('Sessão',
+      ()=>{ this.setState(s=>{
+              const sessions=(s.sessions||[]).filter(x=>x.id!==id);
+              const lix=[{...alvo, _delAt:Date.now()}, ...(s.sessionsLixeira||[])];
+              try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){}
+              return {sessions, sessionsLixeira:lix};
+            }, ()=>this.flashSync()); },
+      ()=>{ this.setState(s=>{
+              const lix=(s.sessionsLixeira||[]).filter(x=>x.id!==id);
+              const rec={...alvo}; delete rec._delAt; rec.up=Date.now();   // carimbo novo: vence a lápide
+              const sessions=[rec, ...(s.sessions||[])].sort((a,b)=>(b.ts||0)-(a.ts||0));
+              try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){}
+              return {sessions, sessionsLixeira:lix};
+            }, ()=>this.flashSync()); });
+  };
+
   // Limpar histórico inteiro = tudo para a lixeira de uma vez.
   limparHistorico = ()=>{ const n=(this.state.sessions||[]).length; if(!n){ this._toast('Histórico já está vazio'); return; } if(!window.confirm('Mover as '+n+' sessões do histórico para a lixeira? Você poderá restaurar depois.')) return; this.setState(s=>{ const marc=(s.sessions||[]).map(x=>({...x, _delAt:Date.now()})); const lix=[...marc, ...(s.sessionsLixeira||[])]; try{ this._saveSessions([]); this._saveLixeira(lix); }catch(_){} return {sessions:[], sessionsLixeira:lix}; }); try{ this._toast(n+' sessões movidas para a lixeira ✦'); }catch(_){} this.flashSync(); };
   toggleLixeira = ()=> this.setState(s=>({histLixeiraOpen:!s.histLixeiraOpen}));
@@ -9494,6 +9534,22 @@ class Component extends DCLogic {
       });
     });
     return out;
+  }
+
+
+  // ===== U6: DESFAZER EM VEZ DE CONFIRMAR ==============================================
+  // Perguntar "tem certeza?" antes de excluir UM item é um pedágio: quem quer excluir
+  // confirma no automático, e quem clicou sem querer confirma junto. O caminho honesto é
+  // executar na hora e dar o desfazer — que é o que a pessoa realmente quer quando erra.
+  // O confirm() fica só onde é destruição em MASSA (zerar tudo, apagar conta, sair).
+  //
+  // `reverter` tem de regravar o MESMO objeto (mesmo id) com `up` novo: é o carimbo que
+  // faz a recriação vencer a lápide do sync no outro aparelho (ver auth.js, tombOnSet).
+  _excluirComDesfazer(rotulo, aplicar, reverter){
+    try{ aplicar(); }catch(_){ this._toast('Não consegui excluir'); return; }
+    this._toastDesfazer(rotulo+' excluíd'+(/\ba\b|ção$|sessão$|meta$/i.test(rotulo)?'a':'o'), ()=>{
+      try{ reverter(); this._toast('Restaurado'); }catch(_){ this._toast('Não consegui restaurar'); }
+    });
   }
 
   closePalette = ()=> this.setState({paletteOpen:false});

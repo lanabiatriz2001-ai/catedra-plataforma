@@ -596,6 +596,66 @@ ok(!fluxo.erro && fluxo.abriu, 'ARGUICAO sessão abre com a pergunta');
 ok(!fluxo.erro && !fluxo.padraoAntes && fluxo.padraoDepois, 'ARGUICAO padrão só aparece depois de responder');
 ok(!fluxo.erro && fluxo.fim, 'ARGUICAO cinco perguntas levam ao resumo');
 
+/* ============= U6 — DESFAZER EM VEZ DE CONFIRMAR ============= */
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => {
+  localStorage.setItem('catedra:metas', JSON.stringify([{ id: 'm-u6', titulo: 'Meta de teste', prog: 0, alvo: 10, unidade: 'un.' }]));
+  localStorage.setItem('catedra:sessions', JSON.stringify([{ id: 's-u6', ts: Date.now(), date: new Date().toISOString().slice(0, 10),
+    disc: 'Direito Civil', topico: 'Teste U6', categoria: 'Teoria', min: 30, questoes: 10, acertos: 8, erradas: 2, brancos: 0, liquido: 6 }]));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+
+const u6 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
+  const r = {};
+  let confirmou = false;
+  window.confirm = () => { confirmou = true; return true; };
+
+  // vai para Metas & Conquistas
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) mais.click(); await w(350);
+  document.querySelector('button[data-view="conquistas"]').click(); await w(700);
+
+  const botaoX = () => [...document.querySelectorAll('main button[data-id="m-u6"]')].find(b => (b.textContent || '').trim() === '×');
+  if (!botaoX()) return { erro: 'sem botão de excluir a meta' };
+  botaoX().click();
+  await w(300);
+
+  r.semConfirm = !confirmou;                                   // excluir 1 item não pede permissão
+  r.sumiuDaTela = !document.querySelector('main button[data-id="m-u6"]');
+  const toast = document.querySelector('div[role=status]');
+  r.temToast = !!toast && /excluíd/i.test(toast.textContent || '');
+  const undo = toast && [...toast.querySelectorAll('button')].find(b => /desfazer/i.test(b.textContent || ''));
+  r.temDesfazer = !!undo;
+
+  if (undo) undo.click();
+  await w(900);
+  const metas = ler('metas');
+  r.restauraMesmoId = metas.length === 1 && metas[0].id === 'm-u6' && metas[0].titulo === 'Meta de teste';
+  r.carimboNovo = !!(metas[0] && metas[0].up);                 // `up` novo faz a recriação vencer a lápide
+
+  // sem desfazer, a exclusão persiste no disco (o autosave leva ~1s)
+  botaoX().click();
+  await w(1600);
+  r.persisteSemDesfazer = ler('metas').length === 0;
+  return r;
+});
+for (const [k, v] of Object.entries(u6)) ok(v, 'U6 ' + k);
+
+// o destrutivo em MASSA continua pedindo confirmação — é a fronteira da especificação
+const u6b = await page.evaluate(() => {
+  const fonte = [...document.querySelectorAll('script')].map(s => s.textContent || '').find(t => t.includes('wipeAll')) || '';
+  return {
+    wipeAllPergunta: /wipeAll\s*=\s*\(\)=>\{\s*if\(!window\.confirm/.test(fonte),
+    itemNaoPergunta: !/removeMeta[^}]*window\.confirm/.test(fonte) && !/removeCard[^}]*window\.confirm/.test(fonte)
+      && !/removeErro[^}]*window\.confirm/.test(fonte) && !/removeEvent[^}]*window\.confirm/.test(fonte),
+  };
+});
+ok(u6b.wipeAllPergunta, 'U6 apagar tudo continua pedindo confirmação');
+ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
