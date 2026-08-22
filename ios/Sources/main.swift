@@ -194,6 +194,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             ink:g('--ink'), text2:g('--text2'), text3:g('--text3'),
             accent:g('--accent'), accentD:g('--accentD'),
             accentSoft:g('--accentSoft'), accentRing:g('--accentRing'), onAccent:g('--onAccent'),
+            ok:g('--ok'), warn:g('--warn'), danger:g('--danger'),
             radius:g('--radius'), display:g('--display'), body:g('--body'), mono:g('--mono'),
             sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
             heroGrad:g('--heroGrad'), dark:(localStorage.getItem('catedra:dark')||'')
@@ -220,6 +221,14 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         if let c = col("text3")    { t.text3 = c }
         if let c = col("accent")   { t.accent = c }
         if let c = col("accentD")  { t.accentD = c }
+        if let c = col("ok")       { t.ok = c }
+        if let c = col("warn")     { t.warn = c }
+        if let c = col("danger")   { t.danger = c }
+        if let disp = d["display"] as? String {
+            let l = disp.lowercased()
+            t.displaySerif = l.contains("spectral") || l.contains("georgia")
+                || (l.contains("serif") && !l.contains("sans-serif"))
+        }
         if let c = col("sbg")      { t.sidebarBg = c }
         if let c = col("stext")    { t.sidebarText = c }
         if let c = col("sactbg")   { t.sidebarActiveBg = c }
