@@ -3328,21 +3328,16 @@ window.ctPdfLib = (function(){
        </div>
       </sc-if>
 
-      <!-- ============ CÁTEDRALEGIS (web) — catálogo + plano + índice, página nativa ============ -->
-      <sc-if value="{{ isAreaMod }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="{{ areaModFrameSrc }}" title="Módulo de estudo da área" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
-      </sc-if>
-      <sc-if value="{{ isRoteiros }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="{{ pecasFrameSrc }}" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
-      </sc-if>
-      <sc-if value="{{ isLegis }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="{{ legisFrameSrc }}" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
-      </sc-if>
-
-      <!-- ============ CÁTEDRAJURIS (web) — súmulas e julgados STF/STJ/TSE, página nativa ============ -->
-      <sc-if value="{{ isJuris }}" hint-placeholder-val="{{ false }}">
-        <iframe data-ct-frame="{{ jurisFrameSrc }}" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:block;"></iframe>
-      </sc-if>
+      <!-- ============ ACERVO E MAPAS (iframes VIVOS — U1) ============================
+           Antes cada um vivia dentro de um bloco condicional: trocar de tela os REMOVIA
+           do DOM, e voltar recarregava a página — tela branca, busca e scroll perdidos.
+           Agora ficam sempre montados e só a visibilidade muda. O `src` continua entrando
+           preguiçosamente (só na primeira vez que a tela é aberta), então quem nunca abriu
+           o LEGIS não paga por ele. -->
+      <iframe data-ct-frame="{{ areaModFrameSrc }}" data-ct-view="areamod" title="Módulo de estudo da área" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispAreaMod }};"></iframe>
+      <iframe data-ct-frame="{{ pecasFrameSrc }}" data-ct-view="roteiros" title="Roteiros de peças — o esqueleto de cada peça" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispRoteiros }};"></iframe>
+      <iframe data-ct-frame="{{ legisFrameSrc }}" data-ct-view="legis" title="CátedraLEGIS — catálogo, plano de leitura e índice das normas" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispLegis }};"></iframe>
+      <iframe data-ct-frame="{{ jurisFrameSrc }}" data-ct-view="juris" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispJuris }};"></iframe>
 
       <!-- ================= BIBLIOTECA ================= -->
 
@@ -5762,12 +5757,66 @@ class Component extends DCLogic {
   // aba abre de verdade, e uma vez só (o iframe some do DOM ao trocar de view).
   _montarFrames(){
     try{
+      const view=this.state.view;
       document.querySelectorAll('iframe[data-ct-frame]').forEach((f)=>{
-        const alvo=f.getAttribute('data-ct-frame');
-        if(!alvo || f.dataset.ctSrc===alvo) return;
-        f.dataset.ctSrc=alvo; f.src=alvo;
+        const base=f.getAttribute('data-ct-frame');
+        const dono=f.getAttribute('data-ct-view');
+        if(!base) return;
+        // Carga preguiçosa: só monta quando a tela dele abre pela primeira vez. Quem
+        // nunca entrou no LEGIS não paga por ele — e as quatro páginas juntas seriam
+        // caro demais no WKWebView do iPad.
+        if(!f.dataset.ctSrc){
+          if(dono && dono!==view) return;
+          f.dataset.ctSrc=base;
+          f.src=base+this._frameExtras(dono, base);   // 1ª carga leva os extras na URL
+          f.dataset.ctExtras=this._frameChave(dono);
+          return;
+        }
+        // Já montado. Se a BASE mudou (trocar de área muda o legis-web?area=…), aí sim
+        // recarrega — é outra página. Senão, os extras vão por mensagem, sem recarregar.
+        if(f.dataset.ctSrc!==base){
+          f.dataset.ctSrc=base;
+          f.src=base+this._frameExtras(dono, base);
+          f.dataset.ctExtras=this._frameChave(dono);
+          return;
+        }
+        const chave=this._frameChave(dono);
+        if(f.dataset.ctExtras!==chave){
+          f.dataset.ctExtras=chave;
+          this._frameMensagem(f, dono);
+        }
       });
     }catch(e){}
+  }
+  /** Chave do que precisa chegar ao iframe — muda quando busca/ponto mudam. */
+  _frameChave(dono){
+    if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?'1':'0');
+    return 'p:'+(this.state.origemAbrir||'');
+  }
+  /** Os mesmos dados, em querystring — usados só na PRIMEIRA carga (e em deep-link). */
+  _frameExtras(dono, base){
+    const sep=base.indexOf('?')>=0?'&':'?';
+    if(dono==='legis'||dono==='juris'){
+      const q=[(this.state.acervoBusca||'').trim()?('q='+encodeURIComponent(this.state.acervoBusca.trim())):'',
+               this.state.acervoDe?'volta=1':''].filter(Boolean).join('&');
+      return q?(sep+q):'';
+    }
+    const abrir=this.state.origemAbrir||'';
+    return abrir?(sep+abrir):'';
+  }
+  /** Com o iframe VIVO, o mesmo conteúdo vai por mensagem — sem recarregar a página. */
+  _frameMensagem(f, dono){
+    try{
+      const w=f.contentWindow; if(!w) return;
+      if(dono==='legis'||dono==='juris'){
+        w.postMessage({type:'ctBusca', termo:String(this.state.acervoBusca||'')}, '*');
+        w.postMessage({type:'ctVoltaDisponivel', on:!!this.state.acervoDe}, '*');
+        return;
+      }
+      const p=new URLSearchParams(this.state.origemAbrir||'');
+      w.postMessage({type:'ctAbrirBloco', rito:p.get('rito')||'', peca:p.get('peca')||'',
+                     bloco:(p.get('bloco')!=null?Number(p.get('bloco')):null)}, '*');
+    }catch(_){}
   }
   // carrega uma fatia do estado do localStorage (usado no construtor)
   _load(k, fb){ try{ const r=localStorage.getItem('catedra:'+k); if(r!=null){ const v=JSON.parse(r); if(v!=null) return v; } }catch(_){} return fb; }
@@ -9774,18 +9823,20 @@ class Component extends DCLogic {
     // area-web genérico.
     // A volta do acervo (?rito=&peca=&bloco=) reabre o mapa/roteiro no ponto exato.
     const _abrir=(this.state.origemAbrir||'');
-    const areaModFrameSrc = ((_area.id==='juridica')
-      ? ('ritos-web.html' + (_abrir?('?'+_abrir):''))
+    // U1: o `src` do iframe passa a ser ESTÁVEL. Antes o ponto (?rito=&peca=&bloco=) e a
+    // busca (?q=) iam na URL, e qualquer mudança recarregava a página. Agora a URL só é
+    // usada na PRIMEIRA montagem (deep-link e testes continuam valendo) e, com o iframe já
+    // vivo, o host manda por postMessage. `_montarFrames` cuida dessa distinção.
+    const areaModFrameSrc = ((_area.id==='juridica') ? 'ritos-web.html'
       : ('area-web.html?area=' + encodeURIComponent(_area.id)));
-    const pecasFrameSrc = 'pecas-web.html' + (_abrir?('?'+_abrir):'');
+    const pecasFrameSrc = 'pecas-web.html';
     // O ?q= faz a página abrir já buscando o instituto que veio do mapa; o &volta=1
     // acende a pílula de voltar quando há um ponto de origem guardado.
     const _acBusca=(this.state.acervoBusca||'').trim();
     const _acQ=[_acBusca?('q='+encodeURIComponent(_acBusca)):'', this.state.acervoDe?'volta=1':'']
       .filter(Boolean).join('&');
-    const legisFrameSrc = 'legis-web.html?area=' + encodeURIComponent(this.state.areaEstudo||'')
-      + (_acQ ? ('&'+_acQ) : '');
-    const jurisFrameSrc = 'juris-web.html' + (_acQ ? ('?'+_acQ) : '');
+    const legisFrameSrc = 'legis-web.html?area=' + encodeURIComponent(this.state.areaEstudo||'');
+    const jurisFrameSrc = 'juris-web.html';
     const areaEscolhida = !!this.state.areaEstudo;
     const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||'');
       return { id:a.id, emoji:a.emoji, label:a.label, desc:a.desc, check: on?'  ✓':'',
@@ -11932,6 +11983,11 @@ class Component extends DCLogic {
       areaEssenciais, temEssenciais, areaSelOpen, areaSelLabel, toggleAreaSel:this.toggleAreaSel, ajIr:this.ajIr,
       ...ajuTabs, setAjTab:this.setAjTab, orNivelChips, orTurnoChips, orEnergiaChips, setOrientVal:this.setOrientVal,
       areaJuridica, areaJuris, legisFrameSrc, areaEscolhida,
+      // U1: os quatro iframes ficam montados; só a visibilidade muda de tela para tela
+      dispAreaMod:(this.state.view==='areamod'?'block':'none'),
+      dispRoteiros:(this.state.view==='roteiros'?'block':'none'),
+      dispLegis:(this.state.view==='legis'?'block':'none'),
+      dispJuris:(this.state.view==='juris'?'block':'none'),
       isAreaMod:this.state.view==='areamod', navAreaMod:navStyle('areamod'),
       isRoteiros:this.state.view==='roteiros', navRoteiros:navStyle('roteiros'), isJuridica:(_area.id==='juridica' && temAreaMod),
       temAreaMod, areaModLabel, areaModFrameSrc, pecasFrameSrc, areaCatsStr, areaFerramentas, retaReduzDesc,

@@ -310,26 +310,56 @@ const AREA_LEGIS={
 };
 // ?q= vem do mapa de Processo e peças: tocar num ⚖️ abre esta página já buscando o
 // instituto. Aplicado depois do primeiro render, senão o campo ainda não existe.
+/* U1: com o iframe VIVO, o host manda a busca por mensagem em vez de recarregar a página
+   com ?q=. A URL continua funcionando (primeira carga, deep-link e testes) — e as duas
+   entradas chamam A MESMA função, senão os dois caminhos divergiriam na primeira correção. */
+window.ctAplicarBusca = function (q) {
+  try {
+    q = String(q == null ? '' : q);
+    var tenta = function (n) {
+      var el = document.getElementById('cq');
+      if (!el) { if (n > 0) setTimeout(function () { tenta(n - 1); }, 120); return; }
+      el.value = q;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      if (q) el.scrollIntoView({ block: 'center' });
+    };
+    setTimeout(function () { tenta(25); }, 60);
+  } catch (e) {}
+};
 (function ctBuscaInicial(){ try{
   var q=new URLSearchParams(location.search).get('q'); if(!q) return;
-  var tenta=function(n){ var el=document.getElementById('cq');
-    if(!el){ if(n>0) setTimeout(function(){tenta(n-1);},120); return; }
-    el.value=q; el.dispatchEvent(new Event('input',{bubbles:true}));
-    el.scrollIntoView({block:'center'}); };
-  setTimeout(function(){tenta(25);},60);
+  window.ctAplicarBusca(q);
 }catch(e){} })();
+window.addEventListener('message', function (e) {
+  if (e && e.data && e.data.type === 'ctBusca') window.ctAplicarBusca(e.data.termo);
+});
 // ?volta=1: ela veio do mapa do processo — a pílula devolve ao ponto exato (o host
 // guarda rito/peça/bloco e responde ao ctVoltarAcervo). Só o host web manda este
 // parâmetro; no app nativo as abas são nativas e esta página nem abre.
 (function ctVolta(){ try{
-  if(new URLSearchParams(location.search).get('volta')!=='1') return;
+  /* U1: o host acende/apaga a pílula por mensagem (ctVoltaDisponivel) com o iframe vivo;
+     o ?volta=1 continua valendo na primeira carga. */
+  var pedidoURL=new URLSearchParams(location.search).get('volta')==='1';
+  var montar=function(){
   var b=document.createElement('button');
   b.textContent='← Voltar ao ponto do processo';
   b.style.cssText='position:fixed;left:14px;bottom:14px;z-index:95;border:none;cursor:pointer;'
     +'background:var(--accent,#0f7a57);color:var(--onAccent,#fff);border-radius:99px;'
     +'padding:10px 16px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)';
   b.onclick=function(){ try{ window.parent.postMessage({type:'ctVoltarAcervo'}, '*'); }catch(e){} };
+  b.id='ct-volta';
   document.body.appendChild(b);
+  return b;
+  };
+  var mostrar=function(on){
+    var b=document.getElementById('ct-volta');
+    if(on){ if(!b) b=montar(); b.style.display='block'; }
+    else if(b) b.style.display='none';
+  };
+  if(pedidoURL) mostrar(true);
+  window.addEventListener('message', function(e){
+    if(e && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on);
+  });
 }catch(e){} })();
 const AREA_ID=(function(){ try{ return new URLSearchParams(location.search).get('area')||''; }catch(e){ return ''; } })();
 const AREA_DEF=AREA_LEGIS[AREA_ID]||null;
