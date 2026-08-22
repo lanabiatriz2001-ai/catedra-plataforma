@@ -1,0 +1,18 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>fixture do sync</title></head>
+<body>
+<script>
+/* Sobe o auth.js de verdade com um Supabase de mentira: o getSession nunca resolve,
+   então o gate fica parado e nada toca a rede — mas o CatedraSync._test (mergeAll,
+   lápides) fica exposto para os testes exercitarem o merge puro. */
+window.CATEDRA_SUPABASE = { url: 'http://teste.invalido', key: 'chave-de-teste' };
+window.supabase = { createClient: function () { return {
+  auth: { onAuthStateChange: function () {}, getSession: function () { return new Promise(function () {}); } },
+  from: function () { return {
+    select: function () { return { eq: function () { return { maybeSingle: function () { return new Promise(function () {}); } }; } }; },
+    upsert: function () { return Promise.resolve({}); }
+  }; }
+}; } };
+</script>
+<script src="/auth.js"></script>
+</body></html>
