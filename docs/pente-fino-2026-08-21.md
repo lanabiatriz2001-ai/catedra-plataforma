@@ -62,3 +62,6 @@ Racional: ver o dia → revisar → treinar (o que gera nota) → consultar. O q
 
 ## iPad
 - Ícone: `build-ipad.sh` passa a gerar os PNGs (mesmo renderizador do Mac) e a declarar `CFBundleIcons`.
+
+## Publicação
+- 21/08/2026 — Build B2 (correção da barra lateral + merge do PR #5) publicado no GitHub; commit assinado pelo GitHub para o deploy da Vercel.
