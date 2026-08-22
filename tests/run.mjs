@@ -596,6 +596,77 @@ ok(!fluxo.erro && fluxo.abriu, 'ARGUICAO sessão abre com a pergunta');
 ok(!fluxo.erro && !fluxo.padraoAntes && fluxo.padraoDepois, 'ARGUICAO padrão só aparece depois de responder');
 ok(!fluxo.erro && fluxo.fim, 'ARGUICAO cinco perguntas levam ao resumo');
 
+/* ============= U1 — IFRAMES VIVOS ============= */
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => ['catedra:lastPonto', 'catedra:lastPontoDispensado', 'ct_prova'].forEach(k => localStorage.removeItem(k)));
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+
+const u1 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const fr = v => document.querySelector('iframe[data-ct-view="' + v + '"]');
+  const r = {};
+
+  // os quatro existem no DOM, mas SEM src: quem nunca abriu o LEGIS não paga por ele
+  const todos = [...document.querySelectorAll('iframe[data-ct-view]')];
+  r.quatroMontados = todos.length === 4;
+  r.nenhumCarregaNoBoot = todos.every(f => !f.getAttribute('src'));
+  r.todosEscondidos = todos.every(f => f.style.display === 'none');
+
+  // abrir a tela carrega SÓ o dela
+  document.querySelector('button[data-view="areamod"]').click(); await w(1800);
+  r.carregaSoOAtual = !!fr('areamod').getAttribute('src')
+    && !fr('legis').getAttribute('src') && !fr('juris').getAttribute('src');
+  r.visivel = fr('areamod').style.display === 'block';
+
+  // o src NÃO leva mais o ponto/busca: é estável entre trocas
+  r.srcEstavel = fr('areamod').getAttribute('src') === 'ritos-web.html';
+
+  // sair e voltar NÃO recarrega (a marca sobrevive) — é o coração do U1
+  try { fr('areamod').contentWindow.__u1 = 42; } catch (e) {}
+  document.querySelector('button[data-view="inicio"]').click(); await w(500);
+  r.escondeAoSair = fr('areamod').style.display === 'none';
+  document.querySelector('button[data-view="areamod"]').click(); await w(800);
+  let vivo = false; try { vivo = fr('areamod').contentWindow.__u1 === 42; } catch (e) {}
+  r.naoRecarregaAoVoltar = vivo;
+  return r;
+});
+for (const [k, v] of Object.entries(u1)) ok(v, 'U1 ' + k);
+
+// ida e volta com os iframes vivos: busca aplicada, pílula acesa, e o LEGIS sobrevive
+const u1b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const fr = v => document.querySelector('iframe[data-ct-view="' + v + '"]');
+  const r = {};
+  const d = fr('areamod').contentDocument;
+  const chip = d.querySelector('#fluxo [data-legis]') || d.querySelector('#fluxo [data-juris]');
+  if (!chip) return { erro: 'sem chip no fluxo' };
+  chip.click(); await w(1800);
+  const legis = fr('legis');
+  try {
+    const ld = legis.contentDocument;
+    r.buscaChegou = !!(ld.getElementById('cq') || {}).value;
+    r.pilulaAcesa = !!ld.getElementById('ct-volta');
+    legis.contentWindow.__u1legis = 7;
+    ld.getElementById('ct-volta').click();
+  } catch (e) { return { erro: String(e).slice(0, 80) }; }
+  await w(1500);
+  r.voltouAoMapa = fr('areamod').style.display === 'block';
+  let vivo = false; try { vivo = legis.contentWindow.__u1legis === 7; } catch (e) {}
+  r.legisContinuaVivo = vivo;      // antes, voltar destruía a página do acervo
+
+  // segunda ida: agora o LEGIS já está montado, então a busca vai por MENSAGEM
+  const chip2 = fr('areamod').contentDocument.querySelector('#fluxo [data-legis]');
+  if (chip2) { chip2.click(); await w(1200); }
+  let vivo2 = false, termo2 = '';
+  try { vivo2 = legis.contentWindow.__u1legis === 7; termo2 = (legis.contentDocument.getElementById('cq') || {}).value; } catch (e) {}
+  r.segundaIdaSemRecarregar = vivo2;
+  r.segundaIdaAplicaBusca = !!termo2;
+  return r;
+});
+if (!u1b.erro) { for (const [k, v] of Object.entries(u1b)) ok(v, 'U1 ' + k); }
+else ok(false, 'U1 ida-e-volta: ' + u1b.erro);
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');

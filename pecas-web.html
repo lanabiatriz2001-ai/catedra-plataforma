@@ -219,9 +219,22 @@ document.addEventListener('keydown',e=>{
 });
 pinta();
 
+/* U1: uma função só, usada pela URL e pela mensagem do host (iframe vivo). */
+window.ctAbrirPonto = function (rito, peca, bloco) {
+  try {
+    if (peca && (window.CT_PECAS || {})[peca]) R.abrir(peca, (bloco == null ? undefined : bloco));
+  } catch (e) {}
+};
+
 /* ?peca=Nome abre o roteiro direto (o ✍️ do fluxo dos ritos usa este link);
    &bloco=N é a volta do acervo — reabre já rolado no bloco de onde ela saiu */
 try{ const u=new URLSearchParams(location.search), p=u.get('peca');
   if(p && (window.CT_PECAS||{})[p]) R.abrir(p, u.get('bloco')); }catch(e){}
+
+window.addEventListener('message', function (e) {
+  if (e && e.data && e.data.type === 'ctAbrirBloco') {
+    window.ctAbrirPonto(e.data.rito, e.data.peca, e.data.bloco);
+  }
+});
 </script>
 </body></html>
