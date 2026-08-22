@@ -318,6 +318,19 @@ const AREA_LEGIS={
     el.scrollIntoView({block:'center'}); };
   setTimeout(function(){tenta(25);},60);
 }catch(e){} })();
+// ?volta=1: ela veio do mapa do processo — a pílula devolve ao ponto exato (o host
+// guarda rito/peça/bloco e responde ao ctVoltarAcervo). Só o host web manda este
+// parâmetro; no app nativo as abas são nativas e esta página nem abre.
+(function ctVolta(){ try{
+  if(new URLSearchParams(location.search).get('volta')!=='1') return;
+  var b=document.createElement('button');
+  b.textContent='← Voltar ao ponto do processo';
+  b.style.cssText='position:fixed;left:14px;bottom:14px;z-index:95;border:none;cursor:pointer;'
+    +'background:var(--accent,#0f7a57);color:var(--onAccent,#fff);border-radius:99px;'
+    +'padding:10px 16px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)';
+  b.onclick=function(){ try{ window.parent.postMessage({type:'ctVoltarAcervo'}, '*'); }catch(e){} };
+  document.body.appendChild(b);
+}catch(e){} })();
 const AREA_ID=(function(){ try{ return new URLSearchParams(location.search).get('area')||''; }catch(e){ return ''; } })();
 const AREA_DEF=AREA_LEGIS[AREA_ID]||null;
 const _casa=(l,alvo)=> (l.r||'').indexOf(alvo)>=0 || (l.t||'').toLowerCase()===alvo.toLowerCase() || (l.t||'').indexOf(alvo)>=0;
