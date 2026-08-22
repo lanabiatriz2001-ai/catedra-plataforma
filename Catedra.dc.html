@@ -2446,10 +2446,74 @@ window.ctPdfLib = (function(){
                 <button onclick="{{ sortearPerguntaBanca }}" style="border:none;background:var(--accent);color:#fff;border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:600;cursor:pointer;font-family:inherit;">Sortear pergunta real</button>
               </div>
             </sc-if>
+            <sc-if value="{{ argTemPool }}" hint-placeholder-val="{{ true }}">
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:200px;">
+                  <div style="font-weight:600;color:var(--ink);">Modo arguição</div>
+                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;line-height:1.5;">5 perguntas sorteadas, cronômetro correndo e o padrão só depois — como na banca.</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ argMinOpts }}" as="o" hint-placeholder-count="3"><button data-v="{{ o.v }}" onclick="{{ setArgMin }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
+                <button onclick="{{ iniciarArguicao }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Começar</button>
+              </div>
+            </sc-if>
             <sc-if value="{{ !oralQPronto }}" hint-placeholder-val="{{ true }}">
               <div style="font-size:var(--fs-base);color:var(--text3);margin-top:12px;">Carregando as perguntas das bancas…</div>
             </sc-if>
           </div>
+          <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
+               só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
+          <sc-if value="{{ argEmCurso }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;border-left:4px solid var(--accent);">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Arguição · pergunta {{ argPos }}</span>
+                <span style="flex:1;"></span>
+                <span style="font-family:var(--mono);font-size:32px;font-weight:700;color:{{ argRelogioCor }};font-variant-numeric:tabular-nums;line-height:1;">{{ argRelogio }}</span>
+              </div>
+              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;">{{ argRef }} · {{ argDisc }}</div>
+              <div style="font-size:var(--fs-xl);color:var(--ink);line-height:1.6;margin-top:16px;white-space:pre-wrap;">{{ argPergunta }}</div>
+              <sc-if value="{{ argRodando }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
+                  <button onclick="{{ argResponder }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi — ver o padrão</button>
+                  <button onclick="{{ argMaisTempo }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">+1 min</button>
+                  <button onclick="{{ argVozToggle }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">{{ argVozLabel }}</button>
+                  <span style="flex:1;"></span>
+                  <button onclick="{{ argEncerrar }}" style="background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text3);cursor:pointer;font-family:inherit;">Encerrar</button>
+                </div>
+              </sc-if>
+            </div>
+            <sc-if value="{{ argMostrar }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+                <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Padrão de resposta oficial</div>
+                <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ argPadrao }}</div>
+                <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">
+                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">Como foi? O que não fechou vira erro, flashcard e revisão.</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button data-v="bem" onclick="{{ argAvaliar }}" style="background:var(--ok);color:#fff;border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi bem</button>
+                    <button data-v="parcial" onclick="{{ argAvaliar }}" style="background:var(--warn);color:#fff;border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Parcial</button>
+                    <button data-v="nao" onclick="{{ argAvaliar }}" style="background:var(--danger);color:#fff;border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Não sabia</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ argFim }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+              <div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);">Fim da arguição</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:16px;">
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);">{{ argResumo.n }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">perguntas</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);">{{ argResumo.bem }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">respondi bem</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--warn);">{{ argResumo.parcial }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">parciais</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--danger);">{{ argResumo.nao }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">não sabia</div></div>
+                <div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);">{{ argResumo.media }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">tempo médio</div></div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
+                <button onclick="{{ iniciarArguicao }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Nova arguição</button>
+                <button onclick="{{ argEncerrar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Voltar ao material</button>
+              </div>
+            </div>
+          </sc-if>
+
           <sc-if value="{{ oralQTem }}" hint-placeholder-val="{{ false }}">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;border-left:4px solid var(--accent);">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -5026,7 +5090,8 @@ class Component extends DCLogic {
       // lei seca: artigo sorteado das 14 leis embutidas (leis-seca.js)
       oralLeisPronto:false, oralLeiSig:'', oralArt:null, oralArtVariante:0,
       // bancas reais: as 999 perguntas com padrão de resposta (oral-conteudo.js)
-      oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'', discCarregado:false, discErro:false,
+      oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'',
+      argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
       paletteOpen:false, paletteQuery:'', palBuscaPronta:false, semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
@@ -7272,6 +7337,16 @@ class Component extends DCLogic {
     const ROT={padrao_resposta_oral:'Padrão de resposta',questoes_formuladas:'Perguntas formuladas',relacao_de_pontos:'Pontos sorteáveis',regulamento_criterios:'Critérios de avaliação',edital_convocacao_oral:'Edital de convocação',ata_resultado:'Ata / resultado',gravacao:'Gravação'};
     const _chipO=(on)=>`border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--ink)'};border-radius:99px;padding:8px 14px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;`;
     const _chipz=(arr)=>arr.map(o=>({...o, style:_chipO(!!o.sel)}));
+    // ---- modo arguição (item 3): pergunta atual, relógio e resumo da sessão
+    const _argQ=(st.argOn && st.argFila[st.argIdx]) ? st.argFila[st.argIdx] : null;
+    const _argRel=(()=>{ const t=Math.max(0,st.argSeg|0); return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); })();
+    const _argResumo=(()=>{
+      const R=st.argRespostas||[]; if(!R.length) return {n:'0',bem:'0',parcial:'0',nao:'0',media:'—'};
+      const c=(v)=>R.filter(x=>x.v===v).length;
+      const med=Math.round(R.reduce((a,x)=>a+(x.gasto||0),0)/R.length);
+      return { n:String(R.length), bem:String(c('bem')), parcial:String(c('parcial')), nao:String(c('nao')),
+        media:String(Math.floor(med/60))+':'+String(med%60).padStart(2,'0') };
+    })();
 
     return {
       oralModo:st.oralModo, oralEhJuris:st.oralModo==='juris', oralEhLei:st.oralModo==='lei', oralEhBancas:st.oralModo==='bancas',
@@ -7318,6 +7393,20 @@ class Component extends DCLogic {
       oralQPadrao:st.oralQAtual?st.oralQAtual.padrao:'',
       oralQUrl:st.oralQAtual?st.oralQAtual.url:'',
       oralQResposta:st.oralQResposta, oralQMostrarPadrao:st.oralQMostrarPadrao,
+      // ---- modo arguição (item 3)
+      argOn:st.argOn, argFim:(st.argOn&&st.argFim), argEmCurso:(st.argOn&&!st.argFim),
+      argPergunta:_argQ?this._argLimpa(_argQ.enunciado):'',
+      argRef:_argQ?[_argQ.orgao,_argQ.ano,_argQ.cargo,_argQ.banca].filter(Boolean).join(' · '):'',
+      argDisc:_argQ?(_argQ.disciplina||_argQ.carreira||''):'',
+      argPadrao:_argQ?String(_argQ.padrao||''):'',
+      argPos:(st.argIdx+1)+' de '+(st.argFila.length||5),
+      argRelogio:_argRel, argRelogioCor:(st.argSeg<=30?'var(--danger)':st.argSeg<=60?'var(--warn)':'var(--ink)'),
+      argRodando:st.argRodando, argMostrar:st.oralQMostrarPadrao,
+      argMinOpts:_chipz([3,5,10].map(m=>({v:String(m), label:m+' min', sel:st.argMin===m}))),
+      argVozLabel:(st.argVoz?'🔊 voz ligada':'🔈 ligar voz'),
+      argResumo:_argResumo, argTemPool:(this._argPool().length>=3),
+      iniciarArguicao:this.iniciarArguicao, argResponder:this.argResponder, argAvaliar:this.argAvaliar,
+      argEncerrar:this.argEncerrar, argMaisTempo:this.argMaisTempo, setArgMin:this.setArgMin, argVozToggle:this.argVozToggle,
       oralBancasPronto:st.oralBancasPronto,
       oralBancaCarrOpts:_chipz([{v:'',label:'Todas as carreiras'}].concat([...new Set(CO.map(x=>x.subarea).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaCarr===o.v}))),
       oralBancaBancaOpts:_chipz([{v:'',label:'Todas as bancas'}].concat([...new Set(CO.map(x=>x.banca).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaBanca===o.v}))),
@@ -7660,6 +7749,105 @@ class Component extends DCLogic {
     this._treino().then(T=>T.acervoOralQ()).then(()=>this.setState({oralQPronto:true}))
       .catch(()=>this.setState({oralErro:'Não consegui carregar as perguntas das bancas.'}));
   }
+
+  // ===== PROVA ORAL EM MODO ARGUIÇÃO (item 3 da especificação) =========================
+  // A banca não deixa consultar nem escrever: ela pergunta, você responde de viva voz e só
+  // depois vem o padrão. Aqui é isso — pergunta sorteada, cronômetro regressivo, padrão
+  // escondido até o fim, e autoavaliação honesta (é ela que alimenta erro/revisão).
+  ARG_MIN_PADRAO = 200;   // padrão curto demais não serve para se corrigir
+  /** Os enunciados do CEBRASPE trazem um carimbo de controle (<<D01_dAdm_…>>) no começo. */
+  _argLimpa(t){ return String(t||'').replace(/<<[^>]{4,80}>>/g,'').replace(/\n{3,}/g,'\n\n').trim(); }
+  // Sem filtro escolhido, o sorteio respeita a ÁREA DE ESTUDO. Sem isto o acervo é geral
+  // demais: quem estuda magistratura recebia pergunta de fotônica não linear (o banco tem
+  // concursos de pesquisador do CTI). Se a área não tiver perguntas bastantes, solta o filtro.
+  ARG_CARR_AREA = {
+    juridica:['Magistratura Estadual','Ministério Público','Defensoria Pública','Advocacia Pública'],
+    policial:['Polícia Civil','Polícia Federal','Perícia'],
+    contas:['TCE'], fiscal:['TCE','Carreiras de Estado'], administrativa:['Carreiras de Estado'],
+  };
+  _argPool(){
+    const st=this.state;
+    const base=(window.CT_ORAL_Q||[]).filter(q=>(!st.oralQDisc||q.disciplina===st.oralQDisc)
+      && (!st.oralQCarr||q.carreira===st.oralQCarr) && q.padrao && q.padrao.length>this.ARG_MIN_PADRAO);
+    if(st.oralQCarr) return base;                       // ela escolheu: manda ela
+    const pref=this.ARG_CARR_AREA[st.areaEstudo||'juridica'];
+    if(!pref) return base;
+    const daArea=base.filter(q=>pref.indexOf(q.carreira)>=0);
+    return daArea.length>=5 ? daArea : base;            // pouca coisa na área: melhor ter prova
+  }
+  /** Começa uma sessão: N perguntas sorteadas SEM repetição (a banca não repete ponto). */
+  iniciarArguicao = ()=>{
+    const pool=this._argPool();
+    if(pool.length<3){ this._toast('Poucas perguntas com esses filtros — tire um filtro'); return; }
+    const emb=pool.slice(); for(let i=emb.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emb[i],emb[j]]=[emb[j],emb[i]]; }
+    const fila=emb.slice(0,5);
+    this._treino && this._oralCarregarQ && this._oralCarregarQ();
+    this.setState({argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
+      argSeg:this.state.argMin*60, argRodando:true, oralQMostrarPadrao:false});
+    this._argTick();
+    this._argFalar();
+  };
+  _argTick(){
+    clearInterval(this._argT);
+    this._argT=setInterval(()=>{
+      if(!this.state.argRodando) return;
+      const s=this.state.argSeg-1;
+      if(s<=0){ clearInterval(this._argT); this.setState({argSeg:0, argRodando:false, oralQMostrarPadrao:true}); return; }
+      this.setState({argSeg:s});
+    }, 1000);
+  }
+  /** Voz: a banca fala. speechSynthesis é nativo do navegador e do WKWebView — sem dependência. */
+  _argFalar(){
+    if(!this.state.argVoz) return;
+    try{
+      const q=this.state.argFila[this.state.argIdx]; if(!q||!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(this._argLimpa(q.enunciado).slice(0,600));
+      u.lang='pt-BR'; u.rate=0.95;
+      window.speechSynthesis.speak(u);
+    }catch(_){}
+  }
+  argVozToggle = ()=>{ const v=!this.state.argVoz;
+    if(!v){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){} }
+    this.setState({argVoz:v}, ()=>{ if(v) this._argFalar(); }); };
+  /** "Respondi" (ou o tempo acabou): revela o padrão da banca. */
+  argResponder = ()=>{ clearInterval(this._argT);
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
+    this.setState({argRodando:false, oralQMostrarPadrao:true}); };
+  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60});
+  setArgMin = (e)=>{ const m=Math.max(1,Math.min(15,parseInt(e.currentTarget.dataset.v,10)||3));
+    this.setState({argMin:m, argSeg:(this.state.argOn&&!this.state.argRodando)?this.state.argSeg:m*60}); };
+  /** Autoavaliação: 'bem' | 'parcial' | 'nao'. Parcial e não sabia viram erro + revisão. */
+  argAvaliar = (e)=>{
+    const v=e.currentTarget.dataset.v||'nao';
+    const q=this.state.argFila[this.state.argIdx]; if(!q) return;
+    const gasto=Math.max(0, this.state.argMin*60-this.state.argSeg);
+    // `q.id` é do DOCUMENTO (malote), não da questão: 417 perguntas compartilham 190 ids.
+    const reg={id:q.id+'#'+this.state.argIdx, v, gasto, disc:q.disciplina||q.carreira||'Prova oral'};
+    if(v!=='bem'){
+      // mesmo caminho do item 2: o que não soube vira erro, flashcard e revisão
+      try{
+        this._colherErros && this._colherErros([{
+          enunciado:this._argLimpa(q.enunciado), disc:q.disciplina||q.carreira||'Prova oral',
+          topico:q.ponto?('Ponto '+q.ponto):'', gabarito:String(q.padrao||'').slice(0,1200),
+          lesson:(v==='parcial'?'Você respondeu em parte — falta fechar o fundamento.':'Não soube responder na arguição.')
+        }], 'Prova oral — '+[q.orgao,q.ano].filter(Boolean).join(' '));
+      }catch(_){}
+    }
+    const respostas=[...this.state.argRespostas, reg];
+    const prox=this.state.argIdx+1;
+    if(prox>=this.state.argFila.length){
+      clearInterval(this._argT);
+      this.setState({argRespostas:respostas, argFim:true, argRodando:false});
+      return;
+    }
+    this.setState({argRespostas:respostas, argIdx:prox, argSeg:this.state.argMin*60,
+      argRodando:true, oralQMostrarPadrao:false}, ()=>{ this._argTick(); this._argFalar(); });
+  };
+  argEncerrar = ()=>{ clearInterval(this._argT);
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
+    this.setState({argOn:false, argFim:false, argRodando:false, oralQMostrarPadrao:false}); };
+
   setOralQDisc = (e)=> this.setState({oralQDisc:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
   setOralQCarr = (e)=> this.setState({oralQCarr:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
   sortearPerguntaBanca = ()=>{
