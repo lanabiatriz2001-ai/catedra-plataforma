@@ -24,12 +24,6 @@ struct JurisCentralView: View {
         Array(store.entries.lazy.filter { $0.fonteKind.central == central }.prefix(14))
     }
 
-    private func ir(_ s: Selecao) {
-        store.searchText = ""
-        store.leituraID = nil
-        store.selecao = s
-        store.selectedID = nil
-    }
 
     private let grid = [GridItem(.adaptive(minimum: 240, maximum: 320), spacing: 12)]
 
@@ -58,7 +52,7 @@ struct JurisCentralView: View {
                 .background(
                     LinearGradient(colors: ThemeState.t.heroStops,
                                    startPoint: .topLeading, endPoint: .bottomTrailing),
-                    in: RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)))
+                    in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
 
                 if central == .especificos {
                     // UMA central por tribunal + cadastrar novas
@@ -92,10 +86,7 @@ struct JurisCentralView: View {
 
                 if !recentes.isEmpty {
                     VStack(alignment: .leading, spacing: 11) {
-                        HStack(spacing: 7) {
-                            Image(systemName: "clock").font(.system(size: 12)).foregroundStyle(Palette.accent)
-                            Text("Desta central").font(Typo.serifTitle(17, .bold)).foregroundStyle(Palette.titleInk)
-                        }
+                        JurisSecaoTitulo(titulo: "Desta central", simbolo: "clock")
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 12) {
                                 ForEach(recentes) { CartaoJuris(entry: $0) }
@@ -116,7 +107,7 @@ struct JurisCentralView: View {
                 guard !sigla.isEmpty else { return }
                 let nome = nomeTribunal.trimmingCharacters(in: .whitespaces)
                 let t = store.criarTribunal(nome: nome.isEmpty ? sigla.uppercased() : nome, sigla: sigla)
-                ir(.tribunal(t.id))
+                store.ir(.tribunal(t.id))
             }
             Button("Cancelar", role: .cancel) {}
         } message: {
@@ -125,16 +116,13 @@ struct JurisCentralView: View {
     }
 
     private func tituloSecao(_ t: String, _ icone: String) -> some View {
-        HStack(spacing: 7) {
-            Image(systemName: icone).font(.system(size: 12)).foregroundStyle(Palette.accent)
-            Text(t).font(Typo.serifTitle(17, .bold)).foregroundStyle(Palette.titleInk)
-        }
+        JurisSecaoTitulo(titulo: t, simbolo: icone)
     }
 
     // Cartão-botão de uma fonte (com contagem; 0 = ainda não baixada → dica de atualizar).
     private func botaoFonte(_ f: Fonte) -> some View {
         let count = store.fonteCounts[f] ?? 0
-        return Button { if count > 0 { ir(.fonte(f)) } } label: {
+        return Button { if count > 0 { store.ir(.fonte(f)) } } label: {
             HStack(spacing: 10) {
                 Image(systemName: f.simbolo)
                     .font(.system(size: 15, weight: .semibold))
@@ -159,8 +147,8 @@ struct JurisCentralView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)))
-            .overlay(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)).strokeBorder(Palette.hairline, lineWidth: 1))
+            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
             .opacity(count > 0 ? 1 : 0.65)
             .contentShape(Rectangle())
         }
@@ -170,7 +158,7 @@ struct JurisCentralView: View {
 
     // Cartão-botão de uma disciplina desta central → página com assuntos e tipos.
     private func botaoDisciplina(_ nome: String, _ count: Int) -> some View {
-        Button { ir(.ramoDetalhe(EscopoFiltrado(central: central, ramo: nome))) } label: {
+        Button { store.ir(.ramoDetalhe(EscopoFiltrado(central: central, ramo: nome))) } label: {
             HStack(spacing: 10) {
                 Image(systemName: "bookmark")
                     .font(.system(size: 14, weight: .semibold))
@@ -192,8 +180,8 @@ struct JurisCentralView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)))
-            .overlay(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)).strokeBorder(Palette.hairline, lineWidth: 1))
+            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -202,7 +190,7 @@ struct JurisCentralView: View {
     // Cartão-botão de UMA central de tribunal (TJRO, TJGO… ou cadastrada).
     private func botaoTribunal(_ t: TribunalEspecifico) -> some View {
         let count = store.entriesDoTribunal(t.id).count
-        return Button { ir(.tribunal(t.id)) } label: {
+        return Button { store.ir(.tribunal(t.id)) } label: {
             HStack(spacing: 10) {
                 Text(t.sigla)
                     .font(.system(size: 11, weight: .bold))
@@ -229,8 +217,8 @@ struct JurisCentralView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)))
-            .overlay(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)).strokeBorder(Palette.hairline, lineWidth: 1))
+            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -263,8 +251,8 @@ struct JurisCentralView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius)))
-            .overlay(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius))
+            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous)
                 .strokeBorder(Palette.accent.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [5, 4])))
             .contentShape(Rectangle())
         }

@@ -119,9 +119,9 @@ struct RevisaoEspacadaView: View {
             let certo = card.answer?.hasPrefix("Certo") ?? false
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: certo ? "checkmark.seal.fill" : "xmark.seal.fill")
-                    .foregroundStyle(certo ? .green : .red)
+                    .foregroundStyle(certo ? Palette.ok : Palette.bad)
                 Text(card.answer ?? "").font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(certo ? .green : .red)
+                    .foregroundStyle(certo ? Palette.ok : Palette.bad)
                     .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
             }
         } else if let a = card.answer {
@@ -263,12 +263,12 @@ struct BaralhoView: View {
                     .foregroundStyle(Palette.bodyInk).lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            Button { store.srsRemove(it.id) } label: { Image(systemName: "trash").foregroundStyle(.red.opacity(0.75)) }
+            Button { store.srsRemove(it.id) } label: { Image(systemName: "trash").foregroundStyle(Palette.bad.opacity(0.75)) }
                 .buttonStyle(.plain)
         }
         .padding(10)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 
     private func estiloSimbolo(_ kind: String?) -> String {

@@ -172,7 +172,7 @@ struct JurisSettingsView: View {
         case .falhou(let msg):
             Label(msg, systemImage: "exclamationmark.triangle.fill")
                 .font(.caption)
-                .foregroundStyle(.orange)
+                .foregroundStyle(Palette.warn)
         }
     }
 }

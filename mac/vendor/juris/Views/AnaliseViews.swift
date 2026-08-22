@@ -30,7 +30,7 @@ struct ComparadorView: View {
             if situacoesDivergem {
                 Label("Atenção: a situação (vigente/superada) difere entre STF e STJ — leia com cuidado.",
                       systemImage: "exclamationmark.triangle.fill")
-                    .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(.orange)
+                    .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(Palette.warn)
                     .padding(.horizontal, 20).padding(.bottom, 8)
             }
             iaPainel
@@ -75,7 +75,7 @@ struct ComparadorView: View {
             }
             if let iaErro {
                 Label(iaErro, systemImage: "exclamationmark.triangle.fill")
-                    .font(.system(size: 11)).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                    .font(.system(size: 11)).foregroundStyle(Palette.warn).fixedSize(horizontal: false, vertical: true)
             }
             if !iaTexto.isEmpty {
                 Text(.init(iaTexto))
@@ -90,8 +90,8 @@ struct ComparadorView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.accent.opacity(0.22), lineWidth: 1))
+        .background(Palette.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.accent.opacity(0.22), lineWidth: 1))
         .padding(.horizontal, 20).padding(.top, 12)
     }
 
@@ -186,9 +186,9 @@ struct ComparadorView: View {
             }
             .padding(11)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 10))
+            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
             .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3).padding(.vertical, 10) }
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.hairline, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
@@ -244,7 +244,7 @@ struct LinhaTempoView: View {
 
     private func linha(_ e: JurisEntry, primeiro: Bool, ultimo: Bool) -> some View {
         let invalida = e.situacaoKind == .cancelada || e.situacaoKind == .superada
-        let cor = invalida ? Color.orange : e.fonteKind.cor
+        let cor = invalida ? Palette.warn : e.fonteKind.cor
         return HStack(alignment: .top, spacing: 12) {
             VStack(spacing: 0) {
                 Rectangle().fill(primeiro ? .clear : Palette.hairline).frame(width: 2, height: 10)
@@ -261,14 +261,14 @@ struct LinhaTempoView: View {
                     }
                     Text(e.titulo).font(Typo.serifTitle(13.5, .semibold))
                         .foregroundStyle(Palette.titleInk)
-                        .strikethrough(invalida, color: .orange).lineLimit(1)
+                        .strikethrough(invalida, color: Palette.warn).lineLimit(1)
                     Text(e.enunciado).font(Typo.serifBody(11.5)).foregroundStyle(Palette.bodyInk.opacity(0.8))
                         .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(11)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.hairline, lineWidth: 1))
+                .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
             }
             .buttonStyle(.plain)
             .padding(.bottom, 10)

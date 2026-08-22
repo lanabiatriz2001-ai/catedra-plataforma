@@ -77,18 +77,26 @@ enum OralBancas {
 
 struct OralBancasView: View {
     @Environment(LibraryStore.self) private var store
-    @State private var carreira: String? = nil
-    @State private var banca: String? = nil
-    @State private var soOuro = true
+    // FILTROS persistem (AppStorage): trocar de aba e voltar não zera carreira/banca/ouro.
+    // "" = sem filtro (AppStorage não guarda Optional<String>).
+    @AppStorage("juris.oral.carreira") private var carreiraRaw = ""
+    @AppStorage("juris.oral.banca") private var bancaRaw = ""
+    @AppStorage("juris.oral.soOuro") private var soOuro = true
+    @AppStorage("juris.oral.minutos") private var minutos = 15
+    @AppStorage("juris.oral.selecionado") private var selID = ""
     @State private var busca = ""
-    @State private var sel: ConcursoOral?
     // sessão de arguição
     @State private var emSessao = false
-    @State private var minutos = 15
     @State private var inicio: Date? = nil
     @State private var agora = Date()
+    // As anotações da arguição são RASCUNHO por concurso (JurisRascunhoCache): conferir
+    // uma súmula em "Todos os verbetes" e voltar não apaga dez minutos de resposta.
     @State private var anotacoes = ""
     private let relogio = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    private var carreira: String? { get { carreiraRaw.isEmpty ? nil : carreiraRaw } nonmutating set { carreiraRaw = newValue ?? "" } }
+    private var banca: String? { get { bancaRaw.isEmpty ? nil : bancaRaw } nonmutating set { bancaRaw = newValue ?? "" } }
+    private var sel: ConcursoOral? { OralBancas.concursos.first { $0.id == selID } }
 
     private var lista: [ConcursoOral] {
         let q = busca.folding(options: .diacriticInsensitive, locale: nil).lowercased()
@@ -107,49 +115,71 @@ struct OralBancasView: View {
     private func hms(_ s: Int) -> String { String(format: "%02d:%02d", s / 60, s % 60) }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                if let c = sel { detalhe(c) } else { catalogo }
+        Group {
+            if let c = sel {
+                VStack(spacing: 0) {
+                    HubBackBar(rotulo: "Todos os concursos") { selID = ""; emSessao = false; inicio = nil }
+                    SectionShell(icon: Selecao.oralBancas.simbolo, title: c.titulo,
+                                 subtitle: c.concurso.isEmpty ? c.cargo : c.concurso,
+                                 trailing: AnyView(botaoSessao)) {
+                        ScrollView {
+                            detalhe(c)
+                                .padding(.horizontal, 28).padding(.vertical, 24)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
+            } else {
+                SectionShell(icon: Selecao.oralBancas.simbolo, title: Selecao.oralBancas.titulo,
+                             subtitle: "O que a banca publicou sobre a oral de cada concurso: os pontos que sorteia, as perguntas que formulou, o padrão de resposta e os critérios. \(OralBancas.concursos.count) concursos, \(OralBancas.concursos.reduce(0) { $0 + $1.materiais.count }) documentos oficiais.",
+                             count: lista.count,
+                             search: $busca, searchPrompt: "Buscar órgão, cargo, concurso…") {
+                    ScrollView {
+                        catalogo
+                            .padding(.horizontal, 28).padding(.vertical, 24)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
-            .padding(.horizontal, 28).padding(.vertical, 24)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Palette.appBackground)
-        .onAppear { OralBancas.carregar() }
+        .onAppear {
+            OralBancas.carregar()
+            if !selID.isEmpty { anotacoes = JurisRascunhoCache.get("oral-banca", selID) ?? "" }
+        }
         .onReceive(relogio) { agora = $0 }
+    }
+
+    private var botaoSessao: some View {
+        Button { emSessao.toggle(); if emSessao { inicio = Date(); agora = Date() } } label: {
+            Label(emSessao ? "Encerrar sessão" : "Iniciar arguição", systemImage: emSessao ? "stop.fill" : "mic.fill")
+        }.buttonStyle(.borderedProminent).tint(Palette.accent)
     }
 
     // MARK: catálogo
     private var catalogo: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Prova oral · bancas reais").font(.system(size: 30, weight: .heavy)).tracking(-0.6).foregroundStyle(Palette.titleInk)
-            Text("O que a banca publicou sobre a oral de cada concurso: os pontos que ela sorteia, as perguntas que formulou, o padrão de resposta que esperava ouvir e os critérios pelos quais pontua. \(OralBancas.concursos.count) concursos, \(OralBancas.concursos.reduce(0) { $0 + $1.materiais.count }) documentos oficiais.")
-                .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
             if OralBancas.concursos.isEmpty {
-                Text("oral.json não está no bundle deste app.").font(.system(size: 13)).foregroundStyle(Color(hex: "#DC2626"))
+                Text("oral.json não está no bundle deste app.").font(.system(size: 13)).foregroundStyle(Palette.bad)
             }
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(Palette.secondaryInk)
-                TextField("Buscar órgão, cargo, concurso…", text: $busca).textFieldStyle(.plain)
-            }
-            .padding(.horizontal, 12).padding(.vertical, 9)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
             RotuloEstudo(texto: "Carreira")
             Flow {
-                chip("Todas", on: carreira == nil) { carreira = nil }
-                ForEach(OralBancas.carreiras, id: \.self) { c in chip(c, on: carreira == c) { carreira = c } }
+                JurisChip(texto: "Todas", ativo: carreira == nil) { carreira = nil }
+                ForEach(OralBancas.carreiras, id: \.self) { c in JurisChip(texto: c, ativo: carreira == c) { carreira = c } }
             }
             RotuloEstudo(texto: "Banca")
             Flow {
-                chip("Todas", on: banca == nil) { banca = nil }
-                ForEach(OralBancas.bancas, id: \.self) { b in chip(b, on: banca == b) { banca = b } }
-                chip(soOuro ? "Só com padrão de resposta ✓" : "Só com padrão de resposta", on: soOuro) { soOuro.toggle() }
+                JurisChip(texto: "Todas", ativo: banca == nil) { banca = nil }
+                ForEach(OralBancas.bancas, id: \.self) { b in JurisChip(texto: b, ativo: banca == b) { banca = b } }
+                JurisChip(texto: "Só com padrão de resposta", simbolo: soOuro ? "checkmark" : nil, ativo: soOuro) { soOuro.toggle() }
             }
-            Text("\(lista.count) concurso(s)").font(.system(size: 11.5, weight: .heavy)).foregroundStyle(Palette.secondaryInk)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 12)], spacing: 12) {
                 ForEach(lista) { c in
-                    Button { sel = c; emSessao = false; inicio = nil; anotacoes = "" } label: {
+                    Button {
+                        selID = c.id; emSessao = false; inicio = nil
+                        anotacoes = JurisRascunhoCache.get("oral-banca", c.id) ?? ""
+                    } label: {
                         VStack(alignment: .leading, spacing: 6) {
                             Flow {
                                 EtiquetaEstudo(texto: c.subarea.isEmpty ? c.area : c.subarea, cor: Palette.accent)
@@ -162,8 +192,8 @@ struct OralBancasView: View {
                                 .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading).padding(14)
-                        .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
-                        .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(c.ouro ? Palette.accent.opacity(0.4) : Palette.hairline))
+                        .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
+                        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(c.ouro ? Palette.accent.opacity(0.4) : Palette.hairline))
                     }.buttonStyle(.plain)
                 }
             }
@@ -185,21 +215,10 @@ struct OralBancasView: View {
     // MARK: detalhe do concurso
     private func detalhe(_ c: ConcursoOral) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Button { sel = nil } label: { Label("todos os concursos", systemImage: "chevron.left") }.buttonStyle(.bordered)
-                Spacer()
-                Button { emSessao.toggle(); if emSessao { inicio = Date(); agora = Date() } } label: {
-                    Label(emSessao ? "Encerrar sessão" : "Iniciar arguição", systemImage: emSessao ? "stop.fill" : "mic.fill")
-                }.buttonStyle(.borderedProminent).tint(Palette.accent)
-            }
-            Text(c.titulo).font(.system(size: 26, weight: .heavy)).tracking(-0.5).foregroundStyle(Palette.titleInk)
             Flow {
                 EtiquetaEstudo(texto: c.cargo, cor: Palette.accent)
                 if !c.banca.isEmpty { EtiquetaEstudo(texto: "banca " + c.banca, cor: Palette.secondaryInk) }
                 if !c.subarea.isEmpty { EtiquetaEstudo(texto: c.subarea, cor: Palette.secondaryInk) }
-            }
-            if !c.concurso.isEmpty {
-                Text(c.concurso).font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
             }
             if emSessao { sessao(c) }
             // materiais agrupados pelo rótulo, na ordem de valor para o treino
@@ -242,15 +261,15 @@ struct OralBancasView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("Arguição em curso").font(.system(size: 15, weight: .heavy)).foregroundStyle(Palette.titleInk)
                 Spacer()
-                Text(hms(restante)).font(.system(size: 30, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(restante < 120 ? Color(hex: "#DC2626") : Palette.titleInk)
+                Text(hms(restante)).font(Typo.num(30, .heavy))
+                    .foregroundStyle(restante < 120 ? Palette.bad : Palette.titleInk)
                 Stepper("\(minutos) min", value: $minutos, in: 5...60, step: 5).labelsHidden()
                     .disabled(inicio != nil)
             }
             Text("Abra os pontos sorteáveis abaixo, escolha um ao acaso e responda em voz alta como responderia à banca. Ao final, abra o padrão de resposta e confronte — item a item, sem piedade.")
                 .font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
             VStack(alignment: .leading, spacing: 6) {
-                Text("Como esta prova é avaliada").font(.system(size: 11, weight: .heavy)).tracking(1).foregroundStyle(Palette.secondaryInk)
+                RotuloEstudo(texto: "Como esta prova é avaliada")
                 ForEach(OralBancas.criteriosCNJ, id: \.0) { t, d in
                     HStack(alignment: .top, spacing: 6) {
                         Text("•").font(.system(size: 12, weight: .bold)).foregroundStyle(Palette.accent)
@@ -262,33 +281,24 @@ struct OralBancasView: View {
                     .font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk)
             }
             .padding(12)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.accent.opacity(0.07)))
-            Text("Suas anotações da arguição").font(.system(size: 11, weight: .heavy)).tracking(1).foregroundStyle(Palette.secondaryInk)
+            .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.accent.opacity(0.07)))
+            RotuloEstudo(texto: "Suas anotações da arguição")
             TextEditor(text: $anotacoes).font(.system(size: 14)).frame(minHeight: 130)
                 .padding(8)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Palette.cardBackground))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Palette.hairline))
+                .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.cardBackground))
+                .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline))
+                .onChange(of: anotacoes) { _, novo in JurisRascunhoCache.set("oral-banca", c.id, novo) }
             if !anotacoes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 let fund = RoteiroLocal.fundamentos(anotacoes)
                 Text(fund.isEmpty
                      ? "Você não citou nenhum artigo, súmula ou tema. Na oral, o fundamento é o que sustenta a resposta."
                      : "Fundamentos que você citou: " + fund.joined(separator: "; "))
-                    .font(.system(size: 12)).foregroundStyle(fund.isEmpty ? Color(hex: "#D97706") : Palette.secondaryInk)
+                    .font(.system(size: 12)).foregroundStyle(fund.isEmpty ? Palette.warn : Palette.secondaryInk)
             }
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
-        .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.accent.opacity(0.4), lineWidth: 1.5))
-    }
-
-    private func chip(_ t: String, on: Bool, _ act: @escaping () -> Void) -> some View {
-        Button(action: act) {
-            Text(t).font(.system(size: 12, weight: .semibold))
-                .padding(.horizontal, 10).padding(.vertical, 5)
-                .background(Capsule().fill(on ? Palette.accent : Palette.cardBackground))
-                .overlay(Capsule().strokeBorder(on ? Palette.accent : Palette.hairline))
-                .foregroundStyle(on ? Color.white : Palette.titleInk)
-        }.buttonStyle(.plain)
+        .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.accent.opacity(0.4), lineWidth: 1.5))
     }
     private func abrir(_ s: String) {
         guard let u = URL(string: s) else { return }

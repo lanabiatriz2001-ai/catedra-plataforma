@@ -25,7 +25,7 @@ fileprivate struct DuePill: View {
             EmptyView()
         case .overdue(let dias):
             pill("há \(dias) dia\(dias == 1 ? "" : "s")", icon: "alarm.fill",
-                 fg: .white, bg: Color(hex: "#E11D48"))
+                 fg: .white, bg: Palette.bad)
         case .today:
             pill("Hoje", icon: "sun.max.fill", fg: .white, bg: Palette.accent)
         case .future(let d):
@@ -121,7 +121,7 @@ struct JurisChecklistMiniCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
                     .fill(LinearGradient(colors: [Palette.accent, Palette.accentSoft],
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 30, height: 30)
@@ -182,8 +182,8 @@ struct JurisChecklistMiniCard: View {
         }
         .padding(15)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: Palette.accent.opacity(0.10), radius: 12, y: 5)
     }
 
@@ -216,7 +216,7 @@ struct JurisChecklistMiniCard: View {
                 DuePill(kind: dueKind(item))
             }
             .padding(.horizontal, 9).padding(.vertical, 6)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(tint.opacity(0.05)))
+            .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(tint.opacity(0.05)))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -266,16 +266,18 @@ struct JurisChecklistView: View {
     private var fontesDisponiveis: [(fonte: Fonte, count: Int)] { store.fontesEm(store.entries) }
 
     var body: some View {
+        SectionShell(icon: Selecao.checklist.simbolo, title: Selecao.checklist.titulo,
+                     subtitle: "Metas que você define — agrupadas por urgência, com reagendar em 1 clique.",
+                     count: total > 0 ? total : nil) {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                header
                 addForm
                 if total == 0 {
                     vazio
                 } else {
                     statsHeader
                     if !atrasadas.isEmpty {
-                        itemsSection(title: "Atrasadas", tint: Color(hex: "#E11D48"),
+                        itemsSection(title: "Atrasadas", tint: Palette.bad,
                                      icon: "alarm.fill", items: atrasadas, dimmed: false)
                     }
                     if !hoje.isEmpty {
@@ -299,32 +301,7 @@ struct JurisChecklistView: View {
             }
             .padding(.horizontal, 26).padding(.top, 22)
         }
-        .background(Palette.appBackground)
-    }
-
-    private var header: some View {
-        HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(LinearGradient(colors: [Palette.accent, Palette.accentSoft],
-                                     startPoint: .topLeading, endPoint: .bottomTrailing))
-                .frame(width: 42, height: 42)
-                .overlay(Image(systemName: "checklist").font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white))
-                .shadow(color: Palette.accent.opacity(0.4), radius: 8, y: 4)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 8) {
-                    Text("Checklist de leitura").font(Typo.serifTitle(24, .bold)).foregroundStyle(Palette.titleInk)
-                    if total > 0 {
-                        Text("\(total)")
-                            .font(.system(size: 11, weight: .bold)).monospacedDigit()
-                            .padding(.horizontal, 8).padding(.vertical, 2)
-                            .background(Capsule().fill(Palette.accent.opacity(0.15)))
-                            .foregroundStyle(Palette.accent)
-                    }
-                }
-                Text("Metas que você define — agrupadas por urgência, com reagendar em 1 clique.")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
-            }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -342,7 +319,7 @@ struct JurisChecklistView: View {
                 HStack(spacing: 7) {
                     statChip("\(hoje.count) hoje", tint: Palette.accent, on: !hoje.isEmpty)
                     statChip("\(atrasadas.count) atrasada\(atrasadas.count == 1 ? "" : "s")",
-                             tint: Color(hex: "#E11D48"), on: !atrasadas.isEmpty)
+                             tint: Palette.bad, on: !atrasadas.isEmpty)
                     statChip("\(proximas.count + semPrazo.count) na fila",
                              tint: Palette.secondaryInk, on: false)
                 }
@@ -360,17 +337,13 @@ struct JurisChecklistView: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: Palette.accent.opacity(0.12), radius: 14, y: 6)
     }
 
     private func statChip(_ t: String, tint: Color, on: Bool) -> some View {
-        Text(t)
-            .font(.system(size: 11, weight: .bold))
-            .padding(.horizontal, 9).padding(.vertical, 3.5)
-            .background(Capsule().fill(on ? tint : tint.opacity(0.12)))
-            .foregroundStyle(on ? .white : tint)
+        EtiquetaEstudo(texto: t, cor: on ? tint : Palette.secondaryInk)
     }
 
     // MARK: - Formulário de adicionar
@@ -418,8 +391,8 @@ struct JurisChecklistView: View {
             }
         }
         .padding(14)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 
     /// Menu "vincular" — edital primeiro, depois Ramos do Direito e tipos/fontes.
@@ -483,7 +456,7 @@ struct JurisChecklistView: View {
 
     private var vazio: some View {
         VStack(spacing: 13) {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous)
                 .fill(LinearGradient(colors: [Palette.accent.opacity(0.16), Palette.accentSoft.opacity(0.10)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(width: 64, height: 64)
@@ -601,7 +574,7 @@ private struct JurisChecklistRow: View {
             }
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
         .overlay(alignment: .leading) {
             // Lombada do vínculo — a paleta vitrine no checklist.
             RoundedRectangle(cornerRadius: 2, style: .continuous)
@@ -609,8 +582,8 @@ private struct JurisChecklistRow: View {
                 .frame(width: 3)
                 .padding(.vertical, 9).padding(.leading, 1.5)
         }
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .strokeBorder(overdue ? Color(hex: "#E11D48").opacity(0.4) : Palette.hairline, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous)
+            .strokeBorder(overdue ? Palette.bad.opacity(0.4) : Palette.hairline, lineWidth: 1))
         .shadow(color: (hovering ? tint : .black).opacity(hovering ? 0.16 : 0.03), radius: hovering ? 9 : 3, y: 3)
         .scaleEffect(hovering ? 1.004 : 1)
         .animation(.easeOut(duration: 0.14), value: hovering)

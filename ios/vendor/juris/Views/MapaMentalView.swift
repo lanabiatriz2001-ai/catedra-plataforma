@@ -195,7 +195,7 @@ struct MapaMentalView: View {
 
     private var rodape: some View {
         HStack {
-            Text("Vade Mecum de Jurisprudência").font(.system(size: 9.5, weight: .semibold))
+            Text("CátedraJURIS").font(.system(size: 9.5, weight: .semibold))
                 .foregroundStyle(Color(hex: "#4F46E5"))
             Text("· mapa de estudo (não oficial)").font(.system(size: 9.5)).foregroundStyle(Color(hex: "#8A8FA3"))
             Spacer()

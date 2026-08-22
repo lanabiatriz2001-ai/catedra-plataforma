@@ -24,9 +24,9 @@ struct EntryDetailView: View {
     @State private var editandoEnunciado = false
     @State private var rascunhoEnunciado = ""
     @State private var corPersonalizada = Color(hex: MarkColor.amarelo.rawValue)
-    @State private var corTextoAnot = Color(hex: "#1F2A3D")
+    @State private var corTextoAnot = Palette.readingInk
     @State private var corRealceAnot = Color(hex: MarkColor.amarelo.rawValue)
-    @State private var corTextoVerbete = Color(hex: "#4F46E5")
+    @State private var corTextoVerbete = Palette.accent
     @State private var commentAnchors: [MarkCommentAnchor] = []
     @State private var editingMarkComment: EditingMarkComment?
     @State private var focusedMarkID: String?
@@ -47,9 +47,10 @@ struct EntryDetailView: View {
                 // decidiu / Pegadinha / quiz) é a interface do informativo — vem logo depois do
                 // enunciado, antes das anotações; estava enterrado no fim da página. Agora é
                 // local e instantâneo (RoteiroLocal), então nasce aberto em todo verbete.
-                if entry.fonteKind.ehInformativo {
-                    RoteiroEstudoView(entry: entry, autoGerar: true)
-                }
+                // O roteiro é local e instantâneo (RoteiroLocal), então nasce aberto em TODO
+                // verbete — informativo ou não. Antes havia dois ramos (ehInformativo e o
+                // contrário) chamando a mesma coisa com comentários que diziam o oposto.
+                RoteiroEstudoView(entry: entry, autoGerar: true)
                 // "Minhas anotações" LOGO ABAIXO do dispositivo (pedido da Lana) —
                 // antes vinha depois da nota de estudo do app.
                 anotacaoCard
@@ -66,15 +67,6 @@ struct EntryDetailView: View {
                 }
                 if let r = entry.referencias, !r.isEmpty {
                     disclosure("Referências legislativas", "book.closed", r)
-                }
-                // Roteiro de estudo (IA do app) + prova oral — o formato dos widgets de
-                // informativo: Em uma frase, Fundamento, Como era, O que decidiu, Pegadinha, quiz.
-                // "Fazer em todos os informativos": todo verbete de informativo (STF, STJ,
-                // TSE e os boletins do TCU) gera o roteiro SOZINHO ao abrir — sem esperar o
-                // clique. Fora dos informativos (o grosso do acervo, 25 mil verbetes) continua
-                // sob demanda: gerar sempre em toda abertura gastaria a cota da API à toa.
-                if !entry.fonteKind.ehInformativo {
-                    RoteiroEstudoView(entry: entry, autoGerar: true)
                 }
                 relacionadosSection
                 footer
@@ -119,10 +111,9 @@ struct EntryDetailView: View {
                                    onDelete: ec.markID != nil ? { deleteComment(ec.markID!) } : nil,
                                    onCancel: { editingMarkComment = nil })
         }
-        .onAppear {
-            proxy.scrollTo("topo", anchor: .top)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { proxy.scrollTo("topo", anchor: .top) }
-        }
+        // O .id(entry.id) abaixo já recria a view por verbete — um scrollTo basta; o
+        // asyncAfter podia disparar depois de a view desmontar.
+        .onAppear { proxy.scrollTo("topo", anchor: .top) }
         }
         .inspector(isPresented: $showAnnotationsPanel) {
             JurisAnnotationsPanel(entryID: entry.id, focusedMarkID: $focusedMarkID, markController: markController)
@@ -185,7 +176,7 @@ struct EntryDetailView: View {
                 Circle().fill(Color.white.opacity(0.06)).frame(width: 130, height: 130).offset(x: -40, y: 88)
             }
         )
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
         .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.3), radius: 16, y: 8)
     }
 
@@ -230,11 +221,11 @@ struct EntryDetailView: View {
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.importante.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
+            .background(Palette.importante.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
             .overlay(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 2).fill(Palette.importante).frame(width: 3.5).padding(.vertical, 14)
             }
-            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Palette.importante.opacity(0.22), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.importante.opacity(0.22), lineWidth: 1))
         }
     }
 
@@ -258,8 +249,8 @@ struct EntryDetailView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 12).padding(.vertical, 8)
                     .frame(maxWidth: .infinity)
-                    .background(Palette.accent.opacity(i == 0 ? 0.14 : 0.07), in: RoundedRectangle(cornerRadius: 9))
-                    .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Palette.accent.opacity(0.25), lineWidth: 1))
+                    .background(Palette.accent.opacity(i == 0 ? 0.14 : 0.07), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.accent.opacity(0.25), lineWidth: 1))
                 if i < passos.count - 1 {
                     Image(systemName: "arrow.down").font(.system(size: 11, weight: .bold)).foregroundStyle(Palette.accent)
                 }
@@ -290,7 +281,7 @@ struct EntryDetailView: View {
         }
         .padding(.vertical, 8).padding(.horizontal, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(cor.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
+        .background(cor.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
         .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 1.5).fill(cor).frame(width: 2.5).padding(.vertical, 8) }
     }
 
@@ -299,7 +290,7 @@ struct EntryDetailView: View {
         let k = entry.situacaoKind
         if k == .cancelada || k == .superada {
             let cancelada = k == .cancelada
-            let cor: Color = cancelada ? .red : .orange
+            let cor: Color = cancelada ? Palette.bad : Palette.warn
             HStack(alignment: .top, spacing: 11) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 18)).foregroundStyle(cor)
@@ -320,8 +311,8 @@ struct EntryDetailView: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(cor.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(cor.opacity(0.35), lineWidth: 1))
+            .background(cor.opacity(0.10), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(cor.opacity(0.35), lineWidth: 1))
         }
     }
 
@@ -409,13 +400,13 @@ struct EntryDetailView: View {
         .padding(.vertical, 18)
         .padding(.horizontal, 22)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 16))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
         .overlay(alignment: .leading) {
             // Lombada do RAMO (vitrine) — combina com a faixa do cabeçalho.
             RoundedRectangle(cornerRadius: 2).fill(RamoStyle.color(entry.ramoDireito))
                 .frame(width: 3.5).padding(.vertical, 16).padding(.leading, 1.5)
         }
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Palette.hairline, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.18), radius: 14, y: 6)
         .shadow(color: .black.opacity(0.04), radius: 3, y: 1)
     }
@@ -644,7 +635,7 @@ struct EntryDetailView: View {
                 edicaoBtn("list.bullet") { bulletNoVerbete() }.help("Lista com marcador")
                 // Emoji / ícones de estudo
                 Menu {
-                    ForEach(gruposSimbolos.first!.1, id: \.self) { s in Button(s) { inserirNoVerbete(s) } }
+                    ForEach(gruposSimbolos[0].1, id: \.self) { s in Button(s) { inserirNoVerbete(s) } }
                 } label: { Image(systemName: "face.smiling") }
                 .menuIndicator(.hidden).frame(width: 22).help("Inserir ícone de estudo")
                 // Símbolos jurídicos
@@ -841,13 +832,13 @@ struct EntryDetailView: View {
                            onChange: { data, empty in store.setNote(data, isEmpty: empty, for: entry.id) })
                 .frame(minHeight: 108)
                 .padding(4)
-                .background(Palette.appBackground, in: RoundedRectangle(cornerRadius: 9))
-                .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Palette.accent.opacity(0.35), lineWidth: 1))
+                .background(Palette.appBackground, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.accent.opacity(0.35), lineWidth: 1))
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Palette.accent.opacity(0.22), lineWidth: 1))
+        .background(Palette.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.accent.opacity(0.22), lineWidth: 1))
     }
 
     private var familiasInstaladas: [String] { UIFont.familyNames.sorted() }
@@ -941,7 +932,7 @@ struct EntryDetailView: View {
 
             // Ícones de estudo (emoji) — atalho dedicado e visível
             Menu {
-                ForEach(gruposSimbolos.first!.1, id: \.self) { s in
+                ForEach(gruposSimbolos[0].1, id: \.self) { s in
                     Button(s) { rtController.inserir(s) }
                 }
             } label: { Image(systemName: "face.smiling") }
@@ -1006,8 +997,8 @@ struct EntryDetailView: View {
             }
             .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground.opacity(0.55), in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
+            .background(Palette.cardBackground.opacity(0.55), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         }
     }
 
@@ -1039,8 +1030,8 @@ struct EntryDetailView: View {
         }
         .tint(Palette.accent)
         .padding(16)
-        .background(Palette.cardBackground.opacity(0.45), in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground.opacity(0.45), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 
     @ViewBuilder
@@ -1075,8 +1066,8 @@ struct EntryDetailView: View {
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground.opacity(0.45), in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
+            .background(Palette.cardBackground.opacity(0.45), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         }
     }
 
@@ -1121,7 +1112,7 @@ struct EntryDetailView: View {
 
             Button { store.toggleImportante(entry) } label: {
                 capsIcon((store.isImportante(entry) || entry.importante) ? "flag.fill" : "flag",
-                         tint: (store.isImportante(entry) || entry.importante) ? .orange : Palette.secondaryInk)
+                         tint: (store.isImportante(entry) || entry.importante) ? Palette.warn : Palette.secondaryInk)
             }
             .buttonStyle(.plain)
             .disabled(entry.importante)
@@ -1233,7 +1224,7 @@ struct DetailPlaceholder: View {
                 .font(.system(size: 42, weight: .thin))
                 .foregroundStyle(Palette.accent.opacity(0.7))
             VStack(spacing: 5) {
-                Text("Vade Mecum de Jurisprudência")
+                Text("CátedraJURIS")
                     .font(Typo.serifTitle(19, .semibold))
                     .foregroundStyle(Palette.titleInk)
                 Text("Escolha uma súmula, tese, informativo ou repercussão geral\npara ler o inteiro teor.")
