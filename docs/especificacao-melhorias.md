@@ -775,46 +775,68 @@ aproximada; espelho oficial, quando existir, nunca exibe o selo nem o botão.
 casa). Custo por geração: sob demanda + cache resolve. E o selo não é decoração —
 é o que mantém a promessa de honestidade do C1; sem ele, este item não existe.
 
-## D11. Ajustes refeitos
+## D11. Ajustes refeitos — por funcionalidade efetiva
 
-Nasce de uso real (22/08): a Lana precisou do backup e não o achou — as abas dos
-Ajustes ficam no MEIO da página (abaixo do perfil e do card de área de estudo,
-invisíveis sem rolar), a aba certa se chama "Dados & conselho" (dois assuntos num
-nome só), e dentro dela o backup mora ABAIXO de "Personalização & Aparência", que
-nem é assunto de dados. Três violações de arquitetura numa tela só.
+Nasce de uso real (22/08): a Lana precisou do backup e não o achou (abas no meio da
+página, aba "Dados & conselho" com dois assuntos, backup abaixo de Aparência). E ao
+reformular, a régua que ela pediu: **não rearrumar as prateleiras — decidir quais
+botões merecem existir**.
 
-**O que existe.** Ajustes v3 (Build B): abas Você · Estudo & metas · Método da
-banca · Dados & conselho (botões em ~linha 3287 de Catedra.dc.html, conteúdo em
-blocos `<sc-if value="{{ ajTabX }}">`); "Conselho personalizado" e "Personalização
-& Aparência" renderizam dentro da aba Dados; perfil + área de estudo ocupam o topo
-fora das abas.
+**Princípio.** Um ajuste só existe se passar no teste: *muda O QUE ela estuda,
+QUANDO estuda, ou COMO o app se comporta*. O que não passa: some, vira preset, ou
+vira comportamento automático. E todo ajuste que fica ganha UMA frase dizendo o que
+acontece ao mexer ("Desligar: o app para de criar revisões dos seus erros") —
+ajuste cujo efeito não dá para descrever numa frase não existe.
 
-**O que construir.**
-1. **Abas no topo, sempre visíveis** (sticky, logo abaixo do título "Ajustes"),
-   ANTES de qualquer conteúdo. Perfil vira a primeira seção da aba "Você", não um
-   preâmbulo fora das abas.
-2. **Uma aba por assunto, nome que diz o que tem**:
-   Você · Estudo & metas · Método da banca · **Aparência** · **Dados & backup** · Conta.
-   - "Conselho personalizado" SAI dos Ajustes — é leitura diária, não configuração;
-     vai para o início (ou o painel de prioridade do item 1).
-   - "Dados & backup" abre com o backup no TOPO (nuvem pessoal → exportações →
-     importar → zona de perigo "Apagar tudo" por último, visualmente separada).
-   - "Conta": e-mail logado, trocar senha, sair, plataforma de questões preferida
-     (C2) e, no futuro, assinatura.
-3. **Busca dentro dos Ajustes**: campo que filtra os ajustes por nome (como a busca
-   dos Ajustes do iPhone) — digitar "backup" ou "tema" rola/troca para o item, com
-   destaque. Implementação: cada bloco de ajuste ganha `data-aj="rotulo palavras
-   chave"`; a busca esconde os que não casam. É a resposta definitiva para "não
-   acho onde fica".
-4. **Regras herdadas**: estados vazios que convidam (D4), alvos de toque ≥44px e
-   rótulos acessíveis (D10), microlabels com hierarquia (D7). No celular, as abas
-   viram lista (uma tela por seção, com voltar).
+**O que existe hoje** (~18 itens em prefs + avulsos): nome, objetivo, metaDiaria,
+data da prova, área de estudo, banca-alvo, density, radius/cantos, fontScale,
+accent, dark, mostrarContagem, notifRevisao, notifMeta, focoPausa, focoBloco,
+autoRevisao, autoRegistro, autoConcluir, flashcards retenção/carga,
+provaDurationMin, planHoras — vários decorativos, e as automações valiosas
+(autoRevisao/autoRegistro/autoConcluir) escondidas sem explicação.
 
-**Aceite.** "Quero fazer backup" se resolve em 2 gestos de qualquer estado da tela
-(aba visível → primeiro bloco). Buscar "backup" nos Ajustes acha o bloco. Nenhuma
-seção mistura assuntos. O conselho aparece no início, não nos Ajustes. Testes:
-abas visíveis sem rolagem em 1280×800 e 390×844; busca interna acha "backup",
-"tema" e "sair".
+**O conjunto novo, por aba (sticky no topo, antes de qualquer conteúdo):**
 
-**Armadilha.** Não renomear as CHAVES de estado existentes (prefs etc.) — a
-reforma é de arquitetura da tela, não de dados; sync e migrações ficam intocados.
+1. **Você** — 4 campos, uma tela: nome, objetivo/cargo-alvo, **data da prova**
+   (motor da contagem e da reta final), área de estudo.
+2. **Estudo & metas** — o coração funcional:
+   - Meta diária (min) e meta semanal;
+   - **Horário habitual de estudo** (novo) → alimenta o lembrete de revisões (U12);
+   - Duração padrão do simulado (provaDurationMin) e **tempo de resposta da
+     arguição** (item 3);
+   - **Automações com nome honesto**, cada uma com a frase de efeito:
+     "Errei → vira revisão" (autoRevisao) · "Cronômetro parado com ≥5 min →
+     oferece registro" (autoRegistro/U11) · autoConcluir · foco/pomodoro
+     (focoBloco/focoPausa);
+   - Flashcards por dia (retenção/carga traduzido para gente);
+   - **Plataforma de questões preferida** (C2).
+3. **Método da banca** — banca-alvo (muda as dicas da correção) + reta final.
+4. **Aparência** — REDUZIR a três escolhas: tema (claro/escuro/**automático**, U7),
+   cor de destaque, tamanho do texto (acessibilidade). **Morrem como opções
+   soltas**: cantos/radius, density, mostrarContagem — viram 2–3 **presets**
+   ("Padrão", "Compacto", "Conforto de leitura") em vez de cinco botões isolados.
+5. **Dados & backup** — backup da nuvem pessoal NO TOPO; **backup automático
+   semanal** (novo: toggle que salva no Drive/iCloud sem clique, com data do
+   último); exportações; importar; **zona de perigo** ("Apagar tudo") isolada no
+   fim, em vermelho, com confirmação por texto.
+6. **Conta** — e-mail logado, trocar senha, sair; futuro: aparelhos conectados,
+   assinatura.
+
+Fora dos Ajustes: "Conselho personalizado" vai para o início (é leitura diária,
+não configuração); notificações viram parte de Estudo & metas (notifRevisao/
+notifMeta junto do horário de estudo, onde fazem sentido).
+
+**Busca interna**: campo que filtra ajustes por nome e sinônimos (`data-aj`),
+como nos Ajustes do iPhone — "backup", "tema", "sair" acham o bloco com destaque.
+
+**Aceite.** A contagem de ajustes DIMINUI (alvo: ~2/3 dos atuais); cada ajuste
+exibe a frase de efeito; presets substituem os knobs decorativos sem perder o
+estado de quem já personalizou (migração: radius/density atuais mapeiam para o
+preset mais próximo); backup automático semanal grava sozinho e mostra a data;
+"quero fazer backup" se resolve em 2 gestos; busca interna acha "backup", "tema"
+e "sair"; abas visíveis sem rolagem em 1280×800 e 390×844.
+
+**Armadilhas.** Não renomear as CHAVES de estado (prefs.*) — migração de valores,
+não de nomes; sync intocado. O backup automático usa o token do Drive já
+autorizado — se expirou, avisa em vez de falhar em silêncio. As frases de efeito
+são conteúdo de UI, não tooltip escondido: visíveis sob cada controle.
