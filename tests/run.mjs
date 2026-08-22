@@ -471,6 +471,58 @@ const boot = await page.evaluate(() => ({
 }));
 ok(boot.motor, 'BUSCA motor carrega no boot');
 ok(!boot.juris && !boot.cat, 'BUSCA acervos NÃO carregam no boot (só na 1ª busca)');
+/* ======= O QUE MUDOU ESTA SEMANA (item 7) ======= */
+await page.goto(URL0 + '/tests/harness-semana.html');
+await page.waitForFunction(() => !!window.CT_SEMANA);
+
+const sem = await page.evaluate(() => {
+  const S = window.CT_SEMANA, r = {};
+  const it = S.itens || [];
+  r.temItens = it.length >= 10;
+  r.camposCompletos = it.every(x => x.id && x.titulo && x.tese && x.quando && x.tribunal);
+  r.soInformativos = it.every(x => /STF|STJ|TSE/.test(x.tribunal));
+  r.dataValida = it.every(x => /^\d{2}\/\d{2}\/\d{4}$/.test(x.quando));
+  // marcador é opcional, mas quando existe tem de ser um dos três
+  r.marcadorValido = it.every(x => x.marcador == null || ['superacao', 'divergencia', 'vinculante'].includes(x.marcador));
+  // os marcados vêm primeiro (é o que muda o estudo)
+  const iPrimeiroSem = it.findIndex(x => !x.marcador);
+  const iUltimoCom = it.map((x, i) => x.marcador ? i : -1).filter(i => i >= 0).pop();
+  r.marcadosPrimeiro = (iUltimoCom == null) || (iPrimeiroSem === -1) || (iUltimoCom < iPrimeiroSem);
+  // a tese é recorte curto: o arquivo não pode virar um segundo acervo
+  r.teseCurta = it.every(x => x.tese.length <= 340);
+  r.arquivoLeve = JSON.stringify(S).length < 120000;
+  // sem tese repetida (o acervo republica o mesmo julgado em edição extraordinária)
+  const teses = it.map(x => x.tese.toLowerCase().replace(/\s+/g, ' ').slice(0, 160));
+  r.semRepetida = new Set(teses).size === teses.length;
+  // marcador vem calibrado: alguma coisa TEM de estar marcada, senão o bloco perde a graça
+  r.temAlgumMarcado = it.some(x => x.marcador);
+
+  // ordenado do mais novo para o mais velho dentro de cada grupo
+  const ms = s => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s); return new Date(+m[3], +m[2] - 1, +m[1]).getTime(); };
+  const semMarc = it.filter(x => !x.marcador).map(x => ms(x.quando));
+  r.ordenado = semMarc.every((v, i) => i === 0 || semMarc[i - 1] >= v);
+  return r;
+});
+for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
+
+// a home mostra o bloco, e "Já vi" tira o item e persiste
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => { localStorage.removeItem('catedra:semanaLidos'); });
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+const home = await page.evaluate(async () => {
+  const tit = [...document.querySelectorAll('h2')].find(h => /mudou esta semana/i.test(h.textContent || ''));
+  if (!tit) return { erro: 'sem bloco' };
+  const cont = tit.closest('.cth-sec').nextElementSibling;
+  const antes = [...cont.children].filter(e => e.tagName === 'DIV').length;
+  const b = cont.querySelector('button[data-id]');
+  const id = b && b.dataset.id;
+  if (b) b.click();
+  await new Promise(r => setTimeout(r, 500));
+  return { antes, id, lidos: JSON.parse(localStorage.getItem('catedra:semanaLidos') || '[]') };
+});
+ok(!home.erro && home.antes > 0, 'SEMANA bloco aparece na home com itens');
+ok(!home.erro && home.lidos.includes(home.id), 'SEMANA "Já vi" registra e persiste (sincroniza)');
 
 await browser.close();
 srv.close();
