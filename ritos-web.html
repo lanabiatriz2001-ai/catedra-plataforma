@@ -162,6 +162,7 @@ body.semnotas .nota{display:none}
 }
 </style>
 <script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
+<script src="./tema-satelite.js"></script>
 </head><body>
 
 <header class="top">
@@ -304,16 +305,33 @@ $('bNotas').onclick=function(){ document.body.classList.toggle('semnotas');
   this.classList.toggle('on', !document.body.classList.contains('semnotas')); };
 $('bPrint').onclick=()=>window.print();
 
-/* ---- partida: ?rito=Nome ---- */
-try{ const q=new URLSearchParams(location.search).get('rito');
+/* U1: uma função só para "abrir neste ponto", chamada pela URL (1ª carga, deep-link,
+   testes) E pela mensagem do host (iframe vivo, sem recarregar). Dois caminhos separados
+   divergiriam na primeira correção. */
+window.ctAbrirPonto = function (rito, peca, bloco) {
+  try {
+    if (rito && ORDEM.includes(rito)) {
+      atual = rito;
+      [...mats.children].forEach(b => b.classList.toggle('on', b.dataset.k === atual));
+      pinta();
+    }
+    if (peca && PECAS[peca]) setTimeout(() => R.abrir(peca, (bloco == null ? undefined : bloco)), 60);
+  } catch (e) {}
+};
+
+/* ---- partida e volta do acervo: ?rito=Nome, ?peca=Nome (+ &bloco=N) ---- */
+try{ const u=new URLSearchParams(location.search);
+  const q=u.get('rito');
   if(q && ORDEM.includes(q)) atual=q; }catch(e){}
 [...mats.children].forEach(b=>b.classList.toggle('on', b.dataset.k===atual));
 pinta();
-
-/* ---- volta do acervo: ?peca=Nome (+ &bloco=N) reabre o roteiro no bloco exato.
-   O host manda estes parâmetros quando ela toca "voltar" no LEGIS/JURIS — o iframe
-   recarregou na ida, então o ponto só sobrevive viajando na URL. ---- */
 try{ const u=new URLSearchParams(location.search), pc=u.get('peca');
   if(pc && PECAS[pc]) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
+
+window.addEventListener('message', function (e) {
+  if (e && e.data && e.data.type === 'ctAbrirBloco') {
+    window.ctAbrirPonto(e.data.rito, e.data.peca, e.data.bloco);
+  }
+});
 </script>
 </body></html>

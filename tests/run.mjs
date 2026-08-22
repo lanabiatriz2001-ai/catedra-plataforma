@@ -39,6 +39,45 @@ const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 
+/* ============= D9 — BUILD SEM CDN: FALHAR EM VEZ DE DEGRADAR ============= */
+// Este é o único teste que não usa navegador: o que se prova aqui é o comportamento do
+// processo de build. Um deploy que depende de CDN em runtime não abre em rede que
+// bloqueia CDN — foi o que aconteceu no ambiente de teste.
+{
+  const { execFileSync } = await import('child_process');
+  const stub = path.join(RAIZ, 'tests', 'offline-stub.cjs');
+  const rodar = (env) => {
+    try {
+      execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build.mjs')],
+        { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
+      return { code: 0, saida: '' };
+    } catch (e) {
+      return { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') };
+    }
+  };
+
+  const semRede = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '' });
+  ok(semRede.code === 1, 'D9 build sem rede FALHA (exit 1) em vez de publicar dependendo de CDN');
+  ok(/BUILD ABORTADO/.test(semRede.saida), 'D9 a falha explica o que houve');
+  ok(/CT_PERMITE_CDN/.test(semRede.saida), 'D9 a falha diz qual é a saída de emergência');
+
+  const comFlag = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '1' });
+  ok(comFlag.code === 0, 'D9 CT_PERMITE_CDN=1 ainda permite build degradado (debug)');
+
+  // build normal: nada de terceiro sobra no HTML publicado
+  const normal = rodar({});
+  ok(normal.code === 0, 'D9 build com rede passa');
+  const html = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
+  const terceiros = (html.match(/(?:src|href)="https:\/\/[^"]*(?:jsdelivr|unpkg|fonts\.googleapis|fonts\.gstatic)[^"]*"/g) || []);
+  ok(terceiros.length === 0, 'D9 HTML publicado não carrega nada de CDN nem do Google Fonts');
+  ok(/href="\.\/fonts\.css"/.test(html), 'D9 as fontes vêm do próprio domínio');
+  const cssFontes = fs.readFileSync(path.join(RAIZ, 'public', 'fonts.css'), 'utf8');
+  ok(/font-display:\s*swap/.test(cssFontes), 'D9 font-display:swap preservado');
+  ok(!/fonts\.gstatic\.com/.test(cssFontes), 'D9 o CSS das fontes aponta para arquivos locais');
+  ok(fs.readdirSync(path.join(RAIZ, 'public', 'fonts')).length > 10, 'D9 os .woff2 estão no deploy');
+}
+
+
 /* ============================ SYNC (mergeAll) ============================ */
 await page.goto(URL0 + '/tests/sync-fixture.html');
 await page.waitForFunction(() => window.CatedraSync && window.CatedraSync._test);
@@ -595,6 +634,337 @@ const fluxo = await page.evaluate(async () => {
 ok(!fluxo.erro && fluxo.abriu, 'ARGUICAO sessão abre com a pergunta');
 ok(!fluxo.erro && !fluxo.padraoAntes && fluxo.padraoDepois, 'ARGUICAO padrão só aparece depois de responder');
 ok(!fluxo.erro && fluxo.fim, 'ARGUICAO cinco perguntas levam ao resumo');
+
+/* ============= U5 — SINCRONIZAÇÃO VISÍVEL E HONESTA ============= */
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1600);
+const u5 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const aside = () => document.querySelector('aside');
+  const selo = () => [...aside().querySelectorAll('span')].map(s => s.textContent.trim())
+    .find(t => /salvo|enviando|conexão|erro|não consegui/i.test(t)) || '';
+  const botao = () => [...aside().querySelectorAll('button')].find(b => /tentar agora/i.test(b.textContent || ''));
+  const emitir = st => window.dispatchEvent(new CustomEvent('catedra:syncstate', { detail: { status: st } }));
+  const r = {};
+
+  r.permanente = !!selo();                       // existe sem nenhum evento: é selo, não toast
+
+  emitir('enviando'); await w(250); r.enviando = /enviando/i.test(selo());
+  emitir('offline');  await w(250);
+  r.offline = /sem conexão/i.test(selo()) && /guardado aqui/i.test(selo());   // diz onde os dados estão
+  emitir('salvo');    await w(250);
+  r.salvoComHora = /^✓ salvo às \d{2}:\d{2}$/.test(selo());
+  emitir('erro');     await w(250);
+  r.erroCurto = /tentando de novo/i.test(selo());
+  r.semBotaoNoErroCurto = !botao();               // erro que acabou de começar não vira alarme
+
+  // erro que PERSISTE (mais de 5 min) vira aviso com ação
+  const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
+  emitir('erro'); await w(200); delta = 6 * 60000; emitir('erro'); await w(300);
+  r.erroLongo = /não consegui salvar/i.test(selo());
+  r.temAcao = !!botao();
+  if (botao()) botao().click();                   // não pode explodir sem CatedraSync
+  await w(200);
+  r.naoTravou = document.querySelectorAll('aside button').length > 0;
+  Date.now = orig;
+
+  // voltar a salvar limpa o alarme
+  emitir('salvo'); await w(250);
+  r.recupera = /✓ salvo/i.test(selo()) && !botao();
+  return r;
+});
+for (const [k, v] of Object.entries(u5)) ok(v, 'U5 ' + k);
+/* ============= U6 — DESFAZER EM VEZ DE CONFIRMAR ============= */
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => {
+  localStorage.setItem('catedra:metas', JSON.stringify([{ id: 'm-u6', titulo: 'Meta de teste', prog: 0, alvo: 10, unidade: 'un.' }]));
+  localStorage.setItem('catedra:sessions', JSON.stringify([{ id: 's-u6', ts: Date.now(), date: new Date().toISOString().slice(0, 10),
+    disc: 'Direito Civil', topico: 'Teste U6', categoria: 'Teoria', min: 30, questoes: 10, acertos: 8, erradas: 2, brancos: 0, liquido: 6 }]));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1800);
+
+const u6 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
+  const r = {};
+  let confirmou = false;
+  window.confirm = () => { confirmou = true; return true; };
+
+  // vai para Metas & Conquistas
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) mais.click(); await w(350);
+  document.querySelector('button[data-view="conquistas"]').click(); await w(700);
+
+  const botaoX = () => [...document.querySelectorAll('main button[data-id="m-u6"]')].find(b => (b.textContent || '').trim() === '×');
+  if (!botaoX()) return { erro: 'sem botão de excluir a meta' };
+  botaoX().click();
+  await w(300);
+
+  r.semConfirm = !confirmou;                                   // excluir 1 item não pede permissão
+  r.sumiuDaTela = !document.querySelector('main button[data-id="m-u6"]');
+  const toast = document.querySelector('div[role=status]');
+  r.temToast = !!toast && /excluíd/i.test(toast.textContent || '');
+  const undo = toast && [...toast.querySelectorAll('button')].find(b => /desfazer/i.test(b.textContent || ''));
+  r.temDesfazer = !!undo;
+
+  if (undo) undo.click();
+  await w(900);
+  const metas = ler('metas');
+  r.restauraMesmoId = metas.length === 1 && metas[0].id === 'm-u6' && metas[0].titulo === 'Meta de teste';
+  r.carimboNovo = !!(metas[0] && metas[0].up);                 // `up` novo faz a recriação vencer a lápide
+
+  // sem desfazer, a exclusão persiste no disco (o autosave leva ~1s)
+  botaoX().click();
+  await w(1600);
+  r.persisteSemDesfazer = ler('metas').length === 0;
+  return r;
+});
+for (const [k, v] of Object.entries(u6)) ok(v, 'U6 ' + k);
+
+// o destrutivo em MASSA continua pedindo confirmação — é a fronteira da especificação
+const u6b = await page.evaluate(() => {
+  const fonte = [...document.querySelectorAll('script')].map(s => s.textContent || '').find(t => t.includes('wipeAll')) || '';
+  return {
+    wipeAllPergunta: /wipeAll\s*=\s*\(\)=>\{\s*if\(!window\.confirm/.test(fonte),
+    itemNaoPergunta: !/removeMeta[^}]*window\.confirm/.test(fonte) && !/removeCard[^}]*window\.confirm/.test(fonte)
+      && !/removeErro[^}]*window\.confirm/.test(fonte) && !/removeEvent[^}]*window\.confirm/.test(fonte),
+  };
+});
+ok(u6b.wipeAllPergunta, 'U6 apagar tudo continua pedindo confirmação');
+ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
+/* ============= D1 — TEMA ÚNICO NOS SATÉLITES ============= */
+// Todo satélite carrega a mesma ponte
+const d1arqs = await page.evaluate(async (base) => {
+  const paginas = ['legis-web.html', 'juris-web.html', 'ritos-web.html', 'pecas-web.html',
+                   'segunda-fase-web.html', 'prioridade-web.html', 'area-web.html'];
+  const r = {};
+  for (const p of paginas) {
+    const t = await (await fetch(base + '/' + p)).text();
+    r[p] = t.includes('tema-satelite.js');
+  }
+  return r;
+}, URL0);
+ok(Object.values(d1arqs).every(Boolean), 'D1 os 7 satélites carregam a ponte de tema (' +
+   Object.entries(d1arqs).filter(([, v]) => !v).map(([k]) => k).join(', ') + ')');
+
+// Satélite avulso (sem host) mantém a paleta própria — o fallback do var() continua valendo
+await page.goto(URL0 + '/ritos-web.html');
+await page.waitForTimeout(700);
+const avulso = await page.evaluate(() => ({
+  marcado: document.documentElement.getAttribute('data-ct-tema'),
+  accent: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(),
+}));
+ok(!avulso.marcado, 'D1 página avulsa não é pintada pelo host (segue com a cara própria)');
+
+// Dentro do app: o satélite herda cor e fundo, e a troca de cor atravessa
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const d1 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  const btn = document.querySelector('button[data-view="areamod"]');
+  if (!btn) return { erro: 'sem satélite nesta área' };
+  btn.click(); await w(2400);
+  const frame = () => [...document.querySelectorAll('iframe')].find(f => /ritos-web/.test(f.getAttribute('src') || ''));
+  if (!frame()) return { erro: 'iframe não montou' };
+  const dentro = () => { const d = frame().contentDocument;
+    const cs = d.defaultView.getComputedStyle(d.documentElement);
+    return { accent: cs.getPropertyValue('--accent').trim(), bg: cs.getPropertyValue('--bg').trim(),
+             marcado: d.documentElement.getAttribute('data-ct-tema'), esquema: d.documentElement.style.colorScheme }; };
+  const host = getComputedStyle(document.querySelector('[style*="--accent"]'));
+  const a = dentro();
+  r.herdaCor = a.accent === host.getPropertyValue('--accent').trim() && !!a.accent;
+  r.herdaFundo = a.bg === host.getPropertyValue('--bg').trim() && !!a.bg;
+  r.marcado = a.marcado === '1';
+
+  // trocar a cor de destaque atravessa até o satélite
+  const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+  if (mais) mais.click(); await w(300);
+  document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+  const cores = [...document.querySelectorAll('main button[data-c]')];
+  const alvo = cores.find(c => c.dataset.c && c.dataset.c !== a.accent);
+  if (!alvo) return { ...r, erro: 'sem paleta de cores nos Ajustes' };
+  const nova = alvo.dataset.c;
+  alvo.click(); await w(500);
+  document.querySelector('button[data-view="areamod"]').click(); await w(2200);
+  r.trocaDeCorAtravessa = frame() && dentro().accent === nova;
+  return r;
+});
+if (!d1.erro) {
+  ok(d1.herdaCor, 'D1 satélite herda a cor de destaque do host');
+  ok(d1.herdaFundo, 'D1 satélite herda o fundo (modo escuro deixa de piscar branco)');
+  ok(d1.marcado, 'D1 satélite se marca como tematizado');
+  ok(d1.trocaDeCorAtravessa, 'D1 trocar a cor nos Ajustes muda o satélite');
+} else {
+  ok(false, 'D1 não deu para exercitar o satélite: ' + d1.erro);
+}
+/* ============= U3 — CONTINUAR DE ONDE PAREI ============= */
+// atenção: o rótulo do cartão é maiúsculo por CSS — comparar sem diferenciar caixa
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => {
+  ['catedra:lastPonto', 'catedra:lastPontoDispensado', 'ct_prova'].forEach(k => localStorage.removeItem(k));
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1600);
+
+const u3a = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const tem = () => /continuar de onde parei/i.test(document.querySelector('main').innerText);
+  const r = {};
+  r.semPontoNaoMostra = !tem();                       // app novo não inventa cartão
+
+  // visitar um satélite grava o ponto
+  document.querySelector('button[data-view="areamod"]').click(); await w(1500);
+  const p = JSON.parse(localStorage.getItem('catedra:lastPonto') || 'null');
+  r.gravaPonto = !!p && p.view === 'areamod' && !!p.rotulo && typeof p.ts === 'number';
+
+  // estando NA view do ponto, o cartão não aparece (seria conselho para ficar onde já está)
+  r.naViewNaoMostra = !tem();
+
+  document.querySelector('button[data-view="inicio"]').click(); await w(700);
+  r.mostraNoInicio = tem();
+  return r;
+});
+for (const [k, v] of Object.entries(u3a)) ok(v, 'U3 ' + k);
+
+// ponto com rito reabre no ponto exato
+await page.evaluate(() => {
+  localStorage.setItem('catedra:lastPonto', JSON.stringify({ view: 'areamod', rito: 'Civil — conhecimento',
+    peca: '', bloco: null, termo: '', rotulo: 'Processo e peças — Civil — conhecimento', ts: Date.now() - 2 * 3600e3 }));
+  localStorage.setItem('catedra:lastPontoDispensado', '0');
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u3b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const M = () => document.querySelector('main').innerText;
+  const r = {};
+  r.idadeRelativa = /há 2h/.test(M());                // ts em ms vira idade legível
+  const btn = [...document.querySelectorAll('main button')].find(b => /^Continuar$/i.test((b.textContent || '').trim()));
+  if (!btn) return { ...r, erro: 'sem botão Continuar' };
+  btn.click(); await w(2200);
+  const fr = [...document.querySelectorAll('iframe')].find(f => /ritos-web/.test(f.getAttribute('src') || ''));
+  r.reabreNoPonto = !!fr && /rito=Civil/.test(decodeURIComponent(fr.getAttribute('src') || ''));
+
+  document.querySelector('button[data-view="inicio"]').click(); await w(700);
+  const x = [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === '✕');
+  r.temDispensar = !!x;
+  if (x) { x.click(); await w(600); }
+  r.dispensaSome = !/continuar de onde parei/i.test(M());
+  r.dispensaPersiste = +(localStorage.getItem('catedra:lastPontoDispensado') || '0') > 0;
+  return r;
+});
+if (!u3b.erro) { for (const [k, v] of Object.entries(u3b)) ok(v, 'U3 ' + k); }
+else ok(false, 'U3 ' + u3b.erro);
+
+// O app já reabre a prova pausada em TELA CHEIA no boot (_restoreProva consome ct_prova),
+// e descarta prova de outro dia de propósito: por isso o cartão NÃO trata simulado — seria
+// um botão que nunca aparece. Este teste guarda a decisão.
+await page.evaluate(() => {
+  localStorage.setItem('ct_prova', JSON.stringify({ d: new Date().toISOString().slice(0, 10), min: 60, sec: 1800 }));
+  localStorage.removeItem('catedra:lastPonto');
+});
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+const u3c = await page.evaluate(() => ({
+  consumiuAChave: !localStorage.getItem('ct_prova'),
+  semCartaoDeProva: !/simulado cronometrado pausado/i.test(document.querySelector('main').innerText),
+}));
+ok(u3c.consumiuAChave, 'U3 a prova pausada é retomada pelo app (a chave é consumida no boot)');
+ok(u3c.semCartaoDeProva, 'U3 o cartão não duplica a retomada da prova');
+await page.evaluate(() => { ['catedra:lastPonto', 'catedra:lastPontoDispensado', 'ct_prova'].forEach(k => localStorage.removeItem(k)); });
+/* ============= U1 — IFRAMES VIVOS ============= */
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.evaluate(() => ['catedra:lastPonto', 'catedra:lastPontoDispensado', 'ct_prova'].forEach(k => localStorage.removeItem(k)));
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1700);
+
+const u1 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const fr = v => document.querySelector('iframe[data-ct-view="' + v + '"]');
+  const r = {};
+
+  // os seis existem no DOM (mapa, roteiros, prioridade, 2ª fase, LEGIS, JURIS), mas SEM
+  // src: quem nunca abriu o LEGIS não paga por ele
+  const todos = [...document.querySelectorAll('iframe[data-ct-view]')];
+  r.seisMontados = todos.length === 6;
+  r.nenhumCarregaNoBoot = todos.every(f => !f.getAttribute('src'));
+  r.todosEscondidos = todos.every(f => f.style.display === 'none');
+
+  // abrir a tela carrega SÓ o dela
+  document.querySelector('button[data-view="areamod"]').click(); await w(1800);
+  r.carregaSoOAtual = !!fr('areamod').getAttribute('src')
+    && !fr('legis').getAttribute('src') && !fr('juris').getAttribute('src');
+  r.visivel = fr('areamod').style.display === 'block';
+
+  // o src NÃO leva mais o ponto/busca: é estável entre trocas
+  r.srcEstavel = fr('areamod').getAttribute('src') === 'ritos-web.html';
+
+  // sair e voltar NÃO recarrega (a marca sobrevive) — é o coração do U1
+  try { fr('areamod').contentWindow.__u1 = 42; } catch (e) {}
+  document.querySelector('button[data-view="inicio"]').click(); await w(500);
+  r.escondeAoSair = fr('areamod').style.display === 'none';
+  document.querySelector('button[data-view="areamod"]').click(); await w(800);
+  let vivo = false; try { vivo = fr('areamod').contentWindow.__u1 === 42; } catch (e) {}
+  r.naoRecarregaAoVoltar = vivo;
+  return r;
+});
+for (const [k, v] of Object.entries(u1)) ok(v, 'U1 ' + k);
+
+// ida e volta com os iframes vivos: busca aplicada, pílula acesa, e o LEGIS sobrevive
+const u1b = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const fr = v => document.querySelector('iframe[data-ct-view="' + v + '"]');
+  const r = {};
+  const d = fr('areamod').contentDocument;
+  const chip = d.querySelector('#fluxo [data-legis]') || d.querySelector('#fluxo [data-juris]');
+  if (!chip) return { erro: 'sem chip no fluxo' };
+  chip.click(); await w(1800);
+  const legis = fr('legis');
+  try {
+    const ld = legis.contentDocument;
+    r.buscaChegou = !!(ld.getElementById('cq') || {}).value;
+    r.pilulaAcesa = !!ld.getElementById('ct-volta');
+    legis.contentWindow.__u1legis = 7;
+    ld.getElementById('ct-volta').click();
+  } catch (e) { return { erro: String(e).slice(0, 80) }; }
+  await w(1500);
+  r.voltouAoMapa = fr('areamod').style.display === 'block';
+  let vivo = false; try { vivo = legis.contentWindow.__u1legis === 7; } catch (e) {}
+  r.legisContinuaVivo = vivo;      // antes, voltar destruía a página do acervo
+
+  // segunda ida: agora o LEGIS já está montado, então a busca vai por MENSAGEM
+  const chip2 = fr('areamod').contentDocument.querySelector('#fluxo [data-legis]');
+  if (chip2) { chip2.click(); await w(1200); }
+  let vivo2 = false, termo2 = '';
+  try { vivo2 = legis.contentWindow.__u1legis === 7; termo2 = (legis.contentDocument.getElementById('cq') || {}).value; } catch (e) {}
+  r.segundaIdaSemRecarregar = vivo2;
+  r.segundaIdaAplicaBusca = !!termo2;
+  return r;
+});
+if (!u1b.erro) { for (const [k, v] of Object.entries(u1b)) ok(v, 'U1 ' + k); }
+else ok(false, 'U1 ida-e-volta: ' + u1b.erro);
+
+/* ===== BARRA: todo botão leva a uma tela (regressão dos botões mudos) =====
+   Prioridade e Simulado de 2ª fase trocavam a view para telas que não existiam
+   mais no template — clicar não abria nada. As páginas seguiam no bundle. */
+const barra = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const r = {};
+  for (const [view, arquivo] of [['prioridade', 'prioridade-web.html'], ['segundafase', 'segunda-fase-web.html']]) {
+    const b = document.querySelector('button[data-view="' + view + '"]');
+    if (!b) { r[view + 'TemBotao'] = false; continue; }
+    r[view + 'TemBotao'] = true;
+    b.click(); await w(1800);
+    const f = document.querySelector('iframe[data-ct-view="' + view + '"]');
+    r[view + 'Abre'] = !!f && f.getAttribute('src') === arquivo && f.style.display === 'block';
+    let texto = ''; try { texto = (f.contentDocument.body.innerText || '').trim(); } catch (e) {}
+    r[view + 'TemConteudo'] = texto.length > 200;
+  }
+  return r;
+});
+for (const [k, v] of Object.entries(barra)) ok(v, 'BARRA ' + k);
 
 await browser.close();
 srv.close();
