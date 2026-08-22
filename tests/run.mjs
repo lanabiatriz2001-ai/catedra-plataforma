@@ -77,6 +77,143 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
   ok(fs.readdirSync(path.join(RAIZ, 'public', 'fonts')).length > 10, 'D9 os .woff2 estão no deploy');
 }
 
+/* ============= U10 — PWA INSTALÁVEL E OFFLINE DE VERDADE ============= */
+// Estes testes rodam em http://localhost, onde o sw.js se AUTODESTRÓI de propósito
+// (senão o preview passa a servir asset velho). Registrar o worker aqui provaria o
+// contrário do que interessa. Então o caminho de PRODUÇÃO é simulado: o público
+// public/sw.js (gerado pelo build acima) é avaliado com um `self` de mentira, e o
+// que se afere são as FUNÇÕES DE DECISÃO — orçamento, fallback, listas de cache.
+{
+  const swSrc = fs.readFileSync(path.join(RAIZ, 'public', 'sw.js'), 'utf8');
+  const carregarSW = (origem, cota) => {
+    const eventos = {};
+    const self = {
+      location: new URL(origem + '/sw.js'),
+      addEventListener: (t, fn) => { (eventos[t] = eventos[t] || []).push(fn); },
+      navigator: { storage: { estimate: () => Promise.resolve(cota || { quota: 2e9, usage: 0 }) } },
+    };
+    new Function('self', swSrc)(self);
+    return { api: self.__ctSW, eventos };
+  };
+
+  // 1. o kill-switch continua de pé: fora de produção, ZERO handler de fetch
+  const dev = carregarSW('http://localhost:8123');
+  ok(!dev.api, 'U10 fora de produção o worker não expõe política de cache (kill-switch intacto)');
+  ok(!(dev.eventos.fetch || []).length, 'U10 fora de produção o worker não intercepta fetch nenhum');
+  const devFile = carregarSW('http://127.0.0.1:5500');
+  ok(!(devFile.eventos.fetch || []).length, 'U10 o kill-switch também vale para 127.0.0.1');
+
+  const { api: SW, eventos: evProd } = carregarSW('https://catedra.exemplo.app');
+  ok(!!SW && (evProd.fetch || []).length === 1, 'U10 em produção o worker instala o handler de fetch');
+
+  // 2. a casca cobre tudo o que o app precisa para ABRIR offline
+  const casca = SW.ASSETS;
+  const naCasca = (p) => casca.indexOf(p) >= 0;
+  ok(['./index.html', './support.js', './auth.js', './ct-dados.js'].every(naCasca),
+    'U10 a casca traz o documento e os scripts do runtime');
+  ok(['./prioridade-calc.js', './busca-unica.js', './semana-juris.js'].every(naCasca),
+    'U10 a casca traz os três scripts do <head> (antes só entravam depois da 1a visita)');
+  ok(casca.some(p => /^\.\/vendor\//.test(p)) && naCasca('./fonts.css') && casca.some(p => /^\.\/fonts\//.test(p)),
+    'U10 a casca traz as libs vendoradas e as fontes locais');
+  ok(!casca.some(p => /cyrillic|greek|vietnamese/.test(p)) && casca.filter(p => /^\.\/fonts\//.test(p)).length < 20,
+    'U10 só os subconjuntos latinos das fontes entram no precache');
+  ok(casca.filter(p => /\/dados\/[^/]+\/manifesto\.json$/.test(p)).length >= 1,
+    'U10 os manifestos dos acervos fatiados entram na casca (sem eles o CTDados desiste offline)');
+
+  // 3. o acervo é MEDIDO, não chutado, e cabe no orçamento
+  ok(SW.ACERVOS.length > 20, 'U10 o precache do acervo tem os satélites e os bancos (' + SW.ACERVOS.length + ' arquivos)');
+  ok(SW.ACERVOS.every(([p, b]) => typeof p === 'string' && b > 0),
+    'U10 todo item do acervo carrega o tamanho real do arquivo');
+  const totalAcervo = SW.ACERVOS.reduce((s, [, b]) => s + b, 0);
+  ok(totalAcervo <= SW.ORCAMENTO_ACERVO,
+    'U10 o acervo (' + (totalAcervo / 1048576).toFixed(1) + ' MB) cabe no orçamento de '
+    + (SW.ORCAMENTO_ACERVO / 1048576).toFixed(0) + ' MB');
+  const temAcervo = (p) => SW.ACERVOS.some(([c]) => c === p);
+  ok(['./legis-web.html', './juris-web.html', './ritos-web.html', './segunda-fase-web.html'].every(temAcervo),
+    'U10 as páginas satélite entram no precache');
+  ok(temAcervo('./juris-index.js') && temAcervo('./espelhos.js') && temAcervo('./questoes-prova.js'),
+    'U10 os acervos do estudo do dia entram no precache');
+  ok(SW.ACERVOS.filter(([c]) => /\/dados\/leis-seca\//.test(c)).length >= 10,
+    'U10 a lei seca entra em blocos (acervoLeis pede o acervo inteiro: bloco faltando vira lista vazia)');
+
+  // 4. a armadilha declarada na especificação: o blob de contas fica SÓ-ONLINE
+  const tudoQueSeCacheia = casca.concat(SW.ACERVOS.map(([c]) => c));
+  ok(!tudoQueSeCacheia.some(p => /contas-(index|text)\.js$/.test(p)
+    || /\/dados\/contas-text\/(?!manifesto\.json$)/.test(p)),
+    'U10 o blob de contas (11,2 MB) fica fora do precache — decisão comentada no sw.js');
+  // …mas o manifesto dele FICA: é o que faz o CTDados usar os blocos que ela já leu
+  // (IndexedDB/Cache) em vez de desistir e pedir o monolito de 8,7 MB que não está lá.
+  ok(casca.indexOf('./dados/contas-text/manifesto.json') >= 0,
+    'U10 o manifesto de contas fica em cache para o que ela já leu continuar abrindo offline');
+  ok(!tudoQueSeCacheia.some(p => /leis-seca\.js$/.test(p) || /discursivas-textos\.js$/.test(p)),
+    'U10 monolito de lei seca e discursivas-textos ficam fora (duplicado e não-usado)');
+
+  // 4b. camada 3: os pesados só descem quando ELA pede
+  const pedido = SW.ACERVOS_SOB_PEDIDO.map(([c]) => c);
+  ok(!tudoQueSeCacheia.some(p => /juris-text\.js$/.test(p) || /oral-conteudo\.js$/.test(p)
+    || /leis-seca-areas\.js$/.test(p)),
+    'U10 os três pesados não entram no aquecimento automático');
+  ok(['./juris-text.js', './oral-conteudo.js', './leis-seca-areas.js'].every(p => pedido.indexOf(p) >= 0),
+    'U10 …mas estão na lista de "Baixar tudo" (senão o simulado de súmulas nunca abriria offline)');
+  const somaPedido = SW.ACERVOS.concat(SW.ACERVOS_SOB_PEDIDO).reduce((s, [, b]) => s + b, 0);
+  ok(somaPedido <= SW.ORCAMENTO_PEDIDO && SW.ORCAMENTO_PEDIDO > SW.ORCAMENTO_ACERVO,
+    'U10 o pedido explícito tem orçamento próprio e maior (' + (somaPedido / 1048576).toFixed(1)
+    + ' MB de ' + (SW.ORCAMENTO_PEDIDO / 1048576).toFixed(0) + ' MB)');
+  const semEspaco = carregarSW('https://catedra.exemplo.app', { quota: 30 * 1048576, usage: 25 * 1048576 });
+  ok((await semEspaco.api.orcamentoDisponivel(true)) < SW.ORCAMENTO_PEDIDO,
+    'U10 pedido dela não cria espaço no aparelho: a cota continua limitando');
+
+  // 5. o orçamento é aritmética: corta a cauda, e item grande não trava a fila
+  const plano = SW.planoDeAquecimento([['a', 100], ['gigante', 5000], ['c', 50]], 200);
+  ok(plano.itens.length === 2 && plano.bytes === 150 && plano.cortados[0] === 'gigante',
+    'U10 o que não cabe é pulado sem interromper os itens seguintes');
+  ok(SW.planoDeAquecimento(SW.ACERVOS, 0).itens.length === 0,
+    'U10 orçamento zero não baixa nada (em vez de estourar a cota)');
+  const apertado = carregarSW('https://catedra.exemplo.app', { quota: 20 * 1048576, usage: 18 * 1048576 });
+  const orc = await apertado.api.orcamentoDisponivel();
+  ok(orc > 0 && orc < SW.ORCAMENTO_ACERVO,
+    'U10 com a cota do aparelho apertada o orçamento encolhe sozinho (' + Math.round(orc / 1024) + ' KB)');
+
+  // 6. fallback offline: cada tipo de pedido recebe a resposta certa
+  ok(SW.modoDeFallback({ url: 'https://x.app/legis-web.html', mode: 'navigate', destination: 'iframe' }) === 'pagina',
+    'U10 satélite em iframe recebe página própria (e não o app inteiro dentro do iframe)');
+  ok(SW.modoDeFallback({ url: 'https://x.app/juris-web.html', mode: 'navigate', destination: '' }) === 'pagina',
+    'U10 satélite sem destination (Safari antigo) também recebe a página própria');
+  ok(SW.modoDeFallback({ url: 'https://x.app/algo', mode: 'navigate', destination: 'document' }) === 'app',
+    'U10 rota qualquer do app cai no app inteiro, que resolve a tela sozinho');
+  ok(SW.modoDeFallback({ url: 'https://x.app/index.html', mode: 'navigate', destination: '' }) === 'app',
+    'U10 a entrada do app nunca é confundida com satélite');
+  ok(SW.modoDeFallback({ url: 'https://x.app/treino.js', mode: 'no-cors', destination: 'script' }) === 'recurso',
+    'U10 script sem cópia guardada é tratado como recurso');
+
+  const pg = SW.paginaOffline('Sem rede', 'texto');
+  const pgTxt = await pg.text();
+  ok(pg.status === 200 && /text\/html/.test(pg.headers.get('content-type') || ''),
+    'U10 a página de indisponível é HTML de verdade (200), não erro de rede cru');
+  ok(/Tentar de novo/.test(pgTxt) && /prefers-color-scheme/i.test(pgTxt),
+    'U10 a página de indisponível tem ação de recarregar e segue o tema do aparelho');
+
+  const rJs = SW.recursoOffline({ url: 'https://x.app/oral-conteudo.js' });
+  ok(rJs.status === 503, 'U10 script sem cache devolve 503 (dispara o onerror de quem pediu)');
+  const rJson = SW.recursoOffline({ url: 'https://x.app/dados/juris-text/a.json' });
+  ok(rJson.status === 503 && /application\/json/.test(rJson.headers.get('content-type') || ''),
+    'U10 bloco de acervo sem cache devolve 503 em JSON, não promessa quebrada');
+  // um .js vazio com 200 seria pior que o erro: o app acharia que o acervo carregou
+  ok(!/^\s*$/.test(await rJs.text()), 'U10 o corpo do 503 explica o que houve');
+
+  // 7. manifesto e ponte de instalação — o que o host dos Ajustes vai consumir
+  const mani = JSON.parse(fs.readFileSync(path.join(RAIZ, 'public', 'manifest.webmanifest'), 'utf8'));
+  ok(mani.id && mani.start_url === './index.html' && mani.display === 'standalone',
+    'U10 o manifesto publicado tem id estável, start_url do deploy e display standalone');
+  ok(mani.theme_color === '#0f7a57', 'U10 a cor do manifesto é a mesma do app (splash e barra combinam)');
+  ok((mani.icons || []).some(i => /\.png$/.test(i.src)), 'U10 o manifesto publicado tem ícone PNG (iOS)');
+  const idxHtml = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
+  ok(/window\.__catedraInstall\s*=/.test(idxHtml) && /beforeinstallprompt/.test(idxHtml),
+    'U10 o build segura o beforeinstallprompt (senão o item dos Ajustes não teria o que chamar)');
+  ok(/window\.__catedraOffline\s*=/.test(idxHtml) && /ctAquecerAcervos/.test(idxHtml),
+    'U10 o host tem por onde ler o estado do acervo offline e mandar baixar o resto');
+}
+
 
 /* ============================ SYNC (mergeAll) ============================ */
 await page.goto(URL0 + '/tests/sync-fixture.html');
