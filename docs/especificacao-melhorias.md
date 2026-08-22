@@ -672,3 +672,65 @@ texto/aria-label).
 `D9 → D1 → D2 → D3 → D5 → D4 → D7 → D6 → D8 → D10` — D9 é risco real de
 disponibilidade (primeiro); D1+D2 mudam a percepção do app inteiro de uma vez; o
 resto é polimento por tela e pode ir num único PR de "pente fino visual".
+
+---
+---
+
+# Parte 4 — Conteúdo e fontes
+
+Nasce da constatação da Lana (22/08): parte dos textos de prova publicados não é o
+texto real — deformado, com página de instruções no lugar do enunciado, ou ausente.
+A auditoria em `scripts/auditar-provas.mjs` mediu (relatório em
+`docs/auditoria-provas.md`). Decisão de fonte, tomada com ela: **o material vem dos
+PDFs oficiais das bancas** — público, gratuito e idêntico à prova real. Plataformas
+de questões (TEC Concursos, QConcursos e afins) entram só como PONTE POR LINK: seus
+termos de uso proíbem extração, e o Cátedra tem comunidade — redistribuir conteúdo
+delas seria infração, não zona cinzenta.
+
+## C1. Reprocessamento dos textos de prova + portão de qualidade
+
+**Objetivo.** Nenhum texto deformado publicado; ausência declarada com honestidade.
+
+**O que existe.** `build-provas-conteudo.mjs` (extração crua dos PDFs),
+`auditar-provas.mjs` (heurísticas + relatório + `--portao`), e o relatório com os
+ids reprovados por sintoma: 267/561 enunciados de discursivas, 59 espelhos com
+defeito e 570 provas sem espelho; 187/999 perguntas da oral (186 por código interno
+`<<…>>` — remoção mecânica); objetivas sãs.
+
+**O que construir.** Na sessão que tem os PDFs:
+1. Aplicar a receita do relatório na extração: cortar capa/instruções por marcador;
+   remover cabeçalho/rodapé por frequência de linha; espelho em tabela via
+   `page.find_tables()`; OCR no escaneado; strip de `<<…>>` na geração da oral.
+2. Reprocessar TODOS os ids do relatório e regenerar os .js publicados.
+3. Ligar `auditar-provas.mjs --portao` no fim do build de conteúdo: prova reprovada
+   NÃO publica texto — cai para "somente link".
+4. **Regra da honestidade na tela**: onde a banca não publicou espelho/padrão, o app
+   diz isso ("espelho não publicado pela banca") com o link do caderno oficial —
+   nunca preenche com texto de terceiros nem deixa vazio sem explicação. Separar,
+   nos 570 sem espelho, "banca não publicou" de "falta extrair".
+
+**Aceite.** `auditar-provas.mjs` zera os reprovados (ou o que restar está
+documentado como caso de banca); toda prova sem espelho mostra o aviso honesto.
+
+## C2. Ponte para plataformas de questões (TEC, QConcursos e afins)
+
+**Objetivo.** Aproveitar as plataformas que a Lana já assina SEM copiar conteúdo:
+um clique leva do ponto de estudo no Cátedra para praticar lá.
+
+**O que construir.**
+1. Mapa único de plataformas (`plataformas-questoes.js`):
+   `{tec:{nome:'TEC Concursos', busca:(q)=>'https://www.tecconcursos.com.br/questoes?…'},
+    qc:{nome:'QConcursos', busca:(q)=>…}}` — URLs de busca num só lugar (elas mudam;
+   um arquivo só para consertar).
+2. Links "Praticar no {plataforma}" em três lugares: no painel "onde estou fraca"
+   (query: disciplina + assunto fraco), na tela de assunto/edital, e em cada questão
+   do simulado (query: banca + ano + trecho do enunciado). Abrem em aba nova; o
+   paywall/login é problema da plataforma, não nosso.
+3. Ajustes → preferência de plataforma padrão (`catedra:plataformaQuestoes`,
+   registrar em `_autosaveKeys`); as demais ficam num menu secundário.
+
+**Regras.** NUNCA raspar, embutir por iframe ou copiar conteúdo dessas plataformas
+para dentro do app; nenhuma credencial delas passa pelo Cátedra. Só link de saída.
+
+**Aceite.** Do painel de prioridade dá para cair no TEC ou no QConcursos já filtrado
+no assunto fraco; a plataforma preferida é lembrada e sincroniza entre aparelhos.
