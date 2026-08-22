@@ -309,5 +309,11 @@ try{ const q=new URLSearchParams(location.search).get('rito');
   if(q && ORDEM.includes(q)) atual=q; }catch(e){}
 [...mats.children].forEach(b=>b.classList.toggle('on', b.dataset.k===atual));
 pinta();
+
+/* ---- volta do acervo: ?peca=Nome (+ &bloco=N) reabre o roteiro no bloco exato.
+   O host manda estes parâmetros quando ela toca "voltar" no LEGIS/JURIS — o iframe
+   recarregou na ida, então o ponto só sobrevive viajando na URL. ---- */
+try{ const u=new URLSearchParams(location.search), pc=u.get('peca');
+  if(pc && PECAS[pc]) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
 </script>
 </body></html>
