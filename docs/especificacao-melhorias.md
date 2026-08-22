@@ -918,3 +918,47 @@ claro/escuro respeitado; nenhuma regressão no PiP nem no cronômetro persistent
 sala nova reusa os mesmos estados (`pomoPhase`, `studiedSeconds`, `focusBlockIdx`);
 mexer só na camada visual. Silenciar notificações = adiar os toasts internos,
 não perder os eventos.
+
+---
+
+## D14. Varredura de ligações perdidas — todo botão leva a uma tela, todo `{{ var }}` resolve
+
+**Por quê.** Duas falhas do mesmo tipo apareceram no mesmo dia, e as duas passaram
+despercebidas por meses. Os botões *Simulado 2ª fase* e *Prioridade* da barra
+lateral (a) usavam `style="{{ navSegundaFase }}"`/`{{ navPrioridade }}`, que nunca
+entraram no `render()` — o dc-runtime resolve variável ausente como string vazia,
+então os dois caíam no estilo padrão do navegador (pílula branca na barra escura);
+e (b) trocavam a `view` para telas que não existiam mais no template — o bloco
+`<sc-if isPrioridade>`/`<sc-if isSegundaFase>` com o iframe tinha se perdido numa
+resolução de conflito de merge (fbd002c), e clicar não abria nada. As páginas
+`prioridade-web.html` e `segunda-fase-web.html` seguiam no bundle, nos builds e nos
+testes esse tempo todo. Corrigido em 22/08; o que falta é impedir a reincidência.
+
+**O risco é estrutural**, não um descuido: o `Catedra.dc.html` tem ~12 mil linhas,
+o template e o `render()` ficam a milhares de linhas de distância um do outro, e o
+runtime não reclama de nada — variável órfã vira vazio, view sem bloco vira tela em
+branco. Merge de duas sessões (Mac e web) no mesmo arquivo é o cenário em que isso
+acontece.
+
+**O que fazer.**
+1. **Teste de ligação de views** em `tests/run.mjs`: extrair do template todos os
+   `data-view="…"` e conferir que, para cada um, existe `view==='…'` no `render()` —
+   e, para as views de página satélite, um `<sc-if>` com o iframe correspondente.
+   Falhar o CI quando um botão levar a lugar nenhum.
+2. **Teste de variável órfã**: extrair os `{{ nome }}` do template (ignorando os de
+   escopo de `<sc-for>`, que vêm do item) e conferir que cada um aparece como chave
+   no objeto devolvido pelo `render()`. Começar com a lista atual de pendências
+   registrada como exceção explícita e ir zerando — inclusive o `{{ p.short }}` que
+   já aparece no console.
+3. **Varredura única agora**: rodar os dois testes, listar tudo que falha e
+   consertar item a item (é onde mora a família de avisos `never resolved` do
+   console).
+
+**Aceite.** Os dois testes entram no `npm test`/CI; nenhum `data-view` sem tela;
+a lista de exceções de variáveis órfãs só encolhe. Um merge que derrube uma ligação
+passa a quebrar o CI em vez de quebrar a tela da Lana.
+
+**Armadilha.** O parser não precisa ser um parser de verdade — regex sobre o texto
+do template basta, desde que ignore o que está dentro de `<sc-for>` (escopo do item)
+e os `{{ }}` em comentários HTML. Melhor um teste simples com poucas exceções
+declaradas do que um analisador esperto que ninguém entende depois.
