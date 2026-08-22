@@ -12,6 +12,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <title>Cátedra · Plataforma de estudos</title>
 <meta name="description" content="Protótipo funcional da Cátedra para organizar estudos, revisões, simulados e materiais.">
 <script src="./prioridade-calc.js"></script>
+<!-- motor da busca do ⌘K (item 6): leve (4 KB) e sem dados; os acervos entram sob demanda -->
+<script src="./busca-unica.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -805,15 +807,24 @@ window.ctPdfLib = (function(){
         <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Paleta de comando" class="ct-modal-panel" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 60px rgba(0,0,0,.4);overflow:hidden;">
           <div style="display:flex;align-items:center;gap:11px;padding:16px 18px;border-bottom:1px solid var(--border);">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--text3)" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5" stroke-linecap="round"></path></svg>
-            <input autofocus="" value="{{ paletteQuery }}" oninput="{{ onPaletteQuery }}" placeholder="Buscar telas e ações… (ex.: revisão, foco, erro)" style="flex:1;border:none;background:transparent;outline:none;font-size:var(--fs-lg);color:var(--ink);font-family:inherit;">
+            <input autofocus="" value="{{ paletteQuery }}" oninput="{{ onPaletteQuery }}" placeholder="Buscar tudo: telas, leis, súmulas, peças, ritos… (ex.: CPC, súmula 619, sentença)" style="flex:1;border:none;background:transparent;outline:none;font-size:var(--fs-lg);color:var(--ink);font-family:inherit;">
             <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);border:1px solid var(--border);border-radius:var(--r-sm);padding:2px 7px;">ESC</span>
           </div>
           <div class="ct-scroll" style="max-height:340px;overflow:auto;padding:8px;">
+            <sc-if value="{{ palBuscando }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:14px 12px;font-size:var(--fs-sm);color:var(--text3);">Procurando no acervo…</div>
+            </sc-if>
+            <sc-if value="{{ palSemNada }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:14px 12px;font-size:var(--fs-sm);color:var(--text3);line-height:1.5;">Nada com esse nome em telas, leis, jurisprudência, peças ou ritos. Tente a sigla (CPC, CTN) ou o número da lei.</div>
+            </sc-if>
             <sc-for list="{{ palItems }}" as="p" hint-placeholder-count="6">
-              <button data-view="{{ p.view }}" data-act="{{ p.act }}" data-open="{{ p.open }}" onclick="{{ paletteGo }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:11px 12px;font-family:inherit;" style-hover="background:var(--surface2);">
-                <span style="width:28px;height:28px;border-radius:var(--r-md);background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
-                <span style="flex:1;font-size:var(--fs-base);color:var(--ink);font-weight:500;">{{ p.label }}</span>
-                <span style="font-size:var(--fs-xs);color:var(--text3);">{{ p.hint }}</span>
+              <sc-if value="{{ p.secaoShow }}" hint-placeholder-val="{{ true }}">
+                <div style="padding:10px 12px 5px;font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">{{ p.secao }}</div>
+              </sc-if>
+              <button data-view="{{ p.view }}" data-act="{{ p.act }}" data-open="{{ p.open }}" data-kind="{{ p.kind }}" data-arg="{{ p.arg }}" onclick="{{ paletteGo }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:11px 12px;font-family:inherit;" style-hover="background:var(--surface2);">
+                <span style="width:28px;height:28px;border-radius:var(--r-md);background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none;font-size:15px;"><sc-if value="{{ p.ehTela }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if><sc-if value="{{ p.ehConteudo }}" hint-placeholder-val="{{ false }}">{{ p.ico }}</sc-if></span>
+                <span style="flex:1;min-width:0;font-size:var(--fs-base);color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.label }}</span>
+                <span style="font-size:var(--fs-xs);color:var(--text3);max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.hint }}</span>
               </button>
             </sc-for>
           </div>
@@ -4988,7 +4999,7 @@ class Component extends DCLogic {
       // bancas reais: as 999 perguntas com padrão de resposta (oral-conteudo.js)
       oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'', discCarregado:false, discErro:false,
       perfMode:'liquido',
-      paletteOpen:false, paletteQuery:'',
+      paletteOpen:false, paletteQuery:'', palBuscaPronta:false,
       // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
       // sem botão para sair dela (o botão não existe mais). Cai para texto.
       multiFmt:(this._load('multiFmt', 'texto')==='video'?'texto':this._load('multiFmt', 'texto')), mfTtsBusy:false, multiSrc:this._load('multiSrc', ''), mfGen:this._load('mfGen', {}), mfBusy:'', breathOn:false, mood:'',
@@ -9108,7 +9119,7 @@ class Component extends DCLogic {
   userMenuGo = (e)=>{ const v=e.currentTarget.dataset.view; this.setState({view:v, userMenuOpen:false, menuOpen:false}); };
 
   // ===== paleta de comando (Ctrl/Cmd+K) =====
-  openPalette = ()=> this.setState({paletteOpen:true, paletteQuery:''});
+  openPalette = ()=>{ this._palMontar(); this.setState({paletteOpen:true, paletteQuery:''}); };
   setMultiFmt = (e)=> this.setState({multiFmt:e.currentTarget.dataset.k});
   setMultiSrc = (e)=> this.setState({multiSrc:e.currentTarget.value});
   // Narração em voz do Google (Gemini TTS via /api/tts). O roteiro já existia como
@@ -9182,9 +9193,66 @@ class Component extends DCLogic {
   setOrientSlider = (e)=>{ const k=e.currentTarget.dataset.k; const v=parseInt(e.currentTarget.value,10); this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>this._persistOrient()); };
   setOrientRadio = (e)=>{ const v=e.currentTarget.dataset.v; this.setState(s=>({orient:{...s.orient,energiaPlano:v}}), ()=>{ this._persistOrient(); if(this.state.cycleMode==='sugestao') this.setState({blocks:this._genSugestao()}); }); };
   saveOrient = ()=>{ this._persistOrient(); this.setState({orientFlash:true}); clearTimeout(this._ot); this._ot=setTimeout(()=>this.setState({orientFlash:false}),1600); };
+
+  // ===== BUSCA ÚNICA NO ⌘K (item 6 da especificação) ===================================
+  // A paleta passa a achar CONTEÚDO — lei, verbete, peça e rito — além de telas e ações.
+  // O índice é montado na PRIMEIRA busca, nunca no boot: juris-index.js tem 2,4 MB e
+  // carregá-lo à toa atrasaria a abertura do app em todo aparelho.
+  _palIndice=null; _palCarregando=false;
+  _palScript(src){ return new Promise((ok,falha)=>{
+    if(document.querySelector('script[data-pal="'+src+'"]')) return ok();
+    const t=document.createElement('script'); t.src='./'+src; t.setAttribute('data-pal',src);
+    t.onload=()=>ok(); t.onerror=()=>falha(new Error(src)); document.head.appendChild(t); }); }
+  _palMontar(){
+    if(this._palIndice || this._palCarregando) return;
+    this._palCarregando=true;
+    const precisa=[];
+    if(!window.CT_LEIS_CAT) precisa.push('leis-catalogo.js');
+    if(!window.__JURIS_IDX__) precisa.push('juris-index.js');
+    if(!window.CT_PECAS) precisa.push('pecas.js');
+    if(!window.CT_RITOS) precisa.push('ritos.js');
+    if(!window.CT_FLUXOS) precisa.push('fluxos.js');   // há rito que só existe aqui (ex.: procedimento sumário)
+    // cada fonte que falhar simplesmente não entra no índice (o resto continua buscável)
+    Promise.all(precisa.map(f=>this._palScript(f).catch(()=>null))).then(()=>{
+      try{
+        this._palIndice=(window.CT_BUSCA||{}).indexar ? window.CT_BUSCA.indexar({
+          leis:window.CT_LEIS_CAT, verbetes:window.__JURIS_IDX__,
+          pecas:window.CT_PECAS,
+          // o ritos-web.html aceita a UNIÃO dos dois: indexar só CT_RITOS deixava rito inalcançável
+          ritos:Object.assign({}, window.CT_FLUXOS||{}, window.CT_RITOS||{}) }) : [];
+      }catch(_){ this._palIndice=[]; }
+      this._palCarregando=false;
+      this.setState({palBuscaPronta:true});
+    });
+  }
+  /** Resultados de conteúdo para a paleta, já achatados em itens de lista com seção. */
+  _palConteudo(q, permite){
+    if(!this._palIndice || !window.CT_BUSCA) return [];
+    const SEC={lei:'Leis', verbete:'Jurisprudência', peca:'Peças', rito:'Ritos'};
+    const ICO={lei:'⚖️', verbete:'🏛️', peca:'✍️', rito:'🧭'};
+    const r=window.CT_BUSCA.buscar(this._palIndice, q, {porTipo:8});
+    const out=[];
+    window.CT_BUSCA.ORDEM.forEach(t=>{
+      if(permite && permite[t]===false) return;   // fora da área jurídica, JURIS/peças/ritos não abrem
+      (r[t]||[]).forEach((it,i)=>{
+        out.push({ kind:t, arg:it.arg, label:it.titulo, hint:it.extra,
+                   ico:ICO[t], secao:SEC[t], secaoShow:i===0, ehTela:false, ehConteudo:true });
+      });
+    });
+    return out;
+  }
+
   closePalette = ()=> this.setState({paletteOpen:false});
-  onPaletteQuery = (e)=> this.setState({paletteQuery:e.currentTarget.value});
+  onPaletteQuery = (e)=>{ const v=e.currentTarget.value; this.setState({paletteQuery:v});
+    if((v||'').trim().length>=2) this._palMontar(); };   // índice sob demanda, nunca no boot
   paletteGo = (e)=>{ const v=e.currentTarget.dataset.view; const act=e.currentTarget.dataset.act; if(v==='comunidade') try{ this._loadGrupos(); }catch(_){} if(v==='admin') try{ this._loadAdmin(); }catch(_){}
+    // CONTEÚDO (item 6): lei/verbete abrem o acervo já buscando; peça/rito abrem o mapa
+    // no ponto exato — mesmo canal do ida-e-volta (o ponto viaja na URL do iframe).
+    const kind=e.currentTarget.dataset.kind, arg=e.currentTarget.dataset.arg||'';
+    if(kind==='lei'){ this.setState({paletteOpen:false, menuOpen:false, view:'legis', acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
+    if(kind==='verbete'){ this.setState({paletteOpen:false, menuOpen:false, view:'juris', acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
+    if(kind==='peca'){ this.setState({paletteOpen:false, menuOpen:false, view:'roteiros', acervoBusca:'', acervoDe:null, origemAbrir:'peca='+encodeURIComponent(arg)}); return; }
+    if(kind==='rito'){ this.setState({paletteOpen:false, menuOpen:false, view:'areamod', acervoBusca:'', acervoDe:null, origemAbrir:'rito='+encodeURIComponent(arg)}); return; }
     if(act==='foco'){ this.setState({paletteOpen:false}); this.enterFocus(); return; }
     if(act==='registrar'){ this.setState({paletteOpen:false, sessionModalOpen:true}); return; }
     const openId=e.currentTarget.dataset.open;
@@ -10709,7 +10777,17 @@ class Component extends DCLogic {
     const palHl = _allHls.slice(0,40).map(h=>({open:h.itemId, label:'“'+(h.text||'').slice(0,52)+(h.text&&h.text.length>52?'…':'')+'”', hint:'destaque · '+h.titulo}));
     const palPool = palItemsAll.concat(palLib, palHl);
     const pq=(this.state.paletteQuery||'').toLowerCase();
-    const palItems=(pq?palPool.filter(x=>x.label.toLowerCase().includes(pq)||(x.hint||'').toLowerCase().includes(pq)):palItemsAll).slice(0,9);
+    // "Telas e ações" primeiro (é o que a paleta sempre fez), depois o CONTEÚDO por seção
+    const palTelas=(pq?palPool.filter(x=>x.label.toLowerCase().includes(pq)||(x.hint||'').toLowerCase().includes(pq)):palItemsAll).slice(0,6)
+      .map((x,i)=>({...x, secao:'Telas e ações', secaoShow:i===0, ico:'', ehTela:true, ehConteudo:false}));
+    // fora de carreira jurídica a view 'juris' nem existe e 'rito=' é ignorado: não
+    // oferecer resultado que não leva a lugar nenhum
+    const _palJuridica=(_area.id==='juridica' && !!areaModLabel);
+    const _palPode={ lei:true, verbete:areaJuris, peca:_palJuridica, rito:_palJuridica };
+    const palConteudo=pq?this._palConteudo(this.state.paletteQuery||'', _palPode):[];
+    const palItems=palTelas.concat(palConteudo).slice(0,40);
+    const palBuscando=!!(pq && pq.length>=2 && !this._palIndice);
+    const palSemNada=!!(pq && pq.length>=2 && this._palIndice && !palItems.length);
 
     // ===== multiformato + bem-estar =====
     const _mf=this.state.multiFmt;
@@ -11873,7 +11951,7 @@ class Component extends DCLogic {
       // desempenho — modos de cálculo
       perfModes, perfActive, perfBarRows, setPerfMode:this.setPerfMode,
       // paleta de comando
-      paletteOpen:this.state.paletteOpen, paletteQuery:this.state.paletteQuery, palItems,
+      paletteOpen:this.state.paletteOpen, paletteQuery:this.state.paletteQuery, palItems, palBuscando, palSemNada,
       // multiformato
       isMulti:this.state.view==='multiformato', navMulti:navStyle('multiformato'), setMultiFmt:this.setMultiFmt,
       narrarMf:this.narrarMf, mfTtsBusy:this.state.mfTtsBusy,
