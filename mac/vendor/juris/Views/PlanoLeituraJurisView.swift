@@ -18,72 +18,60 @@ enum JurisPlanoStore {
 struct PlanoLeituraJurisView: View {
     @State private var lidos: Set<Int> = JurisPlanoStore.lidos()
 
+    /// Cor da trilha = cor do TRIBUNAL (Palette), não um RGB próprio.
     private func cor(_ trilha: String) -> Color {
-        switch trilha {
-        case "STJ": return Color(red: 0.05, green: 0.58, blue: 0.53)   // teal
-        case "TSE": return Color(red: 0.49, green: 0.36, blue: 0.86)   // roxo
-        default:    return Color(red: 0.28, green: 0.42, blue: 0.92)   // azul (STF / SV)
-        }
+        Palette.corDeTribunal(trilha == "STJ" || trilha == "TSE" ? trilha : "STF")
     }
     private var frac: Double {
         JurisPlano.totalDias == 0 ? 0 : Double(lidos.count) / Double(JurisPlano.totalDias)
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                header
-                ForEach(Array(JurisPlano.porTrilha.enumerated()), id: \.offset) { _, g in
-                    trilhaBloco(g.trilha, g.dias)
+        SectionShell(icon: Selecao.plano.simbolo, title: Selecao.plano.titulo,
+                     subtitle: "Súmulas — STF, STJ e TSE · \(JurisPlano.totalDias) dias · \(JurisPlano.totalSumulas) súmulas no seu roteiro",
+                     count: JurisPlano.totalDias) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    header
+                    ForEach(Array(JurisPlano.porTrilha.enumerated()), id: \.offset) { _, g in
+                        trilhaBloco(g.trilha, g.dias)
+                    }
+                    Color.clear.frame(height: 28)
                 }
-                Color.clear.frame(height: 28)
+                .padding(24)
+                .frame(maxWidth: 900, alignment: .leading)
+                .frame(maxWidth: .infinity)
             }
-            .padding(24)
-            .frame(maxWidth: 900, alignment: .leading)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(Palette.appBackground)
+        // Relê ao voltar: se o dia foi marcado em outro aparelho/pela web, reflete sem reabrir o app.
+        .onAppear { lidos = JurisPlanoStore.lidos() }
     }
 
     private var header: some View {
         HStack(alignment: .center, spacing: 16) {
+            ChecklistRing(frac: frac, stops: [Palette.accent, Palette.accentSoft], size: 66, line: 8,
+                          center: "\(Int((frac * 100).rounded()))%")
             VStack(alignment: .leading, spacing: 4) {
-                Text("PLANO DE LEITURA").font(.system(size: 11, weight: .heavy)).tracking(1.5)
-                    .foregroundStyle(Palette.accent)
-                Text("Súmulas — STF, STJ e TSE").font(Typo.serifTitle(24)).foregroundStyle(Palette.titleInk)
-                Text("\(JurisPlano.totalDias) dias · \(JurisPlano.totalSumulas) súmulas · no seu roteiro")
+                Text("\(lidos.count) de \(JurisPlano.totalDias) dias lidos")
+                    .font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk)
+                Text("Marque o dia ao terminar a faixa — o registro vai para o Cátedra.")
                     .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
             }
             Spacer(minLength: 12)
-            ZStack {
-                Circle().stroke(Palette.hairline, lineWidth: 7).frame(width: 66, height: 66)
-                Circle().trim(from: 0, to: frac)
-                    .stroke(Palette.accent, style: StrokeStyle(lineWidth: 7, lineCap: .round))
-                    .rotationEffect(.degrees(-90)).frame(width: 66, height: 66)
-                VStack(spacing: 0) {
-                    Text("\(lidos.count)").font(.system(size: 18, weight: .heavy)).foregroundStyle(Palette.titleInk)
-                    Text("/\(JurisPlano.totalDias)").font(.system(size: 9)).foregroundStyle(Palette.secondaryInk)
-                }
-            }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 
     private func trilhaBloco(_ trilha: String, _ dias: [JurisPlanoDia]) -> some View {
         let c = cor(trilha)
         let feitos = dias.filter { lidos.contains($0.dia) }.count
         return VStack(alignment: .leading, spacing: 7) {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 3).fill(c).frame(width: 5, height: 20)
-                Text("Súmulas \(trilha)").font(Typo.serifTitle(17)).foregroundStyle(Palette.titleInk)
-                Text("\(feitos)/\(dias.count) dias").font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Palette.secondaryInk)
-                Spacer(minLength: 0)
-            }
-            .padding(.top, 6)
+            JurisSecaoTitulo(titulo: "Súmulas \(trilha)", simbolo: "building.columns.fill", cor: c, count: feitos)
+                .padding(.top, 6)
             ForEach(dias) { d in diaRow(d, c) }
         }
     }
@@ -117,7 +105,7 @@ struct PlanoLeituraJurisView: View {
         }
         .padding(.horizontal, 13).padding(.vertical, 9)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 11))
-        .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 }

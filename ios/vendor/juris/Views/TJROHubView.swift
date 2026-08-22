@@ -19,52 +19,43 @@ struct TJROHubView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                cabecalho
-                if buscando { checando }
-                if let r = resultado { resultadoCard(r) }
-                secao("Súmulas do TJRO", "building.2.fill", Palette.fonteTJRO, sumulas)
-                secao("IRDR, IAC e Enunciados", "signpost.right.fill", Palette.fonteTJROprec, precedentes)
-                Color.clear.frame(height: 20)
+        VStack(spacing: 0) {
+            HubBackBar(rotulo: "Tribunais Específicos") { store.ir(.central(.especificos)) }
+            SectionShell(icon: Selecao.tjroHub.simbolo, title: Selecao.tjroHub.titulo,
+                         subtitle: "Seu tribunal, num lugar só — súmulas, IRDR/IAC e enunciados, com verificação ao vivo no LIAME.",
+                         count: sumulas.count + precedentes.count,
+                         trailing: AnyView(botaoLiame),
+                         tintStops: [Palette.fonteTJRO, Palette.fonteTJRO.opacity(0.7)]) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 22) {
+                        if buscando { checando }
+                        if let r = resultado { resultadoCard(r) }
+                        secao("Súmulas do TJRO", "building.2.fill", Palette.fonteTJRO, sumulas)
+                        secao("IRDR, IAC e Enunciados", "signpost.right.fill", Palette.fonteTJROprec, precedentes)
+                        Color.clear.frame(height: 20)
+                    }
+                    .padding(26)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding(26)
         }
-        .background(Palette.appBackground)
         .task {
             if !jaChecou { jaChecou = true; await fetchLiame() }
         }
     }
 
-    // MARK: Cabeçalho + ação ao vivo
+    // MARK: Ação ao vivo
 
-    private var cabecalho: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Central do TJRO").font(Typo.serifTitle(28, .bold)).foregroundStyle(Palette.titleInk)
-                    Text("Seu tribunal, num lugar só — súmulas, IRDR/IAC e enunciados.")
-                        .font(Typo.serifBody(13.5)).foregroundStyle(Palette.secondaryInk)
-                }
-                Spacer(minLength: 0)
-                Button { Task { await fetchLiame() } } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                        Text("Buscar novidades").font(.system(size: 12.5, weight: .semibold))
-                    }
-                    .foregroundStyle(.white).padding(.horizontal, 14).padding(.vertical, 9)
-                    .background(Palette.fonteTJRO, in: Capsule())
-                }
-                .buttonStyle(.plain).disabled(buscando)
+    private var botaoLiame: some View {
+        Button { Task { await fetchLiame() } } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                Text("Buscar novidades").font(.system(size: 12.5, weight: .semibold))
             }
+            .foregroundStyle(.white).padding(.horizontal, 14).padding(.vertical, 9)
+            .background(Palette.fonteTJRO, in: Capsule())
         }
-        .padding(22)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(colors: [Palette.fonteTJRO.opacity(0.16), Palette.cardBackground],
-                           startPoint: .topLeading, endPoint: .bottomTrailing),
-            in: RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Palette.hairline, lineWidth: 1))
+        .buttonStyle(.plain).disabled(buscando)
     }
 
     private var checando: some View {
@@ -88,7 +79,7 @@ struct TJROHubView: View {
                 }
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Palette.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
+                .background(Palette.accent.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
             }
             if !novos.isEmpty {
                 Text("Esses ainda não estão no acervo do app — entram numa próxima atualização do acervo (com tese, ramo e link oficial).")
@@ -98,50 +89,17 @@ struct TJROHubView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Palette.hairline, lineWidth: 1))
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 
-    // MARK: Listas
+    // MARK: Listas — CartaoJuris(.row): lombada na cor do RAMO, tribunal no badge.
 
     private func secao(_ titulo: String, _ simbolo: String, _ cor: Color, _ itens: [JurisEntry]) -> some View {
         VStack(alignment: .leading, spacing: 11) {
-            HStack(spacing: 7) {
-                Image(systemName: simbolo).font(.system(size: 13)).foregroundStyle(cor)
-                Text(titulo).font(Typo.serifTitle(17, .bold)).foregroundStyle(Palette.titleInk)
-                Text("\(itens.count)").font(.system(size: 11, weight: .bold))
-                    .padding(.horizontal, 7).padding(.vertical, 1)
-                    .background(cor.opacity(0.16), in: Capsule()).foregroundStyle(cor)
-            }
-            VStack(spacing: 8) { ForEach(itens) { linha($0, cor) } }
+            JurisSecaoTitulo(titulo: titulo, simbolo: simbolo, cor: cor, count: itens.count)
+            VStack(spacing: 8) { ForEach(itens) { CartaoJuris(entry: $0, estilo: .row) } }
         }
-    }
-
-    private func linha(_ e: JurisEntry, _ cor: Color) -> some View {
-        Button { store.lerCheio(e.id) } label: {
-            HStack(alignment: .top, spacing: 10) {
-                if store.isLido(e.id) {
-                    Image(systemName: "checkmark.circle.fill").font(.system(size: 13)).foregroundStyle(Palette.fonteSTJ)
-                } else {
-                    Image(systemName: "circle").font(.system(size: 13)).foregroundStyle(Palette.secondaryInk.opacity(0.4))
-                }
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 7) {
-                        Text(e.titulo).font(Typo.serifTitle(13.5, .semibold)).foregroundStyle(Palette.titleInk).lineLimit(1)
-                        if let s = e.situacao { SituacaoPill(texto: s) }
-                        Spacer(minLength: 0)
-                    }
-                    Text(e.enunciado).font(Typo.serifBody(12)).foregroundStyle(Palette.bodyInk.opacity(0.85))
-                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .padding(11)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 10))
-            .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3).padding(.vertical, 10) }
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.hairline, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: Busca ao vivo no LIAME

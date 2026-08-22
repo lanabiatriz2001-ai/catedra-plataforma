@@ -1,93 +1,16 @@
 import SwiftUI
 
-// MARK: - Card de verbete
-
-struct CartaoJuris: View {
-    let entry: JurisEntry
-    @Environment(LibraryStore.self) private var store
-    @State private var hovering = false
-
-    var body: some View {
-        Button { store.lerCheio(entry.id) } label: {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
-                    FonteBadge(fonte: entry.fonteKind, compact: true)
-                    Spacer()
-                    if store.isImportante(entry) {
-                        Image(systemName: "bolt.fill").font(.system(size: 9)).foregroundStyle(Palette.accent)
-                    }
-                    if store.isFavorite(entry.id) {
-                        Image(systemName: "star.fill").font(.system(size: 9)).foregroundStyle(.yellow)
-                    }
-                }
-                Text(entry.titulo)
-                    .font(Typo.serifTitle(15, .bold)).foregroundStyle(Palette.titleInk)
-                    .lineLimit(1)
-                Text(entry.enunciado)
-                    .font(Typo.serifBody(11.5)).foregroundStyle(Palette.bodyInk.opacity(0.85))
-                    .lineLimit(3).lineSpacing(1.5)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 0)
-                if let r = entry.ramoDireito {
-                    Text(r).font(.system(size: 9.5, weight: .semibold))
-                        .foregroundStyle(RamoStyle.color(r)).lineLimit(1)
-                }
-            }
-            .padding(13)
-            .frame(width: 236, height: 150, alignment: .topLeading)
-            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(alignment: .leading) {
-                // Lombada na cor do RAMO (vitrine) — a fonte segue no badge.
-                RoundedRectangle(cornerRadius: 2).fill(RamoStyle.color(entry.ramoDireito))
-                    .frame(width: 3).padding(.vertical, 14)
-            }
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
-            .shadow(color: hovering ? RamoStyle.color(entry.ramoDireito).opacity(0.25) : .black.opacity(0.05),
-                    radius: hovering ? 10 : 5, y: hovering ? 5 : 2)
-            .scaleEffect(hovering ? 1.02 : 1)
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering = $0 }
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hovering)
-    }
-}
-
-// MARK: - Prateleira (shelf)
-
-struct Prateleira<Conteudo: View>: View {
-    let titulo: String
-    var simbolo: String? = nil
-    var verTodos: (() -> Void)? = nil
-    @ViewBuilder var conteudo: () -> Conteudo
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 7) {
-                if let s = simbolo { Image(systemName: s).font(.system(size: 12)).foregroundStyle(Palette.accent) }
-                Text(titulo).font(Typo.serifTitle(17, .bold)).foregroundStyle(Palette.titleInk)
-                Spacer()
-                if let v = verTodos {
-                    Button(action: v) {
-                        HStack(spacing: 3) { Text("Ver todos"); Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold)) }
-                            .font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.accent)
-                    }.buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 26)
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 12) { conteudo() }
-                    .padding(.horizontal, 26).padding(.vertical, 2)
-            }
-        }
-    }
-}
-
 // MARK: - Home
 
+/// Início em QUATRO blocos fixos, na ordem da rotina de quem treina magistratura:
+///   HOJE       — saudação/meta + o que revisar agora (SRS vencidos, checklist) + julgado do dia
+///   TREINAR    — simulado, prova oral (treino), prova oral das bancas, plano, mapas, baralhos
+///   ACOMPANHAR — últimos informativos, novidades dos tribunais, continue de onde parou, progresso
+///   ACERVO     — favoritos + explorar por disciplina (as prateleiras de fonte fixa
+///                TJRO/STF saíram: cada uma já tem Central própria na sidebar)
 struct HomeView: View {
     @Environment(LibraryStore.self) private var store
     @State private var busca = ""
-    @FocusState private var buscaFocada: Bool
 
     private func amostra(_ f: (JurisEntry) -> Bool, _ n: Int = 14) -> [JurisEntry] {
         Array(store.entries.lazy.filter(f).prefix(n))
@@ -99,41 +22,9 @@ struct HomeView: View {
     private func submeterBusca() {
         let q = busca.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return }
+        store.ir(.todos)
         store.searchText = q
-        store.selectedID = nil
-        store.selecao = .todos
         busca = ""
-    }
-
-    private var barraBusca: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").font(.system(size: 13, weight: .medium))
-                .foregroundStyle(buscaFocada ? Palette.accent : Palette.secondaryInk)
-            TextField("Buscar em toda a jurisprudência…", text: $busca)
-                .textFieldStyle(.plain).font(.system(size: 13.5))
-                .foregroundStyle(Palette.bodyInk)
-                .focused($buscaFocada)
-                .onSubmit(submeterBusca)
-            if !busca.isEmpty {
-                Button { submeterBusca() } label: {
-                    Text("Buscar").font(.system(size: 11.5, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10).padding(.vertical, 4)
-                        .background(Palette.accent, in: Capsule())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 13).padding(.vertical, 9)
-        .background(Palette.cardBackground, in: Capsule())
-        .overlay(Capsule().strokeBorder(buscaFocada ? Palette.accent.opacity(0.6) : Palette.hairline, lineWidth: 1))
-        .padding(.horizontal, 26)
-    }
-
-    private var destaque: JurisEntry? {
-        store.recentEntries.first
-            ?? store.entries.first { store.isImportante($0) && $0.fonteKind == .repercussaoGeral }
-            ?? store.entries.first { $0.fonteKind == .sumulaSTF }
     }
 
     private var novidadeVerbetes: [JurisEntry] {
@@ -142,23 +33,25 @@ struct HomeView: View {
 
     var body: some View {
         ScrollView {
-            // Home em QUATRO blocos nomeados, nesta ordem: o que fazer hoje → como estudar →
-            // o que acompanhar → como estou. Antes era uma pilha sem hierarquia (destaques,
-            // busca, painel inteiro, resumo por IA, hero, prateleiras…) em que o julgado do
-            // dia brigava com o painel de métricas pela abertura.
-            VStack(alignment: .leading, spacing: 28) {
-                barraBusca
-                cabecalhoSecao("Hoje", "sun.max.fill")
+            VStack(alignment: .leading, spacing: 26) {
+                JurisCampoBusca(prompt: "Buscar em toda a jurisprudência…", texto: $busca, aoSubmeter: submeterBusca)
+                    .padding(.horizontal, 26)
+
+                bloco("Hoje", "sun.max.fill")
                 JurisDashboardView(partes: [.hero])
+                JurisHojeResumo()
+                    .padding(.horizontal, 26)
                 DestaquesEstudoView(parte: .julgado)
-                cabecalhoSecao("Estudar", "graduationcap.fill")
-                gradeEstudar
+
+                bloco("Treinar", "graduationcap.fill")
+                gradeTreinar
                 JurisDashboardView(partes: [.atalhos])
-                cabecalhoSecao("Acompanhar", "newspaper.fill")
+
+                bloco("Acompanhar", "newspaper.fill")
                 DestaquesEstudoView(parte: .informativos)
                 if !novidadeVerbetes.isEmpty {
                     Prateleira(titulo: "Novidades dos tribunais", simbolo: "sparkles",
-                               verTodos: { store.selecao = .novidades }) {
+                               verTodos: { store.ir(.novidades) }) {
                         ForEach(novidadeVerbetes) { CartaoJuris(entry: $0) }
                     }
                 }
@@ -167,23 +60,14 @@ struct HomeView: View {
                         ForEach(store.recentEntries.prefix(14)) { CartaoJuris(entry: $0) }
                     }
                 }
-                cabecalhoSecao("Seu progresso", "chart.bar.fill")
-                JurisDashboardView(partes: [.checklist, .kpis, .ofensiva, .fontes])
-                cabecalhoSecao("Acervo", "books.vertical.fill")
-                if let d = destaque { heroCard(d) }
+                JurisDashboardView(partes: [.kpis, .ofensiva, .fontes])
+
+                bloco("Acervo", "books.vertical.fill")
                 if store.favorites.count > 0 {
                     Prateleira(titulo: "Seus favoritos", simbolo: "star.fill",
-                               verTodos: { store.selecao = .favoritos }) {
+                               verTodos: { store.ir(.favoritos) }) {
                         ForEach(amostra { store.isFavorite($0.id) }) { CartaoJuris(entry: $0) }
                     }
-                }
-                Prateleira(titulo: "Súmulas do TJRO", simbolo: "building.2.fill",
-                           verTodos: { store.selecao = .fonte(.tjro) }) {
-                    ForEach(amostra { $0.fonteKind == .tjro || $0.fonteKind == .tjroPrec }) { CartaoJuris(entry: $0) }
-                }
-                Prateleira(titulo: "Súmulas do STF", simbolo: "building.columns.fill",
-                           verTodos: { store.selecao = .fonte(.sumulaSTF) }) {
-                    ForEach(amostra { $0.fonteKind == .sumulaSTF }) { CartaoJuris(entry: $0) }
                 }
                 ramosShelf
                 Color.clear.frame(height: 20)
@@ -193,7 +77,8 @@ struct HomeView: View {
         .background(Palette.appBackground)
     }
 
-    private func cabecalhoSecao(_ t: String, _ simbolo: String) -> some View {
+    /// Divisor de bloco: caixa-alta + filete — a "voz de seção grande" da Home.
+    private func bloco(_ t: String, _ simbolo: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: simbolo).font(.system(size: 13, weight: .bold)).foregroundStyle(Palette.accent)
             Text(t.uppercased()).font(.system(size: 12, weight: .heavy)).tracking(1.2).foregroundStyle(Palette.secondaryInk)
@@ -202,87 +87,34 @@ struct HomeView: View {
         .padding(.horizontal, 28).padding(.top, 6)
     }
 
-    /// As ações de estudo que a pessoa mais usa, em azulejos grandes — antes estavam
-    /// escondidas na barra lateral ou no fim do painel.
-    private var gradeEstudar: some View {
+    /// As ações de treino em azulejos grandes — todas alcançáveis também pela sidebar.
+    private var gradeTreinar: some View {
         let itens: [(String, String, String, Selecao)] = [
-            ("Prova oral", "Pergunta de banca sobre um verbete sorteado", "mic.fill", .provaOral),
             ("Simulado", "Objetivas C/E + discursivas oficiais", "list.bullet.clipboard.fill", .simulado),
-            ("Grade de informativos", "Edições do STF, STJ e TSE por semana", "calendar", .gradeInformativos),
-            ("Julgado do dia", "Roteiro de estudo e quiz do destaque", "sparkles", .julgadoDoDia),
+            ("Prova oral", "Arguição sobre um verbete sorteado, correção local", "mic.fill", .provaOral),
+            ("Prova oral · bancas", "Pontos, perguntas e padrão de resposta publicados", "person.wave.2.fill", .oralBancas),
+            ("Plano de leitura", "Súmulas STF, STJ e TSE no seu roteiro", "calendar", .plano),
+            ("Grade de informativos", "Edições do STF, STJ e TSE por semana", "square.grid.3x3.fill", .gradeInformativos),
+            ("Mapas mentais", "Galeria dos mapas que você já abriu", "brain.head.profile", .mapas),
         ]
         return LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 12)], spacing: 12) {
             ForEach(itens, id: \.0) { it in
-                Button { store.selecao = it.3 } label: {
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: it.2).font(.system(size: 20, weight: .bold)).foregroundStyle(Palette.accent)
-                            .frame(width: 36, height: 36)
-                            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Palette.accent.opacity(0.12)))
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(it.0).font(.system(size: 15, weight: .heavy)).foregroundStyle(Palette.titleInk)
-                            Text(it.1).font(.system(size: 12)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(Palette.cardBackground))
-                    .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(Palette.hairline))
-                }.buttonStyle(.plain)
+                HubCard(icon: it.2, titulo: it.0, subtitulo: it.1) { store.ir(it.3) }
             }
         }
         .padding(.horizontal, 28)
     }
 
-    private func heroCard(_ d: JurisEntry) -> some View {
-        Group {
-            if true {
-                Button { store.lerCheio(d.id) } label: {
-                    HStack(alignment: .top, spacing: 22) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack(spacing: 8) {
-                                FonteBadge(fonte: d.fonteKind)
-                                if d.situacaoKind != .vigente { SituacaoPill(texto: d.situacao ?? d.situacaoKind.rawValue) }
-                            }
-                            Text(d.titulo).font(Typo.serifTitle(30, .bold)).foregroundStyle(Palette.titleInk)
-                                .lineLimit(2)
-                            Text(d.enunciado).font(Typo.serifBody(14)).foregroundStyle(Palette.bodyInk)
-                                .lineLimit(4).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
-                            HStack(spacing: 6) {
-                                Image(systemName: "book.fill").font(.system(size: 11))
-                                Text("Ler inteiro teor").font(.system(size: 12.5, weight: .bold))
-                            }
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 16).padding(.vertical, 9)
-                            .background(RamoStyle.gradient(d.ramoDireito), in: Capsule())
-                            .shadow(color: RamoStyle.color(d.ramoDireito).opacity(0.45), radius: 9, y: 4)
-                            .padding(.top, 2)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .padding(26)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        LinearGradient(colors: [RamoStyle.color(d.ramoDireito).opacity(0.18), Palette.cardBackground],
-                                       startPoint: .topLeading, endPoint: .bottomTrailing),
-                        in: RoundedRectangle(cornerRadius: 18))
-                    .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(RamoStyle.color(d.ramoDireito).opacity(0.25), lineWidth: 1))
-                    .shadow(color: RamoStyle.color(d.ramoDireito).opacity(0.16), radius: 16, y: 8)
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 26)
-            }
-        }
-    }
-
     private var ramosShelf: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Explore por disciplina").font(Typo.serifTitle(17, .bold))
-                .foregroundStyle(Palette.titleInk).padding(.horizontal, 26)
+            JurisSecaoTitulo(titulo: "Explore por disciplina", simbolo: "books.vertical.fill",
+                             verTodos: { store.ir(.ramosHub) })
+                .padding(.horizontal, 26)
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 10) {
-                    ForEach(store.disciplinasOrdenadas.prefix(16), id: \.nome) { ramo in
+                    ForEach(store.disciplinasOrdenadas, id: \.nome) { ramo in
                         RamoTile(nome: ramo.nome, count: ramo.count) {
-                            store.selecao = .ramoDetalhe(EscopoFiltrado(ramo: ramo.nome)); store.selectedID = nil
+                            store.ir(.ramoDetalhe(EscopoFiltrado(ramo: ramo.nome)))
                         }
                     }
                 }
@@ -311,7 +143,7 @@ private struct RamoTile: View {
                     .foregroundStyle(.white.opacity(0.85))
             }
             .padding(13).frame(width: 168, height: 104, alignment: .topLeading)
-            .background(RamoStyle.gradient(nome), in: RoundedRectangle(cornerRadius: 14))
+            .background(RamoStyle.gradient(nome), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
             .shadow(color: RamoStyle.color(nome).opacity(hovering ? 0.5 : 0.35),
                     radius: hovering ? 12 : 8, y: hovering ? 6 : 4)
             .scaleEffect(hovering ? 1.03 : 1)
@@ -319,5 +151,99 @@ private struct RamoTile: View {
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hovering)
+    }
+}
+
+// MARK: - "Revisar hoje"
+
+/// Faixa compacta da fila do dia (SRS vencidos + checklist pendente) com atalho para a
+/// página `Selecao.hoje`. Vive na Home e a página completa fica na sidebar.
+struct JurisHojeResumo: View {
+    @Environment(LibraryStore.self) private var store
+    var body: some View {
+        let srs = store.srsDueCount
+        let metas = store.checklistPendingCount
+        Button { store.ir(.hoje) } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "sun.horizon.fill").font(.system(size: 18, weight: .bold)).foregroundStyle(Palette.accent)
+                    .frame(width: 38, height: 38)
+                    .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Revisar hoje").font(.system(size: 15, weight: .heavy)).foregroundStyle(Palette.titleInk)
+                    Text(srs == 0 && metas == 0
+                         ? "Nada vencido — abra para ver o julgado do dia e o checklist."
+                         : "\(srs) cartão\(srs == 1 ? "" : "ões") de revisão vencido\(srs == 1 ? "" : "s") · \(metas) meta\(metas == 1 ? "" : "s") pendente\(metas == 1 ? "" : "s")")
+                        .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
+                }
+                Spacer(minLength: 0)
+                if srs + metas > 0 {
+                    Text("\(srs + metas)").font(Typo.num(12)).foregroundStyle(.white)
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        .background(Palette.accent, in: Capsule())
+                }
+                Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// Página "Revisar hoje": a fila única do dia — revisão espaçada vencida, checklist de
+/// leitura e o julgado do dia — no lugar de um sheet (SRS) + um card (checklist)
+/// espalhados pela Home.
+struct JurisHojeView: View {
+    @Environment(LibraryStore.self) private var store
+    @State private var mostrarSRS = false
+
+    var body: some View {
+        SectionShell(icon: Selecao.hoje.simbolo, title: Selecao.hoje.titulo,
+                     subtitle: Date().formatted(.dateTime.weekday(.wide).day().month(.wide).locale(Locale(identifier: "pt_BR"))),
+                     count: store.srsDueCount + store.checklistPendingCount) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    JurisSecaoTitulo(titulo: "Revisão espaçada", simbolo: "brain.head.profile", count: store.srsDueCount)
+                    srsCard
+                    JurisSecaoTitulo(titulo: "Checklist de leitura", simbolo: "checklist", count: store.checklistPendingCount,
+                                     verTodos: { store.ir(.checklist) })
+                    JurisChecklistMiniCard(openChecklist: { store.ir(.checklist) })
+                    JurisSecaoTitulo(titulo: "Julgado do dia", simbolo: "sun.max.fill")
+                    if let e = store.verbeteDoDia {
+                        CartaoJuris(entry: e, estilo: .hero)
+                    }
+                    Color.clear.frame(height: 20)
+                }
+                .padding(.horizontal, 26).padding(.top, 20)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .sheet(isPresented: $mostrarSRS) { RevisaoEspacadaView() }
+    }
+
+    private var srsCard: some View {
+        let due = store.srsDueCount
+        let deck = store.srsDeckCount
+        return HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(due == 0 ? "Nenhum cartão vencido" : "\(due) cartão\(due == 1 ? "" : "ões") para revisar")
+                    .font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk)
+                Text(deck == 0 ? "Gere flashcards pelo roteiro de um verbete ou pelo quiz do julgado do dia."
+                               : "\(deck) no baralho · SM-2, estilo Anki")
+                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+            }
+            Spacer(minLength: 0)
+            Button { mostrarSRS = true } label: {
+                Label(due == 0 ? "Abrir baralho" : "Revisar agora", systemImage: "play.fill")
+                    .font(.system(size: 12.5, weight: .semibold))
+            }
+            .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(deck == 0)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
     }
 }

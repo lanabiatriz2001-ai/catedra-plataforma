@@ -20,31 +20,34 @@ struct ColecaoView: View {
         Group {
             if let c = colecao {
                 let verbetes = store.verbetes(colecao: c)
-                VStack(spacing: 0) {
-                    cabecalho(c, total: verbetes.count)
-                    Divider().overlay(Palette.hairline)
-                    if verbetes.isEmpty {
-                        ContentUnavailableView {
-                            Label("Coleção vazia", systemImage: "folder")
-                        } description: {
-                            Text("Abra um verbete e use o botão de pasta para adicioná-lo aqui.")
+                let lidos = store.lidosNa(c)
+                SectionShell(icon: Selecao.colecao(c.id).simbolo, title: c.nome,
+                             subtitle: "\(lidos)/\(verbetes.count) lidos",
+                             count: verbetes.count,
+                             trailing: AnyView(acoes(c, total: verbetes.count))) {
+                    Group {
+                        if verbetes.isEmpty {
+                            LegisEmpty(icon: "folder", title: "Coleção vazia",
+                                       message: "Abra um verbete e use o botão de pasta para adicioná-lo aqui.")
+                        } else {
+                            List(verbetes, selection: selection) { entry in
+                                EntryRow(entry: entry, query: "",
+                                         isFavorite: store.isFavorite(entry.id),
+                                         isImportante: store.isImportante(entry),
+                                         hasNote: store.hasAnnotation(entry.id))
+                                    .listRowSeparatorTint(Palette.hairline)
+                                    .tag(entry.id)
+                            }
+                            .listStyle(.inset)
+                            .scrollContentBackground(.hidden)
+                            .background(Palette.appBackground)
                         }
-                    } else {
-                        List(verbetes, selection: selection) { entry in
-                            EntryRow(entry: entry, query: "",
-                                     isFavorite: store.isFavorite(entry.id),
-                                     isImportante: store.isImportante(entry),
-                                     hasNote: store.hasAnnotation(entry.id))
-                                .listRowSeparatorTint(Palette.hairline)
-                                .tag(entry.id)
-                        }
-                        .listStyle(.inset)
-                        .scrollContentBackground(.hidden)
-                        .background(Palette.appBackground)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             } else {
-                ContentUnavailableView("Coleção não encontrada", systemImage: "folder.badge.questionmark")
+                LegisEmpty(icon: "folder.badge.questionmark", title: "Coleção não encontrada",
+                           message: "Esta coleção foi excluída.")
             }
         }
         .background(Palette.appBackground)
@@ -63,37 +66,24 @@ struct ColecaoView: View {
         }
     }
 
-    private func cabecalho(_ c: Colecao, total: Int) -> some View {
-        let lidos = store.lidosNa(c)
-        let frac = total == 0 ? 0 : Double(lidos) / Double(total)
-        return VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: "folder.fill").foregroundStyle(Palette.accent)
-                Text(c.nome).font(Typo.serifTitle(17, .bold)).foregroundStyle(Palette.titleInk)
-                Spacer()
-                Button { revisar = true } label: {
-                    Label("Revisar", systemImage: "rectangle.on.rectangle.angled")
-                        .font(.system(size: 12, weight: .semibold))
-                }
-                .buttonStyle(.borderedProminent).tint(Palette.accent)
-                .disabled(total == 0)
-                Menu {
-                    Button { exportarAnkiSheet = true } label: { Label("Exportar para Anki…", systemImage: "rectangle.on.rectangle") }
-                    Button { novoNome = c.nome; renomear = true } label: { Label("Renomear", systemImage: "pencil") }
-                    Divider()
-                    Button(role: .destructive) {
-                        store.excluirColecao(colecaoID); store.selecao = .todos
-                    } label: { Label("Excluir coleção", systemImage: "trash") }
-                } label: { Image(systemName: "ellipsis.circle") }
-                .menuIndicator(.hidden).frame(width: 28)
+    private func acoes(_ c: Colecao, total: Int) -> some View {
+        HStack(spacing: 8) {
+            Button { revisar = true } label: {
+                Label("Revisar", systemImage: "rectangle.on.rectangle.angled")
+                    .font(.system(size: 12, weight: .semibold))
             }
-            HStack(spacing: 8) {
-                ProgressView(value: frac).tint(Palette.accent).frame(maxWidth: 220)
-                Text("\(lidos)/\(total) lidos").font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
-            }
+            .buttonStyle(.borderedProminent).tint(Palette.accent)
+            .disabled(total == 0)
+            Menu {
+                Button { exportarAnkiSheet = true } label: { Label("Exportar para Anki…", systemImage: "rectangle.on.rectangle") }
+                Button { novoNome = c.nome; renomear = true } label: { Label("Renomear", systemImage: "pencil") }
+                Divider()
+                Button(role: .destructive) {
+                    store.excluirColecao(colecaoID); store.ir(.todos)
+                } label: { Label("Excluir coleção", systemImage: "trash") }
+            } label: { Image(systemName: "ellipsis.circle") }
+            .menuIndicator(.hidden).frame(width: 28)
         }
-        .padding(.horizontal, 14).padding(.vertical, 10)
-        .background(Palette.sidebarBackground)
     }
 
 }
@@ -158,8 +148,8 @@ struct RevisaoView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
                 }
-                .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Palette.hairline, lineWidth: 1))
+                .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
                 .padding(.horizontal, 20)
             } else {
                 Spacer()
@@ -173,7 +163,7 @@ struct RevisaoView: View {
                         Label("Revisar depois", systemImage: "arrow.uturn.left")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered).tint(.orange).controlSize(.large)
+                    .buttonStyle(.bordered).tint(Palette.warn).controlSize(.large)
                     Button { responder(.sei, e) } label: {
                         Label("Já sei", systemImage: "checkmark").frame(maxWidth: .infinity)
                     }

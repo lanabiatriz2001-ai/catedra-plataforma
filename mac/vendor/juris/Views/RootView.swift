@@ -5,15 +5,29 @@ struct RootView: View {
     @AppStorage("readingFontFamily") private var readingFontFamily = ""   // rebuild ao trocar a fonte
     @ObservedObject private var clock = JurisClock.shared                 // cronômetro do top bar
 
-    // Top bar no esquema do Cátedra: título + Buscar ⌘K + notificações + cronômetro EM CURSO.
+    /// Onde estou: título da seleção atual (a marca "CátedraJURIS" já está na sidebar —
+    /// repetir aqui era o mesmo texto duas vezes na mesma tela).
+    private var ondeEstou: (titulo: String, sub: String) {
+        if let id = store.leituraID ?? store.selectedID, let e = store.byId[id] {
+            return (e.titulo, e.fonteKind.nome)
+        }
+        switch store.selecao {
+        case .tribunal(let id): return (store.tribunal(id)?.nome ?? "Central do tribunal", "Tribunais Específicos")
+        case .colecao(let id): return (store.colecoes.first { $0.id == id }?.nome ?? "Coleção", "Minhas coleções")
+        default: return (store.selecao.titulo, "CátedraJURIS")
+        }
+    }
+
+    // Top bar no esquema do Cátedra: onde estou + Buscar ⌘K + notificações + cronômetro EM CURSO.
     private var jurisTopBar: some View {
-        HStack(spacing: 12) {
+        let onde = ondeEstou
+        return HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 1) {
-                Text("CátedraJURIS").font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk)
-                Text("Vade Mecum de jurisprudência").font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk)
+                Text(onde.titulo).font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk).lineLimit(1)
+                Text(onde.sub).font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
             }
             Spacer(minLength: 12)
-            Button { store.leituraID = nil; store.selectedID = nil; store.selecao = .todos } label: {
+            Button { store.ir(.todos) } label: {
                 HStack(spacing: 7) {
                     Image(systemName: "magnifyingglass").font(.system(size: 11))
                     Text("Buscar").font(.system(size: 12.5))
@@ -25,7 +39,7 @@ struct RootView: View {
                 .overlay(Capsule().strokeBorder(Palette.hairline, lineWidth: 1))
             }
             .buttonStyle(.plain)
-            Button { store.leituraID = nil; store.selectedID = nil; store.selecao = .novidades } label: {
+            Button { store.ir(.novidades) } label: {
                 Image(systemName: store.novidadesNaoVistas > 0 ? "bell.badge.fill" : "bell")
                     .font(.system(size: 13, weight: .medium)).foregroundStyle(Palette.secondaryInk)
                     .frame(width: 34, height: 34)
@@ -83,8 +97,9 @@ struct RootView: View {
         } else {
             switch store.selecao {
             case .inicio: HomeView()
+            case .hoje: JurisHojeView()
             case .gradeInformativos: GradeInformativosView()
-            case .julgadoDoDia: JulgadoDoDiaView()
+            case .julgadoDoDia: JulgadoDoDiaView(pagina: true)
             case .provaOral: ProvaOralJurisView()
             case .simulado: SimuladoView()
             case .oralBancas: OralBancasView()
