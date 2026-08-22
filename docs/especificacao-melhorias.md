@@ -848,3 +848,73 @@ e "sair"; abas visíveis sem rolagem em 1280×800 e 390×844.
 não de nomes; sync intocado. O backup automático usa o token do Drive já
 autorizado — se expirou, avisa em vez de falhar em silêncio. As frases de efeito
 são conteúdo de UI, não tooltip escondido: visíveis sob cada controle.
+
+## D12. Barra do topo refeita — hierarquia em vez de fileira
+
+**Problema visto (print da Lana, 22/08).** O topo empilha 8+ controles no mesmo
+nível: Buscar ⌘K · pílula "Sincronizado na nuvem" (texto longo ocupando espaço
+nobre) · sino com badge · botão de foco (◎) · avatar · e um bloco inteiro de
+cronômetro ("PARADO 00:00" + play + zerar + PiP + "+") que parece um segundo app
+grudado. Tudo grita, nada orienta.
+
+**O que construir.**
+1. **Quatro cidadãos de primeira classe**, nesta ordem: Buscar (⌘K) · **chip de
+   foco** (abaixo) · sino · avatar. O resto se recolhe.
+2. **Chip de foco único** substitui o bloco do cronômetro: parado mostra "▶ Focar";
+   rodando mostra o tempo corrente + a disciplina do bloco (e pulsa discreto).
+   Clicar abre um popover com tudo que hoje é botão solto: iniciar/pausar, zerar,
+   presets de pomodoro (25/50/90/livre — já existem), PiP, entrar no modo foco, e
+   "registrar sessão" (o atual "+"). Um controle no topo, o poder inteiro a um
+   clique.
+3. **Sync vira selo discreto** (integra o U5): o texto "Sincronizado na nuvem" sai;
+   fica um pontinho de estado no avatar (verde/girando/âmbar) e o detalhe ("salvo
+   às 00:42") dentro do menu do avatar. Estado de ERRO persistente é a exceção:
+   aí sim vira aviso visível na barra.
+4. **Menu do avatar** concentra: conta logada, estado do sync, atalho para Ajustes,
+   sair. O ◎ de foco solto some (mora no chip).
+5. **Mobile**: topo reduz a Buscar + chip de foco + avatar; sino entra no menu do
+   avatar com badge.
+
+**Aceite.** No desktop, a barra tem no máximo 4 controles visíveis + título;
+nenhuma função de hoje se perde (tudo alcançável em ≤2 cliques via chip/avatar);
+com o cronômetro rodando, o tempo é visível sem abrir nada; o teste de U5 (estado
+de sync visível e honesto) continua satisfeito.
+
+**Armadilha.** O cronômetro tem estado vivo (persiste ao fechar, PiP nativo no
+Mac) — o chip é uma nova CASCA sobre os mesmos handlers (toggleTimer, resetTimer,
+togglePiP, enterFocus…); não reimplementar a lógica.
+
+## D13. Modo foco — novo visual
+
+**O que existe.** `focusMode` já funciona: overlay (linha ~774), entra pelo menu
+do pomodoro ou por um bloco do ciclo (`enterFocus`/`focusBlockIdx`), Esc sai,
+pomodoro com fases foco/pausa (`pomoPhase`, presets 25/50/90/custom), PiP nativo,
+e `finishFocus` já oferece o registro da sessão ao terminar. A lógica fica; a
+roupa muda.
+
+**O que construir — uma sala, não um overlay:**
+1. **Tela imersiva em tela cheia**: fundo calmo derivado do tema dela (gradiente
+   escurecido da cor de destaque — usa os tokens, respeita claro/escuro),
+   cronômetro GRANDE centrado (tipografia display), abaixo dele a disciplina/bloco
+   em uma linha e a fase atual ("foco · 2º ciclo" / "pausa").
+2. **Progresso visível sem número**: um anel ao redor do cronômetro (SVG, sem lib)
+   preenchendo o bloco atual; na pausa, o anel troca de cor.
+3. **Três ações só**, discretas na base: pausar/retomar · encerrar (vai para o
+   registro, como o finishFocus já faz) · PiP. Esc continua saindo. Todo o resto
+   da interface some de verdade (sidebar, topo, notificações internas silenciadas
+   enquanto durar o foco).
+4. **Momentos**: ao entrar, transição suave (fade ~300ms) e uma frase da casa
+   (reusar `QUOTES`, que já existem) por 3s; ao fim de cada ciclo de foco, aviso
+   gentil de pausa (som opcional curto — gerado por WebAudio, sem arquivo
+   externo, respeitando um toggle em Estudo & metas).
+5. **Teclas**: espaço pausa/retoma; F entra/sai do foco (registrar no modal de
+   atalhos do U8).
+
+**Aceite.** Entrar no foco esconde TODA a interface exceto a sala; o anel reflete
+o preset escolhido; encerrar cai no fluxo de registro existente; Esc/F saem; tema
+claro/escuro respeitado; nenhuma regressão no PiP nem no cronômetro persistente.
+
+**Armadilha.** O overlay atual convive com o cronômetro persistente e o PiP — a
+sala nova reusa os mesmos estados (`pomoPhase`, `studiedSeconds`, `focusBlockIdx`);
+mexer só na camada visual. Silenciar notificações = adiar os toasts internos,
+não perder os eventos.
