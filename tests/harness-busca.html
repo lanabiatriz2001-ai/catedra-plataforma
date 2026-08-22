@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harness busca única</title></head>
+<body style="margin:0;font:14px system-ui">
+<!-- Carrega o motor e as fontes DE PRODUÇÃO (sem mock): é o mesmo índice que a paleta monta. -->
+<script src="/busca-unica.js"></script>
+<script src="/leis-catalogo.js"></script>
+<script src="/pecas.js"></script>
+<script src="/ritos.js"></script>
+<script>
+window.__idxPronto = (function () {
+  var t0 = performance.now();
+  window.__IDX = window.CT_BUSCA.indexar({
+    leis: window.CT_LEIS_CAT, pecas: window.CT_PECAS, ritos: window.CT_RITOS,
+    // verbetes: dois de mentira, para o teste não carregar 2,4 MB à toa; o formato é o do juris-index.js
+    verbetes: [
+      ['STJ-SUM-619', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Direito Penal', 'Prescrição'],
+      ['STJ-SUM-619b', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Direito Penal', 'Prescrição (repetida)']
+    ]
+  });
+  return performance.now() - t0;
+})();
+</script>
+</body></html>

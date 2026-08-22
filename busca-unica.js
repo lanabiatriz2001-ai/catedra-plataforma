@@ -1,0 +1,143 @@
+/* busca-unica.js — o motor da busca do ⌘K (item 6).
+ *
+ * Uma função PURA, sem DOM e sem dependência do app, para ser testada fora dele
+ * (tests/run.mjs). O host monta as fontes (leis, verbetes, peças, ritos), chama
+ * `indexar` UMA vez e `buscar` a cada tecla.
+ *
+ * Ranking: prefixo > palavra inteira > pedaço no meio. Empate desfaz pela ordem da
+ * fonte (o catálogo do LEGIS vem por importância), depois pelo título mais curto e por
+ * fim alfabeticamente — a lista não dança entre teclas.
+ */
+(function (w) {
+  'use strict';
+
+  /** Sem acento, minúsculas, espaços normalizados — as fontes vêm de lugares diferentes. */
+  function normalizar(s) {
+    return String(s == null ? '' : s)
+      .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/\s+/g, ' ').trim();
+  }
+
+  /* Pontuação de um alvo contra o termo. 0 = não casa.
+     3 = começa com; 2 = palavra inteira dentro; 1 = pedaço no meio. */
+  function pontuar(alvoNorm, termoNorm) {
+    if (!termoNorm) return 0;
+    if (alvoNorm.startsWith(termoNorm)) return 3;
+    var i = alvoNorm.indexOf(termoNorm);
+    if (i < 0) return 0;
+    var antes = i === 0 ? ' ' : alvoNorm[i - 1];
+    return /[\s\-–—(,.:/]/.test(antes) ? 2 : 1;
+  }
+
+  /* Sigla pelas iniciais do título: é assim que se procura lei na prática ("cpc", "ctn",
+     "cdc"). O catálogo já traz a sigla entre parênteses em algumas normas (LGPD, CLT), mas
+     não nos Códigos — sem isto, "cpc" não acha o Código de Processo Civil. */
+  var LIGACOES = { de: 1, do: 1, da: 1, dos: 1, das: 1, e: 1, a: 1, o: 1, em: 1, no: 1, na: 1 };
+  function iniciais(titulo) {
+    return normalizar(titulo).split(' ')
+      .filter(function (p) { return p && !LIGACOES[p]; })
+      .map(function (p) { return p[0]; }).join('');
+  }
+
+  /**
+   * Monta o índice plano. Cada fonte é opcional: o host passa o que já carregou.
+   * @param fontes {leis:[{t,r,c,u}], verbetes:[[id,tr,fo,nu,ti,ra,te,...]], pecas:{nome:{}}, ritos:{nome:{}}}
+   * @returns [{tipo, titulo, extra, arg, _t, _e}]  (_t/_e = versões normalizadas, prontas para buscar)
+   */
+  function indexar(fontes) {
+    var f = fontes || {};
+    var out = [];
+    var põe = function (tipo, titulo, extra, arg) {
+      var t = String(titulo || '').trim();
+      if (!t) return;
+      // _i = posição na fonte. O catálogo do LEGIS vem em ordem de importância (CF, CC,
+      // CPC…), e isso é o desempate certo: sem ele, "cf" acha o Código Florestal antes da
+      // Constituição Federal, porque o título é mais curto.
+      out.push({ tipo: tipo, titulo: t, extra: String(extra || ''), arg: arg == null ? t : arg,
+                 _t: normalizar(t), _e: normalizar(extra), _s: iniciais(t), _i: out.length });
+    };
+
+    (Array.isArray(f.leis) ? f.leis : []).forEach(function (l) {
+      // a referência ("Lei nº 8.429/1992") é o que muita gente digita: entra como extra buscável
+      põe('lei', l && l.t, (l && l.r) || '', (l && l.t) || '');
+    });
+
+    // verbetes: array de arrays do juris-index.js (id:0, tribunal:1, fonte:2, número:3,
+    // título:4, ramo:5, tema:6). O título já traz "Súmula 619 do STJ".
+    (Array.isArray(f.verbetes) ? f.verbetes : []).forEach(function (v) {
+      if (!v) return;
+      var titulo = v[4] || ((v[1] || '') + ' ' + (v[3] || ''));
+      var extra = [v[1], v[5], v[6]].filter(Boolean).join(' · ');
+      // arg = TÍTULO, não o id: o CátedraJURIS abre por ?q= (busca textual) e não conhece
+      // o id interno do índice — mandar "STJ-SUM-619" abriria a página sem resultado.
+      põe('verbete', titulo, extra, titulo);
+    });
+
+    Object.keys(f.pecas || {}).forEach(function (nome) {
+      var p = f.pecas[nome] || {};
+      põe('peca', nome, p.rito || 'roteiro de peça', nome);
+    });
+
+    Object.keys(f.ritos || {}).forEach(function (nome) {
+      põe('rito', nome, 'sequência dos atos', nome);
+    });
+
+    return out;
+  }
+
+  var ORDEM = ['lei', 'verbete', 'peca', 'rito'];
+
+  /**
+   * @param indice saída de indexar()
+   * @param termo texto digitado
+   * @param opcoes {porTipo:8}
+   * @returns {lei:[...], verbete:[...], peca:[...], rito:[...]} — cada um já ordenado e cortado
+   */
+  function buscar(indice, termo, opcoes) {
+    var q = normalizar(termo);
+    var porTipo = (opcoes && opcoes.porTipo) || 8;
+    var res = { lei: [], verbete: [], peca: [], rito: [] };
+    if (q.length < 2) return res;                       // 1 letra devolveria o acervo inteiro
+
+    (indice || []).forEach(function (it) {
+      if (!res[it.tipo]) return;
+      var p = pontuar(it._t, q);
+      // Sigla pelas iniciais vale só para LEI — é ali que a sigla é o idioma ("CPC", "CTN").
+      // Aplicada aos verbetes, casava bobagem: "cpc" achava "Contrato de promessa de compra
+      // e venda" (c-p-c-v) antes de qualquer tese sobre o Código de Processo Civil.
+      if (!p && it.tipo === 'lei' && it._s && q.length >= 2) {
+        p = (it._s === q) ? 3 : (it._s.indexOf(q) === 0 ? 2 : 0);
+      }
+      // o extra (referência da lei, tribunal/ramo do verbete) vale menos que o título
+      if (!p) { var pe = pontuar(it._e, q); if (pe) p = Math.min(1, pe); }
+      if (!p) return;
+      res[it.tipo].push({ tipo: it.tipo, titulo: it.titulo, extra: it.extra, arg: it.arg, _p: p, _i: it._i });
+    });
+
+    ORDEM.forEach(function (t) {
+      // Desempate: nas LEIS a ordem da fonte é significativa (o catálogo vem por
+      // importância: CF, CC, CPC…). Nos verbetes ela é só a ordem de coleta — ali o que
+      // ajuda é o título mais curto, que costuma ser a súmula/tese, não o acórdão longo.
+      var porFonte = (t === 'lei');
+      res[t].sort(function (a, b) {
+        return (b._p - a._p)
+          || (porFonte ? (a._i - b._i) : 0)
+          || (a.titulo.length - b.titulo.length)
+          || a.titulo.localeCompare(b.titulo);
+      });
+      // o acervo tem entradas repetidas (mesma tese em fontes diferentes): uma só na lista
+      var visto = {}, limpo = [];
+      res[t].forEach(function (x) {
+        var k = normalizar(x.titulo);
+        if (visto[k]) return;
+        visto[k] = 1; limpo.push(x);
+      });
+      res[t] = limpo.slice(0, porTipo);
+    });
+    return res;
+  }
+
+  var api = { normalizar: normalizar, pontuar: pontuar, iniciais: iniciais, indexar: indexar, buscar: buscar, ORDEM: ORDEM };
+  w.CT_BUSCA = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof window !== 'undefined' ? window : globalThis);
