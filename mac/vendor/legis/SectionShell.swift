@@ -10,6 +10,8 @@ struct SectionShell<Content: View>: View {
     var count: Int? = nil
     var search: Binding<String>? = nil
     var searchPrompt: String = "Buscar"
+    /// Enter na busca (telas que pesquisam sob demanda, como "Buscar em tudo").
+    var onSearchSubmit: (() -> Void)? = nil
     var trailing: AnyView? = nil
     /// Linguagem vitrine: gradiente do cabeçalho (ex.: cores da matéria).
     /// nil = acento da plataforma.
@@ -21,7 +23,7 @@ struct SectionShell<Content: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: 14) {
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous)
                     .fill(LinearGradient(colors: stops, startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 46, height: 46)
                     .overlay(Image(systemName: icon).font(.system(size: 19, weight: .semibold))
@@ -29,11 +31,11 @@ struct SectionShell<Content: View>: View {
                     .shadow(color: stops[0].opacity(0.4), radius: 8, y: 4)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 8) {
-                        Text(title).font(.system(size: 26, weight: .heavy)).tracking(-0.4)
+                        Text(title).font(AppTheme.displayFont(26, .heavy)).tracking(-0.4)
                             .foregroundStyle(AppTheme.ink)
                         if let count {
                             Text("\(count)")
-                                .font(.system(size: 11.5, weight: .bold).monospacedDigit())
+                                .font(Typo.num(11.5))
                                 .padding(.horizontal, 8).padding(.vertical, 2)
                                 .background(Capsule().fill(stops[0].opacity(0.15)))
                                 .foregroundStyle(stops[0])
@@ -55,6 +57,7 @@ struct SectionShell<Content: View>: View {
                     Image(systemName: "magnifyingglass").font(.system(size: 13))
                         .foregroundStyle(AppTheme.secondaryInk)
                     TextField(searchPrompt, text: search).textFieldStyle(.plain).font(.system(size: 13.5))
+                        .onSubmit { onSearchSubmit?() }
                     if !search.wrappedValue.isEmpty {
                         Button { search.wrappedValue = "" } label: {
                             Image(systemName: "xmark.circle.fill").font(.system(size: 13))
@@ -63,8 +66,8 @@ struct SectionShell<Content: View>: View {
                     }
                 }
                 .padding(.horizontal, 11).padding(.vertical, 8)
-                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(AppTheme.softStroke))
-                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+                .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(AppTheme.softStroke))
+                .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
                 .padding(.horizontal, 22).padding(.bottom, 14)
             }
 
@@ -85,18 +88,18 @@ struct LegisEmpty: View {
 
     var body: some View {
         VStack(spacing: 13) {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous)
                 .fill(ThemeState.t.accent.opacity(0.10))
                 .frame(width: 64, height: 64)
                 .overlay(Image(systemName: icon).font(.system(size: 27, weight: .medium))
                     .foregroundStyle(ThemeState.t.accent))
-            Text(title).font(.system(size: 16.5, weight: .semibold)).foregroundStyle(AppTheme.ink)
+            Text(title).font(AppTheme.displayFont(16.5, .semibold)).foregroundStyle(AppTheme.ink)
             Text(message).font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
                 .multilineTextAlignment(.center).lineSpacing(2.5)
                 .frame(maxWidth: 400)
             if let actionLabel, let action {
-                Button(action: action) { Text(actionLabel).fontWeight(.medium) }
-                    .buttonStyle(.borderedProminent).tint(ThemeState.t.accent)
+                Button(action: action) { Text(actionLabel) }
+                    .buttonStyle(.legisPrimary)
                     .padding(.top, 2)
             }
         }
@@ -124,16 +127,14 @@ struct SectionRow: View {
             }
             Spacer(minLength: 6)
             if let trailingText {
-                Text(trailingText).font(.system(size: 11.5, weight: .medium).monospacedDigit())
+                Text(trailingText).font(Typo.num(11.5, .medium))
                     .foregroundStyle(AppTheme.secondaryInk)
             }
             Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(AppTheme.secondaryInk.opacity(0.6))
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius, style: .continuous).fill(AppTheme.cardBackground))
-        .overlay(RoundedRectangle(cornerRadius: AppTheme.compactRadius, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+        .legisCard(hover: true)
         .contentShape(Rectangle())
     }
 }

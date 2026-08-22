@@ -123,9 +123,13 @@ struct IncidenciaView: View {
     @State private var modo: Modo = .julgados
     @State private var carreira: String? = nil
     @State private var selProva: IncidenciaDados.DiplomaProva?
+    @State private var aviso: String?   // "Abrir na lei" sem norma na biblioteca — antes falhava calado
+    @AppStorage("readerMode") private var readerMode = "estudo"
     enum Modo: String, CaseIterable { case julgados = "Julgados", provas = "Provas (2ª fase)" }
 
-    private let cAlta = Color(hex: "#DC2626"), cMedia = Color(hex: "#D97706"), cBaixa = Color(hex: "#3B82F6")
+    private var cAlta: Color { AppTheme.danger }
+    private var cMedia: Color { AppTheme.warn }
+    private var cBaixa: Color { AppTheme.info }
 
     var body: some View {
         SectionShell(icon: "target", title: "Incidência",
@@ -147,7 +151,12 @@ struct IncidenciaView: View {
                         }
                         Spacer()
                     }
-                    .onChange(of: modo) { _, _ in sel = nil; selProva = nil }
+                    .onChange(of: modo) { _, _ in sel = nil; selProva = nil; aviso = nil }
+                    if let aviso {
+                        Label(aviso, systemImage: "exclamationmark.triangle")
+                            .font(.system(size: 12.5)).foregroundStyle(AppTheme.warn)
+                            .padding(10).legisCard(tint: AppTheme.warn, spine: true)
+                    }
                     if modo == .provas {
                         if let d = selProva { detalheProva(d) } else { listaProvas }
                     } else if let d = sel { detalhe(d) } else { lista }
@@ -186,8 +195,7 @@ struct IncidenciaView: View {
                             .frame(width: 48, alignment: .trailing)
                     }
                     .padding(.horizontal, 15).padding(.vertical, 11)
-                    .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(AppTheme.surface))
-                    .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(AppTheme.hairline))
+                    .legisCard(hover: true)
                 }.buttonStyle(.plain)
             }
             nota
@@ -199,9 +207,9 @@ struct IncidenciaView: View {
         let alta = arts.filter { d.faixa($0.n) == .alta }.count
         let media = arts.filter { d.faixa($0.n) == .media }.count
         return VStack(alignment: .leading, spacing: 12) {
-            Button { sel = nil } label: { Label("todos os diplomas", systemImage: "chevron.left") }
-                .buttonStyle(.bordered)
-            Text(d.nome).font(.system(size: 24, weight: .heavy)).tracking(-0.4).foregroundStyle(AppTheme.ink)
+            Button { sel = nil; aviso = nil } label: { Label("Todos os diplomas", systemImage: "chevron.left") }
+                .buttonStyle(.legisGhost)
+            Text(d.nome).font(AppTheme.displayFont(24, .heavy)).tracking(-0.4).foregroundStyle(AppTheme.ink)
             LegisFlow(espacamento: 5) {
                 Text("\(d.artigos) artigos citados · \(d.total) citações no acervo ·")
                 Text("\(alta) alta").foregroundStyle(cAlta).bold()
@@ -219,8 +227,8 @@ struct IncidenciaView: View {
                         }
                         .frame(maxWidth: .infinity, minHeight: 50)
                         .foregroundStyle(cor)
-                        .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(cor.opacity(0.13)))
-                        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(cor, lineWidth: 1.5))
+                        .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(cor.opacity(0.13)))
+                        .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(cor, lineWidth: 1.5))
                     }
                     .buttonStyle(.plain)
                     .help("art. \(a.numero) — \(a.n) citação(ões) no acervo")
@@ -257,8 +265,7 @@ struct IncidenciaView: View {
                             .frame(width: 48, alignment: .trailing)
                     }
                     .padding(.horizontal, 15).padding(.vertical, 11)
-                    .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(AppTheme.surface))
-                    .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(AppTheme.hairline))
+                    .legisCard(hover: true)
                 }.buttonStyle(.plain)
             }
             notaProva
@@ -268,23 +275,21 @@ struct IncidenciaView: View {
     private func detalheProva(_ d: IncidenciaDados.DiplomaProva) -> some View {
         let arts = d.artigos(carreira: carreira)
         return VStack(alignment: .leading, spacing: 12) {
-            Button { selProva = nil } label: { Label("todos os diplomas", systemImage: "chevron.left") }.buttonStyle(.bordered)
-            Text(d.nome).font(.system(size: 24, weight: .heavy)).tracking(-0.4).foregroundStyle(AppTheme.ink)
+            Button { selProva = nil; aviso = nil } label: { Label("Todos os diplomas", systemImage: "chevron.left") }.buttonStyle(.legisGhost)
+            Text(d.nome).font(AppTheme.displayFont(24, .heavy)).tracking(-0.4).foregroundStyle(AppTheme.ink)
             Text("\(arts.count) artigos exigidos · \(d.total(carreira: carreira)) exigências em espelhos oficiais" + (carreira.map { " · \($0)" } ?? ""))
                 .font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
             ForEach(arts, id: \.numero) { a in
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text("Art. \(a.numero)").font(.system(size: 14, weight: .heavy, design: .monospaced)).foregroundStyle(AppTheme.ink)
-                        Text("\(a.n)× em prova").font(.system(size: 11.5, weight: .bold)).foregroundStyle(ThemeState.t.accent)
-                            .padding(.horizontal, 7).padding(.vertical, 2).background(Capsule().fill(ThemeState.t.accent.opacity(0.12)))
+                        LegisChip("\(a.n)× em prova", tint: ThemeState.t.accent, variant: .soft, size: 11.5)
                         Spacer()
-                        Button("Abrir na lei") { abrirNaLeiProva(d, artigo: a.numero) }.buttonStyle(.borderless).font(.caption)
+                        Button("Abrir na lei") { abrirNaLeiProva(d, artigo: a.numero) }.buttonStyle(.legisGhost)
                     }
                     LegisFlow(espacamento: 5) {
                         ForEach(a.a.carreiras.sorted { $0.value > $1.value }, id: \.key) { k, v in
-                            Text("\(k): \(v)").font(.system(size: 11)).padding(.horizontal, 7).padding(.vertical, 2)
-                                .background(Capsule().fill(AppTheme.hairline.opacity(0.5)))
+                            LegisChip("\(k): \(v)", tint: AppTheme.secondaryInk, variant: .soft, size: 11)
                         }
                     }
                     Text(a.a.provas.filter { carreira == nil || $0.carreira == carreira! }
@@ -293,8 +298,7 @@ struct IncidenciaView: View {
                         .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk)
                 }
                 .padding(12)
-                .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(AppTheme.surface))
-                .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(AppTheme.hairline))
+                .legisCard()
             }
             notaProva
         }
@@ -306,9 +310,28 @@ struct IncidenciaView: View {
     }
 
     private func abrirNaLeiProva(_ d: IncidenciaDados.DiplomaProva, artigo: String) {
+        abrirNaLei(nome: d.nome, artigo: artigo)
+    }
+
+    /// Casa o diploma com a biblioteca pelo título exato OU pelo apelido curto
+    /// (RemissiveIndex.shortName); posiciona no ARTIGO clicado (store.articleUnitID +
+    /// setLastUnit) e, sem match, avisa em vez de ficar mudo.
+    private func abrirNaLei(nome: String, artigo: String) {
         guard let abrirLei else { return }
-        let alvo = d.nome.folding(options: .diacriticInsensitive, locale: nil).lowercased()
-        if let lei = store.laws.first(where: { $0.title.folding(options: .diacriticInsensitive, locale: nil).lowercased() == alvo }) { abrirLei(lei.id) }
+        func norm(_ s: String) -> String { s.folding(options: .diacriticInsensitive, locale: nil).lowercased().trimmingCharacters(in: .whitespaces) }
+        let alvo = norm(nome)
+        let lei = store.laws.first(where: { $0.isRegularLaw && norm($0.title) == alvo })
+            ?? store.laws.first(where: { $0.isRegularLaw && norm(RemissiveIndex.shortName($0)) == alvo })
+            ?? store.laws.first(where: { $0.isRegularLaw && norm($0.title).contains(alvo) })
+        guard let lei else {
+            aviso = "“\(nome)” não está na sua biblioteca — cadastre a norma em Todas as normas para abrir pelo artigo."
+            return
+        }
+        aviso = nil
+        let numero = artigo.replacingOccurrences(of: ".", with: "")
+        if let uid = store.articleUnitID(lawID: lei.id, number: numero) { store.setLastUnit(lei.id, uid) }
+        readerMode = "estudo"
+        abrirLei(lei.id)
     }
 
     private var nota: some View {
@@ -317,14 +340,9 @@ struct IncidenciaView: View {
             .padding(.top, 8)
     }
 
-    /// Clicar num artigo abre a LEI no leitor. Casamos pelo nome do catálogo (é o mesmo
-    /// nome que o gerador leu do CátedraLEGIS web) — quando bate, abre; quando não, fica.
+    /// Clicar num artigo abre a LEI no leitor, já no artigo.
     private func abrirNaLei(_ d: IncidenciaDiploma, artigo: String) {
-        guard let abrirLei else { return }
-        let alvo = d.nome.folding(options: .diacriticInsensitive, locale: nil).lowercased()
-        if let lei = store.laws.first(where: {
-            $0.title.folding(options: .diacriticInsensitive, locale: nil).lowercased() == alvo
-        }) { abrirLei(lei.id) }
+        abrirNaLei(nome: d.nome, artigo: artigo)
     }
 }
 
@@ -347,6 +365,12 @@ struct ProvaOralLegisView: View {
     @State private var correcao: Correcao?
     @State private var erro: String?
     @State private var historico: [(artigo: String, nota: String)] = []
+    // Artigos da norma escolhida, parseados UMA vez fora da MainActor — antes cada
+    // "Sortear"/"Arguir" reparseava a lei inteira (CF/CPC ≈ 1 s de UI travada por clique).
+    @State private var unidadesCache: [LawUnit] = []
+    @State private var carregando = false
+    @AppStorage("readerFontSize") private var fontSize = 16.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
 
     struct Correcao: Codable { var nota: String?; var acertou: [String]?; var faltou: [String]?; var modelo: String? }
 
@@ -371,22 +395,21 @@ struct ProvaOralLegisView: View {
     // MARK: escolha da norma
     private var escolha: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Matéria").font(.system(size: 11, weight: .heavy)).tracking(1).foregroundStyle(AppTheme.secondaryInk)
+            LegisSectionHeader(title: "Matéria", icon: "tag")
             LegisFlow {
-                chip("Todas", on: categoria == nil) { categoria = nil }
-                ForEach(LawCategory.allCases) { c in chip(c.rawValue, on: categoria == c) { categoria = c } }
+                LegisFilterChip("Todas", on: categoria == nil) { categoria = nil }
+                ForEach(LawCategory.allCases) { c in LegisFilterChip(c.rawValue, on: categoria == c, tint: c.color) { categoria = c } }
             }
-            Text("Norma").font(.system(size: 11, weight: .heavy)).tracking(1).foregroundStyle(AppTheme.secondaryInk)
+            LegisSectionHeader(title: "Norma", icon: "books.vertical", count: leis.count)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)], spacing: 10) {
                 ForEach(leis.prefix(80)) { l in
-                    Button { lei = l; sortear(l) } label: {
+                    Button { escolherNorma(l) } label: {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(l.title).font(.system(size: 13.5, weight: .bold)).foregroundStyle(AppTheme.ink).lineLimit(2)
                             Text(l.reference).font(.system(size: 11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading).padding(13)
-                        .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(AppTheme.surface))
-                        .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(AppTheme.hairline))
+                        .padding(13)
+                        .legisCard(tint: l.category.color, spine: true, hover: true)
                     }.buttonStyle(.plain)
                 }
             }
@@ -397,52 +420,51 @@ struct ProvaOralLegisView: View {
     private func sessao(_ l: LawEntry) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 10) {
-                Button { lei = nil; unidade = nil; pergunta = ""; correcao = nil } label: { Label("outra norma", systemImage: "chevron.left") }.buttonStyle(.bordered)
-                Text(l.title).font(.system(size: 20, weight: .heavy)).tracking(-0.3).foregroundStyle(AppTheme.ink)
+                Button { lei = nil; unidade = nil; pergunta = ""; correcao = nil; unidadesCache = [] } label: { Label("Outra norma", systemImage: "chevron.left") }.buttonStyle(.legisGhost)
+                Text(l.title).font(AppTheme.displayFont(20, .heavy)).tracking(-0.3).foregroundStyle(AppTheme.ink)
                 Spacer()
+                if carregando { ProgressView().controlSize(.small) }
             }
             HStack(spacing: 8) {
                 TextField("Artigo (ex.: 489)", text: $artigo).textFieldStyle(.roundedBorder).frame(maxWidth: 180)
-                Button("Arguir este artigo") { escolher(l, numero: artigo) }.buttonStyle(.bordered).disabled(artigo.trimmingCharacters(in: .whitespaces).isEmpty)
-                Button { sortear(l) } label: { Label("Sortear artigo", systemImage: "dice") }.buttonStyle(.borderedProminent).tint(ThemeState.t.accent)
+                Button("Arguir este artigo") { escolher(l, numero: artigo) }.buttonStyle(.bordered).disabled(artigo.trimmingCharacters(in: .whitespaces).isEmpty || carregando)
+                Button { sortear(l) } label: { Label("Sortear artigo", systemImage: "dice") }.buttonStyle(.legisPrimary).disabled(carregando)
                 if !historico.isEmpty {
                     Text("Nesta sessão: " + historico.map { "\($0.artigo) \($0.nota == "boa" ? "✓" : $0.nota == "media" ? "~" : "✗")" }.joined(separator: "  "))
                         .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk)
                 }
             }
-            if let erro { Text(erro).font(.system(size: 12.5)).foregroundStyle(Color(hex: "#DC2626")) }
+            if let erro { Text(erro).font(.system(size: 12.5)).foregroundStyle(AppTheme.danger) }
             if let u = unidade {
                 // O DISPOSITIVO — o examinador aponta, a pessoa vê.
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Dispositivo apontado pela banca").font(.system(size: 10.5, weight: .heavy)).tracking(1.2).foregroundStyle(AppTheme.secondaryInk)
+                        LegisSectionHeader(title: "Dispositivo apontado pela banca")
                         Spacer()
                         if let c = u.context, !c.isEmpty { Text(c).font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1) }
                     }
-                    Text(u.label).font(.system(size: 18, weight: .heavy, design: .serif)).foregroundStyle(ThemeState.t.accent)
-                    Text(u.lines.joined(separator: "\n")).font(.system(size: 14.5, design: .serif)).lineSpacing(4).foregroundStyle(AppTheme.ink).textSelection(.enabled)
+                    Text(u.label).font(AppTheme.displayFont(18, .heavy)).foregroundStyle(ThemeState.t.accent)
+                    Text(u.lines.joined(separator: "\n")).font(AppTheme.readerFont(size: fontSize - 1.5, family: fontFamily)).lineSpacing(4).foregroundStyle(AppTheme.ink).textSelection(.enabled)
                 }
                 .padding(16)
-                .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(AppTheme.surface))
-                .overlay(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).strokeBorder(ThemeState.t.accent.opacity(0.35), lineWidth: 1.5))
+                .legisCard(tint: ThemeState.t.accent, spine: true, stroke: ThemeState.t.accent.opacity(0.35))
 
                 // A PERGUNTA, no tom da banca
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Examinador").font(.system(size: 10.5, weight: .heavy)).tracking(1.2).foregroundStyle(ThemeState.t.accent)
+                    LegisSectionHeader(title: "Examinador", icon: "person.wave.2", tint: ThemeState.t.accent)
                     Text(pergunta).font(.system(size: 16, weight: .semibold)).lineSpacing(4).foregroundStyle(AppTheme.ink)
                     Text("Responda como responderia à banca: posição, fundamento (artigo/§/inciso), exceções e um exemplo. 2 a 3 minutos.")
                         .font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
                 }
                 .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: ThemeState.t.radius, style: .continuous).fill(ThemeState.t.accent.opacity(0.08)))
+                .background(RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous).fill(ThemeState.t.accent.opacity(0.08)))
 
                 TextEditor(text: $resposta).font(.system(size: 14.5)).frame(minHeight: 150)
                     .padding(10)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(AppTheme.surface))
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(AppTheme.hairline))
+                    .legisCard(radius: AppTheme.rInner)
                 HStack(spacing: 10) {
                     Button("Corrigir") { corrigir(l, u) }
-                        .buttonStyle(.borderedProminent).tint(ThemeState.t.accent)
+                        .buttonStyle(.legisPrimary)
                         .disabled(resposta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     Button("Outra pergunta sobre este artigo") { variante += 1; pergunta = LegisOralLocal.perguntaBanca(lei: l, unit: u, variante: variante); correcao = nil }.buttonStyle(.bordered)
                     Button("Próximo artigo") { sortear(l) }.buttonStyle(.bordered)
@@ -452,14 +474,29 @@ struct ProvaOralLegisView: View {
         }
     }
 
-    private func unidades(_ l: LawEntry) -> [LawUnit] {
-        guard let t = store.loadText(for: l) else { return [] }
-        return ArticleStudyView.collapseRedactions(LawParser.parse(t)).units.filter { $0.label.lowercased().hasPrefix("art") }
+    /// Escolhe a norma: parse em Task.detached (como o leitor faz), depois sorteia.
+    private func escolherNorma(_ l: LawEntry) {
+        lei = l; unidade = nil; pergunta = ""; correcao = nil; erro = nil; unidadesCache = []
+        guard let t = store.loadText(for: l) else {
+            erro = "O texto desta norma ainda não foi baixado — abra-a no leitor primeiro."; return
+        }
+        carregando = true
+        Task {
+            let parsed = await Task.detached(priority: .userInitiated) { LawParser.parse(t) }.value
+            guard lei?.id == l.id else { return }
+            unidadesCache = ArticleStudyView.collapseRedactions(parsed).units.filter { $0.label.lowercased().hasPrefix("art") }
+            carregando = false
+            sortear(l)
+        }
     }
+    private func unidades(_ l: LawEntry) -> [LawUnit] { unidadesCache }
     private func sortear(_ l: LawEntry) {
         erro = nil; correcao = nil; resposta = ""; variante = 0
         let us = unidades(l).filter { $0.lines.joined().count >= 80 }
-        guard let u = us.randomElement() else { erro = "O texto desta norma ainda não foi baixado — abra-a no leitor primeiro."; unidade = nil; return }
+        guard let u = us.randomElement() else {
+            if !carregando { erro = "O texto desta norma ainda não foi baixado — abra-a no leitor primeiro."; unidade = nil }
+            return
+        }
         unidade = u; pergunta = LegisOralLocal.perguntaBanca(lei: l, unit: u, variante: 0)
     }
     private func escolher(_ l: LawEntry, numero: String) {
@@ -478,33 +515,24 @@ struct ProvaOralLegisView: View {
 
     @ViewBuilder private func resultado(_ c: Correcao) -> some View {
         let nota = c.nota ?? ""
-        let cor = nota == "boa" ? Color(hex: "#16A34A") : nota == "media" ? Color(hex: "#D97706") : Color(hex: "#DC2626")
-        Text((nota == "boa" ? "Resposta consistente" : nota == "media" ? "Resposta parcial" : "Resposta insuficiente").uppercased())
-            .font(.system(size: 11, weight: .heavy)).tracking(0.6)
-            .padding(.horizontal, 10).padding(.vertical, 4)
-            .background(Capsule().fill(cor.opacity(0.15))).foregroundStyle(cor)
-        if let a = c.acertou, !a.isEmpty { bloco("O que você acertou", a.map { "• " + $0 }.joined(separator: "\n"), Color(hex: "#16A34A")) }
-        if let f = c.faltou, !f.isEmpty { bloco("O que faltou ou saiu errado", f.map { "• " + $0 }.joined(separator: "\n"), Color(hex: "#DC2626")) }
+        let cor = nota == "boa" ? AppTheme.ok : nota == "media" ? AppTheme.warn : AppTheme.danger
+        LegisChip((nota == "boa" ? "Resposta consistente" : nota == "media" ? "Resposta parcial" : "Resposta insuficiente").uppercased(),
+                  tint: cor, variant: .soft, size: 11)
+        if let a = c.acertou, !a.isEmpty { bloco("O que você acertou", a.map { "• " + $0 }.joined(separator: "\n"), AppTheme.ok) }
+        if let f = c.faltou, !f.isEmpty { bloco("O que faltou ou saiu errado", f.map { "• " + $0 }.joined(separator: "\n"), AppTheme.danger) }
         if let m = c.modelo, !m.isEmpty { bloco("O que a banca esperaria ouvir (texto oficial)", m, AppTheme.secondaryInk) }
     }
     private func bloco(_ rot: String, _ txt: String, _ cor: Color) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(rot.uppercased()).font(.system(size: 10.5, weight: .bold)).tracking(1.4).foregroundStyle(AppTheme.secondaryInk)
+            LegisSectionHeader(title: rot)
             HStack(alignment: .top, spacing: 0) {
                 RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3)
                 Text(txt).font(.system(size: 14)).lineSpacing(3).foregroundStyle(AppTheme.ink)
                     .padding(.horizontal, 13).padding(.vertical, 10)
                 Spacer(minLength: 0)
             }
-            .background(RoundedRectangle(cornerRadius: max(6, ThemeState.t.radius - 4), style: .continuous).fill(cor.opacity(0.09)))
+            .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(cor.opacity(0.09)))
         }
-    }
-    private func chip(_ t: String, on: Bool, _ act: @escaping () -> Void) -> some View {
-        Button(action: act) {
-            Text(t).font(.system(size: 12, weight: .semibold)).padding(.horizontal, 10).padding(.vertical, 5)
-                .background(Capsule().fill(on ? ThemeState.t.accent : AppTheme.hairline.opacity(0.35)))
-                .foregroundStyle(on ? Color.white : AppTheme.ink)
-        }.buttonStyle(.plain)
     }
 }
 

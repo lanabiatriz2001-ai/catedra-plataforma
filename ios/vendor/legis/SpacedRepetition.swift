@@ -62,10 +62,10 @@ enum SRSGrade: String, CaseIterable, Identifiable {
     }
     var color: Color {
         switch self {
-        case .again: return .red
-        case .hard: return .orange
-        case .good: return .green
-        case .easy: return .blue
+        case .again: return AppTheme.danger
+        case .hard: return AppTheme.warn
+        case .good: return AppTheme.ok
+        case .easy: return AppTheme.info
         }
     }
     var symbol: String {

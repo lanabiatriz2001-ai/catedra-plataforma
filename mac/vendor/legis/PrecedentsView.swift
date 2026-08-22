@@ -8,11 +8,11 @@ enum PrecedentKind {
 
     static func color(_ kind: String) -> Color {
         switch kind {
-        case "Súmula", "Súmula Vinculante": return .indigo
-        case "Tese (Repetitivo/RG)": return .purple
-        case "Acórdão": return .blue
-        case "Informativo": return .teal
-        case "Decisão": return .orange
+        case "Súmula", "Súmula Vinculante": return AppTheme.srs
+        case "Tese (Repetitivo/RG)": return AppTheme.srs
+        case "Acórdão": return AppTheme.info
+        case "Informativo": return AppTheme.ok
+        case "Decisão": return AppTheme.warn
         default: return .gray
         }
     }
@@ -93,7 +93,7 @@ struct LawPrecedentsView: View {
         HStack(alignment: .top, spacing: 12) {
             IconBubble(symbol: "text.book.closed", color: accent, size: 36)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Jurisprudência").font(.title3.bold())
+                Text("Jurisprudência").font(AppTheme.displayFont(18, .bold))
                 Text(lawTitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
@@ -182,7 +182,7 @@ private struct PrecedentCard: View {
             }
             if !precedent.tags.isEmpty {
                 Text(precedent.tags.map { "#\($0)" }.joined(separator: "  "))
-                    .font(.caption2).foregroundStyle(.blue)
+                    .font(.caption2).foregroundStyle(AppTheme.info)
             }
             HStack(spacing: 8) {
                 if let url = URL(string: precedent.url), !precedent.url.isEmpty {
@@ -202,11 +202,7 @@ private struct PrecedentCard: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(.background.secondary))
-        .overlay(alignment: .leading) {
-            UnevenRoundedRectangle(topLeadingRadius: 12, bottomLeadingRadius: 12)
-                .fill(PrecedentKind.color(precedent.kind)).frame(width: 4)
-        }
+        .legisCard(tint: PrecedentKind.color(precedent.kind), spine: true, hover: true)
     }
 }
 
@@ -237,7 +233,7 @@ struct PrecedentEditView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(existing == nil ? "Nova jurisprudência" : "Editar jurisprudência")
-                .font(.title3.bold())
+                .font(AppTheme.displayFont(18, .bold))
             Form {
                 Picker("Tipo", selection: $kind) {
                     ForEach(PrecedentKind.all, id: \.self) { Text($0).tag($0) }
@@ -255,20 +251,19 @@ struct PrecedentEditView: View {
             TextEditor(text: $summary)
                 .font(.body)
                 .frame(minHeight: 120)
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).stroke(.quaternary))
 
             Text("Anotações (opcional)").font(.headline)
             TextEditor(text: $notes)
                 .font(.body)
                 .frame(minHeight: 70)
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).stroke(.quaternary))
 
             HStack {
                 Spacer()
                 Button("Cancelar") { dismiss() }
                 Button("Salvar") { save() }
-                    .buttonStyle(.borderedProminent)
-                    .tint(accent)
+                    .buttonStyle(.legisPrimary([accent, accent.opacity(0.72)]))
                     .disabled(!canSave)
             }
         }
