@@ -13,6 +13,7 @@
 
 import Cocoa
 import WebKit
+import UniformTypeIdentifiers
 import UserNotifications
 import SwiftUI
 import WidgetKit
@@ -184,6 +185,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraNav")  // web → trocar de aba nativa
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPlano") // web → marcar leitura do plano (ciclo semanal)
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPrint") // web → imprimir/salvar PDF (window.print é mudo no WKWebView)
+        ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraBackup") // web → backup no iCloud Drive (pasta Cátedra) ou painel de arquivo
         cfg.userContentController = ucc
         cfg.preferences.javaScriptCanOpenWindowsAutomatically = true  // necessário p/ o window.open do PiP
         cfg.preferences.setValue(true, forKey: "developerExtrasEnabled")  // "Inspecionar" no menu de contexto
@@ -1328,6 +1330,76 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         jurisSettingsWindow?.makeKeyAndOrderFront(nil)
     }
 
+
+    // MARK: Backup na nuvem pessoal (iCloud Drive)
+    // Sem entitlement de iCloud (o app é notarizado com zero entitlements e não é sandboxed):
+    // ~/Library/Mobile Documents/com~apple~CloudDocs É a pasta do iCloud Drive do usuário, e
+    // escrever nela basta para o arquivo subir. Sem iCloud Drive ativo, cai no painel de salvar.
+    private func pastaICloud() -> URL? {
+        let base = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs", isDirectory: true)
+        var isDir: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: base.path, isDirectory: &isDir), isDir.boolValue else { return nil }
+        return base.appendingPathComponent("Cátedra", isDirectory: true)
+    }
+    private func handleBackup(_ message: WKScriptMessage, _ reply: @escaping (Any?, String?) -> Void) {
+        let body = message.body as? [String: Any] ?? [:]
+        let acao = body["acao"] as? String ?? ""
+        let nomePedido = body["nome"] as? String ?? ""
+        let nome = nomePedido.isEmpty ? "catedra-backup.json" : nomePedido
+        let json = body["json"] as? String ?? ""
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { reply(["erro": "host indisponível"], nil); return }
+            let fm = FileManager.default
+            if acao == "salvar" {
+                guard let data = json.data(using: .utf8), !data.isEmpty else { reply(["erro": "backup vazio"], nil); return }
+                if let pasta = self.pastaICloud() {
+                    do {
+                        try fm.createDirectory(at: pasta, withIntermediateDirectories: true)
+                        try data.write(to: pasta.appendingPathComponent(nome), options: .atomic)
+                        reply(["ok": true, "onde": "iCloud Drive › Cátedra"], nil)
+                        return
+                    } catch { /* sem iCloud gravável: cai no painel abaixo */ }
+                }
+                let painel = NSSavePanel()
+                painel.nameFieldStringValue = nome
+                painel.canCreateDirectories = true
+                painel.allowedContentTypes = [.json]
+                painel.begin { resultado in
+                    guard resultado == .OK, let destino = painel.url else { reply(["cancelado": true], nil); return }
+                    do { try data.write(to: destino, options: .atomic); reply(["ok": true, "onde": destino.deletingLastPathComponent().lastPathComponent], nil) }
+                    catch { reply(["erro": error.localizedDescription], nil) }
+                }
+            } else if acao == "ler" {
+                let ler: (URL) -> Void = { origem in
+                    do {
+                        let dados = try Data(contentsOf: origem)
+                        var quando = ""
+                        if let attrs = try? fm.attributesOfItem(atPath: origem.path), let mod = attrs[.modificationDate] as? Date {
+                            quando = DateFormatter.localizedString(from: mod, dateStyle: .short, timeStyle: .short)
+                        }
+                        reply(["json": String(decoding: dados, as: UTF8.self), "quando": quando], nil)
+                    } catch { reply(["erro": error.localizedDescription], nil) }
+                }
+                if let pasta = self.pastaICloud() {
+                    let arquivo = pasta.appendingPathComponent(nome)
+                    if fm.fileExists(atPath: arquivo.path) { ler(arquivo); return }
+                }
+                let painel = NSOpenPanel()
+                painel.allowedContentTypes = [.json]
+                painel.canChooseDirectories = false
+                painel.allowsMultipleSelection = false
+                if let pasta = self.pastaICloud() { painel.directoryURL = pasta }
+                painel.begin { resultado in
+                    guard resultado == .OK, let origem = painel.url else { reply(["cancelado": true], nil); return }
+                    ler(origem)
+                }
+            } else {
+                reply(["erro": "ação desconhecida"], nil)
+            }
+        }
+    }
+
     // MARK: Roteamento das pontes JS → Swift
     func userContentController(_ ucc: WKUserContentController, didReceive message: WKScriptMessage,
                                replyHandler: @escaping (Any?, String?) -> Void) {
@@ -1345,6 +1417,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             // Ciclo semanal: checkbox de uma leitura da tabela-dia (key "di_li_dyi").
             togglePlanoLeitura((message.body as? String) ?? "")
             reply(nil, nil)
+        case "catedraBackup":    handleBackup(message, reply)
         case "catedraPrint":
             // Relatório → Imprimir/Salvar PDF: WKWebView não implementa window.print(),
             // então o host roda a NSPrintOperation da própria webview (diálogo padrão do macOS).

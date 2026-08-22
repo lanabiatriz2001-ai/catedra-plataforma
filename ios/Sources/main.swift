@@ -18,6 +18,7 @@
 import UIKit
 import SwiftUI
 import WebKit
+import UniformTypeIdentifiers
 import UserNotifications
 
 // Endpoint da IA: Info.plist (CatedraAIEndpoint), com override por UserDefaults para
@@ -28,7 +29,7 @@ func aiEndpoint() -> String {
     return ""
 }
 
-final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply {
+final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply, WKDownloadDelegate, UIDocumentPickerDelegate {
 
     var webView: WKWebView!
     private var segmento: UISegmentedControl!
@@ -58,7 +59,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
         // Ponte de IA + notificações, no mundo .page (o app roda no mundo principal).
         for nome in ["catedraAI", "notifyPermission", "notifyShow", "catedraLembretes",
-                     "catedraNav", "catedraPlano", "catedraPrint", "catedraAcervo"] {
+                     "catedraNav", "catedraPlano", "catedraPrint", "catedraAcervo", "catedraBackup"] {
             ucc.addScriptMessageHandler(self, contentWorld: .page, name: nome)
         }
         ucc.addUserScript(WKUserScript(source: Self.pontesJS,
@@ -390,6 +391,90 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     })();
     """
 
+
+    // MARK: - Backup na nuvem pessoal + exports (iPad)
+    // O app é sandboxed e sem container iCloud (zero entitlements): o caminho honesto é o
+    // seletor de documentos do sistema — a pessoa escolhe iCloud Drive (ou qualquer pasta)
+    // na hora de salvar/abrir. Antes, "Exportar" na web não fazia NADA no iPad: o blob: do
+    // download era engolido pelo WKWebView. Agora todo download vira um arquivo temporário
+    // entregue ao mesmo seletor.
+    private var backupReply: ((Any?, String?) -> Void)?
+    private var backupModo = ""
+    private func handleBackup(_ message: WKScriptMessage, _ reply: @escaping (Any?, String?) -> Void) {
+        let body = message.body as? [String: Any] ?? [:]
+        let acao = body["acao"] as? String ?? ""
+        let nomePedido = body["nome"] as? String ?? ""
+        let nome = nomePedido.isEmpty ? "catedra-backup.json" : nomePedido
+        if acao == "salvar" {
+            guard let json = body["json"] as? String, let data = json.data(using: .utf8), !data.isEmpty else { reply(["erro": "backup vazio"], nil); return }
+            let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(nome)
+            do { try data.write(to: tmp, options: .atomic) } catch { reply(["erro": error.localizedDescription], nil); return }
+            backupReply?(["cancelado": true], nil)
+            backupReply = reply; backupModo = "salvar"
+            let picker = UIDocumentPickerViewController(forExporting: [tmp], asCopy: true)
+            picker.delegate = self
+            present(picker, animated: true)
+        } else if acao == "ler" {
+            backupReply?(["cancelado": true], nil)
+            backupReply = reply; backupModo = "ler"
+            let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.json], asCopy: true)
+            picker.delegate = self
+            present(picker, animated: true)
+        } else {
+            reply(["erro": "ação desconhecida"], nil)
+        }
+    }
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let responder = backupReply else { return }
+        backupReply = nil
+        if backupModo == "salvar" {
+            responder(["ok": true, "onde": urls.first?.deletingLastPathComponent().lastPathComponent ?? "Arquivos"], nil)
+            return
+        }
+        guard let origem = urls.first else { responder(["cancelado": true], nil); return }
+        do {
+            let dados = try Data(contentsOf: origem)
+            responder(["json": String(decoding: dados, as: UTF8.self), "quando": ""], nil)
+        } catch { responder(["erro": error.localizedDescription], nil) }
+    }
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        backupReply?(["cancelado": true], nil)
+        backupReply = nil
+    }
+
+    // Exports do app (âncora com download → blob:) viram download nativo → seletor de
+    // documentos. Link http(s) clicado abre no Safari em vez de substituir o app na webview.
+    func webView(_ wv: WKWebView, decidePolicyFor action: WKNavigationAction,
+                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if action.shouldPerformDownload { decisionHandler(.download); return }
+        if let url = action.request.url, let scheme = url.scheme?.lowercased(),
+           (scheme == "http" || scheme == "https"), action.navigationType == .linkActivated {
+            UIApplication.shared.open(url)
+            decisionHandler(.cancel)
+            return
+        }
+        decisionHandler(.allow)
+    }
+    private var downloadDests: [ObjectIdentifier: URL] = [:]
+    func webView(_ wv: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) { download.delegate = self }
+    func webView(_ wv: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) { download.delegate = self }
+    func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String,
+                  completionHandler: @escaping (URL?) -> Void) {
+        let nome = suggestedFilename.isEmpty ? "catedra-export" : suggestedFilename
+        let destino = FileManager.default.temporaryDirectory.appendingPathComponent(nome)
+        try? FileManager.default.removeItem(at: destino)
+        downloadDests[ObjectIdentifier(download)] = destino
+        completionHandler(destino)
+    }
+    func downloadDidFinish(_ download: WKDownload) {
+        guard let arquivo = downloadDests.removeValue(forKey: ObjectIdentifier(download)) else { return }
+        let picker = UIDocumentPickerViewController(forExporting: [arquivo], asCopy: true)
+        present(picker, animated: true)
+    }
+    func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
+        downloadDests.removeValue(forKey: ObjectIdentifier(download))
+    }
+
     func userContentController(_ ucc: WKUserContentController,
                                didReceive message: WKScriptMessage,
                                replyHandler: @escaping (Any?, String?) -> Void) {
@@ -400,6 +485,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case "catedraLembretes": agendarLembretes(message, replyHandler)
         case "catedraNav":       abrirTelaNativa(message); replyHandler(nil, nil)
         case "catedraAcervo":    abrirAcervoNativo(message); replyHandler(nil, nil)
+        case "catedraBackup":    handleBackup(message, replyHandler)
         // Exclusivos do Mac (impressão). Respondem para o JS não travar esperando uma
         // promessa que nunca resolve.
         default:                 replyHandler(nil, nil)

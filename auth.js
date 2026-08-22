@@ -475,67 +475,186 @@
   }
 
   var mode = 'login';
-  function showForm() {
-    var title = mode === 'login' ? 'Entrar' : 'Criar conta';
-    var alt = mode === 'login' ? 'Primeiro acesso? <b>Criar conta</b>' : 'Já tem conta? <b>Entrar</b>';
-    el.innerHTML =
-      '<div class="ct-hero" style="flex:1.1;min-width:0;background:' + GRAD + ';color:#fff;flex-direction:column;justify-content:space-between;padding:clamp(28px,4vw,52px);' + (window.innerWidth > 760 ? 'display:flex;' : 'display:none;') + '">'
-      + '<div style="display:flex;align-items:center;gap:12px;"><div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:700;font-size:22px;">C</div><span style="font-family:Georgia,serif;font-weight:600;font-size:20px;">Cátedra</span></div>'
-      + '<div><div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;opacity:.8;font-weight:600;font-family:system-ui,sans-serif;">Sua aprovação, organizada</div><h1 style="font-family:Georgia,serif;font-size:clamp(28px,3.4vw,42px);font-weight:700;line-height:1.1;margin:14px 0 0;max-width:460px;">Estude o que cai, na proporção em que cai.</h1><p style="font-family:system-ui,sans-serif;font-size:15px;opacity:.9;line-height:1.6;margin:16px 0 0;max-width:420px;">Sua conta guarda o progresso e sincroniza entre seus aparelhos.</p></div>'
-      + '<div style="font-family:system-ui,sans-serif;font-size:12.5px;opacity:.8;">© Cátedra · plataforma de estudos</div>'
-      + '</div>'
-      + '<div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;">'
-      + '<form id="ctf" style="width:100%;max-width:360px;">'
-      + '<h2 style="font-family:Georgia,serif;font-size:26px;font-weight:600;color:' + INK + ';margin:0;">' + title + '</h2>'
-      + '<p style="font-size:13.5px;color:' + MUT + ';margin:6px 0 24px;">Acesse sua conta para salvar e sincronizar seus estudos.</p>'
-      + '<label style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">E-mail</label>'
-      + '<input id="cte" type="email" autocomplete="email" placeholder="voce@email.com" style="width:100%;box-sizing:border-box;border:1px solid ' + BRD + ';background:' + CARD + ';border-radius:10px;padding:12px 14px;font-size:14px;color:' + INK + ';margin-bottom:14px;">'
-      + '<label style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">Senha</label>'
-      + '<input id="ctp" type="password" autocomplete="' + (mode === 'login' ? 'current-password' : 'new-password') + '" placeholder="••••••••" style="width:100%;box-sizing:border-box;border:1px solid ' + BRD + ';background:' + CARD + ';border-radius:10px;padding:12px 14px;font-size:14px;color:' + INK + ';margin-bottom:8px;">'
-      + '<div id="cterr" style="min-height:18px;font-size:12.5px;color:#e0533f;margin:4px 0 10px;line-height:1.4;"></div>'
-      + '<button id="cts" type="submit" style="width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">' + title + '</button>'
-      + '<p id="ctt" style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:18px 0 0;cursor:pointer;">' + alt + '</p>'
-      + (mode === 'login' ? '<p id="ctf2" style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:10px 0 0;cursor:pointer;text-decoration:underline;">Esqueci minha senha</p>' : '')
-      + '</form></div>';
+  // Só a web (http/https) consegue voltar de um link de e-mail ou de um provedor OAuth;
+  // dentro do app nativo (file://) o redirect não teria para onde cair.
+  var WEB = /^https?:$/.test(location.protocol);
+  var OAUTH = (WEB && Array.isArray(window.CATEDRA_OAUTH)) ? window.CATEDRA_OAUTH.filter(function (p) { return p === 'google' || p === 'apple'; }) : [];
+  var SERIF = '"Spectral",Georgia,"Times New Roman",serif', SANS = '-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif';
+  var NAVY = DARK ? '#0b1220' : '#1e2b3a';
+  var HERO = 'linear-gradient(160deg,' + NAVY + ' 0%,' + ACC2 + ' 55%,' + ACC + ' 100%)';
+  var INPUT = 'width:100%;box-sizing:border-box;border:1.5px solid ' + BRD + ';background:' + CARD + ';border-radius:12px;padding:13px 14px;font-size:15px;color:' + INK + ';font-family:' + SANS + ';outline:none;transition:border-color .15s,box-shadow .15s;';
+  var BTN = 'width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:15px;cursor:pointer;font-family:' + SANS + ';letter-spacing:.01em;box-shadow:0 8px 22px -10px ' + ACC + ';transition:transform .12s,opacity .12s;';
+  var GHOST = 'width:100%;background:' + CARD + ';color:' + INK + ';border:1.5px solid ' + BRD + ';border-radius:12px;padding:12px;font-weight:600;font-size:14px;cursor:pointer;font-family:' + SANS + ';display:flex;align-items:center;justify-content:center;gap:10px;';
+  var CSS = '<style>'
+    + '#catedra-auth-gate *{-webkit-tap-highlight-color:transparent}'
+    + '#catedra-auth-gate p,#catedra-auth-gate label,#catedra-auth-gate button,#catedra-auth-gate input,#catedra-auth-gate li,#catedra-auth-gate small{font-family:' + SANS + '}'
+    + '#catedra-auth-gate h1,#catedra-auth-gate h2{font-family:' + SERIF + '}'
+    + '#catedra-auth-gate input:focus{border-color:' + ACC + '!important;box-shadow:0 0 0 4px ' + ACC + '22}'
+    + '#catedra-auth-gate button:active{transform:translateY(1px)}'
+    + '#catedra-auth-gate button[disabled]{opacity:.6;cursor:progress}'
+    + '#catedra-auth-gate .ct-seg{display:flex;background:' + (DARK ? '#0e1116' : '#ecebe4') + ';border-radius:12px;padding:4px;margin:0 0 22px}'
+    + '#catedra-auth-gate .ct-seg button{flex:1;border:none;background:transparent;border-radius:9px;padding:9px;font:600 13.5px ' + SANS + ';color:' + MUT + ';cursor:pointer}'
+    + '#catedra-auth-gate .ct-seg button.on{background:' + CARD + ';color:' + INK + ';box-shadow:0 1px 3px rgba(0,0,0,.12)}'
+    + '#catedra-auth-gate .ct-forca{height:5px;border-radius:99px;background:' + BRD + ';overflow:hidden;margin-top:8px}'
+    + '#catedra-auth-gate .ct-forca i{display:block;height:100%;width:0;border-radius:99px;background:#e0533f;transition:width .2s,background .2s}'
+    + '#catedra-auth-gate .ct-ok{color:' + (DARK ? '#7fd4b5' : '#0f7a57') + '}'
+    + '#catedra-auth-gate .ct-hero li{display:flex;gap:12px;align-items:flex-start;margin:0 0 14px;font:15px/1.5 ' + SANS + ';opacity:.95}'
+    + '#catedra-auth-gate .ct-hero li b{display:inline-flex;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.14);align-items:center;justify-content:center;flex:none;font-size:14px}'
+    + '@keyframes ctspin{to{transform:rotate(360deg)}}'
+    + '@media (max-width:760px){#catedra-auth-gate .ct-hero{display:none!important}}'
+    + '</style>';
+
+  function hero() {
+    return '<div class="ct-hero" style="flex:1.1;min-width:0;background:' + HERO + ';color:#fff;flex-direction:column;justify-content:space-between;padding:clamp(28px,4vw,56px);position:relative;overflow:hidden;' + (window.innerWidth > 760 ? 'display:flex;' : 'display:none;') + '">'
+      + '<span style="position:absolute;right:-120px;top:-120px;width:380px;height:380px;border-radius:50%;background:rgba(255,255,255,.06);"></span>'
+      + '<span style="position:absolute;left:-90px;bottom:-140px;width:320px;height:320px;border-radius:50%;background:rgba(0,0,0,.12);"></span>'
+      + '<div style="display:flex;align-items:center;gap:12px;position:relative;"><div style="width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-family:' + SERIF + ';font-weight:700;font-size:23px;">C</div><div><div style="font-family:' + SERIF + ';font-weight:600;font-size:21px;line-height:1;">Cátedra</div><div style="font:12px ' + SANS + ';opacity:.75;margin-top:3px;">plataforma de estudos</div></div></div>'
+      + '<div style="position:relative;max-width:480px;">'
+      + '<div style="font:600 12px ' + SANS + ';letter-spacing:.18em;text-transform:uppercase;opacity:.8;">Sua aprovação, organizada</div>'
+      + '<h1 style="font-family:' + SERIF + ';font-size:clamp(30px,3.6vw,46px);font-weight:700;line-height:1.08;margin:14px 0 0;letter-spacing:-.01em;">Estude o que cai, na proporção em que cai.</h1>'
+      + '<ul style="list-style:none;padding:0;margin:26px 0 0;">'
+      + '<li><b>⚖️</b><span><strong>Edital verticalizado</strong> com peso por disciplina e o que rende mais pontos.</span></li>'
+      + '<li><b>🔁</b><span><strong>Revisão espaçada</strong> que vence na data certa — e cobra.</span></li>'
+      + '<li><b>📋</b><span><strong>Simulado e 2ª fase</strong> corrigidos pelo espelho oficial da banca.</span></li>'
+      + '</ul></div>'
+      + '<div style="font:12.5px ' + SANS + ';opacity:.75;position:relative;">Seus dados ficam só na sua conta · sincronizam entre Mac, iPad e web · backup no iCloud Drive ou Google Drive quando quiser</div>'
+      + '</div>';
+  }
+  function painel(inner) {
+    el.innerHTML = CSS + hero()
+      + '<div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:24px;font-family:' + SANS + ';overflow:auto;">'
+      + '<div style="width:100%;max-width:380px;">' + inner + '</div></div>';
     show();
-    el.querySelector('#ctt').onclick = function () { mode = mode === 'login' ? 'signup' : 'login'; showForm(); };
+  }
+  function olho(id) {
+    return '<button type="button" data-olho="' + id + '" aria-label="Mostrar senha" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:' + MUT + ';cursor:pointer;padding:6px;font:12.5px ' + SANS + ';">mostrar</button>';
+  }
+  function ligarOlhos() {
+    el.querySelectorAll('[data-olho]').forEach(function (b) {
+      b.onclick = function () { var i = el.querySelector('#' + b.getAttribute('data-olho')); var vis = i.type === 'text'; i.type = vis ? 'password' : 'text'; b.textContent = vis ? 'mostrar' : 'ocultar'; i.focus(); };
+    });
+  }
+  // Caps Lock ligado é a causa nº 1 de "senha incorreta" que não é senha incorreta.
+  function avisoCaps(input, alvo) {
+    input.addEventListener('keyup', function (e) {
+      try { var on = e.getModifierState && e.getModifierState('CapsLock'); alvo.textContent = on ? 'Caps Lock está ligado.' : ''; alvo.style.color = MUT; } catch (_) {}
+    });
+  }
+  function forcaSenha(p) {
+    var n = 0; if (p.length >= 8) n++; if (p.length >= 12) n++; if (/[A-Z]/.test(p) && /[a-z]/.test(p)) n++; if (/\d/.test(p)) n++; if (/[^\w\s]/.test(p)) n++;
+    if (p.length < 6) n = 0;
+    return n; // 0..5
+  }
+  function online() { return navigator.onLine !== false; }
+
+  function showForm() {
+    var login = mode === 'login';
+    painel(
+      '<h2 style="font-family:' + SERIF + ';font-size:28px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">' + (login ? 'Bem-vinda de volta' : 'Criar sua conta') + '</h2>'
+      + '<p style="font-size:14px;color:' + MUT + ';margin:6px 0 20px;line-height:1.5;">' + (login ? 'Entre para continuar de onde parou — em qualquer aparelho.' : 'Leva um minuto. Seus estudos ficam salvos e sincronizados.') + '</p>'
+      + '<div class="ct-seg" role="tablist"><button type="button" role="tab" id="ctseg-login" class="' + (login ? 'on' : '') + '">Entrar</button><button type="button" role="tab" id="ctseg-signup" class="' + (login ? '' : 'on') + '">Criar conta</button></div>'
+      + '<div id="ctoff" style="display:' + (online() ? 'none' : 'block') + ';background:#fff3e0;color:#7a4b00;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px;">Você está sem internet. Dá para entrar assim que a conexão voltar.</div>'
+      + '<form id="ctf" novalidate>'
+      + '<label for="cte" style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">E-mail</label>'
+      + '<input id="cte" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" style="' + INPUT + 'margin-bottom:14px;">'
+      + '<label for="ctp" style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">Senha</label>'
+      + '<div style="position:relative;"><input id="ctp" type="password" autocomplete="' + (login ? 'current-password' : 'new-password') + '" placeholder="' + (login ? '••••••••' : 'mínimo 8 caracteres') + '" style="' + INPUT + 'padding-right:78px;">' + olho('ctp') + '</div>'
+      + (login ? '' : '<div class="ct-forca" aria-hidden="true"><i id="ctforca"></i></div><div id="ctforcat" style="font-size:12px;color:' + MUT + ';margin-top:5px;min-height:16px;"></div>')
+      + '<div id="ctcaps" style="min-height:16px;font-size:12.5px;color:' + MUT + ';margin-top:6px;"></div>'
+      + '<div id="cterr" role="alert" aria-live="polite" style="min-height:18px;font-size:13px;color:#e0533f;margin:2px 0 10px;line-height:1.45;"></div>'
+      + '<button id="cts" type="submit" style="' + BTN + '">' + (login ? 'Entrar' : 'Criar conta') + '</button>'
+      + (login ? '<p id="ctf2" style="font-size:13px;color:' + MUT + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctesq" style="color:' + MUT + ';">Esqueci minha senha</a></p>' : '<p style="font-size:12px;color:' + MUT + ';text-align:center;margin:12px 0 0;line-height:1.5;">Vamos mandar um e-mail de confirmação. Sem ele a conta não abre.</p>')
+      + '</form>'
+      + (WEB || OAUTH.length ? '<div style="display:flex;align-items:center;gap:12px;margin:20px 0 14px;color:' + MUT + ';font-size:12px;"><span style="flex:1;height:1px;background:' + BRD + ';"></span>ou<span style="flex:1;height:1px;background:' + BRD + ';"></span></div>' : '')
+      + (WEB ? '<button type="button" id="ctmagic" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true">✉️</span> Receber um link de acesso por e-mail</button>' : '')
+      + (OAUTH.indexOf('apple') >= 0 ? '<button type="button" data-oauth="apple" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true"></span> Continuar com Apple</button>' : '')
+      + (OAUTH.indexOf('google') >= 0 ? '<button type="button" data-oauth="google" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true" style="font-weight:800;color:#4285f4;">G</span> Continuar com Google</button>' : '')
+      + '<p style="font-size:11.5px;color:' + MUT + ';text-align:center;margin:18px 0 0;line-height:1.5;">Só você enxerga os seus dados. Backup e exportação ficam em <b>Ajustes › Dados</b>.</p>'
+    );
+    el.querySelector('#ctseg-login').onclick = function () { if (mode !== 'login') { mode = 'login'; showForm(); } };
+    el.querySelector('#ctseg-signup').onclick = function () { if (mode !== 'signup') { mode = 'signup'; showForm(); } };
+    ligarOlhos();
+    var form = el.querySelector('#ctf'), errEl = el.querySelector('#cterr'), btn = el.querySelector('#cts');
+    var inE = el.querySelector('#cte'), inP = el.querySelector('#ctp');
+    avisoCaps(inP, el.querySelector('#ctcaps'));
+    try { if (!/Mobi|iPad|iPhone/.test(navigator.userAgent)) inE.focus(); } catch (_) {}
+    window.addEventListener('online', function () { var o = el.querySelector('#ctoff'); if (o) o.style.display = 'none'; });
+    window.addEventListener('offline', function () { var o = el.querySelector('#ctoff'); if (o) o.style.display = 'block'; });
+    var aviso = function (msg, ok) { errEl.style.color = ok ? (DARK ? '#7fd4b5' : '#0f7a57') : '#e0533f'; errEl.textContent = msg || ''; };
+
+    if (!login) {
+      var barra = el.querySelector('#ctforca'), txt = el.querySelector('#ctforcat');
+      inP.addEventListener('input', function () {
+        var n = forcaSenha(inP.value), cores = ['#e0533f', '#e0533f', '#e7a13a', '#c9b51a', '#4caf50', '#0f7a57'];
+        var rot = ['', 'fraca', 'razoável', 'boa', 'forte', 'excelente'];
+        barra.style.width = (n * 20) + '%'; barra.style.background = cores[n];
+        txt.textContent = inP.value.length ? (inP.value.length < 6 ? 'Mínimo de 6 caracteres.' : ('Senha ' + rot[n] + (n < 3 ? ' — misture letras, números e símbolos.' : '.'))) : '';
+      });
+    }
     // Sem isto, quem esquecesse a senha ficava trancado para fora da própria conta para
     // sempre — não havia nenhum caminho de recuperação em lugar nenhum do app.
-    var lkEsq = el.querySelector('#ctf2');
-    if (lkEsq) lkEsq.onclick = function () {
-      var em = (el.querySelector('#cte').value || '').trim();
-      var erro = el.querySelector('#cterr');
-      if (!em) { erro.textContent = 'Escreva seu e-mail acima e clique de novo.'; return; }
-      erro.style.color = MUT; erro.textContent = 'Enviando…';
+    var lkEsq = el.querySelector('#ctesq');
+    if (lkEsq) lkEsq.onclick = function (e) {
+      e.preventDefault();
+      var em = (inE.value || '').trim();
+      if (!em) { aviso('Escreva seu e-mail acima e clique de novo.'); inE.focus(); return; }
+      aviso('Enviando…', true);
       sb.auth.resetPasswordForEmail(em, { redirectTo: location.origin + location.pathname })
-        .then(function () { erro.style.color = MUT; erro.textContent = 'Se existir conta com esse e-mail, o link de redefinição chegou na caixa de entrada.'; })
-        .catch(function () { erro.style.color = '#e0533f'; erro.textContent = 'Não deu para enviar agora. Tente de novo.'; });
+        .then(function () { aviso('Se existir conta com esse e-mail, o link de redefinição já está na caixa de entrada.', true); })
+        .catch(function () { aviso('Não deu para enviar agora. Tente de novo.'); });
     };
-    var form = el.querySelector('#ctf'), errEl = el.querySelector('#cterr'), btn = el.querySelector('#cts');
+    // Link mágico: entra sem senha (Supabase envia o link; ao voltar, a sessão abre sozinha).
+    var bMagic = el.querySelector('#ctmagic');
+    if (bMagic) bMagic.onclick = function () {
+      var em = (inE.value || '').trim();
+      if (!em || !/^\S+@\S+\.\S+$/.test(em)) { aviso('Escreva seu e-mail acima para receber o link.'); inE.focus(); return; }
+      bMagic.disabled = true; bMagic.textContent = 'Enviando…';
+      sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: mode === 'signup' } })
+        .then(function (res) {
+          bMagic.disabled = false; bMagic.innerHTML = '<span aria-hidden="true">✉️</span> Receber um link de acesso por e-mail';
+          if (res.error) { aviso(translateErr(res.error.message)); return; }
+          aviso('Link enviado para ' + em + '. Abra o e-mail neste aparelho e toque no link.', true);
+        })
+        .catch(function () { bMagic.disabled = false; bMagic.innerHTML = '<span aria-hidden="true">✉️</span> Receber um link de acesso por e-mail'; aviso('Falha de conexão. Tente de novo.'); });
+    };
+    el.querySelectorAll('[data-oauth]').forEach(function (b) {
+      b.onclick = function () {
+        b.disabled = true;
+        sb.auth.signInWithOAuth({ provider: b.getAttribute('data-oauth'), options: { redirectTo: location.origin + location.pathname } })
+          .then(function (res) { if (res && res.error) { b.disabled = false; aviso(translateErr(res.error.message)); } })
+          .catch(function () { b.disabled = false; aviso('Não deu para abrir o provedor agora.'); });
+      };
+    });
     form.onsubmit = function (e) {
       e.preventDefault();
-      var email = (el.querySelector('#cte').value || '').trim();
-      var pass = el.querySelector('#ctp').value || '';
-      errEl.textContent = '';
-      if (!email || !pass) { errEl.textContent = 'Preencha e-mail e senha.'; return; }
-      if (pass.length < 6) { errEl.textContent = 'A senha precisa de ao menos 6 caracteres.'; return; }
-      btn.disabled = true; btn.textContent = 'Aguarde…';
-      var done = function (msg) { btn.disabled = false; btn.textContent = mode === 'login' ? 'Entrar' : 'Criar conta'; if (msg) errEl.textContent = msg; };
+      var email = (inE.value || '').trim();
+      var pass = inP.value || '';
+      aviso('');
+      if (!email || !/^\S+@\S+\.\S+$/.test(email)) { aviso('Confira o e-mail — parece incompleto.'); inE.focus(); return; }
+      if (!pass) { aviso('Falta a senha.'); inP.focus(); return; }
+      if (pass.length < 6) { aviso('A senha precisa de ao menos 6 caracteres.'); inP.focus(); return; }
+      if (!online()) { aviso('Sem internet agora. Assim que voltar, é só tentar de novo.'); return; }
+      btn.disabled = true; btn.textContent = login ? 'Entrando…' : 'Criando conta…';
+      var done = function (msg, ok) { btn.disabled = false; btn.textContent = login ? 'Entrar' : 'Criar conta'; if (msg) aviso(msg, ok); };
       var onRes = function (res) {
         if (res.error) { done(translateErr(res.error.message)); return; }
-        if (res.data && res.data.session) { onLogin(res.data.session.user); }
-        else if (mode === 'signup') { done('Conta criada! Confirme pelo e-mail e depois entre.'); mode = 'login'; }
+        if (res.data && res.data.session) { btn.textContent = 'Abrindo seus estudos…'; onLogin(res.data.session.user); }
+        else if (!login) { mode = 'login'; showForm(); var er = el.querySelector('#cterr'); if (er) { er.style.color = DARK ? '#7fd4b5' : '#0f7a57'; er.textContent = 'Conta criada! Confirme pelo e-mail que acabamos de enviar e depois entre aqui.'; } }
         else { done('Não foi possível entrar.'); }
       };
-      var p = mode === 'signup' ? sb.auth.signUp({ email: email, password: pass }) : sb.auth.signInWithPassword({ email: email, password: pass });
+      var p = login ? sb.auth.signInWithPassword({ email: email, password: pass }) : sb.auth.signUp({ email: email, password: pass, options: { emailRedirectTo: WEB ? location.origin + location.pathname : undefined } });
       p.then(onRes).catch(function () { done('Falha de conexão. Tente de novo.'); });
     };
   }
   function translateErr(m) {
     m = String(m || '');
     if (/Invalid login/i.test(m)) return 'E-mail ou senha incorretos.';
-    if (/already registered/i.test(m)) return 'Esse e-mail já tem conta. Faça login.';
+    if (/already registered/i.test(m)) return 'Esse e-mail já tem conta. Use "Entrar".';
     if (/valid email/i.test(m)) return 'E-mail inválido.';
+    if (/Email not confirmed/i.test(m)) return 'Confirme o e-mail primeiro — procure a mensagem na caixa de entrada (ou no spam).';
+    if (/rate limit|too many/i.test(m)) return 'Muitas tentativas seguidas. Espere um minuto e tente de novo.';
+    if (/Signups not allowed/i.test(m)) return 'Cadastro fechado no momento.';
+    if (/provider is not enabled|Unsupported provider/i.test(m)) return 'Esse provedor ainda não está ativado para o Cátedra.';
     if (/at least/i.test(m) || /6 characters/i.test(m)) return 'A senha precisa de ao menos 6 caracteres.';
     return m;
   }
@@ -631,15 +750,14 @@
   // app entraria direto, sem nunca deixar a pessoa trocar a senha que ela esqueceu.
   function showNovaSenha() {
     hydrating = false;
-    el.innerHTML = '<div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif;">'
-      + '<form id="ctnf" style="width:100%;max-width:360px;">'
-      + '<h2 style="font-family:Georgia,serif;font-size:26px;font-weight:600;color:' + INK + ';margin:0;">Nova senha</h2>'
+    painel('<form id="ctnf">'
+      + '<h2 style="font-family:' + SERIF + ';font-size:28px;font-weight:700;color:' + INK + ';margin:0;">Nova senha</h2>'
       + '<p style="font-size:13.5px;color:' + MUT + ';margin:6px 0 24px;">Escolha a senha que você vai usar daqui em diante.</p>'
-      + '<input id="ctnp" type="password" autocomplete="new-password" placeholder="Nova senha (mín. 6 caracteres)" style="width:100%;box-sizing:border-box;border:1px solid ' + BRD + ';background:' + CARD + ';border-radius:10px;padding:12px 14px;font-size:14px;color:' + INK + ';margin-bottom:8px;">'
+      + '<div style="position:relative;"><input id="ctnp" type="password" autocomplete="new-password" placeholder="Nova senha (mín. 8 caracteres)" style="' + INPUT + 'padding-right:78px;">' + olho('ctnp') + '</div>'
       + '<div id="ctnerr" style="min-height:18px;font-size:12.5px;color:#e0533f;margin:4px 0 10px;line-height:1.4;"></div>'
       + '<button id="ctnb" type="submit" style="width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">Salvar nova senha</button>'
-      + '</form></div>';
-    show();
+      + '</form>');
+    ligarOlhos();
     var f = el.querySelector('#ctnf'), erro = el.querySelector('#ctnerr'), b = el.querySelector('#ctnb');
     f.onsubmit = function (e) {
       e.preventDefault();

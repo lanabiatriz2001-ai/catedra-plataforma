@@ -95,6 +95,8 @@ ${reactTag}
 ${reactDomTag}
 <!-- login real + sincronização na nuvem (Supabase) — carregado ANTES do support.js -->
 <script>window.CATEDRA_SUPABASE = { url: ${JSON.stringify(SUPABASE_URL)}, key: ${JSON.stringify(SUPABASE_KEY)} };</script>
+<!-- Login social e Google Drive: só entram quando configurados no deploy (GOOGLE_CLIENT_ID, OAUTH_PROVIDERS=google,apple). -->
+<script>window.CATEDRA_GOOGLE = { clientId: ${JSON.stringify(process.env.GOOGLE_CLIENT_ID || '')} }; window.CATEDRA_OAUTH = ${JSON.stringify((process.env.OAUTH_PROVIDERS || '').split(',').map((s) => s.trim()).filter(Boolean))};</script>
 ${supabaseTag}
 <script src="./auth.js"></script>
 <script>
