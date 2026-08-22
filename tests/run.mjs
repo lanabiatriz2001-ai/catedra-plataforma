@@ -596,6 +596,46 @@ ok(!fluxo.erro && fluxo.abriu, 'ARGUICAO sessão abre com a pergunta');
 ok(!fluxo.erro && !fluxo.padraoAntes && fluxo.padraoDepois, 'ARGUICAO padrão só aparece depois de responder');
 ok(!fluxo.erro && fluxo.fim, 'ARGUICAO cinco perguntas levam ao resumo');
 
+/* ============= U5 — SINCRONIZAÇÃO VISÍVEL E HONESTA ============= */
+await page.goto(URL0 + '/Catedra.dc.html');
+await page.waitForTimeout(1600);
+const u5 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const aside = () => document.querySelector('aside');
+  const selo = () => [...aside().querySelectorAll('span')].map(s => s.textContent.trim())
+    .find(t => /salvo|enviando|conexão|erro|não consegui/i.test(t)) || '';
+  const botao = () => [...aside().querySelectorAll('button')].find(b => /tentar agora/i.test(b.textContent || ''));
+  const emitir = st => window.dispatchEvent(new CustomEvent('catedra:syncstate', { detail: { status: st } }));
+  const r = {};
+
+  r.permanente = !!selo();                       // existe sem nenhum evento: é selo, não toast
+
+  emitir('enviando'); await w(250); r.enviando = /enviando/i.test(selo());
+  emitir('offline');  await w(250);
+  r.offline = /sem conexão/i.test(selo()) && /guardado aqui/i.test(selo());   // diz onde os dados estão
+  emitir('salvo');    await w(250);
+  r.salvoComHora = /^✓ salvo às \d{2}:\d{2}$/.test(selo());
+  emitir('erro');     await w(250);
+  r.erroCurto = /tentando de novo/i.test(selo());
+  r.semBotaoNoErroCurto = !botao();               // erro que acabou de começar não vira alarme
+
+  // erro que PERSISTE (mais de 5 min) vira aviso com ação
+  const orig = Date.now; let delta = 0; Date.now = () => orig() + delta;
+  emitir('erro'); await w(200); delta = 6 * 60000; emitir('erro'); await w(300);
+  r.erroLongo = /não consegui salvar/i.test(selo());
+  r.temAcao = !!botao();
+  if (botao()) botao().click();                   // não pode explodir sem CatedraSync
+  await w(200);
+  r.naoTravou = document.querySelectorAll('aside button').length > 0;
+  Date.now = orig;
+
+  // voltar a salvar limpa o alarme
+  emitir('salvo'); await w(250);
+  r.recupera = /✓ salvo/i.test(selo()) && !botao();
+  return r;
+});
+for (const [k, v] of Object.entries(u5)) ok(v, 'U5 ' + k);
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
