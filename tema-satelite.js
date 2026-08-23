@@ -20,10 +20,16 @@
   if (window.__ctTemaSatelite) return;
   window.__ctTemaSatelite = true;
 
+  // O contrato tem de ser o MESMO dos dois lados: token que o host manda e o satélite não
+  // lê some, e token que o satélite espera e o host não manda cai no fallback do CSS.
+  // A escala tipográfica e o espaçamento entraram porque sem eles "texto grande" e
+  // "densidade compacta" paravam na borda do iframe.
   var V = ['--bg', '--surface', '--surface2', '--border', '--ink', '--text', '--text2', '--text3',
            '--accent', '--accentD', '--accentSoft', '--accentRing', '--onAccent',
            '--ok', '--warn', '--danger', '--radius', '--r-sm', '--r-md',
-           '--display', '--body', '--mono', '--heroGrad'];
+           '--display', '--body', '--mono', '--heroGrad',
+           '--fs-3xs', '--fs-2xs', '--fs-xs', '--fs-sm', '--fs-base', '--fs-md',
+           '--fs-lg', '--fs-xl', '--fs-2xl', '--control-h'];
 
   function aplicar(t) {
     if (!t) return;

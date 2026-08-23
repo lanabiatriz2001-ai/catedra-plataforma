@@ -2,7 +2,11 @@
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Simulado de 2ª fase</title>
-<style>
+<link rel="stylesheet" href="satellite-base.css"><style>
+/* Cor do módulo (2ª fase). Dentro do app segue o tema escolhido nos Ajustes; aberta
+   avulsa, a página mantém a cor com que nasceu. Ver satellite-base.css. */
+:root{--module-accent:var(--accent,#b5174e)}
+
 :root{
   --bg:#faf7f5;--surface:#ffffff;--surface2:#f5f0ec;--border:#e4dcd6;
   --ink:#1b1b1f;--text2:#4b4a52;--text3:#7d7a86;
@@ -40,7 +44,7 @@ button,input,select,textarea{font-family:inherit}
 .brand small{display:block;font-size:11.5px;color:var(--text2);margin-top:4px}
 .sp{flex:1}
 .sel,.inp{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:11px;
-  padding:9px 12px;font-size:13px;outline:none;flex:none}
+  padding:9px 12px;font-size:var(--fs-sm,13px);min-height:var(--control-h,34px);outline:none;flex:none}
 .sel{cursor:pointer}.inp{min-width:180px;flex:1}
 .sel:focus,.inp:focus{border-color:var(--accent)}
 .bt{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);
@@ -230,7 +234,7 @@ function telaEscolha(){
     +'<select class="sel" id="ftipo"><option value="sentenca">Sentenças e peças</option>'
       +'<option value="discursiva">Discursivas</option><option value="">Tudo</option></select>'
     +'<select class="sel" id="ftrib"><option value="">Todos os tribunais</option></select>'
-    +'<input class="inp" id="fq" placeholder="Buscar tema, disciplina, banca…" autocomplete="off">';
+    +'<input class="inp" id="fq" aria-label="Buscar prova por tema, disciplina ou banca" placeholder="Buscar tema, disciplina, banca…" autocomplete="off">';
   const tribs=[...new Set(E.provas.map(p=>p.trib))].sort();
   tribs.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; $('ftrib').appendChild(o); });
   $('ftipo').onchange=$('ftrib').onchange=listar; $('fq').oninput=listar;

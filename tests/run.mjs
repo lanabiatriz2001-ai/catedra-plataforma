@@ -12,7 +12,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// '.css' faltava aqui, e o custo foi alto: o servidor entregava satellite-base.css como
+// application/octet-stream, o Chrome recusava a folha em modo padrão (cssRules.length = 0)
+// e TODA a verificação da TASK9 rodou num navegador onde a base não existia — verde por
+// acidente, porque as asserções mediam o que o CSS da própria página já garantia.
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
+  '.css': 'text/css',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 const CHROMES = [process.env.CT_CHROME, '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable',
@@ -629,6 +634,39 @@ const bu = await page.evaluate(() => {
   r.homonimasSeparadas = d2.length === 2;
   r.revogadaPorUltimo = d2[0].extra.includes('STJ') && /Revogada/.test(d2[1].extra);
 
+  /* --- TASK 7 · identidade canônica: o que colapsa e o que NÃO colapsa --- */
+  // (a) mesmo tribunal, mesmo número, mesmo título, ramo/tema escritos diferente = UM item
+  r.t7mesmoVerbeteExtrasDiferentes = B.buscar(B.indexar({ verbetes: [
+    ['STJ-1', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Penal', 'Prescrição'],
+    ['STJ-2', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Processo Penal', 'Prescrição da pretensão']
+  ] }), 'súmula 619').verbete.length === 1;
+  // (b) tribunais diferentes com o mesmo número = DOIS itens (são súmulas distintas)
+  r.t7tribunaisDiferentesFicam = B.buscar(B.indexar({ verbetes: [
+    ['A', 'STF', 'stf', 619, 'Súmula 619', 'Constitucional', 'x'],
+    ['B', 'STJ', 'stj', 619, 'Súmula 619', 'Administrativo', 'y']
+  ] }), 'súmula 619').verbete.length === 2;
+  // (c) mesma lei repetida por nome/referência = UM item
+  r.t7leiRepetida = B.buscar(B.indexar({ leis: [
+    { t: 'Código de Processo Civil', r: 'Lei nº 13.105/2015' },
+    { t: 'Código de Processo Civil', r: 'CPC' }
+  ] }), 'processo civil').lei.length === 1;
+  // (d) mesmo título, números juridicamente distintos = DOIS itens
+  r.t7numerosDistintosFicam = B.buscar(B.indexar({ verbetes: [
+    ['A', 'STJ', 'stj', 7, 'Súmula', 'Civil', 'x'],
+    ['B', 'STJ', 'stj', 8, 'Súmula', 'Penal', 'y']
+  ] }), 'súmula').verbete.length === 2;
+  // (e) o id da fonte sobrevive à busca (para abrir o registro exato quando houver como)
+  r.t7idPreservado = (B.buscar(B.indexar({ verbetes: [
+    ['STJ-SUM-619', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Penal', 'x']
+  ] }), 'súmula 619').verbete[0] || {}).id === 'STJ-SUM-619';
+  // (f) a chave é identidade, não aparência: dois itens iguais têm a MESMA _k
+  r.t7chaveEstavel = (function () {
+    const i = B.indexar({ verbetes: [
+      ['STJ-1', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Penal', 'Prescrição'],
+      ['STJ-2', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Outro ramo', 'Outro tema']] });
+    return i[0]._k === i[1]._k && !!i[0]._k;
+  })();
+
   // teto por tipo e piso de 2 letras
   r.teto = B.buscar(IDX, 'lei', { porTipo: 3 }).lei.length <= 3;
   r.pisoDuasLetras = B.buscar(IDX, 'l').lei.length === 0;
@@ -873,6 +911,108 @@ const u6b = await page.evaluate(() => {
 });
 ok(u6b.wipeAllPergunta, 'U6 apagar tudo continua pedindo confirmação');
 ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
+/* ===== TASK 9 · FUNDAÇÃO VISUAL ÚNICA DOS SATÉLITES =====
+   Sete páginas independentes reinventavam a mesma fundação — box-sizing, foco, alvo de
+   toque — e divergiam. E o contrato de tema levava cor e raio, mas não a ESCALA: quem
+   escolhia "texto grande" via o app crescer e o iframe dentro dele continuar miúdo. */
+{
+  const SAT = ['legis-web.html', 'juris-web.html', 'ritos-web.html', 'pecas-web.html',
+               'segunda-fase-web.html', 'prioridade-web.html', 'area-web.html'];
+  // 1) todos carregam a base, e ANTES do próprio <style> (para poder especializar)
+  const base = await page.evaluate(async ({ b, sat }) => {
+    const r = {};
+    for (const p of sat) {
+      const t = await (await fetch(b + '/' + p)).text();
+      const iLink = t.indexOf('satellite-base.css'), iStyle = t.indexOf('<style>');
+      r[p] = iLink > 0 && iStyle > 0 && iLink < iStyle && /--module-accent/.test(t);
+    }
+    return r;
+  }, { b: URL0, sat: SAT });
+  const faltando = Object.entries(base).filter(([, v]) => !v).map(([k]) => k);
+  ok(faltando.length === 0, 'TASK9 os 7 satélites carregam a base antes do estilo próprio ('
+    + (faltando.join(', ') || 'todos') + ')');
+
+  // 2) o contrato de tokens é o MESMO dos dois lados — token que só um lado conhece é letra morta
+  const contrato = await page.evaluate(async (b) => {
+    const [host, ponte] = await Promise.all([
+      (await fetch(b + '/Catedra.dc.html')).text(), (await fetch(b + '/tema-satelite.js')).text()]);
+    // O contrato leva só o que ALGUÉM LÊ do outro lado. --space-1..3 e --content-max
+    // saíram: nenhum satélite os consumia, e token que atravessa a ponte sem consumidor
+    // dá a impressão de que a densidade se propaga quando ela não move um pixel.
+    const NOVOS = ['--fs-3xs', '--fs-2xs', '--fs-xs', '--fs-sm', '--fs-base', '--fs-md',
+                   '--fs-lg', '--fs-xl', '--fs-2xl', '--control-h'];
+    const MORTOS = ['--space-1', '--space-2', '--space-3', '--content-max'];
+    return {
+      hostManda: NOVOS.every(t => host.includes("'" + t + "'")),
+      sateliteLe: NOVOS.every(t => ponte.includes("'" + t + "'")),
+      semTokenSemConsumidor: MORTOS.every(t => !ponte.includes("'" + t + "'")),
+      // a densidade tem de produzir token de verdade — não basta ficar gravada
+      densidadeProduzToken: /density==='compacta'/.test(host) && /--control-h:\$\{/.test(host),
+    };
+  }, URL0);
+  for (const [k, v] of Object.entries(contrato)) ok(v, 'TASK9 ' + k);
+
+  // 3) a escala chega DE FATO ao satélite: o host manda, o iframe aplica
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const chega = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    document.querySelector('button[data-view="prioridade"]').click(); await w(2200);
+    const f = document.querySelector('iframe[data-ct-view="prioridade"]');
+    if (!f || !f.contentDocument) return { erro: 'iframe não abriu' };
+    const cs = f.contentWindow.getComputedStyle(f.contentDocument.documentElement);
+    const v = n => (cs.getPropertyValue(n) || '').trim();
+    // Não basta o token CHEGAR: ele tem de MOVER alguma coisa. O .sel do painel de
+    // prioridade lê --control-h; sem consumidor, o token chegava e a tela ficava igual.
+    const sel = f.contentDocument.querySelector('.sel');
+    const alturaCom = sel ? f.contentWindow.getComputedStyle(sel).minHeight : '';
+    f.contentDocument.documentElement.style.setProperty('--control-h', '61px');
+    const alturaDepois = sel ? f.contentWindow.getComputedStyle(sel).minHeight : '';
+    f.contentDocument.documentElement.style.setProperty('--control-h', alturaCom);
+    return {
+      escalaChegou: !!v('--fs-base') && !!v('--fs-2xl'),
+      alturaDeControleChegou: !!v('--control-h'),
+      tokenMoveAlgumaCoisa: alturaDepois === '61px' && alturaCom !== '61px',
+      // a base só está aplicada se o Chrome ACEITOU a folha — e ele só aceita com text/css
+      baseFoiAceita: [...f.contentDocument.styleSheets]
+        .some(ss => (ss.href || '').includes('satellite-base.css') && ss.cssRules && ss.cssRules.length > 5),
+      fundacaoAplicada: f.contentWindow.getComputedStyle(f.contentDocument.body).boxSizing === 'border-box',
+    };
+  });
+  if (chega.erro) ok(false, 'TASK9 ' + chega.erro);
+  else for (const [k, v] of Object.entries(chega)) ok(v, 'TASK9 ' + k);
+
+  // 4) movimento reduzido: nenhum satélite respeitava
+  const mov = await page.evaluate(async (b) => {
+    const css = await (await fetch(b + '/satellite-base.css')).text();
+    return { respeitaMovimentoReduzido: /prefers-reduced-motion:\s*reduce/.test(css)
+      && /animation-duration:\s*\.01ms\s*!important/.test(css) };
+  }, URL0);
+  for (const [k, v] of Object.entries(mov)) ok(v, 'TASK9 ' + k);
+
+  // 5) o satélite avulso (sem host) não pode depender da base para ficar legível
+  await page.goto(URL0 + '/ritos-web.html');
+  await page.waitForTimeout(700);
+  const avulso = await page.evaluate(() => {
+    const cs = getComputedStyle(document.body);
+    return { avulsoTemFundo: cs.backgroundColor !== 'rgba(0, 0, 0, 0)',
+             avulsoTemCorDeModulo: !!getComputedStyle(document.documentElement).getPropertyValue('--module-accent').trim() };
+  });
+  for (const [k, v] of Object.entries(avulso)) ok(v, 'TASK9 ' + k);
+
+  // 6) o build leva a base junto — sem ela no bundle, o satélite publicado fica sem fundação
+  const noBuild = await page.evaluate(async (b) => {
+    const [web, mac] = await Promise.all([
+      (await fetch(b + '/scripts/build.mjs')).text(), (await fetch(b + '/scripts/build-macos.mjs')).text()]);
+    return { buildWebCopia: web.includes("'satellite-base.css'"),
+             buildWebPrecache: web.includes("'./satellite-base.css'"),
+             buildMacCopia: mac.includes("'satellite-base.css'") };
+  }, URL0);
+  for (const [k, v] of Object.entries(noBuild)) ok(v, 'TASK9 ' + k);
+}
+
 /* ============= D1 — TEMA ÚNICO NOS SATÉLITES ============= */
 // Todo satélite carrega a mesma ponte
 const d1arqs = await page.evaluate(async (base) => {
@@ -2294,7 +2434,13 @@ const u12 = await page.evaluate(() => ({
   disparou: (window.__notifs || []).length === 1,
   dizQuantasEQuantoTempo: /revis/i.test(((window.__notifs || [])[0] || {}).titulo || '') || /revis/i.test((((window.__notifs || [])[0] || {}).opts || {}).body || ''),
   corpoTemONumero: /2 revisões esperando/.test((((window.__notifs || [])[0] || {}).opts || {}).body || ''),
-  marcouODia: localStorage.getItem('catedra:notifRevDia') === new Date().toISOString().slice(0, 10),
+  // Data LOCAL, como o app grava (_hoje/_ymd). Com toISOString() a comparação é em UTC, e
+  // no Brasil (UTC-3) ela passa a divergir depois das 21h — o teste passava o dia inteiro e
+  // quebrava toda noite, sem nada ter mudado no app.
+  marcouODia: localStorage.getItem('catedra:notifRevDia') === (() => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  })(),
 }));
 for (const [k, v] of Object.entries(u12)) ok(v, 'U12 ' + k);
 
@@ -2847,6 +2993,714 @@ const d14barra = await page.evaluate(() => {
   return r;
 });
 for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
+
+/* ===== TASK 5 · NAVEGAÇÃO POR JORNADA, SEM TROCAR IDS =====
+   A barra agrupava por arquitetura do código ("Treino", "Acervo"). Agora agrupa pela rotina
+   e pelas fases do concurso. O que NÃO pode mudar é o data-view: renomear um id quebraria
+   deep-link, ponto de retorno e as abas nativas. */
+{
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const nav = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+    const antesDeAbrir = mais ? mais.getAttribute('aria-expanded') : null;
+    if (mais) { mais.click(); await w(400); }
+    const mais2 = document.querySelector('button[aria-label="Mostrar mais opções"]');
+    const views = [...document.querySelectorAll('aside button[data-view]')].map(b => b.getAttribute('data-view'));
+    const rotulos = [...document.querySelectorAll('aside div')]
+      .map(d => (d.textContent || '').trim()).filter(t => t.length < 30 && t.length > 3);
+    const ordem = (v) => views.indexOf(v);
+    return {
+      // todo id essencial continua na barra
+      idsPreservados: ['inicio','ciclo','revisoes','calendario','legis','edital','simulados',
+        'redacao','oral','prioridade','bancas','analise','historico','ajustes'].every(v => views.includes(v)),
+      // a rotina vem primeiro, depois o acervo base, depois as fases, depois o planejamento
+      hojeAntesDoAcervo: ordem('inicio') < ordem('legis'),
+      acervoAntesDasFases: ordem('legis') < ordem('simulados'),
+      fasesAntesDoPlanejamento: ordem('simulados') < ordem('prioridade'),
+      // os rótulos dizem a fase
+      dizFases: rotulos.some(t => /fases da magistratura|treino/i.test(t)),
+      dizEstudoBase: rotulos.some(t => /estudo base/i.test(t)),
+      dizPlanejamento: rotulos.some(t => /planejamento/i.test(t)),
+      // o expansor conta o seu estado
+      expansorFechadoDizFalse: antesDeAbrir === 'false',
+      expansorAbertoDizTrue: !!mais2 && mais2.getAttribute('aria-expanded') === 'true',
+      expansorApontaParaOPainel: !!mais2 && !!document.getElementById(mais2.getAttribute('aria-controls') || ''),
+    };
+  });
+  for (const [k, v] of Object.entries(nav)) ok(v, 'TASK5 ' + k);
+
+  // o fundo do menu do celular precisa ser alcançável por teclado
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1500);
+  const drawer = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const abrir = document.querySelector('button[aria-label="Abrir menu"]');
+    if (!abrir) return { erro: 'sem botão de menu no celular' };
+    abrir.click(); await w(450);
+    const fundo = document.querySelector('button[aria-label="Fechar o menu"]');
+    const r = { fundoEhBotaoComNome: !!fundo };
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await w(450);
+    r.escFechaOMenu = !document.querySelector('button[aria-label="Fechar o menu"]');
+    return r;
+  });
+  if (drawer.erro) ok(false, 'TASK5 ' + drawer.erro);
+  else for (const [k, v] of Object.entries(drawer)) ok(v, 'TASK5 ' + k);
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
+/* ===== TASK 10 · PENTE-FINO DE ACESSIBILIDADE =====
+   Coisas que não aparecem em captura de tela: nome de campo, estado de interruptor,
+   contraste medido, zoom bloqueado, alvo de toque, movimento reduzido. */
+{
+  // 1) zoom: nenhuma página pode proibir a pinça (WCAG 1.4.4)
+  const zoom = await page.evaluate(async (b) => {
+    const paginas = ['Catedra.dc.html', 'legis-web.html', 'juris-web.html', 'area-web.html',
+      'ritos-web.html', 'pecas-web.html', 'segunda-fase-web.html', 'prioridade-web.html', 'banco-espelhos.html'];
+    const ruins = [];
+    for (const p of paginas) {
+      const t = await (await fetch(b + '/' + p)).text();
+      const m = t.match(/<meta[^>]+name=["']viewport["'][^>]*>/i);
+      if (m && /user-scalable\s*=\s*no|maximum-scale\s*=\s*1(?!\d)/i.test(m[0])) ruins.push(p);
+    }
+    return { nenhumaBloqueiaZoom: ruins.length === 0, quais: ruins.join(', ') };
+  }, URL0);
+  ok(zoom.nenhumaBloqueiaZoom, 'TASK10 nenhuma página bloqueia o zoom (' + (zoom.quais || 'todas liberadas') + ')');
+
+  // 2) todo campo de busca tem NOME — placeholder não é nome acessível
+  const nomes = await page.evaluate(async (b) => {
+    const alvos = [['legis-web.html', 'cq'], ['legis-web.html', 'iq'], ['juris-web.html', 'q'],
+      ['juris-web.html', 'qtc'], ['area-web.html', 'q'], ['segunda-fase-web.html', 'fq'],
+      ['banco-espelhos.html', 'q']];
+    const sem = [];
+    for (const [p, id] of alvos) {
+      const t = await (await fetch(b + '/' + p)).text();
+      const tag = (t.match(new RegExp('<input[^>]*id="' + id + '"[^>]*>', 'i')) || [''])[0];
+      if (!/aria-label=|aria-labelledby=/.test(tag)) sem.push(p + '#' + id);
+    }
+    return { todosNomeados: sem.length === 0, quais: sem.join(', ') };
+  }, URL0);
+  ok(nomes.todosNomeados, 'TASK10 as buscas dos satélites têm nome (' + (nomes.quais || 'todas') + ')');
+
+  // 3) contraste: --text3 sobre bg/surface/surface2, em TODOS os temas dos dois modos
+  const contraste = await page.evaluate(async (b) => {
+    const src = await (await fetch(b + '/Catedra.dc.html')).text();
+    const lum = (h) => {
+      const v = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+        .map(c => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+    };
+    const cont = (a, c) => { const x = lum(a), y = lum(c); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const blocos = [...src.matchAll(/\b(light|dark):\{([\s\S]*?)\n\s*heroGrad:'[^']*'\s*\}/g)];
+    const ruins = [], pulados = [];
+    let medidos = 0;
+    for (const [, modo, corpo] of blocos) {
+      const d = {}; for (const m of corpo.matchAll(/(\w+):'(#[0-9a-fA-F]{6})'/g)) d[m[1]] = m[2];
+      // Tema que o parser não entendeu (hex de 3 dígitos, rgba(), chave renomeada) era
+      // descartado em SILÊNCIO: ficava indistinguível de tema aprovado. Agora ele REPROVA —
+      // "não consegui medir" não é "passou".
+      if (!(d.bg && d.surface && d.surface2 && d.text3 && d.accentSoft)) { pulados.push(modo); continue; }
+      medidos++;
+      // accentSoft entra na conta: é o fundo do cartão "próximo bloco" do Início, onde o
+      // text3 aparece — medir só bg/surface/surface2 deixava justamente esse par de fora.
+      const pior = Math.min(...['bg', 'surface', 'surface2', 'accentSoft'].map(k => cont(d.text3, d[k])));
+      if (pior < 4.5) ruins.push(modo + ' ' + d.text3 + ' = ' + pior.toFixed(2));
+    }
+    // `temas` conta o que foi MEDIDO, não o que a regex casou: senão a guarda que existe
+    // para detectar "o teste parou de ler algum tema" nunca detectaria nada.
+    return { temas: medidos, ok: ruins.length === 0 && pulados.length === 0,
+             quais: [...ruins, ...pulados.map(m => 'não consegui medir: ' + m)].slice(0, 5).join(' · ') };
+  }, URL0);
+  ok(contraste.temas >= 12, 'TASK10 o teste leu os temas todos (' + contraste.temas + ')');
+  ok(contraste.ok, 'TASK10 --text3 tem 4.5:1 em todo tema, claro e escuro (' + (contraste.quais || 'todos passam') + ')');
+
+  // 4) corpo mínimo: nada abaixo de 10,5px, nem no tamanho padrão
+  const corpo = await page.evaluate(async (b) => {
+    const src = await (await fetch(b + '/Catedra.dc.html')).text();
+    const m = src.match(/--fs-3xs:\$\{_fs\(([\d.]+)\)\}/);
+    return { menorDegrau: m ? parseFloat(m[1]) : 0 };
+  }, URL0);
+  ok(corpo.menorDegrau >= 10.5, 'TASK10 o menor degrau tipográfico é ' + corpo.menorDegrau + 'px (mínimo 10.5)');
+
+  // 5) interruptor liga/desliga diz o estado, não só o nome
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const sw = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    // Ajustes vive atrás de "Mais opções" desde a TASK5: abrir o expansor faz parte do caminho
+    const ir = async (v) => {
+      let b = document.querySelector('button[data-view="' + v + '"]');
+      if (!b) {
+        const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+        if (mais) { mais.click(); await w(500); }
+        b = document.querySelector('button[data-view="' + v + '"]');
+      }
+      if (b) { b.click(); await w(1000); }
+      return !!b;
+    };
+    if (!await ir('ajustes')) return { erro: 'não achei a entrada de Ajustes' };
+    const sws = [...document.querySelectorAll('[role="switch"]')];
+    if (!sws.length) return { erro: 'nenhum interruptor com papel' };
+    const r = {
+      todosTemEstado: sws.every(s => s.getAttribute('aria-checked') === 'true' || s.getAttribute('aria-checked') === 'false'),
+      todosTemNome: sws.every(s => (s.getAttribute('aria-label') || '').length > 3),
+      quantos: sws.length >= 6,
+    };
+    // e o estado ACOMPANHA o clique (não é um atributo decorativo)
+    const alvo = sws[0], antes = alvo.getAttribute('aria-checked');
+    alvo.click(); await w(500);
+    const depois = document.querySelectorAll('[role="switch"]')[0].getAttribute('aria-checked');
+    r.estadoSegueOClique = depois !== antes;
+    document.querySelectorAll('[role="switch"]')[0].click(); await w(300);
+    return r;
+  });
+  if (sw.erro) ok(false, 'TASK10 ' + sw.erro);
+  else for (const [k, v] of Object.entries(sw)) ok(v, 'TASK10 interruptor ' + k);
+
+  // 6) alvo de toque no celular, nas telas mais usadas
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1800);
+  const toque = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    /* Mede a CAIXA DE TOQUE, não o desenho.
+       A primeira versão exigia 44x44 de todo controle e eu a fiz passar inflando tudo com
+       !important — o que deformou quadradinho do Edital, célula do calendário e o trilho
+       dos interruptores (que viraram discos). O alvo agora é o da WCAG 2.2 AA (2.5.8):
+       24x24 de mínimo duro. Quem quer os 44 confortáveis usa .ct-alvo, que cresce a área
+       por um pseudo-elemento e deixa o desenho intacto — e o teste conta isso. */
+    const MIN = 24;
+    const medir = () => [...document.querySelectorAll('button,a[href],select,[role="button"],[role="switch"],[role="tab"]')]
+      .filter(e => e.offsetParent !== null)
+      .map(e => {
+        const r = e.getBoundingClientRect();
+        const alvo = e.classList.contains('ct-alvo');   // caixa de toque expandida por ::after
+        return { w: alvo ? Math.max(44, r.width) : r.width,
+                 h: alvo ? Math.max(44, r.height) : r.height, rw: r.width,
+                 t: (e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 28) };
+      })
+      .filter(x => x.rw > 0 && (x.h < MIN || x.w < MIN))
+      .map(x => x.t + '[' + Math.round(x.w) + 'x' + Math.round(x.h) + ']');
+    // a view fica gravada: sem voltar ao Início de propósito, mediríamos a tela anterior
+    const inicio = document.querySelector('button[data-view="inicio"]');
+    if (inicio) { inicio.click(); await w(900); }
+    const r = { inicio: medir() };
+    for (const v of ['ciclo', 'ajustes']) {
+      let b = document.querySelector('button[data-view="' + v + '"]');
+      if (!b) {
+        const abrir = document.querySelector('button[aria-label="Abrir menu"]');
+        if (abrir) { abrir.click(); await w(500); }
+        const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+        if (mais) { mais.click(); await w(500); }
+        b = document.querySelector('button[data-view="' + v + '"]');
+      }
+      if (b) { b.click(); await w(1000); r[v] = medir(); }
+    }
+    return r;
+  });
+  for (const [tela, l] of Object.entries(toque))
+    ok(l.length === 0, 'TASK10 alvo de toque em ' + tela + ' (' + (l.join(', ') || 'todos ≥24px') + ')');
+
+  /* E a regressão que originou tudo isto: a regra de toque NÃO pode deformar o desenho.
+     Três medidas concretas do estrago que a primeira versão causava. */
+  const semDeformar = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const ir = async (v) => {
+      let b = document.querySelector('button[data-view="' + v + '"]');
+      if (!b) {
+        const ab = document.querySelector('button[aria-label="Abrir menu"]'); if (ab) { ab.click(); await w(400); }
+        const m = document.querySelector('button[aria-label="Mostrar mais opções"]'); if (m) { m.click(); await w(400); }
+        b = document.querySelector('button[data-view="' + v + '"]');
+      }
+      if (b) { b.click(); await w(900); } return !!b;
+    };
+    const r = {};
+    // o interruptor continua uma PÍLULA (mais largo que alto), não um disco de 44
+    await ir('ajustes');
+    const sw = document.querySelector('[role="switch"]');
+    if (sw) { const b = sw.getBoundingClientRect(); r.interruptorContinuaPilula = b.width > b.height + 8; }
+    // a célula do calendário mantém a altura que o mês precisa
+    await ir('calendario');
+    const cel = document.querySelector('button.ct-calcell');
+    if (cel) r.celulaDoCalendarioNaoEncolhe = cel.getBoundingClientRect().height >= 50;
+    // as classes de exceção que eu tinha inventado não existiam; nenhuma pode voltar sem dono
+    r.semClasseFantasma = !document.querySelector('.ct-nobump, .ct-cal-cel');
+    return r;
+  });
+  for (const [k, v] of Object.entries(semDeformar)) ok(v, 'TASK10 ' + k);
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  // 7) movimento reduzido: host e satélites
+  const mov = await page.evaluate(async (b) => {
+    const [host, base, banco] = await Promise.all([
+      (await fetch(b + '/Catedra.dc.html')).text(),
+      (await fetch(b + '/satellite-base.css')).text(),
+      (await fetch(b + '/banco-espelhos.html')).text()]);
+    const tem = t => /prefers-reduced-motion:\s*reduce/.test(t) && /animation-duration:\s*\.00?1ms\s*!important/.test(t);
+    return { hostRespeita: tem(host), sateliteRespeita: tem(base), bancoRespeita: tem(banco) };
+  }, URL0);
+  for (const [k, v] of Object.entries(mov)) ok(v, 'TASK10 ' + k);
+}
+
+/* ===== TASK 8 · PROVA ORAL E PRIORIDADE VIRAM AÇÃO =====
+   A Prova oral abria com nomes de ACERVO e um paredão de filtros; o ranking de Prioridade
+   dizia o que estudar e parava aí. Agora as duas telas oferecem o próximo passo. */
+{
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+
+  const oral = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    document.querySelector('button[data-view="oral"]').click(); await w(900);
+    const cards = [...document.querySelectorAll('button[data-i]')];
+    const r = {
+      tresIntencoes: cards.length === 3,
+      // o rótulo diz o ATO, não o acervo de onde vem
+      dizemOAto: /treinar argui/i.test(cards.map(c => c.textContent).join(' '))
+        && /responder quest/i.test(cards.map(c => c.textContent).join(' '))
+        && /consultar concursos/i.test(cards.map(c => c.textContent).join(' ')),
+      // a diferença entre as três está escrita, não subentendida
+      explicaADiferenca: cards.every(c => (c.textContent || '').length > 90),
+      // os cards vêm ANTES dos filtros detalhados
+      antesDosFiltros: (() => {
+        const f = document.querySelector('button[data-v]');
+        return !!f && !!(cards[0].compareDocumentPosition(f) & Node.DOCUMENT_POSITION_FOLLOWING);
+      })(),
+    };
+    // "Treinar arguição" cai no modo arguição que já existia — com relógio e sem cronômetro novo
+    cards.find(c => c.dataset.i === 'treinar').click(); await w(3500);
+    r.treinarAbreArguicao = /\d+:\d\d/.test(document.body.innerText) && !document.querySelector('button[data-i]');
+    r.umCronometroSo = (document.body.innerText.match(/\b\d{1,2}:\d{2}\b/g) || []).length <= 3;
+    return r;
+  });
+  for (const [k, v] of Object.entries(oral)) ok(v, 'TASK8 oral ' + k);
+
+  // --- Prioridade: as duas saídas de estudo ---
+  const prioAcoes = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__abriu = [];
+    window.open = (u) => { window.__abriu.push(String(u)); return null; };
+    document.querySelector('button[data-view="prioridade"]').click(); await w(2200);
+    const f = document.querySelector('iframe[data-ct-view="prioridade"]');
+    if (!f || !f.contentDocument) return { erro: 'iframe de prioridade não abriu' };
+    const d = f.contentDocument;
+    const linha = d.querySelector('.linha .lh');
+    if (!linha) return { erro: 'ranking vazio' };
+    linha.click(); await w(300);
+    const det = d.querySelector('.linha.on .det');
+    const r = {
+      temResolverQuestoes: !!det.querySelector('[data-praticar]'),
+      temAbrirLei: !!det.querySelector('[data-lei]'),
+      // a lei oferecida é o dispositivo REAL mais cobrado, não um genérico
+      leiEhODispositivoTop: (() => {
+        const b = det.querySelector('[data-lei]'), top = det.querySelector('.arts button');
+        return !!b && !!top && /art\.\s*\S+/.test(b.dataset.lei);
+      })(),
+    };
+    det.querySelector('[data-praticar]').click(); await w(700);
+    r.resolverAbreAPlataforma = window.__abriu.length === 1 && /tecconcursos\.com\.br/.test(window.__abriu[0]);
+    r.levaADisciplina = /texto=|q=/.test(window.__abriu[0] || '');
+    return r;
+  });
+  if (prioAcoes.erro) ok(false, 'TASK8 prioridade ' + prioAcoes.erro);
+  else for (const [k, v] of Object.entries(prioAcoes)) ok(v, 'TASK8 prioridade ' + k);
+
+  // "Abrir a lei mais cobrada" leva ao LEGIS e deixa a volta para o Painel de Prioridade
+  const voltaDaLei = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const f = document.querySelector('iframe[data-ct-view="prioridade"]');
+    if (!f || !f.contentDocument) return { erro: 'iframe sumiu' };
+    const b = f.contentDocument.querySelector('.linha.on .det [data-lei]');
+    if (!b) return { erro: 'sem botão de lei' };
+    b.click(); await w(1800);
+    const legis = document.querySelector('iframe[data-ct-view="legis"]');
+    return { leiAbreOLegis: !!legis && legis.style.display === 'block' };
+  });
+  if (voltaDaLei.erro) ok(false, 'TASK8 prioridade ' + voltaDaLei.erro);
+  else for (const [k, v] of Object.entries(voltaDaLei)) ok(v, 'TASK8 prioridade ' + k);
+
+  /* A plataforma escolhida em Ajustes é respeitada — e este teste só vale se ele TROCAR
+     a plataforma. A primeira versão nunca escrevia `plataformaQuestoes`, rodava no default
+     'tec' e conferia só que "alguma URL abriu": ignorar a escolha da pessoa e mandar todo
+     mundo para o TEC passaria verde. */
+  // _load() faz JSON.parse: gravar o valor cru estoura e cai no fallback 'tec' — em silêncio
+  await page.evaluate(() => localStorage.setItem('catedra:plataformaQuestoes', JSON.stringify('qc')));
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1800);
+  const outraPlataforma = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__abriu = [];
+    window.open = (u) => { window.__abriu.push(String(u)); return null; };
+    window.postMessage({ type: 'ctPraticarPrioridade', disc: 'Direito Civil' }, '*');
+    await w(700);
+    const url = window.__abriu[0] || '';
+    return {
+      hostAtendeAMensagem: window.__abriu.length === 1 && /^https?:/.test(url),
+      respeitaAEscolhaDeAjustes: /qconcursos\.com/.test(url),
+      naoCaiNoTecPorPadrao: !/tecconcursos\.com\.br/.test(url),
+      levaADisciplinaEscolhida: /Civil/i.test(decodeURIComponent(url)),
+    };
+  });
+  for (const [k, v] of Object.entries(outraPlataforma)) ok(v, 'TASK8 prioridade ' + k);
+  await page.evaluate(() => localStorage.removeItem('catedra:plataformaQuestoes'));
+
+}
+
+/* ===== TASK 6 · CICLO: EXECUTAR E CONFIGURAR SÃO COISAS DIFERENTES =====
+   A tela do Ciclo empilhava a rotina de hoje e o construtor. Quem abria para estudar tinha de
+   passar pelo painel de configuração. Agora são duas abas — e trocar de aba não pode encostar
+   em blocks, manualFixed nem manualRot: é estado de tela, não de dados. */
+{
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const ciclo = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const vis = id => { const e = document.getElementById(id); return !!e && getComputedStyle(e).display !== 'none'; };
+    const tab = id => document.getElementById(id);
+    document.querySelector('button[data-view="ciclo"]').click(); await w(800);
+    const r = {};
+    // 1) abre pronta para executar
+    r.abreExecutando = vis('ct-cycle-panel-executar') && !vis('ct-cycle-panel-configurar');
+    r.abaExecutarSelecionada = tab('ct-cycle-tab-executar').getAttribute('aria-selected') === 'true';
+    r.painelTemNome = tab('ct-cycle-tab-executar').getAttribute('aria-controls') === 'ct-cycle-panel-executar'
+      && document.getElementById('ct-cycle-panel-executar').getAttribute('aria-labelledby') === 'ct-cycle-tab-executar';
+    /* 2) os dados do ciclo ANTES de mexer nas abas.
+       A primeira versão comparava as chaves numa conta VAZIA: manualFixed e manualRot
+       valiam "[]" dos dois lados, então um setCyclePanel que apagasse o ciclo manual da
+       pessoa comparava "[]" com "[]" e passava verde. Agora o teste semeia conteúdo real
+       — só assim a comparação tem o que perder. */
+    const SEMENTE = {
+      'catedra:manualFixed': JSON.stringify([{ id: 'f1', up: 1, dia: 'seg', disc: 'Direito Penal' }]),
+      'catedra:manualRot': JSON.stringify([{ id: 'r1', up: 1, disc: 'Direito Civil' }]),
+      'catedra:blocks': JSON.stringify([{ id: 'b1', up: 1, disc: 'Direito Civil', kind: 'Teoria', min: 50, done: false }]),
+    };
+    for (const [k, v] of Object.entries(SEMENTE)) { try { localStorage.setItem(k, v); } catch (_) {} }
+    const snap = () => JSON.stringify(['blocks','manualFixed','manualRot','cycleMode']
+      .map(k => { try { return localStorage.getItem('catedra:' + k); } catch (_) { return null; } }));
+    const antes = snap();
+    r.sementeTemConteudo = ['manualFixed','manualRot','blocks']
+      .every(k => (localStorage.getItem('catedra:' + k) || '').length > 20);
+    // 3) troca para configurar
+    tab('ct-cycle-tab-configurar').click(); await w(700);
+    r.trocaMostraConfig = vis('ct-cycle-panel-configurar') && !vis('ct-cycle-panel-executar');
+    r.abaConfigSelecionada = tab('ct-cycle-tab-configurar').getAttribute('aria-selected') === 'true';
+    r.abaExecutarSaiDaTabulacao = tab('ct-cycle-tab-executar').tabIndex === -1;
+    r.dadosIntactos = snap() === antes;
+    // 4) o construtor de verdade está na aba de configuração
+    r.configTemOsModos = /Como montar seu ciclo/i.test(document.getElementById('ct-cycle-panel-configurar').textContent || '');
+    // 5) seta volta para executar (roving tabindex sem seta deixaria a aba inalcançável)
+    tab('ct-cycle-tab-configurar').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    await w(700);
+    r.setaVoltaParaExecutar = vis('ct-cycle-panel-executar') && !vis('ct-cycle-panel-configurar');
+    r.setaLevaOFoco = document.activeElement === tab('ct-cycle-tab-executar');
+    // 6) painel escondido não deve ser tabulável
+    r.escondidoNaoRecebeFoco = [...document.querySelectorAll('#ct-cycle-panel-configurar button')]
+      .every(b => b.offsetParent === null);
+    return r;
+  });
+  for (const [k, v] of Object.entries(ciclo)) ok(v, 'TASK6 ' + k);
+
+  // conta sem ciclo montado: "Executar" não pode ser uma tela em branco
+  const vazio = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const p = document.getElementById('ct-cycle-panel-executar');
+    const temPonte = /ainda não tem blocos/i.test(p.textContent || '');
+    if (!temPonte) return { pulou: true };
+    const b = [...p.querySelectorAll('button')].find(x => /configurar ciclo/i.test(x.textContent || ''));
+    b.click(); await w(700);
+    return { ponteLevaAConfigurar: getComputedStyle(document.getElementById('ct-cycle-panel-configurar')).display !== 'none' };
+  });
+  if (!vazio.pulou) for (const [k, v] of Object.entries(vazio)) ok(v, 'TASK6 ' + k);
+}
+
+/* ===== TASK 4 · A ESCOLHA DO ONBOARDING É EXPLÍCITA =====
+   O passo "Por onde quer começar?" abria sem nada selecionado: apertar Continuar caía num
+   fallback silencioso, e a tela não dizia o que ia acontecer. E o modal aparecia POR CIMA
+   do login, os dois disputando a atenção. */
+{
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.clear(); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1500);
+  const semLogin = await page.evaluate(() => ({
+    // sem sessão, a tela de entrada manda: o onboarding espera a vez
+    onboardingNaoCompeteComOLogin: !document.querySelector('[role="radiogroup"][aria-label="Por onde quer começar"]')
+      && !/Bem-vindo à Cátedra/.test(document.body.innerText || ''),
+  }));
+  for (const [k, v] of Object.entries(semLogin)) ok(v, 'TASK4 ' + k);
+
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.removeItem('catedra:onboarded'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const onb = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const avancar = async (n) => { for (let i = 0; i < n; i++) {
+      const b = [...document.querySelectorAll('button')].find(x => /Começar|Continuar/.test((x.textContent || '').trim()) && x.offsetParent !== null);
+      if (b) { b.click(); await w(350); } } };
+    await avancar(2);
+    const grupo = document.querySelector('[role="radiogroup"][aria-label="Por onde quer começar"]');
+    if (!grupo) return { erro: 'não cheguei ao passo da escolha' };
+    const cards = [...grupo.querySelectorAll('[role="radio"]')];
+    const marcado = cards.filter(c => c.getAttribute('aria-checked') === 'true');
+    return {
+      grupoTemPapel: true,
+      tresOpcoesComPapel: cards.length === 3,
+      umaSoMarcada: marcado.length === 1,
+      oRecomendadoVemMarcado: marcado.length === 1 && marcado[0].getAttribute('data-c') === 'ciclo',
+      // /i porque o rótulo é uppercase por CSS e o innerText devolve RECOMENDADO
+      seloRecomendadoVisivel: /recomendado/i.test(grupo.innerText || ''),
+      // escolher outro move a marca, e a marca não é só cor. Precisa esperar o re-render:
+      // ler aria-checked no mesmo tique devolve o valor antigo.
+      trocaDeEscolha: await (async () => {
+        cards.find(c => c.getAttribute('data-c') === 'edital').click();
+        await w(400);
+        const g2 = document.querySelector('[role="radiogroup"][aria-label="Por onde quer começar"]');
+        const q = (c) => g2.querySelector('[data-c="' + c + '"]').getAttribute('aria-checked');
+        return q('edital') === 'true' && q('ciclo') === 'false';
+      })(),
+    };
+  });
+  if (onb.erro) ok(false, 'TASK4 ' + onb.erro);
+  else for (const [k, v] of Object.entries(onb)) ok(v, 'TASK4 ' + k);
+}
+
+/* ===== TASK 3 · UMA ÚNICA PRÓXIMA AÇÃO NO INÍCIO =====
+   O Início oferecia quatro KPIs, chips de área, ritmo semanal, "o dia em campo" e um "Foco
+   sugerido" — todos disputando a mesma decisão. Agora há UM card, derivado do que já se
+   calcula, com precedência fixa. Os casos abaixo verificam o TEXTO, o TIPO e o DESTINO, não
+   só a presença do card: um card que aparece apontando para o lugar errado é pior que nenhum. */
+{
+  const semear = async (dados) => {
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate((d) => {
+      ['reviews', 'blocks', 'blocksDate', 'eventos', 'sessions', 'edital', 'lastPonto', 'semanaLidos']
+        .forEach(k => localStorage.removeItem('catedra:' + k));
+      Object.keys(d).forEach(k => localStorage.setItem('catedra:' + k, JSON.stringify(d[k])));
+      localStorage.setItem('catedra:auth', '1');
+      localStorage.setItem('catedra:onboarded', '1');
+    }, dados);
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(1700);
+    return page.evaluate(() => {
+      const card = document.querySelector('[data-proxima-acao]');
+      if (!card) return { achou: false };
+      const cta = card.querySelector('button[data-view],button[data-acao]');
+      return {
+        achou: true,
+        tipo: card.getAttribute('data-proxima-acao'),
+        texto: (card.innerText || '').replace(/\s+/g, ' ').trim(),
+        destino: cta ? (cta.getAttribute('data-view') || cta.getAttribute('data-acao')) : null,
+        umCtaSo: card.querySelectorAll('button').length === 1,
+      };
+    });
+  };
+  const hoje = new Date();
+  const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const blocoAberto = [{ i: 0, disc: 'Direito Civil', kind: 'Teoria', min: 50, done: false }];
+
+  // 1 — revisão vencida ganha de tudo
+  const a1 = await semear({
+    reviews: [{ id: 'r1', disc: 'Direito Penal', topic: 'Dolo', due: -3, dueDate: '2020-01-01', intervalo: 1, facilidade: 2.5, repeticoes: 0 }],
+    blocks: blocoAberto, blocksDate: iso(hoje),
+  });
+  ok(a1.achou && a1.tipo === 'revisao', 'TASK3 revisão vencida vence a precedência (' + (a1.tipo || 'sem card') + ')');
+  ok(a1.achou && a1.destino === 'revisoes', 'TASK3 a revisão manda para a tela de Revisões');
+  ok(a1.achou && /revis/i.test(a1.texto), 'TASK3 o card diz que se trata de revisão');
+  ok(a1.achou && a1.umCtaSo, 'TASK3 um único CTA no card');
+
+  // 2 — sem revisão vencida, o bloco aberto do ciclo assume
+  const a2 = await semear({ reviews: [], blocks: blocoAberto, blocksDate: iso(hoje) });
+  ok(a2.achou && a2.tipo === 'ciclo', 'TASK3 bloco aberto do ciclo assume quando não há revisão (' + (a2.tipo || 'sem card') + ')');
+  ok(a2.achou && a2.destino === 'ciclo', 'TASK3 o bloco manda para o Ciclo');
+  ok(a2.achou && /civil/i.test(a2.texto), 'TASK3 o card nomeia a disciplina do bloco');
+
+  // 3 — nada pendente hoje: o card não some, vira estado neutro com destino real
+  const a3 = await semear({ reviews: [], blocks: [{ i: 0, disc: 'Direito Civil', kind: 'Teoria', min: 50, done: true }], blocksDate: iso(hoje) });
+  ok(a3.achou, 'TASK3 sem pendência o card continua existindo (estado neutro)');
+  ok(a3.achou && !!a3.destino, 'TASK3 o estado neutro também tem destino real (' + (a3.destino || 'nenhum') + ')');
+
+  // o "Foco sugerido" não pode competir com o card na mesma posição
+  const duplicado = await page.evaluate(() => {
+    const txt = (document.body.innerText || '');
+    const card = document.querySelector('[data-proxima-acao]');
+    const antes = card ? txt.indexOf(card.innerText.slice(0, 24)) : -1;
+    const foco = txt.indexOf('Foco sugerido');
+    return { temCard: !!card, focoDepoisOuAusente: foco === -1 || (antes >= 0 && foco > antes) };
+  });
+  ok(duplicado.temCard && duplicado.focoDepoisOuAusente, 'TASK3 o "Foco sugerido" não disputa a mesma posição do card');
+}
+
+/* ===== TASK 2 · O GATE DE AUTENTICAÇÃO ISOLA O APP =====
+   O gate cobre a tela, mas só isso: o app atrás continua rolando (4.446 px de scroll),
+   continua alcançável por Tab e continua sendo lido por leitor de tela. Um overlay que
+   não isola não é um portão — é uma cortina. Os casos abaixo travam o isolamento pelo
+   COMPORTAMENTO observável, via tests/auth-gate-fixture.html (auth.js de verdade, com
+   um cliente Supabase falso que devolve "sem sessão"). */
+/* O fixture põe o app no HTML de saída, então o gate sempre encontrou um irmão para
+   isolar — e por isso passava. Na BUILD REAL o auth.js é script de <head>: quando ele
+   roda, <body> não existe, o gate nasce em <html> e o único "irmão" era o <head>. O app
+   (#dc-root) montava depois, livre: com o login na tela, Tab entrava direto na barra
+   lateral. Este teste reproduz a ordem de carga da produção. */
+{
+  await page.goto(URL0 + '/tests/auth-gate-tardio.html');
+  await page.waitForTimeout(900);
+  const tardio = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    await w(400);
+    const gate = document.getElementById('catedra-auth-gate');
+    const app = document.getElementById('app-tardio');
+    const foras = [];
+    for (let i = 0; i < 8; i++) {
+      const fs = [...document.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])')]
+        .filter(x => x.offsetParent !== null);
+      const idx = fs.indexOf(document.activeElement);
+      const prox = fs[(idx + 1) % fs.length];
+      if (prox) prox.focus();
+      if (document.activeElement !== document.body && gate && !gate.contains(document.activeElement)) {
+        foras.push((document.activeElement.textContent || '').trim().slice(0, 20));
+      }
+    }
+    return {
+      appMontouDepois: !!app,
+      appQueMontouDepoisFicaInerte: !!app && app.inert === true,
+      appQueMontouDepoisSaiDoLeitor: !!app && app.getAttribute('aria-hidden') === 'true',
+      headNaoEhMarcadoPorEngano: document.head.inert !== true,
+      rolagemTravada: document.documentElement.style.overflow === 'hidden',
+      nadaEscapaDoGate: foras.length === 0,
+    };
+  });
+  for (const [k, v] of Object.entries(tardio)) ok(v, 'GATE ' + k);
+}
+
+await page.goto(URL0 + '/tests/auth-gate-fixture.html');
+await page.waitForTimeout(1200);
+const gate = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const el = document.getElementById('catedra-auth-gate');
+  const app = document.getElementById('app');
+  if (!el) return { erro: 'o gate não foi criado' };
+  await w(400);
+  return {
+    gateVisivel: getComputedStyle(el).display !== 'none',
+    // a página atrás não pode rolar enquanto o login está na frente
+    bodyTravado: document.body.style.overflow === 'hidden',
+    htmlTravado: document.documentElement.style.overflow === 'hidden',
+    // e não pode ser alcançada por mouse, teclado ou leitor de tela
+    appInerte: app.inert === true,
+    appEscondidoDoLeitor: app.getAttribute('aria-hidden') === 'true',
+    // semântica de diálogo
+    ehDialogo: el.getAttribute('role') === 'dialog',
+    ehModal: el.getAttribute('aria-modal') === 'true',
+    temNome: !!(el.getAttribute('aria-label') || '').trim(),
+  };
+});
+if (gate.erro) ok(false, 'GATE ' + gate.erro);
+else for (const [k, v] of Object.entries(gate)) ok(v, 'GATE ' + k);
+
+// O foco não escapa do gate, e o Esc não fecha um login obrigatório.
+const gateFoco = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const el = document.getElementById('catedra-auth-gate');
+  const dentro = (n) => !!n && el.contains(n);
+  const focaveis = [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])')]
+    .filter(n => n.offsetParent !== null || n === document.activeElement);
+  if (!focaveis.length) return { erro: 'nenhum controle focável no gate' };
+  const r = {};
+  // Tab sintético não move o foco sozinho: quem move é o trap. Então a asserção é o ALVO
+  // exato, não "continua dentro" — que passaria mesmo sem trap nenhum.
+  const primeiro = focaveis[0], ultimo = focaveis[focaveis.length - 1];
+  ultimo.focus();
+  el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+  await w(120);
+  r.tabNoUltimoVoltaAoPrimeiro = document.activeElement === primeiro;
+  primeiro.focus();
+  el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+  await w(120);
+  r.shiftTabNoPrimeiroVoltaAoUltimo = document.activeElement === ultimo;
+  r.focoNuncaEscapa = dentro(document.activeElement);
+  // Esc não fecha: o login é obrigatório
+  el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await w(200);
+  r.escNaoFechaOLogin = getComputedStyle(el).display !== 'none';
+  return r;
+});
+if (gateFoco.erro) ok(false, 'GATE foco: ' + gateFoco.erro);
+else for (const [k, v] of Object.entries(gateFoco)) ok(v, 'GATE ' + k);
+
+// Abas Entrar/Criar conta e o botão da senha precisam DIZER o seu estado.
+const gateSemantica = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const el = document.getElementById('catedra-auth-gate');
+  const entrar = el.querySelector('#ctseg-login');
+  const criar = el.querySelector('#ctseg-signup');
+  if (!entrar || !criar) return { erro: 'não achei as abas Entrar/Criar conta' };
+  const r = {
+    abaEntrarSelecionada: entrar.getAttribute('aria-selected') === 'true',
+    abaCriarNaoSelecionada: criar.getAttribute('aria-selected') === 'false',
+    abasTemPapel: entrar.getAttribute('role') === 'tab' && criar.getAttribute('role') === 'tab',
+    // roving tabindex: só a aba ativa entra na ordem de tabulação
+    rovingTabindex: entrar.getAttribute('tabindex') === '0' && criar.getAttribute('tabindex') === '-1',
+  };
+  criar.click(); await w(300);
+  const entrar2 = el.querySelector('#ctseg-login'), criar2 = el.querySelector('#ctseg-signup');
+  r.trocaDeAbaAtualizaOEstado = criar2.getAttribute('aria-selected') === 'true'
+    && entrar2.getAttribute('aria-selected') === 'false';
+  el.querySelector('#ctseg-login').click(); await w(300);
+  // o olho da senha diz o que vai fazer, e muda quando faz
+  const olho = el.querySelector('[data-olho]');
+  r.olhoTemNome = !!olho && /mostrar senha/i.test(olho.getAttribute('aria-label') || '');
+  if (olho) { olho.click(); await w(150); r.olhoMudaDeNome = /ocultar senha/i.test(olho.getAttribute('aria-label') || ''); olho.click(); }
+  return r;
+});
+if (gateSemantica.erro) ok(false, 'GATE semântica: ' + gateSemantica.erro);
+else for (const [k, v] of Object.entries(gateSemantica)) ok(v, 'GATE ' + k);
+
+// Ao fechar, o app volta ao que era: rolagem, inert e aria-hidden restaurados.
+const gateFecha = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const el = document.getElementById('catedra-auth-gate');
+  const app = document.getElementById('app');
+  if (!el.__setGateOpen) return { erro: 'setGateOpen não foi exposto no elemento do gate' };
+  el.__setGateOpen(false);
+  await w(200);
+  return {
+    fechouOGate: getComputedStyle(el).display === 'none',
+    devolveuARolagem: document.body.style.overflow !== 'hidden' && document.documentElement.style.overflow !== 'hidden',
+    appVoltouAFuncionar: app.inert !== true && app.getAttribute('aria-hidden') !== 'true',
+  };
+});
+if (gateFecha.erro) ok(false, 'GATE fecha: ' + gateFecha.erro);
+else for (const [k, v] of Object.entries(gateFecha)) ok(v, 'GATE ' + k);
+
+// A prova que importa: a página atrás não rola com GESTO DE GENTE. `overflow:hidden` bloqueia
+// roda e teclado, mas não bloqueia window.scrollBy — medir com scrollBy daria falso negativo.
+await page.goto(URL0 + '/tests/auth-gate-fixture.html');
+await page.waitForTimeout(1300);
+const antesDeRolar = await page.evaluate(() => window.scrollY);
+await page.mouse.move(400, 400);
+await page.mouse.wheel(0, 2000);
+await page.waitForTimeout(350);
+const depoisDaRoda = await page.evaluate(() => window.scrollY);
+await page.keyboard.press('End');
+await page.waitForTimeout(300);
+const depoisDoEnd = await page.evaluate(() => window.scrollY);
+ok(depoisDaRoda === antesDeRolar, 'GATE a roda do mouse não rola o app atrás do login');
+ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do login');
 
 await browser.close();
 srv.close();
