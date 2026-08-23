@@ -629,6 +629,39 @@ const bu = await page.evaluate(() => {
   r.homonimasSeparadas = d2.length === 2;
   r.revogadaPorUltimo = d2[0].extra.includes('STJ') && /Revogada/.test(d2[1].extra);
 
+  /* --- TASK 7 · identidade canônica: o que colapsa e o que NÃO colapsa --- */
+  // (a) mesmo tribunal, mesmo número, mesmo título, ramo/tema escritos diferente = UM item
+  r.t7mesmoVerbeteExtrasDiferentes = B.buscar(B.indexar({ verbetes: [
+    ['STJ-1', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Penal', 'Prescrição'],
+    ['STJ-2', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Processo Penal', 'Prescrição da pretensão']
+  ] }), 'súmula 619').verbete.length === 1;
+  // (b) tribunais diferentes com o mesmo número = DOIS itens (são súmulas distintas)
+  r.t7tribunaisDiferentesFicam = B.buscar(B.indexar({ verbetes: [
+    ['A', 'STF', 'stf', 619, 'Súmula 619', 'Constitucional', 'x'],
+    ['B', 'STJ', 'stj', 619, 'Súmula 619', 'Administrativo', 'y']
+  ] }), 'súmula 619').verbete.length === 2;
+  // (c) mesma lei repetida por nome/referência = UM item
+  r.t7leiRepetida = B.buscar(B.indexar({ leis: [
+    { t: 'Código de Processo Civil', r: 'Lei nº 13.105/2015' },
+    { t: 'Código de Processo Civil', r: 'CPC' }
+  ] }), 'processo civil').lei.length === 1;
+  // (d) mesmo título, números juridicamente distintos = DOIS itens
+  r.t7numerosDistintosFicam = B.buscar(B.indexar({ verbetes: [
+    ['A', 'STJ', 'stj', 7, 'Súmula', 'Civil', 'x'],
+    ['B', 'STJ', 'stj', 8, 'Súmula', 'Penal', 'y']
+  ] }), 'súmula').verbete.length === 2;
+  // (e) o id da fonte sobrevive à busca (para abrir o registro exato quando houver como)
+  r.t7idPreservado = (B.buscar(B.indexar({ verbetes: [
+    ['STJ-SUM-619', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Penal', 'x']
+  ] }), 'súmula 619').verbete[0] || {}).id === 'STJ-SUM-619';
+  // (f) a chave é identidade, não aparência: dois itens iguais têm a MESMA _k
+  r.t7chaveEstavel = (function () {
+    const i = B.indexar({ verbetes: [
+      ['STJ-1', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Penal', 'Prescrição'],
+      ['STJ-2', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Outro ramo', 'Outro tema']] });
+    return i[0]._k === i[1]._k && !!i[0]._k;
+  })();
+
   // teto por tipo e piso de 2 letras
   r.teto = B.buscar(IDX, 'lei', { porTipo: 3 }).lei.length <= 3;
   r.pisoDuasLetras = B.buscar(IDX, 'l').lei.length === 0;

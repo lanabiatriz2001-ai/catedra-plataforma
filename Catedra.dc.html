@@ -895,7 +895,7 @@ window.ctPdfLib = (function(){
         <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Paleta de comando" class="ct-modal-panel" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 60px rgba(0,0,0,.4);overflow:hidden;">
           <div style="display:flex;align-items:center;gap:11px;padding:16px 18px;border-bottom:1px solid var(--border);">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--text3)" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5" stroke-linecap="round"></path></svg>
-            <input autofocus="" value="{{ paletteQuery }}" oninput="{{ onPaletteQuery }}" placeholder="Buscar tudo: telas, leis, súmulas, peças, ritos… (ex.: CPC, súmula 619, sentença)" style="flex:1;border:none;background:transparent;outline:none;font-size:var(--fs-lg);color:var(--ink);font-family:inherit;">
+            <input autofocus="" value="{{ paletteQuery }}" oninput="{{ onPaletteQuery }}" aria-label="Buscar em toda a plataforma" placeholder="Buscar tudo: telas, leis, súmulas, peças, ritos… (ex.: CPC, súmula 619, sentença)" style="flex:1;border:none;background:transparent;outline:none;font-size:var(--fs-lg);color:var(--ink);font-family:inherit;">
             <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);border:1px solid var(--border);border-radius:var(--r-sm);padding:2px 7px;">ESC</span>
           </div>
           <div class="ct-scroll" style="max-height:340px;overflow:auto;padding:8px;">

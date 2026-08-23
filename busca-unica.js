@@ -47,7 +47,7 @@
   function indexar(fontes) {
     var f = fontes || {};
     var out = [];
-    var põe = function (tipo, titulo, extra, arg, meta) {
+    var põe = function (tipo, titulo, extra, arg, meta, chave) {
       var t = String(titulo || '').trim();
       if (!t) return;
       // _i = posição na fonte. O catálogo do LEGIS vem em ordem de importância (CF, CC,
@@ -59,12 +59,20 @@
                  _s: (tipo === 'lei' ? iniciais(t) : ''), _i: out.length,
                  // súmula revogada vai para o fim; verbete marcado como importante sobe
                  _rev: (meta && /revogad|cancelad/i.test(String(meta.si || ''))) ? 1 : 0,
-                 _w: (meta && meta.im) ? 1 : 0 });
+                 _w: (meta && meta.im) ? 1 : 0,
+                 // _k = IDENTIDADE, não aparência. Deduplicar por título+extra colapsava o que
+                 // é diferente e separava o que é igual: a mesma súmula coletada duas vezes com
+                 // ramo/tema escritos diferente virava duas linhas. A chave carrega só o que
+                 // torna o item aquele item (tribunal, número, nome canônico).
+                 _k: normalizar(chave || (tipo + '|' + t + '|' + (extra || ''))),
+                 // o id da fonte fica guardado à parte: `arg` é o que abre a tela (busca textual),
+                 // mas quem precisar do registro exato ainda o tem
+                 id: (meta && meta.id) || '' });
     };
 
     (Array.isArray(f.leis) ? f.leis : []).forEach(function (l) {
       // a referência ("Lei nº 8.429/1992") é o que muita gente digita: entra como extra buscável
-      põe('lei', l && l.t, (l && l.r) || '', (l && l.t) || '');
+      põe('lei', l && l.t, (l && l.r) || '', (l && l.t) || '', null, 'lei|' + ((l && l.t) || ''));
     });
 
     // verbetes: array de arrays do juris-index.js (id:0, tribunal:1, fonte:2, número:3,
@@ -77,16 +85,19 @@
       var extra = [v[1], v[8], v[5], v[6]].filter(Boolean).join(' · ');
       // arg = TÍTULO, não o id: o CátedraJURIS abre por ?q= (busca textual) e não conhece
       // o id interno do índice — mandar "STJ-SUM-619" abriria a página sem resultado.
-      põe('verbete', titulo, extra, titulo, { si: v[8], im: v[9] });
+      // tribunal + número + título. Sem o número (verbete que não é súmula), tribunal +
+      // título já bastam — o que NÃO entra é ramo/tema, que variam por quem catalogou.
+      var chave = ['verbete', v[1] || '', v[3] || '', titulo].map(normalizar).join('|');
+      põe('verbete', titulo, extra, titulo, { si: v[8], im: v[9], id: v[0] }, chave);
     });
 
     Object.keys(f.pecas || {}).forEach(function (nome) {
       var p = f.pecas[nome] || {};
-      põe('peca', nome, [p.rito || 'roteiro de peça', SINONIMOS[nome]].filter(Boolean).join(' · '), nome);
+      põe('peca', nome, [p.rito || 'roteiro de peça', SINONIMOS[nome]].filter(Boolean).join(' · '), nome, null, 'peca|' + nome);
     });
 
     Object.keys(f.ritos || {}).forEach(function (nome) {
-      põe('rito', nome, 'sequência dos atos', nome);
+      põe('rito', nome, 'sequência dos atos', nome, null, 'rito|' + nome);
     });
 
     return out;
@@ -122,7 +133,7 @@
       // o extra (referência da lei, tribunal/ramo do verbete) vale menos que o título
       if (!p) { var pe = pontuar(it._e, q); if (pe) p = Math.min(1, pe); }
       if (!p) return;
-      res[it.tipo].push({ tipo: it.tipo, titulo: it.titulo, extra: it.extra, arg: it.arg, _p: p, _i: it._i, _rev: it._rev, _w: it._w });
+      res[it.tipo].push({ tipo: it.tipo, titulo: it.titulo, extra: it.extra, arg: it.arg, id: it.id, _p: p, _i: it._i, _rev: it._rev, _w: it._w, _k: it._k });
     });
 
     ORDEM.forEach(function (t) {
@@ -141,10 +152,12 @@
       // o acervo tem entradas repetidas (mesma tese em fontes diferentes): uma só na lista
       var visto = {}, limpo = [];
       res[t].forEach(function (x) {
-        // STF e STJ gravam títulos idênticos ("Súmula 619") — só o extra (tribunal e
-        // situação) os separa. Deduplicar só pelo título escondia uma das duas, e a que
-        // sobrava podia ser justamente a REVOGADA.
-        var k = normalizar(x.titulo + '|' + x.extra);
+        // Depois de ordenar, e por _k: o primeiro a chegar já é o melhor pelos critérios
+        // acima (pontuação, vigência, importância), então quem cai fora é a cópia pior.
+        // STF e STJ gravam títulos idênticos ("Súmula 619") e continuam sendo dois itens —
+        // o tribunal está na chave. Deduplicar só pelo título escondia uma das duas, e a
+        // que sobrava podia ser justamente a REVOGADA.
+        var k = x._k || normalizar(x.titulo + '|' + x.extra);
         if (visto[k]) return;
         visto[k] = 1; limpo.push(x);
       });
