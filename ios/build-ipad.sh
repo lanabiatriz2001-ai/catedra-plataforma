@@ -26,6 +26,20 @@ EXEC="Catedra"
 BUNDLE_ID="com.catedra.ipad"
 APP="$BUILD/$NAME.app"
 MIN_IOS=17.0
+# Número do build. A Apple recusa reenviar a mesma versão ("The bundle version must be higher
+# than the previously uploaded version"), então ele precisa subir sozinho — número fixo dá um
+# 409 no meio do upload e faz perder a viagem. A contagem de commits serve bem: sobe a cada
+# commit, é reproduzível e não depende de guardar estado em lugar nenhum.
+BUILD_N="${CATEDRA_BUILD_N:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
+
+# A Apple RECUSA upload feito com SDK beta ("Unsupported SDK or Xcode version", 90534). Esta
+# máquina tem os dois Xcode e o `xcode-select` aponta para o beta — ótimo para desenvolver,
+# inútil para publicar. No modo testflight usamos o estável só nesta execução, sem mexer no
+# xcode-select global (que exigiria senha).
+if [ "$ALVO_REAL" = "testflight" ] && [ -d /Applications/Xcode.app/Contents/Developer ]; then
+  export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+  echo "     usando o Xcode estável: $(xcodebuild -version 2>/dev/null | head -1) (SDK iOS $(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null))"
+fi
 AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma.vercel.app/api/complete}"
 
 mkdir -p "$BUILD"
@@ -52,6 +66,13 @@ swiftc -O -target "$TARGET" -sdk "$SDK" $(find "$HERE/vendor" -name "*.swift") "
 
 echo "→ 3/4  Montando $NAME.app (bundle PLANO do iOS)…"
 cp -R "$ROOT/mac/build/web" "$APP/web"
+# Valores das chaves DT*, lidos do Xcode que está em uso nesta execução.
+DT_SDK_VER="$(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || echo 26.5)"
+DT_SDK_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :ProductBuildVersion' "$(xcrun --sdk iphoneos --show-sdk-path)/System/Library/CoreServices/SystemVersion.plist" 2>/dev/null || echo 23F81a)"
+DT_XCODE_BUILD="$(xcodebuild -version 2>/dev/null | tail -1 | awk '{print $3}')"
+DT_XCODE="$(xcodebuild -version 2>/dev/null | head -1 | awk '{print $2}' | awk -F. '{printf "%d%d0", $1, ($2==""?0:$2)}')"
+DT_MAC_BUILD="$(sw_vers -buildVersion 2>/dev/null)"
+
 cat > "$APP/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -64,7 +85,23 @@ cat > "$APP/Info.plist" <<PLIST
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleShortVersionString</key><string>1.0.0</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleVersion</key><string>$BUILD_N</string>
+  <!-- Binário de 64 bits precisa declarar arm64 aqui, senão o App Store Connect recusa
+       com "Invalid Bundle ... has a 64-bit architecture slice" (90502). -->
+  <key>UIRequiredDeviceCapabilities</key><array><string>arm64</string></array>
+  <!-- As chaves DT* são a "certidão de nascimento" do build: é por elas que o App Store
+       Connect descobre com que Xcode e SDK o app foi feito. Um Info.plist escrito à mão não
+       as tem, e sem elas a Apple responde 90534 ("Unsupported SDK or Xcode version") mesmo
+       quando o binário foi compilado com o SDK certo. São preenchidas do Xcode em uso. -->
+  <key>DTPlatformVersion</key><string>$DT_SDK_VER</string>
+  <key>DTSDKName</key><string>iphoneos$DT_SDK_VER</string>
+  <key>DTSDKBuild</key><string>$DT_SDK_BUILD</string>
+  <key>DTPlatformBuild</key><string>$DT_SDK_BUILD</string>
+  <key>DTXcode</key><string>$DT_XCODE</string>
+  <key>DTXcodeBuild</key><string>$DT_XCODE_BUILD</string>
+  <key>DTCompiler</key><string>com.apple.compilers.llvm.clang.1_0</string>
+  <key>CFBundleIconName</key><string>AppIcon</string>
+  <key>BuildMachineOSBuild</key><string>$DT_MAC_BUILD</string>
   <key>MinimumOSVersion</key><string>$MIN_IOS</string>
   <!-- 2 = iPad. Só iPad de propósito: o layout do app troca para "celular" abaixo de
        900px e num iPhone ficaria apertado demais para a tabela do ciclo. -->
@@ -107,6 +144,49 @@ if swiftc -O -target arm64-apple-macos14.0 "$ROOT/mac/Sources/icon.swift" -o "$B
     sips -z "$px" "$px" "$ICONSET/icon_512x512@2x.png" --out "$APP/$nome.png" >/dev/null 2>&1
   done
   echo "     ícone: $(ls "$APP"/AppIcon*.png 2>/dev/null | wc -l | tr -d ' ') PNG(s)"
+
+  # PNG solto basta para instalar no iPad, mas NÃO para o App Store Connect: desde o SDK
+  # do iOS 11 ele exige um CATÁLOGO DE ATIVOS compilado (Assets.car) e a chave
+  # CFBundleIconName — sem os dois, responde 90713. O actool é quem compila o catálogo e
+  # ainda escreve a chave num plist parcial, que fundimos no Info.plist.
+  CAT="$BUILD/Assets.xcassets"; SET="$CAT/AppIcon.appiconset"
+  rm -rf "$CAT"; mkdir -p "$SET"
+  sips -z 1024 1024 "$ICONSET/icon_512x512@2x.png" --out "$SET/icon-1024.png" >/dev/null 2>&1
+  for par in "icon-76:76" "icon-76@2x:152" "icon-83.5@2x:167" "icon-60@2x:120" "icon-60@3x:180" "icon-40@2x:80" "icon-40@3x:120" "icon-29@2x:58" "icon-29@3x:87" "icon-20@2x:40" "icon-20@3x:60"; do
+    sips -z "${par##*:}" "${par##*:}" "$ICONSET/icon_512x512@2x.png" --out "$SET/${par%%:*}.png" >/dev/null 2>&1
+  done
+  cat > "$SET/Contents.json" <<'JSONEOF'
+{ "images": [
+  {"idiom":"iphone","size":"20x20","scale":"2x","filename":"icon-20@2x.png"},
+  {"idiom":"iphone","size":"20x20","scale":"3x","filename":"icon-20@3x.png"},
+  {"idiom":"iphone","size":"29x29","scale":"2x","filename":"icon-29@2x.png"},
+  {"idiom":"iphone","size":"29x29","scale":"3x","filename":"icon-29@3x.png"},
+  {"idiom":"iphone","size":"40x40","scale":"2x","filename":"icon-40@2x.png"},
+  {"idiom":"iphone","size":"40x40","scale":"3x","filename":"icon-40@3x.png"},
+  {"idiom":"iphone","size":"60x60","scale":"2x","filename":"icon-60@2x.png"},
+  {"idiom":"iphone","size":"60x60","scale":"3x","filename":"icon-60@3x.png"},
+  {"idiom":"ipad","size":"20x20","scale":"1x","filename":"icon-20@2x.png"},
+  {"idiom":"ipad","size":"20x20","scale":"2x","filename":"icon-40@2x.png"},
+  {"idiom":"ipad","size":"29x29","scale":"1x","filename":"icon-29@2x.png"},
+  {"idiom":"ipad","size":"29x29","scale":"2x","filename":"icon-29@3x.png"},
+  {"idiom":"ipad","size":"40x40","scale":"1x","filename":"icon-40@2x.png"},
+  {"idiom":"ipad","size":"40x40","scale":"2x","filename":"icon-40@3x.png"},
+  {"idiom":"ipad","size":"76x76","scale":"1x","filename":"icon-76.png"},
+  {"idiom":"ipad","size":"76x76","scale":"2x","filename":"icon-76@2x.png"},
+  {"idiom":"ipad","size":"83.5x83.5","scale":"2x","filename":"icon-83.5@2x.png"},
+  {"idiom":"ios-marketing","size":"1024x1024","scale":"1x","filename":"icon-1024.png"}
+], "info": {"version":1,"author":"catedra"} }
+JSONEOF
+  echo '{ "info": {"version":1,"author":"catedra"} }' > "$CAT/Contents.json"
+  if actool --output-format human-readable-text --notices --warnings \
+       --app-icon AppIcon --output-partial-info-plist "$BUILD/icon-partial.plist" \
+       --target-device ipad --minimum-deployment-target "$MIN_IOS" \
+       --platform iphoneos --compile "$APP" "$CAT" >/dev/null 2>&1 && [ -f "$APP/Assets.car" ]; then
+    echo "     catálogo de ativos: Assets.car ($(du -h "$APP/Assets.car" | cut -f1 | tr -d ' '))"
+    ICON_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$BUILD/icon-partial.plist" 2>/dev/null || echo AppIcon)"
+  else
+    echo "     ⚠ actool não compilou o catálogo — o App Store Connect vai recusar (90713)"
+  fi
 else
   echo "     ⚠ ícone não gerado (icon.swift/makeicon) — o app vai sem logo"
 fi
