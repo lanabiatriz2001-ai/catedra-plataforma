@@ -207,19 +207,36 @@ fi
 # fazia isso; aqui faltava, e sem ele a aba CátedraJURIS do iPad abria com
 # "corpus.json não encontrado no bundle". No iOS o bundle é PLANO, então os arquivos vão
 # na RAIZ do .app — é lá que Bundle.main.url(forResource:) procura.
+# ---------------------------------------------------------------------------------
+# Copia de asset declarado por uma tela. O padrao antigo era `[ -f x ] && cp x y`:
+# arquivo faltando = app publicado quebrado, EM SILENCIO, e a usuaria descobria vendo o
+# nome de um .json na tela. Aqui a falta e barulhenta.
+#   copiar_asset  <origem>  <destino>  <exigido|opcional>  <o que quebra sem ele>
+# ---------------------------------------------------------------------------------
+copiar_asset() {
+  local origem="$1" destino="$2" nivel="$3" quebra="$4"
+  if [ -f "$origem" ]; then cp "$origem" "$destino"; return 0; fi
+  if [ "$nivel" = "exigido" ]; then
+    echo "  ✗ FALTA $(basename "$origem") — $quebra" >&2
+    echo "    (gere-o antes de publicar; o app nao pode sair sem ele)" >&2
+    exit 1
+  fi
+  echo "     ⚠ $(basename "$origem") ausente — $quebra"
+}
+
 JURIS_RES="$HOME/App Jurisprudências/VadeMecumJuris/Sources/VadeMecum/Resources"
 for f in corpus.json notas.json indice.json; do
-  if [ -f "$JURIS_RES/$f" ]; then cp "$JURIS_RES/$f" "$APP/$f"
-  else echo "     ⚠ $f não encontrado em $JURIS_RES — a aba CátedraJURIS vai abrir sem acervo"; fi
+  copiar_asset "$JURIS_RES/$f" "$APP/$f" opcional \
+    "a aba CátedraJURIS abre sem acervo (o repo do Vade Mecum não está nesta máquina)"
 done
 # A Central de Contas (TCU + TCEs) é gerada NESTE repo, dos mesmos dados que a web usa.
-[ -f "$ROOT/corpus-contas.json" ] && cp "$ROOT/corpus-contas.json" "$APP/corpus-contas.json"
-[ -f "$ROOT/incidencia.json" ] && cp "$ROOT/incidencia.json" "$APP/incidencia.json"
-[ -f "$ROOT/incidencia-verbetes.json" ] && cp "$ROOT/incidencia-verbetes.json" "$APP/incidencia-verbetes.json"
+copiar_asset "$ROOT/corpus-contas.json" "$APP/corpus-contas.json" exigido "a Central de Contas (TCU + TCEs) abre vazia"
+copiar_asset "$ROOT/incidencia.json" "$APP/incidencia.json" exigido "o mapa de incidência por artigo do LEGIS fica sem dado"
+copiar_asset "$ROOT/incidencia-verbetes.json" "$APP/incidencia-verbetes.json" exigido "a incidência de verbetes some do JURIS"
 # Banco de discursivas/peças (scripts/build-discursivas-nativo.mjs -> discursivas.json): alimenta o Simulado.
-[ -f "$ROOT/discursivas.json" ] && cp "$ROOT/discursivas.json" "$APP/discursivas.json"
+copiar_asset "$ROOT/discursivas.json" "$APP/discursivas.json" exigido "o Simulado de discursivas abre sem banco"
 # Material oficial de prova oral (scripts/build-oral.mjs -> oral.json).
-[ -f "$ROOT/oral.json" ] && cp "$ROOT/oral.json" "$APP/oral.json"
+copiar_asset "$ROOT/oral.json" "$APP/oral.json" exigido "a tela Oral · bancas reais abre sem concurso nenhum"
 echo "     acervo do JURIS: $(ls -1 "$APP"/corpus*.json "$APP"/notas.json "$APP"/indice.json 2>/dev/null | wc -l | tr -d ' ') arquivo(s)"
 
 # Conformidade de exportação. Sem esta chave, cada build fica parado no TestFlight

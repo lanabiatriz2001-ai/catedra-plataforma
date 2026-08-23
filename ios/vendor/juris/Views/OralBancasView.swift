@@ -44,11 +44,17 @@ struct ConcursoOral: Codable, Identifiable, Hashable {
 
 @MainActor
 enum OralBancas {
+    /// Estado do acervo: a tela precisa saber a diferenca entre "ainda nao tentei",
+    /// "tentei e nao achei" e "achei e esta vazio". Antes existia so um array vazio, que
+    /// confundia os tres — e `carregou` era marcado ANTES de tentar ler, entao uma falha
+    /// era definitiva: nao havia como tentar de novo.
+    enum Estado: Equatable { case naoCarregado, carregando, pronto, indisponivel }
     private(set) static var concursos: [ConcursoOral] = []
-    private static var carregou = false
-    static func carregar() {
-        guard !carregou else { return }
-        carregou = true
+    private(set) static var estado: Estado = .naoCarregado
+
+    static func carregar(forcar: Bool = false) {
+        if !forcar, estado == .pronto || estado == .carregando { return }
+        estado = .carregando
         let candidatos: [URL?] = [
             Bundle.main.url(forResource: "oral", withExtension: "json"),
             Bundle.main.bundleURL.appendingPathComponent("oral.json"),
@@ -58,8 +64,13 @@ enum OralBancas {
             guard let u = c, let d = try? Data(contentsOf: u),
                   let l = try? JSONDecoder().decode([ConcursoOral].self, from: d) else { continue }
             concursos = l
+            estado = .pronto
             return
         }
+        // O nome do arquivo e problema de quem compila, nao de quem estuda: fica no log.
+        print("[CatedraJURIS] acervo de provas orais indisponivel: oral.json ausente ou ilegivel no bundle")
+        concursos = []
+        estado = .indisponivel
     }
     static var carreiras: [String] { Array(Set(concursos.map(\.subarea).filter { !$0.isEmpty })).sorted() }
     static var bancas: [String] { Array(Set(concursos.map(\.banca).filter { !$0.isEmpty })).sorted() }
@@ -160,8 +171,29 @@ struct OralBancasView: View {
     // MARK: catálogo
     private var catalogo: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if OralBancas.concursos.isEmpty {
-                Text("oral.json não está no bundle deste app.").font(.system(size: 13)).foregroundStyle(Palette.bad)
+            switch OralBancas.estado {
+            case .carregando, .naoCarregado:
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("Abrindo o acervo de provas orais…").font(.system(size: 13)).foregroundStyle(Palette.dim)
+                }
+            case .indisponivel:
+                // Estado humano, com saída: o nome do arquivo foi para o log, não para cá.
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("O acervo de provas orais não veio nesta versão do app.")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Os pontos sorteáveis, as perguntas das bancas e os padrões de resposta ficam nesta tela. Enquanto isso, o mesmo material está no Cátedra na web.")
+                        .font(.system(size: 13)).foregroundStyle(Palette.dim)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Tentar de novo") { OralBancas.carregar(forcar: true) }
+                        .buttonStyle(.bordered)
+                }
+                .padding(.vertical, 4)
+            case .pronto where OralBancas.concursos.isEmpty:
+                Text("Nenhum concurso no acervo desta versão.")
+                    .font(.system(size: 13)).foregroundStyle(Palette.dim)
+            case .pronto:
+                EmptyView()
             }
             RotuloEstudo(texto: "Carreira")
             Flow {
