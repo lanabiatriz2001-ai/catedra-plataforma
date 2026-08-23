@@ -92,20 +92,39 @@ cp -R "$BUILD/web"       "$APP/Contents/Resources/web"
 # Planalto/DOU e guardadas em ~/Library/Application Support/VadeMecum em runtime.
 # CátedraJURIS (Vade Mecum de jurisprudência) EMBUTE o corpus-semente (súmulas/
 # informativos); os dados vivos ficam em ~/Library/Application Support/VadeMecumJuris.
+
+# ---------------------------------------------------------------------------------
+# Copia de asset declarado por uma tela. O padrao antigo era `[ -f x ] && cp x y`:
+# arquivo faltando = app publicado quebrado, EM SILENCIO, e a usuaria descobria vendo o
+# nome de um .json na tela. Aqui a falta e barulhenta.
+#   copiar_asset  <origem>  <destino>  <exigido|opcional>  <o que quebra sem ele>
+# ---------------------------------------------------------------------------------
+copiar_asset() {
+  local origem="$1" destino="$2" nivel="$3" quebra="$4"
+  if [ -f "$origem" ]; then cp "$origem" "$destino"; return 0; fi
+  if [ "$nivel" = "exigido" ]; then
+    echo "  ✗ FALTA $(basename "$origem") — $quebra" >&2
+    echo "    (gere-o antes de publicar; o app nao pode sair sem ele)" >&2
+    exit 1
+  fi
+  echo "     ⚠ $(basename "$origem") ausente — $quebra"
+}
+
 JURIS_RES="$HOME/App Jurisprudências/VadeMecumJuris/Sources/VadeMecum/Resources"
 for f in corpus.json notas.json indice.json; do
-  [ -f "$JURIS_RES/$f" ] && cp "$JURIS_RES/$f" "$APP/Contents/Resources/$f"
+  copiar_asset "$JURIS_RES/$f" "$APP/Contents/Resources/$f" opcional \
+    "a aba CátedraJURIS abre sem acervo (o repo do Vade Mecum não está nesta máquina)"
 done
 # A Central de Contas (TCU + TCEs) NAO vem do repo do Vade Mecum: e gerada aqui, dos
 # mesmos dados que a web usa (scripts/build-contas-nativo.mjs -> corpus-contas.json).
-[ -f "$ROOT/corpus-contas.json" ] && cp "$ROOT/corpus-contas.json" "$APP/Contents/Resources/corpus-contas.json"
+copiar_asset "$ROOT/corpus-contas.json" "$APP/Contents/Resources/corpus-contas.json" exigido "a Central de Contas (TCU + TCEs) abre vazia"
 # Mapa de incidência por artigo (LEGIS nativo): mesmo dado do incidencia.js da web, em JSON.
-[ -f "$ROOT/incidencia.json" ] && cp "$ROOT/incidencia.json" "$APP/Contents/Resources/incidencia.json"
+copiar_asset "$ROOT/incidencia.json" "$APP/Contents/Resources/incidencia.json" exigido "o mapa de incidência por artigo do LEGIS fica sem dado"
 # Banco de discursivas/peças (scripts/build-discursivas-nativo.mjs -> discursivas.json): alimenta o Simulado.
-[ -f "$ROOT/discursivas.json" ] && cp "$ROOT/discursivas.json" "$APP/Contents/Resources/discursivas.json"
+copiar_asset "$ROOT/discursivas.json" "$APP/Contents/Resources/discursivas.json" exigido "o Simulado de discursivas abre sem banco"
 # Material oficial de prova oral (scripts/build-oral.mjs -> oral.json): alimenta "Oral · bancas reais".
-[ -f "$ROOT/oral.json" ] && cp "$ROOT/oral.json" "$APP/Contents/Resources/oral.json"
-[ -f "$ROOT/incidencia-verbetes.json" ] && cp "$ROOT/incidencia-verbetes.json" "$APP/Contents/Resources/incidencia-verbetes.json"
+copiar_asset "$ROOT/oral.json" "$APP/Contents/Resources/oral.json" exigido "a tela Oral · bancas reais abre sem concurso nenhum"
+copiar_asset "$ROOT/incidencia-verbetes.json" "$APP/Contents/Resources/incidencia-verbetes.json" exigido "a incidência de verbetes some do JURIS"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 cat > "$APP/Contents/Info.plist" <<PLIST

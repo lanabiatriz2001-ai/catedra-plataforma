@@ -17,6 +17,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <!-- "O que mudou esta semana" (item 7): recorte dos informativos, gerado no build -->
 <script src="./semana-juris.js"></script>
 <!-- C2: para onde mandar praticar questões (só link de saída — nada é copiado de lá) -->
+<script src="./area-registry.js"></script>
 <script src="./plataformas-questoes.js"></script>
 <!-- C3: miolo do espelho sugerido (fundamento obrigatório + rotulagem), puro e testável -->
 <script src="./espelho-sugerido.js"></script>
@@ -520,23 +521,23 @@ window.ctPdfLib = (function(){
     </nav>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Estudo base</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
-      <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Lei seca · CátedraLEGIS</span></button>
-      <sc-if value="{{ areaJuris }}" hint-placeholder-val="{{ true }}"><button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Jurisprudência · JURIS</span></button></sc-if>
-      <sc-if value="{{ temAreaMod }}" hint-placeholder-val="{{ true }}"><button data-view="areamod" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button></sc-if>
-      <button data-view="edital" onclick="{{ onNav }}" style="{{ navStyle.edital }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"></path></svg><span>Edital</span></button>
+      <sc-if value="{{ capLegis }}" hint-placeholder-val="{{ true }}"><button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Lei seca · CátedraLEGIS</span></button></sc-if>
+      <sc-if value="{{ capJuris }}" hint-placeholder-val="{{ true }}"><button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Jurisprudência · JURIS</span></button></sc-if>
+      <sc-if value="{{ capAreaMod }}" hint-placeholder-val="{{ true }}"><button data-view="areamod" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button></sc-if>
+      <sc-if value="{{ capEdital }}" hint-placeholder-val="{{ true }}"><button data-view="edital" onclick="{{ onNav }}" style="{{ navStyle.edital }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"></path></svg><span>Edital</span></button></sc-if>
     </nav>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">{{ navGrupoFases }}</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
-      <button data-view="simulados" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>1ª fase · Simulados</span></button>
-      <button data-view="redacao" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>2ª fase · Discursivas</span></button>
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>Provas de 2ª fase</span></button></sc-if>
-      <button data-view="oral" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button>
+      <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ true }}"><button data-view="simulados" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>1ª fase · Simulados</span></button></sc-if>
+      <sc-if value="{{ capRedacao }}" hint-placeholder-val="{{ true }}"><button data-view="redacao" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>2ª fase · Discursivas</span></button></sc-if>
+      <sc-if value="{{ capRoteiros }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
+      <sc-if value="{{ capSegundaFase }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>Provas de 2ª fase</span></button></sc-if>
+      <sc-if value="{{ capOral }}" hint-placeholder-val="{{ true }}"><button data-view="oral" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button></sc-if>
     </nav>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Planejamento</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="prioridade" onclick="{{ onNav }}" style="{{ navPrioridade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round"></path></svg><span>Prioridade</span></button></sc-if>
-      <button data-view="bancas" onclick="{{ onNav }}" style="{{ navBancas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Bancas</span></button>
+      <sc-if value="{{ capPrioridade }}" hint-placeholder-val="{{ true }}"><button data-view="prioridade" onclick="{{ onNav }}" style="{{ navPrioridade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round"></path></svg><span>Prioridade</span></button></sc-if>
+      <sc-if value="{{ capBancas }}" hint-placeholder-val="{{ true }}"><button data-view="bancas" onclick="{{ onNav }}" style="{{ navBancas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Bancas</span></button></sc-if>
     </nav>
     <sc-if value="{{ navToggleShow }}" hint-placeholder-val="{{ true }}">
       <button onclick="{{ toggleNav }}" aria-label="Mostrar mais opções" aria-expanded="{{ navMaisAttr }}" aria-controls="ct-nav-mais" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;cursor:pointer;padding:11px 13px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;font-family:inherit;background:transparent;color:var(--stext);opacity:.85;margin-top:6px;">
@@ -1240,7 +1241,7 @@ window.ctPdfLib = (function(){
               <div class="cth-chips">
                 <span class="cth-chip">🔥 <b>{{ sidebarStreak }}</b></span>
                 <sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip">🛡️ <b>{{ escudos }}</b> escudos</span></sc-if>
-                <sc-if value="{{ simNudgeShow }}" hint-placeholder-val="{{ false }}"><button data-view="simulados" onclick="{{ onNav }}" class="cth-chip" style="cursor:pointer;border:none;font:inherit;">📋 {{ simNudge }}</button></sc-if>
+                <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ false }}"><button data-view="simulados" onclick="{{ onNav }}" class="cth-chip" style="cursor:pointer;border:none;font:inherit;">📋 {{ simNudge }}</button></sc-if>
                 <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip">📅 <b>{{ cdDias }}</b> dias p/ prova</span></sc-if>
               </div>
             </div>
@@ -1919,6 +1920,31 @@ window.ctPdfLib = (function(){
         </sc-if>
         </div><!-- /ct-cycle-panel-configurar -->
 
+       </div>
+      </sc-if>
+
+      <!-- ================= ROTA INDISPONÍVEL NESTA ÁREA =================
+           O guia é explícito: sem conteúdo compatível, mostrar estado honesto — nunca
+           dado de Magistratura e nunca um redirecionamento mudo. Esta tela aparece
+           quando alguém chega, por qualquer caminho, a uma view que a área ativa não
+           oferece. Ela diz o que a tela faz, por que não abre aqui, e para onde ir. -->
+      <sc-if value="{{ isIndisponivel }}" hint-placeholder-val="{{ false }}">
+       <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:34px 30px;max-width:620px;">
+          <div style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:700;">Não faz parte de {{ indispArea }}</div>
+          <div style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);color:var(--ink);margin-top:8px;">{{ indispTitulo }}</div>
+          <div style="font-size:var(--fs-base);color:var(--text2);line-height:1.65;margin-top:10px;">{{ indispPorque }}</div>
+          <sc-if value="{{ indispTemPreparo }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:18px;padding:14px 16px;background:var(--surface2);border-radius:var(--r-md);">
+              <div style="font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;">Em preparo para {{ indispArea }}</div>
+              <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:6px;line-height:1.6;">{{ indispPreparo }}</div>
+            </div>
+          </sc-if>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
+            <button data-view="inicio" onclick="{{ onNav }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Voltar ao meu painel</button>
+            <button data-view="ajustes" onclick="{{ onNav }}" style="background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:600;cursor:pointer;">Trocar de área de estudo</button>
+          </div>
+        </div>
        </div>
       </sc-if>
 
@@ -3742,7 +3768,7 @@ window.ctPdfLib = (function(){
                   <button data-a="{{ a.id }}" onclick="{{ setAreaEstudo }}" style="{{ a.style }}"><span style="{{ a.labelStyle }}">{{ a.emoji }} {{ a.label }}{{ a.check }}</span><span style="font-size:var(--fs-xs);color:var(--text3);line-height:1.45;">{{ a.desc }}</span></button>
                 </sc-for>
               </div>
-              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;">Trocar de área não apaga nada: o edital, o histórico e as revisões continuam como estão.</div>
+              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;">Cada área tem o seu próprio caderno. Ao trocar, o edital, as revisões e o histórico desta área ficam guardados e você encontra um caderno limpo na área nova — voltar traz tudo de volta, do jeito que estava. Tema, fonte e preferências são seus, não da área: acompanham você.</div>
             </div>
           </sc-if>
 
@@ -5437,7 +5463,7 @@ class Component extends DCLogic {
       timerRunning:false, timerSeconds:0,
       timerMode:'livre', pomoFocus:25, pomoBreak:5, pomoMenuOpen:false, sessionModalOpen:false,
       pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false, focusBlockIdx:null, pipMsg:'', salaFrase:'', salaFraseVisivel:false,   // D13: a frase que abre a sala
-      sessions: (()=>{ try{ const raw=localStorage.getItem('catedra:sessions'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
+      sessions: (()=>{ try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
       sessionsLixeira: (()=>{ try{ const raw=localStorage.getItem('catedra:sessionsLixeira'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)) return arr; } }catch(_){} return []; })(),
       histLixeiraOpen:false,
       sessionDraft:{ disc:_areaIni.discs[0], topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
@@ -5518,6 +5544,7 @@ class Component extends DCLogic {
       oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'',
       argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
+      viewBloqueada:'',   // qual view foi barrada pelo guarda de área (só para a tela explicar)
       paletteOpen:false, paletteQuery:'', lastPonto:this._load('lastPonto',null), lastPontoDispensado:this._load('lastPontoDispensado',0), palBuscaPronta:false, semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
       // U2: quais satélites já avisaram que pintaram. Vive só na memória desta sessão — é
       // exatamente o que se quer: esqueleto na PRIMEIRA carga de cada um, nunca depois.
@@ -5638,6 +5665,10 @@ class Component extends DCLogic {
 
         const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); });
         t.__dark=!!this.state.darkMode;      // o satélite usa isto para o color-scheme nativo
+        // e o CONTEXTO, pelo mesmo canal: área ativa e o vocabulário dela
+        t.__area=this.state.areaEstudo||'';
+        try{ const R=window.CT_AREA_REG, d=R&&R.definicao(t.__area||'juridica');
+          t.__areaRotulo=(d&&d.rotulo)||''; t.__termos=(d&&d.termos)||null; }catch(_){}
         return t;
       }catch(_){ return null; }
     };
@@ -5843,7 +5874,8 @@ class Component extends DCLogic {
         return true;
       }catch(_){ return false; }
     }; }catch(_){}
-    try{ window.__catedraGoView = (v)=>{ try{ if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); }catch(_){} }; }catch(_){}
+    // o escape global (notificação, app nativo, console) passa pelo MESMO guarda de área
+    try{ window.__catedraGoView = (v)=>{ try{ this._irPara(v); }catch(_){} }; }catch(_){}
     this._migrarSchema();
     this._limparLeiturasDuplicadas();   // remove as leituras que duplicam o checklist do plano
     // A hidratação do auth.js troca os dados locais DEPOIS do mount — sem reexecutar
@@ -6007,7 +6039,7 @@ class Component extends DCLogic {
   // relê do localStorage as fatias que o merge de sync pode ter atualizado (sem reload)
   _rehydrateFromLocal(){
     const patch={};
-    try{ const raw=localStorage.getItem('catedra:sessions'); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
+    try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
     try{ const raw=localStorage.getItem('catedra:sessionsLixeira'); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessionsLixeira=a; } }catch(_){}
     patch.reviews=this._load('reviews', this.state.reviews);
     patch.metas=this._load('metas', this.state.metas);
@@ -6212,7 +6244,7 @@ class Component extends DCLogic {
         // meio-tempo — coisa que acontece o tempo todo num iPad — deixava a trava salva e
         // a lista limpa perdida: impasse permanente, a limpeza nunca mais rodava e o
         // aparelho devolvia as duplicadas para a nuvem. Grava o dado ANTES, direto.
-        try{ localStorage.setItem('catedra:manualFixed', JSON.stringify(sobra)); }catch(_){}
+        try{ localStorage.setItem(this._chave('manualFixed'), JSON.stringify(sobra)); }catch(_){}
         this.syncManual({manualFixed:sobra});
         this._toast(n+' leituras repetidas removidas do ciclo');
       }
@@ -6327,13 +6359,23 @@ class Component extends DCLogic {
   /** Os mesmos dados, em querystring — usados só na PRIMEIRA carga (e em deep-link). */
   _frameExtras(dono, base){
     const sep=base.indexOf('?')>=0?'&':'?';
+    /* CONTEXTO DE ÁREA PARA TODO SATÉLITE.
+       Só dois dos sete sabiam em que área estavam (area-web e legis-web, por ?area=).
+       Os outros cinco recebiam src fixo e não tinham como saber — então nomeavam tudo
+       com o vocabulário jurídico, mesmo quando abertos por quem estuda outra coisa.
+       Agora a área viaja para todos: quem já a lê, usa; quem ainda não lê, ignora sem
+       quebrar — e a ponte fica pronta para quando ler. */
+    const _a=this.state.areaEstudo||'';
+    const _area=_a?('area='+encodeURIComponent(_a)):'';
     if(dono==='legis'||dono==='juris'){
       const q=[(this.state.acervoBusca||'').trim()?('q='+encodeURIComponent(this.state.acervoBusca.trim())):'',
-               this.state.acervoDe?'volta=1':''].filter(Boolean).join('&');
+               this.state.acervoDe?'volta=1':'',
+               (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
       return q?(sep+q):'';
     }
     const abrir=this.state.origemAbrir||'';
-    return abrir?(sep+abrir):'';
+    const q=[abrir, (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
+    return q?(sep+q):'';
   }
   /** Com o iframe VIVO, o mesmo conteúdo vai por mensagem — sem recarregar a página. */
   _frameMensagem(f, dono){
@@ -6350,7 +6392,40 @@ class Component extends DCLogic {
     }catch(_){}
   }
   // carrega uma fatia do estado do localStorage (usado no construtor)
-  _load(k, fb){ try{ const r=localStorage.getItem('catedra:'+k); if(r!=null){ const v=JSON.parse(r); if(v!=null) return v; } }catch(_){} return fb; }
+  /* ===== ESTUDO É POR ÁREA; A PESSOA NÃO =====
+     Hoje quem estuda Direito, acumula progresso e troca para Saúde leva TUDO junto: o
+     edital de magistratura continua sendo o edital, as revisões de Processo Civil
+     continuam vencendo, as métricas misturam as duas vidas. Não havia uma única chave,
+     campo ou filtro por área em toda a camada de persistência.
+
+     A regra escolhida é a mais conservadora possível:
+       · Direito (e "sem área") continuam nas chaves HISTÓRICAS, sem sufixo. Nenhum dado
+         existente é movido, renomeado ou reescrito — migração é onde se perde edital.
+       · Toda outra área lê e grava em `catedra:<chave>@<area>`.
+     Quem já usa o app não vê diferença. Quem troca de área encontra um caderno limpo, e
+     encontra o antigo intacto ao voltar. */
+  AREA_PROPRIA = new Set(['edital','reviews','blocks','blocksDate','manualFixed','manualRot',
+    'rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim',
+    'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redHist',
+    'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
+    'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
+    'redProvaId','lastPonto','lastPontoDispensado','provaDurationMin','sessions','flashcards']);
+  /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
+  _areaAtiva(){
+    try{
+      if(this.state && this.state.areaEstudo!=null) return this.state.areaEstudo||'';
+      const r=localStorage.getItem('catedra:areaEstudo');
+      return r!=null ? (JSON.parse(r)||'') : '';
+    }catch(_){ return ''; }
+  }
+  /** Nome real da chave no localStorage, já com o namespace da área quando é o caso. */
+  _chave(k){
+    if(!this.AREA_PROPRIA.has(k)) return 'catedra:'+k;
+    const a=this._areaAtiva();
+    if(!a || a==='juridica') return 'catedra:'+k;   // as chaves de sempre, intocadas
+    return 'catedra:'+k+'@'+a;
+  }
+  _load(k, fb){ try{ const r=localStorage.getItem(this._chave(k)); if(r!=null){ const v=JSON.parse(r); if(v!=null) return v; } }catch(_){} return fb; }
   // persiste automaticamente as fatias que não tinham salvamento próprio
   // (edital, revisões, ciclo, metas, calendário, simulado, erros) — só grava o
   // que mudou (comparação por referência), com debounce, e avisa a camada de
@@ -6359,6 +6434,25 @@ class Component extends DCLogic {
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
   _autosaveKeys(){ return ['areaEstudo', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId']; }
+  /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
+  _salvarAgora(){
+    try{ clearTimeout(this._asT); }catch(_){}
+    const L=this._lastSaved||(this._lastSaved={});
+    this._autosaveKeys().forEach(k=>{
+      try{ localStorage.setItem(this._chave(k), JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){}
+    });
+    try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(this.state.sessions||[])); }catch(_){}
+  }
+  /** O vazio certo de cada chave — array, objeto ou escalar. Sem isto, um caderno novo
+      nasceria com `undefined` onde a tela espera lista. */
+  _vazioDe(k){
+    const v=this.state[k];
+    if(Array.isArray(v)) return [];
+    if(v && typeof v==='object') return {};
+    if(typeof v==='number') return 0;
+    if(typeof v==='boolean') return false;
+    return '';
+  }
   _autosave(){
     const keys=this._autosaveKeys();
     const L=this._lastSaved||(this._lastSaved={});
@@ -6366,7 +6460,7 @@ class Component extends DCLogic {
     if(!dirty) return;
     clearTimeout(this._asT);
     this._asT=setTimeout(()=>{
-      for(const k of keys){ try{ localStorage.setItem('catedra:'+k, JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){} }
+      for(const k of keys){ try{ localStorage.setItem(this._chave(k), JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){} }
       try{ if(window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push(); }catch(_){}
     }, 500);
   }
@@ -6993,7 +7087,55 @@ class Component extends DCLogic {
     catch(_){ return false; }
   }
 
-  onNav = (e)=>{ let v=e.currentTarget.dataset.view; if(v==='dashboards') v='inicio'; this.setState({view:v, menuOpen:false}); this._marcarPonto(v); if(v==='comunidade') this._loadGrupos(); if(v==='admin') this._loadAdmin(); if(v==='oral') this._oralCarregarAcervo(); if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true})); };
+  /* ===== GUARDA DE ROTA POR ÁREA =====
+     A proteção existia só no MENU: o botão do CátedraJURIS sumia em Saúde, mas a VIEW
+     continuava aberta por qualquer outro caminho — "continuar de onde parei",
+     window.__catedraGoView, o deep link e a paleta ⌘K. Quem estuda Enfermagem reabria a
+     tela de peças processuais sem nunca ter pedido.
+     Agora quem responde é area-registry.js, e a resposta vale para TODA entrada. */
+  _indispNome(v){
+    const N={legis:'Lei seca · CátedraLEGIS', juris:'Jurisprudência · CátedraJURIS',
+      areamod:'Módulo de estudo da área', roteiros:'Roteiros e peças',
+      segundafase:'Provas de 2ª fase', redacao:'Discursivas', oral:'Prova oral',
+      prioridade:'Painel de prioridade', simulados:'Simulados', edital:'Edital', bancas:'Bancas'};
+    return N[v]||'Esta tela';
+  }
+  _indispPorque(v){
+    const P={
+      juris:'O acervo de jurisprudência é de tribunal — súmulas, teses e julgados do STF, do STJ e dos tribunais de contas. Ele não descreve o que você estuda, e oferecê-lo aqui seria fingir uma equivalência que não existe.',
+      roteiros:'Os roteiros de peça e a sequência de atos do processo são de prática forense: petição, sentença, recurso. Um relatório social ou um caso clínico têm estrutura própria — não são "peças" com outro nome.',
+      segundafase:'As provas de 2ª fase do acervo são discursivas de magistratura, com o espelho de correção que a banca publicou. São documentos daquelas provas, não um modelo geral de prova discursiva.',
+      redacao:'O banco de discursivas e os espelhos de correção vêm de concursos jurídicos. Sem enunciado e critério da sua carreira, a correção não teria contra o que comparar.',
+      oral:'O material de prova oral é o que as bancas jurídicas publicaram: pontos sorteáveis, perguntas formuladas e padrão de resposta daqueles concursos.',
+      prioridade:'O ranking cruza a incidência em provas reais com a sua taxa de erro. A base de incidência é de provas jurídicas — sem dado equivalente da sua área, qualquer ranking aqui seria inventado.',
+      simulados:'O simulado monta os itens a partir de lei seca e jurisprudência. Sem banco de questões da sua área, ele geraria prova de Direito.',
+      legis:'O CátedraLEGIS ainda não tem uma lista de fontes normativas fixada para esta área.',
+      areamod:'Esta área ainda não tem um módulo de estudo próprio.'};
+    return P[v]||'Esta tela depende de um acervo que a sua área de estudo ainda não tem.';
+  }
+  _areaEmPreparo(){
+    try{ return window.CT_AREA_REG.emPreparo(this.state.areaEstudo||'juridica'); }catch(_){ return []; }
+  }
+  _podeAbrir(v){
+    try{ return window.CT_AREA_REG.podeAbrir(this.state.areaEstudo||'juridica', v); }
+    catch(_){ return true; }    // sem o registro carregado, não é hora de bloquear ninguém
+  }
+  /** Troca de view com o guarda aplicado. Devolve a view que REALMENTE abriu. */
+  _irPara(v, extra){
+    if(v==='dashboards') v='inicio';
+    if(!this._podeAbrir(v)){
+      // não redireciona em silêncio: a tela diz por que não abre e oferece a saída
+      this.setState({view:'indisponivel', viewBloqueada:v, menuOpen:false});
+      return 'indisponivel';
+    }
+    this.setState({view:v, menuOpen:false, ...(extra||{})});
+    if(v==='comunidade') this._loadGrupos();
+    if(v==='admin') this._loadAdmin();
+    if(v==='oral') this._oralCarregarAcervo();
+    if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true}));
+    return v;
+  }
+  onNav = (e)=>{ const v=this._irPara(e.currentTarget.dataset.view); if(v!=='indisponivel') this._marcarPonto(v); };
   onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
   // Claro/Escuro é escolha MANUAL e por isso desliga o automático (U7): botão que a pessoa
   // aperta e volta sozinho na próxima mudança do sistema é botão quebrado.
@@ -7306,7 +7448,7 @@ class Component extends DCLogic {
   setTimerMode = (e)=>{ const m=e.currentTarget.dataset.mode; const f=+e.currentTarget.dataset.f||25, b=+e.currentTarget.dataset.b||5;
     if(this._tick) clearInterval(this._tick); this._tick=null;
     this.setState({timerMode:m, pomoFocus:f, pomoBreak:b, pomoMenuOpen:false, timerRunning:false, timerSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
-  _saveSessions(s){ try{ localStorage.setItem('catedra:sessions', JSON.stringify(s)); }catch(_){} }
+  _saveSessions(s){ try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(s)); }catch(_){} }
   _saveLixeira(l){ try{ localStorage.setItem('catedra:sessionsLixeira', JSON.stringify(l)); }catch(_){} }
   _brain(){
     const S=this.state.sessions||[]; const now=Date.now(), day=864e5;
@@ -8064,7 +8206,7 @@ class Component extends DCLogic {
     if(!window.confirm('Apagar o rascunho e começar do zero? A prova e o espelho continuam carregados — só a sua resposta sai da tela.')) return;
     this._redBoot='';
     this.setState({redText:'', redTextTs:0, redResult:null, redRascunhoOculto:true});
-    try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redTextTs',JSON.stringify(0)); }catch(_){}
+    try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redTextTs'),JSON.stringify(0)); }catch(_){}
     this._toast('Rascunho apagado — a folha está limpa');
   };
   // ===== banco de discursivas (CT_DISCURSIVAS) =====
@@ -8204,9 +8346,9 @@ class Component extends DCLogic {
       redModoProva: true,
       redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false
     });
-    try{ localStorage.setItem('catedra:redEnunciado',JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
-      localStorage.setItem('catedra:redGabarito',JSON.stringify(_gab));
-      localStorage.setItem('catedra:redText',JSON.stringify('')); }catch(_){}
+    try{ localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
+      localStorage.setItem(this._chave('redGabarito'),JSON.stringify(_gab));
+      localStorage.setItem(this._chave('redText'),JSON.stringify('')); }catch(_){}
     // O aviso diz a verdade sobre POR QUE não há espelho transcrito: culpa da banca (não
     // publicou) ou nossa (o PDF existe e não deu para transcrever). São conselhos diferentes.
     const _sit=q.espelhoSituacao;
@@ -8915,12 +9057,12 @@ class Component extends DCLogic {
   /** "Já vi": some do bloco e sincroniza (escalar em _autosaveKeys). */
   semanaLido = (e)=>{ const id=e.currentTarget.dataset.id; if(!id) return;
     this.setState(st=>({semanaLidos:[...(st.semanaLidos||[]), id].slice(-400)}),
-      ()=>{ try{ localStorage.setItem('catedra:semanaLidos', JSON.stringify(this.state.semanaLidos)); }catch(_){} this.flashSync(); });
+      ()=>{ try{ localStorage.setItem(this._chave('semanaLidos'), JSON.stringify(this.state.semanaLidos)); }catch(_){} this.flashSync(); });
   };
   semanaMais = ()=> this.setState({semanaTudo:!this.state.semanaTudo});
   semanaVerTudo = ()=> this.setState({view:'juris', acervoBusca:'', acervoDe:null, origemAbrir:'', menuOpen:false});
 
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redProvaId:'', espSugAtual:null}); try{ localStorage.setItem('catedra:redText',JSON.stringify('')); localStorage.setItem('catedra:redGabarito',JSON.stringify('')); localStorage.setItem('catedra:redEnunciado',JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redProvaId:'', espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this.setState({redResult:h.res, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
@@ -8947,7 +9089,7 @@ class Component extends DCLogic {
     const texto=M.texto(sug);
     this.setState({ espelhosSugeridos:[...resto, sug], espSugAtual:sug, espSugBusy:false,
       redGabarito:texto, redEspelhoOculto:true });
-    try{ localStorage.setItem('catedra:redGabarito',JSON.stringify(texto)); }catch(_){}
+    try{ localStorage.setItem(this._chave('redGabarito'),JSON.stringify(texto)); }catch(_){}
     this._toast('Espelho sugerido gerado — confira os fundamentos antes de usar a nota');
   };
   // Colou ou importou espelho por fora? Então o que está no campo não é mais o sugerido —
@@ -10207,8 +10349,32 @@ class Component extends DCLogic {
     const _trocar=(v)=> !!v && _cat.indexOf(v)>=0 && A.discs.indexOf(v)<0 && _ed.indexOf(v)<0;
     const _sd=this.state.sessionDraft||{}; if(_trocar(_sd.disc)) patch.sessionDraft={..._sd, disc:A.discs[0]};
     const _cd=this.state.cad||{};          if(_trocar(_cd.discSel)) patch.cad={..._cd, discSel:A.discs[0]};
-    this.setState(patch);
-    this._toast('Área de estudo: '+A.label+' ✦'); this.flashSync(); };
+    /* O PONTO PERIGOSO DESTA TROCA.
+       O estado em memória ainda é o da área ANTERIOR. Sem o passo abaixo, o autosave
+       seguinte gravaria o edital de magistratura dentro do caderno de Saúde — copiando
+       uma vida de estudo para dentro da outra, em silêncio. Então: primeiro grava o que
+       está aberto no namespace ANTIGO, depois troca de área, e só então recarrega tudo
+       do namespace NOVO. Nada é movido; cada caderno fica onde estava. */
+    this._salvarAgora();                       // fecha o caderno atual antes de virar a página
+    // o índice da busca é da ÁREA: mantê-lo faria a paleta continuar oferecendo súmula
+    this._palIndice=null; this._palCarregando=false;
+    this.setState(patch, ()=>{
+      const recarregado={};
+      this._autosaveKeys().forEach(k=>{
+        if(!this.AREA_PROPRIA.has(k)) return;  // preferência e identidade não são por área
+        recarregado[k]=this._load(k, this._vazioDe(k));
+      });
+      // `sessions` não está em _autosaveKeys (tem gravação própria), mas é por área
+      recarregado.sessions=this._load('sessions', []);
+      this.setState(recarregado, ()=>{
+        // o carimbo do autosave tem de refletir o caderno NOVO, senão a primeira
+        // gravação acha que tudo mudou e escreve por cima
+        const L=this._lastSaved||(this._lastSaved={});
+        this._autosaveKeys().forEach(k=>{ L[k]=this.state[k]; });
+        this.flashSync();
+      });
+    });
+    this._toast('Área de estudo: '+A.label+' ✦'); };
   toggleModeloOutras = ()=> this.setState(s=>({modeloOutras:!s.modeloOutras}));
 
   // ===================== ABA BANCAS (recorte área · banca · matéria · assunto) =====================
@@ -10588,20 +10754,29 @@ class Component extends DCLogic {
   _palMontar(){
     if(this._palIndice || this._palCarregando) return;
     this._palCarregando=true;
+    /* A busca só oferece o que a área ATIVA pode abrir. Sem isto, digitar "prescrição"
+       em Saúde devolvia súmula do STJ e roteiro de petição — e clicar levava a uma tela
+       que o guarda de rota barra. Buscar o que não se pode abrir é pior que não achar:
+       promete uma porta e mostra um muro. E cada acervo aqui pesa (o juris-index tem
+       2,4 MB), então nem carregar faz sentido. */
+    const _quer = (v)=>this._podeAbrir(v);
     const precisa=[];
-    if(!window.CT_LEIS_CAT) precisa.push('leis-catalogo.js');
-    if(!window.__JURIS_IDX__) precisa.push('juris-index.js');
-    if(!window.CT_PECAS) precisa.push('pecas.js');
-    if(!window.CT_RITOS) precisa.push('ritos.js');
-    if(!window.CT_FLUXOS) precisa.push('fluxos.js');   // há rito que só existe aqui (ex.: procedimento sumário)
+    if(_quer('legis') && !window.CT_LEIS_CAT) precisa.push('leis-catalogo.js');
+    if(_quer('juris') && !window.__JURIS_IDX__) precisa.push('juris-index.js');
+    if(_quer('roteiros')){
+      if(!window.CT_PECAS) precisa.push('pecas.js');
+      if(!window.CT_RITOS) precisa.push('ritos.js');
+      if(!window.CT_FLUXOS) precisa.push('fluxos.js');   // há rito que só existe aqui (ex.: procedimento sumário)
+    }
     // cada fonte que falhar simplesmente não entra no índice (o resto continua buscável)
     Promise.all(precisa.map(f=>this._palScript(f).catch(()=>null))).then(()=>{
       try{
         this._palIndice=(window.CT_BUSCA||{}).indexar ? window.CT_BUSCA.indexar({
-          leis:window.CT_LEIS_CAT, verbetes:window.__JURIS_IDX__,
-          pecas:window.CT_PECAS,
+          leis:(_quer('legis') ? window.CT_LEIS_CAT : []),
+          verbetes:(_quer('juris') ? window.__JURIS_IDX__ : []),
+          pecas:(_quer('roteiros') ? window.CT_PECAS : {}),
           // o ritos-web.html aceita a UNIÃO dos dois: indexar só CT_RITOS deixava rito inalcançável
-          ritos:Object.assign({}, window.CT_FLUXOS||{}, window.CT_RITOS||{}) }) : [];
+          ritos:(_quer('roteiros') ? Object.assign({}, window.CT_FLUXOS||{}, window.CT_RITOS||{}) : {}) }) : [];
       }catch(_){ this._palIndice=[]; }
       this._palCarregando=false;
       this.setState({palBuscaPronta:true});
@@ -10668,7 +10843,7 @@ class Component extends DCLogic {
     const ponto={ view, rito:String(e.rito||''), peca:String(e.peca||''),
       bloco:(e.bloco!=null&&e.bloco!==''&&isFinite(e.bloco))?Number(e.bloco):null,
       termo:String(e.termo||''), rotulo:(partes.length?(nome+' — '+partes.join(' · ')):nome), ts:Date.now() };
-    this.setState({lastPonto:ponto}, ()=>{ try{ localStorage.setItem('catedra:lastPonto', JSON.stringify(ponto)); }catch(_){} });
+    this.setState({lastPonto:ponto}, ()=>{ try{ localStorage.setItem(this._chave('lastPonto'), JSON.stringify(ponto)); }catch(_){} });
   }
   /** Idade em texto curto: "há 2h", "há 3 dias". */
   _idade(ts){
@@ -10686,13 +10861,13 @@ class Component extends DCLogic {
     if(p.rito) q.push('rito='+encodeURIComponent(p.rito));
     if(p.peca){ q.push('peca='+encodeURIComponent(p.peca));
       if(p.bloco!=null) q.push('bloco='+p.bloco); }
-    this.setState({view:p.view, menuOpen:false, acervoDe:null,
+    this._irPara(p.view, {acervoDe:null,
       acervoBusca:(p.view==='legis'||p.view==='juris')?(p.termo||''):'',
       origemAbrir:q.join('&')});
   };
   dispensarPonto = ()=>{
     const ts=Date.now();
-    this.setState({lastPontoDispensado:ts}, ()=>{ try{ localStorage.setItem('catedra:lastPontoDispensado', JSON.stringify(ts)); }catch(_){} });
+    this.setState({lastPontoDispensado:ts}, ()=>{ try{ localStorage.setItem(this._chave('lastPontoDispensado'), JSON.stringify(ts)); }catch(_){} });
   };
 
   closePalette = ()=> this.setState({paletteOpen:false});
@@ -10804,6 +10979,8 @@ class Component extends DCLogic {
     // lê daqui, e no dc-runtime o corpo inteiro roda a cada render — helper usado antes
     // de ser declarado vira TDZ e derruba todas as views.
     const _area = CT_AREA(this.state.areaEstudo);
+    // `_cap` já existe mais abaixo nesta mesma função (capitaliza texto): outro nome.
+    const _podeView = (v)=>this._podeAbrir(v);   // uma pergunta só: esta área abre esta tela?
     const areaJuridica = !!_area.juridico;
     const areaJuris = !!_area.juris;
     // o LEGIS abre já na legislação da área (padrão + específica); a query string
@@ -11216,13 +11393,17 @@ class Component extends DCLogic {
       const color= liq>=70?'var(--ok)':liq>=55?'var(--warn)':'var(--danger)';
       return {has:true, pct:liq, level, color, str:level+' · '+liq+'%'}; };
     const edital = this.state.edital.map((d,i)=>{
-      const done=d.topics.filter(t=>t.done).length, tot=d.topics.length;
+      // Disciplina sem `topics` (blob de sync truncado, item de versão antiga, edital
+      // importado à mão) derrubava o renderVals INTEIRO e punha um TypeError na tela.
+      // Uma disciplina sem tópicos é um caso legítimo: zero de zero é 0%.
+      const _tp=Array.isArray(d.topics)?d.topics:[];
+      const done=_tp.filter(t=>t&&t.done).length, tot=_tp.length;
       const pct=tot>0?Math.round(done/tot*100):0;
       const act=_actBy[d.disc]||{horas:0,q:0,liqPct:0,min:0};
       const actStr = act.min>0 ? (act.horas+'h estudadas · '+act.q+'q · '+act.liqPct+'% líq') : 'sem sessões ainda';
       const _pv=(d.peso!=null&&d.peso!=='')?d.peso:'', _qv=(d.questoes!=null&&d.questoes!=='')?d.questoes:'';
       const _hasMeta=_pv!==''||_qv!=='';
-      const _tops=d.topics.map((t,j)=>{ const dm=_domTopico(d.disc, t.name); return {...t,d:i,i:j,
+      const _tops=_tp.map((t,j)=>{ const dm=_domTopico(d.disc, t.name); return {...t,d:i,i:j,
         domHas:dm.has, domPct:dm.pct, domLevel:dm.level, domColor:dm.color, domStr:dm.str,
         discNome:d.disc, topNome:t.name,          // C2: o que vai na busca da plataforma
         checkBorder: t.done?d.color:'var(--border)',
@@ -11453,7 +11634,12 @@ class Component extends DCLogic {
 
     // ===== Revisões =====
     const mkRev = (r)=>({ ...r,
-      interval: r.intervalo+'d', ef: r.facilidade.toFixed(2), reps: r.repeticoes,
+      // `facilidade` vem do SM-2 e a revisão criada pelo app sempre a tem. Mas um blob de
+      // sincronização truncado, ou um item vindo de uma versão anterior, chega sem ela — e
+      // um `.toFixed` de undefined derrubava o renderVals INTEIRO, pintando na tela
+      // "Catedra.renderVals(): Cannot read properties of undefined". Erro técnico não é
+      // assunto de quem está estudando: 2.5 é o valor inicial do próprio SM-2.
+      interval: (r.intervalo||0)+'d', ef: Number(r.facilidade!=null?r.facilidade:2.5).toFixed(2), reps: (r.repeticoes||0),
       dueLabel: r.due<0 ? `há ${Math.abs(r.due)} ${Math.abs(r.due)===1?'dia':'dias'}` : (r.due===0?'hoje':(r.due===1?'amanhã':`em ${r.due} dias`)) });
     const revOverdue = this.state.reviews.filter(r=>r.due<0).sort((a,b)=>a.due-b.due).map(mkRev);
     const revToday   = this.state.reviews.filter(r=>r.due===0).map(mkRev);
@@ -11467,7 +11653,7 @@ class Component extends DCLogic {
       const _iv=(q)=>cur?this.sm2(cur,q).intervalo:0;
       revRun={ active:true, total, pos:Math.min(idx+1,total), pct: total?Math.round(idx/total*100):0, revealed:RS.revealed, done,
         disc: cur?cur.disc:'', discShort: cur?cur.disc.replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
-        intervalo: cur?cur.intervalo:0, ef: cur?cur.facilidade.toFixed(2):'', reps: cur?cur.repeticoes:0,
+        intervalo: (cur&&cur.intervalo)||0, ef: cur?Number(cur.facilidade!=null?cur.facilidade:2.5).toFixed(2):'', reps: (cur&&cur.repeticoes)||0,
         opts: cur?[ {q:2,label:'Errei',sub:'1 dia',color:'var(--danger)'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'var(--warn)'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'var(--ok)'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
         again:RS.again, hard:RS.hard, good:RS.good, easy:RS.easy, reviewedN, acertos:RS.good+RS.easy };
     }
@@ -13360,6 +13546,21 @@ class Component extends DCLogic {
       homeRevJuris:String((this.state.nativeRev&&this.state.nativeRev.juris&&this.state.nativeRev.juris.due)||0),
       homeTimerDot:(this.state.timerRunning?'#34d399':'#5f7a6e'), homeTimerSub:(this.state.timerRunning?'EM CURSO · TOQUE P/ PAUSAR':'PARADO · TOQUE P/ INICIAR'),
       isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
+      // --- o menu pergunta CAPACIDADE, não "que área é esta" ---
+      // Escritas uma a uma de propósito: o dc-runtime só resolve CHAVE LITERAL de
+      // primeiro nível, e variável que ele não acha vira string vazia em silêncio.
+      // Gerá-las por spread funcionaria em tempo de execução e enganaria a revisão.
+      capLegis:_podeView('legis'), capJuris:_podeView('juris'), capAreaMod:_podeView('areamod'),
+      capEdital:_podeView('edital'), capSimulados:_podeView('simulados'), capRedacao:_podeView('redacao'),
+      capRoteiros:_podeView('roteiros'), capSegundaFase:_podeView('segundafase'), capOral:_podeView('oral'),
+      capPrioridade:_podeView('prioridade'), capBancas:_podeView('bancas'),
+      // --- rota indisponível nesta área (campos literais: ver o comentário acima) ---
+      isIndisponivel:this.state.view==='indisponivel',
+      indispArea:((_area&&_area.label)||'sua área'),
+      indispTitulo:this._indispNome(this.state.viewBloqueada),
+      indispPorque:this._indispPorque(this.state.viewBloqueada),
+      indispTemPreparo:(this._areaEmPreparo().length>0),
+      indispPreparo:this._areaEmPreparo().join(' · '),
       // --- Ciclo: executar x configurar (só aparência; nenhum dado do ciclo muda) ---
       cycleExecutarSelected:(this.state.cyclePanel!=='configurar'?'true':'false'),
       cycleConfigurarSelected:(this.state.cyclePanel==='configurar'?'true':'false'),

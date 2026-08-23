@@ -3054,6 +3054,287 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+/* ===== ÁREA GOVERNA A PLATAFORMA (Fase 2 do guia de refatoração) =====
+   A troca de área era cosmética. Havia TRÊS guardas diferentes (isJuridica, areaJuris,
+   temAreaMod), e todas só no MENU: a view continuava aberta pelo "continuar de onde
+   parei", pelo window.__catedraGoView e por deep link. Quem estuda Enfermagem reabria a
+   tela de peças processuais sem nunca ter pedido. Agora quem responde é area-registry.js,
+   e a resposta vale para toda entrada. */
+{
+  // 1) o registro é uma tabela honesta, não um if espalhado
+  const reg = await page.evaluate(async (b) => {
+    const src = await (await fetch(b + '/area-registry.js')).text();
+    const ctx = {};
+    new Function('window', src)(ctx);
+    const R = ctx.CT_AREA_REG;
+    const JUR = ['juridica', 'policial', 'fiscal', 'contas', 'administrativa'];
+    const NAO = ['saude', 'social', 'educacao', 'tecnologia', 'militar', 'outra'];
+    return {
+      // jurisprudência é acervo de tribunal: só quem tem carreira jurídica
+      jurisSoNasJuridicas: JUR.every(a => R.podeAbrir(a, 'juris')) && NAO.every(a => !R.podeAbrir(a, 'juris')),
+      // peças, 2ª fase, oral e o ranking de incidência são de magistratura
+      pecasSoEmJuridica: R.podeAbrir('juridica', 'roteiros')
+        && ['policial', 'saude', 'social', 'outra'].every(a => !R.podeAbrir(a, 'roteiros')),
+      oralSoEmJuridica: R.podeAbrir('juridica', 'oral') && !R.podeAbrir('saude', 'oral'),
+      // o que é universal continua universal em TODAS as onze
+      cicloEmTodas: [...JUR, ...NAO].every(a => R.podeAbrir(a, 'ciclo') && R.podeAbrir(a, 'revisoes')),
+      editalEmTodas: [...JUR, ...NAO].every(a => R.podeAbrir(a, 'edital')),
+      // "sem área" NÃO pode virar Direito por omissão
+      areaDesconhecidaNaoLiberaNada: !R.podeAbrir('inexistente', 'juris') && !R.podeAbrir('', 'roteiros'),
+      // e a área diz o que ainda não tem, em português
+      dizOQueEstaEmPreparo: R.emPreparo('saude').length > 0 && R.emPreparo('juridica').length === 0,
+      termoDaArea: R.termo('saude', 'fontePlural') === 'diretrizes' && R.termo('juridica', 'fontePlural') === 'leis',
+    };
+  }, URL0);
+  for (const [k, v] of Object.entries(reg)) ok(v, 'AREA ' + k);
+
+  // 2) o menu segue a capacidade — e Jurídica não perde NADA
+  const ACERVO = ['legis', 'juris', 'areamod', 'roteiros', 'segundafase', 'redacao', 'oral',
+                  'prioridade', 'simulados', 'edital', 'bancas'];
+  const menus = {};
+  for (const area of ['juridica', 'saude', 'outra']) {
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate((a) => {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify(a));
+    }, area);
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(1700);
+    menus[area] = await page.evaluate(async (acervo) => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      const m = document.querySelector('button[aria-label="Mostrar mais opções"]');
+      if (m) { m.click(); await w(350); }
+      return [...document.querySelectorAll('aside button[data-view]')]
+        .map(b => b.dataset.view).filter(v => acervo.includes(v));
+    }, ACERVO);
+  }
+  ok(ACERVO.every(v => menus.juridica.includes(v)),
+    'AREA jurídica continua com todas as telas (' + menus.juridica.length + '/' + ACERVO.length + ')');
+  ok(!menus.saude.includes('juris') && !menus.saude.includes('roteiros') && !menus.saude.includes('oral'),
+    'AREA saúde não recebe tela jurídica no menu (' + menus.saude.join(',') + ')');
+  ok(menus.saude.includes('legis') && menus.saude.includes('areamod') && menus.saude.includes('edital'),
+    'AREA saúde mantém o que é dela (' + menus.saude.join(',') + ')');
+  ok(menus.outra.includes('edital') && !menus.outra.includes('legis'),
+    'AREA "outra" fica só com o universal (' + menus.outra.join(',') + ')');
+
+  /* 3) O CORAÇÃO: a guarda vale para toda ENTRADA, não só para o botão. Este é o teste
+        que o app não tinha — e é por isso que o vazamento durou tanto. */
+  const guarda = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const r = {};
+    const tentar = async (v) => {
+      window.__catedraGoView(v); await w(700);
+      const t = document.body.innerText;
+      return { barrou: /não faz parte de/i.test(t), explica: t.length > 200 };
+    };
+    // saúde está ativa: nenhuma destas pode abrir
+    for (const v of ['juris', 'roteiros', 'oral', 'prioridade', 'segundafase']) {
+      const x = await tentar(v);
+      r['barra_' + v] = x.barrou;
+    }
+    // e o que é dela abre normalmente
+    window.__catedraGoView('ciclo'); await w(700);
+    r.ciclo_abre = !/não faz parte de/i.test(document.body.innerText);
+    return r;
+  });
+  for (const [k, v] of Object.entries(guarda)) ok(v, 'AREA guarda ' + k);
+
+  // 4) a tela barrada EXPLICA e oferece saída — não é um redirecionamento mudo
+  const explica = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('juris'); await w(700);
+    const t = document.body.innerText;
+    return {
+      dizQualTela: /Jurisprudência · CátedraJURIS/i.test(t),
+      dizPorQue: /acervo de jurisprudência é de tribunal/i.test(t),
+      dizOQueVem: /Em preparo/i.test(t),
+      ofereceSaida: [...document.querySelectorAll('button[data-view]')]
+        .some(b => /Voltar ao meu painel/i.test(b.textContent))
+        && [...document.querySelectorAll('button[data-view]')].some(b => /Trocar de área/i.test(b.textContent)),
+      semJargao: !/undefined|null|\.json|bundle/i.test(t),
+    };
+  });
+  for (const [k, v] of Object.entries(explica)) ok(v, 'AREA tela barrada ' + k);
+
+  // 5) "continuar de onde parei" não pode ressuscitar tela de outra área
+  const ponto = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    localStorage.setItem('catedra:lastPonto', JSON.stringify({ view: 'roteiros', ts: Date.now(), rotulo: 'Roteiros' }));
+    return { semeado: true };
+  });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1800);
+  const voltou = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const b = [...document.querySelectorAll('button')].find(x => /continuar|voltar ao ponto|retomar/i.test(x.textContent || ''));
+    if (!b) return { semCartao: true };
+    b.click(); await w(800);
+    return { naoAbreRoteiros: /não faz parte de/i.test(document.body.innerText) };
+  });
+  if (!voltou.semCartao) ok(voltou.naoAbreRoteiros, 'AREA "continuar de onde parei" respeita a área');
+  else ok(ponto.semeado, 'AREA (o cartão de retomada não estava na tela nesta conta)');
+
+  /* 6) CADERNO POR ÁREA — o item de maior risco desta fase, porque mexe em persistência.
+        Antes: quem estuda Direito, acumula progresso e troca para Saúde levava TUDO junto —
+        o edital de magistratura continuava sendo o edital e as revisões de Processo Civil
+        continuavam vencendo. Não havia uma única chave por área na camada de persistência.
+        A regra escolhida é a mais conservadora que existe: Direito (e "sem área") ficam nas
+        chaves HISTÓRICAS, sem sufixo — nenhum dado existente é movido ou reescrito. */
+  /* Aba PRÓPRIA para este caso. Semear com localStorage.clear() na aba compartilhada
+     não funciona: o app da carga anterior ainda está vivo e o autosave dele (debounce de
+     500 ms) grava o estado velho POR CIMA da semente, logo depois do clear. Com
+     addInitScript os valores existem antes de qualquer linha do app rodar. */
+  const areaCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const areaPg = await areaCtx.newPage();
+  await areaPg.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      if (!localStorage.getItem('catedra:areaEstudo')) {
+        localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+        // o campo é `topics` (não `topicos`): semente com o nome errado testa outra coisa
+        localStorage.setItem('catedra:edital', JSON.stringify([{ id: 'e1', up: 1, disc: 'Direito Civil', peso: 3, color: '#2563EB', topics: [{ name: 'Prescrição', done: false }] }]));
+        localStorage.setItem('catedra:reviews', JSON.stringify([{ id: 'r1', up: 1, tema: 'Prescrição', prox: '2026-09-01', intervalo: 1, facilidade: 2.5, repeticoes: 0 }]));
+        localStorage.setItem('catedra:blocks', JSON.stringify([{ id: 'b1', up: 1, disc: 'Direito Civil', kind: 'Teoria', min: 50 }]));
+        localStorage.setItem('catedra:sessions', JSON.stringify([{ id: 's1', ts: 1, disc: 'Direito Civil', min: 45 }]));
+        localStorage.setItem('catedra:prefs', JSON.stringify({ nome: 'Lana', fontScale: 'grande' }));
+      }
+    } catch (_) {}
+  });
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(2000);
+
+  const trocarArea = async (id) => {
+    return areaPg.evaluate(async (alvoId) => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      window.__catedraGoView('ajustes'); await w(1600);
+      for (let i = 0; i < 6; i++) {
+        const alvo = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === alvoId);
+        if (alvo) { alvo.click(); await w(2200); return 'ok'; }
+        const abrir = [...document.querySelectorAll('button')]
+          .find(x => /trocar de área/i.test((x.textContent || '').trim()));
+        if (abrir) { abrir.click(); await w(900); } else { await w(600); }
+      }
+      // devolve o MOTIVO: "false" nu não se conserta
+      const t = document.body.innerText || '';
+      return 'não achei o seletor · ajustes=' + /Personalização, orientação/.test(t)
+        + ' trocar=' + [...document.querySelectorAll('button')].some(x => /trocar de área/i.test((x.textContent || '').trim()))
+        + ' cards=' + document.querySelectorAll('button[data-a]').length
+        + ' área=' + (localStorage.getItem('catedra:areaEstudo') || '?')
+        + ' corpo=' + t.slice(0, 50).replace(/\n+/g, ' ');
+    }, id);
+  };
+  const lerChaves = () => areaPg.evaluate(() => {
+    const g = k => { try { return localStorage.getItem(k); } catch (_) { return null; } };
+    return { edital: g('catedra:edital'), reviews: g('catedra:reviews'),
+             blocks: g('catedra:blocks'), sessions: g('catedra:sessions'),
+             prefs: g('catedra:prefs'),
+             saudeEdital: g('catedra:edital@saude'), saudeRev: g('catedra:reviews@saude') };
+  });
+
+  const antesDaTroca = await lerChaves();
+  const foiParaSaude = await trocarArea('saude');
+  ok(foiParaSaude === 'ok', 'AREA a troca de área acontece pela interface (' + foiParaSaude + ')');
+
+  if (foiParaSaude === 'ok') {
+    const emSaude = await lerChaves();
+    ok(emSaude.edital === antesDaTroca.edital && emSaude.reviews === antesDaTroca.reviews
+       && emSaude.sessions === antesDaTroca.sessions,
+      'AREA o caderno de Direito continua intacto no armazenamento');
+    // e a TELA de Saúde não mostra o edital de magistratura
+    const naTela = await areaPg.evaluate(async () => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      window.__catedraGoView('edital'); await w(1200);
+      return { texto: (document.querySelector('main') || document.body).innerText };
+    });
+    ok(!/Direito Civil/.test(naTela.texto),
+      'AREA o edital de Direito não aparece dentro de Saúde');
+
+    const voltou = await trocarArea('juridica');
+    ok(voltou === 'ok', 'AREA dá para voltar para Direito (' + voltou + ')');
+    if (voltou === 'ok') {
+      const depois = await lerChaves();
+      ok(depois.edital === antesDaTroca.edital, 'AREA o edital volta byte a byte');
+      ok(depois.reviews === antesDaTroca.reviews, 'AREA as revisões voltam byte a byte');
+      ok(depois.sessions === antesDaTroca.sessions, 'AREA o histórico volta byte a byte');
+      ok(depois.prefs === antesDaTroca.prefs, 'AREA preferência é da pessoa, não da área');
+      const volta = await areaPg.evaluate(async () => {
+        const w = ms => new Promise(r => setTimeout(r, ms));
+        window.__catedraGoView('edital'); await w(1200);
+        return (document.querySelector('main') || document.body).innerText;
+      });
+      ok(/Direito Civil/.test(volta), 'AREA e a tela mostra o edital de volta');
+    }
+  }
+
+  /* 7) A BUSCA só oferece o que a área pode abrir. Buscar o que não se pode abrir é
+        pior que não achar: promete uma porta e mostra um muro. E o juris-index pesa
+        2,4 MB — nem carregar faz sentido fora das carreiras jurídicas. */
+  const buscaPorArea = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const abrirPaleta = async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
+      await w(600);
+      return document.querySelector('input[aria-label="Buscar em toda a plataforma"]');
+    };
+    const buscar = async (termo) => {
+      const i = await abrirPaleta(); if (!i) return null;
+      i.value = termo; i.dispatchEvent(new Event('input', { bubbles: true })); await w(1400);
+      const t = document.body.innerText;
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(400);
+      return t;
+    };
+    const r = {};
+    // em Direito, a jurisprudência aparece
+    const emDireito = await buscar('súmula');
+    r.direitoAchaSumula = /súmula/i.test(emDireito || '');
+    return r;
+  });
+  for (const [k, v] of Object.entries(buscaPorArea)) ok(v, 'AREA busca ' + k);
+
+  /* A medição em Saúde tem de acontecer numa ABA NOVA: o juris-index.js já foi baixado
+     enquanto a aba estava em Direito, e script carregado não se descarrega. Perguntar
+     "carregou?" na mesma aba mediria o passado, não a regra. */
+  const saudeCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const saudePg = await saudeCtx.newPage();
+  await saudePg.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+    } catch (_) {}
+  });
+  await saudePg.goto(URL0 + '/Catedra.dc.html');
+  await saudePg.waitForTimeout(1900);
+  const emSaude = await saudePg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
+    await w(700);
+    const i = document.querySelector('input[aria-label="Buscar em toda a plataforma"]');
+    if (!i) return { semPaleta: true };
+    i.value = 'súmula'; i.dispatchEvent(new Event('input', { bubbles: true })); await w(1800);
+    return { texto: document.body.innerText, carregouJuris: !!window.__JURIS_IDX__,
+             carregouPecas: !!window.CT_PECAS };
+  });
+  if (!emSaude.semPaleta) {
+    ok(!/Súmula \d/.test(emSaude.texto), 'AREA busca não devolve súmula em Saúde');
+    ok(!emSaude.carregouJuris, 'AREA busca nem baixa o acervo de jurisprudência fora das jurídicas (2,4 MB)');
+    ok(!emSaude.carregouPecas, 'AREA busca nem baixa o catálogo de peças fora das jurídicas');
+  }
+  await saudeCtx.close();
+
+  // 8) todo satélite recebe a área — cinco dos sete não tinham como saber onde estavam
+  const contextoSat = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('legis'); await w(2200);
+    const f = document.querySelector('iframe[data-ct-view="legis"]');
+    return { legisRecebeArea: !!f && /area=/.test(f.getAttribute('src') || '') };
+  });
+  for (const [k, v] of Object.entries(contextoSat)) ok(v, 'AREA ' + k);
+
+  await areaCtx.close();
+  // devolve a aba compartilhada ao estado jurídico, que é o de todos os outros blocos
+  await page.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
+}
+
 /* ===== TASK 10 · PENTE-FINO DE ACESSIBILIDADE =====
    Coisas que não aparecem em captura de tela: nome de campo, estado de interruptor,
    contraste medido, zoom bloqueado, alvo de toque, movimento reduzido. */
@@ -3133,10 +3414,13 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
   await page.goto(URL0 + '/Catedra.dc.html');
   await page.waitForTimeout(1600);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1900);
   const sw = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
     // Ajustes vive atrás de "Mais opções" desde a TASK5: abrir o expansor faz parte do caminho
-    const ir = async (v) => {
+    const ir = async (v) => {   // (a página já foi recarregada em desktop logo acima)
       let b = document.querySelector('button[data-view="' + v + '"]');
       if (!b) {
         const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
