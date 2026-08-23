@@ -1078,10 +1078,10 @@ window.ctPdfLib = (function(){
             <sc-if value="{{ onboardStep3 }}" hint-placeholder-val="{{ false }}">
               <div style="font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 3 de 4</div>
               <h2 style="font-family:var(--display);font-size:22px;font-weight:600;color:var(--ink);margin:10px 0 16px;">Por onde quer começar?</h2>
-              <div style="display:flex;flex-direction:column;gap:10px;">
-                <button data-c="edital" onclick="{{ onboardPick }}" style="{{ onbEdital }}"><b style="color:var(--ink);font-size:var(--fs-md);">📋 Tenho o edital</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Importe o edital e a plataforma prioriza por peso e incidência.</div></button>
-                <button data-c="ciclo" onclick="{{ onboardPick }}" style="{{ onbCiclo }}"><b style="color:var(--ink);font-size:var(--fs-md);">🔄 Começar com o ciclo padrão</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Blocos prontos + revisão espaçada. O edital entra depois.</div></button>
-                <button data-c="import" onclick="{{ onboardPick }}" style="{{ onbImport }}"><b style="color:var(--ink);font-size:var(--fs-md);">📁 Importar meus dados</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Backup JSON de outro dispositivo.</div></button>
+              <div role="radiogroup" aria-label="Por onde quer começar" style="display:flex;flex-direction:column;gap:10px;">
+                <button data-c="edital" role="radio" aria-checked="{{ onbEditalSel }}" onclick="{{ onboardPick }}" style="{{ onbEdital }}"><b style="color:var(--ink);font-size:var(--fs-md);">📋 Tenho o edital</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Importe o edital e a plataforma prioriza por peso e incidência.</div></button>
+                <button data-c="ciclo" role="radio" aria-checked="{{ onbCicloSel }}" onclick="{{ onboardPick }}" style="{{ onbCiclo }}"><b style="color:var(--ink);font-size:var(--fs-md);">🔄 Começar com o ciclo padrão <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:middle;">Recomendado</span></b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Blocos prontos + revisão espaçada. O edital entra depois.</div></button>
+                <button data-c="import" role="radio" aria-checked="{{ onbImportSel }}" onclick="{{ onboardPick }}" style="{{ onbImport }}"><b style="color:var(--ink);font-size:var(--fs-md);">📁 Importar meus dados</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Backup JSON de outro dispositivo.</div></button>
               </div>
               <button onclick="{{ onboardNext }}" style="width:100%;margin-top:20px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Continuar</button>
             </sc-if>
@@ -5377,7 +5377,9 @@ class Component extends DCLogic {
       planHoras:this._load('planHoras', 24),
       provaMode:false, provaSeconds:0, provaRunning:false, provaDurationMin:this._load('provaDurationMin',240), provaName:'Simulado cronometrado',
       onboardStep: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:onboarded')==='1') ? 0 : 1,
-      onboardChoice:'',
+      // TASK 4: o caminho recomendado já vem escolhido. Antes, quem apertasse "Continuar"
+      // sem tocar em nada caía num fallback silencioso — a tela não dizia o que ia acontecer.
+      onboardChoice:'ciclo',
       metas:this._load('metas', []),
       metaDraft:{titulo:'', alvo:100},
       errDraft:{disc:'', discCustom:false, topico:'', enunciado:'', myAnswer:'', gabarito:'', whyWrong:'', lesson:'', source:'', difficulty:3, tags:[], favorite:false, motivo:'conteudo'}, errFiltDisc:'todas', errFiltMotivo:'todos', errAutofillBusy:false, errFoco:'', errFocoBusy:false, lacunas:'', lacunasBusy:false,
@@ -9458,7 +9460,12 @@ class Component extends DCLogic {
   exitProva = ()=>{ if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){} this.setState({provaMode:false, provaRunning:false}); };
 
   // ===== onboarding =====
-  onboardNext = ()=> this.setState(s=>({onboardStep: s.onboardStep+1}));
+  onboardNext = ()=> this.setState(s=>{
+    // defesa: o passo 3 é uma escolha, e sem escolha não há para onde seguir. Com a
+    // pré-seleção isto quase nunca dispara — é rede, não fluxo.
+    if(s.onboardStep===3 && !s.onboardChoice) return {};
+    return {onboardStep: s.onboardStep+1};
+  });
   onboardPick = (e)=> this.setState({onboardChoice:e.currentTarget.dataset.c});
   onboardFinish = ()=>{ try{ localStorage.setItem('catedra:onboarded','1'); }catch(_){}
     const choice=this.state.onboardChoice; const patch={onboardStep:0};
@@ -13515,9 +13522,16 @@ class Component extends DCLogic {
       provaTimeLeft:provaFmt(provaLeftSecs), provaElapsed:provaFmt(this.state.provaSeconds), provaTotalLabel:_durH(this.state.provaDurationMin),
       provaTimePct, provaStatusLabel, provaStatusColor, provaBarColor, provaDurLabel:_durH(this.state.provaDurationMin), provaDurOpts, provaDurationVal:this.state.provaDurationMin, onProvaDurationInput:this.onProvaDurationInput,
       // onboarding
-      onboardActive:this.state.onboardStep>0, onboardStep:this.state.onboardStep, onboardStep1:this.state.onboardStep===1, onboardStep2:this.state.onboardStep===2, onboardStep3:this.state.onboardStep===3, onboardStep4:this.state.onboardStep===4,
+      // TASK 4: o onboarding não aparece por cima do login. Antes, a tela de entrada e o
+      // modal de boas-vindas ficavam empilhados e disputando a atenção — a pessoa não sabia
+      // se devia entrar ou configurar. Primeiro entra; então o app se apresenta.
+      onboardActive:(this.state.onboardStep>0 && this.state.loggedIn), onboardStep:this.state.onboardStep, onboardStep1:this.state.onboardStep===1, onboardStep2:this.state.onboardStep===2, onboardStep3:this.state.onboardStep===3, onboardStep4:this.state.onboardStep===4,
       onboardNext:this.onboardNext, onboardPick:this.onboardPick, onboardFinish:this.onboardFinish,
       onbEdital:onboardCard('edital'), onbCiclo:onboardCard('ciclo'), onbImport:onboardCard('import'),
+      // a seleção precisa ser DITA, não só pintada
+      onbEditalSel:(this.state.onboardChoice==='edital'?'true':'false'),
+      onbCicloSel:(this.state.onboardChoice==='ciclo'?'true':'false'),
+      onbImportSel:(this.state.onboardChoice==='import'?'true':'false'),
       onbFinishLabel: this.state.onboardChoice==='edital' ? 'Cadastrar meu edital' : (this.state.onboardChoice==='import' ? 'Importar meus dados' : 'Montar meu ciclo'),
       onboardPct: Math.round(this.state.onboardStep/4*100),
       // anki import / pdf
