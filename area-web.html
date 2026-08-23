@@ -1,4 +1,8 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cátedra · Módulo da área</title><style>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cátedra · Módulo da área</title><link rel="stylesheet" href="satellite-base.css"><style>
+/* Cor do módulo (módulo da área). Dentro do app segue o tema escolhido nos Ajustes; aberta
+   avulsa, a página mantém a cor com que nasceu. Ver satellite-base.css. */
+:root{--module-accent:var(--accent,#0f7a57)}
+
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,-apple-system,'Segoe UI',Roboto,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding:20px 26px 70px}
@@ -18,7 +22,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
 .head p{font-size:12px;color:var(--text2,#5c564a);margin-top:3px}
 .search{position:relative;margin-bottom:16px}
-.search input{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:12px;padding:12px 14px 12px 40px;font-size:14px;color:var(--ink);outline:none;font-family:inherit}
+.search input{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:12px;padding:12px 14px 12px 40px;font-size:var(--fs-sm,14px);min-height:var(--control-h,38px);color:var(--ink);outline:none;font-family:inherit}
 .search input:focus{border-color:var(--accent,#0f7a57)}
 .search .mag{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3,#94a3b8)}
 .statbar{display:flex;gap:20px;flex-wrap:wrap;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:12px;padding:13px 18px;margin-bottom:16px}
@@ -64,7 +68,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <body><div class="wrap">
 <div class="head"><div class="ic" id="ic">📚</div><div><h1 id="tt">Módulo da área</h1><p id="sb"></p></div></div>
 <div class="legenda" id="lg"></div>
-<div class="search"><span class="mag">🔎</span><input id="q" placeholder="Buscar…" autocomplete="off"></div>
+<div class="search"><span class="mag">🔎</span><input id="q" aria-label="Buscar no módulo da área" placeholder="Buscar…" autocomplete="off"></div>
 <div class="statbar"><div class="st1"><b id="sd">0</b><span class="rot-fraco">Dominados</span></div><div class="st1"><b id="se">0</b><span class="rot-fraco">Estudando</span></div><div class="st1"><b id="sf">0</b><span class="rot-fraco">Favoritos</span></div><div class="st1" style="margin-left:auto"><b id="stt">0</b><span class="rot-fraco">Itens no módulo</span></div></div>
 <div id="lista"></div>
 </div>

@@ -1,4 +1,8 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CátedraLEGIS</title><style>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CátedraLEGIS</title><link rel="stylesheet" href="satellite-base.css"><style>
+/* Cor do módulo (LEGIS). Dentro do app segue o tema escolhido nos Ajustes; aberta
+   avulsa, a página mantém a cor com que nasceu. Ver satellite-base.css. */
+:root{--module-accent:var(--accent,#0f7a57)}
+
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,-apple-system,'Segoe UI',Roboto,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding:20px 26px 70px}
@@ -27,7 +31,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .tabs button{flex:none;scroll-snap-align:center;border:none;background:transparent;color:var(--text2,#5c564a);font:700 13px inherit;padding:9px 18px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:7px}
 .tabs button.on{background:var(--accent,#0f7a57);color:var(--onAccent,#fff)}
 .search{position:relative;margin-bottom:16px}
-.search input{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:12px;padding:12px 14px 12px 40px;font-size:14px;color:var(--ink);outline:none;font-family:inherit}
+.search input{width:100%;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:12px;padding:12px 14px 12px 40px;font-size:var(--fs-sm,14px);min-height:var(--control-h,38px);color:var(--ink);outline:none;font-family:inherit}
 .search input:focus{border-color:var(--accent,#0f7a57)}
 .search .mag{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3,#94a3b8)}
 .pane{display:none} .pane.on{display:block}
@@ -233,14 +237,14 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
 <body><div class="wrap">
 <div class="head"><div class="ic">📖</div><div><h1>CátedraLEGIS</h1><p>Vade mecum de leis · catálogo, plano de leitura e estrutura das normas</p></div></div>
 <div class="tabs" id="tabsTopo"><button class="on" data-t="catalog">📚 Catálogo</button><button data-t="plano">📅 Plano de leitura</button><button data-t="indice">📑 Índice das normas</button><button data-t="incid">🎯 Incidência</button></div>
-<div id="pane-catalog" class="pane on"><div class="search"><span class="mag">🔎</span><input id="cq" placeholder="Buscar lei por nome ou número…" autocomplete="off"></div><div class="statbar"><div class="st1" id="st-dom"><b id="sd">0</b><span class="ml-fraca">Dominadas</span><em class="convite">✓ marque quando dominar uma lei</em></div><div class="st1" id="st-len"><b id="sl">0</b><span class="ml-fraca">Lendo</span><em class="convite">◐ marque a lei que está lendo agora</em></div><div class="st1" id="st-fav"><b id="sf">0</b><span class="ml-fraca">Favoritas</span><em class="convite">★ marque as leis do seu edital</em></div><div class="st1" style="margin-left:auto"><b id="stot">250</b><span class="ml-fraca">Leis no catálogo</span></div></div><div id="catalog"></div></div>
+<div id="pane-catalog" class="pane on"><div class="search"><span class="mag">🔎</span><input id="cq" aria-label="Buscar lei por nome ou número" placeholder="Buscar lei por nome ou número…" autocomplete="off"></div><div class="statbar"><div class="st1" id="st-dom"><b id="sd">0</b><span class="ml-fraca">Dominadas</span><em class="convite">✓ marque quando dominar uma lei</em></div><div class="st1" id="st-len"><b id="sl">0</b><span class="ml-fraca">Lendo</span><em class="convite">◐ marque a lei que está lendo agora</em></div><div class="st1" id="st-fav"><b id="sf">0</b><span class="ml-fraca">Favoritas</span><em class="convite">★ marque as leis do seu edital</em></div><div class="st1" style="margin-left:auto"><b id="stot">250</b><span class="ml-fraca">Leis no catálogo</span></div></div><div id="catalog"></div></div>
 <div id="pane-plano" class="pane"><p style="font-size:12px;color:var(--text2,#5c564a);margin:0 2px 12px"><b id="pdone">0</b> de <span id="ptot">720</span> leituras · marque o que já leu; o título da estrutura aparece em cada dia</p><div id="plano"></div></div>
 <div id="pane-indice" class="pane"><div id="indice"></div></div>
 <div id="pane-incid" class="pane">
   <!-- Mapa de incidência por artigo. A contagem sai do ACERVO DE JURISPRUDÊNCIA do app
        (25 mil verbetes), não de banco de questões — e a tela diz isso, porque é sinal
        diferente e ninguém deve confundir os dois. -->
-  <div class="search"><span class="mag">🔎</span><input id="iq" placeholder="Buscar diploma…" autocomplete="off"></div>
+  <div class="search"><span class="mag">🔎</span><input id="iq" aria-label="Buscar diploma na incidência" placeholder="Buscar diploma…" autocomplete="off"></div>
   <div id="incidLista"></div>
   <div id="incidDet"></div>
 </div>

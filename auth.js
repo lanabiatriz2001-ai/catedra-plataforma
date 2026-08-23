@@ -457,10 +457,133 @@
   el.id = 'catedra-auth-gate';
   el.setAttribute('style', 'position:fixed;inset:0;z-index:2147483000;background:' + PG + ';display:flex;');
   (document.body || document.documentElement).appendChild(el);
-  document.addEventListener('DOMContentLoaded', function () { if (document.body && el.parentNode !== document.body) document.body.appendChild(el); });
+  // O auth.js é script de <head>: quando ele roda, <body> AINDA NÃO EXISTE, e o gate nasce
+  // pendurado em <html>. Mover para o body depois não bastava — quem já estava aberto tinha
+  // marcado como inerte o único irmão que existia naquele instante, o <head>, e o app real
+  // ficava livre: com o login na tela, Tab entrava direto na barra lateral. Medido na build
+  // de produção. Por isso, ao mover, o isolamento é REAPLICADO.
+  document.addEventListener('DOMContentLoaded', function () {
+    if (document.body && el.parentNode !== document.body) document.body.appendChild(el);
+    if (gateRestore) { setGateOpen(true); }   // reancora o observador no pai novo e remarca
+  });
 
-  function show() { el.style.display = 'flex'; }
-  function hide() { el.style.display = 'none'; }
+  // ===== O gate ISOLA o app, não apenas o cobre =====
+  // Antes, show() só trocava o `display`. O app atrás continuava rolando (4.446 px), ainda
+  // era alcançável por Tab e continuava sendo lido por leitor de tela — uma cortina, não um
+  // portão. Aqui a abertura trava a rolagem, torna os irmãos inertes e invisíveis ao leitor,
+  // e guarda o que precisa ser devolvido no fechamento.
+  var gateRestore = null;
+  var observador = null;
+
+  function irmaosDoGate() {
+    var pai = el.parentNode || document.body || document.documentElement;
+    return Array.prototype.filter.call(pai.children, function (n) {
+      // HEAD nunca: enquanto o gate mora em <html> (antes do body existir) ele era o único
+      // "irmão", e torná-lo inerte não protege nada — só dá a impressão de que protege.
+      return n !== el && n.tagName !== 'SCRIPT' && n.tagName !== 'STYLE'
+        && n.tagName !== 'LINK' && n.tagName !== 'HEAD';
+    });
+  }
+
+  /* Marca como inerte tudo o que hoje é irmão do gate, e SOLTA o que deixou de ser.
+     Chamada na abertura, quando o gate muda de pai, e a cada vez que algo novo aparece
+     ao lado dele — o #dc-root só nasce DEPOIS do DOMContentLoaded, então esperar por
+     aquele evento ainda deixava o app livre. */
+  function marcarFundo() {
+    if (!gateRestore) return;
+    // a trava de rolagem também só pode ser posta quando o body existe
+    document.documentElement.style.overflow = 'hidden';
+    if (document.body) document.body.style.overflow = 'hidden';
+    var atuais = irmaosDoGate();
+    gateRestore.fundo = gateRestore.fundo.filter(function (item) {
+      if (atuais.indexOf(item.node) >= 0) return true;
+      try { item.node.inert = item.inert; } catch (_) {}
+      if (item.ariaHidden == null) item.node.removeAttribute('aria-hidden');
+      else item.node.setAttribute('aria-hidden', item.ariaHidden);
+      return false;
+    });
+    var conhecidos = gateRestore.fundo.map(function (x) { return x.node; });
+    atuais.forEach(function (n) {
+      if (conhecidos.indexOf(n) >= 0) return;
+      gateRestore.fundo.push({ node: n, inert: !!n.inert, ariaHidden: n.getAttribute('aria-hidden') });
+      try { n.inert = true; } catch (_) {}
+      n.setAttribute('aria-hidden', 'true');
+    });
+  }
+
+  function setGateOpen(open) {
+    if (open) {
+      // guarda UMA vez: show() é chamado várias vezes (loading → formulário → erro), e
+      // registrar de novo gravaria o estado já alterado como se fosse o original
+      if (!gateRestore) {
+        gateRestore = {
+          foco: document.activeElement,
+          bodyOverflow: document.body ? document.body.style.overflow : '',
+          htmlOverflow: document.documentElement.style.overflow,
+          fundo: []
+        };
+      }
+      // sempre: o app pode ter montado (ou o gate mudado de pai) desde a última abertura
+      marcarFundo();
+
+      // enquanto o gate estiver aberto, irmão que aparecer entra inerte na hora
+      if (!observador && typeof MutationObserver !== 'undefined') {
+        observador = new MutationObserver(function () { marcarFundo(); });
+      }
+      if (observador) {
+        try { observador.disconnect(); } catch (_) {}
+        try { observador.observe(el.parentNode || document.documentElement, { childList: true }); } catch (_) {}
+        // o gate pode ainda estar em <html>: observa o body também, quando ele existir
+        try { if (document.body && document.body !== el.parentNode) observador.observe(document.body, { childList: true }); } catch (_) {}
+      }
+
+      el.style.display = 'flex';
+      el.setAttribute('role', 'dialog');
+      el.setAttribute('aria-modal', 'true');
+      el.setAttribute('aria-label', 'Acesso ao Cátedra');
+      return;
+    }
+
+    el.style.display = 'none';
+    if (observador) { try { observador.disconnect(); } catch (_) {} }
+    if (!gateRestore) return;
+    document.documentElement.style.overflow = gateRestore.htmlOverflow;
+    if (document.body) document.body.style.overflow = gateRestore.bodyOverflow;
+    gateRestore.fundo.forEach(function (item) {
+      try { item.node.inert = item.inert; } catch (_) {}
+      if (item.ariaHidden == null) item.node.removeAttribute('aria-hidden');
+      else item.node.setAttribute('aria-hidden', item.ariaHidden);
+    });
+    var anterior = gateRestore.foco;
+    gateRestore = null;
+    if (anterior && anterior.focus) { try { anterior.focus({ preventScroll: true }); } catch (_) { anterior.focus(); } }
+  }
+
+  /** Controles que dá para focar AGORA (visíveis e habilitados). */
+  function focaveisDoGate() {
+    return Array.prototype.filter.call(
+      el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'),
+      function (n) { return n.offsetWidth > 0 || n.offsetHeight > 0 || n === document.activeElement; }
+    );
+  }
+
+  // Um listener só, no gate. O Tab circula dentro dele; o Esc NÃO fecha — este login é
+  // obrigatório, e fechar deixaria a pessoa num app inerte, sem saída.
+  el.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.key !== 'Tab') return;
+    var f = focaveisDoGate();
+    if (!f.length) return;
+    var primeiro = f[0], ultimo = f[f.length - 1], atual = document.activeElement;
+    if (e.shiftKey && (atual === primeiro || !el.contains(atual))) { e.preventDefault(); ultimo.focus(); }
+    else if (!e.shiftKey && (atual === ultimo || !el.contains(atual))) { e.preventDefault(); primeiro.focus(); }
+  });
+
+  function show() { setGateOpen(true); }
+  function hide() { setGateOpen(false); }
+  // Ponte para o teste do gate (tests/auth-gate-fixture.html): sem sessão de verdade não há
+  // caminho até o fechamento, e o que precisa ser provado é justamente que ele DEVOLVE o app.
+  el.__setGateOpen = setGateOpen;
   function showLoading(msg) {
     el.innerHTML = '<div style="margin:auto;text-align:center;font-family:system-ui,sans-serif;">'
       + '<div style="width:40px;height:40px;border:4px solid ' + (DARK ? '#2a2f36' : '#cfe7dd') + ';border-top-color:' + ACC + ';border-radius:50%;margin:0 auto 16px;animation:ctspin .8s linear infinite;"></div>'
@@ -528,7 +651,14 @@
   }
   function ligarOlhos() {
     el.querySelectorAll('[data-olho]').forEach(function (b) {
-      b.onclick = function () { var i = el.querySelector('#' + b.getAttribute('data-olho')); var vis = i.type === 'text'; i.type = vis ? 'password' : 'text'; b.textContent = vis ? 'mostrar' : 'ocultar'; i.focus(); };
+      b.onclick = function () {
+        var i = el.querySelector('#' + b.getAttribute('data-olho'));
+        var vis = i.type === 'text';
+        i.type = vis ? 'password' : 'text';
+        b.textContent = vis ? 'mostrar' : 'ocultar';
+        // o nome acessível tem de dizer o que o botão FAZ agora, não o que ele fez
+        b.setAttribute('aria-label', vis ? 'Mostrar senha' : 'Ocultar senha');
+      };
     });
   }
   // Caps Lock ligado é a causa nº 1 de "senha incorreta" que não é senha incorreta.
@@ -549,9 +679,14 @@
     painel(
       '<h2 style="font-family:' + SERIF + ';font-size:28px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">' + (login ? 'Bem-vinda de volta' : 'Criar sua conta') + '</h2>'
       + '<p style="font-size:14px;color:' + MUT + ';margin:6px 0 20px;line-height:1.5;">' + (login ? 'Entre para continuar de onde parou — em qualquer aparelho.' : 'Leva um minuto. Seus estudos ficam salvos e sincronizados.') + '</p>'
-      + '<div class="ct-seg" role="tablist"><button type="button" role="tab" id="ctseg-login" class="' + (login ? 'on' : '') + '">Entrar</button><button type="button" role="tab" id="ctseg-signup" class="' + (login ? '' : 'on') + '">Criar conta</button></div>'
+      // Aba precisa DIZER que está selecionada, não só parecer. E só a ativa entra na
+      // ordem de tabulação (roving tabindex) — é assim que um tablist se comporta.
+      + '<div class="ct-seg" role="tablist" aria-label="Entrar ou criar conta">'
+      +   '<button type="button" role="tab" id="ctseg-login" aria-controls="ctf" aria-selected="' + (login ? 'true' : 'false') + '" tabindex="' + (login ? '0' : '-1') + '" class="' + (login ? 'on' : '') + '">Entrar</button>'
+      +   '<button type="button" role="tab" id="ctseg-signup" aria-controls="ctf" aria-selected="' + (login ? 'false' : 'true') + '" tabindex="' + (login ? '-1' : '0') + '" class="' + (login ? '' : 'on') + '">Criar conta</button>'
+      + '</div>'
       + '<div id="ctoff" style="display:' + (online() ? 'none' : 'block') + ';background:#fff3e0;color:#7a4b00;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px;">Você está sem internet. Dá para entrar assim que a conexão voltar.</div>'
-      + '<form id="ctf" novalidate>'
+      + '<form id="ctf" novalidate role="tabpanel" aria-labelledby="' + (login ? 'ctseg-login' : 'ctseg-signup') + '">'
       + '<label for="cte" style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">E-mail</label>'
       + '<input id="cte" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" style="' + INPUT + 'margin-bottom:14px;">'
       + '<label for="ctp" style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">Senha</label>'
@@ -568,8 +703,14 @@
       + (OAUTH.indexOf('google') >= 0 ? '<button type="button" data-oauth="google" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true" style="font-weight:800;color:#4285f4;">G</span> Continuar com Google</button>' : '')
       + '<p style="font-size:11.5px;color:' + MUT + ';text-align:center;margin:18px 0 0;line-height:1.5;">Só você enxerga os seus dados. Backup e exportação ficam em <b>Ajustes › Dados</b>.</p>'
     );
-    el.querySelector('#ctseg-login').onclick = function () { if (mode !== 'login') { mode = 'login'; showForm(); } };
-    el.querySelector('#ctseg-signup').onclick = function () { if (mode !== 'signup') { mode = 'signup'; showForm(); } };
+    // Trocar de aba redesenha o formulário: sem devolver o foco, ele volta para o body e
+    // quem usa teclado perde o lugar. `preventScroll` evita o salto de página.
+    var focarEmail = function () {
+      var e = el.querySelector('#cte');
+      if (e) { try { e.focus({ preventScroll: true }); } catch (_) { e.focus(); } }
+    };
+    el.querySelector('#ctseg-login').onclick = function () { if (mode !== 'login') { mode = 'login'; showForm(); focarEmail(); } };
+    el.querySelector('#ctseg-signup').onclick = function () { if (mode !== 'signup') { mode = 'signup'; showForm(); focarEmail(); } };
     ligarOlhos();
     var form = el.querySelector('#ctf'), errEl = el.querySelector('#cterr'), btn = el.querySelector('#cts');
     var inE = el.querySelector('#cte'), inP = el.querySelector('#ctp');

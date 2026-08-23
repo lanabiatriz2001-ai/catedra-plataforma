@@ -13,10 +13,12 @@ window.__idxPronto = (function () {
     leis: window.CT_LEIS_CAT, pecas: window.CT_PECAS, ritos: window.CT_RITOS,
     // verbetes: dois de mentira, para o teste não carregar 2,4 MB à toa; o formato é o do juris-index.js
     verbetes: [
-      // duplicata verdadeira: mesma tese coletada duas vezes (mesmo tribunal, ramo e tema).
-      // Só isto deve colapsar — súmula homônima de tribunais diferentes não é duplicata.
+      // duplicata verdadeira: a MESMA súmula (tribunal e número iguais) coletada duas vezes.
+      // O ramo e o tema estão escritos diferente de propósito: é assim que o acervo real
+      // repete, e a chave canônica não pode se deixar enganar por isso. Súmula homônima de
+      // tribunais diferentes, essa sim, não é duplicata.
       ['STJ-SUM-619', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Direito Penal', 'Prescrição'],
-      ['STJ-SUM-619b', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Direito Penal', 'Prescrição']
+      ['STJ-SUM-619b', 'STJ', 'stj', 619, 'Súmula 619 do STJ', 'Processo Penal', 'Prescrição da pretensão punitiva']
     ]
   });
   return performance.now() - t0;
