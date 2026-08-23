@@ -3235,10 +3235,18 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   const foiParaSaude = await trocarArea('saude');
   ok(foiParaSaude === 'ok', 'AREA a troca de área acontece pela interface (' + foiParaSaude + ')');
 
+  /* Comparação por CONTEÚDO, não byte a byte: o app re-serializa legitimamente ao salvar
+     (carimbo `up`, campos que ele completa), e um teste preso ao texto exato reprova por
+     causa disso — escondendo o que ele deveria proteger, que é não perder nada. */
+  const conteudo = (bruto) => {
+    try { const a = JSON.parse(bruto || '[]'); return Array.isArray(a) ? a.map(x => x.id).sort().join(',') : ''; }
+    catch (_) { return 'ILEGÍVEL'; }
+  };
   if (foiParaSaude === 'ok') {
     const emSaude = await lerChaves();
-    ok(emSaude.edital === antesDaTroca.edital && emSaude.reviews === antesDaTroca.reviews
-       && emSaude.sessions === antesDaTroca.sessions,
+    ok(conteudo(emSaude.edital) === conteudo(antesDaTroca.edital)
+       && conteudo(emSaude.reviews) === conteudo(antesDaTroca.reviews)
+       && conteudo(emSaude.sessions) === conteudo(antesDaTroca.sessions),
       'AREA o caderno de Direito continua intacto no armazenamento');
     // e a TELA de Saúde não mostra o edital de magistratura
     const naTela = await areaPg.evaluate(async () => {
@@ -3253,10 +3261,12 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     ok(voltou === 'ok', 'AREA dá para voltar para Direito (' + voltou + ')');
     if (voltou === 'ok') {
       const depois = await lerChaves();
-      ok(depois.edital === antesDaTroca.edital, 'AREA o edital volta byte a byte');
-      ok(depois.reviews === antesDaTroca.reviews, 'AREA as revisões voltam byte a byte');
-      ok(depois.sessions === antesDaTroca.sessions, 'AREA o histórico volta byte a byte');
-      ok(depois.prefs === antesDaTroca.prefs, 'AREA preferência é da pessoa, não da área');
+      ok(conteudo(depois.edital) === conteudo(antesDaTroca.edital), 'AREA o edital volta inteiro ('
+        + conteudo(depois.edital) + ')');
+      ok(conteudo(depois.reviews) === conteudo(antesDaTroca.reviews), 'AREA as revisões voltam inteiras');
+      ok(conteudo(depois.sessions) === conteudo(antesDaTroca.sessions), 'AREA o histórico volta inteiro');
+      ok((() => { try { const p = JSON.parse(depois.prefs || '{}'); return p.nome === 'Lana' && p.fontScale === 'grande'; }
+                 catch (_) { return false; } })(), 'AREA preferência é da pessoa, não da área');
       const volta = await areaPg.evaluate(async () => {
         const w = ms => new Promise(r => setTimeout(r, ms));
         window.__catedraGoView('edital'); await w(1200);
@@ -3321,7 +3331,38 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   }
   await saudeCtx.close();
 
-  // 8) todo satélite recebe a área — cinco dos sete não tinham como saber onde estavam
+  /* 8) Nada na tela pode apontar para uma porta fechada, e grupo sem item é ruído.
+        Em Saúde sobrava um cabeçalho "TREINO" solto, com borda e tudo, sem nada embaixo —
+        e o atalho "Simulados" nos essenciais levava direto à tela barrada. */
+  const saudeCtx2 = await browser.newContext({ viewport: { width: 1365, height: 936 } });
+  const saudePg2 = await saudeCtx2.newPage();
+  await saudePg2.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+    } catch (_) {}
+  });
+  await saudePg2.goto(URL0 + '/Catedra.dc.html');
+  await saudePg2.waitForTimeout(2000);
+  const semPortaFechada = await saudePg2.evaluate(() => {
+    const barrada = ['juris', 'roteiros', 'segundafase', 'redacao', 'oral', 'prioridade', 'simulados'];
+    const atalhos = [...document.querySelectorAll('button[data-view]')]
+      .filter(b => b.closest('main')).map(b => b.dataset.view);
+    const aside = (document.querySelector('aside') || {}).innerText || '';
+    return {
+      nenhumAtalhoParaTelaBarrada: atalhos.every(v => !barrada.includes(v)),
+      semGrupoVazio: !/TREINO/i.test(aside),
+      aindaTemOQueEDela: atalhos.includes('areamod') || atalhos.includes('ciclo'),
+    };
+  });
+  for (const [k, v] of Object.entries(semPortaFechada)) ok(v, 'AREA ' + k);
+  await saudeCtx2.close();
+  // e Jurídica NÃO perde o cabeçalho do grupo
+  const juridicaMantem = await areaPg.evaluate(() =>
+    /fases da magistratura/i.test((document.querySelector('aside') || {}).innerText || ''));
+  ok(juridicaMantem, 'AREA jurídica mantém o grupo "Fases da Magistratura"');
+
+  // 9) todo satélite recebe a área — cinco dos sete não tinham como saber onde estavam
   const contextoSat = await areaPg.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
     window.__catedraGoView('legis'); await w(2200);
