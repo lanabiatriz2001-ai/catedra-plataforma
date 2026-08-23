@@ -175,7 +175,7 @@ struct OralBancasView: View {
             case .carregando, .naoCarregado:
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text("Abrindo o acervo de provas orais…").font(.system(size: 13)).foregroundStyle(Palette.dim)
+                    Text("Abrindo o acervo de provas orais…").font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
                 }
             case .indisponivel:
                 // Estado humano, com saída: o nome do arquivo foi para o log, não para cá.
@@ -183,7 +183,7 @@ struct OralBancasView: View {
                     Text("O acervo de provas orais não veio nesta versão do app.")
                         .font(.system(size: 14, weight: .semibold))
                     Text("Os pontos sorteáveis, as perguntas das bancas e os padrões de resposta ficam nesta tela. Enquanto isso, o mesmo material está no Cátedra na web.")
-                        .font(.system(size: 13)).foregroundStyle(Palette.dim)
+                        .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
                     Button("Tentar de novo") { OralBancas.carregar(forcar: true) }
                         .buttonStyle(.bordered)
@@ -191,7 +191,7 @@ struct OralBancasView: View {
                 .padding(.vertical, 4)
             case .pronto where OralBancas.concursos.isEmpty:
                 Text("Nenhum concurso no acervo desta versão.")
-                    .font(.system(size: 13)).foregroundStyle(Palette.dim)
+                    .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
             case .pronto:
                 EmptyView()
             }

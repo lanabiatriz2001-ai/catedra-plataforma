@@ -53,7 +53,13 @@ JURIS_SOURCES=$(find "$HERE/vendor/juris" -name '*.swift')
 # caminho sozinho; o swiftc na linha de comando não — sem isto o build morre com
 # "external macro implementation type 'SwiftUIMacros.StateMacro' could not be found"
 # seguido de uma cascata enganosa de "cannot assign to property: 'self' is immutable".
-PLUGIN_DIR="$(xcrun --show-sdk-platform-path 2>/dev/null)/Developer/usr/lib/swift/host/plugins"
+# `xcrun --show-sdk-platform-path` SEM `--sdk` usa a SDK "padrão" do sistema, que nesta
+# máquina é o link /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -> MacOSX27.0.sdk —
+# e esse alvo não existe (Command Line Tools atualizado pela metade). O comando falha, e
+# como o script roda com `set -e` e o erro ia para /dev/null, o build MORRIA EM SILÊNCIO
+# logo depois de "3/5 Compilando…", sem uma linha de explicação. Pedir a SDK pelo nome
+# resolve e não depende do estado das CLT.
+PLUGIN_DIR="$(xcrun --sdk macosx --show-sdk-platform-path 2>/dev/null)/Developer/usr/lib/swift/host/plugins"
 PLUGIN_FLAGS=()
 if [ -d "$PLUGIN_DIR" ]; then PLUGIN_FLAGS=(-plugin-path "$PLUGIN_DIR")
 else echo "     aviso: plugins de macro não encontrados em $PLUGIN_DIR — se o build falhar em @State, confira o xcode-select"; fi
