@@ -2294,7 +2294,13 @@ const u12 = await page.evaluate(() => ({
   disparou: (window.__notifs || []).length === 1,
   dizQuantasEQuantoTempo: /revis/i.test(((window.__notifs || [])[0] || {}).titulo || '') || /revis/i.test((((window.__notifs || [])[0] || {}).opts || {}).body || ''),
   corpoTemONumero: /2 revisões esperando/.test((((window.__notifs || [])[0] || {}).opts || {}).body || ''),
-  marcouODia: localStorage.getItem('catedra:notifRevDia') === new Date().toISOString().slice(0, 10),
+  // Data LOCAL, como o app grava (_hoje/_ymd). Com toISOString() a comparação é em UTC, e
+  // no Brasil (UTC-3) ela passa a divergir depois das 21h — o teste passava o dia inteiro e
+  // quebrava toda noite, sem nada ter mudado no app.
+  marcouODia: localStorage.getItem('catedra:notifRevDia') === (() => {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  })(),
 }));
 for (const [k, v] of Object.entries(u12)) ok(v, 'U12 ' + k);
 
