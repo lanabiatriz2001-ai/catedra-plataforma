@@ -151,7 +151,11 @@ if swiftc -O -target arm64-apple-macos14.0 "$ROOT/mac/Sources/icon.swift" -o "$B
   # ainda escreve a chave num plist parcial, que fundimos no Info.plist.
   CAT="$BUILD/Assets.xcassets"; SET="$CAT/AppIcon.appiconset"
   rm -rf "$CAT"; mkdir -p "$SET"
-  sips -z 1024 1024 "$ICONSET/icon_512x512@2x.png" --out "$SET/icon-1024.png" >/dev/null 2>&1
+  # O ícone grande da loja NÃO pode ter transparência (90717). O nosso é gerado com canal
+  # alfa; aqui ele é achatado sobre fundo opaco. Os demais tamanhos podem manter o alfa.
+  sips -z 1024 1024 "$ICONSET/icon_512x512@2x.png" --out "$BUILD/icon-1024-alfa.png" >/dev/null 2>&1
+  sips -s format jpeg -s formatOptions best "$BUILD/icon-1024-alfa.png" --out "$BUILD/icon-1024.jpg" >/dev/null 2>&1
+  sips -s format png "$BUILD/icon-1024.jpg" --out "$SET/icon-1024.png" >/dev/null 2>&1
   for par in "icon-76:76" "icon-76@2x:152" "icon-83.5@2x:167" "icon-60@2x:120" "icon-60@3x:180" "icon-40@2x:80" "icon-40@3x:120" "icon-29@2x:58" "icon-29@3x:87" "icon-20@2x:40" "icon-20@3x:60"; do
     sips -z "${par##*:}" "${par##*:}" "$ICONSET/icon_512x512@2x.png" --out "$SET/${par%%:*}.png" >/dev/null 2>&1
   done
@@ -183,7 +187,16 @@ JSONEOF
        --target-device ipad --minimum-deployment-target "$MIN_IOS" \
        --platform iphoneos --compile "$APP" "$CAT" >/dev/null 2>&1 && [ -f "$APP/Assets.car" ]; then
     echo "     catálogo de ativos: Assets.car ($(du -h "$APP/Assets.car" | cut -f1 | tr -d ' '))"
-    ICON_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$BUILD/icon-partial.plist" 2>/dev/null || echo AppIcon)"
+    # FUNDIR o plist parcial do actool, em vez de escrever a chave à mão. Ele não devolve
+    # só `CFBundleIconName` solto: devolve `CFBundleIcons` e `CFBundleIcons~ipad` com o
+    # CFBundleIconName DENTRO de CFBundlePrimaryIcon — e é ali que o App Store Connect
+    # procura. Com a chave só no topo, ele responde 90713 dizendo que ela não existe.
+    # O Merge do PlistBuddy NÃO sobrescreve chave que já existe, e o plist traz as duas
+    # escritas à mão — então elas saem antes.
+    /usr/libexec/PlistBuddy -c "Delete :CFBundleIcons" "$APP/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Delete :CFBundleIcons~ipad" "$APP/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Merge $BUILD/icon-partial.plist" "$APP/Info.plist" 2>/dev/null \
+      && echo "     ícones declarados pelo actool (CFBundleIcons + ~ipad)"
   else
     echo "     ⚠ actool não compilou o catálogo — o App Store Connect vai recusar (90713)"
   fi
