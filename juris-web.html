@@ -328,7 +328,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
           style="width:100%;height:78vh;border:1px solid var(--bd,#2a3947);border-radius:12px;background:var(--surface,#fff);"></iframe>
 </div>
 <div id="paneAcervo">
-<div class="search"><span class="mag">🔎</span><input id="q" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
+<div class="search"><span class="mag">🔎</span><input id="q" aria-label="Buscar verbete por número, título ou tema" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
 <div class="chips" id="trib" role="group" aria-label="Filtrar por tribunal"></div>
 <!-- D3: tribunal é o corte usado toda hora e fica à vista; coleção e ramo empurravam o
      acervo para fora da primeira dobra e agora vivem dentro do botão. O que estiver
@@ -355,7 +355,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 </div>
 <div id="paneTribunais" hidden>
   <div class="fonte" id="tcFonte"></div>
-  <div class="search"><span class="mag">🔎</span><input id="qtc" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
+  <div class="search"><span class="mag">🔎</span><input id="qtc" aria-label="Buscar tribunal de contas por sigla, estado ou nome" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
   <div class="chips" id="regs"></div>
   <div id="tcList"></div>
 </div>

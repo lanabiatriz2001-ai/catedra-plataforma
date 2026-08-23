@@ -105,6 +105,28 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 @media (max-width:680px){.ct-tb-searchlabel{display:none!important;}.ct-tb-div{display:none!important;}}
 @media (max-width:760px){.ct-dash-daylbl{display:none!important;}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important;}}
+/* ===== ALVO DE TOQUE NO CELULAR (WCAG 2.5.8) =====
+   Medido em 390x844: 45 controles com menos de 44px de caixa — a barra lateral inteira
+   em 40px, os ícones da topbar em 38, os chips de filtro em 30 e poucos. O ícone segue
+   pequeno; o que cresce é a ÁREA que o polegar acerta. Os estilos moram em `style=`
+   inline (o template é assim), então a regra tem de ser por estrutura e com !important
+   para vencer o inline — é a razão de ela existir aqui e não no atributo. */
+@media (max-width:900px){
+  aside button, aside a{min-height:44px!important;}
+  .ct-topbar button, .ct-topbar a{min-height:44px!important;min-width:44px!important;}
+  .ct-scroll button, .ct-scroll a[href], .ct-scroll [role="button"],
+  .ct-scroll [role="switch"], .ct-scroll [role="tab"], .ct-scroll select{min-height:44px!important;}
+  /* o trilho do interruptor tem 42px de largura por desenho — 2px a menos que o mínimo */
+  .ct-scroll [role="switch"]{min-width:44px!important;}
+  /* botão de ícone (o ✕ de dispensar): 28px de caixa é metade do polegar */
+  .ct-scroll button[aria-label]:not([data-view]){min-width:44px!important;}
+  /* o campo de texto também: abaixo de 16px o iOS dá zoom sozinho ao focar */
+  .ct-scroll input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .ct-scroll textarea{min-height:44px!important;font-size:max(16px,var(--fs-base))!important;}
+  /* exceções: o que é grade de caixinhas (dia do calendário, quadradinho de artigo)
+     quebraria de vez se cada célula ganhasse 44px de altura */
+  .ct-cal-cel, .ct-nobump, .ct-nobump button{min-height:0!important;}
+}
 .ct-skip{position:fixed;left:10px;top:-60px;z-index:200;background:var(--accent);color:var(--onAccent);padding:10px 16px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;text-decoration:none;transition:top .15s;}
 .ct-skip:focus{top:10px;}
 #ct-main:focus{outline:none;}
@@ -1698,10 +1720,10 @@ window.ctPdfLib = (function(){
                 </sc-if>
                 <sc-if value="{{ g.temLeitura }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
-                    <span style="font-family:var(--mono);font-size:var(--fs-3xs);font-weight:700;letter-spacing:.12em;color:var(--text2);">LEITURA DE LEIS</span>
-                    <span style="font-family:var(--mono);font-size:var(--fs-3xs);color:var(--text3);">· Tabela Dia {{ g.leituraDia.num }}</span>
+                    <span style="font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;color:var(--text2);">LEITURA DE LEIS</span>
+                    <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);">· Tabela Dia {{ g.leituraDia.num }}</span>
                     <span style="flex:1;"></span>
-                    <span style="font-family:var(--mono);font-size:var(--fs-3xs);color:var(--text3);">{{ g.leituraDia.resumo }}</span>
+                    <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);">{{ g.leituraDia.resumo }}</span>
                   </div>
                   <sc-for list="{{ g.leituraDia.leis }}" as="n" hint-placeholder-count="4">
                     <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--surface2);min-width:0;" title="{{ n.law }} — {{ n.arts }}">
@@ -1712,9 +1734,9 @@ window.ctPdfLib = (function(){
                   </sc-for>
                   <sc-if value="{{ g.leituraDia.temJuris }}" hint-placeholder-val="{{ false }}">
                     <div style="display:flex;align-items:center;gap:7px;margin-top:8px;margin-bottom:4px;">
-                      <span style="font-family:var(--mono);font-size:var(--fs-3xs);font-weight:700;letter-spacing:.12em;color:var(--text2);">⚖️ JURISPRUDÊNCIA</span>
+                      <span style="font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;color:var(--text2);">⚖️ JURISPRUDÊNCIA</span>
                       <span style="flex:1;"></span>
-                      <span style="font-family:var(--mono);font-size:var(--fs-3xs);color:var(--text3);">{{ g.leituraDia.resumoJuris }}</span>
+                      <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);">{{ g.leituraDia.resumoJuris }}</span>
                     </div>
                   </sc-if>
                   <sc-for list="{{ g.leituraDia.juris }}" as="n" hint-placeholder-count="1">
@@ -4988,19 +5010,19 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
             <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Parei o cronômetro → oferece registrar</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Desligar: o tempo estudado só entra no seu desempenho se você abrir o registro à mão.</div></div>
-            <button data-k="autoRegistro" onclick="{{ togglePref }}" aria-label="Abrir registro ao parar" style="{{ togAutoReg }}"><span style="{{ togAutoRegKnob }}"></span></button>
+            <button data-k="autoRegistro" onclick="{{ togglePref }}" aria-label="Abrir registro ao parar" role="switch" aria-checked="{{ chkAutoReg }}" style="{{ togAutoReg }}"><span style="{{ togAutoRegKnob }}"></span></button>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
             <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Registrei a sessão → conclui o bloco do ciclo</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Desligar: o bloco do ciclo continua aberto até você marcá-lo na tela Ciclo.</div></div>
-            <button data-k="autoConcluir" onclick="{{ togglePref }}" aria-label="Marcar bloco concluído" style="{{ togAutoConc }}"><span style="{{ togAutoConcKnob }}"></span></button>
+            <button data-k="autoConcluir" onclick="{{ togglePref }}" aria-label="Marcar bloco concluído" role="switch" aria-checked="{{ chkAutoConc }}" style="{{ togAutoConc }}"><span style="{{ togAutoConcKnob }}"></span></button>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
             <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Estudei um tópico → agenda a 1ª revisão</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Desligar: nada entra em Revisões sozinho; você agenda cada revisão à mão.</div></div>
-            <button data-k="autoRevisao" onclick="{{ togglePref }}" aria-label="Criar revisão automática" style="{{ togAutoRev }}"><span style="{{ togAutoRevKnob }}"></span></button>
+            <button data-k="autoRevisao" onclick="{{ togglePref }}" aria-label="Criar revisão automática" role="switch" aria-checked="{{ chkAutoRev }}" style="{{ togAutoRev }}"><span style="{{ togAutoRevKnob }}"></span></button>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
             <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Mostrar a contagem regressiva da prova</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Desligar: os "dias para a prova" somem do Início e da Reta Final. O planejamento continua igual — muda só o que você vê.</div></div>
-            <button data-k="mostrarContagem" onclick="{{ togglePref }}" aria-label="Mostrar contagem regressiva da prova" style="{{ togContagem }}"><span style="{{ togContagemKnob }}"></span></button>
+            <button data-k="mostrarContagem" onclick="{{ togglePref }}" aria-label="Mostrar contagem regressiva da prova" role="switch" aria-checked="{{ chkContagem }}" style="{{ togContagem }}"><span style="{{ togContagemKnob }}"></span></button>
           </div>
         </div>
         </sc-if>
@@ -5012,7 +5034,7 @@ window.ctPdfLib = (function(){
           <sc-for list="{{ alertRows }}" as="a" hint-placeholder-count="7">
             <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--border);">
               <div style="flex:1;font-size:var(--fs-base);color:var(--ink);font-weight:500;">{{ a.label }}</div>
-              <button data-k="{{ a.k }}" onclick="{{ togglePref }}" aria-label="{{ a.label }}" style="{{ a.tog }}"><span style="{{ a.knob }}"></span></button>
+              <button data-k="{{ a.k }}" onclick="{{ togglePref }}" aria-label="{{ a.label }}" role="switch" aria-checked="{{ a.chk }}" style="{{ a.tog }}"><span style="{{ a.knob }}"></span></button>
             </div>
           </sc-for>
         </div>
@@ -5033,7 +5055,7 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;line-height:1.45;">Um aviso por dia, e só se houver revisão esperando. Precisa do app aberto (ou minimizado) no horário — sem isso, ninguém consegue te avisar de fora.</div>
             </div>
             <input data-k="revHora" type="time" value="{{ prefRevHora }}" oninput="{{ setPrefVal }}" aria-label="Horário do lembrete de revisões" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 11px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;flex:none;">
-            <button data-k="revLembrete" onclick="{{ togglePref }}" aria-label="Lembrar revisões no horário" style="{{ togRevLembrete }}"><span style="{{ togRevLembreteKnob }}"></span></button>
+            <button data-k="revLembrete" onclick="{{ togglePref }}" aria-label="Lembrar revisões no horário" role="switch" aria-checked="{{ chkRevLembrete }}" style="{{ togRevLembrete }}"><span style="{{ togRevLembreteKnob }}"></span></button>
           </div>
           <sc-if value="{{ revLembreteLigadoSemPerm }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:var(--fs-sm);color:var(--warn);font-weight:600;margin-top:10px;line-height:1.45;">O lembrete está ligado, mas o navegador ainda não deu permissão de notificação — toque em "Ativar notificações" acima.</div>
@@ -6853,31 +6875,31 @@ class Component extends DCLogic {
   THEMES(){ return {
     sutil:{ label:'Planilha', font:"'Spectral', Georgia, serif", desc:'A identidade aprovada — papel quente, serifa calma, verde-oliva e navy de cabeçalho.',
       display:"'Spectral', Georgia, serif", body:"'Inter', system-ui, sans-serif", mono:"'JetBrains Mono', monospace", radius:'12px',
-      light:{ bg:'#f4f1ea', surface:'#fffdf8', surface2:'#f0ece1', border:'#e3ddce', ink:'#1f1c17', text2:'#5c564a', text3:'#7a7368',
+      light:{ bg:'#f4f1ea', surface:'#fffdf8', surface2:'#f0ece1', border:'#e3ddce', ink:'#1f1c17', text2:'#5c564a', text3:'#6f695f',
         accent:'#0f7a57', accentD:'#0b5e43', accentSoft:'#e6f0ea', accentRing:'#c2e0d1', onAccent:'#ffffff',
         sidebarBg:'#1e2b3a', sidebarText:'#b9c3cf', sidebarActiveBg:'rgba(127,212,181,.18)', sidebarActiveText:'#7fd4b5',
         heroGrad:'linear-gradient(135deg,#1e2b3a,#0f7a57)' },
-      dark:{ bg:'#16140f', surface:'#201d17', surface2:'#272219', border:'#332f23', ink:'#ece7db', text2:'#a59c89', text3:'#8c8677',
+      dark:{ bg:'#16140f', surface:'#201d17', surface2:'#272219', border:'#332f23', ink:'#ece7db', text2:'#a59c89', text3:'#908a7b',
         accent:'#34b88a', accentD:'#2a9b73', accentSoft:'#16261e', accentRing:'#2c5a45', onAccent:'#06130d',
         sidebarBg:'#131b26', sidebarText:'#93a2b3', sidebarActiveBg:'rgba(52,184,138,.18)', sidebarActiveText:'#6fe0b4',
         heroGrad:'linear-gradient(135deg,#22334a,#1f8a64)' } },
     premium:{ label:'Tribunal', font:"'Spectral', Georgia, serif", desc:'Editorial jurídico — marfim, vinho profundo e latão, no clima de biblioteca de tribunal.',
       display:"'Spectral', Georgia, serif", body:"'Inter', system-ui, sans-serif", mono:"'JetBrains Mono', monospace", radius:'16px',
-      light:{ bg:'#f3efe6', surface:'#fcfaf4', surface2:'#efe9dc', border:'#e2dac8', ink:'#231a17', text2:'#5d534d', text3:'#7d746c',
+      light:{ bg:'#f3efe6', surface:'#fcfaf4', surface2:'#efe9dc', border:'#e2dac8', ink:'#231a17', text2:'#5d534d', text3:'#6f6760',
         accent:'#7b2434', accentD:'#5d1a27', accentSoft:'#f4e6e6', accentRing:'#e0c3c6', onAccent:'#ffffff',
         sidebarBg:'#12211a', sidebarText:'#c7cbbf', sidebarActiveBg:'rgba(176,132,51,.24)', sidebarActiveText:'#e4c87f',
         heroGrad:'linear-gradient(140deg,#7b2434 0%,#12211a 100%)' },
-      dark:{ bg:'#141010', surface:'#1d1717', surface2:'#251d1c', border:'#372c2a', ink:'#efe6df', text2:'#a89a92', text3:'#8b7f78',
+      dark:{ bg:'#141010', surface:'#1d1717', surface2:'#251d1c', border:'#372c2a', ink:'#efe6df', text2:'#a89a92', text3:'#91867f',
         accent:'#d4707f', accentD:'#b95566', accentSoft:'#2a1a1d', accentRing:'#5c343d', onAccent:'#1c0a0e',
         sidebarBg:'#0d1611', sidebarText:'#9aa18f', sidebarActiveBg:'rgba(216,182,89,.22)', sidebarActiveText:'#d8b659',
         heroGrad:'linear-gradient(140deg,#8c3242 0%,#132a1f 100%)' } },
     clean:{ label:'Fibra', font:"'Inter Tight', 'Inter', sans-serif", desc:'Minimal e frio — branco, grafite e índigo. Plano, denso, zero ruído.',
       display:"'Inter Tight', 'Inter', sans-serif", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'8px',
-      light:{ bg:'#fafafa', surface:'#ffffff', surface2:'#f4f4f5', border:'#e7e7ea', ink:'#141419', text2:'#4b4b55', text3:'#71717a',
+      light:{ bg:'#fafafa', surface:'#ffffff', surface2:'#f4f4f5', border:'#e7e7ea', ink:'#141419', text2:'#4b4b55', text3:'#6d6d76',
         accent:'#4f46e5', accentD:'#4338ca', accentSoft:'#eceafc', accentRing:'#c9c4f4', onAccent:'#ffffff',
         sidebarBg:'#17181c', sidebarText:'#9a9aa3', sidebarActiveBg:'rgba(129,140,248,.16)', sidebarActiveText:'#a5b4fc',
         heroGrad:'#1c1d24' },
-      dark:{ bg:'#0e0e11', surface:'#16161a', surface2:'#1e1e24', border:'#2a2a31', ink:'#f4f4f5', text2:'#a1a1aa', text3:'#7f7f86',
+      dark:{ bg:'#0e0e11', surface:'#16161a', surface2:'#1e1e24', border:'#2a2a31', ink:'#f4f4f5', text2:'#a1a1aa', text3:'#86868c',
         accent:'#818cf8', accentD:'#6366f1', accentSoft:'#191933', accentRing:'#3b3b78', onAccent:'#0c0c22',
         sidebarBg:'#0b0b0d', sidebarText:'#8a8a93', sidebarActiveBg:'#1f1f2b', sidebarActiveText:'#a5b4fc',
         heroGrad:'#22232d' } },
@@ -6887,47 +6909,47 @@ class Component extends DCLogic {
         accent:'#7c3aed', accentD:'#6428c9', accentSoft:'#efe7fd', accentRing:'#d4bff8', onAccent:'#ffffff',
         sidebarBg:'#17102b', sidebarText:'#a99fc7', sidebarActiveBg:'rgba(167,139,250,.22)', sidebarActiveText:'#c4b5fd',
         heroGrad:'linear-gradient(135deg,#7c3aed,#d926a9)' },
-      dark:{ bg:'#0d0817', surface:'#161022', surface2:'#1d152c', border:'#2c2140', ink:'#efeaff', text2:'#a79ec4', text3:'#837a9e',
+      dark:{ bg:'#0d0817', surface:'#161022', surface2:'#1d152c', border:'#2c2140', ink:'#efeaff', text2:'#a79ec4', text3:'#867da0',
         accent:'#a78bfa', accentD:'#8b5cf6', accentSoft:'#1e1533', accentRing:'#443066', onAccent:'#130a26',
         sidebarBg:'#0a0612', sidebarText:'#8d81ad', sidebarActiveBg:'rgba(167,139,250,.20)', sidebarActiveText:'#c4b5fd',
         heroGrad:'linear-gradient(135deg,#8b5cf6,#e040b0)' } },
     aurora:{ label:'Aurora', font:"'Space Grotesk', sans-serif", desc:'Glacial e elétrico — azul-gelo, ciano boreal e noite polar na sidebar.',
       display:"'Space Grotesk', sans-serif", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'16px',
-      light:{ bg:'#edf5fa', surface:'#ffffff', surface2:'#e7f1f7', border:'#d7e6f0', ink:'#0c1a24', text2:'#41586a', text3:'#68808f',
+      light:{ bg:'#edf5fa', surface:'#ffffff', surface2:'#e7f1f7', border:'#d7e6f0', ink:'#0c1a24', text2:'#41586a', text3:'#5a6f7c',
         accent:'#0891b2', accentD:'#0a748f', accentSoft:'#dff3f9', accentRing:'#ade1ef', onAccent:'#ffffff',
         sidebarBg:'#0b1526', sidebarText:'#8fa8c4', sidebarActiveBg:'rgba(34,211,238,.18)', sidebarActiveText:'#67e8f9',
         heroGrad:'linear-gradient(135deg,#0891b2,#2563eb)' },
-      dark:{ bg:'#081019', surface:'#0e1926', surface2:'#13202f', border:'#1e3042', ink:'#e6f2fb', text2:'#93aabe', text3:'#6c8296',
+      dark:{ bg:'#081019', surface:'#0e1926', surface2:'#13202f', border:'#1e3042', ink:'#e6f2fb', text2:'#93aabe', text3:'#758a9c',
         accent:'#22d3ee', accentD:'#06b6d4', accentSoft:'#0b2531', accentRing:'#155e73', onAccent:'#04181e',
         sidebarBg:'#050b13', sidebarText:'#7c94ad', sidebarActiveBg:'rgba(34,211,238,.16)', sidebarActiveText:'#67e8f9',
         heroGrad:'linear-gradient(135deg,#0ea5be,#1d4ed8)' } },
     solar:{ label:'Solar', font:"'Space Grotesk', sans-serif", desc:'Futurismo quente — areia clara, coral vivo e pôr-do-sol coral→magenta.',
       display:"'Space Grotesk', sans-serif", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'18px',
-      light:{ bg:'#faf4ec', surface:'#fffdf9', surface2:'#f6ecdf', border:'#ecdfcc', ink:'#231710', text2:'#5f4f42', text3:'#82705f',
+      light:{ bg:'#faf4ec', surface:'#fffdf9', surface2:'#f6ecdf', border:'#ecdfcc', ink:'#231710', text2:'#5f4f42', text3:'#796859',
         accent:'#ea580c', accentD:'#c2410c', accentSoft:'#fdeadb', accentRing:'#f8c9a4', onAccent:'#ffffff',
         sidebarBg:'#1c1210', sidebarText:'#c4a793', sidebarActiveBg:'rgba(251,146,60,.20)', sidebarActiveText:'#fdba74',
         heroGrad:'linear-gradient(135deg,#ea580c,#db2777)' },
-      dark:{ bg:'#150e09', surface:'#1e1510', surface2:'#271b14', border:'#3a2a1e', ink:'#f4e9de', text2:'#b39c88', text3:'#8f7d6c',
+      dark:{ bg:'#150e09', surface:'#1e1510', surface2:'#271b14', border:'#3a2a1e', ink:'#f4e9de', text2:'#b39c88', text3:'#958373',
         accent:'#fb923c', accentD:'#f97316', accentSoft:'#2b1a0d', accentRing:'#7c4a1e', onAccent:'#1e0f04',
         sidebarBg:'#0e0805', sidebarText:'#a08a76', sidebarActiveBg:'rgba(251,146,60,.18)', sidebarActiveText:'#fdba74',
         heroGrad:'linear-gradient(135deg,#f97316,#e0447e)' } },
     terminal:{ label:'Terminal', font:"'JetBrains Mono', monospace", desc:'Tech de terminal — carbono, lima néon e tipografia mono. Reto e afiado.',
       display:"'JetBrains Mono', monospace", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'6px',
-      light:{ bg:'#f3f6f2', surface:'#ffffff', surface2:'#ecf1ea', border:'#dbe4d8', ink:'#131a12', text2:'#48544a', text3:'#6d7a6b',
+      light:{ bg:'#f3f6f2', surface:'#ffffff', surface2:'#ecf1ea', border:'#dbe4d8', ink:'#131a12', text2:'#48544a', text3:'#636f61',
         accent:'#4d7c0f', accentD:'#3f6212', accentSoft:'#ecf6dd', accentRing:'#c3e29a', onAccent:'#ffffff',
         sidebarBg:'#101410', sidebarText:'#8fa38c', sidebarActiveBg:'rgba(163,230,53,.16)', sidebarActiveText:'#a3e635',
         heroGrad:'#151b14' },
-      dark:{ bg:'#0a0d0a', surface:'#111511', surface2:'#171d17', border:'#242d24', ink:'#e9f2e6', text2:'#9cab99', text3:'#75846f',
+      dark:{ bg:'#0a0d0a', surface:'#111511', surface2:'#171d17', border:'#242d24', ink:'#e9f2e6', text2:'#9cab99', text3:'#798872',
         accent:'#a3e635', accentD:'#84cc16', accentSoft:'#1a230f', accentRing:'#3f5c14', onAccent:'#0e1403',
         sidebarBg:'#070907', sidebarText:'#7f9079', sidebarActiveBg:'rgba(163,230,53,.14)', sidebarActiveText:'#bef264',
         heroGrad:'#131a12' } },
     holo:{ label:'Holo', font:"'Inter Tight', 'Inter', sans-serif", desc:'Holográfico — branco perolado com iridescência violeta→ciano→rosa.',
       display:"'Inter Tight', 'Inter', sans-serif", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'20px',
-      light:{ bg:'#f7f7fc', surface:'#ffffff', surface2:'#f1f1f9', border:'#e3e2f0', ink:'#191726', text2:'#4f4c63', text3:'#767388',
+      light:{ bg:'#f7f7fc', surface:'#ffffff', surface2:'#f1f1f9', border:'#e3e2f0', ink:'#191726', text2:'#4f4c63', text3:'#6e6b7e',
         accent:'#0ea5e9', accentD:'#0284c7', accentSoft:'#e4f4fd', accentRing:'#b3e2f8', onAccent:'#ffffff',
         sidebarBg:'#151322', sidebarText:'#a09cc0', sidebarActiveBg:'rgba(56,189,248,.18)', sidebarActiveText:'#7dd3fc',
         heroGrad:'linear-gradient(120deg,#8b5cf6 0%,#0ea5e9 55%,#ec4899 110%)' },
-      dark:{ bg:'#0c0b14', surface:'#14121e', surface2:'#1a1827', border:'#282540', ink:'#eeedf7', text2:'#a5a1bd', text3:'#7d7996',
+      dark:{ bg:'#0c0b14', surface:'#14121e', surface2:'#1a1827', border:'#282540', ink:'#eeedf7', text2:'#a5a1bd', text3:'#84809c',
         accent:'#38bdf8', accentD:'#0ea5e9', accentSoft:'#11202e', accentRing:'#1e4a63', onAccent:'#06121b',
         sidebarBg:'#08070f', sidebarText:'#8b86ab', sidebarActiveBg:'rgba(56,189,248,.16)', sidebarActiveText:'#7dd3fc',
         heroGrad:'linear-gradient(120deg,#7c5cf0 0%,#0ea5e9 55%,#e0479d 110%)' } }
@@ -10854,7 +10876,7 @@ class Component extends DCLogic {
     const _esp = _dens==='compacta' ? [4,8,12] : [6,10,16];
     const espTokens = `--space-1:${_esp[0]}px;--space-2:${_esp[1]}px;--space-3:${_esp[2]}px;`
       + `--control-h:${_dens==='compacta'?'34px':'38px'};--content-max:1200px;`;
-    const fsTokens = `--fs-3xs:${_fs(9.5)};--fs-2xs:${_fs(10.5)};--fs-xs:${_fs(11.5)};--fs-sm:${_fs(12.5)};--fs-base:${_fs(13.5)};--fs-md:${_fs(14.5)};--fs-lg:${_fs(15.5)};--fs-xl:${_fs(17)};--fs-2xl:${_fs(19)};`;
+    const fsTokens = `--fs-3xs:${_fs(10.5)};--fs-2xs:${_fs(11)};--fs-xs:${_fs(11.5)};--fs-sm:${_fs(12.5)};--fs-base:${_fs(13.5)};--fs-md:${_fs(14.5)};--fs-lg:${_fs(15.5)};--fs-xl:${_fs(17)};--fs-2xl:${_fs(19)};`;
     const accSoft = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.78) : this.mixWhite(this.state.accent,0.88)) : T.accentSoft;
     const accRing = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.45) : this.mixWhite(this.state.accent,0.62)) : T.accentRing;
     const accOn = this.state.accent ? (()=>{ try{ const [r,g,b]=this.hexToRgb(this.state.accent); return (0.299*r+0.587*g+0.114*b)>170?'#10231c':'#fff'; }catch(_){ return '#fff'; } })() : T.onAccent;
@@ -13698,6 +13720,13 @@ class Component extends DCLogic {
       setPrefOptVal:this.setPrefOpt,
       // ajustes: foco
       focoBloco:pf0.focoBloco, focoPausa:pf0.focoPausa, setFocoNum:this.setFocoNum,
+      // O botão do interruptor tinha nome (aria-label) mas nenhum ESTADO: o leitor de tela
+      // dizia "Abrir registro ao parar, botão" sem dizer se estava ligado. role=switch +
+      // aria-checked é o par certo para liga/desliga (aria-pressed é para alternância de
+      // modo, que é outra coisa).
+      chkAutoReg:(pf0.autoRegistro?'true':'false'), chkAutoConc:(pf0.autoConcluir?'true':'false'),
+      chkAutoRev:(pf0.autoRevisao?'true':'false'), chkContagem:(pf0.mostrarContagem!==false?'true':'false'),
+      chkRevLembrete:(pf0.revLembrete?'true':'false'),
       togAutoReg:togStyle(pf0.autoRegistro), togAutoRegKnob:togKnob(pf0.autoRegistro),
       togContagem:togStyle(pf0.mostrarContagem!==false), togContagemKnob:togKnob(pf0.mostrarContagem!==false),
       togAutoConc:togStyle(pf0.autoConcluir), togAutoConcKnob:togKnob(pf0.autoConcluir),
@@ -13711,7 +13740,7 @@ class Component extends DCLogic {
         {k:'alSemanal', label:'Meta da semana em risco', on:pf0.alSemanal},
         {k:'alProva', label:'Alerta de prova próxima', on:pf0.alProva},
         {k:'alSimulados', label:'Lembrete de simulado', on:pf0.alSimulados},
-      ].map(a=>({...a, tog:togStyle(a.on), knob:togKnob(a.on)})),
+      ].map(a=>({...a, tog:togStyle(a.on), knob:togKnob(a.on), chk:(a.on?'true':'false')})),
       // notificações
       notifOpen:this.state.notifOpen, toggleNotif:this.toggleNotif, closeNotif:this.closeNotif, readNotif:this.readNotif, readAllNotif:this.readAllNotif, goNotif:this.goNotif,
       notifs,

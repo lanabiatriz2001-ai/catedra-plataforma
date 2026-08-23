@@ -3034,6 +3034,152 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+/* ===== TASK 10 · PENTE-FINO DE ACESSIBILIDADE =====
+   Coisas que não aparecem em captura de tela: nome de campo, estado de interruptor,
+   contraste medido, zoom bloqueado, alvo de toque, movimento reduzido. */
+{
+  // 1) zoom: nenhuma página pode proibir a pinça (WCAG 1.4.4)
+  const zoom = await page.evaluate(async (b) => {
+    const paginas = ['Catedra.dc.html', 'legis-web.html', 'juris-web.html', 'area-web.html',
+      'ritos-web.html', 'pecas-web.html', 'segunda-fase-web.html', 'prioridade-web.html', 'banco-espelhos.html'];
+    const ruins = [];
+    for (const p of paginas) {
+      const t = await (await fetch(b + '/' + p)).text();
+      const m = t.match(/<meta[^>]+name=["']viewport["'][^>]*>/i);
+      if (m && /user-scalable\s*=\s*no|maximum-scale\s*=\s*1(?!\d)/i.test(m[0])) ruins.push(p);
+    }
+    return { nenhumaBloqueiaZoom: ruins.length === 0, quais: ruins.join(', ') };
+  }, URL0);
+  ok(zoom.nenhumaBloqueiaZoom, 'TASK10 nenhuma página bloqueia o zoom (' + (zoom.quais || 'todas liberadas') + ')');
+
+  // 2) todo campo de busca tem NOME — placeholder não é nome acessível
+  const nomes = await page.evaluate(async (b) => {
+    const alvos = [['legis-web.html', 'cq'], ['legis-web.html', 'iq'], ['juris-web.html', 'q'],
+      ['juris-web.html', 'qtc'], ['area-web.html', 'q'], ['segunda-fase-web.html', 'fq'],
+      ['banco-espelhos.html', 'q']];
+    const sem = [];
+    for (const [p, id] of alvos) {
+      const t = await (await fetch(b + '/' + p)).text();
+      const tag = (t.match(new RegExp('<input[^>]*id="' + id + '"[^>]*>', 'i')) || [''])[0];
+      if (!/aria-label=|aria-labelledby=/.test(tag)) sem.push(p + '#' + id);
+    }
+    return { todosNomeados: sem.length === 0, quais: sem.join(', ') };
+  }, URL0);
+  ok(nomes.todosNomeados, 'TASK10 as buscas dos satélites têm nome (' + (nomes.quais || 'todas') + ')');
+
+  // 3) contraste: --text3 sobre bg/surface/surface2, em TODOS os temas dos dois modos
+  const contraste = await page.evaluate(async (b) => {
+    const src = await (await fetch(b + '/Catedra.dc.html')).text();
+    const lum = (h) => {
+      const v = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+        .map(c => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+    };
+    const cont = (a, c) => { const x = lum(a), y = lum(c); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const blocos = [...src.matchAll(/\b(light|dark):\{([\s\S]*?)\n\s*heroGrad:'[^']*'\s*\}/g)];
+    const ruins = [];
+    for (const [, modo, corpo] of blocos) {
+      const d = {}; for (const m of corpo.matchAll(/(\w+):'(#[0-9a-fA-F]{6})'/g)) d[m[1]] = m[2];
+      if (!(d.bg && d.surface && d.surface2 && d.text3)) continue;
+      const pior = Math.min(...['bg', 'surface', 'surface2'].map(k => cont(d.text3, d[k])));
+      if (pior < 4.5) ruins.push(modo + ' ' + d.text3 + ' = ' + pior.toFixed(2));
+    }
+    return { temas: blocos.length, ok: ruins.length === 0, quais: ruins.slice(0, 4).join(' · ') };
+  }, URL0);
+  ok(contraste.temas >= 12, 'TASK10 o teste leu os temas todos (' + contraste.temas + ')');
+  ok(contraste.ok, 'TASK10 --text3 tem 4.5:1 em todo tema, claro e escuro (' + (contraste.quais || 'todos passam') + ')');
+
+  // 4) corpo mínimo: nada abaixo de 10,5px, nem no tamanho padrão
+  const corpo = await page.evaluate(async (b) => {
+    const src = await (await fetch(b + '/Catedra.dc.html')).text();
+    const m = src.match(/--fs-3xs:\$\{_fs\(([\d.]+)\)\}/);
+    return { menorDegrau: m ? parseFloat(m[1]) : 0 };
+  }, URL0);
+  ok(corpo.menorDegrau >= 10.5, 'TASK10 o menor degrau tipográfico é ' + corpo.menorDegrau + 'px (mínimo 10.5)');
+
+  // 5) interruptor liga/desliga diz o estado, não só o nome
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const sw = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    // Ajustes vive atrás de "Mais opções" desde a TASK5: abrir o expansor faz parte do caminho
+    const ir = async (v) => {
+      let b = document.querySelector('button[data-view="' + v + '"]');
+      if (!b) {
+        const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+        if (mais) { mais.click(); await w(500); }
+        b = document.querySelector('button[data-view="' + v + '"]');
+      }
+      if (b) { b.click(); await w(1000); }
+      return !!b;
+    };
+    if (!await ir('ajustes')) return { erro: 'não achei a entrada de Ajustes' };
+    const sws = [...document.querySelectorAll('[role="switch"]')];
+    if (!sws.length) return { erro: 'nenhum interruptor com papel' };
+    const r = {
+      todosTemEstado: sws.every(s => s.getAttribute('aria-checked') === 'true' || s.getAttribute('aria-checked') === 'false'),
+      todosTemNome: sws.every(s => (s.getAttribute('aria-label') || '').length > 3),
+      quantos: sws.length >= 6,
+    };
+    // e o estado ACOMPANHA o clique (não é um atributo decorativo)
+    const alvo = sws[0], antes = alvo.getAttribute('aria-checked');
+    alvo.click(); await w(500);
+    const depois = document.querySelectorAll('[role="switch"]')[0].getAttribute('aria-checked');
+    r.estadoSegueOClique = depois !== antes;
+    document.querySelectorAll('[role="switch"]')[0].click(); await w(300);
+    return r;
+  });
+  if (sw.erro) ok(false, 'TASK10 ' + sw.erro);
+  else for (const [k, v] of Object.entries(sw)) ok(v, 'TASK10 interruptor ' + k);
+
+  // 6) alvo de toque no celular, nas telas mais usadas
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1800);
+  const toque = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    // devolve QUEM falhou, não só quantos: contagem nua não se conserta
+    const medir = () => [...document.querySelectorAll('button,a[href],select,[role="button"],[role="switch"],[role="tab"]')]
+      .filter(e => e.offsetParent !== null)
+      .map(e => ({ r: e.getBoundingClientRect(), t: (e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 28) }))
+      .filter(x => x.r.width > 0 && (x.r.height < 44 || x.r.width < 44))
+      .map(x => x.t + '[' + Math.round(x.r.width) + 'x' + Math.round(x.r.height) + ']');
+    // a view fica gravada: sem voltar ao Início de propósito, mediríamos a tela anterior
+    const inicio = document.querySelector('button[data-view="inicio"]');
+    if (inicio) { inicio.click(); await w(900); }
+    const r = { inicio: medir() };
+    for (const v of ['ciclo', 'ajustes']) {
+      let b = document.querySelector('button[data-view="' + v + '"]');
+      if (!b) {
+        const abrir = document.querySelector('button[aria-label="Abrir menu"]');
+        if (abrir) { abrir.click(); await w(500); }
+        const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+        if (mais) { mais.click(); await w(500); }
+        b = document.querySelector('button[data-view="' + v + '"]');
+      }
+      if (b) { b.click(); await w(1000); r[v] = medir(); }
+    }
+    return r;
+  });
+  for (const [tela, l] of Object.entries(toque))
+    ok(l.length === 0, 'TASK10 alvo de toque em ' + tela + ' (' + (l.join(', ') || 'todos com 44px') + ')');
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  // 7) movimento reduzido: host e satélites
+  const mov = await page.evaluate(async (b) => {
+    const [host, base, banco] = await Promise.all([
+      (await fetch(b + '/Catedra.dc.html')).text(),
+      (await fetch(b + '/satellite-base.css')).text(),
+      (await fetch(b + '/banco-espelhos.html')).text()]);
+    const tem = t => /prefers-reduced-motion:\s*reduce/.test(t) && /animation-duration:\s*\.00?1ms\s*!important/.test(t);
+    return { hostRespeita: tem(host), sateliteRespeita: tem(base), bancoRespeita: tem(banco) };
+  }, URL0);
+  for (const [k, v] of Object.entries(mov)) ok(v, 'TASK10 ' + k);
+}
+
 /* ===== TASK 8 · PROVA ORAL E PRIORIDADE VIRAM AÇÃO =====
    A Prova oral abria com nomes de ACERVO e um paredão de filtros; o ranking de Prioridade
    dizia o que estudar e parava aí. Agora as duas telas oferecem o próximo passo. */

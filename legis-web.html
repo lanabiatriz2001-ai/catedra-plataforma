@@ -237,14 +237,14 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
 <body><div class="wrap">
 <div class="head"><div class="ic">📖</div><div><h1>CátedraLEGIS</h1><p>Vade mecum de leis · catálogo, plano de leitura e estrutura das normas</p></div></div>
 <div class="tabs" id="tabsTopo"><button class="on" data-t="catalog">📚 Catálogo</button><button data-t="plano">📅 Plano de leitura</button><button data-t="indice">📑 Índice das normas</button><button data-t="incid">🎯 Incidência</button></div>
-<div id="pane-catalog" class="pane on"><div class="search"><span class="mag">🔎</span><input id="cq" placeholder="Buscar lei por nome ou número…" autocomplete="off"></div><div class="statbar"><div class="st1" id="st-dom"><b id="sd">0</b><span class="ml-fraca">Dominadas</span><em class="convite">✓ marque quando dominar uma lei</em></div><div class="st1" id="st-len"><b id="sl">0</b><span class="ml-fraca">Lendo</span><em class="convite">◐ marque a lei que está lendo agora</em></div><div class="st1" id="st-fav"><b id="sf">0</b><span class="ml-fraca">Favoritas</span><em class="convite">★ marque as leis do seu edital</em></div><div class="st1" style="margin-left:auto"><b id="stot">250</b><span class="ml-fraca">Leis no catálogo</span></div></div><div id="catalog"></div></div>
+<div id="pane-catalog" class="pane on"><div class="search"><span class="mag">🔎</span><input id="cq" aria-label="Buscar lei por nome ou número" placeholder="Buscar lei por nome ou número…" autocomplete="off"></div><div class="statbar"><div class="st1" id="st-dom"><b id="sd">0</b><span class="ml-fraca">Dominadas</span><em class="convite">✓ marque quando dominar uma lei</em></div><div class="st1" id="st-len"><b id="sl">0</b><span class="ml-fraca">Lendo</span><em class="convite">◐ marque a lei que está lendo agora</em></div><div class="st1" id="st-fav"><b id="sf">0</b><span class="ml-fraca">Favoritas</span><em class="convite">★ marque as leis do seu edital</em></div><div class="st1" style="margin-left:auto"><b id="stot">250</b><span class="ml-fraca">Leis no catálogo</span></div></div><div id="catalog"></div></div>
 <div id="pane-plano" class="pane"><p style="font-size:12px;color:var(--text2,#5c564a);margin:0 2px 12px"><b id="pdone">0</b> de <span id="ptot">720</span> leituras · marque o que já leu; o título da estrutura aparece em cada dia</p><div id="plano"></div></div>
 <div id="pane-indice" class="pane"><div id="indice"></div></div>
 <div id="pane-incid" class="pane">
   <!-- Mapa de incidência por artigo. A contagem sai do ACERVO DE JURISPRUDÊNCIA do app
        (25 mil verbetes), não de banco de questões — e a tela diz isso, porque é sinal
        diferente e ninguém deve confundir os dois. -->
-  <div class="search"><span class="mag">🔎</span><input id="iq" placeholder="Buscar diploma…" autocomplete="off"></div>
+  <div class="search"><span class="mag">🔎</span><input id="iq" aria-label="Buscar diploma na incidência" placeholder="Buscar diploma…" autocomplete="off"></div>
   <div id="incidLista"></div>
   <div id="incidDet"></div>
 </div>

@@ -234,7 +234,7 @@ function telaEscolha(){
     +'<select class="sel" id="ftipo"><option value="sentenca">Sentenças e peças</option>'
       +'<option value="discursiva">Discursivas</option><option value="">Tudo</option></select>'
     +'<select class="sel" id="ftrib"><option value="">Todos os tribunais</option></select>'
-    +'<input class="inp" id="fq" placeholder="Buscar tema, disciplina, banca…" autocomplete="off">';
+    +'<input class="inp" id="fq" aria-label="Buscar prova por tema, disciplina ou banca" placeholder="Buscar tema, disciplina, banca…" autocomplete="off">';
   const tribs=[...new Set(E.provas.map(p=>p.trib))].sort();
   tribs.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; $('ftrib').appendChild(o); });
   $('ftipo').onchange=$('ftrib').onchange=listar; $('fq').oninput=listar;
