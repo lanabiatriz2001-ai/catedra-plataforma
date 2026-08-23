@@ -480,35 +480,42 @@ window.ctPdfLib = (function(){
     <!-- Menu (21/08/2026): ordem = rotina de quem treina para concurso — ver o dia → treinar → consultar o acervo.
          O que era "Sistema" (2ª fase, roteiros, LEGIS, JURIS, prioridade) sobe para Treino/Acervo. -->
     <nav style="display:flex;flex-direction:column;gap:3px;padding-top:6px;">
+    <!-- TASK 5: a barra segue a ROTINA e as FASES do concurso, não a arquitetura do
+         código. Nenhum data-view muda — só o agrupamento e os rótulos, que passam a
+         dizer em que fase da magistratura cada tela serve. -->
+    <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="inicio" onclick="{{ onNav }}" style="{{ navStyle.inicio }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12 12 3l9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Início</span></button>
       <button data-view="ciclo" onclick="{{ onNav }}" style="{{ navStyle.ciclo }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg><span>Ciclo de Estudos</span></button>
       <button data-view="revisoes" onclick="{{ onNav }}" style="{{ navStyle.revisoes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Revisões</span><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accent);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ revPendStr }}</span></sc-if></button>
       <button data-view="calendario" onclick="{{ onNav }}" style="{{ navCalendario }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"></path></svg><span>Calendário</span></button>
     </nav>
-    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Treino</div>
+    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Estudo base</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
-      <button data-view="simulados" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Simulados</span></button>
-      <button data-view="redacao" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Redação</span></button>
-      <button data-view="oral" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button>
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>Simulado 2ª fase</span></button></sc-if>
-      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="prioridade" onclick="{{ onNav }}" style="{{ navPrioridade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round"></path></svg><span>Prioridade</span></button></sc-if>
-    </nav>
-    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Acervo</div>
-    <nav style="display:flex;flex-direction:column;gap:3px;">
-      <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraLEGIS</span></button>
-      <sc-if value="{{ areaJuris }}" hint-placeholder-val="{{ true }}"><button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>CátedraJURIS</span></button></sc-if>
+      <button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Lei seca · CátedraLEGIS</span></button>
+      <sc-if value="{{ areaJuris }}" hint-placeholder-val="{{ true }}"><button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Jurisprudência · JURIS</span></button></sc-if>
       <sc-if value="{{ temAreaMod }}" hint-placeholder-val="{{ true }}"><button data-view="areamod" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button></sc-if>
       <button data-view="edital" onclick="{{ onNav }}" style="{{ navStyle.edital }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"></path></svg><span>Edital</span></button>
+    </nav>
+    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">{{ navGrupoFases }}</div>
+    <nav style="display:flex;flex-direction:column;gap:3px;">
+      <button data-view="simulados" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>1ª fase · Simulados</span></button>
+      <button data-view="redacao" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>2ª fase · Discursivas</span></button>
+      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
+      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>Provas de 2ª fase</span></button></sc-if>
+      <button data-view="oral" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button>
+    </nav>
+    <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Planejamento</div>
+    <nav style="display:flex;flex-direction:column;gap:3px;">
+      <sc-if value="{{ isJuridica }}" hint-placeholder-val="{{ true }}"><button data-view="prioridade" onclick="{{ onNav }}" style="{{ navPrioridade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round"></path></svg><span>Prioridade</span></button></sc-if>
       <button data-view="bancas" onclick="{{ onNav }}" style="{{ navBancas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Bancas</span></button>
     </nav>
     <sc-if value="{{ navToggleShow }}" hint-placeholder-val="{{ true }}">
-      <button onclick="{{ toggleNav }}" aria-label="Mostrar mais opções" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;cursor:pointer;padding:11px 13px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;font-family:inherit;background:transparent;color:var(--stext);opacity:.85;margin-top:6px;">
+      <button onclick="{{ toggleNav }}" aria-label="Mostrar mais opções" aria-expanded="{{ navMaisAttr }}" aria-controls="ct-nav-mais" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;cursor:pointer;padding:11px 13px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;font-family:inherit;background:transparent;color:var(--stext);opacity:.85;margin-top:6px;">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" style="{{ navChevStyle }}"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ navMoreLabel }}</span>
       </button>
     </sc-if>
     <sc-if value="{{ navShowMore }}" hint-placeholder-val="{{ false }}">
-     <div>
+     <div id="ct-nav-mais">
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Mais opções</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="analise" onclick="{{ onNav }}" style="{{ navStyle.analise }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 3v18h18M7 14l3-4 4 3 5-7" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Desempenho</span></button>
@@ -554,7 +561,9 @@ window.ctPdfLib = (function(){
 
   <!-- backdrop for mobile drawer -->
   <sc-if value="{{ showBackdrop }}" hint-placeholder-val="{{ false }}">
-    <div onclick="{{ toggleMenu }}" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;"></div>
+    <!-- TASK 5: um <div> com onclick fecha o menu no toque, mas não existe para quem usa
+         teclado ou leitor de tela. Vira botão com nome — mesma aparência, agora alcançável. -->
+    <button type="button" onclick="{{ toggleMenu }}" aria-label="Fechar o menu" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;border:none;padding:0;cursor:pointer;"></button>
   </sc-if>
 
   <!-- ============ MAIN ============ -->
@@ -5510,7 +5519,7 @@ class Component extends DCLogic {
         const digitando = !!(el && (tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || el.isContentEditable));
         if(!digitando && this.state.loggedIn && !this.state.atalhosOpen){ e.preventDefault(); this.setState({atalhosOpen:true, paletteOpen:false}); return; }
       }
-      if(e.key==='Escape'){ if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+      if(e.key==='Escape'){ if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
       // vale enquanto ela digita — senão um espaço no meio da redação pararia o cronômetro.
       const _dig=(()=>{ try{ const el=document.activeElement; if(!el) return false;
@@ -13525,7 +13534,13 @@ class Component extends DCLogic {
       // TASK 4: o onboarding não aparece por cima do login. Antes, a tela de entrada e o
       // modal de boas-vindas ficavam empilhados e disputando a atenção — a pessoa não sabia
       // se devia entrar ou configurar. Primeiro entra; então o app se apresenta.
-      onboardActive:(this.state.onboardStep>0 && this.state.loggedIn), onboardStep:this.state.onboardStep, onboardStep1:this.state.onboardStep===1, onboardStep2:this.state.onboardStep===2, onboardStep3:this.state.onboardStep===3, onboardStep4:this.state.onboardStep===4,
+      onboardActive:(this.state.onboardStep>0 && this.state.loggedIn),
+      // TASK 5: quem estuda para magistratura pensa em FASES; quem estuda para outra área,
+      // não. O agrupamento é o mesmo; só o rótulo se adapta.
+      navGrupoFases:(_area.id==='juridica' ? 'Fases da Magistratura' : 'Treino'),
+      // navShowMore é DERIVADO (navExpanded OU estar numa das views de "mais opções") —
+      // ler this.state.navShowMore devolvia undefined e o aria ficava sempre 'false'.
+      navMaisAttr:(navShowMore?'true':'false'), onboardStep:this.state.onboardStep, onboardStep1:this.state.onboardStep===1, onboardStep2:this.state.onboardStep===2, onboardStep3:this.state.onboardStep===3, onboardStep4:this.state.onboardStep===4,
       onboardNext:this.onboardNext, onboardPick:this.onboardPick, onboardFinish:this.onboardFinish,
       onbEdital:onboardCard('edital'), onbCiclo:onboardCard('ciclo'), onbImport:onboardCard('import'),
       // a seleção precisa ser DITA, não só pintada
