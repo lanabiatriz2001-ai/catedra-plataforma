@@ -98,8 +98,12 @@ for (const amb of AMBIENTES) {
     try {
       localStorage.setItem('catedra:auth', '1');
       localStorage.setItem('catedra:onboarded', '1');
+      // O modo escuro mora em `catedra:dark` ('1'/'0'), NÃO em prefs.dark — gravar em
+      // prefs fazia o ambiente "desktop-escuro" sair idêntico ao claro (mesmo tamanho de
+      // arquivo, byte a byte), e a evidência de tema escuro nunca foi tema escuro.
+      localStorage.setItem('catedra:dark', escuro ? '1' : '0');
       const prefs = JSON.parse(localStorage.getItem('catedra:prefs') || '{}');
-      prefs.dark = !!escuro; prefs.temaAuto = false;
+      prefs.temaAuto = false;
       localStorage.setItem('catedra:prefs', JSON.stringify(prefs));
     } catch (_) {}
   }, amb.escuro);
