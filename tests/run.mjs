@@ -12,7 +12,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// '.css' faltava aqui, e o custo foi alto: o servidor entregava satellite-base.css como
+// application/octet-stream, o Chrome recusava a folha em modo padrão (cssRules.length = 0)
+// e TODA a verificação da TASK9 rodou num navegador onde a base não existia — verde por
+// acidente, porque as asserções mediam o que o CSS da própria página já garantia.
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
+  '.css': 'text/css',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 const CHROMES = [process.env.CT_CHROME, '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable',
@@ -931,12 +936,16 @@ ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
   const contrato = await page.evaluate(async (b) => {
     const [host, ponte] = await Promise.all([
       (await fetch(b + '/Catedra.dc.html')).text(), (await fetch(b + '/tema-satelite.js')).text()]);
+    // O contrato leva só o que ALGUÉM LÊ do outro lado. --space-1..3 e --content-max
+    // saíram: nenhum satélite os consumia, e token que atravessa a ponte sem consumidor
+    // dá a impressão de que a densidade se propaga quando ela não move um pixel.
     const NOVOS = ['--fs-3xs', '--fs-2xs', '--fs-xs', '--fs-sm', '--fs-base', '--fs-md',
-                   '--fs-lg', '--fs-xl', '--fs-2xl',
-                   '--space-1', '--space-2', '--space-3', '--control-h', '--content-max'];
+                   '--fs-lg', '--fs-xl', '--fs-2xl', '--control-h'];
+    const MORTOS = ['--space-1', '--space-2', '--space-3', '--content-max'];
     return {
       hostManda: NOVOS.every(t => host.includes("'" + t + "'")),
       sateliteLe: NOVOS.every(t => ponte.includes("'" + t + "'")),
+      semTokenSemConsumidor: MORTOS.every(t => !ponte.includes("'" + t + "'")),
       // a densidade tem de produzir token de verdade — não basta ficar gravada
       densidadeProduzToken: /density==='compacta'/.test(host) && /--control-h:\$\{/.test(host),
     };
@@ -955,9 +964,20 @@ ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
     if (!f || !f.contentDocument) return { erro: 'iframe não abriu' };
     const cs = f.contentWindow.getComputedStyle(f.contentDocument.documentElement);
     const v = n => (cs.getPropertyValue(n) || '').trim();
+    // Não basta o token CHEGAR: ele tem de MOVER alguma coisa. O .sel do painel de
+    // prioridade lê --control-h; sem consumidor, o token chegava e a tela ficava igual.
+    const sel = f.contentDocument.querySelector('.sel');
+    const alturaCom = sel ? f.contentWindow.getComputedStyle(sel).minHeight : '';
+    f.contentDocument.documentElement.style.setProperty('--control-h', '61px');
+    const alturaDepois = sel ? f.contentWindow.getComputedStyle(sel).minHeight : '';
+    f.contentDocument.documentElement.style.setProperty('--control-h', alturaCom);
     return {
       escalaChegou: !!v('--fs-base') && !!v('--fs-2xl'),
-      espacoChegou: !!v('--space-3') && !!v('--control-h'),
+      alturaDeControleChegou: !!v('--control-h'),
+      tokenMoveAlgumaCoisa: alturaDepois === '61px' && alturaCom !== '61px',
+      // a base só está aplicada se o Chrome ACEITOU a folha — e ele só aceita com text/css
+      baseFoiAceita: [...f.contentDocument.styleSheets]
+        .some(ss => (ss.href || '').includes('satellite-base.css') && ss.cssRules && ss.cssRules.length > 5),
       fundacaoAplicada: f.contentWindow.getComputedStyle(f.contentDocument.body).boxSizing === 'border-box',
     };
   });
@@ -3077,14 +3097,24 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     };
     const cont = (a, c) => { const x = lum(a), y = lum(c); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
     const blocos = [...src.matchAll(/\b(light|dark):\{([\s\S]*?)\n\s*heroGrad:'[^']*'\s*\}/g)];
-    const ruins = [];
+    const ruins = [], pulados = [];
+    let medidos = 0;
     for (const [, modo, corpo] of blocos) {
       const d = {}; for (const m of corpo.matchAll(/(\w+):'(#[0-9a-fA-F]{6})'/g)) d[m[1]] = m[2];
-      if (!(d.bg && d.surface && d.surface2 && d.text3)) continue;
-      const pior = Math.min(...['bg', 'surface', 'surface2'].map(k => cont(d.text3, d[k])));
+      // Tema que o parser não entendeu (hex de 3 dígitos, rgba(), chave renomeada) era
+      // descartado em SILÊNCIO: ficava indistinguível de tema aprovado. Agora ele REPROVA —
+      // "não consegui medir" não é "passou".
+      if (!(d.bg && d.surface && d.surface2 && d.text3 && d.accentSoft)) { pulados.push(modo); continue; }
+      medidos++;
+      // accentSoft entra na conta: é o fundo do cartão "próximo bloco" do Início, onde o
+      // text3 aparece — medir só bg/surface/surface2 deixava justamente esse par de fora.
+      const pior = Math.min(...['bg', 'surface', 'surface2', 'accentSoft'].map(k => cont(d.text3, d[k])));
       if (pior < 4.5) ruins.push(modo + ' ' + d.text3 + ' = ' + pior.toFixed(2));
     }
-    return { temas: blocos.length, ok: ruins.length === 0, quais: ruins.slice(0, 4).join(' · ') };
+    // `temas` conta o que foi MEDIDO, não o que a regex casou: senão a guarda que existe
+    // para detectar "o teste parou de ler algum tema" nunca detectaria nada.
+    return { temas: medidos, ok: ruins.length === 0 && pulados.length === 0,
+             quais: [...ruins, ...pulados.map(m => 'não consegui medir: ' + m)].slice(0, 5).join(' · ') };
   }, URL0);
   ok(contraste.temas >= 12, 'TASK10 o teste leu os temas todos (' + contraste.temas + ')');
   ok(contraste.ok, 'TASK10 --text3 tem 4.5:1 em todo tema, claro e escuro (' + (contraste.quais || 'todos passam') + ')');
@@ -3141,12 +3171,24 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await page.waitForTimeout(1800);
   const toque = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
-    // devolve QUEM falhou, não só quantos: contagem nua não se conserta
+    /* Mede a CAIXA DE TOQUE, não o desenho.
+       A primeira versão exigia 44x44 de todo controle e eu a fiz passar inflando tudo com
+       !important — o que deformou quadradinho do Edital, célula do calendário e o trilho
+       dos interruptores (que viraram discos). O alvo agora é o da WCAG 2.2 AA (2.5.8):
+       24x24 de mínimo duro. Quem quer os 44 confortáveis usa .ct-alvo, que cresce a área
+       por um pseudo-elemento e deixa o desenho intacto — e o teste conta isso. */
+    const MIN = 24;
     const medir = () => [...document.querySelectorAll('button,a[href],select,[role="button"],[role="switch"],[role="tab"]')]
       .filter(e => e.offsetParent !== null)
-      .map(e => ({ r: e.getBoundingClientRect(), t: (e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 28) }))
-      .filter(x => x.r.width > 0 && (x.r.height < 44 || x.r.width < 44))
-      .map(x => x.t + '[' + Math.round(x.r.width) + 'x' + Math.round(x.r.height) + ']');
+      .map(e => {
+        const r = e.getBoundingClientRect();
+        const alvo = e.classList.contains('ct-alvo');   // caixa de toque expandida por ::after
+        return { w: alvo ? Math.max(44, r.width) : r.width,
+                 h: alvo ? Math.max(44, r.height) : r.height, rw: r.width,
+                 t: (e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 28) };
+      })
+      .filter(x => x.rw > 0 && (x.h < MIN || x.w < MIN))
+      .map(x => x.t + '[' + Math.round(x.w) + 'x' + Math.round(x.h) + ']');
     // a view fica gravada: sem voltar ao Início de propósito, mediríamos a tela anterior
     const inicio = document.querySelector('button[data-view="inicio"]');
     if (inicio) { inicio.click(); await w(900); }
@@ -3165,7 +3207,35 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     return r;
   });
   for (const [tela, l] of Object.entries(toque))
-    ok(l.length === 0, 'TASK10 alvo de toque em ' + tela + ' (' + (l.join(', ') || 'todos com 44px') + ')');
+    ok(l.length === 0, 'TASK10 alvo de toque em ' + tela + ' (' + (l.join(', ') || 'todos ≥24px') + ')');
+
+  /* E a regressão que originou tudo isto: a regra de toque NÃO pode deformar o desenho.
+     Três medidas concretas do estrago que a primeira versão causava. */
+  const semDeformar = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const ir = async (v) => {
+      let b = document.querySelector('button[data-view="' + v + '"]');
+      if (!b) {
+        const ab = document.querySelector('button[aria-label="Abrir menu"]'); if (ab) { ab.click(); await w(400); }
+        const m = document.querySelector('button[aria-label="Mostrar mais opções"]'); if (m) { m.click(); await w(400); }
+        b = document.querySelector('button[data-view="' + v + '"]');
+      }
+      if (b) { b.click(); await w(900); } return !!b;
+    };
+    const r = {};
+    // o interruptor continua uma PÍLULA (mais largo que alto), não um disco de 44
+    await ir('ajustes');
+    const sw = document.querySelector('[role="switch"]');
+    if (sw) { const b = sw.getBoundingClientRect(); r.interruptorContinuaPilula = b.width > b.height + 8; }
+    // a célula do calendário mantém a altura que o mês precisa
+    await ir('calendario');
+    const cel = document.querySelector('button.ct-calcell');
+    if (cel) r.celulaDoCalendarioNaoEncolhe = cel.getBoundingClientRect().height >= 50;
+    // as classes de exceção que eu tinha inventado não existiam; nenhuma pode voltar sem dono
+    r.semClasseFantasma = !document.querySelector('.ct-nobump, .ct-cal-cel');
+    return r;
+  });
+  for (const [k, v] of Object.entries(semDeformar)) ok(v, 'TASK10 ' + k);
   await page.setViewportSize({ width: 1280, height: 800 });
 
   // 7) movimento reduzido: host e satélites
@@ -3246,17 +3316,6 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   if (prioAcoes.erro) ok(false, 'TASK8 prioridade ' + prioAcoes.erro);
   else for (const [k, v] of Object.entries(prioAcoes)) ok(v, 'TASK8 prioridade ' + k);
 
-  // a plataforma escolhida em Ajustes é respeitada (não é o TEC cravado no código)
-  const outraPlataforma = await page.evaluate(async () => {
-    const w = ms => new Promise(r => setTimeout(r, ms));
-    const app = document.querySelector('[data-ct-app]') && window.__ctApp;
-    window.__abriu = [];
-    window.postMessage({ type: 'ctPraticarPrioridade', disc: 'Direito Civil' }, '*');
-    await w(600);
-    return { hostAtendeAMensagem: window.__abriu.length === 1 && /https?:/.test(window.__abriu[0]) };
-  });
-  for (const [k, v] of Object.entries(outraPlataforma)) ok(v, 'TASK8 prioridade ' + k);
-
   // "Abrir a lei mais cobrada" leva ao LEGIS e deixa a volta para o Painel de Prioridade
   const voltaDaLei = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
@@ -3270,6 +3329,32 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   });
   if (voltaDaLei.erro) ok(false, 'TASK8 prioridade ' + voltaDaLei.erro);
   else for (const [k, v] of Object.entries(voltaDaLei)) ok(v, 'TASK8 prioridade ' + k);
+
+  /* A plataforma escolhida em Ajustes é respeitada — e este teste só vale se ele TROCAR
+     a plataforma. A primeira versão nunca escrevia `plataformaQuestoes`, rodava no default
+     'tec' e conferia só que "alguma URL abriu": ignorar a escolha da pessoa e mandar todo
+     mundo para o TEC passaria verde. */
+  // _load() faz JSON.parse: gravar o valor cru estoura e cai no fallback 'tec' — em silêncio
+  await page.evaluate(() => localStorage.setItem('catedra:plataformaQuestoes', JSON.stringify('qc')));
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1800);
+  const outraPlataforma = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__abriu = [];
+    window.open = (u) => { window.__abriu.push(String(u)); return null; };
+    window.postMessage({ type: 'ctPraticarPrioridade', disc: 'Direito Civil' }, '*');
+    await w(700);
+    const url = window.__abriu[0] || '';
+    return {
+      hostAtendeAMensagem: window.__abriu.length === 1 && /^https?:/.test(url),
+      respeitaAEscolhaDeAjustes: /qconcursos\.com/.test(url),
+      naoCaiNoTecPorPadrao: !/tecconcursos\.com\.br/.test(url),
+      levaADisciplinaEscolhida: /Civil/i.test(decodeURIComponent(url)),
+    };
+  });
+  for (const [k, v] of Object.entries(outraPlataforma)) ok(v, 'TASK8 prioridade ' + k);
+  await page.evaluate(() => localStorage.removeItem('catedra:plataformaQuestoes'));
+
 }
 
 /* ===== TASK 6 · CICLO: EXECUTAR E CONFIGURAR SÃO COISAS DIFERENTES =====
@@ -3293,10 +3378,22 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     r.abaExecutarSelecionada = tab('ct-cycle-tab-executar').getAttribute('aria-selected') === 'true';
     r.painelTemNome = tab('ct-cycle-tab-executar').getAttribute('aria-controls') === 'ct-cycle-panel-executar'
       && document.getElementById('ct-cycle-panel-executar').getAttribute('aria-labelledby') === 'ct-cycle-tab-executar';
-    // 2) os dados do ciclo ANTES de mexer nas abas
+    /* 2) os dados do ciclo ANTES de mexer nas abas.
+       A primeira versão comparava as chaves numa conta VAZIA: manualFixed e manualRot
+       valiam "[]" dos dois lados, então um setCyclePanel que apagasse o ciclo manual da
+       pessoa comparava "[]" com "[]" e passava verde. Agora o teste semeia conteúdo real
+       — só assim a comparação tem o que perder. */
+    const SEMENTE = {
+      'catedra:manualFixed': JSON.stringify([{ id: 'f1', up: 1, dia: 'seg', disc: 'Direito Penal' }]),
+      'catedra:manualRot': JSON.stringify([{ id: 'r1', up: 1, disc: 'Direito Civil' }]),
+      'catedra:blocks': JSON.stringify([{ id: 'b1', up: 1, disc: 'Direito Civil', kind: 'Teoria', min: 50, done: false }]),
+    };
+    for (const [k, v] of Object.entries(SEMENTE)) { try { localStorage.setItem(k, v); } catch (_) {} }
     const snap = () => JSON.stringify(['blocks','manualFixed','manualRot','cycleMode']
       .map(k => { try { return localStorage.getItem('catedra:' + k); } catch (_) { return null; } }));
     const antes = snap();
+    r.sementeTemConteudo = ['manualFixed','manualRot','blocks']
+      .every(k => (localStorage.getItem('catedra:' + k) || '').length > 20);
     // 3) troca para configurar
     tab('ct-cycle-tab-configurar').click(); await w(700);
     r.trocaMostraConfig = vis('ct-cycle-panel-configurar') && !vis('ct-cycle-panel-executar');
@@ -3453,6 +3550,42 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
    não isola não é um portão — é uma cortina. Os casos abaixo travam o isolamento pelo
    COMPORTAMENTO observável, via tests/auth-gate-fixture.html (auth.js de verdade, com
    um cliente Supabase falso que devolve "sem sessão"). */
+/* O fixture põe o app no HTML de saída, então o gate sempre encontrou um irmão para
+   isolar — e por isso passava. Na BUILD REAL o auth.js é script de <head>: quando ele
+   roda, <body> não existe, o gate nasce em <html> e o único "irmão" era o <head>. O app
+   (#dc-root) montava depois, livre: com o login na tela, Tab entrava direto na barra
+   lateral. Este teste reproduz a ordem de carga da produção. */
+{
+  await page.goto(URL0 + '/tests/auth-gate-tardio.html');
+  await page.waitForTimeout(900);
+  const tardio = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    await w(400);
+    const gate = document.getElementById('catedra-auth-gate');
+    const app = document.getElementById('app-tardio');
+    const foras = [];
+    for (let i = 0; i < 8; i++) {
+      const fs = [...document.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])')]
+        .filter(x => x.offsetParent !== null);
+      const idx = fs.indexOf(document.activeElement);
+      const prox = fs[(idx + 1) % fs.length];
+      if (prox) prox.focus();
+      if (document.activeElement !== document.body && gate && !gate.contains(document.activeElement)) {
+        foras.push((document.activeElement.textContent || '').trim().slice(0, 20));
+      }
+    }
+    return {
+      appMontouDepois: !!app,
+      appQueMontouDepoisFicaInerte: !!app && app.inert === true,
+      appQueMontouDepoisSaiDoLeitor: !!app && app.getAttribute('aria-hidden') === 'true',
+      headNaoEhMarcadoPorEngano: document.head.inert !== true,
+      rolagemTravada: document.documentElement.style.overflow === 'hidden',
+      nadaEscapaDoGate: foras.length === 0,
+    };
+  });
+  for (const [k, v] of Object.entries(tardio)) ok(v, 'GATE ' + k);
+}
+
 await page.goto(URL0 + '/tests/auth-gate-fixture.html');
 await page.waitForTimeout(1200);
 const gate = await page.evaluate(async () => {

@@ -24,15 +24,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* A largura de leitura é a mesma no produto inteiro. Quem precisa de mais (o mapa do
-   JURIS, a folha de lei) sobrescreve na própria página. */
-.wrap { max-width: var(--content-max, 1200px); margin: 0 auto; }
-
 /* ===== 2. foco visível ============================================================
    Quem navega por teclado precisa enxergar onde está. Era a regra mais repetida — e a
    mais divergente — entre os satélites. */
-:where(a, button, select, input, textarea, summary, [tabindex]):focus-visible {
-  outline: 2px solid var(--accent, #0f7a57);
+/* Escrito primeiro com :where(), que vale ZERO de especificidade — e perdia para o
+   `.search input{outline:none}` que cinco satelites ainda declaram. Medido: o campo
+   casava :focus-visible e mesmo assim computava outline-style:none. Anel de foco e um
+   piso de acessibilidade, entao aqui ele ganha de propriedade. */
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible,
+textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent, #0f7a57) !important;
   outline-offset: 2px;
 }
 
@@ -50,10 +51,17 @@ body {
 
 /* ===== 4. estados =================================================================
    Desabilitado e carregando eram desenhados de um jeito em cada módulo — ou não eram. */
+/* `[disabled]{opacity:.5}` era global e apagava o GABARITO do quiz do JURIS: ao
+   responder, a alternativa certa (verde) e a marcada errada (vermelha) sao desabilitadas
+   e pintadas por style inline — que nao declara opacity — entao caiam para 50% no exato
+   momento em que a pessoa precisa le-las. Desabilitado nem sempre e "apagado": as vezes
+   e "respondido". A opacidade fica so nos controles desta base. */
 :where(button, select, input, textarea, [role='button'])[disabled],
 :where(button, select, input, textarea, [role='button'])[aria-disabled='true'] {
-  opacity: .5;
   cursor: not-allowed;
+}
+.ct-btn[disabled], .ct-chip[disabled], .ct-btn[aria-disabled='true'], .ct-chip[aria-disabled='true'] {
+  opacity: .5;
   pointer-events: none;
 }
 [aria-busy='true'] { cursor: progress; }
@@ -116,17 +124,26 @@ body {
   background: var(--surface, #fffdf8);
   border: 1px solid var(--border, #e6e1d4);
   border-radius: var(--radius, 14px);
-  padding: var(--space-3, 16px);
+  padding: 16px;
 }
 
 /* ===== 6. alvo de toque no celular ================================================
    O ícone pode continuar pequeno; a CAIXA de toque é que precisa dar conta do polegar.
    44px é o mínimo do WCAG 2.2 (2.5.8 usa 24, mas 44 é o alvo confortável do iOS). */
 @media (max-width: 640px) {
-  :where(button, select, summary, [role='button'], [role='tab'], [role='switch']) {
-    min-height: 44px;
+  /* Inflar TODO botao era o caminho errado: a bolinha de status do modulo da area
+     (22x22, redonda) virava uma capsula de 22x44 — e aquela pagina ja tinha resolvido
+     isto do jeito certo, com ::after. O desenho fica; cresce a area que o dedo acerta. */
+  .ct-alvo { position: relative; }
+  .ct-alvo::after {
+    content: ""; position: absolute; top: 50%; left: 50%;
+    width: max(44px, 100%); height: 44px; transform: translate(-50%, -50%);
   }
-  :where(input, textarea) { min-height: 44px; font-size: 16px; }  /* 16px evita o zoom do iOS */
+  /* Campo de texto abaixo de 16px faz o iOS ampliar a pagina ao focar. Sem :where()
+     de proposito: com especificidade zero isto perdia para `.search input{font-size:14px}`
+     em 6 dos 7 satelites, e a regra prometia um efeito que nao acontecia. */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+  textarea { min-height: 44px; font-size: max(16px, var(--fs-sm, 12.5px)) !important; }
 }
 
 /* ===== 7. movimento reduzido ======================================================

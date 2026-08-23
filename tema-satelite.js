@@ -29,8 +29,7 @@
            '--ok', '--warn', '--danger', '--radius', '--r-sm', '--r-md',
            '--display', '--body', '--mono', '--heroGrad',
            '--fs-3xs', '--fs-2xs', '--fs-xs', '--fs-sm', '--fs-base', '--fs-md',
-           '--fs-lg', '--fs-xl', '--fs-2xl',
-           '--space-1', '--space-2', '--space-3', '--control-h', '--content-max'];
+           '--fs-lg', '--fs-xl', '--fs-2xl', '--control-h'];
 
   function aplicar(t) {
     if (!t) return;

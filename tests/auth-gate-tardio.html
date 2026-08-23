@@ -1,0 +1,49 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Fixture — gate com o app montando DEPOIS</title>
+<!--
+  Reproduz a ordem de carga da BUILD DE PRODUÇÃO, que o outro fixture não reproduzia:
+  o auth.js é script de <head> e roda quando <body> AINDA NÃO EXISTE. O app só aparece
+  mais tarde, criado por JS — como o #dc-root do Cátedra, que nasce depois do
+  DOMContentLoaded. O gate tem de isolar o que chega depois dele, não só o que já estava.
+-->
+<script>
+  window.__ctAuthEventos = [];
+  window.CATEDRA_SUPABASE = { url: 'https://exemplo.invalido', key: 'chave-de-teste' };
+  window.supabase = {
+    createClient: function () {
+      return {
+        auth: {
+          getSession: function () { return Promise.resolve({ data: { session: null }, error: null }); },
+          onAuthStateChange: function (cb) { window.__ctAuthCb = cb; return { data: { subscription: { unsubscribe: function () {} } } }; },
+          signInWithPassword: function () { return Promise.resolve({ data: {}, error: { message: 'fixture' } }); },
+          signUp: function () { return Promise.resolve({ data: {}, error: { message: 'fixture' } }); },
+          signInWithOtp: function () { return Promise.resolve({ data: {}, error: null }); },
+          signInWithOAuth: function () { return Promise.resolve({ data: {}, error: null }); },
+          signOut: function () { return Promise.resolve({ error: null }); },
+          getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }
+        },
+        from: function () { var e = { select: f, eq: f, maybeSingle: p, single: p, upsert: p, insert: p, update: p, delete: p };
+          function f() { return e; } function p() { return Promise.resolve({ data: null, error: null }); } return e; },
+        rpc: function () { return Promise.resolve({ data: null, error: null }); },
+        channel: function () { return { on: function () { return this; }, subscribe: function () { return this; } }; },
+        removeChannel: function () {}
+      };
+    }
+  };
+</script>
+<!-- auth.js AQUI, no <head>: é onde a build de produção o coloca -->
+<script src="../auth.js"></script>
+<body style="margin:0">
+<script>
+  // O app chega DEPOIS — como o #dc-root, montado por JS após o documento pronto.
+  setTimeout(function () {
+    var app = document.createElement('div');
+    app.id = 'app-tardio';
+    app.style.cssText = 'height:3000px;padding:24px;font:16px system-ui';
+    app.innerHTML = '<h1>Aplicação que montou depois</h1>'
+      + '<button>botão do app</button> <a href="#x">link do app</a> <input>';
+    document.body.appendChild(app);
+  }, 250);
+</script>
+</body>
