@@ -3174,7 +3174,100 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   if (!voltou.semCartao) ok(voltou.naoAbreRoteiros, 'AREA "continuar de onde parei" respeita a área');
   else ok(ponto.semeado, 'AREA (o cartão de retomada não estava na tela nesta conta)');
 
-  // devolve a suíte ao estado jurídico, que é o de todos os outros blocos
+  /* 6) CADERNO POR ÁREA — o item de maior risco desta fase, porque mexe em persistência.
+        Antes: quem estuda Direito, acumula progresso e troca para Saúde levava TUDO junto —
+        o edital de magistratura continuava sendo o edital e as revisões de Processo Civil
+        continuavam vencendo. Não havia uma única chave por área na camada de persistência.
+        A regra escolhida é a mais conservadora que existe: Direito (e "sem área") ficam nas
+        chaves HISTÓRICAS, sem sufixo — nenhum dado existente é movido ou reescrito. */
+  /* Aba PRÓPRIA para este caso. Semear com localStorage.clear() na aba compartilhada
+     não funciona: o app da carga anterior ainda está vivo e o autosave dele (debounce de
+     500 ms) grava o estado velho POR CIMA da semente, logo depois do clear. Com
+     addInitScript os valores existem antes de qualquer linha do app rodar. */
+  const areaCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const areaPg = await areaCtx.newPage();
+  await areaPg.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      if (!localStorage.getItem('catedra:areaEstudo')) {
+        localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+        // o campo é `topics` (não `topicos`): semente com o nome errado testa outra coisa
+        localStorage.setItem('catedra:edital', JSON.stringify([{ id: 'e1', up: 1, disc: 'Direito Civil', peso: 3, color: '#2563EB', topics: [{ name: 'Prescrição', done: false }] }]));
+        localStorage.setItem('catedra:reviews', JSON.stringify([{ id: 'r1', up: 1, tema: 'Prescrição', prox: '2026-09-01', intervalo: 1, facilidade: 2.5, repeticoes: 0 }]));
+        localStorage.setItem('catedra:blocks', JSON.stringify([{ id: 'b1', up: 1, disc: 'Direito Civil', kind: 'Teoria', min: 50 }]));
+        localStorage.setItem('catedra:sessions', JSON.stringify([{ id: 's1', ts: 1, disc: 'Direito Civil', min: 45 }]));
+        localStorage.setItem('catedra:prefs', JSON.stringify({ nome: 'Lana', fontScale: 'grande' }));
+      }
+    } catch (_) {}
+  });
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(2000);
+
+  const trocarArea = async (id) => {
+    return areaPg.evaluate(async (alvoId) => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      window.__catedraGoView('ajustes'); await w(1600);
+      for (let i = 0; i < 6; i++) {
+        const alvo = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === alvoId);
+        if (alvo) { alvo.click(); await w(2200); return 'ok'; }
+        const abrir = [...document.querySelectorAll('button')]
+          .find(x => /trocar de área/i.test((x.textContent || '').trim()));
+        if (abrir) { abrir.click(); await w(900); } else { await w(600); }
+      }
+      // devolve o MOTIVO: "false" nu não se conserta
+      const t = document.body.innerText || '';
+      return 'não achei o seletor · ajustes=' + /Personalização, orientação/.test(t)
+        + ' trocar=' + [...document.querySelectorAll('button')].some(x => /trocar de área/i.test((x.textContent || '').trim()))
+        + ' cards=' + document.querySelectorAll('button[data-a]').length
+        + ' área=' + (localStorage.getItem('catedra:areaEstudo') || '?')
+        + ' corpo=' + t.slice(0, 50).replace(/\n+/g, ' ');
+    }, id);
+  };
+  const lerChaves = () => areaPg.evaluate(() => {
+    const g = k => { try { return localStorage.getItem(k); } catch (_) { return null; } };
+    return { edital: g('catedra:edital'), reviews: g('catedra:reviews'),
+             blocks: g('catedra:blocks'), sessions: g('catedra:sessions'),
+             prefs: g('catedra:prefs'),
+             saudeEdital: g('catedra:edital@saude'), saudeRev: g('catedra:reviews@saude') };
+  });
+
+  const antesDaTroca = await lerChaves();
+  const foiParaSaude = await trocarArea('saude');
+  ok(foiParaSaude === 'ok', 'AREA a troca de área acontece pela interface (' + foiParaSaude + ')');
+
+  if (foiParaSaude === 'ok') {
+    const emSaude = await lerChaves();
+    ok(emSaude.edital === antesDaTroca.edital && emSaude.reviews === antesDaTroca.reviews
+       && emSaude.sessions === antesDaTroca.sessions,
+      'AREA o caderno de Direito continua intacto no armazenamento');
+    // e a TELA de Saúde não mostra o edital de magistratura
+    const naTela = await areaPg.evaluate(async () => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      window.__catedraGoView('edital'); await w(1200);
+      return { texto: (document.querySelector('main') || document.body).innerText };
+    });
+    ok(!/Direito Civil/.test(naTela.texto),
+      'AREA o edital de Direito não aparece dentro de Saúde');
+
+    const voltou = await trocarArea('juridica');
+    ok(voltou === 'ok', 'AREA dá para voltar para Direito (' + voltou + ')');
+    if (voltou === 'ok') {
+      const depois = await lerChaves();
+      ok(depois.edital === antesDaTroca.edital, 'AREA o edital volta byte a byte');
+      ok(depois.reviews === antesDaTroca.reviews, 'AREA as revisões voltam byte a byte');
+      ok(depois.sessions === antesDaTroca.sessions, 'AREA o histórico volta byte a byte');
+      ok(depois.prefs === antesDaTroca.prefs, 'AREA preferência é da pessoa, não da área');
+      const volta = await areaPg.evaluate(async () => {
+        const w = ms => new Promise(r => setTimeout(r, ms));
+        window.__catedraGoView('edital'); await w(1200);
+        return (document.querySelector('main') || document.body).innerText;
+      });
+      ok(/Direito Civil/.test(volta), 'AREA e a tela mostra o edital de volta');
+    }
+  }
+
+  await areaCtx.close();
+  // devolve a aba compartilhada ao estado jurídico, que é o de todos os outros blocos
   await page.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
 }
 
@@ -3257,10 +3350,13 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
   await page.goto(URL0 + '/Catedra.dc.html');
   await page.waitForTimeout(1600);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1900);
   const sw = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
     // Ajustes vive atrás de "Mais opções" desde a TASK5: abrir o expansor faz parte do caminho
-    const ir = async (v) => {
+    const ir = async (v) => {   // (a página já foi recarregada em desktop logo acima)
       let b = document.querySelector('button[data-view="' + v + '"]');
       if (!b) {
         const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
