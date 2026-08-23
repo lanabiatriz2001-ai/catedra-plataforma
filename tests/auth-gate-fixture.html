@@ -1,0 +1,54 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Fixture — gate de autenticação</title>
+<!--
+  Carrega o auth.js DE VERDADE com um Supabase falso, e põe um app atrás do gate.
+
+  Por que um fixture em vez de testar na página real: o gate só aparece na build de
+  produção (o Catedra.dc.html não injeta o auth.js), e ele depende de uma sessão do
+  Supabase. Aqui a dependência é substituída por um cliente falso que devolve "sem
+  sessão", que é o estado em que o gate precisa isolar o app.
+-->
+<body style="margin:0">
+  <!-- o app que o gate tem de proteger: precisa ficar inerte e fora do leitor de tela -->
+  <div id="app" style="height:4000px;padding:24px;font:16px system-ui;">
+    <h1>Aplicação protegida</h1>
+    <button id="botao-do-app">botão do app</button>
+    <a href="#x" id="link-do-app">link do app</a>
+    <input id="campo-do-app">
+    <div style="height:3600px"></div>
+    <p id="fim-do-app">fim do app</p>
+  </div>
+
+<script>
+  // ---- Supabase falso: sem sessão, e com os métodos que o auth.js toca ----
+  window.__ctAuthEventos = [];
+  window.CATEDRA_SUPABASE = { url: 'https://exemplo.invalido', key: 'chave-de-teste' };
+  window.supabase = {
+    createClient: function () {
+      return {
+        auth: {
+          getSession: function () { return Promise.resolve({ data: { session: null }, error: null }); },
+          onAuthStateChange: function (cb) { window.__ctAuthCb = cb; return { data: { subscription: { unsubscribe: function () {} } } }; },
+          signInWithPassword: function (a) { window.__ctAuthEventos.push(['signInWithPassword', a]); return Promise.resolve({ data: {}, error: { message: 'fixture' } }); },
+          signUp: function (a) { window.__ctAuthEventos.push(['signUp', a]); return Promise.resolve({ data: {}, error: { message: 'fixture' } }); },
+          signInWithOtp: function (a) { window.__ctAuthEventos.push(['signInWithOtp', a]); return Promise.resolve({ data: {}, error: null }); },
+          signInWithOAuth: function (a) { window.__ctAuthEventos.push(['signInWithOAuth', a]); return Promise.resolve({ data: {}, error: null }); },
+          signOut: function () { return Promise.resolve({ error: null }); },
+          getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }
+        },
+        from: function () {
+          var enc = { select: enc0, eq: enc0, maybeSingle: fim, single: fim, upsert: fim, insert: fim, update: fim, delete: fim };
+          function enc0() { return enc; }
+          function fim() { return Promise.resolve({ data: null, error: null }); }
+          return enc;
+        },
+        rpc: function () { return Promise.resolve({ data: null, error: null }); },
+        channel: function () { return { on: function () { return this; }, subscribe: function () { return this; } }; },
+        removeChannel: function () {}
+      };
+    }
+  };
+</script>
+<script src="../auth.js"></script>
+</body>
