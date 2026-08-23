@@ -5665,6 +5665,10 @@ class Component extends DCLogic {
 
         const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); });
         t.__dark=!!this.state.darkMode;      // o satélite usa isto para o color-scheme nativo
+        // e o CONTEXTO, pelo mesmo canal: área ativa e o vocabulário dela
+        t.__area=this.state.areaEstudo||'';
+        try{ const R=window.CT_AREA_REG, d=R&&R.definicao(t.__area||'juridica');
+          t.__areaRotulo=(d&&d.rotulo)||''; t.__termos=(d&&d.termos)||null; }catch(_){}
         return t;
       }catch(_){ return null; }
     };
@@ -6355,13 +6359,23 @@ class Component extends DCLogic {
   /** Os mesmos dados, em querystring — usados só na PRIMEIRA carga (e em deep-link). */
   _frameExtras(dono, base){
     const sep=base.indexOf('?')>=0?'&':'?';
+    /* CONTEXTO DE ÁREA PARA TODO SATÉLITE.
+       Só dois dos sete sabiam em que área estavam (area-web e legis-web, por ?area=).
+       Os outros cinco recebiam src fixo e não tinham como saber — então nomeavam tudo
+       com o vocabulário jurídico, mesmo quando abertos por quem estuda outra coisa.
+       Agora a área viaja para todos: quem já a lê, usa; quem ainda não lê, ignora sem
+       quebrar — e a ponte fica pronta para quando ler. */
+    const _a=this.state.areaEstudo||'';
+    const _area=_a?('area='+encodeURIComponent(_a)):'';
     if(dono==='legis'||dono==='juris'){
       const q=[(this.state.acervoBusca||'').trim()?('q='+encodeURIComponent(this.state.acervoBusca.trim())):'',
-               this.state.acervoDe?'volta=1':''].filter(Boolean).join('&');
+               this.state.acervoDe?'volta=1':'',
+               (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
       return q?(sep+q):'';
     }
     const abrir=this.state.origemAbrir||'';
-    return abrir?(sep+abrir):'';
+    const q=[abrir, (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
+    return q?(sep+q):'';
   }
   /** Com o iframe VIVO, o mesmo conteúdo vai por mensagem — sem recarregar a página. */
   _frameMensagem(f, dono){
@@ -10342,6 +10356,8 @@ class Component extends DCLogic {
        está aberto no namespace ANTIGO, depois troca de área, e só então recarrega tudo
        do namespace NOVO. Nada é movido; cada caderno fica onde estava. */
     this._salvarAgora();                       // fecha o caderno atual antes de virar a página
+    // o índice da busca é da ÁREA: mantê-lo faria a paleta continuar oferecendo súmula
+    this._palIndice=null; this._palCarregando=false;
     this.setState(patch, ()=>{
       const recarregado={};
       this._autosaveKeys().forEach(k=>{
@@ -10738,20 +10754,29 @@ class Component extends DCLogic {
   _palMontar(){
     if(this._palIndice || this._palCarregando) return;
     this._palCarregando=true;
+    /* A busca só oferece o que a área ATIVA pode abrir. Sem isto, digitar "prescrição"
+       em Saúde devolvia súmula do STJ e roteiro de petição — e clicar levava a uma tela
+       que o guarda de rota barra. Buscar o que não se pode abrir é pior que não achar:
+       promete uma porta e mostra um muro. E cada acervo aqui pesa (o juris-index tem
+       2,4 MB), então nem carregar faz sentido. */
+    const _quer = (v)=>this._podeAbrir(v);
     const precisa=[];
-    if(!window.CT_LEIS_CAT) precisa.push('leis-catalogo.js');
-    if(!window.__JURIS_IDX__) precisa.push('juris-index.js');
-    if(!window.CT_PECAS) precisa.push('pecas.js');
-    if(!window.CT_RITOS) precisa.push('ritos.js');
-    if(!window.CT_FLUXOS) precisa.push('fluxos.js');   // há rito que só existe aqui (ex.: procedimento sumário)
+    if(_quer('legis') && !window.CT_LEIS_CAT) precisa.push('leis-catalogo.js');
+    if(_quer('juris') && !window.__JURIS_IDX__) precisa.push('juris-index.js');
+    if(_quer('roteiros')){
+      if(!window.CT_PECAS) precisa.push('pecas.js');
+      if(!window.CT_RITOS) precisa.push('ritos.js');
+      if(!window.CT_FLUXOS) precisa.push('fluxos.js');   // há rito que só existe aqui (ex.: procedimento sumário)
+    }
     // cada fonte que falhar simplesmente não entra no índice (o resto continua buscável)
     Promise.all(precisa.map(f=>this._palScript(f).catch(()=>null))).then(()=>{
       try{
         this._palIndice=(window.CT_BUSCA||{}).indexar ? window.CT_BUSCA.indexar({
-          leis:window.CT_LEIS_CAT, verbetes:window.__JURIS_IDX__,
-          pecas:window.CT_PECAS,
+          leis:(_quer('legis') ? window.CT_LEIS_CAT : []),
+          verbetes:(_quer('juris') ? window.__JURIS_IDX__ : []),
+          pecas:(_quer('roteiros') ? window.CT_PECAS : {}),
           // o ritos-web.html aceita a UNIÃO dos dois: indexar só CT_RITOS deixava rito inalcançável
-          ritos:Object.assign({}, window.CT_FLUXOS||{}, window.CT_RITOS||{}) }) : [];
+          ritos:(_quer('roteiros') ? Object.assign({}, window.CT_FLUXOS||{}, window.CT_RITOS||{}) : {}) }) : [];
       }catch(_){ this._palIndice=[]; }
       this._palCarregando=false;
       this.setState({palBuscaPronta:true});

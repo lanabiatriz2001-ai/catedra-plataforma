@@ -3266,6 +3266,70 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     }
   }
 
+  /* 7) A BUSCA só oferece o que a área pode abrir. Buscar o que não se pode abrir é
+        pior que não achar: promete uma porta e mostra um muro. E o juris-index pesa
+        2,4 MB — nem carregar faz sentido fora das carreiras jurídicas. */
+  const buscaPorArea = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const abrirPaleta = async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
+      await w(600);
+      return document.querySelector('input[aria-label="Buscar em toda a plataforma"]');
+    };
+    const buscar = async (termo) => {
+      const i = await abrirPaleta(); if (!i) return null;
+      i.value = termo; i.dispatchEvent(new Event('input', { bubbles: true })); await w(1400);
+      const t = document.body.innerText;
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(400);
+      return t;
+    };
+    const r = {};
+    // em Direito, a jurisprudência aparece
+    const emDireito = await buscar('súmula');
+    r.direitoAchaSumula = /súmula/i.test(emDireito || '');
+    return r;
+  });
+  for (const [k, v] of Object.entries(buscaPorArea)) ok(v, 'AREA busca ' + k);
+
+  /* A medição em Saúde tem de acontecer numa ABA NOVA: o juris-index.js já foi baixado
+     enquanto a aba estava em Direito, e script carregado não se descarrega. Perguntar
+     "carregou?" na mesma aba mediria o passado, não a regra. */
+  const saudeCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const saudePg = await saudeCtx.newPage();
+  await saudePg.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+    } catch (_) {}
+  });
+  await saudePg.goto(URL0 + '/Catedra.dc.html');
+  await saudePg.waitForTimeout(1900);
+  const emSaude = await saudePg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
+    await w(700);
+    const i = document.querySelector('input[aria-label="Buscar em toda a plataforma"]');
+    if (!i) return { semPaleta: true };
+    i.value = 'súmula'; i.dispatchEvent(new Event('input', { bubbles: true })); await w(1800);
+    return { texto: document.body.innerText, carregouJuris: !!window.__JURIS_IDX__,
+             carregouPecas: !!window.CT_PECAS };
+  });
+  if (!emSaude.semPaleta) {
+    ok(!/Súmula \d/.test(emSaude.texto), 'AREA busca não devolve súmula em Saúde');
+    ok(!emSaude.carregouJuris, 'AREA busca nem baixa o acervo de jurisprudência fora das jurídicas (2,4 MB)');
+    ok(!emSaude.carregouPecas, 'AREA busca nem baixa o catálogo de peças fora das jurídicas');
+  }
+  await saudeCtx.close();
+
+  // 8) todo satélite recebe a área — cinco dos sete não tinham como saber onde estavam
+  const contextoSat = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('legis'); await w(2200);
+    const f = document.querySelector('iframe[data-ct-view="legis"]');
+    return { legisRecebeArea: !!f && /area=/.test(f.getAttribute('src') || '') };
+  });
+  for (const [k, v] of Object.entries(contextoSat)) ok(v, 'AREA ' + k);
+
   await areaCtx.close();
   // devolve a aba compartilhada ao estado jurídico, que é o de todos os outros blocos
   await page.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
