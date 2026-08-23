@@ -3054,6 +3054,130 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+/* ===== ÁREA GOVERNA A PLATAFORMA (Fase 2 do guia de refatoração) =====
+   A troca de área era cosmética. Havia TRÊS guardas diferentes (isJuridica, areaJuris,
+   temAreaMod), e todas só no MENU: a view continuava aberta pelo "continuar de onde
+   parei", pelo window.__catedraGoView e por deep link. Quem estuda Enfermagem reabria a
+   tela de peças processuais sem nunca ter pedido. Agora quem responde é area-registry.js,
+   e a resposta vale para toda entrada. */
+{
+  // 1) o registro é uma tabela honesta, não um if espalhado
+  const reg = await page.evaluate(async (b) => {
+    const src = await (await fetch(b + '/area-registry.js')).text();
+    const ctx = {};
+    new Function('window', src)(ctx);
+    const R = ctx.CT_AREA_REG;
+    const JUR = ['juridica', 'policial', 'fiscal', 'contas', 'administrativa'];
+    const NAO = ['saude', 'social', 'educacao', 'tecnologia', 'militar', 'outra'];
+    return {
+      // jurisprudência é acervo de tribunal: só quem tem carreira jurídica
+      jurisSoNasJuridicas: JUR.every(a => R.podeAbrir(a, 'juris')) && NAO.every(a => !R.podeAbrir(a, 'juris')),
+      // peças, 2ª fase, oral e o ranking de incidência são de magistratura
+      pecasSoEmJuridica: R.podeAbrir('juridica', 'roteiros')
+        && ['policial', 'saude', 'social', 'outra'].every(a => !R.podeAbrir(a, 'roteiros')),
+      oralSoEmJuridica: R.podeAbrir('juridica', 'oral') && !R.podeAbrir('saude', 'oral'),
+      // o que é universal continua universal em TODAS as onze
+      cicloEmTodas: [...JUR, ...NAO].every(a => R.podeAbrir(a, 'ciclo') && R.podeAbrir(a, 'revisoes')),
+      editalEmTodas: [...JUR, ...NAO].every(a => R.podeAbrir(a, 'edital')),
+      // "sem área" NÃO pode virar Direito por omissão
+      areaDesconhecidaNaoLiberaNada: !R.podeAbrir('inexistente', 'juris') && !R.podeAbrir('', 'roteiros'),
+      // e a área diz o que ainda não tem, em português
+      dizOQueEstaEmPreparo: R.emPreparo('saude').length > 0 && R.emPreparo('juridica').length === 0,
+      termoDaArea: R.termo('saude', 'fontePlural') === 'diretrizes' && R.termo('juridica', 'fontePlural') === 'leis',
+    };
+  }, URL0);
+  for (const [k, v] of Object.entries(reg)) ok(v, 'AREA ' + k);
+
+  // 2) o menu segue a capacidade — e Jurídica não perde NADA
+  const ACERVO = ['legis', 'juris', 'areamod', 'roteiros', 'segundafase', 'redacao', 'oral',
+                  'prioridade', 'simulados', 'edital', 'bancas'];
+  const menus = {};
+  for (const area of ['juridica', 'saude', 'outra']) {
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate((a) => {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify(a));
+    }, area);
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(1700);
+    menus[area] = await page.evaluate(async (acervo) => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      const m = document.querySelector('button[aria-label="Mostrar mais opções"]');
+      if (m) { m.click(); await w(350); }
+      return [...document.querySelectorAll('aside button[data-view]')]
+        .map(b => b.dataset.view).filter(v => acervo.includes(v));
+    }, ACERVO);
+  }
+  ok(ACERVO.every(v => menus.juridica.includes(v)),
+    'AREA jurídica continua com todas as telas (' + menus.juridica.length + '/' + ACERVO.length + ')');
+  ok(!menus.saude.includes('juris') && !menus.saude.includes('roteiros') && !menus.saude.includes('oral'),
+    'AREA saúde não recebe tela jurídica no menu (' + menus.saude.join(',') + ')');
+  ok(menus.saude.includes('legis') && menus.saude.includes('areamod') && menus.saude.includes('edital'),
+    'AREA saúde mantém o que é dela (' + menus.saude.join(',') + ')');
+  ok(menus.outra.includes('edital') && !menus.outra.includes('legis'),
+    'AREA "outra" fica só com o universal (' + menus.outra.join(',') + ')');
+
+  /* 3) O CORAÇÃO: a guarda vale para toda ENTRADA, não só para o botão. Este é o teste
+        que o app não tinha — e é por isso que o vazamento durou tanto. */
+  const guarda = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const r = {};
+    const tentar = async (v) => {
+      window.__catedraGoView(v); await w(700);
+      const t = document.body.innerText;
+      return { barrou: /não faz parte de/i.test(t), explica: t.length > 200 };
+    };
+    // saúde está ativa: nenhuma destas pode abrir
+    for (const v of ['juris', 'roteiros', 'oral', 'prioridade', 'segundafase']) {
+      const x = await tentar(v);
+      r['barra_' + v] = x.barrou;
+    }
+    // e o que é dela abre normalmente
+    window.__catedraGoView('ciclo'); await w(700);
+    r.ciclo_abre = !/não faz parte de/i.test(document.body.innerText);
+    return r;
+  });
+  for (const [k, v] of Object.entries(guarda)) ok(v, 'AREA guarda ' + k);
+
+  // 4) a tela barrada EXPLICA e oferece saída — não é um redirecionamento mudo
+  const explica = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('juris'); await w(700);
+    const t = document.body.innerText;
+    return {
+      dizQualTela: /Jurisprudência · CátedraJURIS/i.test(t),
+      dizPorQue: /acervo de jurisprudência é de tribunal/i.test(t),
+      dizOQueVem: /Em preparo/i.test(t),
+      ofereceSaida: [...document.querySelectorAll('button[data-view]')]
+        .some(b => /Voltar ao meu painel/i.test(b.textContent))
+        && [...document.querySelectorAll('button[data-view]')].some(b => /Trocar de área/i.test(b.textContent)),
+      semJargao: !/undefined|null|\.json|bundle/i.test(t),
+    };
+  });
+  for (const [k, v] of Object.entries(explica)) ok(v, 'AREA tela barrada ' + k);
+
+  // 5) "continuar de onde parei" não pode ressuscitar tela de outra área
+  const ponto = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    localStorage.setItem('catedra:lastPonto', JSON.stringify({ view: 'roteiros', ts: Date.now(), rotulo: 'Roteiros' }));
+    return { semeado: true };
+  });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1800);
+  const voltou = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const b = [...document.querySelectorAll('button')].find(x => /continuar|voltar ao ponto|retomar/i.test(x.textContent || ''));
+    if (!b) return { semCartao: true };
+    b.click(); await w(800);
+    return { naoAbreRoteiros: /não faz parte de/i.test(document.body.innerText) };
+  });
+  if (!voltou.semCartao) ok(voltou.naoAbreRoteiros, 'AREA "continuar de onde parei" respeita a área');
+  else ok(ponto.semeado, 'AREA (o cartão de retomada não estava na tela nesta conta)');
+
+  // devolve a suíte ao estado jurídico, que é o de todos os outros blocos
+  await page.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
+}
+
 /* ===== TASK 10 · PENTE-FINO DE ACESSIBILIDADE =====
    Coisas que não aparecem em captura de tela: nome de campo, estado de interruptor,
    contraste medido, zoom bloqueado, alvo de toque, movimento reduzido. */
