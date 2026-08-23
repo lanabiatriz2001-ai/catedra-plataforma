@@ -2854,6 +2854,57 @@ const d14barra = await page.evaluate(() => {
 });
 for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
 
+/* ===== TASK 4 · A ESCOLHA DO ONBOARDING É EXPLÍCITA =====
+   O passo "Por onde quer começar?" abria sem nada selecionado: apertar Continuar caía num
+   fallback silencioso, e a tela não dizia o que ia acontecer. E o modal aparecia POR CIMA
+   do login, os dois disputando a atenção. */
+{
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.clear(); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1500);
+  const semLogin = await page.evaluate(() => ({
+    // sem sessão, a tela de entrada manda: o onboarding espera a vez
+    onboardingNaoCompeteComOLogin: !document.querySelector('[role="radiogroup"][aria-label="Por onde quer começar"]')
+      && !/Bem-vindo à Cátedra/.test(document.body.innerText || ''),
+  }));
+  for (const [k, v] of Object.entries(semLogin)) ok(v, 'TASK4 ' + k);
+
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.removeItem('catedra:onboarded'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const onb = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const avancar = async (n) => { for (let i = 0; i < n; i++) {
+      const b = [...document.querySelectorAll('button')].find(x => /Começar|Continuar/.test((x.textContent || '').trim()) && x.offsetParent !== null);
+      if (b) { b.click(); await w(350); } } };
+    await avancar(2);
+    const grupo = document.querySelector('[role="radiogroup"][aria-label="Por onde quer começar"]');
+    if (!grupo) return { erro: 'não cheguei ao passo da escolha' };
+    const cards = [...grupo.querySelectorAll('[role="radio"]')];
+    const marcado = cards.filter(c => c.getAttribute('aria-checked') === 'true');
+    return {
+      grupoTemPapel: true,
+      tresOpcoesComPapel: cards.length === 3,
+      umaSoMarcada: marcado.length === 1,
+      oRecomendadoVemMarcado: marcado.length === 1 && marcado[0].getAttribute('data-c') === 'ciclo',
+      // /i porque o rótulo é uppercase por CSS e o innerText devolve RECOMENDADO
+      seloRecomendadoVisivel: /recomendado/i.test(grupo.innerText || ''),
+      // escolher outro move a marca, e a marca não é só cor. Precisa esperar o re-render:
+      // ler aria-checked no mesmo tique devolve o valor antigo.
+      trocaDeEscolha: await (async () => {
+        cards.find(c => c.getAttribute('data-c') === 'edital').click();
+        await w(400);
+        const g2 = document.querySelector('[role="radiogroup"][aria-label="Por onde quer começar"]');
+        const q = (c) => g2.querySelector('[data-c="' + c + '"]').getAttribute('aria-checked');
+        return q('edital') === 'true' && q('ciclo') === 'false';
+      })(),
+    };
+  });
+  if (onb.erro) ok(false, 'TASK4 ' + onb.erro);
+  else for (const [k, v] of Object.entries(onb)) ok(v, 'TASK4 ' + k);
+}
+
 /* ===== TASK 3 · UMA ÚNICA PRÓXIMA AÇÃO NO INÍCIO =====
    O Início oferecia quatro KPIs, chips de área, ritmo semanal, "o dia em campo" e um "Foco
    sugerido" — todos disputando a mesma decisão. Agora há UM card, derivado do que já se
