@@ -2540,6 +2540,25 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+        <!-- O QUE VOCÊ VEIO FAZER AQUI. Os três nomes acima são acervos; estes são atos.
+             Some depois da escolha — os filtros detalhados continuam logo abaixo. -->
+        <sc-if value="{{ oralSemIntencao }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;">
+          <button data-i="treinar" onclick="{{ oralIntencao }}" style="text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 22px rgba(16,24,40,.06);">
+            <span style="display:block;font-weight:700;color:var(--ink);font-size:var(--fs-lg);">Treinar arguição agora</span>
+            <span style="display:block;font-size:var(--fs-sm);color:var(--text3);margin-top:5px;line-height:1.5;">A banca pergunta, o relógio corre e você responde de viva voz. O padrão de resposta só aparece no fim.</span>
+          </button>
+          <button data-i="responder" onclick="{{ oralIntencao }}" style="text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 22px rgba(16,24,40,.06);">
+            <span style="display:block;font-weight:700;color:var(--ink);font-size:var(--fs-lg);">Responder questão de banca</span>
+            <span style="display:block;font-size:var(--fs-sm);color:var(--text3);margin-top:5px;line-height:1.5;">Uma pergunta que a banca fez de verdade, sem cronômetro, com o padrão de resposta ao lado para conferir.</span>
+          </button>
+          <button data-i="consultar" onclick="{{ oralIntencao }}" style="text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 22px rgba(16,24,40,.06);">
+            <span style="display:block;font-weight:700;color:var(--ink);font-size:var(--fs-lg);">Consultar concursos e documentos</span>
+            <span style="display:block;font-size:var(--fs-sm);color:var(--text3);margin-top:5px;line-height:1.5;">Pontos sorteáveis, editais e critérios de cada concurso — para ler, não para treinar.</span>
+          </button>
+        </div>
+        </sc-if>
+
         <sc-if value="{{ oralErro }}" hint-placeholder-val="{{ false }}">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;color:var(--danger);font-size:var(--fs-base);">{{ oralErro }}</div>
         </sc-if>
@@ -2763,9 +2782,9 @@ window.ctPdfLib = (function(){
             </sc-if>
           </sc-if>
           <sc-if value="{{ !oralTemSel }}" hint-placeholder-val="{{ true }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <div id="ct-oral-consulta" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                <input value="{{ oralBancaQ }}" oninput="{{ onOralBancaQ }}" placeholder="Buscar órgão, cargo, concurso…" style="flex:1;min-width:200px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
+                <input value="{{ oralBancaQ }}" oninput="{{ onOralBancaQ }}" aria-label="Buscar concurso por órgão, cargo ou banca" placeholder="Buscar órgão, cargo, concurso…" style="flex:1;min-width:200px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">
                 <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralBancaCarrOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralBancaCarr }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ oralBancaBancaOpts }}" as="o" hint-placeholder-count="6"><button data-v="{{ o.v }}" onclick="{{ setOralBancaBanca }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
                 <button onclick="{{ toggleOralOuro }}" style="border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:600;cursor:pointer;font-family:inherit;">{{ oralOuroLabel }}</button>
@@ -5461,7 +5480,7 @@ class Component extends DCLogic {
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
       sjAberto:false, sjPronto:false, sjRamo:'', sjN:30, sjProvaN:5, sjItens:[], sjResp:{}, sjAtual:0, sjFim:false, sjIni:0,
       sjRamos:[], sjLeis:[], sjPctLei:40, sjRel:null,   // simulado misto: várias disciplinas, juris + lei seca
-      oralModo:'juris', oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
+      oralModo:'juris', oralIntencao:'', oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
       oralPergunta:'', oralResposta:'', oralCorrecao:null, oralHist:[],
       oralBancasPronto:false, oralBancaCarr:'', oralBancaBanca:'', oralBancaQ:'', oralBancaSoOuro:true, oralBancaSel:null,
       // lei seca: artigo sorteado das 14 leis embutidas (leis-seca.js)
@@ -5621,6 +5640,15 @@ class Component extends DCLogic {
     // troca e o termo viaja no ?q= do iframe (ver ctBuscaInicial no legis/juris-web).
     this._acervoMsg = (e)=>{
       if(!e||!e.data) return;
+      // O ranking de prioridade dizia o que estudar e parava aí. Este é o atalho para
+      // AGIR: sai para a plataforma de questões que a pessoa escolheu em Ajustes, com a
+      // disciplina já no filtro. Nada do conteúdo dessas plataformas entra aqui, e
+      // nenhuma credencial sai daqui — é só um link de saída.
+      if(e.data.type==='ctPraticarPrioridade'){
+        const d=String(e.data.disc||'').slice(0,120);
+        if(d) this._abrirPratica({disciplina:d, assunto:''});
+        return;
+      }
       if(e.data.type==='ctAbrirAcervo'){
         const alvo=e.data.alvo==='juris'?'juris':'legis';
         // Guarda o PONTO DE ORIGEM (view + rito/peça/bloco) para a pílula "voltar"
@@ -8210,6 +8238,7 @@ class Component extends DCLogic {
       argVozLabel:(st.argVoz?'🔊 voz ligada':'🔈 ligar voz'),
       argResumo:_argResumo, argTemPool:(this._argPool().length>=3),
       iniciarArguicao:this.iniciarArguicao, argResponder:this.argResponder, argAvaliar:this.argAvaliar,
+      oralIntencao:this.oralIntencao, oralSemIntencao:!st.oralIntencao,
       argEncerrar:this.argEncerrar, argMaisTempo:this.argMaisTempo, setArgMin:this.setArgMin, argVozToggle:this.argVozToggle,
       oralBancasPronto:st.oralBancasPronto,
       oralBancaCarrOpts:_chipz([{v:'',label:'Todas as carreiras'}].concat([...new Set(CO.map(x=>x.subarea).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaCarr===o.v}))),
@@ -8500,6 +8529,27 @@ class Component extends DCLogic {
     }catch(_){}
   };
   novoSj = ()=> this.setState({sjItens:[], sjResp:{}, sjFim:false, sjAtual:0});
+  /* A tela da Prova oral abria com três nomes de ACERVO ("Jurisprudência", "Lei seca",
+     "Bancas reais") e um paredão de filtros — quem chegava tinha de saber de que acervo
+     vinha o que queria fazer. Estas são as três coisas que se faz aqui, ditas como intenção.
+     Nenhuma delas inventa tela nova: todas caem em handler que já existia. */
+  _oralPromBancas(){
+    if(this.state.oralBancasPronto && this.state.oralQPronto) return Promise.resolve();
+    return this._treino().then(T=>Promise.all([T.acervoOral(), T.acervoOralQ()]))
+      .then(()=>this.setState({oralBancasPronto:true, oralQPronto:true, oralErro:''}))
+      .catch(()=>{ this.setState({oralErro:'Não consegui carregar o acervo de provas orais.'}); throw new Error('acervo'); });
+  }
+  oralIntencao = (e)=>{
+    const i=e.currentTarget.dataset.i;
+    this.setState({oralIntencao:i, oralModo:'bancas', oralCorrecao:null});
+    this._oralPromBancas().then(()=>{
+      // treinar = modo arguição, que já tem relógio, +1 min, voz e autoavaliação; não se
+      // cria outro cronômetro aqui. responder = a pergunta escrita com padrão de resposta.
+      if(i==='treinar') this.iniciarArguicao();
+      else if(i==='responder') this.sortearPerguntaBanca();
+      else setTimeout(()=>{ const el=document.getElementById('ct-oral-consulta'); if(el) el.scrollIntoView({block:'start', behavior:'smooth'}); }, 60);
+    }).catch(()=>{});
+  };
   setOralModo = (e)=>{ const m=e.currentTarget.getAttribute('data-m'); this.setState({oralModo:m, oralCorrecao:null});
     if(m==='bancas'){ this._oralCarregarBancas(); this._oralCarregarQ(); } else if(m==='lei') this._oralCarregarLeis(); else this._oralCarregarAcervo(); };
   _oralCarregarAcervo(){

@@ -79,6 +79,14 @@ button,select{font-family:inherit}
 .det{display:none;margin-top:13px;padding-top:13px;border-top:1px dashed var(--border)}
 .linha.on .det{display:block}
 .dh{margin:0 0 8px}
+/* as duas saídas de estudo da disciplina, antes da lista de dispositivos: o ranking
+   dizia o que estudar e não dava por onde começar */
+.acoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.acoes .ac{cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--ink);
+  border-radius:10px;padding:9px 14px;font:600 12.5px inherit;min-height:38px;text-align:left}
+.acoes .ac-1{background:var(--accent);border-color:var(--accent);color:var(--onAccent)}
+.acoes .ac:hover{border-color:var(--accent)}
+.acoes .ac-1:hover{filter:brightness(1.06)}
 .arts{display:flex;flex-wrap:wrap;gap:6px}
 .arts button{cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--ink);
   border-radius:10px;padding:6px 11px;font-size:12px;text-align:left;line-height:1.35}
@@ -101,6 +109,7 @@ button,select{font-family:inherit}
   .brand{flex:1 1 100%;min-width:0}
   .lh{min-height:44px}
   .arts button{min-height:44px;display:flex;flex-direction:column;justify-content:center}
+  .acoes .ac{min-height:44px;flex:1 1 100%}
   .linha{padding:11px 13px}
 }
 </style>
@@ -158,6 +167,13 @@ function abrirAcervo(termo, disc){
     origem:{view:'prioridade', disc, rotulo:'Painel de prioridade · '+disc}}, '*'); }catch(e){}
 }
 
+/* O ranking dizia o que estudar e parava aí. O host recebe isto e abre a plataforma de
+   questões escolhida em Ajustes, com a disciplina no filtro — só link de saída: nenhum
+   conteúdo dessas plataformas entra no Cátedra, nenhuma credencial sai daqui. */
+function praticar(disc){
+  try{ window.parent.postMessage({type:'ctPraticarPrioridade', disc}, '*'); }catch(e){}
+}
+
 function score(l, fonte){
   return fonte==='julgado' ? l.scoreJulgado : fonte==='misto' ? l.scoreMisto : l.scoreProva;
 }
@@ -211,6 +227,11 @@ function pinta(){
         +'<span>erro ajustado <b>'+pct(l.erroAjustado)+'</b></span>'
       +'</div>'
       +'<div class="det" id="det'+i+'">'
+        +'<div class="acoes">'
+          +'<button class="ac ac-1" data-praticar="'+esc(l.disc)+'">Resolver questões de '+esc(l.disc)+'</button>'
+          +(l.artigos.length?'<button class="ac" data-lei="'+esc(l.artigos[0].dip+', art. '+l.artigos[0].art)+'">Abrir a lei mais cobrada · '
+            +esc(l.artigos[0].dip.replace(/^Código /,'C. ').replace(/^Lei d[eoa] /,''))+' art. '+esc(l.artigos[0].art)+'</button>':'')
+        +'</div>'
         +(l.diplomas.length?'<p class="dh rot-forte">Diplomas cobrados</p><div class="dips">'
           +l.diplomas.map(d=>'<span>'+esc(d.nome)+'<i>'+d.n+'</i></span>').join('')+'</div>':'')
         +(l.artigos.length?'<p class="dh rot-forte">Dispositivos mais cobrados — clique para abrir a lei seca</p>'
@@ -231,6 +252,10 @@ function pinta(){
       abertos[d]=!abertos[d]; a.classList.toggle('on', !!abertos[d]);
       h.setAttribute('aria-expanded', abertos[d]?'true':'false'); };
   });
+  document.querySelectorAll('.acoes [data-praticar]').forEach(b=>{
+    b.onclick=()=>praticar(b.dataset.praticar); });
+  document.querySelectorAll('.acoes [data-lei]').forEach(b=>{
+    b.onclick=()=>abrirAcervo(b.dataset.lei, b.closest('.linha').dataset.d); });
   document.querySelectorAll('.arts button').forEach(b=>{
     b.onclick=()=>abrirAcervo(b.dataset.t, b.closest('.linha').dataset.d);
   });
