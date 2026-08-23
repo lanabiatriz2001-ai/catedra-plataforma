@@ -2947,6 +2947,98 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+/* ===== TASK 8 · PROVA ORAL E PRIORIDADE VIRAM AÇÃO =====
+   A Prova oral abria com nomes de ACERVO e um paredão de filtros; o ranking de Prioridade
+   dizia o que estudar e parava aí. Agora as duas telas oferecem o próximo passo. */
+{
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+
+  const oral = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    document.querySelector('button[data-view="oral"]').click(); await w(900);
+    const cards = [...document.querySelectorAll('button[data-i]')];
+    const r = {
+      tresIntencoes: cards.length === 3,
+      // o rótulo diz o ATO, não o acervo de onde vem
+      dizemOAto: /treinar argui/i.test(cards.map(c => c.textContent).join(' '))
+        && /responder quest/i.test(cards.map(c => c.textContent).join(' '))
+        && /consultar concursos/i.test(cards.map(c => c.textContent).join(' ')),
+      // a diferença entre as três está escrita, não subentendida
+      explicaADiferenca: cards.every(c => (c.textContent || '').length > 90),
+      // os cards vêm ANTES dos filtros detalhados
+      antesDosFiltros: (() => {
+        const f = document.querySelector('button[data-v]');
+        return !!f && !!(cards[0].compareDocumentPosition(f) & Node.DOCUMENT_POSITION_FOLLOWING);
+      })(),
+    };
+    // "Treinar arguição" cai no modo arguição que já existia — com relógio e sem cronômetro novo
+    cards.find(c => c.dataset.i === 'treinar').click(); await w(3500);
+    r.treinarAbreArguicao = /\d+:\d\d/.test(document.body.innerText) && !document.querySelector('button[data-i]');
+    r.umCronometroSo = (document.body.innerText.match(/\b\d{1,2}:\d{2}\b/g) || []).length <= 3;
+    return r;
+  });
+  for (const [k, v] of Object.entries(oral)) ok(v, 'TASK8 oral ' + k);
+
+  // --- Prioridade: as duas saídas de estudo ---
+  const prioAcoes = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__abriu = [];
+    window.open = (u) => { window.__abriu.push(String(u)); return null; };
+    document.querySelector('button[data-view="prioridade"]').click(); await w(2200);
+    const f = document.querySelector('iframe[data-ct-view="prioridade"]');
+    if (!f || !f.contentDocument) return { erro: 'iframe de prioridade não abriu' };
+    const d = f.contentDocument;
+    const linha = d.querySelector('.linha .lh');
+    if (!linha) return { erro: 'ranking vazio' };
+    linha.click(); await w(300);
+    const det = d.querySelector('.linha.on .det');
+    const r = {
+      temResolverQuestoes: !!det.querySelector('[data-praticar]'),
+      temAbrirLei: !!det.querySelector('[data-lei]'),
+      // a lei oferecida é o dispositivo REAL mais cobrado, não um genérico
+      leiEhODispositivoTop: (() => {
+        const b = det.querySelector('[data-lei]'), top = det.querySelector('.arts button');
+        return !!b && !!top && /art\.\s*\S+/.test(b.dataset.lei);
+      })(),
+    };
+    det.querySelector('[data-praticar]').click(); await w(700);
+    r.resolverAbreAPlataforma = window.__abriu.length === 1 && /tecconcursos\.com\.br/.test(window.__abriu[0]);
+    r.levaADisciplina = /texto=|q=/.test(window.__abriu[0] || '');
+    return r;
+  });
+  if (prioAcoes.erro) ok(false, 'TASK8 prioridade ' + prioAcoes.erro);
+  else for (const [k, v] of Object.entries(prioAcoes)) ok(v, 'TASK8 prioridade ' + k);
+
+  // a plataforma escolhida em Ajustes é respeitada (não é o TEC cravado no código)
+  const outraPlataforma = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const app = document.querySelector('[data-ct-app]') && window.__ctApp;
+    window.__abriu = [];
+    window.postMessage({ type: 'ctPraticarPrioridade', disc: 'Direito Civil' }, '*');
+    await w(600);
+    return { hostAtendeAMensagem: window.__abriu.length === 1 && /https?:/.test(window.__abriu[0]) };
+  });
+  for (const [k, v] of Object.entries(outraPlataforma)) ok(v, 'TASK8 prioridade ' + k);
+
+  // "Abrir a lei mais cobrada" leva ao LEGIS e deixa a volta para o Painel de Prioridade
+  const voltaDaLei = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const f = document.querySelector('iframe[data-ct-view="prioridade"]');
+    if (!f || !f.contentDocument) return { erro: 'iframe sumiu' };
+    const b = f.contentDocument.querySelector('.linha.on .det [data-lei]');
+    if (!b) return { erro: 'sem botão de lei' };
+    b.click(); await w(1800);
+    const legis = document.querySelector('iframe[data-ct-view="legis"]');
+    return { leiAbreOLegis: !!legis && legis.style.display === 'block' };
+  });
+  if (voltaDaLei.erro) ok(false, 'TASK8 prioridade ' + voltaDaLei.erro);
+  else for (const [k, v] of Object.entries(voltaDaLei)) ok(v, 'TASK8 prioridade ' + k);
+}
+
 /* ===== TASK 6 · CICLO: EXECUTAR E CONFIGURAR SÃO COISAS DIFERENTES =====
    A tela do Ciclo empilhava a rotina de hoje e o construtor. Quem abria para estudar tinha de
    passar pelo painel de configuração. Agora são duas abas — e trocar de aba não pode encostar
