@@ -906,6 +906,93 @@ const u6b = await page.evaluate(() => {
 });
 ok(u6b.wipeAllPergunta, 'U6 apagar tudo continua pedindo confirmação');
 ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
+/* ===== TASK 9 · FUNDAÇÃO VISUAL ÚNICA DOS SATÉLITES =====
+   Sete páginas independentes reinventavam a mesma fundação — box-sizing, foco, alvo de
+   toque — e divergiam. E o contrato de tema levava cor e raio, mas não a ESCALA: quem
+   escolhia "texto grande" via o app crescer e o iframe dentro dele continuar miúdo. */
+{
+  const SAT = ['legis-web.html', 'juris-web.html', 'ritos-web.html', 'pecas-web.html',
+               'segunda-fase-web.html', 'prioridade-web.html', 'area-web.html'];
+  // 1) todos carregam a base, e ANTES do próprio <style> (para poder especializar)
+  const base = await page.evaluate(async ({ b, sat }) => {
+    const r = {};
+    for (const p of sat) {
+      const t = await (await fetch(b + '/' + p)).text();
+      const iLink = t.indexOf('satellite-base.css'), iStyle = t.indexOf('<style>');
+      r[p] = iLink > 0 && iStyle > 0 && iLink < iStyle && /--module-accent/.test(t);
+    }
+    return r;
+  }, { b: URL0, sat: SAT });
+  const faltando = Object.entries(base).filter(([, v]) => !v).map(([k]) => k);
+  ok(faltando.length === 0, 'TASK9 os 7 satélites carregam a base antes do estilo próprio ('
+    + (faltando.join(', ') || 'todos') + ')');
+
+  // 2) o contrato de tokens é o MESMO dos dois lados — token que só um lado conhece é letra morta
+  const contrato = await page.evaluate(async (b) => {
+    const [host, ponte] = await Promise.all([
+      (await fetch(b + '/Catedra.dc.html')).text(), (await fetch(b + '/tema-satelite.js')).text()]);
+    const NOVOS = ['--fs-3xs', '--fs-2xs', '--fs-xs', '--fs-sm', '--fs-base', '--fs-md',
+                   '--fs-lg', '--fs-xl', '--fs-2xl',
+                   '--space-1', '--space-2', '--space-3', '--control-h', '--content-max'];
+    return {
+      hostManda: NOVOS.every(t => host.includes("'" + t + "'")),
+      sateliteLe: NOVOS.every(t => ponte.includes("'" + t + "'")),
+      // a densidade tem de produzir token de verdade — não basta ficar gravada
+      densidadeProduzToken: /density==='compacta'/.test(host) && /--control-h:\$\{/.test(host),
+    };
+  }, URL0);
+  for (const [k, v] of Object.entries(contrato)) ok(v, 'TASK9 ' + k);
+
+  // 3) a escala chega DE FATO ao satélite: o host manda, o iframe aplica
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const chega = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    document.querySelector('button[data-view="prioridade"]').click(); await w(2200);
+    const f = document.querySelector('iframe[data-ct-view="prioridade"]');
+    if (!f || !f.contentDocument) return { erro: 'iframe não abriu' };
+    const cs = f.contentWindow.getComputedStyle(f.contentDocument.documentElement);
+    const v = n => (cs.getPropertyValue(n) || '').trim();
+    return {
+      escalaChegou: !!v('--fs-base') && !!v('--fs-2xl'),
+      espacoChegou: !!v('--space-3') && !!v('--control-h'),
+      fundacaoAplicada: f.contentWindow.getComputedStyle(f.contentDocument.body).boxSizing === 'border-box',
+    };
+  });
+  if (chega.erro) ok(false, 'TASK9 ' + chega.erro);
+  else for (const [k, v] of Object.entries(chega)) ok(v, 'TASK9 ' + k);
+
+  // 4) movimento reduzido: nenhum satélite respeitava
+  const mov = await page.evaluate(async (b) => {
+    const css = await (await fetch(b + '/satellite-base.css')).text();
+    return { respeitaMovimentoReduzido: /prefers-reduced-motion:\s*reduce/.test(css)
+      && /animation-duration:\s*\.01ms\s*!important/.test(css) };
+  }, URL0);
+  for (const [k, v] of Object.entries(mov)) ok(v, 'TASK9 ' + k);
+
+  // 5) o satélite avulso (sem host) não pode depender da base para ficar legível
+  await page.goto(URL0 + '/ritos-web.html');
+  await page.waitForTimeout(700);
+  const avulso = await page.evaluate(() => {
+    const cs = getComputedStyle(document.body);
+    return { avulsoTemFundo: cs.backgroundColor !== 'rgba(0, 0, 0, 0)',
+             avulsoTemCorDeModulo: !!getComputedStyle(document.documentElement).getPropertyValue('--module-accent').trim() };
+  });
+  for (const [k, v] of Object.entries(avulso)) ok(v, 'TASK9 ' + k);
+
+  // 6) o build leva a base junto — sem ela no bundle, o satélite publicado fica sem fundação
+  const noBuild = await page.evaluate(async (b) => {
+    const [web, mac] = await Promise.all([
+      (await fetch(b + '/scripts/build.mjs')).text(), (await fetch(b + '/scripts/build-macos.mjs')).text()]);
+    return { buildWebCopia: web.includes("'satellite-base.css'"),
+             buildWebPrecache: web.includes("'./satellite-base.css'"),
+             buildMacCopia: mac.includes("'satellite-base.css'") };
+  }, URL0);
+  for (const [k, v] of Object.entries(noBuild)) ok(v, 'TASK9 ' + k);
+}
+
 /* ============= D1 — TEMA ÚNICO NOS SATÉLITES ============= */
 // Todo satélite carrega a mesma ponte
 const d1arqs = await page.evaluate(async (base) => {

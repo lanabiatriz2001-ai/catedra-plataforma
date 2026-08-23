@@ -1,5 +1,9 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CátedraJURIS</title>
-<style>
+<link rel="stylesheet" href="satellite-base.css"><style>
+/* Cor do módulo (JURIS). Dentro do app segue o tema escolhido nos Ajustes; aberta
+   avulsa, a página mantém a cor com que nasceu. Ver satellite-base.css. */
+:root{--module-accent:var(--accent,#0f7a57)}
+
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,-apple-system,'Segoe UI',Roboto,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding:20px 26px 90px}
@@ -321,7 +325,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
        iframe e só na PRIMEIRA vez que a aba abre — com src no HTML o navegador baixaria
        218 KB em toda abertura do JURIS, inclusive de quem nunca clica aqui. -->
   <iframe id="mapasFrame" data-src="juris-mapas-sv.html" title="Mapas mentais das Súmulas Vinculantes do STF"
-          style="width:100%;height:78vh;border:1px solid var(--bd,#2a3947);border-radius:12px;background:#fff;"></iframe>
+          style="width:100%;height:78vh;border:1px solid var(--bd,#2a3947);border-radius:12px;background:var(--surface,#fff);"></iframe>
 </div>
 <div id="paneAcervo">
 <div class="search"><span class="mag">🔎</span><input id="q" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>

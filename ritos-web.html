@@ -2,7 +2,11 @@
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ritos processuais — fluxograma</title>
-<style>
+<link rel="stylesheet" href="satellite-base.css"><style>
+/* Cor do módulo (ritos). Dentro do app segue o tema escolhido nos Ajustes; aberta
+   avulsa, a página mantém a cor com que nasceu. Ver satellite-base.css. */
+:root{--module-accent:var(--accent,#b5174e)}
+
 :root{
   --bg:#faf7f5;--surface:#ffffff;--surface2:#f5f0ec;--border:#e4dcd6;
   --ink:#1b1b1f;--text2:#4b4a52;--text3:#7d7a86;
@@ -66,7 +70,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 .pill em{font-style:normal;border:1px solid var(--border);border-radius:99px;padding:1px 6px}
 .pill:hover{border-color:var(--text3);color:var(--ink)}
 .pill.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
-.pill.on i{background:#fff} .pill.on em{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.36)}
+.pill.on i{background:var(--onAccent,#fff)} .pill.on em{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.36)}
 
 /* ───────────────────────── moldura do rito ───────────────────────── */
 .wrap{max-width:1240px;margin:0 auto;padding:22px 18px 80px}

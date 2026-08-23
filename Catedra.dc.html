@@ -5593,10 +5593,16 @@ class Component extends DCLogic {
       try{
         const host=document.querySelector('[style*="--accent"]'); if(!host) return null;
         const cs=getComputedStyle(host);
+        // O contrato antes levava cor, raio e fonte — mas não a ESCALA. O satélite ficava
+        // com o corpo fixo do seu próprio CSS: quem escolhia "texto grande" nos Ajustes via
+        // o app crescer e o iframe dentro dele continuar miúdo.
         const V=['--bg','--surface','--surface2','--border','--ink','--text','--text2','--text3',
                  '--accent','--accentD','--accentSoft','--accentRing','--onAccent',
                  '--ok','--warn','--danger','--radius','--r-sm','--r-md',
-                 '--display','--body','--mono','--heroGrad'];
+                 '--display','--body','--mono','--heroGrad',
+                 '--fs-3xs','--fs-2xs','--fs-xs','--fs-sm','--fs-base','--fs-md',
+                 '--fs-lg','--fs-xl','--fs-2xl',
+                 '--space-1','--space-2','--space-3','--control-h','--content-max'];
         const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); });
         t.__dark=!!this.state.darkMode;      // o satélite usa isto para o color-scheme nativo
         return t;
@@ -10839,13 +10845,22 @@ class Component extends DCLogic {
     const fontScalePx = pf0.fontScale==='grande'?'16.5px':'15px';
     const _fsF = pf0.fontScale==='grande' ? 1.1 : 1;
     const _fs = (px)=> (Math.round(px*_fsF*2)/2)+'px';
+    // Densidade: até aqui era uma preferência gravada que NENHUM token lia — mudar de
+    // "confortável" para "compacta" não mexia um pixel. Agora ela produz espaçamento e
+    // altura de controle de verdade, e esses tokens viajam para os satélites (que os
+    // consomem em satellite-base.css). No corpo do host o respiro ainda está em padding
+    // literal, tela por tela; migrá-lo é outro trabalho.
+    const _dens = (pf0.density==='compacta') ? 'compacta' : 'confortavel';
+    const _esp = _dens==='compacta' ? [4,8,12] : [6,10,16];
+    const espTokens = `--space-1:${_esp[0]}px;--space-2:${_esp[1]}px;--space-3:${_esp[2]}px;`
+      + `--control-h:${_dens==='compacta'?'34px':'38px'};--content-max:1200px;`;
     const fsTokens = `--fs-3xs:${_fs(9.5)};--fs-2xs:${_fs(10.5)};--fs-xs:${_fs(11.5)};--fs-sm:${_fs(12.5)};--fs-base:${_fs(13.5)};--fs-md:${_fs(14.5)};--fs-lg:${_fs(15.5)};--fs-xl:${_fs(17)};--fs-2xl:${_fs(19)};`;
     const accSoft = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.78) : this.mixWhite(this.state.accent,0.88)) : T.accentSoft;
     const accRing = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.45) : this.mixWhite(this.state.accent,0.62)) : T.accentRing;
     const accOn = this.state.accent ? (()=>{ try{ const [r,g,b]=this.hexToRgb(this.state.accent); return (0.299*r+0.587*g+0.114*b)>170?'#10231c':'#fff'; }catch(_){ return '#fff'; } })() : T.onAccent;
     const rootStyle = `--bg:${T.bg};--surface:${T.surface};--surface2:${T.surface2};--border:${T.border};`+
       `--ink:${T.ink};--text2:${T.text2};--text3:${T.text3};--accent:${acc};--accentD:${accD};`+
-      `--accentSoft:${accSoft};--accentRing:${accRing};--onAccent:${accOn};--radius:${radiusVal};--r-sm:${rSm};--r-md:${rMd};`+fsTokens+
+      `--accentSoft:${accSoft};--accentRing:${accRing};--onAccent:${accOn};--radius:${radiusVal};--r-sm:${rSm};--r-md:${rMd};`+fsTokens+espTokens+
       `--display:${T.display};--body:${T.body};--mono:${T.mono};--heroGrad:${heroGrad};`+
       `--danger:${T.isDark?'#ff7b6e':'#c0392f'};--dangerSoft:${T.isDark?'rgba(255,123,110,.14)':'#faeceb'};--dangerBd:${T.isDark?'rgba(255,123,110,.35)':'#f0d3d1'};--ok:${T.isDark?'#3ddba0':'#0e7f58'};--warn:${T.isDark?'#f0a24a':'#a36306'};--warnSoft:${T.isDark?'rgba(240,162,74,.14)':'#faf0e0'};--info:${T.isDark?'#54cfe8':'#06809a'};--infoSoft:${T.isDark?'rgba(84,207,232,.14)':'#e0f5fa'};`+
       `--sbg:${sbgVal};--stext:${T.sidebarText};--sactbg:${this.state.accent?'rgba(255,255,255,.14)':T.sidebarActiveBg};--sacttext:${this.state.accent?'#fff':T.sidebarActiveText};`+

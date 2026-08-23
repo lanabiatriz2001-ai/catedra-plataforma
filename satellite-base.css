@@ -1,0 +1,142 @@
+/* satellite-base.css — as fundações que todo módulo satélite compartilha.
+ *
+ * Os satélites (LEGIS, JURIS, 2ª fase, prioridade, área, ritos, peças) são HTML
+ * independentes carregados em <iframe> pelo app. Cada um nasceu sozinho, e por isso
+ * cada um reinventou a mesma coisa: box-sizing, foco visível, alvo de toque no
+ * celular, texto só para leitor de tela. Sete cópias divergiram — o foco de um tinha
+ * 2px, o de outro 1px; um respeitava movimento reduzido, os outros não.
+ *
+ * O QUE ENTRA AQUI: só fundação — o que é igual em qualquer módulo.
+ * O QUE NÃO ENTRA: regra de conteúdo jurídico (artigo, verbete, quesito, dispositivo).
+ * Isso continua no CSS de cada página, que carrega DEPOIS desta base e a especializa.
+ *
+ * Todo valor usa var(--x, padrão): aberto avulso, sem o host para mandar os tokens
+ * (tema-satelite.js), a página continua com a cara original.
+ */
+
+/* ===== 1. base ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background: var(--bg, #f4f1ea);
+  color: var(--ink, #1f1c17);
+  font-family: var(--body, -apple-system, 'Segoe UI', Roboto, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A largura de leitura é a mesma no produto inteiro. Quem precisa de mais (o mapa do
+   JURIS, a folha de lei) sobrescreve na própria página. */
+.wrap { max-width: var(--content-max, 1200px); margin: 0 auto; }
+
+/* ===== 2. foco visível ============================================================
+   Quem navega por teclado precisa enxergar onde está. Era a regra mais repetida — e a
+   mais divergente — entre os satélites. */
+:where(a, button, select, input, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent, #0f7a57);
+  outline-offset: 2px;
+}
+
+/* ===== 3. texto só para leitor de tela ============================================
+   Nome acessível para controle que só mostra ícone, sem ocupar espaço na tela. */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== 4. estados =================================================================
+   Desabilitado e carregando eram desenhados de um jeito em cada módulo — ou não eram. */
+:where(button, select, input, textarea, [role='button'])[disabled],
+:where(button, select, input, textarea, [role='button'])[aria-disabled='true'] {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+[aria-busy='true'] { cursor: progress; }
+/* estado nunca só por cor: o carregando também muda o cursor e o texto de cada página */
+[data-carregando] { opacity: .6; }
+
+/* ===== 5. controles: busca, botão, chip, card =====================================
+   Só o esqueleto do que aparece em mais de um módulo. A cor de módulo entra por
+   --module-accent, que cada página define; sem ela, vale o accent do host. */
+.ct-busca {
+  width: 100%;
+  border: 1px solid var(--border, #e6e1d4);
+  background: var(--surface, #fffdf8);
+  color: var(--ink, #1f1c17);
+  border-radius: var(--r-md, 10px);
+  padding: 0 12px;
+  min-height: var(--control-h, 38px);
+  font-family: inherit;
+  font-size: var(--fs-sm, 12.5px);
+}
+.ct-busca:focus { border-color: var(--module-accent, var(--accent, #0f7a57)); }
+
+.ct-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: var(--control-h, 38px);
+  padding: 0 14px;
+  border: 1px solid var(--border, #e6e1d4);
+  border-radius: var(--r-md, 10px);
+  background: var(--surface, #fffdf8);
+  color: var(--ink, #1f1c17);
+  font: 600 var(--fs-sm, 12.5px) / 1.2 inherit;
+  cursor: pointer;
+}
+.ct-btn:hover { border-color: var(--module-accent, var(--accent, #0f7a57)); }
+.ct-btn-1 {
+  background: var(--module-accent, var(--accent, #0f7a57));
+  border-color: var(--module-accent, var(--accent, #0f7a57));
+  color: var(--onAccent, #fff);
+}
+
+.ct-chip {
+  border: 1px solid var(--border, #e6e1d4);
+  background: var(--surface, #fffdf8);
+  color: var(--text2, #5c564a);
+  border-radius: 99px;
+  padding: 5px 11px;
+  font: 600 var(--fs-xs, 11.5px) / 1.2 inherit;
+  cursor: pointer;
+}
+.ct-chip[aria-pressed='true'], .ct-chip.on {
+  border-color: var(--module-accent, var(--accent, #0f7a57));
+  background: var(--accentSoft, #e6f2ec);
+  color: var(--accentD, #0b5e43);
+}
+
+.ct-card {
+  background: var(--surface, #fffdf8);
+  border: 1px solid var(--border, #e6e1d4);
+  border-radius: var(--radius, 14px);
+  padding: var(--space-3, 16px);
+}
+
+/* ===== 6. alvo de toque no celular ================================================
+   O ícone pode continuar pequeno; a CAIXA de toque é que precisa dar conta do polegar.
+   44px é o mínimo do WCAG 2.2 (2.5.8 usa 24, mas 44 é o alvo confortável do iOS). */
+@media (max-width: 640px) {
+  :where(button, select, summary, [role='button'], [role='tab'], [role='switch']) {
+    min-height: 44px;
+  }
+  :where(input, textarea) { min-height: 44px; font-size: 16px; }  /* 16px evita o zoom do iOS */
+}
+
+/* ===== 7. movimento reduzido ======================================================
+   Quem marcou "reduzir movimento" no sistema tem enxaqueca, vertigem ou distração por
+   movimento — não é preferência estética. Nenhum satélite respeitava isso. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
