@@ -2854,6 +2854,128 @@ const d14barra = await page.evaluate(() => {
 });
 for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
 
+/* ===== TASK 2 · O GATE DE AUTENTICAÇÃO ISOLA O APP =====
+   O gate cobre a tela, mas só isso: o app atrás continua rolando (4.446 px de scroll),
+   continua alcançável por Tab e continua sendo lido por leitor de tela. Um overlay que
+   não isola não é um portão — é uma cortina. Os casos abaixo travam o isolamento pelo
+   COMPORTAMENTO observável, via tests/auth-gate-fixture.html (auth.js de verdade, com
+   um cliente Supabase falso que devolve "sem sessão"). */
+await page.goto(URL0 + '/tests/auth-gate-fixture.html');
+await page.waitForTimeout(1200);
+const gate = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const el = document.getElementById('catedra-auth-gate');
+  const app = document.getElementById('app');
+  if (!el) return { erro: 'o gate não foi criado' };
+  await w(400);
+  return {
+    gateVisivel: getComputedStyle(el).display !== 'none',
+    // a página atrás não pode rolar enquanto o login está na frente
+    bodyTravado: document.body.style.overflow === 'hidden',
+    htmlTravado: document.documentElement.style.overflow === 'hidden',
+    // e não pode ser alcançada por mouse, teclado ou leitor de tela
+    appInerte: app.inert === true,
+    appEscondidoDoLeitor: app.getAttribute('aria-hidden') === 'true',
+    // semântica de diálogo
+    ehDialogo: el.getAttribute('role') === 'dialog',
+    ehModal: el.getAttribute('aria-modal') === 'true',
+    temNome: !!(el.getAttribute('aria-label') || '').trim(),
+  };
+});
+if (gate.erro) ok(false, 'GATE ' + gate.erro);
+else for (const [k, v] of Object.entries(gate)) ok(v, 'GATE ' + k);
+
+// O foco não escapa do gate, e o Esc não fecha um login obrigatório.
+const gateFoco = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const el = document.getElementById('catedra-auth-gate');
+  const dentro = (n) => !!n && el.contains(n);
+  const focaveis = [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])')]
+    .filter(n => n.offsetParent !== null || n === document.activeElement);
+  if (!focaveis.length) return { erro: 'nenhum controle focável no gate' };
+  const r = {};
+  // Tab sintético não move o foco sozinho: quem move é o trap. Então a asserção é o ALVO
+  // exato, não "continua dentro" — que passaria mesmo sem trap nenhum.
+  const primeiro = focaveis[0], ultimo = focaveis[focaveis.length - 1];
+  ultimo.focus();
+  el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+  await w(120);
+  r.tabNoUltimoVoltaAoPrimeiro = document.activeElement === primeiro;
+  primeiro.focus();
+  el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+  await w(120);
+  r.shiftTabNoPrimeiroVoltaAoUltimo = document.activeElement === ultimo;
+  r.focoNuncaEscapa = dentro(document.activeElement);
+  // Esc não fecha: o login é obrigatório
+  el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await w(200);
+  r.escNaoFechaOLogin = getComputedStyle(el).display !== 'none';
+  return r;
+});
+if (gateFoco.erro) ok(false, 'GATE foco: ' + gateFoco.erro);
+else for (const [k, v] of Object.entries(gateFoco)) ok(v, 'GATE ' + k);
+
+// Abas Entrar/Criar conta e o botão da senha precisam DIZER o seu estado.
+const gateSemantica = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const el = document.getElementById('catedra-auth-gate');
+  const entrar = el.querySelector('#ctseg-login');
+  const criar = el.querySelector('#ctseg-signup');
+  if (!entrar || !criar) return { erro: 'não achei as abas Entrar/Criar conta' };
+  const r = {
+    abaEntrarSelecionada: entrar.getAttribute('aria-selected') === 'true',
+    abaCriarNaoSelecionada: criar.getAttribute('aria-selected') === 'false',
+    abasTemPapel: entrar.getAttribute('role') === 'tab' && criar.getAttribute('role') === 'tab',
+    // roving tabindex: só a aba ativa entra na ordem de tabulação
+    rovingTabindex: entrar.getAttribute('tabindex') === '0' && criar.getAttribute('tabindex') === '-1',
+  };
+  criar.click(); await w(300);
+  const entrar2 = el.querySelector('#ctseg-login'), criar2 = el.querySelector('#ctseg-signup');
+  r.trocaDeAbaAtualizaOEstado = criar2.getAttribute('aria-selected') === 'true'
+    && entrar2.getAttribute('aria-selected') === 'false';
+  el.querySelector('#ctseg-login').click(); await w(300);
+  // o olho da senha diz o que vai fazer, e muda quando faz
+  const olho = el.querySelector('[data-olho]');
+  r.olhoTemNome = !!olho && /mostrar senha/i.test(olho.getAttribute('aria-label') || '');
+  if (olho) { olho.click(); await w(150); r.olhoMudaDeNome = /ocultar senha/i.test(olho.getAttribute('aria-label') || ''); olho.click(); }
+  return r;
+});
+if (gateSemantica.erro) ok(false, 'GATE semântica: ' + gateSemantica.erro);
+else for (const [k, v] of Object.entries(gateSemantica)) ok(v, 'GATE ' + k);
+
+// Ao fechar, o app volta ao que era: rolagem, inert e aria-hidden restaurados.
+const gateFecha = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const el = document.getElementById('catedra-auth-gate');
+  const app = document.getElementById('app');
+  if (!el.__setGateOpen) return { erro: 'setGateOpen não foi exposto no elemento do gate' };
+  el.__setGateOpen(false);
+  await w(200);
+  return {
+    fechouOGate: getComputedStyle(el).display === 'none',
+    devolveuARolagem: document.body.style.overflow !== 'hidden' && document.documentElement.style.overflow !== 'hidden',
+    appVoltouAFuncionar: app.inert !== true && app.getAttribute('aria-hidden') !== 'true',
+  };
+});
+if (gateFecha.erro) ok(false, 'GATE fecha: ' + gateFecha.erro);
+else for (const [k, v] of Object.entries(gateFecha)) ok(v, 'GATE ' + k);
+
+// A prova que importa: a página atrás não rola com GESTO DE GENTE. `overflow:hidden` bloqueia
+// roda e teclado, mas não bloqueia window.scrollBy — medir com scrollBy daria falso negativo.
+await page.goto(URL0 + '/tests/auth-gate-fixture.html');
+await page.waitForTimeout(1300);
+const antesDeRolar = await page.evaluate(() => window.scrollY);
+await page.mouse.move(400, 400);
+await page.mouse.wheel(0, 2000);
+await page.waitForTimeout(350);
+const depoisDaRoda = await page.evaluate(() => window.scrollY);
+await page.keyboard.press('End');
+await page.waitForTimeout(300);
+const depoisDoEnd = await page.evaluate(() => window.scrollY);
+ok(depoisDaRoda === antesDeRolar, 'GATE a roda do mouse não rola o app atrás do login');
+ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do login');
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
