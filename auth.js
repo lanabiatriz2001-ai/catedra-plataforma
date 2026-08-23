@@ -457,7 +457,15 @@
   el.id = 'catedra-auth-gate';
   el.setAttribute('style', 'position:fixed;inset:0;z-index:2147483000;background:' + PG + ';display:flex;');
   (document.body || document.documentElement).appendChild(el);
-  document.addEventListener('DOMContentLoaded', function () { if (document.body && el.parentNode !== document.body) document.body.appendChild(el); });
+  // O auth.js é script de <head>: quando ele roda, <body> AINDA NÃO EXISTE, e o gate nasce
+  // pendurado em <html>. Mover para o body depois não bastava — quem já estava aberto tinha
+  // marcado como inerte o único irmão que existia naquele instante, o <head>, e o app real
+  // ficava livre: com o login na tela, Tab entrava direto na barra lateral. Medido na build
+  // de produção. Por isso, ao mover, o isolamento é REAPLICADO.
+  document.addEventListener('DOMContentLoaded', function () {
+    if (document.body && el.parentNode !== document.body) document.body.appendChild(el);
+    if (gateRestore) { setGateOpen(true); }   // reancora o observador no pai novo e remarca
+  });
 
   // ===== O gate ISOLA o app, não apenas o cobre =====
   // Antes, show() só trocava o `display`. O app atrás continuava rolando (4.446 px), ainda
@@ -465,11 +473,41 @@
   // portão. Aqui a abertura trava a rolagem, torna os irmãos inertes e invisíveis ao leitor,
   // e guarda o que precisa ser devolvido no fechamento.
   var gateRestore = null;
+  var observador = null;
 
   function irmaosDoGate() {
     var pai = el.parentNode || document.body || document.documentElement;
     return Array.prototype.filter.call(pai.children, function (n) {
-      return n !== el && n.tagName !== 'SCRIPT' && n.tagName !== 'STYLE' && n.tagName !== 'LINK';
+      // HEAD nunca: enquanto o gate mora em <html> (antes do body existir) ele era o único
+      // "irmão", e torná-lo inerte não protege nada — só dá a impressão de que protege.
+      return n !== el && n.tagName !== 'SCRIPT' && n.tagName !== 'STYLE'
+        && n.tagName !== 'LINK' && n.tagName !== 'HEAD';
+    });
+  }
+
+  /* Marca como inerte tudo o que hoje é irmão do gate, e SOLTA o que deixou de ser.
+     Chamada na abertura, quando o gate muda de pai, e a cada vez que algo novo aparece
+     ao lado dele — o #dc-root só nasce DEPOIS do DOMContentLoaded, então esperar por
+     aquele evento ainda deixava o app livre. */
+  function marcarFundo() {
+    if (!gateRestore) return;
+    // a trava de rolagem também só pode ser posta quando o body existe
+    document.documentElement.style.overflow = 'hidden';
+    if (document.body) document.body.style.overflow = 'hidden';
+    var atuais = irmaosDoGate();
+    gateRestore.fundo = gateRestore.fundo.filter(function (item) {
+      if (atuais.indexOf(item.node) >= 0) return true;
+      try { item.node.inert = item.inert; } catch (_) {}
+      if (item.ariaHidden == null) item.node.removeAttribute('aria-hidden');
+      else item.node.setAttribute('aria-hidden', item.ariaHidden);
+      return false;
+    });
+    var conhecidos = gateRestore.fundo.map(function (x) { return x.node; });
+    atuais.forEach(function (n) {
+      if (conhecidos.indexOf(n) >= 0) return;
+      gateRestore.fundo.push({ node: n, inert: !!n.inert, ariaHidden: n.getAttribute('aria-hidden') });
+      try { n.inert = true; } catch (_) {}
+      n.setAttribute('aria-hidden', 'true');
     });
   }
 
@@ -484,25 +522,20 @@
           htmlOverflow: document.documentElement.style.overflow,
           fundo: []
         };
-        irmaosDoGate().forEach(function (n) {
-          gateRestore.fundo.push({ node: n, inert: !!n.inert, ariaHidden: n.getAttribute('aria-hidden') });
-          try { n.inert = true; } catch (_) {}
-          n.setAttribute('aria-hidden', 'true');
-        });
-      } else {
-        // o app pode ter montado depois da primeira abertura (o gate nasce antes do body
-        // estar pronto): irmão novo também precisa ficar inerte
-        var conhecidos = gateRestore.fundo.map(function (x) { return x.node; });
-        irmaosDoGate().forEach(function (n) {
-          if (conhecidos.indexOf(n) >= 0) return;
-          gateRestore.fundo.push({ node: n, inert: !!n.inert, ariaHidden: n.getAttribute('aria-hidden') });
-          try { n.inert = true; } catch (_) {}
-          n.setAttribute('aria-hidden', 'true');
-        });
       }
+      // sempre: o app pode ter montado (ou o gate mudado de pai) desde a última abertura
+      marcarFundo();
 
-      document.documentElement.style.overflow = 'hidden';
-      if (document.body) document.body.style.overflow = 'hidden';
+      // enquanto o gate estiver aberto, irmão que aparecer entra inerte na hora
+      if (!observador && typeof MutationObserver !== 'undefined') {
+        observador = new MutationObserver(function () { marcarFundo(); });
+      }
+      if (observador) {
+        try { observador.disconnect(); } catch (_) {}
+        try { observador.observe(el.parentNode || document.documentElement, { childList: true }); } catch (_) {}
+        // o gate pode ainda estar em <html>: observa o body também, quando ele existir
+        try { if (document.body && document.body !== el.parentNode) observador.observe(document.body, { childList: true }); } catch (_) {}
+      }
 
       el.style.display = 'flex';
       el.setAttribute('role', 'dialog');
@@ -512,6 +545,7 @@
     }
 
     el.style.display = 'none';
+    if (observador) { try { observador.disconnect(); } catch (_) {} }
     if (!gateRestore) return;
     document.documentElement.style.overflow = gateRestore.htmlOverflow;
     if (document.body) document.body.style.overflow = gateRestore.bodyOverflow;

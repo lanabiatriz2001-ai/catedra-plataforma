@@ -112,20 +112,27 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
    inline (o template é assim), então a regra tem de ser por estrutura e com !important
    para vencer o inline — é a razão de ela existir aqui e não no atributo. */
 @media (max-width:900px){
+  /* Linha de navegação e ícone da topbar CRESCEM: são faixas e círculos, esticar não
+     deforma nada. Medido: barra lateral 216x40 -> 216x44, ícone 38x38 -> 44x44. */
   aside button, aside a{min-height:44px!important;}
   .ct-topbar button, .ct-topbar a{min-height:44px!important;min-width:44px!important;}
-  .ct-scroll button, .ct-scroll a[href], .ct-scroll [role="button"],
-  .ct-scroll [role="switch"], .ct-scroll [role="tab"], .ct-scroll select{min-height:44px!important;}
-  /* o trilho do interruptor tem 42px de largura por desenho — 2px a menos que o mínimo */
-  .ct-scroll [role="switch"]{min-width:44px!important;}
-  /* botão de ícone (o ✕ de dispensar): 28px de caixa é metade do polegar */
-  .ct-scroll button[aria-label]:not([data-view]){min-width:44px!important;}
-  /* o campo de texto também: abaixo de 16px o iOS dá zoom sozinho ao focar */
-  .ct-scroll input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  /* O campo de texto cresce (e vai a 16px, senão o iOS amplia a página ao focar). */
+  .ct-scroll input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
   .ct-scroll textarea{min-height:44px!important;font-size:max(16px,var(--fs-base))!important;}
-  /* exceções: o que é grade de caixinhas (dia do calendário, quadradinho de artigo)
-     quebraria de vez se cada célula ganhasse 44px de altura */
-  .ct-cal-cel, .ct-nobump, .ct-nobump button{min-height:0!important;}
+}
+/* CONTROLE PEQUENO NÃO CRESCE — cresce a área que o dedo acerta.
+   A primeira versão desta regra inflava TODO button dentro de .ct-scroll para 44px de
+   altura. Medido no navegador, o estrago: o quadradinho de 20x20 de cada tópico do Edital
+   virava uma barra de 20x44; o de 16x16 dos subtópicos, 16x44; o seletor de cor, 30x44; e
+   a célula do calendário, que pede min-height de 104/70/52px, era ESMAGADA para 44 com
+   overflow:hidden cortando os eventos do dia. As duas classes de escape que eu tinha
+   escrito (.ct-nobump, .ct-cal-cel) não existiam em elemento nenhum — a real é .ct-calcell.
+   O padrão certo já estava no próprio repositório, em area-web.html: a caixa de toque
+   cresce por um pseudo-elemento invisível e o desenho fica do mesmo tamanho. */
+@media (max-width:900px){
+  .ct-alvo{position:relative;}
+  .ct-alvo::after{content:"";position:absolute;top:50%;left:50%;
+    width:max(44px,100%);height:44px;transform:translate(-50%,-50%);}
 }
 .ct-skip{position:fixed;left:10px;top:-60px;z-index:200;background:var(--accent);color:var(--onAccent);padding:10px 16px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;text-decoration:none;transition:top .15s;}
 .ct-skip:focus{top:10px;}
@@ -1203,7 +1210,7 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ contP.quando }}</div>
             </div>
             <button onclick="{{ voltarAoPonto }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ contP.acao }}</button>
-            <button onclick="{{ dispensarPonto }}" aria-label="Dispensar" title="Dispensar" style="background:transparent;border:none;color:var(--text3);font-size:var(--fs-lg);cursor:pointer;font-family:inherit;padding:4px 8px;flex:none;">✕</button>
+            <button class="ct-alvo" onclick="{{ dispensarPonto }}" aria-label="Dispensar" title="Dispensar" style="background:transparent;border:none;color:var(--text3);font-size:var(--fs-lg);cursor:pointer;font-family:inherit;padding:4px 8px;flex:none;">✕</button>
           </div>
         </sc-if>
 
@@ -1220,7 +1227,7 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ paTemMeta }}" hint-placeholder-val="{{ false }}">
             <span style="flex:none;font-size:var(--fs-xs);font-weight:700;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:5px 12px;">{{ paMeta }}</span>
           </sc-if>
-          <button data-view="{{ paView }}" onclick="{{ onNav }}" style="flex:none;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:12px 22px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">{{ paCta }}</button>
+          <button data-view="{{ paView }}" data-acao="{{ paAcao }}" onclick="{{ paIr }}" style="flex:none;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:12px 22px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">{{ paCta }}</button>
         </div>
 
         <!-- HERO: manchete + cronômetro em vidro -->
@@ -1312,7 +1319,7 @@ window.ctPdfLib = (function(){
         <div class="cth-cols">
           <div class="cth-stack">
             <div class="cth-card">
-              <div class="cth-chead"><h3>Agora · atividades do dia</h3><span class="meta"><b>{{ cicloDone }}</b>/{{ cicloTotal }} · <button data-view="ciclo" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver ciclo →</button></span></div>
+              <div class="cth-chead"><h3>Agora · atividades do dia</h3><span class="meta"><b>{{ cicloDone }}</b>/{{ cicloTotal }} · <button class="ct-alvo" data-view="ciclo" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver ciclo →</button></span></div>
               <sc-if value="{{ cicloTemBlocos }}" hint-placeholder-val="{{ true }}">
                 <div style="display:flex;flex-direction:column;">
                   <sc-for list="{{ homeHoje }}" as="h" hint-placeholder-count="5">
@@ -1335,7 +1342,7 @@ window.ctPdfLib = (function(){
                 </div>
               </sc-if>
               <sc-if value="{{ cicloVazio }}" hint-placeholder-val="{{ false }}">
-                <div style="padding:13px;background:var(--surface2);border:1px dashed var(--border);border-radius:var(--radius);font-size:var(--fs-sm);color:var(--text3);text-align:center;">Sem blocos hoje. <button data-view="ciclo" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);">Montar ciclo →</button></div>
+                <div style="padding:13px;background:var(--surface2);border:1px dashed var(--border);border-radius:var(--radius);font-size:var(--fs-sm);color:var(--text3);text-align:center;">Sem blocos hoje. <button class="ct-alvo" data-view="ciclo" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);">Montar ciclo →</button></div>
               </sc-if>
             </div>
             <div class="cth-card">
@@ -1344,7 +1351,7 @@ window.ctPdfLib = (function(){
                 <div style="display:flex;flex-direction:column;">
                   <sc-for list="{{ homeLeitura.leis }}" as="n" hint-placeholder-count="4">
                     <div class="cth-law" title="{{ n.law }} — {{ n.arts }}">
-                      <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" class="cth-chk" style="width:22px;height:22px;border-color:{{ n.checkBd }};background:{{ n.checkBg }};"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                      <button class="ct-alvo" data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" class="cth-chk" style="width:22px;height:22px;border-color:{{ n.checkBd }};background:{{ n.checkBg }};"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
                       <span class="ref" style="text-decoration:{{ n.strike }};">{{ n.law }} <span style="color:var(--text2);font-weight:500;">{{ n.arts }}</span></span>
                       <span class="mat"><i class="cth-dot" style="background:{{ n.cor }};"></i>{{ n.disc }}</span>
                     </div>
@@ -1353,7 +1360,7 @@ window.ctPdfLib = (function(){
                     <div class="cth-lawsep">⚖️ Jurisprudência · {{ homeLeitura.resumoJuris }}</div>
                     <sc-for list="{{ homeLeitura.juris }}" as="n" hint-placeholder-count="1">
                       <div class="cth-law" title="{{ n.law }} — {{ n.arts }}">
-                        <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" class="cth-chk" style="width:22px;height:22px;border-color:{{ n.checkBd }};background:{{ n.checkBg }};"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                        <button class="ct-alvo" data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" class="cth-chk" style="width:22px;height:22px;border-color:{{ n.checkBd }};background:{{ n.checkBg }};"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
                         <span class="ref" style="text-decoration:{{ n.strike }};">{{ n.law }} <span style="color:var(--text2);font-weight:500;">{{ n.arts }}</span></span>
                         <span class="mat"><i class="cth-dot" style="background:{{ n.cor }};"></i>{{ n.disc }}</span>
                       </div>
@@ -1470,7 +1477,7 @@ window.ctPdfLib = (function(){
         </sc-if>
         <!-- O QUE MUDOU ESTA SEMANA (item 7) -->
         <sc-if value="{{ semanaTem }}" hint-placeholder-val="{{ true }}">
-          <div class="cth-sec"><span class="eyebrow">Jurisprudência</span><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE · <button onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button></span></div>
+          <div id="ct-semana" class="cth-sec"><span class="eyebrow">Jurisprudência</span><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE · <button class="ct-alvo" onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button></span></div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:26px;">
             <sc-for list="{{ semanaLista }}" as="s" hint-placeholder-count="4">
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
@@ -1491,11 +1498,11 @@ window.ctPdfLib = (function(){
               </div>
             </sc-for>
             <sc-if value="{{ semanaTemMais }}" hint-placeholder-val="{{ true }}">
-              <button onclick="{{ semanaMais }}" style="align-self:flex-start;background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:4px 0;">{{ semanaMaisLabel }}</button>
+              <button class="ct-alvo" onclick="{{ semanaMais }}" style="align-self:flex-start;background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:4px 0;">{{ semanaMaisLabel }}</button>
             </sc-if>
           </div>
         </sc-if>
-        <div class="cth-sec"><span class="eyebrow">Memória</span><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
+        <div class="cth-sec"><span class="eyebrow">Memória</span><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button class="ct-alvo" data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
         <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
           <div class="cth-revs">
             <sc-for list="{{ homeProxRev }}" as="r" hint-placeholder-count="5">
@@ -1727,7 +1734,7 @@ window.ctPdfLib = (function(){
                   </div>
                   <sc-for list="{{ g.leituraDia.leis }}" as="n" hint-placeholder-count="4">
                     <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--surface2);min-width:0;" title="{{ n.law }} — {{ n.arts }}">
-                      <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" style="width:17px;height:17px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                      <button class="ct-alvo" data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" style="width:17px;height:17px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
                       <b style="font-size:var(--fs-sm);font-weight:700;color:{{ n.cor }};flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:{{ n.strike }};">{{ n.law }}</b>
                       <span style="font-size:var(--fs-sm);color:var(--text2);flex:none;text-decoration:{{ n.strike }};white-space:nowrap;">{{ n.arts }}</span>
                     </div>
@@ -1741,7 +1748,7 @@ window.ctPdfLib = (function(){
                   </sc-if>
                   <sc-for list="{{ g.leituraDia.juris }}" as="n" hint-placeholder-count="1">
                     <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--surface2);min-width:0;" title="{{ n.law }} — {{ n.arts }}">
-                      <button data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" style="width:17px;height:17px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
+                      <button class="ct-alvo" data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" style="width:17px;height:17px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ n.checkBd }};background:{{ n.checkBg }};color:#fff;padding:0;"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
                       <b style="font-size:var(--fs-sm);font-weight:800;color:var(--ink);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:{{ n.strike }};">{{ n.law }}</b>
                       <span style="font-size:var(--fs-sm);color:var(--text2);flex:none;text-decoration:{{ n.strike }};white-space:nowrap;">{{ n.arts }}</span>
                     </div>
@@ -1998,7 +2005,7 @@ window.ctPdfLib = (function(){
                 <div style="padding:2px 18px 14px 42px;display:flex;flex-direction:column;gap:2px;">
                   <sc-for list="{{ d.topics }}" as="t" hint-placeholder-count="4">
                     <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--border);">
-                      <button data-d="{{ t.d }}" data-i="{{ t.i }}" onclick="{{ toggleTopic }}" title="Concluir / desmarcar" style="width:20px;height:20px;border-radius:var(--r-sm);flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ t.checkBorder }};background:{{ t.checkBg }};color:#fff;cursor:pointer;padding:0;">
+                      <button class="ct-alvo" data-d="{{ t.d }}" data-i="{{ t.i }}" onclick="{{ toggleTopic }}" title="Concluir / desmarcar" style="width:20px;height:20px;border-radius:var(--r-sm);flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ t.checkBorder }};background:{{ t.checkBg }};color:#fff;cursor:pointer;padding:0;">
                         <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
                       </button>
                       <input data-d="{{ t.d }}" data-i="{{ t.i }}" value="{{ t.name }}" oninput="{{ editTopic }}" title="Editar tópico" style="flex:1;min-width:0;font-size:var(--fs-base);color:var(--text2);text-decoration:{{ t.strike }};border:1px solid var(--border);background:var(--surface);border-radius:var(--r-sm);padding:5px 9px;font-family:inherit;">
@@ -4954,11 +4961,11 @@ window.ctPdfLib = (function(){
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;display:flex;flex-direction:column;gap:16px;">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;"><div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);">{{ retaStatusLabel }}</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;">reduz teoria nova e amplifica revisão, simulados, lei seca e jurisprudência</div></div>
-            <button onclick="{{ toggleRetaFinal }}" aria-label="Alternar modo reta final" style="{{ retaTog }}"><span style="{{ retaKnob }}"></span></button>
+            <button onclick="{{ toggleRetaFinal }}" aria-label="Alternar modo reta final" class="ct-alvo" role="switch" aria-checked="{{ chkRetaFinal }}" style="{{ retaTog }}"><span style="{{ retaKnob }}"></span></button>
           </div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:16px;">
             <div style="flex:1;min-width:200px;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:500;">Reduzir teoria nova</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;">prioriza revisão, lei seca, jurisprudência e simulados</div></div>
-            <button onclick="{{ toggleReduzTeoria }}" aria-label="Alternar reduzir teoria nova" style="{{ retaReduzTog }}"><span style="{{ retaReduzKnob }}"></span></button>
+            <button onclick="{{ toggleReduzTeoria }}" aria-label="Alternar reduzir teoria nova" class="ct-alvo" role="switch" aria-checked="{{ chkReduzTeoria }}" style="{{ retaReduzTog }}"><span style="{{ retaReduzKnob }}"></span></button>
           </div>
           <div style="display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:16px;">
             <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Data da prova <span style="font-weight:400;">(opcional)</span></label><div style="display:flex;gap:8px;align-items:center;"><input type="date" value="{{ retaProvaData }}" onchange="{{ setProvaData }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"><sc-if value="{{ retaProvaData }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ clearProvaData }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;">Ainda não sei</button></sc-if></div></div>
@@ -5010,19 +5017,19 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
             <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Parei o cronômetro → oferece registrar</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Desligar: o tempo estudado só entra no seu desempenho se você abrir o registro à mão.</div></div>
-            <button data-k="autoRegistro" onclick="{{ togglePref }}" aria-label="Abrir registro ao parar" role="switch" aria-checked="{{ chkAutoReg }}" style="{{ togAutoReg }}"><span style="{{ togAutoRegKnob }}"></span></button>
+            <button data-k="autoRegistro" class="ct-alvo" onclick="{{ togglePref }}" aria-label="Abrir registro ao parar" role="switch" aria-checked="{{ chkAutoReg }}" style="{{ togAutoReg }}"><span style="{{ togAutoRegKnob }}"></span></button>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
             <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Registrei a sessão → conclui o bloco do ciclo</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Desligar: o bloco do ciclo continua aberto até você marcá-lo na tela Ciclo.</div></div>
-            <button data-k="autoConcluir" onclick="{{ togglePref }}" aria-label="Marcar bloco concluído" role="switch" aria-checked="{{ chkAutoConc }}" style="{{ togAutoConc }}"><span style="{{ togAutoConcKnob }}"></span></button>
+            <button data-k="autoConcluir" class="ct-alvo" onclick="{{ togglePref }}" aria-label="Marcar bloco concluído" role="switch" aria-checked="{{ chkAutoConc }}" style="{{ togAutoConc }}"><span style="{{ togAutoConcKnob }}"></span></button>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
             <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Estudei um tópico → agenda a 1ª revisão</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Desligar: nada entra em Revisões sozinho; você agenda cada revisão à mão.</div></div>
-            <button data-k="autoRevisao" onclick="{{ togglePref }}" aria-label="Criar revisão automática" role="switch" aria-checked="{{ chkAutoRev }}" style="{{ togAutoRev }}"><span style="{{ togAutoRevKnob }}"></span></button>
+            <button data-k="autoRevisao" class="ct-alvo" onclick="{{ togglePref }}" aria-label="Criar revisão automática" role="switch" aria-checked="{{ chkAutoRev }}" style="{{ togAutoRev }}"><span style="{{ togAutoRevKnob }}"></span></button>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);">
             <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Mostrar a contagem regressiva da prova</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Desligar: os "dias para a prova" somem do Início e da Reta Final. O planejamento continua igual — muda só o que você vê.</div></div>
-            <button data-k="mostrarContagem" onclick="{{ togglePref }}" aria-label="Mostrar contagem regressiva da prova" role="switch" aria-checked="{{ chkContagem }}" style="{{ togContagem }}"><span style="{{ togContagemKnob }}"></span></button>
+            <button data-k="mostrarContagem" class="ct-alvo" onclick="{{ togglePref }}" aria-label="Mostrar contagem regressiva da prova" role="switch" aria-checked="{{ chkContagem }}" style="{{ togContagem }}"><span style="{{ togContagemKnob }}"></span></button>
           </div>
         </div>
         </sc-if>
@@ -5034,7 +5041,7 @@ window.ctPdfLib = (function(){
           <sc-for list="{{ alertRows }}" as="a" hint-placeholder-count="7">
             <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--border);">
               <div style="flex:1;font-size:var(--fs-base);color:var(--ink);font-weight:500;">{{ a.label }}</div>
-              <button data-k="{{ a.k }}" onclick="{{ togglePref }}" aria-label="{{ a.label }}" role="switch" aria-checked="{{ a.chk }}" style="{{ a.tog }}"><span style="{{ a.knob }}"></span></button>
+              <button data-k="{{ a.k }}" class="ct-alvo" onclick="{{ togglePref }}" aria-label="{{ a.label }}" role="switch" aria-checked="{{ a.chk }}" style="{{ a.tog }}"><span style="{{ a.knob }}"></span></button>
             </div>
           </sc-for>
         </div>
@@ -5055,7 +5062,7 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;line-height:1.45;">Um aviso por dia, e só se houver revisão esperando. Precisa do app aberto (ou minimizado) no horário — sem isso, ninguém consegue te avisar de fora.</div>
             </div>
             <input data-k="revHora" type="time" value="{{ prefRevHora }}" oninput="{{ setPrefVal }}" aria-label="Horário do lembrete de revisões" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 11px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;flex:none;">
-            <button data-k="revLembrete" onclick="{{ togglePref }}" aria-label="Lembrar revisões no horário" role="switch" aria-checked="{{ chkRevLembrete }}" style="{{ togRevLembrete }}"><span style="{{ togRevLembreteKnob }}"></span></button>
+            <button data-k="revLembrete" class="ct-alvo" onclick="{{ togglePref }}" aria-label="Lembrar revisões no horário" role="switch" aria-checked="{{ chkRevLembrete }}" style="{{ togRevLembrete }}"><span style="{{ togRevLembreteKnob }}"></span></button>
           </div>
           <sc-if value="{{ revLembreteLigadoSemPerm }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:var(--fs-sm);color:var(--warn);font-weight:600;margin-top:10px;line-height:1.45;">O lembrete está ligado, mas o navegador ainda não deu permissão de notificação — toque em "Ativar notificações" acima.</div>
@@ -5623,8 +5630,12 @@ class Component extends DCLogic {
                  '--ok','--warn','--danger','--radius','--r-sm','--r-md',
                  '--display','--body','--mono','--heroGrad',
                  '--fs-3xs','--fs-2xs','--fs-xs','--fs-sm','--fs-base','--fs-md',
-                 '--fs-lg','--fs-xl','--fs-2xl',
-                 '--space-1','--space-2','--space-3','--control-h','--content-max'];
+                 '--fs-lg','--fs-xl','--fs-2xl','--control-h'];
+        // --space-1..3 e --content-max NAO viajam: nenhum satelite os le, e token que
+        // atravessa a ponte sem consumidor e contrato morto — da a impressao de que a
+        // densidade se propaga quando ela nao muda um pixel do outro lado. Voltam quando
+        // houver quem os use. O que a densidade move de verdade hoje e --control-h.
+
         const t={}; V.forEach(v=>{ t[v]=cs.getPropertyValue(v).trim(); });
         t.__dark=!!this.state.darkMode;      // o satélite usa isto para o color-scheme nativo
         return t;
@@ -5687,6 +5698,13 @@ class Component extends DCLogic {
         if(d && typeof d==='object' && (v==='areamod'||v==='roteiros')){
           de={view:v, rito:String(d.rito||''), peca:String(d.peca||''),
               bloco:(d.bloco!=null&&isFinite(d.bloco))?+d.bloco:null};
+        } else if(e.data.origem && typeof e.data.origem==='object' && e.data.origem.view){
+          // O painel de prioridade manda `origem` (não `de`), e o host só lia `de`: quem
+          // clicava "Abrir a lei mais cobrada" caía no LEGIS sem pílula de voltar, e o
+          // ?disc= que o prioridade-web sabe ler nunca era preenchido por ninguém.
+          const o=e.data.origem;
+          de={view:String(o.view), disc:String(o.disc||''), rotulo:String(o.rotulo||''),
+              rito:'', peca:'', bloco:null};
         } else if(v!=='legis'&&v!=='juris'){ de=null; }
         this.setState({view:alvo, acervoBusca:String(e.data.termo||''), acervoDe:de, origemAbrir:''});
         this._marcarPonto(alvo, {termo:String(e.data.termo||'')});   // U3: dá para voltar aqui depois
@@ -5696,6 +5714,13 @@ class Component extends DCLogic {
       // (rito/peça/bloco) viaja na URL, pelo mesmo canal do ?q= da ida.
       if(e.data.type==='ctVoltarAcervo'){
         const de=this.state.acervoDe;
+        // volta ao painel de prioridade, com a disciplina reaberta (?disc=)
+        if(de && de.view==='prioridade'){
+          this.setState({view:'prioridade', acervoDe:null, acervoBusca:'',
+            origemAbrir:(de.disc?('disc='+encodeURIComponent(de.disc)):'')});
+          this._marcarPonto('prioridade', {disc:de.disc||''});
+          return;
+        }
         const v=(de&&de.view==='roteiros')?'roteiros':'areamod';
         const q=[];
         if(de&&de.rito) q.push('rito='+encodeURIComponent(de.rito));
@@ -6291,9 +6316,12 @@ class Component extends DCLogic {
   /** Chave do que precisa chegar ao iframe — muda quando busca/ponto mudam. */
   _frameChave(dono){
     if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?'1':'0');
-    // Prioridade e 2ª fase não recebem nada do host depois de montados: chave fixa
-    // para não mandar ctAbrirBloco (que é do mapa de ritos) a cada volta do acervo.
-    if(dono==='prioridade'||dono==='segundafase') return '-';
+    // 2ª fase não recebe nada do host depois de montada: chave fixa para não mandar
+    // ctAbrirBloco (que é do mapa de ritos) a cada volta do acervo.
+    if(dono==='segundafase') return '-';
+    // Prioridade passou a ter uma volta de verdade (?disc=): a chave precisa mudar quando
+    // a disciplina de retorno muda, senão o iframe não recarrega e a linha não reabre.
+    if(dono==='prioridade') return 'd:'+(this.state.origemAbrir||'');
     return 'p:'+(this.state.origemAbrir||'');
   }
   /** Os mesmos dados, em querystring — usados só na PRIMEIRA carga (e em deep-link). */
@@ -6895,7 +6923,7 @@ class Component extends DCLogic {
         heroGrad:'linear-gradient(140deg,#8c3242 0%,#132a1f 100%)' } },
     clean:{ label:'Fibra', font:"'Inter Tight', 'Inter', sans-serif", desc:'Minimal e frio — branco, grafite e índigo. Plano, denso, zero ruído.',
       display:"'Inter Tight', 'Inter', sans-serif", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'8px',
-      light:{ bg:'#fafafa', surface:'#ffffff', surface2:'#f4f4f5', border:'#e7e7ea', ink:'#141419', text2:'#4b4b55', text3:'#6d6d76',
+      light:{ bg:'#fafafa', surface:'#ffffff', surface2:'#f4f4f5', border:'#e7e7ea', ink:'#141419', text2:'#4b4b55', text3:'#696972',
         accent:'#4f46e5', accentD:'#4338ca', accentSoft:'#eceafc', accentRing:'#c9c4f4', onAccent:'#ffffff',
         sidebarBg:'#17181c', sidebarText:'#9a9aa3', sidebarActiveBg:'rgba(129,140,248,.16)', sidebarActiveText:'#a5b4fc',
         heroGrad:'#1c1d24' },
@@ -6905,7 +6933,7 @@ class Component extends DCLogic {
         heroGrad:'#22232d' } },
     moderno:{ label:'Neon', font:"'Space Grotesk', sans-serif", desc:'Futurista — violeta elétrico com magenta, números gigantes e brilho colorido.',
       display:"'Space Grotesk', sans-serif", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'18px',
-      light:{ bg:'#f4f2fb', surface:'#ffffff', surface2:'#efecf9', border:'#e0dbf1', ink:'#14101f', text2:'#4b4460', text3:'#6f6885',
+      light:{ bg:'#f4f2fb', surface:'#ffffff', surface2:'#efecf9', border:'#e0dbf1', ink:'#14101f', text2:'#4b4460', text3:'#6c6582',
         accent:'#7c3aed', accentD:'#6428c9', accentSoft:'#efe7fd', accentRing:'#d4bff8', onAccent:'#ffffff',
         sidebarBg:'#17102b', sidebarText:'#a99fc7', sidebarActiveBg:'rgba(167,139,250,.22)', sidebarActiveText:'#c4b5fd',
         heroGrad:'linear-gradient(135deg,#7c3aed,#d926a9)' },
@@ -6919,7 +6947,7 @@ class Component extends DCLogic {
         accent:'#0891b2', accentD:'#0a748f', accentSoft:'#dff3f9', accentRing:'#ade1ef', onAccent:'#ffffff',
         sidebarBg:'#0b1526', sidebarText:'#8fa8c4', sidebarActiveBg:'rgba(34,211,238,.18)', sidebarActiveText:'#67e8f9',
         heroGrad:'linear-gradient(135deg,#0891b2,#2563eb)' },
-      dark:{ bg:'#081019', surface:'#0e1926', surface2:'#13202f', border:'#1e3042', ink:'#e6f2fb', text2:'#93aabe', text3:'#758a9c',
+      dark:{ bg:'#081019', surface:'#0e1926', surface2:'#13202f', border:'#1e3042', ink:'#e6f2fb', text2:'#93aabe', text3:'#778c9e',
         accent:'#22d3ee', accentD:'#06b6d4', accentSoft:'#0b2531', accentRing:'#155e73', onAccent:'#04181e',
         sidebarBg:'#050b13', sidebarText:'#7c94ad', sidebarActiveBg:'rgba(34,211,238,.16)', sidebarActiveText:'#67e8f9',
         heroGrad:'linear-gradient(135deg,#0ea5be,#1d4ed8)' } },
@@ -6939,7 +6967,7 @@ class Component extends DCLogic {
         accent:'#4d7c0f', accentD:'#3f6212', accentSoft:'#ecf6dd', accentRing:'#c3e29a', onAccent:'#ffffff',
         sidebarBg:'#101410', sidebarText:'#8fa38c', sidebarActiveBg:'rgba(163,230,53,.16)', sidebarActiveText:'#a3e635',
         heroGrad:'#151b14' },
-      dark:{ bg:'#0a0d0a', surface:'#111511', surface2:'#171d17', border:'#242d24', ink:'#e9f2e6', text2:'#9cab99', text3:'#798872',
+      dark:{ bg:'#0a0d0a', surface:'#111511', surface2:'#171d17', border:'#242d24', ink:'#e9f2e6', text2:'#9cab99', text3:'#7d8c76',
         accent:'#a3e635', accentD:'#84cc16', accentSoft:'#1a230f', accentRing:'#3f5c14', onAccent:'#0e1403',
         sidebarBg:'#070907', sidebarText:'#7f9079', sidebarActiveBg:'rgba(163,230,53,.14)', sidebarActiveText:'#bef264',
         heroGrad:'#131a12' } },
@@ -6949,7 +6977,7 @@ class Component extends DCLogic {
         accent:'#0ea5e9', accentD:'#0284c7', accentSoft:'#e4f4fd', accentRing:'#b3e2f8', onAccent:'#ffffff',
         sidebarBg:'#151322', sidebarText:'#a09cc0', sidebarActiveBg:'rgba(56,189,248,.18)', sidebarActiveText:'#7dd3fc',
         heroGrad:'linear-gradient(120deg,#8b5cf6 0%,#0ea5e9 55%,#ec4899 110%)' },
-      dark:{ bg:'#0c0b14', surface:'#14121e', surface2:'#1a1827', border:'#282540', ink:'#eeedf7', text2:'#a5a1bd', text3:'#84809c',
+      dark:{ bg:'#0c0b14', surface:'#14121e', surface2:'#1a1827', border:'#282540', ink:'#eeedf7', text2:'#a5a1bd', text3:'#8885a0',
         accent:'#38bdf8', accentD:'#0ea5e9', accentSoft:'#11202e', accentRing:'#1e4a63', onAccent:'#06121b',
         sidebarBg:'#08070f', sidebarText:'#8b86ab', sidebarActiveBg:'rgba(56,189,248,.16)', sidebarActiveText:'#7dd3fc',
         heroGrad:'linear-gradient(120deg,#7c5cf0 0%,#0ea5e9 55%,#e0479d 110%)' } }
@@ -7069,6 +7097,18 @@ class Component extends DCLogic {
   };}
   _estiloAbaCiclo(ativa){ return 'flex:1;min-width:0;padding:9px 14px;border-radius:99px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:700;'
     + (ativa ? 'background:var(--accent);color:var(--onAccent);box-shadow:0 1px 3px rgba(16,24,40,.16);' : 'background:transparent;color:var(--text2);'); }
+  /* O CTA do cartão de próxima ação era um onNav puro: com a leitura da semana ele
+     apontava para o iframe do JURIS, que não tem botão "Já vi" — oferecia uma ação que
+     não satisfazia a condição de o cartão sumir. Agora leva à seção do Início onde a
+     marcação existe de verdade. */
+  paIr = (e)=>{
+    const acao=e.currentTarget.getAttribute('data-acao')||'';
+    this.onNav(e);
+    if(acao==='semana'){
+      setTimeout(()=>{ const alvo=document.getElementById('ct-semana');
+        if(alvo) alvo.scrollIntoView({block:'start', behavior:'smooth'}); }, 90);
+    }
+  };
   setCyclePanel = (e)=>{ const p=e.currentTarget.dataset.panel; if(p!==this.state.cyclePanel) this.setState({cyclePanel:p}); };
   // Roving tabindex tira a aba inativa da tabulação; sem setas ela ficaria inalcançável.
   cycleTabKey = (e)=>{ const k=e.key;
@@ -7564,7 +7604,7 @@ class Component extends DCLogic {
         <div class="actions">
           <button id="ct-pip-toggle" class="primary">Pausar</button>
           <button id="ct-pip-reset" class="ghost" title="Zerar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4h4"></path></svg></button>
-          <button id="ct-pip-open" class="ghost" title="Abrir no Cátedra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></button>
+          <button class="ct-alvo" id="ct-pip-open" class="ghost" title="Abrir no Cátedra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></button>
         </div>
       </div>`;
     w.document.getElementById('ct-pip-toggle').addEventListener('click', ()=>this.toggleTimer());
@@ -10873,9 +10913,7 @@ class Component extends DCLogic {
     // consomem em satellite-base.css). No corpo do host o respiro ainda está em padding
     // literal, tela por tela; migrá-lo é outro trabalho.
     const _dens = (pf0.density==='compacta') ? 'compacta' : 'confortavel';
-    const _esp = _dens==='compacta' ? [4,8,12] : [6,10,16];
-    const espTokens = `--space-1:${_esp[0]}px;--space-2:${_esp[1]}px;--space-3:${_esp[2]}px;`
-      + `--control-h:${_dens==='compacta'?'34px':'38px'};--content-max:1200px;`;
+    const espTokens = `--control-h:${_dens==='compacta'?'34px':'38px'};`;
     const fsTokens = `--fs-3xs:${_fs(10.5)};--fs-2xs:${_fs(11)};--fs-xs:${_fs(11.5)};--fs-sm:${_fs(12.5)};--fs-base:${_fs(13.5)};--fs-md:${_fs(14.5)};--fs-lg:${_fs(15.5)};--fs-xl:${_fs(17)};--fs-2xl:${_fs(19)};`;
     const accSoft = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.78) : this.mixWhite(this.state.accent,0.88)) : T.accentSoft;
     const accRing = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.45) : this.mixWhite(this.state.accent,0.62)) : T.accentRing;
@@ -11604,41 +11642,61 @@ class Component extends DCLogic {
           motivo:'É o próximo bloco de hoje que ainda não foi concluído.',
           meta:(nextAction.min?String(nextAction.min)+' min':''), cta:'Abrir o ciclo' };
       }
-      // 3. Leitura do dia: lei seca ou jurisprudência nova da semana.
-      // _semanaItens() já devolve SÓ o que ela ainda não marcou como visto
-      const _naoLidos=this._semanaItens()||[];
-      if(_naoLidos.length){
-        return { tipo:'leitura', view:'juris', action:'',
-          titulo:'Ler o que mudou esta semana',
-          motivo:'Jurisprudência nova entra em prova antes de virar rotina.',
-          meta:(_naoLidos.length+(_naoLidos.length===1?' novidade':' novidades')), cta:'Abrir a leitura' };
-      }
-      // 4. Simulado ou prova marcada nos próximos sete dias.
+      // 3. Simulado ou prova marcada nos próximos sete dias.
+      // Vem ANTES da leitura da semana: com 60 informativos por marcar e uma prova amanhã,
+      // a ordem anterior deixava o cartão preso em "ler o que mudou" e a prova nunca
+      // aparecia. Data que se aproxima manda em leitura acumulada.
       const _prox=(()=>{
         try{
+          // meia-noite dos dois lados. A primeira versão montava o evento ao MEIO-DIA e
+          // comparava com a meia-noite de hoje: a diferença dava sempre n+0,5, o
+          // Math.round arredondava para cima e a prova de HOJE anunciava "É amanhã."
           const hj=new Date(); hj.setHours(0,0,0,0);
           const cand=[];
           (this.state.eventos||[]).forEach(e=>{
             if(!e || e.done) return;
             if(!/simulado|prova/i.test(String(e.tipo||'')+' '+String(e.titulo||''))) return;
-            const d=new Date((e.ano==null?hj.getFullYear():e.ano), (e.mes==null?hj.getMonth():e.mes), e.dia||1, 12);
+            const d=new Date((e.ano==null?hj.getFullYear():e.ano), (e.mes==null?hj.getMonth():e.mes), e.dia||1);
+            d.setHours(0,0,0,0);
             cand.push({ quando:d, titulo:e.titulo||'Simulado' });
           });
-          if(this.state.provaData){ const d=new Date(this.state.provaData+'T12:00:00');
-            cand.push({ quando:d, titulo:this.state.provaName||'Dia da prova' }); }
-          return cand.filter(x=>{ const dias=Math.round((x.quando-hj)/864e5); return dias>=0 && dias<=7; })
+          if(this.state.provaData){
+            const d=new Date(this.state.provaData+'T00:00:00');
+            // provaName nasce com o literal 'Simulado cronometrado' — é o nome da SALA de
+            // prova, não o do concurso, e nunca é reatribuído. Usá-lo aqui fazia o cartão
+            // dizer "Preparar: Simulado cronometrado" no dia da prova de verdade.
+            const nome=String(this.state.provaName||'');
+            cand.push({ quando:d, titulo:(nome && nome!=='Simulado cronometrado') ? nome : 'Dia da prova' });
+          }
+          return cand.filter(x=>{ const dias=Math.ceil((x.quando-hj)/864e5); return dias>=0 && dias<=7; })
             .sort((a,b)=>a.quando-b.quando)[0]||null;
         }catch(_){ return null; }
       })();
       if(_prox){
-        const dias=Math.round((_prox.quando-new Date().setHours(0,0,0,0))/864e5);
+        const _hj0=new Date(); _hj0.setHours(0,0,0,0);
+        const dias=Math.ceil((_prox.quando-_hj0)/864e5);
         return { tipo:'simulado', view:'simulados', action:'',
           titulo:'Preparar: '+_prox.titulo,
           motivo:(dias<=0?'É hoje.':(dias===1?'É amanhã.':('Faltam '+dias+' dias.'))),
           meta:'', cta:'Abrir simulados' };
       }
+      // 4. Leitura do dia: jurisprudência nova da semana.
+      // Só na área jurídica: fora dela o CátedraJURIS é escondido do menu de propósito, e
+      // o cartão mandava a pessoa para uma tela que a navegação dela não tem.
+      // O destino é o Início (onde ficam os botões "Já vi"), não o iframe do JURIS — que
+      // não tem como marcar nada como visto, isto é, não satisfaz a condição de sumir.
+      const _naoLidos=(areaJuris ? (this._semanaItens()||[]) : []);
+      if(_naoLidos.length){
+        return { tipo:'leitura', view:'inicio', action:'semana',
+          titulo:'Ler o que mudou esta semana',
+          motivo:'Jurisprudência nova entra em prova antes de virar rotina.',
+          meta:(_naoLidos.length+(_naoLidos.length===1?' novidade':' novidades')), cta:'Ver as novidades' };
+      }
       // 5. Recomendação de desempenho — o mesmo cálculo que alimentava o "Foco sugerido".
-      if(_focoCands.length){
+      // _focoCands recebe um push incondicional lá em cima, então o caso 6 só é alcançável
+      // se este exigir um candidato com peso de verdade — senão o fallback declarado do
+      // cartão ("Dia em dia") era código morto.
+      if(_focoCands.length && _focoWin && _focoWin.t){
         return { tipo:'desempenho', view:focoView, action:'',
           titulo:_focoVerbo+' '+_focoWin.t.replace(/\.$/,''),
           motivo:'Escolhido pelos seus pesos de prioridade.',
@@ -13423,7 +13481,7 @@ class Component extends DCLogic {
       // TASK 3: a próxima ação, achatada (o runtime só resolve chave literal de 1º nível)
       paTipo:proximaAcao.tipo, paTitulo:proximaAcao.titulo, paMotivo:proximaAcao.motivo,
       paMeta:proximaAcao.meta, paTemMeta:!!proximaAcao.meta, paCta:proximaAcao.cta,
-      paView:proximaAcao.view,
+      paView:proximaAcao.view, paAcao:(proximaAcao.action||''), paIr:this.paIr,
       paEstilo:'background:var(--surface);border:1px solid var(--accent);border-left:4px solid var(--accent);'
         +'border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;'
         +'box-shadow:0 2px 10px -4px color-mix(in srgb,var(--accent) 40%,transparent);',
@@ -13727,6 +13785,9 @@ class Component extends DCLogic {
       chkAutoReg:(pf0.autoRegistro?'true':'false'), chkAutoConc:(pf0.autoConcluir?'true':'false'),
       chkAutoRev:(pf0.autoRevisao?'true':'false'), chkContagem:(pf0.mostrarContagem!==false?'true':'false'),
       chkRevLembrete:(pf0.revLembrete?'true':'false'),
+      // os dois interruptores da Reta Final sao o MESMO widget dos Ajustes (togStyle/togKnob):
+      // sem isto, o mesmo controle fala o estado numa tela e cala na outra
+      chkRetaFinal:(_retaOn?'true':'false'), chkReduzTeoria:(_retaReduz?'true':'false'),
       togAutoReg:togStyle(pf0.autoRegistro), togAutoRegKnob:togKnob(pf0.autoRegistro),
       togContagem:togStyle(pf0.mostrarContagem!==false), togContagemKnob:togKnob(pf0.mostrarContagem!==false),
       togAutoConc:togStyle(pf0.autoConcluir), togAutoConcKnob:togKnob(pf0.autoConcluir),
