@@ -2854,6 +2854,72 @@ const d14barra = await page.evaluate(() => {
 });
 for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
 
+/* ===== TASK 3 · UMA ÚNICA PRÓXIMA AÇÃO NO INÍCIO =====
+   O Início oferecia quatro KPIs, chips de área, ritmo semanal, "o dia em campo" e um "Foco
+   sugerido" — todos disputando a mesma decisão. Agora há UM card, derivado do que já se
+   calcula, com precedência fixa. Os casos abaixo verificam o TEXTO, o TIPO e o DESTINO, não
+   só a presença do card: um card que aparece apontando para o lugar errado é pior que nenhum. */
+{
+  const semear = async (dados) => {
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate((d) => {
+      ['reviews', 'blocks', 'blocksDate', 'eventos', 'sessions', 'edital', 'lastPonto', 'semanaLidos']
+        .forEach(k => localStorage.removeItem('catedra:' + k));
+      Object.keys(d).forEach(k => localStorage.setItem('catedra:' + k, JSON.stringify(d[k])));
+      localStorage.setItem('catedra:auth', '1');
+      localStorage.setItem('catedra:onboarded', '1');
+    }, dados);
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(1700);
+    return page.evaluate(() => {
+      const card = document.querySelector('[data-proxima-acao]');
+      if (!card) return { achou: false };
+      const cta = card.querySelector('button[data-view],button[data-acao]');
+      return {
+        achou: true,
+        tipo: card.getAttribute('data-proxima-acao'),
+        texto: (card.innerText || '').replace(/\s+/g, ' ').trim(),
+        destino: cta ? (cta.getAttribute('data-view') || cta.getAttribute('data-acao')) : null,
+        umCtaSo: card.querySelectorAll('button').length === 1,
+      };
+    });
+  };
+  const hoje = new Date();
+  const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const blocoAberto = [{ i: 0, disc: 'Direito Civil', kind: 'Teoria', min: 50, done: false }];
+
+  // 1 — revisão vencida ganha de tudo
+  const a1 = await semear({
+    reviews: [{ id: 'r1', disc: 'Direito Penal', topic: 'Dolo', due: -3, dueDate: '2020-01-01', intervalo: 1, facilidade: 2.5, repeticoes: 0 }],
+    blocks: blocoAberto, blocksDate: iso(hoje),
+  });
+  ok(a1.achou && a1.tipo === 'revisao', 'TASK3 revisão vencida vence a precedência (' + (a1.tipo || 'sem card') + ')');
+  ok(a1.achou && a1.destino === 'revisoes', 'TASK3 a revisão manda para a tela de Revisões');
+  ok(a1.achou && /revis/i.test(a1.texto), 'TASK3 o card diz que se trata de revisão');
+  ok(a1.achou && a1.umCtaSo, 'TASK3 um único CTA no card');
+
+  // 2 — sem revisão vencida, o bloco aberto do ciclo assume
+  const a2 = await semear({ reviews: [], blocks: blocoAberto, blocksDate: iso(hoje) });
+  ok(a2.achou && a2.tipo === 'ciclo', 'TASK3 bloco aberto do ciclo assume quando não há revisão (' + (a2.tipo || 'sem card') + ')');
+  ok(a2.achou && a2.destino === 'ciclo', 'TASK3 o bloco manda para o Ciclo');
+  ok(a2.achou && /civil/i.test(a2.texto), 'TASK3 o card nomeia a disciplina do bloco');
+
+  // 3 — nada pendente hoje: o card não some, vira estado neutro com destino real
+  const a3 = await semear({ reviews: [], blocks: [{ i: 0, disc: 'Direito Civil', kind: 'Teoria', min: 50, done: true }], blocksDate: iso(hoje) });
+  ok(a3.achou, 'TASK3 sem pendência o card continua existindo (estado neutro)');
+  ok(a3.achou && !!a3.destino, 'TASK3 o estado neutro também tem destino real (' + (a3.destino || 'nenhum') + ')');
+
+  // o "Foco sugerido" não pode competir com o card na mesma posição
+  const duplicado = await page.evaluate(() => {
+    const txt = (document.body.innerText || '');
+    const card = document.querySelector('[data-proxima-acao]');
+    const antes = card ? txt.indexOf(card.innerText.slice(0, 24)) : -1;
+    const foco = txt.indexOf('Foco sugerido');
+    return { temCard: !!card, focoDepoisOuAusente: foco === -1 || (antes >= 0 && foco > antes) };
+  });
+  ok(duplicado.temCard && duplicado.focoDepoisOuAusente, 'TASK3 o "Foco sugerido" não disputa a mesma posição do card');
+}
+
 /* ===== TASK 2 · O GATE DE AUTENTICAÇÃO ISOLA O APP =====
    O gate cobre a tela, mas só isso: o app atrás continua rolando (4.446 px de scroll),
    continua alcançável por Tab e continua sendo lido por leitor de tela. Um overlay que

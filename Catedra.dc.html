@@ -1176,6 +1176,22 @@ window.ctPdfLib = (function(){
           </div>
         </sc-if>
 
+        <!-- TASK 3: A PRÓXIMA AÇÃO. Vem antes do hero e das métricas porque a pergunta do
+             começo do dia é uma só — "o que eu faço agora" — e a tela respondia com cinco
+             coisas ao mesmo tempo. Prioridade visual pela cor de destaque, sem vermelho:
+             isto é um convite, não uma cobrança. -->
+        <div data-proxima-acao="{{ paTipo }}" style="{{ paEstilo }}">
+          <div style="flex:1;min-width:220px;">
+            <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--accent);">Sua próxima ação</div>
+            <div style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);margin-top:5px;line-height:1.25;">{{ paTitulo }}</div>
+            <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:4px;line-height:1.5;">{{ paMotivo }}</div>
+          </div>
+          <sc-if value="{{ paTemMeta }}" hint-placeholder-val="{{ false }}">
+            <span style="flex:none;font-size:var(--fs-xs);font-weight:700;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:5px 12px;">{{ paMeta }}</span>
+          </sc-if>
+          <button data-view="{{ paView }}" onclick="{{ onNav }}" style="flex:none;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:12px 22px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">{{ paCta }}</button>
+        </div>
+
         <!-- HERO: manchete + cronômetro em vidro -->
         <div class="cth-hero">
           <div class="cth-hero-grid">
@@ -11426,6 +11442,76 @@ class Component extends DCLogic {
     const _focoWin=_focoCands[0]||{t:'o que mais pesa na sua aprovação', v:'ciclo', btn:'Continuar'};
     const focoSugestao = _focoVerbo+' '+_focoWin.t+'.';
     const focoView=_focoWin.v||'ciclo'; const focoBtnLabel=_focoWin.btn||'Continuar';
+
+    // ===== TASK 3: A PRÓXIMA AÇÃO — uma só =====
+    // O Início oferecia quatro KPIs, chips de área, ritmo da semana, "o dia em campo" e um
+    // "Foco sugerido" — cinco coisas disputando a mesma decisão, que é sempre uma: o que eu
+    // faço agora. Aqui elas viram UMA, por precedência fixa. Nada é calculado de novo nem
+    // persistido: tudo vem do que a tela já sabia (revOverdue, blocks, eventos, _focoWin).
+    const proximaAcao = (()=>{
+      const curto=(t)=>String(t||'').replace('Direito ','');
+      // 1. Revisão vencida. Ela perde valor a cada dia: nada na tela ganha dela.
+      if(revOverdue.length){
+        const n=revOverdue.length;
+        return { tipo:'revisao', view:'revisoes', action:'',
+          titulo:(n===1?'Revisar 1 tópico vencido':('Revisar '+n+' tópicos vencidos')),
+          motivo:'A revisão atrasada é a que mais desaprende.',
+          meta:(revOverdue[0] && revOverdue[0].disc)?curto(revOverdue[0].disc):'', cta:'Revisar agora' };
+      }
+      // 2. Bloco do ciclo ainda aberto hoje.
+      if(nextAction){
+        const d=curto(nextAction.disc||'estudo');
+        return { tipo:'ciclo', view:'ciclo', action:'',
+          titulo:'Continuar o ciclo: '+d,
+          motivo:'É o próximo bloco de hoje que ainda não foi concluído.',
+          meta:(nextAction.min?String(nextAction.min)+' min':''), cta:'Abrir o ciclo' };
+      }
+      // 3. Leitura do dia: lei seca ou jurisprudência nova da semana.
+      // _semanaItens() já devolve SÓ o que ela ainda não marcou como visto
+      const _naoLidos=this._semanaItens()||[];
+      if(_naoLidos.length){
+        return { tipo:'leitura', view:'juris', action:'',
+          titulo:'Ler o que mudou esta semana',
+          motivo:'Jurisprudência nova entra em prova antes de virar rotina.',
+          meta:(_naoLidos.length+(_naoLidos.length===1?' novidade':' novidades')), cta:'Abrir a leitura' };
+      }
+      // 4. Simulado ou prova marcada nos próximos sete dias.
+      const _prox=(()=>{
+        try{
+          const hj=new Date(); hj.setHours(0,0,0,0);
+          const cand=[];
+          (this.state.eventos||[]).forEach(e=>{
+            if(!e || e.done) return;
+            if(!/simulado|prova/i.test(String(e.tipo||'')+' '+String(e.titulo||''))) return;
+            const d=new Date((e.ano==null?hj.getFullYear():e.ano), (e.mes==null?hj.getMonth():e.mes), e.dia||1, 12);
+            cand.push({ quando:d, titulo:e.titulo||'Simulado' });
+          });
+          if(this.state.provaData){ const d=new Date(this.state.provaData+'T12:00:00');
+            cand.push({ quando:d, titulo:this.state.provaName||'Dia da prova' }); }
+          return cand.filter(x=>{ const dias=Math.round((x.quando-hj)/864e5); return dias>=0 && dias<=7; })
+            .sort((a,b)=>a.quando-b.quando)[0]||null;
+        }catch(_){ return null; }
+      })();
+      if(_prox){
+        const dias=Math.round((_prox.quando-new Date().setHours(0,0,0,0))/864e5);
+        return { tipo:'simulado', view:'simulados', action:'',
+          titulo:'Preparar: '+_prox.titulo,
+          motivo:(dias<=0?'É hoje.':(dias===1?'É amanhã.':('Faltam '+dias+' dias.'))),
+          meta:'', cta:'Abrir simulados' };
+      }
+      // 5. Recomendação de desempenho — o mesmo cálculo que alimentava o "Foco sugerido".
+      if(_focoCands.length){
+        return { tipo:'desempenho', view:focoView, action:'',
+          titulo:_focoVerbo+' '+_focoWin.t.replace(/\.$/,''),
+          motivo:'Escolhido pelos seus pesos de prioridade.',
+          meta:'', cta:focoBtnLabel };
+      }
+      // 6. Nada pendente. O card não some: some seria fingir que não há próximo passo.
+      return { tipo:'livre', view:'ciclo', action:'',
+        titulo:'Dia em dia — escolha por onde seguir',
+        motivo:'Sem revisão vencida nem bloco aberto. Bom momento para adiantar teoria.',
+        meta:'', cta:'Abrir o ciclo' };
+    })();
     // histórico recente
     const _catMeta=CT_CAT_META;   // ícone/cor de toda categoria, de qualquer área
     const _ago=(ts)=>{ const d=Date.now()-ts; const mi=Math.floor(d/60000); if(mi<1) return 'agora'; if(mi<60) return mi+' min atrás'; const h=Math.floor(mi/60); if(h<24) return h+'h atrás'; const dd=Math.floor(h/24); return dd===1?'ontem':dd+' dias atrás'; };
@@ -13182,6 +13268,13 @@ class Component extends DCLogic {
       // ===== U3: cartão "continuar de onde parei" ================================
       contP:_contP, contTem:!!_contP,
       voltarAoPonto:this.voltarAoPonto, dispensarPonto:this.dispensarPonto,
+      // TASK 3: a próxima ação, achatada (o runtime só resolve chave literal de 1º nível)
+      paTipo:proximaAcao.tipo, paTitulo:proximaAcao.titulo, paMotivo:proximaAcao.motivo,
+      paMeta:proximaAcao.meta, paTemMeta:!!proximaAcao.meta, paCta:proximaAcao.cta,
+      paView:proximaAcao.view,
+      paEstilo:'background:var(--surface);border:1px solid var(--accent);border-left:4px solid var(--accent);'
+        +'border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;'
+        +'box-shadow:0 2px 10px -4px color-mix(in srgb,var(--accent) 40%,transparent);',
       prioLista, prioTem:prioLista.length>0, prioVazio:prioLista.length===0, prioRevisar:this.prioRevisar,
       praticarDisciplina:this.praticarDisciplina, praticarQuestao:this.praticarQuestao,
       praticarLabel:'Praticar no '+this._plataformaNome(),
