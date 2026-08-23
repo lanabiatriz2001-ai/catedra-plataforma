@@ -2854,6 +2854,66 @@ const d14barra = await page.evaluate(() => {
 });
 for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
 
+/* ===== TASK 5 · NAVEGAÇÃO POR JORNADA, SEM TROCAR IDS =====
+   A barra agrupava por arquitetura do código ("Treino", "Acervo"). Agora agrupa pela rotina
+   e pelas fases do concurso. O que NÃO pode mudar é o data-view: renomear um id quebraria
+   deep-link, ponto de retorno e as abas nativas. */
+{
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const nav = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
+    const antesDeAbrir = mais ? mais.getAttribute('aria-expanded') : null;
+    if (mais) { mais.click(); await w(400); }
+    const mais2 = document.querySelector('button[aria-label="Mostrar mais opções"]');
+    const views = [...document.querySelectorAll('aside button[data-view]')].map(b => b.getAttribute('data-view'));
+    const rotulos = [...document.querySelectorAll('aside div')]
+      .map(d => (d.textContent || '').trim()).filter(t => t.length < 30 && t.length > 3);
+    const ordem = (v) => views.indexOf(v);
+    return {
+      // todo id essencial continua na barra
+      idsPreservados: ['inicio','ciclo','revisoes','calendario','legis','edital','simulados',
+        'redacao','oral','prioridade','bancas','analise','historico','ajustes'].every(v => views.includes(v)),
+      // a rotina vem primeiro, depois o acervo base, depois as fases, depois o planejamento
+      hojeAntesDoAcervo: ordem('inicio') < ordem('legis'),
+      acervoAntesDasFases: ordem('legis') < ordem('simulados'),
+      fasesAntesDoPlanejamento: ordem('simulados') < ordem('prioridade'),
+      // os rótulos dizem a fase
+      dizFases: rotulos.some(t => /fases da magistratura|treino/i.test(t)),
+      dizEstudoBase: rotulos.some(t => /estudo base/i.test(t)),
+      dizPlanejamento: rotulos.some(t => /planejamento/i.test(t)),
+      // o expansor conta o seu estado
+      expansorFechadoDizFalse: antesDeAbrir === 'false',
+      expansorAbertoDizTrue: !!mais2 && mais2.getAttribute('aria-expanded') === 'true',
+      expansorApontaParaOPainel: !!mais2 && !!document.getElementById(mais2.getAttribute('aria-controls') || ''),
+    };
+  });
+  for (const [k, v] of Object.entries(nav)) ok(v, 'TASK5 ' + k);
+
+  // o fundo do menu do celular precisa ser alcançável por teclado
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1500);
+  const drawer = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const abrir = document.querySelector('button[aria-label="Abrir menu"]');
+    if (!abrir) return { erro: 'sem botão de menu no celular' };
+    abrir.click(); await w(450);
+    const fundo = document.querySelector('button[aria-label="Fechar o menu"]');
+    const r = { fundoEhBotaoComNome: !!fundo };
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await w(450);
+    r.escFechaOMenu = !document.querySelector('button[aria-label="Fechar o menu"]');
+    return r;
+  });
+  if (drawer.erro) ok(false, 'TASK5 ' + drawer.erro);
+  else for (const [k, v] of Object.entries(drawer)) ok(v, 'TASK5 ' + k);
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
 /* ===== TASK 4 · A ESCOLHA DO ONBOARDING É EXPLÍCITA =====
    O passo "Por onde quer começar?" abria sem nada selecionado: apertar Continuar caía num
    fallback silencioso, e a tela não dizia o que ia acontecer. E o modal aparecia POR CIMA
