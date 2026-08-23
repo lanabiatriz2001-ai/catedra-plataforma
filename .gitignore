@@ -17,6 +17,8 @@ node_modules
 # artefatos de trabalho (screenshots, versão antiga) — não fazem parte do app
 scraps/
 uploads/
+# capturas de auditoria de interface (antes/depois): pesam MB e não são parte do produto
+artifacts/
 
 # macOS / sistema
 .DS_Store
