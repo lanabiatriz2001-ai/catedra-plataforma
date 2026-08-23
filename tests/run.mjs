@@ -2914,6 +2914,64 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+/* ===== TASK 6 · CICLO: EXECUTAR E CONFIGURAR SÃO COISAS DIFERENTES =====
+   A tela do Ciclo empilhava a rotina de hoje e o construtor. Quem abria para estudar tinha de
+   passar pelo painel de configuração. Agora são duas abas — e trocar de aba não pode encostar
+   em blocks, manualFixed nem manualRot: é estado de tela, não de dados. */
+{
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const ciclo = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const vis = id => { const e = document.getElementById(id); return !!e && getComputedStyle(e).display !== 'none'; };
+    const tab = id => document.getElementById(id);
+    document.querySelector('button[data-view="ciclo"]').click(); await w(800);
+    const r = {};
+    // 1) abre pronta para executar
+    r.abreExecutando = vis('ct-cycle-panel-executar') && !vis('ct-cycle-panel-configurar');
+    r.abaExecutarSelecionada = tab('ct-cycle-tab-executar').getAttribute('aria-selected') === 'true';
+    r.painelTemNome = tab('ct-cycle-tab-executar').getAttribute('aria-controls') === 'ct-cycle-panel-executar'
+      && document.getElementById('ct-cycle-panel-executar').getAttribute('aria-labelledby') === 'ct-cycle-tab-executar';
+    // 2) os dados do ciclo ANTES de mexer nas abas
+    const snap = () => JSON.stringify(['blocks','manualFixed','manualRot','cycleMode']
+      .map(k => { try { return localStorage.getItem('catedra:' + k); } catch (_) { return null; } }));
+    const antes = snap();
+    // 3) troca para configurar
+    tab('ct-cycle-tab-configurar').click(); await w(700);
+    r.trocaMostraConfig = vis('ct-cycle-panel-configurar') && !vis('ct-cycle-panel-executar');
+    r.abaConfigSelecionada = tab('ct-cycle-tab-configurar').getAttribute('aria-selected') === 'true';
+    r.abaExecutarSaiDaTabulacao = tab('ct-cycle-tab-executar').tabIndex === -1;
+    r.dadosIntactos = snap() === antes;
+    // 4) o construtor de verdade está na aba de configuração
+    r.configTemOsModos = /Como montar seu ciclo/i.test(document.getElementById('ct-cycle-panel-configurar').textContent || '');
+    // 5) seta volta para executar (roving tabindex sem seta deixaria a aba inalcançável)
+    tab('ct-cycle-tab-configurar').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    await w(700);
+    r.setaVoltaParaExecutar = vis('ct-cycle-panel-executar') && !vis('ct-cycle-panel-configurar');
+    r.setaLevaOFoco = document.activeElement === tab('ct-cycle-tab-executar');
+    // 6) painel escondido não deve ser tabulável
+    r.escondidoNaoRecebeFoco = [...document.querySelectorAll('#ct-cycle-panel-configurar button')]
+      .every(b => b.offsetParent === null);
+    return r;
+  });
+  for (const [k, v] of Object.entries(ciclo)) ok(v, 'TASK6 ' + k);
+
+  // conta sem ciclo montado: "Executar" não pode ser uma tela em branco
+  const vazio = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const p = document.getElementById('ct-cycle-panel-executar');
+    const temPonte = /ainda não tem blocos/i.test(p.textContent || '');
+    if (!temPonte) return { pulou: true };
+    const b = [...p.querySelectorAll('button')].find(x => /configurar ciclo/i.test(x.textContent || ''));
+    b.click(); await w(700);
+    return { ponteLevaAConfigurar: getComputedStyle(document.getElementById('ct-cycle-panel-configurar')).display !== 'none' };
+  });
+  if (!vazio.pulou) for (const [k, v] of Object.entries(vazio)) ok(v, 'TASK6 ' + k);
+}
+
 /* ===== TASK 4 · A ESCOLHA DO ONBOARDING É EXPLÍCITA =====
    O passo "Por onde quer começar?" abria sem nada selecionado: apertar Continuar caía num
    fallback silencioso, e a tela não dizia o que ia acontecer. E o modal aparecia POR CIMA
