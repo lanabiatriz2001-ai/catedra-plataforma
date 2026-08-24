@@ -5615,9 +5615,9 @@ class Component extends DCLogic {
       if(e.key==='?' && !e.metaKey && !e.ctrlKey && !e.altKey){
         const el=document.activeElement, tag=el&&el.tagName;
         const digitando = !!(el && (tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || el.isContentEditable));
-        if(!digitando && this.state.loggedIn && !this.state.atalhosOpen){ e.preventDefault(); this.setState({atalhosOpen:true, paletteOpen:false}); return; }
+        if(!digitando && this.state.loggedIn && !this.state.atalhosOpen){ e.preventDefault(); this.setState({atalhosOpen:true, paletteOpen:false, paletteQuery:''}); return; }
       }
-      if(e.key==='Escape'){ if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+      if(e.key==='Escape'){ if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
       // vale enquanto ela digita — senão um espaço no meio da redação pararia o cronômetro.
       const _dig=(()=>{ try{ const el=document.activeElement; if(!el) return false;
@@ -10765,7 +10765,7 @@ class Component extends DCLogic {
     {tecla:'Tab',    faz:'Circular pelos campos de um formulário aberto, sem escapar dele'},
     {tecla:'/',      faz:'Buscar dentro do roteiro de peças, com a tela de peças aberta'},
   ];
-  abrirAtalhos = ()=> this.setState({atalhosOpen:true, paletteOpen:false, menuOpen:false});
+  abrirAtalhos = ()=> this.setState({atalhosOpen:true, paletteOpen:false, paletteQuery:'', menuOpen:false});
   fecharAtalhos = ()=> this.setState({atalhosOpen:false});
 
   // ===== paleta de comando (Ctrl/Cmd+K) =====
@@ -10972,27 +10972,31 @@ class Component extends DCLogic {
     this.setState({lastPontoDispensado:ts}, ()=>{ try{ localStorage.setItem(this._chave('lastPontoDispensado'), JSON.stringify(ts)); }catch(_){} });
   };
 
-  closePalette = ()=> this.setState({paletteOpen:false});
+  /* Fechar a paleta precisa limpar a QUERY, não só o `open`. O render usa
+     `pq ? this._palConteudo(...) : []` — condicionado ao TEXTO —, então uma busca deixava
+     o app varrendo 15 mil verbetes a cada render, uma vez por segundo com o cronômetro
+     ligado, mesmo com a paleta fechada. */
+  closePalette = ()=> this.setState({paletteOpen:false, paletteQuery:''});
   onPaletteQuery = (e)=>{ const v=e.currentTarget.value; this.setState({paletteQuery:v});
     if((v||'').trim().length>=2) this._palMontar(); };   // índice sob demanda, nunca no boot
   paletteGo = (e)=>{ const v=e.currentTarget.dataset.view; const act=e.currentTarget.dataset.act; if(v==='comunidade') try{ this._loadGrupos(); }catch(_){} if(v==='admin') try{ this._loadAdmin(); }catch(_){}
     // CONTEÚDO (item 6): lei/verbete abrem o acervo já buscando; peça/rito abrem o mapa
     // no ponto exato — mesmo canal do ida-e-volta (o ponto viaja na URL do iframe).
     const kind=e.currentTarget.dataset.kind, arg=e.currentTarget.dataset.arg||'';
-    if(kind==='lei'){ this.setState({paletteOpen:false, menuOpen:false, view:'legis', acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
-    if(kind==='verbete'){ this.setState({paletteOpen:false, menuOpen:false, view:'juris', acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
-    if(kind==='peca'){ this.setState({paletteOpen:false, menuOpen:false, view:'roteiros', acervoBusca:'', acervoDe:null, origemAbrir:'peca='+encodeURIComponent(arg)}); return; }
-    if(kind==='rito'){ this.setState({paletteOpen:false, menuOpen:false, view:'areamod', acervoBusca:'', acervoDe:null, origemAbrir:'rito='+encodeURIComponent(arg)}); return; }
-    if(act==='foco'){ this.setState({paletteOpen:false}); this.enterFocus(); return; }
-    if(act==='registrar'){ this.setState({paletteOpen:false, sessionModalOpen:true}); return; }
+    if(kind==='lei'){ this.setState({paletteOpen:false, paletteQuery:''}); this._irPara('legis', {acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
+    if(kind==='verbete'){ this.setState({paletteOpen:false, paletteQuery:''}); this._irPara('juris', {acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
+    if(kind==='peca'){ this.setState({paletteOpen:false, paletteQuery:''}); this._irPara('roteiros', {acervoBusca:'', acervoDe:null, origemAbrir:'peca='+encodeURIComponent(arg)}); return; }
+    if(kind==='rito'){ this.setState({paletteOpen:false, paletteQuery:''}); this._irPara('areamod', {acervoBusca:'', acervoDe:null, origemAbrir:'rito='+encodeURIComponent(arg)}); return; }
+    if(act==='foco'){ this.setState({paletteOpen:false, paletteQuery:''}); this.enterFocus(); return; }
+    if(act==='registrar'){ this.setState({paletteOpen:false, paletteQuery:'', sessionModalOpen:true}); return; }
     if(act==='atalhos'){ this.abrirAtalhos(); return; }
     const openId=e.currentTarget.dataset.open;
     // Abrir um destaque pelo ⌘K: NÃO mudar de view. Antes ia para 'biblioteca', que
     // deixou de existir no template — o leitor (overlay global) abria por cima, mas ao
     // fechá-lo a pessoa ficava numa tela em BRANCO. Agora o leitor abre sobre a tela
     // em que ela já estava, e fechar devolve para lá.
-    if(openId){ this.setState({paletteOpen:false, menuOpen:false, readerOpen:openId}); return; }
-    this.setState({paletteOpen:false});
+    if(openId){ this.setState({paletteOpen:false, paletteQuery:'', menuOpen:false, readerOpen:openId}); return; }
+    this.setState({paletteOpen:false, paletteQuery:''});
     this._irPara(v); };
 
   hexToRgb(h){ h=h.replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }

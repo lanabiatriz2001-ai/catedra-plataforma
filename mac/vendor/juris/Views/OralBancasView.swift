@@ -95,6 +95,11 @@ struct OralBancasView: View {
     @AppStorage("juris.oral.soOuro") private var soOuro = true
     @AppStorage("juris.oral.minutos") private var minutos = 15
     @AppStorage("juris.oral.selecionado") private var selID = ""
+    /* O acervo mora num enum ESTÁTICO (OralBancas), que o SwiftUI não observa: mudar
+       OralBancas.estado não invalida esta View. Na prática, quem redesenhava a tela era o
+       cronômetro de 1 s da arguição — e o botão "Tentar de novo" não fazia nada visível
+       fora dela. Este @State é o gatilho explícito: toda leitura do acervo o incrementa. */
+    @State private var acervoVersao = 0
     @State private var busca = ""
     // sessão de arguição
     @State private var emSessao = false
@@ -157,6 +162,7 @@ struct OralBancasView: View {
         }
         .onAppear {
             OralBancas.carregar()
+            acervoVersao += 1
             if !selID.isEmpty { anotacoes = JurisRascunhoCache.get("oral-banca", selID) ?? "" }
         }
         .onReceive(relogio) { agora = $0 }
@@ -171,6 +177,7 @@ struct OralBancasView: View {
     // MARK: catálogo
     private var catalogo: some View {
         VStack(alignment: .leading, spacing: 14) {
+            let _ = acervoVersao      // a dependência que faz o SwiftUI redesenhar
             switch OralBancas.estado {
             case .carregando, .naoCarregado:
                 HStack(spacing: 8) {
@@ -185,7 +192,7 @@ struct OralBancasView: View {
                     Text("Os pontos sorteáveis, as perguntas das bancas e os padrões de resposta ficam nesta tela. Enquanto isso, o mesmo material está no Cátedra na web.")
                         .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
-                    Button("Tentar de novo") { OralBancas.carregar(forcar: true) }
+                    Button("Tentar de novo") { OralBancas.carregar(forcar: true); acervoVersao += 1 }
                         .buttonStyle(.bordered)
                 }
                 .padding(.vertical, 4)
