@@ -30,7 +30,21 @@ MIN_IOS=17.0
 # than the previously uploaded version"), então ele precisa subir sozinho — número fixo dá um
 # 409 no meio do upload e faz perder a viagem. A contagem de commits serve bem: sobe a cada
 # commit, é reproduzível e não depende de guardar estado em lugar nenhum.
-BUILD_N="${CATEDRA_BUILD_N:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
+# CORRECAO: `rev-list --count HEAD` conta o historico do HEAD ATUAL, e isso NAO e
+# monotonico. Um hotfix cortado de um commit antigo sai com numero MENOR que o ja
+# enviado — exatamente o 409 que esta linha existe para evitar —, e fora de um repo git
+# ele cai para 1, que a Apple recusa na hora. Aqui o numero e o MAIOR entre a contagem de
+# commits e o ultimo build ja publicado + 1, guardado no proprio repo (ios/.build-n).
+_N_GIT="$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 0)"
+_N_ARQ="$(cat "$HERE/.build-n" 2>/dev/null || echo 0)"
+case "$_N_GIT" in (*[!0-9]*|'') _N_GIT=0;; esac
+case "$_N_ARQ" in (*[!0-9]*|'') _N_ARQ=0;; esac
+_N_CALC="$_N_GIT"
+[ "$_N_ARQ" -ge "$_N_CALC" ] && _N_CALC=$((_N_ARQ + 1))
+[ "$_N_CALC" -lt 1 ] && _N_CALC=1
+BUILD_N="${CATEDRA_BUILD_N:-$_N_CALC}"
+# guarda o que foi usado, para a proxima execucao nunca repetir nem regredir
+printf '%s' "$BUILD_N" > "$HERE/.build-n" 2>/dev/null || true
 
 # A Apple RECUSA upload feito com SDK beta ("Unsupported SDK or Xcode version", 90534). Esta
 # máquina tem os dois Xcode e o `xcode-select` aponta para o beta — ótimo para desenvolver,

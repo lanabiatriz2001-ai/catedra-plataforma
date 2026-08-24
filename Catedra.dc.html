@@ -2589,15 +2589,15 @@ window.ctPdfLib = (function(){
           <div style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);">Prova oral</div>
           <div style="font-size:var(--fs-sm);opacity:.9;margin-top:4px;max-width:640px;line-height:1.55;">Arguição sobre o acervo de jurisprudência, sobre a lei seca, e o material oficial das bancas — pontos sorteáveis, perguntas formuladas, padrão de resposta e critérios. Tudo local, sem IA.</div>
           <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
-            <button data-m="juris" onclick="{{ setOralModo }}" style="{{ oralAbaJuris }}">Jurisprudência</button>
+            <sc-if value="{{ capJuris }}" hint-placeholder-val="{{ true }}"><button data-m="juris" onclick="{{ setOralModo }}" style="{{ oralAbaJuris }}">Jurisprudência</button></sc-if>
             <button data-m="lei" onclick="{{ setOralModo }}" style="{{ oralAbaLei }}">Lei seca</button>
-            <button data-m="bancas" onclick="{{ setOralModo }}" style="{{ oralAbaBancas }}">Bancas reais</button>
+            <sc-if value="{{ capOralBancas }}" hint-placeholder-val="{{ true }}"><button data-m="bancas" onclick="{{ setOralModo }}" style="{{ oralAbaBancas }}">Bancas reais</button></sc-if>
           </div>
         </div>
 
         <!-- O QUE VOCÊ VEIO FAZER AQUI. Os três nomes acima são acervos; estes são atos.
              Some depois da escolha — os filtros detalhados continuam logo abaixo. -->
-        <sc-if value="{{ oralSemIntencao }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ oralIntencoesShow }}" hint-placeholder-val="{{ true }}">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;">
           <button data-i="treinar" onclick="{{ oralIntencao }}" style="text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 22px rgba(16,24,40,.06);">
             <span style="display:block;font-weight:700;color:var(--ink);font-size:var(--fs-lg);">Treinar arguição agora</span>
@@ -5464,7 +5464,7 @@ class Component extends DCLogic {
       timerMode:'livre', pomoFocus:25, pomoBreak:5, pomoMenuOpen:false, sessionModalOpen:false,
       pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false, focusBlockIdx:null, pipMsg:'', salaFrase:'', salaFraseVisivel:false,   // D13: a frase que abre a sala
       sessions: (()=>{ try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
-      sessionsLixeira: (()=>{ try{ const raw=localStorage.getItem('catedra:sessionsLixeira'); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)) return arr; } }catch(_){} return []; })(),
+      sessionsLixeira: (()=>{ try{ const raw=localStorage.getItem(this._chave('sessionsLixeira')); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)) return arr; } }catch(_){} return []; })(),
       histLixeiraOpen:false,
       sessionDraft:{ disc:_areaIni.discs[0], topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
       edRaw:'', edParsed:null, edAiBusy:false,
@@ -5535,7 +5535,7 @@ class Component extends DCLogic {
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
       sjAberto:false, sjPronto:false, sjRamo:'', sjN:30, sjProvaN:5, sjItens:[], sjResp:{}, sjAtual:0, sjFim:false, sjIni:0,
       sjRamos:[], sjLeis:[], sjPctLei:40, sjRel:null,   // simulado misto: várias disciplinas, juris + lei seca
-      oralModo:'juris', oralIntencao:'', oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
+      oralModo:'juris', oralIntencao:'',   // corrigido no 1º render para um modo que a área tenha oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
       oralPergunta:'', oralResposta:'', oralCorrecao:null, oralHist:[],
       oralBancasPronto:false, oralBancaCarr:'', oralBancaBanca:'', oralBancaQ:'', oralBancaSoOuro:true, oralBancaSel:null,
       // lei seca: artigo sorteado das 14 leis embutidas (leis-seca.js)
@@ -5615,9 +5615,9 @@ class Component extends DCLogic {
       if(e.key==='?' && !e.metaKey && !e.ctrlKey && !e.altKey){
         const el=document.activeElement, tag=el&&el.tagName;
         const digitando = !!(el && (tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || el.isContentEditable));
-        if(!digitando && this.state.loggedIn && !this.state.atalhosOpen){ e.preventDefault(); this.setState({atalhosOpen:true, paletteOpen:false}); return; }
+        if(!digitando && this.state.loggedIn && !this.state.atalhosOpen){ e.preventDefault(); this.setState({atalhosOpen:true, paletteOpen:false, paletteQuery:''}); return; }
       }
-      if(e.key==='Escape'){ if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+      if(e.key==='Escape'){ if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
       // vale enquanto ela digita — senão um espaço no meio da redação pararia o cronômetro.
       const _dig=(()=>{ try{ const el=document.activeElement; if(!el) return false;
@@ -5737,7 +5737,9 @@ class Component extends DCLogic {
           de={view:String(o.view), disc:String(o.disc||''), rotulo:String(o.rotulo||''),
               rito:'', peca:'', bloco:null};
         } else if(v!=='legis'&&v!=='juris'){ de=null; }
-        this.setState({view:alvo, acervoBusca:String(e.data.termo||''), acervoDe:de, origemAbrir:''});
+        // o iframe pede a troca, mas quem decide se ela pode acontecer é o guarda:
+        // a aba Incidência do LEGIS pedia o JURIS até em área que não tem jurisprudência
+        if(this._irPara(alvo, {acervoBusca:String(e.data.termo||''), acervoDe:de, origemAbrir:''})==='indisponivel') return;
         this._marcarPonto(alvo, {termo:String(e.data.termo||'')});   // U3: dá para voltar aqui depois
         return;
       }
@@ -6039,8 +6041,28 @@ class Component extends DCLogic {
   // relê do localStorage as fatias que o merge de sync pode ter atualizado (sem reload)
   _rehydrateFromLocal(){
     const patch={};
+    /* A ÁREA PODE TER MUDADO NA NUVEM, e isso muda o namespace de TODAS as leituras
+       abaixo. Sem tratar isto primeiro, acontecia o pior caminho possível: o blob trazia
+       areaEstudo='saude', mas cada _load() ainda usava a área VELHA — então o estado
+       ficava híbrido (área Saúde + caderno de Direito) e, 500 ms depois, o autosave
+       gravava o caderno de Direito dentro de catedra:*@saude e subia isso para a nuvem,
+       apagando o caderno de Enfermagem nos dois lados. Sem ninguém tocar em nada.
+       Aqui a área nova é adotada ANTES das leituras, e o caderno vem do lugar certo. */
+    let _areaNova=null;
+    try{
+      const r=localStorage.getItem('catedra:areaEstudo');
+      const v=(r!=null) ? (JSON.parse(r)||'') : '';
+      if(v!==(this.state.areaEstudo||'')) _areaNova=v;
+    }catch(_){}
+    if(_areaNova!==null){
+      // o caderno ABERTO ainda é o da área anterior: fecha-o no namespace dele antes de virar
+      this._salvarAgora();
+      this.state.areaEstudo=_areaNova;   // adotado já, para todo _chave() abaixo acertar o alvo
+      patch.areaEstudo=_areaNova;
+      this._palIndice=null; this._palCarregando=false;   // a busca é da área
+    }
     try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
-    try{ const raw=localStorage.getItem('catedra:sessionsLixeira'); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessionsLixeira=a; } }catch(_){}
+    try{ const raw=localStorage.getItem(this._chave('sessionsLixeira')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessionsLixeira=a; } }catch(_){}
     patch.reviews=this._load('reviews', this.state.reviews);
     patch.metas=this._load('metas', this.state.metas);
     patch.eventos=this._load('eventos', this.state.eventos);
@@ -6075,10 +6097,19 @@ class Component extends DCLogic {
       try{ if(JSON.stringify(patch[k])===JSON.stringify(this.state[k])) delete patch[k]; }catch(_){}
     }); }catch(_){}
     if(!Object.keys(patch).length) return;   // nada veio de novo: não mexe no estado
-    // aplica sem deixar o _autosave achar que tudo mudou (senão regrava e sobe tudo)
-    this._lastSaved=null;
-    this.setState(patch, ()=>{ const L=this._lastSaved||(this._lastSaved={});
-      this._autosaveKeys().forEach(k=>{ L[k]=this.state[k]; }); });
+    /* Aplica sem deixar o _autosave achar que tudo mudou (senão regrava e sobe tudo).
+       O carimbo TEM de ser posto ANTES do render: zerar _lastSaved e só recarimbar no
+       callback do setState deixa uma janela em que o componentDidUpdate já disparou o
+       _autosave e ARMOU o timer de 500 ms — e aquele timer grava sem reavaliar `dirty`.
+       Era por essa fresta que o caderno errado ia para o disco e para a nuvem. */
+    try{ clearTimeout(this._asT); }catch(_){}
+    const L=this._lastSaved||(this._lastSaved={});
+    this._autosaveKeys().forEach(k=>{ L[k]=(k in patch)?patch[k]:this.state[k]; });
+    this.setState(patch, ()=>{
+      try{ clearTimeout(this._asT); }catch(_){}
+      const L2=this._lastSaved||(this._lastSaved={});
+      this._autosaveKeys().forEach(k=>{ L2[k]=this.state[k]; });
+    });
   }
   // ===== escudo de ofensiva (streak freeze) =====
   // Regras: consome 1 escudo p/ cobrir 1 dia isolado sem estudo (ontem), 1x por dia;
@@ -6409,7 +6440,8 @@ class Component extends DCLogic {
     'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redHist',
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
-    'redProvaId','lastPonto','lastPontoDispensado','provaDurationMin','sessions','flashcards']);
+    'redProvaId','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
+    'hl','fc']);
   /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
   _areaAtiva(){
     try{
@@ -6442,6 +6474,8 @@ class Component extends DCLogic {
       try{ localStorage.setItem(this._chave(k), JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){}
     });
     try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(this.state.sessions||[])); }catch(_){}
+    try{ localStorage.setItem(this._chave('sessionsLixeira'), JSON.stringify(this.state.sessionsLixeira||[])); }catch(_){}
+    try{ this._saveHL(this.state.highlights||{}); this._saveFC(this.state.flashcards||[]); }catch(_){}
   }
   /** O vazio certo de cada chave — array, objeto ou escalar. Sem isto, um caderno novo
       nasceria com `undefined` onde a tela espera lista. */
@@ -7131,7 +7165,17 @@ class Component extends DCLogic {
     this.setState({view:v, menuOpen:false, ...(extra||{})});
     if(v==='comunidade') this._loadGrupos();
     if(v==='admin') this._loadAdmin();
-    if(v==='oral') this._oralCarregarAcervo();
+    if(v==='oral'){
+      // modo inicial coerente com a área: sem jurisprudência, começa na lei seca
+      try{
+        const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
+        const m=this.state.oralModo;
+        if((m==='juris' && !R.tem(id,'jurisprudencia')) || (m==='bancas' && !R.tem(id,'provaOralBancas'))){
+          this.setState({oralModo: R.tem(id,'jurisprudencia') ? 'juris' : 'lei'});
+        }
+      }catch(_){}
+      this._oralCarregarAcervo();
+    }
     if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true}));
     return v;
   }
@@ -7440,8 +7484,8 @@ class Component extends DCLogic {
   // Hub "Desempenho": as abas navegam entre a Análise (com anaTab) e o Domínio por tópico,
   // que antes eram telas separadas na barra lateral. Consolida sem mover blocos de render.
   navDesemp = (e)=>{ const d=e.currentTarget.dataset.d;
-    if(d==='dominio'){ this.setState({view:'dominio', menuOpen:false}); }
-    else { this.setState({view:'analise', anaTab:d, menuOpen:false}); } };
+    if(d==='dominio'){ this._irPara('dominio'); }
+    else { this._irPara('analise', {anaTab:d}); } };
 
   // ===== cronômetro: pomodoro + modal sessão =====
   togglePomoMenu = ()=> this.setState(s=>({pomoMenuOpen:!s.pomoMenuOpen}));
@@ -7449,7 +7493,9 @@ class Component extends DCLogic {
     if(this._tick) clearInterval(this._tick); this._tick=null;
     this.setState({timerMode:m, pomoFocus:f, pomoBreak:b, pomoMenuOpen:false, timerRunning:false, timerSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
   _saveSessions(s){ try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(s)); }catch(_){} }
-  _saveLixeira(l){ try{ localStorage.setItem('catedra:sessionsLixeira', JSON.stringify(l)); }catch(_){} }
+  // A lixeira acompanha o HISTÓRICO: com ela global, desfazer uma exclusão feita em
+  // Direito, estando em Saúde, gravava a sessão de magistratura no caderno de Saúde.
+  _saveLixeira(l){ try{ localStorage.setItem(this._chave('sessionsLixeira'), JSON.stringify(l)); }catch(_){} }
   _brain(){
     const S=this.state.sessions||[]; const now=Date.now(), day=864e5;
     const todayStr=this._hoje();
@@ -7907,7 +7953,36 @@ class Component extends DCLogic {
       // gabarito ainda não arquivados no redHistory) e a lixeira de sessões. Quem
       // restaurasse o backup perdia a redação que estava escrevendo.
       redText:this.state.redText, redGabarito:this.state.redGabarito, redEnunciado:this.state.redEnunciado,
-      sessionsLixeira:this.state.sessionsLixeira}; }
+      sessionsLixeira:this.state.sessionsLixeira,
+      /* O arquivo se chama "Backup completo" e, desde que cada área ganhou o seu caderno,
+         ele passou a levar SÓ o da área ativa: quem estudou Direito um ano, mudou para
+         Saúde e deixou o backup semanal rodando, via o edital de magistratura sumir do
+         arquivo sem um aviso. Agora vão TODOS os cadernos, e a área ativa fica registrada
+         para a restauração saber onde devolver cada um. */
+      areaEstudo:(this.state.areaEstudo||''),
+      cadernos:this._cadernosDeTodasAsAreas()}; }
+  /** Lê do localStorage o caderno de cada área que existe, sem depender do estado. */
+  _cadernosDeTodasAsAreas(){
+    const out={};
+    try{
+      const areas=new Set(['']);
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i)||'';
+        if(k.indexOf('catedra:')!==0) continue;
+        const at=k.lastIndexOf('@');
+        if(at>0) areas.add(k.slice(at+1));
+      }
+      areas.forEach(a=>{
+        const cad={};
+        this.AREA_PROPRIA.forEach(ch=>{
+          const nome='catedra:'+ch+(a?('@'+a):'');
+          try{ const v=localStorage.getItem(nome); if(v!=null) cad[ch]=v; }catch(_){}
+        });
+        if(Object.keys(cad).length) out[a||'juridica']=cad;
+      });
+    }catch(_){}
+    return out;
+  }
   exportJSON = ()=>{ const data=this._backupObjeto();
     try{ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
       const a=document.createElement('a'); a.href=url; a.download='catedra-backup.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -8073,6 +8148,27 @@ class Component extends DCLogic {
 
   /** Aplica um backup (objeto do exportJSON) em todo o estado — usado pelo arquivo, iCloud Drive e Google Drive. */
   _restaurarBackup(d){ const patch={};
+    /* Se o arquivo trouxer os cadernos de todas as áreas (formato novo), devolve cada um
+       ao SEU namespace ANTES de aplicar o estado. Sem isto, restaurar um backup feito em
+       Direito estando em Saúde despejava o caderno de magistratura por cima do caderno de
+       Enfermagem — e o toast ainda dizia "restaurado em todo o sistema". */
+    try{
+      if(d && d.cadernos && typeof d.cadernos==='object'){
+        Object.keys(d.cadernos).forEach(area=>{
+          const cad=d.cadernos[area]||{};
+          const suf=(!area||area==='juridica')?'':('@'+area);
+          Object.keys(cad).forEach(ch=>{
+            try{ localStorage.setItem('catedra:'+ch+suf, cad[ch]); }catch(_){}
+          });
+        });
+        // e o estado volta para a área que o backup registrava
+        if(d.areaEstudo!==undefined){
+          try{ localStorage.setItem('catedra:areaEstudo', JSON.stringify(d.areaEstudo||'')); }catch(_){}
+          patch.areaEstudo=d.areaEstudo||'';
+          this.state.areaEstudo=d.areaEstudo||'';   // para todo _chave() abaixo acertar o alvo
+        }
+      }
+    }catch(_){}
             ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','discItems','planHoras','agendaFeitas','manualFixedRoteiroAtual','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','meusGrupos','redText','redGabarito','redEnunciado'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
             if(d.highlights!=null) patch.highlights=d.highlights;
             if(Array.isArray(d.ciclo)) patch.blocks=d.ciclo;
@@ -8448,7 +8544,7 @@ class Component extends DCLogic {
       argVozLabel:(st.argVoz?'🔊 voz ligada':'🔈 ligar voz'),
       argResumo:_argResumo, argTemPool:(this._argPool().length>=3),
       iniciarArguicao:this.iniciarArguicao, argResponder:this.argResponder, argAvaliar:this.argAvaliar,
-      oralIntencao:this.oralIntencao, oralSemIntencao:!st.oralIntencao,
+      oralIntencao:this.oralIntencao,
       argEncerrar:this.argEncerrar, argMaisTempo:this.argMaisTempo, setArgMin:this.setArgMin, argVozToggle:this.argVozToggle,
       oralBancasPronto:st.oralBancasPronto,
       oralBancaCarrOpts:_chipz([{v:'',label:'Todas as carreiras'}].concat([...new Set(CO.map(x=>x.subarea).filter(Boolean))].sort().map(x=>({v:x,label:x}))).map(o=>({...o,sel:st.oralBancaCarr===o.v}))),
@@ -9032,9 +9128,9 @@ class Component extends DCLogic {
     }catch(_){ return []; }
   }
   /** "Revisar agora": abre as revisões (a lista já traz a disciplina em destaque). */
-  prioRevisar = (e)=>{ this.setState({view:'revisoes', menuOpen:false}); };
+  prioRevisar = (e)=>{ this._irPara('revisoes'); };
   /** "Ver desempenho": aba por disciplina do Desempenho, onde a linha dela aparece. */
-  prioErros = (e)=>{ this.setState({view:'analise', anaTab:'disciplina', menuOpen:false}); };
+  prioErros = (e)=>{ this._irPara('analise', {anaTab:'disciplina'}); };
   /** "Estudar": abre o registro de sessão já preenchido (nada é gravado sozinho). */
   prioEstudar = (e)=>{ const d=e.currentTarget.dataset.d||'';
     try{ window.catedraOpenStudyRegistration({disc:d, origem:'Onde estou fraca'}); }
@@ -9053,14 +9149,14 @@ class Component extends DCLogic {
   }
   /** Abre o verbete no CátedraJURIS pelo título — o mesmo canal do ⌘K e do mapa. */
   semanaAbrir = (e)=>{ const t=e.currentTarget.dataset.t||''; if(!t) return;
-    this.setState({view:'juris', acervoBusca:t, acervoDe:null, origemAbrir:'', menuOpen:false}); };
+    this._irPara('juris', {acervoBusca:t, acervoDe:null, origemAbrir:''}); };
   /** "Já vi": some do bloco e sincroniza (escalar em _autosaveKeys). */
   semanaLido = (e)=>{ const id=e.currentTarget.dataset.id; if(!id) return;
     this.setState(st=>({semanaLidos:[...(st.semanaLidos||[]), id].slice(-400)}),
       ()=>{ try{ localStorage.setItem(this._chave('semanaLidos'), JSON.stringify(this.state.semanaLidos)); }catch(_){} this.flashSync(); });
   };
   semanaMais = ()=> this.setState({semanaTudo:!this.state.semanaTudo});
-  semanaVerTudo = ()=> this.setState({view:'juris', acervoBusca:'', acervoDe:null, origemAbrir:'', menuOpen:false});
+  semanaVerTudo = ()=> this._irPara('juris', {acervoBusca:'', acervoDe:null, origemAbrir:''});
 
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redProvaId:'', espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
@@ -9337,10 +9433,12 @@ class Component extends DCLogic {
     {id:'ciano', c:'#8ee6d8', label:'Ciano'},
   ];
   // -- persistência local --
-  _loadHL(){ try{ return JSON.parse(localStorage.getItem('catedra:hl')||'{}'); }catch(e){ return {}; } }
-  _saveHL(h){ try{ localStorage.setItem('catedra:hl', JSON.stringify(h)); }catch(e){} }
-  _loadFC(){ try{ return JSON.parse(localStorage.getItem('catedra:fc')||'[]'); }catch(e){ return []; } }
-  _saveFC(f){ try{ localStorage.setItem('catedra:fc', JSON.stringify(f)); }catch(e){} }
+  // Marcação de texto e flashcards são do CADERNO: um cartão de "prescrição no CPC" não
+  // tem o que fazer no baralho de quem estuda Enfermagem. As chaves reais são hl/fc.
+  _loadHL(){ try{ return JSON.parse(localStorage.getItem(this._chave('hl'))||'{}'); }catch(e){ return {}; } }
+  _saveHL(h){ try{ localStorage.setItem(this._chave('hl'), JSON.stringify(h)); }catch(e){} }
+  _loadFC(){ try{ return JSON.parse(localStorage.getItem(this._chave('fc'))||'[]'); }catch(e){ return []; } }
+  _saveFC(f){ try{ localStorage.setItem(this._chave('fc'), JSON.stringify(f)); }catch(e){} }
   _loadLib(){ try{ return JSON.parse(localStorage.getItem('catedra:lib')||'[]'); }catch(e){ return []; } }
   _saveLib(lib){ try{ const slim=lib.filter(b=>b.user).map(b=>({...b, _bytes:undefined})); localStorage.setItem('catedra:lib', JSON.stringify(slim)); }catch(e){} }
   _persistLib(){ this._saveLib(this.state.biblioteca); }
@@ -10364,8 +10462,10 @@ class Component extends DCLogic {
         if(!this.AREA_PROPRIA.has(k)) return;  // preferência e identidade não são por área
         recarregado[k]=this._load(k, this._vazioDe(k));
       });
-      // `sessions` não está em _autosaveKeys (tem gravação própria), mas é por área
+      // o que tem gravação própria e não está em _autosaveKeys, mas é do caderno
       recarregado.sessions=this._load('sessions', []);
+      recarregado.sessionsLixeira=this._load('sessionsLixeira', []);
+      try{ recarregado.highlights=this._loadHL(); recarregado.flashcards=this._loadFC(); }catch(_){}
       this.setState(recarregado, ()=>{
         // o carimbo do autosave tem de refletir o caderno NOVO, senão a primeira
         // gravação acha que tudo mudou e escreve por cima
@@ -10646,11 +10746,13 @@ class Component extends DCLogic {
   closeNotif = ()=> this.setState({notifOpen:false});
   readNotif = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({notifsRead:{...s.notifsRead,[id]:true}})); };
   readAllNotif = ()=> this.setState(s=>{ const r={...s.notifsRead}; (this._lastNotifIds||[]).forEach(id=>r[id]=true); return {notifsRead:r}; });
-  goNotif = (e)=>{ const id=e.currentTarget.dataset.id; const v=e.currentTarget.dataset.view; this.setState(s=>({notifsRead:{...s.notifsRead,[id]:true}, notifOpen:false, view:v||s.view})); };
+  goNotif = (e)=>{ const id=e.currentTarget.dataset.id; const v=e.currentTarget.dataset.view;
+    this.setState(s=>({notifsRead:{...s.notifsRead,[id]:true}, notifOpen:false}));
+    if(v) this._irPara(v); };
 
   // ===== menu suspenso de usuário =====
   toggleUserMenu = ()=> this.setState(s=>({userMenuOpen:!s.userMenuOpen, notifOpen:false}));
-  userMenuGo = (e)=>{ const v=e.currentTarget.dataset.view; this.setState({view:v, userMenuOpen:false, menuOpen:false}); };
+  userMenuGo = (e)=>{ const v=e.currentTarget.dataset.view; this.setState({userMenuOpen:false}); this._irPara(v); };
 
   // ===== U8: ATALHOS VISÍVEIS =========================================================
   // ⌘K, Esc e / sempre existiram e ninguém tinha como descobrir: atalho que não se anuncia
@@ -10663,7 +10765,7 @@ class Component extends DCLogic {
     {tecla:'Tab',    faz:'Circular pelos campos de um formulário aberto, sem escapar dele'},
     {tecla:'/',      faz:'Buscar dentro do roteiro de peças, com a tela de peças aberta'},
   ];
-  abrirAtalhos = ()=> this.setState({atalhosOpen:true, paletteOpen:false, menuOpen:false});
+  abrirAtalhos = ()=> this.setState({atalhosOpen:true, paletteOpen:false, paletteQuery:'', menuOpen:false});
   fecharAtalhos = ()=> this.setState({atalhosOpen:false});
 
   // ===== paleta de comando (Ctrl/Cmd+K) =====
@@ -10870,27 +10972,32 @@ class Component extends DCLogic {
     this.setState({lastPontoDispensado:ts}, ()=>{ try{ localStorage.setItem(this._chave('lastPontoDispensado'), JSON.stringify(ts)); }catch(_){} });
   };
 
-  closePalette = ()=> this.setState({paletteOpen:false});
+  /* Fechar a paleta precisa limpar a QUERY, não só o `open`. O render usa
+     `pq ? this._palConteudo(...) : []` — condicionado ao TEXTO —, então uma busca deixava
+     o app varrendo 15 mil verbetes a cada render, uma vez por segundo com o cronômetro
+     ligado, mesmo com a paleta fechada. */
+  closePalette = ()=> this.setState({paletteOpen:false, paletteQuery:''});
   onPaletteQuery = (e)=>{ const v=e.currentTarget.value; this.setState({paletteQuery:v});
     if((v||'').trim().length>=2) this._palMontar(); };   // índice sob demanda, nunca no boot
   paletteGo = (e)=>{ const v=e.currentTarget.dataset.view; const act=e.currentTarget.dataset.act; if(v==='comunidade') try{ this._loadGrupos(); }catch(_){} if(v==='admin') try{ this._loadAdmin(); }catch(_){}
     // CONTEÚDO (item 6): lei/verbete abrem o acervo já buscando; peça/rito abrem o mapa
     // no ponto exato — mesmo canal do ida-e-volta (o ponto viaja na URL do iframe).
     const kind=e.currentTarget.dataset.kind, arg=e.currentTarget.dataset.arg||'';
-    if(kind==='lei'){ this.setState({paletteOpen:false, menuOpen:false, view:'legis', acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
-    if(kind==='verbete'){ this.setState({paletteOpen:false, menuOpen:false, view:'juris', acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
-    if(kind==='peca'){ this.setState({paletteOpen:false, menuOpen:false, view:'roteiros', acervoBusca:'', acervoDe:null, origemAbrir:'peca='+encodeURIComponent(arg)}); return; }
-    if(kind==='rito'){ this.setState({paletteOpen:false, menuOpen:false, view:'areamod', acervoBusca:'', acervoDe:null, origemAbrir:'rito='+encodeURIComponent(arg)}); return; }
-    if(act==='foco'){ this.setState({paletteOpen:false}); this.enterFocus(); return; }
-    if(act==='registrar'){ this.setState({paletteOpen:false, sessionModalOpen:true}); return; }
+    if(kind==='lei'){ this.setState({paletteOpen:false, paletteQuery:''}); this._irPara('legis', {acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
+    if(kind==='verbete'){ this.setState({paletteOpen:false, paletteQuery:''}); this._irPara('juris', {acervoBusca:arg, acervoDe:null, origemAbrir:''}); return; }
+    if(kind==='peca'){ this.setState({paletteOpen:false, paletteQuery:''}); this._irPara('roteiros', {acervoBusca:'', acervoDe:null, origemAbrir:'peca='+encodeURIComponent(arg)}); return; }
+    if(kind==='rito'){ this.setState({paletteOpen:false, paletteQuery:''}); this._irPara('areamod', {acervoBusca:'', acervoDe:null, origemAbrir:'rito='+encodeURIComponent(arg)}); return; }
+    if(act==='foco'){ this.setState({paletteOpen:false, paletteQuery:''}); this.enterFocus(); return; }
+    if(act==='registrar'){ this.setState({paletteOpen:false, paletteQuery:'', sessionModalOpen:true}); return; }
     if(act==='atalhos'){ this.abrirAtalhos(); return; }
     const openId=e.currentTarget.dataset.open;
     // Abrir um destaque pelo ⌘K: NÃO mudar de view. Antes ia para 'biblioteca', que
     // deixou de existir no template — o leitor (overlay global) abria por cima, mas ao
     // fechá-lo a pessoa ficava numa tela em BRANCO. Agora o leitor abre sobre a tela
     // em que ela já estava, e fechar devolve para lá.
-    if(openId){ this.setState({paletteOpen:false, menuOpen:false, readerOpen:openId}); return; }
-    this.setState({paletteOpen:false, view:v, menuOpen:false}); };
+    if(openId){ this.setState({paletteOpen:false, paletteQuery:'', menuOpen:false, readerOpen:openId}); return; }
+    this.setState({paletteOpen:false, paletteQuery:''});
+    this._irPara(v); };
 
   hexToRgb(h){ h=h.replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
   darken(h,f){ const [r,g,b]=this.hexToRgb(h); const d=x=>Math.round(x*(1-f)); return `rgb(${d(r)},${d(g)},${d(b)})`; }
@@ -11863,10 +11970,13 @@ class Component extends DCLogic {
       if(_prox){
         const _hj0=new Date(); _hj0.setHours(0,0,0,0);
         const dias=Math.ceil((_prox.quando-_hj0)/864e5);
-        return { tipo:'simulado', view:'simulados', action:'',
+        // O cartão é o heroi do Inicio: mandá-lo para uma tela que a área fechou seria
+        // prometer "é amanhã" e entregar um muro. Sem simulado, a data leva ao calendário.
+        const _temSim=this._podeAbrir('simulados');
+        return { tipo:'simulado', view:(_temSim?'simulados':'calendario'), action:'',
           titulo:'Preparar: '+_prox.titulo,
           motivo:(dias<=0?'É hoje.':(dias===1?'É amanhã.':('Faltam '+dias+' dias.'))),
-          meta:'', cta:'Abrir simulados' };
+          meta:'', cta:(_temSim?'Abrir simulados':'Ver no calendário') };
       }
       // 4. Leitura do dia: jurisprudência nova da semana.
       // Só na área jurídica: fora dela o CátedraJURIS é escondido do menu de propósito, e
@@ -12067,10 +12177,13 @@ class Component extends DCLogic {
       _liveNotifs.push({id:'ofensiva-'+this._hoje(), tipo:'meta', icon:'🔥', titulo:'Sua ofensiva de '+B.streak+' dia'+(B.streak>1?'s':'')+' está em risco',
         texto:_escN>0?('Estude hoje — ou um dos seus '+_escN+' escudo(s) 🛡️ será usado automaticamente amanhã.'):'Estude nem que sejam 15 minutos para não perder a sequência (você não tem escudos).', tempo:'hoje', view:'inicio'});
     }
-    const notifs = _liveNotifs.map(n=>{ const read=!!_notifRead[n.id]; return {...n, read, dotOp:read?'0':'1', bgC:read?'var(--surface)':'var(--accentSoft)'}; });
-    this._lastNotifIds = _liveNotifs.map(n=>n.id);
+    // Aviso que leva a uma tela que a área não tem é aviso que termina num muro: o
+    // lembrete de simulado nascia em qualquer área, inclusive onde não há banco de questões.
+    const _liveOk = _liveNotifs.filter(n=>!n.view || this._podeAbrir(n.view));
+    const notifs = _liveOk.map(n=>{ const read=!!_notifRead[n.id]; return {...n, read, dotOp:read?'0':'1', bgC:read?'var(--surface)':'var(--accentSoft)'}; });
+    this._lastNotifIds = _liveOk.map(n=>n.id);
     // dispara notificação local (1x por gatilho/dia) fora do render
-    if(this.state.notifPush===true && _liveNotifs.length){ const _fireList=_liveNotifs.filter(n=>n.id==='rev-overdue'||n.id==='meta'||String(n.id).indexOf('ofensiva-')===0); if(_fireList.length){ setTimeout(()=>{ _fireList.forEach(n=>{ try{ this._fireLocalNotif(n); }catch(_){} }); },0); } }
+    if(this.state.notifPush===true && _liveOk.length){ const _fireList=_liveOk.filter(n=>n.id==='rev-overdue'||n.id==='meta'||String(n.id).indexOf('ofensiva-')===0); if(_fireList.length){ setTimeout(()=>{ _fireList.forEach(n=>{ try{ this._fireLocalNotif(n); }catch(_){} }); },0); } }
     const notifUnread = notifs.filter(n=>!n.read).length;
 
     // ===== Conquistas (continuação) =====
@@ -12905,7 +13018,8 @@ class Component extends DCLogic {
       ? [{k:'leiseca',icon:'⚖️',title:'Lei seca',desc:'Separe os dispositivos de maior incidência e marque os artigos que mais geram erro.'},{k:'juris',icon:'📜',title:'Jurisprudência e súmulas',desc:'Rodada curta com súmulas, teses repetitivas e informativos ligados à banca.'},{k:'erros',icon:'📕',title:'Questões erradas',desc:'Reteste as questões que você errou até acertar — sem encerrar no clique.'}]
       : [{k:'foco',icon:'🎯',title:'Conteúdo de maior peso',desc:'Bloco curto no assunto que mais cai — o que a prova cobra, não o que é mais confortável.'},{k:'pratica',icon:'🧠',title:(_area.cats[0]||'Prática dirigida'),desc:'Rodada aplicada do tipo de estudo que a sua área cobra na prova.'},{k:'erros',icon:'📕',title:'Questões erradas',desc:'Reteste as questões que você errou até acertar — sem encerrar no clique.'}];
     const retaComOpts=['15','30','45','60'].map(v=>({v, label:v+' dias', sel:v===_retaCom}));
-    const retaNext=[]; if(revOverdue.length) retaNext.push({icon:'⏰', text:'Zerar revisões vencidas', meta:revOverdue.length+' pendente(s)', view:'revisoes'}); retaNext.push({icon:'📝', text:'Registrar um simulado de diagnóstico', meta:'esta semana', view:'simulados'});
+    const retaNext=[]; if(revOverdue.length) retaNext.push({icon:'⏰', text:'Zerar revisões vencidas', meta:revOverdue.length+' pendente(s)', view:'revisoes'}); // só onde ha simulado: "proximo passo" que termina num muro nao e proximo passo
+    if(_podeView('simulados')) retaNext.push({icon:'📝', text:'Registrar um simulado de diagnóstico', meta:'esta semana', view:'simulados'});
 
     // ===== Relatório =====
     const _relDays=this.state.relPeriod||30, _relNow=Date.now(), _relDay=864e5;
@@ -13556,6 +13670,12 @@ class Component extends DCLogic {
       capEdital:_podeView('edital'), capSimulados:_podeView('simulados'), capRedacao:_podeView('redacao'),
       capRoteiros:_podeView('roteiros'), capSegundaFase:_podeView('segundafase'), capOral:_podeView('oral'),
       capPrioridade:_podeView('prioridade'), capBancas:_podeView('bancas'),
+      // O acervo do que as BANCAS jurídicas publicaram sobre a oral não existe fora do
+      // Direito. O motor de arguição, sim: ele argui sobre a lei seca da área.
+      capOralBancas:(()=>{ try{ return window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','provaOralBancas'); }catch(_){ return true; } })(),
+      // os três cartões de intenção são do acervo das bancas; sem ele, a tela abre direto
+      // no modo Lei seca, que é o que a área tem
+      oralIntencoesShow:(!this.state.oralIntencao && (()=>{ try{ return window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','provaOralBancas'); }catch(_){ return true; } })()),
       // --- rota indisponível nesta área (campos literais: ver o comentário acima) ---
       isIndisponivel:this.state.view==='indisponivel',
       indispArea:((_area&&_area.label)||'sua área'),
@@ -13715,8 +13835,8 @@ class Component extends DCLogic {
       ...(this.state.view==='simulados' ? this._sjVM() : {}),
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
-      viewSub:({inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'Blocos do dia e progresso do ciclo',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
       // O estado vem do auth.js (local|enviando|salvo|offline|erro). O texto diz o que

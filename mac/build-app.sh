@@ -59,7 +59,21 @@ JURIS_SOURCES=$(find "$HERE/vendor/juris" -name '*.swift')
 # como o script roda com `set -e` e o erro ia para /dev/null, o build MORRIA EM SILÊNCIO
 # logo depois de "3/5 Compilando…", sem uma linha de explicação. Pedir a SDK pelo nome
 # resolve e não depende do estado das CLT.
-PLUGIN_DIR="$(xcrun --sdk macosx --show-sdk-platform-path 2>/dev/null)/Developer/usr/lib/swift/host/plugins"
+# Duas coisas nesta linha, e a segunda e a que importa.
+# (1) `--sdk macosx` e obrigatorio: sem ele o xcrun usa a SDK "padrao" do sistema, que
+#     nesta maquina e o link /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk ->
+#     MacOSX27.0.sdk, cujo alvo nao existe (Command Line Tools atualizado pela metade).
+# (2) A atribuicao HERDA o status da substituicao de comando. Com `set -e`, um xcrun que
+#     falhe derrubava o script AQUI — e como o erro ia para /dev/null, a ultima linha na
+#     tela era "3/5 Compilando…" e mais nada. Morte silenciosa, que custou varias
+#     tentativas para diagnosticar. O `|| true` tira o script da guilhotina e devolve o
+#     controle ao `if` de baixo, que ja sabia avisar.
+_SDK_PLAT="$(xcrun --sdk macosx --show-sdk-platform-path 2>/dev/null || true)"
+if [ -z "$_SDK_PLAT" ]; then
+  echo "     aviso: nao consegui localizar a plataforma da SDK (xcrun --sdk macosx falhou)." >&2
+  echo "            Confira o xcode-select; sem os plugins de macro o Swift falha em @State." >&2
+fi
+PLUGIN_DIR="${_SDK_PLAT}/Developer/usr/lib/swift/host/plugins"
 PLUGIN_FLAGS=()
 if [ -d "$PLUGIN_DIR" ]; then PLUGIN_FLAGS=(-plugin-path "$PLUGIN_DIR")
 else echo "     aviso: plugins de macro não encontrados em $PLUGIN_DIR — se o build falhar em @State, confira o xcode-select"; fi

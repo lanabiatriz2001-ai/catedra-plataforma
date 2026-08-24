@@ -3075,7 +3075,17 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
       // peças, 2ª fase, oral e o ranking de incidência são de magistratura
       pecasSoEmJuridica: R.podeAbrir('juridica', 'roteiros')
         && ['policial', 'saude', 'social', 'outra'].every(a => !R.podeAbrir(a, 'roteiros')),
-      oralSoEmJuridica: R.podeAbrir('juridica', 'oral') && !R.podeAbrir('saude', 'oral'),
+      /* CORRIGIDO depois da revisão: a primeira versão desta tabela dava oral e simulado
+         só a magistratura. O código desmentia — treino.js:202 tem acervoLeisArea(area),
+         escrito para que "Simulado (itens de lei seca) e Prova oral (modo Lei seca)"
+         sirvam a área escolhida. Quem tem fonte normativa própria argui e simula sobre
+         ela; o que é exclusivo é o ACERVO das bancas jurídicas. */
+      oralOndeHaFonte: R.podeAbrir('juridica', 'oral') && R.podeAbrir('saude', 'oral')
+        && !R.podeAbrir('outra', 'oral'),
+      acervoDeBancasSoEmJuridica: R.tem('juridica', 'provaOralBancas')
+        && ['policial', 'saude', 'social'].every(a => !R.tem(a, 'provaOralBancas')),
+      simuladoOndeHaFonte: R.podeAbrir('saude', 'simulados') && R.podeAbrir('policial', 'simulados')
+        && !R.podeAbrir('outra', 'simulados'),
       // o que é universal continua universal em TODAS as onze
       cicloEmTodas: [...JUR, ...NAO].every(a => R.podeAbrir(a, 'ciclo') && R.podeAbrir(a, 'revisoes')),
       editalEmTodas: [...JUR, ...NAO].every(a => R.podeAbrir(a, 'edital')),
@@ -3110,8 +3120,10 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   }
   ok(ACERVO.every(v => menus.juridica.includes(v)),
     'AREA jurídica continua com todas as telas (' + menus.juridica.length + '/' + ACERVO.length + ')');
-  ok(!menus.saude.includes('juris') && !menus.saude.includes('roteiros') && !menus.saude.includes('oral'),
-    'AREA saúde não recebe tela jurídica no menu (' + menus.saude.join(',') + ')');
+  ok(!menus.saude.includes('juris') && !menus.saude.includes('roteiros')
+     && !menus.saude.includes('segundafase') && !menus.saude.includes('redacao')
+     && !menus.saude.includes('prioridade'),
+    'AREA saúde não recebe tela de acervo jurídico no menu (' + menus.saude.join(',') + ')');
   ok(menus.saude.includes('legis') && menus.saude.includes('areamod') && menus.saude.includes('edital'),
     'AREA saúde mantém o que é dela (' + menus.saude.join(',') + ')');
   ok(menus.outra.includes('edital') && !menus.outra.includes('legis'),
@@ -3345,13 +3357,17 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   await saudePg2.goto(URL0 + '/Catedra.dc.html');
   await saudePg2.waitForTimeout(2000);
   const semPortaFechada = await saudePg2.evaluate(() => {
-    const barrada = ['juris', 'roteiros', 'segundafase', 'redacao', 'oral', 'prioridade', 'simulados'];
+    // o que Saúde de fato NÃO tem — oral e simulado passaram a servi-la, sobre a lei dela
+    const barrada = ['juris', 'roteiros', 'segundafase', 'redacao', 'prioridade'];
     const atalhos = [...document.querySelectorAll('button[data-view]')]
       .filter(b => b.closest('main')).map(b => b.dataset.view);
     const aside = (document.querySelector('aside') || {}).innerText || '';
     return {
       nenhumAtalhoParaTelaBarrada: atalhos.every(v => !barrada.includes(v)),
-      semGrupoVazio: !/TREINO/i.test(aside),
+      // o grupo só existe quando tem item embaixo — e em Saúde agora tem (simulado e oral)
+      grupoCoerenteComOsItens: (/TREINO/i.test(aside))
+        === [...document.querySelectorAll('aside button[data-view]')]
+          .some(b => ['simulados', 'redacao', 'roteiros', 'segundafase', 'oral'].includes(b.dataset.view)),
       aindaTemOQueEDela: atalhos.includes('areamod') || atalhos.includes('ciclo'),
     };
   });
@@ -3370,6 +3386,53 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     return { legisRecebeArea: !!f && /area=/.test(f.getAttribute('src') || '') };
   });
   for (const [k, v] of Object.entries(contextoSat)) ok(v, 'AREA ' + k);
+
+  /* 10) O PIOR CAMINHO QUE A REVISAO ENCONTROU, agora testado.
+     A nuvem podia trazer areaEstudo de outro aparelho. Sem tratar isso, cada _load()
+     continuava usando a area VELHA: o estado ficava hibrido (area Saude + caderno de
+     Direito) e, 500 ms depois, o autosave gravava o caderno de Direito dentro de
+     catedra:*@saude e subia para a nuvem — apagando o caderno da outra area nos dois
+     lados, sem ninguem tocar em nada. */
+  const sincCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const sincPg = await sincCtx.newPage();
+  await sincPg.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+      // caderno de Direito (chaves historicas, sem sufixo)
+      localStorage.setItem('catedra:edital', JSON.stringify([{ id: 'jur1', up: 1, disc: 'Direito Civil', peso: 3, color: '#2563EB', topics: [] }]));
+      localStorage.setItem('catedra:reviews', JSON.stringify([{ id: 'jr1', up: 1, tema: 'Prescrição', prox: '2026-09-01', intervalo: 1, facilidade: 2.5, repeticoes: 0 }]));
+      // caderno de Saude, feito no OUTRO aparelho
+      localStorage.setItem('catedra:edital@saude', JSON.stringify([{ id: 'sau1', up: 9, disc: 'Clínica Médica', peso: 4, color: '#0EA5E9', topics: [] }]));
+      localStorage.setItem('catedra:reviews@saude', JSON.stringify([{ id: 'sr1', up: 9, tema: 'Sepse', prox: '2026-09-02', intervalo: 1, facilidade: 2.5, repeticoes: 0 }]));
+    } catch (_) {}
+  });
+  await sincPg.goto(URL0 + '/Catedra.dc.html');
+  await sincPg.waitForTimeout(2000);
+  const sinc = await sincPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const ler = () => {
+      const g = k => { try { return localStorage.getItem(k); } catch (_) { return null; } };
+      const ids = b => { try { return (JSON.parse(b || '[]') || []).map(x => x.id).sort().join(','); } catch (_) { return 'ILEGÍVEL'; } };
+      return { jur: ids(g('catedra:edital')), sau: ids(g('catedra:edital@saude')),
+               jurRev: ids(g('catedra:reviews')), sauRev: ids(g('catedra:reviews@saude')) };
+    };
+    const antes = ler();
+    // é exatamente o que o pull da nuvem faz: grava a chave e avisa o app
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+    window.dispatchEvent(new CustomEvent('catedra:synced'));
+    await w(2500);                       // muito além dos 500 ms do autosave
+    const depois = ler();
+    return { antes, depois, areaFinal: localStorage.getItem('catedra:areaEstudo') };
+  });
+  ok(sinc.antes.sau === 'sau1' && sinc.antes.jur === 'jur1', 'AREA sync o cenário parte dos dois cadernos distintos');
+  ok(sinc.depois.sau === 'sau1',
+    'AREA sync NÃO grava o caderno de Direito por cima do de Saúde (edital@saude = ' + sinc.depois.sau + ')');
+  ok(sinc.depois.sauRev === 'sr1',
+    'AREA sync preserva as revisões da área que chegou (reviews@saude = ' + sinc.depois.sauRev + ')');
+  ok(sinc.depois.jur === 'jur1' && sinc.depois.jurRev === 'jr1',
+    'AREA sync o caderno de Direito também fica intacto');
+  await sincCtx.close();
 
   await areaCtx.close();
   // devolve a aba compartilhada ao estado jurídico, que é o de todos os outros blocos
