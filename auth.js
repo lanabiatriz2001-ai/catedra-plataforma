@@ -66,7 +66,7 @@
     try {
       var t = tombLoad();
       if (t.keys && t.keys[k]) { delete t.keys[k]; }           // a chave voltou a existir
-      if (ARRAY_ID[k] || k === 'catedra:lib') {
+      if (ehArrayId(k) || k === 'catedra:lib') {
         var before = parseJ(localStorage.getItem(k)) || [], after = parseJ(newVal) || [];
         if (Array.isArray(before) && Array.isArray(after)) {
           var live = {}; after.forEach(function (it) { if (it && it.id != null) live[it.id] = 1; });
@@ -166,6 +166,16 @@
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
   var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:redHist': 1, 'catedra:meusGrupos': 1, 'catedra:espelhosSugeridos': 1 };
+  /* O app passou a guardar o caderno de cada área de estudo em `catedra:<chave>@<area>`.
+     Consultar ARRAY_ID pelo nome cru fazia essas chaves caírem fora do merge por id — ou
+     seja, FORA da jurídica a sincronização voltava a ser last-write-wins de blob inteiro,
+     e um aparelho apagava o histórico feito no outro. O sufixo não muda a natureza do
+     dado: `reviews@saude` continua sendo um array de objetos com id. */
+  function ehArrayId(k) {
+    if (ARRAY_ID[k]) return true;
+    var i = k.lastIndexOf('@');
+    return i > 0 ? !!ARRAY_ID[k.slice(0, i)] : false;
+  }
   function parseJ(s) { try { return JSON.parse(s); } catch (_) { return undefined; } }
   // "Tem conteúdo de verdade?" — separa o valor que o usuário construiu do vazio que o app
   // semeia sozinho no primeiro render: [] , {} , "" , null e o "0" do ponteiro de rodízio.
@@ -263,7 +273,7 @@
       }
       if (sv === lc) { out[k] = lc; return; }
       if (k === 'catedra:lib') { var ml = mergeLibArr(parseJ(sv), parseJ(lc), !!preferServer); ml = dropTombed(k, ml); out[k] = ml !== undefined ? JSON.stringify(ml) : (preferServer ? sv : lc); return; }
-      if (ARRAY_ID[k]) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); m = dropTombed(k, m); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
+      if (ehArrayId(k)) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); m = dropTombed(k, m); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
       if (k === 'catedra:hl') { var h = mergeHl(parseJ(sv), parseJ(lc), !!preferServer); out[k] = h !== undefined ? JSON.stringify(h) : (preferServer ? sv : lc); return; }
       // Escalares e objetos sem merge por id (prefs, perfil, ciclo, edital, agenda,
       // metas de hora, rascunhos…): entre duas versões COM CONTEÚDO vence a mais

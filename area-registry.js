@@ -34,9 +34,10 @@
     'pecasERitos',           // roteiro de peça e sequência de atos do processo
     'segundaFase',           // prova discursiva de 2ª fase, com espelho oficial
     'redacaoDiscursiva',     // banco de discursivas + raio-X do espelho
-    'provaOral',             // arguição: pontos sorteáveis, perguntas reais, padrão
+    'provaOral',             // arguição em voz alta — o motor serve a qualquer fonte
+    'provaOralBancas',       // o acervo do que as BANCAS jurídicas publicaram sobre a oral
     'prioridadeIncidencia',  // ranking por incidência em prova real (prioridade-dados.js)
-    'bancoDeQuestoes',       // simulado com questões de prova oficial
+    'bancoDeQuestoes',       // simulado cronometrado montado da lei seca da área
     'editalPorPesos',        // edital com peso e nº de questões por disciplina
     'catalogoDeBancas'       // concursos, bancas e o que cada uma cobra
   ];
@@ -60,11 +61,22 @@
   /* As cinco áreas de carreira jurídica. A diferença entre elas não é de capacidade —
      é de ênfase —, então compartilham o mesmo conjunto e divergem só onde há acervo
      próprio: peças, 2ª fase, oral e o ranking de incidência são de magistratura. */
+  /* Uma correção de honestidade na outra direção. A primeira versão desta tabela dava
+     bancoDeQuestoes e provaOral SÓ a magistratura, com o argumento de que o simulado
+     "geraria prova de Direito". Ler o codigo desmentiu: treino.js:202 tem
+     acervoLeisArea(area), escrito — e assim documentado — justamente para que "Simulado
+     (itens de lei seca) e Prova oral (modo Lei seca) passem a oferecer a legislação da
+     área escolhida". Fechar essas portas tornava aquela função código morto e tirava de
+     policial, saúde e das demais um treino que já funcionava.
+     Regra corrigida: quem tem FONTE NORMATIVA própria monta simulado dela e argui sobre
+     ela. O que continua exclusivo é o ACERVO das bancas jurídicas (provaOralBancas). */
   function juridicaBase(extra) {
     return base(Object.assign({
       fontesNormativas: true,
       jurisprudencia: true,
-      moduloArea: true
+      moduloArea: true,
+      bancoDeQuestoes: true,
+      provaOral: true
     }, extra || {}));
   }
 
@@ -74,7 +86,7 @@
       prontidao: COMPLETA,
       capacidades: juridicaBase({
         pecasERitos: true, segundaFase: true, redacaoDiscursiva: true,
-        provaOral: true, prioridadeIncidencia: true, bancoDeQuestoes: true
+        provaOralBancas: true, prioridadeIncidencia: true
       }),
       // O vocabulário da área. A interface pede o termo por aqui em vez de cravá-lo.
       termos: { fonte: 'lei', fontePlural: 'leis', dispositivo: 'artigo', acervo: 'legislação' }
@@ -84,7 +96,7 @@
        de peças/espelhos/oral, que é de concurso de juiz. */
     policial: {
       rotulo: 'Policial', prontidao: COMPLETA,
-      capacidades: juridicaBase({ bancoDeQuestoes: false }),
+      capacidades: juridicaBase({}),
       termos: { fonte: 'lei', fontePlural: 'leis', dispositivo: 'artigo', acervo: 'legislação' }
     },
     fiscal: {
@@ -108,25 +120,29 @@
        do JURIS é de tribunal, e oferecê-lo aqui seria vender equivalência falsa. */
     saude: {
       rotulo: 'Saúde e Medicina', prontidao: PARCIAL,
-      capacidades: base({ fontesNormativas: true, moduloArea: true }),
+      capacidades: base({ fontesNormativas: true, moduloArea: true,
+        bancoDeQuestoes: true, provaOral: true }),
       termos: { fonte: 'diretriz', fontePlural: 'diretrizes', dispositivo: 'item', acervo: 'diretrizes e protocolos' },
       emPreparo: ['casos clínicos', 'simulados por especialidade']
     },
     social: {
       rotulo: 'Assistência Social', prontidao: PARCIAL,
-      capacidades: base({ fontesNormativas: true, moduloArea: true }),
+      capacidades: base({ fontesNormativas: true, moduloArea: true,
+        bancoDeQuestoes: true, provaOral: true }),
       termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação social' },
       emPreparo: ['casos socioassistenciais', 'escrita técnica (relatório, parecer, estudo social)']
     },
     educacao: {
       rotulo: 'Educação', prontidao: PARCIAL,
-      capacidades: base({ fontesNormativas: true, moduloArea: true }),
+      capacidades: base({ fontesNormativas: true, moduloArea: true,
+        bancoDeQuestoes: true, provaOral: true }),
       termos: { fonte: 'documento normativo', fontePlural: 'documentos normativos', dispositivo: 'item', acervo: 'normas da educação' },
       emPreparo: ['banco de questões próprio']
     },
     tecnologia: {
       rotulo: 'Tecnologia', prontidao: PARCIAL,
-      capacidades: base({ fontesNormativas: true, moduloArea: true }),
+      capacidades: base({ fontesNormativas: true, moduloArea: true,
+        bancoDeQuestoes: true, provaOral: true }),
       termos: { fonte: 'documentação', fontePlural: 'documentações', dispositivo: 'seção', acervo: 'documentação técnica' },
       emPreparo: ['banco de questões próprio']
     },
