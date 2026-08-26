@@ -5598,6 +5598,7 @@ class Component extends DCLogic {
   // Cadastra a disciplina "Código Civil - Lei Seca" no edital (idempotente). Mesmo padrão
   // do Direito Civil: roda no mount e a cada sync, sobrevive à nuvem (edital vence local).
   componentDidMount(){
+    this._avisarAreaAoNativo();   // a casca nativa precisa saber a área já na abertura
     // O construtor já carregou o estado DO localStorage: nada mudou ainda. Sem esta
     // linha, o primeiro render marcava as 36 chaves como "sujas" e todo boot
     // regravava tudo e subia o blob inteiro pra nuvem sem nenhuma edição.
@@ -6109,6 +6110,7 @@ class Component extends DCLogic {
       try{ clearTimeout(this._asT); }catch(_){}
       const L2=this._lastSaved||(this._lastSaved={});
       this._autosaveKeys().forEach(k=>{ L2[k]=this.state[k]; });
+      this._avisarAreaAoNativo();   // a nuvem pode ter trocado a área
     });
   }
   // ===== escudo de ofensiva (streak freeze) =====
@@ -7127,6 +7129,25 @@ class Component extends DCLogic {
      window.__catedraGoView, o deep link e a paleta ⌘K. Quem estuda Enfermagem reabria a
      tela de peças processuais sem nunca ter pedido.
      Agora quem responde é area-registry.js, e a resposta vale para TODA entrada. */
+  /* A CASCA NATIVA PRECISA SABER A ÁREA.
+     No Mac e no iPad o CátedraJURIS é uma ABA fixa da barra (⌘3), escrita em Swift e cega
+     à área de estudo: quem estuda Enfermagem apertava ⌘3 e recebia o acervo de súmulas
+     inteiro. O guarda de rota da web não alcança aquela barra — ela não é uma view.
+     Então o app avisa: uma mensagem com a área ativa e o que ela oferece. Fora do app
+     nativo o postMessage falha e não custa nada. */
+  _avisarAreaAoNativo(){
+    try{
+      const id=this.state.areaEstudo||'juridica';
+      const R=window.CT_AREA_REG;
+      const corpo={ area:id,
+        rotulo:(R&&R.definicao(id)&&R.definicao(id).rotulo)||'',
+        juris:!!(R&&R.tem(id,'jurisprudencia')),
+        legis:!!(R&&R.tem(id,'fontesNormativas')) };
+      if(this._ultimoAvisoArea===JSON.stringify(corpo)) return;   // não repete à toa
+      this._ultimoAvisoArea=JSON.stringify(corpo);
+      window.webkit.messageHandlers.catedraArea.postMessage(corpo);
+    }catch(_){}   // site na web: a ponte não existe, e está tudo certo
+  }
   _indispNome(v){
     const N={legis:'Lei seca · CátedraLEGIS', juris:'Jurisprudência · CátedraJURIS',
       areamod:'Módulo de estudo da área', roteiros:'Roteiros e peças',
@@ -10474,6 +10495,7 @@ class Component extends DCLogic {
         this.flashSync();
       });
     });
+    this._avisarAreaAoNativo();
     this._toast('Área de estudo: '+A.label+' ✦'); };
   toggleModeloOutras = ()=> this.setState(s=>({modeloOutras:!s.modeloOutras}));
 

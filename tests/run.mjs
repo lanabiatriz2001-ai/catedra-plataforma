@@ -3434,6 +3434,57 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     'AREA sync o caderno de Direito também fica intacto');
   await sincCtx.close();
 
+  /* 11) A CASCA NATIVA precisa saber a área. No Mac e no iPad o CátedraJURIS é uma ABA
+     fixa da barra (⌘3), escrita em Swift: o guarda de rota da web não a alcança, porque
+     ela não é uma view. Quem estuda Enfermagem apertava ⌘3 e recebia o acervo de súmulas
+     inteiro. Aqui se testa o LADO WEB da ponte — que a mensagem é emitida, e com o
+     conteúdo certo. O lado Swift foi compilado à parte (0 erros nos dois alvos). */
+  const ponteCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const pontePg = await ponteCtx.newPage();
+  await pontePg.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+    } catch (_) {}
+    // finge a ponte do WKWebView: no navegador ela não existe
+    window.__avisos = [];
+    window.webkit = { messageHandlers: { catedraArea: { postMessage: (b) => { window.__avisos.push(b); } } } };
+  });
+  await pontePg.goto(URL0 + '/Catedra.dc.html');
+  await pontePg.waitForTimeout(2000);
+  const ponte = await pontePg.evaluate(() => {
+    const a = (window.__avisos || [])[0] || null;
+    return { avisou: !!a, area: a && a.area, juris: a && a.juris, legis: a && a.legis,
+             quantos: (window.__avisos || []).length };
+  });
+  ok(ponte.avisou, 'NATIVO a casca é avisada da área na abertura');
+  ok(ponte.area === 'saude', 'NATIVO o aviso leva a área ativa (' + ponte.area + ')');
+  ok(ponte.juris === false, 'NATIVO diz que Saúde não tem jurisprudência — a aba ⌘3 some');
+  ok(ponte.legis === true, 'NATIVO diz que Saúde tem fontes normativas — o LEGIS fica');
+  ok(ponte.quantos === 1, 'NATIVO não repete o aviso a cada render (' + ponte.quantos + ')');
+  await pontePg.close();
+
+  // e em Direito a aba continua
+  const pontePg2 = await pontelCtxNovo();
+  async function pontelCtxNovo() {
+    const pg = await ponteCtx.newPage();
+    await pg.addInitScript(() => {
+      try {
+        localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+        localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+      } catch (_) {}
+      window.__avisos = [];
+      window.webkit = { messageHandlers: { catedraArea: { postMessage: (b) => { window.__avisos.push(b); } } } };
+    });
+    await pg.goto(URL0 + '/Catedra.dc.html');
+    await pg.waitForTimeout(2000);
+    return pg;
+  }
+  const emDireito = await pontePg2.evaluate(() => (window.__avisos || [])[0] || null);
+  ok(emDireito && emDireito.juris === true, 'NATIVO em Direito a aba do JURIS continua');
+  await pontePg2.close();
+  await ponteCtx.close();
+
   await areaCtx.close();
   // devolve a aba compartilhada ao estado jurídico, que é o de todos os outros blocos
   await page.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
