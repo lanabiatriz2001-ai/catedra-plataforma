@@ -267,7 +267,19 @@ function listar(){
         +'</select></div>'
       +'</article>';
   }).join('')+'</div>'
-  : '<div class="vazio">Nenhuma prova com esse filtro.</div>';
+  : '<div class="vazio ct-estado">'
+    + '<div class="ct-estado-titulo">Nenhuma prova com esse filtro</div>'
+    + '<div class="ct-estado-desc">O acervo tem ' + ((E.provas||[]).length) + ' provas. Um termo mais curto,'
+    + ' ou voltar os filtros para "todos", costuma trazer o que você procura.</div>'
+    + '<button class="bt ct-estado-acao" id="limparFiltros">Limpar os filtros</button></div>';
+  /* O estado vazio oferece uma saída, e ela FUNCIONA — botão morto num estado vazio é
+     pior que estado vazio sem botão. Zera os três filtros e redesenha a lista. */
+  { const lf=$('limparFiltros');
+    if(lf) lf.onclick=()=>{
+      ['fq','ftipo','ftrib'].forEach(id=>{ const el=$(id); if(!el) return;
+        if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; });
+      listar();
+    }; }
   document.querySelectorAll('.pacoes .bt').forEach(b=>{
     b.onclick=()=>{ const h=document.querySelector('[data-h="'+b.dataset.id.replace(/"/g,'\\"')+'"]');
       comecar(b.dataset.id, parseInt(h&&h.value||4,10)*60); };
