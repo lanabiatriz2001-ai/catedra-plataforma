@@ -294,7 +294,7 @@ if (fontsHref) {
 
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'catedra-ui.css']) {
+for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'catedra-ui.css']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
 }
 // fatias dos acervos (ct-dados/sw): pasta inteira, nomes com hash
@@ -330,7 +330,7 @@ const pastasDeDados = () => {
 const casca = [...vendorados, './prioridade-calc.js', './busca-unica.js', './semana-juris.js',
   // C2 e C3 tambem sao <script> do <head>: fora da casca, o app instalado abriria sem
   // o mapa das plataformas e sem o miolo do espelho sugerido.
-  './plataformas-questoes.js', './espelho-sugerido.js', './area-registry.js', './catedra-ui.css', './icon-180.png'];
+  './plataformas-questoes.js', './espelho-sugerido.js', './area-registry.js', './casos.js', './catedra-ui.css', './icon-180.png'];
 if (fontsHref) {
   casca.push('./fonts.css');
   // Só os subconjuntos latinos. O Google fatia cada família por unicode-range e o

@@ -38,6 +38,7 @@
     'provaOralBancas',       // o acervo do que as BANCAS jurídicas publicaram sobre a oral
     'prioridadeIncidencia',  // ranking por incidência em prova real (prioridade-dados.js)
     'bancoDeQuestoes',       // simulado cronometrado montado da lei seca da área
+    'casosProprios',         // construtor de casos DA ÁREA, preenchidos pela pessoa
     'editalPorPesos',        // edital com peso e nº de questões por disciplina
     'catalogoDeBancas'       // concursos, bancas e o que cada uma cobra
   ];
@@ -121,16 +122,16 @@
     saude: {
       rotulo: 'Saúde e Medicina', prontidao: PARCIAL,
       capacidades: base({ fontesNormativas: true, moduloArea: true,
-        bancoDeQuestoes: true, provaOral: true }),
+        bancoDeQuestoes: true, provaOral: true, casosProprios: true }),
       termos: { fonte: 'diretriz', fontePlural: 'diretrizes', dispositivo: 'item', acervo: 'diretrizes e protocolos' },
-      emPreparo: ['casos clínicos', 'simulados por especialidade']
+      emPreparo: ['acervo editorial de casos e questões por especialidade']
     },
     social: {
       rotulo: 'Assistência Social', prontidao: PARCIAL,
       capacidades: base({ fontesNormativas: true, moduloArea: true,
-        bancoDeQuestoes: true, provaOral: true }),
+        bancoDeQuestoes: true, provaOral: true, casosProprios: true }),
       termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação social' },
-      emPreparo: ['casos socioassistenciais', 'escrita técnica (relatório, parecer, estudo social)']
+      emPreparo: ['acervo editorial de casos', 'escrita técnica (relatório, parecer, estudo social)']
     },
     educacao: {
       rotulo: 'Educação', prontidao: PARCIAL,
@@ -177,6 +178,7 @@
     oral: 'provaOral',
     prioridade: 'prioridadeIncidencia',
     simulados: 'bancoDeQuestoes',
+    casos: 'casosProprios',
     edital: 'editalPorPesos',
     bancas: 'catalogoDeBancas'
   };
