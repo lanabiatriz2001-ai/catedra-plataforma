@@ -3688,6 +3688,8 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     // 2) o construtor traz os campos do esquema clínico, e nenhum campo jurídico
     const novo = bt(/^novo caso$|^escrever o primeiro$/i); if (novo) novo.click(); await w(600);
     const t = document.body.innerText;
+    // rascunho não oferece "Apagar": só o caso já guardado
+    r.rascunhoNaoOfereceApagar = !bt(/^apagar$/i);
     r.temCamposClinicos = /apresentação/i.test(t) && /achados/i.test(t) && /conduta/i.test(t)
       && /evolução/i.test(t);
     r.semCampoJuridico = !/peça|dispositivo legal|jurisprudência/i.test(t);
@@ -3712,6 +3714,9 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     const g2 = bt(/^guardar o caso$/i); if (g2) g2.click(); await w(900);
     const cru = localStorage.getItem('catedra:casos@saude');
     const salvos = JSON.parse(cru || '[]');
+    const abrirDeNovo = bt(/^editar$/i); if (abrirDeNovo) abrirDeNovo.click(); await w(600);
+    r.casoGuardadoOfereceApagar = !!bt(/^apagar$/i);
+    const volta = bt(/^cancelar$/i); if (volta) volta.click(); await w(500);
     r.guardouNoCadernoDaArea = salvos.length === 1 && salvos[0].apresentacao.indexOf('54 anos') > -1;
     r.naoVazouParaOCadernoJuridico = JSON.parse(localStorage.getItem('catedra:casos') || '[]').length === 0;
     r.semAfordanciaDeCompartilhar = !/compartilhar|publicar|enviar para o grupo/i
