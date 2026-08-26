@@ -60,7 +60,8 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
         // Ponte de IA + notificações, no mundo .page (o app roda no mundo principal).
         for nome in ["catedraAI", "notifyPermission", "notifyShow", "catedraLembretes",
-                     "catedraNav", "catedraPlano", "catedraPrint", "catedraAcervo", "catedraBackup"] {
+                     "catedraNav", "catedraPlano", "catedraPrint", "catedraAcervo", "catedraBackup",
+                     "catedraArea"] {
             ucc.addScriptMessageHandler(self, contentWorld: .page, name: nome)
         }
         ucc.addUserScript(WKUserScript(source: Self.pontesJS,
@@ -165,6 +166,22 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         espelharTema { [weak self] mudou in
             guard let self else { return }
             self.montarAba(remontar: mudou)
+        }
+    }
+
+    /* A ÁREA DE ESTUDO CHEGA DA WEB (handler catedraArea). Este UISegmentedControl é
+       Swift e não passa pelo guarda de rota do app web — sem isto, quem estuda Enfermagem
+       tocava na terceira aba e recebia o acervo de súmulas inteiro. */
+    private var jurisDisponivel = true
+    func aplicarArea(juris: Bool) {
+        guard juris != jurisDisponivel, segmento != nil else { jurisDisponivel = juris; return }
+        jurisDisponivel = juris
+        if juris {
+            if segmento.numberOfSegments < 3 { segmento.insertSegment(withTitle: "CátedraJURIS", at: 2, animated: false) }
+        } else {
+            // quem estiver DENTRO da aba que vai sumir precisa sair antes
+            if segmento.selectedSegmentIndex == 2 { segmento.selectedSegmentIndex = 0; trocarAba() }
+            if segmento.numberOfSegments > 2 { segmento.removeSegment(at: 2, animated: false) }
         }
     }
 
@@ -505,6 +522,13 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case "notifyPermission": permissaoNotificacao(message, replyHandler)
         case "notifyShow":       mostrarNotificacao(message); replyHandler(nil, nil)
         case "catedraLembretes": agendarLembretes(message, replyHandler)
+        case "catedraArea":
+            // {area, rotulo, juris, legis} — a web avisa o que a área ativa oferece
+            if let d = message.body as? [String: Any] {
+                let temJuris = (d["juris"] as? Bool) ?? true
+                DispatchQueue.main.async { self.aplicarArea(juris: temJuris) }
+            }
+            replyHandler(nil, nil)
         case "catedraNav":       abrirTelaNativa(message); replyHandler(nil, nil)
         case "catedraAcervo":    abrirAcervoNativo(message); replyHandler(nil, nil)
         case "catedraBackup":    handleBackup(message, replyHandler)
