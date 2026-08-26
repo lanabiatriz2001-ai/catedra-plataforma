@@ -3524,7 +3524,9 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
       naoTrocouSozinha: area().includes('juridica'),
       dizDeParaOnde: /jurídica/i.test(t) && /saúde e medicina/i.test(t),
       dizOQueSome: /deixa de aparecer/i.test(t) && /cátedrajuris/i.test(t),
-      dizOQueEstaEmPreparo: /em preparo/i.test(t) && /casos clínicos/i.test(t),
+      // era "casos clínicos": o construtor de casos existe desde a Fase 4, então
+      // prometê-lo como futuro virou mentira. O que segue em preparo é o ACERVO.
+      dizOQueEstaEmPreparo: /em preparo/i.test(t) && /acervo editorial/i.test(t),
       prometeQueNadaSePerde: /nada é apagado/i.test(t) && /volta inteiro/i.test(t),
       temCancelar: [...document.querySelectorAll('button')].some(x => /^cancelar$/i.test((x.textContent || '').trim())),
     };
@@ -3591,6 +3593,193 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     await vp.close();
   }
   await varreCtx.close();
+
+  /* 14) FASE 3 — o contrato de estado vazio, aplicado às telas jurídicas.
+     O guia exige que EmptyState tenha explicação e AÇÃO possível. A 2ª fase dizia só
+     "Nenhuma prova com esse filtro." — e parava aí. Botão morto num estado vazio seria
+     pior que estado vazio sem botão, então o teste também aperta o botão. */
+  const f3 = await page.evaluate(async (base) => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const ifr = document.createElement('iframe');
+    ifr.style.cssText = 'position:fixed;left:-9999px;width:1100px;height:820px';
+    ifr.src = base + '/segunda-fase-web.html';
+    document.body.appendChild(ifr);
+    await new Promise(r => { ifr.onload = r; setTimeout(r, 6000); });
+    await w(1400);
+    const d = ifr.contentDocument;
+    if (!d) { ifr.remove(); return { semIframe: true }; }
+    const q = d.getElementById('fq');
+    if (!q) { ifr.remove(); return { semCampo: true }; }
+    q.value = 'zzzzznadaaqui'; q.dispatchEvent(new Event('input', { bubbles: true })); await w(900);
+    const t = d.body.innerText;
+    const r = {
+      mostraVazio: /nenhuma prova com esse filtro/i.test(t),
+      explicaPorQue: /o acervo tem \d+ provas/i.test(t),
+      ofereceSaida: !!d.getElementById('limparFiltros'),
+    };
+    const bt = d.getElementById('limparFiltros');
+    if (bt) { bt.click(); await w(900); }
+    r.aSaidaFunciona = !/nenhuma prova com esse filtro/i.test(d.body.innerText)
+      && (d.getElementById('fq') || {}).value === '';
+    ifr.remove();
+    return r;
+  }, URL0);
+  if (!f3.semIframe && !f3.semCampo) for (const [k, v] of Object.entries(f3)) ok(v, 'FASE3 ' + k);
+
+  // e as filas de pílulas dos satélites obedecem ao mesmo trilho
+  const trilhos = await page.evaluate(async (b) => {
+    const alvos = [['legis-web.html', '.tabs.ct-chips'], ['ritos-web.html', '.chips.ct-chips'],
+                   ['juris-web.html', '.ct-chips']];
+    const out = {};
+    for (const [pag, sel] of alvos) {
+      const t = await (await fetch(b + '/' + pag)).text();
+      out[pag.replace('-web.html', '')] = t.includes('ct-chips') && t.includes('catedra-ui.css');
+    }
+    return out;
+  }, URL0);
+  for (const [k, v] of Object.entries(trilhos)) ok(v, 'FASE3 fila no trilho em ' + k);
+
+
+  /* ===== FASE 4 — casos da pessoa, com a estrutura de cada área ====================
+     O que precisa ser verdade: (a) a capacidade existe só onde há esquema; (b) os dois
+     esquemas são DIFERENTES — nada de reaproveitar o formulário jurídico; (c) o guarda
+     de dados identificáveis BLOQUEIA o salvamento; (d) o caso fica no caderno DAQUELA
+     área e em lugar nenhum mais; (e) o treino revela por etapas e a autoavaliação
+     agenda a revisão no mesmo motor do resto do app. */
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(1500);
+  const f4reg = await areaPg.evaluate(() => {
+    const R = window.CT_AREA_REG, C = window.CT_CASOS;
+    const campos = a => (C.esquema(a) || { campos: [] }).campos.map(c => c.k);
+    const sa = campos('saude'), so = campos('social');
+    return {
+      capacidadeSoOndeHaEsquema: R.tem('saude', 'casosProprios') && R.tem('social', 'casosProprios')
+        && !R.tem('juridica', 'casosProprios') && !R.tem('policial', 'casosProprios')
+        && !R.tem('outra', 'casosProprios'),
+      viewSegueACapacidade: R.podeAbrir('saude', 'casos') && !R.podeAbrir('juridica', 'casos'),
+      juridicaNaoTemEsquema: !C.temEsquema('juridica') && C.esquema('juridica') === null,
+      esquemasDiferentes: sa.join(',') !== so.join(',') && sa.length === 7 && so.length === 10,
+      saudeNaOrdemClinica: sa.join(',') === 'titulo,apresentacao,achados,avaliacao,conduta,evolucao,fonte',
+      socialNaOrdemDoTrabalhoSocial: so.join(',')
+        === 'titulo,contexto,demanda,vulnerabilidade,avaliacao,intervencao,rede,encaminhamentos,acompanhamento,fundamento',
+      barraIdentificavel: ['CPF 123.456.789-09', 'tel (69) 98103-8480', 'maria@exemplo.com',
+        'Rua das Flores, 120', 'CEP 76800-000', 'prontuário nº 44821', 'nascimento 12/03/1988']
+        .every(t => C.acharIdentificaveis(t).length > 0),
+      deixaPassarDescricaoLegitima: ['homem, 54 anos, dispneia há 2 dias', 'PA 90x60, FC 118',
+        'família com 4 pessoas, 2 crianças em idade escolar', 'doença de Crohn desde 2019']
+        .every(t => C.acharIdentificaveis(t).length === 0),
+    };
+  });
+  for (const [k, v] of Object.entries(f4reg)) ok(v, 'FASE4 ' + k);
+
+  // o percurso de verdade, na tela: escrever → ser barrado pelo guarda → corrigir → treinar
+  await areaPg.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude')));
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(1600);
+  const f4tela = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const bt = re => [...document.querySelectorAll('button')]
+      .find(x => re.test((x.textContent || '').trim()));
+    const r = {};
+    // 1) o menu chama o caso pelo nome da área
+    r.menuComNomeDaArea = /casos clínicos/i.test(document.body.innerText);
+    const menu = bt(/^casos clínicos$/i); if (menu) menu.click(); await w(700);
+    r.abriuAView = /meus casos clínicos/i.test(document.body.innerText);
+    // 2) o construtor traz os campos do esquema clínico, e nenhum campo jurídico
+    const novo = bt(/^novo caso$|^escrever o primeiro$/i); if (novo) novo.click(); await w(600);
+    const t = document.body.innerText;
+    r.temCamposClinicos = /apresentação/i.test(t) && /achados/i.test(t) && /conduta/i.test(t)
+      && /evolução/i.test(t);
+    r.semCampoJuridico = !/peça|dispositivo legal|jurisprudência/i.test(t);
+    // 3) preencher com algo identificável e tentar guardar
+    const set = (sel, val) => { const e = document.querySelector(sel); if (!e) return false;
+      const p = Object.getOwnPropertyDescriptor(e.constructor.prototype, 'value');
+      p.set.call(e, val); e.dispatchEvent(new Event('input', { bubbles: true })); return true; };
+    r.achouCampos = set('[data-k="titulo"]', 'Dispneia súbita em pós-operatório')
+      && set('[data-k="apresentacao"]', 'Paciente Maria, CPF 123.456.789-09, dispneia há 2 dias.');
+    await w(400);
+    const guardar = bt(/^guardar o caso$/i); if (guardar) guardar.click(); await w(600);
+    const t2 = document.body.innerText;
+    r.guardaBloqueou = /não pode ser guardado/i.test(t2) && /cpf/i.test(t2);
+    r.disseComoConsertar = /homem, 54 anos/i.test(t2);
+    // o autosave já pode ter gravado a chave vazia — o que não pode é ter CONTEÚDO
+    r.naoGravouNada = JSON.parse(localStorage.getItem('catedra:casos@saude') || '[]').length === 0;
+    // 4) corrigir e guardar de verdade
+    set('[data-k="apresentacao"]', 'Homem, 54 anos, dispneia súbita 2 dias após herniorrafia.');
+    set('[data-k="achados"]', 'PA 90x60, FC 118, SpO2 88% em ar ambiente.');
+    set('[data-k="conduta"]', 'Oxigenoterapia, anticoagulação plena e angiotomografia.');
+    await w(300);
+    const g2 = bt(/^guardar o caso$/i); if (g2) g2.click(); await w(900);
+    const cru = localStorage.getItem('catedra:casos@saude');
+    const salvos = JSON.parse(cru || '[]');
+    r.guardouNoCadernoDaArea = salvos.length === 1 && salvos[0].apresentacao.indexOf('54 anos') > -1;
+    r.naoVazouParaOCadernoJuridico = JSON.parse(localStorage.getItem('catedra:casos') || '[]').length === 0;
+    r.semAfordanciaDeCompartilhar = !/compartilhar|publicar|enviar para o grupo/i
+      .test(document.body.innerText);
+    // 5) treinar: revela por etapas, não de uma vez
+    const treinar = bt(/^discutir o caso$/i); if (treinar) treinar.click(); await w(700);
+    const t3 = document.body.innerText;
+    r.treinoComecaPelaApresentacao = /54 anos/.test(t3) && !/angiotomografia/i.test(t3);
+    const rev = bt(/revelar a próxima parte/i); if (rev) rev.click(); await w(500);
+    r.revelaEmEtapas = /PA 90x60/.test(document.body.innerText)
+      && !/angiotomografia/i.test(document.body.innerText);
+    const rev2 = bt(/revelar a próxima parte/i); if (rev2) rev2.click(); await w(500);
+    r.chegaAoFim = /angiotomografia/i.test(document.body.innerText)
+      && !!bt(/^conduzi bem$/i);
+    // 6) a autoavaliação entra no MESMO motor de revisão
+    const aval = bt(/^conduzi bem$/i); if (aval) aval.click(); await w(900);
+    const revs = JSON.parse(localStorage.getItem('catedra:reviews@saude') || '[]');
+    r.agendouRevisao = revs.some(x => x.casoId && /dispneia/i.test(x.topic || ''));
+    r.contouOTreino = (JSON.parse(localStorage.getItem('catedra:casos@saude') || '[]')[0]
+      .treinos || []).length === 1;
+    return r;
+  });
+  for (const [k, v] of Object.entries(f4tela)) ok(v, 'FASE4 tela ' + k);
+
+  // e em Assistência Social o formulário é OUTRO — não é o de saúde renomeado
+  await areaPg.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('social')));
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(1600);
+  const f4soc = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const bt = re => [...document.querySelectorAll('button')]
+      .find(x => re.test((x.textContent || '').trim()));
+    const menu = bt(/^casos socioassistenciais$/i); if (menu) menu.click(); await w(700);
+    const novo = bt(/^novo caso$|^escrever o primeiro$/i); if (novo) novo.click(); await w(600);
+    const t = document.body.innerText;
+    return {
+      formularioProprio: /contexto familiar e territorial/i.test(t) && /vulnerabilidades/i.test(t)
+        && /rede acionada/i.test(t) && /encaminhamentos/i.test(t),
+      // pelos CAMPOS, não pelo texto da página: "conduta" aparece legitimamente na dica
+      // do fundamento ("a norma que sustenta a conduta") sem ser campo de caso clínico
+      semCamposClinicos: ['achados', 'conduta', 'evolucao', 'apresentacao']
+        .every(k => !document.querySelector('[data-k="' + k + '"]')),
+      camposSaoOsDoEsquemaSocial: [...document.querySelectorAll('[data-k]')]
+        .map(e => e.dataset.k).filter(k => k !== 'q' && k !== 'r').join(',')
+        === 'titulo,contexto,demanda,vulnerabilidade,avaliacao,intervencao,rede,encaminhamentos,acompanhamento,fundamento',
+      cadernoSeparado: JSON.parse(localStorage.getItem('catedra:casos@social') || '[]').length === 0
+        && JSON.parse(localStorage.getItem('catedra:casos@saude') || '[]').length === 1,
+    };
+  });
+  for (const [k, v] of Object.entries(f4soc)) ok(v, 'FASE4 social ' + k);
+
+  // jurídica não abre a tela nem por deep link — e explica em vez de sumir
+  await areaPg.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(1600);
+  const f4jur = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    try { window.__catedraGoView('casos'); } catch (_) {}
+    await w(800);
+    const t = document.body.innerText;
+    return {
+      naoAbre: !/meus casos/i.test(t),
+      explicaEmVezDeSumir: /não faz parte de/i.test(t),
+      semMenuDeCasos: ![...document.querySelectorAll('button')]
+        .some(x => /^casos (clínicos|socioassistenciais)$/i.test((x.textContent || '').trim())),
+    };
+  });
+  for (const [k, v] of Object.entries(f4jur)) ok(v, 'FASE4 jurídica ' + k);
 
   await areaCtx.close();
   // devolve a aba compartilhada ao estado jurídico, que é o de todos os outros blocos
