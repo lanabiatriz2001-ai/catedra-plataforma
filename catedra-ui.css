@@ -1,0 +1,156 @@
+/* catedra-ui.css — o contrato visual compartilhado por TODA a plataforma.
+ *
+ * POR QUE ESTE ARQUIVO EXISTE
+ * O Cátedra é um app principal mais sete satélites em <iframe>, cada um nascido em
+ * momento diferente. Cada um reinventou o mesmo cartão, o mesmo chip, o mesmo estado
+ * vazio — e cada cópia divergiu: raio 10 aqui, 14 ali; sombra inventada por página;
+ * "nada encontrado" que num lugar explica e no outro é uma linha cinza solta.
+ *
+ * Aqui ficam as decisões que valem para os três produtos (Cátedra, CátedraLEGIS,
+ * CátedraJURIS). O `satellite-base.css` continua existindo para o que é só dos
+ * satélites (foco, alvo de toque, movimento reduzido dentro do iframe); o CSS de cada
+ * página continua existindo para o que é dela — artigo de lei, verbete, quesito.
+ *
+ * REGRA DE USO
+ * Nada aqui pode depender de conteúdo jurídico. Se a regra só faz sentido para "artigo"
+ * ou "súmula", ela não é deste arquivo.
+ *
+ * TOKENS
+ * Os valores vêm do host por CSS var (tema, tamanho de fonte, densidade). Todo uso tem
+ * fallback: aberto avulso, sem host, a página continua legível.
+ */
+
+/* ===== 1. ESCALA ==================================================================
+   Uma escala de espaçamento, uma de raio, uma de sombra. Antes cada tela escolhia um
+   número; o resultado é que nada alinhava com nada. */
+:root {
+  /* espaçamento — 4, 8, 12, 16, 24, 32, 48 */
+  --ct-e1: 4px;  --ct-e2: 8px;  --ct-e3: 12px;
+  --ct-e4: 16px; --ct-e5: 24px; --ct-e6: 32px; --ct-e7: 48px;
+
+  /* raio: herda o tema do host (o app deixa a pessoa escolher cantos) */
+  --ct-r-sm: var(--r-sm, 8px);
+  --ct-r-md: var(--r-md, 11px);
+  --ct-r-lg: var(--radius, 14px);
+
+  /* sombra: dois degraus, e só. Sombra inventada por página é o que faz um card
+     parecer de outro produto. */
+  --ct-sombra-1: 0 1px 2px rgba(16, 24, 40, .05);
+  --ct-sombra-2: 0 1px 2px rgba(16, 24, 40, .05), 0 8px 22px rgba(16, 24, 40, .06);
+
+  /* largura de leitura: 65–78ch é o intervalo em que o olho não se perde na volta da
+     linha. Enunciado de prova, texto de lei e explicação NÃO devem esticar pela tela. */
+  --ct-leitura: 72ch;
+}
+
+/* ===== 2. SUPERFÍCIE E CARTÃO =====================================================
+   Um cartão só. Quem precisar de destaque muda a borda ou o topo, não inventa outro. */
+.ct-card {
+  background: var(--surface, #fffdf8);
+  border: 1px solid var(--border, #e6e1d4);
+  border-radius: var(--ct-r-lg);
+  padding: var(--ct-e5);
+  box-shadow: var(--ct-sombra-1);
+}
+.ct-card-alto { box-shadow: var(--ct-sombra-2); }
+.ct-card-plano { box-shadow: none; }
+
+/* ===== 3. CABEÇALHO DE SEÇÃO ======================================================
+   Título, explicação curta e, quando houver, contador ou ação — no mesmo ritmo. */
+.ct-secao { display: flex; align-items: baseline; gap: var(--ct-e3); flex-wrap: wrap; margin-bottom: var(--ct-e3); }
+.ct-secao h2, .ct-secao .ct-secao-titulo {
+  font-family: var(--display, Georgia, serif);
+  font-size: var(--fs-xl, 17px);
+  font-weight: 600;
+  color: var(--ink, #1f1c17);
+  margin: 0;
+}
+.ct-secao .ct-secao-nota { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }
+.ct-secao .ct-secao-fim { margin-left: auto; }
+
+/* ===== 4. TEXTO LONGO =============================================================
+   Enunciado, lei, explicação. Não estica. */
+.ct-leitura { max-width: var(--ct-leitura); line-height: 1.7; }
+
+/* ===== 5. FILA DE CHIPS ===========================================================
+   O guia é explícito: overflow horizontal LOCAL, e nunca cortar chip no viewport.
+   A fila rola dentro do próprio trilho e a última pílula fica ancorada pelo snap. */
+.ct-chips {
+  display: flex; gap: var(--ct-e2); flex-wrap: nowrap;
+  overflow-x: auto; scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;              /* espaço para a sombra do foco não ser cortada */
+  scrollbar-width: none;
+}
+.ct-chips::-webkit-scrollbar { display: none; }
+.ct-chips > * { scroll-snap-align: start; flex: none; }
+/* dica de que há mais: some quando a fila cabe */
+.ct-chips-borda { position: relative; }
+.ct-chips-borda::after {
+  content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 28px;
+  background: linear-gradient(to right, transparent, var(--bg, #f4f1ea));
+  pointer-events: none;
+}
+
+/* ===== 6. ESTADOS: VAZIO, CARREGANDO, ERRO ========================================
+   Os três dizem a MESMA coisa em toda a plataforma: o que é, por que está assim, e o
+   que dá para fazer. Nunca um nome de arquivo, nunca um stack trace. */
+.ct-estado {
+  display: flex; flex-direction: column; gap: var(--ct-e2);
+  padding: var(--ct-e6) var(--ct-e5);
+  border: 1px dashed var(--border, #e6e1d4);
+  border-radius: var(--ct-r-lg);
+  background: var(--surface, #fffdf8);
+  text-align: center; align-items: center;
+}
+.ct-estado-titulo { font-weight: 600; font-size: var(--fs-lg, 15.5px); color: var(--ink, #1f1c17); }
+.ct-estado-desc { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); line-height: 1.6; max-width: 46ch; }
+.ct-estado-acao { margin-top: var(--ct-e2); }
+.ct-estado-erro { border-style: solid; border-color: var(--dangerBd, #f0d3d1); background: var(--dangerSoft, #faeceb); }
+.ct-estado-erro .ct-estado-titulo { color: var(--danger, #c0392f); }
+
+/* ===== 7. LINHA DE DADO ===========================================================
+   rótulo, dado, explicação, situação e ação — na mesma ordem em toda a plataforma. */
+.ct-linha {
+  display: flex; align-items: center; gap: var(--ct-e3);
+  padding: var(--ct-e3) 0;
+  border-bottom: 1px solid var(--border, #e6e1d4);
+}
+.ct-linha:last-child { border-bottom: none; }
+.ct-linha-rotulo { font-weight: 600; color: var(--ink, #1f1c17); font-size: var(--fs-base, 13.5px); }
+.ct-linha-dado { font-family: var(--mono, ui-monospace, monospace); color: var(--text2, #5c564a); }
+.ct-linha-nota { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }
+.ct-linha-fim { margin-left: auto; display: flex; gap: var(--ct-e2); align-items: center; }
+
+/* ===== 8. GAVETA / MODAL ==========================================================
+   Largura limitada, UMA rolagem por painel. O guia pede isso porque duas áreas de
+   rolagem concorrentes tiram o controle de quem lê. */
+.ct-gaveta {
+  width: min(640px, 48vw);
+  max-height: 100%;
+  overflow-y: auto;                 /* a rolagem é DAQUI, não do corpo */
+  overscroll-behavior: contain;     /* rolar até o fim não arrasta a página atrás */
+  background: var(--surface, #fffdf8);
+  border-left: 1px solid var(--border, #e6e1d4);
+}
+@media (max-width: 900px) {
+  .ct-gaveta { width: 100%; border-left: none; }   /* no celular a gaveta é a tela */
+}
+.ct-modal-caixa {
+  width: min(560px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface, #fffdf8);
+  border-radius: var(--ct-r-lg);
+  box-shadow: 0 20px 60px rgba(16, 24, 40, .28);
+}
+
+/* ===== 9. INDISPONÍVEL ============================================================
+   O switcher e os atalhos precisam PODER mostrar que algo não está disponível nesta
+   área — em vez de sumir sem explicação ou levar a uma rota vazia. */
+.ct-indisponivel {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}

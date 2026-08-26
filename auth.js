@@ -165,7 +165,7 @@
 
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
-  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:redHist': 1, 'catedra:meusGrupos': 1, 'catedra:espelhosSugeridos': 1 };
+  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:casos': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:redHist': 1, 'catedra:meusGrupos': 1, 'catedra:espelhosSugeridos': 1 };
   /* O app passou a guardar o caderno de cada área de estudo em `catedra:<chave>@<area>`.
      Consultar ARRAY_ID pelo nome cru fazia essas chaves caírem fora do merge por id — ou
      seja, FORA da jurídica a sincronização voltava a ser last-write-wins de blob inteiro,
