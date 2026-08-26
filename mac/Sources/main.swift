@@ -147,6 +147,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private weak var tabControl: NSSegmentedControl?
     private weak var voltaButton: NSButton?     // item 5: volta ao ponto do processo
     private var currentTab = 0                   // 0 = Cátedra, 1 = CátedraLEGIS
+    /* A ÁREA DE ESTUDO CHEGA DA WEB (handler catedraArea). Esta barra é escrita em Swift
+       e não passa pelo guarda de rota do app web — sem isto, quem estuda Enfermagem
+       apertava ⌘3 e recebia o acervo de súmulas do STF/STJ inteiro. */
+    private var jurisDisponivel = true
+    private func aplicarArea(juris: Bool) {
+        guard juris != jurisDisponivel else { return }
+        jurisDisponivel = juris
+        // quem estiver DENTRO da aba que acabou de sumir precisa sair dela
+        if !juris && currentTab == 2 { switchTo(0) }
+        reconstruirAbas()
+    }
+    private func reconstruirAbas() {
+        guard let seg = tabControl else { return }
+        let rotulos = jurisDisponivel ? ["Cátedra", "CátedraLEGIS", "CátedraJURIS"]
+                                      : ["Cátedra", "CátedraLEGIS"]
+        seg.segmentCount = rotulos.count
+        for (i, r) in rotulos.enumerated() { seg.setLabel(r, forSegment: i) }
+        if #available(macOS 11.0, *) {
+            let simbolos = ["graduationcap", "book.closed", "building.columns"]
+            for i in 0..<rotulos.count {
+                seg.setImage(NSImage(systemSymbolName: simbolos[i], accessibilityDescription: nil), forSegment: i)
+            }
+        }
+        seg.selectedSegment = min(currentTab, rotulos.count - 1)
+        // o item de menu e o ⌘3 acompanham
+        for it in tabMenuItems where it.tag == 2 { it.isHidden = !jurisDisponivel }
+    }
 
     // Menu bar extra (NSStatusItem): acesso rápido + relógio de estudo ao vivo.
     private var statusItem: NSStatusItem?
@@ -190,6 +217,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "notifyPermission")
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "notifyShow")
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraNav")  // web → trocar de aba nativa
+        ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraArea") // web → área de estudo ativa e o que ela oferece
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPlano") // web → marcar leitura do plano (ciclo semanal)
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPrint") // web → imprimir/salvar PDF (window.print é mudo no WKWebView)
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraBackup") // web → backup no iCloud Drive (pasta Cátedra) ou painel de arquivo
@@ -936,6 +964,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
 
     private func switchTo(_ tab: Int) {
+        // aba que a área não oferece não abre por atalho, por menu nem por clique
+        if tab == 2 && !jurisDisponivel { tabControl?.selectedSegment = currentTab; return }
         // Ao SAIR do CátedraLEGIS/CátedraJURIS, fecha a rajada e coleta no Cátedra.
         if currentTab == 1 && tab != 1 { flushLegisStudy() }
         if currentTab == 2 && tab != 2 { flushJurisStudy() }
@@ -1451,6 +1481,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         case "catedraAI":        handleAI(message, reply)
         case "notifyPermission": handleNotifPermission(message, reply)
         case "notifyShow":       handleNotifShow(message.body); reply(nil, nil)
+        case "catedraArea":
+            // {area, rotulo, juris, legis} — a web avisa o que a área ativa oferece
+            if let d = message.body as? [String: Any] {
+                let temJuris = (d["juris"] as? Bool) ?? true
+                DispatchQueue.main.async { self.aplicarArea(juris: temJuris) }
+            }
+            reply(nil, nil)
         case "catedraNav":
             // Agenda única: o "Abrir" das revisões nativas na web troca a aba do host.
             // Item 5: o mapa de Processo e peças manda um DICIONÁRIO {alvo, termo, de} —
