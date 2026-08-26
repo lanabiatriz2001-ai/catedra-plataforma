@@ -2095,8 +2095,9 @@ window.ctPdfLib = (function(){
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
               <button onclick="{{ casoSalvar }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Guardar o caso</button>
               <button onclick="{{ casoCancelar }}" style="background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-family:inherit;font-size:var(--fs-base);cursor:pointer;">Cancelar</button>
-              <sc-if value="{{ casoEditNovoOn }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
-              <button onclick="{{ casoExcluir }}" style="margin-left:auto;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-family:inherit;font-size:var(--fs-base);cursor:pointer;">Apagar</button>
+              <sc-if value="{{ casoEditSalvoOn }}" hint-placeholder-val="{{ false }}">
+                <button onclick="{{ casoExcluir }}" style="margin-left:auto;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-family:inherit;font-size:var(--fs-base);cursor:pointer;">Apagar</button>
+              </sc-if>
             </div>
           </div>
         </sc-if>
@@ -14120,7 +14121,10 @@ class Component extends DCLogic {
       casoPergRem:this.casoPergRem, casoSalvar:this.casoSalvar, casoExcluir:this.casoExcluir,
       casoTreinar:this.casoTreinar, casoRevelar:this.casoRevelar, casoVerRespostas:this.casoVerRespostas,
       casoFecharTreino:this.casoFecharTreino, casoAvaliar:this.casoAvaliar,
-      casoEditOn:!!_cEdit, casoEditNovoOn:!!(_cEdit && !_cEdit.criado),
+      casoEditOn:!!_cEdit,
+      // "Apagar" só existe para caso JÁ guardado: num rascunho ele pediria confirmação
+      // falando em remover dos outros aparelhos algo que nunca saiu deste.
+      casoEditSalvoOn:!!(_cEdit && _cEdit.criado),
       casoEditTitulo:((_cEdit && _cEdit.criado) ? 'Editar caso' : ('Novo '+((_ce?_ce.nome:'caso').toLowerCase()))),
       casoCampos:(_cEdit && _ce) ? _ce.campos.map(c=>({
         k:c.k, rot:c.rot, dica:c.dica, val:String(_cEdit[c.k]||''),
