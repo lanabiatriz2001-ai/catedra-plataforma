@@ -17,6 +17,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <!-- "O que mudou esta semana" (item 7): recorte dos informativos, gerado no build -->
 <script src="./semana-juris.js"></script>
 <!-- C2: para onde mandar praticar questões (só link de saída — nada é copiado de lá) -->
+<link rel="stylesheet" href="./catedra-ui.css">
 <script src="./area-registry.js"></script>
 <script src="./plataformas-questoes.js"></script>
 <!-- C3: miolo do espelho sugerido (fundamento obrigatório + rotulagem), puro e testável -->
@@ -1108,7 +1109,7 @@ window.ctPdfLib = (function(){
               <p style="font-size:var(--fs-md);color:var(--text2);line-height:1.6;margin:0 0 16px;">A plataforma se adapta: disciplinas sugeridas, tipos de atividade do ciclo, categorias das sessões e as ferramentas que aparecem no menu.</p>
               <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px;max-height:44vh;overflow:auto;">
                 <sc-for list="{{ areaCards }}" as="a" hint-placeholder-count="10">
-                  <button data-a="{{ a.id }}" onclick="{{ setAreaEstudo }}" style="{{ a.style }}"><span style="{{ a.labelStyle }}">{{ a.emoji }} {{ a.label }}{{ a.check }}</span><span style="font-size:var(--fs-xs);color:var(--text3);line-height:1.45;">{{ a.desc }}</span></button>
+                  <button data-a="{{ a.id }}" onclick="{{ proporArea }}" style="{{ a.style }}"><span style="{{ a.labelStyle }}">{{ a.emoji }} {{ a.label }}{{ a.check }}</span><span style="font-size:var(--fs-xs);color:var(--text3);line-height:1.45;">{{ a.desc }}</span></button>
                 </sc-for>
               </div>
               <button onclick="{{ onboardNext }}" style="width:100%;margin-top:18px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Continuar</button>
@@ -1923,6 +1924,49 @@ window.ctPdfLib = (function(){
        </div>
       </sc-if>
 
+      <!-- ================= PRÉVIA DA TROCA DE ÁREA =================
+           Antes a troca era um clique só. Agora ela tem consequência — cada área tem o
+           seu caderno —, então a tela diz o que muda e o que NÃO se perde, e a pessoa
+           confirma. É a diferença entre trocar de área e achar que apagou tudo. -->
+      <sc-if value="{{ areaPreviewOn }}" hint-placeholder-val="{{ false }}">
+        <div class="ct-modal-backdrop" style="position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:150;display:flex;align-items:center;justify-content:center;padding:20px;">
+          <div class="ct-modal-panel ct-modal-caixa" role="dialog" aria-modal="true" aria-label="Confirmar troca de área de estudo">
+            <div style="padding:26px 28px 0;">
+              <div style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:700;">Trocar de área de estudo</div>
+              <div style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);color:var(--ink);margin-top:8px;">{{ pvDe }} → {{ pvPara }}</div>
+              <div style="font-size:var(--fs-base);color:var(--text2);line-height:1.65;margin-top:10px;">{{ pvResumo }}</div>
+            </div>
+            <div style="padding:18px 28px 0;display:flex;flex-direction:column;gap:12px;">
+              <sc-if value="{{ pvTemGanha }}" hint-placeholder-val="{{ false }}">
+                <div style="background:var(--surface2);border-radius:var(--r-md);padding:13px 15px;">
+                  <div style="font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--ok);font-weight:700;">Passa a ter</div>
+                  <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:5px;line-height:1.6;">{{ pvGanha }}</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ pvTemPerde }}" hint-placeholder-val="{{ false }}">
+                <div style="background:var(--surface2);border-radius:var(--r-md);padding:13px 15px;">
+                  <div style="font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;">Deixa de aparecer</div>
+                  <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:5px;line-height:1.6;">{{ pvPerde }}</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ pvTemPreparo }}" hint-placeholder-val="{{ false }}">
+                <div style="background:var(--surface2);border-radius:var(--r-md);padding:13px 15px;">
+                  <div style="font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--warn);font-weight:700;">Em preparo</div>
+                  <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:5px;line-height:1.6;">{{ pvPreparo }}</div>
+                </div>
+              </sc-if>
+              <div style="border-left:3px solid var(--ok);background:var(--surface2);border-radius:var(--r-md);padding:13px 15px;">
+                <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.6;"><b style="color:var(--ink);">Nada é apagado.</b> {{ pvCaderno }}</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;padding:22px 28px 26px;">
+              <button onclick="{{ cancelarTrocaArea }}" style="background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:600;cursor:pointer;">Cancelar</button>
+              <button onclick="{{ confirmarTrocaArea }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 22px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Trocar para {{ pvPara }}</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
       <!-- ================= ROTA INDISPONÍVEL NESTA ÁREA =================
            O guia é explícito: sem conteúdo compatível, mostrar estado honesto — nunca
            dado de Magistratura e nunca um redirecionamento mudo. Esta tela aparece
@@ -1930,10 +1974,10 @@ window.ctPdfLib = (function(){
            oferece. Ela diz o que a tela faz, por que não abre aqui, e para onde ir. -->
       <sc-if value="{{ isIndisponivel }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:34px 30px;max-width:620px;">
+        <div class="ct-card ct-card-alto" style="max-width:620px;">
           <div style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:700;">Não faz parte de {{ indispArea }}</div>
           <div style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);color:var(--ink);margin-top:8px;">{{ indispTitulo }}</div>
-          <div style="font-size:var(--fs-base);color:var(--text2);line-height:1.65;margin-top:10px;">{{ indispPorque }}</div>
+          <div class="ct-leitura" style="font-size:var(--fs-base);color:var(--text2);margin-top:10px;">{{ indispPorque }}</div>
           <sc-if value="{{ indispTemPreparo }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:18px;padding:14px 16px;background:var(--surface2);border-radius:var(--r-md);">
               <div style="font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;">Em preparo para {{ indispArea }}</div>
@@ -3765,7 +3809,7 @@ window.ctPdfLib = (function(){
             <div style="padding:18px 22px;border-bottom:1px solid var(--border);background:var(--surface2);">
               <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:9px;">
                 <sc-for list="{{ areaCards }}" as="a" hint-placeholder-count="10">
-                  <button data-a="{{ a.id }}" onclick="{{ setAreaEstudo }}" style="{{ a.style }}"><span style="{{ a.labelStyle }}">{{ a.emoji }} {{ a.label }}{{ a.check }}</span><span style="font-size:var(--fs-xs);color:var(--text3);line-height:1.45;">{{ a.desc }}</span></button>
+                  <button data-a="{{ a.id }}" onclick="{{ proporArea }}" style="{{ a.style }}"><span style="{{ a.labelStyle }}">{{ a.emoji }} {{ a.label }}{{ a.check }}</span><span style="font-size:var(--fs-xs);color:var(--text3);line-height:1.45;">{{ a.desc }}</span></button>
                 </sc-for>
               </div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;">Cada área tem o seu próprio caderno. Ao trocar, o edital, as revisões e o histórico desta área ficam guardados e você encontra um caderno limpo na área nova — voltar traz tudo de volta, do jeito que estava. Tema, fonte e preferências são seus, não da área: acompanham você.</div>
@@ -5545,6 +5589,7 @@ class Component extends DCLogic {
       argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
       viewBloqueada:'',   // qual view foi barrada pelo guarda de área (só para a tela explicar)
+      areaPreview:'',     // área PROPOSTA, aguardando confirmação (não é a ativa)
       paletteOpen:false, paletteQuery:'', lastPonto:this._load('lastPonto',null), lastPontoDispensado:this._load('lastPontoDispensado',0), palBuscaPronta:false, semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
       // U2: quais satélites já avisaram que pintaram. Vive só na memória desta sessão — é
       // exatamente o que se quer: esqueleto na PRIMEIRA carga de cada um, nunca depois.
@@ -7147,6 +7192,92 @@ class Component extends DCLogic {
       this._ultimoAvisoArea=JSON.stringify(corpo);
       window.webkit.messageHandlers.catedraArea.postMessage(corpo);
     }catch(_){}   // site na web: a ponte não existe, e está tudo certo
+  }
+  /* ===== O QUE A PRÉVIA DIZ =====
+     Cada frase sai do registro de capacidades — não há texto inventado nem promessa que
+     o app não cumpra. É a mesma tabela que decide o menu e o guarda de rota. */
+  /* O QUE A BANCA COBRA, NA LÍNGUA DA ÁREA.
+     As descrições de estilo das bancas foram escritas para concurso jurídico — falam em
+     "jurisprudência", "súmula" e "lei seca". O estilo da CEBRASPE (Certo/Errado, nota
+     líquida, pegadinha de palavra-chave) vale igual em prova de Enfermagem; o vocabulário
+     é que não. Aqui a fonte vira o termo DA ÁREA, e a cláusula que só existe no Direito é
+     RETIRADA — não substituída por um equivalente inventado, que seria pior que o erro. */
+  _bancaTexto(txt){
+    const t=String(txt||''); if(!t) return t;
+    const id=this.state.areaEstudo||'juridica';
+    let juridica=true;
+    try{ juridica=window.CT_AREA_REG.tem(id,'jurisprudencia'); }catch(_){}
+    if(juridica) return t;                       // no Direito o texto original é o certo
+    let fonte='a fonte', fontes='as fontes';
+    try{ const R=window.CT_AREA_REG;
+      fonte=R.termo(id,'fonte','a fonte'); fontes=R.termo(id,'fontePlural','as fontes'); }catch(_){}
+    // corta a oração que só faz sentido em prova jurídica
+    const SO_JURIDICO=/jurisprud|súmul|acórdão|repercussão geral|repetitiv/i;
+    const partes=t.split(/(?<=[,;])\s+/).filter(x=>!SO_JURIDICO.test(x));
+    let saida=partes.join(' ').trim();
+    // e troca o vocabulário da fonte
+    saida=saida.replace(/decoreba de lei seca/gi, 'decoreba do texto d'+(fontes.endsWith('s')?'as ':'a ')+fontes)
+               .replace(/\bda lei seca\b/gi, 'd'+(fontes.endsWith('s')?'as ':'a ')+fontes)
+               .replace(/\blei seca\b/gi, 'texto d'+(fontes.endsWith('s')?'as ':'a ')+fontes)
+               .replace(/\bletra da lei\b/gi, 'literalidade d'+(fonte.startsWith('a')?'a ':'a ')+fonte)
+               .replace(/\bda lei\b/gi, 'd'+(fonte.startsWith('a')?'a ':'a ')+fonte);
+    // higiene: vírgula solta ou espaço duplo deixados pelo corte
+    return saida.replace(/\s+/g,' ').replace(/\s+([,.;])/g,'$1').replace(/,\s*\./g,'.').replace(/,\s*$/,'.').trim();
+  }
+  _pvLabel(){
+    const v=this.state.areaPreview; if(!v) return '';
+    const a=CT_AREAS.find(x=>x.id===v); return (a&&a.label)||v;
+  }
+  _pvResumo(){
+    const v=this.state.areaPreview; if(!v) return '';
+    const a=CT_AREAS.find(x=>x.id===v);
+    return (a&&a.desc) ? String(a.desc) : 'A navegação, as fontes e as métricas passam a ser as desta área.';
+  }
+  /** As telas que aparecem ou somem, em português — só as que a pessoa vê no menu. */
+  _pvDiferenca(lado){
+    const novo=this.state.areaPreview; if(!novo) return [];
+    const atual=this.state.areaEstudo||'juridica';
+    const NOMES={legis:'Lei seca · CátedraLEGIS', juris:'Jurisprudência · CátedraJURIS',
+      areamod:'o módulo de estudo da área', roteiros:'Roteiros e peças',
+      segundafase:'Provas de 2ª fase', redacao:'Discursivas', oral:'Prova oral',
+      prioridade:'Painel de prioridade', simulados:'Simulados'};
+    const out=[];
+    try{
+      const R=window.CT_AREA_REG;
+      Object.keys(NOMES).forEach(vw=>{
+        const antes=R.podeAbrir(atual,vw), depois=R.podeAbrir(novo,vw);
+        if(lado==='ganha' && !antes && depois) out.push(NOMES[vw]);
+        if(lado==='perde' && antes && !depois) out.push(NOMES[vw]);
+      });
+    }catch(_){}
+    return out;
+  }
+  _pvPreparo(){
+    const v=this.state.areaPreview; if(!v) return [];
+    try{ return window.CT_AREA_REG.emPreparo(v); }catch(_){ return []; }
+  }
+  /** A frase que evita o susto: caderno próprio, e o antigo intacto. */
+  _pvCaderno(){
+    const novo=this.state.areaPreview; if(!novo) return '';
+    const atual=this.state.areaEstudo||'juridica';
+    const aAtual=CT_AREAS.find(x=>x.id===atual), aNovo=CT_AREAS.find(x=>x.id===novo);
+    const nomeAtual=(aAtual&&aAtual.label)||'a área atual', nomeNovo=(aNovo&&aNovo.label)||'a área nova';
+    // já existe caderno para a área nova?
+    let jaTem=false;
+    try{
+      const suf=(novo==='juridica')?'':('@'+novo);
+      jaTem=['edital','reviews','sessions'].some(k=>{
+        const raw=localStorage.getItem('catedra:'+k+suf);
+        if(!raw) return false;
+        try{ const a=JSON.parse(raw); return Array.isArray(a) ? a.length>0 : !!a; }catch(_){ return false; }
+      });
+    }catch(_){}
+    return jaTem
+      ? ('O seu caderno de '+nomeAtual+' fica guardado e você volta a ele quando quiser. Em '
+         + nomeNovo + ' você encontra o caderno que já tinha lá.')
+      : ('O seu caderno de '+nomeAtual+' — edital, revisões, ciclo e histórico — fica guardado e '
+         + 'volta inteiro quando você voltar. Em ' + nomeNovo + ' você começa com um caderno limpo. '
+         + 'Tema, fonte e preferências acompanham você.');
   }
   _indispNome(v){
     const N={legis:'Lei seca · CátedraLEGIS', juris:'Jurisprudência · CátedraJURIS',
@@ -10450,8 +10581,24 @@ class Component extends DCLogic {
     this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>{ try{ localStorage.setItem('catedra:orient',JSON.stringify(this.state.orient)); }catch(_){} }); };
   // rolagem para uma seção dos Ajustes — os chips do topo apontam para os ids aj-*
   ajIr = (e)=>{ const el=document.getElementById('aj-'+(e.currentTarget.dataset.s||'')); if(!el) return; const suave=!window.matchMedia('(prefers-reduced-motion: reduce)').matches; el.scrollIntoView({behavior:suave?'smooth':'auto',block:'start'}); };
+  /* Trocar de área deixou de ser um clique só. Desde que cada área ganhou o seu caderno,
+     a troca tem consequência: a pessoa encontra o edital, as revisões e o histórico DAQUELA
+     área — que, na primeira vez, estão vazios. Ver isso de repente parece perda de dados.
+     Então o clique PROPÕE, a tela mostra o que muda, e a pessoa confirma. */
+  proporArea = (e)=>{ const v=e.currentTarget.dataset.a||'';
+    if(v===(this.state.areaEstudo||'')) { this.setState({areaSelOpen:false}); return; }
+    this.setState({areaPreview:v});
+  };
+  cancelarTrocaArea = ()=> this.setState({areaPreview:''});
+  confirmarTrocaArea = ()=>{
+    const v=this.state.areaPreview; if(!v) return;
+    this.setState({areaPreview:''});
+    this._trocarArea(v);
+  };
   setAreaEstudo = (e)=>{ const v=e.currentTarget.dataset.a||'';
     if(v===(this.state.areaEstudo||'')) { this.setState({areaSelOpen:false}); return; }
+    this._trocarArea(v); };
+  _trocarArea(v){
     const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false};
     // O JURIS some do menu fora das carreiras jurídicas: quem estiver nele ficaria
     // preso numa tela sem porta de saída. O LEGIS fica em todas as áreas.
@@ -10496,7 +10643,7 @@ class Component extends DCLogic {
       });
     });
     this._avisarAreaAoNativo();
-    this._toast('Área de estudo: '+A.label+' ✦'); };
+    this._toast('Área de estudo: '+A.label+' ✦'); }
   toggleModeloOutras = ()=> this.setState(s=>({modeloOutras:!s.modeloOutras}));
 
   // ===================== ABA BANCAS (recorte área · banca · matéria · assunto) =====================
@@ -11205,7 +11352,10 @@ class Component extends DCLogic {
       + 'erros e simulados.';
     const areaCatsStr = _area.cats.length ? _area.cats.join(' · ') : 'nenhuma categoria extra';
     const areaFerramentas = 'o CátedraLEGIS abre na legislação da área — padrão e específica'
-      + (areaJuris ? ', e o CátedraJURIS (súmulas e teses) fica no menu' : ' (sem a aba de súmulas, que é de carreira jurídica)');
+      // Explicar a AUSÊNCIA de uma tela que a pessoa nunca viu é ruído: quem estuda
+      // Enfermagem não precisa saber o que é uma súmula para entender o próprio painel.
+      // Quem tem a aba, essa sim, merece saber que ela existe.
+      + (areaJuris ? ', e o CátedraJURIS (súmulas e teses) fica no menu' : '');
     const radiusVal = pf0.radius==='reto'?'4px' : pf0.radius==='medio'?'10px' : pf0.radius==='arredondado'?'22px' : T.radius;
     // escala derivada do radius do tema: sm p/ controles pequenos, md p/ inputs e chips —
     // clamp evita canto grande demais em controle pequeno (tema Neon usa 18px de base)
@@ -13417,9 +13567,9 @@ class Component extends DCLogic {
       labelStyle:'display:flex;align-items:center;gap:7px;font-size:var(--fs-2xs);letter-spacing:.13em;text-transform:uppercase;'
         +'font-weight:800;margin-bottom:7px;color:'+_bTxt+';' });
     const bancaCards=[
-      {..._bCard('◆','Formato'), texto:_bInfo.formato||''},
-      {..._bCard('◈','Como cobra'), texto:_bInfo.estilo||''},
-      {..._bCard('◉','Foco do estudo'), texto:_bInfo.foco||''},
+      {..._bCard('◆','Formato'), texto:this._bancaTexto(_bInfo.formato||'')},
+      {..._bCard('◈','Como cobra'), texto:this._bancaTexto(_bInfo.estilo||'')},
+      {..._bCard('◉','Foco do estudo'), texto:this._bancaTexto(_bInfo.foco||'')},
     ];
 
     // dicas numeradas (01/02/03) em vez do chevron discreto
@@ -13692,6 +13842,20 @@ class Component extends DCLogic {
       capEdital:_podeView('edital'), capSimulados:_podeView('simulados'), capRedacao:_podeView('redacao'),
       capRoteiros:_podeView('roteiros'), capSegundaFase:_podeView('segundafase'), capOral:_podeView('oral'),
       capPrioridade:_podeView('prioridade'), capBancas:_podeView('bancas'),
+      // --- prévia da troca de área: o que muda, dito antes de mudar ---
+      proporArea:this.proporArea, cancelarTrocaArea:this.cancelarTrocaArea,
+      confirmarTrocaArea:this.confirmarTrocaArea,
+      areaPreviewOn:!!this.state.areaPreview,
+      pvDe:((_area&&_area.label)||'sua área'),
+      pvPara:this._pvLabel(),
+      pvResumo:this._pvResumo(),
+      pvGanha:this._pvDiferenca('ganha').join(' · '),
+      pvTemGanha:(this._pvDiferenca('ganha').length>0),
+      pvPerde:this._pvDiferenca('perde').join(' · '),
+      pvTemPerde:(this._pvDiferenca('perde').length>0),
+      pvPreparo:this._pvPreparo().join(' · '),
+      pvTemPreparo:(this._pvPreparo().length>0),
+      pvCaderno:this._pvCaderno(),
       // O acervo do que as BANCAS jurídicas publicaram sobre a oral não existe fora do
       // Direito. O motor de arguição, sim: ele argui sobre a lei seca da área.
       capOralBancas:(()=>{ try{ return window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','provaOralBancas'); }catch(_){ return true; } })(),
@@ -13841,7 +14005,11 @@ class Component extends DCLogic {
         v:k, label:((((window.CT_PLATAFORMAS||{}).lista||{})[k]||{}).nome)||'TEC Concursos',
         sel:this._plataforma()===k })),
       prioErros:this.prioErros, prioEstudar:this.prioEstudar,
-      semanaLista, semanaTem:semanaLista.length>0, semanaVazio:semanaLista.length===0,
+      // O bloco "o que mudou esta semana" é de JURISPRUDÊNCIA — informativos de STF, STJ
+      // e TSE. Ele ficava no Início de TODA área: quem estuda Enfermagem via
+      // "STJ · Direito Processual Civil" no painel dela. Agora só onde há acervo.
+      semanaLista, semanaTem:(semanaLista.length>0 && _podeView('juris')),
+      semanaVazio:(semanaLista.length===0 && _podeView('juris')),
       semanaAbrir:this.semanaAbrir, semanaLido:this.semanaLido, semanaMais:this.semanaMais,
       semanaVerTudo:this.semanaVerTudo, semanaMaisLabel:(this.state.semanaTudo?'ver menos':'ver mais'),
       semanaTemMais:_semanaTodos.length>this.SEMANA_N,
