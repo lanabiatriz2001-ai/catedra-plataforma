@@ -3221,9 +3221,16 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
       window.__catedraGoView('ajustes'); await w(1600);
       for (let i = 0; i < 6; i++) {
         const alvo = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === alvoId);
-        if (alvo) { alvo.click(); await w(2200); return 'ok'; }
+        if (alvo) {
+          alvo.click(); await w(900);
+          // a troca passou a exigir confirmação (prévia): clicar no card só PROPÕE
+          const conf = [...document.querySelectorAll('button')]
+            .find(x => /^trocar para /i.test((x.textContent || '').trim()));
+          if (conf) { conf.click(); }
+          await w(2200); return 'ok';
+        }
         const abrir = [...document.querySelectorAll('button')]
-          .find(x => /trocar de área/i.test((x.textContent || '').trim()));
+          .find(x => /^trocar de área$/i.test((x.textContent || '').trim()));
         if (abrir) { abrir.click(); await w(900); } else { await w(600); }
       }
       // devolve o MOTIVO: "false" nu não se conserta
@@ -3484,6 +3491,106 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   ok(emDireito && emDireito.juris === true, 'NATIVO em Direito a aba do JURIS continua');
   await pontePg2.close();
   await ponteCtx.close();
+
+  /* 12) A TROCA DE ÁREA PASSA POR UMA PRÉVIA (Fase 2, item 5 do guia).
+     Trocar de área deixou de ser um clique só, e por um motivo concreto: desde que cada
+     área ganhou o seu caderno, quem troca encontra edital, revisões e histórico DAQUELA
+     área — vazios na primeira vez. Ver isso de repente parece perda de dados. */
+  const pvCtx = await browser.newContext({ viewport: { width: 1365, height: 936 } });
+  const pvPg = await pvCtx.newPage();
+  await pvPg.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+      localStorage.setItem('catedra:edital', JSON.stringify([{ id: 'e1', up: 1, disc: 'Direito Civil', peso: 3, color: '#2563EB', topics: [] }]));
+    } catch (_) {}
+  });
+  await pvPg.goto(URL0 + '/Catedra.dc.html');
+  await pvPg.waitForTimeout(2000);
+  const pv = await pvPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('ajustes'); await w(1500);
+    for (let i = 0; i < 5; i++) {
+      const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'saude');
+      if (card) { card.click(); await w(900); break; }
+      const abrir = [...document.querySelectorAll('button')]
+        .find(x => /^trocar de área$/i.test((x.textContent || '').trim()));
+      if (abrir) { abrir.click(); await w(700); } else await w(400);
+    }
+    const t = document.body.innerText;
+    const area = () => { try { return localStorage.getItem('catedra:areaEstudo') || ''; } catch (_) { return ''; } };
+    const r = {
+      abriuPrevia: /trocar de área de estudo/i.test(t),
+      naoTrocouSozinha: area().includes('juridica'),
+      dizDeParaOnde: /jurídica/i.test(t) && /saúde e medicina/i.test(t),
+      dizOQueSome: /deixa de aparecer/i.test(t) && /cátedrajuris/i.test(t),
+      dizOQueEstaEmPreparo: /em preparo/i.test(t) && /casos clínicos/i.test(t),
+      prometeQueNadaSePerde: /nada é apagado/i.test(t) && /volta inteiro/i.test(t),
+      temCancelar: [...document.querySelectorAll('button')].some(x => /^cancelar$/i.test((x.textContent || '').trim())),
+    };
+    // cancelar tem de deixar tudo como estava
+    const cancelar = [...document.querySelectorAll('button')].find(x => /^cancelar$/i.test((x.textContent || '').trim()));
+    if (cancelar) { cancelar.click(); await w(700); }
+    r.cancelarNaoTroca = area().includes('juridica')
+      && !/trocar de área de estudo/i.test(document.body.innerText);
+    return r;
+  });
+  for (const [k, v] of Object.entries(pv)) ok(v, 'PREVIA ' + k);
+
+  // e confirmar troca de verdade
+  const pvConf = await pvPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    for (let i = 0; i < 5; i++) {
+      const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'saude');
+      if (card) { card.click(); await w(900); break; }
+      const abrir = [...document.querySelectorAll('button')]
+        .find(x => /^trocar de área$/i.test((x.textContent || '').trim()));
+      if (abrir) { abrir.click(); await w(700); } else await w(400);
+    }
+    const conf = [...document.querySelectorAll('button')].find(x => /^trocar para /i.test((x.textContent || '').trim()));
+    if (!conf) return { semBotao: true };
+    conf.click(); await w(2200);
+    const area = (() => { try { return localStorage.getItem('catedra:areaEstudo') || ''; } catch (_) { return ''; } })();
+    const jur = (() => { try { return localStorage.getItem('catedra:edital') || ''; } catch (_) { return ''; } })();
+    return { confirmouTroca: area.includes('saude'),
+             cadernoDeDireitoIntacto: /Direito Civil/.test(jur) };
+  });
+  if (!pvConf.semBotao) for (const [k, v] of Object.entries(pvConf)) ok(v, 'PREVIA ' + k);
+  await pvCtx.close();
+
+  /* 13) FASE 5 — NENHUM RÓTULO JURÍDICO RESIDUAL fora do Direito.
+     O guia é direto: "Remover labels jurídicos residuais de áreas não jurídicas". Esta
+     varredura percorre as telas universais em cada área não jurídica e falha se aparecer
+     vocabulário de Direito. `petição` leva guarda porque "rePETIÇÃO espaçada" é do SM-2. */
+  const TERMOS = /magistratura|jurisprud|súmula|(?<!re)petição|acórdão|peça processual|processual civil|2ª fase|banca examinadora/i;
+  const varreCtx = await browser.newContext({ viewport: { width: 1365, height: 936 } });
+  for (const area of ['saude', 'social', 'educacao', 'outra']) {
+    const vp = await varreCtx.newPage();
+    await vp.addInitScript((a) => {
+      try {
+        localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+        localStorage.setItem('catedra:areaEstudo', JSON.stringify(a));
+      } catch (_) {}
+    }, area);
+    await vp.goto(URL0 + '/Catedra.dc.html');
+    await vp.waitForTimeout(1900);
+    const achados = await vp.evaluate(async (fonteRegex) => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      const RE = new RegExp(fonteRegex, 'i');
+      const out = [];
+      for (const v of ['inicio', 'ciclo', 'revisoes', 'calendario', 'edital', 'bancas', 'ajustes']) {
+        window.__catedraGoView(v); await w(600);
+        const m = document.querySelector('main');
+        const t = (m ? m.innerText : document.body.innerText);
+        const linha = t.split('\n').map(x => x.trim()).find(x => x && RE.test(x));
+        if (linha) out.push(v + ': ' + linha.slice(0, 60));
+      }
+      return out;
+    }, TERMOS.source);
+    ok(achados.length === 0, 'FASE5 sem rótulo jurídico em ' + area + ' (' + (achados.join(' | ') || 'limpo') + ')');
+    await vp.close();
+  }
+  await varreCtx.close();
 
   await areaCtx.close();
   // devolve a aba compartilhada ao estado jurídico, que é o de todos os outros blocos

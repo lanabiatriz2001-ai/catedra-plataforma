@@ -1,5 +1,5 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CátedraJURIS</title>
-<link rel="stylesheet" href="satellite-base.css"><style>
+<link rel="stylesheet" href="catedra-ui.css"><link rel="stylesheet" href="satellite-base.css"><style>
 /* Cor do módulo (JURIS). Dentro do app segue o tema escolhido nos Ajustes; aberta
    avulsa, a página mantém a cor com que nasceu. Ver satellite-base.css. */
 :root{--module-accent:var(--accent,#0f7a57)}
@@ -301,7 +301,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 </head>
 <body><div class="wrap">
 <div class="head"><div class="ic" id="hIc">⚖️</div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
-<div class="tabs" id="tabs">
+<div class="tabs ct-chips" id="tabs">
   <button class="tab on" data-pane="acervo" aria-pressed="true">Acervo</button>
   <button class="tab" data-pane="dia" aria-pressed="false">Julgado do dia</button>
   <button class="tab" data-pane="infos" aria-pressed="false">Informativos <small id="nInfos"></small></button>
@@ -329,17 +329,17 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 </div>
 <div id="paneAcervo">
 <div class="search"><span class="mag">🔎</span><input id="q" aria-label="Buscar verbete por número, título ou tema" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
-<div class="chips" id="trib" role="group" aria-label="Filtrar por tribunal"></div>
+<div class="chips ct-chips" id="trib" role="group" aria-label="Filtrar por tribunal"></div>
 <!-- D3: tribunal é o corte usado toda hora e fica à vista; coleção e ramo empurravam o
      acervo para fora da primeira dobra e agora vivem dentro do botão. O que estiver
      ligado volta como chip removível ao lado dele — filtro escondido que ninguém vê é
      filtro que a pessoa esquece que ligou. -->
 <div class="fbar">
   <button class="fbtn" id="btFiltros" aria-expanded="false" aria-controls="popFiltros">Filtros</button>
-  <div class="chips" id="fAtivos" role="group" aria-label="Filtros ativos"></div>
+  <div class="chips ct-chips" id="fAtivos" role="group" aria-label="Filtros ativos"></div>
   <div class="pop" id="popFiltros" hidden>
-    <div class="popsec" id="secBases"><div class="mlW popt">Coleções</div><div class="chips" id="bases"></div></div>
-    <div class="popsec" id="secRamos"><div class="mlW popt">Ramos do direito</div><div class="chips" id="ramos"></div></div>
+    <div class="popsec" id="secBases"><div class="mlW popt">Coleções</div><div class="chips ct-chips" id="bases"></div></div>
+    <div class="popsec" id="secRamos"><div class="mlW popt">Ramos do direito</div><div class="chips ct-chips" id="ramos"></div></div>
   </div>
 </div>
 <div class="statbar">
@@ -356,7 +356,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <div id="paneTribunais" hidden>
   <div class="fonte" id="tcFonte"></div>
   <div class="search"><span class="mag">🔎</span><input id="qtc" aria-label="Buscar tribunal de contas por sigla, estado ou nome" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
-  <div class="chips" id="regs"></div>
+  <div class="chips ct-chips" id="regs"></div>
   <div id="tcList"></div>
 </div>
 </div>
