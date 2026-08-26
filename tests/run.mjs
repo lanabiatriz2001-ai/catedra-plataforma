@@ -3781,6 +3781,30 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   });
   for (const [k, v] of Object.entries(f4jur)) ok(v, 'FASE4 jurídica ' + k);
 
+  /* Sem entrada em ARRAY_ID, `casos` sincronizaria como blob inteiro: um aparelho
+     apagaria o caso escrito no outro, e a lápide da exclusão não seguraria — que é
+     exatamente o defeito já documentado em `reviews@area`. */
+  // o Catedra.dc.html não carrega o auth.js sozinho; o gancho do merge mora na fixture
+  await areaPg.goto(URL0 + '/tests/sync-fixture.html');
+  await areaPg.waitForFunction(() => window.CatedraSync && window.CatedraSync._test);
+  const f4merge = await areaPg.evaluate(() => {
+    const M = window.CatedraSync._test.mergeAll;
+    const K = 'catedra:casos@saude';
+    const srv = {}; srv[K] = JSON.stringify([{ id: 'a', up: 10, titulo: 'do outro aparelho' }]);
+    const loc = {}; loc[K] = JSON.stringify([{ id: 'b', up: 20, titulo: 'deste aparelho' }]);
+    const juntos = JSON.parse(M(srv, loc, false)[K] || '[]');
+    // e a lápide: o mesmo id, apagado aqui depois, não pode ressuscitar da nuvem
+    const srv2 = {}; srv2[K] = JSON.stringify([{ id: 'a', up: 10, titulo: 'do outro aparelho' }]);
+    const loc2 = {}; loc2[K] = JSON.stringify([{ id: 'a', up: 99, del: true }]);
+    const depois = JSON.parse(M(srv2, loc2, false)[K] || '[]');
+    return {
+      mesclaPorId: juntos.length === 2 && juntos.some(c => c.id === 'a') && juntos.some(c => c.id === 'b'),
+      lapideSegura: depois.length === 1 && depois[0].del === true && !depois[0].titulo,
+    };
+  });
+  for (const [k, v] of Object.entries(f4merge)) ok(v, 'FASE4 sync ' + k);
+
+
   await areaCtx.close();
   // devolve a aba compartilhada ao estado jurídico, que é o de todos os outros blocos
   await page.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
