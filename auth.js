@@ -31,7 +31,7 @@
     // notifRevDia marca que o lembrete de revisão do dia JÁ TOCOU NESTE APARELHO (U12) e
     // _bkpAutoTs, quando o backup semanal rodou aqui (D11). São meta-estado local: subir
     // faria o segundo aparelho herdar "já avisei" e ficar em silêncio sem nunca ter avisado.
-    'catedra:notifRevDia': 1, 'catedra:_bkpAutoTs': 1 };
+    'catedra:notifRevDia': 1, 'catedra:_bkpAutoTry': 1, 'catedra:_bkpAutoTs': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
   // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
@@ -358,6 +358,22 @@
         clearTimeout(pushT); pushT = setTimeout(pushNow, 30000); })
       .then(function () { pushing = false; });
   }
+  /* Os satélites em <iframe> gravam localStorage DIRETO (grifos do LEGIS/JURIS,
+     leituraLeis:v1, legisEstudo…): a interceptação de setItem do topo não os vê, o
+     carimbo por chave (_kts) não sobe, e o próximo pull trazia o valor velho da nuvem
+     por cima do grifo recém-feito. Escrita de outra janela da MESMA origem dispara o
+     evento 'storage' aqui no topo — é o gancho que faltava: carimba e marca sujo. */
+  window.addEventListener('storage', function (e) {
+    try {
+      if (!e || !e.key || e.storageArea !== localStorage) return;
+      if (!isData(e.key)) return;
+      // só carimbo + sujo: tombOnSet compara com o valor ANTIGO do storage, e no evento
+      // 'storage' a escrita já aconteceu — chamá-lo aqui seria um não-op enganoso
+      ktsStamp(e.key);
+      if (window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push();
+    } catch (_) {}
+  });
+
   window.CatedraSync = { push: function () {
     setDirty(true);
     clearTimeout(pushT);
