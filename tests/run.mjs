@@ -1031,7 +1031,7 @@ ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
   const falso = path.join(RAIZ, 'tests', '.trava-falsa.sh');
   fs.writeFileSync(falso, ['#!/usr/bin/env bash', 'set -euo pipefail',
     'ROOT="' + RAIZ + '"', 'source "$ROOT/scripts/guarda-build.sh"',
-    'ct_travar_build provasuite "$ROOT" "padrao-que-nao-existe-zzz"',
+    'ct_travar_build provasuite "$ROOT"',
     'echo ENTREI', 'sleep "${1:-1}"'].join('\n'));
   const rodar = (args, env) => {
     try { return { code: 0, saida: String(execFileSync('bash', [falso, ...args],
@@ -1045,6 +1045,10 @@ ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
   ok(segundo.code === 3, 'TRAVA o segundo build do mesmo alvo é RECUSADO (exit ' + segundo.code + ')');
   ok(/BUILD RECUSADO/.test(segundo.saida), 'TRAVA a recusa diz o que houve');
   ok(/CATEDRA_IGNORAR_TRAVA/.test(segundo.saida), 'TRAVA a recusa mostra a saída de emergência');
+  // O falso positivo que recusou um build REAL: a varredura por `pgrep -f` casava com
+  // qualquer processo cuja linha de comando citasse o script — inclusive o vigia do log.
+  ok(!/pgrep/.test(fs.readFileSync(guarda, 'utf8').replace(/^\s*#.*$/gm, '')),
+    'TRAVA a guarda não recusa por linha de comando de terceiro (sem pgrep)');
   const forcado = rodar(['0'], { CATEDRA_IGNORAR_TRAVA: '1' });
   ok(forcado.code === 0, 'TRAVA CATEDRA_IGNORAR_TRAVA=1 ainda deixa passar');
   dono.kill('SIGKILL');

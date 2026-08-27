@@ -22,7 +22,7 @@ ROOT="$(cd "$HERE/.." && pwd)"
 # fatia Intel por causa disso). Mac × iPad em paralelo continua liberado.
 # shellcheck source=../scripts/guarda-build.sh
 source "$ROOT/scripts/guarda-build.sh"
-ct_travar_build macos "$ROOT" "build-app\\.sh"
+ct_travar_build macos "$ROOT"
 BUILD="$HERE/build"
 NAME="Cátedra"
 EXEC="Catedra"
