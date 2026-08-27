@@ -54,6 +54,20 @@ const leve = LISTA.map((q) => {
     temTextoFull, temEspelhoTexto };
 });
 
+/* Conteúdo que existe no textos PUBLICADO e sumiria no regenerado é perda silenciosa —
+   foi exatamente assim que 3 padrões de resposta quase morreram em 27/08. Aborta. */
+try {
+  const wprev = {}; new Function('window', readFileSync(TEXTOS, 'utf8'))(wprev);
+  const prev = wprev.CT_DISCURSIVAS_TEXTOS || {};
+  const perdidos = [];
+  for (const [id, v] of Object.entries(prev)) {
+    if (v && v.et && !(textos[id] && textos[id].et)) perdidos.push(id + ' (et)');
+    if (v && v.en && !(textos[id] && textos[id].en)) perdidos.push(id + ' (en)');
+  }
+  if (perdidos.length) throw new Error('o split APAGARIA conteúdo publicado: ' + perdidos.join(', ')
+    + ' — leve-o para a fonte (espelhoTexto/enunciado em discursivas-completo.js) antes de rodar.');
+} catch (e) { if (String(e.message||'').includes('APAGARIA')) throw e; }
+
 const cab = (o) => `// GERADO por scripts/build-discursivas-split.mjs a partir de discursivas-completo.js.\n// Não editar à mão — edite a fonte e rode o split. ${o}\n`;
 writeFileSync(LEVE, cab('Catálogo leve: filtros, cards e KPIs.')
   + 'window.CT_DISCURSIVAS=' + JSON.stringify(leve) + ';\n');

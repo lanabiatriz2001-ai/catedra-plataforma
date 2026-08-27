@@ -75,8 +75,9 @@ if (!IS_PROD) {
         entra no cache na primeira visita online à aba Contas, pelo network-first.
       · leis-seca.js (4,2 MB, monolito) — o mesmo texto já entra pelos blocos de
         dados/leis-seca/ abaixo; cachear os dois seria pagar 8,4 MB pela mesma lei.
-      · discursivas-textos.js (6,0 MB) — está publicado, mas nenhuma tela do app o
-        carrega hoje. Cachear byte que ninguém lê é só ocupar cota.
+      · discursivas-textos.js — desde 21/08 a Redação o carrega sob demanda ao abrir
+        uma prova; por isso ele entrou no acervo SOB PEDIDO do "Baixar tudo" (a lista
+        __ACERVOS__ abaixo, montada pelo build), e não no precache da primeira visita.
       · dados/juris-text/ (9,7 MB em blocos) — o texto de cada verbete é cache-first
         sob demanda, que é exatamente para o que ele foi fatiado. */
   var ACERVOS = [];
@@ -101,7 +102,7 @@ if (!IS_PROD) {
   var ORCAMENTO_ACERVO = 14 * 1024 * 1024;
   // Quando é ela quem manda baixar, o teto sobe para caber a camada 3 — mas a
   // trava da cota (abaixo) continua valendo: pedido dela não cria espaço no aparelho.
-  var ORCAMENTO_PEDIDO = 34 * 1024 * 1024;
+  var ORCAMENTO_PEDIDO = 42 * 1024 * 1024;
   // Nunca ocupar mais que 1/FOLGA_COTA do espaço livre que o navegador declara:
   // encher a cota faz o navegador despejar TUDO, inclusive a casca.
   var FOLGA_COTA = 2.5;
