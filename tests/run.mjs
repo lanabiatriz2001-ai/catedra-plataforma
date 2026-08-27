@@ -3718,6 +3718,12 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     r.casoGuardadoOfereceApagar = !!bt(/^apagar$/i);
     const volta = bt(/^cancelar$/i); if (volta) volta.click(); await w(500);
     r.guardouNoCadernoDaArea = salvos.length === 1 && salvos[0].apresentacao.indexOf('54 anos') > -1;
+    /* o que casoSalvar grava tem de ser EXATAMENTE o esquema mais os metadados: espalhar o
+       rascunho inteiro é o que levava campo de outra área para o disco, sem auditoria */
+    r.gravouSoAsChavesDoEsquema = salvos.length === 1
+      && Object.keys(salvos[0]).sort().join(',')
+         === ['achados','apresentacao','area','avaliacao','conduta','criado','evolucao',
+              'fonte','id','perguntas','titulo','treinos','up'].sort().join(',');
     r.naoVazouParaOCadernoJuridico = JSON.parse(localStorage.getItem('catedra:casos') || '[]').length === 0;
     r.semAfordanciaDeCompartilhar = !/compartilhar|publicar|enviar para o grupo/i
       .test(document.body.innerText);
@@ -3798,9 +3804,14 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   const f4pii = await areaPg.evaluate(() => {
     const C = window.CT_CASOS;
     const BARRA = ['CPF 123.456.789-09', 'tel (69) 98103-8480', '(11) 3255-1010',
-      'telefone: 98103-8480', 'maria@exemplo.com', 'Rua das Flores, 120',
-      'Rua das Flores nº 120', 'Avenida Sete de Setembro 1200', 'CEP 76800-000', '76800-000',
-      'prontuário nº 44821', 'nascimento 12/03/1988', 'cartão 700 1234 5678 9012', 'RG: 1234567'];
+      '(011) 3222-1010', '(11) 9 8765-4321', 'Retorno pelo +55 11 98765-4321.',
+      'Telefone da irmã: +55 11 98765-4321', 'Fone 021 99888-7766', 'WhatsApp 11 98765-4321',
+      'telefone: 98103-8480', 'contato 98765-4321', 'cel 98103-8480', 'contato: 98103-8480',
+      'celular: (11) 98888-7777', 'maria@exemplo.com', 'Rua das Flores, 120',
+      'Rua das Flores nº 120', 'Avenida Sete de Setembro 1200', 'Av. Brasil, 45',
+      'Travessa Bela 7', 'CEP 76800-000', '76800-000', 'prontuário nº 44821',
+      'matrícula 998877', 'registro nº 4482', 'nascimento 12/03/1988', 'nasc. 1/2/88',
+      'dn 12.03.1988', 'cartão 700 1234 5678 9012', 'RG: 1234567'];
     // prosa legítima de caso clínico e socioassistencial — barrar qualquer uma delas é
     // defeito GRAVE: a pessoa fica sem como guardar um caso que não identifica ninguém
     const PASSA = ['em situação de rua há 3 anos', 'Moram na mesma rua do CRAS há 2 anos',
@@ -3809,7 +3820,19 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
       'débito urinário de 1500-2000 mL em 24 horas', 'diurese 1200-1800 mL/dia',
       'homem, 54 anos, dispneia há 2 dias', 'PA 90x60, FC 118', 'peso ao nascer 1.500 g',
       'família com 4 pessoas, 2 crianças em idade escolar', 'doença de Crohn desde 2019',
-      'benefício de 1.412 reais por mês', 'acompanhado desde 03/2019', 'escore de Glasgow 12'];
+      'benefício de 1.412 reais por mês', 'acompanhado desde 03/2019', 'escore de Glasgow 12',
+      // homógrafos: "celular" e "contato" são palavra corrente nestas duas profissões, e
+      // colá-las a uma faixa numérica NÃO faz um telefone
+      'contagem celular 1200-1800/mm³', 'Referência da contagem celular: 4500-11000/mm³',
+      'densidade celular 1500-2000 por campo', 'contato 2019-2023 com a rede',
+      'contato semanal de 2018-2020', 'telefonema de 2019-2023',
+      'telefone: a família tem 2 filhos e renda de 1200 a 1800 reais',
+      'leucócitos 4500-11000/mm³', 'plaquetas 150000-400000', 'sódio 135-145 mEq/L',
+      'internada de 12/2019 a 03/2020', 'idade gestacional de 34 semanas', 'CID J18.9',
+      'glicemia 126 mg/dL', 'renda per capita de 218 reais', '12 sessões de fisioterapia',
+      'internado por 12 dias', 'dose de 500 mg, 3x ao dia', 'frequência respiratória 28 irpm',
+      '20 atendimentos entre 2021 e 2024', 'registro de acompanhamento desde 2019',
+      'matrícula escolar regular', 'nasceu prematuro'];
     const escapou = BARRA.filter(t => C.acharIdentificaveis(t).length === 0);
     const barrouDemais = PASSA.filter(t => C.acharIdentificaveis(t).length > 0);
     return {
@@ -4016,10 +4039,19 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     out.achouAjustes = !!aj;
     if (aj) { aj.click(); await w(900); }
     const abaBanca = document.querySelector('button[data-t="banca"]');
+    out.achouAbaBanca = !!abaBanca;          // seletor sumiu → vermelho, não silêncio
     if (abaBanca) { abaBanca.click(); await w(800); }
-    // sem esta prova, "a aba está limpa" seria verde só porque a aba nunca abriu
-    out.abaBancaAbriu = /estilo|formato|foco/i.test(document.body.innerText);
-    out.abaBancaLimpa = !JUR.test(document.body.innerText);
+    /* A prova de abertura precisa ser EXCLUSIVA do painel. "estilo|formato|foco" já casava
+       na aba "Você" ("tom e foco", "ESTILO DE COBRANÇA"), então o bloco inteiro ficava verde
+       mesmo sem a aba nunca ter aberto — e mediria uma aba que é limpa por natureza. */
+    const painel = document.querySelector('#aj-banca-painel');
+    out.abaBancaAbriu = !!painel;
+    const txtPainel = painel ? painel.innerText : '';
+    out.abaBancaTemConteudo = /formato das questões/i.test(txtPainel);
+    out.abaBancaLimpa = !!painel && !JUR.test(txtPainel);
+    // e a concordância não pode quebrar ao trocar o vocabulário ("a texto das diretrizes")
+    out.abaBancaConcorda = !!painel
+      && !/\b(?:a|as|na|nas)\s+texto\b|\bo\s+literalidade\b/i.test(txtPainel);
     return out;
   });
   for (const [k, v] of Object.entries(f4banca)) ok(v, 'FASE4 banca ' + k);

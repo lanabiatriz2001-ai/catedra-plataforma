@@ -90,7 +90,7 @@
         provaOralBancas: true, prioridadeIncidencia: true
       }),
       // O vocabulário da área. A interface pede o termo por aqui em vez de cravá-lo.
-      termos: { fonte: 'lei', fontePlural: 'leis', dispositivo: 'artigo', acervo: 'legislação' }
+      termos: { fonte: 'lei', fontePlural: 'leis', dispositivo: 'artigo', acervo: 'legislação', genero: 'f' }
     },
 
     /* Carreiras jurídicas não-magistratura: têm lei e jurisprudência, não têm o acervo
@@ -98,22 +98,22 @@
     policial: {
       rotulo: 'Policial', prontidao: COMPLETA,
       capacidades: juridicaBase({}),
-      termos: { fonte: 'lei', fontePlural: 'leis', dispositivo: 'artigo', acervo: 'legislação' }
+      termos: { fonte: 'lei', fontePlural: 'leis', dispositivo: 'artigo', acervo: 'legislação', genero: 'f' }
     },
     fiscal: {
       rotulo: 'Fiscal e tributária', prontidao: COMPLETA,
       capacidades: juridicaBase({}),
-      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação tributária' }
+      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação tributária', genero: 'f' }
     },
     contas: {
       rotulo: 'Controle externo', prontidao: COMPLETA,
       capacidades: juridicaBase({}),
-      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação de controle' }
+      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação de controle', genero: 'f' }
     },
     administrativa: {
       rotulo: 'Administrativa', prontidao: COMPLETA,
       capacidades: juridicaBase({}),
-      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação' }
+      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação', genero: 'f' }
     },
 
     /* Áreas não jurídicas. Têm módulo próprio e fontes próprias (AREA_LEGIS fixa os
@@ -123,28 +123,28 @@
       rotulo: 'Saúde e Medicina', prontidao: PARCIAL,
       capacidades: base({ fontesNormativas: true, moduloArea: true,
         bancoDeQuestoes: true, provaOral: true, casosProprios: true }),
-      termos: { fonte: 'diretriz', fontePlural: 'diretrizes', dispositivo: 'item', acervo: 'diretrizes e protocolos' },
+      termos: { fonte: 'diretriz', fontePlural: 'diretrizes', dispositivo: 'item', acervo: 'diretrizes e protocolos', genero: 'f' },
       emPreparo: ['acervo editorial de casos e questões por especialidade']
     },
     social: {
       rotulo: 'Assistência Social', prontidao: PARCIAL,
       capacidades: base({ fontesNormativas: true, moduloArea: true,
         bancoDeQuestoes: true, provaOral: true, casosProprios: true }),
-      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação social' },
+      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'artigo', acervo: 'legislação social', genero: 'f' },
       emPreparo: ['acervo editorial de casos', 'escrita técnica (relatório, parecer, estudo social)']
     },
     educacao: {
       rotulo: 'Educação', prontidao: PARCIAL,
       capacidades: base({ fontesNormativas: true, moduloArea: true,
         bancoDeQuestoes: true, provaOral: true }),
-      termos: { fonte: 'documento normativo', fontePlural: 'documentos normativos', dispositivo: 'item', acervo: 'normas da educação' },
+      termos: { fonte: 'documento normativo', fontePlural: 'documentos normativos', dispositivo: 'item', acervo: 'normas da educação', genero: 'm' },
       emPreparo: ['banco de questões próprio']
     },
     tecnologia: {
       rotulo: 'Tecnologia', prontidao: PARCIAL,
       capacidades: base({ fontesNormativas: true, moduloArea: true,
         bancoDeQuestoes: true, provaOral: true }),
-      termos: { fonte: 'documentação', fontePlural: 'documentações', dispositivo: 'seção', acervo: 'documentação técnica' },
+      termos: { fonte: 'documentação', fontePlural: 'documentações', dispositivo: 'seção', acervo: 'documentação técnica', genero: 'f' },
       emPreparo: ['banco de questões próprio']
     },
     /* Militar tem módulo, mas não tem lista de diplomas em AREA_LEGIS — então o LEGIS
@@ -152,7 +152,7 @@
     militar: {
       rotulo: 'Militar', prontidao: PARCIAL,
       capacidades: base({ moduloArea: true }),
-      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'item', acervo: 'normas' },
+      termos: { fonte: 'norma', fontePlural: 'normas', dispositivo: 'item', acervo: 'normas', genero: 'f' },
       emPreparo: ['fontes normativas da carreira', 'banco de questões próprio']
     },
     /* "Outra" não tem módulo nem fontes: é o caso em que a pessoa usa o Cátedra só pelo
@@ -160,7 +160,7 @@
     outra: {
       rotulo: 'Outra área', prontidao: PARCIAL,
       capacidades: base({}),
-      termos: { fonte: 'material', fontePlural: 'materiais', dispositivo: 'trecho', acervo: 'seus materiais' },
+      termos: { fonte: 'material', fontePlural: 'materiais', dispositivo: 'trecho', acervo: 'seus materiais', genero: 'm' },
       emPreparo: ['módulo de estudo próprio', 'fontes normativas da carreira']
     }
   };
