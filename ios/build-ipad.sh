@@ -24,7 +24,7 @@ ROOT="$(cd "$HERE/.." && pwd)"
 # Mesma trava do Mac, alvo próprio: o que se recusa é o segundo build de iPad.
 # shellcheck source=../scripts/guarda-build.sh
 source "$ROOT/scripts/guarda-build.sh"
-ct_travar_build ipad "$ROOT" "build-ipad\\.sh"
+ct_travar_build ipad "$ROOT"
 BUILD="$HERE/build"
 NAME="Cátedra"
 EXEC="Catedra"
