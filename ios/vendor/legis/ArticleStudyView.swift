@@ -408,8 +408,8 @@ struct ArticleStudyView: View {
                     TextField("Buscar artigo…", text: $railQuery).textFieldStyle(.plain).font(.system(size: 12))
                 }
                 .padding(.horizontal, 8).padding(.vertical, 6)
-                .background(RoundedRectangle(cornerRadius: 8).fill(AppTheme.pageBackground))
-                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(AppTheme.hairline, lineWidth: 1))
+                .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(AppTheme.pageBackground))
+                .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner).strokeBorder(AppTheme.hairline, lineWidth: 1))
             }
             .padding(10)
             Rectangle().fill(AppTheme.hairline).frame(height: 1)
@@ -1442,8 +1442,8 @@ private struct UnitFocusView: View {
                         set: { store.setLeituraResposta($0, lawID: lawID, unitKey: unit.key, q: i) }))
                         .font(.system(size: 12.5)).scrollContentBackground(.hidden)
                         .frame(height: 44).padding(6)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(AppTheme.pageBackground))
-                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(AppTheme.hairline, lineWidth: 1))
+                        .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(AppTheme.pageBackground))
+                        .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner).strokeBorder(AppTheme.hairline, lineWidth: 1))
                 }
             } else {
                 Button { _ = laRevelado.insert(i) } label: {
@@ -1504,7 +1504,7 @@ private struct UnitFocusView: View {
                         }.padding(10)
                         Spacer(minLength: 0)
                     }
-                    .background(RoundedRectangle(cornerRadius: 8).fill(AppTheme.warn.opacity(0.10)))
+                    .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(AppTheme.warn.opacity(0.10)))
                 }
             } else {
                 Text("As armadilhas típicas de prova deste artigo aparecem aqui depois de gerar com a IA.")
