@@ -4114,6 +4114,29 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     ok(v, 'DISC ' + k);
   }
 
+  /* Colar no "Importar edital" tem de COLAR. A exposição de edRaw passou meses dentro de
+     um comentário (linha // colada com a de código): o template lia vazio e a caixa
+     controlada apagava o que a pessoa colava a cada re-render — e nenhum teste digitava
+     nela. Este digita, espera um re-render, e exige o texto ainda lá. */
+  await areaPg.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(1800);
+  const edCola = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('edital'); await w(1000);
+    let ta = [...document.querySelectorAll('textarea')].find(x => /programátic|cole aqui/i.test(x.placeholder || ''));
+    if (!ta) { const abrir = [...document.querySelectorAll('button')].find(x => /importar/i.test(x.textContent || ''));
+      if (abrir) { abrir.click(); await w(700); }
+      ta = [...document.querySelectorAll('textarea')].find(x => /programátic|cole aqui/i.test(x.placeholder || '')); }
+    if (!ta) return { semCaixa: true };
+    ta.focus();
+    document.execCommand('insertText', false, 'DIREITO CIVIL\n1 Prescrição');
+    await w(900);                                    // atravessa pelo menos um re-render
+    return { colou: /DIREITO CIVIL/.test(ta.value) };
+  });
+  ok(!edCola.semCaixa, 'EDITAL a caixa de importar existe');
+  if (!edCola.semCaixa) ok(edCola.colou, 'EDITAL colar no importar cola (e sobrevive ao re-render)');
+
   // o Catedra.dc.html não carrega o auth.js sozinho; o gancho do merge mora na fixture
   await areaPg.goto(URL0 + '/tests/sync-fixture.html');
   await areaPg.waitForFunction(() => window.CatedraSync && window.CatedraSync._test);
