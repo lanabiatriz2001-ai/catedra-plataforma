@@ -169,7 +169,8 @@ window.CT_DISCURSIVAS = [
   "tipo": "discursiva",
   "peca": "",
   "fase": "",
-  "carreira": "Magistratura estadual"
+  "carreira": "Magistratura estadual",
+  "temTextoFull": true
  },
  {
   "id": "tj-sp-2026-2",
@@ -941,7 +942,8 @@ window.CT_DISCURSIVAS = [
   "tipo": "discursiva",
   "peca": "",
   "fase": "",
-  "carreira": "Magistratura federal"
+  "carreira": "Magistratura federal",
+  "temTextoFull": true
  },
  {
   "id": "tj-mg-2023-1",
@@ -10547,7 +10549,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://conhecimento.fgv.br/concursos/csjt23",
   "nota": "Esta banca não publicou espelho para esta prova.",
   "textoSituacao": "deformado",
-  "espelhoSituacao": "sem-pdf"
+  "espelhoSituacao": "restrito"
  },
  {
   "id": "csjtconcursonacionalunificado-2023-ac2",
@@ -10564,17 +10566,105 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Magistratura do Trabalho",
   "tema": "II Concurso Público Nacional Unificado para Ingresso na Carreira da Magistratura do Trabalho",
   "enunciado": "Sentença Trabalhista \n \nA partir do relatório a seguir, prolate a sentença. \n \n \nImportante: Não se identifique, assine como Juiz(a) do Trabalho \nSubstituto(a). \n \n \nObservações: \n· Todos os documentos indicados no relatório gozam de \npresunção de veracidade. \n· Será \naceito \no \ndispositivo \nindireto \n(ou \nremissivo \nà \nfundamentação), malgrado mereça maior pontuação o \ncandidato que elaborar a parte dispositiva de forma mais \nanalítica. \n \n \nValor: 10 pontos \nMáximo de 600 linhas. \n \nRELATÓRIO \n \nSindicato dos Trabalhadores em Telemarketing do \nSudeste Brasileiro, devidamente qualificado na inicial, ajuíza ação \ncoletiva trabalhista em face de Empresa de Atendimento Remoto \nLtda., alegando, em síntese, que, após ser procurado por algumas \nempregadas da reclamada e ter acesso a um auto de infração \nlavrado por Auditor Fiscal do Trabalho (doc.1 – id abc378), atua \nna defesa dos interesses dos trabalhadores e busca a tutela \njurisdicional pelos motivos que ora indica: a ré, cujas atividades \nse iniciaram em janeiro de 2018, contrata pessoas, algumas para \ntrabalhar presencialmente, com CTPS registrada; e outras, para \ntrabalho remoto, por produção e informalmente. O sindicato \nalega que o salário mensal, pago às pessoas com CTPS assinada, \nera fixo, no valor bruto de R$ 2.500,00. Além desse valor, a \nempresa paga um prêmio previsto em seu regulamento (doc.2 – \nid cde345), para as pessoas que trabalham após a jornada padrão \nem suas residências, em regime de trabalho remoto. O autor \ntambém alega que às pessoas trabalhadoras sem registro na \nCTPS, em regime de trabalho remoto, era pago um valor por \nprodução, em média de R$ 3.000,00 por mês, com fixação de \nmetas e sem marcação de ponto. Teria sido pago um bônus de \nR$ 1.000,00 às pessoas empregadas e registradas formalmente, \nque exerceram suas atividades durante o período de greve da \ncategoria (doc.3 – comprovante de pagamento de bônus – \nid 678c3). O sindicato junta autos de infração que apontam \nirregularidades no fornecimento de equipamentos para as \npessoas que trabalham exclusivamente em suas residências, pois \nos equipamentos são de qualidade inferior em relação aos \nexistentes nas dependências da empresa, tais como cadeiras sem \napoio de braço e sem altura regulável, e computador portátil, \nsem um segundo monitor (doc.4 e doc.8 – autos de infração – \nid 543sk), assim como há relatos de maior quantidade de pessoas \ncom adoecimento mental quando trabalham em casa. O sindicato \ndenuncia que os equipamentos fornecidos para o trabalho \nremoto são munidos de programa espião, que permite a \nfilmagem do ambiente, geolocalização e controle de acesso, \ncomo fazem prova os documentos juntados com a inicial, tanto \nque o referido sistema já foi usado para aplicar punições (doc.5 – \nadvertências – id n7hg5). Também há relatos de trabalhadores \nque recebiam mensagens nos finais de semana e à noite. Na \ninicial, o sindicato autor alega que havia, inclusive em relação aos \nque faziam apenas trabalho remoto, a necessidade de indicação \nde aceite dos superiores hierárquicos como amigos nas redes \nsociais e que algumas pessoas foram advertidas por não \naceitarem os pedidos e outras por excluírem tais amigos virtuais, \napós um período (doc.6 – id 97g56a). Após a análise do \nregulamento da empresa, citado no auto de infração, o sindicato \ntambém questiona a exigência patronal de que as pessoas \ntrabalhadoras usem vestimentas pretas e que aquelas com \ncabelos compridos os mantenham alisados e presos. O sindicato \ncolaciona cartas de advertência recebidas por trabalhadoras que \nusaram vestimentas brancas às sextas-feiras. O sindicato autor \nsustenta que o empregador não pode obrigar a adoção de \ncodinomes para os atendimentos telefônicos. Refuta o padrão \nestabelecido pela empresa com a apresentação de uma lista com \n“nomes profissionais” previamente fixados (doc.7 – id an650) \npara \nescolha \npelos \nsubstituídos. \nDentre \nas \ninúmeras \nirregularidades, também há relato na inicial de que a empresa \ndisponibiliza atendimento com fonoaudiólogo para mitigação do \nsotaque e uniformização linguística, no período de experiência \ncontratual e durante a jornada de trabalho. Por fim, para admitir \nempregados, a empresa exige apresentação de certidão negativa \nde antecedentes criminais e de órgãos de proteção ao crédito. \n\n \nV \nTipo 1 – Branca – Página 4 \n \nEm razão de tais fundamentos, o sindicato autor formulou os \nseguintes pedidos: \na) declaração e reconhecimento do vínculo de emprego para \ntodas as pessoas que atuam na informalidade, em razão do \nconteúdo do AUTO DE INFRAÇÃO que constata a presença dos \nrequisitos da relação de emprego; b) pagamento de diferenças \nsalariais e direitos trabalhistas típicos aos trabalhadores \ninformais: \ndepósitos \nde \nFGTS, \ndécimo \nterceiro \nsalário, \nremuneração de férias e direitos previstos na Convenção Coletiva \nda categoria (doc.8 – id r56lo), conforme se apurar em liquidação \nde sentença; c) apuração da jornada de trabalho e pagamento de \nhoras extraordinárias efetivamente realizadas e intervalos dos \ntrabalhadores que laboram em regime de trabalho remoto, \nacrescidas do adicional constitucional ou legal; d) apuração e \npagamento das projeções das horas extraordinárias devidas, \ninclusive do valor correspondente aos intervalos intrajornadas, \nnas parcelas de direito; e) determinar que a reclamada não \ninstitua pagamento de prêmio por trabalho realizado fora da \njornada padrão, por ser discriminatório, em relação a \ndeterminados grupos de trabalhadores, sob pena de multa; \nf) determinação de que não imponha homogeneidade de \nsotaque, sob pena de multa; g) determinar que se abstenha de \ninstalar nos computadores fornecidos para o teletrabalho \nprograma espião para captação de imagem e som do ambiente, \nsob pena de multa; h) determinar que se abstenha de \nencaminhar mensagens sobre temas de trabalho nos dias ou \nhoras \ndestinados \nao \ndescanso, \nsob \npena \nde \nmulta; \ni) determinação de que a reclamada se abstenha de criar \nincentivos financeiros futuros a pessoas trabalhadoras não \ngrevistas; j) determinação de que a reclamada se abstenha de \npraticar quaisquer condutas antissindicais, ficando condenada a \nestender o pagamento do bônus de R$ 1.000,00 a todos os \nsubstituídos processualmente; k) pagamento de indenização no \nvalor de R$ 100.000,00, por conduta antissindical, em favor do \nsindicato autor; l) determinar à reclamada que forneça \nequipamentos \nergonômicos \nadequados, \npara \ntodos \nos \nsubstituídos, sob pena de multa; m) determinar que a reclamada \nse abstenha de induzir ou orientar os substituídos a aceitar \nsuperiores hierárquicos em redes sociais, sob pena de multa; \nn) determinar que a reclamada se abstenha de estabelecer a cor \ndas roupas usadas pelas pessoas trabalhadoras, o tipo dos \ncabelos e o penteado, sob pena de multa; o) determinar que a \nreclamada não exija que as pessoas trabalhadoras usem \ncodinomes, sob pena de multa; p) determinar que a reclamada \nnão exija a apresentação de",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "INCOMPETÊNCIA DA JUSTIÇA DO TRABALHO PORQUE HAVERIA CLÁUSULA COMPROMISSÓRIA DE ARBITRAGEM — Preliminar a ser apreciada com base no art. 114, I da Constituição, mas com esperado posicionamento sobre a validade e a aplicabilidade, no caso concreto, do que dispõe o art. 507-A da CLT. Poderá ser questionada, na sentença, a relação de pertinência entre a cláusula compromissória e as pretensões com ela não diretamente relacionadas, porque fundadas no direito à igualdade e não discriminação, ao ambiente de trabalho saudável e à liberdade sindical.",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "ILEGITIMIDADE ATIVA PORQUE DIREITOS SERIAM INDIVIDUAIS — Preliminar a ser apreciada com base nas regras que regem a legitimidade ad causam e, em particular, com apoio em: a) natureza constitucional da atuação da entidade sindical, como representante institucional da categoria; b) orientação jurisprudencial que tem prevalecido no STF e no TST acerca da ampla legitimidade conferida pelo art. 8º, III da Constituição, inclusive nas liquidações e execuções de sentença, independentemente de autorização dos substituídos (tese do STF no tema 0823 com repercussão geral); c) legitimidade ampla conferida pela Lei n. 8.073/1990, bem como a legitimidade para a defesa judicial dos direitos transindividuais consoante sistemática estabelecida pela Lei n. 8.078/1990. A sentença deverá conter análise do argumento patronal quanto à ausência de representatividade sindical para a defesa de trabalhadores informais ou formalmente autônomos, seja explicitando tratar-se de sindicato representativo de trabalhadores (e não somente de empregados) em telemarketing, seja pela natureza institucional mais ampla da representação sindical.",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "CARÊNCIA DE AÇÃO EM VISTA DE CLÁUSULA COMPROMISSÓRIA DE ARBITRAGEM — Preliminar a ser apreciada de modo a que o candidato ou candidata se posicione sobre o enquadramento do tema como relacionado às tradicionais condições da ação e, de toda sorte, posicione-se acerca de a existência de cláusula compromissória de arbitragem inibir, no caso sob exame, a apreciação de mérito das pretensões de natureza declaratória e condenatória deduzidas pelo sindicato.",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "AUSÊNCIA DE LIQUIDAÇÃO DOS PEDIDOS — Preliminar cuja análise exige posicionamento acerca de a indicação de valor para os pedidos, prevista no art. 840, §1º da CLT, equivaler: a) à exigência de que os pedidos sejam previamente “liquidados”; b) à exigência de que seja indicado o valor dos pedidos em hipóteses nas quais os pedidos comportam condenação genérica (art. 95 da Lei n. 8.078/1990 – CDC) ou correspondem a prestações pecuniárias, inclusive as relativas a danos materiais e extrapatrimoniais, devidas a um coletivo de trabalhadores ainda não dimensionado porque inserido em contexto de ampla substituição processual; c) à exigência de que sejam indicados valores de pedidos que almejam tutelas específicas e medidas coercitivas.",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "INÉPCIA DO PEDIDO PORQUE AUSENTE O ROL DE SUBSTITUÍDOS — Preliminar a ser apreciada com base em jurisprudência do STF e do TST acerca da apresentação do rol de substituídos em ações nas quais o sindicato atua como substituto processual.",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "NATUREZA DO VÍNCULO (TRABALHADORES CONTRATADOS COMO AUTÔNOMOS) — Entre os fundamentos aguardados, na composição deste capítulo da sentença, aguarda-se posicionamento sobre: a) a influência do princípio da primazia da realidade (em relação à contratação formal), inclusive em sintonia com o feixe de indícios indicados pela Recomendação n. 198 da OIT, exigindo-se a demonstração de conhecimento sobre os pressupostos da relação de emprego (art. 3º da CLT) e o enfrentamento da disciplina excetiva contida no art. 442-B da CLT à luz dos elementos dos autos; b) a inter-relação entre princípios da livre iniciativa e da valorização do trabalho humano; c) a valorização do auto de infração, como um dos elementos de convicção e em consonância com a jurisprudência prevalecente, acerca de sua presunção de legitimidade e da “atribuição” do auditor fiscal do trabalho para constatar fraude à tutela jurídica do trabalho humano e autuar o infrator; d) a possibilidade de a subordinação configurar-se quando o trabalho se realiza com o auxílio de meios telemáticos fora das dependências da empresa (art. 6º e parágrafo único da CLT; art. 75-B da CLT), não importando se há jornada ou horários flexíveis; e) o poder de comando ou diretivo configurar-se quando é supostamente exercido mediante sanções punitivas ou premiais que servem à disciplina do trabalho (“gamificação”), especialmente quando a métrica da produtividade e das metas alcançadas dá-se com o auxílio da tecnologia da informação; f) a relevância, para a caracterização do poder diretivo (de fiscalização e disciplinar), de práticas relacionadas: f.1) ao monitoramento nas redes sociais (aceite dos chefes como “amigos”); f.2) ao “programa espião”, com documentação comprobatória de filmagem do ambiente, geolocalização e controle de acesso. Aguarda-se tutela jurisdicional declaratória, quanto à natureza do vínculo, e, sendo afirmada a existência de emprego em relação aos trabalhadores que realizam apenas serviço remoto, também se aguarda tutela condenatória quanto a parcelas de natureza empregatícia; dentre estas, deverá haver decisão explícita e fundamentada acerca de serem devidos, genericamente, os direitos previstos na norma coletiva da categoria e, ademais, de serem devidas diferenças salariais.",
+    "pontos": 1
+   },
+   {
+    "quesito": "JORNADA DE TRABALHO — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: a) posicionamento acerca da convencionalidade, da constitucionalidade e da aplicabilidade, no caso concreto, dos artigos 62, III e 75-B, §3º, da CLT; b) posicionamento acerca da aplicabilidade, no caso concreto, do art. 75-B, §4º, da CLT, tendo-se em conta o fato incontroverso de os substituídos operarem teleatendimento ou telemarketing; c) influência do monitoramento do tempo de conexão, por meio do programa-espião, na aplicação dos artigos 62, III e 75-B, §3º, da CLT, bem como na apuração da jornada efetivamente cumprida e dos intervalos observados; d) posicionamento acerca da jornada de seis horas por incidência do art. 227 da CLT e NR 17, Anexo II, art. 6.3; e) posicionamento acerca dos intervalos e pausas a serem observados com base no art. 71, §1º da CLT e na NR 17, Anexo II, art. 6.4.1; f) posicionamento acerca da influência do art. 74 da CLT e da Súmula n. 338 do TST em relação a trabalhadores que prestam serviço remoto; g) posicionamento acerca da importância da pré-assinalação de intervalos intrajornadas em relação ao trabalho presencial, na hipótese de se compreender que o pedido está relacionado também com empregados que têm contrato anotado em CTPS.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "REFLEXOS DE HORAS EXTRAS EM OUTRAS PARCELAS — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: a) serem devidos os reflexos (ou projeções) de horas extras em outras verbas, considerando a jurisprudência do TST sobre a aptidão do pedido correspondente quando é ele deduzido de forma genérica; b) serem especificamente devidos os reflexos de horas extras na remuneração dos dias de repouso e, com a modulação temporal estabelecida em julgamento de IRR pelo Pleno do TST (a propósito da sobrevigência da OJ 394 da SBDI I), sobre ser devida a repercussão a partir de 20/mar/2023 desse valor majorado do RSR no cálculo de aviso prévio (se houver), férias, 13º salário e FGTS (com 40%, quando for o caso); c) serem ou não devidos os reflexos de intervalos, não gozados, em período regido pela Lei n. 13.467/2017.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "DIREITO À DESCONEXÃO — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: a) o direito à desconexão, fundado no direito humano e fundamental à limitação da jornada e ao usufruto do tempo destinado ao descanso, ao lazer, à vida relacional e a outras atividades não relacionadas ao trabalho; b) a confissão da entidade empresária ao admitir o envio de mensagens fora da jornada “quando o bom andamento da atividade empresarial assim exige”; c) a possibilidade de prover-se, como se há de prover, tutela inibitória com fixação de multa ou outra medida coercitiva.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(A) DANO EXTRAPATRIMONIAL (OU “DANO MORAL”) E TUTELA ESPECÍFICA POR TRATAMENTO DISCRIMINATÓRIO RELACIONADO A VESTES E AO PENTEADO — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: a) haver discriminação direta (porque implica tratamento diferenciado para pessoas que não se ajustam naturalmente à exigência empresarial) e/ou discriminação indireta (porque há regra supostamente neutra a impactar desproporcionalmente certo grupo de trabalhadores) dos trabalhadores presenciais por razões religiosas (uso não autorizado de roupa branca nas sextas-feiras, em contraposição aos que professam, por exemplo, religiões de matriz africana) ou por razões étnico raciais (imposição de cabelos lisos e presos); na hipótese de decidir que se revela ilícita a exigência de roupa preta em razão de seu caráter discriminatório, a sentença deverá confrontar esse entendimento com o que preceitua o art. 456-A da CLT, acerca de caber ao empregador definir o padrão de vestimenta no meio ambiente laboral. Sendo acolhida a pretensão, aguarda-se tutela inibitória, sob pena de astreintes ou outra medida coercitiva (obs. 1 – A linha de argumentação defensiva retrata marcadores raciais, relacionados à aparência do cabelo, como denotativos de pessoas “coloridas ou descabeladas”; obs. 2 – A alusão, pelo candidato, à Convenção Interamericana contra o Racismo, Discriminação Racial e Formas Correlatas de Intolerância, bem como à Convenção nº 111 da OIT e ao Protocolo de Julgamento com Perspectiva de Gênero do CNJ importará atribuição de nota mais elevada).",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(B) DANO EXTRAPATRIMONIAL (OU “DANO MORAL”) E TUTELA ESPECÍFICA POR TRATAMENTO DISCRIMINATÓRIO RELACIONADO À PROVISÃO DE CONDIÇÕES ERGONÔMICAS DE TRABALHO, COM PEDIDO DE INDENIZAÇÃO POR DANO EXTRAPATRIMONIAL — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: b) o direito a condições ergonômicas de trabalho baseado em: b.1) direito fundamental ao meio ambiente de trabalho saudável, com apoio na tutela consagrada em Convenções fundamentais da OIT, na Constituição, na CLT e em normas regulamentadoras do Ministério do Trabalho, devendo ser esclarecida qual a influência, nesse silogismo, do art. 75-D da CLT, no que remete o tema a disposição contratual; b.2) discriminação direta (sem fundamento de relevância que autorize a distinção) dos teletrabalhadores em relação a equipamentos não adequados, com alegação de adoecimento mental. Sendo acolhida a pretensão, aguarda-se tutela inibitória, sob pena de astreintes ou outra medida coercitiva, quanto ao fornecimento de equipamentos adequados para o trabalho não presencial, mas sem condenação a título de reparação por adoecimento mental, ante a ausência de prova (obs. A linha de argumentação defensiva não contesta que equipamentos foram fornecidos aos que trabalhavam fora das dependências da empresa, ao alegar que tais equipamentos foram fornecidos a título de descarte).",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(C) DANO EXTRAPATRIMONIAL (OU “DANO MORAL”) E TUTELA ESPECÍFICA POR TRATAMENTO DISCRIMINATÓRIO RELACIONADO A PREMIAÇÃO PELA SOBREJORNADA — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: c) discriminação indireta dos teletrabalhadores que não faziam horas suplementares (grupos de mulheres, pessoas com deficiência, excluídos digitais ou outros coletivos sem capacidade ou oportunidade para o teletrabalho em tempo suplementar) e por isso não recebiam premiação, com tutela inibitória (para cessação do ilícito), sob pena de astreintes ou outra medida coercitiva (obs. 1 – embora possa ser vislumbrada alguma discriminação direta e supostamente ilegal, em razão de a premiação privilegiar trabalhadores que se submetiam a jornadas exigíveis além do limite previsto em lei, o pedido está adstrito, restritamente, à discriminação “em relação a determinados grupos de trabalhadores”, o que é concernente apenas à discriminação indireta; obs. 2 – a tese defensiva pretendeu justificar o tratamento diferenciado com base na neutralidade de seu regramento interno, o que rende ensejo, em verdade, à configuração da discriminação indireta).",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(D) DANO EXTRAPATRIMONIAL (OU “DANO MORAL”) E TUTELA ESPECÍFICA POR TRATAMENTO DISCRIMINATÓRIO CONTRA A ADESÃO A GREVE — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: d) o possível contraste entre a conduta patronal, no caso concreto, e: d.1) o direito à liberdade sindical, à luz dos princípios consagrados nas Convenções n. 87, 98 e 111 da OIT (convenções fundamentais, com eficácia erga omnes); d.2) os direitos fundamentais, porque também incorporados à Constituição, à liberdade sindical e ao exercício da greve (art. 5º, XVII; art. 7º, XXVI; artigos 8º e 9º da Constituição etc.); d.3) o direito de imunização do direito de greve contra embaraço ou represália patronal, conforme previsto no art. 6º, §2º da Lei n. 7.783/1989; d.4) o direito de não ser discriminado em razão do legítimo exercício do direito de greve, visando à manutenção do emprego em condições mais justas ou favoráveis, conforme previsto no art. 1º da Lei n. 9.029/1995. Sendo acolhida a pretensão, a causa jurídica atribuída ao bônus estará desnaturada e, portanto, não poderá mais estar atrelada à não participação na greve, exigindo tratamento isonômico para os que participaram da greve. A resposta estará completa se embasar o acolhimento da pretensão, assim, na vedação à discriminação direta dos teletrabalhadores e dos trabalhadores presenciais que aderiram à greve, o que importará a extensão a estes do bônus de R$ 1.000,00 e tutela inibitória com fixação de astreintes, ou outra medida coercitiva, para que a empresa cesse incentivos financeiros para não grevistas ou quaisquer outros atos antissindicais (obs – A linha de argumentação, na defesa, reflete o não reconhecimento do direito de greve como direito fundamental).",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(E) DANO EXTRAPATRIMONIAL (OU “DANO MORAL”) E TUTELA ESPECÍFICA POR TRATAMENTO DISCRIMINATÓRIO RELACIONADO AO SOTAQUE DO TRABALHADOR — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: e) discriminação direta, por origem, em relação a trabalhadores com sotaque fora do “padrão”, ou com sotaque que denote regionalismo não conveniente à empresa, com tutela inibitória e sob pena de astreintes ou outra medida coercitiva (obs. A tese defensiva de padronização da fala é inconsistente por traduzir indiferença às hipóteses de discriminação por origem).",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(F) DANO EXTRAPATRIMONIAL (OU “DANO MORAL”) E TUTELA ESPECÍFICA POR TRATAMENTO DISCRIMINATÓRIO POR ANTECEDENTE CRIMINAL OU INSOLVABILIDADE — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: f) discriminação direta dos trabalhadores presenciais, no processo admissional, por antecedentes criminais (não relacionados ao trabalho, cfr IRR do TST) ou por insolvabilidade, ou seja, sem motivo relevante e pertinente à relação laboral, com tutela inibitória e recomendável fixação de meio coercitivo (ainda que não postulado) – obs. A tese defensiva é confessa quanto à exigência abusiva das certidões.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(A) OUTROS DIREITOS HUMANOS E FUNDAMENTAIS RELACIONADOS AO USO DO PROGRAMA-ESPIÃO — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: a) violação do direito à privacidade, incluída a proteção de dados, com tutela inibitória, sob pena de astreintes ou outra medida coercitiva; sendo acolhida a pretensão, espera-se tutela específica com vistas a que a empresa se abstenha de instalar nos computadores fornecidos para o teletrabalho programa espião para captação de imagem e som do ambiente (obs. A argumentação da defesa não desconstitui a premissa de que havia violação do direito à privacidade).",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(B) OUTROS DIREITOS HUMANOS E FUNDAMENTAIS RELACIONADOS A AMIZADES NAS REDES SOCIAIS — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: b) violação do direito à autodeterminação informativa e à privacidade, ante a exigência de que empregados aceitassem os superiores hierárquicos como amigos; sendo acolhida a pretensão, espera-se tutela específica, ou especificamente inibitória, com vistas a que a empresa não retome a prática, cabendo a astreinte ou outra medida coercitiva independentemente de o ilícito já haver cessado (cfr. jurisprudência da SBDI I).",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(C) OUTROS DIREITOS HUMANOS E FUNDAMENTAIS — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: c) violação do direito à identidade, em razão da exigência de codinomes, com tutela inibitória, sob pena de astreintes ou outra medida coercitiva (obs. A linha de argumentação defensiva não nega a violação ao direito de ter respeitado o direito ao nome ou identidade, ao alegar a empresa que impedia o uso de “nomes exóticos”).",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "(D) OUTROS DIREITOS HUMANOS E FUNDAMENTAIS — Entre os fundamentos aguardados, na composição deste capítulo da sentença e em conformidade com o comando decisório, aguarda-se posicionamento sobre: d) ato antissindical de inibir o livre exercício do direito fundamental de greve; a sentença deverá conter fundamento acerca de ser possível enquadrar o ato antissindical como ilícito cometido também contra a função institucional do sindicato, esclarecendo acerca de o sindicato poder pleitear, também em nome próprio, tal indenização; se acolhida a pretensão, espera-se tutela condenatória em favor do sindicato por ato antissindical, postulada no valor de R$ 100.000,00 ou em valor que atenda a juízo de ponderação desenvolvido na sentença.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "GRATUIDADE JUDICIÁRIA — Aguarda-se que o requerimento seja apreciado não somente com remissão à Súmula n. 463, II do TST, que o TST aplica quando o tema recursal está restrito aos fundamentos desse verbete, mas especialmente em vista do que preceitua o art. 87 da Lei nº 8.078/1990, este a garantir a gratuidade, ou isenção quanto a despesas processuais, salvo comprovada má-fé.",
+    "pontos": 0.1
+   },
+   {
+    "quesito": "HONORÁRIOS ADVOCATÍCIOS — Aguarda-se que sejam apreciados os requerimentos formulados pelas partes quanto ao tema: a) da parte autora, que postula honorários assistenciais, a análise deverá ter em perspectiva a Lei n. 13.725/2018, a qual derrogou dispositivos da Lei n. 5.584/1970 e introduziu na Lei n. 8.906/1994 (art. 22, §6º) uma nova definição de honorários assistenciais “compreendidos como os fixados em ações coletivas propostas por entidades de classe em substituição processual”; a sentença deverá ainda conter posicionamento sobre a disciplina inaugurada pela introdução do regime de sucumbência recíproca no processo do trabalho e sobre os critérios para apuração trazidos pelo atual art. 791-A da CLT, em confronto com a Súmula n. 219 do TST; b) quanto à parte ré, deve ser examinado o tema tanto sob o enfoque das regras de sucumbência quanto a partir da disciplina estabelecida pelo art. 87 da Lei n. 8.078/1990 e pelo art. 18 da Lei n. 7.347/1985 (com redação dada pela Lei n. 8.078/1990), lei essa que, sendo aplicável às ações que tutelam direitos transindividuais, afasta a condenação das entidades associativas demandantes, salvo comprovada má-fé, em honorários advocatícios, custas e demais despesas processuais.",
+    "pontos": 0.1
+   },
+   {
+    "quesito": "OUTROS ITENS DA PARTE DISPOSITIVA — A sentença deverá indicar com clareza qual a sua a parte dispositiva, aceitando-se o dispositivo indireto (ou meramente remissivo), mas com atribuição das despesas processuais, inclusive com arbitramento do valor da condenação e das custas. A sentença deverá conter clara referência ao método de liquidação e à forma de indexação (juros e atualização monetária) das parcelas de natureza pecuniária, bem como a alusão aos recolhimentos fiscal e previdenciário devidos, com as intimações necessárias. A fixação de astreintes (ou de qualquer outro meio coercitivo), na parte dispositiva ou mesmo antecipada na fundamentação: a) deve compatibilizar-se com a efetividade pretendida para as tutelas específicas que forem ordenadas, cabendo inclusive esclarecimento, de modo fundamentado, acerca de aplicar-se o cumprimento provisório permitido pelo art. 537, caput, §§3º a 5º, do CPC; b) deve indicar, no caso de astreintes, qual seu destinatário, ponderando porventura acerca de o art. 537, §2º do CPC comportar interpretação literal em hipóteses de substituição processual. A prévia abordagem sobre a titularidade da execução haverá de contemplar a execução individual ou coletiva, conforme assegurado nos artigos 97 e 98 da Lei n. 8.078/1990 (CDC) e contemplado igualmente em tese fixada pelo STF ao examinar o tema n. 0823 da sistemática de repercussão geral. Há de exigir-se a ordem para que se intimem as partes e se dê igualmente ciência ao Ministério Público do Trabalho, em atenção ao art. 92 da Lei n. 8.078/1990.",
+    "pontos": 0.55
+   }
+  ],
+  "total": 10,
   "instrucoes": [],
   "fonte": "http://www50.fgv.br/ResultadoDiscursivaNovo.aspx?key=83Po3jh6lUs=&tipo=OE0Cqy0kYRoIZMHkbdobKA==",
   "fonte_prova": "https://conhecimento.fgv.br/sites/default/files/concursos/csjt-2023-juiza-do-trabalho-substitutoajuiz-substituto-tipo-1-prova-de-sentenca.pdf",
-  "fonte_espelho": "http://www50.fgv.br/ResultadoDiscursivaNovo.aspx?key=83Po3jh6lUs=&tipo=OE0Cqy0kYRoIZMHkbdobKA==",
+  "fonte_espelho": "https://www.csjt.jus.br/documents/955023/11064767/Espelho+de+corre%C3%A7%C3%A3o+para+publica%C3%A7%C3%A3o+-+Anexo.pdf/849aa5f7-3656-3e34-6e71-d52d41f0b637?t=1701953030055",
   "fonte_concurso": "https://conhecimento.fgv.br/concursos/csjt23",
   "nota": "Esta banca não publicou espelho para esta prova.",
   "enunciadoOriginal": "CSJT (Concurso Nacional Unificado) · 2023 · Juiz do Trabalho Substituto — banca FGV.\nProva oficial (PDF): https://conhecimento.fgv.br/sites/default/files/concursos/csjt-2023-juiza-do-trabalho-substitutoajuiz-substituto-tipo-1-prova-de-sentenca.pdf\nEspelho oficial (PDF): http://www50.fgv.br/ResultadoDiscursivaNovo.aspx?key=83Po3jh6lUs=&tipo=OE0Cqy0kYRoIZMHkbdobKA==\nPágina do concurso: https://conhecimento.fgv.br/concursos/csjt23\nObservação: Prova prática de sentença trabalhista. Espelho apenas em consulta individual (vista de prova) no portal FGV.\nTempo sugerido: 4h.",
-  "temTexto": true,
-  "espelhoSituacao": "sem-pdf"
+  "temTexto": true
  },
  {
   "id": "trf6-2026-ac1",
@@ -10991,7 +11081,7 @@ window.CT_DISCURSIVAS = [
   "nota": "Esta banca não publicou espelho para esta prova.",
   "enunciadoOriginal": "TRF5 · 2025 · Juiz Federal Substituto — banca FGV.\nProva oficial (PDF): https://conhecimento.fgv.br/sites/default/files/concursos/trf5-disc.pdf\nEspelho oficial (PDF): https://recursos-fgvprojetos.fgv.br/inscricao/trf52025_recurso_dis/respostas.cfm\nPágina do concurso: https://conhecimento.fgv.br/concursos/trf5juiz\nObservação: Não há PDF público de espelho. O link de 'Respostas' (30/10/2025) consta na página oficial da FGV, mas é área de consulta de recursos/vista individual — não pôde ser aberto sem autenticação.\nTempo sugerido: 1h por questão.",
   "temTexto": true,
-  "espelhoSituacao": "sem-pdf"
+  "espelhoSituacao": "restrito"
  },
  {
   "id": "trf5-2025-ac2",
@@ -11018,7 +11108,7 @@ window.CT_DISCURSIVAS = [
   "nota": "Esta banca não publicou espelho para esta prova.",
   "enunciadoOriginal": "TRF5 · 2025 · Juiz Federal Substituto — banca FGV.\nProva oficial (PDF): https://conhecimento.fgv.br/sites/default/files/concursos/trf5-sent-civ.pdf\nEspelho oficial (PDF): https://recursos-fgvprojetos.fgv.br/inscricao/trf5sent2025_recurso_dis/respostas.cfm\nPágina do concurso: https://conhecimento.fgv.br/concursos/trf5juiz\nObservação: Link de 'Respostas' das sentenças (26/11/2025) listado na página oficial da FGV; acesso restrito, sem PDF público de espelho.\nTempo sugerido: 4h.",
   "temTexto": true,
-  "espelhoSituacao": "sem-pdf"
+  "espelhoSituacao": "restrito"
  },
  {
   "id": "trf4-2023-ac1",
@@ -36032,7 +36122,7 @@ window.CT_DISCURSIVAS = [
   "nota": "",
   "enunciadoOriginal": "TCE-RN · 2025 · Auditor/Analista de Controle Externo — banca CEBRASPE.\nProva oficial (PDF): https://cdn.cebraspe.org.br/concursos/TCE_RN_25/arquivos/9632A3C1DAD59868034ED35C09E27F443FF841C473BD8A60FD0C7828A55A6ADB.pdf\nEspelho oficial (PDF): https://cdn.cebraspe.org.br/concursos/TCE_RN_25/arquivos/F2C4B279A3E7D7CD062CDEB589A2ED39F1E1ACD385338E68E60296BDADCBD257.pdf\nPágina do concurso: https://www.cebraspe.org.br/concursos/TCE_RN_25\nObservação: PADRÃO DEFINITIVO DE RESPOSTA – PROVA DISCURSIVA – CARGO 11 | Prova: PROVA DISCURSIVA - CARGO 11\nTempo sugerido: 1h por questão.",
   "temTexto": true,
-  "espelhoSituacao": "deformado"
+  "temEspelhoTexto": true
  },
  {
   "id": "tcern-2025-ac12",
@@ -38634,15 +38724,109 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Polícia Civil",
   "tema": "PC PE 2023",
   "enunciado": "PC/PE · 2023 · Delegado - prova oral (com padrão) - Malote 1 — banca CEBRASPE.\nA banca não publicou o PDF da prova nesta página.\nEspelho oficial (PDF): https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/MALOTE1_027_PC_PE_23_ORAL_COM_PADRAO.PDF\nPágina do concurso: https://www.cebraspe.org.br/concursos/PC_PE_23\nTempo sugerido: 4h.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Questão 1 (Dir. Constitucional) – Articulação do raciocínio",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 1 (Dir. Constitucional) – Capacidade de argumentação",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 1 (Dir. Constitucional) – Uso correto do vernáculo",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 1 (Dir. Constitucional) – 4.1 Principais espécies de inconstitucionalidade formal e respectivas formas de ocorrência",
+    "pontos": 25
+   },
+   {
+    "quesito": "Questão 1 (Dir. Constitucional) – 4.2 Inconstitucionalidade por ação e possíveis origens",
+    "pontos": 20
+   },
+   {
+    "quesito": "Questão 1 (Dir. Constitucional) – 4.3 Inconstitucionalidade por omissão e possíveis origens",
+    "pontos": 25
+   },
+   {
+    "quesito": "Questão 2 (Dir. Penal) – Articulação do raciocínio",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 2 (Dir. Penal) – Capacidade de argumentação",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 2 (Dir. Penal) – Uso correto do vernáculo",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 2 (Dir. Penal) – 4.1 Conceito de dolo direto de primeiro grau, dolo direto de segundo grau e dolo eventual",
+    "pontos": 30
+   },
+   {
+    "quesito": "Questão 2 (Dir. Penal) – 4.2 Exemplificação de cada uma das formas de dolo",
+    "pontos": 20
+   },
+   {
+    "quesito": "Questão 2 (Dir. Penal) – 4.3 Dolo direto de terceiro grau e controvérsia na doutrina",
+    "pontos": 20
+   },
+   {
+    "quesito": "Questão 3 (Dir. Processual Penal) – Articulação do raciocínio",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 3 (Dir. Processual Penal) – Capacidade de argumentação",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 3 (Dir. Processual Penal) – Uso correto do vernáculo",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 3 (Dir. Processual Penal) – 4.1 Crimes que autorizam o delegado a requisitar diretamente de empresa privada, sem autorização judicial, dados e informações cadastrais de suspeitos",
+    "pontos": 40
+   },
+   {
+    "quesito": "Questão 3 (Dir. Processual Penal) – 4.2 O que deve constar no ofício de requisição",
+    "pontos": 20
+   },
+   {
+    "quesito": "Questão 3 (Dir. Processual Penal) – 4.3 Prazo legal de resposta da empresa privada",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 4 (Leg. Penal Extravagante) – Articulação do raciocínio",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 4 (Leg. Penal Extravagante) – Capacidade de argumentação",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 4 (Leg. Penal Extravagante) – Uso correto do vernáculo",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 4 (Leg. Penal Extravagante) – 4.1 Posicionamento quanto à conduta do promotor, com identificação e definição do princípio utilizado (consunção)",
+    "pontos": 40
+   },
+   {
+    "quesito": "Questão 4 (Leg. Penal Extravagante) – 4.2 Posicionamento quanto à concessão de nova suspensão condicional do processo",
+    "pontos": 30
+   }
+  ],
+  "total": 400,
   "instrucoes": [],
   "fonte": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/MALOTE1_027_PC_PE_23_ORAL_COM_PADRAO.PDF",
   "fonte_prova": "",
   "fonte_espelho": "https://cdn.cebraspe.org.br/concursos/PC_PE_23/arquivos/MALOTE1_027_PC_PE_23_ORAL_COM_PADRAO.PDF",
   "fonte_concurso": "https://www.cebraspe.org.br/concursos/PC_PE_23",
   "nota": "",
-  "espelhoSituacao": "deformado"
+  "temTextoFull": true,
+  "temEspelhoTexto": true
  },
  {
   "id": "pcal-2022-ac1",
@@ -38723,7 +38907,7 @@ window.CT_DISCURSIVAS = [
   "fonte_espelho": "https://cdn.cebraspe.org.br/concursos/PC_ES_22_DELEGADO/arquivos/PC_ES_DELEGADO_ORAL_COMPADRAO.PDF",
   "fonte_concurso": "https://www.cebraspe.org.br/concursos/PC_ES_22_DELEGADO",
   "nota": "",
-  "espelhoSituacao": "deformado"
+  "temEspelhoTexto": true
  },
  {
   "id": "pcro-2022-ac4",
@@ -39512,15 +39696,109 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Polícia Federal",
   "tema": "PF 2021",
   "enunciado": "PF · 2021 · Delegado de Polícia Federal - prova oral (com padrão) — banca CEBRASPE.\nA banca não publicou o PDF da prova nesta página.\nEspelho oficial (PDF): https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/616_PF_DELEGADO_ORAL_COM_PADRO.PDF\nPágina do concurso: https://www.cebraspe.org.br/concursos/PF_21\nObservação: Caderno de prova oral do cargo de Delegado com os padrões de resposta.\nTempo sugerido: 4h.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Q1 (Direito Administrativo) · 1 Articulação do raciocínio",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q1 (Direito Administrativo) · 2 Capacidade de argumentação",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q1 (Direito Administrativo) · 3 Uso correto do vernáculo",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q1 (Direito Administrativo) · 4.1 Capitulação como improbidade administrativa",
+    "pontos": 1.4
+   },
+   {
+    "quesito": "Q1 (Direito Administrativo) · 4.2 Independência entre as instâncias e legalidade da pena aplicada",
+    "pontos": 1.4
+   },
+   {
+    "quesito": "Q2 (Direito Constitucional) · 1 Articulação do raciocínio",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q2 (Direito Constitucional) · 2 Capacidade de argumentação",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q2 (Direito Constitucional) · 3 Uso correto do vernáculo",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q2 (Direito Constitucional) · 4.1 Requisitos para a entrada forçada em domicílio",
+    "pontos": 1.2
+   },
+   {
+    "quesito": "Q2 (Direito Constitucional) · 4.2 Regime constitucional da fiança",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q2 (Direito Constitucional) · 4.3 Disciplina constitucional da fiança e competência para julgar o pedido e deliberar sobre a prisão da empregada",
+    "pontos": 1.2
+   },
+   {
+    "quesito": "Q3 (Direito Penal) · 1 Articulação do raciocínio",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q3 (Direito Penal) · 2 Capacidade de argumentação",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q3 (Direito Penal) · 3 Uso correto do vernáculo",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q3 (Direito Penal) · 4.1 Definição e natureza jurídica da prescrição",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q3 (Direito Penal) · 4.2 Espécies de prescrição",
+    "pontos": 1.2
+   },
+   {
+    "quesito": "Q3 (Direito Penal) · 4.3 Causas que alteram o prazo prescricional",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q3 (Direito Penal) · 4.4 Posicionamento quanto ao encaminhamento dado pelo delegado de Polícia Federal",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Q4 (Direito Processual Penal) · 1 Articulação do raciocínio",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q4 (Direito Processual Penal) · 2 Capacidade de argumentação",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q4 (Direito Processual Penal) · 3 Uso correto do vernáculo",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Q4 (Direito Processual Penal) · 4.1 Regras de competência para processar e julgar crimes praticados contra indígenas",
+    "pontos": 1.8
+   },
+   {
+    "quesito": "Q4 (Direito Processual Penal) · 4.2 Competência para processar e julgar o autor do homicídio no caso apresentado",
+    "pontos": 1
+   }
+  ],
+  "total": 16,
   "instrucoes": [],
   "fonte": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/616_PF_DELEGADO_ORAL_COM_PADRO.PDF",
   "fonte_prova": "",
   "fonte_espelho": "https://cdn.cebraspe.org.br/concursos/PF_21/arquivos/616_PF_DELEGADO_ORAL_COM_PADRO.PDF",
   "fonte_concurso": "https://www.cebraspe.org.br/concursos/PF_21",
   "nota": "",
-  "espelhoSituacao": "deformado"
+  "temTextoFull": true,
+  "temEspelhoTexto": true
  },
  {
   "id": "pf-2018-ac2",
@@ -43364,8 +43642,77 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2025/1 - Exame Nacional de Revalidação de Diplomas Médicos",
   "enunciado": "INEP · 2025 · Revalida - prova discursiva (1ª etapa) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2025_1_PV_discursiva_regular.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2025_1_PEP_discursiva_definitivo.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2025\nObservação: Padrão de resposta oficial do Inep, com critérios de pontuação por quesito. Edição 2025/1.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Questão 1, item a — É necessária a realização de exames confirmatórios após o teste rápido para hepatite B? Justifique.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 1, item b — É necessária a realização de exames confirmatórios após o teste rápido para hepatite C? Justifique.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 1, item c — Exames complementares adicionais essenciais para avaliação da gravidade e impacto clínico e funcional da doença hepática, com justificativa (bioquímica: até 2,0; imagem: 1,0; sorologias: até 1,0).",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 1, item d — 2 orientações iniciais para o paciente (manejo das hepatites virais crônicas e medidas de prevenção direcionadas a contatos domiciliares).",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 2, item a — Diagnóstico mais provável (doença hemorroidária / hemorroida interna).",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 2, item b — Classificações do quadro a partir do diagnóstico (interna e grau 3/III).",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 2, item c — 3 condutas clínicas a serem adotadas.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 2, item d — Conduta cirúrgica indicada (hemorroidectomia ou equivalentes aceitos).",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 3, item a — Interpretação dos achados da gasometria relacionados ao quadro clínico (alcalose respiratória compensada).",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 3, item b — 3 medidas terapêuticas a serem realizadas nesse momento.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 3, item c — Há indicação de intubação orotraqueal? 2 argumentos que justifiquem a resposta.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 3, item d — 3 critérios necessários para indicar a internação hospitalar.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 4, item a — Plano terapêutico: métodos anticoncepcionais (indicar progesterona; contraindicar estrógeno; indicar DIU/SIU ou laqueadura tubária).",
+    "pontos": 6
+   },
+   {
+    "quesito": "Questão 4, item b — Plano terapêutico: outras questões de saúde (atividade física e dieta; cessar tabagismo).",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 5, item a — Medidas de prevenção de IST que podem ser oferecidas pela médica de família.",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 5, item b — Conduta antes de se iniciar a PrEP.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 5, item c — Condições a investigar antes da inserção do DIU, consideradas as práticas sexuais dos 6 meses anteriores.",
+    "pontos": 3
+   }
+  ],
+  "total": 50,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2025_1_PEP_discursiva_definitivo.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2025_1_PV_discursiva_regular.pdf",
@@ -43373,7 +43720,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2025",
   "nota": "",
   "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "temEspelhoTexto": true
  },
  {
   "id": "inep-2024-ac1",
@@ -43390,8 +43737,85 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2024/1 - Exame Nacional de Revalidação de Diplomas Médicos",
   "enunciado": "INEP · 2024 · Revalida - prova discursiva (1ª etapa) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_PV_discursiva_regular.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_PEP_discursiva.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2024\nObservação: Padrão de resposta oficial do Inep, com critérios de pontuação por quesito. Edição 2024/1.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Questão 1a — Apresente a causa mais provável da síndrome demencial da paciente",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 1b — Indique o nome da doença crônica não transmissível que acomete a paciente e que a predispõe à condição descrita",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 1c — Liste outras 3 causas possíveis do transtorno neuropsiquiátrico descrito",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 1d — Cite os nomes de 2 fármacos aprovados para o tratamento dos transtornos cognitivos e funcionais da doença em questão",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 2a — Qual é a causa da alteração vocal apresentada pela paciente?",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 2b — Qual a causa da câimbra apresentada pela paciente? Cite duas manobras semiológicas que podem auxiliar no diagnóstico",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 2c — De acordo com o quadro clínico atual e os exames laboratoriais, além da alteração vocal, qual(is) é(são) o(s) diagnóstico(s) e o(s) tratamento(s) indicado(s)?",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 3a — Classifique a gravidade da exacerbação e cite quatro achados que justifiquem sua resposta",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 3b — Considerando a classificação da gravidade da exacerbação e a resposta ao tratamento já realizado, cite cinco condutas a serem aplicadas nesse momento",
+    "pontos": 3.5
+   },
+   {
+    "quesito": "Questão 3c — Cite cinco fatores de risco que podem contribuir para exacerbação da asma",
+    "pontos": 3.5
+   },
+   {
+    "quesito": "Questão 4a — Essa parturiente está na fase ativa do trabalho de parto? Justifique sua resposta",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 4b — É indicada a internação para essa paciente? Justifique sua resposta",
+    "pontos": 2.5
+   },
+   {
+    "quesito": "Questão 4c — Cite três métodos não farmacológicos de alívio da dor que a paciente pode utilizar",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Questão 4d — Cite dois sinais de alerta a que a parturiente deve estar atenta e que podem indicar a necessidade de nova avaliação",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 5a — Cite dois achados relevantes no exame físico que devem ser investigados para realizar uma avaliação adequada da paciente",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 5b — Cite a principal hipótese diagnóstica para o caso",
+    "pontos": 1
+   },
+   {
+    "quesito": "Questão 5c — Cite dois diagnósticos diferenciais",
+    "pontos": 1
+   },
+   {
+    "quesito": "Questão 5d — Cite cinco condutas a serem adotadas em relação ao tratamento e ao seguimento adequado",
+    "pontos": 5
+   },
+   {
+    "quesito": "Questão 5e — Cite duas ações de vigilância em saúde",
+    "pontos": 1
+   }
+  ],
+  "total": 50,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_PEP_discursiva.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_PV_discursiva_regular.pdf",
@@ -43399,7 +43823,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2024",
   "nota": "",
   "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "temEspelhoTexto": true
  },
  {
   "id": "inep-2024-ac2",
@@ -43416,8 +43840,73 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2024/2 - Exame Nacional de Revalidação de Diplomas Médicos",
   "enunciado": "INEP · 2024 · Revalida - prova discursiva (1ª etapa) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_2_PV_discursiva_regular.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_2_PEP_discursiva_versao_final.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2024\nObservação: Padrão de resposta oficial do Inep, com critérios de pontuação por quesito. Edição 2024/2.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Questão 1a — Qual é o diagnóstico atual mais provável para explicar o agravamento do quadro respiratório?",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 1b — Cite três sinais clínicos que, se presentes no seguimento do exame físico da paciente, corroborariam o diagnóstico mais provável",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 1c — Descreva a alteração radiológica presente que corrobora o diagnóstico mais provável",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 2a — Correlacione os achados da anamnese e do exame físico com cada um dos elementos da avaliação primária (ABCDE) segundo o ATLS",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 2b — Cite as condutas a serem tomadas em cada item da avaliação primária (ABCDE) desse paciente, segundo o ATLS",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 2c — Cite o diagnóstico principal desse paciente e dois diagnósticos diferenciais",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 3a — Explique se a paciente poderá ser atendida sem a presença de um responsável maior de idade (teste de gravidez e prescrição de contraceptivo) e se há necessidade de quebra de sigilo com um responsável legal",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 3b — Caso confirmada a gravidez, qual deverá ser a conduta do médico quanto ao atendimento nas consultas de pré-natal e quanto à quebra de sigilo com um responsável legal?",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 3c — A paciente poderia frequentar as reuniões dos grupos de discussão em saúde? Seria necessária a autorização de um responsável? Explique",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 4a — Qual é o diagnóstico correto do caso clínico?",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 4b — É possível constatar sinais de progressão, ou de não progressão, do trabalho de parto? Forneça duas justificativas completas",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 4c — Qual conduta deve ser seguida?",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 5a — Cite o achado adicional do exame físico que precisa ser investigado na definição diagnóstica",
+    "pontos": 1
+   },
+   {
+    "quesito": "Questão 5b — Considerando os critérios clínico-epidemiológicos, qual é a principal hipótese diagnóstica?",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 5c — Cite seis condutas a serem instituídas imediatamente na UBS para tratar esse paciente",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 5d — Cite cinco medidas de vigilância em saúde recomendadas para esse caso",
+    "pontos": 3
+   }
+  ],
+  "total": 50,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_2_PEP_discursiva_versao_final.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_2_PV_discursiva_regular.pdf",
@@ -43425,7 +43914,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2024",
   "nota": "",
   "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "temEspelhoTexto": true
  },
  {
   "id": "inep-2024-ac3",
@@ -43442,16 +43931,480 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2024/1 - 2ª etapa",
   "enunciado": "INEP · 2024 · Revalida - 2ª etapa (habilidades clínicas) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_prova_habilidades_clinicas.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_PEP_publicacao.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2024\nObservação: PEP (Padrão Esperado de Procedimentos) - espelho oficial das estações de habilidades clínicas.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 1: Apresentação: (1) identifica-se; e, (2) cumprimenta a paciente simulado e pergunta seu nome. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 2: Pergunta a existência de outros sinais, ou sintomas associados, que sejam relevantes para o estabelecimento de diagnósticos diferenciais: (1) dor; (2) náuseas; (3) vômitos; (4) diarreia OU alterações das fezes OU alterações do hábito intestinal OU mudança no cocô OU presença de sangue vivo ou escuro nas fezes; (5) disúria OU dor ao urinar OU ardência ao urinar OU oligúria; (6) febre OU sudorese OU calafrios; (7) icterícia OU pele amarela OU alterações da pele OU mudança da cor da pele OU prurido; (8) alteração na cor das fezes OU acolia OU fezes/cocô esbranquiçado; e, (9) alteração na cor do xixi OU colúria OU urina escurecida. Adequado: investiga seis ou mais itens. Parcialmente adequado: investiga de um a cinco itens. Inadequado: não investiga item algum. (Referência a outros sinais ou sintomas não serão considerados para fins de pontuação). (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 3: Pergunta sobre: (1) fatores de melhora ou atenuantes; e, (2) fatores de piora ou agravantes. Adequado: pergunta os dois itens. Parcialmente adequado: pergunta apenas um item. Inadequado: não pergunta item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 4: Realiza o exame no fígado: (1) palpação; e, (2) percussão. Adequado: realiza os dois itens. Parcialmente adequado: realiza apenas um item. Inadequado: não realiza item algum. CONSIDERAR TÉCNICA CORRETA DE PALPAÇÃO DO FÍGADO: (1) Paciente/modelo em decúbito dorsal. Participante no lado direito do paciente/modelo, de frente para o paciente/modelo ou voltado para a direção do tórax do paciente/modelo. Palpar o hipocôndrio direito, flanco direito e epigástrio, partindo do mesogastro até o rebordo costal. Em seguida, palpar junto ao rebordo costal direito coordenando com os movimentos respiratórios. Pode-se colocar a mão esquerda em loja renal direita do paciente, forçando-a para cima OU (2) Paciente/modelo em decúbito dorsal ou decúbito semilateral esquerdo. Participante no lado direito do paciente/modelo, voltado para a direção da pelve do paciente/modelo. Com os dedos em garra, o participante palpa o flanco/hipocôndrio direito da altura da cicatriz umbilical até o rebordo costal direito - Manobra de Mathieu. CONSIDERAR TÉCNICA CORRETA DE PERCUSSÃO DO FÍGADO: (1) Com paciente/modelo em decúbito dorsal, participante do lado direito do paciente/modelo, posicionado de frente ao paciente/modelo ou em direção ao seu tórax. Percute-se hemitórax direito, na direção da linha hemiclavicular, desde a clavícula, passando pelos espaços intercostais inferiores, até identificar a borda superior do fígado pela mudança do som de claro pulmonar para maciço/submaciço. A partir daí, progride-se distal e medialmente até identificação do bordo inferior do fígado. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 5: Realiza: (1) palpação esplênica; e, (2) percussão esplênica. Adequado: realiza uma técnica de percussão esplênica e realiza uma técnica de palpação esplênica. Parcialmente adequado: realiza apenas a palpação esplênica OU realiza apenas a percussão esplênica. Inadequado: não realiza a palpação nem realiza a percussão esplênica. CONSIDERAR TÉCNICA CORRETA DE PALPAÇÃO DO BAÇO: (1) Paciente/modelo em decúbito dorsal. Participante no lado direito do paciente/modelo, voltado para o paciente/modelo ou para a direção do tórax do paciente/modelo. Palpar do hipocôndrio esquerdo e flanco esquerdo, partindo do umbigo até o rebordo costal. Em seguida, palpar junto ao rebordo costal esquerdo coordenando com os movimentos respiratórios. Pode-se colocar a mão esquerda em loja renal esquerda do paciente, forçando-a para cima. OU (2) Paciente/modelo em decúbito lateral direito, perna direita estendida, coxa esquerda fletida a 90 graus sobre o abdome e braço esquerdo sobre a cabeça, com o ombro esquerdo elevado. Participante do lado direito do paciente/modelo, posicionado de frente para o paciente/modelo. Posiciona-se a mão esquerda na área de projeção do baço, deslocando-o em direção à maca. Com a mão direita, palpa-se do mesogástrio em direção ao rebordo costal esquerdo, coordenando com a respiração. CONSIDERAR TÉCNICA CORRETA DE PERCUSSÃO DO BAÇO: (1) Percussão do espaço de Traube, localizado entre 5º e 6º espaço intercostal esquerdo e se estende até a linha axilar anterior, no nível do 9º espaço intercostal. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 6: Realiza pesquisa de ascite por pelo menos duas técnicas: Adequado: realiza duas técnicas de pesquisa de ascite. Parcialmente adequado: realiza apenas uma técnica de pesquisa de ascite. Inadequado: não realiza nenhuma técnica de pesquisa de ascite. - Considerar técnica correta: (1) macicez móvel - Paciente/modelo em decúbito dorsal, participante do lado direito do paciente/modelo, voltado para o paciente/modelo, realiza percussão a partir do mesogástrio em direção aos flancos direito e esquerdo. Após, posiciona o paciente em decúbito lateral (direito e/ou esquerdo) e percute do flanco oposto ao lado do decúbito (o que está posicionado sem contato com a maca), em direção ao flanco em contato com a maca. (2) semicirculo de Skoda – Paciente/modelo em decúbito dorsal, participante do lado direito do paciente/modelo, voltado para o paciente/modelo, realiza percussão a partir do mesogástrio em direção aos flancos direito e esquerdo, fossa ilíaca direita e esquerda, e hipogástrio (não precise manter essa sequência). (3) piparote – Paciente/modelo em decúbito dorsal, participante do lado direito do paciente/modelo, voltado para o paciente/modelo, solicita que paciente posicione a borda medial da sua mão em mesogástrio. Participante posiciona a palma sua mão no flanco esquerdo do paciente e, com a outra, mão golpeia o flanco direito do paciente/modelo com dedo indicador ou médio. (4) sinal da poça – Paciente/modelo com o tronco fletido para frente (posição genupalmar), percute-se o abdome da região mais distal de hipogastro de forma ascendente, em direção à região umbilical. (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 7: Formula hipótese diagnóstica de: (1) ascite; (2) por hipertensão portal. Adequado: formula o diagnóstico citando os dois itens. Parcialmente adequado: formula o diagnóstico citando um item. Inadequado: não formula diagnóstico OU formula diagnóstico não citando item algum. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 8: Elabora plano de seguimento da paciente: (1) solicita pelo menos um exame complementar dentre os seguintes: ultrassonografia /ultrassom com Doppler, ultrassonografia/ultrassom, ultrassonografia/ultrassom de abdome, ressonância magnética, tomografia, provas de função hepática (proteínas/albumina, coagulograma/INR, bilirrubinas), sorologias para hepatites virais, autoanticorpos, AST, ALT, perfil de ferro, dosagem de cobre sérico ou urinário, ceruloplasmina, paracentese, cálculo do GASA; e (2) encaminhamento para seguimento em avaliação terciária com gastroenterologia ou com hepatologista. Adequado: elabora plano de seguimento contendo o encaminhamento da paciente (2) e solicita pelo menos um dos exames relacionados (1). Parcialmente adequado: apenas solicita exame (1) OU apenas encaminha ao especialista (2) Inadequado: não encaminha a paciente na forma do item (2) nem solicita algum dos exames listados no item (1). (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 1: Avalia as vias aéreas e verbaliza que as vias áreas estão pérvias. Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 2: Verbaliza a necessidade de colocar a máscara de oxigênio. Adequado: verbaliza. Parcialmente adequado: verbaliza a necessidade de iniciar fornecimento de oxigênio, mas não cita a máscara. Inadequado: não verbaliza. (parcialmente adequado: 0,15 ponto)",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 3: Verbaliza que o colar cervical não deve ser removido OU verbaliza manutenção do colar cervical OU verbaliza retirada do colar com estabilização manual da coluna, avaliação breve e posterior fechamento do colar Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 4: Realiza a avaliação clínica primária segundo o ABCDE, verbalizando: A: vias aéreas e coluna cervical; B: ventilação/respiração – Avaliação do aparelho respiratório; C: circulação – PA, FC e aparelho cardiovascular; nível consciência; D: exame neurológico – sonolenta, desorientada e glasgow 13; E: Exposição: a paciente está coberta e sem lesões externas. Adequado: verbaliza corretamente os dados do caso clínico na sequência correta Parcialmente adequado: verbaliza só os dados ou só a sequência. Inadequado: não verbaliza corretamente ou não verbaliza na sequência. (parcialmente adequado: 0,45 ponto)",
+    "pontos": 0.9
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 5: Verbaliza o diagnóstico de pneumotórax hipertensivo. Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 6: Escolhe o cateter (jelco ou abocath) n.º 14 OU n.º 16 OU n.º 18 para realização da punção do tórax OU toracocentese de alívio. Adequado: escolhe. Inadequado: não escolhe.",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 7: Verbaliza que a punção deve ser realizada no quinto, OU no quarto, espaço intercostal, linha axilar média OU anterior à linha axilar média. Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 1.4
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 8: Indica que deverá ser realizada drenagem torácica fechada (OU drenagem pleural fechada OU toracostomia fechada OU drenagem torácica em selo d’água OU drenagem pleural em selo d’água OU toracostomia em selo d’água ) após a realização da punção de descompressão OU da toracocentese descompressiva. Adequado: indica. Inadequado: não indica.",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 9: Descreve a drenagem no quinto /quarto espaço intercostal, entre a linha anterior e a linha axilar média. Adequado: descreve. Inadequado: não descreve.",
+    "pontos": 1.4
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 10: Solicita radiografia de tórax após a punção ou a drenagem. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 11: Solicita monitorização da paciente indicando os seguintes parâmetros: 1. frequência cardíaca; 2. pressão arterial; 3. oximetria OU saturação de oxigênio; 4. diurese OU sondagem vesical; e, 5. Eletrocardiograma Adequado: solicita a monitorização indicando 3 ou mais itens. Parcialmente adequado: solicita a monitorização indicando apenas 2 itens. Inadequado: não solicita a monitorização ou solicita a monitorização indicando apenas 1 item. Obs. A monitorização da paciente pode ser indicada a qualquer momento. (parcialmente adequado: 0,15 ponto)",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 12: Após os procedimentos de punção e/ou drenagem, verbaliza a reavaliação do aparelho respiratório OU verbaliza que será repetido o exame de “B” OU verbaliza que será repetido o “ABCDE”. Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 13: Após os procedimentos de punção e/ou drenagem, verbaliza a reavaliação do exame do aparelho cardiovascular OU verbaliza que será repetido o exame de “C” OU verbaliza que será repetido o “ABCDE”. Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 14: Solicita acesso venoso indicando os seguintes parâmetros: 1. cateter calibre n.º 14 ou n.º 16 OU nº 18; 2. veia periférica OU acesso venoso em membro superior; 3. 1 ou 2 litros; 4. ringuer lactato ou soro fisiológico ou cristalóide OU solução fisiológica. Adequado: solicita a realização de acesso venoso indicando corretamente os quatro parâmetros. Parcialmente adequado: Solicita a realização de acesso venoso e indica corretamente 2 ou 3 parâmetros Inadequado: não solicita a realização de acesso venoso ou solicita a realização de acesso venoso indicando três itens ou menos. (parcialmente adequado: 0,15 ponto)",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 15: Verbaliza a exposição e o controle do ambiente: 1. a necessidade de expor toda a paciente, OU retirando o lençol OU retirar roupa; 2. a necessidade de prevenção de hipotermia Adequado: verbaliza os dois itens. Parcialmente adequado: verbaliza um item. Inadequado: não verbaliza item algum (parcialmente adequado: 0,15 ponto)",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 16: Verbaliza que, no momento, NÃO será necessária remoção da paciente. Adequado: verbaliza. Inadequado: não verbaliza. Conforme item 14.6 do Edital, a pontuação correspondente ao item será atribuída a todos os participantes, inclusive aos que não tenham interposto recurso.",
+    "pontos": null
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 1: Apresenta-se: (1) Identifica-se; (2) Cumprimenta a mãe de maneira adequada/cordial; (3) Mantém contato visual durante sua apresentação; (4) Pergunta o nome da mãe e o nome da criança. Adequado: realiza as quatro ações. Parcialmente adequado: realiza duas ou três ações. Inadequado: realiza uma ação OU não realiza ação alguma. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 2: Pergunta sobre o quadro agudo: (1) características dos vômitos (resíduos alimentares E/OU vômitos não biliosos E/OU em jato); (2) início dos vômitos; (3) sinais associados — sonolência OU irritabilidade OU língua seca OU depressão da fontanela OU turgor da pele OU diminuição da diurese OU febre. Adequado: pergunta os três itens. Parcialmente adequado: pergunta dois itens. Inadequado: pergunta um item OU não pergunta item algum. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 3: Verbaliza fatores de risco para estenose do piloro: (1) primogenitura; (2) antecedentes familiares de estenose de piloro; (3) sexo masculino. Adequado: verbaliza os três fatores. Parcialmente adequado: verbaliza dois fatores. Inadequado: verbaliza um fator OU não verbaliza fator algum. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 4: Associa os achados do exame físico ao quadro clínico: (1) lactente hidratado (recebendo hidratação venosa); (2) presença massa epigástrica incaracterística ou de oliva pilórica. Adequado: verbaliza os dois itens. Parcialmente adequado: verbaliza um item. Inadequado: não verbaliza item algum. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 5: Solicita exames laboratoriais pertinentes ao caso clínico: (1) hemograma; (2) gasometria arterial; (3) sódio; (4) potássio; (5) cloro. Adequado: solicita os cinco exames. Parcialmente adequado: solicita três ou quatro exames. Inadequado: solicita um ou dois exames OU não solicita exame algum. Obs.: deverão ser considerados para pontuação apenas os cinco primeiros exames solicitados. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 6: Associa os achados de exames laboratoriais ao caso clínico: (1) hemograma normal; (2) gasometria com alcalose metabólica; (3) hipocloremia; (4) hipocalemia. Adequado: associa os quatro itens. Parcialmente adequado: associa dois ou três itens. Inadequado: associa um item OU não associa item algum. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 7: Solicita ultrassonografia abdominal: Adequado: solicita. Inadequado: não solicita. Obs.: A ultrassonografia é altamente sensível e tem sido utilizada como método padrão para diagnóstico, uma vez que permite a visualização e as medidas do músculo e do canal pilórico. Nesse caso está indicada quando o exame físico não for conclusivo. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 8: Diagnostica a estenose hipertrófica do piloro ou hipertrofia pilórica: Adequado: diagnostica. Inadequado: não diagnostica. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 9: Indica a internação hospitalar: Adequado: indica. Inadequado: não indica. Obs.: caso o(a) participante apenas oriente que o paciente fique em observação até o término do soro, considerar como inadequado. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 10: Indica a conduta adequada para o caso: (1) hidratação endovenosa para correção pré-operatória do distúrbio ácido-básico e hidroeletrolítico; (2) encaminhamento para avaliação cirúrgica e/ou tratamento cirúrgico. Adequado: indica os dois itens. Parcialmente adequado: indica um item. Inadequado: não indica item algum OU indica outra conduta. Obs.: caso o(a) participante oriente a hidratação VO, considerar como inadequado. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 1: Apresentação: (1) cumprimenta a paciente e/ou fala o seu nome; (2) pergunta o motivo da consulta ou a queixa principal da paciente. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,2 ponto)",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 2: Pergunta sobre a presença de: (1) epigastralgia; (2) sintomas visuais (turvação visual OU fotopsia OU escotomas OU distúrbios visuais); (3) náuseas ou vômitos; (4) dor torácica; (5) dispneia. Adequado: pergunta dois ou mais itens. Parcialmente adequado: pergunta um item. Inadequado: não pergunta item algum. (parcialmente adequado: 0,6 ponto)",
+    "pontos": 1.2
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 3: Pergunta sobre medicações de uso contínuo na gestação. Adequado: pergunta. Inadequado: não pergunta.",
+    "pontos": 0.6
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 4: Pergunta sobre uso de medicações para alívio dos sintomas atuais: Adequado: pergunta. Inadequado: não pergunta.",
+    "pontos": 0.6
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 5: Solicita exames essenciais para a definição do diagnóstico: (1) hemograma OU hemoglobina + hematócrito + plaquetas; (2) desidrogenase láctica OU bilirrubina indireta OU concentração de haptoglobina; (3) TGO e TGP (AST, ALT) OU enzimas hepáticas. Adequado: solicita os três itens. Inadequado: solicita dois ou menos itens OU não solicita item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 6: Define a correta hipótese diagnóstica: Adequado: define como síndrome HELLP. Parcialmente adequado: define como hipertensão arterial sistêmica com pré-eclâmpsia sobreposta OU pré-eclâmpsia com sinais de gravidade OU iminência e eclâmpsia. Inadequado: não define uma hipótese OU não especifica a síndrome hipertensiva. (parcialmente adequado: 0,6 ponto)",
+    "pontos": 1.2
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 7: Associa o quadro clínico a hipótese diagnóstica: (1) hipertensão arterial sistêmica, em bom controle, com aumento súbito de pressão arterial após 20 semanas de gestação; (2) presença de cefaleia; (3) presença de epigastralgia; (4) presença de sintomas visuais. Adequado: associa os quatro itens. Parcialmente adequado: associa dois ou três itens. Inadequado: associa um item OU não associa item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 8: Associa o quadro laboratorial a hipótese diagnóstica: (1) hemoglobina abaixo do valor de referência (VR); (2) plaquetas < 100.000; (3) desidrogenase láctica (LDH/DHL) > 600 ou 700; (4) TGO, TGP (AST, ALT) > 2,5 (VR); (5) elevação de ácido úrico ou hiperuricemia; (6) proteinúria em fita superior a +1/+4; (7) creatinina maior ou igual a 1,2. Adequado: associa os sete itens. Parcialmente adequado: associa de três a seis itens. Inadequado: associa um ou dois itens OU não associa item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 9: Cita os fatores de risco da paciente que estão relacionados ao diagnóstico: (1) hipertensão crônica; (2) obesidade; (3) primigesta. Adequado: cita dois itens. Parcialmente adequado: cita um item. Inadequado: não cita item algum. (parcialmente adequado: 0,3 ponto)",
+    "pontos": 0.6
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 10: Orienta a internação da paciente: (1) indica a internação; (2) a internação deve ser imediata; (3) a paciente deve permanecer internada até o pós-parto. Adequado: orienta os três itens Parcialmente adequado: orienta os itens (1) e (2). Inadequado: não orienta o item (1) OU não orienta o item (2). (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 11: Indica as seguintes medicações: (1) nifedipino ou hidralazina ou labetalol (para controle pressórico); (2) sulfato de magnésio (para neuroproteção materna ou para evitar crise convulsiva materna); (3) corticoterapia (para maturação pulmonar fetal) com betametasona ou com dexametasona. Adequado: indica os três medicamentos. Parcialmente adequado: indica os medicamentos (1) e (2). Inadequado: não indica o medicamento (1) OU não indica o medicamento (2) OU não indica medicamento algum. Observação: não é necessário que o participante justifique o porquê de cada item da prescrição para pontuar neste quesito. (parcialmente adequado: 0,7 ponto)",
+    "pontos": 1.4
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 1: Apresenta-se: (1) cumprimenta a paciente simulada; (2) identifica-se; (3) dirige-se a ela pelo nome, pelo menos uma vez. Adequado: realiza as três ações. Parcialmente adequado: realiza apenas duas ações. Inadequado: realiza apenas uma ação ou não realiza ação alguma. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 2: Conecta-se à paciente: (1) estabelece contato visual; e, (2) mantém postura empática e interessada ao longo da consulta. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma das ações. Inadequado: não realiza qualquer uma das ações. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,12 ponto)",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 3: Escuta ativamente a fala da paciente simulada sem interrompê-la. Adequado: realiza a ação. Inadequado: não realiza a ação. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 4: Usa linguagem acessível com a paciente simulada, evitando termos técnicos de difícil compreensão: Adequado: utiliza linguagem acessível. Inadequado: não utiliza linguagem acessível. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 5: Pergunta se a paciente gostaria da presença de alguém durante o atendimento: Adequado: pergunta. Inadequado: não pergunta. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 6: Pergunta o que a paciente sabe sobre sua condição de saúde (OU situação de saúde OU sobre sua doença OU sobre seu diagnóstico OU sobre o resultado do seu exame): Adequado: pergunta. Inadequado: não pergunta. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 7: Pergunta se a paciente quer saber sobre detalhes da doença (OU o quanto quer saber sobre a doença OU quais detalhes sobre a doença quer saber OU se quer informações adicionais da doença OU se quer saber mais sobre seu estado de saúde): Adequado: pergunta. Inadequado: não pergunta. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 8: Informa que irá falar de más notícias, fazendo um preâmbulo para minimizar o impacto da transmissão da má notícia, ex.: “lamento lhe dizer, mas vou lhe dar uma notícia difícil”; “sinto muito, mas não trago boas notícias”: Adequado: informa de maneira empática. Inadequado: não informa de maneira empática. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 9: Informa o resultado da biópsia de maneira adequada, com linguagem acessível: Adequado: informa. Inadequado: não informa. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 10: Manifesta compreensão dos sentimentos da paciente após ela receber o diagnóstico de câncer de colo de útero: Adequado: manifesta compreensão. Inadequado: não manifesta compreensão. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 11: Trata a situação de maneira sensível: (1) oferece conforto à paciente e valida seu sofrimento; (2) inspira esperança na paciente. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma ação. Inadequado: não realiza ação alguma. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.25
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 12: Informa à paciente sobre a necessidade de encaminhamento para especialista focal (oncologista, em ambulatório/hospital). Adequado: informa à paciente. Inadequado: não informa à paciente. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 13: Evita erros ao longo de sua comunicação, tais como: (1) minimizar a gravidade da situação; (2) apresentar/enfatizar/valorizar o “lado bom”; (3) não informar que é câncer ou dizer que não sabe se é câncer; (4) adiar a verbalização do diagnóstico para outra consulta ou delegá-la para outro(a) profissional. Adequado: evita os quatro erros. Inadequado: comete qualquer um dos quatro erros. [PEP publicado como PRELIMINAR nesta estação]",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 14: Encerra a consulta de forma empática e responsável: (1) coloca-se à disposição para sanar dúvidas; (2) oferta seguimento na UBS. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma ação. Inadequado: não realiza ação alguma. [PEP publicado como PRELIMINAR nesta estação] (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 1: Apresenta-se: (1) identifica-se; e, (2) pergunta o nome e cumprimenta a paciente simulada. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 2: Pergunta sobre os sintomas associados relevantes para o estabelecimento de diagnósticos diferenciais: (1) febre OU calafrios; (2) dor torácica OU dor no peito OU dor ao respirar; (3) expectoração OU secreção OU purulência OU catarro; (4) cianose OU pele azulada OU pele arroxeada; (5) sintomas gripais (rinorreia, secreção nasal, espirros); (6) dispneia paroxística noturna OU despertar noturno por falta de ar; e, (7) edema de membros inferiores OU inchaço nas pernas. Adequado: investiga quatro itens ou mais. Parcialmente adequado: investiga dois ou três itens. Inadequado: investiga um item OU não investiga item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 3: Pergunta sobre fatores desencadeantes, agravantes e atenuantes: (1) uso de medicamentos; (2) contato com animais domésticos OU com algum animal OU com pelos de animais; (3) ambiente com mofo ou com fungo ou poeira OU piora no local de trabalho; (4) tabagismo; (5) atividade física; e, (6) mudança climática OU certas estações do ano OU exposição a frio ou a calor. Adequado: investiga três itens ou mais. Parcialmente adequado: investiga dois itens. Inadequado: investiga um item OU não investiga item algum. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 4: Interpreta corretamente os achados do hemograma, identificando a eosinofilia, ou identificando o aumento dos eosinófilos, e a associa ao quadro. Adequado: identifica. Inadequado: não identifica.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 5: Interpreta o achado da espirometria: reversibilidade do distúrbio obstrutivo OU distúrbio obstrutivo com resposta ao broncodilatador/prova broncodilatadora. Adequado: interpreta. Inadequado: não interpreta.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 6: Comunica o diagnóstico de asma: Adequado: comunica o diagnóstico de asma (ou de “bronquite asmática” ou de “asma brônquica” ou de “crise de asma” ou de “crise asmática). Inadequado: não comunica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 7: Orienta e demonstra o uso do dispositivo inalatório corretamente: (1) agitar o dispositivo; (2) expirar completamente (esvaziar o pulmão OU soltar o ar do pulmão); (3) posicionar o dispositivo próximo ou diretamente na boca (entre os dentes); (4) disparar o dispositivo e inalar lenta e profundamente, de forma coordenada (disparar o dispositivo durante inspiração profunda OU disparar o dispositivo e inspirar profundamente); (5) prender a respiração (o fôlego) durante 5 a 10 segundos (pedir para contar até 10 mentalmente); e, (6) orientar a lavar a boca após o uso do dispositivo. Adequado: orienta e demonstra, na sequência correta, todas as etapas. Parcialmente adequado: orienta e demonstra, na sequência correta, da etapa 2 a etapa 5 OU apenas orienta, sem demonstrar, todas as etapas na sequência descrita OU apenas demonstra, sem orientar, todas as etapas na sequência descrita. Inadequado: não demonstra e não orienta alguma das etapas de 2 a 5 ou fez a demonstração com o dispositivo tampado. (parcialmente adequado: 2,0 ponto)",
+    "pontos": 3
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 8: Orienta medidas não farmacológicas para a prevenção de crise, tais como evitar contato com: (1) mofo OU fungo; (2) poeira doméstica / pó / ácaros (em carpetes, cortinas, tapetes) OU orienta limpar a casa com pano úmido ao invés de varrer; (3) irritantes inespecíficos ( tais como produtos de limpeza, perfume, tintas e solventes, fumaça, pólen, poluição do ar); (4) animais, pelo de animais domésticos, epitélio ou penas, objetos de pelúcia ou roupas com pelos quando há sensibilização; (5) fumaça de cigarros (eletrônicos e convencionais); e, (6) orienta manter ambientes arejados ou janelas abertas. Adequado: orienta três itens ou mais. Parcialmente adequado: orienta um ou dois itens. Inadequado: não orienta item algum. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 1: Identifica-se e identifica adequadamente a paciente. Adequado: Realiza os dois comandos. Parcialmente adequado: Realiza um dos comandos. Inadequado: Não realiza nenhum dos comandos. (parcialmente adequado: 0,1 ponto)",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 2: Pergunta sobre as características do acidente: (1) local, (2) tempo de exposição, (3) inalação de fumaça. Adequado: Pergunta corretamente sobre todos os itens. Parcialmente adequado: Pergunta sobre dois itens OU se o incêndio ocorreu em local fechado. Inadequado: Pergunta sobre um item ou não pergunta nenhum dos itens. (parcialmente adequado: 0,2 ponto)",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 3: Verbaliza as alterações dos sinais vitais: (1) pressão arterial diminuída OU pressão arterial baixa; (2) taquicardia OU frequência cardíaca aumentada; (3) taquipneia OU frequência respiratória aumentada; e, (4) baixa saturação de oxigênio. Adequado: Verbaliza todos os itens. Parcialmente adequado: Verbaliza dois ou três itens. Inadequado: Verbaliza apenas um item ou não verbaliza item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 4: Solicita monitorização da paciente indicando os seguintes parâmetros: 1. frequência cardíaca; 2. pressão arterial; 3. oximetria OU saturação de oxigênio; e, 4. diurese. Adequado: solicita a monitorização indicando 3 ou mais itens. Parcialmente adequado: solicita a monitorização indicando apenas 2 itens. Inadequado: não solicita a monitorização ou solicita a monitorização indicando apenas 1 item. Obs. A monitorização da paciente pode ser indicada a qualquer momento. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 5: Identifica os sinais de queimadura de vias aéreas verbalizando que a paciente está com: 1.queimadura de vibrissas nasais ou de mucosas nasais; OU, 2.hiperemia ou edema de orofaringe; OU, 3.dificuldade respiratória ou dispneia ou dificuldade de respirar. Adequado: Identifica Inadequado: Não identifica",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 6: Indica suplementação de oxigênio sob máscara de Venturi (ou sob máscara não reinalante) ou entubação orotraqueal. Adequado: Indica a suplementação de oxigênio sob uma das formas descritas no caput do item. Parcialmente adequado: Indica a suplementação por via aérea definitiva sem especificar a forma de fornecimento de oxigênio. Inadequado: Não indica a suplementação de oxigênio OU indica a suplementação especificando outra forma de fornecimento de oxigênio. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 7: Verbaliza a necessidade de avaliação da superfície corporal queimada, com retirada de toda vestimenta ou com a exposição completa da paciente. Adequado: Verbaliza a necessidade de avaliação da superfície corporal queimada com a retirada de toda a vestimenta ou com exposição completa da paciente. Parcialmente adequado: verbaliza a necessidade de avaliação da superfície corporal queimada sem citar a retirada da vestimenta ou sem citar a exposição completa da paciente. Inadequado: não verbaliza a necessidade de avaliação da superfície corporal queimada. (parcialmente adequado: 0,4 ponto)",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 8: Calcula corretamente a superfície corporal queimada, segundo a regra dos 9 ( 36%). Adequado: Calcula corretamente a área queimada. Inadequado: Não calcula corretamente a área queimada.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 9: Prescreve corretamente a reposição volêmica de acordo com o ATLS. Adequado: 1.800 mL nas primeiras 8 horas e 1.800mL nas 16 horas seguintes. Inadequado: Não prescreve corretamente.",
+    "pontos": 1.2
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 10: Indica o tipo de acesso para a hidratação venosa: 1. cateter calibre n.º 14 ou n.º 16 ou n.º 18; 2. veia periférica; e 3. ringer lactato ou soro/solução fisiológico ou cristalóide. Adequado: solicita a realização de acesso venoso indicando corretamente os três parâmetros. Parcialmente adequado: solicita a realização de acesso venoso indicando corretamente dois parâmetros. Inadequado: não solicita a realização de acesso venoso ou solicita a realização de acesso venoso indicando um ou nenhum parâmetro. Obs.: a verbalização de veia específica pertencente ao sistema venoso periférico será acatada como equivalente. (parcialmente adequado: 0,3 ponto)",
+    "pontos": 0.6
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 11: Indica a analgesia: Adequado: Indica. Inadequado: Não indica ou indica analgesia via oral. Obs.: Será considerado adequado caso não indique a via de administração ou oriente a administração por via endovenosa. Obs. 2: Será considerado adequado o participante que indicou o uso de analgésico durante a sequência rápida de intubação.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 12: Indica o curativo oclusivo ou estéril (indicando ou não a utilização de pomada cicatrizante e/ou anti-infecciosa): Adequado: Indica. Inadequado: Não indica.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 13: Verbaliza a necessidade de transferência da paciente simulada para centro de referência ou centro de queimados ou unidade de queimados. Adequado: verbaliza a necessidade de transferência. Inadequado: não verbaliza a necessidade de transferência.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 1: Apresenta-se: (1) Identifica-se; (2) Cumprimenta a mãe de maneira adequada/cordial; (3) Mantém contato visual durante sua apresentação; (4) Pergunta o nome da mãe e o nome da criança. Adequado: realiza as quatro ações. Parcialmente adequado: realiza duas ou três ações. Inadequado: realiza uma ação OU não realiza ação alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 2: Pergunta sobre as queixas principais relevantes para o estabelecimento da condição do caso: (1) inchaço ou edema; (2) febre, (3) dor, (4) tempo da evolução destes sintomas. Adequado: pergunta o três ou quatro itens. Parcialmente adequado: pergunta dois itens. Inadequado: pergunta um item OU não pergunta item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 3: Pergunta sobre os fatores associados e potencialmente desencadeantes do quadro atual: (1) viagens, traumas ou contatos com insetos; (2) medicação utilizada ou medicação de uso contínuo ou sobre tratamento prévio; (3) alergias; (4) doença(s) de base do paciente (antecedente pessoal). Adequado: pergunta os quatro itens. Parcialmente adequado: pergunta dois ou três itens. Inadequado: pergunta um item OU não pergunta item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 4: Verbaliza corretamente a hipótese diagnóstica: (1) presença de processo inflamatório (sinais flogísticos) e/ou infeccioso; (2) hipótese da celulite periorbitária/ orbitária ou celulite em região de órbita ou celulite pré-septal/celulite pós-septal. Adequado: verbaliza os dois itens. Parcialmente adequado: verbaliza apenas um item OU verbaliza corretamente o item (1) e verbaliza o item (2) apenas como “celulite”. Inadequado: não verbaliza item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 5: Solicita exames laboratoriais: (1) hemograma; (2) proteína C reativa ou VHS ou procalcitonina. (3) Hemocultura. Adequado: solicita os três exames. Parcialmente adequado: solicita o exame (1). Inadequado: não solicita o item (1) OU não solicita exame algum. Obs.: serão considerados apenas os três primeiros exames citados pelo(a) participante. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 6: Solicita tomografia das órbitas ou do crânio ou da cabeça: Adequado: solicita. Inadequado: não solicita OU solicita Raio X OU ultrassonografia OU solicita algum outro exame complementar OU solicita a tomografia sem especificar o local (órbitas/crânio/cabeça). Obs.: será pontuado apenas se a tomografia for o primeiro exame de imagem solicitado pelo(a) participante.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 7: Indica a internação da criança: Adequado: indica. Inadequado: não indica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 8: Explica a importância da tomografia para diferenciar duas condições clínicas: (1) lesões/alterações pré e pós-septais; (2) celulite orbitaria como sinal inicial de neoplasias ou de gravidade maior. Adequado: explica uma ou mais condições clínicas. Inadequado: não explica condição clínica alguma.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 9: Indica antibioticoterapia parenteral (endovenosa, intramuscular): Adequado: indica Inadequado: não indica OU indica a antibioticoterapia por via oral.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 10: Explica as possíveis complicações da doença: (1) abscesso cerebral, ou epidural, ou subdural, ou subperiostal; (2) acometimento do nervo óptico ou neuropatia óptica ou neurite óptica; (3) acometimento do nervo trigeminal; (4) ceratite; (5) endoftalmite; (6) meningite; (7) osteomielite; (8) perda visual ou acometimento visual ou cegueira; (9) sepse; (10) trombose de seio cavernoso; (11) uveíte; (12) morte ou óbito; (13) abcesso de face; (14) cefaleia secundária; (15) abcesso orbitário. Adequado: cita três ou mais complicações. Parcialmente adequado: cita duas complicações. Inadequado: cita uma complicação OU não cita complicação alguma. (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 1: Apresentação: (1) cumprimenta a paciente e/ou fala o seu nome; (2) pergunta o motivo da consulta ou a queixa principal da paciente. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,1 ponto)",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 2: Pergunta sobre outros sinais ou sintomas: (1) ressecamento vaginal; (2) dispareunia (dor ou desconforto na relação sexual) OU mudança no desejo sexual; (3) ressecamento de pele; (4) queda de cabelo; (5) sintomas emocionais, alterações cognitivas e depressão Adequado: pergunta três ou mais itens. Parcialmente adequado: pergunta dois itens. Inadequado: pergunta um item OU não pergunta item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 3: Indica exames ginecológicos e/ou questiona se a paciente os fez recentemente: (1) mamografia; (2) citologia oncótica cervical (ou papanicolaou ou preventivo); (3) ecografia endovaginal (USG sinônimos). Adequado: indica ou questiona os três itens. Inadequado: indica ou questiona um ou dois itens OU não indica ou questiona item algum. Obs.: a referência a exames de forma genérica não será considerada para fins de pontuação.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 4: Pergunta sobre os hábitos de vida: (1) atividade física; (2) alimentação; (3) tabagismo; (4) etilismo; (5) estresse. Adequado: pergunta três ou mais itens. Parcialmente adequado: pergunta um ou dois itens. Inadequado: não pergunta item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 5: Pergunta sobre possíveis comorbidades e doenças pré-existentes que podem influenciar o tipo de prescrição médica: (1) fenômenos tromboembólicos (ou fenômenos cardiovasculares ou enxaqueca com aura); (2) câncer de mama (ou câncer de endométrio); (3) hipertensão arterial sistêmica; (4) diabetes; (5) doenças hepáticas (qualquer doença hepática); (6) câncer de ovário. Adequado: pergunta três ou mais itens. Parcialmente adequado: pergunta um ou dois itens. Inadequado: não pergunta sobre item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 6: Define a condição clínica de climatério (OU menopausa OU síndrome climatérica OU sintomas vasomotores do estado menopausal): Adequado: define. Inadequado: não define.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 7: Solicita exames hormonais para a confirmação de síndrome climatérica: Adequado: não solicita. Inadequado: solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 8: Orienta a paciente sobre: (1) alimentação equilibrada; (2) prática de atividade física; Adequado: orienta os dois itens. Inadequado: orienta um item OU não orienta item algum.",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 9: Informa sobre os possíveis benefícios da TH, que pode ajudar a melhorar os seguintes pontos: (1) fogachos; (2) síndrome urogenital; (3) labilidade emocional; (4) padrão de sono; (5) perfil lipídico; (6) prevenção da osteoporose. Adequado: informa quatro ou mais itens. Parcialmente adequado: informa três itens. Inadequado: informa dois ou menos itens OU não informa item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 10: Informa a paciente sobre os principais efeitos adversos da TH: (1) mastalgia; (2) sangramento uterino irregular; (3) cefaleia. Adequado: informa dois ou mais itens. Inadequado: informa um item OU não informa item algum.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 11: Informa a paciente sobre a necessidade de realização de controle ginecológico anual com realização de mamografia e de ultrassonografia endovaginal: Adequado: informa. Inadequado: não informa.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 12: Indica terapêutica da seguinte maneira: Estrogênio e progesterona (progestágeno contínuo ou cíclico), sendo aceita prescrição que oriente administração por via oral ou por via transdérmica para estrogênio e por via oral para progesterona. Adequado: indica o uso de (1) estrogênio + progesterona OU (2) Tibolona. Inadequado: não indica progesterona associada ao estrogênio.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 13: Orienta que, caso ela não deseje usar TH, existe a possibilidade de uso de neuromoduladores ou de fitoterápicos para alívio dos sintomas. Adequado: orienta. Inadequado: não orienta.",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 1: Apresenta-se: (1) cumprimenta o paciente simulado; (2) identifica-se; (3) dirige-se a ele pelo nome, pelo menos uma vez. Adequado: realiza as três ações. Parcialmente adequado: realiza apenas duas ações. Inadequado: realiza apenas uma ação ou não realiza ação alguma. (parcialmente adequado: 0,125 ponto)",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 2: Estabelece contato empático com o paciente: (1) mantém contato visual ao longo da consulta; (2) mantém postura ativa e interessada ao longo da consulta; (3) acolhe e tranquiliza o paciente quanto aos medos dele. Adequado: realiza as três ações. Parcialmente adequado: realiza duas ações. Inadequado: realiza uma ação OU não realiza ação alguma. (parcialmente adequado: 0,125 ponto)",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 3: Mantém o diálogo respeitoso com o paciente. (1) escuta a fala do paciente sem interrompê-lo; (2) responde às perguntas do paciente. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,125 ponto)",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 4: Utiliza linguagem acessível com o paciente simulado, evitando termos técnicos de difícil compreensão: Adequado: utiliza linguagem acessível. Inadequado: não utiliza linguagem acessível.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 5: Demonstra e verbaliza o passo a passo do preparo da insulina: (1) higienizar as mãos com água e sabão, ou com álcool; (2) limpar a tampa do frasco usando algodão com álcool; (3) rolar, gentilmente, o frasco de insulina entre as mãos para misturá-la (não agitar o frasco); (4) puxar o êmbolo da seringa; (5) inserir a agulha no frasco e injetar o ar da seringa dentro do frasco; (6) sem retirar a agulha, posicionar o frasco com a tampa para baixo; (7) puxar o êmbolo lentamente aspirando a insulina; (8) verificar se existem bolhas de ar; (9) retirar seringa/agulha do frasco. Adequado: demonstra e verbaliza as nove ações. Parcialmente adequado: demonstra e verbaliza seis a oito ações. Inadequado: demonstra e verbaliza cinco ações ou menos OU apenas verbaliza, e não demonstra as ações OU não demonstra nem realiza ação. (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 6: Demonstra a técnica de aplicação da insulina: (1) pinça levemente o local a ser injetado entre dois dedos; (2) introduz a agulha completamente no molde; (3) introduz a agulha em ângulo de 90°; (4) injeta toda a insulina no molde; (5) espera alguns segundos após a aplicação antes de retirar a agulha do molde. Adequado: demonstra as cinco ações. Parcialmente adequado: demonstra três ou quatro ações. Inadequado: demonstra um ou duas ações OU não demonstra ação alguma. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 7: Informa sobre o armazenamento da insulina: (1) deve-se manter refrigerada a insulina sobressalente que não está em uso (o frasco fechado, lacrado ou ainda sem uso); (2) após aberto, o frasco pode ser mantido em temperatura ambiente ou em refrigeração; (3) a insulina não deve ser congelada; (4) a insulina armazenada na geladeira deve ser colocada nas prateleiras do meio, ou nas prateleiras da parte inferior, ou na gaveta de verduras — longe das paredes; (5) deve-se armazenar a insulina em sua embalagem original, acondicionada em recipiente plástico ou de metal com tampa. Adequado: informa três ou mais itens. Parcialmente adequado: informa um ou dois itens. Inadequado: não informa item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 8: Informa os cuidados com a seringa e com a agulha: (1) a seringa e a agulha podem ser reaproveitadas pela mesma pessoa, desde que não tenham sido contaminadas; (2) após o uso, a seringa deve ser “recapada” pela própria pessoa; (3) não se deve higienizar a agulha com álcool. Adequado: informa dois ou três itens. Parcialmente adequado: informa um item. Inadequado: não informa item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 9: Informa sobre o descarte de seringa e de agulhas: (1) o descarte deve ser realizado em um recipiente próprio para material perfurocortante (fornecido pela unidade básica de saúde — UBS), ou em um recipiente rígido resistente (ex.: frasco de amaciante); (2) o recipiente cheio deve ser entregue em locais destinados para recolher esse tipo de material (ex.: UBS ou farmácia). Adequado: informa os dois itens. Parcialmente adequado: informa um item. Inadequado: não informa item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 10: Assinala, na figura, os locais de aplicação da insulina: (1) braços (parte externa e superior); (2) coxas (parte anterior e lateral); (3) região abdominal; (4) região glútea. Adequado: assinala três ou quatro locais. Parcialmente adequado: assinala dois locais. Inadequado: assinala um local OU não assinala local algum. Obs. CAB 36, Min. Saúde. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 11: Informa sobre a importância da alternância de local de aplicação da insulina (para prevenção de lipodistrofia/ lipohipotrofia). Adequado: informa. Inadequado: não informa.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 12: Informa sobre os sinais ou sintomas de hipoglicemia: (1) fome; (2) tontura ou vertigem; (3) fraqueza ou mal-estar; (4) cefaleia; (5) confusão; (6) coma ou inconsciência; (7) convulsão; (8) cansaço; (9) visão turva ou dilatação pupilar; (10) sudorese ou pele úmida e fria; (11) taquicardia ou palpitação; (12) sensação desagradável de apreensão ou ansiedade ou irritabilidade; (13) mudança de humor e de comportamento; (14) tremor; (15) dormência ou formigamento nos lábios e na língua; (16) calafrios; (17) náuseas ou vômitos; (18) postura de decorticação; (19) desmaio ou lipotimia; (20) sensação de morte iminente; (21) hipotensão; (22) sonolência. Adequado: informa seis ou mais itens. Parcialmente adequado: informa quatro ou cinco itens. Inadequado: informa três ou menos itens OU não informa item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 13: Informa sobre o tratamento de hipoglicemia: (1) ingerir carboidratos de absorção rápida, tais como duas colheres de chá de açúcar, ou 100 mL de suco de fruta ou refrigerante, ou um copo de água com uma colher de sopa de açúcar, ou duas balas, ou uma colher de sopa de mel; (2) caso o paciente não consiga engolir, orientar acompanhante a colocar açúcar ou mel embaixo da língua do paciente ou entre a gengiva e a bochecha, ou aplicar glucagon (injetável). Adequado: informa as duas ações. Parcialmente adequado: informa uma ação. Inadequado: não informa ação alguma. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   }
+  ],
+  "total": 99.5,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_PEP_publicacao.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_prova_habilidades_clinicas.pdf",
   "fonte_espelho": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_1_PEP_publicacao.pdf",
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2024",
   "nota": "",
-  "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "textoSituacao": "sem-pdf"
  },
  {
   "id": "inep-2024-ac4",
@@ -43468,16 +44421,532 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2024/2 - 2ª etapa",
   "enunciado": "INEP · 2024 · Revalida - 2ª etapa (habilidades clínicas) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_2_prova_habilidades_clinicas.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/revalida_2024_2_pep_definitivo.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2024\nObservação: PEP (Padrão Esperado de Procedimentos) - espelho oficial das estações de habilidades clínicas.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 1: Apresentação: (1) identifica-se; e, (2) cumprimenta o paciente simulado e pergunta seu nome. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 2: Pergunta a existência de outros sinais, ou sintomas associados, que sejam relevantes para o estabelecimento de diagnósticos diferenciais: (1) sintomas gripais (tosse, expectoração, coriza, obstrução nasal); (2) mialgia (OU dor muscular OU dor nos músculos); (3) artralgia (OU dor articular); (4) diarreia (OU alteração no aspecto das fezes); (5) náuseas; (6) queixas oftalmológicas (hiperemia OU conjuntivite OU olho vermelho); e, (7) icterícia (OU olho amarelo OU pele amarela). Adequado: investiga quatro ou mais itens. Parcialmente adequado: investiga de um a três itens. Inadequado: não investiga item algum. (parcialmente adequado: 0,4 ponto)",
+    "pontos": 0.75
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 3: Pergunta sobre: (1) fatores de melhora; e, (2) fatores de piora. Adequado: pergunta os dois itens. Parcialmente adequado: pergunta apenas um item. Inadequado: não pergunta item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 4: Pergunta sobre a história patológica pregressa: (1) comorbidades; (2) medicações; e, (3) alergias. Adequado: pergunta os três itens. Parcialmente adequado: pergunta um ou dois itens. Inadequado: não pergunta item algum. (parcialmente adequado: 0,4 ponto)",
+    "pontos": 0.75
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 5: Investiga sinais de alarme ou choque: (1) dor abdominal; (2) vômitos; (3) rebaixamento de sensório; (4) lipotimia; (5) irritabilidade; (6) acúmulo de líquido em cavidades; (7) sangramentos ou manchas na pele; e, (8) hipotensão. Adequado: pergunta quatro ou mais sintomas. Parcialmente adequado: pergunta dois ou três sintomas. Inadequado: pergunta um sintoma ou não pergunta sintoma algum. (parcialmente adequado: 0,4 ponto)",
+    "pontos": 0.75
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 6: Investiga história epidemiológica: (1) viagens recentes; (2) contato com água de enchente (OU água parada OU foco de água parada); (3) contato com rato OU capivara OU carrapato; (4) mosquitos nos ambientes que frequenta; (5) familiares e ou vizinhos com os mesmos sintomas. Adequado: investiga três ou mais itens. Parcialmente adequado: investiga um ou dois itens. Inadequado: não investiga item algum. (parcialmente adequado: 0,4 ponto)",
+    "pontos": 0.75
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 7: Solicita hemograma. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 8: Realiza a prova do laço, obedecendo as etapas a seguir: (1) coloca o manguito do tensiômetro no braço do ator; (2) descreve a insuflação do manguito até o valor médio da PA (PAS+PAD)/2; (3) descreve que deixará o manguito insuflado por 5 minutos; e, (4) descreve que desenha um quadrado de 2,5 cm de lado no antebraço e conta o número de petéquias na área. Adequado: realiza a prova, seguindo todas as etapas. Inadequado: não realiza ou não segue todas as etapas.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 9: Verbaliza o diagnóstico de dengue sem sinais de alarme (OU Grupo A). Adequado: verbaliza o diagnóstico e a gravidade. Parcialmente adequado: verbaliza o diagnóstico de dengue, sem especificar gravidade. Inadequado: não verbaliza o diagnóstico de dengue ou verbaliza, mas com gravidade diferente do grupo A. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 10: Orienta repouso e hidratação oral (com ou sem menção ao volume e composição adequados dos líquidos para reposição). Adequado: orienta as duas condutas. Parcialmente adequado: orienta apenas uma conduta. Inadequado: não orienta conduta alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 11: Orienta uso de paracetamol e/ou dipirona para dor e febre. Adequado: orienta. Inadequado: não orienta.",
+    "pontos": 0.75
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 12: Orienta a não utilizar anti-inflamatórios não esteroidais (AINEs) ou AAS. Adequado: orienta ao menos uma medicação. Inadequado: não orienta nenhuma medicação.",
+    "pontos": 0.75
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 13: Orienta sobre sinais de alarme: (1) dor abdominal; (2) vômitos; (3) alteração de consciência; e, (4) sangramentos Adequado: orienta os quatro sinais. Parcialmente adequado: orienta dois ou três sinais. Inadequado: orienta um sinal ou não orienta sinal algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 1 (CLÍNICA MÉDICA) — item 14: Verbaliza a necessidade de notificação do caso no SINAN. Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 1: Apresenta-se: (1) identifica-se; e, (2) pergunta o nome e cumprimenta o paciente simulado. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,1 ponto)",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 2: Pergunta características da dor. (1) início e/ou duração; (2) tipo / característica; (3) localização e irradiação; (4) intensidade; (5) fatores agravantes / de piora; (6) fatores atenuantes /de melhora; (7) episódios prévios de dor no membro acometido. Adequado: pergunta as cinco ou mais características. Parcialmente adequado: pergunta três ou quatro características. Inadequado: pergunta uma ou duas características OU não pergunta característica alguma. (parcialmente adequado: 0,35 ponto)",
+    "pontos": 0.7
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 3: Questiona a presença dos seguintes sintomas associados no MIE: (1) palidez OU alteração da cor do membro; (2) frialdade (poiquilotermia) ou alteração de temperatura; (3) parestesia / formigamento/ alteração da sensibilidade; (4) alteração de mobilidade OU dificuldade para caminhar; (5) edema. Adequado: investiga quatro ou mais sintomas. Parcialmente adequado: investiga dois ou três sintomas. Inadequado: investiga apenas um sintoma OU não investiga sintoma algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 4: Pergunta sobre antecedentes e queixas prévias: (1) palpitações OU doenças cardíacas; (2) histórico de trauma e/ou lesão em pele; (3) histórico de claudicação; (4) doenças prévias (comorbidades) e uso de medicamentos; (5) hábitos de vida (uso de drogas lícitas e ilícitas, atividade física). Adequado: investiga quatro ou mais antecedentes. Parcialmente adequado: investiga três antecedentes. Inadequado: investiga dois ou menos OU não investiga antecedente algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 5: Verbaliza hipótese diagnóstica de oclusão/obstrução ou interrupção arterial aguda. Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 6: Solicita os exames laboratoriais: (1) hemograma completo; (2) coagulograma completo ou fatores de coagulação; (3) função renal (creatinina e ureia); (4) marcadores de lesão celular (CPK e/ou mioglobina). Adequado: solicita três exames ou mais. Parcialmente adequado: solicita dois exames. Inadequado: solicita um exame OU não solicita exame algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 7: Solicita ECG e/ou ecocardiograma. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 8: Solicita algum dos seguintes exames de imagem de MI: (1) arteriografia; (2) angiotomografia; (3) USG Doppler; (4) angiorressonância magnética. Adequado: solicita qualquer um dos exames listados. Inadequado: não solicita nenhum dos exames citados.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 9: Identifica corretamente a causa (etiologia) como sendo secundária a embolia de origem cardíaca (Fibrilação atrial). Adequado: identifica como sendo secundária a embolia de origem cardíaca (Fibrilação atrial). Parcialmente adequado: identifica como sendo por uma embolia arterial (sem especificar o coração/Fibrilação atrial) OU devido Fibrilação atrial (sem especificar a embolia). Inadequado: não identifica a causa (etiologia) ou identifica de forma incorreta. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 10: Indica o uso imediato de terapia anticoagulante / anticoagulação: (1) com heparina; (2) por via endovenosa; (3) com início imediato após o diagnóstico. Adequado: indica os três itens. Parcialmente adequado: indica dois itens, obrigatoriamente incluindo o item 1. Inadequado: indica somente 1 item ou não indica nenhum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 11: Orienta o manejo adequado do membro afetado: (1) evitar a elevação do membro (manter em declive) OU manter repouso; (2) proteção térmica do membro (“aquecer” o membro com faixa e algodão ortopédico); e (3) controle da dor. Adequado: orienta os três manejos. Parcialmente adequado: orienta dois manejos. Inadequado: orienta apenas um manejo OU não orienta manejo algum. (parcialmente adequado: 0,4 ponto)",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 2 (CIRURGIA GERAL) — item 12: Orienta encaminhamento imediato OU urgente para cirurgia vascular / angiologista ou para intervenção endovascular / hemodinâmica. Adequado: orienta o encaminhamento. Inadequado: não orienta o encaminhamento.",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 1: Apresenta-se: (1) Identifica-se; (2) Cumprimenta a mãe de maneira adequada/cordial; (3) Mantém contato visual durante sua apresentação; (4) Pergunta o nome da mãe e o nome da criança. Adequado: realiza as quatro ações. Parcialmente adequado: realiza duas ou três ações. Inadequado: realiza uma ação OU não realiza ação alguma. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 2: Sobre o diagnóstico da distopia testicular e/ou criptorquidia: Adequado: Dá o diagnóstico de testículo não palpável ou criptorquidia ou ausência testicular na bolsa escrotal, não descenso E explica a possível posição intra abdominal ou inguinal. Parcialmente adequado: Dá o diagnóstico de testículo não palpável ou criptorquidia ou ausência testicular na bolsa escrotal, não descenso testicular, MAS não explica a posição do testículo. Inadequado: Não dá o diagnóstico de testículo não palpável ou criptorquidia ou ausência testicular na bolsa escrotal, não descenso testicular ou apenas cita que a bolsa escrotal está vazia. (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 3: Cita possíveis complicações da criptorquidia: (1) infertilidade; (2) torção testicular; (3) atrofia testicular / diminuição do volume testicular; (4) malignidade (câncer) / tumor / neoplasia; (5) persistência do conduto peritoneovaginal que pode gerar hidrocele, hidrocele comunicante, hérnia inguinal, hérnia inguinal indireta; (6) insuficiência de produção de andrógenos, déficit na produção de testosterona, atraso puberal, disfunção hormonal e necessidade de reposição hormonal. Adequado: cita duas ou mais complicações. Parcialmente adequado: cita uma complicação. Inadequado: não cita complicação alguma. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 4: Indicação de exame de imagem: ultrassonografia abdominal /ultrassonografia de região inguino-escrotal/tomografia de abdome/ressonância magnética de abdome: Adequado: não indica. Inadequado: indica. Obs.: não é indicada a realização de exames de imagem do tipo ultrassonografia, tomografia ou ressonância magnética antes do encaminhamento para avaliação com cirurgião pediatra.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 5: Elenca possíveis complicações / fatores de risco que possam indicar tratamento intervencionista para Fimose: (1) infecção do trato urinário / pielonefrite; (2) balanite / balanopostite / inflamação peniana; (3) malformação do trato urinário associada. (4) parafimose/ estrangulamento de glande, (5) obstrução ao fluxo urinário causada pela presença de um prepúcio punctiforme e obstrutivo/ balonamento; (6) não resolução espontânea da fimose após os 3 anos de idade. Adequado: elenca 3 complicações. Parcialmente adequado: elenca 1 ou 2 complicações. Inadequado: não elenca complicações. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 6: Sobre a conduta para fimose fisiológica e a impossibilidade de exposição da glande: Adequado: orienta apenas sobre cuidados locais de higiene. Inadequado: orienta a realização de “massagens” ou uso de pomada ou redução do prepúcio ou ainda o tratamento cirúrgico.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 7: Sobre a conduta a ser adotada para criptorquidia: (1) Explica a mãe sobre o diagnóstico. (2) Encaminha para atendimento especializado (cirurgia pediátrica, endocrinologia pediátrica ou geneticista ou urologia pediátrica). Adequada: executa duas condutas. Parcialmente adequada: executa apenas uma conduta. Inadequado: não executa conduta alguma. (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 3 (PEDIATRIA) — item 8: Indica manutenção do seguimento na UBS: marcação de retorno, retornar com o médico na unidade, segue com consultas de puericultura. Adequado: indica. Inadequado: não indica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 1: Apresenta-se: (1) Cumprimenta a paciente e/ou fala o seu nome; e, (2) Pergunta mais algum elemento de identificação da anamnese como idade, ou profissão. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,1 ponto)",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 2: Pergunta sobre sinais e sintomas: (1) Tempo (início); (2) Evolução (ou frequência ao longo do tempo); (3) Quantidade; (4) Duração deste sangramento de hoje; (5) Associação a dor; (6) Associação a contrações; (7) Fatores desencadeantes; (8) Fatores amenizadores; e, (9) Presença de movimentos fetais. Adequado: pergunta cinco ou mais sinais e sintomas. Parcialmente adequado: pergunta três ou quatro sinais e sintomas. Inadequado: pergunta um ou dois, ou não pergunta sinal ou sintoma algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 3: Solicita o cartão de pré-natal da paciente. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 4: Pergunta sobre histórico gestacional: (1) quantidade de gestações prévias; (2) quais foram os tipos de partos (cesarianos ou normais); e, (3) histórico de abortamentos. Adequado: pergunta os três itens. Parcialmente adequado: pergunta dois itens. Inadequado: pergunta um item ou não pergunta item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 5: Solicita o exame físico / ginecológico da paciente informando os seguintes parâmetros: (1) Frequência cardíaca materna; (2) Pressão arterial. Adequado: solicita os dois parâmetros. Parcialmente Adequado: solicita um parâmetro. Inadequado: não solicita parâmetro algum. (parcialmente adequado: 0,2 ponto)",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 6: Solicita o exame físico / ginecológico da paciente informando os seguintes parâmetros: (1) Coloração OU Ectoscopia de mucosas; (2) Estática fetal/ posição/ Leopold. Adequado: solicita os dois parâmetros. Parcialmente Adequado: solicita um parâmetro. Inadequado: não solicita parâmetro algum. (parcialmente adequado: 0,2 ponto)",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 7: Solicita o exame físico / ginecológico da paciente informando os seguintes parâmetros: (1) Frequência cardíaca fetal (BCF); (2) Exame especular – características do sangramento. Adequado: solicita os dois parâmetros. Parcialmente Adequado: solicita um parâmetro. Inadequado: não solicita parâmetro algum. (parcialmente adequado: 0,3 ponto)",
+    "pontos": 0.6
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 8: Solicita o exame físico / ginecológico da paciente informando os seguintes parâmetros: (1) Tônus uterino; (2) Contrações uterinas (dinâmica uterina). Adequado: solicita os dois parâmetros. Parcialmente Adequado: solicita um parâmetro. Inadequado: não solicita parâmetro algum. (parcialmente adequado: 0,2 ponto)",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 9: Solicita a realização de exame de toque vaginal: Adequado: não solicita OU contraindica. Inadequado: solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 10: Define a hipótese diagnóstica como placenta prévia centro-total ou placenta prévia total. Adequado: define o diagnóstico completo. Parcialmente adequado: menciona apenas o termo placenta prévia. Inadequado: não define o diagnóstico de placenta prévia, ou específica incorretamente o diagnóstico de placenta prévia (como parcial, lateral ou outra forma diferente da correta) que é total ou centro-total. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 11: Solicita exames complementares essenciais para decidir a conduta para o quadro: (1) Hemograma; (2) Função renal (Ureia e/ou Creatinina); (3) Coagulograma; (4) Tipagem sanguínea; Adequado: solicita os quatro exames. Parcialmente adequado: solicita três exames. Inadequado: solicita um ou dois exames ou não solicita exame algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 12: Formula diagnósticos diferenciais: (1) Vasa prévia; (2) Ruptura de seio marginal; (3) Pólipo cervical; (4) Cervicite; (5) Tumores de colo; (6) Ectropia cervical; (7) Descolamento prematuro da placenta. Adequado: formula quatro ou mais diagnósticos diferenciais. Parcialmente adequado: formula dois ou três diagnósticos diferenciais. Inadequado: formula um diagnóstico ou não formula diagnóstico algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 13: Indica a internação da paciente. Adequado: indica. Inadequado: não indica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 14: Indica o uso de corticoide para a maturidade fetal. Adequado: indica. Inadequado: não indica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 15: Indica o uso de imunoglobulina anti-D. Adequado: indica. Inadequado: não indica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (GINECOLOGIA E OBSTETRÍCIA) — item 16: Indica que a via de Parto (se mantendo a placenta centro total) deverá ser cesariana. Adequado: indica. Inadequado: não indica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 1: Apresenta-se: (1) cumprimenta a paciente simulada; (2) identifica-se; e, (3) dirige-se a ela pelo nome, pelo menos uma vez. Adequado: realiza as três ações. Parcialmente adequado: realiza apenas duas ações. Inadequado: realiza apenas uma ação ou não realiza ação alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 2: Demonstra empatia com a paciente: (1) estabelece contato visual; e, (2) mantém postura atenta e interessada ao longo da consulta. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,15 ponto)",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 3: Escuta ativamente a fala da paciente, sem interrompê-la. Adequado: realiza a ação. Inadequado: não realiza a ação.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 4: Usa linguagem acessível com a paciente simulada, evitando termos técnicos de difícil compreensão. Adequado: utiliza linguagem acessível. Inadequado: não utiliza linguagem acessível.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 5: Pergunta se a paciente teve contato direto com: (1) animais ou insetos; (2) produtos químicos; (3) plantas alergênicas. Adequado: pergunta os três itens. Parcialmente adequado: pergunta um ou dois itens. Inadequado: não pergunta item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 6: Pergunta sobre as características da dor: (1) tempo desde o início do quadro; (2) tipo de dor; (3) localização e irradiação; (4) intensidade ou graduação; (5) fatores de melhoria; (6) fatores de agravamento; e, (7) uso de medicamentos. Adequado: pergunta cinco ou mais características. Parcialmente adequado: pergunta três ou quatro características. Inadequado: pergunta uma ou duas características ou não pergunta característica alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 7: Pergunta sobre as características das manifestações locais: (1) evolução da lesão cutânea desde o início do quadro; e, (2) linfoadenopatia. Adequada: pergunta sobre as duas manifestações locais. Parcialmente adequado: pergunta sobre uma manifestação local. Inadequado: não pergunta manifestação alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 8: Pergunta sobre manifestações sistêmicas: (1) cefaleia; (2) mal-estar; (3) náuseas ou vômito ou dor abdominal; e, (4) gengivorragia ou equimoses espontâneas ou traumáticas ou epistaxe ou hematúria ou hematêmese ou hemoptise. Adequado: pergunta quatro manifestações. Parcialmente adequado: pergunta três manifestações. Inadequado: pergunta uma ou duas manifestações ou não pergunta sobre manifestação alguma. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 9: Verbaliza o diagnóstico de acidente com lagarta: Adequado: verbaliza. Parcialmente adequado: verbaliza acidente com animal peçonhento. Inadequado: não verbaliza. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 10: Indica ou propõe a prescrição de: (1) analgésico; (2) anti-histamínico sistêmico; (3) infiltração local com anestésico do tipo lidocaína 2% sem vasoconstritor. Adequado: realiza duas ou mais ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 11: Explica à paciente: (1) Sobre a necessidade de encaminhamento para serviço hospitalar de referência para so roterapia de acide ntes por animais peçonhentos; (2) A potencial gravidade ou risco de morte pelo acidente lonômico. Adequado: explica os dois itens. Parcialmente adequado: explica um item. Inadequado: não explica item algum. (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 5 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 12: Notifica o caso. Adequado: notifica. Inadequado: não notifica.",
+    "pontos": 1.25
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 1: Apresentação: (1) identifica-se; e, (2) cumprimenta o paciente simulado e pergunta seu nome. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 2: Realiza a avaliação 1 a do NIHSS: Adequado: avalia se o paciente está alerta, falando com ele(a). Inadequado: não avalia se o paciente está alerta.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 3: Realiza a avaliação 1 b do NIHSS. Pergunta: (1) idade do paciente; e (2) em que mês estamos. Adequado: pergunta os dois itens. Parcialmente adequado: pergunta apenas um item. Inadequado: não pergunta item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 4: Realiza a avaliação 1 c do NIHSS. Solicita que o paciente: (1) abra e feche os olhos e (2) abra e feche a mão. Adequado: realiza as duas solicitações. Parcialmente adequado: realiza apenas uma solicitação. Inadequado: não solicita nenhuma das duas ações. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 5: Realiza a avaliação 2 do NIHSS. Pede que o paciente movimente os olhos hori zontalmente para os dois lados (olhar para a direita e para a esquerda). Adequado: avalia a movimentação para os dois lados. Parcialmente adequado: avalia a movimentação para um lado. Inadequado: não avalia a movimentação ocular. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 6: Realiza a avaliação 3 do NIHSS. Avalia os campos visuais (superiores e inferiores). Adequado: avalia os quatro quadrantes. Inadequado: não avalia os quatro quadrantes.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 7: Realiza a avaliação 4 do NIHSS. Pede que o paciente sorria (ou mostre os dentes) e feche os olhos com força. Adequado: faz as duas solicitações. Parcialmente adequado: faz apenas uma solicitação. Inadequado: não faz nenhuma dessas solicitações. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 8: Realiza a avaliação 5 do NIHSS. Solicita que o paciente sustente os braços a 90°, com as palmas das mãos para baixo. Adequado: realiza com ângulo E posicionamento das mãos adequados. Parcialmente adequado: realiza com ângulo OU posicionamento das mãos inadequados. Inadequado: não realiza a pesquisa OU a faz com ângulo E posicionamento das mãos inadequados. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 9: Realiza a avaliação 6 do NIHSS. Solicita que o paciente sustente as pernas a 30°, em extensão. Adequado: realiza com ângulo E extensão adequados. Parcialmente adequado: realiza com ângulo OU extensão inadequados. Inadequado: não realiza a pesquisa OU a faz com ângulo E extensão inadequados. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 10: Realiza a avaliação 7 do NIHSS. Solicita que o paciente faça o teste index-nariz OU calcanhar-joelho. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 11: Realiza a avaliação 8 do NIHSS. Testa a sensibilidade do paciente. Adequado: testa. Inadequado: não testa.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 12: Realiza a avaliação 9 do NIHSS. Solicita que o paciente descreva a imagem. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 13: Realiza a avaliação 10 do NIHSS. Solicita que o paciente leia (ou repita) a lista de palavras. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 14: Totaliza corretamente a escala NIHSS. Verbaliza total de 10 pontos. Adequado: totaliza corretamente. Inadequado: não totaliza ou totaliza com outro valor.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 15: Solicita TC, ou tomografia, ou tomografia computadorizada, ou ressonância, ou ressonância magnética de crânio SEM CONTRASTE. Adequado: solicita. Parcialmente adequado: solicita COM CONTRASTE. Inadequado: não solicita. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (CLÍNICA MÉDICA) — item 16: Solicita outros exames complementares: (1) Eletrocardiograma; (2) Glicemia capilar; (3) Hemograma; (4) Coagulograma (TAP / INR e TTPA); (5) Potássio e sódio; (6) Ureia e creatinina; (7) Troponina. Adequado: solicita ao menos cinco exames. Inadequado: solicita menos que cinco exames.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 1: Apresentação: (1) identifica-se e cumprimenta o paciente simulado; (2) pergunta algum dado de identificação (idade, estado civil, profissão). Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação. Inadequado: não realiza ação alguma. (parcialmente adequado: 0,15 ponto)",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 2: Pergunta sobre características da dor: (1) início ou duração; (2) tipo; (3) irradiação; (4) intensidade; (5) fatores de piora e/ou melhora. Adequado: investiga quatro ou mais características. Parcialmente adequado: investiga três características. Inadequado: investiga duas ou menos características ou não investiga nenhuma. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 3: Pergunta sobre os sintomas associados ao quadro clínico (choque hipovolêmico): (1) tontura; (2) fraqueza; (3) alterações do nível de consciência (desmaio, confusão mental, agitação); (4) extremidades frias (pele úmida e fria); (5) sede; (6) oligúria (diminuição da diurese); (7) falta de ar ou dispneia. Adequado: investiga cinco ou mais achados. Parcialmente adequado: investiga quatro achados. Inadequado: investiga três ou menos achados ou não investiga nenhum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 4: Solicita exame físico Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 5: Realiza o exame físico abdominal, testando e identificando as seguintes alterações: (1) dor à palpação difusa; (2) dor mais intensa em Quadrante Superior Esquerdo; (3) ausência de dor à descompressão brusca ou sem sinais de irritação peritoneal. Adequado: identifica as três alterações. Parcialmente adequado: identifica duas alterações. Inadequado: identifica uma ou nenhuma das alterações. (parcialmente adequado: 0,6 ponto)",
+    "pontos": 1.2
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 6: Formula o diagnóstico clínico como choque hipovolêmico/ abdome agudo hemorrágico secundário a trauma abdominal fechado OU contuso. Adequado: verbaliza que há choque hipovolêmico / abdome agudo hemorrágico secundário a trauma abdominal fechado OU contuso. Parcialmente adequado: verbaliza somente o choque hipovolêmico OU somente o trauma abdominal fechado OU contuso. Inadequado: não verbaliza nenhum dos itens. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 7: Baseado nos achados clínicos e de exame físico, inicia o tratamento do choque hipovolêmico. Adequado: indica reposição volêmica com soro fisiológico ou ringer OU solução cristaloide. Parcialmente adequado: indica o tratamento, mas não especifica com deverá ser feita a reposição. Inadequado: não indica o tratamento do choque hipovolêmico ou indica reposição de sangue e hemoderivados de imediato. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 8: Solicita exames laboratoriais: (1) Hematócrito e hemoglobina OU hemograma completo OU hemograma; (2) Gasometria arterial; (3) Lactato; (4) Tipagem sanguínea. Adequado: solicita os três ou mais exames acima. Parcialmente adequado: solicita dois exames. Inadequado:solicita um ou não solicita exame algum. Obs: o(a) participante só irá pontuar caso cite os exames listados ANTES de receber o impresso. Só serão considerados os seis primeiros exames citados pelo participante ANTES de receber o impresso. (parcialmente adequado: 0,35 ponto)",
+    "pontos": 0.7
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 9: Solicita a ultrassonografia de abdome ou FAST. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 10: Formula diagnóstico final de trauma esplênico (de baço) ou lesão esplênica (do baço). Adequado: formula. Inadequado: não formula.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 11: Solicita prova cruzada OU reserva de sangue OU transfusão sanguínea. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.7
+   },
+   {
+    "quesito": "Estação 7 (CIRURGIA GERAL) — item 12: Indica o tratamento cirúrgico de urgência OU laparotomia exploradora de u rgência OU esplenec tomia de u rgência OU encaminhamento urgente para o cirurgião. Adequado: indica. Inadequado: não indica ou indica o tratamento cirúrgico sem especificar sua urgência. Obs: só será considerado correto se for enfatizada a urgência do caso.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 1: Apresenta-se: (1) identifica-se; (2) cumprimenta a mãe de maneira adequada/cordial; (3) mantém contato visual durante sua apresentação com a mãe; (4) pergunta o nome da mãe e o nome da criança. Adequado: realiza as quatro ações. Parcialmente adequado: realiza duas ou três ações. Inadequado: realiza uma ação OU não realiza ação alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 2: Pergunta sobre o motivo da consulta e as queixas principais como: (1) dor; (2) febre / calafrio/ sudorese; (3) diarreia; (4) vômito / náuseas; (5) cansaço / fadiga, astenia, fraqueza; (6) cefaleia; (7) convulsão; (8) manchas na pele; (9) alterações na urina (disuria, polaciuria, hematúria, nictúria, noctúria); (10) tontura; (11) alteração no crescimento; (12) irritabilidade; (13) sonolência; (14) palpitações; (15) edema. Adequado: pergunta três queixas. Parcialmente adequado: pergunta duas queixas. Inadequado: pergunta uma queixa OU não pergunta queixa alguma. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 3: Questiona sobre os fatores de risco para hipertensão na infância, como: (1) prematuridade / idade gestacional abaixo de 32 semanas; (2) baixo peso ao nascer; (3) internação na Unidade de Terapia Intensiva Neonatal (UTIN); (4) problema cardíaco / doença cardiovascular; (5) problema renal / alteração urinária / fatores relacionados a glomerulonefrite pós estreptocócica; (6) outras doença(s) crônica(s) / diabetes mellitus/ câncer; (7) doenças renais familiares; (8) hipertensão juvenil de algum membro da família; (9) uso de medicação atual e continuamente; (10) sobrepeso /obesidade; (11) doenças genéticas: neurofibromatose ou síndrome de Turner ou síndrome de Williams ou coarctação de aorta; (12) padrão de sono/ apneia do sono; (13) hábitos alimentares inadequados ou não saudáveis; (14) falta da realização de atividade física; sedentarismo. Adequado: verbaliza quatro fatores. Parcialmente adequado: verbaliza dois ou três fatores. Inadequado: verbaliza um fator OU não verbaliza fator algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 4: Pergunta sobre a condição da paciente antes de medição da PA: (1) ficou sentada e/ou tranquila antes do exame; (2) esvaziou a bexiga antes da consulta; (3) correu, pulou ou fez alguma atividade física na última hora. Adequado: verbaliza duas condições. Parcialmente adequado: verbaliza uma condição. Inadequado: não verbaliza sobre as condições ou verbaliza alguma outra condição. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 5: Explica o exame para a mãe da criança simulada. Adequado: Explica. Inadequado: Não explica.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 6: Posicionamento / preparo da paciente: (1) verbaliza que o braço deve ficar ao nível do coração; (2) verbaliza que a palma da mão deverá ficar voltada para cima; (3) retira a camiseta ou solicita que a mãe retire a camiseta ou ergue a manga de modo que não garroteia o membro ou verbaliza que a camiseta deve ser retirada. (4) verbaliza que a medida é preferencialmente no braço direito; (5) verbaliza que o paciente deve estar deitado ou sentado, com pernas descruzadas, pés apoiados no chão, dorso recostado na cadeira e relaxado. Adequado: realiza três ações. Parcialmente adequado: realiza duas ações corretamente. Inadequado: não realiza ação alguma ou realiza apenas uma. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 7: Escolha do tamanho do manguito: (1) Mede e/ou verbaliza a distância do acrômio ao olécrano; (2) Identifica e/ou descreve o ponto médio da distância entre o acrômio e o olécrano; (3) Mede e/ou verbaliza a circunferência do braço nesse ponto médio; (4) Seleciona o manguito correto (manguito n.º 2 - largura de 8 a 10 cm). Adequada: realiza quatro ações corretamente. Parcialmente adequado: realiza duas a três ações corretamente. Inadequado: realiza uma ou nenhuma ação corretamente. Obs: não é necessário verbalizar os termos acrômio e olecrano. Pode ser verbalizado do ombro ao cotovelo. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 8: Verbaliza e/ou faz o posicionamento inicial do esfigmomanômetro e do estetoscópio para aferição da pressão: (1) verbaliza e/ou coloca o esfigmomanômetro/manguito corretamente no braço (posição do velcro e direção do manguito) 2 a 3 cm acima da fossa cubital; (2) verbaliza e/ou posiciona a campanula ou o diafragma do estetoscópio sobre fossa anticubital / cubital ipsilateral; ou sobre a artéria braquial. Adequado: realiza os dois procedimentos. Inadequado: realiza um ou nenhum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 9: Interpreta os valores pressóricos obtidos como alterados / elevados para a idade da criança. Adequado: Interpreta como pressão alterada/elevada ou hipertensão estágio 1. Inadequado: não interpreta ou interpreta incorretamente.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 8 (PEDIATRIA) — item 10: Conduta final: (1) não fecha o diagnóstico de hipertensão ainda; (2) orienta medidas não farmacológicas (peso, dieta, atividade física); (3) solicita retorno para nova medida de pressões em 1 a 2 semanas. Adequado: realiza as três ações. Parcialmente adequado: realiza duas ações. Inadequado: realiza uma ou nenhuma ação. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 1: Apresenta-se: (1) cumprimenta a paciente com empatia e/ou fala o seu nome; (2) pergunta mais algum elemento de identificação como idade ou profissão. Adequado: realiza as duas ações. Inadequado: realiza uma ação ou não realiza ação alguma.",
+    "pontos": 0.1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 2: Pergunta sobre a violência sexual: (1) tempo transcorrido desde a violência sofrida; (2) local onde ocorreu; (3) se conhecia o agressor; (4) de que maneira foi o abuso (penetração vaginal, oral ou anal ou outra OU uso de preservativo); e, (5) se houve algum ferimento ou agressão física. Adequado: pergunta os cinco itens. Parcialmente adequado: pergunta três ou quatro itens. Inadequado: pergunta um ou dois itens ou não pergunta item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 3: Pergunta sobre história clínica/ginecológica/obstétrica: (1) quantidade de gestações prévias; (2) data da última menstruação; (3) uso de método contraceptivo; (4) alergia a medicações; (5) medicação de uso contínuo OU comorbidades; e, (6) tempo desde a última relação sexual. Adequado: pergunta cinco ou mais itens. Parcialmente adequado: pergunta três ou quatro itens. Inadequado: pergunta um ou dois itens ou não pergunta item algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 4: Orienta que o Boletim de Ocorrência (BO): (1) não é necessário para o atendimento médico. (2) é um direito da paciente realizar BO. Adequado: orienta os dois itens. Parcialmente adequado: orienta um item. Inadequado: não orienta item algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 5: Orienta sobre a importância de coleta de material vaginal para fins legais. Adequado: orienta. Inadequado: não orienta.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 6: Solicita o cartão OU caderneta de vacinas. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 7: Solicita exames laboratoriais para acompanhamento do caso: (1) Hemograma; (2) Transaminases (TGO/TGP); e, (3) Teste de Gravidez ou Beta HCG. Adequada: solicita os três exames. Parcialmente Adequado: solicita dois exames. Inadequado: solicita um exame ou não solicita exame algum. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 8: Orienta vacinação de HPV, pois paciente é vitima de violência sexual com menos de 45 anos. Adequado: orienta vacinação de HPV. Inadequado: não orienta. Conforme item 14.6 do Edital, a pontuação correspondente ao item será atribuída a todos os participantes, inclusive aos que não tenham interposto recurso.",
+    "pontos": null
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 9: Solicita exames séricos: (1) HIV (Teste rápido ou Sorologia); (2) Sífilis (VDRL ou Teste rápido); (3) Anti-HCV; e, (4) HBS Ag / Anti-Hbs. Adequado: solicita os quatro exames. Parcialmente adequado: solicita dois ou três exames. Inadequado: solicita um exame ou não solicita exame algum. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 10: Orienta a contracepção de emergência: (1) Levonorgestrel 1,5mg ou 2 comprimidos de 0,75mg – via oral. (2) Método Yuzpe (anticoncepcional oral com Etinilestradiol 30μg/150μg de levonorgestrel: 4 comprimidos de 12/12h ou 8 comprimidos em dose única). (3) inserção de DIU de cobre. Adequado: orienta um dos itens. Parcialmente adequado: orienta a contracepção de emergência de forma incompleta (pílula do dia seguinte ou pílula de progesterona ou pílula de estrogênio e progesterona, sem definição de dosagens). Inadequado: não orienta contracepção de emergência. Obs.: caso o(a) participante mencione apenas contracepção de forma geral, considerar inadequado (já que existem opções de contraceptivos que seriam prescritas neste caso). (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 11: Indica a profilaxia contra ISTs Não Virais: (1) Ceftriaxona; (2) Azitromicina; e, (3) Penicilina Benzatina ou Benzetacil. Adequado: indica as três medicações. Parcialmente adequado: indica duas medicações. Inadequado: indica uma medicação ou não indica medicação alguma. Obs.: considerar inadequado se o(a) participante mencionar Metronidazol para início de imediato. Caso o participante mencione o metronidazol e deixe claro que deveria ser feito posteriormente, não haverá invalidação do item. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 12: Indica profilaxia contra HIV: (1) Tenofovir [TDF]; (2) Lamivudina [3TC]; e, (3) Dolutegravir [DTG]. Adequado: indica os três medicamentos. Parcialmente adequado: indica um ou dois medicamentos ou indica de forma incompleta (antiretroviral ou profilaxia contra HIV, sem especificar medicações). Inadequado: não indica medicamento algum. (parcialmente adequado: 0,75 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 13: Oferece atendimento psicológico. Adequado: oferece. Inadequado: não oferece.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 14: Orienta o seguimento médico. Adequado: oferece. Inadequado: não oferece.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (GINECOLOGIA E OBSTETRÍCIA) — item 15: Verbaliza a necessidade de notificação do caso ao SINAN. Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 0.9
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 1: Posturas gerais com a paciente: (1) apresenta-se; (2) cumprimenta a paciente (dirige-se a ela pelo nome, pelo menos 1 vez); (3) mantém postura empática e interessada (escuta ativamente a fala da paciente, sem interrompê-la); e, (4) comunica-se adequadamente (usa linguagem clara e acessível, evitando termos de difícil compreensão). Adequado: realiza as quatro ações descritas. Parcialmente adequado: realiza pelo menos duas ações. Inadequado: realiza menos de duas ou não realiza nenhuma das ações descritas. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 2: Pergunta sobre sintomas gerais: (1) febre; (2) mal-estar; (3) dores no corpo; (4) dor lombar; (5) náuseas ou vômitos. Adequado: pergunta pelo menos dois sintomas. Parcialmente adequado: pergunta pelo menos um sintoma geral. Inadequado: não pergunta sobre sintomas gerais. (parcialmente adequado: 0,12 ponto)",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 3: Pergunta sobre sintomas urinários. (1) disúria; (2) polaciúria; (3) noctúria; (4) mal odor na urina; (5) hematúria. Adequado: pergunta sobre pelo menos três sintomas. Parcialmente adequado: pergunta sobre pelo menos dois sintomas. Inadequado: pergunta sobre apenas um ou não pergunta sobre nenhum desses sintomas. (parcialmente adequado: 0,12 ponto)",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 4: Pergunta sobre características da dor: (1) intensidade; (2) local; (3) característica da dor (tipo); (4) irradiação; (5) tempo de instalação dos sintomas; (6) progressão dos sintomas; (7) fatores de melhora; (8) fatores de piora. Adequado: pergunta sobre pelo menos seis dessas características. Parcialmente adequado: pergunta sobre pelo menos quatro dessas características. Inadequado: pergunta apenas três ou menos do que três dentre essas características. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 5: Questiona sobre a vida sexual e ciclo menstrual: (1) início das relações sexuais; (2) dor nas relações sexuais; (3) uso de preservativo durante a atividade sexual; (4) uso de anticoncepcionais; (5) data da última menstruação; (6) comportamento sexual (parcerias múltiplas e/ou novas parcerias); (7) histórico de infecções sexualmente transmissíveis (ISTs). Adequado: questiona sobre pelo menos seis desses itens. Parcialmente adequado: questiona sobre apenas cinco desses itens. Inadequado: questiona apenas quatro ou menos itens. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 6: Questiona sobre a presença de: (1) leucorreia; (2) sangramento vaginal; (3) aspecto da secreção vaginal; (4) odor da secreção vaginal. Adequado: questiona sobre os quatro itens. Parcialmente adequado: questiona apenas sobre três desses itens. Inadequado: questiona sobre até dois ou não questiona nenhum desses itens. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 7: Verbaliza o diagnóstico de doença inflamatória pélvica: Adequado: verbaliza o diagnóstico completo. Inadequado: verbaliza o diagnóstico incompleto ou não verbaliza.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 8: Responde/Explica a paciente sobre o contágio sexual: (1) responde/explica que a infecção pode ou não ser uma doença sexualmente transmissível; (2) explica que o momento da contaminação para algumas bactérias não pode ser precisado; (3) acolhe as dúvidas da paciente e estimula o diálogo entre a paciente e o companheiro, sem julgamentos. Adequado: realiza as três ações. Parcialmente adequado: realiza apenas duas dessas ações. Inadequado: realiza uma ou não realiza nenhuma dessas ações. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 9: Indicações/recomendações: (1) tratamento ambulatorial; (2) recomenda repouso; (3) recomenda abstinência sexual; (4) fornece atestado; (5) marca retorno. Adequado: realiza pelo menos três ações. Parcialmente inadequado: realiza pelo menos duas ações. Inadequado: realiza uma ou menos ações. (parcialmente adequado: 0,25 ponto)",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 10: Orienta o tratamento indicando as medicações: (1) Ceftriaxone ou cefotaxima ou levofloxacino; (2) Metronidazol; (3) Doxaciclina ou Azitromicina. Adequado: indica os três medicamentos (um de cada grupo). Parcialmente adequado: indica apenas duas medicações corretas. Inadequado: indica apenas uma medicação ou esquemas inadequados. (parcialmente adequado: 1,0 ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 11: Recomenda analgésicos ou anti-inflamatórios via oral. Adequado: realiza a ação. Inadequado: não realiza a ação.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 12: Recomenda o tratamento do parceiro com antibióticos. Adequado: recomenda. Inadequado: não recomenda.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 13: Solicita exames para IST, ou teste rápido, para: (1) HIV; (2) Sifilis; (3) Hepatite B; (4) Hepatite C. Adequado: solicita os quatro exames. Parcialmente adequado: solicita pelo menos três exames. Inadequado: não solicita exames para IST, ou teste rápido. (parcialmente adequado: 0,5 ponto)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 10 (MEDICINA DA FAMÍLIA E COMUNIDADE) — item 14: Recomenda o uso de preservativos nas relações sexuais. Adequado: recomenda. Inadequado: não recomenda.",
+    "pontos": 0.5
+   }
+  ],
+  "total": 99.5,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/revalida_2024_2_pep_definitivo.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2024_2_prova_habilidades_clinicas.pdf",
   "fonte_espelho": "https://download.inep.gov.br/revalida/provas_e_gabaritos/revalida_2024_2_pep_definitivo.pdf",
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2024",
   "nota": "",
-  "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "textoSituacao": "sem-pdf"
  },
  {
   "id": "inep-2023-ac1",
@@ -43494,8 +44963,93 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2023/1 - Exame Nacional de Revalidação de Diplomas Médicos",
   "enunciado": "INEP · 2023 · Revalida - prova discursiva (1ª etapa) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_1_PV_discursiva_regular.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_1_PEP_discursiva_definitivo.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2023\nObservação: Padrão de resposta oficial do Inep, com critérios de pontuação por quesito. Edição 2023/1.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Q1.a) Presença de hérnia de hiato por deslizamento ou hérnia hiatal (ou hérnia de hiato)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q1.b) Metaplasia de Barrett ou esôfago de Barrett",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q1.c) Adenocarcinoma (ou carcinoma adenocelular ou tumor adenocarcinomatoso ou neoplasia adenocarcinomatosa ou carcinoma glandular)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Q1.d.i) Medidas comportamentais: cessar tabagismo (0,25); reduzir consumo de álcool/bebidas alcoólicas (0,25); adotar medidas dietéticas: evitar café (0,25) e alimentos ácidos/apimentados/muito temperados (0,25); eliminar gordura ou perder peso (0,25); evitar bebidas gasosas (0,25); elevar cabeceira de cama (0,5); evitar deitar-se 2h pós-jantar/evitar ingerir alimentos antes de deitar-se (0,5)",
+    "pontos": 2.5
+   },
+   {
+    "quesito": "Q1.d.ii) Medida medicamentosa: bloqueio de secreção ácida gástrica, principalmente por meio do uso de inibidor de bomba de prótons",
+    "pontos": 2.5
+   },
+   {
+    "quesito": "Q2.a) Diagnóstico provável: câncer de esôfago / neoplasia de esôfago / adenocarcinoma de esôfago / tumor de esôfago / carcinoma de esôfago / tumor maligno de esôfago / neoplasia maligna de esôfago / carcinoma escamoso de esôfago / carcinoma epidermoide de esôfago / CEC de esôfago",
+    "pontos": 4
+   },
+   {
+    "quesito": "Q2.b) Biópsia/histologia/histopatológico da lesão esofágica/lesão ulcerada/lesão esofageana ou tumor esofágico/tumor ulcerado (desde que citada a biópsia da lesão esofágica, o aditivo dos termos EDA/endoscopia/esofagoduodenoscopia não implica perda do ponto)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q2.c) Citar quatro das seguintes condutas terapêuticas (1,0 ponto cada): 1- ressecção cirúrgica exclusiva/esofagectomia exclusiva; 2- ressecção cirúrgica + quimioterapia; 3- quimioterapia exclusiva/quimioterapia paliativa; 4- quimioterapia (ou quimiorradioterapia) neoadjuvante seguida de cirurgia; 5- jejunostomia (por qualquer via e de qualquer tipo); 6- gastrostomia (por qualquer via e de qualquer tipo); 7- sonda nasoenteral para alimentação; 8- quimiorradioterapia exclusiva; 9- substituição esofágica (estômago, jejuno, cólon ou prótese/stent); 10- nutrição parenteral para recuperação nutricional ou até definição de outra via alimentar; 11- imunoterapia",
+    "pontos": 4
+   },
+   {
+    "quesito": "Q3.a) Duas hipóteses diagnósticas: 1. candidose ou candidíase ou monilíase mamária (1,0); 2. trauma mamilar ou erro de técnica com trauma mamilar ou mamilos machucados ou fissura mamilar (1,0)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q3.b.1) Candidose (candidíase, monilíase) — fatores predisponentes: excesso de umidade (0,3) e lesão/trauma dos mamilos (0,3); uso, pela mulher, de antibióticos (0,3), contraceptivos orais (0,3) e esteroides (0,3). Manejo medicamentoso: mãe e bebê tratados simultaneamente; tratamento inicialmente local com nistatina, clotrimazol, miconazol ou cetoconazol tópicos por duas semanas; se o tratamento tópico não for eficaz, fluconazol por 14 a 18 dias, via oral (0,7); para a criança, nistatina suspensão oral ou miconazol gel oral (0,5). Manejo não medicamentoso: enxaguar os mamilos e secá-los ao ar livre após as mamadas e expô-los à luz por alguns minutos por dia (0,3)",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q3.b.2) Trauma mamilar por erro de técnica ou mamilos machucados — fatores predisponentes (1,0; citar pelo menos 5 de 8, 0,2 cada): posicionamento ou pega inadequados; mamilos curtos/planos/invertidos; disfunções orais/cervicais da criança (freio curto lingual, torcicolo); uso impróprio de bombas de extração de leite; retirada durante sucção com técnica inadequada; uso de óleos/cremes que causam alergia no mamilo; uso de protetores mamilares; exposição prolongada a forros úmidos. Manejo — medidas de conforto (2,0): início da mamada pela mama menos afetada (0,1); usar diferentes posições para amamentar (0,2); utilizar conchas protetoras entre as mamadas (0,1); analgésicos sistêmicos por via oral se dor importante (0,1); ordenhar um pouco de leite antes da mamada (0,1); orientação sobre posicionamento adequado (0,6: rosto do bebê de frente para a mama com nariz na altura do mamilo; corpo do bebê próximo ao da mãe; cabeça e tronco alinhados; bebê bem apoiado) e pega adequada (0,6: mais aréola visível acima da boca; boca bem aberta; lábio inferior virado para fora; queixo tocando a mama); se a lesão mamilar é muito extensa, interromper temporariamente a amamentação na mama afetada, com esvaziamento por ordenha manual ou bomba (0,2)",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q3.c) Citar pelo menos 4 orientações gerais (0,5 cada): amamentar com técnica adequada (posicionamento e pega); manter os mamilos secos, expondo-os ao ar livre ou à luz solar, com trocas frequentes dos forros; não usar produtos que retiram a proteção natural do mamilo (sabões, álcool, secantes); evitar ingurgitamento mamário / ordenha manual da aréola antes da mamada; manter o leite ordenhado em congelador por até 15 dias e encaminhar/doar ao banco de leite; introduzir o dedo pela comissura labial da boca do bebê para interromper a mamada; não usar protetores (intermediários) de mamilo; eliminar ou ferver chupetas e bicos de mamadeira por 20 minutos ao menos uma vez ao dia; enxaguar os mamilos com água limpa após cada mamada diante de trauma mamilar; interromper temporariamente a amamentação na mama afetada se lesão muito extensa; compressa fria em casos de ingurgitamento mamário; acompanhamento da amamentação e do crescimento e desenvolvimento da criança pelos profissionais de saúde",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q4.a) Vaginose bacteriana",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q4.b) Enumerar 3 critérios de diagnóstico (1,0 cada): corrimento vaginal homogêneo (corrimento branco-acinzentado); pH > 4,5; presença de clue cells (células-guia) no exame de lâmina a fresco; teste de Whiff positivo (odor fétido das aminas com adição de hidróxido de potássio a 10%)",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q4.c) Gardnerella vaginalis",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q4.d) Citar 2 fatores de risco para recidiva (1,0 cada): múltiplos parceiros sexuais; sexo anal receptivo antes do vaginal; mulheres que fazem sexo com outras mulheres; prática sexual sem preservativo; prática sexual frequente e sem preservativo; prática sexual frequente; uso de ducha vaginal; uso de sabonetes íntimos; uso frequente de antibióticos; uso de roupas íntimas justas, úmidas ou de tecidos sintéticos; resistência bacteriana aos imidazólicos (tratamento anterior inadequado)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q5.a) Apontar 5 itens da história clínica (0,5 cada), entre os seguintes: preocupações em relação à saúde sexual; orientação sexual, identidade de gênero, sexo designado ao nascimento; sexarca; quantidade de parcerias no último ano; relação com homens, mulheres ou ambos; relação com alguém não conhecido nos últimos 3 meses; já foi pressionado a ter relações sexuais; tipo de sexo nos últimos 3 meses (anal, vaginal, oral; receptivo, insertivo ou ambos); uso de produtos e/ou objetos na prática sexual; uso de álcool ou drogas na relação sexual; IST prévia; testagem para HIV, sífilis, hepatites B e C; como se protege de IST incluindo HIV; vacinação contra hepatite B, hepatite A e HPV; desejo de ter filhos / método contraceptivo atual; aspecto do corrimento; sintomas urinários (dor uretral, disúria, estranguria, prurido uretral); lesão genital; linfonodomegalia; parceria com manifestação clínica/sintoma; sintomas sistêmicos (febre, calafrio); uso de medicamento para a condição atual; comorbidades; uso de imunossupressor",
+    "pontos": 2.5
+   },
+   {
+    "quesito": "Q5.b) Clamídia (Chlamydia trachomatis) e Gonorreia ou Gonococo (Neisseria gonorrhoeae) (0,5 cada)",
+    "pontos": 1
+   },
+   {
+    "quesito": "Q5.c) Ceftriaxona 500 mg, IM, dose única MAIS Azitromicina 500 mg, 2 comprimidos, VO, dose única (somente se citar os dois antibióticos associados)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q5.d) Mycoplasma genitalium, Trichomonas vaginalis (T. vaginalis) e Ureaplasma urealyticum",
+    "pontos": 1
+   },
+   {
+    "quesito": "Q5.e) Vacinas: contra hepatite A, contra hepatite B, contra HPV; testagens: para HIV, para sífilis, para hepatite B e para hepatite C (0,5 cada)",
+    "pontos": 3.5
+   }
+  ],
+  "total": 50,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_1_PEP_discursiva_definitivo.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_1_PV_discursiva_regular.pdf",
@@ -43503,7 +45057,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2023",
   "nota": "",
   "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "temEspelhoTexto": true
  },
  {
   "id": "inep-2023-ac2",
@@ -43520,8 +45074,77 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2023/2 - Exame Nacional de Revalidação de Diplomas Médicos",
   "enunciado": "INEP · 2023 · Revalida - prova discursiva (1ª etapa) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_2_PV_discursiva_regular.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_2_PEP_discursiva.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2023\nObservação: Padrão de resposta oficial do Inep, com critérios de pontuação por quesito. Edição 2023/2.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Q1.a) Fibrilação atrial (ou auricular) é o diagnóstico clínico mais provável",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q1.b) Idade (idoso OU idade avançada), hipertensão e diabetes mellitus (1,0 ponto cada)",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q1.c) Condutas: c1- internação hospitalar em unidade de terapia intensiva ou box emergência com monitorização cardíaca (1,0); c2- manejo da obstrução arterial aguda: anticoagulação sistêmica (anticoagulantes orais/venosos) para preservar a perfusão da mão direita e evitar amputação (1,0); c3- realização de trombólise, trombectomia, embolectomia e/ou by-pass arterial (0,5) / solicitação de doppler, angiotomografia, angiorressonância e/ou arteriografia (0,5); c4- avaliação de cirurgião vascular (ou angiologista ou cirurgião cardiovascular) OU encaminhar para centro de referência (1,0); c4- manejo da fibrilação atrial: sem necessidade de cardioversão OU uso de drogas antiarrítmicas, visto que a paciente está assintomática quanto à FA com frequência cardíaca de 60-80 bpm (1,0)",
+    "pontos": 4
+   },
+   {
+    "quesito": "Q2.a) Fatores de risco para neoplasia de pâncreas apresentados: (1) tabagismo, (2) obesidade, (3) diabetes de início recente, (4) idade > 60 anos, (5) sexo masculino, (6) etilismo (0,5 ponto cada, até o máximo de 1,5). Observação do padrão: hipertensão arterial, gastrite, etilismo e anemia não são fatores de risco para neoplasia de pâncreas",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Q2.b) O marcador tumoral CA 19.9 é utilizado para (1,0 cada, até 2,0): auxiliar no diagnóstico clínico; vigilância da evolução (resposta ao tratamento quimioterápico) em pacientes com carcinoma de pâncreas; indicação de laparoscopia; avaliação prognóstica",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q2.c) A massa palpável corresponde à vesícula biliar distendida e palpável OU ao Sinal de Courvoisier-Terrier OU sinal indicativo de neoplasias periampulares",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q2.d) Citar 5 condutas, clínicas ou cirúrgicas (0,9 cada). Clínicas: terapia nutricional (suplementação oral, sonda nasoenteral); reposição de vitamina K; medicações para aliviar o prurido (ursacol, anti-histamínico); analgesia; controle da glicemia; quimioterapia paliativa; quimioterapia exclusiva; quimiorradioterapia; radioterapia exclusiva; imunoterapia. Cirúrgicas/endoscópicas: passagem de prótese biliar; derivação biliodigestiva (coledocojejunoanastomose, hepaticojejunoanastomose, derivação coledocoduodenal); gastroenteroanastomose; coledocojejunoanastomose; jejunostomia alimentar; drenagem biliar percutânea; colecistostomia para drenagem das vias biliares; cirurgia de Whipple (duodenopancreatectomia); drenagem da via biliar com dreno de Kher (laparoscopia ou laparotomia); biópsia da lesão; prótese duodenal; neurólise/alcoolização/bloqueio do plexo celíaco",
+    "pontos": 4.5
+   },
+   {
+    "quesito": "Q3.a) Crise asmática aguda grave OU crise de asma grave ou muito grave (1,0). Justificativa com pelo menos 5 dados clínicos (1,0; 0,20 cada): dispneia importante/desconforto respiratório OU uso de musculatura acessória (tiragens intercostais, batimento de aletas nasais); alteração do sensório (agitação, sonolência, confusão); alteração da fala (pronuncia apenas palavras); frequência cardíaca alta; frequência respiratória alta; baixa saturação de O2 (<90%) OU hipoxemia; diminuição difusa do murmúrio vesicular; PEF <= 50% do previsto; sentar-se inclinado para frente",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q3.b) Momento inicial: não são necessários exames, pois antes de investigar possíveis complicações deve-se complementar o tratamento inicial OU medida do pico de fluxo expiratório (PFE) (1,0). Após a complementação do tratamento, caso o paciente não melhore: hemograma, gasometria arterial (0,5) e Rx de tórax (0,5)",
+    "pontos": 2
+   },
+   {
+    "quesito": "Q3.c) Quatro condutas imediatas (1,5 cada): suplementação com O2 para manter SatO2 > 94%; salbutamol OU beta-2-agonista de curta duração 400-800 mcg (4-10 puffs), mais 2x a cada 20 minutos (1,0 se sem dose); brometo de ipratrópio 80-160 mcg 3x a cada 20 minutos OU anticolinérgico inalatório de curta duração; corticoide VO (1-2 mg/kg/dia) OU EV — prednisolona ou prednisona (1,0 se sem dose); considerar sulfato de magnésio 50-75 mg/kg (1,0 se sem dose); considerar hidratação venosa; reavaliação e reclassificação após início do tratamento, considerando internação se não houver boa resposta; transferência à UTI",
+    "pontos": 6
+   },
+   {
+    "quesito": "Q4.a) Síndrome da anovulação crônica OU síndrome da anovulação crônica hiperandrogênica OU síndrome do(s) ovário(s) policístico(s) OU micropolicistose ovariana OU SOP OU ovário(s) policístico(s)",
+    "pontos": 2.5
+   },
+   {
+    "quesito": "Q4.b) Três achados (1,0 cada): hiperandrogenismo OU hirsutismo OU pilificação aumentada OU escala de Ferriman-Gallwey de 18; oligo-ovulação OU anovulação OU irregularidade menstrual OU amenorreia (secundária) OU disfunção ovulatória; ovários policísticos OU micropolicísticos OU morfologia policística OU ovários acima de 10 cm3 OU mais de 10 folículos por ovário",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q4.c) Diagnósticos diferenciais (0,5 cada, máximo 1,5): gravidez, hipo ou hipertireoidismo, hiperprolactinemia, amenorreia hipotalâmica, hiperplasia adrenal congênita, tumores de ovário, tumores de adrenal, síndrome de Cushing, insuficiência ovariana precoce",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Q4.d) Complicações (1,0 cada, máximo 3,0): resistência insulínica, diabetes mellitus, dislipidemia (ou hiperlipidemia), síndrome metabólica, obesidade, sobrepeso, hipertensão arterial, eventos cardiovasculares (infarto do miocárdio, AVC), infertilidade, abortamento, parto pré-termo, diabetes gestacional, hiperplasia e câncer de endométrio, apneia do sono, esteatose hepática, NAFLD, NASH, cirrose hepática, ansiedade, depressão",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q5.a) Adequado (3,0): infarto agudo do miocárdio (IAM) OU cardiopatia isquêmica (CI) OU síndrome coronariana aguda (SCA) OU infarto agudo do miocárdio com supradesnivelamento de segmento ST de parede anterior (IAMST) OU SCA com supradesnivelamento de ST (SCASST). Parcialmente adequado (1,5): infarto do miocárdio. Inadequado (0,0): infarte, infarto, angina (atípica/típica/instável/estável), dor anginosa, dor torácica, dor no peito, doença coronariana, infarto miocárdico agudo",
+    "pontos": 3
+   },
+   {
+    "quesito": "Q5.b) Medidas de abordagem imediata na UBS: monitorar sinais vitais (nível de consciência, PA, FC, FR e SpO2); oxigênio; oferecer 300 mg de ácido acetilsalicílico (AAS); nitratos; morfina na falha de resposta aos nitratos; acesso venoso calibroso; referenciar para serviço de emergência com transporte seguro o mais precocemente possível. Adequado (4,0): cita de 6 a 7 medidas. Parcialmente adequado (2,0): cita de 3 a 5 medidas. Inadequado (0,0): cita de 1 a 2 medidas ou nenhuma",
+    "pontos": 4
+   },
+   {
+    "quesito": "Q5.c) Em ambulância com suporte avançado de serviço pré-hospitalar OU em ambulância com suporte básico de vida e presença do médico da UBS na equipe de transporte OU em UTI móvel OU em USA. Adequado (3,0): cita pelo menos uma das opções. Parcialmente adequado (2,0): cita transporte em ambulância com suporte básico de vida sem mencionar a presença do médico da UBS. Inadequado (0,0): não cita opção de transporte seguro, encaminha por meios próprios, não encaminha ou dá alta",
+    "pontos": 3
+   }
+  ],
+  "total": 50,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_2_PEP_discursiva.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_2_PV_discursiva_regular.pdf",
@@ -43529,7 +45152,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2023",
   "nota": "",
   "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "temEspelhoTexto": true
  },
  {
   "id": "inep-2023-ac3",
@@ -43546,16 +45169,508 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2023/2 - 2ª etapa",
   "enunciado": "INEP · 2023 · Revalida - 2ª etapa (habilidades clínicas) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_2_prova_habilidades_clinicas.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/PEP_2023_2.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2023\nObservação: PEP (Padrão Esperado de Procedimentos) - espelho oficial das estações de habilidades clínicas.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Estação 1 (Clínica Médica) — item 1: Apresenta-se: (1) Identifica-se; e (2) Cumprimenta o paciente simulado. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma ação. Inadequado: não realiza ação alguma de apresentação.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 1 (Clínica Médica) — item 2: Pergunta sobre as manifestações e suas características: (1) Início ou duração do prurido; e (2) Lesões de pele/solicita ver a lesão. Adequado: investiga os dois itens. Parcialmente adequado: investiga apenas um item. Inadequado: não investiga item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 1 (Clínica Médica) — item 3: Pergunta sobre as manifestações associadas: (1) Febre; (2) Linfadenopatias; (3) Tosse; (4) Dispneia; e (5) Manifestações digestivas ( OU náuseas OU vômitos OU diarreia). Adequado: investiga quatro ou mais itens. Parcialmente adequado: investiga dois ou três itens. Inadequado: investiga apenas um item OU não investiga item algum.",
+    "pontos": 1.25
+   },
+   {
+    "quesito": "Estação 1 (Clínica Médica) — item 4: Pergunta sobre desencadeantes e agravantes: (1) Uso de medicamentos; (2) Alimentos; (3) Produtos de higiene/limpeza/cosméticos; (4) Picadas/ferroadas de insetos/plantas; e (5) Contatos com novas substâncias/joias. (6) Contatos com animais (pelo de gato e/ou de cão); e (7) Estímulos físicos (frio e/ou calor). Adequado: investiga quatro ou mais fatores. Parcialmente adequado: investiga dois ou três fatores. Inadequado: investiga apenas um fator OU não investiga fator algum.",
+    "pontos": 1.75
+   },
+   {
+    "quesito": "Estação 1 (Clínica Médica) — item 5: Pergunta sobre antecedentes pessoais: (1) Doenças prévias (autoimunes; alérgicas; infecciosas); e (2) Uso de drogas lícitas ou ilícitas. Adequado: pergunta os dois itens. Parcialmente adequado: pergunta apenas um item. Inadequado: não pergunta item algum.",
+    "pontos": 0.75
+   },
+   {
+    "quesito": "Estação 1 (Clínica Médica) — item 6: Formula hipótese diagnóstica da lesão de pele. Adequado: formula uma das hipóteses abaixo. (1) Urticária aguda relacionada ao uso de medicamentos (AINEs e analgésico); OU (2) Urticária relacionada ao uso de medicamentos (AINEs e analgésico); OU (3) Farmacodermia; OU (4) Dermatite alérgica medicamentosa; OU (5) Dermatite alérgica induzida por medicamento. Parcialmente adequado: formula uma das hipóteses abaixo. (1) “reação alérgica” relacionada ao uso de medicamentos. OU (2) alergia relacionada ao uso de medicamentos. OU (3) urticária, Inadequado: não verbaliza o diagnóstico correto OU verbaliza de forma inespecífica: “reação alérgica” ou alergia, sem especificar o uso de medicamentos.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 1 (Clínica Médica) — item 7: Conduta médica relacionada a farmacodermia. (1) Suspende o uso das medicações (AINE e analgésico); e (2) Prescreve anti-histamínico oral (associado ou não a um corticoide oral) OBS: corticoide como conduta isolada deve ser considerado inadequado Adequado: indica as duas condutas. Parcialmente adequado: indica apenas uma das duas condutas. Inadequado: não indica qualquer uma das duas condutas OU indica outros grupos de medicamentos (incluindo corticoide isolado).",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 1 (Clínica Médica) — item 8: Recomenda. (1) Retorno se houver persistência ou piora dos sintomas; e (2) Evitar uso futuro de dipirona e AINEs. Adequado: recomenda os dois itens. Parcialmente adequado: recomenda só um item. Inadequado: não recomenda item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 1: Apresentação: (1) Apresenta-se; e (2) Cumprimenta e identifica adequadamente a paciente. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma ação. Inadequado: não realiza ação alguma.",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 2: Pergunta sobre as características da dor: (1) Localização; (2) Tempo de Início; (3) Intensidade; (4) Tipo da dor (5) Progressão; (6) Irradiação; e (7) Fatores desencadeante, de melhora ou de piora da dor. Adequado: pergunta de cinco a sete características. Parcialmente adequado: pergunta três ou quatro características. Inadequado: pergunta duas ou menos características OU não pergunta característica alguma.",
+    "pontos": 0.6
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 3: Realiza anamnese, perguntando por sintomas associados ao diagnóstico: (1) Eliminação de flatos e fezes/mudança do hábito intestinal/diarreia E constipação; (2) Febre; (3) Icterícia/ pele amarelada; (4) Colúria/ urina escura/alteração na cor; (5) Acolia/fezes brancas/claras/alteração na cor ; e (6) Náuseas ou vômitos. Adequado: pergunta cinco ou seis itens. Parcialmente adequado: pergunta três ou quatro itens. Inadequado: pergunta um ou dois itens OU não pergunta item algum.",
+    "pontos": 0.6
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 4: Pergunta por sintomas: (1) Urinários; e (2) Ginecológicos. Adequado: pergunta os dois itens; Parcialmente adequado: pergunta um item; Inadequado: não pergunta item algum.",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 5: Solicita os exames laboratoriais: (1) Hemograma; (2) PCR ou VHS; (3) Bilirrubina total e frações OU bilirrubina total e bilirrubinas direta e indireta (Obs.: se solicitar apenas bilirrubinas de forma genérica, não pontuar); (4) TGO e TGP (ou só TGO ou só TGP); (5) Fosfatase alcalina; (6) GAMA-GT; (7) Ureia; (8) Creatinina; e (9) Glicemia. Adequado: solicita oito ou nove exames. Parcialmente adequado: solicita seis ou sete exames. Inadequado: solicita cinco ou menos exames OU não solicita exame algum.",
+    "pontos": 1.2
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 6: Solicita os exames laboratoriais: (1) Amilase; e (2) Lipase. Adequado: solicita os dois exames. Parcialmente adequado: solicita somente um exame. Inadequado: não solicita exame algum.",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 7: Solicita ultrassom de abdome (OU ultrassonografia de abdome OU ecografia de abdome). Adequado: solicita ultrassom de abdome como primeira opção de exame de imagem. Parcialmente adequado: solicita, mas não como primeira opção de exame de imagem Inadequado: não solicita.",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 8: Realiza hipótese diagnóstica de pancreatite aguda biliar/litiásica/calculosa/por cálculos biliares/. Adequado: verbaliza o diagnóstico completo. Parcialmente adequado: verbaliza o diagnóstico somente de pancreatite aguda, sem citar a etiologia biliar. Inadequado: não verbaliza o diagnóstico de pancreatite aguda.",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 9: Verbalizou os critérios clínico-laboratoriais utilizados para elaborar o diagnóstico de pancreatite: (1) característica da dor em faixa/barra em abdome superior; e (2) aumento de amilase e lipase. Adequado: verbaliza os dois itens Parcialmente adequado: verbaliza um item Inadequado: não verbaliza item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 10: Indica o tratamento clínico: (1) internação hospitalar/sinônimos para internação hospitalar; (2) dieta zero/jejum; (3) hidratação intravenosa/parenteral; (4) analgesia intravenosa/parenteral; e (5) terapia antiemética intravenosa/parenteral. Adequado: indica o item (1) mais três ou quatro outros itens. Parcialmente adequado: indica o item (1) mais dois outros itens. Inadequado: indica o item (1) e mais um item OU não indica o item (1).",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 11: Orienta a necessidade da colecistectomia/retirada da vesícula. Adequado: orienta. Inadequado: não orienta.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 2 (Cirurgia Geral) — item 12: Explica que a colecistectomia deve ser realizada: (1) após a melhora clínica da pancreatite/ sinônimos; e (2) durante a internação atual, caso não apresente complicações. OU antes da alta hospitalar, caso não apresente complicações. Adequado: explica os dois itens. Parcialmente adequado: explica apenas um item. Inadequado: não explica item algum.",
+    "pontos": 0.8
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 1: Apresenta-se. (1) Identifica-se; (2) Cumprimenta a mãe de maneira adequada/cordial; (3) Mantém contato visual; e (4) Pergunta o nome da mãe e o nome da criança. Adequado: realiza as quatro ações. Parcialmente adequado: realiza duas ou três ações. Inadequado: realiza uma ação ou não realiza ação alguma.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 2: Realiza questionamentos acerca do quadro agudo. Investiga os seguintes pontos: (1) Queixa principal: dor local em membro inferior direito; (2) Início / duração dos sintomas; e (3) Presença de sintomas associados (náusea, vômitos, sialorreia, sudorese, palpitação (taquicardia), agitação, parestesia, prostração, dispneia, sonolência, coma, convulsão) . Adequado: investiga os três itens. Parcialmente adequado: investiga o item (2) e mais um item. Inadequado: investiga apenas um item OU não investiga o item (2) OU não investiga item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 3: Questiona quanto a antecedentes / contexto epidemiológico : (1) comorbidades; (2) histórico vacinal; (3) uso de medicamentos; (4) sintomas em vizinhos / outras pessoas da casa; (5) estrutura da casa; e (6) trauma; e (7) presença de insetos no domicílio. Adequado: questiona quatro ou mais itens. Parcialmente adequado: questiona dois ou três itens. Inadequado: questiona um item OU não questiona item algum.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 4: Identifica que o acidente foi causado por escorpião: “escorpião amarelo” ou Tytius serrulatius. Adequado: identifica como escorpião amarelo. Parcialmente adequado: identifica como escorpião, sem especificar espécie. Inadequado: não identifica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 5: Verbaliza alterações do exame físico compatíveis com acidente escorpiônico: (1) Alteração cutânea em membro inferior direito; (2) Taquicardia; e (3) Sialorreia. Adequado: descreve as três alterações. Parcialmente adequado: descreve o item (1) e mais um item OU descreve apenas o item (1). Inadequado: não descreve o item (1).",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 6: Solicita exames laboratoriais. (1) Hemograma; (2) Função renal OU creatinina (Caso o participante cite apenas Ureia não ganhará o ponto); (3) CPK OU CKMB OU CK OU creatinoquinase; (4) Eletrólitos OU potássio sérico OU ionograma OU potássio; (5) Glicemia; (6) Amilase; e (7) Sódio sérico. Adequado: solicita quatro ou mais itens. Parcialmente adequado: solicita dois ou três itens. Inadequado: solicita apenas um item ou não solicita item algum. Observação: considere apenas os 8 primeiros exames citados.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 7: Solicita eletrocardiograma ou ECG. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 8: Classifica a gravidade do acidente escorpiônico e justifica: (1) Classifica como de gravidade moderada; e (2) Justifica pela presença de dor local intensa associada a uma ou mais manifestações (náuseas, vômitos, sudorese, sialorreia, agitação, taquipneia e taquicardia) Adequado: classifica o acidente como de gravidade moderada e justifica. Parcialmente adequado: classifica o acidente como de gravidade moderada e não justifica. Inadequado: não classifica a gravidade OU classifica o acidente como grave ou leve. Observação: Critérios clínicos: A) Leve: dor e parestesia local; B) Moderado: dor local intensa associada a uma ou mais manifestações (náuseas, vômitos, sudorese, sialorreia, agitação, taquipneia e taquicardia) C) Grave: além das manifestações clínicas citadas na forma moderada, há presença de uma ou mais das seguintes manifestações: vômitos profusos e incoercíveis, sudorese profusa, sialorreia intensa, prostração, convulsão, coma, bradicardia, insuficiência cardíaca, edema pulmonar agudo e choque.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 9: Indica a necessidade de internação. Adequado: indica internação. Inadequado: não indica internação.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 10: Indica analgesia venosa ou bloqueio anestésico local. Adequado: indica. Inadequado: não indica analgesia OU indica analgesia via oral.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 11: Indica o uso de soro antiescorpiônico. Adequado: indica uso do soro antiescorpiônico; Inadequado: não indica uso do soro OU indica uso de soro antiaracnídico.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 12: Orienta a mãe quanto aos fatores de risco e às medidas preventivas: (1) Evitar acúmulo de lixo; (2) Evitar deixar a criança andar descalça ou com sapato aberto; (3) Sempre verificar toalhas, roupas de cama e sapatos antes do uso; (4) Evitar deixar crianças sozinhas em locais de risco; (5) Fazer a limpeza do terreno ao redor da casa; (6) Incentivar a presença de predadores naturais, como: galinha, sapo etc.; (7) Dedetizar o local com o intuito de eliminar baratas ou insetos (presas do escorpião); e (8) Evitar que lençóis, cortinas ou toalhas arrastem no chão. (9) Evitar colocar as mãos sem luvas em buracos, sob pedras, troncos podres e em dormentes da linha férrea (10) Vedar frestas e buracos em paredes, assoalhos e vãos entre o forro e a parede. (11) Manter quintais e jardins limpos. (12) Afastar as camas e berços das paredes. (13) Evitar folhagens densas e manter a grama aparada. (14) Não pendurar roupas nas paredes. Adequado: cita quatro ou mais itens. Parcialmente adequado: cita dois ou três itens . Inadequado: cita apenas um item OU não cita item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 3 (Pediatria) — item 13: Notifica o caso. Adequado: notifica. Inadequado: não notifica.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 1: Realiza anamnese dirigida ao histórico da paciente. (1) Histórico de câncer de mama em parentes de primeiro grau; (2) Traumas ou cirurgias mamárias; (3) Histórico de amamentação; e (4) Hábitos de vida (tabagismo, atividade física, drogas, alimentação). Adequado: pergunta os quatro itens. Parcialmente adequado: pergunta dois ou três itens. Inadequado: pergunta apenas um item ou não pergunta item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 2: Realiza anamnese relacionada a sintomas mamários. (1) Dor; (2) Alterações de cor ou rubor; (3) Descarga papilar (OU secreção papilar); (4) Percepção de nódulos (linfonodos aumentados, retrações ou abaulamentos); e (5) Lesões na pele. Adequado: pergunta os cinco itens. Parcialmente adequado: pergunta três ou quatro itens. Inadequado: pergunta dois ou menos itens ou não pergunta item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 3: Observa as mamas. (1) Solicita que a paciente sente na maca; e (2) Solicita a exposição bilateral das mamas. Adequado: inspeciona as mamas bilateralmente (ao mesmo tempo) com a paciente sentada na maca. Inadequado: não inspeciona as mamas bilateralmente OU inspeciona as mamas bilateralmente com a paciente em pé ou deitada OU não inspeciona OU cita a necessidade de realização da inspeção após a palpação.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 4: Realiza a avaliação das mamas a partir de, pelo menos, dois movimentos com os braços da paciente (inspeção dinâmica): (1) Movimento vertical; e (2) Movimento horizontal. Adequado: orienta os dois movimentos. Parcialmente adequado: orienta apenas um dos dois movimentos. Inadequado: não orienta qualquer dos dois movimentos.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 5: Prepara a paciente para o exame de palpação, orienta que a paciente fique: (1) Deitada de barriga para cima; e (2) Com as mãos atrás da cabeça. Adequado: orienta as duas ações. Parcialmente adequado: orienta apenas uma ação. Inadequado: não orienta qualquer das duas ações.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 6: Realiza a palpação das mamas: (1) Palpa as mamas utilizando as duas mãos; e (2) Palpa todas as regiões da mama (quadrantes e região retroareolar) de forma ordenada, seguindo o sentido horário ou anti-horário. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma ação. Inadequado: não realiza nenhuma ação.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 7: Refere a intenção de realizar a palpação das cadeias de linfonodos, incluindo as axilas. Adequado: refere a intenção de palpar os linfonodos. Inadequado: não refere a intenção de palpar os linfonodos.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 8: Ao palpar as mamas, menciona a existência de nódulo. Adequado: menciona a existência do nódulo. Inadequado: não menciona a existência do nódulo. Observação: Como sinônimo de nódulo, aceitam-se os termos “caroço”, “massa” ou “tumor”.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 9: Descreve as características do nódulo. (1) Mobilidade; (2) Consistência fibroelástica; (3) Volume ou tamanho aproximado de 2 cm; e (4) Superfície (formato) regular. Adequado: refere três ou quatro características. Parcialmente adequado: refere uma ou duas características. Inadequado: não refere qualquer das características apresentadas. Observação: Devem ser consideradas corretas as descrições aproximadas ou sinônimos. Por exemplo: para a característica (1) mobilidade, aceita-se “não aderido”. Para a característica (2) consistência fibroelástica, aceita-se “depressível, comprimível, firme mas não dura”. Para a característica (3) volume de 2 cm, aceitam-se comparações com objetos de tamanho e forma similares. Para a característica (4) superfície (formato) regular, aceita-se superfície lisa.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 4 (Ginecologia e Obstetrícia) — item 10: Orienta a realização de mamografia diagnóstica. Adequado: solicita mamografia OU ecografia mamária em função do nódulo palpado. Parcialmente adequado: solicita mamografia OU ecografia mamária mas não relaciona o pedido de mamografia com o achado do nódulo. Inadequado: não solicita mamografia OU ecografia mamária.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 1: Apresenta-se. (1) Cumprimenta a paciente simulada; (2) Identifica-se; (3) Pergunta como é seu nome e dirige-se a ela pelo nome, pelo menos uma vez; (4) Pergunta o motivo do encontro; e (5) Ouve com atenção o motivo do encontro. Adequado: realiza as cinco ações. Parcialmente adequado: realiza de três a quatro ações apenas. Inadequado: realiza até duas ações OU não realiza ação alguma.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 2: Conecta-se à paciente. (1) Mantém contato visual ao longo da consulta; (2) Mantém postura ativa e interessada ao longo da consulta; e (3) Valida empaticamente os sentimentos da paciente simulada (ex.: frustação, raiva e indignação). Adequado: realiza as três ações. Parcialmenteadequado: realiza duas ações apenas. Inadequado: realiza uma ação OU não realiza ação alguma.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 3: Interage com a paciente. (1) Escuta a fala da paciente simulada sem interrompê-la; e (2) Responde às perguntas dela. Adequado: realiza as duas ações integralmente. Parcialmente adequado: realiza apenas uma das ações integralmente. Inadequado: interrompe a fala da paciente simulada mais de uma vez e não responde às perguntas dela.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 4: Usa linguagem acessível com a paciente simulada, evitando termos técnicos de difícil compreensão. Adequado: utiliza linguagem acessível. Inadequado: não utiliza linguagem acessível.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 5: Comporta-se profissionalmente. (1) Competência atitudinal; (2) Falas não discriminatórias; (3) Responsabilidade, desculpando-se em nome da equipe; e (4) Compromisso em conversar com a gerência da UBS e/ou com os responsáveis por comportamento discriminatório, em reunião de equipe, se for o caso, advogando em defesa de ambiente respeitoso e ético, fomentando tratamento digno, profissional e seguro a todas as pessoas que busquem cuidados na UBS. Adequado: apresenta os quatro comportamentos. Parcialmente adequado: apresenta dois OU três comportamentos. Inadequado: não apresenta comportamento algum OU apresenta somente um comportamento OU usa termos pejorativos e lesbofóbicos em sua fala.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 6: Conduz a consulta utilizando os atributos nucleares da APS. (1) Acesso; (2) Integralidade; (3) Longitudinalidade; e (4) Coordenação do cuidado. Adequado: utiliza os quatro atributos. Parcialmente adequado: utiliza dois OU três atributos. Inadequado: utiliza apenas um atributo da APS OU não utiliza atributo algum.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 7: Realiza avaliação global por meio das seguintes ações: (1) Verifica a realização prévia de exame citopatológico; (2) Questiona se houve realização de exames intravaginais OU se há a utilização de lubrificantes OU de espermicidas OU de medicamentos vaginais OU qual é a história de relações sexuais com preservativo nas últimas 48 horas; (3) Investiga antecedentes pessoais obstétricos OU cirurgias pélvicas; (4) Investiga ISTs OU infecção por HPV; (5) Identifica a data da última menstruação; e (6) Identifica presença de queixas relacionadas a corrimentos vaginais OU sangramentos vaginais OU dor na relação sexual. Adequado: realiza de cinco a seis ações. Parcialmente adequado: realiza três OU quatro ações. Inadequado: realiza duas ações OU realiza apenas uma ação OU não realiza ação alguma.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 8: Explica a importância da realização do exame de Papanicolau. (1) O câncer de colo de útero tem evidência para rastreamento OU para prevenção; e (2) O câncer de colo de útero é curável se detectado ou diagnosticado precocemente. Adequado: verbaliza os dois itens. Parcialmente adequado: verbaliza apenas um item. Inadequado: não verbaliza item algum.",
+    "pontos": 0.75
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 9: Explica em linhas gerais para a paciente como o exame será realizado citando, no mínimo: (1) Posição da paciente: deitada; e (2) Via de coleta: vaginal. Adequado: explica os dois itens. Parcialmente adequado: explica apenas um item. Inadequado: não explica item algum.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 10: Indica a realização do exame citopatológico. Adequado: indica. Inadequado: não indica.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 11: Explica os critérios de indicação nesse caso: (1) Idade a partir de 25 anos; e (2) Já teve ou tem atividade sexual . Adequado: explica os dois critérios. Parcialmente adequado: explica um critério. Inadequado: não explica critério algum.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 12: Utiliza o princípio da captação oportunística indicando a realização do exame citopatológico no momento da consulta. Adequado: coleta o exame OU encaminha a paciente para a sala de coleta (com médico(a) ou enfermeiro(a)) no momento da consulta. Inadequado: encaminha a paciente para outro serviço OU para outro nível de atenção (ex.: consulta com ginecologista) OU a encaminha para agendamento.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 13: Orienta a paciente sobre a periodicidade de realização do exame citopatológico. Os dois primeiros exames devem ser feitos com intervalo de um ano e, se os resultados forem normais, os próximos exames devem ser realizados a cada três anos. Adequado: orienta a paciente. Inadequado: não orienta paciente OU orienta a periodicidade incorreta. ASSISTÊNCIA À SAÚDE DA MULHER LÉSBICA",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 14: Oferta teste rápidos. (1) HIV; (2) Hepatite B; (3) Hepatite C; e (4) Sífilis. Adequado: oferta os quatro testes rápidos. Parcialmente adequado: oferta dois ou três testes rápidos OU oferta teste rápido sem especificar qual é. Inadequado: não oferta qualquer teste rápido.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 15: Orienta sobre práticas de sexo seguro: (1) Manter unhas curtas E/OU as mãos limpas; (2) Usar métodos de barreira (preservativo vaginal/interno, preservativo peniano/externo, folha de látex/dental dam, luvas cirúrgicas, dedeiras de látex); (3) Usar preservativo nos acessórios sexuais e trocá-lo (ou higienizar o objeto) sempre que cada pessoa for utilizá-lo ou quando houver alternância de uso entre vagina e ânus; (4) Evitar contato com lesões ou com sangue menstrual; e (5) Utilizar lubrificante para diminuir atrito e chance de lesões. Adequado: orienta quatro ou cinco práticas. Parcialmente adequado: orienta duas ou três práticas apenas. Inadequado: orienta apenas uma prática OU não orienta prática alguma.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 16: Utiliza o atributo de abordagem familiar ao aconselhar que a parceria busque cuidados de saúde na UBS. Adequado: aconselha a paciente. Inadequado: não aconselha a paciente.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 17: Investiga a presença de violências por parcerias íntimas. Adequado: investiga. Inadequado: não investiga.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 5 (Medicina da Família e Comunidade) — item 18: Aborda planejamento reprodutivo. Adequado: aborda. Inadequado: não aborda OU indica contraceptivo.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 1: Apresenta-se: (1) Identifica-se; e (2) Cumprimenta a acompanhante. Adequado: realiza as duas ações. Parcialmente adequado: realiza uma ação apenas. Inadequado: não realiza ação alguma.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 2: Pergunta sobre afasia e perda de força em membro superior esquerdo (MSE): (1) Afasia (tempo OU disartria OU nível de consciência); (2) Perda de força MSE (tempo OU se notou perda de força em membro inferior esquerdo (MIE) concomitante OU tremores OU dormência OU sensibilidade a dor no local OU alterações na coordenação motora); e (3) Manifestações associadas (queda, convulsão, febre, vômitos, cefaleia, alterações visuais, alterações do equilíbrio) . Adequado: investiga dois ou mais itens. Parcialmente adequado: investiga apenas um item. Inadequado: não investiga item algum.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 3: Questiona sobre antecedentes pessoais e familiares: (1) Hipertensão; (2) Diabetes; (3) Tabagismo; (4) Uso de drogas (cocaína, anfetamina); e (5) História familiar de AVC. (6) Doenças cardíacas; (7) Distúrbios lipídicos (colesterol alto, dislipidemias); (8) Sedentarismo; e (9) Consumo de álcool. Adequado: questiona quatro ou mais itens. Parcialmente adequado: questiona dois ou três itens. Inadequado: questiona apenas um item OU não questiona item algum.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 4: Solicita exame físico. Adequado: solicita exame físico. Inadequado: não solicita exame físico.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 5: Solicita exames laboratoriais: (1) Hemograma; (2) Glicemia; ((3) Creatininae Ureia OU função renal; (4) Eletrólitos (Na, K); (5) Tempo de protrombina/RNI (ou INR); (6) Tempo parcial de tromboplastina ativada; e (7) Troponina. Adequado: solicita cinco ou mais exames. Parcialmente adequado: solicita três ou quatro exames. Inadequado: solicita um ou dois exames OU não solicita exame algum.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 6: Solicita a tomografia computadorizada de crânio ou ressonância magnética de crânio. Adequado: solicita. Inadequado: não solicita.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 7: Formula hipótese diagnóstica de acidente vascular cerebral (OU encefálico) isquêmico (AVCi, AVC isquêmico, AVE, AVEi). Adequado: formula a hipótese. Inadequado: não formula a hipótese OU formula hipótese de AVCh OU formula hipótese de derrame cerebral OU formula hipótese verbalizando apenas acidente vascular cerebral OU formula hipótese verbalizando acidente vascular cerebral hemorrágico.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 8: Conduta médica inicial: (1) Monitorização; (2) Hidratação venosa; e (3) Internação em box de emergência OU terapia intensiva OU sala vermelha; (4) Oxigenoterapia; (5) Suspensão da dieta oral; (6) Cabeceira a 0º (ou 30º, se vômitos). Adequado: orienta três condutas ou mais condutas. Parcialmente adequado: orienta duas condutas. Inadequado: orienta apenas uma conduta OU orienta conduta incorreta, diferente listadas, OU não orienta conduta alguma.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 6 (Clínica Médica) — item 9: Conduta terapêutica especifica: Controle pressórico (redução parcimoniosa de PA: 10 a 25 % em 24 horas OU < 185 × 110 mmHg). Obs.: caso o candidato cite nitroprussiato venoso não pontuar esse item. Adequado: orientou. Inadequado: não orientou OU orientou redução drástica da PA OU orientou a administração de trombolítico. Obs.: A administração de trombolítico resultará em rebaixamento brusco do nível de consciência, resultando em coma (transformação hemorrágica) - nesse caso considerar inadequado toda a conduta.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 1: Apresenta-se. (1) Identifica-se; e (2) Cumprimenta e identifica o paciente simulado. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma ação. Inadequado: não realiza ação alguma.",
+    "pontos": 0.2
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 2: Realiza anamnese dirigida. (1) Há quanto tempo foi a lesão; e (2) Se o instrumento cortante era sujo/ contaminado. Adequado: pergunta os dois itens. Parcialmente adequado: pergunta apenas um item. Inadequado: não pergunta item algum.",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 3: Pergunta sobre antecedentes. (1) Doenças; (2) Alergias; e (3) Uso de medicações. Adequado: pergunta dois ou mais itens. Parcialmente adequado: pergunta apenas um item. Inadequado: não pergunta item algum.",
+    "pontos": 0.3
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 4: Pergunta sobre o estado vacinal para tétano. Adequado: pergunta. Inadequado: não pergunta.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 5: Descreve as características da ferida. (1) Aguda OU recente OU há 40 minutos; (2) Cortante OU cortocontusa OU incisa; (3) Limpa-contaminada; (4) Aproximadamente de 2 a 5 cm; (5) Superficial; e (6) Sem sangramento. Adequado: descreve quatro ou mais itens. Parcialmente adequado: descreve dois ou três itens. Inadequado: descreve apenas um item OU não descreve item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 6: Explica o procedimento ao paciente. (1) Necessidade de anestesia local; e (2) Necessidade de sutura. Adequado: explica os dois itens. Parcialmente adequado: explica apenas um item. Inadequado não explica item algum.",
+    "pontos": 0.4
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 7: Realiza apropriadamente a etapa inicial de preparo do material. (1) Descreve/Verbalizaa lavagem das mãos/ higienização das mãos ou antissepsia com álcool; (2) Escolha da luva adequada (estéril); (3) Utilização da técnica correta para calçar as luvas estéreis; (4) Aspiração adequada do anestésico na seringa; e (5) Seleção do fio adequado para sutura da pele (nylon4.0 ou 3.0 ). Adequado: realiza quatro ou mais itens. Parcialmente adequado: realiza três itens. Inadequado: realiza dois ou menos itens OU não realiza item algum.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 8: Realiza adequadamente as etapas do procedimento. (1) Descrever a antissepsia da ferida; (2) Descrever a infiltração local utilizando a técnica adequada; e (3) Descrever curativo oclusivo com gaze e esparadrapo. Adequado: realiza os três itens. Parcialmente adequado: realiza dois itens. Inadequado: realiza apenas um item OU não realiza item algum.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 9: Realizar a sutura obedecendo a técnica cirúrgica preconizada. (1) Utilizar a pinça de dente de rato; (2) Utilizar o porta-agulhas para dar o ponto; (3) Utilizar pontos simples ou tipo Donati; (4) Distância uniforme entre os pontos; (5) Bordas da ferida bem coaptadas; e (6) Nó adequadamente apertado. Adequado: realiza cinco itens ou mais. Parcialmente adequado: realiza três ou quatro itens. Inadequado: realiza dois ou menos itens",
+    "pontos": 2.2
+   },
+   {
+    "quesito": "Estação 7 (Cirurgia Geral) — item 10: Orienta o paciente sobre os cuidados com a ferida. (1) Retirada de curativo após 24- 48 horas; (2) Lavagem com soro fisiológico OU com água limpa e com sabão neutro e enxugá-la com toalha limpa; (3) Retirada de pontos em um período de 7 a 10 dias; (4) Orientar sinais de infecção de ferida (hiperemia, calor, rubor e secreção purulenta); e (5) Manter ferida limpa e seca. Adequado: orienta três ou mais itens. Parcialmente adequado: orienta dois itens. Inadequado: orienta apenas um item OU não orienta item algum.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 1: Apresenta-se: (1) Identifica-se; (2) Cumprimenta a mãe de maneira adequada/cordial; (3) Mantém contato visual; e (4) Pergunta o nome da mãe e o nome da criança. Adequado: efetua as quatro ações. Parcialmente adequado: efetua duas ou três ações. Inadequado: efetua apenas uma ação ou não efetua ação alguma.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 2: Mede o perímetro cefálico do paciente. Adequado: posiciona a fita métrica da proeminência occipital à glabela, sem passar por cima dos olhos do boneco ou pela orelha. Inadequado: mede de maneira diferente da adequada.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 3: Mede o comprimento do paciente. (1) Posiciona o estadiômetro corretamente paralelo à linha da maca; (2) Posiciona com a parte fixa encostada no polo cefálico e com a parte móvel nas pernas; e (3) Solicita auxílio da mãe para retificação dos membros inferiores ou para segurar polo cefálico. Adequado: realiza as três ações. Parcialmente adequado: realiza as ações (1) e (2) e não realiza a (3). Inadequado: não realiza a ação (1) OU não realiza a ação (2).",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 4: Mede o peso do paciente. (1) Cobre a balança com lençol descartável; (2) Retira a fralda do paciente; e (3) Posiciona o bebê deitado OU sentado sobre o centro do prato da balança. Adequado: realiza corretamente os três itens. Parcialmente adequado: realizacorretamente dois itens. Inadequado: realiza corretamente um item ou não realiza corretamente item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 5: Identifica o perímetro cefálico (PC) do paciente. O perímetro cefálico deve ser igual a 46 cm, ou seja, estar entre Z 0 e +1, com margem de erro de 1 cm a mais ou a menos. Adequado: mede corretamente o PC (46 cm) e plota corretamente no gráfico; Inadequado: mede o valor incorretamente OU não plota no gráfico.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 6: Identifica o comprimento do paciente. O comprimento deve ser igual a 75 cm, ou seja, estar entre Z 0 e +2, com margem de erro de 1 cm a mais ou a menos. Adequado: mede corretamente o comprimento (75 cm) e plota corretamente no gráfico. Inadequado: mede o valor incorretamente OU não plota no gráfico.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 7: Pesa o paciente. O pesodeveser igual a 10.000 g, ou seja, entre Z 0 e +1, com margemde erro de 50gpara menos (até 9950g). Adequado: pesa corretamente o peso (10.000 g) e plota corretamente no gráfico. Inadequado: pesa o valor incorretamente OU não plota no gráfico.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 8: Calcula o IMC do paciente. O IMC deve ser igual a 17,77 OU 17,31 OU 18,26 Kg/m², ou seja, estar entre Z 0 e +1. Adequado: calcula corretamente o IMC e plota corretamente no gráfico. Inadequado: calcula o valor incorretamente OU não plota no gráfico.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 9: Avalia o perímetro cefálico (PC) com base nos gráficos. (1) Cita o escore atual; e (2) Conclui que o padrão de curva foi mantido. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas a ação (2). Inadequado: realiza apenas a ação (1) OU não realiza ação alguma.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 10: Avalia o comprimento com base nos gráficos. (1) Cita o escore atual; e (2) Conclui que o padrão de curva foi mantido. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas a ação (2). Inadequado: realiza apenas a ação (1) OU não realiza ação alguma.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 11: Avalia o peso com base nos gráficos. (1) Cita o escore atual; e (2) Conclui que houve queda na curva, mas sem repercussões clínicas. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas a ação (2). Inadequado: realiza apenas a ação (1) OU não realiza ação alguma.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 8 (Pediatria) — item 12: Avalia IMC com base nos gráficos. (1) Cita escore atual; e (2) Conclui que houve variação fisiológica, esperada para lactentes na transição alimentar, mas sem repercussões clínicas OU que a curva está normal, dentro do esperado OU eutrofia. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas a ação (2). Inadequado: realiza apenas a ação (1) OU não realiza ação alguma.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 1: Realiza palpação obstétrica. O(a) participante inicia o exame físico obstétrico, obrigatoriamente, pela palpação do abdome ( ou seja, o começo do exame físico não é com asculta, toque vaginal ou outro parâmetro que não seja palpação de abdome) Adequado: inicia o exame físico pela palpação do abdome. Inadequado: não inicia pela palpação do abdome ou não faz a palpação.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 2: Realiza o primeiro tempo da manobra de Leopold, O(a) participante usa as duas mãos e posiciona-as no fundouterino. Adequado: faz a manobra conforme descrita. Inadequado: não faz a manobra conforme descrita.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 3: Explica o primeiro tempo da manobra de Leopold. (1) Verbaliza que a palpação do fundo uterino corresponde ao primeiro tempo da manobra; e (2) Explica que a primeira manobraserve paraavaliar a situação fetal. Adequado: realiza as duas ações. Parcialmente adequado: realiza somente uma das duas ações. Inadequado: nãorealiza açãoalguma. Obs: é importante nomear as manobras na ordem correta, mas é opcional citar Leopold.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 4: Verbaliza que a situação do feto é longitudinal Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 5: Realiza o segundo tempo da manobra de Leopold. O(a) participante desliza as mãos pelo abdome do fundo uterino até o polo fetal inferior. Adequado: realiza a ação Inadequado: não realiza a ação.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 6: Explica o segundo tempo da manobra de Leopold. (1) Verbaliza que o deslizar das mãos em direção ao polo inferior do útero corresponde à segunda manobra Ou verbaliza que deslizar as mãos no abdome materno procurando sentir o dorso fetal e as pequenas partes fetais corresponde à segundamanobra. ; e (2) Indica que a segunda manobra serve para a avaliação daposição fetal. Adequado: realiza as duas ações. Parcialmente adequado: realiza somente uma das duas ações. Inadequado: nãorealiza açãoalguma. Obs.: é importante nomear as manobras na ordem correta, mas é opcional citar Leopold.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 7: Verbaliza a posição fetal: dorso à esquerda. Adequado: verbaliza dorso à esquerda. Inadequado: não verbaliza dorso à esquerda.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 8: Realiza o terceiro tempo da manobra de Leopold. O(a) participante usa uma das mãos e a coloca em formato de C no polo inferior do útero utilizando a ponta doindicador e o polegar. Adequado: realiza a ação. Inadequado: não realiza a ação.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 9: Explica o terceiro tempo da manobra de Leopold. (1) Verbaliza que a avaliação do polo cefálico (ou pélvico) corresponde à terceira manobra deLeopold; e (2) Verbaliza que a terceira manobra de Leopold serve paraavaliar a apresentaçãofetal. Adequado: verbaliza os dois pontos. Parcialmenteadequado : verbalizaapenas um ponto. Inadequado: nãoverbaliza pontoalgum. Obs.: é importante nomear as manobras na ordem correta, mas é opcional citar Leopold.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 10: verbaliza a apresentação fetal: cefálica Adequado: verbaliza a apresentaçãofetal cefálica. Inadequado: não verbaliza a apresentação fetal cefálica.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 11: Realiza o quarto tempo da manobra de Leopold. (1) Usa as duas mãos; (2) Posiciona as mãos no polo uterino inferior; e (3) Posiciona-se com a cabeça virada para o polo uterino inferior — ficando de costas para a o rosto da paciente. Adequado: realiza as três ações. Inadequado: realiza duas OU realiza uma OU não realiza ação alguma.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 12: Explica o quarto tempo da manobra de Leopold. O(a) participante reconhece a alturaou a mobilidade do polocefálico (oupélvico) e realiza as seguintes ações: (1) Verbaliza que a colocação das mãos sobre o polo cefálico inferior, tracionando-o para cima e em posição contrária à paciente, corresponde ao quarto tempo da manobrade Leopold; e (2) Verbaliza que o quarto tempo da manobra de Leopoldserve paraavaliar a alturaou insinuação fetal. Adequado: verbaliza os dois pontos. Parcialmente adequado: verbaliza apenas um ponto. Inadequado: nãoverbaliza qualquer ponto. Obs.: é importante nomear as manobras na ordem correta, mas é opcional citar Leopold.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 13: Mede a altura uterina: O(a) participante reconhece a alturaou a mobilidade do polocefálico (oupélvico) e realiza as seguintes ações: (1) fixa a extremidade inicial da fita métrica, flexível e não extensível, na borda superior da sínfise púbica com uma das mãos. (2) Posiciona a fita métrica no fundo do útero, delimitado pelamargem cubital da outra mão. Adequado: realiza as duas ações. Inadequado: realiza uma ação OU não realiza ação alguma OU mede incorretamente a altura uterina.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 14: Ausculta dos batimentos cardiacos fetais: O(a) participante posiciona a ponta de ausculta do sonar sobre o dorso fetal (no quadranteinferior à esquerda do abdome da mãe). Adequado: realiza a manobracorretamente. Parcialmente adequado: posiciona o sonar à esquerda doabdome damãe, mas nãono quadrante inferior. Inadequado: Não realiza a manobra corretamente.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 15: Explica a ausculta dos batimentos cardíacos fetais. (1) Verbaliza que usará o sonar para auscultar os batimentos cardíacos fetais; e (2) Explica que irá posicionar o sonar sobre o dorso fetal (OU sobre o quadrante inferior esquerdo do abdome materno). Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma das ações. Inadequado: não realiza ação alguma.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 9 (Ginecologia e Obstetrícia) — item 16: Verbaliza a necessidade de fazer o toque vaginal Adequado: verbaliza. Inadequado: não verbaliza.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 1: Apresenta-se. (1) Cumprimenta o paciente simulado; (2) Identifica-se; (3) Dirige-se ao paciente simulado pelo nome, ao menos uma vez; (4) Pergunta o motivo da consulta; e (5) Ouve com atenção o motivo da consulta. Adequado: realiza as cinco ações. Parcialmente adequado: realiza de duas a quatro ações. Inadequado: realiza apenas uma ação OU não realiza ação alguma.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 2: Conecta-se ao paciente. (1) Estabelece contato visual; e (2) Mantém postura empática e interessada ao longo da consulta. Adequado: realiza as duas ações. Parcialmente adequado: realiza apenas uma ação. Inadequado: não realiza ação alguma.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 3: Escuta a fala do paciente simulado sem interrompê-lo. Adequado: realiza integralmente a ação. Inadequado: não realiza a ação OU não realiza a ação integralmente.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 4: Usa linguagem acessível com o paciente simulado, evitando termos técnicos de difícil compreensão. Adequado: utiliza linguagem acessível. Inadequado: não utiliza linguagem acessível.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 5: Comportamento. (1) Oferece confiança ao paciente simulado; (2) Não banaliza a condição clínica do paciente simulado; (3) Não julga o paciente simulado; e (4) Não manifesta atitude paternalista, punitiva ou condescendente em relação ao paciente simulado. Adequado: realiza as quatro ações. Parcialmente adequado: realiza duas ou três ações. Inadequado: realiza apenas uma ação OU não realiza ação alguma.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 6: Confirma diagnóstico de obesidade. Adequado: confirma o diagnóstico de obesidade clinicamente. Parcialmente adequado: refere possibilidade de diagnóstico de obesidade e solicita exames para confirmar. Inadequado: não confirma o diagnóstico de obesidade OU confirma diagnóstico de sobrepeso.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 7: Estabelece a relação da obesidade com o estilo de vida do paciente (sedentarismo e má alimentação). Adequado: estabelece essa relação. Inadequado: não estabelece essa relação.",
+    "pontos": 0.25
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 8: Verbaliza o estado nutricional e o risco de comorbidades deste paciente segundo o Índice de Massa Corporal (IMC). Adequado: identifica a obesidade grau I (≥ 30 a 34,9 Kg/m2), de risco moderado OU identifica a obesidade grau I (≥ 30 a 34,9 Kg/m2), de risco elevado. Parcialmente adequado: identifica corretamente apenas a obesidade grau I (≥ 30 a 34,9 Kg/m2) OU apenas o risco moderado OU apenas o risco elevado. Inadequado: identifica incorretamente o grau da obesidade E identifica incorretamente o risco de comorbidades.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 9: Verbaliza como o parâmetro de avaliação de distribuição da gordura corporal que está relacionado ao risco de morbimortalidade para o caso: (1) A medida da cintura abdominal é o parâmetro; e (2) A medida de cintura abdominal (≥ 102,0 cm OU ≥ 94,0 cm para homens) OU a cintura do paciente é 104 cm OU a cintura do paciente está acima do ponto de corte. Adequado: verbaliza os dois itens. Parcialmente adequado: verbaliza um item. Inadequado: não verbaliza item algum.",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 10: Contraindica a abordagem cirúrgica ou a cirurgia bariátrica. Adequado: contraindica. Inadequado: indica abordagem cirúrgica OU cirurgia bariátrica.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 11: Indica ou encaminha o paciente para serviço de atenção especializada ou para especialista focal (endocrinologista, nutrólogo ou outro). Adequado: não indica OU não encaminha o paciente. Inadequado: indica OU encaminha o paciente.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 12: Indica ou prescreve uso de medicamento. Adequado: não indica OU não prescreve. Inadequado: indica OU prescreve.",
+    "pontos": 0.5
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 13: Sugere ou propõe ações direcionadas à mudança de estilo de vida (MEV). (1) Alimentação saudável; (2) Atividade física; (3) Práticas integrativas em saúde; (4) Consciência corporal; (5) Gestão do autocuidado; e (6) Promoção do empoderamento pessoal. Adequado: indica cinco ou seis itens. Parcialmente adequado: indica três ou quatro itens. Inadequado: indica um ou dois itens OU não indica item algum.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 14: Elenca metas a serem alcançadas no tratamento do paciente. (1) Diminuição da gordura corporal, preservando ao máximo a massa magra; (2) Promoção da manutenção de perda de peso; (3) Cuidado com ganho de peso futuro, orientando o paciente a evitar o ganho; (4) Adoção da prática de atividade física regular; (5) Adoção de hábitos alimentares saudáveis, como aumento no consumo de alimentos in natura e minimamente processados e redução no consumo de ultraprocessados; (6) Mudança de comportamentos sedentários, como passar muito tempo sentado ou deitado em frente à TV, ao videogame ou utilizar muito celulares ou tablets; (7) Mudança de hábitos inadequados em relação ao momento da alimentação, como comer em frente à TV ou em frente a outras telas; (8) Redução de fatores de risco cardiovasculares associados à obesidade, como hipertensão arterial, dislipidemia, pré-diabete ou diabete melito; (9) Melhorias de outras comorbidades associadas ao sobrepeso, tais como apneia do sono, osteoartrite, risco neoplásico etc.; (10) Indução de melhora psicossomática com recuperação da autoestima; e (11) Aumento da capacidade funcional e da qualidade de vida. Adequado: elenca seis ou mais metas. Parcialmente adequado: elenca quatro ou cinco metas. Inadequado: elenca até três metas OU não elenca meta alguma..",
+    "pontos": 1.5
+   },
+   {
+    "quesito": "Estação 10 (Medicina da Família e Comunidade) — item 15: Indica acompanhamento multiprofissional (OU com o NASF ou com a e-Multi) e o seguimento longitudinal na UBS. Adequado: indica acompanhamento multiprofissional E o seguimento longitudinal na UBS. Parcialmente adequado: indica apenas o acompanhamento multiprofissional OU apenas o seguimento na UBS. Inadequado: não indica acompanhamento algum.",
+    "pontos": 1
+   }
+  ],
+  "total": 100,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/PEP_2023_2.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2023_2_prova_habilidades_clinicas.pdf",
   "fonte_espelho": "https://download.inep.gov.br/revalida/provas_e_gabaritos/PEP_2023_2.pdf",
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2023",
   "nota": "",
-  "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "textoSituacao": "sem-pdf"
  },
  {
   "id": "inep-2022-ac1",
@@ -43572,8 +45687,65 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2022/1 - Exame Nacional de Revalidação de Diplomas Médicos",
   "enunciado": "INEP · 2022 · Revalida - prova discursiva (1ª etapa) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2022_PV_discursiva.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2022_GB_discursiva.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2022\nObservação: Padrão de resposta oficial do Inep, com critérios de pontuação por quesito. Edição 2022/1.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Questão 1, item a — Cite a principal hipótese diagnóstica a ser considerada. Justifique sua resposta.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 1, item b — Indique o exame complementar a ser solicitado imediatamente nesse caso.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 1, item c — Descreva a conduta medicamentosa imediata.",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 2 — Identifique e descreva, de acordo com as etapas preventivas do Programa Nacional de Segurança do Paciente (Portaria n. 529/2013, MS), as ações preventivas realizadas e as que deveriam ter sido feitas (1ª etapa Sign In: 4,00; 2ª etapa Time out: 4,00; 3ª etapa Sign out: 2,00).",
+    "pontos": 10
+   },
+   {
+    "quesito": "Questão 3, item a — Qual é a principal hipótese diagnóstica? Justifique sua resposta.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 3, item b — Quais exames laboratoriais podem estar alterados nesse caso?",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 3, item c — Quais as orientações a serem feitas e que medicamentos devem ser usados para essa escolar?",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 3, item d — Qual é a evolução esperada desse quadro para casos não complicados?",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 4, item a — Cite a principal hipótese diagnóstica. Justifique sua resposta.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 4, item b — Descreva qual a conduta adequada.",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 4, item c — Cite três possíveis complicações referentes a esse caso clínico.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 5, item a — Cite a principal hipótese diagnóstica para o caso apresentado. Justifique sua resposta.",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 5, item b — Descreva o plano (propedêutico, terapêutico, educativo e de seguimento) adequado ao caso.",
+    "pontos": 5
+   },
+   {
+    "quesito": "Questão 5, item c — Liste dois problemas biopsicossociais evidenciados no relato da paciente.",
+    "pontos": 2
+   }
+  ],
+  "total": 50,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2022_GB_discursiva.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2022_PV_discursiva.pdf",
@@ -43581,7 +45753,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2022",
   "nota": "",
   "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "temEspelhoTexto": true
  },
  {
   "id": "inep-2022-ac2",
@@ -43598,8 +45770,69 @@ window.CT_DISCURSIVAS = [
   "disciplina": "Revalida",
   "tema": "Revalida 2022/2 - Exame Nacional de Revalidação de Diplomas Médicos",
   "enunciado": "INEP · 2022 · Revalida - prova discursiva (1ª etapa) — banca INEP.\nProva oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2022-2_PV_discursiva.pdf\nEspelho oficial (PDF): https://download.inep.gov.br/revalida/provas_e_gabaritos/2022-2_GB_discursiva.pdf\nPágina do concurso: https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2022\nObservação: Padrão de resposta oficial do Inep, com critérios de pontuação por quesito. Edição 2022/2.\nTempo sugerido: 1h por questão.",
-  "espelho": [],
-  "total": null,
+  "espelho": [
+   {
+    "quesito": "Questão 1 (ITEM 138381), item a — Apresente a resposta que deve ser dada pelo médico à solicitação do marido da paciente.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 1 (ITEM 138381), item b — Responda como se denomina a prática correspondente ao que foi solicitado pela mãe da paciente.",
+    "pontos": 1
+   },
+   {
+    "quesito": "Questão 1 (ITEM 138381), item c — Descreva os próximos procedimentos que deverão ser realizados e sua finalidade (teste de apneia: 2,0; exame complementar que comprove ausência de atividade encefálica: 2,0).",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 1 (ITEM 138381), item d — Cite os quatro exames complementares utilizados em casos como esse (0,75 ponto cada: eletroencefalograma; Doppler transcraniano; cintilografia cerebral ou SPECT; arteriografia ou angiografia cerebral).",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 2 (ITEM 138722), item a — Cite quatro fatores de risco para desenvolvimento de câncer colorretal (2,0 pontos para cada item).",
+    "pontos": 8
+   },
+   {
+    "quesito": "Questão 2 (ITEM 138722), item b — Indique o rastreamento mais adequado para as filhas de Dona Aurora.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 3 (ITEM 137798), item a — Indique a principal hipótese diagnóstica.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 3 (ITEM 137798), item b — Cite as alterações esperadas na série vermelha do hemograma.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 3 (ITEM 137798), item c — Descreva a evolução da depleção de ferro no organismo e seus marcadores sanguíneos.",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 3 (ITEM 137798), item d — Cite 3 causas que podem estar relacionadas ao quadro clínico.",
+    "pontos": 2
+   },
+   {
+    "quesito": "Questão 4 (ITEM 138302), item a — Responda qual é o diagnóstico da discinesia registrada no partograma.",
+    "pontos": 6
+   },
+   {
+    "quesito": "Questão 4 (ITEM 138302), item b — Descreva 4 medidas terapêuticas adequadas que podem ser oferecidas à paciente nesse cenário.",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 5 (ITEM 138460), item a — Quais exames de rastreamento baseados em evidência científica devem ser solicitados à paciente?",
+    "pontos": 4
+   },
+   {
+    "quesito": "Questão 5 (ITEM 138460), item b — Caso a paciente solicite algum exame adicional, como o médico deverá orientá-la quanto à indicação ou contraindicação desse(s) exame(s)?",
+    "pontos": 3
+   },
+   {
+    "quesito": "Questão 5 (ITEM 138460), item c — Em qual tipo de prevenção em saúde está baseada a orientação médica abordada na resposta ao item anterior?",
+    "pontos": 3
+   }
+  ],
+  "total": 50,
   "instrucoes": [],
   "fonte": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2022-2_GB_discursiva.pdf",
   "fonte_prova": "https://download.inep.gov.br/revalida/provas_e_gabaritos/2022-2_PV_discursiva.pdf",
@@ -43607,7 +45840,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2022",
   "nota": "",
   "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "temEspelhoTexto": true
  },
  {
   "id": "inep-2021-ac1",
@@ -43633,7 +45866,7 @@ window.CT_DISCURSIVAS = [
   "fonte_concurso": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/revalida/provas-e-gabaritos/2021",
   "nota": "",
   "textoSituacao": "sem-pdf",
-  "espelhoSituacao": "sem-pdf"
+  "temEspelhoTexto": true
  },
  {
   "id": "mgi-2025-ac2",
