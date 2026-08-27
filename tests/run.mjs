@@ -2611,8 +2611,12 @@ const c1texto = await page.evaluate(async () => {
   out.textoesCarregaramSobDemanda = !!window.CT_DISCURSIVAS_TEXTOS;
   let guardado = ''; try { guardado = JSON.parse(localStorage.getItem('catedra:redEnunciado') || '""'); } catch (e) {}
   out.enunciadoInteiro = guardado.length > 340;
-  const trecho = guardado.slice(80, 140).trim();
-  out.enunciadoNaTela = trecho.length > 20 && (document.body.innerText || '').includes(trecho);
+  // a tela junta as quebras de linha que vieram do PDF e mostra o cabeçalho no herói,
+  // não no corpo — então a comparação normaliza espaços e fatia DEPOIS do cabeçalho
+  const norm = x => String(x || '').replace(/\s+/g, ' ');
+  const corpo = guardado.split('\n\n').slice(1).join('\n\n');
+  const trecho = norm(corpo).slice(60, 120).trim();
+  out.enunciadoNaTela = trecho.length > 20 && norm(document.body.innerText).includes(trecho);
   return out;
 });
 if (c1texto.erro) ok(false, 'C1 textão: ' + c1texto.erro);
@@ -4056,6 +4060,43 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   });
   for (const [k, v] of Object.entries(f4banca)) ok(v, 'FASE4 banca ' + k);
   await orfaCtx.close();
+
+
+  /* ===== DISCURSIVAS — o enunciado lê como página ==================================
+     Texto extraído de PDF chegava com a quebra de linha da página da banca (frases
+     partidas no meio) e com o cabeçalho repetido: uma vez no herói, outra na 1ª linha
+     do corpo. O teste abre uma prova REAL do banco (TJ-MS 2023, FGV) e confere os três
+     consertos: largura de leitura, junção das quebras e cabeçalho sem eco. */
+  await areaPg.evaluate(() => localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')));
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(1800);
+  const disc = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('redacao'); await w(2600);
+    const busca = [...document.querySelectorAll('input')].find(x => /Buscar por tema/i.test(x.placeholder || ''));
+    if (!busca) return { semBusca: true };
+    const pd = Object.getOwnPropertyDescriptor(busca.constructor.prototype, 'value');
+    pd.set.call(busca, 'TJ-MS'); busca.dispatchEvent(new Event('input', { bubbles: true })); await w(1000);
+    const card = [...document.querySelectorAll('button')].find(x => /TJ-MS/.test(x.textContent || ''));
+    if (!card) return { semCard: true };
+    card.click(); await w(3200);
+    const corpo = document.querySelector('.ct-leitura');
+    if (!corpo) return { semCorpo: true };
+    const t = corpo.innerText;
+    return {
+      temLarguraDeLeitura: getComputedStyle(corpo).maxWidth !== 'none',
+      fraseInteiraNaMesmaLinha: /secretário de Educação do Município/.test(t) && !/de\nEducação/.test(t),
+      juntouAQuebraDoPdf: !/\bda con\n/.test(t) && !/ de\n[A-ZÀ-Ú]/.test(t),
+      cabecalhoSemEco: !/^TJ-MS · Juiz Substituto/.test(t.trim()),
+      corpoNaoVazio: t.trim().length > 400,
+    };
+  });
+  ok(!disc.semBusca && !disc.semCard && !disc.semCorpo,
+     'DISC o caminho até a prova existe' + ((disc.semBusca||disc.semCard||disc.semCorpo)?' — '+JSON.stringify(disc):''));
+  for (const [k, v] of Object.entries(disc)) {
+    if (k.startsWith('sem')) continue;
+    ok(v, 'DISC ' + k);
+  }
 
   // o Catedra.dc.html não carrega o auth.js sozinho; o gancho do merge mora na fixture
   await areaPg.goto(URL0 + '/tests/sync-fixture.html');
