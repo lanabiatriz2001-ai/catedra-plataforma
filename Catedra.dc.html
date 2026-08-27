@@ -4048,7 +4048,7 @@ window.ctPdfLib = (function(){
 </sc-if>
 <sc-if value="{{ ajTabBanca }}" hint-placeholder-val="{{ false }}">
         <!-- MÉTODO DA BANCA (pesquisado, orienta o estudo) -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+        <div id="aj-banca-painel" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
             <h2 id="aj-banca" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Método da banca · {{ bancaInfo.label }}</h2>
             <span style="{{ bancaPenStyle }}">{{ bancaPenLabel }}</span>
@@ -6259,6 +6259,9 @@ class Component extends DCLogic {
       // o caderno ABERTO ainda é o da área anterior: fecha-o no namespace dele antes de virar
       this._salvarAgora();
       this.state.areaEstudo=_areaNova;   // adotado já, para todo _chave() abaixo acertar o alvo
+      // o flush acima grava TODAS as chaves do autosave, e areaEstudo é uma delas — com o
+      // estado ainda velho, ele escrevia a área ANTERIOR por cima do que a nuvem trouxe
+      try{ localStorage.setItem('catedra:areaEstudo', JSON.stringify(_areaNova)); }catch(_){}
       patch.areaEstudo=_areaNova;
       this._palIndice=null; this._palCarregando=false;   // a busca é da área
       // caso aberto pertence à área que acabou de sair de cena — e a tela em que a pessoa
@@ -7487,7 +7490,10 @@ class Component extends DCLogic {
     const id=this.state.areaEstudo||'juridica';
     let fp='leis';
     try{ fp=window.CT_AREA_REG.termo(id,'fontePlural','leis'); }catch(_){}
-    const nome=(id==='juridica'||fp==='leis') ? 'Lei seca' : (fp.charAt(0).toUpperCase()+fp.slice(1));
+    // termo comprido ("documentos normativos") quebra o botão do menu em duas linhas e
+    // desalinha a coluna inteira: aí vale mais a palavra curta e honesta
+    const nome=(id==='juridica'||fp==='leis') ? 'Lei seca'
+      : (fp.length>14 ? 'Fontes' : (fp.charAt(0).toUpperCase()+fp.slice(1)));
     return nome+' · CátedraLEGIS';
   }
   _bancaDicas(lista){
@@ -7496,8 +7502,12 @@ class Component extends DCLogic {
     let juridica=true;
     try{ juridica=window.CT_AREA_REG.tem(id,'jurisprudencia'); }catch(_){}
     if(juridica) return a.map(String);
-    const SO_JURIDICA=/jurisprud|súmul|sumul|acórdão|acordao|STF|STJ|TST|em Direito/i;
-    return a.map(String).filter(d=>!SO_JURIDICA.test(d)).map(d=>this._bancaTexto(d));
+    /* Dica que fala de disciplina jurídica, doutrina ou texto legal não tem tradução: a
+       moldura da frase é jurídica, não só o miolo. Some inteira, como já some a de súmula. */
+    const SO_JURIDICA=/jurisprud|súmul|sumul|acórdão|acordao|STF|STJ|TST|em Direito|disciplinas? jur[íi]dicas?|textos? le(gal|gais)|doutrin/i;
+    // ||d guarda contra a dica virar vazio; filter(Boolean) tira o item em vez de deixar
+    // um marcador órfão na lista
+    return a.map(String).filter(d=>!SO_JURIDICA.test(d)).map(d=>this._bancaTexto(d)||d).filter(Boolean);
   }
   _bancaTexto(txt){
     const t=String(txt||''); if(!t) return t;
@@ -7505,19 +7515,38 @@ class Component extends DCLogic {
     let juridica=true;
     try{ juridica=window.CT_AREA_REG.tem(id,'jurisprudencia'); }catch(_){}
     if(juridica) return t;                       // no Direito o texto original é o certo
-    let fonte='a fonte', fontes='as fontes';
+    let fonte='fonte', fontes='fontes', gen='f', acervo='o material da área';
     try{ const R=window.CT_AREA_REG;
-      fonte=R.termo(id,'fonte','a fonte'); fontes=R.termo(id,'fontePlural','as fontes'); }catch(_){}
-    // corta a oração que só faz sentido em prova jurídica
-    const SO_JURIDICO=/jurisprud|súmul|acórdão|repercussão geral|repetitiv/i;
+      fonte=R.termo(id,'fonte','fonte'); fontes=R.termo(id,'fontePlural','fontes');
+      gen=R.termo(id,'genero','f'); acervo=R.termo(id,'acervo','o material da área'); }catch(_){}
+    // os artigos que combinam com o termo DA ÁREA — sem isto sai "a texto das diretrizes"
+    const art=(gen==='m'?'o':'a'), artPl=(gen==='m'?'os':'as');
+    // corta a oração que só faz sentido em prova jurídica. "repetitiv" pede a companhia de
+    // "recurso": sozinha ela come "a banca é repetitiva", que não tem nada de jurídico.
+    const SO_JURIDICO=/jurisprud|súmul|acórdão|repercussão geral|recursos? repetitiv|doutrin|em Direito|disciplinas? jur[íi]dicas?|textos? le(gal|gais)/i;
     const partes=t.split(/(?<=[,;])\s+/).filter(x=>!SO_JURIDICO.test(x));
-    let saida=partes.join(' ').trim();
-    // e troca o vocabulário da fonte
-    saida=saida.replace(/decoreba de lei seca/gi, 'decoreba do texto d'+(fontes.endsWith('s')?'as ':'a ')+fontes)
-               .replace(/\bda lei seca\b/gi, 'd'+(fontes.endsWith('s')?'as ':'a ')+fontes)
-               .replace(/\blei seca\b/gi, 'texto d'+(fontes.endsWith('s')?'as ':'a ')+fontes)
-               .replace(/\bletra da lei\b/gi, 'literalidade d'+(fonte.startsWith('a')?'a ':'a ')+fonte)
-               .replace(/\bda lei\b/gi, 'd'+(fonte.startsWith('a')?'a ':'a ')+fonte);
+    // se o corte comeu a frase inteira, quem estava errado era o corte
+    let saida=(partes.length ? partes.join(' ') : t).trim();
+    /* A troca CONSOME o artigo que já está na frase. Trocar só a expressão deixava o artigo
+       velho pendurado — "Domine a lei seca" virava "Domine a texto das diretrizes". */
+    saida=saida.replace(/\bdecoreba de lei seca\b/gi, 'decoreba d'+artPl+' '+fontes)
+               // preposição contraída ("apoiada NA lei seca") também precisa ser consumida,
+               // senão sai "apoiada na texto dos documentos normativos"
+               .replace(/\bn([oa]s?)\s+lei seca\b/gi, 'no texto d'+artPl+' '+fontes)
+               .replace(/\b([oa]s?)\s+lei seca\b/gi, 'o texto d'+artPl+' '+fontes)
+               .replace(/\bda lei seca\b/gi, 'd'+artPl+' '+fontes)
+               .replace(/\blei seca\b/gi, 'texto d'+artPl+' '+fontes)
+               // "literalidade" é feminina sempre; quem segue o gênero da área é o SEGUNDO artigo
+               .replace(/\b([oa]s?)\s+letra da lei\b/gi, 'a literalidade d'+art+' '+fonte)
+               .replace(/\bletra da lei\b/gi, 'literalidade d'+art+' '+fonte)
+               .replace(/\bda lei\b/gi, 'd'+art+' '+fonte)
+               .replace(/\btexto normativo\b/gi, 'texto d'+art+' '+fonte)
+               // "legislação" e "doutrina" são o acervo e a literatura DO DIREITO: fora dele,
+               // um vira o acervo da área e o outro não tem equivalente, então sai de cena
+               .replace(/\blegisla[çc][ãa]o\b/gi, acervo)
+               .replace(/\s+e\s+d[ao]s?\s+doutrina\b/gi, '')
+               .replace(/,\s*(?:e\s+)?d[ao]s?\s+doutrina\b/gi, '')
+               .replace(/\bd[ao]s?\s+doutrina\b/gi, '');
     // higiene: vírgula solta ou espaço duplo deixados pelo corte
     return saida.replace(/\s+/g,' ').replace(/\s+([,.;])/g,'$1').replace(/,\s*\./g,'.').replace(/,\s*$/,'.').trim();
   }
@@ -7580,7 +7609,8 @@ class Component extends DCLogic {
     const N={legis:this._nomeLegis(), juris:'Jurisprudência · CátedraJURIS',
       areamod:'Módulo de estudo da área', roteiros:'Roteiros e peças',
       segundafase:'Provas de 2ª fase', redacao:'Discursivas', oral:'Prova oral',
-      prioridade:'Painel de prioridade', simulados:'Simulados', edital:'Edital', bancas:'Bancas'};
+      prioridade:'Painel de prioridade', simulados:'Simulados', edital:'Edital', bancas:'Bancas',
+      casos:'Casos de estudo'};
     return N[v]||'Esta tela';
   }
   _indispPorque(v){
@@ -7593,7 +7623,10 @@ class Component extends DCLogic {
       prioridade:'O ranking cruza a incidência em provas reais com a sua taxa de erro. A base de incidência é de provas jurídicas — sem dado equivalente da sua área, qualquer ranking aqui seria inventado.',
       simulados:'O simulado monta os itens a partir de lei seca e jurisprudência. Sem banco de questões da sua área, ele geraria prova de Direito.',
       legis:'O CátedraLEGIS ainda não tem uma lista de fontes normativas fixada para esta área.',
-      areamod:'Esta área ainda não tem um módulo de estudo próprio.'};
+      areamod:'Esta área ainda não tem um módulo de estudo próprio.',
+      /* Sem esta linha a tela dizia que os casos "dependem de um acervo que a sua área
+         ainda não tem" — o oposto do que eles são: o acervo é seu. */
+      casos:'O construtor de casos tem a estrutura de cada profissão — caso clínico em Saúde, caso socioassistencial em Assistência Social. A sua área de estudo não usa esse formato.'};
     return P[v]||'Esta tela depende de um acervo que a sua área de estudo ainda não tem.';
   }
   _areaEmPreparo(){

@@ -102,12 +102,21 @@
   var REGRAS = [
     { k: 'cpf', rot: 'CPF', re: /\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/ },
     { k: 'cns', rot: 'cartão do SUS', re: /\b[12789]\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\b/ },
-    // Telefone precisa de forma INEQUÍVOCA — DDD entre parênteses ou palavra de contato.
-    // A versão anterior aceitava "4 ou 5 dígitos, hífen, 4 dígitos" e barrava
-    // "acompanhamento de 2019-2023" e "diurese de 1500-2000 mL", que é justamente o que
-    // se escreve num caso. Um número solto continua passando: é o preço certo a pagar.
+    /* Telefone é o dado que mais escapa e o que mais barra por engano — as duas coisas ao
+       mesmo tempo. Quatro formas, cada uma pelo motivo dela:
+       (A) +55 ...                — prefixo internacional: inequívoco por si.
+       (B) (DDD) ...              — parênteses: inequívoco por si.
+       (C) tel/fone/whats + nº    — palavras que ninguém escreve antes de faixa de referência.
+       (D) celular/cel/contato    — HOMÓGRAFOS ("contagem celular 1200-1800", "contato
+                                    2019-2023 com a rede"): só disparam com DDD entre
+                                    parênteses ou celular de 9 dígitos, formas que faixa
+                                    numérica não imita.
+       O (?!\d) no fim evita o recorte fantasma — mostrar "celular: 4500-1100" de um texto
+       que dizia 4500-11000 manda a pessoa procurar na tela um telefone que ela não escreveu.
+       Fica passando de propósito: número de 8 dígitos solto, sem prefixo nem palavra. Não há
+       como distingui-lo de "2019-2023" pela forma, e barrar a faixa é o erro mais caro. */
     { k: 'telefone', rot: 'telefone',
-      re: /(?:\(\d{2}\)\s?\d{4,5}-?\d{4}|\b(?:tel|fone|telefone|celular|cel|whats\w*|contato)\b\s*:?\s*(?:\(\d{2}\)\s?)?\d{4,5}-?\d{4})/i },
+      re: /(?:\+\s?55[\s.-]*\(?\d{2,3}\)?[\s.-]*9?[\s.-]?\d{4,5}[\s.-]?\d{4}(?!\d)|\(\d{2,3}\)\s*9?[\s.-]?\d{4,5}[\s.-]?\d{4}(?!\d)|\b(?:tel|fone|telefone|whats\w*)\b[^\d\n]{0,20}(?:\+\s?55[\s.-]*)?(?:\(?\d{2,3}\)?[\s.-]*)?\d{4,5}[\s.-]?\d{4}(?!\d)|\b(?:celular|cel|contato)\b[^\d\n]{0,20}(?:\(\d{2,3}\)\s*9?[\s.-]?\d{4,5}[\s.-]?\d{4}|9\d{4}[\s.-]?\d{4})(?!\d))/i },
     { k: 'email', rot: 'e-mail', re: /[\w.+-]+@[\w-]+\.[\w.]{2,}/ },
     // CEP com hífen, ou precedido da palavra. Oito dígitos soltos não são CEP: são
     // qualquer outra coisa que a pessoa escreveu.
@@ -116,7 +125,7 @@
     { k: 'prontuario', rot: 'número de prontuário',
       re: /\b(?:prontu[áa]rio|matr[íi]cula)\s*:?\s*n?[º°.]?\s*\d{3,}|\bregistro\s*n[º°.]\s*\d{2,}/i },
     { k: 'nascimento', rot: 'data de nascimento',
-      re: /\b(nasc(imento|ido em)?|dn)\s*:?\s*\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/i },
+      re: /\b(nasc(imento|ido em)?|dn)\.?\s*:?\s*\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/i },
     /* Endereço identifica quando tem NOME DE VIA e NÚMERO — e o nome da via se reconhece
        pela maiúscula ("Rua das Flores, 120", "Avenida Sete de Setembro 1200"). Sem essa
        exigência, "em situação de rua há 3 anos" e "moram na mesma rua do CRAS há 2 anos"
