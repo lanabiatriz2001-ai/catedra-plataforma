@@ -56,10 +56,19 @@ export function proporcaoLixo(txt) {
 // Códigos internos do PDF da banca vazando no texto (ex.: <<D01_dAdm_A0100422_...>>).
 const RE_MARCADOR_INTERNO = /<<[A-Za-z0-9_]{6,}>>|\[\[[A-Za-z0-9_]{6,}\]\]/;
 
+// Mojibake (UTF-8 lido como latin-1): em português correto, 'Ã'/'Â' vêm seguidos de
+// letra ASCII ("NÃO", "CÂMARA") — nunca de um caractere em U+0080–00BF ("Ã§" = ç,
+// "Ã£" = ã). A proporção de lixo não pega: o texto deformado é 98% ASCII válido.
+export function temMojibake(txt) {
+  const digrafos = (txt.match(/[ÂÃ][\u0080-\u00BF]/g) || []).length;
+  return digrafos >= 3 && digrafos / Math.max(1, txt.length) > 0.003;
+}
+
 /** Devolve a lista de sintomas do texto. Vazia = texto publicável. */
 export function audita(txt, { minChars = CURTO_MIN } = {}) {
   const t = String(txt || '');
   const problemas = [];
+  if (temMojibake(t)) problemas.push('lixo-encoding');
   if (t.length < minChars) problemas.push('curto');
   else {
     if (temInstrucoesDeCaderno(t)) problemas.push('instrucoes-de-caderno');

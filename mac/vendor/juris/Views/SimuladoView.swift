@@ -34,6 +34,11 @@ struct DiscursivaBanco: Codable, Hashable, Identifiable {
     var tema: String
     var enunciado: String
     var espelho: [Quesito]
+    // padrão de resposta em PROSA (quando a banca publicou texto, não quesitos) e a
+    // situação declarada ('restrito' = só na vista do candidato). Codable com Optional:
+    // provas antigas no cache decodificam como nil, sem migração.
+    var espelhoTexto: String?
+    var espelhoSituacao: String?
     var total: Double?
     var fonte: String
 
@@ -211,7 +216,13 @@ enum SimuladoLocal {
             for (i, d) in p.discursivas.enumerated() {
                 s += "**Questão \(i + 1)** — \(d.rotulo) · \(d.disciplina)\n\n\(d.enunciado)\n\n"
                 if visao != .enunciados {
-                    if d.espelho.isEmpty { s += "_Padrão de resposta: espelho não publicado pela banca._\n\n" }
+                    if d.espelho.isEmpty, let et = d.espelhoTexto, !et.isEmpty {
+                        s += "Padrão de resposta oficial:\n\n\(et)\n\n"
+                    } else if d.espelho.isEmpty {
+                        s += d.espelhoSituacao == "restrito"
+                            ? "_Padrão de resposta: a banca só deu vista aos candidatos — sem arquivo público._\n\n"
+                            : "_Padrão de resposta: espelho não publicado pela banca._\n\n"
+                    }
                     else {
                         s += "Padrão de resposta (espelho oficial):\n"
                         for q in d.espelho { s += "- \(q.quesito)" + (q.pontos.map { " (\(fmt($0)) pt)" } ?? "") + "\n" }
@@ -506,9 +517,17 @@ struct SimuladoView: View {
             if !d.tema.isEmpty { Text(d.tema).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(Palette.secondaryInk) }
             Text(d.enunciado).font(.system(size: 14.5)).lineSpacing(3).foregroundStyle(Palette.titleInk).textSelection(.enabled)
             if visao != .enunciados {
-                if d.espelho.isEmpty {
+                if d.espelho.isEmpty, let et = d.espelhoTexto, !et.isEmpty {
+                    // 414 questões têm o padrão em prosa dentro do próprio app — dizer
+                    // "a banca não publicou" com o texto embarcado era mentir para a tela
+                    BlocoEstudo(rotulo: "Padrão de resposta oficial", cor: Palette.ok) {
+                        Text(et).textSelection(.enabled)
+                    }
+                } else if d.espelho.isEmpty {
                     BlocoEstudo(rotulo: "Padrão de resposta", cor: Palette.secondaryInk) {
-                        Text("A banca não publicou o espelho desta questão. Confira a prova na fonte oficial.")
+                        Text(d.espelhoSituacao == "restrito"
+                             ? "A banca só deu vista do espelho aos próprios candidatos — não existe arquivo público."
+                             : "A banca não publicou o espelho desta questão. Confira a prova na fonte oficial.")
                     }
                 } else {
                     BlocoEstudo(rotulo: "Padrão de resposta · espelho oficial", cor: Palette.ok) {

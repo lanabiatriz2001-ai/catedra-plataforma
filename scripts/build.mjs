@@ -387,6 +387,7 @@ const acervoSobPedido = [
   './juris-text.js',        // Simulado de súmulas: treino.js monta os itens com __JURIS_TXT__ inteiro
   './oral-conteudo.js',     // as 999 perguntas de banca da arguição oral
   './leis-seca-areas.js',   // as 35 leis das áreas não jurídicas
+  './discursivas-textos.js',// enunciados completos e padrões de resposta — a Redação abre prova offline
 ];
 const medir = (lista) => lista.map((p) => [p, bytesDe(p)]).filter(([p, b]) => {
   if (!b) console.log('  ⚠ acervo offline ausente do deploy, fora do precache: ' + p);
@@ -404,7 +405,10 @@ console.log('  · precache: casca ' + mb(somaCasca) + ' (' + (casca.length + 1) 
 // Os tetos estão declarados no sw.js; estourá-los não quebra nada (a cauda é cortada
 // em silêncio lá), mas passar por isso sem avisar seria perder um acervo sem saber.
 const TETO_SW = 14 * 1024 * 1024;
-const TETO_PEDIDO_SW = 34 * 1024 * 1024;
+// 34 → 42 MB em 27/08: o textão das discursivas (6,1 MB) entrou no "Baixar tudo" — a
+// Redação abre prova completa offline. O teto continua sendo um FREIO real: estourá-lo
+// derruba o teste U10, e cada item pesado novo precisa caber ou tirar alguém.
+const TETO_PEDIDO_SW = 42 * 1024 * 1024;
 if (somaAcervo > TETO_SW) {
   console.log('  ⚠ o acervo offline (' + mb(somaAcervo) + ') passou do orçamento do sw.js ('
     + mb(TETO_SW) + '): a cauda da lista NÃO será baixada. Meça e reordene ACERVO_OFFLINE.');
