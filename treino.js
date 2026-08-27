@@ -199,13 +199,20 @@
    *
    * @param {string} area id em CT_AREAS ('saude', 'policial'…)
    */
-  function acervoLeisArea(area) {
+  function acervoLeisArea(area, opts) {
     if (!area || area === 'juridica') return Promise.resolve(true);
+    var exclusiva = !!(opts && opts.exclusiva);
     var junta = function () {
       var lista = w.CT_LEIS_AREAS || [];
       w.CT_LEIS = w.CT_LEIS || [];
       var daArea = lista.filter(function (l) { return (l.areas || []).indexOf(area) >= 0; });
       if (!daArea.length) daArea = lista;             // área sem mapa próprio: oferece tudo
+      if (exclusiva) {
+        // a área no comando: o acervo vira SÓ as leis dela. Apensar (o padrão antigo)
+        // deixava as 14 leis da magistratura no sorteio de quem estuda Enfermagem.
+        w.CT_LEIS = daArea.slice();
+        return true;
+      }
       daArea.forEach(function (l) {
         if (!w.CT_LEIS.some(function (x) { return x.sigla === l.sigla; })) w.CT_LEIS.push(l);
       });

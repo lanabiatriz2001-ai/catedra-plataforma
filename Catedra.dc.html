@@ -747,7 +747,7 @@ window.ctPdfLib = (function(){
               <sc-if value="{{ sessSubShow }}" hint-placeholder-val="{{ false }}">
                 <div style="grid-column:1/-1;"><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Subtópico <span style="color:var(--text3);font-weight:400;">(opcional — deixe vazio para o tópico inteiro)</span></label><select value="{{ sessSubSel }}" onchange="{{ onSessionSub }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="" selected="{{ sessSubVazio }}">— todo o tópico —</option><sc-for list="{{ sessSubOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
-              <div style="grid-column:1/-1;"><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico estudado <span style="color:var(--text3);font-weight:400;">(preenchido pelo edital — pode ajustar)</span></label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="ex.: Controle de constitucionalidade" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
+              <div style="grid-column:1/-1;"><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico estudado <span style="color:var(--text3);font-weight:400;">(preenchido pelo edital — pode ajustar)</span></label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="{{ sessTopicoPh }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
               <sc-if value="{{ sessMarcarShow }}" hint-placeholder-val="{{ false }}">
                 <div style="grid-column:1/-1;"><button data-k="marcarEdital" onclick="{{ toggleSessionFlag }}" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;"><span style="{{ sessMarcarStyle }}"><sc-if value="{{ sessMarcarEdital }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></span><span style="font-size:var(--fs-sm);color:var(--text2);line-height:1.4;">{{ sessMarcarLabel }}</span></button></div>
               </sc-if>
@@ -846,7 +846,7 @@ window.ctPdfLib = (function(){
               <div style="grid-column:1/-1;"><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Disciplina <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ heDiscSelVal }}" onchange="{{ onHistEditDisc }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"><sc-for list="{{ heDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ heDiscCustom }}">Outra…</option></select>
                 <sc-if value="{{ heDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ histEdit.disc }}" oninput="{{ onHistEditField }}" placeholder="Digite o nome da disciplina" style="width:100%;box-sizing:border-box;border:1px solid var(--accent);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;margin-top:8px;"></sc-if>
               </div>
-              <div style="grid-column:1/-1;"><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico</label><input data-k="topico" value="{{ histEdit.topico }}" oninput="{{ onHistEditField }}" placeholder="ex.: Controle de constitucionalidade" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
+              <div style="grid-column:1/-1;"><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Tópico</label><input data-k="topico" value="{{ histEdit.topico }}" oninput="{{ onHistEditField }}" placeholder="{{ sessTopicoPh }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
               <div style="grid-column:1/-1;"><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Tempo (min)</label><input type="number" min="0" data-k="minutos" value="{{ histEdit.minutos }}" oninput="{{ onHistEditField }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
             </div>
             <div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px;background:var(--surface2);">
@@ -2780,10 +2780,10 @@ window.ctPdfLib = (function(){
        <div style="display:flex;flex-direction:column;gap:16px;">
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px;color:#fff;">
           <div style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);">Prova oral</div>
-          <div style="font-size:var(--fs-sm);opacity:.9;margin-top:4px;max-width:640px;line-height:1.55;">Arguição sobre o acervo de jurisprudência, sobre a lei seca, e o material oficial das bancas — pontos sorteáveis, perguntas formuladas, padrão de resposta e critérios. Tudo local, sem IA.</div>
+          <div style="font-size:var(--fs-sm);opacity:.9;margin-top:4px;max-width:640px;line-height:1.55;">{{ oralIntroTxt }}</div>
           <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
             <sc-if value="{{ capJuris }}" hint-placeholder-val="{{ true }}"><button data-m="juris" onclick="{{ setOralModo }}" style="{{ oralAbaJuris }}">Jurisprudência</button></sc-if>
-            <button data-m="lei" onclick="{{ setOralModo }}" style="{{ oralAbaLei }}">Lei seca</button>
+            <button data-m="lei" onclick="{{ setOralModo }}" style="{{ oralAbaLei }}">{{ oralAbaLeiRot }}</button>
             <sc-if value="{{ capOralBancas }}" hint-placeholder-val="{{ true }}"><button data-m="bancas" onclick="{{ setOralModo }}" style="{{ oralAbaBancas }}">Bancas reais</button></sc-if>
           </div>
         </div>
@@ -2815,7 +2815,7 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ oralEhJuris }}" hint-placeholder-val="{{ true }}">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
             <sc-if value="{{ !oralPronto }}" hint-placeholder-val="{{ true }}">
-              <div style="font-size:var(--fs-base);color:var(--text3);">Carregando o acervo de jurisprudência…</div>
+              <div style="font-size:var(--fs-base);color:var(--text3);">Carregando o acervo…</div>
             </sc-if>
             <sc-if value="{{ oralPronto }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
@@ -3107,7 +3107,7 @@ window.ctPdfLib = (function(){
             <div style="max-width:560px;">
               <div style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.82;">Treino cronometrado</div>
               <div style="font-family:var(--display);font-weight:600;font-size:30px;line-height:1.12;margin-top:6px;letter-spacing:-.5px;">Fazer simulado agora</div>
-              <div style="font-size:var(--fs-base);opacity:.92;margin-top:8px;line-height:1.6;">Jurisprudência e lei seca em Certo/Errado — metade com o núcleo trocado (prazo, competência, operador) — e, fechando o caderno, questões A-E de provas reais de magistratura com o gabarito da banca. Ao encerrar, o resultado desce para o histórico e conta no seu desempenho.</div>
+              <div style="font-size:var(--fs-base);opacity:.92;margin-top:8px;line-height:1.6;">{{ sjHeroDesc }}</div>
             </div>
             <button onclick="{{ abrirSimuladoJogo }}" style="border:none;background:#fff;color:var(--accentD);border-radius:var(--radius);padding:14px 26px;font-size:var(--fs-md);font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 8px 22px rgba(0,0,0,.16);white-space:nowrap;">{{ sjBotaoLabel }}</button>
           </div>
@@ -3116,7 +3116,7 @@ window.ctPdfLib = (function(){
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
             <div>
               <sc-if value="{{ !sjPronto }}" hint-placeholder-val="{{ true }}">
-                <div style="font-size:var(--fs-base);color:var(--text3);">Carregando o acervo de jurisprudência…</div>
+                <div style="font-size:var(--fs-base);color:var(--text3);">{{ sjCarregandoTxt }}</div>
               </sc-if>
               <sc-if value="{{ sjPronto }}" hint-placeholder-val="{{ false }}">
                 <sc-if value="{{ !sjEmProva }}" hint-placeholder-val="{{ true }}">
@@ -3132,11 +3132,11 @@ window.ctPdfLib = (function(){
                     <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding-top:14px;border-top:1px solid var(--border);">
                       <label style="font-size:var(--fs-sm);color:var(--text2);display:flex;align-items:center;gap:8px;">Itens
                         <input type="number" min="10" max="120" step="10" value="{{ sjN }}" oninput="{{ setSjN }}" style="width:80px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;"></label>
-                      <label style="font-size:var(--fs-sm);color:var(--text2);display:flex;align-items:center;gap:8px;">Lei seca
+                      <sc-if value="{{ !sjSoLei }}" hint-placeholder-val="{{ true }}"><label style="font-size:var(--fs-sm);color:var(--text2);display:flex;align-items:center;gap:8px;">Lei seca
                         <input type="number" min="0" max="100" step="10" value="{{ sjPctLei }}" oninput="{{ setSjPctLei }}" style="width:80px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;">%</label>
                       <span style="font-size:var(--fs-sm);color:var(--text3);">{{ sjPctJur }}% jurisprudência · {{ sjPctLei }}% lei seca</span>
                       <label style="font-size:var(--fs-sm);color:var(--text2);display:flex;align-items:center;gap:8px;">Questões de prova real
-                        <input type="number" min="0" max="30" step="5" value="{{ sjProvaN }}" oninput="{{ setSjProvaN }}" title="Questões A-E de provas oficiais de magistratura (FGV/CEBRASPE), com gabarito e % de acerto" style="width:80px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;"></label>
+                        <input type="number" min="0" max="30" step="5" value="{{ sjProvaN }}" oninput="{{ setSjProvaN }}" title="Questões A-E de provas oficiais de magistratura (FGV/CEBRASPE), com gabarito e % de acerto" style="width:80px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;outline:none;"></label></sc-if>
                       <button onclick="{{ iniciarSj }}" style="border:none;background:var(--accent);color:#fff;border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);font-weight:600;cursor:pointer;font-family:inherit;">Iniciar simulado</button>
                     </div>
                   </sc-if>
@@ -7622,7 +7622,7 @@ class Component extends DCLogic {
       juris:'O acervo de jurisprudência é de tribunal — súmulas, teses e julgados do STF, do STJ e dos tribunais de contas. Ele não descreve o que você estuda, e oferecê-lo aqui seria fingir uma equivalência que não existe.',
       roteiros:'Os roteiros de peça e a sequência de atos do processo são de prática forense: petição, sentença, recurso. Um relatório social ou um caso clínico têm estrutura própria — não são "peças" com outro nome.',
       segundafase:'As provas de 2ª fase do acervo são discursivas de magistratura, com o espelho de correção que a banca publicou. São documentos daquelas provas, não um modelo geral de prova discursiva.',
-      redacao:'O banco de discursivas e os espelhos de correção vêm de concursos jurídicos. Sem enunciado e critério da sua carreira, a correção não teria contra o que comparar.',
+      redacao:'A correção ponto a ponto ainda é calibrada para as provas jurídicas do acervo. Provas da sua carreira já estão entrando no banco — a tela abre para a sua área quando a correção estiver ajustada a elas.',
       oral:'O material de prova oral é o que as bancas jurídicas publicaram: pontos sorteáveis, perguntas formuladas e padrão de resposta daqueles concursos.',
       prioridade:'O ranking cruza a incidência em provas reais com a sua taxa de erro. A base de incidência é de provas jurídicas — sem dado equivalente da sua área, qualquer ranking aqui seria inventado.',
       simulados:'O simulado monta os itens a partir de lei seca e jurisprudência. Sem banco de questões da sua área, ele geraria prova de Direito.',
@@ -7656,11 +7656,18 @@ class Component extends DCLogic {
       try{
         const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
         const m=this.state.oralModo;
+        let mFinal=m;
         if((m==='juris' && !R.tem(id,'jurisprudencia')) || (m==='bancas' && !R.tem(id,'provaOralBancas'))){
-          this.setState({oralModo: R.tem(id,'jurisprudencia') ? 'juris' : 'lei'});
+          mFinal = R.tem(id,'jurisprudencia') ? 'juris' : 'lei';
+          this.setState({oralModo:mFinal});
         }
-      }catch(_){}
-      this._oralCarregarAcervo();
+        /* O loader tem de ser o do modo FINAL. Carregar sempre o acervo de jurisprudência
+           deixava Saúde e Social presas em "Carregando o texto das leis…" para sempre —
+           a tela esperava as leis e quem chegava era o índice do JURIS. */
+        if(mFinal==='bancas'){ this._oralCarregarBancas(); this._oralCarregarQ(); }
+        else if(mFinal==='lei'){ this._oralCarregarLeis(); }
+        else this._oralCarregarAcervo();
+      }catch(_){ this._oralCarregarAcervo(); }
     }
     if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true}));
     return v;
@@ -7705,7 +7712,18 @@ class Component extends DCLogic {
   // expressa no edital. Categoria antiga de área (ex.: 'Caso clínico') que não está mais
   // na lista continua sendo exibida por quem já a usava: quem chama acrescenta o valor
   // atual quando ele não está aqui.
-  _atividades(){ return CT_ATIVIDADES.slice(); }
+  _atividades(){
+    const id=this.state.areaEstudo||'juridica';
+    const proprias=((CT_AREA(id)||{}).cats||[]).slice();
+    let base=CT_ATIVIDADES.slice();
+    // sem acervo jurídico, "Jurisprudência" e "Lei seca" saem da oferta — as categorias
+    // PRÓPRIAS da área (Caso clínico, Legislação social…) dizem a mesma coisa na língua
+    // certa. Sessão antiga com categoria antiga continua aparecendo: o builder do modal
+    // une _selCats por cima.
+    try{ if(!window.CT_AREA_REG.tem(id,'jurisprudencia'))
+      base=base.filter(x=>x!=='Jurisprudência' && x!=='Lei seca'); }catch(_){}
+    return [...new Set([...proprias, ...base])];
+  }
   _genSugestao(){
     const O=this.state.orient||{}, p=this.state.profile||{};
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*this._enMult())); const m=(f)=>Math.max(15,Math.round(base*f));
@@ -9114,6 +9132,34 @@ class Component extends DCLogic {
       sjN:st.sjN, sjRamo:st.sjRamo, sjProvaN:st.sjProvaN,
       sjRamoOpts:[{v:'',label:'Todas as disciplinas',sel:!st.sjRamo}].concat(ramos.map(k=>({v:k,label:k+' ('+m[k]+')',sel:st.sjRamo===k}))),
       // chips multisseleção: disciplinas do acervo e leis embutidas
+      // --- a área manda no simulado e na oral: textos e controles na língua dela ---
+      sjSoLei:(()=>{ try{ return !window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','jurisprudencia'); }catch(_){ return false; } })(),
+      sjCarregandoTxt:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
+        return R.tem(id,'jurisprudencia') ? 'Carregando o acervo de jurisprudência…'
+          : 'Carregando '+R.termo(id,'acervo','o acervo da área')+'…'; }catch(_){ return 'Carregando o acervo…'; } })(),
+      sjHeroDesc:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
+        if(R.tem(id,'jurisprudencia')) return 'Jurisprudência e lei seca em Certo/Errado — metade com o núcleo trocado (prazo, competência, operador) — e, fechando o caderno, questões A-E de provas reais de magistratura com o gabarito da banca. Ao encerrar, o resultado desce para o histórico e conta no seu desempenho.';
+        return 'Itens de Certo/Errado montados na hora a partir do texto oficial de '+R.termo(id,'acervo','suas fontes')+' — metade com o núcleo trocado (prazo, número, operador). Ao encerrar, o resultado desce para o histórico e conta no seu desempenho.';
+      }catch(_){ return 'Itens de Certo/Errado montados a partir do texto oficial.'; } })(),
+      oralAbaLeiRot:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
+        const fp=R.termo(id,'fontePlural','leis');
+        if(id==='juridica'||fp==='leis') return 'Lei seca';
+        return fp.length>14?'Fontes':(fp.charAt(0).toUpperCase()+fp.slice(1)); }catch(_){ return 'Lei seca'; } })(),
+      oralIntroTxt:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
+        const pedacos=[];
+        if(R.tem(id,'jurisprudencia')) pedacos.push('o acervo de jurisprudência');
+        pedacos.push('o texto de '+R.termo(id,'acervo','suas fontes'));
+        if(R.tem(id,'provaOralBancas')) pedacos.push('o material oficial das bancas — pontos sorteáveis, perguntas formuladas, padrão de resposta e critérios');
+        const j=pedacos.length>1 ? pedacos.slice(0,-1).join(', ')+' e '+pedacos[pedacos.length-1] : pedacos[0];
+        return 'Arguição em voz alta sobre '+j+'. Tudo local, sem IA.';
+      }catch(_){ return 'Arguição em voz alta sobre as suas fontes de estudo. Tudo local, sem IA.'; } })(),
+      sessTopicoPh:(()=>{ const id=this.state.areaEstudo||'juridica';
+        const EX={juridica:'ex.: Controle de constitucionalidade', policial:'ex.: Inquérito policial',
+          fiscal:'ex.: Crédito tributário', contas:'ex.: Tomada de contas especial',
+          administrativa:'ex.: Atos administrativos', saude:'ex.: Protocolo de sepse',
+          social:'ex.: Tipificação dos serviços socioassistenciais', educacao:'ex.: BNCC — etapas e modalidades',
+          tecnologia:'ex.: Segurança da informação', militar:'ex.: Hierarquia e disciplina'};
+        return EX[id]||'ex.: um tópico do seu edital'; })(),
       sjRamoChips:ramos.map(k=>({v:k,label:k.replace('Direito ','')+' · '+m[k],style:this._chip(st.sjRamos.indexOf(k)>=0)})),
       sjLeiChips:((window.CT_LEIS)||[]).map(l=>({v:l.sigla,label:l.sigla+' · '+l.artigos.length,style:this._chip(st.sjLeis.indexOf(l.sigla)>=0)})),
       sjRamosSel:st.sjRamos.length?st.sjRamos.join(', '):'todas as disciplinas',
@@ -9195,7 +9241,16 @@ class Component extends DCLogic {
     const abre=!this.state.sjAberto;
     this.setState({sjAberto:abre});
     if(abre && !this.state.sjPronto){
-      this._treino().then(T=>Promise.all([T.acervoJuris(),T.acervoLeis().then(()=>T.acervoLeisArea(this.state.areaEstudo))])).then(()=>this.setState({sjPronto:true}))
+      /* Fora das áreas com jurisprudência o simulado sorteava crime doloso de perigo
+         comum para quem estuda Enfermagem: o acervo jurídico subia junto e o sorteio não
+         distinguia. Aqui a área manda: só as leis DELA (exclusiva), 100% lei seca e sem
+         as questões de prova real de magistratura. */
+      let _sjJur=true; try{ _sjJur=window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','jurisprudencia'); }catch(_){}
+      if(!_sjJur) this.setState({sjPctLei:100, sjProvaN:0});
+      const _sjCarga=(T)=> _sjJur
+        ? Promise.all([T.acervoJuris(), T.acervoLeis().then(()=>T.acervoLeisArea(this.state.areaEstudo))])
+        : T.acervoLeisArea(this.state.areaEstudo, {exclusiva:true});
+      this._treino().then(T=>_sjCarga(T)).then(()=>this.setState({sjPronto:true}))
         .catch(()=>this._toast('Não consegui carregar o acervo'));
     }
   };
@@ -12162,7 +12217,7 @@ class Component extends DCLogic {
     const isDisc = ana==='disc';
     const scoreCaption = ana==='liquida' ? 'líquido' : ana==='disc' ? 'da nota' : 'acerto';
     const anaNote = ana==='liquida' ? 'Nota líquida C−E (Cespe/Cebraspe): cada erro anula um acerto.'
-      : ana==='disc' ? 'Discursiva / peça jurídica: lance a nota obtida e a nota máxima de cada item.'
+      : ana==='disc' ? (_area.juridico?'Discursiva / peça jurídica':'Discursiva')+': lance a nota obtida e a nota máxima de cada item.'
       : '% bruto sobre o total (FGV / FCC / Vunesp).';
     const loss = s.erros + s.brancos;
     let level, levelColor, diagTitle, diagText, action;
