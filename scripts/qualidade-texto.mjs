@@ -26,6 +26,10 @@ export function temCabecalhoRepetido(txt) {
   for (const l of txt.split('\n')) {
     const s = l.trim();
     if (s.length < 20) continue;
+    // Frase-moldura da própria prova ("Considere a seguinte situação hipotética:") repete
+    // legitimamente — o PF 2021 usa a mesma 4 vezes, uma por situação. Cabeçalho de página
+    // não termina em dois-pontos.
+    if (s.endsWith(':')) continue;
     cont[s] = (cont[s] || 0) + 1;
     if (cont[s] >= 4) return true;
   }
@@ -45,7 +49,7 @@ export function proporcaoLixo(txt) {
   // Os invisíveis vão por CÓDIGO (\u00A0 espaço não-quebrável, \u00AD hífen suave): escritos
   // como caractere literal, eles somem em qualquer reedição desta linha — e foi assim que
   // 8 perguntas da oral passaram a reprovar por 'lixo' que era só espaço não-quebrável.
-  const lixo = (txt.match(/[^\x20-\x7E\u00A0\u00AD\u00C0-\u00FF§ºª°–—‐−⸺‘’“”…•·≤≥±×÷²³¹½¼¾´`‹›«»→←↔\n\r\t]/g) || []).length;
+  const lixo = (txt.match(/[^\x20-\x7E\u00A0\u00AD\u00C0-\u00FF§ºª°–—‐−⸺‘’“”…•·≤≥±×÷²³¹½¼¾´`‹›«»→←↔\n\r\t\u0370-\u03FF\u2200-\u22FF\u0300-\u036F]/g) || []).length;
   return lixo / txt.length;
 }
 

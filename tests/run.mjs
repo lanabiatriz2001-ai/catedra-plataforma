@@ -2555,7 +2555,8 @@ ok(_oralRuim.length === 0, 'C1 prova oral sem código interno do PDF no meio da 
    "Sem espelho" tem duas causas — a banca não publicou, ou o PDF existe e não deu para
    transcrever. Sair com a mesma palavra faria a pessoa procurar um espelho que não existe. */
 const _lista = Array.isArray(_DISC) ? _DISC : Object.values(_DISC);
-const _semEspelho = _lista.filter(q => !(q.espelho && q.espelho.length) && !q.espelhoTexto);
+// o padrão em prosa pode morar no arquivo de textos (temEspelhoTexto): também é espelho
+const _semEspelho = _lista.filter(q => !(q.espelho && q.espelho.length) && !q.espelhoTexto && !q.temEspelhoTexto);
 const _semMotivo = _semEspelho.filter(q => !q.espelhoSituacao);
 ok(_semEspelho.length === 0 || _semMotivo.length === 0,
   'C1 toda prova sem espelho registra POR QUE (' + _semMotivo.length + ' sem motivo de ' + _semEspelho.length + ')');
