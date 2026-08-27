@@ -2517,6 +2517,11 @@ ok(auditaTxt(_limpo + ('\nCEBRASPE – TRF DA 6.ª REGIÃO – Edital 2024').rep
 ok(auditaTxt('<<D01_dAdm_A0100422_2321>> ' + _limpo).includes('marcador-interno'),
   'C1 régua reprova código interno do PDF da banca');
 ok(auditaTxt('oi').includes('curto'), 'C1 régua reprova texto curto demais (PDF escaneado)');
+// mojibake real (UTF-8 lido como latin-1) é 98% ASCII válido: a proporção de lixo não o
+// pegava, e 34 de 40 textos deformados de verdade passavam. A assinatura é 'Ã'/'Â'
+// seguidos de um byte de continuação — "NÃO" tem letra depois, "nÃ£o" não.
+ok(auditaTxt(Buffer.from(_limpo, 'utf8').toString('latin1')).includes('lixo-encoding'),
+  'C1 régua reprova mojibake (UTF-8 lido como latin-1)');
 
 // A armadilha que fazia a auditoria acusar 59 espelhos bons de "curtos": o espelho
 // estruturado é um array de OBJETOS, e array.join() devolve "[object Object]".
@@ -3102,6 +3107,15 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     };
   }, URL0);
   for (const [k, v] of Object.entries(reg)) ok(v, 'AREA ' + k);
+
+// ids duplicados no banco dobram o card na tela e tornam a 2ª versão inalcançável
+// (lista.find abre sempre a 1ª). O dedup de 27/08 removeu 17; isto trava a volta.
+{
+  const _wD = {}; new Function('window', fs.readFileSync(path.join(RAIZ, 'discursivas-completo.js'), 'utf8'))(_wD);
+  const _ids = (_wD.CT_DISCURSIVAS || []).map(q => q.id);
+  const _dup = _ids.filter((x, i) => _ids.indexOf(x) !== i);
+  ok(_dup.length === 0, 'DISC ids únicos no banco (' + (_dup.slice(0, 4).join(', ') || 'ok') + ')');
+}
 
   // 2) o menu segue a capacidade — e Jurídica não perde NADA
   const ACERVO = ['legis', 'juris', 'areamod', 'roteiros', 'segundafase', 'redacao', 'oral',
@@ -3866,10 +3880,10 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
       const p = Object.getOwnPropertyDescriptor(e.constructor.prototype, 'value');
       p.set.call(e, val); e.dispatchEvent(new Event('input', { bubbles: true })); return true; };
     const r = {};
-    (bt(/^casos clínicos$/i) || {}).click?.(); await w(600);
-    (bt(/^novo caso$|^escrever o primeiro$/i) || {}).click?.(); await w(500);
-    set('[data-k="titulo"]', 'Dispneia pós-operatória');
-    set('[data-k="apresentacao"]', 'Homem, 54 anos, CPF 123.456.789-09, dispneia súbita.');
+    const _bCasos=bt(/^casos clínicos$/i); if(!_bCasos) return { semRascunho: true }; _bCasos.click(); await w(600);
+    const _bNovo=bt(/^novo caso$|^escrever o primeiro$/i); if(!_bNovo) return { semRascunho: true }; _bNovo.click(); await w(500);
+    r.rascunhoAbriu = set('[data-k="titulo"]', 'Dispneia pós-operatória')
+      && set('[data-k="apresentacao"]', 'Homem, 54 anos, CPF 123.456.789-09, dispneia súbita.');
     await w(300);
     // troca de área PELA INTERFACE, sem recarregar — é o caminho que o teste antigo pulava
     const irAjustes = async () => {
@@ -3901,10 +3915,11 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
     return r;
   });
   // um teste que se pula sozinho não é teste: se o caminho não existir, isto FALHA
-  ok(!f4troca.semAjustes && !f4troca.semBotao,
-     'FASE4 troca o caminho da troca de área existe' + (f4troca.semAjustes || f4troca.semBotao ? ' — ' + JSON.stringify(f4troca) : ''));
+  // um caminho que não abre é FALHA — sem isto o bloco inteiro passava vazio
+  ok(!f4troca.semAjustes && !f4troca.semBotao && !f4troca.semRascunho,
+     'FASE4 troca o caminho da troca de área existe' + (f4troca.semAjustes || f4troca.semBotao || f4troca.semRascunho ? ' — ' + JSON.stringify(f4troca) : ''));
   for (const [k, v] of Object.entries(f4troca)) {
-    if (k === 'semAjustes' || k === 'semBotao') continue;
+    if (k === 'semAjustes' || k === 'semBotao' || k === 'semRascunho') continue;
     ok(v, 'FASE4 troca ' + k);
   }
 

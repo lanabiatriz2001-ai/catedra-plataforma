@@ -116,6 +116,10 @@ enum IncidenciaDados {
 // MARK: - Tela
 
 struct IncidenciaView: View {
+    /* O acervo mora num enum estático que o SwiftUI não observa (mesmo defeito já
+       documentado e corrigido na OralBancasView): sem um @State como dependência, a
+       primeira renderização sai vazia e nada garante o redesenho depois da carga. */
+    @State private var acervoVersao = 0
     @EnvironmentObject var store: AppStore
     var abrirLei: ((UUID) -> Void)? = nil
     @State private var busca = ""
@@ -165,10 +169,11 @@ struct IncidenciaView: View {
                 .padding(22)
             }
         }
-        .onAppear { IncidenciaDados.carregar() }
+        .onAppear { IncidenciaDados.carregar(); acervoVersao += 1 }
     }
 
     private var lista: some View {
+        let _ = acervoVersao   // dependência explícita: a carga invalida a view
         let q = busca.trimmingCharacters(in: .whitespaces).lowercased()
         let itens = IncidenciaDados.diplomas.filter { q.isEmpty || $0.nome.lowercased().contains(q) }
         let max = itens.first?.total ?? 1

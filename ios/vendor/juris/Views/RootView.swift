@@ -92,6 +92,21 @@ struct RootView: View {
             ProgressView("Carregando jurisprudência…")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Palette.appBackground)
+        } else if store.loadError != nil || store.entries.isEmpty {
+            /* A falha de carga era 100% silenciosa: loadError era atribuído e nenhuma
+               view o exibia — o app abria vazio, sem explicação. Linguagem de produto,
+               sem nome de arquivo: o detalhe técnico fica no log. */
+            VStack(spacing: 10) {
+                Text("O acervo de jurisprudência não pôde ser aberto.")
+                    .font(.system(size: 15, weight: .semibold))
+                Text("Feche e abra o aplicativo. Se continuar assim, reinstale o CátedraJURIS — o acervo vem dentro dele.")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Palette.secondaryInk)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(30)
+            .background(Palette.appBackground)
         } else if let id = store.leituraID ?? store.selectedID, let entry = store.byId[id] {
             LeitorCheio(entry: entry)
         } else {
