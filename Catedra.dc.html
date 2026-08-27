@@ -2598,7 +2598,7 @@ window.ctPdfLib = (function(){
               <div style="font-family:var(--display);font-size:21px;font-weight:600;margin-top:6px;line-height:1.3;">{{ redProvaTitulo }}</div>
             </div>
             <div style="padding:24px 26px;">
-              <div style="font-size:var(--fs-lg);color:var(--ink);line-height:1.75;white-space:pre-wrap;">{{ redEnunciado }}</div>
+              <div class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);line-height:1.75;white-space:pre-wrap;">{{ redEnunciadoFmt }}</div>
               <sc-if value="{{ redTemLinkProva }}" hint-placeholder-val="{{ false }}">
                 <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:var(--fs-base);font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
               </sc-if>
@@ -8798,6 +8798,29 @@ class Component extends DCLogic {
     try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redTextTs'),JSON.stringify(0)); }catch(_){}
     this._toast('Rascunho apagado — a folha está limpa');
   };
+  /* Texto extraído de PDF chega com quebra de linha NO MEIO da frase — a largura da
+     página da banca, não a nossa. Junta a quebra quando a linha termina sem pontuação e a
+     seguinte continua em minúscula; preserva parágrafo (linha em branco), item de lista
+     (a), 1., I., -, •) e cabeçalho em maiúsculas. Só apresentação: o dado fica como veio. */
+  _desquebrar(t){
+    const ls=String(t||'').split('\n');
+    const out=[];
+    const ehItem=(x)=>/^\s*(?:[a-z]\)|[A-Z]\)|\(?\d{1,2}[.)]|[IVX]{1,5}[.)]|[-–•▪·]|Quest[ãa]o|QUEST|Item|ITEM)/.test(x);
+    for(let i=0;i<ls.length;i++){
+      const cur=ls[i];
+      if(!out.length){ out.push(cur); continue; }
+      const ant=out[out.length-1];
+      const aT=ant.trim(), cT=cur.trim();
+      const antAberta=/[a-zà-ú0-9,;:—-]$/.test(aT) && !/[.!?…]$/.test(aT);
+      const curContinua=/^[a-zà-ú(«"']/.test(cT);
+      // linha que termina em preposição/artigo/conjunção continua na seguinte MESMO que
+      // ela comece com maiúscula — "secretário de \n Educação" é a mesma frase
+      const antConectivo=/\b(?:de|da|do|das|dos|e|ou|o|a|os|as|em|no|na|nos|nas|para|por|ao|à|às|aos|que|se|com|sem|sob|sobre|entre|contra|até|um|uma|pela|pelo|pelas|pelos|cuja|cujo)$/i.test(aT);
+      if(aT && cT && !ehItem(cT) && ((antAberta && curContinua) || antConectivo)) out[out.length-1]=aT+' '+cT;
+      else out.push(cur);
+    }
+    return out.join('\n').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n');
+  }
   // ===== banco de discursivas (CT_DISCURSIVAS) =====
   // Mesmo padrão dos modelos de edital: o arquivo só é buscado quando ela abre o banco,
   // e por <script> (não fetch) porque no app do Mac a página roda em file://.
@@ -14333,6 +14356,9 @@ class Component extends DCLogic {
       redEspelhoAberto:!!(this.state.redEnunciado||'').trim() && !this.state.redEspelhoOculto && !this.state.redResult,
       bancoVazio:_bancoTotal===0 && !!this.state.discCarregado,
       // título curto da prova em foco (1ª linha do enunciado carregado)
+      // o herói acima já mostra a 1ª linha (órgão · cargo · ano — banca): repetir no corpo
+      // era ler o mesmo cabeçalho duas vezes, uma em cada tipografia
+      redEnunciadoFmt:this._desquebrar(String(this.state.redEnunciado||'').replace(/^[^\n]*\n+/,'')),
       redProvaTitulo:(()=>{const e=(this.state.redEnunciado||'').trim(); if(!e) return 'Prova';
         return e.split('\n')[0].replace(/\.$/,'').slice(0,120);})(),
       redLinkProva:(()=>{const m=/(https?:\/\/\S+)/.exec((this.state.redEnunciado||'')); return m?m[1]:'';})(),
