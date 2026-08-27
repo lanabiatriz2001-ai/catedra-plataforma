@@ -128,7 +128,7 @@ struct JurisCentralView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
-                    .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(f.nome).font(.system(size: 12.5, weight: .semibold))
                         .foregroundStyle(Palette.titleInk)
@@ -164,7 +164,7 @@ struct JurisCentralView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
-                    .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(nome).font(.system(size: 12.5, weight: .semibold))
                         .foregroundStyle(Palette.titleInk)
@@ -197,7 +197,7 @@ struct JurisCentralView: View {
                     .minimumScaleFactor(0.6).lineLimit(1)
                     .foregroundStyle(.white)
                     .frame(width: 42, height: 34)
-                    .background(Palette.accent, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(Palette.accent, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(t.nome).font(.system(size: 12.5, weight: .semibold))
                         .foregroundStyle(Palette.titleInk).lineLimit(1)
@@ -239,7 +239,7 @@ struct JurisCentralView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
-                    .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Nova central de tribunal").font(.system(size: 12.5, weight: .semibold))
                         .foregroundStyle(Palette.titleInk)

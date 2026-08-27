@@ -22,7 +22,7 @@ struct AnnotationsPanel: View {
                         .frame(minHeight: 64)
                         .scrollContentBackground(.hidden)
                         .padding(6)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(.quaternary.opacity(0.4)))
+                        .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(.quaternary.opacity(0.4)))
                         .onChange(of: generalNote) { _, newValue in
                             // setGeneralNote tem guarda de igualdade + save adiado.
                             store.setGeneralNote(lawID, newValue)
@@ -201,10 +201,10 @@ private struct AnnotationCard: View {
         }
         .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: AppTheme.rCard)
                 .fill(isFocused ? color.opacity(0.10) : Color.clear)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: AppTheme.rCard)
                         .stroke(isFocused ? color.opacity(0.6) : Color.gray.opacity(0.2), lineWidth: 1)
                 )
         )

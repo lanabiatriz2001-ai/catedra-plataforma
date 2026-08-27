@@ -156,8 +156,8 @@ struct MapaMentalView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 12).padding(.vertical, 7)
                     .frame(maxWidth: .infinity)
-                    .background(Color(hex: "#EEF0FB"), in: RoundedRectangle(cornerRadius: 9))
-                    .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Color(hex: "#4F46E5").opacity(0.35), lineWidth: 1))
+                    .background(Color(hex: "#EEF0FB"), in: RoundedRectangle(cornerRadius: Palette.rInner))
+                    .overlay(RoundedRectangle(cornerRadius: Palette.rInner).strokeBorder(Color(hex: "#4F46E5").opacity(0.35), lineWidth: 1))
                 if i < passos.count - 1 {
                     Image(systemName: "arrow.down").font(.system(size: 11, weight: .bold)).foregroundStyle(Color(hex: "#4F46E5"))
                 }
@@ -165,8 +165,8 @@ struct MapaMentalView: View {
         }
         .padding(11)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(hex: "#F7F8FE"), in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color(hex: "#E3E6F5"), lineWidth: 1))
+        .background(Color(hex: "#F7F8FE"), in: RoundedRectangle(cornerRadius: Palette.rCard))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard).strokeBorder(Color(hex: "#E3E6F5"), lineWidth: 1))
     }
 
     private func ramoCard(_ r: RamoNota) -> some View {
@@ -189,8 +189,8 @@ struct MapaMentalView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(r.cor.opacity(0.07), in: RoundedRectangle(cornerRadius: 11))
-        .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(r.cor.opacity(0.3), lineWidth: 1))
+        .background(r.cor.opacity(0.07), in: RoundedRectangle(cornerRadius: Palette.rCard))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rCard).strokeBorder(r.cor.opacity(0.3), lineWidth: 1))
     }
 
     private var rodape: some View {

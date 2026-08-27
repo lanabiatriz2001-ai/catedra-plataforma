@@ -224,7 +224,7 @@ struct RemissiveIndexView: View {
         }
         .padding(embedded ? 0 : 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background { if !embedded { RoundedRectangle(cornerRadius: 10).fill(.background.secondary) } }
+        .background { if !embedded { RoundedRectangle(cornerRadius: AppTheme.rCard).fill(.background.secondary) } }
     }
 }
 
