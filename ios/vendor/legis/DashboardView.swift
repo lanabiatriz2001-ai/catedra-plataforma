@@ -36,7 +36,7 @@ struct DashboardView: View {
 
     // Tiles do bloco TREINAR — as telas que antes não apareciam em lugar nenhum do Início.
     private var treinoTiles: [(String, String, String, SidebarItem)] {
-        [("Plano de leitura", "720 dias por disciplina", "calendar", .planoLeitura),
+        [("Plano de leitura", "\(ReadingData.totalDias) dias por disciplina", "calendar", .planoLeitura),
          ("Simulado de lei seca", simulado.emCurso ? "prova em curso" : "C/E do texto oficial", "checkmark.seal", .simuladoLegis),
          ("Prova oral", "arguição sobre o artigo", "mic", .provaOral),
          ("Incidência", "artigos mais cobrados", "target", .incidencia),

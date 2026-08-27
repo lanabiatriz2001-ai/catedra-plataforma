@@ -12,7 +12,7 @@ enum PlanoStore {
     }
 }
 
-// MARK: - Plano de leitura (cronograma de 720 dias por disciplina)
+// MARK: - Plano de leitura (cronograma por disciplina; o total vem de ReadingData.totalDias)
 
 struct PlanoLeituraView: View {
     @EnvironmentObject var store: AppStore
