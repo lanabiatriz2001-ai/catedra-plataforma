@@ -133,8 +133,8 @@ struct UpdateComparisonTable: View {
                     .background((row.id % 2 == 0) ? Color.clear : Color.secondary.opacity(0.04))
             }
         }
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.rCard).stroke(.quaternary))
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.rCard))
     }
 
     private var headerRow: some View {

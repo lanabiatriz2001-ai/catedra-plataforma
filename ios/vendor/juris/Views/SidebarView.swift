@@ -54,7 +54,7 @@ struct JurisSidebar: View {
         VStack(alignment: .leading, spacing: 0) {
             // Logo — mesmo bloco do CátedraLEGIS
             HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
                     .fill(ThemeState.t.accent).frame(width: 34, height: 34)
                     .overlay(Image(systemName: "building.columns.fill")
                         .font(.system(size: 15, weight: .bold)).foregroundStyle(.white))
@@ -213,8 +213,8 @@ struct JurisSidebar: View {
             }
         }
         .padding(.horizontal, 10).padding(.vertical, 7)
-        .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.08)))
-        .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: Palette.rInner).fill(Color.white.opacity(0.08)))
+        .overlay(RoundedRectangle(cornerRadius: Palette.rInner).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
     }
 
     /// Já estamos em "Todos os verbetes" (sem leitura aberta)? Aí não precisa saltar.
@@ -269,7 +269,7 @@ struct JurisSidebar: View {
             }
             .padding(.horizontal, 11).padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
+            .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
                 .fill(active ? ThemeState.t.sidebarActiveBg : Color.clear))
             .foregroundStyle(active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText)
             .contentShape(Rectangle())

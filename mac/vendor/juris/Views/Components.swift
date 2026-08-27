@@ -354,13 +354,13 @@ struct HubCard: View {
                         .minimumScaleFactor(0.6).lineLimit(1)
                         .foregroundStyle(.white)
                         .frame(width: 42, height: 34)
-                        .background(cor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(cor, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 } else {
                     Image(systemName: icon)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(cor)
                         .frame(width: 34, height: 34)
-                        .background(cor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(cor.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 }
                 VStack(alignment: .leading, spacing: 1) {
                     Text(titulo).font(.system(size: 12.5, weight: .semibold))

@@ -266,7 +266,7 @@ struct EdicoesListView: View {
                         .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(Palette.fonteJT)
                         .frame(width: 44, height: 34)
-                        .background(Palette.fonteJT.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+                        .background(Palette.fonteJT.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner))
                     VStack(alignment: .leading, spacing: 2) {
                         Text(tituloEdicao(ed.tema))
                             .font(Typo.serifTitle(12.5, .semibold))
@@ -581,7 +581,7 @@ struct InfoEdicoesView: View {
                             .foregroundStyle(fonte.cor)
                     }
                     .frame(width: 52, height: 34)
-                    .background(fonte.cor.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+                    .background(fonte.cor.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner))
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Informativo \(ed.numero)")
                             .font(Typo.serifTitle(13, .semibold))
