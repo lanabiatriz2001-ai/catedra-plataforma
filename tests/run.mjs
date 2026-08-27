@@ -2987,8 +2987,12 @@ ok(semIframe.length === 0, 'D14 toda view de satélite tem o iframe no template 
 const semFor = soTemplate.replace(/<sc-for[\s\S]*?<\/sc-for>/g, '');
 const vars = [...new Set([...semFor.matchAll(/\{\{\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\}\}/g)].map(m => m[1]))];
 // O render() devolve um objeto literal gigante; procurar "nome:" ou "nome," (atalho) basta.
-const resolvida = (n) => new RegExp('(^|[\\s,{])' + n + '\\s*[:,]').test(fonteTpl)
-  || new RegExp('\\.\\.\\.' + n + '\\b').test(fonteTpl);
+// MAS nunca dentro de comentário: a exposição de edRaw passou MESES engolida por uma
+// linha "//" colada com a de código, este teste dava a chave por existente, e a caixa
+// de importar edital apagava o que a pessoa colava. Linha comentada não prova nada.
+const fonteViva = fonteTpl.split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+const resolvida = (n) => new RegExp('(^|[\\s,{])' + n + '\\s*[:,]').test(fonteViva)
+  || new RegExp('\\.\\.\\.' + n + '\\b').test(fonteViva);
 const orfas = vars.filter(v => !resolvida(v));
 ok(orfas.length === 0, 'D14 nenhuma variável órfã no template (' + (orfas.slice(0, 6).join(', ') || 'nenhuma') + ')');
 
@@ -3003,6 +3007,52 @@ const d14barra = await page.evaluate(() => {
   return r;
 });
 for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
+
+/* ===== D15: TODA CAIXA ACEITA DIGITAÇÃO ==========================================
+   A caixa de importar edital engoliu texto por meses porque NENHUM teste digitava nas
+   caixas — o app é controlado e re-renderiza a cada tique, então basta uma exposição
+   perdida para o campo apagar o que a pessoa escreve. Esta varredura percorre as views
+   principais, digita em CADA campo de texto visível via insertText (o caminho do ⌘V),
+   atravessa um re-render e exige o texto ainda lá. Contexto novo: digitar suja rascunhos. */
+{
+  const d15Ctx = await browser.newContext({ viewport: { width: 1365, height: 960 } });
+  await d15Ctx.addInitScript(() => { try {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+  } catch (_) {} });
+  const d15Pg = await d15Ctx.newPage();
+  await d15Pg.goto(URL0 + '/Catedra.dc.html');
+  await d15Pg.waitForTimeout(1800);
+  const mudos = await d15Pg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const VIEWS = ['inicio', 'ciclo', 'edital', 'redacao', 'oral', 'bancas', 'ajustes'];
+    const falhas = [];
+    for (const v of VIEWS) {
+      try { window.__catedraGoView(v); } catch (_) { continue; }
+      await w(1100);
+      const campos = [...document.querySelectorAll('textarea, input[type="text"], input:not([type])')]
+        .filter(e => !e.readOnly && !e.disabled && e.offsetParent !== null);
+      for (const e of campos.slice(0, 12)) {
+        const antes = e.value;
+        e.focus();
+        document.execCommand('insertText', false, 'XQ7');
+        await w(950);                                     // atravessa o re-render do relógio
+        if (!String(e.value).includes('XQ7')) {
+          falhas.push(v + ': ' + (e.placeholder || e.dataset.k || e.type || 'campo').slice(0, 50));
+        } else {
+          // devolve o valor antigo pelo caminho do app, para não sujar o rascunho
+          try { const pd = Object.getOwnPropertyDescriptor(e.constructor.prototype, 'value');
+            pd.set.call(e, antes); e.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
+        }
+        await w(120);
+      }
+    }
+    return falhas;
+  });
+  ok(mudos.length === 0, 'D15 toda caixa visível aceita digitação e sobrevive ao re-render ('
+    + (mudos.slice(0, 5).join(' | ') || 'todas vivas') + ')');
+  await d15Ctx.close();
+}
 
 /* ===== TASK 5 · NAVEGAÇÃO POR JORNADA, SEM TROCAR IDS =====
    A barra agrupava por arquitetura do código ("Treino", "Acervo"). Agora agrupa pela rotina
