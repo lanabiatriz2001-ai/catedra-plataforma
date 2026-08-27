@@ -2625,7 +2625,19 @@ window.ctPdfLib = (function(){
               <div style="font-family:var(--display);font-size:21px;font-weight:600;margin-top:6px;line-height:1.3;">{{ redProvaTitulo }}</div>
             </div>
             <div style="padding:24px 26px;">
-              <div class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);line-height:1.75;white-space:pre-wrap;">{{ redEnunciadoFmt }}</div>
+              <div class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);">
+                <sc-for list="{{ redBlocos }}" as="b" hint-placeholder-count="6">
+                  <sc-if value="{{ b.ehTitulo }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-weight:700;letter-spacing:.01em;margin:18px 0 8px;font-size:var(--fs-lg);color:var(--ink);">{{ b.texto }}</div>
+                  </sc-if>
+                  <sc-if value="{{ b.ehItem }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:9px;margin:5px 0 5px 10px;line-height:1.7;text-align:justify;hyphens:auto;-webkit-hyphens:auto;"><span style="flex:none;font-weight:600;">{{ b.marcador }}</span><span style="min-width:0;">{{ b.texto }}</span></div>
+                  </sc-if>
+                  <sc-if value="{{ b.ehPar }}" hint-placeholder-val="{{ true }}">
+                    <div style="margin:0 0 13px;line-height:1.8;text-align:justify;hyphens:auto;-webkit-hyphens:auto;">{{ b.texto }}</div>
+                  </sc-if>
+                </sc-for>
+              </div>
               <sc-if value="{{ redTemLinkProva }}" hint-placeholder-val="{{ false }}">
                 <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:var(--fs-base);font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
               </sc-if>
@@ -8891,6 +8903,28 @@ class Component extends DCLogic {
     }
     return out.join('\n').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n');
   }
+  /* O enunciado renderizado como texto corrido num pre-wrap era um blocão: "QUESTÃO 3"
+     saía no peso do corpo, alínea quebrada voltava à margem esquerda, e o espaçamento era
+     o do arquivo. Aqui cada linha vira um BLOCO tipografado: título (peso e respiro),
+     alínea (recuo pendurado, para a 2ª linha alinhar sob o texto e não sob a letra) e
+     parágrafo (justificado, como a prova impressa). Só apresentação — o dado fica como veio. */
+  _redBlocos(t){
+    const linhas=String(t||'').split('\n').map(x=>x.trim());
+    const out=[];
+    const ehTitulo=(x)=> x.length<=64 && !/[.;:,]$/.test(x) &&
+      (/^(QUEST[ÃA]O|Quest[ãa]o|DISSERTA[ÇC][ÃA]O|Disserta[çc][ãa]o|PE[ÇC]A|SENTEN[ÇC]A)\b/.test(x)
+       || (x===x.toUpperCase() && /[A-ZÀ-Ú]{4}/.test(x))
+       || /^(Direito|Formação|Noções)\s+[A-ZÀ-Ú]/.test(x));
+    const mItem=(x)=> x.match(/^([a-z]\)|[A-Z]\)|\(?\d{1,2}[.)]|[IVXivx]{1,5}\s*[-–—]\s|[IVX]{1,5}[.)])\s*/);
+    for(const l of linhas){
+      if(!l){ continue; }
+      if(ehTitulo(l)){ out.push({tipo:'titulo', texto:l}); continue; }
+      const m=mItem(l);
+      if(m){ out.push({tipo:'item', marcador:m[0].trim(), texto:l.slice(m[0].length)}); continue; }
+      out.push({tipo:'par', texto:l});
+    }
+    return out;
+  }
   // ===== banco de discursivas (CT_DISCURSIVAS) =====
   // Mesmo padrão dos modelos de edital: o arquivo só é buscado quando ela abre o banco,
   // e por <script> (não fetch) porque no app do Mac a página roda em file://.
@@ -9201,25 +9235,6 @@ class Component extends DCLogic {
         if(R.tem(id,'jurisprudencia')) return 'Jurisprudência e lei seca em Certo/Errado — metade com o núcleo trocado (prazo, competência, operador) — e, fechando o caderno, questões A-E de provas reais de magistratura com o gabarito da banca. Ao encerrar, o resultado desce para o histórico e conta no seu desempenho.';
         return 'Itens de Certo/Errado montados na hora a partir do texto oficial de '+R.termo(id,'acervo','suas fontes')+' — metade com o núcleo trocado (prazo, número, operador). Ao encerrar, o resultado desce para o histórico e conta no seu desempenho.';
       }catch(_){ return 'Itens de Certo/Errado montados a partir do texto oficial.'; } })(),
-      oralAbaLeiRot:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
-        const fp=R.termo(id,'fontePlural','leis');
-        if(id==='juridica'||fp==='leis') return 'Lei seca';
-        return fp.length>14?'Fontes':(fp.charAt(0).toUpperCase()+fp.slice(1)); }catch(_){ return 'Lei seca'; } })(),
-      oralIntroTxt:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
-        const pedacos=[];
-        if(R.tem(id,'jurisprudencia')) pedacos.push('o acervo de jurisprudência');
-        pedacos.push('o texto de '+R.termo(id,'acervo','suas fontes'));
-        if(R.tem(id,'provaOralBancas')) pedacos.push('o material oficial das bancas — pontos sorteáveis, perguntas formuladas, padrão de resposta e critérios');
-        const j=pedacos.length>1 ? pedacos.slice(0,-1).join(', ')+' e '+pedacos[pedacos.length-1] : pedacos[0];
-        return 'Arguição em voz alta sobre '+j+'. Tudo local, sem IA.';
-      }catch(_){ return 'Arguição em voz alta sobre as suas fontes de estudo. Tudo local, sem IA.'; } })(),
-      sessTopicoPh:(()=>{ const id=this.state.areaEstudo||'juridica';
-        const EX={juridica:'ex.: Controle de constitucionalidade', policial:'ex.: Inquérito policial',
-          fiscal:'ex.: Crédito tributário', contas:'ex.: Tomada de contas especial',
-          administrativa:'ex.: Atos administrativos', saude:'ex.: Protocolo de sepse',
-          social:'ex.: Tipificação dos serviços socioassistenciais', educacao:'ex.: BNCC — etapas e modalidades',
-          tecnologia:'ex.: Segurança da informação', militar:'ex.: Hierarquia e disciplina'};
-        return EX[id]||'ex.: um tópico do seu edital'; })(),
       sjRamoChips:ramos.map(k=>({v:k,label:k.replace('Direito ','')+' · '+m[k],style:this._chip(st.sjRamos.indexOf(k)>=0)})),
       sjLeiChips:((window.CT_LEIS)||[]).map(l=>({v:l.sigla,label:l.sigla+' · '+l.artigos.length,style:this._chip(st.sjLeis.indexOf(l.sigla)>=0)})),
       sjRamosSel:st.sjRamos.length?st.sjRamos.join(', '):'todas as disciplinas',
@@ -14396,6 +14411,26 @@ class Component extends DCLogic {
       // primeiro nível, e variável que ele não acha vira string vazia em silêncio.
       // Gerá-las por spread funcionaria em tempo de execução e enganaria a revisão.
       nomeLegis:this._nomeLegis(),
+      oralAbaLeiRot:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
+        const fp=R.termo(id,'fontePlural','leis');
+        if(id==='juridica'||fp==='leis') return 'Lei seca';
+        return fp.length>14?'Fontes':(fp.charAt(0).toUpperCase()+fp.slice(1)); }catch(_){ return 'Lei seca'; } })(),
+      oralIntroTxt:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
+        const pedacos=[];
+        if(R.tem(id,'jurisprudencia')) pedacos.push('o acervo de jurisprudência');
+        pedacos.push('o texto de '+R.termo(id,'acervo','suas fontes'));
+        if(R.tem(id,'provaOralBancas')) pedacos.push('o material oficial das bancas — pontos sorteáveis, perguntas formuladas, padrão de resposta e critérios');
+        const j=pedacos.length>1 ? pedacos.slice(0,-1).join(', ')+' e '+pedacos[pedacos.length-1] : pedacos[0];
+        return 'Arguição em voz alta sobre '+j+'. Tudo local, sem IA.';
+      }catch(_){ return 'Arguição em voz alta sobre as suas fontes de estudo. Tudo local, sem IA.'; } })(),
+      sessTopicoPh:(()=>{ const id=this.state.areaEstudo||'juridica';
+        const EX={juridica:'ex.: Controle de constitucionalidade', policial:'ex.: Inquérito policial',
+          fiscal:'ex.: Crédito tributário', contas:'ex.: Tomada de contas especial',
+          administrativa:'ex.: Atos administrativos', saude:'ex.: Protocolo de sepse',
+          social:'ex.: Tipificação dos serviços socioassistenciais', educacao:'ex.: BNCC — etapas e modalidades',
+          tecnologia:'ex.: Segurança da informação', militar:'ex.: Hierarquia e disciplina'};
+        return EX[id]||'ex.: um tópico do seu edital'; })(),
+
       capLegis:_podeView('legis'), capJuris:_podeView('juris'), capAreaMod:_podeView('areamod'),
       capEdital:_podeView('edital'), capSimulados:_podeView('simulados'), capRedacao:_podeView('redacao'),
       capRoteiros:_podeView('roteiros'), capSegundaFase:_podeView('segundafase'), capOral:_podeView('oral'),
@@ -14519,6 +14554,11 @@ class Component extends DCLogic {
       // era ler o mesmo cabeçalho duas vezes, uma em cada tipografia
       // corta a 1ª linha SÓ no padrão que _abrirDiscursiva grava (linha + linha em branco):
       // enunciado legado/livre sem esse padrão aparece inteiro, em vez de amputado
+      redBlocos:this._redBlocos(this._desquebrar((this.state.redModoProva && /^[^\n]+\n\n/.test(String(this.state.redEnunciado||'')))
+        ? String(this.state.redEnunciado||'').replace(/^[^\n]*\n+/,'')
+        : String(this.state.redEnunciado||''))).map(x=>({
+          ehTitulo:x.tipo==='titulo', ehItem:x.tipo==='item', ehPar:x.tipo==='par',
+          marcador:x.marcador||'', texto:x.texto})),
       redEnunciadoFmt:this._desquebrar((this.state.redModoProva && /^[^\n]+\n\n/.test(String(this.state.redEnunciado||'')))
         ? String(this.state.redEnunciado||'').replace(/^[^\n]*\n+/,'')
         : String(this.state.redEnunciado||'')),
