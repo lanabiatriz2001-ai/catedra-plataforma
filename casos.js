@@ -102,16 +102,31 @@
   var REGRAS = [
     { k: 'cpf', rot: 'CPF', re: /\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/ },
     { k: 'cns', rot: 'cartão do SUS', re: /\b[12789]\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\b/ },
-    { k: 'telefone', rot: 'telefone', re: /(\(\d{2}\)\s?|\b)\d{4,5}-?\d{4}\b/ },
+    // Telefone precisa de forma INEQUÍVOCA — DDD entre parênteses ou palavra de contato.
+    // A versão anterior aceitava "4 ou 5 dígitos, hífen, 4 dígitos" e barrava
+    // "acompanhamento de 2019-2023" e "diurese de 1500-2000 mL", que é justamente o que
+    // se escreve num caso. Um número solto continua passando: é o preço certo a pagar.
+    { k: 'telefone', rot: 'telefone',
+      re: /(?:\(\d{2}\)\s?\d{4,5}-?\d{4}|\b(?:tel|fone|telefone|celular|cel|whats\w*|contato)\b\s*:?\s*(?:\(\d{2}\)\s?)?\d{4,5}-?\d{4})/i },
     { k: 'email', rot: 'e-mail', re: /[\w.+-]+@[\w-]+\.[\w.]{2,}/ },
-    { k: 'cep', rot: 'CEP', re: /\b\d{5}-?\d{3}\b/ },
+    // CEP com hífen, ou precedido da palavra. Oito dígitos soltos não são CEP: são
+    // qualquer outra coisa que a pessoa escreveu.
+    { k: 'cep', rot: 'CEP', re: /\bCEP\b\s*:?\s*\d{5}-?\d{3}\b|\b\d{5}-\d{3}\b/i },
     { k: 'rg', rot: 'RG', re: /\bRG\s*:?\s*[\d.\-xX]{5,}/i },
-    { k: 'prontuario', rot: 'número de prontuário', re: /\b(prontu[áa]rio|matr[íi]cula|registro)\s*:?\s*n?[º°]?\s*\d{3,}/i },
-    { k: 'nascimento', rot: 'data de nascimento', re: /\b(nasc(imento|ido em)?|dn)\s*:?\s*\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/i },
-    // o nome da via costuma ter preposição no meio ("Rua das Flores"): exigir maiúscula
-    // logo depois de "Rua" deixava passar justamente o formato mais comum
-    { k: 'endereco', rot: 'endereço', re: /\b(rua|avenida|av\.|travessa|alameda|estrada|rodovia)\s+(?:[\wÀ-ú.]+\s+){0,4}[\wÀ-ú]+\s*,?\s*n?[º°]?\s*\d{1,6}\b/i }
+    { k: 'prontuario', rot: 'número de prontuário',
+      re: /\b(?:prontu[áa]rio|matr[íi]cula)\s*:?\s*n?[º°.]?\s*\d{3,}|\bregistro\s*n[º°.]\s*\d{2,}/i },
+    { k: 'nascimento', rot: 'data de nascimento',
+      re: /\b(nasc(imento|ido em)?|dn)\s*:?\s*\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/i },
+    /* Endereço identifica quando tem NOME DE VIA e NÚMERO — e o nome da via se reconhece
+       pela maiúscula ("Rua das Flores, 120", "Avenida Sete de Setembro 1200"). Sem essa
+       exigência, "em situação de rua há 3 anos" e "moram na mesma rua do CRAS há 2 anos"
+       eram lidos como endereço: vocabulário central do SUAS, barrado por engano. Por isso
+       a regra é sensível a maiúsculas (nada de /i) e não cobre estrada nem rodovia — "BR
+       116" e "estrada vicinal a 30 km" localizam região, não pessoa. */
+    { k: 'endereco', rot: 'endereço',
+      re: /\b(?:[Rr]ua|[Aa]venida|[Aa]v\.|[Tt]ravessa|[Aa]lameda)\s+(?:[a-zà-ú]{1,4}\s+)?[A-ZÀ-Ú][\wÀ-ú]*(?:\s+(?:[a-zà-ú]{1,4}\s+)?[A-ZÀ-Ú][\wÀ-ú]*){0,3}\s*,?\s*(?:n[º°.]?\s*)?\d{1,6}\b/ }
   ];
+
 
   /** Devolve a lista do que reconheceu, com o rótulo em português. Vazia = pode salvar. */
   function acharIdentificaveis(texto) {
@@ -125,17 +140,26 @@
     return achados;
   }
 
-  /** O mesmo, sobre um caso inteiro — devolve também em qual campo está. */
+  /* Meta-dados do registro: não são texto que a pessoa escreveu. */
+  var META = { id: 1, up: 1, area: 1, criado: 1, del: 1, perguntas: 1, treinos: 1 };
+
+  /** O mesmo, sobre um caso inteiro — devolve também em qual campo está.
+   *  Varre TODA chave de texto do objeto, não só as do esquema da área ativa: um rascunho
+   *  que atravessou uma troca de área carrega campos do outro esquema, invisíveis na tela,
+   *  e era exatamente por ali que um CPF entrava sem passar por aqui. */
   function auditar(caso, areaId) {
+    if (!caso) return [];
     var e = esquema(areaId);
-    if (!e || !caso) return [];
+    var rot = {};
+    if (e) e.campos.forEach(function (c) { rot[c.k] = c.rot; });
     var out = [];
-    e.campos.forEach(function (c) {
-      acharIdentificaveis(caso[c.k]).forEach(function (a) {
-        out.push({ campo: c.k, rotuloCampo: c.rot, tipo: a.tipo, rotulo: a.rotulo, trecho: a.trecho });
+    Object.keys(caso).forEach(function (k) {
+      if (META[k]) return;
+      if (typeof caso[k] !== 'string') return;
+      acharIdentificaveis(caso[k]).forEach(function (a) {
+        out.push({ campo: k, rotuloCampo: (rot[k] || k), tipo: a.tipo, rotulo: a.rotulo, trecho: a.trecho });
       });
     });
-    // as perguntas também são texto livre
     (caso.perguntas || []).forEach(function (p, i) {
       acharIdentificaveis(p && p.q).forEach(function (a) {
         out.push({ campo: 'perguntas', rotuloCampo: 'Pergunta ' + (i + 1), tipo: a.tipo, rotulo: a.rotulo, trecho: a.trecho });
@@ -145,6 +169,17 @@
       });
     });
     return out;
+  }
+
+  /** O registro reduzido ao ESQUEMA da área: nada de chave estranha chegar ao disco. */
+  function apenasDoEsquema(caso, areaId) {
+    var e = esquema(areaId);
+    if (!e || !caso) return null;
+    var o = { id: caso.id, area: e.id, criado: caso.criado || 0, up: caso.up || 0,
+              treinos: (caso.treinos || []),
+              perguntas: (caso.perguntas || []).filter(function (p) { return String((p && p.q) || '').trim(); }) };
+    e.campos.forEach(function (c) { o[c.k] = String(caso[c.k] || ''); });
+    return o;
   }
 
   /** O que falta para o caso poder ser salvo. */
@@ -198,7 +233,7 @@
     ESQUEMAS: ESQUEMAS, REGRAS: REGRAS,
     esquema: esquema, temEsquema: temEsquema,
     acharIdentificaveis: acharIdentificaveis, auditar: auditar,
-    faltando: faltando, novo: novo,
+    faltando: faltando, novo: novo, apenasDoEsquema: apenasDoEsquema,
     passosDeTreino: passosDeTreino, panorama: panorama
   };
   w.CT_CASOS = api;

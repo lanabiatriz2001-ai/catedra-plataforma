@@ -523,7 +523,7 @@ window.ctPdfLib = (function(){
     </nav>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Estudo base</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
-      <sc-if value="{{ capLegis }}" hint-placeholder-val="{{ true }}"><button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Lei seca · CátedraLEGIS</span></button></sc-if>
+      <sc-if value="{{ capLegis }}" hint-placeholder-val="{{ true }}"><button data-view="legis" onclick="{{ onNav }}" style="{{ navLegis }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ nomeLegis }}</span></button></sc-if>
       <sc-if value="{{ capJuris }}" hint-placeholder-val="{{ true }}"><button data-view="juris" onclick="{{ onNav }}" style="{{ navJuris }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M5 21h14M6 7l-3 6a3 3 0 0 0 6 0l-3-6zM18 7l-3 6a3 3 0 0 0 6 0l-3-6zM12 5l6-1M12 5L6 4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Jurisprudência · JURIS</span></button></sc-if>
       <sc-if value="{{ capAreaMod }}" hint-placeholder-val="{{ true }}"><button data-view="areamod" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button></sc-if>
       <sc-if value="{{ capCasos }}" hint-placeholder-val="{{ false }}"><button data-view="casos" onclick="{{ onNav }}" style="{{ navCasos }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l3 3v15H6z" stroke-linejoin="round"></path><path d="M9.5 9.5h5M9.5 13h5M9.5 16.5h3" stroke-linecap="round"></path></svg><span>{{ casosMenu }}</span></button></sc-if>
@@ -2335,7 +2335,7 @@ window.ctPdfLib = (function(){
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
           <div style="flex:1;min-width:250px;background:var(--surface);border:1px solid var(--border);border-left:4px solid #0D9488;border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:13px;">
             <span style="font-size:21px;">📕</span>
-            <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:var(--fs-md);color:var(--ink);">Lei seca · CátedraLEGIS</div><div style="font-size:var(--fs-sm);color:{{ nativeRevLegisCor }};margin-top:2px;font-weight:600;">{{ nativeRevLegisStr }}</div></div>
+            <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:var(--fs-md);color:var(--ink);">{{ nomeLegis }}</div><div style="font-size:var(--fs-sm);color:{{ nativeRevLegisCor }};margin-top:2px;font-weight:600;">{{ nativeRevLegisStr }}</div></div>
             <button onclick="{{ abrirTabLegis }}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:var(--r-md);padding:9px 16px;font-weight:600;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;flex:none;">Abrir →</button>
           </div>
           <div style="flex:1;min-width:250px;background:var(--surface);border:1px solid var(--border);border-left:4px solid #7C3AED;border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:13px;">
@@ -6261,10 +6261,16 @@ class Component extends DCLogic {
       this.state.areaEstudo=_areaNova;   // adotado já, para todo _chave() abaixo acertar o alvo
       patch.areaEstudo=_areaNova;
       this._palIndice=null; this._palCarregando=false;   // a busca é da área
+      // caso aberto pertence à área que acabou de sair de cena — e a tela em que a pessoa
+      // está pode não existir na área nova. As duas coisas se resolvem aqui, senão o outro
+      // aparelho troca a área e este fica com um caso clínico vivo dentro de outra área.
+      patch.casoEdit=null; patch.casoTreino=null; patch.casoPasso=0; patch.casoResp=false; patch.casoAviso='';
+      if(!this._podeAbrir(this.state.view)){ patch.view='indisponivel'; patch.viewBloqueada=this.state.view; }
     }
     try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
     try{ const raw=localStorage.getItem(this._chave('sessionsLixeira')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessionsLixeira=a; } }catch(_){}
     patch.reviews=this._load('reviews', this.state.reviews);
+    patch.casos=this._load('casos', this.state.casos);
     patch.metas=this._load('metas', this.state.metas);
     patch.eventos=this._load('eventos', this.state.eventos);
     patch.errors=this._load('errors', this.state.errors);
@@ -6373,7 +6379,17 @@ class Component extends DCLogic {
       const day=864e5;
       const todayMs=Date.parse(this._hoje()+'T00:00:00Z');
       let mudou=false;
-      const rv=(this.state.reviews||[]).map(r=>{
+      /* Revisão de caso apagado. O caso morre com lápide dentro do array; a revisão dele
+         era só filtrada, sem lápide própria — então o OUTRO aparelho, que nunca apagou
+         nada, devolvia a revisão pelo merge por id e ela voltava para os dois, órfã, com
+         o título de um caso que não existe mais e sem nenhuma tela por onde removê-la.
+         A lápide do caso viaja no blob, então ela chega aqui e resolve nos dois lados. */
+      const _mortos=new Set((this.state.casos||[]).filter(c=>c&&c.del).map(c=>c.id));
+      const _vivas=(this.state.reviews||[]).filter(r=>{
+        if(r && r.casoId && _mortos.has(r.casoId)){ mudou=true; return false; }
+        return true;
+      });
+      const rv=_vivas.map(r=>{
         let dd=r.dueDate;
         if(!dd){ dd=new Date(todayMs + (Math.round(+r.due||0))*day).toISOString().slice(0,10); mudou=true; }
         const nd=Math.round((Date.parse(dd+'T00:00:00Z') - todayMs)/day);
@@ -6870,8 +6886,11 @@ class Component extends DCLogic {
       return;
     }
     const agora=Date.now();
-    const limpo={...c, perguntas:((c.perguntas||[]).filter(p=>String((p&&p.q)||'').trim())),
-                 criado:(c.criado||agora), up:agora};
+    // O registro vai ao disco reduzido ao ESQUEMA da área. Espalhar `...c` deixava passar
+    // campo de OUTRO esquema, que a tela não mostra e que a pessoa não tem como corrigir —
+    // um caso clínico rascunhado e salvo depois em Assistência Social levava a apresentação
+    // junto, com o que estivesse escrito nela.
+    const limpo={...window.CT_CASOS.apenasDoEsquema(c, e.id), criado:(c.criado||agora), up:agora};
     const lista=this.state.casos||[];
     const casos = lista.some(x=>x&&x.id===limpo.id) ? lista.map(x=>(x&&x.id===limpo.id)?limpo:x) : [...lista, limpo];
     this.setState({casos, casoEdit:null, casoAviso:''}, ()=>{ this._autosave(); this.flashSync(); });
@@ -6882,6 +6901,13 @@ class Component extends DCLogic {
      Sem a lápide, o merge por id traz o caso de volta do outro aparelho. */
   casoExcluir = ()=>{
     const c=this.state.casoEdit; if(!c) return;
+    // Caso que não está na lista ATUAL é de outra área: apagar não faria nada e o aviso
+    // diria que fez. Melhor sair dizendo a verdade.
+    if(!(this.state.casos||[]).some(x=>x&&x.id===c.id&&!x.del)){
+      this.setState({casoEdit:null, casoAviso:''});
+      this._toast('Este caso é de outra área de estudo — volte para ela para apagá-lo');
+      return;
+    }
     if(!window.confirm('Apagar este caso? O texto é removido deste aparelho e dos outros na próxima sincronização.')) return;
     const casos=(this.state.casos||[]).map(x=>(x&&x.id===c.id)?{id:c.id, del:true, up:Date.now()}:x);
     const reviews=(this.state.reviews||[]).filter(r=>r.casoId!==c.id);
@@ -7451,6 +7477,28 @@ class Component extends DCLogic {
      líquida, pegadinha de palavra-chave) vale igual em prova de Enfermagem; o vocabulário
      é que não. Aqui a fonte vira o termo DA ÁREA, e a cláusula que só existe no Direito é
      RETIRADA — não substituída por um equivalente inventado, que seria pior que o erro. */
+  /* Dica de estudo que é jurídica de ponta a ponta ("estude súmulas do STF/STJ") não tem
+     tradução para Enfermagem: passá-la pelo _bancaTexto deixaria um caco sem sentido. Fora
+     das áreas com jurisprudência, ela some; as demais só trocam o vocabulário de fonte. */
+  /* O CátedraLEGIS abre a fonte normativa DA ÁREA — diretriz em Saúde, norma em Assistência
+     Social. Chamá-lo de "Lei seca" no menu e nos cartões era rótulo jurídico residual: o
+     nome da porta não batia com o que estava atrás dela. */
+  _nomeLegis(){
+    const id=this.state.areaEstudo||'juridica';
+    let fp='leis';
+    try{ fp=window.CT_AREA_REG.termo(id,'fontePlural','leis'); }catch(_){}
+    const nome=(id==='juridica'||fp==='leis') ? 'Lei seca' : (fp.charAt(0).toUpperCase()+fp.slice(1));
+    return nome+' · CátedraLEGIS';
+  }
+  _bancaDicas(lista){
+    const a=Array.isArray(lista)?lista:[];
+    const id=this.state.areaEstudo||'juridica';
+    let juridica=true;
+    try{ juridica=window.CT_AREA_REG.tem(id,'jurisprudencia'); }catch(_){}
+    if(juridica) return a.map(String);
+    const SO_JURIDICA=/jurisprud|súmul|sumul|acórdão|acordao|STF|STJ|TST|em Direito/i;
+    return a.map(String).filter(d=>!SO_JURIDICA.test(d)).map(d=>this._bancaTexto(d));
+  }
   _bancaTexto(txt){
     const t=String(txt||''); if(!t) return t;
     const id=this.state.areaEstudo||'juridica';
@@ -7486,7 +7534,7 @@ class Component extends DCLogic {
   _pvDiferenca(lado){
     const novo=this.state.areaPreview; if(!novo) return [];
     const atual=this.state.areaEstudo||'juridica';
-    const NOMES={legis:'Lei seca · CátedraLEGIS', juris:'Jurisprudência · CátedraJURIS',
+    const NOMES={legis:this._nomeLegis(), juris:'Jurisprudência · CátedraJURIS',
       areamod:'o módulo de estudo da área', roteiros:'Roteiros e peças',
       segundafase:'Provas de 2ª fase', redacao:'Discursivas', oral:'Prova oral',
       prioridade:'Painel de prioridade', simulados:'Simulados'};
@@ -7529,7 +7577,7 @@ class Component extends DCLogic {
          + 'Tema, fonte e preferências acompanham você.');
   }
   _indispNome(v){
-    const N={legis:'Lei seca · CátedraLEGIS', juris:'Jurisprudência · CátedraJURIS',
+    const N={legis:this._nomeLegis(), juris:'Jurisprudência · CátedraJURIS',
       areamod:'Módulo de estudo da área', roteiros:'Roteiros e peças',
       segundafase:'Provas de 2ª fase', redacao:'Discursivas', oral:'Prova oral',
       prioridade:'Painel de prioridade', simulados:'Simulados', edital:'Edital', bancas:'Bancas'};
@@ -8568,6 +8616,16 @@ class Component extends DCLogic {
           patch.areaEstudo=d.areaEstudo||'';
           this.state.areaEstudo=d.areaEstudo||'';   // para todo _chave() abaixo acertar o alvo
         }
+        /* Os cadernos voltam para o DISCO, mas a lista abaixo só devolve à MEMÓRIA as
+           chaves antigas do topo do arquivo. Uma chave que existe apenas no caderno —
+           como `casos` — ficava restaurada em disco e velha em memória, e o autosave de
+           500 ms regravava o vazio por cima: restaurar o backup APAGAVA os casos. */
+        this._autosaveKeys().forEach(k=>{
+          if(!this.AREA_PROPRIA.has(k)) return;
+          if(k in patch) return;                 // quem a lista abaixo trata continua com ela
+          const v=this._load(k, undefined);      // _chave() já aponta para a área restaurada
+          if(v!==undefined) patch[k]=v;
+        });
       }
     }catch(_){}
             ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','discItems','planHoras','agendaFeitas','manualFixedRoteiroAtual','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','meusGrupos','redText','redGabarito','redEnunciado'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
@@ -10849,9 +10907,18 @@ class Component extends DCLogic {
     this._trocarArea(v); };
   _trocarArea(v){
     const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false};
+    // Caso aberto no construtor ou em treino é da área ANTERIOR. Deixá-lo aberto fazia o
+    // formulário trocar de campos por baixo do texto já escrito, exibia caso clínico sob
+    // rótulo socioassistencial, e o "Apagar" prometia remover algo que não estava mais na
+    // lista. Fecha-se antes de virar o caderno.
+    patch.casoEdit=null; patch.casoTreino=null; patch.casoPasso=0; patch.casoResp=false; patch.casoAviso='';
     // O JURIS some do menu fora das carreiras jurídicas: quem estiver nele ficaria
     // preso numa tela sem porta de saída. O LEGIS fica em todas as áreas.
     if(!A.juris && this.state.view==='juris') patch.view='ajustes';
+    // O guarda de rota vale para quem CHEGA numa tela; quem já estava dentro dela quando a
+    // área mudou ficava numa tela que a área nova não abre — viva, vazia e sem explicação.
+    else { try{ if(!window.CT_AREA_REG.podeAbrir(v, this.state.view)){
+      patch.view='indisponivel'; patch.viewBloqueada=this.state.view; } }catch(_){} }
     // o modelo de edital em foco tem de ser um da área nova — senão a tela destaca um
     // concurso e o botão "aplicar" grava outro (o que o state ainda guardava)
     const _mA=CT_MODELOS.filter(m=>(A.modelos||[]).indexOf(m.id)>=0);
@@ -12264,7 +12331,15 @@ class Component extends DCLogic {
     // objetivo + banca (Personalização → feedback em todo o painel)
     const BANCAS_INFO = CT_BANCAS;
     const _bancaSel = (this.state.orient&&this.state.orient.banca)||'cebraspe';
-    const bancaInfo = BANCAS_INFO[_bancaSel] || BANCAS_INFO.cebraspe;
+    // Saneado na FONTE: o template lê bancaInfo.estilo/foco/formato direto, e sem isto
+    // quem estuda Enfermagem lia "memorizar a literalidade da lei seca e as súmulas dos
+    // tribunais superiores" como se fosse o método da banca dela.
+    const _bancaCru = BANCAS_INFO[_bancaSel] || BANCAS_INFO.cebraspe;
+    const bancaInfo = {..._bancaCru,
+      formato:this._bancaTexto(_bancaCru.formato||''),
+      estilo:this._bancaTexto(_bancaCru.estilo||''),
+      foco:this._bancaTexto(_bancaCru.foco||''),
+      dicas:this._bancaDicas(_bancaCru.dicas)};
     const bancaPenLabel = bancaInfo.penalidade ? 'Erro anula acerto' : 'Erro não penaliza';
     const bancaPenStyle = 'font-size:var(--fs-xs);font-weight:700;padding:4px 10px;border-radius:99px;'+(bancaInfo.penalidade?'background:rgba(192,57,47,.12);color:var(--danger);':'background:rgba(15,157,107,.14);color:var(--ok);');
 
@@ -13832,7 +13907,7 @@ class Component extends DCLogic {
     ];
 
     // dicas numeradas (01/02/03) em vez do chevron discreto
-    const bancaFocoDicas=(Array.isArray(_bInfo.dicas)?_bInfo.dicas:[]).map((d,i)=>({ texto:String(d),
+    const bancaFocoDicas=this._bancaDicas(_bInfo.dicas).map((d,i)=>({ texto:d,
       num:String(i+1).padStart(2,'0'),
       numStyle:'flex:none;min-width:28px;height:28px;border-radius:'+(_bRaio<=8?'6px':'9px')+';display:flex;align-items:center;'
         +'justify-content:center;font-size:var(--fs-xs);font-weight:800;font-family:var(--mono);'
@@ -14097,6 +14172,7 @@ class Component extends DCLogic {
       // Escritas uma a uma de propósito: o dc-runtime só resolve CHAVE LITERAL de
       // primeiro nível, e variável que ele não acha vira string vazia em silêncio.
       // Gerá-las por spread funcionaria em tempo de execução e enganaria a revisão.
+      nomeLegis:this._nomeLegis(),
       capLegis:_podeView('legis'), capJuris:_podeView('juris'), capAreaMod:_podeView('areamod'),
       capEdital:_podeView('edital'), capSimulados:_podeView('simulados'), capRedacao:_podeView('redacao'),
       capRoteiros:_podeView('roteiros'), capSegundaFase:_podeView('segundafase'), capOral:_podeView('oral'),
