@@ -726,15 +726,15 @@ window.ctPdfLib = (function(){
     <sc-if value="{{ sessionModalOpen }}" hint-placeholder-val="{{ false }}">
       <div onclick="{{ closeSessionBackdrop }}" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:18px;">
         <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Registrar sessão" class="ct-modal-panel" style="background:var(--surface);border-radius:18px;width:100%;max-width:560px;max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.35);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:20px 22px 16px;border-bottom:1px solid var(--border);">
-            <div><div style="font-family:var(--display);font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Registrar sessão</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">alimenta suas horas, desempenho e revisões</div></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:22px 24px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg, var(--accentSoft), transparent);">
+            <div><div style="font-family:var(--display);font-weight:700;font-size:var(--fs-2xl);color:var(--ink);letter-spacing:-.01em;">Registrar sessão</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:4px;">alimenta suas horas, seu desempenho e suas revisões</div></div>
             <button onclick="{{ closeSession }}" aria-label="Fechar" style="width:34px;height:34px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
           </div>
           <div style="padding:20px 22px;display:flex;flex-direction:column;gap:16px;">
 
             <div>
               <label style="display:block;font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:8px;">Tipos de sessão <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text3);">· selecione um ou mais</span></label>
-              <div style="display:flex;gap:7px;flex-wrap:wrap;"><sc-for list="{{ sessCats }}" as="c" hint-placeholder-count="6"><button data-v="{{ c.v }}" onclick="{{ setSessionCat }}" aria-label="{{ c.v }}" style="{{ c.style }}">{{ c.mark }}{{ c.icon }} {{ c.v }}</button></sc-for></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;"><sc-for list="{{ sessCats }}" as="c" hint-placeholder-count="6"><button data-v="{{ c.v }}" onclick="{{ setSessionCat }}" aria-label="{{ c.v }}" style="{{ c.style }}">{{ c.mark }}{{ c.icon }} {{ c.v }}</button></sc-for></div>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -775,28 +775,29 @@ window.ctPdfLib = (function(){
             <div>
               <label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:6px;">Tempo de estudo</label>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <div style="display:flex;align-items:center;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);overflow:hidden;"><input type="number" data-k="minutos" value="{{ sessionDraft.minutos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:84px;border:none;background:transparent;padding:10px 12px;font-size:var(--fs-lg);color:var(--ink);font-family:var(--mono);text-align:right;"><span style="padding:0 12px 0 4px;font-size:var(--fs-sm);color:var(--text3);">min</span></div>
-                <button data-add="15" onclick="{{ sessionQuickMin }}" style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-sm);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">+15</button>
-                <button data-add="30" onclick="{{ sessionQuickMin }}" style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-sm);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">+30</button>
-                <button data-add="60" onclick="{{ sessionQuickMin }}" style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-sm);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">+60</button>
+                <div style="display:flex;align-items:baseline;border:1.5px solid var(--border);background:var(--surface);border-radius:var(--r-md);overflow:hidden;"><input type="number" data-k="minutos" value="{{ sessionDraft.minutos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:92px;border:none;background:transparent;padding:9px 4px 9px 12px;font-size:var(--fs-2xl);font-weight:700;color:var(--ink);font-family:var(--mono);text-align:right;"><span style="padding:0 12px 0 4px;font-size:var(--fs-sm);color:var(--text3);">min</span></div>
+                <button data-add="15" onclick="{{ sessionQuickMin }}" style="border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border));background:var(--accentSoft);border-radius:99px;padding:9px 15px;font-size:var(--fs-sm);font-weight:700;color:var(--accentD, var(--accent));cursor:pointer;font-family:inherit;transition:.12s;">+15</button>
+                <button data-add="30" onclick="{{ sessionQuickMin }}" style="border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border));background:var(--accentSoft);border-radius:99px;padding:9px 15px;font-size:var(--fs-sm);font-weight:700;color:var(--accentD, var(--accent));cursor:pointer;font-family:inherit;transition:.12s;">+30</button>
+                <button data-add="60" onclick="{{ sessionQuickMin }}" style="border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border));background:var(--accentSoft);border-radius:99px;padding:9px 15px;font-size:var(--fs-sm);font-weight:700;color:var(--accentD, var(--accent));cursor:pointer;font-family:inherit;transition:.12s;">+60</button>
+                <span style="font-size:var(--fs-sm);color:var(--text3);font-weight:600;">{{ sessMinFmt }}</span>
               </div>
             </div>
 
             <div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px;background:var(--surface2);">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:var(--fs-sm);font-weight:600;color:var(--ink);">Desempenho em questões</span><span style="font-size:var(--fs-xs);color:var(--text3);">para análise líquida · opcional</span></div>
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--ok);font-weight:600;margin-bottom:4px;">✓ Acertos</label><input type="number" data-k="acertos" value="{{ sessionDraft.acertos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--danger);font-weight:600;margin-bottom:4px;">✗ Erradas</label><input type="number" data-k="erradas" value="{{ sessionDraft.erradas }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:600;margin-bottom:4px;">○ Em branco</label><input type="number" data-k="brancos" value="{{ sessionDraft.brancos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
+                <div><label style="display:block;font-size:var(--fs-xs);color:var(--ok);font-weight:700;margin-bottom:4px;">✓ Acertos</label><input type="number" data-k="acertos" value="{{ sessionDraft.acertos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);border-left:3px solid var(--ok);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);"></div>
+                <div><label style="display:block;font-size:var(--fs-xs);color:var(--danger);font-weight:700;margin-bottom:4px;">✗ Erradas</label><input type="number" data-k="erradas" value="{{ sessionDraft.erradas }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);border-left:3px solid var(--danger);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);"></div>
+                <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:700;margin-bottom:4px;">○ Em branco</label><input type="number" data-k="brancos" value="{{ sessionDraft.brancos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);border-left:3px solid var(--text3);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);"></div>
               </div>
               <div style="display:flex;align-items:center;gap:14px;margin-top:13px;flex-wrap:wrap;">
-                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Resolvidas</span><span style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);line-height:1;">{{ sdTotalLabel }}</span></div>
+                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Resolvidas</span><span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:var(--ink);line-height:1;">{{ sdTotalLabel }}</span></div>
                 <div style="width:1px;height:28px;background:var(--border);"></div>
-                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Bruto</span><span style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:{{ sdAccColor }};line-height:1;">{{ sdBrutoLabel }}</span></div>
+                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Bruto</span><span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:{{ sdAccColor }};line-height:1;">{{ sdBrutoLabel }}</span></div>
                 <div style="width:1px;height:28px;background:var(--border);"></div>
-                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Líquido</span><span style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:{{ sdLiqColor }};line-height:1;">{{ sdLiqLabel }}</span></div>
-                <div style="flex:1;min-width:90px;align-self:flex-end;">
-                  <div style="height:8px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);"><i style="display:block;height:100%;width:{{ sdBrutoPct }}%;background:{{ sdAccColor }};border-radius:99px;transition:width .2s;"></i></div>
+                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Líquido</span><span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:{{ sdLiqColor }};line-height:1;">{{ sdLiqLabel }}</span></div>
+                <div style="flex:1;min-width:110px;align-self:center;">
+                  <div style="height:10px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);display:flex;"><i style="display:block;height:100%;width:{{ sdSegOk }}%;background:var(--ok);transition:width .2s;"></i><i style="display:block;height:100%;width:{{ sdSegErr }}%;background:var(--danger);transition:width .2s;"></i><i style="display:block;height:100%;width:{{ sdSegBr }}%;background:var(--border);transition:width .2s;"></i></div>
                 </div>
               </div>
               <div style="font-size:var(--fs-2xs);color:var(--text3);margin-top:9px;">Líquido = acertos − erradas (cada erro anula um acerto, padrão CEBRASPE)</div>
@@ -821,7 +822,7 @@ window.ctPdfLib = (function(){
             <span style="font-size:var(--fs-sm);color:var(--text2);">{{ sessionSummary }}</span>
             <div style="display:flex;gap:10px;">
               <button onclick="{{ closeSession }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500;">Cancelar</button>
-              <button onclick="{{ saveSession }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Registrar sessão</button>
+              <button onclick="{{ saveSession }}" style="background:linear-gradient(135deg, var(--accent), var(--accentD, var(--accent)));color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 22px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;box-shadow:0 2px 10px color-mix(in srgb, var(--accent) 32%, transparent);">Registrar sessão</button>
             </div>
           </div>
         </div>
@@ -12566,7 +12567,7 @@ class Component extends DCLogic {
     // _selCats no fim: categoria antiga que saiu da área continua aparecendo no registro
     // que já a usava, senão a sessão perderia o próprio rótulo ao ser reaberta.
     const _cats=[...new Set([...this._atividades(), ..._selCats])];
-    const sessCats=_cats.map(v=>{ const on=_selCats.includes(v); const cm=_catMeta[v]?{i:_catMeta[v].i,c:this._catCor(v)}:{i:'📘',c:'var(--text3)'}; return {v, icon:cm.i, mark:on?'✓ ':'', style:`display:inline-flex;align-items:center;gap:5px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:7px 13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;transition:.12s;`}; });
+    const sessCats=_cats.map(v=>{ const on=_selCats.includes(v); const cm=_catMeta[v]?{i:_catMeta[v].i,c:this._catCor(v)}:{i:'📘',c:'var(--text3)'}; return {v, icon:cm.i, mark:on?'✓ ':'', style:`display:inline-flex;align-items:center;gap:6px;border:1.5px solid ${on?cm.c:'var(--border)'};background:${on?`color-mix(in srgb, ${cm.c} 13%, var(--surface))`:'var(--surface)'};color:${on?cm.c:'var(--text2)'};border-radius:99px;padding:8px 14px;font-size:var(--fs-sm);font-weight:${on?'700':'600'};cursor:pointer;font-family:inherit;transition:.12s;box-shadow:${on?`0 1px 6px color-mix(in srgb, ${cm.c} 22%, transparent)`:'none'};`}; });
     // Seletores do catálogo nativo (Lei seca → leis do LEGIS; Jurisprudência →
     // fontes do JURIS). MESMO padrão do select de disciplina: value ligado ao
     // estado + selected por option — value="" estático faz o WKWebView resetar o
@@ -12626,8 +12627,15 @@ class Component extends DCLogic {
     const sdLiqColor=!_sdTotal?'var(--text3)':(sdLiquido>0?'var(--ok)':(sdLiquido<0?'var(--danger)':'var(--warn)'));
     const sdLiqLabel=_sdTotal? (sdLiquido>0?'+'+sdLiquido:String(sdLiquido)) : '—';
     const sdTotalLabel=_sdTotal? String(_sdTotal) : '—';
+    // a barra do desempenho vira SEGMENTADA: verde, vermelho e neutro na mesma régua —
+    // uma barra só de "bruto" escondia onde foi parar o resto
+    const sdSegOk=_sdTotal?Math.round(_sdA/_sdTotal*100):0;
+    const sdSegErr=_sdTotal?Math.round(_sdE/_sdTotal*100):0;
+    const sdSegBr=_sdTotal?Math.max(0,100-sdSegOk-sdSegErr):0;
+    const sessMinFmt=(()=>{ const m=parseInt(_sd.minutos,10)||0; if(m<60) return '';
+      const h=Math.floor(m/60), r=m%60; return '= '+h+' h'+(r?(' '+(r<10?'0':'')+r):''); })();
     const _focoLabels=['','Disperso','Instável','Ok','Concentrado','Imersão total'];
-    const focoDots=[1,2,3,4,5].map(n=>{ const on=n<=(_sd.foco||0); return {n, label:_focoLabels[n], style:`width:22px;height:22px;border-radius:99px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent)':'var(--surface)'};cursor:pointer;padding:0;transition:.12s;`}; });
+    const focoDots=[1,2,3,4,5].map(n=>{ const on=n<=(_sd.foco||0); return {n, label:_focoLabels[n], style:`width:27px;height:27px;border-radius:99px;border:1.5px solid ${on?'var(--accent)':'var(--border)'};background:${on?'linear-gradient(135deg, var(--accent), var(--accentD, var(--accent)))':'var(--surface)'};cursor:pointer;transition:.15s;transform:${on?'scale(1.06)':'scale(1)'};box-shadow:${on?'0 1px 6px color-mix(in srgb, var(--accent) 30%, transparent)':'none'};`}; });
     const focoLabel=_focoLabels[_sd.foco||0]||'';
     const _flag=(on)=>`display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;cursor:pointer;font-family:inherit;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};border-radius:var(--r-md);padding:11px 13px;transition:.12s;`;
     const _switch=(on)=>`display:inline-flex;align-items:center;width:38px;height:22px;border-radius:99px;background:${on?'var(--accent)':'var(--border)'};padding:2px;flex:none;transition:.15s;`;
@@ -14528,7 +14536,7 @@ class Component extends DCLogic {
       // ou fonte do JURIS em edTop, o checkbox aparecia e não marcava nada.
       sessMarcarEdital, sessMarcarLabel, sessMarcarStyle,
       sessMarcarShow:!!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim()),
-      sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary, bibLinkOpts, hasBibForLink,
+      sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdSegOk, sdSegErr, sdSegBr, sessMinFmt, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary, bibLinkOpts, hasBibForLink,
       sessLeiOpts, sessJurisOpts, sessShowLeis, sessShowJuris, sessLeiSel, sessJurisSel, sessLeiVazio, sessJurisVazio, onSessionLei:this.onSessionLei, onSessionJuris:this.onSessionJuris,
       sessTrechoShow, sessTrechoOpts, sessTrechoSel, sessTrechoVazio, sessTrechoLivre, sessTrechoLabel, sessTrechoPh,
       sessTrechoTemOpts:sessTrechoOpts.length>0, onSessionTrecho:this.onSessionTrecho,
