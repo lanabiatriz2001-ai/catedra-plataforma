@@ -11583,6 +11583,7 @@ class Component extends DCLogic {
     // (imagem digitalizada, fonte codificada, transcrição deformada). O build grava qual
     // é o caso em espelhoSituacao/textoSituacao; aqui a tela diz isso com todas as letras.
     const _SIT_ESP={ 'nao-publicado':'a banca não publicou espelho desta prova',
+      'restrito':'a banca só deu vista do espelho aos candidatos — não existe arquivo público',
       'sem-pdf':'o espelho existe, mas o PDF ainda não foi baixado',
       'escaneado':'o PDF do espelho é imagem digitalizada — não deu para transcrever',
       'ilegivel':'o PDF do espelho usa fonte codificada — o texto sai ilegível',
@@ -11601,8 +11602,9 @@ class Component extends DCLogic {
       selo:(q.espelho&&q.espelho.length)?(q.espelho.length+' quesitos'+(q.total!=null?(' · '+q.total+' pts'):''))
            :(_temEspTxt(q)?'padrão de resposta oficial'
            :(q.espelhoSituacao==='nao-publicado'?'banca não publicou espelho'
+           :(q.espelhoSituacao==='restrito'?'espelho só na vista do candidato'
            :(q.fonte_espelho?(q.espelhoSituacao?'espelho em PDF · não transcrito':'espelho oficial em PDF')
-           :'sem espelho publicado'))),
+           :'sem espelho publicado')))),
       notaFonte:_notaFonte(q), temNota:!!_notaFonte(q),
       // cor por tipo de prova: a faixa no topo do card dá a leitura antes da leitura
       faixa:'height:4px;background:'+((q.tipo==='sentenca')?'#7c3aed':(q.tipo==='peca')?'#0ea5e9':'var(--accent)')+';',
