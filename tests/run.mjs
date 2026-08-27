@@ -1956,26 +1956,47 @@ for (const pg of ['ritos-web.html', 'pecas-web.html']) {
   else for (const [k, v] of Object.entries(d7)) ok(v, 'D7 ' + pg + ' ' + k);
 }
 
-// D8 — celular: pílula ativa visível já no load, alvos de 44px e as ações no "⋯"
+// D8/SELETOR — celular: o rito se escolhe por BUSCA, não arrastando 27 pílulas.
+// A fileira que existia aqui (scroll horizontal com máscara de fade) era o jeito mais
+// longo de chegar num rito; o teste antigo media a rolagem dela e morreu com ela.
 await page.setViewportSize({ width: 390, height: 844 });
 await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent('Tributário — execução fiscal'));
 await page.waitForTimeout(500);
 const d8rp = await page.evaluate(`(() => {
   const w = ms => new Promise(r => setTimeout(r, ms));
-  const mats = document.getElementById('mats'), on = mats.querySelector('.pill.on');
-  const rm = mats.getBoundingClientRect(), rp = on ? on.getBoundingClientRect() : null;
+  const bt = document.getElementById('btRito');
   const r = {
-    pilulaAtivaInteiraNoLoad: !!rp && rp.left >= rm.left - 1 && rp.right <= rm.right + 1,
-    temScrollSnap: /x/.test(getComputedStyle(mats).scrollSnapType || ''),
-    // sem o scroll da fileira a pílula escolhida nasceria fora da tela
-    fileiraRolou: mats.scrollLeft > 0,
-    alvosDe44: [...document.querySelectorAll('.pill, header button')]
+    botaoDizORitoAtual: (document.getElementById('btRitoNome').textContent || '').includes('execução fiscal'),
+    botaoInteiroNaTela: bt.getBoundingClientRect().right <= innerWidth + 1,
+    semFileiraDePilulas: document.querySelectorAll('#mats .pill').length === 0,
+    alvosDe44: [...document.querySelectorAll('#btRito, header button')]
       .filter(b => b.getClientRects().length)
       .every(b => b.getBoundingClientRect().height >= 44),
     maisVisivel: document.getElementById('bMais').getClientRects().length > 0,
     acoesRecolhidas: document.getElementById('bNotas').getClientRects().length === 0,
   };
   return new Promise(async ok2 => {
+    bt.click(); await w(150);
+    r.painelAbre = document.getElementById('painelRito').classList.contains('aberto');
+    r.buscaComFoco = document.activeElement === document.getElementById('buscaRito');
+    r.listaAgrupadaPorRamo = document.querySelectorAll('#listaRito .grupo').length > 3;
+    r.listaTemTodosOsRitos = document.querySelectorAll('#listaRito .op').length >= 20;
+    // busca sem acento e por pedaço: "exec fiscal" tem de achar "Tributário — execução fiscal"
+    const busca = document.getElementById('buscaRito');
+    busca.value = 'exec fiscal'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(150);
+    const achados = [...document.querySelectorAll('#listaRito .op')].map(o => o.dataset.k);
+    r.buscaSemAcentoEPorPedaco = achados.length === 1 && /execução fiscal/.test(achados[0]);
+    // Enter escolhe o primeiro achado e o painel fecha
+    busca.value = 'improb'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(150);
+    busca.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(400);
+    r.enterEscolhe = (document.getElementById('btRitoNome').textContent || '').includes('improbidade');
+    r.painelFecha = !document.getElementById('painelRito').classList.contains('aberto');
+    r.trocouORito = /improbidade/i.test(document.querySelector('.cab h2').textContent || '');
+    r.escNaoDeixaAberto = true;
+    bt.click(); await w(150);
+    document.getElementById('buscaRito').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await w(150);
+    r.escNaoDeixaAberto = !document.getElementById('painelRito').classList.contains('aberto');
     document.getElementById('bMais').click(); await w(120);
     r.menuAbre = document.getElementById('bNotas').getClientRects().length > 0;
     r.avisaEstado = document.getElementById('bMais').getAttribute('aria-expanded') === 'true';
@@ -1984,7 +2005,7 @@ const d8rp = await page.evaluate(`(() => {
     ok2(r);
   });
 })()`);
-for (const [k, v] of Object.entries(d8rp)) ok(v, 'D8 ' + k);
+for (const [k, v] of Object.entries(d8rp)) ok(v, 'D8/SELETOR ' + k);
 
 await page.goto(URL0 + '/pecas-web.html');
 await page.waitForTimeout(400);

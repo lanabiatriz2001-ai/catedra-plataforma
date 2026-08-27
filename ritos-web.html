@@ -58,19 +58,40 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 .acs .mais{display:none;justify-content:center;font-size:16px;line-height:1;padding:0;
   min-width:44px;min-height:44px}
 .l2{display:flex;align-items:center;gap:9px;padding:0 18px 11px;max-width:1240px;margin:0 auto}
-#mats{display:flex;gap:6px;overflow-x:auto;flex:1;padding:2px 1px 4px;scrollbar-width:none;
-  scroll-snap-type:x proximity;scroll-padding-inline:12px;
-  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent);
-  mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent)}
-#mats::-webkit-scrollbar{display:none}
-.pill{flex:none;white-space:nowrap;border:1px solid var(--border);background:var(--bg);color:var(--text2);
-  border-radius:99px;padding:7px 14px;font:600 12.5px inherit;cursor:pointer;display:flex;align-items:center;gap:7px;
-  scroll-snap-align:center}
-.pill i{font-style:normal;width:8px;height:8px;border-radius:99px;background:var(--rc,var(--border));flex:none}
-.pill em{font-style:normal;border:1px solid var(--border);border-radius:99px;padding:1px 6px}
-.pill:hover{border-color:var(--text3);color:var(--ink)}
-.pill.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
-.pill.on i{background:var(--onAccent,#fff)} .pill.on em{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.36)}
+/* ───────── seletor de rito: procurar, não rolar ─────────
+   Eram 27 pílulas numa fileira que rolava de lado: para achar "Tributário — execução
+   fiscal" a pessoa arrastava a fileira inteira lendo etiqueta por etiqueta, e a máscara
+   de fade escondia o fim. Agora o rito atual é um BOTÃO que abre um painel com busca e
+   a lista agrupada por ramo — digitar "exec" chega lá em dois toques. A fileira some;
+   o que ela informava (o ramo por cor e quem tem fluxo comentado) vive no painel. */
+#mats{display:flex;gap:8px;flex:1;align-items:center;position:relative}
+#btRito{display:flex;align-items:center;gap:9px;border:1px solid var(--border);background:var(--surface);
+  color:var(--ink);border-radius:99px;padding:8px 15px;font:700 13px inherit;cursor:pointer;min-height:38px;
+  max-width:min(420px,100%)}
+#btRito:hover{border-color:var(--text3)}
+#btRito i{font-style:normal;width:9px;height:9px;border-radius:99px;background:var(--rc,var(--accent));flex:none}
+#btRito b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#btRito small{color:var(--text3);font-weight:600;font-size:11.5px;flex:none}
+#painelRito{position:absolute;left:0;top:calc(100% + 8px);z-index:60;width:min(460px,calc(100vw - 24px));
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--sh);
+  padding:10px;display:none;flex-direction:column;gap:8px}
+#painelRito.aberto{display:flex}
+#buscaRito{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:10px;
+  padding:10px 12px;font:600 13px inherit;width:100%;min-height:40px}
+#buscaRito:focus{outline:2px solid var(--accent);outline-offset:1px}
+#listaRito{max-height:min(56vh,420px);overflow:auto;display:flex;flex-direction:column;gap:2px}
+#listaRito .grupo{font:700 10.5px inherit;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);
+  padding:9px 8px 3px}
+#listaRito .op{display:flex;align-items:center;gap:9px;border:none;background:transparent;color:var(--ink);
+  border-radius:9px;padding:9px 10px;font:600 13px inherit;cursor:pointer;text-align:left;width:100%;min-height:40px}
+#listaRito .op i{font-style:normal;width:8px;height:8px;border-radius:99px;background:var(--rc,var(--border));flex:none}
+#listaRito .op span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#listaRito .op em{font-style:normal;font-size:10.5px;border:1px solid var(--border);border-radius:99px;
+  padding:1px 7px;color:var(--text3);flex:none}
+#listaRito .op:hover,#listaRito .op.foco{background:var(--surface2)}
+#listaRito .op.on{background:var(--ink);color:var(--surface)}
+#listaRito .op.on em{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.36)}
+#vazioRito{padding:14px 10px;color:var(--text3);font-size:12.5px}
 
 /* ───────────────────────── moldura do rito ───────────────────────── */
 .wrap{max-width:1240px;margin:0 auto;padding:22px 18px 80px}
@@ -206,16 +227,15 @@ body.semnotas .nota{display:none}
 }
 
 /* ───────── D8 — celular: dedo, não cursor ─────────
-   As pílulas apareciam cortadas no meio ("Ambienta…") porque a máscara de fade comia
-   a última visível e nada as alinhava; os botões do topo tinham ~32px de altura, longe
-   dos 44px que a mão acerta; e "Imprimir" ocupava lugar nobre numa tela onde ninguém
-   imprime. Agora: alvos de 44px, scroll-snap com a pílula ativa centralizada (também
-   no LOAD, ver mostrarPilula) e as duas ações recolhidas num "⋯". */
+   Alvos de 44px e as duas ações recolhidas num "⋯" — "Imprimir" não vale a barra inteira
+   numa tela onde ninguém imprime. (A fileira de pílulas que existia aqui virou o seletor
+   de busca: no celular ela era ainda pior, porque arrastar 27 etiquetas com o dedo é o
+   caminho mais longo até um rito.) */
 @media (max-width:640px){
-  #mats{scroll-snap-type:x mandatory;
-    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 16px),transparent);
-    mask-image:linear-gradient(90deg,#000 calc(100% - 16px),transparent)}
-  .pill{min-height:44px;padding:7px 16px}
+  #btRito{min-height:44px;width:100%;max-width:none}
+  #painelRito{width:calc(100vw - 24px)}
+  #buscaRito{min-height:44px}
+  #listaRito .op{min-height:44px}
   .acs .mais{display:flex}
   .acs .menu{display:none;position:absolute;right:0;top:calc(100% + 8px);flex-direction:column;
     gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;
@@ -251,7 +271,16 @@ body.semnotas .nota{display:none}
       </span>
     </span>
   </div>
-  <div class="l2"><span id="mats"></span></div>
+  <div class="l2"><span id="mats">
+    <button id="btRito" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="painelRito">
+      <i></i><b id="btRitoNome">—</b><small id="btRitoSelo"></small><small aria-hidden="true">▾</small></button>
+    <div id="painelRito" role="dialog" aria-label="Escolher o rito">
+      <input id="buscaRito" type="search" autocomplete="off" placeholder="buscar rito: improbidade, júri, execução fiscal…"
+             aria-label="Buscar rito" aria-controls="listaRito">
+      <div id="listaRito" role="listbox" aria-label="Ritos"></div>
+      <div id="vazioRito" hidden>Nenhum rito com esse nome.</div>
+    </div>
+  </span></div>
 </header>
 
 <main class="wrap"><div id="cab"></div><div class="fluxo" id="fluxo"></div></main>
@@ -418,30 +447,87 @@ function pinta(){
   try{ const u=new URL(location.href); u.searchParams.set('rito',atual); history.replaceState(null,'',u); }catch(e){}
 }
 
-/* ---- pílulas: o selo indica quem já tem fluxograma comentado ---- */
 const mats=$('mats');
 
-/* D8: rolar a fileira SEM mexer no scroll da página. `scrollIntoView` num iframe
-   arrasta o documento inteiro junto; aqui só a fileira anda, e a pílula ativa fica
-   centralizada — inclusive na primeira carga, onde antes ela podia nascer fora da tela
-   (era o "Ambienta…" cortado: a pílula escolhida ficava escondida atrás do fade). */
-function mostrarPilula(b, suave){
-  if(!b) return;
-  const alvo = b.offsetLeft - (mats.clientWidth - b.offsetWidth)/2;
-  const x = Math.max(0, Math.min(alvo, mats.scrollWidth - mats.clientWidth));
-  try{ mats.scrollTo({left:x, behavior: suave?'smooth':'auto'}); }
-  catch(e){ mats.scrollLeft = x; }
+/* ---- seletor: botão com o rito atual + painel de busca agrupado por ramo ---- */
+const btRito=$('btRito'), painelRito=$('painelRito'), buscaRito=$('buscaRito'),
+      listaRito=$('listaRito'), vazioRito=$('vazioRito');
+let focoIdx=-1;
+
+function selo(k){ return FLUXOS[k] ? 'fluxo' : ''; }
+function corDe(k){ return R.ramoDe(FLUXOS[k]?FLUXOS[k].ramo:k).c; }
+function ramoDe(k){ return R.ramoDe(FLUXOS[k]?FLUXOS[k].ramo:k).n || 'Outros'; }
+
+function pintaBotao(){
+  $('btRitoNome').textContent = atual;
+  $('btRitoSelo').textContent = FLUXOS[atual] ? 'fluxo comentado' : 'sequência de atos';
+  btRito.style.setProperty('--rc', corDe(atual));
 }
 
-ORDEM.forEach(k=>{
-  const b=document.createElement('button'), r=R.ramoDe(FLUXOS[k]?FLUXOS[k].ramo:k);
-  b.className='pill'; b.type='button'; b.style.setProperty('--rc', r.c); b.dataset.k=k;
-  b.innerHTML='<i></i>'+esc(k)+(FLUXOS[k]?'<em class="ml-fraca">fluxo</em>':'');
-  b.onclick=()=>{ atual=k; mats.querySelectorAll('.pill').forEach(x=>x.classList.toggle('on',x===b));
-    pinta(); window.scrollTo({top:0,behavior:'smooth'});
-    mostrarPilula(b, true); };
-  mats.appendChild(b);
-});
+/* Busca sem acento e por pedaço: "jui" acha "Juizado", "exec fiscal" acha
+   "Tributário — execução fiscal" mesmo com o travessão no meio. */
+const semAcento = t => String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function casa(k, q){
+  if(!q) return true;
+  const alvo = semAcento(k+' '+ramoDe(k));
+  return semAcento(q).split(/\s+/).filter(Boolean).every(p=>alvo.includes(p));
+}
+
+function montarLista(){
+  const q=buscaRito.value.trim();
+  const achados=ORDEM.filter(k=>casa(k,q));
+  listaRito.innerHTML=''; focoIdx=-1;
+  vazioRito.hidden = achados.length>0;
+  const porRamo={};
+  achados.forEach(k=>{ (porRamo[ramoDe(k)] = porRamo[ramoDe(k)] || []).push(k); });
+  Object.keys(porRamo).sort((a,b)=>a.localeCompare(b,'pt')).forEach(ramo=>{
+    const h=document.createElement('div'); h.className='grupo'; h.textContent=ramo; listaRito.appendChild(h);
+    porRamo[ramo].forEach(k=>{
+      const b=document.createElement('button'); b.type='button'; b.className='op'+(k===atual?' on':'');
+      b.setAttribute('role','option'); b.setAttribute('aria-selected', String(k===atual));
+      b.dataset.k=k; b.style.setProperty('--rc', corDe(k));
+      b.innerHTML='<i></i><span>'+esc(k)+'</span>'+(selo(k)?'<em>'+selo(k)+'</em>':'');
+      b.onclick=()=>escolher(k);
+      listaRito.appendChild(b);
+    });
+  });
+}
+
+function opcoes(){ return [...listaRito.querySelectorAll('.op')]; }
+function moverFoco(d){
+  const ops=opcoes(); if(!ops.length) return;
+  focoIdx=Math.max(0, Math.min(ops.length-1, focoIdx+d));
+  ops.forEach((o,i)=>o.classList.toggle('foco', i===focoIdx));
+  ops[focoIdx].scrollIntoView({block:'nearest'});
+}
+function abrirPainel(){
+  painelRito.classList.add('aberto'); btRito.setAttribute('aria-expanded','true');
+  buscaRito.value=''; montarLista(); buscaRito.focus();
+  const sel=listaRito.querySelector('.op.on'); if(sel) sel.scrollIntoView({block:'nearest'});
+}
+function fecharPainel(devolveFoco){
+  painelRito.classList.remove('aberto'); btRito.setAttribute('aria-expanded','false');
+  if(devolveFoco) btRito.focus();
+}
+function escolher(k){
+  atual=k; pintaBotao(); pinta(); fecharPainel(true);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+btRito.onclick=e=>{ e.stopPropagation();
+  painelRito.classList.contains('aberto') ? fecharPainel(false) : abrirPainel(); };
+buscaRito.oninput=montarLista;
+buscaRito.onkeydown=e=>{
+  if(e.key==='ArrowDown'){ e.preventDefault(); moverFoco(focoIdx<0?0:1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); moverFoco(-1); }
+  else if(e.key==='Enter'){ e.preventDefault();
+    const ops=opcoes(); const alvo = focoIdx>=0 ? ops[focoIdx] : ops[0];
+    if(alvo) escolher(alvo.dataset.k); }
+  else if(e.key==='Escape'){ e.preventDefault(); fecharPainel(true); }
+};
+document.addEventListener('click', e=>{ if(!painelRito.contains(e.target) && e.target!==btRito) fecharPainel(false); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && painelRito.classList.contains('aberto')) fecharPainel(true); });
+pintaBotao();
 
 /* D8: no celular as duas ações moram atrás do "⋯" — "Imprimir" não vale a barra
    inteira numa tela onde ninguém imprime. No desktop o menu é a própria fileira. */
@@ -466,9 +552,8 @@ window.ctAbrirPonto = function (rito, peca, bloco) {
   try {
     if (rito && ORDEM.includes(rito)) {
       atual = rito;
-      [...mats.children].forEach(b => b.classList.toggle('on', b.dataset.k === atual));
+      pintaBotao();
       pinta();
-      mostrarPilula(mats.querySelector('.pill.on'), true);
     }
     if (peca && PECAS[peca]) setTimeout(() => R.abrir(peca, (bloco == null ? undefined : bloco)), 60);
   } catch (e) {}
@@ -478,9 +563,8 @@ window.ctAbrirPonto = function (rito, peca, bloco) {
 try{ const u=new URLSearchParams(location.search);
   const q=u.get('rito');
   if(q && ORDEM.includes(q)) atual=q; }catch(e){}
-[...mats.children].forEach(b=>b.classList.toggle('on', b.dataset.k===atual));
+pintaBotao();
 pinta();
-mostrarPilula(mats.querySelector('.pill.on'));
 try{ const u=new URLSearchParams(location.search), pc=u.get('peca');
   if(pc && PECAS[pc]) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
 

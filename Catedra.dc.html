@@ -132,6 +132,12 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
    escrito (.ct-nobump, .ct-cal-cel) não existiam em elemento nenhum — a real é .ct-calcell.
    O padrão certo já estava no próprio repositório, em area-web.html: a caixa de toque
    cresce por um pseudo-elemento invisível e o desenho fica do mesmo tamanho. */
+/* Enunciado da Redação: leitura + marcações lado a lado. Abaixo de 1080px a coluna
+     de marcação desce (no celular ela viraria uma tira de 200px inútil). */
+.ct-enun-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:26px;align-items:start;}
+  @media (max-width:1080px){ .ct-enun-grid{grid-template-columns:minmax(0,1fr);} }
+.ct-enun-lado{min-width:0;}
+  #ct-enun mark{ -webkit-user-select:text; user-select:text; }
 @media (max-width:900px){
   .ct-alvo{position:relative;}
   .ct-alvo::after{content:"";position:absolute;top:50%;left:50%;
@@ -1725,13 +1731,19 @@ window.ctPdfLib = (function(){
           <div style="text-align:right;font-size:var(--fs-sm);color:rgba(255,255,255,.75);">{{ userFirstName }}<br><b style="color:#fff;">{{ cicloFolhaHeader.faixa }}</b></div>
         </div>
 
-        <!-- filtro: um jeito de OLHAR a semana — disciplina, tipo e assunto -->
+        <!-- filtro: um jeito de OLHAR a semana — tipo, DISCIPLINA (só o que está no edital) e ASSUNTO (o que está dentro dela) -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <sc-for list="{{ cicloFqTipos }}" as="t" hint-placeholder-count="5"><button data-v="{{ t.v }}" onclick="{{ cicloFqTipo }}" style="{{ t.style }}">{{ t.icon }} {{ t.v }}</button></sc-for>
           <select onchange="{{ cicloFqDisc }}" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:var(--fs-xs);color:var(--text2);font-family:inherit;cursor:pointer;max-width:230px;">
-            <option value="" selected="{{ cicloFqDiscVazio }}">todas as disciplinas</option>
-            <sc-for list="{{ cicloFqDiscOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for>
+            <option value="" selected="{{ cicloFqDiscVazio }}">todas as disciplinas do edital</option>
+            <sc-for list="{{ cicloFqDiscOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
           </select>
+          <sc-if value="{{ cicloFqTemTop }}" hint-placeholder-val="{{ false }}">
+          <select onchange="{{ cicloFqTopico }}" aria-label="Filtrar por assunto da disciplina" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:var(--fs-xs);color:var(--text2);font-family:inherit;cursor:pointer;max-width:260px;">
+            <option value="" selected="{{ cicloFqTopVazio }}">todos os assuntos</option>
+            <sc-for list="{{ cicloFqTopOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+          </select>
+          </sc-if>
           <input value="{{ cicloFqQ }}" oninput="{{ cicloFqBusca }}" placeholder="buscar assunto…" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 13px;font-size:var(--fs-xs);color:var(--ink);font-family:inherit;min-width:150px;flex:1;max-width:240px;">
           <sc-if value="{{ cicloFqAtivo }}" hint-placeholder-val="{{ false }}">
             <span style="font-size:var(--fs-xs);color:var(--text3);">mostrando <b style="color:var(--ink);">{{ cicloFqVis }}</b> de {{ cicloFqTot }} atividades</span>
@@ -2627,8 +2639,11 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.85;">Enunciado da prova</div>
               <div style="font-family:var(--display);font-size:21px;font-weight:600;margin-top:6px;line-height:1.3;">{{ redProvaTitulo }}</div>
             </div>
-            <div style="padding:24px 26px;">
-              <div class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);">
+            <!-- Proporção: o enunciado ocupava 72ch (a medida de leitura) e deixava METADE
+                 da tela vazia à direita. A medida continua — texto de prova se lê em coluna
+                 estreita —, mas o espaço que sobrava passa a ser a coluna de marcações. -->
+            <div class="ct-enun-grid" style="padding:24px 26px;">
+              <div id="ct-enun" onmouseup="{{ onSelEnunciado }}" onkeyup="{{ onSelEnunciado }}" class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);">
                 <sc-for list="{{ redBlocos }}" as="b" hint-placeholder-count="6">
                   <sc-if value="{{ b.ehTitulo }}" hint-placeholder-val="{{ false }}">
                     <div style="font-weight:700;letter-spacing:.01em;margin:18px 0 8px;font-size:var(--fs-lg);color:var(--ink);">{{ b.texto }}</div>
@@ -2640,10 +2655,43 @@ window.ctPdfLib = (function(){
                     <div style="margin:0 0 13px;line-height:1.8;text-align:justify;hyphens:auto;-webkit-hyphens:auto;">{{ b.texto }}</div>
                   </sc-if>
                 </sc-for>
+                <sc-if value="{{ redTemLinkProva }}" hint-placeholder-val="{{ false }}">
+                  <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:var(--fs-base);font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
+                </sc-if>
               </div>
-              <sc-if value="{{ redTemLinkProva }}" hint-placeholder-val="{{ false }}">
-                <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:var(--fs-base);font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
-              </sc-if>
+
+              <!-- coluna de marcação: as cores agem sobre o trecho selecionado no enunciado -->
+              <aside class="ct-enun-lado">
+                <div style="position:sticky;top:12px;display:flex;flex-direction:column;gap:12px;">
+                  <div style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:14px;">
+                    <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Marcar trecho</div>
+                    <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:6px;line-height:1.5;">{{ redSelDica }}</div>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:11px;">
+                      <sc-for list="{{ redCores }}" as="c" hint-placeholder-count="7"><button data-cor="{{ c.c }}" onclick="{{ marcarEnunciado }}" title="{{ c.label }}" aria-label="Marcar de {{ c.label }}" style="{{ c.style }}"></button></sc-for>
+                    </div>
+                  </div>
+                  <div style="border:1px solid var(--border);background:var(--surface);border-radius:var(--radius);padding:14px;">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+                      <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Marcações e notas</div>
+                      <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);">{{ redMarcasN }}</span>
+                    </div>
+                    <sc-if value="{{ redSemMarcas }}" hint-placeholder-val="{{ true }}">
+                      <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:9px;line-height:1.55;">Nada marcado ainda. O que você grifar aqui fica salvo com a prova e volta na próxima vez que abrir.</div>
+                    </sc-if>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+                      <sc-for list="{{ redMarcasList }}" as="m" hint-placeholder-count="3">
+                        <div style="border:1px solid var(--border);border-left:4px solid {{ m.cor }};border-radius:var(--r-md);padding:10px 11px;background:var(--surface2);">
+                          <div style="display:flex;gap:8px;align-items:flex-start;">
+                            <button data-id="{{ m.id }}" onclick="{{ irParaMarcaEnun }}" title="Ir para o trecho no enunciado" style="flex:1;text-align:left;background:transparent;border:none;padding:0;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);color:var(--ink);line-height:1.5;">{{ m.resumo }}</button>
+                            <button data-id="{{ m.id }}" onclick="{{ removerMarcaEnun }}" title="Remover marcação" aria-label="Remover marcação" style="flex:none;background:transparent;border:none;color:var(--text3);cursor:pointer;font-family:inherit;font-size:var(--fs-md);line-height:1;padding:2px 4px;">✕</button>
+                          </div>
+                          <textarea data-id="{{ m.id }}" oninput="{{ onNotaMarcaEnun }}" value="{{ m.nota }}" rows="2" placeholder="anotação sobre este trecho…" style="width:100%;box-sizing:border-box;margin-top:8px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:8px 10px;color:var(--ink);font-family:inherit;font-size:var(--fs-sm);line-height:1.5;resize:vertical;outline:none;"></textarea>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
 
@@ -5745,7 +5793,7 @@ class Component extends DCLogic {
       espelhosSugeridos:this._load('espelhosSugeridos',[]), espSugBusy:false, espSugAtual:null,
       // guarda qual prova está aberta: sem isso, recarregar o app deixava o gabarito
       // sugerido na tela mas sem o selo que diz que ele é sugerido
-      redProvaId:this._load('redProvaId',''), redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
+      redProvaId:this._load('redProvaId',''), redMarcas:this._load('redMarcas', {}), redSelTxt:'', redSelOcorr:0, redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
       // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
       // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
@@ -5763,7 +5811,7 @@ class Component extends DCLogic {
       viewBloqueada:'',   // qual view foi barrada pelo guarda de área (só para a tela explicar)
       areaPreview:'',     // área PROPOSTA, aguardando confirmação (não é a ativa)
       bancoAbrindo:'',    // id da prova cujo textão está baixando (o card mostra "abrindo…")
-      cicloFq:{tipos:[],disc:'',q:''},  // filtro do ciclo (sessão apenas: não sincroniza)
+      cicloFq:{tipos:[],disc:'',topico:'',q:''},  // filtro do ciclo (sessão apenas: não sincroniza)
       sessMais:false,        // o Registrar abre enxuto; "Mais detalhes" expande
       // --- casos da área (Fase 4): o conteúdo é da pessoa, a estrutura é da área ---
       casos:this._load('casos', []),
@@ -6560,7 +6608,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
-  componentDidUpdate(){ this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); }
+  componentDidUpdate(){ this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // Trocou de tela por conta própria (menu, atalho)? Então a origem guardada e o alvo da
   // volta morrem — senão a barra "você veio de…" reaparece numa visita solta ao acervo.
   _limpaOrigem(){
@@ -6688,7 +6736,7 @@ class Component extends DCLogic {
      encontra o antigo intacto ao voltar. */
   AREA_PROPRIA = new Set(['edital','reviews','blocks','blocksDate','manualFixed','manualRot',
     'rotPointer','manualFixedRoteiroAtual','agendaFeitas','planoLegis','metas','eventos','errors','sim',
-    'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redHist',
+    'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redMarcas','redHist',
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
     'redProvaId','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
@@ -6716,7 +6764,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
@@ -7733,13 +7781,38 @@ class Component extends DCLogic {
   cicloFqTipo = (e)=>{ const v=e.currentTarget.dataset.v;
     this.setState(s=>{ const t=((s.cicloFq&&s.cicloFq.tipos)||[]).slice(); const i=t.indexOf(v); i>=0?t.splice(i,1):t.push(v);
       return {cicloFq:{...(s.cicloFq||{}), tipos:t}}; }); };
-  cicloFqDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({cicloFq:{...(s.cicloFq||{}), disc:v}})); };
+  cicloFqDisc = (e)=>{ const v=e.currentTarget.value;
+    // assunto vive DENTRO da disciplina: trocar de disciplina sem zerar o assunto deixava
+    // o filtro numa combinação que não existe e a semana aparecia vazia sem explicação.
+    this.setState(s=>({cicloFq:{...(s.cicloFq||{}), disc:v, topico:''}})); };
   cicloFqBusca = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({cicloFq:{...(s.cicloFq||{}), q:v}})); };
-  cicloFqLimpar = ()=> this.setState({cicloFq:{tipos:[],disc:'',q:''}});
-  _cicloFqOn(){ const f=this.state.cicloFq||{}; return !!((f.tipos&&f.tipos.length)||f.disc||String(f.q||'').trim()); }
+  cicloFqLimpar = ()=> this.setState({cicloFq:{tipos:[],disc:'',topico:'',q:''}});
+  _cicloFqOn(){ const f=this.state.cicloFq||{}; return !!((f.tipos&&f.tipos.length)||f.disc||f.topico||String(f.q||'').trim()); }
+  /* Disciplina é o que está no EDITAL — só isso. O campo `disc` de uma atividade da
+     agenda guarda o TÍTULO dela ("Cap. 1 (LINDB) — Manual Dir. Civil, Tartuce"), e o
+     filtro do ciclo listava esses títulos como se fossem disciplinas: a lista virava um
+     inventário de tarefas e não dava para achar nada. Aqui a disciplina sai do vínculo
+     com o edital (discEdital) e, na falta dele, do `disc` SÓ quando ele casa com um nome
+     do edital. O que está dentro da disciplina é assunto/tópico — filtro próprio. */
+  _discEditalDe(o){ if(!o) return '';
+    const nomes=new Set((this.state.edital||[]).map(d=>String(d.disc||'').trim()).filter(Boolean));
+    const de=String(o.discEdital||'').trim(); if(de && nomes.has(de)) return de;
+    const d=String(o.disc||'').trim(); if(d && nomes.has(d)) return d;
+    return de || ''; }
+  /* blocks e manualFixed descrevem as MESMAS atividades (o bloco do dia carrega srcId do
+     item da agenda) — contar os dois dobrava o número ao lado de cada disciplina. */
+  _cicloItensUnicos(){ const vistos=new Set(); const out=[];
+    for(const x of [...(this.state.manualFixed||[]), ...(this.state.blocks||[])]){
+      if(!x) continue; const k=String(x.srcId||x.id||''); if(k){ if(vistos.has(k)) continue; vistos.add(k); }
+      out.push(x); }
+    return out; }
+  _assuntoDe(o){ return String((o&&(o.topico||o.tag))||'').trim(); }
+  cicloFqTopico = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({cicloFq:{...(s.cicloFq||{}), topico:v}})); };
   _cicloFqPassa(o){ const f=this.state.cicloFq||{};
     if(f.tipos&&f.tipos.length&&f.tipos.indexOf(o.kind||'')<0) return false;
-    if(f.disc&&(o.disc||'')!==f.disc&&(o.discEdital||'')!==f.disc) return false;
+    if(f.disc){ if(f.disc==='__sem'){ if(this._discEditalDe(o)) return false; }
+      else if(this._discEditalDe(o)!==f.disc) return false; }
+    if(f.topico && this._assuntoDe(o)!==f.topico) return false;
     const q=String(f.q||'').trim().toLowerCase();
     if(q){ const alvo=((o.disc||'')+' '+(o.discEdital||'')+' '+(o.tag||'')+' '+(o.topico||'')+' '+(o.kind||'')).toLowerCase();
       if(alvo.indexOf(q)<0) return false; }
@@ -10096,6 +10169,114 @@ class Component extends DCLogic {
 
   // ===== biblioteca + leitor =====
   DISC_COLOR = {'Constitucional':'#2563eb','Administrativo':'#a855f7','Tributário':'#06b6d4','Civil':'#6366f1','Penal':'#dc2626','Processo Civil':'#84cc16'};
+  /* ===== MARCAÇÃO DO ENUNCIADO DA REDAÇÃO =========================================
+     Pedido dela: "sem opções para fazer marcações e anotações como no legis ou juris".
+     O grifo do LEGIS/JURIS é do acervo nativo, e o do leitor de PDF é por RETÂNGULO de
+     página — nenhum dos dois serve para um enunciado que é texto solto na tela. Aqui a
+     marca guarda o TRECHO (texto + qual ocorrência dele), não coordenada: o enunciado é
+     o mesmo toda vez que a prova abre, então o trecho reencontra o lugar sozinho depois
+     de qualquer re-render, troca de tema ou mudança de largura.
+     As marcas moram em `catedra:redMarcas` por prova. */
+  _marcasKey(){ const id=String(this.state.redProvaId||'').trim();
+    if(id) return 'p:'+id;
+    const t=String(this.state.redEnunciado||'').trim().slice(0,80);
+    return t ? 'e:'+t : ''; }
+  _marcasDaProva(){ const k=this._marcasKey(); if(!k) return [];
+    return ((this.state.redMarcas||{})[k])||[]; }
+  _gravaMarcas(lista){ const k=this._marcasKey(); if(!k) return;
+    this.setState(s=>({redMarcas:{...(s.redMarcas||{}), [k]:lista}}), ()=>this.flashSync()); }
+
+  // texto selecionado DENTRO do enunciado (e onde ele está, para achar a ocorrência certa)
+  _selecaoNoEnunciado(){
+    try{
+      const host=document.getElementById('ct-enun'); if(!host) return null;
+      const sel=window.getSelection(); if(!sel||!sel.rangeCount||sel.isCollapsed) return null;
+      const r=sel.getRangeAt(0);
+      if(!host.contains(r.commonAncestorContainer)) return null;
+      const txt=String(sel.toString()||'').replace(/\s+/g,' ').trim();
+      if(txt.length<2) return null;
+      // qual ocorrência: conta quantas vezes o trecho aparece ANTES do início da seleção
+      const antes=document.createRange();
+      antes.setStart(host, 0); antes.setEnd(r.startContainer, r.startOffset);
+      const pre=String(antes.toString()||'').replace(/\s+/g,' ');
+      let ocorr=0, i=pre.indexOf(txt);
+      while(i>=0){ ocorr++; i=pre.indexOf(txt, i+1); }
+      return {txt:txt.slice(0,600), ocorr, rect:r.getBoundingClientRect()};
+    }catch(_){ return null; }
+  }
+  onSelEnunciado = ()=>{
+    const s=this._selecaoNoEnunciado();
+    if(!s){ if(this.state.redSelTxt) this.setState({redSelTxt:'', redSelOcorr:0}); return; }
+    this.setState({redSelTxt:s.txt, redSelOcorr:s.ocorr});
+  };
+  marcarEnunciado = (e)=>{
+    const cor=e.currentTarget.dataset.cor;
+    const txt=this.state.redSelTxt, ocorr=+this.state.redSelOcorr||0;
+    if(!txt){ this._toast('Selecione um trecho do enunciado primeiro'); return; }
+    const nova={id:'m'+Date.now()+Math.floor(Math.random()*99), txt, ocorr, cor, nota:'', ts:Date.now()};
+    this._gravaMarcas([...this._marcasDaProva(), nova]);
+    try{ window.getSelection().removeAllRanges(); }catch(_){}
+    this.setState({redSelTxt:'', redSelOcorr:0});
+    this._toast('Trecho marcado ✦');
+  };
+  removerMarcaEnun = (e)=>{ const id=e.currentTarget.dataset.id;
+    this._gravaMarcas(this._marcasDaProva().filter(m=>m.id!==id)); };
+  onNotaMarcaEnun = (e)=>{ const id=e.currentTarget.dataset.id, v=e.currentTarget.value;
+    this._gravaMarcas(this._marcasDaProva().map(m=>m.id===id?{...m, nota:v, up:Date.now()}:m)); };
+  irParaMarcaEnun = (e)=>{ const id=e.currentTarget.dataset.id;
+    const el=document.querySelector('[data-marca="'+id+'"]');
+    if(el){ el.scrollIntoView({block:'center', behavior:'smooth'});
+      el.style.transition='outline-color .2s'; el.style.outline='2px solid var(--accent)';
+      setTimeout(()=>{ try{ el.style.outline='none'; }catch(_){} }, 1200); } };
+
+  /* Pintura: percorre os nós de texto do enunciado e embrulha o trecho de cada marca.
+     Roda depois do render (o runtime reescreve o bloco a cada tique), com assinatura para
+     não repintar à toa — repintar todo tique derrubaria a seleção da pessoa no meio. */
+  _marcasEnunSync(){
+    try{
+      const host=document.getElementById('ct-enun'); if(!host) return;
+      const marcas=this._marcasDaProva();
+      const assin=(this._marcasKey()||'')+'|'+marcas.map(m=>m.id+m.cor).join(',')+'|'+host.textContent.length;
+      if(this._marcasAssin===assin && host.querySelector('mark[data-marca]')) return;
+      this._marcasAssin=assin;
+      // limpa a pintura anterior
+      host.querySelectorAll('mark[data-marca]').forEach(m=>{
+        const pai=m.parentNode; while(m.firstChild) pai.insertBefore(m.firstChild, m);
+        pai.removeChild(m); pai.normalize();
+      });
+      if(!marcas.length) return;
+      for(const m of marcas){
+        const alvo=String(m.txt||'').replace(/\s+/g,' ').trim(); if(!alvo) continue;
+        // mapa dos nós de texto: um só string, com o índice de cada nó
+        const nos=[]; let corrido='';
+        const it=document.createTreeWalker(host, NodeFilter.SHOW_TEXT, null);
+        let n; while((n=it.nextNode())){ nos.push({n, ini:corrido.length}); corrido+=n.nodeValue; }
+        const norm=corrido.replace(/\s+/g,' ');
+        // a normalização muda os índices; procuro no texto normalizado e reencontro no cru
+        let idx=-1, achei=-1;
+        for(let k=0;k<=(m.ocorr||0);k++){ idx=norm.indexOf(alvo, idx+1); if(idx<0) break; achei=idx; }
+        if(achei<0){ achei=norm.indexOf(alvo); if(achei<0) continue; }
+        // converte índice normalizado → índice cru contando caracteres não-brancos
+        const posCrua=(iNorm)=>{ let c=0, j=0; let espaco=false;
+          for(; j<corrido.length; j++){ const ch=corrido[j];
+            if(/\s/.test(ch)){ if(espaco) continue; espaco=true; } else espaco=false;
+            if(c===iNorm) return j; c++; }
+          return j; };
+        const ini=posCrua(achei), fim=posCrua(achei+alvo.length);
+        const dentro=nos.filter(x=>x.ini < fim && (x.ini + x.n.nodeValue.length) > ini);
+        for(const seg of dentro){
+          const a=Math.max(0, ini-seg.ini), b=Math.min(seg.n.nodeValue.length, fim-seg.ini);
+          if(b<=a) continue;
+          const r=document.createRange(); r.setStart(seg.n, a); r.setEnd(seg.n, b);
+          const mk=document.createElement('mark'); mk.dataset.marca=m.id;
+          mk.style.cssText='background:color-mix(in srgb, '+(m.cor||'#f5c451')+' 55%, transparent);'
+            +'color:inherit;border-radius:3px;padding:1px 0;'+(m.nota?'border-bottom:2px solid '+(m.cor||'#f5c451')+';':'');
+          if(m.nota) mk.title=m.nota;
+          try{ r.surroundContents(mk); }catch(_){}
+        }
+      }
+    }catch(_){}
+  }
   HL_COLORS = [
     {id:'amarelo', c:'#f5c451', label:'Amarelo'},
     {id:'verde', c:'#7ed99a', label:'Verde'},
@@ -14320,11 +14501,33 @@ class Component extends DCLogic {
         return [...ks].map(v=>{ const on=sel.indexOf(v)>=0; const cor=this._catCor(v)||'var(--accent)';
           const icon=(CT_CAT_META[v]&&CT_CAT_META[v].i)||'•';
           return {v, icon, style:`display:inline-flex;align-items:center;gap:5px;border:1.5px solid ${on?cor:'var(--border)'};background:${on?`color-mix(in srgb, ${cor} 13%, var(--surface))`:'var(--surface)'};color:${on?cor:'var(--text2)'};border-radius:99px;padding:6px 12px;font-size:var(--fs-xs);font-weight:${on?'700':'600'};cursor:pointer;font-family:inherit;transition:.12s;flex:none;`}; }); })(),
+      /* Disciplina = edital. A lista mostra as disciplinas do edital que APARECEM na
+         semana (com a contagem), mais "sem disciplina" para o que ainda não tem vínculo —
+         é assim que ela descobre o que falta amarrar, em vez de rolar títulos de tarefa. */
       cicloFqDiscOpts:(()=>{ const sel=(this.state.cicloFq&&this.state.cicloFq.disc)||'';
-        const ds=new Set();
-        (this.state.blocks||[]).forEach(x=>{ if(x&&x.disc) ds.add(x.disc); });
-        (this.state.manualFixed||[]).forEach(x=>{ if(x&&(x.discEdital||x.disc)) ds.add(x.discEdital||x.disc); });
-        return [...ds].sort().map(v=>({v, sel:v===sel})); })(),
+        const itens=this._cicloItensUnicos();
+        const cont={}; let sem=0;
+        itens.forEach(x=>{ const d=this._discEditalDe(x); if(d) cont[d]=(cont[d]||0)+1; else sem++; });
+        const opts=Object.keys(cont).sort((a,b)=>a.localeCompare(b,'pt-BR'))
+          .map(v=>({v, label:v+' · '+cont[v], sel:v===sel}));
+        if(sem) opts.push({v:'__sem', label:'sem disciplina do edital · '+sem, sel:sel==='__sem'});
+        return opts; })(),
+      cicloFqTopico:this.cicloFqTopico,
+      cicloFqTop:(this.state.cicloFq&&this.state.cicloFq.topico)||'',
+      cicloFqTopVazio:!((this.state.cicloFq&&this.state.cicloFq.topico)||''),
+      /* Assunto/tópico = o que está DENTRO da disciplina. Só aparece com uma disciplina
+         escolhida, e lista os assuntos daquela disciplina presentes na semana. */
+      cicloFqTopOpts:(()=>{ const f=this.state.cicloFq||{}; const d=f.disc||'';
+        if(!d || d==='__sem') return [];
+        const itens=this._cicloItensUnicos();
+        const cont={};
+        itens.forEach(x=>{ if(this._discEditalDe(x)!==d) return; const t=this._assuntoDe(x); if(t) cont[t]=(cont[t]||0)+1; });
+        return Object.keys(cont).sort((a,b)=>a.localeCompare(b,'pt-BR'))
+          .map(v=>({v, label:v+' · '+cont[v], sel:v===(f.topico||'')})); })(),
+      cicloFqTemTop:(()=>{ const f=this.state.cicloFq||{}; const d=f.disc||'';
+        if(!d || d==='__sem') return false;
+        const itens=this._cicloItensUnicos();
+        return itens.some(x=>this._discEditalDe(x)===d && this._assuntoDe(x)); })(),
       // U9: na tela de iframe a altura vem do espaço que sobrou (a moldura estica), não de
       // uma conta de vh contra a barra de cima — era essa conta que sobrava alguns pixels e
       // dava a segunda barra de rolagem. Fora dessas telas o valor não é usado (a moldura
@@ -14580,6 +14783,21 @@ class Component extends DCLogic {
         const pal=(t.match(/\S+/g)||[]).length;
         return { redRascunhoTem:tem, redRascunhoQuando:quando, redRascunhoPalavras:pal+(pal===1?' palavra':' palavras') };
       })(),
+      // --- marcação do enunciado (as chaves são GLOBAIS: a view da redação é a única
+      // que as usa, mas nascer dentro de um helper condicional é o defeito que o D16 pega)
+      onSelEnunciado:this.onSelEnunciado, marcarEnunciado:this.marcarEnunciado,
+      removerMarcaEnun:this.removerMarcaEnun, onNotaMarcaEnun:this.onNotaMarcaEnun,
+      irParaMarcaEnun:this.irParaMarcaEnun,
+      redSelDica:(String(this.state.redSelTxt||'').trim()
+        ? '“'+String(this.state.redSelTxt).slice(0,70)+(String(this.state.redSelTxt).length>70?'…':'')+'” — escolha a cor'
+        : 'Selecione um trecho do enunciado e escolha uma cor.'),
+      redCores:this.HL_COLORS.map(c=>({c:c.c, label:c.label,
+        style:'width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border);background:'+c.c+';cursor:pointer;font-family:inherit;'})),
+      redMarcasList:(()=>{ const l=this._marcasDaProva();
+        return l.slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).map(m=>({id:m.id, cor:m.cor||'#f5c451', nota:m.nota||'',
+          resumo:'“'+String(m.txt||'').slice(0,110)+(String(m.txt||'').length>110?'…':'')+'”'})); })(),
+      redMarcasN:(()=>{ const n=this._marcasDaProva().length; return n?(n+(n===1?' trecho':' trechos')):''; })(),
+      redSemMarcas:this._marcasDaProva().length===0,
       redRascunhoOk:this.redRascunhoOk, redZerarRascunho:this.redZerarRascunho,
       redPasso1:this._passo(1, !this.state.redResult && !((this.state.redEnunciado||'').trim())),
       redPasso2:this._passo(2, !this.state.redResult && !!((this.state.redEnunciado||'').trim())),
