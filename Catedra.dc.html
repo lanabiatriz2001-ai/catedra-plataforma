@@ -14569,6 +14569,14 @@ class Component extends DCLogic {
         (this.state.blocks||[]).forEach(x=>{ if(x&&x.kind) ks.add(x.kind); });
         (this.state.manualFixed||[]).forEach(x=>{ if(x&&x.kind) ks.add(x.kind); });
         try{ if(this.state.nativePlano&&this.state.nativePlano.legis){ ks.add('Lei seca'); ks.add('Jurisprudência'); } }catch(_){}
+        /* O chip do filtro seguia o dado bruto e ignorava a ÁREA: quem estuda Enfermagem
+           via "Jurisprudência" no filtro do próprio ciclo (Fase 5 do guia de áreas — o
+           vocabulário jurídico não pode vazar para quem não escolheu Direito). A oferta
+           de categorias da área já é calculada em _atividades(); o filtro passa a
+           respeitá-la, mantendo o que a pessoa de fato tem no ciclo. */
+        try{ const _ofer=new Set(this._atividades()||[]);
+          if(_ofer.size) [...ks].forEach(k=>{ if(!_ofer.has(k)) ks.delete(k); });
+        }catch(_){}
         return [...ks].map(v=>{ const on=sel.indexOf(v)>=0; const cor=this._catCor(v)||'var(--accent)';
           const icon=(CT_CAT_META[v]&&CT_CAT_META[v].i)||'•';
           return {v, icon, style:`display:inline-flex;align-items:center;gap:5px;border:1.5px solid ${on?cor:'var(--border)'};background:${on?`color-mix(in srgb, ${cor} 13%, var(--surface))`:'var(--surface)'};color:${on?cor:'var(--text2)'};border-radius:99px;padding:6px 12px;font-size:var(--fs-xs);font-weight:${on?'700':'600'};cursor:pointer;font-family:inherit;transition:.12s;flex:none;`}; }); })(),
@@ -15041,7 +15049,13 @@ class Component extends DCLogic {
       setRoteiroAtual:this.setRoteiroAtual, clearRoteiro:this.clearRoteiro,
       rotNextName:(this.state.manualRot[this.state.rotPointer]||{}).disc||'—',
       cycleModes:[
-        {mode:'sugestao', icon:'★', title:'Sugestão da plataforma', desc:'Ciclo padrão equilibrado: teoria, questões, lei seca, jurisprudência e revisão.'},
+        /* A descrição citava "lei seca e jurisprudência" para TODA área — vocabulário
+           jurídico na tela de quem estuda Enfermagem. Agora ela lista as categorias que a
+           área realmente oferece (_atividades já resolve isso por área). */
+        {mode:'sugestao', icon:'★', title:'Sugestão da plataforma',
+         desc:'Ciclo padrão equilibrado: '+(()=>{ try{ const a=(this._atividades()||[]).slice(0,5);
+           return a.length ? a.map(x=>String(x).toLowerCase()).join(', ')+'.' : 'teoria, questões e revisão.';
+         }catch(_){ return 'teoria, questões e revisão.'; } })()},
         {mode:'edital', icon:'▤', title:'Conforme o edital', desc:'Gerado a partir dos tópicos ainda pendentes do edital cadastrado.'},
         {mode:'pesos', icon:'▲', title:'Pesos e pontos', desc:'Prioriza matérias que valem mais pontos e onde você está mais fraco.'},
         {mode:'manual', icon:'✎', title:'Manual', desc:'Monte do zero: adicione, edite e ordene os blocos como quiser.'}
