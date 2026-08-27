@@ -110,7 +110,7 @@ struct LawPrecedentsView: View {
                     .textFieldStyle(.plain)
             }
             .padding(.horizontal, 10).padding(.vertical, 6)
-            .background(RoundedRectangle(cornerRadius: 8).fill(.quaternary.opacity(0.4)))
+            .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(.quaternary.opacity(0.4)))
             Spacer()
             Button {
                 showNew = true

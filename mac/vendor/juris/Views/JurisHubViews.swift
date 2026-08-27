@@ -151,7 +151,7 @@ struct TribunalCentralView: View {
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 10).padding(.vertical, 5)
-                                .background(Color.white.opacity(0.16), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .background(Color.white.opacity(0.16), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                             Text(t.nome).font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
                             Spacer()
                             Text("\(verbetes.count) verbetes")
