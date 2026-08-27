@@ -3959,23 +3959,7 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <!-- ================= AJUSTES (conta · personalização · orientação — aba única) ================= -->
-      <!-- PERFIL (identidade no topo) -->
-      <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-          <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
-            <div style="width:52px;height:52px;border-radius:99px;background:var(--heroGrad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:700;font-size:22px;flex:none;box-shadow:0 6px 18px rgba(0,0,0,.22);">{{ userInitial }}</div>
-            <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:var(--fs-lg);color:var(--ink);">{{ userName }}</div><div style="font-size:var(--fs-sm);color:var(--text3);">{{ userObjetivo }} · {{ contaLabel }}</div></div>
-            <button onclick="{{ logout }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 15px;font-size:var(--fs-base);color:var(--danger);cursor:pointer;font-family:inherit;font-weight:600;">Sair</button>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Como quer ser chamado</label><input data-k="nome" value="{{ prefNome }}" oninput="{{ setPrefVal }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
-            <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Objetivo / cargo-alvo</label><input data-k="objetivo" value="{{ prefObjetivo }}" oninput="{{ setPrefVal }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
-            <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Data da prova <span style="font-weight:400;">(opcional)</span></label><div style="display:flex;gap:8px;align-items:center;"><input type="date" value="{{ retaProvaData }}" onchange="{{ setProvaData }}" style="flex:1;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"><sc-if value="{{ retaProvaData }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ clearProvaData }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;">Ainda não sei</button></sc-if></div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:5px;">alimenta a contagem regressiva do Início e a Reta Final — sem prova marcada, a contagem fica desligada</div></div>
-          </div>
-        </div>
-       </div>
-      </sc-if>
+
 
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
@@ -4004,20 +3988,7 @@ window.ctPdfLib = (function(){
             </div>
           </sc-if>
 
-          <sc-if value="{{ temEssenciais }}" hint-placeholder-val="{{ true }}">
-            <div style="padding:18px 22px 22px;">
-              <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:var(--text3);margin-bottom:11px;">O essencial da sua área</div>
-              <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                <sc-for list="{{ areaEssenciais }}" as="x" hint-placeholder-count="5">
-                  <button class="aj-ess" data-view="{{ x.v }}" onclick="{{ onNav }}" style="{{ x.cardStyle }}">
-                    <span style="font-size:var(--fs-base);font-weight:800;color:var(--ink);">{{ x.i }} {{ x.t }}</span>
-                    <span style="font-size:var(--fs-xs);color:var(--text3);line-height:1.45;">{{ x.d }}</span>
-                  </button>
-                </sc-for>
-              </div>
-              <div style="margin-top:14px;font-size:var(--fs-sm);color:var(--text2);line-height:1.6;"><b style="color:var(--ink);">Nesta área:</b> categorias de estudo próprias — {{ areaCatsStr }}; {{ areaFerramentas }}.</div>
-            </div>
-          </sc-if>
+          
         </div>
 
         <!-- D11: as abas GRUDAM no topo (a Lana precisou do backup e não achou: as abas ficavam
@@ -4053,6 +4024,19 @@ window.ctPdfLib = (function(){
         </div>
 
 <sc-if value="{{ ajTabVoce }}" hint-placeholder-val="{{ true }}">
+        <!-- Identidade: quem estuda, objetivo e data da prova — mora em Você, não no topo da página -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+            <div style="width:52px;height:52px;border-radius:99px;background:var(--heroGrad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:700;font-size:22px;flex:none;box-shadow:0 6px 18px rgba(0,0,0,.22);">{{ userInitial }}</div>
+            <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:var(--fs-lg);color:var(--ink);">{{ userName }}</div><div style="font-size:var(--fs-sm);color:var(--text3);">{{ userObjetivo }} · {{ contaLabel }}</div></div>
+            
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Como quer ser chamado</label><input data-k="nome" value="{{ prefNome }}" oninput="{{ setPrefVal }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
+            <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Objetivo / cargo-alvo</label><input data-k="objetivo" value="{{ prefObjetivo }}" oninput="{{ setPrefVal }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
+            <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:5px;">Data da prova <span style="font-weight:400;">(opcional)</span></label><div style="display:flex;gap:8px;align-items:center;"><input type="date" value="{{ retaProvaData }}" onchange="{{ setProvaData }}" style="flex:1;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"><sc-if value="{{ retaProvaData }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ clearProvaData }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;">Ainda não sei</button></sc-if></div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:5px;">alimenta a contagem regressiva do Início e a Reta Final — sem prova marcada, a contagem fica desligada</div></div>
+          </div>
+        </div>
         <!-- PERFIL + COBRANÇA -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
@@ -4063,7 +4047,7 @@ window.ctPdfLib = (function(){
               <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orTurnoChips }}" as="c" hint-placeholder-count="3"><button data-k="turno" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
               <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Energia padrão</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orEnergiaChips }}" as="c" hint-placeholder-count="3"><button data-k="energia" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
             </div>
-            <div style="margin-top:16px;"><label for="aj-f-dias" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Dias disponíveis</label><input id="aj-f-dias" data-k="dias" value="{{ orient.dias }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;"></div>
+            <div style="margin-top:16px;"><label for="aj-f-dias" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Dias disponíveis</label><div style="display:flex;gap:7px;flex-wrap:wrap;"><sc-for list="{{ ajDiasChips }}" as="d" hint-placeholder-count="7"><button data-v="{{ d.v }}" onclick="{{ ajToggleDia }}" style="{{ d.style }}">{{ d.rot }}</button></sc-for></div></div>
             <div style="margin-top:18px;"><div style="font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:10px;">Plano por energia mental</div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;">
                 <button data-v="baixa" onclick="{{ setOrientRadio }}" style="{{ orEnBaixa }}"><div style="display:flex;align-items:center;gap:8px;"><span style="width:16px;height:16px;border-radius:99px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;"><sc-if value="{{ orEnBaixaOn }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:99px;background:var(--accent);"></span></sc-if></span></div><div style="font-weight:700;font-size:var(--fs-sm);letter-spacing:.04em;text-transform:uppercase;color:var(--ink);margin-top:10px;">Baixa energia</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:3px;">revisão leve e manutenção</div></button>
@@ -5247,15 +5231,8 @@ window.ctPdfLib = (function(){
 
       <!-- ================= AJUSTES · conta e dados ================= -->
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;align-items:center;gap:12px;margin:6px 0;">
-          <div style="flex:1;height:1px;background:var(--border);"></div>
-          <span style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:700;">Conta e dados</span>
-          <div style="flex:1;height:1px;background:var(--border);"></div>
-        </div>
-      </sc-if>
-      <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
-        <sc-if value="{{ ajTabVoce }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ ajTabEstudo }}" hint-placeholder-val="{{ true }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;"><span style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Meta diária de estudo</span><span style="font-family:var(--mono);font-weight:600;color:var(--accent);font-size:var(--fs-lg);">{{ prefMetaDiaria }}h / dia</span></div>
           <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 14px;">alimenta o anel de progresso, o prognóstico e os lembretes</div>
@@ -11514,6 +11491,16 @@ class Component extends DCLogic {
   _cloudPush(){ try{ if(window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push(); }catch(_){} }
   _persistOrient(){ try{ localStorage.setItem('catedra:orient', JSON.stringify(this.state.orient)); }catch(_){} this._cloudPush(); }
   setOrient = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao','energia'].indexOf(k)>=0 && this.state.cycleMode==='sugestao'){ this.setState({blocks:this._genSugestao()}); } }); };
+  /* Os dias disponíveis eram um campo de texto cru ("Seg,ter,qua…") — hostil e fácil de
+     quebrar. Viram chips; o valor guardado continua o MESMO CSV, então nada muda para o
+     gerador de sugestão nem para contas antigas. */
+  ajToggleDia = (e)=>{ const v=e.currentTarget.dataset.v;
+    this.setState(s=>{ const atual=String((s.orient&&s.orient.dias)||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+      const i=atual.indexOf(v); i>=0?atual.splice(i,1):atual.push(v);
+      const ORD=['seg','ter','qua','qui','sex','sab','dom'];
+      atual.sort((a,b)=>ORD.indexOf(a)-ORD.indexOf(b));
+      return {orient:{...s.orient, dias:atual.join(',')}};
+    }, ()=>this._persistOrient()); };
   toggleOrient = (e)=>{ const k=e.currentTarget.dataset.k; this.setState(s=>({orient:{...s.orient,[k]:!s.orient[k]}}), ()=>this._persistOrient()); };
   setOrientSlider = (e)=>{ const k=e.currentTarget.dataset.k; const v=parseInt(e.currentTarget.value,10); this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>this._persistOrient()); };
   setOrientRadio = (e)=>{ const v=e.currentTarget.dataset.v; this.setState(s=>({orient:{...s.orient,energiaPlano:v}}), ()=>{ this._persistOrient(); if(this.state.cycleMode==='sugestao') this.setState({blocks:this._genSugestao()}); }); };
@@ -14411,6 +14398,11 @@ class Component extends DCLogic {
       // primeiro nível, e variável que ele não acha vira string vazia em silêncio.
       // Gerá-las por spread funcionaria em tempo de execução e enganaria a revisão.
       nomeLegis:this._nomeLegis(),
+      ajToggleDia:this.ajToggleDia,
+      ajDiasChips:(()=>{ const sel=String((this.state.orient&&this.state.orient.dias)||'').toLowerCase();
+        const DIAS=[['seg','Seg'],['ter','Ter'],['qua','Qua'],['qui','Qui'],['sex','Sex'],['sab','Sáb'],['dom','Dom']];
+        return DIAS.map(([v,rot])=>{ const on=sel.indexOf(v)>=0;
+          return {v, rot, style:`border:1.5px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD, var(--accent))':'var(--text2)'};border-radius:99px;padding:8px 14px;font-size:var(--fs-sm);font-weight:${on?'700':'600'};cursor:pointer;font-family:inherit;transition:.12s;`}; }); })(),
       oralAbaLeiRot:(()=>{ try{ const R=window.CT_AREA_REG, id=this.state.areaEstudo||'juridica';
         const fp=R.termo(id,'fontePlural','leis');
         if(id==='juridica'||fp==='leis') return 'Lei seca';
