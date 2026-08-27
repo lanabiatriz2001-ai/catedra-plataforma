@@ -18,7 +18,7 @@ enum JurisPlano {
         JurisPlanoDia(dia: 2, trilha: "STF Vinculantes", de: 13, ate: 24),
         JurisPlanoDia(dia: 3, trilha: "STF Vinculantes", de: 25, ate: 32),
         JurisPlanoDia(dia: 4, trilha: "STF Vinculantes", de: 33, ate: 45),
-        JurisPlanoDia(dia: 5, trilha: "STF Vinculantes", de: 46, ate: 62),
+        JurisPlanoDia(dia: 5, trilha: "STF Vinculantes", de: 46, ate: 63),
         JurisPlanoDia(dia: 6, trilha: "TSE", de: 73, ate: 61),
         JurisPlanoDia(dia: 7, trilha: "TSE", de: 60, ate: 49),
         JurisPlanoDia(dia: 8, trilha: "TSE", de: 48, ate: 37),
