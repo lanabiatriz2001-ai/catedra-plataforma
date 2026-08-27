@@ -3789,6 +3789,242 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   /* Sem entrada em ARRAY_ID, `casos` sincronizaria como blob inteiro: um aparelho
      apagaria o caso escrito no outro, e a lápide da exclusão não seguraria — que é
      exatamente o defeito já documentado em `reviews@area`. */
+
+  /* ===== FASE 4 · o que a revisão adversarial pegou ================================
+     Cada bloco aqui nasceu de um defeito CONFIRMADO. Eles cobrem o que a primeira leva
+     de testes não olhava: os falsos POSITIVOS do guarda (que barravam caso legítimo), a
+     troca de área com caso aberto, o ida-e-volta do backup e a revisão órfã. */
+
+  const f4pii = await areaPg.evaluate(() => {
+    const C = window.CT_CASOS;
+    const BARRA = ['CPF 123.456.789-09', 'tel (69) 98103-8480', '(11) 3255-1010',
+      'telefone: 98103-8480', 'maria@exemplo.com', 'Rua das Flores, 120',
+      'Rua das Flores nº 120', 'Avenida Sete de Setembro 1200', 'CEP 76800-000', '76800-000',
+      'prontuário nº 44821', 'nascimento 12/03/1988', 'cartão 700 1234 5678 9012', 'RG: 1234567'];
+    // prosa legítima de caso clínico e socioassistencial — barrar qualquer uma delas é
+    // defeito GRAVE: a pessoa fica sem como guardar um caso que não identifica ninguém
+    const PASSA = ['em situação de rua há 3 anos', 'Moram na mesma rua do CRAS há 2 anos',
+      'Consultório na Rua há 6 meses', 'acidente em rodovia BR 116',
+      'mora em estrada vicinal a 30 km da sede', 'acompanhamento de 2019-2023 no PAIF',
+      'débito urinário de 1500-2000 mL em 24 horas', 'diurese 1200-1800 mL/dia',
+      'homem, 54 anos, dispneia há 2 dias', 'PA 90x60, FC 118', 'peso ao nascer 1.500 g',
+      'família com 4 pessoas, 2 crianças em idade escolar', 'doença de Crohn desde 2019',
+      'benefício de 1.412 reais por mês', 'acompanhado desde 03/2019', 'escore de Glasgow 12'];
+    const escapou = BARRA.filter(t => C.acharIdentificaveis(t).length === 0);
+    const barrouDemais = PASSA.filter(t => C.acharIdentificaveis(t).length > 0);
+    return {
+      barraOQueIdentifica: escapou.length === 0 || ('escapou: ' + escapou.join(' | ')),
+      naoBarraProsaLegitima: barrouDemais.length === 0 || ('barrou: ' + barrouDemais.join(' | ')),
+      // o guarda olha TODO campo de texto, não só os do esquema da área ativa
+      auditaCampoForaDoEsquema: C.auditar(
+        { id: 'x', area: 'saude', apresentacao: 'CPF 123.456.789-09', titulo: 'a', contexto: 'b', demanda: 'c' },
+        'social').length === 1,
+      gravaSoOEsquema: !('apresentacao' in C.apenasDoEsquema(
+        { id: 'x', apresentacao: 'sobra clínica', titulo: 'a' }, 'social')),
+    };
+  });
+  for (const [k, v] of Object.entries(f4pii)) ok(v === true, 'FASE4 guarda ' + k + (v === true ? '' : ' — ' + v));
+
+  /* Trocar de área com rascunho aberto: o caso clínico não pode terminar no caderno
+     socioassistencial, e a tela não pode continuar exibindo o que a área não tem. */
+  await areaPg.evaluate(() => { localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+    localStorage.removeItem('catedra:casos@saude'); localStorage.removeItem('catedra:casos@social'); });
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(1600);
+  const f4troca = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const bt = re => [...document.querySelectorAll('button')].find(x => re.test((x.textContent || '').trim()));
+    const set = (sel, val) => { const e = document.querySelector(sel); if (!e) return false;
+      const p = Object.getOwnPropertyDescriptor(e.constructor.prototype, 'value');
+      p.set.call(e, val); e.dispatchEvent(new Event('input', { bubbles: true })); return true; };
+    const r = {};
+    (bt(/^casos clínicos$/i) || {}).click?.(); await w(600);
+    (bt(/^novo caso$|^escrever o primeiro$/i) || {}).click?.(); await w(500);
+    set('[data-k="titulo"]', 'Dispneia pós-operatória');
+    set('[data-k="apresentacao"]', 'Homem, 54 anos, CPF 123.456.789-09, dispneia súbita.');
+    await w(300);
+    // troca de área PELA INTERFACE, sem recarregar — é o caminho que o teste antigo pulava
+    const irAjustes = async () => {
+      const bt2 = re => [...document.querySelectorAll('button')].find(x => re.test((x.textContent || '').trim()));
+      let a = bt2(/^ajustes$/i);
+      if (!a) { const mais = bt2(/^mais opções$/i); if (mais) { mais.click(); await w(500); a = bt2(/^ajustes$/i); } }
+      if (a) { a.click(); await w(900); return true; }
+      return false;
+    };
+    if (!await irAjustes()) return { semAjustes: true };
+    for (let i = 0; i < 5; i++) {
+      const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'social');
+      if (card) { card.click(); await w(900); break; }
+      const abrir = bt(/^trocar de área$/i);
+      if (abrir) { abrir.click(); await w(700); } else await w(400);
+    }
+    const conf = [...document.querySelectorAll('button')].find(x => /^trocar para /i.test((x.textContent || '').trim()));
+    if (!conf) return { semBotao: true };
+    conf.click(); await w(2200);
+    r.trocouMesmo = (localStorage.getItem('catedra:areaEstudo') || '').includes('social');
+    const irCasos = bt(/^casos socioassistenciais$/i); if (irCasos) irCasos.click(); await w(800);
+    r.construtorFechou = !document.querySelector('[data-k="apresentacao"]')
+      && !document.querySelector('[data-k="contexto"]');
+    r.naoMostraCasoDaOutraArea = !/dispneia pós-operatória/i.test(document.body.innerText);
+    await w(900);
+    r.nadaVazouParaOSocial = JSON.parse(localStorage.getItem('catedra:casos@social') || '[]')
+      .every(c => !c || !('apresentacao' in c));
+    r.socialSegueVazio = JSON.parse(localStorage.getItem('catedra:casos@social') || '[]').length === 0;
+    return r;
+  });
+  // um teste que se pula sozinho não é teste: se o caminho não existir, isto FALHA
+  ok(!f4troca.semAjustes && !f4troca.semBotao,
+     'FASE4 troca o caminho da troca de área existe' + (f4troca.semAjustes || f4troca.semBotao ? ' — ' + JSON.stringify(f4troca) : ''));
+  for (const [k, v] of Object.entries(f4troca)) {
+    if (k === 'semAjustes' || k === 'semBotao') continue;
+    ok(v, 'FASE4 troca ' + k);
+  }
+
+
+  /* O backup é o único caminho de volta para conteúdo que só existe porque a pessoa
+     escreveu. A tela promete "entram no seu backup" — e a restauração estava apagando os
+     casos: o arquivo devolvia ao disco, mas o estado seguia velho e o autosave regravava
+     vazio 500 ms depois. Este teste faz o ida-e-volta de verdade. */
+  await areaPg.evaluate(() => { localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+    localStorage.setItem('catedra:casos@saude', JSON.stringify([{ id: 'cbk', up: 5, criado: 5,
+      area: 'saude', titulo: 'Choque séptico no pós-operatório',
+      apresentacao: 'Mulher, 61 anos, febre e hipotensão no 3º dia de pós-operatório.',
+      achados: 'PA 80x50, FC 124, lactato 4,2.', avaliacao: '', conduta: '', evolucao: '',
+      fonte: '', perguntas: [], treinos: [] }])); });
+  await areaPg.goto(URL0 + '/Catedra.dc.html');
+  await areaPg.waitForTimeout(1600);
+  const f4bkp = await areaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const bt = re => [...document.querySelectorAll('button')].find(x => re.test((x.textContent || '').trim()));
+    // 1) exportar, capturando o Blob em vez de baixar o arquivo
+    let texto = '';
+    const criar = URL.createObjectURL;
+    URL.createObjectURL = (b) => { try { b.text().then(t => { texto = t; }); } catch (_) {} return 'blob:teste'; };
+    const irAjustes = async () => {
+      const bt2 = re => [...document.querySelectorAll('button')].find(x => re.test((x.textContent || '').trim()));
+      let a = bt2(/^ajustes$/i);
+      if (!a) { const mais = bt2(/^mais opções$/i); if (mais) { mais.click(); await w(500); a = bt2(/^ajustes$/i); } }
+      if (a) { a.click(); await w(900); return true; }
+      return false;
+    };
+    if (!await irAjustes()) { URL.createObjectURL = criar; return { semBotaoExportar: true }; }
+    const abaDados = document.querySelector('button[data-t="dados"]');
+    if (abaDados) { abaDados.click(); await w(700); }
+    const exp = bt(/exportar backup/i); if (!exp) { URL.createObjectURL = criar; return { semBotaoExportar: true }; }
+    exp.click(); await w(900);
+    URL.createObjectURL = criar;
+    const r = { exportouOCaso: /Choque séptico/.test(texto) };
+    try { localStorage.setItem('teste_backup', texto); } catch (_) {}
+    return r;
+  });
+  ok(!f4bkp.semBotaoExportar, 'FASE4 backup o botão de exportar existe');
+  if (!f4bkp.semBotaoExportar) {
+    ok(f4bkp.exportouOCaso, 'FASE4 backup exportouOCaso');
+    // 2) aparelho "limpo": o caso some do disco e da memória
+    await areaPg.evaluate(() => localStorage.removeItem('catedra:casos@saude'));
+    await areaPg.goto(URL0 + '/Catedra.dc.html');
+    await areaPg.waitForTimeout(1600);
+    const volta = await areaPg.evaluate(async () => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      const bt = re => [...document.querySelectorAll('button')].find(x => re.test((x.textContent || '').trim()));
+      const texto = localStorage.getItem('teste_backup') || '';
+      if (!texto) return { semTexto: true };
+      // o input de importar é criado na hora e nunca entra no DOM: capturo na criação
+      const criarEl = document.createElement.bind(document);
+      let alvo = null;
+      document.createElement = (t) => { const e = criarEl(t); if (t === 'input') alvo = e; return e; };
+      const bt2 = re => [...document.querySelectorAll('button')].find(x => re.test((x.textContent || '').trim()));
+      let aj = bt2(/^ajustes$/i);
+      if (!aj) { const mais = bt2(/^mais opções$/i); if (mais) { mais.click(); await w(500); aj = bt2(/^ajustes$/i); } }
+      if (aj) { aj.click(); await w(900); }
+      const abaDados = document.querySelector('button[data-t="dados"]');
+      if (abaDados) { abaDados.click(); await w(700); }
+      const imp = bt(/importar dados|importar backup/i);
+      if (!imp) { document.createElement = criarEl; return { semBotaoImportar: true }; }
+      imp.click(); await w(300);
+      document.createElement = criarEl;
+      if (!alvo) return { semInput: true };
+      const arq = new File([texto], 'catedra-backup.json', { type: 'application/json' });
+      Object.defineProperty(alvo, 'files', { value: [arq], configurable: true });
+      alvo.onchange && alvo.onchange();
+      await w(2500);                       // passa do autosave de 500 ms de propósito
+      const disco = JSON.parse(localStorage.getItem('catedra:casos@saude') || '[]');
+      return {
+        oCasoVoltouAoDisco: disco.length === 1 && /Choque séptico/.test(disco[0].titulo || ''),
+        oAutosaveNaoApagou: disco.length === 1 && !!disco[0].apresentacao,
+      };
+    });
+    if (!volta.semTexto && !volta.semBotaoImportar && !volta.semInput) {
+      for (const [k, v] of Object.entries(volta)) ok(v, 'FASE4 backup ' + k);
+    } else {
+      ok(false, 'FASE4 backup o teste não achou por onde importar (' + JSON.stringify(volta) + ')');
+    }
+  }
+
+  /* Revisão órfã: o caso morre com lápide, mas a revisão dele era só filtrada. O outro
+     aparelho devolvia a revisão pelo merge por id e ela voltava para sempre, com o título
+     de um caso que não existe e sem tela por onde removê-la. */
+  /* Semeadura em ABA NOVA com addInitScript: semear com setItem na aba compartilhada não
+     funciona — o app da carga anterior ainda está vivo e o autosave dele grava por cima
+     500 ms depois, o que aqui apagava justamente a lápide que o teste quer exercitar. */
+  const orfaCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await orfaCtx.addInitScript(() => {
+    try {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+      localStorage.setItem('catedra:casos@saude', JSON.stringify([{ id: 'cmorto', del: true, up: 900 }]));
+      localStorage.setItem('catedra:reviews@saude', JSON.stringify([
+        { id: 'rorfa', casoId: 'cmorto', disc: 'Caso clínico', topic: 'Choque séptico', color: '#8b5cf6',
+          due: 0, dueDate: '2026-01-01', intervalo: 1, facilidade: 2.5, repeticoes: 1, up: 100 },
+        { id: 'rviva', disc: 'Direito Civil', topic: 'Prescrição', color: '#2563EB',
+          due: 0, dueDate: '2026-01-01', intervalo: 1, facilidade: 2.5, repeticoes: 1, up: 100 },
+      ]));
+    } catch (_) {}
+  });
+  const orfaPg = await orfaCtx.newPage();
+  await orfaPg.goto(URL0 + '/Catedra.dc.html');
+  // esperar a CONDIÇÃO, não um tempo fixo: a gravação do autosave atrasa sob carga, e um
+  // sleep generoso hoje vira falha intermitente amanhã
+  let orfaCaiu = true;
+  try {
+    await orfaPg.waitForFunction(
+      () => !JSON.parse(localStorage.getItem('catedra:reviews@saude') || '[]').some(r => r.id === 'rorfa'),
+      { timeout: 15000 });
+  } catch (_) { orfaCaiu = false; }
+  const f4orfa = await orfaPg.evaluate(() => {
+    const rv = JSON.parse(localStorage.getItem('catedra:reviews@saude') || '[]');
+    return {
+      soltouARevisaoDoCasoApagado: !rv.some(r => r.id === 'rorfa'),
+      naoLevouAsOutrasJunto: rv.some(r => r.id === 'rviva'),
+      sumiuDaTela: !/choque séptico/i.test(document.body.innerText),
+    };
+  });
+  f4orfa.soltouARevisaoDoCasoApagado = f4orfa.soltouARevisaoDoCasoApagado && orfaCaiu;
+  for (const [k, v] of Object.entries(f4orfa)) ok(v, 'FASE4 revisão ' + k);
+
+  /* Vocabulário jurídico não pode ser oferecido como método de estudo a quem não estuda
+     Direito — nem na tela Bancas, nem na aba Banca dos Ajustes, nem no rótulo do menu. */
+  const f4banca = await orfaPg.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const bt = re => [...document.querySelectorAll('button')].find(x => re.test((x.textContent || '').trim()));
+    const JUR = /súmula|sumul|jurisprud|lei seca|tribunais superiores|acórdão|em Direito/i;
+    const out = {};
+    const irBancas = bt(/^bancas$/i); if (irBancas) irBancas.click(); await w(900);
+    out.telaBancasLimpa = !JUR.test(document.body.innerText);
+    let aj = bt(/^ajustes$/i);
+    if (!aj) { const mais = bt(/^mais opções$/i); if (mais) { mais.click(); await w(500); aj = bt(/^ajustes$/i); } }
+    out.achouAjustes = !!aj;
+    if (aj) { aj.click(); await w(900); }
+    const abaBanca = document.querySelector('button[data-t="banca"]');
+    if (abaBanca) { abaBanca.click(); await w(800); }
+    // sem esta prova, "a aba está limpa" seria verde só porque a aba nunca abriu
+    out.abaBancaAbriu = /estilo|formato|foco/i.test(document.body.innerText);
+    out.abaBancaLimpa = !JUR.test(document.body.innerText);
+    return out;
+  });
+  for (const [k, v] of Object.entries(f4banca)) ok(v, 'FASE4 banca ' + k);
+  await orfaCtx.close();
+
   // o Catedra.dc.html não carrega o auth.js sozinho; o gancho do merge mora na fixture
   await areaPg.goto(URL0 + '/tests/sync-fixture.html');
   await areaPg.waitForFunction(() => window.CatedraSync && window.CatedraSync._test);
