@@ -2393,6 +2393,7 @@ window.ctPdfLib = (function(){
                   <button data-id="{{ r.id }}" data-q="4" onclick="{{ reviewRate }}" title="Bom (q=4)" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button>
                   <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewSnooze }}" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Adiar</button>
+                  <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
                 </div>
               </div>
             </sc-for>
@@ -2420,6 +2421,7 @@ window.ctPdfLib = (function(){
                   <button data-id="{{ r.id }}" data-q="4" onclick="{{ reviewRate }}" title="Bom (q=4)" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button>
                   <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewSnooze }}" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Adiar</button>
+                  <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
                 </div>
               </div>
             </sc-for>
@@ -2440,13 +2442,14 @@ window.ctPdfLib = (function(){
                 <div style="flex:1;min-width:140px;"><div style="font-weight:600;font-size:var(--fs-md);color:var(--ink);">{{ r.topic }}</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--text3);font-weight:500;">{{ r.dueLabel }}</span>
                 <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);">intervalo {{ r.interval }}</span>
+                <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
               </div>
             </sc-for>
           </div>
         </div>
         <div style="display:flex;gap:14px;align-items:flex-start;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:16px 18px;">
           <span style="width:8px;height:8px;border-radius:99px;background:var(--accent);margin-top:6px;flex:none;"></span>
-          <p style="margin:0;font-size:var(--fs-base);color:var(--text2);line-height:1.55;">Ao avaliar como foi (<b style="color:var(--ink);">Errei, Difícil, Bom ou Fácil</b>), o tópico avança no intervalo de repetição espaçada (SM-2: 1 → 6 → intervalo × facilidade) e some das pendências até a nova data. <b style="color:var(--ink);">Adiar</b> empurra a revisão um dia.</p>
+          <p style="margin:0;font-size:var(--fs-base);color:var(--text2);line-height:1.55;">Ao avaliar como foi (<b style="color:var(--ink);">Errei, Difícil, Bom ou Fácil</b>), o tópico avança no intervalo de repetição espaçada (SM-2: 1 → 6 → intervalo × facilidade) e some das pendências até a nova data. <b style="color:var(--ink);">Adiar</b> empurra a revisão um dia, e <b style="color:var(--ink);">Tirar da fila</b> remove o tópico de vez — use quando ele entrou por engano ou você decidiu não estudá-lo.</p>
         </div>
        </div>
       </sc-if>
@@ -6982,6 +6985,16 @@ class Component extends DCLogic {
   reviewRate = (e)=>{ const id=e.currentTarget.dataset.id; const q=+e.currentTarget.dataset.q; const hoje=this._hoje();
     const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const sc=this.sm2(r, q); return {...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:Date.now()}; }); this.setState({reviews:rv}); };
   reviewSnooze = (e)=>{ const id=e.currentTarget.dataset.id; const hoje=this._hoje(); const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const base=((r.due||0)<0||!r.dueDate)?hoje:r.dueDate; return {...r, dueDate:this._addDiasStr(base,1), due:Math.max(1,(r.due||0)+1), up:Date.now()}; }); this.setState({reviews:rv}); };
+  /* Tirar da fila: a revisão nasce de vários lugares (erro, treino, registro de sessão,
+     destaque do leitor) e às vezes entra um tópico que ela nunca estudou — sem isto ele
+     ficava eternamente reaparecendo em "Próximas". Some de vez; a lápide do auth.js
+     (catedra:reviews está em ARRAY_ID) impede que a nuvem o traga de volta. */
+  reviewRemove = (e)=>{ const id=e.currentTarget.dataset.id;
+    const alvo=(this.state.reviews||[]).find(r=>r.id===id); if(!alvo) return;
+    if(!window.confirm('Tirar "'+(alvo.topic||'este tópico')+'" da fila de revisão?\n\nEle deixa de ser reagendado. O histórico de estudo não muda.')) return;
+    this.setState(s=>({reviews:(s.reviews||[]).filter(r=>r.id!==id)}));
+    try{ this._toast('Fora da fila de revisão ✦'); }catch(_){}
+    this.flashSync(); };
   // fluxo "revisar agora" — item a item, reagendando por SM-2
   startRevSession = ()=>{ const due=this.state.reviews.filter(r=>r.due<=0).sort((a,b)=>a.due-b.due).map(r=>r.id);
     if(!due.length){ this._toast('Nenhuma revisão pendente — tudo em dia 🎉'); return; }
@@ -14330,7 +14343,7 @@ class Component extends DCLogic {
         && (Date.now()-this.state.syncErroDesde)>5*60000),
       syncAlarmeTxt:'não consegui salvar — tentar agora',
       homeTimerLabel, homeTimerBtn:(this.state.timerRunning?'❚❚ Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'▶ Retomar':'▶ Iniciar')), homePmLivre, homePm25, homePm50, homePm90, pmCustShow, pmCustF, pmCustB, pmCustLabel, homePmCust,
-      reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze,
+      reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze, reviewRemove:this.reviewRemove,
       startRevSession:this.startRevSession, revReveal:this.revReveal, revAnswer:this.revAnswer, revSkip:this.revSkip, closeRevSession:this.closeRevSession,
       revActive:revRun.active, revDone:revRun.done, revNotDone:revRun.active&&!revRun.done, revRevealed:revRun.revealed, revNotRevealed:revRun.active&&!revRun.done&&!revRun.revealed,
       revPos:revRun.pos, revTotal:revRun.total, revPct:revRun.pct, revCardDisc:revRun.discShort, revCardTopic:revRun.topic, revCardColor:revRun.color,
