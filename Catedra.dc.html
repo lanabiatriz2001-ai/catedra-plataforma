@@ -14763,7 +14763,8 @@ class Component extends DCLogic {
       scoreOffset: ringCirc*(1-score/100),
       isDisc, isObjetiva:!isDisc, discItems, discObtidaTxt, discMaxima, discPct, brutoPct,
       onDiscItem:this.onDiscItem, addDiscItem:this.addDiscItem, removeDiscItem:this.removeDiscItem,
-      // importador edital      edRaw:this.state.edRaw,
+      // importador edital
+      edRaw:this.state.edRaw,
       edParsedView, edParsedDisc, edParsedTopics, edParsedSubs, hasParsed:!!this.state.edParsed,      edSetRaw:this.edSetRaw, edRecognize:this.edRecognize, edConfirm:this.edConfirm, edDiscard:this.edDiscard,
       edStructureAI:this.edStructureAI, edAiBusy:this.state.edAiBusy, edAiLabel:(this.state.edAiBusy?'Estruturando com IA…':'Estruturar com IA ✦'),
       onDragOver:(e)=>e.preventDefault(),
