@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # guarda-build.sh — trava de build cruzado, comum ao Mac e ao iPad.
 #
-#   source "$ROOT/scripts/guarda-build.sh"; ct_travar_build macos "$ROOT" build-app.sh
+#   source "$ROOT/scripts/guarda-build.sh"; ct_travar_build macos "$ROOT"
 #
 # POR QUE EXISTE: dois builds do MESMO alvo rodando ao mesmo tempo neste repositório
 # se atropelam — os dois escrevem em mac/build (ou ios/build) e no bundle web gerado por
@@ -12,7 +12,7 @@
 # Saída de emergência: CATEDRA_IGNORAR_TRAVA=1 (para quando a trava mentir).
 
 ct_travar_build() {
-  local alvo="$1" raiz="$2" padrao="${3:-$(basename "${0:-build}")}"
+  local alvo="$1" raiz="$2"
   local lock="$raiz/.build-lock-$alvo"
 
   if [ "${CATEDRA_IGNORAR_TRAVA:-}" = "1" ]; then
@@ -47,15 +47,11 @@ ct_travar_build() {
   # shellcheck disable=SC2064
   trap "rm -rf '$lock'; exit 143" TERM
 
-  # Rede de segurança para o build que começou ANTES desta trava existir (ou que rodou
-  # com CATEDRA_IGNORAR_TRAVA): sem arquivo de trava, só o processo denuncia.
-  local vizinhos
-  vizinhos="$(pgrep -f "$padrao" 2>/dev/null | grep -vx "$$" || true)"
-  vizinhos="$(echo "$vizinhos" | grep -v '^$' || true)"
-  if [ -n "$vizinhos" ]; then
-    echo "✗ BUILD RECUSADO: outro processo de build de $alvo está vivo: $(echo "$vizinhos" | tr '\n' ' ')" >&2
-    echo "  Mate-o (kill $(echo "$vizinhos" | tr '\n' ' ')) ou use CATEDRA_IGNORAR_TRAVA=1." >&2
-    rm -rf "$lock"
-    exit 3
-  fi
+  # NÃO existe varredura por pgrep aqui, e isso é deliberado: a primeira versão desta
+  # guarda tinha uma "rede de segurança" com `pgrep -f build-ipad.sh` e ela RECUSOU um
+  # build legítimo — a linha de comando do processo que eu usava para vigiar o log
+  # continha o nome do script, e pgrep -f casa a linha inteira, não o executável. Um
+  # grep, um editor aberto no arquivo ou um `tail` com o nome do script bastam para
+  # bloquear a pessoa. O arquivo de trava é a fonte da verdade: é atômico, guarda o PID
+  # e sabe distinguir dono vivo de trava órfã.
 }
