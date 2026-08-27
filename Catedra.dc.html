@@ -4095,7 +4095,7 @@ window.ctPdfLib = (function(){
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
               <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Nível atual</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orNivelChips }}" as="c" hint-placeholder-count="3"><button data-k="nivel" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
               <div><label for="aj-f-tempoDia" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Tempo médio por dia (min)</label><input id="aj-f-tempoDia" type="number" data-k="tempoDia" value="{{ orient.tempoDia }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orTempoHHMM }}</div></div>
-              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orTurnoChips }}" as="c" hint-placeholder-count="3"><button data-k="turno" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
+              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno · define a hora do aviso de ofensiva em risco</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orTurnoChips }}" as="c" hint-placeholder-count="3"><button data-k="turno" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
               <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Energia padrão</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orEnergiaChips }}" as="c" hint-placeholder-count="3"><button data-k="energia" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
             </div>
             <div style="margin-top:16px;"><label for="aj-f-dias" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Dias disponíveis</label><div style="display:flex;gap:7px;flex-wrap:wrap;"><sc-for list="{{ ajDiasChips }}" as="d" hint-placeholder-count="7"><button data-v="{{ d.v }}" onclick="{{ ajToggleDia }}" style="{{ d.style }}">{{ d.rot }}</button></sc-for></div></div>
@@ -4116,7 +4116,7 @@ window.ctPdfLib = (function(){
               <div><label for="aj-f-banca" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Banca principal</label><select id="aj-f-banca" data-k="banca" value="{{ orient.banca }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="cebraspe">CEBRASPE (Cespe/UnB)</option><option value="fgv">FGV</option><option value="fcc">FCC</option><option value="vunesp">VUNESP</option><option value="cesgranrio">CESGRANRIO</option><option value="ibfc">IBFC</option><option value="quadrix">Quadrix</option><option value="iades">IADES</option><option value="aocp">Instituto AOCP</option><option value="consulplan">Consulplan</option><option value="fundatec">FUNDATEC</option><option value="idecan">IDECAN</option></select></div>
               <div><label for="aj-f-linguagem" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Linguagem dos conselhos</label><select id="aj-f-linguagem" data-k="linguagem" value="{{ orient.linguagem }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="professor">Modo professor</option><option value="direto">Direto ao ponto</option><option value="motivador">Motivador</option></select></div>
             </div>
-            <label style="display:flex;align-items:center;gap:11px;margin-top:18px;padding:14px 15px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;"><input type="checkbox" data-k="focoEstrategico" checked="{{ orient.focoEstrategico }}" onchange="{{ toggleOrient }}" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex:none;"><span style="font-size:var(--fs-base);color:var(--ink);">Ativar foco estratégico: priorizar tarefas com maior peso, urgência, dificuldade e proximidade da prova.</span></label>
+            <label style="display:flex;align-items:center;gap:11px;margin-top:18px;padding:14px 15px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;"><input type="checkbox" data-k="focoEstrategico" checked="{{ orient.focoEstrategico }}" onchange="{{ toggleOrient }}" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex:none;"><span style="font-size:var(--fs-base);color:var(--ink);">Foco estratégico: o "onde rende mais" do dia passa a pesar o peso da disciplina no edital e a proximidade da prova, além da sua lacuna de domínio.</span></label>
           </div>
         </div>
 
@@ -4158,10 +4158,12 @@ window.ctPdfLib = (function(){
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:20px;"><h2 id="aj-ritmo" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Ritmo e comportamento</h2><span style="font-size:var(--fs-sm);color:var(--text3);">orientação do estudo</span></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div><label for="aj-f-blocoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Bloco do ciclo gerado (min)</label><input id="aj-f-blocoPadrao" type="number" data-k="blocoPadrao" value="{{ orient.blocoPadrao }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orBlocoHHMM }}</div></div>
-              <div><label for="aj-f-pausaPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Pausa do ciclo gerado (min)</label><input id="aj-f-pausaPadrao" type="number" data-k="pausaPadrao" value="{{ orient.pausaPadrao }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orPausaHHMM }}</div></div>
-              <div><label for="aj-f-modoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Modo padrão</label><select id="aj-f-modoPadrao" data-k="modoPadrao" value="{{ orient.modoPadrao }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="livre">Livre</option><option value="pomodoro">Pomodoro</option><option value="imersao">Imersão</option></select></div>
-              <div><label for="aj-f-aoAbrir" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ao abrir a plataforma</label><select id="aj-f-aoAbrir" data-k="aoAbrir" value="{{ orient.aoAbrir }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="foco">Mostrar foco do dia</option><option value="inicio">Ir para o Início</option><option value="ciclo">Abrir o Ciclo</option></select></div>
+              <div><label for="aj-f-blocoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Bloco do ciclo gerado (min) · tamanho de cada bloco que o Ciclo monta</label><input id="aj-f-blocoPadrao" type="number" data-k="blocoPadrao" value="{{ orient.blocoPadrao }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orBlocoHHMM }}</div></div>
+              <!-- "Pausa do ciclo gerado" saiu daqui: nenhum gerador de ciclo usava esse número
+                   (só era exibido de volta como "= 00:10"). A pausa que EXISTE de verdade é a do
+                   cronômetro, em Estudo & metas → Meu ritmo. -->
+              <div><label for="aj-f-modoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Como o cronômetro começa · vale no próximo dia sem cronômetro em curso</label><select id="aj-f-modoPadrao" data-k="modoPadrao" value="{{ orient.modoPadrao }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="livre">Livre (relógio corrido)</option><option value="pomo">Pomodoro (bloco + pausa)</option></select></div>
+              <div><label for="aj-f-aoAbrir" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ao abrir a plataforma · qual tela aparece primeiro</label><select id="aj-f-aoAbrir" data-k="aoAbrir" value="{{ orient.aoAbrir }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="foco">Mostrar foco do dia</option><option value="inicio">Ir para o Início</option><option value="ciclo">Abrir o Ciclo</option></select></div>
             </div>
             <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:14px;line-height:1.5;">O comportamento ao registrar (abrir registro ao parar, marcar bloco concluído, criar revisão automática) fica logo abaixo, no card <b style="color:var(--text2);">Ajustes de foco</b>.</div>
           </div>
@@ -5832,12 +5834,15 @@ class Component extends DCLogic {
       orient:{
         nivel:'intermediario', tempoDia:'180', turno:'noite', energia:'normal', dias:'seg,ter,qua,qui,sex,sab', energiaPlano:'normal',
         cobranca:'equilibrado', estrategia:'ciclo', banca:'cebraspe', linguagem:'professor', focoEstrategico:false,
-        blocoPadrao:'50', pausaPadrao:'10', modoPadrao:'livre', aoAbrir:'foco',
-        telaEscura:true, abrirRegistro:true, marcarConcluido:true, perguntarQuestoes:true, criarRevisoes:true,
-        alRev:true, alAnki:true, alAcerto:true, alErros:true, alMeta:true, alProva:true, alSim:true, alDisc:true,
+        blocoPadrao:'50', modoPadrao:'livre', aoAbrir:'foco',
+        /* SAÍRAM daqui, na recriação dos Ajustes: telaEscura, abrirRegistro, marcarConcluido,
+           perguntarQuestoes, criarRevisoes, periodo, formatoConselho, fechamento, ritual e o
+           conjunto alRev/alAnki/alAcerto/alErros/alMeta/alProva/alSim/alDisc. Nenhum deles era
+           lido em lugar NENHUM do arquivo nem aparecia na tela — eram só peso no estado que
+           subia para a nuvem a cada sync. Os que a tela realmente usa vivem em `prefs`
+           (autoRegistro/autoConcluir/autoRevisao e os alertas). */
         pEdital:8, pDesemp:9, pRevVenc:10, pIncid:8, pProva:8, pTempo:7, pErros:9,
         metaMin:'60', metaIdeal:'180', metaForte:'300', retaFinalCom:'30', ativarReta:true, reduzirTeoria:true,
-        periodo:'semanal', formatoConselho:'objetivo', fechamento:'plano', ritual:'resumo',
         ankiRetMin:'85', ankiRetMax:'90', ankiAlerta:'80', ankiMaxRev:'350', ankiNovos:'25'
       }, orientFlash:false,
       notifOpen:false, userMenuOpen:false,
@@ -6907,9 +6912,32 @@ class Component extends DCLogic {
         d:this._hoje(), pf:s.pomoFocus, pb:s.pomoBreak }));
     }catch(_){}
   }
+  /* Ajustes que passam a VALER: "modo padrão", "bloco padrão" e "pausa padrão" existiam
+     na tela de Ajustes desde sempre e não eram lidos por ninguém — o cronômetro nascia
+     livre, 25/5, contrariando o que estava escrito ali. Agora o padrão é aplicado no boot
+     (sem cronômetro de hoje para restaurar; um cronômetro em curso manda mais que a
+     preferência, senão a restauração viraria uma reinicialização). */
+  _aplicaPadraoCronometro(){
+    try{
+      if(localStorage.getItem('ct_timer')) return;                 // há cronômetro de hoje
+      const O=this.state.orient||{};
+      const patch={};
+      // 'pomodoro'/'imersao' eram rótulos do select antigo que o cronômetro nunca conheceu
+      const mo=String(O.modoPadrao||'').trim().replace('pomodoro','pomo');
+      if(mo==='pomo'||mo==='livre') patch.timerMode=mo;
+      // o ritmo do cronômetro é UM só: prefs.focoBloco/focoPausa, o mesmo par que vira o
+      // chip personalizado na barra. (orient.blocoPadrao é outra coisa — o tamanho do
+      // BLOCO DO CICLO gerado, usado em _planoDoDia; não confundir os dois.)
+      const P=this.state.prefs||{};
+      const f=parseInt(P.focoBloco,10), b=parseInt(P.focoPausa,10);
+      if(f>0) patch.pomoFocus=Math.min(180,f);
+      if(b>0) patch.pomoBreak=Math.min(60,b);
+      if(Object.keys(patch).length) this.setState(patch);
+    }catch(_){}
+  }
   _restoreTimer(){
-    try{ const raw=localStorage.getItem('ct_timer'); if(!raw) return; const t=JSON.parse(raw); if(!t) return;
-      if(t.d && t.d!==this._hoje()){ localStorage.removeItem('ct_timer'); return; }   // cronômetro de OUTRO dia não vira "tempo hoje"
+    try{ const raw=localStorage.getItem('ct_timer'); if(!raw){ this._aplicaPadraoCronometro(); return; } const t=JSON.parse(raw); if(!t){ this._aplicaPadraoCronometro(); return; }
+      if(t.d && t.d!==this._hoje()){ localStorage.removeItem('ct_timer'); this._aplicaPadraoCronometro(); return; }   // cronômetro de OUTRO dia não vira "tempo hoje"
       const patch={ timerSeconds:+t.sec||0, studiedSeconds:+t.studied||0, timerRunning:false };
       if(t.mode) patch.timerMode=t.mode;
       if(t.phase) patch.pomoPhase=t.phase;
@@ -12824,12 +12852,34 @@ class Component extends DCLogic {
         const ganho80=liq==null?Math.round(+d.questoes*0.4):Math.max(0,Math.round(+d.questoes*Math.max(0,80-liq)/100));
         return {disc:d.disc, short:(d.disc||'').replace('Direito ',''), color:d.color||'#0f7a57', questoes:String(d.questoes), liqStr:liq==null?'sem dados':liq+'%', pts, ptsStr:liq==null?('até ~'+pts+'q'):('~'+pts+'q'), ganhoStr:ganho80>0?('+'+ganho80+'q se chegar a 80%'):'mantenha o nível', semDados:liq==null}; })
       .sort((a,b)=>{ if(a.semDados!==b.semDados) return a.semDados?1:-1; return b.pts-a.pts; });   // medido primeiro; "sem dados" vai pro fim
+    /* FOCO ESTRATÉGICO — a caixa dos Ajustes ("priorizar tarefas com maior peso, urgência,
+       dificuldade e proximidade da prova") era pura decoração: `orient.focoEstrategico`
+       não era lido em lugar NENHUM do arquivo. Agora ela faz o que promete, com os dados
+       que já existem: PESO da disciplina no edital, DIFICULDADE (a lacuna de domínio, já
+       embutida em `pts`) e PROXIMIDADE da prova (quanto menos dias, mais o ranking pesa
+       contra o resto do dia). Desligada, o ranking continua exatamente como era. */
+    const _focoEstrat = !!(_orientCfg && _orientCfg.focoEstrategico);
+    if(_focoEstrat){
+      const _pesoDe=(disc)=>{ const d=(this.state.edital||[]).find(x=>x.disc===disc);
+        const p=d?parseFloat(d.pesoVal!=null?d.pesoVal:d.peso):NaN; return (isFinite(p)&&p>0)?p:1; };
+      const _maxPeso=Math.max(1,...(this.state.edital||[]).map(d=>{ const p=parseFloat(d.pesoVal!=null?d.pesoVal:d.peso); return (isFinite(p)&&p>0)?p:1; }));
+      focoRende.forEach(f=>{ f.peso=_pesoDe(f.disc); f.pesoRel=f.peso/_maxPeso;
+        f.ptsEstrat=f.pts*(0.6+0.8*f.pesoRel); });
+      focoRende.sort((a,b)=>{ if(a.semDados!==b.semDados) return a.semDados?1:-1; return (b.ptsEstrat||0)-(a.ptsEstrat||0); });
+    }
     const focoRendeTop=focoRende[0]||null;
     const hasFocoRende=focoRende.length>0;
     const _focoCands=[];
     if(revPend>0) _focoCands.push({s:(parseInt(_orientCfg.pRevVenc,10)||10)+(revOverdue.length?3:0), t:(revOverdue.length?'as revisões vencidas':'as revisões de hoje'), v:'revisoes', btn:'Revisar agora'});
     if(_retaOnNow) _focoCands.push({s:(parseInt(_orientCfg.pProva,10)||8)+4, t:'simulados e revisão da reta final', v:'reta-final', btn:'Abrir reta final'});
-    if(focoRendeTop && focoRendeTop.pts>0 && !focoRendeTop.semDados) _focoCands.push({s:(parseInt(_orientCfg.pIncid,10)||8), t:focoRendeTop.short+' — pode render '+focoRendeTop.ptsStr+' a mais na prova', v:'ciclo', btn:'Ver ciclo'});
+    if(focoRendeTop && focoRendeTop.pts>0 && !focoRendeTop.semDados){
+      // com foco estratégico ligado, a proximidade da prova empurra o "onde rende mais"
+      // para cima das outras sugestões do dia (é a metade "urgência" da promessa da caixa)
+      let _sIncid=(parseInt(_orientCfg.pIncid,10)||8);
+      if(_focoEstrat){ const _d=+_diasProvaN;
+        _sIncid += (isFinite(_d) && _d>0) ? (_d<=30?6 : _d<=90?4 : 2) : 2;
+        _sIncid += Math.round(2*(focoRendeTop.pesoRel||0)); }
+      _focoCands.push({s:_sIncid, t:focoRendeTop.short+' — pode render '+focoRendeTop.ptsStr+' a mais na prova', v:'ciclo', btn:'Ver ciclo'}); }
     _focoCands.push({s:(parseInt(_orientCfg.pEdital,10)||8), t: nextAction?('o bloco de '+String(nextAction.disc||'estudo').replace('Direito ','')):'o próximo bloco do edital', v:'ciclo', btn:'Ver ciclo'});
     // sliders de prioridade que faltavam entrar no cálculo: desempenho, tempo sem estudar, erros
     const _weakD=[...B.discList].filter(d=>d.q>=5).sort((a,b)=>a.liqPct-b.liqPct)[0];
@@ -13108,7 +13158,12 @@ class Component extends DCLogic {
     const _diasSim=_lastSim?Math.floor((_naNow-_lastSim)/_naDay):null;
     if(_alerts.alSimulados!==false && B.totalMin>0 && ((_lastSim===0 && B.diasEstudados>=7) || (_diasSim!=null && _diasSim>=7))){ _liveNotifs.push({id:'simulado', tipo:'simulado', icon:'📝', titulo: _lastSim? ('Faz '+_diasSim+' dias sem simulado') : 'Hora do seu primeiro simulado', texto:'Um simulado cronometrado mede o que a teoria sozinha não mostra.', tempo:'hoje', view:'simulados'}); }
     // aviso de fim de dia: ofensiva em risco (após as 20h, sem estudo hoje, com sequência a proteger)
-    if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=20 && !(this.state.sessions||[]).some(s=>s.date===this._hoje())){   // sessão só de questões (0 min) TAMBÉM protege o dia
+    /* MELHOR TURNO passa a valer: era um trio de chips que ninguém lia. O aviso de
+       ofensiva em risco tocava sempre às 20h — tarde demais para quem estuda de manhã e
+       já perdeu o dia. Agora a hora do aviso segue o turno declarado. */
+    const _turno=String((_orientCfg&&_orientCfg.turno)||'noite');
+    const _horaAviso = _turno==='manha' ? 14 : _turno==='tarde' ? 18 : 20;
+    if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=_horaAviso && !(this.state.sessions||[]).some(s=>s.date===this._hoje())){   // sessão só de questões (0 min) TAMBÉM protege o dia
       const _escN=this.state.escudos||0;
       _liveNotifs.push({id:'ofensiva-'+this._hoje(), tipo:'meta', icon:'🔥', titulo:'Sua ofensiva de '+B.streak+' dia'+(B.streak>1?'s':'')+' está em risco',
         texto:_escN>0?('Estude hoje — ou um dos seus '+_escN+' escudo(s) 🛡️ será usado automaticamente amanhã.'):'Estude nem que sejam 15 minutos para não perder a sequência (você não tem escudos).', tempo:'hoje', view:'inicio'});
@@ -13236,7 +13291,23 @@ class Component extends DCLogic {
     const homeMetaHojeAlvoN=_metaIdealMin;
     const homeMetaHojePct=Math.max(0,Math.min(100,Math.round(homeHojeMinN/Math.max(1,homeMetaHojeAlvoN)*100)));
     const _mhFalta=Math.max(0,homeMetaHojeAlvoN-homeHojeMinN);
-    const homeMetaHojeSub=_mhFalta>0?('faltam '+(_mhFalta>=60?(Math.floor(_mhFalta/60)+'h'+String(_mhFalta%60).padStart(2,'0')):(_mhFalta+' min'))+' para a meta'):'meta de hoje batida ✓';
+    /* A régua de metas dos Ajustes tem TRÊS faixas — mínima, ideal e dia forte —, mas só a
+       ideal era lida: "metaMin" aparecia num aviso e "metaForte" não era lida em lugar
+       nenhum. Agora o cartão do dia diz em qual faixa o dia caiu, que é o que faz a régua
+       valer alguma coisa: um dia de 70 min com mínima de 60 não é "meta não batida", é
+       piso cumprido; e passar da forte tem nome. */
+    const _metaMinMin  = Math.max(0, parseInt(_orientCfg.metaMin,10)||0);
+    const _metaForteMin= Math.max(0, parseInt(_orientCfg.metaForte,10)||0);
+    const homeMetaFaixa = homeHojeMinN<=0 ? ''
+      : (_metaForteMin>0 && homeHojeMinN>=_metaForteMin) ? 'dia forte'
+      : (homeHojeMinN>=homeMetaHojeAlvoN) ? 'meta do dia'
+      : (_metaMinMin>0 && homeHojeMinN>=_metaMinMin) ? 'mínima cumprida' : '';
+    const homeMetaHojeSub=_mhFalta>0
+      ? ((homeMetaFaixa==='mínima cumprida' ? 'mínima cumprida · ' : '')+'faltam '+(_mhFalta>=60?(Math.floor(_mhFalta/60)+'h'+String(_mhFalta%60).padStart(2,'0')):(_mhFalta+' min'))+' para a meta')
+      : (_metaForteMin>0
+          ? (homeHojeMinN>=_metaForteMin ? 'dia forte ✓ (passou de '+Math.round(_metaForteMin/60)+'h)'
+             : 'meta de hoje batida ✓ · dia forte em '+Math.max(0,_metaForteMin-homeHojeMinN)+' min')
+          : 'meta de hoje batida ✓');
     const homeRoda=(()=>{ const mf=this.state.manualFixed||[]; if(!mf.length) return null;
       const by={}; let tot=0;
       mf.forEach(f=>{ const m=+f.min||0; if(m<=0) return; const key=f.discEdital||(f.kind==='Revisão'?'Revisões':(f.kind==='Questões'?'Questões':'Outros')); tot+=m; by[key]=(by[key]||0)+m; });
@@ -15231,9 +15302,11 @@ class Component extends DCLogic {
       // ajustes: alertas
       alertRows:[
         {k:'notifRevisao', label:'Revisões do dia', on:pf0.notifRevisao},
-        {k:'alAnki', label:'Queda de retenção no Anki', on:pf0.alAnki},
+        /* SAÍRAM daqui "Queda de retenção no Anki" e "Erros pendentes acumulando": os dois
+           eram interruptores sem motor nenhum atrás (nenhum aviso era gerado por eles) e
+           apontavam para telas que não existem mais — a de Anki e a de caderno de erros.
+           Interruptor que não liga nada é pior que ausência: ensina a não confiar na tela. */
         {k:'alPrecisao', label:'Queda de precisão', on:pf0.alPrecisao},
-        {k:'alErros', label:'Erros pendentes acumulando', on:pf0.alErros},
         {k:'alSemanal', label:'Meta da semana em risco', on:pf0.alSemanal},
         {k:'alProva', label:'Alerta de prova próxima', on:pf0.alProva},
         {k:'alSimulados', label:'Lembrete de simulado', on:pf0.alSimulados},
@@ -15295,7 +15368,7 @@ class Component extends DCLogic {
       setOrient:this.setOrient, toggleOrient:this.toggleOrient, setOrientSlider:this.setOrientSlider, setOrientRadio:this.setOrientRadio,
       saveOrient:this.saveOrient, orientSaveLabel:this.state.orientFlash?'Aplicado ✓':'Salvar e aplicar',
       orHero:{nivel:_nivelL, tempo:O.tempoDia+' min', cobranca:_cobrancaL, estrategia:_estrategiaL, banca:(O.banca||"cebraspe").toUpperCase(), reta:_retaL},
-      orTempoHHMM:'= '+_hhmm(O.tempoDia), orBlocoHHMM:'= '+_hhmm(O.blocoPadrao), orPausaHHMM:'= '+_hhmm(O.pausaPadrao),
+      orTempoHHMM:'= '+_hhmm(O.tempoDia), orBlocoHHMM:'= '+_hhmm(O.blocoPadrao),
       orEnBaixa:_energiaCard('baixa'), orEnNormal:_energiaCard('normal'), orEnAlta:_energiaCard('alta'),
       orEnBaixaOn:O.energiaPlano==='baixa', orEnNormalOn:O.energiaPlano==='normal', orEnAltaOn:O.energiaPlano==='alta',
       orSliders:_sliderRows, orConselhos:_conselhos,
