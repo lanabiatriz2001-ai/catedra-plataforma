@@ -1733,8 +1733,8 @@ window.ctPdfLib = (function(){
 
         <!-- filtro: um jeito de OLHAR a semana — tipo, DISCIPLINA (só o que está no edital) e ASSUNTO (o que está dentro dela) -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <sc-for list="{{ cicloFqTipos }}" as="t" hint-placeholder-count="5"><button data-v="{{ t.v }}" onclick="{{ cicloFqTipo }}" style="{{ t.style }}">{{ t.icon }} {{ t.v }}</button></sc-for>
-          <select onchange="{{ cicloFqDisc }}" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:var(--fs-xs);color:var(--text2);font-family:inherit;cursor:pointer;max-width:230px;">
+          <sc-for list="{{ cicloFqTipos }}" as="t" hint-placeholder-count="5"><button class="ct-alvo" data-v="{{ t.v }}" onclick="{{ cicloFqTipo }}" style="{{ t.style }}">{{ t.icon }} {{ t.v }}</button></sc-for>
+          <select onchange="{{ cicloFqDisc }}" class="ct-alvo" aria-label="Filtrar por disciplina do edital" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:var(--fs-xs);color:var(--text2);font-family:inherit;cursor:pointer;max-width:230px;">
             <option value="" selected="{{ cicloFqDiscVazio }}">todas as disciplinas do edital</option>
             <sc-for list="{{ cicloFqDiscOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
           </select>
