@@ -299,6 +299,12 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
     /// Encaixa uma tela nativa na área de conteúdo, do tamanho dela.
     private func encaixar(_ host: UIViewController) -> UIViewController {
+        // MODO ESCURO DO EMBED: `.preferredColorScheme` é preferência de CENA e não chega a
+        // um UIHostingController encaixado à mão. Sem isto o LEGIS/JURIS pintava as
+        // superfícies escuras (tokens do tema do Cátedra) e escrevia com as cores
+        // semânticas do modo CLARO — texto cinza-escuro sobre fundo escuro. Forçar o
+        // estilo na view resolve para o SwiftUI e para os controles UIKit de uma vez.
+        host.overrideUserInterfaceStyle = ThemeState.t.isDark ? .dark : .light
         addChild(host)
         host.view.translatesAutoresizingMaskIntoConstraints = false
         areaConteudo.addSubview(host.view)
@@ -832,6 +838,7 @@ struct CatedraLegisRoot: View {
         ContentView()
             .environmentObject(store)
             .environmentObject(StudyClock.shared)
+            .environment(\.colorScheme, ThemeState.t.isDark ? .dark : .light)
             .tint(ThemeState.t.accent)
             .task { Notifier.requestPermission() }
     }
@@ -851,6 +858,7 @@ struct CatedraJurisRoot: View {
             .environment(store)
             .environment(updater)
             .preferredColorScheme(appearance.colorScheme)
+            .environment(\.colorScheme, ThemeState.t.isDark ? .dark : .light)
             .tint(ThemeState.t.accent)
             .task {
                 // load() só na 1ª vez: reconstruir por troca de tema não recarrega o acervo.

@@ -20,7 +20,9 @@ const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'applica
   '.css': 'text/css',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
-const CHROMES = [process.env.CT_CHROME, '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable',
+const CHROMES = [process.env.CT_CHROME,
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',   // Mac da Lana
+  '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable',
   '/usr/bin/chromium-browser', '/usr/bin/chromium'].filter(Boolean);
 const exe = CHROMES.find(p => { try { return fs.existsSync(p); } catch (_) { return false; } });
 if (!exe) { console.error('Nenhum Chrome/Chromium encontrado. Defina CT_CHROME=/caminho/do/chrome'); process.exit(2); }
@@ -1013,6 +1015,52 @@ ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
   for (const [k, v] of Object.entries(noBuild)) ok(v, 'TASK9 ' + k);
 }
 
+
+/* ============= TRAVA DE BUILD CRUZADO =============
+   Dois builds do MESMO alvo neste repositório se atropelam: já saiu .app sem a fatia
+   Intel e .ipa montado no meio de dois processos. scripts/guarda-build.sh recusa o
+   segundo; este teste prova a recusa, a saída de emergência e a limpeza da trava. */
+{
+  const { execFileSync } = await import('child_process');
+  const guarda = path.join(RAIZ, 'scripts', 'guarda-build.sh');
+  ok(fs.existsSync(guarda), 'TRAVA scripts/guarda-build.sh existe');
+  for (const script of ['mac/build-app.sh', 'ios/build-ipad.sh']) {
+    const txt = fs.readFileSync(path.join(RAIZ, script), 'utf8');
+    ok(/ct_travar_build/.test(txt) && /guarda-build\.sh/.test(txt), 'TRAVA ' + script + ' chama a guarda');
+  }
+  const falso = path.join(RAIZ, 'tests', '.trava-falsa.sh');
+  fs.writeFileSync(falso, ['#!/usr/bin/env bash', 'set -euo pipefail',
+    'ROOT="' + RAIZ + '"', 'source "$ROOT/scripts/guarda-build.sh"',
+    'ct_travar_build provasuite "$ROOT"',
+    'echo ENTREI', 'sleep "${1:-1}"'].join('\n'));
+  const rodar = (args, env) => {
+    try { return { code: 0, saida: String(execFileSync('bash', [falso, ...args],
+      { env: { ...process.env, ...(env || {}) }, stdio: 'pipe' })) }; }
+    catch (e) { return { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') }; }
+  };
+  const { spawn } = await import('child_process');
+  const dono = spawn('bash', [falso, '4'], { stdio: 'ignore' });
+  await new Promise(r => setTimeout(r, 900));
+  const segundo = rodar(['0']);
+  ok(segundo.code === 3, 'TRAVA o segundo build do mesmo alvo é RECUSADO (exit ' + segundo.code + ')');
+  ok(/BUILD RECUSADO/.test(segundo.saida), 'TRAVA a recusa diz o que houve');
+  ok(/CATEDRA_IGNORAR_TRAVA/.test(segundo.saida), 'TRAVA a recusa mostra a saída de emergência');
+  // O falso positivo que recusou um build REAL: a varredura por `pgrep -f` casava com
+  // qualquer processo cuja linha de comando citasse o script — inclusive o vigia do log.
+  ok(!/pgrep/.test(fs.readFileSync(guarda, 'utf8').replace(/^\s*#.*$/gm, '')),
+    'TRAVA a guarda não recusa por linha de comando de terceiro (sem pgrep)');
+  const forcado = rodar(['0'], { CATEDRA_IGNORAR_TRAVA: '1' });
+  ok(forcado.code === 0, 'TRAVA CATEDRA_IGNORAR_TRAVA=1 ainda deixa passar');
+  dono.kill('SIGKILL');
+  await new Promise(r => setTimeout(r, 400));
+  // trava órfã (build morto sem limpar) não pode bloquear o próximo build para sempre
+  const depois = rodar(['0']);
+  ok(depois.code === 0, 'TRAVA trava órfã de build morto é assumida, não trava para sempre');
+  ok(!fs.existsSync(path.join(RAIZ, '.build-lock-provasuite')), 'TRAVA a trava some quando o build termina');
+  try { fs.unlinkSync(falso); } catch (_) {}
+  try { fs.rmSync(path.join(RAIZ, '.build-lock-provasuite'), { recursive: true, force: true }); } catch (_) {}
+}
+
 /* ============= D1 — TEMA ÚNICO NOS SATÉLITES ============= */
 // Todo satélite carrega a mesma ponte
 const d1arqs = await page.evaluate(async (base) => {
@@ -1908,26 +1956,47 @@ for (const pg of ['ritos-web.html', 'pecas-web.html']) {
   else for (const [k, v] of Object.entries(d7)) ok(v, 'D7 ' + pg + ' ' + k);
 }
 
-// D8 — celular: pílula ativa visível já no load, alvos de 44px e as ações no "⋯"
+// D8/SELETOR — celular: o rito se escolhe por BUSCA, não arrastando 27 pílulas.
+// A fileira que existia aqui (scroll horizontal com máscara de fade) era o jeito mais
+// longo de chegar num rito; o teste antigo media a rolagem dela e morreu com ela.
 await page.setViewportSize({ width: 390, height: 844 });
 await page.goto(URL0 + '/ritos-web.html?rito=' + encodeURIComponent('Tributário — execução fiscal'));
 await page.waitForTimeout(500);
 const d8rp = await page.evaluate(`(() => {
   const w = ms => new Promise(r => setTimeout(r, ms));
-  const mats = document.getElementById('mats'), on = mats.querySelector('.pill.on');
-  const rm = mats.getBoundingClientRect(), rp = on ? on.getBoundingClientRect() : null;
+  const bt = document.getElementById('btRito');
   const r = {
-    pilulaAtivaInteiraNoLoad: !!rp && rp.left >= rm.left - 1 && rp.right <= rm.right + 1,
-    temScrollSnap: /x/.test(getComputedStyle(mats).scrollSnapType || ''),
-    // sem o scroll da fileira a pílula escolhida nasceria fora da tela
-    fileiraRolou: mats.scrollLeft > 0,
-    alvosDe44: [...document.querySelectorAll('.pill, header button')]
+    botaoDizORitoAtual: (document.getElementById('btRitoNome').textContent || '').includes('execução fiscal'),
+    botaoInteiroNaTela: bt.getBoundingClientRect().right <= innerWidth + 1,
+    semFileiraDePilulas: document.querySelectorAll('#mats .pill').length === 0,
+    alvosDe44: [...document.querySelectorAll('#btRito, header button')]
       .filter(b => b.getClientRects().length)
       .every(b => b.getBoundingClientRect().height >= 44),
     maisVisivel: document.getElementById('bMais').getClientRects().length > 0,
     acoesRecolhidas: document.getElementById('bNotas').getClientRects().length === 0,
   };
   return new Promise(async ok2 => {
+    bt.click(); await w(150);
+    r.painelAbre = document.getElementById('painelRito').classList.contains('aberto');
+    r.buscaComFoco = document.activeElement === document.getElementById('buscaRito');
+    r.listaAgrupadaPorRamo = document.querySelectorAll('#listaRito .grupo').length > 3;
+    r.listaTemTodosOsRitos = document.querySelectorAll('#listaRito .op').length >= 20;
+    // busca sem acento e por pedaço: "exec fiscal" tem de achar "Tributário — execução fiscal"
+    const busca = document.getElementById('buscaRito');
+    busca.value = 'exec fiscal'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(150);
+    const achados = [...document.querySelectorAll('#listaRito .op')].map(o => o.dataset.k);
+    r.buscaSemAcentoEPorPedaco = achados.length === 1 && /execução fiscal/.test(achados[0]);
+    // Enter escolhe o primeiro achado e o painel fecha
+    busca.value = 'improb'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(150);
+    busca.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(400);
+    r.enterEscolhe = (document.getElementById('btRitoNome').textContent || '').includes('improbidade');
+    r.painelFecha = !document.getElementById('painelRito').classList.contains('aberto');
+    r.trocouORito = /improbidade/i.test(document.querySelector('.cab h2').textContent || '');
+    r.escNaoDeixaAberto = true;
+    bt.click(); await w(150);
+    document.getElementById('buscaRito').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await w(150);
+    r.escNaoDeixaAberto = !document.getElementById('painelRito').classList.contains('aberto');
     document.getElementById('bMais').click(); await w(120);
     r.menuAbre = document.getElementById('bNotas').getClientRects().length > 0;
     r.avisaEstado = document.getElementById('bMais').getAttribute('aria-expanded') === 'true';
@@ -1936,7 +2005,7 @@ const d8rp = await page.evaluate(`(() => {
     ok2(r);
   });
 })()`);
-for (const [k, v] of Object.entries(d8rp)) ok(v, 'D8 ' + k);
+for (const [k, v] of Object.entries(d8rp)) ok(v, 'D8/SELETOR ' + k);
 
 await page.goto(URL0 + '/pecas-web.html');
 await page.waitForTimeout(400);
@@ -3052,6 +3121,214 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
   ok(mudos.length === 0, 'D15 toda caixa visível aceita digitação e sobrevive ao re-render ('
     + (mudos.slice(0, 5).join(' | ') || 'todas vivas') + ')');
   await d15Ctx.close();
+}
+
+/* ===== D16: CHAVE DE OBJETO CONDICIONAL USADA FORA DELE ==========================
+   O D14 só pega variável que não existe em lugar NENHUM. Este pega a irmã dela, que é
+   pior de achar: a chave EXISTE — mas dentro de um objeto que só é mesclado quando uma
+   view específica monta. Foi o que aconteceu com `oralAbaLeiRot`, ancorada no _sjVM()
+   (o helper do simulado) e usada na Prova oral: o dc-runtime resolve ausente como string
+   vazia, então a aba da oral apareceu com o RÓTULO VAZIO e nada reclamou.
+   A regra: chave que só nasce em `...(view==='X' ? this._hVM() : {})` só pode ser usada
+   dentro do bloco <sc-if value="{{ isX }}"> daquela view. */
+{
+  const src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  const viva = src.split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+  const tpl = src.replace(/<!--[\s\S]*?-->/g, '').replace(/<script[\s\S]*?<\/script>/g, '');
+
+  // 1) quem são os objetos condicionais: ...(this.state.view==='X' ? this._hVM() : {})
+  const cond = [...viva.matchAll(/\.\.\.\(\s*this\.state\.view\s*===\s*'([a-z0-9_-]+)'\s*\?\s*this\.(_[A-Za-z0-9_$]+)\(\)\s*:\s*\{\s*\}\s*\)/gi)]
+    .map(m => ({ view: m[1], helper: m[2] }));
+  ok(cond.length > 0, 'D16 achou os objetos mesclados por view (' + cond.map(c => c.helper).join(', ') + ')');
+
+  // corpo do helper, por contagem BALANCEADA de chaves (regex ingênua já engoliu bloco
+  // inteiro neste repositório — aqui o preço seria um teste que não vê nada)
+  const corpo = (nome) => {
+    const i = viva.indexOf(nome + '(){');
+    if (i < 0) return null;
+    let j = viva.indexOf('{', i + nome.length), d = 0;
+    for (let k = j; k < viva.length; k++) {
+      if (viva[k] === '{') d++;
+      else if (viva[k] === '}') { d--; if (d === 0) return { ini: j, fim: k, txt: viva.slice(j, k + 1) }; }
+    }
+    return null;
+  };
+  const faixas = [];
+  for (const c of cond) {
+    const b = corpo(c.helper);
+    ok(!!b, 'D16 corpo de ' + c.helper + ' localizado');
+    if (b) faixas.push({ ...c, ...b });
+  }
+
+  // 2) regiões do template: cada view tem seu <sc-if value="{{ isX }}"> de topo
+  const regiao = (isVar) => {
+    const abre = tpl.indexOf('<sc-if value="{{ ' + isVar + ' }}"');
+    if (abre < 0) return null;
+    let d = 0, k = abre;
+    while (k < tpl.length) {
+      if (tpl.startsWith('<sc-if', k)) { d++; k += 6; continue; }
+      if (tpl.startsWith('</sc-if>', k)) { d--; k += 8; if (d === 0) return { ini: abre, fim: k }; continue; }
+      k++;
+    }
+    return null;
+  };
+  const regioes = {};
+  for (const c of cond) {
+    // o nome da guarda NÃO é derivável do id da view (a de 'simulados' se chama isSim):
+    // quem diz é o próprio render, em `isX:this.state.view==='simulados'`.
+    const g = [...viva.matchAll(new RegExp("(is[A-Za-z0-9_$]*)\\s*:\\s*this\\.state\\.view\\s*===\\s*'" + c.view + "'", 'g'))]
+      .map(m => m[1]);
+    const achado = g.map(v => ({ v, r: regiao(v) })).find(x => x.r);
+    ok(!!achado, 'D16 bloco do template da view ' + c.view + ' localizado (guardas: ' + (g.join(', ') || 'nenhuma') + ')');
+    if (achado) regioes[c.view] = achado.r;
+  }
+
+  // 3) o veredito, isolado numa função pura: recebe onde a chave NASCE e onde é USADA,
+  //    e devolve por que ela é forasteira (ou null). Ser pura é o que permite provar,
+  //    logo abaixo, que a varredura de fato pega o defeito.
+  const veredito = (nome, sitios, usos) => {
+    if (!sitios.length) return null;                    // ausente de tudo é assunto do D14
+    const donos = new Set();
+    for (const s of sitios) {
+      const f = faixas.find(x => s > x.ini && s < x.fim);
+      if (!f) return null;                              // nasce fora do condicional: ok
+      donos.add(f.view);
+    }
+    if (!donos.size) return null;
+    for (const u of usos) {
+      const dentro = [...donos].some(v => regioes[v] && u > regioes[v].ini && u < regioes[v].fim);
+      if (!dentro) return nome + ' (nasce em ' + [...donos].join('/') + ', usada fora dessa view)';
+    }
+    return null;
+  };
+
+  const semFor = tpl.replace(/<sc-for[\s\S]*?<\/sc-for>/g, m => ' '.repeat(m.length)); // mantém os índices
+  const usadas = [...new Set([...semFor.matchAll(/\{\{\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\}\}/g)].map(m => m[1]))];
+  const forasteiras = [];
+  for (const nome of usadas) {
+    const sitios = [...viva.matchAll(new RegExp('(^|[\\s,{])' + nome + '\\s*[:,]', 'g'))].map(m => m.index);
+    const usos = [...semFor.matchAll(new RegExp('\\{\\{\\s*' + nome + '\\s*\\}\\}', 'g'))].map(m => m.index);
+    const v = veredito(nome, sitios, usos);
+    if (v) forasteiras.push(v);
+  }
+  ok(forasteiras.length === 0, 'D16 nenhuma chave de objeto condicional usada fora da sua view ('
+    + (forasteiras.slice(0, 6).join(' | ') || 'nenhuma') + ')');
+
+  // 4) prova de que a varredura pega o defeito, com o caso REAL: uma chave que nasce
+  //    dentro do _sjVM (simulado) e é usada dentro do bloco da Prova oral.
+  const fSj = faixas.find(f => f.helper === '_sjVM');
+  if (fSj && regioes.oral) {
+    ok(!!veredito('chaveDoSimulado', [fSj.ini + 5], [regioes.oral.ini + 10]),
+      'D16 a varredura acusa chave do _sjVM usada na aba da oral (o defeito que a originou)');
+    ok(!!regioes.simulados && !veredito('chaveDoSimulado', [fSj.ini + 5], [regioes.simulados.ini + 10]),
+      'D16 e NÃO acusa a mesma chave usada dentro da própria view');
+  } else ok(false, 'D16 não consegui montar a prova do defeito (_sjVM/região da oral)');
+}
+
+
+
+/* ===== D17 · TESTES DE TELA (LAYOUT, NÃO DADO) =====
+   Ajustes, Ciclo, Redação e o registro de sessão, em desktop e celular. O que se mede
+   aqui é a TELA, não o conteúdo: rótulo que não aparece (foi assim que a aba da Prova
+   oral ficou muda), bloco que estoura a largura, página que passa a rolar de lado,
+   alvo de toque pequeno demais no celular e sobra de render ("undefined", "NaN").
+   Teste verde de dado nunca provou layout — este existe para fechar essa brecha. */
+{
+const AUDITOR = () => {
+    const vis = e => { const r = e.getBoundingClientRect(); const s = getComputedStyle(e);
+      return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.opacity !== '0'; };
+    const nome = e => (e.textContent || '').trim() || e.getAttribute('aria-label') || e.getAttribute('title')
+      || (e.querySelector('svg,img') ? '(ícone)' : '');
+    // o menu do celular fica FORA da tela quando fechado, e texto dentro de card com
+    // overflow:hidden é reticência, não estouro — nem um nem outro é defeito de layout
+    const foraDeTela = e => !!e.closest('aside') || !!e.closest('[aria-hidden="true"]');
+    const recortado = e => { for (let p = e.parentElement; p && p !== document.body; p = p.parentElement)
+      if (getComputedStyle(p).overflow !== 'visible') return true; return false; };
+    // alvo de toque: o desenho pode ser pequeno se o ct-alvo cresce a caixa por ::after
+    const alvo = e => { const r = e.getBoundingClientRect(); let h = r.height, w = r.width;
+      try { const a = getComputedStyle(e, '::after');
+        if (a && a.content !== 'none' && a.position === 'absolute') {
+          h = Math.max(h, parseFloat(a.height) || 0); w = Math.max(w, parseFloat(a.width) || 0); } } catch (_) {}
+      return { w, h }; };
+    const escopo = document.querySelector('[role="dialog"]') || document.body;
+    const r = { mudos: [], estouram: [], lixo: [], miudos: [] };
+    for (const b of escopo.querySelectorAll('button, [role="tab"], a[href]')) {
+      if (!vis(b) || foraDeTela(b)) continue;
+      if (!nome(b)) r.mudos.push(b.tagName + '.' + String(b.className || '').slice(0, 30)
+        + '@' + Math.round(b.getBoundingClientRect().top));
+      if (innerWidth < 500) { const a = alvo(b);
+        if (a.h < 30 || a.w < 30) r.miudos.push((nome(b) || '?').slice(0, 22) + ' '
+          + Math.round(a.w) + '×' + Math.round(a.h)); }
+    }
+    for (const e of escopo.querySelectorAll('*')) {
+      if (!vis(e) || foraDeTela(e) || recortado(e)) continue;
+      const c = e.getBoundingClientRect();
+      if (c.right > innerWidth + 2) r.estouram.push(e.tagName + '.' + String(e.className || '').slice(0, 24)
+        + ' [' + Math.round(c.left) + '→' + Math.round(c.right) + '] "' + (e.textContent || '').trim().slice(0, 24) + '"');
+    }
+    const txt = escopo.innerText || '';
+    for (const m of ['undefined', 'NaN', '[object Object]']) if (txt.includes(m)) r.lixo.push(m);
+    // rótulo vazio: o defeito da aba da oral — a aba existe, a caixa aparece, o texto não
+    r.rotulosVazios = [...escopo.querySelectorAll('[role="tab"], [role="tablist"] button')]
+      .filter(e => vis(e) && !nome(e)).map(e => e.outerHTML.slice(0, 60));
+    r.rolaLado = document.documentElement.scrollWidth > innerWidth + 2;
+    r.vazio = (escopo.innerText || '').trim().length < 40;
+    return r;
+  };
+  const VIEWS=['ajustes','ciclo','redacao','oral'];
+  for (const larg of [1365, 390]) {
+    const ctx = await browser.newContext({ viewport: { width: larg, height: 900 } });
+    await ctx.addInitScript(()=>{try{localStorage.setItem('catedra:auth','1');localStorage.setItem('catedra:onboarded','1');localStorage.setItem('catedra:areaEstudo',JSON.stringify('juridica'));}catch(_){}} );
+    const pg = await ctx.newPage();
+    await pg.goto(URL0+'/Catedra.dc.html'); await pg.waitForTimeout(1800);
+    for (const v of VIEWS) {
+      await pg.evaluate(x=>window.__catedraGoView(x), v); await pg.waitForTimeout(1200);
+      const r = await pg.evaluate(AUDITOR);
+      ok(!r.vazio, `TELA ${v}@${larg} tem conteúdo`);
+      ok(r.mudos.length===0, `TELA ${v}@${larg} sem botão/aba mudo (${r.mudos.slice(0,4).join(' | ')||'ok'})`);
+      ok(!r.rolaLado, `TELA ${v}@${larg} não rola de lado`);
+      ok(r.estouram.length===0, `TELA ${v}@${larg} nada estoura a largura (${r.estouram.slice(0,3).join(' | ')||'ok'})`);
+      ok(r.lixo.length===0, `TELA ${v}@${larg} sem lixo de render (${r.lixo.join(',')||'ok'})`);
+      ok(r.miudos.length===0, `TELA ${v}@${larg} alvo de toque ≥30px (${r.miudos.slice(0,4).join(' | ')||'ok'})`);
+      ok(r.rotulosVazios.length===0, `TELA ${v}@${larg} nenhuma aba com rótulo vazio (${r.rotulosVazios.slice(0,2).join(' | ')||'ok'})`);
+    }
+    // registro de sessão
+    await pg.evaluate(()=>window.__catedraGoView('inicio')); await pg.waitForTimeout(900);
+    const abriu = await pg.evaluate(async ()=>{ const w=ms=>new Promise(r=>setTimeout(r,ms));
+      const b=[...document.querySelectorAll('button')].find(x=>/registrar sess/i.test(x.textContent||''));
+      if(!b) return false; b.click(); await w(700); return !!document.querySelector('[role="dialog"][aria-label="Registrar sessão"]'); });
+    ok(abriu, `SESSAO@${larg} o modal de registro abre`);
+    if (abriu) {
+      const r = await pg.evaluate(AUDITOR);
+      ok(!r.vazio, `SESSAO@${larg} modal com conteúdo`);
+      ok(r.mudos.length===0, `SESSAO@${larg} sem controle mudo (${r.mudos.slice(0,4).join(' | ')||'ok'})`);
+      ok(r.estouram.length===0, `SESSAO@${larg} nada estoura (${r.estouram.slice(0,3).join(' | ')||'ok'})`);
+      ok(r.lixo.length===0, `SESSAO@${larg} sem lixo de render (${r.lixo.join(',')||'ok'})`);
+      const cab = await pg.evaluate(()=>{ const d=document.querySelector('[role="dialog"]'); const c=d.getBoundingClientRect();
+        return { dentro: c.top>=-1 && c.bottom<=innerHeight+2, largura: c.width<=innerWidth+2 }; });
+      ok(cab.dentro && cab.largura, `SESSAO@${larg} o painel cabe na tela`);
+    }
+    await ctx.close();
+  }
+  
+  // prova de que o auditor enxerga: injeta um botão sem rótulo e um bloco largo demais
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1365, height: 900 } });
+    await ctx.addInitScript(()=>{try{localStorage.setItem('catedra:auth','1');localStorage.setItem('catedra:onboarded','1');}catch(_){}});
+    const pg = await ctx.newPage();
+    await pg.goto(URL0+'/Catedra.dc.html'); await pg.waitForTimeout(1500);
+    const r = await pg.evaluate((fn)=>{
+      const m=document.querySelector('main')||document.body;
+      const b=document.createElement('button'); b.textContent=''; b.style.cssText='width:40px;height:40px;';
+      const d=document.createElement('div'); d.textContent='estouro'; d.style.cssText='width:'+(innerWidth+400)+'px;height:20px;';
+      m.appendChild(b); m.appendChild(d);
+      const out=eval('('+fn+')')();
+      b.remove(); d.remove(); return out;
+    }, AUDITOR.toString());
+    ok(r.mudos.length>0, 'TELA o auditor acusa botão sem rótulo quando existe um');
+    ok(r.estouram.length>0, 'TELA o auditor acusa bloco mais largo que a tela');
+    await ctx.close();
+  }
 }
 
 /* ===== TASK 5 · NAVEGAÇÃO POR JORNADA, SEM TROCAR IDS =====

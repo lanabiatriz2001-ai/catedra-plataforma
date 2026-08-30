@@ -1251,6 +1251,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         // AppStore é singleton (dados em ~/Library/Application Support/VadeMecum — compartilhados
         // com o app de leis autônomo). Criado só agora, ao abrir a aba pela 1ª vez.
         let host = NSHostingView(rootView: CatedraLegisRoot(store: AppStore.shared))
+        // MODO ESCURO DO EMBED: `.preferredColorScheme` é preferência de CENA — dentro de um
+        // NSHostingView colado numa janela AppKit ela não chega a lugar nenhum. Era por isso
+        // que, com o Cátedra no escuro, o LEGIS pintava as superfícies escuras (tokens do
+        // tema) mas escrevia com as cores SEMÂNTICAS do modo claro: "Leitura", "Revisão",
+        // `Color.secondary`, o placeholder do checklist e os rótulos do gráfico saíam
+        // cinza-escuro sobre fundo escuro — ilegíveis. Pintar a aparência do host resolve
+        // para o SwiftUI e para os controles AppKit (stepper, campo de texto) de uma vez.
+        host.appearance = NSAppearance(named: ThemeState.t.isDark ? .darkAqua : .aqua)
         host.frame = pageContainer.bounds
         host.autoresizingMask = [.width, .height]
         pageContainer.addSubview(host)
@@ -1300,6 +1308,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let updater = jurisUpdater ?? UpdateService()
         jurisStore = store; jurisUpdater = updater
         let host = NSHostingView(rootView: CatedraJurisRoot(store: store, updater: updater))
+        // MODO ESCURO DO EMBED: `.preferredColorScheme` é preferência de CENA — dentro de um
+        // NSHostingView colado numa janela AppKit ela não chega a lugar nenhum. Era por isso
+        // que, com o Cátedra no escuro, o LEGIS pintava as superfícies escuras (tokens do
+        // tema) mas escrevia com as cores SEMÂNTICAS do modo claro: "Leitura", "Revisão",
+        // `Color.secondary`, o placeholder do checklist e os rótulos do gráfico saíam
+        // cinza-escuro sobre fundo escuro — ilegíveis. Pintar a aparência do host resolve
+        // para o SwiftUI e para os controles AppKit (stepper, campo de texto) de uma vez.
+        host.appearance = NSAppearance(named: ThemeState.t.isDark ? .darkAqua : .aqua)
         host.frame = pageContainer.bounds
         host.autoresizingMask = [.width, .height]
         pageContainer.addSubview(host)
@@ -1961,6 +1977,7 @@ struct CatedraLegisRoot: View {
         ContentView()
             .environmentObject(store)
             .environmentObject(StudyClock.shared)
+            .environment(\.colorScheme, ThemeState.t.isDark ? .dark : .light)
             .tint(ThemeState.t.accent)
             .task { Notifier.requestPermission() }
     }
@@ -1980,6 +1997,7 @@ struct CatedraJurisRoot: View {
             .environment(store)
             .environment(updater)
             .preferredColorScheme(appearance.colorScheme)
+            .environment(\.colorScheme, ThemeState.t.isDark ? .dark : .light)
             .tint(ThemeState.t.accent)
             .task {
                 // load() só na 1ª vez (rebuild por mudança de tema não re-carrega).
