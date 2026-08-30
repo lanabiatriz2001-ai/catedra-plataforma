@@ -17,6 +17,12 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
+
+# Trava de build cruzado: dois builds do MESMO alvo se atropelam (já saiu .app sem a
+# fatia Intel por causa disso). Mac × iPad em paralelo continua liberado.
+# shellcheck source=../scripts/guarda-build.sh
+source "$ROOT/scripts/guarda-build.sh"
+ct_travar_build macos "$ROOT"
 BUILD="$HERE/build"
 NAME="Cátedra"
 EXEC="Catedra"

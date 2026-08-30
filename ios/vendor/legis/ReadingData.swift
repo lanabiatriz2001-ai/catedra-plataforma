@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
 
-// Dados do Plano de leitura (720 dias por disciplina) e do Índice Estrutural das Normas.
+// Dados do Plano de leitura (cronograma por disciplina) e do Índice Estrutural das Normas.
 // Extraídos dos HTMLs originais da Lana; embutidos como JSON e decodificados em runtime
 // (o build usa swiftc puro, sem bundle de recursos).
 
@@ -19,6 +19,10 @@ struct IdxCode: Codable, Hashable {
 
 enum ReadingData {
     static let plano: [PlanDiscipline] = decode(planoJSON)
+    /// Total de dias do plano, CONTADO do próprio dado. Era texto fixo ("720 dias") em
+    /// dois lugares, e a tabela nova levou o plano a 723 — o tile passou a mentir sem que
+    /// nada quebrasse. Número que aparece na tela sai de quem o conhece.
+    static var totalDias: Int { plano.reduce(0) { $0 + $1.laws.reduce(0) { $0 + $1.days.count } } }
     static let indice: [IdxCode] = decode(indiceJSON)
     static func decode<T: Decodable>(_ s: String) -> [T] {
         (try? JSONDecoder().decode([T].self, from: Data(s.utf8))) ?? []

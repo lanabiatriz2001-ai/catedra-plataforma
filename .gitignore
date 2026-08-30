@@ -44,3 +44,6 @@ win/app/
 # cache de build do modulo de contas (14MB, regeravel)
 scripts/.cache-contas/
 ios/.build-n
+
+# travas de build cruzado (mkdir atômico; morrem com o processo)
+.build-lock-*

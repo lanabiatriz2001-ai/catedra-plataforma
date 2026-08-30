@@ -132,6 +132,12 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
    escrito (.ct-nobump, .ct-cal-cel) não existiam em elemento nenhum — a real é .ct-calcell.
    O padrão certo já estava no próprio repositório, em area-web.html: a caixa de toque
    cresce por um pseudo-elemento invisível e o desenho fica do mesmo tamanho. */
+/* Enunciado da Redação: leitura + marcações lado a lado. Abaixo de 1080px a coluna
+     de marcação desce (no celular ela viraria uma tira de 200px inútil). */
+.ct-enun-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:26px;align-items:start;}
+  @media (max-width:1080px){ .ct-enun-grid{grid-template-columns:minmax(0,1fr);} }
+.ct-enun-lado{min-width:0;}
+  #ct-enun mark{ -webkit-user-select:text; user-select:text; }
 @media (max-width:900px){
   .ct-alvo{position:relative;}
   .ct-alvo::after{content:"";position:absolute;top:50%;left:50%;
@@ -1725,13 +1731,19 @@ window.ctPdfLib = (function(){
           <div style="text-align:right;font-size:var(--fs-sm);color:rgba(255,255,255,.75);">{{ userFirstName }}<br><b style="color:#fff;">{{ cicloFolhaHeader.faixa }}</b></div>
         </div>
 
-        <!-- filtro: um jeito de OLHAR a semana — disciplina, tipo e assunto -->
+        <!-- filtro: um jeito de OLHAR a semana — tipo, DISCIPLINA (só o que está no edital) e ASSUNTO (o que está dentro dela) -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <sc-for list="{{ cicloFqTipos }}" as="t" hint-placeholder-count="5"><button data-v="{{ t.v }}" onclick="{{ cicloFqTipo }}" style="{{ t.style }}">{{ t.icon }} {{ t.v }}</button></sc-for>
-          <select onchange="{{ cicloFqDisc }}" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:var(--fs-xs);color:var(--text2);font-family:inherit;cursor:pointer;max-width:230px;">
-            <option value="" selected="{{ cicloFqDiscVazio }}">todas as disciplinas</option>
-            <sc-for list="{{ cicloFqDiscOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for>
+          <sc-for list="{{ cicloFqTipos }}" as="t" hint-placeholder-count="5"><button class="ct-alvo" data-v="{{ t.v }}" onclick="{{ cicloFqTipo }}" style="{{ t.style }}">{{ t.icon }} {{ t.v }}</button></sc-for>
+          <select onchange="{{ cicloFqDisc }}" class="ct-alvo" aria-label="Filtrar por disciplina do edital" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:var(--fs-xs);color:var(--text2);font-family:inherit;cursor:pointer;max-width:230px;">
+            <option value="" selected="{{ cicloFqDiscVazio }}">todas as disciplinas do edital</option>
+            <sc-for list="{{ cicloFqDiscOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
           </select>
+          <sc-if value="{{ cicloFqTemTop }}" hint-placeholder-val="{{ false }}">
+          <select onchange="{{ cicloFqTopico }}" aria-label="Filtrar por assunto da disciplina" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 12px;font-size:var(--fs-xs);color:var(--text2);font-family:inherit;cursor:pointer;max-width:260px;">
+            <option value="" selected="{{ cicloFqTopVazio }}">todos os assuntos</option>
+            <sc-for list="{{ cicloFqTopOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for>
+          </select>
+          </sc-if>
           <input value="{{ cicloFqQ }}" oninput="{{ cicloFqBusca }}" placeholder="buscar assunto…" style="border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:7px 13px;font-size:var(--fs-xs);color:var(--ink);font-family:inherit;min-width:150px;flex:1;max-width:240px;">
           <sc-if value="{{ cicloFqAtivo }}" hint-placeholder-val="{{ false }}">
             <span style="font-size:var(--fs-xs);color:var(--text3);">mostrando <b style="color:var(--ink);">{{ cicloFqVis }}</b> de {{ cicloFqTot }} atividades</span>
@@ -2393,6 +2405,7 @@ window.ctPdfLib = (function(){
                   <button data-id="{{ r.id }}" data-q="4" onclick="{{ reviewRate }}" title="Bom (q=4)" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button>
                   <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewSnooze }}" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Adiar</button>
+                  <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
                 </div>
               </div>
             </sc-for>
@@ -2420,6 +2433,7 @@ window.ctPdfLib = (function(){
                   <button data-id="{{ r.id }}" data-q="4" onclick="{{ reviewRate }}" title="Bom (q=4)" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button>
                   <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewSnooze }}" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Adiar</button>
+                  <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
                 </div>
               </div>
             </sc-for>
@@ -2440,13 +2454,14 @@ window.ctPdfLib = (function(){
                 <div style="flex:1;min-width:140px;"><div style="font-weight:600;font-size:var(--fs-md);color:var(--ink);">{{ r.topic }}</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--text3);font-weight:500;">{{ r.dueLabel }}</span>
                 <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);">intervalo {{ r.interval }}</span>
+                <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
               </div>
             </sc-for>
           </div>
         </div>
         <div style="display:flex;gap:14px;align-items:flex-start;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:16px 18px;">
           <span style="width:8px;height:8px;border-radius:99px;background:var(--accent);margin-top:6px;flex:none;"></span>
-          <p style="margin:0;font-size:var(--fs-base);color:var(--text2);line-height:1.55;">Ao avaliar como foi (<b style="color:var(--ink);">Errei, Difícil, Bom ou Fácil</b>), o tópico avança no intervalo de repetição espaçada (SM-2: 1 → 6 → intervalo × facilidade) e some das pendências até a nova data. <b style="color:var(--ink);">Adiar</b> empurra a revisão um dia.</p>
+          <p style="margin:0;font-size:var(--fs-base);color:var(--text2);line-height:1.55;">Ao avaliar como foi (<b style="color:var(--ink);">Errei, Difícil, Bom ou Fácil</b>), o tópico avança no intervalo de repetição espaçada (SM-2: 1 → 6 → intervalo × facilidade) e some das pendências até a nova data. <b style="color:var(--ink);">Adiar</b> empurra a revisão um dia, e <b style="color:var(--ink);">Tirar da fila</b> remove o tópico de vez — use quando ele entrou por engano ou você decidiu não estudá-lo.</p>
         </div>
        </div>
       </sc-if>
@@ -2624,8 +2639,11 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.85;">Enunciado da prova</div>
               <div style="font-family:var(--display);font-size:21px;font-weight:600;margin-top:6px;line-height:1.3;">{{ redProvaTitulo }}</div>
             </div>
-            <div style="padding:24px 26px;">
-              <div class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);">
+            <!-- Proporção: o enunciado ocupava 72ch (a medida de leitura) e deixava METADE
+                 da tela vazia à direita. A medida continua — texto de prova se lê em coluna
+                 estreita —, mas o espaço que sobrava passa a ser a coluna de marcações. -->
+            <div class="ct-enun-grid" style="padding:24px 26px;">
+              <div id="ct-enun" onmouseup="{{ onSelEnunciado }}" onkeyup="{{ onSelEnunciado }}" class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);">
                 <sc-for list="{{ redBlocos }}" as="b" hint-placeholder-count="6">
                   <sc-if value="{{ b.ehTitulo }}" hint-placeholder-val="{{ false }}">
                     <div style="font-weight:700;letter-spacing:.01em;margin:18px 0 8px;font-size:var(--fs-lg);color:var(--ink);">{{ b.texto }}</div>
@@ -2637,10 +2655,43 @@ window.ctPdfLib = (function(){
                     <div style="margin:0 0 13px;line-height:1.8;text-align:justify;hyphens:auto;-webkit-hyphens:auto;">{{ b.texto }}</div>
                   </sc-if>
                 </sc-for>
+                <sc-if value="{{ redTemLinkProva }}" hint-placeholder-val="{{ false }}">
+                  <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:var(--fs-base);font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
+                </sc-if>
               </div>
-              <sc-if value="{{ redTemLinkProva }}" hint-placeholder-val="{{ false }}">
-                <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:var(--fs-base);font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
-              </sc-if>
+
+              <!-- coluna de marcação: as cores agem sobre o trecho selecionado no enunciado -->
+              <aside class="ct-enun-lado">
+                <div style="position:sticky;top:12px;display:flex;flex-direction:column;gap:12px;">
+                  <div style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:14px;">
+                    <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Marcar trecho</div>
+                    <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:6px;line-height:1.5;">{{ redSelDica }}</div>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:11px;">
+                      <sc-for list="{{ redCores }}" as="c" hint-placeholder-count="7"><button data-cor="{{ c.c }}" onclick="{{ marcarEnunciado }}" title="{{ c.label }}" aria-label="Marcar de {{ c.label }}" style="{{ c.style }}"></button></sc-for>
+                    </div>
+                  </div>
+                  <div style="border:1px solid var(--border);background:var(--surface);border-radius:var(--radius);padding:14px;">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+                      <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Marcações e notas</div>
+                      <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);">{{ redMarcasN }}</span>
+                    </div>
+                    <sc-if value="{{ redSemMarcas }}" hint-placeholder-val="{{ true }}">
+                      <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:9px;line-height:1.55;">Nada marcado ainda. O que você grifar aqui fica salvo com a prova e volta na próxima vez que abrir.</div>
+                    </sc-if>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+                      <sc-for list="{{ redMarcasList }}" as="m" hint-placeholder-count="3">
+                        <div style="border:1px solid var(--border);border-left:4px solid {{ m.cor }};border-radius:var(--r-md);padding:10px 11px;background:var(--surface2);">
+                          <div style="display:flex;gap:8px;align-items:flex-start;">
+                            <button data-id="{{ m.id }}" onclick="{{ irParaMarcaEnun }}" title="Ir para o trecho no enunciado" style="flex:1;text-align:left;background:transparent;border:none;padding:0;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);color:var(--ink);line-height:1.5;">{{ m.resumo }}</button>
+                            <button data-id="{{ m.id }}" onclick="{{ removerMarcaEnun }}" title="Remover marcação" aria-label="Remover marcação" style="flex:none;background:transparent;border:none;color:var(--text3);cursor:pointer;font-family:inherit;font-size:var(--fs-md);line-height:1;padding:2px 4px;">✕</button>
+                          </div>
+                          <textarea data-id="{{ m.id }}" oninput="{{ onNotaMarcaEnun }}" value="{{ m.nota }}" rows="2" placeholder="anotação sobre este trecho…" style="width:100%;box-sizing:border-box;margin-top:8px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:8px 10px;color:var(--ink);font-family:inherit;font-size:var(--fs-sm);line-height:1.5;resize:vertical;outline:none;"></textarea>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
 
@@ -4044,7 +4095,7 @@ window.ctPdfLib = (function(){
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
               <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Nível atual</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orNivelChips }}" as="c" hint-placeholder-count="3"><button data-k="nivel" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
               <div><label for="aj-f-tempoDia" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Tempo médio por dia (min)</label><input id="aj-f-tempoDia" type="number" data-k="tempoDia" value="{{ orient.tempoDia }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orTempoHHMM }}</div></div>
-              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orTurnoChips }}" as="c" hint-placeholder-count="3"><button data-k="turno" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
+              <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Melhor turno · define a hora do aviso de ofensiva em risco</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orTurnoChips }}" as="c" hint-placeholder-count="3"><button data-k="turno" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
               <div><label style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Energia padrão</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ orEnergiaChips }}" as="c" hint-placeholder-count="3"><button data-k="energia" data-v="{{ c.v }}" onclick="{{ setOrientVal }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
             </div>
             <div style="margin-top:16px;"><label for="aj-f-dias" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Dias disponíveis</label><div style="display:flex;gap:7px;flex-wrap:wrap;"><sc-for list="{{ ajDiasChips }}" as="d" hint-placeholder-count="7"><button data-v="{{ d.v }}" onclick="{{ ajToggleDia }}" style="{{ d.style }}">{{ d.rot }}</button></sc-for></div></div>
@@ -4065,7 +4116,7 @@ window.ctPdfLib = (function(){
               <div><label for="aj-f-banca" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Banca principal</label><select id="aj-f-banca" data-k="banca" value="{{ orient.banca }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="cebraspe">CEBRASPE (Cespe/UnB)</option><option value="fgv">FGV</option><option value="fcc">FCC</option><option value="vunesp">VUNESP</option><option value="cesgranrio">CESGRANRIO</option><option value="ibfc">IBFC</option><option value="quadrix">Quadrix</option><option value="iades">IADES</option><option value="aocp">Instituto AOCP</option><option value="consulplan">Consulplan</option><option value="fundatec">FUNDATEC</option><option value="idecan">IDECAN</option></select></div>
               <div><label for="aj-f-linguagem" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Linguagem dos conselhos</label><select id="aj-f-linguagem" data-k="linguagem" value="{{ orient.linguagem }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="professor">Modo professor</option><option value="direto">Direto ao ponto</option><option value="motivador">Motivador</option></select></div>
             </div>
-            <label style="display:flex;align-items:center;gap:11px;margin-top:18px;padding:14px 15px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;"><input type="checkbox" data-k="focoEstrategico" checked="{{ orient.focoEstrategico }}" onchange="{{ toggleOrient }}" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex:none;"><span style="font-size:var(--fs-base);color:var(--ink);">Ativar foco estratégico: priorizar tarefas com maior peso, urgência, dificuldade e proximidade da prova.</span></label>
+            <label style="display:flex;align-items:center;gap:11px;margin-top:18px;padding:14px 15px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;"><input type="checkbox" data-k="focoEstrategico" checked="{{ orient.focoEstrategico }}" onchange="{{ toggleOrient }}" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex:none;"><span style="font-size:var(--fs-base);color:var(--ink);">Foco estratégico: o "onde rende mais" do dia passa a pesar o peso da disciplina no edital e a proximidade da prova, além da sua lacuna de domínio.</span></label>
           </div>
         </div>
 
@@ -4107,10 +4158,12 @@ window.ctPdfLib = (function(){
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:20px;"><h2 id="aj-ritmo" style="margin:0;font-family:inherit;font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Ritmo e comportamento</h2><span style="font-size:var(--fs-sm);color:var(--text3);">orientação do estudo</span></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div><label for="aj-f-blocoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Bloco do ciclo gerado (min)</label><input id="aj-f-blocoPadrao" type="number" data-k="blocoPadrao" value="{{ orient.blocoPadrao }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orBlocoHHMM }}</div></div>
-              <div><label for="aj-f-pausaPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Pausa do ciclo gerado (min)</label><input id="aj-f-pausaPadrao" type="number" data-k="pausaPadrao" value="{{ orient.pausaPadrao }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orPausaHHMM }}</div></div>
-              <div><label for="aj-f-modoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Modo padrão</label><select id="aj-f-modoPadrao" data-k="modoPadrao" value="{{ orient.modoPadrao }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="livre">Livre</option><option value="pomodoro">Pomodoro</option><option value="imersao">Imersão</option></select></div>
-              <div><label for="aj-f-aoAbrir" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ao abrir a plataforma</label><select id="aj-f-aoAbrir" data-k="aoAbrir" value="{{ orient.aoAbrir }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="foco">Mostrar foco do dia</option><option value="inicio">Ir para o Início</option><option value="ciclo">Abrir o Ciclo</option></select></div>
+              <div><label for="aj-f-blocoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Bloco do ciclo gerado (min) · tamanho de cada bloco que o Ciclo monta</label><input id="aj-f-blocoPadrao" type="number" data-k="blocoPadrao" value="{{ orient.blocoPadrao }}" oninput="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"><div style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);margin-top:6px;">{{ orBlocoHHMM }}</div></div>
+              <!-- "Pausa do ciclo gerado" saiu daqui: nenhum gerador de ciclo usava esse número
+                   (só era exibido de volta como "= 00:10"). A pausa que EXISTE de verdade é a do
+                   cronômetro, em Estudo & metas → Meu ritmo. -->
+              <div><label for="aj-f-modoPadrao" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Como o cronômetro começa · vale no próximo dia sem cronômetro em curso</label><select id="aj-f-modoPadrao" data-k="modoPadrao" value="{{ orient.modoPadrao }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="livre">Livre (relógio corrido)</option><option value="pomo">Pomodoro (bloco + pausa)</option></select></div>
+              <div><label for="aj-f-aoAbrir" style="display:block;font-size:var(--fs-2xs);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:7px;">Ao abrir a plataforma · qual tela aparece primeiro</label><select id="aj-f-aoAbrir" data-k="aoAbrir" value="{{ orient.aoAbrir }}" onchange="{{ setOrient }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;cursor:pointer;"><option value="foco">Mostrar foco do dia</option><option value="inicio">Ir para o Início</option><option value="ciclo">Abrir o Ciclo</option></select></div>
             </div>
             <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:14px;line-height:1.5;">O comportamento ao registrar (abrir registro ao parar, marcar bloco concluído, criar revisão automática) fica logo abaixo, no card <b style="color:var(--text2);">Ajustes de foco</b>.</div>
           </div>
@@ -5625,7 +5678,7 @@ const CT_MODELOS = [{"id": "caAuditor", "nome": "Auditor de Controle Externo", "
 // nativo) para o catálogo de leis e as faixas de artigos funcionarem também na
 // web e em qualquer build. Formato: leis[i]=[nome,ref] · dias[].c=[[iLei,faixa]×6]
 // · dias[].s=[iFonte,faixa].
-const CT_TABELA = {"leis":[["Constituição Federal",""],["Código Civil",""],["Código de Processo Civil",""],["Código Penal",""],["PNMA","Lei nº. 6.938/81"],["Alienação Fiduciária Bens Móveis","Decreto 911/69"],["SNUC","Lei nº. 9.985/00"],["Lei Sistema Finan. Imobiliario","Lei nº. 9.514/97"],["Lei de Locações","Lei nº. 8.245/91"],["Lei de Crimes Ambientais","Lei nº. 9.605/98"],["Lei de Protesto","Lei nº. 9.492/97"],["Código Florestal","Lei nº. 12.651/12"],["Lei de Arbitragem","Lei nº. 9.307/96"],["Lei Resp. Pessoa Jurídica","Lei nº. 12.846/13"],["Bem de Família","Lei nº. 8.009/90"],["Lei das Eleições","Lei nº. 9.504/97"],["Lei de Mediação","Lei 13.140/15"],["ACP","Lei nº. 7.347/85"],["Código de Processo Penal",""],["MS","Lei nº. 12.016/09"],["Lei dos Partidos Políticos","Lei nº. 9.096/95"],["MI","Lei nº. 13.300/16"],["ADI/ADC","Lei nº. 9.868/99"],["CDC","Lei nº. 8.078/90"],["ADPF","Lei nº. 9.882/99"],["Lei Represent. Interventiva","Lei nº. 12.562/2011"],["Ação Popular","Lei n.º 4.717/65"],["Lei Maria da Penha","Lei nº. 11.340/06"],["Consórcios Públicos","Lei nº. 11.107/05"],["Lei Prisão Temporária","Lei nº. 7.960/89"],["Lei Improbidade Admin.","Lei nº. 8.429/92"],["Lei Crimes Hediondos","Lei nº. 8.072/90"],["Lei Organizações Sociais","Lei nº. 9.637/98"],["Lei de Intercept. Telefônica","Lei nº. 9.296/96"],["Lei de Falências","Lei nº. 11.101/05"],["Lei Abuso de Autoridade","Lei nº. 13.869/2019"],["Estatuto do Desarmamento","Lei 10.826/2003"],["Lei Antirracismo","Lei 7.716/89"],["Lei Crimes Ordem Tributária","Lei 8.137/90"],["Lei Crimes Sist. Financeiro","Lei nº. 7.492/86"],["Lei da Tortura","Lei nº 9.455/97"],["Lei de Execução Fiscal","Lei nº. 6.830/80"],["Lei do Cheque","Lei 7.357/85"],["LEP","Lei nº. 7.210/84"],["Lei de Duplicata","Lei n. 5.474/68"],["Lei de Duplicata Escritural","Lei 13.775/2018"],["Juiz. Faz. Púb","Lei n. 12.153/2009"],["Resíduos Sólidos","Lei 12.305/2010"],["Lei de Drogas","Lei nº. 11.343/06"],["Lei de Lavagem de Dinheiro","Lei nº. 9.613/98"],["Lei de Organização Criminosa","Lei nº. 12.850/13"],["Lei da Franquia","Lei 13.966/2019"],["ECA","Lei nº. 8.069/90"],["Lei de Investigação de Paternidade dos filhos havidos fora do casamento","Lei nº 8.560/92"],["Lei de Remoção de órgãos para transplante","Lei nº 9.434/97"],["Lei da Liberdade Econômica","Lei nº 13.874/19"],["Informatização do Processo Juciail","Lei nº 11.419/2006"],["Marco Legal da Primeira Infância","Lei nº 13.257/2016"],["Código Tributário Nacional",""],["Programa de proteção às vítimas","Lei nº 9.807/1999"],["Reconhecimento da União Estável como entidade familiar","Lei nº 9.278/96"],["Estatuto Digital da Criança e do Adolescente","Lei 15.211/2025"],["Lei SINASE","Lei nº. 12.594/12"],["Marco temporal para a demarcação de terras indígenas","Lei nº 14.701/2023"],["SNE","LC 220/2025"],["Lei Licitações","Lei nº. 14.133/2021"],["Reforma Tributária","LC 214/2025"],["Normas procedimentais para processos perante o STF e o STJ","Lei nº 8.038/90"],["Estatuto do Idoso","Lei nº 10.741/2003"],["Lei Geral do Esporte","Lei 14.597/2023"],["Est. Igualdade Racial","Lei n. 12.288/2010"],["Estatuto das Cidades","Lei 10.257/2001"],["Código Penal – Parte Especial",""],["Marco civil da Internet","Lei 12.965/2014"],["Lei de Acesso à Informação","Lei 12.527/2011"],["Lei do Condo. em Edificações e as Incorp. Imob.","Lei n. 4.591/64"],["Lei da Súmula Vinculante","Lei n. 11.417/2006"],["Lei das startups","Lei Complementar nº 182/2021"],["Estatuto da Pessoa com Deficiência","Lei nº. 13.146/2015"],["Juízados Especiais da Justiça Federal","Lei nº 10.259/01"],["Lei do Divórcio","Lei 6.515/17"],["LINDB","Lei nº. 4.657/42"],["Parcelamento do Solo Urbano","Lei 6.766/79"],["CTB","Lei nº 9.503/1997"],["JEC","Lei 9.099/95"],["Pacote Anticrime","Lei nº 13.964/2019"],["Lei dos Direitos Autorais","Lei nº 9.610/98"],["Lei de Proteção de Dados Pessoais","Lei nº. 13.709/2018"],["Concessão de medidas cautelares contra atos do Poder Público","Lei nº 8.437/92"],["Lei de Inelegibilidades","LC nº. 64/90"],["Sistema de garantia de direitos da criança e do adolescente vítima ou testemunha de violência","Lei nº 13.431/2017"],["Dos crimes de biossegurança","Lei nº 11.105/2005"],["Lei Concessão e Permissão","Lei nº. 8.987/95"],["Nova lei de juros","Lei nº 14.905/2024"],["Marco Civil dos Seguros","Lei 15.040/24"],["Registros Públicos","Lei n. 6.015/1973"],["Plano de Saúde","Lei nº 9.656/1998"],["Lei Geral do Licenciamento Ambiental","Lei 15.190/2025"],["Prescrição Quinquenal","Decreto 20.910/32"],["Lei Henry Borel","Lei nº 14.344/2022"],["Marco Regulatório do Sistema Nacional de Cultura","Lei 14.835/2024"],["Recursos Hídricos","Lei n. 9.433/1997"],["Lei bullying e cyberbullying","Lei nº 14.811/2024"],["Crimes praticados por prefeitos e vereadores","Decreto-lei nº 201/1967"],["Nova Lei de Cotas","Lei 15.142/2025"],["Nova Lei dos Concursos Públicos","Lei 14.965/2024"],["Crime organizado","Lei nº 12.694/2012"],["Tutela Antecipada contra a Fazenda Pública","Lei nº 9.494/97"],["Lei de crimes contra a ordem tributária, econômica e relações de consumo","Lei nº 8.176/1991"]],"fontes":["Súmulas Vinculantes","Súmulas do TSE","Súmulas do STJ","Súmulas do STF"],"dias":[{"n":1,"c":[[0,"Art. 1 a 4"],[1,"Art. 1 a 21"],[2,"Art. 1 a 12"],[3,"Art. 1 a 10"],[4,"Art. 1 a 21"],[5,"Art. 1 a 9"]],"s":[0,"1 a 12"]},{"n":2,"c":[[0,"Art. 5"],[1,"Art. 22 a 52"],[2,"Art. 13 a 25"],[3,"Art. 11 a 20"],[6,"Art. 1 a 21"],[7,"Art. 1 a 20"]],"s":[0,"13 a 24"]},{"n":3,"c":[[0,"Art. 6 a 11"],[1,"Art. 53 a 78"],[2,"Art. 26 a 36"],[3,"Art. 21 a 30"],[6,"Art. 22 a 40"],[7,"Art. 21 a 42"]],"s":[0,"25 a 32"]},{"n":4,"c":[[0,"Art. 12 a 16"],[1,"Art. 79 a 97"],[2,"Art. 37 a 53"],[3,"Art. 31 a 40"],[6,"Art. 41 a 60"],[8,"Art. 1 a 30"]],"s":[0,"33 a 45"]},{"n":5,"c":[[0,"Art. 17 a 19"],[1,"Art. 98 a 120"],[2,"Art. 54 a 63"],[3,"Art. 41 a 50"],[9,"Art. 1 a 28"],[8,"Art. 31 a 60"]],"s":[0,"46 a 63"]},{"n":6,"c":[[0,"Art. 20 a 24"],[1,"Art. 121 a 144"],[2,"Art. 64 a 78"],[3,"Art. 51 a 60"],[9,"Art. 29 a 61"],[8,"Art. 61 a 75"]],"s":[1,"73 a 61"]},{"n":7,"c":[[0,"Art. 25 a 31"],[1,"Art. 145 a 165"],[2,"Art. 79 a 97"],[3,"Art. 61 a 70"],[9,"Art. 62 a 82"],[10,"Art. 1 a 43"]],"s":[1,"60 a 49"]},{"n":8,"c":[[0,"Art. 32 a 36"],[1,"Art. 166 a 188"],[2,"Art. 98 a 107"],[3,"Art. 71 a 80"],[11,"Art. 1 a 28"],[12,"Art. 1 a 40"]],"s":[1,"48 a 37"]},{"n":9,"c":[[0,"Art. 37 a 38"],[1,"Art. 189 a 204"],[2,"Art. 108 a 120"],[3,"Art. 81 a 90"],[11,"Art. 29 a 58"],[13,"Art. 1 a 31"]],"s":[1,"36 a 25"]},{"n":10,"c":[[0,"Art. 39 a 41"],[1,"Art. 205 a 232"],[2,"Art. 121 a 137"],[3,"Art. 91 a 100"],[11,"Art. 59 a 84"],[14,"Art. 1 a 6"]],"s":[1,"24 a 13"]},{"n":11,"c":[[0,"Art. 42 a 50"],[1,"Art. 233 a 256"],[2,"Art. 138 a 143"],[3,"Art. 101 a 110"],[15,"Art. 1 a 30"],[16,"Art. 1 a 48"]],"s":[1,"12 a 1"]},{"n":12,"c":[[0,"Art. 51 a 56"],[1,"Art. 257 a 274"],[2,"Art. 144 a 155"],[3,"Art. 111 a 120"],[15,"Art. 31 a 65"],[17,"Art. 1 a 23"]],"s":[2,"676 a 650"]},{"n":13,"c":[[0,"Art. 57 a 60"],[1,"Art. 275 a 298"],[2,"Art. 156 a 164"],[18,"Art. 1 a 10"],[15,"Art. 66 a 105-A"],[19,"Art. 1 a 29"]],"s":[2,"651 a 630"]},{"n":14,"c":[[0,"Art. 61 a 65"],[1,"Art. 299 a 326"],[2,"Art. 165 a 175"],[18,"Art. 11 a 20"],[20,"Art. 1 a 30"],[21,"Art. 1 a 15"]],"s":[2,"629 a 609"]},{"n":15,"c":[[0,"Art. 66 a 70"],[1,"Art. 327 a 345"],[2,"Art. 176 a 187"],[18,"Art. 21 a 30"],[20,"Art. 31 a 62"],[22,"Art. 1 a 31"]],"s":[2,"608 a 594"]},{"n":16,"c":[[0,"Art. 71 a 75"],[1,"Art. 346 a 367"],[2,"Art. 188 a 202"],[18,"Art. 31 a 40"],[23,"Art. 1 a 25"],[24,"Art. 1 a 14"]],"s":[2,"593 a 580"]},{"n":17,"c":[[0,"Art. 76 a 80"],[1,"Art. 368 a 393"],[2,"Art. 203 a 211"],[18,"Art. 41 a 50"],[23,"Art. 26 a 41"],[25,"Arts. 1 a 13"]],"s":[2,"579 a 566"]},{"n":18,"c":[[0,"Art. 81 a 85"],[1,"Art. 394 a 416"],[2,"Art. 212 a 217"],[18,"Art. 51 a 60"],[23,"Art. 42 a 54-G"],[26,"Art. 1 a 22"]],"s":[2,"565 a 552"]},{"n":19,"c":[[0,"Art. 86 a 90"],[1,"Art. 417 a 438"],[2,"Art. 218 a 232"],[18,"Art. 61 a 70"],[23,"Art. 55 a 80"],[27,"Art. 1 a 12-C"]],"s":[2,"551 a 538"]},{"n":20,"c":[[0,"Art. 91 a 100"],[1,"Art. 439 a 461"],[2,"Art. 233 a 246"],[18,"Art. 71 a 80"],[23,"Art.81 a 107"],[27,"Art. 13 a 26"]],"s":[2,"537 a 515"]},{"n":21,"c":[[0,"Art. 101 a 110"],[1,"Art. 462 a 480"],[2,"Art. 247 a 259"],[18,"Art. 81 a 90"],[23,"Art. 36 a 80"],[27,"Art. 27 a 46"]],"s":[2,"514 a 491"]},{"n":22,"c":[[0,"Art. 111 a 117"],[1,"Art. 481 a 504"],[2,"Art. 260 a 275"],[18,"Art. 91 a 100"],[28,"Art. 1 a 20"],[29,"Art. 1 a 7"]],"s":[2,"490 a 458"]},{"n":23,"c":[[0,"Art. 118 a 126"],[1,"Art. 505 a 532"],[2,"Art. 276 a 290"],[18,"Art. 101 a 110"],[30,"Art. 1 a 25"],[31,"Art. 1 a 13"]],"s":[2,"457 a 433"]},{"n":24,"c":[[0,"Art. 127 a 130-A"],[1,"Art. 533 a 554"],[2,"Art. 291 a 302"],[18,"Art. 111 a 120"],[32,"Art. 1 a 25"],[33,"Art. 1 a 12"]],"s":[2,"432 a 407"]},{"n":25,"c":[[0,"Art. 131 a 135"],[1,"Art. 555 a 578"],[2,"Art. 303 a 312"],[18,"Art. 121 a 130"],[34,"Art. 01 a 35"],[35,"Arts. 1 a 42"]],"s":[2,"406 a 390"]},{"n":26,"c":[[0,"Art. 136 a 141"],[1,"Art. 579 a 592"],[2,"Art 313 a 321"],[18,"Art. 131 a 140"],[34,"Art. 36 a 70"],[36,"Arts. 1 a 37"]],"s":[2,"389 a 372"]},{"n":27,"c":[[0,"Art. 142 a 144"],[1,"Art. 593 a 626"],[2,"Art. 322 a 331"],[18,"Art. 141 a 150"],[34,"Art. 71 a 105"],[37,"Arts. 1 a 22"]],"s":[2,"371 a 354"]},{"n":28,"c":[[0,"Art. 145 a 149-A"],[1,"Art. 627 a 646"],[2,"Art. 332 a 346"],[18,"Art. 151 a 160"],[34,"Art. 106 a 140"],[38,"Arts. 1 a 17"]],"s":[2,"353 a 336"]},{"n":29,"c":[[0,"Art. 150 a 154"],[1,"Art. 647 a 674"],[2,"Art. 347 a 357"],[18,"Art. 161 a 170"],[34,"Art. 141 a 175"],[39,"Arts. 1 a 33"]],"s":[2,"335 a 318"]},{"n":30,"c":[[0,"Art. 155 a 156"],[1,"Art. 675 a 692"],[2,"Art. 358 a 368"],[18,"Art. 171 a 180"],[34,"Art. 175 a 200"],[40,"Arts. 1 e 2"]],"s":[2,"317 a 300"]},{"n":31,"c":[[0,"Art. 157 a 162"],[1,"Art. 693 a 721"],[2,"Art. 369 a 380"],[18,"Art. 181 a 190"],[41,"Art. 1 a 20"],[42,"Arts. 1 a 16"]],"s":[2,"299 a 283"]},{"n":32,"c":[[0,"Art. 163 a 164-A"],[1,"Art.722 a 742"],[2,"Art. 381 a 388"],[18,"Art. 191 a 200"],[41,"Art.21 a 42"],[42,"Arts. 17 a 31"]],"s":[2,"282 a 265"]},{"n":33,"c":[[0,"Art. 165 a 167"],[1,"Art.743 a 756"],[2,"Art. 389 a 395"],[18,"Art. 201 a 210"],[43,"Art. 1 a 30"],[42,"Arts. 32 a 55"]],"s":[2,"264 a 248"]},{"n":34,"c":[[0,"Art. 167-A a 169"],[1,"Art. 757 a 802"],[2,"Art. 396 a 404"],[18,"Art. 211 a 220"],[43,"Art. 31 a 60"],[42,"Arts. 56 a 71"]],"s":[2,"247 a 229"]},{"n":35,"c":[[0,"Art. 170 a 181"],[1,"Art. 803 a 826"],[2,"Art. 405 a 415"],[18,"Art. 221 a 230"],[43,"Art. 61 a 90"],[44,"Arts. 1 a 28"]],"s":[2,"228 a 211"]},{"n":36,"c":[[0,"Art. 182 a 191"],[1,"Art. 827 a 853"],[2,"Art. 416 a 429"],[18,"Art. 231 a 240"],[43,"Art. 91 a 120"],[45,"Arts. 1 a 13"]],"s":[2,"210 a 193"]},{"n":37,"c":[[0,"Art. 192 a 195"],[1,"Art. 854 a 875"],[2,"Art. 430 a 441"],[18,"Art. 241 a 250"],[43,"Art. 121 a 150"],[46,"Arts. 1. a 28"]],"s":[2,"192 a 175"]},{"n":38,"c":[[0,"Art. 196 a 200"],[1,"Art. 876 a 903"],[2,"Art. 442 a 449"],[18,"Art. 251 a 260"],[43,"Art. 151 a 197"],[47,"Arts. 1 a 19"]],"s":[2,"173 a 158"]},{"n":39,"c":[[0,"Art. 201 a 204"],[1,"Art. 904 a 920"],[2,"Art. 450 a 463"],[18,"Art. 261 a 270"],[48,"Art. 27 a 75"],[47,"Arts. 20 a 41"]],"s":[2,"156 a 140"]},{"n":40,"c":[[0,"Art. 205 a 210"],[1,"Art. 921 a 943"],[2,"Art. 464 a 480"],[18,"Art. 271 a 280"],[49,"Art. 1 a 12-A"],[47,"Arts. 42 a 56"]],"s":[2,"139 a 123"]},{"n":41,"c":[[0,"Art. 211 a 214"],[1,"Art. 944 a 965"],[2,"Art. 481 a 488"],[18,"Art. 281 a 290"],[50,"Art. 1 a 27"],[51,"Arts. 1 a 10"]],"s":[2,"122 a 115"]},{"n":42,"c":[[0,"Art. 215 a 217"],[1,"Art. 965 a 990"],[2,"Art. 489 a 501"],[18,"Art. 291 a 300"],[52,"Art. 1 a 30"],[53,"Arts. 1 a 10"]],"s":[2,"114 a 106"]},{"n":43,"c":[[0,"Art. 218 a 224"],[1,"Art. 991 a 1.009"],[2,"Art. 502 a 519"],[18,"Art. 301 a 310"],[52,"Art. 31 a 60"],[54,"Arts. 1 a 25"]],"s":[2,"105 a 93"]},{"n":44,"c":[[0,"Art. 225 a 232"],[1,"Art. 1.010 a 1.032"],[2,"Art. 520 a 527"],[18,"Art. 311 a 320"],[52,"Art. 61 a 90"],[55,"Arts. 1 a 20"]],"s":[2,"93 a 87"]},{"n":45,"c":[[0,"Art. 233 a 240"],[1,"Art. 1.033 a 1.059"],[2,"Art. 528 a 535"],[18,"Art. 321 a 330"],[52,"Art. 91 a 120"],[56,"Arts. 1 a 22"]],"s":[2,"86 a 69"]},{"n":46,"c":[[0,"Art. 241 a 250"],[1,"Art. 1.060 a 1.080-A"],[2,"Art. 536 a 549"],[18,"Art. 331 a 340"],[52,"Art. 121 a 150"],[57,"Arts. 1 a 20"]],"s":[2,"67 a 51"]},{"n":47,"c":[[58,"Art. 1 a 8"],[1,"Art. 1.081 a 1.101"],[2,"Art. 550 a 566"],[18,"Art. 341 a 350"],[52,"Art. 151 a 180"],[57,"Arts. 21 a 43"]],"s":[2,"50 a 33"]},{"n":48,"c":[[58,"Art. 9 a 15"],[1,"Art. 1.102 a 1.125"],[2,"Art. 567 a 587"],[18,"Art. 351 a 360"],[52,"Art. 181 a 200"],[59,"Arts. 1 a 21"]],"s":[2,"32 a 15"]},{"n":49,"c":[[58,"Art. 16 a 23"],[1,"Art. 1.126 a 1.149"],[2,"Art. 588 a 598"],[18,"Art. 361 a 370"],[52,"Art. 201 a 230"],[60,"Arts. 1 a 11"]],"s":[2,"14 a 1"]},{"n":50,"c":[[58,"Art. 24 a 30"],[1,"Art. 1.150 a 1.176"],[2,"Art. 599 a 609"],[18,"Art. 371 a 380"],[52,"Art. 231 a 267"],[61,"Arts. 1 a 9"]],"s":[3,"736 a 722"]},{"n":51,"c":[[58,"Art. 31 a 38"],[1,"Art. 1.177 a 1.195"],[2,"Art 610 a 625"],[18,"Art. 381 a 390"],[62,"Art. 1 a 30"],[61,"Arts. 10 a 26"]],"s":[3,"721 a 708"]},{"n":52,"c":[[58,"Art. 39 a 45"],[1,"Art. 1.196 a 1.224"],[2,"Art. 626 a 638"],[18,"Art. 391 a 400"],[62,"Art. 31 a 60"],[61,"Arts. 27 a 41-A"]],"s":[3,"707 a 694"]},{"n":53,"c":[[58,"Art. 46 a 53"],[1,"Art. 1.225 a 1.244"],[2,"Art. 639 a 646"],[18,"Art. 401 a 410"],[62,"Art. 61 a 85"],[63,"Art. 1 ao 17"]],"s":[3,"693 a 680"]},{"n":54,"c":[[58,"Art. 54 a 60"],[1,"Art. 1.245 a 1.267"],[2,"Art. 647 a 658"],[18,"Art. 411 a 420"],[64,"Art. 1 a 23"],[63,"Art. 18 a 33"]],"s":[3,"679 a 666"]},{"n":55,"c":[[58,"Art. 61 a 68"],[1,"Art. 1.268 a 1.287"],[2,"Art. 659 a 673"],[18,"Art. 421 a 430"],[64,"Art. 24 ao 42"],[65,"Art. 1 a 17"]],"s":[3,"665 a 652"]},{"n":56,"c":[[58,"Art. 69 a 75"],[1,"Art. 1.288 a 1.313"],[2,"Art. 674 a 686"],[18,"Art. 431 a 440"],[64,"Art. 43 ao 64"],[65,"Art. 18 a 27"]],"s":[3,"651 a 638"]},{"n":57,"c":[[58,"Art. 76 a 83"],[1,"Art. 1.314 a 1.330"],[2,"Art. 687 a 699"],[18,"Art. 441 a 450"],[66,"Art. 1 a 7"],[65,"Art. 28 a 44"]],"s":[3,"637 a 624"]},{"n":58,"c":[[58,"Art. 84 a 90"],[1,"Art. 1.331 a 1.356"],[2,"Art. 700 a 711"],[18,"Art. 451 a 460"],[66,"Art. 8 a 13"],[65,"Art. 45 a 73"]],"s":[3,"623 a 610"]},{"n":59,"c":[[58,"Art. 91 a 98"],[1,"Art. 1.357 a 1.360"],[2,"Art. 712 a 725"],[18,"Art. 461 a 470"],[66,"Art. 14 a 20"],[65,"Art. 74 a 88"]],"s":[3,"609 a 596"]},{"n":60,"c":[[58,"Art. 99 a 105"],[1,"Art. 1.361 a 1.386"],[2,"Art. 726 a 730"],[18,"Art. 471 a 480"],[66,"Art. 21 a 26"],[65,"Art. a 89 a 114"]],"s":[3,"595 a 582"]},{"n":61,"c":[[58,"Art. 106 a 113"],[1,"Art. 1.387 a 1.409"],[2,"Art. 731 a 737"],[18,"Art. 481 a 490"],[66,"Art. 27 a 38"],[65,"Art. 115 a 139"]],"s":[3,"581 a 568"]},{"n":62,"c":[[58,"Art. 114 a 120"],[1,"Art. 1.410 a 1.432"],[2,"Art. 738 a 745"],[18,"Art. 491 a 497"],[66,"Art. 39 a 46"],[67,"Arts. 1 a 23 / 24 a 44"]],"s":[3,"567 a 554"]},{"n":63,"c":[[58,"Art. 121 a 128"],[1,"Art. 1.433 a 1.460"],[2,"Art. 744 a 758"],[18,"Art. 513 a 523"],[66,"Art. 47 a 57"],[68,"Arts. 1 a 19"]],"s":[3,"553 a 540"]},{"n":64,"c":[[58,"Art. 129 a 135"],[1,"Art. 1.461 a 1.498"],[2,"Art. 759 a 770"],[18,"Art. 524 a 530-I"],[66,"Art. 58 a 64"],[68,"Arts. 20 a 32"]],"s":[3,"539 a 526"]},{"n":65,"c":[[58,"Art. 136 a 143"],[1,"Art. 1.499 a 1.516"],[2,"Art. 771 a 782"],[18,"Art. 531 a 538"],[66,"Art. 65 a 78"],[68,"Arts. 33 a 47"]],"s":[3,"525 a 512"]},{"n":66,"c":[[58,"Art. 144 a 150"],[1,"Art. 1.517 a 1.542"],[2,"Art. 783 a 796"],[18,"Art. 541 a 548"],[66,"Art. 79 a 93"],[68,"Arts. 48 a 71"]],"s":[3,"511 a 498"]},{"n":67,"c":[[58,"Art. 151 a 158"],[1,"Art. 1.543 a 1.564"],[2,"Art. 797 a 810"],[18,"Art. 549 a 555"],[66,"Art. 94 a 111"],[68,"Arts. 73 a 118"]],"s":[3,"497 a 484"]},{"n":68,"c":[[58,"Art. 159 a 165"],[1,"Art. 1.565 a 1.590"],[2,"Art. 811 a 821"],[18,"Art. 563 a 573"],[66,"Art. 112 a 126"],[69,"Arts. 1 a 13"]],"s":[3,"483 a 470"]},{"n":69,"c":[[58,"Art. 166 a 173"],[1,"Art. 1.591 a 1.617"],[2,"Art. 822 a 830"],[18,"Art. 574 a 580"],[66,"Art. 127 a 144"],[69,"Arts. 14 ao 23"]],"s":[3,"469 a 456"]},{"n":70,"c":[[58,"Art. 174 a 180"],[1,"Art. 1.618 a 1.638"],[2,"Art. 831 a 844"],[18,"Art. 581 a 592"],[66,"Art. 145 a 157"],[69,"Arts. 25 a 35"]],"s":[3,"455 a 442"]},{"n":71,"c":[[58,"Art. 181 a 188"],[1,"Art. 1.639 a 1.652"],[2,"Art. 845 a 854"],[18,"Art. 593 a 603"],[66,"Art. 158 a 171"],[69,"Arts. 36 a 46"]],"s":[3,"441 a 428"]},{"n":72,"c":[[58,"Art. 189 a 195"],[1,"Art. 1.653 a 1.671"],[2,"Art. 855 a 865"],[18,"Art. 609 a 618"],[66,"Art. 172 a 180"],[69,"Arts. 47 a 56"]],"s":[3,"427 a 414"]},{"n":73,"c":[[58,"Art. 196 a 203"],[1,"Art. 1.672 a 1.693"],[2,"Art. 866 a 875"],[18,"Art. 619 a 631"],[66,"Art. 181 a 191"],[69,"Arts. 57 a 65"]],"s":[3,"413 a 400"]},{"n":74,"c":[[58,"Art. 204 a 210"],[1,"Art. 1.694 a 1.722"],[2,"Art. 876 a 888"],[18,"Art. 637 a 646"],[66,"Art.192 a 200"],[69,"Arts. 66 a 77"]],"s":[3,"399 a 386"]},{"n":75,"c":[[58,"Art. 211 a 218"],[1,"Art. 1.723 a 1.739"],[2,"Art. 889 a 903"],[18,"Art. 647 a 657"],[66,"Art. 201 a 211"],[69,"Arts. 78 a 89"]],"s":[3,"385 a 372"]},{"n":76,"c":[[0,"Arts. 20 a 24"],[1,"Art. 1.740 a 1.762"],[2,"Art 904 a 913"],[18,"Art. 658 a 667"],[66,"Art. 212 a 222"],[69,"Arts. 90 a 102"]],"s":[3,"371 a 358"]},{"n":77,"c":[[0,"Arts. 34 a 36"],[1,"Art. 1.763 a 1.783"],[2,"Art. 914 a 923"],[18,"Art. 668 a 673"],[66,"Art. 223 a 233"],[69,"Arts. 140 a 155"]],"s":[3,"357 a 344"]},{"n":78,"c":[[0,"Arts. 92 a 98"],[1,"Art. 1.783-A a 1.803"],[2,"Art. 924 a 936"],[18,"Art. 674 a 685 (os demais arts. estão desatualizados e serão lidos no CP, LEP e CPC)"],[66,"Art. 234 a 255"],[69,"Arts. 156 a 164"]],"s":[3,"343 a 330"]},{"n":79,"c":[[0,"Art. 100"],[1,"Art. 1.804 a 1.823"],[2,"Art. 937 a 947"],[72,"Art. 121 a 128"],[66,"Art. 256 a 270"],[69,"Arts. 165 a 178"]],"s":[3,"329 a 316"]},{"n":80,"c":[[0,"Arts. 101 a 105"],[1,"Art. 1.824 a 1.844"],[2,"Art. 948 a 959"],[72,"Art. 129 a 145"],[66,"Art. 271 a 299"],[69,"Arts. 179 a 188"]],"s":[3,"315 a 302"]},{"n":81,"c":[[70,"Arts. 1 a 20"],[1,"Art. 1.845 a 1.867"],[2,"Art. 960 a 975"],[72,"Art. 146 a 154-B"],[66,"Art. 300 a 316"],[69,"Arts. 192 a 218"]],"s":[3,"300 a 288"]},{"n":82,"c":[[70,"Arts. 21 a 42"],[1,"Art. 1.868 a 1.885"],[2,"Art. 976 a 987"],[72,"Art. 155 a 183"],[66,"Art. 317 a 333"],[74,"Arts. 1 a 21"]],"s":[3,"287 a 275"]},{"n":83,"c":[[70,"Arts. 43 a 65"],[1,"Art. 1.886 a 1.911"],[2,"Art. 988 a 993"],[72,"Art. 184 a 212"],[66,"Art. 335 a 349"],[74,"Arts. 22 a 42"]],"s":[3,"273 a 260"]},{"n":84,"c":[[71,"Arts. 1 a 31"],[1,"Art. 1.912 a 1.938"],[2,"Art. 994 a 1.008"],[72,"Art. 213 a 234-B"],[66,"Art. 350 a 366"],[76,"Arts. 1 a 10"]],"s":[3,"259 a 246"]},{"n":85,"c":[[71,"Arts. 32 a 58"],[1,"Art. 1.939 a 1.975"],[2,"Art. 1.009 a 1.020"],[72,"Art. 235 a 249"],[66,"Art. 367 a 383"],[77,"Arts. 01 a 19"]],"s":[3,"245 a 232"]},{"n":86,"c":[[73,"Arts. 1 a 12"],[1,"Art. 1.976 a 1.996"],[2,"Art. 1.021 a 1.035"],[72,"Art. 250 a 266"],[66,"Art. 384 a 398"],[79,"Arts. 1 a 27"]],"s":[3,"231 a 218"]},{"n":87,"c":[[73,"Arts. 13 a 32"],[1,"Art. 1.997 a 2.022"],[2,"Art. 1.036 a 1.049"],[72,"Art. 267 a 288-A"],[66,"Art. 399 a 412"],[80,"Arts. 1 a 23"]],"s":[3,"217 a 204"]},{"n":88,"c":[[75,"Arts. 1 a 23"],[1,"Art. 2.023 a 2.046"],[2,"Art. 1.050 a 1.072"],[72,"Art. 289 a 311-A"],[66,"Art. 413 a 429"],[80,"Arts. 24 a 54"]],"s":[3,"203 a 190"]},{"n":89,"c":[[75,"Arts. 24 a 47"],[81,"Art. 1 a 30"],[2,"Arts. 42 a 53"],[72,"Art. 312 a 327"],[66,"Art. 430 a 457"],[82,"Arts. 1 a 24"]],"s":[3,"189 a 176"]},{"n":90,"c":[[75,"Arts. 48 a 70"],[1,"Arts. 11 a 21"],[2,"Arts. 54 a 64"],[72,"Art. 328 a 337-P"],[66,"Art. 458 a 470"],[82,"Arts. 25 a 55"]],"s":[3,"175 a 162"]},{"n":91,"c":[[78,"Arts. 1 a 13"],[1,"Arts. 138 a 184"],[2,"Arts. 113 a 138"],[72,"Art. 338 a 359"],[66,"Art. 471 a 493"],[84,"Art. 1 a 30"]],"s":[3,"161 a 148"]},{"n":92,"c":[[78,"Arts. 14 a 40"],[1,"Arts. 189 a 211"],[2,"Arts. 240 a 259"],[72,"Art. 359-A a 361"],[85,"Arts. 1 a 10"],[84,"Art. 31 a 60"]],"s":[3,"147 a 134"]},{"n":93,"c":[[78,"Arts. 41 a 78"],[1,"Arts. 257 a 285"],[2,"Arts. 947 e 976 a 993"],[86,"Arts. 1 a 21"],[85,"Arts. 11 a 20"],[84,"Art. 61 a 95"]],"s":[3,"133 a 120"]},{"n":94,"c":[[78,"Arts. 79 a 91"],[1,"Arts. 286 a 303"],[87,"Arts. 1 a 15"],[86,"Arts. 22 a 52"],[88,"Arts. 1 a 6"],[89,"Art. 1 a 28"]],"s":[3,"119 a 106"]},{"n":95,"c":[[78,"Arts. 92 a 127"],[90,"Arts. 1 a 12"],[87,"Arts. 16 a 32"],[86,"Arts. 53 a 76"],[91,"Arts. 20 a 29"],[92,"Art. 1 a 47"]],"s":[3,"105 a 92"]},{"n":96,"c":[[83,"Arts. 1. a 25-A"],[90,"Arts. 13 a 29"],[87,"Arts. 33 a 49"],[86,"Arts. 77 a 92"],[93,"Arts. 01 ao 05"],[94,"Arts. 1 a 18"]],"s":[3,"91 a 78"]},{"n":97,"c":[[83,"Arts. 26 a 70"],[95,"Arts. 1 a 45"],[87,"Arts. 50 a 65"],[86,"Arts. 93 a 115"],[96,"Arts. 1 a 13"],[94,"Arts. 19 a 32"]],"s":[3,"77 a 64"]},{"n":98,"c":[[83,"Arts. 71 a 110"],[95,"Arts. 46 a 88"],[97,"Arts. 1 a 5"],[98,"Arts. 1 a 11"],[96,"Arts. 14 a 36"],[94,"Arts. 33 a 53"]],"s":[3,"63 a 50"]},{"n":99,"c":[[83,"Arts. 111 a 150"],[95,"Arts. 89 a 126"],[97,"Arts. 6 a 17"],[99,"Arts. 1 a 14"],[100,"Arts. 1 a 7"],[94,"Arts. 54 a 74"]],"s":[3,"51 a 36"]},{"n":100,"c":[[83,"Arts. 151 a 199"],[95,"Arts. 127 a 166"],[97,"Arts. 18 a 34"],[99,"Arts. 15 a 34"],[100,"Arts. 8 a 20"],[94,"Arts. 75 a 97"]],"s":[3,"35 a 22"]},{"n":101,"c":[[83,"Arts. 200 a 240"],[95,"Arts. 167 a 226"],[97,"Arts. 35 a 46"],[101,"Arts. 1 a 22"],[100,"Arts. 21 a 31"],[94,"Arts. 98 a 111"]],"s":[3,"21 a 1"]},{"n":102,"c":[[83,"Arts. 241 a 280"],[95,"Arts. 227 a 299"],[97,"Arts. 47 a 67"],[101,"Arts. 23 a 57"],[100,"Arts. 32 a 40"],[94,"Arts. 112 a 124"]]},{"n":103,"c":[[83,"Arts. 281 a 312-B"],[105,"Arts. 1 a 13"],[106,"Arts. 1 a 10"],[107,"Arts. 1 a 4"],[94,"Arts. 125 a 134"]]},{"n":104,"c":[[83,"Arts. 313 a 341"],[102,"Arts. 1 a 10"],[104,"Arts. 1 a 14"],[103,"Arts. 1 a 9"],[108,"Arts. 1 a 6"]]}]};
+const CT_TABELA = {"leis":[["Constituição Federal",""],["Código Civil",""],["Código de Processo Civil",""],["Código Penal",""],["PNMA","Lei nº. 6.938/81"],["Alienação Fiduciária Bens Móveis","Decreto 911/69"],["SNUC","Lei nº. 9.985/00"],["Lei Sistema Finan. Imobiliario","Lei nº. 9.514/97"],["Lei de Locações","Lei nº. 8.245/91"],["Lei de Crimes Ambientais","Lei nº. 9.605/98"],["Lei de Protesto","Lei nº. 9.492/97"],["Código Florestal","Lei nº. 12.651/12"],["Lei de Arbitragem","Lei nº. 9.307/96"],["Lei Resp. Pessoa Jurídica","Lei nº. 12.846/13"],["Bem de Família","Lei nº. 8.009/90"],["Lei das Eleições","Lei nº. 9.504/97"],["Lei de Mediação","Lei 13.140/15"],["ACP","Lei nº. 7.347/85"],["Código de Processo Penal",""],["MS","Lei nº. 12.016/09"],["Lei dos Partidos Políticos","Lei nº. 9.096/95"],["MI","Lei nº. 13.300/16"],["ADI/ADC","Lei nº. 9.868/99"],["CDC","Lei nº. 8.078/90"],["ADPF","Lei nº. 9.882/99"],["Lei Represent. Interventiva","Lei nº. 12.562/2011"],["Ação Popular","Lei n.º 4.717/65"],["Lei Maria da Penha","Lei nº. 11.340/06"],["Consórcios Públicos","Lei nº. 11.107/05"],["Lei Prisão Temporária","Lei nº. 7.960/89"],["Lei Improbidade Admin.","Lei nº. 8.429/92"],["Lei Crimes Hediondos","Lei nº. 8.072/90"],["Lei Organizações Sociais","Lei nº. 9.637/98"],["Lei de Intercept. Telefônica","Lei nº. 9.296/96"],["Lei de Falências","Lei nº. 11.101/05"],["Lei Abuso de Autoridade","Lei nº. 13.869/2019"],["Estatuto do Desarmamento","Lei 10.826/2003"],["Lei Antirracismo","Lei 7.716/89"],["Lei Crimes Ordem Tributária","Lei 8.137/90"],["Lei Crimes Sist. Financeiro","Lei nº. 7.492/86"],["Lei da Tortura","Lei nº 9.455/97"],["Lei de Execução Fiscal","Lei nº. 6.830/80"],["Lei do Cheque","Lei 7.357/85"],["LEP","Lei nº. 7.210/84"],["Lei de Duplicata","Lei n. 5.474/68"],["Lei de Duplicata Escritural","Lei 13.775/2018"],["Juiz. Faz. Púb","Lei n. 12.153/2009"],["Resíduos Sólidos","Lei 12.305/2010"],["Lei de Drogas","Lei nº. 11.343/06"],["Lei de Lavagem de Dinheiro","Lei nº. 9.613/98"],["Lei de Organização Criminosa","Lei nº. 12.850/13"],["Lei da Franquia","Lei 13.966/2019"],["ECA","Lei nº. 8.069/90"],["Lei de Investigação de Paternidade dos filhos havidos fora do casamento","Lei nº 8.560/92"],["Lei de Remoção de órgãos para transplante","Lei nº 9.434/97"],["Lei da Liberdade Econômica","Lei nº 13.874/19"],["Informatização do Processo Juciail","Lei nº 11.419/2006"],["Marco Legal da Primeira Infância","Lei nº 13.257/2016"],["Código Tributário Nacional",""],["Programa de proteção às vítimas","Lei nº 9.807/1999"],["Reconhecimento da União Estável como entidade familiar","Lei nº 9.278/96"],["Estatuto Digital da Criança e do Adolescente","Lei 15.211/2025"],["Lei SINASE","Lei nº. 12.594/12"],["Marco temporal para a demarcação de terras indígenas","Lei nº 14.701/2023"],["SNE","LC 220/2025"],["Lei Licitações","Lei nº. 14.133/2021"],["Reforma Tributária","LC 214/2025"],["Normas procedimentais para processos perante o STF e o STJ","Lei nº 8.038/90"],["Estatuto do Idoso","Lei nº 10.741/2003"],["Lei Geral do Esporte","Lei 14.597/2023"],["Est. Igualdade Racial","Lei n. 12.288/2010"],["Estatuto das Cidades","Lei 10.257/2001"],["Código Penal – Parte Especial",""],["Marco civil da Internet","Lei 12.965/2014"],["Lei de Acesso à Informação","Lei 12.527/2011"],["Lei do Condo. em Edificações e as Incorp. Imob.","Lei n. 4.591/64"],["Lei da Súmula Vinculante","Lei n. 11.417/2006"],["Lei das startups","Lei Complementar nº 182/2021"],["Estatuto da Pessoa com Deficiência","Lei nº. 13.146/2015"],["Juízados Especiais da Justiça Federal","Lei nº 10.259/01"],["Lei do Divórcio","Lei 6.515/17"],["LINDB","Lei nº. 4.657/42"],["Parcelamento do Solo Urbano","Lei 6.766/79"],["CTB","Lei nº 9.503/1997"],["JEC","Lei 9.099/95"],["Pacote Anticrime","Lei nº 13.964/2019"],["Lei dos Direitos Autorais","Lei nº 9.610/98"],["Lei de Proteção de Dados Pessoais","Lei nº. 13.709/2018"],["Concessão de medidas cautelares contra atos do Poder Público","Lei nº 8.437/92"],["Lei de Inelegibilidades","LC nº. 64/90"],["Sistema de garantia de direitos da criança e do adolescente vítima ou testemunha de violência","Lei nº 13.431/2017"],["Dos crimes de biossegurança","Lei nº 11.105/2005"],["Lei Concessão e Permissão","Lei nº. 8.987/95"],["Nova lei de juros","Lei nº 14.905/2024"],["Marco Civil dos Seguros","Lei 15.040/24"],["Registros Públicos","Lei n. 6.015/1973"],["Plano de Saúde","Lei nº 9.656/1998"],["Lei Geral do Licenciamento Ambiental","Lei 15.190/2025"],["Prescrição Quinquenal","Decreto 20.910/32"],["Lei Henry Borel","Lei nº 14.344/2022"],["Marco Regulatório do Sistema Nacional de Cultura","Lei 14.835/2024"],["Recursos Hídricos","Lei n. 9.433/1997"],["Lei bullying e cyberbullying","Lei nº 14.811/2024"],["Crimes praticados por prefeitos e vereadores","Decreto-lei nº 201/1967"],["Nova Lei de Cotas","Lei 15.142/2025"],["Nova Lei dos Concursos Públicos","Lei 14.965/2024"],["Crime organizado","Lei nº 12.694/2012"],["Tutela Antecipada contra a Fazenda Pública","Lei nº 9.494/97"],["Lei de crimes contra a ordem tributária, econômica e relações de consumo","Lei nº 8.176/1991"]],"fontes":["Súmulas Vinculantes","Súmulas do TSE","Súmulas do STJ","Súmulas do STF"],"dias":[{"n":1,"c":[[0,"Art. 1 a 4"],[1,"Art. 1 a 21"],[2,"Art. 1 a 12"],[3,"Art. 1 a 10"],[4,"Art. 1 a 21"],[5,"Art. 1 a 9"]],"s":[0,"1 a 12"]},{"n":2,"c":[[0,"Art. 5"],[1,"Art. 22 a 52"],[2,"Art. 13 a 25"],[3,"Art. 11 a 20"],[6,"Art. 1 a 21"],[7,"Art. 1 a 20"]],"s":[0,"13 a 24"]},{"n":3,"c":[[0,"Art. 6 a 11"],[1,"Art. 53 a 78"],[2,"Art. 26 a 36"],[3,"Art. 21 a 30"],[6,"Art. 22 a 40"],[7,"Art. 21 a 42"]],"s":[0,"25 a 32"]},{"n":4,"c":[[0,"Art. 12 a 16"],[1,"Art. 79 a 97"],[2,"Art. 37 a 53"],[3,"Art. 31 a 40"],[6,"Art. 41 a 60"],[8,"Art. 1 a 30"]],"s":[0,"33 a 45"]},{"n":5,"c":[[0,"Art. 17 a 19"],[1,"Art. 98 a 120"],[2,"Art. 54 a 63"],[3,"Art. 41 a 50"],[9,"Art. 1 a 28"],[8,"Art. 31 a 60"]],"s":[0,"46 a 63"]},{"n":6,"c":[[0,"Art. 20 a 24"],[1,"Art. 121 a 144"],[2,"Art. 64 a 78"],[3,"Art. 51 a 60"],[9,"Art. 29 a 61"],[8,"Art. 61 a 75"]],"s":[1,"73 a 61"]},{"n":7,"c":[[0,"Art. 25 a 31"],[1,"Art. 145 a 165"],[2,"Art. 79 a 97"],[3,"Art. 61 a 70"],[9,"Art. 62 a 82"],[10,"Art. 1 a 43"]],"s":[1,"60 a 49"]},{"n":8,"c":[[0,"Art. 32 a 36"],[1,"Art. 166 a 188"],[2,"Art. 98 a 107"],[3,"Art. 71 a 80"],[11,"Art. 1 a 28"],[12,"Art. 1 a 40"]],"s":[1,"48 a 37"]},{"n":9,"c":[[0,"Art. 37 a 38"],[1,"Art. 189 a 204"],[2,"Art. 108 a 120"],[3,"Art. 81 a 90"],[11,"Art. 29 a 58"],[13,"Art. 1 a 31"]],"s":[1,"36 a 25"]},{"n":10,"c":[[0,"Art. 39 a 41"],[1,"Art. 205 a 232"],[2,"Art. 121 a 137"],[3,"Art. 91 a 100"],[11,"Art. 59 a 84"],[14,"Art. 1 a 6"]],"s":[1,"24 a 13"]},{"n":11,"c":[[0,"Art. 42 a 50"],[1,"Art. 233 a 256"],[2,"Art. 138 a 143"],[3,"Art. 101 a 110"],[15,"Art. 1 a 30"],[16,"Art. 1 a 48"]],"s":[1,"12 a 1"]},{"n":12,"c":[[0,"Art. 51 a 56"],[1,"Art. 257 a 274"],[2,"Art. 144 a 155"],[3,"Art. 111 a 120"],[15,"Art. 31 a 65"],[17,"Art. 1 a 23"]],"s":[2,"676 a 650"]},{"n":13,"c":[[0,"Art. 57 a 60"],[1,"Art. 275 a 298"],[2,"Art. 156 a 164"],[18,"Art. 1 a 10"],[15,"Art. 66 a 105-A"],[19,"Art. 1 a 29"]],"s":[2,"651 a 630"]},{"n":14,"c":[[0,"Art. 61 a 65"],[1,"Art. 299 a 326"],[2,"Art. 165 a 175"],[18,"Art. 11 a 20"],[20,"Art. 1 a 30"],[21,"Art. 1 a 15"]],"s":[2,"629 a 609"]},{"n":15,"c":[[0,"Art. 66 a 70"],[1,"Art. 327 a 345"],[2,"Art. 176 a 187"],[18,"Art. 21 a 30"],[20,"Art. 31 a 62"],[22,"Art. 1 a 31"]],"s":[2,"608 a 594"]},{"n":16,"c":[[0,"Art. 71 a 75"],[1,"Art. 346 a 367"],[2,"Art. 188 a 202"],[18,"Art. 31 a 40"],[23,"Art. 1 a 25"],[24,"Art. 1 a 14"]],"s":[2,"593 a 580"]},{"n":17,"c":[[0,"Art. 76 a 80"],[1,"Art. 368 a 393"],[2,"Art. 203 a 211"],[18,"Art. 41 a 50"],[23,"Art. 26 a 41"],[25,"Arts. 1 a 13"]],"s":[2,"579 a 566"]},{"n":18,"c":[[0,"Art. 81 a 85"],[1,"Art. 394 a 416"],[2,"Art. 212 a 217"],[18,"Art. 51 a 60"],[23,"Art. 42 a 54-G"],[26,"Art. 1 a 22"]],"s":[2,"565 a 552"]},{"n":19,"c":[[0,"Art. 86 a 90"],[1,"Art. 417 a 438"],[2,"Art. 218 a 232"],[18,"Art. 61 a 70"],[23,"Art. 55 a 80"],[27,"Art. 1 a 12-C"]],"s":[2,"551 a 538"]},{"n":20,"c":[[0,"Art. 91 a 100"],[1,"Art. 439 a 461"],[2,"Art. 233 a 246"],[18,"Art. 71 a 80"],[23,"Art.81 a 107"],[27,"Art. 13 a 26"]],"s":[2,"537 a 515"]},{"n":21,"c":[[0,"Art. 101 a 110"],[1,"Art. 462 a 480"],[2,"Art. 247 a 259"],[18,"Art. 81 a 90"],[23,"Art. 36 a 80"],[27,"Art. 27 a 46"]],"s":[2,"514 a 491"]},{"n":22,"c":[[0,"Art. 111 a 117"],[1,"Art. 481 a 504"],[2,"Art. 260 a 275"],[18,"Art. 91 a 100"],[28,"Art. 1 a 20"],[29,"Art. 1 a 7"]],"s":[2,"490 a 458"]},{"n":23,"c":[[0,"Art. 118 a 126"],[1,"Art. 505 a 532"],[2,"Art. 276 a 290"],[18,"Art. 101 a 110"],[30,"Art. 1 a 25"],[31,"Art. 1 a 13"]],"s":[2,"457 a 433"]},{"n":24,"c":[[0,"Art. 127 a 130-A"],[1,"Art. 533 a 554"],[2,"Art. 291 a 302"],[18,"Art. 111 a 120"],[32,"Art. 1 a 25"],[33,"Art. 1 a 12"]],"s":[2,"432 a 407"]},{"n":25,"c":[[0,"Art. 131 a 135"],[1,"Art. 555 a 578"],[2,"Art. 303 a 312"],[18,"Art. 121 a 130"],[34,"Art. 01 a 35"],[35,"Arts. 1 a 42"]],"s":[2,"406 a 390"]},{"n":26,"c":[[0,"Art. 136 a 141"],[1,"Art. 579 a 592"],[2,"Art 313 a 321"],[18,"Art. 131 a 140"],[34,"Art. 36 a 70"],[36,"Arts. 1 a 37"]],"s":[2,"389 a 372"]},{"n":27,"c":[[0,"Art. 142 a 144"],[1,"Art. 593 a 626"],[2,"Art. 322 a 331"],[18,"Art. 141 a 150"],[34,"Art. 71 a 105"],[37,"Arts. 1 a 22"]],"s":[2,"371 a 354"]},{"n":28,"c":[[0,"Art. 145 a 149-A"],[1,"Art. 627 a 646"],[2,"Art. 332 a 346"],[18,"Art. 151 a 160"],[34,"Art. 106 a 140"],[38,"Arts. 1 a 17"]],"s":[2,"353 a 336"]},{"n":29,"c":[[0,"Art. 150 a 154"],[1,"Art. 647 a 674"],[2,"Art. 347 a 357"],[18,"Art. 161 a 170"],[34,"Art. 141 a 175"],[39,"Arts. 1 a 33"]],"s":[2,"335 a 318"]},{"n":30,"c":[[0,"Art. 155 a 156"],[1,"Art. 675 a 692"],[2,"Art. 358 a 368"],[18,"Art. 171 a 180"],[34,"Art. 175 a 200"],[40,"Arts. 1 e 2"]],"s":[2,"317 a 300"]},{"n":31,"c":[[0,"Art. 157 a 162"],[1,"Art. 693 a 721"],[2,"Art. 369 a 380"],[18,"Art. 181 a 190"],[41,"Art. 1 a 20"],[42,"Arts. 1 a 16"]],"s":[2,"299 a 283"]},{"n":32,"c":[[0,"Art. 163 a 164-A"],[1,"Art.722 a 742"],[2,"Art. 381 a 388"],[18,"Art. 191 a 200"],[41,"Art.21 a 42"],[42,"Arts. 17 a 31"]],"s":[2,"282 a 265"]},{"n":33,"c":[[0,"Art. 165 a 167"],[1,"Art.743 a 756"],[2,"Art. 389 a 395"],[18,"Art. 201 a 210"],[43,"Art. 1 a 30"],[42,"Arts. 32 a 55"]],"s":[2,"264 a 248"]},{"n":34,"c":[[0,"Art. 167-A a 169"],[1,"Art. 757 a 802"],[2,"Art. 396 a 404"],[18,"Art. 211 a 220"],[43,"Art. 31 a 60"],[42,"Arts. 56 a 71"]],"s":[2,"247 a 229"]},{"n":35,"c":[[0,"Art. 170 a 181"],[1,"Art. 803 a 826"],[2,"Art. 405 a 415"],[18,"Art. 221 a 230"],[43,"Art. 61 a 90"],[44,"Arts. 1 a 28"]],"s":[2,"228 a 211"]},{"n":36,"c":[[0,"Art. 182 a 191"],[1,"Art. 827 a 853"],[2,"Art. 416 a 429"],[18,"Art. 231 a 240"],[43,"Art. 91 a 120"],[45,"Arts. 1 a 13"]],"s":[2,"210 a 193"]},{"n":37,"c":[[0,"Art. 192 a 195"],[1,"Art. 854 a 875"],[2,"Art. 430 a 441"],[18,"Art. 241 a 250"],[43,"Art. 121 a 150"],[46,"Arts. 1. a 28"]],"s":[2,"192 a 175"]},{"n":38,"c":[[0,"Art. 196 a 200"],[1,"Art. 876 a 903"],[2,"Art. 442 a 449"],[18,"Art. 251 a 260"],[43,"Art. 151 a 197"],[47,"Arts. 1 a 19"]],"s":[2,"173 a 158"]},{"n":39,"c":[[0,"Art. 201 a 204"],[1,"Art. 904 a 920"],[2,"Art. 450 a 463"],[18,"Art. 261 a 270"],[48,"Art. 27 a 75"],[47,"Arts. 20 a 41"]],"s":[2,"156 a 140"]},{"n":40,"c":[[0,"Art. 205 a 210"],[1,"Art. 921 a 943"],[2,"Art. 464 a 480"],[18,"Art. 271 a 280"],[49,"Art. 1 a 12-A"],[47,"Arts. 42 a 56"]],"s":[2,"139 a 123"]},{"n":41,"c":[[0,"Art. 211 a 214"],[1,"Art. 944 a 965"],[2,"Art. 481 a 488"],[18,"Art. 281 a 290"],[50,"Art. 1 a 27"],[51,"Arts. 1 a 10"]],"s":[2,"122 a 115"]},{"n":42,"c":[[0,"Art. 215 a 217"],[1,"Art. 965 a 990"],[2,"Art. 489 a 501"],[18,"Art. 291 a 300"],[52,"Art. 1 a 30"],[53,"Arts. 1 a 10"]],"s":[2,"114 a 106"]},{"n":43,"c":[[0,"Art. 218 a 224"],[1,"Art. 991 a 1.009"],[2,"Art. 502 a 519"],[18,"Art. 301 a 310"],[52,"Art. 31 a 60"],[54,"Arts. 1 a 25"]],"s":[2,"105 a 93"]},{"n":44,"c":[[0,"Art. 225 a 232"],[1,"Art. 1.010 a 1.032"],[2,"Art. 520 a 527"],[18,"Art. 311 a 320"],[52,"Art. 61 a 90"],[55,"Arts. 1 a 20"]],"s":[2,"93 a 87"]},{"n":45,"c":[[0,"Art. 233 a 240"],[1,"Art. 1.033 a 1.059"],[2,"Art. 528 a 535"],[18,"Art. 321 a 330"],[52,"Art. 91 a 120"],[56,"Arts. 1 a 22"]],"s":[2,"86 a 69"]},{"n":46,"c":[[0,"Art. 241 a 250"],[1,"Art. 1.060 a 1.080-A"],[2,"Art. 536 a 549"],[18,"Art. 331 a 340"],[52,"Art. 121 a 150"],[57,"Arts. 1 a 20"]],"s":[2,"67 a 51"]},{"n":47,"c":[[58,"Art. 1 a 8"],[1,"Art. 1.081 a 1.101"],[2,"Art. 550 a 566"],[18,"Art. 341 a 350"],[52,"Art. 151 a 180"],[57,"Arts. 21 a 43"]],"s":[2,"50 a 33"]},{"n":48,"c":[[58,"Art. 9 a 15"],[1,"Art. 1.102 a 1.125"],[2,"Art. 567 a 587"],[18,"Art. 351 a 360"],[52,"Art. 181 a 200"],[59,"Arts. 1 a 21"]],"s":[2,"32 a 15"]},{"n":49,"c":[[58,"Art. 16 a 23"],[1,"Art. 1.126 a 1.149"],[2,"Art. 588 a 598"],[18,"Art. 361 a 370"],[52,"Art. 201 a 230"],[60,"Arts. 1 a 11"]],"s":[2,"14 a 1"]},{"n":50,"c":[[58,"Art. 24 a 30"],[1,"Art. 1.150 a 1.176"],[2,"Art. 599 a 609"],[18,"Art. 371 a 380"],[52,"Art. 231 a 267"],[61,"Arts. 1 a 9"]],"s":[3,"736 a 722"]},{"n":51,"c":[[58,"Art. 31 a 38"],[1,"Art. 1.177 a 1.195"],[2,"Art 610 a 625"],[18,"Art. 381 a 390"],[62,"Art. 1 a 30"],[61,"Arts. 10 a 26"]],"s":[3,"721 a 708"]},{"n":52,"c":[[58,"Art. 39 a 45"],[1,"Art. 1.196 a 1.224"],[2,"Art. 626 a 638"],[18,"Art. 391 a 400"],[62,"Art. 31 a 60"],[61,"Arts. 27 a 41-A"]],"s":[3,"707 a 694"]},{"n":53,"c":[[58,"Art. 46 a 53"],[1,"Art. 1.225 a 1.244"],[2,"Art. 639 a 646"],[18,"Art. 401 a 410"],[62,"Art. 61 a 85"],[63,"Art. 1 ao 17"]],"s":[3,"693 a 680"]},{"n":54,"c":[[58,"Art. 54 a 60"],[1,"Art. 1.245 a 1.267"],[2,"Art. 647 a 658"],[18,"Art. 411 a 420"],[64,"Art. 1 a 23"],[63,"Art. 18 a 33"]],"s":[3,"679 a 666"]},{"n":55,"c":[[58,"Art. 61 a 68"],[1,"Art. 1.268 a 1.287"],[2,"Art. 659 a 673"],[18,"Art. 421 a 430"],[64,"Art. 24 ao 42"],[65,"Art. 1 a 17"]],"s":[3,"665 a 652"]},{"n":56,"c":[[58,"Art. 69 a 75"],[1,"Art. 1.288 a 1.313"],[2,"Art. 674 a 686"],[18,"Art. 431 a 440"],[64,"Art. 43 ao 64"],[65,"Art. 18 a 27"]],"s":[3,"651 a 638"]},{"n":57,"c":[[58,"Art. 76 a 83"],[1,"Art. 1.314 a 1.330"],[2,"Art. 687 a 699"],[18,"Art. 441 a 450"],[66,"Art. 1 a 7"],[65,"Art. 28 a 44"]],"s":[3,"637 a 624"]},{"n":58,"c":[[58,"Art. 84 a 90"],[1,"Art. 1.331 a 1.356"],[2,"Art. 700 a 711"],[18,"Art. 451 a 460"],[66,"Art. 8 a 13"],[65,"Art. 45 a 73"]],"s":[3,"623 a 610"]},{"n":59,"c":[[58,"Art. 91 a 98"],[1,"Art. 1.357 a 1.360"],[2,"Art. 712 a 725"],[18,"Art. 461 a 470"],[66,"Art. 14 a 20"],[65,"Art. 74 a 88"]],"s":[3,"609 a 596"]},{"n":60,"c":[[58,"Art. 99 a 105"],[1,"Art. 1.361 a 1.386"],[2,"Art. 726 a 730"],[18,"Art. 471 a 480"],[66,"Art. 21 a 26"],[65,"Art. a 89 a 114"]],"s":[3,"595 a 582"]},{"n":61,"c":[[58,"Art. 106 a 113"],[1,"Art. 1.387 a 1.409"],[2,"Art. 731 a 737"],[18,"Art. 481 a 490"],[66,"Art. 27 a 38"],[65,"Art. 115 a 139"]],"s":[3,"581 a 568"]},{"n":62,"c":[[58,"Art. 114 a 120"],[1,"Art. 1.410 a 1.432"],[2,"Art. 738 a 745"],[18,"Art. 491 a 497"],[66,"Art. 39 a 46"],[67,"Arts. 1 a 23 / 24 a 44"]],"s":[3,"567 a 554"]},{"n":63,"c":[[58,"Art. 121 a 128"],[1,"Art. 1.433 a 1.460"],[2,"Art. 744 a 758"],[18,"Art. 513 a 523"],[66,"Art. 47 a 57"],[68,"Arts. 1 a 19"]],"s":[3,"553 a 540"]},{"n":64,"c":[[58,"Art. 129 a 135"],[1,"Art. 1.461 a 1.498"],[2,"Art. 759 a 770"],[18,"Art. 524 a 530-I"],[66,"Art. 58 a 64"],[68,"Arts. 20 a 32"]],"s":[3,"539 a 526"]},{"n":65,"c":[[58,"Art. 136 a 143"],[1,"Art. 1.499 a 1.516"],[2,"Art. 771 a 782"],[18,"Art. 531 a 538"],[66,"Art. 65 a 78"],[68,"Arts. 33 a 47"]],"s":[3,"525 a 512"]},{"n":66,"c":[[58,"Art. 144 a 150"],[1,"Art. 1.517 a 1.542"],[2,"Art. 783 a 796"],[18,"Art. 541 a 548"],[66,"Art. 79 a 93"],[68,"Arts. 48 a 72"]],"s":[3,"511 a 498"]},{"n":67,"c":[[58,"Art. 151 a 158"],[1,"Art. 1.543 a 1.564"],[2,"Art. 797 a 810"],[18,"Art. 549 a 555"],[66,"Art. 94 a 111"],[68,"Arts. 73 a 118"]],"s":[3,"497 a 484"]},{"n":68,"c":[[58,"Art. 159 a 165"],[1,"Art. 1.565 a 1.590"],[2,"Art. 811 a 821"],[18,"Art. 563 a 573"],[66,"Art. 112 a 126"],[69,"Arts. 1 a 13"]],"s":[3,"483 a 470"]},{"n":69,"c":[[58,"Art. 166 a 173"],[1,"Art. 1.591 a 1.617"],[2,"Art. 822 a 830"],[18,"Art. 574 a 580"],[66,"Art. 127 a 144"],[69,"Arts. 14 ao 24"]],"s":[3,"469 a 456"]},{"n":70,"c":[[58,"Art. 174 a 180"],[1,"Art. 1.618 a 1.638"],[2,"Art. 831 a 844"],[18,"Art. 581 a 592"],[66,"Art. 145 a 157"],[69,"Arts. 25 a 35"]],"s":[3,"455 a 442"]},{"n":71,"c":[[58,"Art. 181 a 188"],[1,"Art. 1.639 a 1.652"],[2,"Art. 845 a 854"],[18,"Art. 593 a 603"],[66,"Art. 158 a 171"],[69,"Arts. 36 a 46"]],"s":[3,"441 a 428"]},{"n":72,"c":[[58,"Art. 189 a 195"],[1,"Art. 1.653 a 1.671"],[2,"Art. 855 a 865"],[18,"Art. 609 a 618"],[66,"Art. 172 a 180"],[69,"Arts. 47 a 56"]],"s":[3,"427 a 414"]},{"n":73,"c":[[58,"Art. 196 a 203"],[1,"Art. 1.672 a 1.693"],[2,"Art. 866 a 875"],[18,"Art. 619 a 631"],[66,"Art. 181 a 191"],[69,"Arts. 57 a 65"]],"s":[3,"413 a 400"]},{"n":74,"c":[[58,"Art. 204 a 210"],[1,"Art. 1.694 a 1.722"],[2,"Art. 876 a 888"],[18,"Art. 637 a 646"],[66,"Art.192 a 200"],[69,"Arts. 66 a 77"]],"s":[3,"399 a 386"]},{"n":75,"c":[[58,"Art. 211 a 218"],[1,"Art. 1.723 a 1.739"],[2,"Art. 889 a 903"],[18,"Art. 647 a 657"],[66,"Art. 201 a 211"],[69,"Arts. 78 a 89"]],"s":[3,"385 a 372"]},{"n":76,"c":[[0,"Arts. 20 a 24"],[1,"Art. 1.740 a 1.762"],[2,"Art 904 a 913"],[18,"Art. 658 a 667"],[66,"Art. 212 a 222"],[69,"Arts. 90 a 102"]],"s":[3,"371 a 358"]},{"n":77,"c":[[0,"Arts. 34 a 36"],[1,"Art. 1.763 a 1.783"],[2,"Art. 914 a 923"],[18,"Art. 668 a 673"],[66,"Art. 223 a 233"],[69,"Arts. 140 a 155"]],"s":[3,"357 a 344"]},{"n":78,"c":[[0,"Arts. 92 a 98"],[1,"Art. 1.783-A a 1.803"],[2,"Art. 924 a 936"],[18,"Art. 674 a 685 (os demais arts. estão desatualizados e serão lidos no CP, LEP e CPC)"],[66,"Art. 234 a 255"],[69,"Arts. 156 a 164"]],"s":[3,"343 a 330"]},{"n":79,"c":[[0,"Art. 100"],[1,"Art. 1.804 a 1.823"],[2,"Art. 937 a 947"],[72,"Art. 121 a 128"],[66,"Art. 256 a 270"],[69,"Arts. 165 a 178"]],"s":[3,"329 a 316"]},{"n":80,"c":[[0,"Arts. 101 a 105"],[1,"Art. 1.824 a 1.844"],[2,"Art. 948 a 959"],[72,"Art. 129 a 145"],[66,"Art. 271 a 299"],[69,"Arts. 179 a 188"]],"s":[3,"315 a 302"]},{"n":81,"c":[[70,"Arts. 1 a 20"],[1,"Art. 1.845 a 1.867"],[2,"Art. 960 a 975"],[72,"Art. 146 a 154-B"],[66,"Art. 300 a 316"],[69,"Arts. 192 a 218"]],"s":[3,"300 a 288"]},{"n":82,"c":[[70,"Arts. 21 a 42"],[1,"Art. 1.868 a 1.885"],[2,"Art. 976 a 987"],[72,"Art. 155 a 183"],[66,"Art. 317 a 334"],[74,"Arts. 1 a 21"]],"s":[3,"287 a 275"]},{"n":83,"c":[[70,"Arts. 43 a 65"],[1,"Art. 1.886 a 1.911"],[2,"Art. 988 a 993"],[72,"Art. 184 a 212"],[66,"Art. 335 a 349"],[74,"Arts. 22 a 42"]],"s":[3,"273 a 260"]},{"n":84,"c":[[71,"Arts. 1 a 31"],[1,"Art. 1.912 a 1.938"],[2,"Art. 994 a 1.008"],[72,"Art. 213 a 234-B"],[66,"Art. 350 a 366"],[76,"Arts. 1 a 10"]],"s":[3,"259 a 246"]},{"n":85,"c":[[71,"Arts. 32 a 58"],[1,"Art. 1.939 a 1.975"],[2,"Art. 1.009 a 1.020"],[72,"Art. 235 a 249"],[66,"Art. 367 a 383"],[77,"Arts. 01 a 19"]],"s":[3,"245 a 232"]},{"n":86,"c":[[73,"Arts. 1 a 12"],[1,"Art. 1.976 a 1.996"],[2,"Art. 1.021 a 1.035"],[72,"Art. 250 a 266"],[66,"Art. 384 a 398"],[79,"Arts. 1 a 27"]],"s":[3,"231 a 218"]},{"n":87,"c":[[73,"Arts. 13 a 32"],[1,"Art. 1.997 a 2.022"],[2,"Art. 1.036 a 1.049"],[72,"Art. 267 a 288-A"],[66,"Art. 399 a 412"],[80,"Arts. 1 a 23"]],"s":[3,"217 a 204"]},{"n":88,"c":[[75,"Arts. 1 a 23"],[1,"Art. 2.023 a 2.046"],[2,"Art. 1.050 a 1.072"],[72,"Art. 289 a 311-A"],[66,"Art. 413 a 429"],[80,"Arts. 24 a 54"]],"s":[3,"203 a 190"]},{"n":89,"c":[[75,"Arts. 24 a 47"],[81,"Art. 1 a 30"],[2,"Arts. 42 a 53"],[72,"Art. 312 a 327"],[66,"Art. 430 a 457"],[82,"Arts. 1 a 24"]],"s":[3,"189 a 176"]},{"n":90,"c":[[75,"Arts. 48 a 70"],[1,"Arts. 11 a 21"],[2,"Arts. 54 a 64"],[72,"Art. 328 a 337-P"],[66,"Art. 458 a 470"],[82,"Arts. 25 a 55"]],"s":[3,"175 a 162"]},{"n":91,"c":[[78,"Arts. 1 a 13"],[1,"Arts. 138 a 184"],[2,"Arts. 113 a 138"],[72,"Art. 338 a 359"],[66,"Art. 471 a 493"],[84,"Art. 1 a 30"]],"s":[3,"161 a 148"]},{"n":92,"c":[[78,"Arts. 14 a 40"],[1,"Arts. 189 a 211"],[2,"Arts. 240 a 259"],[72,"Art. 359-A a 361"],[85,"Arts. 1 a 10"],[84,"Art. 31 a 60"]],"s":[3,"147 a 134"]},{"n":93,"c":[[78,"Arts. 41 a 78"],[1,"Arts. 257 a 285"],[2,"Arts. 947 e 976 a 993"],[86,"Arts. 1 a 21"],[85,"Arts. 11 a 20"],[84,"Art. 61 a 95"]],"s":[3,"133 a 120"]},{"n":94,"c":[[78,"Arts. 79 a 91"],[1,"Arts. 286 a 303"],[87,"Arts. 1 a 15"],[86,"Arts. 22 a 52"],[88,"Arts. 1 a 6"],[89,"Art. 1 a 28"]],"s":[3,"119 a 106"]},{"n":95,"c":[[78,"Arts. 92 a 127"],[90,"Arts. 1 a 12"],[87,"Arts. 16 a 32"],[86,"Arts. 53 a 76"],[91,"Arts. 20 a 29"],[92,"Art. 1 a 47"]],"s":[3,"105 a 92"]},{"n":96,"c":[[83,"Arts. 1. a 25-A"],[90,"Arts. 13 a 29"],[87,"Arts. 33 a 49"],[86,"Arts. 77 a 92"],[93,"Arts. 01 ao 05"],[94,"Arts. 1 a 18"]],"s":[3,"91 a 78"]},{"n":97,"c":[[83,"Arts. 26 a 70"],[95,"Arts. 1 a 45"],[87,"Arts. 50 a 65"],[86,"Arts. 93 a 115"],[96,"Arts. 1 a 13"],[94,"Arts. 19 a 32"]],"s":[3,"77 a 64"]},{"n":98,"c":[[83,"Arts. 71 a 110"],[95,"Arts. 46 a 88"],[97,"Arts. 1 a 5"],[98,"Arts. 1 a 11"],[96,"Arts. 14 a 36"],[94,"Arts. 33 a 53"]],"s":[3,"63 a 50"]},{"n":99,"c":[[83,"Arts. 111 a 150"],[95,"Arts. 89 a 126"],[97,"Arts. 6 a 17"],[99,"Arts. 1 a 14"],[100,"Arts. 1 a 7"],[94,"Arts. 54 a 74"]],"s":[3,"51 a 36"]},{"n":100,"c":[[83,"Arts. 151 a 199"],[95,"Arts. 127 a 166"],[97,"Arts. 18 a 34"],[99,"Arts. 15 a 34"],[100,"Arts. 8 a 20"],[94,"Arts. 75 a 97"]],"s":[3,"35 a 22"]},{"n":101,"c":[[83,"Arts. 200 a 240"],[95,"Arts. 167 a 226"],[97,"Arts. 35 a 46"],[101,"Arts. 1 a 22"],[100,"Arts. 21 a 31"],[94,"Arts. 98 a 111"]],"s":[3,"21 a 1"]},{"n":102,"c":[[83,"Arts. 241 a 280"],[95,"Arts. 227 a 299"],[97,"Arts. 47 a 67"],[101,"Arts. 23 a 57"],[100,"Arts. 32 a 40"],[94,"Arts. 112 a 124"]]},{"n":103,"c":[[83,"Arts. 281 a 312-B"],[105,"Arts. 1 a 13"],[106,"Arts. 1 a 10"],[107,"Arts. 1 a 4"],[94,"Arts. 125 a 134"]]},{"n":104,"c":[[83,"Arts. 313 a 341"],[102,"Arts. 1 a 10"],[104,"Arts. 1 a 14"],[103,"Arts. 1 a 9"],[108,"Arts. 1 a 6"]]}]};
 // índice lei → faixas de artigos, na ordem do roteiro (usado no registro de sessão)
 const CT_FAIXAS = (()=>{ const m={};
   CT_TABELA.dias.forEach(d=>{ d.c.forEach(([i,a])=>{ (m[CT_TABELA.leis[i][0]] || (m[CT_TABELA.leis[i][0]]=[])).push(a); });
@@ -5647,6 +5700,7 @@ class Component extends DCLogic {
       view:'inicio',
       nativeRev:null,   // agenda única: {legis:{due,deck}, juris:{due,deck}} injetado pelo host do desktop
       nativePlano:null, // planos de leitura: {legis:{done,total,next}, juris:{done,total,next}} injetado pelo host
+      planoLegis:this._load('planoLegis', {}), // progresso do plano de leitura na WEB (dia|item -> true)
       nativeCatalogo:null,
       roteiroVista:null, // navegação entre roteiros no Ciclo (null = o atual) // catálogo p/ registro: {legis:[{disc,leis[]}], juris:[fontes]} injetado pelo host
       dir: (()=>{ try{ const d=localStorage.getItem('catedra:dir'); if(d&&['sutil','premium','clean','moderno'].includes(d)) return d; }catch(_){} return props.direction || 'sutil'; })(),
@@ -5741,7 +5795,7 @@ class Component extends DCLogic {
       espelhosSugeridos:this._load('espelhosSugeridos',[]), espSugBusy:false, espSugAtual:null,
       // guarda qual prova está aberta: sem isso, recarregar o app deixava o gabarito
       // sugerido na tela mas sem o selo que diz que ele é sugerido
-      redProvaId:this._load('redProvaId',''), redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
+      redProvaId:this._load('redProvaId',''), redMarcas:this._load('redMarcas', {}), redSelTxt:'', redSelOcorr:0, redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
       // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
       // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
@@ -5759,7 +5813,7 @@ class Component extends DCLogic {
       viewBloqueada:'',   // qual view foi barrada pelo guarda de área (só para a tela explicar)
       areaPreview:'',     // área PROPOSTA, aguardando confirmação (não é a ativa)
       bancoAbrindo:'',    // id da prova cujo textão está baixando (o card mostra "abrindo…")
-      cicloFq:{tipos:[],disc:'',q:''},  // filtro do ciclo (sessão apenas: não sincroniza)
+      cicloFq:{tipos:[],disc:'',topico:'',q:''},  // filtro do ciclo (sessão apenas: não sincroniza)
       sessMais:false,        // o Registrar abre enxuto; "Mais detalhes" expande
       // --- casos da área (Fase 4): o conteúdo é da pessoa, a estrutura é da área ---
       casos:this._load('casos', []),
@@ -5780,12 +5834,15 @@ class Component extends DCLogic {
       orient:{
         nivel:'intermediario', tempoDia:'180', turno:'noite', energia:'normal', dias:'seg,ter,qua,qui,sex,sab', energiaPlano:'normal',
         cobranca:'equilibrado', estrategia:'ciclo', banca:'cebraspe', linguagem:'professor', focoEstrategico:false,
-        blocoPadrao:'50', pausaPadrao:'10', modoPadrao:'livre', aoAbrir:'foco',
-        telaEscura:true, abrirRegistro:true, marcarConcluido:true, perguntarQuestoes:true, criarRevisoes:true,
-        alRev:true, alAnki:true, alAcerto:true, alErros:true, alMeta:true, alProva:true, alSim:true, alDisc:true,
+        blocoPadrao:'50', modoPadrao:'livre', aoAbrir:'foco',
+        /* SAÍRAM daqui, na recriação dos Ajustes: telaEscura, abrirRegistro, marcarConcluido,
+           perguntarQuestoes, criarRevisoes, periodo, formatoConselho, fechamento, ritual e o
+           conjunto alRev/alAnki/alAcerto/alErros/alMeta/alProva/alSim/alDisc. Nenhum deles era
+           lido em lugar NENHUM do arquivo nem aparecia na tela — eram só peso no estado que
+           subia para a nuvem a cada sync. Os que a tela realmente usa vivem em `prefs`
+           (autoRegistro/autoConcluir/autoRevisao e os alertas). */
         pEdital:8, pDesemp:9, pRevVenc:10, pIncid:8, pProva:8, pTempo:7, pErros:9,
         metaMin:'60', metaIdeal:'180', metaForte:'300', retaFinalCom:'30', ativarReta:true, reduzirTeoria:true,
-        periodo:'semanal', formatoConselho:'objetivo', fechamento:'plano', ritual:'resumo',
         ankiRetMin:'85', ankiRetMax:'90', ankiAlerta:'80', ankiMaxRev:'350', ankiNovos:'25'
       }, orientFlash:false,
       notifOpen:false, userMenuOpen:false,
@@ -6081,6 +6138,9 @@ class Component extends DCLogic {
     // PLANOS DE LEITURA: o host injeta a próxima meta de cada plano (lei seca do LEGIS
     // + súmulas do JURIS) + progresso — o Ciclo de Estudos mostra um bloco por plano.
     try{ window.catedraSetNativePlano = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativePlano:o}); }catch(_){} }; }catch(_){}
+    // Fora do host nativo (web/Vercel) ninguem chama catedraSetNativePlano e o painel de
+    // leitura nunca aparecia. Montamos o mesmo formato a partir da CT_TABELA, que ja vive aqui.
+    try{ if(!this.state.nativePlano){ const _pw=this._planoWeb(); if(_pw) this.setState({nativePlano:_pw}); } }catch(_){}
     // CATÁLOGO: leis do LEGIS (por disciplina) + fontes do JURIS — os seletores do
     // registro de sessão usam isto quando a categoria é Lei seca/Jurisprudência.
     try{ window.catedraSetNativeCatalogo = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativeCatalogo:o}); }catch(_){} }; }catch(_){}
@@ -6553,7 +6613,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
-  componentDidUpdate(){ this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); }
+  componentDidUpdate(){ this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // Trocou de tela por conta própria (menu, atalho)? Então a origem guardada e o alvo da
   // volta morrem — senão a barra "você veio de…" reaparece numa visita solta ao acervo.
   _limpaOrigem(){
@@ -6680,8 +6740,8 @@ class Component extends DCLogic {
      Quem já usa o app não vê diferença. Quem troca de área encontra um caderno limpo, e
      encontra o antigo intacto ao voltar. */
   AREA_PROPRIA = new Set(['edital','reviews','blocks','blocksDate','manualFixed','manualRot',
-    'rotPointer','manualFixedRoteiroAtual','agendaFeitas','metas','eventos','errors','sim',
-    'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redHist',
+    'rotPointer','manualFixedRoteiroAtual','agendaFeitas','planoLegis','metas','eventos','errors','sim',
+    'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redMarcas','redHist',
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
     'redProvaId','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
@@ -6709,7 +6769,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
@@ -6852,9 +6912,32 @@ class Component extends DCLogic {
         d:this._hoje(), pf:s.pomoFocus, pb:s.pomoBreak }));
     }catch(_){}
   }
+  /* Ajustes que passam a VALER: "modo padrão", "bloco padrão" e "pausa padrão" existiam
+     na tela de Ajustes desde sempre e não eram lidos por ninguém — o cronômetro nascia
+     livre, 25/5, contrariando o que estava escrito ali. Agora o padrão é aplicado no boot
+     (sem cronômetro de hoje para restaurar; um cronômetro em curso manda mais que a
+     preferência, senão a restauração viraria uma reinicialização). */
+  _aplicaPadraoCronometro(){
+    try{
+      if(localStorage.getItem('ct_timer')) return;                 // há cronômetro de hoje
+      const O=this.state.orient||{};
+      const patch={};
+      // 'pomodoro'/'imersao' eram rótulos do select antigo que o cronômetro nunca conheceu
+      const mo=String(O.modoPadrao||'').trim().replace('pomodoro','pomo');
+      if(mo==='pomo'||mo==='livre') patch.timerMode=mo;
+      // o ritmo do cronômetro é UM só: prefs.focoBloco/focoPausa, o mesmo par que vira o
+      // chip personalizado na barra. (orient.blocoPadrao é outra coisa — o tamanho do
+      // BLOCO DO CICLO gerado, usado em _planoDoDia; não confundir os dois.)
+      const P=this.state.prefs||{};
+      const f=parseInt(P.focoBloco,10), b=parseInt(P.focoPausa,10);
+      if(f>0) patch.pomoFocus=Math.min(180,f);
+      if(b>0) patch.pomoBreak=Math.min(60,b);
+      if(Object.keys(patch).length) this.setState(patch);
+    }catch(_){}
+  }
   _restoreTimer(){
-    try{ const raw=localStorage.getItem('ct_timer'); if(!raw) return; const t=JSON.parse(raw); if(!t) return;
-      if(t.d && t.d!==this._hoje()){ localStorage.removeItem('ct_timer'); return; }   // cronômetro de OUTRO dia não vira "tempo hoje"
+    try{ const raw=localStorage.getItem('ct_timer'); if(!raw){ this._aplicaPadraoCronometro(); return; } const t=JSON.parse(raw); if(!t){ this._aplicaPadraoCronometro(); return; }
+      if(t.d && t.d!==this._hoje()){ localStorage.removeItem('ct_timer'); this._aplicaPadraoCronometro(); return; }   // cronômetro de OUTRO dia não vira "tempo hoje"
       const patch={ timerSeconds:+t.sec||0, studiedSeconds:+t.studied||0, timerRunning:false };
       if(t.mode) patch.timerMode=t.mode;
       if(t.phase) patch.pomoPhase=t.phase;
@@ -6982,6 +7065,16 @@ class Component extends DCLogic {
   reviewRate = (e)=>{ const id=e.currentTarget.dataset.id; const q=+e.currentTarget.dataset.q; const hoje=this._hoje();
     const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const sc=this.sm2(r, q); return {...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:Date.now()}; }); this.setState({reviews:rv}); };
   reviewSnooze = (e)=>{ const id=e.currentTarget.dataset.id; const hoje=this._hoje(); const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const base=((r.due||0)<0||!r.dueDate)?hoje:r.dueDate; return {...r, dueDate:this._addDiasStr(base,1), due:Math.max(1,(r.due||0)+1), up:Date.now()}; }); this.setState({reviews:rv}); };
+  /* Tirar da fila: a revisão nasce de vários lugares (erro, treino, registro de sessão,
+     destaque do leitor) e às vezes entra um tópico que ela nunca estudou — sem isto ele
+     ficava eternamente reaparecendo em "Próximas". Some de vez; a lápide do auth.js
+     (catedra:reviews está em ARRAY_ID) impede que a nuvem o traga de volta. */
+  reviewRemove = (e)=>{ const id=e.currentTarget.dataset.id;
+    const alvo=(this.state.reviews||[]).find(r=>r.id===id); if(!alvo) return;
+    if(!window.confirm('Tirar "'+(alvo.topic||'este tópico')+'" da fila de revisão?\n\nEle deixa de ser reagendado. O histórico de estudo não muda.')) return;
+    this.setState(s=>({reviews:(s.reviews||[]).filter(r=>r.id!==id)}));
+    try{ this._toast('Fora da fila de revisão ✦'); }catch(_){}
+    this.flashSync(); };
   // fluxo "revisar agora" — item a item, reagendando por SM-2
   startRevSession = ()=>{ const due=this.state.reviews.filter(r=>r.due<=0).sort((a,b)=>a.due-b.due).map(r=>r.id);
     if(!due.length){ this._toast('Nenhuma revisão pendente — tudo em dia 🎉'); return; }
@@ -7716,13 +7809,38 @@ class Component extends DCLogic {
   cicloFqTipo = (e)=>{ const v=e.currentTarget.dataset.v;
     this.setState(s=>{ const t=((s.cicloFq&&s.cicloFq.tipos)||[]).slice(); const i=t.indexOf(v); i>=0?t.splice(i,1):t.push(v);
       return {cicloFq:{...(s.cicloFq||{}), tipos:t}}; }); };
-  cicloFqDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({cicloFq:{...(s.cicloFq||{}), disc:v}})); };
+  cicloFqDisc = (e)=>{ const v=e.currentTarget.value;
+    // assunto vive DENTRO da disciplina: trocar de disciplina sem zerar o assunto deixava
+    // o filtro numa combinação que não existe e a semana aparecia vazia sem explicação.
+    this.setState(s=>({cicloFq:{...(s.cicloFq||{}), disc:v, topico:''}})); };
   cicloFqBusca = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({cicloFq:{...(s.cicloFq||{}), q:v}})); };
-  cicloFqLimpar = ()=> this.setState({cicloFq:{tipos:[],disc:'',q:''}});
-  _cicloFqOn(){ const f=this.state.cicloFq||{}; return !!((f.tipos&&f.tipos.length)||f.disc||String(f.q||'').trim()); }
+  cicloFqLimpar = ()=> this.setState({cicloFq:{tipos:[],disc:'',topico:'',q:''}});
+  _cicloFqOn(){ const f=this.state.cicloFq||{}; return !!((f.tipos&&f.tipos.length)||f.disc||f.topico||String(f.q||'').trim()); }
+  /* Disciplina é o que está no EDITAL — só isso. O campo `disc` de uma atividade da
+     agenda guarda o TÍTULO dela ("Cap. 1 (LINDB) — Manual Dir. Civil, Tartuce"), e o
+     filtro do ciclo listava esses títulos como se fossem disciplinas: a lista virava um
+     inventário de tarefas e não dava para achar nada. Aqui a disciplina sai do vínculo
+     com o edital (discEdital) e, na falta dele, do `disc` SÓ quando ele casa com um nome
+     do edital. O que está dentro da disciplina é assunto/tópico — filtro próprio. */
+  _discEditalDe(o){ if(!o) return '';
+    const nomes=new Set((this.state.edital||[]).map(d=>String(d.disc||'').trim()).filter(Boolean));
+    const de=String(o.discEdital||'').trim(); if(de && nomes.has(de)) return de;
+    const d=String(o.disc||'').trim(); if(d && nomes.has(d)) return d;
+    return de || ''; }
+  /* blocks e manualFixed descrevem as MESMAS atividades (o bloco do dia carrega srcId do
+     item da agenda) — contar os dois dobrava o número ao lado de cada disciplina. */
+  _cicloItensUnicos(){ const vistos=new Set(); const out=[];
+    for(const x of [...(this.state.manualFixed||[]), ...(this.state.blocks||[])]){
+      if(!x) continue; const k=String(x.srcId||x.id||''); if(k){ if(vistos.has(k)) continue; vistos.add(k); }
+      out.push(x); }
+    return out; }
+  _assuntoDe(o){ return String((o&&(o.topico||o.tag))||'').trim(); }
+  cicloFqTopico = (e)=>{ const v=e.currentTarget.value; this.setState(s=>({cicloFq:{...(s.cicloFq||{}), topico:v}})); };
   _cicloFqPassa(o){ const f=this.state.cicloFq||{};
     if(f.tipos&&f.tipos.length&&f.tipos.indexOf(o.kind||'')<0) return false;
-    if(f.disc&&(o.disc||'')!==f.disc&&(o.discEdital||'')!==f.disc) return false;
+    if(f.disc){ if(f.disc==='__sem'){ if(this._discEditalDe(o)) return false; }
+      else if(this._discEditalDe(o)!==f.disc) return false; }
+    if(f.topico && this._assuntoDe(o)!==f.topico) return false;
     const q=String(f.q||'').trim().toLowerCase();
     if(q){ const alvo=((o.disc||'')+' '+(o.discEdital||'')+' '+(o.tag||'')+' '+(o.topico||'')+' '+(o.kind||'')).toLowerCase();
       if(alvo.indexOf(q)<0) return false; }
@@ -7946,9 +8064,39 @@ class Component extends DCLogic {
     this.setState({roteiroVista: alvo.k===key(atual)?null:alvo.label});
   };
   roteiroHoje = ()=> this.setState({roteiroVista:null});
+  // PLANO DE LEITURA NA WEB. O host nativo injeta nativePlano; fora dele montamos o MESMO
+  // formato a partir da CT_TABELA (104 dias). O plano anda com o CICLO, nao com o
+  // calendario: roteiro numerado N cobre os dias 5N-4..5N da tabela.
+  _planoWeb(){
+    try{
+      if(!(typeof CT_TABELA!=='undefined' && CT_TABELA.dias && CT_TABELA.dias.length)) return null;
+      const feitos=this.state.planoLegis||{};
+      const itensDe=(d)=>{ const out=[];
+        (d.c||[]).forEach((par,j)=>{ const nome=((CT_TABELA.leis[par[0]]||[])[0])||''; if(!nome) return;
+          const k='d'+d.n+'|c'+j;
+          out.push({key:k, law:nome, arts:par[1]||'', done:!!feitos[k], disc:'', cor:'#0D9488'}); });
+        if(d.s){ const nome=CT_TABELA.fontes[d.s[0]]||''; const k='d'+d.n+'|s';
+          out.push({key:k, law:nome, arts:d.s[1]||'', done:!!feitos[k], disc:'Súmulas', cor:'#b08433'}); }
+        return out; };
+      const todosDias={}; let total=0;
+      CT_TABELA.dias.forEach(d=>{ const it=itensDe(d); todosDias[String(d.n)]=it; total+=it.length; });
+      const _num=(x)=>parseInt((String(x||'').match(/\d+/)||[0])[0],10)||0;
+      const rotN=_num(this.state.manualFixedRoteiroAtual)||1;
+      const semana=[0,1,2,3,4].map(i=>{ const num=(rotN-1)*5+i+1; return {num, itens:todosDias[String(num)]||[]}; });
+      const done=Object.keys(feitos).length;
+      const bloco={semana, todosDias, done, total};
+      return {legis:bloco, juris:bloco};
+    }catch(_){ return null; }
+  }
   togglePlanoLegis = (e)=>{ const el=e.currentTarget; const k=el.dataset.k; if(!k) return;
     const marcando = el.dataset.done!=='1';
-    try{ window.webkit.messageHandlers.catedraPlano.postMessage(k); }catch(_){ this._toast('Disponível no app do Mac'); return; }
+    let _nativo=false;
+    try{ window.webkit.messageHandlers.catedraPlano.postMessage(k); _nativo=true; }catch(_){}
+    if(!_nativo){ // WEB: progresso em catedra:planoLegis e painel remontado na hora
+      const fe={...(this.state.planoLegis||{})}; if(marcando) fe[k]=true; else delete fe[k];
+      this.setState({planoLegis:fe}, ()=>{ try{ this.setState({nativePlano:this._planoWeb()}); }catch(_){} });
+      try{ this.flashSync(); }catch(_){}
+    }
     // concluiu a leitura → abre o registro pré-preenchido (Lei seca ou Jurisprudência)
     if(marcando){ const law=el.dataset.law||'', arts=el.dataset.arts||'', disc=el.dataset.disc||'';
       const juris=/^SÚMULAS/i.test(law);
@@ -10049,6 +10197,114 @@ class Component extends DCLogic {
 
   // ===== biblioteca + leitor =====
   DISC_COLOR = {'Constitucional':'#2563eb','Administrativo':'#a855f7','Tributário':'#06b6d4','Civil':'#6366f1','Penal':'#dc2626','Processo Civil':'#84cc16'};
+  /* ===== MARCAÇÃO DO ENUNCIADO DA REDAÇÃO =========================================
+     Pedido dela: "sem opções para fazer marcações e anotações como no legis ou juris".
+     O grifo do LEGIS/JURIS é do acervo nativo, e o do leitor de PDF é por RETÂNGULO de
+     página — nenhum dos dois serve para um enunciado que é texto solto na tela. Aqui a
+     marca guarda o TRECHO (texto + qual ocorrência dele), não coordenada: o enunciado é
+     o mesmo toda vez que a prova abre, então o trecho reencontra o lugar sozinho depois
+     de qualquer re-render, troca de tema ou mudança de largura.
+     As marcas moram em `catedra:redMarcas` por prova. */
+  _marcasKey(){ const id=String(this.state.redProvaId||'').trim();
+    if(id) return 'p:'+id;
+    const t=String(this.state.redEnunciado||'').trim().slice(0,80);
+    return t ? 'e:'+t : ''; }
+  _marcasDaProva(){ const k=this._marcasKey(); if(!k) return [];
+    return ((this.state.redMarcas||{})[k])||[]; }
+  _gravaMarcas(lista){ const k=this._marcasKey(); if(!k) return;
+    this.setState(s=>({redMarcas:{...(s.redMarcas||{}), [k]:lista}}), ()=>this.flashSync()); }
+
+  // texto selecionado DENTRO do enunciado (e onde ele está, para achar a ocorrência certa)
+  _selecaoNoEnunciado(){
+    try{
+      const host=document.getElementById('ct-enun'); if(!host) return null;
+      const sel=window.getSelection(); if(!sel||!sel.rangeCount||sel.isCollapsed) return null;
+      const r=sel.getRangeAt(0);
+      if(!host.contains(r.commonAncestorContainer)) return null;
+      const txt=String(sel.toString()||'').replace(/\s+/g,' ').trim();
+      if(txt.length<2) return null;
+      // qual ocorrência: conta quantas vezes o trecho aparece ANTES do início da seleção
+      const antes=document.createRange();
+      antes.setStart(host, 0); antes.setEnd(r.startContainer, r.startOffset);
+      const pre=String(antes.toString()||'').replace(/\s+/g,' ');
+      let ocorr=0, i=pre.indexOf(txt);
+      while(i>=0){ ocorr++; i=pre.indexOf(txt, i+1); }
+      return {txt:txt.slice(0,600), ocorr, rect:r.getBoundingClientRect()};
+    }catch(_){ return null; }
+  }
+  onSelEnunciado = ()=>{
+    const s=this._selecaoNoEnunciado();
+    if(!s){ if(this.state.redSelTxt) this.setState({redSelTxt:'', redSelOcorr:0}); return; }
+    this.setState({redSelTxt:s.txt, redSelOcorr:s.ocorr});
+  };
+  marcarEnunciado = (e)=>{
+    const cor=e.currentTarget.dataset.cor;
+    const txt=this.state.redSelTxt, ocorr=+this.state.redSelOcorr||0;
+    if(!txt){ this._toast('Selecione um trecho do enunciado primeiro'); return; }
+    const nova={id:'m'+Date.now()+Math.floor(Math.random()*99), txt, ocorr, cor, nota:'', ts:Date.now()};
+    this._gravaMarcas([...this._marcasDaProva(), nova]);
+    try{ window.getSelection().removeAllRanges(); }catch(_){}
+    this.setState({redSelTxt:'', redSelOcorr:0});
+    this._toast('Trecho marcado ✦');
+  };
+  removerMarcaEnun = (e)=>{ const id=e.currentTarget.dataset.id;
+    this._gravaMarcas(this._marcasDaProva().filter(m=>m.id!==id)); };
+  onNotaMarcaEnun = (e)=>{ const id=e.currentTarget.dataset.id, v=e.currentTarget.value;
+    this._gravaMarcas(this._marcasDaProva().map(m=>m.id===id?{...m, nota:v, up:Date.now()}:m)); };
+  irParaMarcaEnun = (e)=>{ const id=e.currentTarget.dataset.id;
+    const el=document.querySelector('[data-marca="'+id+'"]');
+    if(el){ el.scrollIntoView({block:'center', behavior:'smooth'});
+      el.style.transition='outline-color .2s'; el.style.outline='2px solid var(--accent)';
+      setTimeout(()=>{ try{ el.style.outline='none'; }catch(_){} }, 1200); } };
+
+  /* Pintura: percorre os nós de texto do enunciado e embrulha o trecho de cada marca.
+     Roda depois do render (o runtime reescreve o bloco a cada tique), com assinatura para
+     não repintar à toa — repintar todo tique derrubaria a seleção da pessoa no meio. */
+  _marcasEnunSync(){
+    try{
+      const host=document.getElementById('ct-enun'); if(!host) return;
+      const marcas=this._marcasDaProva();
+      const assin=(this._marcasKey()||'')+'|'+marcas.map(m=>m.id+m.cor).join(',')+'|'+host.textContent.length;
+      if(this._marcasAssin===assin && host.querySelector('mark[data-marca]')) return;
+      this._marcasAssin=assin;
+      // limpa a pintura anterior
+      host.querySelectorAll('mark[data-marca]').forEach(m=>{
+        const pai=m.parentNode; while(m.firstChild) pai.insertBefore(m.firstChild, m);
+        pai.removeChild(m); pai.normalize();
+      });
+      if(!marcas.length) return;
+      for(const m of marcas){
+        const alvo=String(m.txt||'').replace(/\s+/g,' ').trim(); if(!alvo) continue;
+        // mapa dos nós de texto: um só string, com o índice de cada nó
+        const nos=[]; let corrido='';
+        const it=document.createTreeWalker(host, NodeFilter.SHOW_TEXT, null);
+        let n; while((n=it.nextNode())){ nos.push({n, ini:corrido.length}); corrido+=n.nodeValue; }
+        const norm=corrido.replace(/\s+/g,' ');
+        // a normalização muda os índices; procuro no texto normalizado e reencontro no cru
+        let idx=-1, achei=-1;
+        for(let k=0;k<=(m.ocorr||0);k++){ idx=norm.indexOf(alvo, idx+1); if(idx<0) break; achei=idx; }
+        if(achei<0){ achei=norm.indexOf(alvo); if(achei<0) continue; }
+        // converte índice normalizado → índice cru contando caracteres não-brancos
+        const posCrua=(iNorm)=>{ let c=0, j=0; let espaco=false;
+          for(; j<corrido.length; j++){ const ch=corrido[j];
+            if(/\s/.test(ch)){ if(espaco) continue; espaco=true; } else espaco=false;
+            if(c===iNorm) return j; c++; }
+          return j; };
+        const ini=posCrua(achei), fim=posCrua(achei+alvo.length);
+        const dentro=nos.filter(x=>x.ini < fim && (x.ini + x.n.nodeValue.length) > ini);
+        for(const seg of dentro){
+          const a=Math.max(0, ini-seg.ini), b=Math.min(seg.n.nodeValue.length, fim-seg.ini);
+          if(b<=a) continue;
+          const r=document.createRange(); r.setStart(seg.n, a); r.setEnd(seg.n, b);
+          const mk=document.createElement('mark'); mk.dataset.marca=m.id;
+          mk.style.cssText='background:color-mix(in srgb, '+(m.cor||'#f5c451')+' 55%, transparent);'
+            +'color:inherit;border-radius:3px;padding:1px 0;'+(m.nota?'border-bottom:2px solid '+(m.cor||'#f5c451')+';':'');
+          if(m.nota) mk.title=m.nota;
+          try{ r.surroundContents(mk); }catch(_){}
+        }
+      }
+    }catch(_){}
+  }
   HL_COLORS = [
     {id:'amarelo', c:'#f5c451', label:'Amarelo'},
     {id:'verde', c:'#7ed99a', label:'Verde'},
@@ -12596,12 +12852,34 @@ class Component extends DCLogic {
         const ganho80=liq==null?Math.round(+d.questoes*0.4):Math.max(0,Math.round(+d.questoes*Math.max(0,80-liq)/100));
         return {disc:d.disc, short:(d.disc||'').replace('Direito ',''), color:d.color||'#0f7a57', questoes:String(d.questoes), liqStr:liq==null?'sem dados':liq+'%', pts, ptsStr:liq==null?('até ~'+pts+'q'):('~'+pts+'q'), ganhoStr:ganho80>0?('+'+ganho80+'q se chegar a 80%'):'mantenha o nível', semDados:liq==null}; })
       .sort((a,b)=>{ if(a.semDados!==b.semDados) return a.semDados?1:-1; return b.pts-a.pts; });   // medido primeiro; "sem dados" vai pro fim
+    /* FOCO ESTRATÉGICO — a caixa dos Ajustes ("priorizar tarefas com maior peso, urgência,
+       dificuldade e proximidade da prova") era pura decoração: `orient.focoEstrategico`
+       não era lido em lugar NENHUM do arquivo. Agora ela faz o que promete, com os dados
+       que já existem: PESO da disciplina no edital, DIFICULDADE (a lacuna de domínio, já
+       embutida em `pts`) e PROXIMIDADE da prova (quanto menos dias, mais o ranking pesa
+       contra o resto do dia). Desligada, o ranking continua exatamente como era. */
+    const _focoEstrat = !!(_orientCfg && _orientCfg.focoEstrategico);
+    if(_focoEstrat){
+      const _pesoDe=(disc)=>{ const d=(this.state.edital||[]).find(x=>x.disc===disc);
+        const p=d?parseFloat(d.pesoVal!=null?d.pesoVal:d.peso):NaN; return (isFinite(p)&&p>0)?p:1; };
+      const _maxPeso=Math.max(1,...(this.state.edital||[]).map(d=>{ const p=parseFloat(d.pesoVal!=null?d.pesoVal:d.peso); return (isFinite(p)&&p>0)?p:1; }));
+      focoRende.forEach(f=>{ f.peso=_pesoDe(f.disc); f.pesoRel=f.peso/_maxPeso;
+        f.ptsEstrat=f.pts*(0.6+0.8*f.pesoRel); });
+      focoRende.sort((a,b)=>{ if(a.semDados!==b.semDados) return a.semDados?1:-1; return (b.ptsEstrat||0)-(a.ptsEstrat||0); });
+    }
     const focoRendeTop=focoRende[0]||null;
     const hasFocoRende=focoRende.length>0;
     const _focoCands=[];
     if(revPend>0) _focoCands.push({s:(parseInt(_orientCfg.pRevVenc,10)||10)+(revOverdue.length?3:0), t:(revOverdue.length?'as revisões vencidas':'as revisões de hoje'), v:'revisoes', btn:'Revisar agora'});
     if(_retaOnNow) _focoCands.push({s:(parseInt(_orientCfg.pProva,10)||8)+4, t:'simulados e revisão da reta final', v:'reta-final', btn:'Abrir reta final'});
-    if(focoRendeTop && focoRendeTop.pts>0 && !focoRendeTop.semDados) _focoCands.push({s:(parseInt(_orientCfg.pIncid,10)||8), t:focoRendeTop.short+' — pode render '+focoRendeTop.ptsStr+' a mais na prova', v:'ciclo', btn:'Ver ciclo'});
+    if(focoRendeTop && focoRendeTop.pts>0 && !focoRendeTop.semDados){
+      // com foco estratégico ligado, a proximidade da prova empurra o "onde rende mais"
+      // para cima das outras sugestões do dia (é a metade "urgência" da promessa da caixa)
+      let _sIncid=(parseInt(_orientCfg.pIncid,10)||8);
+      if(_focoEstrat){ const _d=+_diasProvaN;
+        _sIncid += (isFinite(_d) && _d>0) ? (_d<=30?6 : _d<=90?4 : 2) : 2;
+        _sIncid += Math.round(2*(focoRendeTop.pesoRel||0)); }
+      _focoCands.push({s:_sIncid, t:focoRendeTop.short+' — pode render '+focoRendeTop.ptsStr+' a mais na prova', v:'ciclo', btn:'Ver ciclo'}); }
     _focoCands.push({s:(parseInt(_orientCfg.pEdital,10)||8), t: nextAction?('o bloco de '+String(nextAction.disc||'estudo').replace('Direito ','')):'o próximo bloco do edital', v:'ciclo', btn:'Ver ciclo'});
     // sliders de prioridade que faltavam entrar no cálculo: desempenho, tempo sem estudar, erros
     const _weakD=[...B.discList].filter(d=>d.q>=5).sort((a,b)=>a.liqPct-b.liqPct)[0];
@@ -12880,7 +13158,12 @@ class Component extends DCLogic {
     const _diasSim=_lastSim?Math.floor((_naNow-_lastSim)/_naDay):null;
     if(_alerts.alSimulados!==false && B.totalMin>0 && ((_lastSim===0 && B.diasEstudados>=7) || (_diasSim!=null && _diasSim>=7))){ _liveNotifs.push({id:'simulado', tipo:'simulado', icon:'📝', titulo: _lastSim? ('Faz '+_diasSim+' dias sem simulado') : 'Hora do seu primeiro simulado', texto:'Um simulado cronometrado mede o que a teoria sozinha não mostra.', tempo:'hoje', view:'simulados'}); }
     // aviso de fim de dia: ofensiva em risco (após as 20h, sem estudo hoje, com sequência a proteger)
-    if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=20 && !(this.state.sessions||[]).some(s=>s.date===this._hoje())){   // sessão só de questões (0 min) TAMBÉM protege o dia
+    /* MELHOR TURNO passa a valer: era um trio de chips que ninguém lia. O aviso de
+       ofensiva em risco tocava sempre às 20h — tarde demais para quem estuda de manhã e
+       já perdeu o dia. Agora a hora do aviso segue o turno declarado. */
+    const _turno=String((_orientCfg&&_orientCfg.turno)||'noite');
+    const _horaAviso = _turno==='manha' ? 14 : _turno==='tarde' ? 18 : 20;
+    if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=_horaAviso && !(this.state.sessions||[]).some(s=>s.date===this._hoje())){   // sessão só de questões (0 min) TAMBÉM protege o dia
       const _escN=this.state.escudos||0;
       _liveNotifs.push({id:'ofensiva-'+this._hoje(), tipo:'meta', icon:'🔥', titulo:'Sua ofensiva de '+B.streak+' dia'+(B.streak>1?'s':'')+' está em risco',
         texto:_escN>0?('Estude hoje — ou um dos seus '+_escN+' escudo(s) 🛡️ será usado automaticamente amanhã.'):'Estude nem que sejam 15 minutos para não perder a sequência (você não tem escudos).', tempo:'hoje', view:'inicio'});
@@ -13008,7 +13291,23 @@ class Component extends DCLogic {
     const homeMetaHojeAlvoN=_metaIdealMin;
     const homeMetaHojePct=Math.max(0,Math.min(100,Math.round(homeHojeMinN/Math.max(1,homeMetaHojeAlvoN)*100)));
     const _mhFalta=Math.max(0,homeMetaHojeAlvoN-homeHojeMinN);
-    const homeMetaHojeSub=_mhFalta>0?('faltam '+(_mhFalta>=60?(Math.floor(_mhFalta/60)+'h'+String(_mhFalta%60).padStart(2,'0')):(_mhFalta+' min'))+' para a meta'):'meta de hoje batida ✓';
+    /* A régua de metas dos Ajustes tem TRÊS faixas — mínima, ideal e dia forte —, mas só a
+       ideal era lida: "metaMin" aparecia num aviso e "metaForte" não era lida em lugar
+       nenhum. Agora o cartão do dia diz em qual faixa o dia caiu, que é o que faz a régua
+       valer alguma coisa: um dia de 70 min com mínima de 60 não é "meta não batida", é
+       piso cumprido; e passar da forte tem nome. */
+    const _metaMinMin  = Math.max(0, parseInt(_orientCfg.metaMin,10)||0);
+    const _metaForteMin= Math.max(0, parseInt(_orientCfg.metaForte,10)||0);
+    const homeMetaFaixa = homeHojeMinN<=0 ? ''
+      : (_metaForteMin>0 && homeHojeMinN>=_metaForteMin) ? 'dia forte'
+      : (homeHojeMinN>=homeMetaHojeAlvoN) ? 'meta do dia'
+      : (_metaMinMin>0 && homeHojeMinN>=_metaMinMin) ? 'mínima cumprida' : '';
+    const homeMetaHojeSub=_mhFalta>0
+      ? ((homeMetaFaixa==='mínima cumprida' ? 'mínima cumprida · ' : '')+'faltam '+(_mhFalta>=60?(Math.floor(_mhFalta/60)+'h'+String(_mhFalta%60).padStart(2,'0')):(_mhFalta+' min'))+' para a meta')
+      : (_metaForteMin>0
+          ? (homeHojeMinN>=_metaForteMin ? 'dia forte ✓ (passou de '+Math.round(_metaForteMin/60)+'h)'
+             : 'meta de hoje batida ✓ · dia forte em '+Math.max(0,_metaForteMin-homeHojeMinN)+' min')
+          : 'meta de hoje batida ✓');
     const homeRoda=(()=>{ const mf=this.state.manualFixed||[]; if(!mf.length) return null;
       const by={}; let tot=0;
       mf.forEach(f=>{ const m=+f.min||0; if(m<=0) return; const key=f.discEdital||(f.kind==='Revisão'?'Revisões':(f.kind==='Questões'?'Questões':'Outros')); tot+=m; by[key]=(by[key]||0)+m; });
@@ -14270,14 +14569,44 @@ class Component extends DCLogic {
         (this.state.blocks||[]).forEach(x=>{ if(x&&x.kind) ks.add(x.kind); });
         (this.state.manualFixed||[]).forEach(x=>{ if(x&&x.kind) ks.add(x.kind); });
         try{ if(this.state.nativePlano&&this.state.nativePlano.legis){ ks.add('Lei seca'); ks.add('Jurisprudência'); } }catch(_){}
+        /* O chip do filtro seguia o dado bruto e ignorava a ÁREA: quem estuda Enfermagem
+           via "Jurisprudência" no filtro do próprio ciclo (Fase 5 do guia de áreas — o
+           vocabulário jurídico não pode vazar para quem não escolheu Direito). A oferta
+           de categorias da área já é calculada em _atividades(); o filtro passa a
+           respeitá-la, mantendo o que a pessoa de fato tem no ciclo. */
+        try{ const _ofer=new Set(this._atividades()||[]);
+          if(_ofer.size) [...ks].forEach(k=>{ if(!_ofer.has(k)) ks.delete(k); });
+        }catch(_){}
         return [...ks].map(v=>{ const on=sel.indexOf(v)>=0; const cor=this._catCor(v)||'var(--accent)';
           const icon=(CT_CAT_META[v]&&CT_CAT_META[v].i)||'•';
           return {v, icon, style:`display:inline-flex;align-items:center;gap:5px;border:1.5px solid ${on?cor:'var(--border)'};background:${on?`color-mix(in srgb, ${cor} 13%, var(--surface))`:'var(--surface)'};color:${on?cor:'var(--text2)'};border-radius:99px;padding:6px 12px;font-size:var(--fs-xs);font-weight:${on?'700':'600'};cursor:pointer;font-family:inherit;transition:.12s;flex:none;`}; }); })(),
+      /* Disciplina = edital. A lista mostra as disciplinas do edital que APARECEM na
+         semana (com a contagem), mais "sem disciplina" para o que ainda não tem vínculo —
+         é assim que ela descobre o que falta amarrar, em vez de rolar títulos de tarefa. */
       cicloFqDiscOpts:(()=>{ const sel=(this.state.cicloFq&&this.state.cicloFq.disc)||'';
-        const ds=new Set();
-        (this.state.blocks||[]).forEach(x=>{ if(x&&x.disc) ds.add(x.disc); });
-        (this.state.manualFixed||[]).forEach(x=>{ if(x&&(x.discEdital||x.disc)) ds.add(x.discEdital||x.disc); });
-        return [...ds].sort().map(v=>({v, sel:v===sel})); })(),
+        const itens=this._cicloItensUnicos();
+        const cont={}; let sem=0;
+        itens.forEach(x=>{ const d=this._discEditalDe(x); if(d) cont[d]=(cont[d]||0)+1; else sem++; });
+        const opts=Object.keys(cont).sort((a,b)=>a.localeCompare(b,'pt-BR'))
+          .map(v=>({v, label:v+' · '+cont[v], sel:v===sel}));
+        if(sem) opts.push({v:'__sem', label:'sem disciplina do edital · '+sem, sel:sel==='__sem'});
+        return opts; })(),
+      cicloFqTopico:this.cicloFqTopico,
+      cicloFqTop:(this.state.cicloFq&&this.state.cicloFq.topico)||'',
+      cicloFqTopVazio:!((this.state.cicloFq&&this.state.cicloFq.topico)||''),
+      /* Assunto/tópico = o que está DENTRO da disciplina. Só aparece com uma disciplina
+         escolhida, e lista os assuntos daquela disciplina presentes na semana. */
+      cicloFqTopOpts:(()=>{ const f=this.state.cicloFq||{}; const d=f.disc||'';
+        if(!d || d==='__sem') return [];
+        const itens=this._cicloItensUnicos();
+        const cont={};
+        itens.forEach(x=>{ if(this._discEditalDe(x)!==d) return; const t=this._assuntoDe(x); if(t) cont[t]=(cont[t]||0)+1; });
+        return Object.keys(cont).sort((a,b)=>a.localeCompare(b,'pt-BR'))
+          .map(v=>({v, label:v+' · '+cont[v], sel:v===(f.topico||'')})); })(),
+      cicloFqTemTop:(()=>{ const f=this.state.cicloFq||{}; const d=f.disc||'';
+        if(!d || d==='__sem') return false;
+        const itens=this._cicloItensUnicos();
+        return itens.some(x=>this._discEditalDe(x)===d && this._assuntoDe(x)); })(),
       // U9: na tela de iframe a altura vem do espaço que sobrou (a moldura estica), não de
       // uma conta de vh contra a barra de cima — era essa conta que sobrava alguns pixels e
       // dava a segunda barra de rolagem. Fora dessas telas o valor não é usado (a moldura
@@ -14330,7 +14659,7 @@ class Component extends DCLogic {
         && (Date.now()-this.state.syncErroDesde)>5*60000),
       syncAlarmeTxt:'não consegui salvar — tentar agora',
       homeTimerLabel, homeTimerBtn:(this.state.timerRunning?'❚❚ Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'▶ Retomar':'▶ Iniciar')), homePmLivre, homePm25, homePm50, homePm90, pmCustShow, pmCustF, pmCustB, pmCustLabel, homePmCust,
-      reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze,
+      reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze, reviewRemove:this.reviewRemove,
       startRevSession:this.startRevSession, revReveal:this.revReveal, revAnswer:this.revAnswer, revSkip:this.revSkip, closeRevSession:this.closeRevSession,
       revActive:revRun.active, revDone:revRun.done, revNotDone:revRun.active&&!revRun.done, revRevealed:revRun.revealed, revNotRevealed:revRun.active&&!revRun.done&&!revRun.revealed,
       revPos:revRun.pos, revTotal:revRun.total, revPct:revRun.pct, revCardDisc:revRun.discShort, revCardTopic:revRun.topic, revCardColor:revRun.color,
@@ -14533,6 +14862,21 @@ class Component extends DCLogic {
         const pal=(t.match(/\S+/g)||[]).length;
         return { redRascunhoTem:tem, redRascunhoQuando:quando, redRascunhoPalavras:pal+(pal===1?' palavra':' palavras') };
       })(),
+      // --- marcação do enunciado (as chaves são GLOBAIS: a view da redação é a única
+      // que as usa, mas nascer dentro de um helper condicional é o defeito que o D16 pega)
+      onSelEnunciado:this.onSelEnunciado, marcarEnunciado:this.marcarEnunciado,
+      removerMarcaEnun:this.removerMarcaEnun, onNotaMarcaEnun:this.onNotaMarcaEnun,
+      irParaMarcaEnun:this.irParaMarcaEnun,
+      redSelDica:(String(this.state.redSelTxt||'').trim()
+        ? '“'+String(this.state.redSelTxt).slice(0,70)+(String(this.state.redSelTxt).length>70?'…':'')+'” — escolha a cor'
+        : 'Selecione um trecho do enunciado e escolha uma cor.'),
+      redCores:this.HL_COLORS.map(c=>({c:c.c, label:c.label,
+        style:'width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border);background:'+c.c+';cursor:pointer;font-family:inherit;'})),
+      redMarcasList:(()=>{ const l=this._marcasDaProva();
+        return l.slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).map(m=>({id:m.id, cor:m.cor||'#f5c451', nota:m.nota||'',
+          resumo:'“'+String(m.txt||'').slice(0,110)+(String(m.txt||'').length>110?'…':'')+'”'})); })(),
+      redMarcasN:(()=>{ const n=this._marcasDaProva().length; return n?(n+(n===1?' trecho':' trechos')):''; })(),
+      redSemMarcas:this._marcasDaProva().length===0,
       redRascunhoOk:this.redRascunhoOk, redZerarRascunho:this.redZerarRascunho,
       redPasso1:this._passo(1, !this.state.redResult && !((this.state.redEnunciado||'').trim())),
       redPasso2:this._passo(2, !this.state.redResult && !!((this.state.redEnunciado||'').trim())),
@@ -14705,7 +15049,13 @@ class Component extends DCLogic {
       setRoteiroAtual:this.setRoteiroAtual, clearRoteiro:this.clearRoteiro,
       rotNextName:(this.state.manualRot[this.state.rotPointer]||{}).disc||'—',
       cycleModes:[
-        {mode:'sugestao', icon:'★', title:'Sugestão da plataforma', desc:'Ciclo padrão equilibrado: teoria, questões, lei seca, jurisprudência e revisão.'},
+        /* A descrição citava "lei seca e jurisprudência" para TODA área — vocabulário
+           jurídico na tela de quem estuda Enfermagem. Agora ela lista as categorias que a
+           área realmente oferece (_atividades já resolve isso por área). */
+        {mode:'sugestao', icon:'★', title:'Sugestão da plataforma',
+         desc:'Ciclo padrão equilibrado: '+(()=>{ try{ const a=(this._atividades()||[]).slice(0,5);
+           return a.length ? a.map(x=>String(x).toLowerCase()).join(', ')+'.' : 'teoria, questões e revisão.';
+         }catch(_){ return 'teoria, questões e revisão.'; } })()},
         {mode:'edital', icon:'▤', title:'Conforme o edital', desc:'Gerado a partir dos tópicos ainda pendentes do edital cadastrado.'},
         {mode:'pesos', icon:'▲', title:'Pesos e pontos', desc:'Prioriza matérias que valem mais pontos e onde você está mais fraco.'},
         {mode:'manual', icon:'✎', title:'Manual', desc:'Monte do zero: adicione, edite e ordene os blocos como quiser.'}
@@ -14966,9 +15316,11 @@ class Component extends DCLogic {
       // ajustes: alertas
       alertRows:[
         {k:'notifRevisao', label:'Revisões do dia', on:pf0.notifRevisao},
-        {k:'alAnki', label:'Queda de retenção no Anki', on:pf0.alAnki},
+        /* SAÍRAM daqui "Queda de retenção no Anki" e "Erros pendentes acumulando": os dois
+           eram interruptores sem motor nenhum atrás (nenhum aviso era gerado por eles) e
+           apontavam para telas que não existem mais — a de Anki e a de caderno de erros.
+           Interruptor que não liga nada é pior que ausência: ensina a não confiar na tela. */
         {k:'alPrecisao', label:'Queda de precisão', on:pf0.alPrecisao},
-        {k:'alErros', label:'Erros pendentes acumulando', on:pf0.alErros},
         {k:'alSemanal', label:'Meta da semana em risco', on:pf0.alSemanal},
         {k:'alProva', label:'Alerta de prova próxima', on:pf0.alProva},
         {k:'alSimulados', label:'Lembrete de simulado', on:pf0.alSimulados},
@@ -15030,7 +15382,7 @@ class Component extends DCLogic {
       setOrient:this.setOrient, toggleOrient:this.toggleOrient, setOrientSlider:this.setOrientSlider, setOrientRadio:this.setOrientRadio,
       saveOrient:this.saveOrient, orientSaveLabel:this.state.orientFlash?'Aplicado ✓':'Salvar e aplicar',
       orHero:{nivel:_nivelL, tempo:O.tempoDia+' min', cobranca:_cobrancaL, estrategia:_estrategiaL, banca:(O.banca||"cebraspe").toUpperCase(), reta:_retaL},
-      orTempoHHMM:'= '+_hhmm(O.tempoDia), orBlocoHHMM:'= '+_hhmm(O.blocoPadrao), orPausaHHMM:'= '+_hhmm(O.pausaPadrao),
+      orTempoHHMM:'= '+_hhmm(O.tempoDia), orBlocoHHMM:'= '+_hhmm(O.blocoPadrao),
       orEnBaixa:_energiaCard('baixa'), orEnNormal:_energiaCard('normal'), orEnAlta:_energiaCard('alta'),
       orEnBaixaOn:O.energiaPlano==='baixa', orEnNormalOn:O.energiaPlano==='normal', orEnAltaOn:O.energiaPlano==='alta',
       orSliders:_sliderRows, orConselhos:_conselhos,
