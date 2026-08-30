@@ -47,3 +47,7 @@ ios/.build-n
 
 # travas de build cruzado (mkdir atômico; morrem com o processo)
 .build-lock-*
+
+# lixo de manutenção do git de outra sessão (locks, worktree antiga) — entrou por engano
+# num `git add -A` meu; fica no disco, fora do repositório
+_to_delete/
