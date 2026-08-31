@@ -487,7 +487,14 @@
    *  é sigla ("IR"). Só serve para "em matéria de X" quando é assunto: curto, sem verbo. */
   function ehAssunto(t) {
     var s = String(t || '').trim();
-    return s.length >= 8 && s.length <= 58 && !ehProposicao(s) && !/[.;:]/.test(s);
+    if (!(s.length >= 8 && s.length <= 58 && !ehProposicao(s) && !/[.;:]/.test(s))) return false;
+    // "Em matéria de dos planos de saúde" e "sobre improbidade administrativa vi": o tema do
+    // acervo às vezes é um PEDAÇO de rubrica — começa em preposição (herdou o "DOS MILITARES"
+    // do índice) ou termina no marcador de seção ("- I", "vi"). Nos dois casos a frase sai
+    // torta; melhor recusar e deixar a pergunta citar a própria tese.
+    if (/^(d[aoe]s?|n[ao]s?|em|para|por|com|sobre|aos?|às?|à)\s/i.test(s)) return false;
+    if (/[\s-]+(x{0,3}(ix|iv|v?i{1,3})|[a-z]|e|ou|d[aoe]s?|em|com|por)$/i.test(s)) return false;
+    return true;
   }
 
   /** Título que é só código ("Info 803 · STJ", "Ed. 205 · Tese 9") não identifica nada para
@@ -513,6 +520,12 @@
     var rotulo = tituloVago(v.titulo)
       ? (assunto ? 'o entendimento do ' + v.tribunal + ' sobre ' + assunto : 'este entendimento do ' + v.tribunal)
       : '"' + v.titulo + '"';
+    /* "este entendimento do STF" não diz NADA: o título é só um código ("Info 1023") e o
+       tema não serve de assunto. A tela não mostra o verbete, então a pergunta ficava
+       literalmente sem objeto. Nesse caso os formatos que se apoiam no rótulo passam a
+       citar a própria tese — a mesma âncora que o formato 3 já usava. */
+    var semObjeto = tituloVago(v.titulo) && !assunto;
+    var citaTese = 'O ' + v.tribunal + ' fixou que "' + teseCurta + '". ';
     var f = [];
 
     // 1) caso hipotético com a tese invertida — o formato mais usado na arguição
@@ -525,7 +538,8 @@
     }
     // 2) fundamento e ratio — só quando o verbete de fato cita dispositivos
     if (fund.length) {
-      f.push('Sobre ' + rotulo + ': qual é o fundamento normativo e qual a razão de decidir? ' +
+      f.push((semObjeto ? citaTese + 'Qual é o fundamento normativo e qual a razão de decidir? '
+                        : 'Sobre ' + rotulo + ': qual é o fundamento normativo e qual a razão de decidir? ') +
              '(Espera-se, entre outros: ' + fund.slice(0, 2).join(', ') + '.)');
     }
     // 3) exceções — exige uma tese legível para ancorar a pergunta
@@ -534,7 +548,9 @@
              '". Esse entendimento comporta exceção? Em que hipóteses não se aplica?');
     }
     // 4) aplicação a caso concreto — sempre disponível
-    f.push('Explique ' + rotulo + ': o que decide, por quê, e como o(a) senhor(a) o aplicaria a um caso concreto.');
+    f.push(semObjeto
+      ? citaTese + 'Explique: o que esse entendimento decide, por quê, e como o(a) senhor(a) o aplicaria a um caso concreto.'
+      : 'Explique ' + rotulo + ': o que decide, por quê, e como o(a) senhor(a) o aplicaria a um caso concreto.');
 
     var i = ((variante || 0) % f.length + f.length) % f.length;
     return f[i];

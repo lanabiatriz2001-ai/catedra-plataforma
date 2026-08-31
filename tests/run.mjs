@@ -1111,7 +1111,7 @@ const d1 = await page.evaluate(async () => {
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
   // D11 mudou a cor de destaque de lugar: ela mora na aba Aparência, nao mais solta na pagina
-  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (abaAp) { abaAp.click(); await w(700); }
   const cores = [...document.querySelectorAll('main button[data-c]')];
   const alvo = cores.find(c => c.dataset.c && c.dataset.c !== a.accent);
@@ -2548,7 +2548,7 @@ const u7 = await page.evaluate(async () => {
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
   // D11: Claro/Escuro/Auto vivem na aba Aparência, junto do resto do visual
-  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (abaAp) { abaAp.click(); await w(700); }
   const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
   const r = { temBotaoAuto: !!btn('Auto') };
@@ -2891,10 +2891,13 @@ const d11 = await page.evaluate(async () => {
   const r = {};
   try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
   await w(1200);
-  const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-t]')];
+  const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-s]')];
   const abas = abasEl().map(b => b.textContent.trim());
   r.seisAbas = abas.length === 6;
-  r.abasPorAssunto = ['Você', 'Estudo', 'banca', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  // Ajustes refeito: seis SEÇÕES, sem "Método da banca" (o perfil da banca vive na tela
+  // Bancas; nos Ajustes ficou só o seletor, dentro de Ritmo) e com Automações à parte.
+  r.abasPorAssunto = ['Perfil', 'Ritmo', 'Automações', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  r.semAbaDeBanca = !abas.some(x => /banca/i.test(x));
   const barra = document.querySelector('main .aj-abas');
   r.abasGrudamNoTopo = !!barra && getComputedStyle(barra).position === 'sticky';
 
@@ -2902,6 +2905,7 @@ const d11 = await page.evaluate(async () => {
   const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
   r.temBusca = !!busca;
   const procurar = async (q) => { busca.value = q; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(450);
+    // os resultados são os botões data-t; data-s são as seções, que não mudam com a busca
     return [...document.querySelectorAll('main .aj-abas button[data-t]')].map(b => b.textContent).join(' '); };
   if (busca) {
     r.achaBackup = /[Bb]ackup/.test(await procurar('backup'));
@@ -2931,7 +2935,7 @@ const d11 = await page.evaluate(async () => {
   r.temBackupAutomatico = /Backup automático semanal/.test(t);
   r.perigoIsolado = /Zona de perigo/.test(t) && /Não dá para desfazer/.test(t);
 
-  r.abreConta = await clicaAba(/^Conta$/);
+  r.abreConta = await clicaAba(/Conta/);
   r.contaTemSair = /Sair da conta/.test(corpo());
   return r;
 });
@@ -2947,7 +2951,7 @@ const rev1 = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
   await w(1000);
-  const ap = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const ap = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (!ap) return { erro: 'sem aba Aparência' };
   ap.click(); await w(600);
   const naAba = /Escolhas rápidas/.test(document.body.innerText);
@@ -2982,14 +2986,14 @@ const rev3 = await page.evaluate(async () => {
   const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
   if (!busca) return { erro: 'sem busca nos Ajustes' };
   busca.value = 'backup'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
-  const alvo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
-  const abaDoFlash = alvo ? alvo.getAttribute('data-t') : null;
   busca.value = 'flashcards'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
+  // os RESULTADOS da busca seguem com data-t (a seção de destino); as seções em si usam data-s
   const flash = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
-  const r = { flashApontaParaDados: !!flash && flash.getAttribute('data-t') === 'dados' };
-  // trocar de aba com a busca ativa não pode deixar cartão escondido
-  const abaEstudo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Estudo/.test(b.textContent));
-  if (abaEstudo) { abaEstudo.click(); await w(800); }
+  // Flashcards é ajuste de ESTUDO, não de backup: na tela refeita ele mora em Ritmo e metas
+  const r = { flashApontaParaRitmo: !!flash && flash.getAttribute('data-t') === 'ritmo' };
+  // trocar de seção com a busca ativa não pode deixar cartão escondido
+  const secRitmo = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Ritmo/.test(b.textContent));
+  if (secRitmo) { secRitmo.click(); await w(800); }
   const escondidos = [...document.querySelectorAll('main [data-aj]')].filter(e => e.style.display === 'none');
   r.nenhumCartaoFicaEscondido = escondidos.length === 0;
   r.buscaFoiLimpa = (document.querySelector('main input[aria-label="Buscar nos ajustes"]') || {}).value === '';
@@ -4278,7 +4282,7 @@ const AUDITOR = () => {
       return false;
     };
     if (!await irAjustes()) { URL.createObjectURL = criar; return { semBotaoExportar: true }; }
-    const abaDados = document.querySelector('button[data-t="dados"]');
+    const abaDados = document.querySelector('main button[data-s="dados"]');
     if (abaDados) { abaDados.click(); await w(700); }
     const exp = bt(/exportar backup/i); if (!exp) { URL.createObjectURL = criar; return { semBotaoExportar: true }; }
     exp.click(); await w(900);
@@ -4307,7 +4311,7 @@ const AUDITOR = () => {
       let aj = bt2(/^ajustes$/i);
       if (!aj) { const mais = bt2(/^mais opções$/i); if (mais) { mais.click(); await w(500); aj = bt2(/^ajustes$/i); } }
       if (aj) { aj.click(); await w(900); }
-      const abaDados = document.querySelector('button[data-t="dados"]');
+      const abaDados = document.querySelector('main button[data-s="dados"]');
       if (abaDados) { abaDados.click(); await w(700); }
       const imp = bt(/importar dados|importar backup/i);
       if (!imp) { document.createElement = criarEl; return { semBotaoImportar: true }; }
@@ -4385,20 +4389,19 @@ const AUDITOR = () => {
     if (!aj) { const mais = bt(/^mais opções$/i); if (mais) { mais.click(); await w(500); aj = bt(/^ajustes$/i); } }
     out.achouAjustes = !!aj;
     if (aj) { aj.click(); await w(900); }
-    const abaBanca = document.querySelector('button[data-t="banca"]');
-    out.achouAbaBanca = !!abaBanca;          // seletor sumiu → vermelho, não silêncio
-    if (abaBanca) { abaBanca.click(); await w(800); }
-    /* A prova de abertura precisa ser EXCLUSIVA do painel. "estilo|formato|foco" já casava
-       na aba "Você" ("tom e foco", "ESTILO DE COBRANÇA"), então o bloco inteiro ficava verde
-       mesmo sem a aba nunca ter aberto — e mediria uma aba que é limpa por natureza. */
-    const painel = document.querySelector('#aj-banca-painel');
-    out.abaBancaAbriu = !!painel;
-    const txtPainel = painel ? painel.innerText : '';
-    out.abaBancaTemConteudo = /formato das questões/i.test(txtPainel);
-    out.abaBancaLimpa = !!painel && !JUR.test(txtPainel);
-    // e a concordância não pode quebrar ao trocar o vocabulário ("a texto das diretrizes")
-    out.abaBancaConcorda = !!painel
-      && !/\b(?:a|as|na|nas)\s+texto\b|\bo\s+literalidade\b/i.test(txtPainel);
+    /* Ajustes refeito: a aba "Método da banca" saiu (o perfil de cada banca é a tela
+       Bancas, e ter os dois era a mesma informação em dois lugares). Nos Ajustes sobrou
+       só o SELETOR da banca principal, dentro de Ritmo e metas — é ele que decide a
+       correção por nota líquida C−E. O que se cobra aqui agora é isso: a aba não existe
+       mais e o seletor não se perdeu no caminho. */
+    out.semAbaDeBanca = !document.querySelector('main .aj-abas button[data-s="banca"]');
+    const secRitmo = document.querySelector('main .aj-abas button[data-s="ritmo"]');
+    out.achouSecaoRitmo = !!secRitmo;
+    if (secRitmo) { secRitmo.click(); await w(800); }
+    const sel = document.querySelector('#aj-f-banca');
+    out.seletorDeBancaVive = !!sel;
+    out.seletorTemAsBancas = !!sel && sel.querySelectorAll('option').length >= 5;
+    out.ajustesSemPerfilDeBanca = !/formato das questões/i.test(document.querySelector('main').innerText);
     return out;
   });
   for (const [k, v] of Object.entries(f4banca)) ok(v, 'FASE4 banca ' + k);
@@ -4586,6 +4589,11 @@ const AUDITOR = () => {
       return !!b;
     };
     if (!await ir('ajustes')) return { erro: 'não achei a entrada de Ajustes' };
+    // Ajustes refeito: automações e alertas ganharam seção própria. Antes o bloco de
+    // alertas ficava FORA de qualquer portão de aba e aparecia em todas — era bug, não
+    // referência; agora o caminho até os interruptores passa pela seção.
+    const secAuto = document.querySelector('main .aj-abas button[data-s="automacoes"]');
+    if (secAuto) { secAuto.click(); await w(800); }
     const sws = [...document.querySelectorAll('[role="switch"]')];
     if (!sws.length) return { erro: 'nenhum interruptor com papel' };
     const r = {
