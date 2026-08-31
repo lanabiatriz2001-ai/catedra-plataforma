@@ -1331,13 +1331,22 @@ const d2b = await page.evaluate(async () => {
   for (const v of views) {
     const b = document.querySelector('button[data-view="' + v + '"]');
     if (!b) { r.telas[v] = 'sem botão no menu'; continue; }
-    b.click(); await w(1900);
-    const f = document.querySelector('iframe[data-ct-view="' + v + '"]');
+    b.click();
+    /* Espera até o satélite ter conteúdo, e não um tempo fixo: 1900ms bastava para o
+       Ritos e faltava para o JURIS (15 mil verbetes + índice de 2 MB), e o teste falhava
+       de forma intermitente — sem nada de errado no app. O teto de 12s é rede de
+       segurança; o caso normal sai em muito menos. */
+    let f = null, corpo = 0, embed = null;
+    for (let t = 0; t < 60; t++) {
+      await w(200);
+      f = document.querySelector('iframe[data-ct-view="' + v + '"]');
+      if (!f) continue;
+      try { corpo = (f.contentDocument.body.innerText || '').trim().length;
+            embed = f.contentDocument.documentElement.getAttribute('data-ct-embed'); } catch (e) {}
+      if (corpo > 200 && embed === '1') break;
+    }
     if (!f) { r.telas[v] = 'sem iframe'; continue; }
     const src = f.getAttribute('src') || '';
-    let corpo = 0, embed = null;
-    try { corpo = (f.contentDocument.body.innerText || '').trim().length;
-          embed = f.contentDocument.documentElement.getAttribute('data-ct-embed'); } catch (e) {}
     r.telas[v] = { embedNaURL: /embed=1/.test(src), embedAplicado: embed === '1', temConteudo: corpo > 200 };
   }
   return r;
@@ -3657,8 +3666,11 @@ const AUDITOR = () => {
     };
     const buscar = async (termo) => {
       const i = await abrirPaleta(); if (!i) return null;
-      i.value = termo; i.dispatchEvent(new Event('input', { bubbles: true })); await w(1400);
-      const t = document.body.innerText;
+      i.value = termo; i.dispatchEvent(new Event('input', { bubbles: true }));
+      // a paleta busca em índices que carregam sob demanda; espera o resultado aparecer
+      let t = '';
+      for (let k = 0; k < 40; k++) { await w(150); t = document.body.innerText;
+        if (new RegExp(termo, 'i').test(t.slice(t.indexOf('Buscar em toda a plataforma')))) break; }
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(400);
       return t;
     };
