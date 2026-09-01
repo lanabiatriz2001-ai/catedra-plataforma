@@ -1196,7 +1196,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         // (não em :root); então lemos do elemento que realmente as possui.
         let js = """
         (function(){
-          var el = document.querySelector('[style*="--accent"]') || document.documentElement;
+          // Nó dos tokens pelo que ele É, não pelo texto do atributo style. O div raiz
+          // carrega data-dark + data-dir + as variáveis; casar `[style*="--accent"]`
+          // dependia de ele ser o PRIMEIRO em ordem de documento — verdade hoje só porque
+          // é ancestral de todos. Qualquer nó com --accent no style fora dele quebrava a
+          // leitura do tema, e o sintoma seria o texto sumido do LEGIS de novo. O seletor
+          // antigo fica de queda, para host antigo/DOM inesperado.
+          var el = document.querySelector('[data-dark][data-dir]')
+                || document.querySelector('[style*="--accent"]') || document.documentElement;
           var s = getComputedStyle(el);
           function g(n){ return (s.getPropertyValue(n)||'').trim(); }
           // CLARO/ESCURO PELA MESMA FONTE DAS CORES. Antes vinha de localStorage
@@ -1305,7 +1312,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private func openJurisTab(_ done: @escaping () -> Void) {
         let js = """
         (function(){
-          var el = document.querySelector('[style*="--accent"]') || document.documentElement;
+          // Nó dos tokens pelo que ele É, não pelo texto do atributo style. O div raiz
+          // carrega data-dark + data-dir + as variáveis; casar `[style*="--accent"]`
+          // dependia de ele ser o PRIMEIRO em ordem de documento — verdade hoje só porque
+          // é ancestral de todos. Qualquer nó com --accent no style fora dele quebrava a
+          // leitura do tema, e o sintoma seria o texto sumido do LEGIS de novo. O seletor
+          // antigo fica de queda, para host antigo/DOM inesperado.
+          var el = document.querySelector('[data-dark][data-dir]')
+                || document.querySelector('[style*="--accent"]') || document.documentElement;
           var s = getComputedStyle(el);
           function g(n){ return (s.getPropertyValue(n)||'').trim(); }
           // CLARO/ESCURO PELA MESMA FONTE DAS CORES. Antes vinha de localStorage
