@@ -294,7 +294,7 @@ if (fontsHref) {
 
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'catedra-ui.css']) {
+for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'catedra-ui.css']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
 }
 // fatias dos acervos (ct-dados/sw): pasta inteira, nomes com hash
@@ -363,7 +363,8 @@ const acervoOffline = [
   './tema-satelite.js', './catedra-ui.css', './satellite-base.css', './ritos-web.html', './pecas-web.html', './area-web.html',
   './legis-web.html', './juris-web.html', './segunda-fase-web.html', './prioridade-web.html',
   // 2. os scripts que cada satélite carrega
-  './ritos.js', './pecas.js', './fluxos.js', './peca-roteiro.js', './area-modulos.js',
+  './ritos.js', './pecas.js', './fluxos.js', './peca-roteiro.js',
+  './mapa-grafo.js', './mapa-processual.js', './area-modulos.js',
   './treino.js', './leis-catalogo.js', './prioridade-dados.js', './incidencia.js',
   // 3. lei seca em blocos (4,3 MB): é o treino diário, e o acervoLeis() do treino.js
   //    pede o acervo INTEIRO — offline, bloco faltando vira lista de leis vazia,

@@ -5345,6 +5345,309 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
   }
 }
 
+/* ═══════════ MAPA PROCESSUAL — a leitura horizontal de "Processo e peças" ═══════════
+   Dois lados são testados de propósito, porque já houve verde falso por testar só um:
+   (a) o GRAFO — a camada de dados, que não depende de tela nenhuma: nenhum rito pode
+       gerar aresta órfã, e o mapa tem de ser MESMO horizontal (largura > altura);
+   (b) a TELA — o que pinta e, principalmente, o que PERSISTE: posição, zoom, etapa,
+       escolha de caminho, favorito e rascunho têm de sobreviver ao recarregamento.
+   E o modo padrão continua sendo o fluxo vertical: quem abria a tela cai onde caía. */
+{
+  await page.goto(URL0 + '/ritos-web.html');
+  await page.waitForTimeout(700);
+
+  // (a) a camada de dados, sobre TODOS os ritos cadastrados
+  const grafo = await page.evaluate(() => {
+    const G = window.CTMapaGrafo, F = window.CT_FLUXOS || {}, R = window.CT_RITOS || {}, P = window.CT_PECAS || {};
+    if (!G) return { erro: 'CTMapaGrafo não carregou' };
+    const nomes = [...new Set([...Object.keys(F), ...Object.keys(R)])];
+    let orfas = 0, verticais = 0, semRota = 0, cruzam = 0, ocupado = 0;
+    nomes.forEach(n => {
+      const g = G.montar(n, { fluxos: F, ritos: R, pecas: P });
+      g.arestas.forEach(a => { if (!g.porId[a.de] || !g.porId[a.para]) orfas++; });
+      if (g.largura <= g.altura) verticais++;
+      if (G.rota(g, {}).length < 3) semRota++;
+      // dois nós na MESMA casa da grade fariam cartão sobre cartão — e é a garantia
+      // de que nenhuma seta atravessa cartão, porque a rota vertical usa o vão
+      const casas = {};
+      g.nos.forEach(x => { const k = x.col + ':' + x.faixa; if (casas[k]) ocupado++; casas[k] = 1; });
+    });
+    return { nomes: nomes.length, orfas, verticais, semRota, ocupado };
+  });
+  if (grafo.erro) ok(false, 'MAPA ' + grafo.erro);
+  else {
+    ok(grafo.nomes >= 20, 'MAPA a camada de dados monta os ' + grafo.nomes + ' ritos cadastrados');
+    ok(grafo.orfas === 0, 'MAPA nenhuma aresta aponta para nó inexistente (' + grafo.orfas + ')');
+    ok(grafo.verticais === 0, 'MAPA todo rito sai MAIS LARGO que alto — é mapa, não lista (' + grafo.verticais + ' verticais)');
+    ok(grafo.semRota === 0, 'MAPA todo rito tem rota percorrível (' + grafo.semRota + ' sem rota)');
+    ok(grafo.ocupado === 0, 'MAPA nenhuma casa da grade recebe dois cartões (' + grafo.ocupado + ' colisões)');
+  }
+
+  // o prazo é EXTRAÍDO do texto do rito, e "pena máxima de 4 anos" não é prazo
+  const prazo = await page.evaluate(() => {
+    const G = window.CTMapaGrafo;
+    return {
+      leDias: (G.prazoDe('Contestação — 15 dias', false) || {}).texto,
+      leHoras: ((G.prazoDe('Prisão em flagrante · comunicação em 24 horas', false) || {}).faixa),
+      naoLePena: G.prazoDe('pena máxima igual ou superior a 4 anos', false),
+      inicioNaoTemPrazo: G.prazoDe('RITO ORDINÁRIO · pena máxima de 4 anos', true),
+    };
+  });
+  ok(prazo.leDias === '15 dias', 'MAPA prazo lido do próprio texto do rito');
+  ok(prazo.leHoras === 'curto', 'MAPA prazo em horas cai na faixa curta');
+  ok(prazo.naoLePena === null, 'MAPA "pena máxima de 4 anos" NÃO vira prazo');
+  ok(prazo.inicioNaoTemPrazo === null, 'MAPA a caixa de início não inventa prazo');
+
+  // (b) o padrão continua sendo o fluxo vertical
+  const padrao = await page.evaluate(() => ({
+    fluxoVisivel: !document.getElementById('fluxo').hidden,
+    mapaOculto: document.getElementById('mapaHold').hidden,
+    botaoMapa: !!document.getElementById('mMapa'),
+    chipsDoFluxo: document.querySelectorAll('#fluxo [data-legis]').length,
+  }));
+  ok(padrao.fluxoVisivel && padrao.mapaOculto, 'MAPA o modo padrão continua sendo o fluxo vertical');
+  ok(padrao.botaoMapa, 'MAPA existe a opção "Mapa processual" em Processo e peças');
+  ok(padrao.chipsDoFluxo > 0, 'MAPA o fluxo vertical segue inteiro (não foi substituído)');
+
+  // a tela do mapa: pinta, busca, filtra, recolhe, escolhe caminho
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto(URL0 + '/ritos-web.html?modo=mapa&rito=' + encodeURIComponent('Penal — procedimento comum'));
+  await page.waitForTimeout(900);
+  const tela = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+    const r = {};
+    r.pintou = $$('.mp-no').length;
+    r.setas = $$('.mp-linhas g').length;
+    r.enquadrou = parseFloat(($('.mp-mundo').style.transform.match(/scale\(([\d.]+)\)/) || [])[1] || 0);
+    r.minimapa = !!$('.mp-mini svg');
+    // fundamento em chip dourado e peça em botão
+    r.chipsLei = $$('.mp-no [data-legis]').length;
+    r.botoesPeca = $$('.mp-no [data-peca]').length;
+    // busca por artigo centraliza
+    const bu = $('[data-r=busca]');
+    bu.value = 'art. 402'; bu.dispatchEvent(new Event('input', { bubbles: true })); await w(120);
+    r.achouArtigo = $$('.mp-no.achou').length;
+    const antes = $('.mp-mundo').style.transform;
+    bu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(250);
+    r.buscaCentraliza = $('.mp-mundo').style.transform !== antes;
+    bu.value = ''; bu.dispatchEvent(new Event('input', { bubbles: true })); await w(80);
+    // recolher ramificação esconde os ramos daquela decisão
+    const n0 = $$('.mp-no').length;
+    $('[data-recolhe="p2"]').click(); await w(150);
+    r.recolheu = $$('.mp-no').length === n0 - 2;
+    $('[data-recolhe="p2"]').click(); await w(150);
+    r.reabriu = $$('.mp-no').length === n0;
+    // escolher o caminho da rejeição apaga o que ficou incompatível
+    $('[data-abrir="p2"]').click(); await w(200);
+    r.temEscolha = $$('.mp-painel [data-escolhe]').length;
+    const pctAntes = $('[data-r=pct]').textContent;
+    $('.mp-painel [data-escolhe="p2s0"]').click(); await w(250);
+    r.progressoMudou = $('[data-r=pct]').textContent !== pctAntes;
+    r.apagouIncompativeis = $$('.mp-no.fora').length > 0;
+    r.podeTrocar = !!$('.mp-painel [data-desfaz]');
+    // o painel da peça traz o que a peça precisa
+    $('.mp-painel [data-p=x]').click(); await w(100);
+    $('.mp-no [data-peca="Denúncia"]').click(); await w(250);
+    r.secoesDaPeca = $$('.mp-painel .mp-sec h4').map(h => h.textContent);
+    r.acoesDaPeca = $$('.mp-painel .mp-pacs button').map(b => b.textContent.replace(/[^\wçãéêíó ]/gi, '').trim());
+    const t = $('.mp-painel [data-rasc]');
+    t.value = 'rascunho de teste'; t.dispatchEvent(new Event('input', { bubbles: true })); await w(120);
+    $('.mp-painel [data-p=favp]').click(); await w(100);
+    $('.mp-painel [data-p=x]').click();
+    r.estado = { transform: $('.mp-mundo').style.transform, pct: $('[data-r=pct]').textContent,
+                 ativo: ($('.mp-no.atual') || {}).dataset && $('.mp-no.atual').dataset.id };
+    return r;
+  });
+  ok(tela.pintou === 16, 'MAPA o procedimento comum pinta as 16 caixas (' + tela.pintou + ')');
+  ok(tela.setas >= 16, 'MAPA as setas são desenhadas (' + tela.setas + ')');
+  ok(tela.enquadrou > 0 && tela.enquadrou < 1, 'MAPA abre com o rito inteiro enquadrado (' + tela.enquadrou + ')');
+  ok(tela.minimapa, 'MAPA o minimapa é desenhado');
+  ok(tela.chipsLei >= 10, 'MAPA cada etapa mostra o fundamento legal (' + tela.chipsLei + ' chips)');
+  ok(tela.botoesPeca >= 2, 'MAPA as peças viram botão no cartão (' + tela.botoesPeca + ')');
+  ok(tela.achouArtigo === 1, 'MAPA a busca acha a etapa pelo artigo');
+  ok(tela.buscaCentraliza, 'MAPA o resultado da busca é centralizado');
+  ok(tela.recolheu && tela.reabriu, 'MAPA a ramificação recolhe e reabre');
+  ok(tela.temEscolha === 2, 'MAPA a decisão oferece os dois caminhos do rito');
+  ok(tela.progressoMudou, 'MAPA escolher caminho recalcula o progresso');
+  ok(tela.apagouIncompativeis, 'MAPA escolher caminho apaga os caminhos incompatíveis');
+  ok(tela.podeTrocar, 'MAPA a escolha pode ser desfeita');
+  const PRECISA = ['Roteiro', 'Requisitos', 'Prazo', 'Fundamentação', 'Dicas', 'Texto-base', 'Rascunho'];
+  const faltam = PRECISA.filter(x => !tela.secoesDaPeca.some(s => s.indexOf(x) === 0));
+  ok(faltam.length === 0, 'MAPA o painel da peça traz roteiro, requisitos, prazo, fundamentação, dicas, texto-base e rascunho ('
+    + (faltam.join(', ') || 'completo') + ')');
+  const ACOES = ['Copiar', 'Imprimir', 'Favoritar', 'Editar rascunho'];
+  const semAcao = ACOES.filter(a => !tela.acoesDaPeca.some(x => x.indexOf(a) >= 0));
+  ok(semAcao.length === 0, 'MAPA o painel da peça tem copiar, imprimir, favoritar e editar rascunho ('
+    + (semAcao.join(', ') || 'completo') + ')');
+
+  // PERSISTE? — o teste que faltou da outra vez: pintar não é guardar
+  await page.reload();
+  await page.waitForTimeout(900);
+  const volta = await page.evaluate(() => {
+    const $ = s => document.querySelector(s);
+    const g = (JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {};
+    return { transform: $('.mp-mundo').style.transform, pct: $('[data-r=pct]').textContent,
+             ativo: ($('.mp-no.atual') || {}).dataset && $('.mp-no.atual').dataset.id,
+             modo: document.getElementById('mMapa').getAttribute('aria-pressed'),
+             escolha: g.escolhas && g.escolhas.p2, rascunho: (g.rascunhos || {})['Denúncia'],
+             favorito: !!(g.favoritos || {})['peca:Denúncia'] };
+  });
+  ok(volta.modo === 'true', 'MAPA o modo escolhido sobrevive ao recarregamento');
+  ok(volta.transform === tela.estado.transform, 'MAPA a POSIÇÃO do mapa sobrevive ao recarregamento');
+  ok(volta.ativo === tela.estado.ativo && volta.pct === tela.estado.pct, 'MAPA etapa atual e progresso sobrevivem');
+  ok(volta.escolha === 'p2s0', 'MAPA a escolha do caminho sobrevive');
+  ok(volta.rascunho === 'rascunho de teste', 'MAPA o rascunho da peça sobrevive');
+  ok(volta.favorito, 'MAPA o favorito sobrevive');
+
+  /* Palco sem tamanho — o iframe que o app monta ESCONDIDO. O que não pode acontecer:
+     gravar como posição escolhida um enquadramento calculado sobre 0×0, porque aí a
+     tela abriria para sempre num zoom que ninguém pediu. O mapa espera ganhar tamanho
+     e só então se enquadra. */
+  const escondido = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    localStorage.removeItem('catedraMapaProcessual');
+    const alvo = document.getElementById('mapaHold');
+    const pai = alvo.parentNode; pai.style.display = 'none';
+    document.getElementById('mFluxo').click(); await w(60);
+    document.getElementById('mMapa').click(); await w(250);
+    const largura = document.querySelector('.mp-palco').clientWidth;
+    const guardadoEscondido = ((JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {}).vista;
+    const semTamanho = document.querySelector('.mp-mundo').style.transform;
+    pai.style.display = ''; await w(500);
+    const comTamanho = document.querySelector('.mp-mundo').style.transform;
+    const guardadoDepois = ((JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {}).vista;
+    return { largura, guardadoEscondido, semTamanho, comTamanho, guardadoDepois };
+  });
+  ok(escondido.largura === 0, 'MAPA o cenário do teste é mesmo o palco sem tamanho');
+  ok(!escondido.guardadoEscondido, 'MAPA palco sem tamanho NÃO grava posição inventada');
+  ok(escondido.comTamanho !== escondido.semTamanho && /scale\(/.test(escondido.comTamanho),
+     'MAPA ao ganhar tamanho, o mapa se enquadra sozinho');
+  ok(!!escondido.guardadoDepois && escondido.guardadoDepois.z > 0,
+     'MAPA só a posição calculada com o palco de pé é guardada');
+
+  // acessibilidade: o palco é operável por teclado e narra o que muda
+  const a11y = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const p = document.querySelector('.mp-palco');
+    const t = k => p.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
+    p.focus();
+    const foco = document.activeElement === p;
+    const a0 = document.querySelector('.mp-no.atual').dataset.id;
+    t('n'); await w(150);
+    const andou = document.querySelector('.mp-no.atual').dataset.id !== a0;
+    const z0 = document.querySelector('[data-r=lupa]').textContent;
+    t('+'); await w(80);
+    return { foco, andou, ampliou: document.querySelector('[data-r=lupa]').textContent !== z0,
+      papel: p.getAttribute('role'), rotulo: !!p.getAttribute('aria-label'),
+      viva: !!document.querySelector('[role=status][aria-live=polite]'),
+      narrou: (document.querySelector('[data-r=aviso]').textContent || '').length > 0,
+      cartaoDescrito: (document.querySelector('.mp-no [data-abrir]').getAttribute('aria-label') || '').indexOf('Situação') > 0 };
+  });
+  for (const [k, v] of Object.entries(a11y)) ok(v, 'MAPA acessibilidade: ' + k);
+
+  /* Três armadilhas que já custaram caro em outras telas:
+     · repintar o cartão joga o foco no body — quem favorita pelo teclado se perde;
+     · aria-modal sem prender o Tab anuncia "diálogo" e deixa a tabulação escapar;
+     · a barra de progresso precisa de PAPEL, porque aria-label em <div> mudo não é lido. */
+  const foco = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s);
+    const r = {};
+    const estrela = $('.mp-no [data-fav]');
+    const id = estrela.dataset.fav;
+    estrela.focus(); estrela.click(); await w(200);
+    r.focoSobreviveARepintura = !!document.activeElement.dataset
+      && document.activeElement.dataset.fav === id;
+    // Tab não escapa do painel
+    $('.mp-no [data-abrir]').click(); await w(250);
+    const p = $('.mp-painel');
+    const f = [...p.querySelectorAll('button, textarea')].filter(x => x.offsetParent !== null);
+    f[f.length - 1].focus();
+    p.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+    await w(80);
+    r.tabNaoEscapaDoPainel = p.contains(document.activeElement);
+    f[0].focus();
+    p.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+    await w(80);
+    r.shiftTabNaoEscapa = p.contains(document.activeElement);
+    // fechar devolve o foco a quem abriu
+    $('.mp-painel [data-p=x]').click(); await w(150);
+    r.fecharDevolveOFoco = !!document.activeElement.closest
+      && !!document.activeElement.closest('.mp-no, .mp-palco');
+    const pb = $('[data-r=pbar]');
+    r.progressoTemPapel = pb.getAttribute('role') === 'progressbar'
+      && /^\d+$/.test(pb.getAttribute('aria-valuenow') || '')
+      && !!pb.getAttribute('aria-valuetext');
+    return r;
+  });
+  for (const [k, v] of Object.entries(foco)) ok(v, 'MAPA ' + k);
+
+  /* O painel lateral é anexado ao <body>, FORA do elemento .mp — e variável CSS não
+     atravessa o DOM de lado. Com os tokens declarados só em .mp, o painel herdava a
+     cor de texto da página clara e saía tinta escura sobre fundo escuro: presente no
+     DOM, invisível na tela. Um teste que só procura a seção passa verde nesse defeito;
+     por isso aqui se mede o CONTRASTE calculado, que é o que a pessoa enxerga. */
+  const legivel = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s);
+    $('.mp-no [data-peca]').click(); await w(350);
+    const p = $('.mp-painel');
+    const cor = e => getComputedStyle(e).color, fundo = e => getComputedStyle(e).backgroundColor;
+    const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).map(Number).slice(0, 3)
+      .map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+      return .2126 * r + .7152 * g + .0722 * b; };
+    const K = (a, b) => { const l1 = lum(a), l2 = lum(b);
+      return +((Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05)).toFixed(2); };
+    const h3 = p.querySelector('h3'), txt = p.querySelector('.mp-sec p'),
+          h4 = p.querySelector('.mp-sec h4'), bt = p.querySelector('.mp-pacs button');
+    const r = { titulo: K(cor(h3), fundo(p)), texto: K(cor(txt), fundo(txt.closest('.mp-sec'))),
+                rotulo: K(cor(h4), fundo(h4.closest('.mp-sec'))), botao: K(cor(bt), fundo(bt)) };
+    $('.mp-painel [data-p=x]').click();
+    return r;
+  });
+  for (const [k, v] of Object.entries(legivel))
+    ok(v >= 4.5, 'MAPA o painel é LEGÍVEL — contraste de ' + k + ': ' + v + ':1 (mínimo 4,5)');
+
+  // e o cartão no quadro escuro tem de passar pela mesma régua
+  const cartaoLegivel = await page.evaluate(() => {
+    const cor = e => getComputedStyle(e).color, fundo = e => getComputedStyle(e).backgroundColor;
+    const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).map(Number).slice(0, 3)
+      .map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+      return .2126 * r + .7152 * g + .0722 * b; };
+    const K = (a, b) => { const l1 = lum(a), l2 = lum(b);
+      return +((Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05)).toFixed(2); };
+    // o cartão é gradiente: mede-se contra a tinta mais clara dele, que é o pior caso
+    const cartao = document.querySelector('.mp-no'), fundoCartao = 'rgb(36, 26, 62)';
+    return { titulo: K(cor(cartao.querySelector('strong')), fundoCartao),
+             resumo: K(cor(cartao.querySelector('small') || cartao.querySelector('strong')), fundoCartao),
+             fundamento: K(cor(cartao.querySelector('.mp-art') || cartao.querySelector('strong')), fundoCartao) };
+  });
+  for (const [k, v] of Object.entries(cartaoLegivel))
+    ok(v >= 4.5, 'MAPA o cartão é LEGÍVEL — contraste de ' + k + ': ' + v + ':1 (mínimo 4,5)');
+
+  /* Trocar de rito remonta o mapa. O ouvinte de Esc mora no DOCUMENTO (o painel pode
+     não estar com o foco), então precisa sair no destruir — senão cada troca deixa um
+     ouvinte preso a uma instância morta, e vinte trocas viram vinte. */
+  const vazamento = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    let vivos = 0;
+    const add = document.addEventListener.bind(document);
+    const rem = document.removeEventListener.bind(document);
+    document.addEventListener = function (t, f, o) { if (t === 'keydown') vivos++; return add(t, f, o); };
+    document.removeEventListener = function (t, f, o) { if (t === 'keydown') vivos--; return rem(t, f, o); };
+    for (let i = 0; i < 5; i++) {
+      document.getElementById('mFluxo').click(); await w(60);
+      document.getElementById('mMapa').click(); await w(120);
+    }
+    document.addEventListener = add; document.removeEventListener = rem;
+    return vivos;
+  });
+  ok(vazamento <= 1, 'MAPA remontar o mapa não acumula ouvintes de teclado (saldo ' + vazamento + ' após 5 trocas)');
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
