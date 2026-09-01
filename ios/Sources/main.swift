@@ -243,12 +243,21 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
               r=parseFloat(p[0]); gg=parseFloat(p[1]); b=parseFloat(p[2]);
             } else return null;
             if(isNaN(r)||isNaN(gg)||isNaN(b)) return null;
+            if(p && p.length>3 && parseFloat(p[3])===0) return null;   // transparente não diz nada
             return (0.2126*r + 0.7152*gg + 0.0722*b)/255;
           }
           function _dk(){
-            var L=_lum(g('--bg')); if(L===null) L=_lum(g('--surface'));
-            if(L!==null) return L<0.5 ? '1' : '0';
-            return localStorage.getItem('catedra:dark')||'';   // sem cor legível, o antigo
+            // Cai para o fundo REALMENTE pintado antes de cogitar o localStorage: o
+            // navegador resolve backgroundColor sempre em rgb(), então isto sobrevive a
+            // uma mudança no seletor dos tokens. O localStorage é o ÚLTIMO recurso de
+            // propósito — é a fonte que mente (o auth.js sincroniza 'catedra:dark' e
+            // escreve direto, sem o app repintar), e foi ela que sumiu com o texto.
+            var L=_lum(g('--bg'));
+            if(L===null) L=_lum(g('--surface'));
+            if(L===null){ try{ L=_lum(getComputedStyle(el).backgroundColor); }catch(_){} }
+            if(L===null){ try{ L=_lum(getComputedStyle(document.body).backgroundColor); }catch(_){} }
+            if(L!==null && L===L) return L<0.5 ? '1' : '0';
+            return localStorage.getItem('catedra:dark')||'';
           }
           return JSON.stringify({
             bg:g('--bg'), surface:g('--surface'), surface2:g('--surface2'), border:g('--border'),
