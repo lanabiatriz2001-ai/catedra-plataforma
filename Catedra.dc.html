@@ -101,9 +101,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 aside nav button:hover{ background:rgba(255,255,255,.07); }
 aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 /* heroes com círculos decorativos — assinatura visual em TODAS as abas */
-.ct-scroll [style*="--heroGrad)"]{ position:relative; overflow:hidden; }
-.ct-scroll [style*="--heroGrad)"]::after{ content:""; position:absolute; right:-70px; top:-70px; width:230px; height:230px; border-radius:999px; background:rgba(255,255,255,.09); pointer-events:none; }
-.ct-scroll [style*="--heroGrad)"]::before{ content:""; position:absolute; right:70px; bottom:-90px; width:170px; height:170px; border-radius:999px; background:rgba(255,255,255,.05); pointer-events:none; }
+.ct-scroll .ct-hero, .ct-scroll [style*="--heroGrad)"]{ position:relative; overflow:hidden; }
+.ct-scroll .ct-hero::after, .ct-scroll [style*="--heroGrad)"]::after{ content:""; position:absolute; right:-70px; top:-70px; width:230px; height:230px; border-radius:999px; background:rgba(255,255,255,.09); pointer-events:none; }
+.ct-scroll .ct-hero::before, .ct-scroll [style*="--heroGrad)"]::before{ content:""; position:absolute; right:70px; bottom:-90px; width:170px; height:170px; border-radius:999px; background:rgba(255,255,255,.05); pointer-events:none; }
 .ct-tb-div{width:1px;height:26px;background:var(--border);flex:none;border-radius:99px;}
 @media (max-width:680px){.ct-tb-searchlabel{display:none!important;}.ct-tb-div{display:none!important;}}
 @media (max-width:760px){.ct-dash-daylbl{display:none!important;}}
@@ -343,33 +343,33 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 /* ---- personalidade por direção visual (todas as abas — cards de superfície reais) ---- */
 /* o runtime normaliza o style inline com espaços: "background: var(--surface)" */
 /* Fibra: plano de verdade — sem sombra em card nenhum, relevo só por borda */
-[data-dir="clean"] .ct-scroll div[style*="var(--surface)"]{ box-shadow:none !important; }
+[data-dir="clean"] .ct-scroll .ct-card, [data-dir="clean"] .ct-scroll div[style*="var(--surface)"]{ box-shadow:none !important; }
 /* Neon: brilho violeta/magenta nos cards */
-[data-dir="moderno"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
+[data-dir="moderno"] .ct-scroll .ct-card, [data-dir="moderno"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
   box-shadow:0 1px 2px rgba(124,58,237,.07), 0 10px 28px rgba(124,58,237,.12) !important;
 }
-[data-dir="moderno"][data-dark="1"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
+[data-dir="moderno"][data-dark="1"] .ct-scroll .ct-card, [data-dir="moderno"][data-dark="1"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
   box-shadow:0 0 0 1px rgba(167,139,250,.10), 0 12px 32px rgba(0,0,0,.55) !important;
 }
 /* Aurora: sombra fria azulada */
-[data-dir="aurora"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
+[data-dir="aurora"] .ct-scroll .ct-card, [data-dir="aurora"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
   box-shadow:0 1px 2px rgba(8,145,178,.06), 0 12px 30px rgba(37,99,235,.10) !important;
 }
 /* Solar: brilho quente coral */
-[data-dir="solar"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
+[data-dir="solar"] .ct-scroll .ct-card, [data-dir="solar"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
   box-shadow:0 1px 2px rgba(234,88,12,.06), 0 12px 30px rgba(219,39,119,.10) !important;
 }
 /* Terminal: plano e afiado, relevo por borda */
-[data-dir="terminal"] .ct-scroll div[style*="var(--surface)"]{ box-shadow:none !important; }
+[data-dir="terminal"] .ct-scroll .ct-card, [data-dir="terminal"] .ct-scroll div[style*="var(--surface)"]{ box-shadow:none !important; }
 /* Holo: sombra iridescente dupla */
-[data-dir="holo"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
+[data-dir="holo"] .ct-scroll .ct-card, [data-dir="holo"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
   box-shadow:0 4px 14px rgba(139,92,246,.09), 0 14px 34px rgba(14,165,233,.10) !important;
 }
 /* Tribunal: sombra quente e funda, clima editorial */
-[data-dir="premium"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
+[data-dir="premium"] .ct-scroll .ct-card, [data-dir="premium"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
   box-shadow:0 2px 4px rgba(70,35,25,.05), 0 14px 36px rgba(70,35,25,.11) !important;
 }
-[data-dir="premium"][data-dark="1"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
+[data-dir="premium"][data-dark="1"] .ct-scroll .ct-card, [data-dir="premium"][data-dark="1"] .ct-scroll div[style*="var(--surface)"][style*="var(--border)"]{
   box-shadow:0 0 0 1px rgba(212,112,127,.08), 0 12px 32px rgba(0,0,0,.55) !important;
 }
 /* ============================================================================
