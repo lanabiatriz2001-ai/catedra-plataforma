@@ -5568,9 +5568,19 @@ const AJ_PREFS_PADRAO = {
 };
 /* Cada seção declara o que é dela. `o:` são chaves de orient, `p:` de prefs, `s:` de estado
    solto (chaves de topo do componente). */
+/* Estado solto (fora de orient/prefs) que TEM valor de fábrica e é seguro devolver a ele.
+   Cada um mora numa chave própria do localStorage, por isso não cabia nos dois objetos
+   acima. FICARAM DE FORA de propósito `areaEstudo` e `provaData`: não são ajuste com
+   padrão de fábrica, são fato sobre a pessoa — "voltar ao padrão" não pode apagar a área
+   de estudo nem a data da prova de ninguém. */
+const AJ_ESTADO_PADRAO = { accent:null, dir:'sutil', darkMode:false, apPreset:'personalizado',
+  planHoras:24, plataformaQuestoes:'tec' };
+const AJ_ESTADO_CHAVE  = { accent:'accent', dir:'dir', darkMode:'dark', apPreset:'apPreset',
+  planHoras:'planHoras', plataformaQuestoes:'plataformaQuestoes' };
+
 const AJ_SECOES = [
   {id:'perfil',    icone:'◍', titulo:'Perfil',            desc:'quem você é para a plataforma e quando é a prova',
-   o:[], p:['nome','objetivo'], s:['provaData','areaEstudo']},
+   o:[], p:['nome','objetivo'], s:[]},
   {id:'ritmo',     icone:'◐', titulo:'Ritmo e metas',     desc:'quanto você estuda, como o ciclo é montado e o que conta como dia cumprido',
    o:['nivel','tempoDia','energia','dias','energiaPlano','cobranca','estrategia','blocoPadrao','modoPadrao','aoAbrir',
       'metaMin','metaIdeal','metaForte','retaFinalCom','ativarReta','reduzirTeoria','focoEstrategico','banca',
@@ -11528,6 +11538,10 @@ class Component extends DCLogic {
     const fora=[]; const O=this.state.orient||{}, P=this.state.prefs||{};
     (S.o||[]).forEach(k=>{ if(String(O[k]) !== String(AJ_ORIENT_PADRAO[k])) fora.push(k); });
     (S.p||[]).forEach(k=>{ if(String(P[k]) !== String(AJ_PREFS_PADRAO[k])) fora.push(k); });
+    // estado solto (cor, direção visual, tema, preset, horas da semana, plataforma de
+    // questões): sem esta linha as chaves `s:` eram DECLARADAS e nunca lidas — o selo de
+    // Aparência não contava a cor nem a direção, e "voltar ao padrão" não as devolvia.
+    (S.s||[]).forEach(k=>{ if(String(this.state[k]) !== String(AJ_ESTADO_PADRAO[k])) fora.push(k); });
     return fora;
   }
   /** Volta a seção ao padrão. Só mexe nas chaves DELA — restaurar aparência não pode
@@ -11541,8 +11555,24 @@ class Component extends DCLogic {
     const orient={...this.state.orient}, prefs={...this.state.prefs};
     (S.o||[]).forEach(k=>{ orient[k]=AJ_ORIENT_PADRAO[k]; });
     (S.p||[]).forEach(k=>{ prefs[k]=AJ_PREFS_PADRAO[k]; });
+    const solto={};
+    (S.s||[]).forEach(k=>{ solto[k]=AJ_ESTADO_PADRAO[k];
+      // cada um tem chave própria no localStorage; o _autosave não cobre estes
+      // cada chave tem o SEU formato no storage e escrever no formato errado quebra a
+      // leitura no próximo boot: 'dark' é '1'/'0', 'dir' é string CRUA (o onDir e a
+      // leitura inicial comparam direto com CT_DIRS, sem JSON.parse), e o resto passa
+      // pelo _load, que faz JSON.parse.
+      try{ const ck='catedra:'+AJ_ESTADO_CHAVE[k];
+        if(k==='darkMode') localStorage.setItem(ck, AJ_ESTADO_PADRAO[k]?'1':'0');
+        else if(k==='dir') localStorage.setItem(ck, String(AJ_ESTADO_PADRAO[k]));
+        else if(AJ_ESTADO_PADRAO[k]==null) localStorage.removeItem(ck);
+        else localStorage.setItem(ck, JSON.stringify(AJ_ESTADO_PADRAO[k]));
+      }catch(_){}
+    });
     // prefs sobe pelo _autosave do componentDidUpdate; orient tem persistência própria
-    this.setState({orient, prefs}, ()=>{ this._persistOrient();
+    this.setState({orient, prefs, ...solto}, ()=>{ this._persistOrient();
+      // a direção/tema/cor só reaparecem na tela depois de repintar
+      if(Object.keys(solto).length){ try{ this._temaBroadcast(); }catch(_){} }
       this._toast(S.titulo+' de volta ao padrão'); });
   };
   /** Retrato da configuração atual — só ajuste, nunca dado de estudo. */
