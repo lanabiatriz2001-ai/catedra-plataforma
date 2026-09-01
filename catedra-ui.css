@@ -451,3 +451,116 @@ textarea.ct-campo { resize: vertical; line-height: 1.7; }
   color: var(--text3, #7a7368);
   font-variant-numeric: tabular-nums;
 }
+
+/* ===== 13. VITRINE — a identidade, não só a coerência ============================
+ * POR QUE ESTA SEÇÃO EXISTE, E POR QUE ELA VEM DEPOIS
+ * As seções 10–12 uniformizaram: o mesmo cartão, o mesmo rótulo, o mesmo campo em toda a
+ * plataforma. Isso deixou o app COERENTE — e coerente não é a mesma coisa que bonito. A
+ * dona do app foi direta ao apontar isso: uniformizar era metade do pedido.
+ * Esta seção é a outra metade. Ela não cria peça nova: ELEVA as que já existem. Como as
+ * telas passaram a usar as classes, uma mudança aqui reformula o app inteiro — foi para
+ * isto que a padronização serviu.
+ *
+ * AS TRÊS DECISÕES
+ * 1. O cartão deixa de ser caixa branca com borda cinza: ganha um fio de luz no topo, a
+ *    borda recua e a sombra passa a ter a cor do tema, não cinza universal.
+ * 2. A tipografia cresce onde é começo de assunto, e só ali. Título de tela em escala
+ *    editorial; o resto continua discreto, senão nada se destaca.
+ * 3. A cor entra por MATÉRIA, não por enfeite: a mesma paleta que o app já usa no ciclo,
+ *    nos gráficos e nas revisões (CT_CORES_RAMO) passa a valer no cartão e no chip.
+ */
+
+/* ---- 13.1 O CARTÃO GANHA PRESENÇA ---------------------------------------------
+   O fio de luz no topo é o que tira o cartão do "caixote": ele pega a cor do tema e some
+   nas pontas, então funciona nas oito direções sem virar listra colorida. */
+.ct-card {
+  position: relative;
+  border-color: color-mix(in srgb, var(--border, #e6e1d4) 72%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent, #0f7a57) 7%, transparent),
+              0 10px 30px -12px color-mix(in srgb, var(--accent, #0f7a57) 16%, transparent);
+  overflow: hidden;
+}
+.ct-card::before {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 22%,
+    color-mix(in srgb, var(--accent, #0f7a57) 75%, transparent) 50%,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 78%,
+    transparent);
+  opacity: .5; pointer-events: none;
+}
+/* cartão com matéria: a cor da disciplina manda no fio e na sombra */
+.ct-card[data-materia]::before {
+  background: linear-gradient(90deg, transparent, var(--ct-materia, var(--accent)) 30%, var(--ct-materia, var(--accent)) 70%, transparent);
+  opacity: .8;
+}
+.ct-card[data-materia] {
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ct-materia, var(--accent)) 8%, transparent),
+              0 12px 32px -14px color-mix(in srgb, var(--ct-materia, var(--accent)) 26%, transparent);
+}
+/* o cartão que é BOTÃO reage ao dedo: sobe um fio e a sombra abre */
+button.ct-card, a.ct-card { transition: transform .16s ease, box-shadow .16s ease; }
+button.ct-card:hover, a.ct-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--accent) 10%, transparent),
+              0 18px 40px -14px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  button.ct-card, a.ct-card { transition: none; }
+  button.ct-card:hover, a.ct-card:hover { transform: none; }
+}
+
+/* ---- 13.2 A FAIXA FICA EDITORIAL ----------------------------------------------
+   Mais ar, título maior e uma segunda camada de luz — a faixa é o primeiro lugar da tela
+   e agora parece com isso. */
+.ct-hero {
+  padding: 32px 32px 28px;
+  box-shadow: 0 18px 44px -20px color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent);
+}
+.ct-hero-tit { font-size: clamp(28px, 3.2vw, 38px); line-height: 1.06; }
+.ct-hero-sub { font-size: var(--fs-md, 14.5px); max-width: 58ch; }
+.ct-hero-eb { color: rgba(255, 255, 255, .82); }
+.ct-kpi b { font-size: clamp(26px, 2.6vw, 34px); }
+
+/* ---- 13.3 TÍTULO DE SEÇÃO EM ESCALA EDITORIAL ---------------------------------
+   Só o que ABRE assunto cresce. Título de cartão continua onde estava: se tudo cresce,
+   nada se destaca — foi o erro que deixou as telas "poluídas" na leitura da dona. */
+.ct-titulo-display { font-size: clamp(22px, 2.2vw, 28px); letter-spacing: -.02em; }
+.ct-secao h2, .ct-secao .ct-secao-titulo { font-size: var(--fs-2xl, 19px); letter-spacing: -.01em; }
+
+/* ---- 13.4 A COR DA MATÉRIA NO CHIP E NO SELO ----------------------------------
+   Mesma paleta do ciclo e dos gráficos (CT_CORES_RAMO). O ponto colorido diz o assunto
+   antes de a pessoa ler o rótulo. */
+.ct-chip-materia {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--ct-materia, var(--accent)) 34%, transparent);
+  background: color-mix(in srgb, var(--ct-materia, var(--accent)) 10%, transparent);
+  color: var(--ink, #1f1c17);
+  border-radius: 99px; padding: 6px 13px;
+  font-size: var(--fs-sm, 12.5px); font-weight: 600;
+}
+.ct-chip-materia::before {
+  content: ""; width: 7px; height: 7px; border-radius: 99px;
+  background: var(--ct-materia, var(--accent)); flex: none;
+}
+
+/* ---- 13.5 NÚMERO COM PESO ------------------------------------------------------ */
+.ct-num b { font-size: clamp(24px, 2.4vw, 30px); }
+.ct-num-forte {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    color-mix(in srgb, var(--accent) 6%, transparent));
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ---- 13.6 BOTÃO PRIMÁRIO COM CORPO --------------------------------------------- */
+.ct-btn {
+  background: linear-gradient(180deg, var(--accent, #0f7a57), color-mix(in srgb, var(--accent, #0f7a57) 82%, #000));
+  box-shadow: 0 1px 2px rgba(0,0,0,.10), 0 8px 20px -10px color-mix(in srgb, var(--accent) 65%, transparent);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.ct-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,.12), 0 12px 26px -10px color-mix(in srgb, var(--accent) 75%, transparent); }
+.ct-btn:active { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .ct-btn { transition: none; } .ct-btn:hover { transform: none; } }
