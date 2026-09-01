@@ -5161,6 +5161,36 @@ const depoisDoEnd = await page.evaluate(() => window.scrollY);
 ok(depoisDaRoda === antesDeRolar, 'GATE a roda do mouse não rola o app atrás do login');
 ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do login');
 
+// ===== TEMA: as oito direções visuais têm de FIXAR =====
+// A regressão que motivou isto: Aurora, Solar, Terminal e Holo eram gravadas em
+// catedra:dir e RECUSADAS na releitura por uma lista de quatro nomes que ficou para
+// trás quando as quatro novas entraram. Escolher, recarregar e voltar para "Planilha".
+{
+  const fonte = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  const dirs = JSON.parse((fonte.match(/const CT_DIRS = (\[[^\]]*\]);/) || [])[1].replace(/'/g, '"'));
+  // toda direção oferecida na tela precisa estar na lista única…
+  const naTela = [...new Set([...fonte.matchAll(/data-dir="([a-z]+)"/g)].map(m => m[1]))];
+  ok(naTela.length >= 8, 'TEMA a tela oferece as oito direções visuais');
+  ok(naTela.every(d => dirs.includes(d)), 'TEMA toda direção da tela está em CT_DIRS');
+  // …e toda direção da lista precisa existir de verdade em THEMES()
+  const temas = [...new Set([...fonte.matchAll(/^\s{4}([a-z]+):\{ label:'/gm)].map(m => m[1]))];
+  ok(dirs.every(d => temas.includes(d)), 'TEMA toda direção de CT_DIRS existe em THEMES()');
+  // nenhuma cópia da lista sobrou por aí
+  ok(!/\['sutil','premium','clean','moderno'\]/.test(fonte), 'TEMA nenhuma lista de direções duplicada no código');
+
+  // e o que importa de verdade: escolher, recarregar e a cor continuar lá
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  for (const d of dirs) {
+    await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(700);
+    // o data-dir do nó raiz (o único que também tem data-dark) é o tema REALMENTE aplicado
+    const vivo = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir'));
+    ok(vivo === d, 'TEMA a direção "' + d + '" sobrevive ao recarregar');
+  }
+}
+
 await browser.close();
 srv.close();
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
