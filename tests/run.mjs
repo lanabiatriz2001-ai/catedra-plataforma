@@ -5226,6 +5226,70 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     });
     ok(coerente, 'TEMA/SYNC a chave catedra:dark bate com o que está pintado');
   }
+
+  /* PINTURA DA DIREÇÃO — o teste que faltava, e o defeito que o pediu.
+     Os testes acima provam que a direção PERSISTE: grava, recarrega, o data-dir continua
+     lá. Nenhum provava que ela PINTA. A diferença custou caro: a uniformização das telas
+     trocou ~90 cartões de `style="background:var(--surface);…"` para `class="ct-card"`, e
+     as nove regras de personalidade miram o ESTILO INLINE (`div[style*="var(--surface)"]`).
+     Os cartões saíram do alcance de todas — Holo perdeu a sombra iridescente, Neon o
+     brilho violeta, Fibra e Terminal deixaram de ser achatados. A suíte passou verde nas
+     duas rodadas seguintes, porque ninguém olhava a pintura.
+     Aqui a asserção é "a sombra do cartão é a ESPERADA DESTA direção" — não "existe
+     alguma sombra". Assim `none` deixa de ser falha e vira expectativa (Fibra e Terminal
+     são planas de propósito), e apagar a regra do Holo volta a quebrar o teste. */
+  {
+    // assinatura de cada direção no tema CLARO: o trecho de cor que só ela produz.
+    // 'none' é resposta legítima; 'sutil' não tem regra própria e cai na sombra do .ct-card.
+    const ASSINATURA = {
+      sutil:    'rgba(16, 24, 40, 0.05)',
+      premium:  'rgba(70, 35, 25',
+      clean:    'none',
+      moderno:  'rgba(124, 58, 237',
+      aurora:   'rgba(8, 145, 178',
+      solar:    'rgba(234, 88, 12',
+      terminal: 'none',
+      holo:     'rgba(139, 92, 246',
+    };
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); localStorage.setItem('catedra:dark', '0'); });
+    for (const d of Object.keys(ASSINATURA)) {
+      await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+      await page.goto(URL0 + '/Catedra.dc.html');
+      await page.waitForTimeout(700);
+      // Simulados é uma tela migrada: se a regra não alcançar `.ct-card`, é aqui que aparece
+      await page.evaluate(() => document.querySelector('button[data-view="simulados"]')?.click());
+      await page.waitForFunction(() => document.querySelectorAll('.ct-card').length > 0, { timeout: 4000 }).catch(() => {});
+      const sombra = await page.evaluate(() => {
+        const c = document.querySelector('.ct-card');
+        return c ? getComputedStyle(c).boxShadow : 'SEM CARTÃO';
+      });
+      const esperado = ASSINATURA[d];
+      const bate = (esperado === 'none') ? (sombra === 'none') : sombra.includes(esperado);
+      ok(bate, 'TEMA a direção "' + d + '" PINTA o cartão (esperado ' + esperado + ', veio ' + String(sombra).slice(0, 46) + ')');
+    }
+
+    /* NO ESCURO, duas direções têm regra PRÓPRIA — e é onde a dona do app vive.
+       `moderno` e `premium` declaram `[data-dir=…][data-dark="1"]` com outra cor; as
+       outras seis reaproveitam a regra clara (holo inclusive, conferido: zero variante
+       escura). Sem estas duas passagens, órfãzar `[data-dir="moderno"][data-dark="1"]`
+       passaria verde exatamente como passou hoje — mesmo defeito, mesma semana, mesmo
+       formato. São duas asserções, não uma segunda volta nas oito. */
+    const ESCURO = { moderno: 'rgba(167, 139, 250', premium: 'rgba(212, 112, 127' };
+    await page.evaluate(() => localStorage.setItem('catedra:dark', '1'));
+    for (const d of Object.keys(ESCURO)) {
+      await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+      await page.goto(URL0 + '/Catedra.dc.html');
+      await page.waitForTimeout(700);
+      await page.evaluate(() => document.querySelector('button[data-view="simulados"]')?.click());
+      await page.waitForFunction(() => document.querySelectorAll('.ct-card').length > 0, { timeout: 4000 }).catch(() => {});
+      const sombra = await page.evaluate(() => {
+        const c = document.querySelector('.ct-card');
+        return c ? getComputedStyle(c).boxShadow : 'SEM CARTÃO';
+      });
+      ok(String(sombra).includes(ESCURO[d]), 'TEMA a direção "' + d + '" PINTA o cartão NO ESCURO (esperado ' + ESCURO[d] + ', veio ' + String(sombra).slice(0, 46) + ')');
+    }
+  }
 }
 
 await browser.close();
