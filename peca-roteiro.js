@@ -391,7 +391,10 @@ function fechar(){
   el.rot.classList.remove('on'); el.velo.classList.remove('on'); el.rot.setAttribute('aria-hidden','true');
 }
 
-const API={abrir, fechar, feitos, ramoDe, RAMOS, esc, limpa, abrirAcervo, aoMudar:null};
+/* `termoBusca` sai junto porque o mapa processual precisa da MESMA conversão de
+   rótulo em termo de busca. Duas cópias divergiriam: o LEGIS acharia o diploma
+   por um caminho e o mapa por outro. */
+const API={abrir, fechar, feitos, ramoDe, RAMOS, esc, limpa, abrirAcervo, termoBusca, aoMudar:null};
 window.CTRoteiro=API;
 window.abrirRoteiro=abrir;   // compatibilidade com quem já chamava assim
 })();

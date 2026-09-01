@@ -93,6 +93,29 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 #listaRito .op.on em{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.36)}
 #vazioRito{padding:14px 10px;color:var(--text2);font-size:12.5px}
 
+/* ───────── seletor de modo: o mesmo rito, lido de duas maneiras ─────────
+   O FLUXO é a leitura vertical, de cima para baixo, que já existia. O MAPA é a
+   leitura horizontal e navegável: o rito anda para a direita e as bifurcações
+   sobem e descem. Um botão só, ao lado do rito, porque é a mesma coisa vista de
+   outro ângulo — não uma segunda tela. */
+.modos{display:flex;gap:3px;flex:none;background:var(--surface2);border:1px solid var(--border);
+  border-radius:11px;padding:3px}
+.modos button{border:0;background:transparent;color:var(--text2);border-radius:8px;
+  padding:0 13px;min-height:38px;font:700 12.5px inherit;cursor:pointer;white-space:nowrap}
+.modos button:hover{color:var(--ink)}
+.modos button[aria-pressed="true"]{background:var(--surface);color:var(--ink);
+  box-shadow:0 1px 2px rgba(20,15,10,.07)}
+/* no mapa a página inteira vira área de trabalho: o rito tem 4 mil pixels de
+   largura, e a coluna de leitura de 1240px seria uma janela estreita demais */
+body.modo-mapa .wrap{max-width:none;padding-bottom:24px}
+body.modo-mapa .cab p,body.modo-mapa .cab .aviso{max-width:96ch}
+#mapaHold{margin-top:20px}
+@media (max-width:760px){
+  .l2{flex-wrap:wrap}
+  .modos{width:100%}
+  .modos button{flex:1;min-height:44px;padding:0 8px}
+}
+
 /* ───────────────────────── moldura do rito ───────────────────────── */
 .wrap{max-width:1240px;margin:0 auto;padding:22px 18px 80px}
 .cab{margin:0 0 6px}
@@ -280,15 +303,22 @@ body.semnotas .nota{display:none}
       <div id="listaRito" role="listbox" aria-label="Ritos"></div>
       <div id="vazioRito" hidden>Nenhum rito com esse nome.</div>
     </div>
+  </span>
+  <span class="modos" role="group" aria-label="Modo de leitura do rito">
+    <button id="mFluxo" type="button" aria-pressed="true">Fluxo</button>
+    <button id="mMapa" type="button" aria-pressed="false">Mapa processual</button>
   </span></div>
 </header>
 
-<main class="wrap"><div id="cab"></div><div class="fluxo" id="fluxo"></div></main>
+<main class="wrap"><div id="cab"></div><div class="fluxo" id="fluxo"></div>
+  <div id="mapaHold" hidden></div></main>
 
 <script src="ritos.js"></script>
 <script src="pecas.js"></script>
 <script src="fluxos.js"></script>
 <script src="peca-roteiro.js"></script>
+<script src="mapa-grafo.js"></script>
+<script src="mapa-processual.js"></script>
 <script>
 /* ==========================================================================
    Ritos como FLUXOGRAMA: espinha vertical, losango onde o processo se bifurca,
@@ -511,6 +541,7 @@ function fecharPainel(devolveFoco){
 }
 function escolher(k){
   atual=k; pintaBotao(); pinta(); fecharPainel(true);
+  if(modo==='mapa') montarMapa();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -554,10 +585,60 @@ window.ctAbrirPonto = function (rito, peca, bloco) {
       atual = rito;
       pintaBotao();
       pinta();
+      if (modo === 'mapa') montarMapa();
     }
     if (peca && PECAS[peca]) setTimeout(() => R.abrir(peca, (bloco == null ? undefined : bloco)), 60);
   } catch (e) {}
 };
+
+/* ═══════════════ MODO DE LEITURA: fluxo vertical ou mapa horizontal ═══════════
+   O mesmo rito, os mesmos dados, dois desenhos. O FLUXO é a leitura de cima para
+   baixo que a página sempre teve. O MAPA é a leitura horizontal e navegável: o
+   procedimento anda para a direita, as decisões abrem caminhos acima e abaixo, e
+   as ramificações reconvergem ao tronco.
+
+   O fluxo continua sendo o padrão — quem abre a tela cai onde já caía. A escolha
+   fica guardada por aparelho, e o ?modo= na URL abre direto no mapa.
+
+   O mapa não conhece rito nenhum: recebe o grafo pronto do mapa-grafo.js, que por
+   sua vez lê fluxos.js e ritos.js. Cadastrar um rito novo continua sendo mexer só
+   no dado. */
+const CHMODO='catedraRitoModo';
+let modo='fluxo', mapa=null;
+
+function montarMapa(){
+  if(mapa){ mapa.destruir(); mapa=null; }
+  if(!window.CTMapaGrafo || !window.CTMapa) return;
+  const g = window.CTMapaGrafo.montar(atual, {fluxos:FLUXOS, ritos:RITOS, pecas:PECAS});
+  mapa = window.CTMapa.montar($('mapaHold'), {
+    grafo: g,
+    pecas: PECAS,
+    /* o chip dourado e as referências do painel usam a MESMA conversão de rótulo
+       em termo de busca que o roteiro de peça — por isso ela vem do CTRoteiro. */
+    aoAcervo: (alvo, termo, de) => R.abrirAcervo(alvo,
+      (R.termoBusca ? R.termoBusca(termo, alvo) : termo),
+      Object.assign({rito: atual}, de || {})),
+    aoRoteiro: (nome) => R.abrir(nome)
+  });
+}
+
+function aplicarModo(novo, comFoco){
+  modo = (novo === 'mapa') ? 'mapa' : 'fluxo';
+  const ehMapa = modo === 'mapa';
+  document.body.classList.toggle('modo-mapa', ehMapa);
+  $('fluxo').hidden = ehMapa;
+  $('mapaHold').hidden = !ehMapa;
+  $('mFluxo').setAttribute('aria-pressed', String(!ehMapa));
+  $('mMapa').setAttribute('aria-pressed', String(ehMapa));
+  try{ localStorage.setItem(CHMODO, modo); }catch(e){}
+  try{ const u=new URL(location.href); u.searchParams.set('modo', modo); history.replaceState(null,'',u); }catch(e){}
+  if(ehMapa){ montarMapa(); if(comFoco){ const pal=$('mapaHold').querySelector('.mp-palco'); if(pal) pal.focus(); } }
+  else if(mapa){ mapa.destruir(); mapa=null; if(comFoco) $('mFluxo').focus(); }
+  medirLosangos();
+}
+
+$('mFluxo').onclick=()=>aplicarModo('fluxo', true);
+$('mMapa').onclick =()=>aplicarModo('mapa', true);
 
 /* ---- partida e volta do acervo: ?rito=Nome, ?peca=Nome (+ &bloco=N) ---- */
 try{ const u=new URLSearchParams(location.search);
@@ -565,6 +646,12 @@ try{ const u=new URLSearchParams(location.search);
   if(q && ORDEM.includes(q)) atual=q; }catch(e){}
 pintaBotao();
 pinta();
+/* o modo vem da URL (deep-link e teste) ou do que ficou guardado no aparelho */
+(function(){
+  let m=''; try{ m=new URLSearchParams(location.search).get('modo')||''; }catch(e){}
+  if(!m){ try{ m=localStorage.getItem(CHMODO)||''; }catch(e){} }
+  aplicarModo(m==='mapa'?'mapa':'fluxo', false);
+})();
 try{ const u=new URLSearchParams(location.search), pc=u.get('peca');
   if(pc && PECAS[pc]) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
 
