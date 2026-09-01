@@ -5189,6 +5189,43 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     const vivo = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir'));
     ok(vivo === d, 'TEMA a direção "' + d + '" sobrevive ao recarregar');
   }
+
+  /* SINCRONIZAÇÃO DO TEMA. O auth.js escreve 'catedra:dir'/'catedra:dark'/'catedra:accent'
+     DIRETO no localStorage (isData() sincroniza toda chave 'catedra:'), sem passar por
+     setter do componente. Antes, _rehydrateFromLocal não relia essas três, e o app seguia
+     pintando o tema velho até alguém recarregar — e o LEGIS/JURIS nativo, que lê
+     'catedra:dark', recebia a resposta errada e escrevia branco no cartão branco.
+     O teste imita a nuvem: escreve a chave e dispara 'catedra:synced', sem recarregar. */
+  {
+    await page.evaluate(() => localStorage.setItem('catedra:dir', 'sutil'));
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(700);
+    const antes = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir'));
+    ok(antes === 'sutil', 'TEMA/SYNC parte de "sutil"');
+
+    const depois = await page.evaluate(async () => {
+      localStorage.setItem('catedra:dir', 'terminal');            // a nuvem escreve…
+      window.dispatchEvent(new Event('catedra:synced'));          // …e avisa
+      await new Promise(r => setTimeout(r, 500));
+      return document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir');
+    });
+    ok(depois === 'terminal', 'TEMA/SYNC a direção vinda da nuvem repinta sem recarregar');
+
+    const escuro = await page.evaluate(async () => {
+      localStorage.setItem('catedra:dark', '1');
+      window.dispatchEvent(new Event('catedra:synced'));
+      await new Promise(r => setTimeout(r, 500));
+      return document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark');
+    });
+    ok(escuro === '1', 'TEMA/SYNC o claro/escuro vindo da nuvem repinta sem recarregar');
+
+    // e a chave não pode divergir do que está pintado — era a raiz do texto sumido no LEGIS
+    const coerente = await page.evaluate(() => {
+      const el = document.querySelector('[data-dark][data-dir]');
+      return el.getAttribute('data-dark') === (localStorage.getItem('catedra:dark') === '1' ? '1' : '0');
+    });
+    ok(coerente, 'TEMA/SYNC a chave catedra:dark bate com o que está pintado');
+  }
 }
 
 await browser.close();

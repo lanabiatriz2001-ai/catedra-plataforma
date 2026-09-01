@@ -6529,6 +6529,26 @@ class Component extends DCLogic {
       patch[k]=(k==='prefs'||k==='profile') && v && typeof v==='object' && !Array.isArray(v)
         ? {...this.state[k], ...v} : v;
     });
+    /* TEMA (dir/dark/accent). Estas três chaves são DADO para o auth.js — o isData()
+       sincroniza tudo que começa com 'catedra:' e o merge as escreve DIRETO no
+       localStorage, sem passar por setter nenhum e sem repintar. Até aqui a reidratação
+       não as relia, então a nuvem trocava o tema e o app seguia pintando o antigo: ficava
+       guardado um e pintado outro, e no recarregamento seguinte ele "pulava" sozinho.
+       Era também o que quebrava o CátedraLEGIS/JURIS, que liam 'catedra:dark' e recebiam
+       a resposta errada. A leitura abaixo REPETE a do construtor de propósito: duas
+       formas de ler a mesma chave divergiriam na primeira mudança de formato. */
+    try{
+      const d=localStorage.getItem('catedra:dir');
+      if(d && CT_DIRS.includes(d) && d!==this.state.dir) patch.dir=d;
+    }catch(_){}
+    try{
+      const k=localStorage.getItem('catedra:dark');
+      if(k!=null){ const esc=(k==='1'); if(esc!==!!this.state.darkMode) patch.darkMode=esc; }
+    }catch(_){}
+    try{
+      const a=this._load('accent', null);
+      if((a||null)!==(this.state.accent||null)) patch.accent=a;
+    }catch(_){}
     // Tira do patch o que NÃO mudou de conteúdo: o _load devolve objeto novo a cada
     // leitura, e uma referência nova já bastava para o _autosave regravar tudo e pedir
     // push — ou seja, todo sync realimentava outro sync (push → aviso → regrava → push).
@@ -6549,6 +6569,9 @@ class Component extends DCLogic {
       const L2=this._lastSaved||(this._lastSaved={});
       this._autosaveKeys().forEach(k=>{ L2[k]=this.state[k]; });
       this._avisarAreaAoNativo();   // a nuvem pode ter trocado a área
+      // tema veio da nuvem → os satélites (LEGIS/JURIS) precisam ser repintados junto,
+      // senão eles ficam com o tema velho até a próxima troca manual.
+      if(('dir' in patch)||('darkMode' in patch)||('accent' in patch)){ try{ this._temaBroadcast(); }catch(_){} }
     });
   }
   // ===== escudo de ofensiva (streak freeze) =====
@@ -7956,9 +7979,12 @@ class Component extends DCLogic {
     try{
       const escuro = !!(this._mqDark ? this._mqDark.matches
         : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches));
+      // Reconcilia SEMPRE, antes do return: com o setItem depois dele, a chave nunca era
+      // corrigida quando estado e sistema já concordavam — e ela pode ter chegado torta da
+      // nuvem. Chave que ninguém reconcilia é chave que mente.
+      try{ localStorage.setItem('catedra:dark', escuro?'1':'0'); }catch(_){}
       if(escuro===!!this.state.darkMode) return;
       this.setState({darkMode:escuro}, ()=>this._temaBroadcast());
-      try{ localStorage.setItem('catedra:dark', escuro?'1':'0'); }catch(_){}
     }catch(_){}
   }
   temaAuto = ()=>{ this.setState(s=>({prefs:{...s.prefs, temaAuto:true}}), ()=>this._seguirTemaDoSistema()); };
