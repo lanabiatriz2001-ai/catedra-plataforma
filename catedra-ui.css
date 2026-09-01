@@ -154,3 +154,191 @@
   cursor: not-allowed;
   pointer-events: none;
 }
+
+/* ===== 10. O RITMO DA TELA ========================================================
+ * POR QUE ESTA SEÇÃO NASCEU
+ * As seções 1–9 resolveram a peça solta (o cartão, o chip, o estado vazio) mas não o
+ * RITMO — quem fala primeiro, quem recua, como um grupo de itens se anuncia. Sem isso
+ * cada tela escolheu sozinha, e o resultado é o que se vê: o mesmo cabecinho em quatro
+ * letter-spacings (.08, .1, .12, .14), o mesmo cartão em seis paddings, três tamanhos
+ * de título de faixa.
+ *
+ * DE ONDE VEIO ESTE PADRÃO
+ * Não foi inventado aqui. Duas telas já o tinham resolvido bem e serviram de fonte:
+ * REVISÕES (a faixa de chamada, o grupo "Atrasadas/Para hoje" com ponto e contador, a
+ * faixa de cor da disciplina na lateral do item) e AJUSTES (o hero em --heroGrad com
+ * eyebrow .14em/800 e display 30px/-.02em, a pílula translúcida sobre o gradiente, o
+ * selo que quantifica). O trabalho foi extrair, nomear e impor — não redesenhar.
+ *
+ * A REGRA DE OURO DA HIERARQUIA
+ * Uma tela tem UM primeiro lugar. É a faixa (.ct-hero) e ela responde "o que eu faço
+ * agora". Tudo o mais recua. Duas faixas na mesma tela significa que a tela não decidiu.
+ */
+
+/* ---- 10.1 EYEBROW: o rótulo miúdo acima de tudo -------------------------------
+   Era a peça mais copiada da plataforma e a mais divergente. Um valor só, agora. */
+.ct-eb {
+  font-size: var(--fs-2xs, 11px);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-weight: 800;
+  color: var(--text3, #7a7368);
+}
+.ct-eb-ok   { color: var(--ok, #0e7f58); }
+.ct-eb-warn { color: var(--warn, #a36306); }
+
+/* ---- 10.2 FAIXA DE CHAMADA: o primeiro lugar da tela --------------------------
+   Uma por tela. O tamanho do título é o de Ajustes (30px/-.02em); a bolha de luz é a
+   mesma que .ct-scroll já desenha no host, repetida aqui para quem usa a classe direto. */
+.ct-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--heroGrad, linear-gradient(135deg, #1e2b3a, #0f7a57));
+  border-radius: var(--ct-r-lg);
+  padding: var(--ct-e5) var(--ct-e5) 22px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-e4);
+}
+.ct-hero::after {
+  content: ""; position: absolute; right: -70px; top: -80px;
+  width: 230px; height: 230px; border-radius: 999px;
+  background: rgba(255, 255, 255, .09); pointer-events: none;
+}
+.ct-hero > * { position: relative; }        /* o conteúdo passa por cima da bolha */
+.ct-hero-eb {
+  font-size: var(--fs-2xs, 11px);
+  text-transform: uppercase; letter-spacing: .14em; font-weight: 800;
+  color: rgba(255, 255, 255, .78);
+}
+.ct-hero-tit {
+  font-family: var(--display, Georgia, serif);
+  font-size: 30px; font-weight: 700; line-height: 1.12;
+  letter-spacing: -.02em; margin: 0; text-wrap: balance;
+}
+.ct-hero-sub {
+  font-size: var(--fs-base, 13.5px); line-height: 1.6;
+  color: rgba(255, 255, 255, .92); max-width: 64ch; margin: 0;
+}
+
+/* números dentro da faixa — tabular, senão a coluna dança a cada atualização */
+.ct-hero-kpis { display: flex; gap: 28px; flex-wrap: wrap; }
+.ct-kpi { display: flex; flex-direction: column; gap: 3px; }
+.ct-kpi b {
+  font-family: var(--display, Georgia, serif);
+  font-size: 28px; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ct-kpi span {
+  font-size: var(--fs-2xs, 11px); text-transform: uppercase;
+  letter-spacing: .09em; font-weight: 700; color: rgba(255, 255, 255, .82);
+}
+
+/* ---- 10.3 BOTÕES --------------------------------------------------------------
+   Três papéis, e só. O primário é a ação da tela; o segundo é alternativa; a pílula
+   clara existe só sobre o gradiente, onde o accent sumiria. */
+.ct-btn, .ct-btn-2, .ct-btn-clara {
+  font-family: inherit; font-size: var(--fs-base, 13.5px);
+  cursor: pointer; border-radius: var(--ct-r-md);
+  padding: 10px 18px; line-height: 1.2;
+  min-height: var(--control-h, 38px);
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+}
+.ct-btn   { background: var(--accent, #0f7a57); color: var(--onAccent, #fff); border: none; font-weight: 700; }
+.ct-btn-2 { background: transparent; color: var(--text2, #5c564a); border: 1px solid var(--border, #e6e1d4); font-weight: 600; }
+.ct-btn-clara {
+  background: rgba(255, 255, 255, .14); color: #fff;
+  border: 1px solid rgba(255, 255, 255, .55); border-radius: 99px; font-weight: 700;
+}
+.ct-btn[disabled], .ct-btn-2[disabled] { opacity: .5; cursor: not-allowed; }
+.ct-btn:focus-visible, .ct-btn-2:focus-visible { outline: 2px solid var(--accent, #0f7a57); outline-offset: 2px; }
+.ct-btn-clara:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ---- 10.4 GRUPO: o que anuncia uma leva de itens ------------------------------
+   O ponto colorido não é enfeite: ele carrega a situação do grupo (atrasado, hoje, em
+   dia) para quem varre a tela sem ler. O contador é mono e tabular. */
+.ct-grupo { display: flex; align-items: center; gap: var(--ct-e2); margin-bottom: 11px; }
+.ct-grupo-ponto { width: 9px; height: 9px; border-radius: 99px; background: var(--accent, #0f7a57); flex: none; }
+.ct-grupo h3, .ct-grupo-titulo {
+  margin: 0; font-size: var(--fs-base, 13.5px);
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text2, #5c564a); font-weight: 700;
+}
+.ct-grupo-n {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-sm, 12.5px); font-weight: 700;
+  background: var(--surface2, #f0ece1); color: var(--text2, #5c564a);
+  padding: 2px 9px; border-radius: 99px;
+  font-variant-numeric: tabular-nums;
+}
+.ct-grupo-atraso .ct-grupo-ponto { background: var(--danger, #c0392f); }
+.ct-grupo-atraso .ct-grupo-n     { color: var(--danger, #c0392f); }
+.ct-grupo-fim { margin-left: auto; }
+
+/* ---- 10.5 ITEM COM FAIXA: a linha que carrega uma cor ------------------------
+   A faixa da esquerda diz a MATÉRIA (cor da disciplina, vinda do edital) ou a SITUAÇÃO.
+   É o que deixa a lista legível de relance — o padrão vem da view Revisões. */
+.ct-item {
+  display: flex; align-items: center; gap: var(--ct-e3);
+  background: var(--surface, #fffdf8);
+  border: 1px solid var(--border, #e6e1d4);
+  border-left: 4px solid var(--ct-item-cor, var(--border, #e6e1d4));
+  border-radius: var(--ct-r-lg);
+  padding: 15px 18px; flex-wrap: wrap;
+}
+.ct-item-atraso { border-left-color: var(--danger, #c0392f); }
+.ct-item-hoje   { border-left-color: var(--accent, #0f7a57); }
+.ct-item-corpo  { flex: 1; min-width: 140px; }
+.ct-item-tit    { font-weight: 600; font-size: var(--fs-md, 14.5px); color: var(--ink, #1f1c17); }
+.ct-item-nota   { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); margin-top: 2px; }
+.ct-item-fim    { margin-left: auto; display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+
+/* ---- 10.6 SELO: a situação em uma palavra ------------------------------------
+   Nasceu do contador "fora do padrão" da tela de Ajustes. Diz estado, nunca decora. */
+.ct-selo {
+  font-size: var(--fs-2xs, 11px); font-weight: 700; letter-spacing: .04em;
+  padding: 3px 9px; border-radius: 99px; white-space: nowrap;
+  border: 1px solid transparent;
+  background: var(--surface2, #f0ece1); color: var(--text2, #5c564a);
+}
+.ct-selo-atraso { background: var(--dangerSoft, #faeceb); color: var(--danger, #c0392f); border-color: var(--dangerBd, #f0d3d1); }
+.ct-selo-hoje   { background: var(--accentSoft, #e6f0ea); color: var(--accentD, #0b5e43); border-color: var(--accentRing, #c2e0d1); }
+.ct-selo-aviso  { background: var(--warnSoft, #faf0e0); color: var(--warn, #a36306); border-color: var(--warn, #a36306); }
+/* selo que precisa gritar: usado no "sugerido — não oficial", onde confundir custa caro */
+.ct-selo-forte  { background: var(--warn, #a36306); color: #fff; border-color: transparent; text-transform: uppercase; letter-spacing: .07em; font-weight: 800; }
+
+/* ---- 10.7 GRADE DE CARTÕES ---------------------------------------------------
+   Uma medida só para "muitos cartões lado a lado". 310px é o ponto em que um título de
+   prova cabe em duas linhas sem quebrar palavra. */
+.ct-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: var(--ct-e3); }
+.ct-grade-larga { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--ct-e4); }
+
+/* ---- 10.8 TRILHO DE ETAPAS ---------------------------------------------------
+   Fluxo de N passos (escolher › responder › correção). O passo atual é o único com
+   peso; os outros existem para dar contexto, não para competir. */
+.ct-trilho { display: flex; gap: var(--ct-e2); flex-wrap: wrap; align-items: center; }
+.ct-trilho-passo {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: var(--fs-sm, 12.5px); font-weight: 600;
+  color: var(--text3, #7a7368);
+  background: var(--surface, #fffdf8);
+  border: 1px solid var(--border, #e6e1d4);
+  border-radius: 99px; padding: 7px 14px;
+}
+.ct-trilho-passo[aria-current="step"] {
+  color: var(--ink, #1f1c17); background: var(--accentSoft, #e6f0ea);
+  border-color: var(--accent, #0f7a57); font-weight: 700;
+}
+.ct-trilho-passo[data-feito="1"] { color: var(--accentD, #0b5e43); }
+.ct-trilho-sep { color: var(--text3, #7a7368); font-size: var(--fs-base, 13.5px); }
+
+/* ---- 10.9 ALVO DE TOQUE ------------------------------------------------------
+   O host já tem a regra geral (WCAG 2.5.8) e a lição que veio com ela: controle
+   pequeno NÃO cresce, cresce a área que o dedo acerta — inflar tudo esmagava o
+   quadradinho do Edital e a célula do calendário. Aqui o caso é o oposto e por isso a
+   altura pode crescer de verdade: .ct-btn e irmãos são botões de AÇÃO, retangulares,
+   com rótulo dentro. Esticar de 38 para 44 não deforma nenhum deles. */
+@media (max-width: 900px) {
+  .ct-btn, .ct-btn-2, .ct-btn-clara { min-height: 44px; }
+}
