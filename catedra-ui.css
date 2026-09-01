@@ -342,3 +342,112 @@
 @media (max-width: 900px) {
   .ct-btn, .ct-btn-2, .ct-btn-clara { min-height: 44px; }
 }
+
+/* ===== 11. FORMULÁRIO =============================================================
+ * A seção 10 deu ritmo à tela; esta dá ritmo ao que a pessoa PREENCHE. Era o maior
+ * bolso de repetição que sobrou: só na tela de Simulados, o mesmo rótulo aparecia sete
+ * vezes e o mesmo campo em três larguras, cada uma escrita à mão. Um formulário em que
+ * cada campo tem uma altura é o que faz a tela parecer montada às pressas.
+ *
+ * REGRA: a largura é de quem usa (o campo se estica no contêiner ou recebe `style`
+ * pontual); tudo o mais — altura, borda, raio, foco — é daqui.
+ */
+.ct-rotulo {
+  display: block;
+  font-size: var(--fs-xs, 11.5px);
+  color: var(--text3, #7a7368);
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+.ct-campo {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border, #e6e1d4);
+  background: var(--surface, #fffdf8);
+  border-radius: var(--ct-r-md);
+  padding: 10px 12px;
+  font-size: var(--fs-base, 13.5px);
+  color: var(--ink, #1f1c17);
+  font-family: inherit;
+  line-height: 1.5;
+  outline: none;
+  min-height: var(--control-h, 38px);
+}
+/* Campo que recebe NÚMERO usa a fonte de dado e alinha à direita: é assim que uma coluna
+   de valores fica conferível de relance. */
+.ct-campo-num { font-family: var(--mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
+.ct-campo:focus-visible { border-color: var(--accent, #0f7a57); box-shadow: 0 0 0 3px var(--accentRing, #c2e0d1); }
+.ct-campo[readonly], .ct-campo[disabled] { background: var(--surface2, #f0ece1); color: var(--text3, #7a7368); }
+textarea.ct-campo { resize: vertical; line-height: 1.7; }
+
+/* rótulo e campo lado a lado, para o caso "Itens [10]" que não merece duas linhas */
+.ct-campo-linha {
+  display: flex; align-items: center; gap: var(--ct-e2);
+  font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a);
+}
+
+/* ---- 11.1 BLOCO DE NÚMERO ----------------------------------------------------
+   Acertos, aproveitamento, tempo. Aparecia em três desenhos diferentes na mesma tela —
+   um com 24px/800, outro com display 22px, outro com mono. O número é o dado; o rótulo
+   embaixo é o que ele significa. Tabular sempre, senão a linha dança a cada digitação. */
+.ct-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: var(--ct-e2); }
+.ct-num {
+  text-align: center;
+  background: var(--surface2, #f0ece1);
+  border-radius: var(--ct-r-md);
+  padding: 12px 8px;
+}
+.ct-num b {
+  display: block;
+  font-family: var(--display, Georgia, serif);
+  font-size: 22px; font-weight: 700; line-height: 1;
+  color: var(--ink, #1f1c17);
+  font-variant-numeric: tabular-nums;
+}
+.ct-num span {
+  display: block; margin-top: 4px;
+  font-size: var(--fs-2xs, 11px); color: var(--text3, #7a7368);
+}
+/* o número que a tela quer destacar — um por grupo, nunca todos */
+.ct-num-forte { background: var(--accentSoft, #e6f0ea); border: 1px solid var(--accentRing, #c2e0d1); }
+.ct-num-forte b { color: var(--accentD, #0b5e43); }
+.ct-num-risco b { color: var(--danger, #c0392f); }
+
+/* ===== 12. AS TRÊS PEÇAS DE TEXTO QUE FALTAVAM ====================================
+ * Depois de padronizar cartão, faixa e formulário, sobrou o que mais se repete no app
+ * inteiro: o TÍTULO de um cartão (44 cópias), a NOTA que explica logo abaixo (29) e o
+ * DADO em fonte mono (9+). São três papéis distintos e estavam escritos à mão em cada
+ * tela — com pesos e tamanhos que quase batiam, o que é pior do que divergir de vez:
+ * o olho percebe o desalinho sem saber nomear.
+ */
+.ct-titulo {
+  font-weight: 600;
+  color: var(--ink, #1f1c17);
+  font-size: var(--fs-lg, 15.5px);
+}
+/* o título que abre um cartão com explicação embaixo respira um pouco mais */
+.ct-titulo-com-nota { margin-bottom: 4px; }
+/* título de peso editorial — usa a serifa, para o que é começo de seção de verdade */
+.ct-titulo-display {
+  font-family: var(--display, Georgia, serif);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--ink, #1f1c17);
+  letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.ct-nota {
+  font-size: var(--fs-sm, 12.5px);
+  color: var(--text3, #7a7368);
+  line-height: 1.55;
+}
+.ct-nota-solta { margin-top: 2px; }      /* colada no que ela explica */
+.ct-nota-antes { margin-bottom: 16px; }  /* abrindo espaço para o que vem depois */
+/* Dado: número, prazo, referência. Mono e tabular — em coluna, os dígitos alinham; e o
+   valor para de "pular" quando muda, que é o defeito que faz um painel parecer instável. */
+.ct-dado {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-xs, 11.5px);
+  color: var(--text3, #7a7368);
+  font-variant-numeric: tabular-nums;
+}
