@@ -28,9 +28,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <body>
 <x-dc>
 <helmet>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!-- A tipografia vem de ./fonts pelo catedra-ui.css: o app precisa abrir igual sem internet. -->
 <style>
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -242,7 +240,7 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 .cth-task + .cth-task, .cth-tasknext + .cth-task, .cth-task + .cth-tasknext{ margin-top:6px; }
 .cth-tasknext{ display:flex; align-items:center; gap:12px; border-radius:var(--radius); padding:14px 12px; border:1px solid transparent;
   background: linear-gradient(var(--accentSoft),var(--accentSoft)) padding-box, var(--heroGrad) border-box;
-  box-shadow:0 14px 44px -16px rgba(14,165,233,.35); }
+  box-shadow:0 14px 44px -16px color-mix(in oklab, var(--accent) 42%, transparent); }
 .cth-chk{ width:24px; height:24px; border-radius:var(--r-md); border:2px solid var(--border); flex:none;
   display:flex; align-items:center; justify-content:center; color:#fff; background:transparent; cursor:pointer; padding:0; }
 .cth-task .tx, .cth-tasknext .tx{ min-width:0; flex:1; }
@@ -255,7 +253,7 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
   background:var(--surface2); border-radius:var(--r-md); padding:4px 9px; flex:none; }
 .cth-bfoco{ background:linear-gradient(120deg,var(--accent),var(--accentD)); color:var(--onAccent);
   font-weight:800; font-size:var(--fs-base); border:none; border-radius:var(--radius); padding:10px 16px; flex:none; cursor:pointer;
-  font-family:inherit; box-shadow:0 8px 26px -8px rgba(56,189,248,.6); transition:transform .12s; }
+  font-family:inherit; box-shadow:0 8px 26px -8px color-mix(in oklab, var(--accent) 55%, transparent); transition:transform .12s; }
 .cth-bfoco:hover{ transform:translateY(-1px); }
 .cth-law{ display:flex; align-items:center; gap:12px; padding:9px 9px; border-radius:var(--radius); }
 .cth-law:hover{ background:var(--surface2); }
@@ -310,7 +308,7 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 .cth-foco{ margin-top:16px; border:1px solid transparent; border-radius:var(--radius);
   background: linear-gradient(var(--surface),var(--surface)) padding-box, var(--heroGrad) border-box;
   padding:20px 24px; display:flex; align-items:center; gap:18px;
-  box-shadow:0 22px 60px -24px rgba(6,182,212,.3); position:relative; overflow:hidden; }
+  box-shadow:0 22px 60px -24px color-mix(in oklab, var(--accent) 40%, rgba(20,15,10,.5)); position:relative; overflow:hidden; }
 .cth-foco .ico{ font-size:28px; flex:none; }
 .cth-foco .tx{ flex:1; min-width:0; }
 .cth-foco .tx small{ display:block; font-size:var(--fs-2xs); font-weight:700; letter-spacing:.16em;
@@ -318,7 +316,7 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 .cth-foco .tx p{ margin:0; font-size:var(--fs-lg); font-weight:600; color:var(--ink); }
 .cth-bfsug{ background:linear-gradient(120deg,var(--accent),var(--accentD)); color:var(--onAccent);
   font-weight:800; font-size:var(--fs-md); border:none; border-radius:var(--radius); padding:12px 20px; flex:none; cursor:pointer;
-  font-family:inherit; box-shadow:0 10px 30px -8px rgba(56,189,248,.5); transition:transform .12s; }
+  font-family:inherit; box-shadow:0 10px 30px -8px color-mix(in oklab, var(--accent) 55%, transparent); transition:transform .12s; }
 .cth-bfsug:hover{ transform:translateY(-1px); }
 @media (max-width:1240px){
   .cth-hero-grid{ grid-template-columns:1fr; }
@@ -799,9 +797,9 @@ window.ctPdfLib = (function(){
             <div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px;background:var(--surface2);">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:var(--fs-sm);font-weight:600;color:var(--ink);">Desempenho em questões</span><span style="font-size:var(--fs-xs);color:var(--text3);">para análise líquida · opcional</span></div>
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--ok);font-weight:700;margin-bottom:4px;">✓ Acertos</label><input type="number" data-k="acertos" value="{{ sessionDraft.acertos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);border-left:3px solid var(--ok);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);"></div>
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--danger);font-weight:700;margin-bottom:4px;">✗ Erradas</label><input type="number" data-k="erradas" value="{{ sessionDraft.erradas }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);border-left:3px solid var(--danger);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);"></div>
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:700;margin-bottom:4px;">○ Em branco</label><input type="number" data-k="brancos" value="{{ sessionDraft.brancos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid var(--border);border-left:3px solid var(--text3);background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);"></div>
+                <div><label style="display:block;font-size:var(--fs-xs);color:var(--ok);font-weight:700;margin-bottom:4px;">✓ Acertos</label><input type="number" data-k="acertos" value="{{ sessionDraft.acertos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid color-mix(in oklab, var(--ok) 38%, var(--border));background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);background-image:linear-gradient(90deg,color-mix(in oklab, var(--ok) 19%, transparent),transparent 46%);"></div>
+                <div><label style="display:block;font-size:var(--fs-xs);color:var(--danger);font-weight:700;margin-bottom:4px;">✗ Erradas</label><input type="number" data-k="erradas" value="{{ sessionDraft.erradas }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid color-mix(in oklab, var(--danger) 38%, var(--border));background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);background-image:linear-gradient(90deg,color-mix(in oklab, var(--danger) 19%, transparent),transparent 46%);"></div>
+                <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:700;margin-bottom:4px;">○ Em branco</label><input type="number" data-k="brancos" value="{{ sessionDraft.brancos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid color-mix(in oklab, var(--text3) 38%, var(--border));background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);background-image:linear-gradient(90deg,color-mix(in oklab, var(--text3) 19%, transparent),transparent 46%);"></div>
               </div>
               <div style="display:flex;align-items:center;gap:14px;margin-top:13px;flex-wrap:wrap;">
                 <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Resolvidas</span><span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:var(--ink);line-height:1;">{{ sdTotalLabel }}</span></div>
@@ -810,7 +808,7 @@ window.ctPdfLib = (function(){
                 <div style="width:1px;height:28px;background:var(--border);"></div>
                 <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Líquido</span><span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:{{ sdLiqColor }};line-height:1;">{{ sdLiqLabel }}</span></div>
                 <div style="flex:1;min-width:110px;align-self:center;">
-                  <div style="height:10px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);display:flex;"><i style="display:block;height:100%;width:{{ sdSegOk }}%;background:var(--ok);transition:width .2s;"></i><i style="display:block;height:100%;width:{{ sdSegErr }}%;background:var(--danger);transition:width .2s;"></i><i style="display:block;height:100%;width:{{ sdSegBr }}%;background:var(--border);transition:width .2s;"></i></div>
+                  <div style="height:10px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);display:flex;"><i style="display:block;height:100%;width:{{ sdSegOk }}%;background:var(--ok);"></i><i style="display:block;height:100%;width:{{ sdSegErr }}%;background:var(--danger);"></i><i style="display:block;height:100%;width:{{ sdSegBr }}%;background:var(--border);"></i></div>
                 </div>
               </div>
               <div style="font-size:var(--fs-2xs);color:var(--text3);margin-top:9px;">Líquido = acertos − erradas (cada erro anula um acerto, padrão CEBRASPE)</div>
@@ -1005,7 +1003,7 @@ window.ctPdfLib = (function(){
         </div>
         <div style="font-size:var(--fs-xs);letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:{{ provaStatusColor }};">{{ provaStatusLabel }}</div>
         <div style="font-family:var(--mono);font-size:clamp(58px,14vw,164px);font-weight:600;letter-spacing:-.02em;line-height:1;margin:16px 0 8px;color:#fff;font-variant-numeric:tabular-nums;">{{ provaTimeLeft }}</div>
-        <div style="width:min(460px,82vw);height:6px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:14px;"><i style="display:block;height:100%;width:{{ provaTimePct }}%;background:{{ provaBarColor }};border-radius:99px;transition:width .9s linear;"></i></div>
+        <div style="width:min(460px,82vw);height:6px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:14px;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ provaTimePct }}% - 100%));background:{{ provaBarColor }};border-radius:99px;transition:transform .9s linear;will-change:transform;"></i></div>
         <div style="font-size:var(--fs-base);color:rgba(255,255,255,.55);margin-top:14px;">decorrido <b style="color:rgba(255,255,255,.85);font-family:var(--mono);">{{ provaElapsed }}</b> de {{ provaTotalLabel }}</div>
         <div style="display:flex;gap:12px;margin-top:38px;flex-wrap:wrap;justify-content:center;">
           <button onclick="{{ provaToggle }}" style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:13px 24px;font-size:var(--fs-md);font-weight:600;cursor:pointer;font-family:inherit;">
@@ -1030,7 +1028,7 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ revNotDone }}" hint-placeholder-val="{{ true }}">
             <div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:var(--fs-sm);font-weight:600;color:rgba(255,255,255,.6);">{{ revPos }} de {{ revTotal }}</span><span style="font-size:var(--fs-sm);font-family:var(--mono);color:rgba(255,255,255,.5);">{{ revPct }}%</span></div>
-              <div style="height:5px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-bottom:26px;"><i style="display:block;height:100%;width:{{ revPct }}%;background:#fff;border-radius:99px;transition:width .3s;"></i></div>
+              <div style="height:5px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-bottom:26px;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ revPct }}% - 100%));background:#fff;border-radius:99px;transition:transform .3s;will-change:transform;"></i></div>
               <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:clamp(24px,4vw,40px);text-align:center;">
                 <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border-radius:99px;padding:6px 13px;font-size:var(--fs-xs);font-weight:600;color:rgba(255,255,255,.85);"><span style="width:8px;height:8px;border-radius:2px;background:{{ revCardColor }};"></span>{{ revCardDisc }}</span>
                 <div style="font-family:var(--display);font-size:clamp(22px,3.4vw,30px);font-weight:600;line-height:1.25;margin:18px 0 6px;">{{ revCardTopic }}</div>
@@ -1043,7 +1041,7 @@ window.ctPdfLib = (function(){
                   <div style="font-size:var(--fs-sm);color:rgba(255,255,255,.6);margin-top:14px;">Como foi a recordação?</div>
                   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px;">
                     <sc-for list="{{ revOpts }}" as="o" hint-placeholder-count="4">
-                      <button data-q="{{ o.q }}" onclick="{{ revAnswer }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-top:3px solid {{ o.color }};border-radius:var(--radius);padding:13px 8px;cursor:pointer;font-family:inherit;color:#fff;"><span style="font-size:var(--fs-base);font-weight:700;">{{ o.label }}</span><span style="font-size:var(--fs-xs);color:rgba(255,255,255,.55);font-family:var(--mono);">+{{ o.sub }}</span></button>
+                      <button data-q="{{ o.q }}" onclick="{{ revAnswer }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(255,255,255,.08);border:1px solid color-mix(in oklab, {{ o.color }} 34%, rgba(255,255,255,.16));border-radius:var(--radius);padding:13px 8px;cursor:pointer;font-family:inherit;color:#fff;background-image:linear-gradient(180deg,color-mix(in oklab, {{ o.color }} 19%, transparent),transparent 46%);"><span style="font-size:var(--fs-base);font-weight:700;">{{ o.label }}</span><span style="font-size:var(--fs-xs);color:rgba(255,255,255,.55);font-family:var(--mono);">+{{ o.sub }}</span></button>
                     </sc-for>
                   </div>
                   <button onclick="{{ revSkip }}" style="margin-top:14px;background:transparent;border:none;color:rgba(255,255,255,.45);font-size:var(--fs-sm);cursor:pointer;font-family:inherit;font-weight:600;">Pular este</button>
@@ -1114,7 +1112,7 @@ window.ctPdfLib = (function(){
     <sc-if value="{{ onboardActive }}" hint-placeholder-val="{{ false }}">
       <div style="position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:18px;">
         <div role="dialog" aria-modal="true" aria-label="Configuração inicial" class="ct-modal-panel" style="background:var(--surface);border-radius:18px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.4);overflow:hidden;">
-          <div style="height:4px;background:var(--surface2);"><i style="display:block;height:100%;width:{{ onboardPct }}%;background:var(--accent);transition:width .3s;"></i></div>
+          <div style="height:4px;background:var(--surface2);"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ onboardPct }}% - 100%));background:var(--accent);transition:transform .3s;will-change:transform;"></i></div>
           <div style="padding:30px;">
             <sc-if value="{{ onboardStep1 }}" hint-placeholder-val="{{ true }}">
               <div style="font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 1 de 4</div>
@@ -1272,7 +1270,7 @@ window.ctPdfLib = (function(){
                 <span class="cth-bloco">{{ heroBloco }}</span>
               </div>
               <div class="cth-clock">{{ sessionDisplay }}</div>
-              <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}"><div style="height:5px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin:2px 0 4px;"><i style="display:block;height:100%;border-radius:99px;background:#fff;width:{{ phasePct }}%;transition:width .9s linear;"></i></div></sc-if>
+              <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}"><div style="height:5px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin:2px 0 4px;"><i style="display:block;height:100%;border-radius:99px;background:#fff;width:100%;transform:translateX(calc({{ phasePct }}% - 100%));transition:transform .9s linear;will-change:transform;"></i></div></sc-if>
               <div class="cth-ritmos">
                 <button data-mode="livre" onclick="{{ setTimerMode }}" style="{{ homePmLivre }}">Livre</button>
                 <button data-mode="pomo" data-f="25" data-b="5" onclick="{{ setTimerMode }}" style="{{ homePm25 }}">25·5</button>
@@ -1434,7 +1432,7 @@ window.ctPdfLib = (function(){
                   <div class="cth-mday"><i style="{{ b.fillStyle }}"></i><span style="{{ b.lStyle }}">{{ b.l }}</span></div>
                 </sc-for>
               </div>
-              <sc-if value="{{ planoShow }}" hint-placeholder-val="{{ true }}"><div style="margin-top:13px;display:flex;gap:10px;align-items:flex-start;border-radius:var(--radius);background:var(--surface2);border-left:3px solid {{ planoCor }};padding:11px 13px;font-size:var(--fs-base);color:var(--text2);line-height:1.45;">{{ planoMsg }}</div></sc-if>
+              <sc-if value="{{ planoShow }}" hint-placeholder-val="{{ true }}"><div style="margin-top:13px;display:flex;gap:10px;align-items:flex-start;border-radius:var(--radius);background:var(--surface2);border:1px solid color-mix(in oklab, {{ planoCor }} 38%, var(--border));padding:11px 13px;font-size:var(--fs-base);color:var(--text2);line-height:1.45;background-image:linear-gradient(90deg,color-mix(in oklab, {{ planoCor }} 19%, transparent),transparent 46%);">{{ planoMsg }}</div></sc-if>
               <div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);color:var(--text2);margin-top:12px;border-top:1px solid var(--surface2);padding-top:9px;"><span>Questões na semana</span><b style="font-family:var(--mono);">{{ paQSemana }}</b></div>
             </div>
             <div class="cth-card">
@@ -1839,7 +1837,7 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ cicloListaFlat }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:10px;">
           <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="5">
-            <button data-i="{{ b.i }}" onclick="{{ toggleBlock }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-left:4px solid {{ b.kindColor }};border-radius:var(--radius);padding:16px 18px;font-family:inherit;box-shadow:0 1px 2px rgba(16,24,40,.04),0 5px 14px rgba(16,24,40,.05);">
+            <button data-i="{{ b.i }}" onclick="{{ toggleBlock }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;background:var(--surface);border:1px solid color-mix(in oklab, {{ b.kindColor }} 38%, var(--border));border-radius:var(--radius);padding:16px 18px;font-family:inherit;box-shadow:0 1px 2px rgba(16,24,40,.04),0 5px 14px rgba(16,24,40,.05);background-image:linear-gradient(90deg,color-mix(in oklab, {{ b.kindColor }} 19%, transparent),transparent 46%);">
               <span style="width:26px;height:26px;border-radius:var(--r-md);flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ b.checkBorder }};background:{{ b.checkBg }};color:#fff;">
                 <sc-if value="{{ b.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
               </span>
@@ -2011,7 +2009,7 @@ window.ctPdfLib = (function(){
                   <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:5px;line-height:1.6;">{{ pvPreparo }}</div>
                 </div>
               </sc-if>
-              <div style="border-left:3px solid var(--ok);background:var(--surface2);border-radius:var(--r-md);padding:13px 15px;">
+              <div style="border:1px solid color-mix(in oklab, var(--ok) 38%, var(--border));background:var(--surface2);border-radius:var(--r-md);padding:13px 15px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--ok) 19%, transparent),transparent 46%);">
                 <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.6;"><b style="color:var(--ink);">Nada é apagado.</b> {{ pvCaderno }}</div>
               </div>
             </div>
@@ -2261,7 +2259,7 @@ window.ctPdfLib = (function(){
                 <span style="width:4px;height:34px;border-radius:99px;background:{{ d.color }};flex:none;"></span>
                 <div style="flex:1;min-width:0;">
                   <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;"><span style="font-weight:600;font-size:var(--fs-md);color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">{{ d.disc }}<sc-if value="{{ d.hasMeta }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:600;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ d.metaChip }}</span></sc-if><sc-if value="{{ d.hasDom }}" hint-placeholder-val="{{ false }}"><span title="Domínio médio calculado do seu desempenho real (não do checklist)" style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:600;color:{{ d.domMedioColor }};background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ d.domMedioStr }}</span></sc-if></span><span style="font-family:var(--mono);font-size:var(--fs-sm);color:var(--text2);flex:none;">{{ d.done }}/{{ d.tot }} · {{ d.pct }}%</span></div>
-                  <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:9px;"><i style="display:block;height:100%;width:{{ d.pct }}%;background:{{ d.color }};border-radius:99px;transition:width .4s;"></i></div>
+                  <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:9px;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ d.pct }}% - 100%));background:{{ d.color }};border-radius:99px;transition:transform .4s;will-change:transform;"></i></div>
                   <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:7px;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:99px;background:{{ d.color }};flex:none;"></span>{{ d.actStr }}</div>
                 </div>
               </button>
@@ -2334,7 +2332,7 @@ window.ctPdfLib = (function(){
               </div>
               <div class="ct-scroll" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;">
                 <sc-for list="{{ edParsedView }}" as="d" hint-placeholder-count="3">
-                  <div style="background:var(--surface2);border-radius:var(--r-md);padding:12px 14px;border-left:3px solid {{ d.color }};">
+                  <div style="background:var(--surface2);border-radius:var(--r-md);padding:12px 14px;border:1px solid color-mix(in oklab, {{ d.color }} 38%, var(--border));background-image:linear-gradient(90deg,color-mix(in oklab, {{ d.color }} 19%, transparent),transparent 46%);">
                     <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;"><span style="font-weight:600;font-size:var(--fs-base);color:var(--ink);">{{ d.disc }}</span><span class="ct-dado">{{ d.topicCount }} tópicos<sc-if value="{{ d.subCount }}" hint-placeholder-val="{{ false }}"> · {{ d.subCount }} sub</sc-if></span></div>
                     <sc-if value="{{ d.metaStr }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block;margin-top:6px;font-size:var(--fs-xs);font-weight:600;color:var(--accentD);background:var(--accentSoft);border-radius:99px;padding:2px 10px;">{{ d.metaStr }}</span></sc-if>
                     <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:6px;line-height:1.5;">{{ d.topicsStr }}</div>
@@ -2387,12 +2385,12 @@ window.ctPdfLib = (function(){
              injetadas pelo host do desktop — um só lugar para ver tudo que venceu. -->
         <sc-if value="{{ nativeRevShow }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:250px;background:var(--surface);border:1px solid var(--border);border-left:4px solid #0D9488;border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:13px;">
+          <div style="flex:1;min-width:250px;background:var(--surface);border:1px solid color-mix(in oklab, #0D9488 38%, var(--border));border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:13px;background-image:linear-gradient(90deg,color-mix(in oklab, #0D9488 19%, transparent),transparent 46%);">
             <span style="font-size:21px;">📕</span>
             <div style="flex:1;min-width:120px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ nomeLegis }}</div><div style="font-size:var(--fs-sm);color:{{ nativeRevLegisCor }};margin-top:2px;font-weight:600;">{{ nativeRevLegisStr }}</div></div>
             <button onclick="{{ abrirTabLegis }}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:var(--r-md);padding:9px 16px;font-weight:600;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;flex:none;">Abrir →</button>
           </div>
-          <div style="flex:1;min-width:250px;background:var(--surface);border:1px solid var(--border);border-left:4px solid #7C3AED;border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:13px;">
+          <div style="flex:1;min-width:250px;background:var(--surface);border:1px solid color-mix(in oklab, #7C3AED 38%, var(--border));border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:13px;background-image:linear-gradient(90deg,color-mix(in oklab, #7C3AED 19%, transparent),transparent 46%);">
             <span style="font-size:21px;">⚖️</span>
             <div style="flex:1;min-width:120px;"><div class="ct-titulo" style="font-size:var(--fs-md);">Jurisprudência · CátedraJURIS</div><div style="font-size:var(--fs-sm);color:{{ nativeRevJurisCor }};margin-top:2px;font-weight:600;">{{ nativeRevJurisStr }}</div></div>
             <button onclick="{{ abrirTabJuris }}" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:var(--r-md);padding:9px 16px;font-weight:600;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;flex:none;">Abrir →</button>
@@ -2408,7 +2406,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ revOverdue }}" as="r" hint-placeholder-count="2">
-              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--danger);border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid color-mix(in oklab, var(--danger) 38%, var(--border));border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;background-image:linear-gradient(90deg,color-mix(in oklab, var(--danger) 19%, transparent),transparent 46%);">
                 <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:140px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.topic }}</div><div class="ct-nota ct-nota-solta">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--danger);font-weight:600;background:var(--surface2);padding:4px 10px;border-radius:99px;">vencida {{ r.dueLabel }}</span>
@@ -2436,7 +2434,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ revToday }}" as="r" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
                 <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:140px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.topic }}</div><div class="ct-nota ct-nota-solta">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--accentD);font-weight:600;background:var(--accentSoft);padding:4px 10px;border-radius:99px;">agendada hoje</span>
@@ -2464,7 +2462,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ revUpcoming }}" as="r" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;flex-wrap:wrap;">
                 <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:140px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.topic }}</div><div class="ct-nota ct-nota-solta">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--text3);font-weight:500;">{{ r.dueLabel }}</span>
@@ -2554,7 +2552,7 @@ window.ctPdfLib = (function(){
                   <div style="font-size:var(--fs-sm);color:var(--text3);">{{ q.rotulo }}</div>
                   <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.55;">{{ q.resumo }}</div>
                   <sc-if value="{{ q.temNota }}" hint-placeholder-val="{{ false }}">
-                    <div style="font-size:var(--fs-2xs);color:var(--text3);line-height:1.5;border-left:2px solid var(--border);padding-left:8px;">{{ q.notaFonte }}</div>
+                    <div style="font-size:var(--fs-2xs);color:var(--text3);line-height:1.5;padding-left:8px;">{{ q.notaFonte }}</div>
                   </sc-if>
                   <div style="margin-top:auto;padding-top:12px;font-size:var(--fs-sm);font-weight:700;color:var(--accent);">Responder esta prova →</div>
                 </div>
@@ -2695,7 +2693,7 @@ window.ctPdfLib = (function(){
                     </sc-if>
                     <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
                       <sc-for list="{{ redMarcasList }}" as="m" hint-placeholder-count="3">
-                        <div style="border:1px solid var(--border);border-left:4px solid {{ m.cor }};border-radius:var(--r-md);padding:10px 11px;background:var(--surface2);">
+                        <div style="border:1px solid color-mix(in oklab, {{ m.cor }} 38%, var(--border));border-radius:var(--r-md);padding:10px 11px;background:var(--surface2);background-image:linear-gradient(90deg,color-mix(in oklab, {{ m.cor }} 19%, transparent),transparent 46%);">
                           <div style="display:flex;gap:8px;align-items:flex-start;">
                             <button data-id="{{ m.id }}" onclick="{{ irParaMarcaEnun }}" title="Ir para o trecho no enunciado" style="flex:1;text-align:left;background:transparent;border:none;padding:0;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);color:var(--ink);line-height:1.5;">{{ m.resumo }}</button>
                             <button data-id="{{ m.id }}" onclick="{{ removerMarcaEnun }}" title="Remover marcação" aria-label="Remover marcação" style="flex:none;background:transparent;border:none;color:var(--text3);cursor:pointer;font-family:inherit;font-size:var(--fs-md);line-height:1;padding:2px 4px;">✕</button>
@@ -2935,7 +2933,7 @@ window.ctPdfLib = (function(){
           </div>
 
           <sc-if value="{{ oralTemAlvo }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;border-left:4px solid var(--accent);">
+            <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:20px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
               <div class="ct-eb">Examinador</div>
               <div style="font-size:var(--fs-xl);font-weight:600;color:var(--ink);line-height:1.55;margin-top:8px;">{{ oralPergunta }}</div>
               <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:10px;line-height:1.5;">Responda como responderia à banca: posição, fundamento (artigo, súmula ou tema), exceções e um exemplo. Dois a três minutos.</div>
@@ -2990,7 +2988,7 @@ window.ctPdfLib = (function(){
             </sc-if>
           </div>
           <sc-if value="{{ oralTemArt }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;border-left:4px solid var(--accent);">
+            <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:20px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
               <div class="ct-eb">Dispositivo apontado pela banca</div>
               <div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:var(--accent);margin-top:6px;">{{ oralArtRot }}</div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ oralArtNome }}</div>
@@ -3055,7 +3053,7 @@ window.ctPdfLib = (function(){
           <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
                só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
           <sc-if value="{{ argEmCurso }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;border-left:4px solid var(--accent);">
+            <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:22px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Arguição · pergunta {{ argPos }}</span>
                 <span style="flex:1;"></span>
@@ -3107,7 +3105,7 @@ window.ctPdfLib = (function(){
           </sc-if>
 
           <sc-if value="{{ oralQTem }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;border-left:4px solid var(--accent);">
+            <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:20px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                 <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;background:var(--accent);color:#fff;">{{ oralQRef }}</span>
                 <sc-if value="{{ oralQDiscAt }}" hint-placeholder-val="{{ true }}"><span style="font-size:var(--fs-2xs);font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--text2);">{{ oralQDiscAt }}</span></sc-if>
@@ -3127,7 +3125,7 @@ window.ctPdfLib = (function(){
               </div>
             </div>
             <sc-if value="{{ oralQMostrarPadrao }}" hint-placeholder-val="{{ false }}">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;border-left:4px solid var(--ok);">
+              <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--ok) 38%, var(--border));border-radius:var(--radius);padding:20px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--ok) 19%, transparent),transparent 46%);">
                 <div style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--ok);font-weight:800;">Padrão de resposta — o que a banca esperava ouvir</div>
                 <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ oralQPadrao }}</div>
               </div>
@@ -3330,7 +3328,7 @@ window.ctPdfLib = (function(){
           </div>
         </sc-if>
 
-        <div class="ct-card" style="border-top:3px solid var(--accent);">
+        <div class="ct-card" style="border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));background-image:linear-gradient(180deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
             <div><div style="font-family:var(--display);font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Modo prova</div><div style="font-size:var(--fs-sm);color:var(--text2);margin-top:3px;max-width:380px;line-height:1.5;">contagem regressiva em tela cheia, sem distração e sem questões na tela — no clima da prova real. Ao encerrar, registra o desempenho.</div></div>
             <button onclick="{{ startProva }}" class="ct-btn" style="flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>Iniciar ({{ provaDurLabel }})</button>
@@ -3456,7 +3454,7 @@ window.ctPdfLib = (function(){
             <sc-for list="{{ simChart }}" as="c" hint-placeholder-count="5">
               <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;">
                 <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);font-weight:600;">{{ c.v }}</span>
-                <div style="width:100%;background:var(--heroGrad);border-radius:var(--r-sm) 7px 0 0;height:{{ c.h }}px;transition:height .4s;"></div>
+                <div style="width:100%;background:var(--heroGrad);border-radius:var(--r-sm) 7px 0 0;height:{{ c.h }}px;"></div>
                 <span style="font-size:var(--fs-2xs);color:var(--text3);">{{ c.lbl }}</span>
               </div>
             </sc-for>
@@ -3609,7 +3607,7 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ hasRadar }}" hint-placeholder-val="{{ false }}">
            <div style="display:flex;flex-direction:column;gap:9px;">
             <sc-for list="{{ radarTemas }}" as="t" hint-placeholder-count="5">
-              <div style="display:flex;align-items:center;gap:13px;padding:12px 14px;background:var(--surface2);border-radius:var(--radius);border-left:4px solid {{ t.color }};">
+              <div style="display:flex;align-items:center;gap:13px;padding:12px 14px;background:var(--surface2);border-radius:var(--radius);border:1px solid color-mix(in oklab, {{ t.color }} 38%, var(--border));background-image:linear-gradient(90deg,color-mix(in oklab, {{ t.color }} 19%, transparent),transparent 46%);">
                 <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:var(--fs-base);color:var(--ink);line-height:1.3;">{{ t.topic }}</div><div style="font-size:var(--fs-xs);color:var(--text2);margin-top:3px;">{{ t.disc }} · {{ t.motivo }} · {{ t.incStr }}</div></div>
                 <span style="font-size:var(--fs-xs);font-weight:700;padding:4px 11px;border-radius:99px;color:#fff;background:{{ t.tagColor }};flex:none;">{{ t.tag }}</span>
               </div>
@@ -3624,7 +3622,7 @@ window.ctPdfLib = (function(){
           <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:16px;">Mapa de risco · por disciplina</div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <sc-for list="{{ risco }}" as="r" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border-radius:var(--radius);border-left:4px solid {{ r.color }};">
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border-radius:var(--radius);border:1px solid color-mix(in oklab, {{ r.color }} 38%, var(--border));background-image:linear-gradient(90deg,color-mix(in oklab, {{ r.color }} 19%, transparent),transparent 46%);">
                 <div style="flex:1;min-width:0;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.disc }}</div><div style="font-size:var(--fs-sm);color:var(--text2);margin-top:2px;">{{ r.why }}</div></div>
                 <span style="font-size:var(--fs-xs);font-weight:700;padding:5px 12px;border-radius:99px;color:#fff;background:{{ r.color }};flex:none;">{{ r.tag }}</span>
               </div>
@@ -3687,7 +3685,7 @@ window.ctPdfLib = (function(){
             <div style="font-weight:600;color:var(--ink);font-size:var(--fs-md);margin-bottom:12px;">Mapa de risco</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
               <sc-for list="{{ relWeak }}" as="w" hint-placeholder-count="3">
-                <div style="border:1px solid var(--border);border-left:4px solid {{ w.color }};border-radius:var(--r-md);padding:10px 14px;"><div style="font-weight:600;color:var(--ink);font-size:var(--fs-base);">{{ w.disc }}</div><div class="ct-nota ct-nota-solta">{{ w.liqPct }} líquido</div></div>
+                <div style="border:1px solid color-mix(in oklab, {{ w.color }} 38%, var(--border));border-radius:var(--r-md);padding:10px 14px;background-image:linear-gradient(90deg,color-mix(in oklab, {{ w.color }} 19%, transparent),transparent 46%);"><div style="font-weight:600;color:var(--ink);font-size:var(--fs-base);">{{ w.disc }}</div><div class="ct-nota ct-nota-solta">{{ w.liqPct }} líquido</div></div>
               </sc-for>
             </div>
             <div style="font-weight:600;color:var(--ink);font-size:var(--fs-md);margin-bottom:10px;">Pontos de atenção</div>
@@ -3723,7 +3721,7 @@ window.ctPdfLib = (function(){
                 <div style="flex:1;min-width:0;">
                   <div class="ct-titulo" style="font-size:var(--fs-md);">{{ a.title }}</div>
                   <div class="ct-nota ct-nota-solta">{{ a.valLabel }} / {{ a.nextLabel }} · {{ a.desc }}</div>
-                  <div style="height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:10px;"><i style="display:block;height:100%;width:{{ a.pct }}%;background:{{ a.barColor }};border-radius:99px;transition:width .5s;"></i></div>
+                  <div style="height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:10px;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ a.pct }}% - 100%));background:{{ a.barColor }};border-radius:99px;transition:transform .5s;will-change:transform;"></i></div>
                   <div style="display:flex;align-items:center;gap:9px;margin-top:9px;"><span style="font-size:var(--fs-2xs);font-weight:600;color:var(--text2);background:var(--surface2);border:1px solid var(--border);padding:3px 10px;border-radius:99px;">{{ a.cat }}</span><span style="font-size:var(--fs-xs);font-weight:600;color:#b08433;">★ {{ a.levelLabel }}</span></div>
                 </div>
               </div>
@@ -3812,7 +3810,7 @@ window.ctPdfLib = (function(){
                 <div style="font-weight:600;color:var(--ink);font-size:var(--fs-base);margin-bottom:11px;display:flex;align-items:center;gap:7px;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"></path></svg>{{ calSelLabel }}</div>
                 <div style="display:flex;flex-direction:column;gap:8px;">
                   <sc-for list="{{ calSelEvents }}" as="e" hint-placeholder-count="0">
-                    <div style="display:flex;align-items:center;gap:11px;padding:9px 12px;background:var(--surface2);border-radius:var(--r-md);border-left:4px solid {{ e.color }};flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:11px;padding:9px 12px;background:var(--surface2);border-radius:var(--r-md);border:1px solid color-mix(in oklab, {{ e.color }} 38%, var(--border));flex-wrap:wrap;background-image:linear-gradient(90deg,color-mix(in oklab, {{ e.color }} 19%, transparent),transparent 46%);">
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><sc-if value="{{ e.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button></sc-if>
                       <sc-if value="{{ e.notManual }}" hint-placeholder-val="{{ false }}"><span style="width:11px;height:11px;border-radius:99px;background:{{ e.color }};flex:none;"></span></sc-if>
                       <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:var(--fs-base);color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
@@ -3837,7 +3835,7 @@ window.ctPdfLib = (function(){
             <div style="font-size:var(--fs-xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:10px;">{{ calTitle }} · {{ calStats.total }} compromissos</div>
             <div style="display:flex;flex-direction:column;gap:9px;max-height:420px;overflow:auto;">
               <sc-for list="{{ calProx }}" as="e" hint-placeholder-count="4">
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--surface2);border-radius:var(--radius);border-left:4px solid {{ e.color }};flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--surface2);border-radius:var(--radius);border:1px solid color-mix(in oklab, {{ e.color }} 38%, var(--border));flex-wrap:wrap;background-image:linear-gradient(90deg,color-mix(in oklab, {{ e.color }} 19%, transparent),transparent 46%);">
                   <div style="text-align:center;flex:none;width:30px;"><div style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);line-height:1;">{{ e.dia }}</div><div style="font-size:var(--fs-3xs);color:var(--text3);text-transform:uppercase;">{{ e.tipo }}</div></div>
                   <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:var(--fs-base);color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
                   <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:24px;height:24px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><sc-if value="{{ e.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button><button data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:28px;height:28px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button></sc-if>
@@ -3859,7 +3857,7 @@ window.ctPdfLib = (function(){
                 <div style="display:flex;flex-direction:column;gap:7px;">
                   <div style="text-align:center;border-radius:var(--r-md);padding:7px 4px;background:{{ w.headBg }};border:1px solid {{ w.headBd }};"><div style="font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:{{ w.headColor }};">{{ w.wd }}</div><div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:{{ w.headColor }};line-height:1.15;">{{ w.day }}</div></div>
                   <div style="display:flex;flex-direction:column;gap:5px;min-height:90px;">
-                    <sc-for list="{{ w.events }}" as="e" hint-placeholder-count="0"><div style="display:flex;align-items:flex-start;gap:6px;background:var(--surface2);border-radius:var(--r-md);border-left:3px solid {{ e.color }};padding:5px 7px;"><span style="font-size:var(--fs-xs);color:var(--ink);font-weight:500;line-height:1.3;text-decoration:{{ e.strike }};">{{ e.titulo }}</span></div></sc-for>
+                    <sc-for list="{{ w.events }}" as="e" hint-placeholder-count="0"><div style="display:flex;align-items:flex-start;gap:6px;background:var(--surface2);border-radius:var(--r-md);border:1px solid color-mix(in oklab, {{ e.color }} 38%, var(--border));padding:5px 7px;background-image:linear-gradient(90deg,color-mix(in oklab, {{ e.color }} 19%, transparent),transparent 46%);"><span style="font-size:var(--fs-xs);color:var(--ink);font-weight:500;line-height:1.3;text-decoration:{{ e.strike }};">{{ e.titulo }}</span></div></sc-for>
                     <sc-if value="{{ w.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-xs);color:var(--text3);text-align:center;padding:8px 0;opacity:.5;">—</div></sc-if>
                   </div>
                 </div>
@@ -3876,7 +3874,7 @@ window.ctPdfLib = (function(){
                 <div style="text-align:center;flex:none;width:44px;"><div style="font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;color:var(--text3);">{{ g.wd }}</div><div style="font-family:var(--display);font-size:24px;font-weight:700;color:{{ g.headColor }};line-height:1;">{{ g.dLabel }}</div><div style="font-size:var(--fs-2xs);color:var(--text3);text-transform:uppercase;">{{ g.mLabel }}</div></div>
                 <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
                   <sc-for list="{{ g.events }}" as="e" hint-placeholder-count="0">
-                    <div style="display:flex;align-items:center;gap:11px;padding:9px 12px;background:var(--surface2);border-radius:var(--r-md);border-left:4px solid {{ e.color }};flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:11px;padding:9px 12px;background:var(--surface2);border-radius:var(--r-md);border:1px solid color-mix(in oklab, {{ e.color }} 38%, var(--border));flex-wrap:wrap;background-image:linear-gradient(90deg,color-mix(in oklab, {{ e.color }} 19%, transparent),transparent 46%);">
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><sc-if value="{{ e.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button></sc-if>
                       <sc-if value="{{ e.notManual }}" hint-placeholder-val="{{ false }}"><span style="width:11px;height:11px;border-radius:99px;background:{{ e.color }};flex:none;"></span></sc-if>
                       <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:var(--fs-base);color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
@@ -4012,7 +4010,7 @@ window.ctPdfLib = (function(){
               <sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}"><span class="ct-titulo" style="font-size:var(--fs-md);">{{ m.titulo }}</span></sc-if>
               <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--mono);font-size:var(--fs-base);color:var(--text2);display:inline-flex;align-items:center;gap:5px;">{{ m.prog }} / <sc-if value="{{ m.manual }}" hint-placeholder-val="{{ false }}"><input data-id="{{ m.id }}" data-field="alvo" type="number" min="1" value="{{ m.alvo }}" oninput="{{ editMeta }}" title="Editar alvo" style="width:62px;font-family:var(--mono);font-size:var(--fs-base);color:var(--text2);border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:4px 6px;"></sc-if><sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}">{{ m.alvo }}</sc-if> {{ m.unidade }}</span><sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}"><span title="Atualizada automaticamente pelos seus registros" style="font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accentD);background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--r-sm);padding:3px 7px;">auto</span></sc-if><sc-if value="{{ m.manual }}" hint-placeholder-val="{{ false }}"><button data-id="{{ m.id }}" onclick="{{ metaPlus }}" style="width:30px;height:30px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--accentSoft);color:var(--accentD);cursor:pointer;font-weight:700;font-family:inherit;">+</button></sc-if><button data-id="{{ m.id }}" onclick="{{ removeMeta }}" style="width:30px;height:30px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;font-family:inherit;">×</button></div>
             </div>
-            <div style="height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:12px;"><i style="display:block;height:100%;width:{{ m.pct }}%;background:var(--heroGrad);border-radius:99px;transition:width .35s;"></i></div>
+            <div style="height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:12px;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ m.pct }}% - 100%));background:var(--heroGrad);border-radius:99px;transition:transform .35s;will-change:transform;"></i></div>
             <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:7px;">{{ m.pct }}% concluído</div>
           </div>
         </sc-for>
@@ -4290,7 +4288,7 @@ window.ctPdfLib = (function(){
             <div style="display:flex;align-items:center;gap:11px;margin-bottom:13px;">
               <span style="width:150px;flex:none;display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--text2);"><i style="width:9px;height:9px;border-radius:3px;background:{{ p.color }};"></i>{{ p.disc }}</span>
               <span style="width:54px;flex:none;font-size:var(--fs-2xs);color:var(--text3);font-family:var(--mono);">p{{ p.peso }}·{{ p.dom }}%</span>
-              <div style="flex:1;height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ p.pct }}%;background:{{ p.color }};border-radius:99px;transition:width .35s;"></i></div>
+              <div style="flex:1;height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ p.pct }}% - 100%));background:{{ p.color }};border-radius:99px;transition:transform .35s;will-change:transform;"></i></div>
               <span style="font-family:var(--mono);font-size:var(--fs-sm);color:var(--ink);font-weight:600;width:60px;text-align:right;">{{ p.label }}</span>
             </div>
           </sc-for>
@@ -4357,7 +4355,7 @@ window.ctPdfLib = (function(){
         </div>
 
         <!-- ALERTA PROATIVO -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
           <span style="font-size:22px;line-height:1;">🌬️</span>
           <div style="flex:1;min-width:180px;"><div class="ct-titulo" style="font-size:var(--fs-md);">Precisa de uma pausa?</div><div class="ct-nota ct-nota-solta">a retenção cai depois de ~50 min de foco contínuo. Respire fundo por 1 minuto antes de voltar.</div></div>
           <button onclick="{{ toggleBreath }}" style="background:var(--accentSoft);color:var(--accentD);border:none;border-radius:var(--r-md);padding:9px 14px;font-weight:600;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;flex:none;">{{ breathBtn }} respiração guiada</button>
@@ -4430,7 +4428,7 @@ window.ctPdfLib = (function(){
                 <span style="font-size:var(--fs-sm);font-weight:600;color:var(--ink);">🎯 Desafio da semana: {{ comDesafio.meta }} revisões em grupo</span>
                 <span style="font-family:var(--mono);font-size:var(--fs-sm);color:var(--text2);font-weight:700;">{{ comDesafio.atual }}/{{ comDesafio.meta }}</span>
               </div>
-              <div style="height:8px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);"><i style="display:block;height:100%;width:{{ comDesafio.pct }}%;background:var(--accent);border-radius:99px;transition:width .4s;"></i></div>
+              <div style="height:8px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ comDesafio.pct }}% - 100%));background:var(--accent);border-radius:99px;transition:transform .4s;will-change:transform;"></i></div>
             </div>
           </sc-if>
           <div style="display:flex;flex-direction:column;gap:6px;">
@@ -4459,7 +4457,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;margin-bottom:14px;">crie um grupo e compartilhe o <b style="color:var(--text2);">código</b> — seus amigos entram digitando esse código e veem o mesmo grupo em qualquer aparelho</div>
           <sc-if value="{{ comErroShow }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px;">
+            <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border:1px solid color-mix(in oklab, var(--warn) 38%, var(--border));border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--warn) 19%, transparent),transparent 46%);">
               <span style="font-size:var(--fs-lg);line-height:1;flex:none;">⚠️</span>
               <span style="font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ comErro }}</span>
             </div>
@@ -4476,7 +4474,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:16px;">
             <sc-for list="{{ comGrupos }}" as="g" hint-placeholder-count="2">
-              <div style="background:var(--surface2);border:1px solid var(--border);border-left:4px solid {{ g.cor }};border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:11px;">
+              <div style="background:var(--surface2);border:1px solid color-mix(in oklab, {{ g.cor }} 38%, var(--border));border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:11px;background-image:linear-gradient(90deg,color-mix(in oklab, {{ g.cor }} 19%, transparent),transparent 46%);">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                   <div style="min-width:0;"><div style="font-size:var(--fs-2xs);letter-spacing:.06em;text-transform:uppercase;color:{{ g.cor }};font-weight:700;">{{ g.tag }} · {{ g.membrosLabel }}</div><div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-top:4px;text-wrap:pretty;">{{ g.nome }}</div></div>
                   <sc-if value="{{ g.ehDono }}" hint-placeholder-val="{{ false }}"><button data-id="{{ g.id }}" onclick="{{ apagarGrupo }}" title="Apagar o grupo para todo mundo" style="background:transparent;border:none;cursor:pointer;color:var(--text3);padding:2px;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></sc-if><button data-id="{{ g.id }}" onclick="{{ removeGrupo }}" title="Sair do grupo" style="background:transparent;border:none;cursor:pointer;color:var(--text3);padding:2px;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
@@ -4955,7 +4953,7 @@ window.ctPdfLib = (function(){
                     </div>
                     <div style="font-size:var(--fs-sm);line-height:1.6;white-space:pre-wrap;color:var(--k-ink);font-family:var(--body);">{{ f.mensagem }}</div>
                     <sc-if value="{{ f.temNota }}" hint-placeholder-val="{{ false }}">
-                      <div style="margin-top:9px;border-left:2px solid var(--k-acc);padding-left:10px;font-size:var(--fs-xs);color:var(--k-dim);">nota: {{ f.nota }}</div>
+                      <div style="margin-top:9px;border:1px solid color-mix(in oklab, var(--k-acc) 38%, var(--border));padding-left:10px;font-size:var(--fs-xs);color:var(--k-dim);background-image:linear-gradient(90deg,color-mix(in oklab, var(--k-acc) 19%, transparent),transparent 46%);">nota: {{ f.nota }}</div>
                     </sc-if>
                     <div style="font-size:var(--fs-2xs);color:var(--k-dim2);margin-top:8px;">{{ f.ctx }}</div>
                     <div class="adm-acts" style="margin-top:10px;">
@@ -5282,9 +5280,9 @@ window.ctPdfLib = (function(){
           </sc-for>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid var(--warn);"><div class="ct-titulo-display">{{ retaRevVenc }}</div><div class="ct-nota ct-nota-solta">revisões vencidas</div></div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid var(--accent);"><div class="ct-titulo-display">{{ retaSim }}</div><div class="ct-nota ct-nota-solta">simulados feitos</div></div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-top:3px solid var(--accent);"><div class="ct-titulo-display">{{ retaDias }}</div><div class="ct-nota ct-nota-solta">dias para a prova</div></div>
+          <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--warn) 38%, var(--border));border-radius:var(--radius);padding:16px;background-image:linear-gradient(180deg,color-mix(in oklab, var(--warn) 19%, transparent),transparent 46%);"><div class="ct-titulo-display">{{ retaRevVenc }}</div><div class="ct-nota ct-nota-solta">revisões vencidas</div></div>
+          <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:16px;background-image:linear-gradient(180deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);"><div class="ct-titulo-display">{{ retaSim }}</div><div class="ct-nota ct-nota-solta">simulados feitos</div></div>
+          <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:16px;background-image:linear-gradient(180deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);"><div class="ct-titulo-display">{{ retaDias }}</div><div class="ct-nota ct-nota-solta">dias para a prova</div></div>
         </div>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;display:flex;flex-direction:column;gap:16px;">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -8737,7 +8735,7 @@ class Component extends DCLogic {
     if(state) state.textContent=v.running?'Rodando':'Pausado';
     if(status) status.setAttribute('data-on', v.running?'1':'0');
     if(track) track.style.display=v.isPomo?'block':'none';   // sessão livre não tem duração: sem barra vazia
-    if(bar){ bar.style.width=Math.round(v.pct*100)+'%'; bar.style.background=v.color; }
+    if(bar){ bar.style.transform='translateX('+(Math.round(v.pct*100)-100)+'%)'; bar.style.background=v.color; }
     if(toggle){ toggle.textContent=v.running?'Pausar':'Retomar';
       // mantém o botão na COR DA PLATAFORMA mesmo se ela mudar com o PiP aberto
       const acc=this._accentHex(); toggle.style.background=acc; toggle.style.boxShadow='0 6px 18px '+this._hexRgba(acc,.42); }
@@ -8769,7 +8767,9 @@ class Component extends DCLogic {
         .time{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;
           font-size:64px;line-height:1;font-weight:800;letter-spacing:-.045em;text-align:center;margin-top:7px;white-space:nowrap;text-shadow:0 2px 34px ${glow}}
         .track{width:100%;height:5px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-top:18px}
-        .bar{height:100%;width:0%;border-radius:99px;transition:width .5s linear, background .3s;box-shadow:0 0 12px ${accLine}}
+        .bar{height:100%;width:100%;border-radius:99px;transform:translateX(-100%);transform-origin:left center;
+          transition:transform .5s linear, background .3s;will-change:transform;
+          box-shadow:0 1px 10px -2px ${accLine}}
         .actions{display:flex;gap:8px;margin-top:16px}
         button{border:none;border-radius:var(--radius);cursor:pointer;font:inherit;color:#fff;transition:transform .08s ease, filter .2s, background .2s}
         button:active{transform:scale(.96)}
@@ -10916,7 +10916,7 @@ class Component extends DCLogic {
     rd.sList.innerHTML='';
     if(!hls.length){ const e=document.createElement('div'); e.style.cssText='padding:30px 12px;text-align:center;color:'+t3+';font-size:var(--fs-sm);line-height:1.6;'; e.innerHTML='<div style="font-size:26px;">🖍️</div>Selecione qualquer trecho e escolha uma cor para começar a marcar.'; rd.sList.appendChild(e); return; }
     [...hls].reverse().forEach(h=>{ const card=document.createElement('div'); card.style.cssText='border:1px solid '+bd+';border-radius:var(--r-md);padding:10px 11px;margin-bottom:9px;background:var(--surface);';
-      const quote=document.createElement('div'); quote.style.cssText='font-size:var(--fs-sm);color:'+ink+';line-height:1.5;border-left:3px solid '+h.color+';padding-left:9px;cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;'; quote.textContent=h.text; quote.onclick=()=>this._jumpToHl(h); card.appendChild(quote);
+      const quote=document.createElement('div'); quote.style.cssText='font-size:var(--fs-sm);color:'+ink+';line-height:1.5;border:1px solid color-mix(in oklab, '+h.color+' 30%, var(--border));border-radius:8px;padding:7px 10px;background-image:linear-gradient(90deg,color-mix(in oklab, '+h.color+' 14%, transparent),transparent 40%);cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;'; quote.textContent=h.text; quote.onclick=()=>this._jumpToHl(h); card.appendChild(quote);
       if(h.note){ const n=document.createElement('div'); n.style.cssText='font-size:var(--fs-xs);color:'+t2+';margin-top:7px;background:var(--surface2);border-radius:var(--r-sm);padding:6px 8px;'; n.textContent='✎ '+h.note; card.appendChild(n); }
       const row=document.createElement('div'); row.style.cssText='display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;';
       const mk=(label,title,fn,bg,col)=>{ const b=document.createElement('button'); b.textContent=label; b.title=title||label; b.style.cssText='font-size:var(--fs-2xs);font-weight:600;border:1px solid '+bd+';background:'+(bg||'var(--surface2)')+';color:'+(col||t2)+';border-radius:var(--r-sm);padding:5px 8px;cursor:pointer;font-family:inherit;'; b.onclick=fn; return b; };
@@ -10934,7 +10934,7 @@ class Component extends DCLogic {
   _openHlPopover(h){ this._closeHlPopover(); const rd=this._rd; const ink='var(--ink)',bd='var(--border)',t3='var(--text3)';
     const ov=document.createElement('div'); ov.style.cssText='position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);'; ov.onclick=(e)=>{ if(e.target===ov) this._closeHlPopover(); };
     const box=document.createElement('div'); box.style.cssText='background:var(--surface);border:1px solid '+bd+';border-radius:var(--radius);width:380px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.4);overflow:hidden;animation:ctpop .16s ease;';
-    box.innerHTML='<div style="padding:14px 16px;border-bottom:1px solid '+bd+';"><div style="font-size:var(--fs-xs);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:'+t3+';">Trecho destacado</div><div style="font-size:var(--fs-base);color:'+ink+';line-height:1.5;margin-top:6px;border-left:3px solid '+h.color+';padding-left:10px;max-height:120px;overflow:auto;">'+this._esc(h.text)+'</div></div>';
+    box.innerHTML='<div style="padding:14px 16px;border-bottom:1px solid '+bd+';"><div style="font-size:var(--fs-xs);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:'+t3+';">Trecho destacado</div><div style="font-size:var(--fs-base);color:'+ink+';line-height:1.5;margin-top:6px;border:1px solid color-mix(in oklab, '+h.color+' 38%, var(--border));padding-left:10px;max-height:120px;overflow:auto;background-image:linear-gradient(90deg,color-mix(in oklab, '+h.color+' 19%, transparent),transparent 46%);">'+this._esc(h.text)+'</div></div>';
     const bodyP=document.createElement('div'); bodyP.style.cssText='padding:14px 16px;'; box.appendChild(bodyP);
     // colors
     const crow=document.createElement('div'); crow.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:12px;'; const cl=document.createElement('span'); cl.textContent='Cor'; cl.style.cssText='font-size:var(--fs-xs);color:'+t3+';margin-right:4px;'; crow.appendChild(cl);
@@ -13604,7 +13604,7 @@ class Component extends DCLogic {
     // conteúdo derivado apenas do que a IA gerou
     const mfTextoParas=(_mfGen&&Array.isArray(_mfGen.paras))?_mfGen.paras.map(String):[];
     const mfAudioPreview=(_mfGen&&_mfGen.preview)?String(_mfGen.preview):'';
-    const mfNodes=(_mfGen&&Array.isArray(_mfGen.nodes))?_mfGen.nodes.slice(0,6).map((n,i)=>({title:String(n.title||''), text:String(n.text||''), style:'border:1px solid var(--border);border-left:4px solid '+_mfPal[i%_mfPal.length]+';border-radius:var(--radius);padding:12px 14px;'})):[];
+    const mfNodes=(_mfGen&&Array.isArray(_mfGen.nodes))?_mfGen.nodes.slice(0,6).map((n,i)=>({title:String(n.title||''), text:String(n.text||''), style:'border:1px solid color-mix(in oklab, '+_mfPal[i%_mfPal.length]+' 38%, var(--border));border-radius:var(--radius);padding:12px 14px;background-image:linear-gradient(90deg,color-mix(in oklab, '+_mfPal[i%_mfPal.length]+' 19%, transparent),transparent 46%);'})):[];
     const _mfChaps=(_mfGen&&Array.isArray(_mfGen.chapters))?_mfGen.chapters.slice(0,6):[];
     const mfChapters=_mfChaps.map((t,i)=>({n:i+1, title:String(t), style:`font-size:var(--fs-sm);font-weight:${i===0?700:600};color:${i===0?'#fff':(i<2?'var(--accentD)':'var(--text3)')};background:${i===0?'var(--accent)':(i<2?'var(--accentSoft)':'var(--surface2)')};border-radius:var(--r-md);padding:6px 11px;flex:none;white-space:nowrap;`}));
     const mfVideoTitle=(_mfGen&&_mfGen.title)?String(_mfGen.title):mfFonte;
@@ -14551,7 +14551,7 @@ class Component extends DCLogic {
     const _avCor=_avSev==='critico'?'var(--danger)':_avSev==='aviso'?'var(--warn)':'var(--accent)';
     const avisoGlobalIcon=_avSev==='critico'?'⚠':_avSev==='aviso'?'!':'✦';
     const avisoGlobalStyle='display:flex;align-items:flex-start;gap:11px;padding:11px clamp(16px,3vw,34px);'
-      +'background:var(--surface2);border-bottom:1px solid var(--border);border-left:4px solid '+_avCor+';'
+      +'background:var(--surface2);border-bottom:1px solid var(--border);'+'background-image:linear-gradient(90deg,color-mix(in oklab, '+_avCor+' 18%, transparent),transparent 42%);'
       +'color:var(--ink);font-size:var(--fs-base);';
 
     // ── view-model do CONSOLE DE ADMINISTRAÇÃO ────────────────────────────────
@@ -14897,7 +14897,7 @@ class Component extends DCLogic {
       +_bSombra('box-shadow:0 20px 46px -30px '+_bCor+';');
     const bancaFocoTitulo='font-family:var(--display);font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.015em;color:'+_bTxt+';';
     const _bCard=(icone,titulo)=>({ icone, titulo,
-      style:'position:relative;border:1px solid var(--border);border-left:3px solid '+_bCor+';border-radius:'+_bRaioTile+';'
+      style:'position:relative;border:1px solid color-mix(in oklab, '+_bCor+' 38%, var(--border));border-radius:'+_bRaioTile+';background-image:linear-gradient(90deg,color-mix(in oklab, '+_bCor+' 13%, transparent),transparent 38%);'
         +'padding:15px 16px;background:linear-gradient(135deg,'+_bCor+'0f,transparent 65%),var(--surface2);',
       labelStyle:'display:flex;align-items:center;gap:7px;font-size:var(--fs-2xs);letter-spacing:.13em;text-transform:uppercase;'
         +'font-weight:800;margin-bottom:7px;color:'+_bTxt+';' });
@@ -15490,7 +15490,7 @@ class Component extends DCLogic {
       paTipo:proximaAcao.tipo, paTitulo:proximaAcao.titulo, paMotivo:proximaAcao.motivo,
       paMeta:proximaAcao.meta, paTemMeta:!!proximaAcao.meta, paCta:proximaAcao.cta,
       paView:proximaAcao.view, paAcao:(proximaAcao.action||''), paIr:this.paIr,
-      paEstilo:'background:var(--surface);border:1px solid var(--accent);border-left:4px solid var(--accent);'
+      paEstilo:'background:var(--surface);border:1px solid var(--accent);background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 17%, transparent),transparent 44%);'
         +'border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;'
         +'box-shadow:0 2px 10px -4px color-mix(in srgb,var(--accent) 40%,transparent);',
       prioLista, prioTem:prioLista.length>0, prioVazio:prioLista.length===0, prioRevisar:this.prioRevisar,

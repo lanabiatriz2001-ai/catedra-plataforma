@@ -66,13 +66,35 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
     }
   };
 
-  const semRede = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '' });
-  ok(semRede.code === 1, 'D9 build sem rede FALHA (exit 1) em vez de publicar dependendo de CDN');
-  ok(/BUILD ABORTADO/.test(semRede.saida), 'D9 a falha explica o que houve');
-  ok(/CT_PERMITE_CDN/.test(semRede.saida), 'D9 a falha diz qual é a saída de emergência');
-
-  const comFlag = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '1' });
-  ok(comFlag.code === 0, 'D9 CT_PERMITE_CDN=1 ainda permite build degradado (debug)');
+  /* MUDOU O QUE ESTE BLOCO PROVA, e para melhor. Antes o build BAIXAVA as fontes do
+     Google a cada publicação, então "sem rede" tinha de abortar — publicar dependendo de
+     CDN seria pior. Isso protegia a web e deixava os apps NATIVOS de fora: eles empacotam
+     o Catedra.dc.html direto, sem passar pelo build, e lá o <link> do Google continuava.
+     Sem internet, no aparelho de estudo, a tipografia caía inteira.
+     As faces passaram a ser versionadas em fonts/ e declaradas no catedra-ui.css. Com
+     isso o build não pede nada à rede: em vez de abortar, ele PUBLICA. A asserção que
+     antes exigia falha agora exige sucesso — e o CT_PERMITE_CDN deixou de existir, porque
+     não há mais CDN de onde depender. */
+  const semRede = rodar({ NODE_OPTIONS: '--require ' + stub });
+  /* Sem rede o build ainda para — mas agora por causa das BIBLIOTECAS (react, supabase),
+     que continuam sendo vendoradas da internet. O que mudou é que as FONTES saíram dessa
+     lista: elas não são mais motivo de aborto. A asserção mira a causa, não o código de
+     saída, senão ela passaria a medir o vendor das libs sem querer. */
+  ok(!/vendorar as fontes|fonts\.googleapis|fonts\.gstatic/.test(semRede.saida),
+     'D9 sem rede, as fontes NÃO são mais motivo de aborto');
+  const fontesPub = path.join(RAIZ, 'public', 'fonts');
+  ok(fs.existsSync(fontesPub) && fs.readdirSync(fontesPub).filter(f => f.endsWith('.woff2')).length >= 20,
+     'D9 as 20 faces chegam a public/fonts mesmo sem rede');
+  /* O CT_PERMITE_CDN continua existindo para as BIBLIOTECAS (React, supabase), que ainda
+     são vendoradas da rede. O que saiu foi o uso dele nas FONTES: elas não têm mais de
+     onde falhar. A asserção mira a função, não o arquivo inteiro. */
+  const buildSrc = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
+  const fnFontes = buildSrc.slice(buildSrc.indexOf('async function vendorarFontes()'),
+                                 buildSrc.indexOf("return './fonts.css';"));
+  // sem os comentários: o texto explicativo cita o nome do flag ao contar que ele saiu
+  const fnSemComentario = fnFontes.replace(/\/\*[\s\S]*?\*\//g, '');
+  ok(!/PERMITE_CDN/.test(fnSemComentario), 'D9 as fontes não têm mais saída de emergência para CDN');
+  ok(!/fonts\.gstatic|fonts\.googleapis/.test(fnFontes), 'D9 a função de fontes não fala com o Google');
 
   // build normal: nada de terceiro sobra no HTML publicado
   const normal = rodar({});
@@ -125,8 +147,17 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
     'U10 a casca traz os três scripts do <head> (antes só entravam depois da 1a visita)');
   ok(casca.some(p => /^\.\/vendor\//.test(p)) && naCasca('./fonts.css') && casca.some(p => /^\.\/fonts\//.test(p)),
     'U10 a casca traz as libs vendoradas e as fontes locais');
-  ok(!casca.some(p => /cyrillic|greek|vietnamese/.test(p)) && casca.filter(p => /^\.\/fonts\//.test(p)).length < 20,
-    'U10 só os subconjuntos latinos das fontes entram no precache');
+  /* O `< 20` daqui era a marca de quando o build baixava 48 faces do Google e só algumas
+     latinas entravam na casca. Com as faces versionadas em fonts/, TODAS as que existem
+     são latinas — são exatamente 20 — e o número virou coincidência com o limite antigo.
+     A asserção passa a dizer o que importa: nada de alfabeto que este app não usa, e a
+     casca leva exatamente o que o repositório tem (nem sobra velharia, nem falta face). */
+  const facesNoRepo = fs.readdirSync(path.join(RAIZ, 'fonts')).filter(f => f.endsWith('.woff2')).length;
+  const facesNaCasca = casca.filter(p => /^\.\/fonts\//.test(p)).length;
+  ok(!casca.some(p => /cyrillic|greek|vietnamese/.test(p)),
+    'U10 nenhum subconjunto não-latino entra no precache');
+  ok(facesNaCasca === facesNoRepo,
+    'U10 a casca leva exatamente as faces do repositório (' + facesNaCasca + ' de ' + facesNoRepo + ')');
   ok(casca.filter(p => /\/dados\/[^/]+\/manifesto\.json$/.test(p)).length >= 1,
     'U10 os manifestos dos acervos fatiados entram na casca (sem eles o CTDados desiste offline)');
 

@@ -276,19 +276,23 @@
 .ct-grupo-atraso .ct-grupo-n     { color: var(--danger, #c0392f); }
 .ct-grupo-fim { margin-left: auto; }
 
-/* ---- 10.5 ITEM COM FAIXA: a linha que carrega uma cor ------------------------
-   A faixa da esquerda diz a MATÉRIA (cor da disciplina, vinda do edital) ou a SITUAÇÃO.
-   É o que deixa a lista legível de relance — o padrão vem da view Revisões. */
+/* ---- 10.5 ITEM COM COR: a linha que carrega uma cor -------------------------
+   A cor diz a MATÉRIA (cor da disciplina, vinda do edital) ou a SITUAÇÃO, e é o que
+   deixa a lista legível de relance. Ela não fica encostada no item como uma etiqueta
+   de 4px: tinge a borda inteira e entra pela esquerda como uma lavagem curta. Mesma
+   leitura à distância, sem o carimbo. O padrão vem da view Revisões. */
 .ct-item {
+  --ct-item-cor: var(--border, #e6e1d4);
   display: flex; align-items: center; gap: var(--ct-e3);
   background: var(--surface, #fffdf8);
-  border: 1px solid var(--border, #e6e1d4);
-  border-left: 4px solid var(--ct-item-cor, var(--border, #e6e1d4));
+  background-image: linear-gradient(90deg,
+    color-mix(in oklab, var(--ct-item-cor) 18%, transparent), transparent 46%);
+  border: 1px solid color-mix(in oklab, var(--ct-item-cor) 38%, var(--border, #e6e1d4));
   border-radius: var(--ct-r-lg);
   padding: 15px 18px; flex-wrap: wrap;
 }
-.ct-item-atraso { border-left-color: var(--danger, #c0392f); }
-.ct-item-hoje   { border-left-color: var(--accent, #0f7a57); }
+.ct-item-atraso { --ct-item-cor: var(--danger, #c0392f); }
+.ct-item-hoje   { --ct-item-cor: var(--accent, #0f7a57); }
 .ct-item-corpo  { flex: 1; min-width: 140px; }
 .ct-item-tit    { font-weight: 600; font-size: var(--fs-md, 14.5px); color: var(--ink, #1f1c17); }
 .ct-item-nota   { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); margin-top: 2px; }
@@ -601,3 +605,95 @@ button.ct-card:hover, a.ct-card:hover {
     transparent);
   opacity: .45; pointer-events: none; border-radius: inherit;
 }
+
+/* ===== 16. O ESTADO DO CONTROLE APARECE ==========================================
+ * Auditoria contra o checklist de UI (cursor, foco, alvo de toque, contraste) no app
+ * inteiro. O contraste passou limpo — os 14 suspeitos eram texto sobre gradiente, que o
+ * medidor não sabe compor. Sobraram três defeitos de ESTADO, e todos do mesmo tipo: o
+ * controle não diz o que é.
+ *   · "Comparar com o gabarito" (Redação) e "Escolha uma matéria" (Bancas): clicáveis de
+ *     verdade, com cursor de seta. Quem passa o mouse não descobre que são botões.
+ *   · "Revisar agora" quando está tudo em dia (Revisões): desabilitado, mas com opacidade
+ *     cheia — parecia ativo e não respondia. Botão que não reage sem dizer por quê é o
+ *     tipo de coisa que faz a pessoa achar que o app travou.
+ * A regra abaixo resolve os três e impede o quarto: é por ESTADO, não por elemento
+ * específico, então vale para o botão que ainda não existe.
+ */
+.ct-scroll button:not([disabled]):not([aria-disabled="true"]),
+.ct-scroll [role="button"]:not([aria-disabled="true"]),
+.ct-scroll a[href] { cursor: pointer; }
+
+.ct-scroll button[disabled],
+.ct-scroll button[aria-disabled="true"],
+.ct-scroll [role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+/* Foco visível em tudo que recebe teclado. O app já tinha foco em alguns lugares; aqui
+   ele passa a ser garantido — quem navega por Tab precisa saber onde está, e o anel tem
+   de aparecer sobre superfície clara E sobre o gradiente das faixas. */
+.ct-scroll button:focus-visible,
+.ct-scroll a:focus-visible,
+.ct-scroll input:focus-visible,
+.ct-scroll select:focus-visible,
+.ct-scroll textarea:focus-visible,
+.ct-scroll [tabindex]:focus-visible {
+  outline: 2px solid var(--accent, #0f7a57);
+  outline-offset: 2px;
+  border-radius: var(--ct-r-sm);
+}
+.ct-hero button:focus-visible, .ct-hero a:focus-visible { outline-color: #fff; }
+
+/* ---- 16.1 ALVO DE TOQUE, SEM REPETIR O ERRO DE ANTES ---------------------------
+ * Medido em 375px: 34 botões com menos de 44px de altura. A tentação é `min-height:44px`
+ * em tudo — e o próprio app já tentou isso e reverteu, com o estrago anotado no
+ * Catedra.dc.html: o quadradinho de 20x20 do tópico do Edital virava uma barra de 20x44,
+ * o seletor de cor 30x44, e a célula do calendário era ESMAGADA para 44 com overflow
+ * cortando os eventos do dia.
+ * Então a regra vale só para botão que TEM RÓTULO — quem tem texto dentro é retangular e
+ * cresce sem deformar. Em CSS não se pergunta "tem texto", mas dá para excluir o que
+ * sabidamente quebra: cartão (que já é grande), célula de calendário, quadradinho de
+ * marcar e seletor de cor. O que sobra é botão de ação com palavra dentro.
+ */
+@media (max-width: 900px) {
+  .ct-scroll button:not(.ct-card):not(.ct-calcell):not(.cth-chk):not(.ct-alvo):not([data-cor]):not([data-i]):not([data-k]):not(:has(> svg:only-child)) {
+    min-height: 44px;
+  }
+  /* Botão que é SÓ um ícone não cresce — foi o que a medição pegou na primeira tentativa
+     desta regra: dois deles viraram 30x44 e 34x44, exatamente a deformação que o app já
+     tinha documentado. `:has(> svg:only-child)` é o jeito de perguntar em CSS "este botão
+     tem só um desenho dentro?". Para o dedo alcançar, o host já tem `.ct-alvo`, que cresce
+     a ÁREA por pseudo-elemento sem esticar o desenho. */
+}
+
+/* ===== 17. AS FONTES MORAM AQUI DENTRO ===========================================
+ * O app pedia a tipografia ao Google Fonts a cada abertura. Num app de estudo isso é
+ * defeito de verdade: sem internet — no iPad, na véspera da prova — o Spectral vira
+ * Georgia, o Inter vira fonte de sistema e a identidade que o resto deste arquivo
+ * constrói se desmancha. Também era a única dependência externa do desenho.
+ * As 20 faces (subset latin, que cobre o português) agora vivem em ./fonts, 616 KB no
+ * total, e são referenciadas por caminho relativo — sem CDN, sem passo de build, e
+ * funcionando com o aparelho em modo avião. `font-display:swap` mantém o texto legível
+ * enquanto a face carrega do disco.
+ */
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/inter-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/inter-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/inter-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/inter-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter Tight';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/intertight-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter Tight';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/intertight-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter Tight';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/intertight-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter Tight';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/intertight-700-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/jetbrainsmono-400-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/jetbrainsmono-500-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/jetbrainsmono-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/spacegrotesk-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spacegrotesk-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/spacegrotesk-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spacegrotesk-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:italic;font-weight:400;font-display:swap;src:url('./fonts/spectral-400-italic.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/spectral-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spectral-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/spectral-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spectral-700-normal.woff2') format('woff2');}
