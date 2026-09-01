@@ -1727,6 +1727,18 @@ window.ctPdfLib = (function(){
                 <button onclick="{{ roteiroHoje }}" style="border:none;border-radius:99px;background:#7fd4b5;color:#12241c;font-size:var(--fs-xs);font-weight:700;padding:6px 12px;cursor:pointer;flex:none;font-family:inherit;">voltar ao atual</button>
               </sc-if>
             </div>
+            <!-- sequência dos pontos: conserta a ordem SEM mexer no peso do dia (ver _reorganizarPorPonto) -->
+            <sc-if value="{{ isManual }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:9px;margin-top:9px;flex-wrap:wrap;">
+                <button onclick="{{ reorganizarPorPonto }}" title="Reordena as atividades de cada disciplina entre os dias que ela já ocupa, na ordem dos pontos do edital. Nenhum dia ganha ou perde atividade." style="border:1px solid rgba(255,255,255,.28);border-radius:99px;background:rgba(255,255,255,.10);color:#fff;font-size:var(--fs-xs);font-weight:600;padding:6px 13px;cursor:pointer;font-family:inherit;">⇅ organizar por ponto</button>
+                <sc-if value="{{ temDesfazerReorg }}" hint-placeholder-val="{{ false }}">
+                  <button onclick="{{ desfazerReorg }}" style="border:none;border-radius:99px;background:#7fd4b5;color:#12241c;font-size:var(--fs-xs);font-weight:700;padding:6px 13px;cursor:pointer;font-family:inherit;">desfazer ({{ desfazerReorgN }})</button>
+                </sc-if>
+                <sc-if value="{{ temReorgAviso }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:var(--fs-xs);color:rgba(255,255,255,.75);">{{ cicloReorgAviso }}</span>
+                </sc-if>
+              </div>
+            </sc-if>
           </div>
           <div style="text-align:right;font-size:var(--fs-sm);color:rgba(255,255,255,.75);">{{ userFirstName }}<br><b style="color:#fff;">{{ cicloFolhaHeader.faixa }}</b></div>
         </div>
@@ -5517,7 +5529,7 @@ window.ctPdfLib = (function(){
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:760},&quot;direction&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sutil&quot;,&quot;premium&quot;,&quot;clean&quot;,&quot;moderno&quot;],&quot;default&quot;:&quot;sutil&quot;,&quot;tsType&quot;:&quot;'sutil'|'premium'|'clean'|'moderno'&quot;}}">
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:760},&quot;direction&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sutil&quot;,&quot;premium&quot;,&quot;clean&quot;,&quot;moderno&quot;,&quot;aurora&quot;,&quot;solar&quot;,&quot;terminal&quot;,&quot;holo&quot;],&quot;default&quot;:&quot;sutil&quot;,&quot;tsType&quot;:&quot;'sutil'|'premium'|'clean'|'moderno'|'aurora'|'solar'|'terminal'|'holo'&quot;}}">
 // ===== ÁREAS DE ESTUDO =====
 // A Cátedra nasceu jurídica, mas o método (ciclo, revisão espaçada SM-2, questões,
 // simulados, raio-X) serve a qualquer prova. A área que a pessoa escolhe é o que
@@ -5630,6 +5642,13 @@ const CT_AREA = (id)=> CT_AREAS.find(a=>a.id===id) || CT_AREAS[0];
 // Chave normalizada: minúscula, sem acento, sem o prefixo "direito ".
 // VALORES = paleta "vitrine" aprovada pela Lana (a mesma do RamoStyle nativo do JURIS);
 // par d = tinta clara para modo escuro. internacional escurecido p/ contraste (0284C7).
+// Direções visuais válidas. LISTA ÚNICA — o construtor e a restauração de backup leem
+// daqui. Antes cada um tinha a sua cópia com quatro nomes, e as quatro direções
+// acrescentadas depois (Aurora, Solar, Terminal, Holo) eram GRAVADAS e recusadas na
+// releitura: a pessoa escolhia Aurora, recarregava e voltava para Planilha. Tem de bater
+// com as chaves de THEMES() — há teste que compara as duas.
+const CT_DIRS = ['sutil','premium','clean','moderno','aurora','solar','terminal','holo'];
+
 const CT_CORES_RAMO = {
   'constitucional':      {c:'#2563EB', d:'#38BDF8'},
   'administrativo':      {c:'#4F46E5', d:'#818CF8'},
@@ -5658,17 +5677,77 @@ const CT_CORES_RAMO = {
   'matematica':          {c:'#2563EB', d:'#7EA8F8'},
   'informatica':         {c:'#0A7EA4', d:'#4BB3D6'},
 };
+// casamento de ramo por palavra inteira sobre o nome já normalizado (sem acento, minúsculo)
+function CT_RAMO_CASA(n, k){ return new RegExp('(^| )'+k.replace(/ /g,' ')+'( |$)').test(n); }
 function CT_COR_RAMO(nome, dark){
   const n = String(nome||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
     .replace(/^direito\s+/,'').replace(/\b(do|da|de|dos|das)\b/g,' ').replace(/\s+/g,' ').trim();
-  // chave mais longa primeiro: "processual civil" antes de "civil"
+  // chave mais longa primeiro: "processual civil" antes de "civil". PALAVRA INTEIRA:
+  // por substring, "Lei seca" e "LINDB seca" casavam com 'eca' e saíam com a cor do ECA.
   const chaves = Object.keys(CT_CORES_RAMO).sort((a,b)=>b.length-a.length);
-  for(const k of chaves) if(n.includes(k)) return dark ? CT_CORES_RAMO[k].d : CT_CORES_RAMO[k].c;
+  for(const k of chaves) if(CT_RAMO_CASA(n,k)) return dark ? CT_CORES_RAMO[k].d : CT_CORES_RAMO[k].c;
   // fallback estável: hash do nome numa paleta neutra (não some, não colide com semânticos)
   const PAL = dark ? ['#9ba0f7','#57ce85','#f8bc52','#4fc3dd','#e883ab','#a8a29e']
                    : ['#6366f1','#16a34a','#f59e0b','#0891b2','#d6457f','#78716c'];
   let h=0; for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))>>>0;
   return PAL[h%PAL.length];
+}
+
+// ===== ORDEM DO DIA, COMO NAS FOLHAS DOS ROTEIROS =====
+// A sequência NÃO é inventada: é a que a orientadora usa nas folhas semanais — leitura
+// de leis primeiro (na ordem exata da planilha "Tabela de Leitura", que não se mexe:
+// CF, CC, CPC, CP/CPP, extravagantes, súmulas) e, depois, as atividades sempre nesta
+// ordem de etiqueta: simulado → vídeo → jurisprudência → material → lei seca → questões →
+// doutrina → texto → flashcards → informativo → revisão. O simulado abre o dia (é a prova,
+// e o resto do sábado é o caderno de erros dela) e a revisão do caderno fecha, como nas
+// folhas do Roteiro 4 (05/09) e do Roteiro 2 (08/08). Esta é a ordem DENTRO de cada
+// disciplina — o dia sai agrupado por disciplina antes (ver _ordenaCiclo).
+const CT_ORDEM_BADGE = {'SIMULADO':5,'VÍDEO':10,'JURISPRUDÊNCIA':20,'MATERIAL':30,'LEI SECA':40,
+  'QUESTÕES':45,'DOUTRINA':50,'TEXTO':55,'FLASHCARDS':65,'INFORMATIVO':70,'REVISÃO':80};
+// ATENÇÃO: espelha regra a regra o _badgeAtiv da folha do Ciclo — a atividade tem de cair
+// na mesma posição da etiqueta que ela exibe. Mexeu num, mexa no outro.
+function CT_ORDEM_BADGE_DE(kind, titulo){
+  const t=String(titulo||'').toLowerCase();
+  if(kind==='Jurisprudência') return 'JURISPRUDÊNCIA';    // o TIPO manda: súmula, tese, repetitivo
+  if(t.includes('simulado')) return 'SIMULADO';
+  if(t.includes('informativo')) return 'INFORMATIVO';
+  if(t.includes('assistir')||t.includes('youtube')||t.includes('videoaula')) return 'VÍDEO';
+  if(t.startsWith('texto ')||t.includes('texto "')||t.includes('texto “')) return 'TEXTO';
+  if((t.includes('súmulas')&&t.includes('teses'))||t.includes('jurisprudência em teses')||t.includes('repercussão geral')||t.includes('material')) return 'MATERIAL';
+  if(t.includes('leitura dirigida')) return 'REVISÃO';
+  return {'Teoria':'DOUTRINA','Questões':'QUESTÕES','Lei seca':'LEI SECA',
+          'Jurisprudência':'JURISPRUDÊNCIA','Revisão':'REVISÃO','Flashcards':'FLASHCARDS'}[kind]||'';
+}
+// Ramo da atividade quando ela não tem vínculo de edital: o mesmo casamento que dá a COR
+// (CT_CORES_RAMO), para o card ficar no grupo da cor que ele exibe. '' = sem disciplina.
+function CT_RAMO_CHAVE(nome){
+  const n = String(nome||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/^direito\s+/,'').replace(/\b(do|da|de|dos|das)\b/g,' ').replace(/\s+/g,' ').trim();
+  if(!n) return '';
+  const chaves = Object.keys(CT_CORES_RAMO).sort((a,b)=>b.length-a.length);
+  for(const k of chaves) if(CT_RAMO_CASA(n,k)) return k;
+  // as folhas chamam os códigos pela SIGLA ("arts. 5º a 12 do CP") — sem isto a atividade
+  // ficaria sem disciplina. Sigla longa primeiro: CPC e CPP antes de CP.
+  const SIG=[['CRFB','constitucional'],['LINDB','civil'],['CPC','processual civil'],['CPP','processual penal'],
+    ['CDC','consumidor'],['CTN','tributario'],['CLT','trabalho'],['ECA','eca'],['LEP','penal'],
+    ['CF','constitucional'],['CC','civil'],['CP','penal']];
+  const bruto=String(nome||'');
+  for(const [sg,ramo] of SIG) if(new RegExp('(^|[^A-Za-zÀ-ÿ])'+sg+'([^A-Za-zÀ-ÿ]|$)').test(bruto)) return ramo;
+  return '';
+}
+function CT_ORDEM_ATIV(kind, titulo){
+  const b=CT_ORDEM_BADGE_DE(kind, titulo), t=String(titulo||'').toLowerCase();
+  // "Revisão" é DUAS coisas nas folhas: o caderno de erros, que fecha o dia, e a revisão
+  // de conteúdo — reler artigos, leitura dirigida, fazer o caderno de questões —, que
+  // ocupa o lugar do tipo que ela de fato é. Ver Roteiro 2 (05 e 07/08) e Roteiro 4
+  // parte 2 (02/09), onde a revisão vem ANTES da doutrina e do informativo.
+  if(b==='REVISÃO'){
+    if(t.includes('refazer')||t.includes('descanso')||t.includes('revisão livre')) return 80;
+    if(t.includes('leitura dirigida')||t.includes('reler')||t.includes('artigos')) return 40;
+    if(t.includes('questões')||t.includes('questoes')) return 45;
+    return 80;
+  }
+  const r=CT_ORDEM_BADGE[b]; return (r==null)?58:r;   // tipo de outra área entra entre texto e flashcards
 }
 
 // Perfil pesquisado de cada banca (formato, estilo de cobrança, foco e dicas). Fica em
@@ -5781,8 +5860,10 @@ class Component extends DCLogic {
       nativePlano:null, // planos de leitura: {legis:{done,total,next}, juris:{done,total,next}} injetado pelo host
       planoLegis:this._load('planoLegis', {}), // progresso do plano de leitura na WEB (dia|item -> true)
       nativeCatalogo:null,
+      cicloDesfazer:null,      // último reorganizar-por-ponto, para desfazer (só nesta sessão)
+      cicloReorgAviso:'',
       roteiroVista:null, // navegação entre roteiros no Ciclo (null = o atual) // catálogo p/ registro: {legis:[{disc,leis[]}], juris:[fontes]} injetado pelo host
-      dir: (()=>{ try{ const d=localStorage.getItem('catedra:dir'); if(d&&['sutil','premium','clean','moderno'].includes(d)) return d; }catch(_){} return props.direction || 'sutil'; })(),
+      dir: (()=>{ try{ const d=localStorage.getItem('catedra:dir'); if(d&&CT_DIRS.includes(d)) return d; }catch(_){} return props.direction || 'sutil'; })(),
       darkMode: (()=>{ try{ return localStorage.getItem('catedra:dark')==='1'; }catch(_){} return false; })(),
       menuOpen:false, navExpanded:false,
       isMobile: (typeof window!=='undefined' && window.innerWidth<900),
@@ -6231,8 +6312,9 @@ class Component extends DCLogic {
     this._limparLeiturasDuplicadas();   // remove as leituras que duplicam o checklist do plano
     // A hidratação do auth.js troca os dados locais DEPOIS do mount — sem reexecutar
     // aqui, a limpeza olharia sempre uma lista vazia.
-    try{ window.addEventListener('catedra:synced', ()=>{ try{ this._limparLeiturasDuplicadas(); }catch(_){} }); }catch(_){}
+    try{ window.addEventListener('catedra:synced', ()=>{ try{ this._limparLeiturasDuplicadas(); }catch(_){} this._reorgUnicaPorPonto(); }); }catch(_){}
     try{ this._agendarLimpezaLeituras(); }catch(_){}
+    try{ [2000,6000,15000,45000].forEach(ms=>setTimeout(()=>{ try{ this._reorgUnicaPorPonto(); }catch(_){} }, ms)); }catch(_){}
     // Qual conta está logada. O auth.js avisa por evento; se ele já resolveu a sessão
     // antes do app montar, o valor já está em window.CatedraAuth.user.
     try{
@@ -6609,6 +6691,21 @@ class Component extends DCLogic {
   // chegam se mostrou frágil — duas tentativas minhas erraram o momento e a limpeza nunca
   // rodava. Repetir em intervalos crescentes tira o tempo da equação; para sozinho assim
   // que a trava é gravada.
+  // PASSADA ÚNICA (31/08/2026): a semana em curso tinha o Ponto 2 sendo finalizado na
+  // quarta e o Ponto 1 no sábado — as atividades foram gravadas fora de sequência e nada
+  // no app as ordenava entre os dias. Roda uma vez por aparelho e deixa o botão
+  // "organizar por ponto" para as próximas. Trava LOCAL (sem o prefixo catedra:) pela
+  // mesma razão da limpeza acima: trava que sincroniza + manualFixed local-wins = a
+  // reorganização nunca acontece nos outros aparelhos.
+  _reorgUnicaPorPonto(){
+    try{
+      if(localStorage.getItem('catedraReorgPontos1')==='1') return;
+      if(!(this.state.manualFixed||[]).length) return;   // ainda não hidratou — tenta de novo depois
+      const n=this._reorganizarPorPonto();
+      localStorage.setItem('catedraReorgPontos1','1');
+      if(n) this.setState({cicloReorgAviso:''});
+    }catch(_){}
+  }
   _agendarLimpezaLeituras(){
     const tentar=(ms)=>setTimeout(()=>{ try{
       if(localStorage.getItem('catedraLimpezaTabelaLocal3')==='1') return;
@@ -8089,7 +8186,8 @@ class Component extends DCLogic {
       else if(idx<hojeIdx && !feito){ blocks.push({disc:f.disc, kind:f.kind, tag:'Atrasada · '+LBL[dia], min:f.min, done:false, srcId:f.id, srcDate:iso, atrasada:true, ...vinc}); }
       });
     });
-    return blocks;
+    // o dia sai agrupado por disciplina e, dentro dela, na ordem das folhas
+    return this._ordenaCiclo(blocks);
   }
   // Dias em que a atividade se repete.
   //   modelo NOVO  → `dias`, uma lista (Seg/Qua/Sex numa atividade só)
@@ -8396,6 +8494,91 @@ class Component extends DCLogic {
   _corDisc(disc){ const d=(this.state.edital||[]).find(x=>String(x.disc||'').trim().toLowerCase()===String(disc||'').trim().toLowerCase());
     if(d && /^#[0-9a-f]{3,8}$/i.test(d.color||'')) return d.color;
     return CT_COR_RAMO(disc, !!this.state.darkMode); }
+  // Grupo (disciplina) de uma atividade do dia: o vínculo de edital manda; sem vínculo,
+  // o ramo é lido do próprio título ("Finalizar Ponto 1 de Penal" → penal), o mesmo
+  // casamento que já define a cor do card. '' = atividade sem disciplina.
+  _discCiclo(f){
+    const v=String((f&&f.discEdital)||'').trim();
+    if(v) return 'e:'+v.toLowerCase();
+    const k=CT_RAMO_CHAVE((f&&(f.disc||f.titulo))||'');
+    return k?('r:'+k):'';
+  }
+  // Posição do PONTO no edital. É a chave que faz a semana andar 1 → 3 → 4 → 6 → 9 em vez
+  // de saltar. O número que a própria disciplina traz no tópico manda ("6. Aplicação da
+  // lei penal no tempo" → 6); sem número, vale a posição na lista de tópicos do edital.
+  // Atividade sem ponto vinculado (informativo, caderno de erros) fecha a disciplina.
+  _ordemPonto(f){
+    const t=String((f&&f.topico)||'').trim(); if(!t) return 1e9;
+    const m=t.match(/^\s*(\d+)/); if(m) return parseInt(m[1],10);
+    const i=this._topicosDe(String((f&&f.discEdital)||'').trim())
+      .findIndex(x=>String(x.name||'').trim()===t);
+    return i>=0?(1e5+i):1e9;
+  }
+  _rotN(l){ return parseInt(((l||'').match(/\d+/)||[0])[0],10)||0; }
+  _rotK(l){ const n=this._rotN(l); return n?('n'+n):('s'+(l||'')); }
+  // Rótulo do roteiro em foco — a mesma regra da folha: a vista, senão o atual, senão o
+  // de maior número entre as atividades.
+  _roteiroAlvo(){
+    const a=String(this.state.roteiroVista||this.state.manualFixedRoteiroAtual||'').trim();
+    if(a) return a;
+    let best=''; (this.state.manualFixed||[]).forEach(f=>{ if(f.roteiro&&this._rotN(f.roteiro)>this._rotN(best)) best=f.roteiro; });
+    return best;
+  }
+  // REORGANIZAR A SEMANA POR PONTO. Conserta só a SEQUÊNCIA: cada disciplina reordena as
+  // próprias atividades entre os dias que ela JÁ ocupa. Nenhum dia ganha ou perde
+  // atividade, nenhuma disciplina troca de dia, o peso de cada dia não muda — o que muda
+  // é parar de estudar o Ponto 9 na quarta e o Ponto 1 no sábado. Rotinas ("todo dia") e
+  // atividades de vários dias ficam de fora: não são sequência, são hábito.
+  _reorganizarPorPonto(){
+    const DIAS=['seg','ter','qua','qui','sex','sab','dom'];
+    const todas=this.state.manualFixed||[];
+    const alvo=this._roteiroAlvo(), kAlvo=this._rotK(alvo);
+    const naSemana=(f)=> !Array.isArray(f.dias) && DIAS.indexOf(f.dia||'')>=0
+      && this._rotK(f.roteiro||alvo)===kAlvo;
+    const vagas={}, fila={};
+    todas.forEach((f,i)=>{ if(!naSemana(f)) return; const g=this._discCiclo(f);
+      (vagas[g]||(vagas[g]=[])).push(DIAS.indexOf(f.dia));
+      (fila[g]||(fila[g]=[])).push({f,i,p:this._ordemPonto(f),o:CT_ORDEM_ATIV(f.kind,f.disc||'')}); });
+    const novo={};
+    Object.keys(fila).forEach(g=>{
+      vagas[g].sort((a,b)=>a-b);
+      fila[g].sort((a,b)=>(a.p-b.p)||(a.o-b.o)||(a.i-b.i));
+      fila[g].forEach((x,j)=>{ const d=DIAS[vagas[g][j]]; if(d) novo[x.f.id]=d; });
+    });
+    const mexeu=todas.filter(f=>novo[f.id]!=null&&novo[f.id]!==f.dia);
+    if(!mexeu.length) return 0;
+    const antes=mexeu.map(f=>({id:f.id, dia:f.dia||''}));
+    this.syncManual({manualFixed:todas.map(f=>(novo[f.id]!=null&&novo[f.id]!==f.dia)?{...f,dia:novo[f.id]}:f),
+      cicloDesfazer:{rot:alvo, antes, n:mexeu.length}});
+    return mexeu.length;
+  }
+  reorganizarPorPonto = ()=>{ const n=this._reorganizarPorPonto();
+    if(!n) this.setState({cicloReorgAviso:'a semana já está na ordem dos pontos'});
+    else this.setState({cicloReorgAviso:''});
+    try{ this.flashSync(); }catch(_){} };
+  desfazerReorg = ()=>{ const d=this.state.cicloDesfazer; if(!d) return;
+    const m={}; (d.antes||[]).forEach(x=>{ m[x.id]=x.dia; });
+    this.syncManual({manualFixed:(this.state.manualFixed||[]).map(f=>(m[f.id]!=null&&m[f.id]!==f.dia)?{...f,dia:m[f.id]}:f),
+      cicloDesfazer:null, cicloReorgAviso:''});
+    try{ this.flashSync(); }catch(_){} };
+  // O dia sai AGRUPADO POR DISCIPLINA e, dentro de cada disciplina, na ordem das folhas
+  // (CT_ORDEM_ATIV). A ordem ENTRE as disciplinas não é inventada aqui: quem tem edital
+  // carregado sai na ordem do edital — a ordem do programa da prova —; o resto sai na
+  // ordem em que a disciplina aparece no próprio dia, para agrupar sem reescrever a
+  // sequência da folha. Tudo estável: empate mantém a ordem de criação.
+  _ordenaCiclo(list){
+    const L=list||[];
+    const ed=(this.state.edital||[]).map(x=>String(x.disc||'').trim().toLowerCase());
+    const rank={}, vistos=[];
+    L.forEach(f=>{ const g=this._discCiclo(f); if(rank[g]==null){ rank[g]=vistos.length; vistos.push(g); } });
+    const peso=(g)=>{
+      if(!g) return 100000+rank[g];                      // sem disciplina vai para o fim
+      const i=g.startsWith('e:')?ed.indexOf(g.slice(2)):-1;
+      return (i>=0) ? i : (1000+rank[g]);                // edital primeiro, na ordem dele
+    };
+    return L.map((f,i)=>({f,i,g:peso(this._discCiclo(f)),o:CT_ORDEM_ATIV(f&&f.kind,(f&&(f.disc||f.titulo))||'')}))
+      .sort((a,b)=>(a.g-b.g)||(a.o-b.o)||(a.i-b.i)).map(x=>x.f);
+  }
   // Registro programático de uma atividade (arguição da prova oral…): vira sessão real no
   // histórico/desempenho sem abrir o modal. Não zera cronômetro nem cria revisão. (21/08)
   _registrarAtividadeAuto = ({categoria='Jurisprudência', topico='', min=0, disc='Geral'}={})=>{
@@ -8959,7 +9142,7 @@ class Component extends DCLogic {
             if(Array.isArray(d.anki)) patch.ankiHist=d.anki;
             if(Array.isArray(d.redHistory)) patch.redHistory=d.redHistory;
             if(d.provaData!=null) patch.provaData=d.provaData;
-            if(d.dir&&['sutil','premium','clean','moderno'].includes(d.dir)) patch.dir=d.dir;
+            if(d.dir&&CT_DIRS.includes(d.dir)) patch.dir=d.dir;
             if(typeof d.darkMode==='boolean') patch.darkMode=d.darkMode;
             if(d.accent!==undefined) patch.accent=d.accent;
             this.setState(patch, ()=>{ try{ if(patch.highlights) this._saveHL(patch.highlights); if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.biblioteca) this._persistLib(); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem('catedra:cycleMode', patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
@@ -12481,7 +12664,7 @@ class Component extends DCLogic {
             hasVinculo:!!b.discEdital, vinculo:shortV(b.discEdital,b.topico), extra:(b.tag==='Fixa'?'rotina':(b.tag==='Rotativa'?'rotativa':'')), hasExtra:(b.tag==='Fixa'||b.tag==='Rotativa')}));
         } else {
           const iso=this._isoDiaSemana(dk);
-          cards=(this.state.manualFixed||[]).filter(f=>(f.dia||'')===dk).map(f=>{ const feito=!!feitas[f.id+'|'+iso]; const atras=idx<hojeIdx&&!feito;
+          cards=this._ordenaCiclo((this.state.manualFixed||[]).filter(f=>(f.dia||'')===dk)).map(f=>{ const feito=!!feitas[f.id+'|'+iso]; const atras=idx<hojeIdx&&!feito;
             return {key:f.id, hoje:false, notHoje:true, i:'', id:f.id, diaK:dk,
               titulo:f.disc||'—', kind:f.kind, min:String(f.min||0), done:feito, atrasada:atras, kindColor:KC[f.kind]||'#0f7a57',
               checkBg:feito?'var(--accent)':'transparent', checkBd:feito?'var(--accent)':'var(--border)', strike:feito?'line-through':'none',
@@ -12525,7 +12708,7 @@ class Component extends DCLogic {
       if(t.includes('informativo')) return {label:'INFORMATIVO',cor:'var(--ok)'};
       if(t.includes('assistir')||t.includes('youtube')||t.includes('videoaula')) return {label:'VÍDEO',cor:'#0a7ea4'};
       if(t.startsWith('texto ')||t.includes('texto "')||t.includes('texto “')) return {label:'TEXTO',cor:'#7c3aed'};
-      if(t.includes('súmulas e teses')||t.includes('repercussão geral')||t.includes('material')) return {label:'MATERIAL',cor:'#7c3aed'};
+      if((t.includes('súmulas')&&t.includes('teses'))||t.includes('jurisprudência em teses')||t.includes('repercussão geral')||t.includes('material')) return {label:'MATERIAL',cor:'#7c3aed'};
       if(t.includes('leitura dirigida')) return {label:'REVISÃO',cor:'#e11d48'};
       const M={'Teoria':['DOUTRINA','#6b4fbb'],'Questões':['QUESTÕES','var(--warn)'],'Lei seca':['LEI SECA','#2563eb'],'Jurisprudência':['JURISPRUDÊNCIA','#0d9488'],'Revisão':['REVISÃO','#e11d48'],'Flashcards':['FLASHCARDS','#b08433']};
       // tipos próprios das outras áreas: etiqueta com o nome do tipo e a cor do catálogo
@@ -12559,6 +12742,7 @@ class Component extends DCLogic {
       const isToday=ehAtual&&dk===hojeKey;
       // sem etiqueta = pertence ao roteiro atual; comparação por grupo (número), não string
       const mf=(this.state.manualFixed||[]).filter(f=>(f.dia||'')===dk&&(_rotKey(f.roteiro||_rotAtual)===_rotGrupo.key));
+      const mfOrd=this._ordenaCiclo(mf);   // a folha imprime agrupado por disciplina; mf cru segue para badge/ponto
       let cards;
       if(isToday){
         // hoje (roteiro atual) = blocos reais → toggleBlock (abre registro, alimenta o dia);
@@ -12572,7 +12756,7 @@ class Component extends DCLogic {
             checkBg:b.done?'var(--accent)':'transparent', checkBd:b.done?'var(--accent)':'var(--border)',
             bLabel:bb.label, bCor:bb.cor}; });
       } else {
-        cards=mf.filter(f=>{ _fqTot++; const ok=!_fqOn||this._cicloFqPassa(f); if(ok)_fqVis++; return ok; })
+        cards=mfOrd.filter(f=>{ _fqTot++; const ok=!_fqOn||this._cicloFqPassa(f); if(ok)_fqVis++; return ok; })
           .map(f=>{ const feito=!!feitas[f.id+'|'+iso];
           const bb=_badgeAtiv(f.disc, f.kind||'');
           return {key:f.id, i:'', id:f.id, diaK:dk, isoK:iso, hoje:false, notHoje:true, titulo:f.disc||'—', done:feito,
@@ -14793,7 +14977,7 @@ class Component extends DCLogic {
       showBackdrop: this.state.isMobile && this.state.menuOpen,
       navStyle:{ casos:navStyle('casos'), inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), simulados:navStyle('simulados'), anki:navStyle('anki'), dashboards:navStyle('dashboards'), analise:navStyle('analise'), conquistas:navStyle('conquistas'), personalizacao:navStyle('personalizacao'), ajustes:navStyle('ajustes') },
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
-      dirStyle:{ sutil:dirBtn('sutil'), premium:dirBtn('premium'), clean:dirBtn('clean'), moderno:dirBtn('moderno') },
+      dirStyle:CT_DIRS.reduce((o,d)=>{ o[d]=dirBtn(d); return o; },{}),
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
       // Prova oral (os handlers precisam ser expostos aqui: o binding {{ }} resolve
       // contra o objeto do render, não contra `this`).
@@ -14812,6 +14996,9 @@ class Component extends DCLogic {
       abrirConcursoOral:this.abrirConcursoOral, voltarConcursoOral:this.voltarConcursoOral,
       toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
       cicloFolha, cicloFolhaHeader, roteiroNav:this.roteiroNav, roteiroHoje:this.roteiroHoje,
+      reorganizarPorPonto:this.reorganizarPorPonto, desfazerReorg:this.desfazerReorg,
+      temDesfazerReorg:!!this.state.cicloDesfazer, desfazerReorgN:String((this.state.cicloDesfazer&&this.state.cicloDesfazer.n)||0),
+      cicloReorgAviso:this.state.cicloReorgAviso||'', temReorgAviso:!!this.state.cicloReorgAviso,
       // --- filtro do ciclo: por disciplina, tipo e assunto ---
       cicloFqTipo:this.cicloFqTipo, cicloFqDisc:this.cicloFqDisc, cicloFqBusca:this.cicloFqBusca,
       cicloFqLimpar:this.cicloFqLimpar,
