@@ -6539,15 +6539,15 @@ class Component extends DCLogic {
        formas de ler a mesma chave divergiriam na primeira mudança de formato. */
     try{
       const d=localStorage.getItem('catedra:dir');
-      if(d && CT_DIRS.includes(d) && d!==this.state.dir) patch.dir=d;
+      if(d && CT_DIRS.includes(d) && d!==this.state.dir && this._podeAdotarTema('catedra:dir')) patch.dir=d;
     }catch(_){}
     try{
       const k=localStorage.getItem('catedra:dark');
-      if(k!=null){ const esc=(k==='1'); if(esc!==!!this.state.darkMode) patch.darkMode=esc; }
+      if(k!=null){ const esc=(k==='1'); if(esc!==!!this.state.darkMode && this._podeAdotarTema('catedra:dark')) patch.darkMode=esc; }
     }catch(_){}
     try{
       const a=this._load('accent', null);
-      if((a||null)!==(this.state.accent||null)) patch.accent=a;
+      if((a||null)!==(this.state.accent||null) && this._podeAdotarTema('catedra:accent')) patch.accent=a;
     }catch(_){}
     // Tira do patch o que NÃO mudou de conteúdo: o _load devolve objeto novo a cada
     // leitura, e uma referência nova já bastava para o _autosave regravar tudo e pedir
@@ -7969,10 +7969,28 @@ class Component extends DCLogic {
     return v;
   }
   onNav = (e)=>{ const v=this._irPara(e.currentTarget.dataset.view); if(v!=='indisponivel') this._marcarPonto(v); };
-  onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
+  onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this._temaEscolhidoAgora(); this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
+  /* CARIMBO DA ESCOLHA MANUAL DE TEMA.
+     A reidratação passou a reler dir/dark/accent do localStorage a cada `catedra:synced`
+     — necessário, porque a nuvem escreve essas chaves direto e antes o app seguia pintando
+     o tema antigo. Só que isso criou o defeito oposto, e pior: a pessoa escolhia CLARO e o
+     primeiro sync trazia o `catedra:dark` guardado (escuro) de volta, repintando por cima.
+     A escolha da pessoa AGORA vale mais do que qualquer valor que a sincronização traga
+     depois; só um valor carimbado DEPOIS da escolha pode substituí-la. */
+  _temaEscolhidoAgora(){ this._temaTs = Date.now(); }
+  /** carimbo (catedra:_kts) da chave, para saber se o que veio da nuvem é mais novo que a escolha */
+  _ktsDe(chave){
+    try{ const m=JSON.parse(localStorage.getItem('catedra:_kts')||'{}'); return +m[chave]||0; }catch(_){ return 0; }
+  }
+  /** o valor que chegou pelo sync só entra se for mais novo que a última escolha manual */
+  _podeAdotarTema(chave){
+    const escolha=this._temaTs||0;
+    return !escolha || this._ktsDe(chave) > escolha;
+  }
   // Claro/Escuro é escolha MANUAL e por isso desliga o automático (U7): botão que a pessoa
   // aperta e volta sozinho na próxima mudança do sistema é botão quebrado.
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode;
+    this._temaEscolhidoAgora();
     this.setState(s=>({darkMode:nv, prefs:{...s.prefs, temaAuto:false}}), ()=>this._temaBroadcast()); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
   /** Aplica AGORA o que o sistema pede (usado ao ligar o automático e a cada mudança dele). */
   _seguirTemaDoSistema(){

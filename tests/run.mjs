@@ -5227,6 +5227,51 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     ok(coerente, 'TEMA/SYNC a chave catedra:dark bate com o que está pintado');
   }
 
+  /* A ESCOLHA DA PESSOA VENCE O SYNC — e este teste existe por um estrago real.
+     Quando a reidratação passou a reler `catedra:dark`, ela ganhou da escolha manual:
+     a dona do app punha CLARO e o primeiro sync trazia o escuro guardado de volta,
+     repintando por cima. "Não para mais no claro" foi como ela descreveu.
+     Agora só um valor CARIMBADO DEPOIS da escolha pode substituí-la. As duas asserções
+     abaixo prendem as duas pontas: a escolha aguenta o valor velho, e o valor novo de
+     outro aparelho continua chegando (senão o conserto anterior morria junto). */
+  {
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate(() => {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:dark', '1');
+      localStorage.setItem('catedra:_kts', JSON.stringify({ 'catedra:dark': new Date('2026-08-18').getTime() }));
+    });
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(900);
+    // a pessoa escolhe CLARO na tela de Ajustes
+    await page.evaluate(() => {
+      document.querySelector('[role="dialog"]')?.remove();
+      document.querySelector('button[data-view="ajustes"]')?.click();
+    });
+    await page.waitForTimeout(500);
+    await page.evaluate(() => {
+      [...document.querySelectorAll('button[data-s]')].find(b => /apar[êe]ncia/i.test(b.textContent))?.click();
+    });
+    await page.waitForTimeout(400);
+    await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.dataset.v === 'light')?.click());
+    await page.waitForTimeout(500);
+    // chega um sync com o valor VELHO (carimbo de agosto): não pode desfazer a escolha
+    await page.evaluate(() => { localStorage.setItem('catedra:dark', '1'); window.dispatchEvent(new Event('catedra:synced')); });
+    await page.waitForTimeout(800);
+    const aguentou = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark'));
+    ok(aguentou === '0', 'TEMA/SYNC a escolha manual de claro NÃO é desfeita por sync com valor velho');
+
+    // e um sync com valor MAIS NOVO que a escolha continua chegando
+    await page.evaluate(() => {
+      localStorage.setItem('catedra:dark', '1');
+      localStorage.setItem('catedra:_kts', JSON.stringify({ 'catedra:dark': Date.now() + 5000 }));
+      window.dispatchEvent(new Event('catedra:synced'));
+    });
+    await page.waitForTimeout(800);
+    const chegou = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark'));
+    ok(chegou === '1', 'TEMA/SYNC o tema MAIS NOVO de outro aparelho ainda repinta');
+  }
+
   /* PINTURA DA DIREÇÃO — o teste que faltava, e o defeito que o pediu.
      Os testes acima provam que a direção PERSISTE: grava, recarrega, o data-dir continua
      lá. Nenhum provava que ela PINTA. A diferença custou caro: a uniformização das telas
@@ -5242,7 +5287,12 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     // assinatura de cada direção no tema CLARO: o trecho de cor que só ela produz.
     // 'none' é resposta legítima; 'sutil' não tem regra própria e cai na sombra do .ct-card.
     const ASSINATURA = {
-      sutil:    'rgba(16, 24, 40, 0.05)',
+      // 'sutil' não tem regra de personalidade: cai na sombra padrão do `.ct-card`, que a
+      // seção 13 passou a tingir com o accent (color-mix). Cravar o valor exato aqui
+      // amarraria o teste ao desenho — e ele existe para pegar a REGRA sumindo, não para
+      // impedir que o cartão mude de cara. Por isso a asserção dele é diferente: tem
+      // sombra, e não é a de nenhuma outra direção.
+      sutil:    'PADRAO',
       premium:  'rgba(70, 35, 25',
       clean:    'none',
       moderno:  'rgba(124, 58, 237',
@@ -5265,7 +5315,10 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
         return c ? getComputedStyle(c).boxShadow : 'SEM CARTÃO';
       });
       const esperado = ASSINATURA[d];
-      const bate = (esperado === 'none') ? (sombra === 'none') : sombra.includes(esperado);
+      const outras = Object.entries(ASSINATURA).filter(([k, v]) => k !== d && v !== 'none' && v !== 'PADRAO').map(([, v]) => v);
+      const bate = (esperado === 'none')   ? (sombra === 'none')
+                 : (esperado === 'PADRAO') ? (sombra !== 'none' && !outras.some(a => sombra.includes(a)))
+                 : sombra.includes(esperado);
       ok(bate, 'TEMA a direção "' + d + '" PINTA o cartão (esperado ' + esperado + ', veio ' + String(sombra).slice(0, 46) + ')');
     }
 
