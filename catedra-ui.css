@@ -564,3 +564,40 @@ button.ct-card:hover, a.ct-card:hover {
 .ct-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,.12), 0 12px 26px -10px color-mix(in srgb, var(--accent) 75%, transparent); }
 .ct-btn:active { transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) { .ct-btn { transition: none; } .ct-btn:hover { transform: none; } }
+
+/* ===== 15. O RESTO DO APP ========================================================
+ * A seção 13 deu identidade ao `.ct-card` — 90 cartões. Só que o app tem 158 OUTROS que
+ * ainda estão em estilo literal, porque a uniformização só trocou as grafias que se
+ * repetiam muito; as de uma ou duas ocorrências ficaram. Resultado visível para quem usa:
+ * metade das telas com a cara nova e metade sem, o que é pior do que não ter mexido.
+ *
+ * A saída não é converter as 158 à mão (muita edição, muito risco, nenhum ganho novo):
+ * é o desenho alcançar as DUAS formas. O app já faz isso há tempos com as regras de
+ * personalidade por direção, que casam `div[style*="var(--surface)"]`. Aqui vale o mesmo
+ * princípio, e com uma vantagem: conforme cada cartão migrar para a classe, ele continua
+ * coberto — a regra da classe e a do inline dizem a mesma coisa.
+ *
+ * POR QUE ::after E POR QUE SÓ div/button: o `::before` de um cartão em estilo literal
+ * pode estar ocupado pelo conteúdo da própria tela; `::after` é o slot livre. E a
+ * restrição a `div`/`button` deixa de fora `input` e `textarea`, que também têm
+ * superfície e borda — campo de formulário com fio de luz no topo viraria enfeite sem
+ * sentido em cima da caixa de digitar.
+ */
+.ct-scroll div[style*="var(--surface)"][style*="var(--border)"],
+.ct-scroll button[style*="var(--surface)"][style*="var(--border)"] {
+  position: relative;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent, #0f7a57) 7%, transparent),
+              0 10px 30px -12px color-mix(in srgb, var(--accent, #0f7a57) 16%, transparent);
+}
+.ct-scroll div[style*="var(--surface)"][style*="var(--border)"][style*="radius"]::after,
+.ct-scroll button[style*="var(--surface)"][style*="var(--border)"][style*="radius"]::after {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 22%,
+    color-mix(in srgb, var(--accent, #0f7a57) 75%, transparent) 50%,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 78%,
+    transparent);
+  opacity: .45; pointer-events: none; border-radius: inherit;
+}

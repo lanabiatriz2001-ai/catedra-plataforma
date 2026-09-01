@@ -157,3 +157,68 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* ===== OS SATÉLITES ENTRAM NA MESMA CASA =====================================
+ * O Cátedra é um app principal mais sete páginas que abrem dentro dele (LEGIS, JURIS,
+ * peças, prioridade, ritos, área, 2ª fase). Todas já carregavam este arquivo, mas
+ * nenhuma usava as classes: cada uma desenhou o próprio cartão no seu <style>, com
+ * nomes próprios (.sec, .vcard, .diaCard, .stat, .linha, .pcard, .q, .row…). Reescrever
+ * o markup de sete páginas para trocar o nome da classe seria muito risco por nenhum
+ * ganho — o desenho é o mesmo, só o nome difere.
+ * Esta seção mora AQUI, e não no catedra-ui.css, por um motivo de colisão: `.sec`, `.linha`
+ * e `.row` também existem no app principal, e o catedra-ui.css é carregado pelos dois. O
+ * satellite-base.css só os satélites carregam, então aqui o nome curto é seguro.
+ * A identidade vem pelo NOME QUE ELAS JÁ USAM. Esta seção lista os cartões de cada
+ * satélite e aplica a eles o que a seção 13 aplica ao `.ct-card`: fio de luz no topo,
+ * borda recuada e sombra com a cor do tema. Uma regra, sete páginas.
+ *
+ * REGRA DE CONVIVÊNCIA: só entra aqui seletor que JÁ desenha um cartão de superfície na
+ * página de origem (fundo `--surface` + borda + raio). Nada de reaproveitar esta lista
+ * para pintar coisa que não é cartão — o CSS de cada página continua dono do que é dela.
+ */
+.ct-sat-card,
+/* LEGIS */          .sec, .statbar, .dip,
+/* JURIS */          .vcard, .diaCard, .tccard, .mode,
+/* peças */          .stat, .rcard,
+/* prioridade */     .linha,
+/* 2ª fase */        .pcard, .instr, .q,
+/* ritos */          .cx,
+/* área */           .row {
+  position: relative;
+  border-color: color-mix(in srgb, var(--border, #e6e1d4) 72%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent, #0f7a57) 7%, transparent),
+              0 10px 30px -12px color-mix(in srgb, var(--accent, #0f7a57) 16%, transparent);
+}
+/* O fio de luz. Fica em ::after e não em ::before porque vários destes cartões já usam
+   o ::before para o próprio conteúdo (o contador do .rcard, por exemplo) — pegar o slot
+   ocupado apagaria o número da peça. */
+.ct-sat-card::after,
+.sec::after, .statbar::after,
+.vcard::after, .diaCard::after, .tccard::after,
+.stat::after, .linha::after,
+.pcard::after, .instr::after, .q::after,
+.cx::after {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 22%,
+    color-mix(in srgb, var(--accent, #0f7a57) 75%, transparent) 50%,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 78%,
+    transparent);
+  opacity: .5; pointer-events: none;
+}
+/* cartão que é BOTÃO responde ao dedo, como no host */
+button.ct-sat-card, #app button.mode, #app button.rcard, #app button.vcard {
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+button.ct-sat-card:hover, #app button.mode:hover, #app button.rcard:hover, #app button.vcard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--accent) 10%, transparent),
+              0 18px 40px -14px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  button.ct-sat-card, #app button.mode, #app button.rcard, #app button.vcard { transition: none; }
+  button.ct-sat-card:hover, #app button.mode:hover, #app button.rcard:hover, #app button.vcard:hover { transform: none; }
+}
