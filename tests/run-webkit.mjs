@@ -5,8 +5,14 @@
    · http://localhost — como o site;
    · file://          — como o app nativo, onde fetch de arquivo local falha e o acervo
                         tem de chegar por <script>. É o que mais se parece com o iPad.
+   · [bundle]         — mac/build/web/index.html em file://, se existir (é o que
+                        scripts/build-macos.mjs gera e o app do Mac/iPad empacota). O bundle
+                        não leva a pasta dados/: o caminho testado é o fallback por <script>
+                        para leis-seca.js, exatamente o que o iPad usa. Sem bundle na máquina
+                        (a CI não o gera), a origem é pulada com aviso — nunca fingida.
    Precisa do WebKit do Playwright: `npx playwright-core install webkit` (CI: --with-deps).
    CT_BROWSER=chromium roda o mesmo roteiro no Chrome, para comparar os dois motores. */
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
@@ -22,13 +28,16 @@ console.log('[' + motor + '] Prova oral → Lei seca em http://localhost:' + POR
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 
-// pathToFileURL não põe barra final; o teste concatena '/Catedra.dc.html'
-const ORIGENS = [[URL0, 'http'], [pathToFileURL(RAIZ).href, 'file']];
-for (const [base, origem] of ORIGENS) {
+// pathToFileURL não põe barra final; o teste concatena '/' + arquivo
+const ORIGENS = [[URL0, 'http', 'Catedra.dc.html'], [pathToFileURL(RAIZ).href, 'file', 'Catedra.dc.html']];
+const BUNDLE = path.join(RAIZ, 'mac', 'build', 'web');
+if (fs.existsSync(path.join(BUNDLE, 'index.html'))) ORIGENS.push([pathToFileURL(BUNDLE).href, 'bundle', 'index.html']);
+else console.log('[' + motor + '] sem mac/build/web/index.html — a origem [bundle] fica de fora (gere com: node scripts/build-macos.mjs)');
+for (const [base, origem, arquivo] of ORIGENS) {
   // contexto novo por origem: localStorage e IndexedDB de uma não vazam para a outra
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
-  try { await testarOralLeiSeca(page, base, ok, { motor, origem }); }
+  try { await testarOralLeiSeca(page, base, ok, { motor, origem, arquivo }); }
   catch (e) {
     ok(false, 'ORAL LEI SECA [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
