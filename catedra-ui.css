@@ -854,3 +854,35 @@ button.ct-card:hover, a.ct-card:hover {
    única regra global que existia era escopada ao widget. Uma regra, todos. */
 button:not(:disabled) { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
+
+/* ===== 12. LEITURA ATIVA — a grade de 7 perguntas =================================
+   Cor de IDENTIDADE por pergunta (é dado, como a cor da matéria: não troca com a direção
+   visual) e cor de TEXTO derivada dela, escurecida com a tinta do tema (≥ 4,5:1 — uma cor
+   que serve de preenchimento não serve de rótulo). A conta é feita no build por
+   scripts/verificar-cores-leitura.mjs, que lê os blocos marcados la-claro / la-escuro
+   abaixo: mantenha as marcas. O leitor do LEGIS carrega uma CÓPIA (tem claro/escuro
+   próprios, independentes do host) e o script exige que as duas sejam iguais.
+   O seletor cobre o :root (satélites, que recebem --ink pela ponte D1) e o elemento
+   raiz do host ([data-dir], onde --ink é escrito inline): var(--ink) só resolve certo
+   se a declaração estiver no mesmo elemento que a tinta. */
+:root, [data-dir] {
+  /* la-claro */
+  --la-quem: #2563eb; --la-oque: #15803d; --la-quando: #c2410c; --la-como: #db2777;
+  --la-prazo: #a16207; --la-excecao: #7c3aed; --la-proibicao: #dc2626;
+  /* /la-claro */
+  --la-mix-tx: 72%;
+  --la-quem-tx:      color-mix(in oklab, var(--la-quem)      var(--la-mix-tx), var(--ink, #1f1c17));
+  --la-oque-tx:      color-mix(in oklab, var(--la-oque)      var(--la-mix-tx), var(--ink, #1f1c17));
+  --la-quando-tx:    color-mix(in oklab, var(--la-quando)    var(--la-mix-tx), var(--ink, #1f1c17));
+  --la-como-tx:      color-mix(in oklab, var(--la-como)      var(--la-mix-tx), var(--ink, #1f1c17));
+  --la-prazo-tx:     color-mix(in oklab, var(--la-prazo)     var(--la-mix-tx), var(--ink, #1f1c17));
+  --la-excecao-tx:   color-mix(in oklab, var(--la-excecao)   var(--la-mix-tx), var(--ink, #1f1c17));
+  --la-proibicao-tx: color-mix(in oklab, var(--la-proibicao) var(--la-mix-tx), var(--ink, #1f1c17));
+}
+[data-dark="1"], .dark {
+  /* la-escuro */
+  --la-quem: #60a5fa; --la-oque: #4ade80; --la-quando: #fb923c; --la-como: #f472b6;
+  --la-prazo: #facc15; --la-excecao: #a78bfa; --la-proibicao: #f87171;
+  /* /la-escuro */
+  --la-mix-tx: 70%;
+}
