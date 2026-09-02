@@ -6350,12 +6350,14 @@ class Component extends DCLogic {
         return;
       }
       if(e.data.type==='ctLeituraConferida'){
-        const LA=window.CT_LA; if(!LA) return;
-        const id=String(e.data.id||''), el=String(e.data.el||''), q=+e.data.q;
-        const atual=(this.state.leituras||[]).find(x=>x&&x.id===id); if(!atual) return;
-        const r=LA.conferir(atual, el, q); if(!r) return;
-        this.setState(st=>({leituras:LA.upsert(st.leituras||[], r.item)}));
-        // LA4 (r.criar → flashcard/revisão/erro) e LA5 (e.data.cloze) entram aqui.
+        // uma rodada de conferência (vários elementos de um dispositivo) chega numa mensagem
+        // só, para virar UM lote com UM desfazer; a forma antiga {id, el, q} continua aceita
+        const id=String(e.data.id||'');
+        const lista=(Array.isArray(e.data.itens)?e.data.itens:[e.data]).map(c=>({
+          id:String((c&&c.id)||id), el:String((c&&c.el)||''), q:+(c&&c.q),
+          front:String((c&&c.front)||(c&&c.cloze&&c.cloze.front)||''), back:String((c&&c.back)||(c&&c.cloze&&c.cloze.back)||''),
+          extra:String((c&&c.extra)||(c&&c.cloze&&c.cloze.extra)||''), ref:String((c&&c.ref)||e.data.ref||'') }));
+        this._laConferir(lista);
         return;
       }
       if(e.data.type==='ctIA'){
@@ -9991,6 +9993,103 @@ class Component extends DCLogic {
     this._toastDesfazer(partes.join(' · ')+' ✦', ()=>this.desfazerLoteErros());
     return {erros:erros.length, cards:cards.length, revs:revs.length};
   }
+  /* ===== LEITURA ATIVA (LA4) — "erro como filtro" =====
+     A conferência de um dispositivo lido chega do LEGIS (ctLeituraConferida) e vira:
+     q=5 nada; q=3 flashcard + revisão; q=1 flashcard + revisão + caderno de erros.
+     Revisão com id determinístico ('rv|la|<leitura>|<el>'): repetir a conferência aplica
+     sm2 em vez de duplicar. Flashcard barrado por hash do front em 30 dias; erro barrado
+     por id em 30 dias. Teto por mensagem (ERRO_AUTO_MAX) com aviso do restante; toast da
+     casa com desfazer que devolve os cinco tipos de registro ao estado anterior. */
+  _laDisciplina(it){
+    const sigla=String(it&&it.sigla||'').toUpperCase(), leiId=String(it&&it.leiId||'');
+    let cat='';
+    try{ const c=(window.CT_LEIS_CAT||[]).find(l=>l.u===leiId); cat=c?String(c.c||''):''; }catch(_){}
+    const PISTAS={CPC:['processual civil','processo civil'], CPP:['processual penal','processo penal'], CF:['constitucional'], CC:['civil'], CP:['penal'],
+      CTN:['tributário','tributario'], CDC:['consumidor'], CLT:['trabalho'], ECA:['criança','crianca','infância','infancia'], LEP:['execução penal','execucao penal']};
+    const CAT={constitucional:['constitucional'], civil:['civil'], penal:['penal'], administrativo:['administrativo'], tributario:['tributário','tributario'],
+      trabalho:['trabalho'], empresarial:['empresarial','comercial'], ambiental:['ambiental'], consumidor:['consumidor'], eleitoral:['eleitoral'],
+      previdenciario:['previdenciário','previdenciario'], internacional:['internacional'], financeiro:['financeiro']};
+    const NOME={constitucional:'Direito Constitucional', civil:'Direito Civil', penal:'Direito Penal', administrativo:'Direito Administrativo',
+      tributario:'Direito Tributário', trabalho:'Direito do Trabalho', empresarial:'Direito Empresarial', ambiental:'Direito Ambiental',
+      consumidor:'Direito do Consumidor', eleitoral:'Direito Eleitoral', previdenciario:'Direito Previdenciário', internacional:'Direito Internacional', financeiro:'Direito Financeiro'};
+    // primeiro a disciplina do edital DELA que case com a pista; senão o nome canônico; senão a sigla
+    const ed=(this.state.edital||[]).map(d=>String(d.disc||''));
+    for(const p of (PISTAS[sigla]||[]).concat(CAT[cat]||[])){ const d=ed.find(n=>n.toLowerCase().includes(p)); if(d) return d; }
+    if(sigla==='CPC') return 'Direito Processual Civil';
+    if(sigla==='CPP') return 'Direito Processual Penal';
+    return NOME[cat]||sigla||'Lei seca';
+  }
+  _laConferir(lista){
+    const LA=window.CT_LA; if(!LA) return null;
+    const validos=(Array.isArray(lista)?lista:[]).filter(c=>c&&c.id&&c.el&&(c.q===1||c.q===3||c.q===5));
+    const lote=validos.slice(0,this.ERRO_AUTO_MAX), resto=validos.length-lote.length;
+    if(!lote.length) return null;
+    const agora=Date.now(), limite=agora-this.ERRO_AUTO_DIAS*864e5, hoje=this._hoje();
+    let leituras=this.state.leituras||[], reviews=(this.state.reviews||[]).slice(), errors=(this.state.errors||[]).slice();
+    const cards=[], antes={leituras:{}, revs:{}, erros:{}}, novos={cards:[], revs:[], erros:[]};
+    const jaFc=new Set((this.state.flashcards||[]).filter(c=>(c.criado||c.up||0)>limite).map(c=>c.hash||this._hashErro(c.front)));
+    const refs=new Set(); let n=0;
+    lote.forEach((c,i)=>{
+      const it=leituras.find(x=>x&&x.id===c.id); if(!it) return;
+      const r=LA.conferir(it, c.el, c.q); if(!r) return;
+      if(!(c.id in antes.leituras)) antes.leituras[c.id]=it;
+      leituras=LA.upsert(leituras, r.item); n++;
+      const disc=this._laDisciplina(it), ref=[it.sigla, it.rot].filter(Boolean).join(' · ')||c.ref||'lei seca';
+      const topic=(it.sigla?it.sigla+' ':'')+it.rot+' — '+LA.rotulo(c.el); refs.add(ref);
+      if(r.criar.fc && c.front && c.back){
+        const h=this._hashErro(c.front);
+        if(!jaFc.has(h)){ jaFc.add(h);
+          cards.push({id:'fc'+(agora+i), front:c.front.slice(0,600), back:c.back.slice(0,1200), extra:String(c.extra||'').slice(0,600),
+            disc, origem:'Leitura ativa — '+ref, criado:agora, up:agora, hash:h, auto:true, la:{id:it.id, el:c.el}}); }
+      }
+      if(r.criar.review){
+        const rid='rv|la|'+it.id+'|'+c.el, j=reviews.findIndex(x=>x&&x.id===rid);
+        if(j>=0){ if(!(rid in antes.revs)) antes.revs[rid]=reviews[j];
+          const sc=this.sm2(reviews[j], c.q); reviews[j]={...reviews[j], ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:agora}; }
+        else { const sc=this.sm2({facilidade:2.5, intervalo:1, repeticoes:0}, c.q);
+          reviews.push({id:rid, disc, topic, color:this._corDisc(disc), ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:agora, auto:true, la:{id:it.id, el:c.el}});
+          novos.revs.push(rid); }
+      }
+      if(r.criar.erro){
+        const eid='e|la|'+it.id+'|'+c.el, j=errors.findIndex(x=>x&&x.id===eid);
+        if(j>=0 && (errors[j].ts||0)>limite) return;   // já está no caderno (30 dias)
+        const erro={id:eid, ts:agora, up:agora, hash:this._hashErro(c.front||topic), disc, topico:topic,
+          enunciado:String(c.front||topic).slice(0,1200), myAnswer:'', gabarito:String(c.back||'').slice(0,1200),
+          whyWrong:'', lesson:'', source:'Leitura ativa', fonte:'leitura-ativa', ref, el:c.el,
+          difficulty:3, tags:[], favorite:false, motivo:'conteudo', resolvido:false, reviewCount:0, auto:true};
+        if(j>=0){ antes.erros[eid]=errors[j]; errors[j]=erro; } else { errors.push(erro); novos.erros.push(eid); }
+      }
+    });
+    if(!n) return null;
+    novos.cards=cards.map(c=>c.id);
+    this._ultimoLoteLA={antes, novos};
+    this.setState(st=>{
+      const fc=[...cards, ...st.flashcards]; if(cards.length) this._saveFC(fc);
+      return {leituras, flashcards:fc, reviews, errors};
+    }, ()=>this.flashSync());
+    const nRev=novos.revs.length+Object.keys(antes.revs).length, nErr=novos.erros.length+Object.keys(antes.erros).length;
+    const partes=[];
+    if(cards.length) partes.push(cards.length+(cards.length>1?' cartões':' cartão'));
+    if(nRev) partes.push(nRev+(nRev>1?' revisões':' revisão'));
+    if(nErr) partes.push(nErr+(nErr>1?' erros':' erro'));
+    const onde=refs.size===1?' de '+[...refs][0].replace(/^[^·]*· /,'').replace(/^Art\./,'art.'):'';
+    const aviso=resto>0?' · '+resto+' ficaram para a próxima conferência':'';
+    if(!partes.length){ this._toast('Conferido'+onde+' — acertou, nada a revisar'+aviso); return {cards:0, revs:0, erros:0, resto}; }
+    this._toastDesfazer(partes.join(' e ')+onde+aviso, ()=>this.desfazerLoteLA());
+    return {cards:cards.length, revs:nRev, erros:nErr, resto};
+  }
+  desfazerLoteLA = ()=>{
+    const L=this._ultimoLoteLA; if(!L) return;
+    this._ultimoLoteLA=null;
+    this.setState(st=>{
+      const fc=st.flashcards.filter(c=>L.novos.cards.indexOf(c.id)<0); this._saveFC(fc);
+      const leituras=(st.leituras||[]).map(x=>(x&&L.antes.leituras[x.id])?L.antes.leituras[x.id]:x);
+      const reviews=(st.reviews||[]).filter(r=>L.novos.revs.indexOf(r.id)<0).map(r=>(r&&L.antes.revs[r.id])?L.antes.revs[r.id]:r);
+      const errors=(st.errors||[]).filter(x=>L.novos.erros.indexOf(x.id)<0).map(x=>(x&&L.antes.erros[x.id])?L.antes.erros[x.id]:x);
+      return {flashcards:fc, leituras, reviews, errors};
+    }, ()=>this.flashSync());
+    this._toast('Conferência desfeita');
+  };
   desfazerLoteErros = ()=>{
     const L=this._ultimoLoteErros; if(!L) return;
     this._ultimoLoteErros=null;

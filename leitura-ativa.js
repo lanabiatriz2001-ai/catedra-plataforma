@@ -155,9 +155,10 @@
   function cloze(item, el, txt) { return null; }            // → { front, back, extra } | null
   function renderCloze(front, mostrar) { return ''; }        // front com {{cN::…}} → HTML
 
-  /* LA4 — conferência imediata. Aqui (LA1) a conferência é REGISTRADA no item; o que
-     ela cria (flashcard, revisão, erro — `criar`) entra com o item LA4. q: 1 errei,
-     3 hesitei, 5 acertei. */
+  /* LA4 — conferência imediata: "erro como filtro". A conferência é registrada no item e
+     `criar` diz o que o host deve gerar — q=5 (acertei) NÃO cria nada; q=3 (hesitei) cria
+     flashcard e revisão; q=1 (errei) cria flashcard, revisão e item no caderno de erros.
+     Ler não gera cartão; só o que ela errou ou hesitou vira revisão. */
   function conferir(item, el, q) {
     if (!item || !ehEl(el)) return null;
     q = +q;
@@ -166,7 +167,35 @@
     it.conf.push({ el: el, q: q, ts: Date.now() });
     if (it.conf.length > 200) it.conf = it.conf.slice(-200);   // histórico de conferência, não diário
     it.up = agoraDepoisDe(item);
-    return { item: it, criar: {} };
+    var criar = {};
+    if (q <= 3) { criar.fc = true; criar.review = true; }
+    if (q === 1) criar.erro = true;
+    return { item: it, criar: criar };
+  }
+
+  function rotulo(el) { for (var i = 0; i < ELEMENTOS.length; i++) if (ELEMENTOS[i].id === el) return ELEMENTOS[i].rotulo; return ''; }
+  var LACUNA = '\u2581\u2581\u2581\u2581';   // ▁▁▁▁ — bloco gráfico, não emoji
+  /** O texto do dispositivo com as marcas de UM elemento escondidas (offset como pista,
+      indexOf como recurso — o padrão de renderGr). É o front da conferência e do cartão. */
+  function lacunas(txt, marcas) {
+    var s = String(txt == null ? '' : txt);
+    var ms = (marcas || []).map(function (m) {
+      if (!m || !m.t) return null;
+      var i = (m.s != null && s.substr(m.s, m.t.length) === m.t) ? m.s : s.indexOf(m.t);
+      return i >= 0 ? { a: i, b: i + m.t.length } : null;
+    }).filter(function (x) { return !!x; }).sort(function (a, b) { return b.a - a.a; });
+    ms.forEach(function (m) { s = s.slice(0, m.a) + LACUNA + s.slice(m.b); });
+    return s;
+  }
+  /** Front/back de um elemento conferido. Sem IA, sem texto além do próprio dispositivo:
+      front = "CC · Art. 1.239 — Há prazo?" + o texto com a lacuna; back = o que estava lá. */
+  function cartaoConferencia(item, el, txt) {
+    if (!item || !ehEl(el)) return null;
+    var ms = (item.el && item.el[el]) || [];
+    if (!ms.length) return null;
+    var cab = [item.sigla, item.rot].filter(function (x) { return !!x; }).join(' \u00b7 ');
+    return { front: (cab ? cab + ' \u2014 ' : '') + rotulo(el) + '\n' + lacunas(txt, ms),
+             back: ms.map(function (m) { return m.t; }).join(' / '), ref: cab };
   }
 
   /** Quanto de uma lei já foi lido ativamente. */
@@ -240,6 +269,7 @@
     nova: nova, marcar: marcar, desmarcar: desmarcar, naoHa: naoHa,
     hash: hash, completude: completude, atualizada: atualizada,
     cloze: cloze, renderCloze: renderCloze, conferir: conferir,
+    rotulo: rotulo, lacunas: lacunas, cartaoConferencia: cartaoConferencia, LACUNA: LACUNA,
     progresso: progresso, sanear: sanear, upsert: upsert
   };
 })(typeof window !== 'undefined' ? window : globalThis);
