@@ -13,6 +13,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
+import { testarLegisGuiado } from './legis-guiado.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // O servidor estático e a escolha do navegador moram em tests/_infra.mjs, compartilhados
@@ -1239,6 +1240,63 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
     return r;
   });
   for (const [k, v] of Object.entries(la5l)) ok(v, 'LEITURA/CLOZE ' + k);
+}
+
+/* ============= LEITURA ATIVA — LA3: modo guiado (o mesmo roteiro do WebKit, aqui no Chromium) ============= */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const pg = await ctx.newPage();
+  try { await testarLegisGuiado(pg, URL0, ok, { motor, origem: 'http' }); }
+  catch (e) { ok(false, 'LEGIS GUIADO o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+  await ctx.close();
+  // filtros "só incidência alta" e "só o que ainda não li"
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
+  const gd = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    // a CF: a incidência conhece os artigos 5 e 37 como "alta"; o 999 não existe lá
+    const paras = ['Art. 5º Todos são iguais perante a lei, sem distinção de qualquer natureza.', 'Art. 37. A administração pública obedecerá aos princípios de legalidade.', 'Art. 999. Artigo que ninguém cita em julgado algum.'];
+    window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:')).forEach(k => localStorage.removeItem(k));
+    window.openReader(CAT.laws.find(l => /constituicao\.htm/.test(l.u)));
+    await new Promise(res => { const t = setInterval(() => { if (document.querySelectorAll('#rdrDoc .gr').length >= 3) { clearInterval(t); res(); } }, 50); });
+    document.getElementById('rdrLA').click(); await w(60);
+    // um dispositivo já lido por completo (7 respostas) para o filtro "ainda não li"
+    const LEI = CAT.laws.find(l => /constituicao\.htm/.test(l.u)).u;
+    let it = window.CT_LA.nova({ leiId: LEI, sigla: 'CF', rot: 'Art. 5º', gi: 0, txt: document.querySelector('#rdrDoc .gr').textContent });
+    window.CT_LA.IDS.forEach(el => { it = window.CT_LA.naoHa(it, el, true); });
+    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [it] }, '*'); await w(150);
+    document.querySelector('#rdrDoc .la-legenda .la-guiar').click(); await w(100);
+    const gd = document.getElementById('laGuiado');
+    r.tresNaLista = /dispositivo 1 de 3/.test(gd.textContent);
+    gd.querySelector('input[data-f=naoLi]').click(); await w(150);
+    r.naoLiTiraOCompleto = /dispositivo 1 de 2/.test(gd.textContent) && /Art\. 37/.test(gd.querySelector('.la-norma').textContent);
+    gd.querySelector('input[data-f=alta]').click();
+    await new Promise(res => { const t = setInterval(() => { if (window.__INCIDENCIA__) { clearInterval(t); res(); } }, 50); setTimeout(res, 8000); }); await w(200);
+    r.incidenciaCarregou = !!window.__INCIDENCIA__;
+    r.altaTiraOArt999 = /dispositivo 1 de 1/.test(gd.textContent) && /Art\. 37/.test(gd.querySelector('.la-norma').textContent);
+    gd.querySelector('input[data-f=naoLi]').click(); await w(100);
+    // tirar um filtro MANTÉM o dispositivo atual (o art. 37 vira o 2º de [5, 37])
+    r.soAltaMantemOAtual = /dispositivo 2 de 2/.test(gd.textContent) && /Art\. 37/.test(gd.querySelector('.la-norma').textContent);
+    // Enter sem seleção pula a pergunta; na sétima fecha o dispositivo — no último, sai do modo
+    for (let i = 0; i < 7; i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(30); }
+    r.enterNoUltimoSai = !document.getElementById('rdr').classList.contains('la-guiado');
+    // de volta pela legenda: os filtros continuam valendo e o percurso recomeça do 1º (art. 5)
+    document.querySelector('#rdrDoc .la-legenda .la-guiar').click(); await w(100);
+    r.filtrosPersistem = /dispositivo 1 de 2/.test(gd.textContent) && /Art\. 5/.test(gd.querySelector('.la-norma').textContent) && gd.querySelector('input[data-f=alta]').checked;
+    for (let i = 0; i < 7; i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(30); }
+    r.enterAvancaDispositivo = /dispositivo 2 de 2/.test(gd.textContent) && /Pergunta 1 de 7/.test(gd.textContent);
+    // "Sair" devolve o documento
+    gd.querySelector('button[data-acao=sair]').click(); await w(100);
+    r.sairDevolve = !document.getElementById('rdr').classList.contains('la-guiado');
+    gd.querySelector; document.querySelector('#rdrDoc .la-legenda .la-guiar').click(); await w(60);
+    gd.querySelector('input[data-f=alta]').click(); await w(60); gd.querySelector('button[data-acao=sair]').click(); await w(60);   // desliga os filtros para o próximo teste
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  });
+  for (const [k, v] of Object.entries(gd)) ok(v, 'LEGIS GUIADO filtros ' + k);
 }
 
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
