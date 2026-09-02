@@ -49,7 +49,12 @@ export function carregarAreas() {
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
 
 /** Linhas da moldura da FGV (cabeçalho/rodapé de página) e da capa: nunca são conteúdo. */
-const RE_MOLDURA = /^(ESCOLA NACIONAL DE FORMA|FGV CONHECIMENTO|TIPO\s+\d?\s*(–|-|BRANCA)|\d+[ºO°]?\s*EXAME NACIONAL DA MAGISTRATURA|EXAME NACIONAL DA MAGISTRATURA|ENAM\s*[–-]\s*20\d\d)/i;
+// o caderno tem cor por tipo (1 BRANCA, 2 VERDE, 3 AMARELA, 4 AZUL): a moldura de página
+// diz "TIPO VERDE – PÁGINA 5", e só a branca coberta deixava lixo no fim da última alternativa
+const RE_MOLDURA = /^(ESCOLA NACIONAL DE FORMA|APERFEI[ÇC]OAMENTO DE MAGISTRADOS|FGV CONHECIMENTO|TIPO\s+(\d|BRANCA|VERDE|AMARELA|AZUL|ROSA)\b|\d+[ºO°]?\s*EXAME NACIONAL DA MAGISTRATURA|EXAME NACIONAL DA MAGISTRATURA|MAGISTRATURA$|ENAM\s*[–-]\s*20\d\d|Realiza[çc][ãa]o$|SUA PROVA$)/i;
+// a contracapa repete as instruções do caderno; depois da última alternativa da questão 80
+// nada mais é conteúdo — qualquer uma destas linhas encerra a leitura
+const RE_CONTRACAPA = /^(Realiza[çc][ãa]o|•|Al[ée]m deste caderno|SUA PROVA|INFORMA[ÇC][ÕO]ES GERAIS|N[ÃA]O SER[ÁA] PERMITIDO|TEMPO)$/i;
 
 /**
  * parseProva(texto, areas) → { questoes:[{numero, area, enunciado, alternativas}], avisos:[] }
@@ -69,9 +74,10 @@ export function parseProva(texto, areas) {
   // a próxima linha de conteúdo (pula vazias e moldura), a partir de i+1
   const proxima = (i) => { for (let k = i + 1; k < linhas.length; k++) { const x = linhas[k].trim(); if (x && !ehMoldura(x)) return x; } return ''; };
   for (let i = 0; i < linhas.length; i++) {
-    const l = linhas[i].trim();
+    const l = linhas[i].replace(/[\uE000-\uF8FF]/g, '').trim();
     if (!l) continue;
     if (ehMoldura(l)) continue;
+    if (q && q.numero === 80 && (RE_CONTRACAPA.test(l) || /^Al[ée]m deste caderno/i.test(l))) break;
     /* Cabeçalho de área: a linha inteira (ou ela + a seguinte, quando a FGV parte "NOÇÕES
        GERAIS DE DIREITO E" / "FORMAÇÃO HUMANÍSTICA" em duas) casa com um nome de área E o
        que vem depois é o número da próxima questão. A segunda condição é o que separa o
@@ -104,7 +110,9 @@ export function parseProva(texto, areas) {
 
 /** Tira o que a extração deixa: hífen de quebra de linha, espaços duplos, espaço antes de pontuação. */
 export function limparTexto(s) {
-  return String(s || '').replace(/(\p{Ll})- (\p{Ll})/gu, '$1$2').replace(/\s+/g, ' ').replace(/\s+([,.;:!?)])/g, '$1').replace(/\(\s+/g, '(').trim();
+  // U+E000–U+F8FF é área de uso privado: o marcador de lista da fonte Symbol da FGV (U+F020)
+  // sai na moldura de cada página de 2024.1 e colava no fim da última alternativa da página
+  return String(s || '').replace(/[\uE000-\uF8FF]/g, ' ').replace(/(\p{Ll})- (\p{Ll})/gu, '$1$2').replace(/\s+/g, ' ').replace(/\s+([,.;:!?)])/g, '$1').replace(/\(\s+/g, '(').trim();
 }
 
 /**
@@ -123,6 +131,8 @@ export function parseGabarito(texto, tipo = 1) {
   let bloco = t.slice(ini).replace(cabecalho, '');
   const fim = bloco.search(proximo);
   if (fim > 0) bloco = bloco.slice(0, fim);
+  // "Página – 2" / "Página 1 de 2" do rodapé não é número de questão
+  bloco = bloco.replace(/P[áa]gina\s*[–-]?\s*\d+(\s+de\s+\d+)?/gi, ' ');
   const nums = [], resp = [];
   for (const tok of bloco.split(/\s+/)) {
     if (/^\d{1,2}$/.test(tok)) nums.push(+tok);
