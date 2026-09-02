@@ -19,3 +19,23 @@ jobs:
         run: npm test
         env:
           CT_CHROME: /usr/bin/google-chrome
+  # WebKit é o motor do Safari e do WKWebView do iPad: lá a aba Lei seca da Prova oral abria
+  # sem lista de leis, e a suíte em Chromium não via. Job separado para o `testes` seguir
+  # como está — e para a falha dizer, já no nome, de que motor veio. O runner é enxuto
+  # (tests/run-webkit.mjs): só o que precisa do motor da Apple, em http:// e em file://.
+  webkit:
+    name: Testes WebKit (Safari)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Dependências
+        run: npm install --no-audit --no-fund
+      - name: Build da plataforma
+        run: node scripts/build.mjs
+      - name: WebKit do Playwright (com as bibliotecas de sistema)
+        run: npx playwright-core install --with-deps webkit
+      - name: Prova oral → Lei seca em WebKit (http e file://)
+        run: npm run test:webkit
