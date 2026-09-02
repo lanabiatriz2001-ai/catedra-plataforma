@@ -1051,6 +1051,8 @@ window.ctPdfLib = (function(){
               <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:clamp(24px,4vw,40px);text-align:center;">
                 <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border-radius:99px;padding:6px 13px;font-size:var(--fs-xs);font-weight:600;color:rgba(255,255,255,.85);"><span style="width:8px;height:8px;border-radius:2px;background:{{ revCardColor }};"></span>{{ revCardDisc }}</span>
                 <div style="font-family:var(--display);font-size:clamp(22px,3.4vw,30px);font-weight:600;line-height:1.25;margin:18px 0 6px;">{{ revCardTopic }}</div>
+                <!-- LA5: tópico de leitura ativa → o cartão cloze, lacuna antes de revelar e "extra" depois -->
+                <sc-if value="{{ revLaTem }}" hint-placeholder-val="{{ false }}"><div class="la-cloze"><sc-for list="{{ revLaSegs }}" as="s" hint-placeholder-count="3"><sc-if value="{{ s.lacuna }}" hint-placeholder-val="{{ false }}"><span class="la-lacuna {{ s.cls }}" style="{{ s.style }}">{{ s.t }}</span></sc-if><sc-if value="{{ s.texto }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if></sc-for></div><sc-if value="{{ revLaExtra }}" hint-placeholder-val="{{ false }}"><div class="la-cloze-extra">{{ revLaExtra }}</div></sc-if></sc-if>
                 <sc-if value="{{ revNotRevealed }}" hint-placeholder-val="{{ true }}">
                   <div style="font-size:var(--fs-base);color:rgba(255,255,255,.5);margin-top:8px;line-height:1.5;">Tente recordar os pontos-chave deste tópico. Quando terminar, revele e avalie como foi.</div>
                   <button onclick="{{ revReveal }}" style="margin-top:24px;background:#fff;color:var(--sbg);border:none;border-radius:99px;padding:13px 30px;font-size:var(--fs-md);font-weight:700;cursor:pointer;font-family:inherit;">Já recordei — avaliar</button>
@@ -5540,6 +5542,7 @@ window.ctPdfLib = (function(){
             <button onclick="{{ exportPDF }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Exportar relatório PDF</button>
             <button onclick="{{ importData }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500;">Importar dados</button>
           </div>
+          <sc-if value="{{ ankiNotaCloze }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:10px;line-height:1.5;">{{ ankiNotaCloze }}</div></sc-if>
         </div>
         </sc-if>
 
@@ -6356,7 +6359,8 @@ class Component extends DCLogic {
         const lista=(Array.isArray(e.data.itens)?e.data.itens:[e.data]).map(c=>({
           id:String((c&&c.id)||id), el:String((c&&c.el)||''), q:+(c&&c.q),
           front:String((c&&c.front)||(c&&c.cloze&&c.cloze.front)||''), back:String((c&&c.back)||(c&&c.cloze&&c.cloze.back)||''),
-          extra:String((c&&c.extra)||(c&&c.cloze&&c.cloze.extra)||''), ref:String((c&&c.ref)||e.data.ref||'') }));
+          extra:String((c&&c.extra)||(c&&c.cloze&&c.cloze.extra)||''), ref:String((c&&c.ref)||e.data.ref||''),
+          tipo:String((c&&c.tipo)||(c&&c.cloze?'cloze':'')||''), tags:Array.isArray(c&&c.tags)?c.tags:[], termos:Array.isArray(c&&c.termos)?c.termos:[], situacao:String((c&&c.situacao)||'') }));
         this._laConferir(lista);
         return;
       }
@@ -9113,12 +9117,28 @@ class Component extends DCLogic {
   _downloadText(text, name, mime){ try{ const blob=new Blob([text],{type:(mime||'text/plain')+';charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500); return true; }catch(e){ this._toast('Não foi possível exportar'); return false; } }
   // Flashcards → arquivo que o Anki importa NATIVAMENTE (diretivas #separator/#html/#tags).
   exportFlashcardsCSV = ()=>{
-    const fc=this.state.flashcards||[];
-    if(!fc.length){ this._toast('Nenhum flashcard para exportar'); return; }
+    const todos=this.state.flashcards||[];
+    if(!todos.length){ this._toast('Nenhum flashcard para exportar'); return; }
     const esc=(s)=>String(s||'').replace(/\t/g,' ').replace(/\r?\n/g,'<br>').trim();
-    const lines=fc.map(c=> esc(c.front)+'\t'+esc(c.back)+'\t'+esc(String(c.disc||'').replace(/\s+/g,'_')));
-    const out='#separator:tab\n#html:true\n#tags column:3\n'+lines.join('\n')+'\n';
-    if(this._downloadText(out,'catedra-flashcards.txt','text/plain')) this._toast(fc.length+' flashcards exportados — importe o .txt no Anki ✦');
+    // LA5: os cartões de lei seca são notas CLOZE (Text + Back Extra) — modelo diferente do
+    // Básico, então saem em arquivo próprio; misturá-los quebraria a importação dos dois
+    const cloze=todos.filter(c=>c&&c.tipo==='cloze'), fc=todos.filter(c=>!(c&&c.tipo==='cloze'));
+    const partes=[];
+    if(fc.length){
+      const lines=fc.map(c=> esc(c.front)+'\t'+esc(c.back)+'\t'+esc(String(c.disc||'').replace(/\s+/g,'_')));
+      const out='#separator:tab\n#html:true\n#tags column:3\n'+lines.join('\n')+'\n';
+      if(!this._downloadText(out,'catedra-flashcards.txt','text/plain')) return;
+      partes.push(fc.length+' flashcards');
+    }
+    if(cloze.length){
+      const lines=cloze.map(c=> esc(c.front)+'\t'+esc(c.extra)+'\t'+esc((c.tags||[]).concat([String(c.disc||'').replace(/\s+/g,'_')]).filter(Boolean).join(' ')));
+      const out='#separator:tab\n#html:true\n#notetype:Cloze\n#tags column:3\n'+lines.join('\n')+'\n';
+      // o segundo download sai um instante depois: dois no mesmo clique, o navegador engole um
+      const baixar=()=>{ if(this._downloadText(out,'catedra-cloze-lei-seca.txt','text/plain')) this._toast(cloze.length+' cartões cloze de lei seca exportados — no Anki, importe com o tipo de nota Cloze e permita HTML ✦'); };
+      if(fc.length) setTimeout(baixar, 500); else baixar();
+      partes.push(cloze.length+' cloze');
+    }
+    if(fc.length) this._toast(partes.join(' + ')+' exportados — importe o .txt no Anki ✦');
   };
   // Revisões (com data real) + data da prova → .ics para o Calendário/Google Calendar.
   exportICS = ()=>{
@@ -10039,8 +10059,17 @@ class Component extends DCLogic {
       if(r.criar.fc && c.front && c.back){
         const h=this._hashErro(c.front);
         if(!jaFc.has(h)){ jaFc.add(h);
-          cards.push({id:'fc'+(agora+i), front:c.front.slice(0,600), back:c.back.slice(0,1200), extra:String(c.extra||'').slice(0,600),
-            disc, origem:'Leitura ativa — '+ref, criado:agora, up:agora, hash:h, auto:true, la:{id:it.id, el:c.el}}); }
+          const cloze=c.tipo==='cloze';
+          let extra=String(c.extra||'');
+          // LA5: o alerta de pegadinha só entra se o inverter do treino.js reconhece um termo
+          // trocável no trecho escondido — e o LEGIS não carrega o treino.js, então é aqui
+          if(cloze && !/A banca costuma trocar/.test(extra)){ try{ const T=window.CT_TREINO;
+            for(const termo of (c.termos||[])){ const inv=T&&T.inverter&&T.inverter(String(termo||''));
+              if(inv&&inv.de&&inv.para&&inv.de!==inv.para){ extra+=(/[.!?]$/.test(extra)?'':'.')+' A banca costuma trocar “'+inv.de+'” por “'+inv.para+'”.'; break; } } }catch(_){} }
+          const card={id:'fc'+(agora+i), front:cloze?LA.cortarSeguro(c.front, 900):c.front.slice(0,600), back:c.back.slice(0,1200), extra:extra.slice(0,900),
+            disc, origem:cloze?'leitura-ativa':('Leitura ativa — '+ref), ref, el:c.el, leituraId:it.id, criado:agora, up:agora, hash:h, auto:true, la:{id:it.id, el:c.el}};
+          if(cloze){ card.tipo='cloze'; card.tags=(c.tags||[]).map(String).slice(0,6); }
+          cards.push(card); }
       }
       if(r.criar.review){
         const rid='rv|la|'+it.id+'|'+c.el, j=reviews.findIndex(x=>x&&x.id===rid);
@@ -13431,6 +13460,15 @@ class Component extends DCLogic {
         intervalo: (cur&&cur.intervalo)||0, ef: cur?Number(cur.facilidade!=null?cur.facilidade:2.5).toFixed(2):'', reps: (cur&&cur.repeticoes)||0,
         opts: cur?[ {q:2,label:'Errei',sub:'1 dia',color:'var(--danger)'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'var(--warn)'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'var(--ok)'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
         again:RS.again, hard:RS.hard, good:RS.good, easy:RS.easy, reviewedN, acertos:RS.good+RS.easy };
+      // LA5: tópico de leitura ativa mostra o CARTÃO (cloze renderizado), não texto solto —
+      // a lacuna antes de revelar, o trecho com o fundo da identidade e o "extra" depois
+      try{ const LA=window.CT_LA;
+        const fcLa=(cur&&cur.la&&LA)?(this.state.flashcards||[]).find(c=>c&&c.tipo==='cloze'&&c.la&&c.la.id===cur.la.id&&c.la.el===cur.la.el):null;
+        if(fcLa){ revRun.laTem=true;
+          revRun.laSegs=LA.segmentosCloze(fcLa.front).map(p=>({ t:(p.lacuna&&!RS.revealed)?LA.LACUNA:p.t, lacuna:!!p.lacuna, texto:!p.lacuna,
+            cls:(RS.revealed?'revelada ':'')+'la-'+cur.la.el, style:(p.lacuna&&!RS.revealed)?('min-width:'+p.w+'ch'):'' }));
+          revRun.laExtra=RS.revealed?String(fcLa.extra||''):''; }
+      }catch(_){}
     }
 
     // ===== cronômetro =====
@@ -15400,6 +15438,9 @@ class Component extends DCLogic {
       revActive:revRun.active, revDone:revRun.done, revNotDone:revRun.active&&!revRun.done, revRevealed:revRun.revealed, revNotRevealed:revRun.active&&!revRun.done&&!revRun.revealed,
       revPos:revRun.pos, revTotal:revRun.total, revPct:revRun.pct, revCardDisc:revRun.discShort, revCardTopic:revRun.topic, revCardColor:revRun.color,
       revCardInterval:revRun.intervalo, revCardEf:revRun.ef, revCardReps:revRun.reps, revOpts:revRun.opts,
+      revLaTem:!!revRun.laTem, revLaSegs:revRun.laSegs||[], revLaExtra:revRun.laExtra||'',
+      ankiNotaCloze:(()=>{ const n=(this.state.flashcards||[]).filter(c=>c&&c.tipo==='cloze').length;
+        return n?((n===1?'O 1 cartão de lei seca (leitura ativa) sai':'Os '+n+' cartões de lei seca (leitura ativa) saem')+' em arquivo próprio, catedra-cloze-lei-seca.txt: no Anki, importe com o tipo de nota Cloze e permita HTML.'):''; })(),
       revTallyAgain:revRun.again, revTallyHard:revRun.hard, revTallyGood:revRun.good, revTallyEasy:revRun.easy, revReviewedN:revRun.reviewedN, revAcertos:revRun.acertos,
       revStartDisabled: revPend===0,
       revStartLabel: revPend>0?('Começar ('+revPend+')'):'Tudo em dia ✓',

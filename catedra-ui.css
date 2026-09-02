@@ -886,3 +886,17 @@ button:disabled { cursor: not-allowed; }
   /* /la-escuro */
   --la-mix-tx: 70%;
 }
+/* mapeamento por elemento (o mesmo do leitor do LEGIS): quem consome escreve só var(--la-x) */
+.la-quem { --la-x: var(--la-quem); --la-x-tx: var(--la-quem-tx); }
+.la-oque { --la-x: var(--la-oque); --la-x-tx: var(--la-oque-tx); }
+.la-quando { --la-x: var(--la-quando); --la-x-tx: var(--la-quando-tx); }
+.la-como { --la-x: var(--la-como); --la-x-tx: var(--la-como-tx); }
+.la-prazo { --la-x: var(--la-prazo); --la-x-tx: var(--la-prazo-tx); }
+.la-excecao { --la-x: var(--la-excecao); --la-x-tx: var(--la-excecao-tx); }
+.la-proibicao { --la-x: var(--la-proibicao); --la-x-tx: var(--la-proibicao-tx); }
+/* o cartão cloze no host (sessão "Revisar agora", LA5): a lacuna é um bloco com a largura do
+   trecho; revelado, o trecho ganha o fundo da identidade. Cor do texto herdada da tela. */
+.la-cloze { font-family: var(--display, Georgia, serif); font-size: var(--fs-lg, 15.5px); line-height: 1.65; text-align: left; margin-top: var(--ct-e4); color: inherit; overflow-wrap: anywhere; }
+.la-cloze .la-lacuna { display: inline-block; padding: 0 6px; border-radius: 6px; background: color-mix(in srgb, var(--la-x) 30%, transparent); border-bottom: 2px solid var(--la-x); }
+.la-cloze .la-lacuna.revelada { display: inline; background: color-mix(in srgb, var(--la-x) 24%, transparent); }
+.la-cloze-extra { font-size: var(--fs-sm, 12.5px); line-height: 1.5; margin-top: var(--ct-e3); text-align: left; opacity: .75; }

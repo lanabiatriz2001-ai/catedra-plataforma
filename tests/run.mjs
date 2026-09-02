@@ -895,11 +895,12 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     window.postMessage(rodada([5, 5, 3, 1]), '*'); await w(1000);
     let fc = ler('fc'), rv = ler('reviews'), er = ler('errors');
     r.doisCartoes = fc.length === 2 && fc.every(c => c.id && c.up && c.hash && /Leitura ativa/.test(c.origem) && c.la && c.la.id === it.id);
-    r.cartaoDoPrazo = fc.some(c => c.la.el === 'prazo' && c.front.includes('Há prazo?') && c.back === 'por cinco anos ininterruptos');
+    r.cartaoDoPrazo = fc.some(c => c.la.el === 'prazo' && c.front.includes('Há prazo?') && c.back === 'por cinco anos ininterruptos' && !c.tipo);
     r.duasRevisoesIdDeterministico = rv.length === 2 && rv.some(x => x.id === 'rv|la|' + it.id + '|prazo') && rv.some(x => x.id === 'rv|la|' + it.id + '|como');
     r.revisaoDoErreiIntervalo1 = !!rv.find(x => x.id.endsWith('|como')) && rv.find(x => x.id.endsWith('|como')).intervalo === 1 && rv.find(x => x.id.endsWith('|como')).due === 1;
     r.revisaoTemTopicoEDisciplina = rv.every(x => x.topic === 'CC Art. 1.239 — ' + LA.rotulo(x.la.el) && x.disc === 'Direito Civil' && x.up && x.dueDate);
     r.umErro = er.length === 1 && er[0].id === 'e|la|' + it.id + '|como' && er[0].fonte === 'leitura-ativa' && er[0].ref === 'CC · Art. 1.239' && er[0].el === 'como' && er[0].disc === 'Direito Civil' && !!er[0].up;
+    if (!r.umErro || !r.revisaoTemTopicoEDisciplina) r.__diag = JSON.stringify({ edital: ler('edital').map(d => d.disc), rv: rv.map(x => [x.disc, x.topic]), er: er.map(x => [x.id, x.disc, x.ref]) });
     r.conferenciasNoItem = (ler('leituras')[0].conf || []).length === 4;
     const toast = document.querySelector('div[role=status]');
     r.toastDizOQueCriou = !!toast && /2 cartões e 2 revisões e 1 erro de art\. 1\.239/.test(toast.textContent || '');
@@ -944,6 +945,7 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     ['leituras', 'fc', 'reviews', 'errors', 'edital'].forEach(k => localStorage.removeItem('catedra:' + k));
     return r;
   });
+  if (la4h.__diag) { console.log('LEITURA/CONFERIR diagnóstico: ' + la4h.__diag); delete la4h.__diag; }
   for (const [k, v] of Object.entries(la4h)) ok(v, 'LEITURA/CONFERIR ' + k);
 }
 
@@ -1010,7 +1012,9 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     r.rodadaSaiInteira = !!enviado && enviado.id === window.CT_LA_CANAL.ler(CAT.laws.find(l => /l10406/.test(l.u)).u)[0].id && enviado.ref === 'CC · Art. 1.239'
       // a rodada segue a ORDEM FIXA da grade (Como? vem antes de Há prazo?), não a ordem em que ela marcou
       && enviado.itens.map(x => x.el + ':' + x.q).join(',') === 'quem:5,oque:5,como:3,prazo:1';
-    r.cartaoProntoNoPayload = !!enviado && enviado.itens[3].front.startsWith('CC · Art. 1.239 — Há prazo?') && enviado.itens[3].front.includes('▁') && enviado.itens[3].back === 'por cinco anos ininterruptos';
+    // LA5: o payload já vai como cloze (sintaxe do Anki), com o extra pronto
+    r.cartaoProntoNoPayload = !!enviado && enviado.itens[3].tipo === 'cloze' && enviado.itens[3].front.includes('por {{c1::cinco anos}} ininterruptos')
+      && enviado.itens[3].back.includes('«cinco anos»') && enviado.itens[3].extra.startsWith('CC · Art. 1.239 · Há prazo? — Prazo de cinco anos');
     r.leitorNaoGravaNasChavesDoApp = !localStorage.getItem('catedra:fc') && !localStorage.getItem('catedra:reviews') && !localStorage.getItem('catedra:errors');
     // fechar sem enviar
     enviado = null; trilho().querySelector('.la-conferir').click(); await w(60);
@@ -1021,6 +1025,220 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     return r;
   });
   for (const [k, v] of Object.entries(la4l)) ok(v, 'LEITURA/CONFERIR ' + k);
+}
+
+/* ============= LEITURA ATIVA — LA5: cloze de lei seca ============= */
+// (a) o módulo: o aceite literal, 3 lacunas no máximo, um elemento por cartão, escape, render
+await page.goto(URL0 + '/tests/harness-leitura-ativa.html');
+await page.waitForFunction(() => window.__pronto === true);
+const la5m = await page.evaluate(() => {
+  const LA = window.CT_LA, r = {};
+  const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural não superior a cinqüenta hectares, tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia, adquirir-lhe-á a propriedade.';
+  const LEI = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+  let it = LA.nova({ leiId: LEI, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: TXT });
+  const marca = (el, t) => { it = LA.marcar(it, el, { s: TXT.indexOf(t), t }); };
+  marca('prazo', 'por cinco anos ininterruptos'); marca('quem', 'Aquele que, não sendo proprietário de imóvel rural ou urbano');
+  const c = LA.cloze(it, 'prazo', TXT);
+  // o aceite, letra por letra
+  r.aceiteFront = !!c && c.front === 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por {{c1::cinco anos}} ininterruptos, sem oposição, área de terra em zona rural não superior a cinqüenta hectares, tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia, adquirir-lhe-á a propriedade.';
+  r.aceiteExtra = !!c && c.extra === 'CC · Art. 1.239 · Há prazo? — Prazo de cinco anos, contado de forma ininterrupta e sem oposição';
+  r.backDestaca = !!c && c.back.includes('por «cinco anos» ininterruptos');
+  r.tags = !!c && c.tags.join(',') === 'leitura-ativa,CC,prazo' && c.termos.join() === 'cinco anos';
+  // um cartão nunca mistura elementos: o cloze de "quem" não esconde o prazo
+  const cq = LA.cloze(it, 'quem', TXT);
+  r.umElementoPorCartao = !!cq && cq.front.startsWith('{{c1::Aquele que, não sendo proprietário de imóvel rural ou urbano}}') && !cq.front.includes('{{c2') && cq.front.includes('por cinco anos ininterruptos');
+  r.explicacaoPorRegra = !!cq && cq.extra === 'CC · Art. 1.239 · Quem? — Quem: Aquele que, não sendo proprietário de imóvel rural ou urbano';
+  // no máximo 3 lacunas; as excedentes ficam visíveis
+  let it4 = LA.nova({ leiId: LEI, sigla: 'CC', rot: 'Art. 1', gi: 1, txt: 'um dois três quatro cinco' });
+  ['um', 'dois', 'três', 'quatro'].forEach(t => { it4 = LA.marcar(it4, 'oque', { s: 'um dois três quatro cinco'.indexOf(t), t }); });
+  const c4 = LA.cloze(it4, 'oque', 'um dois três quatro cinco');
+  r.maximoTresLacunas = !!c4 && c4.front === '{{c1::um}} {{c2::dois}} {{c3::três}} quatro cinco' && (c4.front.match(/\{\{c\d::/g) || []).length === 3;
+  // sem marca no elemento: nada
+  r.semMarcaNada = LA.cloze(it, 'como', TXT) === null && LA.cloze(it, 'nada', TXT) === null;
+  // chaves literais no texto não viram lacuna
+  let itc = LA.nova({ leiId: LEI, sigla: 'X', rot: 'Art. 2', gi: 2, txt: 'texto com {{chave}} literal' });
+  itc = LA.marcar(itc, 'oque', { s: 0, t: 'texto com {{chave}}' });
+  const cc = LA.cloze(itc, 'oque', 'texto com {{chave}} literal');
+  r.escapaChaves = !!cc && cc.front === '{{c1::texto com { {chave} }}} literal' && (cc.front.match(/\{\{/g) || []).length === 1;
+  // revogado/vetado entra como prefixo do extra
+  r.prefixoRevogado = LA.cloze(it, 'prazo', TXT, { situacao: 'revogado' }).extra.startsWith('(REVOGADO) CC · Art. 1.239') && LA.cloze(it, 'prazo', TXT, { situacao: 'vetado' }).extra.startsWith('(VETADO) ');
+  // alerta só quando o inverter reconhece termo trocável no trecho escondido
+  const inv = t => (/cinco anos/.test(t) ? { de: 'cinco anos', para: 'dez anos' } : null);
+  r.alertaComInverter = LA.cloze(it, 'prazo', TXT, { inverter: inv }).extra.endsWith('e sem oposição. A banca costuma trocar “cinco anos” por “dez anos”.');
+  r.semAlertaSemTermo = !LA.cloze(it, 'quem', TXT, { inverter: inv }).extra.includes('A banca costuma trocar');
+  // o corte de 900 nunca parte uma lacuna
+  const longo = 'x'.repeat(895) + ' {{c1::abc def}} fim';
+  const cortado = LA.cortarSeguro(longo, 900);
+  r.corteNaoParteLacuna = cortado.length <= 901 && !/\{\{[^}]*$/.test(cortado) && cortado.endsWith('…');
+  // renderCloze: lacuna com largura em ch e rótulo escrito; revelada com o trecho
+  const h = LA.renderCloze(c.front, { el: 'prazo' });
+  r.renderLacuna = /<span class="la-lacuna la-prazo" style="display:inline-block;min-width:10ch"[^>]*>▁▁▁▁ Há prazo\?<\/span>/.test(h) && !h.includes('cinco anos') && h.includes('adquirir-lhe-á');
+  const hr = LA.renderCloze(c.front, { el: 'prazo', revelar: true });
+  r.renderRevelada = hr.includes('<span class="la-lacuna revelada la-prazo">cinco anos</span>');
+  r.renderEscapaHtml = LA.renderCloze('a <b> {{c1::<i>}} b').includes('&lt;b&gt;') && LA.renderCloze('a <b> {{c1::<i>}} b').includes('&lt;i&gt;') === false;
+  r.segmentos = JSON.stringify(LA.segmentosCloze('a {{c1::b}} c').map(p => [p.t, p.lacuna])) === '[["a ",false],["b",true],[" c",false]]';
+  return r;
+});
+for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
+
+// (b) o host: o cartão nasce tipo cloze com extra; o alerta vem do inverter do treino.js;
+//     a exportação separa os cloze em arquivo próprio; "Revisar agora" mostra o cartão renderizado
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  // o inverter mora no treino.js, que o host carrega sob demanda: aqui entra antes
+  await page.evaluate(() => new Promise(res => { const t = document.createElement('script'); t.src = './treino.js'; t.onload = () => res(true); t.onerror = () => res(false); document.head.appendChild(t); }));
+  const la5h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
+    const LA = window.CT_LA, r = {};
+    r.inverterDisponivel = !!(window.CT_TREINO && window.CT_TREINO.inverter);
+    const TXT = 'O prazo para contestar é de 15 dias, contados da audiência de conciliação, sem oposição.';
+    let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm', sigla: 'CPC', rot: 'Art. 335', gi: 7, txt: TXT });
+    it = LA.marcar(it, 'prazo', { s: TXT.indexOf('de 15 dias'), t: 'de 15 dias' });
+    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await w(900);
+    const cz = LA.cloze(it, 'prazo', TXT);
+    window.postMessage({ type: 'ctLeituraConferida', id: it.id, ref: 'CPC · Art. 335',
+      itens: [{ el: 'prazo', q: 1, front: cz.front, back: cz.back, extra: cz.extra, tipo: 'cloze', tags: cz.tags, termos: cz.termos, situacao: '' }] }, '*');
+    await w(1000);
+    const fc = ler('fc');
+    // o núcleo do prazo é número + unidade: "de" fica visível, "15 dias" vira a lacuna
+    r.cartaoCloze = fc.length === 1 && fc[0].tipo === 'cloze' && fc[0].front === 'O prazo para contestar é de {{c1::15 dias}}, contados da audiência de conciliação, sem oposição.'
+      && fc[0].leituraId === it.id && fc[0].el === 'prazo' && fc[0].ref === 'CPC · Art. 335' && fc[0].origem === 'leitura-ativa' && fc[0].tags.join(',') === 'leitura-ativa,CPC,prazo';
+    r.extraComAlertaDoInverter = fc.length === 1 && fc[0].extra === 'CPC · Art. 335 · Há prazo? — Prazo de 15 dias, contados da audiência de conciliação. A banca costuma trocar “15 dias” por “30 dias”.';
+    r.revisaoLigadaAoCartao = ler('reviews').length === 1 && ler('reviews')[0].la.el === 'prazo';
+    r.notaDeExportacaoAparece = true;   // conferido na tela de Ajustes, abaixo
+    return r;
+  });
+  for (const [k, v] of Object.entries(la5h)) ok(v, 'LEITURA/CLOZE ' + k);
+
+  // a exportação: dois arquivos, e o dos cloze com o cabeçalho que o Anki entende
+  const downloads = [];
+  page.on('download', d => downloads.push(d));
+  const exp = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    // um cartão básico ao lado do cloze, para os dois arquivos saírem
+    localStorage.setItem('catedra:fc', JSON.stringify(JSON.parse(localStorage.getItem('catedra:fc')).concat([{ id: 'fcB', front: 'Pergunta básica', back: 'Resposta', disc: 'Direito Civil', criado: Date.now(), up: Date.now() }])));
+    location.reload(); await w(2000);
+    return true;
+  }).catch(() => false);
+  await page.waitForTimeout(2200);
+  const exp2 = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const mais = document.querySelector('button[aria-label="Mostrar mais opções"]'); if (mais) mais.click(); await w(300);
+    document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+    const acha = () => [...document.querySelectorAll('main button')].find(b => /Flashcards → Anki/.test(b.textContent || ''));
+    for (const aba of document.querySelectorAll('main .aj-abas button[data-s]')) { if (acha()) break; aba.click(); await w(500); }
+    const b = acha(); if (!b) return { erro: 'botão de exportação não encontrado' };
+    const notas = [...document.querySelectorAll('main div')].filter(d => /catedra-cloze-lei-seca\.txt/.test(d.textContent || ''));
+    const nota = notas.find(d => !notas.some(o => o !== d && d.contains(o)));   // o mais interno
+    b.click(); await w(1500);
+    return { notaCloze: !!nota && /tipo de nota Cloze e permita HTML/.test(nota.textContent) };
+  });
+  const nomes = downloads.map(d => d.suggestedFilename()).sort();
+  ok(!exp2.erro && exp2.notaCloze, 'LEITURA/CLOZE a tela de exportação avisa do arquivo Cloze e do HTML' + (exp2.erro ? ' (' + exp2.erro + ')' : ''));
+  ok(nomes.join(',') === 'catedra-cloze-lei-seca.txt,catedra-flashcards.txt', 'LEITURA/CLOZE a exportação gera os dois arquivos (' + nomes.join(', ') + ')');
+  {
+    const dCloze = downloads.find(d => d.suggestedFilename() === 'catedra-cloze-lei-seca.txt');
+    const dBasico = downloads.find(d => d.suggestedFilename() === 'catedra-flashcards.txt');
+    let txtCloze = '', txtBasico = '';
+    try { txtCloze = fs.readFileSync(await dCloze.path(), 'utf8'); txtBasico = fs.readFileSync(await dBasico.path(), 'utf8'); } catch (e) { txtCloze = 'ERRO ' + e.message; }
+    const linhas = txtCloze.split('\n').filter(l => l && !l.startsWith('#'));
+    ok(/^#separator:tab\n#html:true\n#notetype:Cloze\n#tags column:3\n/.test(txtCloze) && linhas.length === 1 && linhas[0].split('\t').length === 3
+      && linhas[0].startsWith('O prazo para contestar é de {{c1::15 dias}}') && linhas[0].split('\t')[1].startsWith('CPC · Art. 335 · Há prazo?'),
+      'LEITURA/CLOZE o TSV do Cloze é front[TAB]extra[TAB]tags com #notetype:Cloze');
+    ok(!txtBasico.includes('{{c1') && /Pergunta básica\tResposta/.test(txtBasico), 'LEITURA/CLOZE o arquivo básico não leva cloze');
+  }
+  page.removeAllListeners('download');
+
+  // "Revisar agora": o tópico de leitura ativa mostra a lacuna; revelar mostra o trecho e o extra
+  await page.evaluate(() => {
+    const fc = JSON.parse(localStorage.getItem('catedra:fc') || '[]').find(c => c.tipo === 'cloze');
+    const hoje = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('catedra:reviews', JSON.stringify([{ id: 'rv|la|' + fc.la.id + '|prazo', disc: 'Direito Processual Civil', topic: 'CPC Art. 335 — Há prazo?', color: '#0d9488',
+      due: 0, dueDate: hoje, intervalo: 1, facilidade: 2.5, repeticoes: 0, up: Date.now(), la: fc.la }]));
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1800);
+  const rev = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    window.__catedraGoView('revisoes'); await w(700);
+    // o botão da sessão diz "Começar (N)"; desabilitado quando não há revisão vencida
+    const b = [...document.querySelectorAll('#dc-root button')].find(x => /^Começar/.test((x.textContent || '').trim()) && !x.disabled);
+    if (!b) return { erro: 'sem botão "Começar" habilitado na tela de revisões' };
+    b.click(); await w(600);
+    const dlg = document.querySelector('[role=dialog][aria-label="Sessão de revisão"]');
+    if (!dlg) return { erro: 'a sessão não abriu' };
+    const lac = dlg.querySelector('.la-cloze .la-lacuna');
+    r.lacunaAntes = !!lac && lac.classList.contains('la-prazo') && !lac.classList.contains('revelada') && lac.textContent.includes('▁') && /min-width:\s*7ch/.test(lac.getAttribute('style') || '')
+      && !dlg.querySelector('.la-cloze').textContent.includes('15 dias') && dlg.querySelector('.la-cloze').textContent.includes('contados da audiência');
+    r.extraEscondidoAntes = !dlg.querySelector('.la-cloze-extra');
+    const rev = [...dlg.querySelectorAll('button')].find(x => /Já recordei/.test(x.textContent || ''));
+    rev.click(); await w(400);
+    const lac2 = dlg.querySelector('.la-cloze .la-lacuna');
+    r.reveladoMostraOTrecho = !!lac2 && lac2.classList.contains('revelada') && lac2.textContent === '15 dias';
+    r.extraDepois = !!dlg.querySelector('.la-cloze-extra') && /Prazo de 15 dias/.test(dlg.querySelector('.la-cloze-extra').textContent) && /A banca costuma trocar/.test(dlg.querySelector('.la-cloze-extra').textContent);
+    r.corDaIdentidade = getComputedStyle(lac2).borderBottomColor === getComputedStyle(lac2).getPropertyValue('--la-prazo').trim().replace(/^#(..)(..)(..)$/, (_, a, b2, c) => 'rgb(' + [a, b2, c].map(x => parseInt(x, 16)).join(', ') + ')');
+    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+    return r;
+  });
+  if (rev.erro) ok(false, 'LEITURA/CLOZE Revisar agora: ' + rev.erro);
+  else for (const [k, v] of Object.entries(rev)) ok(v, 'LEITURA/CLOZE Revisar agora ' + k);
+}
+
+// (c) o leitor: inciso junta o tronco do caput; dispositivo revogado avisa no trilho e marca o cartão
+{
+  const PARAS = ['Art. 1.240. Outro artigo, com um inciso:', 'I - primeiro inciso do artigo com prazo de 10 dias.', 'Art. 1.241. Artigo que caiu. (Revogado pela Lei nº 14.000, de 2020)'];
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
+  await page.evaluate((paras) => {
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.setItem('catedra:leitorLA', '1');
+    window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+    window.openReader(CAT.laws.find(l => /l10406/.test(l.u)));
+  }, PARAS);
+  await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .gr').length >= 3);
+  const la5l = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    const grs = document.querySelectorAll('#rdrDoc .gr');
+    const selecionar = (gr, frase) => {
+      const nos = []; const it = document.createNodeIterator(gr, NodeFilter.SHOW_TEXT); let n; while ((n = it.nextNode())) nos.push(n);
+      const no = nos.find(t => t.nodeValue.includes(frase)); if (!no) return false;
+      const range = document.createRange(); const i = no.nodeValue.indexOf(frase); range.setStart(no, i); range.setEnd(no, i + frase.length);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(range);
+      document.getElementById('rdrScroll').dispatchEvent(new MouseEvent('mouseup', { bubbles: true })); return true;
+    };
+    const tecla = k => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+    let enviado = null; window.CT_LA_CANAL.conferir = p => { enviado = p; };
+    // 1. inciso: a marca no inciso, o cartão com o tronco do caput
+    selecionar(grs[1], 'de 10 dias'); tecla('5'); await w(60);
+    document.querySelectorAll('#rdrDoc .la-trilho')[1].querySelector('.la-conferir').click(); await w(80);
+    const painel = document.getElementById('laConf');
+    r.focoJuntaOCaput = painel.querySelector('.la-foco .la-texto').textContent.startsWith('Outro artigo, com um inciso: primeiro inciso do artigo com prazo') && !!painel.querySelector('.la-lacuna.la-prazo');
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40); painel.querySelector('button[data-q="3"]').click(); await w(80);
+    r.frontDoIncisoComTronco = !!enviado && enviado.itens[0].tipo === 'cloze' && enviado.itens[0].front === 'Outro artigo, com um inciso: primeiro inciso do artigo com prazo de {{c1::10 dias}}.' && enviado.itens[0].termos.join() === '10 dias';
+    // 2. revogado: o trilho avisa antes de conferir, e o extra sai prefixado
+    const tr2 = document.querySelectorAll('#rdrDoc .la-trilho')[2];
+    r.trilhoAvisaRevogado = /Dispositivo revogado/.test(tr2.textContent) && /REVOGADO/.test(tr2.textContent);
+    enviado = null;
+    selecionar(grs[2], 'Artigo que caiu'); tecla('2'); await w(60);
+    document.querySelectorAll('#rdrDoc .la-trilho')[2].querySelector('.la-conferir').click(); await w(80);
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40); painel.querySelector('button[data-q="1"]').click(); await w(80);
+    r.extraPrefixadoRevogado = !!enviado && enviado.itens[0].situacao === 'revogado' && enviado.itens[0].extra.startsWith('(REVOGADO) CC · Art. 1.241 · O quê?');
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  });
+  for (const [k, v] of Object.entries(la5l)) ok(v, 'LEITURA/CLOZE ' + k);
 }
 
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
