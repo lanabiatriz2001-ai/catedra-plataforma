@@ -66,7 +66,7 @@ const CSS = `
 .ctr .erro{margin-top:13px;font-size:12.8px;line-height:1.6;color:var(--text2);
   background:color-mix(in srgb,var(--juris) 8%,var(--surface));
   border:1px solid color-mix(in srgb,var(--juris) 22%,transparent);
-  border-left:4px solid var(--juris);padding:10px 13px;border-radius:0 10px 10px 0}
+  padding:10px 13px;border-radius:10px}
 .ctr .erro b{color:var(--juris);font-weight:800}
 
 /* sub-itens: a ordem interna do bloco ("1.1 competência, 1.2 nulidades…") */
@@ -103,8 +103,9 @@ const CSS = `
 .ctr .dica.alerta{border-color:color-mix(in srgb,var(--juris) 30%,var(--border));
   background:color-mix(in srgb,var(--juris) 5%,var(--surface))}
 .ctr .dica.alerta i{background:var(--juris);color:#fff}
-.ctr .esp{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--rc,#5b47b8);
-  border-radius:0 12px 12px 0;padding:12px 15px;margin-bottom:9px}
+.ctr .esp{background:var(--surface);border:1px solid color-mix(in srgb,var(--rc,#5b47b8) 30%,var(--border));
+  background-image:linear-gradient(90deg,color-mix(in srgb,var(--rc,#5b47b8) 17%,transparent),transparent 46%);
+  border-radius:12px;padding:12px 15px;margin-bottom:9px}
 .ctr .esp b{display:block;font:800 14px var(--display);margin-bottom:5px;color:var(--ink)}
 .ctr .esp span{font-size:13px;line-height:1.65;color:var(--text2)}
 .ctr h4.sec{margin:22px 0 11px;font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.07em;
@@ -119,7 +120,8 @@ const CSS = `
 .ctr .cegoTopo .n em{font-style:normal;font-size:12px;color:var(--text3);font-weight:600}
 .ctr .cegoTopo .n .cron{margin-left:auto;font:700 19px var(--mono);font-variant-numeric:tabular-nums;color:var(--text2)}
 .ctr .cegoTopo .pb{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:11px}
-.ctr .cegoTopo .pb i{display:block;height:100%;border-radius:99px;background:var(--ok,#12795a);width:0;transition:width .3s}
+.ctr .cegoTopo .pb i{display:block;height:100%;border-radius:99px;background:var(--ok,#12795a);width:100%;
+  transform:translateX(-100%);transform-origin:left center;transition:transform .3s;will-change:transform}
 .ctr .cegoTopo .acs{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
 .ctr .cegoTopo .acs button{border:1px solid var(--border);background:var(--surface2);color:var(--text2);
   border-radius:9px;padding:6px 12px;font:600 12px inherit;cursor:pointer}
@@ -299,7 +301,7 @@ function pinta(){
     el.sc.innerHTML=
        '<div class="cegoTopo"><div class="n"><b data-c="n">'+f+'/'+itens.length+'</b>'
       +'<em>itens conferidos</em><span class="cron" data-c="cron">'+cronTexto()+'</span></div>'
-      +'<div class="pb"><i data-c="bar" style="width:'+(itens.length?f/itens.length*100:0)+'%"></i></div>'
+      +'<div class="pb"><i data-c="bar" style="transform:translateX('+((itens.length?f/itens.length*100:0)-100)+'%)"></i></div>'
       +'<div class="acs"><button data-c="play">▶ Cronômetro</button><button data-c="zera">↺ Zerar tempo</button>'
       +'<button data-c="limpa">Desmarcar tudo</button></div></div>'
       +'<ul class="cego">'+itens.map((t,i)=>'<li><label><input type="checkbox" data-i="'+i+'"'
@@ -310,7 +312,7 @@ function pinta(){
     const q=s=>el.sc.querySelector('[data-c='+s+']');
     const sync=()=>{ const m=lerCk()[atual]||{}, n=itens.reduce((a,_,i)=>a+(m[i]?1:0),0);
       q('n').textContent=n+'/'+itens.length;
-      q('bar').style.width=(itens.length?n/itens.length*100:0)+'%';
+      q('bar').style.transform='translateX('+((itens.length?n/itens.length*100:0)-100)+'%)';
       if(typeof API.aoMudar==='function') API.aoMudar(atual); };
     el.sc.querySelectorAll('input[type=checkbox]').forEach(cx=>{
       cx.onchange=()=>{ const o=lerCk(); o[atual]=o[atual]||{}; o[atual][cx.dataset.i]=cx.checked; gravaCk(o); sync(); };

@@ -12,11 +12,14 @@
   --ink:#1b1b1f;--text2:#4b4a52;--text3:#7d7a86;
   --accent:#b5174e;--accentD:#8e0f3c;--accentSoft:#fbeef3;--onAccent:#ffffff;
   --ok:#12795a;--meio:#9a6b00;--nao:#b93a2b;--neutro:#5f6368;
-  --display:Georgia,serif;--body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:ui-monospace,Menlo,monospace;
+  --display:'Spectral',Georgia,serif;--body:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  /* Escala de texto: quatro degraus a ~1.25 de razao. Antes eram oito ou nove
+     tamanhos entre 10.5px e 20px, tao proximos que nenhum estabelecia hierarquia. */
+  --t-micro:12px;--t-corpo:15px;--t-titulo:19px;--t-display:24px;
   --sh:0 1px 2px rgba(20,15,10,.05),0 4px 14px rgba(20,15,10,.05);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:var(--t-corpo);line-height:1.5;
   -webkit-font-smoothing:antialiased}
 button,input,select,textarea{font-family:inherit}
 ::-webkit-scrollbar{width:10px;height:9px}
@@ -32,7 +35,7 @@ button,input,select,textarea{font-family:inherit}
    Forte = o que estrutura a leitura (a seção, o quesito). Fraco = metadado. */
 .rot-forte{font:800 11px/1.3 var(--mono,ui-monospace,Menlo,monospace);letter-spacing:.09em;
   text-transform:uppercase;color:var(--accent,#b5174e)}
-.rot-fraco{font:700 10px/1.3 var(--body,-apple-system,sans-serif);letter-spacing:0;
+.rot-fraco{font:700 10px/1.3 var(--body,'Inter',system-ui,sans-serif);letter-spacing:0;
   text-transform:uppercase;color:var(--text2,#4b4a52)}
 
 .top{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--border)}
@@ -41,14 +44,14 @@ button,input,select,textarea{font-family:inherit}
 .brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font:800 15px var(--mono);flex:none}
 .brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
-.brand small{display:block;font-size:11.5px;color:var(--text2);margin-top:4px}
+.brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
 .sp{flex:1}
 .sel,.inp{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:11px;
   padding:9px 12px;font-size:var(--fs-sm,13px);min-height:var(--control-h,34px);outline:none;flex:none}
 .sel{cursor:pointer}.inp{min-width:180px;flex:1}
 .sel:focus,.inp:focus{border-color:var(--accent)}
 .bt{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);
-  border-radius:11px;padding:9px 15px;font-size:13px;font-weight:700}
+  border-radius:11px;padding:9px 15px;font-size:var(--t-corpo);font-weight:700}
 .bt:hover{border-color:var(--accent);background:var(--accentSoft)}
 .bt.pri{background:var(--accent);border-color:var(--accent);color:var(--onAccent)}
 .bt.pri:hover{background:var(--accentD)}
@@ -61,7 +64,7 @@ button,input,select,textarea{font-family:inherit}
 .maisit{display:contents}
 
 .wrap{padding:20px 18px 80px;max-width:1120px;margin:0 auto}
-.dica{font-size:12.8px;color:var(--text2);line-height:1.65;margin:0 0 18px;max-width:84ch}
+.dica{font-size:var(--t-micro);color:var(--text2);line-height:1.65;margin:0 0 18px;max-width:84ch}
 .dica b{color:var(--ink)}
 
 .pcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;
@@ -69,11 +72,11 @@ button,input,select,textarea{font-family:inherit}
 .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .pcab{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
 .pcab b{font:800 16px var(--display)}
-.pmeta{font-size:12px;color:var(--text2)}
+.pmeta{font-size:var(--t-micro);color:var(--text2)}
 .pmeta i{font-style:normal;font-weight:800;font-variant-numeric:tabular-nums}
-.temas{font-size:11.5px;color:var(--text2);line-height:1.5}
+.temas{font-size:var(--t-micro);color:var(--text2);line-height:1.5}
 .plinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
-.plinks a{font-size:11.5px;color:var(--accentD);text-decoration:none;border-bottom:1px solid var(--border)}
+.plinks a{font-size:var(--t-micro);color:var(--accentD);text-decoration:none;border-bottom:1px solid var(--border)}
 .plinks a:hover{border-color:var(--accent)}
 .pacoes{display:flex;gap:8px;margin-top:4px}
 
@@ -83,16 +86,16 @@ button,input,select,textarea{font-family:inherit}
 .cron{font:800 26px var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .cron.fim{color:var(--nao)}
 .folha{width:100%;min-height:56vh;border:1px solid var(--border);border-radius:14px;background:var(--surface);
-  padding:18px 20px;font-family:var(--display);font-size:15.5px;line-height:1.75;color:var(--ink);
+  padding:18px 20px;font-family:var(--display);font-size:var(--t-titulo);line-height:1.75;color:var(--ink);
   outline:none;resize:vertical}
 .folha:focus{border-color:var(--accent)}
-.conta{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--text2);font-weight:600;margin-top:8px}
+.conta{display:flex;gap:16px;flex-wrap:wrap;font-size:var(--t-micro);color:var(--text2);font-weight:600;margin-top:8px}
 .conta b{color:var(--text2);font-variant-numeric:tabular-nums}
 details.instr{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:14px}
-details.instr summary{cursor:pointer;font-weight:800;font-size:13px}
-details.instr ul{margin:10px 0 0;padding-left:20px;font-size:12.5px;color:var(--text2);line-height:1.6}
+details.instr summary{cursor:pointer;font-weight:800;font-size:var(--t-corpo)}
+details.instr ul{margin:10px 0 0;padding-left:20px;font-size:var(--t-micro);color:var(--text2);line-height:1.6}
 .aviso{background:color-mix(in srgb,var(--nao) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--nao) 35%,var(--border));
-  border-radius:14px;padding:12px 15px;margin-bottom:14px;font-size:13px;color:var(--text2)}
+  border-radius:14px;padding:12px 15px;margin-bottom:14px;font-size:var(--t-corpo);color:var(--text2)}
 .aviso b{color:var(--nao)}
 
 .nota{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
@@ -100,40 +103,41 @@ details.instr ul{margin:10px 0 0;padding-left:20px;font-size:12.5px;color:var(--
 .nota b{display:block;font:800 24px/1 var(--display);font-variant-numeric:tabular-nums}
 .nota span{display:block;margin-top:5px}
 
-.q{background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--vc,var(--neutro));
+.q{background:var(--surface);border:1px solid color-mix(in srgb,var(--vc,var(--neutro)) 38%,var(--border));
+  background-image:linear-gradient(90deg,color-mix(in srgb,var(--vc,var(--neutro)) 18%,transparent),transparent 46%);
   border-radius:14px;padding:13px 16px;margin-bottom:10px;box-shadow:var(--sh)}
 .qh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-.qh .tema{font:800 14.5px var(--display);flex:1;min-width:160px}
-.qh .pt{font:800 12px var(--mono);color:var(--accentD);background:var(--accentSoft);border-radius:99px;padding:3px 10px}
+.qh .tema{font:700 var(--t-corpo) var(--display);letter-spacing:-.01em;flex:1;min-width:160px}
+.qh .pt{font:600 var(--t-titulo)/1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums;margin-left:auto;text-align:right}
 .qh .dc{border:1px solid var(--border);border-radius:99px;padding:2px 9px}
-.exig{font-size:13px;color:var(--text2);line-height:1.6;margin:0 0 9px}
+.exig{font-family:'Spectral',Georgia,serif;font-size:var(--t-corpo);color:var(--ink);line-height:1.55;margin:0 0 9px}
 .disp{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
-.disp button{font-size:11.5px;border-radius:99px;padding:3px 11px;border:1px solid var(--border);
+.disp button{font-size:var(--t-micro);border-radius:99px;padding:3px 11px;border:1px solid var(--border);
   color:var(--text2);background:transparent;cursor:pointer;text-align:left}
 .disp button.sim{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--border));
   background:color-mix(in srgb,var(--ok) 8%,transparent)}
 .disp button.nao{color:var(--nao);border-color:color-mix(in srgb,var(--nao) 35%,var(--border))}
-.cob{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--text2);font-weight:600;margin-bottom:9px}
+.cob{display:flex;align-items:center;gap:9px;font-size:var(--t-micro);color:var(--text2);font-weight:600;margin-bottom:9px}
 .cob .pb{flex:1;max-width:220px;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden}
 .cob .pb i{display:block;height:100%;background:var(--meio);border-radius:99px}
-.faltou{font-size:11.5px;color:var(--text2);line-height:1.55;margin-bottom:9px}
+.faltou{font-size:var(--t-micro);color:var(--text2);line-height:1.55;margin-bottom:9px}
 .faltou b{color:var(--ink)}
 .ver{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .vb{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .ver button{cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--text2);
-  border-radius:99px;padding:5px 13px;font-size:12px;font-weight:700}
+  border-radius:99px;padding:5px 13px;font-size:var(--t-micro);font-weight:700}
 .ver button.on[data-v=atendeu]{background:var(--ok);border-color:var(--ok);color:#fff}
 .ver button.on[data-v=parcial]{background:var(--meio);border-color:var(--meio);color:#fff}
 .ver button.on[data-v=nao]{background:var(--nao);border-color:var(--nao);color:#fff}
-.ver .sug{font-size:11px;color:var(--text2);margin-left:4px}
+.ver .sug{font-size:var(--t-micro);color:var(--text2);margin-left:4px}
 
 .hist{margin-top:26px;border-top:1px solid var(--border);padding-top:16px}
 .hist h3{margin:0 0 10px;font:800 15px var(--display)}
 .hrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;padding:9px 14px;margin-bottom:8px;font-size:12.5px}
+  border-radius:12px;padding:9px 14px;margin-bottom:8px;font-size:var(--t-micro)}
 .hrow b{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .hrow .sp{flex:1}
-.vazio{padding:40px 16px;text-align:center;color:var(--text2);font-size:13px;line-height:1.7;
+.vazio{padding:40px 16px;text-align:center;color:var(--text2);font-size:var(--t-corpo);line-height:1.7;
   background:var(--surface);border:1px dashed var(--border);border-radius:14px}
 @media print{ .top,.barra,.pacoes,.ver,.bt,.mais{display:none!important} .q{break-inside:avoid} }
 @media (max-width:640px){ .l1{padding:11px 12px} .wrap{padding:16px 12px 60px} .brand small{display:none}
@@ -141,7 +145,7 @@ details.instr ul{margin:10px 0 0;padding-left:20px;font-size:12.5px;color:var(--
   /* o rótulo da prova é longo ("Correção · TJ-RJ 2026 · Discursiva") e, preso em
      flex:none, empurrava o cabeçalho para fora da tela em 320px */
   .brand{flex:1 1 100%;min-width:0}
-  .brand b{font-size:16px;overflow-wrap:anywhere}
+  .brand b{font-size:var(--t-titulo);overflow-wrap:anywhere}
   /* D8 — alvo de toque de 44px em tudo que se aperta com o dedo */
   .bt,.sel,.inp{min-height:44px}
   .bt{display:inline-flex;align-items:center;justify-content:center}
