@@ -8,7 +8,9 @@
   'use strict';
   var AREAS = [
     { id: 'constitucional', nome: 'Direito Constitucional', cota: 16,
-      disciplinasApp: ['Direito Constitucional', 'Direito Constitucional do Trabalho', 'Direito Tributário', 'Normas Constitucionais de Processo Penal'],
+      // nota do quadro 8.6 (igual nos cinco editais, 2024.1 a 2026.1): "podendo ser incluídas questões de
+      // Direito Constitucional do Trabalho, Direito Constitucional Tributário e Normas Constitucionais de Processo Penal"
+      disciplinasApp: ['Direito Constitucional', 'Direito Constitucional do Trabalho', 'Direito Constitucional Tributário', 'Normas Constitucionais de Processo Penal'],
       cabecalhos: ['DIREITO CONSTITUCIONAL'] },
     { id: 'administrativo', nome: 'Direito Administrativo', cota: 10,
       disciplinasApp: ['Direito Administrativo'], cabecalhos: ['DIREITO ADMINISTRATIVO'] },

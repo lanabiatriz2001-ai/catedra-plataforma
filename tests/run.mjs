@@ -1504,6 +1504,22 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
   ok(new Set(questoes.map(q => q.id)).size === 400 && questoes.every(q => /^enam-20\d\d\.[12]-\d{3}$/.test(q.id)), 'ENAM ids únicos no formato enam-<edição>-<nnn>');
   ok(questoes.every(q => q.anulada ? q.gabarito === '' : /^[A-E]$/.test(q.gabarito)), 'ENAM gabarito A–E em toda questão não anulada, vazio na anulada');
   ok(questoes.every(q => q.alternativas.length === 5 && q.enunciado.length >= 40 && q.alternativas.every(a => a.texto.length > 0)), 'ENAM 5 alternativas, enunciado ≥ 40 e alternativa nunca vazia');
+  // a auditoria de 02/09 pegou o "Realização" da contracapa colado na alternativa E da questão 80 e o
+  // marcador U+F020 da moldura de 2024.1 no fim da última alternativa de cada página: nunca mais
+  ok(questoes.every(q => q.alternativas.every(a => !/\bRealização$/.test(a.texto) && !/[\uE000-\uF8FF]/.test(a.texto)) && !/[\uE000-\uF8FF]/.test(q.enunciado)),
+    'ENAM nenhuma alternativa termina na contracapa ("Realização") nem carrega glifo privado da moldura');
+  ok(questoes.every(q => !/(Al[ée]m deste caderno|cart[ãa]o de respostas|fiscal de (sala|prova)|P[ÁA]GINA \d|FGV CONHECIMENTO)/.test(q.enunciado + ' ' + q.alternativas.map(a => a.texto).join(' '))),
+    'ENAM nenhuma questão traz frase de capa, instrução ou moldura de página');
+  // 2024.1 traz a tabela de correspondência entre os quatro tipos: o gabarito do tipo 1 tem de bater
+  // com os dos tipos 2, 3 e 4 questão a questão (240 comparações) — é a prova de que o parser lê o bloco certo
+  {
+    const t = fs.readFileSync(path.join(RAIZ, 'scripts', 'fontes', 'enam', 'gabarito-2024.1.txt'), 'utf8');
+    const g = {}; for (const tipo of [1, 2, 3, 4]) g[tipo] = parseGabaritoEnam(t, tipo);
+    const tab = t.slice(t.indexOf('TABELA DE CORRESPOND')); const toks = tab.slice(tab.lastIndexOf('TIPO 4') + 6).replace(/P[áa]gina\s*[–-]?\s*\d+/gi, ' ').split(/\s+/).filter(x => /^\d{1,2}$/.test(x)).map(Number);
+    const corr = {}; for (let k = 0; k + 3 < toks.length; k += 4) corr[toks[k]] = { 2: toks[k + 1], 3: toks[k + 2], 4: toks[k + 3] };
+    let iguais = 0; for (let q = 1; q <= 80; q++) for (const tipo of [2, 3, 4]) if (corr[q] && g[1].respostas[q] === g[tipo].respostas[corr[q][tipo]]) iguais++;
+    ok([1, 2, 3, 4].every(k => !g[k].erro && Object.keys(g[k].respostas).length === 80) && iguais === 240, 'ENAM 2024.1: gabarito do tipo 1 bate com os tipos 2, 3 e 4 pela tabela de correspondência (' + iguais + '/240)');
+  }
   ok(questoes.every(q => q.disciplina && q.fonte.startsWith('FGV/ENFAM') && EDICOES_ENAM.some(e => e.id === q.edicao)), 'ENAM toda questão diz a disciplina e a fonte oficial');
   ok(questoes.every(q => Array.isArray(q.refs) && q.refs.every(r => (q.enunciado + ' ' + q.alternativas.map(a => a.texto).join(' ')).toLowerCase().includes(r.toLowerCase()))), 'ENAM a referência normativa só aponta o que o próprio texto diz');
   // o arquivo gerado bate com o build (ninguém editou à mão)
