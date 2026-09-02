@@ -66,13 +66,35 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
     }
   };
 
-  const semRede = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '' });
-  ok(semRede.code === 1, 'D9 build sem rede FALHA (exit 1) em vez de publicar dependendo de CDN');
-  ok(/BUILD ABORTADO/.test(semRede.saida), 'D9 a falha explica o que houve');
-  ok(/CT_PERMITE_CDN/.test(semRede.saida), 'D9 a falha diz qual é a saída de emergência');
-
-  const comFlag = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '1' });
-  ok(comFlag.code === 0, 'D9 CT_PERMITE_CDN=1 ainda permite build degradado (debug)');
+  /* MUDOU O QUE ESTE BLOCO PROVA, e para melhor. Antes o build BAIXAVA as fontes do
+     Google a cada publicação, então "sem rede" tinha de abortar — publicar dependendo de
+     CDN seria pior. Isso protegia a web e deixava os apps NATIVOS de fora: eles empacotam
+     o Catedra.dc.html direto, sem passar pelo build, e lá o <link> do Google continuava.
+     Sem internet, no aparelho de estudo, a tipografia caía inteira.
+     As faces passaram a ser versionadas em fonts/ e declaradas no catedra-ui.css. Com
+     isso o build não pede nada à rede: em vez de abortar, ele PUBLICA. A asserção que
+     antes exigia falha agora exige sucesso — e o CT_PERMITE_CDN deixou de existir, porque
+     não há mais CDN de onde depender. */
+  const semRede = rodar({ NODE_OPTIONS: '--require ' + stub });
+  /* Sem rede o build ainda para — mas agora por causa das BIBLIOTECAS (react, supabase),
+     que continuam sendo vendoradas da internet. O que mudou é que as FONTES saíram dessa
+     lista: elas não são mais motivo de aborto. A asserção mira a causa, não o código de
+     saída, senão ela passaria a medir o vendor das libs sem querer. */
+  ok(!/vendorar as fontes|fonts\.googleapis|fonts\.gstatic/.test(semRede.saida),
+     'D9 sem rede, as fontes NÃO são mais motivo de aborto');
+  const fontesPub = path.join(RAIZ, 'public', 'fonts');
+  ok(fs.existsSync(fontesPub) && fs.readdirSync(fontesPub).filter(f => f.endsWith('.woff2')).length >= 20,
+     'D9 as 20 faces chegam a public/fonts mesmo sem rede');
+  /* O CT_PERMITE_CDN continua existindo para as BIBLIOTECAS (React, supabase), que ainda
+     são vendoradas da rede. O que saiu foi o uso dele nas FONTES: elas não têm mais de
+     onde falhar. A asserção mira a função, não o arquivo inteiro. */
+  const buildSrc = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
+  const fnFontes = buildSrc.slice(buildSrc.indexOf('async function vendorarFontes()'),
+                                 buildSrc.indexOf("return './fonts.css';"));
+  // sem os comentários: o texto explicativo cita o nome do flag ao contar que ele saiu
+  const fnSemComentario = fnFontes.replace(/\/\*[\s\S]*?\*\//g, '');
+  ok(!/PERMITE_CDN/.test(fnSemComentario), 'D9 as fontes não têm mais saída de emergência para CDN');
+  ok(!/fonts\.gstatic|fonts\.googleapis/.test(fnFontes), 'D9 a função de fontes não fala com o Google');
 
   // build normal: nada de terceiro sobra no HTML publicado
   const normal = rodar({});
@@ -125,8 +147,17 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
     'U10 a casca traz os três scripts do <head> (antes só entravam depois da 1a visita)');
   ok(casca.some(p => /^\.\/vendor\//.test(p)) && naCasca('./fonts.css') && casca.some(p => /^\.\/fonts\//.test(p)),
     'U10 a casca traz as libs vendoradas e as fontes locais');
-  ok(!casca.some(p => /cyrillic|greek|vietnamese/.test(p)) && casca.filter(p => /^\.\/fonts\//.test(p)).length < 20,
-    'U10 só os subconjuntos latinos das fontes entram no precache');
+  /* O `< 20` daqui era a marca de quando o build baixava 48 faces do Google e só algumas
+     latinas entravam na casca. Com as faces versionadas em fonts/, TODAS as que existem
+     são latinas — são exatamente 20 — e o número virou coincidência com o limite antigo.
+     A asserção passa a dizer o que importa: nada de alfabeto que este app não usa, e a
+     casca leva exatamente o que o repositório tem (nem sobra velharia, nem falta face). */
+  const facesNoRepo = fs.readdirSync(path.join(RAIZ, 'fonts')).filter(f => f.endsWith('.woff2')).length;
+  const facesNaCasca = casca.filter(p => /^\.\/fonts\//.test(p)).length;
+  ok(!casca.some(p => /cyrillic|greek|vietnamese/.test(p)),
+    'U10 nenhum subconjunto não-latino entra no precache');
+  ok(facesNaCasca === facesNoRepo,
+    'U10 a casca leva exatamente as faces do repositório (' + facesNaCasca + ' de ' + facesNoRepo + ')');
   ok(casca.filter(p => /\/dados\/[^/]+\/manifesto\.json$/.test(p)).length >= 1,
     'U10 os manifestos dos acervos fatiados entram na casca (sem eles o CTDados desiste offline)');
 
@@ -1111,7 +1142,7 @@ const d1 = await page.evaluate(async () => {
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
   // D11 mudou a cor de destaque de lugar: ela mora na aba Aparência, nao mais solta na pagina
-  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (abaAp) { abaAp.click(); await w(700); }
   const cores = [...document.querySelectorAll('main button[data-c]')];
   const alvo = cores.find(c => c.dataset.c && c.dataset.c !== a.accent);
@@ -1331,13 +1362,22 @@ const d2b = await page.evaluate(async () => {
   for (const v of views) {
     const b = document.querySelector('button[data-view="' + v + '"]');
     if (!b) { r.telas[v] = 'sem botão no menu'; continue; }
-    b.click(); await w(1900);
-    const f = document.querySelector('iframe[data-ct-view="' + v + '"]');
+    b.click();
+    /* Espera até o satélite ter conteúdo, e não um tempo fixo: 1900ms bastava para o
+       Ritos e faltava para o JURIS (15 mil verbetes + índice de 2 MB), e o teste falhava
+       de forma intermitente — sem nada de errado no app. O teto de 12s é rede de
+       segurança; o caso normal sai em muito menos. */
+    let f = null, corpo = 0, embed = null;
+    for (let t = 0; t < 60; t++) {
+      await w(200);
+      f = document.querySelector('iframe[data-ct-view="' + v + '"]');
+      if (!f) continue;
+      try { corpo = (f.contentDocument.body.innerText || '').trim().length;
+            embed = f.contentDocument.documentElement.getAttribute('data-ct-embed'); } catch (e) {}
+      if (corpo > 200 && embed === '1') break;
+    }
     if (!f) { r.telas[v] = 'sem iframe'; continue; }
     const src = f.getAttribute('src') || '';
-    let corpo = 0, embed = null;
-    try { corpo = (f.contentDocument.body.innerText || '').trim().length;
-          embed = f.contentDocument.documentElement.getAttribute('data-ct-embed'); } catch (e) {}
     r.telas[v] = { embedNaURL: /embed=1/.test(src), embedAplicado: embed === '1', temConteudo: corpo > 200 };
   }
   return r;
@@ -2548,7 +2588,7 @@ const u7 = await page.evaluate(async () => {
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
   // D11: Claro/Escuro/Auto vivem na aba Aparência, junto do resto do visual
-  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (abaAp) { abaAp.click(); await w(700); }
   const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
   const r = { temBotaoAuto: !!btn('Auto') };
@@ -2891,10 +2931,13 @@ const d11 = await page.evaluate(async () => {
   const r = {};
   try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
   await w(1200);
-  const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-t]')];
+  const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-s]')];
   const abas = abasEl().map(b => b.textContent.trim());
   r.seisAbas = abas.length === 6;
-  r.abasPorAssunto = ['Você', 'Estudo', 'banca', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  // Ajustes refeito: seis SEÇÕES, sem "Método da banca" (o perfil da banca vive na tela
+  // Bancas; nos Ajustes ficou só o seletor, dentro de Ritmo) e com Automações à parte.
+  r.abasPorAssunto = ['Perfil', 'Ritmo', 'Automações', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  r.semAbaDeBanca = !abas.some(x => /banca/i.test(x));
   const barra = document.querySelector('main .aj-abas');
   r.abasGrudamNoTopo = !!barra && getComputedStyle(barra).position === 'sticky';
 
@@ -2902,6 +2945,7 @@ const d11 = await page.evaluate(async () => {
   const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
   r.temBusca = !!busca;
   const procurar = async (q) => { busca.value = q; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(450);
+    // os resultados são os botões data-t; data-s são as seções, que não mudam com a busca
     return [...document.querySelectorAll('main .aj-abas button[data-t]')].map(b => b.textContent).join(' '); };
   if (busca) {
     r.achaBackup = /[Bb]ackup/.test(await procurar('backup'));
@@ -2931,7 +2975,7 @@ const d11 = await page.evaluate(async () => {
   r.temBackupAutomatico = /Backup automático semanal/.test(t);
   r.perigoIsolado = /Zona de perigo/.test(t) && /Não dá para desfazer/.test(t);
 
-  r.abreConta = await clicaAba(/^Conta$/);
+  r.abreConta = await clicaAba(/Conta/);
   r.contaTemSair = /Sair da conta/.test(corpo());
   return r;
 });
@@ -2947,7 +2991,7 @@ const rev1 = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
   await w(1000);
-  const ap = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const ap = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (!ap) return { erro: 'sem aba Aparência' };
   ap.click(); await w(600);
   const naAba = /Escolhas rápidas/.test(document.body.innerText);
@@ -2982,14 +3026,14 @@ const rev3 = await page.evaluate(async () => {
   const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
   if (!busca) return { erro: 'sem busca nos Ajustes' };
   busca.value = 'backup'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
-  const alvo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
-  const abaDoFlash = alvo ? alvo.getAttribute('data-t') : null;
   busca.value = 'flashcards'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
+  // os RESULTADOS da busca seguem com data-t (a seção de destino); as seções em si usam data-s
   const flash = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
-  const r = { flashApontaParaDados: !!flash && flash.getAttribute('data-t') === 'dados' };
-  // trocar de aba com a busca ativa não pode deixar cartão escondido
-  const abaEstudo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Estudo/.test(b.textContent));
-  if (abaEstudo) { abaEstudo.click(); await w(800); }
+  // Flashcards é ajuste de ESTUDO, não de backup: na tela refeita ele mora em Ritmo e metas
+  const r = { flashApontaParaRitmo: !!flash && flash.getAttribute('data-t') === 'ritmo' };
+  // trocar de seção com a busca ativa não pode deixar cartão escondido
+  const secRitmo = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Ritmo/.test(b.textContent));
+  if (secRitmo) { secRitmo.click(); await w(800); }
   const escondidos = [...document.querySelectorAll('main [data-aj]')].filter(e => e.style.display === 'none');
   r.nenhumCartaoFicaEscondido = escondidos.length === 0;
   r.buscaFoiLimpa = (document.querySelector('main input[aria-label="Buscar nos ajustes"]') || {}).value === '';
@@ -3653,8 +3697,11 @@ const AUDITOR = () => {
     };
     const buscar = async (termo) => {
       const i = await abrirPaleta(); if (!i) return null;
-      i.value = termo; i.dispatchEvent(new Event('input', { bubbles: true })); await w(1400);
-      const t = document.body.innerText;
+      i.value = termo; i.dispatchEvent(new Event('input', { bubbles: true }));
+      // a paleta busca em índices que carregam sob demanda; espera o resultado aparecer
+      let t = '';
+      for (let k = 0; k < 40; k++) { await w(150); t = document.body.innerText;
+        if (new RegExp(termo, 'i').test(t.slice(t.indexOf('Buscar em toda a plataforma')))) break; }
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(400);
       return t;
     };
@@ -4278,7 +4325,7 @@ const AUDITOR = () => {
       return false;
     };
     if (!await irAjustes()) { URL.createObjectURL = criar; return { semBotaoExportar: true }; }
-    const abaDados = document.querySelector('button[data-t="dados"]');
+    const abaDados = document.querySelector('main button[data-s="dados"]');
     if (abaDados) { abaDados.click(); await w(700); }
     const exp = bt(/exportar backup/i); if (!exp) { URL.createObjectURL = criar; return { semBotaoExportar: true }; }
     exp.click(); await w(900);
@@ -4307,7 +4354,7 @@ const AUDITOR = () => {
       let aj = bt2(/^ajustes$/i);
       if (!aj) { const mais = bt2(/^mais opções$/i); if (mais) { mais.click(); await w(500); aj = bt2(/^ajustes$/i); } }
       if (aj) { aj.click(); await w(900); }
-      const abaDados = document.querySelector('button[data-t="dados"]');
+      const abaDados = document.querySelector('main button[data-s="dados"]');
       if (abaDados) { abaDados.click(); await w(700); }
       const imp = bt(/importar dados|importar backup/i);
       if (!imp) { document.createElement = criarEl; return { semBotaoImportar: true }; }
@@ -4385,20 +4432,19 @@ const AUDITOR = () => {
     if (!aj) { const mais = bt(/^mais opções$/i); if (mais) { mais.click(); await w(500); aj = bt(/^ajustes$/i); } }
     out.achouAjustes = !!aj;
     if (aj) { aj.click(); await w(900); }
-    const abaBanca = document.querySelector('button[data-t="banca"]');
-    out.achouAbaBanca = !!abaBanca;          // seletor sumiu → vermelho, não silêncio
-    if (abaBanca) { abaBanca.click(); await w(800); }
-    /* A prova de abertura precisa ser EXCLUSIVA do painel. "estilo|formato|foco" já casava
-       na aba "Você" ("tom e foco", "ESTILO DE COBRANÇA"), então o bloco inteiro ficava verde
-       mesmo sem a aba nunca ter aberto — e mediria uma aba que é limpa por natureza. */
-    const painel = document.querySelector('#aj-banca-painel');
-    out.abaBancaAbriu = !!painel;
-    const txtPainel = painel ? painel.innerText : '';
-    out.abaBancaTemConteudo = /formato das questões/i.test(txtPainel);
-    out.abaBancaLimpa = !!painel && !JUR.test(txtPainel);
-    // e a concordância não pode quebrar ao trocar o vocabulário ("a texto das diretrizes")
-    out.abaBancaConcorda = !!painel
-      && !/\b(?:a|as|na|nas)\s+texto\b|\bo\s+literalidade\b/i.test(txtPainel);
+    /* Ajustes refeito: a aba "Método da banca" saiu (o perfil de cada banca é a tela
+       Bancas, e ter os dois era a mesma informação em dois lugares). Nos Ajustes sobrou
+       só o SELETOR da banca principal, dentro de Ritmo e metas — é ele que decide a
+       correção por nota líquida C−E. O que se cobra aqui agora é isso: a aba não existe
+       mais e o seletor não se perdeu no caminho. */
+    out.semAbaDeBanca = !document.querySelector('main .aj-abas button[data-s="banca"]');
+    const secRitmo = document.querySelector('main .aj-abas button[data-s="ritmo"]');
+    out.achouSecaoRitmo = !!secRitmo;
+    if (secRitmo) { secRitmo.click(); await w(800); }
+    const sel = document.querySelector('#aj-f-banca');
+    out.seletorDeBancaVive = !!sel;
+    out.seletorTemAsBancas = !!sel && sel.querySelectorAll('option').length >= 5;
+    out.ajustesSemPerfilDeBanca = !/formato das questões/i.test(document.querySelector('main').innerText);
     return out;
   });
   for (const [k, v] of Object.entries(f4banca)) ok(v, 'FASE4 banca ' + k);
@@ -4586,6 +4632,11 @@ const AUDITOR = () => {
       return !!b;
     };
     if (!await ir('ajustes')) return { erro: 'não achei a entrada de Ajustes' };
+    // Ajustes refeito: automações e alertas ganharam seção própria. Antes o bloco de
+    // alertas ficava FORA de qualquer portão de aba e aparecia em todas — era bug, não
+    // referência; agora o caminho até os interruptores passa pela seção.
+    const secAuto = document.querySelector('main .aj-abas button[data-s="automacoes"]');
+    if (secAuto) { secAuto.click(); await w(800); }
     const sws = [...document.querySelectorAll('[role="switch"]')];
     if (!sws.length) return { erro: 'nenhum interruptor com papel' };
     const r = {
@@ -5140,6 +5191,493 @@ await page.waitForTimeout(300);
 const depoisDoEnd = await page.evaluate(() => window.scrollY);
 ok(depoisDaRoda === antesDeRolar, 'GATE a roda do mouse não rola o app atrás do login');
 ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do login');
+
+// ===== TEMA: as oito direções visuais têm de FIXAR =====
+// A regressão que motivou isto: Aurora, Solar, Terminal e Holo eram gravadas em
+// catedra:dir e RECUSADAS na releitura por uma lista de quatro nomes que ficou para
+// trás quando as quatro novas entraram. Escolher, recarregar e voltar para "Planilha".
+{
+  const fonte = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  const dirs = JSON.parse((fonte.match(/const CT_DIRS = (\[[^\]]*\]);/) || [])[1].replace(/'/g, '"'));
+  // toda direção oferecida na tela precisa estar na lista única…
+  const naTela = [...new Set([...fonte.matchAll(/data-dir="([a-z]+)"/g)].map(m => m[1]))];
+  ok(naTela.length >= 8, 'TEMA a tela oferece as oito direções visuais');
+  ok(naTela.every(d => dirs.includes(d)), 'TEMA toda direção da tela está em CT_DIRS');
+  // …e toda direção da lista precisa existir de verdade em THEMES()
+  const temas = [...new Set([...fonte.matchAll(/^\s{4}([a-z]+):\{ label:'/gm)].map(m => m[1]))];
+  ok(dirs.every(d => temas.includes(d)), 'TEMA toda direção de CT_DIRS existe em THEMES()');
+  // nenhuma cópia da lista sobrou por aí
+  ok(!/\['sutil','premium','clean','moderno'\]/.test(fonte), 'TEMA nenhuma lista de direções duplicada no código');
+
+  // e o que importa de verdade: escolher, recarregar e a cor continuar lá
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  for (const d of dirs) {
+    await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(700);
+    // o data-dir do nó raiz (o único que também tem data-dark) é o tema REALMENTE aplicado
+    const vivo = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir'));
+    ok(vivo === d, 'TEMA a direção "' + d + '" sobrevive ao recarregar');
+  }
+
+  /* SINCRONIZAÇÃO DO TEMA. O auth.js escreve 'catedra:dir'/'catedra:dark'/'catedra:accent'
+     DIRETO no localStorage (isData() sincroniza toda chave 'catedra:'), sem passar por
+     setter do componente. Antes, _rehydrateFromLocal não relia essas três, e o app seguia
+     pintando o tema velho até alguém recarregar — e o LEGIS/JURIS nativo, que lê
+     'catedra:dark', recebia a resposta errada e escrevia branco no cartão branco.
+     O teste imita a nuvem: escreve a chave e dispara 'catedra:synced', sem recarregar. */
+  {
+    await page.evaluate(() => localStorage.setItem('catedra:dir', 'sutil'));
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(700);
+    const antes = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir'));
+    ok(antes === 'sutil', 'TEMA/SYNC parte de "sutil"');
+
+    const depois = await page.evaluate(async () => {
+      localStorage.setItem('catedra:dir', 'terminal');            // a nuvem escreve…
+      window.dispatchEvent(new Event('catedra:synced'));          // …e avisa
+      await new Promise(r => setTimeout(r, 500));
+      return document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir');
+    });
+    ok(depois === 'terminal', 'TEMA/SYNC a direção vinda da nuvem repinta sem recarregar');
+
+    const escuro = await page.evaluate(async () => {
+      localStorage.setItem('catedra:dark', '1');
+      window.dispatchEvent(new Event('catedra:synced'));
+      await new Promise(r => setTimeout(r, 500));
+      return document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark');
+    });
+    ok(escuro === '1', 'TEMA/SYNC o claro/escuro vindo da nuvem repinta sem recarregar');
+
+    // e a chave não pode divergir do que está pintado — era a raiz do texto sumido no LEGIS
+    const coerente = await page.evaluate(() => {
+      const el = document.querySelector('[data-dark][data-dir]');
+      return el.getAttribute('data-dark') === (localStorage.getItem('catedra:dark') === '1' ? '1' : '0');
+    });
+    ok(coerente, 'TEMA/SYNC a chave catedra:dark bate com o que está pintado');
+  }
+
+  /* A ESCOLHA DA PESSOA VENCE O SYNC — e este teste existe por um estrago real.
+     Quando a reidratação passou a reler `catedra:dark`, ela ganhou da escolha manual:
+     a dona do app punha CLARO e o primeiro sync trazia o escuro guardado de volta,
+     repintando por cima. "Não para mais no claro" foi como ela descreveu.
+     Agora só um valor CARIMBADO DEPOIS da escolha pode substituí-la. As duas asserções
+     abaixo prendem as duas pontas: a escolha aguenta o valor velho, e o valor novo de
+     outro aparelho continua chegando (senão o conserto anterior morria junto). */
+  {
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate(() => {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:dark', '1');
+      localStorage.setItem('catedra:_kts', JSON.stringify({ 'catedra:dark': new Date('2026-08-18').getTime() }));
+    });
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(900);
+    // a pessoa escolhe CLARO na tela de Ajustes
+    await page.evaluate(() => {
+      document.querySelector('[role="dialog"]')?.remove();
+      document.querySelector('button[data-view="ajustes"]')?.click();
+    });
+    await page.waitForTimeout(500);
+    await page.evaluate(() => {
+      [...document.querySelectorAll('button[data-s]')].find(b => /apar[êe]ncia/i.test(b.textContent))?.click();
+    });
+    await page.waitForTimeout(400);
+    await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.dataset.v === 'light')?.click());
+    await page.waitForTimeout(500);
+    // chega um sync com o valor VELHO (carimbo de agosto): não pode desfazer a escolha
+    await page.evaluate(() => { localStorage.setItem('catedra:dark', '1'); window.dispatchEvent(new Event('catedra:synced')); });
+    await page.waitForTimeout(800);
+    const aguentou = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark'));
+    ok(aguentou === '0', 'TEMA/SYNC a escolha manual de claro NÃO é desfeita por sync com valor velho');
+
+    // e um sync com valor MAIS NOVO que a escolha continua chegando
+    await page.evaluate(() => {
+      localStorage.setItem('catedra:dark', '1');
+      localStorage.setItem('catedra:_kts', JSON.stringify({ 'catedra:dark': Date.now() + 5000 }));
+      window.dispatchEvent(new Event('catedra:synced'));
+    });
+    await page.waitForTimeout(800);
+    const chegou = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark'));
+    ok(chegou === '1', 'TEMA/SYNC o tema MAIS NOVO de outro aparelho ainda repinta');
+  }
+
+  /* PINTURA DA DIREÇÃO — o teste que faltava, e o defeito que o pediu.
+     Os testes acima provam que a direção PERSISTE: grava, recarrega, o data-dir continua
+     lá. Nenhum provava que ela PINTA. A diferença custou caro: a uniformização das telas
+     trocou ~90 cartões de `style="background:var(--surface);…"` para `class="ct-card"`, e
+     as nove regras de personalidade miram o ESTILO INLINE (`div[style*="var(--surface)"]`).
+     Os cartões saíram do alcance de todas — Holo perdeu a sombra iridescente, Neon o
+     brilho violeta, Fibra e Terminal deixaram de ser achatados. A suíte passou verde nas
+     duas rodadas seguintes, porque ninguém olhava a pintura.
+     Aqui a asserção é "a sombra do cartão é a ESPERADA DESTA direção" — não "existe
+     alguma sombra". Assim `none` deixa de ser falha e vira expectativa (Fibra e Terminal
+     são planas de propósito), e apagar a regra do Holo volta a quebrar o teste. */
+  {
+    // assinatura de cada direção no tema CLARO: o trecho de cor que só ela produz.
+    // 'none' é resposta legítima; 'sutil' não tem regra própria e cai na sombra do .ct-card.
+    const ASSINATURA = {
+      // 'sutil' não tem regra de personalidade: cai na sombra padrão do `.ct-card`, que a
+      // seção 13 passou a tingir com o accent (color-mix). Cravar o valor exato aqui
+      // amarraria o teste ao desenho — e ele existe para pegar a REGRA sumindo, não para
+      // impedir que o cartão mude de cara. Por isso a asserção dele é diferente: tem
+      // sombra, e não é a de nenhuma outra direção.
+      sutil:    'PADRAO',
+      premium:  'rgba(70, 35, 25',
+      clean:    'none',
+      moderno:  'rgba(124, 58, 237',
+      aurora:   'rgba(8, 145, 178',
+      solar:    'rgba(234, 88, 12',
+      terminal: 'none',
+      holo:     'rgba(139, 92, 246',
+    };
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); localStorage.setItem('catedra:dark', '0'); });
+    for (const d of Object.keys(ASSINATURA)) {
+      await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+      await page.goto(URL0 + '/Catedra.dc.html');
+      await page.waitForTimeout(700);
+      // Simulados é uma tela migrada: se a regra não alcançar `.ct-card`, é aqui que aparece
+      await page.evaluate(() => document.querySelector('button[data-view="simulados"]')?.click());
+      await page.waitForFunction(() => document.querySelectorAll('.ct-card').length > 0, { timeout: 4000 }).catch(() => {});
+      const sombra = await page.evaluate(() => {
+        const c = document.querySelector('.ct-card');
+        return c ? getComputedStyle(c).boxShadow : 'SEM CARTÃO';
+      });
+      const esperado = ASSINATURA[d];
+      const outras = Object.entries(ASSINATURA).filter(([k, v]) => k !== d && v !== 'none' && v !== 'PADRAO').map(([, v]) => v);
+      const bate = (esperado === 'none')   ? (sombra === 'none')
+                 : (esperado === 'PADRAO') ? (sombra !== 'none' && !outras.some(a => sombra.includes(a)))
+                 : sombra.includes(esperado);
+      ok(bate, 'TEMA a direção "' + d + '" PINTA o cartão (esperado ' + esperado + ', veio ' + String(sombra).slice(0, 46) + ')');
+    }
+
+    /* NO ESCURO, duas direções têm regra PRÓPRIA — e é onde a dona do app vive.
+       `moderno` e `premium` declaram `[data-dir=…][data-dark="1"]` com outra cor; as
+       outras seis reaproveitam a regra clara (holo inclusive, conferido: zero variante
+       escura). Sem estas duas passagens, órfãzar `[data-dir="moderno"][data-dark="1"]`
+       passaria verde exatamente como passou hoje — mesmo defeito, mesma semana, mesmo
+       formato. São duas asserções, não uma segunda volta nas oito. */
+    const ESCURO = { moderno: 'rgba(167, 139, 250', premium: 'rgba(212, 112, 127' };
+    await page.evaluate(() => localStorage.setItem('catedra:dark', '1'));
+    for (const d of Object.keys(ESCURO)) {
+      await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+      await page.goto(URL0 + '/Catedra.dc.html');
+      await page.waitForTimeout(700);
+      await page.evaluate(() => document.querySelector('button[data-view="simulados"]')?.click());
+      await page.waitForFunction(() => document.querySelectorAll('.ct-card').length > 0, { timeout: 4000 }).catch(() => {});
+      const sombra = await page.evaluate(() => {
+        const c = document.querySelector('.ct-card');
+        return c ? getComputedStyle(c).boxShadow : 'SEM CARTÃO';
+      });
+      ok(String(sombra).includes(ESCURO[d]), 'TEMA a direção "' + d + '" PINTA o cartão NO ESCURO (esperado ' + ESCURO[d] + ', veio ' + String(sombra).slice(0, 46) + ')');
+    }
+  }
+}
+
+/* ═══════════ MAPA PROCESSUAL — a leitura horizontal de "Processo e peças" ═══════════
+   Dois lados são testados de propósito, porque já houve verde falso por testar só um:
+   (a) o GRAFO — a camada de dados, que não depende de tela nenhuma: nenhum rito pode
+       gerar aresta órfã, e o mapa tem de ser MESMO horizontal (largura > altura);
+   (b) a TELA — o que pinta e, principalmente, o que PERSISTE: posição, zoom, etapa,
+       escolha de caminho, favorito e rascunho têm de sobreviver ao recarregamento.
+   E o modo padrão continua sendo o fluxo vertical: quem abria a tela cai onde caía. */
+{
+  await page.goto(URL0 + '/ritos-web.html');
+  await page.waitForTimeout(700);
+
+  // (a) a camada de dados, sobre TODOS os ritos cadastrados
+  const grafo = await page.evaluate(() => {
+    const G = window.CTMapaGrafo, F = window.CT_FLUXOS || {}, R = window.CT_RITOS || {}, P = window.CT_PECAS || {};
+    if (!G) return { erro: 'CTMapaGrafo não carregou' };
+    const nomes = [...new Set([...Object.keys(F), ...Object.keys(R)])];
+    let orfas = 0, verticais = 0, semRota = 0, cruzam = 0, ocupado = 0;
+    nomes.forEach(n => {
+      const g = G.montar(n, { fluxos: F, ritos: R, pecas: P });
+      g.arestas.forEach(a => { if (!g.porId[a.de] || !g.porId[a.para]) orfas++; });
+      if (g.largura <= g.altura) verticais++;
+      if (G.rota(g, {}).length < 3) semRota++;
+      // dois nós na MESMA casa da grade fariam cartão sobre cartão — e é a garantia
+      // de que nenhuma seta atravessa cartão, porque a rota vertical usa o vão
+      const casas = {};
+      g.nos.forEach(x => { const k = x.col + ':' + x.faixa; if (casas[k]) ocupado++; casas[k] = 1; });
+    });
+    return { nomes: nomes.length, orfas, verticais, semRota, ocupado };
+  });
+  if (grafo.erro) ok(false, 'MAPA ' + grafo.erro);
+  else {
+    ok(grafo.nomes >= 20, 'MAPA a camada de dados monta os ' + grafo.nomes + ' ritos cadastrados');
+    ok(grafo.orfas === 0, 'MAPA nenhuma aresta aponta para nó inexistente (' + grafo.orfas + ')');
+    ok(grafo.verticais === 0, 'MAPA todo rito sai MAIS LARGO que alto — é mapa, não lista (' + grafo.verticais + ' verticais)');
+    ok(grafo.semRota === 0, 'MAPA todo rito tem rota percorrível (' + grafo.semRota + ' sem rota)');
+    ok(grafo.ocupado === 0, 'MAPA nenhuma casa da grade recebe dois cartões (' + grafo.ocupado + ' colisões)');
+  }
+
+  // o prazo é EXTRAÍDO do texto do rito, e "pena máxima de 4 anos" não é prazo
+  const prazo = await page.evaluate(() => {
+    const G = window.CTMapaGrafo;
+    return {
+      leDias: (G.prazoDe('Contestação — 15 dias', false) || {}).texto,
+      leHoras: ((G.prazoDe('Prisão em flagrante · comunicação em 24 horas', false) || {}).faixa),
+      naoLePena: G.prazoDe('pena máxima igual ou superior a 4 anos', false),
+      inicioNaoTemPrazo: G.prazoDe('RITO ORDINÁRIO · pena máxima de 4 anos', true),
+    };
+  });
+  ok(prazo.leDias === '15 dias', 'MAPA prazo lido do próprio texto do rito');
+  ok(prazo.leHoras === 'curto', 'MAPA prazo em horas cai na faixa curta');
+  ok(prazo.naoLePena === null, 'MAPA "pena máxima de 4 anos" NÃO vira prazo');
+  ok(prazo.inicioNaoTemPrazo === null, 'MAPA a caixa de início não inventa prazo');
+
+  // (b) o padrão continua sendo o fluxo vertical
+  const padrao = await page.evaluate(() => ({
+    fluxoVisivel: !document.getElementById('fluxo').hidden,
+    mapaOculto: document.getElementById('mapaHold').hidden,
+    botaoMapa: !!document.getElementById('mMapa'),
+    chipsDoFluxo: document.querySelectorAll('#fluxo [data-legis]').length,
+  }));
+  ok(padrao.fluxoVisivel && padrao.mapaOculto, 'MAPA o modo padrão continua sendo o fluxo vertical');
+  ok(padrao.botaoMapa, 'MAPA existe a opção "Mapa processual" em Processo e peças');
+  ok(padrao.chipsDoFluxo > 0, 'MAPA o fluxo vertical segue inteiro (não foi substituído)');
+
+  // a tela do mapa: pinta, busca, filtra, recolhe, escolhe caminho
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto(URL0 + '/ritos-web.html?modo=mapa&rito=' + encodeURIComponent('Penal — procedimento comum'));
+  await page.waitForTimeout(900);
+  const tela = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+    const r = {};
+    r.pintou = $$('.mp-no').length;
+    r.setas = $$('.mp-linhas g').length;
+    r.enquadrou = parseFloat(($('.mp-mundo').style.transform.match(/scale\(([\d.]+)\)/) || [])[1] || 0);
+    r.minimapa = !!$('.mp-mini svg');
+    // fundamento em chip dourado e peça em botão
+    r.chipsLei = $$('.mp-no [data-legis]').length;
+    r.botoesPeca = $$('.mp-no [data-peca]').length;
+    // busca por artigo centraliza
+    const bu = $('[data-r=busca]');
+    bu.value = 'art. 402'; bu.dispatchEvent(new Event('input', { bubbles: true })); await w(120);
+    r.achouArtigo = $$('.mp-no.achou').length;
+    const antes = $('.mp-mundo').style.transform;
+    bu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(250);
+    r.buscaCentraliza = $('.mp-mundo').style.transform !== antes;
+    bu.value = ''; bu.dispatchEvent(new Event('input', { bubbles: true })); await w(80);
+    // recolher ramificação esconde os ramos daquela decisão
+    const n0 = $$('.mp-no').length;
+    $('[data-recolhe="p2"]').click(); await w(150);
+    r.recolheu = $$('.mp-no').length === n0 - 2;
+    $('[data-recolhe="p2"]').click(); await w(150);
+    r.reabriu = $$('.mp-no').length === n0;
+    // escolher o caminho da rejeição apaga o que ficou incompatível
+    $('[data-abrir="p2"]').click(); await w(200);
+    r.temEscolha = $$('.mp-painel [data-escolhe]').length;
+    const pctAntes = $('[data-r=pct]').textContent;
+    $('.mp-painel [data-escolhe="p2s0"]').click(); await w(250);
+    r.progressoMudou = $('[data-r=pct]').textContent !== pctAntes;
+    r.apagouIncompativeis = $$('.mp-no.fora').length > 0;
+    r.podeTrocar = !!$('.mp-painel [data-desfaz]');
+    // o painel da peça traz o que a peça precisa
+    $('.mp-painel [data-p=x]').click(); await w(100);
+    $('.mp-no [data-peca="Denúncia"]').click(); await w(250);
+    r.secoesDaPeca = $$('.mp-painel .mp-sec h4').map(h => h.textContent);
+    r.acoesDaPeca = $$('.mp-painel .mp-pacs button').map(b => b.textContent.replace(/[^\wçãéêíó ]/gi, '').trim());
+    const t = $('.mp-painel [data-rasc]');
+    t.value = 'rascunho de teste'; t.dispatchEvent(new Event('input', { bubbles: true })); await w(120);
+    $('.mp-painel [data-p=favp]').click(); await w(100);
+    $('.mp-painel [data-p=x]').click();
+    r.estado = { transform: $('.mp-mundo').style.transform, pct: $('[data-r=pct]').textContent,
+                 ativo: ($('.mp-no.atual') || {}).dataset && $('.mp-no.atual').dataset.id };
+    return r;
+  });
+  ok(tela.pintou === 16, 'MAPA o procedimento comum pinta as 16 caixas (' + tela.pintou + ')');
+  ok(tela.setas >= 16, 'MAPA as setas são desenhadas (' + tela.setas + ')');
+  ok(tela.enquadrou > 0 && tela.enquadrou < 1, 'MAPA abre com o rito inteiro enquadrado (' + tela.enquadrou + ')');
+  ok(tela.minimapa, 'MAPA o minimapa é desenhado');
+  ok(tela.chipsLei >= 10, 'MAPA cada etapa mostra o fundamento legal (' + tela.chipsLei + ' chips)');
+  ok(tela.botoesPeca >= 2, 'MAPA as peças viram botão no cartão (' + tela.botoesPeca + ')');
+  ok(tela.achouArtigo === 1, 'MAPA a busca acha a etapa pelo artigo');
+  ok(tela.buscaCentraliza, 'MAPA o resultado da busca é centralizado');
+  ok(tela.recolheu && tela.reabriu, 'MAPA a ramificação recolhe e reabre');
+  ok(tela.temEscolha === 2, 'MAPA a decisão oferece os dois caminhos do rito');
+  ok(tela.progressoMudou, 'MAPA escolher caminho recalcula o progresso');
+  ok(tela.apagouIncompativeis, 'MAPA escolher caminho apaga os caminhos incompatíveis');
+  ok(tela.podeTrocar, 'MAPA a escolha pode ser desfeita');
+  const PRECISA = ['Roteiro', 'Requisitos', 'Prazo', 'Fundamentação', 'Dicas', 'Texto-base', 'Rascunho'];
+  const faltam = PRECISA.filter(x => !tela.secoesDaPeca.some(s => s.indexOf(x) === 0));
+  ok(faltam.length === 0, 'MAPA o painel da peça traz roteiro, requisitos, prazo, fundamentação, dicas, texto-base e rascunho ('
+    + (faltam.join(', ') || 'completo') + ')');
+  const ACOES = ['Copiar', 'Imprimir', 'Favoritar', 'Editar rascunho'];
+  const semAcao = ACOES.filter(a => !tela.acoesDaPeca.some(x => x.indexOf(a) >= 0));
+  ok(semAcao.length === 0, 'MAPA o painel da peça tem copiar, imprimir, favoritar e editar rascunho ('
+    + (semAcao.join(', ') || 'completo') + ')');
+
+  // PERSISTE? — o teste que faltou da outra vez: pintar não é guardar
+  await page.reload();
+  await page.waitForTimeout(900);
+  const volta = await page.evaluate(() => {
+    const $ = s => document.querySelector(s);
+    const g = (JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {};
+    return { transform: $('.mp-mundo').style.transform, pct: $('[data-r=pct]').textContent,
+             ativo: ($('.mp-no.atual') || {}).dataset && $('.mp-no.atual').dataset.id,
+             modo: document.getElementById('mMapa').getAttribute('aria-pressed'),
+             escolha: g.escolhas && g.escolhas.p2, rascunho: (g.rascunhos || {})['Denúncia'],
+             favorito: !!(g.favoritos || {})['peca:Denúncia'] };
+  });
+  ok(volta.modo === 'true', 'MAPA o modo escolhido sobrevive ao recarregamento');
+  ok(volta.transform === tela.estado.transform, 'MAPA a POSIÇÃO do mapa sobrevive ao recarregamento');
+  ok(volta.ativo === tela.estado.ativo && volta.pct === tela.estado.pct, 'MAPA etapa atual e progresso sobrevivem');
+  ok(volta.escolha === 'p2s0', 'MAPA a escolha do caminho sobrevive');
+  ok(volta.rascunho === 'rascunho de teste', 'MAPA o rascunho da peça sobrevive');
+  ok(volta.favorito, 'MAPA o favorito sobrevive');
+
+  /* Palco sem tamanho — o iframe que o app monta ESCONDIDO. O que não pode acontecer:
+     gravar como posição escolhida um enquadramento calculado sobre 0×0, porque aí a
+     tela abriria para sempre num zoom que ninguém pediu. O mapa espera ganhar tamanho
+     e só então se enquadra. */
+  const escondido = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    localStorage.removeItem('catedraMapaProcessual');
+    const alvo = document.getElementById('mapaHold');
+    const pai = alvo.parentNode; pai.style.display = 'none';
+    document.getElementById('mFluxo').click(); await w(60);
+    document.getElementById('mMapa').click(); await w(250);
+    const largura = document.querySelector('.mp-palco').clientWidth;
+    const guardadoEscondido = ((JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {}).vista;
+    const semTamanho = document.querySelector('.mp-mundo').style.transform;
+    pai.style.display = ''; await w(500);
+    const comTamanho = document.querySelector('.mp-mundo').style.transform;
+    const guardadoDepois = ((JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {}).vista;
+    return { largura, guardadoEscondido, semTamanho, comTamanho, guardadoDepois };
+  });
+  ok(escondido.largura === 0, 'MAPA o cenário do teste é mesmo o palco sem tamanho');
+  ok(!escondido.guardadoEscondido, 'MAPA palco sem tamanho NÃO grava posição inventada');
+  ok(escondido.comTamanho !== escondido.semTamanho && /scale\(/.test(escondido.comTamanho),
+     'MAPA ao ganhar tamanho, o mapa se enquadra sozinho');
+  ok(!!escondido.guardadoDepois && escondido.guardadoDepois.z > 0,
+     'MAPA só a posição calculada com o palco de pé é guardada');
+
+  // acessibilidade: o palco é operável por teclado e narra o que muda
+  const a11y = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const p = document.querySelector('.mp-palco');
+    const t = k => p.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
+    p.focus();
+    const foco = document.activeElement === p;
+    const a0 = document.querySelector('.mp-no.atual').dataset.id;
+    t('n'); await w(150);
+    const andou = document.querySelector('.mp-no.atual').dataset.id !== a0;
+    const z0 = document.querySelector('[data-r=lupa]').textContent;
+    t('+'); await w(80);
+    return { foco, andou, ampliou: document.querySelector('[data-r=lupa]').textContent !== z0,
+      papel: p.getAttribute('role'), rotulo: !!p.getAttribute('aria-label'),
+      viva: !!document.querySelector('[role=status][aria-live=polite]'),
+      narrou: (document.querySelector('[data-r=aviso]').textContent || '').length > 0,
+      cartaoDescrito: (document.querySelector('.mp-no [data-abrir]').getAttribute('aria-label') || '').indexOf('Situação') > 0 };
+  });
+  for (const [k, v] of Object.entries(a11y)) ok(v, 'MAPA acessibilidade: ' + k);
+
+  /* Três armadilhas que já custaram caro em outras telas:
+     · repintar o cartão joga o foco no body — quem favorita pelo teclado se perde;
+     · aria-modal sem prender o Tab anuncia "diálogo" e deixa a tabulação escapar;
+     · a barra de progresso precisa de PAPEL, porque aria-label em <div> mudo não é lido. */
+  const foco = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s);
+    const r = {};
+    const estrela = $('.mp-no [data-fav]');
+    const id = estrela.dataset.fav;
+    estrela.focus(); estrela.click(); await w(200);
+    r.focoSobreviveARepintura = !!document.activeElement.dataset
+      && document.activeElement.dataset.fav === id;
+    // Tab não escapa do painel
+    $('.mp-no [data-abrir]').click(); await w(250);
+    const p = $('.mp-painel');
+    const f = [...p.querySelectorAll('button, textarea')].filter(x => x.offsetParent !== null);
+    f[f.length - 1].focus();
+    p.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+    await w(80);
+    r.tabNaoEscapaDoPainel = p.contains(document.activeElement);
+    f[0].focus();
+    p.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+    await w(80);
+    r.shiftTabNaoEscapa = p.contains(document.activeElement);
+    // fechar devolve o foco a quem abriu
+    $('.mp-painel [data-p=x]').click(); await w(150);
+    r.fecharDevolveOFoco = !!document.activeElement.closest
+      && !!document.activeElement.closest('.mp-no, .mp-palco');
+    const pb = $('[data-r=pbar]');
+    r.progressoTemPapel = pb.getAttribute('role') === 'progressbar'
+      && /^\d+$/.test(pb.getAttribute('aria-valuenow') || '')
+      && !!pb.getAttribute('aria-valuetext');
+    return r;
+  });
+  for (const [k, v] of Object.entries(foco)) ok(v, 'MAPA ' + k);
+
+  /* O painel lateral é anexado ao <body>, FORA do elemento .mp — e variável CSS não
+     atravessa o DOM de lado. Com os tokens declarados só em .mp, o painel herdava a
+     cor de texto da página clara e saía tinta escura sobre fundo escuro: presente no
+     DOM, invisível na tela. Um teste que só procura a seção passa verde nesse defeito;
+     por isso aqui se mede o CONTRASTE calculado, que é o que a pessoa enxerga. */
+  const legivel = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s);
+    $('.mp-no [data-peca]').click(); await w(350);
+    const p = $('.mp-painel');
+    const cor = e => getComputedStyle(e).color, fundo = e => getComputedStyle(e).backgroundColor;
+    const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).map(Number).slice(0, 3)
+      .map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+      return .2126 * r + .7152 * g + .0722 * b; };
+    const K = (a, b) => { const l1 = lum(a), l2 = lum(b);
+      return +((Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05)).toFixed(2); };
+    const h3 = p.querySelector('h3'), txt = p.querySelector('.mp-sec p'),
+          h4 = p.querySelector('.mp-sec h4'), bt = p.querySelector('.mp-pacs button');
+    const r = { titulo: K(cor(h3), fundo(p)), texto: K(cor(txt), fundo(txt.closest('.mp-sec'))),
+                rotulo: K(cor(h4), fundo(h4.closest('.mp-sec'))), botao: K(cor(bt), fundo(bt)) };
+    $('.mp-painel [data-p=x]').click();
+    return r;
+  });
+  for (const [k, v] of Object.entries(legivel))
+    ok(v >= 4.5, 'MAPA o painel é LEGÍVEL — contraste de ' + k + ': ' + v + ':1 (mínimo 4,5)');
+
+  // e o cartão no quadro escuro tem de passar pela mesma régua
+  const cartaoLegivel = await page.evaluate(() => {
+    const cor = e => getComputedStyle(e).color, fundo = e => getComputedStyle(e).backgroundColor;
+    const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).map(Number).slice(0, 3)
+      .map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+      return .2126 * r + .7152 * g + .0722 * b; };
+    const K = (a, b) => { const l1 = lum(a), l2 = lum(b);
+      return +((Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05)).toFixed(2); };
+    // o cartão é gradiente: mede-se contra a tinta mais clara dele, que é o pior caso
+    const cartao = document.querySelector('.mp-no'), fundoCartao = 'rgb(36, 26, 62)';
+    return { titulo: K(cor(cartao.querySelector('strong')), fundoCartao),
+             resumo: K(cor(cartao.querySelector('small') || cartao.querySelector('strong')), fundoCartao),
+             fundamento: K(cor(cartao.querySelector('.mp-art') || cartao.querySelector('strong')), fundoCartao) };
+  });
+  for (const [k, v] of Object.entries(cartaoLegivel))
+    ok(v >= 4.5, 'MAPA o cartão é LEGÍVEL — contraste de ' + k + ': ' + v + ':1 (mínimo 4,5)');
+
+  /* Trocar de rito remonta o mapa. O ouvinte de Esc mora no DOCUMENTO (o painel pode
+     não estar com o foco), então precisa sair no destruir — senão cada troca deixa um
+     ouvinte preso a uma instância morta, e vinte trocas viram vinte. */
+  const vazamento = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    let vivos = 0;
+    const add = document.addEventListener.bind(document);
+    const rem = document.removeEventListener.bind(document);
+    document.addEventListener = function (t, f, o) { if (t === 'keydown') vivos++; return add(t, f, o); };
+    document.removeEventListener = function (t, f, o) { if (t === 'keydown') vivos--; return rem(t, f, o); };
+    for (let i = 0; i < 5; i++) {
+      document.getElementById('mFluxo').click(); await w(60);
+      document.getElementById('mMapa').click(); await w(120);
+    }
+    document.addEventListener = add; document.removeEventListener = rem;
+    return vivos;
+  });
+  ok(vazamento <= 1, 'MAPA remontar o mapa não acumula ouvintes de teclado (saldo ' + vazamento + ' após 5 trocas)');
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
 
 await browser.close();
 srv.close();

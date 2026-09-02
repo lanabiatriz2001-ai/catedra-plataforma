@@ -12,7 +12,7 @@
 //  5. Ajusta o sw.js: entrada em index.html (e não Catedra.dc.html) e as três
 //     listas de precache do U10 (casca, acervo e "baixar tudo") já MEDIDAS em bytes.
 
-import { cpSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { cpSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync, statSync, rmSync} from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { execSync } from 'node:child_process';
@@ -99,36 +99,44 @@ const FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;6
   + '&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600'
   + '&family=Space+Grotesk:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap';
 async function vendorarFontes() {
+  /* AS FONTES AGORA VÊM DO REPOSITÓRIO, não do Google.
+     Antes esta função baixava as 20 faces a cada build — o que dava certo na web e
+     deixava os apps NATIVOS na mão: eles empacotam o Catedra.dc.html direto, sem passar
+     por aqui, e lá o <link> do Google continuava. Sem internet, no iPad, a tipografia
+     inteira caía para fonte de sistema.
+     As faces passaram a morar em ./fonts, declaradas por @font-face no catedra-ui.css —
+     que host e satélites já carregam. Então aqui só resta COPIAR, e o build deixa de
+     precisar de rede para publicar. O CT_PERMITE_CDN perdeu a função e some. */
+  const origem = join(ROOT, 'fonts');
+  if (!existsSync(origem)) {
+    console.error('\n✗ BUILD ABORTADO: a pasta fonts/ não existe.');
+    console.error('  As faces são versionadas no repositório desde que saímos do Google Fonts.');
+    console.error('  Sem elas o app publica sem tipografia.\n');
+    process.exit(1);
+  }
+  /* LIMPA ANTES DE COPIAR. As 48 faces do build antigo (nomes gerados pelo Google, com
+     cirílico e vietnamita) ficavam em public/fonts e, como a casca do worker passou a
+     levar tudo que está lá, elas voltariam para o precache pela porta dos fundos — o
+     oposto do que a filtragem antiga existia para evitar. Medido: a casca saltou de 37
+     para 85 arquivos por causa delas. */
+  rmSync(join(pub, 'fonts'), { recursive: true, force: true });
   mkdirSync(join(pub, 'fonts'), { recursive: true });
-  let css;
-  try {
-    // UA de navegador moderno: sem isso o Google devolve .ttf em vez de .woff2
-    const r = await fetch(FONTS_CSS, { redirect: 'follow', headers: {
-      'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36' } });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    css = await r.text();
-    if (!css || css.length < 500) throw new Error('CSS suspeito');
-  } catch (e) {
-    if (!PERMITE_CDN) abortar('as fontes (Google Fonts)', FONTS_CSS, e);
-    console.log('  ⚠ fontes via Google (CT_PERMITE_CDN=1): ' + e.message);
-    return null;
+  const faces = readdirSync(origem).filter((f) => f.endsWith('.woff2'));
+  if (!faces.length) {
+    console.error('\n✗ BUILD ABORTADO: fonts/ está vazia — o app sairia sem tipografia.\n');
+    process.exit(1);
   }
-  const urls = [...new Set([...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map((m) => m[1]))];
-  let n = 0;
-  for (const u of urls) {
-    const nome = u.split('/').slice(-2).join('-').replace(/[^\w.-]/g, '_');
-    try {
-      const r = await fetch(u, { redirect: 'follow' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      writeFileSync(join(pub, 'fonts', nome), Buffer.from(await r.arrayBuffer()));
-      css = css.split(u).join('./fonts/' + nome);
-      n++;
-    } catch (e) {
-      if (!PERMITE_CDN) abortar('o arquivo de fonte ' + nome, u, e);
-    }
+  for (const f of faces) copyFileSync(join(origem, f), join(pub, 'fonts', f));
+  /* O fonts.css publicado é gerado a partir do que o catedra-ui.css declara: uma fonte
+     só de verdade. Se alguém acrescentar uma face lá, ela aparece aqui sem edição. */
+  const ui = readFileSync(join(ROOT, 'catedra-ui.css'), 'utf8');
+  const regras = ui.match(/@font-face\{[^}]*\}/g) || [];
+  if (!regras.length) {
+    console.error('\n✗ BUILD ABORTADO: nenhum @font-face no catedra-ui.css.\n');
+    process.exit(1);
   }
-  writeFileSync(join(pub, 'fonts.css'), css);
-  console.log('  · fontes vendoradas (' + n + ' arquivos, css ' + css.length + ' bytes)');
+  writeFileSync(join(pub, 'fonts.css'), regras.join('\n') + '\n');
+  console.log('  · fontes do repositório (' + faces.length + ' faces, sem rede)');
   return './fonts.css';
 }
 
@@ -285,16 +293,15 @@ window.__catedraOffline = (function () {
 // a página trava esperando o CSS.
 let out = src.replace('<head>', '<head>' + INJECT);
 if (fontsHref) {
-  out = out
-    .replace(/<link rel="preconnect" href="https:\/\/fonts\.googleapis\.com">\s*/g, '')
-    .replace(/<link rel="preconnect" href="https:\/\/fonts\.gstatic\.com"[^>]*>\s*/g, '')
-    .replace(/<link href="https:\/\/fonts\.googleapis\.com\/css2[^"]*" rel="stylesheet">/g,
-             '<link href="' + fontsHref + '" rel="stylesheet">');
+  /* O dc.html não tem mais link para o Google (as faces vêm do catedra-ui.css). O
+     fonts.css publicado existe para quem carrega o index.html sem o CSS compartilhado —
+     e para deixar explícito, no HTML publicado, de onde vem a tipografia. */
+  out = out.replace('<head>', '<head><link href="' + fontsHref + '" rel="stylesheet">');
 }
 
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'catedra-ui.css']) {
+for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'catedra-ui.css']) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
 }
 // fatias dos acervos (ct-dados/sw): pasta inteira, nomes com hash
@@ -333,17 +340,16 @@ const casca = [...vendorados, './prioridade-calc.js', './busca-unica.js', './sem
   './plataformas-questoes.js', './espelho-sugerido.js', './area-registry.js', './casos.js', './catedra-ui.css', './icon-180.png'];
 if (fontsHref) {
   casca.push('./fonts.css');
-  // Só os subconjuntos latinos. O Google fatia cada família por unicode-range e o
-  // build vendorou os 48 arquivos (860 KB); precachear cirílico, grego e vietnamita
-  // num app de direito brasileiro seria pagar install mais lento e cota do aparelho
-  // por bytes que ninguém vai renderizar. Os outros continuam publicados e entram no
-  // cache pela rede se algum dia forem pedidos.
+  /* Antes este trecho garimpava os subconjuntos LATINOS lendo os comentários `/* latin *\/`
+     que o CSS do Google traz, porque ele fatia cada família por unicode-range e o build
+     vendorava 48 arquivos — precachear cirílico e vietnamita num app de direito
+     brasileiro seria pagar install lento por bytes que ninguém renderiza.
+     Agora as faces são versionadas em fonts/ e SÓ as latinas foram trazidas (20, 616 KB).
+     Então a filtragem perdeu o objeto: a casca leva o que existe. */
   try {
-    const css = readFileSync(join(pub, 'fonts.css'), 'utf8');
-    const re = /\/\*\s*([a-z-]+)\s*\*\/\s*@font-face\s*\{[^}]*?url\(\.\/fonts\/([^)]+)\)/g;
-    const latinos = new Set();
-    for (let m; (m = re.exec(css));) if (m[1] === 'latin' || m[1] === 'latin-ext') latinos.add(m[2]);
-    for (const f of latinos) casca.push('./fonts/' + f);
+    for (const f of readdirSync(join(pub, 'fonts')).filter((f) => f.endsWith('.woff2'))) {
+      casca.push('./fonts/' + f);
+    }
   } catch (_) {}
 }
 // Manifestos dos acervos fatiados: 3 arquivos de ~1 KB cada. Sem eles guardados, no
@@ -363,7 +369,8 @@ const acervoOffline = [
   './tema-satelite.js', './catedra-ui.css', './satellite-base.css', './ritos-web.html', './pecas-web.html', './area-web.html',
   './legis-web.html', './juris-web.html', './segunda-fase-web.html', './prioridade-web.html',
   // 2. os scripts que cada satélite carrega
-  './ritos.js', './pecas.js', './fluxos.js', './peca-roteiro.js', './area-modulos.js',
+  './ritos.js', './pecas.js', './fluxos.js', './peca-roteiro.js',
+  './mapa-grafo.js', './mapa-processual.js', './area-modulos.js',
   './treino.js', './leis-catalogo.js', './prioridade-dados.js', './incidencia.js',
   // 3. lei seca em blocos (4,3 MB): é o treino diário, e o acervoLeis() do treino.js
   //    pede o acervo INTEIRO — offline, bloco faltando vira lista de leis vazia,

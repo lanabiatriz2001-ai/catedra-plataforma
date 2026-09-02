@@ -4,7 +4,7 @@
 :root{--module-accent:var(--accent,#0f7a57)}
 
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,-apple-system,'Segoe UI',Roboto,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
+body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,'Inter',system-ui,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding:20px 26px 70px}
 
 /* D10 — foco visível: a bolinha de status e a ★ eram alcançáveis pelo teclado mas
@@ -15,7 +15,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 /* D7 — nível FRACO de rótulo (metadado: contagens e legendas de número). O nível forte
    não entra aqui: quem estrutura a leitura desta tela são os títulos de grupo, que já
    são títulos de verdade — transformá-los em mono-caps seria redesenho, não hierarquia. */
-.rot-fraco{font:700 10px/1.3 var(--body,-apple-system,sans-serif);letter-spacing:0;
+.rot-fraco{font:700 10px/1.3 var(--body,'Inter',system-ui,sans-serif);letter-spacing:0;
   text-transform:uppercase;color:var(--text2,#5c564a)}
 .head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));display:flex;align-items:center;justify-content:center;color:#fff;font-size:23px;flex:none}
@@ -34,8 +34,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .grph .dot{width:10px;height:10px;border-radius:3px;flex:none}
 .grph b{font-family:var(--display,'Spectral',Georgia,serif);font-size:16px;font-weight:700}
 .grph .bar{flex:1;height:6px;border-radius:99px;background:var(--surface2,#efeadd);overflow:hidden;min-width:60px;margin-left:6px}
-.grph .bar i{display:block;height:100%;border-radius:99px;transition:width .3s}
-.row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:11px;margin-bottom:7px;border-left:4px solid var(--lc,#0f7a57)}
+.grph .bar i{display:block;height:100%;width:100%;border-radius:99px;
+  transform:translateX(-100%);transform-origin:left center;transition:transform .3s;will-change:transform}
+.row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:11px;margin-bottom:7px;border-color:color-mix(in srgb,var(--lc,#0f7a57) 38%,var(--border,#e6e1d4));background-image:linear-gradient(90deg,color-mix(in srgb,var(--lc,#0f7a57) 18%,transparent),transparent 46%)}
 .row.hide{display:none}
 .row .lt{flex:1;min-width:0}
 .row .lt b{font-size:13.5px;font-weight:700;color:var(--ink);display:block;line-height:1.25}
@@ -86,6 +87,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   var est={fav:{},stat:{}}; try{ est=Object.assign({fav:{},stat:{}},JSON.parse(localStorage.getItem(KEY))||{}); }catch(e){}
   var save=function(){ try{ localStorage.setItem(KEY,JSON.stringify(est)); }catch(e){} };
   var STAT=['','estudando','dominado'], ICON={'':'','estudando':'◐','dominado':'✓'};
+  // Estrela do favorito: SVG Lucide inline (abre sem rede); cheia quando marcada. Usada no render e no clique.
+  var STAR=function(on){ return '<svg viewBox="0 0 24 24" width="16" height="16" fill="'+(on?'currentColor':'none')+'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'; };
   var el=function(t,c,h){ var e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
   var esc=function(s){ return (s||'').replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];}); };
   var att=function(s){ return esc(s).replace(/"/g,'&quot;'); };
@@ -129,8 +132,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
         +' title="não estudado → estudando → dominado">'+ICON[st]+'</button>'
         +'<div class="lt"><b>'+esc(it.t)+'</b>'+(it.d?('<small>'+esc(it.d)+'</small>'):'')+'</div>'
         +'<button class="fav'+(fav?' on':'')+'" aria-pressed="'+(fav?'true':'false')
-        +'" aria-label="Favoritar '+att(it.t)+'" title="Favoritar">'+(fav?'★':'☆')+'</button>'
-        +'<button class="rg" title="Abrir o registro de sessão com este tópico">✎ Registrar</button>';
+        +'" aria-label="Favoritar '+att(it.t)+'" title="Favoritar">'+STAR(!!fav)+'</button>'
+        +'<button class="rg" title="Abrir o registro de sessão com este tópico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>Registrar</button>';
       r.querySelector('.st').onclick=function(){
         var cur=STAT.indexOf(est.stat[id]||''), nx=STAT[(cur+1)%3];
         if(nx) est.stat[id]=nx; else delete est.stat[id];
@@ -139,7 +142,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       };
       r.querySelector('.fav').onclick=function(){
         if(est.fav[id]) delete est.fav[id]; else est.fav[id]=1;
-        save(); var b=r.querySelector('.fav'); b.classList.toggle('on',!!est.fav[id]); b.textContent=est.fav[id]?'★':'☆';
+        save(); var b=r.querySelector('.fav'); b.classList.toggle('on',!!est.fav[id]); b.innerHTML=STAR(!!est.fav[id]);
         b.setAttribute('aria-pressed', est.fav[id]?'true':'false'); stats();
       };
       // ABRE o registro de sessão preenchido — nunca grava sozinho (regra da casa).
@@ -166,7 +169,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     document.getElementById('sf').textContent=f;
     Object.keys(porG).forEach(function(g){
       var bar=document.querySelector('[data-bar="'+g+'"]');
-      if(bar) bar.style.width=(porG[g].t?Math.round(porG[g].d/porG[g].t*100):0)+'%';
+      if(bar) bar.style.transform='translateX('+((porG[g].t?Math.round(porG[g].d/porG[g].t*100):0)-100)+'%)';
     });
   }
   stats();

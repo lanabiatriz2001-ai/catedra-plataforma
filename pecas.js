@@ -1931,7 +1931,7 @@ window.CT_PECAS = {
   "Ministério Público",
   "Magistratura",
   "Advocacia Pública",
-  "Defensoria Pública"
+  "Defensoria"
  ],
  "sobre": "A ACP ambiental é a peça em que o candidato mostra que entende a diferença entre responsabilidade objetiva e culpa, entre reparação integral e indenização, e entre o macrobem ambiental e o dano individual reflexo. O espelho quase sempre cobra a cumulação de obrigação de fazer com indenização e a solidariedade entre os poluidores.",
  "blocos": [
@@ -2534,7 +2534,7 @@ window.CT_PECAS = {
 'Contestação da Fazenda Pública': {
   rito: 'Previdenciário — concessão de benefício',
   freq: 4,   // vezes em que o tema aparece nas 648 provas de discursivas.js
-  carreiras: ['Procuradorias','Advocacia pública'],
+  carreiras: ['Procuradorias','Advocacia Pública'],
   sobre: 'Contestação com prerrogativas próprias e preliminares típicas. O que separa a peça boa da genérica é usar as defesas que só a Fazenda tem — prazo em dobro, prescrição quinquenal do trato sucessivo, remessa necessária — sem esquecer o ônus da impugnação especificada, que vale para ela como para qualquer réu.',
   blocos: [
     { nome: 'Prerrogativas processuais',
@@ -2887,7 +2887,7 @@ window.CT_PECAS = {
  "carreiras": [
   "Magistratura",
   "Advocacia Pública",
-  "Defensoria Pública",
+  "Defensoria",
   "Ministério Público"
  ],
  "sobre": "A inicial é peça de requisitos: o art. 319 lista sete e o espelho confere um por um. O que separa a nota boa da mediana não é a narrativa, é a coerência entre causa de pedir, pedido e valor da causa — e o pedido escrito de modo que possa virar dispositivo de sentença sem reescrita.",
@@ -3101,7 +3101,7 @@ window.CT_PECAS = {
  "carreiras": [
   "Magistratura",
   "Advocacia Pública",
-  "Defensoria Pública"
+  "Defensoria"
  ],
  "sobre": "A contestação é a peça da eventualidade: tudo o que o réu tem a dizer, ele diz agora, na ordem certa, sob pena de precluir. O espelho quase nunca cobra \"a melhor tese\" — cobra se todas as preliminares cabíveis foram deduzidas antes do mérito e se cada fato da inicial foi impugnado especificadamente.",
  "blocos": [
@@ -3798,7 +3798,7 @@ window.CT_PECAS = {
   ],
   especiais: [
     { t:'Tribunais de Contas', d:'O comando costuma misturar direito administrativo, financeiro e controle externo. Ancore em CF, arts. 70 a 75, na Lei 14.133/2021 quando for contratação, e na LRF quando for despesa. Distinga sempre contas de governo (parecer prévio, julgamento pelo Legislativo) de contas de gestão (julgamento pelo Tribunal).' },
-    { t:'Advocacia pública', d:'A pergunta quase sempre tem um lado: você responde como procurador do ente. Isso não autoriza sustentar tese insustentável, mas orienta a ordem — prerrogativas, preliminares típicas, prescrição quinquenal e, no mérito, a defesa da presunção de legitimidade do ato.' },
+    { t:'Advocacia Pública', d:'A pergunta quase sempre tem um lado: você responde como procurador do ente. Isso não autoriza sustentar tese insustentável, mas orienta a ordem — prerrogativas, preliminares típicas, prescrição quinquenal e, no mérito, a defesa da presunção de legitimidade do ato.' },
     { t:'Analista e técnico de tribunal', d:'Predominam questões de processo civil, administrativo e constitucional, com comando curto e limite apertado — 15 a 30 linhas. Aqui a economia de palavras vale mais que a profundidade: responda, fundamente com o artigo e conclua.' },
     { t:'OAB 2ª fase', d:'A discursiva vem junto com a peça e vale menos, mas é onde se recupera nota. São quatro questões curtas, cada uma com dois itens; o espelho é objetivo e aceita resposta enxuta desde que fundamentada com o dispositivo.' },
     { t:'Questão com item "justifique"', d:'"Responda e justifique" pede duas coisas, e o espelho pontua as duas separadamente. Responder sem justificar perde metade do item; justificar sem responder perde a outra metade.' }
@@ -3809,7 +3809,7 @@ window.CT_PECAS = {
   rito: '',
   freq: 76,   // vezes em que o tema aparece nas 648 provas de discursivas.js
   ramo: 'Transversal',
-  carreiras: ['Advocacia pública','Procuradorias','Ministério Público','Auditoria e Controle','Advocacia'],
+  carreiras: ['Advocacia Pública','Procuradorias','Ministério Público','Auditoria e Controle','Advocacia'],
   sobre: 'Segunda peça mais cobrada do banco depois da sentença cível — 76 ocorrências, concentradas em advocacia pública, tribunais de contas e Ministério Público. Não é petição: não há parte adversa nem pedido. É análise técnica que responde a uma consulta e assume uma posição — e a responsabilidade do parecerista muda conforme o parecer seja facultativo, obrigatório ou vinculante.',
   blocos: [
     { nome: 'Ementa e identificação',

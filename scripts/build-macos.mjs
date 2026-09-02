@@ -12,7 +12,7 @@
 //
 // O Catedra.dc.html permanece intocado — este script só o lê.
 
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSync, readdirSync} from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { execSync } from 'node:child_process';
@@ -107,13 +107,33 @@ writeFileSync(join(OUT, 'index.html'), out);
 // página se declarava offline. Por isso os dois são carimbados na cópia.
 const FRAMES = new Set(['legis-web.html', 'juris-web.html']);
 const CARIMBO = `<script>window.CATEDRA_API_BASE = ${JSON.stringify(API_BASE)};</script>`;
-for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'catedra-ui.css']) {
+for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'catedra-ui.css']) {
   if (!existsSync(join(ROOT, f))) continue;
   if (FRAMES.has(f)) {
     const html = read(f);
     if (!html.includes('<head>')) throw new Error(f + ': sem <head> — o carimbo do API_BASE não teria onde entrar');
     writeFileSync(join(OUT, f), html.replace('<head>', '<head>' + CARIMBO));
   } else copyFileSync(join(ROOT, f), join(OUT, f));
+}
+
+// AS FONTES. Elas deixaram de vir do Google Fonts (o app abria sem tipografia em modo
+// avião, justo no aparelho de estudo). Agora moram em ./fonts e são referenciadas pelo
+// catedra-ui.css por caminho relativo — então a pasta precisa viajar dentro do bundle,
+// senão o app nativo fica pior do que estava: sem CDN E sem arquivo local.
+{
+  const dirFontes = join(ROOT, 'fonts');
+  if (existsSync(dirFontes)) {
+    const destino = join(OUT, 'fonts');
+    mkdirSync(destino, { recursive: true });
+    let n = 0;
+    for (const f of readdirSync(dirFontes)) {
+      if (!f.endsWith('.woff2')) continue;
+      copyFileSync(join(dirFontes, f), join(destino, f));
+      n++;
+    }
+    if (!n) throw new Error('fonts/ existe mas está vazia — o app sairia sem tipografia');
+    console.log(`  ✓ ${n} fontes empacotadas (sem CDN)`);
+  }
 }
 
 // Mesma trava do build web: o .app é distribuído para os testadores, e marca d'água

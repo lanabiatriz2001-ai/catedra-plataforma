@@ -1012,8 +1012,12 @@ struct LawRow: View {
                     if law.favorite == true {
                         Image(systemName: "star.fill").font(.caption2).foregroundStyle(.yellow)
                     }
+                    // Cor EXPLÍCITA dos tokens espelhados, não Color.primary: a semântica
+                    // do sistema segue a aparência da janela, e uma aparência que discorde
+                    // dos tokens escrevia branco no cartão branco — o nome da norma sumia.
                     Text(law.title)
                         .font(.system(.body, design: .default).weight(.semibold))
+                        .foregroundStyle(AppTheme.ink)
                         .lineLimit(2)
                     if (law.checkFailures ?? 0) >= 3 {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -1023,7 +1027,7 @@ struct LawRow: View {
                 }
                 Text(law.reference)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.secondaryInk)
                     .lineLimit(1)
                 // Só o estado que pede ação (não baixada / alterada) ganha destaque;
                 // o resto — origem, matéria, contagens — fica discreto e à direita.

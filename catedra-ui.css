@@ -154,3 +154,703 @@
   cursor: not-allowed;
   pointer-events: none;
 }
+
+/* ===== 10. O RITMO DA TELA ========================================================
+ * POR QUE ESTA SEÇÃO NASCEU
+ * As seções 1–9 resolveram a peça solta (o cartão, o chip, o estado vazio) mas não o
+ * RITMO — quem fala primeiro, quem recua, como um grupo de itens se anuncia. Sem isso
+ * cada tela escolheu sozinha, e o resultado é o que se vê: o mesmo cabecinho em quatro
+ * letter-spacings (.08, .1, .12, .14), o mesmo cartão em seis paddings, três tamanhos
+ * de título de faixa.
+ *
+ * DE ONDE VEIO ESTE PADRÃO
+ * Não foi inventado aqui. Duas telas já o tinham resolvido bem e serviram de fonte:
+ * REVISÕES (a faixa de chamada, o grupo "Atrasadas/Para hoje" com ponto e contador, a
+ * faixa de cor da disciplina na lateral do item) e AJUSTES (o hero em --heroGrad com
+ * eyebrow .14em/800 e display 30px/-.02em, a pílula translúcida sobre o gradiente, o
+ * selo que quantifica). O trabalho foi extrair, nomear e impor — não redesenhar.
+ *
+ * A REGRA DE OURO DA HIERARQUIA
+ * Uma tela tem UM primeiro lugar. É a faixa (.ct-hero) e ela responde "o que eu faço
+ * agora". Tudo o mais recua. Duas faixas na mesma tela significa que a tela não decidiu.
+ */
+
+/* ---- 10.1 EYEBROW: o rótulo miúdo acima de tudo -------------------------------
+   Era a peça mais copiada da plataforma e a mais divergente. Um valor só, agora. */
+.ct-eb {
+  font-size: var(--fs-2xs, 11px);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-weight: 800;
+  color: var(--text3, #7a7368);
+}
+.ct-eb-ok   { color: var(--ok, #0e7f58); }
+.ct-eb-warn { color: var(--warn, #a36306); }
+
+/* ---- 10.2 FAIXA DE CHAMADA: o primeiro lugar da tela --------------------------
+   Uma por tela. O tamanho do título é o de Ajustes (30px/-.02em); a bolha de luz é a
+   mesma que .ct-scroll já desenha no host, repetida aqui para quem usa a classe direto. */
+.ct-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--heroGrad, linear-gradient(135deg, #1e2b3a, #0f7a57));
+  border-radius: var(--ct-r-lg);
+  padding: var(--ct-e5) var(--ct-e5) 22px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-e4);
+}
+.ct-hero::after {
+  content: ""; position: absolute; right: -70px; top: -80px;
+  width: 230px; height: 230px; border-radius: 999px;
+  background: rgba(255, 255, 255, .09); pointer-events: none;
+}
+.ct-hero > * { position: relative; }        /* o conteúdo passa por cima da bolha */
+.ct-hero-eb {
+  font-size: var(--fs-2xs, 11px);
+  text-transform: uppercase; letter-spacing: .14em; font-weight: 800;
+  color: rgba(255, 255, 255, .78);
+}
+.ct-hero-tit {
+  font-family: var(--display, Georgia, serif);
+  font-size: 30px; font-weight: 700; line-height: 1.12;
+  letter-spacing: -.02em; margin: 0; text-wrap: balance;
+}
+.ct-hero-sub {
+  font-size: var(--fs-base, 13.5px); line-height: 1.6;
+  color: rgba(255, 255, 255, .92); max-width: 64ch; margin: 0;
+}
+
+/* números dentro da faixa — tabular, senão a coluna dança a cada atualização */
+.ct-hero-kpis { display: flex; gap: 28px; flex-wrap: wrap; }
+.ct-kpi { display: flex; flex-direction: column; gap: 3px; }
+.ct-kpi b {
+  font-family: var(--display, Georgia, serif);
+  font-size: 28px; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ct-kpi span {
+  font-size: var(--fs-2xs, 11px); text-transform: uppercase;
+  letter-spacing: .09em; font-weight: 700; color: rgba(255, 255, 255, .82);
+}
+
+/* ---- 10.3 BOTÕES --------------------------------------------------------------
+   Três papéis, e só. O primário é a ação da tela; o segundo é alternativa; a pílula
+   clara existe só sobre o gradiente, onde o accent sumiria. */
+.ct-btn, .ct-btn-2, .ct-btn-clara {
+  font-family: inherit; font-size: var(--fs-base, 13.5px);
+  cursor: pointer; border-radius: var(--ct-r-md);
+  padding: 10px 18px; line-height: 1.2;
+  min-height: var(--control-h, 38px);
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+}
+.ct-btn   { background: var(--accent, #0f7a57); color: var(--onAccent, #fff); border: none; font-weight: 700; }
+.ct-btn-2 { background: transparent; color: var(--text2, #5c564a); border: 1px solid var(--border, #e6e1d4); font-weight: 600; }
+.ct-btn-clara {
+  background: rgba(255, 255, 255, .14); color: #fff;
+  border: 1px solid rgba(255, 255, 255, .55); border-radius: 99px; font-weight: 700;
+}
+.ct-btn[disabled], .ct-btn-2[disabled] { opacity: .5; cursor: not-allowed; }
+.ct-btn:focus-visible, .ct-btn-2:focus-visible { outline: 2px solid var(--accent, #0f7a57); outline-offset: 2px; }
+.ct-btn-clara:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ---- 10.4 GRUPO: o que anuncia uma leva de itens ------------------------------
+   O ponto colorido não é enfeite: ele carrega a situação do grupo (atrasado, hoje, em
+   dia) para quem varre a tela sem ler. O contador é mono e tabular. */
+.ct-grupo { display: flex; align-items: center; gap: var(--ct-e2); margin-bottom: 11px; }
+.ct-grupo-ponto { width: 9px; height: 9px; border-radius: 99px; background: var(--accent, #0f7a57); flex: none; }
+.ct-grupo h3, .ct-grupo-titulo {
+  margin: 0; font-size: var(--fs-base, 13.5px);
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text2, #5c564a); font-weight: 700;
+}
+.ct-grupo-n {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-sm, 12.5px); font-weight: 700;
+  background: var(--surface2, #f0ece1); color: var(--text2, #5c564a);
+  padding: 2px 9px; border-radius: 99px;
+  font-variant-numeric: tabular-nums;
+}
+.ct-grupo-atraso .ct-grupo-ponto { background: var(--danger, #c0392f); }
+.ct-grupo-atraso .ct-grupo-n     { color: var(--danger, #c0392f); }
+.ct-grupo-fim { margin-left: auto; }
+
+/* ---- 10.5 ITEM COM COR: a linha que carrega uma cor -------------------------
+   A cor diz a MATÉRIA (cor da disciplina, vinda do edital) ou a SITUAÇÃO, e é o que
+   deixa a lista legível de relance. Ela não fica encostada no item como uma etiqueta
+   de 4px: tinge a borda inteira e entra pela esquerda como uma lavagem curta. Mesma
+   leitura à distância, sem o carimbo. O padrão vem da view Revisões. */
+.ct-item {
+  --ct-item-cor: var(--border, #e6e1d4);
+  display: flex; align-items: center; gap: var(--ct-e3);
+  background: var(--surface, #fffdf8);
+  background-image: linear-gradient(90deg,
+    color-mix(in oklab, var(--ct-item-cor) 18%, transparent), transparent 46%);
+  border: 1px solid color-mix(in oklab, var(--ct-item-cor) 38%, var(--border, #e6e1d4));
+  border-radius: var(--ct-r-lg);
+  padding: 15px 18px; flex-wrap: wrap;
+}
+.ct-item-atraso { --ct-item-cor: var(--danger, #c0392f); }
+.ct-item-hoje   { --ct-item-cor: var(--accent, #0f7a57); }
+.ct-item-corpo  { flex: 1; min-width: 140px; }
+.ct-item-tit    { font-weight: 600; font-size: var(--fs-md, 14.5px); color: var(--ink, #1f1c17); }
+.ct-item-nota   { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); margin-top: 2px; }
+.ct-item-fim    { margin-left: auto; display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+
+/* ---- 10.6 SELO: a situação em uma palavra ------------------------------------
+   Nasceu do contador "fora do padrão" da tela de Ajustes. Diz estado, nunca decora. */
+.ct-selo {
+  font-size: var(--fs-2xs, 11px); font-weight: 700; letter-spacing: .04em;
+  padding: 3px 9px; border-radius: 99px; white-space: nowrap;
+  border: 1px solid transparent;
+  background: var(--surface2, #f0ece1); color: var(--text2, #5c564a);
+}
+.ct-selo-atraso { background: var(--dangerSoft, #faeceb); color: var(--danger, #c0392f); border-color: var(--dangerBd, #f0d3d1); }
+.ct-selo-hoje   { background: var(--accentSoft, #e6f0ea); color: var(--accentD, #0b5e43); border-color: var(--accentRing, #c2e0d1); }
+.ct-selo-aviso  { background: var(--warnSoft, #faf0e0); color: var(--warn, #a36306); border-color: var(--warn, #a36306); }
+/* selo que precisa gritar: usado no "sugerido — não oficial", onde confundir custa caro */
+.ct-selo-forte  { background: var(--warn, #a36306); color: #fff; border-color: transparent; text-transform: uppercase; letter-spacing: .07em; font-weight: 800; }
+
+/* ---- 10.7 GRADE DE CARTÕES ---------------------------------------------------
+   Uma medida só para "muitos cartões lado a lado". 310px é o ponto em que um título de
+   prova cabe em duas linhas sem quebrar palavra. */
+.ct-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: var(--ct-e3); }
+.ct-grade-larga { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--ct-e4); }
+
+/* ---- 10.8 TRILHO DE ETAPAS ---------------------------------------------------
+   Fluxo de N passos (escolher › responder › correção). O passo atual é o único com
+   peso; os outros existem para dar contexto, não para competir. */
+.ct-trilho { display: flex; gap: var(--ct-e2); flex-wrap: wrap; align-items: center; }
+.ct-trilho-passo {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: var(--fs-sm, 12.5px); font-weight: 600;
+  color: var(--text3, #7a7368);
+  background: var(--surface, #fffdf8);
+  border: 1px solid var(--border, #e6e1d4);
+  border-radius: 99px; padding: 7px 14px;
+}
+.ct-trilho-passo[aria-current="step"] {
+  color: var(--ink, #1f1c17); background: var(--accentSoft, #e6f0ea);
+  border-color: var(--accent, #0f7a57); font-weight: 700;
+}
+.ct-trilho-passo[data-feito="1"] { color: var(--accentD, #0b5e43); }
+.ct-trilho-sep { color: var(--text3, #7a7368); font-size: var(--fs-base, 13.5px); }
+
+/* ---- 10.9 ALVO DE TOQUE ------------------------------------------------------
+   O host já tem a regra geral (WCAG 2.5.8) e a lição que veio com ela: controle
+   pequeno NÃO cresce, cresce a área que o dedo acerta — inflar tudo esmagava o
+   quadradinho do Edital e a célula do calendário. Aqui o caso é o oposto e por isso a
+   altura pode crescer de verdade: .ct-btn e irmãos são botões de AÇÃO, retangulares,
+   com rótulo dentro. Esticar de 38 para 44 não deforma nenhum deles. */
+@media (max-width: 900px) {
+  .ct-btn, .ct-btn-2, .ct-btn-clara { min-height: 44px; }
+}
+
+/* ===== 11. FORMULÁRIO =============================================================
+ * A seção 10 deu ritmo à tela; esta dá ritmo ao que a pessoa PREENCHE. Era o maior
+ * bolso de repetição que sobrou: só na tela de Simulados, o mesmo rótulo aparecia sete
+ * vezes e o mesmo campo em três larguras, cada uma escrita à mão. Um formulário em que
+ * cada campo tem uma altura é o que faz a tela parecer montada às pressas.
+ *
+ * REGRA: a largura é de quem usa (o campo se estica no contêiner ou recebe `style`
+ * pontual); tudo o mais — altura, borda, raio, foco — é daqui.
+ */
+.ct-rotulo {
+  display: block;
+  font-size: var(--fs-xs, 11.5px);
+  color: var(--text3, #7a7368);
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+.ct-campo {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border, #e6e1d4);
+  background: var(--surface, #fffdf8);
+  border-radius: var(--ct-r-md);
+  padding: 10px 12px;
+  font-size: var(--fs-base, 13.5px);
+  color: var(--ink, #1f1c17);
+  font-family: inherit;
+  line-height: 1.5;
+  outline: none;
+  min-height: var(--control-h, 38px);
+}
+/* Campo que recebe NÚMERO usa a fonte de dado e alinha à direita: é assim que uma coluna
+   de valores fica conferível de relance. */
+.ct-campo-num { font-family: var(--mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
+.ct-campo:focus-visible { border-color: var(--accent, #0f7a57); box-shadow: 0 0 0 3px var(--accentRing, #c2e0d1); }
+.ct-campo[readonly], .ct-campo[disabled] { background: var(--surface2, #f0ece1); color: var(--text3, #7a7368); }
+textarea.ct-campo { resize: vertical; line-height: 1.7; }
+
+/* rótulo e campo lado a lado, para o caso "Itens [10]" que não merece duas linhas */
+.ct-campo-linha {
+  display: flex; align-items: center; gap: var(--ct-e2);
+  font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a);
+}
+
+/* ---- 11.1 BLOCO DE NÚMERO ----------------------------------------------------
+   Acertos, aproveitamento, tempo. Aparecia em três desenhos diferentes na mesma tela —
+   um com 24px/800, outro com display 22px, outro com mono. O número é o dado; o rótulo
+   embaixo é o que ele significa. Tabular sempre, senão a linha dança a cada digitação. */
+.ct-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: var(--ct-e2); }
+.ct-num {
+  text-align: center;
+  background: var(--surface2, #f0ece1);
+  border-radius: var(--ct-r-md);
+  padding: 12px 8px;
+}
+.ct-num b {
+  display: block;
+  font-family: var(--display, Georgia, serif);
+  font-size: 22px; font-weight: 700; line-height: 1;
+  color: var(--ink, #1f1c17);
+  font-variant-numeric: tabular-nums;
+}
+.ct-num span {
+  display: block; margin-top: 4px;
+  font-size: var(--fs-2xs, 11px); color: var(--text3, #7a7368);
+}
+/* o número que a tela quer destacar — um por grupo, nunca todos */
+.ct-num-forte { background: var(--accentSoft, #e6f0ea); border: 1px solid var(--accentRing, #c2e0d1); }
+.ct-num-forte b { color: var(--accentD, #0b5e43); }
+.ct-num-risco b { color: var(--danger, #c0392f); }
+
+/* ===== 12. AS TRÊS PEÇAS DE TEXTO QUE FALTAVAM ====================================
+ * Depois de padronizar cartão, faixa e formulário, sobrou o que mais se repete no app
+ * inteiro: o TÍTULO de um cartão (44 cópias), a NOTA que explica logo abaixo (29) e o
+ * DADO em fonte mono (9+). São três papéis distintos e estavam escritos à mão em cada
+ * tela — com pesos e tamanhos que quase batiam, o que é pior do que divergir de vez:
+ * o olho percebe o desalinho sem saber nomear.
+ */
+.ct-titulo {
+  font-weight: 600;
+  color: var(--ink, #1f1c17);
+  font-size: var(--fs-lg, 15.5px);
+}
+/* o título que abre um cartão com explicação embaixo respira um pouco mais */
+.ct-titulo-com-nota { margin-bottom: 4px; }
+/* título de peso editorial — usa a serifa, para o que é começo de seção de verdade */
+.ct-titulo-display {
+  font-family: var(--display, Georgia, serif);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--ink, #1f1c17);
+  letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.ct-nota {
+  font-size: var(--fs-sm, 12.5px);
+  color: var(--text3, #7a7368);
+  line-height: 1.55;
+}
+.ct-nota-solta { margin-top: 2px; }      /* colada no que ela explica */
+.ct-nota-antes { margin-bottom: 16px; }  /* abrindo espaço para o que vem depois */
+/* Dado: número, prazo, referência. Mono e tabular — em coluna, os dígitos alinham; e o
+   valor para de "pular" quando muda, que é o defeito que faz um painel parecer instável. */
+.ct-dado {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-xs, 11.5px);
+  color: var(--text3, #7a7368);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 13. VITRINE — a identidade, não só a coerência ============================
+ * POR QUE ESTA SEÇÃO EXISTE, E POR QUE ELA VEM DEPOIS
+ * As seções 10–12 uniformizaram: o mesmo cartão, o mesmo rótulo, o mesmo campo em toda a
+ * plataforma. Isso deixou o app COERENTE — e coerente não é a mesma coisa que bonito. A
+ * dona do app foi direta ao apontar isso: uniformizar era metade do pedido.
+ * Esta seção é a outra metade. Ela não cria peça nova: ELEVA as que já existem. Como as
+ * telas passaram a usar as classes, uma mudança aqui reformula o app inteiro — foi para
+ * isto que a padronização serviu.
+ *
+ * AS TRÊS DECISÕES
+ * 1. O cartão deixa de ser caixa branca com borda cinza: ganha um fio de luz no topo, a
+ *    borda recua e a sombra passa a ter a cor do tema, não cinza universal.
+ * 2. A tipografia cresce onde é começo de assunto, e só ali. Título de tela em escala
+ *    editorial; o resto continua discreto, senão nada se destaca.
+ * 3. A cor entra por MATÉRIA, não por enfeite: a mesma paleta que o app já usa no ciclo,
+ *    nos gráficos e nas revisões (CT_CORES_RAMO) passa a valer no cartão e no chip.
+ */
+
+/* ---- 13.1 O CARTÃO GANHA PRESENÇA ---------------------------------------------
+   O fio de luz no topo é o que tira o cartão do "caixote": ele pega a cor do tema e some
+   nas pontas, então funciona nas oito direções sem virar listra colorida. */
+.ct-card {
+  position: relative;
+  border-color: color-mix(in srgb, var(--border, #e6e1d4) 72%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent, #0f7a57) 7%, transparent),
+              0 10px 30px -12px color-mix(in srgb, var(--accent, #0f7a57) 16%, transparent);
+  overflow: hidden;
+}
+.ct-card::before {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 22%,
+    color-mix(in srgb, var(--accent, #0f7a57) 75%, transparent) 50%,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 78%,
+    transparent);
+  opacity: .5; pointer-events: none;
+}
+/* cartão com matéria: a cor da disciplina manda no fio e na sombra */
+.ct-card[data-materia]::before {
+  background: linear-gradient(90deg, transparent, var(--ct-materia, var(--accent)) 30%, var(--ct-materia, var(--accent)) 70%, transparent);
+  opacity: .8;
+}
+.ct-card[data-materia] {
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ct-materia, var(--accent)) 8%, transparent),
+              0 12px 32px -14px color-mix(in srgb, var(--ct-materia, var(--accent)) 26%, transparent);
+}
+/* o cartão que é BOTÃO reage ao dedo: sobe um fio e a sombra abre */
+button.ct-card, a.ct-card { transition: transform .16s ease, box-shadow .16s ease; }
+button.ct-card:hover, a.ct-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--accent) 10%, transparent),
+              0 18px 40px -14px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  button.ct-card, a.ct-card { transition: none; }
+  button.ct-card:hover, a.ct-card:hover { transform: none; }
+}
+
+/* ---- 13.2 A FAIXA FICA EDITORIAL ----------------------------------------------
+   Mais ar, título maior e uma segunda camada de luz — a faixa é o primeiro lugar da tela
+   e agora parece com isso. */
+.ct-hero {
+  padding: 32px 32px 28px;
+  box-shadow: 0 18px 44px -20px color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent);
+}
+.ct-hero-tit { font-size: clamp(28px, 3.2vw, 38px); line-height: 1.06; }
+.ct-hero-sub { font-size: var(--fs-md, 14.5px); max-width: 58ch; }
+.ct-hero-eb { color: rgba(255, 255, 255, .82); }
+.ct-kpi b { font-size: clamp(26px, 2.6vw, 34px); }
+
+/* ---- 13.3 TÍTULO DE SEÇÃO EM ESCALA EDITORIAL ---------------------------------
+   Só o que ABRE assunto cresce. Título de cartão continua onde estava: se tudo cresce,
+   nada se destaca — foi o erro que deixou as telas "poluídas" na leitura da dona. */
+.ct-titulo-display { font-size: clamp(22px, 2.2vw, 28px); letter-spacing: -.02em; }
+.ct-secao h2, .ct-secao .ct-secao-titulo { font-size: var(--fs-2xl, 19px); letter-spacing: -.01em; }
+
+/* ---- 13.4 A COR DA MATÉRIA NO CHIP E NO SELO ----------------------------------
+   Mesma paleta do ciclo e dos gráficos (CT_CORES_RAMO). O ponto colorido diz o assunto
+   antes de a pessoa ler o rótulo. */
+.ct-chip-materia {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--ct-materia, var(--accent)) 34%, transparent);
+  background: color-mix(in srgb, var(--ct-materia, var(--accent)) 10%, transparent);
+  color: var(--ink, #1f1c17);
+  border-radius: 99px; padding: 6px 13px;
+  font-size: var(--fs-sm, 12.5px); font-weight: 600;
+}
+.ct-chip-materia::before {
+  content: ""; width: 7px; height: 7px; border-radius: 99px;
+  background: var(--ct-materia, var(--accent)); flex: none;
+}
+
+/* ---- 13.5 NÚMERO COM PESO ------------------------------------------------------ */
+.ct-num b { font-size: clamp(24px, 2.4vw, 30px); }
+.ct-num-forte {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    color-mix(in srgb, var(--accent) 6%, transparent));
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ---- 13.6 BOTÃO PRIMÁRIO COM CORPO --------------------------------------------- */
+.ct-btn {
+  background: linear-gradient(180deg, var(--accent, #0f7a57), color-mix(in srgb, var(--accent, #0f7a57) 82%, #000));
+  box-shadow: 0 1px 2px rgba(0,0,0,.10), 0 8px 20px -10px color-mix(in srgb, var(--accent) 65%, transparent);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.ct-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,.12), 0 12px 26px -10px color-mix(in srgb, var(--accent) 75%, transparent); }
+.ct-btn:active { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .ct-btn { transition: none; } .ct-btn:hover { transform: none; } }
+
+/* ===== 15. O RESTO DO APP ========================================================
+ * A seção 13 deu identidade ao `.ct-card` — 90 cartões. Só que o app tem 158 OUTROS que
+ * ainda estão em estilo literal, porque a uniformização só trocou as grafias que se
+ * repetiam muito; as de uma ou duas ocorrências ficaram. Resultado visível para quem usa:
+ * metade das telas com a cara nova e metade sem, o que é pior do que não ter mexido.
+ *
+ * A saída não é converter as 158 à mão (muita edição, muito risco, nenhum ganho novo):
+ * é o desenho alcançar as DUAS formas. O app já faz isso há tempos com as regras de
+ * personalidade por direção, que casam `div[style*="var(--surface)"]`. Aqui vale o mesmo
+ * princípio, e com uma vantagem: conforme cada cartão migrar para a classe, ele continua
+ * coberto — a regra da classe e a do inline dizem a mesma coisa.
+ *
+ * POR QUE ::after E POR QUE SÓ div/button: o `::before` de um cartão em estilo literal
+ * pode estar ocupado pelo conteúdo da própria tela; `::after` é o slot livre. E a
+ * restrição a `div`/`button` deixa de fora `input` e `textarea`, que também têm
+ * superfície e borda — campo de formulário com fio de luz no topo viraria enfeite sem
+ * sentido em cima da caixa de digitar.
+ */
+.ct-scroll div[style*="var(--surface)"][style*="var(--border)"],
+.ct-scroll button[style*="var(--surface)"][style*="var(--border)"] {
+  position: relative;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent, #0f7a57) 7%, transparent),
+              0 10px 30px -12px color-mix(in srgb, var(--accent, #0f7a57) 16%, transparent);
+}
+.ct-scroll div[style*="var(--surface)"][style*="var(--border)"][style*="radius"]::after,
+.ct-scroll button[style*="var(--surface)"][style*="var(--border)"][style*="radius"]::after {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 22%,
+    color-mix(in srgb, var(--accent, #0f7a57) 75%, transparent) 50%,
+    color-mix(in srgb, var(--accent, #0f7a57) 55%, transparent) 78%,
+    transparent);
+  opacity: .45; pointer-events: none; border-radius: inherit;
+}
+
+/* ===== 16. O ESTADO DO CONTROLE APARECE ==========================================
+ * Auditoria contra o checklist de UI (cursor, foco, alvo de toque, contraste) no app
+ * inteiro. O contraste passou limpo — os 14 suspeitos eram texto sobre gradiente, que o
+ * medidor não sabe compor. Sobraram três defeitos de ESTADO, e todos do mesmo tipo: o
+ * controle não diz o que é.
+ *   · "Comparar com o gabarito" (Redação) e "Escolha uma matéria" (Bancas): clicáveis de
+ *     verdade, com cursor de seta. Quem passa o mouse não descobre que são botões.
+ *   · "Revisar agora" quando está tudo em dia (Revisões): desabilitado, mas com opacidade
+ *     cheia — parecia ativo e não respondia. Botão que não reage sem dizer por quê é o
+ *     tipo de coisa que faz a pessoa achar que o app travou.
+ * A regra abaixo resolve os três e impede o quarto: é por ESTADO, não por elemento
+ * específico, então vale para o botão que ainda não existe.
+ */
+.ct-scroll button:not([disabled]):not([aria-disabled="true"]),
+.ct-scroll [role="button"]:not([aria-disabled="true"]),
+.ct-scroll a[href] { cursor: pointer; }
+
+.ct-scroll button[disabled],
+.ct-scroll button[aria-disabled="true"],
+.ct-scroll [role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+/* Foco visível em tudo que recebe teclado. O app já tinha foco em alguns lugares; aqui
+   ele passa a ser garantido — quem navega por Tab precisa saber onde está, e o anel tem
+   de aparecer sobre superfície clara E sobre o gradiente das faixas. */
+.ct-scroll button:focus-visible,
+.ct-scroll a:focus-visible,
+.ct-scroll input:focus-visible,
+.ct-scroll select:focus-visible,
+.ct-scroll textarea:focus-visible,
+.ct-scroll [tabindex]:focus-visible {
+  outline: 2px solid var(--accent, #0f7a57);
+  outline-offset: 2px;
+  border-radius: var(--ct-r-sm);
+}
+.ct-hero button:focus-visible, .ct-hero a:focus-visible { outline-color: #fff; }
+
+/* ---- 16.1 ALVO DE TOQUE, SEM REPETIR O ERRO DE ANTES ---------------------------
+ * Medido em 375px: 34 botões com menos de 44px de altura. A tentação é `min-height:44px`
+ * em tudo — e o próprio app já tentou isso e reverteu, com o estrago anotado no
+ * Catedra.dc.html: o quadradinho de 20x20 do tópico do Edital virava uma barra de 20x44,
+ * o seletor de cor 30x44, e a célula do calendário era ESMAGADA para 44 com overflow
+ * cortando os eventos do dia.
+ * Então a regra vale só para botão que TEM RÓTULO — quem tem texto dentro é retangular e
+ * cresce sem deformar. Em CSS não se pergunta "tem texto", mas dá para excluir o que
+ * sabidamente quebra: cartão (que já é grande), célula de calendário, quadradinho de
+ * marcar e seletor de cor. O que sobra é botão de ação com palavra dentro.
+ */
+@media (max-width: 900px) {
+  .ct-scroll button:not(.ct-card):not(.ct-calcell):not(.cth-chk):not(.ct-alvo):not([data-cor]):not([data-i]):not([data-k]):not(:has(> svg:only-child)) {
+    min-height: 44px;
+  }
+  /* Botão que é SÓ um ícone não cresce — foi o que a medição pegou na primeira tentativa
+     desta regra: dois deles viraram 30x44 e 34x44, exatamente a deformação que o app já
+     tinha documentado. `:has(> svg:only-child)` é o jeito de perguntar em CSS "este botão
+     tem só um desenho dentro?". Para o dedo alcançar, o host já tem `.ct-alvo`, que cresce
+     a ÁREA por pseudo-elemento sem esticar o desenho. */
+}
+
+/* ===== 17. AS FONTES MORAM AQUI DENTRO ===========================================
+ * O app pedia a tipografia ao Google Fonts a cada abertura. Num app de estudo isso é
+ * defeito de verdade: sem internet — no iPad, na véspera da prova — o Spectral vira
+ * Georgia, o Inter vira fonte de sistema e a identidade que o resto deste arquivo
+ * constrói se desmancha. Também era a única dependência externa do desenho.
+ * As 20 faces (subset latin, que cobre o português) agora vivem em ./fonts, 616 KB no
+ * total, e são referenciadas por caminho relativo — sem CDN, sem passo de build, e
+ * funcionando com o aparelho em modo avião. `font-display:swap` mantém o texto legível
+ * enquanto a face carrega do disco.
+ */
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/inter-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/inter-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/inter-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/inter-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter Tight';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/intertight-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter Tight';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/intertight-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter Tight';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/intertight-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter Tight';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/intertight-700-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/jetbrainsmono-400-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/jetbrainsmono-500-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/jetbrainsmono-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/spacegrotesk-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spacegrotesk-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/spacegrotesk-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spacegrotesk-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:italic;font-weight:400;font-display:swap;src:url('./fonts/spectral-400-italic.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/spectral-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spectral-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/spectral-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spectral-700-normal.woff2') format('woff2');}
+
+/* ═══ 11. GRAMÁTICA DE COMPOSIÇÃO ═══════════════════════════════════════════
+   Contrato: O ESPELHO MOSTRA O CRITÉRIO, A BANCADA FAZ O TRABALHO.
+   Cada aba recebe a forma da pergunta que ela responde:
+     · foi conferir como está  → espelho  (.ct-esp)
+     · veio executar agora     → bancada  (.ct-bc)
+     · leitura, social, form   → nenhuma das duas, e isso é exceção DECLARADA
+   Nada aqui inventa cor, fonte ou raio: tudo sai dos tokens, para sobreviver às
+   8 direções × claro/escuro. Ver o CONTRATO DE DIREÇÃO no topo do Catedra.dc.html. */
+
+/* ---- 11.1 ESPELHO: o que se exige, quanto vale, você atendeu ---------------
+   A unidade de layout é o QUESITO, do jeito que a banca escreve: a exigência em
+   serifa à esquerda, o peso em mono alinhado à direita, e o estado tingindo a
+   linha inteira. É a única gramática que um concorrente não copia sem ter o
+   acervo — por isso ela carrega a identidade do produto. */
+.ct-esp-cab {
+  font-family: var(--display, Georgia, serif);
+  font-size: var(--fs-2xl, 19px); font-weight: 700;
+  letter-spacing: -.015em; line-height: 1.15;
+  color: var(--ink, #1f1c17); margin: 0 0 3px;
+}
+.ct-esp-ex {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-2xs, 11px); letter-spacing: .13em; text-transform: uppercase;
+  color: var(--text3, #7a7368); margin-bottom: var(--ct-e4);
+}
+.ct-q {
+  --st: var(--border, #e6e1d4);
+  display: grid; grid-template-columns: 1fr auto; gap: var(--ct-e4);
+  align-items: start; padding: 13px 15px; margin-bottom: var(--ct-e2);
+  border: 1px solid color-mix(in oklab, var(--st) 32%, var(--border, #e6e1d4));
+  border-radius: var(--ct-r-md);
+  background-image: linear-gradient(90deg,
+    color-mix(in oklab, var(--st) 16%, transparent), transparent 44%);
+}
+.ct-q-exig {
+  font-family: var(--serif, var(--display, Georgia, serif));
+  font-size: var(--fs-lg, 15.5px); line-height: 1.45; color: var(--ink, #1f1c17);
+}
+.ct-q-exig b { font-weight: 600; }
+.ct-q-meta {
+  display: flex; gap: var(--ct-e2); flex-wrap: wrap; align-items: center;
+  margin-top: 5px; font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368);
+}
+/* A cor do estado é IDENTIDADE (chip) e não texto: escurecida com a própria tinta
+   do texto para passar de 4,5:1, do mesmo jeito que o --leiTxt do ritos. */
+.ct-q-tag {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-3xs, 10px); letter-spacing: .09em; text-transform: uppercase;
+  font-weight: 600; color: color-mix(in srgb, var(--st) 70%, var(--ink, #1f1c17));
+}
+.ct-q-peso {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-2xl, 19px); font-weight: 600; line-height: 1;
+  text-align: right; color: var(--ink, #1f1c17); font-variant-numeric: tabular-nums;
+  min-width: 3ch;
+}
+.ct-q-peso small {
+  display: block; margin-top: 4px; font-weight: 400;
+  font-size: var(--fs-3xs, 10px); letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text3, #7a7368);
+}
+.ct-q-atendido { --st: var(--ok, #0f7a57); }
+.ct-q-parcial  { --st: var(--warn, #b45309); }
+.ct-q-aberto   { --st: var(--danger, #c0392f); }
+/* O fecho responde a pergunta que o espelho abriu: quanto de quanto. */
+.ct-esp-fecho {
+  display: flex; align-items: baseline; gap: var(--ct-e3); flex-wrap: wrap;
+  margin-top: var(--ct-e4); padding: var(--ct-e4);
+  border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-md);
+  background: var(--surface2, #f0ece1);
+}
+.ct-esp-fecho .ct-esp-n {
+  font-family: var(--display, Georgia, serif); font-size: 30px; font-weight: 700;
+  letter-spacing: -.03em; line-height: 1; color: var(--ink, #1f1c17);
+}
+.ct-esp-fecho .ct-esp-n span { font-size: var(--fs-xl, 17px); color: var(--text3, #7a7368); }
+.ct-esp-fecho .ct-esp-t { font-size: var(--fs-base, 13.5px); color: var(--text2, #5c564a); }
+
+/* ---- 11.2 A RÉGUA: a linha do tempo como COMPONENTE, não como moldura -----
+   Só entra onde o prazo É o critério (Edital, Reta final). Numa aba sem eixo
+   temporal honesto ela seria enfeite — e enfeite é o que esta gramática recusa. */
+.ct-regua {
+  position: relative; height: 52px; margin-bottom: var(--ct-e4);
+  border-radius: 99px; overflow: hidden;
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--accent, #0f7a57) 22%, var(--surface2, #f0ece1)),
+    var(--surface2, #f0ece1));
+}
+.ct-regua-marca { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border, #e6e1d4); }
+.ct-regua-hoje  { position: absolute; top: 0; bottom: 0; width: 3px; border-radius: 2px; background: var(--accent, #0f7a57); }
+.ct-regua-cap {
+  position: absolute; top: 9px;
+  font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-3xs, 10px);
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text3, #7a7368);
+}
+.ct-regua-n {
+  position: absolute; bottom: 7px;
+  font-family: var(--display, Georgia, serif); font-weight: 700;
+  font-size: var(--fs-xl, 17px); letter-spacing: -.02em; color: var(--ink, #1f1c17);
+}
+
+/* ---- 11.3 BANCADA: onde a mão alcança -------------------------------------
+   Três zonas que NÃO trocam de lugar entre abas: a tarefa de agora no centro em
+   escala grande, o material que ela exige à direita (para não tirar a pessoa da
+   tela), e a fila embaixo — presente e fora do caminho. Sem eyebrow: o título
+   carrega o próprio peso. */
+.ct-bc { display: grid; grid-template-columns: 1fr; gap: var(--ct-e3); }
+@media (min-width: 700px) { .ct-bc { grid-template-columns: 1.6fr 1fr; } }
+.ct-bc-foco {
+  display: flex; flex-direction: column; justify-content: space-between;
+  min-height: 200px; padding: var(--ct-e4) var(--ct-e5);
+  border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-lg);
+  background: var(--surface2, #f0ece1);
+}
+.ct-bc-foco h3 {
+  font-family: var(--display, Georgia, serif);
+  font-size: clamp(21px, 3vw, 29px); font-weight: 700;
+  letter-spacing: -.025em; line-height: 1.1; margin: 0 0 5px; color: var(--ink, #1f1c17);
+}
+.ct-bc-foco p { margin: 0; font-size: var(--fs-md, 14.5px); color: var(--text2, #5c564a); line-height: 1.55; }
+.ct-bc-foco .ct-bc-acao { margin-top: var(--ct-e4); align-self: flex-start; }
+.ct-bc-apoio {
+  min-height: 200px; padding: var(--ct-e4);
+  border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-lg);
+}
+.ct-bc-apoio-t {
+  font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-3xs, 10px);
+  letter-spacing: .15em; text-transform: uppercase; color: var(--text3, #7a7368);
+  margin-bottom: var(--ct-e3);
+}
+.ct-bc-it { padding: 9px 0; border-bottom: 1px solid var(--border, #e6e1d4); }
+.ct-bc-it:last-child { border-bottom: 0; }
+.ct-bc-it b { display: block; font-weight: 600; font-size: var(--fs-base, 13.5px); color: var(--ink, #1f1c17); }
+.ct-bc-it span { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }
+.ct-bc-fila { grid-column: 1 / -1; display: flex; gap: var(--ct-e2); overflow-x: auto; padding-bottom: 3px; }
+.ct-bc-cd {
+  --mc: var(--border, #e6e1d4);
+  flex: 0 0 auto; min-width: 158px; padding: 11px 13px;
+  border: 1px solid color-mix(in oklab, var(--mc) 32%, var(--border, #e6e1d4));
+  border-radius: var(--ct-r-md);
+  background-image: linear-gradient(90deg,
+    color-mix(in oklab, var(--mc) 17%, transparent), transparent 46%);
+}
+.ct-bc-cd em {
+  font-style: normal; font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-3xs, 10px); letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 600; color: color-mix(in srgb, var(--mc) 70%, var(--ink, #1f1c17));
+}
+.ct-bc-cd b { display: block; margin-top: 3px; font-size: var(--fs-base, 13.5px); font-weight: 600; color: var(--ink, #1f1c17); }
+.ct-bc-cd span { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }
+
+/* ═══ 12. INTERAÇÃO: o que é clicável diz que é ═══════════════════════════════
+   132 dos 410 botões do host escreviam o próprio estilo inline sem `cursor`, e a
+   única regra global que existia era escopada ao widget. Uma regra, todos. */
+button:not(:disabled) { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
