@@ -1552,6 +1552,93 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
   for (const [k, v] of Object.entries(app)) ok(v, 'ENAM app ' + k);
 }
 
+/* ============= ENAM — E1: calendário, meta e contagem regressiva ============= */
+// (a) as funções puras de enam.js, nos aceites da especificação
+await page.goto(URL0 + '/tests/harness-leitura-ativa.html');
+await page.evaluate(() => new Promise(res => { const t = document.createElement('script'); t.src = '/enam.js'; t.onload = () => res(true); t.onerror = () => res(false); document.head.appendChild(t); }));
+const e1 = await page.evaluate(() => {
+  const E = window.CT_ENAM, r = {}, em = iso => new Date(iso);
+  r.diasAte88 = E.diasAte('2026-11-29', em('2026-09-02T12:00:00-03:00'), 'America/Sao_Paulo') === 88;
+  // 28/11 às 23h30 em Porto Velho (UTC−4) ainda é dia 28 no aparelho: falta 1 — em Brasília já é 29: 0
+  r.viradaEmPortoVelho = E.diasAte('2026-11-29', em('2026-11-28T23:30:00-04:00'), 'America/Porto_Velho') === 1 && E.diasAte('2026-11-29', em('2026-11-28T23:30:00-04:00'), 'America/Sao_Paulo') === 0;
+  r.diaDaProvaZero = E.diasAte('2026-11-29', em('2026-11-29T10:00:00-03:00'), 'America/Sao_Paulo') === 0 && E.diasAte('2026-11-29', em('2026-11-30T10:00:00-03:00'), 'America/Sao_Paulo') === -1;
+  r.cadenciaSeis = E.cadencia(em('2026-09-02T12:00:00-03:00'), '2026-11-29', 'America/Sao_Paulo').join(',') === '2026-09-13,2026-09-27,2026-10-11,2026-10-25,2026-11-08,2026-11-22';
+  r.cadenciaVazia = E.cadencia(em('2026-11-25T12:00:00-03:00'), '2026-11-29', 'America/Sao_Paulo').length === 0;
+  r.horaLocal = E.horaLocal({ data: '2026-11-29', inicio: '13:00' }, 'America/Porto_Velho') === 'prova às 13h de Brasília · 12h em Porto Velho'
+    && E.horaLocal({ data: '2026-11-29', inicio: '13:00' }, 'America/Sao_Paulo') === 'prova às 13h de Brasília';
+  r.instanteEmUTC = new Date(E.instante('2026-11-29', '13:00', 'America/Sao_Paulo')).toISOString() === '2026-11-29T16:00:00.000Z';
+  r.proximaEdicao = E.proxima(em('2026-09-02T12:00:00-03:00')).id === '2026.2' && E.edicao('2026.2').data === '2026-11-29' && E.edicao('2026.2').inicio === '13:00';
+  r.edicoesComDatasDosEditais = E.EDICOES.map(e => e.id + ':' + e.data).join(' ') === '2024.1:2024-04-14 2024.2:2024-10-20 2025.1:2025-05-18 2025.2:2025-10-26 2026.1:2026-06-07 2026.2:2026-11-29';
+  return r;
+});
+for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
+
+// (b) o host: sem catedra:enam nada aparece e Ajustes convida; ativar cria a chave, o chip e a régua; a meta muda só o número
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.removeItem('catedra:enam'); localStorage.removeItem('catedra:prova');
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, E = window.CT_ENAM;
+    r.chaveNoAutosave = app._autosaveKeys().includes('enam');
+    r.semTrilhaSemChip = ![...document.querySelectorAll('.cth-chip')].some(c => /ENAM/.test(c.textContent));
+    // Ajustes → ENAM: o estado vazio convida
+    const mais = document.querySelector('button[aria-label="Mostrar mais opções"]'); if (mais) mais.click(); await w(300);
+    document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+    const aba = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'enam');
+    r.abaExiste = !!aba && /ENAM/.test(aba.textContent);
+    aba.click(); await w(600);
+    const convite = [...document.querySelectorAll('main .ct-estado')].find(d => /Vai fazer o ENAM\? Ative a trilha/.test(d.textContent));
+    r.estadoVazioConvida = !!convite && /próxima edição é a 2026\.2/.test(convite.textContent);
+    r.semCampoDeAutodeclaracao = !/raça|etnia|deficiência|quilombola|indígen|negr/i.test(document.querySelector('main').textContent);
+    [...convite.querySelectorAll('button')].find(b => /Ativar a trilha ENAM/.test(b.textContent)).click(); await w(1000);
+    const en = JSON.parse(localStorage.getItem('catedra:enam') || 'null');
+    r.ativarGravaAChave = !!en && en.ativo === true && en.edicao === '2026.2' && en.data === '2026-11-29' && en.inicio === '13:00' && en.fuso === 'America/Sao_Paulo' && en.duracaoMin === 300 && en.metaAcertos === 56 && en.up > 0;
+    const b56 = document.querySelector('main button[data-meta="56"]'), b40 = document.querySelector('main button[data-meta="40"]');
+    r.metaDoisBotoesNeutros = !!b56 && !!b40 && /56 acertos \(70%\)/.test(b56.textContent) && /40 acertos \(50%\)/.test(b40.textContent) && b56.getAttribute('aria-pressed') === 'true' && b40.getAttribute('aria-pressed') === 'false'
+      && /itens 3\.7 e 9\.2/.test(document.querySelector('main').textContent);
+    r.alvo44 = b56.getBoundingClientRect().height >= 44;
+    const antes = JSON.parse(localStorage.getItem('catedra:enam'));
+    b40.click(); await w(900);
+    const depois = JSON.parse(localStorage.getItem('catedra:enam'));
+    r.trocarMetaMudaSoONumero = depois.metaAcertos === 40 && depois.up >= antes.up && Object.keys(depois).filter(k => k !== 'metaAcertos' && k !== 'up').every(k => JSON.stringify(depois[k]) === JSON.stringify(antes[k]));
+    r.horaNoAjuste = /prova às 13h de Brasília/.test(document.querySelector('main').textContent) && /80 questões · 5 horas/.test(document.querySelector('main').textContent);
+    // o chip do Início
+    window.__catedraGoView('inicio'); await w(700);
+    const chip = [...document.querySelectorAll('.cth-chip')].find(c => /ENAM 2026\.2/.test(c.textContent));
+    const dias = E.diasAte('2026-11-29');
+    r.chipNoInicio = !!chip && chip.textContent.includes(dias === 1 ? 'falta 1 dia' : 'faltam ' + dias + ' dias') && /prova às 13h de Brasília/.test(chip.getAttribute('title') || '') && /ENAM 2026\.2/.test(chip.getAttribute('aria-label') || '');
+    r.chipSemEmoji = !!chip && !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(chip.textContent) && !!chip.querySelector('svg');
+    // a régua: só ENAM → o número é o do ENAM; com concurso mais perto, o concurso manda e o ENAM vira marco
+    window.__catedraGoView('reta-final'); await w(700);
+    const main = () => document.querySelector('main').textContent;
+    r.retaContaOEnam = new RegExp('dias para o ENAM 2026\\.2').test(main()) && !document.querySelector('main .ct-regua-marca2');
+    localStorage.setItem('catedra:prova', '2026-10-15'); app.setState({ provaData: '2026-10-15' }); await w(500);
+    const dC = Math.ceil((new Date('2026-10-15T00:00:00') - new Date()) / 864e5);
+    r.concursoMaisPertoManda = new RegExp('dias para a prova').test(main()) && !!document.querySelector('main .ct-regua-marca2') && new RegExp('prova · ' + dC + ' d').test(document.querySelector('main .ct-regua-cap2').textContent);
+    window.__catedraGoView('edital'); await w(700);
+    r.editalTemOMarco = !!document.querySelector('main .ct-regua-marca2');
+    localStorage.removeItem('catedra:prova'); app.setState({ provaData: null });
+    // desativar não apaga
+    window.__catedraGoView('ajustes'); await w(600);
+    [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'enam').click(); await w(500);
+    [...document.querySelectorAll('main button')].find(b => /Desativar a trilha/.test(b.textContent)).click(); await w(900);
+    const off = JSON.parse(localStorage.getItem('catedra:enam'));
+    r.desativarMantemOsDados = off.ativo === false && off.metaAcertos === 40 && off.edicao === '2026.2';
+    window.__catedraGoView('inicio'); await w(500);
+    r.desligadoSomeOChip = ![...document.querySelectorAll('.cth-chip')].some(c => /ENAM/.test(c.textContent));
+    localStorage.removeItem('catedra:enam');
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E1 ' + k);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
@@ -4023,10 +4110,11 @@ const d11 = await page.evaluate(async () => {
   await w(1200);
   const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-s]')];
   const abas = abasEl().map(b => b.textContent.trim());
-  r.seisAbas = abas.length === 6;
   // Ajustes refeito: seis SEÇÕES, sem "Método da banca" (o perfil da banca vive na tela
-  // Bancas; nos Ajustes ficou só o seletor, dentro de Ritmo) e com Automações à parte.
-  r.abasPorAssunto = ['Perfil', 'Ritmo', 'Automações', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  // Bancas; nos Ajustes ficou só o seletor, dentro de Ritmo) e com Automações à parte —
+  // e, desde o E1 (02/09/2026), a sétima: ENAM, logo depois de Perfil (é "quando é a prova")
+  r.seisAbas = abas.length === 7;
+  r.abasPorAssunto = ['Perfil', 'ENAM', 'Ritmo', 'Automações', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
   r.semAbaDeBanca = !abas.some(x => /banca/i.test(x));
   const barra = document.querySelector('main .aj-abas');
   r.abasGrudamNoTopo = !!barra && getComputedStyle(barra).position === 'sticky';

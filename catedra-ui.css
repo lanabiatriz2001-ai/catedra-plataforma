@@ -788,6 +788,9 @@ button.ct-card:hover, a.ct-card:hover {
 }
 .ct-regua-marca { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border, #e6e1d4); }
 .ct-regua-hoje  { position: absolute; top: 0; bottom: 0; width: 3px; border-radius: 2px; background: var(--accent, #0f7a57); }
+/* a segunda data (E1: concurso e ENAM no mesmo semestre) — marco menor, tingido, com o rótulo escrito */
+.ct-regua-marca2 { width: 2px; background: color-mix(in oklab, var(--accent, #0f7a57) 60%, var(--border, #e6e1d4)); }
+.ct-regua-cap2 { top: auto; bottom: 7px; color: var(--accentD, #0b5e43); font-weight: 700; }
 .ct-regua-cap {
   position: absolute; top: 9px;
   font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-3xs, 10px);
