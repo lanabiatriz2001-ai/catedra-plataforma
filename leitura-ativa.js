@@ -151,9 +151,127 @@
   /** O texto atual do dispositivo ainda é o que foi lido? (false = leitura desatualizada) */
   function atualizada(item, txt) { return !!item && item.hash === hash(txt || ''); }
 
-  /* LA5 — cloze de lei seca. Assinaturas prontas; o corpo entra com o item LA5. */
-  function cloze(item, el, txt) { return null; }            // → { front, back, extra } | null
-  function renderCloze(front, mostrar) { return ''; }        // front com {{cN::…}} → HTML
+  /* ===== LA5 — cloze de lei seca: o cartão que ela já faz à mão no Anki =====
+     Fidelidade literal ao texto, UM dispositivo por cartão, UMA pergunta por cartão, no
+     máximo 3 lacunas na sintaxe do Anki ({{c1::…}}), e "Back Extra" com fundamento +
+     explicação curta gerada por regra (sem IA) + alerta só quando a banca tem termo para
+     trocar (inverter, do treino.js — opcional: o LEGIS não o carrega, o host sim). */
+  var MAX_LACUNAS = 3, MAX_FRONT = 900;
+  var RE_NUCLEO_PRAZO = /\b((?:\d{1,3}(?:[.,]\d{1,3})?|um|uma|dois|duas|tr[êe]s|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|quinze|vinte|trinta|quarenta|sessenta|noventa|cento e vinte|cento e oitenta)\s+(?:dias?|anos?|meses|m[êe]s|horas?|minutos?|semanas?|d[ée]cadas?))\b/i;
+  var PREFIXO_EXPL = { quem: 'Quem: ', oque: 'O que a norma determina: ', quando: 'Hip\u00f3tese ou momento: ',
+    como: 'Forma ou requisito: ', excecao: 'Ressalva: ', proibicao: 'Veda\u00e7\u00e3o: ' };
+  // chaves literais no texto da lei (raras) não podem virar lacuna por acidente
+  function escapeCloze(s) { return String(s == null ? '' : s).replace(/\{\{/g, '{ {').replace(/\}\}/g, '} }'); }
+  /** O termo-chave dentro da marca: em "Há prazo?" é o número + unidade ("cinco anos");
+      nos outros elementos é a marca inteira — recall literal, sem inventar recorte. */
+  function nucleo(el, t) {
+    var s = String(t || '').trim();
+    if (el === 'prazo') { var m = RE_NUCLEO_PRAZO.exec(s); if (m) return { t: m[1], i: m.index }; }
+    return { t: s, i: 0 };
+  }
+  /** Corta em `max` sem partir um {{…}} no meio: recua até o fim da lacuna anterior. */
+  function cortarSeguro(s, max) {
+    s = String(s == null ? '' : s); max = max || MAX_FRONT;
+    if (s.length <= max) return s;
+    var corte = max, abre = s.lastIndexOf('{{', corte), fecha = s.lastIndexOf('}}', corte);
+    if (abre >= 0 && abre > fecha) corte = abre;                 // caiu dentro de uma lacuna
+    return s.slice(0, corte).replace(/\s+\S*$/, '') + '\u2026';
+  }
+  /** Explicação curta, literal, por regra — uma frase. Para o prazo: "Prazo de cinco anos,
+      contado de forma ininterrupta e sem oposição" (o resto da marca e o fragmento
+      seguinte do texto viram qualificadores). Nunca IA. */
+  function explicacao(el, marca, base, nuc) {
+    var t = String(marca || '').replace(/\s+/g, ' ').trim().replace(/[.;,]+$/, '');
+    if (el === 'prazo' && nuc && nuc.t !== t) {
+      var resto = t.replace(nuc.t, ' ').replace(/\s+/g, ' ').trim();
+      var frase = 'Prazo de ' + nuc.t;
+      if (/ininterrupt/i.test(resto)) frase += ', contado de forma ininterrupta';
+      else if (/improrrog/i.test(resto)) frase += ', improrrog\u00e1vel';
+      else if (/prorrog/i.test(resto)) frase += ', prorrog\u00e1vel';
+      // o fragmento seguinte do texto ("sem oposição", "contados da citação") qualifica o prazo
+      var pos = String(base || '').indexOf(marca);
+      if (pos >= 0) {
+        var depois = String(base).slice(pos + marca.length).replace(/^[\s,;]+/, '');
+        var frag = (depois.split(/[,;.]/)[0] || '').trim();
+        // "e sem oposição" lê como condição; "contados da citação" é aposto — vírgula
+        if (frag && frag.length <= 40 && /^(sem|com|contad[oa]s?|a contar|a partir|desde|ap[\u00f3o]s)\b/i.test(frag)) frase += (/^(sem|com)\b/i.test(frag) ? ' e ' : ', ') + frag;
+      }
+      return frase;
+    }
+    if (el === 'prazo') return 'Prazo: ' + t;
+    var p = PREFIXO_EXPL[el] || '';
+    var frase2 = p + t;
+    if (el === 'excecao') frase2 += ' \u2014 fora dela vale a regra';
+    return frase2.length > 220 ? frase2.slice(0, 217).replace(/\s+\S*$/, '') + '\u2026' : frase2;
+  }
+  /**
+   * cloze(item, el, txt, opc) → { front, back, extra, tags, termos } | null
+   *   txt  texto-base: a proposição do dispositivo (o LEGIS junta o tronco do caput ao
+   *        inciso, como proposicoesDoArtigo faz); as marcas são reencontradas por offset
+   *        ou por indexOf, o padrão de renderGr.
+   *   opc  { inverter: fn(txt) → {de, para} | null (CT_TREINO.inverter, se houver),
+   *          situacao: 'revogado' | 'vetado' | '' }
+   */
+  function cloze(item, el, txt, opc) {
+    if (!item || !ehEl(el)) return null;
+    opc = opc || {};
+    var base = String(txt == null ? '' : txt).replace(/\s+/g, ' ').trim();
+    var ms = ((item.el && item.el[el]) || []).map(function (m) {
+      if (!m || !m.t) return null;
+      var i = (m.s != null && base.substr(m.s, m.t.length) === m.t) ? m.s : base.indexOf(m.t);
+      if (i < 0) return null;
+      var nuc = nucleo(el, m.t);
+      return { a: i + nuc.i, b: i + nuc.i + nuc.t.length, t: nuc.t, marca: m.t, nuc: nuc };
+    }).filter(function (x) { return !!x; }).sort(function (a, b) { return a.a - b.a; });
+    // sem sobreposição; no máximo 3 lacunas — as excedentes ficam visíveis
+    var limpas = [], fim = -1;
+    ms.forEach(function (m) { if (m.a >= fim && limpas.length < MAX_LACUNAS) { limpas.push(m); fim = m.b; } });
+    if (!limpas.length) return null;
+    var front = '', back = '', pos = 0;
+    limpas.forEach(function (m, i) {
+      front += escapeCloze(base.slice(pos, m.a)) + '{{c' + (i + 1) + '::' + escapeCloze(m.t) + '}}';
+      back += base.slice(pos, m.a) + '\u00ab' + m.t + '\u00bb';
+      pos = m.b;
+    });
+    front += escapeCloze(base.slice(pos)); back += base.slice(pos);
+    var cab = [item.sigla, item.rot].filter(function (x) { return !!x; }).join(' \u00b7 ');
+    var extra = (cab ? cab + ' \u00b7 ' : '') + rotulo(el) + ' \u2014 ' + explicacao(el, limpas[0].marca, base, limpas[0].nuc);
+    var inverter = opc.inverter || (raiz.CT_TREINO && raiz.CT_TREINO.inverter) || null;
+    if (typeof inverter === 'function') {
+      for (var k = 0; k < limpas.length; k++) {
+        var inv = null; try { inv = inverter(limpas[k].marca); } catch (e) { inv = null; }
+        if (inv && inv.de && inv.para && inv.de !== inv.para) { extra += (/[.!?]$/.test(extra) ? '' : '.') + ' A banca costuma trocar \u201c' + inv.de + '\u201d por \u201c' + inv.para + '\u201d.'; break; }
+      }
+    }
+    var sit = String(opc.situacao || '').toLowerCase();
+    if (sit === 'revogado' || sit === 'vetado') extra = '(' + sit.toUpperCase() + ') ' + extra;
+    return { front: cortarSeguro(front, MAX_FRONT), back: back, extra: extra,
+             tags: ['leitura-ativa'].concat(item.sigla ? [String(item.sigla)] : []).concat([el]),
+             termos: limpas.map(function (m) { return m.t; }) };
+  }
+  /** O front em pedaços, para quem renderiza por template (o host): [{t, lacuna, n, w}]. */
+  function segmentosCloze(front) {
+    var s = String(front == null ? '' : front), re = /\{\{c(\d+)::([\s\S]*?)\}\}/g, out = [], pos = 0, m;
+    while ((m = re.exec(s))) {
+      if (m.index > pos) out.push({ t: s.slice(pos, m.index), lacuna: false, n: 0, w: 0 });
+      out.push({ t: m[2], lacuna: true, n: +m[1], w: Math.min(40, Math.max(3, m[2].length)) });
+      pos = m.index + m[0].length;
+    }
+    if (pos < s.length) out.push({ t: s.slice(pos), lacuna: false, n: 0, w: 0 });
+    return out;
+  }
+  function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  /** renderCloze(front, {revelar, el}) → HTML: cada {{cN::x}} vira <span class="la-lacuna la-<el>">
+      com largura proporcional ao trecho (ch); ao revelar, o trecho com o fundo da identidade. */
+  function renderCloze(front, opc) {
+    opc = opc || {};
+    var el = ehEl(opc.el) ? opc.el : '', rot = el ? rotulo(el) : '';
+    return segmentosCloze(front).map(function (p) {
+      if (!p.lacuna) return escHtml(p.t);
+      if (opc.revelar) return '<span class="la-lacuna revelada' + (el ? ' la-' + el : '') + '">' + escHtml(p.t) + '</span>';
+      return '<span class="la-lacuna' + (el ? ' la-' + el : '') + '" style="display:inline-block;min-width:' + p.w + 'ch" role="img" aria-label="lacuna' + (rot ? ': ' + escHtml(rot) : '') + '">' + LACUNA + (rot ? ' ' + escHtml(rot) : '') + '</span>';
+    }).join('');
+  }
 
   /* LA4 — conferência imediata: "erro como filtro". A conferência é registrada no item e
      `criar` diz o que o host deve gerar — q=5 (acertei) NÃO cria nada; q=3 (hesitei) cria
@@ -270,6 +388,7 @@
     hash: hash, completude: completude, atualizada: atualizada,
     cloze: cloze, renderCloze: renderCloze, conferir: conferir,
     rotulo: rotulo, lacunas: lacunas, cartaoConferencia: cartaoConferencia, LACUNA: LACUNA,
+    segmentosCloze: segmentosCloze, cortarSeguro: cortarSeguro, escapeCloze: escapeCloze, MAX_LACUNAS: MAX_LACUNAS,
     progresso: progresso, sanear: sanear, upsert: upsert
   };
 })(typeof window !== 'undefined' ? window : globalThis);

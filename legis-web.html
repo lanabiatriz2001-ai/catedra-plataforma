@@ -542,7 +542,8 @@ window.CT_LA_CANAL=(function(){
   var conferir=function(rodada){
     if(!rodada || !rodada.id) return;
     var msg={type:'ctLeituraConferida', id:String(rodada.id), ref:String(rodada.ref||''), itens:[]};
-    (rodada.itens||[]).forEach(function(c){ if(c&&c.el) msg.itens.push({el:String(c.el), q:+c.q, front:String(c.front||''), back:String(c.back||''), extra:String(c.extra||'')}); });
+    (rodada.itens||[]).forEach(function(c){ if(c&&c.el) msg.itens.push({el:String(c.el), q:+c.q, front:String(c.front||''), back:String(c.back||''), extra:String(c.extra||''),
+      tipo:String(c.tipo||''), tags:Array.isArray(c.tags)?c.tags.slice(0,6):[], termos:Array.isArray(c.termos)?c.termos.slice(0,3):[], situacao:String(c.situacao||'')}); });
     if(msg.itens.length) aoHost(msg);
   };
   window.addEventListener('message', function(e){
@@ -950,6 +951,8 @@ function _colher(alvos, jaVistos){
     var html=LA.IDS.map(function(el){ return laChipHtml(el, it, false); }).join('');
     // LA4: com pelo menos uma marca dá para conferir — o app esconde o que ela marcou e pergunta de volta
     if(it&&LA.IDS.some(function(el){ return it.el[el]&&it.el[el].length; })) html+='<button type="button" class="la-conferir" data-acao="conferir" aria-label="Conferir a leitura deste dispositivo">Conferir</button>';
+    // LA5: dispositivo revogado/vetado — o chip avisa antes de conferir, e o cartão nasce marcado
+    var sit=laSituacao(gi); if(sit) html+='<div class="la-aviso la-situacao"><span>Dispositivo '+sit+' \u2014 o cart\u00e3o sai marcado como '+sit.toUpperCase()+'.</span></div>';
     if(it&&!LA.atualizada(it,txt)) html+='<div class="la-aviso"><span>Redação mudou — reveja as marcas.</span><button type="button" data-acao="confirmar">Confirmar como está</button><button type="button" data-acao="limpar-tudo">Limpar a grade</button></div>';
     tr.innerHTML=html; }
   function laBarraChips(){ var c=document.getElementById('grifLA'); if(!c||!LA) return;
@@ -963,6 +966,21 @@ function _colher(alvos, jaVistos){
       var amostra=laChipHtml(e.id, {el:{}, nao:[]}, true).replace('<button type="button" class="la-chip','<span class="la-chip resp').replace(/ aria-label="[^"]*"/,'').replace('</button>','</span>');
       return '<div class="la-item la-'+e.id+'">'+amostra+'<span class="la-perg">'+esc(e.pergunta)+'</span><kbd class="la-tecla">'+e.tecla+'</kbd></div>'; }).join('');
     _doc.insertBefore(lg, _doc.firstChild); }
+  /* Texto-base do cartão (LA5): a proposição do dispositivo, como proposicoesDoArtigo faz —
+     inciso/alínea ganham o tronco do caput quando ele termina em ":"; o caput fica só. */
+  function laTextoBase(gi){ var txt=disp[gi]||'', gr=_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(!gr) return txt;
+    var bloco=gr.closest('.inc,.ali'); if(!bloco) return txt;
+    var p=bloco.parentElement; while(p && !p.classList.contains('art')) p=p.previousElementSibling;
+    var cg=p&&p.querySelector('.caput .gr'); var caput=cg?(disp[+cg.dataset.gi]||''):'';
+    if(!/:\s*$/.test(caput)) return txt;
+    var parte=txt.replace(/[;,.\s]+$/,'');
+    if(parte[0] && parte[0]===parte[0].toUpperCase() && parte[0]!==parte[0].toLowerCase()) parte=parte[0].toLowerCase()+parte.slice(1);
+    return caput.replace(/:\s*$/,'').trim()+': '+parte+'.'; }
+  /* Dispositivo revogado/vetado: a nota que renderDoc separou (splitNota) está no bloco */
+  function laSituacao(gi){ var gr=_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(!gr) return '';
+    var bloco=gr.closest('.art,.par,.inc,.ali,.txt'); if(!bloco) return '';
+    var notas=[].slice.call(bloco.querySelectorAll('.nota')).map(function(n){ return n.textContent||''; }).join(' ');
+    if(/revogad/i.test(notas)) return 'revogado'; if(/vetad/i.test(notas)) return 'vetado'; return ''; }
   function laItemDe(gi){ var it=_laItens[gi]; if(it) return it;
     return LA.nova({leiId:laLeiId(), sigla:laSigla(), rot:laRot(gi), gi:gi, txt:disp[gi]||''}); }
   /* seleção viva + chip (ou tecla 1–7) → marca no elemento */
@@ -1028,16 +1046,13 @@ function _colher(alvos, jaVistos){
     laFecharMenu(); _confEl.classList.add('on'); laConfRender();
     var b=_confEl.querySelector('.la-acoes button'); if(b) b.focus(); }
   function laConfFechar(){ _laConf=null; _confEl.classList.remove('on'); _confEl.innerHTML=''; }
-  function laConfTexto(it, el, txt, revelado){
-    // o texto com as marcas DESTE elemento viradas em lacuna (ou reveladas); as dos outros ficam lisas
-    var ms=(it.el[el]||[]).map(function(m){ var i=(m.s!=null&&txt.substr(m.s,m.t.length)===m.t)?m.s:txt.indexOf(m.t); return i>=0?{a:i,b:i+m.t.length,t:m.t}:null; })
-      .filter(function(x){return !!x;}).sort(function(a,b){return a.a-b.a;});
-    var out='', pos=0, rot=laRotulo(el);
-    ms.forEach(function(m){ if(m.a<pos) return; out+=esc(txt.slice(pos,m.a));
-      out+= revelado ? '<span class="la-lacuna revelada la-'+el+'">'+esc(m.t)+'</span>'
-                     : '<span class="la-lacuna la-'+el+'" role="img" aria-label="lacuna: '+escAttr(rot)+'">'+LA.LACUNA+' '+esc(rot)+'</span>';
-      pos=m.b; });
-    return out+esc(txt.slice(pos)); }
+  /* O foco mostra o MESMO cartão que vai para o Anki (LA5): o cloze do elemento, com o
+     texto-base do dispositivo; as marcas dos outros elementos ficam lisas. */
+  function laConfCartao(gi, el){ var it=_laItens[gi]; if(!it||!LA) return null;
+    return LA.cloze(it, el, laTextoBase(gi), {situacao:laSituacao(gi)}); }
+  function laConfTexto(it, el, txt, revelado, gi){
+    var c=laConfCartao(gi, el); if(!c) return esc(txt);
+    return LA.renderCloze(c.front, {revelar:!!revelado, el:el}); }
   function laConfRender(){ var C=_laConf; if(!C) return; var it=_laItens[C.gi]; if(!it){ laConfFechar(); return; }
     var el=C.fila[C.i], txt=disp[C.gi]||'', cab=[it.sigla, it.rot].filter(Boolean).join(' · ');
     var acoes= C.revelado
@@ -1045,14 +1060,17 @@ function _colher(alvos, jaVistos){
       : '<button type="button" data-acao="mostrar" class="principal">Mostrar</button><span class="la-dica">Responda de cabeça e só então mostre. Tecla Enter mostra; 1, 3 e 5 respondem.</span>';
     _confEl.innerHTML='<div class="la-bc">'
       +'<div class="la-topo"><h2>Conferir a leitura — '+esc(cab||'dispositivo')+'</h2><span class="la-kicker" style="margin:0">'+(C.i+1)+' de '+C.fila.length+'</span><button type="button" class="la-fechar" data-acao="fechar" aria-label="Fechar a conferência sem enviar">×</button></div>'
-      +'<div class="la-foco"><div class="la-kicker">'+esc(laRotulo(el))+' · '+esc(laPergunta(el))+'</div><div class="la-texto">'+laConfTexto(it, el, txt, C.revelado)+'</div><div class="la-acoes">'+acoes+'</div></div>'
+      +'<div class="la-foco"><div class="la-kicker">'+esc(laRotulo(el))+' · '+esc(laPergunta(el))+'</div><div class="la-texto">'+laConfTexto(it, el, txt, C.revelado, C.gi)+'</div><div class="la-acoes">'+acoes+'</div></div>'
       +'<aside class="la-apoio"><b>O que está escondido</b><br>'+laChipHtml(el, it, true).replace('<button type="button"','<span').replace('</button>','</span>')+'<br>'+esc(laPergunta(el))+'<br><br><b>Como funciona</b><br>Só o que você errou ou hesitou vira cartão e revisão. Ler não gera cartão.</aside>'
       +'<div class="la-fila"><span class="la-fila-t">Rodada</span>'+C.fila.map(function(f,i){ var feita=C.itens.filter(function(x){return x.el===f;})[0];
           return laChipHtml(f, it, true).replace('class="la-chip', 'class="la-chip'+(i===C.i?' atual':'')+(feita?' feita':'')); }).join('')+'</div>'
       +'</div>'; }
   function laConfResponder(q){ var C=_laConf; if(!C||!C.revelado) return; var it=_laItens[C.gi]; if(!it) return;
     var el=C.fila[C.i], cartao=LA.cartaoConferencia(it, el, disp[C.gi]||'')||{front:'', back:'', ref:''};
-    C.itens.push({el:el, q:q, front:cartao.front, back:cartao.back});
+    // LA5: o cartão vai como cloze (sintaxe do Anki); o front/back simples é só reserva
+    var cz=laConfCartao(C.gi, el);
+    C.itens.push(cz ? {el:el, q:q, front:cz.front, back:cz.back, extra:cz.extra, tipo:'cloze', tags:cz.tags, termos:cz.termos, situacao:laSituacao(C.gi)}
+                    : {el:el, q:q, front:cartao.front, back:cartao.back});
     C.i++; C.revelado=false;
     if(C.i<C.fila.length){ laConfRender(); var b=_confEl.querySelector('.la-acoes button'); if(b) b.focus(); return; }
     if(CANAL) CANAL.conferir({id:it.id, ref:cartao.ref, itens:C.itens});
