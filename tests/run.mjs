@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
+import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // O servidor estático e a escolha do navegador moram em tests/_infra.mjs, compartilhados
@@ -1459,6 +1460,80 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     return r;
   }, PARAS);
   for (const [k, v] of Object.entries(la6l)) ok(v, 'LEITURA/ONDE-MAIS LEGIS ' + k);
+}
+
+/* ============= ENAM — E2: o banco oficial das provas anteriores ============= */
+// (a) o parser, contra o PDF de amostra em tests/ (extraído a .txt; se houver PyMuPDF, também do PDF)
+{
+  const { execFileSync } = await import('child_process');
+  const areas = areasEnam();
+  ok(areas.length === 8 && areas.map(a => a.cota).join('/') === '16/10/6/6/12/12/6/12' && areas.reduce((n, a) => n + a.cota, 0) === 80,
+    'ENAM CT_ENAM.AREAS tem as 8 áreas com as cotas do quadro 8.6 (16/10/6/6/12/12/6/12)');
+  let txtAmostra = fs.readFileSync(path.join(RAIZ, 'tests', 'enam-amostra.txt'), 'utf8');
+  let doPdf = '';
+  try {
+    doPdf = execFileSync('python3', ['-c', "import fitz,sys; d=fitz.open(sys.argv[1]); print('\\f'.join(p.get_text() for p in d))", path.join(RAIZ, 'tests', 'enam-amostra.pdf')], { stdio: 'pipe' }).toString();
+  } catch (e) { doPdf = ''; }
+  if (doPdf) ok(doPdf.replace(/\s+/g, ' ').trim() === txtAmostra.replace(/\s+/g, ' ').trim(), 'ENAM o .txt da amostra é a extração do PDF de amostra (PyMuPDF disponível)');
+  else console.log('ENAM aviso: sem python3/PyMuPDF aqui — o parser foi testado só sobre o .txt da amostra');
+  const [provaTxt, gabTxt] = txtAmostra.split('\f');
+  const p = parseProvaEnam(provaTxt, areas);
+  ok(p.questoes.length === 3 && p.questoes.map(q => q.numero).join(',') === '1,2,3', 'ENAM amostra: três questões na ordem');
+  ok(p.questoes.map(q => q.area).join(',') === 'constitucional,constitucional,dh', 'ENAM amostra: a área vem do cabeçalho do bloco (caixa alta e Title Case)');
+  ok(p.questoes[0].alternativas.length === 5 && p.questoes[0].alternativas.map(a => a.letra).join('') === 'ABCDE' && p.questoes[0].alternativas[1].texto === 'A acumulação é ilícita em qualquer hipótese.',
+    'ENAM amostra: cinco alternativas A–E com o texto limpo');
+  ok(/^João, servidor público federal/.test(p.questoes[0].enunciado) && /assinale a afirmativa correta\.$/.test(p.questoes[0].enunciado), 'ENAM amostra: o enunciado junta as linhas sem perder o fim');
+  ok(/Considerando a pauta Direitos Humanos e Sociedades Empresárias/.test(p.questoes[2].enunciado) && p.questoes[2].alternativas.length === 5,
+    'ENAM amostra: "Direitos"/"Humanos" soltos dentro do enunciado NÃO viram cabeçalho de área');
+  const g = parseGabaritoEnam(gabTxt, 1), g2 = parseGabaritoEnam(gabTxt, 2);
+  ok(!g.erro && g.respostas[1] === 'B' && g.respostas[2] === '*' && g.respostas[3] === 'C' && Object.keys(g.respostas).length === 3, 'ENAM amostra: gabarito do tipo 1 com a anulada (*), sem contar a legenda');
+  ok(!g2.erro && g2.respostas[1] === 'A' && g2.respostas[3] === 'A', 'ENAM amostra: só o bloco do tipo pedido conta');
+  ok(!!parseGabaritoEnam('nada aqui', 1).erro, 'ENAM gabarito sem o bloco do tipo devolve erro, não silêncio');
+  // o portão: uma edição de mentira com 3 questões e cotas erradas é recusada com motivos claros
+  const falso = montarEnam({ ler: (nome) => /gabarito/.test(nome) ? gabTxt : provaTxt });
+  ok(falso.erros.some(e => /questões lidas \(esperava 80\)/.test(e)) && falso.erros.some(e => /quadro 8\.6 manda/.test(e)), 'ENAM o portão recusa edição com ≠ 80 questões e cota fora do quadro 8.6');
+}
+// (b) o banco real: 5 edições × 80, cotas exatas, anuladas contadas, ids únicos, tudo A–E, refs sem inventar
+{
+  const { questoes, resumo, erros } = montarEnam();
+  ok(erros.length === 0, 'ENAM o build das cinco edições passa no portão de qualidade' + (erros.length ? ' (' + erros.slice(0, 3).join(' | ') + ')' : ''));
+  ok(questoes.length === 400 && resumo.length === 5 && resumo.every(r => r.questoes === 80), 'ENAM 400 questões (5 × 80)');
+  ok(resumo.every(r => Object.entries(r.porArea).every(([a, n]) => n === areasEnam().find(x => x.id === a).cota)), 'ENAM cada edição fecha com 16/10/6/6/12/12/6/12');
+  const anul = resumo.map(r => r.edicao + ':' + r.anuladas).join(' ');
+  ok(questoes.filter(q => q.anulada).length === 7 && anul === '2024.1:2 2024.2:2 2025.1:1 2025.2:1 2026.1:1', 'ENAM anuladas por edição (' + anul + ')');
+  ok(new Set(questoes.map(q => q.id)).size === 400 && questoes.every(q => /^enam-20\d\d\.[12]-\d{3}$/.test(q.id)), 'ENAM ids únicos no formato enam-<edição>-<nnn>');
+  ok(questoes.every(q => q.anulada ? q.gabarito === '' : /^[A-E]$/.test(q.gabarito)), 'ENAM gabarito A–E em toda questão não anulada, vazio na anulada');
+  ok(questoes.every(q => q.alternativas.length === 5 && q.enunciado.length >= 40 && q.alternativas.every(a => a.texto.length > 0)), 'ENAM 5 alternativas, enunciado ≥ 40 e alternativa nunca vazia');
+  ok(questoes.every(q => q.disciplina && q.fonte.startsWith('FGV/ENFAM') && EDICOES_ENAM.some(e => e.id === q.edicao)), 'ENAM toda questão diz a disciplina e a fonte oficial');
+  ok(questoes.every(q => Array.isArray(q.refs) && q.refs.every(r => (q.enunciado + ' ' + q.alternativas.map(a => a.texto).join(' ')).toLowerCase().includes(r.toLowerCase()))), 'ENAM a referência normativa só aponta o que o próprio texto diz');
+  // o arquivo gerado bate com o build (ninguém editou à mão)
+  const gerado = fs.readFileSync(path.join(RAIZ, 'questoes-enam.js'), 'utf8');
+  ok(gerado.includes('window.CT_QUESTOES_ENAM=' + JSON.stringify(questoes) + ';'), 'ENAM questoes-enam.js é exatamente o que o build gera');
+  ok(/FONTES\.md/.test(gerado) && EDICOES_ENAM.every(e => gerado.includes(e.fonte)), 'ENAM o cabeçalho do arquivo cita edição e fonte FGV/ENFAM');
+  // sem comentário de terceiros: nenhum campo além dos declarados
+  const campos = new Set(questoes.flatMap(q => Object.keys(q)));
+  ok([...campos].sort().join(',') === 'alternativas,anulada,area,disciplina,edicao,enunciado,fonte,gabarito,id,numero,refs', 'ENAM o shape é o da especificação — nada de comentário copiado');
+  // os builds copiam os dois arquivos; o web lista o banco "sob pedido"
+  const b = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8'), bm = fs.readFileSync(path.join(RAIZ, 'scripts', 'build-macos.mjs'), 'utf8');
+  ok(/'questoes-enam\.js'/.test(b) && /'enam\.js'/.test(b) && /'\.\/questoes-enam\.js'/.test(b) && /'questoes-enam\.js'/.test(bm) && /'enam\.js'/.test(bm), 'ENAM enam.js e questoes-enam.js entram nos dois builds (o banco sob pedido, a constante na casca)');
+}
+// (c) no app: CT_ENAM na casca; o banco só chega quando o treino pede (acervoQuestoesEnam)
+{
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const app = await page.evaluate(async () => {
+    const r = {};
+    r.constanteNaCasca = !!(window.CT_ENAM && window.CT_ENAM.AREAS && window.CT_ENAM.AREAS.length === 8 && window.CT_ENAM.QUESTOES === 80 && window.CT_ENAM.DURACAO_MIN === 300 && window.CT_ENAM.META_PADRAO === 56 && window.CT_ENAM.META_COTA === 40);
+    r.bancoNaoCarregaSozinho = !window.CT_QUESTOES_ENAM;
+    await new Promise(res => { const t = document.createElement('script'); t.src = './treino.js'; t.onload = () => res(true); t.onerror = () => res(false); document.head.appendChild(t); });
+    r.treinoTemAcervo = typeof window.CT_TREINO.acervoQuestoesEnam === 'function';
+    await window.CT_TREINO.acervoQuestoesEnam();
+    r.bancoChegaSobPedido = Array.isArray(window.CT_QUESTOES_ENAM) && window.CT_QUESTOES_ENAM.length === 400 && window.CT_QUESTOES_ENAM.filter(q => q.anulada).length === 7;
+    return r;
+  });
+  for (const [k, v] of Object.entries(app)) ok(v, 'ENAM app ' + k);
 }
 
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */

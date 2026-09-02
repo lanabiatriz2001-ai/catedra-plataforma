@@ -226,6 +226,13 @@
     if (w.CT_QUESTOES_PROVA) return Promise.resolve(true);
     return carregarScript('questoes-prova.js');
   }
+  /** As 400 questões oficiais do ENAM (prova tipo 1 + gabarito definitivo) — questoes-enam.js,
+   *  carregado só quando o modo ENAM abre. Anuladas ficam no banco (anulada:true) e nunca
+   *  entram em simulado: quem sorteia tem de filtrar. */
+  function acervoQuestoesEnam() {
+    if (w.CT_QUESTOES_ENAM) return Promise.resolve(true);
+    return carregarScript('questoes-enam.js');
+  }
 
   /** n questões de prova sorteadas, sem repetição, opcionalmente filtradas por trecho da disciplina. */
   function sortearQuestoesProva(n, discs) {
@@ -731,7 +738,7 @@
 
   w.CT_TREINO = {
     acervoJuris: acervoJuris, acervoOral: acervoOral, acervoOralQ: acervoOralQ, acervoLeis: acervoLeis, acervoLeisArea: acervoLeisArea,
-    acervoQuestoesProva: acervoQuestoesProva, sortearQuestoesProva: sortearQuestoesProva,
+    acervoQuestoesProva: acervoQuestoesProva, sortearQuestoesProva: sortearQuestoesProva, acervoQuestoesEnam: acervoQuestoesEnam,
     verbetes: verbetes, sortearArtigo: sortearArtigo, perguntaLei: perguntaLei,
     simuladoJuris: simuladoJuris, simuladoLeis: simuladoLeis,
     simuladoMisto: simuladoMisto, simuladoLeisEmbutidas: simuladoLeisEmbutidas, relatorio: relatorio,
