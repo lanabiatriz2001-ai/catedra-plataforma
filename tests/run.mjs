@@ -1,49 +1,30 @@
 /* Testes de navegador da plataforma — rodam com `npm test`.
-   Sobe um servidor estático na raiz do repositório e dirige um Chromium headless:
+   Sobe um servidor estático na raiz do repositório e dirige um navegador headless:
    · SYNC: o mergeAll do auth.js (carimbo por chave, vazio nunca apaga cheio,
      união por id, lápides, histórico × lixeira) via tests/sync-fixture.html;
    · ACERVO ida-e-volta: rito/peça/bloco na URL, mensagens ctAbrirAcervo com origem,
-     pílula de voltar no LEGIS/JURIS e o ciclo completo via tests/harness-acervo.html.
-   O executável do Chrome vem de CT_CHROME ou dos caminhos usuais (CI: google-chrome). */
-import { chromium } from 'playwright-core';
-import http from 'http';
+     pílula de voltar no LEGIS/JURIS e o ciclo completo via tests/harness-acervo.html;
+   · ORAL LEI SECA: a aba Lei seca da Prova oral lista as leis (tests/oral-lei-seca.mjs).
+   Servidor e navegador vêm de tests/_infra.mjs. O motor padrão é o Chromium — executável
+   de CT_CHROME ou dos caminhos usuais (CI: google-chrome); CT_BROWSER=webkit troca pelo
+   WebKit do Playwright, o mesmo que tests/run-webkit.mjs usa como proxy do iPad. */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { iniciarServidor, lancarNavegador } from './_infra.mjs';
+import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-// '.css' faltava aqui, e o custo foi alto: o servidor entregava satellite-base.css como
-// application/octet-stream, o Chrome recusava a folha em modo padrão (cssRules.length = 0)
-// e TODA a verificação da TASK9 rodou num navegador onde a base não existia — verde por
-// acidente, porque as asserções mediam o que o CSS da própria página já garantia.
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
-  '.css': 'text/css',
-  '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
-
-const CHROMES = [process.env.CT_CHROME,
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',   // Mac da Lana
-  '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable',
-  '/usr/bin/chromium-browser', '/usr/bin/chromium'].filter(Boolean);
-const exe = CHROMES.find(p => { try { return fs.existsSync(p); } catch (_) { return false; } });
-if (!exe) { console.error('Nenhum Chrome/Chromium encontrado. Defina CT_CHROME=/caminho/do/chrome'); process.exit(2); }
-
-const srv = http.createServer((req, res) => {
-  try {
-    const u = new URL(req.url, 'http://x');
-    const p = path.join(RAIZ, decodeURIComponent(u.pathname).slice(1));
-    if (!p.startsWith(RAIZ)) { res.writeHead(403); res.end(); return; }
-    const data = fs.readFileSync(p);
-    res.writeHead(200, { 'content-type': MIME[path.extname(p)] || 'application/octet-stream' });
-    res.end(data);
-  } catch (e) { res.writeHead(404); res.end('nao encontrado'); }
-});
+// O servidor estático e a escolha do navegador moram em tests/_infra.mjs, compartilhados
+// com o runner do WebKit (tests/run-webkit.mjs) — inclusive a tabela MIME e a história dela.
 // A porta sai do ambiente (CT_PORT) para que duas sessões trabalhando no mesmo repositório
 // possam rodar a suíte ao mesmo tempo — sem isso a segunda morre com EADDRINUSE.
 const PORTA = +(process.env.CT_PORT || 8123);
-await new Promise(r => srv.listen(PORTA, r));
-const URL0 = 'http://localhost:' + PORTA;
+const { srv, url: URL0 } = await iniciarServidor(RAIZ, PORTA);
 
-const browser = await chromium.launch({ executablePath: exe });
+// O motor sai no log logo no início: um "✗" só se lê sabendo em que navegador aconteceu.
+const { browser, motor } = await lancarNavegador();
+console.log('[' + motor + '] suíte de navegador em ' + URL0);
 const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
@@ -5677,6 +5658,15 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
   ok(vazamento <= 1, 'MAPA remontar o mapa não acumula ouvintes de teclado (saldo ' + vazamento + ' após 5 trocas)');
 
   await page.setViewportSize({ width: 1280, height: 800 });
+}
+
+/* ============= ORAL LEI SECA — A ABA QUE ABRIA VAZIA NO IPAD ============= */
+// O roteiro vive em tests/oral-lei-seca.mjs para rodar também no WebKit (run-webkit.mjs);
+// aqui cobre o par Chromium × http, para a suíte principal também acusar a lista vazia.
+try { await testarOralLeiSeca(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'ORAL LEI SECA [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
 await browser.close();
