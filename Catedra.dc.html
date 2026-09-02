@@ -1284,6 +1284,8 @@ window.ctPdfLib = (function(){
                 <sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip">🛡️ <b>{{ escudos }}</b> escudos</span></sc-if>
                 <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ false }}"><button data-view="simulados" onclick="{{ onNav }}" class="cth-chip" style="cursor:pointer;border:none;font:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> {{ simNudge }}</button></sc-if>
                 <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip">📅 <b>{{ cdDias }}</b> dias p/ prova</span></sc-if>
+                <!-- E1: o ENAM tem contagem própria (não reaproveita catedra:prova: pode haver concurso e ENAM no mesmo semestre) -->
+                <sc-if value="{{ enamOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip" title="{{ enamHora }}" aria-label="ENAM {{ enamEdicao }}: {{ enamDiasLabel }}; {{ enamHora }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg> ENAM {{ enamEdicao }} · <b>{{ enamDiasLabel }}</b><small style="opacity:.85;">· {{ enamChipSub }}</small></span></sc-if>
               </div>
             </div>
             <div class="cth-timer">
@@ -2297,6 +2299,7 @@ window.ctPdfLib = (function(){
             <span class="ct-regua-marca" style="left:30%"></span>
             <span class="ct-regua-marca" style="left:55%"></span>
             <span class="ct-regua-marca" style="left:80%"></span>
+            <sc-if value="{{ reguaSegunda }}" hint-placeholder-val="{{ false }}"><span class="ct-regua-marca ct-regua-marca2" style="left:{{ reguaSegundaLeft }}%"></span><span class="ct-regua-cap ct-regua-cap2" style="left:calc({{ reguaSegundaLeft }}% + 6px)">{{ reguaSegundaCap }}</span></sc-if>
             <span class="ct-regua-cap" style="right:14px">precisa estar em 100%</span>
             <span class="ct-regua-n" style="right:14px">{{ edProvaLabel }}</span>
           </div>
@@ -4223,6 +4226,37 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 </sc-if>
+<sc-if value="{{ ajSecEnam }}" hint-placeholder-val="{{ false }}">
+  <!-- TRILHA ENAM (E1): a edição, a meta e o horário — a plataforma não pergunta raça, etnia
+       ou deficiência (LGPD, art. 5º, II); guarda só o número de acertos que vale para ela. -->
+  <sc-if value="{{ enamOn }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:14px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+        <div><label for="aj-enam-edicao" class="ct-rotulo">Edição</label><select id="aj-enam-edicao" value="{{ enamEdicaoSel }}" onchange="{{ enamSetEdicao }}" class="ct-campo"><sc-for list="{{ enamEdicoes }}" as="e" hint-placeholder-count="2"><option value="{{ e.id }}" selected="{{ e.sel }}">{{ e.rotulo }}</option></sc-for></select></div>
+        <div><div class="ct-rotulo">Prova</div><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">{{ enamDataFmt }}</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">{{ enamHora }} · 80 questões · 5 horas</div></div>
+      </div>
+      <div>
+        <div class="ct-rotulo">Meta de acertos</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+          <button type="button" data-meta="56" onclick="{{ enamSetMeta }}" aria-pressed="{{ enamMeta56 }}" class="ct-alvo" style="{{ enamMeta56Style }}">56 acertos (70%)</button>
+          <button type="button" data-meta="40" onclick="{{ enamSetMeta }}" aria-pressed="{{ enamMeta40 }}" class="ct-alvo" style="{{ enamMeta40Style }}">40 acertos (50%)</button>
+        </div>
+        <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:8px;line-height:1.5;">O edital define os dois cortes (itens 3.7 e 9.2); escolha o que vale para você. A plataforma guarda só o número.</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:var(--fs-sm);color:var(--text2);">{{ enamDiasLabel }} · o chip do Início e a régua do Edital e da Reta final passam a contar o ENAM.</span>
+        <button type="button" onclick="{{ enamDesativar }}" class="ct-btn-2" style="margin-left:auto;">Desativar a trilha</button>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ enamOff }}" hint-placeholder-val="{{ true }}">
+    <div class="ct-estado">
+      <div class="ct-estado-titulo">Vai fazer o ENAM? Ative a trilha</div>
+      <div class="ct-estado-desc">{{ enamProximaFrase }} O app passa a contar os dias, a mostrar a meta e, com o banco oficial, a montar o simulado no formato da prova.</div>
+      <div class="ct-estado-acao"><button type="button" onclick="{{ enamAtivar }}" class="ct-btn">Ativar a trilha ENAM</button></div>
+    </div>
+  </sc-if>
+</sc-if>
 <sc-if value="{{ ajSecRitmo }}" hint-placeholder-val="{{ false }}">
   <!-- PRÉVIA AO VIVO — o que os ajustes desta seção produzem agora, não o que prometem -->
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;">
@@ -5356,7 +5390,7 @@ window.ctPdfLib = (function(){
           <div style="position:relative;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:16px 22px;text-align:center;min-width:140px;">
             <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:600;">Faltam</div>
             <div style="font-family:var(--display);font-size:44px;font-weight:700;line-height:1;margin:6px 0 2px;">{{ retaDias }}</div>
-            <div style="font-size:var(--fs-xs);opacity:.85;">dias para a prova</div>
+            <div style="font-size:var(--fs-xs);opacity:.85;">dias para {{ retaProvaNome }}</div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
@@ -5377,7 +5411,8 @@ window.ctPdfLib = (function(){
             <span class="ct-regua-hoje" style="left:10px"></span>
             <span class="ct-regua-marca" style="left:33%"></span>
             <span class="ct-regua-marca" style="left:66%"></span>
-            <span class="ct-regua-cap" style="right:14px">prova</span>
+            <sc-if value="{{ reguaSegunda }}" hint-placeholder-val="{{ false }}"><span class="ct-regua-marca ct-regua-marca2" style="left:{{ reguaSegundaLeft }}%"></span><span class="ct-regua-cap ct-regua-cap2" style="left:calc({{ reguaSegundaLeft }}% + 6px)">{{ reguaSegundaCap }}</span></sc-if>
+            <span class="ct-regua-cap" style="right:14px">{{ retaProvaCap }}</span>
             <span class="ct-regua-n" style="right:14px">{{ retaDias }} dias</span>
           </div>
         </div>
@@ -5671,6 +5706,8 @@ const AJ_ESTADO_CHAVE  = { accent:'accent', dir:'dir', darkMode:'dark', apPreset
 const AJ_SECOES = [
   {id:'perfil',    icone:'◍', titulo:'Perfil',            desc:'quem você é para a plataforma e quando é a prova',
    o:[], p:['nome','objetivo'], s:[]},
+  {id:'enam',      icone:'◆', titulo:'ENAM',              desc:'a edição, a meta de acertos e a contagem regressiva do Exame Nacional da Magistratura',
+   o:[], p:[], s:[]},
   {id:'ritmo',     icone:'◐', titulo:'Ritmo e metas',     desc:'quanto você estuda, como o ciclo é montado e o que conta como dia cumprido',
    o:['nivel','tempoDia','energia','dias','energiaPlano','cobranca','estrategia','blocoPadrao','modoPadrao','aoAbrir',
       'metaMin','metaIdeal','metaForte','retaFinalCom','ativarReta','reduzirTeoria','focoEstrategico','banca',
@@ -5983,6 +6020,8 @@ class Component extends DCLogic {
       reviews: this._load('reviews', []),
       // leitura ativa da lei (LA1): um item por dispositivo lido, sem o texto da lei
       leituras: this._load('leituras', []),
+      // trilha ENAM (E1): edição, data, meta de acertos — só o número, nunca o motivo
+      enam: this._load('enam', null),
       revSession: null,
       treino: null,
       sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}), simNome:'', simMin:'',
@@ -7116,7 +7155,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'enam', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
@@ -12292,6 +12331,18 @@ class Component extends DCLogic {
       return {...x, disc:(d.disc||'').trim()||x.disc||'Geral', topico:_novoTop||x.topico, categorias:cats, categoria:cats[0], min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, nota:(d.nota||'').trim(), up:Date.now(),
         ...(_mudou?{edTop:null, edSub:null}:{})}; });
     try{ this._saveSessions(sessions); }catch(_){} this.setState({sessions, histEdit:null}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync(); };
+  /* ===== TRILHA ENAM (E1) ===== catedra:enam é objeto escalar (carimbo por chave, sem ARRAY_ID).
+     A meta é só um número (56 ou 40): o motivo do corte de 50 % é dado sensível e não é perguntado. */
+  _enamNovo(edicaoId){ const E=window.CT_ENAM; const ed=(E&&(E.edicao(edicaoId)||E.proxima()))||{id:'2026.2', data:'2026-11-29', inicio:'13:00'};
+    return { edicao:ed.id, data:ed.data, inicio:ed.inicio||'13:00', fuso:(E&&E.FUSO_PROVA)||'America/Sao_Paulo', duracaoMin:(E&&E.DURACAO_MIN)||300, metaAcertos:(E&&E.META_PADRAO)||56, ativo:true, up:Date.now() }; }
+  enamAtivar = ()=>{ this.setState({enam:this._enamNovo()}, ()=>this.flashSync()); this._toast('Trilha ENAM ativada — o Início passa a contar os dias'); };
+  enamDesativar = ()=>{ this.setState(s=>({enam:{...(s.enam||this._enamNovo()), ativo:false, up:Date.now()}}), ()=>this.flashSync()); this._toast('Trilha ENAM desativada — nada foi apagado'); };
+  enamSetEdicao = (e)=>{ const id=e.currentTarget.value; const E=window.CT_ENAM, ed=E&&E.edicao(id); if(!ed) return;
+    this.setState(s=>({enam:{...(s.enam||this._enamNovo(id)), edicao:ed.id, data:ed.data, inicio:ed.inicio||'13:00', up:Date.now()}}), ()=>this.flashSync()); };
+  enamSetMeta = (e)=>{ const m=parseInt(e.currentTarget.dataset.meta,10); if(m!==56&&m!==40) return;
+    this.setState(s=>({enam:{...(s.enam||this._enamNovo()), metaAcertos:m, up:Date.now()}}), ()=>this.flashSync()); };
+  /** Dias até o ENAM (inteiros, na data civil do aparelho) ou null quando a trilha está desligada. */
+  _enamDias(){ const en=this.state.enam; if(!en||!en.ativo||!window.CT_ENAM) return null; const d=window.CT_ENAM.diasAte(en.data); return (d==null)?null:d; }
   setProvaData = (e)=>{ const v=e.currentTarget.value; this.setState({provaData:v||null}); try{ if(v) localStorage.setItem('catedra:prova',v); else localStorage.removeItem('catedra:prova'); }catch(_){} this.flashSync(); this._cloudPush(); };
   // Limpa a data da prova explicitamente — o <input type="date"> nativo nem sempre
   // deixa óbvio como apagar; cobre quem ainda não tem prova marcada.
@@ -12300,8 +12351,11 @@ class Component extends DCLogic {
   // liga o modo reta final sozinho quando faltam <= N dias (orient.ativarReta + retaFinalCom)
   _reconcileRetaFinal(){ const o=this.state.orient||{}; if(!o.ativarReta) return;
     if(this.state.profile&&this.state.profile.retaFinal) return;
-    if(!this.state.provaData) return;
-    let d=null; try{ d=Math.ceil((new Date(this.state.provaData+'T00:00:00')-new Date())/864e5); }catch(_){ return; }
+    // E1: com a trilha ENAM ligada, a data mais próxima (concurso ou ENAM) é a que manda
+    const _dEnam=this._enamDias();
+    if(!this.state.provaData && _dEnam==null) return;
+    let d=null; try{ if(this.state.provaData) d=Math.ceil((new Date(this.state.provaData+'T00:00:00')-new Date())/864e5); }catch(_){ return; }
+    if(_dEnam!=null && _dEnam>=0 && (d==null || _dEnam<d)) d=_dEnam;
     const lim=parseInt(o.retaFinalCom,10)||30;
     if(d!=null && d>=0 && d<=lim){ this.setState(s=>({profile:{...s.profile, retaFinal:true}}));
       this._toast('Modo reta final ativado — faltam '+d+' dias para a prova'); this.flashSync(); } }
@@ -12870,7 +12924,7 @@ class Component extends DCLogic {
     };
     const ajuSecoes = {
       ajSecoes, setAjSec:this.setAjSec,
-      ajSecPerfil:_ajSec==='perfil', ajSecRitmo:_ajSec==='ritmo', ajSecAutomacoes:_ajSec==='automacoes',
+      ajSecPerfil:_ajSec==='perfil', ajSecRitmo:_ajSec==='ritmo', ajSecAutomacoes:_ajSec==='automacoes', ajSecEnam:_ajSec==='enam',
       ajSecDados:_ajSec==='dados', ajSecConta:_ajSec==='conta',
       // os dois cartões de aparência vivem no nível do <main>, fora do portão de view:
       // sem somar a view aqui eles vazavam por baixo do Início depois de uma visita
@@ -14464,6 +14518,40 @@ class Component extends DCLogic {
     const planMin = this.state.planHoras*60;
     const planRows = planW.map(d=>{ const min=Math.round(planMin*(d.need/planSum)); return {...d, min, label: min>=60?`${Math.floor(min/60)}h${String(min%60).padStart(2,'0')}`:`${min}min`, pct:Math.round(d.need/planSum*100)}; }).sort((a,b)=>b.min-a.min);
 
+    // ===== Trilha ENAM (E1): contagem própria, meta e a segunda data da régua =====
+    const _enam = (()=>{
+      const E=window.CT_ENAM, en=this.state.enam, on=!!(en&&en.ativo&&E);
+      const r={ on, edicao:on?String(en.edicao||''):'', dias:null, diasLabel:'', chipSub:'', hora:'', dataFmt:'', edicoes:[], meta:on?(+en.metaAcertos||56):56, proximaFrase:'',
+        metaStyle:(m)=>'min-height:44px;padding:0 16px;border-radius:99px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;border:1px solid '+(r.meta===m?'transparent':'var(--border)')+';background:'+(r.meta===m?'var(--accent)':'var(--surface2)')+';color:'+(r.meta===m?'var(--onAccent)':'var(--text2)')+';' };
+      const fmtData=(iso, opc)=>{ try{ return new Date(iso+'T12:00:00').toLocaleDateString('pt-BR', opc); }catch(_){ return iso; } };
+      if(E){ const px=E.proxima(); r.proximaFrase=px?('A próxima edição é a '+px.id+', em '+fmtData(px.data,{day:'2-digit',month:'long',year:'numeric'})+'.'):'';
+        r.edicoes=E.EDICOES.filter(e=>E.diasAte(e.data)>=0 || (on&&e.id===en.edicao)).map(e=>({id:e.id, rotulo:e.id+' · '+e.numero+' ENAM · '+fmtData(e.data), sel:on&&e.id===en.edicao})); }
+      if(!on) return r;
+      r.dias=E.diasAte(en.data);
+      r.diasLabel=(r.dias==null)?'':(r.dias<0?'prova realizada':(r.dias===0?'é hoje':(r.dias===1?'falta 1 dia':'faltam '+r.dias+' dias')));
+      r.hora=E.horaLocal({data:en.data, inicio:en.inicio});
+      r.dataFmt=fmtData(en.data,{weekday:'long',day:'2-digit',month:'long',year:'numeric'}); r.dataFmt=r.dataFmt.charAt(0).toUpperCase()+r.dataFmt.slice(1);
+      // abaixo de 7 dias o chip lembra do último simulado (catedra:enamSim chega com o E4; até lá, o registro de sessões)
+      if(r.dias!=null && r.dias<7){ const sims=(this.state.enamSim||[]).map(x=>+x.ts||0).concat((this.state.sessions||[]).filter(s=>/simulado/i.test(String(s.categoria||''))).map(s=>+s.ts||0)).filter(Boolean);
+        const ult=sims.length?Math.max.apply(null,sims):0; const h=ult?Math.floor((Date.now()-ult)/864e5):null;
+        r.chipSub=h==null?'sem simulado ainda':(h===0?'último simulado hoje':'último simulado há '+h+' dia'+(h>1?'s':'')); }
+      else r.chipSub=r.hora;
+      return r;
+    })();
+    /* A régua do Edital e da Reta final aceita duas datas: a mais próxima manda (é o número grande) e
+       a régua vai até a mais distante, com a próxima como marco rotulado. Sem ENAM, tudo como antes. */
+    const _regua = (()=>{
+      const mostra=this.state.prefs.mostrarContagem!==false;
+      const dC=(mostra&&this.state.provaData)?_diasProvaN:null, dE=(_enam.on&&_enam.dias!=null&&_enam.dias>=0)?_enam.dias:null;
+      const out={ retaDias:'—', retaProvaNome:'a prova', retaProvaCap:'prova', segunda:false, segundaLeft:0, segundaCap:'' };
+      if(dC==null && dE==null) return out;
+      const perto=(dC==null)?dE:(dE==null?dC:Math.min(dC,dE)), longe=(dC==null||dE==null)?null:Math.max(dC,dE);
+      const pertoEnam=(dC==null)||(dE!=null&&dE<dC);
+      out.retaDias=String(perto); out.retaProvaNome=pertoEnam?('o ENAM '+_enam.edicao):'a prova'; out.retaProvaCap=pertoEnam?'ENAM':'prova';
+      if(longe!=null && longe>perto){ out.segunda=true; out.segundaLeft=Math.max(8, Math.min(88, Math.round(100*perto/longe)));
+        out.segundaCap=(pertoEnam?'ENAM':'prova')+' · '+perto+' d'; out.retaProvaCap=pertoEnam?'prova':'ENAM'; out.retaDias=String(perto); }
+      return out;
+    })();
     // ===== Contagem regressiva para a prova (card visual do Início) =====
     const cdOn = !!this.state.provaData && this.state.prefs.mostrarContagem!==false;
     let cdDias=0, cdSemStr='', cdDataFmt='', cdWeekday='', cdProgPct=0, cdProgLabel='', cdHorasPrev='', cdUrg='var(--accent)', cdUrgLabel='', cdWeeksBar=[], cdRingOffset=0;
@@ -15966,7 +16054,14 @@ class Component extends DCLogic {
       isRetaFinal:this.state.view==='reta-final', navRetaFinal:navStyle('reta-final'),
       retaStatusLabel:_retaOn?'Modo reta final ATIVADO':'Modo reta final desativado', retaTog:togStyle(_retaOn), retaKnob:togKnob(_retaOn),
       retaReduz:_retaReduz, retaReduzTog:togStyle(_retaReduz), retaReduzKnob:togKnob(_retaReduz),
-      retaComOpts, retaComVal:_retaCom, retaProvaData:this.state.provaData||'', retaDias:((this.state.prefs.mostrarContagem!==false && this.state.provaData)?String(_diasProvaN):'—'),
+      retaComOpts, retaComVal:_retaCom, retaProvaData:this.state.provaData||'', retaDias:_regua.retaDias, retaProvaNome:_regua.retaProvaNome, retaProvaCap:_regua.retaProvaCap,
+      reguaSegunda:_regua.segunda, reguaSegundaLeft:String(_regua.segundaLeft), reguaSegundaCap:_regua.segundaCap,
+      // trilha ENAM (E1)
+      enamOn:_enam.on, enamOff:!_enam.on, enamEdicao:_enam.edicao, enamEdicaoSel:_enam.edicao, enamEdicoes:_enam.edicoes, enamDataFmt:_enam.dataFmt, enamHora:_enam.hora,
+      enamDias:String(_enam.dias==null?'':_enam.dias), enamDiasLabel:_enam.diasLabel, enamChipSub:_enam.chipSub, enamProximaFrase:_enam.proximaFrase,
+      enamMeta56:_enam.meta===56?'true':'false', enamMeta40:_enam.meta===40?'true':'false',
+      enamMeta56Style:_enam.metaStyle(56), enamMeta40Style:_enam.metaStyle(40),
+      enamAtivar:this.enamAtivar, enamDesativar:this.enamDesativar, enamSetEdicao:this.enamSetEdicao, enamSetMeta:this.enamSetMeta,
       cdOn, cdDias:String(cdDias), cdSemStr, cdDataFmt, cdWeekday, cdProgPct:String(cdProgPct), cdProgLabel, cdHorasPrev, cdUrg, cdUrgLabel, cdWeeksBar, cdRingColor, cdRingDash:String(Math.round(cdRingDash)), cdRingOffset:String(Math.round(cdRingOffset)),
       retaRevVenc:String(revOverdue.length), retaSim:String(B.simulados),
       retaCmds, retaNext, retaHasNext:retaNext.length>0,
