@@ -666,6 +666,180 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
   for (const [k, v] of Object.entries(esp)) ok(v, 'LEITURA/ESPELHO ' + k);
 }
 
+/* ============= LEITURA ATIVA — LA2: a grade no leitor do LEGIS ============= */
+// (a) a trava de contraste roda no build e passa; os dois builds a importam
+{
+  const { execFileSync } = await import('child_process');
+  let saida = '';
+  try { saida = execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'verificar-cores-leitura.mjs')], { cwd: RAIZ, stdio: 'pipe' }).toString(); }
+  catch (e) { saida = 'ERRO ' + String(e.stderr || e.message).split('\n').slice(0, 3).join(' | ').slice(0, 300); }
+  ok(/grade de leitura ativa legível/.test(saida), 'LEITURA/GRADE a trava de contraste mede os 14 tokens e passa (' + saida.trim().slice(0, 120) + ')');
+  const importa = (f) => /import '\.\/verificar-cores-leitura\.mjs'/.test(fs.readFileSync(path.join(RAIZ, 'scripts', f), 'utf8'));
+  ok(importa('build.mjs') && importa('build-macos.mjs'), 'LEITURA/GRADE os dois builds importam a trava (abortam abaixo do mínimo)');
+  // os 14 nomes estão nas DUAS listas da ponte D1
+  const nomes = ['quem', 'oque', 'quando', 'como', 'prazo', 'excecao', 'proibicao'].flatMap(e => ['--la-' + e, '--la-' + e + '-tx']);
+  const sat = fs.readFileSync(path.join(RAIZ, 'tema-satelite.js'), 'utf8'), hostSrc = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  ok(nomes.every(n => sat.includes("'" + n + "'")) && nomes.every(n => hostSrc.includes("'" + n + "'")), 'LEITURA/GRADE os 14 tokens estão nas duas listas da ponte D1');
+}
+
+// (b) o leitor: interruptor, trilho, seleção → chip/tecla, "não há", marca coexistindo com grifo, persistência
+{
+  const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural não superior a cinqüenta hectares, tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia, adquirir-lhe-á a propriedade.';
+  const PARAS = ['TÍTULO III', 'Da Propriedade', 'Art. 1.239. ' + TXT, 'Parágrafo único. O texto do parágrafo único.', 'Art. 1.240. Outro artigo, com um inciso:', 'I - primeiro inciso do artigo.'];
+  const abrir = async () => {
+    await page.goto(URL0 + '/legis-web.html?area=juridica');
+    await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
+    await page.evaluate((paras) => {
+      // o leitor busca o texto em /api/law: aqui a lei vem de um fetch de mentira
+      window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+      window.openReader(CAT.laws.find(l => /l10406/.test(l.u)));
+    }, PARAS);
+    await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .gr').length >= 3);
+  };
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.evaluate(() => { localStorage.removeItem('catedra:leitorLA'); Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k)); });
+  await abrir();
+  const la2 = await page.evaluate(async (TXT) => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    const LEI = CAT.laws.find(l => /l10406/.test(l.u)).u;
+    const grs = () => document.querySelectorAll('#rdrDoc .gr');
+    const rgb = hex => 'rgb(' + [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(', ') + ')';
+    // seleciona uma frase dentro do .gr (no nó de texto que a contém) e solta o mouse
+    const selecionar = (gr, frase) => {
+      const nos = []; const it = document.createNodeIterator(gr, NodeFilter.SHOW_TEXT); let n; while ((n = it.nextNode())) nos.push(n);
+      const no = nos.find(t => t.nodeValue.includes(frase)); if (!no) return false;
+      const range = document.createRange(); const i = no.nodeValue.indexOf(frase);
+      range.setStart(no, i); range.setEnd(no, i + frase.length);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(range);
+      document.getElementById('rdrScroll').dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+      return true;
+    };
+    const tecla = k => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+
+    r.abriuTresDispositivos = grs().length === 4;
+    r.desligadoSemTrilho = !document.querySelector('#rdrDoc .la-trilho') && !document.querySelector('#rdrDoc .la-legenda');
+    const bt = document.getElementById('rdrLA');
+    r.interruptorRotulado = !!bt && /Leitura ativa/.test(bt.getAttribute('aria-label') || '') && bt.getAttribute('aria-pressed') === 'false' && !!bt.querySelector('svg');
+    bt.click(); await w(80);
+    r.ligaUmTrilhoPorDispositivo = bt.getAttribute('aria-pressed') === 'true' && document.querySelectorAll('#rdrDoc .la-trilho').length === grs().length;
+    const chipsDe = tr => [...tr.querySelectorAll('.la-chip')];
+    const tr0 = document.querySelector('#rdrDoc .la-trilho');
+    r.seteChipsNaOrdem = chipsDe(tr0).map(c => c.dataset.el).join(',') === 'quem,oque,quando,como,prazo,excecao,proibicao';
+    r.rotuloEscritoEmTodoChip = chipsDe(tr0).every(c => /\S/.test(c.querySelector('.la-rot').textContent) && /sem resposta|respondida|não há/.test(c.getAttribute('aria-label')));
+    r.chipVazioNaoColorido = chipsDe(tr0).every(c => !c.classList.contains('resp') && !c.classList.contains('nao'));
+    r.legendaComSetePerguntas = document.querySelectorAll('#rdrDoc .la-legenda .la-item').length === 7
+      && [...document.querySelectorAll('#rdrDoc .la-legenda .la-perg')].every(p => /\S/.test(p.textContent))
+      && [...document.querySelectorAll('#rdrDoc .la-legenda .la-tecla')].map(k => k.textContent).join('') === '1234567';
+    r.semEmojiNaGrade = !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(tr0.textContent + document.querySelector('#rdrDoc .la-legenda').textContent + bt.textContent);
+
+    // 1. seleção → tecla 1 (Quem?)
+    const gr = grs()[0];
+    r.selecionouQuem = selecionar(gr, 'Aquele que, não sendo proprietário de imóvel rural ou urbano');
+    const barra = document.getElementById('grifBar');
+    r.barraGanhouChips = barra.classList.contains('on') && barra.classList.contains('la') && barra.querySelectorAll('.la-chip').length === 7 && !!document.getElementById('grifBtn');
+    tecla('1'); await w(80);
+    const mQuem = gr.querySelector('mark.la.la-quem');
+    r.teclaPintaQuem = !!mQuem && mQuem.dataset.el === 'quem' && mQuem.dataset.s === '0' && mQuem.textContent.startsWith('Aquele que') && mQuem.title === 'Quem?';
+    r.marcaUsaIdentidadeESublinhado = !!mQuem && getComputedStyle(mQuem).borderBottomWidth === '2px'
+      && getComputedStyle(mQuem).borderBottomColor === rgb(getComputedStyle(mQuem).getPropertyValue('--la-quem').trim());
+    r.barraFechouDepois = !barra.classList.contains('on');
+    r.trilhoQuemRespondido = tr0.querySelector('.la-chip[data-el=quem]').classList.contains('resp') && /respondida/.test(tr0.querySelector('.la-chip[data-el=quem]').getAttribute('aria-label'));
+
+    // 2. seleção → chip da barra (Há prazo?)
+    selecionar(gr, 'por cinco anos ininterruptos');
+    barra.querySelector('.la-chip[data-el=prazo]').click(); await w(80);
+    r.chipDaBarraPintaPrazo = !!gr.querySelector('mark.la.la-prazo') && gr.querySelector('mark.la.la-prazo').textContent === 'por cinco anos ininterruptos';
+    // 3. seleção → tecla 4 (Como?)
+    selecionar(gr, 'tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia');
+    tecla('4'); await w(80);
+    r.teclaPintaComo = !!gr.querySelector('mark.la.la-como');
+    r.tresMarcasNaOrdemDoTexto = [...gr.querySelectorAll('mark.la')].map(m => m.dataset.el).join(',') === 'quem,prazo,como';
+    r.textoIntacto = gr.textContent === TXT;
+    // tecla fora de 1–7 e sem seleção: nada acontece
+    tecla('9'); tecla('2'); await w(50);
+    r.teclaSemSelecaoNaoMarca = gr.querySelectorAll('mark.la').length === 3;
+
+    // 4. grifo livre coexiste na mesma passada
+    selecionar(gr, 'sem oposição');
+    document.getElementById('grifBtn').click(); await w(80);
+    r.grifoCoexiste = gr.querySelectorAll('mark:not(.la)').length === 1 && gr.querySelectorAll('mark.la').length === 3 && gr.textContent === TXT;
+
+    // 5. "não há" em Há proibição? pelo menu do chip (chip vazio: um toque abre o menu)
+    tr0.querySelector('.la-chip[data-el=proibicao]').click(); await w(50);
+    const menu = tr0.querySelector('.la-menu');
+    r.menuAbriu = !!menu && /Não há/.test(menu.textContent) && !/Limpar marcas/.test(menu.textContent);
+    menu.querySelector('button[data-acao=nao]').click(); await w(80);
+    const chProib = document.querySelector('#rdrDoc .la-trilho .la-chip[data-el=proibicao]');
+    r.naoHaRiscado = chProib.classList.contains('nao') && /não há/.test(chProib.textContent) && /não há/.test(chProib.getAttribute('aria-label'))
+      && getComputedStyle(chProib.querySelector('.la-rot')).textDecorationLine.includes('line-through');
+    r.completude = (() => { const it = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 0); return !!it && window.CT_LA.completude(it).respondidas === 4; })();
+
+    // 6. chip preenchido: primeiro toque destaca; segundo toque abre o menu com "Limpar marcas"
+    const chQuem = document.querySelector('#rdrDoc .la-trilho .la-chip[data-el=quem]');
+    chQuem.click(); await w(50);
+    r.primeiroToqueDestaca = !!gr.querySelector('mark.la.la-quem.foco') && !document.querySelector('.la-menu');
+    chQuem.click(); await w(50);
+    r.segundoToqueAbreMenu = !!document.querySelector('.la-menu') && /Limpar marcas/.test(document.querySelector('.la-menu').textContent);
+    document.querySelector('.la-menu button[data-acao=fechar]').click(); await w(30);
+
+    // 7. tocar a marca desmarca
+    gr.querySelector('mark.la.la-como').click(); await w(80);
+    r.toqueNaMarcaDesmarca = !gr.querySelector('mark.la.la-como') && gr.querySelectorAll('mark.la').length === 2;
+
+    // 8. o espelho guarda só shape (sem o texto do dispositivo) e o item tem rot lido da estrutura
+    const it = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 0);
+    r.espelhoSemTexto = !!it && !('txt' in it) && !JSON.stringify(it).includes('cinqüenta hectares');
+    r.rotLidoDaEstrutura = !!it && it.rot === 'Art. 1.239' && it.sigla === 'CC';
+    // um dispositivo de inciso recebe "Art. N, I"
+    const grInc = grs()[3];
+    selecionar(grInc, 'primeiro inciso'); tecla('2'); await w(80);
+    const itInc = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 3);
+    r.rotDoInciso = !!itInc && itInc.rot === 'Art. 1.240, I';
+
+    // 9. a resposta do host repinta: um ctLeituras com o mesmo dispositivo e outro estado
+    const novo = window.CT_LA.naoHa(window.CT_LA.nova({ leiId: LEI, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: gr.textContent }), 'excecao', true);
+    novo.up = Date.now() + 5000;
+    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [novo, itInc] }, '*'); await w(150);
+    r.respostaDoHostRepinta = document.querySelector('#rdrDoc .la-trilho .la-chip[data-el=excecao]').classList.contains('nao') && gr.querySelectorAll('mark.la').length === 0;
+
+    // 10. desligar tira trilho e legenda, mantém os dados
+    bt.click(); await w(80);
+    r.desligarLimpaATela = !document.querySelector('#rdrDoc .la-trilho') && !document.querySelector('#rdrDoc .la-legenda') && !gr.querySelector('mark.la') && window.CT_LA_CANAL.ler(LEI).length === 2;
+    bt.click(); await w(80);
+    r.religarVolta = document.querySelectorAll('#rdrDoc .la-trilho').length === 4;
+    return r;
+  }, TXT);
+  for (const [k, v] of Object.entries(la2)) ok(v, 'LEITURA/LEITOR ' + k);
+
+  // 11. sobrevive a recarregar: o interruptor e a grade (pelo espelho) voltam iguais
+  await abrir();
+  const la2b = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms)); await w(150);
+    const r = {};
+    r.interruptorLembrado = document.getElementById('rdrLA').getAttribute('aria-pressed') === 'true';
+    const tr = document.querySelector('#rdrDoc .la-trilho');
+    r.gradeVoltou = !!tr && tr.querySelector('.la-chip[data-el=excecao]').classList.contains('nao')
+      && !!document.querySelectorAll('#rdrDoc .gr')[3].querySelector('mark.la.la-oque');
+    // a redação mudou: o hash denuncia e a marca vira pontilhada, com o aviso escrito
+    const LEI = CAT.laws.find(l => /l10406/.test(l.u)).u;
+    const it = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 3);
+    const mudado = Object.assign({}, it, { hash: '00000000', up: it.up + 1000 });
+    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [mudado] }, '*'); await w(150);
+    const tr3 = document.querySelector('#rdrDoc .la-trilho[data-gi="3"]');
+    r.redacaoMudouAvisa = !!tr3 && /Redação mudou/.test(tr3.textContent) && getComputedStyle(document.querySelectorAll('#rdrDoc .gr')[3].querySelector('mark.la')).borderBottomStyle === 'dotted';
+    tr3.querySelector('button[data-acao=confirmar]').click(); await w(80);
+    r.confirmarRefazHash = !document.querySelector('#rdrDoc .la-trilho[data-gi="3"] .la-aviso') && window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 3).hash !== '00000000';
+    // alvo de toque no iPad: 44px com ponteiro grosso (regra do CSS)
+    const css = [...document.styleSheets].flatMap(s => { try { return [...s.cssRules]; } catch (e) { return []; } }).map(x => x.cssText).join('\n');
+    r.alvo44NoToque = /pointer:\s*coarse[^}]*\.la-chip[\s\S]*?min-height:\s*44px/.test(css);
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  });
+  for (const [k, v] of Object.entries(la2b)) ok(v, 'LEITURA/LEITOR ' + k);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
@@ -1327,12 +1501,18 @@ const d1 = await page.evaluate(async () => {
   const dentro = () => { const d = frame().contentDocument;
     const cs = d.defaultView.getComputedStyle(d.documentElement);
     return { accent: cs.getPropertyValue('--accent').trim(), bg: cs.getPropertyValue('--bg').trim(),
+             // leitura ativa (LA2): identidade e texto derivado da grade também atravessam
+             laQuem: cs.getPropertyValue('--la-quem').trim(), laProibicaoTx: cs.getPropertyValue('--la-proibicao-tx').trim(),
              marcado: d.documentElement.getAttribute('data-ct-tema'), esquema: d.documentElement.style.colorScheme }; };
   const host = getComputedStyle(document.querySelector('[style*="--accent"]'));
   const a = dentro();
   r.herdaCor = a.accent === host.getPropertyValue('--accent').trim() && !!a.accent;
   r.herdaFundo = a.bg === host.getPropertyValue('--bg').trim() && !!a.bg;
   r.marcado = a.marcado === '1';
+  // o texto derivado chega já com a tinta do host substituída (não como var(--ink) solto),
+  // senão o satélite resolveria com a tinta ERRADA e o rótulo perderia o contraste medido
+  r.leituraAtivaChega = /^#[0-9a-f]{6}$/i.test(a.laQuem) && a.laQuem === host.getPropertyValue('--la-quem').trim()
+    && /color-mix\(/.test(a.laProibicaoTx) && !/var\(--ink/.test(a.laProibicaoTx);
 
   // trocar a cor de destaque atravessa até o satélite
   const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
@@ -1354,6 +1534,7 @@ if (!d1.erro) {
   ok(d1.herdaCor, 'D1 satélite herda a cor de destaque do host');
   ok(d1.herdaFundo, 'D1 satélite herda o fundo (modo escuro deixa de piscar branco)');
   ok(d1.marcado, 'D1 satélite se marca como tematizado');
+  ok(d1.leituraAtivaChega, 'D1 os tokens da leitura ativa (--la-quem, --la-proibicao-tx) chegam ao iframe com a tinta resolvida');
   ok(d1.trocaDeCorAtravessa, 'D1 trocar a cor nos Ajustes muda o satélite');
 } else {
   ok(false, 'D1 não deu para exercitar o satélite: ' + d1.erro);

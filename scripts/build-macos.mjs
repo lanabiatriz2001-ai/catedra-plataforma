@@ -18,6 +18,7 @@ import { dirname, join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { verificarPII } from './verificar-pii.mjs';
 import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual nas 3 fontes
+import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'mac', 'build', 'web');
