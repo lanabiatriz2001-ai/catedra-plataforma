@@ -303,6 +303,16 @@ const sync = await page.evaluate(() => {
   const oK = M({ 'catedra:_kts': J({ a: 1, b: 9 }) }, { 'catedra:_kts': J({ a: 5, c: 3 }) }, false);
   const kts = JSON.parse(oK['catedra:_kts']);
   r.ktsMaximo = kts.a === 5 && kts.b === 9 && kts.c === 3;
+
+  // 9. leitura ativa (LA1): catedra:leituras é array com id/up e está em ARRAY_ID — união
+  //    por id entre aparelhos e, em colisão, vence o `up` maior. Sem a chave em ARRAY_ID
+  //    o merge cairia no blob inteiro (sem carimbo, preferServer=false → o local venceria
+  //    e a leitura feita no outro aparelho sumiria): é isso que este caso pega.
+  const svL = { 'catedra:leituras': J([{ id: 'la|cf|412', up: 100, nao: ['prazo'] }, { id: 'la|cf|413', up: 100 }]) };
+  const lcL = { 'catedra:leituras': J([{ id: 'la|cf|412', up: 200, nao: [] }, { id: 'la|cc|9', up: 50 }]) };
+  const mL = JSON.parse(M(svL, lcL, false)['catedra:leituras']);
+  r.leiturasUniaoPorId = mL.length === 3 && mL.some(x => x.id === 'la|cf|413') && mL.some(x => x.id === 'la|cc|9');
+  r.leiturasUpMaiorVence = (mL.find(x => x.id === 'la|cf|412').nao || []).length === 0;
   return r;
 });
 for (const [k, v] of Object.entries(sync)) ok(v, 'SYNC ' + k);
@@ -449,6 +459,212 @@ const err = await page.evaluate(async () => {
   return r;
 });
 for (const [k, v] of Object.entries(err)) ok(v, 'ERROS ' + k);
+
+/* ============= LEITURA ATIVA — LA1: módulo puro, canal host ↔ LEGIS ============= */
+// (a) o módulo roda em Node cru: é a garantia de que ele não depende de DOM nem de
+//     treino.js — e de que a sintaxe é a conservadora que o JavaScriptCore do iPad aceita
+{
+  const { execFileSync } = await import('child_process');
+  let saida = '';
+  try {
+    saida = execFileSync(process.execPath, ['-e',
+      "const s=require('fs').readFileSync('leitura-ativa.js','utf8'); new Function(s)();" +
+      "const LA=globalThis.CT_LA; const it=LA.marcar(LA.nova({leiId:'u',sigla:'CF',rot:'Art. 1º',gi:1,txt:'texto'}),'quem',{s:0,t:'x'});" +
+      "process.stdout.write(LA.completude(it).respondidas+'|'+LA.hash('texto'));"],
+      { cwd: RAIZ, stdio: 'pipe' }).toString();
+  } catch (e) { saida = 'ERRO ' + String(e.stderr || e.message).slice(0, 200); }
+  ok(/^1\|[0-9a-f]{8}$/.test(saida), 'LEITURA o módulo roda em Node puro, sem DOM (' + saida + ')');
+}
+
+// (b) as funções puras, no navegador
+await page.goto(URL0 + '/tests/harness-leitura-ativa.html');
+await page.waitForFunction(() => window.__pronto === true);
+const la = await page.evaluate(() => {
+  const LA = window.CT_LA, r = {};
+  const TXT = 'XI - a casa é asilo inviolável do indivíduo, ninguém nela podendo penetrar sem consentimento do morador, salvo em caso de flagrante delito';
+
+  // a grade: 7 perguntas, ordem fixa, teclas 1–7
+  r.grade7 = LA.ELEMENTOS.length === 7
+    && LA.ELEMENTOS.map(e => e.id).join(',') === 'quem,oque,quando,como,prazo,excecao,proibicao'
+    && LA.ELEMENTOS.every((e, i) => e.n === i + 1 && e.tecla === String(i + 1) && e.rotulo && e.pergunta);
+
+  // nova: id estável por lei e dispositivo, hash de 8 hex, e NENHUM texto de lei no item
+  const base = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: TXT });
+  r.novaId = base.id === 'la|https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm|412' && base.v === 1 && base.up > 0 && base.lido > 0;
+  r.novaHash = /^[0-9a-f]{8}$/.test(base.hash) && base.hash === LA.hash(TXT) && LA.hash(TXT) !== LA.hash(TXT + '.');
+  r.novaSemTexto = !('txt' in base) && !JSON.stringify(base).includes('asilo');
+  r.novaSemLeiNaoNasce = LA.nova({ sigla: 'CF', gi: 1, txt: 'x' }) === null && LA.nova({ leiId: 'u', txt: 'x' }) === null;
+
+  // marcar devolve item NOVO (o original não muda) com `up` maior
+  const m1 = LA.marcar(base, 'quem', { s: 5, t: 'a casa' });
+  r.marcarImutavel = m1 !== base && base.el.quem.length === 0 && m1.el.quem.length === 1 && m1.el.quem[0].t === 'a casa';
+  r.marcarUpAvanca = m1.up > base.up;
+  // mesmo offset duas vezes = uma marca; ordem por offset; elemento inválido é ignorado
+  const m2 = LA.marcar(LA.marcar(m1, 'quem', { s: 5, t: 'a casa' }), 'quem', { s: 0, t: 'XI' });
+  r.marcarDedupeEOrdem = m2.el.quem.length === 2 && m2.el.quem[0].s === 0 && m2.el.quem[1].s === 5;
+  r.marcarElInvalido = LA.marcar(m2, 'porque', { s: 1, t: 'x' }) === m2;
+  // trecho aparado: uma marca é pista, não cópia do dispositivo
+  const longo = LA.marcar(base, 'oque', { s: 0, t: 'x'.repeat(1000) });
+  r.marcarApara = longo.el.oque[0].t.length === 400;
+
+  // desmarcar tira só aquela marca
+  const d1 = LA.desmarcar(m2, 'quem', 5);
+  r.desmarcar = d1.el.quem.length === 1 && d1.el.quem[0].s === 0 && d1.up > m2.up;
+  r.desmarcarNadaNaoMuda = LA.desmarcar(d1, 'quem', 999) === d1;
+
+  // "não há" é resposta: conta na completude e apaga marca contraditória; marcar depois desfaz o "não há"
+  const n1 = LA.naoHa(m2, 'prazo', true);
+  r.naoHaRegistra = n1.nao.length === 1 && n1.nao[0] === 'prazo' && n1.up > m2.up;
+  r.naoHaIdempotente = LA.naoHa(n1, 'prazo', true) === n1;
+  r.naoHaDesfaz = LA.naoHa(n1, 'prazo', false).nao.length === 0;
+  r.naoHaApagaMarca = LA.naoHa(m2, 'quem', true).el.quem.length === 0;
+  r.marcarDesfazNaoHa = LA.marcar(n1, 'prazo', { s: 3, t: 'em 24 horas' }).nao.length === 0;
+
+  // completude: 2 marcas + 3 "não há" = 5 respondidas, faltam 2
+  let c = LA.marcar(LA.marcar(base, 'quem', { s: 5, t: 'a casa' }), 'excecao', { s: 100, t: 'salvo em caso de flagrante delito' });
+  c = LA.naoHa(LA.naoHa(LA.naoHa(c, 'prazo', true), 'quando', true), 'como', true);
+  const comp = LA.completude(c);
+  r.completude = comp.respondidas === 5 && comp.total === 7 && comp.faltam.join(',') === 'oque,proibicao';
+  r.completudeVazia = LA.completude(base).respondidas === 0 && LA.completude(base).faltam.length === 7;
+
+  // desatualizada: o hash denuncia texto mudado
+  r.atualizada = LA.atualizada(base, TXT) === true && LA.atualizada(base, TXT + ' (Redação dada pela EC 1/2027)') === false;
+
+  // conferir registra {el, q, ts}; só q 1/3/5
+  const cf = LA.conferir(c, 'excecao', 3);
+  r.conferir = !!cf && cf.item.conf.length === 1 && cf.item.conf[0].el === 'excecao' && cf.item.conf[0].q === 3 && cf.item.conf[0].ts > 0
+    && cf.item.up > c.up && cf.criar && typeof cf.criar === 'object';
+  r.conferirQInvalido = LA.conferir(c, 'excecao', 4) === null && LA.conferir(c, 'nada', 5) === null;
+
+  // progresso por lei
+  const outra = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 3, txt: 'y' });
+  let completo = base;
+  LA.IDS.forEach((el, i) => { completo = i < 2 ? LA.marcar(completo, el, { s: i, t: 't' + i }) : LA.naoHa(completo, el, true); });
+  const pr = LA.progresso([c, completo, outra], base.leiId, 10);
+  // c e completo têm o MESMO id (mesmo dispositivo): progresso conta itens da lista como vêm
+  r.progresso = pr.lidos === 2 && pr.completos === 1 && pr.pct === 20;
+  r.progressoSemTotal = LA.progresso([c], base.leiId, 0).pct === 0;
+
+  // sanear: só o shape entra — `txt` e campos inventados caem; id tem de ser lei|gi
+  const sujo = Object.assign({}, c, { txt: TXT, extra: 'não', hash: 'zz', el: Object.assign({}, c.el, { quem: [{ s: 5, t: 'a casa' }, { s: -1, t: 'neg' }, { s: 5, t: 'dup' }], inventado: [{ s: 0, t: 'x' }] }) });
+  const limpo = LA.sanear(sujo);
+  r.sanearShape = !!limpo && !('txt' in limpo) && !('extra' in limpo) && !('inventado' in limpo.el) && limpo.el.quem.length === 1 && /^[0-9a-f]{8}$/.test(limpo.hash);
+  r.sanearIdCoerente = LA.sanear(Object.assign({}, c, { id: 'la|outra|1' })) === null && LA.sanear(null) === null && LA.sanear('x') === null;
+
+  // upsert: preserva o `up` maior; mais velho não entra; novo id é acrescentado
+  const lista = [c];
+  const velho = Object.assign({}, c, { up: c.up - 1000, nao: [] });
+  const novo = Object.assign({}, c, { up: c.up + 1000, nao: ['prazo', 'quando', 'como', 'oque'] });
+  r.upsertVelhoNaoEntra = LA.upsert(lista, velho) === lista;
+  r.upsertNovoEntra = LA.upsert(lista, novo)[0].nao.length === 4 && LA.upsert(lista, novo) !== lista && lista[0] === c;
+  r.upsertAcrescenta = LA.upsert(lista, outra).length === 2;
+  return r;
+});
+for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
+
+// (c) o canal, contra o host REAL: upsert com `up` maior, resposta só da lei pedida,
+//     conferência gravada, e nada de texto de lei em catedra:leituras
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1');
+    localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    localStorage.removeItem('catedra:leituras');
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  const canal = await page.evaluate(async () => {
+    const r = {}, LA = window.CT_LA;
+    const espera = ms => new Promise(res => setTimeout(res, ms));   // o _autosave grava 500 ms depois do setState
+    const gravado = () => JSON.parse(localStorage.getItem('catedra:leituras') || '[]');
+    r.moduloNoHost = !!LA && typeof window.__catedraGoView === 'function';
+    if (!LA) return r;
+    const TXT = 'XI - a casa é asilo inviolável do indivíduo, ninguém nela podendo penetrar sem consentimento do morador';
+    const item = LA.marcar(LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: TXT }), 'quem', { s: 5, t: 'a casa' });
+
+    window.postMessage({ type: 'ctLeituraAtiva', item }, '*');
+    await espera(900);
+    let g = gravado();
+    r.upsertGravou = g.length === 1 && g[0].id === item.id && g[0].el.quem.length === 1;
+    r.semTextoDeLei = !JSON.stringify(g).includes('asilo inviolável') && !('txt' in (g[0] || {}));
+
+    // edição mais VELHA não desfaz a guardada
+    window.postMessage({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { up: item.up - 5000, nao: ['prazo'] }) }, '*');
+    await espera(900);
+    g = gravado();
+    r.upMaiorVence = g.length === 1 && (g[0].nao || []).length === 0;
+
+    // edição mais NOVA entra
+    const novo = LA.naoHa(item, 'prazo', true);
+    window.postMessage({ type: 'ctLeituraAtiva', item: novo }, '*');
+    await espera(900);
+    g = gravado();
+    r.upNovoEntra = g.length === 1 && (g[0].nao || []).indexOf('prazo') >= 0;
+
+    // lixo não entra: sem leiId, com texto, id incoerente
+    window.postMessage({ type: 'ctLeituraAtiva', item: { id: 'la|x|1', gi: 1, txt: TXT } }, '*');
+    window.postMessage({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { id: 'la|outra|412' }) }, '*');
+    await espera(900);
+    r.lixoNaoEntra = gravado().length === 1;
+
+    // outra lei no mesmo array; pedir devolve SÓ a lei pedida
+    const outra = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 3, txt: 'Aquele que, não sendo proprietário' });
+    window.postMessage({ type: 'ctLeituraAtiva', item: outra }, '*');
+    await espera(900);
+    r.duasLeis = gravado().length === 2;
+    const resposta = await new Promise(res => {
+      const h = e => { if (e.data && e.data.type === 'ctLeituras') { window.removeEventListener('message', h); res(e.data); } };
+      window.addEventListener('message', h);
+      window.postMessage({ type: 'ctLeiturasPedir', leiId: item.leiId }, '*');
+      setTimeout(() => res(null), 2000);
+    });
+    r.pedirDevolveSoALei = !!resposta && resposta.leiId === item.leiId && resposta.itens.length === 1 && resposta.itens[0].id === item.id;
+    const vazia = await new Promise(res => {
+      const h = e => { if (e.data && e.data.type === 'ctLeituras') { window.removeEventListener('message', h); res(e.data); } };
+      window.addEventListener('message', h);
+      window.postMessage({ type: 'ctLeiturasPedir', leiId: 'https://www.planalto.gov.br/nada.htm' }, '*');
+      setTimeout(() => res(null), 2000);
+    });
+    r.pedirLeiSemLeituraVemVazio = !!vazia && Array.isArray(vazia.itens) && vazia.itens.length === 0;
+
+    // a conferência entra no item guardado
+    window.postMessage({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 3 }, '*');
+    window.postMessage({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 4 }, '*');   // q inválido: ignorado
+    window.postMessage({ type: 'ctLeituraConferida', id: 'la|nao|existe', el: 'quem', q: 1 }, '*');
+    await espera(900);
+    const it = gravado().find(x => x.id === item.id);
+    r.conferenciaGravada = !!it && (it.conf || []).length === 1 && it.conf[0].el === 'quem' && it.conf[0].q === 3;
+
+    localStorage.removeItem('catedra:leituras');
+    return r;
+  });
+  for (const [k, v] of Object.entries(canal)) ok(v, 'LEITURA/CANAL ' + k);
+}
+
+// (d) o espelho do LEGIS: a resposta do host sobrescreve 'catedra:leituras:<leiId>' e avisa a página
+{
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.waitForFunction(() => !!(window.CT_LA_CANAL && window.CT_LA));
+  const esp = await page.evaluate(async () => {
+    const r = {}, C = window.CT_LA_CANAL, LEI = 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm';
+    localStorage.removeItem('catedra:leituras:' + LEI);
+    r.espelhoVazio = C.ler(LEI).length === 0;
+    let avisou = false;
+    window.addEventListener('catedra:leituras', e => { if (e.detail && e.detail.leiId === LEI) avisou = true; });
+    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [{ id: 'la|' + LEI + '|1', up: 1, leiId: LEI, gi: 1 }] }, '*');
+    await new Promise(res => setTimeout(res, 200));
+    r.espelhoGravado = C.ler(LEI).length === 1 && avisou;
+    // enviar: espelha localmente (upsert) — o post ao host é o que o caso (c) cobre
+    const it = window.CT_LA.nova({ leiId: LEI, sigla: 'CF', rot: 'Art. 2º', gi: 2, txt: 'x' });
+    C.enviar(it);
+    r.enviarEspelha = C.ler(LEI).length === 2;
+    localStorage.removeItem('catedra:leituras:' + LEI);
+    return r;
+  });
+  for (const [k, v] of Object.entries(esp)) ok(v, 'LEITURA/ESPELHO ' + k);
+}
 
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');

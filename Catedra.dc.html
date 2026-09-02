@@ -16,6 +16,9 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <script src="./busca-unica.js"></script>
 <!-- "O que mudou esta semana" (item 7): recorte dos informativos, gerado no build -->
 <script src="./semana-juris.js"></script>
+<!-- Leitura ativa (grade de 7 perguntas): módulo puro, o mesmo que o CátedraLEGIS carrega.
+     O host é a fonte da verdade de catedra:leituras; o iframe é tela. -->
+<script src="./leitura-ativa.js"></script>
 <!-- C2: para onde mandar praticar questões (só link de saída — nada é copiado de lá) -->
 <link rel="stylesheet" href="./catedra-ui.css">
 <script src="./area-registry.js"></script>
@@ -5960,6 +5963,8 @@ class Component extends DCLogic {
       agendaFeitas:this._load('agendaFeitas', {}),
       edital: this._load('edital', []),
       reviews: this._load('reviews', []),
+      // leitura ativa da lei (LA1): um item por dispositivo lido, sem o texto da lei
+      leituras: this._load('leituras', []),
       revSession: null,
       treino: null,
       sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}), simNome:'', simMin:'',
@@ -6320,6 +6325,34 @@ class Component extends DCLogic {
             quesitos:(Array.isArray(e.data.quesitos)?e.data.quesitos:[]).map(q=>({titulo:q.titulo, nota:q.nota, max:q.max})),
             notaTotal:(e.data.notaTotal!=null?+e.data.notaTotal:null) });
         }catch(_){}
+        return;
+      }
+      /* LEITURA ATIVA (LA1) — o canal com o CátedraLEGIS. O host guarda catedra:leituras
+         (em _autosaveKeys e em ARRAY_ID: merge por id entre aparelhos) e é a fonte da
+         verdade; o iframe só desenha e, em file://, pode nem enxergar este localStorage.
+         Tudo que chega passa por CT_LA.sanear: só o shape entra, nunca o texto da lei. */
+      if(e.data.type==='ctLeiturasPedir'){
+        // responde SÓ com os itens daquela lei — o array inteiro cresce com o estudo
+        const leiId=String(e.data.leiId||''), src=e.source;
+        const itens=(this.state.leituras||[]).filter(x=>x&&x.leiId===leiId);
+        try{ src && src.postMessage({type:'ctLeituras', leiId, itens}, '*'); }catch(_){}
+        return;
+      }
+      if(e.data.type==='ctLeituraAtiva'){
+        const LA=window.CT_LA; if(!LA) return;
+        const it=LA.sanear(e.data.item); if(!it) return;
+        // upsert por id preservando o `up` MAIOR: uma edição velha vinda do iframe não
+        // desfaz o que outro aparelho acabou de sincronizar
+        this.setState(st=>{ const antes=st.leituras||[], depois=LA.upsert(antes, it); return depois===antes?null:{leituras:depois}; });
+        return;
+      }
+      if(e.data.type==='ctLeituraConferida'){
+        const LA=window.CT_LA; if(!LA) return;
+        const id=String(e.data.id||''), el=String(e.data.el||''), q=+e.data.q;
+        const atual=(this.state.leituras||[]).find(x=>x&&x.id===id); if(!atual) return;
+        const r=LA.conferir(atual, el, q); if(!r) return;
+        this.setState(st=>({leituras:LA.upsert(st.leituras||[], r.item)}));
+        // LA4 (r.criar → flashcard/revisão/erro) e LA5 (e.data.cloze) entram aqui.
         return;
       }
       if(e.data.type==='ctIA'){
@@ -7033,7 +7066,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
