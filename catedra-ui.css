@@ -900,3 +900,13 @@ button:disabled { cursor: not-allowed; }
 .la-cloze .la-lacuna { display: inline-block; padding: 0 6px; border-radius: 6px; background: color-mix(in srgb, var(--la-x) 30%, transparent); border-bottom: 2px solid var(--la-x); }
 .la-cloze .la-lacuna.revelada { display: inline; background: color-mix(in srgb, var(--la-x) 24%, transparent); }
 .la-cloze-extra { font-size: var(--fs-sm, 12.5px); line-height: 1.5; margin-top: var(--ct-e3); text-align: left; opacity: .75; }
+/* o trilho SÓ-LEITURA no host (Prova oral, gabarito do simulado — LA6): os mesmos 7 chips
+   do leitor, com rótulo escrito, sem interação. Cor-texto ≠ cor-identidade (--la-*-tx). */
+.la-trilho-ro { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ct-e1) var(--ct-e2); margin-top: var(--ct-e3); }
+.la-trilho-ro .la-ro-rot { font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-xs, 11.5px); font-weight: 700; color: var(--text3, #7a7368); margin-right: var(--ct-e1); }
+.la-trilho-ro .la-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 2px 9px; border-radius: 99px; border: 1px solid var(--border, #e6e1d4); background: var(--surface2, #f0ece1); color: var(--text3, #7a7368); font-size: var(--fs-xs, 11.5px); font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.la-trilho-ro .la-chip::before { content: ""; width: 7px; height: 7px; border-radius: 99px; background: var(--la-x); opacity: .55; flex: none; }
+.la-trilho-ro .la-chip.resp { background: color-mix(in oklab, var(--la-x) 16%, var(--surface, #fffdf8)); border-color: color-mix(in srgb, var(--la-x) 38%, var(--border, #e6e1d4)); color: var(--la-x-tx); }
+.la-trilho-ro .la-chip.resp::before { opacity: 1; }
+.la-trilho-ro .la-chip.nao .la-rot { text-decoration: line-through; text-decoration-thickness: 1px; }
+.la-trilho-ro .la-chip .la-nao { font-weight: 600; }

@@ -46,6 +46,10 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
    Agora o alvo primário é a linha inteira e o Planalto vira link discreto de apoio. */
 .lawrow{position:relative;display:flex;align-items:center;gap:12px;min-height:44px;padding:11px 14px;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:11px;margin-bottom:7px;border-color:color-mix(in srgb,var(--lc) 38%,var(--border,#e6e1d4));background-image:linear-gradient(90deg,color-mix(in srgb,var(--lc) 18%,transparent),transparent 46%)}
 .lawrow.abrivel{cursor:pointer}
+/* LA6: a segunda barra, fina, da leitura ativa (trilha com overflow:hidden e preenchimento por translateX, nunca width) */
+.lawrow .laLido{display:block;margin-top:4px;font:600 var(--fs-2xs,11px) var(--body,sans-serif);color:var(--text3,#7a7368)}
+.lawrow .laLido i{display:block;height:3px;margin-top:3px;border-radius:99px;max-width:110px;overflow:hidden;background:color-mix(in srgb,var(--la-oque,#15803d) 18%,transparent)}
+.lawrow .laLido i b{display:block;height:100%;width:100%;border-radius:99px;background:var(--la-oque,#15803d)}
 .lawrow.abrivel:hover{border-color:var(--accent,#0f7a57);background:var(--accentSoft,#e6f0ea)}
 .lawrow .lt{flex:1;min-width:0;padding:0;border:none;background:none;color:inherit;font-family:inherit;text-align:left}
 /* o ::after esticado leva o clique da linha inteira ao botão — sem perder o foco de teclado */
@@ -592,8 +596,21 @@ window.CT_LA_CANAL=(function(){
     if(!e || !e.data || e.data.type!=='ctLeituras') return;
     gravar(e.data.leiId, e.data.itens);
     try{ window.dispatchEvent(new CustomEvent('catedra:leituras', {detail:{leiId:String(e.data.leiId||'')}})); }catch(_){}
+    pedirResumo();
   });
-  return { ler:ler, pedir:pedir, enviar:enviar, conferir:conferir };
+  // LA6: contagens por lei para o catálogo (o host responde ctLeiturasResumoResp)
+  var pedirResumo=function(){ aoHost({type:'ctLeiturasResumo'}); };
+  window.addEventListener('message', function(e){
+    if(!e || !e.data || e.data.type!=='ctLeiturasResumoResp') return;
+    window.CT_LA_RESUMO=e.data.resumo||{};
+    try{ window.dispatchEvent(new CustomEvent('catedra:leiturasResumo')); }catch(_){}
+  });
+  // LA6: "Ler ativamente" / "Conferir de novo" vindos do host — abrir a lei no dispositivo
+  window.addEventListener('message', function(e){
+    if(!e || !e.data || e.data.type!=='ctLeituraAbrir') return;
+    try{ window.ctLeituraAbrir && window.ctLeituraAbrir(e.data); }catch(_){}
+  });
+  return { ler:ler, pedir:pedir, enviar:enviar, conferir:conferir, pedirResumo:pedirResumo };
 })();
 // ?volta=1: ela veio do mapa do processo — a pílula devolve ao ponto exato (o host
 // guarda rito/peça/bloco e responde ao ctVoltarAcervo). Só o host web manda este
@@ -640,6 +657,17 @@ function _colher(alvos, jaVistos){
   var _stot=document.getElementById("stot"); if(_stot) _stot.textContent=CAT.laws.length; CAT.laws.forEach((l,i)=>{ l._id=l.c+'#'+i; (groups[l.c]=groups[l.c]||[]).push(l); });
   const corDe=(l)=>((CAT.catMap[l.c]||['','#64748b'])[1]);
 
+  /* LA6: quanto desta lei já foi lido ativamente — contagens vindas do host (ctLeiturasResumo).
+     A barra só existe quando há denominador honesto (os artigos citados na incidência);
+     sem ele, fica o número, nunca uma porcentagem inventada. */
+  const laResumoDe=(l)=>{ const R=window.CT_LA_RESUMO||{}; return R[l.u]||null; };
+  const laBarraHtml=(l)=>{ const r=laResumoDe(l); if(!r||!r.lidos) return '';
+    let tot=0; try{ const I=window.__INCIDENCIA__||{}; const k=Object.keys(I).find(k=>String(I[k].nome||'').toLowerCase()===String(l.t||'').toLowerCase()); if(k) tot=+I[k].artigos||0; }catch(e){}
+    const pct=tot?Math.min(100, Math.round(100*r.lidos/tot)):0;
+    return '<div class="laLido" role="img" aria-label="Lido ativamente: '+r.lidos+' dispositivo'+(r.lidos>1?'s':'')+(tot?(', '+pct+'% dos artigos citados'):'')+'"><span>lido ativamente · '+r.lidos+(tot?(' · '+pct+'%'):'')+'</span>'+(tot?'<i><b style="transform:translateX(calc('+pct+'% - 100%))"></b></i>':'')+'</div>'; };
+  window.addEventListener('catedra:leiturasResumo', function(){ try{ document.querySelectorAll('.lawrow').forEach(function(row){ const l=CAT.laws.find(x=>x._id===row.dataset.id); if(!l) return;
+    const velho=row.querySelector('.laLido'); const html=laBarraHtml(l); if(velho) velho.remove(); if(html){ const lt=row.querySelector('.lt'); if(lt) lt.insertAdjacentHTML('beforeend', html); } }); }catch(e){} });
+  try{ window.CT_LA_CANAL && window.CT_LA_CANAL.pedirResumo(); }catch(e){}
   function linha(l, cor){
     const r=el('div','lawrow'); r.style.setProperty('--lc',cor||corDe(l));
     r.dataset.s=(l.t+' '+l.r).toLowerCase(); r.dataset.id=l._id;
@@ -653,7 +681,7 @@ function _colher(alvos, jaVistos){
     const rotFav=(on)=>on?('Tirar '+l.t+' dos favoritos'):('Adicionar '+l.t+' aos favoritos');
     r.innerHTML='<button class="st '+st+'" aria-label="'+esc(rotSt(st))+'" title="não lida → lendo → dominada">'+STICON[st]+'</button>'
       +(abre?'<button class="lt" type="button" title="Ler o texto dentro do app">':'<div class="lt">')
-      +'<b>'+esc(l.t)+'</b><small>'+esc(l.r)+'</small>'+(abre?'</button>':'</div>')
+      +'<b>'+esc(l.t)+'</b><small>'+esc(l.r)+'</small>'+laBarraHtml(l)+(abre?'</button>':'</div>')
       +'<button class="fav'+(fav?' on':'')+'" aria-label="'+esc(rotFav(!!fav))+'" title="Favoritar"><svg viewBox="0 0 24 24" width="16" height="16" fill="'+(fav?'currentColor':'none')+'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'
       +'<a href="'+l.u+'" target="_blank" rel="noopener">'+(externa?'Fonte oficial ↗':'Planalto ↗')+'</a>';
     r.querySelector('.st').onclick=()=>{ const cur=STAT.indexOf(est.stat[l._id]||''); const nx=STAT[(cur+1)%3]; if(nx)est.stat[l._id]=nx; else delete est.stat[l._id]; saveEst(); const b=r.querySelector('.st'); b.className='st '+nx; b.textContent=STICON[nx]; b.setAttribute('aria-label',rotSt(nx)); stats(); };
@@ -978,7 +1006,7 @@ function _colher(alvos, jaVistos){
   function laRepintarTudo(){ if(!_doc) return; var seen={};
     grifos.forEach(function(g){ seen[g.gi]=1; }); Object.keys(_laItens).forEach(function(gi){ seen[gi]=1; });
     var todos=_doc.querySelectorAll('.gr'); for(var i=0;i<todos.length;i++){ var gi=+todos[i].dataset.gi; if(seen[gi]) renderGr(gi); else laTrilho(gi); } }
-  function laAposRender(){ laLegenda(); laRepintarTudo(); laBarraChips(); }
+  function laAposRender(){ laLegenda(); laRepintarTudo(); laBarraChips(); laAbrirPendente(); }
   function laChipHtml(el, it, compacto){
     var resp=!!(it&&it.el&&it.el[el]&&it.el[el].length), nao=!!(it&&it.nao&&it.nao.indexOf(el)>=0);
     var estado=nao?'não há':(resp?'respondida':'sem resposta');
@@ -1077,7 +1105,26 @@ function _colher(alvos, jaVistos){
   document.getElementById('rdrLA').onclick=function(){ var on=!_rdr.classList.contains('la');
     try{ localStorage.setItem(LA_K, on?'1':'0'); }catch(e){} aplicarLA(); laLegenda(); laRepintarTudo(); laFecharMenu(); };
   // a resposta do host (ctLeituras) chegou: o espelho mudou, a tela acompanha
-  window.addEventListener('catedra:leituras', function(e){ if(!curLaw||!e.detail||e.detail.leiId!==laLeiId()) return; laCarregar(); laRepintarTudo(); });
+  window.addEventListener('catedra:leituras', function(e){ if(!curLaw||!e.detail||e.detail.leiId!==laLeiId()) return; laCarregar(); laRepintarTudo(); if(_laAbrirPend) laAbrirPendente(); });
+
+  // ---- LA6: abrir a lei já no dispositivo (vindo do oral ou do gabarito do simulado) ----
+  var _laAbrirPend=null;
+  function laNormRot(r){ return String(r||'').toLowerCase().replace(/(\d)\s*[º°ªo](?![\wà-ú])/g,'$1').replace(/[–—-]+/g,'-').replace(/\s+/g,' ').replace(/[.,;:\s-]+$/,'').replace(/\s*,\s*/g,', ').trim(); }
+  function laAcharGi(rot){ var n=laNormRot(rot); if(!n||!_doc) return -1;
+    var grs=_doc.querySelectorAll('.gr'), exato=-1, artigo=-1;
+    for(var i=0;i<grs.length;i++){ var gi=+grs[i].dataset.gi, r=laNormRot(laRot(gi)); if(r===n){ exato=gi; break; } if(artigo<0 && (r.indexOf(n+',')===0 || n.indexOf(r+',')===0)) artigo=gi; }
+    return exato>=0?exato:artigo; }
+  window.ctLeituraAbrir=function(p){ p=p||{}; var u=String(p.leiId||''); if(!u) return;
+    var law=null; for(var i=0;i<CAT.laws.length;i++){ if(CAT.laws[i].u===u){ law=CAT.laws[i]; break; } } if(!law) return;
+    _laAbrirPend={rot:String(p.rot||''), conferir:!!p.conferir};
+    if(!(curLaw && curLaw.u===u && _doc && _doc.querySelector('.gr'))){ openReader(law); return; }
+    laAbrirPendente(); };
+  function laAbrirPendente(){ var p=_laAbrirPend; if(!p) return; _laAbrirPend=null;
+    if(!_laOn){ try{ localStorage.setItem(LA_K,'1'); }catch(e){} aplicarLA(); laLegenda(); laRepintarTudo(); }
+    var gi=laAcharGi(p.rot); if(gi<0) return;
+    var el=_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(el){ try{ el.scrollIntoView({block:'center'}); }catch(e){} }
+    if(p.conferir && _laItens[gi]) laConfAbrir(gi); }
+  (function(){ try{ var q=new URLSearchParams(location.search); if(q.get('la')) window.ctLeituraAbrir({leiId:q.get('la'), rot:q.get('rot')||'', conferir:q.get('conferir')==='1'}); }catch(e){} })();
 
   // ---- LA3: modo guiado — um dispositivo por vez, uma pergunta por vez ----
   /* Para quem se perde na página inteira. A bancada mostra SÓ o dispositivo atual, faz

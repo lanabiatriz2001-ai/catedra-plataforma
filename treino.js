@@ -406,7 +406,8 @@
     function mk(p, enun, certo, de, para) {
       return { id: 'lei|' + p.lei + '|' + p.rot + '|' + enun.slice(0, 24), origem: 'lei',
                enunciado: enun, certo: certo, original: p.txt, trocaDe: de, trocaPara: para,
-               ref: p.lei + ' · ' + p.rot, ramo: p.nome, tema: p.rot, data: '', contexto: p.txt };
+               // url: é por ela (CT_LEIS.url = leiId da leitura ativa) que o gabarito acha a grade lida no LEGIS
+               ref: p.lei + ' · ' + p.rot, ramo: p.nome, tema: p.rot, url: p.url || '', data: '', contexto: p.txt };
     }
   }
 

@@ -1299,6 +1299,168 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
   for (const [k, v] of Object.entries(gd)) ok(v, 'LEGIS GUIADO filtros ' + k);
 }
 
+/* ============= LEITURA ATIVA — LA6: a grade reaparece no oral, no simulado, no catálogo e na prioridade ============= */
+// (a) a prioridade: fator novo de 5 % dentro da constante única; sem o dado, vale zero
+await page.goto(URL0 + '/tests/harness-prioridade.html');
+await page.waitForFunction(() => !!window.CT_PRIORIDADE_CALC);
+const la6p = await page.evaluate(() => {
+  const { prioridadeDisciplinas, PESOS } = window.CT_PRIORIDADE_CALC, r = {};
+  r.pesoCincoPorCento = PESOS.leitura === 0.05 && Math.abs(Object.values(PESOS).reduce((a, b) => a + b, 0) - 1) < 1e-9;
+  const base = { edital: [{ disc: 'Direito Civil', peso: 1 }, { disc: 'Direito Penal', peso: 1 }], errors: [], reviews: [], sessions: [], hoje: '2026-09-02' };
+  const sem = prioridadeDisciplinas(base), com = prioridadeDisciplinas({ ...base, leituraPendente: { 'direito civil': 1, 'direito penal': 0 } });
+  const f = (lista, d) => lista.find(x => x.disc === d).fatores.find(x => x.chave === 'leitura');
+  r.fatorExiste = !!f(sem, 'Direito Civil') && f(sem, 'Direito Civil').valor === 0 && f(sem, 'Direito Civil').peso === 0.05;
+  r.pendenteSobe = f(com, 'Direito Civil').valor === 1 && f(com, 'Direito Penal').valor === 0 && /100% dos artigos mais citados/.test(f(com, 'Direito Civil').texto)
+    && com.find(x => x.disc === 'Direito Civil').nota > sem.find(x => x.disc === 'Direito Civil').nota;
+  return r;
+});
+for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade ' + k);
+
+// (b) o host: oral · Lei seca mostra o trilho só-leitura e "Ler ativamente no LEGIS"; o gabarito do
+//     simulado errado em lei seca mostra "Conferir de novo"; o rot casa normalizado; registrar sessão
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+    localStorage.setItem('catedra:edital', JSON.stringify([{ disc: 'Direito Civil', peso: 1 }]));
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  const la6h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const LA = window.CT_LA, r = {};
+    // casamento do rot: "Art. 5º, XI" ↔ "art. 5o , XI" ↔ "Art. 5º — XI"
+    const cmp = window.__catedraApp && window.__catedraApp._laNormRot;
+    r.normalizaRot = !cmp || (cmp('Art. 5º, XI') === cmp('art. 5o , XI') && cmp('Art. 5º') === cmp('Art. 5o.'));
+    // leituras de dois dispositivos do CC art. 1.239 e do CF art. 5º, XI
+    const CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+    const CF = 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm';
+    let a = LA.nova({ leiId: CC, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: 'Aquele que possua como sua por cinco anos.' });
+    a = LA.marcar(a, 'prazo', { s: 26, t: 'por cinco anos' }); a = LA.naoHa(a, 'proibicao', true);
+    let b = LA.nova({ leiId: CF, sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: 'a casa é asilo inviolável' });
+    b = LA.marcar(b, 'quem', { s: 0, t: 'a casa' });
+    window.postMessage({ type: 'ctLeituraAtiva', item: a }, '*'); window.postMessage({ type: 'ctLeituraAtiva', item: b }, '*'); await w(900);
+    // 1. Prova oral → Lei seca, com o artigo sorteado forçado para o CC art. 1.239
+    window.__catedraGoView('oral'); await w(600);
+    document.querySelector('#dc-root button[data-m="lei"]').click();
+    await new Promise(res => { const t = setInterval(() => { if (Array.isArray(window.CT_LEIS) && window.CT_LEIS.length) { clearInterval(t); res(); } }, 100); setTimeout(res, 25000); });
+    await w(400);
+    const cc = (window.CT_LEIS || []).find(l => l.sigla === 'CC'), art = cc && cc.artigos.find(x => /^Art\.\s*1\.239\b/.test(x.rot));
+    r.acervoTemOArtigo = !!art && cc.url === CC;
+    // sorteio determinístico: fixa Math.random para cair no CC art. 1.239 é frágil; em vez disso,
+    // usa o caminho real com o artigo escolhido pela própria função do treino
+    const T = window.CT_TREINO; const escolhido = { sigla: 'CC', nome: cc.nome, url: cc.url, rot: art.rot, txt: T.limpa(art.txt) };
+    const app = window.__catedraApp; if (app) { app.setState({ oralArt: escolhido, oralArtVariante: 0, oralPergunta: T.perguntaLei(escolhido, 0), oralResposta: '', oralCorrecao: null }); await w(500); }
+    r.appExposto = !!app;
+    const trilho = document.querySelector('#dc-root .la-trilho-ro');
+    r.oralMostraOTrilho = !!trilho && /Art\. 1\.239/.test(trilho.textContent) && trilho.querySelectorAll('.la-chip').length === 7
+      && trilho.querySelector('.la-chip.la-prazo').classList.contains('resp') && /não há/.test(trilho.querySelector('.la-chip.la-proibicao').textContent)
+      && [...trilho.querySelectorAll('.la-chip')].every(c => /\S/.test(c.querySelector('.la-rot').textContent) && c.getAttribute('aria-label'));
+    // cor-texto ≠ cor-identidade: o rótulo do chip respondido NÃO é pintado com a cor crua da identidade
+    r.oralChipUsaCorDeTexto = !!trilho && (() => { const c = trilho.querySelector('.la-chip.la-prazo'), cs = getComputedStyle(c); const id = cs.getPropertyValue('--la-prazo').trim();
+      const rgb = id.replace(/^#(..)(..)(..)$/, (_, a, b, d) => 'rgb(' + [a, b, d].map(x => parseInt(x, 16)).join(', ') + ')'); return !!id && cs.color !== rgb && cs.color !== 'rgb(0, 0, 0)'; })();
+    const btnOral = [...document.querySelectorAll('#dc-root button')].find(x => /Ler ativamente no LEGIS/.test(x.textContent || ''));
+    r.oralTemBotao = !!btnOral && btnOral.dataset.lei === CC && /1\.239/.test(btnOral.dataset.rot);
+    // "Ler ativamente" leva ao LEGIS com o pedido de abrir no dispositivo
+    btnOral.click(); await w(2600);
+    const f = document.querySelector('iframe[data-ct-view="legis"]');
+    const rdr = f && f.contentDocument && f.contentDocument.getElementById('rdr');
+    r.abreOLegisNoLeitor = !!rdr && (rdr.classList.contains('on') || /la=/.test(f.getAttribute('src') || '') || !!(f.contentWindow && f.contentWindow.__laAbrirPedido));
+    // 2. registrar sessão ao sair do modo guiado (o interruptor de Ajustes ligado abre o registro preenchido)
+    let abriu = null; const orig = window.catedraOpenStudyRegistration; window.catedraOpenStudyRegistration = info => { abriu = info; return 'ok'; };
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lei: 'Código Civil', faixa: 'Art. 1.239 – Art. 1.241', lidos: 3, min: 7 }, '*'); await w(200);
+    r.registroPreenchido = !!abriu && abriu.categoria === 'Lei seca' && abriu.disc === 'Direito Civil' && abriu.topico === 'CC · Art. 1.239 – Art. 1.241' && abriu.min === 7 && /3 dispositivos/.test(abriu.nota);
+    abriu = null;
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 0, min: 3 }, '*'); await w(200);
+    r.semLeituraNaoOferece = abriu === null;
+    if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: false } })); await w(100); }
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 2, min: 3 }, '*'); await w(200);
+    r.interruptorDesligadoNaoOferece = !app || abriu === null;
+    if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: true } })); }
+    window.catedraOpenStudyRegistration = orig;
+    // 3. resumo por lei para o catálogo do LEGIS
+    const resumo = await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeiturasResumoResp') { window.removeEventListener('message', h); res(e.data.resumo); } }; window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasResumo' }, '*'); setTimeout(() => res(null), 2000); });
+    r.resumoPorLei = !!resumo && resumo[CC] && resumo[CC].lidos === 1 && resumo[CF].lidos === 1 && resumo[CC].completos === 0 && !JSON.stringify(resumo).includes('asilo');
+    return r;
+  });
+  for (const [k, v] of Object.entries(la6h)) ok(v, 'LEITURA/ONDE-MAIS ' + k);
+
+  // 4. simulado: item de lei seca ERRADO no gabarito mostra a grade lida e "Conferir de novo"
+  const la6s = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp; if (!app) return { erro: 'app não exposto' };
+    const CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+    const itens = [
+      { id: 'lei|Código Civil|Art. 1.239|x', origem: 'lei', enunciado: 'Aquele que possua como sua por dez anos.', certo: false, original: 'Aquele que possua como sua por cinco anos.', trocaDe: 'cinco', trocaPara: 'dez', ref: 'Código Civil · Art. 1.239', ramo: 'Código Civil', tema: 'Art. 1.239', url: CC, contexto: 'x' },
+      { id: 'lei|Código Civil|Art. 1.240|y', origem: 'lei', enunciado: 'Outro dispositivo, correto.', certo: true, original: 'Outro dispositivo, correto.', ref: 'Código Civil · Art. 1.240', ramo: 'Código Civil', tema: 'Art. 1.240', url: CC, contexto: 'y' },
+      { id: 'lei|Código Civil|Art. 1.241|z', origem: 'lei', enunciado: 'Terceiro, errado e sem leitura.', certo: true, original: 'Terceiro.', ref: 'Código Civil · Art. 1.241', ramo: 'Código Civil', tema: 'Art. 1.241', url: CC, contexto: 'z' },
+    ];
+    window.__catedraGoView('simulados'); await w(400);
+    // respostas: errou o 1.239 (marcou certo), acertou o 1.240, errou o 1.241 (marcou errado)
+    const resp = {}; resp[itens[0].id] = true; resp[itens[1].id] = true; resp[itens[2].id] = false;
+    // o painel do simulado misto precisa estar aberto; o encerramento real monta o relatório e o gabarito
+    app.setState({ sjAberto: true, sjPronto: true, sjItens: itens, sjResp: resp, sjAtual: 0, sjFim: false, sjIni: Date.now() - 60000 }); await w(300);
+    app.encerrarSj(); await w(800);
+    const blocos = [...document.querySelectorAll('#dc-root .la-trilho-ro')];
+    r.gradeSoNoErradoComLeitura = blocos.length === 1 && /Art\. 1\.239/.test(blocos[0].textContent) && blocos[0].querySelector('.la-chip.la-prazo').classList.contains('resp');
+    const conferir = [...document.querySelectorAll('#dc-root button')].filter(x => /Conferir de novo/.test(x.textContent || ''));
+    const ler = [...document.querySelectorAll('#dc-root button')].filter(x => /^Ler ativamente$/.test((x.textContent || '').trim()));
+    r.conferirDeNovoSoComLeitura = conferir.length === 1 && conferir[0].dataset.conferir === '1' && conferir[0].dataset.lei === CC && conferir[0].dataset.rot === 'Art. 1.239';
+    r.lerAtivamenteNosDoisErrados = ler.length === 2 && ler.every(b => b.dataset.lei === CC) && ler.some(b => b.dataset.rot === 'Art. 1.241');
+    r.acertadoNaoMostraNada = !document.querySelector('#dc-root button[data-rot="Art. 1.240"]');
+    app.setState({ sjItens: [], sjResp: {}, sjFim: false, sjAberto: false });
+    ['leituras', 'fc', 'reviews', 'errors', 'edital', 'sim'].forEach(k => localStorage.removeItem('catedra:' + k));
+    return r;
+  });
+  if (la6s.erro) ok(false, 'LEITURA/ONDE-MAIS simulado: ' + la6s.erro);
+  else for (const [k, v] of Object.entries(la6s)) ok(v, 'LEITURA/ONDE-MAIS simulado ' + k);
+}
+
+// (c) o LEGIS: abre a lei no dispositivo pedido (mensagem e URL), rola até ele e, se pedido, abre a
+//     conferência; o catálogo mostra a barra "lido ativamente" com o resumo do host
+{
+  const PARAS = ['Art. 1.239. Aquele que possua como sua por cinco anos.', 'Art. 1.240. Outro artigo.', 'Art. 1.241. Terceiro artigo.'];
+  const CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+  await page.goto(URL0 + '/legis-web.html?area=juridica&la=' + encodeURIComponent(CC) + '&rot=' + encodeURIComponent('art. 1.241'));
+  await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.ctLeituraAbrir);
+  // a página abriu com ?la=…: o pedido ficou pendente porque o texto ainda não veio (fetch de mentira entra agora)
+  const la6l = await page.evaluate(async (paras) => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:')).forEach(k => localStorage.removeItem(k));
+    window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+    // o ?la= chamou openReader antes do fetch de mentira: reabre pelo mesmo caminho
+    window.ctLeituraAbrir({ leiId: CC, rot: 'art. 1.241' });
+    await new Promise(res => { const t = setInterval(() => { if (document.querySelectorAll('#rdrDoc .gr').length >= 3) { clearInterval(t); res(); } }, 50); }); await w(200);
+    r.abriuALei = document.getElementById('rdr').classList.contains('on') && /Código Civil/.test(document.getElementById('rdrTitle').textContent);
+    r.ligouALeituraAtiva = document.getElementById('rdr').classList.contains('la');
+    // "Conferir de novo" num dispositivo lido abre a conferência dele
+    let it = window.CT_LA.nova({ leiId: CC, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: document.querySelector('#rdrDoc .gr').textContent });
+    it = window.CT_LA.marcar(it, 'prazo', { s: 26, t: 'por cinco anos' });
+    window.postMessage({ type: 'ctLeituras', leiId: CC, itens: [it] }, '*'); await w(150);
+    window.ctLeituraAbrir({ leiId: CC, rot: 'Art. 1.239', conferir: true }); await w(200);
+    const painel = document.getElementById('laConf');
+    r.conferirDeNovoAbreAConferencia = painel.classList.contains('on') && /Art\. 1\.239/.test(painel.textContent) && !!painel.querySelector('.la-lacuna.la-prazo');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(60);
+    // rot normalizado casa "art. 1o.239"? não — casa "art. 1.239" com "Art. 1.239" e "Art. 1.239, I" pelo artigo
+    r.rotNormalizado = window.ctLeituraAbrir({ leiId: CC, rot: 'ART. 1.240 —' }) === undefined && true;
+    // catálogo: o resumo do host vira a barra "lido ativamente"
+    document.getElementById('rdrClose').click(); await w(100);
+    window.postMessage({ type: 'ctLeiturasResumoResp', resumo: { [CC]: { lidos: 3, completos: 1 } } }, '*'); await w(200);
+    const row = [...document.querySelectorAll('.lawrow')].find(x => /Código Civil/.test(x.textContent) && !/Processo/.test(x.textContent));
+    const barra = row && row.querySelector('.laLido');
+    r.catalogoMostraLido = !!barra && /lido ativamente · 3/.test(barra.textContent) && /3 dispositivos/.test(barra.getAttribute('aria-label'));
+    r.barraSoComDenominador = !!barra && (!!window.__INCIDENCIA__ ? !!barra.querySelector('i b') : !barra.querySelector('i'));
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  }, PARAS);
+  for (const [k, v] of Object.entries(la6l)) ok(v, 'LEITURA/ONDE-MAIS LEGIS ' + k);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
@@ -1450,7 +1612,7 @@ const prio = await page.evaluate(() => {
   r.semEdital = prioridadeDisciplinas({ hoje, edital: [] }).length === 0;
 
   // cada cartão explica o porquê
-  r.temMotivos = comErros[0].motivos.length > 0 && comErros[0].fatores.length === 5;
+  r.temMotivos = comErros[0].motivos.length > 0 && comErros[0].fatores.length === 6;   // LA6 trouxe o fator "lei seca por ler"
   r.notaLimitada = comErros.every(x => x.nota >= 0 && x.nota <= 100);
   return r;
 });

@@ -3051,6 +3051,11 @@ window.ctPdfLib = (function(){
               <div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:var(--accent);margin-top:6px;">{{ oralArtRot }}</div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ oralArtNome }}</div>
               <div style="font-size:var(--fs-md);color:var(--ink);line-height:1.65;margin-top:12px;white-space:pre-wrap;">{{ oralArtTexto }}</div>
+              <!-- LA6: a grade lida no LEGIS, só leitura, e o caminho de volta ao leitor -->
+              <sc-for list="{{ oralLaTrilhos }}" as="t" hint-placeholder-count="0">
+                <div class="la-trilho-ro" role="group" aria-label="Leitura ativa de {{ t.rot }}: {{ t.respondidas }} de 7 respondidas"><span class="la-ro-rot">{{ t.rot }}</span><sc-for list="{{ t.chips }}" as="c" hint-placeholder-count="7"><span class="la-chip {{ c.cls }}" aria-label="{{ c.aria }}"><span class="la-rot">{{ c.rotulo }}</span><sc-if value="{{ c.nao }}" hint-placeholder-val="{{ false }}"><small class="la-nao"> — não há</small></sc-if></span></sc-for></div>
+              </sc-for>
+              <div style="margin-top:12px;"><button type="button" class="ct-btn-2" data-lei="{{ oralLaLei }}" data-rot="{{ oralLaRot }}" onclick="{{ laAbrirNoLegis }}">Ler ativamente no LEGIS</button></div>
             </div>
             <div class="ct-card">
               <div style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;">Examinador</div>
@@ -3375,6 +3380,14 @@ window.ctPdfLib = (function(){
                         <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:8px;">O item trocou <b style="color:var(--ok);">“{{ q.trocaDe }}”</b> por <b style="color:var(--danger);">“{{ q.trocaPara }}”</b>.</div>
                       </sc-if>
                       <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.55;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);"><b>Texto oficial:</b> {{ q.oficial }}</div>
+                      <!-- LA6: errou lei seca → a grade que ela leu (se leu) e o caminho para o leitor -->
+                      <sc-if value="{{ q.laMostra }}" hint-placeholder-val="{{ false }}">
+                        <sc-for list="{{ q.laTrilhos }}" as="t" hint-placeholder-count="0">
+                          <div class="la-trilho-ro" role="group" aria-label="Leitura ativa de {{ t.rot }}: {{ t.respondidas }} de 7 respondidas"><span class="la-ro-rot">{{ t.rot }}</span><sc-for list="{{ t.chips }}" as="c" hint-placeholder-count="7"><span class="la-chip {{ c.cls }}" aria-label="{{ c.aria }}"><span class="la-rot">{{ c.rotulo }}</span><sc-if value="{{ c.nao }}" hint-placeholder-val="{{ false }}"><small class="la-nao"> — não há</small></sc-if></span></sc-for></div>
+                        </sc-for>
+                        <sc-if value="{{ q.laTem }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-btn-2" style="margin-top:10px;margin-right:8px;" data-lei="{{ q.laLei }}" data-rot="{{ q.laRot }}" data-conferir="1" onclick="{{ laAbrirNoLegis }}">Conferir de novo</button></sc-if>
+                        <button type="button" class="ct-btn-2" style="margin-top:10px;" data-lei="{{ q.laLei }}" data-rot="{{ q.laRot }}" onclick="{{ laAbrirNoLegis }}">Ler ativamente</button>
+                      </sc-if>
                       <!-- C2: treinar mais deste assunto lá fora. Só no gabarito: durante a
                            prova, um link para o banco de questões seria colar. -->
                       <button data-d="{{ q.disc }}" data-b="{{ q.banca }}" data-y="{{ q.ano }}" data-t="{{ q.termo }}" onclick="{{ praticarQuestao }}" title="{{ praticarTitulo }}" class="ct-btn-2" style="margin-top:10px;border-style:dashed;">{{ praticarLabel }} ↗</button>
@@ -6352,6 +6365,26 @@ class Component extends DCLogic {
         this.setState(st=>{ const antes=st.leituras||[], depois=LA.upsert(antes, it); return depois===antes?null:{leituras:depois}; });
         return;
       }
+      // LA6: saiu do modo guiado com ≥ 1 dispositivo lido → oferece registrar a sessão
+      // (abre preenchida; quem salva é ela). O interruptor "Parei o cronômetro → oferece
+      // registrar" de Ajustes dita se a oferta acontece.
+      if(e.data.type==='ctRegistrarLeitura'){
+        const pf=this.state.prefs||{}; if(pf.autoRegistro===false) return;
+        const n=+e.data.lidos||0; if(n<1) return;
+        const sigla=String(e.data.sigla||''), lei=String(e.data.lei||''), faixa=String(e.data.faixa||'');
+        try{ window.catedraOpenStudyRegistration({ auto:true, origem:'CátedraLEGIS · leitura ativa', categoria:'Lei seca',
+          disc:this._laDisciplina({sigla, leiId:String(e.data.leiId||'')}), topico:((sigla||lei)+(faixa?' · '+faixa:'')).slice(0,120),
+          min:Math.max(1, Math.round(+e.data.min||1)), nota:n+' dispositivo'+(n>1?'s':'')+' lido'+(n>1?'s':'')+' ativamente' }); }catch(_){}
+        return;
+      }
+      // LA6: o catálogo do LEGIS mostra quanto de cada lei já foi lido — só contagens, nunca itens
+      if(e.data.type==='ctLeiturasResumo'){
+        const LA=window.CT_LA, src=e.source, por={};
+        (this.state.leituras||[]).forEach(x=>{ if(!x||!x.leiId) return; const r=(por[x.leiId]=por[x.leiId]||{lidos:0, completos:0}); r.lidos++;
+          if(LA&&LA.completude(x).respondidas===LA.IDS.length) r.completos++; });
+        try{ src && src.postMessage({type:'ctLeiturasResumoResp', resumo:por}, '*'); }catch(_){}
+        return;
+      }
       if(e.data.type==='ctLeituraConferida'){
         // uma rodada de conferência (vários elementos de um dispositivo) chega numa mensagem
         // só, para virar UM lote com UM desfazer; a forma antiga {id, el, q} continua aceita
@@ -6429,6 +6462,8 @@ class Component extends DCLogic {
     }; }catch(_){}
     // o escape global (notificação, app nativo, console) passa pelo MESMO guarda de área
     try{ window.__catedraGoView = (v)=>{ try{ this._irPara(v); }catch(_){} }; }catch(_){}
+    // gancho dos testes de tela (LA6): estado forçado no oral e no simulado sem clicar por dez telas
+    try{ window.__catedraApp = this; }catch(_){}
     this._migrarSchema();
     this._limparLeiturasDuplicadas();   // remove as leituras que duplicam o checklist do plano
     // A hidratação do auth.js troca os dados locais DEPOIS do mount — sem reexecutar
@@ -7009,8 +7044,10 @@ class Component extends DCLogic {
     const _a=this.state.areaEstudo||'';
     const _area=_a?('area='+encodeURIComponent(_a)):'';
     if(dono==='legis'||dono==='juris'){
+      const la=(dono==='legis'&&this._laAbrir)?this._laAbrir:null; if(la) this._laAbrir=null;
       const q=[(this.state.acervoBusca||'').trim()?('q='+encodeURIComponent(this.state.acervoBusca.trim())):'',
                this.state.acervoDe?'volta=1':'',
+               la?('la='+encodeURIComponent(la.leiId)+'&rot='+encodeURIComponent(la.rot)+(la.conferir?'&conferir=1':'')):'',
                (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
       return q?(sep+q):'';
     }
@@ -7025,6 +7062,8 @@ class Component extends DCLogic {
       if(dono==='legis'||dono==='juris'){
         w.postMessage({type:'ctBusca', termo:String(this.state.acervoBusca||'')}, '*');
         w.postMessage({type:'ctVoltaDisponivel', on:!!this.state.acervoDe}, '*');
+        // LA6: "Ler ativamente" / "Conferir de novo" vindos do oral e do simulado
+        if(dono==='legis' && this._laAbrir){ const a=this._laAbrir; this._laAbrir=null; w.postMessage({type:'ctLeituraAbrir', leiId:a.leiId, rot:a.rot, conferir:!!a.conferir}, '*'); }
         return;
       }
       const p=new URLSearchParams(this.state.origemAbrir||'');
@@ -9730,6 +9769,9 @@ class Component extends DCLogic {
       oralLeiOpts:_chipz([{v:'',label:'Todas as leis',sel:!st.oralLeiSig}].concat(((w.CT_LEIS)||[]).map(l=>({v:l.sigla,label:l.sigla+' — '+l.nome.slice(0,34)+' ('+l.artigos.length+')',sel:st.oralLeiSig===l.sigla})))),
       oralTemArt:!!st.oralArt,
       oralArtRot:st.oralArt?(st.oralArt.rot+' · '+st.oralArt.sigla):'',
+      // LA6: a leitura feita no LEGIS reaparece sob o dispositivo sorteado
+      oralLaTrilhos:(()=>{ try{ return st.oralArt?this._laLeiturasDe(st.oralArt.url, st.oralArt.rot).map(x=>this._laTrilhoRo(x)).filter(Boolean):[]; }catch(_){ return []; } })(),
+      oralLaLei:st.oralArt?String(st.oralArt.url||''):'', oralLaRot:st.oralArt?String(st.oralArt.rot||''):'',
       oralArtNome:st.oralArt?st.oralArt.nome:'',
       oralArtTexto:st.oralArt?String(st.oralArt.txt).slice(0,2200):'',
       oralLeisTotal:((w.CT_LEIS)||[]).reduce((a,l)=>a+l.artigos.length,0),
@@ -9859,7 +9901,10 @@ class Component extends DCLogic {
         disc:String(x.assunto||x.tema||x.disciplina||x.ramo||''),
         banca:String(x.banca||''), ano:String(x.ano||''),
         termo:String(x.enunciado||'').split(/\s+/).slice(0,10).join(' '),
-        oficial:x.original||''}; }),
+        oficial:x.original||'',
+        // LA6: item de lei seca ERRADO puxa a leitura da lei — a grade quando houver, e o botão certo
+        ...((x.origem==='lei' && r[x.id]!==x.certo && x.url)?(()=>{ const ls=this._laLeiturasDe(x.url, x.tema).map(t=>this._laTrilhoRo(t)).filter(Boolean);
+          return { laMostra:true, laLei:String(x.url), laRot:String(x.tema||''), laTrilhos:ls, laTem:ls.length>0 }; })():{ laMostra:false, laTrilhos:[], laTem:false })}; }),
     };
   }
   // Da correção para a AÇÃO: o resultado dizia a nota e o que faltou, mas não o que fazer
@@ -10012,6 +10057,52 @@ class Component extends DCLogic {
     if(revs.length) partes.push(revs.length+' revisão'+(revs.length>1?'es':''));
     this._toastDesfazer(partes.join(' · ')+' ✦', ()=>this.desfazerLoteErros());
     return {erros:erros.length, cards:cards.length, revs:revs.length};
+  }
+  /* ===== LEITURA ATIVA (LA6) — a grade reaparece onde o dispositivo volta =====
+     O leitor grava "Art. 5º, XI"; CT_LEIS tem "Art. 5º" por artigo e proposicoesDoArtigo
+     produz "Art. 5º, XI": antes de comparar, normaliza (º/o, espaços, travessões). A lei
+     casa por URL (CT_LEIS.url = CT_LEIS_CAT.u = leiId). Só o host tem CT_LEIS — o LEGIS
+     nunca carrega leis-seca.js por causa disto. */
+  _laNormRot(r){ return String(r||'').toLowerCase().replace(/(\d)\s*[º°ªo](?![\wà-ú])/g,'$1').replace(/[–—-]+/g,'-').replace(/\s+/g,' ').replace(/[.,;:\s-]+$/,'').replace(/\s*,\s*/g,', ').trim(); }
+  /** Leituras de um dispositivo (rot exato) ou, se `rot` é só o artigo, de todos os seus dispositivos. */
+  _laLeiturasDe(url, rot){
+    const u=String(url||''), n=this._laNormRot(rot); if(!u||!n) return [];
+    return (this.state.leituras||[]).filter(x=>x&&x.leiId===u).filter(x=>{ const r=this._laNormRot(x.rot); return r===n||r.indexOf(n+',')===0; })
+      .sort((a,b)=>this._laNormRot(a.rot).localeCompare(this._laNormRot(b.rot)));
+  }
+  /** O trilho só-leitura de um item: 7 chips com rótulo escrito, estado e classe da identidade. */
+  _laTrilhoRo(it){ const LA=window.CT_LA; if(!LA||!it) return null;
+    return { id:it.id, rot:String(it.rot||''), chips:LA.ELEMENTOS.map(e=>{ const resp=!!(it.el&&it.el[e.id]&&it.el[e.id].length), nao=!!(it.nao&&it.nao.indexOf(e.id)>=0);
+      return { el:e.id, rotulo:e.rotulo, nao, cls:'la-'+e.id+(resp?' resp':'')+(nao?' nao':''), aria:e.rotulo+' — '+(nao?'não há':(resp?'respondida':'sem resposta')) }; }),
+      respondidas:LA.completude(it).respondidas }; }
+  /** A mesma sigla que o LEGIS deriva do título ("Código de Processo Civil" → CPC). */
+  _laSiglaDe(t){ t=String(t||'').trim(); if(!t) return '';
+    const ps=t.split(/\s+/).filter(p=>!/^(de|da|do|das|dos|e|a|o|as|os|nº|n\.º)$/i.test(p));
+    return ps.length<2?t.slice(0,24):ps.map(p=>p.charAt(0).toUpperCase()).join('').slice(0,8); }
+  /** Abre o LEGIS já no dispositivo: com o iframe vivo vai por mensagem; recriado, vai na URL. */
+  laAbrirNoLegis = (e)=>{ const d=e.currentTarget.dataset||{};
+    this._laAbrir={leiId:String(d.lei||''), rot:String(d.rot||''), conferir:d.conferir==='1', ts:Date.now()};
+    if(this._irPara('legis', {acervoBusca:'', origemAbrir:''})==='indisponivel'){ this._laAbrir=null; return; }
+    try{ const f=document.querySelector('iframe[data-ct-view="legis"]'); if(f&&f.dataset.ctLoad==='1') this._frameMensagem(f,'legis'); }catch(_){}
+    this._marcarPonto('legis', {termo:''});
+  };
+  /** Fator da prioridade: por disciplina, a fração dos artigos de incidência ALTA que ainda não
+      têm leitura ativa. Sem incidência carregada, vazio — o fator fica em zero, sem inventar. */
+  _laPendentePorDisc(){
+    try{
+      const I=window.__INCIDENCIA__; if(!I) return {};
+      const DISC=[[/constitui/i,'direito constitucional'],[/processo civil/i,'direito processual civil'],[/processo penal/i,'direito processual penal'],
+        [/código civil/i,'direito civil'],[/código penal/i,'direito penal'],[/tribut/i,'direito tributário'],[/trabalho/i,'direito do trabalho'],
+        [/consumidor/i,'direito do consumidor'],[/criança|adolescente/i,'direito da criança e do adolescente'],[/execução penal/i,'direito processual penal']];
+      const lidas={}; (this.state.leituras||[]).forEach(x=>{ if(!x||!x.sigla) return; const m=/^art\.?\s*([\d.]+)/i.exec(String(x.rot||'')); if(!m) return; (lidas[String(x.sigla).toUpperCase()]=lidas[String(x.sigla).toUpperCase()]||{})[m[1].replace(/\./g,'')]=1; });
+      const acc={};
+      Object.keys(I).forEach(k=>{ const d=I[k]; const nome=String(d&&d.nome||''); const par=DISC.find(p=>p[0].test(nome)); if(!par) return;
+        const sig=this._laSiglaDe(nome).toUpperCase(); const corte=(d.corte||[16,4])[0];
+        const altas=(d.lista||[]).filter(x=>+x[1]>=corte).map(x=>String(x[0]).replace(/\./g,'')); if(!altas.length) return;
+        const lidos=altas.filter(a=>lidas[sig]&&lidas[sig][a]).length;
+        const a=(acc[par[1]]=acc[par[1]]||{alta:0, lidos:0}); a.alta+=altas.length; a.lidos+=lidos; });
+      const out={}; Object.keys(acc).forEach(d=>{ out[d]=acc[d].alta?(1-acc[d].lidos/acc[d].alta):0; }); return out;
+    }catch(_){ return {}; }
   }
   /* ===== LEITURA ATIVA (LA4) — "erro como filtro" =====
      A conferência de um dispositivo lido chega do LEGIS (ctLeituraConferida) e vira:
@@ -10463,7 +10554,7 @@ class Component extends DCLogic {
       const calc=window.CT_PRIORIDADE_CALC; if(!calc) return [];
       return calc.prioridadeDisciplinas({
         edital:this.state.edital, errors:this.state.errors, reviews:this.state.reviews,
-        sessions:this.state.sessions, incidencia:this._prioridadeIncidencia(), hoje:this._hoje()
+        sessions:this.state.sessions, incidencia:this._prioridadeIncidencia(), leituraPendente:this._laPendentePorDisc(), hoje:this._hoje()
       });
     }catch(_){ return []; }
   }
@@ -15435,6 +15526,7 @@ class Component extends DCLogic {
       homeTimerLabel, homeTimerBtn:(this.state.timerRunning?'❚❚ Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'▶ Retomar':'▶ Iniciar')), homePmLivre, homePm25, homePm50, homePm90, pmCustShow, pmCustF, pmCustB, pmCustLabel, homePmCust,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze, reviewRemove:this.reviewRemove,
       startRevSession:this.startRevSession, revReveal:this.revReveal, revAnswer:this.revAnswer, revSkip:this.revSkip, closeRevSession:this.closeRevSession,
+      laAbrirNoLegis:this.laAbrirNoLegis,
       revActive:revRun.active, revDone:revRun.done, revNotDone:revRun.active&&!revRun.done, revRevealed:revRun.revealed, revNotRevealed:revRun.active&&!revRun.done&&!revRun.revealed,
       revPos:revRun.pos, revTotal:revRun.total, revPct:revRun.pct, revCardDisc:revRun.discShort, revCardTopic:revRun.topic, revCardColor:revRun.color,
       revCardInterval:revRun.intervalo, revCardEf:revRun.ef, revCardReps:revRun.reps, revOpts:revRun.opts,
