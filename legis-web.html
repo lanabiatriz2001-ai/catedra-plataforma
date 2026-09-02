@@ -235,7 +235,7 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
   .rdr .mnode{min-height:44px;display:flex;flex-direction:column;justify-content:center}
   .rdr .doc{padding:18px 14px 120px}
 }
-</style><script src="./tema-satelite.js"></script></head>
+</style><script src="./tema-satelite.js"></script><script src="./leitura-ativa.js"></script></head>
 <body><div class="wrap">
 <div class="head"><div class="ic">📖</div><div><h1>CátedraLEGIS</h1><p>Vade mecum de leis · catálogo, plano de leitura e estrutura das normas</p></div></div>
 <div class="tabs ct-chips" id="tabsTopo"><button class="on" data-t="catalog"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg> Catálogo</button><button data-t="plano"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plano de leitura</button><button data-t="indice"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> Índice das normas</button><button data-t="incid"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Incidência</button></div>
@@ -426,6 +426,36 @@ window.ctAplicarBusca = function (q) {
 window.addEventListener('message', function (e) {
   if (e && e.data && e.data.type === 'ctBusca') window.ctAplicarBusca(e.data.termo);
 });
+/* LEITURA ATIVA (LA1) — o canal com o host. O host guarda catedra:leituras e é a fonte da
+   verdade; aqui fica só um ESPELHO por lei ('catedra:leituras:'+leiId) para desenhar a
+   grade antes de a resposta chegar — em file:// (app nativo) este iframe pode ser
+   cross-origin e não enxerga o localStorage do host. Toda resposta ctLeituras sobrescreve
+   o espelho. A grade em si (LA2) usa ler/enviar; este bloco não desenha nada. */
+window.CT_LA_CANAL=(function(){
+  var chave=function(leiId){ return 'catedra:leituras:'+String(leiId||''); };
+  var ler=function(leiId){ try{ return JSON.parse(localStorage.getItem(chave(leiId)))||[]; }catch(e){ return []; } };
+  var gravar=function(leiId, itens){ try{ localStorage.setItem(chave(leiId), JSON.stringify(Array.isArray(itens)?itens:[])); }catch(e){} };
+  var aoHost=function(msg){ try{ if(window.parent && window.parent!==window) window.parent.postMessage(msg, '*'); }catch(e){} };
+  var pedir=function(leiId){ if(leiId) aoHost({type:'ctLeiturasPedir', leiId:String(leiId)}); };
+  var enviar=function(item){
+    if(!item || !item.leiId || !item.id) return;
+    var LA=window.CT_LA;
+    gravar(item.leiId, LA ? LA.upsert(ler(item.leiId), item) : [item]);
+    aoHost({type:'ctLeituraAtiva', item:item});
+  };
+  var conferir=function(id, el, q, extra){
+    var msg={type:'ctLeituraConferida', id:String(id||''), el:String(el||''), q:+q};
+    if(extra && extra.cloze) msg.cloze=extra.cloze;
+    if(extra && extra.ref) msg.ref=extra.ref;
+    aoHost(msg);
+  };
+  window.addEventListener('message', function(e){
+    if(!e || !e.data || e.data.type!=='ctLeituras') return;
+    gravar(e.data.leiId, e.data.itens);
+    try{ window.dispatchEvent(new CustomEvent('catedra:leituras', {detail:{leiId:String(e.data.leiId||'')}})); }catch(_){}
+  });
+  return { ler:ler, pedir:pedir, enviar:enviar, conferir:conferir };
+})();
 // ?volta=1: ela veio do mapa do processo — a pílula devolve ao ponto exato (o host
 // guarda rito/peça/bloco e responde ao ctVoltarAcervo). Só o host web manda este
 // parâmetro; no app nativo as abas são nativas e esta página nem abre.
@@ -701,6 +731,9 @@ function _colher(alvos, jaVistos){
 
   window.openReader=function(law){
     curLaw={ id:law._id||law.id||law.u, t:law.t, u:law.u };
+    // leitura ativa: pede ao host as leituras desta lei (leiId = URL do Planalto, a chave
+    // que CT_LEIS_CAT.u e CT_LEIS.url compartilham); a resposta cai no espelho local
+    try{ window.CT_LA_CANAL && window.CT_LA_CANAL.pedir(law.u); }catch(e){}
     var meta=(CAT.catMap&&CAT.catMap[law.c])||['Legislação','#0f7a57'];
     var rc=meta[1]||'#0f7a57';
     _rdr.style.setProperty('--rc', rc); _rdr.style.setProperty('--rc2', toRc2(rc));

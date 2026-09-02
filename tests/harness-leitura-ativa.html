@@ -1,0 +1,10 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harness leitura ativa</title></head>
+<body style="margin:0;font:14px system-ui">
+<!-- Sobe o leitura-ativa.js DE VERDADE (não uma cópia): o módulo é puro, sem DOM, então o
+     harness não precisa reproduzir nada do host — só expor window.CT_LA para a suíte.
+     O canal host ↔ LEGIS (ctLeiturasPedir/ctLeituras/ctLeituraAtiva/ctLeituraConferida)
+     é testado contra o Catedra.dc.html real, em tests/run.mjs. -->
+<script src="/leitura-ativa.js"></script>
+<script>window.__pronto = !!(window.CT_LA && window.CT_LA.nova);</script>
+</body></html>
