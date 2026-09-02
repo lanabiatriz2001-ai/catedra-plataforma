@@ -17,11 +17,16 @@ const AVISO = 'Carregando o texto das leis…';
  * @param page   página do Playwright (o chamador é dono do contexto)
  * @param base   'http://localhost:PORTA' ou 'file:///caminho/da/raiz' — sem barra final
  * @param ok     coletor de asserções da suíte: ok(cond, rótulo)
- * @param opcoes { motor: 'chromium'|'webkit', origem: 'http'|'file' } — só para o rótulo
+ * @param opcoes { motor: 'chromium'|'webkit', origem: 'http'|'file'|'bundle', arquivo } —
+ *               motor/origem só para o rótulo; `arquivo` é o nome do HTML do host dentro de
+ *               `base` (padrão Catedra.dc.html; o bundle do app nativo o chama index.html)
  */
 export async function testarOralLeiSeca(page, base, ok, opcoes = {}) {
   const motor = opcoes.motor || 'chromium';
   const origem = opcoes.origem || (String(base).startsWith('file:') ? 'file' : 'http');
+  const arquivo = opcoes.arquivo || 'Catedra.dc.html';
+  // 'bundle' é file:// também — o mesmo WKWebView, o mesmo fetch local barrado
+  const emArquivo = origem === 'file' || origem === 'bundle';
   const R = 'ORAL LEI SECA [' + motor + '] [' + origem + '] ';
   const errosPagina = [];
   // Erros de JS no iPad não têm console: o app grava o último em catedra:_lastErr. Aqui há
@@ -31,14 +36,14 @@ export async function testarOralLeiSeca(page, base, ok, opcoes = {}) {
     // Em file:// o WebKit relata como erro cada fetch de arquivo local que barra (o manifesto
     // das fatias, a releitura do próprio HTML pelo dc-runtime). É justamente o que o app
     // contorna caindo para <script> — fica no log como contexto, não como falha nem na conta.
-    const esperado = origem === 'file' && /access control checks|Cross origin requests|Access-Control/i.test(m);
+    const esperado = emArquivo && /access control checks|Cross origin requests|Access-Control/i.test(m);
     if (!esperado) errosPagina.push(m);
     console.log(R + (esperado ? 'aviso (fetch local barrado em file://, esperado): ' : 'ERRO NA PÁGINA: ') + m);
   };
   page.on('pageerror', aoErro);
 
   try {
-    const host = base + '/Catedra.dc.html';
+    const host = base + '/' + arquivo;
     // host logado, no padrão da suíte: gravar as chaves, recarregar, esperar o boot.
     await page.goto(host);
     await page.evaluate(() => {
