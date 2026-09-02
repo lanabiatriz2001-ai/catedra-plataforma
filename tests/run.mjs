@@ -638,6 +638,7 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     r.conferenciaGravada = !!it && (it.conf || []).length === 1 && it.conf[0].el === 'quem' && it.conf[0].q === 3;
 
     localStorage.removeItem('catedra:leituras');
+    localStorage.removeItem('catedra:reviews');   // a conferência q=3 acima criou a revisão dela (LA4)
     return r;
   });
   for (const [k, v] of Object.entries(canal)) ok(v, 'LEITURA/CANAL ' + k);
@@ -838,6 +839,188 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     return r;
   });
   for (const [k, v] of Object.entries(la2b)) ok(v, 'LEITURA/LEITOR ' + k);
+}
+
+/* ============= LEITURA ATIVA — LA4: conferência imediata, "erro como filtro" ============= */
+// (a) o módulo: q decide o que se cria; front/back do cartão saem do próprio dispositivo
+await page.goto(URL0 + '/tests/harness-leitura-ativa.html');
+await page.waitForFunction(() => window.__pronto === true);
+const la4m = await page.evaluate(() => {
+  const LA = window.CT_LA, r = {};
+  const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra.';
+  let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: TXT });
+  it = LA.marcar(it, 'quem', { s: 0, t: 'Aquele que, não sendo proprietário de imóvel rural ou urbano' });
+  it = LA.marcar(it, 'prazo', { s: TXT.indexOf('por cinco anos ininterruptos'), t: 'por cinco anos ininterruptos' });
+  r.acertouNaoCria = Object.keys(LA.conferir(it, 'quem', 5).criar).length === 0;
+  const h = LA.conferir(it, 'quem', 3).criar, e = LA.conferir(it, 'quem', 1).criar;
+  r.hesitouCartaoERevisao = h.fc === true && h.review === true && !h.erro;
+  r.errouTambemErro = e.fc === true && e.review === true && e.erro === true;
+  const c = LA.cartaoConferencia(it, 'prazo', TXT);
+  r.cartaoFront = !!c && c.front.startsWith('CC · Art. 1.239 — Há prazo?\n') && c.front.includes(LA.LACUNA) && !c.front.includes('por cinco anos') && c.front.includes('Aquele que');
+  r.cartaoBack = !!c && c.back === 'por cinco anos ininterruptos' && c.ref === 'CC · Art. 1.239';
+  r.cartaoSemMarcaNaoExiste = LA.cartaoConferencia(it, 'como', TXT) === null;
+  r.lacunaPorIndexOfQuandoOffsetMudou = LA.lacunas('X ' + TXT, it.el.prazo).includes(LA.LACUNA);
+  return r;
+});
+for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
+
+// (b) o host: 2 Acertei + 1 Hesitei + 1 Errei = 2 cartões, 2 revisões, 1 erro; desfazer limpa os 5;
+//     repetir não duplica (id determinístico + hash); teto de 20 por mensagem com aviso
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+    localStorage.setItem('catedra:edital', JSON.stringify([{ disc: 'Direito Civil', peso: 1 }, { disc: 'Direito Processual Civil', peso: 1 }]));
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  const la4h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
+    const LA = window.CT_LA, r = {};
+    const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural, tornando-a produtiva por seu trabalho, tendo nela sua moradia.';
+    let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: TXT });
+    const marca = (el, t) => { it = LA.marcar(it, el, { s: TXT.indexOf(t), t }); };
+    marca('quem', 'Aquele que, não sendo proprietário de imóvel rural ou urbano'); marca('oque', 'possua como sua');
+    marca('prazo', 'por cinco anos ininterruptos'); marca('como', 'tornando-a produtiva por seu trabalho');
+    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await w(900);
+    const cartao = el => LA.cartaoConferencia(it, el, TXT);
+    const rodada = (qs) => ({ type: 'ctLeituraConferida', id: it.id, ref: 'CC · Art. 1.239',
+      itens: [['quem', qs[0]], ['oque', qs[1]], ['prazo', qs[2]], ['como', qs[3]]].map(([el, q]) => ({ el, q, front: cartao(el).front, back: cartao(el).back })) });
+
+    // 1. a rodada do aceite
+    window.postMessage(rodada([5, 5, 3, 1]), '*'); await w(1000);
+    let fc = ler('fc'), rv = ler('reviews'), er = ler('errors');
+    r.doisCartoes = fc.length === 2 && fc.every(c => c.id && c.up && c.hash && /Leitura ativa/.test(c.origem) && c.la && c.la.id === it.id);
+    r.cartaoDoPrazo = fc.some(c => c.la.el === 'prazo' && c.front.includes('Há prazo?') && c.back === 'por cinco anos ininterruptos');
+    r.duasRevisoesIdDeterministico = rv.length === 2 && rv.some(x => x.id === 'rv|la|' + it.id + '|prazo') && rv.some(x => x.id === 'rv|la|' + it.id + '|como');
+    r.revisaoDoErreiIntervalo1 = !!rv.find(x => x.id.endsWith('|como')) && rv.find(x => x.id.endsWith('|como')).intervalo === 1 && rv.find(x => x.id.endsWith('|como')).due === 1;
+    r.revisaoTemTopicoEDisciplina = rv.every(x => x.topic === 'CC Art. 1.239 — ' + LA.rotulo(x.la.el) && x.disc === 'Direito Civil' && x.up && x.dueDate);
+    r.umErro = er.length === 1 && er[0].id === 'e|la|' + it.id + '|como' && er[0].fonte === 'leitura-ativa' && er[0].ref === 'CC · Art. 1.239' && er[0].el === 'como' && er[0].disc === 'Direito Civil' && !!er[0].up;
+    r.conferenciasNoItem = (ler('leituras')[0].conf || []).length === 4;
+    const toast = document.querySelector('div[role=status]');
+    r.toastDizOQueCriou = !!toast && /2 cartões e 2 revisões e 1 erro de art\. 1\.239/.test(toast.textContent || '');
+    const undo = toast && [...toast.querySelectorAll('button')].find(b => /desfazer/i.test(b.textContent || ''));
+    r.toastTemDesfazer = !!undo;
+
+    // 2. desfazer limpa os 5 (e a conferência registrada no item)
+    if (undo) undo.click(); await w(1000);
+    r.desfazerLimpaOsCinco = ler('fc').length === 0 && ler('reviews').length === 0 && ler('errors').length === 0;
+    r.desfazerDevolveOItem = (ler('leituras')[0].conf || []).length === 0;
+
+    // 3. repetir a conferência do mesmo dispositivo não duplica: sm2 na revisão, hash no cartão, id no erro
+    window.postMessage(rodada([5, 5, 3, 1]), '*'); await w(1000);
+    window.postMessage(rodada([5, 5, 3, 3]), '*'); await w(1000);
+    fc = ler('fc'); rv = ler('reviews'); er = ler('errors');
+    r.repetirNaoDuplica = fc.length === 2 && rv.length === 2 && er.length === 1;
+    r.repetirAplicaSm2 = rv.find(x => x.id.endsWith('|prazo')).repeticoes === 2 && rv.find(x => x.id.endsWith('|como')).repeticoes === 1;
+
+    // 4. acertar tudo não cria nada (as contagens não se movem) e o toast diz isso, sem "desfazer"
+    const antes4 = [ler('fc').length, ler('reviews').length, ler('errors').length].join('/');
+    window.postMessage(rodada([5, 5, 5, 5]), '*'); await w(1000);
+    // o toast simples e o toast com ação são dois elementos: procura pelo texto, não pelo primeiro
+    const t2 = [...document.querySelectorAll('div[role=status]')].find(d => /acertou, nada a revisar/.test(d.textContent || ''));
+    r.acertarTudoNaoCria = [ler('fc').length, ler('reviews').length, ler('errors').length].join('/') === antes4
+      && !!t2 && ![...t2.querySelectorAll('button')].some(b => /desfazer/i.test(b.textContent || ''));
+
+    // 5. teto de 20 por mensagem, com aviso do restante
+    const muitos = { type: 'ctLeituraConferida', id: it.id, ref: 'CC · Art. 1.239',
+      itens: Array.from({ length: 25 }, (_, i) => ({ el: ['quem', 'oque', 'prazo', 'como'][i % 4], q: 3, front: 'F' + i, back: 'B' + i })) };
+    const antes = (ler('leituras')[0].conf || []).length;
+    window.postMessage(muitos, '*'); await w(1000);
+    r.tetoVinte = (ler('leituras')[0].conf || []).length - antes === 20;
+    const t3 = [...document.querySelectorAll('div[role=status]')].find(d => /ficaram para a próxima conferência/.test(d.textContent || ''));
+    r.avisaORestante = !!t3 && /5 ficaram para a próxima conferência/.test(t3.textContent || '');
+
+    // 6. lixo não entra: id inexistente, q inválido, el inválido
+    ['fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+    window.postMessage({ type: 'ctLeituraConferida', id: 'la|nao|1', itens: [{ el: 'quem', q: 1, front: 'x', back: 'y' }] }, '*');
+    window.postMessage({ type: 'ctLeituraConferida', id: it.id, itens: [{ el: 'quem', q: 4, front: 'x', back: 'y' }, { el: 'porque', q: 1, front: 'x', back: 'y' }] }, '*');
+    await w(900);
+    r.lixoNaoCria = ler('fc').length === 0 && ler('reviews').length === 0 && ler('errors').length === 0;
+    ['leituras', 'fc', 'reviews', 'errors', 'edital'].forEach(k => localStorage.removeItem('catedra:' + k));
+    return r;
+  });
+  for (const [k, v] of Object.entries(la4h)) ok(v, 'LEITURA/CONFERIR ' + k);
+}
+
+// (c) o leitor: o painel esconde UMA marca por vez com o rótulo escrito, "Mostrar" antes de
+//     avaliar, e a rodada inteira sai numa mensagem só
+{
+  const PARAS = ['Art. 1.239. Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural, tornando-a produtiva por seu trabalho, tendo nela sua moradia, adquirir-lhe-á a propriedade.'];
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
+  await page.evaluate((paras) => {
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.setItem('catedra:leitorLA', '1');
+    window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+    window.openReader(CAT.laws.find(l => /l10406/.test(l.u)));
+  }, PARAS);
+  await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .gr').length >= 1);
+  const la4l = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    const gr = document.querySelector('#rdrDoc .gr');
+    const selecionar = (frase) => {
+      const nos = []; const it = document.createNodeIterator(gr, NodeFilter.SHOW_TEXT); let n; while ((n = it.nextNode())) nos.push(n);
+      const no = nos.find(t => t.nodeValue.includes(frase)); if (!no) return false;
+      const range = document.createRange(); const i = no.nodeValue.indexOf(frase); range.setStart(no, i); range.setEnd(no, i + frase.length);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(range);
+      document.getElementById('rdrScroll').dispatchEvent(new MouseEvent('mouseup', { bubbles: true })); return true;
+    };
+    const tecla = k => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+    const trilho = () => document.querySelector('#rdrDoc .la-trilho');
+    r.semMarcaSemConferir = !trilho().querySelector('.la-conferir');
+    selecionar('Aquele que, não sendo proprietário de imóvel rural ou urbano'); tecla('1'); await w(60);
+    selecionar('possua como sua'); tecla('2'); await w(60);
+    selecionar('por cinco anos ininterruptos'); tecla('5'); await w(60);
+    selecionar('tornando-a produtiva por seu trabalho'); tecla('4'); await w(60);
+    r.quatroMarcas = gr.querySelectorAll('mark.la').length === 4;
+    const btn = trilho().querySelector('.la-conferir');
+    r.botaoConferirAparece = !!btn && /Conferir/.test(btn.textContent);
+    // captura o que sairia para o host
+    let enviado = null; window.CT_LA_CANAL.conferir = p => { enviado = p; };
+    btn.click(); await w(80);
+    const painel = document.getElementById('laConf');
+    r.painelAbre = painel.classList.contains('on') && /Conferir a leitura — CC · Art\. 1\.239/.test(painel.textContent);
+    const lacuna = painel.querySelector('.la-foco .la-lacuna');
+    r.umaLacunaComRotulo = painel.querySelectorAll('.la-foco .la-lacuna').length === 1 && !!lacuna && lacuna.classList.contains('la-quem')
+      && /Quem\?/.test(lacuna.textContent) && lacuna.textContent.includes('▁') && !painel.querySelector('.la-foco .la-texto').textContent.includes('Aquele que');
+    r.outrasMarcasFicamLisas = painel.querySelector('.la-foco .la-texto').textContent.includes('por cinco anos ininterruptos');
+    r.mostrarAntesDeAvaliar = !!painel.querySelector('button[data-acao=mostrar]') && !painel.querySelector('button[data-q]');
+    r.filaMostraARodada = painel.querySelectorAll('.la-fila .la-chip').length === 4 && painel.querySelector('.la-fila .la-chip.atual').dataset.el === 'quem';
+    r.apoioDizARegra = /Só o que você errou ou hesitou vira cartão e revisão/.test(painel.querySelector('.la-apoio').textContent);
+    r.semEmojiNoPainel = !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(painel.textContent);
+    // teclado: Enter mostra
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(60);
+    r.enterRevela = !!painel.querySelector('.la-foco .la-lacuna.revelada') && painel.querySelector('.la-foco .la-texto').textContent.includes('Aquele que')
+      && painel.querySelectorAll('button[data-q]').length === 3 && !painel.querySelector('button[data-acao=mostrar]');
+    const responder = q => painel.querySelector('button[data-q="' + q + '"]').click();
+    responder(5); await w(60);
+    r.avancaParaOSegundo = painel.querySelector('.la-fila .la-chip.atual').dataset.el === 'oque' && painel.querySelector('.la-fila .la-chip.feita').dataset.el === 'quem' && !painel.querySelector('button[data-q]');
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40); responder(5); await w(60);
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40); responder(3); await w(60);
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40);
+    // teclado: 1 = Errei
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: '1', bubbles: true })); await w(80);
+    r.fechaNoFim = !painel.classList.contains('on');
+    r.rodadaSaiInteira = !!enviado && enviado.id === window.CT_LA_CANAL.ler(CAT.laws.find(l => /l10406/.test(l.u)).u)[0].id && enviado.ref === 'CC · Art. 1.239'
+      // a rodada segue a ORDEM FIXA da grade (Como? vem antes de Há prazo?), não a ordem em que ela marcou
+      && enviado.itens.map(x => x.el + ':' + x.q).join(',') === 'quem:5,oque:5,como:3,prazo:1';
+    r.cartaoProntoNoPayload = !!enviado && enviado.itens[3].front.startsWith('CC · Art. 1.239 — Há prazo?') && enviado.itens[3].front.includes('▁') && enviado.itens[3].back === 'por cinco anos ininterruptos';
+    r.leitorNaoGravaNasChavesDoApp = !localStorage.getItem('catedra:fc') && !localStorage.getItem('catedra:reviews') && !localStorage.getItem('catedra:errors');
+    // fechar sem enviar
+    enviado = null; trilho().querySelector('.la-conferir').click(); await w(60);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(60);
+    r.escapeFechaSemEnviar = !painel.classList.contains('on') && enviado === null;
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  });
+  for (const [k, v] of Object.entries(la4l)) ok(v, 'LEITURA/CONFERIR ' + k);
 }
 
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
