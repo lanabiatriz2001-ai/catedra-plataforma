@@ -26,6 +26,22 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <script src="./support.js"></script>
 </head>
 <body>
+<!-- CONTRATO DE DIREÇÃO · composição por aba (seed 605bfe26, escopo surface, modo operate)
+ THESIS: O espelho mostra o critério; a bancada faz o trabalho. Cada aba recebe a forma da
+   pergunta que ela responde. Recusa o painel de KPIs em tiles, onde toda interface de estudo aterrissa.
+ OWN-WORLD: mundo visual inalterado — 8 direções, tokens do host, Spectral/Inter/JetBrains.
+   A gramática é composição, nunca cor, fonte ou raio novos. Reconhecível sem conteúdo pelo
+   par exigência-em-serifa à esquerda + peso-em-mono à direita, e pelas três zonas fixas da bancada.
+ STORY: quem foi conferir a situação lê um espelho de banca e sabe o que falta atender; quem
+   veio executar encontra a tarefa no centro, o material à mão e a fila fora do caminho.
+ FIRST VIEWPORT: telas de critério abrem no que a tela exige, com quesitos empilhados, peso
+   alinhado à direita e o estado tingindo a linha; telas de execução abrem na tarefa de agora
+   em escala grande, apoio à direita, fila embaixo. A régua até a prova é componente do
+   espelho onde o prazo É o critério (Edital, Reta final), nunca moldura global.
+ FORM: espelho de correção (índice 1 da lista derivada) fundido com bancada (índice 5);
+   linha do tempo (índice 7, a carta assinada) rebaixada a componente. Seed 605bfe26.
+ FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+-->
 <x-dc>
 <helmet>
 <!-- A tipografia vem de ./fonts pelo catedra-ui.css: o app precisa abrir igual sem internet. -->
@@ -1219,13 +1235,14 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:14px;">
 
-        <!-- U3: CONTINUAR DE ONDE PAREI — antes do hero, porque é a primeira decisão do dia -->
+        <!-- BANCADA · FOCO. "Continuar de onde parei" e "Próxima ação" eram duas primeiras
+             decisões; agora são uma: a sessão interrompida (se houver) é a primeira linha do
+             foco, e a próxima ação vem logo abaixo. Sem eyebrow — o título carrega o peso. -->
         <sc-if value="{{ contTem }}" hint-placeholder-val="{{ false }}">
-          <div style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 6px 20px -12px var(--accent);">
+          <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius) var(--radius) 0 0;border-bottom:none;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 12%, transparent),transparent 44%);">
             <span style="font-size:20px;flex:none;">↩️</span>
             <div style="flex:1;min-width:180px;">
-              <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">Continuar de onde parei</div>
-              <div style="font-weight:600;color:var(--ink);margin-top:3px;">{{ contP.rotulo }}</div>
+              <div style="font-weight:600;color:var(--ink);">Continuar de onde parei · {{ contP.rotulo }}</div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ contP.quando }}</div>
             </div>
             <button onclick="{{ voltarAoPonto }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ contP.acao }}</button>
@@ -1239,8 +1256,7 @@ window.ctPdfLib = (function(){
              isto é um convite, não uma cobrança. -->
         <div data-proxima-acao="{{ paTipo }}" style="{{ paEstilo }}">
           <div style="flex:1;min-width:220px;">
-            <div style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--accent);">Sua próxima ação</div>
-            <div style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);margin-top:5px;line-height:1.25;">{{ paTitulo }}</div>
+            <div style="font-family:var(--display);font-size:clamp(21px,2.6vw,27px);font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.15;">{{ paTitulo }}</div>
             <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:4px;line-height:1.5;">{{ paMotivo }}</div>
           </div>
           <sc-if value="{{ paTemMeta }}" hint-placeholder-val="{{ false }}">
@@ -1290,16 +1306,6 @@ window.ctPdfLib = (function(){
         <!-- KPIs sobrepostos ao hero -->
         <div class="cth-kpis">
           <div class="cth-gcard cth-kpi">
-            <div class="cth-lbl">Tempo total</div>
-            <div class="cth-val">{{ sessTotalVal }}<span class="u">{{ sessTotalUnit }}</span></div>
-            <div class="cth-ksub">média <b>{{ paSemMedia }}</b> por dia na semana</div>
-          </div>
-          <div class="cth-gcard cth-kpi">
-            <div class="cth-lbl">Desempenho líquido</div>
-            <div class="cth-val">{{ homeLiqPct }}</div>
-            <div class="cth-ksub">bruto <b>{{ sessAccOverall }}</b> · <b>{{ sessionsCount }}</b> {{ sessionsWord }}</div>
-          </div>
-          <div class="cth-gcard cth-kpi">
             <div class="cth-lbl">Edital coberto</div>
             <div class="cth-val">{{ paEdPct }}<span class="u">%</span></div>
             <div class="cth-ksub"><b>{{ paEd }}</b> tópicos</div>
@@ -1312,19 +1318,19 @@ window.ctPdfLib = (function(){
             <div class="cth-kbar"><i style="width:{{ homeMetaHojePct }}%;"></i></div>
           </div>
         </div>
-        <!-- ESSENCIAIS DA ÁREA: a porta de entrada do que importa para a área escolhida -->
-        <sc-if value="{{ temEssenciais }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:2px;">
-            <span style="font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:var(--text3);margin-right:2px;">{{ areaAtualEmoji }} essencial da área</span>
-            <sc-for list="{{ areaEssenciais }}" as="x" hint-placeholder-count="5">
+        <!-- Os chips "essencial da área" saíram daqui (01/09): eram navegação duplicada da
+             lateral, e duplicar navegação no corpo é o que deixa a tela poluída. -->
+        <sc-if value="{{ false }}" hint-placeholder-val="{{ false }}">
+          <div style="display:none;">
+            <sc-for list="{{ areaEssenciais }}" as="x" hint-placeholder-count="0">
               <button data-view="{{ x.v }}" onclick="{{ onNav }}" title="{{ x.d }}" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:11px 18px;font-size:var(--fs-sm);font-weight:700;color:var(--ink);cursor:pointer;font-family:inherit;">{{ x.i }} {{ x.t }}</button>
             </sc-for>
           </div>
         </sc-if>
 
 
-        <!-- ESTUDO SEMANAL -->
-        <div class="cth-sec"><span class="eyebrow">Ritmo</span><h2>Estudo semanal</h2><span class="rule"></span><span class="meta">total <b>{{ heroSemTotal }}</b> na semana · {{ escudoProxLabel }}</span></div>
+        <!-- ESTUDO SEMANAL · sem cabeçalho de seção: as barras da semana são apoio, não bloco -->
+        <div class="cth-sec"><h2 style="font-size:var(--fs-md);">Estudo semanal</h2><span class="rule"></span><span class="meta">total <b>{{ heroSemTotal }}</b> na semana · {{ escudoProxLabel }}</span></div>
         <div class="cth-card">
           <div class="cth-bars">
             <sc-for list="{{ heroSemBars }}" as="d" hint-placeholder-count="7">
@@ -1334,7 +1340,7 @@ window.ctPdfLib = (function(){
         </div>
 
         <!-- O DIA EM CAMPO -->
-        <div class="cth-sec"><span class="eyebrow">Hoje</span><h2>O dia em campo</h2><span class="rule"></span></div>
+        <div class="cth-sec"><h2>O dia em campo</h2><span class="rule"></span></div>
         <div class="cth-cols">
           <div class="cth-stack">
             <div class="cth-card">
@@ -1463,7 +1469,7 @@ window.ctPdfLib = (function(){
 
         <!-- REVISÕES -->
         <!-- ONDE ESTOU FRACA (item 1): a decisão nº 1 do dia, com o porquê -->
-        <div class="cth-sec"><span class="eyebrow">Diagnóstico</span><h2>Onde estou fraca</h2><span class="rule"></span><span class="meta">erros, revisões vencidas, tempo parada e peso do edital</span></div>
+        <div class="cth-sec"><h2>Onde estou fraca</h2><span class="rule"></span><span class="meta">erros, revisões vencidas, tempo parada e peso do edital</span></div>
         <sc-if value="{{ prioTem }}" hint-placeholder-val="{{ true }}">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:26px;">
             <sc-for list="{{ prioLista }}" as="p" hint-placeholder-count="3">
@@ -1496,7 +1502,7 @@ window.ctPdfLib = (function(){
         </sc-if>
         <!-- O QUE MUDOU ESTA SEMANA (item 7) -->
         <sc-if value="{{ semanaTem }}" hint-placeholder-val="{{ true }}">
-          <div id="ct-semana" class="cth-sec"><span class="eyebrow">Jurisprudência</span><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE · <button class="ct-alvo" onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button></span></div>
+          <div id="ct-semana" class="cth-sec"><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE · <button class="ct-alvo" onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button></span></div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:26px;">
             <sc-for list="{{ semanaLista }}" as="s" hint-placeholder-count="4">
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
@@ -1521,7 +1527,7 @@ window.ctPdfLib = (function(){
             </sc-if>
           </div>
         </sc-if>
-        <div class="cth-sec"><span class="eyebrow">Memória</span><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button class="ct-alvo" data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
+        <div class="cth-sec"><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button class="ct-alvo" data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
         <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
           <div class="cth-revs">
             <sc-for list="{{ homeProxRev }}" as="r" hint-placeholder-count="5">
@@ -1541,7 +1547,7 @@ window.ctPdfLib = (function(){
           <button data-view="{{ focoView }}" onclick="{{ onNav }}" class="cth-bfsug">{{ focoBtnLabel }}</button>
         </div>
 
-        <div class="cth-sec" style="margin-top:34px;"><span class="eyebrow">Panorama</span><h2>Números e dashboards</h2><span class="rule"></span></div>
+        <div class="cth-sec" style="margin-top:34px;"><h2>Números e dashboards</h2><span class="rule"></span></div>
         <!-- L6 · Desempenho por disciplina -->
         <sc-if value="{{ paDesempShow }}" hint-placeholder-val="{{ false }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;">
@@ -1834,6 +1840,27 @@ window.ctPdfLib = (function(){
         </sc-if>
 
         <!-- modos automáticos (sugestão/presets): lista única do dia -->
+        <!-- BANCADA · o foco é o bloco de agora; o apoio é o material que ele exige;
+             a lista de blocos logo abaixo é a fila. As três zonas não trocam de lugar. -->
+        <sc-if value="{{ cicloBcTem }}" hint-placeholder-val="{{ true }}">
+          <div class="ct-bc" style="margin-bottom:6px;">
+            <div class="ct-bc-foco" style="border-color:color-mix(in oklab, {{ cicloBcCor }} 34%, var(--border));background-image:linear-gradient(90deg,color-mix(in oklab, {{ cicloBcCor }} 15%, transparent),transparent 46%);">
+              <div>
+                <h3>{{ cicloBcDisc }}</h3>
+                <p>{{ cicloBcDesc }}</p>
+              </div>
+              <button onclick="{{ paIr }}" class="ct-bc-acao ct-btn">Estudar agora · {{ cicloBcMin }}</button>
+            </div>
+            <div class="ct-bc-apoio">
+              <div class="ct-bc-apoio-t">material deste bloco</div>
+              <sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-bc-it"><b>Tabela de leitura · dia {{ homeLeitura.num }}</b><span>{{ homeLeitura.resumo }}</span></div>
+              </sc-if>
+              <div class="ct-bc-it"><b>{{ cicloBcRestam }}</b><span>fila de hoje</span></div>
+              <div class="ct-bc-it"><b>{{ cicloPct }}% do ciclo</b><span>{{ cicloDone }} de {{ cicloTotal }} concluídos</span></div>
+            </div>
+          </div>
+        </sc-if>
         <sc-if value="{{ cicloListaFlat }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;gap:10px;">
           <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="5">
@@ -2252,13 +2279,27 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+        <!-- ESPELHO · o edital é a exigência; o peso é quanto ela vale; a barra é se você atendeu -->
+        <div>
+          <div class="ct-esp-cab">O que o edital exige</div>
+          <div class="ct-esp-ex">{{ edResumoLinha }}</div>
+          <div class="ct-regua" aria-hidden="true">
+            <span class="ct-regua-cap" style="left:14px">cobertura hoje</span>
+            <span class="ct-regua-n" style="left:14px">{{ edPct }}%</span>
+            <span class="ct-regua-hoje" style="left:10px"></span>
+            <span class="ct-regua-marca" style="left:30%"></span>
+            <span class="ct-regua-marca" style="left:55%"></span>
+            <span class="ct-regua-marca" style="left:80%"></span>
+            <span class="ct-regua-cap" style="right:14px">precisa estar em 100%</span>
+            <span class="ct-regua-n" style="right:14px">{{ edProvaLabel }}</span>
+          </div>
+        </div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <sc-for list="{{ edital }}" as="d" hint-placeholder-count="6">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+            <div style="--st:{{ d.color }};background:var(--surface);border:1px solid color-mix(in oklab, {{ d.color }} 32%, var(--border));border-radius:var(--radius);overflow:hidden;background-image:linear-gradient(90deg,color-mix(in oklab, {{ d.color }} 16%, transparent),transparent 44%);">
               <button data-i="{{ d.i }}" onclick="{{ toggleEdital }}" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;padding:16px 18px;font-family:inherit;">
-                <span style="width:4px;height:34px;border-radius:99px;background:{{ d.color }};flex:none;"></span>
                 <div style="flex:1;min-width:0;">
-                  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;"><span style="font-weight:600;font-size:var(--fs-md);color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">{{ d.disc }}<sc-if value="{{ d.hasMeta }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:600;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ d.metaChip }}</span></sc-if><sc-if value="{{ d.hasDom }}" hint-placeholder-val="{{ false }}"><span title="Domínio médio calculado do seu desempenho real (não do checklist)" style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:600;color:{{ d.domMedioColor }};background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ d.domMedioStr }}</span></sc-if></span><span style="font-family:var(--mono);font-size:var(--fs-sm);color:var(--text2);flex:none;">{{ d.done }}/{{ d.tot }} · {{ d.pct }}%</span></div>
+                  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;"><span style="font-family:var(--display);font-weight:600;font-size:var(--fs-lg);letter-spacing:-.01em;color:var(--ink);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">{{ d.disc }}<sc-if value="{{ d.hasMeta }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:600;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ d.metaChip }}</span></sc-if><sc-if value="{{ d.hasDom }}" hint-placeholder-val="{{ false }}"><span title="Domínio médio calculado do seu desempenho real (não do checklist)" style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:600;color:{{ d.domMedioColor }};background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ d.domMedioStr }}</span></sc-if></span><span style="font-family:var(--mono);font-size:var(--fs-2xl);font-weight:600;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;flex:none;text-align:right;">{{ d.pct }}<span style="font-size:var(--fs-md);color:var(--text3);">%</span><small style="display:block;margin-top:4px;font-size:var(--fs-3xs);font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);">{{ d.done }}/{{ d.tot }} atendidos</small></span></div>
                   <div style="height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:9px;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ d.pct }}% - 100%));background:{{ d.color }};border-radius:99px;transition:transform .4s;will-change:transform;"></i></div>
                   <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:7px;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:99px;background:{{ d.color }};flex:none;"></span>{{ d.actStr }}</div>
                 </div>
@@ -2376,10 +2417,18 @@ window.ctPdfLib = (function(){
       <!-- ================= REVISÕES ================= -->
       <sc-if value="{{ isRev }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:18px;">
-        <!-- chamada: revisar agora -->
-        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:20px 22px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
+        <!-- BANCADA · foco (revisar agora) + apoio (o tamanho da fila). A fila em si são
+             os grupos Atrasadas/Hoje/Próximas logo abaixo — as três zonas de sempre. -->
+        <div class="ct-bc">
+        <div class="ct-bc-foco" style="background:var(--heroGrad);color:#fff;border-color:transparent;min-height:0;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;flex-direction:row;">
           <div style="display:flex;align-items:center;gap:14px;"><span style="font-size:26px;">🔁</span><div><div style="font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.01em;">Revisar agora</div><div style="font-size:var(--fs-sm);opacity:.9;margin-top:2px;">sessão guiada item a item — você avalia e a Cátedra reagenda por repetição espaçada (SM-2)</div></div></div>
           <button onclick="{{ startRevSession }}" disabled="{{ revStartDisabled }}" style="{{ revStartStyle }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>{{ revStartLabel }}</button>
+        </div>
+        <div class="ct-bc-apoio" style="min-height:0;">
+          <div class="ct-bc-apoio-t">a fila de hoje</div>
+          <div class="ct-bc-it"><b>{{ revAtrasadas }} atrasada(s)</b><span>a revisão adiada é a que mais desaprende</span></div>
+          <div class="ct-bc-it"><b>{{ revHoje }} para hoje</b><span>no intervalo previsto pelo SM-2</span></div>
+        </div>
         </div>
         <!-- AGENDA ÚNICA: revisões espaçadas dos apps nativos (lei seca + jurisprudência),
              injetadas pelo host do desktop — um só lugar para ver tudo que venceu. -->
@@ -2814,12 +2863,13 @@ window.ctPdfLib = (function(){
 
           <sc-if value="{{ redHasTopicos }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
-              <div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:600;color:var(--ink);margin-bottom:6px;">Quesito a quesito</div>
+              <div class="ct-esp-cab">Quesito a quesito</div>
+              <div class="ct-esp-ex">{{ redTopResumo }}</div>
               <sc-for list="{{ redTopicos }}" as="t" hint-placeholder-count="4">
-                <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+                <div class="ct-q" style="--st:{{ t.cor }};grid-template-columns:auto 1fr;align-items:start;">
                   <span style="{{ t.chipStyle }}">{{ t.ic }}</span>
-                  <div style="flex:1;min-width:0;">
-                    <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.6;">{{ t.ponto }}</div>
+                  <div style="min-width:0;">
+                    <div class="ct-q-exig">{{ t.ponto }}</div>
                     <sc-if value="{{ t.hasComent }}" hint-placeholder-val="{{ true }}">
                       <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.6;margin-top:5px;">{{ t.comentario }}</div>
                     </sc-if>
@@ -2880,8 +2930,11 @@ window.ctPdfLib = (function(){
 
 <sc-if value="{{ isOral }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
-        <div style="background:var(--heroGrad);border-radius:var(--radius);padding:22px;color:#fff;">
-          <div style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);">Prova oral</div>
+        <!-- BANCADA · o hero é o FOCO (o que você vai treinar); a grade "o que você veio
+             fazer aqui", logo abaixo, é a FILA. Sem apoio inventado: a Oral não tem um
+             material fixo por sessão — ele nasce da escolha do acervo. -->
+        <div class="ct-bc-foco" style="background:var(--heroGrad);color:#fff;border-color:transparent;min-height:0;padding:22px;display:block;">
+          <h3 style="font-family:var(--display);font-weight:700;font-size:clamp(21px,2.6vw,27px);letter-spacing:-.02em;line-height:1.1;margin:0;color:#fff;">Prova oral</h3>
           <div style="font-size:var(--fs-sm);opacity:.9;margin-top:4px;max-width:640px;line-height:1.55;">{{ oralIntroTxt }}</div>
           <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
             <sc-if value="{{ capJuris }}" hint-placeholder-val="{{ true }}"><button data-m="juris" onclick="{{ setOralModo }}" style="{{ oralAbaJuris }}">Jurisprudência</button></sc-if>
@@ -3434,14 +3487,15 @@ window.ctPdfLib = (function(){
 
         <!-- histórico + evolução -->
         <div class="ct-card">
-          <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:14px;">Simulados registrados</div>
+          <div class="ct-esp-cab">O que os simulados já mediram</div>
+          <div class="ct-esp-ex">{{ simResumoLinha }}</div>
           <sc-if value="{{ simSemHist }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.6;padding:8px 0 4px;">Nenhum ainda. Preencha o formulário ao lado e toque em <b>Registrar simulado no histórico</b> — cada simulado registrado entra aqui e no seu desempenho.</div>
           </sc-if>
           <sc-for list="{{ simHist }}" as="h" hint-placeholder-count="5">
-            <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);">
-              <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:var(--fs-base);color:var(--ink);">{{ h.name }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">{{ h.date }}</div></div>
-              <span style="font-family:var(--mono);font-weight:600;font-size:var(--fs-md);color:{{ h.scoreColor }};">{{ h.score }}%</span>
+            <div class="ct-q" style="--st:{{ h.scoreColor }};">
+              <div style="min-width:0;"><div class="ct-q-exig"><b>{{ h.name }}</b></div><div style="font-size:var(--fs-xs);color:var(--text3);">{{ h.date }}</div></div>
+              <span class="ct-q-peso">{{ h.score }}<small>% de acerto</small></span>
             </div>
           </sc-for>
         </div>
@@ -3493,16 +3547,20 @@ window.ctPdfLib = (function(){
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
             <!-- Líquido por disciplina -->
             <div class="ct-card">
-              <div class="ct-titulo">Aproveitamento por disciplina</div>
-              <div style="font-size:var(--fs-xs);color:var(--text3);margin-bottom:18px;margin-top:2px;">barra cheia = bruto · marca = líquido (C−E)</div>
+              <div class="ct-esp-cab">Onde você rende e onde não rende</div>
+              <div class="ct-esp-ex">barra cheia = bruto · marca = líquido (C−E)</div>
               <sc-for list="{{ discBars }}" as="d" hint-placeholder-count="6">
-                <div style="margin-bottom:15px;">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:var(--fs-sm);color:var(--ink);font-weight:500;display:flex;align-items:center;gap:7px;"><span style="width:8px;height:8px;border-radius:2px;background:{{ d.color }};"></span>{{ d.short }}</span><span style="font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);">{{ d.q }}q · {{ d.horas }}h</span></div>
+                <div class="ct-q" style="--st:{{ d.color }};grid-template-columns:1fr auto;">
+                 <div style="min-width:0;">
+                  <div class="ct-q-exig"><b>{{ d.short }}</b></div>
+                  <div class="ct-q-meta"><span style="font-family:var(--mono);">{{ d.q }}q · {{ d.horas }}h</span></div>
                   <div style="position:relative;height:11px;border-radius:99px;background:var(--surface2);overflow:hidden;">
                     <i style="position:absolute;left:0;top:0;height:100%;width:{{ d.brutoW }}%;background:{{ d.color }};opacity:.28;border-radius:99px;"></i>
                     <i style="position:absolute;left:0;top:0;height:100%;width:{{ d.liqW }}%;background:{{ d.liqColor }};border-radius:99px;"></i>
                   </div>
-                  <div style="display:flex;justify-content:space-between;margin-top:4px;"><span style="font-size:var(--fs-2xs);color:var(--text3);font-family:var(--mono);">bruto {{ d.brutoPct }}%</span><span style="font-size:var(--fs-2xs);color:{{ d.liqColor }};font-family:var(--mono);font-weight:700;">líq {{ d.liqPct }}% ({{ d.liqStr }})</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:4px;"><span style="font-size:var(--fs-2xs);color:var(--text3);font-family:var(--mono);">bruto {{ d.brutoPct }}%</span><span style="font-size:var(--fs-2xs);color:var(--text3);font-family:var(--mono);">{{ d.liqStr }}</span></div>
+                 </div>
+                 <span class="ct-q-peso">{{ d.liqPct }}<small>% líquido</small></span>
                 </div>
               </sc-for>
             </div>
@@ -3708,8 +3766,10 @@ window.ctPdfLib = (function(){
           <div class="ct-card"><div style="font-size:var(--fs-xs);color:var(--text3);">Sequência atual</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;">🔥 {{ sidebarStreak }}</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;">{{ escudoProxLabel }}</div></div>
         </div>
 
-        <!-- Em progresso -->
+        <!-- Em progresso · ESPELHO: o que ainda não foi atingido -->
         <div>
+          <div class="ct-esp-cab">O que ainda falta atingir</div>
+          <div class="ct-esp-ex">{{ conqResumoLinha }}</div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px;"><span style="width:9px;height:9px;border-radius:99px;background:var(--accent);"></span><h3 style="margin:0;font-size:var(--fs-base);letter-spacing:.06em;text-transform:uppercase;color:var(--text2);font-weight:700;">Em progresso</h3></div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;">
             <sc-for list="{{ achProgress }}" as="a" hint-placeholder-count="4">
@@ -3760,6 +3820,9 @@ window.ctPdfLib = (function(){
 
       <!-- ================= CALENDÁRIO ================= -->
       <sc-if value="{{ isCalendario }}" hint-placeholder-val="{{ false }}">
+       <!-- EXCEÇÃO DECLARADA à gramática: o calendário JÁ É um eixo de tempo. Pôr a régua
+            do espelho aqui seria dizer a mesma coisa duas vezes, e a grade do mês é a forma
+            certa para a tarefa (achar um dia). Nem espelho, nem bancada. -->
        <div style="display:flex;flex-direction:column;gap:16px;">
         <!-- barra: navegação de mês + estatísticas -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
@@ -4518,6 +4581,8 @@ window.ctPdfLib = (function(){
       <!-- (área do concurso → banca → matéria → assunto) que abre o painel da banca escolhida. -->
       <!-- A COR DA BANCA pinta a tela inteira e troca junto com a escolha.                     -->
       <sc-if value="{{ isBancas }}" hint-placeholder-val="{{ false }}">
+        <!-- EXCEÇÃO DECLARADA: Bancas é navegação por acervo (escolher uma banca e folhear),
+             não critério nem execução. Forçar quesito ou bancada aqui seria enfeite. -->
         <div style="display:flex;flex-direction:column;gap:18px;">
 
           <!-- ── HERO = a banca escolhida (bloco colorido único da tela) ───────── -->
@@ -5202,6 +5267,11 @@ window.ctPdfLib = (function(){
           </div>
           <sc-if value="{{ histEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:36px 12px;color:var(--text3);font-size:var(--fs-base);">Nenhuma sessão por aqui ainda. Registre uma sessão para começar o histórico.</div></sc-if>
           <sc-if value="{{ histNotEmpty }}" hint-placeholder-val="{{ true }}">
+            <!-- EXCEÇÃO DECLARADA: aqui o espelho entra só no cabeçalho. As linhas seguem
+                 TABELA porque a tarefa é varrer muitas sessões comparando colunas, e cartão
+                 de quesito destrói exatamente isso. Gramática serve a tarefa, não o contrário. -->
+            <div class="ct-esp-cab">O que você já registrou</div>
+            <div class="ct-esp-ex">{{ histResumoLinha }}</div>
             <div style="display:flex;flex-direction:column;">
               <div style="overflow-x:auto;"><div style="min-width:560px;">
               <div class="ct-sm-hide" style="display:grid;grid-template-columns:64px 1.3fr 1.6fr 116px 60px 60px 60px 64px;gap:10px;padding:0 0 10px;border-bottom:1px solid var(--border);font-size:var(--fs-2xs);letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:600;"><span>Data</span><span>Disciplina</span><span>Tópico</span><span>Categoria</span><span>Tempo</span><span>Acerto</span><span>Líquido</span><span></span></div>
@@ -5260,8 +5330,7 @@ window.ctPdfLib = (function(){
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(22px,3vw,32px);color:#fff;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;">
           <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:99px;background:rgba(255,255,255,.08);"></div>
           <div style="position:relative;min-width:240px;flex:1;">
-            <div style="font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;opacity:.82;font-weight:700;">Reta final</div>
-            <h2 style="margin:8px 0 0;font-family:var(--display);font-size:clamp(24px,3.2vw,34px);font-weight:700;line-height:1.08;">Três comandos para pontuar mais.</h2>
+            <h2 style="margin:0;font-family:var(--display);font-size:clamp(24px,3.2vw,34px);font-weight:700;line-height:1.08;">Três comandos para pontuar mais.</h2>
             <p style="margin:10px 0 0;font-size:var(--fs-md);opacity:.92;max-width:460px;line-height:1.5;">Quando a prova se aproxima, reduza o ruído e concentre o esforço em lei seca, jurisprudência/súmulas e nas questões que você errou.</p>
           </div>
           <div style="position:relative;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:16px 22px;text-align:center;min-width:140px;">
@@ -5278,6 +5347,19 @@ window.ctPdfLib = (function(){
               <button data-k="{{ c.k }}" onclick="{{ retaCriarBloco }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:9px 14px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Criar bloco no ciclo</button>
             </div>
           </sc-for>
+        </div>
+        <!-- ESPELHO + RÉGUA · a única outra tela, além do Edital, onde o prazo É o critério -->
+        <div>
+          <div class="ct-esp-cab">O que ainda pesa contra o relógio</div>
+          <div class="ct-esp-ex">{{ retaDias }} dias até a prova</div>
+          <div class="ct-regua" aria-hidden="true">
+            <span class="ct-regua-cap" style="left:14px">hoje</span>
+            <span class="ct-regua-hoje" style="left:10px"></span>
+            <span class="ct-regua-marca" style="left:33%"></span>
+            <span class="ct-regua-marca" style="left:66%"></span>
+            <span class="ct-regua-cap" style="right:14px">prova</span>
+            <span class="ct-regua-n" style="right:14px">{{ retaDias }} dias</span>
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
           <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--warn) 38%, var(--border));border-radius:var(--radius);padding:16px;background-image:linear-gradient(180deg,color-mix(in oklab, var(--warn) 19%, transparent),transparent 46%);"><div class="ct-titulo-display">{{ retaRevVenc }}</div><div class="ct-nota ct-nota-solta">revisões vencidas</div></div>
@@ -12691,6 +12773,7 @@ class Component extends DCLogic {
       strike: b.done?'line-through':'none'}));
     // o filtro vale para a LISTA; os KPIs do dia seguem contando o dia inteiro
     const blocksTodos = blocks;
+    const cicloRestamCalc=(bs)=>{ const n=bs.filter(b=>!b.done).length; return n+' bloco'+(n===1?'':'s')+' em aberto hoje'; };
     const blocksLista = _fqOn ? blocks.filter(b=>{ const ok=this._cicloFqPassa(b);
       if(this.state.cycleMode!=='manual'){ _fqTot++; if(ok) _fqVis++; } return ok; }) : blocks;
     const cicloTotal = blocksTodos.length;
@@ -12699,6 +12782,15 @@ class Component extends DCLogic {
     const ringCirc = 2*Math.PI*72;
     const ringOffset = ringCirc*(1-cicloPct/100);
     const blocksHome = blocks.filter(b=>!b.done).slice(0,3);
+    // BANCADA do Ciclo: o primeiro bloco aberto é o FOCO; o resto continua sendo a fila.
+    // Sem bloco aberto a bancada não aparece — tela vazia é estado, não bancada vazia.
+    const _bcFoco = blocks.find(b=>!b.done) || null;
+    const cicloBcTem = !!_bcFoco;
+    const cicloBcDisc = _bcFoco ? String(_bcFoco.disc||'') : '';
+    const cicloBcDesc = _bcFoco ? (String(_bcFoco.kind||'')+(_bcFoco.tag?(' · '+_bcFoco.tag):'')) : '';
+    const cicloBcMin  = _bcFoco ? (String(_bcFoco.min||_bcFoco.minutos||50)+' min') : '';
+    const cicloBcCor  = _bcFoco ? (_bcFoco.color||'var(--accent)') : 'var(--accent)';
+    const cicloBcRestam = cicloRestamCalc(blocks);
     const cicloRestam = cicloTotal - cicloDone;
     // helpers de roteiro — declarados ANTES do primeiro uso (roteirosAtivos)
     const _num=(s)=>parseInt(((s||'').match(/\d+/)||[0])[0],10)||0;
@@ -13056,6 +13148,10 @@ class Component extends DCLogic {
     });
     const simChart = simHist.slice().reverse().map((h,i)=>({v:h.score||0, i, h: Math.round((h.score||0)/100*120), lbl:'S'+(i+1)}));
     const simTemHist = simHist.length>0;
+    // ESPELHO de Simulados: contexto do que já foi medido (média só existe se houver registro)
+    const simResumoLinha = simTemHist
+      ? (simHist.length+' simulado'+(simHist.length===1?'':'s')+' registrado'+(simHist.length===1?'':'s')+' · média '+Math.round(simHist.reduce((a,x)=>a+(x.score||0),0)/simHist.length)+'% de acerto')
+      : 'nenhum simulado registrado ainda';
 
     // ===== Análise =====
     const accRows = (B.discList.length?B.discList:edital.map(d=>({disc:d.disc,color:d.color,liqPct:0}))).map(d=>{
@@ -14343,7 +14439,7 @@ class Component extends DCLogic {
     const _redRes=this.state.redResult;
     const redHasTopicos=!!(_redRes && _redRes.topicos && _redRes.topicos.length);
     const _topMeta={coberto:{ic:'✓',c:'var(--ok)',bg:'rgba(15,157,107,.13)',label:'Coberto'},parcial:{ic:'~',c:'var(--warn)',bg:'rgba(194,121,12,.13)',label:'Parcial'},faltou:{ic:'✗',c:'var(--danger)',bg:'rgba(192,57,47,.11)',label:'Faltou'}};
-    const redTopicos=(redHasTopicos?_redRes.topicos:[]).map(t=>{ const m=_topMeta[t.status]||_topMeta.faltou; return {ponto:t.ponto, comentario:t.comentario, hasComent:!!t.comentario, statusLabel:m.label,
+    const redTopicos=(redHasTopicos?_redRes.topicos:[]).map(t=>{ const m=_topMeta[t.status]||_topMeta.faltou; return {ponto:t.ponto, comentario:t.comentario, hasComent:!!t.comentario, statusLabel:m.label, cor:m.c,
       badgeStyle:`display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:var(--r-sm);background:${m.bg};color:${m.c};font-weight:800;font-size:var(--fs-base);flex:none;line-height:1;`,
       chipStyle:`font-size:var(--fs-2xs);font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:${m.c};background:${m.bg};padding:2px 8px;border-radius:99px;flex:none;`, ic:m.ic}; });
     const redCobertura=(_redRes && _redRes.cobertura!=null)?_redRes.cobertura:0;
@@ -15548,6 +15644,7 @@ class Component extends DCLogic {
       dashDaily, dashDailyTotal, dashLast7, dashWeek, dashMonth, dashYearTotal, donutSegs, donutCenter, donutC:C,
       // ciclo
       blocks:blocksLista, cicloTotal, cicloDone, cicloPct, ringCirc, ringOffset, blocksHome,
+      cicloBcTem, cicloBcDisc, cicloBcDesc, cicloBcMin, cicloBcCor, cicloBcRestam,
       setCycleMode:this.setCycleMode,
       isManual:this.state.cycleMode==='manual',
       manualFixed:this.state.manualFixed,
@@ -15587,7 +15684,8 @@ class Component extends DCLogic {
       dashToggle:this.dashToggle, diasProva:((this.state.prefs.mostrarContagem!==false && this.state.provaData)?String(_diasProvaN):'—'), showContagem:this.state.prefs.mostrarContagem!==false, retencao:String(B.brutoPct), metaSemana, metaPct, metaWeekBars, planoMsg:_planoSemana.msg, planoCor:_planoSemana.cor, planoShow:_planoSemana.show, focoSugestao, objetivoShort, objetivoShortUp:String(objetivoShort||'').toUpperCase(), bancaLabel, bancaInfo, bancaPenLabel, bancaPenStyle,
       // histórico
       isHistorico:this.state.view==='historico', navHistorico:navStyle('historico'),
-      histList, histEmpty:histList.length===0, histNotEmpty:histList.length>0, histCount:String(histList.length), histFilterVal:_histFilter, histDiscs,
+      histList, histEmpty:histList.length===0, histNotEmpty:histList.length>0, histCount:String(histList.length),
+      histResumoLinha: histList.length+' sessão'+(histList.length===1?'':'ões')+' registrada'+(histList.length===1?'':'s')+(_histFilter?(' · filtrado por '+_histFilter):' · todas as disciplinas'), histFilterVal:_histFilter, histDiscs,
       histTotal:String(this.state.sessions.length), histHoras:(Math.round(_histTotMin/60*10)/10).toFixed(1), histBruto:B.brutoPct+'%', histLiq:(B.liq>0?'+'+B.liq:String(B.liq)),
       setHistFilter:this.setHistFilter, delSession:this.delSession,
       limparHistorico:this.limparHistorico, toggleLixeira:this.toggleLixeira, restoreSession:this.restoreSession, purgeSession:this.purgeSession, esvaziarLixeira:this.esvaziarLixeira,
@@ -15635,6 +15733,10 @@ class Component extends DCLogic {
       recentSessions, hasSessions, noSessions:!hasSessions, sessionsCount, sessionsWord, sessTotalH, sessTotalVal, sessTotalUnit, sessAccOverall, sessLiqOverall, sessLiqColor, metaFaltamH,
       // edital
       edital, edTotal, edDone, edPct, edAlta, edDiscN:String(edital.length),
+      // ESPELHO do Edital: a linha de contexto e o prazo que a régua mostra. cdDias já
+      // vem calculado acima; sem data de prova a régua não mente, ela diz que não há data.
+      edResumoLinha: edital.length+' disciplina'+(edital.length===1?'':'s')+' · '+edTotal+' tópico'+(edTotal===1?'':'s')+' · '+edDone+' atendido'+(edDone===1?'':'s'),
+      edProvaLabel: (cdDias>0 ? (cdDias+' dias') : 'sem data'),
       metaTempo, metaWeeklyLabel,
       cad:this.state.cad, cadNova:this.state.cad.mode==='nova', cadExistente:this.state.cad.mode==='existente',
       onCad:this.onCad, setCadMode:this.setCadMode, setCadCor:this.setCadCor, addCadastro:this.addCadastro, toggleSub:this.toggleSub, onDiscMeta:this.onDiscMeta, removeDisc:this.removeDisc, renomearDisciplina:this.renomearDisciplina, setDiscCor:this.setDiscCor,
@@ -15651,7 +15753,7 @@ class Component extends DCLogic {
         return names.some(n=>String(n).toLowerCase()===String(s||'').toLowerCase())?s:(names[0]||''); })(),
       // sim
       sim:s, score, liquido, liquidoPct, loss, level, levelColor, diagTitle, diagText, action,
-      simBars, simHist, simChart, simAnalysis:ana, scoreCaption, anaNote, onSimAnalysis:this.onSimAnalysis,
+      simBars, simHist, simChart, simResumoLinha, simAnalysis:ana, scoreCaption, anaNote, onSimAnalysis:this.onSimAnalysis,
       simIncoerente, scoreTxt: simIncoerente ? '—' : (score+'%'),
       scoreOffset: simIncoerente ? ringCirc : ringCirc*(1-score/100),
       isDisc, isObjetiva:!isDisc, discItems, discObtidaTxt, discMaxima, discPct, brutoPct,
@@ -15683,6 +15785,7 @@ class Component extends DCLogic {
       anaVisao:this.state.anaTab==='visao', anaDisc:this.state.anaTab==='disciplina', anaRisco:this.state.anaTab==='risco', anaHist:this.state.anaTab==='historico', anaRel:this.state.anaTab==='relatorio',
       // conquistas
       achievements, achDone, achProgress, conqEarned, conqMaxed, conqTotalLevels,
+      conqResumoLinha: achProgress.length+' em progresso · '+achDone.length+' já conquistada'+(achDone.length===1?'':'s'),
       // anki
       ankiHist, ankiLast, ankiAvg, ankiTotalRev, ankiStatus, ankiStatusColor, ankiStatusMsg,
       ankiPoly, ankiW, ankiH, ankiInsights, ankiIdealRange, ankiInput:this.state.ankiInput, onAnkiInput:this.onAnkiInput, ankiRevInput:this.state.ankiRevInput, onAnkiRevInput:this.onAnkiRevInput, saveAnki:this.saveAnki,

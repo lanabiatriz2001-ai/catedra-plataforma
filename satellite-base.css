@@ -20,7 +20,7 @@
 body {
   background: var(--bg, #f4f1ea);
   color: var(--ink, #1f1c17);
-  font-family: var(--body, -apple-system, 'Segoe UI', Roboto, sans-serif);
+  font-family: var(--body, 'Inter', system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
 }
 

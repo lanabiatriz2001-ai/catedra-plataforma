@@ -697,3 +697,154 @@ button.ct-card:hover, a.ct-card:hover {
 @font-face{font-family:'Spectral';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spectral-500-normal.woff2') format('woff2');}
 @font-face{font-family:'Spectral';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/spectral-600-normal.woff2') format('woff2');}
 @font-face{font-family:'Spectral';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spectral-700-normal.woff2') format('woff2');}
+
+/* ═══ 11. GRAMÁTICA DE COMPOSIÇÃO ═══════════════════════════════════════════
+   Contrato: O ESPELHO MOSTRA O CRITÉRIO, A BANCADA FAZ O TRABALHO.
+   Cada aba recebe a forma da pergunta que ela responde:
+     · foi conferir como está  → espelho  (.ct-esp)
+     · veio executar agora     → bancada  (.ct-bc)
+     · leitura, social, form   → nenhuma das duas, e isso é exceção DECLARADA
+   Nada aqui inventa cor, fonte ou raio: tudo sai dos tokens, para sobreviver às
+   8 direções × claro/escuro. Ver o CONTRATO DE DIREÇÃO no topo do Catedra.dc.html. */
+
+/* ---- 11.1 ESPELHO: o que se exige, quanto vale, você atendeu ---------------
+   A unidade de layout é o QUESITO, do jeito que a banca escreve: a exigência em
+   serifa à esquerda, o peso em mono alinhado à direita, e o estado tingindo a
+   linha inteira. É a única gramática que um concorrente não copia sem ter o
+   acervo — por isso ela carrega a identidade do produto. */
+.ct-esp-cab {
+  font-family: var(--display, Georgia, serif);
+  font-size: var(--fs-2xl, 19px); font-weight: 700;
+  letter-spacing: -.015em; line-height: 1.15;
+  color: var(--ink, #1f1c17); margin: 0 0 3px;
+}
+.ct-esp-ex {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-2xs, 11px); letter-spacing: .13em; text-transform: uppercase;
+  color: var(--text3, #7a7368); margin-bottom: var(--ct-e4);
+}
+.ct-q {
+  --st: var(--border, #e6e1d4);
+  display: grid; grid-template-columns: 1fr auto; gap: var(--ct-e4);
+  align-items: start; padding: 13px 15px; margin-bottom: var(--ct-e2);
+  border: 1px solid color-mix(in oklab, var(--st) 32%, var(--border, #e6e1d4));
+  border-radius: var(--ct-r-md);
+  background-image: linear-gradient(90deg,
+    color-mix(in oklab, var(--st) 16%, transparent), transparent 44%);
+}
+.ct-q-exig {
+  font-family: var(--serif, var(--display, Georgia, serif));
+  font-size: var(--fs-lg, 15.5px); line-height: 1.45; color: var(--ink, #1f1c17);
+}
+.ct-q-exig b { font-weight: 600; }
+.ct-q-meta {
+  display: flex; gap: var(--ct-e2); flex-wrap: wrap; align-items: center;
+  margin-top: 5px; font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368);
+}
+/* A cor do estado é IDENTIDADE (chip) e não texto: escurecida com a própria tinta
+   do texto para passar de 4,5:1, do mesmo jeito que o --leiTxt do ritos. */
+.ct-q-tag {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-3xs, 10px); letter-spacing: .09em; text-transform: uppercase;
+  font-weight: 600; color: color-mix(in srgb, var(--st) 70%, var(--ink, #1f1c17));
+}
+.ct-q-peso {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-2xl, 19px); font-weight: 600; line-height: 1;
+  text-align: right; color: var(--ink, #1f1c17); font-variant-numeric: tabular-nums;
+  min-width: 3ch;
+}
+.ct-q-peso small {
+  display: block; margin-top: 4px; font-weight: 400;
+  font-size: var(--fs-3xs, 10px); letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text3, #7a7368);
+}
+.ct-q-atendido { --st: var(--ok, #0f7a57); }
+.ct-q-parcial  { --st: var(--warn, #b45309); }
+.ct-q-aberto   { --st: var(--danger, #c0392f); }
+/* O fecho responde a pergunta que o espelho abriu: quanto de quanto. */
+.ct-esp-fecho {
+  display: flex; align-items: baseline; gap: var(--ct-e3); flex-wrap: wrap;
+  margin-top: var(--ct-e4); padding: var(--ct-e4);
+  border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-md);
+  background: var(--surface2, #f0ece1);
+}
+.ct-esp-fecho .ct-esp-n {
+  font-family: var(--display, Georgia, serif); font-size: 30px; font-weight: 700;
+  letter-spacing: -.03em; line-height: 1; color: var(--ink, #1f1c17);
+}
+.ct-esp-fecho .ct-esp-n span { font-size: var(--fs-xl, 17px); color: var(--text3, #7a7368); }
+.ct-esp-fecho .ct-esp-t { font-size: var(--fs-base, 13.5px); color: var(--text2, #5c564a); }
+
+/* ---- 11.2 A RÉGUA: a linha do tempo como COMPONENTE, não como moldura -----
+   Só entra onde o prazo É o critério (Edital, Reta final). Numa aba sem eixo
+   temporal honesto ela seria enfeite — e enfeite é o que esta gramática recusa. */
+.ct-regua {
+  position: relative; height: 52px; margin-bottom: var(--ct-e4);
+  border-radius: 99px; overflow: hidden;
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--accent, #0f7a57) 22%, var(--surface2, #f0ece1)),
+    var(--surface2, #f0ece1));
+}
+.ct-regua-marca { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border, #e6e1d4); }
+.ct-regua-hoje  { position: absolute; top: 0; bottom: 0; width: 3px; border-radius: 2px; background: var(--accent, #0f7a57); }
+.ct-regua-cap {
+  position: absolute; top: 9px;
+  font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-3xs, 10px);
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text3, #7a7368);
+}
+.ct-regua-n {
+  position: absolute; bottom: 7px;
+  font-family: var(--display, Georgia, serif); font-weight: 700;
+  font-size: var(--fs-xl, 17px); letter-spacing: -.02em; color: var(--ink, #1f1c17);
+}
+
+/* ---- 11.3 BANCADA: onde a mão alcança -------------------------------------
+   Três zonas que NÃO trocam de lugar entre abas: a tarefa de agora no centro em
+   escala grande, o material que ela exige à direita (para não tirar a pessoa da
+   tela), e a fila embaixo — presente e fora do caminho. Sem eyebrow: o título
+   carrega o próprio peso. */
+.ct-bc { display: grid; grid-template-columns: 1fr; gap: var(--ct-e3); }
+@media (min-width: 700px) { .ct-bc { grid-template-columns: 1.6fr 1fr; } }
+.ct-bc-foco {
+  display: flex; flex-direction: column; justify-content: space-between;
+  min-height: 200px; padding: var(--ct-e4) var(--ct-e5);
+  border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-lg);
+  background: var(--surface2, #f0ece1);
+}
+.ct-bc-foco h3 {
+  font-family: var(--display, Georgia, serif);
+  font-size: clamp(21px, 3vw, 29px); font-weight: 700;
+  letter-spacing: -.025em; line-height: 1.1; margin: 0 0 5px; color: var(--ink, #1f1c17);
+}
+.ct-bc-foco p { margin: 0; font-size: var(--fs-md, 14.5px); color: var(--text2, #5c564a); line-height: 1.55; }
+.ct-bc-foco .ct-bc-acao { margin-top: var(--ct-e4); align-self: flex-start; }
+.ct-bc-apoio {
+  min-height: 200px; padding: var(--ct-e4);
+  border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-lg);
+}
+.ct-bc-apoio-t {
+  font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-3xs, 10px);
+  letter-spacing: .15em; text-transform: uppercase; color: var(--text3, #7a7368);
+  margin-bottom: var(--ct-e3);
+}
+.ct-bc-it { padding: 9px 0; border-bottom: 1px solid var(--border, #e6e1d4); }
+.ct-bc-it:last-child { border-bottom: 0; }
+.ct-bc-it b { display: block; font-weight: 600; font-size: var(--fs-base, 13.5px); color: var(--ink, #1f1c17); }
+.ct-bc-it span { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }
+.ct-bc-fila { grid-column: 1 / -1; display: flex; gap: var(--ct-e2); overflow-x: auto; padding-bottom: 3px; }
+.ct-bc-cd {
+  --mc: var(--border, #e6e1d4);
+  flex: 0 0 auto; min-width: 158px; padding: 11px 13px;
+  border: 1px solid color-mix(in oklab, var(--mc) 32%, var(--border, #e6e1d4));
+  border-radius: var(--ct-r-md);
+  background-image: linear-gradient(90deg,
+    color-mix(in oklab, var(--mc) 17%, transparent), transparent 46%);
+}
+.ct-bc-cd em {
+  font-style: normal; font-family: var(--mono, ui-monospace, monospace);
+  font-size: var(--fs-3xs, 10px); letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 600; color: color-mix(in srgb, var(--mc) 70%, var(--ink, #1f1c17));
+}
+.ct-bc-cd b { display: block; margin-top: 3px; font-size: var(--fs-base, 13.5px); font-weight: 600; color: var(--ink, #1f1c17); }
+.ct-bc-cd span { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }

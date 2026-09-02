@@ -15,12 +15,15 @@
   /* D10 — o amarelo-lei dá 4,1:1 nos chips de 10px (abaixo de 4.5); escurecido com a
      própria tinta do texto ele passa a 6:1 sem virar uma cor nova na paleta */
   --leiTxt:color-mix(in srgb,var(--lei) 72%,var(--ink));
-  --display:Georgia,serif;--body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:ui-monospace,Menlo,monospace;
+  --display:'Spectral',Georgia,serif;--body:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  /* Escala de texto: três degraus a 1.25 de razão. Antes eram seis tamanhos entre
+     11px e 14px — nenhum deles dizia "eu sou mais importante que o outro". */
+  --t-micro:12px;--t-corpo:15px;--t-titulo:19px;
   --sh:0 1px 2px rgba(20,15,10,.05),0 4px 14px rgba(20,15,10,.05);
   --linha:#c9bfb6;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:var(--t-corpo);line-height:1.5;
   -webkit-font-smoothing:antialiased}
 button,input,select{font-family:inherit}
 ::-webkit-scrollbar{width:10px;height:9px}
@@ -46,16 +49,16 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 .l1{display:flex;align-items:center;gap:14px;padding:12px 18px;max-width:1240px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:11px;flex:none}
 .brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
-  display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+  display:flex;align-items:center;justify-content:center;font-size:var(--t-titulo);flex:none}
 .brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
-.brand small{display:block;font-size:11.5px;color:var(--text2);margin-top:4px}
+.brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
 .acs{margin-left:auto;display:flex;gap:6px;align-items:center;flex:none;position:relative}
 .acs .menu{display:flex;gap:6px;align-items:center}
 .acs button{border:1px solid var(--border);background:var(--bg);color:var(--text2);border-radius:9px;
   padding:8px 13px;font:600 12px inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
 .acs button:hover{border-color:var(--text3);color:var(--ink)}
 .acs button.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
-.acs .mais{display:none;justify-content:center;font-size:16px;line-height:1;padding:0;
+.acs .mais{display:none;justify-content:center;font-size:var(--t-corpo);line-height:1;padding:0;
   min-width:44px;min-height:44px}
 .l2{display:flex;align-items:center;gap:9px;padding:0 18px 11px;max-width:1240px;margin:0 auto}
 /* ───────── seletor de rito: procurar, não rolar ─────────
@@ -72,7 +75,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 #btRito i{font-style:normal;width:9px;height:9px;border-radius:99px;background:var(--rc,var(--accent));flex:none}
 #btRito b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #btRito .ml-fraca{flex:none}
-#btRito .seta{color:var(--text2);font-size:11px;flex:none}
+#btRito .seta{color:var(--text2);font-size:var(--t-micro);flex:none}
 #painelRito{position:absolute;left:0;top:calc(100% + 8px);z-index:60;width:min(460px,calc(100vw - 24px));
   background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--sh);
   padding:10px;display:none;flex-direction:column;gap:8px}
@@ -91,7 +94,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 #listaRito .op:hover,#listaRito .op.foco{background:var(--surface2)}
 #listaRito .op.on{background:var(--ink);color:var(--surface)}
 #listaRito .op.on em{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.36)}
-#vazioRito{padding:14px 10px;color:var(--text2);font-size:12.5px}
+#vazioRito{padding:14px 10px;color:var(--text2);font-size:var(--t-micro)}
 
 /* ───────── seletor de modo: o mesmo rito, lido de duas maneiras ─────────
    O FLUXO é a leitura vertical, de cima para baixo, que já existia. O MAPA é a
@@ -123,9 +126,9 @@ body.modo-mapa .cab p,body.modo-mapa .cab .aviso{max-width:96ch}
 .cab h2 i{font-style:normal;width:11px;height:27px;border-radius:4px;background:var(--rc);flex:none}
 .cab .fonte{display:inline-block;margin:9px 0 0 23px;
   background:color-mix(in srgb,var(--rc) 10%,transparent);border-radius:99px;padding:4px 11px}
-.cab p{margin:10px 0 0 23px;font-size:13px;line-height:1.65;color:var(--text2);max-width:74ch}
-.cab .aviso{margin:12px 0 0 23px;font-size:12px;color:var(--text2);background:var(--surface2);
-  border-left:3px solid var(--border);border-radius:0 9px 9px 0;padding:9px 13px;max-width:74ch;line-height:1.6}
+.cab p{margin:10px 0 0 23px;font-size:var(--t-corpo);line-height:1.65;color:var(--text2);max-width:74ch}
+.cab .aviso{margin:12px 0 0 23px;font-size:var(--t-micro);color:var(--text2);background:var(--surface2);
+  border:1px solid var(--border);border-radius:9px;padding:9px 13px;max-width:74ch;line-height:1.6}
 
 /* ───────────────────────── o fluxograma ───────────────────────── */
 .fluxo{margin-top:26px}
@@ -143,7 +146,7 @@ body.modo-mapa .cab p,body.modo-mapa .cab .aviso{max-width:96ch}
 .cx{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;
   padding:13px 16px;box-shadow:var(--sh);text-align:center;position:relative}
 .cx .tt{font:700 14.5px/1.35 var(--body);color:var(--ink)}
-.cx .sb{font-size:12px;color:var(--text2);margin-top:5px;line-height:1.5}
+.cx .sb{font-size:var(--t-micro);color:var(--text2);margin-top:5px;line-height:1.5}
 .cx .art{display:inline-block;margin-top:9px;font:700 10.5px var(--mono);letter-spacing:.02em;
   color:var(--leiTxt);background:color-mix(in srgb,var(--lei) 9%,transparent);
   border:1px solid color-mix(in srgb,var(--lei) 26%,transparent);border-radius:99px;padding:3px 10px;cursor:pointer}
@@ -216,13 +219,14 @@ body.modo-mapa .cab p,body.modo-mapa .cab .aviso{max-width:96ch}
 .saida.esq .fio::after{content:"";position:absolute;left:-1px;top:50%;transform:translateY(-50%);
   border:5px solid transparent;border-right-color:var(--linha)}
 .saida .cx{width:230px;padding:11px 13px}
-.saida .cx .tt{font-size:13px}
-.saida .cx .sb{font-size:11.5px}
+.saida .cx .tt{font-size:var(--t-corpo)}
+.saida .cx .sb{font-size:var(--t-micro)}
 
 /* nota lateral, no estilo "chave" do fluxograma de papel */
 .nota{grid-column:1/-1;justify-self:center;max-width:820px;margin:10px 0 0;display:flex;gap:10px;
-  font-size:12.3px;line-height:1.6;color:var(--text2);background:var(--surface2);
-  border:1px solid var(--border);border-left:4px solid var(--rc);border-radius:0 11px 11px 0;padding:10px 14px}
+  font-size:var(--t-micro);line-height:1.6;color:var(--text2);background:var(--surface2);
+  border:1px solid color-mix(in oklab, var(--rc) 38%, var(--border));border-radius:11px;padding:10px 14px;
+  background-image:linear-gradient(90deg,color-mix(in oklab, var(--rc) 13%, transparent),transparent 38%)}
 .nota b{font-style:normal;flex:none;padding-top:2px}
 body.semnotas .nota{display:none}
 
