@@ -848,3 +848,9 @@ button.ct-card:hover, a.ct-card:hover {
 }
 .ct-bc-cd b { display: block; margin-top: 3px; font-size: var(--fs-base, 13.5px); font-weight: 600; color: var(--ink, #1f1c17); }
 .ct-bc-cd span { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }
+
+/* ═══ 12. INTERAÇÃO: o que é clicável diz que é ═══════════════════════════════
+   132 dos 410 botões do host escreviam o próprio estilo inline sem `cursor`, e a
+   única regra global que existia era escopada ao widget. Uma regra, todos. */
+button:not(:disabled) { cursor: pointer; }
+button:disabled { cursor: not-allowed; }

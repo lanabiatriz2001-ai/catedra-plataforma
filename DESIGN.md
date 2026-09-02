@@ -164,7 +164,7 @@ Bordas são de 1px. **Uma borda colorida acima de 1px em um lado do cartão est�
 
 Uma regra decide a forma de cada aba: **o espelho mostra o critério; a bancada faz o trabalho.** Quem foi conferir a própria situação lê um espelho de banca; quem veio executar encontra uma bancada. O contrato completo está no comentário `CONTRATO DE DIREÇÃO` no topo do `<body>` do host (seed `605bfe26`).
 
-**Espelho** (`.ct-esp-cab`, `.ct-esp-ex`, `.ct-q`, `.ct-q-exig`, `.ct-q-peso`, `.ct-esp-fecho`) — a unidade de layout é o quesito, do jeito que a banca escreve: a exigência em serifa à esquerda, o peso em mono alinhado à direita, o estado (`--st`) tingindo a borda e lavando a linha. Abre com o que a tela exige e fecha com quanto de quanto foi atendido. Abas: Edital, Reta final, Redação, Simulados, Análise, Conquistas, Histórico (só cabeçalho — a tabela fica), e o satélite da 2ª fase. **Pendente:** Prioridade (satélite) — as barras foram corrigidas, mas a tipografia do quesito ainda não entrou; Oral — hero + abas já funcionam como bancada informal, e converter renderia pouco.
+**Espelho** (`.ct-esp-cab`, `.ct-esp-ex`, `.ct-q`, `.ct-q-exig`, `.ct-q-peso`, `.ct-esp-fecho`) — a unidade de layout é o quesito, do jeito que a banca escreve: a exigência em serifa à esquerda, o peso em mono alinhado à direita, o estado (`--st`) tingindo a borda e lavando a linha. Abre com o que a tela exige e fecha com quanto de quanto foi atendido. Abas: Edital, Reta final, Redação, Simulados, Análise, Conquistas, Histórico (só cabeçalho — a tabela fica), e o satélite da 2ª fase. Prioridade e Oral entraram em 02/09.
 
 **Régua** (`.ct-regua`) — a linha do tempo até a prova como componente, nunca como moldura global. Só entra onde o prazo *é* o critério: Edital e Reta final.
 
@@ -190,4 +190,4 @@ Uma regra decide a forma de cada aba: **o espelho mostra o critério; a bancada 
 - Tamanho de fonte em px numa tela do host — quebra o `fontScale` de quem aumentou o texto.
 - Fonte, ícone ou script vindo de CDN.
 - Seis tamanhos de fonte separados por meio pixel. Menos degraus, mais contraste.
-- Emoji no lugar de ícone em elemento novo de interface.
+- Emoji no lugar de ícone. Ícone é SVG Lucide inline, `viewBox 0 0 24 24`, `stroke="currentColor"`, `stroke-width="2"`, **16px fixos** (nunca `1em`: em contextos de 11–13px o ícone some), `aria-hidden` no SVG e nome no botão. Offline por construção. Quando um teste localiza o botão pelo glifo em `textContent`, o glifo fica como texto visualmente oculto ao lado do SVG.

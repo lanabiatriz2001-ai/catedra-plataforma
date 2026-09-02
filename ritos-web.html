@@ -293,7 +293,7 @@ body.semnotas .nota{display:none}
         aria-expanded="false" aria-controls="acoes" title="Mais ações">⋯</button>
       <span class="menu" id="acoes">
         <button id="bNotas" class="on" type="button" aria-pressed="true"
-          title="Mostrar ou esconder as observações laterais">☰ Notas</button>
+          title="Mostrar ou esconder as observações laterais"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg> Notas</button>
         <button id="bPrint" type="button" title="Imprimir / salvar em PDF">⎙ Imprimir</button>
       </span>
     </span>
@@ -371,13 +371,13 @@ const fluxoDe = nome => FLUXOS[nome] || derivar(nome);
 function caixa(p, cls){
   /* D10: o chip do dispositivo abre o LEGIS — era um <span> com onclick, invisível
      para o teclado e para o leitor de tela. Virou <button> de verdade. */
-  const art = p.art ? '<button type="button" class="art" data-legis="'+esc(p.art)+'">⚖️ '+esc(p.art)+'</button>' : '';
+  const art = p.art ? '<button type="button" class="art" data-legis="'+esc(p.art)+'"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg> '+esc(p.art)+'</button>' : '';
   const chips = []
-    .concat((p.leis||[]).map(t=>'<button class="lei" data-legis="'+esc(t)+'">⚖️ '+esc(t)+'</button>'))
-    .concat((p.jurisps||[]).map(t=>'<button class="juris" data-juris="'+esc(t)+'">🏛️ '+esc(t)+'</button>'))
+    .concat((p.leis||[]).map(t=>'<button class="lei" data-legis="'+esc(t)+'"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg> '+esc(t)+'</button>'))
+    .concat((p.jurisps||[]).map(t=>'<button class="juris" data-juris="'+esc(t)+'"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg> '+esc(t)+'</button>'))
     .join('');
   const peca = p.peca
-    ? '<button class="peca" data-peca="'+esc(p.peca)+'">✍️ '+esc(p.peca)
+    ? '<button class="peca" data-peca="'+esc(p.peca)+'"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg> '+esc(p.peca)
         +(PECAS[p.peca]?'':' · em breve')+'</button>'
     : '';
   return '<div class="cx '+(cls||p.k||'ato')+'">'
