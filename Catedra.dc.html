@@ -1015,8 +1015,61 @@ window.ctPdfLib = (function(){
       </div>
     </sc-if>
 
+    <!-- MODO ENAM (E3): a prova como ela é — 80 questões A–E na ordem do edital, relógio de 5 h,
+         grade de 80 quadradinhos e correção só no fim. Mesma camada da sala de prova, mas com
+         as questões na tela e o fundo claro da leitura. -->
+    <sc-if value="{{ enamEmProva }}" hint-placeholder-val="{{ false }}">
+      <div role="dialog" aria-modal="true" aria-label="Simulado ENAM" class="ct-modal-panel ct-enam" tabindex="-1">
+        <div class="ct-enam-topo">
+          <div><div class="ct-enam-nome">{{ provaName }}</div><div class="ct-enam-sub">Questão {{ sjNum }} de {{ sjTotal }} · {{ sjRespondidas }} respondidas · {{ enamRevN }} para rever</div></div>
+          <div class="ct-enam-acoes">
+            <div class="ct-enam-tempo" data-aviso="{{ enamAviso }}" role="timer" aria-label="Tempo restante {{ provaTimeLeft }}">{{ provaTimeLeft }}</div>
+            <sc-if value="{{ enamAvisoTxt }}" hint-placeholder-val="{{ false }}"><span class="ct-enam-aviso" aria-live="polite">{{ enamAvisoTxt }}</span></sc-if>
+            <button type="button" onclick="{{ provaToggle }}" class="ct-btn-2">
+              <sc-if value="{{ provaRunning }}" hint-placeholder-val="{{ true }}">Pausar</sc-if>
+              <sc-if value="{{ provaIdle }}" hint-placeholder-val="{{ false }}">Retomar</sc-if>
+            </button>
+            <button type="button" onclick="{{ encerrarEnam }}" class="ct-btn">Encerrar e corrigir</button>
+            <button type="button" onclick="{{ enamDescartar }}" class="ct-btn-2" aria-label="Descartar o simulado ENAM">Descartar</button>
+          </div>
+        </div>
+        <div class="ct-enam-corpo">
+          <div>
+            <sc-if value="{{ provaIdle }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-enam-pausa">Relógio parado. A prova real não tem pausa — esta tentativa fica marcada como “com pausa”. Retome para continuar respondendo.</div>
+            </sc-if>
+            <sc-if value="{{ provaRunning }}" hint-placeholder-val="{{ true }}">
+              <div class="ct-enam-meta">{{ enamAreaAt }} · {{ sjRef }}</div>
+              <sc-if value="{{ enamForaAt }}" hint-placeholder-val="{{ false }}"><div class="ct-enam-fora">Questão de outra prova de magistratura: o banco do ENAM desta área esgotou. No relatório ela conta à parte, fora do ENAM.</div></sc-if>
+              <div class="ct-enam-enun">{{ sjEnunciado }}</div>
+              <div class="ct-enam-alts">
+                <sc-for list="{{ enamAlts }}" as="al" hint-placeholder-count="5">
+                  <button type="button" class="ct-enam-alt" data-l="{{ al.l }}" aria-pressed="{{ al.on }}" onclick="{{ responderSjAlt }}"><b>{{ al.l }})</b><span>{{ al.txt }}</span></button>
+                </sc-for>
+              </div>
+              <div class="ct-enam-nav">
+                <button type="button" data-d="-1" onclick="{{ navSj }}" class="ct-btn-2">← Anterior</button>
+                <button type="button" data-d="1" onclick="{{ navSj }}" class="ct-btn-2">Próxima →</button>
+                <button type="button" onclick="{{ enamEmBranco }}" class="ct-btn-2">Deixar em branco</button>
+                <button type="button" onclick="{{ enamRever }}" class="ct-btn-2" aria-pressed="{{ enamRevAt }}">Rever depois (R)</button>
+              </div>
+              <div class="ct-enam-teclas">Teclado: A–E responde · ← → navegam · R marca para rever · Backspace deixa em branco</div>
+            </sc-if>
+          </div>
+          <aside aria-label="Cartão de respostas">
+            <div class="ct-eb">Cartão de respostas</div>
+            <div class="ct-gab" role="group" aria-label="Ir para a questão">
+              <sc-for list="{{ enamGrade }}" as="g" hint-placeholder-count="80"><button type="button" class="ct-gab-q" data-i="{{ g.i }}" data-est="{{ g.est }}" data-atual="{{ g.atual }}" data-rev="{{ g.rev }}" aria-label="{{ g.aria }}" onclick="{{ irSj }}">{{ g.n }}</button></sc-for>
+            </div>
+            <div class="ct-enam-legenda"><span><i class="resp"></i>respondida</span><span><i></i>em branco</span><span><i class="rev"></i>para rever</span></div>
+            <div class="ct-enam-faixas"><sc-for list="{{ enamFaixas }}" as="f" hint-placeholder-count="8"><span>{{ f.nome }} <b>{{ f.de }}–{{ f.ate }}</b></span></sc-for></div>
+          </aside>
+        </div>
+      </div>
+    </sc-if>
+
     <!-- MODO PROVA (tela cheia, cronometrado) -->
-    <sc-if value="{{ provaMode }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ provaSala }}" hint-placeholder-val="{{ false }}">
       <div role="dialog" aria-modal="true" aria-label="Simulado cronometrado" class="ct-modal-panel" tabindex="-1" style="position:fixed;inset:0;z-index:150;background:var(--sbg);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
         <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:18px clamp(18px,4vw,40px);">
           <div style="display:flex;align-items:center;gap:11px;"><span style="width:30px;height:30px;border-radius:var(--r-md);background:var(--heroGrad);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:var(--fs-md);">C</span><span style="font-weight:600;font-size:var(--fs-md);color:rgba(255,255,255,.9);">{{ provaName }}</span></div>
@@ -3277,6 +3330,10 @@ window.ctPdfLib = (function(){
               <div class="ct-hero-eb">Treino cronometrado</div>
               <h2 class="ct-hero-tit">Fazer simulado agora</h2>
               <p class="ct-hero-sub">{{ sjHeroDesc }}</p>
+              <!-- E3: o preset. "Modo ENAM" monta a prova como ela é; o misto é o de sempre. -->
+              <div role="group" aria-label="Formato do simulado" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;">
+                <sc-for list="{{ sjModoChips }}" as="c" hint-placeholder-count="2"><button type="button" data-v="{{ c.v }}" onclick="{{ setSjModo }}" aria-pressed="{{ c.on }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+              </div>
             </div>
             <button onclick="{{ abrirSimuladoJogo }}" class="ct-btn-clara" style="white-space:nowrap;">{{ sjBotaoLabel }}</button>
           </div>
@@ -3290,6 +3347,18 @@ window.ctPdfLib = (function(){
               <sc-if value="{{ sjPronto }}" hint-placeholder-val="{{ false }}">
                 <sc-if value="{{ !sjEmProva }}" hint-placeholder-val="{{ true }}">
                   <sc-if value="{{ !sjFim }}" hint-placeholder-val="{{ true }}">
+                   <sc-if value="{{ sjEhEnam }}" hint-placeholder-val="{{ false }}">
+                    <div class="ct-eb" style="margin-bottom:8px;">Modo ENAM — a prova como ela é</div>
+                    <div style="font-size:var(--fs-base);color:var(--text2);line-height:1.6;max-width:640px;">80 questões A–E das provas anteriores (FGV/ENFAM), na ordem das áreas do edital e na cota de cada uma, 5 horas de relógio e correção só no fim. Sem repetir as que você já fez enquanto houver estoque; anulada nunca entra. Feche o app e volte: a mesma prova espera por até 36 horas.</div>
+                    <div class="ct-enam-cotas"><sc-for list="{{ enamCotas }}" as="a" hint-placeholder-count="8"><span>{{ a.nome }} <b>{{ a.cota }}</b></span></sc-for></div>
+                    <sc-if value="{{ enamErro }}" hint-placeholder-val="{{ false }}"><div class="ct-estado" role="alert" style="margin-bottom:14px;">{{ enamErro }}</div></sc-if>
+                    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding-top:14px;border-top:1px solid var(--border);">
+                      <sc-if value="{{ !enamCarregando }}" hint-placeholder-val="{{ true }}"><button type="button" onclick="{{ iniciarEnam }}" class="ct-btn">Iniciar o simulado ENAM (5 h)</button></sc-if>
+                      <sc-if value="{{ enamCarregando }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-sm);color:var(--text3);">Carregando o banco oficial…</span></sc-if>
+                      <span style="font-size:var(--fs-xs);color:var(--text3);">O relógio começa a correr na hora.</span>
+                    </div>
+                   </sc-if>
+                   <sc-if value="{{ !sjEhEnam }}" hint-placeholder-val="{{ true }}">
                     <div class="ct-eb" style="margin-bottom:8px;">Disciplinas — escolha quantas quiser</div>
                     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;">
                       <sc-for list="{{ sjRamoChips }}" as="c" hint-placeholder-count="8"><button data-v="{{ c.v }}" onclick="{{ toggleSjRamo }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
@@ -3308,6 +3377,7 @@ window.ctPdfLib = (function(){
                         <input type="number" min="0" max="30" step="5" value="{{ sjProvaN }}" oninput="{{ setSjProvaN }}" title="Questões A-E de provas oficiais de magistratura (FGV/CEBRASPE), com gabarito e % de acerto" class="ct-campo ct-campo-num" style="width:80px;"></label></sc-if>
                       <button onclick="{{ iniciarSj }}" class="ct-btn">Iniciar simulado</button>
                     </div>
+                   </sc-if>
                   </sc-if>
                 </sc-if>
                 <!-- em prova -->
@@ -3350,10 +3420,17 @@ window.ctPdfLib = (function(){
                     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;">
                       <div class="ct-eb">Leitura do resultado</div>
                       <div style="font-size:var(--fs-md);color:var(--ink);line-height:1.6;margin-top:8px;font-weight:600;">{{ sjRelVeredito }}</div>
+                      <sc-if value="{{ !sjEhEnam }}" hint-placeholder-val="{{ true }}">
                       <div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;font-size:var(--fs-sm);color:var(--text2);">
                         <span><b style="color:var(--ink);">Jurisprudência</b> {{ sjRelJur }}</span>
                         <span><b style="color:var(--ink);">Lei seca</b> {{ sjRelLei }}</span>
                       </div>
+                      </sc-if>
+                      <sc-if value="{{ sjEhEnam }}" hint-placeholder-val="{{ false }}">
+                      <div class="ct-eb" style="margin-top:16px;">Por área do edital</div>
+                      <div class="ct-enam-areas"><sc-for list="{{ enamRelAreas }}" as="a" hint-placeholder-count="8"><span>{{ a.nome }} <b>{{ a.txt }}</b></span></sc-for></div>
+                      <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;line-height:1.5;">{{ enamRelNota }}</div>
+                      </sc-if>
                       <div class="ct-eb" style="margin-top:16px;">Onde você mais errou</div>
                       <sc-for list="{{ sjRelPior }}" as="r" hint-placeholder-count="3">
                         <div style="margin-top:9px;">
@@ -3384,7 +3461,7 @@ window.ctPdfLib = (function(){
                       <sc-if value="{{ q.temTroca }}" hint-placeholder-val="{{ false }}">
                         <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:8px;">O item trocou <b style="color:var(--ok);">“{{ q.trocaDe }}”</b> por <b style="color:var(--danger);">“{{ q.trocaPara }}”</b>.</div>
                       </sc-if>
-                      <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.55;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);"><b>Texto oficial:</b> {{ q.oficial }}</div>
+                      <sc-if value="{{ q.oficial }}" hint-placeholder-val="{{ true }}"><div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.55;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);"><b>Texto oficial:</b> {{ q.oficial }}</div></sc-if>
                       <!-- LA6: errou lei seca → a grade que ela leu (se leu) e o caminho para o leitor -->
                       <sc-if value="{{ q.laMostra }}" hint-placeholder-val="{{ false }}">
                         <sc-for list="{{ q.laTrilhos }}" as="t" hint-placeholder-count="0">
@@ -6022,6 +6099,7 @@ class Component extends DCLogic {
       leituras: this._load('leituras', []),
       // trilha ENAM (E1): edição, data, meta de acertos — só o número, nunca o motivo
       enam: this._load('enam', null),
+      enamSim: this._load('enamSim', []),   // E3/E4: tentativas do Modo ENAM — só ids e respostas, nunca enunciado
       revSession: null,
       treino: null,
       sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}), simNome:'', simMin:'',
@@ -6101,6 +6179,9 @@ class Component extends DCLogic {
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
       sjAberto:false, sjPronto:false, sjRamo:'', sjN:30, sjProvaN:5, sjItens:[], sjResp:{}, sjAtual:0, sjFim:false, sjIni:0,
       sjRamos:[], sjLeis:[], sjPctLei:40, sjRel:null,   // simulado misto: várias disciplinas, juris + lei seca
+      // E3 — Modo ENAM: a prova como ela é. sjModo escolhe o preset; sjRev guarda as marcadas para rever;
+      // sjComPausa marca a tentativa que pausou (a prova real não tem pausa); enamMont é a montagem por área.
+      sjModo:'misto', sjRev:{}, sjComPausa:false, enamMont:null, enamErro:'', enamCarregando:false,
       oralModo:'juris', oralIntencao:'',   // corrigido no 1º render para um modo que a área tenha oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
       oralPergunta:'', oralResposta:'', oralCorrecao:null, oralHist:[],
       oralBancasPronto:false, oralBancaCarr:'', oralBancaBanca:'', oralBancaQ:'', oralBancaSoOuro:true, oralBancaSel:null,
@@ -6184,6 +6265,21 @@ class Component extends DCLogic {
         const el=document.activeElement, tag=el&&el.tagName;
         const digitando = !!(el && (tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || el.isContentEditable));
         if(!digitando && this.state.loggedIn && !this.state.atalhosOpen){ e.preventDefault(); this.setState({atalhosOpen:true, paletteOpen:false, paletteQuery:''}); return; }
+      }
+      // E3: dentro do Modo ENAM o teclado é o da prova — A–E responde, ← → andam, R marca para
+      // rever, Backspace/Delete deixa em branco. Esc NÃO descarta: pede confirmação pelo toast,
+      // porque um Esc distraído às 3h de prova apagaria tudo.
+      if(this.state.provaMode && this.state.sjModo==='enam' && !e.metaKey && !e.ctrlKey && !e.altKey){
+        const el=document.activeElement, tg=el&&el.tagName;
+        const dig=!!(el && (tg==='INPUT' || tg==='TEXTAREA' || tg==='SELECT' || el.isContentEditable));
+        if(!dig){ const k=e.key, K=(k.length===1?k.toUpperCase():k);
+          if(/^[A-E]$/.test(K)){ e.preventDefault(); this._enamResponder(K); return; }
+          if(k==='ArrowLeft'){ e.preventDefault(); this._enamNav(-1); return; }
+          if(k==='ArrowRight'){ e.preventDefault(); this._enamNav(1); return; }
+          if(K==='R'){ e.preventDefault(); this.enamRever(); return; }
+          if(k==='Backspace' || k==='Delete'){ e.preventDefault(); this.enamEmBranco(); return; }
+          if(k==='Escape'){ e.preventDefault(); this.enamDescartar(); return; }
+        }
       }
       if(e.key==='Escape'){ if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
@@ -6458,6 +6554,7 @@ class Component extends DCLogic {
       this._bkpAutoT=setInterval(()=>this._backupAutoSemanal(), 3600000); }catch(_){}
     try{ this._restoreTimer(); }catch(_){}   // cronômetro não zera ao fechar o app
     try{ this._restoreProva(); }catch(_){}   // simulado cronometrado idem — reabre pausado
+    try{ this._restoreEnamProva(); }catch(_){}   // E3: a prova ENAM volta inteira (mesmas questões, mesmas respostas) por até 36 h
     // C3: reabrir o app com uma prova em andamento traz de volta o selo "sugerido" junto
     // com o gabarito — o texto já se declara, mas o selo é o que a pessoa vê primeiro.
     try{ const _id=this.state.redProvaId; if(_id && !this.state.espSugAtual){
@@ -7155,7 +7252,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'enam', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'enam', 'enamSim', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
@@ -9890,7 +9987,16 @@ class Component extends DCLogic {
     const acertos=its.filter(x=>r[x.id]===x.certo).length;
     const respondidas=its.filter(x=>r[x.id]!==undefined).length;
     return {
-      sjAberto:st.sjAberto, sjBotaoLabel:(st.sjAberto?'Fechar':'Começar'), sjPronto:st.sjPronto, sjEmProva:its.length>0 && !st.sjFim, sjFim:st.sjFim,
+      sjAberto:st.sjAberto, sjBotaoLabel:(st.sjAberto?'Fechar':'Começar'), sjFim:st.sjFim,
+      // E3: no Modo ENAM o card não espera o acervo de jurisprudência (a prova vem do banco oficial)
+      // e a prova em si mora na tela cheia (enamEmProva), não neste card.
+      sjPronto:st.sjPronto || st.sjModo==='enam', sjEmProva:its.length>0 && !st.sjFim && st.sjModo!=='enam',
+      sjEhEnam:st.sjModo==='enam',
+      sjModoChips:[{v:'misto',label:'Simulado misto',on:st.sjModo!=='enam'},{v:'enam',label:'Modo ENAM',on:st.sjModo==='enam'}].map(c=>({v:c.v,label:c.label,on:c.on?'true':'false',style:this._chip(c.on)+'min-height:44px;'})),
+      enamCotas:((window.CT_ENAM&&window.CT_ENAM.AREAS)||[]).map(a=>({nome:a.nome.replace('Noções Gerais de Direito e ','').replace('Direito ',''), cota:a.cota})),
+      enamErro:st.enamErro||'', enamCarregando:!!st.enamCarregando,
+      enamRelAreas:(st.sjModo==='enam'?(st.enamMont||[]):[]).map(a=>{ const ii=its.filter(x=>x.area===a.id); const ok=ii.filter(x=>r[x.id]===x.certo).length; return {nome:a.nome.replace('Noções Gerais de Direito e ',''), txt:ok+'/'+ii.length}; }),
+      enamRelNota:(()=>{ const f=its.filter(x=>x.foraDoEnam).length; return (f?(f+' quest'+(f>1?'ões':'ão')+' de outra prova de magistratura completaram áreas sem estoque no banco do ENAM e contam à parte. '):'')+(st.sjComPausa?'Tentativa com pausa — a prova real não tem.':''); })(),
       sjN:st.sjN, sjRamo:st.sjRamo, sjProvaN:st.sjProvaN,
       sjRamoOpts:[{v:'',label:'Todas as disciplinas',sel:!st.sjRamo}].concat(ramos.map(k=>({v:k,label:k+' ('+m[k]+')',sel:st.sjRamo===k}))),
       // chips multisseleção: disciplinas do acervo e leis embutidas
@@ -10031,6 +10137,7 @@ class Component extends DCLogic {
   };
   responderSjAlt = (e)=>{
     const l=e.currentTarget.getAttribute('data-l');
+    if(this.state.sjModo==='enam'){ this._enamResponder(l); return; }
     const it=this.state.sjItens[this.state.sjAtual]; if(!it||!l) return;
     const r={...this.state.sjResp}; r[it.id]=l;
     this.setState({sjResp:r});
@@ -10042,9 +10149,119 @@ class Component extends DCLogic {
     const r={...this.state.sjResp}; r[it.id]=v;
     this.setState({sjResp:r});
   };
-  navSj = (e)=>{ const d=parseInt(e.currentTarget.getAttribute('data-d'),10)||0;
-    this.setState({sjAtual:Math.max(0,Math.min(this.state.sjItens.length-1,this.state.sjAtual+d))}); };
-  irSj = (e)=> this.setState({sjAtual:parseInt(e.currentTarget.getAttribute('data-i'),10)||0});
+  navSj = (e)=>{ const d=parseInt(e.currentTarget.getAttribute('data-d'),10)||0; this._enamNav(d); };
+  irSj = (e)=> this.setState({sjAtual:parseInt(e.currentTarget.getAttribute('data-i'),10)||0}, ()=>this._saveEnamProva());
+  _enamNav(d){ this.setState({sjAtual:Math.max(0,Math.min(this.state.sjItens.length-1,this.state.sjAtual+d))}, ()=>this._saveEnamProva()); }
+
+  /* ===== MODO ENAM (E3) — a prova como ela é =============================================
+     Reaproveita o simulado A–E (sjItens/sjResp/sjAtual) e a sala de prova (provaMode e o
+     relógio de _provaTimer). O que é só daqui: a montagem por CT_ENAM.montar (banco oficial,
+     cotas do edital, nunca C/E), a persistência própria ct_enam_prova — que, ao contrário do
+     ct_prova, sobrevive à virada do dia por até 36 h —, a grade de 80, o "rever depois" e os
+     avisos discretos de 60 e 15 minutos. */
+  setSjModo = (e)=>{ const v=e.currentTarget.getAttribute('data-v')==='enam'?'enam':'misto'; if(v!==this.state.sjModo) this.setState({sjModo:v, enamErro:'', sjItens:[], sjResp:{}, sjRev:{}, sjAtual:0, sjFim:false, sjRel:null}); };
+  _enamAcervos(){ return this._treino().then(T=>T.acervoQuestoesEnam().then(()=>T.acervoQuestoesProva().catch(()=>null)).then(()=>T)); }
+  _enamNome(){ const E=window.CT_ENAM; const ed=(this.state.enam&&this.state.enam.edicao)||(E&&E.proxima?E.proxima().id:''); return 'ENAM '+ed+' · simulado'; }
+  iniciarEnam = ()=>{
+    const E=window.CT_ENAM;
+    if(!E||!E.montar){ this.setState({enamErro:'O módulo do ENAM (enam.js) não carregou neste build.'}); return; }
+    if(this.state.provaMode) return;
+    this.setState({enamErro:'', enamCarregando:true});
+    this._enamAcervos().then(()=>{
+      const banco=window.CT_QUESTOES_ENAM||[]; if(!banco.length) throw new Error('sem banco');
+      const feitas=[].concat.apply([], (this.state.enamSim||[]).map(t=>Array.isArray(t.ids)?t.ids:[]));
+      const m=E.montar(banco, {excluir:feitas, reserva:window.CT_QUESTOES_PROVA||[]});
+      if(!m.itens.length) throw new Error('sem banco');
+      if(m.faltam) this._toast('Faltaram '+m.faltam+' questões para fechar as cotas — a prova segue com '+m.itens.length);
+      this._provaDurAntes=this.state.provaDurationMin; this._enamAvisos={};
+      this.setState({sjItens:m.itens, sjResp:{}, sjRev:{}, sjAtual:0, sjFim:false, sjRel:null, sjIni:Date.now(), sjComPausa:false, enamMont:m.porArea, enamCarregando:false,
+        provaDurationMin:E.DURACAO_MIN, provaName:this._enamNome(), provaMode:true, provaSeconds:0, provaRunning:true}, ()=>{ try{ this._saveProva(); }catch(_){} this._saveEnamProva(); });
+      this._provaTimer();
+    }).catch(()=>this.setState({enamCarregando:false, enamErro:'O banco oficial do ENAM (questoes-enam.js) não está neste build — e o Modo ENAM não substitui a prova por itens de Certo/Errado. Gere o banco com scripts/build-questoes-enam.mjs e publique de novo.'}));
+  };
+  _enamResponder(l){
+    if(this.state.sjModo!=='enam' || !/^[A-E]$/.test(String(l||''))) return;
+    if(!this.state.provaRunning){ this._toast('Relógio parado — retome para responder'); return; }
+    const it=this.state.sjItens[this.state.sjAtual]; if(!it) return;
+    const r={...this.state.sjResp}; r[it.id]=l;
+    this.setState({sjResp:r}, ()=>this._saveEnamProva());
+  }
+  enamEmBranco = ()=>{ const it=this.state.sjItens[this.state.sjAtual]; if(!it) return; const r={...this.state.sjResp}; delete r[it.id]; this.setState({sjResp:r}, ()=>this._saveEnamProva()); };
+  enamRever = ()=>{ const it=this.state.sjItens[this.state.sjAtual]; if(!it) return; const rv={...(this.state.sjRev||{})}; if(rv[it.id]) delete rv[it.id]; else rv[it.id]=1; this.setState({sjRev:rv}, ()=>this._saveEnamProva()); };
+  enamDescartar = ()=>{ this._toastAcoes('Descartar o simulado ENAM? As respostas se perdem.', [{rotulo:'Descartar', destaque:true, on:()=>this.exitProva()}, {rotulo:'Continuar a prova', on:()=>{}}], 10); };
+  // ct_enam_prova: só ids, respostas e posição — nunca enunciado. Guarda também o decorrido
+  // (sec) e a duração que valia antes (durAntes) para devolvê-la ao sair.
+  _saveEnamProva(){ try{ const s=this.state; if(s.sjModo!=='enam' || !s.provaMode || !(s.sjItens||[]).length) return;
+    localStorage.setItem('ct_enam_prova', JSON.stringify({v:1, itensIds:s.sjItens.map(x=>x.id), resp:s.sjResp||{}, rev:s.sjRev||{}, atual:s.sjAtual||0, ini:s.sjIni||Date.now(),
+      sec:s.provaSeconds||0, nome:s.provaName||'', comPausa:!!s.sjComPausa, durAntes:this._provaDurAntes||null, porArea:s.enamMont||null})); }catch(_){} }
+  _restoreEnamProva(){
+    let t=null; try{ t=JSON.parse(localStorage.getItem('ct_enam_prova')||'null'); }catch(_){}
+    if(!t || !Array.isArray(t.itensIds) || !t.itensIds.length) return;
+    const E=window.CT_ENAM; const descarta=(msg)=>{ try{ localStorage.removeItem('ct_enam_prova'); localStorage.removeItem('ct_prova'); }catch(_){} if(msg) this._toast(msg); };
+    if(!E||!E.rehidratar){ descarta(''); return; }
+    if(Date.now()-(+t.ini||0) > E.RETOMAR_H*3600e3){ descarta('O simulado ENAM começado há mais de 36 horas foi descartado'); return; }
+    this._enamAcervos().then(()=>{
+      const itens=E.rehidratar(t.itensIds, window.CT_QUESTOES_ENAM||[], window.CT_QUESTOES_PROVA||[]);
+      if(!itens){ descarta('Não achei as questões do simulado ENAM guardado — o banco mudou; a prova foi descartada'); return; }
+      const cap=E.DURACAO_MIN*60, sec=Math.max(0, Math.min(cap-1, +t.sec||0)), resp=t.resp&&typeof t.resp==='object'?t.resp:{};
+      this._provaDurAntes=t.durAntes||this.state.provaDurationMin; this._enamAvisos={m60:(cap-sec)<=3600, m15:(cap-sec)<=900};
+      try{ localStorage.removeItem('ct_prova'); }catch(_){}
+      const n=itens.filter(x=>resp[x.id]!==undefined).length;
+      this.setState({sjModo:'enam', sjAberto:true, sjItens:itens, sjResp:resp, sjRev:(t.rev&&typeof t.rev==='object')?t.rev:{}, sjAtual:Math.max(0,Math.min(itens.length-1,+t.atual||0)), sjFim:false, sjRel:null, sjIni:+t.ini||Date.now(),
+        sjComPausa:true, enamMont:Array.isArray(t.porArea)?t.porArea:null, enamErro:'',
+        provaMode:true, provaRunning:false, provaDurationMin:E.DURACAO_MIN, provaSeconds:sec, provaName:t.nome||this._enamNome()}, ()=>{ this._saveEnamProva(); try{ this._irPara('simulados'); }catch(_){} });
+      this._toast('Simulado ENAM retomado onde parou — '+n+' respondida'+(n===1?'':'s')+'; aperte Retomar para seguir');
+    }).catch(()=>descarta('Não consegui recarregar o banco do ENAM — a prova guardada foi descartada'));
+  }
+  // avisos discretos: um toast aos 60 e outro aos 15 minutos finais — sem som, sem piscar
+  _enamAvisoTick(){ const s=this.state, left=s.provaDurationMin*60-s.provaSeconds; this._enamAvisos=this._enamAvisos||{};
+    if(left<=3600 && !this._enamAvisos.m60){ this._enamAvisos.m60=true; this._toast('Falta 1 hora de prova'); }
+    if(left<=900 && !this._enamAvisos.m15){ this._enamAvisos.m15=true; this._toast('Faltam 15 minutos — revise as marcadas'); } }
+  _enamFecha(extra){ try{ localStorage.removeItem('ct_enam_prova'); localStorage.removeItem('ct_prova'); }catch(_){} const d=this._provaDurAntes; this._provaDurAntes=null;
+    return {provaMode:false, provaRunning:false, ...(d?{provaDurationMin:d}:{}), ...(extra||{})}; }
+  encerrarEnam = (auto)=>{
+    if(this._provaT){ clearInterval(this._provaT); this._provaT=null; }
+    const its=this.state.sjItens||[], r=this.state.sjResp||{}, T=window.CT_TREINO;
+    if(!its.length){ this.setState(this._enamFecha()); return; }
+    const rel=T?T.relatorio(its,r):null;
+    const acertos=its.filter(x=>r[x.id]===x.certo).length, respondidas=its.filter(x=>r[x.id]!==undefined).length;
+    const min=Math.max(1, Math.round((this.state.provaSeconds||0)/60)), agora=Date.now();
+    const ed=(this.state.enam&&this.state.enam.edicao)||(window.CT_ENAM?window.CT_ENAM.proxima().id:'');
+    // a tentativa: ids e respostas, nunca enunciado (E4 acrescenta a correção "habilitaria?")
+    const tent={id:'es'+agora, ts:agora, up:agora, edicao:ed, ids:its.map(x=>x.id), resp:{...r}, rev:Object.keys(this.state.sjRev||{}).filter(k=>its.some(x=>x.id===k)),
+      total:its.length, acertos, brancos:its.length-respondidas, foraDoEnam:its.filter(x=>x.foraDoEnam).length, minutos:min, comPausa:!!this.state.sjComPausa, auto:!!auto};
+    const nome=this.state.provaName||'Simulado ENAM';
+    this.setState(s=>({ ...this._enamFecha(), sjFim:true, sjRel:rel, simAnalysis:'liquida', simNome:nome, simMin:String(min),
+      sim:{...(s.sim||{}), total:its.length, acertos, erros:respondidas-acertos, brancos:its.length-respondidas},
+      enamSim:[...(s.enamSim||[]), tent], sjAberto:true, sessionModalOpen:true,
+      sessionDraft:{...this._freshSessionDraft(s.sessionDraft), categorias:['Simulado'], categoria:'Simulado', minutos:String(min),
+        disc:'ENAM', discCustom:!(s.edital||[]).some(x=>x.disc==='ENAM'), topico:nome} }), ()=>{ try{ this.flashSync&&this.flashSync(); }catch(_){} try{ this._irPara('simulados'); }catch(_){} });
+    this._toast(auto?'Tempo esgotado — a prova foi corrigida':'Prova encerrada — veja o gabarito e registre a sessão');
+    // erradas viram erro + flashcard + revisão pelo canal do item 2 (teto, dedupe e desfazer já são dele)
+    try{
+      const erradas=its.filter(x=>r[x.id]!==undefined && r[x.id]!==x.certo);
+      this._colherErros(erradas.map(it=>{ const alt=(it.alternativas||[]).find(a=>a.letra===it.certo);
+        return {enunciado:it.enunciado, disc:it.ramo||'ENAM', topico:it.assunto||'', gabarito:'Gabarito: '+String(it.certo)+(alt?(' — '+String(alt.texto||'').slice(0,600)):'')+' ('+it.ref+')'}; }), 'Simulado ENAM');
+    }catch(_){}
+  };
+  _enamVM(){
+    const st=this.state, E=window.CT_ENAM, its=st.sjItens||[], r=st.sjResp||{}, rv=st.sjRev||{};
+    const at=its[st.sjAtual]||null, left=st.provaDurationMin*60-st.provaSeconds;
+    const respondidas=its.filter(x=>r[x.id]!==undefined).length;
+    return {
+      enamEmProva:true, provaSala:false,
+      sjNum:st.sjAtual+1, sjTotal:its.length, sjRespondidas:respondidas, sjEnunciado:at?at.enunciado:'', sjRef:at?at.ref:'',
+      enamAreaAt:at?(((E&&E.areaDe(at.area))||{}).nome||at.ramo||''):'',
+      enamForaAt:!!(at&&at.foraDoEnam),
+      enamAlts:(at&&at.alternativas||[]).map(al=>({l:al.letra, txt:al.texto, on:r[at.id]===al.letra?'true':'false'})),
+      enamGrade:its.map((x,i)=>({i:i, n:String(i+1), est:r[x.id]!==undefined?'resp':'branco', atual:i===st.sjAtual?'1':'', rev:rv[x.id]?'1':'',
+        aria:'Questão '+(i+1)+(r[x.id]!==undefined?(', respondida '+r[x.id]):', em branco')+(rv[x.id]?', marcada para rever':'')+(i===st.sjAtual?', atual':'')})),
+      enamFaixas:(st.enamMont||[]).filter(a=>a.n>0).map(a=>({nome:String(a.nome||'').replace('Noções Gerais de Direito e ','').replace('Direito ',''), de:a.de, ate:a.ate})),
+      enamRevN:Object.keys(rv).filter(k=>its.some(x=>x.id===k)).length,
+      enamRevAt:(at&&rv[at.id])?'true':'false',
+      enamAviso:left<=3600?'1':'', enamAvisoTxt:left<=0?'Tempo esgotado':left<=900?'Faltam 15 minutos':left<=3600?'Última hora':'',
+    };
+  }
 
   // ===== ERRO VIRA REVISÃO SOZINHO (item 2 da especificação) =============================
   // Errou no simulado ou zerou quesito na 2ª fase → entra no caderno de erros, vira
@@ -11424,22 +11641,29 @@ class Component extends DCLogic {
   _provaTimer(){ if(this._provaT) clearInterval(this._provaT);
     this._provaLast=Date.now();   // ancorado no relógio: em segundo plano o interval é estrangulado
     this._provaT=setInterval(()=>{ const _n=Date.now(); const el=Math.max(1,Math.min(6*3600,Math.round((_n-(this._provaLast||_n-1000))/1000))); this._provaLast=_n;
-      this.setState(s=>{ const ns=s.provaSeconds+el; const cap=s.provaDurationMin*60; return {provaSeconds: ns>=cap?cap:ns}; }, ()=>{ try{ this._saveProva(); }catch(_){} if(this.state.provaSeconds>=this.state.provaDurationMin*60){ if(this._provaT){clearInterval(this._provaT);this._provaT=null;} this._beep&&this._beep(); this.setState({provaRunning:false}); this.finishProva(true); } }); },1000); }
+      this.setState(s=>{ const ns=s.provaSeconds+el; const cap=s.provaDurationMin*60; return {provaSeconds: ns>=cap?cap:ns}; }, ()=>{ try{ this._saveProva(); }catch(_){}
+        const enam=this.state.sjModo==='enam' && (this.state.sjItens||[]).length>0;   // E3: a prova ENAM tem os próprios avisos (sem som) e o próprio fim (corrige)
+        if(enam){ try{ this._enamAvisoTick(); if(this.state.provaSeconds%10===0) this._saveEnamProva(); }catch(_){} }
+        if(this.state.provaSeconds>=this.state.provaDurationMin*60){ if(this._provaT){clearInterval(this._provaT);this._provaT=null;} if(enam){ this.encerrarEnam(true); return; } this._beep&&this._beep(); this.setState({provaRunning:false}); this.finishProva(true); } }); },1000); }
   // Modo prova sobrevive a fechar o app: guarda o decorrido LOCAL (como o ct_timer) e,
   // no boot do MESMO dia, reabre PAUSADO onde parou — abre, não grava sozinho.
   _saveProva(){ try{ const s=this.state; if(!s.provaMode){ localStorage.removeItem('ct_prova'); return; } localStorage.setItem('ct_prova', JSON.stringify({sec:s.provaSeconds, min:s.provaDurationMin, d:this._hoje()})); }catch(_){} }
-  _restoreProva(){ try{ const raw=localStorage.getItem('ct_prova'); if(!raw) return; const t=JSON.parse(raw); localStorage.removeItem('ct_prova');
+  _restoreProva(){ try{ if(localStorage.getItem('ct_enam_prova')) return;   // E3: a prova ENAM guardada é de _restoreEnamProva, que sabe reconstruir as questões
+      const raw=localStorage.getItem('ct_prova'); if(!raw) return; const t=JSON.parse(raw); localStorage.removeItem('ct_prova');
       if(!t || t.d!==this._hoje()) return; const min=Math.max(1,Math.min(600,parseInt(t.min,10)||240)); const sec=Math.max(0,Math.min(min*60-1,+t.sec||0)); if(sec<=0) return;
       this.setState({provaMode:true, provaRunning:false, provaDurationMin:min, provaSeconds:sec});
       this._toast('Simulado retomado onde parou — aperte ▶ para continuar'); }catch(_){} }
   startProva = ()=>{ const m=Math.max(1,Math.min(600,parseInt(this.state.provaDurationMin,10)||240)); this.setState({provaDurationMin:m, provaMode:true, provaSeconds:0, provaRunning:true}, ()=>{ try{ this._saveProva(); }catch(_){} }); this._provaTimer(); };
-  provaToggle = ()=>{ if(this.state.provaRunning){ if(this._provaT){clearInterval(this._provaT);this._provaT=null;} this.setState({provaRunning:false}, ()=>{ try{ this._saveProva(); }catch(_){} }); }
+  provaToggle = ()=>{ if(this.state.provaRunning){ if(this._provaT){clearInterval(this._provaT);this._provaT=null;} this.setState({provaRunning:false, ...(this.state.sjModo==='enam'?{sjComPausa:true}:{})}, ()=>{ try{ this._saveProva(); }catch(_){} this._saveEnamProva(); }); }
     else { this.setState({provaRunning:true}); this._provaTimer(); } };
   finishProva = (auto)=>{ if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){} const elapsedMin=Math.round(this.state.provaSeconds/60);
     this.setState(s=>({ provaMode:false, provaRunning:false, sessionModalOpen:true,
       sessionDraft:{...this._freshSessionDraft(s.sessionDraft), categorias:['Simulado'], categoria:'Simulado', minutos: elapsedMin>0?String(elapsedMin):'', topico: s.provaName||'Simulado cronometrado' } }));
     this._toast(auto?'Tempo esgotado — registre seu desempenho':'Prova encerrada — registre seu desempenho'); };
-  exitProva = ()=>{ if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){} this.setState({provaMode:false, provaRunning:false}); };
+  exitProva = ()=>{ if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){}
+    // E3: sair do Modo ENAM descarta a prova guardada e limpa o caderno (a duração da sala comum volta ao que era)
+    if(this.state.sjModo==='enam'){ this.setState(this._enamFecha({sjItens:[], sjResp:{}, sjRev:{}, sjAtual:0, sjFim:false, sjRel:null, enamMont:null})); return; }
+    this.setState({provaMode:false, provaRunning:false}); };
 
   // ===== onboarding =====
   onboardNext = ()=> this.setState(s=>{
@@ -15497,6 +15721,8 @@ class Component extends DCLogic {
       abrirSimuladoJogo:this.abrirSimuladoJogo, setSjRamo:this.setSjRamo, setSjN:this.setSjN, iniciarSj:this.iniciarSj,
       toggleSjRamo:this.toggleSjRamo, toggleSjLei:this.toggleSjLei, setSjPctLei:this.setSjPctLei,
       responderSj:this.responderSj, responderSjAlt:this.responderSjAlt, setSjProvaN:this.setSjProvaN, navSj:this.navSj, irSj:this.irSj, encerrarSj:this.encerrarSj, novoSj:this.novoSj,
+      // E3 — Modo ENAM
+      setSjModo:this.setSjModo, iniciarEnam:this.iniciarEnam, encerrarEnam:this.encerrarEnam, enamEmBranco:this.enamEmBranco, enamRever:this.enamRever, enamDescartar:this.enamDescartar,
       setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
       sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
       onOralResposta:this.onOralResposta, corrigirOral:this.corrigirOral,
@@ -15976,6 +16202,9 @@ class Component extends DCLogic {
       isOral:this.state.view==='oral', navOral:navStyle('oral'),
       ...(this.state.view==='oral' ? this._oralVM() : {}),
       ...(this.state.view==='simulados' ? this._sjVM() : {}),
+      // E3: a tela cheia do Modo ENAM existe em qualquer view (a prova continua se ela trocar de tela)
+      provaSala:this.state.provaMode && this.state.sjModo!=='enam', enamEmProva:false,
+      ...((this.state.provaMode && this.state.sjModo==='enam' && (this.state.sjItens||[]).length) ? this._enamVM() : {}),
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
       viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),

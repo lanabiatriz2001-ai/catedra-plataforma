@@ -104,6 +104,85 @@
     for (var k = 0; k < EDICOES.length; k++) { var d = diasAte(EDICOES[k].data, agora, fuso); if (d != null && d >= 0) return EDICOES[k]; }
     return EDICOES[EDICOES.length - 1];
   }
+
+  /* ===== E3: a prova montada como ela é =====
+     80 questões A–E na ordem das áreas do edital, cota exata por área, embaralhadas dentro do
+     bloco. Só o banco oficial (nunca item Certo/Errado gerado) e nunca anulada. Em cada área a
+     prioridade é: questão que a pessoa ainda não fez → já feita (continua sendo ENAM de verdade) →
+     reserva de prova de magistratura da mesma disciplina, marcada foraDoEnam:true. */
+  function embaralhar(a, rnd) { rnd = rnd || Math.random; for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function normDisc(s) { s = String(s || '').replace(/\s*\(.*$/, '').toLowerCase(); try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {} return s.replace(/\s+/g, ' ').trim(); }
+  function questaoValida(q) { return !!(q && q.alternativas && q.alternativas.length === 5 && /^[A-E]$/.test(String(q.gabarito || '')) && String(q.enunciado || '').length >= 40); }
+  /** O item do simulado (mesmo shape que o Simulado A–E consome) a partir de uma questão do banco ENAM. */
+  function item(q) {
+    var area = null; for (var k = 0; k < AREAS.length; k++) if (AREAS[k].id === q.area) area = AREAS[k];
+    return { id: q.id, origem: 'enam', area: q.area, ramo: q.disciplina || (area ? area.nome : ''), disciplina: q.disciplina || (area ? area.nome : ''),
+      enunciado: q.enunciado, alternativas: q.alternativas, certo: q.gabarito, edicao: q.edicao, numero: q.numero, fonte: q.fonte || '',
+      banca: 'FGV/ENFAM', ano: String(q.edicao || '').slice(0, 4), assunto: '',
+      ref: 'ENAM ' + q.edicao + ' · questão ' + q.numero };
+  }
+  /** Reserva: questão de prova de magistratura (CT_QUESTOES_PROVA) cobrindo uma área sem estoque. */
+  function itemReserva(q, areaId) {
+    return { id: 'qp' + q.id, origem: 'prova', foraDoEnam: true, area: areaId, ramo: String(q.disciplina || '').replace(/\s*\(.*$/, ''), disciplina: q.disciplina || '',
+      enunciado: q.enunciado, alternativas: q.alternativas, certo: q.gabarito, pct: q.pct, assunto: q.assunto || q.tema || '', banca: q.banca || '', ano: q.ano || '',
+      ref: [q.banca, q.orgao, q.ano].filter(Boolean).join(' · ') };
+  }
+  function areaDaDisciplina(disc) {
+    var d = normDisc(disc);
+    for (var k = 0; k < AREAS.length; k++) for (var j = 0; j < AREAS[k].disciplinasApp.length; j++) {
+      var x = normDisc(AREAS[k].disciplinasApp[j]); if (d === x || d.indexOf(x + ' ') === 0) return AREAS[k];
+    }
+    return null;
+  }
+  /**
+   * montar(banco, opts) → { itens, porArea, foraDoEnam, faltam, total }
+   *   banco        CT_QUESTOES_ENAM
+   *   opts.cotas   {areaId: n} — padrão: o quadro 8.6
+   *   opts.excluir ids já feitos (catedra:enamSim) — evitados enquanto houver estoque
+   *   opts.reserva CT_QUESTOES_PROVA — completa área com estoque curto (foraDoEnam:true)
+   *   opts.rnd     gerador de números (os testes passam um determinístico)
+   * porArea traz, por área, cota, n, doBanco, foraDoEnam e a faixa (de–ate, 1-based) na prova.
+   */
+  function montar(banco, opts) {
+    opts = opts || {};
+    var rnd = opts.rnd || Math.random, cotas = opts.cotas || {};
+    var feitas = {}; (opts.excluir || []).forEach(function (id) { feitas[id] = 1; });
+    var validas = (banco || []).filter(function (q) { return questaoValida(q) && !q.anulada; });
+    var reserva = (opts.reserva || []).filter(questaoValida);
+    var itens = [], porArea = [], fora = 0, faltam = 0, usados = {};
+    for (var a = 0; a < AREAS.length; a++) {
+      var area = AREAS[a], cota = cotas[area.id] != null ? Math.max(0, +cotas[area.id] | 0) : area.cota;
+      var doBanco = validas.filter(function (q) { return q.area === area.id; });
+      var novas = embaralhar(doBanco.filter(function (q) { return !feitas[q.id]; }), rnd);
+      var velhas = embaralhar(doBanco.filter(function (q) { return feitas[q.id]; }), rnd);
+      var bloco = novas.concat(velhas).slice(0, cota).map(item), nFora = 0;
+      if (bloco.length < cota) {
+        var pool = embaralhar(reserva.filter(function (q) { var ar = areaDaDisciplina(q.disciplina); return ar && ar.id === area.id && !usados['qp' + q.id]; }), rnd);
+        for (var k = 0; k < pool.length && bloco.length < cota; k++) { bloco.push(itemReserva(pool[k], area.id)); nFora++; }
+      }
+      embaralhar(bloco, rnd);
+      for (var i = 0; i < bloco.length; i++) usados[bloco[i].id] = 1;
+      itens = itens.concat(bloco);
+      fora += nFora; faltam += Math.max(0, cota - bloco.length);
+      porArea.push({ id: area.id, nome: area.nome, cota: cota, n: bloco.length, doBanco: bloco.length - nFora, foraDoEnam: nFora,
+        de: itens.length - bloco.length + 1, ate: itens.length });
+    }
+    return { itens: itens, porArea: porArea, foraDoEnam: fora, faltam: faltam, total: itens.length };
+  }
+  /** Reconstrói os itens de uma prova guardada (ct_enam_prova guarda só ids). null se algum id sumiu do banco. */
+  function rehidratar(ids, banco, reserva) {
+    var porId = {}, resId = {}, k;
+    for (k = 0; k < (banco || []).length; k++) porId[banco[k].id] = banco[k];
+    for (k = 0; k < (reserva || []).length; k++) resId['qp' + reserva[k].id] = reserva[k];
+    var itens = [];
+    for (k = 0; k < (ids || []).length; k++) {
+      var id = ids[k];
+      if (porId[id]) { itens.push(item(porId[id])); continue; }
+      if (resId[id]) { var ar = areaDaDisciplina(resId[id].disciplina); itens.push(itemReserva(resId[id], ar ? ar.id : '')); continue; }
+      return null;
+    }
+    return itens.length ? itens : null;
+  }
   raiz.CT_ENAM = {
     AREAS: AREAS,
     QUESTOES: TOTAL,                 // 80
@@ -113,6 +192,8 @@
     EDITAL: 'Edital de Abertura n. 02/2026 — 6º ENAM (FGV/ENFAM)',
     FUSO_PROVA: FUSO_PROVA, EDICOES: EDICOES,
     areaDe: function (id) { for (var k = 0; k < AREAS.length; k++) if (AREAS[k].id === id) return AREAS[k]; return null; },
-    edicao: edicao, proxima: proxima, diasAte: diasAte, instante: instante, horaLocal: horaLocal, cadencia: cadencia, fusoAparelho: fusoAparelho
+    edicao: edicao, proxima: proxima, diasAte: diasAte, instante: instante, horaLocal: horaLocal, cadencia: cadencia, fusoAparelho: fusoAparelho,
+    RETOMAR_H: 36,                   // E3: a prova guardada em ct_enam_prova vale por 36 h (começar à noite, terminar de manhã)
+    montar: montar, rehidratar: rehidratar, areaDaDisciplina: areaDaDisciplina
   };
 })(typeof window !== 'undefined' ? window : globalThis);
