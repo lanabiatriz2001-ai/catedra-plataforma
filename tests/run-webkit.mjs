@@ -18,13 +18,14 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
+import { testarEnamModo } from './enam-modo.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
 const PORTA = +(process.env.CT_PORT || 8124);
 const { srv, url: URL0 } = await iniciarServidor(RAIZ, PORTA);
 const { browser, motor } = await lancarNavegador(process.env.CT_BROWSER || 'webkit');
-console.log('[' + motor + '] Prova oral → Lei seca e LEGIS guiado em http://localhost:' + PORTA + ' e em file://');
+console.log('[' + motor + '] Prova oral → Lei seca, LEGIS guiado e Modo ENAM em http://localhost:' + PORTA + ' e em file://');
 
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
@@ -47,6 +48,12 @@ for (const [base, origem, arquivo] of ORIGENS) {
   try { await testarLegisGuiado(page, base, ok, { motor, origem }); }
   catch (e) {
     ok(false, 'LEGIS GUIADO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+      + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+  }
+  // E3: o Modo ENAM — grade de 80 sobre a tela cheia e o banco oficial chegando por <script>
+  try { await testarEnamModo(page, base, ok, { motor, origem, arquivo }); }
+  catch (e) {
+    ok(false, 'ENAM MODO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
   }
   await ctx.close();

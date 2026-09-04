@@ -913,3 +913,49 @@ button:disabled { cursor: not-allowed; }
 .la-trilho-ro .la-chip.resp::before { opacity: 1; }
 .la-trilho-ro .la-chip.nao .la-rot { text-decoration: line-through; text-decoration-thickness: 1px; }
 .la-trilho-ro .la-chip .la-nao { font-weight: 600; }
+
+/* ===== 13. MODO ENAM (E3) — a prova como ela é ==========================================
+   Tela cheia sobre o app (mesmo z-index da sala de prova), com o fundo da tela e não o da
+   sala escura: são cinco horas de leitura. Grade de 80 quadradinhos com três estados —
+   respondida, em branco, marcada para rever —, alvos de 44px, contador em --mono e o aviso
+   de tempo em --warn (texto legível, sem cor de perigo piscando). Sem transição quando a
+   pessoa pede menos movimento. */
+.ct-enam { position: fixed; inset: 0; z-index: 150; background: var(--bg, #f7f4ec); color: var(--ink, #1c1a16); display: flex; flex-direction: column; overflow: auto; -webkit-overflow-scrolling: touch; }
+.ct-enam-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--ct-e3); flex-wrap: wrap; padding: var(--ct-e3) clamp(14px, 3vw, 32px); border-bottom: 1px solid var(--border, #e6e1d4); background: var(--surface, #fffdf8); position: sticky; top: 0; z-index: 1; }
+.ct-enam-nome { font-weight: 700; font-size: var(--fs-md, 14.5px); color: var(--ink, #1c1a16); }
+.ct-enam-sub { font-size: var(--fs-xs, 11.5px); color: var(--text3, #7a7368); margin-top: 2px; }
+.ct-enam-acoes { display: flex; align-items: center; gap: var(--ct-e2); flex-wrap: wrap; }
+.ct-enam-tempo { font-family: var(--mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; font-size: var(--fs-xl, 20px); font-weight: 600; color: var(--ink, #1c1a16); min-width: 5.5ch; text-align: right; }
+.ct-enam-tempo[data-aviso="1"] { color: var(--warn, #a36306); }
+.ct-enam-aviso { font-size: var(--fs-sm, 12.5px); font-weight: 700; color: var(--warn, #a36306); }
+.ct-enam-corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ct-e4); padding: var(--ct-e4) clamp(14px, 3vw, 32px) calc(var(--ct-e5) * 2); max-width: 1180px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+@media (min-width: 960px) { .ct-enam-corpo { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; } }
+.ct-enam-meta { font-size: var(--fs-xs, 11.5px); color: var(--text3, #7a7368); }
+.ct-enam-fora { font-size: var(--fs-sm, 12.5px); line-height: 1.5; color: var(--warn, #a36306); background: var(--warnSoft, #faf0e0); border-radius: var(--r-md, 10px); padding: var(--ct-e2) var(--ct-e3); margin-top: var(--ct-e2); }
+.ct-enam-enun { font-size: var(--fs-lg, 15.5px); color: var(--ink, #1c1a16); line-height: 1.65; margin: var(--ct-e3) 0 var(--ct-e4); white-space: pre-line; overflow-wrap: anywhere; }
+.ct-enam-alts { display: flex; flex-direction: column; gap: var(--ct-e2); }
+.ct-enam-alt { display: flex; gap: var(--ct-e2); align-items: flex-start; width: 100%; text-align: left; cursor: pointer; font-family: inherit; font-size: var(--fs-base, 13.5px); line-height: 1.5; min-height: 44px; padding: 11px 14px; border-radius: var(--r-md, 10px); border: 1px solid var(--border, #e6e1d4); background: var(--surface, #fffdf8); color: var(--ink, #1c1a16); overflow-wrap: anywhere; }
+.ct-enam-alt b { flex: none; font-family: var(--mono, ui-monospace, monospace); }
+.ct-enam-alt[aria-pressed="true"] { border-color: var(--accent, #0f7a57); background: var(--accentSoft, #e6f2ec); color: var(--accentD, #0b5a40); font-weight: 700; }
+.ct-enam-alt:focus-visible, .ct-gab-q:focus-visible { outline: 2px solid var(--accent, #0f7a57); outline-offset: 2px; }
+.ct-enam-nav { display: flex; gap: var(--ct-e2); flex-wrap: wrap; margin-top: var(--ct-e4); }
+.ct-enam-nav .ct-btn-2[aria-pressed="true"] { border-color: var(--warn, #a36306); color: var(--warn, #a36306); }
+.ct-enam-teclas { font-size: var(--fs-xs, 11.5px); color: var(--text3, #7a7368); margin-top: var(--ct-e3); }
+.ct-enam-pausa { border: 1px dashed var(--border, #e6e1d4); border-radius: var(--radius, 14px); padding: var(--ct-e4); text-align: center; color: var(--text2, #4a463f); font-size: var(--fs-base, 13.5px); line-height: 1.55; }
+.ct-gab { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; }
+.ct-gab-q { position: relative; min-width: 44px; min-height: 44px; border-radius: var(--r-sm, 7px); border: 1px solid var(--border, #e6e1d4); background: var(--surface, #fffdf8); color: var(--ink, #1c1a16); font: 700 12px var(--mono, ui-monospace, monospace); cursor: pointer; transition: background .12s, border-color .12s; }
+.ct-gab-q[data-est="resp"] { background: color-mix(in srgb, var(--accent, #0f7a57) 18%, var(--surface, #fffdf8)); border-color: color-mix(in srgb, var(--accent, #0f7a57) 45%, var(--border, #e6e1d4)); }
+.ct-gab-q[data-atual="1"] { background: var(--accent, #0f7a57); border-color: var(--accent, #0f7a57); color: var(--onAccent, #fff); }
+.ct-gab-q[data-rev="1"]::after { content: ""; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 99px; background: var(--warn, #a36306); }
+.ct-enam-faixas { display: flex; flex-wrap: wrap; gap: var(--ct-e1) var(--ct-e3); font-size: var(--fs-xs, 11.5px); color: var(--text3, #7a7368); line-height: 1.6; margin-top: var(--ct-e3); }
+.ct-enam-faixas b { font-family: var(--mono, ui-monospace, monospace); color: var(--text2, #4a463f); }
+.ct-enam-legenda { display: flex; flex-wrap: wrap; gap: var(--ct-e1) var(--ct-e3); font-size: var(--fs-xs, 11.5px); color: var(--text3, #7a7368); margin-top: var(--ct-e2); }
+.ct-enam-legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 1px solid var(--border, #e6e1d4); vertical-align: -1px; margin-right: 4px; background: var(--surface, #fffdf8); }
+.ct-enam-legenda i.resp { background: color-mix(in srgb, var(--accent, #0f7a57) 18%, var(--surface, #fffdf8)); }
+.ct-enam-legenda i.rev { background: var(--warn, #a36306); border-color: var(--warn, #a36306); }
+/* o painel de preparo no Simulado e as cotas do quadro 8.6 */
+.ct-enam-cotas { display: flex; flex-wrap: wrap; gap: var(--ct-e1) var(--ct-e3); margin: var(--ct-e3) 0; font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); }
+.ct-enam-cotas b { font-family: var(--mono, ui-monospace, monospace); color: var(--ink, #1c1a16); }
+.ct-enam-areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--ct-e1) var(--ct-e3); margin-top: var(--ct-e2); font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); }
+.ct-enam-areas b { font-family: var(--mono, ui-monospace, monospace); color: var(--ink, #1c1a16); }
+@media (prefers-reduced-motion: reduce) { .ct-gab-q { transition: none; } }
