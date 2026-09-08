@@ -982,3 +982,32 @@ button:disabled { cursor: not-allowed; }
 .ct-enam-refs { display: flex; flex-wrap: wrap; gap: var(--ct-e1) var(--ct-e2); margin-top: var(--ct-e2); align-items: center; }
 .ct-enam-refs .ct-enam-ref { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--border, #e6e1d4); background: var(--surface2, #f4f0e6); color: var(--text2, #4a463f); font-size: var(--fs-xs, 11.5px); font-family: var(--mono, ui-monospace, monospace); }
 .ct-enam-refs button.ct-enam-ref { cursor: pointer; font-family: inherit; color: var(--accentD, #0b5a40); border-color: color-mix(in srgb, var(--accent, #0f7a57) 40%, var(--border, #e6e1d4)); min-height: 44px; }
+/* ===== 14. TRILHA ENAM no Início (E5) ======================================================
+   Um bloco só: contagem, meta, última tentativa com sparkline, as 8 áreas em uma linha (cor
+   de matéria como identidade no ponto, texto escurecido até 4,5:1), a próxima ação e a cadência
+   de simulados. Cadência é sugestão: sem "atrasado", sem --danger, sem ofensiva. */
+.ct-trilha { background: var(--surface, #fffdf8); border: 1px solid var(--border, #e6e1d4); border-radius: var(--radius, 14px); padding: var(--ct-e4); display: grid; gap: var(--ct-e4); margin-bottom: 26px; }
+.ct-trilha-topo { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--ct-e4) var(--ct-e5); }
+.ct-trilha-dias { font-family: var(--display, Georgia, serif); font-size: clamp(30px, 4.5vw, 44px); font-weight: 700; line-height: 1; color: var(--ink, #1c1a16); letter-spacing: -.02em; }
+.ct-trilha-sub { font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); margin-top: 6px; line-height: 1.5; }
+.ct-trilha-ult { display: flex; align-items: center; gap: var(--ct-e3); flex-wrap: wrap; }
+.ct-trilha-ult .n { font-family: var(--display, Georgia, serif); font-size: clamp(26px, 3.6vw, 36px); font-weight: 700; line-height: 1; color: var(--ink, #1c1a16); }
+.ct-trilha-ult .n small { font-size: .5em; color: var(--text3, #7a7368); font-weight: 600; }
+.ct-trilha-ult svg { flex: none; }
+.ct-trilha-formato { display: flex; flex-wrap: wrap; gap: var(--ct-e1) var(--ct-e3); font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); }
+.ct-trilha-formato b { font-family: var(--mono, ui-monospace, monospace); color: var(--ink, #1c1a16); }
+.ct-trilha-areas { display: flex; flex-wrap: wrap; gap: var(--ct-e1) var(--ct-e2); }
+.ct-trilha-area { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 2px 10px 2px 8px; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--tr-c, var(--accent)) 30%, var(--border, #e6e1d4)); background: color-mix(in srgb, var(--tr-c, var(--accent)) 10%, var(--surface, #fffdf8)); color: var(--tr-tx, var(--ink)); font-size: var(--fs-xs, 11.5px); font-weight: 600; }
+.ct-trilha-area::before { content: ""; width: 8px; height: 8px; border-radius: 99px; background: var(--tr-c, var(--accent)); flex: none; }
+.ct-trilha-area b { font-family: var(--mono, ui-monospace, monospace); font-weight: 700; }
+.ct-trilha-acao { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ct-e3); padding: var(--ct-e3) var(--ct-e4); border-radius: var(--r-md, 10px); background: color-mix(in oklab, var(--accent, #0f7a57) 10%, var(--surface, #fffdf8)); border: 1px solid color-mix(in oklab, var(--accent, #0f7a57) 30%, var(--border, #e6e1d4)); }
+.ct-trilha-acao .t { flex: 1; min-width: 200px; }
+.ct-trilha-acao .t b { display: block; font-size: var(--fs-md, 14.5px); color: var(--ink, #1c1a16); }
+.ct-trilha-acao .t span { display: block; font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); margin-top: 2px; line-height: 1.5; }
+.ct-trilha-cad { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ct-e2); font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); }
+.ct-trilha-cad .ct-trilha-data { display: inline-flex; align-items: center; min-height: 30px; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--border, #e6e1d4); background: var(--surface2, #f4f0e6); font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-xs, 11.5px); color: var(--text2, #4a463f); }
+.ct-trilha-cad .ct-trilha-data[data-agendada="1"] { border-color: color-mix(in srgb, var(--accent, #0f7a57) 45%, var(--border, #e6e1d4)); color: var(--accentD, #0b5a40); }
+.ct-trilha-edital { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ct-e3); font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); }
+.ct-trilha-edital .tr { flex: 1; min-width: 140px; height: 7px; border-radius: 99px; background: var(--border, #e6e1d4); overflow: hidden; }
+.ct-trilha-edital .tr > i { display: block; height: 100%; border-radius: 99px; background: var(--accent, #0f7a57); }
+.ct-trilha .ct-btn, .ct-trilha .ct-btn-2 { min-height: 44px; }
