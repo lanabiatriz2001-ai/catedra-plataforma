@@ -3409,11 +3409,40 @@ window.ctPdfLib = (function(){
                 </sc-if>
                 <!-- relatório -->
                 <sc-if value="{{ sjFim }}" hint-placeholder-val="{{ false }}">
+                  <!-- E4: o resultado do Modo ENAM responde à única pergunta que importa — habilitaria? -->
+                  <sc-if value="{{ enamTemCor }}" hint-placeholder-val="{{ false }}">
+                    <div class="ct-enam-res">
+                      <div class="ct-enam-res-n" aria-label="{{ enamCorAcertos }} acertos de {{ enamCorTotal }}">{{ enamCorAcertos }}<small>/{{ enamCorTotal }}</small></div>
+                      <div>
+                        <span class="ct-enam-selo" data-ok="{{ enamCorOk }}">{{ enamCorSelo }}</span>
+                        <div class="ct-enam-res-meta" style="margin-top:6px;">{{ enamCorMeta }}</div>
+                        <div class="ct-enam-res-meta">{{ enamCorTempo }}<sc-if value="{{ enamCorTempoLento }}" hint-placeholder-val="{{ false }}"> — acima do tempo da prova</sc-if></div>
+                      </div>
+                    </div>
+                    <sc-if value="{{ enamCorNota }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-xs);color:var(--text3);line-height:1.5;margin-bottom:8px;">{{ enamCorNota }}</div></sc-if>
+                    <div class="ct-eb" style="margin-top:12px;">Por área do edital — acertos sobre a cota, com a marca do alvo</div>
+                    <div class="ct-enam-barras" role="list">
+                      <sc-for list="{{ enamCorBarras }}" as="b" hint-placeholder-count="8">
+                        <div class="ct-enam-barra" role="listitem" data-ok="{{ b.ok }}" aria-label="{{ b.aria }}"><span>{{ b.nome }}</span><span class="tx">{{ b.txt }}</span><span class="tr"><i style="{{ b.fill }}"></i><b style="{{ b.marca }}"></b></span></div>
+                      </sc-for>
+                    </div>
+                    <sc-if value="{{ enamCorTemFaltou }}" hint-placeholder-val="{{ false }}">
+                      <div class="ct-eb" style="margin-top:16px;">Onde faltou</div>
+                      <div class="ct-enam-faltou">
+                        <sc-for list="{{ enamCorFaltou }}" as="f" hint-placeholder-count="3">
+                          <div><b>{{ f.nome }}</b><span class="tx">{{ f.txt }}</span><button type="button" class="ct-btn-2" data-area="{{ f.area }}" onclick="{{ enamEstudarArea }}">Estudar esta área</button></div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <div style="height:14px;"></div>
+                  </sc-if>
+                  <sc-if value="{{ !enamTemCor }}" hint-placeholder-val="{{ true }}">
                   <div class="ct-nums" style="margin-bottom:8px;">
                     <div class="ct-num"><b>{{ sjAcertos }}/{{ sjTotal }}</b><span>Acertos</span></div>
                     <div class="ct-num ct-num-forte"><b>{{ sjPct }}%</b><span>Aproveitamento</span></div>
                     <div class="ct-num"><b>{{ sjBrancos }}</b><span>Em branco</span></div>
                   </div>
+                  </sc-if>
                   <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números já foram lançados no formulário abaixo — confira e clique em <b>Registrar simulado no histórico</b> para contar no seu desempenho.</div>
                   <button onclick="{{ novoSj }}" class="ct-btn-2" style="margin-bottom:16px;">Novo simulado</button>
                   <sc-if value="{{ sjTemRel }}" hint-placeholder-val="{{ false }}">
@@ -3426,11 +3455,7 @@ window.ctPdfLib = (function(){
                         <span><b style="color:var(--ink);">Lei seca</b> {{ sjRelLei }}</span>
                       </div>
                       </sc-if>
-                      <sc-if value="{{ sjEhEnam }}" hint-placeholder-val="{{ false }}">
-                      <div class="ct-eb" style="margin-top:16px;">Por área do edital</div>
-                      <div class="ct-enam-areas"><sc-for list="{{ enamRelAreas }}" as="a" hint-placeholder-count="8"><span>{{ a.nome }} <b>{{ a.txt }}</b></span></sc-for></div>
-                      <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;line-height:1.5;">{{ enamRelNota }}</div>
-                      </sc-if>
+
                       <div class="ct-eb" style="margin-top:16px;">Onde você mais errou</div>
                       <sc-for list="{{ sjRelPior }}" as="r" hint-placeholder-count="3">
                         <div style="margin-top:9px;">
@@ -3462,6 +3487,16 @@ window.ctPdfLib = (function(){
                         <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:8px;">O item trocou <b style="color:var(--ok);">“{{ q.trocaDe }}”</b> por <b style="color:var(--danger);">“{{ q.trocaPara }}”</b>.</div>
                       </sc-if>
                       <sc-if value="{{ q.oficial }}" hint-placeholder-val="{{ true }}"><div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.55;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);"><b>Texto oficial:</b> {{ q.oficial }}</div></sc-if>
+                      <!-- E4: a referência normativa que o build apontou; lei conhecida abre o LEGIS, súmula/tema vai ao JURIS -->
+                      <sc-if value="{{ q.refs }}" hint-placeholder-val="{{ false }}">
+                        <div class="ct-enam-refs" aria-label="Referências">
+                          <sc-for list="{{ q.refs }}" as="rf" hint-placeholder-count="2">
+                            <sc-if value="{{ rf.legis }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-enam-ref" data-lei="{{ rf.lei }}" data-rot="{{ rf.rot }}" onclick="{{ laAbrirNoLegis }}">{{ rf.txt }} · Ler no LEGIS</button></sc-if>
+                            <sc-if value="{{ rf.jurisTem }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-enam-ref" data-busca="{{ rf.juris }}" onclick="{{ enamVerNoJuris }}">{{ rf.txt }} · Ver no JURIS</button></sc-if>
+                            <sc-if value="{{ !rf.legis }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ !rf.jurisTem }}" hint-placeholder-val="{{ true }}"><span class="ct-enam-ref">{{ rf.txt }}</span></sc-if></sc-if>
+                          </sc-for>
+                        </div>
+                      </sc-if>
                       <!-- LA6: errou lei seca → a grade que ela leu (se leu) e o caminho para o leitor -->
                       <sc-if value="{{ q.laMostra }}" hint-placeholder-val="{{ false }}">
                         <sc-for list="{{ q.laTrilhos }}" as="t" hint-placeholder-count="0">
@@ -6181,7 +6216,7 @@ class Component extends DCLogic {
       sjRamos:[], sjLeis:[], sjPctLei:40, sjRel:null,   // simulado misto: várias disciplinas, juris + lei seca
       // E3 — Modo ENAM: a prova como ela é. sjModo escolhe o preset; sjRev guarda as marcadas para rever;
       // sjComPausa marca a tentativa que pausou (a prova real não tem pausa); enamMont é a montagem por área.
-      sjModo:'misto', sjRev:{}, sjComPausa:false, enamMont:null, enamErro:'', enamCarregando:false,
+      sjModo:'misto', sjRev:{}, sjComPausa:false, enamMont:null, enamErro:'', enamCarregando:false, enamCor:null,   // enamCor: a correção E4 da última prova
       oralModo:'juris', oralIntencao:'',   // corrigido no 1º render para um modo que a área tenha oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
       oralPergunta:'', oralResposta:'', oralCorrecao:null, oralHist:[],
       oralBancasPronto:false, oralBancaCarr:'', oralBancaBanca:'', oralBancaQ:'', oralBancaSoOuro:true, oralBancaSel:null,
@@ -9995,8 +10030,21 @@ class Component extends DCLogic {
       sjModoChips:[{v:'misto',label:'Simulado misto',on:st.sjModo!=='enam'},{v:'enam',label:'Modo ENAM',on:st.sjModo==='enam'}].map(c=>({v:c.v,label:c.label,on:c.on?'true':'false',style:this._chip(c.on)+'min-height:44px;'})),
       enamCotas:((window.CT_ENAM&&window.CT_ENAM.AREAS)||[]).map(a=>({nome:a.nome.replace('Noções Gerais de Direito e ','').replace('Direito ',''), cota:a.cota})),
       enamErro:st.enamErro||'', enamCarregando:!!st.enamCarregando,
-      enamRelAreas:(st.sjModo==='enam'?(st.enamMont||[]):[]).map(a=>{ const ii=its.filter(x=>x.area===a.id); const ok=ii.filter(x=>r[x.id]===x.certo).length; return {nome:a.nome.replace('Noções Gerais de Direito e ',''), txt:ok+'/'+ii.length}; }),
-      enamRelNota:(()=>{ const f=its.filter(x=>x.foraDoEnam).length; return (f?(f+' quest'+(f>1?'ões':'ão')+' de outra prova de magistratura completaram áreas sem estoque no banco do ENAM e contam à parte. '):'')+(st.sjComPausa?'Tentativa com pausa — a prova real não tem.':''); })(),
+      // E4: o resultado — "habilitaria?" e onde faltou, área por área
+      ...(()=>{ const c=(st.sjModo==='enam'&&st.sjFim)?st.enamCor:null; if(!c) return {enamTemCor:false, enamCorBarras:[], enamCorFaltou:[]};
+        const curto=n=>String(n||'').replace('Noções Gerais de Direito e ','').replace('Direito ','');
+        const falt=Math.max(0, -c.margem);
+        return { enamTemCor:true, enamCorAcertos:String(c.acertos), enamCorTotal:String(c.total),
+          enamCorOk:c.habilitaria?'1':'', enamCorSelo:c.habilitaria?'habilitaria':('faltaram '+falt+' acerto'+(falt===1?'':'s')),
+          enamCorMeta:'meta de '+c.meta+' acertos · margem '+(c.margem>=0?'+':'−')+Math.abs(c.margem)+' · '+c.brancos+' em branco · '+c.erros+' erro'+(c.erros===1?'':'s'),
+          enamCorTempo:c.respondidas?(c.segPorQuestao+' s por questão respondida · '+c.segDisponivel+' s disponíveis por questão'):'nenhuma questão respondida',
+          enamCorTempoLento:c.respondidas>0 && c.segPorQuestao>c.segDisponivel,
+          enamCorNota:(c.foraDoEnam?(c.foraDoEnam+' quest'+(c.foraDoEnam>1?'ões':'ão')+' de outra prova de magistratura completaram áreas sem estoque e contam à parte. '):'')+(c.comPausa?'Tentativa com pausa — a prova real não tem. ':'')+(c.anuladas?(c.anuladas+' anulada'+(c.anuladas>1?'s':'')+' não contam. '):''),
+          enamCorBarras:c.porAreaEdital.map(a=>({area:a.area, nome:curto(a.nome), txt:a.ok+' de '+a.cota+' · alvo '+a.alvoInt, ok:a.ok>=a.alvoInt?'1':'',
+            fill:'width:'+Math.min(100,Math.round(a.ok/(a.cota||1)*100))+'%;', marca:'left:'+Math.min(100,Math.round(a.alvo/(a.cota||1)*100))+'%;',
+            aria:curto(a.nome)+': '+a.ok+' de '+a.cota+', alvo '+a.alvoInt})),
+          enamCorFaltou:c.porArea.filter(a=>a.deficit>0).slice(0,3).map(a=>({area:a.area, nome:curto(a.nome), txt:'faltaram '+Math.ceil(a.deficit)+' · '+a.ok+' de '+a.cota+' (alvo '+a.alvoInt+')'})),
+          enamCorTemFaltou:c.porArea.some(a=>a.deficit>0) }; })(),
       sjN:st.sjN, sjRamo:st.sjRamo, sjProvaN:st.sjProvaN,
       sjRamoOpts:[{v:'',label:'Todas as disciplinas',sel:!st.sjRamo}].concat(ramos.map(k=>({v:k,label:k+' ('+m[k]+')',sel:st.sjRamo===k}))),
       // chips multisseleção: disciplinas do acervo e leis embutidas
@@ -10049,6 +10097,8 @@ class Component extends DCLogic {
         banca:String(x.banca||''), ano:String(x.ano||''),
         termo:String(x.enunciado||'').split(/\s+/).slice(0,10).join(' '),
         oficial:x.original||'',
+        // E4: as referências normativas apontadas pelo build do banco ENAM, com o caminho para o LEGIS/JURIS
+        refs:(x.origem==='enam'&&Array.isArray(x.refs))?x.refs.map(t=>this._enamRef(t)).filter(Boolean):[],
         // LA6: item de lei seca ERRADO puxa a leitura da lei — a grade quando houver, e o botão certo
         ...((x.origem==='lei' && r[x.id]!==x.certo && x.url)?(()=>{ const ls=this._laLeiturasDe(x.url, x.tema).map(t=>this._laTrilhoRo(t)).filter(Boolean);
           return { laMostra:true, laLei:String(x.url), laRot:String(x.tema||''), laTrilhos:ls, laTem:ls.length>0 }; })():{ laMostra:false, laTrilhos:[], laTem:false })}; }),
@@ -10169,7 +10219,7 @@ class Component extends DCLogic {
     this.setState({enamErro:'', enamCarregando:true});
     this._enamAcervos().then(()=>{
       const banco=window.CT_QUESTOES_ENAM||[]; if(!banco.length) throw new Error('sem banco');
-      const feitas=[].concat.apply([], (this.state.enamSim||[]).map(t=>Array.isArray(t.ids)?t.ids:[]));
+      const feitas=[].concat.apply([], (this.state.enamSim||[]).map(t=>Array.isArray(t.idsUsados)?t.idsUsados:(Array.isArray(t.ids)?t.ids:[])));
       const m=E.montar(banco, {excluir:feitas, reserva:window.CT_QUESTOES_PROVA||[]});
       if(!m.itens.length) throw new Error('sem banco');
       if(m.faltam) this._toast('Faltaram '+m.faltam+' questões para fechar as cotas — a prova segue com '+m.itens.length);
@@ -10223,27 +10273,90 @@ class Component extends DCLogic {
     if(this._provaT){ clearInterval(this._provaT); this._provaT=null; }
     const its=this.state.sjItens||[], r=this.state.sjResp||{}, T=window.CT_TREINO;
     if(!its.length){ this.setState(this._enamFecha()); return; }
-    const rel=T?T.relatorio(its,r):null;
-    const acertos=its.filter(x=>r[x.id]===x.certo).length, respondidas=its.filter(x=>r[x.id]!==undefined).length;
+    const rel=T?T.relatorio(its,r):null, E=window.CT_ENAM;
     const min=Math.max(1, Math.round((this.state.provaSeconds||0)/60)), agora=Date.now();
-    const ed=(this.state.enam&&this.state.enam.edicao)||(window.CT_ENAM?window.CT_ENAM.proxima().id:'');
-    // a tentativa: ids e respostas, nunca enunciado (E4 acrescenta a correção "habilitaria?")
-    const tent={id:'es'+agora, ts:agora, up:agora, edicao:ed, ids:its.map(x=>x.id), resp:{...r}, rev:Object.keys(this.state.sjRev||{}).filter(k=>its.some(x=>x.id===k)),
-      total:its.length, acertos, brancos:its.length-respondidas, foraDoEnam:its.filter(x=>x.foraDoEnam).length, minutos:min, comPausa:!!this.state.sjComPausa, auto:!!auto};
+    const ed=(this.state.enam&&this.state.enam.edicao)||(E?E.proxima().id:'');
+    const meta=+(this.state.enam&&this.state.enam.metaAcertos)||(E?E.META_PADRAO:56);
+    // E4: "habilitaria?" — a correção pura; a tentativa guarda o resultado e os ids, nunca enunciado
+    const cor=E&&E.corrigir?E.corrigir(its, r, meta, {segundos:this.state.provaSeconds||0, comPausa:!!this.state.sjComPausa}):null;
+    const acertos=cor?cor.acertos:its.filter(x=>r[x.id]===x.certo).length, respondidas=cor?cor.respondidas:its.filter(x=>r[x.id]!==undefined).length;
+    const tent={id:'enam'+agora, ts:agora, up:agora, quando:new Date(agora).toISOString(), edicao:ed,
+      edicaoBanco:its.map(x=>x.edicao).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).sort(),
+      meta, acertos, brancos:its.length-respondidas, erros:respondidas-acertos, habilitaria:cor?cor.habilitaria:acertos>=meta, margem:cor?cor.margem:acertos-meta,
+      porArea:cor?cor.porAreaEdital.map(a=>({area:a.area, ok:a.ok, cota:a.cota, n:a.n})):[],
+      tempoTotalSeg:this.state.provaSeconds||0, segPorQuestao:cor?cor.segPorQuestao:0, comPausa:!!this.state.sjComPausa, foraDoEnam:its.filter(x=>x.foraDoEnam).length,
+      idsUsados:its.map(x=>x.id), resp:{...r}, rev:Object.keys(this.state.sjRev||{}).filter(k=>its.some(x=>x.id===k)), minutos:min, auto:!!auto};
     const nome=this.state.provaName||'Simulado ENAM';
-    this.setState(s=>({ ...this._enamFecha(), sjFim:true, sjRel:rel, simAnalysis:'liquida', simNome:nome, simMin:String(min),
+    this.setState(s=>({ ...this._enamFecha(), sjFim:true, sjRel:rel, enamCor:cor, simAnalysis:'liquida', simNome:nome, simMin:String(min),
       sim:{...(s.sim||{}), total:its.length, acertos, erros:respondidas-acertos, brancos:its.length-respondidas},
       enamSim:[...(s.enamSim||[]), tent], sjAberto:true, sessionModalOpen:true,
       sessionDraft:{...this._freshSessionDraft(s.sessionDraft), categorias:['Simulado'], categoria:'Simulado', minutos:String(min),
         disc:'ENAM', discCustom:!(s.edital||[]).some(x=>x.disc==='ENAM'), topico:nome} }), ()=>{ try{ this.flashSync&&this.flashSync(); }catch(_){} try{ this._irPara('simulados'); }catch(_){} });
-    this._toast(auto?'Tempo esgotado — a prova foi corrigida':'Prova encerrada — veja o gabarito e registre a sessão');
-    // erradas viram erro + flashcard + revisão pelo canal do item 2 (teto, dedupe e desfazer já são dele)
+    // erradas viram erro + flashcard + revisão pelo canal do item 2 (teto de 20, dedupe e desfazer já são dele);
+    // o que passar do teto é avisado, não engolido
+    let resto=0;
     try{
       const erradas=its.filter(x=>r[x.id]!==undefined && r[x.id]!==x.certo);
+      resto=Math.max(0, erradas.length-this.ERRO_AUTO_MAX);
       this._colherErros(erradas.map(it=>{ const alt=(it.alternativas||[]).find(a=>a.letra===it.certo);
-        return {enunciado:it.enunciado, disc:it.ramo||'ENAM', topico:it.assunto||'', gabarito:'Gabarito: '+String(it.certo)+(alt?(' — '+String(alt.texto||'').slice(0,600)):'')+' ('+it.ref+')'}; }), 'Simulado ENAM');
+        const refs=(it.refs||[]).length?(' Referência: '+it.refs.join('; ')+'.'):'';
+        return {enunciado:it.enunciado, disc:it.ramo||'ENAM', topico:it.assunto||'',
+          gabarito:'Gabarito: '+String(it.certo)+(alt?(' — '+String(alt.texto||'').slice(0,600)):'')+'.'+refs+' ('+it.ref+')',
+          extra:it.foraDoEnam?{fonte:'prova', ref:String(it.ref||'')}:{fonte:'enam', ref:String(it.edicao||'')+'·'+String(it.numero||'')}}; }), 'Simulado ENAM');
     }catch(_){}
+    this._toast((auto?'Tempo esgotado — a prova foi corrigida':'Prova encerrada — veja o resultado e registre a sessão')+(resto?(' · '+resto+' erro'+(resto>1?'s':'')+' ficaram fora do lote de revisão (teto de '+this.ERRO_AUTO_MAX+' por correção)'):''));
   };
+  /** "Estudar esta área": abre o LEGIS na lei-mãe da área, no artigo de incidência alta que ela ainda não leu
+      ativamente; área sem código próprio abre o catálogo já filtrado pelo termo. */
+  enamEstudarArea = (e)=>{
+    const area=String(e.currentTarget.dataset.area||''), E=window.CT_ENAM, A=E&&E.areaDe?E.areaDe(area):null; if(!A) return;
+    const MAE={constitucional:['CF','cf'], civil:['CC','l10406_2002'], processocivil:['CPC','l13105_2015'], penal:['CP','l2848_1940']};
+    const m=MAE[area], lei=m?this._enamLeiUrl(m[0]):'';
+    if(m && lei){
+      let rot='';
+      try{ const I=window.__INCIDENCIA__&&window.__INCIDENCIA__[m[1]]; if(I){ const corte=(I.corte||[16,4])[0];
+        const lidas=new Set((this.state.leituras||[]).filter(x=>x&&String(x.sigla||'').toUpperCase()===m[0]).map(x=>{ const k=/^art\.?\s*([\d.]+)/i.exec(String(x.rot||'')); return k?k[1].replace(/\./g,''):''; }));
+        const alvo=(I.lista||[]).filter(x=>+x[1]>=corte).map(x=>String(x[0]).replace(/\./g,'')).find(a=>!lidas.has(a)); if(alvo) rot='Art. '+alvo; } }catch(_){}
+      this._laAbrir={leiId:lei, rot, conferir:false, ts:Date.now()};
+      if(this._irPara('legis', {acervoBusca:'', origemAbrir:''})==='indisponivel'){ this._laAbrir=null; return; }
+      try{ const f=document.querySelector('iframe[data-ct-view="legis"]'); if(f&&f.dataset.ctLoad==='1') this._frameMensagem(f,'legis'); }catch(_){}
+      this._marcarPonto('legis', {termo:''}); return;
+    }
+    const BUSCA={administrativo:'administrativo', empresarial:'empresarial', dh:'direitos humanos', humanistica:'humanística'};
+    const termo=BUSCA[area]||A.nome;
+    if(this._irPara('legis', {acervoBusca:termo, acervoDe:null, origemAbrir:''})==='indisponivel') return;
+    this._marcarPonto('legis', {termo});
+  };
+  /** URL (leiId) de uma lei pela sigla: CT_LEIS quando carregado; senão o catálogo; senão a tabela mínima. */
+  _enamLeiUrl(sigla){
+    const S=String(sigla||'').toUpperCase();
+    try{ const l=(window.CT_LEIS||[]).find(x=>String(x.sigla||'').toUpperCase()===S); if(l&&l.url) return l.url; }catch(_){}
+    const FIXO={CF:'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', CC:'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm',
+      CPC:'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm', CP:'https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm',
+      CPP:'https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm', CDC:'https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm',
+      CTN:'https://www.planalto.gov.br/ccivil_03/leis/l5172compilado.htm', CLT:'https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452compilado.htm'};
+    return FIXO[S]||'';
+  }
+  /** Uma referência do gabarito ("Art. 25 da CF", "Tema 698") → chip com o caminho certo: lei+dispositivo
+      abre o LEGIS; súmula/tema vai ao JURIS; artigo sem lei fica só como texto. */
+  _enamRef(t){
+    const txt=String(t||'').replace(/\s+/g,' ').replace(/[.,;]\s*$/,'').trim(); if(!txt) return null;
+    if(/^(s[úu]mula|tema)\b/i.test(txt)) return {txt, lei:'', rot:'', juris:txt, legis:false, jurisTem:true};
+    const m=/^(Arts?\.?\s*[\d.]+(?:-[A-Z])?[ºª°]?)(.*?)(?:\s+d[aeo]s?\s+(.+))?$/i.exec(txt); if(!m) return {txt, lei:'', rot:'', juris:'', legis:false, jurisTem:false};
+    const lei=String(m[3]||'').trim(); let sig='';
+    if(/^(CF|CRFB|Constitui[çc][ãa]o)/i.test(lei)) sig='CF'; else if(/^(CC|C[óo]digo Civil)$/i.test(lei)) sig='CC';
+    else if(/^(CPC|C[óo]digo de Processo Civil)$/i.test(lei)) sig='CPC'; else if(/^(CPP|C[óo]digo de Processo Penal)$/i.test(lei)) sig='CPP';
+    else if(/^(CP|C[óo]digo Penal)$/i.test(lei)) sig='CP'; else if(/^(CDC|CTN|CLT|LIA|ECA|LEP)$/i.test(lei)) sig=lei.toUpperCase();
+    let url=sig?this._enamLeiUrl(sig):'';
+    if(!url && lei){ const n=/(\d[\d.]*)\/(\d{2,4})/.exec(lei); if(n){ const num=n[1].replace(/\./g,'');
+      // lei por número: primeiro as embutidas (sigla "Lei 14.133/2021"), depois o catálogo (URL do Planalto traz o número)
+      try{ const l=(window.CT_LEIS||[]).find(x=>String(x.sigla||'').replace(/\./g,'').indexOf(num+'/')>=0); if(l&&l.url) url=l.url; }catch(_){}
+      if(!url){ try{ const c=(window.CT_LEIS_CAT||[]).find(x=>new RegExp('l'+num+'(?:compilad[ao])?\\.htm','i').test(String(x.u||''))); if(c) url=c.u; }catch(_){} } } }
+    const rot=(m[1].replace(/^Arts?\.?\s*/i,'Art. ')+String(m[2]||'')).replace(/\s+/g,' ').trim();
+    return {txt, lei:url, rot, juris:'', legis:!!url, jurisTem:false};
+  }
+  enamVerNoJuris = (e)=>{ const termo=String(e.currentTarget.dataset.busca||'').trim(); if(!termo) return;
+    if(this._irPara('juris', {acervoBusca:termo, acervoDe:null, origemAbrir:''})==='indisponivel') return; this._marcarPonto('juris', {termo}); };
   _enamVM(){
     const st=this.state, E=window.CT_ENAM, its=st.sjItens||[], r=st.sjResp||{}, rv=st.sjRev||{};
     const at=its[st.sjAtual]||null, left=st.provaDurationMin*60-st.provaSeconds;
@@ -10287,12 +10400,13 @@ class Component extends DCLogic {
       const h=this._hashErro(x.enunciado);
       if(jaTem.has(h)) return; jaTem.add(h);
       const disc=String(x.disc||'').trim()||'Geral', topico=String(x.topico||'').trim();
+      const extra=(x.extra&&typeof x.extra==='object')?x.extra:{};   // E4: fonte:'enam' e ref 'edição·número'
       erros.push({id:'e'+(agora+i), ts:agora, up:agora, hash:h, disc, topico,
         enunciado:String(x.enunciado).slice(0,1200), myAnswer:'', gabarito:String(x.gabarito||'').slice(0,1200),
         whyWrong:'', lesson:String(x.lesson||'').slice(0,600), source:String(origem||''), difficulty:3,
-        tags:[], favorite:false, motivo:'conteudo', resolvido:false, reviewCount:0, auto:true});
+        tags:[], favorite:false, motivo:'conteudo', resolvido:false, reviewCount:0, auto:true, ...extra});
       if(x.gabarito) cards.push({id:'fc'+(agora+i), front:String(x.enunciado).slice(0,600),
-        back:String(x.gabarito).slice(0,1200), disc, origem:String(origem||''), criado:agora, up:agora, auto:true});
+        back:String(x.gabarito).slice(0,1200), disc, origem:String(origem||''), criado:agora, up:agora, auto:true, ...(extra.ref?{ref:String(extra.ref)}:{})});
     });
     if(!erros.length) return null;
     // uma revisão por disciplina do lote (não uma por questão: viraria enxurrada em D+1)
@@ -10523,7 +10637,7 @@ class Component extends DCLogic {
       })), 'Simulado');
     }catch(_){}
   };
-  novoSj = ()=> this.setState({sjItens:[], sjResp:{}, sjFim:false, sjAtual:0});
+  novoSj = ()=> this.setState({sjItens:[], sjResp:{}, sjRev:{}, sjFim:false, sjAtual:0, sjRel:null, enamCor:null, enamMont:null});
   /* A tela da Prova oral abria com três nomes de ACERVO ("Jurisprudência", "Lei seca",
      "Bancas reais") e um paredão de filtros — quem chegava tinha de saber de que acervo
      vinha o que queria fazer. Estas são as três coisas que se faz aqui, ditas como intenção.
@@ -11662,7 +11776,7 @@ class Component extends DCLogic {
     this._toast(auto?'Tempo esgotado — registre seu desempenho':'Prova encerrada — registre seu desempenho'); };
   exitProva = ()=>{ if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){}
     // E3: sair do Modo ENAM descarta a prova guardada e limpa o caderno (a duração da sala comum volta ao que era)
-    if(this.state.sjModo==='enam'){ this.setState(this._enamFecha({sjItens:[], sjResp:{}, sjRev:{}, sjAtual:0, sjFim:false, sjRel:null, enamMont:null})); return; }
+    if(this.state.sjModo==='enam'){ this.setState(this._enamFecha({sjItens:[], sjResp:{}, sjRev:{}, sjAtual:0, sjFim:false, sjRel:null, enamMont:null, enamCor:null})); return; }
     this.setState({provaMode:false, provaRunning:false}); };
 
   // ===== onboarding =====
@@ -15723,6 +15837,7 @@ class Component extends DCLogic {
       responderSj:this.responderSj, responderSjAlt:this.responderSjAlt, setSjProvaN:this.setSjProvaN, navSj:this.navSj, irSj:this.irSj, encerrarSj:this.encerrarSj, novoSj:this.novoSj,
       // E3 — Modo ENAM
       setSjModo:this.setSjModo, iniciarEnam:this.iniciarEnam, encerrarEnam:this.encerrarEnam, enamEmBranco:this.enamEmBranco, enamRever:this.enamRever, enamDescartar:this.enamDescartar,
+      enamEstudarArea:this.enamEstudarArea, enamVerNoJuris:this.enamVerNoJuris,
       setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
       sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
       onOralResposta:this.onOralResposta, corrigirOral:this.corrigirOral,

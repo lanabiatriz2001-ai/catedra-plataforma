@@ -1761,15 +1761,15 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.encerrarFechaECorrige = !app.state.provaMode && !document.querySelector('.ct-enam') && app.state.sjFim === true && app.state.sim.total === 80 && app.state.sim.acertos === 3 && app.state.sim.erros === 2 && app.state.sim.brancos === 75;
     r.sessaoPreenchida = app.state.sessionModalOpen === true && app.state.sessionDraft.categoria === 'Simulado' && app.state.sessionDraft.disc === 'ENAM' && app.state.sessionDraft.minutos === '47' && /ENAM .* · simulado/.test(app.state.sessionDraft.topico);
     const es = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]');
-    r.tentativaSoComIds = es.length === 1 && es[0].ids.length === 80 && es[0].acertos === 3 && es[0].brancos === 75 && es[0].up > 0 && !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !localStorage.getItem('catedra:enamSim').includes(its[0].enunciado.slice(0, 30));
+    r.tentativaSoComIds = es.length === 1 && es[0].idsUsados.length === 80 && es[0].acertos === 3 && es[0].brancos === 75 && es[0].up > 0 && !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !localStorage.getItem('catedra:enamSim').includes(its[0].enunciado.slice(0, 30));
     r.errosPeloCanalDoItem2 = (app.state.errors || []).filter(e => e.source === 'Simulado ENAM').length === 2 && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM' && /^Gabarito: [A-E] — /.test(c.back)).length === 2;
     r.limpouAsChaves = !localStorage.getItem('ct_enam_prova') && !localStorage.getItem('ct_prova');
     app.closeSession(); await w(300);
     const main = document.querySelector('main').textContent;
-    r.relatorioPorArea = /Por área do edital/.test(main) && /Constitucional\s*\d+\/16/.test(main) && !/Jurisprudência\s*0\/0/.test(main);
+    r.relatorioPorArea = /Por área do edital/.test(main) && /Constitucional\s*\d+ de 16 · alvo \d+/.test(main) && !/Jurisprudência\s*0\/0/.test(main);
     r.gabaritoComReferencia = /ENAM 20\d\d\.\d · questão \d+/.test(main) && !/Texto oficial:/.test(main);
     // a segunda montagem evita as 80 já feitas
-    const feitas = new Set(es[0].ids);
+    const feitas = new Set(es[0].idsUsados);
     r.proximaEvitaAsFeitas = window.CT_ENAM.montar(window.CT_QUESTOES_ENAM, { excluir: [...feitas], reserva: window.CT_QUESTOES_PROVA || [] }).itens.every(x => !feitas.has(x.id));
     // tempo esgotado: corrige sozinho, sem beep
     [...document.querySelectorAll('main button')].find(b => /Novo simulado/.test(b.textContent)).click(); await w(300);
@@ -1782,6 +1782,111 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     return r;
   }, a);
   for (const [k, v] of Object.entries(b)) ok(v, 'ENAM/E3 host ' + k);
+}
+
+/* ============= ENAM — E4: a correção "habilitaria?" ============= */
+// (a) CT_ENAM.corrigir, pura: os aceites da especificação (51/80 com meta 56 → não, −5; com meta 40 → sim, +11),
+//     alvo proporcional por área, anulada fora da conta, tempo médio só das respondidas
+{
+  await import('../enam.js');
+  const E = globalThis.CT_ENAM, r = {};
+  const its = []; E.AREAS.forEach(a => { for (let i = 0; i < a.cota; i++) its.push({ id: a.id + '-' + i, area: a.id, ramo: a.nome, certo: 'C', alternativas: [] }); });
+  // 51 certas, 25 erradas, 4 em branco — as certas concentradas no começo do caderno, como quem estuda o que vem primeiro
+  const resp = {}; its.forEach((it, i) => { if (i < 51) resp[it.id] = 'C'; else if (i < 76) resp[it.id] = 'A'; });
+  const c56 = E.corrigir(its, resp, 56, { segundos: 16920 }), c40 = E.corrigir(its, resp, 40, { segundos: 16920, comPausa: true });
+  r.contas = c56.total === 80 && c56.acertos === 51 && c56.brancos === 4 && c56.erros === 25 && c56.respondidas === 76;
+  r.meta56NaoHabilita = c56.meta === 56 && c56.habilitaria === false && c56.margem === -5;
+  r.meta40Habilita = c40.meta === 40 && c40.habilitaria === true && c40.margem === 11 && c40.comPausa === true && c56.comPausa === false;
+  r.alvoProporcional = c56.porAreaEdital.every(a => a.alvo === Math.round(a.cota * 56 / 80 * 10) / 10) && c56.porAreaEdital[0].alvo === 11.2 && c56.porAreaEdital[0].alvoInt === 11 && c40.porAreaEdital[0].alvo === 8;
+  r.ordemDoEdital = c56.porAreaEdital.map(a => a.area).join(',') === E.AREAS.map(a => a.id).join(',') && c56.porAreaEdital.every(a => a.n === a.cota);
+  r.deficitOrdenado = c56.porArea.every((a, i, l) => i === 0 || l[i - 1].deficit >= a.deficit) && c56.porArea[0].area === 'penal' && c56.porArea[0].ok === 0 && c56.porArea[0].deficit === 8.4;
+  r.okSobreCota = c56.porAreaEdital[0].ok === 16 && c56.porAreaEdital[0].deficit === -4.8 && c56.porAreaEdital.find(a => a.area === 'civil').txt === undefined;
+  r.tempoSoDasRespondidas = c56.tempoTotalSeg === 16920 && c56.segPorQuestao === 223 && c56.segDisponivel === 225 && E.corrigir(its, {}, 56, { segundos: 900 }).segPorQuestao === 0;
+  const comAnuladas = its.concat([{ id: 'x1', area: 'civil', certo: 'A', anulada: true }, { id: 'x2', area: 'civil', certo: 'A', anulada: true }]);
+  const ca = E.corrigir(comAnuladas, { ...resp, x1: 'A', x2: 'B' }, 56);
+  r.anuladaNaoConta = ca.total === 80 && ca.acertos === 51 && ca.erros === 25 && ca.anuladas === 2 && ca.porAreaEdital.find(a => a.area === 'civil').n === 12;
+  const fora = its.map((it, i) => i >= 62 && i < 68 ? { ...it, foraDoEnam: true } : it);
+  r.foraDoEnamContado = E.corrigir(fora, resp, 56).foraDoEnam === 6 && E.corrigir(fora, resp, 56).porAreaEdital.find(a => a.area === 'empresarial').foraDoEnam === 6;
+  r.metaInvalidaCaiNoPadrao = E.corrigir(its, resp, 0).meta === 56 && E.corrigir(its, resp, undefined).meta === 56;
+  for (const [k, v] of Object.entries(r)) ok(v, 'ENAM/E4 corrigir ' + k);
+}
+// (b) o host: a tela responde "habilitaria?" em --ok ou "faltaram N" em --warn (nunca --danger), barras por área com
+//     o alvo, as três áreas onde faltou com "Estudar esta área", erros pelo canal do item 2 (teto 20, aviso, desfazer),
+//     tentativa em catedra:enamSim sem enunciado, e as referências do gabarito com o caminho para LEGIS/JURIS
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { ['ct_enam_prova', 'ct_prova', 'catedra:enamSim', 'catedra:errors', 'catedra:fc', 'catedra:enam'].forEach(k => localStorage.removeItem(k)); });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, E = window.CT_ENAM;
+    const corDe = (el) => getComputedStyle(el).color;
+    // os tokens moram no div raiz do app, não em :root — a sonda tem de nascer dentro de main
+    const corToken = (t) => { const p = document.createElement('span'); p.style.color = 'var(' + t + ')'; document.querySelector('main').appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c; };
+    const montar = async () => {
+      window.__catedraGoView('simulados'); await w(500);
+      const chip = document.querySelector('main button[data-v="enam"]'); if (chip.getAttribute('aria-pressed') !== 'true') { chip.click(); await w(200); }
+      const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir && abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
+      const novo = [...document.querySelectorAll('main button')].find(b => /Novo simulado/.test(b.textContent)); if (novo) { novo.click(); await w(300); }
+      [...document.querySelectorAll('main button')].find(b => /Iniciar o simulado ENAM/.test(b.textContent)).click();
+      for (let i = 0; i < 60 && !document.querySelector('.ct-enam'); i++) await w(250);
+      return app.state.sjItens;
+    };
+    // 51 certas, 25 erradas, 4 brancas — e a 1ª questão ganha referências conhecidas para o gabarito
+    const responder = (its) => { const resp = {}; its.forEach((it, i) => { if (i < 51) resp[it.id] = it.certo; else if (i < 76) resp[it.id] = it.certo === 'A' ? 'B' : 'A'; }); return resp; };
+    let its = await montar();
+    its[0].refs = ['Art. 25 da CF', 'Tema 698', 'Art. 11']; its[0].origem = 'enam';
+    app.setState({ sjResp: responder(its), provaSeconds: 16920 }); await w(200);
+    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(900);
+    const main = () => document.querySelector('main');
+    const selo = main().querySelector('.ct-enam-selo');
+    r.numeroGrande = /51/.test(main().querySelector('.ct-enam-res-n').textContent) && /\/80/.test(main().querySelector('.ct-enam-res-n').textContent) && /Georgia|serif|Fraunces|Playfair|Display/i.test(getComputedStyle(main().querySelector('.ct-enam-res-n')).fontFamily);
+    r.faltaramCinco = !!selo && selo.textContent.trim() === 'faltaram 5 acertos' && selo.getAttribute('data-ok') === '';
+    r.seloEmWarnNuncaDanger = !!selo && corDe(selo) === corToken('--warn') && corDe(selo) !== corToken('--danger');
+    r.metaEMargem = /meta de 56 acertos · margem −5 · 4 em branco · 25 erros/.test(main().textContent);
+    r.tempoMedio = /223 s por questão respondida · 225 s disponíveis/.test(main().textContent);
+    const barras = [...main().querySelectorAll('.ct-enam-barra')];
+    r.oitoBarrasNaOrdem = barras.length === 8 && /^Constitucional/.test(barras[0].textContent) && /^Penal/.test(barras[7].textContent) && /16 de 16 · alvo 11/.test(barras[0].textContent) && /0 de 12 · alvo 8/.test(barras[7].textContent);
+    r.barraTemAlvoEPreenchimento = barras[0].getAttribute('data-ok') === '1' && barras[7].getAttribute('data-ok') === '' && /left:\s*70%/.test(barras[0].querySelector('.tr > b').getAttribute('style')) && /width:\s*100%/.test(barras[0].querySelector('.tr > i').getAttribute('style'));
+    const faltou = [...main().querySelectorAll('.ct-enam-faltou > div')];
+    r.tresAreasOndeFaltou = faltou.length === 3 && /^Penal/.test(faltou[0].textContent) && /faltaram 9 · 0 de 12/.test(faltou[0].textContent) && faltou.every(d => /Estudar esta área/.test(d.querySelector('button').textContent)) && faltou[0].querySelector('button').getBoundingClientRect().height >= 44;
+    r.naoDizAprovacao = !/aprova/i.test(main().querySelector('.ct-enam-res').textContent + main().querySelector('.ct-enam-faltou').textContent + [...main().querySelectorAll('.ct-eb')].map(e => e.textContent).join(' '));
+    // erros: 25 erradas → 20 itens (teto), aviso dos 5, fonte/ref, flashcard com gabarito + referência; desfazer tira o lote
+    const errs = () => (app.state.errors || []).filter(e => e.source === 'Simulado ENAM');
+    r.tetoDeVinte = errs().length === 20 && errs().every(e => e.fonte === 'enam' && /^\d{4}\.\d·\d+$/.test(e.ref) && e.auto === true) && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').length === 20;
+    r.avisoDosCincoRestantes = [...document.querySelectorAll('div[role=status]')].some(d => /5 erros ficaram fora do lote de revisão \(teto de 20 por correção\)/.test(d.textContent));
+    r.flashcardComGabaritoEReferencia = (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').every(c => /^Gabarito: [A-E] — /.test(c.back) && /\(ENAM 20\d\d\.\d · questão \d+\)$/.test(c.back));
+    const desfazer = [...document.querySelectorAll('div[role=status] button')].find(b => /desfazer/i.test(b.textContent));
+    r.desfazerTiraOLote = (() => { if (!desfazer) return false; desfazer.click(); return true; })();
+    await w(400);
+    r.desfazerTiraOLote = r.desfazerTiraOLote && errs().length === 0 && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').length === 0;
+    // a tentativa: shape do E4, sem enunciado
+    const es = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]'), t = es[0];
+    r.tentativaNoHistorico = es.length === 1 && /^enam\d+$/.test(t.id) && t.up > 0 && /^\d{4}-\d\d-\d\dT/.test(t.quando) && t.meta === 56 && t.acertos === 51 && t.brancos === 4 && t.habilitaria === false && t.margem === -5
+      && t.porArea.length === 8 && t.porArea.every(a => 'ok' in a && 'cota' in a && 'area' in a) && t.tempoTotalSeg === 16920 && t.idsUsados.length === 80 && Array.isArray(t.edicaoBanco) && t.edicaoBanco.length >= 1 && t.comPausa === false;
+    r.semEnunciadoNoHistorico = !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !localStorage.getItem('catedra:enamSim').includes(its[3].enunciado.slice(0, 30));
+    // o gabarito comentado: as referências e o caminho
+    app.closeSession(); await w(300);
+    const refs = main().querySelector('.ct-enam-refs');
+    const legisBtn = refs && [...refs.querySelectorAll('button')].find(b => /Art\. 25 da CF · Ler no LEGIS/.test(b.textContent));
+    const jurisBtn = refs && [...refs.querySelectorAll('button')].find(b => /Tema 698 · Ver no JURIS/.test(b.textContent));
+    r.referenciasNoGabarito = !!legisBtn && /constituicao\.htm$/.test(legisBtn.dataset.lei) && legisBtn.dataset.rot === 'Art. 25' && !!jurisBtn && jurisBtn.dataset.busca === 'Tema 698' && [...refs.querySelectorAll('span.ct-enam-ref')].some(s => s.textContent.trim() === 'Art. 11') && !refs.textContent.includes('Art. 11 · Ler');
+    r.refResolveLeiPeloNumero = (() => { const x = app._enamRef('Art. 29 da Lei nº 14.133/2021'); return !!x && x.legis === true && /l14133/.test(x.lei) && x.rot === 'Art. 29'; })() && app._enamRef('Art. 1.641, inciso II do Código Civil').rot === 'Art. 1.641, inciso II' && /l10406/.test(app._enamRef('Art. 1.641, inciso II do Código Civil').lei) && app._enamRef('Súmula 591').jurisTem === true;
+    // "Estudar esta área" leva ao LEGIS (Penal → Código Penal, artigo de incidência alta ainda não lido)
+    faltou[0].querySelector('button').click(); await w(600);
+    r.estudarAreaAbreOLegis = app.state.view === 'legis';
+    // meta 40: a mesma prova habilitaria, com margem +11, selo em --ok
+    localStorage.setItem('catedra:enam', JSON.stringify({ ...app._enamNovo(), metaAcertos: 40, up: Date.now() })); app.setState({ enam: JSON.parse(localStorage.getItem('catedra:enam')) }); await w(200);
+    its = await montar(); app.setState({ sjResp: responder(its), provaSeconds: 16920 }); await w(200);
+    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(900);
+    const selo2 = main().querySelector('.ct-enam-selo');
+    r.meta40Habilitaria = !!selo2 && selo2.textContent.trim() === 'habilitaria' && selo2.getAttribute('data-ok') === '1' && corDe(selo2) === corToken('--ok') && /meta de 40 acertos · margem \+11/.test(main().textContent) && /16 de 16 · alvo 8/.test(main().querySelector('.ct-enam-barra').textContent);
+    r.duasTentativasSincronizaveis = JSON.parse(localStorage.getItem('catedra:enamSim')).length === 2 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].meta === 40 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].habilitaria === true;
+    app.closeSession(); ['catedra:enamSim', 'catedra:enam', 'catedra:errors', 'catedra:fc'].forEach(k => localStorage.removeItem(k)); app.setState({ enamSim: [], enam: null });
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E4 host ' + k);
 }
 
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
