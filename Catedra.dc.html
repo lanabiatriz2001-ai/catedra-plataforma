@@ -1529,6 +1529,56 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+        <!-- TRILHA ENAM (E5): só com catedra:enam.ativo. Junta contagem, meta, última tentativa, as 8 áreas,
+             a próxima ação e a cadência. Cadência é sugestão: sem "atrasado", sem vermelho, sem ofensiva. -->
+        <sc-if value="{{ trOn }}" hint-placeholder-val="{{ false }}">
+          <div class="cth-sec"><h2>Trilha ENAM</h2><span class="rule"></span><span class="meta">{{ trMeta }}</span></div>
+          <div class="ct-trilha" data-trilha-enam="{{ trEstado }}" aria-label="Trilha ENAM">
+            <div class="ct-trilha-topo">
+              <div><div class="ct-trilha-dias">{{ trDias }}</div><div class="ct-trilha-sub">{{ trDiasSub }}</div></div>
+              <sc-if value="{{ trVazio }}" hint-placeholder-val="{{ true }}">
+                <div>
+                  <div class="ct-trilha-formato"><span><b>80</b> questões A–E</span><span><b>5 h</b> de prova</span><span>meta <b>56</b> (70%) ou <b>40</b> (50%)</span><span>correção só no fim</span></div>
+                  <div class="ct-trilha-sub">Questões oficiais das provas anteriores, na ordem do edital. O botão abaixo abre o Modo ENAM.</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ trTemTentativa }}" hint-placeholder-val="{{ false }}">
+                <div>
+                  <div class="ct-trilha-ult">
+                    <span class="n" aria-label="Última tentativa: {{ trUltAcertos }} acertos de {{ trUltTotal }}">{{ trUltAcertos }}<small>/{{ trUltTotal }}</small></span>
+                    <span class="ct-enam-selo" data-ok="{{ trUltOk }}">{{ trUltSelo }}</span>
+                    <sc-if value="{{ trSparkShow }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 120 28" width="120" height="28" role="img" aria-label="{{ trSparkAria }}"><path d="{{ trSpark }}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+                  </div>
+                  <div class="ct-trilha-sub">{{ trUltSub }}</div>
+                </div>
+              </sc-if>
+            </div>
+            <sc-if value="{{ trTemTentativa }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-trilha-areas" aria-label="Acertos por área na última prova">
+                <sc-for list="{{ trAreas }}" as="a" hint-placeholder-count="8"><span class="ct-trilha-area" style="{{ a.style }}" title="{{ a.title }}"><span>{{ a.nome }}</span><b>{{ a.txt }}</b></span></sc-for>
+              </div>
+            </sc-if>
+            <div class="ct-trilha-acao">
+              <div class="t"><b>{{ trAcaoTitulo }}</b><span>{{ trAcaoSub }}</span></div>
+              <sc-if value="{{ trAcaoTemBotao }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn" data-acao="{{ trAcao }}" data-area="{{ trAcaoArea }}" onclick="{{ enamAcao }}">{{ trAcaoBotao }}</button></sc-if>
+            </div>
+            <sc-if value="{{ trCadTem }}" hint-placeholder-val="{{ true }}">
+              <div class="ct-trilha-cad">
+                <span>{{ trCadTxt }}</span>
+                <sc-for list="{{ trCadDatas }}" as="d" hint-placeholder-count="6"><span class="ct-trilha-data" data-agendada="{{ d.agendada }}" title="{{ d.title }}">{{ d.rotulo }}</span></sc-for>
+                <sc-if value="{{ !trCadTodas }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn-2" onclick="{{ enamAgendar }}">Colocar na agenda</button></sc-if>
+                <sc-if value="{{ trCadTodas }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-xs);color:var(--text3);">na agenda — mude a data por lá se precisar</span></sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ trEditalFalta }}" hint-placeholder-val="{{ true }}">
+              <div class="ct-trilha-edital"><span>O edital do ENAM ainda não está no seu Edital — com ele, a conclusão das oito áreas vira a segunda métrica da trilha.</span><button type="button" class="ct-btn-2" onclick="{{ enamImportarEdital }}">Importar o edital ENAM</button></div>
+            </sc-if>
+            <sc-if value="{{ trEditalTem }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-trilha-edital" aria-label="Edital ENAM {{ trEdPct }}% concluído"><span>Edital ENAM</span><span class="tr"><i style="{{ trEdFill }}"></i></span><span style="font-family:var(--mono);color:var(--ink);">{{ trEdPct }}%</span><span>{{ trEdTxt }}</span></div>
+            </sc-if>
+          </div>
+        </sc-if>
+
         <!-- REVISÕES -->
         <!-- ONDE ESTOU FRACA (item 1): a decisão nº 1 do dia, com o porquê -->
         <div class="cth-sec"><h2>Onde estou fraca</h2><span class="rule"></span><span class="meta">erros, revisões vencidas, tempo parada e peso do edital</span></div>
@@ -10357,6 +10407,43 @@ class Component extends DCLogic {
   }
   enamVerNoJuris = (e)=>{ const termo=String(e.currentTarget.dataset.busca||'').trim(); if(!termo) return;
     if(this._irPara('juris', {acervoBusca:termo, acervoDe:null, origemAbrir:''})==='indisponivel') return; this._marcarPonto('juris', {termo}); };
+  /* ===== TRILHA ENAM no Início (E5) ===== */
+  /** O sábado ou domingo mais próximo de uma data (a prova real é num domingo; o simulado completo pede um dia livre).
+      Empate (quarta) cai no sábado seguinte; se o fim de semana mais próximo já passou, vai para o próximo. */
+  _enamFimDeSemana(iso){
+    try{ const d=new Date(iso+'T12:00:00'); const dow=d.getDay(); let delta=0;
+      if(dow===1) delta=-1; else if(dow===2) delta=-2; else if(dow===3) delta=3; else if(dow===4) delta=2; else if(dow===5) delta=1;
+      const alvo=new Date(d); alvo.setDate(d.getDate()+delta);
+      const hoje=new Date(); hoje.setHours(0,0,0,0);
+      if(alvo<hoje){ const p=new Date(hoje); p.setDate(hoje.getDate()+((6-hoje.getDay()+7)%7||7)); return this._ymd(p); }
+      return this._ymd(alvo); }catch(_){ return iso; }
+  }
+  /** "Colocar na agenda": um evento de 5 h por data da cadência, no fim de semana mais próximo, editável na agenda. Não duplica. */
+  enamAgendar = ()=>{
+    const E=window.CT_ENAM, en=this.state.enam; if(!E||!en||!en.ativo) return;
+    const cad=E.cadencia(new Date(), en.data); if(!cad.length){ this._toast('A cadência acabou — não há mais datas antes da prova'); return; }
+    const ids=new Set((this.state.eventos||[]).map(e=>String(e.id||''))); const agora=Date.now(); const novos=[];
+    cad.forEach((iso,i)=>{ const id='enam:sim:'+iso; if(ids.has(id)) return; const fim=this._enamFimDeSemana(iso); const d=new Date(fim+'T12:00:00');
+      novos.push({id, dia:d.getDate(), mes:d.getMonth(), ano:d.getFullYear(), tipo:'Simulado', titulo:'Simulado ENAM completo (80 questões · 5 h)', color:'var(--accent)', done:false, up:agora+i, disc:'ENAM'}); });
+    if(!novos.length){ this._toast('Os simulados já estão na agenda'); return; }
+    this.setState(st=>({eventos:[...(st.eventos||[]), ...novos]}), ()=>this.flashSync());
+    this._toast(novos.length+' simulado'+(novos.length>1?'s':'')+' na agenda — mude a data por lá se precisar');
+  };
+  /** "Importar o edital ENAM": as 8 disciplinas do modelo `enam`, pelo mesmo caminho do "Começar com um modelo". */
+  enamImportarEdital = ()=>{
+    this._carregarModelos().then(()=>{
+      const discs=this._modeloDiscs('enam'); if(!discs.length){ this._toast('O modelo do edital ENAM não carregou'); return; }
+      this.setState({modeloId:'enam', modeloSel:discs.map((_,i)=>i)}, ()=>this.aplicarModelo());
+    });
+  };
+  /** A próxima ação da trilha, já resolvida no render: simulado / revisar / estudar / reta. */
+  enamAcao = (e)=>{
+    const d=e.currentTarget.dataset||{}, acao=String(d.acao||'simulado');
+    if(acao==='reta'){ this._irPara('reta-final'); return; }
+    if(acao==='revisar'){ this._irPara('revisoes'); return; }
+    if(acao==='estudar'){ this.enamEstudarArea(e); return; }
+    this.setState({sjModo:'enam', sjAberto:true, enamErro:''}); this._irPara('simulados');
+  };
   _enamVM(){
     const st=this.state, E=window.CT_ENAM, its=st.sjItens||[], r=st.sjResp||{}, rv=st.sjRev||{};
     const at=its[st.sjAtual]||null, left=st.provaDurationMin*60-st.provaSeconds;
@@ -14890,6 +14977,64 @@ class Component extends DCLogic {
         out.segundaCap=(pertoEnam?'ENAM':'prova')+' · '+perto+' d'; out.retaProvaCap=pertoEnam?'prova':'ENAM'; out.retaDias=String(perto); }
       return out;
     })();
+    // ===== Trilha ENAM (E5): o bloco do Início =====
+    const _trilha=(()=>{
+      const E=window.CT_ENAM, en=this.state.enam;
+      // todas as variáveis do bloco sempre existem (D14: nada de variável órfã no template), mesmo com a trilha desligada
+      const o={trOn:false, trMeta:'', trEstado:'vazio', trDias:'—', trDiasSub:'', trVazio:true, trTemTentativa:false, trUltAcertos:'', trUltTotal:'', trUltOk:'', trUltSelo:'', trUltSub:'',
+        trAreas:[], trCadDatas:[], trCadTem:false, trCadTodas:false, trCadTxt:'', trSparkShow:false, trSpark:'', trSparkAria:'',
+        trAcaoTitulo:'', trAcaoSub:'', trAcaoTemBotao:true, trAcao:'simulado', trAcaoArea:'', trAcaoBotao:'Fazer o simulado', trEditalFalta:false, trEditalTem:false, trEdPct:'0', trEdFill:'width:0%;', trEdTxt:''};
+      if(!_enam.on||!E) return o;
+      o.trOn=true;
+      const meta=_enam.meta, hoje=new Date(), dias=_enam.dias;
+      o.trMeta='ENAM '+_enam.edicao+' · meta '+meta+' acertos ('+Math.round(meta/80*100)+'%)';
+      o.trDias=(dias==null)?'—':(dias<0?'realizado':(dias===0?'hoje':String(dias)));
+      o.trDiasSub=(dias==null||dias<0)?'':((dias===0?'A prova é hoje':(dias===1?'dia para a prova':'dias para a prova'))+' · '+_enam.dataFmt.replace(/^\w+-feira, /,'')+' · '+_enam.hora);
+      const curto=n=>String(n||'').replace('Noções Gerais de Direito e ','').replace('Direito ','');
+      const fmtD=iso=>{ try{ const d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); }catch(_){ return iso; } };
+      const semana=iso=>{ try{ return ['dom','seg','ter','qua','qui','sex','sáb'][new Date(iso+'T12:00:00').getDay()]; }catch(_){ return ''; } };
+      // a última tentativa (E4) e a sparkline de todas (padrão do redHist)
+      const sims=(this.state.enamSim||[]).filter(t=>t&&t.total>0).slice().sort((a,b)=>(+a.ts||0)-(+b.ts||0));
+      const ult=sims.length?sims[sims.length-1]:null;
+      if(ult){
+        o.trVazio=false; o.trTemTentativa=true; o.trEstado='ativa';
+        const hab=(typeof ult.habilitaria==='boolean')?ult.habilitaria:(ult.acertos>=meta), marg=(ult.margem!=null)?ult.margem:(ult.acertos-meta);
+        o.trUltAcertos=String(ult.acertos); o.trUltTotal=String(ult.total||80); o.trUltOk=hab?'1':''; o.trUltSelo=hab?'habilitaria':('faltaram '+Math.abs(marg)+' acerto'+(Math.abs(marg)===1?'':'s'));
+        const h=Math.floor((Date.now()-(+ult.ts||0))/864e5);
+        o.trUltSub='última prova '+(h===0?'hoje':(h===1?'ontem':'há '+h+' dias'))+' · meta '+(ult.meta||meta)+' · '+(ult.brancos||0)+' em branco'+(ult.comPausa?' · com pausa':'');
+        const serie=sims.map(t=>Math.round((+t.acertos||0)/(+t.total||80)*100));
+        if(serie.length>1){ o.trSparkShow=true; o.trSpark=this._redSpark(serie); o.trSparkAria=sims.length+' tentativas: '+sims.map(t=>t.acertos+'/'+(t.total||80)).join(', '); }
+        const tinta=(cor)=>{ try{ const fundo=CT_OVER(cor,0.10,T.surface); let f=0; while(f<0.85 && CT_RATIO(T.isDark?this.lightenHex(cor,f):this.darkenHex(cor,f), fundo)<4.55) f+=0.03; return T.isDark?this.lightenHex(cor,f):this.darkenHex(cor,f); }catch(_){ return 'var(--ink)'; } };
+        o.trAreas=E.AREAS.map(a=>{ const p=(ult.porArea||[]).find(x=>x.area===a.id)||{ok:0, cota:a.cota}; const cor=this._corDisc(a.disciplinasApp[0]);
+          return {nome:curto(a.nome), txt:(p.ok||0)+'/'+(p.cota||a.cota), style:'--tr-c:'+cor+';--tr-tx:'+tinta(cor)+';', title:a.nome+': '+(p.ok||0)+' de '+(p.cota||a.cota)}; });
+      }
+      // cadência: um simulado completo a cada 14 dias, o último uma semana antes; já na agenda = chip marcado
+      const cad=(dias!=null&&dias>=0)?E.cadencia(hoje, en.data):[];
+      const evIds=new Set((this.state.eventos||[]).map(e=>String(e.id||'')));
+      o.trCadDatas=cad.map(iso=>{ const fim=this._enamFimDeSemana(iso); const ag=evIds.has('enam:sim:'+iso); return {iso, rotulo:fmtD(iso)+' '+semana(iso), agendada:ag?'1':'', title:ag?('na agenda em '+fmtD(fim)+' ('+semana(fim)+')'):('sugestão: fim de semana mais próximo, '+fmtD(fim)+' ('+semana(fim)+')')}; });
+      o.trCadTem=cad.length>0; o.trCadTodas=cad.length>0 && o.trCadDatas.every(d=>d.agendada==='1');
+      o.trCadTxt=cad.length+' simulado'+(cad.length>1?'s':'')+' até a prova, um a cada duas semanas:';
+      // a Reta final do concurso manda: a menos de 30 dias, a trilha recua
+      const retaManda=!!(this.state.provaData && _diasProvaN<30 && (dias==null||_diasProvaN<dias));
+      // próxima ação: revisar os erros da última prova → estudar a área com maior déficit → o próximo simulado
+      const errosEnam=ult?(this.state.errors||[]).filter(e=>e&&e.fonte==='enam'&&!e.resolvido&&(+e.ts||0)>=(+ult.ts||0)-60000).length:0;
+      const desde=ult?Math.floor((Date.now()-(+ult.ts||0))/864e5):null;
+      const prox=cad.length?cad[0]:null;
+      if(retaManda){ o.trEstado='reta'; o.trAcaoTitulo='Sem simulado ENAM nesta semana'; o.trAcaoSub='A Reta final do concurso manda: faltam '+_diasProvaN+' dia'+(_diasProvaN===1?'':'s')+' para a prova. A trilha volta depois.'; o.trAcao='reta'; o.trAcaoBotao='Ir para a Reta final'; }
+      else if(!ult){ o.trAcaoTitulo='Fazer o primeiro simulado'; o.trAcaoSub='80 questões oficiais, 5 horas, na ordem do edital — é a linha de base da trilha.'; o.trAcao='simulado'; o.trAcaoBotao='Fazer o primeiro simulado'; }
+      else if(desde<7 && errosEnam>0){ o.trAcaoTitulo='Revisar os '+errosEnam+' erro'+(errosEnam>1?'s':'')+' da última prova'; o.trAcaoSub='Cada um virou cartão e revisão. Rever agora é o que mais rende antes do próximo simulado.'; o.trAcao='revisar'; o.trAcaoBotao='Revisar agora'; }
+      else if(desde<7 && (()=>{ const d=(ult.porArea||[]).map(p=>{ const A=E.areaDe(p.area); const alvo=(p.cota||(A&&A.cota)||0)*(ult.meta||meta)/80; return {area:p.area, def:alvo-(p.ok||0), nome:A?curto(A.nome):p.area}; }).filter(x=>x.def>0).sort((a,b)=>b.def-a.def)[0]; if(!d) return false; o.trAcaoArea=d.area; o.trAcaoTitulo='Estudar '+d.nome; o.trAcaoSub='Foi a área que mais ficou abaixo do alvo na última prova: faltaram '+Math.ceil(d.def)+' acerto'+(Math.ceil(d.def)===1?'':'s')+'.'; o.trAcao='estudar'; o.trAcaoBotao='Estudar esta área'; return true; })()){ }
+      else if(prox){ o.trAcaoTitulo='Próximo simulado em '+fmtD(prox)+' ('+semana(prox)+')'; o.trAcaoSub='Um simulado completo a cada duas semanas até a prova. Se preferir, faça agora.'; o.trAcao='simulado'; o.trAcaoBotao='Fazer o simulado'; }
+      else { o.trAcaoTitulo=(dias!=null&&dias>=0)?'Um último simulado antes da prova':'A prova já passou'; o.trAcaoSub=(dias!=null&&dias>=0)?'A cadência acabou; vale um simulado completo se ainda houver tempo de descansar antes.':'Ative a próxima edição em Ajustes → ENAM quando o edital sair.'; o.trAcao='simulado'; o.trAcaoBotao='Fazer o simulado'; o.trAcaoTemBotao=(dias!=null&&dias>=0); }
+      // o edital ENAM: importável quando faltar; presente, vira a segunda métrica
+      const norm=s=>String(s||'').trim().toLowerCase();
+      const nomes=E.AREAS.map(a=>a.disciplinasApp[0]);
+      const temTodas=nomes.every(n=>(this.state.edital||[]).some(d=>norm(d.disc)===norm(n)));
+      if(temTodas){ const ds=edital.filter(d=>nomes.some(n=>norm(n)===norm(d.disc))); const tot=ds.reduce((a,d)=>a+(d.tot||0),0), done=ds.reduce((a,d)=>a+(d.done||0),0);
+        const pct=tot?Math.round(done/tot*100):0; o.trEditalTem=true; o.trEdPct=String(pct); o.trEdFill='width:'+pct+'%;'; o.trEdTxt=done+' de '+tot+' itens concluídos'; }
+      else o.trEditalFalta=true;
+      return o;
+    })();
     // ===== Contagem regressiva para a prova (card visual do Início) =====
     const cdOn = !!this.state.provaData && this.state.prefs.mostrarContagem!==false;
     let cdDias=0, cdSemStr='', cdDataFmt='', cdWeekday='', cdProgPct=0, cdProgLabel='', cdHorasPrev='', cdUrg='var(--accent)', cdUrgLabel='', cdWeeksBar=[], cdRingOffset=0;
@@ -15838,6 +15983,8 @@ class Component extends DCLogic {
       // E3 — Modo ENAM
       setSjModo:this.setSjModo, iniciarEnam:this.iniciarEnam, encerrarEnam:this.encerrarEnam, enamEmBranco:this.enamEmBranco, enamRever:this.enamRever, enamDescartar:this.enamDescartar,
       enamEstudarArea:this.enamEstudarArea, enamVerNoJuris:this.enamVerNoJuris,
+      // E5 — Trilha ENAM no Início
+      ..._trilha, enamAcao:this.enamAcao, enamAgendar:this.enamAgendar, enamImportarEdital:this.enamImportarEdital,
       setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
       sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
       onOralResposta:this.onOralResposta, corrigirOral:this.corrigirOral,

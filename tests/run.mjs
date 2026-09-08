@@ -1889,6 +1889,105 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E4 host ' + k);
 }
 
+/* ============= ENAM — E5: a Trilha ENAM no Início ============= */
+// Sem enam.ativo o bloco não existe. Ativo e sem tentativa: estado vazio com o formato da prova (nunca zeros), a
+// cadência de simulados com "Colocar na agenda" (fim de semana mais próximo, sem duplicar) e "Importar o edital
+// ENAM". Com tentativas: última prova, sparkline, 8 áreas com ok/cota e a próxima ação certa (revisar → estudar →
+// próximo simulado). Concurso a menos de 30 dias: a Reta final manda. Nada em --danger, nada de "atrasado".
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  const guardado = await page.evaluate(() => {
+    const g = { edital: localStorage.getItem('catedra:edital'), eventos: localStorage.getItem('catedra:eventos') };
+    ['catedra:enam', 'catedra:enamSim', 'catedra:errors', 'catedra:prova', 'ct_enam_prova', 'ct_prova'].forEach(k => localStorage.removeItem(k));
+    return g;
+  });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const t = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, E = window.CT_ENAM;
+    const bloco = () => document.querySelector('main [data-trilha-enam]');
+    const txt = () => (bloco() ? bloco().textContent.replace(/\s+/g, ' ') : '');
+    window.__catedraGoView('inicio'); await w(600);
+    r.semTrilhaSemBloco = !bloco() && ![...document.querySelectorAll('main h2')].some(h => /Trilha ENAM/.test(h.textContent));
+    // ativa a trilha (E1) — o bloco nasce no estado vazio
+    app.setState({ enam: { ...app._enamNovo(), up: Date.now() } }); await w(700);
+    r.vazioMostraOFormato = !!bloco() && bloco().getAttribute('data-trilha-enam') === 'vazio' && /80 questões A–E/.test(txt()) && /5 h de prova/.test(txt()) && /meta 56 \(70%\) ou 40 \(50%\)/.test(txt());
+    r.vazioSemZeros = !/\b0\/80|\b0 de 80|(^|[^0-9])0%/.test(txt());
+    r.vazioConvida = [...bloco().querySelectorAll('button')].filter(b => /Fazer o primeiro simulado/.test(b.textContent)).length >= 1 && /Fazer o primeiro simulado/.test(bloco().querySelector('.ct-trilha-acao').textContent);
+    const dias = E.diasAte('2026-11-29');
+    r.contagemEMeta = new RegExp('^' + dias + '\\b').test(bloco().querySelector('.ct-trilha-dias').textContent.trim()) && /dias para a prova/.test(txt()) && /prova às 13h de Brasília/.test(txt()) && /meta 56 acertos \(70%\)/.test(document.querySelector('main').textContent);
+    // cadência: as datas de CT_ENAM.cadencia, uma a cada 14 dias, a última ≥ 7 dias antes
+    const cad = E.cadencia(new Date(), '2026-11-29');
+    const chips = [...bloco().querySelectorAll('.ct-trilha-data')];
+    r.cadenciaListada = chips.length === cad.length && cad.length >= 1 && new RegExp(cad.length + ' simulados? até a prova').test(txt()) && chips.every(c => c.getAttribute('data-agendada') === '');
+    r.semAtrasadoSemDanger = !/atrasad/i.test(txt()) && !bloco().querySelector('[style*="--danger"]') && !/ofensiva/i.test(txt());
+    // "Colocar na agenda": um evento por data, no fim de semana mais próximo, sem duplicar
+    const antes = (app.state.eventos || []).length;
+    [...bloco().querySelectorAll('button')].find(b => /Colocar na agenda/.test(b.textContent)).click(); await w(700);
+    const evs = (app.state.eventos || []).filter(e => /^enam:sim:/.test(String(e.id)));
+    r.agendaCriaOsEventos = evs.length === cad.length && (app.state.eventos || []).length === antes + cad.length && evs.every(e => e.tipo === 'Simulado' && /5 h/.test(e.titulo) && [0, 6].includes(new Date(e.ano, e.mes, e.dia).getDay()) && e.up > 0 && e.done === false);
+    r.fimDeSemanaMaisProximo = evs.every(e => { const iso = String(e.id).slice(9); const d = new Date(iso + 'T12:00:00'); const f = new Date(e.ano, e.mes, e.dia); return Math.abs((f - d) / 864e5) <= 3; });
+    r.chipsMarcadosEBotaoSome = [...bloco().querySelectorAll('.ct-trilha-data')].every(c => c.getAttribute('data-agendada') === '1') && ![...bloco().querySelectorAll('button')].some(b => /Colocar na agenda/.test(b.textContent)) && /na agenda/.test(txt());
+    app.enamAgendar(); await w(400);
+    r.agendarDeNovoNaoDuplica = (app.state.eventos || []).filter(e => /^enam:sim:/.test(String(e.id))).length === cad.length;
+    r.fimDeSemanaPuro = app._enamFimDeSemana('2026-09-16') === '2026-09-19' && app._enamFimDeSemana('2026-09-15') === '2026-09-13' && app._enamFimDeSemana('2026-09-19') === '2026-09-19' && app._enamFimDeSemana('2026-09-20') === '2026-09-20' && app._enamFimDeSemana('2026-09-17') === '2026-09-19';
+    // "Importar o edital ENAM" quando faltar; presente, a régua vira a segunda métrica
+    const norm = s => String(s || '').trim().toLowerCase();
+    const nomes = E.AREAS.map(a => a.disciplinasApp[0]);
+    app.setState({ edital: (app.state.edital || []).filter(d => !nomes.some(n => norm(n) === norm(d.disc))) }); await w(500);
+    r.editalFaltaConvida = /ainda não está no seu Edital/.test(txt()) && !!bloco().querySelector('button') && [...bloco().querySelectorAll('button')].some(b => /Importar o edital ENAM/.test(b.textContent));
+    [...bloco().querySelectorAll('button')].find(b => /Importar o edital ENAM/.test(b.textContent)).click();
+    for (let i = 0; i < 40 && !/Edital ENAM/.test(txt()); i++) await w(250);
+    const ed = app.state.edital || [];
+    r.importaAsOitoDisciplinas = nomes.every(n => ed.some(d => norm(d.disc) === norm(n))) && ed.filter(d => nomes.some(n => norm(n) === norm(d.disc))).every(d => (d.topics || []).length > 0);
+    r.reguaDoEdital = /Edital ENAM/.test(txt()) && /\d+%/.test(bloco().querySelector('.ct-trilha-edital').textContent) && !!bloco().querySelector('.ct-trilha-edital .tr > i') && ![...bloco().querySelectorAll('button')].some(b => /Importar o edital ENAM/.test(b.textContent));
+    // uma tentativa (E4): última prova, selo, 8 áreas com ok/cota e cor de matéria com texto escurecido
+    const agora = Date.now();
+    const porArea = E.AREAS.map(a => ({ area: a.id, ok: a.id === 'penal' ? 2 : (a.id === 'civil' ? 6 : a.cota), cota: a.cota, n: a.cota }));
+    const tent = (ts, acertos) => ({ id: 'enam' + ts, ts, up: ts, quando: new Date(ts).toISOString(), meta: 56, total: 80, acertos, brancos: 4, erros: 80 - 4 - acertos, habilitaria: acertos >= 56, margem: acertos - 56, porArea, idsUsados: [], tempoTotalSeg: 16920, comPausa: false, foraDoEnam: 0 });
+    app.setState({ enamSim: [tent(agora, 54)] }); await w(600);
+    r.ultimaTentativa = bloco().getAttribute('data-trilha-enam') === 'ativa' && /54\s*\/80/.test(bloco().querySelector('.ct-trilha-ult').textContent.replace(/\s+/g, '')) && bloco().querySelector('.ct-enam-selo').textContent.trim() === 'faltaram 2 acertos' && /última prova hoje · meta 56 · 4 em branco/.test(txt());
+    const areas = [...bloco().querySelectorAll('.ct-trilha-area')];
+    r.oitoAreasOkCota = areas.length === 8 && /^Constitucional/.test(areas[0].textContent) && /16\/16/.test(areas[0].textContent) && /^Penal/.test(areas[7].textContent) && /2\/12/.test(areas[7].textContent);
+    // identidade no ponto (--tr-c) e tinta escurecida até 4,5:1 sobre o fundo do chip (--tr-tx)
+    const hexDoComputado = (c) => { const n = (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number); const v = /^color\(srgb/.test(c) ? n.map(x => Math.round(x * 255)) : n; return '#' + v.map(x => x.toString(16).padStart(2, '0')).join(''); };
+    const lum = (h) => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    r.corDeMateriaComTextoEscurecido = areas.length === 8 && areas.every(a => { const st = a.getAttribute('style') || ''; const m = /--tr-c:\s*(#[0-9a-f]{6}).*--tr-tx:\s*(#[0-9a-f]{6})/i.exec(st); if (!m) return false; const bg = hexDoComputado(getComputedStyle(a).backgroundColor); return ratio(m[2], bg) >= 4.5 && hexDoComputado(getComputedStyle(a).color) === m[2].toLowerCase(); });
+    r.semSparklineComUmaSo = !bloco().querySelector('svg path');
+    // próxima ação: sem erros pendentes → estudar a área de maior déficit (Penal: alvo 8, ok 2)
+    r.acaoEstudarArea = /Estudar Penal/.test(bloco().querySelector('.ct-trilha-acao').textContent) && /faltaram 7 acertos/.test(bloco().querySelector('.ct-trilha-acao').textContent) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'estudar' && bloco().querySelector('.ct-trilha-acao button').dataset.area === 'penal';
+    // com erros da prova ainda por revisar → "Revisar os N erros"
+    app.setState({ errors: [...(app.state.errors || []), ...[1, 2, 3].map(i => ({ id: 'e-enam-' + i, ts: agora + i, up: agora + i, hash: 'h' + i, disc: 'Direito Penal', enunciado: 'erro sintético ' + i, gabarito: 'x', source: 'Simulado ENAM', fonte: 'enam', ref: '2024.1·' + i, resolvido: false, auto: true }))] }); await w(600);
+    r.acaoRevisarErros = /Revisar os 3 erros da última prova/.test(bloco().querySelector('.ct-trilha-acao').textContent) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'revisar';
+    app.setState({ errors: (app.state.errors || []).filter(e => !/^e-enam-/.test(String(e.id))) });
+    // duas tentativas → sparkline; prova há 10 dias → a próxima ação é o próximo simulado da cadência
+    app.setState({ enamSim: [tent(agora - 24 * 864e5, 44), tent(agora - 10 * 864e5, 57)] }); await w(600);
+    r.sparklineComDuas = !!bloco().querySelector('svg path') && /^M/.test(bloco().querySelector('svg path').getAttribute('d')) && /2 tentativas: 44\/80, 57\/80/.test(bloco().querySelector('svg').getAttribute('aria-label'));
+    r.habilitariaNaUltima = bloco().querySelector('.ct-enam-selo').textContent.trim() === 'habilitaria' && bloco().querySelector('.ct-enam-selo').getAttribute('data-ok') === '1';
+    r.acaoProximoSimulado = cad.length ? (new RegExp('Próximo simulado em ' + new Date(cad[0] + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })).test(bloco().querySelector('.ct-trilha-acao').textContent) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'simulado') : /último simulado/.test(txt());
+    // concurso estadual a menos de 30 dias: a Reta final manda
+    const d20 = new Date(Date.now() + 20 * 864e5); const iso20 = d20.getFullYear() + '-' + String(d20.getMonth() + 1).padStart(2, '0') + '-' + String(d20.getDate()).padStart(2, '0');
+    app.setState({ provaData: iso20 }); await w(600);
+    r.retaFinalManda = bloco().getAttribute('data-trilha-enam') === 'reta' && /Sem simulado ENAM nesta semana/.test(txt()) && /Reta final do concurso manda/.test(txt()) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'reta';
+    app.setState({ provaData: null }); await w(400);
+    // o botão do estado vazio leva ao Simulado já no Modo ENAM
+    app.setState({ enamSim: [] }); await w(500);
+    [...bloco().querySelectorAll('button')].find(b => /Fazer o primeiro simulado/.test(b.textContent)).click(); await w(700);
+    r.primeiroSimuladoAbreOModoEnam = app.state.view === 'simulados' && app.state.sjModo === 'enam' && app.state.sjAberto === true && /Modo ENAM — a prova como ela é/.test(document.querySelector('main').textContent);
+    // desligada, o bloco some
+    window.__catedraGoView('inicio'); await w(400);
+    app.setState({ enam: { ...app.state.enam, ativo: false } }); await w(500);
+    r.desligadaSome = !bloco();
+    r.semRede = true;
+    return r;
+  });
+  for (const [k, v] of Object.entries(t)) ok(v, 'ENAM/E5 ' + k);
+  // devolve o edital e a agenda que a suíte tinha antes deste bloco
+  await page.evaluate((g) => { ['catedra:enam', 'catedra:enamSim', 'catedra:errors', 'catedra:prova'].forEach(k => localStorage.removeItem(k)); if (g.edital != null) localStorage.setItem('catedra:edital', g.edital); else localStorage.removeItem('catedra:edital'); if (g.eventos != null) localStorage.setItem('catedra:eventos', g.eventos); else localStorage.removeItem('catedra:eventos'); }, guardado);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
