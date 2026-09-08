@@ -2233,6 +2233,70 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   for (const [k, v] of Object.entries(t)) { if (k === 'baixos') { if (v) ok(false, 'A11Y/P16 toque abaixo de 44: ' + v); continue; } ok(v, 'A11Y/P16 toque ' + k); }
 }
 
+/* ============= TELEMETRIA — P17: erros e uso por tela, de primeira parte, desligada por padrão ============= */
+// Sem terceiros. O script do rodapé enfileira o erro (catedra:_errFila); _irPara conta a tela do dia
+// (catedra:_usoTelas); nada sai do aparelho enquanto app_avisos não disser telemetria:true — e mesmo então só
+// com conta e rede, pela RPC. As duas chaves ficam fora da sincronização. O servidor foi conferido ao vivo
+// em 08/09/2026 (desligada não grava; ligada grava, soma e a administração lê).
+{
+  const r = {};
+  const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8'), src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  r.chavesForaDaSincronizacao = /'catedra:_errFila': 1, 'catedra:_usoTelas': 1/.test(auth);
+  r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-telemetria.sql')) && /DADOS NOVOS TRATADOS/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-telemetria.sql'), 'utf8'));
+  r.consoleCarregaETemPainel = /sb\.rpc\('admin_erros_cliente', \{p_horas:24\}\)/.test(src) && /sb\.rpc\('admin_uso_telas', \{p_dias:7\}\)/.test(src) && /data-adm="telemetria"/.test(src) && /data-adm="telas"/.test(src) && /data-adm="telemetria-sw"/.test(src) && /p_chave:'telemetria'/.test(src);
+  for (const [k, v] of Object.entries(r)) ok(v, 'TELEMETRIA/P17 estático ' + k);
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { ['catedra:_errFila', 'catedra:_usoTelas', 'catedra:_lastErr'].forEach(k => localStorage.removeItem(k)); });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp;
+    // o script do rodapé enfileira o erro (sem depender do app)
+    window.dispatchEvent(new ErrorEvent('error', { message: 'TypeError: falha em pessoa@exemplo.com https://x.y/z?token=abc', error: new Error('TypeError: falha') }));
+    await w(200);
+    const fila = JSON.parse(localStorage.getItem('catedra:_errFila') || '[]');
+    r.errFilaRecebe = Array.isArray(fila) && fila.length >= 1 && /TypeError/.test(fila[fila.length - 1].m) && fila[fila.length - 1].ts > 0;
+    document.getElementById('ct-errbar') && document.getElementById('ct-errbar').remove();
+    // saneamento: e-mail, URL e token viram marcadores; 300 caracteres no máximo
+    const s = app._telemetriaSanear('Erro em pessoa@exemplo.com ao abrir https://api.x.com/v1?k=1 com eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9 ' + 'x'.repeat(400));
+    r.saneiaDadosPessoais = /\[e-mail\]/.test(s) && /\[url\]/.test(s) && /\[token\]/.test(s) && !/exemplo\.com|api\.x\.com|eyJ/.test(s) && s.length <= 300;
+    // contagem local por tela e dia
+    localStorage.removeItem('catedra:_usoTelas');
+    window.__catedraGoView('edital'); await w(200); window.__catedraGoView('inicio'); await w(200); window.__catedraGoView('edital'); await w(200);
+    const u = JSON.parse(localStorage.getItem('catedra:_usoTelas'));
+    r.contaTelasDoDia = !!u && u.dia === app._hoje() && u.c.edital === 2 && u.c.inicio === 1;
+    // desligada: nada sai, mesmo com conta e rede
+    const chamadas = [];
+    window.CatedraAuth = { user: { id: 'u1', email: 'x@y.z' }, client: { rpc: async (fn, args) => { chamadas.push({ fn, args }); return { data: true, error: null }; } } };
+    app.setState({ telemetriaLigada: false }); await app._telemetriaEnviar(); await w(100);
+    r.desligadaNaoEnvia = chamadas.length === 0 && JSON.parse(localStorage.getItem('catedra:_errFila')).length >= 1;
+    // ligada (o que app_avisos diria): erros saem saneados com build/alvo/tela e a fila esvazia; o uso do dia sobe e zera
+    app.setState({ telemetriaLigada: true }); await app._telemetriaEnviar(); await w(100);
+    const erro = chamadas.find(c => c.fn === 'registrar_erro_cliente'), uso = chamadas.find(c => c.fn === 'registrar_uso_telas');
+    r.ligadaEnviaErroSaneado = !!erro && /\[e-mail\]/.test(erro.args.p_mensagem) && /\[url\]/.test(erro.args.p_mensagem) && !/exemplo\.com/.test(erro.args.p_mensagem) && typeof erro.args.p_build === 'string' && ['web', 'macOS', 'iPad', 'local'].some(a => erro.args.p_alvo === a || erro.args.p_alvo === '') && erro.args.p_tela === 'edital' && /^\d{4}-\d\d-\d\dT/.test(erro.args.p_ts);
+    r.filaEsvaziaSoOQueSubiu = JSON.parse(localStorage.getItem('catedra:_errFila')).length === 0;
+    r.ligadaEnviaUsoDoDia = !!uso && uso.args.p_dia === app._hoje() && uso.args.p_contagens.edital === 2 && uso.args.p_contagens.inicio === 1 && Object.keys(JSON.parse(localStorage.getItem('catedra:_usoTelas')).c).length === 0;
+    // erro no servidor mantém a fila (nada se perde por tentativa falha)
+    localStorage.setItem('catedra:_errFila', JSON.stringify([{ ts: Date.now(), m: 'ReferenceError: y' }]));
+    window.CatedraAuth.client.rpc = async () => ({ data: null, error: { message: 'x' } });
+    await app._telemetriaEnviar(); await w(100);
+    r.falhaMantemAFila = JSON.parse(localStorage.getItem('catedra:_errFila')).length === 1;
+    // sem rede: nada sai
+    window.CatedraAuth.client.rpc = async (fn) => { chamadas.push({ fn }); return { data: true, error: null }; };
+    const antes = chamadas.length; Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false }); await app._telemetriaEnviar(); Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => true });
+    r.semRedeNaoEnvia = chamadas.length === antes;
+    // o app_avisos liga/desliga o estado
+    const sbOrig = app._sb; app._sb = () => ({ rpc: async () => ({ data: { aviso: '', avisoTipo: 'info', manutencao: false, iaPausada: false, telemetria: true }, error: null }) });
+    app.setState({ telemetriaLigada: false }); await app._loadAvisos(); await w(300);
+    r.avisosLigam = app.state.telemetriaLigada === true;
+    app._sb = sbOrig; app.setState({ telemetriaLigada: false }); delete window.CatedraAuth;
+    ['catedra:_errFila', 'catedra:_usoTelas', 'catedra:_lastErr'].forEach(k => localStorage.removeItem(k));
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'TELEMETRIA/P17 host ' + k);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
