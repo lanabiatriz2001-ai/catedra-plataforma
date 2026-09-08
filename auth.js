@@ -729,6 +729,8 @@
       + (OAUTH.indexOf('google') >= 0 ? '<button type="button" data-oauth="google" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true" style="font-weight:800;color:#4285f4;">G</span> Continuar com Google</button>' : '')
       + '<p style="font-size:11.5px;color:' + MUT + ';text-align:center;margin:18px 0 0;line-height:1.5;">Só você enxerga os seus dados. Backup e exportação ficam em <b>Ajustes › Dados</b>.</p>'
       // P14: os documentos ficam a um toque do portão — e o aceite versionado é pedido antes de sincronizar (showAceite)
+      // P15: quem chegou sem convite conhece a plataforma antes de pedir acesso
+      + '<p style="font-size:13px;text-align:center;margin:14px 0 0;"><a href="./sobre.html" id="ctsobre" data-doc="sobre.html" style="color:' + INK + ';font-weight:600;min-height:44px;display:inline-flex;align-items:center;">Conhecer a Cátedra</a></p>'
       + '<p style="font-size:11.5px;color:' + MUT + ';text-align:center;margin:8px 0 0;line-height:1.6;">Ao entrar ou criar conta você concorda com os <a href="./termos.html" data-doc="termos.html" style="color:' + INK + ';">Termos de uso</a> e a <a href="./privacidade.html" data-doc="privacidade.html" style="color:' + INK + ';">Política de privacidade</a>.</p>'
     );
     ligarDocs();
@@ -969,7 +971,8 @@
   }
   function ligarDocs() {
     var links = el.querySelectorAll('a[data-doc]');
-    for (var i = 0; i < links.length; i++) links[i].onclick = function (e) { e.preventDefault(); abrirDoc(this.getAttribute('data-doc')); };
+    // no site, "Conhecer a Cátedra" navega para a página pública; no app nativo (file://) abre na sobreposição
+    for (var i = 0; i < links.length; i++) links[i].onclick = function (e) { if (WEB && this.id === 'ctsobre') return; e.preventDefault(); abrirDoc(this.getAttribute('data-doc')); };
   }
   /** Sem aceite da versão vigente (nem local, nem na nuvem), o app pede ANTES de sincronizar. */
   function aceiteVigente(local, nuvem) {

@@ -2099,6 +2099,52 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   for (const [k, v] of Object.entries(h)) ok(v, 'JURÍDICO/P14 host ' + k);
 }
 
+/* ============= PÚBLICO — P15: sobre.html e a lista de espera ============= */
+// A página pública: sem promessa de aprovação, sem depoimento, sem número de adoção, sem preço; fontes locais; o
+// formulário rejeita e-mail inválido sem chamar a rede e, válido, faz um INSERT anônimo em lista_espera com a
+// chave pública, mostrando a confirmação no lugar (sem redirecionar). O RLS (só INSERT para anon) foi conferido
+// direto no projeto vivo em 08/09/2026; aqui a rede é simulada.
+{
+  const r = {};
+  const html = fs.readFileSync(path.join(RAIZ, 'sobre.html'), 'utf8');
+  r.semPromessaNemInvencao = !/aprovação garantida|depoimento(?! —|,)|alunos aprovados|R\$|por mês|assinatura por|\d+ (mil )?(alunos|usuári)/i.test(html.replace(/<!--[\s\S]*?-->/g, ''));
+  r.semRedeExterna = !/https?:\/\/(cdn|fonts\.|unpkg|jsdelivr|googleapis|gstatic)/i.test(html) && /url\('\.\/fonts\/spectral-700-normal\.woff2'\)/.test(html) && /prefers-color-scheme: dark/.test(html) && /prefers-reduced-motion/.test(html);
+  r.conteudoDaEspecificacao = /Leitura ativa em sete perguntas/.test(html) && /Espelhos oficiais quesito a quesito/.test(html) && /Arguição, não leitura/.test(html) && /funciona sem internet/.test(html) && /<html lang="pt-BR">/.test(html);
+  r.corPorRamoComTextoEscurecido = /--ramo-constitucional:#2563EB/.test(html) && /--ramo-penal:#E11D48/.test(html) && /color-mix\(in srgb,var\(--c\) 72%,var\(--ink\)\)/.test(html) && !/border-left:\s*[3-9]px/.test(html);
+  r.ligacoes = /href="\.\/termos\.html"/.test(html) && /href="\.\/privacidade\.html"/.test(html) && /href="\.\/"/.test(html);
+  const build = fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8'), buildMac = fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8'), vercel = JSON.parse(fs.readFileSync(path.join(RAIZ, 'vercel.json'), 'utf8')), auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
+  r.buildsERota = /'sobre\.html'/.test(build) && /'sobre\.html'/.test(buildMac) && (vercel.rewrites || []).some(x => x.source === '/sobre' && x.destination === '/sobre.html');
+  r.linkNoPortao = /Conhecer a Cátedra/.test(auth) && /id="ctsobre"/.test(auth) && /data-doc="sobre\.html"/.test(auth);
+  r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql')) && /for insert to anon/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql'), 'utf8')) && !/for select/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql'), 'utf8'));
+  for (const [k, v] of Object.entries(r)) ok(v, 'PÚBLICO/P15 página ' + k);
+  await page.goto(URL0 + '/sobre.html');
+  await page.waitForFunction(() => typeof window.ctEmailValido === 'function');
+  const f = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, chamadas = [];
+    window.fetch = async (u, o) => { chamadas.push({ u: String(u), o }); return { ok: true, status: 201 }; };
+    const inE = document.getElementById('email'), sel = document.getElementById('area'), erro = document.getElementById('erro'), ok = document.getElementById('ok'), form = document.getElementById('formEspera');
+    r.validacaoPura = window.ctEmailValido('nome@dominio.com') && !window.ctEmailValido('nome@dominio') && !window.ctEmailValido('nome dominio.com') && !window.ctEmailValido('') && !window.ctEmailValido('a@b.c');
+    inE.value = 'invalido@'; form.requestSubmit(); await w(100);
+    r.invalidoNaoEnvia = chamadas.length === 0 && /e-mail válido/.test(erro.textContent) && document.activeElement === inE && ok.getAttribute('data-mostra') !== '1';
+    inE.value = '  Pessoa@Exemplo.com '; sel.value = 'enam'; form.requestSubmit(); await w(200);
+    const c = chamadas[0];
+    r.validoInsereAnonimo = chamadas.length === 1 && /\/rest\/v1\/lista_espera$/.test(c.u) && c.o.method === 'POST' && !!c.o.headers.apikey && /^Bearer /.test(c.o.headers.Authorization) && c.o.headers.Prefer === 'return=minimal' && JSON.parse(c.o.body).email === 'pessoa@exemplo.com' && JSON.parse(c.o.body).area === 'enam' && JSON.parse(c.o.body).origem === 'sobre';
+    r.sucessoSemRedirecionar = ok.getAttribute('data-mostra') === '1' && /você está na lista/.test(ok.textContent) && /sobre\.html$/.test(location.pathname) && inE.value === '' && erro.textContent === '';
+    window.fetch = async () => ({ ok: false, status: 409 });
+    inE.value = 'ja@exemplo.com'; form.requestSubmit(); await w(200);
+    r.duplicadoAvisa = /já está na lista/.test(ok.textContent);
+    window.fetch = async () => { throw new Error('rede'); };
+    inE.value = 'x@exemplo.com'; form.requestSubmit(); await w(200);
+    r.falhaDeRedeExplica = /Não deu para registrar agora/.test(erro.textContent) && document.getElementById('enviar').disabled === false;
+    r.alvos44 = [...document.querySelectorAll('.botao, .botao-2, button')].every(b => b.getBoundingClientRect().height >= 44) && inE.getBoundingClientRect().height >= 44;
+    r.tituloEFormulario = !!document.querySelector('h1') && /critério da banca/.test(document.querySelector('h1').textContent) && !!document.querySelector('label[for="email"]') && !!document.querySelector('label[for="area"]');
+    r.fonteLocalAplicada = /Spectral/.test(getComputedStyle(document.querySelector('h1')).fontFamily);
+    return r;
+  });
+  for (const [k, v] of Object.entries(f)) ok(v, 'PÚBLICO/P15 formulário ' + k);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);

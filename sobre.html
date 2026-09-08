@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cátedra — plataforma de estudo para a magistratura</title>
+<meta name="description" content="A Cátedra reúne lei seca, jurisprudência, espelhos de correção oficiais e treino de prova oral num só lugar, funcionando sem internet.">
+<!-- Página pública (P15). Direção "vitrine": cor por ramo do direito como identidade, serifa grande, composição
+     ousada. Sem promessa de aprovação, sem depoimento, sem número de adoção, sem preço — nada disso existe
+     (PRODUCT.md). Os números abaixo são o tamanho do acervo que está no repositório, conferido. Fontes locais,
+     sem CDN: a página abre igual sem rede. -->
+<style>
+@font-face{font-family:'Spectral';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spectral-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spectral-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/inter-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/inter-600-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/jetbrainsmono-500-normal.woff2') format('woff2');}
+:root {
+  color-scheme: light dark;
+  --bg:#f4f1ea; --surface:#fffdf8; --surface2:#f0ece1; --border:#e3ddce; --ink:#1f1c17; --text2:#5c564a; --text3:#6f695f;
+  --accent:#0f7a57; --accentD:#0b5e43; --accentSoft:#e6f0ea; --onAccent:#ffffff; --ok:#0e7f58; --warn:#a36306;
+  --display:'Spectral',Georgia,serif; --body:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --r-md:11px; --radius:14px; --e2:8px; --e3:12px; --e4:16px; --e5:24px; --e6:32px; --e7:48px;
+  /* cor por ramo, a mesma paleta do app (CT_CORES_RAMO): identidade, nunca texto sem escurecer */
+  --ramo-constitucional:#2563EB; --ramo-civil:#0D9488; --ramo-penal:#E11D48; --ramo-administrativo:#4F46E5; --ramo-empresarial:#65A30D;
+}
+@media (prefers-color-scheme: dark) { :root { --bg:#16140f; --surface:#201d17; --surface2:#2a261e; --border:#332f23; --ink:#ece7db; --text2:#c2bbab; --text3:#a39c8b; --accent:#34b88a; --accentD:#7fd4b5; --accentSoft:rgba(52,184,138,.14); --onAccent:#0e1a14; --ok:#3ddba0; --warn:#f0a24a;
+  --ramo-constitucional:#38BDF8; --ramo-civil:#2DD4BF; --ramo-penal:#FB7185; --ramo-administrativo:#818CF8; --ramo-empresarial:#A3E635; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+a { color:var(--accentD); text-underline-offset:2px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.topo { display:flex; justify-content:space-between; align-items:center; gap:var(--e3); flex-wrap:wrap; padding:var(--e3) clamp(16px,4vw,48px); }
+.marca { display:inline-flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:20px; color:var(--ink); text-decoration:none; }
+.marca i { width:32px; height:32px; border-radius:9px; background:linear-gradient(135deg,var(--accent),var(--accentD)); color:var(--onAccent); display:inline-flex; align-items:center; justify-content:center; font-style:normal; font-size:17px; }
+.topo nav { display:flex; gap:var(--e2); flex-wrap:wrap; }
+.botao, .botao-2 { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 18px; border-radius:var(--r-md); font-weight:600; font-size:15px; text-decoration:none; cursor:pointer; font-family:inherit; border:1px solid transparent; }
+.botao { background:var(--accent); color:var(--onAccent); }
+.botao:hover { background:var(--accentD); }
+.botao-2 { background:var(--surface); color:var(--ink); border-color:var(--border); }
+main { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,48px) var(--e7); }
+.hero { padding:clamp(28px,6vw,72px) 0 clamp(24px,4vw,48px); display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:var(--e6); align-items:center; }
+.hero h1 { font-family:var(--display); font-size:clamp(38px,6.5vw,72px); line-height:1.02; letter-spacing:-.02em; margin:0 0 var(--e4); font-weight:700; }
+.hero h1 em { font-style:normal; color:var(--accent); }
+.hero p { font-size:clamp(17px,1.7vw,20px); color:var(--text2); margin:0 0 var(--e5); max-width:34ch; }
+.hero .acoes { display:flex; gap:var(--e3); flex-wrap:wrap; }
+.mosaico { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--e3); }
+.mosaico div { --c:var(--accent); border-radius:var(--radius); padding:var(--e4); background:color-mix(in srgb,var(--c) 14%,var(--surface)); border:1px solid color-mix(in srgb,var(--c) 40%,var(--border)); min-height:120px; display:flex; flex-direction:column; justify-content:flex-end; }
+.mosaico b { font-family:var(--display); font-size:clamp(28px,3.4vw,40px); line-height:1; color:color-mix(in srgb,var(--c) 72%,var(--ink)); letter-spacing:-.02em; }
+.mosaico span { font-size:13px; color:var(--text2); margin-top:6px; }
+.secao { margin-top:clamp(40px,6vw,72px); }
+.secao h2 { font-family:var(--display); font-size:clamp(26px,3.6vw,40px); line-height:1.1; letter-spacing:-.015em; margin:0 0 var(--e2); }
+.secao > p { color:var(--text2); max-width:60ch; margin:0 0 var(--e5); font-size:17px; }
+.cartoes { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:var(--e4); }
+.cartao { --c:var(--accent); background:var(--surface); border:1px solid color-mix(in srgb,var(--c) 38%,var(--border)); background-image:linear-gradient(180deg,color-mix(in srgb,var(--c) 16%,transparent),transparent 46%); border-radius:var(--radius); padding:var(--e5); }
+.cartao .n { font-family:var(--mono); font-size:13px; font-weight:500; color:color-mix(in srgb,var(--c) 72%,var(--ink)); letter-spacing:.08em; text-transform:uppercase; }
+.cartao h3 { font-family:var(--display); font-size:24px; line-height:1.15; margin:var(--e2) 0 var(--e2); letter-spacing:-.01em; }
+.cartao p { margin:0; color:var(--text2); font-size:15.5px; }
+.cartao ul { margin:var(--e3) 0 0; padding-left:18px; color:var(--text2); font-size:15px; }
+.para { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--e4); }
+.para div { background:var(--surface2); border-radius:var(--radius); padding:var(--e5); }
+.para b { font-family:var(--display); font-size:20px; display:block; margin-bottom:6px; }
+.para p { margin:0; color:var(--text2); font-size:15.5px; }
+.honesto { border:1px dashed var(--border); border-radius:var(--radius); padding:var(--e4) var(--e5); color:var(--text2); font-size:15px; margin-top:var(--e5); }
+.espera { background:var(--surface); border:1px solid color-mix(in srgb,var(--accent) 38%,var(--border)); background-image:linear-gradient(180deg,color-mix(in srgb,var(--accent) 18%,transparent),transparent 46%); border-radius:var(--radius); padding:clamp(20px,4vw,40px); display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,420px); gap:var(--e6); align-items:start; }
+.espera h2 { margin-top:0; }
+form { display:grid; gap:var(--e3); }
+label { font-size:13px; font-weight:600; color:var(--text2); display:grid; gap:6px; }
+input, select { width:100%; min-height:48px; border:1.5px solid var(--border); background:var(--surface); color:var(--ink); border-radius:var(--r-md); padding:10px 14px; font:inherit; font-size:16px; }
+.erro { min-height:20px; font-size:14px; color:var(--warn); line-height:1.45; }
+.ok { display:none; background:var(--accentSoft); color:var(--accentD); border-radius:var(--r-md); padding:14px 16px; font-weight:600; }
+.ok[data-mostra="1"] { display:block; }
+.rodape { border-top:1px solid var(--border); margin-top:clamp(40px,6vw,72px); padding-top:var(--e4); display:flex; gap:var(--e4); flex-wrap:wrap; align-items:center; font-size:14px; color:var(--text3); }
+.rodape a { min-height:44px; display:inline-flex; align-items:center; }
+@media (max-width: 800px) { .hero, .espera { grid-template-columns:1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; scroll-behavior:auto !important; } }
+</style>
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="./sobre.html"><i aria-hidden="true">C</i>Cátedra</a>
+  <nav aria-label="Principal"><a class="botao-2" href="#como-funciona">Como funciona</a><a class="botao-2" href="#lista">Lista de espera</a><a class="botao" href="./">Entrar</a></nav>
+</header>
+<main>
+  <section class="hero" aria-labelledby="titulo">
+    <div>
+      <h1 id="titulo">Estudar para a magistratura com o <em>critério da banca</em> ao lado do material.</h1>
+      <p>A Cátedra junta, num só lugar e sem depender de internet, a lei seca, a jurisprudência, os espelhos de correção oficiais e o treino da prova oral.</p>
+      <div class="acoes"><a class="botao" href="#lista">Entrar na lista de espera</a><a class="botao-2" href="#como-funciona">Ver como funciona</a></div>
+    </div>
+    <div class="mosaico" aria-label="O acervo que está dentro do app">
+      <div style="--c:var(--ramo-constitucional)"><b>566</b><span>quesitos de 35 espelhos oficiais, com a pontuação da banca</span></div>
+      <div style="--c:var(--ramo-civil)"><b>35</b><span>leis embarcadas, lidas ativamente artigo por artigo</span></div>
+      <div style="--c:var(--ramo-penal)"><b>14 mil</b><span>verbetes de jurisprudência, com a incidência por artigo</span></div>
+      <div style="--c:var(--ramo-administrativo)"><b>400</b><span>questões oficiais do ENAM, com o gabarito definitivo</span></div>
+    </div>
+  </section>
+
+  <section class="secao" id="como-funciona" aria-labelledby="t-como">
+    <h2 id="t-como">Como funciona</h2>
+    <p>Quatro coisas que uma plataforma de questões não faz, porque exigem o documento primário na mão.</p>
+    <div class="cartoes">
+      <article class="cartao" style="--c:var(--ramo-civil)">
+        <div class="n">Lei seca</div>
+        <h3>Leitura ativa em sete perguntas</h3>
+        <p>Em cada artigo você marca quem, o quê, quando, como, prazo, exceção e proibição. Depois confere: o que errou vira cartão, revisão e caderno de erros. É assim que a banca troca o núcleo do item.</p>
+      </article>
+      <article class="cartao" style="--c:var(--ramo-constitucional)">
+        <div class="n">Segunda fase</div>
+        <h3>Espelhos oficiais quesito a quesito</h3>
+        <p>Sentença e discursiva corrigidas pelo espelho que a banca publicou: cada quesito com a exigência literal, a pontuação atribuída e os dispositivos citados. Nada de opinião no lugar do critério.</p>
+      </article>
+      <article class="cartao" style="--c:var(--ramo-penal)">
+        <div class="n">Prova oral</div>
+        <h3>Arguição, não leitura</h3>
+        <p>Ponto sorteado, pergunta encadeada a partir da lei e da jurisprudência, resposta sua e correção com o que faltou. O ritmo da sessão pública, para chegar lá sem susto.</p>
+      </article>
+      <article class="cartao" style="--c:var(--ramo-administrativo)">
+        <div class="n">Rotina</div>
+        <h3>O app responde “o que faço agora”</h3>
+        <p>Edital, prioridade por erros e revisões, ciclo do dia, simulado no formato da prova e a trilha do ENAM com a contagem regressiva. Tudo instalado no Mac, no iPad e no navegador.</p>
+        <ul><li>funciona sem internet: acervo e fontes ficam no aparelho</li><li>sincroniza entre aparelhos sem apagar o que você fez</li><li>seus dados são seus: exportação em um toque e exclusão da conta pelo app</li></ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="secao" aria-labelledby="t-para">
+    <h2 id="t-para">Para quem é</h2>
+    <p>Para quem já decidiu o concurso e precisa de um lugar para sentar e estudar, em sessões longas, sem antes decidir onde estudar.</p>
+    <div class="para">
+      <div><b>Quem faz magistratura</b><p>Primeira fase, sentença, discursiva e oral no mesmo ciclo, com o espelho da banca do seu tribunal.</p></div>
+      <div><b>Quem vai fazer o ENAM</b><p>As provas anteriores no formato real, a correção que responde se habilitaria e a cadência de simulados até a data.</p></div>
+      <div><b>Quem estuda em vários aparelhos</b><p>Começa no Mac, continua no iPad, revisa no navegador. O que você fez num aparelho não some no outro.</p></div>
+    </div>
+    <div class="honesto">A Cátedra está em fase beta, com acesso por convite. Ela organiza e verifica o material e o critério; a aprovação depende do estudo, e nenhuma plataforma pode prometê-la.</div>
+  </section>
+
+  <section class="secao espera" id="lista" aria-labelledby="t-lista">
+    <div>
+      <h2 id="t-lista">Lista de espera</h2>
+      <p>Deixe o seu e-mail e diga o que está estudando. Quando abrirmos novas vagas do beta, avisamos por e-mail e só para isso usamos o endereço. Você pode pedir a remoção a qualquer momento.</p>
+    </div>
+    <form id="formEspera" novalidate>
+      <label for="email">E-mail<input id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" required maxlength="254"></label>
+      <label for="area">O que você está estudando<select id="area" name="area">
+        <option value="magistratura">Magistratura</option>
+        <option value="enam">ENAM</option>
+        <option value="ministerio-publico">Ministério Público</option>
+        <option value="defensoria">Defensoria Pública</option>
+        <option value="procuradoria">Procuradorias</option>
+        <option value="outra-juridica">Outra carreira jurídica</option>
+        <option value="outra">Outra área</option>
+      </select></label>
+      <div class="erro" id="erro" role="alert" aria-live="polite"></div>
+      <button class="botao" id="enviar" type="submit">Entrar na lista</button>
+      <div class="ok" id="ok" role="status" aria-live="polite"></div>
+      <p style="font-size:12.5px;color:var(--text3);margin:0;line-height:1.5;">Ao enviar, você concorda com a <a href="./privacidade.html">Política de privacidade</a>. Guardamos só o e-mail, a área e a data.</p>
+    </form>
+  </section>
+
+  <footer class="rodape">
+    <span>Cátedra · CátedraLEGIS · CátedraJURIS</span>
+    <a href="./termos.html">Termos de uso</a>
+    <a href="./privacidade.html">Política de privacidade</a>
+    <a href="./">Entrar no app</a>
+  </footer>
+</main>
+<script>
+// Lista de espera: um INSERT anônimo na tabela lista_espera pela chave pública do projeto (a política RLS só
+// permite inserir; ninguém lê por esta chave). Sem redirecionar: a confirmação aparece no lugar.
+(function () {
+  var CFG = (window.CATEDRA_SUPABASE) || { url: 'https://frcnfqxniwzdyykvgqqu.supabase.co', key: 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2' };
+  var RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  function emailValido(v) { v = String(v || '').trim(); return v.length <= 254 && RE.test(v); }
+  window.ctEmailValido = emailValido;
+  var form = document.getElementById('formEspera'); if (!form) return;
+  var inE = document.getElementById('email'), sel = document.getElementById('area'), erro = document.getElementById('erro'), ok = document.getElementById('ok'), btn = document.getElementById('enviar');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = String(inE.value || '').trim().toLowerCase();
+    erro.textContent = ''; ok.removeAttribute('data-mostra');
+    if (!emailValido(email)) { erro.textContent = 'Escreva um e-mail válido, como nome@dominio.com.'; inE.focus(); return; }
+    if (navigator.onLine === false) { erro.textContent = 'Você está sem internet. Tente de novo quando conectar.'; return; }
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    fetch(CFG.url + '/rest/v1/lista_espera', {
+      method: 'POST',
+      headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ email: email, area: String(sel.value || '').slice(0, 60), origem: 'sobre' })
+    }).then(function (r) {
+      btn.disabled = false; btn.textContent = 'Entrar na lista';
+      if (r.status === 201 || r.status === 204 || r.ok) { form.reset(); ok.textContent = 'Pronto — você está na lista. Avisamos por e-mail quando abrir uma vaga.'; ok.setAttribute('data-mostra', '1'); return; }
+      if (r.status === 409) { ok.textContent = 'Este e-mail já está na lista. Quando abrir uma vaga, você recebe o aviso.'; ok.setAttribute('data-mostra', '1'); return; }
+      erro.textContent = 'Não deu para registrar agora. Tente de novo em instantes.';
+    }).catch(function () { btn.disabled = false; btn.textContent = 'Entrar na lista'; erro.textContent = 'Não deu para registrar agora. Tente de novo em instantes.'; });
+  });
+})();
+</script>
+</body>
+</html>
