@@ -30,6 +30,8 @@
   ];
   var TOTAL = 0;
   for (var i = 0; i < AREAS.length; i++) TOTAL += AREAS[i].cota;
+  var DURACAO_MIN = 300;             // 5 horas (item 8.1)
+  var META_PADRAO = 56, META_COTA = 40; // 70 % e 50 % (itens 3.7 e 9.2)
 
   /* As edições. Data e horário são os do edital de cada uma (item 8.1: das 13h às 18h,
      horário oficial de Brasília). A próxima edição entra aqui quando o edital sair. */
@@ -183,17 +185,49 @@
     }
     return itens.length ? itens : null;
   }
+  /* ===== E4: a correção — "habilitaria?" =====
+     Pura. O ENAM habilita (item 1.2.1), não aprova: a pergunta é se a nota bateria a meta que a
+     pessoa escolheu (56 ou 40). Cada área tem um alvo proporcional (cota × meta/80) e o déficit
+     é o que faltou para ele. Anulada nunca conta; tempo médio só das respondidas. */
+  function corrigir(itens, resp, meta, opts) {
+    opts = opts || {}; resp = resp || {};
+    meta = +meta > 0 ? Math.round(+meta) : META_PADRAO;
+    var validos = (itens || []).filter(function (it) { return it && !it.anulada; });
+    var acertos = 0, respondidas = 0, fora = 0, porArea = {}, k;
+    for (k = 0; k < AREAS.length; k++) porArea[AREAS[k].id] = { area: AREAS[k].id, nome: AREAS[k].nome, cota: AREAS[k].cota, n: 0, ok: 0, foraDoEnam: 0 };
+    validos.forEach(function (it) {
+      var r = resp[it.id], ok = r !== undefined && r === it.certo;
+      if (r !== undefined) respondidas++;
+      if (ok) acertos++;
+      if (it.foraDoEnam) fora++;
+      var pa = porArea[it.area] || (porArea[it.area] = { area: String(it.area || ''), nome: it.ramo || String(it.area || 'Sem área'), cota: 0, n: 0, ok: 0, foraDoEnam: 0 });
+      pa.n++; if (ok) pa.ok++; if (it.foraDoEnam) pa.foraDoEnam++;
+    });
+    var fator = meta / TOTAL;
+    var edital = Object.keys(porArea).map(function (id) {
+      var p = porArea[id], cota = p.cota || p.n, alvo = Math.round(cota * fator * 10) / 10;
+      return { area: p.area, nome: p.nome, cota: cota, n: p.n, ok: p.ok, pct: p.n ? Math.round(p.ok / p.n * 100) : 0,
+        alvo: alvo, alvoInt: Math.round(alvo), deficit: Math.round((alvo - p.ok) * 10) / 10, foraDoEnam: p.foraDoEnam };
+    });
+    var porDeficit = edital.slice().sort(function (x, y) { return y.deficit - x.deficit || x.area.localeCompare(y.area); });
+    var seg = Math.max(0, Math.round(+opts.segundos || 0));
+    return { total: validos.length, acertos: acertos, respondidas: respondidas, brancos: validos.length - respondidas, erros: respondidas - acertos,
+      anuladas: (itens || []).length - validos.length,
+      meta: meta, habilitaria: acertos >= meta, margem: acertos - meta,
+      porArea: porDeficit, porAreaEdital: edital,
+      tempoTotalSeg: seg, segPorQuestao: respondidas ? Math.round(seg / respondidas) : 0, segDisponivel: Math.round(DURACAO_MIN * 60 / TOTAL),
+      comPausa: !!opts.comPausa, foraDoEnam: fora };
+  }
   raiz.CT_ENAM = {
     AREAS: AREAS,
     QUESTOES: TOTAL,                 // 80
     ALTERNATIVAS: ['A', 'B', 'C', 'D', 'E'],
-    DURACAO_MIN: 300,                // 5 horas (item 8.1)
-    META_PADRAO: 56, META_COTA: 40,  // 70 % e 50 % (itens 3.7 e 9.2)
+    DURACAO_MIN: DURACAO_MIN, META_PADRAO: META_PADRAO, META_COTA: META_COTA,
     EDITAL: 'Edital de Abertura n. 02/2026 — 6º ENAM (FGV/ENFAM)',
     FUSO_PROVA: FUSO_PROVA, EDICOES: EDICOES,
     areaDe: function (id) { for (var k = 0; k < AREAS.length; k++) if (AREAS[k].id === id) return AREAS[k]; return null; },
     edicao: edicao, proxima: proxima, diasAte: diasAte, instante: instante, horaLocal: horaLocal, cadencia: cadencia, fusoAparelho: fusoAparelho,
     RETOMAR_H: 36,                   // E3: a prova guardada em ct_enam_prova vale por 36 h (começar à noite, terminar de manhã)
-    montar: montar, rehidratar: rehidratar, areaDaDisciplina: areaDaDisciplina
+    montar: montar, rehidratar: rehidratar, areaDaDisciplina: areaDaDisciplina, corrigir: corrigir
   };
 })(typeof window !== 'undefined' ? window : globalThis);

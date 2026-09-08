@@ -146,7 +146,7 @@ export function parseGabarito(texto, tipo = 1) {
 
 /** Referência normativa que o próprio texto aponta (art., Súmula, Tema) — sem inventar. */
 export function referencias(txt) {
-  const re = /\b(?:arts?\.?\s*\d+[\dºª°.\-A-Za-z]*(?:,?\s*(?:§\s*\d+[ºª°]?|par[áa]grafo\s+[úu]nico|inc(?:iso)?\.?\s*[IVXLC]+))*(?:\s+d[aoe]\s+(?:CF|CRFB|Constitui[çc][ãa]o|CPC|CPP|CP|CC|C[óo]digo\s+\w+|Lei\s+n?[ºo.]?\s*[\d.]+\/\d{2,4}|CDC|CLT|CTN|LINDB|ECA|LEP))?|s[úu]mula(?:\s+vinculante)?\s+n?[ºo.]?\s*\d+(?:\s+d[oe]\s+(?:STF|STJ|TST))?|tema\s+(?:repetitivo\s+)?n?[ºo.]?\s*\d+)/gi;
+  const re = /\b(?:arts?\.?\s*\d+[\dºª°.\-A-Za-z]*(?:,?\s*(?:§\s*\d+[ºª°]?|par[áa]grafo\s+[úu]nico|inc(?:iso)?\.?\s*[IVXLC]+\b))*(?:\s+d[aoe]\s+(?:CF|CRFB|Constitui[çc][ãa]o|CPC|CPP|CP|CC|C[óo]digo\s+(?:de\s+)?(?:Processo\s+)?\w+|Lei\s+n?[ºo.]?\s*[\d.]+\/\d{2,4}|CDC|CLT|CTN|LINDB|ECA|LEP))?|s[úu]mula(?:\s+vinculante)?\s+n?[ºo.]?\s*\d+(?:\s+d[oe]\s+(?:STF|STJ|TST))?|tema\s+(?:repetitivo\s+)?n?[ºo.]?\s*\d+)/gi;
   const out = [], vis = new Set();
   let m;
   while ((m = re.exec(String(txt || '')))) { const k = m[0].replace(/\s+/g, ' ').trim(); const kk = k.toLowerCase(); if (!vis.has(kk)) { vis.add(kk); out.push(k); } }
