@@ -19,6 +19,7 @@ import { execSync } from 'node:child_process';
 import { verificarPII } from './verificar-pii.mjs';
 import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual nas 3 fontes
 import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
+import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
