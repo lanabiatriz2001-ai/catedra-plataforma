@@ -108,6 +108,28 @@ function formatoDoMime(mime) {
   return { taxa, bits, canais };
 }
 
+
+// Cota diária por conta (P18): o limite vem da tabela ia_cota pelo plano da conta (ia_plano;
+// padrão 'beta', configurável no console de administração) e a contagem é a de ai_uso, do dia
+// de Brasília. Em falha de rede/consulta, NÃO barra (fail-open) — como os outros portões.
+export async function cotaDoDia(user) {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/minha_cota_ia', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+      body: '{}',
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return (j && typeof j.limite === 'number' && typeof j.usadas === 'number') ? j : null;
+  } catch (_) {
+    return null;
+  }
+}
+export function mensagemCota(c) {
+  return 'Você usou as ' + c.limite + ' chamadas de IA de hoje; volta amanhã ou fale com quem te convidou.';
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Método não permitido — use POST.' });
@@ -124,6 +146,8 @@ export default async function handler(req, res) {
   if (!user) { res.status(401).json({ error: 'Entre na sua conta do Cátedra para gerar a narração.' }); return; }
   if (!liberado(user) || !(await emailLiberadoDB(user))) { res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' }); return; }
   if (await contaBloqueada(user)) { res.status(403).json({ error: 'O acesso à IA desta conta foi pausado. Fale com quem te convidou.' }); return; }
+  const cota = await cotaDoDia(user);
+  if (cota && cota.usadas >= cota.limite) { res.status(429).json({ error: mensagemCota(cota), cota }); return; }
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
