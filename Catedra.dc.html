@@ -21,6 +21,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <script src="./leitura-ativa.js"></script>
 <!-- ENAM: as oito áreas do quadro 8.6, a duração e as metas — constante única (enam.js) -->
 <script src="./enam.js"></script>
+<script src="./juridico.js"></script>
 <!-- C2: para onde mandar praticar questões (só link de saída — nada é copiado de lá) -->
 <link rel="stylesheet" href="./catedra-ui.css">
 <script src="./area-registry.js"></script>
@@ -1012,6 +1013,32 @@ window.ctPdfLib = (function(){
             </sc-for>
           </div>
         </div>
+      </div>
+    </sc-if>
+
+    <!-- CONSENTIMENTO DA IA (P14): antes do primeiro uso de qualquer recurso de IA, o texto exato da política.
+         Sem "Autorizar", a chamada não sai (window.claude.complete e /api/tts esperam este modal). -->
+    <sc-if value="{{ iaConsentPedir }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:18px;">
+        <div role="dialog" aria-modal="true" aria-label="Autorizar o uso de inteligência artificial" class="ct-modal-panel" data-ia-consentimento="1" tabindex="-1" style="background:var(--surface);border-radius:18px;width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,.35);padding:24px;">
+          <div style="font-family:var(--display);font-weight:700;font-size:var(--fs-2xl);color:var(--ink);letter-spacing:-.01em;">Usar inteligência artificial?</div>
+          <p style="font-size:var(--fs-base);color:var(--ink);line-height:1.6;margin:12px 0 0;">{{ iaConsentTexto }}</p>
+          <p style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;margin:10px 0 0;">Detalhes na <button type="button" data-doc="privacidade" onclick="{{ abrirDoc }}" style="background:none;border:none;padding:0;color:var(--accentD);text-decoration:underline;cursor:pointer;font:inherit;">Política de privacidade</button>, seção 7. Você pode revogar em Ajustes → Sincronização e privacidade.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+            <button type="button" onclick="{{ iaConsentir }}" class="ct-btn" style="min-height:44px;">Autorizar a IA</button>
+            <button type="button" onclick="{{ iaRecusar }}" class="ct-btn-2" style="min-height:44px;">Agora não</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <!-- TERMOS / POLÍTICA dentro do app (P14): a página avulsa num iframe, com "Voltar ao app" dos dois lados -->
+    <sc-if value="{{ docAberto }}" hint-placeholder-val="{{ false }}">
+      <div role="dialog" aria-modal="true" aria-label="{{ docAbertoTitulo }}" class="ct-modal-panel" data-doc-aberto="1" tabindex="-1" style="position:fixed;inset:0;z-index:210;background:var(--bg);display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--surface);">
+          <span style="font-weight:700;color:var(--ink);">{{ docAbertoTitulo }}</span>
+          <button type="button" onclick="{{ fecharDoc }}" class="ct-btn-2" style="min-height:44px;">Fechar</button>
+        </div>
+        <iframe src="{{ docAbertoSrc }}" title="{{ docAbertoTitulo }}" style="flex:1;border:0;width:100%;background:transparent;"></iframe>
       </div>
     </sc-if>
 
@@ -5710,6 +5737,29 @@ window.ctPdfLib = (function(){
             num arquivo só.
           </div>
         </div>
+        <!-- P14: os documentos, o aceite, o consentimento da IA e a exclusão da conta — no mesmo lugar da privacidade -->
+        <div data-aj="termos privacidade lgpd consentimento inteligência artificial excluir conta apagar" class="ct-card" data-card="juridico">
+          <div class="ct-titulo ct-titulo-com-nota">Termos, privacidade e inteligência artificial</div>
+          <div class="ct-nota ct-nota-antes">o que rege o uso da plataforma e o que você autorizou</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button type="button" data-doc="termos" onclick="{{ abrirDoc }}" class="ct-btn-2" style="min-height:44px;">Termos de uso</button>
+            <button type="button" data-doc="privacidade" onclick="{{ abrirDoc }}" class="ct-btn-2" style="min-height:44px;">Política de privacidade</button>
+            <span class="ct-dado">versão {{ juridicoVersao }} · {{ juridicoData }}</span>
+          </div>
+          <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.6;margin-top:12px;" data-aceite-txt="1">{{ aceiteTxt }}</div>
+          <div style="margin:16px 0 0;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-md);">
+            <div style="font-weight:600;color:var(--ink);">Inteligência artificial</div>
+            <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 10px;line-height:1.5;" data-ia-txt="1">{{ iaConsentTxt }}</div>
+            <sc-if value="{{ iaConsentTem }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ iaRevogar }}" class="ct-btn-2" style="min-height:44px;">Revogar o consentimento</button></sc-if>
+            <sc-if value="{{ !iaConsentTem }}" hint-placeholder-val="{{ true }}"><button type="button" onclick="{{ iaAutorizarAjustes }}" class="ct-btn-2" style="min-height:44px;">Autorizar a IA</button></sc-if>
+          </div>
+          <div style="margin:16px 0 0;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-md);">
+            <div style="font-weight:600;color:var(--ink);">Excluir minha conta</div>
+            <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 10px;line-height:1.5;">Apaga o cadastro e todos os dados de estudo, na nuvem e neste aparelho, e tira você dos grupos. Antes, o app exporta o backup JSON automaticamente. Não dá para desfazer.<sc-if value="{{ contaEmail }}" hint-placeholder-val="{{ false }}"> Conta: <b>{{ contaEmail }}</b>.</sc-if></div>
+            <sc-if value="{{ !contaExcluindo }}" hint-placeholder-val="{{ true }}"><button type="button" onclick="{{ excluirConta }}" class="ct-btn-2" style="min-height:44px;border-color:var(--warn);color:var(--warn);">Excluir minha conta…</button></sc-if>
+            <sc-if value="{{ contaExcluindo }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-sm);color:var(--text3);">Excluindo…</span></sc-if>
+          </div>
+        </div>
         </sc-if>
 
         <sc-if value="{{ ajSecConta }}" hint-placeholder-val="{{ false }}">
@@ -6184,6 +6234,8 @@ class Component extends DCLogic {
       leituras: this._load('leituras', []),
       // trilha ENAM (E1): edição, data, meta de acertos — só o número, nunca o motivo
       enam: this._load('enam', null),
+      // P14: aceite versionado dos Termos/Política e consentimento específico da IA; os modais e o documento aberto
+      aceite: this._load('aceite', null), iaConsentimento: this._load('iaConsentimento', null), iaConsentPedir:false, docAberto:'',
       enamSim: this._load('enamSim', []),   // E3/E4: tentativas do Modo ENAM — só ids e respostas, nunca enunciado
       revSession: null,
       treino: null,
@@ -6375,7 +6427,7 @@ class Component extends DCLogic {
       // Nenhum modal aberto: senão o F ligava a sala POR BAIXO do simulado cronometrado
       // (z120 sob z150 opaco), punha o cronômetro de estudo a correr durante a prova e
       // engolia todos os avisos — e o Esc seguinte saía da PROVA, apagando `ct_prova`.
-      const _ocupado = !!(this.state.paletteOpen || this.state.provaMode || this.state.treino
+      const _ocupado = !!(this.state.paletteOpen || this.state.provaMode || this.state.treino || this.state.iaConsentPedir || this.state.docAberto
         || this.state.revSession || this.state.atalhosOpen || this.state.sessionModalOpen
         || this.state.histEdit);
       if(!_dig && this.state.loggedIn && !_ocupado){
@@ -6471,6 +6523,7 @@ class Component extends DCLogic {
         if(d) this._abrirPratica({disciplina:d, assunto:''});
         return;
       }
+      if(e.data.type==='ctFecharDoc'){ this.setState({docAberto:''}); return; }   // P14: "Voltar ao app" dentro de termos/privacidade
       if(e.data.type==='ctAbrirAcervo'){
         const alvo=e.data.alvo==='juris'?'juris':'legis';
         // Guarda o PONTO DE ORIGEM (view + rito/peça/bloco) para a pílula "voltar"
@@ -6687,6 +6740,7 @@ class Component extends DCLogic {
     try{ window.__catedraGoView = (v)=>{ try{ this._irPara(v); }catch(_){} }; }catch(_){}
     // gancho dos testes de tela (LA6): estado forçado no oral e no simulado sem clicar por dez telas
     try{ window.__catedraApp = this; }catch(_){}
+    try{ this._instalarPortaoIA(); }catch(_){}   // P14: nenhuma chamada de IA sem o consentimento específico
     this._migrarSchema();
     this._limparLeiturasDuplicadas();   // remove as leituras que duplicam o checklist do plano
     // A hidratação do auth.js troca os dados locais DEPOIS do mount — sem reexecutar
@@ -7337,7 +7391,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'enam', 'enamSim', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
@@ -10436,6 +10490,43 @@ class Component extends DCLogic {
       this.setState({modeloId:'enam', modeloSel:discs.map((_,i)=>i)}, ()=>this.aplicarModelo());
     });
   };
+  /* ===== TERMOS, PRIVACIDADE E CONSENTIMENTO DA IA (P14) =====================================
+     · catedra:aceite {versao, ts} — o portão de login (auth.js) pede antes de sincronizar; aqui só se mostra.
+     · catedra:iaConsentimento {versao, ts} — antes do PRIMEIRO uso de qualquer recurso de IA, um modal
+       com o texto exato da política; sem ele, window.claude.complete e /api/tts não são chamados.
+       O portão embrulha window.claude.complete (shim do site ou ponte nativa) uma vez, no boot:
+       as dezenas de chamadas do app passam por um lugar só. Revogável em Ajustes. */
+  IA_CONSENT_VERSAO = '2026-09';
+  IA_CONSENT_TEXTO = 'Este recurso envia o texto abaixo a provedores de IA fora do Brasil (Anthropic, Google ou OpenAI) apenas para gerar a resposta; não é usado para treinar modelos. Não inclua dados de terceiros. Você pode desativar a IA em Ajustes.';
+  _instalarPortaoIA(){
+    const c=window.claude; if(!c || typeof c.complete!=='function' || c.__ctPortao) return;
+    const original=c.complete.bind(c); c.__ctPortao=true; c.__ctSemPortao=original;
+    c.complete=(prompt)=>this._iaAutorizar().then(()=>original(prompt));
+  }
+  _iaConsentido(){ const c=this.state.iaConsentimento; return !!(c && c.versao===this.IA_CONSENT_VERSAO && +c.ts>0); }
+  /** Resolve quando há consentimento (já dado, ou dado agora no modal); rejeita se a pessoa recusar. */
+  _iaAutorizar(){
+    if(this._iaConsentido()) return Promise.resolve(true);
+    return new Promise((res, rej)=>{ (this._iaPend=this._iaPend||[]).push({res, rej}); if(!this.state.iaConsentPedir) this.setState({iaConsentPedir:true}); });
+  }
+  iaConsentir = ()=>{ const c={versao:this.IA_CONSENT_VERSAO, ts:Date.now()};
+    this.setState({iaConsentimento:c, iaConsentPedir:false}, ()=>{ try{ this.flashSync(); }catch(_){} const p=this._iaPend||[]; this._iaPend=[]; p.forEach(x=>{ try{ x.res(true); }catch(_){} }); }); };
+  iaRecusar = ()=>{ this.setState({iaConsentPedir:false}); const p=this._iaPend||[]; this._iaPend=[]; p.forEach(x=>{ try{ x.rej(new Error('ia_sem_consentimento')); }catch(_){} });
+    this._toast('Sem o consentimento a IA fica desligada — dá para autorizar depois em Ajustes'); };
+  iaRevogar = ()=>{ this.setState({iaConsentimento:null}, ()=>{ try{ this.flashSync(); }catch(_){} }); this._toast('Consentimento revogado — a IA não será chamada até você autorizar de novo'); };
+  iaAutorizarAjustes = ()=>{ this._iaAutorizar().catch(()=>{}); };
+  abrirDoc = (e)=>{ const d=String((e.currentTarget.dataset||{}).doc||''); if(d==='termos'||d==='privacidade') this.setState({docAberto:d}); };
+  fecharDoc = ()=> this.setState({docAberto:''});
+  /** Exclusão da conta pela própria pessoa: exporta o JSON antes, confirma, apaga na nuvem (RPC) e no aparelho. */
+  excluirConta = ()=>{
+    const A=window.CatedraAuth;
+    if(!A || typeof A.excluirConta!=='function'){ this._toast('A exclusão precisa da conta conectada e de internet — abra o app logada para excluir'); return; }
+    try{ this.exportJSON(); }catch(_){}
+    const ok=window.confirm('Excluir a sua conta apaga TUDO: sessões, edital, revisões, simulados, flashcards, caderno de erros, grupos e o cadastro — na nuvem e neste aparelho. O backup JSON acabou de ser exportado.\n\nNão dá para desfazer. Excluir mesmo assim?');
+    if(!ok) return;
+    this.setState({contaExcluindo:true});
+    A.excluirConta().catch((err)=>{ this.setState({contaExcluindo:false}); const m=String(err&&err.message||''); this._toast(/admin_nao_pode/.test(m)?'Conta de administração não pode ser excluída por aqui':'Não consegui excluir agora — tente de novo com internet'); });
+  };
   /** A próxima ação da trilha, já resolvida no render: simulado / revisar / estudar / reta. */
   enamAcao = (e)=>{
     const d=e.currentTarget.dataset||{}, acao=String(d.acao||'simulado');
@@ -12911,6 +13002,7 @@ class Component extends DCLogic {
     if(cache[it.id]){ this._tocarMf(cache[it.id]); return; }
 
     this.setState({mfTtsBusy:true});
+    try{ await this._iaAutorizar(); }catch(_){ this.setState({mfTtsBusy:false}); return; }   // P14: /api/tts também só com consentimento
     try{
       let tok=null;
       try{ const sN=await window.CatedraAuth.client.auth.getSession(); tok=sN&&sN.data&&sN.data.session&&sN.data.session.access_token; }catch(_){}
@@ -15985,6 +16077,13 @@ class Component extends DCLogic {
       enamEstudarArea:this.enamEstudarArea, enamVerNoJuris:this.enamVerNoJuris,
       // E5 — Trilha ENAM no Início
       ..._trilha, enamAcao:this.enamAcao, enamAgendar:this.enamAgendar, enamImportarEdital:this.enamImportarEdital,
+      // P14 — termos, privacidade, consentimento da IA, exclusão de conta
+      iaConsentPedir:!!this.state.iaConsentPedir, iaConsentTexto:this.IA_CONSENT_TEXTO, iaConsentir:this.iaConsentir, iaRecusar:this.iaRecusar, iaRevogar:this.iaRevogar, iaAutorizarAjustes:this.iaAutorizarAjustes,
+      iaConsentTem:this._iaConsentido(), iaConsentTxt:(()=>{ const c=this.state.iaConsentimento; if(!this._iaConsentido()) return 'Nenhum recurso de IA é chamado enquanto você não autorizar — o pedido aparece na primeira vez que usar um.'; try{ return 'Autorizado em '+new Date(+c.ts).toLocaleDateString('pt-BR')+'. Cada uso envia só o texto daquele pedido a um provedor fora do Brasil, apenas para gerar a resposta.'; }catch(_){ return 'Autorizado.'; } })(),
+      docAberto:!!this.state.docAberto, docAbertoSrc:this.state.docAberto?('./'+this.state.docAberto+'.html'):'', docAbertoTitulo:this.state.docAberto==='privacidade'?'Política de privacidade':'Termos de uso', abrirDoc:this.abrirDoc, fecharDoc:this.fecharDoc,
+      juridicoVersao:(window.CT_JURIDICO&&window.CT_JURIDICO.versao)||'', juridicoData:(()=>{ try{ const d=window.CT_JURIDICO.termos.data; return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):''; }catch(_){ return ''; } })(),
+      aceiteTxt:(()=>{ const J=window.CT_JURIDICO, a=this.state.aceite; if(!J) return 'Documentos não publicados neste build.'; if(J.aceiteVigente(a)){ try{ return 'Você aceitou a versão '+a.versao+' em '+new Date(+a.ts).toLocaleDateString('pt-BR')+'.'; }catch(_){ return 'Aceitos.'; } } return 'A versão vigente ('+J.versao+') ainda não foi aceita nesta conta — o app pede no próximo login.'; })(),
+      excluirConta:this.excluirConta, contaExcluindo:!!this.state.contaExcluindo, contaEmail:(window.CatedraAuth&&window.CatedraAuth.user&&window.CatedraAuth.user.email)||'',
       setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
       sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
       onOralResposta:this.onOralResposta, corrigirOral:this.corrigirOral,

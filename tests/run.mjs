@@ -1988,6 +1988,117 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   await page.evaluate((g) => { ['catedra:enam', 'catedra:enamSim', 'catedra:errors', 'catedra:prova'].forEach(k => localStorage.removeItem(k)); if (g.edital != null) localStorage.setItem('catedra:edital', g.edital); else localStorage.removeItem('catedra:edital'); if (g.eventos != null) localStorage.setItem('catedra:eventos', g.eventos); else localStorage.removeItem('catedra:eventos'); }, guardado);
 }
 
+/* ============= JURÍDICO — P14: termos, privacidade, aceite, consentimento da IA e exclusão de conta ============= */
+// (a) o conversor e as páginas geradas: Markdown mínimo → HTML com tokens, sem rede; a versão vigente do aceite
+//     sai do cabeçalho dos documentos; o texto dos documentos chega intacto
+{
+  const BJ = await import('../scripts/build-juridico.mjs');   // gera termos.html, privacidade.html e juridico.js ao importar
+  const r = {};
+  const h = BJ.converterMarkdown('# Título\n\nPara **negrito** e *itálico* com <script>x</script>.\n\n- um\n- dois\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n## 2. Seção\n\n¹ nota de rodapé');
+  r.titulosENegrito = /<h1>Título<\/h1>/.test(h) && /<strong>negrito<\/strong>/.test(h) && /<em>itálico<\/em>/.test(h) && /<h2 id="2-secao">2\. Seção<\/h2>/.test(h);
+  r.escapaHtml = /&lt;script&gt;x&lt;\/script&gt;/.test(h) && !/<script>/.test(h);
+  r.listaTabelaNota = /<ul><li>um<\/li><li>dois<\/li><\/ul>/.test(h) && /<table><thead><tr><th>A<\/th><th>B<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>2<\/td><\/tr><\/tbody><\/table>/.test(h) && /<p class="nota">¹ nota de rodapé<\/p>/.test(h);
+  const cab = BJ.cabecalho(fs.readFileSync(path.join(RAIZ, 'docs/juridico/termos-de-uso.md'), 'utf8'));
+  r.cabecalhoDoDocumento = cab.versao === '1.0' && cab.data === '02/09/2026' && cab.dataISO === '2026-09-02' && /advogad/.test(cab.nota);
+  const termos = fs.readFileSync(path.join(RAIZ, 'termos.html'), 'utf8'), priv = fs.readFileSync(path.join(RAIZ, 'privacidade.html'), 'utf8');
+  r.paginasGeradas = /<html lang="pt-BR">/.test(termos) && /<html lang="pt-BR">/.test(priv) && /<h1>Termos de uso — Cátedra<\/h1>/.test(termos) && /<h1>Política de privacidade — Cátedra<\/h1>/.test(priv);
+  r.semRedeNasPaginas = ![termos, priv].some(x => /https?:\/\/(cdn|fonts\.|unpkg|jsdelivr|googleapis)/i.test(x)) && !/<script/i.test(termos) && !/<link/i.test(priv) && /prefers-color-scheme: dark/.test(termos);
+  r.ligacaoEntreAsDuas = /href="\.\/privacidade\.html"/.test(termos) && /href="\.\/termos\.html"/.test(priv) && /Voltar ao app/.test(termos) && /ctFecharDoc/.test(priv);
+  r.textoIntacto = termos.includes('Estes Termos de uso regulam o acesso e o uso da plataforma de estudos <strong>Cátedra</strong>') && priv.includes('<th>Finalidade</th>') && (termos.match(/<h2 /g) || []).length === 13 && (priv.match(/<h2 /g) || []).length === 13;
+  r.tokensSemHexFixoNoTexto = /var\(--ink,/.test(termos) && /var\(--bg,/.test(termos) && /min-height: 44px/.test(termos);
+  await import('../juridico.js');
+  const J = globalThis.CT_JURIDICO;
+  r.versaoVigente = J.versao === '1.0/1.0' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-09-02';
+  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.0', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.0","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.0' }) === false;
+  const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
+  r.portaoDeLoginPedeAceite = /aceiteVigente\(aceiteLocal, row && row\.data && row\.data\['catedra:aceite'\]\)/.test(auth) && /showAceite\(function \(\) \{ try \{ _si\('catedra:aceite'/.test(auth) && /data-doc="termos\.html"/.test(auth) && /data-doc="privacidade\.html"/.test(auth);
+  r.exclusaoPelaRpc = /sb\.rpc\('excluir_minha_conta'\)/.test(auth) && /excluirConta: excluirConta/.test(auth) && fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'));
+  const build = fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8'), buildMac = fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8');
+  r.builds = [build, buildMac].every(x => /build-juridico\.mjs/.test(x) && /'termos\.html', 'privacidade\.html'/.test(x)) && /'\.\/juridico\.js'/.test(build);
+  for (const [k, v] of Object.entries(r)) ok(v, 'JURÍDICO/P14 build ' + k);
+}
+// (b) o host: nenhuma chamada de IA sem o consentimento específico (window.claude.complete e /api/tts esperam o
+//     modal com o texto exato); revogável em Ajustes; termos e política abrem dentro do app; exclusão de conta
+//     exporta antes, confirma e chama a RPC pelo auth.js
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { ['catedra:iaConsentimento', 'catedra:aceite'].forEach(k => localStorage.removeItem(k)); });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp;
+    const TEXTO = 'Este recurso envia o texto abaixo a provedores de IA fora do Brasil (Anthropic, Google ou OpenAI) apenas para gerar a resposta; não é usado para treinar modelos. Não inclua dados de terceiros. Você pode desativar a IA em Ajustes.';
+    r.chavesNoAutosave = ['aceite', 'iaConsentimento'].every(k => app._autosaveKeys().includes(k));
+    const modal = () => document.querySelector('[data-ia-consentimento]');
+    const bt = (re) => [...(modal() ? modal().querySelectorAll('button') : [])].find(b => re.test(b.textContent));
+    window.claude = { complete: async (p) => 'resp:' + p };
+    app._instalarPortaoIA();
+    r.portaoInstalado = window.claude.__ctPortao === true && typeof window.claude.__ctSemPortao === 'function';
+    // sem consentimento: a chamada espera o modal, que traz o texto exato; "Agora não" rejeita e nada é chamado
+    let chamouOriginal = 0; window.claude.__ctSemPortao = async (p) => { chamouOriginal++; return 'resp:' + p; };
+    app._instalarPortaoIA();   // idempotente: não embrulha duas vezes
+    const p1 = window.claude.complete('olá').then(() => 'ok', e => 'rej:' + e.message); await w(300);
+    r.modalComOTextoExato = !!modal() && modal().textContent.includes(TEXTO) && modal().getAttribute('role') === 'dialog' && bt(/Autorizar a IA/).getBoundingClientRect().height >= 44;
+    bt(/Agora não/).click(); await w(800);
+    const guardado = () => JSON.parse(localStorage.getItem('catedra:iaConsentimento') || 'null');
+    r.recusarRejeitaSemChamar = (await p1) === 'rej:ia_sem_consentimento' && !modal() && guardado() === null;
+    // /api/tts também espera o consentimento
+    const fetchOrig = window.fetch; let ttsChamado = false; window.fetch = async (u) => { if (/api\/tts/.test(String(u))) ttsChamado = true; return { ok: false, json: async () => ({}) }; };
+    app.setState({ biblioteca: [{ id: 'bt1', nome: 'x' }], multiSrc: 'bt1', mfGen: { 'bt1:audio': { texto: 'narração de teste' } } }); await w(200);
+    app.narrarMf(); await w(300);
+    r.ttsPedeConsentimento = !!modal();
+    bt(/Agora não/).click(); await w(300);
+    r.ttsNaoChamadoSemConsentimento = !ttsChamado && app.state.mfTtsBusy === false;
+    window.fetch = fetchOrig;
+    // autorizar: a chamada pendente resolve, a chave é gravada, a segunda passa direto
+    const p2 = window.claude.complete('x'); await w(300);
+    bt(/Autorizar a IA/).click(); await w(900);   // o autosave tem 500 ms de debounce
+    const c = guardado();
+    r.autorizarResolveEGrava = (await p2) === 'resp:x' && !!c && c.versao === app.IA_CONSENT_VERSAO && c.ts > 0 && !modal();
+    r.segundaChamadaDireta = (await window.claude.complete('y')) === 'resp:y' && !modal() && chamouOriginal === 0;
+    // Ajustes: documentos, versão, aceite, revogar
+    window.__catedraGoView('ajustes'); await w(600);
+    const abaDados = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'dados'); if (abaDados) { abaDados.click(); await w(600); }
+    const card = document.querySelector('main [data-card="juridico"]');
+    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.0 · 02\/09\/2026/.test(card.textContent);
+    r.aceiteAindaNao = /ainda não foi aceita nesta conta/.test(card.querySelector('[data-aceite-txt]').textContent);
+    app.setState({ aceite: { versao: '1.0/1.0', ts: Date.now() } }); await w(300);
+    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.0 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
+    r.iaAutorizadaNoTexto = /Autorizado em/.test(document.querySelector('main [data-ia-txt]').textContent);
+    [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Revogar o consentimento/.test(b.textContent)).click(); await w(900);
+    r.revogarApaga = guardado() === null && /Nenhum recurso de IA é chamado/.test(document.querySelector('main [data-ia-txt]').textContent);
+    const p3 = window.claude.complete('z').then(() => 'ok', () => 'rej'); await w(300);
+    r.depoisDeRevogarPedeDeNovo = !!modal(); bt(/Agora não/).click(); await w(200); r.depoisDeRevogarPedeDeNovo = r.depoisDeRevogarPedeDeNovo && (await p3) === 'rej';
+    // abrir os documentos dentro do app
+    [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /^Termos de uso$/.test(b.textContent.trim())).click(); await w(300);
+    const dlg = document.querySelector('[data-doc-aberto]');
+    r.termosAbremNoApp = !!dlg && /termos\.html$/.test(dlg.querySelector('iframe').getAttribute('src')) && dlg.getAttribute('aria-label') === 'Termos de uso';
+    await new Promise(res => { const f = dlg.querySelector('iframe'); if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.querySelector('h1')) res(); else f.addEventListener('load', res); setTimeout(res, 4000); });
+    r.iframeRenderiza = /Termos de uso/.test((dlg.querySelector('iframe').contentDocument || {}).title || '') && !!dlg.querySelector('iframe').contentDocument.querySelector('h1');
+    window.postMessage({ type: 'ctFecharDoc' }, '*'); await w(300);   // é o que o "Voltar ao app" da página manda ao parent
+    r.voltarAoAppFecha = !document.querySelector('[data-doc-aberto]');
+    // exclusão de conta: exporta antes, confirma, chama a RPC do auth.js
+    let exportou = 0, excluiu = 0; const expOrig = app.exportJSON; app.exportJSON = () => { exportou++; };
+    const confOrig = window.confirm; window.confirm = () => false;
+    window.CatedraAuth = { excluirConta: async () => { excluiu++; }, user: { email: 'teste@exemplo.invalid' }, client: null };
+    app.setState({}); await w(300);
+    const btExc = () => [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Excluir minha conta/.test(b.textContent));
+    r.mostraAConta = /teste@exemplo\.invalid/.test(document.querySelector('main [data-card="juridico"]').textContent);
+    btExc().click(); await w(200);
+    r.semConfirmarNaoExclui = exportou === 1 && excluiu === 0;
+    window.confirm = () => true; btExc().click(); await w(300);
+    r.confirmadoExportaEExclui = exportou === 2 && excluiu === 1;
+    delete window.CatedraAuth; app.setState({ contaExcluindo: false }); await w(200);
+    btExc().click(); await w(200);
+    r.semContaExplica = [...document.querySelectorAll('div[role=status]')].some(d => /precisa da conta conectada/.test(d.textContent)) && excluiu === 1;
+    app.exportJSON = expOrig; window.confirm = confOrig;
+    ['catedra:iaConsentimento', 'catedra:aceite'].forEach(k => localStorage.removeItem(k)); app.setState({ aceite: null, iaConsentimento: null, biblioteca: [], mfGen: {}, multiSrc: '' });
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'JURÍDICO/P14 host ' + k);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
