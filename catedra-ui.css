@@ -1011,3 +1011,12 @@ button:disabled { cursor: not-allowed; }
 .ct-trilha-edital .tr { flex: 1; min-width: 140px; height: 7px; border-radius: 99px; background: var(--border, #e6e1d4); overflow: hidden; }
 .ct-trilha-edital .tr > i { display: block; height: 100%; border-radius: 99px; background: var(--accent, #0f7a57); }
 .ct-trilha .ct-btn, .ct-trilha .ct-btn-2 { min-height: 44px; }
+/* ===== 15. BAIXA ESTIMULAÇÃO E ALVOS DE TOQUE (P16) ==========================================
+   [data-baixa="1"] na raiz do host: some o que pressiona — ofensiva, escudos, ranking, desafio, emoji
+   decorativo. Nada é apagado; os dados continuam lá. [data-toque="1"] (iPad e qualquer ponteiro grosso):
+   todo botão da área de conteúdo e da barra superior sobe para 44px; os chips em estilo inline leem --ct-alvo. */
+[data-baixa="1"] .ct-emo, [data-baixa="1"] .ct-gam { display: none !important; }
+@media (pointer: coarse) { :root, [data-dir] { --ct-alvo: 44px; } }
+[data-toque="1"] { --ct-alvo: 44px; }
+@media (pointer: coarse) { main button, .ct-topbar button { min-height: 44px; } }
+[data-toque="1"] main button, [data-toque="1"] .ct-topbar button { min-height: 44px; }

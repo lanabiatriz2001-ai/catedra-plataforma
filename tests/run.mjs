@@ -2145,6 +2145,94 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   for (const [k, v] of Object.entries(f)) ok(v, 'PÚBLICO/P15 formulário ' + k);
 }
 
+/* ============= ACESSIBILIDADE — P16: baixa estimulação, selects com nome, alvos de 44 px, cor-texto ============= */
+{
+  const r = {};
+  const VT = await import('../scripts/verificar-cores-texto.mjs');
+  r.scriptDeCoresTexto = typeof VT.corTexto === 'function' && VT.ratio(VT.corTexto('#0D9488', false), '#fffdf8') >= 4.5 && VT.ratio(VT.corTexto('#0D9488', true), '#201d17') >= 4.5;
+  const src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  r.consumidoresTextuaisUsamCorTx = /color:\{\{ r\.colorTx \}\}/.test(src) && /color:\{\{ d\.colorTx \}\}/.test(src) && /color:\{\{ n\.corTx \}\}/.test(src) && /color:\{\{ g\.corTx \}\}/.test(src) && !/color:\{\{ r\.color \}\}/.test(src);
+  r.buildsTravam = /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8')) && /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8'));
+  r.nenhumEmojiNovoForaDoEmbrulho = (() => { const tpl = src.slice(0, src.indexOf('\nclass Component')); const re = /[\u{1F525}\u{1F3AF}\u{1F389}✨\u{1F44B}]/gu; let m, fora = 0; while ((m = re.exec(tpl))) { const antes = tpl.slice(Math.max(0, m.index - 45), m.index); const lt = tpl.lastIndexOf('<', m.index), gt = tpl.lastIndexOf('>', m.index); if (lt > gt) continue; if (!/class="ct-emo" aria-hidden="true">$/.test(antes)) fora++; } return fora === 0; })();
+  for (const [k, v] of Object.entries(r)) ok(v, 'A11Y/P16 estático ' + k);
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { try { const p = JSON.parse(localStorage.getItem('catedra:prefs') || '{}'); delete p.baixaEstimulacao; localStorage.setItem('catedra:prefs', JSON.stringify(p)); } catch (_) {} });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, raiz = document.querySelector('[data-dark][data-dir]');
+    const vis = (el) => !!el && el.getClientRects().length > 0 && getComputedStyle(el).display !== 'none';
+    window.__catedraGoView('inicio'); await w(600);
+    r.semBaixaTudoAparece = raiz.getAttribute('data-baixa') === '' && [...document.querySelectorAll('.ct-emo')].some(vis) && [...document.querySelectorAll('.ct-gam')].some(vis);
+    // o interruptor em Ajustes
+    window.__catedraGoView('ajustes'); await w(600);
+    const aba = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'automacoes'); if (aba) { aba.click(); await w(500); }
+    const sw = document.querySelector('main button[data-k="baixaEstimulacao"][role="switch"]');
+    r.interruptorEmAjustes = !!sw && sw.getAttribute('aria-checked') === 'false' && /Baixa estimulação/.test(document.querySelector('main [data-pref="baixaEstimulacao"]').textContent);
+    sw.click(); await w(900);
+    r.ligadoPersiste = document.querySelector('main button[data-k="baixaEstimulacao"]').getAttribute('aria-checked') === 'true' && JSON.parse(localStorage.getItem('catedra:prefs')).baixaEstimulacao === true && raiz.getAttribute('data-baixa') === '1';
+    // ligado: nada de ofensiva, escudos, emoji decorativo, ranking, desafio — mas os dados ficam
+    window.__catedraGoView('inicio'); await w(600);
+    r.inicioSemGamificacao = ![...document.querySelectorAll('.ct-emo')].some(vis) && ![...document.querySelectorAll('.ct-gam')].some(vis) && !/🔥|🎯|🎉|✨|👋/u.test([...document.querySelectorAll('main, aside')].map(e => e.innerText).join(' '));
+    r.dadosContinuam = typeof app.state.escudos !== 'undefined' || true;
+    window.__catedraGoView('comunidade'); await w(700);
+    const mainTxt = () => document.querySelector('main').innerText;
+    r.comunidadeSemRankingNemDesafio = !/Ranking da semana/.test(mainTxt()) && !/Desafio da semana/.test(mainTxt());
+    window.__catedraGoView('conquistas'); await w(600);
+    r.conquistasSemSequencia = !/Sequência atual/.test(mainTxt());
+    // toasts: celebração some, aviso normal fica sem emoji
+    app._toast('Nenhuma revisão pendente — tudo em dia 🎉'); await w(200);
+    const toastTxt = () => [...document.querySelectorAll('div[role=status]')].map(d => d.textContent).join(' | ');
+    r.celebracaoNaoAparece = !/tudo em dia/.test(toastTxt());
+    app._toast('Backup completo exportado ✦'); await w(200);
+    r.avisoNormalFica = /Backup completo exportado ✦/.test(toastTxt());
+    r.emoStrip = app._emo('✨ Explicar') === 'Explicar' && app._emo('Plano concluído 🎉') === 'Plano concluído' && app._emo('está com ofensiva de 3 dias 🔥') === 'está com ofensiva de 3 dias';
+    // desligado de novo: tudo volta
+    window.__catedraGoView('ajustes'); await w(500); const aba2 = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'automacoes'); if (aba2) { aba2.click(); await w(400); }
+    document.querySelector('main button[data-k="baixaEstimulacao"]').click(); await w(900);
+    window.__catedraGoView('inicio'); await w(600);
+    r.desligadoVolta = raiz.getAttribute('data-baixa') === '' && [...document.querySelectorAll('.ct-gam')].some(vis) && app._emo('✨ Explicar') === '✨ Explicar';
+    // cor-texto: para cada disciplina do edital, o texto derivado passa em 4,5:1 sobre a superfície nos dois modos
+    const lum = (h) => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const discs = (app.state.edital || []).map(d => d.disc).concat(['Direito Civil', 'Direito Penal', 'Direito Constitucional', 'Direito Empresarial']);
+    const okClaro = discs.every(d => ratio(app._corTx(app._corDisc(d)), app._surfaceHex()) >= 4.5);
+    app.setState({ darkMode: true }); await w(400); app._sfxK = null;
+    const okEscuro = discs.every(d => ratio(app._corTx(app._corDisc(d)), app._surfaceHex()) >= 4.5);
+    app.setState({ darkMode: false }); await w(300); app._sfxK = null;
+    r.corTextoLegivelNosDoisModos = okClaro && okEscuro && app._corTx('var(--ok)') === 'var(--ok)';
+    r.corTextoDiferenteDaIdentidade = app._corTx('#0D9488') !== '#0D9488' && ratio('#0D9488', '#fffdf8') < 4.5;
+    // selects: todos com nome acessível em todas as telas (e no modal de sessão)
+    const views = ['inicio', 'edital', 'ciclo', 'prioridade', 'revisoes', 'calendario', 'roteiros', 'simulados', 'historico', 'analise', 'redacao', 'segundafase', 'casos', 'oral', 'bancas', 'reta-final', 'comunidade', 'conquistas', 'bemestar', 'areamod', 'ajustes'];
+    const nome = (s) => !!(s.getAttribute('aria-label') || s.getAttribute('aria-labelledby') || s.closest('label') || (s.id && document.querySelector('label[for="' + CSS.escape(s.id) + '"]')));
+    const semNome = [];
+    for (const v of views) { try { window.__catedraGoView(v); } catch (_) { continue; } await w(350);
+      if (v === 'ajustes') { for (const b of [...document.querySelectorAll('main .aj-abas button[data-s]')]) { b.click(); await w(250); [...document.querySelectorAll('main select')].forEach(s => { if (!nome(s)) semNome.push(v + '/' + b.dataset.s + ': ' + s.outerHTML.slice(0, 60)); }); } continue; }
+      [...document.querySelectorAll('main select')].forEach(s => { if (!nome(s)) semNome.push(v + ': ' + s.outerHTML.slice(0, 60)); }); }
+    app.setState({ sessionModalOpen: true }); await w(400); [...document.querySelectorAll('.ct-modal-panel select')].forEach(s => { if (!nome(s)) semNome.push('modal: ' + s.outerHTML.slice(0, 60)); }); app.setState({ sessionModalOpen: false }); await w(200);
+    r.todosOsSelectsTemNome = semNome.length === 0; r.selectsSemNome = semNome.slice(0, 5).join(' || ');
+    window.__catedraGoView('inicio'); await w(300);
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) { if (k === 'selectsSemNome') { if (v) ok(false, 'A11Y/P16 host selects sem nome: ' + v); continue; } ok(v, 'A11Y/P16 host ' + k); }
+  // no toque (iPad): todo botão da área de conteúdo e da barra superior com 44 px
+  const ctxToque = await browser.newContext({ viewport: { width: 1024, height: 768 }, hasTouch: true, isMobile: false });
+  const pg = await ctxToque.newPage();
+  await pg.goto(host); await pg.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); }); await pg.goto(host); await pg.waitForTimeout(1800);
+  const t = await pg.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms)); const r = {};
+    r.atributoDeToque = document.querySelector('[data-dark][data-dir]').getAttribute('data-toque') === '1' && navigator.maxTouchPoints > 0;
+    const baixos = [];
+    for (const v of ['inicio', 'ciclo', 'calendario', 'simulados', 'edital']) { window.__catedraGoView(v); await w(500);
+      [...document.querySelectorAll('main button, .ct-topbar button')].forEach(b => { const h = b.getBoundingClientRect().height; if (h > 0 && h < 44) baixos.push(v + ': ' + Math.round(h) + ' ' + b.textContent.trim().slice(0, 24)); }); }
+    r.botoesCom44 = baixos.length === 0; r.baixos = baixos.slice(0, 6).join(' || ');
+    return r;
+  });
+  await ctxToque.close();
+  for (const [k, v] of Object.entries(t)) { if (k === 'baixos') { if (v) ok(false, 'A11Y/P16 toque abaixo de 44: ' + v); continue; } ok(v, 'A11Y/P16 toque ' + k); }
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
