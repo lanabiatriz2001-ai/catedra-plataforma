@@ -2297,6 +2297,62 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   for (const [k, v] of Object.entries(h)) ok(v, 'TELEMETRIA/P17 host ' + k);
 }
 
+/* ============= IA — P18: cota diária por conta nas funções da Vercel, com o fetch simulado ============= */
+// api/complete.js e api/tts.js perguntam minha_cota_ia() depois dos portões de sessão, allowlist e bloqueio; ao
+// estourar, 429 com a mensagem em português (o app mostra em toast). Falha na consulta = fail-open. Allowlist,
+// kill switch e teto por chamada ficam como estavam.
+{
+  const r = {};
+  const fetchOrig = globalThis.fetch;
+  const fakeRes = () => { const o = { codigo: 0, corpo: null, status(c) { o.codigo = c; return o; }, json(b) { o.corpo = b; return o; } }; return o; };
+  const cenario = (cota, prov) => { const chamadas = []; globalThis.fetch = async (url, opt) => { const u = String(url); chamadas.push(u);
+    if (/\/auth\/v1\/user$/.test(u)) return { ok: true, json: async () => ({ id: 'u1', email: 'p@exemplo.invalid' }) };
+    if (/rpc\/meu_email_liberado/.test(u)) return { ok: true, json: async () => true };
+    if (/rpc\/meu_acesso_bloqueado/.test(u)) return { ok: true, json: async () => false };
+    if (/rpc\/minha_cota_ia/.test(u)) return cota === 'falha' ? { ok: false, json: async () => ({}) } : { ok: true, json: async () => cota };
+    if (/rpc\/registrar_uso_ia/.test(u)) return { ok: true, json: async () => null };
+    if (/api\.anthropic\.com/.test(u)) return { ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: prov || 'resposta' }] }) };
+    if (/generativelanguage\.googleapis\.com/.test(u)) return { ok: true, status: 200, json: async () => ({ output_audio: { data: Buffer.from('abcd').toString('base64'), mime_type: 'audio/L16;rate=24000' } }) };
+    return { ok: false, status: 500, json: async () => ({}), text: async () => '' }; }; return chamadas; };
+  const envAntes = { A: process.env.ANTHROPIC_API_KEY, B: process.env.BETA_EMAILS, G: process.env.GEMINI_API_KEY };
+  process.env.ANTHROPIC_API_KEY = 'sk-ant-teste'; delete process.env.BETA_EMAILS; process.env.GEMINI_API_KEY = 'gem-teste';
+  const { default: complete, mensagemCota } = await import('../api/complete.js');
+  const { default: tts } = await import('../api/tts.js');
+  const req = (body) => ({ method: 'POST', headers: { authorization: 'Bearer tok' }, body });
+  r.mensagemEmPortugues = mensagemCota({ limite: 40 }) === 'Você usou as 40 chamadas de IA de hoje; volta amanhã ou fale com quem te convidou.';
+  let ch = cenario({ plano: 'beta', limite: 2, usadas: 2, restante: 0 }); let res = fakeRes();
+  await complete(req({ prompt: 'olá' }), res);
+  r.estourou429 = res.codigo === 429 && /usou as 2 chamadas de IA de hoje/.test(res.corpo.error) && res.corpo.cota.restante === 0 && !ch.some(u => /anthropic/.test(u)) && !ch.some(u => /registrar_uso_ia/.test(u));
+  ch = cenario({ plano: 'beta', limite: 2, usadas: 1, restante: 1 }); res = fakeRes();
+  await complete(req({ prompt: 'olá' }), res);
+  r.abaixoDaCotaPassa = res.codigo === 200 && res.corpo.completion === 'resposta' && ch.some(u => /registrar_uso_ia/.test(u)) && ch.some(u => /anthropic/.test(u));
+  ch = cenario('falha'); res = fakeRes();
+  await complete(req({ prompt: 'olá' }), res);
+  r.falhaNaConsultaNaoBarra = res.codigo === 200;
+  ch = cenario({ plano: 'beta', limite: 5, usadas: 5 }); res = fakeRes();
+  await complete(req({ prompt: 'x'.repeat(70000) }), res);
+  r.cotaAntesDoTetoPorChamada = res.codigo === 429;
+  ch = cenario({ plano: 'beta', limite: 5, usadas: 1 }); res = fakeRes();
+  await complete(req({ prompt: 'x'.repeat(70000) }), res);
+  r.tetoPorChamadaMantido = res.codigo === 413;
+  globalThis.fetch = async (url) => { const u = String(url); if (/\/auth\/v1\/user$/.test(u)) return { ok: false }; return { ok: false }; }; res = fakeRes();
+  await complete(req({ prompt: 'olá' }), res);
+  r.semSessaoContinua401 = res.codigo === 401;
+  ch = cenario({ plano: 'beta', limite: 3, usadas: 3 }); res = fakeRes();
+  await tts(req({ texto: 'narrar' }), res);
+  r.ttsTambemRespeita = res.codigo === 429 && /chamadas de IA de hoje/.test(res.corpo.error) && !ch.some(u => /googleapis/.test(u));
+  ch = cenario({ plano: 'beta', limite: 3, usadas: 0 }); res = fakeRes();
+  await tts(req({ texto: 'narrar' }), res);
+  r.ttsAbaixoDaCotaPassa = res.codigo === 200 && !!res.corpo.audio;
+  globalThis.fetch = fetchOrig; process.env.ANTHROPIC_API_KEY = envAntes.A || ''; if (envAntes.B) process.env.BETA_EMAILS = envAntes.B; process.env.GEMINI_API_KEY = envAntes.G || '';
+  if (!envAntes.A) delete process.env.ANTHROPIC_API_KEY; if (!envAntes.G) delete process.env.GEMINI_API_KEY;
+  const build = fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8'), src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  r.shimTrazAMensagem = /jerr\.error \|\| \('IA HTTP ' \+ r\.status\)/.test(build);
+  r.hostMostraEmToast = /chamadas de IA de hoje\/\.test\(m\)\) this\._toast\(m\)/.test(src) && /data-adm="cota"/.test(src) && /admin_ia_cota_set/.test(src);
+  r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-ia-cota.sql'));
+  for (const [k, v] of Object.entries(r)) ok(v, 'IA/P18 cota ' + k);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);

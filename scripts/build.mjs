@@ -208,7 +208,7 @@ window.claude = {
       var j401 = await r.json().catch(function () { return {}; });
       throw new Error(j401.error || 'Entre na sua conta para usar a IA.');
     }
-    if (!r.ok) throw new Error('IA HTTP ' + r.status);
+    if (!r.ok) { var jerr = await r.json().catch(function () { return {}; }); throw new Error(jerr.error || ('IA HTTP ' + r.status)); }
     const j = await r.json();
     return j.completion || j.text || '';
   }

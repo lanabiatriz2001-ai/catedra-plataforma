@@ -5227,6 +5227,14 @@ window.ctPdfLib = (function(){
                     </div>
                   </div>
                 </div>
+                <!-- P18: cota diária por plano — o padrão beta vale para toda conta sem plano próprio -->
+                <div class="adm-panel" data-adm="cota">
+                  <header><h3>Cota diária de IA</h3><p>chamadas por conta por dia (dia de Brasília), por plano — ao estourar, o app recebe 429 com a mensagem em português</p></header>
+                  <sc-if value="{{ admCotaVazia }}" hint-placeholder-val="{{ false }}"><div class="adm-empty">Sem tabela de cota — rode a migração ia_cota_por_plano.</div></sc-if>
+                  <sc-for list="{{ admCota }}" as="c" hint-placeholder-count="2">
+                    <div class="adm-row" style="grid-template-columns:1fr 110px 90px auto;align-items:center;"><span>{{ c.plano }} <em style="color:var(--k-dim2);">· {{ c.contas }} conta(s) com plano próprio</em></span><input type="number" min="0" max="100000" value="{{ c.n }}" data-cota-plano="{{ c.plano }}" aria-label="Chamadas por dia do plano {{ c.plano }}" class="adm-inp" style="width:100px;"><span class="adm-num">/dia</span><button class="adm-btn" data-plano="{{ c.plano }}" onclick="{{ admSalvarCota }}">Salvar</button></div>
+                  </sc-for>
+                </div>
                 <!-- P17: telemetria de primeira parte -->
                 <div class="adm-panel" data-adm="telemetria">
                   <header><h3>Erros nas últimas 24 h</h3><p>telemetria {{ admTeleStatus }}</p></header>
@@ -10544,7 +10552,8 @@ class Component extends DCLogic {
   _instalarPortaoIA(){
     const c=window.claude; if(!c || typeof c.complete!=='function' || c.__ctPortao) return;
     const original=c.complete.bind(c); c.__ctPortao=true; c.__ctSemPortao=original;
-    c.complete=(prompt)=>this._iaAutorizar().then(()=>original(prompt));
+    // P18: a cota do dia estourada chega como erro com a mensagem do servidor — vira toast, e o erro segue para quem chamou
+    c.complete=(prompt)=>this._iaAutorizar().then(()=>original(prompt)).catch((err)=>{ const m=String(err&&err.message||''); if(/chamadas de IA de hoje/.test(m)) this._toast(m); throw err; });
   }
   _iaConsentido(){ const c=this.state.iaConsentimento; return !!(c && c.versao===this.IA_CONSENT_VERSAO && +c.ts>0); }
   /** Resolve quando há consentimento (já dado, ou dado agora no modal); rejeita se a pessoa recusar. */
@@ -10600,6 +10609,11 @@ class Component extends DCLogic {
       for(const d of dias){ try{ const r=await sb.rpc('registrar_uso_telas', {p_dia:d.dia, p_contagens:d.c}); if(r && r.error) break;
         if(d===u){ try{ localStorage.setItem('catedra:_usoTelas', JSON.stringify({dia:u.dia, c:{}})); }catch(_){} } else { this._usoPend=(this._usoPend||[]).filter(x=>x!==d); } }catch(_){ break; } }
     }finally{ this._teleBusy=false; }
+  };
+  admSalvarCota = async (e)=>{
+    const el=e.currentTarget, plano=String(el.dataset.plano||'beta'); const inp=document.querySelector('input[data-cota-plano="'+plano+'"]'); const n=parseInt(inp&&inp.value,10);
+    if(!(n>=0)){ this._toast('Diga um número de chamadas por dia'); return; }
+    if(await this._admRpc('admin_ia_cota_set', {p_plano:plano, p_chamadas:n}, 'Cota do plano '+plano+': '+n+' chamadas por dia')!==false) this._loadAdmin();
   };
   admToggleTelemetria = async ()=>{
     const on=!this._admCfgBool('telemetria');
@@ -12292,9 +12306,10 @@ class Component extends DCLogic {
       // P17: erros das últimas 24 h e telas mais usadas (7 dias) — falha aqui não derruba o console
       let teErr=[], teTelas=null;
       try{ const [a,b]=await Promise.all([sb.rpc('admin_erros_cliente', {p_horas:24}), sb.rpc('admin_uso_telas', {p_dias:7})]); teErr=arr(a); teTelas=obj(b); }catch(_){}
+      let teCota=[]; try{ const c=await sb.rpc('admin_ia_cota'); teCota=arr(c); }catch(_){}   // P18
       const conf=obj(cfg)||{};
       const av=(conf.aviso&&typeof conf.aviso==='object')?conf.aviso:{};
-      this.setState({ adminData:vg.data||null, adminErros:teErr, adminTelas:teTelas,
+      this.setState({ adminData:vg.data||null, adminErros:teErr, adminTelas:teTelas, adminCota:teCota,
         adminFeedback:arr(fb), adminGrupos:arr(gr), adminAllow:arr(al),
         adminIa:obj(ia), adminSistema:obj(sis), adminConfig:conf, adminLogs:arr(lg),
         // o texto do aviso só é resincronizado quando não está sendo editado, para o
@@ -15862,6 +15877,8 @@ class Component extends DCLogic {
     const _tt=this.state.adminTelas||{};
     const admTelas=(_tt.porTela||[]).map(t=>({tela:String(t.tela||''), n:String(t.n||0), contas:String(t.contas||0)}));
     const admTelasVazio=admTelas.length===0;
+    const admCota=(this.state.adminCota||[]).map(c=>({plano:String(c.plano||''), n:String(c.chamadasDia!=null?c.chamadasDia:''), contas:String(c.contas||0)}));
+    const admCotaVazia=admCota.length===0;
     const admIaBtnClass=_iaPausada?'adm-btn bad':'adm-btn';
     const admIaBtnLabel=_iaPausada?'⏻ IA PAUSADA — religar':'Pausar IA de todos';
     const admManutBtnClass=_manut?'adm-btn bad':'adm-btn';
@@ -16169,6 +16186,7 @@ class Component extends DCLogic {
       enamEstudarArea:this.enamEstudarArea, enamVerNoJuris:this.enamVerNoJuris,
       // P17 — telemetria no console
       admTeleBtnClass, admTeleBtnLabel, admTeleStatus, admErros, admErrosVazio, admTelas, admTelasVazio, admToggleTelemetria:this.admToggleTelemetria,
+      admCota, admCotaVazia, admSalvarCota:this.admSalvarCota,
       // E5 — Trilha ENAM no Início
       ..._trilha, enamAcao:this.enamAcao, enamAgendar:this.enamAgendar, enamImportarEdital:this.enamImportarEdital,
       // P14 — termos, privacidade, consentimento da IA, exclusão de conta
