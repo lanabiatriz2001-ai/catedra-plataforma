@@ -1127,3 +1127,32 @@ button:disabled { cursor: not-allowed; }
 .ct-modo-ico { width: 34px; height: 34px; border-radius: var(--r-md, 10px); display: flex; align-items: center; justify-content: center; flex: none; background: var(--surface2, #f0ece1); color: var(--text2, #5c564a); }
 .ct-modo[aria-pressed="true"] .ct-modo-ico { background: var(--accent, #0f7a57); color: var(--onAccent, #fff); }
 @media (prefers-reduced-motion: reduce) { .ct-modo { transition: none; } .ct-modo:hover { transform: none; } }
+/* números da faixa do ciclo: "3h30" fica em minúscula (direções com caixa-alta no hero não mandam aqui) */
+.ct-hero-ciclo .ct-kpi b { text-transform: none; }
+/* reorganizar e cadastrar sem sair da tela: ações miúdas por bloco, linha de adicionar, chips de dia */
+.ct-cb-acoes { display: inline-flex; gap: 4px; }
+.ct-cb-mini {
+  width: 32px; height: 32px; border-radius: var(--r-sm, 8px); padding: 0;
+  border: 1px solid var(--border, #e6e1d4); background: var(--surface, #fffdf8); color: var(--text2, #5c564a);
+  display: inline-flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s;
+}
+.ct-cb-mini:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent, #0f7a57) 45%, var(--border, #e6e1d4)); background: var(--surface2, #f0ece1); }
+.ct-cb-mini:disabled { opacity: .35; }
+.ct-cb-add {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding: 12px 14px; border: 1px dashed var(--border, #e6e1d4); border-radius: var(--ct-r-lg);
+  background: var(--surface2, #f0ece1);
+}
+.ct-cb-add-t { flex: 0 0 100%; font-size: var(--fs-2xs, 11px); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text3, #7a7368); }
+.ct-cb-add .ct-campo { min-height: 40px; }
+.ct-dia-chip {
+  min-height: 36px; padding: 0 12px; border-radius: 99px; cursor: pointer;
+  border: 1px solid var(--border, #e6e1d4); background: var(--surface, #fffdf8); color: var(--text2, #5c564a);
+  font-family: inherit; font-size: var(--fs-sm, 12.5px); font-weight: 600; transition: background .15s, border-color .15s, color .15s;
+}
+.ct-dia-chip:hover { border-color: color-mix(in srgb, var(--accent, #0f7a57) 45%, var(--border, #e6e1d4)); }
+.ct-dia-chip[aria-pressed="true"] { background: var(--accent, #0f7a57); color: var(--onAccent, #fff); border-color: var(--accent, #0f7a57); }
+/* no toque (iPad), o check e as ações miúdas viram quadrados de 44 — a regra global só
+   estica a altura, e um check de 26×44 fica torto */
+@media (pointer: coarse) { .ct-cb-chk, .ct-cb-mini { width: 44px; height: 44px; } }
+[data-toque="1"] .ct-cb-chk, [data-toque="1"] .ct-cb-mini { width: 44px; height: 44px; }
