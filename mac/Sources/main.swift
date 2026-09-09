@@ -1196,16 +1196,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         // (não em :root); então lemos do elemento que realmente as possui.
         let js = """
         (function(){
-          var el = document.querySelector('[style*="--accent"]') || document.documentElement;
+          // Nó dos tokens pelo que ele É, não pelo texto do atributo style. O div raiz
+          // carrega data-dark + data-dir + as variáveis; casar `[style*="--accent"]`
+          // dependia de ele ser o PRIMEIRO em ordem de documento — verdade hoje só porque
+          // é ancestral de todos. Qualquer nó com --accent no style fora dele quebrava a
+          // leitura do tema, e o sintoma seria o texto sumido do LEGIS de novo. O seletor
+          // antigo fica de queda, para host antigo/DOM inesperado.
+          var el = document.querySelector('[data-dark][data-dir]')
+                || document.querySelector('[style*="--accent"]') || document.documentElement;
           var s = getComputedStyle(el);
           function g(n){ return (s.getPropertyValue(n)||'').trim(); }
+          // CLARO/ESCURO PELA MESMA FONTE DAS CORES. Antes vinha de localStorage
+          // ('catedra:dark'), que pode divergir do que está PINTADO na tela — a nuvem
+          // sincroniza essa chave e sobrescreve sem repintar. Quando divergia, o LEGIS
+          // recebia isDark=true junto com os tokens CLAROS: superfícies brancas e
+          // Color.primary branco. Título e referência de cada norma sumiam — texto
+          // branco no cartão branco. A luminância do --bg que está valendo agora não
+          // tem como discordar das cores que vêm com ela.
+          function _lum(v){
+            v=(v||'').trim(); var r,gg,b, h;
+            if(v.charAt(0)==='#'){
+              h=v.slice(1);
+              if(h.length===3) h=h.charAt(0)+h.charAt(0)+h.charAt(1)+h.charAt(1)+h.charAt(2)+h.charAt(2);
+              if(h.length<6) return null;
+              r=parseInt(h.substr(0,2),16); gg=parseInt(h.substr(2,2),16); b=parseInt(h.substr(4,2),16);
+            } else if(v.indexOf('rgb')===0){
+              var p=v.slice(v.indexOf('(')+1).split(')')[0].replace(/,/g,' ').replace(/[/]/g,' ').split(' ').filter(Boolean);
+              r=parseFloat(p[0]); gg=parseFloat(p[1]); b=parseFloat(p[2]);
+            } else return null;
+            if(isNaN(r)||isNaN(gg)||isNaN(b)) return null;
+            if(p && p.length>3 && parseFloat(p[3])===0) return null;   // transparente não diz nada
+            return (0.2126*r + 0.7152*gg + 0.0722*b)/255;
+          }
+          function _dk(){
+            // Cai para o fundo REALMENTE pintado antes de cogitar o localStorage: o
+            // navegador resolve backgroundColor sempre em rgb(), então isto sobrevive a
+            // uma mudança no seletor dos tokens. O localStorage é o ÚLTIMO recurso de
+            // propósito — é a fonte que mente (o auth.js sincroniza 'catedra:dark' e
+            // escreve direto, sem o app repintar), e foi ela que sumiu com o texto.
+            var L=_lum(g('--bg'));
+            if(L===null) L=_lum(g('--surface'));
+            if(L===null){ try{ L=_lum(getComputedStyle(el).backgroundColor); }catch(_){} }
+            if(L===null){ try{ L=_lum(getComputedStyle(document.body).backgroundColor); }catch(_){} }
+            if(L!==null && L===L) return L<0.5 ? '1' : '0';
+            return localStorage.getItem('catedra:dark')||'';
+          }
           return JSON.stringify({
             bg:g('--bg'), surface:g('--surface'), surface2:g('--surface2'), border:g('--border'),
             ink:g('--ink'), text2:g('--text2'), text3:g('--text3'),
             accent:g('--accent'), accentD:g('--accentD'), radius:g('--radius'),
             ok:g('--ok'), warn:g('--warn'), danger:g('--danger'), display:g('--display'),
             sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
-            heroGrad:g('--heroGrad'), dark:(localStorage.getItem('catedra:dark')||'')
+            heroGrad:g('--heroGrad'), dark:_dk()
           });
         })()
         """
@@ -1270,16 +1312,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private func openJurisTab(_ done: @escaping () -> Void) {
         let js = """
         (function(){
-          var el = document.querySelector('[style*="--accent"]') || document.documentElement;
+          // Nó dos tokens pelo que ele É, não pelo texto do atributo style. O div raiz
+          // carrega data-dark + data-dir + as variáveis; casar `[style*="--accent"]`
+          // dependia de ele ser o PRIMEIRO em ordem de documento — verdade hoje só porque
+          // é ancestral de todos. Qualquer nó com --accent no style fora dele quebrava a
+          // leitura do tema, e o sintoma seria o texto sumido do LEGIS de novo. O seletor
+          // antigo fica de queda, para host antigo/DOM inesperado.
+          var el = document.querySelector('[data-dark][data-dir]')
+                || document.querySelector('[style*="--accent"]') || document.documentElement;
           var s = getComputedStyle(el);
           function g(n){ return (s.getPropertyValue(n)||'').trim(); }
+          // CLARO/ESCURO PELA MESMA FONTE DAS CORES. Antes vinha de localStorage
+          // ('catedra:dark'), que pode divergir do que está PINTADO na tela — a nuvem
+          // sincroniza essa chave e sobrescreve sem repintar. Quando divergia, o LEGIS
+          // recebia isDark=true junto com os tokens CLAROS: superfícies brancas e
+          // Color.primary branco. Título e referência de cada norma sumiam — texto
+          // branco no cartão branco. A luminância do --bg que está valendo agora não
+          // tem como discordar das cores que vêm com ela.
+          function _lum(v){
+            v=(v||'').trim(); var r,gg,b, h;
+            if(v.charAt(0)==='#'){
+              h=v.slice(1);
+              if(h.length===3) h=h.charAt(0)+h.charAt(0)+h.charAt(1)+h.charAt(1)+h.charAt(2)+h.charAt(2);
+              if(h.length<6) return null;
+              r=parseInt(h.substr(0,2),16); gg=parseInt(h.substr(2,2),16); b=parseInt(h.substr(4,2),16);
+            } else if(v.indexOf('rgb')===0){
+              var p=v.slice(v.indexOf('(')+1).split(')')[0].replace(/,/g,' ').replace(/[/]/g,' ').split(' ').filter(Boolean);
+              r=parseFloat(p[0]); gg=parseFloat(p[1]); b=parseFloat(p[2]);
+            } else return null;
+            if(isNaN(r)||isNaN(gg)||isNaN(b)) return null;
+            if(p && p.length>3 && parseFloat(p[3])===0) return null;   // transparente não diz nada
+            return (0.2126*r + 0.7152*gg + 0.0722*b)/255;
+          }
+          function _dk(){
+            // Cai para o fundo REALMENTE pintado antes de cogitar o localStorage: o
+            // navegador resolve backgroundColor sempre em rgb(), então isto sobrevive a
+            // uma mudança no seletor dos tokens. O localStorage é o ÚLTIMO recurso de
+            // propósito — é a fonte que mente (o auth.js sincroniza 'catedra:dark' e
+            // escreve direto, sem o app repintar), e foi ela que sumiu com o texto.
+            var L=_lum(g('--bg'));
+            if(L===null) L=_lum(g('--surface'));
+            if(L===null){ try{ L=_lum(getComputedStyle(el).backgroundColor); }catch(_){} }
+            if(L===null){ try{ L=_lum(getComputedStyle(document.body).backgroundColor); }catch(_){} }
+            if(L!==null && L===L) return L<0.5 ? '1' : '0';
+            return localStorage.getItem('catedra:dark')||'';
+          }
           return JSON.stringify({
             bg:g('--bg'), surface:g('--surface'), surface2:g('--surface2'), border:g('--border'),
             ink:g('--ink'), text2:g('--text2'), text3:g('--text3'),
             accent:g('--accent'), accentD:g('--accentD'), radius:g('--radius'),
             ok:g('--ok'), warn:g('--warn'), danger:g('--danger'), display:g('--display'),
             sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
-            heroGrad:g('--heroGrad'), dark:(localStorage.getItem('catedra:dark')||'')
+            heroGrad:g('--heroGrad'), dark:_dk()
           });
         })()
         """

@@ -27,7 +27,7 @@
   var _si = localStorage.setItem.bind(localStorage);
   var _ri = localStorage.removeItem.bind(localStorage);
   // _dirty/_lastSrv/notifSent são meta-estado LOCAL do aparelho — nunca sobem no blob
-  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1, 'catedra:_bkpFase2': 1, 'catedra:_owner': 1,
+  var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1, 'catedra:_bkpFase2': 1, 'catedra:_owner': 1, 'catedra:_errFila': 1, 'catedra:_usoTelas': 1,
     // notifRevDia marca que o lembrete de revisão do dia JÁ TOCOU NESTE APARELHO (U12) e
     // _bkpAutoTs, quando o backup semanal rodou aqui (D11). São meta-estado local: subir
     // faria o segundo aparelho herdar "já avisei" e ficar em silêncio sem nunca ter avisado.
@@ -165,7 +165,7 @@
 
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
-  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:casos': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:redHist': 1, 'catedra:meusGrupos': 1, 'catedra:espelhosSugeridos': 1 };
+  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:casos': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:redHist': 1, 'catedra:meusGrupos': 1, 'catedra:espelhosSugeridos': 1, 'catedra:leituras': 1, 'catedra:enamSim': 1 };
   /* O app passou a guardar o caderno de cada área de estudo em `catedra:<chave>@<area>`.
      Consultar ARRAY_ID pelo nome cru fazia essas chaves caírem fora do merge por id — ou
      seja, FORA da jurídica a sincronização voltava a ser last-write-wins de blob inteiro,
@@ -728,7 +728,12 @@
       + (OAUTH.indexOf('apple') >= 0 ? '<button type="button" data-oauth="apple" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true"></span> Continuar com Apple</button>' : '')
       + (OAUTH.indexOf('google') >= 0 ? '<button type="button" data-oauth="google" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true" style="font-weight:800;color:#4285f4;">G</span> Continuar com Google</button>' : '')
       + '<p style="font-size:11.5px;color:' + MUT + ';text-align:center;margin:18px 0 0;line-height:1.5;">Só você enxerga os seus dados. Backup e exportação ficam em <b>Ajustes › Dados</b>.</p>'
+      // P14: os documentos ficam a um toque do portão — e o aceite versionado é pedido antes de sincronizar (showAceite)
+      // P15: quem chegou sem convite conhece a plataforma antes de pedir acesso
+      + '<p style="font-size:13px;text-align:center;margin:14px 0 0;"><a href="./sobre.html" id="ctsobre" data-doc="sobre.html" style="color:' + INK + ';font-weight:600;min-height:44px;display:inline-flex;align-items:center;">Conhecer a Cátedra</a></p>'
+      + '<p style="font-size:11.5px;color:' + MUT + ';text-align:center;margin:8px 0 0;line-height:1.6;">Ao entrar ou criar conta você concorda com os <a href="./termos.html" data-doc="termos.html" style="color:' + INK + ';">Termos de uso</a> e a <a href="./privacidade.html" data-doc="privacidade.html" style="color:' + INK + ';">Política de privacidade</a>.</p>'
     );
+    ligarDocs();
     // Trocar de aba redesenha o formulário: sem devolver o foco, ele volta para o body e
     // quem usa teclado perde o lugar. `preventScroll` evita o salto de página.
     var focarEmail = function () {
@@ -884,6 +889,7 @@
                   // abertura tenta hidratar de novo e o dado do servidor volta sozinho.
       }
       var row = res && res.data;
+      var prosseguir = function () {
       var now = new Date().toISOString();
       if (row && row.data && Object.keys(row.data).length) {
         // mescla nuvem + local (por id nos arrays) — edições offline deste aparelho não se perdem
@@ -898,6 +904,13 @@
       _si('catedra:auth', '1');
       sessionStorage.setItem('catedra:hydrated', '1');
       location.reload();
+      };
+      // P14: sem aceite da versão vigente dos Termos e da Política — nem neste aparelho, nem na
+      // nuvem — o app pede antes de mesclar e subir qualquer coisa. O aceite é dado local
+      // (catedra:aceite) e sobe junto na mescla.
+      var aceiteLocal = null; try { aceiteLocal = localStorage.getItem('catedra:aceite'); } catch (_) {}
+      if (aceiteVigente(aceiteLocal, row && row.data && row.data['catedra:aceite'])) prosseguir();
+      else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); } catch (_) {} prosseguir(); });
     }).catch(function () { _si('catedra:auth', '1'); hydrating = false; hide(); });
   }
   function showLoginState() {
@@ -942,6 +955,62 @@
   // olhar se havia coisa por subir — e há uma janela real: o app espera 500ms para gravar
   // e o sync espera mais 700ms para enviar. Registrar a sessão de estudo e clicar em Sair
   // em seguida levava esse registro junto, definitivamente e sem aviso.
+  // P14: Termos e Política abrem numa sobreposição com <iframe> — funciona no site e no app
+  // nativo (file://), onde target=_blank e window.open não abrem nada.
+  function abrirDoc(arquivo) {
+    var old = document.getElementById('ctdoc'); if (old) old.remove();
+    var box = document.createElement('div'); box.id = 'ctdoc'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', /priv/.test(arquivo) ? 'Política de privacidade' : 'Termos de uso');
+    box.style.cssText = 'position:fixed;inset:0;z-index:100000;background:' + (DARK ? '#15171a' : '#f7f4ec') + ';display:flex;flex-direction:column;';
+    var barra = document.createElement('div'); barra.style.cssText = 'display:flex;justify-content:flex-end;padding:8px 12px;';
+    var fechar = document.createElement('button'); fechar.type = 'button'; fechar.textContent = 'Fechar'; fechar.style.cssText = GHOST + 'width:auto;min-height:44px;padding:8px 18px;';
+    fechar.onclick = function () { box.remove(); };
+    barra.appendChild(fechar); box.appendChild(barra);
+    var fr = document.createElement('iframe'); fr.src = './' + arquivo; fr.title = box.getAttribute('aria-label'); fr.style.cssText = 'flex:1;border:0;width:100%;background:transparent;';
+    box.appendChild(fr); document.body.appendChild(box); fechar.focus();
+    window.addEventListener('message', function onMsg(e) { if (e && e.data && e.data.type === 'ctFecharDoc') { box.remove(); window.removeEventListener('message', onMsg); } });
+  }
+  function ligarDocs() {
+    var links = el.querySelectorAll('a[data-doc]');
+    // no site, "Conhecer a Cátedra" navega para a página pública; no app nativo (file://) abre na sobreposição
+    for (var i = 0; i < links.length; i++) links[i].onclick = function (e) { if (WEB && this.id === 'ctsobre') return; e.preventDefault(); abrirDoc(this.getAttribute('data-doc')); };
+  }
+  /** Sem aceite da versão vigente (nem local, nem na nuvem), o app pede ANTES de sincronizar. */
+  function aceiteVigente(local, nuvem) {
+    var J = window.CT_JURIDICO; if (!J || !J.versao || !J.aceiteVigente) return true;   // sem documentos publicados neste build, nada a pedir
+    return J.aceiteVigente(local) || J.aceiteVigente(nuvem);
+  }
+  function showAceite(cb) {
+    var J = window.CT_JURIDICO || {};
+    painel(
+      '<h2 style="font-family:' + SERIF + ';font-size:26px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">Antes de continuar</h2>'
+      + '<p style="font-size:14px;color:' + MUT + ';margin:8px 0 16px;line-height:1.55;">Para usar a Cátedra com a sua conta, você precisa aceitar os Termos de uso e a Política de privacidade (versão ' + (J.versao || '') + '). Leia os dois — leva alguns minutos e diz o que fazemos com os seus dados.</p>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">'
+      +   '<button type="button" data-doc="termos.html" style="' + GHOST + 'width:auto;flex:1;min-height:44px;">Termos de uso</button>'
+      +   '<button type="button" data-doc="privacidade.html" style="' + GHOST + 'width:auto;flex:1;min-height:44px;">Política de privacidade</button>'
+      + '</div>'
+      + '<label style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:' + INK + ';line-height:1.5;cursor:pointer;margin-bottom:16px;"><input id="ctac" type="checkbox" style="width:18px;height:18px;margin-top:2px;flex:none;"> <span>Li e aceito os Termos de uso e a Política de privacidade.</span></label>'
+      + '<button id="ctacok" type="button" disabled style="' + BTN + 'opacity:.55;">Aceitar e continuar</button>'
+      + '<p style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctacsair" style="color:' + MUT + ';">Não aceito — sair da conta</a></p>'
+    );
+    var bts = el.querySelectorAll('button[data-doc]');
+    for (var i = 0; i < bts.length; i++) bts[i].onclick = function () { abrirDoc(this.getAttribute('data-doc')); };
+    var chk = el.querySelector('#ctac'), ok = el.querySelector('#ctacok');
+    chk.onchange = function () { ok.disabled = !chk.checked; ok.style.opacity = chk.checked ? '1' : '.55'; };
+    ok.onclick = function () { if (!chk.checked) return; ok.disabled = true; ok.textContent = 'Carregando seus dados…'; cb(); };
+    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearLocal(); location.reload(); }; sb.auth.signOut().then(fin, fin); };
+  }
+  /** Exclusão da conta pela própria pessoa: a função excluir_minha_conta (security definer) apaga o blob,
+      a participação e a atividade em grupos, feedback, uso de IA, acesso beta e a linha em auth.users. */
+  function excluirConta() {
+    clearTimeout(pushT);
+    return sb.rpc('excluir_minha_conta').then(function (r) {
+      if (r && r.error) throw r.error;
+      sessionStorage.removeItem('catedra:hydrated');
+      clearLocal();
+      var fin = function () { location.reload(); };
+      return sb.auth.signOut().then(fin, fin);
+    });
+  }
   function logout() {
     clearTimeout(pushT);
     if (user && authToken && isDirty()) {
@@ -954,7 +1023,7 @@
     var fin = function () { clearLocal(); location.reload(); };
     sb.auth.signOut().then(fin, fin);
   }
-  window.CatedraAuth = { logout: logout, client: sb };
+  window.CatedraAuth = { logout: logout, client: sb, excluirConta: excluirConta, abrirDoc: abrirDoc };
 
   showLoading('…');
   sb.auth.getSession().then(function (res) {

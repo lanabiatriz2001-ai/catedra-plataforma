@@ -15,12 +15,15 @@
   --ink:#1b1b1f;--text2:#4b4a52;--text3:#7d7a86;
   --accent:#b5174e;--accentD:#8e0f3c;--onAccent:#ffffff;
   --lei:#9a6b00;--juris:#b93a2b;--peca:#5b47b8;--ok:#12795a;
-  --display:Georgia,serif;--body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:ui-monospace,Menlo,monospace;
+  --display:'Spectral',Georgia,serif;--body:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  /* Escala de texto: quatro degraus a ~1.25 de razao. Antes eram oito ou nove
+     tamanhos entre 10.5px e 20px, tao proximos que nenhum estabelecia hierarquia. */
+  --t-micro:12px;--t-corpo:15px;--t-titulo:19px;--t-display:24px;
   --sh:0 1px 2px rgba(20,15,10,.05),0 4px 14px rgba(20,15,10,.05);
   --shUp:0 2px 4px rgba(20,15,10,.06),0 10px 26px rgba(20,15,10,.09);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:var(--t-corpo);line-height:1.5;
   -webkit-font-smoothing:antialiased}
 button,input,select{font-family:inherit}
 ::-webkit-scrollbar{width:10px;height:9px}
@@ -42,19 +45,19 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 .l1{display:flex;align-items:center;gap:14px;padding:13px 18px;max-width:1320px;margin:0 auto;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:11px;flex:none}
 .brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
-  display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+  display:flex;align-items:center;justify-content:center;font-size:var(--t-display);flex:none}
 .brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
-.brand small{display:block;font-size:11.5px;color:var(--text2);margin-top:4px}
+.brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
 .busca{position:relative;flex:1;min-width:200px}
 /* o `outline:none` daqui apagava o anel de foco do teclado — a busca é o primeiro
    Tab da página, e quem não usa mouse ficava sem saber onde estava */
 .busca input{width:100%;border:1px solid var(--border);background:var(--bg);border-radius:11px;
-  padding:10px 14px 10px 38px;font-size:13.5px;color:var(--ink)}
+  padding:10px 14px 10px 38px;font-size:var(--t-corpo);color:var(--ink)}
 .busca input:focus{border-color:var(--accent);background:var(--surface);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 13%,transparent)}
-.busca .mag{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
+.busca .mag{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:var(--t-corpo)}
 .sel{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:11px;
-  padding:10px 12px;font-size:13px;cursor:pointer;flex:none;max-width:230px}
+  padding:10px 12px;font-size:var(--t-corpo);cursor:pointer;flex:none;max-width:230px}
 .sel:focus{border-color:var(--accent)}
 
 .wrap{padding:20px 18px 70px;max-width:1320px;margin:0 auto}
@@ -62,23 +65,25 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 .stat{flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:14px;
   padding:12px 15px;box-shadow:var(--sh)}
 .stat b{display:block;font:800 24px/1 var(--display);font-variant-numeric:tabular-nums}
-.stat b em{font-style:normal;font-size:14px;color:var(--text2);font-weight:600}
+.stat b em{font-style:normal;font-size:var(--t-corpo);color:var(--text2);font-weight:600}
 .stat>span{display:block;margin-top:5px}
 .stat .mini{height:5px;border-radius:99px;background:var(--surface2);margin-top:9px;overflow:hidden}
-.stat .mini i{display:block;height:100%;background:var(--ok);border-radius:99px;transition:width .3s}
-.dica{font-size:12.8px;color:var(--text2);line-height:1.65;margin:0 0 20px;max-width:78ch}
+.stat .mini i{display:block;height:100%;width:100%;background:var(--ok);border-radius:99px;
+  transform:translateX(-100%);transform-origin:left center;transition:transform .3s;will-change:transform}
+.dica{font-size:var(--t-micro);color:var(--text2);line-height:1.65;margin:0 0 20px;max-width:78ch}
 .dica b{color:var(--ink)}
 
 .grupo{margin-bottom:26px}
 .gh{display:flex;align-items:center;gap:11px;margin:0 2px 13px}
 .gh i{width:11px;height:22px;border-radius:4px;background:var(--rc);flex:none}
 .gh b{font:800 18px var(--display);letter-spacing:-.02em}
-.gh span{font-size:11.5px;color:var(--text2);font-weight:600}
+.gh span{font-size:var(--t-micro);color:var(--text2);font-weight:600}
 .gh hr{flex:1;border:0;border-top:1px solid var(--border);margin:0}
 
 .rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
 .rcard{position:relative;text-align:left;font-family:inherit;color:var(--ink);cursor:pointer;
-  background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--rc,var(--accent));
+  background:var(--surface);border:1px solid color-mix(in srgb,var(--rc,var(--accent)) 38%,var(--border));
+  background-image:linear-gradient(90deg,color-mix(in srgb,var(--rc,var(--accent)) 18%,transparent),transparent 46%);
   border-radius:14px;padding:16px 18px 14px;box-shadow:var(--sh);display:flex;flex-direction:column;
   transition:transform .12s ease,box-shadow .12s ease}
 .rcard:hover{transform:translateY(-2px);box-shadow:var(--shUp)}
@@ -86,11 +91,11 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 .rcard .tag{display:inline-flex;align-self:flex-start;background:color-mix(in srgb,var(--rc) 11%,transparent);
   border-radius:99px;padding:4px 10px;margin-bottom:9px}
 .rcard h3{margin:0;font:800 17px/1.25 var(--display);letter-spacing:-.01em}
-.rcard .meta{font-size:11.5px;color:var(--text2);font-weight:600;margin-top:5px}
+.rcard .meta{font-size:var(--t-micro);color:var(--text2);font-weight:600;margin-top:5px}
 .rcard .carr{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .rcard .carr span{border:1px solid var(--border);border-radius:99px;padding:2px 8px}
 .rcard ol{margin:12px 0 0;padding:0;list-style:none;counter-reset:b}
-.rcard ol li{counter-increment:b;position:relative;padding:3px 0 3px 27px;font-size:12.8px;line-height:1.45;color:var(--text2)}
+.rcard ol li{counter-increment:b;position:relative;padding:3px 0 3px 27px;font-size:var(--t-micro);line-height:1.45;color:var(--text2)}
 .rcard ol li::before{content:counter(b);position:absolute;left:0;top:3px;width:19px;height:19px;border-radius:6px;
   background:var(--surface2);color:var(--text2);font:700 10.5px/19px var(--mono);text-align:center}
 .rcard ol li.extra{color:var(--text2);font-style:italic}
@@ -98,13 +103,14 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 .rcard .prog{display:flex;align-items:center;gap:9px;margin-top:auto;padding-top:12px;
   border-top:1px solid var(--border);margin-top:14px}
 .rcard .prog .pb{flex:1;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden}
-.rcard .prog .pb i{display:block;height:100%;border-radius:99px;background:var(--ok);transition:width .3s}
+.rcard .prog .pb i{display:block;height:100%;width:100%;border-radius:99px;background:var(--ok);
+  transform:translateX(-100%);transform-origin:left center;transition:transform .3s;will-change:transform}
 .rcard .prog span{font:700 11px var(--mono);color:var(--text2);flex:none}
 .rcard .prog span.feito{color:var(--ok)}
 
 .rpend{display:flex;flex-wrap:wrap;gap:7px}
-.rpend span{border:1px dashed var(--border);color:var(--text2);padding:5px 12px;font-size:12px;border-radius:99px}
-.vazio{padding:44px 16px;text-align:center;color:var(--text2);font-size:13px;line-height:1.7;
+.rpend span{border:1px dashed var(--border);color:var(--text2);padding:5px 12px;font-size:var(--t-micro);border-radius:99px}
+.vazio{padding:44px 16px;text-align:center;color:var(--text2);font-size:var(--t-corpo);line-height:1.7;
   background:var(--surface);border:1px dashed var(--border);border-radius:14px}
 
 /* D8 — no celular o dedo precisa de 44px: busca e filtros vinham com ~40px de altura
@@ -113,7 +119,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
   .l1{padding:11px 12px} .wrap{padding:16px 12px 60px} .brand small{display:none}
   .busca{flex:1 0 100%;order:3}
   .busca input,.sel{min-height:44px}
-  .busca input{font-size:16px}          /* abaixo de 16px o iOS dá zoom sozinho ao focar */
+  .busca input{font-size:var(--t-titulo)}          /* abaixo de 16px o iOS dá zoom sozinho ao focar */
   .sel{flex:1;max-width:none}
 }
 </style>
@@ -170,7 +176,7 @@ function pinta(){
      '<div class="stat"><b>'+prontos.length+'</b><span class="ml-fraca">Roteiros prontos</span></div>'
     +'<div class="stat"><b>'+blocos+'</b><span class="ml-fraca">Blocos mapeados</span></div>'
     +'<div class="stat"><b>'+f+'<em>/'+t+'</em></b><span class="ml-fraca">Modo cego conferido</span>'
-      +'<div class="mini"><i style="width:'+(t?f/t*100:0)+'%"></i></div></div>'
+      +'<div class="mini"><i style="transform:translateX('+((t?f/t*100:0)-100)+'%)"></i></div></div>'
     +'<div class="stat"><b>'+new Set(prontos.flatMap(n=>tem[n].carreiras||[])).size
       +'</b><span class="ml-fraca">Carreiras cobertas</span></div>'
     +'<div class="stat"><b>'+pend.length+'</b><span class="ml-fraca">Em preparação</span></div>';
@@ -219,7 +225,7 @@ function pinta(){
       +((p.carreiras||[]).length?'<div class="carr">'+p.carreiras.map(c=>'<span class="ml-fraca">'+esc(c)+'</span>').join('')+'</div>':'')
       +'<ol>'+mostra.map(x=>'<li>'+esc(x)+'</li>').join('')
         +(resto>0?'<li class="extra">mais '+resto+' bloco'+(resto>1?'s':'')+'</li>':'')+'</ol>'
-      +'<div class="prog"><span class="pb"><i style="width:'+s.pc+'%"></i></span>'
+      +'<div class="prog"><span class="pb"><i style="transform:translateX('+(s.pc-100)+'%)"></i></span>'
       +'<span class="'+(s.pc===100?'feito':'')+'">'+(s.pc===100?'✓ 100%':s.f+'/'+s.t)+'</span></div></button>';
   };
 

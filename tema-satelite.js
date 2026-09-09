@@ -29,7 +29,10 @@
            '--ok', '--warn', '--danger', '--radius', '--r-sm', '--r-md',
            '--display', '--body', '--mono', '--heroGrad',
            '--fs-3xs', '--fs-2xs', '--fs-xs', '--fs-sm', '--fs-base', '--fs-md',
-           '--fs-lg', '--fs-xl', '--fs-2xl', '--control-h'];
+           '--fs-lg', '--fs-xl', '--fs-2xl', '--control-h',
+           // leitura ativa (LA2): 7 cores de identidade da grade e as 7 de texto derivadas
+           '--la-quem', '--la-oque', '--la-quando', '--la-como', '--la-prazo', '--la-excecao', '--la-proibicao',
+           '--la-quem-tx', '--la-oque-tx', '--la-quando-tx', '--la-como-tx', '--la-prazo-tx', '--la-excecao-tx', '--la-proibicao-tx'];
 
   function aplicar(t) {
     if (!t) return;

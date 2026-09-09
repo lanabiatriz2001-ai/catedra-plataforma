@@ -207,8 +207,14 @@
     return (d && d.emPreparo) ? d.emPreparo.slice() : [];
   }
 
+  /* P19 — foco de escopo do beta público. Só as áreas desta lista aparecem para quem ESCOLHE área
+     (onboarding, Ajustes, seletor). Quem já usa outra área continua nela: nada é removido, nem código
+     nem dados — a área ativa entra na lista por si. Para reabrir tudo, basta listar os demais ids. */
+  var PUBLICAS = ['juridica'];
+  function publica(id, ativa) { return PUBLICAS.indexOf(id) >= 0 || (!!ativa && id === ativa); }
+
   var api = {
-    CAPACIDADES: CAPACIDADES, VIEW_EXIGE: VIEW_EXIGE, AREAS: AREAS,
+    CAPACIDADES: CAPACIDADES, VIEW_EXIGE: VIEW_EXIGE, AREAS: AREAS, PUBLICAS: PUBLICAS, publica: publica,
     definicao: definicao, tem: tem, podeAbrir: podeAbrir, termo: termo, emPreparo: emPreparo
   };
   w.CT_AREA_REG = api;

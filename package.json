@@ -6,7 +6,8 @@
   "description": "Deploy da plataforma Cátedra na Vercel com IA (Claude) via função serverless.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/run.mjs"
+    "test": "node tests/run.mjs",
+    "test:webkit": "node tests/run-webkit.mjs"
   },
   "devDependencies": {
     "playwright-core": "^1.49.0"

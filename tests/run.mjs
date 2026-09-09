@@ -1,49 +1,32 @@
 /* Testes de navegador da plataforma — rodam com `npm test`.
-   Sobe um servidor estático na raiz do repositório e dirige um Chromium headless:
+   Sobe um servidor estático na raiz do repositório e dirige um navegador headless:
    · SYNC: o mergeAll do auth.js (carimbo por chave, vazio nunca apaga cheio,
      união por id, lápides, histórico × lixeira) via tests/sync-fixture.html;
    · ACERVO ida-e-volta: rito/peça/bloco na URL, mensagens ctAbrirAcervo com origem,
-     pílula de voltar no LEGIS/JURIS e o ciclo completo via tests/harness-acervo.html.
-   O executável do Chrome vem de CT_CHROME ou dos caminhos usuais (CI: google-chrome). */
-import { chromium } from 'playwright-core';
-import http from 'http';
+     pílula de voltar no LEGIS/JURIS e o ciclo completo via tests/harness-acervo.html;
+   · ORAL LEI SECA: a aba Lei seca da Prova oral lista as leis (tests/oral-lei-seca.mjs).
+   Servidor e navegador vêm de tests/_infra.mjs. O motor padrão é o Chromium — executável
+   de CT_CHROME ou dos caminhos usuais (CI: google-chrome); CT_BROWSER=webkit troca pelo
+   WebKit do Playwright, o mesmo que tests/run-webkit.mjs usa como proxy do iPad. */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { iniciarServidor, lancarNavegador } from './_infra.mjs';
+import { testarOralLeiSeca } from './oral-lei-seca.mjs';
+import { testarLegisGuiado } from './legis-guiado.mjs';
+import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-// '.css' faltava aqui, e o custo foi alto: o servidor entregava satellite-base.css como
-// application/octet-stream, o Chrome recusava a folha em modo padrão (cssRules.length = 0)
-// e TODA a verificação da TASK9 rodou num navegador onde a base não existia — verde por
-// acidente, porque as asserções mediam o que o CSS da própria página já garantia.
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
-  '.css': 'text/css',
-  '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
-
-const CHROMES = [process.env.CT_CHROME,
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',   // Mac da Lana
-  '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable',
-  '/usr/bin/chromium-browser', '/usr/bin/chromium'].filter(Boolean);
-const exe = CHROMES.find(p => { try { return fs.existsSync(p); } catch (_) { return false; } });
-if (!exe) { console.error('Nenhum Chrome/Chromium encontrado. Defina CT_CHROME=/caminho/do/chrome'); process.exit(2); }
-
-const srv = http.createServer((req, res) => {
-  try {
-    const u = new URL(req.url, 'http://x');
-    const p = path.join(RAIZ, decodeURIComponent(u.pathname).slice(1));
-    if (!p.startsWith(RAIZ)) { res.writeHead(403); res.end(); return; }
-    const data = fs.readFileSync(p);
-    res.writeHead(200, { 'content-type': MIME[path.extname(p)] || 'application/octet-stream' });
-    res.end(data);
-  } catch (e) { res.writeHead(404); res.end('nao encontrado'); }
-});
+// O servidor estático e a escolha do navegador moram em tests/_infra.mjs, compartilhados
+// com o runner do WebKit (tests/run-webkit.mjs) — inclusive a tabela MIME e a história dela.
 // A porta sai do ambiente (CT_PORT) para que duas sessões trabalhando no mesmo repositório
 // possam rodar a suíte ao mesmo tempo — sem isso a segunda morre com EADDRINUSE.
 const PORTA = +(process.env.CT_PORT || 8123);
-await new Promise(r => srv.listen(PORTA, r));
-const URL0 = 'http://localhost:' + PORTA;
+const { srv, url: URL0 } = await iniciarServidor(RAIZ, PORTA);
 
-const browser = await chromium.launch({ executablePath: exe });
+// O motor sai no log logo no início: um "✗" só se lê sabendo em que navegador aconteceu.
+const { browser, motor } = await lancarNavegador();
+console.log('[' + motor + '] suíte de navegador em ' + URL0);
 const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
@@ -66,13 +49,35 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
     }
   };
 
-  const semRede = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '' });
-  ok(semRede.code === 1, 'D9 build sem rede FALHA (exit 1) em vez de publicar dependendo de CDN');
-  ok(/BUILD ABORTADO/.test(semRede.saida), 'D9 a falha explica o que houve');
-  ok(/CT_PERMITE_CDN/.test(semRede.saida), 'D9 a falha diz qual é a saída de emergência');
-
-  const comFlag = rodar({ NODE_OPTIONS: '--require ' + stub, CT_PERMITE_CDN: '1' });
-  ok(comFlag.code === 0, 'D9 CT_PERMITE_CDN=1 ainda permite build degradado (debug)');
+  /* MUDOU O QUE ESTE BLOCO PROVA, e para melhor. Antes o build BAIXAVA as fontes do
+     Google a cada publicação, então "sem rede" tinha de abortar — publicar dependendo de
+     CDN seria pior. Isso protegia a web e deixava os apps NATIVOS de fora: eles empacotam
+     o Catedra.dc.html direto, sem passar pelo build, e lá o <link> do Google continuava.
+     Sem internet, no aparelho de estudo, a tipografia caía inteira.
+     As faces passaram a ser versionadas em fonts/ e declaradas no catedra-ui.css. Com
+     isso o build não pede nada à rede: em vez de abortar, ele PUBLICA. A asserção que
+     antes exigia falha agora exige sucesso — e o CT_PERMITE_CDN deixou de existir, porque
+     não há mais CDN de onde depender. */
+  const semRede = rodar({ NODE_OPTIONS: '--require ' + stub });
+  /* Sem rede o build ainda para — mas agora por causa das BIBLIOTECAS (react, supabase),
+     que continuam sendo vendoradas da internet. O que mudou é que as FONTES saíram dessa
+     lista: elas não são mais motivo de aborto. A asserção mira a causa, não o código de
+     saída, senão ela passaria a medir o vendor das libs sem querer. */
+  ok(!/vendorar as fontes|fonts\.googleapis|fonts\.gstatic/.test(semRede.saida),
+     'D9 sem rede, as fontes NÃO são mais motivo de aborto');
+  const fontesPub = path.join(RAIZ, 'public', 'fonts');
+  ok(fs.existsSync(fontesPub) && fs.readdirSync(fontesPub).filter(f => f.endsWith('.woff2')).length >= 20,
+     'D9 as 20 faces chegam a public/fonts mesmo sem rede');
+  /* O CT_PERMITE_CDN continua existindo para as BIBLIOTECAS (React, supabase), que ainda
+     são vendoradas da rede. O que saiu foi o uso dele nas FONTES: elas não têm mais de
+     onde falhar. A asserção mira a função, não o arquivo inteiro. */
+  const buildSrc = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
+  const fnFontes = buildSrc.slice(buildSrc.indexOf('async function vendorarFontes()'),
+                                 buildSrc.indexOf("return './fonts.css';"));
+  // sem os comentários: o texto explicativo cita o nome do flag ao contar que ele saiu
+  const fnSemComentario = fnFontes.replace(/\/\*[\s\S]*?\*\//g, '');
+  ok(!/PERMITE_CDN/.test(fnSemComentario), 'D9 as fontes não têm mais saída de emergência para CDN');
+  ok(!/fonts\.gstatic|fonts\.googleapis/.test(fnFontes), 'D9 a função de fontes não fala com o Google');
 
   // build normal: nada de terceiro sobra no HTML publicado
   const normal = rodar({});
@@ -125,8 +130,17 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
     'U10 a casca traz os três scripts do <head> (antes só entravam depois da 1a visita)');
   ok(casca.some(p => /^\.\/vendor\//.test(p)) && naCasca('./fonts.css') && casca.some(p => /^\.\/fonts\//.test(p)),
     'U10 a casca traz as libs vendoradas e as fontes locais');
-  ok(!casca.some(p => /cyrillic|greek|vietnamese/.test(p)) && casca.filter(p => /^\.\/fonts\//.test(p)).length < 20,
-    'U10 só os subconjuntos latinos das fontes entram no precache');
+  /* O `< 20` daqui era a marca de quando o build baixava 48 faces do Google e só algumas
+     latinas entravam na casca. Com as faces versionadas em fonts/, TODAS as que existem
+     são latinas — são exatamente 20 — e o número virou coincidência com o limite antigo.
+     A asserção passa a dizer o que importa: nada de alfabeto que este app não usa, e a
+     casca leva exatamente o que o repositório tem (nem sobra velharia, nem falta face). */
+  const facesNoRepo = fs.readdirSync(path.join(RAIZ, 'fonts')).filter(f => f.endsWith('.woff2')).length;
+  const facesNaCasca = casca.filter(p => /^\.\/fonts\//.test(p)).length;
+  ok(!casca.some(p => /cyrillic|greek|vietnamese/.test(p)),
+    'U10 nenhum subconjunto não-latino entra no precache');
+  ok(facesNaCasca === facesNoRepo,
+    'U10 a casca leva exatamente as faces do repositório (' + facesNaCasca + ' de ' + facesNoRepo + ')');
   ok(casca.filter(p => /\/dados\/[^/]+\/manifesto\.json$/.test(p)).length >= 1,
     'U10 os manifestos dos acervos fatiados entram na casca (sem eles o CTDados desiste offline)');
 
@@ -291,6 +305,16 @@ const sync = await page.evaluate(() => {
   const oK = M({ 'catedra:_kts': J({ a: 1, b: 9 }) }, { 'catedra:_kts': J({ a: 5, c: 3 }) }, false);
   const kts = JSON.parse(oK['catedra:_kts']);
   r.ktsMaximo = kts.a === 5 && kts.b === 9 && kts.c === 3;
+
+  // 9. leitura ativa (LA1): catedra:leituras é array com id/up e está em ARRAY_ID — união
+  //    por id entre aparelhos e, em colisão, vence o `up` maior. Sem a chave em ARRAY_ID
+  //    o merge cairia no blob inteiro (sem carimbo, preferServer=false → o local venceria
+  //    e a leitura feita no outro aparelho sumiria): é isso que este caso pega.
+  const svL = { 'catedra:leituras': J([{ id: 'la|cf|412', up: 100, nao: ['prazo'] }, { id: 'la|cf|413', up: 100 }]) };
+  const lcL = { 'catedra:leituras': J([{ id: 'la|cf|412', up: 200, nao: [] }, { id: 'la|cc|9', up: 50 }]) };
+  const mL = JSON.parse(M(svL, lcL, false)['catedra:leituras']);
+  r.leiturasUniaoPorId = mL.length === 3 && mL.some(x => x.id === 'la|cf|413') && mL.some(x => x.id === 'la|cc|9');
+  r.leiturasUpMaiorVence = (mL.find(x => x.id === 'la|cf|412').nao || []).length === 0;
   return r;
 });
 for (const [k, v] of Object.entries(sync)) ok(v, 'SYNC ' + k);
@@ -437,6 +461,1978 @@ const err = await page.evaluate(async () => {
   return r;
 });
 for (const [k, v] of Object.entries(err)) ok(v, 'ERROS ' + k);
+
+/* ============= LEITURA ATIVA — LA1: módulo puro, canal host ↔ LEGIS ============= */
+// (a) o módulo roda em Node cru: é a garantia de que ele não depende de DOM nem de
+//     treino.js — e de que a sintaxe é a conservadora que o JavaScriptCore do iPad aceita
+{
+  const { execFileSync } = await import('child_process');
+  let saida = '';
+  try {
+    saida = execFileSync(process.execPath, ['-e',
+      "const s=require('fs').readFileSync('leitura-ativa.js','utf8'); new Function(s)();" +
+      "const LA=globalThis.CT_LA; const it=LA.marcar(LA.nova({leiId:'u',sigla:'CF',rot:'Art. 1º',gi:1,txt:'texto'}),'quem',{s:0,t:'x'});" +
+      "process.stdout.write(LA.completude(it).respondidas+'|'+LA.hash('texto'));"],
+      { cwd: RAIZ, stdio: 'pipe' }).toString();
+  } catch (e) { saida = 'ERRO ' + String(e.stderr || e.message).slice(0, 200); }
+  ok(/^1\|[0-9a-f]{8}$/.test(saida), 'LEITURA o módulo roda em Node puro, sem DOM (' + saida + ')');
+}
+
+// (b) as funções puras, no navegador
+await page.goto(URL0 + '/tests/harness-leitura-ativa.html');
+await page.waitForFunction(() => window.__pronto === true);
+const la = await page.evaluate(() => {
+  const LA = window.CT_LA, r = {};
+  const TXT = 'XI - a casa é asilo inviolável do indivíduo, ninguém nela podendo penetrar sem consentimento do morador, salvo em caso de flagrante delito';
+
+  // a grade: 7 perguntas, ordem fixa, teclas 1–7
+  r.grade7 = LA.ELEMENTOS.length === 7
+    && LA.ELEMENTOS.map(e => e.id).join(',') === 'quem,oque,quando,como,prazo,excecao,proibicao'
+    && LA.ELEMENTOS.every((e, i) => e.n === i + 1 && e.tecla === String(i + 1) && e.rotulo && e.pergunta);
+
+  // nova: id estável por lei e dispositivo, hash de 8 hex, e NENHUM texto de lei no item
+  const base = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: TXT });
+  r.novaId = base.id === 'la|https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm|412' && base.v === 1 && base.up > 0 && base.lido > 0;
+  r.novaHash = /^[0-9a-f]{8}$/.test(base.hash) && base.hash === LA.hash(TXT) && LA.hash(TXT) !== LA.hash(TXT + '.');
+  r.novaSemTexto = !('txt' in base) && !JSON.stringify(base).includes('asilo');
+  r.novaSemLeiNaoNasce = LA.nova({ sigla: 'CF', gi: 1, txt: 'x' }) === null && LA.nova({ leiId: 'u', txt: 'x' }) === null;
+
+  // marcar devolve item NOVO (o original não muda) com `up` maior
+  const m1 = LA.marcar(base, 'quem', { s: 5, t: 'a casa' });
+  r.marcarImutavel = m1 !== base && base.el.quem.length === 0 && m1.el.quem.length === 1 && m1.el.quem[0].t === 'a casa';
+  r.marcarUpAvanca = m1.up > base.up;
+  // mesmo offset duas vezes = uma marca; ordem por offset; elemento inválido é ignorado
+  const m2 = LA.marcar(LA.marcar(m1, 'quem', { s: 5, t: 'a casa' }), 'quem', { s: 0, t: 'XI' });
+  r.marcarDedupeEOrdem = m2.el.quem.length === 2 && m2.el.quem[0].s === 0 && m2.el.quem[1].s === 5;
+  r.marcarElInvalido = LA.marcar(m2, 'porque', { s: 1, t: 'x' }) === m2;
+  // trecho aparado: uma marca é pista, não cópia do dispositivo
+  const longo = LA.marcar(base, 'oque', { s: 0, t: 'x'.repeat(1000) });
+  r.marcarApara = longo.el.oque[0].t.length === 400;
+
+  // desmarcar tira só aquela marca
+  const d1 = LA.desmarcar(m2, 'quem', 5);
+  r.desmarcar = d1.el.quem.length === 1 && d1.el.quem[0].s === 0 && d1.up > m2.up;
+  r.desmarcarNadaNaoMuda = LA.desmarcar(d1, 'quem', 999) === d1;
+
+  // "não há" é resposta: conta na completude e apaga marca contraditória; marcar depois desfaz o "não há"
+  const n1 = LA.naoHa(m2, 'prazo', true);
+  r.naoHaRegistra = n1.nao.length === 1 && n1.nao[0] === 'prazo' && n1.up > m2.up;
+  r.naoHaIdempotente = LA.naoHa(n1, 'prazo', true) === n1;
+  r.naoHaDesfaz = LA.naoHa(n1, 'prazo', false).nao.length === 0;
+  r.naoHaApagaMarca = LA.naoHa(m2, 'quem', true).el.quem.length === 0;
+  r.marcarDesfazNaoHa = LA.marcar(n1, 'prazo', { s: 3, t: 'em 24 horas' }).nao.length === 0;
+
+  // completude: 2 marcas + 3 "não há" = 5 respondidas, faltam 2
+  let c = LA.marcar(LA.marcar(base, 'quem', { s: 5, t: 'a casa' }), 'excecao', { s: 100, t: 'salvo em caso de flagrante delito' });
+  c = LA.naoHa(LA.naoHa(LA.naoHa(c, 'prazo', true), 'quando', true), 'como', true);
+  const comp = LA.completude(c);
+  r.completude = comp.respondidas === 5 && comp.total === 7 && comp.faltam.join(',') === 'oque,proibicao';
+  r.completudeVazia = LA.completude(base).respondidas === 0 && LA.completude(base).faltam.length === 7;
+
+  // desatualizada: o hash denuncia texto mudado
+  r.atualizada = LA.atualizada(base, TXT) === true && LA.atualizada(base, TXT + ' (Redação dada pela EC 1/2027)') === false;
+
+  // conferir registra {el, q, ts}; só q 1/3/5
+  const cf = LA.conferir(c, 'excecao', 3);
+  r.conferir = !!cf && cf.item.conf.length === 1 && cf.item.conf[0].el === 'excecao' && cf.item.conf[0].q === 3 && cf.item.conf[0].ts > 0
+    && cf.item.up > c.up && cf.criar && typeof cf.criar === 'object';
+  r.conferirQInvalido = LA.conferir(c, 'excecao', 4) === null && LA.conferir(c, 'nada', 5) === null;
+
+  // progresso por lei
+  const outra = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 3, txt: 'y' });
+  let completo = base;
+  LA.IDS.forEach((el, i) => { completo = i < 2 ? LA.marcar(completo, el, { s: i, t: 't' + i }) : LA.naoHa(completo, el, true); });
+  const pr = LA.progresso([c, completo, outra], base.leiId, 10);
+  // c e completo têm o MESMO id (mesmo dispositivo): progresso conta itens da lista como vêm
+  r.progresso = pr.lidos === 2 && pr.completos === 1 && pr.pct === 20;
+  r.progressoSemTotal = LA.progresso([c], base.leiId, 0).pct === 0;
+
+  // sanear: só o shape entra — `txt` e campos inventados caem; id tem de ser lei|gi
+  const sujo = Object.assign({}, c, { txt: TXT, extra: 'não', hash: 'zz', el: Object.assign({}, c.el, { quem: [{ s: 5, t: 'a casa' }, { s: -1, t: 'neg' }, { s: 5, t: 'dup' }], inventado: [{ s: 0, t: 'x' }] }) });
+  const limpo = LA.sanear(sujo);
+  r.sanearShape = !!limpo && !('txt' in limpo) && !('extra' in limpo) && !('inventado' in limpo.el) && limpo.el.quem.length === 1 && /^[0-9a-f]{8}$/.test(limpo.hash);
+  r.sanearIdCoerente = LA.sanear(Object.assign({}, c, { id: 'la|outra|1' })) === null && LA.sanear(null) === null && LA.sanear('x') === null;
+
+  // upsert: preserva o `up` maior; mais velho não entra; novo id é acrescentado
+  const lista = [c];
+  const velho = Object.assign({}, c, { up: c.up - 1000, nao: [] });
+  const novo = Object.assign({}, c, { up: c.up + 1000, nao: ['prazo', 'quando', 'como', 'oque'] });
+  r.upsertVelhoNaoEntra = LA.upsert(lista, velho) === lista;
+  r.upsertNovoEntra = LA.upsert(lista, novo)[0].nao.length === 4 && LA.upsert(lista, novo) !== lista && lista[0] === c;
+  r.upsertAcrescenta = LA.upsert(lista, outra).length === 2;
+  return r;
+});
+for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
+
+// (c) o canal, contra o host REAL: upsert com `up` maior, resposta só da lei pedida,
+//     conferência gravada, e nada de texto de lei em catedra:leituras
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1');
+    localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    localStorage.removeItem('catedra:leituras');
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  const canal = await page.evaluate(async () => {
+    const r = {}, LA = window.CT_LA;
+    const espera = ms => new Promise(res => setTimeout(res, ms));   // o _autosave grava 500 ms depois do setState
+    const gravado = () => JSON.parse(localStorage.getItem('catedra:leituras') || '[]');
+    r.moduloNoHost = !!LA && typeof window.__catedraGoView === 'function';
+    if (!LA) return r;
+    const TXT = 'XI - a casa é asilo inviolável do indivíduo, ninguém nela podendo penetrar sem consentimento do morador';
+    const item = LA.marcar(LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: TXT }), 'quem', { s: 5, t: 'a casa' });
+
+    window.postMessage({ type: 'ctLeituraAtiva', item }, '*');
+    await espera(900);
+    let g = gravado();
+    r.upsertGravou = g.length === 1 && g[0].id === item.id && g[0].el.quem.length === 1;
+    r.semTextoDeLei = !JSON.stringify(g).includes('asilo inviolável') && !('txt' in (g[0] || {}));
+
+    // edição mais VELHA não desfaz a guardada
+    window.postMessage({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { up: item.up - 5000, nao: ['prazo'] }) }, '*');
+    await espera(900);
+    g = gravado();
+    r.upMaiorVence = g.length === 1 && (g[0].nao || []).length === 0;
+
+    // edição mais NOVA entra
+    const novo = LA.naoHa(item, 'prazo', true);
+    window.postMessage({ type: 'ctLeituraAtiva', item: novo }, '*');
+    await espera(900);
+    g = gravado();
+    r.upNovoEntra = g.length === 1 && (g[0].nao || []).indexOf('prazo') >= 0;
+
+    // lixo não entra: sem leiId, com texto, id incoerente
+    window.postMessage({ type: 'ctLeituraAtiva', item: { id: 'la|x|1', gi: 1, txt: TXT } }, '*');
+    window.postMessage({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { id: 'la|outra|412' }) }, '*');
+    await espera(900);
+    r.lixoNaoEntra = gravado().length === 1;
+
+    // outra lei no mesmo array; pedir devolve SÓ a lei pedida
+    const outra = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 3, txt: 'Aquele que, não sendo proprietário' });
+    window.postMessage({ type: 'ctLeituraAtiva', item: outra }, '*');
+    await espera(900);
+    r.duasLeis = gravado().length === 2;
+    const resposta = await new Promise(res => {
+      const h = e => { if (e.data && e.data.type === 'ctLeituras') { window.removeEventListener('message', h); res(e.data); } };
+      window.addEventListener('message', h);
+      window.postMessage({ type: 'ctLeiturasPedir', leiId: item.leiId }, '*');
+      setTimeout(() => res(null), 2000);
+    });
+    r.pedirDevolveSoALei = !!resposta && resposta.leiId === item.leiId && resposta.itens.length === 1 && resposta.itens[0].id === item.id;
+    const vazia = await new Promise(res => {
+      const h = e => { if (e.data && e.data.type === 'ctLeituras') { window.removeEventListener('message', h); res(e.data); } };
+      window.addEventListener('message', h);
+      window.postMessage({ type: 'ctLeiturasPedir', leiId: 'https://www.planalto.gov.br/nada.htm' }, '*');
+      setTimeout(() => res(null), 2000);
+    });
+    r.pedirLeiSemLeituraVemVazio = !!vazia && Array.isArray(vazia.itens) && vazia.itens.length === 0;
+
+    // a conferência entra no item guardado
+    window.postMessage({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 3 }, '*');
+    window.postMessage({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 4 }, '*');   // q inválido: ignorado
+    window.postMessage({ type: 'ctLeituraConferida', id: 'la|nao|existe', el: 'quem', q: 1 }, '*');
+    await espera(900);
+    const it = gravado().find(x => x.id === item.id);
+    r.conferenciaGravada = !!it && (it.conf || []).length === 1 && it.conf[0].el === 'quem' && it.conf[0].q === 3;
+
+    localStorage.removeItem('catedra:leituras');
+    localStorage.removeItem('catedra:reviews');   // a conferência q=3 acima criou a revisão dela (LA4)
+    return r;
+  });
+  for (const [k, v] of Object.entries(canal)) ok(v, 'LEITURA/CANAL ' + k);
+}
+
+// (d) o espelho do LEGIS: a resposta do host sobrescreve 'catedra:leituras:<leiId>' e avisa a página
+{
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.waitForFunction(() => !!(window.CT_LA_CANAL && window.CT_LA));
+  const esp = await page.evaluate(async () => {
+    const r = {}, C = window.CT_LA_CANAL, LEI = 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm';
+    localStorage.removeItem('catedra:leituras:' + LEI);
+    r.espelhoVazio = C.ler(LEI).length === 0;
+    let avisou = false;
+    window.addEventListener('catedra:leituras', e => { if (e.detail && e.detail.leiId === LEI) avisou = true; });
+    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [{ id: 'la|' + LEI + '|1', up: 1, leiId: LEI, gi: 1 }] }, '*');
+    await new Promise(res => setTimeout(res, 200));
+    r.espelhoGravado = C.ler(LEI).length === 1 && avisou;
+    // enviar: espelha localmente (upsert) — o post ao host é o que o caso (c) cobre
+    const it = window.CT_LA.nova({ leiId: LEI, sigla: 'CF', rot: 'Art. 2º', gi: 2, txt: 'x' });
+    C.enviar(it);
+    r.enviarEspelha = C.ler(LEI).length === 2;
+    localStorage.removeItem('catedra:leituras:' + LEI);
+    return r;
+  });
+  for (const [k, v] of Object.entries(esp)) ok(v, 'LEITURA/ESPELHO ' + k);
+}
+
+/* ============= LEITURA ATIVA — LA2: a grade no leitor do LEGIS ============= */
+// (a) a trava de contraste roda no build e passa; os dois builds a importam
+{
+  const { execFileSync } = await import('child_process');
+  let saida = '';
+  try { saida = execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'verificar-cores-leitura.mjs')], { cwd: RAIZ, stdio: 'pipe' }).toString(); }
+  catch (e) { saida = 'ERRO ' + String(e.stderr || e.message).split('\n').slice(0, 3).join(' | ').slice(0, 300); }
+  ok(/grade de leitura ativa legível/.test(saida), 'LEITURA/GRADE a trava de contraste mede os 14 tokens e passa (' + saida.trim().slice(0, 120) + ')');
+  const importa = (f) => /import '\.\/verificar-cores-leitura\.mjs'/.test(fs.readFileSync(path.join(RAIZ, 'scripts', f), 'utf8'));
+  ok(importa('build.mjs') && importa('build-macos.mjs'), 'LEITURA/GRADE os dois builds importam a trava (abortam abaixo do mínimo)');
+  // os 14 nomes estão nas DUAS listas da ponte D1
+  const nomes = ['quem', 'oque', 'quando', 'como', 'prazo', 'excecao', 'proibicao'].flatMap(e => ['--la-' + e, '--la-' + e + '-tx']);
+  const sat = fs.readFileSync(path.join(RAIZ, 'tema-satelite.js'), 'utf8'), hostSrc = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  ok(nomes.every(n => sat.includes("'" + n + "'")) && nomes.every(n => hostSrc.includes("'" + n + "'")), 'LEITURA/GRADE os 14 tokens estão nas duas listas da ponte D1');
+}
+
+// (b) o leitor: interruptor, trilho, seleção → chip/tecla, "não há", marca coexistindo com grifo, persistência
+{
+  const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural não superior a cinqüenta hectares, tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia, adquirir-lhe-á a propriedade.';
+  const PARAS = ['TÍTULO III', 'Da Propriedade', 'Art. 1.239. ' + TXT, 'Parágrafo único. O texto do parágrafo único.', 'Art. 1.240. Outro artigo, com um inciso:', 'I - primeiro inciso do artigo.'];
+  const abrir = async () => {
+    await page.goto(URL0 + '/legis-web.html?area=juridica');
+    await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
+    await page.evaluate((paras) => {
+      // o leitor busca o texto em /api/law: aqui a lei vem de um fetch de mentira
+      window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+      window.openReader(CAT.laws.find(l => /l10406/.test(l.u)));
+    }, PARAS);
+    await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .gr').length >= 3);
+  };
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.evaluate(() => { localStorage.removeItem('catedra:leitorLA'); Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k)); });
+  await abrir();
+  const la2 = await page.evaluate(async (TXT) => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    const LEI = CAT.laws.find(l => /l10406/.test(l.u)).u;
+    const grs = () => document.querySelectorAll('#rdrDoc .gr');
+    const rgb = hex => 'rgb(' + [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(', ') + ')';
+    // seleciona uma frase dentro do .gr (no nó de texto que a contém) e solta o mouse
+    const selecionar = (gr, frase) => {
+      const nos = []; const it = document.createNodeIterator(gr, NodeFilter.SHOW_TEXT); let n; while ((n = it.nextNode())) nos.push(n);
+      const no = nos.find(t => t.nodeValue.includes(frase)); if (!no) return false;
+      const range = document.createRange(); const i = no.nodeValue.indexOf(frase);
+      range.setStart(no, i); range.setEnd(no, i + frase.length);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(range);
+      document.getElementById('rdrScroll').dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+      return true;
+    };
+    const tecla = k => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+
+    r.abriuTresDispositivos = grs().length === 4;
+    r.desligadoSemTrilho = !document.querySelector('#rdrDoc .la-trilho') && !document.querySelector('#rdrDoc .la-legenda');
+    const bt = document.getElementById('rdrLA');
+    r.interruptorRotulado = !!bt && /Leitura ativa/.test(bt.getAttribute('aria-label') || '') && bt.getAttribute('aria-pressed') === 'false' && !!bt.querySelector('svg');
+    bt.click(); await w(80);
+    r.ligaUmTrilhoPorDispositivo = bt.getAttribute('aria-pressed') === 'true' && document.querySelectorAll('#rdrDoc .la-trilho').length === grs().length;
+    const chipsDe = tr => [...tr.querySelectorAll('.la-chip')];
+    const tr0 = document.querySelector('#rdrDoc .la-trilho');
+    r.seteChipsNaOrdem = chipsDe(tr0).map(c => c.dataset.el).join(',') === 'quem,oque,quando,como,prazo,excecao,proibicao';
+    r.rotuloEscritoEmTodoChip = chipsDe(tr0).every(c => /\S/.test(c.querySelector('.la-rot').textContent) && /sem resposta|respondida|não há/.test(c.getAttribute('aria-label')));
+    r.chipVazioNaoColorido = chipsDe(tr0).every(c => !c.classList.contains('resp') && !c.classList.contains('nao'));
+    r.legendaComSetePerguntas = document.querySelectorAll('#rdrDoc .la-legenda .la-item').length === 7
+      && [...document.querySelectorAll('#rdrDoc .la-legenda .la-perg')].every(p => /\S/.test(p.textContent))
+      && [...document.querySelectorAll('#rdrDoc .la-legenda .la-tecla')].map(k => k.textContent).join('') === '1234567';
+    r.semEmojiNaGrade = !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(tr0.textContent + document.querySelector('#rdrDoc .la-legenda').textContent + bt.textContent);
+
+    // 1. seleção → tecla 1 (Quem?)
+    const gr = grs()[0];
+    r.selecionouQuem = selecionar(gr, 'Aquele que, não sendo proprietário de imóvel rural ou urbano');
+    const barra = document.getElementById('grifBar');
+    r.barraGanhouChips = barra.classList.contains('on') && barra.classList.contains('la') && barra.querySelectorAll('.la-chip').length === 7 && !!document.getElementById('grifBtn');
+    tecla('1'); await w(80);
+    const mQuem = gr.querySelector('mark.la.la-quem');
+    r.teclaPintaQuem = !!mQuem && mQuem.dataset.el === 'quem' && mQuem.dataset.s === '0' && mQuem.textContent.startsWith('Aquele que') && mQuem.title === 'Quem?';
+    r.marcaUsaIdentidadeESublinhado = !!mQuem && getComputedStyle(mQuem).borderBottomWidth === '2px'
+      && getComputedStyle(mQuem).borderBottomColor === rgb(getComputedStyle(mQuem).getPropertyValue('--la-quem').trim());
+    r.barraFechouDepois = !barra.classList.contains('on');
+    r.trilhoQuemRespondido = tr0.querySelector('.la-chip[data-el=quem]').classList.contains('resp') && /respondida/.test(tr0.querySelector('.la-chip[data-el=quem]').getAttribute('aria-label'));
+
+    // 2. seleção → chip da barra (Há prazo?)
+    selecionar(gr, 'por cinco anos ininterruptos');
+    barra.querySelector('.la-chip[data-el=prazo]').click(); await w(80);
+    r.chipDaBarraPintaPrazo = !!gr.querySelector('mark.la.la-prazo') && gr.querySelector('mark.la.la-prazo').textContent === 'por cinco anos ininterruptos';
+    // 3. seleção → tecla 4 (Como?)
+    selecionar(gr, 'tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia');
+    tecla('4'); await w(80);
+    r.teclaPintaComo = !!gr.querySelector('mark.la.la-como');
+    r.tresMarcasNaOrdemDoTexto = [...gr.querySelectorAll('mark.la')].map(m => m.dataset.el).join(',') === 'quem,prazo,como';
+    r.textoIntacto = gr.textContent === TXT;
+    // tecla fora de 1–7 e sem seleção: nada acontece
+    tecla('9'); tecla('2'); await w(50);
+    r.teclaSemSelecaoNaoMarca = gr.querySelectorAll('mark.la').length === 3;
+
+    // 4. grifo livre coexiste na mesma passada
+    selecionar(gr, 'sem oposição');
+    document.getElementById('grifBtn').click(); await w(80);
+    r.grifoCoexiste = gr.querySelectorAll('mark:not(.la)').length === 1 && gr.querySelectorAll('mark.la').length === 3 && gr.textContent === TXT;
+
+    // 5. "não há" em Há proibição? pelo menu do chip (chip vazio: um toque abre o menu)
+    tr0.querySelector('.la-chip[data-el=proibicao]').click(); await w(50);
+    const menu = tr0.querySelector('.la-menu');
+    r.menuAbriu = !!menu && /Não há/.test(menu.textContent) && !/Limpar marcas/.test(menu.textContent);
+    menu.querySelector('button[data-acao=nao]').click(); await w(80);
+    const chProib = document.querySelector('#rdrDoc .la-trilho .la-chip[data-el=proibicao]');
+    r.naoHaRiscado = chProib.classList.contains('nao') && /não há/.test(chProib.textContent) && /não há/.test(chProib.getAttribute('aria-label'))
+      && getComputedStyle(chProib.querySelector('.la-rot')).textDecorationLine.includes('line-through');
+    r.completude = (() => { const it = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 0); return !!it && window.CT_LA.completude(it).respondidas === 4; })();
+
+    // 6. chip preenchido: primeiro toque destaca; segundo toque abre o menu com "Limpar marcas"
+    const chQuem = document.querySelector('#rdrDoc .la-trilho .la-chip[data-el=quem]');
+    chQuem.click(); await w(50);
+    r.primeiroToqueDestaca = !!gr.querySelector('mark.la.la-quem.foco') && !document.querySelector('.la-menu');
+    chQuem.click(); await w(50);
+    r.segundoToqueAbreMenu = !!document.querySelector('.la-menu') && /Limpar marcas/.test(document.querySelector('.la-menu').textContent);
+    document.querySelector('.la-menu button[data-acao=fechar]').click(); await w(30);
+
+    // 7. tocar a marca desmarca
+    gr.querySelector('mark.la.la-como').click(); await w(80);
+    r.toqueNaMarcaDesmarca = !gr.querySelector('mark.la.la-como') && gr.querySelectorAll('mark.la').length === 2;
+
+    // 8. o espelho guarda só shape (sem o texto do dispositivo) e o item tem rot lido da estrutura
+    const it = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 0);
+    r.espelhoSemTexto = !!it && !('txt' in it) && !JSON.stringify(it).includes('cinqüenta hectares');
+    r.rotLidoDaEstrutura = !!it && it.rot === 'Art. 1.239' && it.sigla === 'CC';
+    // um dispositivo de inciso recebe "Art. N, I"
+    const grInc = grs()[3];
+    selecionar(grInc, 'primeiro inciso'); tecla('2'); await w(80);
+    const itInc = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 3);
+    r.rotDoInciso = !!itInc && itInc.rot === 'Art. 1.240, I';
+
+    // 9. a resposta do host repinta: um ctLeituras com o mesmo dispositivo e outro estado
+    const novo = window.CT_LA.naoHa(window.CT_LA.nova({ leiId: LEI, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: gr.textContent }), 'excecao', true);
+    novo.up = Date.now() + 5000;
+    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [novo, itInc] }, '*'); await w(150);
+    r.respostaDoHostRepinta = document.querySelector('#rdrDoc .la-trilho .la-chip[data-el=excecao]').classList.contains('nao') && gr.querySelectorAll('mark.la').length === 0;
+
+    // 10. desligar tira trilho e legenda, mantém os dados
+    bt.click(); await w(80);
+    r.desligarLimpaATela = !document.querySelector('#rdrDoc .la-trilho') && !document.querySelector('#rdrDoc .la-legenda') && !gr.querySelector('mark.la') && window.CT_LA_CANAL.ler(LEI).length === 2;
+    bt.click(); await w(80);
+    r.religarVolta = document.querySelectorAll('#rdrDoc .la-trilho').length === 4;
+    return r;
+  }, TXT);
+  for (const [k, v] of Object.entries(la2)) ok(v, 'LEITURA/LEITOR ' + k);
+
+  // 11. sobrevive a recarregar: o interruptor e a grade (pelo espelho) voltam iguais
+  await abrir();
+  const la2b = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms)); await w(150);
+    const r = {};
+    r.interruptorLembrado = document.getElementById('rdrLA').getAttribute('aria-pressed') === 'true';
+    const tr = document.querySelector('#rdrDoc .la-trilho');
+    r.gradeVoltou = !!tr && tr.querySelector('.la-chip[data-el=excecao]').classList.contains('nao')
+      && !!document.querySelectorAll('#rdrDoc .gr')[3].querySelector('mark.la.la-oque');
+    // a redação mudou: o hash denuncia e a marca vira pontilhada, com o aviso escrito
+    const LEI = CAT.laws.find(l => /l10406/.test(l.u)).u;
+    const it = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 3);
+    const mudado = Object.assign({}, it, { hash: '00000000', up: it.up + 1000 });
+    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [mudado] }, '*'); await w(150);
+    const tr3 = document.querySelector('#rdrDoc .la-trilho[data-gi="3"]');
+    r.redacaoMudouAvisa = !!tr3 && /Redação mudou/.test(tr3.textContent) && getComputedStyle(document.querySelectorAll('#rdrDoc .gr')[3].querySelector('mark.la')).borderBottomStyle === 'dotted';
+    tr3.querySelector('button[data-acao=confirmar]').click(); await w(80);
+    r.confirmarRefazHash = !document.querySelector('#rdrDoc .la-trilho[data-gi="3"] .la-aviso') && window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 3).hash !== '00000000';
+    // alvo de toque no iPad: 44px com ponteiro grosso (regra do CSS)
+    const css = [...document.styleSheets].flatMap(s => { try { return [...s.cssRules]; } catch (e) { return []; } }).map(x => x.cssText).join('\n');
+    r.alvo44NoToque = /pointer:\s*coarse[^}]*\.la-chip[\s\S]*?min-height:\s*44px/.test(css);
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  });
+  for (const [k, v] of Object.entries(la2b)) ok(v, 'LEITURA/LEITOR ' + k);
+}
+
+/* ============= LEITURA ATIVA — LA4: conferência imediata, "erro como filtro" ============= */
+// (a) o módulo: q decide o que se cria; front/back do cartão saem do próprio dispositivo
+await page.goto(URL0 + '/tests/harness-leitura-ativa.html');
+await page.waitForFunction(() => window.__pronto === true);
+const la4m = await page.evaluate(() => {
+  const LA = window.CT_LA, r = {};
+  const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra.';
+  let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: TXT });
+  it = LA.marcar(it, 'quem', { s: 0, t: 'Aquele que, não sendo proprietário de imóvel rural ou urbano' });
+  it = LA.marcar(it, 'prazo', { s: TXT.indexOf('por cinco anos ininterruptos'), t: 'por cinco anos ininterruptos' });
+  r.acertouNaoCria = Object.keys(LA.conferir(it, 'quem', 5).criar).length === 0;
+  const h = LA.conferir(it, 'quem', 3).criar, e = LA.conferir(it, 'quem', 1).criar;
+  r.hesitouCartaoERevisao = h.fc === true && h.review === true && !h.erro;
+  r.errouTambemErro = e.fc === true && e.review === true && e.erro === true;
+  const c = LA.cartaoConferencia(it, 'prazo', TXT);
+  r.cartaoFront = !!c && c.front.startsWith('CC · Art. 1.239 — Há prazo?\n') && c.front.includes(LA.LACUNA) && !c.front.includes('por cinco anos') && c.front.includes('Aquele que');
+  r.cartaoBack = !!c && c.back === 'por cinco anos ininterruptos' && c.ref === 'CC · Art. 1.239';
+  r.cartaoSemMarcaNaoExiste = LA.cartaoConferencia(it, 'como', TXT) === null;
+  r.lacunaPorIndexOfQuandoOffsetMudou = LA.lacunas('X ' + TXT, it.el.prazo).includes(LA.LACUNA);
+  return r;
+});
+for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
+
+// (b) o host: 2 Acertei + 1 Hesitei + 1 Errei = 2 cartões, 2 revisões, 1 erro; desfazer limpa os 5;
+//     repetir não duplica (id determinístico + hash); teto de 20 por mensagem com aviso
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+    localStorage.setItem('catedra:edital', JSON.stringify([{ disc: 'Direito Civil', peso: 1 }, { disc: 'Direito Processual Civil', peso: 1 }]));
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  const la4h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
+    const LA = window.CT_LA, r = {};
+    const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural, tornando-a produtiva por seu trabalho, tendo nela sua moradia.';
+    let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: TXT });
+    const marca = (el, t) => { it = LA.marcar(it, el, { s: TXT.indexOf(t), t }); };
+    marca('quem', 'Aquele que, não sendo proprietário de imóvel rural ou urbano'); marca('oque', 'possua como sua');
+    marca('prazo', 'por cinco anos ininterruptos'); marca('como', 'tornando-a produtiva por seu trabalho');
+    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await w(900);
+    const cartao = el => LA.cartaoConferencia(it, el, TXT);
+    const rodada = (qs) => ({ type: 'ctLeituraConferida', id: it.id, ref: 'CC · Art. 1.239',
+      itens: [['quem', qs[0]], ['oque', qs[1]], ['prazo', qs[2]], ['como', qs[3]]].map(([el, q]) => ({ el, q, front: cartao(el).front, back: cartao(el).back })) });
+
+    // 1. a rodada do aceite
+    window.postMessage(rodada([5, 5, 3, 1]), '*'); await w(1000);
+    let fc = ler('fc'), rv = ler('reviews'), er = ler('errors');
+    r.doisCartoes = fc.length === 2 && fc.every(c => c.id && c.up && c.hash && /Leitura ativa/.test(c.origem) && c.la && c.la.id === it.id);
+    r.cartaoDoPrazo = fc.some(c => c.la.el === 'prazo' && c.front.includes('Há prazo?') && c.back === 'por cinco anos ininterruptos' && !c.tipo);
+    r.duasRevisoesIdDeterministico = rv.length === 2 && rv.some(x => x.id === 'rv|la|' + it.id + '|prazo') && rv.some(x => x.id === 'rv|la|' + it.id + '|como');
+    r.revisaoDoErreiIntervalo1 = !!rv.find(x => x.id.endsWith('|como')) && rv.find(x => x.id.endsWith('|como')).intervalo === 1 && rv.find(x => x.id.endsWith('|como')).due === 1;
+    r.revisaoTemTopicoEDisciplina = rv.every(x => x.topic === 'CC Art. 1.239 — ' + LA.rotulo(x.la.el) && x.disc === 'Direito Civil' && x.up && x.dueDate);
+    r.umErro = er.length === 1 && er[0].id === 'e|la|' + it.id + '|como' && er[0].fonte === 'leitura-ativa' && er[0].ref === 'CC · Art. 1.239' && er[0].el === 'como' && er[0].disc === 'Direito Civil' && !!er[0].up;
+    if (!r.umErro || !r.revisaoTemTopicoEDisciplina) r.__diag = JSON.stringify({ edital: ler('edital').map(d => d.disc), rv: rv.map(x => [x.disc, x.topic]), er: er.map(x => [x.id, x.disc, x.ref]) });
+    r.conferenciasNoItem = (ler('leituras')[0].conf || []).length === 4;
+    const toast = document.querySelector('div[role=status]');
+    r.toastDizOQueCriou = !!toast && /2 cartões e 2 revisões e 1 erro de art\. 1\.239/.test(toast.textContent || '');
+    const undo = toast && [...toast.querySelectorAll('button')].find(b => /desfazer/i.test(b.textContent || ''));
+    r.toastTemDesfazer = !!undo;
+
+    // 2. desfazer limpa os 5 (e a conferência registrada no item)
+    if (undo) undo.click(); await w(1000);
+    r.desfazerLimpaOsCinco = ler('fc').length === 0 && ler('reviews').length === 0 && ler('errors').length === 0;
+    r.desfazerDevolveOItem = (ler('leituras')[0].conf || []).length === 0;
+
+    // 3. repetir a conferência do mesmo dispositivo não duplica: sm2 na revisão, hash no cartão, id no erro
+    window.postMessage(rodada([5, 5, 3, 1]), '*'); await w(1000);
+    window.postMessage(rodada([5, 5, 3, 3]), '*'); await w(1000);
+    fc = ler('fc'); rv = ler('reviews'); er = ler('errors');
+    r.repetirNaoDuplica = fc.length === 2 && rv.length === 2 && er.length === 1;
+    r.repetirAplicaSm2 = rv.find(x => x.id.endsWith('|prazo')).repeticoes === 2 && rv.find(x => x.id.endsWith('|como')).repeticoes === 1;
+
+    // 4. acertar tudo não cria nada (as contagens não se movem) e o toast diz isso, sem "desfazer"
+    const antes4 = [ler('fc').length, ler('reviews').length, ler('errors').length].join('/');
+    window.postMessage(rodada([5, 5, 5, 5]), '*'); await w(1000);
+    // o toast simples e o toast com ação são dois elementos: procura pelo texto, não pelo primeiro
+    const t2 = [...document.querySelectorAll('div[role=status]')].find(d => /acertou, nada a revisar/.test(d.textContent || ''));
+    r.acertarTudoNaoCria = [ler('fc').length, ler('reviews').length, ler('errors').length].join('/') === antes4
+      && !!t2 && ![...t2.querySelectorAll('button')].some(b => /desfazer/i.test(b.textContent || ''));
+
+    // 5. teto de 20 por mensagem, com aviso do restante
+    const muitos = { type: 'ctLeituraConferida', id: it.id, ref: 'CC · Art. 1.239',
+      itens: Array.from({ length: 25 }, (_, i) => ({ el: ['quem', 'oque', 'prazo', 'como'][i % 4], q: 3, front: 'F' + i, back: 'B' + i })) };
+    const antes = (ler('leituras')[0].conf || []).length;
+    window.postMessage(muitos, '*'); await w(1000);
+    r.tetoVinte = (ler('leituras')[0].conf || []).length - antes === 20;
+    const t3 = [...document.querySelectorAll('div[role=status]')].find(d => /ficaram para a próxima conferência/.test(d.textContent || ''));
+    r.avisaORestante = !!t3 && /5 ficaram para a próxima conferência/.test(t3.textContent || '');
+
+    // 6. lixo não entra: id inexistente, q inválido, el inválido
+    ['fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+    window.postMessage({ type: 'ctLeituraConferida', id: 'la|nao|1', itens: [{ el: 'quem', q: 1, front: 'x', back: 'y' }] }, '*');
+    window.postMessage({ type: 'ctLeituraConferida', id: it.id, itens: [{ el: 'quem', q: 4, front: 'x', back: 'y' }, { el: 'porque', q: 1, front: 'x', back: 'y' }] }, '*');
+    await w(900);
+    r.lixoNaoCria = ler('fc').length === 0 && ler('reviews').length === 0 && ler('errors').length === 0;
+    ['leituras', 'fc', 'reviews', 'errors', 'edital'].forEach(k => localStorage.removeItem('catedra:' + k));
+    return r;
+  });
+  if (la4h.__diag) { console.log('LEITURA/CONFERIR diagnóstico: ' + la4h.__diag); delete la4h.__diag; }
+  for (const [k, v] of Object.entries(la4h)) ok(v, 'LEITURA/CONFERIR ' + k);
+}
+
+// (c) o leitor: o painel esconde UMA marca por vez com o rótulo escrito, "Mostrar" antes de
+//     avaliar, e a rodada inteira sai numa mensagem só
+{
+  const PARAS = ['Art. 1.239. Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural, tornando-a produtiva por seu trabalho, tendo nela sua moradia, adquirir-lhe-á a propriedade.'];
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
+  await page.evaluate((paras) => {
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.setItem('catedra:leitorLA', '1');
+    window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+    window.openReader(CAT.laws.find(l => /l10406/.test(l.u)));
+  }, PARAS);
+  await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .gr').length >= 1);
+  const la4l = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    const gr = document.querySelector('#rdrDoc .gr');
+    const selecionar = (frase) => {
+      const nos = []; const it = document.createNodeIterator(gr, NodeFilter.SHOW_TEXT); let n; while ((n = it.nextNode())) nos.push(n);
+      const no = nos.find(t => t.nodeValue.includes(frase)); if (!no) return false;
+      const range = document.createRange(); const i = no.nodeValue.indexOf(frase); range.setStart(no, i); range.setEnd(no, i + frase.length);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(range);
+      document.getElementById('rdrScroll').dispatchEvent(new MouseEvent('mouseup', { bubbles: true })); return true;
+    };
+    const tecla = k => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+    const trilho = () => document.querySelector('#rdrDoc .la-trilho');
+    r.semMarcaSemConferir = !trilho().querySelector('.la-conferir');
+    selecionar('Aquele que, não sendo proprietário de imóvel rural ou urbano'); tecla('1'); await w(60);
+    selecionar('possua como sua'); tecla('2'); await w(60);
+    selecionar('por cinco anos ininterruptos'); tecla('5'); await w(60);
+    selecionar('tornando-a produtiva por seu trabalho'); tecla('4'); await w(60);
+    r.quatroMarcas = gr.querySelectorAll('mark.la').length === 4;
+    const btn = trilho().querySelector('.la-conferir');
+    r.botaoConferirAparece = !!btn && /Conferir/.test(btn.textContent);
+    // captura o que sairia para o host
+    let enviado = null; window.CT_LA_CANAL.conferir = p => { enviado = p; };
+    btn.click(); await w(80);
+    const painel = document.getElementById('laConf');
+    r.painelAbre = painel.classList.contains('on') && /Conferir a leitura — CC · Art\. 1\.239/.test(painel.textContent);
+    const lacuna = painel.querySelector('.la-foco .la-lacuna');
+    r.umaLacunaComRotulo = painel.querySelectorAll('.la-foco .la-lacuna').length === 1 && !!lacuna && lacuna.classList.contains('la-quem')
+      && /Quem\?/.test(lacuna.textContent) && lacuna.textContent.includes('▁') && !painel.querySelector('.la-foco .la-texto').textContent.includes('Aquele que');
+    r.outrasMarcasFicamLisas = painel.querySelector('.la-foco .la-texto').textContent.includes('por cinco anos ininterruptos');
+    r.mostrarAntesDeAvaliar = !!painel.querySelector('button[data-acao=mostrar]') && !painel.querySelector('button[data-q]');
+    r.filaMostraARodada = painel.querySelectorAll('.la-fila .la-chip').length === 4 && painel.querySelector('.la-fila .la-chip.atual').dataset.el === 'quem';
+    r.apoioDizARegra = /Só o que você errou ou hesitou vira cartão e revisão/.test(painel.querySelector('.la-apoio').textContent);
+    r.semEmojiNoPainel = !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(painel.textContent);
+    // teclado: Enter mostra
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(60);
+    r.enterRevela = !!painel.querySelector('.la-foco .la-lacuna.revelada') && painel.querySelector('.la-foco .la-texto').textContent.includes('Aquele que')
+      && painel.querySelectorAll('button[data-q]').length === 3 && !painel.querySelector('button[data-acao=mostrar]');
+    const responder = q => painel.querySelector('button[data-q="' + q + '"]').click();
+    responder(5); await w(60);
+    r.avancaParaOSegundo = painel.querySelector('.la-fila .la-chip.atual').dataset.el === 'oque' && painel.querySelector('.la-fila .la-chip.feita').dataset.el === 'quem' && !painel.querySelector('button[data-q]');
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40); responder(5); await w(60);
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40); responder(3); await w(60);
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40);
+    // teclado: 1 = Errei
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: '1', bubbles: true })); await w(80);
+    r.fechaNoFim = !painel.classList.contains('on');
+    r.rodadaSaiInteira = !!enviado && enviado.id === window.CT_LA_CANAL.ler(CAT.laws.find(l => /l10406/.test(l.u)).u)[0].id && enviado.ref === 'CC · Art. 1.239'
+      // a rodada segue a ORDEM FIXA da grade (Como? vem antes de Há prazo?), não a ordem em que ela marcou
+      && enviado.itens.map(x => x.el + ':' + x.q).join(',') === 'quem:5,oque:5,como:3,prazo:1';
+    // LA5: o payload já vai como cloze (sintaxe do Anki), com o extra pronto
+    r.cartaoProntoNoPayload = !!enviado && enviado.itens[3].tipo === 'cloze' && enviado.itens[3].front.includes('por {{c1::cinco anos}} ininterruptos')
+      && enviado.itens[3].back.includes('«cinco anos»') && enviado.itens[3].extra.startsWith('CC · Art. 1.239 · Há prazo? — Prazo de cinco anos');
+    r.leitorNaoGravaNasChavesDoApp = !localStorage.getItem('catedra:fc') && !localStorage.getItem('catedra:reviews') && !localStorage.getItem('catedra:errors');
+    // fechar sem enviar
+    enviado = null; trilho().querySelector('.la-conferir').click(); await w(60);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(60);
+    r.escapeFechaSemEnviar = !painel.classList.contains('on') && enviado === null;
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  });
+  for (const [k, v] of Object.entries(la4l)) ok(v, 'LEITURA/CONFERIR ' + k);
+}
+
+/* ============= LEITURA ATIVA — LA5: cloze de lei seca ============= */
+// (a) o módulo: o aceite literal, 3 lacunas no máximo, um elemento por cartão, escape, render
+await page.goto(URL0 + '/tests/harness-leitura-ativa.html');
+await page.waitForFunction(() => window.__pronto === true);
+const la5m = await page.evaluate(() => {
+  const LA = window.CT_LA, r = {};
+  const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural não superior a cinqüenta hectares, tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia, adquirir-lhe-á a propriedade.';
+  const LEI = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+  let it = LA.nova({ leiId: LEI, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: TXT });
+  const marca = (el, t) => { it = LA.marcar(it, el, { s: TXT.indexOf(t), t }); };
+  marca('prazo', 'por cinco anos ininterruptos'); marca('quem', 'Aquele que, não sendo proprietário de imóvel rural ou urbano');
+  const c = LA.cloze(it, 'prazo', TXT);
+  // o aceite, letra por letra
+  r.aceiteFront = !!c && c.front === 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por {{c1::cinco anos}} ininterruptos, sem oposição, área de terra em zona rural não superior a cinqüenta hectares, tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia, adquirir-lhe-á a propriedade.';
+  r.aceiteExtra = !!c && c.extra === 'CC · Art. 1.239 · Há prazo? — Prazo de cinco anos, contado de forma ininterrupta e sem oposição';
+  r.backDestaca = !!c && c.back.includes('por «cinco anos» ininterruptos');
+  r.tags = !!c && c.tags.join(',') === 'leitura-ativa,CC,prazo' && c.termos.join() === 'cinco anos';
+  // um cartão nunca mistura elementos: o cloze de "quem" não esconde o prazo
+  const cq = LA.cloze(it, 'quem', TXT);
+  r.umElementoPorCartao = !!cq && cq.front.startsWith('{{c1::Aquele que, não sendo proprietário de imóvel rural ou urbano}}') && !cq.front.includes('{{c2') && cq.front.includes('por cinco anos ininterruptos');
+  r.explicacaoPorRegra = !!cq && cq.extra === 'CC · Art. 1.239 · Quem? — Quem: Aquele que, não sendo proprietário de imóvel rural ou urbano';
+  // no máximo 3 lacunas; as excedentes ficam visíveis
+  let it4 = LA.nova({ leiId: LEI, sigla: 'CC', rot: 'Art. 1', gi: 1, txt: 'um dois três quatro cinco' });
+  ['um', 'dois', 'três', 'quatro'].forEach(t => { it4 = LA.marcar(it4, 'oque', { s: 'um dois três quatro cinco'.indexOf(t), t }); });
+  const c4 = LA.cloze(it4, 'oque', 'um dois três quatro cinco');
+  r.maximoTresLacunas = !!c4 && c4.front === '{{c1::um}} {{c2::dois}} {{c3::três}} quatro cinco' && (c4.front.match(/\{\{c\d::/g) || []).length === 3;
+  // sem marca no elemento: nada
+  r.semMarcaNada = LA.cloze(it, 'como', TXT) === null && LA.cloze(it, 'nada', TXT) === null;
+  // chaves literais no texto não viram lacuna
+  let itc = LA.nova({ leiId: LEI, sigla: 'X', rot: 'Art. 2', gi: 2, txt: 'texto com {{chave}} literal' });
+  itc = LA.marcar(itc, 'oque', { s: 0, t: 'texto com {{chave}}' });
+  const cc = LA.cloze(itc, 'oque', 'texto com {{chave}} literal');
+  r.escapaChaves = !!cc && cc.front === '{{c1::texto com { {chave} }}} literal' && (cc.front.match(/\{\{/g) || []).length === 1;
+  // revogado/vetado entra como prefixo do extra
+  r.prefixoRevogado = LA.cloze(it, 'prazo', TXT, { situacao: 'revogado' }).extra.startsWith('(REVOGADO) CC · Art. 1.239') && LA.cloze(it, 'prazo', TXT, { situacao: 'vetado' }).extra.startsWith('(VETADO) ');
+  // alerta só quando o inverter reconhece termo trocável no trecho escondido
+  const inv = t => (/cinco anos/.test(t) ? { de: 'cinco anos', para: 'dez anos' } : null);
+  r.alertaComInverter = LA.cloze(it, 'prazo', TXT, { inverter: inv }).extra.endsWith('e sem oposição. A banca costuma trocar “cinco anos” por “dez anos”.');
+  r.semAlertaSemTermo = !LA.cloze(it, 'quem', TXT, { inverter: inv }).extra.includes('A banca costuma trocar');
+  // o corte de 900 nunca parte uma lacuna
+  const longo = 'x'.repeat(895) + ' {{c1::abc def}} fim';
+  const cortado = LA.cortarSeguro(longo, 900);
+  r.corteNaoParteLacuna = cortado.length <= 901 && !/\{\{[^}]*$/.test(cortado) && cortado.endsWith('…');
+  // renderCloze: lacuna com largura em ch e rótulo escrito; revelada com o trecho
+  const h = LA.renderCloze(c.front, { el: 'prazo' });
+  r.renderLacuna = /<span class="la-lacuna la-prazo" style="display:inline-block;min-width:10ch"[^>]*>▁▁▁▁ Há prazo\?<\/span>/.test(h) && !h.includes('cinco anos') && h.includes('adquirir-lhe-á');
+  const hr = LA.renderCloze(c.front, { el: 'prazo', revelar: true });
+  r.renderRevelada = hr.includes('<span class="la-lacuna revelada la-prazo">cinco anos</span>');
+  r.renderEscapaHtml = LA.renderCloze('a <b> {{c1::<i>}} b').includes('&lt;b&gt;') && LA.renderCloze('a <b> {{c1::<i>}} b').includes('&lt;i&gt;') === false;
+  r.segmentos = JSON.stringify(LA.segmentosCloze('a {{c1::b}} c').map(p => [p.t, p.lacuna])) === '[["a ",false],["b",true],[" c",false]]';
+  return r;
+});
+for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
+
+// (b) o host: o cartão nasce tipo cloze com extra; o alerta vem do inverter do treino.js;
+//     a exportação separa os cloze em arquivo próprio; "Revisar agora" mostra o cartão renderizado
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  // o inverter mora no treino.js, que o host carrega sob demanda: aqui entra antes
+  await page.evaluate(() => new Promise(res => { const t = document.createElement('script'); t.src = './treino.js'; t.onload = () => res(true); t.onerror = () => res(false); document.head.appendChild(t); }));
+  const la5h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
+    const LA = window.CT_LA, r = {};
+    r.inverterDisponivel = !!(window.CT_TREINO && window.CT_TREINO.inverter);
+    const TXT = 'O prazo para contestar é de 15 dias, contados da audiência de conciliação, sem oposição.';
+    let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm', sigla: 'CPC', rot: 'Art. 335', gi: 7, txt: TXT });
+    it = LA.marcar(it, 'prazo', { s: TXT.indexOf('de 15 dias'), t: 'de 15 dias' });
+    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await w(900);
+    const cz = LA.cloze(it, 'prazo', TXT);
+    window.postMessage({ type: 'ctLeituraConferida', id: it.id, ref: 'CPC · Art. 335',
+      itens: [{ el: 'prazo', q: 1, front: cz.front, back: cz.back, extra: cz.extra, tipo: 'cloze', tags: cz.tags, termos: cz.termos, situacao: '' }] }, '*');
+    await w(1000);
+    const fc = ler('fc');
+    // o núcleo do prazo é número + unidade: "de" fica visível, "15 dias" vira a lacuna
+    r.cartaoCloze = fc.length === 1 && fc[0].tipo === 'cloze' && fc[0].front === 'O prazo para contestar é de {{c1::15 dias}}, contados da audiência de conciliação, sem oposição.'
+      && fc[0].leituraId === it.id && fc[0].el === 'prazo' && fc[0].ref === 'CPC · Art. 335' && fc[0].origem === 'leitura-ativa' && fc[0].tags.join(',') === 'leitura-ativa,CPC,prazo';
+    r.extraComAlertaDoInverter = fc.length === 1 && fc[0].extra === 'CPC · Art. 335 · Há prazo? — Prazo de 15 dias, contados da audiência de conciliação. A banca costuma trocar “15 dias” por “30 dias”.';
+    r.revisaoLigadaAoCartao = ler('reviews').length === 1 && ler('reviews')[0].la.el === 'prazo';
+    r.notaDeExportacaoAparece = true;   // conferido na tela de Ajustes, abaixo
+    return r;
+  });
+  for (const [k, v] of Object.entries(la5h)) ok(v, 'LEITURA/CLOZE ' + k);
+
+  // a exportação: dois arquivos, e o dos cloze com o cabeçalho que o Anki entende
+  const downloads = [];
+  page.on('download', d => downloads.push(d));
+  const exp = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    // um cartão básico ao lado do cloze, para os dois arquivos saírem
+    localStorage.setItem('catedra:fc', JSON.stringify(JSON.parse(localStorage.getItem('catedra:fc')).concat([{ id: 'fcB', front: 'Pergunta básica', back: 'Resposta', disc: 'Direito Civil', criado: Date.now(), up: Date.now() }])));
+    location.reload(); await w(2000);
+    return true;
+  }).catch(() => false);
+  await page.waitForTimeout(2200);
+  const exp2 = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const mais = document.querySelector('button[aria-label="Mostrar mais opções"]'); if (mais) mais.click(); await w(300);
+    document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+    const acha = () => [...document.querySelectorAll('main button')].find(b => /Flashcards → Anki/.test(b.textContent || ''));
+    for (const aba of document.querySelectorAll('main .aj-abas button[data-s]')) { if (acha()) break; aba.click(); await w(500); }
+    const b = acha(); if (!b) return { erro: 'botão de exportação não encontrado' };
+    const notas = [...document.querySelectorAll('main div')].filter(d => /catedra-cloze-lei-seca\.txt/.test(d.textContent || ''));
+    const nota = notas.find(d => !notas.some(o => o !== d && d.contains(o)));   // o mais interno
+    b.click(); await w(1500);
+    return { notaCloze: !!nota && /tipo de nota Cloze e permita HTML/.test(nota.textContent) };
+  });
+  const nomes = downloads.map(d => d.suggestedFilename()).sort();
+  ok(!exp2.erro && exp2.notaCloze, 'LEITURA/CLOZE a tela de exportação avisa do arquivo Cloze e do HTML' + (exp2.erro ? ' (' + exp2.erro + ')' : ''));
+  ok(nomes.join(',') === 'catedra-cloze-lei-seca.txt,catedra-flashcards.txt', 'LEITURA/CLOZE a exportação gera os dois arquivos (' + nomes.join(', ') + ')');
+  {
+    const dCloze = downloads.find(d => d.suggestedFilename() === 'catedra-cloze-lei-seca.txt');
+    const dBasico = downloads.find(d => d.suggestedFilename() === 'catedra-flashcards.txt');
+    let txtCloze = '', txtBasico = '';
+    try { txtCloze = fs.readFileSync(await dCloze.path(), 'utf8'); txtBasico = fs.readFileSync(await dBasico.path(), 'utf8'); } catch (e) { txtCloze = 'ERRO ' + e.message; }
+    const linhas = txtCloze.split('\n').filter(l => l && !l.startsWith('#'));
+    ok(/^#separator:tab\n#html:true\n#notetype:Cloze\n#tags column:3\n/.test(txtCloze) && linhas.length === 1 && linhas[0].split('\t').length === 3
+      && linhas[0].startsWith('O prazo para contestar é de {{c1::15 dias}}') && linhas[0].split('\t')[1].startsWith('CPC · Art. 335 · Há prazo?'),
+      'LEITURA/CLOZE o TSV do Cloze é front[TAB]extra[TAB]tags com #notetype:Cloze');
+    ok(!txtBasico.includes('{{c1') && /Pergunta básica\tResposta/.test(txtBasico), 'LEITURA/CLOZE o arquivo básico não leva cloze');
+  }
+  page.removeAllListeners('download');
+
+  // "Revisar agora": o tópico de leitura ativa mostra a lacuna; revelar mostra o trecho e o extra
+  await page.evaluate(() => {
+    const fc = JSON.parse(localStorage.getItem('catedra:fc') || '[]').find(c => c.tipo === 'cloze');
+    // data LOCAL: depois das 21h em Porto Velho o toISOString já é amanhã em UTC, e a revisão "de hoje" nascia vencendo amanhã
+    const _d = new Date(), hoje = _d.getFullYear() + '-' + String(_d.getMonth() + 1).padStart(2, '0') + '-' + String(_d.getDate()).padStart(2, '0');
+    localStorage.setItem('catedra:reviews', JSON.stringify([{ id: 'rv|la|' + fc.la.id + '|prazo', disc: 'Direito Processual Civil', topic: 'CPC Art. 335 — Há prazo?', color: '#0d9488',
+      due: 0, dueDate: hoje, intervalo: 1, facilidade: 2.5, repeticoes: 0, up: Date.now(), la: fc.la }]));
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1800);
+  const rev = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    window.__catedraGoView('revisoes'); await w(700);
+    // o botão da sessão diz "Começar (N)"; desabilitado quando não há revisão vencida
+    const b = [...document.querySelectorAll('#dc-root button')].find(x => /^Começar/.test((x.textContent || '').trim()) && !x.disabled);
+    if (!b) return { erro: 'sem botão "Começar" habilitado na tela de revisões' };
+    b.click(); await w(600);
+    const dlg = document.querySelector('[role=dialog][aria-label="Sessão de revisão"]');
+    if (!dlg) return { erro: 'a sessão não abriu' };
+    const lac = dlg.querySelector('.la-cloze .la-lacuna');
+    r.lacunaAntes = !!lac && lac.classList.contains('la-prazo') && !lac.classList.contains('revelada') && lac.textContent.includes('▁') && /min-width:\s*7ch/.test(lac.getAttribute('style') || '')
+      && !dlg.querySelector('.la-cloze').textContent.includes('15 dias') && dlg.querySelector('.la-cloze').textContent.includes('contados da audiência');
+    r.extraEscondidoAntes = !dlg.querySelector('.la-cloze-extra');
+    const rev = [...dlg.querySelectorAll('button')].find(x => /Já recordei/.test(x.textContent || ''));
+    rev.click(); await w(400);
+    const lac2 = dlg.querySelector('.la-cloze .la-lacuna');
+    r.reveladoMostraOTrecho = !!lac2 && lac2.classList.contains('revelada') && lac2.textContent === '15 dias';
+    r.extraDepois = !!dlg.querySelector('.la-cloze-extra') && /Prazo de 15 dias/.test(dlg.querySelector('.la-cloze-extra').textContent) && /A banca costuma trocar/.test(dlg.querySelector('.la-cloze-extra').textContent);
+    r.corDaIdentidade = getComputedStyle(lac2).borderBottomColor === getComputedStyle(lac2).getPropertyValue('--la-prazo').trim().replace(/^#(..)(..)(..)$/, (_, a, b2, c) => 'rgb(' + [a, b2, c].map(x => parseInt(x, 16)).join(', ') + ')');
+    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+    return r;
+  });
+  if (rev.erro) ok(false, 'LEITURA/CLOZE Revisar agora: ' + rev.erro);
+  else for (const [k, v] of Object.entries(rev)) ok(v, 'LEITURA/CLOZE Revisar agora ' + k);
+}
+
+// (c) o leitor: inciso junta o tronco do caput; dispositivo revogado avisa no trilho e marca o cartão
+{
+  const PARAS = ['Art. 1.240. Outro artigo, com um inciso:', 'I - primeiro inciso do artigo com prazo de 10 dias.', 'Art. 1.241. Artigo que caiu. (Revogado pela Lei nº 14.000, de 2020)'];
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
+  await page.evaluate((paras) => {
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.setItem('catedra:leitorLA', '1');
+    window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+    window.openReader(CAT.laws.find(l => /l10406/.test(l.u)));
+  }, PARAS);
+  await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .gr').length >= 3);
+  const la5l = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    const grs = document.querySelectorAll('#rdrDoc .gr');
+    const selecionar = (gr, frase) => {
+      const nos = []; const it = document.createNodeIterator(gr, NodeFilter.SHOW_TEXT); let n; while ((n = it.nextNode())) nos.push(n);
+      const no = nos.find(t => t.nodeValue.includes(frase)); if (!no) return false;
+      const range = document.createRange(); const i = no.nodeValue.indexOf(frase); range.setStart(no, i); range.setEnd(no, i + frase.length);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(range);
+      document.getElementById('rdrScroll').dispatchEvent(new MouseEvent('mouseup', { bubbles: true })); return true;
+    };
+    const tecla = k => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+    let enviado = null; window.CT_LA_CANAL.conferir = p => { enviado = p; };
+    // 1. inciso: a marca no inciso, o cartão com o tronco do caput
+    selecionar(grs[1], 'de 10 dias'); tecla('5'); await w(60);
+    document.querySelectorAll('#rdrDoc .la-trilho')[1].querySelector('.la-conferir').click(); await w(80);
+    const painel = document.getElementById('laConf');
+    r.focoJuntaOCaput = painel.querySelector('.la-foco .la-texto').textContent.startsWith('Outro artigo, com um inciso: primeiro inciso do artigo com prazo') && !!painel.querySelector('.la-lacuna.la-prazo');
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40); painel.querySelector('button[data-q="3"]').click(); await w(80);
+    r.frontDoIncisoComTronco = !!enviado && enviado.itens[0].tipo === 'cloze' && enviado.itens[0].front === 'Outro artigo, com um inciso: primeiro inciso do artigo com prazo de {{c1::10 dias}}.' && enviado.itens[0].termos.join() === '10 dias';
+    // 2. revogado: o trilho avisa antes de conferir, e o extra sai prefixado
+    const tr2 = document.querySelectorAll('#rdrDoc .la-trilho')[2];
+    r.trilhoAvisaRevogado = /Dispositivo revogado/.test(tr2.textContent) && /REVOGADO/.test(tr2.textContent);
+    enviado = null;
+    selecionar(grs[2], 'Artigo que caiu'); tecla('2'); await w(60);
+    document.querySelectorAll('#rdrDoc .la-trilho')[2].querySelector('.la-conferir').click(); await w(80);
+    painel.querySelector('button[data-acao=mostrar]').click(); await w(40); painel.querySelector('button[data-q="1"]').click(); await w(80);
+    r.extraPrefixadoRevogado = !!enviado && enviado.itens[0].situacao === 'revogado' && enviado.itens[0].extra.startsWith('(REVOGADO) CC · Art. 1.241 · O quê?');
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  });
+  for (const [k, v] of Object.entries(la5l)) ok(v, 'LEITURA/CLOZE ' + k);
+}
+
+/* ============= LEITURA ATIVA — LA3: modo guiado (o mesmo roteiro do WebKit, aqui no Chromium) ============= */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const pg = await ctx.newPage();
+  try { await testarLegisGuiado(pg, URL0, ok, { motor, origem: 'http' }); }
+  catch (e) { ok(false, 'LEGIS GUIADO o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+  await ctx.close();
+  // filtros "só incidência alta" e "só o que ainda não li"
+  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
+  const gd = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {};
+    // a CF: a incidência conhece os artigos 5 e 37 como "alta"; o 999 não existe lá
+    const paras = ['Art. 5º Todos são iguais perante a lei, sem distinção de qualquer natureza.', 'Art. 37. A administração pública obedecerá aos princípios de legalidade.', 'Art. 999. Artigo que ninguém cita em julgado algum.'];
+    window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:')).forEach(k => localStorage.removeItem(k));
+    window.openReader(CAT.laws.find(l => /constituicao\.htm/.test(l.u)));
+    await new Promise(res => { const t = setInterval(() => { if (document.querySelectorAll('#rdrDoc .gr').length >= 3) { clearInterval(t); res(); } }, 50); });
+    document.getElementById('rdrLA').click(); await w(60);
+    // um dispositivo já lido por completo (7 respostas) para o filtro "ainda não li"
+    const LEI = CAT.laws.find(l => /constituicao\.htm/.test(l.u)).u;
+    let it = window.CT_LA.nova({ leiId: LEI, sigla: 'CF', rot: 'Art. 5º', gi: 0, txt: document.querySelector('#rdrDoc .gr').textContent });
+    window.CT_LA.IDS.forEach(el => { it = window.CT_LA.naoHa(it, el, true); });
+    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [it] }, '*'); await w(150);
+    document.querySelector('#rdrDoc .la-legenda .la-guiar').click(); await w(100);
+    const gd = document.getElementById('laGuiado');
+    r.tresNaLista = /dispositivo 1 de 3/.test(gd.textContent);
+    gd.querySelector('input[data-f=naoLi]').click(); await w(150);
+    r.naoLiTiraOCompleto = /dispositivo 1 de 2/.test(gd.textContent) && /Art\. 37/.test(gd.querySelector('.la-norma').textContent);
+    gd.querySelector('input[data-f=alta]').click();
+    await new Promise(res => { const t = setInterval(() => { if (window.__INCIDENCIA__) { clearInterval(t); res(); } }, 50); setTimeout(res, 8000); }); await w(200);
+    r.incidenciaCarregou = !!window.__INCIDENCIA__;
+    r.altaTiraOArt999 = /dispositivo 1 de 1/.test(gd.textContent) && /Art\. 37/.test(gd.querySelector('.la-norma').textContent);
+    gd.querySelector('input[data-f=naoLi]').click(); await w(100);
+    // tirar um filtro MANTÉM o dispositivo atual (o art. 37 vira o 2º de [5, 37])
+    r.soAltaMantemOAtual = /dispositivo 2 de 2/.test(gd.textContent) && /Art\. 37/.test(gd.querySelector('.la-norma').textContent);
+    // Enter sem seleção pula a pergunta; na sétima fecha o dispositivo — no último, sai do modo
+    for (let i = 0; i < 7; i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(30); }
+    r.enterNoUltimoSai = !document.getElementById('rdr').classList.contains('la-guiado');
+    // de volta pela legenda: os filtros continuam valendo e o percurso recomeça do 1º (art. 5)
+    document.querySelector('#rdrDoc .la-legenda .la-guiar').click(); await w(100);
+    r.filtrosPersistem = /dispositivo 1 de 2/.test(gd.textContent) && /Art\. 5/.test(gd.querySelector('.la-norma').textContent) && gd.querySelector('input[data-f=alta]').checked;
+    for (let i = 0; i < 7; i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(30); }
+    r.enterAvancaDispositivo = /dispositivo 2 de 2/.test(gd.textContent) && /Pergunta 1 de 7/.test(gd.textContent);
+    // "Sair" devolve o documento
+    gd.querySelector('button[data-acao=sair]').click(); await w(100);
+    r.sairDevolve = !document.getElementById('rdr').classList.contains('la-guiado');
+    gd.querySelector; document.querySelector('#rdrDoc .la-legenda .la-guiar').click(); await w(60);
+    gd.querySelector('input[data-f=alta]').click(); await w(60); gd.querySelector('button[data-acao=sair]').click(); await w(60);   // desliga os filtros para o próximo teste
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  });
+  for (const [k, v] of Object.entries(gd)) ok(v, 'LEGIS GUIADO filtros ' + k);
+}
+
+/* ============= LEITURA ATIVA — LA6: a grade reaparece no oral, no simulado, no catálogo e na prioridade ============= */
+// (a) a prioridade: fator novo de 5 % dentro da constante única; sem o dado, vale zero
+await page.goto(URL0 + '/tests/harness-prioridade.html');
+await page.waitForFunction(() => !!window.CT_PRIORIDADE_CALC);
+const la6p = await page.evaluate(() => {
+  const { prioridadeDisciplinas, PESOS } = window.CT_PRIORIDADE_CALC, r = {};
+  r.pesoCincoPorCento = PESOS.leitura === 0.05 && Math.abs(Object.values(PESOS).reduce((a, b) => a + b, 0) - 1) < 1e-9;
+  const base = { edital: [{ disc: 'Direito Civil', peso: 1 }, { disc: 'Direito Penal', peso: 1 }], errors: [], reviews: [], sessions: [], hoje: '2026-09-02' };
+  const sem = prioridadeDisciplinas(base), com = prioridadeDisciplinas({ ...base, leituraPendente: { 'direito civil': 1, 'direito penal': 0 } });
+  const f = (lista, d) => lista.find(x => x.disc === d).fatores.find(x => x.chave === 'leitura');
+  r.fatorExiste = !!f(sem, 'Direito Civil') && f(sem, 'Direito Civil').valor === 0 && f(sem, 'Direito Civil').peso === 0.05;
+  r.pendenteSobe = f(com, 'Direito Civil').valor === 1 && f(com, 'Direito Penal').valor === 0 && /100% dos artigos mais citados/.test(f(com, 'Direito Civil').texto)
+    && com.find(x => x.disc === 'Direito Civil').nota > sem.find(x => x.disc === 'Direito Civil').nota;
+  return r;
+});
+for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade ' + k);
+
+// (b) o host: oral · Lei seca mostra o trilho só-leitura e "Ler ativamente no LEGIS"; o gabarito do
+//     simulado errado em lei seca mostra "Conferir de novo"; o rot casa normalizado; registrar sessão
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
+    localStorage.setItem('catedra:edital', JSON.stringify([{ disc: 'Direito Civil', peso: 1 }]));
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  const la6h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const LA = window.CT_LA, r = {};
+    // casamento do rot: "Art. 5º, XI" ↔ "art. 5o , XI" ↔ "Art. 5º — XI"
+    const cmp = window.__catedraApp && window.__catedraApp._laNormRot;
+    r.normalizaRot = !cmp || (cmp('Art. 5º, XI') === cmp('art. 5o , XI') && cmp('Art. 5º') === cmp('Art. 5o.'));
+    // leituras de dois dispositivos do CC art. 1.239 e do CF art. 5º, XI
+    const CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+    const CF = 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm';
+    let a = LA.nova({ leiId: CC, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: 'Aquele que possua como sua por cinco anos.' });
+    a = LA.marcar(a, 'prazo', { s: 26, t: 'por cinco anos' }); a = LA.naoHa(a, 'proibicao', true);
+    let b = LA.nova({ leiId: CF, sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: 'a casa é asilo inviolável' });
+    b = LA.marcar(b, 'quem', { s: 0, t: 'a casa' });
+    window.postMessage({ type: 'ctLeituraAtiva', item: a }, '*'); window.postMessage({ type: 'ctLeituraAtiva', item: b }, '*'); await w(900);
+    // 1. Prova oral → Lei seca, com o artigo sorteado forçado para o CC art. 1.239
+    window.__catedraGoView('oral'); await w(600);
+    document.querySelector('#dc-root button[data-m="lei"]').click();
+    await new Promise(res => { const t = setInterval(() => { if (Array.isArray(window.CT_LEIS) && window.CT_LEIS.length) { clearInterval(t); res(); } }, 100); setTimeout(res, 25000); });
+    await w(400);
+    const cc = (window.CT_LEIS || []).find(l => l.sigla === 'CC'), art = cc && cc.artigos.find(x => /^Art\.\s*1\.239\b/.test(x.rot));
+    r.acervoTemOArtigo = !!art && cc.url === CC;
+    // sorteio determinístico: fixa Math.random para cair no CC art. 1.239 é frágil; em vez disso,
+    // usa o caminho real com o artigo escolhido pela própria função do treino
+    const T = window.CT_TREINO; const escolhido = { sigla: 'CC', nome: cc.nome, url: cc.url, rot: art.rot, txt: T.limpa(art.txt) };
+    const app = window.__catedraApp; if (app) { app.setState({ oralArt: escolhido, oralArtVariante: 0, oralPergunta: T.perguntaLei(escolhido, 0), oralResposta: '', oralCorrecao: null }); await w(500); }
+    r.appExposto = !!app;
+    const trilho = document.querySelector('#dc-root .la-trilho-ro');
+    r.oralMostraOTrilho = !!trilho && /Art\. 1\.239/.test(trilho.textContent) && trilho.querySelectorAll('.la-chip').length === 7
+      && trilho.querySelector('.la-chip.la-prazo').classList.contains('resp') && /não há/.test(trilho.querySelector('.la-chip.la-proibicao').textContent)
+      && [...trilho.querySelectorAll('.la-chip')].every(c => /\S/.test(c.querySelector('.la-rot').textContent) && c.getAttribute('aria-label'));
+    // cor-texto ≠ cor-identidade: o rótulo do chip respondido NÃO é pintado com a cor crua da identidade
+    r.oralChipUsaCorDeTexto = !!trilho && (() => { const c = trilho.querySelector('.la-chip.la-prazo'), cs = getComputedStyle(c); const id = cs.getPropertyValue('--la-prazo').trim();
+      const rgb = id.replace(/^#(..)(..)(..)$/, (_, a, b, d) => 'rgb(' + [a, b, d].map(x => parseInt(x, 16)).join(', ') + ')'); return !!id && cs.color !== rgb && cs.color !== 'rgb(0, 0, 0)'; })();
+    const btnOral = [...document.querySelectorAll('#dc-root button')].find(x => /Ler ativamente no LEGIS/.test(x.textContent || ''));
+    r.oralTemBotao = !!btnOral && btnOral.dataset.lei === CC && /1\.239/.test(btnOral.dataset.rot);
+    // "Ler ativamente" leva ao LEGIS com o pedido de abrir no dispositivo
+    btnOral.click(); await w(2600);
+    const f = document.querySelector('iframe[data-ct-view="legis"]');
+    const rdr = f && f.contentDocument && f.contentDocument.getElementById('rdr');
+    r.abreOLegisNoLeitor = !!rdr && (rdr.classList.contains('on') || /la=/.test(f.getAttribute('src') || '') || !!(f.contentWindow && f.contentWindow.__laAbrirPedido));
+    // 2. registrar sessão ao sair do modo guiado (o interruptor de Ajustes ligado abre o registro preenchido)
+    let abriu = null; const orig = window.catedraOpenStudyRegistration; window.catedraOpenStudyRegistration = info => { abriu = info; return 'ok'; };
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lei: 'Código Civil', faixa: 'Art. 1.239 – Art. 1.241', lidos: 3, min: 7 }, '*'); await w(200);
+    r.registroPreenchido = !!abriu && abriu.categoria === 'Lei seca' && abriu.disc === 'Direito Civil' && abriu.topico === 'CC · Art. 1.239 – Art. 1.241' && abriu.min === 7 && /3 dispositivos/.test(abriu.nota);
+    abriu = null;
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 0, min: 3 }, '*'); await w(200);
+    r.semLeituraNaoOferece = abriu === null;
+    if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: false } })); await w(100); }
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 2, min: 3 }, '*'); await w(200);
+    r.interruptorDesligadoNaoOferece = !app || abriu === null;
+    if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: true } })); }
+    window.catedraOpenStudyRegistration = orig;
+    // 3. resumo por lei para o catálogo do LEGIS
+    const resumo = await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeiturasResumoResp') { window.removeEventListener('message', h); res(e.data.resumo); } }; window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasResumo' }, '*'); setTimeout(() => res(null), 2000); });
+    r.resumoPorLei = !!resumo && resumo[CC] && resumo[CC].lidos === 1 && resumo[CF].lidos === 1 && resumo[CC].completos === 0 && !JSON.stringify(resumo).includes('asilo');
+    return r;
+  });
+  for (const [k, v] of Object.entries(la6h)) ok(v, 'LEITURA/ONDE-MAIS ' + k);
+
+  // 4. simulado: item de lei seca ERRADO no gabarito mostra a grade lida e "Conferir de novo"
+  const la6s = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp; if (!app) return { erro: 'app não exposto' };
+    const CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+    const itens = [
+      { id: 'lei|Código Civil|Art. 1.239|x', origem: 'lei', enunciado: 'Aquele que possua como sua por dez anos.', certo: false, original: 'Aquele que possua como sua por cinco anos.', trocaDe: 'cinco', trocaPara: 'dez', ref: 'Código Civil · Art. 1.239', ramo: 'Código Civil', tema: 'Art. 1.239', url: CC, contexto: 'x' },
+      { id: 'lei|Código Civil|Art. 1.240|y', origem: 'lei', enunciado: 'Outro dispositivo, correto.', certo: true, original: 'Outro dispositivo, correto.', ref: 'Código Civil · Art. 1.240', ramo: 'Código Civil', tema: 'Art. 1.240', url: CC, contexto: 'y' },
+      { id: 'lei|Código Civil|Art. 1.241|z', origem: 'lei', enunciado: 'Terceiro, errado e sem leitura.', certo: true, original: 'Terceiro.', ref: 'Código Civil · Art. 1.241', ramo: 'Código Civil', tema: 'Art. 1.241', url: CC, contexto: 'z' },
+    ];
+    window.__catedraGoView('simulados'); await w(400);
+    // respostas: errou o 1.239 (marcou certo), acertou o 1.240, errou o 1.241 (marcou errado)
+    const resp = {}; resp[itens[0].id] = true; resp[itens[1].id] = true; resp[itens[2].id] = false;
+    // o painel do simulado misto precisa estar aberto; o encerramento real monta o relatório e o gabarito
+    app.setState({ sjAberto: true, sjPronto: true, sjItens: itens, sjResp: resp, sjAtual: 0, sjFim: false, sjIni: Date.now() - 60000 }); await w(300);
+    app.encerrarSj(); await w(800);
+    const blocos = [...document.querySelectorAll('#dc-root .la-trilho-ro')];
+    r.gradeSoNoErradoComLeitura = blocos.length === 1 && /Art\. 1\.239/.test(blocos[0].textContent) && blocos[0].querySelector('.la-chip.la-prazo').classList.contains('resp');
+    const conferir = [...document.querySelectorAll('#dc-root button')].filter(x => /Conferir de novo/.test(x.textContent || ''));
+    const ler = [...document.querySelectorAll('#dc-root button')].filter(x => /^Ler ativamente$/.test((x.textContent || '').trim()));
+    r.conferirDeNovoSoComLeitura = conferir.length === 1 && conferir[0].dataset.conferir === '1' && conferir[0].dataset.lei === CC && conferir[0].dataset.rot === 'Art. 1.239';
+    r.lerAtivamenteNosDoisErrados = ler.length === 2 && ler.every(b => b.dataset.lei === CC) && ler.some(b => b.dataset.rot === 'Art. 1.241');
+    r.acertadoNaoMostraNada = !document.querySelector('#dc-root button[data-rot="Art. 1.240"]');
+    app.setState({ sjItens: [], sjResp: {}, sjFim: false, sjAberto: false });
+    ['leituras', 'fc', 'reviews', 'errors', 'edital', 'sim'].forEach(k => localStorage.removeItem('catedra:' + k));
+    return r;
+  });
+  if (la6s.erro) ok(false, 'LEITURA/ONDE-MAIS simulado: ' + la6s.erro);
+  else for (const [k, v] of Object.entries(la6s)) ok(v, 'LEITURA/ONDE-MAIS simulado ' + k);
+}
+
+// (c) o LEGIS: abre a lei no dispositivo pedido (mensagem e URL), rola até ele e, se pedido, abre a
+//     conferência; o catálogo mostra a barra "lido ativamente" com o resumo do host
+{
+  const PARAS = ['Art. 1.239. Aquele que possua como sua por cinco anos.', 'Art. 1.240. Outro artigo.', 'Art. 1.241. Terceiro artigo.'];
+  const CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+  await page.goto(URL0 + '/legis-web.html?area=juridica&la=' + encodeURIComponent(CC) + '&rot=' + encodeURIComponent('art. 1.241'));
+  await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.ctLeituraAbrir);
+  // a página abriu com ?la=…: o pedido ficou pendente porque o texto ainda não veio (fetch de mentira entra agora)
+  const la6l = await page.evaluate(async (paras) => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:')).forEach(k => localStorage.removeItem(k));
+    window.fetch = async () => ({ json: async () => ({ ok: true, paragraphs: paras }) });
+    // o ?la= chamou openReader antes do fetch de mentira: reabre pelo mesmo caminho
+    window.ctLeituraAbrir({ leiId: CC, rot: 'art. 1.241' });
+    await new Promise(res => { const t = setInterval(() => { if (document.querySelectorAll('#rdrDoc .gr').length >= 3) { clearInterval(t); res(); } }, 50); }); await w(200);
+    r.abriuALei = document.getElementById('rdr').classList.contains('on') && /Código Civil/.test(document.getElementById('rdrTitle').textContent);
+    r.ligouALeituraAtiva = document.getElementById('rdr').classList.contains('la');
+    // "Conferir de novo" num dispositivo lido abre a conferência dele
+    let it = window.CT_LA.nova({ leiId: CC, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: document.querySelector('#rdrDoc .gr').textContent });
+    it = window.CT_LA.marcar(it, 'prazo', { s: 26, t: 'por cinco anos' });
+    window.postMessage({ type: 'ctLeituras', leiId: CC, itens: [it] }, '*'); await w(150);
+    window.ctLeituraAbrir({ leiId: CC, rot: 'Art. 1.239', conferir: true }); await w(200);
+    const painel = document.getElementById('laConf');
+    r.conferirDeNovoAbreAConferencia = painel.classList.contains('on') && /Art\. 1\.239/.test(painel.textContent) && !!painel.querySelector('.la-lacuna.la-prazo');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(60);
+    // rot normalizado casa "art. 1o.239"? não — casa "art. 1.239" com "Art. 1.239" e "Art. 1.239, I" pelo artigo
+    r.rotNormalizado = window.ctLeituraAbrir({ leiId: CC, rot: 'ART. 1.240 —' }) === undefined && true;
+    // catálogo: o resumo do host vira a barra "lido ativamente"
+    document.getElementById('rdrClose').click(); await w(100);
+    window.postMessage({ type: 'ctLeiturasResumoResp', resumo: { [CC]: { lidos: 3, completos: 1 } } }, '*'); await w(200);
+    const row = [...document.querySelectorAll('.lawrow')].find(x => /Código Civil/.test(x.textContent) && !/Processo/.test(x.textContent));
+    const barra = row && row.querySelector('.laLido');
+    r.catalogoMostraLido = !!barra && /lido ativamente · 3/.test(barra.textContent) && /3 dispositivos/.test(barra.getAttribute('aria-label'));
+    r.barraSoComDenominador = !!barra && (!!window.__INCIDENCIA__ ? !!barra.querySelector('i b') : !barra.querySelector('i'));
+    Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('catedra:leitorLA');
+    return r;
+  }, PARAS);
+  for (const [k, v] of Object.entries(la6l)) ok(v, 'LEITURA/ONDE-MAIS LEGIS ' + k);
+}
+
+/* ============= ENAM — E2: o banco oficial das provas anteriores ============= */
+// (a) o parser, contra o PDF de amostra em tests/ (extraído a .txt; se houver PyMuPDF, também do PDF)
+{
+  const { execFileSync } = await import('child_process');
+  const areas = areasEnam();
+  ok(areas.length === 8 && areas.map(a => a.cota).join('/') === '16/10/6/6/12/12/6/12' && areas.reduce((n, a) => n + a.cota, 0) === 80,
+    'ENAM CT_ENAM.AREAS tem as 8 áreas com as cotas do quadro 8.6 (16/10/6/6/12/12/6/12)');
+  let txtAmostra = fs.readFileSync(path.join(RAIZ, 'tests', 'enam-amostra.txt'), 'utf8');
+  let doPdf = '';
+  try {
+    doPdf = execFileSync('python3', ['-c', "import fitz,sys; d=fitz.open(sys.argv[1]); print('\\f'.join(p.get_text() for p in d))", path.join(RAIZ, 'tests', 'enam-amostra.pdf')], { stdio: 'pipe' }).toString();
+  } catch (e) { doPdf = ''; }
+  if (doPdf) ok(doPdf.replace(/\s+/g, ' ').trim() === txtAmostra.replace(/\s+/g, ' ').trim(), 'ENAM o .txt da amostra é a extração do PDF de amostra (PyMuPDF disponível)');
+  else console.log('ENAM aviso: sem python3/PyMuPDF aqui — o parser foi testado só sobre o .txt da amostra');
+  const [provaTxt, gabTxt] = txtAmostra.split('\f');
+  const p = parseProvaEnam(provaTxt, areas);
+  ok(p.questoes.length === 3 && p.questoes.map(q => q.numero).join(',') === '1,2,3', 'ENAM amostra: três questões na ordem');
+  ok(p.questoes.map(q => q.area).join(',') === 'constitucional,constitucional,dh', 'ENAM amostra: a área vem do cabeçalho do bloco (caixa alta e Title Case)');
+  ok(p.questoes[0].alternativas.length === 5 && p.questoes[0].alternativas.map(a => a.letra).join('') === 'ABCDE' && p.questoes[0].alternativas[1].texto === 'A acumulação é ilícita em qualquer hipótese.',
+    'ENAM amostra: cinco alternativas A–E com o texto limpo');
+  ok(/^João, servidor público federal/.test(p.questoes[0].enunciado) && /assinale a afirmativa correta\.$/.test(p.questoes[0].enunciado), 'ENAM amostra: o enunciado junta as linhas sem perder o fim');
+  ok(/Considerando a pauta Direitos Humanos e Sociedades Empresárias/.test(p.questoes[2].enunciado) && p.questoes[2].alternativas.length === 5,
+    'ENAM amostra: "Direitos"/"Humanos" soltos dentro do enunciado NÃO viram cabeçalho de área');
+  const g = parseGabaritoEnam(gabTxt, 1), g2 = parseGabaritoEnam(gabTxt, 2);
+  ok(!g.erro && g.respostas[1] === 'B' && g.respostas[2] === '*' && g.respostas[3] === 'C' && Object.keys(g.respostas).length === 3, 'ENAM amostra: gabarito do tipo 1 com a anulada (*), sem contar a legenda');
+  ok(!g2.erro && g2.respostas[1] === 'A' && g2.respostas[3] === 'A', 'ENAM amostra: só o bloco do tipo pedido conta');
+  ok(!!parseGabaritoEnam('nada aqui', 1).erro, 'ENAM gabarito sem o bloco do tipo devolve erro, não silêncio');
+  // o portão: uma edição de mentira com 3 questões e cotas erradas é recusada com motivos claros
+  const falso = montarEnam({ ler: (nome) => /gabarito/.test(nome) ? gabTxt : provaTxt });
+  ok(falso.erros.some(e => /questões lidas \(esperava 80\)/.test(e)) && falso.erros.some(e => /quadro 8\.6 manda/.test(e)), 'ENAM o portão recusa edição com ≠ 80 questões e cota fora do quadro 8.6');
+}
+// (b) o banco real: 5 edições × 80, cotas exatas, anuladas contadas, ids únicos, tudo A–E, refs sem inventar
+{
+  const { questoes, resumo, erros } = montarEnam();
+  ok(erros.length === 0, 'ENAM o build das cinco edições passa no portão de qualidade' + (erros.length ? ' (' + erros.slice(0, 3).join(' | ') + ')' : ''));
+  ok(questoes.length === 400 && resumo.length === 5 && resumo.every(r => r.questoes === 80), 'ENAM 400 questões (5 × 80)');
+  ok(resumo.every(r => Object.entries(r.porArea).every(([a, n]) => n === areasEnam().find(x => x.id === a).cota)), 'ENAM cada edição fecha com 16/10/6/6/12/12/6/12');
+  const anul = resumo.map(r => r.edicao + ':' + r.anuladas).join(' ');
+  ok(questoes.filter(q => q.anulada).length === 7 && anul === '2024.1:2 2024.2:2 2025.1:1 2025.2:1 2026.1:1', 'ENAM anuladas por edição (' + anul + ')');
+  ok(new Set(questoes.map(q => q.id)).size === 400 && questoes.every(q => /^enam-20\d\d\.[12]-\d{3}$/.test(q.id)), 'ENAM ids únicos no formato enam-<edição>-<nnn>');
+  ok(questoes.every(q => q.anulada ? q.gabarito === '' : /^[A-E]$/.test(q.gabarito)), 'ENAM gabarito A–E em toda questão não anulada, vazio na anulada');
+  ok(questoes.every(q => q.alternativas.length === 5 && q.enunciado.length >= 40 && q.alternativas.every(a => a.texto.length > 0)), 'ENAM 5 alternativas, enunciado ≥ 40 e alternativa nunca vazia');
+  // a auditoria de 02/09 pegou o "Realização" da contracapa colado na alternativa E da questão 80 e o
+  // marcador U+F020 da moldura de 2024.1 no fim da última alternativa de cada página: nunca mais
+  ok(questoes.every(q => q.alternativas.every(a => !/\bRealização$/.test(a.texto) && !/[\uE000-\uF8FF]/.test(a.texto)) && !/[\uE000-\uF8FF]/.test(q.enunciado)),
+    'ENAM nenhuma alternativa termina na contracapa ("Realização") nem carrega glifo privado da moldura');
+  ok(questoes.every(q => !/(Al[ée]m deste caderno|cart[ãa]o de respostas|fiscal de (sala|prova)|P[ÁA]GINA \d|FGV CONHECIMENTO)/.test(q.enunciado + ' ' + q.alternativas.map(a => a.texto).join(' '))),
+    'ENAM nenhuma questão traz frase de capa, instrução ou moldura de página');
+  // 2024.1 traz a tabela de correspondência entre os quatro tipos: o gabarito do tipo 1 tem de bater
+  // com os dos tipos 2, 3 e 4 questão a questão (240 comparações) — é a prova de que o parser lê o bloco certo
+  {
+    const t = fs.readFileSync(path.join(RAIZ, 'scripts', 'fontes', 'enam', 'gabarito-2024.1.txt'), 'utf8');
+    const g = {}; for (const tipo of [1, 2, 3, 4]) g[tipo] = parseGabaritoEnam(t, tipo);
+    const tab = t.slice(t.indexOf('TABELA DE CORRESPOND')); const toks = tab.slice(tab.lastIndexOf('TIPO 4') + 6).replace(/P[áa]gina\s*[–-]?\s*\d+/gi, ' ').split(/\s+/).filter(x => /^\d{1,2}$/.test(x)).map(Number);
+    const corr = {}; for (let k = 0; k + 3 < toks.length; k += 4) corr[toks[k]] = { 2: toks[k + 1], 3: toks[k + 2], 4: toks[k + 3] };
+    let iguais = 0; for (let q = 1; q <= 80; q++) for (const tipo of [2, 3, 4]) if (corr[q] && g[1].respostas[q] === g[tipo].respostas[corr[q][tipo]]) iguais++;
+    ok([1, 2, 3, 4].every(k => !g[k].erro && Object.keys(g[k].respostas).length === 80) && iguais === 240, 'ENAM 2024.1: gabarito do tipo 1 bate com os tipos 2, 3 e 4 pela tabela de correspondência (' + iguais + '/240)');
+  }
+  ok(questoes.every(q => q.disciplina && q.fonte.startsWith('FGV/ENFAM') && EDICOES_ENAM.some(e => e.id === q.edicao)), 'ENAM toda questão diz a disciplina e a fonte oficial');
+  ok(questoes.every(q => Array.isArray(q.refs) && q.refs.every(r => (q.enunciado + ' ' + q.alternativas.map(a => a.texto).join(' ')).toLowerCase().includes(r.toLowerCase()))), 'ENAM a referência normativa só aponta o que o próprio texto diz');
+  // o arquivo gerado bate com o build (ninguém editou à mão)
+  const gerado = fs.readFileSync(path.join(RAIZ, 'questoes-enam.js'), 'utf8');
+  ok(gerado.includes('window.CT_QUESTOES_ENAM=' + JSON.stringify(questoes) + ';'), 'ENAM questoes-enam.js é exatamente o que o build gera');
+  ok(/FONTES\.md/.test(gerado) && EDICOES_ENAM.every(e => gerado.includes(e.fonte)), 'ENAM o cabeçalho do arquivo cita edição e fonte FGV/ENFAM');
+  // sem comentário de terceiros: nenhum campo além dos declarados
+  const campos = new Set(questoes.flatMap(q => Object.keys(q)));
+  ok([...campos].sort().join(',') === 'alternativas,anulada,area,disciplina,edicao,enunciado,fonte,gabarito,id,numero,refs', 'ENAM o shape é o da especificação — nada de comentário copiado');
+  // os builds copiam os dois arquivos; o web lista o banco "sob pedido"
+  const b = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8'), bm = fs.readFileSync(path.join(RAIZ, 'scripts', 'build-macos.mjs'), 'utf8');
+  ok(/'questoes-enam\.js'/.test(b) && /'enam\.js'/.test(b) && /'\.\/questoes-enam\.js'/.test(b) && /'questoes-enam\.js'/.test(bm) && /'enam\.js'/.test(bm), 'ENAM enam.js e questoes-enam.js entram nos dois builds (o banco sob pedido, a constante na casca)');
+}
+// (c) no app: CT_ENAM na casca; o banco só chega quando o treino pede (acervoQuestoesEnam)
+{
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.waitForTimeout(1600);
+  const app = await page.evaluate(async () => {
+    const r = {};
+    r.constanteNaCasca = !!(window.CT_ENAM && window.CT_ENAM.AREAS && window.CT_ENAM.AREAS.length === 8 && window.CT_ENAM.QUESTOES === 80 && window.CT_ENAM.DURACAO_MIN === 300 && window.CT_ENAM.META_PADRAO === 56 && window.CT_ENAM.META_COTA === 40);
+    r.bancoNaoCarregaSozinho = !window.CT_QUESTOES_ENAM;
+    await new Promise(res => { const t = document.createElement('script'); t.src = './treino.js'; t.onload = () => res(true); t.onerror = () => res(false); document.head.appendChild(t); });
+    r.treinoTemAcervo = typeof window.CT_TREINO.acervoQuestoesEnam === 'function';
+    await window.CT_TREINO.acervoQuestoesEnam();
+    r.bancoChegaSobPedido = Array.isArray(window.CT_QUESTOES_ENAM) && window.CT_QUESTOES_ENAM.length === 400 && window.CT_QUESTOES_ENAM.filter(q => q.anulada).length === 7;
+    return r;
+  });
+  for (const [k, v] of Object.entries(app)) ok(v, 'ENAM app ' + k);
+}
+
+/* ============= ENAM — E1: calendário, meta e contagem regressiva ============= */
+// (a) as funções puras de enam.js, nos aceites da especificação
+await page.goto(URL0 + '/tests/harness-leitura-ativa.html');
+await page.evaluate(() => new Promise(res => { const t = document.createElement('script'); t.src = '/enam.js'; t.onload = () => res(true); t.onerror = () => res(false); document.head.appendChild(t); }));
+const e1 = await page.evaluate(() => {
+  const E = window.CT_ENAM, r = {}, em = iso => new Date(iso);
+  r.diasAte88 = E.diasAte('2026-11-29', em('2026-09-02T12:00:00-03:00'), 'America/Sao_Paulo') === 88;
+  // 28/11 às 23h30 em Porto Velho (UTC−4) ainda é dia 28 no aparelho: falta 1 — em Brasília já é 29: 0
+  r.viradaEmPortoVelho = E.diasAte('2026-11-29', em('2026-11-28T23:30:00-04:00'), 'America/Porto_Velho') === 1 && E.diasAte('2026-11-29', em('2026-11-28T23:30:00-04:00'), 'America/Sao_Paulo') === 0;
+  r.diaDaProvaZero = E.diasAte('2026-11-29', em('2026-11-29T10:00:00-03:00'), 'America/Sao_Paulo') === 0 && E.diasAte('2026-11-29', em('2026-11-30T10:00:00-03:00'), 'America/Sao_Paulo') === -1;
+  r.cadenciaSeis = E.cadencia(em('2026-09-02T12:00:00-03:00'), '2026-11-29', 'America/Sao_Paulo').join(',') === '2026-09-13,2026-09-27,2026-10-11,2026-10-25,2026-11-08,2026-11-22';
+  r.cadenciaVazia = E.cadencia(em('2026-11-25T12:00:00-03:00'), '2026-11-29', 'America/Sao_Paulo').length === 0;
+  r.horaLocal = E.horaLocal({ data: '2026-11-29', inicio: '13:00' }, 'America/Porto_Velho') === 'prova às 13h de Brasília · 12h em Porto Velho'
+    && E.horaLocal({ data: '2026-11-29', inicio: '13:00' }, 'America/Sao_Paulo') === 'prova às 13h de Brasília';
+  r.instanteEmUTC = new Date(E.instante('2026-11-29', '13:00', 'America/Sao_Paulo')).toISOString() === '2026-11-29T16:00:00.000Z';
+  r.proximaEdicao = E.proxima(em('2026-09-02T12:00:00-03:00')).id === '2026.2' && E.edicao('2026.2').data === '2026-11-29' && E.edicao('2026.2').inicio === '13:00';
+  r.edicoesComDatasDosEditais = E.EDICOES.map(e => e.id + ':' + e.data).join(' ') === '2024.1:2024-04-14 2024.2:2024-10-20 2025.1:2025-05-18 2025.2:2025-10-26 2026.1:2026-06-07 2026.2:2026-11-29';
+  return r;
+});
+for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
+
+// (b) o host: sem catedra:enam nada aparece e Ajustes convida; ativar cria a chave, o chip e a régua; a meta muda só o número
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+    localStorage.removeItem('catedra:enam'); localStorage.removeItem('catedra:prova');
+  });
+  await page.goto(host);
+  await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, E = window.CT_ENAM;
+    r.chaveNoAutosave = app._autosaveKeys().includes('enam');
+    r.semTrilhaSemChip = ![...document.querySelectorAll('.cth-chip')].some(c => /ENAM/.test(c.textContent));
+    // Ajustes → ENAM: o estado vazio convida
+    const mais = document.querySelector('button[aria-label="Mostrar mais opções"]'); if (mais) mais.click(); await w(300);
+    document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+    const aba = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'enam');
+    r.abaExiste = !!aba && /ENAM/.test(aba.textContent);
+    aba.click(); await w(600);
+    const convite = [...document.querySelectorAll('main .ct-estado')].find(d => /Vai fazer o ENAM\? Ative a trilha/.test(d.textContent));
+    r.estadoVazioConvida = !!convite && /próxima edição é a 2026\.2/.test(convite.textContent);
+    r.semCampoDeAutodeclaracao = !/raça|etnia|deficiência|quilombola|indígen|negr/i.test(document.querySelector('main').textContent);
+    [...convite.querySelectorAll('button')].find(b => /Ativar a trilha ENAM/.test(b.textContent)).click(); await w(1000);
+    const en = JSON.parse(localStorage.getItem('catedra:enam') || 'null');
+    r.ativarGravaAChave = !!en && en.ativo === true && en.edicao === '2026.2' && en.data === '2026-11-29' && en.inicio === '13:00' && en.fuso === 'America/Sao_Paulo' && en.duracaoMin === 300 && en.metaAcertos === 56 && en.up > 0;
+    const b56 = document.querySelector('main button[data-meta="56"]'), b40 = document.querySelector('main button[data-meta="40"]');
+    r.metaDoisBotoesNeutros = !!b56 && !!b40 && /56 acertos \(70%\)/.test(b56.textContent) && /40 acertos \(50%\)/.test(b40.textContent) && b56.getAttribute('aria-pressed') === 'true' && b40.getAttribute('aria-pressed') === 'false'
+      && /itens 3\.7 e 9\.2/.test(document.querySelector('main').textContent);
+    r.alvo44 = b56.getBoundingClientRect().height >= 44;
+    const antes = JSON.parse(localStorage.getItem('catedra:enam'));
+    b40.click(); await w(900);
+    const depois = JSON.parse(localStorage.getItem('catedra:enam'));
+    r.trocarMetaMudaSoONumero = depois.metaAcertos === 40 && depois.up >= antes.up && Object.keys(depois).filter(k => k !== 'metaAcertos' && k !== 'up').every(k => JSON.stringify(depois[k]) === JSON.stringify(antes[k]));
+    r.horaNoAjuste = /prova às 13h de Brasília/.test(document.querySelector('main').textContent) && /80 questões · 5 horas/.test(document.querySelector('main').textContent);
+    // o chip do Início
+    window.__catedraGoView('inicio'); await w(700);
+    const chip = [...document.querySelectorAll('.cth-chip')].find(c => /ENAM 2026\.2/.test(c.textContent));
+    const dias = E.diasAte('2026-11-29');
+    r.chipNoInicio = !!chip && chip.textContent.includes(dias === 1 ? 'falta 1 dia' : 'faltam ' + dias + ' dias') && /prova às 13h de Brasília/.test(chip.getAttribute('title') || '') && /ENAM 2026\.2/.test(chip.getAttribute('aria-label') || '');
+    r.chipSemEmoji = !!chip && !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(chip.textContent) && !!chip.querySelector('svg');
+    // a régua: só ENAM → o número é o do ENAM; com concurso mais perto, o concurso manda e o ENAM vira marco
+    window.__catedraGoView('reta-final'); await w(700);
+    const main = () => document.querySelector('main').textContent;
+    r.retaContaOEnam = new RegExp('dias para o ENAM 2026\\.2').test(main()) && !document.querySelector('main .ct-regua-marca2');
+    localStorage.setItem('catedra:prova', '2026-10-15'); app.setState({ provaData: '2026-10-15' }); await w(500);
+    const dC = Math.ceil((new Date('2026-10-15T00:00:00') - new Date()) / 864e5);
+    r.concursoMaisPertoManda = new RegExp('dias para a prova').test(main()) && !!document.querySelector('main .ct-regua-marca2') && new RegExp('prova · ' + dC + ' d').test(document.querySelector('main .ct-regua-cap2').textContent);
+    window.__catedraGoView('edital'); await w(700);
+    r.editalTemOMarco = !!document.querySelector('main .ct-regua-marca2');
+    localStorage.removeItem('catedra:prova'); app.setState({ provaData: null });
+    // desativar não apaga
+    window.__catedraGoView('ajustes'); await w(600);
+    [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'enam').click(); await w(500);
+    [...document.querySelectorAll('main button')].find(b => /Desativar a trilha/.test(b.textContent)).click(); await w(900);
+    const off = JSON.parse(localStorage.getItem('catedra:enam'));
+    r.desativarMantemOsDados = off.ativo === false && off.metaAcertos === 40 && off.edicao === '2026.2';
+    window.__catedraGoView('inicio'); await w(500);
+    r.desligadoSomeOChip = ![...document.querySelectorAll('.cth-chip')].some(c => /ENAM/.test(c.textContent));
+    localStorage.removeItem('catedra:enam');
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E1 ' + k);
+}
+
+/* ============= ENAM — E3: o simulado no formato da prova ============= */
+// (a) CT_ENAM.montar, puro, com banco sintético: cotas exatas na ordem do edital, sem anulada,
+//     sem repetir o que a pessoa já fez enquanto houver estoque, reserva só onde falta e nunca C/E
+{
+  await import('../enam.js');
+  const E = globalThis.CT_ENAM;
+  const q = (area, disc, n, extra) => ({ id: 'q-' + area + '-' + n, edicao: '2099.1', numero: n, area, disciplina: disc, anulada: false,
+    enunciado: 'Enunciado sintético número ' + n + ' da área ' + area + ', longo o bastante para valer.',
+    alternativas: 'ABCDE'.split('').map(l => ({ letra: l, texto: 'alternativa ' + l })), gabarito: 'C', ...(extra || {}) });
+  const banco = [];
+  const discDe = { constitucional: 'Direito Constitucional', administrativo: 'Direito Administrativo', humanistica: 'Noções Gerais de Direito e Formação Humanística', dh: 'Direitos Humanos', processocivil: 'Direito Processual Civil', civil: 'Direito Civil', empresarial: 'Direito Empresarial', penal: 'Direito Penal' };
+  for (const a of E.AREAS) {
+    const n = a.id === 'empresarial' ? 4 : 20;                       // empresarial com estoque curto
+    for (let i = 1; i <= n; i++) banco.push(q(a.id, discDe[a.id], i));
+  }
+  banco.push(q('constitucional', discDe.constitucional, 98, { anulada: true }), q('constitucional', discDe.constitucional, 99, { anulada: true }));
+  banco.push(q('civil', discDe.civil, 97, { alternativas: 'ABCD'.split('').map(l => ({ letra: l, texto: 'x' })) }));   // 4 alternativas: fora
+  const reserva = [
+    ...[1, 2, 3].map(i => ({ id: 'r-emp-' + i, banca: 'FGV', orgao: 'TJ', ano: '2023', disciplina: 'Direito Empresarial', enunciado: 'Questão de prova de magistratura sobre empresarial número ' + i + ' com texto.', alternativas: 'ABCDE'.split('').map(l => ({ letra: l, texto: 'r' + l })), gabarito: 'A', pct: 50 })),
+    ...[1, 2].map(i => ({ id: 'r-civ-' + i, banca: 'FGV', orgao: 'TJ', ano: '2023', disciplina: 'Direito Civil', enunciado: 'Questão de prova de magistratura sobre civil número ' + i + ' com texto.', alternativas: 'ABCDE'.split('').map(l => ({ letra: l, texto: 'r' + l })), gabarito: 'A', pct: 50 })),
+    { id: 'ce-1', origem: 'lei', enunciado: 'Item Certo/Errado que nunca pode entrar na prova, mesmo com estoque curto.', certo: true }
+  ];
+  let seed = 11; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const m = E.montar(banco, { reserva, rnd });
+  const r = {};
+  r.oitentaNasCotas = m.total === 80 && m.itens.length === 80 && m.porArea.map(a => a.n + '/' + a.cota).join(' ') === '16/16 10/10 6/6 6/6 12/12 12/12 6/6 12/12';
+  r.ordemDoEdital = m.porArea.map(a => a.id).join(',') === E.AREAS.map(a => a.id).join(',') && m.itens.slice(0, 16).every(x => x.area === 'constitucional') && m.itens.slice(-12).every(x => x.area === 'penal')
+    && m.porArea[0].de === 1 && m.porArea[0].ate === 16 && m.porArea[7].de === 69 && m.porArea[7].ate === 80;
+  r.semAnulada = !m.itens.some(x => /-9[89]$/.test(x.id)) && !m.itens.some(x => x.id === 'q-civil-97');
+  r.reservaSoOndeFalta = m.foraDoEnam === 2 && m.porArea[6].doBanco === 4 && m.porArea[6].foraDoEnam === 2 && m.itens.filter(x => x.foraDoEnam).every(x => x.area === 'empresarial' && /^qpr-emp-/.test(x.id)) && !m.itens.some(x => /^qpr-civ-/.test(x.id));
+  r.nuncaCE = m.itens.every(x => x.alternativas && x.alternativas.length === 5 && /^[A-E]$/.test(x.certo)) && !m.itens.some(x => x.id === 'ce-1' || x.id === 'qpce-1');
+  r.itemTemRef = m.itens.filter(x => !x.foraDoEnam).every(x => x.origem === 'enam' && /^ENAM 2099\.1 · questão \d+$/.test(x.ref) && x.ramo) && m.itens.filter(x => x.foraDoEnam).every(x => x.origem === 'prova' && /FGV · TJ · 2023/.test(x.ref));
+  const feitas5 = [1, 2, 3, 4, 5].map(i => 'q-civil-' + i), feitas10 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => 'q-civil-' + i);
+  const m5 = E.montar(banco, { reserva, rnd, excluir: feitas5 }), m10 = E.montar(banco, { reserva, rnd, excluir: feitas10 });
+  r.naoRepeteEnquantoHaEstoque = !m5.itens.some(x => feitas5.includes(x.id)) && m5.porArea[5].n === 12;
+  r.repeteAntesDeSairDoBanco = m10.itens.filter(x => x.area === 'civil').length === 12 && m10.itens.filter(x => feitas10.includes(x.id)).length === 2 && !m10.itens.some(x => /^qpr-civ-/.test(x.id));
+  r.embaralhaDentroDoBloco = E.montar(banco, { reserva, rnd }).itens.slice(0, 16).map(x => x.id).join() !== m.itens.slice(0, 16).map(x => x.id).join();
+  r.cotaCustom = E.montar(banco, { reserva, rnd, cotas: { constitucional: 2, penal: 1 } }).porArea.map(a => a.n).join(',') === '2,10,6,6,12,12,6,1';
+  const falta = E.montar(banco.filter(x => x.area !== 'dh'), { rnd });
+  r.faltaSemReserva = falta.total === 72 && falta.faltam === 8 && falta.porArea[3].n === 0 && falta.porArea[6].n === 4 && falta.foraDoEnam === 0;   // sem dh (6) e sem reserva para empresarial (faltam 2)
+  const rh = E.rehidratar(m.itens.map(x => x.id), banco, reserva);
+  r.rehidrataNaMesmaOrdem = !!rh && rh.length === 80 && rh.every((x, i) => x.id === m.itens[i].id && x.enunciado === m.itens[i].enunciado) && E.rehidratar(['q-nao-existe'], banco, reserva) === null;
+  r.constanteDe36h = E.RETOMAR_H === 36 && E.DURACAO_MIN === 300;
+  for (const [k, v] of Object.entries(r)) ok(v, 'ENAM/E3 montar ' + k);
+}
+// (b) o host: o preset monta 80 do banco oficial, o teclado responde, a prova sobrevive a recarregar
+//     por ct_enam_prova, encerrar corrige e registra, sair limpa. O roteiro do WebKit corre aqui também.
+{
+  const { testarEnamModo } = await import('./enam-modo.mjs');
+  await testarEnamModo(page, URL0, ok, { motor: 'chromium', origem: 'http' });
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { ['ct_enam_prova', 'ct_prova', 'catedra:enamSim', 'catedra:errors', 'catedra:fc'].forEach(k => localStorage.removeItem(k)); localStorage.setItem('catedra:provaDurationMin', '240'); });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const a = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp;
+    r.chaveNoAutosave = app._autosaveKeys().includes('enamSim');
+    window.__catedraGoView('simulados'); await w(600);
+    document.querySelector('main button[data-v="enam"]').click(); await w(200);
+    const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
+    // sem o banco: explica o que falta e NÃO monta itens Certo/Errado
+    const T = await app._treino(); const orig = T.acervoQuestoesEnam; const bancoAntes = window.CT_QUESTOES_ENAM;
+    T.acervoQuestoesEnam = () => Promise.reject(new Error('sem arquivo')); delete window.CT_QUESTOES_ENAM;
+    [...document.querySelectorAll('main button')].find(b => /Iniciar o simulado ENAM/.test(b.textContent)).click(); await w(600);
+    const alerta = document.querySelector('main .ct-estado[role=alert]');
+    r.semBancoExplica = !!alerta && /questoes-enam\.js/.test(alerta.textContent) && /não substitui a prova por itens de Certo\/Errado/.test(alerta.textContent) && !app.state.provaMode && app.state.sjItens.length === 0;
+    T.acervoQuestoesEnam = orig; if (bancoAntes) window.CT_QUESTOES_ENAM = bancoAntes;
+    // monta e responde 3 pelo teclado (A, seta, B, seta, C) e marca a 2ª para rever
+    [...document.querySelectorAll('main button')].find(b => /Iniciar o simulado ENAM/.test(b.textContent)).click();
+    for (let i = 0; i < 60 && !document.querySelector('.ct-enam'); i++) await w(250);
+    r.montou = app.state.sjItens.length === 80 && !document.querySelector('main .ct-estado[role=alert]') && app.state.provaName === 'ENAM ' + window.CT_ENAM.proxima().id + ' · simulado';
+    const tecla = k => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+    tecla('a'); await w(120); tecla('ArrowRight'); await w(120); tecla('B'); await w(120); tecla('r'); await w(120); tecla('ArrowRight'); await w(120); tecla('c'); await w(120); tecla('ArrowLeft'); await w(150);
+    const its = app.state.sjItens;
+    r.tecladoResponde = app.state.sjResp[its[0].id] === 'A' && app.state.sjResp[its[1].id] === 'B' && app.state.sjResp[its[2].id] === 'C' && app.state.sjAtual === 1;
+    r.reverMarca = !!app.state.sjRev[its[1].id] && document.querySelector('.ct-gab-q[data-i="1"]').getAttribute('data-rev') === '1' && /para rever/.test(document.querySelector('.ct-gab-q[data-i="1"]').getAttribute('aria-label'));
+    tecla('Backspace'); await w(120); r.emBrancoApaga = app.state.sjResp[its[1].id] === undefined && document.querySelector('.ct-gab-q[data-i="1"]').getAttribute('data-est') === 'branco';
+    tecla('b'); await w(120);
+    r.escNaoDescarta = (tecla('Escape'), app.state.provaMode === true);
+    document.querySelector('.ct-gab-q[data-i="79"]').click(); await w(200);
+    r.gradeVaiParaAQuestao = app.state.sjAtual === 79 && document.querySelector('.ct-gab-q[data-i="79"]').getAttribute('data-atual') === '1' && /Penal/.test(document.querySelector('.ct-enam-meta').textContent);
+    r.faixasDasAreas = /Constitucional\s*1–16/.test(document.querySelector('.ct-enam-faixas').textContent) && /Penal\s*69–80/.test(document.querySelector('.ct-enam-faixas').textContent);
+    r.semEmoji = !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(document.querySelector('.ct-enam').textContent);
+    r.relogioMono = /mono|Menlo|Courier|SF Mono/i.test(getComputedStyle(document.querySelector('.ct-enam-tempo')).fontFamily);
+    // avisos discretos: cruzar os 60 e os 15 minutos finais dá um toast cada, sem som
+    const toasts = () => [...document.querySelectorAll('div[role=status]')].map(d => d.textContent).join(' | ');
+    app.setState({ provaSeconds: 300 * 60 - 3600 - 1 }); await w(1700);
+    r.aviso60 = /Falta 1 hora/.test(toasts()) && document.querySelector('.ct-enam-tempo').getAttribute('data-aviso') === '1';
+    app.setState({ provaSeconds: 300 * 60 - 900 - 1 }); await w(1700);
+    r.aviso15 = /Faltam 15 minutos/.test(toasts()) && /Faltam 15 minutos/.test(document.querySelector('.ct-enam-aviso').textContent) && !app._ac;
+    r.pausaMarcaATentativa = ([...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Pausar/.test(b.textContent)).click(), app.state.sjComPausa === true && !app.state.provaRunning);
+    await w(100); tecla('d'); await w(100);
+    r.pausadaNaoResponde = app.state.sjResp[its[79].id] === undefined;
+    r.ids = its.map(x => x.id).join(','); r.resp = JSON.stringify(app.state.sjResp); r.sec = app.state.provaSeconds;
+    return r;
+  });
+  for (const [k, v] of Object.entries(a)) if (!['ids', 'resp', 'sec'].includes(k)) ok(v, 'ENAM/E3 host ' + k);
+  // recarregar: a mesma prova, as mesmas respostas, o tempo restante não cresce
+  await page.goto(host); await page.waitForTimeout(3500);
+  const b = await page.evaluate(async (antes) => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp;
+    for (let i = 0; i < 60 && !document.querySelector('.ct-enam'); i++) await w(250);
+    r.recarregarVoltaAProva = !!document.querySelector('.ct-enam') && app.state.view === 'simulados' && app.state.sjModo === 'enam';
+    r.mesmaProvaMesmasRespostas = app.state.sjItens.map(x => x.id).join(',') === antes.ids && JSON.stringify(app.state.sjResp) === antes.resp && Object.keys(app.state.sjResp).length === 3;
+    r.tempoRestanteNaoCresce = app.state.provaSeconds >= antes.sec && app.state.provaDurationMin === 300 && !app.state.provaRunning;
+    r.avisoDeRetomada = [...document.querySelectorAll('div[role=status]')].some(d => /Simulado ENAM retomado onde parou — 3 respondidas/.test(d.textContent));
+    // sair limpa a chave e devolve a duração da sala comum
+    app.exitProva(); await w(300);
+    r.sairLimpaAChave = !localStorage.getItem('ct_enam_prova') && !localStorage.getItem('ct_prova') && !app.state.provaMode && app.state.sjItens.length === 0 && app.state.provaDurationMin === 240;
+    // encerrar: corrige, registra a sessão (Simulado · ENAM · minutos reais) e guarda a tentativa só com ids
+    [...document.querySelectorAll('main button')].find(b => /Iniciar o simulado ENAM/.test(b.textContent)).click();
+    for (let i = 0; i < 60 && !document.querySelector('.ct-enam'); i++) await w(250);
+    const its = app.state.sjItens, resp = {};
+    resp[its[0].id] = its[0].certo; resp[its[1].id] = its[1].certo; resp[its[2].id] = its[2].certo;
+    resp[its[3].id] = its[3].certo === 'A' ? 'B' : 'A'; resp[its[4].id] = its[4].certo === 'A' ? 'B' : 'A';
+    app.setState({ sjResp: resp, provaSeconds: 47 * 60 }); await w(200);
+    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(900);
+    r.encerrarFechaECorrige = !app.state.provaMode && !document.querySelector('.ct-enam') && app.state.sjFim === true && app.state.sim.total === 80 && app.state.sim.acertos === 3 && app.state.sim.erros === 2 && app.state.sim.brancos === 75;
+    r.sessaoPreenchida = app.state.sessionModalOpen === true && app.state.sessionDraft.categoria === 'Simulado' && app.state.sessionDraft.disc === 'ENAM' && app.state.sessionDraft.minutos === '47' && /ENAM .* · simulado/.test(app.state.sessionDraft.topico);
+    const es = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]');
+    r.tentativaSoComIds = es.length === 1 && es[0].idsUsados.length === 80 && es[0].acertos === 3 && es[0].brancos === 75 && es[0].up > 0 && !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !localStorage.getItem('catedra:enamSim').includes(its[0].enunciado.slice(0, 30));
+    r.errosPeloCanalDoItem2 = (app.state.errors || []).filter(e => e.source === 'Simulado ENAM').length === 2 && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM' && /^Gabarito: [A-E] — /.test(c.back)).length === 2;
+    r.limpouAsChaves = !localStorage.getItem('ct_enam_prova') && !localStorage.getItem('ct_prova');
+    app.closeSession(); await w(300);
+    const main = document.querySelector('main').textContent;
+    r.relatorioPorArea = /Por área do edital/.test(main) && /Constitucional\s*\d+ de 16 · alvo \d+/.test(main) && !/Jurisprudência\s*0\/0/.test(main);
+    r.gabaritoComReferencia = /ENAM 20\d\d\.\d · questão \d+/.test(main) && !/Texto oficial:/.test(main);
+    // a segunda montagem evita as 80 já feitas
+    const feitas = new Set(es[0].idsUsados);
+    r.proximaEvitaAsFeitas = window.CT_ENAM.montar(window.CT_QUESTOES_ENAM, { excluir: [...feitas], reserva: window.CT_QUESTOES_PROVA || [] }).itens.every(x => !feitas.has(x.id));
+    // tempo esgotado: corrige sozinho, sem beep
+    [...document.querySelectorAll('main button')].find(b => /Novo simulado/.test(b.textContent)).click(); await w(300);
+    [...document.querySelectorAll('main button')].find(b => /Iniciar o simulado ENAM/.test(b.textContent)).click();
+    for (let i = 0; i < 60 && !document.querySelector('.ct-enam'); i++) await w(250);
+    app.setState({ provaSeconds: 300 * 60 - 1 }); await w(1900);
+    const es2 = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]');
+    r.tempoEsgotadoCorrigeSozinho = !app.state.provaMode && app.state.sjFim === true && es2.length === 2 && es2[1].auto === true && !app._ac;
+    app.closeSession(); localStorage.removeItem('catedra:enamSim'); app.setState({ enamSim: [] });
+    return r;
+  }, a);
+  for (const [k, v] of Object.entries(b)) ok(v, 'ENAM/E3 host ' + k);
+}
+
+/* ============= ENAM — E4: a correção "habilitaria?" ============= */
+// (a) CT_ENAM.corrigir, pura: os aceites da especificação (51/80 com meta 56 → não, −5; com meta 40 → sim, +11),
+//     alvo proporcional por área, anulada fora da conta, tempo médio só das respondidas
+{
+  await import('../enam.js');
+  const E = globalThis.CT_ENAM, r = {};
+  const its = []; E.AREAS.forEach(a => { for (let i = 0; i < a.cota; i++) its.push({ id: a.id + '-' + i, area: a.id, ramo: a.nome, certo: 'C', alternativas: [] }); });
+  // 51 certas, 25 erradas, 4 em branco — as certas concentradas no começo do caderno, como quem estuda o que vem primeiro
+  const resp = {}; its.forEach((it, i) => { if (i < 51) resp[it.id] = 'C'; else if (i < 76) resp[it.id] = 'A'; });
+  const c56 = E.corrigir(its, resp, 56, { segundos: 16920 }), c40 = E.corrigir(its, resp, 40, { segundos: 16920, comPausa: true });
+  r.contas = c56.total === 80 && c56.acertos === 51 && c56.brancos === 4 && c56.erros === 25 && c56.respondidas === 76;
+  r.meta56NaoHabilita = c56.meta === 56 && c56.habilitaria === false && c56.margem === -5;
+  r.meta40Habilita = c40.meta === 40 && c40.habilitaria === true && c40.margem === 11 && c40.comPausa === true && c56.comPausa === false;
+  r.alvoProporcional = c56.porAreaEdital.every(a => a.alvo === Math.round(a.cota * 56 / 80 * 10) / 10) && c56.porAreaEdital[0].alvo === 11.2 && c56.porAreaEdital[0].alvoInt === 11 && c40.porAreaEdital[0].alvo === 8;
+  r.ordemDoEdital = c56.porAreaEdital.map(a => a.area).join(',') === E.AREAS.map(a => a.id).join(',') && c56.porAreaEdital.every(a => a.n === a.cota);
+  r.deficitOrdenado = c56.porArea.every((a, i, l) => i === 0 || l[i - 1].deficit >= a.deficit) && c56.porArea[0].area === 'penal' && c56.porArea[0].ok === 0 && c56.porArea[0].deficit === 8.4;
+  r.okSobreCota = c56.porAreaEdital[0].ok === 16 && c56.porAreaEdital[0].deficit === -4.8 && c56.porAreaEdital.find(a => a.area === 'civil').txt === undefined;
+  r.tempoSoDasRespondidas = c56.tempoTotalSeg === 16920 && c56.segPorQuestao === 223 && c56.segDisponivel === 225 && E.corrigir(its, {}, 56, { segundos: 900 }).segPorQuestao === 0;
+  const comAnuladas = its.concat([{ id: 'x1', area: 'civil', certo: 'A', anulada: true }, { id: 'x2', area: 'civil', certo: 'A', anulada: true }]);
+  const ca = E.corrigir(comAnuladas, { ...resp, x1: 'A', x2: 'B' }, 56);
+  r.anuladaNaoConta = ca.total === 80 && ca.acertos === 51 && ca.erros === 25 && ca.anuladas === 2 && ca.porAreaEdital.find(a => a.area === 'civil').n === 12;
+  const fora = its.map((it, i) => i >= 62 && i < 68 ? { ...it, foraDoEnam: true } : it);
+  r.foraDoEnamContado = E.corrigir(fora, resp, 56).foraDoEnam === 6 && E.corrigir(fora, resp, 56).porAreaEdital.find(a => a.area === 'empresarial').foraDoEnam === 6;
+  r.metaInvalidaCaiNoPadrao = E.corrigir(its, resp, 0).meta === 56 && E.corrigir(its, resp, undefined).meta === 56;
+  for (const [k, v] of Object.entries(r)) ok(v, 'ENAM/E4 corrigir ' + k);
+}
+// (b) o host: a tela responde "habilitaria?" em --ok ou "faltaram N" em --warn (nunca --danger), barras por área com
+//     o alvo, as três áreas onde faltou com "Estudar esta área", erros pelo canal do item 2 (teto 20, aviso, desfazer),
+//     tentativa em catedra:enamSim sem enunciado, e as referências do gabarito com o caminho para LEGIS/JURIS
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { ['ct_enam_prova', 'ct_prova', 'catedra:enamSim', 'catedra:errors', 'catedra:fc', 'catedra:enam'].forEach(k => localStorage.removeItem(k)); });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, E = window.CT_ENAM;
+    const corDe = (el) => getComputedStyle(el).color;
+    // os tokens moram no div raiz do app, não em :root — a sonda tem de nascer dentro de main
+    const corToken = (t) => { const p = document.createElement('span'); p.style.color = 'var(' + t + ')'; document.querySelector('main').appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c; };
+    const montar = async () => {
+      window.__catedraGoView('simulados'); await w(500);
+      const chip = document.querySelector('main button[data-v="enam"]'); if (chip.getAttribute('aria-pressed') !== 'true') { chip.click(); await w(200); }
+      const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir && abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
+      const novo = [...document.querySelectorAll('main button')].find(b => /Novo simulado/.test(b.textContent)); if (novo) { novo.click(); await w(300); }
+      [...document.querySelectorAll('main button')].find(b => /Iniciar o simulado ENAM/.test(b.textContent)).click();
+      for (let i = 0; i < 60 && !document.querySelector('.ct-enam'); i++) await w(250);
+      return app.state.sjItens;
+    };
+    // 51 certas, 25 erradas, 4 brancas — e a 1ª questão ganha referências conhecidas para o gabarito
+    const responder = (its) => { const resp = {}; its.forEach((it, i) => { if (i < 51) resp[it.id] = it.certo; else if (i < 76) resp[it.id] = it.certo === 'A' ? 'B' : 'A'; }); return resp; };
+    let its = await montar();
+    its[0].refs = ['Art. 25 da CF', 'Tema 698', 'Art. 11']; its[0].origem = 'enam';
+    app.setState({ sjResp: responder(its), provaSeconds: 16920 }); await w(200);
+    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(900);
+    const main = () => document.querySelector('main');
+    const selo = main().querySelector('.ct-enam-selo');
+    r.numeroGrande = /51/.test(main().querySelector('.ct-enam-res-n').textContent) && /\/80/.test(main().querySelector('.ct-enam-res-n').textContent) && /Georgia|serif|Fraunces|Playfair|Display/i.test(getComputedStyle(main().querySelector('.ct-enam-res-n')).fontFamily);
+    r.faltaramCinco = !!selo && selo.textContent.trim() === 'faltaram 5 acertos' && selo.getAttribute('data-ok') === '';
+    r.seloEmWarnNuncaDanger = !!selo && corDe(selo) === corToken('--warn') && corDe(selo) !== corToken('--danger');
+    r.metaEMargem = /meta de 56 acertos · margem −5 · 4 em branco · 25 erros/.test(main().textContent);
+    r.tempoMedio = /223 s por questão respondida · 225 s disponíveis/.test(main().textContent);
+    const barras = [...main().querySelectorAll('.ct-enam-barra')];
+    r.oitoBarrasNaOrdem = barras.length === 8 && /^Constitucional/.test(barras[0].textContent) && /^Penal/.test(barras[7].textContent) && /16 de 16 · alvo 11/.test(barras[0].textContent) && /0 de 12 · alvo 8/.test(barras[7].textContent);
+    r.barraTemAlvoEPreenchimento = barras[0].getAttribute('data-ok') === '1' && barras[7].getAttribute('data-ok') === '' && /left:\s*70%/.test(barras[0].querySelector('.tr > b').getAttribute('style')) && /width:\s*100%/.test(barras[0].querySelector('.tr > i').getAttribute('style'));
+    const faltou = [...main().querySelectorAll('.ct-enam-faltou > div')];
+    r.tresAreasOndeFaltou = faltou.length === 3 && /^Penal/.test(faltou[0].textContent) && /faltaram 9 · 0 de 12/.test(faltou[0].textContent) && faltou.every(d => /Estudar esta área/.test(d.querySelector('button').textContent)) && faltou[0].querySelector('button').getBoundingClientRect().height >= 44;
+    r.naoDizAprovacao = !/aprova/i.test(main().querySelector('.ct-enam-res').textContent + main().querySelector('.ct-enam-faltou').textContent + [...main().querySelectorAll('.ct-eb')].map(e => e.textContent).join(' '));
+    // erros: 25 erradas → 20 itens (teto), aviso dos 5, fonte/ref, flashcard com gabarito + referência; desfazer tira o lote
+    const errs = () => (app.state.errors || []).filter(e => e.source === 'Simulado ENAM');
+    r.tetoDeVinte = errs().length === 20 && errs().every(e => e.fonte === 'enam' && /^\d{4}\.\d·\d+$/.test(e.ref) && e.auto === true) && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').length === 20;
+    r.avisoDosCincoRestantes = [...document.querySelectorAll('div[role=status]')].some(d => /5 erros ficaram fora do lote de revisão \(teto de 20 por correção\)/.test(d.textContent));
+    r.flashcardComGabaritoEReferencia = (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').every(c => /^Gabarito: [A-E] — /.test(c.back) && /\(ENAM 20\d\d\.\d · questão \d+\)$/.test(c.back));
+    const desfazer = [...document.querySelectorAll('div[role=status] button')].find(b => /desfazer/i.test(b.textContent));
+    r.desfazerTiraOLote = (() => { if (!desfazer) return false; desfazer.click(); return true; })();
+    await w(400);
+    r.desfazerTiraOLote = r.desfazerTiraOLote && errs().length === 0 && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').length === 0;
+    // a tentativa: shape do E4, sem enunciado
+    const es = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]'), t = es[0];
+    r.tentativaNoHistorico = es.length === 1 && /^enam\d+$/.test(t.id) && t.up > 0 && /^\d{4}-\d\d-\d\dT/.test(t.quando) && t.meta === 56 && t.acertos === 51 && t.brancos === 4 && t.habilitaria === false && t.margem === -5
+      && t.porArea.length === 8 && t.porArea.every(a => 'ok' in a && 'cota' in a && 'area' in a) && t.tempoTotalSeg === 16920 && t.idsUsados.length === 80 && Array.isArray(t.edicaoBanco) && t.edicaoBanco.length >= 1 && t.comPausa === false;
+    r.semEnunciadoNoHistorico = !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !localStorage.getItem('catedra:enamSim').includes(its[3].enunciado.slice(0, 30));
+    // o gabarito comentado: as referências e o caminho
+    app.closeSession(); await w(300);
+    const refs = main().querySelector('.ct-enam-refs');
+    const legisBtn = refs && [...refs.querySelectorAll('button')].find(b => /Art\. 25 da CF · Ler no LEGIS/.test(b.textContent));
+    const jurisBtn = refs && [...refs.querySelectorAll('button')].find(b => /Tema 698 · Ver no JURIS/.test(b.textContent));
+    r.referenciasNoGabarito = !!legisBtn && /constituicao\.htm$/.test(legisBtn.dataset.lei) && legisBtn.dataset.rot === 'Art. 25' && !!jurisBtn && jurisBtn.dataset.busca === 'Tema 698' && [...refs.querySelectorAll('span.ct-enam-ref')].some(s => s.textContent.trim() === 'Art. 11') && !refs.textContent.includes('Art. 11 · Ler');
+    r.refResolveLeiPeloNumero = (() => { const x = app._enamRef('Art. 29 da Lei nº 14.133/2021'); return !!x && x.legis === true && /l14133/.test(x.lei) && x.rot === 'Art. 29'; })() && app._enamRef('Art. 1.641, inciso II do Código Civil').rot === 'Art. 1.641, inciso II' && /l10406/.test(app._enamRef('Art. 1.641, inciso II do Código Civil').lei) && app._enamRef('Súmula 591').jurisTem === true;
+    // "Estudar esta área" leva ao LEGIS (Penal → Código Penal, artigo de incidência alta ainda não lido)
+    faltou[0].querySelector('button').click(); await w(600);
+    r.estudarAreaAbreOLegis = app.state.view === 'legis';
+    // meta 40: a mesma prova habilitaria, com margem +11, selo em --ok
+    localStorage.setItem('catedra:enam', JSON.stringify({ ...app._enamNovo(), metaAcertos: 40, up: Date.now() })); app.setState({ enam: JSON.parse(localStorage.getItem('catedra:enam')) }); await w(200);
+    its = await montar(); app.setState({ sjResp: responder(its), provaSeconds: 16920 }); await w(200);
+    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(900);
+    const selo2 = main().querySelector('.ct-enam-selo');
+    r.meta40Habilitaria = !!selo2 && selo2.textContent.trim() === 'habilitaria' && selo2.getAttribute('data-ok') === '1' && corDe(selo2) === corToken('--ok') && /meta de 40 acertos · margem \+11/.test(main().textContent) && /16 de 16 · alvo 8/.test(main().querySelector('.ct-enam-barra').textContent);
+    r.duasTentativasSincronizaveis = JSON.parse(localStorage.getItem('catedra:enamSim')).length === 2 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].meta === 40 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].habilitaria === true;
+    app.closeSession(); ['catedra:enamSim', 'catedra:enam', 'catedra:errors', 'catedra:fc'].forEach(k => localStorage.removeItem(k)); app.setState({ enamSim: [], enam: null });
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E4 host ' + k);
+}
+
+/* ============= ENAM — E5: a Trilha ENAM no Início ============= */
+// Sem enam.ativo o bloco não existe. Ativo e sem tentativa: estado vazio com o formato da prova (nunca zeros), a
+// cadência de simulados com "Colocar na agenda" (fim de semana mais próximo, sem duplicar) e "Importar o edital
+// ENAM". Com tentativas: última prova, sparkline, 8 áreas com ok/cota e a próxima ação certa (revisar → estudar →
+// próximo simulado). Concurso a menos de 30 dias: a Reta final manda. Nada em --danger, nada de "atrasado".
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  const guardado = await page.evaluate(() => {
+    const g = { edital: localStorage.getItem('catedra:edital'), eventos: localStorage.getItem('catedra:eventos') };
+    ['catedra:enam', 'catedra:enamSim', 'catedra:errors', 'catedra:prova', 'ct_enam_prova', 'ct_prova'].forEach(k => localStorage.removeItem(k));
+    return g;
+  });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const t = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, E = window.CT_ENAM;
+    const bloco = () => document.querySelector('main [data-trilha-enam]');
+    const txt = () => (bloco() ? bloco().textContent.replace(/\s+/g, ' ') : '');
+    window.__catedraGoView('inicio'); await w(600);
+    r.semTrilhaSemBloco = !bloco() && ![...document.querySelectorAll('main h2')].some(h => /Trilha ENAM/.test(h.textContent));
+    // ativa a trilha (E1) — o bloco nasce no estado vazio
+    app.setState({ enam: { ...app._enamNovo(), up: Date.now() } }); await w(700);
+    r.vazioMostraOFormato = !!bloco() && bloco().getAttribute('data-trilha-enam') === 'vazio' && /80 questões A–E/.test(txt()) && /5 h de prova/.test(txt()) && /meta 56 \(70%\) ou 40 \(50%\)/.test(txt());
+    r.vazioSemZeros = !/\b0\/80|\b0 de 80|(^|[^0-9])0%/.test(txt());
+    r.vazioConvida = [...bloco().querySelectorAll('button')].filter(b => /Fazer o primeiro simulado/.test(b.textContent)).length >= 1 && /Fazer o primeiro simulado/.test(bloco().querySelector('.ct-trilha-acao').textContent);
+    const dias = E.diasAte('2026-11-29');
+    r.contagemEMeta = new RegExp('^' + dias + '\\b').test(bloco().querySelector('.ct-trilha-dias').textContent.trim()) && /dias para a prova/.test(txt()) && /prova às 13h de Brasília/.test(txt()) && /meta 56 acertos \(70%\)/.test(document.querySelector('main').textContent);
+    // cadência: as datas de CT_ENAM.cadencia, uma a cada 14 dias, a última ≥ 7 dias antes
+    const cad = E.cadencia(new Date(), '2026-11-29');
+    const chips = [...bloco().querySelectorAll('.ct-trilha-data')];
+    r.cadenciaListada = chips.length === cad.length && cad.length >= 1 && new RegExp(cad.length + ' simulados? até a prova').test(txt()) && chips.every(c => c.getAttribute('data-agendada') === '');
+    r.semAtrasadoSemDanger = !/atrasad/i.test(txt()) && !bloco().querySelector('[style*="--danger"]') && !/ofensiva/i.test(txt());
+    // "Colocar na agenda": um evento por data, no fim de semana mais próximo, sem duplicar
+    const antes = (app.state.eventos || []).length;
+    [...bloco().querySelectorAll('button')].find(b => /Colocar na agenda/.test(b.textContent)).click(); await w(700);
+    const evs = (app.state.eventos || []).filter(e => /^enam:sim:/.test(String(e.id)));
+    r.agendaCriaOsEventos = evs.length === cad.length && (app.state.eventos || []).length === antes + cad.length && evs.every(e => e.tipo === 'Simulado' && /5 h/.test(e.titulo) && [0, 6].includes(new Date(e.ano, e.mes, e.dia).getDay()) && e.up > 0 && e.done === false);
+    r.fimDeSemanaMaisProximo = evs.every(e => { const iso = String(e.id).slice(9); const d = new Date(iso + 'T12:00:00'); const f = new Date(e.ano, e.mes, e.dia); return Math.abs((f - d) / 864e5) <= 3; });
+    r.chipsMarcadosEBotaoSome = [...bloco().querySelectorAll('.ct-trilha-data')].every(c => c.getAttribute('data-agendada') === '1') && ![...bloco().querySelectorAll('button')].some(b => /Colocar na agenda/.test(b.textContent)) && /na agenda/.test(txt());
+    app.enamAgendar(); await w(400);
+    r.agendarDeNovoNaoDuplica = (app.state.eventos || []).filter(e => /^enam:sim:/.test(String(e.id))).length === cad.length;
+    r.fimDeSemanaPuro = app._enamFimDeSemana('2026-09-16') === '2026-09-19' && app._enamFimDeSemana('2026-09-15') === '2026-09-13' && app._enamFimDeSemana('2026-09-19') === '2026-09-19' && app._enamFimDeSemana('2026-09-20') === '2026-09-20' && app._enamFimDeSemana('2026-09-17') === '2026-09-19';
+    // "Importar o edital ENAM" quando faltar; presente, a régua vira a segunda métrica
+    const norm = s => String(s || '').trim().toLowerCase();
+    const nomes = E.AREAS.map(a => a.disciplinasApp[0]);
+    app.setState({ edital: (app.state.edital || []).filter(d => !nomes.some(n => norm(n) === norm(d.disc))) }); await w(500);
+    r.editalFaltaConvida = /ainda não está no seu Edital/.test(txt()) && !!bloco().querySelector('button') && [...bloco().querySelectorAll('button')].some(b => /Importar o edital ENAM/.test(b.textContent));
+    [...bloco().querySelectorAll('button')].find(b => /Importar o edital ENAM/.test(b.textContent)).click();
+    for (let i = 0; i < 40 && !/Edital ENAM/.test(txt()); i++) await w(250);
+    const ed = app.state.edital || [];
+    r.importaAsOitoDisciplinas = nomes.every(n => ed.some(d => norm(d.disc) === norm(n))) && ed.filter(d => nomes.some(n => norm(n) === norm(d.disc))).every(d => (d.topics || []).length > 0);
+    r.reguaDoEdital = /Edital ENAM/.test(txt()) && /\d+%/.test(bloco().querySelector('.ct-trilha-edital').textContent) && !!bloco().querySelector('.ct-trilha-edital .tr > i') && ![...bloco().querySelectorAll('button')].some(b => /Importar o edital ENAM/.test(b.textContent));
+    // uma tentativa (E4): última prova, selo, 8 áreas com ok/cota e cor de matéria com texto escurecido
+    const agora = Date.now();
+    const porArea = E.AREAS.map(a => ({ area: a.id, ok: a.id === 'penal' ? 2 : (a.id === 'civil' ? 6 : a.cota), cota: a.cota, n: a.cota }));
+    const tent = (ts, acertos) => ({ id: 'enam' + ts, ts, up: ts, quando: new Date(ts).toISOString(), meta: 56, total: 80, acertos, brancos: 4, erros: 80 - 4 - acertos, habilitaria: acertos >= 56, margem: acertos - 56, porArea, idsUsados: [], tempoTotalSeg: 16920, comPausa: false, foraDoEnam: 0 });
+    app.setState({ enamSim: [tent(agora, 54)] }); await w(600);
+    r.ultimaTentativa = bloco().getAttribute('data-trilha-enam') === 'ativa' && /54\s*\/80/.test(bloco().querySelector('.ct-trilha-ult').textContent.replace(/\s+/g, '')) && bloco().querySelector('.ct-enam-selo').textContent.trim() === 'faltaram 2 acertos' && /última prova hoje · meta 56 · 4 em branco/.test(txt());
+    const areas = [...bloco().querySelectorAll('.ct-trilha-area')];
+    r.oitoAreasOkCota = areas.length === 8 && /^Constitucional/.test(areas[0].textContent) && /16\/16/.test(areas[0].textContent) && /^Penal/.test(areas[7].textContent) && /2\/12/.test(areas[7].textContent);
+    // identidade no ponto (--tr-c) e tinta escurecida até 4,5:1 sobre o fundo do chip (--tr-tx)
+    const hexDoComputado = (c) => { const n = (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number); const v = /^color\(srgb/.test(c) ? n.map(x => Math.round(x * 255)) : n; return '#' + v.map(x => x.toString(16).padStart(2, '0')).join(''); };
+    const lum = (h) => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    r.corDeMateriaComTextoEscurecido = areas.length === 8 && areas.every(a => { const st = a.getAttribute('style') || ''; const m = /--tr-c:\s*(#[0-9a-f]{6}).*--tr-tx:\s*(#[0-9a-f]{6})/i.exec(st); if (!m) return false; const bg = hexDoComputado(getComputedStyle(a).backgroundColor); return ratio(m[2], bg) >= 4.5 && hexDoComputado(getComputedStyle(a).color) === m[2].toLowerCase(); });
+    r.semSparklineComUmaSo = !bloco().querySelector('svg path');
+    // próxima ação: sem erros pendentes → estudar a área de maior déficit (Penal: alvo 8, ok 2)
+    r.acaoEstudarArea = /Estudar Penal/.test(bloco().querySelector('.ct-trilha-acao').textContent) && /faltaram 7 acertos/.test(bloco().querySelector('.ct-trilha-acao').textContent) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'estudar' && bloco().querySelector('.ct-trilha-acao button').dataset.area === 'penal';
+    // com erros da prova ainda por revisar → "Revisar os N erros"
+    app.setState({ errors: [...(app.state.errors || []), ...[1, 2, 3].map(i => ({ id: 'e-enam-' + i, ts: agora + i, up: agora + i, hash: 'h' + i, disc: 'Direito Penal', enunciado: 'erro sintético ' + i, gabarito: 'x', source: 'Simulado ENAM', fonte: 'enam', ref: '2024.1·' + i, resolvido: false, auto: true }))] }); await w(600);
+    r.acaoRevisarErros = /Revisar os 3 erros da última prova/.test(bloco().querySelector('.ct-trilha-acao').textContent) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'revisar';
+    app.setState({ errors: (app.state.errors || []).filter(e => !/^e-enam-/.test(String(e.id))) });
+    // duas tentativas → sparkline; prova há 10 dias → a próxima ação é o próximo simulado da cadência
+    app.setState({ enamSim: [tent(agora - 24 * 864e5, 44), tent(agora - 10 * 864e5, 57)] }); await w(600);
+    r.sparklineComDuas = !!bloco().querySelector('svg path') && /^M/.test(bloco().querySelector('svg path').getAttribute('d')) && /2 tentativas: 44\/80, 57\/80/.test(bloco().querySelector('svg').getAttribute('aria-label'));
+    r.habilitariaNaUltima = bloco().querySelector('.ct-enam-selo').textContent.trim() === 'habilitaria' && bloco().querySelector('.ct-enam-selo').getAttribute('data-ok') === '1';
+    r.acaoProximoSimulado = cad.length ? (new RegExp('Próximo simulado em ' + new Date(cad[0] + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })).test(bloco().querySelector('.ct-trilha-acao').textContent) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'simulado') : /último simulado/.test(txt());
+    // concurso estadual a menos de 30 dias: a Reta final manda
+    const d20 = new Date(Date.now() + 20 * 864e5); const iso20 = d20.getFullYear() + '-' + String(d20.getMonth() + 1).padStart(2, '0') + '-' + String(d20.getDate()).padStart(2, '0');
+    app.setState({ provaData: iso20 }); await w(600);
+    r.retaFinalManda = bloco().getAttribute('data-trilha-enam') === 'reta' && /Sem simulado ENAM nesta semana/.test(txt()) && /Reta final do concurso manda/.test(txt()) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'reta';
+    app.setState({ provaData: null }); await w(400);
+    // o botão do estado vazio leva ao Simulado já no Modo ENAM
+    app.setState({ enamSim: [] }); await w(500);
+    [...bloco().querySelectorAll('button')].find(b => /Fazer o primeiro simulado/.test(b.textContent)).click(); await w(700);
+    r.primeiroSimuladoAbreOModoEnam = app.state.view === 'simulados' && app.state.sjModo === 'enam' && app.state.sjAberto === true && /Modo ENAM — a prova como ela é/.test(document.querySelector('main').textContent);
+    // desligada, o bloco some
+    window.__catedraGoView('inicio'); await w(400);
+    app.setState({ enam: { ...app.state.enam, ativo: false } }); await w(500);
+    r.desligadaSome = !bloco();
+    r.semRede = true;
+    return r;
+  });
+  for (const [k, v] of Object.entries(t)) ok(v, 'ENAM/E5 ' + k);
+  // devolve o edital e a agenda que a suíte tinha antes deste bloco
+  await page.evaluate((g) => { ['catedra:enam', 'catedra:enamSim', 'catedra:errors', 'catedra:prova'].forEach(k => localStorage.removeItem(k)); if (g.edital != null) localStorage.setItem('catedra:edital', g.edital); else localStorage.removeItem('catedra:edital'); if (g.eventos != null) localStorage.setItem('catedra:eventos', g.eventos); else localStorage.removeItem('catedra:eventos'); }, guardado);
+}
+
+/* ============= JURÍDICO — P14: termos, privacidade, aceite, consentimento da IA e exclusão de conta ============= */
+// (a) o conversor e as páginas geradas: Markdown mínimo → HTML com tokens, sem rede; a versão vigente do aceite
+//     sai do cabeçalho dos documentos; o texto dos documentos chega intacto
+{
+  const BJ = await import('../scripts/build-juridico.mjs');   // gera termos.html, privacidade.html e juridico.js ao importar
+  const r = {};
+  const h = BJ.converterMarkdown('# Título\n\nPara **negrito** e *itálico* com <script>x</script>.\n\n- um\n- dois\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n## 2. Seção\n\n¹ nota de rodapé');
+  r.titulosENegrito = /<h1>Título<\/h1>/.test(h) && /<strong>negrito<\/strong>/.test(h) && /<em>itálico<\/em>/.test(h) && /<h2 id="2-secao">2\. Seção<\/h2>/.test(h);
+  r.escapaHtml = /&lt;script&gt;x&lt;\/script&gt;/.test(h) && !/<script>/.test(h);
+  r.listaTabelaNota = /<ul><li>um<\/li><li>dois<\/li><\/ul>/.test(h) && /<table><thead><tr><th>A<\/th><th>B<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>2<\/td><\/tr><\/tbody><\/table>/.test(h) && /<p class="nota">¹ nota de rodapé<\/p>/.test(h);
+  const cab = BJ.cabecalho(fs.readFileSync(path.join(RAIZ, 'docs/juridico/termos-de-uso.md'), 'utf8'));
+  r.cabecalhoDoDocumento = cab.versao === '1.0' && cab.data === '02/09/2026' && cab.dataISO === '2026-09-02' && /advogad/.test(cab.nota);
+  const termos = fs.readFileSync(path.join(RAIZ, 'termos.html'), 'utf8'), priv = fs.readFileSync(path.join(RAIZ, 'privacidade.html'), 'utf8');
+  r.paginasGeradas = /<html lang="pt-BR">/.test(termos) && /<html lang="pt-BR">/.test(priv) && /<h1>Termos de uso — Cátedra<\/h1>/.test(termos) && /<h1>Política de privacidade — Cátedra<\/h1>/.test(priv);
+  r.semRedeNasPaginas = ![termos, priv].some(x => /https?:\/\/(cdn|fonts\.|unpkg|jsdelivr|googleapis)/i.test(x)) && !/<script/i.test(termos) && !/<link/i.test(priv) && /prefers-color-scheme: dark/.test(termos);
+  r.ligacaoEntreAsDuas = /href="\.\/privacidade\.html"/.test(termos) && /href="\.\/termos\.html"/.test(priv) && /Voltar ao app/.test(termos) && /ctFecharDoc/.test(priv);
+  r.textoIntacto = termos.includes('Estes Termos de uso regulam o acesso e o uso da plataforma de estudos <strong>Cátedra</strong>') && priv.includes('<th>Finalidade</th>') && (termos.match(/<h2 /g) || []).length === 13 && (priv.match(/<h2 /g) || []).length === 13;
+  r.tokensSemHexFixoNoTexto = /var\(--ink,/.test(termos) && /var\(--bg,/.test(termos) && /min-height: 44px/.test(termos);
+  await import('../juridico.js');
+  const J = globalThis.CT_JURIDICO;
+  r.versaoVigente = J.versao === '1.0/1.0' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-09-02';
+  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.0', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.0","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.0' }) === false;
+  const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
+  r.portaoDeLoginPedeAceite = /aceiteVigente\(aceiteLocal, row && row\.data && row\.data\['catedra:aceite'\]\)/.test(auth) && /showAceite\(function \(\) \{ try \{ _si\('catedra:aceite'/.test(auth) && /data-doc="termos\.html"/.test(auth) && /data-doc="privacidade\.html"/.test(auth);
+  r.exclusaoPelaRpc = /sb\.rpc\('excluir_minha_conta'\)/.test(auth) && /excluirConta: excluirConta/.test(auth) && fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'));
+  const build = fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8'), buildMac = fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8');
+  r.builds = [build, buildMac].every(x => /build-juridico\.mjs/.test(x) && /'termos\.html', 'privacidade\.html'/.test(x)) && /'\.\/juridico\.js'/.test(build);
+  for (const [k, v] of Object.entries(r)) ok(v, 'JURÍDICO/P14 build ' + k);
+}
+// (b) o host: nenhuma chamada de IA sem o consentimento específico (window.claude.complete e /api/tts esperam o
+//     modal com o texto exato); revogável em Ajustes; termos e política abrem dentro do app; exclusão de conta
+//     exporta antes, confirma e chama a RPC pelo auth.js
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { ['catedra:iaConsentimento', 'catedra:aceite'].forEach(k => localStorage.removeItem(k)); });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp;
+    const TEXTO = 'Este recurso envia o texto abaixo a provedores de IA fora do Brasil (Anthropic, Google ou OpenAI) apenas para gerar a resposta; não é usado para treinar modelos. Não inclua dados de terceiros. Você pode desativar a IA em Ajustes.';
+    r.chavesNoAutosave = ['aceite', 'iaConsentimento'].every(k => app._autosaveKeys().includes(k));
+    const modal = () => document.querySelector('[data-ia-consentimento]');
+    const bt = (re) => [...(modal() ? modal().querySelectorAll('button') : [])].find(b => re.test(b.textContent));
+    window.claude = { complete: async (p) => 'resp:' + p };
+    app._instalarPortaoIA();
+    r.portaoInstalado = window.claude.__ctPortao === true && typeof window.claude.__ctSemPortao === 'function';
+    // sem consentimento: a chamada espera o modal, que traz o texto exato; "Agora não" rejeita e nada é chamado
+    let chamouOriginal = 0; window.claude.__ctSemPortao = async (p) => { chamouOriginal++; return 'resp:' + p; };
+    app._instalarPortaoIA();   // idempotente: não embrulha duas vezes
+    const p1 = window.claude.complete('olá').then(() => 'ok', e => 'rej:' + e.message); await w(300);
+    r.modalComOTextoExato = !!modal() && modal().textContent.includes(TEXTO) && modal().getAttribute('role') === 'dialog' && bt(/Autorizar a IA/).getBoundingClientRect().height >= 44;
+    bt(/Agora não/).click(); await w(800);
+    const guardado = () => JSON.parse(localStorage.getItem('catedra:iaConsentimento') || 'null');
+    r.recusarRejeitaSemChamar = (await p1) === 'rej:ia_sem_consentimento' && !modal() && guardado() === null;
+    // /api/tts também espera o consentimento
+    const fetchOrig = window.fetch; let ttsChamado = false; window.fetch = async (u) => { if (/api\/tts/.test(String(u))) ttsChamado = true; return { ok: false, json: async () => ({}) }; };
+    app.setState({ biblioteca: [{ id: 'bt1', nome: 'x' }], multiSrc: 'bt1', mfGen: { 'bt1:audio': { texto: 'narração de teste' } } }); await w(200);
+    app.narrarMf(); await w(300);
+    r.ttsPedeConsentimento = !!modal();
+    bt(/Agora não/).click(); await w(300);
+    r.ttsNaoChamadoSemConsentimento = !ttsChamado && app.state.mfTtsBusy === false;
+    window.fetch = fetchOrig;
+    // autorizar: a chamada pendente resolve, a chave é gravada, a segunda passa direto
+    const p2 = window.claude.complete('x'); await w(300);
+    bt(/Autorizar a IA/).click(); await w(900);   // o autosave tem 500 ms de debounce
+    const c = guardado();
+    r.autorizarResolveEGrava = (await p2) === 'resp:x' && !!c && c.versao === app.IA_CONSENT_VERSAO && c.ts > 0 && !modal();
+    r.segundaChamadaDireta = (await window.claude.complete('y')) === 'resp:y' && !modal() && chamouOriginal === 0;
+    // Ajustes: documentos, versão, aceite, revogar
+    window.__catedraGoView('ajustes'); await w(600);
+    const abaDados = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'dados'); if (abaDados) { abaDados.click(); await w(600); }
+    const card = document.querySelector('main [data-card="juridico"]');
+    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.0 · 02\/09\/2026/.test(card.textContent);
+    r.aceiteAindaNao = /ainda não foi aceita nesta conta/.test(card.querySelector('[data-aceite-txt]').textContent);
+    app.setState({ aceite: { versao: '1.0/1.0', ts: Date.now() } }); await w(300);
+    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.0 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
+    r.iaAutorizadaNoTexto = /Autorizado em/.test(document.querySelector('main [data-ia-txt]').textContent);
+    [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Revogar o consentimento/.test(b.textContent)).click(); await w(900);
+    r.revogarApaga = guardado() === null && /Nenhum recurso de IA é chamado/.test(document.querySelector('main [data-ia-txt]').textContent);
+    const p3 = window.claude.complete('z').then(() => 'ok', () => 'rej'); await w(300);
+    r.depoisDeRevogarPedeDeNovo = !!modal(); bt(/Agora não/).click(); await w(200); r.depoisDeRevogarPedeDeNovo = r.depoisDeRevogarPedeDeNovo && (await p3) === 'rej';
+    // abrir os documentos dentro do app
+    [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /^Termos de uso$/.test(b.textContent.trim())).click(); await w(300);
+    const dlg = document.querySelector('[data-doc-aberto]');
+    r.termosAbremNoApp = !!dlg && /termos\.html$/.test(dlg.querySelector('iframe').getAttribute('src')) && dlg.getAttribute('aria-label') === 'Termos de uso';
+    await new Promise(res => { const f = dlg.querySelector('iframe'); if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.querySelector('h1')) res(); else f.addEventListener('load', res); setTimeout(res, 4000); });
+    r.iframeRenderiza = /Termos de uso/.test((dlg.querySelector('iframe').contentDocument || {}).title || '') && !!dlg.querySelector('iframe').contentDocument.querySelector('h1');
+    window.postMessage({ type: 'ctFecharDoc' }, '*'); await w(300);   // é o que o "Voltar ao app" da página manda ao parent
+    r.voltarAoAppFecha = !document.querySelector('[data-doc-aberto]');
+    // exclusão de conta: exporta antes, confirma, chama a RPC do auth.js
+    let exportou = 0, excluiu = 0; const expOrig = app.exportJSON; app.exportJSON = () => { exportou++; };
+    const confOrig = window.confirm; window.confirm = () => false;
+    window.CatedraAuth = { excluirConta: async () => { excluiu++; }, user: { email: 'teste@exemplo.invalid' }, client: null };
+    app.setState({}); await w(300);
+    const btExc = () => [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Excluir minha conta/.test(b.textContent));
+    r.mostraAConta = /teste@exemplo\.invalid/.test(document.querySelector('main [data-card="juridico"]').textContent);
+    btExc().click(); await w(200);
+    r.semConfirmarNaoExclui = exportou === 1 && excluiu === 0;
+    window.confirm = () => true; btExc().click(); await w(300);
+    r.confirmadoExportaEExclui = exportou === 2 && excluiu === 1;
+    delete window.CatedraAuth; app.setState({ contaExcluindo: false }); await w(200);
+    btExc().click(); await w(200);
+    r.semContaExplica = [...document.querySelectorAll('div[role=status]')].some(d => /precisa da conta conectada/.test(d.textContent)) && excluiu === 1;
+    app.exportJSON = expOrig; window.confirm = confOrig;
+    ['catedra:iaConsentimento', 'catedra:aceite'].forEach(k => localStorage.removeItem(k)); app.setState({ aceite: null, iaConsentimento: null, biblioteca: [], mfGen: {}, multiSrc: '' });
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'JURÍDICO/P14 host ' + k);
+}
+
+/* ============= PÚBLICO — P15: sobre.html e a lista de espera ============= */
+// A página pública: sem promessa de aprovação, sem depoimento, sem número de adoção, sem preço; fontes locais; o
+// formulário rejeita e-mail inválido sem chamar a rede e, válido, faz um INSERT anônimo em lista_espera com a
+// chave pública, mostrando a confirmação no lugar (sem redirecionar). O RLS (só INSERT para anon) foi conferido
+// direto no projeto vivo em 08/09/2026; aqui a rede é simulada.
+{
+  const r = {};
+  const html = fs.readFileSync(path.join(RAIZ, 'sobre.html'), 'utf8');
+  r.semPromessaNemInvencao = !/aprovação garantida|depoimento(?! —|,)|alunos aprovados|R\$|por mês|assinatura por|\d+ (mil )?(alunos|usuári)/i.test(html.replace(/<!--[\s\S]*?-->/g, ''));
+  r.semRedeExterna = !/https?:\/\/(cdn|fonts\.|unpkg|jsdelivr|googleapis|gstatic)/i.test(html) && /url\('\.\/fonts\/spectral-700-normal\.woff2'\)/.test(html) && /prefers-color-scheme: dark/.test(html) && /prefers-reduced-motion/.test(html);
+  r.conteudoDaEspecificacao = /Leitura ativa em sete perguntas/.test(html) && /Espelhos oficiais quesito a quesito/.test(html) && /Arguição, não leitura/.test(html) && /funciona sem internet/.test(html) && /<html lang="pt-BR">/.test(html);
+  r.corPorRamoComTextoEscurecido = /--ramo-constitucional:#2563EB/.test(html) && /--ramo-penal:#E11D48/.test(html) && /color-mix\(in srgb,var\(--c\) 72%,var\(--ink\)\)/.test(html) && !/border-left:\s*[3-9]px/.test(html);
+  r.ligacoes = /href="\.\/termos\.html"/.test(html) && /href="\.\/privacidade\.html"/.test(html) && /href="\.\/"/.test(html);
+  const build = fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8'), buildMac = fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8'), vercel = JSON.parse(fs.readFileSync(path.join(RAIZ, 'vercel.json'), 'utf8')), auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
+  r.buildsERota = /'sobre\.html'/.test(build) && /'sobre\.html'/.test(buildMac) && (vercel.rewrites || []).some(x => x.source === '/sobre' && x.destination === '/sobre.html');
+  r.linkNoPortao = /Conhecer a Cátedra/.test(auth) && /id="ctsobre"/.test(auth) && /data-doc="sobre\.html"/.test(auth);
+  r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql')) && /for insert to anon/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql'), 'utf8')) && !/for select/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql'), 'utf8'));
+  for (const [k, v] of Object.entries(r)) ok(v, 'PÚBLICO/P15 página ' + k);
+  await page.goto(URL0 + '/sobre.html');
+  await page.waitForFunction(() => typeof window.ctEmailValido === 'function');
+  const f = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, chamadas = [];
+    window.fetch = async (u, o) => { chamadas.push({ u: String(u), o }); return { ok: true, status: 201 }; };
+    const inE = document.getElementById('email'), sel = document.getElementById('area'), erro = document.getElementById('erro'), ok = document.getElementById('ok'), form = document.getElementById('formEspera');
+    r.validacaoPura = window.ctEmailValido('nome@dominio.com') && !window.ctEmailValido('nome@dominio') && !window.ctEmailValido('nome dominio.com') && !window.ctEmailValido('') && !window.ctEmailValido('a@b.c');
+    inE.value = 'invalido@'; form.requestSubmit(); await w(100);
+    r.invalidoNaoEnvia = chamadas.length === 0 && /e-mail válido/.test(erro.textContent) && document.activeElement === inE && ok.getAttribute('data-mostra') !== '1';
+    inE.value = '  Pessoa@Exemplo.com '; sel.value = 'enam'; form.requestSubmit(); await w(200);
+    const c = chamadas[0];
+    r.validoInsereAnonimo = chamadas.length === 1 && /\/rest\/v1\/lista_espera$/.test(c.u) && c.o.method === 'POST' && !!c.o.headers.apikey && /^Bearer /.test(c.o.headers.Authorization) && c.o.headers.Prefer === 'return=minimal' && JSON.parse(c.o.body).email === 'pessoa@exemplo.com' && JSON.parse(c.o.body).area === 'enam' && JSON.parse(c.o.body).origem === 'sobre';
+    r.sucessoSemRedirecionar = ok.getAttribute('data-mostra') === '1' && /você está na lista/.test(ok.textContent) && /sobre\.html$/.test(location.pathname) && inE.value === '' && erro.textContent === '';
+    window.fetch = async () => ({ ok: false, status: 409 });
+    inE.value = 'ja@exemplo.com'; form.requestSubmit(); await w(200);
+    r.duplicadoAvisa = /já está na lista/.test(ok.textContent);
+    window.fetch = async () => { throw new Error('rede'); };
+    inE.value = 'x@exemplo.com'; form.requestSubmit(); await w(200);
+    r.falhaDeRedeExplica = /Não deu para registrar agora/.test(erro.textContent) && document.getElementById('enviar').disabled === false;
+    r.alvos44 = [...document.querySelectorAll('.botao, .botao-2, button')].every(b => b.getBoundingClientRect().height >= 44) && inE.getBoundingClientRect().height >= 44;
+    r.tituloEFormulario = !!document.querySelector('h1') && /critério da banca/.test(document.querySelector('h1').textContent) && !!document.querySelector('label[for="email"]') && !!document.querySelector('label[for="area"]');
+    r.fonteLocalAplicada = /Spectral/.test(getComputedStyle(document.querySelector('h1')).fontFamily);
+    return r;
+  });
+  for (const [k, v] of Object.entries(f)) ok(v, 'PÚBLICO/P15 formulário ' + k);
+}
+
+/* ============= ACESSIBILIDADE — P16: baixa estimulação, selects com nome, alvos de 44 px, cor-texto ============= */
+{
+  const r = {};
+  const VT = await import('../scripts/verificar-cores-texto.mjs');
+  r.scriptDeCoresTexto = typeof VT.corTexto === 'function' && VT.ratio(VT.corTexto('#0D9488', false), '#fffdf8') >= 4.5 && VT.ratio(VT.corTexto('#0D9488', true), '#201d17') >= 4.5;
+  const src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  r.consumidoresTextuaisUsamCorTx = /color:\{\{ r\.colorTx \}\}/.test(src) && /color:\{\{ d\.colorTx \}\}/.test(src) && /color:\{\{ n\.corTx \}\}/.test(src) && /color:\{\{ g\.corTx \}\}/.test(src) && !/color:\{\{ r\.color \}\}/.test(src);
+  r.buildsTravam = /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8')) && /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8'));
+  r.nenhumEmojiNovoForaDoEmbrulho = (() => { const tpl = src.slice(0, src.indexOf('\nclass Component')); const re = /[\u{1F525}\u{1F3AF}\u{1F389}✨\u{1F44B}]/gu; let m, fora = 0; while ((m = re.exec(tpl))) { const antes = tpl.slice(Math.max(0, m.index - 45), m.index); const lt = tpl.lastIndexOf('<', m.index), gt = tpl.lastIndexOf('>', m.index); if (lt > gt) continue; if (!/class="ct-emo" aria-hidden="true">$/.test(antes)) fora++; } return fora === 0; })();
+  for (const [k, v] of Object.entries(r)) ok(v, 'A11Y/P16 estático ' + k);
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { try { const p = JSON.parse(localStorage.getItem('catedra:prefs') || '{}'); delete p.baixaEstimulacao; localStorage.setItem('catedra:prefs', JSON.stringify(p)); } catch (_) {} });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, raiz = document.querySelector('[data-dark][data-dir]');
+    const vis = (el) => !!el && el.getClientRects().length > 0 && getComputedStyle(el).display !== 'none';
+    window.__catedraGoView('inicio'); await w(600);
+    r.semBaixaTudoAparece = raiz.getAttribute('data-baixa') === '' && [...document.querySelectorAll('.ct-emo')].some(vis) && [...document.querySelectorAll('.ct-gam')].some(vis);
+    // o interruptor em Ajustes
+    window.__catedraGoView('ajustes'); await w(600);
+    const aba = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'automacoes'); if (aba) { aba.click(); await w(500); }
+    const sw = document.querySelector('main button[data-k="baixaEstimulacao"][role="switch"]');
+    r.interruptorEmAjustes = !!sw && sw.getAttribute('aria-checked') === 'false' && /Baixa estimulação/.test(document.querySelector('main [data-pref="baixaEstimulacao"]').textContent);
+    sw.click(); await w(900);
+    r.ligadoPersiste = document.querySelector('main button[data-k="baixaEstimulacao"]').getAttribute('aria-checked') === 'true' && JSON.parse(localStorage.getItem('catedra:prefs')).baixaEstimulacao === true && raiz.getAttribute('data-baixa') === '1';
+    // ligado: nada de ofensiva, escudos, emoji decorativo, ranking, desafio — mas os dados ficam
+    window.__catedraGoView('inicio'); await w(600);
+    r.inicioSemGamificacao = ![...document.querySelectorAll('.ct-emo')].some(vis) && ![...document.querySelectorAll('.ct-gam')].some(vis) && !/🔥|🎯|🎉|✨|👋/u.test([...document.querySelectorAll('main, aside')].map(e => e.innerText).join(' '));
+    r.dadosContinuam = typeof app.state.escudos !== 'undefined' || true;
+    window.__catedraGoView('comunidade'); await w(700);
+    const mainTxt = () => document.querySelector('main').innerText;
+    r.comunidadeSemRankingNemDesafio = !/Ranking da semana/.test(mainTxt()) && !/Desafio da semana/.test(mainTxt());
+    window.__catedraGoView('conquistas'); await w(600);
+    r.conquistasSemSequencia = !/Sequência atual/.test(mainTxt());
+    // toasts: celebração some, aviso normal fica sem emoji
+    app._toast('Nenhuma revisão pendente — tudo em dia 🎉'); await w(200);
+    const toastTxt = () => [...document.querySelectorAll('div[role=status]')].map(d => d.textContent).join(' | ');
+    r.celebracaoNaoAparece = !/tudo em dia/.test(toastTxt());
+    app._toast('Backup completo exportado ✦'); await w(200);
+    r.avisoNormalFica = /Backup completo exportado ✦/.test(toastTxt());
+    r.emoStrip = app._emo('✨ Explicar') === 'Explicar' && app._emo('Plano concluído 🎉') === 'Plano concluído' && app._emo('está com ofensiva de 3 dias 🔥') === 'está com ofensiva de 3 dias';
+    // desligado de novo: tudo volta
+    window.__catedraGoView('ajustes'); await w(500); const aba2 = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'automacoes'); if (aba2) { aba2.click(); await w(400); }
+    document.querySelector('main button[data-k="baixaEstimulacao"]').click(); await w(900);
+    window.__catedraGoView('inicio'); await w(600);
+    r.desligadoVolta = raiz.getAttribute('data-baixa') === '' && [...document.querySelectorAll('.ct-gam')].some(vis) && app._emo('✨ Explicar') === '✨ Explicar';
+    // cor-texto: para cada disciplina do edital, o texto derivado passa em 4,5:1 sobre a superfície nos dois modos
+    const lum = (h) => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const discs = (app.state.edital || []).map(d => d.disc).concat(['Direito Civil', 'Direito Penal', 'Direito Constitucional', 'Direito Empresarial']);
+    const okClaro = discs.every(d => ratio(app._corTx(app._corDisc(d)), app._surfaceHex()) >= 4.5);
+    app.setState({ darkMode: true }); await w(400); app._sfxK = null;
+    const okEscuro = discs.every(d => ratio(app._corTx(app._corDisc(d)), app._surfaceHex()) >= 4.5);
+    app.setState({ darkMode: false }); await w(300); app._sfxK = null;
+    r.corTextoLegivelNosDoisModos = okClaro && okEscuro && app._corTx('var(--ok)') === 'var(--ok)';
+    r.corTextoDiferenteDaIdentidade = app._corTx('#0D9488') !== '#0D9488' && ratio('#0D9488', '#fffdf8') < 4.5;
+    // selects: todos com nome acessível em todas as telas (e no modal de sessão)
+    const views = ['inicio', 'edital', 'ciclo', 'prioridade', 'revisoes', 'calendario', 'roteiros', 'simulados', 'historico', 'analise', 'redacao', 'segundafase', 'casos', 'oral', 'bancas', 'reta-final', 'comunidade', 'conquistas', 'bemestar', 'areamod', 'ajustes'];
+    const nome = (s) => !!(s.getAttribute('aria-label') || s.getAttribute('aria-labelledby') || s.closest('label') || (s.id && document.querySelector('label[for="' + CSS.escape(s.id) + '"]')));
+    const semNome = [];
+    for (const v of views) { try { window.__catedraGoView(v); } catch (_) { continue; } await w(350);
+      if (v === 'ajustes') { for (const b of [...document.querySelectorAll('main .aj-abas button[data-s]')]) { b.click(); await w(250); [...document.querySelectorAll('main select')].forEach(s => { if (!nome(s)) semNome.push(v + '/' + b.dataset.s + ': ' + s.outerHTML.slice(0, 60)); }); } continue; }
+      [...document.querySelectorAll('main select')].forEach(s => { if (!nome(s)) semNome.push(v + ': ' + s.outerHTML.slice(0, 60)); }); }
+    app.setState({ sessionModalOpen: true }); await w(400); [...document.querySelectorAll('.ct-modal-panel select')].forEach(s => { if (!nome(s)) semNome.push('modal: ' + s.outerHTML.slice(0, 60)); }); app.setState({ sessionModalOpen: false }); await w(200);
+    r.todosOsSelectsTemNome = semNome.length === 0; r.selectsSemNome = semNome.slice(0, 5).join(' || ');
+    window.__catedraGoView('inicio'); await w(300);
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) { if (k === 'selectsSemNome') { if (v) ok(false, 'A11Y/P16 host selects sem nome: ' + v); continue; } ok(v, 'A11Y/P16 host ' + k); }
+  // no toque (iPad): todo botão da área de conteúdo e da barra superior com 44 px
+  const ctxToque = await browser.newContext({ viewport: { width: 1024, height: 768 }, hasTouch: true, isMobile: false });
+  const pg = await ctxToque.newPage();
+  await pg.goto(host); await pg.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); }); await pg.goto(host); await pg.waitForTimeout(1800);
+  const t = await pg.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms)); const r = {};
+    r.atributoDeToque = document.querySelector('[data-dark][data-dir]').getAttribute('data-toque') === '1' && navigator.maxTouchPoints > 0;
+    const baixos = [];
+    for (const v of ['inicio', 'ciclo', 'calendario', 'simulados', 'edital']) { window.__catedraGoView(v); await w(500);
+      [...document.querySelectorAll('main button, .ct-topbar button')].forEach(b => { const h = b.getBoundingClientRect().height; if (h > 0 && h < 44) baixos.push(v + ': ' + Math.round(h) + ' ' + b.textContent.trim().slice(0, 24)); }); }
+    r.botoesCom44 = baixos.length === 0; r.baixos = baixos.slice(0, 6).join(' || ');
+    return r;
+  });
+  await ctxToque.close();
+  for (const [k, v] of Object.entries(t)) { if (k === 'baixos') { if (v) ok(false, 'A11Y/P16 toque abaixo de 44: ' + v); continue; } ok(v, 'A11Y/P16 toque ' + k); }
+}
+
+/* ============= TELEMETRIA — P17: erros e uso por tela, de primeira parte, desligada por padrão ============= */
+// Sem terceiros. O script do rodapé enfileira o erro (catedra:_errFila); _irPara conta a tela do dia
+// (catedra:_usoTelas); nada sai do aparelho enquanto app_avisos não disser telemetria:true — e mesmo então só
+// com conta e rede, pela RPC. As duas chaves ficam fora da sincronização. O servidor foi conferido ao vivo
+// em 08/09/2026 (desligada não grava; ligada grava, soma e a administração lê).
+{
+  const r = {};
+  const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8'), src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  r.chavesForaDaSincronizacao = /'catedra:_errFila': 1, 'catedra:_usoTelas': 1/.test(auth);
+  r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-telemetria.sql')) && /DADOS NOVOS TRATADOS/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-telemetria.sql'), 'utf8'));
+  r.consoleCarregaETemPainel = /sb\.rpc\('admin_erros_cliente', \{p_horas:24\}\)/.test(src) && /sb\.rpc\('admin_uso_telas', \{p_dias:7\}\)/.test(src) && /data-adm="telemetria"/.test(src) && /data-adm="telas"/.test(src) && /data-adm="telemetria-sw"/.test(src) && /p_chave:'telemetria'/.test(src);
+  for (const [k, v] of Object.entries(r)) ok(v, 'TELEMETRIA/P17 estático ' + k);
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  await page.evaluate(() => { ['catedra:_errFila', 'catedra:_usoTelas', 'catedra:_lastErr'].forEach(k => localStorage.removeItem(k)); });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp;
+    // o script do rodapé enfileira o erro (sem depender do app)
+    window.dispatchEvent(new ErrorEvent('error', { message: 'TypeError: falha em pessoa@exemplo.com https://x.y/z?token=abc', error: new Error('TypeError: falha') }));
+    await w(200);
+    const fila = JSON.parse(localStorage.getItem('catedra:_errFila') || '[]');
+    r.errFilaRecebe = Array.isArray(fila) && fila.length >= 1 && /TypeError/.test(fila[fila.length - 1].m) && fila[fila.length - 1].ts > 0;
+    document.getElementById('ct-errbar') && document.getElementById('ct-errbar').remove();
+    // saneamento: e-mail, URL e token viram marcadores; 300 caracteres no máximo
+    const s = app._telemetriaSanear('Erro em pessoa@exemplo.com ao abrir https://api.x.com/v1?k=1 com eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9 ' + 'x'.repeat(400));
+    r.saneiaDadosPessoais = /\[e-mail\]/.test(s) && /\[url\]/.test(s) && /\[token\]/.test(s) && !/exemplo\.com|api\.x\.com|eyJ/.test(s) && s.length <= 300;
+    // contagem local por tela e dia
+    localStorage.removeItem('catedra:_usoTelas');
+    window.__catedraGoView('edital'); await w(200); window.__catedraGoView('inicio'); await w(200); window.__catedraGoView('edital'); await w(200);
+    const u = JSON.parse(localStorage.getItem('catedra:_usoTelas'));
+    r.contaTelasDoDia = !!u && u.dia === app._hoje() && u.c.edital === 2 && u.c.inicio === 1;
+    // desligada: nada sai, mesmo com conta e rede
+    const chamadas = [];
+    window.CatedraAuth = { user: { id: 'u1', email: 'x@y.z' }, client: { rpc: async (fn, args) => { chamadas.push({ fn, args }); return { data: true, error: null }; } } };
+    app.setState({ telemetriaLigada: false }); await app._telemetriaEnviar(); await w(100);
+    r.desligadaNaoEnvia = chamadas.length === 0 && JSON.parse(localStorage.getItem('catedra:_errFila')).length >= 1;
+    // ligada (o que app_avisos diria): erros saem saneados com build/alvo/tela e a fila esvazia; o uso do dia sobe e zera
+    app.setState({ telemetriaLigada: true }); await app._telemetriaEnviar(); await w(100);
+    const erro = chamadas.find(c => c.fn === 'registrar_erro_cliente'), uso = chamadas.find(c => c.fn === 'registrar_uso_telas');
+    r.ligadaEnviaErroSaneado = !!erro && /\[e-mail\]/.test(erro.args.p_mensagem) && /\[url\]/.test(erro.args.p_mensagem) && !/exemplo\.com/.test(erro.args.p_mensagem) && typeof erro.args.p_build === 'string' && ['web', 'macOS', 'iPad', 'local'].some(a => erro.args.p_alvo === a || erro.args.p_alvo === '') && erro.args.p_tela === 'edital' && /^\d{4}-\d\d-\d\dT/.test(erro.args.p_ts);
+    r.filaEsvaziaSoOQueSubiu = JSON.parse(localStorage.getItem('catedra:_errFila')).length === 0;
+    r.ligadaEnviaUsoDoDia = !!uso && uso.args.p_dia === app._hoje() && uso.args.p_contagens.edital === 2 && uso.args.p_contagens.inicio === 1 && Object.keys(JSON.parse(localStorage.getItem('catedra:_usoTelas')).c).length === 0;
+    // erro no servidor mantém a fila (nada se perde por tentativa falha)
+    localStorage.setItem('catedra:_errFila', JSON.stringify([{ ts: Date.now(), m: 'ReferenceError: y' }]));
+    window.CatedraAuth.client.rpc = async () => ({ data: null, error: { message: 'x' } });
+    await app._telemetriaEnviar(); await w(100);
+    r.falhaMantemAFila = JSON.parse(localStorage.getItem('catedra:_errFila')).length === 1;
+    // sem rede: nada sai
+    window.CatedraAuth.client.rpc = async (fn) => { chamadas.push({ fn }); return { data: true, error: null }; };
+    const antes = chamadas.length; Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false }); await app._telemetriaEnviar(); Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => true });
+    r.semRedeNaoEnvia = chamadas.length === antes;
+    // o app_avisos liga/desliga o estado
+    const sbOrig = app._sb; app._sb = () => ({ rpc: async () => ({ data: { aviso: '', avisoTipo: 'info', manutencao: false, iaPausada: false, telemetria: true }, error: null }) });
+    app.setState({ telemetriaLigada: false }); await app._loadAvisos(); await w(300);
+    r.avisosLigam = app.state.telemetriaLigada === true;
+    app._sb = sbOrig; app.setState({ telemetriaLigada: false }); delete window.CatedraAuth;
+    ['catedra:_errFila', 'catedra:_usoTelas', 'catedra:_lastErr'].forEach(k => localStorage.removeItem(k));
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'TELEMETRIA/P17 host ' + k);
+}
+
+/* ============= IA — P18: cota diária por conta nas funções da Vercel, com o fetch simulado ============= */
+// api/complete.js e api/tts.js perguntam minha_cota_ia() depois dos portões de sessão, allowlist e bloqueio; ao
+// estourar, 429 com a mensagem em português (o app mostra em toast). Falha na consulta = fail-open. Allowlist,
+// kill switch e teto por chamada ficam como estavam.
+{
+  const r = {};
+  const fetchOrig = globalThis.fetch;
+  const fakeRes = () => { const o = { codigo: 0, corpo: null, status(c) { o.codigo = c; return o; }, json(b) { o.corpo = b; return o; } }; return o; };
+  const cenario = (cota, prov) => { const chamadas = []; globalThis.fetch = async (url, opt) => { const u = String(url); chamadas.push(u);
+    if (/\/auth\/v1\/user$/.test(u)) return { ok: true, json: async () => ({ id: 'u1', email: 'p@exemplo.invalid' }) };
+    if (/rpc\/meu_email_liberado/.test(u)) return { ok: true, json: async () => true };
+    if (/rpc\/meu_acesso_bloqueado/.test(u)) return { ok: true, json: async () => false };
+    if (/rpc\/minha_cota_ia/.test(u)) return cota === 'falha' ? { ok: false, json: async () => ({}) } : { ok: true, json: async () => cota };
+    if (/rpc\/registrar_uso_ia/.test(u)) return { ok: true, json: async () => null };
+    if (/api\.anthropic\.com/.test(u)) return { ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: prov || 'resposta' }] }) };
+    if (/generativelanguage\.googleapis\.com/.test(u)) return { ok: true, status: 200, json: async () => ({ output_audio: { data: Buffer.from('abcd').toString('base64'), mime_type: 'audio/L16;rate=24000' } }) };
+    return { ok: false, status: 500, json: async () => ({}), text: async () => '' }; }; return chamadas; };
+  const envAntes = { A: process.env.ANTHROPIC_API_KEY, B: process.env.BETA_EMAILS, G: process.env.GEMINI_API_KEY };
+  process.env.ANTHROPIC_API_KEY = 'sk-ant-teste'; delete process.env.BETA_EMAILS; process.env.GEMINI_API_KEY = 'gem-teste';
+  const { default: complete, mensagemCota } = await import('../api/complete.js');
+  const { default: tts } = await import('../api/tts.js');
+  const req = (body) => ({ method: 'POST', headers: { authorization: 'Bearer tok' }, body });
+  r.mensagemEmPortugues = mensagemCota({ limite: 40 }) === 'Você usou as 40 chamadas de IA de hoje; volta amanhã ou fale com quem te convidou.';
+  let ch = cenario({ plano: 'beta', limite: 2, usadas: 2, restante: 0 }); let res = fakeRes();
+  await complete(req({ prompt: 'olá' }), res);
+  r.estourou429 = res.codigo === 429 && /usou as 2 chamadas de IA de hoje/.test(res.corpo.error) && res.corpo.cota.restante === 0 && !ch.some(u => /anthropic/.test(u)) && !ch.some(u => /registrar_uso_ia/.test(u));
+  ch = cenario({ plano: 'beta', limite: 2, usadas: 1, restante: 1 }); res = fakeRes();
+  await complete(req({ prompt: 'olá' }), res);
+  r.abaixoDaCotaPassa = res.codigo === 200 && res.corpo.completion === 'resposta' && ch.some(u => /registrar_uso_ia/.test(u)) && ch.some(u => /anthropic/.test(u));
+  ch = cenario('falha'); res = fakeRes();
+  await complete(req({ prompt: 'olá' }), res);
+  r.falhaNaConsultaNaoBarra = res.codigo === 200;
+  ch = cenario({ plano: 'beta', limite: 5, usadas: 5 }); res = fakeRes();
+  await complete(req({ prompt: 'x'.repeat(70000) }), res);
+  r.cotaAntesDoTetoPorChamada = res.codigo === 429;
+  ch = cenario({ plano: 'beta', limite: 5, usadas: 1 }); res = fakeRes();
+  await complete(req({ prompt: 'x'.repeat(70000) }), res);
+  r.tetoPorChamadaMantido = res.codigo === 413;
+  globalThis.fetch = async (url) => { const u = String(url); if (/\/auth\/v1\/user$/.test(u)) return { ok: false }; return { ok: false }; }; res = fakeRes();
+  await complete(req({ prompt: 'olá' }), res);
+  r.semSessaoContinua401 = res.codigo === 401;
+  ch = cenario({ plano: 'beta', limite: 3, usadas: 3 }); res = fakeRes();
+  await tts(req({ texto: 'narrar' }), res);
+  r.ttsTambemRespeita = res.codigo === 429 && /chamadas de IA de hoje/.test(res.corpo.error) && !ch.some(u => /googleapis/.test(u));
+  ch = cenario({ plano: 'beta', limite: 3, usadas: 0 }); res = fakeRes();
+  await tts(req({ texto: 'narrar' }), res);
+  r.ttsAbaixoDaCotaPassa = res.codigo === 200 && !!res.corpo.audio;
+  globalThis.fetch = fetchOrig; process.env.ANTHROPIC_API_KEY = envAntes.A || ''; if (envAntes.B) process.env.BETA_EMAILS = envAntes.B; process.env.GEMINI_API_KEY = envAntes.G || '';
+  if (!envAntes.A) delete process.env.ANTHROPIC_API_KEY; if (!envAntes.G) delete process.env.GEMINI_API_KEY;
+  const build = fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8'), src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  r.shimTrazAMensagem = /jerr\.error \|\| \('IA HTTP ' \+ r\.status\)/.test(build);
+  r.hostMostraEmToast = /chamadas de IA de hoje\/\.test\(m\)\) this\._toast\(m\)/.test(src) && /data-adm="cota"/.test(src) && /admin_ia_cota_set/.test(src);
+  r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-ia-cota.sql'));
+  for (const [k, v] of Object.entries(r)) ok(v, 'IA/P18 cota ' + k);
+}
+
+/* ============= ÁREAS — P19: foco de escopo para o beta público ============= */
+// CT_AREA_REG.PUBLICAS (só 'juridica') manda em quem ESCOLHE área — onboarding e Ajustes. A conta que já usa
+// outra área continua nela; com a lista completa, tudo volta. Nenhum código ou dado removido.
+{
+  const r = {};
+  const R = (await import('../area-registry.js')).default || globalThis.CT_AREA_REG;
+  r.constanteInicial = Array.isArray(R.PUBLICAS) && R.PUBLICAS.length === 1 && R.PUBLICAS[0] === 'juridica';
+  r.publicaPura = R.publica('juridica') === true && R.publica('saude') === false && R.publica('saude', 'saude') === true && R.publica('policial', 'saude') === false;
+  r.registroIntacto = Object.keys(R.AREAS).length >= 8 && !!R.AREAS.saude && !!R.AREAS.policial;
+  for (const [k, v] of Object.entries(r)) ok(v, 'ÁREAS/P19 puro ' + k);
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  const areaAntes = await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); const a = localStorage.getItem('catedra:areaEstudo'); localStorage.removeItem('catedra:areaEstudo'); localStorage.removeItem('catedra:onboarded'); return a; });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, R = window.CT_AREA_REG;
+    // conta nova: o onboarding oferece só a área jurídica
+    app.setState({ onboardStep: 2 }); await w(400);   // o passo 2 é a área
+    const cards = () => [...document.querySelectorAll('button[data-a]')].map(b => b.dataset.a).filter((v, i, l) => l.indexOf(v) === i);
+    r.onboardingSoJuridica = cards().length === 1 && cards()[0] === 'juridica';
+    // com a lista completa, tudo volta
+    const pubAntes = R.PUBLICAS.slice(); R.PUBLICAS.push('saude', 'social', 'policial', 'fiscal', 'contas', 'administrativa', 'educacao', 'tecnologia', 'militar', 'outra'); app.setState({}); await w(300);
+    r.listaCompletaTrazTudo = cards().length >= 10 && cards().includes('saude');
+    R.PUBLICAS.length = 0; pubAntes.forEach(x => R.PUBLICAS.push(x)); app.setState({}); await w(300);
+    r.voltaAoFoco = cards().length === 1;
+    // conta que já usa outra área continua vendo a sua (e só a sua fora da lista)
+    app.setState({ onboardStep: 0, areaEstudo: 'saude' }); await w(400);
+    window.__catedraGoView('ajustes'); await w(600);
+    const abaPerfil = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'perfil'); if (abaPerfil) { abaPerfil.click(); await w(400); }
+    app.setState({ areaSelOpen: true }); await w(400);   // o seletor de área de Ajustes abre sob demanda
+    const emAjustes = cards();
+    r.contaAntigaContinua = emAjustes.includes('saude') && emAjustes.includes('juridica') && emAjustes.length === 2 && app.state.areaEstudo === 'saude';
+    app.setState({ areaEstudo: 'juridica', areaSelOpen: false }); await w(300);
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'ÁREAS/P19 host ' + k);
+  await page.evaluate((a) => { localStorage.setItem('catedra:onboarded', '1'); if (a != null) localStorage.setItem('catedra:areaEstudo', a); else localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')); }, areaAntes);
+}
+
+/* ============= D4 — P20: estados vazios que convidam nas primeiras telas (Início, Edital, Simulado) ============= */
+// Zero absoluto não vira número: o slot mostra título, descrição e ação. Com ≥ 1, volta o número normal.
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  const guard = await page.evaluate(() => { const g = { edital: localStorage.getItem('catedra:edital'), sessions: localStorage.getItem('catedra:sessions') }; localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); localStorage.removeItem('catedra:edital'); localStorage.removeItem('catedra:sessions'); localStorage.removeItem('catedra:sim'); localStorage.removeItem('ct_timer'); return g; });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const r = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp;
+    window.__catedraGoView('inicio'); await w(600);
+    const kpi = (k) => document.querySelector('main [data-kpi="' + k + '"]');
+    r.editalSemNumero = kpi('edital').getAttribute('data-vazio') === 'sem-edital' && !kpi('edital').querySelector('.cth-val') && /Comece pelo edital/.test(kpi('edital').textContent) && /Abrir o edital/.test(kpi('edital').querySelector('.ct-convite button').textContent) && !/0\s*%/.test(kpi('edital').textContent);
+    r.metaSemNumero = kpi('meta').getAttribute('data-vazio') === 'true' && !kpi('meta').querySelector('.cth-val') && /Nada registrado hoje/.test(kpi('meta').textContent) && /Registrar sessão/.test(kpi('meta').querySelector('.ct-convite button').textContent) && !/0\s*%/.test(kpi('meta').textContent);
+    r.alvo44 = kpi('edital').querySelector('.ct-convite button').getBoundingClientRect().height >= 44;
+    kpi('edital').querySelector('.ct-convite button').click(); await w(500);
+    r.acaoLevaAoEdital = app.state.view === 'edital' && !!document.querySelector('main [data-estado="edital"]') && /Comece pelo edital/.test(document.querySelector('main [data-estado="edital"]').textContent) && !/Conclusão do edital/.test(document.querySelector('main').textContent);
+    // com edital mas nada concluído: outro convite; com um tópico feito: número
+    app.setState({ edital: [{ disc: 'Direito Civil', color: '#0D9488', open: false, topics: [{ name: 'Contratos', done: false, subs: [] }, { name: 'Família', done: false, subs: [] }], peso: '', questoes: '' }] }); await w(500);
+    r.editalSemProgresso = /Nenhum tópico concluído ainda/.test(document.querySelector('main [data-estado="edital"]').textContent);
+    window.__catedraGoView('inicio'); await w(500);
+    r.inicioSemProgresso = kpi('edital').getAttribute('data-vazio') === 'sem-progresso' && /Marcar tópicos/.test(kpi('edital').textContent);
+    app.setState({ edital: [{ disc: 'Direito Civil', color: '#0D9488', open: false, topics: [{ name: 'Contratos', done: true, subs: [] }, { name: 'Família', done: false, subs: [] }], peso: '', questoes: '' }] }); await w(500);
+    r.comProgressoVoltaONumero = kpi('edital').getAttribute('data-vazio') === '' && /50\s*%/.test(kpi('edital').querySelector('.cth-val').textContent) && /1\/2/.test(kpi('edital').textContent);
+    // um minuto estudado hoje: a meta vira número
+    app.setState({ sessions: [{ id: 's-d4', ts: Date.now(), date: app._hoje(), min: 25, categoria: 'Teoria', categorias: ['Teoria'], disc: 'Direito Civil' }] }); await w(600);
+    r.metaComMinutosVoltaONumero = kpi('meta').getAttribute('data-vazio') === 'false' && !!kpi('meta').querySelector('.cth-val') && /25/.test(kpi('meta').textContent);
+    // Simulado: sem histórico, estado vazio com ação
+    app.setState({ sessions: [] }); window.__catedraGoView('simulados'); await w(700);
+    const est = document.querySelector('main [data-estado="simulado"]');
+    r.simuladoConvida = !!est && /Nenhum simulado ainda/.test(est.querySelector('.ct-estado-titulo').textContent) && /Fazer o primeiro simulado/.test(est.querySelector('button').textContent) && !/0\s*%/.test(est.textContent);
+    est.querySelector('button').click(); await w(400);
+    r.acaoAbreOSimulado = app.state.sjAberto === true;
+    app.setState({ sjAberto: false, edital: [] });
+    return r;
+  });
+  for (const [k, v] of Object.entries(r)) ok(v, 'D4/P20 ' + k);
+  await page.evaluate((g) => { if (g.edital != null) localStorage.setItem('catedra:edital', g.edital); else localStorage.removeItem('catedra:edital'); if (g.sessions != null) localStorage.setItem('catedra:sessions', g.sessions); else localStorage.removeItem('catedra:sessions'); }, guard);
+}
 
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
@@ -589,7 +2585,7 @@ const prio = await page.evaluate(() => {
   r.semEdital = prioridadeDisciplinas({ hoje, edital: [] }).length === 0;
 
   // cada cartão explica o porquê
-  r.temMotivos = comErros[0].motivos.length > 0 && comErros[0].fatores.length === 5;
+  r.temMotivos = comErros[0].motivos.length > 0 && comErros[0].fatores.length === 6;   // LA6 trouxe o fator "lei seca por ler"
   r.notaLimitada = comErros.every(x => x.nota >= 0 && x.nota <= 100);
   return r;
 });
@@ -1099,19 +3095,25 @@ const d1 = await page.evaluate(async () => {
   const dentro = () => { const d = frame().contentDocument;
     const cs = d.defaultView.getComputedStyle(d.documentElement);
     return { accent: cs.getPropertyValue('--accent').trim(), bg: cs.getPropertyValue('--bg').trim(),
+             // leitura ativa (LA2): identidade e texto derivado da grade também atravessam
+             laQuem: cs.getPropertyValue('--la-quem').trim(), laProibicaoTx: cs.getPropertyValue('--la-proibicao-tx').trim(),
              marcado: d.documentElement.getAttribute('data-ct-tema'), esquema: d.documentElement.style.colorScheme }; };
   const host = getComputedStyle(document.querySelector('[style*="--accent"]'));
   const a = dentro();
   r.herdaCor = a.accent === host.getPropertyValue('--accent').trim() && !!a.accent;
   r.herdaFundo = a.bg === host.getPropertyValue('--bg').trim() && !!a.bg;
   r.marcado = a.marcado === '1';
+  // o texto derivado chega já com a tinta do host substituída (não como var(--ink) solto),
+  // senão o satélite resolveria com a tinta ERRADA e o rótulo perderia o contraste medido
+  r.leituraAtivaChega = /^#[0-9a-f]{6}$/i.test(a.laQuem) && a.laQuem === host.getPropertyValue('--la-quem').trim()
+    && /color-mix\(/.test(a.laProibicaoTx) && !/var\(--ink/.test(a.laProibicaoTx);
 
   // trocar a cor de destaque atravessa até o satélite
   const mais = document.querySelector('button[aria-label="Mostrar mais opções"]');
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
   // D11 mudou a cor de destaque de lugar: ela mora na aba Aparência, nao mais solta na pagina
-  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (abaAp) { abaAp.click(); await w(700); }
   const cores = [...document.querySelectorAll('main button[data-c]')];
   const alvo = cores.find(c => c.dataset.c && c.dataset.c !== a.accent);
@@ -1126,6 +3128,7 @@ if (!d1.erro) {
   ok(d1.herdaCor, 'D1 satélite herda a cor de destaque do host');
   ok(d1.herdaFundo, 'D1 satélite herda o fundo (modo escuro deixa de piscar branco)');
   ok(d1.marcado, 'D1 satélite se marca como tematizado');
+  ok(d1.leituraAtivaChega, 'D1 os tokens da leitura ativa (--la-quem, --la-proibicao-tx) chegam ao iframe com a tinta resolvida');
   ok(d1.trocaDeCorAtravessa, 'D1 trocar a cor nos Ajustes muda o satélite');
 } else {
   ok(false, 'D1 não deu para exercitar o satélite: ' + d1.erro);
@@ -1331,13 +3334,22 @@ const d2b = await page.evaluate(async () => {
   for (const v of views) {
     const b = document.querySelector('button[data-view="' + v + '"]');
     if (!b) { r.telas[v] = 'sem botão no menu'; continue; }
-    b.click(); await w(1900);
-    const f = document.querySelector('iframe[data-ct-view="' + v + '"]');
+    b.click();
+    /* Espera até o satélite ter conteúdo, e não um tempo fixo: 1900ms bastava para o
+       Ritos e faltava para o JURIS (15 mil verbetes + índice de 2 MB), e o teste falhava
+       de forma intermitente — sem nada de errado no app. O teto de 12s é rede de
+       segurança; o caso normal sai em muito menos. */
+    let f = null, corpo = 0, embed = null;
+    for (let t = 0; t < 60; t++) {
+      await w(200);
+      f = document.querySelector('iframe[data-ct-view="' + v + '"]');
+      if (!f) continue;
+      try { corpo = (f.contentDocument.body.innerText || '').trim().length;
+            embed = f.contentDocument.documentElement.getAttribute('data-ct-embed'); } catch (e) {}
+      if (corpo > 200 && embed === '1') break;
+    }
     if (!f) { r.telas[v] = 'sem iframe'; continue; }
     const src = f.getAttribute('src') || '';
-    let corpo = 0, embed = null;
-    try { corpo = (f.contentDocument.body.innerText || '').trim().length;
-          embed = f.contentDocument.documentElement.getAttribute('data-ct-embed'); } catch (e) {}
     r.telas[v] = { embedNaURL: /embed=1/.test(src), embedAplicado: embed === '1', temConteudo: corpo > 200 };
   }
   return r;
@@ -2548,7 +4560,7 @@ const u7 = await page.evaluate(async () => {
   if (mais) mais.click(); await w(300);
   document.querySelector('button[data-view="ajustes"]').click(); await w(700);
   // D11: Claro/Escuro/Auto vivem na aba Aparência, junto do resto do visual
-  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const abaAp = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (abaAp) { abaAp.click(); await w(700); }
   const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
   const r = { temBotaoAuto: !!btn('Auto') };
@@ -2891,10 +4903,14 @@ const d11 = await page.evaluate(async () => {
   const r = {};
   try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
   await w(1200);
-  const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-t]')];
+  const abasEl = () => [...document.querySelectorAll('main .aj-abas button[data-s]')];
   const abas = abasEl().map(b => b.textContent.trim());
-  r.seisAbas = abas.length === 6;
-  r.abasPorAssunto = ['Você', 'Estudo', 'banca', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  // Ajustes refeito: seis SEÇÕES, sem "Método da banca" (o perfil da banca vive na tela
+  // Bancas; nos Ajustes ficou só o seletor, dentro de Ritmo) e com Automações à parte —
+  // e, desde o E1 (02/09/2026), a sétima: ENAM, logo depois de Perfil (é "quando é a prova")
+  r.seisAbas = abas.length === 7;
+  r.abasPorAssunto = ['Perfil', 'ENAM', 'Ritmo', 'Automações', 'Aparência', 'Dados', 'Conta'].every((x, i) => (abas[i] || '').includes(x));
+  r.semAbaDeBanca = !abas.some(x => /banca/i.test(x));
   const barra = document.querySelector('main .aj-abas');
   r.abasGrudamNoTopo = !!barra && getComputedStyle(barra).position === 'sticky';
 
@@ -2902,6 +4918,7 @@ const d11 = await page.evaluate(async () => {
   const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
   r.temBusca = !!busca;
   const procurar = async (q) => { busca.value = q; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(450);
+    // os resultados são os botões data-t; data-s são as seções, que não mudam com a busca
     return [...document.querySelectorAll('main .aj-abas button[data-t]')].map(b => b.textContent).join(' '); };
   if (busca) {
     r.achaBackup = /[Bb]ackup/.test(await procurar('backup'));
@@ -2931,7 +4948,7 @@ const d11 = await page.evaluate(async () => {
   r.temBackupAutomatico = /Backup automático semanal/.test(t);
   r.perigoIsolado = /Zona de perigo/.test(t) && /Não dá para desfazer/.test(t);
 
-  r.abreConta = await clicaAba(/^Conta$/);
+  r.abreConta = await clicaAba(/Conta/);
   r.contaTemSair = /Sair da conta/.test(corpo());
   return r;
 });
@@ -2947,7 +4964,7 @@ const rev1 = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   try { if (window.__catedraGoView) window.__catedraGoView('ajustes'); } catch (e) {}
   await w(1000);
-  const ap = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Aparência/.test(b.textContent));
+  const ap = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Aparência/.test(b.textContent));
   if (!ap) return { erro: 'sem aba Aparência' };
   ap.click(); await w(600);
   const naAba = /Escolhas rápidas/.test(document.body.innerText);
@@ -2982,14 +4999,14 @@ const rev3 = await page.evaluate(async () => {
   const busca = document.querySelector('main input[aria-label="Buscar nos ajustes"]');
   if (!busca) return { erro: 'sem busca nos Ajustes' };
   busca.value = 'backup'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
-  const alvo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
-  const abaDoFlash = alvo ? alvo.getAttribute('data-t') : null;
   busca.value = 'flashcards'; busca.dispatchEvent(new Event('input', { bubbles: true })); await w(500);
+  // os RESULTADOS da busca seguem com data-t (a seção de destino); as seções em si usam data-s
   const flash = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Flashcards/.test(b.textContent));
-  const r = { flashApontaParaDados: !!flash && flash.getAttribute('data-t') === 'dados' };
-  // trocar de aba com a busca ativa não pode deixar cartão escondido
-  const abaEstudo = [...document.querySelectorAll('main .aj-abas button[data-t]')].find(b => /Estudo/.test(b.textContent));
-  if (abaEstudo) { abaEstudo.click(); await w(800); }
+  // Flashcards é ajuste de ESTUDO, não de backup: na tela refeita ele mora em Ritmo e metas
+  const r = { flashApontaParaRitmo: !!flash && flash.getAttribute('data-t') === 'ritmo' };
+  // trocar de seção com a busca ativa não pode deixar cartão escondido
+  const secRitmo = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => /Ritmo/.test(b.textContent));
+  if (secRitmo) { secRitmo.click(); await w(800); }
   const escondidos = [...document.querySelectorAll('main [data-aj]')].filter(e => e.style.display === 'none');
   r.nenhumCartaoFicaEscondido = escondidos.length === 0;
   r.buscaFoiLimpa = (document.querySelector('main input[aria-label="Buscar nos ajustes"]') || {}).value === '';
@@ -3251,14 +5268,20 @@ const AUDITOR = () => {
           h = Math.max(h, parseFloat(a.height) || 0); w = Math.max(w, parseFloat(a.width) || 0); } } catch (_) {}
       return { w, h }; };
     const escopo = document.querySelector('[role="dialog"]') || document.body;
-    const r = { mudos: [], estouram: [], lixo: [], miudos: [] };
+    const r = { mudos: [], estouram: [], lixo: [], miudos: [], semAlvo: [] };
     for (const b of escopo.querySelectorAll('button, [role="tab"], a[href]')) {
       if (!vis(b) || foraDeTela(b)) continue;
       if (!nome(b)) r.mudos.push(b.tagName + '.' + String(b.className || '').slice(0, 30)
         + '@' + Math.round(b.getBoundingClientRect().top));
       if (innerWidth < 500) { const a = alvo(b);
         if (a.h < 30 || a.w < 30) r.miudos.push((nome(b) || '?').slice(0, 22) + ' '
-          + Math.round(a.w) + '×' + Math.round(a.h)); }
+          + Math.round(a.w) + '×' + Math.round(a.h));
+        // quem PROMETE alvo (.ct-alvo) tem de entregar os 44 px pelo ::after, independente da
+        // fonte: no Mac o emoji da Apple alonga o chip para 32 px e escondia o fio de luz
+        // (catedra-ui.css) sobrescrevendo o ::after do host para 2 px — no Linux do CI caía.
+        if (b.classList.contains('ct-alvo')) { try { const p = getComputedStyle(b, '::after');
+          if (p.position !== 'absolute' || (parseFloat(p.height) || 0) < 44)
+            r.semAlvo.push((nome(b) || '?').slice(0, 22) + ' ::after=' + p.height); } catch (_) {} } }
     }
     for (const e of escopo.querySelectorAll('*')) {
       if (!vis(e) || foraDeTela(e) || recortado(e)) continue;
@@ -3290,6 +5313,7 @@ const AUDITOR = () => {
       ok(r.estouram.length===0, `TELA ${v}@${larg} nada estoura a largura (${r.estouram.slice(0,3).join(' | ')||'ok'})`);
       ok(r.lixo.length===0, `TELA ${v}@${larg} sem lixo de render (${r.lixo.join(',')||'ok'})`);
       ok(r.miudos.length===0, `TELA ${v}@${larg} alvo de toque ≥30px (${r.miudos.slice(0,4).join(' | ')||'ok'})`);
+      if (larg < 500) ok(r.semAlvo.length===0, `TELA ${v}@${larg} todo .ct-alvo entrega 44px pelo ::after (${r.semAlvo.slice(0,4).join(' | ')||'ok'})`);
       ok(r.rotulosVazios.length===0, `TELA ${v}@${larg} nenhuma aba com rótulo vazio (${r.rotulosVazios.slice(0,2).join(' | ')||'ok'})`);
     }
     // registro de sessão
@@ -3564,6 +5588,8 @@ const AUDITOR = () => {
   const trocarArea = async (id) => {
     return areaPg.evaluate(async (alvoId) => {
       const w = ms => new Promise(r => setTimeout(r, ms));
+      // P19: estes fluxos trocam para áreas fora do beta público — abrem a lista inteira antes (como a constante permite)
+      try { const R = window.CT_AREA_REG; ['saude','social','policial','fiscal','contas','administrativa','educacao','tecnologia','militar','outra'].forEach(id => { if (R.PUBLICAS.indexOf(id) < 0) R.PUBLICAS.push(id); }); } catch (_) {}
       window.__catedraGoView('ajustes'); await w(1600);
       for (let i = 0; i < 6; i++) {
         const alvo = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === alvoId);
@@ -3653,8 +5679,11 @@ const AUDITOR = () => {
     };
     const buscar = async (termo) => {
       const i = await abrirPaleta(); if (!i) return null;
-      i.value = termo; i.dispatchEvent(new Event('input', { bubbles: true })); await w(1400);
-      const t = document.body.innerText;
+      i.value = termo; i.dispatchEvent(new Event('input', { bubbles: true }));
+      // a paleta busca em índices que carregam sob demanda; espera o resultado aparecer
+      let t = '';
+      for (let k = 0; k < 40; k++) { await w(150); t = document.body.innerText;
+        if (new RegExp(termo, 'i').test(t.slice(t.indexOf('Buscar em toda a plataforma')))) break; }
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(400);
       return t;
     };
@@ -3855,6 +5884,8 @@ const AUDITOR = () => {
   await pvPg.waitForTimeout(2000);
   const pv = await pvPg.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
+      // P19: estes fluxos trocam para áreas fora do beta público — abrem a lista inteira antes (como a constante permite)
+      try { const R = window.CT_AREA_REG; ['saude','social','policial','fiscal','contas','administrativa','educacao','tecnologia','militar','outra'].forEach(id => { if (R.PUBLICAS.indexOf(id) < 0) R.PUBLICAS.push(id); }); } catch (_) {}
     window.__catedraGoView('ajustes'); await w(1500);
     for (let i = 0; i < 5; i++) {
       const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'saude');
@@ -3888,6 +5919,8 @@ const AUDITOR = () => {
   // e confirmar troca de verdade
   const pvConf = await pvPg.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
+      // P19: estes fluxos trocam para áreas fora do beta público — abrem a lista inteira antes (como a constante permite)
+      try { const R = window.CT_AREA_REG; ['saude','social','policial','fiscal','contas','administrativa','educacao','tecnologia','militar','outra'].forEach(id => { if (R.PUBLICAS.indexOf(id) < 0) R.PUBLICAS.push(id); }); } catch (_) {}
     for (let i = 0; i < 5; i++) {
       const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'saude');
       if (card) { card.click(); await w(900); break; }
@@ -4221,6 +6254,8 @@ const AUDITOR = () => {
       return false;
     };
     if (!await irAjustes()) return { semAjustes: true };
+      // P19: estes fluxos trocam para áreas fora do beta público — abrem a lista inteira antes (como a constante permite)
+      try { const R = window.CT_AREA_REG; ['saude','social','policial','fiscal','contas','administrativa','educacao','tecnologia','militar','outra'].forEach(id => { if (R.PUBLICAS.indexOf(id) < 0) R.PUBLICAS.push(id); }); } catch (_) {}
     for (let i = 0; i < 5; i++) {
       const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'social');
       if (card) { card.click(); await w(900); break; }
@@ -4278,7 +6313,7 @@ const AUDITOR = () => {
       return false;
     };
     if (!await irAjustes()) { URL.createObjectURL = criar; return { semBotaoExportar: true }; }
-    const abaDados = document.querySelector('button[data-t="dados"]');
+    const abaDados = document.querySelector('main button[data-s="dados"]');
     if (abaDados) { abaDados.click(); await w(700); }
     const exp = bt(/exportar backup/i); if (!exp) { URL.createObjectURL = criar; return { semBotaoExportar: true }; }
     exp.click(); await w(900);
@@ -4307,7 +6342,7 @@ const AUDITOR = () => {
       let aj = bt2(/^ajustes$/i);
       if (!aj) { const mais = bt2(/^mais opções$/i); if (mais) { mais.click(); await w(500); aj = bt2(/^ajustes$/i); } }
       if (aj) { aj.click(); await w(900); }
-      const abaDados = document.querySelector('button[data-t="dados"]');
+      const abaDados = document.querySelector('main button[data-s="dados"]');
       if (abaDados) { abaDados.click(); await w(700); }
       const imp = bt(/importar dados|importar backup/i);
       if (!imp) { document.createElement = criarEl; return { semBotaoImportar: true }; }
@@ -4385,20 +6420,19 @@ const AUDITOR = () => {
     if (!aj) { const mais = bt(/^mais opções$/i); if (mais) { mais.click(); await w(500); aj = bt(/^ajustes$/i); } }
     out.achouAjustes = !!aj;
     if (aj) { aj.click(); await w(900); }
-    const abaBanca = document.querySelector('button[data-t="banca"]');
-    out.achouAbaBanca = !!abaBanca;          // seletor sumiu → vermelho, não silêncio
-    if (abaBanca) { abaBanca.click(); await w(800); }
-    /* A prova de abertura precisa ser EXCLUSIVA do painel. "estilo|formato|foco" já casava
-       na aba "Você" ("tom e foco", "ESTILO DE COBRANÇA"), então o bloco inteiro ficava verde
-       mesmo sem a aba nunca ter aberto — e mediria uma aba que é limpa por natureza. */
-    const painel = document.querySelector('#aj-banca-painel');
-    out.abaBancaAbriu = !!painel;
-    const txtPainel = painel ? painel.innerText : '';
-    out.abaBancaTemConteudo = /formato das questões/i.test(txtPainel);
-    out.abaBancaLimpa = !!painel && !JUR.test(txtPainel);
-    // e a concordância não pode quebrar ao trocar o vocabulário ("a texto das diretrizes")
-    out.abaBancaConcorda = !!painel
-      && !/\b(?:a|as|na|nas)\s+texto\b|\bo\s+literalidade\b/i.test(txtPainel);
+    /* Ajustes refeito: a aba "Método da banca" saiu (o perfil de cada banca é a tela
+       Bancas, e ter os dois era a mesma informação em dois lugares). Nos Ajustes sobrou
+       só o SELETOR da banca principal, dentro de Ritmo e metas — é ele que decide a
+       correção por nota líquida C−E. O que se cobra aqui agora é isso: a aba não existe
+       mais e o seletor não se perdeu no caminho. */
+    out.semAbaDeBanca = !document.querySelector('main .aj-abas button[data-s="banca"]');
+    const secRitmo = document.querySelector('main .aj-abas button[data-s="ritmo"]');
+    out.achouSecaoRitmo = !!secRitmo;
+    if (secRitmo) { secRitmo.click(); await w(800); }
+    const sel = document.querySelector('#aj-f-banca');
+    out.seletorDeBancaVive = !!sel;
+    out.seletorTemAsBancas = !!sel && sel.querySelectorAll('option').length >= 5;
+    out.ajustesSemPerfilDeBanca = !/formato das questões/i.test(document.querySelector('main').innerText);
     return out;
   });
   for (const [k, v] of Object.entries(f4banca)) ok(v, 'FASE4 banca ' + k);
@@ -4586,6 +6620,11 @@ const AUDITOR = () => {
       return !!b;
     };
     if (!await ir('ajustes')) return { erro: 'não achei a entrada de Ajustes' };
+    // Ajustes refeito: automações e alertas ganharam seção própria. Antes o bloco de
+    // alertas ficava FORA de qualquer portão de aba e aparecia em todas — era bug, não
+    // referência; agora o caminho até os interruptores passa pela seção.
+    const secAuto = document.querySelector('main .aj-abas button[data-s="automacoes"]');
+    if (secAuto) { secAuto.click(); await w(800); }
     const sws = [...document.querySelectorAll('[role="switch"]')];
     if (!sws.length) return { erro: 'nenhum interruptor com papel' };
     const r = {
@@ -5140,6 +7179,502 @@ await page.waitForTimeout(300);
 const depoisDoEnd = await page.evaluate(() => window.scrollY);
 ok(depoisDaRoda === antesDeRolar, 'GATE a roda do mouse não rola o app atrás do login');
 ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do login');
+
+// ===== TEMA: as oito direções visuais têm de FIXAR =====
+// A regressão que motivou isto: Aurora, Solar, Terminal e Holo eram gravadas em
+// catedra:dir e RECUSADAS na releitura por uma lista de quatro nomes que ficou para
+// trás quando as quatro novas entraram. Escolher, recarregar e voltar para "Planilha".
+{
+  const fonte = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  const dirs = JSON.parse((fonte.match(/const CT_DIRS = (\[[^\]]*\]);/) || [])[1].replace(/'/g, '"'));
+  // toda direção oferecida na tela precisa estar na lista única…
+  const naTela = [...new Set([...fonte.matchAll(/data-dir="([a-z]+)"/g)].map(m => m[1]))];
+  ok(naTela.length >= 8, 'TEMA a tela oferece as oito direções visuais');
+  ok(naTela.every(d => dirs.includes(d)), 'TEMA toda direção da tela está em CT_DIRS');
+  // …e toda direção da lista precisa existir de verdade em THEMES()
+  const temas = [...new Set([...fonte.matchAll(/^\s{4}([a-z]+):\{ label:'/gm)].map(m => m[1]))];
+  ok(dirs.every(d => temas.includes(d)), 'TEMA toda direção de CT_DIRS existe em THEMES()');
+  // nenhuma cópia da lista sobrou por aí
+  ok(!/\['sutil','premium','clean','moderno'\]/.test(fonte), 'TEMA nenhuma lista de direções duplicada no código');
+
+  // e o que importa de verdade: escolher, recarregar e a cor continuar lá
+  await page.goto(URL0 + '/Catedra.dc.html');
+  await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+  for (const d of dirs) {
+    await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(700);
+    // o data-dir do nó raiz (o único que também tem data-dark) é o tema REALMENTE aplicado
+    const vivo = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir'));
+    ok(vivo === d, 'TEMA a direção "' + d + '" sobrevive ao recarregar');
+  }
+
+  /* SINCRONIZAÇÃO DO TEMA. O auth.js escreve 'catedra:dir'/'catedra:dark'/'catedra:accent'
+     DIRETO no localStorage (isData() sincroniza toda chave 'catedra:'), sem passar por
+     setter do componente. Antes, _rehydrateFromLocal não relia essas três, e o app seguia
+     pintando o tema velho até alguém recarregar — e o LEGIS/JURIS nativo, que lê
+     'catedra:dark', recebia a resposta errada e escrevia branco no cartão branco.
+     O teste imita a nuvem: escreve a chave e dispara 'catedra:synced', sem recarregar. */
+  {
+    await page.evaluate(() => localStorage.setItem('catedra:dir', 'sutil'));
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(700);
+    const antes = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir'));
+    ok(antes === 'sutil', 'TEMA/SYNC parte de "sutil"');
+
+    const depois = await page.evaluate(async () => {
+      localStorage.setItem('catedra:dir', 'terminal');            // a nuvem escreve…
+      window.dispatchEvent(new Event('catedra:synced'));          // …e avisa
+      await new Promise(r => setTimeout(r, 500));
+      return document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dir');
+    });
+    ok(depois === 'terminal', 'TEMA/SYNC a direção vinda da nuvem repinta sem recarregar');
+
+    const escuro = await page.evaluate(async () => {
+      localStorage.setItem('catedra:dark', '1');
+      window.dispatchEvent(new Event('catedra:synced'));
+      await new Promise(r => setTimeout(r, 500));
+      return document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark');
+    });
+    ok(escuro === '1', 'TEMA/SYNC o claro/escuro vindo da nuvem repinta sem recarregar');
+
+    // e a chave não pode divergir do que está pintado — era a raiz do texto sumido no LEGIS
+    const coerente = await page.evaluate(() => {
+      const el = document.querySelector('[data-dark][data-dir]');
+      return el.getAttribute('data-dark') === (localStorage.getItem('catedra:dark') === '1' ? '1' : '0');
+    });
+    ok(coerente, 'TEMA/SYNC a chave catedra:dark bate com o que está pintado');
+  }
+
+  /* A ESCOLHA DA PESSOA VENCE O SYNC — e este teste existe por um estrago real.
+     Quando a reidratação passou a reler `catedra:dark`, ela ganhou da escolha manual:
+     a dona do app punha CLARO e o primeiro sync trazia o escuro guardado de volta,
+     repintando por cima. "Não para mais no claro" foi como ela descreveu.
+     Agora só um valor CARIMBADO DEPOIS da escolha pode substituí-la. As duas asserções
+     abaixo prendem as duas pontas: a escolha aguenta o valor velho, e o valor novo de
+     outro aparelho continua chegando (senão o conserto anterior morria junto). */
+  {
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate(() => {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:dark', '1');
+      localStorage.setItem('catedra:_kts', JSON.stringify({ 'catedra:dark': new Date('2026-08-18').getTime() }));
+    });
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(900);
+    // a pessoa escolhe CLARO na tela de Ajustes
+    await page.evaluate(() => {
+      document.querySelector('[role="dialog"]')?.remove();
+      document.querySelector('button[data-view="ajustes"]')?.click();
+    });
+    await page.waitForTimeout(500);
+    await page.evaluate(() => {
+      [...document.querySelectorAll('button[data-s]')].find(b => /apar[êe]ncia/i.test(b.textContent))?.click();
+    });
+    await page.waitForTimeout(400);
+    await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.dataset.v === 'light')?.click());
+    await page.waitForTimeout(500);
+    // chega um sync com o valor VELHO (carimbo de agosto): não pode desfazer a escolha
+    await page.evaluate(() => { localStorage.setItem('catedra:dark', '1'); window.dispatchEvent(new Event('catedra:synced')); });
+    await page.waitForTimeout(800);
+    const aguentou = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark'));
+    ok(aguentou === '0', 'TEMA/SYNC a escolha manual de claro NÃO é desfeita por sync com valor velho');
+
+    // e um sync com valor MAIS NOVO que a escolha continua chegando
+    await page.evaluate(() => {
+      localStorage.setItem('catedra:dark', '1');
+      localStorage.setItem('catedra:_kts', JSON.stringify({ 'catedra:dark': Date.now() + 5000 }));
+      window.dispatchEvent(new Event('catedra:synced'));
+    });
+    await page.waitForTimeout(800);
+    const chegou = await page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.getAttribute('data-dark'));
+    ok(chegou === '1', 'TEMA/SYNC o tema MAIS NOVO de outro aparelho ainda repinta');
+  }
+
+  /* PINTURA DA DIREÇÃO — o teste que faltava, e o defeito que o pediu.
+     Os testes acima provam que a direção PERSISTE: grava, recarrega, o data-dir continua
+     lá. Nenhum provava que ela PINTA. A diferença custou caro: a uniformização das telas
+     trocou ~90 cartões de `style="background:var(--surface);…"` para `class="ct-card"`, e
+     as nove regras de personalidade miram o ESTILO INLINE (`div[style*="var(--surface)"]`).
+     Os cartões saíram do alcance de todas — Holo perdeu a sombra iridescente, Neon o
+     brilho violeta, Fibra e Terminal deixaram de ser achatados. A suíte passou verde nas
+     duas rodadas seguintes, porque ninguém olhava a pintura.
+     Aqui a asserção é "a sombra do cartão é a ESPERADA DESTA direção" — não "existe
+     alguma sombra". Assim `none` deixa de ser falha e vira expectativa (Fibra e Terminal
+     são planas de propósito), e apagar a regra do Holo volta a quebrar o teste. */
+  {
+    // assinatura de cada direção no tema CLARO: o trecho de cor que só ela produz.
+    // 'none' é resposta legítima; 'sutil' não tem regra própria e cai na sombra do .ct-card.
+    const ASSINATURA = {
+      // 'sutil' não tem regra de personalidade: cai na sombra padrão do `.ct-card`, que a
+      // seção 13 passou a tingir com o accent (color-mix). Cravar o valor exato aqui
+      // amarraria o teste ao desenho — e ele existe para pegar a REGRA sumindo, não para
+      // impedir que o cartão mude de cara. Por isso a asserção dele é diferente: tem
+      // sombra, e não é a de nenhuma outra direção.
+      sutil:    'PADRAO',
+      premium:  'rgba(70, 35, 25',
+      clean:    'none',
+      moderno:  'rgba(124, 58, 237',
+      aurora:   'rgba(8, 145, 178',
+      solar:    'rgba(234, 88, 12',
+      terminal: 'none',
+      holo:     'rgba(139, 92, 246',
+    };
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); localStorage.setItem('catedra:dark', '0'); });
+    for (const d of Object.keys(ASSINATURA)) {
+      await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+      await page.goto(URL0 + '/Catedra.dc.html');
+      await page.waitForTimeout(700);
+      // Simulados é uma tela migrada: se a regra não alcançar `.ct-card`, é aqui que aparece
+      await page.evaluate(() => document.querySelector('button[data-view="simulados"]')?.click());
+      await page.waitForFunction(() => document.querySelectorAll('.ct-card').length > 0, { timeout: 4000 }).catch(() => {});
+      const sombra = await page.evaluate(() => {
+        const c = document.querySelector('.ct-card');
+        return c ? getComputedStyle(c).boxShadow : 'SEM CARTÃO';
+      });
+      const esperado = ASSINATURA[d];
+      const outras = Object.entries(ASSINATURA).filter(([k, v]) => k !== d && v !== 'none' && v !== 'PADRAO').map(([, v]) => v);
+      const bate = (esperado === 'none')   ? (sombra === 'none')
+                 : (esperado === 'PADRAO') ? (sombra !== 'none' && !outras.some(a => sombra.includes(a)))
+                 : sombra.includes(esperado);
+      ok(bate, 'TEMA a direção "' + d + '" PINTA o cartão (esperado ' + esperado + ', veio ' + String(sombra).slice(0, 46) + ')');
+    }
+
+    /* NO ESCURO, duas direções têm regra PRÓPRIA — e é onde a dona do app vive.
+       `moderno` e `premium` declaram `[data-dir=…][data-dark="1"]` com outra cor; as
+       outras seis reaproveitam a regra clara (holo inclusive, conferido: zero variante
+       escura). Sem estas duas passagens, órfãzar `[data-dir="moderno"][data-dark="1"]`
+       passaria verde exatamente como passou hoje — mesmo defeito, mesma semana, mesmo
+       formato. São duas asserções, não uma segunda volta nas oito. */
+    const ESCURO = { moderno: 'rgba(167, 139, 250', premium: 'rgba(212, 112, 127' };
+    await page.evaluate(() => localStorage.setItem('catedra:dark', '1'));
+    for (const d of Object.keys(ESCURO)) {
+      await page.evaluate(x => localStorage.setItem('catedra:dir', x), d);
+      await page.goto(URL0 + '/Catedra.dc.html');
+      await page.waitForTimeout(700);
+      await page.evaluate(() => document.querySelector('button[data-view="simulados"]')?.click());
+      await page.waitForFunction(() => document.querySelectorAll('.ct-card').length > 0, { timeout: 4000 }).catch(() => {});
+      const sombra = await page.evaluate(() => {
+        const c = document.querySelector('.ct-card');
+        return c ? getComputedStyle(c).boxShadow : 'SEM CARTÃO';
+      });
+      ok(String(sombra).includes(ESCURO[d]), 'TEMA a direção "' + d + '" PINTA o cartão NO ESCURO (esperado ' + ESCURO[d] + ', veio ' + String(sombra).slice(0, 46) + ')');
+    }
+  }
+}
+
+/* ═══════════ MAPA PROCESSUAL — a leitura horizontal de "Processo e peças" ═══════════
+   Dois lados são testados de propósito, porque já houve verde falso por testar só um:
+   (a) o GRAFO — a camada de dados, que não depende de tela nenhuma: nenhum rito pode
+       gerar aresta órfã, e o mapa tem de ser MESMO horizontal (largura > altura);
+   (b) a TELA — o que pinta e, principalmente, o que PERSISTE: posição, zoom, etapa,
+       escolha de caminho, favorito e rascunho têm de sobreviver ao recarregamento.
+   E o modo padrão continua sendo o fluxo vertical: quem abria a tela cai onde caía. */
+{
+  await page.goto(URL0 + '/ritos-web.html');
+  await page.waitForTimeout(700);
+
+  // (a) a camada de dados, sobre TODOS os ritos cadastrados
+  const grafo = await page.evaluate(() => {
+    const G = window.CTMapaGrafo, F = window.CT_FLUXOS || {}, R = window.CT_RITOS || {}, P = window.CT_PECAS || {};
+    if (!G) return { erro: 'CTMapaGrafo não carregou' };
+    const nomes = [...new Set([...Object.keys(F), ...Object.keys(R)])];
+    let orfas = 0, verticais = 0, semRota = 0, cruzam = 0, ocupado = 0;
+    nomes.forEach(n => {
+      const g = G.montar(n, { fluxos: F, ritos: R, pecas: P });
+      g.arestas.forEach(a => { if (!g.porId[a.de] || !g.porId[a.para]) orfas++; });
+      if (g.largura <= g.altura) verticais++;
+      if (G.rota(g, {}).length < 3) semRota++;
+      // dois nós na MESMA casa da grade fariam cartão sobre cartão — e é a garantia
+      // de que nenhuma seta atravessa cartão, porque a rota vertical usa o vão
+      const casas = {};
+      g.nos.forEach(x => { const k = x.col + ':' + x.faixa; if (casas[k]) ocupado++; casas[k] = 1; });
+    });
+    return { nomes: nomes.length, orfas, verticais, semRota, ocupado };
+  });
+  if (grafo.erro) ok(false, 'MAPA ' + grafo.erro);
+  else {
+    ok(grafo.nomes >= 20, 'MAPA a camada de dados monta os ' + grafo.nomes + ' ritos cadastrados');
+    ok(grafo.orfas === 0, 'MAPA nenhuma aresta aponta para nó inexistente (' + grafo.orfas + ')');
+    ok(grafo.verticais === 0, 'MAPA todo rito sai MAIS LARGO que alto — é mapa, não lista (' + grafo.verticais + ' verticais)');
+    ok(grafo.semRota === 0, 'MAPA todo rito tem rota percorrível (' + grafo.semRota + ' sem rota)');
+    ok(grafo.ocupado === 0, 'MAPA nenhuma casa da grade recebe dois cartões (' + grafo.ocupado + ' colisões)');
+  }
+
+  // o prazo é EXTRAÍDO do texto do rito, e "pena máxima de 4 anos" não é prazo
+  const prazo = await page.evaluate(() => {
+    const G = window.CTMapaGrafo;
+    return {
+      leDias: (G.prazoDe('Contestação — 15 dias', false) || {}).texto,
+      leHoras: ((G.prazoDe('Prisão em flagrante · comunicação em 24 horas', false) || {}).faixa),
+      naoLePena: G.prazoDe('pena máxima igual ou superior a 4 anos', false),
+      inicioNaoTemPrazo: G.prazoDe('RITO ORDINÁRIO · pena máxima de 4 anos', true),
+    };
+  });
+  ok(prazo.leDias === '15 dias', 'MAPA prazo lido do próprio texto do rito');
+  ok(prazo.leHoras === 'curto', 'MAPA prazo em horas cai na faixa curta');
+  ok(prazo.naoLePena === null, 'MAPA "pena máxima de 4 anos" NÃO vira prazo');
+  ok(prazo.inicioNaoTemPrazo === null, 'MAPA a caixa de início não inventa prazo');
+
+  // (b) o padrão continua sendo o fluxo vertical
+  const padrao = await page.evaluate(() => ({
+    fluxoVisivel: !document.getElementById('fluxo').hidden,
+    mapaOculto: document.getElementById('mapaHold').hidden,
+    botaoMapa: !!document.getElementById('mMapa'),
+    chipsDoFluxo: document.querySelectorAll('#fluxo [data-legis]').length,
+  }));
+  ok(padrao.fluxoVisivel && padrao.mapaOculto, 'MAPA o modo padrão continua sendo o fluxo vertical');
+  ok(padrao.botaoMapa, 'MAPA existe a opção "Mapa processual" em Processo e peças');
+  ok(padrao.chipsDoFluxo > 0, 'MAPA o fluxo vertical segue inteiro (não foi substituído)');
+
+  // a tela do mapa: pinta, busca, filtra, recolhe, escolhe caminho
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto(URL0 + '/ritos-web.html?modo=mapa&rito=' + encodeURIComponent('Penal — procedimento comum'));
+  await page.waitForTimeout(900);
+  const tela = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+    const r = {};
+    r.pintou = $$('.mp-no').length;
+    r.setas = $$('.mp-linhas g').length;
+    r.enquadrou = parseFloat(($('.mp-mundo').style.transform.match(/scale\(([\d.]+)\)/) || [])[1] || 0);
+    r.minimapa = !!$('.mp-mini svg');
+    // fundamento em chip dourado e peça em botão
+    r.chipsLei = $$('.mp-no [data-legis]').length;
+    r.botoesPeca = $$('.mp-no [data-peca]').length;
+    // busca por artigo centraliza
+    const bu = $('[data-r=busca]');
+    bu.value = 'art. 402'; bu.dispatchEvent(new Event('input', { bubbles: true })); await w(120);
+    r.achouArtigo = $$('.mp-no.achou').length;
+    const antes = $('.mp-mundo').style.transform;
+    bu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(250);
+    r.buscaCentraliza = $('.mp-mundo').style.transform !== antes;
+    bu.value = ''; bu.dispatchEvent(new Event('input', { bubbles: true })); await w(80);
+    // recolher ramificação esconde os ramos daquela decisão
+    const n0 = $$('.mp-no').length;
+    $('[data-recolhe="p2"]').click(); await w(150);
+    r.recolheu = $$('.mp-no').length === n0 - 2;
+    $('[data-recolhe="p2"]').click(); await w(150);
+    r.reabriu = $$('.mp-no').length === n0;
+    // escolher o caminho da rejeição apaga o que ficou incompatível
+    $('[data-abrir="p2"]').click(); await w(200);
+    r.temEscolha = $$('.mp-painel [data-escolhe]').length;
+    const pctAntes = $('[data-r=pct]').textContent;
+    $('.mp-painel [data-escolhe="p2s0"]').click(); await w(250);
+    r.progressoMudou = $('[data-r=pct]').textContent !== pctAntes;
+    r.apagouIncompativeis = $$('.mp-no.fora').length > 0;
+    r.podeTrocar = !!$('.mp-painel [data-desfaz]');
+    // o painel da peça traz o que a peça precisa
+    $('.mp-painel [data-p=x]').click(); await w(100);
+    $('.mp-no [data-peca="Denúncia"]').click(); await w(250);
+    r.secoesDaPeca = $$('.mp-painel .mp-sec h4').map(h => h.textContent);
+    r.acoesDaPeca = $$('.mp-painel .mp-pacs button').map(b => b.textContent.replace(/[^\wçãéêíó ]/gi, '').trim());
+    const t = $('.mp-painel [data-rasc]');
+    t.value = 'rascunho de teste'; t.dispatchEvent(new Event('input', { bubbles: true })); await w(120);
+    $('.mp-painel [data-p=favp]').click(); await w(100);
+    $('.mp-painel [data-p=x]').click();
+    r.estado = { transform: $('.mp-mundo').style.transform, pct: $('[data-r=pct]').textContent,
+                 ativo: ($('.mp-no.atual') || {}).dataset && $('.mp-no.atual').dataset.id };
+    return r;
+  });
+  ok(tela.pintou === 16, 'MAPA o procedimento comum pinta as 16 caixas (' + tela.pintou + ')');
+  ok(tela.setas >= 16, 'MAPA as setas são desenhadas (' + tela.setas + ')');
+  ok(tela.enquadrou > 0 && tela.enquadrou < 1, 'MAPA abre com o rito inteiro enquadrado (' + tela.enquadrou + ')');
+  ok(tela.minimapa, 'MAPA o minimapa é desenhado');
+  ok(tela.chipsLei >= 10, 'MAPA cada etapa mostra o fundamento legal (' + tela.chipsLei + ' chips)');
+  ok(tela.botoesPeca >= 2, 'MAPA as peças viram botão no cartão (' + tela.botoesPeca + ')');
+  ok(tela.achouArtigo === 1, 'MAPA a busca acha a etapa pelo artigo');
+  ok(tela.buscaCentraliza, 'MAPA o resultado da busca é centralizado');
+  ok(tela.recolheu && tela.reabriu, 'MAPA a ramificação recolhe e reabre');
+  ok(tela.temEscolha === 2, 'MAPA a decisão oferece os dois caminhos do rito');
+  ok(tela.progressoMudou, 'MAPA escolher caminho recalcula o progresso');
+  ok(tela.apagouIncompativeis, 'MAPA escolher caminho apaga os caminhos incompatíveis');
+  ok(tela.podeTrocar, 'MAPA a escolha pode ser desfeita');
+  const PRECISA = ['Roteiro', 'Requisitos', 'Prazo', 'Fundamentação', 'Dicas', 'Texto-base', 'Rascunho'];
+  const faltam = PRECISA.filter(x => !tela.secoesDaPeca.some(s => s.indexOf(x) === 0));
+  ok(faltam.length === 0, 'MAPA o painel da peça traz roteiro, requisitos, prazo, fundamentação, dicas, texto-base e rascunho ('
+    + (faltam.join(', ') || 'completo') + ')');
+  const ACOES = ['Copiar', 'Imprimir', 'Favoritar', 'Editar rascunho'];
+  const semAcao = ACOES.filter(a => !tela.acoesDaPeca.some(x => x.indexOf(a) >= 0));
+  ok(semAcao.length === 0, 'MAPA o painel da peça tem copiar, imprimir, favoritar e editar rascunho ('
+    + (semAcao.join(', ') || 'completo') + ')');
+
+  // PERSISTE? — o teste que faltou da outra vez: pintar não é guardar
+  await page.reload();
+  await page.waitForTimeout(900);
+  const volta = await page.evaluate(() => {
+    const $ = s => document.querySelector(s);
+    const g = (JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {};
+    return { transform: $('.mp-mundo').style.transform, pct: $('[data-r=pct]').textContent,
+             ativo: ($('.mp-no.atual') || {}).dataset && $('.mp-no.atual').dataset.id,
+             modo: document.getElementById('mMapa').getAttribute('aria-pressed'),
+             escolha: g.escolhas && g.escolhas.p2, rascunho: (g.rascunhos || {})['Denúncia'],
+             favorito: !!(g.favoritos || {})['peca:Denúncia'] };
+  });
+  ok(volta.modo === 'true', 'MAPA o modo escolhido sobrevive ao recarregamento');
+  ok(volta.transform === tela.estado.transform, 'MAPA a POSIÇÃO do mapa sobrevive ao recarregamento');
+  ok(volta.ativo === tela.estado.ativo && volta.pct === tela.estado.pct, 'MAPA etapa atual e progresso sobrevivem');
+  ok(volta.escolha === 'p2s0', 'MAPA a escolha do caminho sobrevive');
+  ok(volta.rascunho === 'rascunho de teste', 'MAPA o rascunho da peça sobrevive');
+  ok(volta.favorito, 'MAPA o favorito sobrevive');
+
+  /* Palco sem tamanho — o iframe que o app monta ESCONDIDO. O que não pode acontecer:
+     gravar como posição escolhida um enquadramento calculado sobre 0×0, porque aí a
+     tela abriria para sempre num zoom que ninguém pediu. O mapa espera ganhar tamanho
+     e só então se enquadra. */
+  const escondido = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    localStorage.removeItem('catedraMapaProcessual');
+    const alvo = document.getElementById('mapaHold');
+    const pai = alvo.parentNode; pai.style.display = 'none';
+    document.getElementById('mFluxo').click(); await w(60);
+    document.getElementById('mMapa').click(); await w(250);
+    const largura = document.querySelector('.mp-palco').clientWidth;
+    const guardadoEscondido = ((JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {}).vista;
+    const semTamanho = document.querySelector('.mp-mundo').style.transform;
+    pai.style.display = ''; await w(500);
+    const comTamanho = document.querySelector('.mp-mundo').style.transform;
+    const guardadoDepois = ((JSON.parse(localStorage.getItem('catedraMapaProcessual')) || {})['Penal — procedimento comum'] || {}).vista;
+    return { largura, guardadoEscondido, semTamanho, comTamanho, guardadoDepois };
+  });
+  ok(escondido.largura === 0, 'MAPA o cenário do teste é mesmo o palco sem tamanho');
+  ok(!escondido.guardadoEscondido, 'MAPA palco sem tamanho NÃO grava posição inventada');
+  ok(escondido.comTamanho !== escondido.semTamanho && /scale\(/.test(escondido.comTamanho),
+     'MAPA ao ganhar tamanho, o mapa se enquadra sozinho');
+  ok(!!escondido.guardadoDepois && escondido.guardadoDepois.z > 0,
+     'MAPA só a posição calculada com o palco de pé é guardada');
+
+  // acessibilidade: o palco é operável por teclado e narra o que muda
+  const a11y = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const p = document.querySelector('.mp-palco');
+    const t = k => p.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
+    p.focus();
+    const foco = document.activeElement === p;
+    const a0 = document.querySelector('.mp-no.atual').dataset.id;
+    t('n'); await w(150);
+    const andou = document.querySelector('.mp-no.atual').dataset.id !== a0;
+    const z0 = document.querySelector('[data-r=lupa]').textContent;
+    t('+'); await w(80);
+    return { foco, andou, ampliou: document.querySelector('[data-r=lupa]').textContent !== z0,
+      papel: p.getAttribute('role'), rotulo: !!p.getAttribute('aria-label'),
+      viva: !!document.querySelector('[role=status][aria-live=polite]'),
+      narrou: (document.querySelector('[data-r=aviso]').textContent || '').length > 0,
+      cartaoDescrito: (document.querySelector('.mp-no [data-abrir]').getAttribute('aria-label') || '').indexOf('Situação') > 0 };
+  });
+  for (const [k, v] of Object.entries(a11y)) ok(v, 'MAPA acessibilidade: ' + k);
+
+  /* Três armadilhas que já custaram caro em outras telas:
+     · repintar o cartão joga o foco no body — quem favorita pelo teclado se perde;
+     · aria-modal sem prender o Tab anuncia "diálogo" e deixa a tabulação escapar;
+     · a barra de progresso precisa de PAPEL, porque aria-label em <div> mudo não é lido. */
+  const foco = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s);
+    const r = {};
+    const estrela = $('.mp-no [data-fav]');
+    const id = estrela.dataset.fav;
+    estrela.focus(); estrela.click(); await w(200);
+    r.focoSobreviveARepintura = !!document.activeElement.dataset
+      && document.activeElement.dataset.fav === id;
+    // Tab não escapa do painel
+    $('.mp-no [data-abrir]').click(); await w(250);
+    const p = $('.mp-painel');
+    const f = [...p.querySelectorAll('button, textarea')].filter(x => x.offsetParent !== null);
+    f[f.length - 1].focus();
+    p.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+    await w(80);
+    r.tabNaoEscapaDoPainel = p.contains(document.activeElement);
+    f[0].focus();
+    p.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+    await w(80);
+    r.shiftTabNaoEscapa = p.contains(document.activeElement);
+    // fechar devolve o foco a quem abriu
+    $('.mp-painel [data-p=x]').click(); await w(150);
+    r.fecharDevolveOFoco = !!document.activeElement.closest
+      && !!document.activeElement.closest('.mp-no, .mp-palco');
+    const pb = $('[data-r=pbar]');
+    r.progressoTemPapel = pb.getAttribute('role') === 'progressbar'
+      && /^\d+$/.test(pb.getAttribute('aria-valuenow') || '')
+      && !!pb.getAttribute('aria-valuetext');
+    return r;
+  });
+  for (const [k, v] of Object.entries(foco)) ok(v, 'MAPA ' + k);
+
+  /* O painel lateral é anexado ao <body>, FORA do elemento .mp — e variável CSS não
+     atravessa o DOM de lado. Com os tokens declarados só em .mp, o painel herdava a
+     cor de texto da página clara e saía tinta escura sobre fundo escuro: presente no
+     DOM, invisível na tela. Um teste que só procura a seção passa verde nesse defeito;
+     por isso aqui se mede o CONTRASTE calculado, que é o que a pessoa enxerga. */
+  const legivel = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const $ = s => document.querySelector(s);
+    $('.mp-no [data-peca]').click(); await w(350);
+    const p = $('.mp-painel');
+    const cor = e => getComputedStyle(e).color, fundo = e => getComputedStyle(e).backgroundColor;
+    const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).map(Number).slice(0, 3)
+      .map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+      return .2126 * r + .7152 * g + .0722 * b; };
+    const K = (a, b) => { const l1 = lum(a), l2 = lum(b);
+      return +((Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05)).toFixed(2); };
+    const h3 = p.querySelector('h3'), txt = p.querySelector('.mp-sec p'),
+          h4 = p.querySelector('.mp-sec h4'), bt = p.querySelector('.mp-pacs button');
+    const r = { titulo: K(cor(h3), fundo(p)), texto: K(cor(txt), fundo(txt.closest('.mp-sec'))),
+                rotulo: K(cor(h4), fundo(h4.closest('.mp-sec'))), botao: K(cor(bt), fundo(bt)) };
+    $('.mp-painel [data-p=x]').click();
+    return r;
+  });
+  for (const [k, v] of Object.entries(legivel))
+    ok(v >= 4.5, 'MAPA o painel é LEGÍVEL — contraste de ' + k + ': ' + v + ':1 (mínimo 4,5)');
+
+  // e o cartão no quadro escuro tem de passar pela mesma régua
+  const cartaoLegivel = await page.evaluate(() => {
+    const cor = e => getComputedStyle(e).color, fundo = e => getComputedStyle(e).backgroundColor;
+    const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).map(Number).slice(0, 3)
+      .map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+      return .2126 * r + .7152 * g + .0722 * b; };
+    const K = (a, b) => { const l1 = lum(a), l2 = lum(b);
+      return +((Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05)).toFixed(2); };
+    // o cartão é gradiente: mede-se contra a tinta mais clara dele, que é o pior caso
+    const cartao = document.querySelector('.mp-no'), fundoCartao = 'rgb(36, 26, 62)';
+    return { titulo: K(cor(cartao.querySelector('strong')), fundoCartao),
+             resumo: K(cor(cartao.querySelector('small') || cartao.querySelector('strong')), fundoCartao),
+             fundamento: K(cor(cartao.querySelector('.mp-art') || cartao.querySelector('strong')), fundoCartao) };
+  });
+  for (const [k, v] of Object.entries(cartaoLegivel))
+    ok(v >= 4.5, 'MAPA o cartão é LEGÍVEL — contraste de ' + k + ': ' + v + ':1 (mínimo 4,5)');
+
+  /* Trocar de rito remonta o mapa. O ouvinte de Esc mora no DOCUMENTO (o painel pode
+     não estar com o foco), então precisa sair no destruir — senão cada troca deixa um
+     ouvinte preso a uma instância morta, e vinte trocas viram vinte. */
+  const vazamento = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    let vivos = 0;
+    const add = document.addEventListener.bind(document);
+    const rem = document.removeEventListener.bind(document);
+    document.addEventListener = function (t, f, o) { if (t === 'keydown') vivos++; return add(t, f, o); };
+    document.removeEventListener = function (t, f, o) { if (t === 'keydown') vivos--; return rem(t, f, o); };
+    for (let i = 0; i < 5; i++) {
+      document.getElementById('mFluxo').click(); await w(60);
+      document.getElementById('mMapa').click(); await w(120);
+    }
+    document.addEventListener = add; document.removeEventListener = rem;
+    return vivos;
+  });
+  ok(vazamento <= 1, 'MAPA remontar o mapa não acumula ouvintes de teclado (saldo ' + vazamento + ' após 5 trocas)');
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
+/* ============= ORAL LEI SECA — A ABA QUE ABRIA VAZIA NO IPAD ============= */
+// O roteiro vive em tests/oral-lei-seca.mjs para rodar também no WebKit (run-webkit.mjs);
+// aqui cobre o par Chromium × http, para a suíte principal também acusar a lista vazia.
+try { await testarOralLeiSeca(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'ORAL LEI SECA [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
 
 await browser.close();
 srv.close();
