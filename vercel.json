@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "node scripts/build.mjs",
   "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/termos", "destination": "/termos.html" },
+    { "source": "/privacidade", "destination": "/privacidade.html" },
+    { "source": "/sobre", "destination": "/sobre.html" }
+  ],
   "functions": {
     "api/complete.js": { "maxDuration": 60 },
     "api/law.js": { "maxDuration": 30 }

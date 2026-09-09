@@ -15,11 +15,12 @@
   /* Pesos dos fatores. Um lugar só, comentado — mexer aqui muda a régua inteira.
      A soma é 1.0. A ordem reflete o que mais derruba candidato: errar e não revisar. */
   var PESOS = {
-    erros: 0.30,        // erros recentes no caderno (últimos 30 dias)
-    revisoes: 0.25,     // revisões vencidas/atrasadas
-    esfriando: 0.20,    // dias sem estudar a disciplina
-    simulado: 0.15,     // desempenho líquido em questões
-    incidencia: 0.10    // peso no edital × incidência do diploma
+    erros: 0.28,        // erros recentes no caderno (últimos 30 dias)
+    revisoes: 0.24,     // revisões vencidas/atrasadas
+    esfriando: 0.19,    // dias sem estudar a disciplina
+    simulado: 0.14,     // desempenho líquido em questões
+    incidencia: 0.10,   // peso no edital × incidência do diploma
+    leitura: 0.05       // dispositivos de incidência alta que ela ainda não leu ativamente (LA6)
   };
   var JANELA_ERROS = 30;        // dias
   var ESFRIA_DIAS = 21;         // sem estudar por 21 dias = fator no máximo
@@ -39,6 +40,8 @@
    *   - reviews:  [{disc, dueDate}]  (vencida = dueDate <= hoje)
    *   - sessions: [{disc, date, questoes, acertos, erradas}]
    *   - incidencia: {disciplinaNormalizada: 0..1}  (opcional)
+   *   - leituraPendente: {disciplinaNormalizada: 0..1}  fração dos artigos de incidência alta
+   *                      ainda sem leitura ativa (opcional; sem o dado, o fator vale 0)
    *   - hoje:     'YYYY-MM-DD' (opcional; default = hoje do sistema)
    * @returns [{disc, nota, fatores:[{chave,rotulo,valor,peso,texto}], motivos:[texto], …}]
    */
@@ -51,6 +54,7 @@
 
     var erros = arr(e.errors), reviews = arr(e.reviews), sessions = arr(e.sessions);
     var inc = e.incidencia || {};
+    var lei = e.leituraPendente || {};
 
     // ---- agregados por disciplina normalizada
     var porDisc = {};
@@ -113,7 +117,9 @@
         { chave: 'simulado', rotulo: 'desempenho', valor: fSim, peso: PESOS.simulado,
           texto: liqPct == null ? 'poucas questões para medir' : (liqPct + '% de líquido em ' + o.q + ' questões') },
         { chave: 'incidencia', rotulo: 'peso na prova', valor: fInc, peso: PESOS.incidencia,
-          texto: 'peso ' + o.peso + ' no edital' }
+          texto: 'peso ' + o.peso + ' no edital' },
+        { chave: 'leitura', rotulo: 'lei seca por ler', valor: clamp01(+lei[norm(o.disc)] || 0), peso: PESOS.leitura,
+          texto: Math.round(clamp01(+lei[norm(o.disc)] || 0) * 100) + '% dos artigos mais citados ainda sem leitura ativa' }
       ];
 
       var nota = Math.round(fatores.reduce(function (a, f) { return a + f.valor * f.peso; }, 0) * 100);
