@@ -7024,6 +7024,35 @@ const AUDITOR = () => {
   ok(duplicado.temCard && duplicado.focoDepoisOuAusente, 'TASK3 o "Foco sugerido" não disputa a mesma posição do card');
 }
 
+/* ===== A COR DO GATE SEGUE A DIREÇÃO VISUAL =====
+   Sem cor personalizada o gate era verde fixo, mesmo com a direção Fibra (índigo) ou
+   Solar (laranja): ele abre antes do app e não conhecia a tabela de temas. Agora carrega
+   a mesma tabela (claro/escuro por direção) e só cai no verde quando a direção é a
+   Planilha ou é desconhecida. Cor personalizada em hex continua mandando. */
+{
+  const corDoGate = async (dir, dark, accent) => {
+    await page.goto(URL0 + '/tests/auth-gate-fixture.html');
+    await page.evaluate(({ dir, dark, accent }) => {
+      ['catedra:dir', 'catedra:dark', 'catedra:accent'].forEach(k => localStorage.removeItem(k));
+      if (dir != null) localStorage.setItem('catedra:dir', dir);
+      if (dark != null) localStorage.setItem('catedra:dark', dark);
+      if (accent != null) localStorage.setItem('catedra:accent', accent);
+    }, { dir, dark, accent });
+    await page.goto(URL0 + '/tests/auth-gate-fixture.html');
+    await page.waitForTimeout(600);
+    return page.evaluate(() => {
+      const g = document.getElementById('catedra-auth-gate'); if (!g) return null;
+      const st = [...g.querySelectorAll('*')].map(e => e.getAttribute('style') || '').find(s => /linear-gradient\(135deg/.test(s)) || '';
+      const m = st.match(/linear-gradient\(135deg,(#[0-9a-f]{6})/i); return m ? m[1].toLowerCase() : null;
+    });
+  };
+  ok((await corDoGate('clean', '1', '"tema"')) === '#818cf8', 'GATE/COR sem cor personalizada, Fibra escuro pinta o gate de índigo');
+  ok((await corDoGate('solar', '0', null)) === '#ea580c', 'GATE/COR sem cor personalizada, Solar claro pinta o gate de laranja');
+  ok((await corDoGate('solar', '0', '"#7c3aed"')) === '#7c3aed', 'GATE/COR a cor personalizada em hex continua mandando');
+  ok((await corDoGate('inexistente', '0', null)) === '#0f7a57', 'GATE/COR direção desconhecida cai no verde da Planilha');
+  await page.evaluate(() => ['catedra:dir', 'catedra:dark', 'catedra:accent'].forEach(k => localStorage.removeItem(k)));
+}
+
 /* ===== TASK 2 · O GATE DE AUTENTICAÇÃO ISOLA O APP =====
    O gate cobre a tela, mas só isso: o app atrás continua rolando (4.446 px de scroll),
    continua alcançável por Tab e continua sendo lido por leitor de tela. Um overlay que

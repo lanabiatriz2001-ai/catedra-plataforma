@@ -456,11 +456,20 @@
   try { _ri('setItem'); _ri('removeItem'); } catch (_) {}
 
   // ---------- overlay / gate ----------
+  var DARK = (function () { var d = localStorage.getItem('catedra:dark'); return d === '1' || d === 'true'; })();
   // O gate segue a COR SELECIONADA (catedra:accent) e o modo escuro (catedra:dark).
-  // Sem accent salvo → verde (comportamento original); assim a web não quebra.
+  // Sem cor personalizada (chave ausente ou a palavra "tema"), segue a cor OFICIAL da
+  // direção visual (catedra:dir), claro ou escuro — a mesma tabela do THEMES() do app,
+  // copiada aqui porque o gate abre antes do app. Direção desconhecida → Planilha (verde).
+  var ACENTO_DIR = {
+    sutil: ['#0f7a57', '#34b88a'], premium: ['#7b2434', '#d4707f'], clean: ['#4f46e5', '#818cf8'],
+    moderno: ['#7c3aed', '#a78bfa'], aurora: ['#0891b2', '#22d3ee'], solar: ['#ea580c', '#fb923c'],
+    terminal: ['#4d7c0f', '#a3e635'], holo: ['#0ea5e9', '#38bdf8']
+  };
   function _accent() {
     try { var a = localStorage.getItem('catedra:accent'); if (a) { a = JSON.parse(a);
       if (typeof a === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(a)) return a; } } catch (_) {}
+    try { var par = ACENTO_DIR[localStorage.getItem('catedra:dir')] || ACENTO_DIR.sutil; return par[DARK ? 1 : 0]; } catch (_) {}
     return '#0f7a57';
   }
   function _darken(hex, f) {
@@ -470,7 +479,6 @@
     } catch (_) { return hex; }
   }
   var ACC = _accent(), ACC2 = _darken(ACC, 0.62);
-  var DARK = (function () { var d = localStorage.getItem('catedra:dark'); return d === '1' || d === 'true'; })();
   var GRAD = 'linear-gradient(135deg,' + ACC + ',' + ACC2 + ')';
   // paleta do lado do formulário conforme o modo
   var PG   = DARK ? '#0e1116' : '#f6f4ee';  // fundo do gate
