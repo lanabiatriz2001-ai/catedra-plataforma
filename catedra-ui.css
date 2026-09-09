@@ -593,8 +593,11 @@ button.ct-card:hover, a.ct-card:hover {
   box-shadow: 0 1px 2px color-mix(in srgb, var(--accent, #0f7a57) 7%, transparent),
               0 10px 30px -12px color-mix(in srgb, var(--accent, #0f7a57) 16%, transparent);
 }
+/* `.ct-alvo` fica de fora: nele o ::after é o alvo de toque de 44 px (host, largura ≤ 900),
+   e o fio de luz, por ter mais especificidade, encolhia esse alvo para 2 px — no Linux, onde
+   o emoji não alonga a linha, o chip do filtro do ciclo ficava com 28 px para o dedo. */
 .ct-scroll div[style*="var(--surface)"][style*="var(--border)"][style*="radius"]::after,
-.ct-scroll button[style*="var(--surface)"][style*="var(--border)"][style*="radius"]::after {
+.ct-scroll button[style*="var(--surface)"][style*="var(--border)"][style*="radius"]:not(.ct-alvo)::after {
   content: "";
   position: absolute; inset: 0 0 auto 0; height: 2px;
   background: linear-gradient(90deg,
@@ -1025,3 +1028,102 @@ button:disabled { cursor: not-allowed; }
 .ct-convite b { font-family: var(--display, Georgia, serif); font-size: var(--fs-xl, 17px); color: var(--ink, #1c1a16); line-height: 1.2; }
 .ct-convite span { font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); line-height: 1.5; }
 .ct-convite .ct-btn-2 { align-self: flex-start; min-height: 44px; margin-top: 2px; }
+
+/* ===== 16. CICLO — A LINHA DO DIA E O BLOCO ====================================
+   A faixa do Ciclo deixa de ser navy fixo (quebrava em sete das oito direções) e ganha o
+   único componente novo desta tela: a LINHA DO DIA, o plano de hoje como uma barra em
+   que cada bloco é um trecho proporcional aos minutos, na cor da MATÉRIA. É conteúdo,
+   não medidor: feito = cheio, pendente = lavado, e clicar conclui (o mesmo gesto da
+   lista). O bloco da lista passa a ser o item colorido da casa (.ct-item) com a cor da
+   disciplina, o tipo como selo e o PORQUÊ quando o modo inteligente o escreveu.
+   Nada aqui inventa cor, fonte ou raio: tudo sai dos tokens. */
+.ct-hero-ciclo { gap: var(--ct-e4); }
+.ct-hero-ciclo-topo { display: flex; gap: var(--ct-e5); align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+.ct-hero-ciclo-kpis { gap: 22px; align-items: flex-end; }
+.ct-kpi b i { font-style: normal; font-size: .5em; font-weight: 600; opacity: .72; }
+.ct-kpi-btn { background: transparent; border: 0; padding: 0; color: inherit; text-align: left; font-family: inherit; cursor: pointer; border-radius: var(--r-sm, 8px); }
+.ct-kpi-btn span { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,.45); }
+.ct-kpi-btn:hover span { text-decoration-color: #fff; }
+.ct-kpi-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.ct-hero-ciclo-seta { width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; flex: none; }
+.ct-hero-ciclo-seta:disabled { cursor: default; }
+.ct-hero-ciclo-acoes { display: flex; align-items: center; gap: var(--ct-e2); flex-wrap: wrap; }
+.ct-hero-ciclo-quem { margin-left: auto; font-size: var(--fs-sm, 12.5px); color: rgba(255,255,255,.78); }
+
+.ct-linha {
+  display: flex; gap: 4px; width: 100%; min-height: 44px; padding: 4px;
+  border-radius: 99px; background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+}
+.ct-linha-seg {
+  --c: var(--accent, #0f7a57);
+  position: relative; min-width: 0; overflow: hidden; border: 0; padding: 0 12px;
+  border-radius: 99px; font-family: inherit; font-size: var(--fs-xs, 11.5px); font-weight: 700;
+  color: #fff; cursor: pointer;
+  background: color-mix(in srgb, var(--c) 45%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, white);
+  transition: transform .16s ease, background .16s ease;
+  animation: ctlinha .38s cubic-bezier(.2,.8,.2,1) both;
+}
+/* feito: cheio, escurecido o suficiente para o rótulo branco passar de 4,5:1 */
+.ct-linha-seg[data-done="1"] { background: color-mix(in srgb, var(--c) 82%, black); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 55%, white); }
+.ct-linha-seg[data-done="1"] span { text-decoration: line-through; opacity: .9; }
+.ct-linha-seg span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 1px rgba(0,0,0,.28); }
+.ct-linha-seg:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--c) 60%, transparent); }
+.ct-linha-seg[data-done="1"]:hover { background: color-mix(in srgb, var(--c) 72%, black); }
+.ct-linha-seg:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.ct-linha-seg:nth-child(2) { animation-delay: .04s; } .ct-linha-seg:nth-child(3) { animation-delay: .08s; }
+.ct-linha-seg:nth-child(4) { animation-delay: .12s; } .ct-linha-seg:nth-child(5) { animation-delay: .16s; }
+.ct-linha-seg:nth-child(6) { animation-delay: .20s; } .ct-linha-seg:nth-child(7) { animation-delay: .24s; }
+.ct-linha-seg:nth-child(n+8) { animation-delay: .28s; }
+@keyframes ctlinha { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ct-linha-seg { animation: none; transition: none; } .ct-linha-seg:hover { transform: none; } }
+
+/* o bloco da lista: item colorido da casa, cor da matéria em --ct-item-cor */
+.ct-cb-lista { display: flex; flex-direction: column; gap: 10px; }
+.ct-cb { align-items: flex-start; }
+.ct-cb[data-done="1"] { opacity: .62; }
+.ct-cb-chk {
+  width: 26px; height: 26px; border-radius: var(--r-md, 10px); flex: none; margin-top: 2px;
+  border: 2px solid color-mix(in srgb, var(--ct-item-cor) 55%, var(--border, #e6e1d4));
+  background: transparent; color: #fff; display: flex; align-items: center; justify-content: center; padding: 0;
+  transition: background .15s, border-color .15s;
+}
+.ct-cb[data-done="1"] .ct-cb-chk { background: var(--accent, #0f7a57); border-color: var(--accent, #0f7a57); }
+.ct-cb-motivo {
+  display: flex; align-items: flex-start; gap: 6px; margin: 6px 0 0;
+  font-size: var(--fs-sm, 12.5px); line-height: 1.45;
+  color: color-mix(in srgb, var(--ct-item-cor, var(--accent)) 62%, var(--ink, #1f1c17));
+}
+.ct-cb-motivo svg { flex: none; margin-top: 1px; }
+.ct-bc-foco .ct-cb-motivo { margin-top: 8px; }
+.ct-cb-min { font-size: var(--fs-base, 13.5px); color: var(--text2, #5c564a); background: var(--surface2, #f0ece1); padding: 5px 10px; border-radius: var(--r-md, 10px); }
+.ct-cb-foco { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; min-height: 36px; }
+
+/* selo de tipo: a cor entra lavada e como texto escurecido pela tinta (≥ 4,5:1), nunca
+   texto branco sobre a cor crua — o âmbar da lei seca não passava */
+.ct-cb-tipo {
+  --c: var(--accent, #0f7a57);
+  display: inline-flex; align-items: center;
+  font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-3xs, 10.5px); font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+  padding: 3px 9px; border-radius: 99px;
+  background: color-mix(in srgb, var(--c) 14%, transparent);
+  color: color-mix(in srgb, var(--c) 72%, var(--ink, #1f1c17));
+  border: 1px solid color-mix(in srgb, var(--c) 38%, var(--border, #e6e1d4));
+}
+/* o cartão do dia na folha: hoje ganha a borda mais tingida pela matéria do dia */
+.ct-folha-dia[data-hoje="1"] { border-color: color-mix(in srgb, var(--ct-materia, var(--accent)) 55%, var(--border, #e6e1d4)); }
+
+/* os modos de montar o ciclo: estado pelo aria-pressed, mesma fonte para leitor de tela e pintura */
+.ct-modo {
+  text-align: left; cursor: pointer; font-family: inherit;
+  border-radius: var(--radius, 14px); padding: 16px;
+  border: 2px solid var(--border, #e6e1d4); background: var(--surface, #fffdf8); color: var(--ink, #1f1c17);
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.ct-modo:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent, #0f7a57) 45%, var(--border, #e6e1d4)); }
+.ct-modo[aria-pressed="true"] { border-color: var(--accent, #0f7a57); background: var(--accentSoft, #e6f0ea); }
+.ct-modo-ico { width: 34px; height: 34px; border-radius: var(--r-md, 10px); display: flex; align-items: center; justify-content: center; flex: none; background: var(--surface2, #f0ece1); color: var(--text2, #5c564a); }
+.ct-modo[aria-pressed="true"] .ct-modo-ico { background: var(--accent, #0f7a57); color: var(--onAccent, #fff); }
+@media (prefers-reduced-motion: reduce) { .ct-modo { transition: none; } .ct-modo:hover { transform: none; } }
