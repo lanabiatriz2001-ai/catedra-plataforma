@@ -1163,7 +1163,8 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
   // "Revisar agora": o tópico de leitura ativa mostra a lacuna; revelar mostra o trecho e o extra
   await page.evaluate(() => {
     const fc = JSON.parse(localStorage.getItem('catedra:fc') || '[]').find(c => c.tipo === 'cloze');
-    const hoje = new Date().toISOString().slice(0, 10);
+    // data LOCAL: depois das 21h em Porto Velho o toISOString já é amanhã em UTC, e a revisão "de hoje" nascia vencendo amanhã
+    const _d = new Date(), hoje = _d.getFullYear() + '-' + String(_d.getMonth() + 1).padStart(2, '0') + '-' + String(_d.getDate()).padStart(2, '0');
     localStorage.setItem('catedra:reviews', JSON.stringify([{ id: 'rv|la|' + fc.la.id + '|prazo', disc: 'Direito Processual Civil', topic: 'CPC Art. 335 — Há prazo?', color: '#0d9488',
       due: 0, dueDate: hoje, intervalo: 1, facilidade: 2.5, repeticoes: 0, up: Date.now(), la: fc.la }]));
   });
@@ -2351,6 +2352,46 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   r.hostMostraEmToast = /chamadas de IA de hoje\/\.test\(m\)\) this\._toast\(m\)/.test(src) && /data-adm="cota"/.test(src) && /admin_ia_cota_set/.test(src);
   r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-ia-cota.sql'));
   for (const [k, v] of Object.entries(r)) ok(v, 'IA/P18 cota ' + k);
+}
+
+/* ============= ÁREAS — P19: foco de escopo para o beta público ============= */
+// CT_AREA_REG.PUBLICAS (só 'juridica') manda em quem ESCOLHE área — onboarding e Ajustes. A conta que já usa
+// outra área continua nela; com a lista completa, tudo volta. Nenhum código ou dado removido.
+{
+  const r = {};
+  const R = (await import('../area-registry.js')).default || globalThis.CT_AREA_REG;
+  r.constanteInicial = Array.isArray(R.PUBLICAS) && R.PUBLICAS.length === 1 && R.PUBLICAS[0] === 'juridica';
+  r.publicaPura = R.publica('juridica') === true && R.publica('saude') === false && R.publica('saude', 'saude') === true && R.publica('policial', 'saude') === false;
+  r.registroIntacto = Object.keys(R.AREAS).length >= 8 && !!R.AREAS.saude && !!R.AREAS.policial;
+  for (const [k, v] of Object.entries(r)) ok(v, 'ÁREAS/P19 puro ' + k);
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  const areaAntes = await page.evaluate(() => { localStorage.setItem('catedra:auth', '1'); const a = localStorage.getItem('catedra:areaEstudo'); localStorage.removeItem('catedra:areaEstudo'); localStorage.removeItem('catedra:onboarded'); return a; });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const h = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp, R = window.CT_AREA_REG;
+    // conta nova: o onboarding oferece só a área jurídica
+    app.setState({ onboardStep: 2 }); await w(400);   // o passo 2 é a área
+    const cards = () => [...document.querySelectorAll('button[data-a]')].map(b => b.dataset.a).filter((v, i, l) => l.indexOf(v) === i);
+    r.onboardingSoJuridica = cards().length === 1 && cards()[0] === 'juridica';
+    // com a lista completa, tudo volta
+    const pubAntes = R.PUBLICAS.slice(); R.PUBLICAS.push('saude', 'social', 'policial', 'fiscal', 'contas', 'administrativa', 'educacao', 'tecnologia', 'militar', 'outra'); app.setState({}); await w(300);
+    r.listaCompletaTrazTudo = cards().length >= 10 && cards().includes('saude');
+    R.PUBLICAS.length = 0; pubAntes.forEach(x => R.PUBLICAS.push(x)); app.setState({}); await w(300);
+    r.voltaAoFoco = cards().length === 1;
+    // conta que já usa outra área continua vendo a sua (e só a sua fora da lista)
+    app.setState({ onboardStep: 0, areaEstudo: 'saude' }); await w(400);
+    window.__catedraGoView('ajustes'); await w(600);
+    const abaPerfil = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'perfil'); if (abaPerfil) { abaPerfil.click(); await w(400); }
+    app.setState({ areaSelOpen: true }); await w(400);   // o seletor de área de Ajustes abre sob demanda
+    const emAjustes = cards();
+    r.contaAntigaContinua = emAjustes.includes('saude') && emAjustes.includes('juridica') && emAjustes.length === 2 && app.state.areaEstudo === 'saude';
+    app.setState({ areaEstudo: 'juridica', areaSelOpen: false }); await w(300);
+    return r;
+  });
+  for (const [k, v] of Object.entries(h)) ok(v, 'ÁREAS/P19 host ' + k);
+  await page.evaluate((a) => { localStorage.setItem('catedra:onboarded', '1'); if (a != null) localStorage.setItem('catedra:areaEstudo', a); else localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')); }, areaAntes);
 }
 
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
@@ -5500,6 +5541,8 @@ const AUDITOR = () => {
   const trocarArea = async (id) => {
     return areaPg.evaluate(async (alvoId) => {
       const w = ms => new Promise(r => setTimeout(r, ms));
+      // P19: estes fluxos trocam para áreas fora do beta público — abrem a lista inteira antes (como a constante permite)
+      try { const R = window.CT_AREA_REG; ['saude','social','policial','fiscal','contas','administrativa','educacao','tecnologia','militar','outra'].forEach(id => { if (R.PUBLICAS.indexOf(id) < 0) R.PUBLICAS.push(id); }); } catch (_) {}
       window.__catedraGoView('ajustes'); await w(1600);
       for (let i = 0; i < 6; i++) {
         const alvo = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === alvoId);
@@ -5794,6 +5837,8 @@ const AUDITOR = () => {
   await pvPg.waitForTimeout(2000);
   const pv = await pvPg.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
+      // P19: estes fluxos trocam para áreas fora do beta público — abrem a lista inteira antes (como a constante permite)
+      try { const R = window.CT_AREA_REG; ['saude','social','policial','fiscal','contas','administrativa','educacao','tecnologia','militar','outra'].forEach(id => { if (R.PUBLICAS.indexOf(id) < 0) R.PUBLICAS.push(id); }); } catch (_) {}
     window.__catedraGoView('ajustes'); await w(1500);
     for (let i = 0; i < 5; i++) {
       const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'saude');
@@ -5827,6 +5872,8 @@ const AUDITOR = () => {
   // e confirmar troca de verdade
   const pvConf = await pvPg.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
+      // P19: estes fluxos trocam para áreas fora do beta público — abrem a lista inteira antes (como a constante permite)
+      try { const R = window.CT_AREA_REG; ['saude','social','policial','fiscal','contas','administrativa','educacao','tecnologia','militar','outra'].forEach(id => { if (R.PUBLICAS.indexOf(id) < 0) R.PUBLICAS.push(id); }); } catch (_) {}
     for (let i = 0; i < 5; i++) {
       const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'saude');
       if (card) { card.click(); await w(900); break; }
@@ -6160,6 +6207,8 @@ const AUDITOR = () => {
       return false;
     };
     if (!await irAjustes()) return { semAjustes: true };
+      // P19: estes fluxos trocam para áreas fora do beta público — abrem a lista inteira antes (como a constante permite)
+      try { const R = window.CT_AREA_REG; ['saude','social','policial','fiscal','contas','administrativa','educacao','tecnologia','militar','outra'].forEach(id => { if (R.PUBLICAS.indexOf(id) < 0) R.PUBLICAS.push(id); }); } catch (_) {}
     for (let i = 0; i < 5; i++) {
       const card = [...document.querySelectorAll('button[data-a]')].find(x => x.dataset.a === 'social');
       if (card) { card.click(); await w(900); break; }
