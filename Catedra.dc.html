@@ -1946,6 +1946,23 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
+        <!-- CONVITE: manual com agenda de orientador e volta vazia. A volta com ponteiro ficava
+             escondida atrás do Configurar; quem só segue o roteiro não descobria. "Agora não" some
+             e fica lembrado. -->
+        <sc-if value="{{ cicloConviteVolta }}" hint-placeholder-val="{{ false }}">
+        <div class="ct-estado ct-convite-volta" style="margin-bottom:16px;">
+          <div class="ct-estado-titulo">A volta ainda está vazia</div>
+          <div class="ct-estado-desc">Sua agenda da semana segue como está. Gere uma volta pela sua prioridade real e o dia passa a puxar os próximos blocos depois da agenda: concluir avança o ponteiro e, fechada a volta, ela recomeça pela prioridade de então.</div>
+          <div class="ct-estado-acao" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;">
+            <sc-if value="{{ cicloTemEdital }}" hint-placeholder-val="{{ false }}">
+              <button onclick="{{ gerarVoltaManual }}" class="ct-btn">Gerar uma volta pela prioridade</button>
+            </sc-if>
+            <button data-panel="configurar" onclick="{{ setCyclePanel }}" class="ct-btn-2">Montar bloco a bloco</button>
+            <button onclick="{{ dispensarConviteVolta }}" style="border:none;background:transparent;color:var(--text3);font-size:var(--fs-xs);font-weight:700;cursor:pointer;font-family:inherit;padding:8px 10px;">Agora não</button>
+          </div>
+        </div>
+        </sc-if>
+
         <!-- filtro: um jeito de OLHAR a semana — tipo, DISCIPLINA (só o que está no edital) e ASSUNTO (o que está dentro dela) -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <sc-for list="{{ cicloFqTipos }}" as="t" hint-placeholder-count="5"><button class="ct-alvo" data-v="{{ t.v }}" onclick="{{ cicloFqTipo }}" style="{{ t.style }}">{{ t.icon }} {{ t.v }}</button></sc-for>
@@ -6425,6 +6442,7 @@ class Component extends DCLogic {
       agAdd:{disc:'', kind:'Teoria', min:'50', dias:{seg:true,qua:true,sex:true}},  // cadastro rápido da agenda
       manualFixed:this._load('manualFixed', []),
       manualRot:this._load('manualRot', []),
+      cicloConviteOff:this._load('cicloConviteOff', false),   // "Agora não" no convite da volta manual (Executar)
       rotPointer:this._load('rotPointer', 0),
       manualFixedRoteiroAtual:this._load('manualFixedRoteiroAtual', ''),
       agendaFeitas:this._load('agendaFeitas', {}),
@@ -9014,6 +9032,7 @@ class Component extends DCLogic {
     }
   };
   setCyclePanel = (e)=>{ const p=e.currentTarget.dataset.panel; if(p!==this.state.cyclePanel) this.setState({cyclePanel:p}); };
+  dispensarConviteVolta = ()=>{ try{ localStorage.setItem('catedra:cicloConviteOff','1'); }catch(_){} this.setState({cicloConviteOff:true}); };
   // Roving tabindex tira a aba inativa da tabulação; sem setas ela ficaria inalcançável.
   cycleTabKey = (e)=>{ const k=e.key;
     if(k!=='ArrowRight'&&k!=='ArrowLeft'&&k!=='Home'&&k!=='End') return;
@@ -16746,6 +16765,7 @@ class Component extends DCLogic {
       cicloPlanejado:_cHM(cicloPlanMin), cicloPlanejadoLbl:(cicloMetaMin?('planejado · meta '+_cHM(cicloMetaMin)):'planejado hoje'),
       puxarProximo:this.puxarProximo, gerarVoltaManual:this.gerarVoltaManual, recomecarVolta:this.recomecarVolta,
       isManualAgenda:(this.state.cycleMode==='manual' && (this.state.manualFixed||[]).some(f=>f.dia||Array.isArray(f.dias))),
+      cicloConviteVolta:(this.state.cycleMode==='manual' && (this.state.manualFixed||[]).some(f=>f.dia||Array.isArray(f.dias)) && !(this.state.manualRot||[]).length && !this.state.cicloConviteOff), dispensarConviteVolta:this.dispensarConviteVolta,
       cicloRevPend:String(revPend), cicloRevShow:revPend>0,
       cicloRegerarShow:(this.state.cycleMode!=='manual' && cicloTotal>0), regerarCiclo:this.regerarCiclo,
       isInteligente:this.state.cycleMode==='inteligente', cicloPrioTop, cicloPrioTem:cicloPrioTop.length>0,
