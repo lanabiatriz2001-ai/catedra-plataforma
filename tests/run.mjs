@@ -5268,14 +5268,20 @@ const AUDITOR = () => {
           h = Math.max(h, parseFloat(a.height) || 0); w = Math.max(w, parseFloat(a.width) || 0); } } catch (_) {}
       return { w, h }; };
     const escopo = document.querySelector('[role="dialog"]') || document.body;
-    const r = { mudos: [], estouram: [], lixo: [], miudos: [] };
+    const r = { mudos: [], estouram: [], lixo: [], miudos: [], semAlvo: [] };
     for (const b of escopo.querySelectorAll('button, [role="tab"], a[href]')) {
       if (!vis(b) || foraDeTela(b)) continue;
       if (!nome(b)) r.mudos.push(b.tagName + '.' + String(b.className || '').slice(0, 30)
         + '@' + Math.round(b.getBoundingClientRect().top));
       if (innerWidth < 500) { const a = alvo(b);
         if (a.h < 30 || a.w < 30) r.miudos.push((nome(b) || '?').slice(0, 22) + ' '
-          + Math.round(a.w) + '×' + Math.round(a.h)); }
+          + Math.round(a.w) + '×' + Math.round(a.h));
+        // quem PROMETE alvo (.ct-alvo) tem de entregar os 44 px pelo ::after, independente da
+        // fonte: no Mac o emoji da Apple alonga o chip para 32 px e escondia o fio de luz
+        // (catedra-ui.css) sobrescrevendo o ::after do host para 2 px — no Linux do CI caía.
+        if (b.classList.contains('ct-alvo')) { try { const p = getComputedStyle(b, '::after');
+          if (p.position !== 'absolute' || (parseFloat(p.height) || 0) < 44)
+            r.semAlvo.push((nome(b) || '?').slice(0, 22) + ' ::after=' + p.height); } catch (_) {} } }
     }
     for (const e of escopo.querySelectorAll('*')) {
       if (!vis(e) || foraDeTela(e) || recortado(e)) continue;
@@ -5307,6 +5313,7 @@ const AUDITOR = () => {
       ok(r.estouram.length===0, `TELA ${v}@${larg} nada estoura a largura (${r.estouram.slice(0,3).join(' | ')||'ok'})`);
       ok(r.lixo.length===0, `TELA ${v}@${larg} sem lixo de render (${r.lixo.join(',')||'ok'})`);
       ok(r.miudos.length===0, `TELA ${v}@${larg} alvo de toque ≥30px (${r.miudos.slice(0,4).join(' | ')||'ok'})`);
+      if (larg < 500) ok(r.semAlvo.length===0, `TELA ${v}@${larg} todo .ct-alvo entrega 44px pelo ::after (${r.semAlvo.slice(0,4).join(' | ')||'ok'})`);
       ok(r.rotulosVazios.length===0, `TELA ${v}@${larg} nenhuma aba com rótulo vazio (${r.rotulosVazios.slice(0,2).join(' | ')||'ok'})`);
     }
     // registro de sessão
