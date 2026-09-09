@@ -6192,6 +6192,10 @@ const CT_AREA = (id)=> CT_AREAS.find(a=>a.id===id) || CT_AREAS[0];
 // releitura: a pessoa escolhia Aurora, recarregava e voltava para Planilha. Tem de bater
 // com as chaves de THEMES() — há teste que compara as duas.
 const CT_DIRS = ['sutil','premium','clean','moderno','aurora','solar','terminal','holo'];
+/* "Padrão do tema" no disco. Na memória a cor de destaque padrão é `null`; no disco ela
+   é esta palavra, com conteúdo, para o merge da nuvem tratá-la como escolha e não como
+   ausência (ver _accentGuardado). */
+const CT_ACCENT_TEMA = 'tema';
 
 const CT_CORES_RAMO = {
   'constitucional':      {c:'#2563EB', d:'#38BDF8'},
@@ -6498,7 +6502,7 @@ class Component extends DCLogic {
       anaTab:'visao',
       ankiHist:this._load('ankiHist', []),
       ankiInput:'', ankiRevInput:'',
-      accent:this._load('accent', null),
+      accent:this._accentGuardado(),
       escudos:this._load('escudos', 0), streakFreezeUsados:this._load('streakFreezeUsados', []), streakCheckDate:this._load('streakCheckDate', ''), escudoUltimoGanho:this._load('escudoUltimoGanho', ''),
       prefs:{ ...AJ_PREFS_PADRAO, ...this._load('prefs', {}) },
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
@@ -7160,6 +7164,10 @@ class Component extends DCLogic {
     // engolindo o que foi feito no outro aparelho.
     this._autosaveKeys().forEach(k=>{
       if(k in patch) return;
+      // A cor de destaque tem portão próprio logo abaixo (_podeAdotarTema): por este laço
+      // genérico ela entrava no patch SEM passar pelo portão — o sync com a cor velha da
+      // nuvem desfazia a escolha de segundos atrás, e a palavra "tema" viraria "cor".
+      if(k==='accent') return;
       const v=this._load(k, undefined);
       if(v===undefined) return;                                  // nunca salvou: mantém o de memória
       // prefs/profile são objetos com defaults — mescla p/ não perder chave nova do app
@@ -7174,17 +7182,31 @@ class Component extends DCLogic {
        Era também o que quebrava o CátedraLEGIS/JURIS, que liam 'catedra:dark' e recebiam
        a resposta errada. A leitura abaixo REPETE a do construtor de propósito: duas
        formas de ler a mesma chave divergiriam na primeira mudança de formato. */
+    /* Quando o portão RECUSA o valor da nuvem, a escolha da pessoa é regravada no disco.
+       Sem isso a tela pintava uma coisa e o disco guardava outra: no recarregamento
+       seguinte o construtor lia o disco e o tema "pulava" — e a escolha nunca subia para
+       o outro aparelho, porque o autosave só grava o que mudou na memória. A regravação
+       passa pelo auth.js, ganha carimbo novo e vence no merge seguinte. */
     try{
       const d=localStorage.getItem('catedra:dir');
-      if(d && CT_DIRS.includes(d) && d!==this.state.dir && this._podeAdotarTema('catedra:dir')) patch.dir=d;
+      if(d && CT_DIRS.includes(d) && d!==this.state.dir){
+        if(this._podeAdotarTema('catedra:dir')) patch.dir=d;
+        else if(this.state.dir) localStorage.setItem('catedra:dir', this.state.dir);
+      }
     }catch(_){}
     try{
       const k=localStorage.getItem('catedra:dark');
-      if(k!=null){ const esc=(k==='1'); if(esc!==!!this.state.darkMode && this._podeAdotarTema('catedra:dark')) patch.darkMode=esc; }
+      if(k!=null){ const esc=(k==='1'); if(esc!==!!this.state.darkMode){
+        if(this._podeAdotarTema('catedra:dark')) patch.darkMode=esc;
+        else localStorage.setItem('catedra:dark', this.state.darkMode?'1':'0');
+      } }
     }catch(_){}
     try{
-      const a=this._load('accent', null);
-      if((a||null)!==(this.state.accent||null) && this._podeAdotarTema('catedra:accent')) patch.accent=a;
+      const a=this._accentGuardado();
+      if((a||null)!==(this.state.accent||null)){
+        if(this._podeAdotarTema('catedra:accent')) patch.accent=a;
+        else localStorage.setItem(this._chave('accent'), this._serializar('accent', this.state.accent));
+      }
     }catch(_){}
     // Tira do patch o que NÃO mudou de conteúdo: o _load devolve objeto novo a cada
     // leitura, e uma referência nova já bastava para o _autosave regravar tudo e pedir
@@ -7600,6 +7622,20 @@ class Component extends DCLogic {
     return 'catedra:'+k+'@'+a;
   }
   _load(k, fb){ try{ const r=localStorage.getItem(this._chave(k)); if(r!=null){ const v=JSON.parse(r); if(v!=null) return v; } }catch(_){} return fb; }
+  /* COR DE DESTAQUE NO DISCO. `null` na memória quer dizer "siga a cor da direção visual",
+     mas no disco ele virava "null" — e para o mergeAll do auth.js "null" é VAZIO, e vazio
+     nunca apaga cheio. Resultado: "Padrão do tema" não tinha como vencer uma cor guardada
+     na nuvem; a cor velha voltava a cada sync e o app repintava com ela ("volta para o
+     verde sempre"). Por isso o padrão do tema é guardado como a palavra CT_ACCENT_TEMA —
+     um valor COM conteúdo, que disputa pelo carimbo como qualquer outro. Um aparelho novo,
+     que semeia "null", perde para ele (vazio nunca apaga cheio) — que é o certo. Só cor
+     em hex volta como cor: qualquer outra coisa (a palavra, lixo antigo) é padrão do tema. */
+  _accentGuardado(){
+    try{ const r=localStorage.getItem(this._chave('accent')); if(r==null) return null;
+      const v=JSON.parse(r); return (typeof v==='string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) ? v : null; }catch(_){ return null; }
+  }
+  /** como cada chave vai para o disco — só a cor tem forma própria (ver _accentGuardado) */
+  _serializar(k, v){ return (k==='accent' && v==null) ? JSON.stringify(CT_ACCENT_TEMA) : JSON.stringify(v); }
   // persiste automaticamente as fatias que não tinham salvamento próprio
   // (edital, revisões, ciclo, metas, calendário, simulado, erros) — só grava o
   // que mudou (comparação por referência), com debounce, e avisa a camada de
@@ -7636,8 +7672,22 @@ class Component extends DCLogic {
     if(!dirty) return;
     clearTimeout(this._asT);
     this._asT=setTimeout(()=>{
-      for(const k of keys){ try{ localStorage.setItem(this._chave(k), JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){} }
-      try{ if(window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push(); }catch(_){}
+      /* Grava SÓ o que mudou de conteúdo. Cada setItem passa pelo auth.js, que carimba a
+         chave (catedra:_kts) com a hora de agora — e o carimbo é o que decide, entre dois
+         aparelhos, qual valor é o mais novo. Regravando as 60 chaves a cada salvamento,
+         um aparelho parado recarimbava a cor de destaque VELHA a cada sessão registrada,
+         e essa cor "mais nova" vencia a que a pessoa acabara de escolher no outro
+         aparelho. Carimbo só faz sentido em escrita de verdade. */
+      let gravou=false;
+      for(const k of keys){ try{
+        // chave sem estado (ex.: 'redHist', cujo estado vive em redHist2) gravava a
+        // palavra "undefined" a cada salvamento — e recarimbava sozinha
+        if(this.state[k]===undefined){ L[k]=undefined; continue; }
+        const ck=this._chave(k), s=this._serializar(k, this.state[k]);
+        if(localStorage.getItem(ck)!==s){ localStorage.setItem(ck, s); gravou=true; }
+        L[k]=this.state[k];
+      }catch(_){} }
+      try{ if(gravou && window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push(); }catch(_){}
     }, 500);
   }
   _syncModalFocus(){
@@ -8624,7 +8674,7 @@ class Component extends DCLogic {
     return v;
   }
   onNav = (e)=>{ const v=this._irPara(e.currentTarget.dataset.view); if(v!=='indisponivel') this._marcarPonto(v); };
-  onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this._temaEscolhidoAgora(); this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.removeItem('catedra:accent'); }catch(_){} };
+  onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this._temaEscolhidoAgora(); this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.setItem(this._chave('accent'), this._serializar('accent', null)); }catch(_){} };
   /* CARIMBO DA ESCOLHA MANUAL DE TEMA.
      A reidratação passou a reler dir/dark/accent do localStorage a cada `catedra:synced`
      — necessário, porque a nuvem escreve essas chaves direto e antes o app seguia pintando
@@ -9770,9 +9820,14 @@ class Component extends DCLogic {
     else this.setState({treino:null}); this.flashSync(); };
 
   // ===== Personalização / Ajustes =====
-  setAccent = (e)=> this.setState({accent:e.currentTarget.dataset.c}, ()=>this._temaBroadcast());
-  setAccentColor = (e)=> this.setState({accent:e.currentTarget.value});
-  setAccentReset = ()=>{ this.setState({accent:null}); try{ localStorage.removeItem('catedra:accent'); }catch(_){} this._toast('Cor de destaque de volta ao padrão do tema'); };
+  // A escolha da cor carimba a hora, como dir/dark: um sync que chegue depois trazendo
+  // valor mais velho não pode desfazê-la (ver _podeAdotarTema).
+  setAccent = (e)=>{ this._temaEscolhidoAgora(); this.setState({accent:e.currentTarget.dataset.c}, ()=>this._temaBroadcast()); };
+  setAccentColor = (e)=>{ this._temaEscolhidoAgora(); this.setState({accent:e.currentTarget.value}); };
+  // "Padrão do tema" GRAVA a palavra CT_ACCENT_TEMA em vez de apagar a chave: chave
+  // apagada virava "null" no autosave seguinte, "null" é vazio para o merge, e a cor
+  // guardada na nuvem voltava sempre (ver _accentGuardado).
+  setAccentReset = ()=>{ this._temaEscolhidoAgora(); this.setState({accent:null}, ()=>this._temaBroadcast()); try{ localStorage.setItem(this._chave('accent'), this._serializar('accent', null)); }catch(_){} this._toast('Cor de destaque de volta ao padrão do tema'); };
   setDensity = (e)=> this.setState(s=>({prefs:{...s.prefs,density:e.currentTarget.dataset.d}}));
   togglePref = (e)=>{ const k=e.currentTarget.dataset.k; this.setState(s=>({prefs:{...s.prefs,[k]:!s.prefs[k]}})); };
   // Relatório de problema: sem isto, um relato de testador chega como "não funcionou" e
@@ -12968,6 +13023,7 @@ class Component extends DCLogic {
       try{ const ck='catedra:'+AJ_ESTADO_CHAVE[k];
         if(k==='darkMode') localStorage.setItem(ck, AJ_ESTADO_PADRAO[k]?'1':'0');
         else if(k==='dir') localStorage.setItem(ck, String(AJ_ESTADO_PADRAO[k]));
+        else if(k==='accent') localStorage.setItem(ck, this._serializar('accent', null));   // padrão do tema é palavra, não ausência (ver _accentGuardado)
         else if(AJ_ESTADO_PADRAO[k]==null) localStorage.removeItem(ck);
         else localStorage.setItem(ck, JSON.stringify(AJ_ESTADO_PADRAO[k]));
       }catch(_){}

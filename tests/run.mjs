@@ -7293,6 +7293,88 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     ok(chegou === '1', 'TEMA/SYNC o tema MAIS NOVO de outro aparelho ainda repinta');
   }
 
+  /* COR DE DESTAQUE × NUVEM — "a cor oficial do tema ou outra que eu escolha não fixa,
+     volta para o verde sempre" (09/09/2026). Três causas, as três presas aqui.
+     1) "Padrão do tema" era chave APAGADA → o autosave seguinte gravava "null" → para o
+        mergeAll "null" é vazio, e vazio nunca apaga cheio: a cor guardada na nuvem voltava
+        sempre. Agora o padrão é a palavra "tema", com conteúdo, e disputa pelo carimbo.
+     2) O autosave regravava as 60 chaves a cada salvamento, e cada regravação carimbava
+        a chave de novo: um aparelho parado recarimbava a cor VELHA a cada sessão
+        registrada e vencia a escolha nova feita no outro. Agora grava só o que mudou.
+     3) O laço genérico da reidratação punha a cor no patch SEM passar pelo portão
+        _podeAdotarTema — o sync com a cor velha desfazia a escolha de segundos atrás. */
+  {
+    await page.goto(URL0 + '/tests/sync-fixture.html');
+    await page.waitForFunction(() => window.CatedraSync && window.CatedraSync._test);
+    const mg = await page.evaluate(() => {
+      const M = window.CatedraSync._test.mergeAll, J = JSON.stringify;
+      const sv = { 'catedra:accent': '"#0f7a57"', 'catedra:_kts': J({ 'catedra:accent': 1000 }) };
+      const lc = { 'catedra:accent': '"tema"', 'catedra:_kts': J({ 'catedra:accent': 2000 }) };
+      const sv2 = { 'catedra:accent': '"tema"', 'catedra:_kts': J({ 'catedra:accent': 1000 }) };
+      const lc2 = { 'catedra:accent': 'null', 'catedra:_kts': J({ 'catedra:accent': 9000 }) };
+      return { padraoVence: M(sv, lc, false)['catedra:accent'] === '"tema"' && M(sv, lc, true)['catedra:accent'] === '"tema"',
+               semente: M(sv2, lc2, true)['catedra:accent'] === '"tema"' };
+    });
+    ok(mg.padraoVence, 'COR/SYNC "padrão do tema" com carimbo mais novo vence a cor guardada na nuvem');
+    ok(mg.semente, 'COR/SYNC o "null" semeado por aparelho novo não apaga o padrão do tema guardado');
+
+    // na tela: a nuvem tem verde guardado (carimbo de agosto); a direção é Fibra (índigo)
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.evaluate(() => {
+      localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:dir', 'clean'); localStorage.setItem('catedra:dark', '0');
+      localStorage.setItem('catedra:accent', '"#0f7a57"');
+      localStorage.setItem('catedra:_kts', JSON.stringify({ 'catedra:accent': new Date('2026-08-18').getTime() }));
+    });
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(900);
+    const accentDe = () => page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.style.getPropertyValue('--accent').trim());
+    const irParaAparencia = async () => {
+      await page.evaluate(() => { document.querySelector('[role="dialog"]')?.remove(); document.querySelector('button[data-view="ajustes"]')?.click(); });
+      await page.waitForTimeout(500);
+      await page.evaluate(() => { [...document.querySelectorAll('button[data-s]')].find(b => /apar[êe]ncia/i.test(b.textContent))?.click(); });
+      await page.waitForTimeout(400);
+    };
+    await irParaAparencia();
+    ok((await accentDe()) === '#0f7a57', 'COR parte do verde guardado');
+    // grampo nas escritas: o que o autosave grava depois de "Padrão do tema"
+    await page.evaluate(() => { const w = []; const o = localStorage.setItem.bind(localStorage); localStorage.setItem = (k, v) => { w.push(k); o(k, v); }; window.__escritas = w; });
+    await page.evaluate(() => [...document.querySelectorAll('button')].find(b => /Padrão do tema/.test(b.textContent))?.click());
+    await page.waitForTimeout(1300);   // autosave (500 ms) + folga
+    const guardado = await page.evaluate(() => localStorage.getItem('catedra:accent'));
+    ok(guardado === '"tema"', 'COR "padrão do tema" fica guardado como valor com conteúdo, não como chave apagada');
+    ok((await accentDe()) === '#4f46e5', 'COR "padrão do tema" pinta com a cor da direção (Fibra = índigo), não com o verde');
+    const escritas = await page.evaluate(() => { const w = window.__escritas.slice(); window.__escritas.length = 0; return w; });
+    // só as chaves sincronizadas contam: 'ct_timer' é o cronômetro, fora do autosave e do sync
+    const alheias = escritas.filter(k => k !== 'catedra:accent' && k.indexOf('catedra:') === 0);
+    ok(alheias.length === 0, 'COR o autosave grava só o que mudou — nenhuma outra chave regravada (' + alheias.slice(0, 3).join(', ') + ')');
+    // chega um sync com o verde VELHO da nuvem (carimbo de agosto): não desfaz a escolha…
+    await page.evaluate(() => { localStorage.setItem('catedra:accent', '"#0f7a57"'); window.dispatchEvent(new Event('catedra:synced')); });
+    await page.waitForTimeout(800);
+    ok((await accentDe()) === '#4f46e5', 'COR/SYNC um sync com a cor velha da nuvem não desfaz o padrão do tema escolhido');
+    // …e o disco volta a dizer o que a tela pinta (senão o recarregamento "pulava")
+    ok((await page.evaluate(() => localStorage.getItem('catedra:accent'))) === '"tema"', 'COR/SYNC a escolha recusada pela nuvem é regravada no disco');
+    await page.goto(URL0 + '/Catedra.dc.html');
+    await page.waitForTimeout(900);
+    ok((await accentDe()) === '#4f46e5', 'COR "padrão do tema" sobrevive ao recarregar');
+    // escolher uma cor também carimba a escolha: sync velho não a desfaz
+    await irParaAparencia();
+    await page.evaluate(() => document.querySelector('button[data-c="#7c3aed"]')?.click());
+    await page.waitForTimeout(1300);
+    await page.evaluate(() => { localStorage.setItem('catedra:accent', '"#0f7a57"'); window.dispatchEvent(new Event('catedra:synced')); });
+    await page.waitForTimeout(800);
+    ok((await accentDe()) === '#7c3aed', 'COR/SYNC a cor escolhida não é desfeita por sync com a cor velha');
+    // e a cor MAIS NOVA de outro aparelho continua chegando
+    await page.evaluate(() => {
+      localStorage.setItem('catedra:accent', '"#0891b2"');
+      localStorage.setItem('catedra:_kts', JSON.stringify({ 'catedra:accent': Date.now() + 5000 }));
+      window.dispatchEvent(new Event('catedra:synced'));
+    });
+    await page.waitForTimeout(800);
+    ok((await accentDe()) === '#0891b2', 'COR/SYNC a cor mais nova de outro aparelho ainda chega');
+    await page.evaluate(() => { localStorage.removeItem('catedra:accent'); localStorage.removeItem('catedra:_kts'); localStorage.setItem('catedra:dir', 'sutil'); });
+  }
+
   /* PINTURA DA DIREÇÃO — o teste que faltava, e o defeito que o pediu.
      Os testes acima provam que a direção PERSISTE: grava, recarrega, o data-dir continua
      lá. Nenhum provava que ela PINTA. A diferença custou caro: a uniformização das telas
