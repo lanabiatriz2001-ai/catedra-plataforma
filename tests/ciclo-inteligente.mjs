@@ -124,12 +124,19 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
     // manual: cadastro rápido em 3 dias + gerar a volta manual pela prioridade
     document.getElementById('ct-cycle-tab-configurar').click(); await w(500);
     [...document.querySelectorAll('.ct-modo')].find(b => b.dataset.mode === 'manual').click(); await w(700);
-    const cfg = document.getElementById('ct-cycle-panel-configurar');
+    let cfg = document.getElementById('ct-cycle-panel-configurar');
     const selAg = cfg.querySelector('.ct-cb-add select[data-k="disc"]'); selAg.value = 'Direito Penal'; selAg.dispatchEvent(new Event('change', { bubbles: true })); await w(300);
     const chipsOn = [...cfg.querySelectorAll('.ct-dia-chip[aria-pressed="true"]')].map(c => c.dataset.dia);
     [...cfg.querySelectorAll('.ct-cb-add button')].find(b => /^Adicionar em/.test((b.textContent || '').trim())).click(); await w(1500);
     const mf1 = JSON.parse(localStorage.getItem('catedra:manualFixed') || '[]');
     r.cadastroRapidoUmaPorDia = chipsOn.length === 3 && mf1.length === 3 && chipsOn.every(d => mf1.some(f => f.dia === d && f.disc === 'Direito Penal' && f.discEdital === 'Direito Penal'));
+    // convite no EXECUTAR: manual com agenda e volta vazia → "A volta ainda está vazia" com gerar / montar / agora não
+    document.getElementById('ct-cycle-tab-executar').click(); await w(500);
+    const conv = document.querySelector('#ct-cycle-panel-executar .ct-convite-volta');
+    r.conviteApareceNoExecutar = !!conv && /A volta ainda está vazia/.test(conv.textContent || '') && !![...conv.querySelectorAll('button')].find(b => /Gerar uma volta pela prioridade/.test(b.textContent || ''));
+    if (conv) { [...conv.querySelectorAll('button')].find(b => /Agora não/.test(b.textContent || '')).click(); await w(1500); }
+    r.agoraNaoSomeEFicaLembrado = !document.querySelector('#ct-cycle-panel-executar .ct-convite-volta') && localStorage.getItem('catedra:cicloConviteOff') === '1';
+    document.getElementById('ct-cycle-tab-configurar').click(); await w(500); cfg = document.getElementById('ct-cycle-panel-configurar');
     window.confirm = () => true;
     [...cfg.querySelectorAll('button')].find(b => /Gerar uma volta pela prioridade/.test(b.textContent || '')).click(); await w(1700);
     const rot = JSON.parse(localStorage.getItem('catedra:manualRot') || '[]');
