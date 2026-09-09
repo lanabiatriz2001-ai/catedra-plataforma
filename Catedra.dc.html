@@ -13475,7 +13475,10 @@ class Component extends DCLogic {
        grade não marcava nada, então no onboarding dava para passar do passo 2 sem
        escolher e sem perceber, e o Ajustes mostrava dez cards todos apagados. O selo
        agora reflete a área que está de fato valendo. */
-    const areaCards = CT_AREAS.map(a=>{ const on = a.id===(this.state.areaEstudo||CT_AREAS[0].id);
+    // P19: no beta público só as áreas de CT_AREA_REG.PUBLICAS entram na escolha; a área que a conta já usa fica
+    const _areaAtivaId=(this.state.areaEstudo||CT_AREAS[0].id);
+    const _pub=(id)=>{ try{ const R=window.CT_AREA_REG; return R&&R.publica?R.publica(id,_areaAtivaId):true; }catch(_){ return true; } };
+    const areaCards = CT_AREAS.filter(a=>_pub(a.id)).map(a=>{ const on = a.id===_areaAtivaId;
       return { id:a.id, emoji:a.emoji, label:a.label, desc:a.desc, check: on?'  ✓':'',
         style:`display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;cursor:pointer;font-family:inherit;padding:12px 13px;border-radius:var(--radius);border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface2)'};`,
         labelStyle:`font-size:var(--fs-base);font-weight:700;color:${on?'var(--accentD)':'var(--ink)'};` }; });
