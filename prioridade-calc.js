@@ -111,7 +111,7 @@
         { chave: 'erros', rotulo: 'erros recentes', valor: fErros, peso: PESOS.erros,
           texto: o.erros30 ? (o.erros30 + ' erro' + (o.erros30 > 1 ? 's' : '') + ' nos últimos ' + JANELA_ERROS + ' dias') : 'sem erros recentes' },
         { chave: 'revisoes', rotulo: 'revisões vencidas', valor: fRev, peso: PESOS.revisoes,
-          texto: o.revVencidas ? (o.revVencidas + ' revisão' + (o.revVencidas > 1 ? 'es' : '') + ' vencida' + (o.revVencidas > 1 ? 's' : '')) : 'revisões em dia' },
+          texto: o.revVencidas ? (o.revVencidas + ' revis' + (o.revVencidas > 1 ? 'ões' : 'ão') + ' vencida' + (o.revVencidas > 1 ? 's' : '')) : 'revisões em dia' },
         { chave: 'esfriando', rotulo: 'tempo sem estudar', valor: fEsfria, peso: PESOS.esfriando,
           texto: diasSem == null ? 'nunca estudada por aqui' : (diasSem === 0 ? 'estudada hoje' : ('há ' + diasSem + ' dia' + (diasSem > 1 ? 's' : '') + ' sem estudar')) },
         { chave: 'simulado', rotulo: 'desempenho', valor: fSim, peso: PESOS.simulado,
