@@ -1020,3 +1020,8 @@ button:disabled { cursor: not-allowed; }
 [data-toque="1"] { --ct-alvo: 44px; }
 @media (pointer: coarse) { main button, .ct-topbar button { min-height: 44px; } }
 [data-toque="1"] main button, [data-toque="1"] .ct-topbar button { min-height: 44px; }
+/* D4 dentro de um KPI: o convite curto no lugar do número — título, descrição e ação, sem zero em destaque */
+.ct-convite { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.ct-convite b { font-family: var(--display, Georgia, serif); font-size: var(--fs-xl, 17px); color: var(--ink, #1c1a16); line-height: 1.2; }
+.ct-convite span { font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); line-height: 1.5; }
+.ct-convite .ct-btn-2 { align-self: flex-start; min-height: 44px; margin-top: 2px; }
