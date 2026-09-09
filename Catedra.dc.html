@@ -1396,17 +1396,28 @@ window.ctPdfLib = (function(){
 
         <!-- KPIs sobrepostos ao hero -->
         <div class="cth-kpis">
-          <div class="cth-gcard cth-kpi">
+          <!-- D4: métrica zerada não vira número — vira o convite de como sair do zero (título, descrição e ação) -->
+          <div class="cth-gcard cth-kpi" data-kpi="edital" data-vazio="{{ paEdEstado }}">
             <div class="cth-lbl">Edital coberto</div>
-            <div class="cth-val">{{ paEdPct }}<span class="u">%</span></div>
-            <div class="cth-ksub"><b>{{ paEd }}</b> tópicos</div>
-            <div class="cth-kbar"><i style="width:{{ paEdPct }}%;"></i></div>
+            <sc-if value="{{ paEdTemNumero }}" hint-placeholder-val="{{ true }}">
+              <div class="cth-val">{{ paEdPct }}<span class="u">%</span></div>
+              <div class="cth-ksub"><b>{{ paEd }}</b> tópicos</div>
+              <div class="cth-kbar"><i style="width:{{ paEdPct }}%;"></i></div>
+            </sc-if>
+            <sc-if value="{{ !paEdTemNumero }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-convite"><b>{{ paEdConviteTitulo }}</b><span>{{ paEdConviteDesc }}</span><button type="button" data-view="edital" onclick="{{ onNav }}" class="ct-btn-2">{{ paEdConviteAcao }}</button></div>
+            </sc-if>
           </div>
-          <div class="cth-gcard cth-kpi">
+          <div class="cth-gcard cth-kpi" data-kpi="meta" data-vazio="{{ homeHojeVazio }}">
             <div class="cth-lbl">Meta de hoje</div>
-            <div class="cth-val">{{ homeMetaHojePct }}<span class="u">%</span></div>
-            <div class="cth-ksub"><b>{{ homeHojeMin }}</b>/{{ homeMetaHojeAlvo }} min</div>
-            <div class="cth-kbar"><i style="width:{{ homeMetaHojePct }}%;"></i></div>
+            <sc-if value="{{ !homeHojeVazio }}" hint-placeholder-val="{{ true }}">
+              <div class="cth-val">{{ homeMetaHojePct }}<span class="u">%</span></div>
+              <div class="cth-ksub"><b>{{ homeHojeMin }}</b>/{{ homeMetaHojeAlvo }} min</div>
+              <div class="cth-kbar"><i style="width:{{ homeMetaHojePct }}%;"></i></div>
+            </sc-if>
+            <sc-if value="{{ homeHojeVazio }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-convite"><b>Nada registrado hoje</b><span>Inicie o cronômetro ou registre uma sessão — a meta de {{ homeMetaHojeAlvo }} min aparece aqui.</span><button type="button" onclick="{{ openSession }}" class="ct-btn-2">Registrar sessão</button></div>
+            </sc-if>
           </div>
         </div>
         <!-- Os chips "essencial da área" saíram daqui (01/09): eram navegação duplicada da
@@ -2484,8 +2495,14 @@ window.ctPdfLib = (function(){
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;">
+          <!-- D4: sem edital ou sem tópico concluído, o número some e o convite diz o próximo passo -->
+          <sc-if value="{{ paEdTemNumero }}" hint-placeholder-val="{{ true }}">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:var(--fs-xs);color:var(--text3);">Conclusão do edital</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edPct }}<span style="font-size:var(--fs-lg);color:var(--text3);font-family:var(--body);">%</span></div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:var(--fs-xs);color:var(--text3);">Tópicos concluídos</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edDone }}<span style="font-size:var(--fs-lg);color:var(--text3);font-family:var(--body);">/{{ edTotal }}</span></div></div>
+          </sc-if>
+          <sc-if value="{{ !paEdTemNumero }}" hint-placeholder-val="{{ false }}">
+          <div class="ct-estado" data-estado="edital" style="grid-column:1/-1;text-align:left;align-items:flex-start;padding:18px;"><div class="ct-estado-titulo">{{ paEdConviteTitulo }}</div><div class="ct-estado-desc">{{ paEdConviteDescLonga }}</div></div>
+          </sc-if>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;"><div style="font-size:var(--fs-xs);color:var(--text3);">Disciplinas em dia</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1;">{{ edAlta }}<span style="font-size:var(--fs-lg);color:var(--text3);font-family:var(--body);">/{{ edDiscN }}</span></div></div>
         </div>
 
@@ -3717,7 +3734,7 @@ window.ctPdfLib = (function(){
         <div class="ct-card">
           <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:6px;">Evolução do desempenho</div>
           <div style="font-size:var(--fs-xs);color:var(--text3);margin-bottom:18px;">% de acerto por simulado</div>
-          <sc-if value="{{ simSemHist }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);color:var(--text3);padding:30px 0;text-align:center;">Nenhum simulado registrado ainda — registre o primeiro ao lado e acompanhe a evolução aqui.</div></sc-if>
+          <sc-if value="{{ simSemHist }}" hint-placeholder-val="{{ false }}"><div class="ct-estado" data-estado="simulado"><div class="ct-estado-titulo">Nenhum simulado ainda</div><div class="ct-estado-desc">O primeiro vira a linha de base: a partir dele a evolução do acerto aparece aqui, simulado a simulado.</div><div class="ct-estado-acao"><button type="button" onclick="{{ abrirSimuladoJogo }}" class="ct-btn">Fazer o primeiro simulado</button></div></div></sc-if>
           <sc-if value="{{ simTemHist }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:flex-end;gap:12px;height:140px;">
             <sc-for list="{{ simChart }}" as="c" hint-placeholder-count="5">
               <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;">
@@ -16370,6 +16387,13 @@ class Component extends DCLogic {
       paD90, paW26, paM12,
       paPainelVazio:paPainel.length===0, homeLeituraVazia:!homeLeituraObj,
       paEd:String(edDone)+'/'+String(edTotal), paEdPct:String(edTotal?Math.round(edDone/edTotal*100):0),
+      // D4: zero absoluto = convite. Sem edital → cadastrar; com edital e nada concluído → marcar o primeiro tópico
+      paEdTemNumero:edTotal>0 && edDone>0, paEdEstado:edTotal===0?'sem-edital':(edDone===0?'sem-progresso':''),
+      paEdConviteTitulo:edTotal===0?'Comece pelo edital':'Nenhum tópico concluído ainda',
+      paEdConviteDesc:edTotal===0?'Importe um modelo ou cadastre as disciplinas — a cobertura aparece aqui.':'Marque o primeiro tópico estudado no Edital — a cobertura aparece aqui.',
+      paEdConviteDescLonga:edTotal===0?'Importe um modelo pronto ("Começar com um modelo", logo abaixo) ou cadastre as disciplinas do seu edital. A conclusão e os tópicos concluídos passam a aparecer aqui.':'Marque os tópicos que você já estudou: a conclusão do edital e o número de tópicos concluídos aparecem aqui a partir do primeiro.',
+      paEdConviteAcao:edTotal===0?'Abrir o edital':'Marcar tópicos',
+      homeHojeVazio:homeHojeMinN===0,
       homeSemNext:!nextAction,
       homeProxRev:(()=>{ const pend=[...revOverdue,...revToday].map(r=>({...r, pendChip:true, dueLabel:(r.due<0?'vencida':'hoje')}));
         return [...pend, ...revUpcoming].slice(0,6).map(r=>({...r, pendChip:!!r.pendChip, dueCor:r.pendChip?'var(--danger)':'var(--text2)', colorTx:this._corTx(r.color),

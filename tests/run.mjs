@@ -2394,6 +2394,46 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   await page.evaluate((a) => { localStorage.setItem('catedra:onboarded', '1'); if (a != null) localStorage.setItem('catedra:areaEstudo', a); else localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica')); }, areaAntes);
 }
 
+/* ============= D4 — P20: estados vazios que convidam nas primeiras telas (Início, Edital, Simulado) ============= */
+// Zero absoluto não vira número: o slot mostra título, descrição e ação. Com ≥ 1, volta o número normal.
+{
+  const host = URL0 + '/Catedra.dc.html';
+  await page.goto(host);
+  const guard = await page.evaluate(() => { const g = { edital: localStorage.getItem('catedra:edital'), sessions: localStorage.getItem('catedra:sessions') }; localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); localStorage.removeItem('catedra:edital'); localStorage.removeItem('catedra:sessions'); localStorage.removeItem('catedra:sim'); localStorage.removeItem('ct_timer'); return g; });
+  await page.goto(host); await page.waitForTimeout(1600);
+  const r = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const r = {}, app = window.__catedraApp;
+    window.__catedraGoView('inicio'); await w(600);
+    const kpi = (k) => document.querySelector('main [data-kpi="' + k + '"]');
+    r.editalSemNumero = kpi('edital').getAttribute('data-vazio') === 'sem-edital' && !kpi('edital').querySelector('.cth-val') && /Comece pelo edital/.test(kpi('edital').textContent) && /Abrir o edital/.test(kpi('edital').querySelector('.ct-convite button').textContent) && !/0\s*%/.test(kpi('edital').textContent);
+    r.metaSemNumero = kpi('meta').getAttribute('data-vazio') === 'true' && !kpi('meta').querySelector('.cth-val') && /Nada registrado hoje/.test(kpi('meta').textContent) && /Registrar sessão/.test(kpi('meta').querySelector('.ct-convite button').textContent) && !/0\s*%/.test(kpi('meta').textContent);
+    r.alvo44 = kpi('edital').querySelector('.ct-convite button').getBoundingClientRect().height >= 44;
+    kpi('edital').querySelector('.ct-convite button').click(); await w(500);
+    r.acaoLevaAoEdital = app.state.view === 'edital' && !!document.querySelector('main [data-estado="edital"]') && /Comece pelo edital/.test(document.querySelector('main [data-estado="edital"]').textContent) && !/Conclusão do edital/.test(document.querySelector('main').textContent);
+    // com edital mas nada concluído: outro convite; com um tópico feito: número
+    app.setState({ edital: [{ disc: 'Direito Civil', color: '#0D9488', open: false, topics: [{ name: 'Contratos', done: false, subs: [] }, { name: 'Família', done: false, subs: [] }], peso: '', questoes: '' }] }); await w(500);
+    r.editalSemProgresso = /Nenhum tópico concluído ainda/.test(document.querySelector('main [data-estado="edital"]').textContent);
+    window.__catedraGoView('inicio'); await w(500);
+    r.inicioSemProgresso = kpi('edital').getAttribute('data-vazio') === 'sem-progresso' && /Marcar tópicos/.test(kpi('edital').textContent);
+    app.setState({ edital: [{ disc: 'Direito Civil', color: '#0D9488', open: false, topics: [{ name: 'Contratos', done: true, subs: [] }, { name: 'Família', done: false, subs: [] }], peso: '', questoes: '' }] }); await w(500);
+    r.comProgressoVoltaONumero = kpi('edital').getAttribute('data-vazio') === '' && /50\s*%/.test(kpi('edital').querySelector('.cth-val').textContent) && /1\/2/.test(kpi('edital').textContent);
+    // um minuto estudado hoje: a meta vira número
+    app.setState({ sessions: [{ id: 's-d4', ts: Date.now(), date: app._hoje(), min: 25, categoria: 'Teoria', categorias: ['Teoria'], disc: 'Direito Civil' }] }); await w(600);
+    r.metaComMinutosVoltaONumero = kpi('meta').getAttribute('data-vazio') === 'false' && !!kpi('meta').querySelector('.cth-val') && /25/.test(kpi('meta').textContent);
+    // Simulado: sem histórico, estado vazio com ação
+    app.setState({ sessions: [] }); window.__catedraGoView('simulados'); await w(700);
+    const est = document.querySelector('main [data-estado="simulado"]');
+    r.simuladoConvida = !!est && /Nenhum simulado ainda/.test(est.querySelector('.ct-estado-titulo').textContent) && /Fazer o primeiro simulado/.test(est.querySelector('button').textContent) && !/0\s*%/.test(est.textContent);
+    est.querySelector('button').click(); await w(400);
+    r.acaoAbreOSimulado = app.state.sjAberto === true;
+    app.setState({ sjAberto: false, edital: [] });
+    return r;
+  });
+  for (const [k, v] of Object.entries(r)) ok(v, 'D4/P20 ' + k);
+  await page.evaluate((g) => { if (g.edital != null) localStorage.setItem('catedra:edital', g.edital); else localStorage.removeItem('catedra:edital'); if (g.sessions != null) localStorage.setItem('catedra:sessions', g.sessions); else localStorage.removeItem('catedra:sessions'); }, guard);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
