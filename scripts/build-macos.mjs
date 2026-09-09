@@ -78,14 +78,15 @@ const INJECT = `
 <script>window.CATEDRA_BUILD = ${JSON.stringify(BUILD)};
 window.CATEDRA_API_BASE = ${JSON.stringify(API_BASE)};</script>
 <meta name="color-scheme" content="dark light">
-<!-- Visual de abertura padrão: tema Clean + modo escuro + accent magenta. Só semeia
+<!-- Visual de abertura padrão: tema Clean + modo CLARO + accent magenta (a Lana fixou o
+     claro como padrão em 09/09/2026; o escuro é escolha, nunca ponto de partida). Só semeia
      se AINDA não houver preferência salva; roda ANTES do auth.js (setItem cru, sem
      disparar sync) e ANTES do support.js (que lê no construtor). Numa conta logada
      as prefs sincronizadas do Supabase prevalecem. -->
 <script>
 (function(){ try{ var s=localStorage;
   if(s.getItem('catedra:dir')==null)    s.setItem('catedra:dir','clean');
-  if(s.getItem('catedra:dark')==null)   s.setItem('catedra:dark','1');
+  if(s.getItem('catedra:dark')==null)   s.setItem('catedra:dark','0');
   if(s.getItem('catedra:accent')==null) s.setItem('catedra:accent','"#e718ba"');
 }catch(e){} })();
 </script>
