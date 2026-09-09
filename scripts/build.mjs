@@ -214,7 +214,12 @@ window.claude = {
   }
 };
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
+  /* Fora de produção (preview local, Lighthouse em localhost) o sw.js é um interruptor: instala, se
+     desinstala e recarrega os clientes para tirar qualquer preview de um worker velho. Registrá-lo a
+     cada carga fazia a página recarregar para sempre. Então, fora de produção, só registra quando
+     ainda há um controlador antigo a desfazer — a carga seguinte já nasce sem worker e para aí. */
+  var ctProd = location.protocol === 'https:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  window.addEventListener('load', function () { if (ctProd || navigator.serviceWorker.controller) navigator.serviceWorker.register('./sw.js').catch(function () {}); });
 }
 /* U10 — ponte de instalação e de acervo offline para os Ajustes do host.
    Por que aqui e não lá dentro: o navegador dispara 'beforeinstallprompt' UMA vez,
