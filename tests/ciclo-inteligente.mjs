@@ -1,16 +1,19 @@
-/* CICLO INTELIGENTE + REORGANIZAR/CADASTRAR SEM SAIR DA TELA (09/09/2026)
+/* CICLO = VOLTA CONTÍNUA COM PONTEIRO (o método do Cátedra: ciclo, não calendário) —
+   09/09/2026, decisão da dona depois de ver o "plano do dia" refeito a cada dia.
 
-   O modo `inteligente` monta o dia pela MESMA régua da tela Prioridade (prioridade-calc.js)
-   e escreve o porquê de cada bloco. O que se prova aqui, com dado semeado de verdade
-   (edital com pesos, sessões com desempenho desigual, revisões vencidas, erros):
-   · a revisão vencida de Civil vem primeiro, como bloco de Revisão daquela matéria;
-   · todo bloco tem motivo; nunca duas matérias iguais seguidas; nunca o mesmo tópico
-     repetido na mesma matéria; o total cabe na meta diária (orient.metaIdeal, 180 por padrão);
-   · a linha do dia tem um trecho por bloco, e o "porquê" aparece na lista;
-   · subir/descer troca de lugar; tirar do dia tem desfazer; "Adicionar bloco" entra no fim;
-   · no manual, o cadastro rápido cria UMA atividade por dia marcado e "Preencher a semana
-     pela prioridade" só enche os dias úteis vazios;
-   · sem edital, o modo cai na sugestão padrão e o cartão avisa — em vez de fingir.
+   O modo `inteligente` monta a VOLTA inteira pela régua da tela Prioridade (prioridade-calc.js)
+   e o dia é uma fatia dela. O que se prova aqui, com dado semeado de verdade (edital com pesos,
+   sessões com desempenho desigual, revisões vencidas, erros):
+   · a revisão vencida de Civil vem antes da volta, como bloco de Revisão daquela matéria;
+   · a volta tem blocos de TODAS as matérias, nunca duas iguais seguidas, nunca o mesmo tópico
+     repetido na mesma matéria, e Civil (prioridade 71) ganha mais blocos que Constitucional (23);
+   · o dia cabe na meta diária (180 + folga de 15) e todo bloco tem motivo;
+   · a linha do ciclo mostra a volta inteira (não só o dia), com o trecho de hoje marcado;
+   · concluir marca na volta; subir/descer troca de lugar NA VOLTA; tirar = pular (com desfazer);
+     "Adicionar bloco" entra na volta; "Puxar o próximo" traz mais um para hoje;
+   · no manual, o cadastro rápido cria UMA atividade por dia marcado e "Gerar uma volta pela
+     prioridade" monta o ciclo manual com ponteiro; o dia puxa a fatia depois da agenda;
+   · sem edital, a volta sai pelas matérias da área e o cartão avisa — em vez de fingir.
 
    Função, não script, para rodar em qualquer par motor × origem (como oral-lei-seca.mjs). */
 
@@ -25,7 +28,7 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
   const w = ms => page.waitForTimeout(ms);
 
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto(base + '/' + arquivo);
+  await page.goto(base + '/__semente');   // página SEM o app: semear com o app vivo é corrida com o autosave (500 ms), que regrava o estado do módulo anterior por cima
   await page.evaluate(() => {
     // semente: 4 disciplinas com peso, sessões com desempenho desigual, 2 revisões vencidas
     // de Civil + 1 de hoje, 2 erros de Civil, Penal nunca estudada, Processual Civil esfriando
@@ -63,57 +66,87 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
     const nav = document.querySelector('button[data-view="ciclo"]'); if (nav) nav.click(); await w(900);
     const r = {};
     const B = JSON.parse(localStorage.getItem('catedra:blocks') || '[]');
-    r.gerou = B.length >= 3;
-    r.todosComMotivo = B.every(b => b.motivo && String(b.motivo).length > 6);
-    r.revisaoDeCivilPrimeiro = !!B[0] && B[0].disc === 'Direito Civil' && B[0].kind === 'Revisão';
-    r.nuncaDuasIguaisSeguidas = B.every((b, i) => i === 0 || b.disc !== B[i - 1].disc);
-    r.nuncaOMesmoTopicoNaMateria = new Set(B.map(b => b.disc + '|' + b.tag)).size === B.length;
+    const V = JSON.parse(localStorage.getItem('catedra:cicloVolta') || 'null') || { blocos: [] };
+    const VB = V.blocos || [];
+    r.gerouVolta = VB.length >= 8;
+    r.voltaCobreTodasAsMaterias = ['Direito Constitucional', 'Direito Civil', 'Direito Penal', 'Direito Processual Civil'].every(d => VB.some(b => b.disc === d));
+    r.voltaNuncaDuasIguaisSeguidas = VB.every((b, i) => i === 0 || b.disc !== VB[i - 1].disc);
+    r.voltaNuncaOMesmoTipoETopico = new Set(VB.map(b => b.disc + '|' + b.kind + '|' + b.tag)).size === VB.length;
+    r.voltaPrioridadeDaMaisBlocos = VB.filter(b => b.disc === 'Direito Civil').length > VB.filter(b => b.disc === 'Direito Constitucional').length;
+    r.voltaTodosComMotivo = VB.every(b => b.motivo && String(b.motivo).length > 6);
+    r.voltaVinculoAoEdital = VB.every(b => b.discEdital === b.disc && b.topico === b.tag && +b.min >= 15);
+    r.diaGerou = B.length >= 2;
+    r.revisaoDeCivilAntesDaVolta = !!B[0] && B[0].extra === true && B[0].disc === 'Direito Civil' && B[0].kind === 'Revisão';
+    r.revisaoExtraLevaOTopico = !!B[0] && B[0].topico === 'Prescrição e decadência';   // o registro abre com o tópico da revisão
+    r.diaEhFatiaDaVolta = B.filter(b => !b.extra).every(b => b.voltaId && VB.some(v => v.id === b.voltaId));
     const total = B.reduce((a, b) => a + (+b.min || 0), 0);
-    r.cabeNaMeta = total > 0 && total <= 180;
-    r.minutosValidos = B.every(b => +b.min >= 15);
-    r.vinculoAoEdital = B.filter(b => /^Direito/.test(b.disc)).every(b => b.discEdital === b.disc && b.topico === b.tag);
+    r.diaCabeNaMeta = total > 0 && total <= 195;
     r.faixaNova = !!document.querySelector('.ct-hero-ciclo');
-    r.linhaDoDiaUmTrechoPorBloco = document.querySelectorAll('.ct-linha-seg').length === B.length;
+    r.linhaMostraAVoltaInteira = document.querySelectorAll('.ct-lc-seg').length === VB.length + B.filter(b => b.extra).length;
+    r.linhaMarcaOsDeHoje = document.querySelectorAll('.ct-lc-seg[data-hoje="1"]').length === B.filter(b => !b.done).length;
+    r.linhaPorVirSemClique = [...document.querySelectorAll('.ct-lc-seg')].filter(s => s.disabled).length === VB.length - B.filter(b => b.voltaId).length;
+    r.legendaDizOndeParei = /Volta 1 · 0 de \d+ blocos · onde parei:/.test((document.querySelector('.ct-lc-legenda') || {}).textContent || '');
     r.porqueNaLista = document.querySelectorAll('.ct-cb .ct-cb-motivo').length === B.length;
     r.matériaTingeOItem = [...document.querySelectorAll('.ct-cb')].every(el => /--ct-item-cor:/.test(el.getAttribute('style') || ''));
-    // reorganizar: descer o primeiro troca com o segundo
+    // reorganizar: descer o primeiro bloco DA VOLTA troca com o seguinte — na tela e na volta
     const tits = () => [...document.querySelectorAll('.ct-cb .ct-item-tit')].map(e => e.textContent.trim());
-    const antes = tits();
-    document.querySelector('.ct-cb .ct-cb-mini[data-dir="1"]').click(); await w(500);
-    const depois = tits();
-    r.descerTroca = depois[0] === antes[1] && depois[1] === antes[0];
-    // tirar do dia + desfazer
+    const i1 = B.findIndex(b => b.voltaId); const antes = tits();
+    const setas = document.querySelectorAll('.ct-cb .ct-cb-mini[data-dir="1"]');
+    r.extraNaoTemSeta = setas[0].disabled === true;
+    setas[i1].click(); await w(1700);
+    const depois = tits(); const V2 = JSON.parse(localStorage.getItem('catedra:cicloVolta') || 'null') || { blocos: [] };
+    r.descerTrocaNaTela = depois[i1] === antes[i1 + 1] && depois[i1 + 1] === antes[i1];
+    r.descerTrocaNaVolta = V2.blocos[0].id === B[i1 + 1].voltaId && V2.blocos[1].id === B[i1].voltaId;
+    // tirar do dia = pular nesta volta, com desfazer
     const n0 = document.querySelectorAll('.ct-cb').length;
-    const xs = document.querySelectorAll('.ct-cb .ct-cb-mini[title="Tirar do dia"]'); xs[xs.length - 1].click(); await w(500);
+    const xs = document.querySelectorAll('.ct-cb .ct-cb-mini[title="Tirar do dia"]'); xs[xs.length - 1].click(); await w(1700);
+    const V3 = JSON.parse(localStorage.getItem('catedra:cicloVolta') || 'null') || { blocos: [] };
     r.tirarReduz = document.querySelectorAll('.ct-cb').length === n0 - 1;
+    r.tirarViraPuladoNaVolta = V3.blocos.filter(b => b.pulado).length === 1;
     const desfazer = [...document.querySelectorAll('button')].find(b => /^desfazer$/i.test((b.textContent || '').trim()));
-    if (desfazer) { desfazer.click(); await w(500); }
-    r.desfazerDevolve = !!desfazer && document.querySelectorAll('.ct-cb').length === n0;
-    // adicionar bloco ao dia
+    if (desfazer) { desfazer.click(); await w(1700); }
+    const V4 = JSON.parse(localStorage.getItem('catedra:cicloVolta') || 'null') || { blocos: [] };
+    r.desfazerDevolve = !!desfazer && document.querySelectorAll('.ct-cb').length === n0 && V4.blocos.filter(b => b.pulado).length === 0;
+    // adicionar bloco: entra na VOLTA logo depois do último de hoje, e no dia
     const sel = document.querySelector('.ct-cb-add select[data-k="disc"]'); sel.value = 'Direito Constitucional'; sel.dispatchEvent(new Event('change', { bubbles: true })); await w(300);
-    [...document.querySelectorAll('.ct-cb-add button')].find(b => /^Adicionar$/.test((b.textContent || '').trim())).click(); await w(500);
-    const t2 = tits();
-    r.adicionarEntraNoFim = t2.length === n0 + 1 && t2[t2.length - 1] === 'Direito Constitucional';
-    // manual: cadastro rápido em 3 dias + preencher só os vazios
+    [...document.querySelectorAll('.ct-cb-add button')].find(b => /^Adicionar$/.test((b.textContent || '').trim())).click(); await w(1700);
+    const t2 = tits(); const V5 = JSON.parse(localStorage.getItem('catedra:cicloVolta') || 'null') || { blocos: [] };
+    r.adicionarEntraNoFimDoDia = t2.length === n0 + 1 && t2[t2.length - 1] === 'Direito Constitucional';
+    r.adicionarEntraNaVolta = V5.blocos.length === VB.length + 1 && V5.blocos.some(b => b.id.startsWith('u'));
+    // puxar o próximo da volta
+    [...document.querySelectorAll('button')].find(b => /Puxar o próximo bloco da volta/.test(b.textContent || '')).click(); await w(500);
+    r.puxarTrazMaisUm = tits().length === n0 + 2;
+    // concluir pela linha do ciclo marca na volta (o registro abre; fechamos)
+    const segHoje = document.querySelector('.ct-lc-seg[data-hoje="1"][data-extra="0"]'); segHoje.click(); await w(1700);
+    const V6 = JSON.parse(localStorage.getItem('catedra:cicloVolta') || 'null') || { blocos: [] };
+    r.concluirMarcaNaVolta = V6.blocos.filter(b => b.done && !b.pulado).length === 1;
+    const fechar = document.querySelector('[role="dialog"][aria-label="Registrar sessão"] button[aria-label="Fechar"]'); if (fechar) fechar.click(); await w(300);
+    // manual: cadastro rápido em 3 dias + gerar a volta manual pela prioridade
     document.getElementById('ct-cycle-tab-configurar').click(); await w(500);
     [...document.querySelectorAll('.ct-modo')].find(b => b.dataset.mode === 'manual').click(); await w(700);
     const cfg = document.getElementById('ct-cycle-panel-configurar');
     const selAg = cfg.querySelector('.ct-cb-add select[data-k="disc"]'); selAg.value = 'Direito Penal'; selAg.dispatchEvent(new Event('change', { bubbles: true })); await w(300);
     const chipsOn = [...cfg.querySelectorAll('.ct-dia-chip[aria-pressed="true"]')].map(c => c.dataset.dia);
-    [...cfg.querySelectorAll('.ct-cb-add button')].find(b => /^Adicionar em/.test((b.textContent || '').trim())).click(); await w(700);
+    [...cfg.querySelectorAll('.ct-cb-add button')].find(b => /^Adicionar em/.test((b.textContent || '').trim())).click(); await w(1500);
     const mf1 = JSON.parse(localStorage.getItem('catedra:manualFixed') || '[]');
     r.cadastroRapidoUmaPorDia = chipsOn.length === 3 && mf1.length === 3 && chipsOn.every(d => mf1.some(f => f.dia === d && f.disc === 'Direito Penal' && f.discEdital === 'Direito Penal'));
-    [...cfg.querySelectorAll('button')].find(b => /Preencher a semana pela prioridade/.test(b.textContent || '')).click(); await w(900);
-    const mf2 = JSON.parse(localStorage.getItem('catedra:manualFixed') || '[]');
-    const porDia = d => mf2.filter(f => f.dia === d).length;
-    r.preencherSoOsVazios = chipsOn.every(d => porDia(d) === 1) && ['seg', 'ter', 'qua', 'qui', 'sex'].filter(d => chipsOn.indexOf(d) < 0).every(d => porDia(d) >= 2);
-    r.preencherSemRepetirTopicoNoDia = ['seg', 'ter', 'qua', 'qui', 'sex'].every(d => { const L = mf2.filter(f => f.dia === d); return new Set(L.map(f => f.disc + '|' + f.topico)).size === L.length; });
-    r.preencherLevaMotivo = mf2.filter(f => f.id.endsWith('p')).every(f => f.motivo);
+    window.confirm = () => true;
+    [...cfg.querySelectorAll('button')].find(b => /Gerar uma volta pela prioridade/.test(b.textContent || '')).click(); await w(1700);
+    const rot = JSON.parse(localStorage.getItem('catedra:manualRot') || '[]');
+    r.voltaManualGerada = rot.length >= 8 && rot.every(x => x.motivo && x.discEdital) && rot.every((x, i) => i === 0 || x.disc !== rot[i - 1].disc);
+    r.voltaManualTemPonteiro = cfg.querySelectorAll('.ct-rot[data-next="1"]').length === 1;
+    const Bm = JSON.parse(localStorage.getItem('catedra:blocks') || '[]');
+    r.diaManualPuxaAFatia = Bm.some(b => b.rotId) && Bm.filter(b => b.rotId).reduce((a, b) => a + b.min, 0) <= 195;
+    // pular o próximo marca como pulado e o ponteiro anda
+    [...cfg.querySelectorAll('button')].find(b => /Pular o próximo/.test(b.textContent || '')).click(); await w(1700);
+    const rot2 = JSON.parse(localStorage.getItem('catedra:manualRot') || '[]');
+    r.pularAndaOPonteiro = rot2[0].pulado === true && cfg.querySelector('.ct-rot[data-next="1"] .ct-rot-pos').textContent.trim() === '2';
     return r;
   });
   for (const [k, v] of Object.entries(r)) ok(v, R + k);
 
   // sem edital: cai na sugestão padrão e o cartão do modo AVISA
+  await page.goto(base + '/__semente');   // página SEM o app: semear com o app vivo é corrida com o autosave (500 ms), que regrava o estado do módulo anterior por cima
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); localStorage.setItem('catedra:cycleMode', 'inteligente'); localStorage.setItem('catedra:blocks', '[]'); });
   await page.goto(base + '/' + arquivo);
   await w(1600);
@@ -123,10 +156,53 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
     const B = JSON.parse(localStorage.getItem('catedra:blocks') || '[]');
     document.getElementById('ct-cycle-tab-configurar').click(); await w(500);
     const card = [...document.querySelectorAll('.ct-modo')].find(b => b.dataset.mode === 'inteligente');
-    return { semEditalAindaMontaODia: B.length >= 3, cartaoAvisaSemEdital: /Sem edital cadastrado/.test(card ? card.textContent : ''),
+    return { semEditalAindaMontaODia: B.length >= 2, cartaoAvisaSemEdital: /Sem edital cadastrado/.test(card ? card.textContent : ''),
       recomendado: /recomendado/i.test(card ? card.textContent : '') };
   });
   for (const [k, v] of Object.entries(s)) ok(v, R + k);
+
+  // volta CURTA já guardada (1 feito hoje + 1 pendente) e um bloco SOLTO de reta final no dia:
+  // o solto sobrevive à recomposição; pular a última pendência fecha a volta e a próxima nasce;
+  // desfazer devolve a volta 1 inteira e tira os blocos "a seguir"
+  await page.goto(base + '/__semente');   // página SEM o app: semear com o app vivo é corrida com o autosave (500 ms), que regrava o estado do módulo anterior por cima
+  await page.evaluate(() => {
+    const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+    const ymd = d => { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
+    const hoje = ymd(new Date()); const T = names => names.map(n => ({ name: n, done: false, subs: [] }));
+    localStorage.clear();
+    set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica'); set('cycleMode', 'inteligente');
+    set('edital', [{ disc: 'Direito Civil', peso: 2, questoes: 15, topics: T(['LINDB', 'Obrigações']) }, { disc: 'Direito Penal', peso: 2, questoes: 15, topics: T(['Teoria do crime', 'Concurso de pessoas']) }]);
+    set('sessions', []); set('reviews', []); set('errors', []);
+    const A = { id: 'v1-0', disc: 'Direito Civil', kind: 'Teoria', tag: 'LINDB', topico: 'LINDB', discEdital: 'Direito Civil', min: 50, motivo: '', done: true, pulado: false, doneDate: hoje };
+    const Bq = { id: 'v1-1', disc: 'Direito Penal', kind: 'Teoria', tag: 'Teoria do crime', topico: 'Teoria do crime', discEdital: 'Direito Penal', min: 50, motivo: '', done: false, pulado: false, doneDate: '' };
+    set('cicloVolta', { n: 1, modo: 'inteligente', geradoEm: hoje, blocos: [A, Bq], totalMin: 100 });
+    localStorage.setItem('catedra:blocksDate', JSON.stringify(hoje));
+    set('blocks', [{ disc: 'Lei seca de alta incidência', kind: 'Lei seca', min: 30, tag: 'Reta final', done: false },
+      { id: A.id, voltaId: A.id, disc: A.disc, kind: A.kind, tag: A.tag, topico: A.topico, discEdital: A.discEdital, min: 50, motivo: '', done: true },
+      { id: Bq.id, voltaId: Bq.id, disc: Bq.disc, kind: Bq.kind, tag: Bq.tag, topico: Bq.topico, discEdital: Bq.discEdital, min: 50, motivo: '', done: false }]);
+  });
+  await page.goto(base + '/' + arquivo);
+  await w(1800);
+  const c = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms)); const r = {};
+    document.querySelector('button[data-view="ciclo"]').click(); await w(800);
+    const tits = () => [...document.querySelectorAll('.ct-cb .ct-item-tit')].map(e => e.textContent.trim());
+    const V = () => JSON.parse(localStorage.getItem('catedra:cicloVolta') || 'null') || { n: 0, blocos: [] };
+    r.blocoSoltoSobreviveARecomposicao = tits().includes('Lei seca de alta incidência') && tits().includes('Direito Civil') && tits().includes('Direito Penal');
+    r.feitoNaoTemTirar = !document.querySelector('.ct-cb[data-done="true"] .ct-cb-mini[title="Tirar do dia"]') && document.querySelectorAll('.ct-cb .ct-cb-mini[title="Tirar do dia"]').length === 2;
+    const x = [...document.querySelectorAll('.ct-cb')].find(el => /Direito Penal/.test(el.textContent || '')).querySelector('.ct-cb-mini[title="Tirar do dia"]'); x.click(); await w(1700);
+    const V2 = V();
+    r.pularAUltimaPendenciaFechaAVolta = V2.n === 2 && V2.blocos.length >= 2 && V2.blocos.every(b => !b.done);
+    r.aProximaVoltaJaEntraNoDia = tits().length >= 4;   // solto + feito + 2 blocos 'a seguir' da volta 2
+    r.avisaQueFechou = /Volta 1 fechada/.test(document.body.textContent || '');
+    const desfazer = [...document.querySelectorAll('button')].find(b => /^desfazer$/i.test((b.textContent || '').trim()));
+    if (desfazer) { desfazer.click(); await w(1700); }
+    const V3 = V(); const B3 = JSON.parse(localStorage.getItem('catedra:blocks') || '[]');
+    r.desfazerDevolveAVolta1 = !!desfazer && V3.n === 1 && V3.blocos.length === 2 && V3.blocos[1].done === false && V3.blocos[1].pulado === false;
+    r.desfazerTiraOsBlocosASeguir = B3.every(b => !b.voltaId || b.voltaId.startsWith('v1-')) && B3.filter(b => b.voltaId).length === 2 && B3.some(b => b.tag === 'Reta final');
+    return r;
+  });
+  for (const [k, v] of Object.entries(c)) ok(v, R + k);
 }
 
 // execução avulsa: `CT_PORT=8142 node tests/ciclo-inteligente.mjs`

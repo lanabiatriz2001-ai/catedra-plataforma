@@ -752,113 +752,128 @@ window.ctPdfLib = (function(){
     </header>
 
     <!-- MODAL · REGISTRAR SESSÃO -->
+    <!-- REGISTRO DE SESSÃO · é FORMULÁRIO: exceção declarada da gramática espelho/bancada
+         (DESIGN.md). O que mudou em 09/09/2026, a pedido da dona ("não mostra o efeito do
+         registro" + "visual sem vida"): a faixa "O que esta sessão muda" recalcula, a cada
+         campo, o efeito na meta do dia e da semana, na ofensiva, no líquido, no domínio do
+         tópico (antes → depois), na revisão espaçada e no edital — pela MESMA régua que o
+         saveSession e o _brain usam. A cor da MATÉRIA veste o cabeçalho; tudo por token.
+         Contratos preservados: role/aria-label do dialog e a classe .ct-modal-panel (focus
+         trap), data-k/data-v dos handlers, aria-label de todo select, textos dos testes. -->
     <sc-if value="{{ sessionModalOpen }}" hint-placeholder-val="{{ false }}">
-      <div onclick="{{ closeSessionBackdrop }}" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:18px;">
-        <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Registrar sessão" class="ct-modal-panel" style="background:var(--surface);border-radius:18px;width:100%;max-width:560px;max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.35);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:22px 24px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg, var(--accentSoft), transparent);">
-            <div><div style="font-family:var(--display);font-weight:700;font-size:var(--fs-2xl);color:var(--ink);letter-spacing:-.01em;">Registrar sessão</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:4px;">alimenta suas horas, seu desempenho e suas revisões</div></div>
-            <button onclick="{{ closeSession }}" aria-label="Fechar" style="width:44px;height:44px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;flex:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
+      <div onclick="{{ closeSessionBackdrop }}" style="position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:18px;">
+        <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Registrar sessão" class="ct-modal-panel ct-modal-caixa ct-reg" style="{{ sessCorStyle }}">
+          <div class="ct-reg-cab">
+            <div style="min-width:0;flex:1;">
+              <div class="ct-eb">Registrar sessão</div>
+              <h2 class="ct-reg-tit">{{ sessDiscTitulo }}</h2>
+              <div class="ct-nota">{{ sessSubtitulo }}</div>
+            </div>
+            <button onclick="{{ closeSession }}" aria-label="Fechar" class="ct-reg-fechar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
           </div>
-          <div style="padding:20px 22px;display:flex;flex-direction:column;gap:16px;">
+          <div class="ct-reg-efeito">
+            <div class="ct-reg-efeito-t">O que esta sessão muda</div>
+            <sc-if value="{{ sessEfeitosShow }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-reg-fxs"><sc-for list="{{ sessEfeitos }}" as="f" hint-placeholder-count="3"><span class="ct-reg-fx" style="{{ f.style }}">{{ f.t }}</span></sc-for></div>
+            </sc-if>
+            <sc-if value="{{ !sessEfeitosShow }}" hint-placeholder-val="{{ true }}">
+              <div class="ct-reg-fx-vazio">{{ sessEfeitoVazio }}</div>
+            </sc-if>
+          </div>
+          <div class="ct-reg-corpo">
 
             <div>
-              <label style="display:block;font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:8px;">Tipos de sessão <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text3);">· selecione um ou mais</span></label>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;"><sc-for list="{{ sessCats }}" as="c" hint-placeholder-count="6"><button data-v="{{ c.v }}" onclick="{{ setSessionCat }}" aria-label="{{ c.v }}" style="{{ c.style }}">{{ c.mark }}{{ c.icon }} {{ c.v }}</button></sc-for></div>
+              <div class="ct-rotulo">Tipos de sessão <span class="ct-rotulo-nota">· selecione um ou mais</span></div>
+              <div class="ct-reg-chips"><sc-for list="{{ sessCats }}" as="c" hint-placeholder-count="6"><button data-v="{{ c.v }}" onclick="{{ setSessionCat }}" aria-label="{{ c.v }}" aria-pressed="{{ c.onStr }}" class="ct-reg-chip" style="{{ c.chipStyle }}"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>{{ c.v }}</button></sc-for></div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-              <div style="grid-column:1/-1;"><label class="ct-rotulo">Disciplina <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ sessDiscSelVal }}" aria-label="Disciplina" onchange="{{ onSessionDisc }}" class="ct-campo"><sc-for list="{{ sessDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ sessDiscCustom }}">Outra…</option></select>
-                <sc-if value="{{ sessDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ sessionDraft.disc }}" oninput="{{ onSessionField }}" placeholder="Digite o nome da disciplina" style="width:100%;box-sizing:border-box;border:1px solid var(--accent);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;margin-top:8px;"></sc-if>
+            <div class="ct-reg-campos">
+              <div><label class="ct-rotulo">Disciplina <span class="ct-rotulo-nota">(do seu edital)</span></label><select value="{{ sessDiscSelVal }}" aria-label="Disciplina" onchange="{{ onSessionDisc }}" class="ct-campo"><sc-for list="{{ sessDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ sessDiscCustom }}">Outra…</option></select>
+                <sc-if value="{{ sessDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ sessionDraft.disc }}" oninput="{{ onSessionField }}" placeholder="Digite o nome da disciplina" aria-label="Nome da disciplina" class="ct-campo" style="margin-top:8px;border-color:var(--accent);"></sc-if>
               </div>
               <sc-if value="{{ sessMaisOn }}" hint-placeholder-val="{{ true }}">
               <sc-if value="{{ sessTopShow }}" hint-placeholder-val="{{ true }}">
-                <div style="grid-column:1/-1;"><label class="ct-rotulo">Tópico <span style="color:var(--text3);font-weight:400;">(do seu edital)</span></label><select value="{{ sessTopSel }}" aria-label="Tópico" onchange="{{ onSessionTop }}" class="ct-campo" style="cursor:pointer;"><option value="__livre__" selected="{{ sessTopLivre }}">— escolher o tópico —</option><sc-for list="{{ sessTopOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Tópico <span class="ct-rotulo-nota">(do seu edital)</span></label><select value="{{ sessTopSel }}" aria-label="Tópico" onchange="{{ onSessionTop }}" class="ct-campo" style="cursor:pointer;"><option value="__livre__" selected="{{ sessTopLivre }}">— escolher o tópico —</option><sc-for list="{{ sessTopOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
               <sc-if value="{{ sessSubShow }}" hint-placeholder-val="{{ false }}">
-                <div style="grid-column:1/-1;"><label class="ct-rotulo">Subtópico <span style="color:var(--text3);font-weight:400;">(opcional — deixe vazio para o tópico inteiro)</span></label><select value="{{ sessSubSel }}" aria-label="Subtópico" onchange="{{ onSessionSub }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessSubVazio }}">— todo o tópico —</option><sc-for list="{{ sessSubOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Subtópico <span class="ct-rotulo-nota">(opcional — deixe vazio para o tópico inteiro)</span></label><select value="{{ sessSubSel }}" aria-label="Subtópico" onchange="{{ onSessionSub }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessSubVazio }}">— todo o tópico —</option><sc-for list="{{ sessSubOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
-              <div style="grid-column:1/-1;"><label class="ct-rotulo">Tópico estudado <span style="color:var(--text3);font-weight:400;">(preenchido pelo edital — pode ajustar)</span></label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="{{ sessTopicoPh }}" class="ct-campo"></div>
+              <div><label class="ct-rotulo">Tópico estudado <span class="ct-rotulo-nota">(preenchido pelo edital — pode ajustar)</span></label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="{{ sessTopicoPh }}" aria-label="Tópico estudado" class="ct-campo"></div>
               <sc-if value="{{ sessMarcarShow }}" hint-placeholder-val="{{ false }}">
-                <div style="grid-column:1/-1;"><button data-k="marcarEdital" onclick="{{ toggleSessionFlag }}" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;"><span style="{{ sessMarcarStyle }}"><sc-if value="{{ sessMarcarEdital }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></span><span style="font-size:var(--fs-sm);color:var(--text2);line-height:1.4;">{{ sessMarcarLabel }}</span></button></div>
+                <div><button data-k="marcarEdital" onclick="{{ toggleSessionFlag }}" role="checkbox" aria-checked="{{ sessMarcarAria }}" class="ct-reg-check"><span style="{{ sessMarcarStyle }}"><sc-if value="{{ sessMarcarEdital }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></span><span class="ct-nota" style="color:var(--text2);">{{ sessMarcarLabel }}</span></button></div>
               </sc-if>
               <sc-if value="{{ sessShowLeis }}" hint-placeholder-val="{{ false }}">
-                <div style="grid-column:1/-1;"><label class="ct-rotulo">📕 Qual lei? <span style="color:var(--text3);font-weight:400;">(catálogo do LEGIS — preenche tópico e disciplina)</span></label><select value="{{ sessLeiSel }}" aria-label="Qual lei" onchange="{{ onSessionLei }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessLeiVazio }}">— escolher a lei —</option><sc-for list="{{ sessLeiOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Qual lei? <span class="ct-rotulo-nota">(catálogo do LEGIS — preenche tópico e disciplina)</span></label><select value="{{ sessLeiSel }}" aria-label="Qual lei" onchange="{{ onSessionLei }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessLeiVazio }}">— escolher a lei —</option><sc-for list="{{ sessLeiOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
               <sc-if value="{{ sessShowJuris }}" hint-placeholder-val="{{ false }}">
-                <div style="grid-column:1/-1;"><label class="ct-rotulo">⚖️ Qual fonte? <span style="color:var(--text3);font-weight:400;">(catálogo do JURIS — preenche o tópico)</span></label><select value="{{ sessJurisSel }}" aria-label="Qual fonte" onchange="{{ onSessionJuris }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessJurisVazio }}">— escolher a fonte —</option><sc-for list="{{ sessJurisOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Qual fonte? <span class="ct-rotulo-nota">(catálogo do JURIS — preenche o tópico)</span></label><select value="{{ sessJurisSel }}" aria-label="Qual fonte" onchange="{{ onSessionJuris }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessJurisVazio }}">— escolher a fonte —</option><sc-for list="{{ sessJurisOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
               <sc-if value="{{ sessTrechoShow }}" hint-placeholder-val="{{ false }}">
-                <div style="grid-column:1/-1;"><label class="ct-rotulo">{{ sessTrechoLabel }} <span style="color:var(--text3);font-weight:400;">(subtópico — entra no histórico e no domínio)</span></label>
+                <div><label class="ct-rotulo">{{ sessTrechoLabel }} <span class="ct-rotulo-nota">(subtópico — entra no histórico e no domínio)</span></label>
                   <sc-if value="{{ sessTrechoTemOpts }}" hint-placeholder-val="{{ false }}">
-                    <select value="{{ sessTrechoSel }}" aria-label="Trecho da lei ou da fonte" onchange="{{ onSessionTrecho }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;cursor:pointer;margin-bottom:8px;"><option value="" selected="{{ sessTrechoVazio }}">— a lei/fonte inteira —</option><sc-for list="{{ sessTrechoOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for><option value="__outro__" selected="{{ sessTrechoLivre }}">Outro trecho…</option></select>
+                    <select value="{{ sessTrechoSel }}" aria-label="Trecho da lei ou da fonte" onchange="{{ onSessionTrecho }}" class="ct-campo" style="cursor:pointer;margin-bottom:8px;"><option value="" selected="{{ sessTrechoVazio }}">— a lei/fonte inteira —</option><sc-for list="{{ sessTrechoOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for><option value="__outro__" selected="{{ sessTrechoLivre }}">Outro trecho…</option></select>
                   </sc-if>
                   <sc-if value="{{ sessTrechoLivre }}" hint-placeholder-val="{{ true }}">
-                    <input data-k="edSub" value="{{ sessionDraft.edSub }}" oninput="{{ onSessionField }}" placeholder="{{ sessTrechoPh }}" class="ct-campo">
+                    <input data-k="edSub" value="{{ sessionDraft.edSub }}" oninput="{{ onSessionField }}" placeholder="{{ sessTrechoPh }}" aria-label="{{ sessTrechoLabel }}" class="ct-campo">
                   </sc-if>
                 </div>
               </sc-if>
               <sc-if value="{{ hasBibForLink }}" hint-placeholder-val="{{ false }}">
-                <div style="grid-column:1/-1;"><label class="ct-rotulo">Vincular material da biblioteca <span style="color:var(--text3);font-weight:400;">(opcional)</span></label><select data-k="materialId" value="{{ sessionDraft.materialId }}" aria-label="Vincular material da biblioteca" onchange="{{ onSessionField }}" class="ct-campo"><option value="">— nenhum —</option><sc-for list="{{ bibLinkOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.id }}">{{ o.titulo }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Vincular material da biblioteca <span class="ct-rotulo-nota">(opcional)</span></label><select data-k="materialId" value="{{ sessionDraft.materialId }}" aria-label="Vincular material da biblioteca" onchange="{{ onSessionField }}" class="ct-campo"><option value="">— nenhum —</option><sc-for list="{{ bibLinkOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.id }}">{{ o.titulo }}</option></sc-for></select></div>
               </sc-if>
               </sc-if>
             </div>
 
             <div>
-              <label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:6px;">Tempo de estudo</label>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <div style="display:flex;align-items:baseline;border:1.5px solid var(--border);background:var(--surface);border-radius:var(--r-md);overflow:hidden;"><input type="number" data-k="minutos" value="{{ sessionDraft.minutos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:92px;border:none;background:transparent;padding:9px 4px 9px 12px;font-size:var(--fs-2xl);font-weight:700;color:var(--ink);font-family:var(--mono);text-align:right;"><span style="padding:0 12px 0 4px;font-size:var(--fs-sm);color:var(--text3);">min</span></div>
-                <button data-add="15" onclick="{{ sessionQuickMin }}" style="border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border));background:var(--accentSoft);border-radius:99px;padding:9px 15px;font-size:var(--fs-sm);font-weight:700;color:var(--accentD, var(--accent));cursor:pointer;font-family:inherit;transition:.12s;">+15</button>
-                <button data-add="30" onclick="{{ sessionQuickMin }}" style="border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border));background:var(--accentSoft);border-radius:99px;padding:9px 15px;font-size:var(--fs-sm);font-weight:700;color:var(--accentD, var(--accent));cursor:pointer;font-family:inherit;transition:.12s;">+30</button>
-                <button data-add="60" onclick="{{ sessionQuickMin }}" style="border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border));background:var(--accentSoft);border-radius:99px;padding:9px 15px;font-size:var(--fs-sm);font-weight:700;color:var(--accentD, var(--accent));cursor:pointer;font-family:inherit;transition:.12s;">+60</button>
-                <span style="font-size:var(--fs-sm);color:var(--text3);font-weight:600;">{{ sessMinFmt }}</span>
+              <div class="ct-rotulo">Tempo de estudo</div>
+              <div class="ct-reg-tempo">
+                <div class="ct-reg-min"><input type="number" data-k="minutos" value="{{ sessionDraft.minutos }}" oninput="{{ onSessionField }}" placeholder="0" aria-label="Minutos de estudo"><span>min</span></div>
+                <button data-add="15" onclick="{{ sessionQuickMin }}" class="ct-dia-chip">+15</button>
+                <button data-add="30" onclick="{{ sessionQuickMin }}" class="ct-dia-chip">+30</button>
+                <button data-add="60" onclick="{{ sessionQuickMin }}" class="ct-dia-chip">+60</button>
+                <span class="ct-dado">{{ sessMinFmt }}</span>
               </div>
             </div>
 
-            <button onclick="{{ toggleSessMais }}" aria-expanded="{{ sessMaisAria }}" style="display:flex;align-items:center;gap:8px;width:100%;border:1px dashed var(--border);background:transparent;border-radius:var(--r-md);padding:9px 14px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">{{ sessMaisRotulo }}</button>
+            <button onclick="{{ toggleSessMais }}" aria-expanded="{{ sessMaisAria }}" class="ct-reg-mais">{{ sessMaisRotulo }}</button>
             <sc-if value="{{ sessMaisOn }}" hint-placeholder-val="{{ true }}">
-            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px;background:var(--surface2);">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:var(--fs-sm);font-weight:600;color:var(--ink);">Desempenho em questões</span><span style="font-size:var(--fs-xs);color:var(--text3);">para análise líquida · opcional</span></div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--ok);font-weight:700;margin-bottom:4px;">✓ Acertos</label><input type="number" data-k="acertos" value="{{ sessionDraft.acertos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid color-mix(in oklab, var(--ok) 38%, var(--border));background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);background-image:linear-gradient(90deg,color-mix(in oklab, var(--ok) 19%, transparent),transparent 46%);"></div>
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--danger);font-weight:700;margin-bottom:4px;">✗ Erradas</label><input type="number" data-k="erradas" value="{{ sessionDraft.erradas }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid color-mix(in oklab, var(--danger) 38%, var(--border));background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);background-image:linear-gradient(90deg,color-mix(in oklab, var(--danger) 19%, transparent),transparent 46%);"></div>
-                <div><label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:700;margin-bottom:4px;">○ Em branco</label><input type="number" data-k="brancos" value="{{ sessionDraft.brancos }}" oninput="{{ onSessionField }}" placeholder="0" style="width:100%;border:1px solid color-mix(in oklab, var(--text3) 38%, var(--border));background:var(--surface);border-radius:var(--r-md);padding:9px 12px;font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);background-image:linear-gradient(90deg,color-mix(in oklab, var(--text3) 19%, transparent),transparent 46%);"></div>
+            <div class="ct-reg-desemp">
+              <div class="ct-reg-desemp-cab"><span class="ct-titulo" style="font-size:var(--fs-base);">Desempenho em questões</span><span class="ct-nota">para análise líquida · opcional</span></div>
+              <div class="ct-reg-qs">
+                <div><label class="ct-rotulo" style="color:var(--ok);font-weight:700;">Acertos</label><input type="number" data-k="acertos" value="{{ sessionDraft.acertos }}" oninput="{{ onSessionField }}" placeholder="0" aria-label="Acertos" class="ct-campo ct-campo-num ct-reg-q" style="--c:var(--ok);"></div>
+                <div><label class="ct-rotulo" style="color:var(--danger);font-weight:700;">Erradas</label><input type="number" data-k="erradas" value="{{ sessionDraft.erradas }}" oninput="{{ onSessionField }}" placeholder="0" aria-label="Erradas" class="ct-campo ct-campo-num ct-reg-q" style="--c:var(--danger);"></div>
+                <div><label class="ct-rotulo" style="font-weight:700;">Em branco</label><input type="number" data-k="brancos" value="{{ sessionDraft.brancos }}" oninput="{{ onSessionField }}" placeholder="0" aria-label="Em branco" class="ct-campo ct-campo-num ct-reg-q" style="--c:var(--text3);"></div>
               </div>
-              <div style="display:flex;align-items:center;gap:14px;margin-top:13px;flex-wrap:wrap;">
-                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Resolvidas</span><span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:var(--ink);line-height:1;">{{ sdTotalLabel }}</span></div>
-                <div style="width:1px;height:28px;background:var(--border);"></div>
-                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Bruto</span><span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:{{ sdAccColor }};line-height:1;">{{ sdBrutoLabel }}</span></div>
-                <div style="width:1px;height:28px;background:var(--border);"></div>
-                <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:var(--fs-2xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:600;">Líquido</span><span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:{{ sdLiqColor }};line-height:1;">{{ sdLiqLabel }}</span></div>
-                <div style="flex:1;min-width:110px;align-self:center;">
-                  <div style="height:10px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);display:flex;"><i style="display:block;height:100%;width:{{ sdSegOk }}%;background:var(--ok);"></i><i style="display:block;height:100%;width:{{ sdSegErr }}%;background:var(--danger);"></i><i style="display:block;height:100%;width:{{ sdSegBr }}%;background:var(--border);"></i></div>
-                </div>
+              <div class="ct-reg-nums">
+                <div class="ct-reg-num"><span>Resolvidas</span><b>{{ sdTotalLabel }}</b></div>
+                <div class="ct-reg-num"><span>Bruto</span><b style="color:{{ sdAccColor }};">{{ sdBrutoLabel }}</b></div>
+                <div class="ct-reg-num"><span>Líquido</span><b style="color:{{ sdLiqColor }};">{{ sdLiqLabel }}</b></div>
+                <div class="ct-reg-barra"><i style="width:{{ sdSegOk }}%;background:var(--ok);"></i><i style="width:{{ sdSegErr }}%;background:var(--danger);"></i><i style="width:{{ sdSegBr }}%;background:var(--border);"></i></div>
               </div>
-              <div style="font-size:var(--fs-2xs);color:var(--text3);margin-top:9px;">Líquido = acertos − erradas (cada erro anula um acerto, padrão CEBRASPE)</div>
+              <div class="ct-nota" style="margin-top:9px;">Líquido = acertos − erradas (cada erro anula um acerto, padrão CEBRASPE)</div>
             </div>
             </sc-if>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
-              <div>
-                <label style="display:block;font-size:var(--fs-xs);color:var(--text3);font-weight:500;margin-bottom:7px;">Nível de foco</label>
-                <div style="display:flex;gap:6px;align-items:center;"><sc-for list="{{ focoDots }}" as="f" hint-placeholder-count="5"><button data-v="{{ f.n }}" onclick="{{ setSessionFoco }}" title="{{ f.label }}" style="{{ f.style }}"></button></sc-for><span style="font-size:var(--fs-sm);color:var(--text2);margin-left:6px;font-weight:600;">{{ focoLabel }}</span></div>
-              </div>
+            <div>
+              <div class="ct-rotulo">Nível de foco</div>
+              <div class="ct-reg-foco"><sc-for list="{{ focoDots }}" as="f" hint-placeholder-count="5"><button class="ct-alvo" data-v="{{ f.n }}" onclick="{{ setSessionFoco }}" title="{{ f.label }}" aria-label="{{ f.label }}" style="{{ f.style }}"></button></sc-for><span class="ct-nota" style="margin-left:6px;font-weight:600;color:var(--text2);">{{ focoLabel }}</span></div>
             </div>
 
             <sc-if value="{{ sessMaisOn }}" hint-placeholder-val="{{ true }}">
-            <div><label class="ct-rotulo">Anotação rápida <span style="color:var(--text3);font-weight:400;">(opcional)</span></label><textarea data-k="nota" value="{{ sessionDraft.nota }}" oninput="{{ onSessionField }}" placeholder="o que ficou pendente, dúvidas, pegadinhas…" style="width:100%;min-height:58px;resize:vertical;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;line-height:1.5;"></textarea></div>
+            <div><label class="ct-rotulo">Anotação rápida <span class="ct-rotulo-nota">(opcional)</span></label><textarea data-k="nota" value="{{ sessionDraft.nota }}" oninput="{{ onSessionField }}" placeholder="o que ficou pendente, dúvidas, pegadinhas…" aria-label="Anotação rápida" class="ct-campo" style="min-height:58px;resize:vertical;line-height:1.5;"></textarea></div>
 
             <div style="display:flex;flex-direction:column;gap:8px;">
-              <button data-k="agendarRevisao" onclick="{{ toggleSessionFlag }}" style="{{ flagRevisao }}"><span style="display:flex;align-items:center;gap:9px;"><span style="font-size:var(--fs-lg);">🔁</span><span style="text-align:left;"><span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">Agendar revisão deste tópico</span><span style="display:block;font-size:var(--fs-xs);color:var(--text3);">cria uma revisão espaçada (SM-2) para hoje</span></span></span><span style="{{ switchRevisao }}"><i style="{{ switchRevisaoKnob }}"></i></span></button>
-              <button data-k="contarMeta" onclick="{{ toggleSessionFlag }}" style="{{ flagMeta }}"><span style="display:flex;align-items:center;gap:9px;"><span style="font-size:var(--fs-lg);"><span class="ct-emo" aria-hidden="true">🎯</span></span><span style="text-align:left;"><span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">Contar para a meta da semana</span><span style="display:block;font-size:var(--fs-xs);color:var(--text3);">soma este tempo ao progresso semanal</span></span></span><span style="{{ switchMeta }}"><i style="{{ switchMetaKnob }}"></i></span></button>
+              <button data-k="agendarRevisao" onclick="{{ toggleSessionFlag }}" role="switch" aria-checked="{{ sessRevAria }}" style="{{ flagRevisao }}"><span style="display:flex;align-items:center;gap:9px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--accent);flex:none;"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="text-align:left;"><span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">Agendar revisão deste tópico</span><span style="display:block;font-size:var(--fs-xs);color:var(--text3);">cria uma revisão espaçada (SM-2) para amanhã</span></span></span><span style="{{ switchRevisao }}"><i style="{{ switchRevisaoKnob }}"></i></span></button>
+              <button data-k="contarMeta" onclick="{{ toggleSessionFlag }}" role="switch" aria-checked="{{ sessMetaAria }}" style="{{ flagMeta }}"><span style="display:flex;align-items:center;gap:9px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--accent);flex:none;"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle></svg><span style="text-align:left;"><span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">Contar para a meta da semana</span><span style="display:block;font-size:var(--fs-xs);color:var(--text3);">soma este tempo ao progresso semanal</span></span></span><span style="{{ switchMeta }}"><i style="{{ switchMetaKnob }}"></i></span></button>
             </div>
             </sc-if>
 
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 22px;border-top:1px solid var(--border);background:var(--surface2);border-radius:0 0 18px 18px;flex-wrap:wrap;">
-            <span style="font-size:var(--fs-sm);color:var(--text2);">{{ sessionSummary }}</span>
+          <div class="ct-reg-rodape">
+            <span class="ct-nota">{{ sessionSummary }}</span>
             <div style="display:flex;gap:10px;">
-              <button onclick="{{ closeSession }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500;">Cancelar</button>
-              <button onclick="{{ saveSession }}" style="background:linear-gradient(135deg, var(--accent), var(--accentD, var(--accent)));color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 22px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;box-shadow:0 2px 10px color-mix(in srgb, var(--accent) 32%, transparent);">Registrar sessão</button>
+              <button onclick="{{ closeSession }}" class="ct-btn-2">Cancelar</button>
+              <button onclick="{{ saveSession }}" class="ct-btn">Registrar sessão</button>
             </div>
           </div>
         </div>
@@ -1881,9 +1896,9 @@ window.ctPdfLib = (function(){
             <div style="min-width:0;flex:1 1 320px;">
               <div class="ct-hero-eb">{{ cicloHeroEb }}</div>
               <div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-top:6px;">
-                <sc-if value="{{ isManual }}" hint-placeholder-val="{{ true }}"><button data-dir="-1" onclick="{{ roteiroNav }}" disabled="{{ cicloFolhaHeader.antDis }}" title="Roteiro anterior" aria-label="Roteiro anterior" class="ct-btn-clara ct-hero-ciclo-seta" style="opacity:{{ cicloFolhaHeader.antOp }};"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></sc-if>
+                <sc-if value="{{ isManualAgenda }}" hint-placeholder-val="{{ false }}"><button data-dir="-1" onclick="{{ roteiroNav }}" disabled="{{ cicloFolhaHeader.antDis }}" title="Roteiro anterior" aria-label="Roteiro anterior" class="ct-btn-clara ct-hero-ciclo-seta" style="opacity:{{ cicloFolhaHeader.antOp }};"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></sc-if>
                 <h2 class="ct-hero-tit" style="margin:0;">{{ cicloHeroTitulo }}</h2>
-                <sc-if value="{{ isManual }}" hint-placeholder-val="{{ true }}"><button data-dir="1" onclick="{{ roteiroNav }}" disabled="{{ cicloFolhaHeader.depDis }}" title="Próximo roteiro" aria-label="Próximo roteiro" class="ct-btn-clara ct-hero-ciclo-seta" style="opacity:{{ cicloFolhaHeader.depOp }};"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></sc-if>
+                <sc-if value="{{ isManualAgenda }}" hint-placeholder-val="{{ false }}"><button data-dir="1" onclick="{{ roteiroNav }}" disabled="{{ cicloFolhaHeader.depDis }}" title="Próximo roteiro" aria-label="Próximo roteiro" class="ct-btn-clara ct-hero-ciclo-seta" style="opacity:{{ cicloFolhaHeader.depOp }};"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></sc-if>
                 <sc-if value="{{ cicloFolhaHeader.foraDoAtual }}" hint-placeholder-val="{{ false }}">
                   <button onclick="{{ roteiroHoje }}" class="ct-btn-clara">voltar ao atual</button>
                 </sc-if>
@@ -1891,24 +1906,31 @@ window.ctPdfLib = (function(){
               <p class="ct-hero-sub">{{ cicloHeroSub }}</p>
             </div>
             <div class="ct-hero-kpis ct-hero-ciclo-kpis">
-              <div class="ct-kpi"><b>{{ cicloDone }}<i>/{{ cicloTotal }}</i></b><span>blocos feitos</span></div>
-              <div class="ct-kpi"><b>{{ cicloPlanejado }}</b><span>{{ cicloPlanejadoLbl }}</span></div>
+              <div class="ct-kpi"><b>{{ cicloDone }}<i>/{{ cicloTotal }}</i></b><span>hoje</span></div>
+              <sc-if value="{{ cicloVoltaShow }}" hint-placeholder-val="{{ true }}">
+                <div class="ct-kpi"><b>{{ cicloVoltaFeitos }}<i>/{{ cicloVoltaTotal }}</i></b><span>volta {{ cicloVoltaN }}</span></div>
+              </sc-if>
               <sc-if value="{{ cicloRevShow }}" hint-placeholder-val="{{ false }}">
                 <button class="ct-kpi ct-kpi-btn" data-view="revisoes" onclick="{{ onNav }}" title="Abrir as revisões"><b>{{ cicloRevPend }}</b><span>revisões pendentes</span></button>
               </sc-if>
             </div>
           </div>
           <sc-if value="{{ cicloLinhaShow }}" hint-placeholder-val="{{ true }}">
-            <div class="ct-linha" role="list" aria-label="Linha do dia — um trecho por bloco, proporcional ao tempo">
-              <sc-for list="{{ cicloLinha }}" as="s" hint-placeholder-count="5">
-                <button role="listitem" class="ct-linha-seg" data-i="{{ s.i }}" data-done="{{ s.doneN }}" onclick="{{ toggleBlock }}" style="{{ s.style }}" title="{{ s.title }}" aria-label="{{ s.title }}"><span>{{ s.label }}</span></button>
+            <div class="ct-lc" role="list" aria-label="Linha do ciclo — a volta inteira, um trecho por bloco, proporcional ao tempo">
+              <sc-for list="{{ cicloLinha }}" as="s" hint-placeholder-count="8">
+                <button role="listitem" class="ct-lc-seg" data-i="{{ s.i }}" data-done="{{ s.doneN }}" data-hoje="{{ s.hojeN }}" data-extra="{{ s.extraN }}" disabled="{{ s.fora }}" onclick="{{ toggleBlock }}" style="{{ s.style }}" title="{{ s.title }}" aria-label="{{ s.title }}"><span>{{ s.label }}</span></button>
               </sc-for>
             </div>
+            <!-- no celular a volta inteira não cabe como botões (6–12 px cada): vira uma barra só, e o "onde parei" fica na legenda -->
+            <div class="ct-lc-mini" aria-hidden="true"><i style="{{ cicloMiniStyle }}"></i></div>
+            <div class="ct-lc-legenda">{{ cicloLinhaLegenda }}</div>
           </sc-if>
           <div class="ct-hero-ciclo-acoes">
             <!-- sequência dos pontos: conserta a ordem SEM mexer no peso do dia (ver _reorganizarPorPonto) -->
             <sc-if value="{{ isManual }}" hint-placeholder-val="{{ true }}">
-              <button data-panel="configurar" onclick="{{ setCyclePanel }}" class="ct-btn-clara" title="Abrir a agenda da semana para cadastrar e mover atividades">Editar a semana</button>
+              <button data-panel="configurar" onclick="{{ setCyclePanel }}" class="ct-btn-clara" title="Abrir o construtor: a volta do ciclo e a agenda da semana">Editar o ciclo</button>
+            </sc-if>
+            <sc-if value="{{ isManualAgenda }}" hint-placeholder-val="{{ false }}">
               <button onclick="{{ reorganizarPorPonto }}" title="Reordena as atividades de cada disciplina entre os dias que ela já ocupa, na ordem dos pontos do edital. Nenhum dia ganha ou perde atividade." class="ct-btn-clara">Organizar por ponto</button>
               <sc-if value="{{ temDesfazerReorg }}" hint-placeholder-val="{{ false }}">
                 <button onclick="{{ desfazerReorg }}" class="ct-btn-clara">Desfazer ({{ desfazerReorgN }})</button>
@@ -1918,7 +1940,7 @@ window.ctPdfLib = (function(){
               </sc-if>
             </sc-if>
             <sc-if value="{{ cicloRegerarShow }}" hint-placeholder-val="{{ false }}">
-              <button onclick="{{ regerarCiclo }}" class="ct-btn-clara" title="Recalcula os blocos pendentes com a prioridade de agora; o que já foi feito hoje fica">Refazer com a prioridade de agora</button>
+              <button onclick="{{ regerarCiclo }}" class="ct-btn-clara" title="Refaz a volta inteira pela prioridade de agora; o que já foi feito hoje fica">Refazer a volta pela prioridade de agora</button>
             </sc-if>
             <span class="ct-hero-ciclo-quem">{{ userFirstName }}</span>
           </div>
@@ -1943,7 +1965,7 @@ window.ctPdfLib = (function(){
             <button onclick="{{ cicloFqLimpar }}" style="border:none;background:transparent;color:var(--accent);font-size:var(--fs-xs);font-weight:700;cursor:pointer;font-family:inherit;">limpar</button>
           </sc-if>
         </div>
-        <sc-if value="{{ isManual }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ isManualAgenda }}" hint-placeholder-val="{{ false }}">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(430px,100%),1fr));gap:16px;align-items:start;">
           <sc-for list="{{ cicloFolha }}" as="g" hint-placeholder-count="7">
             <div class="ct-card ct-folha-dia" data-materia="1" data-hoje="{{ g.hojeN }}" style="--ct-materia:{{ g.badgeCor }};padding:0;">
@@ -2059,9 +2081,11 @@ window.ctPdfLib = (function(){
                   <button class="ct-btn ct-cb-foco" data-i="{{ b.i }}" onclick="{{ enterFocus }}" title="Abrir a sala de foco com este bloco"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>Foco</button>
                 </sc-if>
                 <span class="ct-cb-acoes">
-                  <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" data-dir="-1" onclick="{{ moveBlock }}" disabled="{{ b.ehPrimeiro }}" title="Subir" aria-label="Subir {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-                  <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" data-dir="1" onclick="{{ moveBlock }}" disabled="{{ b.ehUltimo }}" title="Descer" aria-label="Descer {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
-                  <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" onclick="{{ removeBlock }}" title="Tirar do dia" aria-label="Tirar {{ b.disc }} do dia"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
+                  <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" data-dir="-1" onclick="{{ moveBlock }}" disabled="{{ b.naoSobe }}" title="Subir" aria-label="Subir {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" data-dir="1" onclick="{{ moveBlock }}" disabled="{{ b.naoDesce }}" title="Descer" aria-label="Descer {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  <sc-if value="{{ b.notDone }}" hint-placeholder-val="{{ true }}">
+                    <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" onclick="{{ removeBlock }}" title="Tirar do dia" aria-label="Tirar {{ b.disc }} do dia"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
+                  </sc-if>
                 </span>
               </div>
             </div>
@@ -2074,6 +2098,12 @@ window.ctPdfLib = (function(){
             <input data-k="min" type="number" min="5" step="5" value="{{ cbAdd.min }}" oninput="{{ cbAddField }}" placeholder="{{ cbAddMinPh }}" class="ct-campo ct-campo-num" aria-label="Minutos" style="width:92px;">
             <button onclick="{{ cbAddBlock }}" class="ct-btn-2">Adicionar</button>
           </div>
+          <!-- o método: quem tem mais tempo hoje puxa o próximo bloco da volta em vez de esperar amanhã -->
+          <sc-if value="{{ cicloVoltaShow }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;justify-content:center;">
+              <button onclick="{{ puxarProximo }}" class="ct-btn-2" title="Traz para hoje o próximo bloco pendente da volta">Puxar o próximo bloco da volta</button>
+            </div>
+          </sc-if>
         </div>
         </sc-if>
 
@@ -2136,7 +2166,7 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ isInteligente }}" hint-placeholder-val="{{ false }}">
           <div class="ct-card">
             <div class="ct-titulo">Como o ciclo inteligente decide</div>
-            <div class="ct-nota ct-nota-antes">Cada dia é montado pela sua prioridade real, na mesma régua da tela Prioridade: revisões vencidas, erros recentes, tempo sem estudar, desempenho líquido, peso da matéria e lei seca por ler. Dentro da matéria, o tópico vem da revisão vencida, do domínio mais frágil ou do próximo ponto pendente do edital — e o total respeita a sua meta diária.</div>
+            <div class="ct-nota ct-nota-antes">A volta do ciclo (uma semana de estudo, no seu ritmo) é montada pela sua prioridade real, na mesma régua da tela Prioridade: revisões vencidas, erros recentes, tempo sem estudar, desempenho líquido, peso da matéria e lei seca por ler. Cada matéria ganha blocos na proporção da prioridade; dentro dela, o tópico vem do domínio mais frágil ou do próximo ponto pendente do edital. O dia consome os próximos blocos até a sua meta — e a revisão vencida vem antes da volta.</div>
             <sc-if value="{{ cicloPrioTem }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <sc-for list="{{ cicloPrioTop }}" as="p" hint-placeholder-count="4">
@@ -2152,7 +2182,7 @@ window.ctPdfLib = (function(){
             </sc-if>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
               <button data-view="prioridade" onclick="{{ onNav }}" class="ct-btn-2">Ver a prioridade completa</button>
-              <button onclick="{{ regerarCiclo }}" class="ct-btn-2">Refazer o ciclo de hoje</button>
+              <button onclick="{{ regerarCiclo }}" class="ct-btn-2">Refazer a volta</button>
             </div>
           </div>
         </sc-if>
@@ -2160,10 +2190,48 @@ window.ctPdfLib = (function(){
         <!-- CONSTRUTOR MANUAL: fixas + rotativas -->
         <sc-if value="{{ isManual }}" hint-placeholder-val="{{ false }}">
          <div style="display:flex;flex-direction:column;gap:16px;">
-          <!-- fixas: SEMANA HORIZONTAL (dias lado a lado, como na agenda) -->
+          <!-- CICLO MANUAL = A VOLTA: blocos em ordem, com ponteiro. O dia consome os próximos até
+               a meta (descontada a agenda), concluir avança, fechada a volta ela recomeça no dia
+               seguinte. A agenda da semana (abaixo) é para quem segue roteiro de orientador. -->
+          <div class="ct-card">
+            <div class="ct-grupo"><span class="ct-grupo-ponto"></span><h3 class="ct-grupo-titulo" style="font-size:var(--fs-md);">Ciclo manual — a volta</h3><span class="ct-grupo-n">{{ rotResumo }}</span></div>
+            <div class="ct-nota ct-nota-antes">Blocos em ordem, com ponteiro: o dia puxa os próximos até a sua meta, concluir avança, e fechada a volta ela recomeça do primeiro. Gere uma volta pela prioridade e reordene como quiser.</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <sc-for list="{{ manualRot }}" as="r" hint-placeholder-count="5">
+                <div class="ct-item ct-rot" style="{{ r.itemStyle }}" data-feito="{{ r.feitoN }}" data-next="{{ r.nextN }}">
+                  <span class="ct-rot-pos" aria-hidden="true">{{ r.pos }}</span>
+                  <input data-id="{{ r.id }}" data-field="disc" value="{{ r.disc }}" oninput="{{ editRot }}" placeholder="Disciplina (ex.: Direito Penal)" class="ct-campo" aria-label="Disciplina do bloco {{ r.pos }}" style="flex:1 1 200px;min-width:150px;">
+                  <select data-id="{{ r.id }}" data-field="kind" value="{{ r.kind }}" onchange="{{ editRot }}" class="ct-campo" aria-label="Tipo do bloco {{ r.pos }}" style="flex:none;width:auto;"><sc-for list="{{ r.kindOpts }}" as="k" hint-placeholder-count="6"><option value="{{ k.v }}" selected="{{ k.sel }}">{{ k.v }}</option></sc-for></select>
+                  <input data-id="{{ r.id }}" data-field="min" type="number" min="5" step="5" value="{{ r.min }}" oninput="{{ editRot }}" class="ct-campo ct-campo-num" aria-label="Minutos do bloco {{ r.pos }}" style="width:76px;">
+                  <sc-if value="{{ r.temTopico }}" hint-placeholder-val="{{ false }}"><span class="ct-dado ct-rot-topico" title="{{ r.topico }}">{{ r.topicoShort }}</span></sc-if>
+                  <sc-if value="{{ r.isNext }}" hint-placeholder-val="{{ false }}"><span class="ct-selo ct-selo-hoje">próximo</span></sc-if>
+                  <sc-if value="{{ r.feito }}" hint-placeholder-val="{{ false }}"><span class="ct-selo">{{ r.feitoLabel }}</span></sc-if>
+                  <span class="ct-cb-acoes" style="margin-left:auto;">
+                    <button class="ct-alvo ct-cb-mini" data-id="{{ r.id }}" data-dir="-1" onclick="{{ moveRot }}" title="Subir" aria-label="Subir bloco {{ r.pos }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                    <button class="ct-alvo ct-cb-mini" data-id="{{ r.id }}" data-dir="1" onclick="{{ moveRot }}" title="Descer" aria-label="Descer bloco {{ r.pos }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                    <button class="ct-alvo ct-cb-mini" data-id="{{ r.id }}" onclick="{{ removeRot }}" title="Remover da volta" aria-label="Remover bloco {{ r.pos }} da volta"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
+                  </span>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ rotVazio }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-estado">
+                <div class="ct-estado-titulo">A volta ainda está vazia</div>
+                <div class="ct-estado-desc">Gere uma volta pela sua prioridade real e reordene, ou acrescente os blocos um a um. O dia passa a puxar os próximos até a sua meta.</div>
+              </div>
+            </sc-if>
+            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+              <button onclick="{{ gerarVoltaManual }}" class="ct-btn">Gerar uma volta pela prioridade</button>
+              <button onclick="{{ addRot }}" class="ct-btn-2">+ Bloco</button>
+              <button onclick="{{ advanceRot }}" class="ct-btn-2" title="Marca o próximo bloco como pulado nesta volta e passa adiante">Pular o próximo</button>
+              <sc-if value="{{ rotTemFeito }}" hint-placeholder-val="{{ false }}"><button onclick="{{ recomecarVolta }}" class="ct-btn-2">Recomeçar a volta</button></sc-if>
+            </div>
+            <div class="ct-nota" style="margin-top:12px;">Próximo bloco da volta: <b style="color:var(--accent);">{{ rotNextName }}</b>. {{ rotFraseDia }}</div>
+          </div>
+          <!-- fixas: SEMANA HORIZONTAL (dias lado a lado, como na agenda) — roteiro de orientador -->
           <div class="ct-card">
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px;"><span style="width:9px;height:9px;border-radius:99px;background:var(--accent);"></span><span class="ct-titulo" style="font-size:var(--fs-md);">Agenda da semana</span></div>
-            <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">os dias lado a lado, como na agenda. Vincule cada atividade à disciplina e ao tópico do edital — a sessão registrada já nasce contando no progresso certo. "Todo dia" repete sempre (rotina).</div>
+            <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">Para quem segue roteiro de orientador: os dias lado a lado, como na agenda. Vincule cada atividade à disciplina e ao tópico do edital — a sessão registrada já nasce contando no progresso certo. "Todo dia" repete sempre (rotina). A volta do ciclo (acima) entra depois da agenda do dia.</div>
             <sc-if value="{{ hasRoteirosAtivos }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
                 <sc-for list="{{ roteirosAtivos }}" as="rt" hint-placeholder-count="1">
@@ -2173,7 +2241,6 @@ window.ctPdfLib = (function(){
             </sc-if>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
               <input value="{{ manualFixedRoteiroAtual }}" oninput="{{ setRoteiroAtual }}" title="As atividades novas recebem essa etiqueta" placeholder="Roteiro atual — ex.: Roteiro 2" class="ct-campo" style="flex:1;min-width:200px;">
-              <button onclick="{{ preencherSemanaPrio }}" class="ct-btn-2" title="Os dias úteis vazios deste roteiro recebem o dia montado pela sua prioridade real; o que já existe fica">Preencher a semana pela prioridade</button>
             </div>
             <!-- CADASTRO RÁPIDO: uma linha vira uma atividade por dia marcado. O tópico do edital
                  continua sendo escolhido no cartão da atividade, como antes. -->
@@ -2223,31 +2290,6 @@ window.ctPdfLib = (function(){
               </sc-for>
               </div>
             </div>
-          </div>
-          <!-- rotativas -->
-          <div class="ct-card">
-            <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px;"><span style="width:9px;height:9px;border-radius:99px;background:var(--warn);"></span><span class="ct-titulo" style="font-size:var(--fs-md);">Atividades rotativas</span></div>
-            <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:14px;">giram pelo ciclo — uma por dia, na ordem</div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <sc-for list="{{ manualRot }}" as="r" hint-placeholder-count="5">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface2);border-radius:var(--r-md);padding:10px 12px;">
-                  <span style="width:22px;height:22px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;flex:none;{{ r.posStyle }}">{{ r.pos }}</span>
-                  <input data-id="{{ r.id }}" data-field="disc" value="{{ r.disc }}" oninput="{{ editRot }}" placeholder="Disciplina (ex.: Direito Penal)" style="flex:1;min-width:130px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:7px 9px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;">
-                  <select data-id="{{ r.id }}" data-field="kind" value="{{ r.kind }}" onchange="{{ editRot }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:7px 8px;font-size:var(--fs-sm);color:var(--ink);font-family:inherit;cursor:pointer;flex:none;"><sc-for list="{{ r.kindOpts }}" as="k" hint-placeholder-count="6"><option value="{{ k.v }}" selected="{{ k.sel }}">{{ k.v }}</option></sc-for></select>
-                  <input data-id="{{ r.id }}" data-field="min" type="number" min="5" step="5" value="{{ r.min }}" oninput="{{ editRot }}" title="Minutos" style="width:60px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:7px 8px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;flex:none;">
-                  <span style="font-size:var(--fs-xs);color:var(--text3);flex:none;">min</span>
-                  <sc-if value="{{ r.isNext }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-2xs);font-weight:700;color:var(--accentD);background:var(--accentSoft);padding:3px 7px;border-radius:var(--r-sm);flex:none;">próxima</span></sc-if>
-                  <button data-id="{{ r.id }}" data-dir="-1" onclick="{{ moveRot }}" title="Subir" style="width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;flex:none;font-size:var(--fs-sm);">↑</button>
-                  <button data-id="{{ r.id }}" data-dir="1" onclick="{{ moveRot }}" title="Descer" style="width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;flex:none;font-size:var(--fs-sm);">↓</button>
-                  <button data-id="{{ r.id }}" onclick="{{ removeRot }}" title="Remover" style="width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button>
-                </div>
-              </sc-for>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-              <button onclick="{{ addRot }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 14px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">+ Disciplina</button>
-              <button onclick="{{ advanceRot }}" style="background:var(--ink);border:none;border-radius:var(--r-md);padding:9px 14px;font-size:var(--fs-sm);color:var(--surface);cursor:pointer;font-family:inherit;font-weight:600;">Avançar rodízio →</button>
-            </div>
-            <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:12px;line-height:1.5;">Hoje a rotativa puxa <b style="color:var(--accent);">{{ rotNextName }}</b>. Ao concluir o dia, o rodízio avança para a próxima.</div>
           </div>
          </div>
         </sc-if>
@@ -6371,6 +6413,9 @@ class Component extends DCLogic {
       isMobile: (typeof window!=='undefined' && window.innerWidth<900),
       blocks: this._load('blocks', []),
       blocksDate: this._load('blocksDate', ''),
+      cicloVolta: this._load('cicloVolta', null),          // a VOLTA do ciclo (modos automáticos): blocos em ordem, com done/doneDate
+      manualVoltaN: this._load('manualVoltaN', 1),         // nº da volta do ciclo manual
+      cicloExtrasFora: null,                                // extras do dia tirados pela pessoa (só de tela)
       cycleMode: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:cycleMode')) || 'sugestao',
       // Aba do Ciclo: executar (a rotina do dia) ou configurar (como o ciclo é montado).
       // NÃO entra em _autosaveKeys: é estado de tela, e a tela tem de abrir sempre pronta
@@ -7256,21 +7301,32 @@ class Component extends DCLogic {
       // de data — pra o carry-over ficar fresco e blocos velhos (nuvem/outro dispositivo) nunca
       // ficarem presos. Preserva o "done" da sessão casando por chave.
       if(this.state.cycleMode==='manual'){
-        const rot=this.state.manualRot||[];
-        let np=this.state.rotPointer||0;
-        if(prev && prev!==hoje && rot.length){ np=(np+1)%rot.length; } // rodízio só avança na troca de dia
+        let rot=this.state.manualRot||[]; const patch={blocksDate:hoje};
+        // a volta fechada recomeça do primeiro bloco no DIA SEGUINTE (não na hora: os blocos
+        // recém-feitos sumiriam do dia); o ponteiro é o primeiro pendente — anda por conclusão
+        if(prev && prev!==hoje && rot.length && rot.every(x=>x.done)){ rot=rot.map(x=>({...x, done:false, pulado:false, doneDate:''})); patch.manualRot=rot; patch.manualVoltaN=(this.state.manualVoltaN||1)+1; }
+        const np=this._rotPonteiro(rot); patch.rotPointer=np;
         const fresh=this.composeManual(this.state.manualFixed, rot, np);
-        const keyOf=(b)=> b.srcId ? ('s:'+b.srcId+'|'+b.srcDate) : ('t:'+b.disc+'|'+b.kind+'|'+b.tag);
+        const keyOf=(b)=> b.rotId ? ('r:'+b.rotId) : b.srcId ? ('s:'+b.srcId+'|'+b.srcDate) : ('t:'+b.disc+'|'+b.kind+'|'+b.tag);
         const doneOld={}; (this.state.blocks||[]).forEach(b=>{ if(b.done) doneOld[keyOf(b)]=true; });
-        fresh.forEach(b=>{ if(!b.done && doneOld[keyOf(b)]) b.done=true; });
-        this.setState({blocksDate:hoje, rotPointer:np, blocks:fresh});
+        fresh.forEach(b=>{ if(!b.done && !b.rotId && doneOld[keyOf(b)]) b.done=true; });
+        patch.blocks=fresh; this.setState(patch);
         return;
       }
-      if(prev===hoje) return;
-      const patch={blocksDate:hoje};
-      if((this.state.blocks||[]).some(b=>b.done)) patch.blocks=(this.state.blocks||[]).map(b=>({...b, done:false}));
-      // dia novo no modo inteligente = prioridade nova (revisões venceram, sessões entraram)
-      if(this.state.cycleMode==='inteligente'){ try{ patch.blocks=this._genInteligente(); }catch(_){} }
+      // AUTOMÁTICOS: o dia é uma FATIA da volta — recompõe sempre (a fatia segue a meta, o que
+      // foi feito ontem sai, o que foi puxado hoje fica); sem volta, ou volta de outro modo, gera
+      let V=this.state.cicloVolta; const patch={blocksDate:hoje}; const modo=this.state.cycleMode||'sugestao'; let prevB=this.state.blocks||[];
+      if(!V || !(V.blocos||[]).length){
+        // sem volta guardada: quem já tinha blocos do dia (versão anterior, ou semeados)
+        // não perde nada — eles viram a volta 1; só sem nada é que a volta é gerada
+        const legado=(this.state.blocks||[]).filter(b=>b && !b.extra && !b.voltaId && b.disc);
+        if(legado.length){ V={n:1, modo, geradoEm:hoje, blocos:legado.map((b,i)=>({id:'v1-'+i, disc:b.disc, kind:b.kind||'Teoria', tag:b.tag||'', topico:b.topico||'', discEdital:b.discEdital||'', min:+b.min||50, motivo:b.motivo||'', done:!!b.done, pulado:false, doneDate:b.done?hoje:''})), totalMin:legado.reduce((a,b)=>a+(+b.min||0),0)}; prevB=prevB.filter(b=>b&&(b.extra||b.voltaId)); }
+        else V=this._genVolta(modo, 1);
+        patch.cicloVolta=V;
+      } else if(V.modo!==modo){ V=this._genVolta(modo, V.n||1); patch.cicloVolta=V; }
+      patch.blocks=this._comporDia(V, prevB);
+      // nada mudou (mesmo dia, mesma volta, mesma lista): não acorda o React à toa
+      if(!patch.cicloVolta && prev===hoje && JSON.stringify(patch.blocks)===JSON.stringify(this.state.blocks||[])) return;
       this.setState(patch);
     }catch(_){ }
   }
@@ -7521,7 +7577,7 @@ class Component extends DCLogic {
        · Toda outra área lê e grava em `catedra:<chave>@<area>`.
      Quem já usa o app não vê diferença. Quem troca de área encontra um caderno limpo, e
      encontra o antigo intacto ao voltar. */
-  AREA_PROPRIA = new Set(['edital','reviews','blocks','blocksDate','manualFixed','manualRot',
+  AREA_PROPRIA = new Set(['edital','reviews','blocks','blocksDate','cicloVolta','manualVoltaN','manualFixed','manualRot',
     'rotPointer','manualFixedRoteiroAtual','agendaFeitas','planoLegis','metas','eventos','errors','sim',
     'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redMarcas','redHist',
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
@@ -7551,7 +7607,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
@@ -8649,10 +8705,18 @@ class Component extends DCLogic {
     if(q){ const alvo=((o.disc||'')+' '+(o.discEdital||'')+' '+(o.tag||'')+' '+(o.topico||'')+' '+(o.kind||'')).toLowerCase();
       if(alvo.indexOf(q)<0) return false; }
     return true; }
-  toggleBlock = (e)=>{ const i=+e.currentTarget.dataset.i; const b=this.state.blocks.slice(); const willDone=!b[i].done; b[i]={...b[i],done:willDone};
+  toggleBlock = (e)=>{ const _di=e.currentTarget.dataset.i; if(_di==null||_di==='') return; const i=+_di; const b=this.state.blocks.slice(); if(!b[i]) return; const willDone=!b[i].done; b[i]={...b[i],done:willDone};
     // Registro persistente de conclusão por OCORRÊNCIA (item da agenda + data), pra que uma
     // atividade da semana feita não volte a aparecer como atrasada no dia seguinte.
-    const extra={};
+    const extra={}; const hojeS=this._hoje(); let fechou=0;
+    // bloco da VOLTA: marca lá; a última conclusão fecha a volta e a próxima já nasce
+    if(b[i].voltaId){ const V=this.state.cicloVolta; if(V&&V.blocos){ const blocos=V.blocos.map(x=>x.id===b[i].voltaId?{...x, done:willDone, pulado:false, doneDate:willDone?hojeS:''}:x); extra.cicloVolta={...V, blocos};
+      if(willDone && blocos.every(x=>x.done)){ fechou=V.n||1; const nova=this._genVolta(this.state.cycleMode, fechou+1); extra.cicloVolta=nova;
+        nova.blocos.slice(0,2).forEach(x=>b.push({id:x.id, voltaId:x.id, disc:x.disc, kind:x.kind, tag:x.tag, topico:x.topico||'', discEdital:x.discEdital||'', min:x.min, motivo:x.motivo||'', done:false})); } } }
+    // bloco do CICLO MANUAL: marca na volta manual; fechada, recomeça amanhã (ver _reconcileCiclo)
+    if(b[i].rotId){ const rot=(this.state.manualRot||[]).map(x=>x.id===b[i].rotId?{...x, done:willDone, pulado:false, doneDate:willDone?hojeS:''}:x); extra.manualRot=rot; extra.rotPointer=this._rotPonteiro(rot);
+      if(willDone && rot.length && rot.every(x=>x.done)) fechou=-(this.state.manualVoltaN||1); }
+    if(fechou){ const n=Math.abs(fechou); setTimeout(()=>{ try{ this._toast(fechou>0?('Volta '+n+' fechada — a volta '+(n+1)+' já está montada pela prioridade de agora'):('Volta '+n+' fechada — amanhã recomeça do primeiro bloco')); }catch(_){} }, 60); }
     if(b[i].srcId && b[i].srcDate){ const fe={...(this.state.agendaFeitas||{})}; const k=b[i].srcId+'|'+b[i].srcDate; if(willDone) fe[k]=true; else delete fe[k]; extra.agendaFeitas=fe; }
     if(willDone){ // concluiu → SEMPRE abre o registro preenchido (ela confere e salva — nada grava sozinho)
       const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60);
@@ -8682,134 +8746,213 @@ class Component extends DCLogic {
       base=base.filter(x=>x!=='Jurisprudência' && x!=='Lei seca'); }catch(_){}
     return [...new Set([...proprias, ...base])];
   }
-  _genSugestao(){
-    const O=this.state.orient||{}, p=this.state.profile||{};
-    const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*this._enMult())); const m=(f)=>Math.max(15,Math.round(base*f));
-    const reta=!!p.retaFinal, nivel=O.nivel||'intermediario', estr=O.estrategia||'ciclo';
-    let discs; try{ const B=this._brain(); const weak=[...B.discList].filter(d=>d.q>0).sort((a,b)=>a.liqPct-b.liqPct).map(d=>d.disc); const all=(this.state.edital||[]).map(d=>d.disc); discs=[...new Set([...weak,...all])]; }catch(_){ discs=[]; }
-    if(!discs.length) discs=CT_AREA(this.state.areaEstudo).discs.slice(0,5);
-    const D=(i)=>discs[i%discs.length]; const anki={disc:'Revisão · Anki', kind:'Flashcards', tag:'Fixação', min:25, done:false};
-    let out;
-    if(reta){ out=[{disc:D(0),kind:'Questões',tag:'Reta · ponto fraco',min:base},{disc:D(1),kind:'Lei seca',tag:'Reta · lei seca',min:m(.8)},{disc:D(2),kind:'Jurisprudência',tag:'Reta · súmulas',min:m(.7)},{disc:'Simulado',kind:'Simulado',tag:'Reta · diagnóstico',min:m(1.4)},{...anki,tag:'Reta · erros'}]; }
-    else if(estr==='revisao'){ out=[{...anki,tag:'Revisão prioritária'},{disc:D(0),kind:'Revisão',tag:'Revisão ativa',min:base},{disc:D(1),kind:'Questões',tag:'Validação',min:m(.9)},{disc:D(2),kind:'Questões',tag:'Validação',min:m(.8)},{disc:D(0),kind:'Lei seca',tag:'Reforço',min:m(.7)}]; }
-    else if(estr==='sequencial'){ out=[{disc:D(0),kind:'Teoria',tag:'Edital em ordem',min:base},{disc:D(0),kind:'Questões',tag:'Fixação',min:m(.8)},{disc:D(1),kind:'Teoria',tag:'Edital em ordem',min:base},{disc:D(1),kind:'Questões',tag:'Fixação',min:m(.8)},anki]; }
-    else if(nivel==='iniciante'){ out=[{disc:D(0),kind:'Teoria',tag:'Base',min:base},{disc:D(0),kind:'Questões',tag:'Comentadas',min:m(.8)},{disc:D(1),kind:'Teoria',tag:'Base',min:base},{disc:D(2),kind:'Revisão',tag:'Revisão',min:m(.7)},anki]; }
-    else if(nivel==='avancado'){ out=[{disc:D(0),kind:'Questões',tag:'Ponto fraco',min:base},{disc:D(1),kind:'Questões',tag:'Ponto fraco',min:base},{disc:D(0),kind:'Simulado',tag:'Treino de prova',min:m(1.3)},{disc:D(2),kind:'Lei seca',tag:'Reforço',min:m(.7)},{...anki,tag:'Erros'}]; }
-    else { out=[{disc:D(0),kind:'Teoria',tag:'Bloco 1',min:base},{disc:D(1),kind:'Questões',tag:'Bloco 2',min:m(.9)},{disc:D(2),kind:'Lei seca',tag:'Bloco 3',min:m(.8)},{disc:D(3),kind:'Jurisprudência',tag:'Bloco 4',min:m(.7)},{...anki,tag:'Bloco 5'}]; }
-    return out.map(b=>{ const kind=this._kindDaArea(b.kind);
-      // a etiqueta acompanha o tipo (senão sobra "Reta · lei seca" em prova de saúde)
-      const tag=(kind!==b.kind && /lei seca|súmulas/i.test(b.tag||'')) ? String(b.tag).replace(/lei seca|súmulas/i, kind.toLowerCase()) : b.tag;
-      return {done:false,...b, kind, tag}; });
-  }
-  // Domínio (0–1) por disciplina, a partir do desempenho líquido real (proxy de domínio).
-  _domPorDisc(){
-    const m={}; try{ const B=this._brain(); (B.discList||[]).forEach(d=>{ m[d.disc]= d.q>0 ? Math.max(0,Math.min(1,(d.liqPct||0)/100)) : 0; }); }catch(_){ }
-    return m;
-  }
-  // Ciclo "conforme o edital": gera blocos a partir dos TÓPICOS realmente pendentes do
-  // edital cadastrado (não mais uma lista fixa). Sem edital → cai na sugestão.
-  _genEdital(){
-    const O=this.state.orient||{}; const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*this._enMult()));
-    const ed=(this.state.edital||[]).map(d=>({ disc:d.disc, peso:parseFloat(d.peso)||1, pend:(d.topics||[]).filter(t=>!t.done) })).filter(d=>d.pend.length>0);
-    if(!ed.length) return this._genSugestao();
-    ed.sort((a,b)=> b.pend.length!==a.pend.length ? b.pend.length-a.pend.length : b.peso-a.peso);
-    const out=[]; let i=0;
-    while(out.length<5 && ed.some(d=>d.pend.length)){
-      const d=ed[i%ed.length]; i++; if(!d.pend.length) continue;
-      const t=d.pend.shift(); const q=(out.length%2===1);
-      out.push({disc:d.disc, kind:q?'Questões':'Teoria', tag:t.name||'Tópico pendente', min:q?Math.round(base*.8):base, done:false});
-    }
-    out.push({disc:'Revisão · Anki', kind:'Flashcards', tag:'Fixação', min:25, done:false});
-    return out;
-  }
-  // Ciclo "por pesos": prioriza disciplinas por peso × (1 − domínio) usando os pesos e o
-  // nº de questões REAIS cadastrados no edital + o domínio medido. Sem pesos → sugestão.
-  _genPesos(){
-    const O=this.state.orient||{}; const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*this._enMult()));
-    const dom=this._domPorDisc();
-    const ed=(this.state.edital||[]).map(d=>{ const peso=parseFloat(d.peso)||1, q=parseInt(d.questoes,10)||0, dm=dom[d.disc]||0; return {disc:d.disc, peso, q, dom:dm, score:peso*(1-dm)}; });
-    if(!ed.length || ed.every(d=>d.peso<=1 && !d.q)) return this._genSugestao();
-    ed.sort((a,b)=> b.score!==a.score ? b.score-a.score : b.q-a.q);
-    const out=ed.slice(0,4).map((d,idx)=>({ disc:d.disc, kind: this._kindDaArea(idx<2?'Questões':(idx===2?'Lei seca':'Teoria')), tag:'Peso '+(Math.round(d.peso*10)/10)+' · domínio '+Math.round(d.dom*100)+'%', min: idx===0?base:Math.max(20,Math.round(base*(1-idx*0.1))), done:false }));
-    out.push({disc:'Revisão · Anki', kind:'Flashcards', tag:'Erros priorizados', min:25, done:false});
-    return out;
-  }
-  /* CICLO INTELIGENTE — o dia montado pela MESMA régua da tela Prioridade
-     (prioridade-calc.js, pura e testada): erros recentes, revisões vencidas, tempo sem
-     estudar, desempenho líquido, peso × incidência e lei seca por ler. Cada bloco sai com
-     o PORQUÊ escrito (`motivo`) e com o tópico escolhido DENTRO da disciplina:
-       · revisão vencida      → o tópico daquela revisão (kind Revisão)
-       · líquido baixo/erros  → o tópico de domínio mais frágil (B.byTopic; kind Questões)
-       · nunca vista / resto  → o próximo tópico pendente do edital (kind Teoria)
-     O total respeita a meta diária (orient.metaIdeal) ajustada pela energia, nunca dois
-     blocos seguidos da mesma matéria, no máximo dois por matéria. Reta final acrescenta um
-     simulado se não houve nenhum em 7 dias; flashcards entram se há baralho. Sem edital
-     não há régua: cai na sugestão padrão (e _cycleFalta avisa antes). */
-  _genInteligente(opts){ opts=opts||{};
+  /* ═══ O MÉTODO DO CÁTEDRA: O PLANNER É UM CICLO, NÃO UM CALENDÁRIO ═══════════════════
+     Regra da dona (09/09/2026): "o planner de estudos é um ciclo e não um calendário fixo".
+     Nada aqui amarra matéria a dia da semana. Nos modos automáticos existe UMA VOLTA
+     (`cicloVolta`): a sequência inteira de blocos por todas as matérias, com tempo
+     proporcional à prioridade (modo inteligente), ao peso (pesos), aos tópicos pendentes
+     (edital) ou igual (sugestão). O DIA é uma fatia da volta: os próximos blocos pendentes
+     até a meta diária; concluir marca o bloco na volta e o ponteiro anda sozinho; fechada a
+     volta, a próxima nasce pela prioridade de agora. Quem estuda 2 h faz 2 blocos e continua
+     de onde parou; quem falta um dia só atrasa a volta — não "perde" nada.
+     Fora da volta ficam os EXTRAS do dia: revisão vencida (antes da volta), simulado na reta
+     final e flashcards, quando existem. */
+  _voltaTotalMin(){ const O=this.state.orient||{}; const mult=this._enMult();
+    const meta=Math.max(60, Math.round((parseInt(O.metaIdeal,10)||180)*mult));
+    const dias=String(O.dias||'').split(',').filter(Boolean).length||6;
+    return meta*dias; }   // uma volta ≈ uma semana de estudo
+  _fragilDe(disc, B){ let best=null; Object.keys((B&&B.byTopic)||{}).forEach(k=>{ const o=B.byTopic[k]; if(!o||o.disc!==disc||o.q<6) return;
+      const dom=(o.a-o.e)/o.q; if(!best||dom<best.dom) best={dom, topico:o.topico}; }); return best; }
+  _genVolta(modo, n){
+    modo=modo||this.state.cycleMode||'sugestao'; if(modo==='manual') modo='inteligente'; n=n||1;
     const O=this.state.orient||{}; const mult=this._enMult();
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*mult));
-    const meta=Math.max(60, Math.round((parseInt(O.metaIdeal,10)||180)*mult));
+    const nBl=Math.max(4, Math.min(40, Math.round(this._voltaTotalMin()/base)));
+    let B; try{ B=this._brain(); }catch(_){ B={byTopic:{}, discList:[]}; }
+    const ed=(this.state.edital||[]).map(d=>({disc:String(d.disc||'').trim(), peso:(parseFloat(d.peso)||1), pend:(d.topics||[]).filter(t=>t&&!t.done).map(t=>String(t.name||'').trim()).filter(Boolean)})).filter(d=>d.disc);
     let prio=[]; try{ prio=this._prioridade(); }catch(_){ prio=[]; }
-    if(!prio.length) return this._genSugestao();
-    // `offset` gira o ranking: ao preencher a semana, cada dia começa numa matéria diferente
-    const off=prio.length?((opts.offset||0)%prio.length):0; if(off) prio=prio.slice(off).concat(prio.slice(0,off));
-    let B; try{ B=this._brain(); }catch(_){ B={byTopic:{}, normT:(s)=>String(s||'')}; }
-    const reviews=this.state.reviews||[];
-    const revPend=(d)=>reviews.filter(r=>r.disc===d && (+r.due||0)<=0).sort((a,b)=>(+a.due||0)-(+b.due||0));
-    const pendTop=(d)=>{ const e=(this.state.edital||[]).find(x=>String(x.disc||'').trim()===d); return ((e&&e.topics)||[]).filter(t=>t&&!t.done); };
-    const fragil=(d)=>{ let best=null; Object.keys(B.byTopic||{}).forEach(k=>{ const o=B.byTopic[k]; if(!o||o.disc!==d||o.q<6) return;
-      const dom=(o.a-o.e)/o.q; if(!best||dom<best.dom) best={dom, topico:o.topico}; }); return best; };
-    const usados={}, out=[]; let soma=0, last='', guard=0;
-    while(soma<meta-15 && out.length<8 && guard++<40){   // para antes de estourar a meta (folga de 15 min)
-      const cand=prio.find(p=>p.disc!==last && (usados[p.disc]||0)<2); if(!cand) break;
-      const d=cand.disc; usados[d]=(usados[d]||0)+1; last=d;
-      const rv=revPend(d), pend=pendTop(d), fr=fragil(d);
-      // o mesmo tópico não entra duas vezes no mesmo dia: o 2º bloco da matéria pula para
-      // o próximo ponto pendente (ou lei seca) em vez de repetir o tópico frágil
-      const jaTem=(tg)=>out.some(o=>o.disc===d && o.tag===tg);
-      let kind, tag, min, porque;
-      if(rv.length && !usados['rev:'+d]){ usados['rev:'+d]=1; kind='Revisão'; tag=rv[0].topic||'revisão vencida'; min=Math.round(base*.6);
-        porque=rv.length>1?(rv.length+' revisões vencidas'):'revisão vencida'; }
-      else if(fr && !jaTem(fr.topico) && ((cand.liqPct!=null && cand.liqPct<60) || cand.erros30>0)){ kind='Questões'; tag=fr.topico; min=Math.round(base*.8);
-        porque=fr.dom<=0?'líquido negativo neste tópico':('domínio de '+Math.round(fr.dom*100)+'% neste tópico'); }
-      else if(pend.length && pend.some(t=>!jaTem(t.name))){ const livres=pend.filter(t=>!jaTem(t.name)); const t=livres[Math.min((opts.offset||0), livres.length-1)]; kind='Teoria'; tag=t.name||'tópico pendente'; min=base;
-        porque=cand.diasSem==null?'nunca estudada por aqui':'próximo ponto pendente do edital'; }   // mesmo texto da régua → não duplica no motivo
-      else if(!jaTem('artigos mais citados')){ kind='Lei seca'; tag='artigos mais citados'; min=Math.round(base*.7); porque='reforço na lei seca'; }
-      else { kind='Questões'; tag='revisão geral'; min=Math.round(base*.8); porque='edital concluído — manter o domínio'; }
-      const motivo=[porque].concat((cand.motivos||[]).filter(m=>m!==porque)).slice(0,3).join(' · ');
-      out.push({disc:d, kind:this._kindDaArea(kind), tag, min:Math.max(15,min), done:false, discEdital:d, topico:tag, motivo, nota:cand.nota});
-      soma+=min;
+    const pmap={}; prio.forEach(p=>{ pmap[p.disc]=p; });
+    let discs;
+    if(ed.length){
+      discs=ed.map(d=>{ const p=pmap[d.disc]||{}; const x=(B.discList||[]).find(o=>o.disc===d.disc); const dom=(x&&x.q>0)?Math.max(0,Math.min(1,(x.liqPct||0)/100)):0;
+        let w=1;
+        if(modo==='inteligente') w=0.35+((p.nota||0)/100);          // piso para toda matéria + a nota da régua
+        else if(modo==='pesos') w=d.peso*(1-dom*0.7)+0.15;           // peso × (1 − domínio)
+        else if(modo==='edital') w=Math.max(1, d.pend.length);       // proporcional ao que falta
+        return {disc:d.disc, w, pend:d.pend, p, vinc:true}; });
+    } else {
+      const A=CT_AREA(this.state.areaEstudo); discs=(A.discs||[]).slice(0,6).map(d=>({disc:d, w:1, pend:[], p:{}, vinc:false}));
     }
-    if(!out.length) return this._genSugestao();
-    if(opts.semExtras) return out;   // agenda da semana: só o estudo; simulado e flashcards ficam para o dia
-    // reta final: simulado de diagnóstico se não houve nenhum em 7 dias
+    if(!discs.length) return {n, modo, blocos:[], geradoEm:this._hoje(), totalMin:0};
+    // cotas proporcionais, mínimo 1 por matéria, soma = nBl
+    const wsum=discs.reduce((a,d)=>a+d.w,0)||1;
+    discs.forEach(d=>{ d.cota=Math.max(1, Math.round(nBl*d.w/wsum)); });
+    let dif=discs.reduce((a,d)=>a+d.cota,0)-nBl, g=0;
+    while(dif>0 && g++<200){ const d=discs.filter(x=>x.cota>1).sort((a,b)=>b.cota-a.cota)[0]; if(!d) break; d.cota--; dif--; }
+    while(dif<0 && g++<400){ const d=discs.slice().sort((a,b)=>b.w-a.w)[0]; d.cota++; dif++; }
+    discs.forEach(d=>{ d.rest=d.cota; }); discs.sort((a,b)=>b.w-a.w);
+    // o conteúdo de cada bloco: tópico frágil (questões) quando há sinal; depois os pontos
+    // pendentes do edital em ordem — primeiro teoria, numa 2ª passada questões sobre os mesmos
+    // (é o método: ver, depois fixar) —, lei seca uma vez, e uma revisão geral. Nunca o mesmo
+    // TIPO+TÓPICO duas vezes na volta; acabado o conteúdo único, a matéria não recebe mais
+    // blocos nesta volta (cota cortada) em vez de repetir.
+    const usado={}; const k0=(d,k,t)=>d+'|'+k+'|'+t;
+    const proximo=(d, idx)=>{ const p=d.p||{}; const fr=this._fragilDe(d.disc, B);
+      const fraco=(p.liqPct!=null && p.liqPct<60) || (p.erros30>0);
+      const pega=(kind, tag, min, porque)=>{ usado[k0(d.disc,kind,tag)]=1; return {kind, tag, min, porque}; };
+      if(idx===0 && fraco && fr && !usado[k0(d.disc,'Questões',fr.topico)])
+        return pega('Questões', fr.topico, Math.round(base*.8), (fr.dom<=0?'líquido negativo neste tópico':('domínio de '+Math.round(fr.dom*100)+'% neste tópico')));
+      const pend=d.pend||[];
+      const t1=pend.find(t=>!usado[k0(d.disc,'Teoria',t)]);
+      if(t1) return pega('Teoria', t1, base, (p.diasSem==null?'nunca estudada por aqui':'próximo ponto pendente do edital'));
+      const t2=pend.find(t=>!usado[k0(d.disc,'Questões',t)]);
+      if(t2) return pega('Questões', t2, Math.round(base*.8), 'fixar com questões o que já foi visto');
+      // sem tópicos (edital não cadastrado) ou tópicos esgotados: a sequência genérica do
+      // método — ver, fixar, lei seca, jurisprudência, revisar — uma vez cada por volta
+      const GEN=[['Teoria','ponto seguinte do programa',base,'sem edital: siga o programa da matéria'],['Questões','questões comentadas',Math.round(base*.8),'fixar com questões'],
+        ['Lei seca','artigos mais citados',Math.round(base*.7),'reforço na lei seca'],['Jurisprudência','súmulas e teses',Math.round(base*.7),'o que os tribunais firmaram'],['Revisão','revisão geral',Math.round(base*.6),'manter o domínio']];
+      for(const g of GEN){ if(pend.length && (g[0]==='Teoria'||g[0]==='Questões')) continue;   // com edital, teoria e questões já vieram dos tópicos
+        if(!usado[k0(d.disc,g[0],g[1])]) return pega(g[0], g[1], g[2], g[3]); }
+      return null; };
+    // intercalação ponderada: a matéria com mais cota por cumprir vem primeiro, e nunca a
+    // mesma duas vezes seguidas quando há outra para intercalar
+    const blocos=[]; let last=''; const idxDe={}; g=0;
+    while(blocos.length<nBl && g++<400){
+      const cands=discs.filter(d=>d.rest>0); if(!cands.length) break;
+      cands.sort((a,b)=>((b.rest/b.cota)-(a.rest/a.cota)) || (b.w-a.w));
+      const d=cands.find(c=>c.disc!==last)||cands[0];
+      const i=idxDe[d.disc]||0; idxDe[d.disc]=i+1; d.rest--; last=d.disc;
+      const c=proximo(d, i); if(!c){ d.rest=0; continue; }   // sem conteúdo único: a matéria sai desta volta
+      const motivo=[c.porque].concat(((d.p&&d.p.motivos)||[]).filter(m=>m!==c.porque)).slice(0,3).join(' · ');
+      blocos.push({id:'v'+n+'-'+blocos.length, disc:d.disc, kind:this._kindDaArea(c.kind), tag:c.tag, topico:c.tag, discEdital:d.vinc?d.disc:'', min:Math.max(15,c.min), motivo, done:false, pulado:false, doneDate:''});
+    }
+    return {n, modo, blocos, geradoEm:this._hoje(), totalMin:blocos.reduce((a,b)=>a+b.min,0)};
+  }
+  // Extras do dia — fora da volta: revisão vencida vem ANTES do ciclo (método), simulado de
+  // diagnóstico na reta final (sem simulado há 7 dias) e flashcards quando há baralho.
+  _extrasDoDia(){
+    const out=[]; const O=this.state.orient||{}; const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*this._enMult()));
+    const hoje=this._hoje(); const fora=this.state.cicloExtrasFora; const foraIds=new Set((fora&&fora.date===hoje)?(fora.ids||[]):[]);
+    const revs=(this.state.reviews||[]).filter(r=>(+r.due||0)<=0);
+    if(revs.length){ const por={}; revs.forEach(r=>{ por[r.disc||'—']=(por[r.disc||'—']||0)+1; }); const d=Object.keys(por).sort((a,b)=>por[b]-por[a])[0]; const n=revs.length;
+      const _rv=revs.find(r=>(r.disc||'—')===d)||{}; out.push({id:'x-rev', disc:d, kind:'Revisão', tag:_rv.topic||'revisões vencidas', topico:_rv.topic||'', discEdital:(this.state.edital||[]).some(e=>String(e.disc||'').trim()===d)?d:'',
+        min:Math.max(15, Math.min(45, n*8)), done:false, extra:true, motivo:(n>1?(n+' revisões vencidas'):'revisão vencida')+' — antes da volta'}); }
     let dp=null; try{ if(this.state.provaData) dp=Math.ceil((new Date(this.state.provaData+'T00:00:00')-Date.now())/864e5); }catch(_){}
     const reta=!!(this.state.profile||{}).retaFinal || (dp!=null && dp>=0 && dp<=30);
     if(reta){ const ss=(this.state.sessions||[]).filter(x=>x.disc==='Simulado'||((x.categorias||[]).indexOf('Simulado')>=0)||x.categoria==='Simulado');
       const ult=ss.length?ss.map(x=>x.date||'').sort().pop():''; const dias=ult?Math.floor((Date.now()-new Date(ult+'T12:00:00').getTime())/864e5):null;
-      if(dias===null||dias>=7) out.push({disc:'Simulado', kind:'Simulado', tag:'Reta · diagnóstico', min:Math.round(base*1.4), done:false,
+      if(dias===null||dias>=7) out.push({id:'x-sim', disc:'Simulado', kind:'Simulado', tag:'Reta · diagnóstico', topico:'', discEdital:'', min:Math.round(base*1.4), done:false, extra:true,
         motivo:(dias===null?'nenhum simulado registrado':dias+' dias sem simulado')+(dp!=null?(' · prova em '+dp+' dias'):'')}); }
     const fc=(this.state.flashcards||[]).length;
-    if(fc) out.push({disc:'Revisão · Anki', kind:'Flashcards', tag:'Fixação', min:25, done:false, motivo:fc+' cartões no baralho'});
-    return out;
+    if(fc) out.push({id:'x-anki', disc:'Revisão · Anki', kind:'Flashcards', tag:'Fixação', topico:'', discEdital:'', min:25, done:false, extra:true, motivo:fc+' cartões no baralho'});
+    return out.filter(b=>!foraIds.has(b.id));
   }
-  /* REORGANIZAR O DIA sem sair da tela de execução (modos automáticos: o manual é
-     derivado da agenda, e lá é que se mexe). Subir/descer troca de lugar; remover tem
-     desfazer; adicionar entra no fim do dia com vínculo ao edital quando a disciplina é
-     dele. Nada aqui grava sessão — só o plano. */
+  /* O DIA = extras + blocos da volta feitos hoje + próximos pendentes até a meta (folga de
+     15 min; sempre ao menos um pendente). O que já estava no dia de hoje (inclusive o que a
+     pessoa puxou a mais) fica; o que foi feito ontem some; extras removidos hoje não voltam. */
+  _comporDia(volta, prev){
+    const hoje=this._hoje(); const V=volta||this.state.cicloVolta||{}; const bl=V.blocos||[];
+    const O=this.state.orient||{}; const meta=Math.max(60, Math.round((parseInt(O.metaIdeal,10)||180)*this._enMult()));
+    const mesmoDia=(this.state.blocksDate===hoje); const prevArr=prev||[];
+    const prevIds=new Set(prevArr.map(b=>b.voltaId).filter(Boolean));
+    const doneExtra={}; if(mesmoDia) prevArr.forEach(b=>{ if(b.extra&&b.done) doneExtra[b.id]=true; });
+    const extras=this._extrasDoDia().map(b=>({...b, done:!!doneExtra[b.id]}));
+    const feitosHoje=bl.filter(b=>b.done && b.doneDate===hoje);
+    // feito HOJE numa volta que já fechou (ou foi refeita): o registro do dia não some — o
+    // bloco fica como feito, fora da volta atual (o "hoje x/y" continua contando)
+    const feitosFora = mesmoDia ? prevArr.filter(b=>b && b.done && !b.extra && typeof b.voltaId==='string' && !bl.some(x=>x.id===b.voltaId)) : [];
+    // blocos SOLTOS de hoje (reta final, "criar bloco no ciclo"): não são da volta nem extras — ficam no dia
+    const soltos = mesmoDia ? prevArr.filter(b=>b && !b.extra && !b.voltaId && !b.rotId) : [];
+    // o que já ocupa o dia (feito, extra, solto) desconta da meta antes de puxar pendentes
+    let soma=[...feitosHoje, ...extras, ...feitosFora, ...soltos].reduce((a,b)=>a+(+b.min||0),0);
+    const fatia=[]; let cheio=false;
+    bl.filter(b=>!b.done).forEach(b=>{ const mantem=mesmoDia && prevIds.has(b.id);
+      if(mantem){ fatia.push(b); soma+=(+b.min||0); return; }
+      if(cheio) return;
+      if(fatia.length && soma+(+b.min||0)>meta+15){ cheio=true; return; }
+      fatia.push(b); soma+=(+b.min||0); });
+    const vb=(b)=>({id:b.id, voltaId:b.id, disc:b.disc, kind:b.kind, tag:b.tag, topico:b.topico||'', discEdital:b.discEdital||'', min:+b.min||0, motivo:b.motivo||'', done:!!b.done});
+    return [...soltos, ...extras, ...feitosFora, ...feitosHoje.map(vb), ...fatia.map(vb)];
+  }
+  _rotPonteiro(rot){ const i=(rot||[]).findIndex(x=>!x.done); return i<0?0:i; }
+  // O dia de UM modo, para prévia (Ajustes) e para o primeiro dia sem volta guardada.
+  _genPara(m){ m=m||'sugestao';
+    if(m==='manual') return this.composeManual(this.state.manualFixed, this.state.manualRot||[], this._rotPonteiro(this.state.manualRot||[]));
+    return this._comporDia(this._genVolta(m, 1), []); }
+  // Meta/energia mudaram: a fatia do dia segue a nova régua; a volta em si não é refeita.
+  _recomporDia(){ if(this.state.cycleMode==='manual'){ this.syncManual({}); return; }
+    const V=this.state.cicloVolta; if(!V||!(V.blocos||[]).length) return; this.setState({blocks:this._comporDia(V, this.state.blocks)}); }
+  /* Refaz a VOLTA pela prioridade de agora. O que foi feito hoje continua contando no dia;
+     os extras feitos ficam; os pendentes são substituídos pela volta nova. */
+  regerarCiclo = ()=>{ const m=this.state.cycleMode||'sugestao'; if(m==='manual') return;
+    const V=this.state.cicloVolta; const nova=this._genVolta(m, V?(V.n||1):1);
+    // _comporDia mantém os feitos de hoje (mesmo de volta anterior) e os extras
+    this.setState({cicloVolta:nova, blocks:this._comporDia(nova, this.state.blocks), blocksDate:this._hoje()});
+    this._toast(m==='inteligente'?'Volta refeita pela prioridade de agora':'Volta refeita'); };
+  /* REORGANIZAR SEM SAIR DA TELA. Subir/descer troca de lugar na VOLTA (senão a recomposição
+     desfaria); tirar do dia = pular nesta volta (com desfazer); acrescentar entra na volta
+     logo depois do último bloco de hoje. Extras têm posição fixa (antes da volta). */
   moveBlock = (e)=>{ const i=+e.currentTarget.dataset.i, dir=+e.currentTarget.dataset.dir; const b=(this.state.blocks||[]).slice(); const j=i+dir;
-    if(!(i>=0&&i<b.length)||j<0||j>=b.length) return; const t=b[i]; b[i]=b[j]; b[j]=t; this.setState({blocks:b}); };
-  removeBlock = (e)=>{ const i=+e.currentTarget.dataset.i; const b=(this.state.blocks||[]).slice(); if(!b[i]) return; const rem=b.splice(i,1)[0]; this.setState({blocks:b});
-    this._toastDesfazer('Bloco removido do dia', ()=>{ const nb=(this.state.blocks||[]).slice(); nb.splice(Math.min(i,nb.length),0,rem); this.setState({blocks:nb}); }); };
+    if(!(i>=0&&i<b.length)||j<0||j>=b.length) return; const A=b[i], Bq=b[j];
+    const kA=A.voltaId||A.rotId, kB=Bq.voltaId||Bq.rotId; if(!kA||!kB) return;
+    b[i]=Bq; b[j]=A; const patch={blocks:b};
+    const swap=(arr)=>{ const a=arr.slice(); const x=a.findIndex(o=>o.id===kA), y=a.findIndex(o=>o.id===kB); if(x<0||y<0) return arr; const t=a[x]; a[x]=a[y]; a[y]=t; return a; };
+    if(A.voltaId){ const V=this.state.cicloVolta; if(V&&V.blocos) patch.cicloVolta={...V, blocos:swap(V.blocos)}; }
+    else { patch.manualRot=swap(this.state.manualRot||[]); }
+    this.setState(patch); };
+  removeBlock = (e)=>{ const i=+e.currentTarget.dataset.i; const b=(this.state.blocks||[]).slice(); const rem=b[i]; if(!rem||rem.done) return; b.splice(i,1);
+    const hojeS=this._hoje(); const marca=(arr, done)=>(arr||[]).map(x=>x.id===(rem.voltaId||rem.rotId)?{...x, done, pulado:done, doneDate:''}:x);
+    const patch={blocks:b}; const V0=this.state.cicloVolta; let fechou=0;
+    if(rem.voltaId){ if(V0&&V0.blocos){ const blocos=marca(V0.blocos, true); patch.cicloVolta={...V0, blocos};
+      // pulou a ÚLTIMA pendência: a volta fecha e a próxima já nasce (mesma regra de concluir)
+      if(blocos.length && blocos.every(x=>x.done)){ fechou=V0.n||1; const nova=this._genVolta(this.state.cycleMode, fechou+1); patch.cicloVolta=nova;
+        nova.blocos.slice(0,2).forEach(x=>b.push({id:x.id, voltaId:x.id, disc:x.disc, kind:x.kind, tag:x.tag, topico:x.topico||'', discEdital:x.discEdital||'', min:x.min, motivo:x.motivo||'', done:false})); } } }
+    else if(rem.rotId){ patch.manualRot=marca(this.state.manualRot, true); patch.rotPointer=this._rotPonteiro(patch.manualRot);
+      if(patch.manualRot.length && patch.manualRot.every(x=>x.done)) fechou=-(this.state.manualVoltaN||1); }
+    else if(rem.extra){ const ex=this.state.cicloExtrasFora||{}; patch.cicloExtrasFora={date:hojeS, ids:[...(ex.date===hojeS?(ex.ids||[]):[]), rem.id]}; }
+    this.setState(patch);
+    const msg = fechou>0 ? ('Volta '+fechou+' fechada — a volta '+(fechou+1)+' já está montada pela prioridade de agora')
+      : fechou<0 ? ('Volta '+(-fechou)+' fechada — amanhã recomeça do primeiro bloco')
+      : (rem.voltaId||rem.rotId)?'Bloco pulado nesta volta':'Bloco removido do dia';
+    this._toastDesfazer(msg, ()=>{
+      let nb=(this.state.blocks||[]).slice();
+      // desfazer depois de fechar a volta: a volta anterior volta inteira e os blocos "a seguir" saem
+      if(fechou>0){ const ids=new Set((V0.blocos||[]).map(x=>x.id)); nb=nb.filter(x=>!x.voltaId || x.done || ids.has(x.voltaId)); }
+      nb.splice(Math.min(i,nb.length),0,rem); const p2={blocks:nb};
+      if(rem.voltaId){ const V=fechou>0?V0:this.state.cicloVolta; if(V&&V.blocos) p2.cicloVolta={...V, blocos:marca(V.blocos, false)}; }
+      else if(rem.rotId){ p2.manualRot=marca(this.state.manualRot, false); p2.rotPointer=this._rotPonteiro(p2.manualRot); }
+      else if(rem.extra){ const ex=this.state.cicloExtrasFora||{}; p2.cicloExtrasFora={date:hojeS, ids:(ex.ids||[]).filter(x=>x!==rem.id)}; }
+      this.setState(p2); }); };
   cbAddField = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.value; this.setState(s=>({cbAdd:{...(s.cbAdd||{}),[k]:v}})); };
   cbAddBlock = ()=>{ const a=this.state.cbAdd||{}; const disc=String(a.disc||'').trim(); if(!disc){ this._toast('Escolha a disciplina do bloco'); return; }
     const min=Math.max(5, parseInt(a.min,10)||(parseInt((this.state.orient||{}).blocoPadrao,10)||50)); const kind=a.kind||'Teoria';
     const ed=(this.state.edital||[]).some(d=>String(d.disc||'').trim()===disc);
-    this.setState(s=>({blocks:[...(s.blocks||[]), {disc, kind, tag:'adicionado por você', min, done:false, discEdital:ed?disc:'', topico:''}], cbAdd:{...(s.cbAdd||{}), min:''}}));
-    this._toast('Bloco adicionado ao fim do dia'); };
-  /* CADASTRO RÁPIDO NA AGENDA: uma linha — disciplina, tipo, minutos e os DIAS marcados —
-     vira uma atividade por dia, já etiquetada com o roteiro em vista. Antes cada atividade
-     nascia vazia num dia e era preenchida select a select. */
+    const novo={id:'u'+Date.now(), disc, kind, tag:'adicionado por você', topico:'', discEdital:ed?disc:'', min, motivo:'', done:false, pulado:false, doneDate:''};
+    const depoisDe=(arr, ids)=>{ let pos=arr.length; for(let k=ids.length-1;k>=0;k--){ const x=arr.findIndex(o=>o.id===ids[k]); if(x>=0){ pos=x+1; break; } } return pos; };
+    if(this.state.cycleMode==='manual'){
+      const rot=(this.state.manualRot||[]).slice(); rot.splice(depoisDe(rot, (this.state.blocks||[]).map(x=>x.rotId).filter(Boolean)), 0, novo);
+      this.setState(s=>({manualRot:rot, rotPointer:this._rotPonteiro(rot), blocks:[...(s.blocks||[]), {disc, kind, tag:'Ciclo', min, done:false, rotId:novo.id, discEdital:novo.discEdital, topico:'', motivo:''}], cbAdd:{...(s.cbAdd||{}), min:''}}));
+    } else {
+      const V=this.state.cicloVolta; if(!V||!V.blocos){ this._toast('Monte o ciclo primeiro'); return; }
+      const blocos=V.blocos.slice(); blocos.splice(depoisDe(blocos, (this.state.blocks||[]).map(x=>x.voltaId).filter(Boolean)), 0, novo);
+      this.setState(s=>({cicloVolta:{...V, blocos}, blocks:[...(s.blocks||[]), {...novo, voltaId:novo.id}], cbAdd:{...(s.cbAdd||{}), min:''}}));
+    }
+    this._toast('Bloco acrescentado à volta, já no dia de hoje'); };
+  // Puxa para hoje o próximo bloco pendente da volta que ainda não está no dia.
+  puxarProximo = ()=>{ const man=this.state.cycleMode==='manual'; const lista=man?(this.state.manualRot||[]):(((this.state.cicloVolta||{}).blocos)||[]);
+    const ids=new Set((this.state.blocks||[]).map(b=>man?b.rotId:b.voltaId).filter(Boolean)); const nx=lista.find(b=>!b.done && !ids.has(b.id));
+    if(!nx){ this._toast('Não há mais blocos pendentes nesta volta'); return; }
+    const db=man?{disc:nx.disc, kind:nx.kind, tag:'Ciclo', min:+nx.min||0, done:false, rotId:nx.id, discEdital:nx.discEdital||'', topico:nx.topico||'', motivo:nx.motivo||''}:{id:nx.id, voltaId:nx.id, disc:nx.disc, kind:nx.kind, tag:nx.tag, topico:nx.topico||'', discEdital:nx.discEdital||'', min:+nx.min||0, motivo:nx.motivo||'', done:false};
+    this.setState(s=>({blocks:[...(s.blocks||[]), db]})); this._toast('Próximo bloco da volta puxado para hoje'); };
+  /* CICLO MANUAL = a volta montada pela pessoa (manualRot, em ordem, com ponteiro). */
+  gerarVoltaManual = ()=>{ const V=this._genVolta('inteligente', this.state.manualVoltaN||1); if(!V.blocos.length){ this._toast('Cadastre o edital para gerar a volta pela prioridade'); return; }
+    const atual=this.state.manualRot||[]; if(atual.length && !window.confirm('Substituir os '+atual.length+' blocos do ciclo manual pela volta gerada ('+V.blocos.length+' blocos)?')) return;
+    const novos=V.blocos.map((b,i)=>({id:'o'+Date.now()+'-'+i, disc:b.disc, kind:b.kind, min:b.min, discEdital:b.discEdital||'', topico:b.topico||'', motivo:b.motivo||'', done:false, pulado:false, doneDate:''}));
+    this.syncManual({manualRot:novos, rotPointer:0}); this._toast(novos.length+' blocos na volta, pela sua prioridade — reordene como quiser'); };
+  recomecarVolta = ()=>{ const rot=(this.state.manualRot||[]).map(x=>({...x, done:false, pulado:false, doneDate:''}));
+    this.syncManual({manualRot:rot, rotPointer:0, manualVoltaN:(this.state.manualVoltaN||1)+1}); this._toast('Volta recomeçada do primeiro bloco'); };
+  /* CADASTRO RÁPIDO NA AGENDA (roteiro de orientador): uma linha — disciplina, tipo, minutos e
+     os DIAS marcados — vira uma atividade por dia, já etiquetada com o roteiro em vista. */
   agAddField = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.value; this.setState(s=>({agAdd:{...(s.agAdd||{}),[k]:v}})); };
   agAddDia = (e)=>{ const d=e.currentTarget.dataset.dia; this.setState(s=>{ const a=s.agAdd||{}; const dias={...(a.dias||{})};
     if(d==='__todo'){ const on=!dias.__todo; return {agAdd:{...a, dias:{__todo:on}}}; }
@@ -8822,31 +8965,6 @@ class Component extends DCLogic {
     const novos=sel.map((dia,i)=>({id:'f'+(base+i)+Math.floor(Math.random()*1000), disc, kind, min, dia, roteiro:dia?rot:'', discEdital:ed?disc:'', topico:''}));
     this.syncManual({manualFixed:[...(this.state.manualFixed||[]), ...novos]});
     this._toast(novos.length===1?'Atividade adicionada':(novos.length+' atividades adicionadas — uma por dia')); };
-  /* PREENCHER A SEMANA PELA PRIORIDADE: os dias úteis VAZIOS do roteiro em vista recebem o
-     dia montado pela régua da Prioridade, cada dia começando numa matéria diferente. Dias
-     que já têm atividade ficam como estão — não apaga nada; para refazer, a pessoa apaga o
-     roteiro pelo × e preenche de novo. */
-  preencherSemanaPrio = ()=>{
-    const DIAS=['seg','ter','qua','qui','sex']; const rot=(this.state.roteiroVista||this.state.manualFixedRoteiroAtual||'');
-    const _n=(s)=>parseInt(((s||'').match(/\d+/)||[0])[0],10)||0; const _k=(l)=>{ const n=_n(l); return n?('n'+n):('s'+(l||'')); };
-    const fixed=this.state.manualFixed||[]; const base=Date.now(); const novos=[]; let vazios=0;
-    DIAS.forEach((dia,di)=>{ const tem=fixed.some(f=>(f.dia||'')===dia && _k(f.roteiro||rot)===_k(rot)); if(tem) return; vazios++;
-      let bl=[]; try{ bl=this._genInteligente({offset:di, semExtras:true}); }catch(_){ bl=[]; }
-      bl.forEach((b,bi)=>novos.push({id:'f'+(base+di*100+bi)+'p', disc:b.disc, kind:b.kind, min:b.min, dia, roteiro:rot, discEdital:b.discEdital||'', topico:b.topico||'', motivo:b.motivo||''})); });
-    if(!novos.length){ this._toast(vazios?'A prioridade não gerou atividades — cadastre o edital primeiro':'Os dias úteis desta semana já têm atividades. Apague o roteiro pelo × para refazer.'); return; }
-    this.syncManual({manualFixed:[...fixed, ...novos]});
-    this._toast(novos.length+' atividades distribuídas em '+vazios+' dia'+(vazios>1?'s':'')+' pela sua prioridade'); };
-  // Gerador de UM modo (setCycleMode/regerar): CYCLE_PRESETS calcula os quatro de uma vez
-  // e só serve à prévia de Ajustes, que precisa de todos.
-  _genPara(m){ const g={inteligente:()=>this._genInteligente(), sugestao:()=>this._genSugestao(), edital:()=>this._genEdital(), pesos:()=>this._genPesos()};
-    return (g[m]||g.sugestao)(); }
-  /* Refaz os blocos PENDENTES com a prioridade de agora; o que já foi feito hoje fica —
-     regerar não pode apagar progresso. Só nos modos automáticos. */
-  regerarCiclo = ()=>{ const m=this.state.cycleMode||'sugestao'; if(m==='manual') return;
-    const feitos=(this.state.blocks||[]).filter(b=>b.done);
-    const novos=this._genPara(m).filter(n=>!feitos.some(f=>f.disc===n.disc && f.kind===n.kind));
-    this.setState({blocks:[...feitos, ...novos], blocksDate:this._hoje()});
-    this._toast(m==='inteligente'?'Ciclo refeito com a prioridade de agora':'Ciclo refeito'); };
   /* O que FALTA para um modo de ciclo funcionar de verdade. `_genEdital`/`_genPesos`
      caem em `_genSugestao()` quando não têm matéria-prima — e, calados, entregam blocos
      idênticos aos da sugestão: a pessoa escolhe um modo e acha que mudou algo. Este
@@ -8855,7 +8973,7 @@ class Component extends DCLogic {
   _cycleFalta(mode){
     const ed=this.state.edital||[];
     if(mode==='inteligente'){
-      if(!ed.length) return 'Sem edital cadastrado — vai usar a sugestão padrão até você cadastrar.';
+      if(!ed.length) return 'Sem edital cadastrado — a volta sai pelas matérias da área até você cadastrar.';
       return '';
     }
     if(mode==='edital'){
@@ -8872,10 +8990,10 @@ class Component extends DCLogic {
     return '';
   }
   CYCLE_PRESETS(){ return {
-    inteligente: this._genInteligente(),
-    sugestao: this._genSugestao(),
-    edital: this._genEdital(),
-    pesos: this._genPesos(),
+    inteligente: this._genPara('inteligente'),
+    sugestao: this._genPara('sugestao'),
+    edital: this._genPara('edital'),
+    pesos: this._genPara('pesos'),
     manual:[
       {disc:'Direito Constitucional', kind:'Teoria', tag:'Bloco 1', min:50, done:false},
       {disc:'Direito Administrativo', kind:'Questões', tag:'Bloco 2', min:45, done:false},
@@ -8908,8 +9026,8 @@ class Component extends DCLogic {
   setCycleMode = (e)=>{ const m=e.currentTarget.dataset.mode; if(m===this.state.cycleMode) return; try{ localStorage.setItem('catedra:cycleMode', m); }catch(_){}
     if(m==='manual'){ this.setState({cycleMode:m, blocks:this.composeManual(this.state.manualFixed, this.state.manualRot, this.state.rotPointer)}); return; }
     const falta=this._cycleFalta(m); if(falta) this._toast(falta);
-    const preset=this._genPara(m);
-    this.setState({cycleMode:m, blocks:preset.map(b=>({...b})), blocksDate:this._hoje()}); };
+    const V=this._genVolta(m, 1);
+    this.setState({cycleMode:m, cicloVolta:V, blocks:this._comporDia(V, []), blocksDate:this._hoje()}); };
   // Data ISO (AAAA-MM-DD) do dia da semana pedido, DENTRO da semana atual (segunda a domingo).
   _isoDiaSemana(diaKey){
     const ordem=['seg','ter','qua','qui','sex','sab','dom']; const t=ordem.indexOf(diaKey); if(t<0) return '';
@@ -8919,7 +9037,6 @@ class Component extends DCLogic {
   }
   composeManual(fixed, rot, ptr){
     const blocks=[];
-    if(rot.length){ const r=rot[ptr%rot.length]; blocks.push({disc:r.disc, kind:r.kind, tag:'Rotativa', min:r.min, done:false}); }
     const LBL={seg:'Seg',ter:'Ter',qua:'Qua',qui:'Qui',sex:'Sex',sab:'Sáb',dom:'Dom'};
     const ordem=['seg','ter','qua','qui','sex','sab','dom'];
     const DIAS=['dom','seg','ter','qua','qui','sex','sab'], hoje=DIAS[new Date().getDay()];
@@ -8946,8 +9063,27 @@ class Component extends DCLogic {
       else if(idx<hojeIdx && !feito){ blocks.push({disc:f.disc, kind:f.kind, tag:'Atrasada · '+LBL[dia], min:f.min, done:false, srcId:f.id, srcDate:iso, atrasada:true, ...vinc}); }
       });
     });
-    // o dia sai agrupado por disciplina e, dentro dela, na ordem das folhas
-    return this._ordenaCiclo(blocks);
+    // CICLO MANUAL (a volta com ponteiro): depois da agenda do dia, os próximos blocos
+    // pendentes até a meta descontado o que a agenda já ocupa; sempre ao menos um; o que já
+    // estava no dia (inclusive puxado) fica; fechada a volta, recomeça amanhã.
+    const rotBlocks=[];
+    if((rot||[]).length){
+      const O=this.state.orient||{}; const meta=Math.max(60, Math.round((parseInt(O.metaIdeal,10)||180)*this._enMult()));
+      const hojeISO=this._hoje(); const minAgenda=blocks.reduce((a,b)=>a+(+b.min||0),0);
+      const orc=Math.max(20, meta-minAgenda);
+      const feitosHoje=rot.filter(r=>r.done && r.doneDate===hojeISO); let soma=feitosHoje.reduce((a,r)=>a+(+r.min||0),0);
+      const prevIds=new Set((this.state.blocks||[]).map(b=>b.rotId).filter(Boolean)); const mesmoDia=(this.state.blocksDate===hojeISO); let cheio=false;
+      const fatia=[];
+      rot.filter(r=>!r.done).forEach(r=>{ const mantem=mesmoDia && prevIds.has(r.id);
+        if(mantem){ fatia.push(r); soma+=(+r.min||0); return; }
+        if(cheio) return;
+        if(fatia.length && soma+(+r.min||0)>orc+15){ cheio=true; return; }
+        fatia.push(r); soma+=(+r.min||0); });
+      const mk=(r)=>({disc:r.disc, kind:r.kind, tag:'Ciclo', min:+r.min||0, done:!!r.done, rotId:r.id, discEdital:r.discEdital||'', topico:r.topico||'', motivo:r.motivo||''});
+      feitosHoje.forEach(r=>rotBlocks.push(mk(r))); fatia.forEach(r=>rotBlocks.push(mk(r)));
+    }
+    // a agenda sai agrupada por disciplina (folha); a volta mantém a própria ordem
+    return [...this._ordenaCiclo(blocks), ...rotBlocks];
   }
   // Dias em que a atividade se repete.
   //   modelo NOVO  → `dias`, uma lista (Seg/Qua/Sex numa atividade só)
@@ -8964,9 +9100,9 @@ class Component extends DCLogic {
   syncManual(extra){ const f=extra.manualFixed||this.state.manualFixed, r=extra.manualRot||this.state.manualRot, p=extra.rotPointer!=null?extra.rotPointer:this.state.rotPointer;
     // Recompor NÃO pode apagar o "feito" do dia: rotativa e "Todo dia" não têm srcId
     // (o done delas vive só em blocks), então preservamos por chave, igual ao _reconcileCiclo.
-    const _bk=(b)=> b.srcId?('s:'+b.srcId+'|'+(b.srcDate||'')):('t:'+(b.disc||'')+'|'+(b.kind||'')+'|'+(b.tag||''));
+    const _bk=(b)=> b.rotId?('r:'+b.rotId):b.srcId?('s:'+b.srcId+'|'+(b.srcDate||'')):('t:'+(b.disc||'')+'|'+(b.kind||'')+'|'+(b.tag||''));
     const _done={}; (this.state.blocks||[]).forEach(b=>{ if(b.done) _done[_bk(b)]=true; });
-    this.setState({...extra, blocks:this.composeManual(f,r,p).map(b=> _done[_bk(b)]?{...b,done:true}:b)}); }
+    this.setState({...extra, blocks:this.composeManual(f,r,p).map(b=> (!b.rotId && _done[_bk(b)])?{...b,done:true}:b)}); }
   addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'', kind:'Teoria', min:30, dia:'', roteiro:(this.state.roteiroVista||this.state.manualFixedRoteiroAtual||''), discEdital:'', topico:''}]});
   addToDay = (e)=>{ const dia=e.currentTarget.dataset.dia||''; this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now()+Math.floor(Math.random()*1000), disc:'', kind:'Teoria', min:30, dia, roteiro:dia?((this.state.roteiroVista||this.state.manualFixedRoteiroAtual||'')):'', discEdital:'', topico:''}]}); };
   setRoteiroAtual = (e)=> this.setState({manualFixedRoteiroAtual:e.currentTarget.value});
@@ -9074,11 +9210,12 @@ class Component extends DCLogic {
                 : field==='topico'     ? {subtopico:''} : {};
     this.syncManual({manualFixed:this.state.manualFixed.map(x=> x.id===id ? {...x,[field]:val, ...extra} : x)}); };
   removeFixed = (e)=>{ const id=e.currentTarget.dataset.id; this.syncManual({manualFixed:this.state.manualFixed.filter(x=>x.id!==id)}); };
-  addRot = ()=> this.syncManual({manualRot:[...this.state.manualRot, {id:'o'+Date.now(), disc:'', kind:'Teoria', min:45}]});
+  addRot = ()=> this.syncManual({manualRot:[...this.state.manualRot, {id:'o'+Date.now(), disc:'', kind:'Teoria', min:45, done:false, pulado:false, doneDate:''}]});
   editRot = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=(val===''?'':Math.max(1, parseInt(val,10)||0)); this.syncManual({manualRot:this.state.manualRot.map(x=> x.id===id ? {...x,[field]:val} : x)}); };
-  removeRot = (e)=>{ const id=e.currentTarget.dataset.id; const idx=this.state.manualRot.findIndex(x=>x.id===id); const nr=this.state.manualRot.filter(x=>x.id!==id);
-    let p=this.state.rotPointer; if(idx<=p) p=Math.max(0,p-1); if(nr.length) p=((p%nr.length)+nr.length)%nr.length; else p=0; this.syncManual({manualRot:nr, rotPointer:p}); };
-  advanceRot = ()=>{ const n=this.state.manualRot.length; if(!n) return; this.syncManual({rotPointer:(this.state.rotPointer+1)%n}); };
+  removeRot = (e)=>{ const id=e.currentTarget.dataset.id; const nr=this.state.manualRot.filter(x=>x.id!==id); this.syncManual({manualRot:nr, rotPointer:this._rotPonteiro(nr)}); };
+  // "Pular o próximo": o bloco pendente da vez fica marcado como pulado nesta volta
+  advanceRot = ()=>{ const rot=(this.state.manualRot||[]).slice(); const i=rot.findIndex(x=>!x.done); if(i<0){ this._toast('A volta já está completa'); return; }
+    rot[i]={...rot[i], done:true, pulado:true, doneDate:''}; this.syncManual({manualRot:rot, rotPointer:this._rotPonteiro(rot)}); this._toast('Bloco pulado nesta volta'); };
   moveRot = (e)=>{ const id=e.currentTarget.dataset.id, dir=+e.currentTarget.dataset.dir; const arr=this.state.manualRot.slice(); const i=arr.findIndex(x=>x.id===id); const j=i+dir; if(i<0||j<0||j>=arr.length) return; const tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp; this.syncManual({manualRot:arr}); };  toggleEdital = (e)=>{ const i=+e.currentTarget.dataset.i; const ed=this.state.edital.slice(); ed[i]={...ed[i],open:!ed[i].open}; this.setState({edital:ed}); };
   toggleTopic = (e)=>{ const d=+e.currentTarget.dataset.d, i=+e.currentTarget.dataset.i; const ed=this.state.edital.slice();
     const tp=ed[d].topics.slice(); tp[i]={...tp[i],done:!tp[i].done}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); this.flashSync(); };
@@ -9193,7 +9330,7 @@ class Component extends DCLogic {
     // Se o bloco tem vínculo com o edital (disciplina + tópico da Agenda da semana),
     // a sessão nasce vinculada — e o progresso do edital/domínio conta certo.
     const disc = b.discEdital || b.disc || '';
-    const topico = b.topico || ((b.tag&&b.tag!=='Rotativa'&&b.tag!=='Fixa'&&!b.discEdital)?b.tag:'');
+    const topico = b.topico || ((b.tag&&b.tag!=='Rotativa'&&b.tag!=='Ciclo'&&b.tag!=='Fixa'&&!b.discEdital)?b.tag:'');
     // se o tópico do bloco é um tópico do edital, a sessão já nasce com o vínculo pronto
     const _edTop=this._topicosDe(disc).some(t=>String(t.name||'').trim()===String(topico||'').trim())?topico:'';
     // o subtópico do bloco vira o subtópico da sessão — é o que dá granularidade ao
@@ -9679,7 +9816,7 @@ class Component extends DCLogic {
       errors:this.state.errors, reviews:this.state.reviews, metas:this.state.metas, eventos:this.state.eventos, sessions:this.state.sessions,
       ciclo:this.state.blocks, edital:this.state.edital, sim:this.state.sim, anki:this.state.ankiHist,
       prefs:this.state.prefs, dir:this.state.dir, darkMode:this.state.darkMode, accent:this.state.accent,
-      profile:this.state.profile, orient:this.state.orient, habitos:this.state.habitos, manualFixed:this.state.manualFixed, manualRot:this.state.manualRot, rotPointer:this.state.rotPointer, cycleMode:this.state.cycleMode, provaData:this.state.provaData, redHistory:this.state.redHistory, discItems:this.state.discItems, planHoras:this.state.planHoras, agendaFeitas:this.state.agendaFeitas, manualFixedRoteiroAtual:this.state.manualFixedRoteiroAtual, escudos:this.state.escudos, streakFreezeUsados:this.state.streakFreezeUsados, streakCheckDate:this.state.streakCheckDate, escudoUltimoGanho:this.state.escudoUltimoGanho, meusGrupos:this.state.meusGrupos,
+      profile:this.state.profile, orient:this.state.orient, habitos:this.state.habitos, manualFixed:this.state.manualFixed, manualRot:this.state.manualRot, rotPointer:this.state.rotPointer, cycleMode:this.state.cycleMode, cicloVolta:this.state.cicloVolta, manualVoltaN:this.state.manualVoltaN, provaData:this.state.provaData, redHistory:this.state.redHistory, discItems:this.state.discItems, planHoras:this.state.planHoras, agendaFeitas:this.state.agendaFeitas, manualFixedRoteiroAtual:this.state.manualFixedRoteiroAtual, escudos:this.state.escudos, streakFreezeUsados:this.state.streakFreezeUsados, streakCheckDate:this.state.streakCheckDate, escudoUltimoGanho:this.state.escudoUltimoGanho, meusGrupos:this.state.meusGrupos,
       // Faltavam no "Backup completo": a redação EM ANDAMENTO (texto, enunciado e
       // gabarito ainda não arquivados no redHistory) e a lixeira de sessões. Quem
       // restaurasse o backup perdia a redação que estava escrevendo.
@@ -9926,7 +10063,7 @@ class Component extends DCLogic {
         });
       }
     }catch(_){}
-            ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','discItems','planHoras','agendaFeitas','manualFixedRoteiroAtual','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','meusGrupos','redText','redGabarito','redEnunciado'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
+            ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','cicloVolta','manualVoltaN','discItems','planHoras','agendaFeitas','manualFixedRoteiroAtual','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','meusGrupos','redText','redGabarito','redEnunciado'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
             if(d.highlights!=null) patch.highlights=d.highlights;
             if(Array.isArray(d.ciclo)) patch.blocks=d.ciclo;
             if(Array.isArray(d.anki)) patch.ankiHist=d.anki;
@@ -13392,7 +13529,7 @@ class Component extends DCLogic {
   setMood = (e)=> this.setState({mood:e.currentTarget.dataset.k});
   _cloudPush(){ try{ if(window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push(); }catch(_){} }
   _persistOrient(){ try{ localStorage.setItem('catedra:orient', JSON.stringify(this.state.orient)); }catch(_){} this._cloudPush(); }
-  setOrient = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao','energia','metaIdeal'].indexOf(k)>=0 && /^(sugestao|inteligente)$/.test(this.state.cycleMode||'')){ this.setState({blocks:this._genPara(this.state.cycleMode)}); } }); };
+  setOrient = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao','energia','metaIdeal','dias'].indexOf(k)>=0){ this._recomporDia(); } }); };
   /* Os dias disponíveis eram um campo de texto cru ("Seg,ter,qua…") — hostil e fácil de
      quebrar. Viram chips; o valor guardado continua o MESMO CSV, então nada muda para o
      gerador de sugestão nem para contas antigas. */
@@ -13405,7 +13542,7 @@ class Component extends DCLogic {
     }, ()=>this._persistOrient()); };
   toggleOrient = (e)=>{ const k=e.currentTarget.dataset.k; this.setState(s=>({orient:{...s.orient,[k]:!s.orient[k]}}), ()=>this._persistOrient()); };
   setOrientSlider = (e)=>{ const k=e.currentTarget.dataset.k; const v=parseInt(e.currentTarget.value,10); this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>this._persistOrient()); };
-  setOrientRadio = (e)=>{ const v=e.currentTarget.dataset.v; this.setState(s=>({orient:{...s.orient,energiaPlano:v}}), ()=>{ this._persistOrient(); if(/^(sugestao|inteligente)$/.test(this.state.cycleMode||'')) this.setState({blocks:this._genPara(this.state.cycleMode)}); }); };
+  setOrientRadio = (e)=>{ const v=e.currentTarget.dataset.v; this.setState(s=>({orient:{...s.orient,energiaPlano:v}}), ()=>{ this._persistOrient(); this._recomporDia(); }); };
   saveOrient = ()=>{ this._persistOrient(); this.setState({orientFlash:true}); clearTimeout(this._ot); this._ot=setTimeout(()=>this.setState({orientFlash:false}),1600); };
 
   // ===== BUSCA ÚNICA NO ⌘K (item 6 da especificação) ===================================
@@ -13933,7 +14070,7 @@ class Component extends DCLogic {
     // ===== Ciclo =====
     let _fqTot=0, _fqVis=0;
     const _fqOn=this._cicloFqOn();
-    const blocks = this.state.blocks.map((b,i)=>({...b, i,
+    const blocks = this.state.blocks.map((b,i,arr)=>({...b, i,
       kindColor: ({'Teoria':'var(--accent)','Questões':'var(--warn)','Lei seca':'#b08433','Jurisprudência':'var(--danger)','Flashcards':'#0a7ea4'}[b.kind]||(CT_CAT_META[b.kind]||{}).c||'#0f7a57'),
       checkBorder: b.done?'var(--accent)':'var(--border)',
       checkBg: b.done?'var(--accent)':'transparent',
@@ -13944,7 +14081,11 @@ class Component extends DCLogic {
       discCor:this._corDisc(b.discEdital||b.disc), itemStyle:'--ct-item-cor:'+this._corDisc(b.discEdital||b.disc)+';',
       motivo:String(b.motivo||''), temMotivo:!!b.motivo,
       doneN:b.done?'1':'0', doneStr:b.done?'true':'false', notDone:!b.done,
-      ehPrimeiro:i===0, ehUltimo:i===this.state.blocks.length-1,
+      // subir/descer só entre blocos da VOLTA (extras têm posição fixa) e só sem filtro ativo —
+      // com filtro, o vizinho invisível trocava de lugar sem a pessoa ver
+      naoSobe:(_fqOn || i===0 || !(b.voltaId||b.rotId) || !((arr[i-1]||{}).voltaId||(arr[i-1]||{}).rotId)),
+      naoDesce:(_fqOn || i===arr.length-1 || !(b.voltaId||b.rotId) || !((arr[i+1]||{}).voltaId||(arr[i+1]||{}).rotId)),
+      ehExtra:!!b.extra,
       chkLabel:(b.done?'Desmarcar ':'Concluir ')+String(b.disc||'bloco'),
       strike: b.done?'line-through':'none'}));
     // o filtro vale para a LISTA; os KPIs do dia seguem contando o dia inteiro
@@ -13970,15 +14111,33 @@ class Component extends DCLogic {
     const cicloRestam = cicloTotal - cicloDone;
     const cicloBcI = _bcFoco ? String(_bcFoco.i) : '';
     const cicloBcMotivo = _bcFoco ? String(_bcFoco.motivo||'') : '';
-    // LINHA DO DIA: um trecho por bloco, largura proporcional aos minutos (flex-grow), na
-    // cor da matéria. Pré-computado como string: o runtime não avalia expressão dentro do binding.
+    // LINHA DO CICLO: a VOLTA inteira, não só o dia — um trecho por bloco, largura proporcional
+    // aos minutos, na cor da matéria. feito = cheio e escuro; hoje = cheio com anel; por vir =
+    // lavado (sem clique). Os extras do dia (revisão vencida, simulado, flashcards) entram antes,
+    // tracejados. Tudo pré-computado como string: o runtime não avalia expressão no binding.
     const _cHM=(mm)=>{ mm=Math.max(0,Math.round(mm||0)); const h=Math.floor(mm/60), m=mm%60; return h>0?(h+'h'+(m?String(m).padStart(2,'0'):'')):(m+'min'); };
     const cicloPlanMin = blocksTodos.reduce((a,b)=>a+(+b.min||0),0);
     const cicloMetaMin = Math.max(0, parseInt((this.state.orient||{}).metaIdeal,10)||0);
-    const cicloLinha = blocksTodos.map(b=>{ const lbl=String(b.disc||'—').replace('Direito ','');
-      return { i:String(b.i), doneN:b.done?'1':'0', label:lbl,
-        title:(b.done?'Feito · ':'')+lbl+' · '+(b.kind||'')+' · '+(b.min||0)+' min'+(b.done?' — clique para desmarcar':' — clique para concluir'),
-        style:'flex:'+Math.max(10,+b.min||30)+' 1 0;--c:'+b.discCor+';' }; });
+    const _manualCiclo = this.state.cycleMode==='manual';
+    const _voltaBl = _manualCiclo ? (this.state.manualRot||[]) : (((this.state.cicloVolta||{}).blocos)||[]);
+    const _hojeIdx = {}; blocksTodos.forEach(b=>{ const k=b.voltaId||b.rotId; if(k) _hojeIdx[k]=b.i; });
+    const _voltaTot = _voltaBl.reduce((a,b)=>a+(+b.min||0),0)||1;
+    const _segLbl=(d)=>String(d||'—').replace('Direito ','');
+    const cicloLinha = [
+      ...blocksTodos.filter(b=>b.extra).map(b=>({ i:String(b.i), doneN:b.done?'1':'0', hojeN:'1', extraN:'1', fora:false, label:_segLbl(b.disc),
+        title:(b.done?'Feito · ':'Hoje, antes da volta · ')+_segLbl(b.disc)+' · '+(b.kind||'')+(b.tag?(' · '+b.tag):'')+' · '+(b.min||0)+' min',
+        style:'flex:'+Math.max(10,+b.min||30)+' 1 0;--c:'+b.discCor+';' })),
+      ..._voltaBl.map(b=>{ const iH=_hojeIdx[b.id]; const hoje=(iH!=null)&&!b.done; const share=(+b.min||0)/_voltaTot;
+        return { i:(iH!=null)?String(iH):'', doneN:b.done?'1':'0', hojeN:hoje?'1':'0', extraN:'0', fora:(iH==null), label:(share>=0.055?_segLbl(b.disc):''),
+          title:(b.done?(b.pulado?'Pulado · ':'Feito · '):(hoje?'Hoje · ':'A seguir · '))+_segLbl(b.disc)+' · '+(b.kind||'')+((b.tag||b.topico)?(' · '+(b.tag||b.topico)):'')+' · '+(b.min||0)+' min',
+          style:'flex:'+Math.max(10,+b.min||30)+' 1 0;--c:'+this._corDisc(b.discEdital||b.disc)+';' }; }) ];
+    const cicloVoltaFeitos = _voltaBl.filter(b=>b.done).length, cicloVoltaTotal = _voltaBl.length;
+    const cicloVoltaN = _manualCiclo ? (this.state.manualVoltaN||1) : ((this.state.cicloVolta||{}).n||1);
+    const _proxVolta = _voltaBl.find(b=>!b.done);
+    const cicloMiniStyle = 'transform:translateX(calc('+(cicloVoltaTotal?Math.round(cicloVoltaFeitos/cicloVoltaTotal*100):0)+'% - 100%));';
+    const cicloLinhaLegenda = cicloVoltaTotal
+      ? ('Volta '+cicloVoltaN+' · '+cicloVoltaFeitos+' de '+cicloVoltaTotal+' blocos'+(_proxVolta ? (' · onde parei: '+_segLbl(_proxVolta.disc)+((_proxVolta.tag||_proxVolta.topico)?(' — '+(_proxVolta.tag||_proxVolta.topico)):'')) : ' · volta completa'))
+      : '';
     // ranking que alimenta o modo inteligente (só quando a tela está aberta: é o cartão de explicação)
     const cicloPrioTop = (this.state.view==='ciclo' && this.state.cycleMode==='inteligente')
       ? (()=>{ try{ return this._prioridade().slice(0,4).map(p=>({disc:p.disc, nota:String(p.nota), cor:this._corDisc(p.disc), motivos:(p.motivos||[]).join(' · ')||'sem sinal ainda — entra pelo peso'})); }catch(_){ return []; } })() : [];
@@ -14006,7 +14165,7 @@ class Component extends DCLogic {
           cards=blocks.filter(b=>!b.atrasada).map(b=>({key:'hb'+b.i, hoje:true, notHoje:false, i:String(b.i), id:'', diaK:'',
             titulo:b.disc||'—', kind:b.kind, min:String(b.min||0), done:b.done, atrasada:false, kindColor:KC[b.kind]||'#0f7a57',
             checkBg:b.done?'var(--accent)':'transparent', checkBd:b.done?'var(--accent)':'var(--border)', strike:b.done?'line-through':'none',
-            hasVinculo:!!b.discEdital, vinculo:shortV(b.discEdital,b.topico), extra:(b.tag==='Fixa'?'rotina':(b.tag==='Rotativa'?'rotativa':'')), hasExtra:(b.tag==='Fixa'||b.tag==='Rotativa')}));
+            hasVinculo:!!b.discEdital, vinculo:shortV(b.discEdital,b.topico), extra:(b.tag==='Fixa'?'rotina':((b.tag==='Rotativa'||b.tag==='Ciclo')?'ciclo':'')), hasExtra:(b.tag==='Fixa'||b.tag==='Rotativa'||b.tag==='Ciclo')}));
         } else {
           const iso=this._isoDiaSemana(dk);
           cards=this._ordenaCiclo((this.state.manualFixed||[]).filter(f=>(f.dia||'')===dk)).map(f=>{ const feito=!!feitas[f.id+'|'+iso]; const atras=idx<hojeIdx&&!feito;
@@ -14043,7 +14202,9 @@ class Component extends DCLogic {
           colBg:isToday?'var(--accentSoft)':'var(--surface)', colBorder:isToday?'var(--accentRing)':'var(--border)'};
       });
     })();
-    const cicloListaFlat = this.state.cycleMode!=='manual';
+    // a lista do dia aparece nos automáticos e no manual SEM agenda; com agenda (roteiro de
+    // orientador) a folha da semana já traz o dia de hoje
+    const cicloListaFlat = this.state.cycleMode!=='manual' || !(this.state.manualFixed||[]).some(f=>f.dia||Array.isArray(f.dias));
     // ===== Ciclo no layout da FOLHA do roteiro (cards por dia, badges, ponto) =====
     const _badgeAtiv=(texto,kind)=>{ const t=(texto||'').toLowerCase();
       // o TIPO da atividade manda: súmula, informativo, tese e repetitivo são
@@ -14798,7 +14959,7 @@ class Component extends DCLogic {
     // _selCats no fim: categoria antiga que saiu da área continua aparecendo no registro
     // que já a usava, senão a sessão perderia o próprio rótulo ao ser reaberta.
     const _cats=[...new Set([...this._atividades(), ..._selCats])];
-    const sessCats=_cats.map(v=>{ const on=_selCats.includes(v); const cm=_catMeta[v]?{i:_catMeta[v].i,c:this._catCor(v)}:{i:'📘',c:'var(--text3)'}; return {v, icon:cm.i, mark:on?'✓ ':'', style:`display:inline-flex;align-items:center;gap:6px;border:1.5px solid ${on?cm.c:'var(--border)'};background:${on?`color-mix(in srgb, ${cm.c} 13%, var(--surface))`:'var(--surface)'};color:${on?cm.c:'var(--text2)'};border-radius:99px;padding:8px 14px;font-size:var(--fs-sm);font-weight:${on?'700':'600'};cursor:pointer;font-family:inherit;transition:.12s;box-shadow:${on?`0 1px 6px color-mix(in srgb, ${cm.c} 22%, transparent)`:'none'};`}; });
+    const sessCats=_cats.map(v=>{ const on=_selCats.includes(v); const cm=_catMeta[v]?{i:_catMeta[v].i,c:this._catCor(v)}:{i:'📘',c:'var(--text3)'}; return {v, on, onStr:on?'true':'false', chipStyle:'--c:'+cm.c+';', icon:cm.i, mark:on?'✓ ':'', style:`display:inline-flex;align-items:center;gap:6px;border:1.5px solid ${on?cm.c:'var(--border)'};background:${on?`color-mix(in srgb, ${cm.c} 13%, var(--surface))`:'var(--surface)'};color:${on?cm.c:'var(--text2)'};border-radius:99px;padding:8px 14px;font-size:var(--fs-sm);font-weight:${on?'700':'600'};cursor:pointer;font-family:inherit;transition:.12s;box-shadow:${on?`0 1px 6px color-mix(in srgb, ${cm.c} 22%, transparent)`:'none'};`}; });
     // Seletores do catálogo nativo (Lei seca → leis do LEGIS; Jurisprudência →
     // fontes do JURIS). MESMO padrão do select de disciplina: value ligado ao
     // estado + selected por option — value="" estático faz o WKWebView resetar o
@@ -15788,6 +15949,54 @@ class Component extends DCLogic {
     const sessSubSel=_sd0.edSub||'';
     const sessSubVazio=!_sd0.edSub;
     const sessMarcarEdital=!!_sd0.marcarEdital;
+    /* ===== O EFEITO AO VIVO DO REGISTRO (09/09/2026: "não mostra o efeito do registro") =====
+       Cada linha usa a MESMA régua que o saveSession e o _brain vão usar depois: a data da
+       sessão (agora − minutos, teto 10 h — sessão de madrugada pertence a ontem), a meta do dia
+       (B.todayMetaMin) e da semana (weekMin × meta ideal × dias ativos), a ofensiva (B.streak),
+       o domínio do tópico (B.byTopic, mesma chave disc¦tópico normalizado) e a dedupe da
+       revisão (disciplina + tópico, minúsculas). Nada aqui promete o que o registro não faz. */
+    const _fxHM=(mm)=>{ mm=Math.max(0,Math.round(mm||0)); const h=Math.floor(mm/60), m=mm%60; return h>0?(h+'h'+(m?String(m).padStart(2,'0'):'')):(m+'min'); };
+    const _fxMin=Math.max(0, parseInt(_sd0.minutos,10)||0);
+    const _fxDisc=String(_sd0.disc||'').trim();
+    const _fxTop=String(_sd0.topico||'').trim();
+    const _fxHoje=this._hoje();
+    const _fxData=this._ymd(Date.now()-Math.min(_fxMin,600)*60000);
+    const _fx=[];
+    // só com o modal aberto: o app re-renderiza a cada tique do cronômetro
+    if(this.state.sessionModalOpen && _fxMin>0){
+      if(_sd0.contarMeta!==false){
+        if(_fxData===_fxHoje){ const a=B.todayMetaMin||0, d=a+_fxMin;
+          _fx.push({t:'Meta de hoje: '+_fxHM(a)+' → '+_fxHM(d)+' de '+_fxHM(_metaIdealMin)+((d>=_metaIdealMin&&a<_metaIdealMin)?' — bate a meta':''), cor:(d>=_metaIdealMin?'var(--ok)':'var(--accent)')}); }
+        else _fx.push({t:'Conta no dia '+_fxData.slice(8,10)+'/'+_fxData.slice(5,7)+' — a sessão começou antes da meia-noite', cor:'var(--text2)'});
+        if(_fxData===_fxHoje){ const sa=metaDoneMin||0, sd=sa+_fxMin;
+          _fx.push({t:'Semana: '+_fxHM(sa)+' → '+_fxHM(sd)+' de '+_fxHM(metaAlvoMin), cor:(sd>=metaAlvoMin?'var(--ok)':'var(--text2)')}); }
+      } else _fx.push({t:'Não conta para a meta — fica só no histórico', cor:'var(--text3)'});
+      // a ofensiva do _brain conta DIAS com sessão (qualquer sessão, mesmo sem minutos) — mesma régua aqui
+      if(_fxData===_fxHoje){ const s=B.streak||0; const temHoje=(this.state.sessions||[]).some(x=>x.date===_fxHoje);
+        _fx.push({t:(temHoje?('Ofensiva de '+s+' dia'+(s===1?'':'s')+' mantida'):('Ofensiva: '+s+' → '+(s+1)+' dia'+((s+1)===1?'':'s'))), cor:'var(--warn)'}); }
+    }
+    if(this.state.sessionModalOpen && _sdTotal>0){
+      _fx.push({t:_sdTotal+(_sdTotal===1?' questão':' questões')+' · bruto '+sdBrutoPct+'% · líquido '+sdLiqLabel+' ('+sdLiquidoPct+'%)', cor:sdLiqColor});
+      if(_fxTop){ const ag=B.byTopic[(_fxDisc||'—')+'¦'+B.normT(_fxTop)]; const q0=ag?ag.q:0, l0=ag?(ag.a-ag.e):0; const q1=q0+_sdTotal, l1=l0+sdLiquido;
+        const pct=(l,q)=>q?Math.max(0,Math.min(100,Math.round(l/q*100))):null; const p0=pct(l0,q0), p1=pct(l1,q1);
+        const nm=_fxTop.length>30?_fxTop.slice(0,30)+'…':_fxTop;
+        _fx.push({t:'Domínio em "'+nm+'": '+(p0==null?'sem medida':(p0+'%'))+' → '+p1+'%'+(q1<6?' (ainda poucas questões para valer)':''), cor:(p1>=70?'var(--ok)':p1>=55?'var(--warn)':'var(--danger)')}); }
+    }
+    if(this.state.sessionModalOpen && _sd0.agendarRevisao && (_fxMin>0||_sdTotal>0||_fxTop)){
+      // mesma regra do saveSession: tópico digitado, senão o título do material, senão a 1ª categoria
+      const _mat=_sd0.materialId?((this.state.biblioteca||[]).find(b=>b.id===_sd0.materialId)||null):null;
+      const _rd=_fxDisc||'Geral'; const _rt=(_fxTop||(_mat&&_mat.titulo)||(_selCats[0]||'Teoria')).toLowerCase();
+      const ja=(this.state.reviews||[]).some(r=>r.disc===_rd && String(r.topic||'').toLowerCase()===_rt);
+      _fx.push({t:ja?'Revisão deste tópico já está na fila':'Revisão espaçada: amanhã (1º intervalo do SM-2)', cor:'var(--info, var(--accent))'}); }
+    const _fxMarca=!!_sd0.marcarEdital && !!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim());
+    if(_fxMarca) _fx.push({t:'Marca "'+(String(_sd0.edSub||'').trim()||String(_sd0.edTop))+'" como concluído no edital', cor:'var(--accent)'});
+    const sessEfeitos=_fx.map(f=>({t:f.t, style:'--c:'+f.cor+';'}));
+    const sessEfeitosShow=sessEfeitos.length>0;
+    const sessEfeitoVazio='Preencha o tempo ou as questões — o efeito na meta, no domínio e na revisão aparece aqui antes de registrar.';
+    const sessCorStyle='--ct-item-cor:'+this._corDisc(_fxDisc)+';';
+    const sessDiscTitulo=_fxDisc||'Sessão de estudo';
+    const sessSubtitulo=(()=>{ const p=[]; if(_selCats.length) p.push(_selCats.join(' + ')); if(_fxTop) p.push(_fxTop.length>48?_fxTop.slice(0,48)+'…':_fxTop); if(_fxMin) p.push(_fxMin+' min');
+      return p.length?p.join(' · '):'alimenta suas horas, seu desempenho e suas revisões'; })();
     const sessMarcarLabel=_sd0.edSub ? ('Marcar “'+_sd0.edSub+'” como estudado no edital') : (_sd0.edTop? ('Marcar “'+_sd0.edTop+'” (e seus subtópicos) como estudado no edital') : '');
     const sessMarcarStyle=`width:19px;height:19px;border-radius:var(--r-sm);flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ${sessMarcarEdital?'var(--accent)':'var(--border)'};background:${sessMarcarEdital?'var(--accent)':'transparent'};color:var(--onAccent);cursor:pointer;padding:0;`;
     const _he0=this.state.histEdit||{};
@@ -16532,8 +16741,11 @@ class Component extends DCLogic {
       nativeFrameH:(_ehFrameView?'100%':(this.state.isMobile?'calc(100dvh - 180px)':'calc(100vh - 108px)')), closeSessionBackdrop:this.closeSessionBackdrop, baixaAttr:this._baixa()?'1':'', toqueAttr:this._toque?'1':'', isDarkAttr:(this.state.darkMode?'1':'0'), dirAttr:this.state.dir||'sutil',
       cicloSemana, cicloListaFlat, toggleAgendaDia:this.toggleAgendaDia, togglePlanoLegis:this.togglePlanoLegis,
       // faixa do ciclo + linha do dia + inteligente
-      cicloLinha, cicloLinhaShow:cicloLinha.length>0, cicloBcI, cicloBcMotivo, cicloBcTemMotivo:!!cicloBcMotivo,
+      cicloLinha, cicloLinhaShow:cicloLinha.length>0, cicloLinhaLegenda, cicloMiniStyle, cicloBcI, cicloBcMotivo, cicloBcTemMotivo:!!cicloBcMotivo,
+      cicloVoltaN:String(cicloVoltaN), cicloVoltaFeitos:String(cicloVoltaFeitos), cicloVoltaTotal:String(cicloVoltaTotal), cicloVoltaShow:cicloVoltaTotal>0,
       cicloPlanejado:_cHM(cicloPlanMin), cicloPlanejadoLbl:(cicloMetaMin?('planejado · meta '+_cHM(cicloMetaMin)):'planejado hoje'),
+      puxarProximo:this.puxarProximo, gerarVoltaManual:this.gerarVoltaManual, recomecarVolta:this.recomecarVolta,
+      isManualAgenda:(this.state.cycleMode==='manual' && (this.state.manualFixed||[]).some(f=>f.dia||Array.isArray(f.dias))),
       cicloRevPend:String(revPend), cicloRevShow:revPend>0,
       cicloRegerarShow:(this.state.cycleMode!=='manual' && cicloTotal>0), regerarCiclo:this.regerarCiclo,
       isInteligente:this.state.cycleMode==='inteligente', cicloPrioTop, cicloPrioTem:cicloPrioTop.length>0,
@@ -16551,16 +16763,17 @@ class Component extends DCLogic {
           agAdd:{disc:ag.disc||'', kind:ag.kind||'Teoria', min:ag.min||''}, agAddDiscOpts:opts(ag.disc||''), agAddDiscVazio:!ag.disc, agAddKindOpts:_kindOpts(ag.kind||'Teoria'),
           agAddDias:DL.map(([k,label])=>({k, label, onStr:(k==='__todo'?!!dias.__todo:!!dias[k])?'true':'false'})),
           agAddResumo:(dias.__todo?'(todo dia)':(nSel?('em '+nSel+' dia'+(nSel>1?'s':'')):'')),
-          agAddField:this.agAddField, agAddDia:this.agAddDia, agAddSubmit:this.agAddSubmit, preencherSemanaPrio:this.preencherSemanaPrio }; })(),
+          agAddField:this.agAddField, agAddDia:this.agAddDia, agAddSubmit:this.agAddSubmit }; })(),
       cicloVazioDesc:((this.state.edital||[]).length>0
-        ? 'Com o edital cadastrado, o ciclo inteligente monta o dia pela sua prioridade real: revisões vencidas, erros recentes, tempo sem estudar e peso da matéria.'
+        ? 'Com o edital cadastrado, o ciclo inteligente monta a volta pela sua prioridade real — revisões vencidas, erros recentes, tempo sem estudar e peso da matéria — e o dia consome os próximos blocos.'
         : 'Escolha como montá-lo. A sugestão da plataforma já serve para começar; com o edital cadastrado, o ciclo inteligente passa a decidir por você.'),
-      cicloHeroEb:(({inteligente:'Ciclo inteligente',sugestao:'Sugestão da plataforma',edital:'Conforme o edital',pesos:'Pesos e pontos',manual:'Planejamento semanal'})[this.state.cycleMode]||'Ciclo')+' · '+String(objetivoShort||''),
-      cicloHeroTitulo:(this.state.cycleMode==='manual' ? cicloFolhaHeader.titulo : 'Ciclo de hoje'),
-      cicloHeroSub:(this.state.cycleMode==='manual'
+      cicloHeroEb:(({inteligente:'Ciclo inteligente',sugestao:'Sugestão da plataforma',edital:'Conforme o edital',pesos:'Pesos e pontos',manual:'Ciclo manual'})[this.state.cycleMode]||'Ciclo')+' · volta '+cicloVoltaN+' · '+String(objetivoShort||''),
+      cicloHeroTitulo:((this.state.cycleMode==='manual' && (this.state.manualFixed||[]).some(f=>f.dia||Array.isArray(f.dias))) ? cicloFolhaHeader.titulo : 'Ciclo de hoje'),
+      cicloHeroSub:((this.state.cycleMode==='manual' && (this.state.manualFixed||[]).some(f=>f.dia||Array.isArray(f.dias)))
         ? (cicloFolhaHeader.faixa+' · '+(cicloRestam? (cicloRestam+' bloco'+(cicloRestam===1?'':'s')+' em aberto hoje') : (cicloTotal? 'tudo feito hoje' : 'nada agendado para hoje')))
         : (dateLabel+' · '+(cicloTotal? (cicloRestam? (cicloRestam+' de '+cicloTotal+' bloco'+(cicloTotal===1?'':'s')+' em aberto') : 'tudo feito por hoje') : 'sem blocos ainda')
-           +(this.state.cycleMode==='inteligente'?' · montado pela sua prioridade real':''))),
+           +(cicloMetaMin?(' · '+_cHM(cicloPlanMin)+' de '+_cHM(cicloMetaMin)):'')
+           +(this.state.cycleMode==='inteligente'?' · a volta segue a sua prioridade real':''))),
       onSim:this.onSim, simNome:this.state.simNome, onSimNome:this.onSimNome, saveSimulado:this.saveSimulado, simMin:this.state.simMin, onSimMin:this.onSimMin, simTempoLabel:(this.state.provaDurationMin>0?fmtHM(this.state.provaDurationMin):'—'),
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
       // ===== D12: o chip de foco =====
@@ -16982,7 +17195,7 @@ class Component extends DCLogic {
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
       viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
-      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'O que estudar agora, por quê, e quanto falta hoje',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
       // O estado vem do auth.js (local|enviando|salvo|offline|erro). O texto diz o que
@@ -17009,26 +17222,32 @@ class Component extends DCLogic {
       setCycleMode:this.setCycleMode,
       isManual:this.state.cycleMode==='manual',
       manualFixed:this.state.manualFixed,
-      manualRot:this.state.manualRot.map((r,i)=>({...r, kindOpts:_kindOpts(r.kind), pos:i+1, isNext:i===this.state.rotPointer, posStyle:i===this.state.rotPointer?'color:var(--onAccent);background:var(--accent);':'color:var(--text3);background:var(--surface2);'})),
+      manualRot:(()=>{ const rot=this.state.manualRot||[]; const nx=this._rotPonteiro(rot); const temPend=rot.some(x=>!x.done);
+        return rot.map((r,i)=>({...r, kindOpts:_kindOpts(r.kind), pos:String(i+1), isNext:(temPend && i===nx), nextN:(temPend && i===nx)?'1':'0', feito:!!r.done, feitoN:r.done?'1':'0', feitoLabel:r.pulado?'pulado':'feito',
+          temTopico:!!r.topico, topicoShort:String(r.topico||'').length>38?String(r.topico||'').slice(0,38)+'…':String(r.topico||''),
+          itemStyle:'--ct-item-cor:'+this._corDisc(r.discEdital||r.disc)+';'})); })(),
+      rotResumo:(()=>{ const rot=this.state.manualRot||[]; return rot.length?(rot.filter(x=>x.done).length+' de '+rot.length+' feitos'):'vazia'; })(),
+      rotVazio:!(this.state.manualRot||[]).length, rotTemFeito:(this.state.manualRot||[]).some(x=>x.done),
+      rotFraseDia:(()=>{ const n=(this.state.blocks||[]).filter(b=>b.rotId&&!b.done).length; const m=(this.state.blocks||[]).filter(b=>b.rotId&&!b.done).reduce((a,b)=>a+(+b.min||0),0); return n?('Hoje o ciclo puxa '+n+' bloco'+(n>1?'s':'')+' ('+m+' min) depois da agenda.'):'Nada pendente da volta para hoje.'; })(),
       manualFixedRoteiroAtual:this.state.manualFixedRoteiroAtual,
       roteirosAtivos, hasRoteirosAtivos: roteirosAtivos.length>0,
       manualAgendaGroups,
       addFixed:this.addFixed, addToDay:this.addToDay, removeFixed:this.removeFixed, editFixed:this.editFixed, addRot:this.addRot, removeRot:this.removeRot, editRot:this.editRot, moveRot:this.moveRot, moveFixed:this.moveFixed, advanceRot:this.advanceRot,
       setRoteiroAtual:this.setRoteiroAtual, clearRoteiro:this.clearRoteiro,
-      rotNextName:(this.state.manualRot[this.state.rotPointer]||{}).disc||'—',
+      rotNextName:(()=>{ const nx=(this.state.manualRot||[]).find(x=>!x.done); return (nx&&nx.disc)||'—'; })(),
       cycleModes:[
         /* A descrição citava "lei seca e jurisprudência" para TODA área — vocabulário
            jurídico na tela de quem estuda Enfermagem. Agora ela lista as categorias que a
            área realmente oferece (_atividades já resolve isso por área). */
         {mode:'inteligente', icon:'✦', title:'Ciclo inteligente', recomendado:true,
-         desc:'Monta o dia pela sua prioridade real — revisões vencidas, erros recentes, tempo sem estudar, desempenho e peso da matéria — e diz o porquê de cada bloco.'},
+         desc:'Monta a volta do ciclo pela sua prioridade real — revisões vencidas, erros recentes, tempo sem estudar, desempenho e peso da matéria — com o porquê de cada bloco. O dia consome os próximos blocos até a meta.'},
         {mode:'sugestao', icon:'★', title:'Sugestão da plataforma',
          desc:'Ciclo padrão equilibrado: '+(()=>{ try{ const a=(this._atividades()||[]).slice(0,5);
            return a.length ? a.map(x=>String(x).toLowerCase()).join(', ')+'.' : 'teoria, questões e revisão.';
          }catch(_){ return 'teoria, questões e revisão.'; } })()},
-        {mode:'edital', icon:'▤', title:'Conforme o edital', desc:'Gerado a partir dos tópicos ainda pendentes do edital cadastrado.'},
-        {mode:'pesos', icon:'▲', title:'Pesos e pontos', desc:'Prioriza matérias que valem mais pontos e onde você está mais fraco.'},
-        {mode:'manual', icon:'✎', title:'Manual', desc:'Monte do zero: adicione, edite e ordene os blocos como quiser.'}
+        {mode:'edital', icon:'▤', title:'Conforme o edital', desc:'Volta proporcional ao que ainda falta no edital: mais blocos para a matéria com mais tópicos pendentes.'},
+        {mode:'pesos', icon:'▲', title:'Pesos e pontos', desc:'Volta com mais blocos para o que vale mais pontos e onde você está mais fraco.'},
+        {mode:'manual', icon:'✎', title:'Manual', desc:'Você monta a volta: ordem, tipo e tempo de cada bloco — ou gera uma pela prioridade e reordena. Agenda semanal para quem segue roteiro.'}
       ].map(m=>{ const on=this.state.cycleMode===m.mode; const aviso=this._cycleFalta(m.mode); return {...m, aviso, temAviso:!!aviso, onStr:on?'true':'false', recomendado:!!m.recomendado,
         isInteligente:m.mode==='inteligente', isSugestao:m.mode==='sugestao', isEdital:m.mode==='edital', isPesos:m.mode==='pesos', isManual:m.mode==='manual',
         cardStyle:`text-align:left;cursor:pointer;font-family:inherit;border-radius:var(--radius);padding:16px;border:2px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};transition:all .15s;`,
@@ -17094,6 +17313,9 @@ class Component extends DCLogic {
       // só oferece "marcar no edital" quando o tópico É do edital — com lei do LEGIS
       // ou fonte do JURIS em edTop, o checkbox aparecia e não marcava nada.
       sessMarcarEdital, sessMarcarLabel, sessMarcarStyle,
+      // o efeito ao vivo e o cabeçalho com a cor da matéria
+      sessEfeitos, sessEfeitosShow, sessEfeitoVazio, sessCorStyle, sessDiscTitulo, sessSubtitulo,
+      sessRevAria:String(!!_sd0.agendarRevisao), sessMetaAria:String(_sd0.contarMeta!==false), sessMarcarAria:String(!!_sd0.marcarEdital),
       sessMarcarShow:!!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim()),
       sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdSegOk, sdSegErr, sdSegBr, sessMinFmt, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary, bibLinkOpts, hasBibForLink,
       sessLeiOpts, sessJurisOpts, sessShowLeis, sessShowJuris, sessLeiSel, sessJurisSel, sessLeiVazio, sessJurisVazio, onSessionLei:this.onSessionLei, onSessionJuris:this.onSessionJuris,
