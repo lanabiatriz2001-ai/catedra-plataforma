@@ -1240,3 +1240,41 @@ button:disabled { cursor: not-allowed; }
 .ct-reg-foco { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .ct-reg-rodape { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--border, #e6e1d4); background: var(--surface2, #f0ece1); flex-wrap: wrap; position: sticky; bottom: 0; }
 @media (max-width: 480px) { .ct-reg-qs { gap: 6px; } .ct-reg-cab, .ct-reg-efeito, .ct-reg-corpo, .ct-reg-rodape { padding-left: 16px; padding-right: 16px; } }
+
+/* ===== 16.2 · Agenda da semana (Configurar, manual): cartões legíveis na cor da matéria,
+   edição de um cartão por vez com rótulos, carga do dia por coluna ===== */
+/* a semana QUEBRA LINHA em vez de rolar de lado: no laptop cabem 4 dias por fila, no celular 1 */
+.ct-ag-rolagem { padding-bottom: 2px; }
+.ct-ag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; align-items: start; }
+.ct-ag-col { display: flex; flex-direction: column; min-width: 0; padding: 10px; border-radius: var(--ct-r-lg); background: var(--surface2, #f0ece1); border: 1px solid var(--border, #e6e1d4); }
+.ct-ag-col[data-hoje="1"] { background: var(--accentSoft, #e6f0ea); border-color: var(--accentRing, #c2e0d1); }
+.ct-ag-col-cab { display: flex; align-items: center; gap: 7px; min-height: 24px; }
+.ct-ag-col-dia { font-weight: 800; font-size: var(--fs-sm, 12.5px); color: var(--ink, #1f1c17); letter-spacing: .01em; }
+.ct-selo.ct-ag-hoje { background: var(--accent, #0f7a57); color: var(--onAccent, #fff); border-color: transparent; }
+.ct-ag-col-carga { font-family: var(--mono, ui-monospace, monospace); font-size: var(--fs-xs, 11.5px); color: var(--text3, #7a7368); min-height: 16px; margin: 2px 0 8px; }
+.ct-ag-lista { display: flex; flex-direction: column; gap: 8px; }
+/* o cartão: o item da casa, sem padding próprio — o cabeçalho clicável ocupa tudo */
+.ct-item.ct-ag { display: block; padding: 0; }   /* sem overflow:hidden: o anel de foco (+2px, !important do host) precisa de espaço */
+.ct-ag-cab { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 10px 10px 12px; border: 0; background: transparent; color: inherit; font-family: inherit; text-align: left; cursor: pointer; border-radius: inherit; }
+.ct-ag-cab:hover { background: color-mix(in oklab, var(--ct-item-cor) 10%, transparent); }
+.ct-ag-cab:focus-visible { box-shadow: inset 0 0 0 2px var(--accent, #0f7a57); }
+.ct-ag-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+/* dois degraus, como o resto do .ct-item: título / secundário. A meta escurece com a tinta (≥4,5:1 sobre a lavagem da cor da matéria, claro e escuro) */
+.ct-ag-tit { font-weight: 700; font-size: var(--fs-base, 13.5px); color: var(--ink, #1f1c17); line-height: 1.3; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ct-ag-meta { font-size: var(--fs-sm, 12.5px); color: color-mix(in srgb, var(--text2, #5c564a) 50%, var(--ink, #1f1c17)); }
+.ct-ag[data-sem-disc="true"] .ct-ag-tit { color: var(--danger, #c0392f); }
+.ct-ag-seta { flex: none; color: var(--text3, #7a7368); transition: transform .18s ease; }
+.ct-ag[data-editando="1"] .ct-ag-seta { transform: rotate(180deg); }
+.ct-ag-form { display: flex; flex-direction: column; gap: 9px; padding: 4px 12px 12px; border-top: 1px solid color-mix(in oklab, var(--ct-item-cor) 30%, var(--border, #e6e1d4)); }
+.ct-ag-campo { display: flex; flex-direction: column; gap: 0; min-width: 0; }   /* o .ct-rotulo já traz o respiro de 5px */
+.ct-ag-campo .ct-campo { width: 100%; min-width: 0; min-height: 40px; }
+@media (pointer: coarse) { .ct-ag-campo .ct-campo { min-height: 44px; } }
+[data-toque="1"] .ct-ag-campo .ct-campo { min-height: 44px; }
+.ct-ag-linha { display: flex; gap: 8px; }
+.ct-ag-nota { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }
+.ct-ag-acoes { display: flex; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.ct-ag-remover { color: var(--danger, #c0392f); border-color: color-mix(in oklab, var(--danger, #c0392f) 40%, var(--border, #e6e1d4)); }
+.ct-ag-vazio { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); padding: 6px 4px; text-align: center; }
+.ct-ag-add { margin-top: 8px; background: var(--surface, #fffdf8); border: 1px dashed var(--border, #e6e1d4); border-radius: var(--ct-r-md); padding: 9px 10px; font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a); cursor: pointer; font-family: inherit; font-weight: 700; }
+.ct-ag-add:hover { border-color: var(--accent, #0f7a57); color: var(--accentD, #0b5e43); }
+@media (prefers-reduced-motion: reduce) { .ct-ag-seta { transition: none; } }
