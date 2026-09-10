@@ -7,9 +7,13 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node tests/run.mjs",
-    "test:webkit": "node tests/run-webkit.mjs"
+    "test:webkit": "node tests/run-webkit.mjs",
+    "verificar:segredos": "node scripts/verificar-segredos.mjs"
   },
   "devDependencies": {
     "playwright-core": "^1.49.0"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }
