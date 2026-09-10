@@ -410,13 +410,17 @@ para fevereiro/2027); ciclo 2027.1 com edital previsto para março e prova para 
 
 - [ ] **Controlador dos dados**: pessoa física por enquanto ou constituir a sociedade
       limitada com administrador que não seja eu (LC 68/1992, art. 155, X; LOMAN, art.
-      36, I e II; CF, art. 95, parágrafo único, I). Preencher `[RAZÃO SOCIAL / NOME DO
-      CONTROLADOR]`, `[CNPJ/CPF]`, `[ENDEREÇO]` nos dois documentos jurídicos.
-- [ ] **Encarregado (DPO)**: quem é e qual e-mail (`[E-MAIL DO ENCARREGADO]`), lido de
+      36, I e II; CF, art. 95, parágrafo único, I). Preencher `controlador`, `cnpjCpf` e
+      `endereco` em **`docs/juridico/controlador.json`** — é o único lugar; os .md não se
+      editam para isso. Enquanto faltar algum campo, as páginas saem carimbadas "rascunho".
+- [ ] **Encarregado (DPO)**: quem é e qual e-mail (`emailEncarregado` no mesmo JSON), lido de
       verdade — é o canal dos direitos do art. 18 da LGPD, com resposta em 15 dias (art. 19).
-- [ ] **Prazos entre colchetes** nos documentos: retenção da contagem de IA e da auditoria
-      (12 meses?), exclusão da nuvem após encerrar conta (30 dias?), aviso prévio de
-      encerramento da plataforma (30 dias?), aviso de mudança nos documentos (15 dias?).
+      E `emailContato`, o e-mail geral dos Termos.
+- [ ] **Prazos** (`prazos` no mesmo JSON, só números): retenção da contagem de IA e da
+      auditoria (12 meses?), exclusão da nuvem após encerrar conta (30 dias?), aviso prévio de
+      encerramento da plataforma (30 dias?), aviso de mudança nos documentos (15 dias?). Vazio
+      mantém a proposta entre colchetes no texto.
+      Depois de preencher: `node scripts/build-juridico.mjs` e commit dos três gerados.
 - [ ] **Meta do ENAM** (56 ou 40) e **datas dos simulados** (a cadência propõe 13/09,
       27/09, 11/10, 25/10, 08/11 e 22/11).
 - [ ] **Marca**: busca de colidência de "Cátedra" no INPI (classes 41 e 42; Lei

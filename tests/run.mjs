@@ -2002,8 +2002,26 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   r.escapaHtml = /&lt;script&gt;x&lt;\/script&gt;/.test(h) && !/<script>/.test(h);
   r.listaTabelaNota = /<ul><li>um<\/li><li>dois<\/li><\/ul>/.test(h) && /<table><thead><tr><th>A<\/th><th>B<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>2<\/td><\/tr><\/tbody><\/table>/.test(h) && /<p class="nota">¹ nota de rodapé<\/p>/.test(h);
   const cab = BJ.cabecalho(fs.readFileSync(path.join(RAIZ, 'docs/juridico/termos-de-uso.md'), 'utf8'));
-  r.cabecalhoDoDocumento = cab.versao === '1.0' && cab.data === '02/09/2026' && cab.dataISO === '2026-09-02' && /advogad/.test(cab.nota);
+  r.cabecalhoDoDocumento = cab.versao === '1.0' && cab.data === '02/09/2026' && cab.dataISO === '2026-09-02' && cab.nota === '';
   const termos = fs.readFileSync(path.join(RAIZ, 'termos.html'), 'utf8'), priv = fs.readFileSync(path.join(RAIZ, 'privacidade.html'), 'utf8');
+  // dados do controlador num único lugar (docs/juridico/controlador.json): vazio mantém o marcador e carimba "rascunho";
+  // completo tira marcadores, chamadas "¹" e a nota de rodapé; número inválido conta como faltante
+  {
+    const mdT = fs.readFileSync(path.join(RAIZ, 'docs/juridico/termos-de-uso.md'), 'utf8'), mdP = fs.readFileSync(path.join(RAIZ, 'docs/juridico/politica-de-privacidade.md'), 'utf8');
+    const COLCHETE = /\[[A-ZÇÃÉ][^\]]*\]/, COLCHETES = /\[[A-ZÇÃÉ][^\]]*\]/g;
+    const cheio = { controlador: 'Fulana de Tal', cnpjCpf: '000.000.000-00', endereco: 'Rua X, 1', emailContato: 'contato@ex.com', emailEncarregado: 'dpo@ex.com', prazos: { avisoEncerramentoDias: '30', avisoMudancaDias: '15', exclusaoNuvemDias: '30', retencaoIaMeses: '12' } };
+    const vazio = BJ.preencher(mdT, {}), completo = BJ.preencher(mdT, cheio), completoP = BJ.preencher(mdP, cheio);
+    r.controladorVazioMantemMarcadores = vazio.faltam.length === 9 && (vazio.md.match(COLCHETES) || []).length === (mdT.match(COLCHETES) || []).length && /¹ Os campos entre colchetes/.test(vazio.md);
+    r.controladorCompletoPreenche = completo.faltam.length === 0 && completoP.faltam.length === 0 && !COLCHETE.test(completo.md) && !COLCHETE.test(completoP.md) && !/¹/.test(completo.md) && !/¹/.test(completoP.md)
+      && /operada por Fulana de Tal, 000\.000\.000-00, com endereço em Rua X, 1 e contato em contato@ex\.com\. O tratamento/.test(completo.md) && /antecedência mínima de 30 dias/.test(completo.md) && /Contagem de IA e trilha: 12 meses/.test(completoP.md) && /Outros assuntos: contato@ex\.com\./.test(completoP.md);
+    const parcial = BJ.preencher(mdT, { cnpjCpf: '1', prazos: { avisoMudancaDias: 'quinze' } });
+    r.controladorParcialContaOQueFalta = parcial.faltam.length === 8 && !/\[CNPJ\/CPF\]/.test(parcial.md) && /\[MUDANÇA: 15\]/.test(parcial.md) && /¹ Os campos entre colchetes/.test(parcial.md);
+    const pagCheia = BJ.montarPagina({ titulo: 'T', irmao: { html: 'x', titulo: 'x' } }, completo.md, completo.faltam), pagVazia = BJ.montarPagina({ titulo: 'T', irmao: { html: 'x', titulo: 'x' } }, vazio.md, vazio.faltam);
+    r.carimboDeRascunhoSegueOsDados = /<div class="meta">Versão 1\.0 · 02\/09\/2026<\/div>/.test(pagCheia) && !/rascunho/.test(pagCheia) && /rascunho: faltam 9 dado\(s\) do controlador/.test(pagVazia);
+    // as páginas geradas no repositório refletem o estado atual do JSON — nunca marcador sem carimbo, nem carimbo sem marcador
+    const faltaHoje = BJ.preencher(mdT, BJ.lerControlador()).faltam.length > 0;
+    r.paginasPublicadasCoerentes = [termos, priv].every(x => (/rascunho: faltam/.test(x) === faltaHoje) && (COLCHETE.test(x) === faltaHoje));
+  }
   r.paginasGeradas = /<html lang="pt-BR">/.test(termos) && /<html lang="pt-BR">/.test(priv) && /<h1>Termos de uso — Cátedra<\/h1>/.test(termos) && /<h1>Política de privacidade — Cátedra<\/h1>/.test(priv);
   r.semRedeNasPaginas = ![termos, priv].some(x => /https?:\/\/(cdn|fonts\.|unpkg|jsdelivr|googleapis)/i.test(x)) && !/<script/i.test(termos) && !/<link/i.test(priv) && /prefers-color-scheme: dark/.test(termos);
   r.ligacaoEntreAsDuas = /href="\.\/privacidade\.html"/.test(termos) && /href="\.\/termos\.html"/.test(priv) && /Voltar ao app/.test(termos) && /ctFecharDoc/.test(priv);

@@ -1,6 +1,6 @@
 # Termos de uso — Cátedra
 
-**Versão 1.0 — rascunho para revisão por advogado(a) antes da publicação**
+**Versão 1.0**
 **Data: 02/09/2026**
 
 Estes Termos de uso regulam o acesso e o uso da plataforma de estudos **Cátedra**, incluindo as submarcas **CátedraLEGIS** e **CátedraJURIS**, disponível no navegador (site hospedado na Vercel) e nos aplicativos para Mac e iPad. A Cátedra é operada por [RAZÃO SOCIAL / NOME DO CONTROLADOR], [CNPJ/CPF], com endereço em [ENDEREÇO] e contato em [E-MAIL DE CONTATO].¹ O tratamento dos seus dados pessoais está descrito na Política de privacidade, que integra estes Termos.
@@ -19,7 +19,7 @@ Estes Termos de uso regulam o acesso e o uso da plataforma de estudos **Cátedra
 
 2.2. **A Cátedra está em fase beta, é gratuita e o acesso se dá por convite**, mediante lista de permissão gerida pela administração. Convites podem ser limitados, recusados ou revogados a critério da Cátedra.
 
-2.3. Por estar em beta, a plataforma pode conter erros, ter recursos adicionados, alterados ou retirados, e ficar indisponível para manutenção. **Não garantimos continuidade do serviço.** Se decidirmos encerrar a Cátedra ou algum recurso essencial, avisaremos com antecedência mínima de [30] dias, por e-mail ou aviso dentro do aplicativo, e manteremos a exportação dos seus dados disponível nesse período (CDC, art. 6º, III; Código Civil, art. 473).
+2.3. Por estar em beta, a plataforma pode conter erros, ter recursos adicionados, alterados ou retirados, e ficar indisponível para manutenção. **Não garantimos continuidade do serviço.** Se decidirmos encerrar a Cátedra ou algum recurso essencial, avisaremos com antecedência mínima de [ENCERRAMENTO: 30] dias, por e-mail ou aviso dentro do aplicativo, e manteremos a exportação dos seus dados disponível nesse período (CDC, art. 6º, III; Código Civil, art. 473).
 
 2.4. A Cátedra funciona offline. Seus dados são gravados no aparelho (localStorage e IndexedDB) e sincronizados com a nuvem quando há conexão. Cabe a você manter cópias de segurança com as ferramentas da cláusula 8.
 
@@ -119,7 +119,7 @@ Estes Termos de uso regulam o acesso e o uso da plataforma de estudos **Cátedra
 
 12.1. Podemos alterar estes Termos para refletir mudanças na plataforma, na lei ou no modelo de serviço; a versão vigente, com data, fica sempre no aplicativo.
 
-12.2. Mudanças relevantes — como a criação de planos pagos, novos usos de dados ou restrições a direitos — serão avisadas com pelo menos [15] dias de antecedência e exigirão novo aceite. Se você não concordar, poderá exportar seus dados e encerrar a conta (CDC, arts. 6º, III, 46 e 51, XIII).
+12.2. Mudanças relevantes — como a criação de planos pagos, novos usos de dados ou restrições a direitos — serão avisadas com pelo menos [MUDANÇA: 15] dias de antecedência e exigirão novo aceite. Se você não concordar, poderá exportar seus dados e encerrar a conta (CDC, arts. 6º, III, 46 e 51, XIII).
 
 ## 13. Lei aplicável, foro e contato
 
