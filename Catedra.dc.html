@@ -128,6 +128,10 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 @media (max-width:680px){.ct-tb-searchlabel{display:none!important;}.ct-tb-div{display:none!important;}}
 @media (max-width:760px){.ct-dash-daylbl{display:none!important;}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important;}}
+/* P16: "Baixa estimulação" ligada nos Ajustes vale o mesmo que "reduzir movimento" no sistema. O atributo mora
+   na div raiz E é espelhado no <html> (ver _baixaRaiz), porque toasts, modais e sobreposições são anexados ao
+   <body> e ficariam fora do alcance de um seletor que partisse só da div. */
+[data-baixa="1"],[data-baixa="1"] *,[data-baixa="1"] *::before,[data-baixa="1"] *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important;}
 /* ===== ALVO DE TOQUE NO CELULAR (WCAG 2.5.8) =====
    Medido em 390x844: 45 controles com menos de 44px de caixa — a barra lateral inteira
    em 40px, os ícones da topbar em 38, os chips de filtro em 30 e poucos. O ícone segue
@@ -5912,7 +5916,7 @@ window.ctPdfLib = (function(){
           </div>
           <!-- P16: baixa estimulação — a pressão sai da tela, os dados ficam -->
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);" data-pref="baixaEstimulacao">
-            <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Baixa estimulação</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Esconde ofensiva, escudos, ranking, desafio da semana, celebrações e os emojis decorativos. Tudo continua funcionando e nada é apagado — só sai da vista.</div></div>
+            <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Baixa estimulação</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Esconde ofensiva, escudos, ranking, desafio da semana, celebrações e os emojis decorativos, e desliga as animações. Tudo continua funcionando e nada é apagado — só sai da vista.</div></div>
             <button data-k="baixaEstimulacao" class="ct-alvo" onclick="{{ togglePref }}" aria-label="Baixa estimulação" role="switch" aria-checked="{{ chkBaixa }}" style="{{ togBaixa }}"><span style="{{ togBaixaKnob }}"></span></button>
           </div>
         </div>
@@ -6633,6 +6637,7 @@ class Component extends DCLogic {
   // Cadastra a disciplina "Código Civil - Lei Seca" no edital (idempotente). Mesmo padrão
   // do Direito Civil: roda no mount e a cada sync, sobrevive à nuvem (edital vence local).
   componentDidMount(){
+    this._baixaRaiz();           // o <html> precisa do espelho desde o primeiro quadro
     this._avisarAreaAoNativo();   // a casca nativa precisa saber a área já na abertura
     // O construtor já carregou o estado DO localStorage: nada mudou ainda. Sem esta
     // linha, o primeiro render marcava as 36 chaves como "sujas" e todo boot
@@ -6742,14 +6747,14 @@ class Component extends DCLogic {
         if(alvo && alvo.dataset.ctLoad==='1') this._marcarFramePronto(alvo.getAttribute('data-ct-view'));
       }catch(_){}
       const t=this._temaTokens(); if(!t) return;
-      try{ e.source && e.source.postMessage({type:'ctTheme', tokens:t}, '*'); }catch(_){}
+      try{ e.source && e.source.postMessage({type:'ctTheme', tokens:t, baixa:this._baixa()?'1':''}, '*'); }catch(_){}
     };
     window.addEventListener('message', this._ckMsg);
     /** Reenvia o tema a TODOS os iframes — chamado quando cor, modo escuro ou fonte mudam. */
     this._temaBroadcast = ()=>{
       const t=this._temaTokens(); if(!t) return;
       try{ document.querySelectorAll('iframe').forEach(f=>{
-        try{ f.contentWindow && f.contentWindow.postMessage({type:'ctTheme', tokens:t}, '*'); }catch(_){}
+        try{ f.contentWindow && f.contentWindow.postMessage({type:'ctTheme', tokens:t, baixa:this._baixa()?'1':''}, '*'); }catch(_){}
       }); }catch(_){}
     };
     // Botão "Registrar" do módulo da área: abre o registro já com disciplina e tópico
@@ -7276,7 +7281,7 @@ class Component extends DCLogic {
       this._avisarAreaAoNativo();   // a nuvem pode ter trocado a área
       // tema veio da nuvem → os satélites (LEGIS/JURIS) precisam ser repintados junto,
       // senão eles ficam com o tema velho até a próxima troca manual.
-      if(('dir' in patch)||('darkMode' in patch)||('accent' in patch)){ try{ this._temaBroadcast(); }catch(_){} }
+      if(('dir' in patch)||('darkMode' in patch)||('accent' in patch)||('prefs' in patch)){ try{ this._temaBroadcast(); }catch(_){} }
     });
   }
   // ===== escudo de ofensiva (streak freeze) =====
@@ -7321,8 +7326,11 @@ class Component extends DCLogic {
       const metaAlvo=Math.max(30,parseInt(O.metaIdeal,10)||180)*diasAt;
       const metaPct=metaAlvo>0?Math.min(100,Math.round((B.weekMin||0)/metaAlvo*100)):0;
       const prox=(this.state.blocks||[]).filter(b=>!b.done)[0];
-      return {diasProva:dias, revisoes:revVenc, metaPct, streak:(B.streak||0), proximo:(prox?String(prox.disc||'').replace('Direito ',''):''), updated:Date.now()};
-    }catch(_){ return {diasProva:-1, revisoes:0, metaPct:0, streak:0, proximo:'', updated:Date.now()}; }
+      // baixa: P16 — o host nativo (barra de menu e cartão flutuante do Mac) esconde "Ofensiva" por este campo.
+      // O streak continua indo junto: o dado não é apagado, só não é mostrado.
+      return {diasProva:dias, revisoes:revVenc, metaPct, streak:(B.streak||0), proximo:(prox?String(prox.disc||'').replace('Direito ',''):''), updated:Date.now(), baixa:this._baixa()};
+    }catch(_){ let baixa=false; try{ baixa=this._baixa(); }catch(__){}
+      return {diasProva:-1, revisoes:0, metaPct:0, streak:0, proximo:'', updated:Date.now(), baixa}; }
   }
   // "hoje" e aritmética de datas em YYYY-MM-DD no fuso LOCAL (antes era UTC via
   // toISOString → no Brasil, UTC-3, o "dia" do app virava às 21h: ofensiva, revisões,
@@ -7515,7 +7523,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
-  componentDidUpdate(){ this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+  componentDidUpdate(){ this._baixaRaiz(); this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // Trocou de tela por conta própria (menu, atalho)? Então a origem guardada e o alvo da
   // volta morrem — senão a barra "você veio de…" reaparece numa visita solta ao acervo.
   _limpaOrigem(){
@@ -9106,7 +9114,7 @@ class Component extends DCLogic {
     this.onNav(e);
     if(acao==='semana'){
       setTimeout(()=>{ const alvo=document.getElementById('ct-semana');
-        if(alvo) alvo.scrollIntoView({block:'start', behavior:'smooth'}); }, 90);
+        if(alvo) alvo.scrollIntoView({block:'start', behavior:this._rolagem()}); }, 90);
     }
   };
   setCyclePanel = (e)=>{ const p=e.currentTarget.dataset.panel; if(p!==this.state.cyclePanel) this.setState({cyclePanel:p}); };
@@ -9504,6 +9512,24 @@ class Component extends DCLogic {
   /* P16: modo baixa estimulação — sem ofensiva, escudos, ranking, desafio, celebração e emoji decorativo.
      A funcionalidade e os dados ficam; só a pressão sai da tela. */
   _baixa(){ return !!(this.state.prefs && this.state.prefs.baixaEstimulacao); }
+  /* Espelha data-baixa no <html>: a div raiz recebe o atributo pelo template, mas toasts, modais e
+     sobreposições anexados ao <body> ficariam fora de `[data-baixa="1"] *`. Idempotente — só toca o DOM
+     quando o valor muda, então pode rodar a cada componentDidUpdate sem custo (não chama setState).
+     Quando muda, reenvia o tema aos iframes: os satélites param (ou voltam a mexer) junto, venha a troca
+     do interruptor, da nuvem ou de qualquer outro caminho que mexa em prefs. */
+  _baixaRaiz(){ try{ const r=document.documentElement, v=this._baixa()?'1':'', antes=r.getAttribute('data-baixa')==='1'?'1':'';
+    if(v===antes) return;
+    if(v) r.setAttribute('data-baixa','1'); else r.removeAttribute('data-baixa');
+    // a janela flutuante do cronômetro é outro documento: espelha nela também, se estiver aberta
+    try{ const pw=this._pipWin; if(pw && !pw.closed){ const h=pw.document.documentElement; if(v) h.setAttribute('data-baixa','1'); else h.removeAttribute('data-baixa'); } }catch(_){}
+    if(this._temaBroadcast) this._temaBroadcast();
+    // app do Mac: o menu da barra e o cartão flutuante mostram a ofensiva e só releem o payload a cada 3 min —
+    // o aviso faz a casca reler já (catedraWidget no main.swift). Na web e no iPad o handler não existe: nada acontece.
+    try{ const mh=window.webkit&&window.webkit.messageHandlers; if(mh&&mh.catedraWidget) mh.catedraWidget.postMessage(1); }catch(_){}
+  }catch(_){} }
+  /* Rolagem: 'smooth' só quando nem o sistema nem a pessoa pediram menos movimento. O CSS
+     `scroll-behavior:auto` não alcança o scrollIntoView/scrollTo com behavior explícito — por isso o gate em JS. */
+  _rolagem(){ try{ if(this._baixa()) return 'auto'; return window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'; }catch(_){ return 'auto'; } }
   _emo(s){ s=String(s==null?'':s); return this._baixa() ? s.replace(/[\u{1F525}\u{1F3AF}\u{1F389}\u{2728}\u{1F44B}\u{1F6E1}]\uFE0F?\s?/gu,'').replace(/\s+$/,'') : s; }
   _corDisc(disc){ const d=(this.state.edital||[]).find(x=>String(x.disc||'').trim().toLowerCase()===String(disc||'').trim().toLowerCase());
     if(d && /^#[0-9a-f]{3,8}$/i.test(d.color||'')) return d.color;
@@ -9751,6 +9777,10 @@ class Component extends DCLogic {
         .ghost{width:46px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.78)}
         .ghost:hover{background:rgba(255,255,255,.14);color:#fff}
         .ghost svg{width:17px;height:17px}
+        /* A janela do PiP é outro documento: não herda o data-baixa do host nem a regra global.
+           O atributo no <html> dela é gravado na abertura e espelhado por _baixaRaiz com a janela aberta. */
+        html[data-baixa="1"] *,html[data-baixa="1"] *::before,html[data-baixa="1"] *::after{animation:none!important;transition:none!important}
+        @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
       </style>
       <div class="wrap">
         <div class="brand">
@@ -9768,6 +9798,7 @@ class Component extends DCLogic {
           <button class="ct-alvo ghost" id="ct-pip-open" title="Abrir no Cátedra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></button>
         </div>
       </div>`;
+    if(this._baixa()) w.document.documentElement.setAttribute('data-baixa','1');
     w.document.getElementById('ct-pip-toggle').addEventListener('click', ()=>this.toggleTimer());
     w.document.getElementById('ct-pip-reset').addEventListener('click', ()=>this.resetTimer());
     w.document.getElementById('ct-pip-open').addEventListener('click', ()=>{ try{ window.focus(); this.setState({focusMode:true}); }catch(_){} });
@@ -11414,7 +11445,7 @@ class Component extends DCLogic {
       // cria outro cronômetro aqui. responder = a pergunta escrita com padrão de resposta.
       if(i==='treinar') this.iniciarArguicao();
       else if(i==='responder') this.sortearPerguntaBanca();
-      else setTimeout(()=>{ const el=document.getElementById('ct-oral-consulta'); if(el) el.scrollIntoView({block:'start', behavior:'smooth'}); }, 60);
+      else setTimeout(()=>{ const el=document.getElementById('ct-oral-consulta'); if(el) el.scrollIntoView({block:'start', behavior:this._rolagem()}); }, 60);
     }).catch(()=>{});
   };
   setOralModo = (e)=>{ const m=e.currentTarget.getAttribute('data-m'); this.setState({oralModo:m, oralCorrecao:null});
@@ -12040,7 +12071,7 @@ class Component extends DCLogic {
     this._gravaMarcas(this._marcasDaProva().map(m=>m.id===id?{...m, nota:v, up:Date.now()}:m)); };
   irParaMarcaEnun = (e)=>{ const id=e.currentTarget.dataset.id;
     const el=document.querySelector('[data-marca="'+id+'"]');
-    if(el){ el.scrollIntoView({block:'center', behavior:'smooth'});
+    if(el){ el.scrollIntoView({block:'center', behavior:this._rolagem()});
       el.style.transition='outline-color .2s'; el.style.outline='2px solid var(--accent)';
       setTimeout(()=>{ try{ el.style.outline='none'; }catch(_){} }, 1200); } };
 
@@ -12270,7 +12301,7 @@ class Component extends DCLogic {
     } else if(item.content){ item.content.forEach((p,i)=>{ const isH=/^(art\.|título|capítulo|seção|sv\s)/i.test(p)&&p.length<90; if(isH) add(p, i+1, 0); }); if(!rd.toc.length){ item.content.forEach((p,i)=>{ if(i%3===0) add(p.slice(0,46)+'…', i+1, 0); }); } }
     if(!rd.tocList.children.length){ rd.tocList.innerHTML='<div style="padding:18px;text-align:center;color:var(--text3);font-size:var(--fs-sm);">Sem sumário disponível</div>'; }
   }
-  _rdJumpPage(page){ const rd=this._rd; if(!rd) return; const pg=rd.pages.find(p=>p.page===page) || rd.pages[Math.min(page-1, rd.pages.length-1)]; if(pg && rd.scroll){ rd.scroll.scrollTo({top:Math.max(0, pg.wrap.offsetTop-20), behavior:'smooth'}); } }
+  _rdJumpPage(page){ const rd=this._rd; if(!rd) return; const pg=rd.pages.find(p=>p.page===page) || rd.pages[Math.min(page-1, rd.pages.length-1)]; if(pg && rd.scroll){ rd.scroll.scrollTo({top:Math.max(0, pg.wrap.offsetTop-20), behavior:this._rolagem()}); } }
   _rdZoom(delta){ const rd=this._rd; if(!rd) return; rd.scale=Math.max(0.7, Math.min(2.4, rd.scale+delta)); if(rd.zoomLabel) rd.zoomLabel.textContent=Math.round(rd.scale*100)+'%'; if(rd.item.kind==='pdf') this._renderPdfPages(rd.item); }
 
   _renderTextPages(item){
@@ -12393,7 +12424,7 @@ class Component extends DCLogic {
       row.appendChild(mk('✕','Remover',()=>this._removeHl(h.id),'transparent','var(--danger)'));
       card.appendChild(row); rd.sList.appendChild(card); });
   }
-  _jumpToHl(h){ const rd=this._rd; if(!rd) return; const rc=h.rects[0]; const pg=rd.pages.find(p=>p.page===rc.page); if(!pg) return; const top=pg.wrap.offsetTop + rc.y*pg.wrap.clientHeight - 80; rd.scroll.scrollTo({top:Math.max(0,top), behavior:'smooth'});
+  _jumpToHl(h){ const rd=this._rd; if(!rd) return; const rc=h.rects[0]; const pg=rd.pages.find(p=>p.page===rc.page); if(!pg) return; const top=pg.wrap.offsetTop + rc.y*pg.wrap.clientHeight - 80; rd.scroll.scrollTo({top:Math.max(0,top), behavior:this._rolagem()});
     setTimeout(()=>{ const el=pg.hlLayer.querySelector('[data-hid="'+h.id+'"]'); if(el){ el.classList.remove('rd-jump'); void el.offsetWidth; el.classList.add('rd-jump'); } }, 300); }
   _removeHl(id){ const itemId=this._rd.item.id; this.setState(s=>{ const all={...s.highlights}; all[itemId]=(all[itemId]||[]).filter(h=>h.id!==id); this._saveHL(all); return {highlights:all}; }); if(this._rd._pop) this._closeHlPopover(); this.flashSync(); }
   _updateHl(id, patch){ const itemId=this._rd.item.id; this.setState(s=>{ const all={...s.highlights}; all[itemId]=(all[itemId]||[]).map(h=>h.id===id?{...h,...patch,up:Date.now()}:h); this._saveHL(all); return {highlights:all}; }); this.flashSync(); }
@@ -13149,7 +13180,7 @@ class Component extends DCLogic {
   limparAjBusca = ()=>{ this.setState({ajBusca:'', ajBuscaN:0}); this._filtrarAjustes(''); };
   irParaAjuste = (e)=>{ const t=e.currentTarget.dataset.t||'perfil';
     this.setState({ajSec:t, ajBusca:'', ajBuscaN:0});
-    setTimeout(()=>{ try{ this._filtrarAjustes(''); window.scrollTo({top:0,behavior:'smooth'}); }catch(_){} }, 60); };
+    setTimeout(()=>{ try{ this._filtrarAjustes(''); window.scrollTo({top:0,behavior:this._rolagem()}); }catch(_){} }, 60); };
   _ajResultados(q){
     const t=String(q||'').trim().toLowerCase();
     if(!t) return [];
@@ -13188,7 +13219,7 @@ class Component extends DCLogic {
   setOrientVal = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.dataset.v;
     this.setState(s=>({orient:{...s.orient,[k]:v}}), ()=>{ try{ localStorage.setItem('catedra:orient',JSON.stringify(this.state.orient)); }catch(_){} }); };
   // rolagem para uma seção dos Ajustes — os chips do topo apontam para os ids aj-*
-  ajIr = (e)=>{ const el=document.getElementById('aj-'+(e.currentTarget.dataset.s||'')); if(!el) return; const suave=!window.matchMedia('(prefers-reduced-motion: reduce)').matches; el.scrollIntoView({behavior:suave?'smooth':'auto',block:'start'}); };
+  ajIr = (e)=>{ const el=document.getElementById('aj-'+(e.currentTarget.dataset.s||'')); if(!el) return; el.scrollIntoView({behavior:this._rolagem(),block:'start'}); };
   /* Trocar de área deixou de ser um clique só. Desde que cada área ganhou o seu caderno,
      a troca tem consequência: a pessoa encontra o edital, as revisões e o histórico DAQUELA
      área — que, na primeira vez, estão vazios. Ver isso de repente parece perda de dados.

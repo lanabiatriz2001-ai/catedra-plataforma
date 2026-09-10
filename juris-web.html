@@ -873,7 +873,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     if(reg!==null)h+='</div>';
     el.innerHTML=h;
     el.querySelectorAll('.acv').forEach(function(b){
-      b.onclick=function(){ f.tribunal=b.dataset.sg; f.base=''; f.ramo=''; setPane('acervo'); build(); window.scrollTo({top:0,behavior:'smooth'}); };
+      b.onclick=function(){ f.tribunal=b.dataset.sg; f.base=''; f.ramo=''; setPane('acervo'); build(); window.scrollTo({top:0,behavior:(document.documentElement.getAttribute('data-baixa')==='1'||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))?'auto':'smooth'}); };
     });
   }
 
@@ -972,7 +972,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     page=0; applyFilter(); listEl.innerHTML=''; renderPage(); stats();
     renderTribChips(); renderBaseChips(); renderRamoChips(); renderFiltroBar();
     setPane('acervo');
-    window.scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top:0,behavior:(document.documentElement.getAttribute('data-baixa')==='1'||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))?'auto':'smooth'});
   }
 
   // ================= JULGADO DO DIA =================
