@@ -12,10 +12,15 @@
 // negrito, itálico, listas, tabela, nota de rodapé). Sem dependência externa. O TEXTO dos
 // documentos não é alterado aqui — quem muda o texto muda o .md.
 //
+// A única coisa que o build PREENCHE são os dados do controlador e os prazos, lidos de
+// docs/juridico/controlador.json (o único lugar a editar antes de publicar). Enquanto faltar
+// algum, o marcador entre colchetes fica no texto e a página sai carimbada como rascunho; com
+// tudo preenchido, o carimbo e a nota de rodapé "¹ Os campos entre colchetes…" somem sozinhos.
+//
 // Importado pelos dois builds (scripts/build.mjs e scripts/build-macos.mjs), que copiam os três
 // arquivos; roda também sozinho: `node scripts/build-juridico.mjs`.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -40,6 +45,42 @@ export function cabecalho(md) {
   const v = /\*\*Vers[ãa]o\s+([\d.]+)([^*]*)\*\*/i.exec(md), d = /\*\*Data:\s*([\d/]+)\*\*/i.exec(md);
   const iso = d ? d[1].split('/').reverse().join('-') : '';
   return { versao: v ? v[1] : '', nota: v ? v[2].replace(/^\s*[—-]\s*/, '').trim() : '', data: d ? d[1] : '', dataISO: iso };
+}
+
+/** Marcadores do texto → campo de docs/juridico/controlador.json. Os prazos carregam a proposta no próprio marcador. */
+export const CAMPOS = [
+  { campo: 'controlador', re: /\[RAZÃO SOCIAL \/ NOME DO CONTROLADOR\]/g, rotulo: 'razão social ou nome do controlador' },
+  { campo: 'cnpjCpf', re: /\[CNPJ\/CPF\]/g, rotulo: 'CNPJ ou CPF' },
+  { campo: 'endereco', re: /\[ENDEREÇO\]/g, rotulo: 'endereço' },
+  { campo: 'emailContato', re: /\[E-MAIL DE CONTATO\]/g, rotulo: 'e-mail de contato' },
+  { campo: 'emailEncarregado', re: /\[E-MAIL DO ENCARREGADO\]/g, rotulo: 'e-mail do encarregado' },
+  { campo: 'prazos.avisoEncerramentoDias', re: /\[ENCERRAMENTO:\s*\d+\]/g, rotulo: 'prazo de aviso de encerramento', numero: true },
+  { campo: 'prazos.avisoMudancaDias', re: /\[MUDANÇA:\s*\d+\]/g, rotulo: 'prazo de aviso de mudança', numero: true },
+  { campo: 'prazos.exclusaoNuvemDias', re: /\[EXCLUSÃO:\s*\d+\]/g, rotulo: 'prazo de exclusão da nuvem', numero: true },
+  { campo: 'prazos.retencaoIaMeses', re: /\[RETENÇÃO IA:\s*\d+\]/g, rotulo: 'retenção da contagem de IA', numero: true },
+];
+
+export function lerControlador() {
+  const p = join(ROOT, 'docs/juridico/controlador.json');
+  return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : {};
+}
+
+/**
+ * Preenche os marcadores com os dados do controlador. Pura: devolve o Markdown preenchido e a lista
+ * do que ainda falta (rótulos). Campo vazio mantém o marcador; com tudo preenchido, a nota de rodapé
+ * "¹ Os campos entre colchetes…" e as chamadas "¹" no texto saem, porque deixam de ser verdade.
+ */
+export function preencher(md, dados) {
+  const d = dados || {}, faltam = [];
+  let s = String(md || '');
+  for (const c of CAMPOS) {
+    const v = c.campo.split('.').reduce((o, k) => (o && o[k] != null ? o[k] : ''), d);
+    const val = String(v).trim();
+    if (!val || (c.numero && !/^\d+$/.test(val))) { faltam.push(c.rotulo); continue; }
+    s = s.replace(c.re, val.replace(/\$/g, '$$$$'));
+  }
+  if (!faltam.length) s = s.replace(/^¹ Os campos entre colchetes[^\n]*\n?/m, '').replace(/¹(?=[\s.,;)]|$)/gm, '');
+  return { md: s, faltam };
 }
 
 /** Markdown → HTML: só as construções que os documentos jurídicos usam. */
@@ -101,8 +142,9 @@ th { font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 `;
 
-export function montarPagina(doc, md) {
+export function montarPagina(doc, md, faltam) {
   const cab = cabecalho(md);
+  if (faltam && faltam.length) cab.nota = (cab.nota ? cab.nota + ' — ' : '') + 'rascunho: faltam ' + faltam.length + ' dado(s) do controlador';
   const corpo = converterMarkdown(md.replace(/^\*\*Vers[ãa]o[^\n]*\n\*\*Data:[^\n]*\n?/m, ''));
   return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'
     + '<title>' + escapar(doc.titulo) + ' — Cátedra</title>\n<meta name="robots" content="noindex">\n<style>' + CSS + '</style>\n</head>\n<body>\n'
@@ -113,14 +155,17 @@ export function montarPagina(doc, md) {
 
 /** Gera os três arquivos e devolve o resumo. */
 export function gerar() {
-  const info = {};
+  const info = {}, dados = lerControlador();
+  let faltamTotal = [];
   for (const doc of DOCS) {
-    const md = readFileSync(join(ROOT, doc.md), 'utf8');
+    const { md, faltam } = preencher(readFileSync(join(ROOT, doc.md), 'utf8'), dados);
     const cab = cabecalho(md);
     if (!cab.versao) throw new Error(doc.md + ': sem linha "**Versão X.Y …**" no cabeçalho — o aceite é versionado e precisa dela');
-    writeFileSync(join(ROOT, doc.html), montarPagina(doc, md));
+    writeFileSync(join(ROOT, doc.html), montarPagina(doc, md, faltam));
     info[doc.id] = { versao: cab.versao, data: cab.dataISO, titulo: doc.titulo, arquivo: doc.html };
+    faltamTotal = faltamTotal.concat(faltam.filter((f) => !faltamTotal.includes(f)));
   }
+  if (faltamTotal.length) console.warn('  ⚠ Termos/Política saem como RASCUNHO — faltam em docs/juridico/controlador.json: ' + faltamTotal.join(', '));
   // a versão vigente do aceite é o par: mudou qualquer um dos dois, pede-se aceite de novo
   const versao = info.termos.versao + '/' + info.privacidade.versao;
   const js = '// juridico.js — GERADO por scripts/build-juridico.mjs a partir de docs/juridico/*.md. Não editar à mão.\n'
