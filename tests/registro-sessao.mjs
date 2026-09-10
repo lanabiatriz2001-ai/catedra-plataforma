@@ -9,16 +9,81 @@
      DEPOIS pela mesma chave do _brain; com a revisão ligada, "amanhã"; desligada, some;
    · as projeções batem com o que o registro grava de verdade (meta de hoje e revisão);
    · chips de tipo têm estado em aria-pressed; todo select e input tem nome; nada estoura em
-     390 px; nenhum emoji sobrou como ícone. */
+     390 px; nenhum emoji sobrou como ícone.
+
+   RELÓGIO FIXO (09/09/2026). O app data a sessão por "agora − minutos" (teto 10 h): sessão de
+   madrugada pertence a ontem, e aí a faixa mostra "Conta no dia …/… — a sessão começou antes da
+   meia-noite" em vez de Meta de hoje / Semana / Ofensiva. Com 45 min digitados, a suíte
+   falhava sempre que rodava entre 00:00 e 00:45 locais (na CI, UTC — PR #47). O app está certo;
+   o teste é que dependia da hora. Por isso o relógio da página é fixado às 14:00 do dia corrente
+   ANTES de semear e de abrir o app, com o Playwright (page.clock.install): a semente (ago(1)) e
+   o app enxergam o mesmo "hoje", e o tempo continua correndo a partir daí — cronômetro e
+   autosave (setTimeout/setInterval) seguem disparando. O relógio falso não tem desinstalar, então
+   o roteiro corre num contexto próprio e não vaza para o que vier depois na suíte. */
 
 import path from 'path';
 import { pathToFileURL } from 'url';
 
-export async function testarRegistroSessao(page, base, ok, opcoes = {}) {
+export async function testarRegistroSessao(pageDaSuite, base, ok, opcoes = {}) {
   const motor = opcoes.motor || 'chromium';
   const origem = opcoes.origem || (String(base).startsWith('file:') ? 'file' : 'http');
   const arquivo = opcoes.arquivo || 'Catedra.dc.html';
   const R = 'REGISTRO [' + motor + '] [' + origem + '] ';
+
+  // Contexto próprio com relógio fixo (ver cabeçalho): 14:00 locais de hoje, tempo correndo.
+  // Contexto, e não só página, porque a página da suíte vem de browser.newPage() (contexto
+  // fechado a novas páginas) — e o localStorage isolado não atrapalha: o roteiro semeia tudo.
+  // `opcoes.relogio` existe para o próprio teste do relógio provar a janela da falha (00:20).
+  const ctx = await pageDaSuite.context().browser().newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+  const relogio = opcoes.relogio || (() => { const t = new Date(); t.setHours(14, 0, 0, 0); return t; })();
+  await page.clock.install({ time: relogio });
+  try { await roteiro(page, base, ok, R, arquivo, relogio); }
+  finally { await ctx.close(); }
+  if (!opcoes.relogio) await madrugada(pageDaSuite, base, ok, R, arquivo);
+}
+
+// O ramo que derrubava a CI, agora coberto de propósito: às 00:20 com 45 min digitados, a
+// sessão começou ontem — a faixa avisa e o registro grava a data de ontem. É também a prova
+// de que o relógio fixo governa a data do app (sem ele, este caso só existiria de madrugada).
+async function madrugada(pageDaSuite, base, ok, R, arquivo) {
+  const ctx = await pageDaSuite.context().browser().newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+  const t = new Date(); t.setHours(0, 20, 0, 0);
+  await page.clock.install({ time: t });
+  try {
+    await page.goto(base + '/__semente');
+    await page.evaluate(() => {
+      localStorage.clear();
+      const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+      set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica');
+      set('edital', [{ disc: 'Direito Civil', peso: 2, questoes: 15, topics: [{ name: 'Obrigações', done: false, subs: [] }] }]);
+      set('sessions', []); set('reviews', []); set('errors', []);
+    });
+    await page.goto(base + '/' + arquivo); await page.waitForTimeout(1800);
+    const m = await page.evaluate(async () => {
+      const w = ms => new Promise(res => setTimeout(res, ms));
+      const ymd = d => { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
+      const ontem = new Date(); ontem.setDate(ontem.getDate() - 1);
+      [...document.querySelectorAll('button')].find(b => /registrar sess/i.test(b.textContent || '')).click(); await w(1000);
+      const dlg = document.querySelector('[role="dialog"][aria-label="Registrar sessão"]');
+      const selD = dlg.querySelector('select[aria-label="Disciplina"]'); selD.value = 'Direito Civil'; selD.dispatchEvent(new Event('change', { bubbles: true })); await w(300);
+      const min = dlg.querySelector('input[data-k="minutos"]'); min.value = '45'; min.dispatchEvent(new Event('input', { bubbles: true })); await w(400);
+      const faixa = (dlg.querySelector('.ct-reg-efeito') || {}).textContent || '';
+      const esperado = 'Conta no dia ' + ymd(ontem).slice(8, 10) + '/' + ymd(ontem).slice(5, 7) + ' — a sessão começou antes da meia-noite';
+      [...dlg.querySelectorAll('button')].find(b => /^Registrar sessão$/.test((b.textContent || '').trim())).click(); await w(1400);
+      const S = JSON.parse(localStorage.getItem('catedra:sessions') || '[]');
+      return { avisa: faixa.includes(esperado), semMetaDeHoje: !/Meta de hoje/.test(faixa), gravouOntem: S.length === 1 && S[0].date === ymd(ontem), faixa };
+    });
+    ok(m.avisa, R + 'madrugada (00:20, 45 min): a faixa diz que a sessão conta em ontem, começou antes da meia-noite');
+    ok(m.semMetaDeHoje, R + 'madrugada: não promete "Meta de hoje" para uma sessão de ontem');
+    ok(m.gravouOntem, R + 'madrugada: o registro grava a data de ontem, como a faixa prometeu');
+  } finally { await ctx.close(); }
+}
+
+async function roteiro(page, base, ok, R, arquivo, relogio) {
   const w = ms => page.waitForTimeout(ms);
 
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -36,6 +101,11 @@ export async function testarRegistroSessao(page, base, ok, opcoes = {}) {
   });
   await page.goto(base + '/' + arquivo);
   await w(1800);
+
+  // o relógio fixo pegou: o app vê o "hoje" do relógio, e o tempo continua correndo
+  const rel = await page.evaluate(() => Date.now());
+  ok(Math.abs(rel - relogio.getTime()) < 60000, R + 'o app enxerga o relógio fixo (' + new Date(rel).toISOString() + ')');
+  ok(rel > relogio.getTime(), R + 'o tempo continua correndo a partir do relógio fixo (cronômetro e autosave vivos)');
 
   const r = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
