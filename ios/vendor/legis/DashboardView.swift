@@ -236,7 +236,8 @@ struct DashboardView: View {
                     HStack(spacing: 10) {
                         heroStat("\(store.totalReadUnits)", "artigos lidos")
                         heroStat("\(store.totalReviewUnits)", "p/ revisão")
-                        heroStat("🔥 \(store.currentStreak)d", "sequência")
+                        // Baixa estimulação: a sequência (gamificação) sai do hero; o dado fica no store.
+                        if !ThemeState.t.baixaEstimulacao { heroStat("🔥 \(store.currentStreak)d", "sequência") }
                         heroStat("\(store.activeDaysLastYear)", "dias ativos")
                     }
                 }

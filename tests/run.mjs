@@ -2209,11 +2209,55 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     app._toast('Backup completo exportado ✦'); await w(200);
     r.avisoNormalFica = /Backup completo exportado ✦/.test(toastTxt());
     r.emoStrip = app._emo('✨ Explicar') === 'Explicar' && app._emo('Plano concluído 🎉') === 'Plano concluído' && app._emo('está com ofensiva de 3 dias 🔥') === 'está com ofensiva de 3 dias';
+    // MOVIMENTO (ligado): o interruptor também desliga as animações — medido no getComputedStyle, não na
+    // presença do atributo. O Chrome serializa .001ms como "1e-06s"; durs() lê s e ms e pega o maior da lista.
+    const durs = (v) => String(v || '0s').split(',').map(x => { x = x.trim(); return /ms$/.test(x) ? parseFloat(x) / 1000 : (parseFloat(x) || 0); });
+    const trans = (el) => el ? Math.max(...durs(getComputedStyle(el).transitionDuration)) : NaN;
+    const anim = (el) => el ? Math.max(...durs(getComputedStyle(el).animationDuration)) : NaN;
+    r.movHtmlEspelhado = document.documentElement.getAttribute('data-baixa') === '1';
+    r.movBotaoDoMenuSemTransicao = trans(document.querySelector('aside nav button')) < 0.01;
+    // o toast é anexado ao <body>, FORA da div raiz: só o espelho no <html> o alcança
+    r.movToastForaDaRaizParado = !!app._toastEl && !raiz.contains(app._toastEl) && trans(app._toastEl) < 0.01 && anim(app._toastEl) < 0.01;
+    r.movRolagemSemSuave = app._rolagem() === 'auto';
+    // PiP do cronômetro: a janela do Document PiP é OUTRO documento, com <style> próprio — não herda a regra
+    // global do host. Stub do requestWindow com window.open (mesma origem, about:blank). O ponto de status é
+    // forçado a data-on="1" e medido na mesma volta do laço, antes que o intervalo de 500 ms o redesenhe.
+    const pipTinha = Object.prototype.hasOwnProperty.call(window, 'documentPictureInPicture'), pipOrig = window.documentPictureInPicture;
+    try { Object.defineProperty(window, 'documentPictureInPicture', { configurable: true, writable: true, value: { requestWindow: async () => window.open('', 'ct-pip-teste', 'width=380,height=272') } }); } catch (_) {}
+    const pipMede = () => { const pw = app._pipWin; if (!pw || pw.closed) return null;
+      const st = pw.document.getElementById('ct-pip-status'); st.setAttribute('data-on', '1');
+      return { attr: pw.document.documentElement.getAttribute('data-baixa'), anim: pw.getComputedStyle(st.querySelector('.dot')).animationName,
+        trans: Math.max(...durs(pw.getComputedStyle(pw.document.getElementById('ct-pip-bar')).transitionDuration)) }; };
+    try { await app._openDocPiP(); } catch (_) {}
+    const pip1 = pipMede();
+    r.movPipAbreParado = !!pip1 && pip1.attr === '1' && pip1.anim === 'none' && pip1.trans < 0.01;
+    const pl = app._widgetPayload(), plw = window.catedraWidgetPayload && window.catedraWidgetPayload();
+    r.movPayloadNativoLigado = pl.baixa === true && !!plw && plw.baixa === true && typeof pl.streak === 'number';
+    // o LEGIS dentro do host recebe a baixa na abertura (atalho de mesma origem ou resposta ao ctPronto)
+    const docLegis = () => { try { const f = document.querySelector('iframe[data-ct-view="legis"]'); return f && f.contentDocument && f.contentDocument.documentElement; } catch (_) { return null; } };
+    window.__catedraGoView('legis');
+    for (let i = 0; i < 40 && !(docLegis() && docLegis().getAttribute('data-baixa') === '1'); i++) await w(250);
+    r.movLegisNoHostLigado = !!docLegis() && docLegis().getAttribute('data-baixa') === '1';
     // desligado de novo: tudo volta
     window.__catedraGoView('ajustes'); await w(500); const aba2 = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'automacoes'); if (aba2) { aba2.click(); await w(400); }
     document.querySelector('main button[data-k="baixaEstimulacao"]').click(); await w(900);
     window.__catedraGoView('inicio'); await w(600);
     r.desligadoVolta = raiz.getAttribute('data-baixa') === '' && [...document.querySelectorAll('.ct-gam')].some(vis) && app._emo('✨ Explicar') === '✨ Explicar';
+    // MOVIMENTO (desligado): as mesmas medidas voltam — prova de que as de cima não passavam por acaso
+    r.movDesligadoHtmlSemAtributo = !document.documentElement.hasAttribute('data-baixa');
+    r.movDesligadoBotaoDoMenuAnima = trans(document.querySelector('aside nav button')) >= 0.1;
+    app._toast('Aviso de teste do movimento'); await w(100);
+    r.movDesligadoToastAnima = trans(app._toastEl) >= 0.1;
+    r.movDesligadoRolagemSuave = app._rolagem() === 'smooth';
+    // a mesma janela do PiP, aberta durante a troca: _baixaRaiz tira o atributo dela e o ponto volta a pulsar
+    const pip2 = pipMede();
+    r.movPipDesligadoComJanelaAbertaVolta = !!pip2 && pip2.attr === null && pip2.anim === 'pulse' && pip2.trans >= 0.1;
+    try { app._closeDocPiP(); } catch (_) {}
+    try { if (pipTinha) window.documentPictureInPicture = pipOrig; else delete window.documentPictureInPicture; } catch (_) {}
+    r.movPayloadNativoDesligado = app._widgetPayload().baixa === false && window.catedraWidgetPayload().baixa === false;
+    // o LEGIS já montado (e escondido) solta junto: _baixaRaiz reenvia o tema quando o valor muda
+    for (let i = 0; i < 20 && docLegis() && docLegis().getAttribute('data-baixa') === '1'; i++) await w(150);
+    r.movLegisNoHostDesligado = !!docLegis() && !docLegis().hasAttribute('data-baixa');
     // cor-texto: para cada disciplina do edital, o texto derivado passa em 4,5:1 sobre a superfície nos dois modos
     const lum = (h) => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
     const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
@@ -2237,6 +2281,87 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     return r;
   });
   for (const [k, v] of Object.entries(h)) { if (k === 'selectsSemNome') { if (v) ok(false, 'A11Y/P16 host selects sem nome: ' + v); continue; } ok(v, 'A11Y/P16 host ' + k); }
+  // Cartão-botão (button.ct-card): no hover sobe 2 px. Com a baixa ligada, nem transição NEM salto — o gêmeo
+  // do prefers-reduced-motion zera as duas. Hover de verdade (mouse do Playwright) no banco de discursivas da
+  // Redação, que carrega assíncrono; o elemento é achado pelo ponto, não por marca que um re-render apagaria.
+  const cartaoNoPonto = (baixa) => page.evaluate(async (baixa) => {
+    const w = ms => new Promise(res => setTimeout(res, ms)), app = window.__catedraApp;
+    app.setState({ prefs: Object.assign({}, app.state.prefs, { baixaEstimulacao: baixa }) }); await w(300);
+    window.__catedraGoView('redacao'); await w(500);
+    if (!app.state.bancoOpen) app.toggleBanco();
+    const acha = () => document.querySelector('main .ct-grade button.ct-card');
+    for (let i = 0; i < 60 && !acha(); i++) await w(250);
+    const el = acha(); if (!el) return null;
+    el.scrollIntoView({ block: 'center' }); await w(200);
+    const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+  }, baixa);
+  const transformNoHover = async (pt) => {
+    if (!pt) return null;
+    await page.mouse.move(1, 1); await page.waitForTimeout(250);
+    await page.mouse.move(pt.x, pt.y); await page.waitForTimeout(450);
+    return page.evaluate((pt) => { const el = document.elementFromPoint(pt.x, pt.y); const c = el && el.closest('button.ct-card'); return c ? getComputedStyle(c).transform : null; }, pt);
+  };
+  const tfLigado = await transformNoHover(await cartaoNoPonto(true));
+  const tfDesligado = await transformNoHover(await cartaoNoPonto(false));
+  ok(tfLigado === 'none', 'A11Y/P16 host cartão-botão não sobe no hover com a baixa ligada (transform ' + tfLigado + ')');
+  ok(!!tfDesligado && tfDesligado !== 'none', 'A11Y/P16 host cartão-botão sobe no hover com a baixa desligada (transform ' + tfDesligado + ')');
+  await page.mouse.move(1, 1);
+  await page.evaluate(() => { const app = window.__catedraApp; if (app.state.bancoOpen) app.toggleBanco(); window.__catedraGoView('inicio'); });
+  // SATÉLITE avulso: o LEGIS recebe a baixa estimulação pela mensagem ctTheme (tema-satelite.js) e para o
+  // movimento. '1' liga, '' desliga, e a chave AUSENTE (host de bundle antigo) não mexe no que está.
+  const sctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const sp = await sctx.newPage();
+  await sp.goto(URL0 + '/legis-web.html?area=juridica'); await sp.waitForTimeout(900);
+  const s = await sp.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms)); const r = {};
+    const durs = (v) => String(v || '0s').split(',').map(x => { x = x.trim(); return /ms$/.test(x) ? parseFloat(x) / 1000 : (parseFloat(x) || 0); });
+    const trans = (el) => el ? Math.max(...durs(getComputedStyle(el).transitionDuration)) : NaN;
+    const raizSat = document.documentElement;
+    // o primeiro elemento da página com transição de verdade (≥ 100 ms) antes da mensagem
+    const alvo = [...document.querySelectorAll('body *')].find(el => trans(el) >= 0.1);
+    r.temElementoComTransicao = !!alvo;
+    r.abreSemAtributo = !raizSat.hasAttribute('data-baixa');
+    // tokens: {} é o mínimo que aplicar() aceita — não troca cor nenhuma, só marca data-ct-tema
+    const manda = (extra) => window.postMessage(Object.assign({ type: 'ctTheme', tokens: {} }, extra), '*');
+    manda({ baixa: '1' }); await w(250);
+    r.ligaPelaMensagem = raizSat.dataset.baixa === '1' && !!alvo && trans(alvo) < 0.01;
+    manda({}); await w(200);
+    r.chaveAusenteNaoDesliga = raizSat.dataset.baixa === '1';
+    manda({ baixa: '' }); await w(250);
+    r.vazioDesliga = !raizSat.hasAttribute('data-baixa') && !!alvo && trans(alvo) >= 0.1;
+    manda({}); await w(200);
+    r.chaveAusenteNaoLiga = !raizSat.hasAttribute('data-baixa');
+    return r;
+  });
+  // JURIS → Mapas das Súmulas Vinculantes: iframe DENTRO do satélite, sem tema-satelite.js, fora do alcance do
+  // _temaBroadcast. As duas rolagens por JS (índice e voltar ao topo) leem o data-baixa do JURIS no clique.
+  await sp.goto(URL0 + '/juris-web.html'); await sp.waitForTimeout(2200);
+  const mapas = await sp.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms)); const r = {};
+    document.querySelector('#tabs .tab[data-pane="mapas"]').click();
+    const fr = document.getElementById('mapasFrame');
+    const doc = () => { try { return fr.contentDocument; } catch (_) { return null; } };
+    for (let i = 0; i < 40 && !(doc() && doc().readyState === 'complete' && doc().querySelector('a.ix')); i++) await w(250);
+    const fw = fr.contentWindow, fd = doc();
+    r.carregou = !!fd && !!fd.querySelector('a.ix') && !!fd.getElementById('up');
+    if (!r.carregou) return r;
+    const vistos = [];
+    fw.Element.prototype.scrollIntoView = function (o) { vistos.push('ix:' + (o && o.behavior)); };
+    fw.scrollTo = function (o) { vistos.push('up:' + (o && o.behavior)); };
+    const clica = () => { vistos.length = 0; fd.querySelector('a.ix').click(); fd.getElementById('up').click(); return vistos.join(','); };
+    const manda = (extra) => window.postMessage(Object.assign({ type: 'ctTheme', tokens: {} }, extra), '*');
+    manda({ baixa: '1' }); await w(250);
+    const lig = clica();
+    r.ligadoSemSuave = document.documentElement.getAttribute('data-baixa') === '1' && lig === 'ix:auto,up:auto';
+    manda({ baixa: '' }); await w(250);
+    const des = clica();
+    r.desligadoSuave = !document.documentElement.hasAttribute('data-baixa') && des === 'ix:smooth,up:smooth';
+    if (!r.ligadoSemSuave || !r.desligadoSuave) r.vistos = lig + ' | ' + des;
+    return r;
+  });
+  await sctx.close();
+  for (const [k, v] of Object.entries(s)) ok(v, 'A11Y/P16 satélite ' + k);
+  for (const [k, v] of Object.entries(mapas)) { if (k === 'vistos') { ok(false, 'A11Y/P16 mapas SV rolagens vistas: ' + v); continue; } ok(v, 'A11Y/P16 mapas SV ' + k); }
   // no toque (iPad): todo botão da área de conteúdo e da barra superior com 44 px
   const ctxToque = await browser.newContext({ viewport: { width: 1024, height: 768 }, hasTouch: true, isMobile: false });
   const pg = await ctxToque.newPage();
