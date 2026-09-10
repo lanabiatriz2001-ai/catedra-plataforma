@@ -51,3 +51,15 @@ ios/.build-n
 # lixo de manutenção do git de outra sessão (locks, worktree antiga) — entrou por engano
 # num `git add -A` meu; fica no disco, fora do repositório
 _to_delete/
+
+# Impeccable (skill de design): só o que é compartilhado fica versionado
+# (.impeccable/config.json, surfaces/, critique/, design.json). O resto é estado local.
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/hook.pending.json
+.impeccable/update-check.json
+.impeccable/staleness-check.json
+.impeccable/questions/
+.impeccable/live/
+.impeccable/mocks/
+.impeccable/review/
