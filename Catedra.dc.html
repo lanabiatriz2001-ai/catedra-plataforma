@@ -2271,39 +2271,66 @@ window.ctPdfLib = (function(){
                 <button onclick="{{ agAddSubmit }}" class="ct-btn" style="margin-left:auto;">Adicionar {{ agAddResumo }}</button>
               </div>
             </div>
-            <div style="overflow-x:auto;padding-bottom:4px;">
-              <div style="display:grid;grid-template-columns:repeat(8,minmax(196px,1fr));gap:9px;align-items:start;">
+            <!-- A SEMANA: cada atividade é um cartão legível na cor da matéria (tópico, tipo, minutos);
+                 tocar abre a edição — um cartão por vez, campos com rótulo e largura inteira. -->
+            <div class="ct-ag-rolagem">
+              <div class="ct-ag-grid">
               <sc-for list="{{ manualAgendaGroups }}" as="g" hint-placeholder-count="8">
-                <div style="border:1px solid {{ g.colBorder }};border-radius:var(--radius);padding:10px;background:{{ g.colBg }};display:flex;flex-direction:column;min-width:0;">
-                  <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;min-height:20px;">
-                    <span style="font-weight:700;font-size:var(--fs-sm);color:var(--ink);white-space:nowrap;">{{ g.label }}</span>
-                    <sc-if value="{{ g.isToday }}" hint-placeholder-val="{{ false }}"><span style="font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--onAccent);background:var(--accent);padding:2px 6px;border-radius:99px;">hoje</span></sc-if>
-                    <span style="font-size:var(--fs-2xs);color:var(--text3);margin-left:auto;font-family:var(--mono);">{{ g.countLabel }}</span>
-                  </div>
-                  <div style="display:flex;flex-direction:column;gap:7px;">
+                <section class="ct-ag-col" data-hoje="{{ g.hojeN }}" aria-label="{{ g.label }}">
+                  <header class="ct-ag-col-cab">
+                    <span class="ct-ag-col-dia">{{ g.label }}</span>
+                    <sc-if value="{{ g.isToday }}" hint-placeholder-val="{{ false }}"><span class="ct-selo ct-ag-hoje">hoje</span></sc-if>
+                  </header>
+                  <div class="ct-ag-col-carga">{{ g.cargaLabel }}</div>
+                  <div class="ct-ag-lista">
                     <sc-for list="{{ g.items }}" as="f" hint-placeholder-count="1">
-                      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:8px;display:flex;flex-direction:column;gap:6px;">
-                        <div style="display:flex;gap:5px;align-items:center;">
-                          <select data-id="{{ f.id }}" data-field="discEdital" value="{{ f.discEdital }}" onchange="{{ editFixed }}" title="Disciplina do edital" style="flex:1;min-width:0;border:1px solid {{ f.vincBorder }};background:var(--surface2);border-radius:var(--r-sm);padding:6px 7px;font-size:var(--fs-sm);color:{{ f.vincColor }};font-family:inherit;font-weight:600;cursor:pointer;" aria-label="Disciplina do edital"><option value="">— disciplina —</option><sc-for list="{{ f.discOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
-                          <button class="ct-alvo" data-id="{{ f.id }}" onclick="{{ removeFixed }}" title="Remover" style="width:22px;height:22px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;font-size:var(--fs-sm);line-height:1;">×</button>
-                        </div>
-                        <sc-if value="{{ f.temRoteiro }}" hint-placeholder-val="{{ false }}"><span title="{{ f.roteiro }}" style="align-self:flex-start;font-size:var(--fs-3xs);font-weight:700;letter-spacing:.05em;color:var(--text3);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">{{ f.rotShort }}</span></sc-if>
-                        <div style="display:flex;gap:5px;align-items:center;">
-                          <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" title="Tipo" style="flex:1;min-width:0;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:5px 4px;font-size:var(--fs-xs);color:var(--ink);font-family:inherit;cursor:pointer;" aria-label="Tipo"><sc-for list="{{ f.kindOpts }}" as="k" hint-placeholder-count="6"><option value="{{ k.v }}" selected="{{ k.sel }}">{{ k.v }}</option></sc-for></select>
-                          <select data-id="{{ f.id }}" data-field="dia" value="{{ f.dia }}" onchange="{{ editFixed }}" title="Mover para outro dia" style="width:64px;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:5px 3px;font-size:var(--fs-xs);color:var(--ink);font-family:inherit;cursor:pointer;flex:none;" aria-label="Mover para outro dia"><option value="">Todo dia</option><option value="seg">Seg</option><option value="ter">Ter</option><option value="qua">Qua</option><option value="qui">Qui</option><option value="sex">Sex</option><option value="sab">Sáb</option><option value="dom">Dom</option></select>
-                          <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" title="Minutos" style="width:44px;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:5px 4px;font-size:var(--fs-xs);color:var(--ink);font-family:var(--mono);flex:none;text-align:center;">
-                        </div>
-                        <sc-if value="{{ f.temTopicos }}" hint-placeholder-val="{{ false }}">
-                          <select data-id="{{ f.id }}" data-field="topico" value="{{ f.topico }}" onchange="{{ editFixed }}" title="Tópico da disciplina (do edital)" style="width:100%;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:5px 4px;font-size:var(--fs-xs);color:var(--ink);font-family:inherit;cursor:pointer;" aria-label="Tópico da disciplina (do edital)"><option value="">— tópico —</option><sc-for list="{{ f.topicOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
-                        </sc-if>
-                        <sc-if value="{{ f.temSubs }}" hint-placeholder-val="{{ false }}">
-                          <select data-id="{{ f.id }}" data-field="subtopico" value="{{ f.subtopico }}" onchange="{{ editFixed }}" title="Subtópico (do edital) — deixe vazio para o tópico inteiro" style="width:100%;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:5px 4px;font-size:var(--fs-xs);color:var(--ink);font-family:inherit;cursor:pointer;" aria-label="Subtópico (do edital) — deixe vazio para o tópico inteiro"><option value="">— todo o tópico —</option><sc-for list="{{ f.subOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                      <div class="ct-item ct-ag" style="{{ f.itemStyle }}" data-editando="{{ f.editingN }}" data-sem-disc="{{ f.semDisc }}">
+                        <button class="ct-ag-cab" data-id="{{ f.id }}" onclick="{{ agEditToggle }}" aria-expanded="{{ f.editingStr }}" title="{{ f.cabTitle }}">
+                          <span class="ct-ag-texto">
+                            <span class="ct-ag-tit">{{ f.titulo }}</span>
+                            <span class="ct-ag-meta">{{ f.meta }}</span>
+                          </span>
+                          <svg class="ct-ag-seta" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </button>
+                        <sc-if value="{{ f.editing }}" hint-placeholder-val="{{ false }}">
+                          <div class="ct-ag-form">
+                            <label class="ct-ag-campo"><span class="ct-rotulo">Disciplina do edital</span>
+                              <select data-id="{{ f.id }}" data-field="discEdital" value="{{ f.discEdital }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">— sem vínculo com o edital —</option><sc-for list="{{ f.discOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                            </label>
+                            <sc-if value="{{ f.temTopicos }}" hint-placeholder-val="{{ false }}">
+                              <label class="ct-ag-campo"><span class="ct-rotulo">Tópico do edital</span>
+                                <select data-id="{{ f.id }}" data-field="topico" value="{{ f.topico }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">— a disciplina inteira —</option><sc-for list="{{ f.topicOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                              </label>
+                            </sc-if>
+                            <sc-if value="{{ f.temSubs }}" hint-placeholder-val="{{ false }}">
+                              <label class="ct-ag-campo"><span class="ct-rotulo">Subtópico</span>
+                                <select data-id="{{ f.id }}" data-field="subtopico" value="{{ f.subtopico }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">— o tópico inteiro —</option><sc-for list="{{ f.subOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                              </label>
+                            </sc-if>
+                            <div class="ct-ag-linha">
+                              <label class="ct-ag-campo" style="flex:3;"><span class="ct-rotulo">Tipo</span>
+                                <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" class="ct-campo"><sc-for list="{{ f.kindOpts }}" as="k" hint-placeholder-count="6"><option value="{{ k.v }}" selected="{{ k.sel }}">{{ k.v }}</option></sc-for></select>
+                              </label>
+                              <label class="ct-ag-campo" style="flex:2;"><span class="ct-rotulo">Minutos</span>
+                                <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" class="ct-campo ct-campo-num">
+                              </label>
+                            </div>
+                            <label class="ct-ag-campo"><span class="ct-rotulo">Dia</span>
+                              <select data-id="{{ f.id }}" data-field="dia" value="{{ f.dia }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">Todo dia (rotina)</option><option value="seg">Segunda</option><option value="ter">Terça</option><option value="qua">Quarta</option><option value="qui">Quinta</option><option value="sex">Sexta</option><option value="sab">Sábado</option><option value="dom">Domingo</option></select>
+                            </label>
+                            <sc-if value="{{ f.temRoteiro }}" hint-placeholder-val="{{ false }}"><div class="ct-ag-nota">Roteiro: {{ f.roteiro }}</div></sc-if>
+                            <div class="ct-ag-acoes">
+                              <button class="ct-btn-2 ct-ag-remover" data-id="{{ f.id }}" onclick="{{ removeFixed }}">Remover</button>
+                              <button class="ct-btn" onclick="{{ agEditPronto }}">Pronto</button>
+                            </div>
+                          </div>
                         </sc-if>
                       </div>
                     </sc-for>
+                    <sc-if value="{{ g.vazio }}" hint-placeholder-val="{{ false }}"><div class="ct-ag-vazio">Nada marcado.</div></sc-if>
                   </div>
-                  <button data-dia="{{ g.dia }}" onclick="{{ addToDay }}" style="margin-top:8px;background:var(--surface);border:1px dashed var(--border);border-radius:var(--r-md);padding:6px 10px;font-size:var(--fs-xs);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">+ atividade</button>
-                </div>
+                  <button class="ct-ag-add" data-dia="{{ g.dia }}" onclick="{{ addToDay }}">+ atividade</button>
+                </section>
               </sc-for>
               </div>
             </div>
@@ -6447,6 +6474,7 @@ class Component extends DCLogic {
       manualFixed:this._load('manualFixed', []),
       manualRot:this._load('manualRot', []),
       cicloConviteOff:this._load('cicloConviteOff', false),   // "Agora não" no convite da volta manual (Executar)
+      agEditId:null,                                        // cartão da agenda aberto em edição (só de tela)
       rotPointer:this._load('rotPointer', 0),
       manualFixedRoteiroAtual:this._load('manualFixedRoteiroAtual', ''),
       agendaFeitas:this._load('agendaFeitas', {}),
@@ -9173,7 +9201,13 @@ class Component extends DCLogic {
     const _done={}; (this.state.blocks||[]).forEach(b=>{ if(b.done) _done[_bk(b)]=true; });
     this.setState({...extra, blocks:this.composeManual(f,r,p).map(b=> (!b.rotId && _done[_bk(b)])?{...b,done:true}:b)}); }
   addFixed = ()=> this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now(), disc:'', kind:'Teoria', min:30, dia:'', roteiro:(this.state.roteiroVista||this.state.manualFixedRoteiroAtual||''), discEdital:'', topico:''}]});
-  addToDay = (e)=>{ const dia=e.currentTarget.dataset.dia||''; this.syncManual({manualFixed:[...this.state.manualFixed, {id:'f'+Date.now()+Math.floor(Math.random()*1000), disc:'', kind:'Teoria', min:30, dia, roteiro:dia?((this.state.roteiroVista||this.state.manualFixedRoteiroAtual||'')):'', discEdital:'', topico:''}]}); };
+  addToDay = (e)=>{ const dia=e.currentTarget.dataset.dia||''; const id='f'+Date.now()+Math.floor(Math.random()*1000);
+    this.syncManual({manualFixed:[...this.state.manualFixed, {id, disc:'', kind:'Teoria', min:30, dia, roteiro:dia?((this.state.roteiroVista||this.state.manualFixedRoteiroAtual||'')):'', discEdital:'', topico:''}], agEditId:id});
+    setTimeout(()=>{ const s=document.querySelector('.ct-ag[data-editando="1"] select[data-field="discEdital"]'); if(s) s.focus(); }, 0); };
+  // um cartão da agenda em edição por vez; o resto fica legível
+  agEditToggle = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({agEditId: s.agEditId===id?null:id})); };
+  agEditPronto = ()=>{ const id=this.state.agEditId; this.setState({agEditId:null});
+    setTimeout(()=>{ const b=id&&document.querySelector('.ct-ag-cab[data-id="'+id+'"]'); if(b) b.focus(); }, 0); };
   setRoteiroAtual = (e)=> this.setState({manualFixedRoteiroAtual:e.currentTarget.value});
   // Seletores do registro: escolher uma lei do catálogo preenche o tópico (e a
   // disciplina, se ela existir no edital); escolher uma fonte do JURIS, idem.
@@ -9278,7 +9312,9 @@ class Component extends DCLogic {
     const extra = field==='discEdital' ? {topico:'', subtopico:'', disc:val}
                 : field==='topico'     ? {subtopico:''} : {};
     this.syncManual({manualFixed:this.state.manualFixed.map(x=> x.id===id ? {...x,[field]:val, ...extra} : x)}); };
-  removeFixed = (e)=>{ const id=e.currentTarget.dataset.id; this.syncManual({manualFixed:this.state.manualFixed.filter(x=>x.id!==id)}); };
+  removeFixed = (e)=>{ const id=e.currentTarget.dataset.id; const f=(this.state.manualFixed||[]).find(x=>x.id===id); const dia=(f&&f.dia)||'';
+    this.syncManual({manualFixed:this.state.manualFixed.filter(x=>x.id!==id), agEditId:(this.state.agEditId===id?null:this.state.agEditId)});
+    setTimeout(()=>{ const b=document.querySelector('.ct-ag-add[data-dia="'+dia+'"]'); if(b) b.focus(); }, 0); };
   addRot = ()=> this.syncManual({manualRot:[...this.state.manualRot, {id:'o'+Date.now(), disc:'', kind:'Teoria', min:45, done:false, pulado:false, doneDate:''}]});
   editRot = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let val=el.value; if(field==='min') val=(val===''?'':Math.max(1, parseInt(val,10)||0)); this.syncManual({manualRot:this.state.manualRot.map(x=> x.id===id ? {...x,[field]:val} : x)}); };
   removeRot = (e)=>{ const id=e.currentTarget.dataset.id; const nr=this.state.manualRot.filter(x=>x.id!==id); this.syncManual({manualRot:nr, rotPointer:this._rotPonteiro(nr)}); };
@@ -14398,11 +14434,12 @@ class Component extends DCLogic {
         foraDoAtual:_man&&_rotGrupo.key!==_rotKey(_rotAtual) }; })();
 
     const manualAgendaGroups = (()=>{
-      const defs=[{dia:'',label:'Todo dia'},{dia:'seg',label:'Segunda'},{dia:'ter',label:'Terça'},{dia:'qua',label:'Quarta'},{dia:'qui',label:'Quinta'},{dia:'sex',label:'Sexta'},{dia:'sab',label:'Sábado'},{dia:'dom',label:'Domingo'}];
+      const defs=[{dia:'seg',label:'Segunda'},{dia:'ter',label:'Terça'},{dia:'qua',label:'Quarta'},{dia:'qui',label:'Quinta'},{dia:'sex',label:'Sexta'},{dia:'sab',label:'Sábado'},{dia:'dom',label:'Domingo'},{dia:'',label:'Todo dia'}];
       const hojeKey=['dom','seg','ter','qua','qui','sex','sab'][new Date().getDay()];
       const fixed=this.state.manualFixed||[];
       // vínculo com o edital: cada atividade ganha selects de disciplina + tópico
       const _edList=this.state.edital||[];
+      const _agHM=(mm)=>{ mm=Math.max(0,Math.round(mm||0)); const h=Math.floor(mm/60), m=mm%60; return h>0?(h+'h'+(m?String(m).padStart(2,'0'):'')):(m+'min'); };
       const _mkItem=(f)=>{ const discOpts=_edList.map(d=>({v:d.disc,label:d.disc,sel:d.disc===f.discEdital}));
         const ed=_edList.find(d=>d.disc===f.discEdital);
         const topicOpts=((ed&&ed.topics)||[]).map(t=>({v:t.name,label:(t.name.length>70?t.name.slice(0,70)+'…':t.name),sel:t.name===f.topico}));
@@ -14411,17 +14448,27 @@ class Component extends DCLogic {
         const _tSel=((ed&&ed.topics)||[]).find(t=>t.name===f.topico);
         const subOpts=((_tSel&&_tSel.subs)||[]).map(s=>{ const n=String((s&&s.name)||s||'').trim();
           return {v:n, label:(n.length>70?n.slice(0,70)+'…':n), sel:n===f.subtopico}; }).filter(o=>o.v);
+        // cartão LEGÍVEL: título = subtópico > tópico > disciplina; embaixo, disciplina · tipo · minutos
+        const _dn=String(f.discEdital||f.disc||'').trim(); const _tp=String(f.subtopico||f.topico||'').trim();
+        const _corta=(s,n)=>s.length>n?s.slice(0,n-1)+'…':s;
+        const titulo=_tp||_dn||'Atividade sem disciplina';
+        const meta=[(_tp&&_dn)?_corta(_dn,28):'', f.kind||'', _agHM(+f.min||0)].filter(Boolean).join(' · ');
+        const editing=(this.state.agEditId===f.id);
         return {...f, discOpts, topicOpts, temTopicos:topicOpts.length>0,
           subOpts, temSubs:subOpts.length>0, kindOpts:_kindOpts(f.kind),
           temRoteiro:!!f.roteiro, rotShort:(f.roteiro||'').length>16?(f.roteiro||'').slice(0,16)+'…':(f.roteiro||''),
+          titulo, meta, semDisc:!_dn, editing, editingStr:editing?'true':'false', editingN:editing?'1':'0',
+          cabTitle: editing?'Fechar a edição':'Editar esta atividade',
+          itemStyle:'--ct-item-cor:'+(_dn?this._corDisc(_dn):'var(--border)')+';',
           vincBorder: f.discEdital?'var(--accentRing)':'var(--border)', vincColor: f.discEdital?'var(--accentD)':'var(--text3)'}; };
       // FILTRA PELO ROTEIRO QUE ESTÁ SENDO VISTO. Sem isto o editor empilhava as
       // atividades dos TRÊS roteiros em cada dia — selecionar a Semana 1 mostrava 1, 2 e 3
       // acumuladas. A folha do ciclo já filtrava assim; só o editor não filtrava.
       return defs.map(d=>{ const items=fixed.filter(f=>(f.dia||'')===d.dia
-                                        && _rotKey(f.roteiro||_rotAtual)===_rotGrupo.key).map(_mkItem);
-        const isToday=d.dia!==''&&d.dia===hojeKey;
-        return {dia:d.dia, label:d.label, items, isToday, countLabel: items.length===0 ? 'vazio' : String(items.length),
+                                        && (d.dia==='' || _rotKey(f.roteiro||_rotAtual)===_rotGrupo.key)).map(_mkItem);   // rotina vale em todo roteiro
+        const isToday=d.dia!==''&&d.dia===hojeKey; const totalMin=items.reduce((a,f)=>a+(+f.min||0),0);
+        return {dia:d.dia, label:d.label, items, isToday, hojeN:isToday?'1':'0', vazio:items.length===0, countLabel: items.length===0 ? 'vazio' : String(items.length),
+          cargaLabel: items.length===0 ? '' : (items.length+(items.length===1?' atividade':' atividades')+' · '+_agHM(totalMin)),
           colBg: isToday?'var(--accentSoft)':'var(--surface2)', colBorder: isToday?'var(--accentRing)':'var(--border)'}; });
     })();
     const nextAction = blocks.filter(b=>!b.done)[0] || null;
@@ -17308,7 +17355,7 @@ class Component extends DCLogic {
       manualFixedRoteiroAtual:this.state.manualFixedRoteiroAtual,
       roteirosAtivos, hasRoteirosAtivos: roteirosAtivos.length>0,
       manualAgendaGroups,
-      addFixed:this.addFixed, addToDay:this.addToDay, removeFixed:this.removeFixed, editFixed:this.editFixed, addRot:this.addRot, removeRot:this.removeRot, editRot:this.editRot, moveRot:this.moveRot, moveFixed:this.moveFixed, advanceRot:this.advanceRot,
+      addFixed:this.addFixed, addToDay:this.addToDay, removeFixed:this.removeFixed, editFixed:this.editFixed, agEditToggle:this.agEditToggle, agEditPronto:this.agEditPronto, addRot:this.addRot, removeRot:this.removeRot, editRot:this.editRot, moveRot:this.moveRot, moveFixed:this.moveFixed, advanceRot:this.advanceRot,
       setRoteiroAtual:this.setRoteiroAtual, clearRoteiro:this.clearRoteiro,
       rotNextName:(()=>{ const nx=(this.state.manualRot||[]).find(x=>!x.done); return (nx&&nx.disc)||'—'; })(),
       cycleModes:[

@@ -130,6 +130,25 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
     [...cfg.querySelectorAll('.ct-cb-add button')].find(b => /^Adicionar em/.test((b.textContent || '').trim())).click(); await w(1500);
     const mf1 = JSON.parse(localStorage.getItem('catedra:manualFixed') || '[]');
     r.cadastroRapidoUmaPorDia = chipsOn.length === 3 && mf1.length === 3 && chipsOn.every(d => mf1.some(f => f.dia === d && f.disc === 'Direito Penal' && f.discEdital === 'Direito Penal'));
+    // agenda: cartões LEGÍVEIS (tópico/disciplina + "Tipo · min", sem select à vista), edição de um por vez
+    // com o tipo por extenso (antes o select saía com uma letra), carga do dia na coluna, "+ atividade" já em edição
+    const cards = [...cfg.querySelectorAll('.ct-ag')];
+    r.agendaCartoesLegiveis = cards.length === 3 && cards.every(c => /Direito Penal/.test((c.querySelector('.ct-ag-tit') || {}).textContent || '') && /Teoria · 50min/.test((c.querySelector('.ct-ag-meta') || {}).textContent || '') && !c.querySelector('select'));
+    cards[0].querySelector('.ct-ag-cab').click(); await w(400);
+    const aberto = cfg.querySelector('.ct-ag[data-editando="1"]'); const kindSel = aberto && aberto.querySelector('select[data-field="kind"]');
+    r.agendaEditaUmPorVez = !!aberto && cfg.querySelectorAll('.ct-ag[data-editando="1"]').length === 1 && !!kindSel && kindSel.getBoundingClientRect().width >= 100 && aberto.querySelector('.ct-ag-cab').getAttribute('aria-expanded') === 'true';
+    const idAberto = aberto.querySelector('.ct-ag-cab').dataset.id;
+    [...aberto.querySelectorAll('button')].find(b => /^Pronto$/.test((b.textContent || '').trim())).click(); await w(400);
+    r.agendaProntoFecha = !cfg.querySelector('.ct-ag[data-editando="1"]');
+    r.agendaProntoDevolveOFoco = document.activeElement === cfg.querySelector('.ct-ag-cab[data-id="' + idAberto + '"]');   // o foco não cai no body
+    const colSeg = [...cfg.querySelectorAll('.ct-ag-col')].find(c => c.getAttribute('aria-label') === 'Segunda');
+    r.agendaMostraCarga = /1 atividade · 50min/.test((colSeg.querySelector('.ct-ag-col-carga') || {}).textContent || '');
+    colSeg.querySelector('.ct-ag-add').click(); await w(1500);
+    const novo = cfg.querySelector('.ct-ag[data-editando="1"]');
+    r.agendaNovoAbreEmEdicao = !!novo && /Atividade sem disciplina/.test((novo.querySelector('.ct-ag-tit') || {}).textContent || '') && document.activeElement === novo.querySelector('select[data-field="discEdital"]');   // o foco vai ao primeiro campo
+    [...novo.querySelectorAll('button')].find(b => /^Remover$/.test((b.textContent || '').trim())).click(); await w(1500);
+    r.agendaRemoverApaga = JSON.parse(localStorage.getItem('catedra:manualFixed') || '[]').length === 3 && !cfg.querySelector('.ct-ag[data-editando="1"]');
+    r.agendaRemoverFocaAColuna = document.activeElement === colSeg.querySelector('.ct-ag-add');   // depois de remover, o foco vai ao "+ atividade" da coluna
     // convite no EXECUTAR: manual com agenda e volta vazia → "A volta ainda está vazia" com gerar / montar / agora não
     document.getElementById('ct-cycle-tab-executar').click(); await w(500);
     const conv = document.querySelector('#ct-cycle-panel-executar .ct-convite-volta');
