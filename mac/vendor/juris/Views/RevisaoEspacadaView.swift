@@ -24,6 +24,7 @@ struct RevisaoEspacadaView: View {
         .frame(width: 680, height: 640)
         .background(Palette.detailBackground)
         .onAppear(perform: montar)
+        .semMovimentoSeBaixa()   // sheet: fora do .transaction da raiz
     }
 
     private func montar() {

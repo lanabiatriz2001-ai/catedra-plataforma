@@ -49,6 +49,19 @@
     try { document.documentElement.setAttribute('data-ct-tema', '1'); } catch (e) {}
   }
 
+  /* P16: "Baixa estimulação" do host. Chega como `baixa: '1' | ''` ao lado dos tokens (ou é
+     lida da raiz do host no atalho de mesma origem) e vira data-baixa="1" no <html> daqui —
+     o satellite-base.css e o catedra-ui.css param o movimento por esse atributo. `undefined`
+     significa "o host não falou nisso" (bundle antigo): não mexe no que está. */
+  function aplicarBaixa(v) {
+    if (v === undefined || v === null) return;
+    try {
+      var r = document.documentElement;
+      if (String(v) === '1') r.setAttribute('data-baixa', '1');
+      else r.removeAttribute('data-baixa');
+    } catch (e) {}
+  }
+
   /* Atalho: mesma origem permite ler o host direto, sem esperar a resposta — evita o
      flash de tema antigo no primeiro quadro. Se a origem for diferente, o try falha e
      seguimos pelo postMessage, que é o caminho normal. */
@@ -64,12 +77,15 @@
       try { t.__dark = pw.document.documentElement.classList.contains('dark')
         || /(^|\s)dark(\s|$)/.test(pw.document.body.className || ''); } catch (e) {}
       aplicar(t);
+      // o <html> do host é o espelho oficial (_baixaRaiz); a div raiz vale se o espelho ainda não chegou
+      try { aplicarBaixa((pw.document.documentElement.getAttribute('data-baixa') === '1'
+        || host.getAttribute('data-baixa') === '1') ? '1' : ''); } catch (e) {}
       return true;
     } catch (e) { return false; }
   }
 
   window.addEventListener('message', function (e) {
-    if (e && e.data && e.data.type === 'ctTheme' && e.data.tokens) aplicar(e.data.tokens);
+    if (e && e.data && e.data.type === 'ctTheme' && e.data.tokens) { aplicar(e.data.tokens); aplicarBaixa(e.data.baixa); }
   });
 
   function avisar() {

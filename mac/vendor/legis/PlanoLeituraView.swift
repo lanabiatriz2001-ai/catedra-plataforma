@@ -124,7 +124,7 @@ struct PlanoLeituraView: View {
                             .foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
                     }
                 } else if doneN > 0 {
-                    Text("Plano concluído — parabéns! 🎉").font(.system(size: 12.5))
+                    Text(ThemeState.t.baixaEstimulacao ? "Plano concluído — parabéns!" : "Plano concluído — parabéns! 🎉").font(.system(size: 12.5))
                         .foregroundStyle(AppTheme.secondaryInk)
                 }
                 if showCrono, startTS > 0 {

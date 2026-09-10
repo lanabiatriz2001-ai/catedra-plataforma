@@ -771,7 +771,7 @@ private struct UnitFocusView: View {
                 }
             } label: {
                 Label(isReview ? "Na revisão" : "Revisar", systemImage: isReview ? "star.fill" : "star")
-                    .symbolEffect(.bounce, value: isReview)
+                    .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : isReview)   // baixa estimulação: sem salto
             }
             .buttonStyle(.bordered).tint(isReview ? AppTheme.warn : nil)
             Button {
@@ -783,7 +783,7 @@ private struct UnitFocusView: View {
             } label: {
                 Label(isRead ? "Lido ✓" : "Marcar como lido",
                       systemImage: isRead ? "checkmark.circle.fill" : "circle")
-                    .symbolEffect(.bounce, value: isRead)
+                    .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : isRead)   // baixa estimulação: sem salto
             }
             .buttonStyle(.borderedProminent).tint(isRead ? AppTheme.ok : accent)
         }

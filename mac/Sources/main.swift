@@ -128,7 +128,7 @@ let pipShimJS = """
 })();
 """
 
-final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandlerWithReply, UNUserNotificationCenterDelegate, NSWindowDelegate, NSToolbarDelegate, WKDownloadDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandlerWithReply, UNUserNotificationCenterDelegate, NSWindowDelegate, NSToolbarDelegate, WKDownloadDelegate, NSMenuDelegate {
     var window: NSWindow!
     var webView: WKWebView!
     private var titleObs: NSKeyValueObservation?
@@ -221,6 +221,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPlano") // web → marcar leitura do plano (ciclo semanal)
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraPrint") // web → imprimir/salvar PDF (window.print é mudo no WKWebView)
         ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraBackup") // web → backup no iCloud Drive (pasta Cátedra) ou painel de arquivo
+        ucc.addScriptMessageHandler(self, contentWorld: .page, name: "catedraWidget") // web → payload mudou (baixa estimulação): relê menu e cartão flutuante
         cfg.userContentController = ucc
         cfg.preferences.javaScriptCanOpenWindowsAutomatically = true  // necessário p/ o window.open do PiP
         cfg.preferences.setValue(true, forKey: "developerExtrasEnabled")  // "Inspecionar" no menu de contexto
@@ -518,6 +519,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         bkp.target = self; menu.addItem(bkp)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Sair da Cátedra", action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
+        menu.delegate = self   // menuWillOpen: relê o payload ao abrir (baixa estimulação some com a ofensiva no ato)
         item.menu = menu
         statusItem = item
         let tm = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in self?.refreshMenuBar() }
@@ -553,9 +555,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         statItems[1].title = "Revisões pendentes: \(s.revisoes)"
         statItems[2].title = "Meta da semana: \(s.metaPct)%"
         statItems[3].title = "Ofensiva: \(s.streak) \(s.streak == 1 ? "dia" : "dias")"
+        statItems[3].isHidden = s.baixa   // baixa estimulação: a ofensiva sai do menu (o número segue calculado)
         statItems[4].title = "Próximo: " + (s.proximo.isEmpty ? "—" : s.proximo)
         statItems[4].isHidden = s.proximo.isEmpty
     }
+    // Só o menu da barra tem este delegate. Sem isto os números do menu esperavam o timer
+    // de 180 s: ligar a baixa estimulação na aba do Cátedra deixava "Ofensiva" à vista por
+    // até 3 minutos. O evaluateJavaScript é assíncrono, então o item pode aparecer por um
+    // instante antes de sumir; o menu aberto acompanha a troca.
+    func menuWillOpen(_ menu: NSMenu) { pushWidgetData() }
     private func mbBringUp() { NSApp.activate(ignoringOtherApps: true); window?.makeKeyAndOrderFront(nil) }
 
     // ===== Widget do macOS: lê o payload do app web e grava no App Group =====
@@ -576,6 +584,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             st.metaPct   = (obj["metaPct"] as? NSNumber)?.intValue ?? 0
             st.streak    = (obj["streak"] as? NSNumber)?.intValue ?? 0
             st.proximo   = (obj["proximo"] as? String) ?? ""
+            st.baixa     = (obj["baixa"] as? Bool) ?? false   // não vai para o App Group: é preferência de tela
             self.lastStats = st
             WidgetModel.shared.stats = st           // atualiza o painel flutuante (SwiftUI)
             self.refreshWidgetStatItems()           // atualiza os números no menu
@@ -1247,7 +1256,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             accent:g('--accent'), accentD:g('--accentD'), radius:g('--radius'),
             ok:g('--ok'), warn:g('--warn'), danger:g('--danger'), display:g('--display'),
             sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
-            heroGrad:g('--heroGrad'), dark:_dk()
+            heroGrad:g('--heroGrad'), dark:_dk(),
+            // Baixa estimulação (P16): a preferência mora em prefs, não em CSS var. Vai no
+            // MESMO JSON de propósito — a chave de "tema mudou" é o JSON inteiro, então
+            // ligar o interruptor reconstrói os hosts do LEGIS/JURIS como uma troca de tema.
+            // Mesma lógica do claro/escuro: vale o que está PINTADO (data-baixa na div raiz,
+            // espelhado no <html> por _baixaRaiz). O localStorage é só a queda para host
+            // antigo sem o atributo — é a fonte que a nuvem reescreve sem repintar.
+            baixa:(function(){
+              var a = el.getAttribute('data-baixa');
+              if (a === null) a = document.documentElement.getAttribute('data-baixa');
+              if (a !== null) return a === '1';
+              try { return JSON.parse(localStorage.getItem('catedra:prefs')||'{}').baixaEstimulacao===true } catch(e){ return false }
+            })()
           });
         })()
         """
@@ -1363,7 +1384,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             accent:g('--accent'), accentD:g('--accentD'), radius:g('--radius'),
             ok:g('--ok'), warn:g('--warn'), danger:g('--danger'), display:g('--display'),
             sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
-            heroGrad:g('--heroGrad'), dark:_dk()
+            heroGrad:g('--heroGrad'), dark:_dk(),
+            // Baixa estimulação (P16): a preferência mora em prefs, não em CSS var. Vai no
+            // MESMO JSON de propósito — a chave de "tema mudou" é o JSON inteiro, então
+            // ligar o interruptor reconstrói os hosts do LEGIS/JURIS como uma troca de tema.
+            // Mesma lógica do claro/escuro: vale o que está PINTADO (data-baixa na div raiz,
+            // espelhado no <html> por _baixaRaiz). O localStorage é só a queda para host
+            // antigo sem o atributo — é a fonte que a nuvem reescreve sem repintar.
+            baixa:(function(){
+              var a = el.getAttribute('data-baixa');
+              if (a === null) a = document.documentElement.getAttribute('data-baixa');
+              if (a !== null) return a === '1';
+              try { return JSON.parse(localStorage.getItem('catedra:prefs')||'{}').baixaEstimulacao===true } catch(e){ return false }
+            })()
           });
         })()
         """
@@ -1439,11 +1472,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         t.heroStops = AppDelegate.heroColors(d["heroGrad"] as? String, accent: t.accent, accentD: t.accentD)
         let darkStr = ((d["dark"] as? String) ?? "").trimmingCharacters(in: CharacterSet(charactersIn: "\" "))
         t.isDark = (darkStr == "1" || darkStr.lowercased() == "true")
+        // Baixa estimulação: some gamificação e desliga animação nos módulos nativos.
+        t.baixaEstimulacao = (d["baixa"] as? Bool) ?? false
         ThemeState.t = t
         UserDefaults.standard.set(t.isDark ? "dark" : "light", forKey: "appearance")
         // O CátedraJURIS usa chave própria (valores "claro"/"escuro" — colidiria com a
         // do LEGIS, que guarda "light"/"dark" na chave "appearance").
         UserDefaults.standard.set(t.isDark ? "escuro" : "claro", forKey: "jurisAppearance")
+        // O JSON traz também `baixa` (baixa estimulação): mudar só o interruptor já conta
+        // como tema novo e remonta os hosts, que leem ThemeState.t no build.
         let changed = (json != lastThemeKey)
         lastThemeKey = json
         return changed
@@ -1621,6 +1658,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             togglePlanoLeitura((message.body as? String) ?? "")
             reply(nil, nil)
         case "catedraBackup":    handleBackup(message, reply)
+        case "catedraWidget":
+            // O corpo não importa: é só o aviso de que o payload mudou (ver _baixaRaiz no host).
+            DispatchQueue.main.async { self.pushWidgetData() }
+            reply(nil, nil)
         case "catedraPrint":
             // Relatório → Imprimir/Salvar PDF: WKWebView não implementa window.print(),
             // então o host roda a NSPrintOperation da própria webview (diálogo padrão do macOS).
@@ -2063,6 +2104,15 @@ struct CatedraLegisRoot: View {
             .environmentObject(StudyClock.shared)
             .environment(\.colorScheme, ThemeState.t.isDark ? .dark : .light)
             .tint(ThemeState.t.accent)
+            // Baixa estimulação: desliga o movimento do SwiftUI na raiz sem tocar nos
+            // withAnimation/.animation dos vendors. `animation = nil` zera o explícito
+            // (withAnimation); `disablesAnimations` impede que um .animation(_:value:) mais
+            // abaixo reponha a animação. O .symbolEffect não passa por transação: esse é
+            // gateado em cada tela. O host é remontado quando o interruptor muda, então ler
+            // ThemeState aqui basta.
+            .transaction { tr in
+                if ThemeState.t.baixaEstimulacao { tr.animation = nil; tr.disablesAnimations = true }
+            }
             .task { Notifier.requestPermission() }
     }
 }
@@ -2083,6 +2133,10 @@ struct CatedraJurisRoot: View {
             .preferredColorScheme(appearance.colorScheme)
             .environment(\.colorScheme, ThemeState.t.isDark ? .dark : .light)
             .tint(ThemeState.t.accent)
+            // Baixa estimulação: sem animação em nenhuma tela do JURIS (ver raiz do LEGIS).
+            .transaction { tr in
+                if ThemeState.t.baixaEstimulacao { tr.animation = nil; tr.disablesAnimations = true }
+            }
             .task {
                 // load() só na 1ª vez (rebuild por mudança de tema não re-carrega).
                 if store.entries.isEmpty { await store.load() }
@@ -2102,6 +2156,9 @@ struct CatedraStats {
     var metaPct: Int = 0
     var streak: Int = 0
     var proximo: String = ""
+    // Baixa estimulação (P16): vem de prefs.baixaEstimulacao no payload. Só esconde a
+    // ofensiva no menu e no cartão; o streak segue lido e gravado como antes.
+    var baixa: Bool = false
 }
 
 final class WidgetModel: ObservableObject {
@@ -2154,7 +2211,9 @@ struct WidgetCardView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     stat("\(s.revisoes)", "revisões", tint: s.revisoes > 0 ? Color(red: 1, green: 0.7, blue: 0.4) : .white)
                     stat("\(s.metaPct)%", "meta/sem")
-                    stat(s.streak > 0 ? "🔥 \(s.streak)" : "0", "ofensiva")
+                    if !s.baixa {   // baixa estimulação: sem ofensiva no cartão flutuante
+                        stat(s.streak > 0 ? "🔥 \(s.streak)" : "0", "ofensiva")
+                    }
                     if !s.proximo.isEmpty {
                         stat(s.proximo, "próximo", tint: .white.opacity(0.9))
                     }
