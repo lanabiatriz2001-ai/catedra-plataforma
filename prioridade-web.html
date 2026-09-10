@@ -287,6 +287,6 @@ try{ const d=new URLSearchParams(location.search).get('disc'); if(d) abertos[d]=
 pinta();
 try{ const d=new URLSearchParams(location.search).get('disc');
   if(d){ const el=document.querySelector('.linha[data-d="'+d.replace(/"/g,'\\"')+'"]');
-    if(el) setTimeout(()=>el.scrollIntoView({block:'center',behavior:'smooth'}),120); } }catch(e){}
+    if(el) setTimeout(()=>el.scrollIntoView({block:'center',behavior:(document.documentElement.getAttribute('data-baixa')==='1'||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))?'auto':'smooth'}),120); } }catch(e){}
 </script>
 </body></html>

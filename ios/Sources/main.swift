@@ -274,7 +274,19 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             ok:g('--ok'), warn:g('--warn'), danger:g('--danger'),
             radius:g('--radius'), display:g('--display'), body:g('--body'), mono:g('--mono'),
             sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
-            heroGrad:g('--heroGrad'), dark:_dk()
+            heroGrad:g('--heroGrad'), dark:_dk(),
+            // Baixa estimulação (P16): a preferência mora em prefs, não em CSS var. Vai no
+            // MESMO JSON de propósito — a chave de "tema mudou" é o JSON inteiro, então
+            // ligar o interruptor reconstrói os hosts do LEGIS/JURIS como uma troca de tema.
+            // Mesma lógica do claro/escuro: vale o que está PINTADO (data-baixa na div raiz,
+            // espelhado no <html> por _baixaRaiz). O localStorage é só a queda para host
+            // antigo sem o atributo — é a fonte que a nuvem reescreve sem repintar.
+            baixa:(function(){
+              var a = el.getAttribute('data-baixa');
+              if (a === null) a = document.documentElement.getAttribute('data-baixa');
+              if (a !== null) return a === '1';
+              try { return JSON.parse(localStorage.getItem('catedra:prefs')||'{}').baixaEstimulacao===true } catch(e){ return false }
+            })()
           });
         })()
         """
@@ -317,11 +329,15 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         t.heroStops = Self.paradasDoGradiente(d["heroGrad"] as? String, accent: t.accent, accentD: t.accentD)
         let dk = ((d["dark"] as? String) ?? "").trimmingCharacters(in: CharacterSet(charactersIn: "\" "))
         t.isDark = (dk == "1" || dk.lowercased() == "true")
+        // Baixa estimulação: some gamificação e desliga animação nos módulos nativos.
+        t.baixaEstimulacao = (d["baixa"] as? Bool) ?? false
         ThemeState.t = t
         // As duas chaves existem porque LEGIS e JURIS guardam o modo com vocabulários
         // diferentes ("light"/"dark" e "claro"/"escuro"); trocá-las colidiria.
         UserDefaults.standard.set(t.isDark ? "dark" : "light", forKey: "appearance")
         UserDefaults.standard.set(t.isDark ? "escuro" : "claro", forKey: "jurisAppearance")
+        // O JSON traz também `baixa` (baixa estimulação): mudar só o interruptor já conta
+        // como tema novo e remonta os hosts, que leem ThemeState.t no build.
         let mudou = (json != ultimoTema)
         ultimoTema = json
         return mudou
@@ -882,6 +898,16 @@ struct CatedraLegisRoot: View {
             .environmentObject(StudyClock.shared)
             .environment(\.colorScheme, ThemeState.t.isDark ? .dark : .light)
             .tint(ThemeState.t.accent)
+            // Baixa estimulação: desliga todo movimento do SwiftUI na raiz sem tocar nos
+            // ~40 withAnimation/.animation dos vendors. `animation = nil` zera o explícito
+            // (withAnimation); `disablesAnimations` impede que um .animation(_:value:) mais
+            // abaixo reponha a animação. O .symbolEffect não passa por transação: esse é
+            // gateado em cada tela. O host é remontado quando o interruptor muda, então ler
+            // ThemeState aqui basta. O conteúdo de .sheet NÃO herda esta transação (fica num
+            // controlador de apresentação à parte): a sheet que anima usa .semMovimentoSeBaixa().
+            .transaction { tr in
+                if ThemeState.t.baixaEstimulacao { tr.animation = nil; tr.disablesAnimations = true }
+            }
             .task { Notifier.requestPermission() }
     }
 }
@@ -902,6 +928,12 @@ struct CatedraJurisRoot: View {
             .preferredColorScheme(appearance.colorScheme)
             .environment(\.colorScheme, ThemeState.t.isDark ? .dark : .light)
             .tint(ThemeState.t.accent)
+            // Baixa estimulação: sem animação nas telas do JURIS (ver raiz do LEGIS). Conteúdo
+            // de .sheet não herda esta transação: RevisaoView e RevisaoEspacadaView aplicam
+            // .semMovimentoSeBaixa() (Theme.swift) no próprio corpo.
+            .transaction { tr in
+                if ThemeState.t.baixaEstimulacao { tr.animation = nil; tr.disablesAnimations = true }
+            }
             .task {
                 // load() só na 1ª vez: reconstruir por troca de tema não recarrega o acervo.
                 if store.entries.isEmpty { await store.load() }

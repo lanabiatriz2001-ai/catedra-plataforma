@@ -42,7 +42,8 @@ struct JurisDashboardView: View {
             if partes.contains(.checklist) { JurisChecklistMiniCard(openChecklist: { store.ir(.checklist) }) }
             if partes.contains(.kpis) { kpiGrid }
             if partes.contains(.atalhos) { secao("Baralhos e revisão", "bolt.horizontal.fill") { acoesRapidas } }
-            if partes.contains(.ofensiva) { secao("Sua ofensiva", "flame.fill") { heatmap } }
+            // Baixa estimulação (P16): a ofensiva é gamificação — some da tela, fica no store.
+            if partes.contains(.ofensiva), !ThemeState.t.baixaEstimulacao { secao("Sua ofensiva", "flame.fill") { heatmap } }
             if partes.contains(.fontes), !fontesDestaque.isEmpty {
                 secao("Seu progresso por fonte", "chart.bar.fill") { progressoFontes }
             }
@@ -86,7 +87,7 @@ struct JurisDashboardView: View {
                         .font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
                 }
                 Spacer(minLength: 0)
-                streakBadge
+                if !ThemeState.t.baixaEstimulacao { streakBadge }   // baixa estimulação: sem contador de dias
             }
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {

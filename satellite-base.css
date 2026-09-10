@@ -157,6 +157,15 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+/* P16: a "baixa estimulação" dos Ajustes do host chega ao satélite como data-baixa="1" no <html>
+   (tema-satelite.js aplica ao receber ctTheme ou ao ler a raiz do host) e vale o mesmo que o
+   "reduzir movimento" acima. Sem gamificação aqui — só o movimento para. */
+[data-baixa="1"], [data-baixa="1"] *, [data-baixa="1"] *::before, [data-baixa="1"] *::after {
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+  scroll-behavior: auto !important;
+}
 
 /* ===== OS SATÉLITES ENTRAM NA MESMA CASA =====================================
  * O Cátedra é um app principal mais sete páginas que abrem dentro dele (LEGIS, JURIS,
@@ -222,3 +231,6 @@ button.ct-sat-card:hover, #app button.mode:hover, #app button.rcard:hover, #app 
   button.ct-sat-card, #app button.mode, #app button.rcard, #app button.vcard { transition: none; }
   button.ct-sat-card:hover, #app button.mode:hover, #app button.rcard:hover, #app button.vcard:hover { transform: none; }
 }
+/* P16: a baixa estimulação do host vale o mesmo aqui — o cartão não salta no hover */
+[data-baixa="1"] button.ct-sat-card, [data-baixa="1"] #app button.mode, [data-baixa="1"] #app button.rcard, [data-baixa="1"] #app button.vcard { transition: none; }
+[data-baixa="1"] button.ct-sat-card:hover, [data-baixa="1"] #app button.mode:hover, [data-baixa="1"] #app button.rcard:hover, [data-baixa="1"] #app button.vcard:hover { transform: none; }

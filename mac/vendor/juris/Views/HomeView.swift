@@ -60,7 +60,8 @@ struct HomeView: View {
                         ForEach(store.recentEntries.prefix(14)) { CartaoJuris(entry: $0) }
                     }
                 }
-                JurisDashboardView(partes: [.kpis, .ofensiva, .fontes])
+                // Baixa estimulação: a ofensiva (heatmap) não entra; os dados continuam lá.
+                JurisDashboardView(partes: ThemeState.t.baixaEstimulacao ? [.kpis, .fontes] : [.kpis, .ofensiva, .fontes])
 
                 bloco("Acervo", "books.vertical.fill")
                 if store.favorites.count > 0 {

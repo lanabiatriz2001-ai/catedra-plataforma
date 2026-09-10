@@ -166,7 +166,8 @@ struct JurisChecklistMiniCard: View {
             if visible.isEmpty {
                 Text(store.readingChecklist.isEmpty
                      ? "Adicione metas de leitura livres — como \"reler súmulas do TJRO\"."
-                     : "Tudo em dia por aqui — nenhuma meta pendente. 🎉")
+                     : (ThemeState.t.baixaEstimulacao ? "Tudo em dia por aqui — nenhuma meta pendente."
+                                                       : "Tudo em dia por aqui — nenhuma meta pendente. 🎉"))
                     .font(.caption).foregroundStyle(Palette.secondaryInk)
                     .padding(.vertical, 2)
             } else {
@@ -207,7 +208,7 @@ struct JurisChecklistMiniCard: View {
                 Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 15))
                     .foregroundStyle(item.done ? tint : tint.opacity(0.45))
-                    .symbolEffect(.bounce, value: item.done)
+                    .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : item.done)   // baixa estimulação: valor fixo = sem salto
                 Text(item.text)
                     .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(Palette.readingInk)
@@ -538,7 +539,7 @@ private struct JurisChecklistRow: View {
                     }
                 }
                 .frame(width: 21, height: 21)
-                .symbolEffect(.bounce, value: item.done)
+                .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : item.done)   // baixa estimulação: valor fixo = sem salto
             }
             .buttonStyle(.plain)
 

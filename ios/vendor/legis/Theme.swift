@@ -18,6 +18,10 @@ struct CatedraTheme {
     var warn: Color = Color(hex: 0xA36306)
     var danger: Color = Color(hex: 0xC0392F)
     var displaySerif: Bool = true
+    /// Modo "Baixa estimulação" (P16), lido de prefs.baixaEstimulacao do Cátedra pela ponte
+    /// em main.swift. Ligado: a gamificação nativa (ofensiva, sequência, 🎉) some das telas
+    /// e as animações do SwiftUI são desligadas na raiz dos hosts. Os dados não mudam.
+    var baixaEstimulacao: Bool = false
 
     // Fallback = identidade PLANILHA (a aprovada): a 1ª pintura já nasce com a cara da casa.
     static let fallback = CatedraTheme(
@@ -32,6 +36,16 @@ struct CatedraTheme {
 /// Estado global do tema (mutável; `main.swift` atualiza antes de montar/rebuild o host).
 enum ThemeState {
     static var t = CatedraTheme.fallback
+}
+
+extension View {
+    /// Baixa estimulação: o conteúdo de .sheet vive num controlador de apresentação à parte
+    /// e NÃO herda o .transaction das raízes CatedraLegisRoot/CatedraJurisRoot. Quem anima
+    /// dentro de uma sheet aplica este modificador no próprio corpo. O JURIS lê o mesmo
+    /// ThemeState (os dois vendors compilam num módulo só).
+    func semMovimentoSeBaixa() -> some View {
+        transaction { tr in if ThemeState.t.baixaEstimulacao { tr.animation = nil; tr.disablesAnimations = true } }
+    }
 }
 
 enum AppTheme {

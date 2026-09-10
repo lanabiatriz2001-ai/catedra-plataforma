@@ -1585,11 +1585,15 @@ document.querySelectorAll('[data-status-f]').forEach(b=>b.onclick=()=>{
   apply();
 });
 document.getElementById('clr').onclick=()=>{q.value='';fr=null;fs=null;document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));apply();};
+/* Rolagem: 'auto' quando a baixa estimulação está ligada (data-baixa no <html> do JURIS que hospeda esta
+   página) ou o sistema pede menos movimento. Lido no clique, para pegar a troca feita depois do carregamento.
+   O try cobre parent de outra origem e o file:// do app nativo; avulsa, parent===window e vale o sistema. */
+function rolagem(){try{if(parent.document.documentElement.getAttribute('data-baixa')==='1')return 'auto';}catch(e){}return (window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)?'auto':'smooth';}
 document.querySelectorAll('a.ix').forEach(a=>a.onclick=e=>{
   e.preventDefault(); const n=a.dataset.go;
   q.value='';fr=null;fs=null;document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));apply();
-  document.querySelector('.card[data-n="'+n+'"]').scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelector('.card[data-n="'+n+'"]').scrollIntoView({behavior:rolagem(),block:'start'});
 });
-document.getElementById('up').onclick=()=>scrollTo({top:0,behavior:'smooth'});
+document.getElementById('up').onclick=()=>scrollTo({top:0,behavior:rolagem()});
 apply();
 </script></body></html>

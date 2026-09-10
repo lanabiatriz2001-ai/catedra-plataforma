@@ -112,6 +112,7 @@ struct RevisaoView: View {
         .frame(width: 620, height: 520)
         .background(Palette.detailBackground)
         .onAppear { fila = deck; total = deck.count; acertos = 0; revelado = false }
+        .semMovimentoSeBaixa()   // sheet: fora do .transaction da raiz
     }
 
     private var barra: some View {
