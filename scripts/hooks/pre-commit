@@ -1,0 +1,4 @@
+#!/bin/sh
+# Pré-commit do Cátedra: nenhuma chave de API entra num commit.
+# Ligue uma vez por clone:  git config core.hooksPath scripts/hooks
+exec node "$(git rev-parse --show-toplevel)/scripts/verificar-segredos.mjs" --staged
