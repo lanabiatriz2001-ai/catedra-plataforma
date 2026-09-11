@@ -61,9 +61,8 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrir, object: nil, queue: .main) { [weak self] n in
             MainActor.assumeIsolated {
                 guard let self, let id = n.userInfo?["id"] as? String else { return }
-                self.segmento.selectedSegmentIndex = 2
-                self.trocarAba()
-                self.jurisStore?.abrirVerbete(id)
+                self.selecionarAba(2)
+                self.abrirVerbeteQuandoCarregado(id)
             }
         }
 
@@ -280,6 +279,19 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         }
     }
 
+    /// O store do JURIS pode ainda não existir (aba nunca aberta) ou estar carregando o acervo
+    /// (35 MB de JSON): abrirVerbete devolve em silêncio se o id não está indexado. Na primeira
+    /// vez o "abrir este verbete" do LEGIS caía no vazio — aqui ele espera o acervo chegar.
+    func abrirVerbeteQuandoCarregado(_ id: String, tentativa: Int = 0) {
+        if jurisStore == nil { jurisStore = LibraryStore() }
+        guard let store = jurisStore else { return }
+        if !store.entries.isEmpty { store.abrirVerbete(id); return }
+        guard tentativa < 60 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.abrirVerbeteQuandoCarregado(id, tentativa: tentativa + 1)
+        }
+    }
+
     /// Troca de aba por código (pontes da web, notificações, volta ao processo).
     func selecionarAba(_ i: Int) {
         guard i >= 0, i < segmento.numberOfSegments else { return }
@@ -454,7 +466,25 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     private func mostrarErro(_ t: String) {
         let a = UIAlertController(title: "Cátedra", message: t, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+        apresentarSobreOTopo(a)
+    }
+
+    /// Alertas do JS (alert/confirm/prompt) sobem sobre o que estiver na tela. Apresentar no
+    /// controlador raiz com outro modal aberto falha EM SILÊNCIO — e o JS fica preso à espera
+    /// do confirm(): era o que travava "Restaurar backup" logo depois de escolher o arquivo
+    /// (o seletor ainda estava sendo dispensado). Se o modal de cima está saindo ou é outro
+    /// alerta, espera a vez.
+    func apresentarSobreOTopo(_ vc: UIViewController, tentativa: Int = 0) {
+        var topo: UIViewController = self
+        while let p = topo.presentedViewController { topo = p }
+        let ocupado = topo.isBeingDismissed || topo.isBeingPresented || (topo !== self && topo is UIAlertController)
+        if ocupado, tentativa < 40 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+                self?.apresentarSobreOTopo(vc, tentativa: tentativa + 1)
+            }
+            return
+        }
+        topo.present(vc, animated: !ThemeState.t.baixaEstimulacao)
     }
 
     // MARK: - Pontes injetadas na página
@@ -663,7 +693,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
     func userContentController(_ ucc: WKUserContentController,
                                didReceive message: WKScriptMessage,
-                               replyHandler: @escaping (Any?, String?) -> Void) {
+                               replyHandler respostaBruta: @escaping (Any?, String?) -> Void) {
+        // As permissões e a IA respondem de threads de fundo; a resposta ao JS é da main.
+        let replyHandler: (Any?, String?) -> Void = { v, e in DispatchQueue.main.async { respostaBruta(v, e) } }
         switch message.name {
         case "catedraAI":        chamarIA(message, replyHandler)
         case "notifyPermission": permissaoNotificacao(message, replyHandler)
@@ -890,7 +922,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
                  initiatedByFrame f: WKFrameInfo, completionHandler done: @escaping () -> Void) {
         let a = UIAlertController(title: "Cátedra", message: m, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default) { _ in done() })
-        present(a, animated: true)
+        apresentarSobreOTopo(a)
     }
 
     func webView(_ w: WKWebView, runJavaScriptConfirmPanelWithMessage m: String,
@@ -898,7 +930,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         let a = UIAlertController(title: "Cátedra", message: m, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "Cancelar", style: .cancel) { _ in done(false) })
         a.addAction(UIAlertAction(title: "OK", style: .default) { _ in done(true) })
-        present(a, animated: true)
+        apresentarSobreOTopo(a)
     }
 
     func webView(_ w: WKWebView, runJavaScriptTextInputPanelWithPrompt m: String, defaultText d: String?,
@@ -907,7 +939,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         a.addTextField { $0.text = d }
         a.addAction(UIAlertAction(title: "Cancelar", style: .cancel) { _ in done(nil) })
         a.addAction(UIAlertAction(title: "OK", style: .default) { _ in done(a.textFields?.first?.text) })
-        present(a, animated: true)
+        apresentarSobreOTopo(a)
     }
 
     // Link externo (http/https) abre no Safari em vez de sequestrar a tela do app.
