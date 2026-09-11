@@ -32,7 +32,9 @@ APP="$BUILD/$NAME.app"
 # a IA morta e dizia "a IA não respondeu" — quem recebia o app achava que era instabilidade
 # e ficava tentando de novo. A função exige a sessão do Supabase, que a ponte JS já manda,
 # então o testador logado tem IA funcionando sem configurar nada.
-AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma.vercel.app/api/complete}"
+# O domínio é o da produção VIVA (projeto do time "ia" na Vercel). catedra-plataforma.vercel.app é de um
+# projeto antigo que ainda publica a main mas não se controla daqui (chaves e ajustes podem divergir).
+AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma-fawn.vercel.app/api/complete}"
 GEMINI_KEY="${CATEDRA_GEMINI_KEY:-}"
 
 echo "→ 1/5  Gerando bundle web (Catedra.dc.html → mac/build/web)…"

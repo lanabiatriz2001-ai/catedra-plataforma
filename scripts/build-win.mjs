@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = join(ROOT, 'mac', 'build', 'web');
 const OUT = join(ROOT, 'win', 'app', 'web');
-const DEPLOY = 'https://catedra-plataforma.vercel.app';
+const DEPLOY = 'https://catedra-plataforma-fawn.vercel.app';   // produção viva (time "ia"), a mesma dos apps do Mac e do iPad
 
 // 1. gera (ou regenera) o bundle base
 execSync('node scripts/build-macos.mjs', { cwd: ROOT, stdio: 'inherit' });
