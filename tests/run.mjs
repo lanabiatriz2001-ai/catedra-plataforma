@@ -2474,9 +2474,30 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   const t = await pg.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms)); const r = {};
     r.atributoDeToque = document.querySelector('[data-dark][data-dir]').getAttribute('data-toque') === '1' && navigator.maxTouchPoints > 0;
+    /* O que se mede é o ALVO, não a caixa do desenho. A regra da casa (catedra-ui.css, ao lado
+       do :not(.ct-miudo), e o comentário "CONTROLE PEQUENO NÃO CRESCE" no Catedra.dc.html) é que
+       o controle pequeno de propósito — quadradinho do Edital, caixinha do Início, bolinha de cor
+       — NÃO estica: quem dá os 44 px é o ::after de .ct-alvo, invisível, centrado. Esticar um
+       quadrado de 24 para 24×44 é a deformação que a regra existe para evitar.
+       Esta medida antes olhava só getBoundingClientRect().height, então aprovava o quadrado
+       deformado em 24×44 e reprovava o desenho correto de 24×24 com área de 44. Agora ela cobra
+       as duas pontas e fica MAIS exigente: quem não chega a 44 por caixa própria só passa se o
+       ::after medir ≥ 44 nos dois lados E o elemento for position:relative — sem isso o
+       pseudo-elemento não ancora e a área de 44 não existe de verdade. É a mesma prova que
+       tests/ipad-toque.mjs (a) já faz no quadradinho do Edital. */
     const baixos = [];
     for (const v of ['inicio', 'ciclo', 'calendario', 'simulados', 'edital']) { window.__catedraGoView(v); await w(500);
-      [...document.querySelectorAll('main button, .ct-topbar button')].forEach(b => { const h = b.getBoundingClientRect().height; if (h > 0 && h < 44) baixos.push(v + ': ' + Math.round(h) + ' ' + b.textContent.trim().slice(0, 24)); }); }
+      [...document.querySelectorAll('main button, .ct-topbar button')].forEach(b => {
+        const cx = b.getBoundingClientRect();
+        if (!(cx.height > 0)) return;
+        if (cx.height >= 44 && cx.width >= 44) return;
+        const af = getComputedStyle(b, '::after'), cs = getComputedStyle(b);
+        const area = parseFloat(af.height) >= 44 && parseFloat(af.width) >= 44 && cs.position === 'relative';
+        if (area) return;
+        baixos.push(v + ': ' + Math.round(cx.width) + '×' + Math.round(cx.height)
+          + (af.content === 'none' ? ' sem ::after' : ' ::after ' + af.width + '×' + af.height)
+          + ' ' + b.textContent.trim().slice(0, 20));
+      }); }
     r.botoesCom44 = baixos.length === 0; r.baixos = baixos.slice(0, 6).join(' || ');
     return r;
   });
