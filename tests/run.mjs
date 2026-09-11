@@ -16,6 +16,7 @@ import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
+import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -7943,6 +7944,13 @@ catch (e) {
 try { await testarRegistroSessao(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REGISTRO [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Edital: subtópico em texto não vira objeto de caracteres ao marcar o tópico (tests/edital-subtopicos.mjs)
+try { await testarEditalSubtopicos(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'EDITAL/SUBTÓPICOS [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

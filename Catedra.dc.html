@@ -7675,7 +7675,57 @@ class Component extends DCLogic {
     if(!a || a==='juridica') return 'catedra:'+k;   // as chaves de sempre, intocadas
     return 'catedra:'+k+'@'+a;
   }
-  _load(k, fb){ try{ const r=localStorage.getItem(this._chave(k)); if(r!=null){ const v=JSON.parse(r); if(v!=null) return v; } }catch(_){} return fb; }
+  /* SUBTÓPICOS DO EDITAL. `topics[].subs` guarda dois formatos que convivem — string (vindo do
+     parser de edital) e {name, done} (do importador e das marcações). Todo ponto que MARCA ou
+     GRAVA um subtópico passa por aqui, para nunca fazer spread de uma string: `{...'Crimes'}`
+     vira um objeto de caracteres ({0:'C',1:'r',…}) e o nome some da tela e do disco (era o que
+     _marcarNoEdital fazia ao concluir um tópico inteiro, até 11/09/2026). Leitura pode seguir
+     tolerante. · string → {name, done:false} · {name, …} → o mesmo objeto, outros campos intactos
+     · {0:'C',1:'r',…} → reconstruído: os caracteres em ordem viram o `name`; um `name` próprio
+     vence, e as chaves numéricas saem. */
+  _subObj(s){
+    if(s && typeof s==='object' && !Array.isArray(s)){
+      const nums=Object.keys(s).filter(k=>/^\d+$/.test(k));
+      if(!nums.length) return (typeof s.name==='string') ? s : {...s, name:String(s.name==null?'':s.name)};
+      const proprio=(typeof s.name==='string' && s.name.trim()) ? s.name : '';
+      const nome=proprio || nums.map(Number).sort((a,b)=>a-b).map(k=>String(s[k])).join('');
+      const o={}; Object.keys(s).forEach(k=>{ if(!/^\d+$/.test(k)) o[k]=s[k]; });
+      return {...o, name:nome, done:!!s.done};
+    }
+    return {name:String(s==null?'':s).trim(), done:false};
+  }
+  /** o dado corrompido: subtópico-objeto com chave numérica (o spread de uma string) */
+  _subCorrompido(s){ return !!(s && typeof s==='object' && !Array.isArray(s) && Object.keys(s).some(k=>/^\d+$/.test(k))); }
+  /* Reparo do edital na LEITURA — ponto único (_load), por onde entram o boot, a reidratação
+     depois do sync, a troca de área e o backup. Só toca o subtópico corrompido: string continua
+     string (quem grava é que normaliza). Devolve a MESMA lista quando não há o que reparar, então
+     é idempotente; conta o que consertou para o console.
+     O conserto NÃO grava sozinho. O _autosave regrava toda chave cujo conteúdo difere do disco, e
+     cada gravação ganha carimbo de "agora" no auth.js — se o edital consertado subisse no boot,
+     antes do pull, essa cópia venceria a edição mais nova feita em outro aparelho. Por isso o _load
+     guarda a referência consertada (_edReparadoRef) e o salvamento pula o edital enquanto o estado
+     for ela; na primeira edição da pessoa a referência muda e o nome consertado vai junto. */
+  _editalReparar(ed){
+    if(!Array.isArray(ed)) return ed;
+    let n=0;
+    const out=ed.map(d=>{
+      if(!d || !Array.isArray(d.topics)) return d;
+      let mudou=false;
+      const topics=d.topics.map(t=>{
+        if(!t || !Array.isArray(t.subs) || !t.subs.some(s=>this._subCorrompido(s))) return t;
+        mudou=true;
+        return {...t, subs:t.subs.map(s=>{ if(!this._subCorrompido(s)) return s; n++; return this._subObj(s); })};
+      });
+      return mudou ? {...d, topics} : d;
+    });
+    if(n>0){ try{ console.info('[Cátedra] edital: '+n+' subtópico'+(n>1?'s':'')+' reparado'+(n>1?'s':'')+' — o nome foi reconstruído do objeto de caracteres'); }catch(_){} }
+    return n>0 ? out : ed;
+  }
+  _load(k, fb){ try{ const r=localStorage.getItem(this._chave(k)); if(r!=null){ const v=JSON.parse(r); if(v!=null){
+    if(k!=='edital') return v;
+    const ed=this._editalReparar(v); if(ed!==v) this._edReparadoRef=ed; return ed; } } }catch(_){} return fb; }
+  /** o edital consertado na leitura e ainda não editado: não grava sozinho (ver _editalReparar) */
+  _edSoReparado(){ return !!this._edReparadoRef && this.state.edital===this._edReparadoRef; }
   /* COR DE DESTAQUE NO DISCO. `null` na memória quer dizer "siga a cor da direção visual",
      mas no disco ele virava "null" — e para o mergeAll do auth.js "null" é VAZIO, e vazio
      nunca apaga cheio. Resultado: "Padrão do tema" não tinha como vencer uma cor guardada
@@ -7703,6 +7753,7 @@ class Component extends DCLogic {
     try{ clearTimeout(this._asT); }catch(_){}
     const L=this._lastSaved||(this._lastSaved={});
     this._autosaveKeys().forEach(k=>{
+      if(k==='edital' && this._edSoReparado()){ L[k]=this.state[k]; return; }   // conserto de leitura não grava sozinho
       try{ localStorage.setItem(this._chave(k), JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){}
     });
     try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(this.state.sessions||[])); }catch(_){}
@@ -7737,6 +7788,8 @@ class Component extends DCLogic {
         // chave sem estado (ex.: 'redHist', cujo estado vive em redHist2) gravava a
         // palavra "undefined" a cada salvamento — e recarimbava sozinha
         if(this.state[k]===undefined){ L[k]=undefined; continue; }
+        // o edital consertado na leitura só vai ao disco com a primeira edição da pessoa (ver _editalReparar)
+        if(k==='edital' && this._edSoReparado()){ L[k]=this.state[k]; continue; }
         const ck=this._chave(k), s=this._serializar(k, this.state[k]);
         if(localStorage.getItem(ck)!==s){ localStorage.setItem(ck, s); gravou=true; }
         L[k]=this.state[k];
@@ -8263,7 +8316,7 @@ class Component extends DCLogic {
   }  edConfirm = ()=>{ if(!this.state.edParsed) return;
     const norm=s=>String(s||'').trim().toLowerCase();
     const has=(v)=>v!==''&&v!=null;
-    const ed=this.state.edital.map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(s=>({...s})):[]}))}));
+    const ed=this.state.edital.map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(s=>this._subObj(s)):[]}))}));
     this.state.edParsed.forEach((pd)=>{
       let di=ed.findIndex(d=>norm(d.disc)===norm(pd.disc));
       if(di<0){ ed.push({disc:pd.disc, color:pd.color||this._editalColor(pd.disc, ed.length), open:false, topics:[],
@@ -8305,7 +8358,7 @@ class Component extends DCLogic {
     if(c.topico.trim()){
       let ti = ed[di].topics.findIndex(t=>t.name.toLowerCase()===c.topico.trim().toLowerCase());
       if(ti<0){ ed[di].topics.push({name:c.topico.trim(), done:false, subs: c.sub.trim()?[{name:c.sub.trim(), done:false}]:[]}); }
-      else { const t=ed[di].topics[ti]; const subs=Array.isArray(t.subs)?t.subs.slice():[]; if(c.sub.trim()) subs.push({name:c.sub.trim(), done:false}); ed[di].topics[ti]={...t, subs}; }
+      else { const t=ed[di].topics[ti]; const subs=Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[]; if(c.sub.trim()) subs.push({name:c.sub.trim(), done:false}); ed[di].topics[ti]={...t, subs}; }
       ed[di]={...ed[di], open:true};
     }
     this.setState({edital:ed, cad:{...c, discNova:'', topico:'', sub:'', peso:'', questoes:''}}); this.flashSync(); };
@@ -8353,7 +8406,7 @@ class Component extends DCLogic {
     const sel=(this.state.modeloSel||[]); if(!sel.length){ this._toast('Escolha ao menos uma disciplina'); return; }
     const _discs=this._modeloDiscs(this.state.modeloId);
     const norm=s=>String(s||'').trim().toLowerCase();
-    const ed=(this.state.edital||[]).map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(x=>({...x})):[]}))}));
+    const ed=(this.state.edital||[]).map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[]}))}));
     let nd=0, nt=0, ns=0;
     sel.slice().sort((a,b)=>a-b).forEach(i=>{
       const m=_discs[i]; if(!m) return;
@@ -8381,7 +8434,7 @@ class Component extends DCLogic {
     this.setState({edital:list.filter((_,j)=>j!==i)}); if(this.flashSync) this.flashSync(); if(this._toast) this._toast('Disciplina removida: '+nome); };
   toggleSub = (e)=>{ const d=+e.currentTarget.dataset.d, t=+e.currentTarget.dataset.t, i=+e.currentTarget.dataset.i;
     const ed=this.state.edital.map(x=>({...x, topics:x.topics.map(y=>({...y, subs:Array.isArray(y.subs)?y.subs.slice():[]}))}));
-    ed[d].topics[t].subs[i]={...ed[d].topics[t].subs[i], done:!ed[d].topics[t].subs[i].done}; this.setState({edital:ed}); this.flashSync(); };
+    const cur=this._subObj(ed[d].topics[t].subs[i]); ed[d].topics[t].subs[i]={...cur, done:!cur.done}; this.setState({edital:ed}); this.flashSync(); };
   // Salva-vidas: antes da PRIMEIRA mutação de propagação da sessão, guarda um snapshot
   // recuperável dos dados que serão reescritos (nada se perde se algo der errado).
   _backupOnce(){ try{ if(this._bkpDone) return; this._bkpDone=true;
@@ -9335,7 +9388,7 @@ class Component extends DCLogic {
   editTopic = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, i=+el.dataset.i, v=el.value; const ed=this.state.edital.slice();
     const tp=ed[d].topics.slice(); tp[i]={...tp[i],name:v}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); this.flashSync(); };
   editSub = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, i=+el.dataset.i, v=el.value; const ed=this.state.edital.slice();
-    const tp=ed[d].topics.slice(); const sb=(tp[t].subs||[]).slice(); sb[i]={...sb[i],name:v}; tp[t]={...tp[t],subs:sb}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); this.flashSync(); };
+    const tp=ed[d].topics.slice(); const sb=(tp[t].subs||[]).slice(); sb[i]={...this._subObj(sb[i]),name:v}; tp[t]={...tp[t],subs:sb}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); this.flashSync(); };
   onSim = (e)=>{ const f=e.currentTarget.dataset.f; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({sim:{...s.sim,[f]:v}})); };
   onSimNome = (e)=> this.setState({simNome:e.currentTarget.value});
   saveSimulado = ()=>{ const s=this.state.sim||{}; const nome=(this.state.simNome||'').trim()||'Simulado';
@@ -9483,10 +9536,11 @@ class Component extends DCLogic {
         if(String(d.disc||'').trim()!==String(disc||'').trim()) return d;
         const topics=(d.topics||[]).map(t=>{
           if(String(t.name||'').trim()!==String(topico||'').trim()) return t;
-          if(sub){ const subs=(t.subs||[]).map(x=> String(x.name||'').trim()===String(sub).trim() ? {...x, done:true} : x);
+          // string vira {name, done}; objeto mantém os outros campos — spread de string vira caracteres soltos
+          if(sub){ const subs=(t.subs||[]).map(x0=>{ const x=this._subObj(x0); return String(x.name||'').trim()===String(sub).trim() ? {...x, done:true} : x; });
             const todos=subs.length>0 && subs.every(x=>x.done);
             return {...t, subs, done: todos||t.done}; }
-          const subs=(t.subs||[]).map(x=>({...x, done:true}));
+          const subs=(t.subs||[]).map(x=>({...this._subObj(x), done:true}));
           return {...t, subs, done:true};
         });
         return {...d, topics};
@@ -10065,7 +10119,7 @@ class Component extends DCLogic {
       rows.push({k:'disc', text:(d.disc||'(sem nome)'), meta:meta.join('   ·   ')});
       tops.forEach(t=>{
         rows.push({k:'topic', text:(t.name||''), done:!!t.done});
-        (Array.isArray(t.subs)?t.subs:[]).forEach(s=>{ rows.push({k:'sub', text:(s.name||''), done:!!s.done}); });
+        (Array.isArray(t.subs)?t.subs:[]).forEach(s0=>{ const s=this._subObj(s0); rows.push({k:'sub', text:(s.name||''), done:!!s.done}); });
       });
       rows.push({k:'spacer'});
     });
@@ -10205,6 +10259,7 @@ class Component extends DCLogic {
       }
     }catch(_){}
             ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','cicloVolta','manualVoltaN','discItems','planHoras','agendaFeitas','manualFixedRoteiroAtual','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','meusGrupos','redText','redGabarito','redEnunciado'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
+            if(Array.isArray(patch.edital)) patch.edital=this._editalReparar(patch.edital);   // o backup antigo não passa pelo _load
             if(d.highlights!=null) patch.highlights=d.highlights;
             if(Array.isArray(d.ciclo)) patch.blocks=d.ciclo;
             if(Array.isArray(d.anki)) patch.ankiHist=d.anki;
@@ -14541,8 +14596,8 @@ class Component extends DCLogic {
         checkBorder: t.done?d.color:'var(--border)',
         checkBg: t.done?d.color:'transparent',
         strike: t.done?'line-through':'none',
-        subs:(Array.isArray(t.subs)?t.subs:[]).map((sb,k)=>({...sb, d:i, t:j, i:k,
-          subBorder: sb.done?d.color:'var(--border)', subBg: sb.done?d.color:'transparent', subStrike: sb.done?'line-through':'none'})),
+        subs:(Array.isArray(t.subs)?t.subs:[]).map((sb0,k)=>{ const sb=this._subObj(sb0); return {...sb, d:i, t:j, i:k,
+          subBorder: sb.done?d.color:'var(--border)', subBg: sb.done?d.color:'transparent', subStrike: sb.done?'line-through':'none'}; }),
         hasSubs:(Array.isArray(t.subs)?t.subs.length:0)>0}; });
       const _domTops=_tops.filter(t=>t.domHas&&t.domPct!=null);
       const domMedio=_domTops.length?Math.round(_domTops.reduce((a,t)=>a+t.domPct,0)/_domTops.length):null;
