@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # build-ipad.sh — monta o Cátedra.app para iPadOS a partir do mesmo bundle web do Mac.
 #
-#   bash ios/build-ipad.sh              # simulador (padrão) — instala e abre
-#   bash ios/build-ipad.sh device       # iPad de verdade (exige perfil de provisionamento)
+#   bash ios/build-ipad.sh              # simulador (padrão: um iPad) — instala e abre
+#   bash ios/build-ipad.sh sim iphone   # simulador de iPhone (o app é universal)
+#   bash ios/build-ipad.sh device       # iPad/iPhone de verdade (exige perfil de provisionamento)
+#
+# Escolha do simulador (só no modo sim):
+#   CATEDRA_SIM_UDID=<udid>   usa exatamente esse simulador (prioridade máxima; ele é ligado
+#                             se estiver desligado). É o jeito seguro quando há mais de uma
+#                             sessão usando simuladores nesta máquina.
+#   CATEDRA_SIM=iphone|ipad   filtra pelo nome (padrão ipad); o 2º argumento vale o mesmo.
 #
 # Por que sem projeto Xcode: o app do Mac já é montado assim (swiftc + bundle à mão), e
 # manter o mesmo estilo evita um .xcodeproj que ninguém edita e que vive dando conflito.
@@ -13,6 +20,8 @@
 set -euo pipefail
 
 ALVO="${1:-sim}"
+# Tipo de simulador (só no modo sim): CATEDRA_SIM ou o 2º argumento ("sim iphone").
+SIM_TIPO="${CATEDRA_SIM:-${2:-}}"
 # sim         → simulador (padrão)
 # device      → iPad de verdade, perfil de DESENVOLVIMENTO (só os aparelhos registrados)
 # testflight  → .ipa assinado para DISTRIBUIÇÃO, pronto para subir ao App Store Connect
@@ -69,7 +78,7 @@ echo "→ 1/4  Gerando bundle web (Catedra.dc.html → mac/build/web)…"
 node "$ROOT/scripts/build-macos.mjs" >/dev/null
 echo "     $(du -sh "$ROOT/mac/build/web" | cut -f1) de conteúdo web"
 
-echo "→ 2/4  Compilando Swift para iPadOS ($ALVO)…"
+echo "→ 2/4  Compilando Swift para iOS/iPadOS ($ALVO)…"
 if [ "$ALVO" = "device" ]; then
   SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
   TARGET="arm64-apple-ios$MIN_IOS"
@@ -124,12 +133,23 @@ cat > "$APP/Info.plist" <<PLIST
   <key>CFBundleIconName</key><string>AppIcon</string>
   <key>BuildMachineOSBuild</key><string>$DT_MAC_BUILD</string>
   <key>MinimumOSVersion</key><string>$MIN_IOS</string>
-  <!-- 2 = iPad. Só iPad de propósito: o layout do app troca para "celular" abaixo de
-       900px e num iPhone ficaria apertado demais para a tabela do ciclo. -->
-  <key>UIDeviceFamily</key><array><integer>2</integer></array>
+  <!-- 1 = iPhone, 2 = iPad: UM app universal, mesmo bundle id e mesmo perfil. O layout de
+       celular da web existe desde os 900 px (a tabela do ciclo já vira cartões, a barra
+       inferior aparece), então no iPhone o app abre com a casca apertada mas inteira. As
+       adaptações nativas ligam por size class (nunca por idiom), para valerem também no
+       Slide Over do iPad. -->
+  <key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
   <!-- Sem UILaunchScreen o iOS 14+ roda o app em modo compatibilidade (letterboxed,
        com barras pretas e resolução errada). É a pegadinha mais comum aqui. -->
   <key>UILaunchScreen</key><dict/>
+  <!-- Sem sufixo = iPhone: retrato e as duas paisagens (de cabeça para baixo não faz
+       sentido no celular). A chave ~ipad segue com as quatro: a multitarefa exige. -->
+  <key>UISupportedInterfaceOrientations</key>
+  <array>
+    <string>UIInterfaceOrientationPortrait</string>
+    <string>UIInterfaceOrientationLandscapeLeft</string>
+    <string>UIInterfaceOrientationLandscapeRight</string>
+  </array>
   <key>UISupportedInterfaceOrientations~ipad</key>
   <array>
     <string>UIInterfaceOrientationPortrait</string>
@@ -205,7 +225,7 @@ JSONEOF
   echo '{ "info": {"version":1,"author":"catedra"} }' > "$CAT/Contents.json"
   if actool --output-format human-readable-text --notices --warnings \
        --app-icon AppIcon --output-partial-info-plist "$BUILD/icon-partial.plist" \
-       --target-device ipad --minimum-deployment-target "$MIN_IOS" \
+       --target-device iphone --target-device ipad --minimum-deployment-target "$MIN_IOS" \
        --platform iphoneos --compile "$APP" "$CAT" >/dev/null 2>&1 && [ -f "$APP/Assets.car" ]; then
     echo "     catálogo de ativos: Assets.car ($(du -h "$APP/Assets.car" | cut -f1 | tr -d ' '))"
     # FUNDIR o plist parcial do actool, em vez de escrever a chave à mão. Ele não devolve
@@ -355,16 +375,48 @@ if [ "$ALVO" = "device" ]; then
   fi
 else
   echo "→ 4/4  Instalando no simulador…"
-  # Usa o simulador já ligado; se não houver, liga um iPad.
-  DEV="$(xcrun simctl list devices booted -j | python3 -c 'import sys,json; d=json.load(sys.stdin)["devices"]; print(next((x["udid"] for v in d.values() for x in v if "iPad" in x["name"]), ""))')"
-  if [ -z "$DEV" ]; then
-    DEV="$(xcrun simctl list devices available -j | python3 -c 'import sys,json; d=json.load(sys.stdin)["devices"]; print(next((x["udid"] for v in d.values() for x in v if "iPad" in x["name"]), ""))')"
-    [ -n "$DEV" ] && xcrun simctl boot "$DEV" && sleep 6
+  # Qual simulador: CATEDRA_SIM_UDID manda (é o único jeito de duas sessões na mesma máquina
+  # não se atropelarem); senão CATEDRA_SIM (ou o 2º argumento) filtra pelo NOME — "iPad"
+  # (padrão) ou "iPhone" — preferindo um já ligado e, sem nenhum, ligando o primeiro
+  # disponível. A escolha sai no log com nome + UDID, para a captura de tela que vier depois
+  # apontar para o simulador certo.
+  DEV=""; DEV_NOME=""
+  _sim_python='import sys,json
+alvo=sys.argv[1]; udid=sys.argv[2]; so_ligados=sys.argv[3]=="1"
+d=json.load(sys.stdin)["devices"]
+for v in d.values():
+  for x in v:
+    if udid:
+      if x["udid"]==udid: print(x["udid"]+"\t"+x["name"]+"\t"+x.get("state","")); sys.exit()
+    elif alvo.lower() in x["name"].lower() and x.get("isAvailable",True) and (not so_ligados or x.get("state")=="Booted"):
+      print(x["udid"]+"\t"+x["name"]+"\t"+x.get("state","")); sys.exit()
+'
+  if [ -n "${CATEDRA_SIM_UDID:-}" ]; then
+    FILTRO="UDID $CATEDRA_SIM_UDID"
+    _ach="$(xcrun simctl list devices -j | python3 -c "$_sim_python" "" "$CATEDRA_SIM_UDID" 0)"
+  else
+    case "$SIM_TIPO" in
+      iphone|iPhone) SIM_NOME="iPhone";;
+      ipad|iPad|'')  SIM_NOME="iPad";;
+      *) echo "     ✗ CATEDRA_SIM=\"$SIM_TIPO\" não é iphone nem ipad." >&2; exit 1;;
+    esac
+    FILTRO="nome contendo \"$SIM_NOME\" (CATEDRA_SIM=${SIM_TIPO:-ipad})"
+    _ach="$(xcrun simctl list devices booted -j | python3 -c "$_sim_python" "$SIM_NOME" "" 1)"
+    [ -n "$_ach" ] || _ach="$(xcrun simctl list devices available -j | python3 -c "$_sim_python" "$SIM_NOME" "" 0)"
   fi
-  [ -n "$DEV" ] || { echo "     ✗ Nenhum simulador de iPad disponível."; exit 1; }
+  if [ -z "$_ach" ]; then
+    echo "     ✗ Nenhum simulador encontrado com o filtro: $FILTRO." >&2
+    echo "       Veja os disponíveis com:  xcrun simctl list devices available" >&2
+    exit 1
+  fi
+  DEV="$(printf '%s' "$_ach" | cut -f1)"; DEV_NOME="$(printf '%s' "$_ach" | cut -f2)"; DEV_ESTADO="$(printf '%s' "$_ach" | cut -f3)"
+  echo "     simulador: $DEV_NOME ($DEV) — filtro: $FILTRO"
+  if [ "$DEV_ESTADO" != "Booted" ]; then
+    xcrun simctl boot "$DEV" && sleep 6
+  fi
   xcrun simctl install "$DEV" "$APP"
   xcrun simctl launch "$DEV" "$BUNDLE_ID" >/dev/null
-  echo "     instalado e aberto no simulador ($DEV)"
+  echo "     instalado e aberto em $DEV_NOME ($DEV)"
 fi
 
 echo
