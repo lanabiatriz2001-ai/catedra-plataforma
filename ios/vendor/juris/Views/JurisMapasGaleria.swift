@@ -50,28 +50,30 @@ struct JurisMapasGaleria: View {
         }
         .controlSize(.small)
         .disabled(exportando)
-        .help("Salva um PNG de cada mapa numa pasta à sua escolha")
+        .help("Salva um PNG de cada mapa em Arquivos › Cátedra e abre o compartilhamento")
     }
 
-    // Exporta um PNG de cada mapa para uma pasta escolhida pela usuária.
+    // Exporta um PNG de cada mapa: grava em Arquivos › Cátedra e, no fim, abre a folha de
+    // compartilhamento com todos (Salvar em Arquivos, AirDrop, Mail…).
     private func exportarTodos() {
         // No iPadOS não existe "escolher a pasta": grava na pasta Documentos do app, que
         // aparece em Arquivos ▸ No meu iPad ▸ Cátedra (UIFileSharingEnabled no Info.plist).
-        // De lá dá para mover, compartilhar ou mandar para o iCloud.
-        guard let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
         exportando = true; exportados = 0
         let alvo = entries
         Task { @MainActor in
+            var urls: [URL] = []
             for e in alvo {
                 let nota = MapaMentalView.notaEfetiva(e, curada: store.notaApp(for: e.id))
                 if let png = Exporter.mapaPNG(e, nota) {
                     let nome = e.titulo.replacingOccurrences(of: "/", with: "-")
                         .replacingOccurrences(of: " ", with: "_").prefix(80)
-                    try? png.write(to: dir.appendingPathComponent("mapa_\(nome).png"))
+                    if let url = Exporter.gravar(nome: "mapa_\(nome).png", dados: png) { urls.append(url) }
                 }
                 exportados += 1
+                await Task.yield()   // deixa o contador "Exportando… n/N" pintar entre um mapa e outro
             }
             exportando = false
+            JurisCompartilhar.compartilhar(urls)
         }
     }
 }
