@@ -78,6 +78,10 @@ struct EntryDetailView: View {
         }
         .background(detailCanvas)
         .navigationTitle(entry.titulo)
+        // A nav bar do NavigationStack repetia o título em letras grandes entre a barra
+        // "Voltar" do leitor e a barra do verbete — três barras empilhadas antes do texto,
+        // e o título já está no cabeçalho "vitrine" logo abaixo. Escondida.
+        .toolbar(.hidden, for: .navigationBar)
         // No embed a toolbar da JANELA pertence ao host (seletor de abas) — os botões
         // do verbete viram uma barra própria acima do conteúdo (estilo Books).
         .safeAreaInset(edge: .top, spacing: 0) { entryToolbar }
@@ -235,6 +239,7 @@ struct EntryDetailView: View {
                 .foregroundStyle(ativo ? .white : Palette.secondaryInk)
                 .padding(.horizontal, 9).padding(.vertical, 3)
                 .background(ativo ? Palette.importante : Color.clear, in: Capsule())
+                .jurisAlvoToque()
         }
         .buttonStyle(.plain)
     }
@@ -343,7 +348,7 @@ struct EntryDetailView: View {
             .padding(.horizontal, 12).padding(.vertical, 6)
             .background(lido ? Palette.fonteSTJ : Palette.appBackground, in: Capsule())
             .overlay(Capsule().strokeBorder(lido ? Color.clear : Palette.hairline, lineWidth: 1))
-            .contentShape(Capsule())
+            .jurisAlvoToque()
         }
         .buttonStyle(.plain)
         .help(lido ? "Marcar como não lido" : "Marcar como lido")
@@ -441,10 +446,13 @@ struct EntryDetailView: View {
     }
 
     private var marcacaoToolbar: some View {
-        HStack(spacing: 4) {
+        // Flow, não HStack: em retrato (744–834 pt) a fileira de ~20 controles estourava o
+        // card e os botões saíam pela direita. Agora quebra linha; cada alvo tem 44 pt.
+        Flow(espacamento: 2) {
             Text("MARCAR")
                 .font(.system(size: 9, weight: .bold)).tracking(1)
                 .foregroundStyle(Palette.secondaryInk)
+                .frame(height: 44)
 
             toolBtn("arrow.uturn.backward") { store.undoMarks(entry.id) }
                 .disabled(!store.canUndoMarks(entry.id)).help("Desfazer marcação")
@@ -475,14 +483,14 @@ struct EntryDetailView: View {
                 .foregroundStyle(store.enunciadoFoiEditado(entry.id) ? Palette.accent : Palette.bodyInk)
                 .help(store.enunciadoFoiEditado(entry.id) ? "Editar o texto (editado)" : "Editar o texto do verbete")
 
-            Spacer()
+            divisor
 
             // Tamanho da fonte de leitura
             toolBtn("textformat.size.smaller") { readingScale = max(readingScale - 0.1, 0.8) }
                 .help("Diminuir a fonte")
             Text("\(Int(readingScale * 100))%")
                 .font(.system(size: 9.5, weight: .medium).monospacedDigit())
-                .foregroundStyle(Palette.secondaryInk).frame(width: 30)
+                .foregroundStyle(Palette.secondaryInk).frame(width: 34, height: 44)
             toolBtn("textformat.size.larger") { readingScale = min(readingScale + 0.1, 1.8) }
                 .help("Aumentar a fonte")
 
@@ -539,9 +547,9 @@ struct EntryDetailView: View {
                 ColorPicker("", selection: $corPersonalizada, supportsOpacity: false)
                     .labelsHidden().frame(width: 16, height: 16).scaleEffect(0.7)
             }
+            .jurisAlvoToque()
         }
         .menuIndicator(.hidden)
-        .frame(width: 44)
         .help("Grifar — cores favoritas ou escolher qualquer cor")
         .onChange(of: corPersonalizada) { _, nova in
             let hex = nova.hexString
@@ -568,8 +576,9 @@ struct EntryDetailView: View {
         } label: {
             Image(systemName: "rectangle.dashed.badge.record")
                 .foregroundStyle(n > 0 ? Palette.accent : Palette.bodyInk)
+                .jurisAlvoToque()
         }
-        .menuIndicator(.hidden).frame(width: 26)
+        .menuIndicator(.hidden)
         .help("Gerar card: transformar a seleção em lacuna (cloze)")
     }
 
@@ -586,9 +595,9 @@ struct EntryDetailView: View {
                 }
             }
         } label: {
-            Image(systemName: "a.square.fill").foregroundStyle(corTextoVerbete)
+            Image(systemName: "a.square.fill").foregroundStyle(corTextoVerbete).jurisAlvoToque()
         }
-        .menuIndicator(.hidden).frame(width: 26)
+        .menuIndicator(.hidden)
         .help("Cor da letra do trecho")
         .onChange(of: corTextoVerbete) { _, nova in aplicarCorTexto(nova.hexString) }
     }
@@ -609,9 +618,9 @@ struct EntryDetailView: View {
                 Button { defaultAlign = "center" } label: { Label("Centralizado", systemImage: defaultAlign == "center" ? "checkmark" : "text.aligncenter") }
             } label: { Label("Padrão de todo o app…", systemImage: "textformat") }
         } label: {
-            Image(systemName: iconeAlinhamento).foregroundStyle(Palette.bodyInk)
+            Image(systemName: iconeAlinhamento).foregroundStyle(Palette.bodyInk).jurisAlvoToque()
         }
-        .menuIndicator(.hidden).frame(width: 26)
+        .menuIndicator(.hidden)
         .help("Alinhamento do texto")
     }
 
@@ -628,23 +637,27 @@ struct EntryDetailView: View {
     private var edicaoBar: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Ferramentas que só fazem sentido em texto editável (inserção/estrutura).
-            HStack(spacing: 5) {
-                Image(systemName: "pencil.and.outline").font(.system(size: 11))
-                Text("EDITANDO O TEXTO").font(.system(size: 9, weight: .bold)).tracking(1)
+            // Flow: quebra linha em retrato em vez de estourar o card.
+            Flow(espacamento: 2) {
+                HStack(spacing: 5) {
+                    Image(systemName: "pencil.and.outline").font(.system(size: 11))
+                    Text("EDITANDO O TEXTO").font(.system(size: 9, weight: .bold)).tracking(1)
+                }
+                .frame(height: 44)
                 divisor
                 edicaoBtn("list.bullet") { bulletNoVerbete() }.help("Lista com marcador")
                 // Emoji / ícones de estudo
                 Menu {
                     ForEach(gruposSimbolos[0].1, id: \.self) { s in Button(s) { inserirNoVerbete(s) } }
-                } label: { Image(systemName: "face.smiling") }
-                .menuIndicator(.hidden).frame(width: 22).help("Inserir ícone de estudo")
+                } label: { Image(systemName: "face.smiling").jurisAlvoToque() }
+                .menuIndicator(.hidden).help("Inserir ícone de estudo")
                 // Símbolos jurídicos
                 Menu {
                     ForEach(gruposSimbolos.dropFirst(), id: \.0) { grupo in
                         Section(grupo.0) { ForEach(grupo.1, id: \.self) { s in Button(s) { inserirNoVerbete(s) } } }
                     }
-                } label: { Image(systemName: "number.square") }
-                .menuIndicator(.hidden).frame(width: 22).help("Inserir símbolo jurídico")
+                } label: { Image(systemName: "number.square").jurisAlvoToque() }
+                .menuIndicator(.hidden).help("Inserir símbolo jurídico")
                 // Fonte de leitura (global)
                 Menu {
                     Section("Fonte de leitura") {
@@ -655,9 +668,8 @@ struct EntryDetailView: View {
                             }
                         }
                     }
-                } label: { Image(systemName: "textformat") }
-                .menuIndicator(.hidden).frame(width: 22).help("Fonte de leitura do app")
-                Spacer()
+                } label: { Image(systemName: "textformat").jurisAlvoToque() }
+                .menuIndicator(.hidden).help("Fonte de leitura do app")
             }
             .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.accent)
 
@@ -666,16 +678,18 @@ struct EntryDetailView: View {
                     .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
                 Spacer()
                 if store.enunciadoFoiEditado(entry.id) {
-                    Button("Restaurar original") {
+                    Button {
                         store.restaurarEnunciadoOriginal(entry.id)
                         editandoEnunciado = false
-                    }.font(.system(size: 11))
+                    } label: { Text("Restaurar original").jurisAlvoToque() }
+                    .font(.system(size: 11))
                 }
-                Button("Cancelar") { editandoEnunciado = false }.font(.system(size: 11))
-                Button("Salvar") {
+                Button { editandoEnunciado = false } label: { Text("Cancelar").jurisAlvoToque() }
+                    .font(.system(size: 11))
+                Button {
                     store.setTextoEditado(rascunhoEnunciado, entry: entry)
                     editandoEnunciado = false
-                }
+                } label: { Text("Salvar").frame(minHeight: 30) }   // com a borda, ≥ 44 pt
                 .font(.system(size: 11, weight: .semibold))
                 .buttonStyle(.borderedProminent).tint(Palette.accent)
             }
@@ -686,7 +700,7 @@ struct EntryDetailView: View {
 
     private func edicaoBtn(_ icon: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon).frame(width: 22, height: 20).contentShape(Rectangle())
+            Image(systemName: icon).jurisAlvoToque()
         }
     }
 
@@ -720,15 +734,15 @@ struct EntryDetailView: View {
     }
 
     private var divisor: some View {
-        Rectangle().fill(Palette.hairline).frame(width: 1, height: 16).padding(.horizontal, 2)
+        // 44 pt de altura para ficar centrado entre os botões de 44 pt (o Flow alinha pelo topo).
+        Rectangle().fill(Palette.hairline).frame(width: 1, height: 16).frame(height: 44).padding(.horizontal, 2)
     }
 
     private func toolBtn(_ icon: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
                 .foregroundStyle(Palette.bodyInk)
-                .frame(width: 24, height: 22)
-                .contentShape(Rectangle())
+                .jurisAlvoToque()   // ícone do mesmo tamanho; alvo de 44 pt
         }
     }
 
@@ -817,10 +831,14 @@ struct EntryDetailView: View {
 
     private var anotacaoCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Image(systemName: "square.and.pencil").font(.system(size: 11, weight: .semibold))
-                Text("MINHAS ANOTAÇÕES").font(.system(size: 10.5, weight: .bold)).tracking(1)
-                Spacer()
+            // Título numa linha e a barra de formatação na linha de baixo (Flow, quebra em
+            // retrato): juntos num HStack, os 14 botões saíam do card no iPad em pé.
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "square.and.pencil").font(.system(size: 11, weight: .semibold))
+                    Text("MINHAS ANOTAÇÕES").font(.system(size: 10.5, weight: .bold)).tracking(1)
+                    Spacer()
+                }
                 formatToolbar
             }
             .foregroundStyle(Palette.accent)
@@ -862,10 +880,10 @@ struct EntryDetailView: View {
     ]
 
     private var formatToolbar: some View {
-        HStack(spacing: 3) {
+        Flow(espacamento: 2) {
             fmtBtn("arrow.uturn.backward") { rtController.desfazer() }
             fmtBtn("arrow.uturn.forward") { rtController.refazer() }
-            Divider().frame(height: 14)
+            divisor
             fmtBtn("bold") { rtController.toggleTrait(symbolic: .traitBold) }
             fmtBtn("italic") { rtController.toggleTrait(symbolic: .traitItalic) }
             fmtBtn("underline") { rtController.toggleLineAttr(.underlineStyle) }
@@ -878,8 +896,8 @@ struct EntryDetailView: View {
                 Button { rtController.setAlignment(.center) } label: { Label("Centralizado", systemImage: "text.aligncenter") }
                 Button { rtController.setAlignment(.right) } label: { Label("À direita", systemImage: "text.alignright") }
                 Button { rtController.setAlignment(.justified) } label: { Label("Justificado", systemImage: "text.justify") }
-            } label: { Image(systemName: "text.alignleft") }
-            .menuIndicator(.hidden).frame(width: 22)
+            } label: { Image(systemName: "text.alignleft").jurisAlvoToque() }
+            .menuIndicator(.hidden)
             .help("Alinhamento do parágrafo")
 
             // Fonte de letra + tamanho
@@ -902,8 +920,8 @@ struct EntryDetailView: View {
                 Button {
                     rtController.limparFormatacao(baseFont: .serif(baseSize * 0.86), cor: NSColor(Palette.readingInk))
                 } label: { Label("Limpar formatação", systemImage: "eraser") }
-            } label: { Image(systemName: "textformat") }
-            .menuIndicator(.hidden).frame(width: 22)
+            } label: { Image(systemName: "textformat").jurisAlvoToque() }
+            .menuIndicator(.hidden)
             .help("Fonte e tamanho")
 
             // Cores: texto + marca-texto — infinitas + favoritas (paridade com o verbete)
@@ -924,8 +942,8 @@ struct EntryDetailView: View {
                     ColorPicker("Realce personalizado…", selection: $corRealceAnot, supportsOpacity: false)
                     Button { store.adicionarCorFavorita(corRealceAnot.hexString) } label: { Label("Salvar cor nos favoritos", systemImage: "plus.circle") }
                 }
-            } label: { Image(systemName: "paintpalette") }
-            .menuIndicator(.hidden).frame(width: 22)
+            } label: { Image(systemName: "paintpalette").jurisAlvoToque() }
+            .menuIndicator(.hidden)
             .help("Cor do texto e marca-texto (cores infinitas + favoritas)")
             .onChange(of: corTextoAnot) { _, nova in rtController.setForeground(NSColor(nova)) }
             .onChange(of: corRealceAnot) { _, nova in rtController.setHighlight(NSColor(nova).withAlphaComponent(0.45)) }
@@ -935,8 +953,8 @@ struct EntryDetailView: View {
                 ForEach(gruposSimbolos[0].1, id: \.self) { s in
                     Button(s) { rtController.inserir(s) }
                 }
-            } label: { Image(systemName: "face.smiling") }
-            .menuIndicator(.hidden).frame(width: 22)
+            } label: { Image(systemName: "face.smiling").jurisAlvoToque() }
+            .menuIndicator(.hidden)
             .help("Inserir ícone de estudo")
 
             // Símbolos jurídicos e pontuação
@@ -948,8 +966,8 @@ struct EntryDetailView: View {
                         }
                     }
                 }
-            } label: { Image(systemName: "number.square") }
-            .menuIndicator(.hidden).frame(width: 22)
+            } label: { Image(systemName: "number.square").jurisAlvoToque() }
+            .menuIndicator(.hidden)
             .help("Inserir símbolo jurídico")
 
             // Grifador dedicado (paridade com a caixa do verbete)
@@ -963,8 +981,8 @@ struct EntryDetailView: View {
                 Button { store.adicionarCorFavorita(corRealceAnot.hexString) } label: { Label("Salvar cor nos favoritos", systemImage: "plus.circle") }
                 Divider()
                 Button { rtController.setHighlight(nil) } label: { Label("Remover realce", systemImage: "xmark") }
-            } label: { Image(systemName: "highlighter") }
-            .menuIndicator(.hidden).frame(width: 22)
+            } label: { Image(systemName: "highlighter").jurisAlvoToque() }
+            .menuIndicator(.hidden)
             .help("Grifar (cores infinitas + favoritas)")
 
             // Borracha: limpa a formatação do trecho (paridade com o verbete)
@@ -979,7 +997,7 @@ struct EntryDetailView: View {
 
     private func fmtBtn(_ icon: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon).frame(width: 22, height: 20).contentShape(Rectangle())
+            Image(systemName: icon).jurisAlvoToque()   // ícone do mesmo tamanho; alvo de 44 pt
         }
     }
 
@@ -1096,6 +1114,7 @@ struct EntryDetailView: View {
         .padding(.horizontal, 11).padding(.vertical, 7)
         .background(Palette.elevated, in: Capsule())
         .overlay(Capsule().strokeBorder(Palette.hairline, lineWidth: 1))
+        .jurisAlvoToque()   // a cápsula continua do mesmo tamanho; o alvo passa a 44 pt
     }
 
     private var entryToolbar: some View {
@@ -1192,7 +1211,7 @@ struct EntryDetailView: View {
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
             .help("Tamanho do texto de leitura")
         }
-        .padding(.horizontal, 14).padding(.vertical, 7)
+        .padding(.horizontal, 14).padding(.vertical, 2)
         .background(Palette.sidebarBackground)
         .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
     }

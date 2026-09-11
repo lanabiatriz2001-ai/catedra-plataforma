@@ -539,3 +539,15 @@ struct Flow: Layout {
         }
     }
 }
+
+// MARK: - Alvo de toque (regra da casa: ≥ 44 pt no iPad)
+// Prefixo "juris" de propósito: LEGIS e JURIS compilam no mesmo módulo, e um `alvoToque`
+// genérico nos dois lados seria símbolo duplicado.
+extension View {
+    /// Amplia a ÁREA DE TOQUE de um controle pequeno sem mudar o desenho: o ícone continua
+    /// do mesmo tamanho, mas o dedo passa a ter 44 × 44 pt para acertar. Vai DENTRO do
+    /// label do Button/Menu — é o label que define onde o toque conta.
+    func jurisAlvoToque(_ lado: CGFloat = 44) -> some View {
+        self.frame(minWidth: lado, minHeight: lado).contentShape(Rectangle())
+    }
+}

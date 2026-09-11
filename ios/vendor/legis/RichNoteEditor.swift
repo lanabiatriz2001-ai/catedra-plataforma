@@ -36,15 +36,15 @@ struct RichNoteEditor: View {
     private var toolbar: some View {
         VStack(spacing: 4) {
             HStack(spacing: 3) {
-                fmt("arrow.uturn.backward", "Desfazer (⌘Z)") { coord.undo() }.disabled(!coord.canUndo)
-                fmt("arrow.uturn.forward", "Refazer (⌘⇧Z)") { coord.redo() }.disabled(!coord.canRedo)
+                fmt("arrow.uturn.backward", "Desfazer") { coord.undo() }.disabled(!coord.canUndo)
+                fmt("arrow.uturn.forward", "Refazer") { coord.redo() }.disabled(!coord.canRedo)
                 sep
                 headingBtn("H1", 1); headingBtn("H2", 2); headingBtn("H3", 3)
                 fmt("text.justify", "Texto normal") { coord.setHeading(0) }
                 sep
-                fmt("bold", "Negrito (⌘B)") { coord.toggleTrait(.traitBold) }
-                fmt("italic", "Itálico (⌘I)") { coord.toggleTrait(.traitItalic) }
-                fmt("underline", "Sublinhado (⌘U)") { coord.toggleUnderline() }
+                fmt("bold", "Negrito") { coord.toggleTrait(.traitBold) }
+                fmt("italic", "Itálico") { coord.toggleTrait(.traitItalic) }
+                fmt("underline", "Sublinhado") { coord.toggleUnderline() }
                 fmt("strikethrough", "Tachado") { coord.toggleStrikethrough() }
                 sep
                 // Cor do TEXTO — livre (abre o painel do macOS); aplica na seleção.
@@ -85,7 +85,7 @@ struct RichNoteEditor: View {
                 }
                 sep
                 // Favoritar a cor de marca-texto atual + cores favoritas (compartilhadas
-                // com o marca-texto da lei). Clique aplica; botão direito remove.
+                // com o marca-texto da lei). Toque aplica; toque longo remove.
                 Button { store.adicionarCorFavorita(hlColor.hexRGBA) } label: {
                     Image(systemName: store.coresFavoritas.contains(hlColor.hexRGBA) ? "star.fill" : "star")
                         .foregroundStyle(store.coresFavoritas.contains(hlColor.hexRGBA) ? Color.yellow : Color.secondary)
@@ -98,7 +98,7 @@ struct RichNoteEditor: View {
                             .overlay(Circle().strokeBorder(.secondary.opacity(0.35), lineWidth: 0.5))
                     }
                     .buttonStyle(.plain)
-                    .help("Marcar com esta cor · botão direito remove dos favoritos")
+                    .help("Marcar com esta cor · toque e segure para remover dos favoritos")
                     .contextMenu {
                         Button(role: .destructive) { store.removerCorFavorita(hex) } label: {
                             Label("Remover dos favoritos", systemImage: "star.slash")

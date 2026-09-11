@@ -109,7 +109,8 @@ struct RevisaoView: View {
                 fim
             }
         }
-        .frame(width: 620, height: 520)
+        // Sem 620 × 520 fixos: a folha do sistema (page sheet do iPad) decide o tamanho.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.detailBackground)
         .onAppear { fila = deck; total = deck.count; acertos = 0; revelado = false }
         .semMovimentoSeBaixa()   // sheet: fora do .transaction da raiz
@@ -117,7 +118,7 @@ struct RevisaoView: View {
 
     private var barra: some View {
         HStack {
-            Button { dismiss() } label: { Image(systemName: "xmark") }.buttonStyle(.plain)
+            Button { dismiss() } label: { Image(systemName: "xmark").jurisAlvoToque() }.buttonStyle(.plain)
             Spacer()
             Text("Revisão · \(total - fila.count + (fila.isEmpty ? 0 : 1))/\(max(total,1))")
                 .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.secondaryInk)

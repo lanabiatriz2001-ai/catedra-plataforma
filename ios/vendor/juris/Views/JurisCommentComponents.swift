@@ -57,27 +57,30 @@ struct MarkCommentEditorSheet: View {
                     .font(.headline)
                 Spacer()
                 if isEditing, let onDelete {
-                    Button(role: .destructive) { onDelete() } label: { Label("Excluir", systemImage: "trash") }
+                    Button(role: .destructive) { onDelete() } label: { Label("Excluir", systemImage: "trash").jurisAlvoToque() }
                         .buttonStyle(.borderless)
                 }
             }
-            .padding(14)
+            .padding(.horizontal, 14).padding(.vertical, 6)
             Divider()
             TextEditor(text: $text)
                 .font(.system(size: 13.5)).scrollContentBackground(.hidden)
-                .padding(10).frame(width: 440, height: 150)
+                .padding(10).frame(maxWidth: .infinity, minHeight: 150)
             Divider()
             HStack {
-                Button("Cancelar") { onCancel() }.keyboardShortcut(.cancelAction)
+                Button { onCancel() } label: { Text("Cancelar").jurisAlvoToque() }.keyboardShortcut(.cancelAction)
                 Spacer()
-                Button(isEditing ? "Salvar" : "Comentar") { onSave(text) }
+                Button { onSave(text) } label: { Text(isEditing ? "Salvar" : "Comentar").frame(minHeight: 30) }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
             }
-            .padding(14)
+            .padding(.horizontal, 14).padding(.vertical, 6)
         }
-        .frame(width: 440)
+        // Sem 440 pt fixos: a folha do sistema decide o tamanho (meia altura quando o
+        // sistema permitir — é uma caixa de comentário, não uma página).
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .presentationDetents([.medium, .large])
         .onAppear { text = initial }
     }
 }

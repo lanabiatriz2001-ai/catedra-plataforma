@@ -19,6 +19,8 @@ import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarEnamModo } from './enam-modo.mjs';
+import { testarIpadToque } from './ipad-toque.mjs';
+import { testarAuthIpad } from './auth-ipad.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -55,6 +57,26 @@ for (const [base, origem, arquivo] of ORIGENS) {
   catch (e) {
     ok(false, 'ENAM MODO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+  }
+  // iPad por toque (retrato 820 e paisagem 1180, hasTouch): quadradinhos, gaveta, giro,
+  // scroll único, marcar por seleção, bipe, backup automático, cronômetro ao voltar.
+  // Só na origem http: o módulo semeia por base+'/__semente' (404 na mesma origem).
+  // Login e sincronização no iPad (portão, teclado, sessão expirada, boot sem rede): a
+  // fixture tests/auth-ipad-fixture.html carrega o auth.js com um Supabase de mentira —
+  // existe na raiz do repositório, não no bundle, por isso a origem [bundle] fica de fora.
+  if (origem !== 'bundle') {
+    try { await testarAuthIpad(page, base, ok, { motor, origem }); }
+    catch (e) {
+      ok(false, 'AUTH IPAD [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+  }
+  if (origem === 'http') {
+    try { await testarIpadToque(page, base, ok, { motor, origem }); }
+    catch (e) {
+      ok(false, 'IPAD TOQUE [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
   }
   await ctx.close();
 }

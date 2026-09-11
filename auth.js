@@ -136,6 +136,11 @@
   function clearLocal() { var r = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('catedra:') === 0) r.push(k); } r.forEach(function (k) { _ri(k); }); }
 
   var user = null, hydrating = true, pushT = null, authToken = null, pushing = false;
+  // `saindo`: a pessoa tocou em Sair/excluir conta de propósito — o SIGNED_OUT que o supabase-js
+  // emite em seguida não é sessão derrubada. `pendente`: dono cuja sessão não deu para
+  // reconfirmar por falta de rede (o app segue offline com o dado dele até a rede voltar).
+  // `avisoSessao`/`ultimoEmail`: o formulário de login explica por que voltou e poupa o e-mail.
+  var saindo = false, pendente = null, avisoSessao = '', ultimoEmail = '', viaPendente = false;
   // mantém o token do usuário em cache (para o flush com keepalive ao fechar a aba)
   // O link de redefinição chega como #type=recovery (fluxo implícito) ou ?code=… com
   // ?type=recovery (PKCE). Marcamos ANTES de qualquer coisa: o supabase-js abre a sessão
@@ -150,6 +155,15 @@
   sb.auth.onAuthStateChange(function (_e, session) {
     authToken = session && session.access_token;
     if (_e === 'PASSWORD_RECOVERY') { ehRecuperacao = true; showNovaSenha(); }
+    // O supabase-js emite SIGNED_OUT quando o refresh do token é recusado (sessão revogada,
+    // senha trocada noutro aparelho). Sem isto o app seguia "logado" com o sync falhando para
+    // sempre — e o Sair apagava os estudos sem aviso, porque o confirm exigia authToken.
+    if (_e === 'SIGNED_OUT' && !saindo && (user || pendente)) sessaoExpirou();
+    // Sessão pendente (aberto offline): o próprio supabase-js renova o token quando a rede
+    // volta. Fora do callback (setTimeout) — chamar o cliente de dentro dele trava o lock interno.
+    if (pendente && session && session.user && (_e === 'TOKEN_REFRESHED' || _e === 'SIGNED_IN')) {
+      var u = session.user; setTimeout(function () { if (pendente) retomarSessao(u); }, 0);
+    }
   });
 
   // ---------- estado real de sync (exposto ao app) ----------
@@ -330,6 +344,19 @@
     return out;
   }
 
+  // PGRST301 (ou 401 falando de JWT): o PostgREST recusou o token — a sessão acabou; não é
+  // falha de rede. Um 401 de RLS (42501 com papel anon) NÃO conta: é o que sai quando o
+  // refresh falhou só por rede e a requisição foi com a chave pública — a sessão guardada
+  // ainda se recupera sozinha, e derrubar para o login aqui seria expulsar por uma oscilação.
+  function sessaoCaiu(res) {
+    var e = res && res.error; if (!e) return false;
+    if (e.code === 'PGRST301') return true;
+    return (res.status === 401 || e.status === 401) && /jwt/i.test(String(e.message || ''));
+  }
+  // Devolve o erro da resposta (o supabase-js RESOLVE com {data:null, error}) ou null. Se o
+  // erro é de sessão, derruba para o login antes — sem apagar nada deste aparelho.
+  function erroDe(res) { var e = res && res.error; if (!e) return null; if (sessaoCaiu(res)) sessaoExpirou(); return e; }
+
   function pushNow() {
     if (!user || hydrating || pushing) return;
     pushing = true; setStatus('enviando');
@@ -341,7 +368,7 @@
         // mergeAll(null, ...) devolvia SÓ o local, e o local subia por cima da nuvem —
         // apagando no servidor o que o outro aparelho tinha gravado. Falhar aqui é o
         // certo: o .catch abaixo mantém o dirty e a próxima tentativa reconcilia.
-        if (res && res.error) throw res.error;
+        var e1 = erroDe(res); if (e1) throw e1;
         var row = res && res.data;
         var antes = collect();
         var merged = mergeAll(row && row.data, antes, false); // subida: local prevalece nos escalares
@@ -360,7 +387,7 @@
         var now = new Date().toISOString();
         return sb.from('user_data').upsert({ user_id: user.id, data: leanForUpload(merged), updated_at: now })
           .then(function (r2) {
-            if (r2 && r2.error) throw r2.error;
+            var e2 = erroDe(r2); if (e2) throw e2;
             setDirty(false); setLastSrv(now); setStatus('salvo'); marcarSincronizado();
           });
       })
@@ -398,16 +425,26 @@
   _test: { mergeAll: mergeAll, tombOnSet: tombOnSet, tombLoad: tombLoad, mergeHl: mergeHl } };
 
   // pull + merge ao voltar para a aba / reconectar — o outro aparelho pode ter estudado
-  var pulling = false;
+  var pulling = false, pullT = null;
   function pullAndMerge() {
     if (!user || hydrating || pushing || pulling) return;
-    pulling = true;
+    pulling = true; clearTimeout(pullT);
+    // Antes a falha era muda: o listener 'online' marcava "enviando" antes de chamar aqui e
+    // uma leitura que falhava saía sem setStatus — o selo prendia em "sincronizando…"; ao
+    // acordar, o pull que falhou passava com "✓ salvo". Mesma retentativa de 30 s do push.
+    var falhou = function () {
+      pulling = false; setStatus(navigator.onLine === false ? 'offline' : 'erro');
+      clearTimeout(pullT); pullT = setTimeout(pullAndMerge, 30000);
+    };
     sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
       .then(function (res) {
+        // FALHA DE LEITURA NÃO É LINHA VAZIA: o supabase-js resolve com {data:null, error}.
+        if (erroDe(res)) { falhou(); return; }
         var row = res && res.data;
-        // sem linha na nuvem só é "nada mais novo" quando a leitura DEU CERTO: o supabase-js
-        // resolve (não rejeita) com res.error em falha de rede/JWT/RLS
-        if (!row || !row.data) { pulling = false; if (!(res && res.error)) marcarSincronizado(); return; }
+        // conta ainda sem linha: com dado por subir, sobe (o push relê antes de gravar e dá o sinal
+        // quando der certo). Sem nada a subir, a leitura deu certo (o erro já saiu acima, em falhou)
+        // e a nuvem não tem nada mais novo: é o primeiro acerto com a nuvem (ver marcarSincronizado).
+        if (!row || !row.data) { pulling = false; if (isDirty()) pushNow(); else { setStatus('salvo'); marcarSincronizado(); } return; }
         var serverNewer = row.updated_at && row.updated_at > lastSrv();
         if (!serverNewer && !isDirty()) { pulling = false; setStatus('salvo'); marcarSincronizado(); return; }
         // servidor mais novo e este aparelho limpo → escalares vêm do servidor; arrays sempre por id
@@ -419,7 +456,7 @@
         if (isDirty()) pushNow(); else setStatus('salvo');
         marcarSincronizado();   // a memória local já é a mescla com a nuvem
       })
-      .catch(function () { pulling = false; setStatus(navigator.onLine === false ? 'offline' : 'erro'); });
+      .catch(falhou);
   }
 
   // flush imediato quando a aba é fechada/minimizada. keepalive sobrevive ao fechamento;
@@ -449,10 +486,15 @@
     // caminho seguro (pushNow faz read-before-write). O envio cego com keepalive fica
     // só para o pagehide, onde realmente não há tempo de reler o servidor.
     if (document.visibilityState === 'hidden') { clearTimeout(pushT); if (isDirty()) pushNow(); }
-    else if (document.visibilityState === 'visible') pullAndMerge();
+    else if (document.visibilityState === 'visible') { if (pendente) reconfirmarSessao(); else pullAndMerge(); }
   });
   window.addEventListener('pagehide', flushSync);
-  window.addEventListener('online', function () { setStatus('enviando'); pullAndMerge(); });
+  window.addEventListener('online', function () {
+    if (pendente) { reconfirmarSessao(); return; }
+    // "enviando" só quando há o que enviar; limpo, o pull decide o selo (salvo/erro/offline)
+    if (isDirty()) setStatus('enviando');
+    pullAndMerge();
+  });
   window.addEventListener('offline', function () { setStatus('offline'); });
 
   // intercepta escritas do app/usuário para acionar a sincronização.
@@ -463,8 +505,10 @@
   // ação intencional (a hidratação da nuvem grava via _si, que NÃO passa por aqui).
   // Com o gate, apagar logo após abrir (nuvem ainda sincronizando) não registrava a
   // lápide → o item voltava. O push segue gateado para não subir no meio da hidratação.
-  var setImpl = function (k, v) { if (isData(k)) { tombOnSet(k, v); if (k !== 'catedra:_kts') ktsStamp(k); } _si(k, v); if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
-  var remImpl = function (k) { if (isData(k)) tombOnRemove(k); _ri(k); if (k === 'catedra:auth' && user) { logout(); return; } if (user && !hydrating && isData(k)) window.CatedraSync.push(); };
+  // Com sessão pendente (aberto offline) a escrita também marca sujo: o push em si espera
+  // `user`, mas o que foi estudado sem rede precisa subir assim que a sessão for reconfirmada.
+  var setImpl = function (k, v) { if (isData(k)) { tombOnSet(k, v); if (k !== 'catedra:_kts') ktsStamp(k); } _si(k, v); if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
+  var remImpl = function (k) { if (isData(k)) tombOnRemove(k); _ri(k); if (k === 'catedra:auth' && (user || pendente)) { logout(); return; } if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
   try {
     Object.defineProperty(localStorage, 'setItem', { configurable: true, writable: true, enumerable: false, value: setImpl });
     Object.defineProperty(localStorage, 'removeItem', { configurable: true, writable: true, enumerable: false, value: remImpl });
@@ -472,6 +516,20 @@
   // WebKit: o [[DefineOwnProperty]] exótico do Storage também MATERIALIZA itens literais
   // 'setItem'/'removeItem' com o fonte das funções — limpa a sombra logo após instalar.
   try { _ri('setItem'); _ri('removeItem'); } catch (_) {}
+  // E no WebKit atual (Safari/WKWebView — o iPad e o Mac) é SÓ isso que acontece: pela WebIDL a
+  // definição vai para o setter NOMEADO, o método continua sendo o nativo do protótipo e o
+  // gancho acima não existe (medido no WebKit do Playwright: descritor próprio ausente). Sem
+  // gancho, as escritas do app não carimbavam (_kts), apagar não deixava lápide e a escrita
+  // crua não marcava sujo — só o push explícito do _autosave salvava a sincronização. Quando a
+  // instância recusa, o gancho vai para o Storage.prototype, restrito ao localStorage desta
+  // janela (sessionStorage e os satélites em iframe seguem intocados).
+  if (localStorage.setItem !== setImpl || localStorage.removeItem !== remImpl) {
+    try {
+      var protoSet = Storage.prototype.setItem, protoRem = Storage.prototype.removeItem;
+      Storage.prototype.setItem = function (k, v) { if (this === localStorage) return setImpl(k, v); return protoSet.call(this, k, v); };
+      Storage.prototype.removeItem = function (k) { if (this === localStorage) return remImpl(k); return protoRem.call(this, k); };
+    } catch (_) {}
+  }
 
   // ---------- overlay / gate ----------
   var DARK = (function () { var d = localStorage.getItem('catedra:dark'); return d === '1' || d === 'true'; })();
@@ -613,16 +671,20 @@
 
   /** Controles que dá para focar AGORA (visíveis e habilitados). */
   function focaveisDoGate() {
+    // com um documento (Termos/Política/Conhecer) aberto dentro do portão, o Tab circula só
+    // nele — o resto do portão fica inerte enquanto isso (abrirDoc); o iframe entra na roda
+    var raiz = (docAberto && el.contains(docAberto.box)) ? docAberto.box : el;
     return Array.prototype.filter.call(
-      el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'),
-      function (n) { return n.offsetWidth > 0 || n.offsetHeight > 0 || n === document.activeElement; }
+      raiz.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),iframe,[tabindex]:not([tabindex="-1"])'),
+      function (n) { return (n.offsetWidth > 0 || n.offsetHeight > 0 || n === document.activeElement) && !n.closest('[inert]'); }
     );
   }
 
   // Um listener só, no gate. O Tab circula dentro dele; o Esc NÃO fecha — este login é
-  // obrigatório, e fechar deixaria a pessoa num app inerte, sem saída.
+  // obrigatório, e fechar deixaria a pessoa num app inerte, sem saída. (Esc fecha só o
+  // documento aberto por cima dele, que é opcional.)
   el.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (docAberto && el.contains(docAberto.box)) fecharDoc(); return; }
     if (e.key !== 'Tab') return;
     var f = focaveisDoGate();
     if (!f.length) return;
@@ -665,7 +727,8 @@
     + '#catedra-auth-gate button:active{transform:translateY(1px)}'
     + '#catedra-auth-gate button[disabled]{opacity:.6;cursor:progress}'
     + '#catedra-auth-gate .ct-seg{display:flex;background:' + (DARK ? '#0e1116' : '#ecebe4') + ';border-radius:12px;padding:4px;margin:0 0 22px}'
-    + '#catedra-auth-gate .ct-seg button{flex:1;border:none;background:transparent;border-radius:9px;padding:9px;font:600 13.5px ' + SANS + ';color:' + MUT + ';cursor:pointer}'
+    // min-height 44px: a aba media 34px, abaixo do alvo de toque do iPad
+    + '#catedra-auth-gate .ct-seg button{flex:1;min-height:44px;border:none;background:transparent;border-radius:9px;padding:9px;font:600 13.5px ' + SANS + ';color:' + MUT + ';cursor:pointer}'
     + '#catedra-auth-gate .ct-seg button.on{background:' + CARD + ';color:' + INK + ';box-shadow:0 1px 3px rgba(0,0,0,.12)}'
     + '#catedra-auth-gate .ct-forca{height:5px;border-radius:99px;background:' + BRD + ';overflow:hidden;margin-top:8px}'
     + '#catedra-auth-gate .ct-forca i{display:block;height:100%;width:0;border-radius:99px;background:#e0533f;transition:width .2s,background .2s}'
@@ -698,8 +761,12 @@
       + '<div style="width:100%;max-width:380px;">' + inner + '</div></div>';
     show();
   }
+  // Atributos do teclado do iPad: ao virar type=text, "mostrar" deixava o teclado capitalizar e
+  // autocorrigir a senha. Ficam no <input> (o toggle só troca o type, e eles sobrevivem).
+  var SENHA_ATTRS = 'autocapitalize="none" autocorrect="off" spellcheck="false"';
   function olho(id) {
-    return '<button type="button" data-olho="' + id + '" aria-label="Mostrar senha" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:' + MUT + ';cursor:pointer;padding:6px;font:12.5px ' + SANS + ';">mostrar</button>';
+    // alvo de 44×44 (o botão media 25px de altura): cabe dentro do input, que tem 47px
+    return '<button type="button" data-olho="' + id + '" aria-label="Mostrar senha" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:' + MUT + ';cursor:pointer;min-height:44px;min-width:44px;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;font:12.5px ' + SANS + ';">mostrar</button>';
   }
   function ligarOlhos() {
     el.querySelectorAll('[data-olho]').forEach(function (b) {
@@ -725,6 +792,11 @@
     return n; // 0..5
   }
   function online() { return navigator.onLine !== false; }
+  // No app nativo, o link do e-mail (redefinição, confirmação) abre o SITE — no iPad, no Safari.
+  // O iPad em WKWebView se apresenta como Macintosh (modo desktop); o toque o denuncia.
+  var IPAD = /iPad|iPhone/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var NAVEG = IPAD ? 'no Safari' : 'no navegador';
+  function esc(s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   function showForm() {
     var login = mode === 'login';
@@ -740,14 +812,17 @@
       + '<div id="ctoff" style="display:' + (online() ? 'none' : 'block') + ';background:#fff3e0;color:#7a4b00;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px;">Você está sem internet. Dá para entrar assim que a conexão voltar.</div>'
       + '<form id="ctf" novalidate role="tabpanel" aria-labelledby="' + (login ? 'ctseg-login' : 'ctseg-signup') + '">'
       + '<label for="cte" style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">E-mail</label>'
-      + '<input id="cte" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" style="' + INPUT + 'margin-bottom:14px;">'
+      // autocomplete=username (+ current/new-password na senha) é o par que o gerenciador de senhas
+      // do iPad reconhece; autocorrect=off porque o teclado "corrigia" o e-mail
+      + '<input id="cte" type="email" inputmode="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="voce@email.com"' + (avisoSessao && ultimoEmail ? ' value="' + esc(ultimoEmail) + '"' : '') + ' style="' + INPUT + 'margin-bottom:14px;">'
       + '<label for="ctp" style="display:block;font-size:12px;color:' + LAB + ';font-weight:600;margin-bottom:6px;">Senha</label>'
-      + '<div style="position:relative;"><input id="ctp" type="password" autocomplete="' + (login ? 'current-password' : 'new-password') + '" placeholder="' + (login ? '••••••••' : 'mínimo 8 caracteres') + '" style="' + INPUT + 'padding-right:78px;">' + olho('ctp') + '</div>'
+      + '<div style="position:relative;"><input id="ctp" type="password" autocomplete="' + (login ? 'current-password' : 'new-password') + '" ' + SENHA_ATTRS + ' placeholder="' + (login ? '••••••••' : 'mínimo 8 caracteres') + '" style="' + INPUT + 'padding-right:78px;">' + olho('ctp') + '</div>'
       + (login ? '' : '<div class="ct-forca" aria-hidden="true"><i id="ctforca"></i></div><div id="ctforcat" style="font-size:12px;color:' + MUT + ';margin-top:5px;min-height:16px;"></div>')
       + '<div id="ctcaps" style="min-height:16px;font-size:12.5px;color:' + MUT + ';margin-top:6px;"></div>'
-      + '<div id="cterr" role="alert" aria-live="polite" style="min-height:18px;font-size:13px;color:#e0533f;margin:2px 0 10px;line-height:1.45;"></div>'
+      // sessão derrubada/expirada: o formulário diz POR QUE voltou (texto neutro, não é erro da pessoa)
+      + '<div id="cterr" role="alert" aria-live="polite" style="min-height:18px;font-size:13px;color:' + (avisoSessao && login ? LAB : '#e0533f') + ';margin:2px 0 10px;line-height:1.45;">' + (login ? esc(avisoSessao) : '') + '</div>'
       + '<button id="cts" type="submit" style="' + BTN + '">' + (login ? 'Entrar' : 'Criar conta') + '</button>'
-      + (login ? '<p id="ctf2" style="font-size:13px;color:' + MUT + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctesq" style="color:' + MUT + ';">Esqueci minha senha</a></p>' : '<p style="font-size:12px;color:' + MUT + ';text-align:center;margin:12px 0 0;line-height:1.5;">Vamos mandar um e-mail de confirmação. Sem ele a conta não abre.</p>')
+      + (login ? '<p id="ctf2" style="font-size:13px;color:' + MUT + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctesq" style="color:' + MUT + ';">Esqueci minha senha</a></p>' : '<p style="font-size:12px;color:' + MUT + ';text-align:center;margin:12px 0 0;line-height:1.5;">Vamos mandar um e-mail de confirmação. Sem ele a conta não abre.' + (WEB ? '' : ' O link abre o site da Cátedra ' + NAVEG + '; depois, volte aqui e entre.') + '</p>')
       + '</form>'
       + (WEB || OAUTH.length ? '<div style="display:flex;align-items:center;gap:12px;margin:20px 0 14px;color:' + MUT + ';font-size:12px;"><span style="flex:1;height:1px;background:' + BRD + ';"></span>ou<span style="flex:1;height:1px;background:' + BRD + ';"></span></div>' : '')
       + (WEB ? '<button type="button" id="ctmagic" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true">✉️</span> Receber um link de acesso por e-mail</button>' : '')
@@ -795,7 +870,8 @@
       if (!em) { aviso('Escreva seu e-mail acima e clique de novo.'); inE.focus(); return; }
       aviso('Enviando…', true);
       sb.auth.resetPasswordForEmail(em, { redirectTo: location.origin + location.pathname })
-        .then(function () { aviso('Se existir conta com esse e-mail, o link de redefinição já está na caixa de entrada.', true); })
+        // no app nativo o link não volta para cá: avisa que ele abre o site, e que é só voltar depois
+        .then(function () { aviso('Se existir conta com esse e-mail, o link de redefinição já está na caixa de entrada.' + (WEB ? '' : ' O link do e-mail abre o site da Cátedra ' + NAVEG + '; depois de trocar a senha, volte aqui e entre normalmente.'), true); })
         .catch(function () { aviso('Não deu para enviar agora. Tente de novo.'); });
     };
     // Link mágico: entra sem senha (Supabase envia o link; ao voltar, a sessão abre sozinha).
@@ -834,7 +910,7 @@
       var onRes = function (res) {
         if (res.error) { done(translateErr(res.error.message)); return; }
         if (res.data && res.data.session) { btn.textContent = 'Abrindo seus estudos…'; onLogin(res.data.session.user); }
-        else if (!login) { mode = 'login'; showForm(); var er = el.querySelector('#cterr'); if (er) { er.style.color = DARK ? '#7fd4b5' : '#0f7a57'; er.textContent = 'Conta criada! Confirme pelo e-mail que acabamos de enviar e depois entre aqui.'; } }
+        else if (!login) { mode = 'login'; showForm(); var er = el.querySelector('#cterr'); if (er) { er.style.color = DARK ? '#7fd4b5' : '#0f7a57'; er.textContent = 'Conta criada! Confirme pelo e-mail que acabamos de enviar e depois entre aqui.' + (WEB ? '' : ' O link abre o site da Cátedra ' + NAVEG + '; depois de confirmar, volte aqui e entre normalmente.'); } }
         else { done('Não foi possível entrar.'); }
       };
       var p = login ? sb.auth.signInWithPassword({ email: email, password: pass }) : sb.auth.signUp({ email: email, password: pass, options: { emailRedirectTo: WEB ? location.origin + location.pathname : undefined } });
@@ -882,7 +958,8 @@
   }
 
   function onLogin(u) {
-    user = u;
+    user = u; pendente = null; avisoSessao = ''; ultimoEmail = u.email || '';
+    try { sessionStorage.removeItem('catedra:_pend'); } catch (_) {}
     // O app precisa saber QUAL conta está logada. Há duas contas distintas em uso (a
     // administradora e a pessoal) e o Ajustes só mostrava um apelido salvo no
     // localStorage — não havia como descobrir, de dentro do app, onde se estava. Isso
@@ -894,7 +971,7 @@
     } catch (_) {}
     if (trocouDeDono(u)) { clearLocal(); try { sessionStorage.removeItem('catedra:hydrated'); } catch (_) {} }
     try { _si('catedra:_owner', u.id); } catch (_) {}
-    if (sessionStorage.getItem('catedra:hydrated') === '1') { _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
+    if (sessionStorage.getItem('catedra:hydrated') === '1') { viaPendente = false; _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
     showLoading('Carregando seus dados…');
     sb.from('user_data').select('data,updated_at').eq('user_id', u.id).maybeSingle().then(function (res) {
       // FALHA DE LEITURA NÃO É "CONTA VAZIA".
@@ -908,7 +985,9 @@
       // É o sintoma histórico "meu edital sumiu ao entrar em outro aparelho".
       // Casos reais: abrir sem internet com token ainda válido, wi-fi de hotel/portal
       // cativo devolvendo HTML, JWT recusado.
+      if (user !== u) return;   // a sessão caiu no meio da hidratação: o login já está na tela
       if (res && res.error) {
+        if (sessaoCaiu(res)) { sessaoExpirou(); return; }   // JWT recusado: é login, não "erro"
         _si('catedra:auth', '1'); hydrating = false; hide();
         setStatus(navigator.onLine === false ? 'offline' : 'erro');
         return;   // NÃO carimba lastSrv, NÃO marca hydrated, NÃO recarrega — a próxima
@@ -929,7 +1008,10 @@
       else { sb.from('user_data').upsert({ user_id: u.id, data: leanForUpload(collect()), updated_at: now }); setLastSrv(now); setDirty(false); }
       _si('catedra:auth', '1');
       sessionStorage.setItem('catedra:hydrated', '1');
-      location.reload();
+      // Vindo da sessão pendente, o app estava VIVO até o showLoading de cima: dá ao autosave
+      // dele (500 ms) o tempo de gravar o que a pessoa acabou de fazer antes de recarregar.
+      if (viaPendente) { viaPendente = false; setTimeout(function () { location.reload(); }, 700); }
+      else location.reload();
       };
       // P14: sem aceite da versão vigente dos Termos e da Política — nem neste aparelho, nem na
       // nuvem — o app pede antes de mesclar e subir qualquer coisa. O aceite é dado local
@@ -937,16 +1019,73 @@
       var aceiteLocal = null; try { aceiteLocal = localStorage.getItem('catedra:aceite'); } catch (_) {}
       if (aceiteVigente(aceiteLocal, row && row.data && row.data['catedra:aceite'])) prosseguir();
       else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); } catch (_) {} prosseguir(); });
-    }).catch(function () { _si('catedra:auth', '1'); hydrating = false; hide(); });
+    }).catch(function () { if (user !== u) return; _si('catedra:auth', '1'); hydrating = false; hide(); });
   }
   function showLoginState() {
-    user = null;
+    user = null; pendente = null;
     try {
       if (window.CatedraAuth) window.CatedraAuth.user = null;
       window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: null }));
     } catch (_) {}
+    try { sessionStorage.removeItem('catedra:_pend'); } catch (_) {}
     _ri('catedra:auth'); sessionStorage.removeItem('catedra:hydrated'); hydrating = false; showForm();
   }
+  // Sessão derrubada ou expirada DE VERDADE (SIGNED_OUT que não veio do Sair, 401/PGRST301 no
+  // push/pull, refresh recusado): volta ao login SEM clearLocal — o dado é do mesmo dono. Ao
+  // reentrar na mesma conta, trocouDeDono é falso e o local é MESCLADO, não apagado.
+  var AVISO_SESSAO = 'Sua sessão expirou — entre de novo para continuar sincronizando.';
+  function sessaoExpirou() {
+    if (!user && !pendente && avisoSessao) return;   // já está no formulário, avisando
+    clearTimeout(pushT); clearTimeout(pullT);
+    authToken = null; avisoSessao = AVISO_SESSAO;
+    setStatus('erro');
+    showLoginState();
+  }
+  function temDadoLocal() {
+    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (isData(k) && temConteudo(localStorage.getItem(k))) return true; } } catch (_) {}
+    return false;
+  }
+  // Erro de REDE (sem internet, DNS, portal cativo) ≠ erro de AUTENTICAÇÃO (refresh recusado).
+  // O supabase-js marca o primeiro como AuthRetryableFetchError e PRESERVA a sessão guardada;
+  // no segundo ele apaga a sessão e emite SIGNED_OUT. Só o primeiro autoriza abrir offline.
+  function erroDeRede(err) {
+    if (navigator.onLine === false) return true;
+    if (!err) return false;
+    try { if (window.supabase.isAuthRetryableFetchError && window.supabase.isAuthRetryableFetchError(err)) return true; } catch (_) {}
+    return err.name === 'AuthRetryableFetchError' || /failed to fetch|load failed|network/i.test(String(err.message || ''));
+  }
+  // Sem rede para reconfirmar a sessão, mas com dono carimbado e dado local: o app abre
+  // OFFLINE com o que está aqui — antes caía no login ("Você está sem internet", Entrar
+  // recusava) e trancava todo o estudo local. Nada sobe (user fica nulo), nada é apagado.
+  function entrarPendente(dono) {
+    pendente = dono; hydrating = false;
+    var tinha = false; try { tinha = localStorage.getItem('catedra:auth') === '1'; } catch (_) {}
+    _si('catedra:auth', '1');
+    // O app lê catedra:auth no construtor. Se ele já montou sem a chave (o refresh que falhou
+    // demorou mais que a carga), mostraria o login local dele: recarrega UMA vez.
+    var jaRecarregou = false; try { jaRecarregou = sessionStorage.getItem('catedra:_pend') === '1'; } catch (_) {}
+    if (!tinha && document.getElementById('dc-root') && !jaRecarregou) {
+      try { sessionStorage.setItem('catedra:_pend', '1'); } catch (_) {}
+      location.reload(); return;
+    }
+    hide(); setStatus('offline');
+  }
+  var reconfirmando = false;
+  // A rede voltou (ou a aba reapareceu) com sessão pendente: pergunta de novo ao supabase-js.
+  function reconfirmarSessao() {
+    if (!pendente || reconfirmando) return;
+    reconfirmando = true;
+    sb.auth.getSession().then(function (res) {
+      reconfirmando = false;
+      if (!pendente) return;
+      var s = res && res.data && res.data.session;
+      if (s && s.user) { retomarSessao(s.user); return; }
+      if (erroDeRede(res && res.error)) return;   // ainda sem rede: segue pendente
+      sessaoExpirou();   // inválida de verdade (refresh recusado, ou sumiu): login, sem apagar nada
+    }).catch(function () { reconfirmando = false; });
+  }
+  // Sessão reconfirmada: segue o onLogin normal — mesmo dono mescla; outro dono limpa (regra de sempre).
+  function retomarSessao(u) { pendente = null; viaPendente = true; onLogin(u); }
 
   // Tela de NOVA SENHA — o link do e-mail de recuperação volta para cá. Sem ela o link
   // não levaria a lugar nenhum: o supabase-js abre a sessão a partir do hash da URL e o
@@ -956,7 +1095,7 @@
     painel('<form id="ctnf">'
       + '<h2 style="font-family:' + SERIF + ';font-size:28px;font-weight:700;color:' + INK + ';margin:0;">Nova senha</h2>'
       + '<p style="font-size:13.5px;color:' + MUT + ';margin:6px 0 24px;">Escolha a senha que você vai usar daqui em diante.</p>'
-      + '<div style="position:relative;"><input id="ctnp" type="password" autocomplete="new-password" placeholder="Nova senha (mín. 8 caracteres)" style="' + INPUT + 'padding-right:78px;">' + olho('ctnp') + '</div>'
+      + '<div style="position:relative;"><input id="ctnp" type="password" autocomplete="new-password" ' + SENHA_ATTRS + ' placeholder="Nova senha (mín. 8 caracteres)" style="' + INPUT + 'padding-right:78px;">' + olho('ctnp') + '</div>'
       + '<div id="ctnerr" style="min-height:18px;font-size:12.5px;color:#e0533f;margin:4px 0 10px;line-height:1.4;"></div>'
       + '<button id="ctnb" type="submit" style="width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">Salvar nova senha</button>'
       + '</form>');
@@ -983,17 +1122,47 @@
   // em seguida levava esse registro junto, definitivamente e sem aviso.
   // P14: Termos e Política abrem numa sobreposição com <iframe> — funciona no site e no app
   // nativo (file://), onde target=_blank e window.open não abrem nada.
+  var docAberto = null;
   function abrirDoc(arquivo) {
-    var old = document.getElementById('ctdoc'); if (old) old.remove();
-    var box = document.createElement('div'); box.id = 'ctdoc'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', /priv/.test(arquivo) ? 'Política de privacidade' : 'Termos de uso');
+    fecharDoc();
+    var noGate = el.style.display !== 'none' && !!gateRestore;
+    var box = document.createElement('div'); box.id = 'ctdoc'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-label', /priv/.test(arquivo) ? 'Política de privacidade' : /sobre/.test(arquivo) ? 'Conhecer a Cátedra' : 'Termos de uso');
     box.style.cssText = 'position:fixed;inset:0;z-index:100000;background:' + (DARK ? '#15171a' : '#f7f4ec') + ';display:flex;flex-direction:column;';
     var barra = document.createElement('div'); barra.style.cssText = 'display:flex;justify-content:flex-end;padding:8px 12px;';
     var fechar = document.createElement('button'); fechar.type = 'button'; fechar.textContent = 'Fechar'; fechar.style.cssText = GHOST + 'width:auto;min-height:44px;padding:8px 18px;';
-    fechar.onclick = function () { box.remove(); };
+    fechar.onclick = fecharDoc;
     barra.appendChild(fechar); box.appendChild(barra);
     var fr = document.createElement('iframe'); fr.src = './' + arquivo; fr.title = box.getAttribute('aria-label'); fr.style.cssText = 'flex:1;border:0;width:100%;background:transparent;';
-    box.appendChild(fr); document.body.appendChild(box); fechar.focus();
-    window.addEventListener('message', function onMsg(e) { if (e && e.data && e.data.type === 'ctFecharDoc') { box.remove(); window.removeEventListener('message', onMsg); } });
+    box.appendChild(fr);
+    // Com o portão aberto, a sobreposição entra DENTRO dele. Pendurada no body ela nascia irmã
+    // do portão: ficava atrás (z-index menor) e o marcarFundo a marcava inerte na hora — Termos,
+    // Política e "Conhecer" não abriam, e o aceite obrigava a aceitar sem conseguir ler. Os
+    // irmãos dentro do portão ficam inertes enquanto o documento está aberto (Tab e leitor de
+    // tela ficam no documento) e o Fechar devolve o foco a quem abriu.
+    docAberto = { box: box, foco: document.activeElement, inertes: [] };
+    if (noGate) Array.prototype.forEach.call(el.children, function (n) {
+      if (n.tagName === 'STYLE') return;
+      docAberto.inertes.push({ node: n, inert: !!n.inert, ariaHidden: n.getAttribute('aria-hidden') });
+      try { n.inert = true; } catch (_) {}
+      n.setAttribute('aria-hidden', 'true');
+    });
+    (noGate ? el : document.body).appendChild(box); fechar.focus();
+    window.addEventListener('message', aoFecharDoc);
+  }
+  function aoFecharDoc(e) { if (e && e.data && e.data.type === 'ctFecharDoc') fecharDoc(); }
+  function fecharDoc() {
+    window.removeEventListener('message', aoFecharDoc);
+    var d = docAberto; docAberto = null;
+    var velho = document.getElementById('ctdoc'); if (velho) velho.remove();
+    if (!d) return;
+    d.inertes.forEach(function (it) {
+      try { it.node.inert = it.inert; } catch (_) {}
+      if (it.ariaHidden == null) it.node.removeAttribute('aria-hidden'); else it.node.setAttribute('aria-hidden', it.ariaHidden);
+    });
+    var f = d.foco;
+    if (f && f.focus && document.contains(f) && f !== document.body) { try { f.focus({ preventScroll: true }); } catch (_) { f.focus(); } }
+    else { var p = focaveisDoGate()[0]; if (p) p.focus(); }
   }
   function ligarDocs() {
     var links = el.querySelectorAll('a[data-doc]');
@@ -1023,7 +1192,7 @@
     var chk = el.querySelector('#ctac'), ok = el.querySelector('#ctacok');
     chk.onchange = function () { ok.disabled = !chk.checked; ok.style.opacity = chk.checked ? '1' : '.55'; };
     ok.onclick = function () { if (!chk.checked) return; ok.disabled = true; ok.textContent = 'Carregando seus dados…'; cb(); };
-    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearLocal(); location.reload(); }; sb.auth.signOut().then(fin, fin); };
+    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearLocal(); location.reload(); }; sb.auth.signOut().then(fin, fin); };
   }
   /** Exclusão da conta pela própria pessoa: a função excluir_minha_conta (security definer) apaga o blob,
       a participação e a atividade em grupos, feedback, uso de IA, acesso beta e a linha em auth.users. */
@@ -1032,19 +1201,28 @@
     return sb.rpc('excluir_minha_conta').then(function (r) {
       if (r && r.error) throw r.error;
       sessionStorage.removeItem('catedra:hydrated');
-      clearLocal();
+      clearLocal(); saindo = true;
       var fin = function () { location.reload(); };
       return sb.auth.signOut().then(fin, fin);
     });
   }
   function logout() {
     clearTimeout(pushT);
-    if (user && authToken && isDirty()) {
-      if (!confirm('Há estudos deste aparelho que ainda não subiram para a sua conta.\n\nSair agora vai apagá-los daqui. Quer sair mesmo assim?')) {
-        setStatus('enviando'); pushNow(); return;   // fica logado e termina de sincronizar
+    // O aviso vale SEMPRE que há coisa por subir — antes exigia authToken, e com a sessão
+    // expirada (token nulo) o Sair apagava os estudos não sincronizados em silêncio.
+    if (isDirty()) {
+      var podeSubir = !!(user && authToken) && online();
+      var msg = podeSubir
+        ? 'Há estudos deste aparelho que ainda não subiram para a sua conta.\n\nSair agora vai apagá-los daqui. Quer sair mesmo assim?'
+        : 'Há estudos deste aparelho que ainda não subiram para a sua conta — e agora não há como subir (' + (online() ? 'a sessão expirou' : 'sem internet') + ').\n\nSair vai apagá-los daqui de vez. Para não perder nada, ' + (online() ? 'entre de novo' : 'espere a conexão voltar') + ' e saia depois. Quer sair mesmo assim?';
+      if (!confirm(msg)) {
+        _si('catedra:auth', '1');                                // "não saio": o app segue logado
+        if (podeSubir) { setStatus('enviando'); pushNow(); }     // e termina de sincronizar
+        return;
       }
-      try { flushSync(); } catch (_) {}             // última tentativa (keepalive sobrevive ao reload)
+      if (podeSubir) { try { flushSync(); } catch (_) {} }       // última tentativa (keepalive sobrevive ao reload)
     }
+    saindo = true;
     sessionStorage.removeItem('catedra:hydrated');
     var fin = function () { clearLocal(); location.reload(); };
     sb.auth.signOut().then(fin, fin);
@@ -1052,9 +1230,19 @@
   window.CatedraAuth = { logout: logout, client: sb, excluirConta: excluirConta, abrirDoc: abrirDoc };
 
   showLoading('…');
+  // Sem sessão: por FALTA DE REDE (o refresh não chegou ao servidor, ou o aparelho está
+  // offline), com dono carimbado e dado local, abre offline em vez de trancar o estudo atrás
+  // do login. Com rede e dono carimbado, a sessão expirou ou foi derrubada (o Sair apaga o
+  // dono junto com o resto): o login diz isso e o dado local espera a mesma conta voltar.
+  function semSessao(err) {
+    var dono = null; try { dono = localStorage.getItem('catedra:_owner'); } catch (_) {}
+    if (dono && temDadoLocal() && erroDeRede(err)) { entrarPendente(dono); return; }
+    if (dono) avisoSessao = AVISO_SESSAO;
+    showLoginState();
+  }
   sb.auth.getSession().then(function (res) {
     var s = res && res.data && res.data.session;
     if (ehRecuperacao) { showNovaSenha(); return; }
-    if (s && s.user) onLogin(s.user); else showLoginState();
-  }).catch(function () { showLoginState(); });
+    if (s && s.user) onLogin(s.user); else semSessao(res && res.error);
+  }).catch(function (err) { semSessao(err); });
 })();
