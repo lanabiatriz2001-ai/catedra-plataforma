@@ -330,6 +330,26 @@ const sync = await page.evaluate(() => {
   const mL = JSON.parse(M(svL, lcL, false)['catedra:leituras']);
   r.leiturasUniaoPorId = mL.length === 3 && mL.some(x => x.id === 'la|cf|413') && mL.some(x => x.id === 'la|cc|9');
   r.leiturasUpMaiorVence = (mL.find(x => x.id === 'la|cf|412').nao || []).length === 0;
+
+  // 10. INTERRUPTOR ('0'/'1'): '0' é escolha, não vazio. A regra "vazio nunca apaga cheio"
+  //     fazia o '1' do servidor vencer SEMPRE o '0' daqui, sem olhar o carimbo — era o que
+  //     desfazia o tema claro a cada sync ("o tema não fixa"). Agora decide o carimbo.
+  const svM = { 'catedra:dark': '1', 'catedra:_kts': J({ 'catedra:dark': 1000 }) };
+  const lcM = { 'catedra:dark': '0', 'catedra:_kts': J({ 'catedra:dark': 9000 }) };
+  r.claroEscolhidoFica = M(svM, lcM, false)['catedra:dark'] === '0';
+  r.claroEscolhidoFicaPreferServer = M(svM, lcM, true)['catedra:dark'] === '0';
+  // e o caminho inverso continua valendo: escuro escolhido no outro aparelho chega aqui
+  const svN = { 'catedra:dark': '1', 'catedra:_kts': J({ 'catedra:dark': 9000 }) };
+  const lcN = { 'catedra:dark': '0', 'catedra:_kts': J({ 'catedra:dark': 1000 }) };
+  r.escuroMaisNovoChega = M(svN, lcN, false)['catedra:dark'] === '1';
+  // o leitor dos satélites (LEGIS/JURIS) guarda do mesmo jeito e segue a mesma regra
+  const svO = { 'catedra:leitorDark': '1', 'catedra:_kts': J({ 'catedra:leitorDark': 1000 }) };
+  const lcO = { 'catedra:leitorDark': '0', 'catedra:_kts': J({ 'catedra:leitorDark': 9000 }) };
+  r.leitorClaroFica = M(svO, lcO, false)['catedra:leitorDark'] === '0';
+  // contador continua protegido: 0 recém-semeado NÃO apaga o número do outro aparelho
+  const svP = { 'catedra:escudos': '3', 'catedra:_kts': J({ 'catedra:escudos': 1000 }) };
+  const lcP = { 'catedra:escudos': '0', 'catedra:_kts': J({ 'catedra:escudos': 9000 }) };
+  r.contadorZeroNaoApaga = M(svP, lcP, false)['catedra:escudos'] === '3';
   return r;
 });
 for (const [k, v] of Object.entries(sync)) ok(v, 'SYNC ' + k);

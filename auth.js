@@ -31,7 +31,10 @@
     // notifRevDia marca que o lembrete de revisão do dia JÁ TOCOU NESTE APARELHO (U12) e
     // _bkpAutoTs, quando o backup semanal rodou aqui (D11). São meta-estado local: subir
     // faria o segundo aparelho herdar "já avisei" e ficar em silêncio sem nunca ter avisado.
-    'catedra:notifRevDia': 1, 'catedra:_bkpAutoTry': 1, 'catedra:_bkpAutoTs': 1 };
+    // _temaTs é a hora em que a pessoa escolheu tema/cor/direção NESTE aparelho: serve só
+    // para o portão local recusar valor velho da nuvem. Subir faria a escolha feita aqui
+    // calar a escolha feita no outro aparelho — entre aparelhos quem decide é o _kts.
+    'catedra:notifRevDia': 1, 'catedra:_bkpAutoTry': 1, 'catedra:_bkpAutoTs': 1, 'catedra:_temaTs': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
   // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
@@ -214,6 +217,9 @@
     if (v === null) return false;
     return String(s) !== '0';
   }
+  /* Chaves guardadas como interruptor cru ('0' ou '1'): os dois valores são conteúdo.
+     Ver a regra de merge lá embaixo — sem esta lista, escolher claro nunca fixava. */
+  var CHAVES_INTERRUPTOR = { 'catedra:dark': 1, 'catedra:leitorDark': 1 };
   function stamp(x) { return (x && (x.up || x.ts)) || 0; }
   function mergeArr(sv, lc, preferServer) {
     if (!Array.isArray(sv)) return lc; if (!Array.isArray(lc)) return sv;
@@ -312,6 +318,18 @@
       // (CFG_LOCAL_WINS); as demais chaves caíam direto na direção do merge — e um
       // aparelho ocioso com prefs velhas as subia por cima das novas do outro. Era o
       // último resquício de last-write-wins.
+      // INTERRUPTOR ('0'/'1') não tem lado vazio: '0' é ESCOLHA, não ausência. A regra
+      // "vazio nunca apaga cheio" existe para lista/objeto/texto em branco e para o 0 de
+      // contador recém-semeado; aplicada a um interruptor ela fazia o '1' do servidor
+      // vencer SEMPRE o '0' daqui, sem nem olhar o carimbo. Era isso que desfazia o tema
+      // claro: a pessoa escolhia claro (catedra:dark='0'), o primeiro sync trazia o
+      // escuro velho de volta e o tema "não fixava". Nestas chaves decide o carimbo.
+      if (CHAVES_INTERRUPTOR[k]) {
+        var fts = locKts[k] || 0, gts = srvKts[k] || 0;
+        if (gts > fts) { out[k] = sv; return; }
+        if (fts > gts) { out[k] = lc; return; }
+        out[k] = preferServer ? sv : lc; return;
+      }
       var lcTem = temConteudo(lc), svTem = temConteudo(sv);
       if (lcTem && !svTem) { out[k] = lc; return; }
       if (svTem && !lcTem) { out[k] = sv; return; }
