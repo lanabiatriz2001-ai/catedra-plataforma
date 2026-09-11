@@ -39,27 +39,52 @@ struct ContentView: View {
     // .primary branco sobre o fundo bege do fallback.
     @AppStorage("appearance") private var appearance = "light"  // "system" | "light" | "dark"
     @ObservedObject private var clock = StudyClock.shared       // cronômetro do top bar
+    // Abaixo desta largura (Split View, Slide Over, retrato de iPad pequeno) a barra lateral
+    // sai do fluxo e vira uma gaveta aberta pelo botão do cabeçalho — com ela fixa em 210 pt
+    // o conteúdo não cabia. Acima disso o visual é o do Mac.
+    private static let larguraCompacta: CGFloat = 700
+    @State private var showSidebarDrawer = false
 
-    // Top bar no esquema do Cátedra: título + Buscar ⌘K + notificações + cronômetro EM CURSO.
-    private var legisTopBar: some View {
+    // Top bar no esquema do Cátedra: título + Buscar + notificações + cronômetro EM CURSO.
+    // No modo compacto ganha o botão da gaveta e encolhe o que não é essencial.
+    private func legisTopBar(compacto: Bool) -> some View {
         HStack(spacing: 12) {
+            if compacto {
+                Button { showSidebarDrawer = true } label: {
+                    Image(systemName: "sidebar.left")
+                        .font(.system(size: 13, weight: .medium)).foregroundStyle(AppTheme.secondaryInk)
+                        .frame(width: 34, height: 34)
+                        .background(Circle().fill(AppTheme.cardBackground))
+                        .overlay(Circle().strokeBorder(AppTheme.hairline, lineWidth: 1))
+                        .frame(minWidth: 44, minHeight: 44)   // alvo de toque ≥ 44 pt
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Abrir a barra lateral")
+            }
             VStack(alignment: .leading, spacing: 1) {
                 Text("CátedraLEGIS").font(.system(size: 15, weight: .bold)).foregroundStyle(AppTheme.ink)
-                Text("Vade Mecum de leis").font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk)
+                if !compacto {
+                    Text("Vade Mecum de leis").font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk)
+                }
             }
             Spacer(minLength: 12)
             Button { showPalette = true } label: {
                 HStack(spacing: 7) {
                     Image(systemName: "magnifyingglass").font(.system(size: 11))
-                    Text("Buscar").font(.system(size: 12.5))
-                    Text("⌘K").font(.system(size: 10.5, weight: .semibold)).foregroundStyle(AppTheme.secondaryInk)
+                    if !compacto {
+                        Text("Buscar").font(.system(size: 12.5))
+                    }
                 }
                 .foregroundStyle(AppTheme.secondaryInk)
                 .padding(.horizontal, 13).padding(.vertical, 7)
                 .background(Capsule().fill(AppTheme.cardBackground))
                 .overlay(Capsule().strokeBorder(AppTheme.hairline, lineWidth: 1))
+                .frame(minWidth: 44, minHeight: 44)   // alvo de toque ≥ 44 pt
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Buscar norma, matéria ou ação")
             Button { path = [.section(.updates)] } label: {
                 Image(systemName: store.unreadCount > 0 ? "bell.badge.fill" : "bell")
                     .font(.system(size: 13, weight: .medium)).foregroundStyle(AppTheme.secondaryInk)
@@ -94,36 +119,68 @@ struct ContentView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            LegisSidebar(path: $path, showNewCategory: $showNewCategory,
-                         openPalette: { showPalette = true })
-            // O cabeçalho vai como BLOCO acima do stack, não como safeAreaInset: o leitor de
-            // lei também põe a barra dele com safeAreaInset(.top), e dois insets aninhados no
-            // topo faziam o cabeçalho cobrir a barra do leitor — sobravam 6 px dela.
-            VStack(spacing: 0) {
-            legisTopBar
-            NavigationStack(path: $path) {
-                DashboardView(
-                    openLaw: { path.append(.reader($0)) },
-                    openSection: { path.append(.section($0)) },
-                    openUpdates: { path.append(.section(.updates)) },
-                    openUpdate: { path.append(.updateDetail($0)) },
-                    newCategory: { showNewCategory = true }
-                )
-                .navigationDestination(for: NavRoute.self) { route in
-                    switch route {
-                    case .section(let item):
-                        SectionScreen(item: item,
-                                      openLaw: { path.append(.reader($0)) },
-                                      openUpdate: { path.append(.updateDetail($0)) },
-                                      showAddLaw: $showAddLaw)
-                    case .reader(let id):
-                        ReaderScreen(lawID: id, openLaw: { path.append(.reader($0)) })
-                    case .updateDetail(let id):
-                        UpdateDetailScreen(updateID: id, openLaw: { path.append(.reader($0)) })
+        GeometryReader { geo in
+            let compacto = geo.size.width < Self.larguraCompacta
+            // Barra lateral: 210 pt como no Mac, mas nunca mais que ~27% da janela.
+            let larguraSidebar = min(210, max(176, geo.size.width * 0.27))
+            HStack(spacing: 0) {
+                if !compacto {
+                    LegisSidebar(path: $path, showNewCategory: $showNewCategory, largura: larguraSidebar,
+                                 openPalette: { showPalette = true })
+                }
+                // O cabeçalho vai como BLOCO acima do stack, não como safeAreaInset: o leitor de
+                // lei também põe a barra dele com safeAreaInset(.top), e dois insets aninhados no
+                // topo faziam o cabeçalho cobrir a barra do leitor — sobravam 6 px dela.
+                VStack(spacing: 0) {
+                    legisTopBar(compacto: compacto)
+                    NavigationStack(path: $path) {
+                        DashboardView(
+                            openLaw: { path.append(.reader($0)) },
+                            openSection: { path.append(.section($0)) },
+                            openUpdates: { path.append(.section(.updates)) },
+                            openUpdate: { path.append(.updateDetail($0)) },
+                            newCategory: { showNewCategory = true }
+                        )
+                        .navigationDestination(for: NavRoute.self) { route in
+                            switch route {
+                            case .section(let item):
+                                SectionScreen(item: item,
+                                              openLaw: { path.append(.reader($0)) },
+                                              openUpdate: { path.append(.updateDetail($0)) },
+                                              showAddLaw: $showAddLaw)
+                            case .reader(let id):
+                                ReaderScreen(lawID: id, openLaw: { path.append(.reader($0)) })
+                            case .updateDetail(let id):
+                                UpdateDetailScreen(updateID: id, openLaw: { path.append(.reader($0)) })
+                            }
+                        }
                     }
                 }
             }
+            .frame(width: geo.size.width, height: geo.size.height)
+            // Gaveta da barra lateral no modo compacto: véu escuro + a mesma LegisSidebar
+            // entrando pela esquerda. Navegar, buscar ou criar matéria fecha a gaveta.
+            .overlay(alignment: .leading) {
+                ZStack(alignment: .leading) {
+                    if compacto && showSidebarDrawer {
+                        Rectangle().fill(Color.black.opacity(0.34)).ignoresSafeArea()
+                            .onTapGesture { showSidebarDrawer = false }
+                            .transition(.opacity)
+                            .accessibilityLabel("Fechar a barra lateral")
+                    }
+                    if compacto && showSidebarDrawer {
+                        LegisSidebar(path: $path, showNewCategory: $showNewCategory,
+                                     largura: min(260, geo.size.width * 0.8),
+                                     openPalette: { showSidebarDrawer = false; showPalette = true },
+                                     aoNavegar: { showSidebarDrawer = false })
+                            .shadow(color: Color.black.opacity(0.3), radius: 20, x: 6)
+                            .transition(.move(edge: .leading))
+                    }
+                }
+            }
+            .animation(.easeOut(duration: 0.18), value: showSidebarDrawer)
+            .onChange(of: compacto) { _, agora in
+                if !agora { showSidebarDrawer = false }   // voltou a caber: a gaveta some
             }
         }
         .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
@@ -199,7 +256,11 @@ private struct LegisSidebar: View {
     @EnvironmentObject var store: AppStore
     @Binding var path: [NavRoute]
     @Binding var showNewCategory: Bool
+    /// Largura dada pelo ContentView (relativa à janela; 210 pt quando há espaço).
+    var largura: CGFloat = 210
     var openPalette: () -> Void = {}
+    /// Chamado a cada navegação — a gaveta do modo compacto usa isto para se fechar.
+    var aoNavegar: () -> Void = {}
 
     private var lawCount: Int { store.laws.filter(\.isRegularLaw).count }
     private var novidadesCount: Int { store.laws.filter(\.isNovidades).count }
@@ -217,6 +278,7 @@ private struct LegisSidebar: View {
     }
     private func go(_ item: SidebarItem) {
         if item == .home { path = [] } else { path = [.section(item)] }
+        aoNavegar()
     }
 
     var body: some View {
@@ -239,16 +301,16 @@ private struct LegisSidebar: View {
                     Image(systemName: "magnifyingglass").font(.system(size: 12))
                     Text("Buscar…").font(.system(size: 12.5))
                     Spacer()
-                    Text("⌘K").font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.7))
                 }
                 .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
                 .padding(.horizontal, 10).padding(.vertical, 7)
                 .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(Color.white.opacity(0.08)))
                 .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
+                .frame(minHeight: 44)   // alvo de toque ≥ 44 pt
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 14).padding(.bottom, 12)
+            .padding(.horizontal, 14).padding(.bottom, 6)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
@@ -279,7 +341,7 @@ private struct LegisSidebar: View {
                     ForEach(store.customCategories, id: \.self) { name in
                         row(.customCategory(name), name, "tag.fill", badge: customCategoryCount(name))
                     }
-                    Button { showNewCategory = true } label: {
+                    Button { showNewCategory = true; aoNavegar() } label: {
                         HStack(spacing: 11) {
                             Image(systemName: "plus").font(.system(size: 12, weight: .semibold)).frame(width: 20)
                             Text("Nova matéria").font(.system(size: 13, weight: .medium))
@@ -297,7 +359,7 @@ private struct LegisSidebar: View {
             // (O cronômetro vive só no topo, como no Cátedra — o da sidebar duplicava o
             // mesmo StudyClock com outra semântica de rótulo.)
         }
-        .frame(width: 210)
+        .frame(width: largura)
         .background(ThemeState.t.sidebarBg)
     }
 
@@ -546,7 +608,7 @@ struct LawListView: View {
     @ViewBuilder private func lawBody(searching: Bool) -> some View {
         if favoritesOnly && filtered.isEmpty && !searching {
             LegisEmpty(icon: "star", title: "Nenhum favorito ainda",
-                       message: "Marque uma norma como favorita pela estrela na barra do leitor, ou com o botão direito na lista.")
+                       message: "Marque uma norma como favorita pela estrela na barra do leitor, ou tocando e segurando a norma na lista.")
         } else if filtered.isEmpty {
             LegisEmpty(icon: "magnifyingglass", title: "Nada encontrado",
                        message: "Nenhuma norma corresponde à busca.")
@@ -1089,10 +1151,10 @@ struct LawRow: View {
     }
 }
 
-// MARK: - Command palette (⌘K)
+// MARK: - Command palette (Buscar; ⌘K com teclado físico)
 
-/// Salto rápido: digite para filtrar normas, matérias e ações; Enter abre a 1ª,
-/// Esc fecha. Overlay central sobre um véu escuro — o toque "app moderno".
+/// Salto rápido: digite para filtrar normas, matérias e ações; Retorno abre a 1ª, o X
+/// (ou um toque no véu) fecha. Overlay central sobre um véu escuro — o toque "app moderno".
 struct CommandPalette: View {
     @EnvironmentObject var store: AppStore
     @Binding var isPresented: Bool
@@ -1147,11 +1209,16 @@ struct CommandPalette: View {
                     TextField("Ir para norma, matéria ou ação…", text: $query)
                         .textFieldStyle(.plain).font(.system(size: 17)).focused($focused)
                         .onSubmit { if let first = laws.first { choose { openLaw(first.id) } } else if let a = actions.first { choose(a.run) } }
-                    Text("esc").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Capsule().fill(AppTheme.hairline.opacity(0.5)))
+                    // No Mac era a pastilha "esc"; o iPad não tem a tecla — vira um X de verdade.
+                    Button { isPresented = false } label: {
+                        Image(systemName: "xmark.circle.fill").font(.system(size: 18)).foregroundStyle(.secondary)
+                            .frame(minWidth: 44, minHeight: 44)   // alvo de toque ≥ 44 pt
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Fechar a busca")
                 }
-                .padding(16)
+                .padding(.horizontal, 16).padding(.vertical, 6)
                 Rectangle().fill(AppTheme.hairline).frame(height: 1)
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 2) {
@@ -1178,15 +1245,18 @@ struct CommandPalette: View {
                 }
                 .frame(maxHeight: 380)
             }
-            .frame(width: 580)
+            // Até 580 pt (o painel do Mac), mas nunca mais que a janela: em Split View e
+            // Slide Over a paleta encolhe em vez de vazar pelas bordas.
+            .frame(maxWidth: 580)
             .background(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous).fill(AppTheme.cardBackground))
             .overlay(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
             .shadow(color: Color.black.opacity(0.3), radius: 30, y: 14)
-            .padding(.top, 96)
+            .padding(.horizontal, 16)
+            .padding(.top, 64)
         }
         .onAppear { focused = true }
-        // onExitCommand (tecla Esc) não existe no iPadOS. Quem fecha aqui é o gesto de
-        // arrastar a folha para baixo, ou o botão de fechar da própria tela.
+        // onExitCommand (tecla Esc) não existe no iPadOS. Quem fecha aqui é o X do campo ou
+        // um toque no véu escuro.
     }
 
     private func choose(_ run: () -> Void) { run(); isPresented = false }

@@ -67,7 +67,9 @@ const supabaseTag = await vendor(SUPABASE_CDN, 'supabase.js');
 // Mesmo carimbo do build web: relato de bug precisa dizer QUAL versão quebrou.
 let _sha = 'local';
 try { _sha = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim(); } catch (_) {}
-const BUILD = { versao: _sha, data: new Date().toISOString().slice(0, 10), alvo: 'macOS' };
+// O alvo vem do script que chama: o build do iPad passa CATEDRA_ALVO=iPadOS. Sem isso o
+// relato de problema e a telemetria etiquetavam o iPad como "macOS".
+const BUILD = { versao: _sha, data: new Date().toISOString().slice(0, 10), alvo: process.env.CATEDRA_ALVO || 'macOS' };
 
 // Endereço absoluto das funções serverless. A página vem do bundle local (file://),
 // então "/api/..." não resolve sozinho.

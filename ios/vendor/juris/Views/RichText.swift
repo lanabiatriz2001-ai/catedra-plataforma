@@ -241,13 +241,19 @@ struct RichTextEditor: UIViewRepresentable {
     final class Coordinator: NSObject, UITextViewDelegate {
         var onChange: (Data?, Bool) -> Void
         init(onChange: @escaping (Data?, Bool) -> Void) { self.onChange = onChange }
-        func textDidChange(_ notification: Notification) {
-            guard let tv = notification.object as? UITextView else { return }
-        let ts = tv.textStorage
+        // No AppKit o delegate recebia `textDidChange(_ notification:)`; no UIKit o nome é
+        // `textViewDidChange(_:)`. Com o nome do Mac o UIKit nunca chamava o método: a pessoa
+        // escrevia em "Minhas anotações", saía e voltava — sumia; negrito/itálico/cor idem.
+        func textViewDidChange(_ textView: UITextView) { publicar(textView) }
+        /// Rede de segurança: ao sair do campo, grava o que estiver nele.
+        func textViewDidEndEditing(_ textView: UITextView) { publicar(textView) }
+
+        private func publicar(_ tv: UITextView) {
+            let ts = tv.textStorage
             let vazio = ts.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             if vazio { onChange(nil, true); return }
             let rtf = try? ts.data(from: NSRange(location: 0, length: ts.length),
-                              documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
+                                   documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
             onChange(rtf, false)
         }
     }
@@ -291,11 +297,16 @@ struct MarkableText: UIViewRepresentable {
         var parent: MarkableText
         var editando = false
         init(_ p: MarkableText) { parent = p }
-        func textDidEndEditing(_ note: Notification) {
+        // Nomes do UIKit (textViewDid…). Os do AppKit (textDid…) nunca eram chamados no iPad:
+        // `editando` ficava falso (qualquer re-render reescrevia o texto e jogava o cursor
+        // fora) e o rascunho ficava velho (Salvar gravava o texto de antes da edição).
+        func textViewDidBeginEditing(_ textView: UITextView) { editando = true }
+        /// O rascunho acompanha cada tecla: Salvar funciona mesmo sem fechar o teclado.
+        func textViewDidChange(_ textView: UITextView) { parent.onCommit(textView.text) }
+        func textViewDidEndEditing(_ textView: UITextView) {
             editando = false
-            if let tv = note.object as? UITextView { parent.onCommit(tv.text) }
+            parent.onCommit(textView.text)
         }
-        func textDidBeginEditing(_ note: Notification) { editando = true }
     }
 
     func makeUIView(context: Context) -> UITextView {

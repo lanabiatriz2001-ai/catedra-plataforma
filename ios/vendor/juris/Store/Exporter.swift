@@ -405,19 +405,12 @@ enum Exporter {
         return melhor
     }
 
-    /// Salva os arquivos do Anki (um save-panel se for um só; senão pede uma pasta).
+    /// Salva os arquivos do Anki (um .txt por tipo de card) em Arquivos › Cátedra e abre a
+    /// folha de compartilhamento com todos eles (Salvar em Arquivos, AirDrop, Mail…).
     static func salvarAnki(_ arquivos: [(nome: String, conteudo: String)], prefixo: String) {
         guard !arquivos.isEmpty else { return }
-        if arquivos.count == 1 {
-            salvar(nome: "\(prefixo)-\(arquivos[0].nome)", tipo: .plainText, dados: Data(arquivos[0].conteudo.utf8))
-            return
-        }
-        // Sem NSOpenPanel no iPadOS: grava na pasta Documentos do app, visível em
-        // Arquivos ▸ No meu iPad ▸ Cátedra (UIFileSharingEnabled).
-        guard let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
-        for a in arquivos {
-            try? Data(a.conteudo.utf8).write(to: dir.appendingPathComponent("\(prefixo)-\(a.nome)"))
-        }
+        let urls = arquivos.compactMap { gravar(nome: "\(prefixo)-\($0.nome)", dados: Data($0.conteudo.utf8)) }
+        JurisCompartilhar.compartilhar(urls)
     }
 
     // MARK: Imagem / PDF de um verbete
@@ -476,17 +469,39 @@ enum Exporter {
 
     // MARK: Painéis de arquivo
 
-    // No macOS estes eram NSSavePanel/NSOpenPanel modais. No iPadOS não existe painel
-    // modal de arquivo chamável de qualquer lugar: salvar grava na pasta Documentos do
-    // app (visível em Arquivos ▸ No meu iPad ▸ Cátedra) e ABRIR ficou sem equivalente
-    // direto — devolve nil em vez de fingir que funcionou. Importar arquivo pede um
-    // UIDocumentPicker apresentado por uma tela, e isso é trabalho à parte.
-    static func salvar(nome: String, tipo: UTType, dados: Data) {
-        guard let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
-        try? dados.write(to: dir.appendingPathComponent(nome))
+    // No macOS estes eram NSSavePanel/NSOpenPanel modais. No iPadOS o arquivo é gravado
+    // em Documentos do app (Arquivos › No meu iPad › Cátedra) e, logo em seguida, a folha
+    // de compartilhamento do sistema oferece Salvar em Arquivos, AirDrop, Mail, Imprimir…
+    // (JurisCompartilhar, em ios/vendor/comum). Abrir usa o seletor de documentos e
+    // devolve por completion — não há painel modal síncrono no iPad.
+
+    /// Pasta Documentos do app — a que aparece em Arquivos › No meu iPad › Cátedra.
+    static var pastaDocumentos: URL? {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
     }
 
-    static func abrir(tipos: [UTType]) -> Data? { nil }
+    /// Grava em Documentos e devolve a URL (nil se não conseguiu gravar).
+    @discardableResult
+    static func gravar(nome: String, dados: Data) -> URL? {
+        guard let dir = pastaDocumentos else { return nil }
+        let url = dir.appendingPathComponent(nome)
+        do { try dados.write(to: url, options: .atomic) } catch { return nil }
+        return url
+    }
+
+    /// Grava em Arquivos › Cátedra e abre a folha de compartilhamento com o arquivo.
+    static func salvar(nome: String, tipo: UTType, dados: Data) {
+        guard let url = gravar(nome: nome, dados: dados) else { return }
+        JurisCompartilhar.compartilhar(url)
+    }
+
+    /// Seletor de documentos; a completion recebe o conteúdo (nil se cancelou ou falhou).
+    static func abrir(tipos: [UTType], completion: @escaping (Data?) -> Void) {
+        JurisCompartilhar.escolherArquivo(tipos: tipos) { url in
+            guard let url else { completion(nil); return }
+            completion(try? Data(contentsOf: url))
+        }
+    }
 }
 
 /// Painel para escolher os tipos de card e exportar para o Anki.
@@ -528,6 +543,7 @@ struct ExportAnkiSheet: View {
     }
 
     var body: some View {
+        ScrollView {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 Image(systemName: "rectangle.on.rectangle.angled").foregroundStyle(Palette.accent)
@@ -600,18 +616,28 @@ struct ExportAnkiSheet: View {
 
             HStack {
                 Spacer()
-                Button("Cancelar") { dismiss() }
-                Button("Exportar") {
+                Button { dismiss() } label: { Text("Cancelar").jurisAlvoToque() }
+                Button {
                     let arqs = Exporter.gerarAnkiArquivos(entries, tipos: tipos,
                                                           falsas: store.afirmacoesFalsas, autoErrado: autoErrado,
                                                           clozes: store.clozesPorId, nomes: nomes)
-                    Exporter.salvarAnki(arqs, prefixo: "anki-juris")
                     dismiss()
-                }
+                    // A folha de compartilhamento só pode aparecer depois que ESTA folha
+                    // fechou: apresentada sobre ela, cairia junto com o dismiss.
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                        Exporter.salvarAnki(arqs, prefixo: "anki-juris")
+                    }
+                } label: { Text("Exportar").frame(minHeight: 30) }
                 .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(tipos.isEmpty)
             }
         }
-        .padding(20).frame(width: 440)
+        .padding(20)
+        .frame(maxWidth: 560, alignment: .leading)
+        .frame(maxWidth: .infinity)
+        }
+        // Sem 440 pt fixos: a folha do sistema decide o tamanho; o conteúdo alto rola.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.detailBackground)
     }
 }

@@ -1,0 +1,78 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Fixture — auth.js como no iPad (sessão, sync e portão)</title>
+<!--
+  Carrega o auth.js DE VERDADE com um Supabase falso CONTROLÁVEL, para os casos de
+  tests/auth-ipad.mjs: o que o cliente responde (sessão, erro de rede, erro de auth, linha do
+  user_data, 401) vem de chaves `__ct:*` do localStorage — assim sobrevive aos reloads que o
+  próprio auth.js faz — e tudo o que ele chamou fica em `__ct:chamadas`.
+
+  <base href="../"> faz './termos.html', './sobre.html' e 'auth.js' resolverem na raiz do
+  repositório, como no app: a sobreposição de documentos carrega a página real.
+-->
+<base href="../">
+<script>
+  function cfg(k, padrao) { try { var v = localStorage.getItem('__ct:' + k); return v == null ? padrao : JSON.parse(v); } catch (_) { return padrao; } }
+  function chamou(nome, arg) {
+    var lista = cfg('chamadas', []); lista.push({ nome: nome, arg: arg == null ? null : arg, t: Date.now() });
+    try { localStorage.setItem('__ct:chamadas', JSON.stringify(lista)); } catch (_) {}
+  }
+  window.__ctChamadas = function () { return cfg('chamadas', []); };
+  window.__ctStatus = [];
+  window.addEventListener('catedra:syncstate', function (e) { window.__ctStatus.push(e.detail.status); });
+  // navigator.onLine controlável: __ct:online = "0" → offline (o auth.js consulta a propriedade)
+  try { Object.defineProperty(Navigator.prototype, 'onLine', { configurable: true, get: function () { return localStorage.getItem('__ct:online') !== '0'; } }); } catch (_) {}
+
+  function sessao(u) { return u ? { user: u, access_token: 'tok-' + u.id, refresh_token: 'r', expires_at: 4102444800 } : null; }
+  window.CATEDRA_SUPABASE = { url: 'https://exemplo.invalido', key: 'chave-de-teste' };
+  window.supabase = {
+    isAuthRetryableFetchError: function (e) { return !!e && e.name === 'AuthRetryableFetchError'; },
+    createClient: function () {
+      return {
+        auth: {
+          getSession: function () {
+            chamou('getSession');
+            var u = cfg('sessao', null), err = cfg('sessaoErro', null);
+            return Promise.resolve({ data: { session: u && !err ? sessao(u) : null }, error: err });
+          },
+          onAuthStateChange: function (cb) { window.__ctAuthCb = cb; return { data: { subscription: { unsubscribe: function () {} } } }; },
+          signInWithPassword: function (a) {
+            chamou('signInWithPassword', { email: a.email });
+            var u = cfg('signIn', null);
+            if (!u) return Promise.resolve({ data: {}, error: { message: 'Invalid login credentials' } });
+            try { localStorage.setItem('__ct:sessao', JSON.stringify(u)); localStorage.removeItem('__ct:sessaoErro'); } catch (_) {}
+            if (window.__ctAuthCb) window.__ctAuthCb('SIGNED_IN', sessao(u));
+            return Promise.resolve({ data: { session: sessao(u) }, error: null });
+          },
+          signUp: function (a) { chamou('signUp', { email: a.email }); return Promise.resolve({ data: { session: null, user: { id: 'novo' } }, error: null }); },
+          signInWithOtp: function () { return Promise.resolve({ data: {}, error: null }); },
+          signInWithOAuth: function () { return Promise.resolve({ data: {}, error: null }); },
+          resetPasswordForEmail: function (em) { chamou('resetPasswordForEmail', em); return Promise.resolve({ data: {}, error: null }); },
+          updateUser: function () { return Promise.resolve({ data: {}, error: null }); },
+          signOut: function () { chamou('signOut'); try { localStorage.removeItem('__ct:sessao'); } catch (_) {} return Promise.resolve({ error: null }); },
+          getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }
+        },
+        from: function (tabela) {
+          var enc = { select: enc0, eq: enc0, maybeSingle: fimSelect, single: fimSelect, upsert: fimUpsert, insert: fimUpsert, update: fimUpsert, delete: fimUpsert };
+          function enc0() { return enc; }
+          function fimSelect() { chamou('select', tabela); return Promise.resolve(cfg('select', { data: null, error: null })); }
+          function fimUpsert(x) { chamou('upsert', x); return Promise.resolve(cfg('upsert', { data: null, error: null })); }
+          return enc;
+        },
+        rpc: function (n) { chamou('rpc', n); return Promise.resolve({ data: null, error: null }); },
+        channel: function () { return { on: function () { return this; }, subscribe: function () { return this; } }; },
+        removeChannel: function () {}
+      };
+    }
+  };
+</script>
+<body style="margin:0">
+  <!-- o "app" que o portão protege — com o id real do host, porque o auth.js o consulta -->
+  <div id="dc-root" style="height:2400px;padding:24px;font:16px system-ui;">
+    <h1>Aplicação protegida</h1>
+    <button id="botao-do-app">botão do app</button>
+    <a href="#x" id="link-do-app">link do app</a>
+    <input id="campo-do-app">
+  </div>
+<script src="auth.js"></script>
+</body>
