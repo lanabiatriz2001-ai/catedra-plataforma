@@ -8967,7 +8967,11 @@ class Component extends DCLogic {
     return v;
   }
   onNav = (e)=>{ const v=this._irPara(e.currentTarget.dataset.view); if(v!=='indisponivel') this._marcarPonto(v); };
-  onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this._temaEscolhidoAgora(); this.setState({dir:d, accent:null}); try{ localStorage.setItem('catedra:dir', d); localStorage.setItem(this._chave('accent'), this._serializar('accent', null)); }catch(_){} };
+  /* Trocar de direção também precisa AVISAR os satélites: variável CSS não atravessa
+     iframe, os tokens vão por cópia no _temaBroadcast. Sem o aviso, LEGIS/JURIS/RITOS
+     seguiam na direção antiga até algum outro caminho disparar o envio — a direção
+     parecia "não fixar" mesmo estando certa no host. */
+  onDir = (e)=>{ const d=e.currentTarget.dataset.dir; this._temaEscolhidoAgora(); this.setState({dir:d, accent:null}, ()=>this._temaBroadcast()); try{ localStorage.setItem('catedra:dir', d); localStorage.setItem(this._chave('accent'), this._serializar('accent', null)); }catch(_){} };
   /* CARIMBO DA ESCOLHA MANUAL DE TEMA.
      A reidratação passou a reler dir/dark/accent do localStorage a cada `catedra:synced`
      — necessário, porque a nuvem escreve essas chaves direto e antes o app seguia pintando
@@ -8975,14 +8979,23 @@ class Component extends DCLogic {
      primeiro sync trazia o `catedra:dark` guardado (escuro) de volta, repintando por cima.
      A escolha da pessoa AGORA vale mais do que qualquer valor que a sincronização traga
      depois; só um valor carimbado DEPOIS da escolha pode substituí-la. */
-  _temaEscolhidoAgora(){ this._temaTs = Date.now(); }
+  /* O carimbo vai para o disco: guardado só em memória, ele zerava a cada recarregamento
+     e o portão abria inteiro — bastava um sync depois de abrir o app para um valor velho
+     da nuvem repintar por cima da escolha de ontem. Chave de tela, fora do sync (está no
+     EXCLUDE): é a hora da escolha DESTE aparelho, não dado da pessoa. */
+  _temaEscolhidoAgora(){ this._temaTs = Date.now(); try{ localStorage.setItem('catedra:_temaTs', String(this._temaTs)); }catch(_){} }
+  /** hora da última escolha manual de tema neste aparelho (sobrevive ao recarregamento) */
+  _temaEscolhaTs(){
+    if(this._temaTs) return this._temaTs;
+    try{ return (this._temaTs = +localStorage.getItem('catedra:_temaTs')||0); }catch(_){ return 0; }
+  }
   /** carimbo (catedra:_kts) da chave, para saber se o que veio da nuvem é mais novo que a escolha */
   _ktsDe(chave){
     try{ const m=JSON.parse(localStorage.getItem('catedra:_kts')||'{}'); return +m[chave]||0; }catch(_){ return 0; }
   }
   /** o valor que chegou pelo sync só entra se for mais novo que a última escolha manual */
   _podeAdotarTema(chave){
-    const escolha=this._temaTs||0;
+    const escolha=this._temaEscolhaTs();
     return !escolha || this._ktsDe(chave) > escolha;
   }
   // Claro/Escuro é escolha MANUAL e por isso desliga o automático (U7): botão que a pessoa
