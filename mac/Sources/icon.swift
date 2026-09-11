@@ -28,26 +28,46 @@ func makeIcon(size px: Int, to path: String) {
     let shape = NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius)
     shape.addClip()  // tudo a seguir fica dentro do quadrado arredondado
 
-    // fundo: gradiente verde (topo-esquerda → base-direita), como o <linearGradient>
-    let grad = NSGradient(starting: hex(0x0c, 0x8a, 0x5b), ending: hex(0x08, 0x60, 0x38))!
+    // fundo: gradiente verde vivo em 3 tons (topo-esquerda clara → base-direita escura),
+    // versão "Acento" aprovada pela dona (2026-09-11) — mais vibrante que o anterior.
+    let grad = NSGradient(colors: [hex(0x14, 0xb8, 0x7a), hex(0x0b, 0x7a, 0x52), hex(0x05, 0x3d, 0x2c)],
+                          atLocations: [0, 0.55, 1], colorSpace: .deviceRGB)!
     grad.draw(in: rect, angle: -45)
 
-    // brilho radial sutil no canto superior esquerdo (como o <radialGradient>)
-    let hl = NSGradient(colors: [NSColor(white: 1, alpha: 0.18), NSColor(white: 1, alpha: 0)])!
-    let hlCenter = NSPoint(x: rect.minX + rect.width * 0.22, y: rect.maxY - rect.height * 0.12)
-    hl.draw(fromCenter: hlCenter, radius: 0, toCenter: hlCenter, radius: rect.width * 0.95, options: [])
+    // dois círculos decorativos translúcidos (canto superior direito e inferior esquerdo)
+    let circAlto = NSBezierPath(ovalIn: NSRect(x: rect.maxX - rect.width * 0.62, y: rect.maxY - rect.height * 0.56,
+                                                width: rect.width * 0.64, height: rect.width * 0.64))
+    NSColor(white: 1, alpha: 0.07).setFill(); circAlto.fill()
+    let circBaixo = NSBezierPath(ovalIn: NSRect(x: rect.minX - rect.width * 0.14, y: rect.minY - rect.height * 0.16,
+                                                 width: rect.width * 0.5, height: rect.width * 0.5))
+    hex(0x5e, 0xea, 0xd4).withAlphaComponent(0.10).setFill(); circBaixo.fill()
 
-    // a letra "C" branca, serifada e bold
+    // a letra "C" branca, serifada e bold — deslocada um pouco para baixo-esquerda para
+    // abrir espaço ao acento dourado no canto superior direito
     let letter = "C" as NSString
-    let fontSize = rect.width * 0.66
+    let fontSize = rect.width * 0.56
     let font = NSFont(name: "Georgia-Bold", size: fontSize)
         ?? NSFont(name: "Georgia", size: fontSize)
         ?? NSFont.boldSystemFont(ofSize: fontSize)
     let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.white]
     let ts = letter.size(withAttributes: attrs)
-    // pequeno ajuste ótico: sobe levemente para compensar a descida da fonte
-    let origin = NSPoint(x: rect.midX - ts.width / 2, y: rect.midY - ts.height / 2 + rect.height * 0.01)
+    let origin = NSPoint(x: rect.midX - ts.width / 2 - rect.width * 0.11,
+                          y: rect.midY - ts.height / 2 - rect.height * 0.05)
     letter.draw(at: origin, withAttributes: attrs)
+
+    // acento dourado: paralelogramo isolado no canto superior direito, longe da letra
+    let ouro = NSGradient(starting: hex(0xf5, 0x9e, 0x0b), ending: hex(0xfd, 0xe6, 0x8a))!
+    let ax = rect.minX, aw = rect.width
+    let acento = NSBezierPath()
+    acento.move(to: NSPoint(x: ax + aw * 0.640, y: rect.minY + rect.height * 0.735))
+    acento.line(to: NSPoint(x: ax + aw * 0.730, y: rect.minY + rect.height * 0.735))
+    acento.line(to: NSPoint(x: ax + aw * 0.855, y: rect.minY + rect.height * 0.918))
+    acento.line(to: NSPoint(x: ax + aw * 0.765, y: rect.minY + rect.height * 0.918))
+    acento.close()
+    NSGraphicsContext.saveGraphicsState()
+    acento.addClip()
+    ouro.draw(in: rect, angle: 45)
+    NSGraphicsContext.restoreGraphicsState()
 
     NSGraphicsContext.restoreGraphicsState()
 

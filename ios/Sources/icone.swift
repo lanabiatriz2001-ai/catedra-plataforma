@@ -38,25 +38,24 @@ func cor(_ r: Int, _ g: Int, _ b: Int, _ a: CGFloat = 1) -> CGColor {
 let L = CGFloat(lado)
 let quadro = CGRect(x: 0, y: 0, width: L, height: L)
 
-// Fundo verde de canto a canto — preenche tudo, sem borda e sem raio.
+// Fundo verde vivo em 3 tons, canto a canto — versão "Acento" aprovada pela dona
+// (2026-09-11), mesma arte do ícone do Mac (mac/Sources/icon.swift), sem a margem
+// flutuante (aqui a máscara arredondada é aplicada pelo próprio iOS).
 let grad = CGGradient(colorsSpace: espaco,
-                      colors: [cor(0x0c, 0x8a, 0x5b), cor(0x08, 0x60, 0x38)] as CFArray,
-                      locations: [0, 1])!
+                      colors: [cor(0x14, 0xb8, 0x7a), cor(0x0b, 0x7a, 0x52), cor(0x05, 0x3d, 0x2c)] as CFArray,
+                      locations: [0, 0.55, 1])!
 ctx.drawLinearGradient(grad, start: CGPoint(x: 0, y: L), end: CGPoint(x: L, y: 0), options: [])
 
-// Brilho sutil no alto à esquerda, como no ícone do Mac.
-if let brilho = CGGradient(colorsSpace: espaco,
-                           colors: [cor(255, 255, 255, 0.16), cor(255, 255, 255, 0)] as CFArray,
-                           locations: [0, 1]) {
-    ctx.drawRadialGradient(brilho,
-                           startCenter: CGPoint(x: L * 0.28, y: L * 0.78), startRadius: 0,
-                           endCenter: CGPoint(x: L * 0.28, y: L * 0.78), endRadius: L * 0.72,
-                           options: [])
-}
+// dois círculos decorativos translúcidos
+ctx.setFillColor(cor(255, 255, 255, 0.07))
+ctx.fillEllipse(in: CGRect(x: L - L * 0.62, y: L - L * 0.56, width: L * 0.64, height: L * 0.64))
+ctx.setFillColor(cor(0x5e, 0xea, 0xd4, 0.10))
+ctx.fillEllipse(in: CGRect(x: -L * 0.14, y: -L * 0.16, width: L * 0.5, height: L * 0.5))
 
-// A letra. 0.62 (e não 0.66 do Mac) porque aqui não há a margem do quadrado flutuante:
-// o "C" precisa respirar dentro da máscara que o iOS aplica por cima.
-let corpo = L * 0.62
+// A letra, deslocada para baixo-esquerda para abrir espaço ao acento dourado.
+// 0.56 (e não 0.60 do Mac) porque aqui não há a margem do quadrado flutuante: o "C"
+// precisa respirar dentro da máscara que o iOS aplica por cima.
+let corpo = L * 0.56
 let fonte = CTFontCreateWithName("Georgia-Bold" as CFString, corpo, nil)
 // Chaves do CoreText (kCTFont…), não as do AppKit (.font/.foregroundColor): sem AppKit
 // importado elas não existem.
@@ -69,9 +68,27 @@ let linha = CTLineCreateWithAttributedString(texto)
 // Centraliza pela caixa REAL do glifo (bounds tipográficos), não pela métrica da linha —
 // pela métrica o "C" fica visivelmente deslocado para baixo.
 let caixa = CTLineGetBoundsWithOptions(linha, .useGlyphPathBounds)
-ctx.textPosition = CGPoint(x: (L - caixa.width) / 2 - caixa.minX,
-                           y: (L - caixa.height) / 2 - caixa.minY)
+ctx.textPosition = CGPoint(x: (L - caixa.width) / 2 - caixa.minX - L * 0.035,
+                           y: (L - caixa.height) / 2 - caixa.minY - L * 0.065)
 CTLineDraw(linha, ctx)
+
+// acento dourado: paralelogramo no canto superior direito
+if let ouro = CGGradient(colorsSpace: espaco,
+                         colors: [cor(0xf5, 0x9e, 0x0b), cor(0xfd, 0xe6, 0x8a)] as CFArray,
+                         locations: [0, 1]) {
+    ctx.saveGState()
+    let acento = CGMutablePath()
+    acento.move(to: CGPoint(x: L * 0.586, y: L * 0.688))
+    acento.addLine(to: CGPoint(x: L * 0.684, y: L * 0.688))
+    acento.addLine(to: CGPoint(x: L * 0.822, y: L * 0.906))
+    acento.addLine(to: CGPoint(x: L * 0.723, y: L * 0.906))
+    acento.closeSubpath()
+    ctx.addPath(acento)
+    ctx.clip()
+    ctx.drawLinearGradient(ouro, start: CGPoint(x: L * 0.586, y: L * 0.688),
+                           end: CGPoint(x: L * 0.822, y: L * 0.906), options: [])
+    ctx.restoreGState()
+}
 
 guard let img = ctx.makeImage() else { fatalError("não consegui gerar a imagem") }
 let url = URL(fileURLWithPath: saida) as CFURL
