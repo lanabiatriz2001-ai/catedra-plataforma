@@ -20,6 +20,7 @@ import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
+import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -3204,6 +3205,16 @@ ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
   ok(!fs.existsSync(path.join(RAIZ, '.build-lock-provasuite')), 'TRAVA a trava some quando o build termina');
   try { fs.unlinkSync(falso); } catch (_) {}
   try { fs.rmSync(path.join(RAIZ, '.build-lock-provasuite'), { recursive: true, force: true }); } catch (_) {}
+}
+
+/* ============= ASSINATURA NUMA CÓPIA LIMPA =============
+   Com o repositório no iCloud, o File Provider suja o bundle e o codesign recusa;
+   scripts/assinar-app.sh assina numa cópia fora da pasta, confere com --strict e só então
+   devolve. Roteiro em tests/assinatura-limpa.mjs (só macOS; na CI é pulado com aviso). */
+try { await testarAssinaturaLimpa(ok); }
+catch (e) {
+  ok(false, 'ASSINATURA o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
 /* ============= D1 — TEMA ÚNICO NOS SATÉLITES ============= */
