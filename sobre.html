@@ -194,6 +194,18 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
     }).catch(function () { btn.disabled = false; btn.textContent = 'Entrar na lista'; erro.textContent = 'Não deu para registrar agora. Tente de novo em instantes.'; });
   });
 })();
+// Dentro da sobreposição do app (iframe de "Conhecer a Cátedra" no portão de login), "Entrar" e
+// "Entrar no app" não têm para onde navegar: em file:// o href="./" abre o diretório e a
+// sobreposição fica em branco. Aqui eles FECHAM a sobreposição (o auth.js escuta ctFecharDoc) —
+// a pessoa já está no login. Fora do iframe, os links seguem para o app como sempre.
+(function () {
+  if (window.parent === window) return;
+  var links = document.querySelectorAll('a[href="./"]');
+  for (var i = 0; i < links.length; i++) links[i].addEventListener('click', function (e) {
+    e.preventDefault();
+    try { window.parent.postMessage({ type: 'ctFecharDoc' }, '*'); } catch (_) {}
+  });
+})();
 </script>
 </body>
 </html>

@@ -18,6 +18,29 @@ struct InfoEdicao: Identifiable, Hashable {
     var id: Int { numero }
 }
 
+/// Índices derivados do corpus (busca, contagens, edições, índice remissivo). Calculados
+/// FORA da main em `LibraryStore.load` e só então publicados no store — no arquivo, não
+/// dentro da classe, para não herdar isolamento de ator.
+private struct JurisIndices {
+    var byId: [String: JurisEntry] = [:]
+    var blobs: [String: String] = [:]
+    var fonteCounts: [Fonte: Int] = [:]
+    var ramosOrdenados: [(nome: String, count: Int)] = []
+    var disciplinasOrdenadas: [(nome: String, count: Int)] = []
+    var topicosPorDisciplina: [String: [(nome: String, count: Int)]] = [:]
+    var edicoesJT: [EdicaoJT] = []
+    var infoEdicoes: [String: [InfoEdicao]] = [:]
+    var indice: [(letra: String, itens: [IndiceItem])] = []
+}
+
+/// Tudo o que o carregamento produz fora da main: verbetes, erro, índices e notas de estudo.
+private struct JurisCarga {
+    var items: [JurisEntry]
+    var error: String?
+    var indices: JurisIndices
+    var notas: [String: NotaEstudo]
+}
+
 @Observable
 @MainActor
 final class LibraryStore {
@@ -155,9 +178,15 @@ final class LibraryStore {
 
     func load() async {
         let onlineURL = onlineCorpusURL
-        let result: (items: [JurisEntry], error: String?) = await Task.detached(priority: .userInitiated) {
+        // TUDO o que pesa roda fora da main: ler e decodificar ~35 MB de JSON (corpus +
+        // Central de Contas), montar os índices (o blob de busca dobra o texto inteiro
+        // sem acento — era isso, feito na main depois do decode, que congelava a aba por
+        // segundos na primeira abertura) e as notas de estudo (2,5 MB). Na main fica só a
+        // publicação no store.
+        let carga: JurisCarga = await Task.detached(priority: .userInitiated) {
             guard let url = Self.corpusURL() else {
-                return ([], "corpus.json não encontrado no bundle.")
+                return JurisCarga(items: [], error: "corpus.json não encontrado no bundle.",
+                                  indices: JurisIndices(), notas: [:])
             }
             do {
                 let data = try Data(contentsOf: url)
@@ -183,28 +212,32 @@ final class LibraryStore {
                         items.append(e); vistos.insert(e.id)
                     }
                 }
-                return (items, nil)
+                return JurisCarga(items: items, error: nil,
+                                  indices: Self.construirIndices(items),
+                                  notas: Self.carregarNotas())
             } catch {
-                return ([], "Falha ao ler corpus.json: \(error.localizedDescription)")
+                return JurisCarga(items: [], error: "Falha ao ler corpus.json: \(error.localizedDescription)",
+                                  indices: JurisIndices(), notas: [:])
             }
         }.value
 
-        self.entries = result.items
-        self.loadError = result.error
-        indexAll()
+        self.entries = carga.items
+        self.loadError = carga.error
+        aplicar(carga.indices)
+        self.notasApp = carga.notas
         loadNovidades()
-        loadNotas()
         self.isLoading = false
     }
 
     /// Notas de estudo ORIGINAIS (não oficiais) — esquema/mapa mental a partir do texto público.
     private(set) var notasApp: [String: NotaEstudo] = [:]
     func notaApp(for id: String) -> NotaEstudo? { notasApp[id] }
-    private func loadNotas() {
+    /// Lê notas.json (2,5 MB) — chamado fora da main, dentro do `load`.
+    nonisolated private static func carregarNotas() -> [String: NotaEstudo] {
         guard let url = Self.resourceURL("notas", ext: "json"),
               let data = try? Data(contentsOf: url),
-              let dict = try? JSONDecoder().decode([String: NotaEstudo].self, from: data) else { return }
-        notasApp = dict
+              let dict = try? JSONDecoder().decode([String: NotaEstudo].self, from: data) else { return [:] }
+        return dict
     }
 
     private func loadNovidades() {
@@ -263,7 +296,9 @@ final class LibraryStore {
         return nil
     }
 
-    private func indexAll() {
+    /// Monta os índices a partir dos verbetes — função PURA, chamada fora da main no `load`.
+    /// (Era o `indexAll()` de instância, rodando na main depois do decode.)
+    nonisolated private static func construirIndices(_ entries: [JurisEntry]) -> JurisIndices {
         var byId = [String: JurisEntry](minimumCapacity: entries.count)
         var blobs = [String: String](minimumCapacity: entries.count)
         var fonteCounts: [Fonte: Int] = [:]
@@ -295,47 +330,61 @@ final class LibraryStore {
                 infoEd[e.fonteKind.rawValue, default: [:]][n] = cur
             }
         }
-        self.byId = byId
-        self.blobs = blobs
-        self.fonteCounts = fonteCounts
-        self.ramosOrdenados = ramoCounts
+        var out = JurisIndices()
+        out.byId = byId
+        out.blobs = blobs
+        out.fonteCounts = fonteCounts
+        out.ramosOrdenados = ramoCounts
             .map { (nome: $0.key, count: $0.value) }
             .sorted { $0.count != $1.count ? $0.count > $1.count : $0.nome < $1.nome }
-        self.disciplinasOrdenadas = discCounts
+        out.disciplinasOrdenadas = discCounts
             .map { (nome: $0.key, count: $0.value) }
             .sorted { $0.count != $1.count ? $0.count > $1.count : $0.nome < $1.nome }
-        self.topicosPorDisciplina = temasPorDisc.mapValues { dict in
+        out.topicosPorDisciplina = temasPorDisc.mapValues { dict in
             dict.map { (nome: $0.key, count: $0.value) }
                 .sorted { $0.count != $1.count ? $0.count > $1.count : $0.nome < $1.nome }
         }
-        self.edicoesJT = edicoes
+        out.edicoesJT = edicoes
             .map { EdicaoJT(numero: $0.key, tema: $0.value.tema, count: $0.value.count) }
             .sorted { $0.numero > $1.numero }
-        self.infoEdicoes = infoEd.mapValues { dict in
+        out.infoEdicoes = infoEd.mapValues { dict in
             dict.map { InfoEdicao(numero: $0.key, count: $0.value.count, data: $0.value.data) }
                 .sorted { $0.numero > $1.numero }
         }
-        buildIndice()
+        out.indice = carregarIndiceRemissivo()
+        return out
+    }
+
+    /// Publica no store os índices calculados fora da main.
+    private func aplicar(_ i: JurisIndices) {
+        byId = i.byId
+        blobs = i.blobs
+        fonteCounts = i.fonteCounts
+        ramosOrdenados = i.ramosOrdenados
+        disciplinasOrdenadas = i.disciplinasOrdenadas
+        topicosPorDisciplina = i.topicosPorDisciplina
+        edicoesJT = i.edicoesJT
+        infoEdicoes = i.infoEdicoes
+        indice = i.indice
     }
 
     private func fold(_ s: String) -> String {
         s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
     }
 
-    /// Índice REMISSIVO por TERMO (palavra-chave), computado em segundo plano.
-    /// Carrega o índice remissivo PRÉ-COMPUTADO (indice.json) — instantâneo.
-    private func buildIndice() {
+    /// Índice REMISSIVO por TERMO (palavra-chave): carrega o PRÉ-COMPUTADO (indice.json).
+    nonisolated private static func carregarIndiceRemissivo() -> [(letra: String, itens: [IndiceItem])] {
         guard let url = Self.resourceURL("indice", ext: "json"),
-              let data = try? Data(contentsOf: url) else { return }
+              let data = try? Data(contentsOf: url) else { return [] }
         struct Raw: Decodable { let termo: String; let count: Int; let letra: String }
-        guard let raws = try? JSONDecoder().decode([Raw].self, from: data) else { return }
+        guard let raws = try? JSONDecoder().decode([Raw].self, from: data) else { return [] }
         var grupos: [String: [IndiceItem]] = [:]
         var ordem: [String] = []
         for r in raws {
             if grupos[r.letra] == nil { ordem.append(r.letra) }
             grupos[r.letra, default: []].append(IndiceItem(tema: r.termo, count: r.count))
         }
-        self.indice = ordem.sorted().map { (letra: $0, itens: grupos[$0] ?? []) }
+        return ordem.sorted().map { (letra: $0, itens: grupos[$0] ?? []) }
     }
 
     nonisolated static func resourceURL(_ name: String, ext: String) -> URL? {

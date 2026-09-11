@@ -74,7 +74,7 @@ struct LawPrecedentsView: View {
                 }
             }
         }
-        .frame(width: 680, height: 700)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
         .sheet(item: $editing) { PrecedentEditView(lawID: lawID, accent: accent, existing: $0) }
         .sheet(isPresented: $showNew) { PrecedentEditView(lawID: lawID, accent: accent, existing: nil) }
         .confirmationDialog("Excluir esta jurisprudência?",
@@ -268,7 +268,7 @@ struct PrecedentEditView: View {
             }
         }
         .padding(20)
-        .frame(width: 600, height: 620)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
         .onAppear {
             guard let e = existing else {
                 if articleRef.isEmpty { articleRef = prefillArticle }   // novo, vindo do Estudo
