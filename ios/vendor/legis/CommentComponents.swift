@@ -37,7 +37,7 @@ struct CommentBalloon: View {
             .shadow(color: Color.black.opacity(0.06), radius: 4, y: 1)
         }
         .buttonStyle(.plain)
-        .help("Clique para editar o comentário")
+        .help("Toque para editar o comentário")
     }
 }
 
@@ -65,7 +65,7 @@ struct CommentEditorSheet: View {
             Divider()
             TextEditor(text: $text)
                 .font(.system(size: 13.5)).scrollContentBackground(.hidden)
-                .padding(10).frame(width: 440, height: 150)
+                .padding(10).frame(maxWidth: .infinity, minHeight: 150)
                 .background(AppTheme.softStroke)
             Divider()
             HStack {
@@ -78,7 +78,7 @@ struct CommentEditorSheet: View {
             }
             .padding(14)
         }
-        .frame(width: 440)
+        .frame(maxWidth: .infinity)   // folha do iPad: largura do sistema
         .onAppear { text = initial }
     }
 }

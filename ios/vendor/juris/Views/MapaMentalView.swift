@@ -21,12 +21,12 @@ struct MapaMentalSheet: View {
                         .background(Palette.secondaryInk.opacity(0.12), in: Capsule())
                 }
                 Spacer()
-                Button { exportar(.png) } label: { Label("PNG", systemImage: "photo") }
-                Button { exportar(.pdf) } label: { Label("PDF", systemImage: "doc.richtext") }
+                Button { exportar(.png) } label: { Label("PNG", systemImage: "photo").jurisAlvoToque() }
+                Button { exportar(.pdf) } label: { Label("PDF", systemImage: "doc.richtext").frame(minHeight: 30) }
                     .buttonStyle(.borderedProminent).tint(Palette.accent)
-                Button("Fechar") { dismiss() }
+                Button { dismiss() } label: { Text("Fechar").jurisAlvoToque() }
             }
-            .padding(16)
+            .padding(.horizontal, 16).padding(.vertical, 8)
             .background(Palette.sidebarBackground)
             .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
 
@@ -37,7 +37,9 @@ struct MapaMentalSheet: View {
             }
             .background(Palette.appBackground)
         }
-        .frame(width: 940, height: 700)
+        // Sem 940 × 700 fixos: no iPad quem dimensiona é a folha do sistema (page sheet,
+        // ~700 pt de largura) — com o tamanho fixo, Fechar/PNG/PDF ficavam fora dela.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         // Todo mapa aberto entra na galeria "Mapas mentais" (persistido).
         .onAppear { store.registrarMapa(entry.id) }
     }
