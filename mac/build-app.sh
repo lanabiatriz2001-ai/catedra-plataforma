@@ -2,6 +2,7 @@
 # build-app.sh — monta o Cátedra.app (nativo macOS) a partir do Catedra.dc.html.
 #
 #   bash mac/build-app.sh
+#   CATEDRA_SO_ARM64=1 bash mac/build-app.sh   # só a fatia arm64 (metade do tempo; ver abaixo)
 #
 # Para ligar a IA de verdade, passe a URL do seu endpoint /api/complete:
 #   CATEDRA_AI_ENDPOINT="https://SEU-DEPLOY.vercel.app/api/complete" bash mac/build-app.sh
@@ -99,8 +100,15 @@ compilar_fatia() {
 echo "     · fatia arm64 (Apple Silicon)…"
 compilar_fatia "arm64-apple-macos14.0" "$BUILD/$EXEC.arm64"
 
-echo "     · fatia x86_64 (Macs Intel)…"
-if compilar_fatia "x86_64-apple-macos14.0" "$BUILD/$EXEC.x86_64" 2>"$BUILD/x86.log"; then
+# CATEDRA_SO_ARM64=1: build LOCAL, para instalar no próprio Mac (Apple Silicon). A fatia
+# Intel é a metade do tempo de compilação e não serve para nada nesta máquina; pulá-la
+# (e ao lipo) corta o build quase pela metade. O padrão continua universal, porque é o
+# universal que se distribui — o binário só arm64 NÃO abre em Mac Intel.
+if [ "${CATEDRA_SO_ARM64:-}" = "1" ]; then
+  cp "$BUILD/$EXEC.arm64" "$BUILD/$EXEC"
+  echo "     · fatia x86_64 PULADA (CATEDRA_SO_ARM64=1)"
+  echo "     ⚠ binário só arm64 — só Apple Silicon — não distribuir"
+elif echo "     · fatia x86_64 (Macs Intel)…" && compilar_fatia "x86_64-apple-macos14.0" "$BUILD/$EXEC.x86_64" 2>"$BUILD/x86.log"; then
   lipo -create "$BUILD/$EXEC.arm64" "$BUILD/$EXEC.x86_64" -output "$BUILD/$EXEC"
   echo "     · universal: $(lipo -archs "$BUILD/$EXEC")"
 else
@@ -249,6 +257,7 @@ fi
 
 echo
 echo "✓ Pronto:  $APP"
+[ "${CATEDRA_SO_ARM64:-}" = "1" ] && echo "  ⚠ só Apple Silicon (CATEDRA_SO_ARM64=1) — não distribuir; para distribuir, rode sem a variável"
 if [ -n "$AI_ENDPOINT" ]; then
   echo "  IA: endpoint = $AI_ENDPOINT"
 else
