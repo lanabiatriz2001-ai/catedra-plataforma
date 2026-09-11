@@ -1,12 +1,21 @@
-// Cátedra para iPadOS — WKWebView em tela cheia carregando o mesmo bundle web do app
-// do Mac (gerado por scripts/build-macos.mjs). Mesma arquitetura do mac/Sources/main.swift,
-// com as diferenças que o iOS impõe:
+// Cátedra para iOS (iPhone e iPad) — WKWebView carregando o mesmo bundle web do app do
+// Mac (gerado por scripts/build-macos.mjs), com o CátedraLEGIS e o CátedraJURIS nativos
+// (SwiftUI) ao lado, uma aba cada. Mesma arquitetura do mac/Sources/main.swift, com as
+// diferenças que o iOS impõe:
 //
 //   · UIKit no lugar do AppKit (não existe NSAlert/NSWindow/NSWorkspace aqui).
 //   · O .app do iOS é PLANO: o executável e o Info.plist ficam na raiz do bundle,
 //     não em Contents/MacOS.
 //   · O app é SANDBOXED de verdade: nada de ~/Documents da pessoa; o backup nativo do
 //     Mac não tem equivalente direto (a nuvem do Supabase continua sendo o backup real).
+//   · UM app universal: o mesmo binário instala no iPhone e no iPad. Toda adaptação de
+//     tela liga pela CLASSE DE TAMANHO (traitCollection.horizontalSizeClass == .compact),
+//     nunca pelo modelo do aparelho (userInterfaceIdiom): o iPad em Slide Over também é
+//     compacto, e um iPhone grande em paisagem é regular. A barra do topo é a barra de
+//     navegação DO SISTEMA (UINavigationBar standalone): o seletor de produto
+//     (Cátedra | LEGIS | JURIS) é o titleView e a volta ao mapa de Processo e peças é um
+//     botão de voltar de verdade — o UIKit cuida da altura (44/32 pt), da status bar, da
+//     safe area, do Dynamic Type e do encurtamento do rótulo. A casca só entra com o tema.
 //
 // As PONTES nativas são as mesmas, porque o bundle web depende delas:
 //   · catedraAI            → window.claude.complete (o build do Mac NÃO injeta shim de /api)
@@ -29,11 +38,10 @@ func aiEndpoint() -> String {
     return ""
 }
 
-final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply, WKDownloadDelegate, UIDocumentPickerDelegate, UNUserNotificationCenterDelegate {
+final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply, WKDownloadDelegate, UIDocumentPickerDelegate, UNUserNotificationCenterDelegate, UINavigationBarDelegate {
 
     var webView: WKWebView!
     private var segmento: UISegmentedControl!
-    var botaoVoltarAcervo: UIButton!   // item 5: volta ao ponto do processo (só com origem viva)
     private var areaConteudo: UIView!
     private var legisVC: UIViewController?   // criados sob demanda, na 1ª vez que a aba abre
     private var jurisVC: UIViewController?
@@ -42,8 +50,10 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     private var jurisUpdater: UpdateService?
     // ===== Paridade com o host do Mac (mac/Sources/main.swift) =====
     // O bundle web depende destas pontes; sem elas botões da web "não faziam nada" no iPad.
-    var barra: UIView!                                 // barra de abas (segue o tema do app)
-    var botaoAjustes: UIButton!                        // engrenagem dos módulos nativos (LEGIS/JURIS)
+    var navBar: UINavigationBar!                       // barra do SISTEMA no topo (segue o tema do app)
+    var itemTopo: UINavigationItem!                    // item da barra: o seletor de produto é o titleView
+    var botaoAjustes: UIBarButtonItem!                 // engrenagem dos módulos nativos (LEGIS/JURIS)
+    var corSobreAcento: UIColor?                       // --onAccent do tema: texto do segmento selecionado
     var abaAtual = 0                                   // última aba MONTADA (o segmento muda antes do montar)
     var nativeRevTimer: Timer?                         // agenda única: LEGIS/JURIS → Revisões do Cátedra
     var temaTimer: Timer?                              // a casca segue o tema do app (claro/escuro/acento)
@@ -102,11 +112,14 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         webView.allowsLinkPreview = false
         webView.allowsBackForwardNavigationGestures = false
 
-        // ABAS NO TOPO, como no app do Mac: Cátedra | CátedraLEGIS. No Mac isso é a barra
-        // de abas do host AppKit; aqui é um UISegmentedControl acima do conteúdo. A
-        // WebView deixa de ocupar a tela inteira e passa a viver na área de conteúdo,
-        // trocada com a tela nativa do LEGIS.
+        // ABAS NO TOPO, como no app do Mac: Cátedra | CátedraLEGIS | CátedraJURIS. No Mac isso
+        // é a barra de abas do host AppKit; aqui é um UISegmentedControl no titleView de um
+        // UINavigationBar do sistema, acima do conteúdo. A WebView não ocupa a tela inteira:
+        // vive na área de conteúdo, trocada com as telas nativas do LEGIS e do JURIS. Os
+        // títulos dos segmentos são decididos SÓ por reconstruirSegmentos(compacto:) — curtos
+        // em largura compacta (iPhone, Slide Over), inteiros em regular.
         segmento = UISegmentedControl(items: ["Cátedra", "CátedraLEGIS", "CátedraJURIS"])
+        segmento.apportionsSegmentWidthsByContent = true
         // -abaLegis / -abaJuris abrem já na aba correspondente. Servem para verificar os
         // portes no simulador sem depender de alguém tocar na tela; em uso normal ninguém
         // passa esses argumentos.
@@ -117,58 +130,50 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         #endif
         segmento.selectedSegmentIndex = args.contains("-abaJuris") ? 2
                                       : args.contains("-abaLegis") ? 1 : 0
-        segmento.translatesAutoresizingMaskIntoConstraints = false
         segmento.addTarget(self, action: #selector(trocarAba), for: .valueChanged)
 
-        barra = UIView()
-        barra.translatesAutoresizingMaskIntoConstraints = false
-        barra.backgroundColor = .secondarySystemBackground
-        barra.addSubview(segmento)
-
-        // Item 5: "← Voltar ao ponto do processo". Fica escondido até alguém chegar aqui
-        // por um chip do mapa de Processo e peças — antes o caminho era de mão única.
-        botaoVoltarAcervo = UIButton(type: .system)
-        botaoVoltarAcervo.translatesAutoresizingMaskIntoConstraints = false
-        botaoVoltarAcervo.setTitle("← Voltar ao processo", for: .normal)
-        botaoVoltarAcervo.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
-        botaoVoltarAcervo.isHidden = true
-        botaoVoltarAcervo.addTarget(self, action: #selector(voltarAoProcesso), for: .touchUpInside)
-        barra.addSubview(botaoVoltarAcervo)
-
         // Engrenagem dos módulos nativos. No Mac os Ajustes do LEGIS/JURIS abrem pelo menu da
-        // barra (⌘, e ⌘⌥,); aqui não há menu, então ela mora na barra de abas e só aparece
+        // barra (⌘, e ⌘⌥,); aqui não há menu, então ela mora na barra do topo e só aparece
         // neles — a engrenagem da barra lateral do JURIS também cai aqui (JurisHostBridge).
-        botaoAjustes = UIButton(type: .system)
-        botaoAjustes.translatesAutoresizingMaskIntoConstraints = false
-        botaoAjustes.setImage(UIImage(systemName: "gearshape"), for: .normal)
-        botaoAjustes.accessibilityLabel = "Ajustes do módulo"
+        // É um botão de 44×44 pt dentro do item (alvo de toque da casa), e não o item de
+        // imagem do sistema, cujo quadro fica abaixo disso.
+        let engrenagem = UIButton(type: .system)
+        engrenagem.setImage(UIImage(systemName: "gearshape"), for: .normal)
+        engrenagem.accessibilityLabel = "Ajustes do módulo"
+        engrenagem.addTarget(self, action: #selector(abrirAjustesDoModulo), for: .touchUpInside)
+        engrenagem.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([engrenagem.widthAnchor.constraint(equalToConstant: 44),
+                                     engrenagem.heightAnchor.constraint(equalToConstant: 44)])
+        botaoAjustes = UIBarButtonItem(customView: engrenagem)
         botaoAjustes.isHidden = true
-        botaoAjustes.addTarget(self, action: #selector(abrirAjustesDoModulo), for: .touchUpInside)
-        barra.addSubview(botaoAjustes)
+
+        // A barra do topo é a do SISTEMA, standalone (fora de UINavigationController): presa à
+        // safe area em cima, e o fundo cobre a status bar porque position(for:) devolve
+        // .topAttached. Vai de borda a borda: a própria barra inseta o conteúdo pela safe
+        // area lateral (paisagem do iPhone), então nada fica sob a Dynamic Island e o fundo
+        // do tema chega até as bordas. A volta ao processo é o botão de voltar do sistema
+        // (ver atualizarBotaoVoltarAcervo) — não há mais botão próprio nem hitTest à mão.
+        itemTopo = UINavigationItem()
+        itemTopo.titleView = segmento
+        itemTopo.rightBarButtonItem = botaoAjustes
+        navBar = UINavigationBar()
+        navBar.translatesAutoresizingMaskIntoConstraints = false
+        navBar.delegate = self
+        navBar.setItems([itemTopo], animated: false)
 
         areaConteudo = UIView()
         areaConteudo.translatesAutoresizingMaskIntoConstraints = false
 
-        view.addSubview(barra)
+        view.addSubview(navBar)
         view.addSubview(areaConteudo)
         areaConteudo.addSubview(webView)
 
         NSLayoutConstraint.activate([
-            barra.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            barra.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            barra.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            segmento.centerXAnchor.constraint(equalTo: barra.centerXAnchor),
-            segmento.topAnchor.constraint(equalTo: barra.topAnchor, constant: 6),
-            segmento.bottomAnchor.constraint(equalTo: barra.bottomAnchor, constant: -6),
-            botaoVoltarAcervo.leadingAnchor.constraint(equalTo: barra.leadingAnchor, constant: 14),
-            botaoVoltarAcervo.centerYAnchor.constraint(equalTo: segmento.centerYAnchor),
-            botaoVoltarAcervo.trailingAnchor.constraint(lessThanOrEqualTo: segmento.leadingAnchor, constant: -12),
-            botaoAjustes.trailingAnchor.constraint(equalTo: barra.trailingAnchor, constant: -10),
-            botaoAjustes.centerYAnchor.constraint(equalTo: segmento.centerYAnchor),
-            botaoAjustes.widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
-            botaoAjustes.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            navBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            navBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            navBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            areaConteudo.topAnchor.constraint(equalTo: barra.bottomAnchor),
+            areaConteudo.topAnchor.constraint(equalTo: navBar.bottomAnchor),
             // Até a ÁREA SEGURA, não até a borda: a barra inferior do modo celular e o fim de
             // toda lista ficavam por baixo do indicador home (env(safe-area-inset-bottom) é 0
             // sem viewport-fit=cover). A faixa que sobra é pintada com o fundo do tema.
@@ -181,6 +186,14 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             webView.leadingAnchor.constraint(equalTo: areaConteudo.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: areaConteudo.trailingAnchor),
         ])
+
+        // Títulos dos segmentos pela classe de tamanho: agora e a cada mudança (rotação do
+        // iPhone, Slide Over / Split View no iPad). O botão de voltar segue a mesma regra.
+        reconstruirSegmentos(compacto: ehCompacto)
+        registerForTraitChanges([UITraitHorizontalSizeClass.self]) { (vc: Self, _: UITraitCollection) in
+            vc.reconstruirSegmentos(compacto: vc.ehCompacto)
+            vc.atualizarBotaoVoltarAcervo()
+        }
 
         UNUserNotificationCenter.current().delegate = self   // aviso aparece com o app ABERTO; toque navega
         instalarCicloDeVida()          // relógios pausam fora do foco; segundo plano fecha a rajada
@@ -226,14 +239,42 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
        tocava na terceira aba e recebia o acervo de súmulas inteiro. */
     private var jurisDisponivel = true
     func aplicarArea(juris: Bool) {
-        guard juris != jurisDisponivel, segmento != nil else { jurisDisponivel = juris; return }
+        let mudou = juris != jurisDisponivel
         jurisDisponivel = juris
-        if juris {
-            if segmento.numberOfSegments < 3 { segmento.insertSegment(withTitle: "CátedraJURIS", at: 2, animated: false) }
+        guard mudou, segmento != nil else { return }
+        reconstruirSegmentos(compacto: ehCompacto)
+    }
+
+    /// Largura compacta = iPhone em retrato (e quase todo iPhone em paisagem), iPad em Slide
+    /// Over ou num terço do Split View. É a ÚNICA pergunta que a casca faz sobre o tamanho da
+    /// tela — nunca "é iPhone?" (userInterfaceIdiom), que erraria no Slide Over.
+    var ehCompacto: Bool { traitCollection.horizontalSizeClass == .compact }
+
+    /// ÚNICA função que decide os títulos do seletor de produto: curtos em compacto
+    /// ("Cátedra | LEGIS | JURIS" cabem em 320 pt), inteiros em regular; sem o terceiro quando
+    /// a área de estudo não oferece jurisprudência. Preserva a aba selecionada — e, se a aba
+    /// aberta era a que sumiu, volta ao Cátedra pela mesma trocarAba() de sempre.
+    private func reconstruirSegmentos(compacto: Bool) {
+        var titulos = compacto ? ["Cátedra", "LEGIS", "JURIS"]
+                               : ["Cátedra", "CátedraLEGIS", "CátedraJURIS"]
+        if !jurisDisponivel { titulos.removeLast() }
+        let selecionada = max(0, segmento.selectedSegmentIndex)
+        let iguais = segmento.numberOfSegments == titulos.count
+            && titulos.indices.allSatisfy { segmento.titleForSegment(at: $0) == titulos[$0] }
+        if !iguais {
+            // removeAllSegments zera a seleção — por isso ela foi lida antes.
+            segmento.removeAllSegments()
+            for (i, t) in titulos.enumerated() { segmento.insertSegment(withTitle: t, at: i, animated: false) }
+            segmento.apportionsSegmentWidthsByContent = true
+            segmento.sizeToFit()            // o titleView é medido pelo quadro que ele tem
+            navBar?.setNeedsLayout()
+        }
+        if selecionada < titulos.count {
+            if segmento.selectedSegmentIndex != selecionada { segmento.selectedSegmentIndex = selecionada }
         } else {
-            // quem estiver DENTRO da aba que vai sumir precisa sair antes
-            if segmento.selectedSegmentIndex == 2 { segmento.selectedSegmentIndex = 0; trocarAba() }
-            if segmento.numberOfSegments > 2 { segmento.removeSegment(at: 2, animated: false) }
+            // quem estava DENTRO da aba que sumiu (JURIS retirado pela área) sai antes
+            segmento.selectedSegmentIndex = 0
+            trocarAba()
         }
     }
 
@@ -417,6 +458,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         t.isDark = (dk == "1" || dk.lowercased() == "true")
         // Baixa estimulação: some gamificação e desliga animação nos módulos nativos.
         t.baixaEstimulacao = (d["baixa"] as? Bool) ?? false
+        // Texto sobre o acento (--onAccent): a struct do tema não tem esse campo, então a
+        // casca guarda aqui para o segmento selecionado; vazio → o contraste decide.
+        corSobreAcento = col("onAccent").map { UIColor($0) }
         ThemeState.t = t
         // As duas chaves existem porque LEGIS e JURIS guardam o modo com vocabulários
         // diferentes ("light"/"dark" e "claro"/"escuro"); trocá-las colidiria.
@@ -747,11 +791,34 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         DispatchQueue.main.async { self.irParaAcervo(alvo: alvo, termo: termo, origem: origem) }
     }
 
-    /// Botão "voltar ao ponto do processo" na barra de abas — só quando há origem viva.
+    /// A volta ao ponto do processo é o botão de VOLTAR do sistema: com origem viva, um item
+    /// com o rótulo dela entra por baixo do item do topo e o UIKit desenha o chevron com o
+    /// rótulo (encurtado quando não cabe); sem origem, a pilha volta a ter só o item do topo.
+    /// Em largura compacta o rótulo é omitido (só o chevron) para o seletor de produto não
+    /// ser espremido; o VoiceOver continua lendo o rótulo inteiro, que é o título do item.
     func atualizarBotaoVoltarAcervo() {
+        guard navBar != nil else { return }
         let temOrigem = AcervoEntrada.shared.origem != nil && segmento.selectedSegmentIndex != 0
-        botaoVoltarAcervo?.isHidden = !temOrigem
-        if let o = AcervoEntrada.shared.origem { botaoVoltarAcervo?.setTitle("← " + o.rotulo, for: .normal) }
+        if temOrigem, let o = AcervoEntrada.shared.origem {
+            let origem = UINavigationItem(title: o.rotulo)
+            origem.backButtonDisplayMode = ehCompacto ? .minimal : .default
+            navBar.setItems([origem, itemTopo], animated: false)
+        } else if (navBar.items?.count ?? 0) != 1 {
+            navBar.setItems([itemTopo], animated: false)
+        }
+    }
+
+    // MARK: - UINavigationBarDelegate
+
+    /// O fundo da barra se estende para cima e cobre a status bar com a cor do tema.
+    func position(for bar: UIBarPositioning) -> UIBarPosition { .topAttached }
+
+    /// O toque no botão de voltar do sistema NÃO desempilha a barra (a pilha é montada por
+    /// atualizarBotaoVoltarAcervo): ele devolve a pessoa ao ponto do processo, no app web.
+    /// Fora do ciclo do toque, para o UIKit terminar de tratar o botão antes da troca.
+    func navigationBar(_ navigationBar: UINavigationBar, shouldPop item: UINavigationItem) -> Bool {
+        DispatchQueue.main.async { [weak self] in self?.voltarAoProcesso() }
+        return false
     }
 
     @objc func voltarAoProcesso() {
@@ -1515,21 +1582,33 @@ extension RootViewController {
     }
 
     // ===== A casca segue o tema do app =====
-    // A barra de abas e o fundo eram systemBackground: com o Cátedra no escuro a faixa de cima
-    // ficava branca (e vice-versa). O status bar acompanha pelo overrideUserInterfaceStyle.
+    // A barra e o fundo eram do sistema: com o Cátedra no escuro a faixa de cima ficava
+    // branca (e vice-versa). Tudo aqui vem dos tokens já lidos pela ponte de tema — nada de
+    // cor fixa. O status bar acompanha pelo overrideUserInterfaceStyle.
     func aplicarAparenciaHost() {
         let t = ThemeState.t
         overrideUserInterfaceStyle = t.isDark ? .dark : .light
         let acento = UIColor(t.accent)
         view.backgroundColor = UIColor(t.bg)
-        barra?.backgroundColor = UIColor(t.surface)
+        // A barra do sistema pinta com a superfície do tema em TODOS os estados (parada, na
+        // borda de rolagem, compacta em paisagem): sem a aparência explícita o iOS 26 a
+        // deixaria translúcida, com o material do sistema por cima do conteúdo.
+        let aparencia = UINavigationBarAppearance()
+        aparencia.configureWithOpaqueBackground()
+        aparencia.backgroundColor = UIColor(t.surface)
+        aparencia.shadowColor = UIColor(t.border)
+        aparencia.titleTextAttributes = [.foregroundColor: UIColor(t.ink)]
+        navBar?.standardAppearance = aparencia
+        navBar?.scrollEdgeAppearance = aparencia
+        navBar?.compactAppearance = aparencia
+        navBar?.compactScrollEdgeAppearance = aparencia
+        navBar?.tintColor = acento          // chevron e rótulo do voltar, e a engrenagem
         segmento?.backgroundColor = UIColor(t.surface2)
         segmento?.selectedSegmentTintColor = acento
-        let sobreAcento: UIColor = Self.luminancia(acento) < 0.5 ? .white : .black
+        // Texto sobre o acento: o --onAccent do tema; sem ele, o contraste decide.
+        let sobreAcento = corSobreAcento ?? (Self.luminancia(acento) < 0.5 ? .white : .black)
         segmento?.setTitleTextAttributes([.foregroundColor: sobreAcento, .font: UIFont.systemFont(ofSize: 13, weight: .semibold)], for: .selected)
         segmento?.setTitleTextAttributes([.foregroundColor: UIColor(t.ink), .font: UIFont.systemFont(ofSize: 13, weight: .medium)], for: .normal)
-        botaoVoltarAcervo?.tintColor = acento
-        botaoAjustes?.tintColor = acento
         setNeedsStatusBarAppearanceUpdate()
     }
 
