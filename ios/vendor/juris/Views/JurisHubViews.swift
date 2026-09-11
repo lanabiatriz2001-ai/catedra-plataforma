@@ -22,7 +22,7 @@ struct RamosHubView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 26).padding(.vertical, 20)
+                .jurisMargemPagina().padding(.vertical, 20)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -98,12 +98,12 @@ struct RamoDetalheView: View {
                             }
                             if assuntos.count > limiteAssuntos {
                                 Text("Mostrando os \(limiteAssuntos) assuntos mais frequentes de \(assuntos.count) — use a busca em \"Todos os verbetes\" para o restante.")
-                                    .font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk)
+                                    .font(Typo.ui(10.5)).foregroundStyle(Palette.secondaryInk)
                             }
                         }
                         Color.clear.frame(height: 20)
                     }
-                    .padding(.horizontal, 26).padding(.top, 20)
+                    .jurisMargemPagina().padding(.top, 20)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -117,6 +117,7 @@ struct RamoDetalheView: View {
 struct TribunalCentralView: View {
     let tribunalID: String
     @Environment(LibraryStore.self) private var store
+    @Environment(\.ehCompacto) private var ehCompacto
     @State private var confirmarExclusao = false
 
     private var trib: TribunalEspecifico? { store.tribunal(tribunalID) }
@@ -146,22 +147,22 @@ struct TribunalCentralView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     // Hero do tribunal — mesma assinatura das Centrais
                     VStack(alignment: .leading, spacing: 6) {
-                        HStack(spacing: 10) {
+                        JurisFileira(espacamento: 10) {   // iPhone: quebra de linha em vez de nome espremido
                             Text(t.sigla)
-                                .font(.system(size: 13, weight: .bold))
+                                .font(Typo.ui(13, .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 10).padding(.vertical, 5)
                                 .background(Color.white.opacity(0.16), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
-                            Text(t.nome).font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
-                            Spacer()
+                            Text(t.nome).font(Typo.ui(26, .bold)).foregroundStyle(.white)
+                            if !ehCompacto { Spacer() }
                             Text("\(verbetes.count) verbetes")
-                                .font(.system(size: 11.5, weight: .semibold)).monospacedDigit()
+                                .font(Typo.ui(11.5, .semibold)).monospacedDigit()
                                 .padding(.horizontal, 10).padding(.vertical, 4)
                                 .background(Color.white.opacity(0.16), in: Capsule())
                                 .foregroundStyle(.white)
                         }
                         Text(t.detalhe)
-                            .font(.system(size: 12.5)).foregroundStyle(.white.opacity(0.85))
+                            .font(Typo.ui(12.5)).foregroundStyle(.white.opacity(0.85))
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(22)
@@ -225,13 +226,13 @@ struct TribunalCentralView: View {
                     if t.custom {
                         Button(role: .destructive) { confirmarExclusao = true } label: {
                             Label("Excluir esta central", systemImage: "trash")
-                                .font(.system(size: 11.5, weight: .medium))
+                                .font(Typo.ui(11.5, .medium))
                         }
                         .buttonStyle(.borderless)
                     }
                     Color.clear.frame(height: 20)
                 }
-                .padding(.horizontal, 26).padding(.top, 22)
+                .jurisMargemPagina().padding(.top, 22)
             }
         }
         .background(Palette.appBackground)

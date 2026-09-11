@@ -60,7 +60,7 @@ struct NovidadesView: View {
             Task { await updater.atualizar(store: store) }
         } label: {
             Label(estaExecutando ? "Verificando…" : "Verificar agora", systemImage: "arrow.triangle.2.circlepath")
-                .font(.system(size: 12, weight: .semibold))
+                .font(Typo.ui(12, .semibold))
         }
         .buttonStyle(.borderedProminent)
         .tint(Palette.accent)
@@ -78,13 +78,13 @@ struct NovidadesView: View {
                 Circle().fill(Palette.accent).frame(width: 7, height: 7)
             }
             Image(systemName: ev.fonteKind.simbolo)
-                .font(.system(size: 11)).foregroundStyle(ev.fonteKind.cor)
+                .font(Typo.ui(11)).foregroundStyle(ev.fonteKind.cor)
             VStack(alignment: .leading, spacing: 1) {
                 Text(ev.titulo)
                     .font(Typo.serifTitle(13, .semibold))
                     .foregroundStyle(Palette.titleInk)
                 Text("\(ev.detalhe) · \(Self.rel.localizedString(for: ev.data, relativeTo: Date()))")
-                    .font(.system(size: 10.5))
+                    .font(Typo.ui(10.5))
                     .foregroundStyle(Palette.secondaryInk)
             }
             Spacer()
@@ -96,11 +96,11 @@ struct NovidadesView: View {
     /// Sub-cabeçalho de disciplina dentro de um informativo.
     private func disciplinaLinha(_ disciplina: String, _ n: Int) -> some View {
         HStack(spacing: 7) {
-            Image(systemName: "bookmark.fill").font(.system(size: 9)).foregroundStyle(Palette.accent)
+            Image(systemName: "bookmark.fill").font(Typo.ui(9)).foregroundStyle(Palette.accent)
             Text(disciplina.uppercased())
-                .font(.system(size: 10, weight: .bold)).tracking(0.8)
+                .font(Typo.ui(10, .bold)).tracking(0.8)
                 .foregroundStyle(Palette.accent)
-            Text("\(n)").font(.system(size: 9, weight: .bold))
+            Text("\(n)").font(Typo.ui(9, .bold))
                 .padding(.horizontal, 5).padding(.vertical, 0.5)
                 .background(Palette.accent.opacity(0.14), in: Capsule())
                 .foregroundStyle(Palette.accent)

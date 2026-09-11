@@ -20,11 +20,11 @@ struct MarkCommentBalloon: View {
                 RoundedRectangle(cornerRadius: 2, style: .continuous).fill(color).frame(width: 3)
                 VStack(alignment: .leading, spacing: 3) {
                     Label("Comentário", systemImage: "text.bubble")
-                        .font(.system(size: 9, weight: .bold)).tracking(0.3)
+                        .font(Typo.ui(9, .bold)).tracking(0.3)
                         .foregroundStyle(color)
                         .labelStyle(.titleAndIcon)
                     Text(note.isEmpty ? "—" : note)
-                        .font(.system(size: 11.5)).foregroundStyle(Palette.bodyInk)
+                        .font(Typo.ui(11.5)).foregroundStyle(Palette.bodyInk)
                         .lineLimit(5).multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -37,7 +37,8 @@ struct MarkCommentBalloon: View {
             .shadow(color: Color.black.opacity(0.06), radius: 4, y: 1)
         }
         .buttonStyle(.plain)
-        .help("Clique para editar o comentário")
+        .help("Toque para editar o comentário")
+        .accessibilityHint("Toque para editar o comentário")
     }
 }
 
@@ -49,8 +50,35 @@ struct MarkCommentEditorSheet: View {
     let onDelete: (() -> Void)?
     let onCancel: () -> Void
     @State private var text: String = ""
+    @State private var confirmarDescarte = false
+    @FocusState private var foco: Bool
+    @Environment(\.ehCompacto) private var ehCompacto
+
+    /// Há texto que ainda não foi salvo (diferente do que a folha abriu mostrando).
+    private var temRascunho: Bool {
+        text.trimmingCharacters(in: .whitespacesAndNewlines) != initial.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     var body: some View {
+        Group {
+            // iPhone: o teclado cobre quase metade da folha; o corpo rola (o TextEditor
+            // guarda 150 pt de altura mínima e cresce com o texto).
+            if ehCompacto { ScrollView { corpo } } else { corpo }
+        }
+        // Sem 440 pt fixos: a folha do sistema decide o tamanho (meia altura quando o
+        // sistema permitir — é uma caixa de comentário, não uma página). Com rascunho, o
+        // arrastão NÃO fecha; o Cancelar pergunta antes de descartar.
+        .folhaAdaptavel(temRascunho: temRascunho)
+        .presentationDetents([.medium, .large])
+        .tecladoConcluir(foco: $foco)
+        .confirmationDialog("Descartar o que você escreveu?", isPresented: $confirmarDescarte, titleVisibility: .visible) {
+            Button("Descartar", role: .destructive) { onCancel() }
+            Button("Continuar escrevendo", role: .cancel) {}
+        }
+        .onAppear { text = initial }
+    }
+
+    private var corpo: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Label(isEditing ? "Editar comentário" : "Comentar trecho", systemImage: "text.bubble")
@@ -64,11 +92,13 @@ struct MarkCommentEditorSheet: View {
             .padding(.horizontal, 14).padding(.vertical, 6)
             Divider()
             TextEditor(text: $text)
-                .font(.system(size: 13.5)).scrollContentBackground(.hidden)
+                .font(Typo.ui(13.5)).scrollContentBackground(.hidden)
+                .focused($foco)
                 .padding(10).frame(maxWidth: .infinity, minHeight: 150)
             Divider()
             HStack {
-                Button { onCancel() } label: { Text("Cancelar").jurisAlvoToque() }.keyboardShortcut(.cancelAction)
+                Button { if temRascunho { confirmarDescarte = true } else { onCancel() } } label: { Text("Cancelar").jurisAlvoToque() }
+                    .keyboardShortcut(.cancelAction)
                 Spacer()
                 Button { onSave(text) } label: { Text(isEditing ? "Salvar" : "Comentar").frame(minHeight: 30) }
                     .buttonStyle(.borderedProminent)
@@ -77,10 +107,5 @@ struct MarkCommentEditorSheet: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 6)
         }
-        // Sem 440 pt fixos: a folha do sistema decide o tamanho (meia altura quando o
-        // sistema permitir — é uma caixa de comentário, não uma página).
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .presentationDetents([.medium, .large])
-        .onAppear { text = initial }
     }
 }

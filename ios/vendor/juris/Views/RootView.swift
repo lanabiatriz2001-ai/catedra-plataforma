@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(LibraryStore.self) private var store
+    @Environment(\.ehCompacto) private var ehCompacto                       // iPhone / Slide Over: casca própria
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize            // Typo.* escala por UIFontMetrics: reavaliar ao mudar
     @AppStorage("readingFontFamily") private var readingFontFamily = ""   // rebuild ao trocar a fonte
     @ObservedObject private var clock = JurisClock.shared                 // cronômetro do top bar
 
@@ -23,15 +25,15 @@ struct RootView: View {
         let onde = ondeEstou
         return HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(onde.titulo).font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk).lineLimit(1)
-                Text(onde.sub).font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
+                Text(onde.titulo).font(Typo.ui(15, .bold)).foregroundStyle(Palette.titleInk).lineLimit(1)
+                Text(onde.sub).font(Typo.ui(10.5)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
             }
             Spacer(minLength: 12)
             Button { store.ir(.todos) } label: {
                 HStack(spacing: 7) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 11))
-                    Text("Buscar").font(.system(size: 12.5))
-                    Text("⌘K").font(.system(size: 10.5, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
+                    Image(systemName: "magnifyingglass").font(Typo.ui(11))
+                    Text("Buscar").font(Typo.ui(12.5))
+                    Text("⌘K").font(Typo.ui(10.5, .semibold)).foregroundStyle(Palette.secondaryInk)
                 }
                 .foregroundStyle(Palette.secondaryInk)
                 .padding(.horizontal, 13).padding(.vertical, 7)
@@ -44,7 +46,7 @@ struct RootView: View {
             .buttonStyle(.plain)
             Button { store.ir(.novidades) } label: {
                 Image(systemName: store.novidadesNaoVistas > 0 ? "bell.badge.fill" : "bell")
-                    .font(.system(size: 13, weight: .medium)).foregroundStyle(Palette.secondaryInk)
+                    .font(Typo.ui(13, .medium)).foregroundStyle(Palette.secondaryInk)
                     .frame(width: 34, height: 34)
                     .background(Circle().fill(Palette.cardBackground))
                     .overlay(Circle().strokeBorder(Palette.hairline, lineWidth: 1))
@@ -53,14 +55,14 @@ struct RootView: View {
             .buttonStyle(.plain)
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(.system(size: 8, weight: .heavy)).tracking(0.8)
+                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(Typo.ui(8, .heavy)).tracking(0.8)
                         .foregroundStyle(clock.running ? Palette.accent : Palette.secondaryInk)
-                    Text(clock.formatted).font(.system(size: 16, weight: .bold).monospacedDigit())
+                    Text(clock.formatted).font(Typo.num(16, .bold))
                         .foregroundStyle(Palette.titleInk)
                 }
                 Button { clock.togglePlay() } label: {
                     Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                        .font(Typo.ui(11, .bold)).foregroundStyle(.white)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(clock.manualPlaying ? Palette.secondaryInk : Palette.accent))
                         .jurisAlvoToque().padding(.vertical, -8)
@@ -77,62 +79,72 @@ struct RootView: View {
     }
 
     var body: some View {
-        // Layout da casa (Cátedra/CátedraLEGIS): sidebar navy fixa + páginas de
-        // conteúdo com cabeçalho próprio (SectionShell). Lista → clique → leitor
-        // de página inteira, como no CátedraLEGIS. Alinhamento .top + frames
-        // gulosos evitam o conteúdo "flutuar" centralizado quando a página é curta.
-        HStack(alignment: .top, spacing: 0) {
-            JurisSidebar()
-            conteudo
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .safeAreaInset(edge: .top, spacing: 0) { jurisTopBar }
+        Group {
+            if ehCompacto {
+                // iPhone (e Slide Over): sem sidebar nem jurisTopBar — um NavigationStack
+                // com "Seções" na barra, a seção e o verbete empurrados na pilha
+                // (JurisCompacto.swift). O store continua sendo a fonte da verdade.
+                JurisCompactoRaiz()
+            } else {
+                // Layout da casa (Cátedra/CátedraLEGIS): sidebar navy fixa + páginas de
+                // conteúdo com cabeçalho próprio (SectionShell). Lista → clique → leitor
+                // de página inteira, como no CátedraLEGIS. Alinhamento .top + frames
+                // gulosos evitam o conteúdo "flutuar" centralizado quando a página é curta.
+                HStack(alignment: .top, spacing: 0) {
+                    JurisSidebar()
+                    conteudo
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                        .safeAreaInset(edge: .top, spacing: 0) { jurisTopBar }
+                }
+                .onAppear {
+                    #if targetEnvironment(simulator)
+                    JurisEnsaio.aplicar(store: store) { }   // ensaio por captura (JurisCompacto.swift)
+                    #endif
+                }
+            }
         }
         .background(Palette.appBackground)
         .tint(Palette.accent)
+        // Dynamic Type: os tamanhos passam por UIFontMetrics dentro de Typo.*, que não lê o
+        // ambiente — recriar a árvore quando o tamanho muda é o que faz o texto acompanhar.
+        .id(dynamicTypeSize)
     }
 
     @ViewBuilder
     private var conteudo: some View {
-        if store.isLoading {
-            ProgressView("Carregando jurisprudência…")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Palette.appBackground)
-        } else if store.loadError != nil || store.entries.isEmpty {
-            /* A falha de carga era 100% silenciosa: loadError era atribuído e nenhuma
-               view o exibia — o app abria vazio, sem explicação. Linguagem de produto,
-               sem nome de arquivo: o detalhe técnico fica no log. */
-            VStack(spacing: 10) {
-                Text("O acervo de jurisprudência não pôde ser aberto.")
-                    .font(.system(size: 15, weight: .semibold))
-                Text("Feche e abra o aplicativo. Se continuar assim, reinstale o CátedraJURIS — o acervo vem dentro dele.")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Palette.secondaryInk)
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(30)
-            .background(Palette.appBackground)
+        if store.isLoading || store.loadError != nil || store.entries.isEmpty {
+            JurisEstadoAcervo()   // carregando / falha de carga (JurisCompacto.swift, comum às duas cascas)
         } else if let id = store.leituraID ?? store.selectedID, let entry = store.byId[id] {
             LeitorCheio(entry: entry)
         } else {
-            switch store.selecao {
-            case .inicio: HomeView()
-            case .hoje: JurisHojeView()
-            case .gradeInformativos: GradeInformativosView()
-            case .julgadoDoDia: JulgadoDoDiaView(pagina: true)
-            case .provaOral: ProvaOralJurisView()
-            case .simulado: SimuladoView()
-            case .oralBancas: OralBancasView()
-            case .tjroHub: TJROHubView()
-            case .mapas: JurisMapasGaleria()
-            case .checklist: JurisChecklistView()
-            case .plano: PlanoLeituraJurisView()
-            case .central(let c): JurisCentralView(central: c)
-            case .tribunal(let id): TribunalCentralView(tribunalID: id)
-            case .ramosHub: RamosHubView()
-            case .ramoDetalhe(let f): RamoDetalheView(filtro: f)
-            default: EntryListView()
-            }
+            JurisPagina(selecao: store.selecao)
+        }
+    }
+}
+
+/// A página de UMA seção — a mesma view nas duas cascas: ao lado da sidebar no iPad e
+/// empurrada na pilha compacta no iPhone. As páginas leem `store.selecao` por dentro.
+struct JurisPagina: View {
+    let selecao: Selecao
+
+    var body: some View {
+        switch selecao {
+        case .inicio: HomeView()
+        case .hoje: JurisHojeView()
+        case .gradeInformativos: GradeInformativosView()
+        case .julgadoDoDia: JulgadoDoDiaView(pagina: true)
+        case .provaOral: ProvaOralJurisView()
+        case .simulado: SimuladoView()
+        case .oralBancas: OralBancasView()
+        case .tjroHub: TJROHubView()
+        case .mapas: JurisMapasGaleria()
+        case .checklist: JurisChecklistView()
+        case .plano: PlanoLeituraJurisView()
+        case .central(let c): JurisCentralView(central: c)
+        case .tribunal(let id): TribunalCentralView(tribunalID: id)
+        case .ramosHub: RamosHubView()
+        case .ramoDetalhe(let f): RamoDetalheView(filtro: f)
+        default: EntryListView()
         }
     }
 }
@@ -151,7 +163,7 @@ struct LeitorCheio: View {
                     store.leituraID = nil
                     store.selectedID = nil
                 } label: {
-                    Label("Voltar", systemImage: "chevron.left").font(.system(size: 12.5, weight: .medium))
+                    Label("Voltar", systemImage: "chevron.left").font(Typo.ui(12.5, .medium))
                         .jurisAlvoToque().padding(.vertical, -8)
                 }
                 .buttonStyle(.borderless)

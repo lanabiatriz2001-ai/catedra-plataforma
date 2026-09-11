@@ -79,7 +79,7 @@ struct ResumoSemanalCard: View {
         .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: Palette.accent.opacity(0.12), radius: 14, y: 6)
-        .padding(.horizontal, 26)
+        .jurisMargemPagina()
     }
 
     // Faixa gradiente (vitrine) com título serifado + estado do cache.
@@ -90,11 +90,11 @@ struct ResumoSemanalCard: View {
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(width: 38, height: 38)
                 .overlay(Image(systemName: "newspaper.fill")
-                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(.white))
+                    .font(Typo.ui(16, .semibold)).foregroundStyle(.white))
                 .shadow(color: Palette.accent.opacity(0.4), radius: 7, y: 3)
             VStack(alignment: .leading, spacing: 1) {
                 Text("Resumo da semana").font(Typo.serifTitle(18, .bold)).foregroundStyle(Palette.titleInk)
-                Text(subtitulo).font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
+                Text(subtitulo).font(Typo.ui(11.5)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
             }
             Spacer()
             if busy {
@@ -105,7 +105,7 @@ struct ResumoSemanalCard: View {
                 } label: {
                     Label(cache == nil ? "Gerar com IA" : (desatualizado ? "Atualizar" : "Regerar"),
                           systemImage: "sparkles")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(Typo.ui(12, .bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 13).padding(.vertical, 7)
                         .background(Capsule().fill(LinearGradient(colors: [Palette.accent, Palette.accentSoft],
@@ -137,11 +137,11 @@ struct ResumoSemanalCard: View {
             Text(lotes.isEmpty
                  ? "Quando os tribunais publicarem informativos novos, o resumo da semana aparece aqui."
                  : "Toque em “Gerar com IA” para um apanhado dos julgados novos — com o que toca as matérias do seu edital e um alerta de prova.")
-                .font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
+                .font(Typo.ui(12.5)).foregroundStyle(Palette.secondaryInk)
                 .lineSpacing(2.5)
                 .padding(.horizontal, 18).padding(.vertical, 13)
             if let erro {
-                Text(erro).font(.system(size: 11.5)).foregroundStyle(Palette.bad)
+                Text(erro).font(Typo.ui(11.5)).foregroundStyle(Palette.bad)
                     .padding(.horizontal, 18).padding(.bottom, 12)
             }
         }
@@ -164,15 +164,15 @@ struct ResumoSemanalCard: View {
                         ForEach(r.destaques) { d in
                             HStack(alignment: .top, spacing: 10) {
                                 Text(d.tribunal)
-                                    .font(.system(size: 9.5, weight: .heavy)).tracking(0.4)
+                                    .font(Typo.ui(9.5, .heavy)).tracking(0.4)
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 7).padding(.vertical, 3)
                                     .background(RoundedRectangle(cornerRadius: 6).fill(Palette.accent))
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(d.titulo).font(.system(size: 13, weight: .semibold))
+                                    Text(d.titulo).font(Typo.ui(13, .semibold))
                                         .foregroundStyle(Palette.titleInk)
                                         .fixedSize(horizontal: false, vertical: true)
-                                    Text(d.porque).font(.system(size: 12)).foregroundStyle(Palette.bodyInk)
+                                    Text(d.porque).font(Typo.ui(12)).foregroundStyle(Palette.bodyInk)
                                         .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                                 }
                             }
@@ -185,10 +185,10 @@ struct ResumoSemanalCard: View {
                         ForEach(r.edital) { hit in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(hit.disciplina)
-                                    .font(.system(size: 11, weight: .bold))
+                                    .font(Typo.ui(11, .bold))
                                     .foregroundStyle(RamoStyle.color(hit.disciplina))
                                 ForEach(Array(hit.itens.enumerated()), id: \.offset) { _, item in
-                                    Text("•  " + item).font(.system(size: 12)).foregroundStyle(Palette.bodyInk)
+                                    Text("•  " + item).font(Typo.ui(12)).foregroundStyle(Palette.bodyInk)
                                         .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                                 }
                             }
@@ -202,8 +202,8 @@ struct ResumoSemanalCard: View {
                 if !r.alerta.isEmpty {
                     HStack(alignment: .top, spacing: 9) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 12)).foregroundStyle(Palette.warn)
-                        Text(r.alerta).font(.system(size: 12, weight: .medium))
+                            .font(Typo.ui(12)).foregroundStyle(Palette.warn)
+                        Text(r.alerta).font(Typo.ui(12, .medium))
                             .foregroundStyle(Palette.titleInk)
                             .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                     }
@@ -214,13 +214,13 @@ struct ResumoSemanalCard: View {
                 HStack {
                     Button { store.ir(.novidades) } label: {
                         Label("Ver os julgados", systemImage: "arrow.right")
-                            .font(.system(size: 11.5, weight: .semibold))
+                            .font(Typo.ui(11.5, .semibold))
                             .foregroundStyle(Palette.accent)
                     }
                     .buttonStyle(.plain)
                     Spacer()
                     if let erro {
-                        Text(erro).font(.system(size: 11)).foregroundStyle(Palette.bad)
+                        Text(erro).font(Typo.ui(11)).foregroundStyle(Palette.bad)
                     }
                 }
             }
@@ -230,8 +230,8 @@ struct ResumoSemanalCard: View {
 
     private func secTitulo(_ t: String, _ icon: String) -> some View {
         HStack(spacing: 6) {
-            Image(systemName: icon).font(.system(size: 10, weight: .bold)).foregroundStyle(Palette.accent)
-            Text(t.uppercased()).font(.system(size: 10.5, weight: .bold)).tracking(1)
+            Image(systemName: icon).font(Typo.ui(10, .bold)).foregroundStyle(Palette.accent)
+            Text(t.uppercased()).font(Typo.ui(10.5, .bold)).tracking(1)
                 .foregroundStyle(Palette.accent)
         }
     }
