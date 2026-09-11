@@ -70,6 +70,9 @@ struct ArticleStudyView: View {
     @State private var railQuery = ""                        // busca dentro do trilho
     // Última norma estudada — alimenta o "Continuar estudando" do Início.
     @AppStorage("lastStudiedLawID") private var lastStudiedLawID = ""
+    // Compacto (iPhone): a barra superior do Estudo e o trilho do índice não cabem em
+    // 390 pt — os controles vão para a barra de navegação e o índice abre como folha.
+    @Environment(\.ehCompacto) private var ehCompacto
 
     private var record: StudyRecord { store.record(for: lawID) }
 
@@ -130,12 +133,14 @@ struct ArticleStudyView: View {
     @ViewBuilder
     private var content: some View {
         VStack(spacing: 0) {
-            if !leituraAtiva {   // no modo ativo a tela é imersiva (tem sua própria barra "Sair")
+            // No modo ativo a tela é imersiva (tem sua própria barra "Sair"); em compacto
+            // os controles desta barra vivem na barra de navegação (toolbar abaixo).
+            if !leituraAtiva && !ehCompacto {
                 topBar
             }
             if layout == "foco" {
                 HStack(spacing: 0) {
-                    if showIndexRail && !leituraAtiva {
+                    if showIndexRail && !leituraAtiva && !ehCompacto {
                         indexRail
                             .frame(width: 246)
                             .transition(.move(edge: .leading).combined(with: .opacity))
@@ -148,6 +153,29 @@ struct ArticleStudyView: View {
             }
         }
         .background(AppTheme.pageBackground)
+        .toolbar {
+            if ehCompacto && !leituraAtiva {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    indiceBotaoCompacto
+                    estudoMenuCompacto
+                }
+            }
+        }
+        // Em compacto o "Aa" vira folha de meia altura (o popover do iPad viraria uma
+        // tela inteira para três controles).
+        .sheet(isPresented: tipografiaEmFolha) {
+            typographyPopover.legisDetentesSeCompacto([.medium, .large])
+        }
+        // Gancho de VERIFICAÇÃO (ver ContentView): `-legisAbrirFolha indice|mapa|tipografia`.
+        .task {
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            switch UserDefaults.standard.string(forKey: "legisAbrirFolha") {
+            case "indice":     activeSheet = .index
+            case "mapa":       activeSheet = .map
+            case "tipografia": showTypography = true
+            default: break
+            }
+        }
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
             case .index:
@@ -252,6 +280,45 @@ struct ArticleStudyView: View {
         .overlay(Rectangle().fill(AppTheme.hairline).frame(height: 1), alignment: .bottom)
     }
 
+    // MARK: - Compacto: índice e opções do Estudo na barra de navegação
+
+    private var tipografiaEmFolha: Binding<Bool> {
+        Binding(get: { ehCompacto && showTypography }, set: { if !$0 { showTypography = false } })
+    }
+
+    private var indiceBotaoCompacto: some View {
+        Button { activeSheet = .index } label: {
+            Image(systemName: "list.bullet.indent").alvoToque()
+        }
+        .accessibilityLabel("Índice, \(units.count) artigos")
+    }
+
+    /// Exibição (Foco/Cartões), Mapa, Leitura ativa, Aa, Imersão e Revisão espaçada — o que
+    /// a barra superior do Estudo mostra no iPad, num menu de 44 pt.
+    private var estudoMenuCompacto: some View {
+        Menu {
+            Picker("Exibição", selection: $layout) {
+                Label("Foco (um artigo por vez)", systemImage: "doc.text").tag("foco")
+                Label("Cartões (todos em lista)", systemImage: "square.grid.2x2").tag("cartoes")
+            }
+            .pickerStyle(.inline)
+            if layout == "foco" {
+                Button { activeSheet = .map } label: {
+                    Label("Mapa do artigo", systemImage: "point.3.connected.trianglepath.dotted")
+                }
+                Button { showTypography = true } label: {
+                    Label("Leitura (fonte e espaçamento)", systemImage: "textformat.size")
+                }
+                Toggle(isOn: $leituraAtiva) { Label("Leitura ativa", systemImage: "book.and.wrench") }
+                Toggle(isOn: $cleanReading) { Label("Imersão", systemImage: "book.closed") }
+            }
+            Toggle(isOn: $srsEnabled) { Label("Revisão espaçada", systemImage: "brain.head.profile") }
+        } label: {
+            Image(systemName: "slider.horizontal.3").alvoToque()
+        }
+        .accessibilityLabel("Opções do estudo")
+    }
+
     // Popover de leitura: fonte, tamanho e espaçamento (o tema segue a plataforma).
     private var typographyPopover: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -303,7 +370,9 @@ struct ArticleStudyView: View {
                 .font(.caption2).foregroundStyle(.tertiary)
         }
         .padding(16)
-        .frame(width: 288)
+        // Popover do iPad: 288 pt. Folha do iPhone: a largura da folha.
+        .frame(width: ehCompacto ? nil : 288)
+        .frame(maxWidth: ehCompacto ? .infinity : nil, alignment: .leading)
     }
 
     // MARK: - Modo Foco (um artigo por vez)
@@ -393,19 +462,19 @@ struct ArticleStudyView: View {
         return VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 6) {
-                    Text("Índice").font(.system(size: 13, weight: .bold)).foregroundStyle(AppTheme.ink)
+                    Text("Índice").font(AppTheme.ui(13, .bold)).foregroundStyle(AppTheme.ink)
                     Spacer()
                     Text("\(read)/\(units.count)")
-                        .font(.system(size: 11, weight: .medium).monospacedDigit()).foregroundStyle(.secondary)
+                        .font(AppTheme.ui(11, .medium).monospacedDigit()).foregroundStyle(.secondary)
                     Button { withAnimation(.easeInOut(duration: 0.18)) { showIndexRail = false } } label: {
-                        Image(systemName: "sidebar.left").font(.system(size: 12))
+                        Image(systemName: "sidebar.left").font(AppTheme.ui(12))
                     }
                     .buttonStyle(.borderless).help("Esconder o índice")
                 }
                 heatmap
                 HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 11)).foregroundStyle(.secondary)
-                    TextField("Buscar artigo…", text: $railQuery).textFieldStyle(.plain).font(.system(size: 12))
+                    Image(systemName: "magnifyingglass").font(AppTheme.ui(11)).foregroundStyle(.secondary)
+                    TextField("Buscar artigo…", text: $railQuery).textFieldStyle(.plain).font(AppTheme.ui(12))
                 }
                 .padding(.horizontal, 8).padding(.vertical, 6)
                 .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(AppTheme.pageBackground))
@@ -437,10 +506,10 @@ struct ArticleStudyView: View {
             HStack(spacing: 7) {
                 Circle().fill(isRead ? AppTheme.ok : AppTheme.hairline).frame(width: 7, height: 7)
                 Text(unit.label)
-                    .font(.system(size: 12, weight: isCurrent ? .semibold : .regular))
+                    .font(AppTheme.ui(12, isCurrent ? .semibold : .regular))
                     .foregroundStyle(isCurrent ? accent : AppTheme.ink).lineLimit(1)
                 Spacer(minLength: 4)
-                if isReview { Image(systemName: "star.fill").font(.system(size: 8)).foregroundStyle(AppTheme.warn) }
+                if isReview { Image(systemName: "star.fill").font(AppTheme.ui(8)).foregroundStyle(AppTheme.warn) }
             }
             .padding(.horizontal, 10).padding(.vertical, 5)
             .background(RoundedRectangle(cornerRadius: 6).fill(isCurrent ? accent.opacity(0.14) : Color.clear))
@@ -477,15 +546,30 @@ struct ArticleStudyView: View {
 
     private var cardsMode: some View {
         VStack(spacing: 0) {
-            HStack {
-                TextField("Filtrar (ex.: Art. 5º, prescrição…)", text: $filter)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 300)
-                Toggle(isOn: $onlyReview) {
-                    Label("Só revisão", systemImage: "star")
+            Group {
+                if ehCompacto {
+                    // Campo em cima, filtro embaixo: lado a lado não cabem em 390 pt.
+                    VStack(alignment: .leading, spacing: 8) {
+                        TextField("Filtrar (ex.: Art. 5º, prescrição…)", text: $filter)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(minHeight: 44)
+                        Toggle(isOn: $onlyReview) {
+                            Label("Só revisão", systemImage: "star").frame(minHeight: 44)
+                        }
+                        .toggleStyle(.button)
+                    }
+                } else {
+                    HStack {
+                        TextField("Filtrar (ex.: Art. 5º, prescrição…)", text: $filter)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(maxWidth: 300)
+                        Toggle(isOn: $onlyReview) {
+                            Label("Só revisão", systemImage: "star")
+                        }
+                        .toggleStyle(.button)
+                        Spacer()
+                    }
                 }
-                .toggleStyle(.button)
-                Spacer()
             }
             .padding(.horizontal, 16).padding(.vertical, 8)
             ScrollView {
@@ -567,6 +651,9 @@ private struct UnitFocusView: View {
     private let commentColorHex = "#3B82F6FF"                       // azul: destaca trechos comentados
     @State private var openSections: Set<String> = []              // acordeões abertos (redesign da leitura)
     @State private var sectionsInit = false                        // já decidiu quais abrir por padrão?
+    // Compacto (iPhone): faixa mais baixa, alvos de 44 pt, comentários abaixo do texto e
+    // marcação pelo menu de seleção do sistema (a barra flutuante de 392 pt não cabe).
+    @Environment(\.ehCompacto) private var ehCompacto
 
     private var record: StudyRecord { store.record(for: lawID) }
     private var isRead: Bool { record.readKeys.contains(unit.key) }
@@ -631,6 +718,20 @@ private struct UnitFocusView: View {
             UserDefaults.standard.set(unit.label, forKey: "lastStudiedUnitLabel")
             initSectionsIfNeeded()
         }
+        // Gancho de VERIFICAÇÃO (ver ContentView): `-legisSelecionar N` seleciona os N
+        // primeiros caracteres do artigo (mostra a seleção ativa na captura); `-legisComentar 1`
+        // abre o editor de comentário. Inertes sem os argumentos.
+        .task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            let n = UserDefaults.standard.integer(forKey: "legisSelecionar")
+            if n > 0, let tv = markController.textView {
+                tv.selectedRange = NSRange(location: 0, length: min(n, (tv.text as NSString).length))
+                tv.becomeFirstResponder()
+            }
+            if UserDefaults.standard.bool(forKey: "legisComentar") {
+                editingComment = EditingComment(annotationID: nil, range: unitRange, text: "")
+            }
+        }
         .onChange(of: unit.key) { _, _ in
             UserDefaults.standard.set(unit.label, forKey: "lastStudiedUnitLabel")
         }
@@ -694,7 +795,7 @@ private struct UnitFocusView: View {
             HStack(alignment: .center, spacing: 14) {
                 // Badge do número em cartão (igual à web) sobre a faixa da matéria.
                 VStack(spacing: 0) {
-                    Text("ART").font(.system(size: 8, weight: .heavy)).tracking(1.5)
+                    Text("ART").font(AppTheme.ui(8, .heavy)).tracking(1.5)
                         .foregroundStyle(.white.opacity(0.82))
                     Text(badgeNumber).font(AppTheme.displayFont(21, .heavy))
                         .foregroundStyle(.white).minimumScaleFactor(0.6).lineLimit(1)
@@ -704,7 +805,7 @@ private struct UnitFocusView: View {
                 .overlay(RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous).strokeBorder(.white.opacity(0.32), lineWidth: 1))
                 VStack(alignment: .leading, spacing: 3) {
                     Text((unit.context?.isEmpty == false ? unit.context! : lawTitle).uppercased())
-                        .font(.system(size: 10.5, weight: .semibold)).tracking(0.7)
+                        .font(AppTheme.ui(10.5, .semibold)).tracking(0.7)
                         .foregroundStyle(.white.opacity(0.85)).lineLimit(1)
                     Text(unit.label).font(AppTheme.displayFont(26, .bold)).foregroundStyle(.white)
                 }
@@ -724,11 +825,14 @@ private struct UnitFocusView: View {
                 }
                 .frame(height: 5)
                 Text("\(readCount) / \(total) lidos")
-                    .font(.system(size: 11, weight: .medium).monospacedDigit())
+                    .font(AppTheme.ui(11, .medium).monospacedDigit())
                     .foregroundStyle(.white.opacity(0.9)).fixedSize()
             }
         }
-        .padding(.horizontal, 22).padding(.top, 18).padding(.bottom, 46)
+        // Compacto: faixa mais baixa (a lei precisa começar antes da dobra em 844 pt).
+        .padding(.horizontal, ehCompacto ? 16 : 22)
+        .padding(.top, ehCompacto ? 12 : 18)
+        .padding(.bottom, ehCompacto ? 40 : 46)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(matGradient())
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 18, topTrailingRadius: 18, style: .continuous))
@@ -736,70 +840,112 @@ private struct UnitFocusView: View {
 
     private func bandNavBtn(_ symbol: String, enabled: Bool, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
-            Image(systemName: symbol).font(.system(size: 13, weight: .semibold))
+            Image(systemName: symbol).font(AppTheme.ui(13, .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(.white.opacity(enabled ? 0.22 : 0.10)))
+                .legisAlvoToque(ehCompacto)   // o desenho fica em 32 pt; o toque ganha 44
         }
         .buttonStyle(.plain).disabled(!enabled).opacity(enabled ? 1 : 0.55)
+        .accessibilityLabel(symbol == "chevron.left" ? "Artigo anterior" : "Próximo artigo")
     }
 
     // Dock de estudo (logo abaixo do artigo): domínio + flashcard + revisar + lido.
     private var studyDock: some View {
         let dom = store.mastery(lawID: lawID, unitKey: unit.key)
-        return HStack(spacing: 8) {
-            Text("Domínio").font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
-            domPill("Dominado", "checkmark.circle.fill", AppTheme.ok, dom == "dominado") {
-                store.setMastery(dom == "dominado" ? nil : "dominado", lawID: lawID, unitKey: unit.key)
-            }
-            domPill("Dúvida", "questionmark.circle.fill", AppTheme.warn, dom == "duvida") {
-                store.setMastery(dom == "duvida" ? nil : "duvida", lawID: lawID, unitKey: unit.key)
-            }
-            domPill("Difícil", "exclamationmark.triangle.fill", AppTheme.danger, dom == "dificil") {
-                store.setMastery(dom == "dificil" ? nil : "dificil", lawID: lawID, unitKey: unit.key)
-            }
-            Spacer(minLength: 8)
-            Menu { flashcardMenuItems } label: {
-                Label(hasCard ? "No baralho" : "Flashcard",
-                      systemImage: hasCard ? "rectangle.on.rectangle.angled.fill" : "rectangle.stack.badge.plus")
-            }
-            .menuStyle(.button).fixedSize().tint(hasCard ? AppTheme.srs : nil).disabled(hasCard)
-            .help("Gera um flashcard (lacuna, certo/errado ou pergunta direta) deste artigo")
-            Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    store.toggleReview(lawID, unitKey: unit.key)
+        return Group {
+            if ehCompacto {
+                // Duas fileiras: domínio (quebra de linha quando não cabe) e as ações, com
+                // "Marcar como lido" na largura toda — a fileira única do iPad truncava
+                // os rótulos em 322 pt ("Marcar co…", "Flashc…").
+                VStack(alignment: .leading, spacing: 8) {
+                    LegisFlow(espacamento: 8) { dominioPills(dom) }
+                    HStack(spacing: 8) {
+                        flashcardMenu.labelStyle(.iconOnly)
+                        revisarBotao.labelStyle(.iconOnly)
+                        lidoBotao
+                    }
                 }
-            } label: {
-                Label(isReview ? "Na revisão" : "Revisar", systemImage: isReview ? "star.fill" : "star")
-                    .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : isReview)   // baixa estimulação: sem salto
-            }
-            .buttonStyle(.bordered).tint(isReview ? AppTheme.warn : nil)
-            Button {
-                let wasRead = isRead
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    store.toggleRead(lawID, unitKey: unit.key)
+            } else {
+                HStack(spacing: 8) {
+                    dominioPills(dom)
+                    Spacer(minLength: 8)
+                    flashcardMenu
+                    revisarBotao
+                    lidoBotao
                 }
-                if !wasRead { onNext?() }
-            } label: {
-                Label(isRead ? "Lido ✓" : "Marcar como lido",
-                      systemImage: isRead ? "checkmark.circle.fill" : "circle")
-                    .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : isRead)   // baixa estimulação: sem salto
             }
-            .buttonStyle(.borderedProminent).tint(isRead ? AppTheme.ok : accent)
         }
-        .controlSize(.small)
+        .controlSize(ehCompacto ? .regular : .small)
         .padding(.horizontal, 14).padding(.vertical, 10)
         .background(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous).fill(AppTheme.cardBackground))
         .overlay(RoundedRectangle(cornerRadius: AppTheme.surfaceRadius, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
     }
 
+    /// "Domínio" + as três pílulas — a mesma fileira nos dois corpos do dock.
+    @ViewBuilder
+    private func dominioPills(_ dom: String?) -> some View {
+        Text("Domínio").font(AppTheme.ui(11, .medium)).foregroundStyle(.secondary)
+        domPill("Dominado", "checkmark.circle.fill", AppTheme.ok, dom == "dominado") {
+            store.setMastery(dom == "dominado" ? nil : "dominado", lawID: lawID, unitKey: unit.key)
+        }
+        domPill("Dúvida", "questionmark.circle.fill", AppTheme.warn, dom == "duvida") {
+            store.setMastery(dom == "duvida" ? nil : "duvida", lawID: lawID, unitKey: unit.key)
+        }
+        domPill("Difícil", "exclamationmark.triangle.fill", AppTheme.danger, dom == "dificil") {
+            store.setMastery(dom == "dificil" ? nil : "dificil", lawID: lawID, unitKey: unit.key)
+        }
+    }
+
+    private var flashcardMenu: some View {
+        Menu { flashcardMenuItems } label: {
+            Label(hasCard ? "No baralho" : "Flashcard",
+                  systemImage: hasCard ? "rectangle.on.rectangle.angled.fill" : "rectangle.stack.badge.plus")
+                .legisAlvoToque(ehCompacto)
+        }
+        .menuStyle(.button).fixedSize().tint(hasCard ? AppTheme.srs : nil).disabled(hasCard)
+        .help("Gera um flashcard (lacuna, certo/errado ou pergunta direta) deste artigo")
+        .accessibilityLabel(hasCard ? "Já está no baralho de flashcards" : "Criar flashcard deste artigo")
+    }
+
+    private var revisarBotao: some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                store.toggleReview(lawID, unitKey: unit.key)
+            }
+        } label: {
+            Label(isReview ? "Na revisão" : "Revisar", systemImage: isReview ? "star.fill" : "star")
+                .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : isReview)   // baixa estimulação: sem salto
+                .legisAlvoToque(ehCompacto)
+        }
+        .buttonStyle(.bordered).tint(isReview ? AppTheme.warn : nil)
+        .accessibilityLabel(isReview ? "Tirar da revisão" : "Marcar para revisar")
+    }
+
+    private var lidoBotao: some View {
+        Button {
+            let wasRead = isRead
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                store.toggleRead(lawID, unitKey: unit.key)
+            }
+            if !wasRead { onNext?() }
+        } label: {
+            Label(isRead ? "Lido ✓" : "Marcar como lido",
+                  systemImage: isRead ? "checkmark.circle.fill" : "circle")
+                .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : isRead)   // baixa estimulação: sem salto
+                .frame(maxWidth: ehCompacto ? .infinity : nil, minHeight: ehCompacto ? 44 : nil)
+        }
+        .buttonStyle(.borderedProminent).tint(isRead ? AppTheme.ok : accent)
+    }
+
     private func domPill(_ t: String, _ icon: String, _ color: Color, _ on: Bool, _ act: @escaping () -> Void) -> some View {
         Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.68)) { act() } } label: {
-            Label(t, systemImage: icon).font(.system(size: 11, weight: .semibold))
+            Label(t, systemImage: icon).font(AppTheme.ui(11, .semibold))
                 .padding(.horizontal, 9).padding(.vertical, 4)
                 .background(Capsule().fill(on ? color.opacity(0.20) : AppTheme.hairline.opacity(0.35)))
                 .foregroundStyle(on ? color : .secondary)
                 .scaleEffect(on ? 1.04 : 1)
+                .legisAlvoToque(ehCompacto)   // a cápsula fica pequena; a área de toque tem 44 pt
         }
         .buttonStyle(.plain)
     }
@@ -914,17 +1060,17 @@ private struct UnitFocusView: View {
                 }
             } label: {
                 HStack(spacing: 9) {
-                    Image(systemName: icon).font(.system(size: 13, weight: .semibold))
+                    Image(systemName: icon).font(AppTheme.ui(13, .semibold))
                         .foregroundStyle(accent).frame(width: 18)
-                    Text(title).font(.system(size: 14, weight: .semibold)).foregroundStyle(AppTheme.ink)
+                    Text(title).font(AppTheme.ui(14, .semibold)).foregroundStyle(AppTheme.ink)
                     Spacer()
                     if let c = count, c > 0 {
-                        Text("\(c)").font(.system(size: 11, weight: .semibold))
+                        Text("\(c)").font(AppTheme.ui(11, .semibold))
                             .padding(.horizontal, 7).padding(.vertical, 1)
                             .background(Capsule().fill(accent.opacity(0.14)))
                             .foregroundStyle(accent)
                     }
-                    Image(systemName: "chevron.down").font(.system(size: 11, weight: .semibold))
+                    Image(systemName: "chevron.down").font(AppTheme.ui(11, .semibold))
                         .foregroundStyle(.secondary).rotationEffect(.degrees(open ? 180 : 0))
                 }
                 .padding(.horizontal, 16).padding(.vertical, 13).contentShape(Rectangle())
@@ -975,7 +1121,7 @@ private struct UnitFocusView: View {
 
     private func floatBtn(_ symbol: String, _ help: String, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
-            Image(systemName: symbol).font(.system(size: 12, weight: .medium)).frame(width: 22, height: 20)
+            Image(systemName: symbol).font(AppTheme.ui(12, .medium)).frame(width: 22, height: 20)
         }
         .buttonStyle(.plain).help(help)
     }
@@ -1019,7 +1165,7 @@ private struct UnitFocusView: View {
                 Button { store.redoAnnotations() } label: { Label("Refazer marcação", systemImage: "arrow.uturn.forward") }
                     .disabled(!store.canRedoAnnotations)
             } label: {
-                Image(systemName: "ellipsis").font(.system(size: 12, weight: .medium)).frame(width: 20, height: 20)
+                Image(systemName: "ellipsis").font(AppTheme.ui(12, .medium)).frame(width: 20, height: 20)
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
         }
@@ -1203,7 +1349,7 @@ private struct UnitFocusView: View {
             // ícone cinza perdido no meio dos outros).
             Button { handle(.apply(.highlight)) } label: {
                 Image(systemName: "highlighter")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(AppTheme.ui(12, .semibold))
                     .frame(width: 24, height: 20)
                     .background(RoundedRectangle(cornerRadius: 5).fill(Color(hexRGBA: markerColorHex)))
                     .foregroundStyle(markerIconColor)
@@ -1321,37 +1467,63 @@ private struct UnitFocusView: View {
     }
 
     private var laTopBar: some View {
-        HStack(spacing: 12) {
-            Button { withAnimation(.easeInOut(duration: 0.15)) { leituraAtiva = false } } label: {
-                Label("Sair da leitura ativa", systemImage: "xmark")
-            }.buttonStyle(.bordered)
-            Spacer()
-            VStack(spacing: 1) {
-                Text("Leitura orientada · grade dos 7 elementos")
-                    .font(.system(size: 10.5, weight: .semibold)).tracking(0.4).foregroundStyle(.secondary)
-                Text(unit.label).font(.system(size: 16, weight: .bold))
+        Group {
+            if ehCompacto {
+                // Sair (só o X, 44 pt) + título numa linha; as pílulas de domínio na linha
+                // de baixo — lado a lado são ~650 pt.
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        Button { withAnimation(.easeInOut(duration: 0.15)) { leituraAtiva = false } } label: {
+                            Image(systemName: "xmark").alvoToque()
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel("Sair da leitura ativa")
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Leitura orientada · grade dos 7 elementos")
+                                .font(AppTheme.ui(10.5, .semibold)).tracking(0.4).foregroundStyle(.secondary)
+                            Text(unit.label).font(AppTheme.ui(16, .bold))
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    LegisFlow(espacamento: 6) { laDominioPillsConteudo }
+                }
+            } else {
+                HStack(spacing: 12) {
+                    Button { withAnimation(.easeInOut(duration: 0.15)) { leituraAtiva = false } } label: {
+                        Label("Sair da leitura ativa", systemImage: "xmark")
+                    }.buttonStyle(.bordered)
+                    Spacer()
+                    VStack(spacing: 1) {
+                        Text("Leitura orientada · grade dos 7 elementos")
+                            .font(AppTheme.ui(10.5, .semibold)).tracking(0.4).foregroundStyle(.secondary)
+                        Text(unit.label).font(AppTheme.ui(16, .bold))
+                    }
+                    Spacer()
+                    laDominioPills
+                }
             }
-            Spacer()
-            laDominioPills
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
         .background(AppTheme.cardBackground)
     }
 
     private var laDominioPills: some View {
+        HStack(spacing: 6) { laDominioPillsConteudo }
+    }
+    @ViewBuilder
+    private var laDominioPillsConteudo: some View {
         let dom = store.mastery(lawID: lawID, unitKey: unit.key)
-        return HStack(spacing: 6) {
-            laPill("Dominado", "checkmark.circle.fill", AppTheme.ok, dom == "dominado") { store.setMastery(dom == "dominado" ? nil : "dominado", lawID: lawID, unitKey: unit.key) }
-            laPill("Dúvida", "questionmark.circle.fill", AppTheme.warn, dom == "duvida") { store.setMastery(dom == "duvida" ? nil : "duvida", lawID: lawID, unitKey: unit.key) }
-            laPill("Difícil", "exclamationmark.triangle.fill", AppTheme.danger, dom == "dificil") { store.setMastery(dom == "dificil" ? nil : "dificil", lawID: lawID, unitKey: unit.key) }
-        }
+        laPill("Dominado", "checkmark.circle.fill", AppTheme.ok, dom == "dominado") { store.setMastery(dom == "dominado" ? nil : "dominado", lawID: lawID, unitKey: unit.key) }
+        laPill("Dúvida", "questionmark.circle.fill", AppTheme.warn, dom == "duvida") { store.setMastery(dom == "duvida" ? nil : "duvida", lawID: lawID, unitKey: unit.key) }
+        laPill("Difícil", "exclamationmark.triangle.fill", AppTheme.danger, dom == "dificil") { store.setMastery(dom == "dificil" ? nil : "dificil", lawID: lawID, unitKey: unit.key) }
     }
     private func laPill(_ t: String, _ icon: String, _ color: Color, _ on: Bool, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
-            Label(t, systemImage: icon).font(.system(size: 11.5, weight: .semibold))
+            Label(t, systemImage: icon).font(AppTheme.ui(11.5, .semibold))
                 .padding(.horizontal, 10).padding(.vertical, 5)
                 .background(Capsule().fill(on ? color.opacity(0.22) : AppTheme.hairline.opacity(0.4)))
                 .foregroundStyle(on ? color : .secondary)
+                .legisAlvoToque(ehCompacto)
         }.buttonStyle(.plain)
     }
 
@@ -1374,15 +1546,30 @@ private struct UnitFocusView: View {
     }
 
     private var laModoBar: some View {
-        HStack {
-            Picker("", selection: $laModoTeste) {
-                Text("Modo estudo").tag(false)
-                Text("Modo teste").tag(true)
-            }.pickerStyle(.segmented).frame(width: 260).labelsHidden()
-            Spacer()
-            if laModoTeste {
-                Text("\(laRevelado.count) de \(Self.laElementos.count) revelados")
-                    .font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+        Group {
+            if ehCompacto {
+                VStack(alignment: .leading, spacing: 6) {
+                    Picker("", selection: $laModoTeste) {
+                        Text("Modo estudo").tag(false)
+                        Text("Modo teste").tag(true)
+                    }.pickerStyle(.segmented).labelsHidden()
+                    if laModoTeste {
+                        Text("\(laRevelado.count) de \(Self.laElementos.count) revelados")
+                            .font(AppTheme.ui(12, .medium)).foregroundStyle(.secondary)
+                    }
+                }
+            } else {
+                HStack {
+                    Picker("", selection: $laModoTeste) {
+                        Text("Modo estudo").tag(false)
+                        Text("Modo teste").tag(true)
+                    }.pickerStyle(.segmented).frame(width: 260).labelsHidden()
+                    Spacer()
+                    if laModoTeste {
+                        Text("\(laRevelado.count) de \(Self.laElementos.count) revelados")
+                            .font(AppTheme.ui(12, .medium)).foregroundStyle(.secondary)
+                    }
+                }
             }
         }
     }
@@ -1391,7 +1578,7 @@ private struct UnitFocusView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Label("Fase 1 — grade dos 7 elementos", systemImage: "square.grid.2x2")
-                    .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                    .font(AppTheme.ui(14, .bold)).foregroundStyle(accent)
                 Spacer()
                 // Preenche SÓ os campos vazios com as sugestões da IA — o que você
                 // já escreveu fica intacto. (Gere com IA na Fase 2 se ainda não gerou.)
@@ -1424,13 +1611,13 @@ private struct UnitFocusView: View {
             HStack {
                 Image(systemName: laAcertos[i] == true ? "checkmark.circle.fill" : (laAcertos[i] == false ? "xmark.circle.fill" : "circle"))
                     .foregroundStyle(laAcertos[i] == true ? AppTheme.ok : (laAcertos[i] == false ? AppTheme.danger : .secondary))
-                Text(label).font(.system(size: 14, weight: .semibold))
+                Text(label).font(AppTheme.ui(14, .semibold))
                 Spacer()
             }
             if revealed {
                 if laModoTeste {
                     Text(resp.isEmpty ? "— (você não anotou nada aqui)" : resp)
-                        .font(.system(size: 13)).foregroundStyle(AppTheme.ink)
+                        .font(AppTheme.ui(13)).foregroundStyle(AppTheme.ink)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     HStack(spacing: 8) {
                         Button { laAcertos[i] = true } label: { Label("Acertei", systemImage: "checkmark") }.tint(AppTheme.ok)
@@ -1440,7 +1627,7 @@ private struct UnitFocusView: View {
                     TextEditor(text: Binding(
                         get: { store.leituraResposta(lawID: lawID, unitKey: unit.key, q: i) },
                         set: { store.setLeituraResposta($0, lawID: lawID, unitKey: unit.key, q: i) }))
-                        .font(.system(size: 12.5)).scrollContentBackground(.hidden)
+                        .font(AppTheme.ui(12.5)).scrollContentBackground(.hidden)
                         .frame(height: 44).padding(6)
                         .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(AppTheme.pageBackground))
                         .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner).strokeBorder(AppTheme.hairline, lineWidth: 1))
@@ -1448,7 +1635,7 @@ private struct UnitFocusView: View {
             } else {
                 Button { _ = laRevelado.insert(i) } label: {
                     Text("tente lembrar — toque para revelar")
-                        .font(.system(size: 12).italic()).foregroundStyle(.secondary)
+                        .font(AppTheme.ui(12).italic()).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(.plain)
             }
@@ -1470,20 +1657,20 @@ private struct UnitFocusView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Label("Fase 2 — recall ativo", systemImage: "brain")
-                    .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                    .font(AppTheme.ui(14, .bold)).foregroundStyle(accent)
                 Spacer()
                 laGerarBtn
             }
             if let ia = laIA, !ia.recall.isEmpty {
                 ForEach(Array(ia.recall.enumerated()), id: \.offset) { _, q in
-                    Text("•  " + q).font(.system(size: 13)).foregroundStyle(AppTheme.ink)
+                    Text("•  " + q).font(AppTheme.ui(13)).foregroundStyle(AppTheme.ink)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } else {
                 Text("Toque em “Gerar com IA” para criar perguntas de recuperação ativa deste artigo.")
-                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                    .font(AppTheme.ui(12)).foregroundStyle(.secondary)
             }
-            if let e = laIAErro { Text(e).font(.system(size: 11)).foregroundStyle(AppTheme.danger) }
+            if let e = laIAErro { Text(e).font(AppTheme.ui(11)).foregroundStyle(AppTheme.danger) }
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius).fill(AppTheme.cardBackground))
@@ -1493,14 +1680,14 @@ private struct UnitFocusView: View {
     private var laFasePegadinhas: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Fase 3 — pegadinhas da banca", systemImage: "exclamationmark.triangle")
-                .font(.system(size: 14, weight: .bold)).foregroundStyle(AppTheme.warn)
+                .font(AppTheme.ui(14, .bold)).foregroundStyle(AppTheme.warn)
             if let ia = laIA, !ia.pegadinhas.isEmpty {
                 ForEach(ia.pegadinhas) { p in
                     HStack(alignment: .top, spacing: 0) {
                         Rectangle().fill(AppTheme.warn).frame(width: 3)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(p.titulo).font(.system(size: 13, weight: .bold))
-                            Text(p.texto).font(.system(size: 12.5)).foregroundStyle(AppTheme.ink)
+                            Text(p.titulo).font(AppTheme.ui(13, .bold))
+                            Text(p.texto).font(AppTheme.ui(12.5)).foregroundStyle(AppTheme.ink)
                         }.padding(10)
                         Spacer(minLength: 0)
                     }
@@ -1508,7 +1695,7 @@ private struct UnitFocusView: View {
                 }
             } else {
                 Text("As armadilhas típicas de prova deste artigo aparecem aqui depois de gerar com a IA.")
-                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                    .font(AppTheme.ui(12)).foregroundStyle(.secondary)
             }
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading)
@@ -1519,7 +1706,7 @@ private struct UnitFocusView: View {
     private var laFaseProximo: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Fase 4 — próximo passo", systemImage: "arrow.right")
-                .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                .font(AppTheme.ui(14, .bold)).foregroundStyle(accent)
             HStack(spacing: 8) {
                 Button { store.srsAddCard(lawID, unit: unit) } label: { Label("Virar flashcard Anki", systemImage: "rectangle.stack.badge.plus") }
                 Button { sugerirLacunaAutomatica() } label: { Label("Criar lacuna", systemImage: "rectangle.dashed") }
@@ -1584,18 +1771,24 @@ private struct UnitFocusView: View {
                                             proposedWidth: geo.size.width,
                                             measuredHeight: $articleHeight,
                                             commentAnchors: $commentAnchors,
-                                            controller: markController, onCommand: handle)
-                        floatingBarOverlay(containerWidth: geo.size.width)
+                                            controller: markController, onCommand: handle,
+                                            acoesExtras: acoesMenuCompacto)
+                        // Compacto: sem barra flutuante (392 pt num cartão de 322) — os
+                        // comandos entram no menu de seleção do sistema (acoesExtras).
+                        if !ehCompacto { floatingBarOverlay(containerWidth: geo.size.width) }
                     }
                 }
                 .frame(height: max(articleHeight, 40))
-                if hasComments {
+                if hasComments && !ehCompacto {
                     commentsMargin
                         .frame(width: 208, height: max(articleHeight, 40), alignment: .topLeading)
                         .padding(.trailing, 8)
                 }
             }
             .padding(.top, 10)
+            // Compacto: os balões vêm ABAIXO do texto, na largura toda — a margem de 208 pt
+            // deixava a lei com 96 pt assim que existia um comentário.
+            if hasComments && ehCompacto { comentariosEmpilhados }
             if redactionEntries.count > 1 { redactionsFooter }
         }
         .background(AppTheme.cardBackground)
@@ -1661,6 +1854,44 @@ private struct UnitFocusView: View {
 
     private var hasComments: Bool { !commentAnchors.isEmpty }
 
+    /// Compacto: os comentários em lista, na ordem em que os trechos aparecem no artigo.
+    private var comentariosEmpilhados: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(commentAnchors.sorted { $0.y < $1.y }) { item in
+                CommentBalloon(note: item.note,
+                               color: Color(hexRGBA: item.colorHex),
+                               onTap: {
+                                   editingComment = EditingComment(annotationID: item.id,
+                                                                   range: NSRange(location: 0, length: 0),
+                                                                   text: item.note)
+                               })
+            }
+        }
+        .padding(.horizontal, 14).padding(.top, 4).padding(.bottom, 12)
+    }
+
+    /// Compacto: o que a barra flutuante oferecia, no menu de seleção do sistema — cores
+    /// favoritas (submenu), negrito, lacuna e comentar. Vazio em regular.
+    private var acoesMenuCompacto: [UIMenuElement] {
+        guard ehCompacto else { return [] }
+        var itens: [UIMenuElement] = []
+        let cores = Array(store.coresFavoritas.prefix(6)).enumerated().map { i, hex in
+            UIAction(title: "Cor \(i + 1)", image: Self.amostraDeCor(hex)) { _ in applyHighlight(hex) }
+        }
+        if !cores.isEmpty {
+            itens.append(UIMenu(title: "Grifar com cor", image: UIImage(systemName: "paintpalette"), children: cores))
+        }
+        itens.append(UIAction(title: "Negrito", image: UIImage(systemName: "bold")) { _ in handle(.apply(.bold)) })
+        itens.append(UIAction(title: "Lacuna (cloze)", image: UIImage(systemName: "rectangle.dashed")) { _ in handle(.apply(.cloze)) })
+        itens.append(UIAction(title: "Comentar…", image: UIImage(systemName: "text.bubble")) { _ in comment() })
+        return itens
+    }
+
+    private static func amostraDeCor(_ hex: String) -> UIImage? {
+        UIImage(systemName: "circle.fill")?
+            .withTintColor(UIColor(Color(hexRGBA: hex)), renderingMode: .alwaysOriginal)
+    }
+
     // Coluna de balões na margem: cada um posicionado no y do seu trecho (com anti-colisão).
     private var commentsMargin: some View {
         ZStack(alignment: .topLeading) {
@@ -1723,29 +1954,51 @@ private struct UnitFocusView: View {
             .buttonStyle(.borderedProminent)
             .tint(isRead ? AppTheme.ok : accent)
         }
-        .controlSize(.small)
+        .controlSize(ehCompacto ? .regular : .small)
     }
 
     private var navRow: some View {
+        Group {
+            if ehCompacto {
+                // Com rótulo quando cabe; só as setas (44 pt) quando não — em 322 pt a
+                // fileira cabia por 2 pt e quebrava com Dynamic Type maior.
+                ViewThatFits(in: .horizontal) {
+                    navRowConteudo.labelStyle(.titleAndIcon)
+                    navRowConteudo.labelStyle(.iconOnly)
+                }
+            } else {
+                navRowConteudo
+            }
+        }
+    }
+
+    private var navRowConteudo: some View {
         HStack {
             // ⌥⌘ e não ⌘ puro: ⌘←/⌘→ são atalhos de edição do macOS (início/fim da
             // linha) e seriam roubados de quem digita no painel de anotação.
-            Button { onPrev?() } label: { Label("Anterior", systemImage: "chevron.left") }
+            Button { onPrev?() } label: {
+                Label("Anterior", systemImage: "chevron.left").legisAlvoToque(ehCompacto)
+            }
                 .buttonStyle(.bordered)
                 .disabled(onPrev == nil)
                 .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
                 .help("Artigo anterior")
+                .accessibilityLabel("Artigo anterior")
             Spacer()
             Text("Artigo \(position + 1) de \(total)")
                 .font(.callout)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
             Spacer()
-            Button { onNext?() } label: { Label("Próximo", systemImage: "chevron.right") }
+            Button { onNext?() } label: {
+                Label("Próximo", systemImage: "chevron.right").legisAlvoToque(ehCompacto)
+            }
                 .buttonStyle(.borderedProminent)
                 .tint(accent)
                 .disabled(onNext == nil)
                 .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
                 .help("Próximo artigo")
+                .accessibilityLabel("Próximo artigo")
         }
     }
 
@@ -1769,7 +2022,7 @@ private struct UnitFocusView: View {
                         VStack(spacing: 1) {
                             Text(grade.label).font(.caption2.weight(.semibold))
                             Text(SpacedRepetition.intervalLabel(store.srsPreview(lawID, unit.key, grade)))
-                                .font(.system(size: 9).monospacedDigit()).foregroundStyle(.secondary)
+                                .font(AppTheme.ui(9).monospacedDigit()).foregroundStyle(.secondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 4)
@@ -1845,17 +2098,17 @@ private struct UnitFocusView: View {
     private var studyBlock: some View {
         VStack(alignment: .leading, spacing: 13) {
             HStack(spacing: 8) {
-                Image(systemName: "square.and.pencil").font(.system(size: 14, weight: .semibold))
+                Image(systemName: "square.and.pencil").font(AppTheme.ui(14, .semibold))
                     .foregroundStyle(accent)
                 Text("Anotações e estudo").font(AppTheme.displayFont(15, .bold)).foregroundStyle(AppTheme.ink)
                 Spacer()
                 if isRead {
                     Label("Lido", systemImage: "checkmark.circle.fill")
-                        .font(.system(size: 11, weight: .medium)).foregroundStyle(AppTheme.ok)
+                        .font(AppTheme.ui(11, .medium)).foregroundStyle(AppTheme.ok)
                 }
                 if isReview {
                     Label("Na revisão", systemImage: "star.fill")
-                        .font(.system(size: 11, weight: .medium)).foregroundStyle(AppTheme.warn)
+                        .font(AppTheme.ui(11, .medium)).foregroundStyle(AppTheme.warn)
                 }
             }
             noteEditor
@@ -1978,7 +2231,7 @@ private struct IndexSheet: View {
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 34, height: 34)
                     .overlay(Image(systemName: "list.bullet.indent")
-                        .font(.system(size: 14, weight: .semibold)).foregroundStyle(.white))
+                        .font(AppTheme.ui(14, .semibold)).foregroundStyle(.white))
                     .shadow(color: accent.opacity(0.35), radius: 6, y: 3)
                 Text("Índice").font(AppTheme.displayFont(19, .heavy)).tracking(-0.3)
                 Text("\(units.count)")
@@ -1987,12 +2240,12 @@ private struct IndexSheet: View {
                     .background(Capsule().fill(accent.opacity(0.14)))
                     .foregroundStyle(accent)
                 Spacer()
-                Button("Fechar") { dismiss() }
+                Button("Fechar") { dismiss() }.alvoToque()
             }
             .padding()
             HStack(spacing: 7) {
-                Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(.secondary)
-                TextField("Buscar artigo…", text: $query).textFieldStyle(.plain)
+                Image(systemName: "magnifyingglass").font(AppTheme.ui(12)).foregroundStyle(.secondary)
+                TextField("Buscar artigo…", text: $query).textFieldStyle(.plain).frame(minHeight: 28)
             }
             .padding(.horizontal, 12).padding(.vertical, 8)
             .background(Capsule().fill(AppTheme.softStroke))
@@ -2030,7 +2283,8 @@ private struct IndexSheet: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
+        .folhaAdaptavel()   // iPad: folha do sistema; iPhone: meia altura ou inteira
+        .legisDetentesSeCompacto([.medium, .large])
     }
 }
 

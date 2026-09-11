@@ -21,94 +21,125 @@ struct AddLawSheet: View {
     @State private var pdfName: String?
     @State private var pdfError: String?
     @State private var importingPDF = false
+    @FocusState private var foco: Bool
+    @State private var confirmarDescarte = false
+    @Environment(\.ehCompacto) private var ehCompacto
+
+    /// Há algo digitado ou importado que se perderia ao fechar.
+    private var temRascunho: Bool {
+        !title.isEmpty || !reference.isEmpty || !sourceURL.isEmpty || !pastedText.isEmpty
+            || pdfText != nil || !newMateria.isEmpty
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Cadastrar norma").font(.title3.bold())
+        // Form nativo em seções, Cancelar/Salvar na barra de uma NavigationStack interna:
+        // o Form que rolava dentro da folha (que também rolava) e os botões do rodapé
+        // saíam da tela no iPhone; aqui tudo rola junto e o teclado empurra o conteúdo.
+        NavigationStack {
             Form {
-                TextField("Título (ex.: Lei do Marco Civil da Internet)", text: $title)
-                TextField("Referência (ex.: Lei nº 12.965, de 23 de abril de 2014)", text: $reference)
-                Picker("Matéria", selection: $materiaTag) {
-                    Text("Minhas Normas").tag(Self.personalizadaTag)
-                    Divider()
-                    ForEach(LawCategory.allCases.filter { $0 != .personalizada }) { category in
-                        Text(category.rawValue).tag("cat:\(category.rawValue)")
-                    }
-                    if !store.customCategories.isEmpty {
+                Section("Norma") {
+                    TextField("Título (ex.: Lei do Marco Civil da Internet)", text: $title).focused($foco)
+                    TextField("Referência (ex.: Lei nº 12.965, de 23 de abril de 2014)", text: $reference).focused($foco)
+                    Picker("Matéria", selection: $materiaTag) {
+                        Text("Minhas Normas").tag(Self.personalizadaTag)
                         Divider()
-                        ForEach(store.customCategories, id: \.self) { name in
-                            Text(name).tag("custom:\(name)")
+                        ForEach(LawCategory.allCases.filter { $0 != .personalizada }) { category in
+                            Text(category.rawValue).tag("cat:\(category.rawValue)")
+                        }
+                        if !store.customCategories.isEmpty {
+                            Divider()
+                            ForEach(store.customCategories, id: \.self) { name in
+                                Text(name).tag("custom:\(name)")
+                            }
                         }
                     }
+                    TextField("Ou crie uma matéria nova (ex.: Ambiental)", text: $newMateria).focused($foco)
                 }
-                TextField("Ou crie uma matéria nova (ex.: Ambiental)", text: $newMateria)
-            }
 
-            Picker("Origem do texto", selection: $mode) {
-                Text("Link (Planalto ou PDF na web)").tag(Mode.url.rawValue)
-                Text("Arquivo PDF").tag(Mode.pdf.rawValue)
-                Text("Texto colado").tag(Mode.texto.rawValue)
-            }
-            .pickerStyle(.segmented)
-
-            switch Mode(rawValue: mode) ?? .url {
-            case .url:
-                TextField("URL da norma (página HTML ou PDF)", text: $sourceURL)
-                    .textFieldStyle(.roundedBorder)
-                if !sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !urlIsValid {
-                    Text("Endereço inválido — precisa começar com http:// ou https://")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.danger)
-                }
-                Text("Dica: no Planalto, prefira a versão “texto compilado”, que já incorpora as alterações. Normas com URL são verificadas automaticamente e você é avisada quando mudarem. PDFs na web também funcionam.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            case .pdf:
-                HStack(spacing: 10) {
-                    Button {
-                        showPDFImporter = true
-                    } label: {
-                        Label(pdfName ?? "Escolher PDF…", systemImage: "doc.badge.plus")
+                Section("Origem do texto") {
+                    // Rótulos curtos em compacto: os longos truncavam para "Link (Pl…" em
+                    // segmentos de ~100 pt.
+                    Picker("Origem do texto", selection: $mode) {
+                        Text(ehCompacto ? "Link" : "Link (Planalto ou PDF na web)").tag(Mode.url.rawValue)
+                        Text(ehCompacto ? "PDF" : "Arquivo PDF").tag(Mode.pdf.rawValue)
+                        Text(ehCompacto ? "Texto" : "Texto colado").tag(Mode.texto.rawValue)
                     }
-                    .disabled(importingPDF)
-                    if importingPDF {
-                        ProgressView().controlSize(.small)
-                        Text("Extraindo texto…").font(.caption).foregroundStyle(.secondary)
-                    } else if let pdfText {
-                        Label("\(pdfText.count) caracteres extraídos", systemImage: "checkmark.circle")
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+
+                    switch Mode(rawValue: mode) ?? .url {
+                    case .url:
+                        TextField("URL da norma (página HTML ou PDF)", text: $sourceURL)
+                            .focused($foco)
+                            .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        if !sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !urlIsValid {
+                            Text("Endereço inválido — precisa começar com http:// ou https://")
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.danger)
+                        }
+                        Text("Dica: no Planalto, prefira a versão “texto compilado”, que já incorpora as alterações. Normas com URL são verificadas automaticamente e você é avisada quando mudarem. PDFs na web também funcionam.")
                             .font(.caption)
-                            .foregroundStyle(AppTheme.ok)
+                            .foregroundStyle(.secondary)
+                    case .pdf:
+                        HStack(spacing: 10) {
+                            Button {
+                                showPDFImporter = true
+                            } label: {
+                                Label(pdfName ?? "Escolher PDF…", systemImage: "doc.badge.plus")
+                            }
+                            .disabled(importingPDF)
+                            if importingPDF {
+                                ProgressView().controlSize(.small)
+                                Text("Extraindo texto…").font(.caption).foregroundStyle(.secondary)
+                            } else if let pdfText {
+                                Label("\(pdfText.count) caracteres extraídos", systemImage: "checkmark.circle")
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.ok)
+                            }
+                        }
+                        if let pdfError {
+                            Text(pdfError).font(.caption).foregroundStyle(AppTheme.danger)
+                        }
+                        Text("O texto é extraído do PDF e guardado na biblioteca (pesquisável e anotável). PDFs locais não são monitorados — não há fonte para comparar.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    case .texto:
+                        TextEditor(text: $pastedText)
+                            .font(.body)
+                            .frame(minHeight: 160)
+                            .focused($foco)
+                            .accessibilityLabel("Texto integral da norma")
+                        Text("Textos colados não são monitorados (não há fonte para comparar).")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                if let pdfError {
-                    Text(pdfError).font(.caption).foregroundStyle(AppTheme.danger)
+            }
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.pageBackground)
+            .navigationTitle("Cadastrar norma")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { if temRascunho { confirmarDescarte = true } else { dismiss() } }
                 }
-                Text("O texto é extraído do PDF e guardado na biblioteca (pesquisável e anotável). PDFs locais não são monitorados — não há fonte para comparar.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            case .texto:
-                Text("Texto integral").font(.headline)
-                TextEditor(text: $pastedText)
-                    .font(.body)
-                    .frame(minHeight: 160)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
-                Text("Textos colados não são monitorados (não há fonte para comparar).")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salvar") { saveAndClose() }.disabled(!canSave)
+                }
             }
-
-            HStack {
-                Spacer()
-                Button("Cancelar") { dismiss() }
-                Button("Salvar") { saveAndClose() }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(!canSave)
-            }
+            .tecladoConcluir(foco: $foco)
+            .legisDescartarRascunho(isPresented: $confirmarDescarte) { dismiss() }
         }
-        .padding(20)
-        // Largura do sistema (a folha do iPad tem 540 pt em retrato e vira tela cheia no
-        // Slide Over): um minWidth de 580 cortava a coluna direita do formulário.
-        .frame(maxWidth: .infinity, minHeight: mode == Mode.texto.rawValue ? 520 : 400)
+        // Folha do sistema (iPad: .form; iPhone: tela inteira), travada contra o arrastão
+        // enquanto houver texto — um minWidth de 580 cortava a coluna direita do formulário.
+        .folhaAdaptavel(temRascunho: temRascunho)
+        // Gancho de VERIFICAÇÃO (ver ContentView): `-legisFocar 1` já abre com o teclado no
+        // título (fotografa a barra "Concluir"); `-legisRascunho 1` simula texto digitado.
+        .onAppear {
+            if UserDefaults.standard.bool(forKey: "legisRascunho") { title = "Rascunho de verificação" }
+            if UserDefaults.standard.bool(forKey: "legisFocar") { foco = true }
+        }
         .fileImporter(isPresented: $showPDFImporter, allowedContentTypes: [.pdf]) { result in
             switch result {
             case .success(let url):

@@ -27,7 +27,7 @@ struct HistoricoView: View {
                     Text(lawTitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer()
-                Button("Fechar") { dismiss() }
+                Button("Fechar") { dismiss() }.alvoToque()
             }
             .padding(16)
             Divider()
@@ -40,7 +40,7 @@ struct HistoricoView: View {
                 .padding(16)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
+        .folhaAdaptavel(larga: true)   // iPad: folha .page; iPhone: tela inteira
         .sheet(isPresented: $showPrevious) {
             PreviousTextView(subtitle: previousSubtitle, text: store.loadPreviousText(for: lawID) ?? "")
         }
@@ -129,7 +129,7 @@ struct HistoricoView: View {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(spacing: 1) {
                         Text(entry.year).font(.callout.weight(.bold).monospacedDigit()).foregroundStyle(accent)
-                        if !entry.date.isEmpty { Text(entry.date).font(.system(size: 9)).foregroundStyle(.tertiary) }
+                        if !entry.date.isEmpty { Text(entry.date).font(AppTheme.ui(9)).foregroundStyle(.tertiary) }
                     }
                     .frame(width: 46)
                     Rectangle().fill(accent.opacity(0.25)).frame(width: 2)
@@ -166,7 +166,7 @@ struct PreviousTextView: View {
                     Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                 }
                 Spacer()
-                Button("Fechar") { dismiss() }
+                Button("Fechar") { dismiss() }.alvoToque()
             }
             .padding(16)
             Divider()
@@ -174,7 +174,7 @@ struct PreviousTextView: View {
             // com o texto integral de um código (centenas de KB).
             ReadOnlyTextView(text: text.isEmpty ? "Redação anterior indisponível." : text)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
+        .folhaAdaptavel(larga: true)   // iPad: folha .page; iPhone: tela inteira
     }
 }
 

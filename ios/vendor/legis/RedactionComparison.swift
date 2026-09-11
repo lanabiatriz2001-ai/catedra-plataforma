@@ -36,7 +36,8 @@ struct RedactionComparisonView: View {
             }
         }
         // Sem tamanho fixo: a folha do iPad é menor que 780 pt e cortava a coluna direita.
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // iPad: folha .page (comparativo largo); iPhone: tela inteira.
+        .folhaAdaptavel(larga: true)
         .background(AppTheme.pageBackground)
     }
 
@@ -50,7 +51,7 @@ struct RedactionComparisonView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
-            Button("Fechar") { dismiss() }.keyboardShortcut(.cancelAction)
+            Button("Fechar") { dismiss() }.keyboardShortcut(.cancelAction).alvoToque()
         }
         .padding(16)
     }
@@ -114,39 +115,65 @@ private struct RedactionRow: View {
 
     // Só as redações ANTERIORES ficam tachadas; a atual (mesmo revogada) não.
     private var struck: Bool { entry.status == .anterior }
+    // Compacto: etiqueta + origem em cima e o texto embaixo — a coluna de 150 pt deixava
+    // a redação com 192 pt de largura no iPhone.
+    @Environment(\.ehCompacto) private var ehCompacto
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
-                switch entry.status {
-                case .vigente:        tag("VIGENTE", .white, AppTheme.ok)
-                case .atualRevogado:  tag("REVOGADO", .white, AppTheme.danger)
-                case .anterior:       tag("NÃO VIGENTE", AppTheme.danger, AppTheme.danger.opacity(0.14))
+        Group {
+            if ehCompacto {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        etiqueta
+                        Text(entry.source)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(entry.isCurrent ? AppTheme.ink : AppTheme.secondaryInk)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    texto
                 }
-                Text(entry.source)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(entry.isCurrent ? AppTheme.ink : AppTheme.secondaryInk)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(width: 150, alignment: .leading)
-
-            VStack(alignment: .leading, spacing: 7) {
-                ForEach(Array(kinds.enumerated()), id: \.offset) { _, kind in
-                    UnitLine(kind: kind, accent: accent, fontSize: fontSize - 1)
+            } else {
+                HStack(alignment: .top, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        etiqueta
+                        Text(entry.source)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(entry.isCurrent ? AppTheme.ink : AppTheme.secondaryInk)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(width: 150, alignment: .leading)
+                    texto
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            // Redações anteriores: TACHADAS e esmaecidas — nunca lidas como vigentes.
-            .strikethrough(struck, color: AppTheme.secondaryInk)
-            .opacity(struck ? 0.7 : 1)
         }
         .padding(16)
         .background(entry.status == .vigente ? accent.opacity(0.06)
                     : entry.status == .atualRevogado ? AppTheme.danger.opacity(0.05) : Color.clear)
     }
 
+    @ViewBuilder
+    private var etiqueta: some View {
+        switch entry.status {
+        case .vigente:        tag("VIGENTE", .white, AppTheme.ok)
+        case .atualRevogado:  tag("REVOGADO", .white, AppTheme.danger)
+        case .anterior:       tag("NÃO VIGENTE", AppTheme.danger, AppTheme.danger.opacity(0.14))
+        }
+    }
+
+    private var texto: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            ForEach(Array(kinds.enumerated()), id: \.offset) { _, kind in
+                UnitLine(kind: kind, accent: accent, fontSize: fontSize - 1)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // Redações anteriores: TACHADAS e esmaecidas — nunca lidas como vigentes.
+        .strikethrough(struck, color: AppTheme.secondaryInk)
+        .opacity(struck ? 0.7 : 1)
+    }
+
     private func tag(_ text: String, _ fg: Color, _ bg: Color) -> some View {
-        Text(text).font(.system(size: 10, weight: .heavy)).tracking(0.5)
+        Text(text).font(AppTheme.ui(10, .heavy)).tracking(0.5)
             .foregroundStyle(fg)
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(Capsule().fill(bg))
