@@ -3011,6 +3011,27 @@ const sem = await page.evaluate(() => {
 });
 for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
 
+// Os gerados acompanham o acervo. O card do Início ficou parado em 23/06 com o STJ 900 (02/09) já
+// no juris-index.js, e as fatias de dados/juris-text/ sem o texto dos julgados novos: o
+// atualizar-informativos.py gravava o acervo e ninguém rodava os dois geradores depois.
+{
+  const w = {};
+  for (const f of ['juris-index.js', 'juris-text.js', 'semana-juris.js']) {
+    new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8'))(w);
+  }
+  const ms = (s) => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(s || '')); return m ? new Date(+m[3], +m[2] - 1, +m[1]).getTime() : 0; };
+  const maisNovoAcervo = Math.max(...w.__JURIS_IDX__.filter((r) => /^informativo_/.test(r[2])).map((r) => ms(r[7])));
+  const maisNovoCard = Math.max(...w.CT_SEMANA.itens.map((x) => ms(x.quando)));
+  ok(maisNovoCard === maisNovoAcervo,
+    'SEMANA o card traz o informativo mais novo do acervo (card ' + new Date(maisNovoCard).toLocaleDateString('pt-BR') +
+    ' × acervo ' + new Date(maisNovoAcervo).toLocaleDateString('pt-BR') + ')');
+  const man = JSON.parse(fs.readFileSync(path.join(RAIZ, 'dados', 'juris-text', 'manifesto.json'), 'utf8'));
+  ok(man.chaves === Object.keys(w.__JURIS_TXT__).length,
+    'FATIAS dados/juris-text tem todos os textos do juris-text.js (' + man.chaves + ' × ' + Object.keys(w.__JURIS_TXT__).length + ')');
+  ok(man.arquivos.every((a) => fs.existsSync(path.join(RAIZ, 'dados', 'juris-text', a))),
+    'FATIAS todo bloco listado no manifesto existe em dados/juris-text');
+}
+
 // a home mostra o bloco, e "Já vi" tira o item e persiste
 await page.goto(URL0 + '/Catedra.dc.html');
 await page.evaluate(() => { localStorage.removeItem('catedra:semanaLidos'); });
