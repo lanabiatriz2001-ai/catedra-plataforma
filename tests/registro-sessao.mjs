@@ -39,7 +39,11 @@ export async function testarRegistroSessao(pageDaSuite, base, ok, opcoes = {}) {
   page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
   const relogio = opcoes.relogio || (() => { const t = new Date(); t.setHours(14, 0, 0, 0); return t; })();
   await page.clock.install({ time: relogio });
-  try { await roteiro(page, base, ok, R, arquivo, relogio); }
+  try {
+    await roteiro(page, base, ok, R, arquivo, relogio);
+    // os selects do modal (ver selectsDoModal): mesmo contexto, mesmo relógio fixo
+    if (!opcoes.relogio) await selectsDoModal(page, base, ok, R, arquivo);
+  }
   finally { await ctx.close(); }
   if (!opcoes.relogio) await madrugada(pageDaSuite, base, ok, R, arquivo);
 }
@@ -170,6 +174,119 @@ async function roteiro(page, base, ok, R, arquivo, relogio) {
   ok(m.cabeNaTela, R + 'celular: o modal cabe na tela');
   ok(m.rodapeVisivel, R + 'celular: o botão Registrar continua alcançável sem rolar a página');
   ok(!m.rolaLado, R + 'celular: nada rola de lado');
+}
+
+/* OS SELECTS DO MODAL (10/09/2026 — "conserta o select do modal de registro também").
+   O mesmo cuidado da agenda da semana, com a MESMA régua de tests/ciclo-inteligente.mjs
+   (medidasNaPagina.textoCabe): área útil = clientWidth − padding − 24 da seta; o texto medido
+   por canvas com a fonte computada do próprio select. Medido a 1280, 1180 e 390 (toque): o
+   modal tem 560 px (select de 510, área útil 462) e, no celular, 354 (select de 320, área
+   útil 272). A opção vazia mais larga, "— escolher o tópico —", tem 145 px: cabe com folga
+   em todas as larguras, e por isso os rótulos ficaram como estavam. O que cortava era o
+   NOME: o tópico de 73 caracteres (498 px), o subtópico de 202, as leis mais longas do
+   catálogo do LEGIS (731 px), o título do material. Prova, a 1280:
+   (a) a opção vazia de cada select, à vista, cabe na área útil — e todo select do modal
+       passa pela régua (select novo sem medida derruba o caso);
+   (b) o title de cada select é o texto da opção escolhida, acompanha a troca e fica vazio
+       enquanto nada foi escolhido (a opção vazia cabe, não há o que revelar);
+   (c) subtópico guardado como texto (formato do parser) aparece com o nome — antes virava
+       opção em branco e não dava para escolher;
+   (d) o nome inteiro do tópico e do subtópico longos aparece no modal (campo "Tópico
+       estudado" e o rótulo do "Marcar … como estudado no edital"). */
+async function selectsDoModal(page, base, ok, R, arquivo) {
+  const T = R + 'selects do modal (1280) ';
+  const SUB = 'Crimes contra as relações de consumo (Lei nº 8.078, de 11 de setembro de 1990), a ordem tributária (Lei nº 8.137, de 27 de dezembro de 1990) e a ordem econômica (Lei nº 8.176, de 8 de fevereiro de 1991)';
+  const CPP = 'Código de Processo Penal (Decreto-lei nº 3.689, de 3 de outubro de 1.941)';
+  const MAT = 'Manual de Direito Processual Penal — volume único, 12ª edição revista, ampliada e atualizada pelo Pacote Anticrime';
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(base + '/__semente');
+  await page.evaluate(({ SUB, CPP, MAT }) => {
+    const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+    localStorage.clear();
+    set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica');
+    // subs nos dois formatos que o edital guarda: string (parser) e {name} (mesclagem)
+    set('edital', [
+      { disc: 'Direito Penal', peso: 2, questoes: 15, topics: [{ name: 'Leis Penais Especiais', done: false, subs: [SUB, 'Crimes hediondos'] }] },
+      { disc: 'Direito Processual Penal', peso: 2, questoes: 15, topics: [{ name: CPP, done: false, subs: [{ name: 'Do inquérito policial' }, { name: 'Da ação penal' }] }] }]);
+    set('sessions', []); set('reviews', []); set('errors', []);
+    // o material da pessoa vive em catedra:lib (só os itens com user)
+    localStorage.setItem('catedra:lib', JSON.stringify([{ id: 'mat-longo', titulo: MAT, tipo: 'livro', user: true }, { id: 'mat-curto', titulo: 'Súmulas do STJ', tipo: 'pdf', user: true }]));
+  }, { SUB, CPP, MAT });
+  await page.goto(base + '/' + arquivo); await page.waitForTimeout(1800);
+  const r = await page.evaluate(async ({ SUB, CPP, MAT }) => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const fonte = cs => [cs.fontStyle, cs.fontWeight, cs.fontSize, cs.fontFamily].join(' ');
+    const largura = (sel, t) => { const cx = document.createElement('canvas').getContext('2d'); cx.font = fonte(getComputedStyle(sel)); return cx.measureText(t).width; };
+    const textoCabe = (sel, t) => { const cs = getComputedStyle(sel); return largura(sel, t) <= sel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 24; };
+    // a opção vazia (value "" ou "__livre__") é a que está à vista, e cabe
+    const vaziaCabe = sel => { const o = sel && sel.selectedOptions[0]; return !!o && (o.value === '' || o.value === '__livre__') && textoCabe(sel, o.textContent.trim()); };
+    const escolhido = sel => { const o = sel && sel.selectedOptions[0]; return o ? o.textContent.trim() : null; };
+    const titleEhOEscolhido = sel => !!sel && sel.title !== '' && sel.title === escolhido(sel);
+    const r = {}, medidos = new Set();
+    [...document.querySelectorAll('button')].find(b => /registrar sess/i.test(b.textContent || '')).click(); await w(1000);
+    const dlg = document.querySelector('[role="dialog"][aria-label="Registrar sessão"]');
+    const q = l => { const s = dlg.querySelector('select[aria-label="' + l + '"]'); if (s) medidos.add(l); return s; };
+    const troca = async (l, v) => { const s = q(l); s.value = v; s.dispatchEvent(new Event('change', { bubbles: true })); await w(400); return q(l); };
+    const mais = [...dlg.querySelectorAll('button')].find(b => /Mais detalhes/.test(b.textContent || '')); if (mais && mais.getAttribute('aria-expanded') !== 'true') { mais.click(); await w(400); }
+    const chip = v => [...dlg.querySelectorAll('.ct-reg-chip')].find(c => c.getAttribute('aria-label') === v);
+    // Disciplina: não tem opção vazia — a opção fora do edital ("Outra…") cabe; title = a escolhida
+    let s = await troca('Disciplina', 'Direito Penal');
+    r.opcaoOutraDaDisciplinaCabe = textoCabe(s, [...s.options].find(o => o.value === '__outra__').textContent.trim());
+    r.titleDaDisciplinaEhAEscolhida = s.title === 'Direito Penal' && titleEhOEscolhido(s);
+    // Tópico: vazia à vista, cabendo, sem title; escolhido, title = texto da opção
+    s = q('Tópico'); r.vaziaDoTopicoCabe = vaziaCabe(s); const topSemTitle = s.title === '';
+    s = await troca('Tópico', 'Leis Penais Especiais');
+    r.titleDoTopicoEhOEscolhido = topSemTitle && s.title === 'Leis Penais Especiais (2)' && titleEhOEscolhido(s);
+    // Subtópico guardado como texto: as opções têm o nome (antes, linhas em branco)
+    s = q('Subtópico'); r.vaziaDoSubtopicoCabe = vaziaCabe(s); const subSemTitle = s.title === '';
+    const nomesSub = [...s.options].map(o => o.textContent.trim());
+    r.subtopicoEmTextoApareceComONome = nomesSub.includes(SUB) && nomesSub.includes('Crimes hediondos') && nomesSub.every(t => t !== '');
+    s = await troca('Subtópico', SUB);
+    r.titleDoSubtopicoLongoEhONomeInteiro = subSemTitle && s.value === SUB && !textoCabe(s, SUB) && s.title === SUB && titleEhOEscolhido(s);
+    r.nomeInteiroDoSubtopicoApareceNoModal = (dlg.textContent || '').includes('Marcar “' + SUB + '” como estudado no edital');
+    s = await troca('Subtópico', 'Crimes hediondos'); const acompanhou = s.title === 'Crimes hediondos' && titleEhOEscolhido(s);
+    s = await troca('Subtópico', '');
+    r.titleDoSubtopicoAcompanhaATroca = acompanhou && s.title === '';
+    // o tópico de 73 caracteres (não cabe na área útil): title = o texto inteiro da opção
+    await troca('Disciplina', 'Direito Processual Penal');
+    s = await troca('Tópico', CPP);
+    r.titleDoTopicoLongoEhOTextoInteiro = !textoCabe(s, escolhido(s) || '') && s.title === CPP + ' (2)' && titleEhOEscolhido(s);
+    r.nomeInteiroDoTopicoLongoApareceNoModal = dlg.querySelector('input[data-k="topico"]').value === CPP && (dlg.textContent || '').includes('Marcar “' + CPP + '”');
+    const nomesObj = [...q('Subtópico').options].map(o => o.textContent.trim());
+    r.subtopicoEmObjetoSegueComONome = nomesObj.includes('Do inquérito policial') && nomesObj.includes('Da ação penal');
+    // material da biblioteca: o título só existe no select
+    s = q('Vincular material da biblioteca'); r.vaziaDoMaterialCabe = vaziaCabe(s); const matSemTitle = s.title === '';
+    s = await troca('Vincular material da biblioteca', 'mat-longo');
+    r.titleDoMaterialLongoEhOTituloInteiro = matSemTitle && !textoCabe(s, MAT) && s.title === MAT && titleEhOEscolhido(s);
+    s = await troca('Vincular material da biblioteca', 'mat-curto');
+    r.titleDoMaterialAcompanhaATroca = s.title === 'Súmulas do STJ' && titleEhOEscolhido(s);
+    // Lei seca: catálogo do LEGIS; a lei de nome mais largo é a que o select corta
+    if (chip('Lei seca').getAttribute('aria-pressed') !== 'true') { chip('Lei seca').click(); await w(400); }
+    s = q('Qual lei'); r.vaziaDaLeiCabe = vaziaCabe(s); const leiSemTitle = s.title === '';
+    const longa = [...s.options].filter(o => o.value).sort((a, b) => largura(s, b.textContent.trim()) - largura(s, a.textContent.trim()))[0];
+    const longaV = longa.value, longaT = longa.textContent.trim();
+    const cp = [...s.options].find(o => o.textContent.trim() === 'Código Penal'); const cpV = cp.value;
+    s = await troca('Qual lei', longaV);
+    r.titleDaLeiLongaEhOTextoInteiro = leiSemTitle && !textoCabe(s, longaT) && s.title === longaT && titleEhOEscolhido(s);
+    s = await troca('Qual lei', cpV);
+    r.titleDaLeiAcompanhaATroca = s.title === 'Código Penal' && titleEhOEscolhido(s);
+    // Trecho (faixas da tabela de leitura do Código Penal)
+    s = q('Trecho da lei ou da fonte'); r.vaziaDoTrechoCabe = vaziaCabe(s); const trSemTitle = s.title === '';
+    const faixa = [...s.options].find(o => o.value && o.value !== '__outro__'); const faixaV = faixa.value, faixaT = faixa.textContent.trim();
+    s = await troca('Trecho da lei ou da fonte', faixaV);
+    r.titleDoTrechoEhOEscolhido = trSemTitle && s.title === faixaT && titleEhOEscolhido(s);
+    // Jurisprudência: catálogo do JURIS
+    if (chip('Jurisprudência').getAttribute('aria-pressed') !== 'true') { chip('Jurisprudência').click(); await w(400); }
+    s = q('Qual fonte'); r.vaziaDaFonteCabe = vaziaCabe(s); const foSemTitle = s.title === '';
+    const fo = [...s.options].find(o => o.value); const foV = fo.value, foT = fo.textContent.trim();
+    s = await troca('Qual fonte', foV);
+    r.titleDaFonteEhOEscolhido = foSemTitle && s.title === foT && titleEhOEscolhido(s);
+    // todo select do modal passou pela régua acima (um select novo sem medida derruba o caso)
+    const esperados = ['Disciplina', 'Tópico', 'Subtópico', 'Vincular material da biblioteca', 'Qual lei', 'Trecho da lei ou da fonte', 'Qual fonte'];
+    r.todoSelectDoModalPassouPelaRegua = esperados.every(l => medidos.has(l)) && [...dlg.querySelectorAll('select')].every(x => esperados.includes(x.getAttribute('aria-label')));
+    return r;
+  }, { SUB, CPP, MAT });
+  for (const [k, v] of Object.entries(r)) ok(v, T + k);
 }
 
 // execução avulsa: `CT_PORT=8144 node tests/registro-sessao.mjs`
