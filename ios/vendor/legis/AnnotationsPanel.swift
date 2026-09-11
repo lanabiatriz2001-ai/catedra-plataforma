@@ -36,7 +36,7 @@ struct AnnotationsPanel: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Nenhuma marcação ainda.")
                                 .foregroundStyle(.secondary)
-                            Text("Selecione um trecho do texto e use o botão direito (ou a barra de ferramentas) para grifar, sublinhar, tachar ou anotar.")
+                            Text("Selecione um trecho do texto e use o menu da seleção (ou a barra de ferramentas) para grifar, sublinhar, tachar ou anotar.")
                                 .font(.caption)
                                 .foregroundStyle(.tertiary)
                         }
@@ -173,7 +173,7 @@ private struct AnnotationCard: View {
                     }
                 }
                 .buttonStyle(.borderless)
-                .help("Fonte da anotação (fontes instaladas no Mac)")
+                .help("Fonte da anotação (fontes instaladas no iPad)")
                 .popover(isPresented: $showFontPicker) {
                     FontPickerView(selectedFamily: annotation.noteFontFamily ?? "Sistema",
                                    selectedSize: annotation.noteFontSize ?? 13) { family, size in
@@ -212,9 +212,9 @@ private struct AnnotationCard: View {
     }
 }
 
-// MARK: - Seletor de fontes do macOS
+// MARK: - Seletor de fontes
 
-/// Lista pesquisável de todas as famílias de fontes instaladas no Mac,
+/// Lista pesquisável de todas as famílias de fontes instaladas no iPad,
 /// cada uma exibida na própria fonte.
 struct FontPickerView: View {
     @State var selectedFamily: String

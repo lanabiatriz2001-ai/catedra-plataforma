@@ -37,6 +37,9 @@ struct RootView: View {
                 .padding(.horizontal, 13).padding(.vertical, 7)
                 .background(Capsule().fill(Palette.cardBackground))
                 .overlay(Capsule().strokeBorder(Palette.hairline, lineWidth: 1))
+                // Alvo de 44 pt sem engordar a barra: o recuo negativo devolve a altura
+                // visual (a área de toque avança sobre o respiro da barra).
+                .jurisAlvoToque().padding(.vertical, -7)
             }
             .buttonStyle(.plain)
             Button { store.ir(.novidades) } label: {
@@ -45,6 +48,7 @@ struct RootView: View {
                     .frame(width: 34, height: 34)
                     .background(Circle().fill(Palette.cardBackground))
                     .overlay(Circle().strokeBorder(Palette.hairline, lineWidth: 1))
+                    .jurisAlvoToque().padding(.vertical, -5)
             }
             .buttonStyle(.plain)
             HStack(spacing: 10) {
@@ -59,6 +63,7 @@ struct RootView: View {
                         .font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(clock.manualPlaying ? Palette.secondaryInk : Palette.accent))
+                        .jurisAlvoToque().padding(.vertical, -8)
                 }
                 .buttonStyle(.plain)
             }
@@ -140,19 +145,22 @@ struct LeitorCheio: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
+                // Alvos de 44 pt: a barra fica com 44 pt de altura (28 + 8 + 8) e cada
+                // botão cobre a altura toda.
                 Button {
                     store.leituraID = nil
                     store.selectedID = nil
                 } label: {
                     Label("Voltar", systemImage: "chevron.left").font(.system(size: 12.5, weight: .medium))
+                        .jurisAlvoToque().padding(.vertical, -8)
                 }
                 .buttonStyle(.borderless)
                 Spacer()
-                Button { store.navegarLeitura(-1) } label: { Image(systemName: "chevron.up") }
+                Button { store.navegarLeitura(-1) } label: { Image(systemName: "chevron.up").jurisAlvoToque().padding(.vertical, -8) }
                     .buttonStyle(.borderless).disabled(!store.temAnterior())
                     .keyboardShortcut(.leftArrow, modifiers: .command)
                     .help("Anterior (⌘←)")
-                Button { store.navegarLeitura(1) } label: { Image(systemName: "chevron.down") }
+                Button { store.navegarLeitura(1) } label: { Image(systemName: "chevron.down").jurisAlvoToque().padding(.vertical, -8) }
                     .buttonStyle(.borderless).disabled(!store.temProximo())
                     .keyboardShortcut(.rightArrow, modifiers: .command)
                     .help("Próximo (⌘→)")

@@ -1182,7 +1182,7 @@ private struct UnitFocusView: View {
             .help("Salvar esta cor nos favoritos")
             .disabled(store.coresFavoritas.contains(markerColorHex))
 
-            // Cores favoritas: clique aplica; botão direito remove.
+            // Cores favoritas: toque aplica; toque longo remove.
             ForEach(store.coresFavoritas.prefix(6), id: \.self) { hex in
                 Button { markerColorHex = hex } label: {
                     Circle().fill(Color(hexRGBA: hex)).frame(width: 15, height: 15)
@@ -1190,7 +1190,7 @@ private struct UnitFocusView: View {
                                                        lineWidth: markerColorHex == hex ? 2 : 0.5))
                 }
                 .buttonStyle(.plain)
-                .help("Usar esta cor · botão direito para remover dos favoritos")
+                .help("Usar esta cor · toque e segure para remover dos favoritos")
                 .contextMenu {
                     Button(role: .destructive) { store.removerCorFavorita(hex) } label: {
                         Label("Remover dos favoritos", systemImage: "star.slash")
@@ -1734,7 +1734,7 @@ private struct UnitFocusView: View {
                 .buttonStyle(.bordered)
                 .disabled(onPrev == nil)
                 .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                .help("Artigo anterior (⌥⌘←)")
+                .help("Artigo anterior")
             Spacer()
             Text("Artigo \(position + 1) de \(total)")
                 .font(.callout)
@@ -1745,7 +1745,7 @@ private struct UnitFocusView: View {
                 .tint(accent)
                 .disabled(onNext == nil)
                 .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                .help("Próximo artigo (⌥⌘→)")
+                .help("Próximo artigo")
         }
     }
 
@@ -2030,7 +2030,7 @@ private struct IndexSheet: View {
                 }
             }
         }
-        .frame(width: 460, height: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
     }
 }
 

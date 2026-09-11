@@ -410,7 +410,7 @@ struct SimuladoView: View {
                     .buttonStyle(.bordered)
             }
             if avisoExport {
-                Text("Arquivo .md salvo (Documentos do app). Abra e imprima pelo app de sua preferência.")
+                Text("Arquivo .md gravado em Arquivos › Cátedra e aberto para compartilhar ou imprimir.")
                     .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
             }
         }

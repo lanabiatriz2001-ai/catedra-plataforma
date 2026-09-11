@@ -22,11 +22,15 @@ final class ReaderController: ObservableObject {
         return range
     }
 
-    /// No macOS isto abria a barra de busca nativa do NSTextView (NSTextFinder). O iPadOS
-    /// não tem equivalente numa UITextView somente-leitura — a busca de verdade do LEGIS
-    /// é a da própria tela (lupa), que não passa por aqui. Fica só o foco no texto.
+    /// Abre a busca nativa da UITextView (UIFindInteraction, iOS 16+): campo de busca com
+    /// anterior/próximo e as ocorrências destacadas no texto — o par do NSTextFinder que o
+    /// Mac abria com ⌘F. A view precisa ser a primeira respondente para o navegador aparecer.
     func showFindBar() {
-        textView?.becomeFirstResponder()
+        guard let tv = textView else { return }
+        tv.becomeFirstResponder()
+        if let busca = tv.findInteraction {
+            busca.presentFindNavigator(showingReplace: false)
+        }
     }
 
     func scroll(to range: NSRange) {
@@ -94,6 +98,19 @@ final class ReaderTextView: UITextView {
     var onCommand: ((ReaderCommand) -> Void)?
     var annotatedRanges: [NSRange] = []
     var allowsNoteCommand = true   // "Anotar…" só onde há painel de nota da anotação
+    /// Avisa quando a LARGURA da view muda (girar o iPad, entrar/sair do Split View). O
+    /// updateUIView do SwiftUI não roda nessa hora — nenhum estado mudou — e a coluna de
+    /// texto ficava com a largura da orientação anterior. Quem escuta refaz o layout.
+    var onLarguraMudou: ((CGFloat) -> Void)?
+    private var ultimaLarguraAvisada: CGFloat = 0
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let largura = bounds.width
+        guard largura > 1, abs(largura - ultimaLarguraAvisada) > 0.5 else { return }
+        ultimaLarguraAvisada = largura
+        onLarguraMudou?(largura)
+    }
     // No macOS o menu vinha do clique DIREITO, que podia cair fora da seleção — por isso
     // existia lastMenuClickIndex. No iPadOS o menu é o da SELEÇÃO: ele só aparece quando
     // há texto selecionado, então o ponto do clique deixa de fazer sentido e some.
@@ -152,17 +169,23 @@ struct AnnotatedTextView: UIViewRepresentable {
         // MarkableArticleView do Estudo, onde quem rola é o ScrollView do SwiftUI). Some
         // com isso o NSScrollView em volta, e some também o que era só dele:
         // hasVerticalScroller, autohidesScrollers, minSize/maxSize, autoresizingMask e
-        // isVerticallyResizable. A busca incremental (usesFindBar) não tem equivalente
-        // no iPadOS — a lupa do LEGIS continua fazendo a busca de verdade.
+        // isVerticallyResizable. A busca incremental (usesFindBar) vira a
+        // UIFindInteraction, ligada logo abaixo.
         let textView = ReaderTextView(frame: .zero, textContainer: container)
         textView.isEditable = false
         textView.isSelectable = true
+        // Busca dentro do texto (botão Buscar da barra): liga a UIFindInteraction nativa,
+        // que numa text view somente-leitura só busca (sem "substituir").
+        textView.isFindInteractionEnabled = true
         textView.textContainerInset = UIEdgeInsets(top: 28, left: 40, bottom: 28, right: 40)
         textView.backgroundColor = NSColor(AppTheme.surface)   // folha do tema, não branco do sistema
         textView.alwaysBounceVertical = true
         textView.delegate = context.coordinator
         textView.onCommand = { [weak coordinator = context.coordinator] command in
             coordinator?.parent.onCommand(command)
+        }
+        textView.onLarguraMudou = { [weak coordinator = context.coordinator] _ in
+            coordinator?.larguraMudou()
         }
 
         controller.textView = textView
@@ -349,6 +372,17 @@ struct AnnotatedTextView: UIViewRepresentable {
 
         init(_ parent: AnnotatedTextView) { self.parent = parent }
 
+        /// Girou o iPad ou mudou o Split View: refaz o layout na largura nova. Chega pelo
+        /// layoutSubviews da ReaderTextView, porque o updateUIView não roda sem mudança de
+        /// estado do SwiftUI. A mesma trava de largura do updateUIView evita passada dupla.
+        func larguraMudou() {
+            guard let textView else { return }
+            let largura = textView.bounds.width
+            guard largura > 1, abs(lastLayoutWidth - largura) > 0.5 else { return }
+            lastLayoutWidth = largura
+            parent.scheduleDocumentLayout(for: textView, coordinator: self)
+        }
+
         /// Lay out one bounded chunk, grow the text view's height to what's laid out
         /// so far, then yield to the run loop and schedule the next chunk. A newer
         /// layout pass (bump de layoutGeneration) faz esta cadeia parar sozinha.
@@ -389,8 +423,11 @@ struct AnnotatedTextView: UIViewRepresentable {
             DispatchQueue.main.async(execute: next)   // cede ao run loop entre pedaços
         }
 
-        func textViewDidChangeSelection(_ notification: Notification) {
-            guard let tv = textView else { return }
+        // Assinatura do UIKit: recebe a própria UITextView. A do AppKit (Notification) nunca
+        // era chamada no iPad — o menu "Marcar" ficava sempre desabilitado e o toque numa
+        // marcação não focava a anotação no painel.
+        func textViewDidChangeSelection(_ textView: UITextView) {
+            guard let tv = (textView as? ReaderTextView) ?? self.textView else { return }
             let range = tv.selectedRange
             let annotations = parent.annotations
             DispatchQueue.main.async { [weak self] in

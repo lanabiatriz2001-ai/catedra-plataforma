@@ -35,7 +35,8 @@ struct RedactionComparisonView: View {
                 }
             }
         }
-        .frame(width: 780, height: 640)
+        // Sem tamanho fixo: a folha do iPad é menor que 780 pt e cortava a coluna direita.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppTheme.pageBackground)
     }
 

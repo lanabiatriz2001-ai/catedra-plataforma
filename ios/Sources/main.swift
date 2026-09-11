@@ -1571,7 +1571,12 @@ extension RootViewController {
     func webView(_ wv: WKWebView, didFinish navigation: WKNavigation!) {
         guard wv === webView else { return }
         // A casca segue o tema assim que a página pinta (o auth.js ainda recarrega uma vez).
-        espelharTema { [weak self] mudou in if mudou { self?.temaPendenteNativo = true } }
+        // Se um módulo nativo já está na tela (aberto por argumento de launch ou antes de a
+        // página pintar), ele nasceu com o tema de fallback: remonta agora com o tema certo.
+        espelharTema { [weak self] mudou in
+            guard let self, mudou else { return }
+            if self.abaAtual == 0 { self.temaPendenteNativo = true } else { self.montarAba(remontar: true) }
+        }
         entregarEstudosPendentesSePossivel()
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in self?.pushNativeReviews() }
     }

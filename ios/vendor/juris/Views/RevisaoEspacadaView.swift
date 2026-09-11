@@ -21,7 +21,8 @@ struct RevisaoEspacadaView: View {
             Divider().overlay(Palette.hairline)
             conteudo
         }
-        .frame(width: 680, height: 640)
+        // Sem 680 × 640 fixos: a folha do sistema (page sheet do iPad) decide o tamanho.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.detailBackground)
         .onAppear(perform: montar)
         .semMovimentoSeBaixa()   // sheet: fora do .transaction da raiz
@@ -37,7 +38,7 @@ struct RevisaoEspacadaView: View {
 
     private var barra: some View {
         HStack {
-            Button { dismiss() } label: { Image(systemName: "xmark") }.buttonStyle(.plain)
+            Button { dismiss() } label: { Image(systemName: "xmark").jurisAlvoToque() }.buttonStyle(.plain)
             Spacer()
             VStack(spacing: 1) {
                 Label("Revisão espaçada", systemImage: "brain.head.profile")
@@ -48,9 +49,9 @@ struct RevisaoEspacadaView: View {
                 }
             }
             Spacer()
-            Image(systemName: "xmark").opacity(0)   // simetria
+            Image(systemName: "xmark").frame(minWidth: 44, minHeight: 44).opacity(0)   // simetria
         }
-        .padding(.horizontal, 16).padding(.vertical, 12)
+        .padding(.horizontal, 16).padding(.vertical, 4)
     }
 
     @ViewBuilder private var conteudo: some View {
@@ -204,11 +205,11 @@ struct BaralhoView: View {
                         .foregroundStyle(.white).padding(.horizontal, 7).padding(.vertical, 2)
                         .background(Palette.accent, in: Capsule())
                 }
-                Button { mostrarAnki = true } label: { Label("Exportar Anki", systemImage: "square.and.arrow.up") }
+                Button { mostrarAnki = true } label: { Label("Exportar Anki", systemImage: "square.and.arrow.up").jurisAlvoToque() }
                     .disabled(itens.isEmpty)
-                Button("Fechar") { dismiss() }
+                Button { dismiss() } label: { Text("Fechar").jurisAlvoToque() }
             }
-            .padding(16)
+            .padding(.horizontal, 16).padding(.vertical, 6)
             .background(Palette.sidebarBackground)
             .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
 
@@ -236,7 +237,8 @@ struct BaralhoView: View {
                 .overlay(alignment: .top) { Rectangle().fill(Palette.hairline).frame(height: 1) }
             }
         }
-        .frame(width: 640, height: 620)
+        // Sem 640 × 620 fixos: a folha do sistema decide o tamanho.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.detailBackground)
         .sheet(isPresented: $mostrarAnki) { ExportAnkiSheet(entries: deckEntries, titulo: "Baralho de flashcards") }
         .confirmationDialog("Esvaziar o baralho? Os cartões e o agendamento serão apagados.",

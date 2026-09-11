@@ -46,7 +46,7 @@ struct AddLawSheet: View {
 
             Picker("Origem do texto", selection: $mode) {
                 Text("Link (Planalto ou PDF na web)").tag(Mode.url.rawValue)
-                Text("Arquivo PDF do Mac").tag(Mode.pdf.rawValue)
+                Text("Arquivo PDF").tag(Mode.pdf.rawValue)
                 Text("Texto colado").tag(Mode.texto.rawValue)
             }
             .pickerStyle(.segmented)
@@ -106,7 +106,9 @@ struct AddLawSheet: View {
             }
         }
         .padding(20)
-        .frame(minWidth: 580, minHeight: mode == Mode.texto.rawValue ? 520 : 400)
+        // Largura do sistema (a folha do iPad tem 540 pt em retrato e vira tela cheia no
+        // Slide Over): um minWidth de 580 cortava a coluna direita do formulário.
+        .frame(maxWidth: .infinity, minHeight: mode == Mode.texto.rawValue ? 520 : 400)
         .fileImporter(isPresented: $showPDFImporter, allowedContentTypes: [.pdf]) { result in
             switch result {
             case .success(let url):
