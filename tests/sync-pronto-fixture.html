@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>fixture do sinal de sync pronto</title></head>
+<body>
+<script>
+/* Sobe o auth.js de verdade com um Supabase de mentira, numa conta JÁ hidratada neste aparelho
+   (catedra:hydrated + mesmo dono), que é o caminho de toda abertura: onLogin → status "salvo" →
+   pullAndMerge. O select fica PENDURADO até o teste decidir a resposta (window.__responder), e
+   assim se prova QUANDO o CatedraSync.pronto vira true — e que o "salvo" do onLogin não basta.
+   Nada toca a rede: a URL é .invalido e o cliente é este objeto. */
+window.CATEDRA_SUPABASE = { url: 'http://teste.invalido', key: 'chave-de-teste' };
+window.__eventosPronto = 0;
+window.addEventListener('catedra:syncpronto', function () { window.__eventosPronto++; });
+try { sessionStorage.setItem('catedra:hydrated', '1'); localStorage.setItem('catedra:_owner', 'u-teste'); } catch (_) {}
+window.supabase = { createClient: function () { return {
+  auth: {
+    onAuthStateChange: function () {},
+    getSession: function () { return Promise.resolve({ data: { session: { user: { id: 'u-teste', email: 'teste@exemplo.invalido' }, access_token: 'tok' } } }); },
+    getUser: function () { return Promise.resolve({ data: { user: { id: 'u-teste' } } }); },
+    signOut: function () { return Promise.resolve({}); }
+  },
+  rpc: function () { return Promise.resolve({ data: null, error: null }); },
+  from: function () { return {
+    select: function () { return { eq: function () { return { maybeSingle: function () { return new Promise(function (res) { window.__responder = res; }); } }; } }; },
+    upsert: function () { return Promise.resolve({}); }
+  }; }
+}; } };
+</script>
+<script src="/auth.js"></script>
+</body></html>
