@@ -59,7 +59,9 @@ if [ "$ALVO_REAL" = "testflight" ] && [ -d /Applications/Xcode.app/Contents/Deve
   export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
   echo "     usando o Xcode estável: $(xcodebuild -version 2>/dev/null | head -1) (SDK iOS $(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null))"
 fi
-AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma.vercel.app/api/complete}"
+# O domínio é o da produção VIVA (projeto do time "ia" na Vercel). catedra-plataforma.vercel.app é de um
+# projeto antigo que ainda publica a main mas não se controla daqui (chaves e ajustes podem divergir).
+AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma-fawn.vercel.app/api/complete}"
 
 mkdir -p "$BUILD"
 
