@@ -23,6 +23,9 @@ ROOT="$(cd "$HERE/.." && pwd)"
 # shellcheck source=../scripts/guarda-build.sh
 source "$ROOT/scripts/guarda-build.sh"
 ct_travar_build macos "$ROOT"
+# Assinatura numa cópia fora da pasta sincronizada (iCloud), com --verify --strict lá.
+# shellcheck source=../scripts/assinar-app.sh
+source "$ROOT/scripts/assinar-app.sh"
 BUILD="$HERE/build"
 NAME="Cátedra"
 EXEC="Catedra"
@@ -187,32 +190,12 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 PLIST
 
 echo "→ 5/5  Assinando…"
-# DUAS assinaturas possíveis, e a diferença decide se o testador consegue abrir:
-#
-#   · "Developer ID Application" (conta paga da Apple) + notarização → o app abre
-#     com duplo clique na máquina de qualquer um, sem ritual nenhum.
-#   · ad-hoc (o que sempre foi feito aqui) → o Gatekeeper recusa, e quem recebe
-#     precisa do "Abrir Mesmo Assim" nos Ajustes do Sistema.
-#
-# ARMADILHA que custou caro descobrir: NÃO basta trocar o `-s -` pelo Developer ID.
-# Sem `--options runtime` (hardened runtime) e sem `--timestamp`, a notarização
-# REPROVA — e nada avisa nesta máquina, porque o app abre normalmente aqui. O erro
-# só aparece quando o testador tenta abrir. Por isso as duas flags são obrigatórias
-# e conferidas logo abaixo.
-#
-# `--deep` saiu: está DEPRECADO para assinar desde o macOS 13 (man codesign) e
-# aplica as mesmas opções a todo conteúdo aninhado — quase nunca o que se quer.
-# Aqui o bundle é plano (nenhum .appex/.framework/.dylib/.xpc dentro), então uma
-# assinatura no .app basta. No dia em que o widget entrar, a ordem inverte: assina
-# o .appex ANTES do .app.
-#
-# `--entitlements` também não: o app NÃO é sandboxed e não precisa de nenhum
-# entitlement. Em especial NÃO usar `disable-library-validation` — a doc da Apple
-# avisa que o Gatekeeper roda checagens extras em quem o desliga e pode BLOQUEAR o
-# app. E o WKWebView não exige `allow-jit`: o JavaScript roda no processo
-# com.apple.WebKit.WebContent da própria Apple, que já tem esse entitlement.
-# (mac/Catedra.entitlements pede app-groups, resquício do widget que nem é montado;
-# passá-lo aqui seria peso morto — o Group Container é ingravável sem perfil.)
+# A política (Developer ID com hardened runtime + carimbo; ad-hoc se falhar) e o porquê de
+# cada flag moram em scripts/assinar-app.sh, junto com a assinatura numa cópia limpa.
+# Antes, com o repositório em ~/Desktop ou ~/Documents (iCloud), o codesign recusava o
+# bundle por "detritus", este script dizia "sem internet", o ad-hoc falhava igual, e o
+# build saía com exit 0 e o app SEM assinatura. Agora, se nem o ad-hoc assinar, o build
+# para com erro — nunca "✓ Pronto" com um app que trocaria o assinado por um sem.
 SIGN_ID="${CATEDRA_SIGN_ID:-}"
 if [ -z "$SIGN_ID" ]; then
   # `grep` sem casar devolve 1 e, com `set -e`, derrubaria o build inteiro: || true.
@@ -220,32 +203,7 @@ if [ -z "$SIGN_ID" ]; then
              | grep 'Developer ID Application' | head -1 \
              | sed -E 's/.*"(.*)"/\1/' || true)"
 fi
-
-if [ -n "$SIGN_ID" ]; then
-  echo "     identidade: $SIGN_ID"
-  if codesign --force --options runtime --timestamp --sign "$SIGN_ID" "$APP" 2>"$BUILD/codesign.log"; then
-    _cs="$(codesign -dvv "$APP" 2>&1)"
-    case "$_cs" in *runtime*) echo "     ✓ hardened runtime";; *) echo "     ⚠ SEM hardened runtime — a notarização vai reprovar";; esac
-    case "$_cs" in *Timestamp=*) echo "     ✓ carimbo de tempo";; *) echo "     ⚠ SEM carimbo de tempo — a notarização vai reprovar";; esac
-    echo "     assinado para DISTRIBUIÇÃO"
-  else
-    # Falha mais comum: sem internet. O --timestamp precisa alcançar
-    # timestamp.apple.com; num wifi ruim o codesign falha. Não derrubar o build
-    # por isso — cair para ad-hoc avisando.
-    echo "     ⚠ falhou assinar com Developer ID (detalhe em $BUILD/codesign.log)"
-    echo "       Causa comum: sem internet — o --timestamp precisa de rede."
-    echo "       Caindo para ad-hoc para não quebrar o build."
-    SIGN_ID=""
-  fi
-fi
-
-if [ -z "$SIGN_ID" ]; then
-  codesign --force --sign - "$APP" >/dev/null 2>&1 \
-    && echo "     assinado (ad-hoc — serve para usar aqui, não para distribuir)" \
-    || echo "     aviso: codesign ad-hoc falhou — o app ainda roda"
-  echo "     ⚠ sem certificado 'Developer ID Application' no chaveiro."
-  echo "       O testador vai precisar do ritual \"Abrir Mesmo Assim\"."
-fi
+ct_assinar_mac "$APP" "$BUILD" "$SIGN_ID" || exit 1
 
 echo
 echo "✓ Pronto:  $APP"
@@ -257,4 +215,11 @@ else
   echo "      defaults write $BUNDLE_ID CatedraAIEndpoint 'https://SEU-DEPLOY.vercel.app/api/complete'"
 fi
 echo "  Abrir:   open \"$APP\""
-echo "  Instalar: arraste $NAME.app para /Applications"
+if [ "${CT_REMARCADO:-0}" = 1 ]; then
+  # Pasta do iCloud: arrastar no Finder (ou cp) leva o FinderInfo da raiz para /Applications,
+  # e lá o --strict passa a reprovar. ditto sem atributos instala o bundle como foi conferido.
+  echo "  Instalar (feche o app antes; sem os atributos da pasta sincronizada):"
+  echo "      rm -rf \"/Applications/$NAME.app\" && ditto --norsrc --noextattr --noacl \"$APP\" \"/Applications/$NAME.app\""
+else
+  echo "  Instalar: arraste $NAME.app para /Applications"
+fi

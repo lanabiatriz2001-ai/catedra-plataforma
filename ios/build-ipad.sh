@@ -25,6 +25,9 @@ ROOT="$(cd "$HERE/.." && pwd)"
 # shellcheck source=../scripts/guarda-build.sh
 source "$ROOT/scripts/guarda-build.sh"
 ct_travar_build ipad "$ROOT"
+# Assinatura numa cópia fora da pasta sincronizada (iCloud), com --verify --strict lá.
+# shellcheck source=../scripts/assinar-app.sh
+source "$ROOT/scripts/assinar-app.sh"
 BUILD="$HERE/build"
 NAME="Cátedra"
 EXEC="Catedra"
@@ -284,7 +287,20 @@ if [ "$ALVO" = "device" ]; then
   # Distribution é o único que o App Store Connect aceita. Escolher "o primeiro da
   # lista" pegava sempre o Development — e o TestFlight recusa em silêncio.
   if [ "$ALVO_REAL" = "testflight" ]; then PADRAO_CERT='Apple Distribution'; else PADRAO_CERT='Apple Development'; fi
-  IOS_ID="$(security find-identity -v -p codesigning 2>/dev/null | grep -E "$PADRAO_CERT" | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/')"
+  # `grep` sem casar devolve 1 e, com `set -e` + pipefail, o script morria AQUI em silêncio,
+  # sem chegar ao aviso de baixo: || true.
+  IOS_ID="$(security find-identity -v -p codesigning 2>/dev/null | grep -E "$PADRAO_CERT" | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/' || true)"
+  # Assina numa cópia fora da pasta sincronizada e confere com --verify --strict lá
+  # (scripts/assinar-app.sh). Com o repositório no iCloud, assinar no lugar parava aqui com
+  # "detritus not allowed". Falhou = sai com erro e mostra o motivo que o codesign deu.
+  ios_assinar() {
+    if ! ct_assinar_limpo "$APP" "$BUILD/codesign.log" "$@"; then
+      echo "     ✗ a assinatura falhou — o app NÃO está assinado."
+      ct_motivo_codesign "$BUILD/codesign.log"
+      exit 1
+    fi
+    echo "     ✓ assinatura conferida (codesign --verify --strict)"
+  }
   if [ -z "$IOS_ID" ]; then
     echo "     ✗ Nenhum certificado de iOS no chaveiro."
     echo "       Para instalar no iPad de verdade é preciso 'Apple Development' + um PERFIL"
@@ -313,7 +329,7 @@ if [ "$ALVO" = "device" ]; then
     security cms -D -i "$PERFIL" > "$BUILD/perfil.plist" 2>/dev/null
     /usr/libexec/PlistBuddy -x -c "Print :Entitlements" "$BUILD/perfil.plist" > "$BUILD/app.entitlements" 2>/dev/null
     if [ -s "$BUILD/app.entitlements" ]; then
-      codesign --force --sign "$IOS_ID" --entitlements "$BUILD/app.entitlements" --timestamp=none "$APP"
+      ios_assinar --force --sign "$IOS_ID" --entitlements "$BUILD/app.entitlements" --timestamp=none
       echo "     assinado com perfil: $(/usr/libexec/PlistBuddy -c 'Print :Name' "$BUILD/perfil.plist" 2>/dev/null)"
       echo "     expira em: $(/usr/libexec/PlistBuddy -c 'Print :ExpirationDate' "$BUILD/perfil.plist" 2>/dev/null)"
       echo
@@ -339,10 +355,12 @@ if [ "$ALVO" = "device" ]; then
         echo "      xcrun devicectl device install app --device <UDID> \"$APP\""
       fi
     else
+      # Sem entitlements o app não é assinado: sair com erro, e não seguir até o "✓ Pronto".
       echo "     ✗ não consegui ler os entitlements do perfil — ele está íntegro?"
+      exit 1
     fi
   else
-    codesign --force --sign "$IOS_ID" --timestamp=none "$APP"
+    ios_assinar --force --sign "$IOS_ID" --timestamp=none
     echo "     assinado com: $IOS_ID (SEM perfil — não instala em iPad de verdade)"
     echo
     echo "  Falta o perfil de provisionamento. No portal da Apple (developer.apple.com):"
