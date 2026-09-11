@@ -12,6 +12,10 @@
                         (a CI não o gera), a origem é pulada com aviso — nunca fingida.
    Precisa do WebKit do Playwright: `npx playwright-core install webkit` (CI: --with-deps).
    CT_BROWSER=chromium roda o mesmo roteiro no Chrome, para comparar os dois motores. */
+// PRIMEIRO import, e de propósito: arquivo esvaziado pelo iCloud volta do git (ou a suíte para)
+// antes de qualquer outro módulo ser avaliado — foi o playwright-core lido errado, num worktree
+// do Desktop, que impediu esta suíte de começar. Ver scripts/verificar-pasta-sincronizada.mjs.
+import { listarEsvaziados } from '../scripts/verificar-pasta-sincronizada.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
@@ -35,7 +39,11 @@ const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if 
 // pathToFileURL não põe barra final; o teste concatena '/' + arquivo
 const ORIGENS = [[URL0, 'http', 'Catedra.dc.html'], [pathToFileURL(RAIZ).href, 'file', 'Catedra.dc.html']];
 const BUNDLE = path.join(RAIZ, 'mac', 'build', 'web');
-if (fs.existsSync(path.join(BUNDLE, 'index.html'))) ORIGENS.push([pathToFileURL(BUNDLE).href, 'bundle', 'index.html']);
+// Bundle velho que o iCloud esvaziou: lê-lo seria a leitura que já voltou errada. A checagem do
+// primeiro import só conta as saídas de build (o build as refaz); aqui ninguém refaz, então fica de fora.
+const bundleEsvaziado = listarEsvaziados([BUNDLE]).length;
+if (bundleEsvaziado) console.log('[' + motor + '] mac/build/web tem ' + bundleEsvaziado + ' arquivo(s) esvaziado(s) pelo iCloud — a origem [bundle] fica de fora (refaça com: node scripts/build-macos.mjs)');
+else if (fs.existsSync(path.join(BUNDLE, 'index.html'))) ORIGENS.push([pathToFileURL(BUNDLE).href, 'bundle', 'index.html']);
 else console.log('[' + motor + '] sem mac/build/web/index.html — a origem [bundle] fica de fora (gere com: node scripts/build-macos.mjs)');
 for (const [base, origem, arquivo] of ORIGENS) {
   // contexto novo por origem: localStorage e IndexedDB de uma não vazam para a outra
