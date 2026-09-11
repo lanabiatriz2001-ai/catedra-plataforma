@@ -6,9 +6,12 @@
    e o nome sumia da tela e do disco. O que se prova aqui, com um edital semeado nos dois formatos
    e com dado já corrompido pelo defeito antigo (o próprio spread, reproduzido na semente):
    · ao abrir, o subtópico corrompido volta com o nome (caracteres em ordem; um `name` próprio
-     vence), sem chave numérica; string continua string; o reparo é idempotente, avisa no console
-     e NÃO regrava o disco sem edição — gravar no boot carimbaria a chave com "agora" e o sync
-     passaria esta cópia por cima de edição feita em outro aparelho;
+     vence), sem chave numérica; string continua string; o reparo é idempotente e avisa no console;
+   · QUANDO o conserto vai ao disco: sem camada de sync, já na abertura; com sync, só depois do
+     primeiro acerto com a nuvem — gravar antes carimbaria a chave com "agora" e o sync passaria
+     esta cópia por cima de edição feita em outro aparelho. Prova-se com um CatedraSync de mentira
+     pendente (disco intacto) que depois avisa pronto (disco consertado), e com o auth.js de verdade
+     num fixture: o sinal só vem quando o pull responde — não no "salvo" do onLogin, não em erro;
    · registrar sessão com "marcar no edital" num tópico de subtópicos em texto, pelo modal, como a
      pessoa faz: todos viram {name, done:true}, nome preservado, e o tópico fecha;
    · tópico de subtópicos-objeto: done:true e os outros campos intactos; tópico misto marcado
@@ -29,34 +32,93 @@ export async function testarEditalSubtopicos(pageDaSuite, base, ok, opcoes = {})
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
   const avisos = [];
-  page.on('console', m => { if (m.type() === 'info' && /subtópicos? reparad/.test(m.text())) avisos.push(m.text()); });
+  page.on('console', m => { if (m.type() === 'info' && /\[Cátedra\] edital/.test(m.text())) avisos.push(m.text()); });
   try { await roteiro(page, base, ok, R, arquivo, avisos); }
   finally { await ctx.close(); }
+  await comSyncPendente(pageDaSuite.context().browser(), base, ok, R, arquivo);
+  await sinalDoSync(pageDaSuite.context().browser(), base, ok, R);
+}
+
+// Com `id` e `tid`, como o edital de uma conta de verdade: sem eles, a migração de ids do boot
+// (que já existia) grava o edital na abertura, e as asserções de disco mediriam a semente.
+const editalSemente = () => [{ disc: 'Direito Penal', id: 'd-direito-penal', color: '#b91c1c', open: true, peso: 1, questoes: 10, topics: [
+  { name: 'Crimes contra a pessoa', tid: 't-crimes', done: false, subs: ['Homicídio', 'Lesão corporal'] },
+  { name: 'Teoria do crime', tid: 't-teoria', done: false, subs: [{ name: 'Tipicidade', done: false, nota: 'dolo e culpa' }, { name: 'Ilicitude', done: false }] },
+  { name: 'Penas', tid: 't-penas', done: false, subs: ['Dosimetria', { name: 'Regime inicial', done: false }] },
+  // 21 caracteres (chaves 0…20: a ordem numérica importa) e um renomeado pelo editSub antigo
+  { name: 'Extinção da punibilidade', tid: 't-extincao', done: false, subs: [{ ...'Prescrição retroativa', done: true }, { ...'Abolitio', name: 'Abolitio criminis', done: false }, 'Decadência'] },
+  { name: 'Concurso de pessoas', tid: 't-concurso', done: false, subs: ['Autoria', 'Participação'] },
+] }];
+const semear = (page, ed) => page.evaluate((ed) => {
+  localStorage.clear();
+  const set = (k, v) => localStorage.setItem('catedra:' + k, JSON.stringify(v));
+  localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+  set('areaEstudo', 'juridica'); set('edital', ed); set('sessions', []); set('reviews', []); set('errors', []);
+  return localStorage.getItem('catedra:edital');
+}, ed);
+
+// Uma camada de sync que ainda NÃO acertou com a nuvem. O auth.js real não sobe nos testes (não há
+// Supabase), então um CatedraSync de mentira faz o papel: pronto=false, depois pronto + evento.
+async function comSyncPendente(browser, base, ok, R, arquivo) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+  const avisos = [];
+  page.on('console', m => { if (m.type() === 'info' && /\[Cátedra\] edital/.test(m.text())) avisos.push(m.text()); });
+  try {
+    await page.goto(base + '/__semente');
+    const cru0 = await semear(page, editalSemente());
+    await page.addInitScript(() => { window.__pushes = 0; window.CatedraSync = { pronto: false, push() { window.__pushes++; }, get status() { return 'salvo'; } }; });
+    await page.goto(base + '/' + arquivo);
+    await page.waitForTimeout(1800);
+    const a = await page.evaluate(async (cru0) => {
+      await new Promise(res => setTimeout(res, 1300));
+      const T = n => window.__catedraApp.state.edital[0].topics.find(t => t.name === n);
+      return { tela: T('Extinção da punibilidade').subs[0].name === 'Prescrição retroativa', discoIntacto: localStorage.getItem('catedra:edital') === cru0 };
+    }, cru0);
+    ok(a.tela, R + 'sync pendente: a tela já mostra o nome consertado');
+    ok(a.discoIntacto, R + 'sync pendente ("salvo" antes do pull): o conserto NÃO vai ao disco (≥ 1,3 s depois de abrir)');
+    const b = await page.evaluate(async () => {
+      const p0 = window.__pushes;
+      window.CatedraSync.pronto = true; window.dispatchEvent(new CustomEvent('catedra:syncpronto'));
+      for (let i = 0; i < 80 && /"0":"P"/.test(localStorage.getItem('catedra:edital') || ''); i++) await new Promise(res => setTimeout(res, 50));
+      const raw = localStorage.getItem('catedra:edital') || '';
+      return { consertado: !/"\d+":/.test(raw) && raw.includes('"name":"Prescrição retroativa"') && raw.includes('"name":"Abolitio criminis"'), pushes: window.__pushes - p0 };
+    });
+    ok(b.consertado, R + 'sync pendente: no aviso de pronto, o conserto vai ao disco com os nomes');
+    ok(b.pushes >= 1, R + 'sync pendente: e a gravação pede o envio para a nuvem');
+    ok(avisos.some(x => /gravados no disco/.test(x)), R + 'sync pendente: o console registra a gravação do conserto');
+  } finally { await ctx.close(); }
+}
+
+// O sinal do lado do auth.js, com o auth.js de verdade (tests/sync-pronto-fixture.html).
+async function sinalDoSync(browser, base, ok, R) {
+  const casos = [
+    ['o pull traz dados da nuvem', { data: { data: { 'catedra:metas': '[]' }, updated_at: '2000-01-01T00:00:00Z' }, error: null }, true],
+    ['a nuvem não tem linha desta conta', { data: null, error: null }, true],
+    ['o pull falha (res.error, sem rejeitar)', { data: null, error: { message: 'JWT recusado' } }, false],
+  ];
+  for (const [nome, resposta, esperado] of casos) {
+    const ctx = await browser.newContext();
+    const pg = await ctx.newPage();
+    pg.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+    try {
+      await pg.goto(base + '/tests/sync-pronto-fixture.html');
+      await pg.waitForFunction(() => window.CatedraSync && typeof window.__responder === 'function', null, { timeout: 8000 });
+      const antes = await pg.evaluate(() => ({ pronto: window.CatedraSync.pronto, ev: window.__eventosPronto, status: window.CatedraSync.status }));
+      await pg.evaluate((r) => window.__responder(r), resposta);
+      await pg.waitForTimeout(400);
+      const depois = await pg.evaluate(() => ({ pronto: window.CatedraSync.pronto, ev: window.__eventosPronto }));
+      ok(antes.status === 'salvo' && antes.pronto === false && antes.ev === 0, R + 'auth.js, ' + nome + ': com o pull pendente o status já é "' + antes.status + '" e o sinal ainda NÃO veio');
+      ok(depois.pronto === esperado && depois.ev === (esperado ? 1 : 0), R + 'auth.js, ' + nome + ': pronto=' + depois.pronto + ', eventos=' + depois.ev + ' (esperado ' + esperado + ')');
+    } finally { await ctx.close(); }
+  }
 }
 
 async function roteiro(page, base, ok, R, arquivo, avisos) {
   const w = ms => page.waitForTimeout(ms);
-  // o que o defeito gravava: o spread de uma string ({...'abc'} → {0:'a',1:'b',2:'c'})
-  // Com `id` e `tid`, como o edital de uma conta de verdade: sem eles, a migração de ids do boot
-  // (que já existia) grava o edital na abertura, e a asserção "não regrava no boot" mediria a
-  // semente em vez do reparo.
-  const EDITAL = [{ disc: 'Direito Penal', id: 'd-direito-penal', color: '#b91c1c', open: true, peso: 1, questoes: 10, topics: [
-    { name: 'Crimes contra a pessoa', tid: 't-crimes', done: false, subs: ['Homicídio', 'Lesão corporal'] },
-    { name: 'Teoria do crime', tid: 't-teoria', done: false, subs: [{ name: 'Tipicidade', done: false, nota: 'dolo e culpa' }, { name: 'Ilicitude', done: false }] },
-    { name: 'Penas', tid: 't-penas', done: false, subs: ['Dosimetria', { name: 'Regime inicial', done: false }] },
-    // 21 caracteres (chaves 0…20: a ordem numérica importa) e um renomeado pelo editSub antigo
-    { name: 'Extinção da punibilidade', tid: 't-extincao', done: false, subs: [{ ...'Prescrição retroativa', done: true }, { ...'Abolitio', name: 'Abolitio criminis', done: false }, 'Decadência'] },
-    { name: 'Concurso de pessoas', tid: 't-concurso', done: false, subs: ['Autoria', 'Participação'] },
-  ] }];
-
   await page.goto(base + '/__semente');   // página SEM o app: semear com o app vivo é corrida com o autosave (500 ms)
-  const cru0 = await page.evaluate((ed) => {
-    localStorage.clear();
-    const set = (k, v) => localStorage.setItem('catedra:' + k, JSON.stringify(v));
-    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
-    set('areaEstudo', 'juridica'); set('edital', ed); set('sessions', []); set('reviews', []); set('errors', []);
-    return localStorage.getItem('catedra:edital');
-  }, EDITAL);
+  const cru0 = await semear(page, editalSemente());
   ok(/"0":"P","1":"r"/.test(cru0), R + 'a semente reproduz o dado corrompido (objeto de caracteres no disco)');
   await page.goto(base + '/' + arquivo);
   await w(1800);
@@ -75,7 +137,9 @@ async function roteiro(page, base, ok, R, arquivo, avisos) {
     const ed = app.state.edital;
     r.idempotente = app._editalReparar(ed) === ed && app._editalReparar(JSON.parse(JSON.stringify(ed))).length === ed.length;
     await w(1300);
-    r.naoRegravaNoBoot = localStorage.getItem('catedra:edital') === cru0;
+    r.semCamadaDeSync = typeof window.CatedraSync === 'undefined';
+    const raw = localStorage.getItem('catedra:edital') || '';
+    r.gravaNaAbertura = raw !== cru0 && !/"\d+":/.test(raw) && raw.includes('"name":"Prescrição retroativa"') && raw.includes('"name":"Abolitio criminis"') && raw.includes('"Decadência"');
     return r;
   }, cru0);
   if (b.erro) { ok(false, R + b.erro); return; }
@@ -83,8 +147,10 @@ async function roteiro(page, base, ok, R, arquivo, avisos) {
   ok(b.nomeProprioVence, R + 'ao abrir, um corrompido que já tinha `name` (renomeado depois) fica com esse nome');
   ok(b.stringContinuaString, R + 'ao abrir, subtópico em texto continua texto (leitura tolerante; quem grava normaliza)');
   ok(b.idempotente, R + 'o reparo é idempotente: sem nada a reparar devolve a mesma lista');
-  ok(avisos.length >= 1 && avisos.every(a => /2 subtópicos reparados/.test(a)), R + 'o reparo conta no console.info quantos consertou (' + (avisos[0] || 'nenhum aviso') + ')');
-  ok(b.naoRegravaNoBoot, R + 'o reparo não regrava o disco no boot sem edição (sem carimbo novo para o sync)');
+  const rep = avisos.filter(a => /reconstruído/.test(a));
+  ok(rep.length >= 1 && rep.every(a => /2 subtópicos reparados/.test(a)), R + 'o reparo conta no console.info quantos consertou (' + (rep[0] || 'nenhum aviso') + ')');
+  ok(b.semCamadaDeSync && b.gravaNaAbertura, R + 'sem camada de sync, o conserto vai ao disco já na abertura (≥ 1,3 s): nomes lá, nenhuma chave numérica');
+  ok(avisos.some(a => /gravados no disco/.test(a)), R + 'o console registra que o conserto foi gravado');
 
   // 2. pelo modal: registrar sessão marcando no edital um tópico de subtópicos em texto
   const m = await page.evaluate(async () => {
@@ -112,9 +178,12 @@ async function roteiro(page, base, ok, R, arquivo, avisos) {
     r.topicoFecha = cp.done === true;
     const S = JSON.parse(localStorage.getItem('catedra:sessions') || '[]');
     r.sessaoGravada = S.length === 1 && S[0].topico === 'Crimes contra a pessoa';
-    const disco = JSON.parse(localStorage.getItem('catedra:edital') || '[]');
-    const cpD = disco[0].topics.find(t => t.name === 'Crimes contra a pessoa');
-    r.discoTemOsNomes = JSON.stringify(cpD.subs) === r.subs;
+    // espera o disco bater com o estado (sem tempo fixo: sob carga o _autosave passa de 1,4 s)
+    const cpDisco = () => { const d = JSON.parse(localStorage.getItem('catedra:edital') || '[]'); return ((d[0] && d[0].topics.find(t => t.name === 'Crimes contra a pessoa')) || { subs: [] }).subs; };
+    const t0 = Date.now(); while (Date.now() - t0 < 6000 && JSON.stringify(cpDisco()) !== r.subs) await w(100);
+    r.discoTemOsNomes = JSON.stringify(cpDisco()) === r.subs;
+    r.discoEspera = Date.now() - t0;
+    if (!r.discoTemOsNomes) r.discoDiag = JSON.stringify(cpDisco());
     return r;
   });
   if (m.erro) { ok(false, R + m.erro); return; }
@@ -122,7 +191,7 @@ async function roteiro(page, base, ok, R, arquivo, avisos) {
   ok(m.tudoObjetoComNome, R + 'marcar o tópico inteiro: subtópicos em texto viram {name, done:true} com o nome preservado (' + m.subs + ')');
   ok(m.topicoFecha, R + 'marcar o tópico inteiro: o tópico fica concluído');
   ok(m.sessaoGravada, R + 'a sessão foi registrada no tópico');
-  ok(m.discoTemOsNomes, R + 'ida e volta pelo autosave: o disco (≥ 1,3 s depois) tem os mesmos {name, done:true}');
+  ok(m.discoTemOsNomes, R + 'ida e volta pelo autosave: o disco tem os mesmos {name, done:true} (' + (m.discoTemOsNomes ? 'em ' + (1400 + m.discoEspera) + ' ms' : 'no disco: ' + m.discoDiag) + ')');
 
   // 3. subtópicos-objeto e tópico misto, pelo mesmo método que o registro chama
   const d = await page.evaluate(async () => {

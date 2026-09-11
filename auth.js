@@ -158,6 +158,19 @@
     syncStatus = s;
     try { window.dispatchEvent(new CustomEvent('catedra:syncstate', { detail: { status: s } })); } catch (_) {}
   }
+  // PRIMEIRO ACERTO COM A NUVEM nesta abertura: o pull terminou (com ou sem merge) ou um envio
+  // com leitura-antes-de-gravar deu certo. Antes disso a memória do app pode estar atrás da
+  // nuvem, e um conserto local gravado agora ganharia carimbo de "agora" e venceria edição mais
+  // nova feita em outro aparelho. O app espera este sinal (CatedraSync.pronto e o evento
+  // catedra:syncpronto) para gravar consertos que não vieram de uma edição da pessoa — hoje, o
+  // edital com subtópicos reparados. O "salvo" do onLogin NÃO serve: ele sai antes do pull.
+  // Erro e falta de rede também não contam: sem ver a nuvem, não há como saber o que é mais novo.
+  var sincronizado = false;
+  function marcarSincronizado() {
+    if (sincronizado) return;
+    sincronizado = true;
+    try { window.dispatchEvent(new CustomEvent('catedra:syncpronto')); } catch (_) {}
+  }
   function isDirty() { try { return localStorage.getItem('catedra:_dirty') === '1'; } catch (_) { return false; } }
   function setDirty(v) { try { if (v) _si('catedra:_dirty', '1'); else _ri('catedra:_dirty'); } catch (_) {} }
   function lastSrv() { try { return localStorage.getItem('catedra:_lastSrv') || ''; } catch (_) { return ''; } }
@@ -348,7 +361,7 @@
         return sb.from('user_data').upsert({ user_id: user.id, data: leanForUpload(merged), updated_at: now })
           .then(function (r2) {
             if (r2 && r2.error) throw r2.error;
-            setDirty(false); setLastSrv(now); setStatus('salvo');
+            setDirty(false); setLastSrv(now); setStatus('salvo'); marcarSincronizado();
           });
       })
       .catch(function (err) { console.warn('[Cátedra] sync erro:', err && err.message); setStatus(navigator.onLine === false ? 'offline' : 'erro');
@@ -379,6 +392,8 @@
     clearTimeout(pushT);
     pushT = setTimeout(pushNow, 700);
   }, get status() { return syncStatus; },
+  // o primeiro acerto com a nuvem desta abertura terminou (ver marcarSincronizado)
+  get pronto() { return sincronizado; },
   // gancho interno de diagnóstico/teste (não usado pelo app)
   _test: { mergeAll: mergeAll, tombOnSet: tombOnSet, tombLoad: tombLoad, mergeHl: mergeHl } };
 
@@ -390,9 +405,11 @@
     sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
       .then(function (res) {
         var row = res && res.data;
-        if (!row || !row.data) { pulling = false; return; }
+        // sem linha na nuvem só é "nada mais novo" quando a leitura DEU CERTO: o supabase-js
+        // resolve (não rejeita) com res.error em falha de rede/JWT/RLS
+        if (!row || !row.data) { pulling = false; if (!(res && res.error)) marcarSincronizado(); return; }
         var serverNewer = row.updated_at && row.updated_at > lastSrv();
-        if (!serverNewer && !isDirty()) { pulling = false; setStatus('salvo'); return; }
+        if (!serverNewer && !isDirty()) { pulling = false; setStatus('salvo'); marcarSincronizado(); return; }
         // servidor mais novo e este aparelho limpo → escalares vêm do servidor; arrays sempre por id
         var merged = mergeAll(row.data, collect(), serverNewer && !isDirty());
         applyData(merged);
@@ -400,6 +417,7 @@
         try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {}
         pulling = false;
         if (isDirty()) pushNow(); else setStatus('salvo');
+        marcarSincronizado();   // a memória local já é a mescla com a nuvem
       })
       .catch(function () { pulling = false; setStatus(navigator.onLine === false ? 'offline' : 'erro'); });
   }

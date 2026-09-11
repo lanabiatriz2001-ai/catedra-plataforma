@@ -6643,6 +6643,7 @@ class Component extends DCLogic {
     // linha, o primeiro render marcava as 36 chaves como "sujas" e todo boot
     // regravava tudo e subia o blob inteiro pra nuvem sem nenhuma edição.
     { const L=this._lastSaved||(this._lastSaved={}); this._autosaveKeys().forEach(k=>{ L[k]=this.state[k]; }); }
+    this._edPersistirReparo();   // edital consertado na leitura: sem camada de sync, grava já
     this._montarFrames();
     // U4: o rascunho que veio do disco. Enquanto o texto na tela for IGUAL a este, ele é de
     // outra sessão — é essa comparação (e não um relógio) que decide se a faixa aparece.
@@ -7074,6 +7075,10 @@ class Component extends DCLogic {
     this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){} };
     window.addEventListener('catedra:syncstate', this._onSyncState);
     window.addEventListener('catedra:synced', this._onSynced);
+    // primeiro acerto com a nuvem: agora o conserto do edital pode ir ao disco sem vencer edição
+    // mais nova de outro aparelho. setTimeout: deixa a reidratação do mesmo tique assentar antes.
+    this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._edPersistirReparo(); }catch(_){} }, 0); };
+    window.addEventListener('catedra:syncpronto', this._onSyncPronto);
     // Ponte CátedraLEGIS → Cátedra: o app nativo chama isto (evaluateJavaScript) para
     // registrar o estudo de leis feito na aba CátedraLEGIS como uma sessão REAL — assim o
     // Cátedra "coleta" o estudo do CátedraLEGIS (Tempo de estudo, Sessões recentes,
@@ -7282,6 +7287,7 @@ class Component extends DCLogic {
       // tema veio da nuvem → os satélites (LEGIS/JURIS) precisam ser repintados junto,
       // senão eles ficam com o tema velho até a próxima troca manual.
       if(('dir' in patch)||('darkMode' in patch)||('accent' in patch)||('prefs' in patch)){ try{ this._temaBroadcast(); }catch(_){} }
+      try{ this._edPersistirReparo(); }catch(_){}   // a nuvem trouxe o edital: se o conserto ficou pendente e o sync já acertou, grava
     });
   }
   // ===== escudo de ofensiva (streak freeze) =====
@@ -7520,7 +7526,7 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
   componentDidUpdate(){ this._baixaRaiz(); this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
@@ -7700,11 +7706,13 @@ class Component extends DCLogic {
      depois do sync, a troca de área e o backup. Só toca o subtópico corrompido: string continua
      string (quem grava é que normaliza). Devolve a MESMA lista quando não há o que reparar, então
      é idempotente; conta o que consertou para o console.
-     O conserto NÃO grava sozinho. O _autosave regrava toda chave cujo conteúdo difere do disco, e
-     cada gravação ganha carimbo de "agora" no auth.js — se o edital consertado subisse no boot,
-     antes do pull, essa cópia venceria a edição mais nova feita em outro aparelho. Por isso o _load
-     guarda a referência consertada (_edReparadoRef) e o salvamento pula o edital enquanto o estado
-     for ela; na primeira edição da pessoa a referência muda e o nome consertado vai junto. */
+     O conserto só vai ao disco quando é SEGURO. O _autosave regrava toda chave cujo conteúdo
+     difere do disco, e cada gravação ganha carimbo de "agora" no auth.js — se o edital consertado
+     subisse no boot, antes do pull, essa cópia venceria a edição mais nova feita em outro aparelho.
+     Por isso o _load guarda a referência consertada (_edReparadoRef), o salvamento normal pula o
+     edital enquanto o estado for ela, e _edPersistirReparo grava na hora certa: já na abertura
+     quando a página não tem camada de sync, ou assim que o auth.js avisa o primeiro acerto com a
+     nuvem (CatedraSync.pronto / evento catedra:syncpronto). Se a pessoa editar antes, vai junto. */
   _editalReparar(ed){
     if(!Array.isArray(ed)) return ed;
     let n=0;
@@ -7724,8 +7732,29 @@ class Component extends DCLogic {
   _load(k, fb){ try{ const r=localStorage.getItem(this._chave(k)); if(r!=null){ const v=JSON.parse(r); if(v!=null){
     if(k!=='edital') return v;
     const ed=this._editalReparar(v); if(ed!==v) this._edReparadoRef=ed; return ed; } } }catch(_){} return fb; }
-  /** o edital consertado na leitura e ainda não editado: não grava sozinho (ver _editalReparar) */
+  /** o edital consertado na leitura e ainda não editado: o salvamento normal pula (ver _editalReparar) */
   _edSoReparado(){ return !!this._edReparadoRef && this.state.edital===this._edReparadoRef; }
+  /* O sync já acertou com a nuvem nesta abertura — ou esta página não tem camada de sync nenhuma
+     (arquivo aberto sem o build, testes). "Não tem" exige as três ausências: o CatedraSync ainda
+     não existir não basta, porque o auth.js pode carregar depois do app. */
+  _edSincronizado(){
+    const S=window.CatedraSync; if(S) return !!S.pronto;
+    let temAuth=false; try{ temAuth=!!document.querySelector('script[src$="auth.js"]'); }catch(_){}
+    return !window.CATEDRA_SUPABASE && !window.supabase && !temAuth;
+  }
+  /* Grava o edital consertado na leitura assim que é seguro (ver _editalReparar). Uma vez só: a
+     referência sai e o edital volta ao salvamento normal. Chamado na montagem, no evento
+     catedra:syncpronto e depois de cada reidratação. */
+  _edPersistirReparo(){
+    if(!this._edSoReparado() || !this._edSincronizado()) return;
+    const ed=this.state.edital; this._edReparadoRef=null;
+    try{
+      localStorage.setItem(this._chave('edital'), this._serializar('edital', ed));
+      const L=this._lastSaved||(this._lastSaved={}); L.edital=ed;
+      console.info('[Cátedra] edital: subtópicos reparados gravados no disco');
+    }catch(_){}
+    try{ if(window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push(); }catch(_){}
+  }
   /* COR DE DESTAQUE NO DISCO. `null` na memória quer dizer "siga a cor da direção visual",
      mas no disco ele virava "null" — e para o mergeAll do auth.js "null" é VAZIO, e vazio
      nunca apaga cheio. Resultado: "Padrão do tema" não tinha como vencer uma cor guardada
@@ -7753,7 +7782,7 @@ class Component extends DCLogic {
     try{ clearTimeout(this._asT); }catch(_){}
     const L=this._lastSaved||(this._lastSaved={});
     this._autosaveKeys().forEach(k=>{
-      if(k==='edital' && this._edSoReparado()){ L[k]=this.state[k]; return; }   // conserto de leitura não grava sozinho
+      if(k==='edital' && this._edSoReparado()){ L[k]=this.state[k]; return; }   // conserto de leitura: quem grava é _edPersistirReparo
       try{ localStorage.setItem(this._chave(k), JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){}
     });
     try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(this.state.sessions||[])); }catch(_){}
@@ -7788,7 +7817,7 @@ class Component extends DCLogic {
         // chave sem estado (ex.: 'redHist', cujo estado vive em redHist2) gravava a
         // palavra "undefined" a cada salvamento — e recarimbava sozinha
         if(this.state[k]===undefined){ L[k]=undefined; continue; }
-        // o edital consertado na leitura só vai ao disco com a primeira edição da pessoa (ver _editalReparar)
+        // o edital consertado na leitura vai ao disco por _edPersistirReparo, quando o sync permite
         if(k==='edital' && this._edSoReparado()){ L[k]=this.state[k]; continue; }
         const ck=this._chave(k), s=this._serializar(k, this.state[k]);
         if(localStorage.getItem(ck)!==s){ localStorage.setItem(ck, s); gravou=true; }
