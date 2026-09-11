@@ -146,6 +146,44 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   textarea { min-height: 44px; font-size: max(16px, var(--fs-sm, 12.5px)) !important; }
 }
 
+/* ===== 6b. a fileira que rola diz que rola ========================================
+   Medido a 390 px, dentro do iframe: três fileiras rolavam de lado sem sinal nenhum —
+   LEGIS #tabsTopo escondendo 181 px ("Índice das normas" e "Incidência"), JURIS #tabs
+   escondendo 245 e JURIS #trib escondendo 733, ou seja 6 dos 10 tribunais. Nenhuma tinha
+   máscara, seta ou sombra: quem olha não tem como saber que existe mais. Não é estouro —
+   o pai corta certo, e o documento nunca rola de lado — é destino invisível.
+
+   As duas tampas em `background-attachment: local` andam JUNTO com o conteúdo e cobrem a
+   sombra enquanto a fileira está encostada naquela ponta; assim que rola, a tampa sai de
+   cima e a sombra aparece, só do lado que ainda tem conteúdo. Quando a fila CABE, as duas
+   tampas ficam nas duas pontas e nada aparece — que é o que o `.ct-chips-borda` do
+   catedra-ui.css prometia no comentário ("some quando a fila cabe") e nunca cumpriu: ele é
+   um ::after fixo na direita, e além disso está morto, sem um só uso no repositório.
+   Sem JS, sem observador de rolagem, sem sintaxe nova (o WKWebView usa JavaScriptCore).
+
+   Mora aqui, e não no catedra-ui.css, porque aquele arquivo é do host e a divisão de
+   frentes do plano do iPhone o reserva à F4 — esta é a F5. O nome é o mesmo dos dois lados
+   de propósito: é o mesmo conceito.
+
+   A cor da tampa tem de ser a que está ATRÁS da fileira, e isso só a página sabe: no LEGIS
+   a fila tem fundo próprio (--surface2), no JURIS ela é transparente sobre o corpo. Por
+   isso --ct-rolo-bg cai no --bg e cada página que precise ajusta no seu próprio <style>.
+
+   O !important não é preguiça: o <style> de cada página carrega DEPOIS desta base, e no LEGIS
+   a fileira declara `background:` no atalho — que zera background-image junto. Medido: sem o
+   !important a sombra pintava no JURIS (fileira transparente) e não pintava no LEGIS. */
+.ct-rolo {
+  background-image:
+    linear-gradient(to right, var(--ct-rolo-bg, var(--bg, #f4f1ea)), transparent),
+    linear-gradient(to left,  var(--ct-rolo-bg, var(--bg, #f4f1ea)), transparent),
+    linear-gradient(to right, rgba(0, 0, 0, .13), transparent),
+    linear-gradient(to left,  rgba(0, 0, 0, .13), transparent) !important;
+  background-position: left center, right center, left center, right center !important;
+  background-size: 24px 100%, 24px 100%, 12px 100%, 12px 100% !important;
+  background-repeat: no-repeat !important;
+  background-attachment: local, local, scroll, scroll !important;
+}
+
 /* ===== 7. movimento reduzido ======================================================
    Quem marcou "reduzir movimento" no sistema tem enxaqueca, vertigem ou distração por
    movimento — não é preferência estética. Nenhum satélite respeitava isso. */
