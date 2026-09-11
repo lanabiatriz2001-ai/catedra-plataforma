@@ -16,9 +16,9 @@ import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
-import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
+import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
