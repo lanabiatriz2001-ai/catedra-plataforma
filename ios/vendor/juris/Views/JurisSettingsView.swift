@@ -9,6 +9,7 @@ struct JurisSettingsView: View {
     @AppStorage("readingFontFamily") private var readingFontFamily = ""
     @AppStorage("anthropicKey") private var anthropicKey = ""
     @AppStorage("aiModel") private var aiModel = AIService.defaultModel
+    @State private var avisoBackup: String?
 
     private var familiasInstaladas: [String] {
         UIFont.familyNames.sorted()   // NSFontManager é do AppKit
@@ -131,12 +132,30 @@ struct JurisSettingsView: View {
                     Button {
                         if let d = store.exportarBackup() {
                             Exporter.salvar(nome: "vademecum-backup.json", tipo: .json, dados: d)
+                            avisoBackup = "Backup gravado em Arquivos › Cátedra e aberto para compartilhar."
                         }
                     } label: { Label("Exportar backup", systemImage: "square.and.arrow.up") }
                     Button {
-                        if let d = Exporter.abrir(tipos: [.json]) { _ = store.importarBackup(d) }
+                        // Seletor de documentos do iPad (NSOpenPanel não existe aqui).
+                        Exporter.abrir(tipos: [.json]) { dados in
+                            guard let dados else { return }
+                            avisoBackup = store.importarBackup(dados)
+                                ? "Backup importado."
+                                : "Não foi possível ler este arquivo como backup do CátedraJURIS."
+                        }
                     } label: { Label("Importar backup", systemImage: "square.and.arrow.down") }
                     Spacer()
+                }
+                // Dois botões numa linha de Form: sem estilo próprio, um toque na linha
+                // acionava os dois. Bordered dá a cada um o seu alvo (≥ 44 pt).
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                if let avisoBackup {
+                    Text(avisoBackup).font(.caption).foregroundStyle(.secondary)
+                }
+                LabeledContent("Onde fica") {
+                    Text("Arquivos › No meu iPad › Cátedra.")
+                        .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
                 }
                 LabeledContent("Sincronização") {
                     Text("Favoritos, coleções e marcações sincronizam via iCloud quando o app é assinado com iCloud; enquanto isso, use backup/restauração.")
@@ -147,7 +166,9 @@ struct JurisSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 540, height: 520)
+        // Sem largura fixa: no iPad quem dimensiona é a folha (formSheet) do host; 540 pt
+        // fixos cortavam o Form quando a folha era mais estreita.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var estaExecutando: Bool {

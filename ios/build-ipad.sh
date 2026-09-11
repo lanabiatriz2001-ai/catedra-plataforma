@@ -75,7 +75,12 @@ AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma-fawn.vercel.app/a
 mkdir -p "$BUILD"
 
 echo "→ 1/4  Gerando bundle web (Catedra.dc.html → mac/build/web)…"
-node "$ROOT/scripts/build-macos.mjs" >/dev/null
+# O alvo carimbado no bundle é o iPad; e a saída NÃO vai para /dev/null: se uma biblioteca
+# não puder ser vendorada, a linha "via CDN" precisa aparecer aqui — senão o app sairia
+# dependendo de rede sem ninguém ver.
+CATEDRA_ALVO=iPadOS node "$ROOT/scripts/build-macos.mjs" > "$BUILD/web-build.log" 2>&1 \
+  || { cat "$BUILD/web-build.log"; echo "✗ o bundle web falhou — o app não pode sair sem ele"; exit 1; }
+grep -E 'via CDN|⚠' "$BUILD/web-build.log" | sed 's/^/     /' || true
 echo "     $(du -sh "$ROOT/mac/build/web" | cut -f1) de conteúdo web"
 
 echo "→ 2/4  Compilando Swift para iOS/iPadOS ($ALVO)…"

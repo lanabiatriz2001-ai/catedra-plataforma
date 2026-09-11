@@ -29,7 +29,7 @@ func aiEndpoint() -> String {
     return ""
 }
 
-final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply, WKDownloadDelegate, UIDocumentPickerDelegate {
+final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply, WKDownloadDelegate, UIDocumentPickerDelegate, UNUserNotificationCenterDelegate {
 
     var webView: WKWebView!
     private var segmento: UISegmentedControl!
@@ -40,6 +40,18 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     // @Observable, sem .shared: a instância é guardada aqui, como o host do Mac faz.
     private var jurisStore: LibraryStore?
     private var jurisUpdater: UpdateService?
+    // ===== Paridade com o host do Mac (mac/Sources/main.swift) =====
+    // O bundle web depende destas pontes; sem elas botões da web "não faziam nada" no iPad.
+    var barra: UIView!                                 // barra de abas (segue o tema do app)
+    var botaoAjustes: UIButton!                        // engrenagem dos módulos nativos (LEGIS/JURIS)
+    var abaAtual = 0                                   // última aba MONTADA (o segmento muda antes do montar)
+    var nativeRevTimer: Timer?                         // agenda única: LEGIS/JURIS → Revisões do Cátedra
+    var temaTimer: Timer?                              // a casca segue o tema do app (claro/escuro/acento)
+    var temaPendenteNativo = false                     // tema mudou com o LEGIS/JURIS fora da tela: remontar ao voltar
+    var legisReadsBaseline: Int?                       // readsToday no início da rajada do LEGIS
+    var legisReviewsBaseline: Int?                     // reviewedToday no início da rajada
+    var jurisLidosBaseline: Int?                       // lidosHoje (JURIS) no início da rajada
+    var catalogoJSONCache: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,9 +61,8 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrir, object: nil, queue: .main) { [weak self] n in
             MainActor.assumeIsolated {
                 guard let self, let id = n.userInfo?["id"] as? String else { return }
-                self.segmento.selectedSegmentIndex = 2
-                self.trocarAba()
-                self.jurisStore?.abrirVerbete(id)
+                self.selecionarAba(2)
+                self.abrirVerbeteQuandoCarregado(id)
             }
         }
 
@@ -61,7 +72,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // Ponte de IA + notificações, no mundo .page (o app roda no mundo principal).
         for nome in ["catedraAI", "notifyPermission", "notifyShow", "catedraLembretes",
                      "catedraNav", "catedraPlano", "catedraPrint", "catedraAcervo", "catedraBackup",
-                     "catedraArea"] {
+                     "catedraArea", "catedraWidget"] {
             ucc.addScriptMessageHandler(self, contentWorld: .page, name: nome)
         }
         ucc.addUserScript(WKUserScript(source: Self.pontesJS,
@@ -86,6 +97,10 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         webView.translatesAutoresizingMaskIntoConstraints = false
         // Sem isto o teclado do iPad empurra a página e o layout fica torto ao voltar.
         webView.scrollView.keyboardDismissMode = .interactive
+        // Segurar o dedo num link abria a pré-visualização do Safari — e os botões do app são
+        // <a href="#">. O gesto de "voltar" pela borda também não faz sentido numa página só.
+        webView.allowsLinkPreview = false
+        webView.allowsBackForwardNavigationGestures = false
 
         // ABAS NO TOPO, como no app do Mac: Cátedra | CátedraLEGIS. No Mac isso é a barra
         // de abas do host AppKit; aqui é um UISegmentedControl acima do conteúdo. A
@@ -96,12 +111,16 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // portes no simulador sem depender de alguém tocar na tela; em uso normal ninguém
         // passa esses argumentos.
         let args = ProcessInfo.processInfo.arguments
+        #if targetEnvironment(simulator)
+        // -semPortao (SÓ no simulador): pula o portão de login para inspecionar as telas sem conta.
+        if args.contains("-semPortao") { for s in Self.scriptsSemPortao { ucc.addUserScript(s) } }
+        #endif
         segmento.selectedSegmentIndex = args.contains("-abaJuris") ? 2
                                       : args.contains("-abaLegis") ? 1 : 0
         segmento.translatesAutoresizingMaskIntoConstraints = false
         segmento.addTarget(self, action: #selector(trocarAba), for: .valueChanged)
 
-        let barra = UIView()
+        barra = UIView()
         barra.translatesAutoresizingMaskIntoConstraints = false
         barra.backgroundColor = .secondarySystemBackground
         barra.addSubview(segmento)
@@ -115,6 +134,17 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         botaoVoltarAcervo.isHidden = true
         botaoVoltarAcervo.addTarget(self, action: #selector(voltarAoProcesso), for: .touchUpInside)
         barra.addSubview(botaoVoltarAcervo)
+
+        // Engrenagem dos módulos nativos. No Mac os Ajustes do LEGIS/JURIS abrem pelo menu da
+        // barra (⌘, e ⌘⌥,); aqui não há menu, então ela mora na barra de abas e só aparece
+        // neles — a engrenagem da barra lateral do JURIS também cai aqui (JurisHostBridge).
+        botaoAjustes = UIButton(type: .system)
+        botaoAjustes.translatesAutoresizingMaskIntoConstraints = false
+        botaoAjustes.setImage(UIImage(systemName: "gearshape"), for: .normal)
+        botaoAjustes.accessibilityLabel = "Ajustes do módulo"
+        botaoAjustes.isHidden = true
+        botaoAjustes.addTarget(self, action: #selector(abrirAjustesDoModulo), for: .touchUpInside)
+        barra.addSubview(botaoAjustes)
 
         areaConteudo = UIView()
         areaConteudo.translatesAutoresizingMaskIntoConstraints = false
@@ -133,9 +163,16 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             botaoVoltarAcervo.leadingAnchor.constraint(equalTo: barra.leadingAnchor, constant: 14),
             botaoVoltarAcervo.centerYAnchor.constraint(equalTo: segmento.centerYAnchor),
             botaoVoltarAcervo.trailingAnchor.constraint(lessThanOrEqualTo: segmento.leadingAnchor, constant: -12),
+            botaoAjustes.trailingAnchor.constraint(equalTo: barra.trailingAnchor, constant: -10),
+            botaoAjustes.centerYAnchor.constraint(equalTo: segmento.centerYAnchor),
+            botaoAjustes.widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            botaoAjustes.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
 
             areaConteudo.topAnchor.constraint(equalTo: barra.bottomAnchor),
-            areaConteudo.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            // Até a ÁREA SEGURA, não até a borda: a barra inferior do modo celular e o fim de
+            // toda lista ficavam por baixo do indicador home (env(safe-area-inset-bottom) é 0
+            // sem viewport-fit=cover). A faixa que sobra é pintada com o fundo do tema.
+            areaConteudo.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             areaConteudo.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             areaConteudo.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
@@ -145,13 +182,28 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             webView.trailingAnchor.constraint(equalTo: areaConteudo.trailingAnchor),
         ])
 
-        guard let dir = Bundle.main.url(forResource: "web", withExtension: nil) else {
+        UNUserNotificationCenter.current().delegate = self   // aviso aparece com o app ABERTO; toque navega
+        instalarCicloDeVida()          // relógios pausam fora do foco; segundo plano fecha a rajada
+        instalarObservadoresNativos()  // check no LEGIS/JURIS → registro no Cátedra; engrenagem do JURIS
+        setupLegisClock()
+        setupJurisClock()
+        startNativeReviewsSync()       // agenda única + plano de leitura + catálogo → web
+        iniciarEspelhoDeTema()         // a casca (barra, fundo, status bar) acompanha o tema do app
+
+        guard Bundle.main.url(forResource: "web", withExtension: nil) != nil else {
             mostrarErro("Bundle web não encontrado dentro do app.")
             return
         }
-        webView.loadFileURL(dir.appendingPathComponent("index.html"), allowingReadAccessTo: dir)
+        carregarApp()
         instalarProvedorIA()   // IA dos módulos nativos passa pelo mesmo /api/complete do app
         trocarAba()   // aplica a aba inicial (normalmente Cátedra)
+    }
+
+    /// Carrega (ou recarrega) o bundle web — também é a saída da tela branca quando o iPadOS
+    /// mata o processo de conteúdo do WKWebView em segundo plano.
+    func carregarApp() {
+        guard let dir = Bundle.main.url(forResource: "web", withExtension: nil) else { return }
+        webView.loadFileURL(dir.appendingPathComponent("index.html"), allowingReadAccessTo: dir)
     }
 
     /// Troca entre a WebView do Cátedra e a tela nativa do CátedraLEGIS. O LEGIS é criado
@@ -187,30 +239,64 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
     private func montarAba(remontar: Bool) {
         let aba = segmento.selectedSegmentIndex
+        // Ao SAIR do CátedraLEGIS/CátedraJURIS, fecha a rajada e coleta no Cátedra (como no Mac).
+        if abaAtual == 1 && aba != 1 { flushLegisStudy() }
+        if abaAtual == 2 && aba != 2 { flushJurisStudy() }
+        StudyClock.shared.setTabActive(aba == 1)   // relógio do LEGIS: só na aba 1
+        JurisClock.shared.setTabActive(aba == 2)   // relógio do JURIS: só na aba 2
+        abaAtual = aba
         // Voltou ao Cátedra pela aba: a volta ao ponto do processo deixou de fazer sentido.
         if aba == 0 { AcervoEntrada.shared.limpar() }
         atualizarBotaoVoltarAcervo()
-        if remontar {
+        // O tema pode ter mudado enquanto os módulos estavam fora da tela (o espelho de 2 s
+        // consumiu a diferença): eles ainda precisam nascer de novo com as cores novas.
+        if remontar || temaPendenteNativo {
             // Tema novo: o SwiftUI leu as cores no build, então a tela precisa nascer de novo.
             if let v = legisVC { v.willMove(toParent: nil); v.view.removeFromSuperview(); v.removeFromParent(); legisVC = nil }
             if let v = jurisVC { v.willMove(toParent: nil); v.view.removeFromSuperview(); v.removeFromParent(); jurisVC = nil }
+            temaPendenteNativo = false
         }
         if aba == 1 && legisVC == nil {
             legisVC = encaixar(UIHostingController(rootView: CatedraLegisRoot(store: AppStore.shared)))
+            refreshEditalDisciplinas()   // matérias do edital → vínculo da checklist do LEGIS
         }
         if aba == 2 && jurisVC == nil {
             let st = jurisStore ?? LibraryStore(); jurisStore = st
             let up = jurisUpdater ?? UpdateService(); jurisUpdater = up
             jurisVC = encaixar(UIHostingController(rootView: CatedraJurisRoot(store: st, updater: up)))
+            refreshEditalDisciplinasJuris()
         }
         webView.isHidden  = (aba != 0)
         legisVC?.view.isHidden = (aba != 1)
         jurisVC?.view.isHidden = (aba != 2)
+        botaoAjustes?.isHidden = (aba == 0)
         switch aba {
         case 1: if let v = legisVC?.view { areaConteudo.bringSubviewToFront(v) }
         case 2: if let v = jurisVC?.view { areaConteudo.bringSubviewToFront(v) }
-        default: areaConteudo.bringSubviewToFront(webView)
+        default:
+            areaConteudo.bringSubviewToFront(webView)
+            pushNativeReviews()   // voltou ao Cátedra: agenda única e plano com os dados frescos
         }
+    }
+
+    /// O store do JURIS pode ainda não existir (aba nunca aberta) ou estar carregando o acervo
+    /// (35 MB de JSON): abrirVerbete devolve em silêncio se o id não está indexado. Na primeira
+    /// vez o "abrir este verbete" do LEGIS caía no vazio — aqui ele espera o acervo chegar.
+    func abrirVerbeteQuandoCarregado(_ id: String, tentativa: Int = 0) {
+        if jurisStore == nil { jurisStore = LibraryStore() }
+        guard let store = jurisStore else { return }
+        if !store.entries.isEmpty { store.abrirVerbete(id); return }
+        guard tentativa < 60 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.abrirVerbeteQuandoCarregado(id, tentativa: tentativa + 1)
+        }
+    }
+
+    /// Troca de aba por código (pontes da web, notificações, volta ao processo).
+    func selecionarAba(_ i: Int) {
+        guard i >= 0, i < segmento.numberOfSegments else { return }
+        segmento.selectedSegmentIndex = i
+        trocarAba()
     }
 
     // ===== PONTE DE TEMA: Cátedra (CSS vars) → ThemeState dos módulos nativos =====
@@ -340,6 +426,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // como tema novo e remonta os hosts, que leem ThemeState.t no build.
         let mudou = (json != ultimoTema)
         ultimoTema = json
+        if mudou { aplicarAparenciaHost() }
         return mudou
     }
 
@@ -379,7 +466,25 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     private func mostrarErro(_ t: String) {
         let a = UIAlertController(title: "Cátedra", message: t, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default))
-        present(a, animated: true)
+        apresentarSobreOTopo(a)
+    }
+
+    /// Alertas do JS (alert/confirm/prompt) sobem sobre o que estiver na tela. Apresentar no
+    /// controlador raiz com outro modal aberto falha EM SILÊNCIO — e o JS fica preso à espera
+    /// do confirm(): era o que travava "Restaurar backup" logo depois de escolher o arquivo
+    /// (o seletor ainda estava sendo dispensado). Se o modal de cima está saindo ou é outro
+    /// alerta, espera a vez.
+    func apresentarSobreOTopo(_ vc: UIViewController, tentativa: Int = 0) {
+        var topo: UIViewController = self
+        while let p = topo.presentedViewController { topo = p }
+        let ocupado = topo.isBeingDismissed || topo.isBeingPresented || (topo !== self && topo is UIAlertController)
+        if ocupado, tentativa < 40 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+                self?.apresentarSobreOTopo(vc, tentativa: tentativa + 1)
+            }
+            return
+        }
+        topo.present(vc, animated: !ThemeState.t.baixaEstimulacao)
     }
 
     // MARK: - Pontes injetadas na página
@@ -550,11 +655,19 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     func webView(_ wv: WKWebView, decidePolicyFor action: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if action.shouldPerformDownload { decisionHandler(.download); return }
-        if let url = action.request.url, let scheme = url.scheme?.lowercased(),
-           (scheme == "http" || scheme == "https"), action.navigationType == .linkActivated {
-            UIApplication.shared.open(url)
-            decisionHandler(.cancel)
-            return
+        if let url = action.request.url, let scheme = url.scheme?.lowercased() {
+            if (scheme == "http" || scheme == "https"), action.navigationType == .linkActivated {
+                UIApplication.shared.open(url)
+                decisionHandler(.cancel)
+                return
+            }
+            // mailto:, tel:, sms:… não abrem dentro do WKWebView (o toque morria em silêncio):
+            // vão para o app do sistema, como no Safari.
+            if !["http", "https", "file", "about", "blob", "data", "javascript"].contains(scheme) {
+                UIApplication.shared.open(url)
+                decisionHandler(.cancel)
+                return
+            }
         }
         decisionHandler(.allow)
     }
@@ -580,7 +693,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 
     func userContentController(_ ucc: WKUserContentController,
                                didReceive message: WKScriptMessage,
-                               replyHandler: @escaping (Any?, String?) -> Void) {
+                               replyHandler respostaBruta: @escaping (Any?, String?) -> Void) {
+        // As permissões e a IA respondem de threads de fundo; a resposta ao JS é da main.
+        let replyHandler: (Any?, String?) -> Void = { v, e in DispatchQueue.main.async { respostaBruta(v, e) } }
         switch message.name {
         case "catedraAI":        chamarIA(message, replyHandler)
         case "notifyPermission": permissaoNotificacao(message, replyHandler)
@@ -593,19 +708,31 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
                 DispatchQueue.main.async { self.aplicarArea(juris: temJuris) }
             }
             replyHandler(nil, nil)
-        case "catedraNav":       abrirTelaNativa(message); replyHandler(nil, nil)
+        case "catedraNav":
+            // "Abrir CátedraLEGIS/JURIS" e o "Abrir" das revisões nativas: String ou
+            // dicionário {alvo, termo, de}, como no Mac.
+            let corpo = message.body
+            DispatchQueue.main.async { self.navegarPara(corpo) }
+            replyHandler(nil, nil)
         case "catedraAcervo":    abrirAcervoNativo(message); replyHandler(nil, nil)
+        case "catedraPlano":
+            // Checkbox de uma leitura da tabela-dia (key "di_li_dyi") no ciclo semanal da web.
+            // A web NÃO grava quando a ponte existe — se o host não fizer, o check nunca marca.
+            let k = (message.body as? String) ?? ""
+            DispatchQueue.main.async { self.togglePlanoLeitura(k) }
+            replyHandler(nil, nil)
+        case "catedraPrint":
+            // Relatório → Imprimir/Salvar PDF: window.print() é mudo no WKWebView.
+            DispatchQueue.main.async { self.exportarPDF() }
+            replyHandler(nil, nil)
+        case "catedraWidget":
+            // O payload mudou (baixa estimulação/tema): a casca relê o tema já.
+            DispatchQueue.main.async { self.espelharTema { [weak self] mudou in if mudou { self?.temaPendenteNativo = true } } }
+            replyHandler(nil, nil)
         case "catedraBackup":    handleBackup(message, replyHandler)
-        // Exclusivos do Mac (impressão). Respondem para o JS não travar esperando uma
-        // promessa que nunca resolve.
         default:                 replyHandler(nil, nil)
         }
     }
-
-    /// O JS pedia uma tela nativa por catedraNav. Com as abas no topo isso deixou de ter
-    /// uso: quem troca de tela é a aba, não a página. Fica só o aceite da mensagem para o
-    /// JS não travar esperando uma promessa.
-    private func abrirTelaNativa(_ message: WKScriptMessage) { }
 
     /// O mapa de Processo e peças pediu um instituto no acervo. No iPad temos as abas
     /// NATIVAS ao lado — abrir o LEGIS/JURIS web dentro da aba Cátedra deixaria duas
@@ -615,23 +742,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     private func abrirAcervoNativo(_ message: WKScriptMessage) {
         let corpo = message.body as? [String: Any] ?? [:]
         let alvo = (corpo["alvo"] as? String) ?? ""
-        guard alvo == "legis" || alvo == "juris" else { return }
-        // Item 5: além de trocar a aba, leva o TERMO e guarda o ponto de origem para a volta.
         let termo = (corpo["termo"] as? String) ?? ""
         let origem = AcervoEntrada.origem(de: corpo["de"] as? [String: Any])
-        DispatchQueue.main.async {
-            AcervoEntrada.shared.chegou(termo: termo, origem: origem)
-            self.segmento.selectedSegmentIndex = (alvo == "juris") ? 2 : 1
-            self.trocarAba()
-            self.atualizarBotaoVoltarAcervo()
-            if alvo == "juris", !termo.isEmpty {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-                    guard let store = self?.jurisStore else { return }
-                    store.ir(.todos)          // ir() zera a busca: o termo entra DEPOIS
-                    store.searchText = termo
-                }
-            }
-        }
+        DispatchQueue.main.async { self.irParaAcervo(alvo: alvo, termo: termo, origem: origem) }
     }
 
     /// Botão "voltar ao ponto do processo" na barra de abas — só quando há origem viva.
@@ -809,7 +922,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
                  initiatedByFrame f: WKFrameInfo, completionHandler done: @escaping () -> Void) {
         let a = UIAlertController(title: "Cátedra", message: m, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default) { _ in done() })
-        present(a, animated: true)
+        apresentarSobreOTopo(a)
     }
 
     func webView(_ w: WKWebView, runJavaScriptConfirmPanelWithMessage m: String,
@@ -817,7 +930,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         let a = UIAlertController(title: "Cátedra", message: m, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "Cancelar", style: .cancel) { _ in done(false) })
         a.addAction(UIAlertAction(title: "OK", style: .default) { _ in done(true) })
-        present(a, animated: true)
+        apresentarSobreOTopo(a)
     }
 
     func webView(_ w: WKWebView, runJavaScriptTextInputPanelWithPrompt m: String, defaultText d: String?,
@@ -826,7 +939,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         a.addTextField { $0.text = d }
         a.addAction(UIAlertAction(title: "Cancelar", style: .cancel) { _ in done(nil) })
         a.addAction(UIAlertAction(title: "OK", style: .default) { _ in done(a.textFields?.first?.text) })
-        present(a, animated: true)
+        apresentarSobreOTopo(a)
     }
 
     // Link externo (http/https) abre no Safari em vez de sequestrar a tela do app.
@@ -836,6 +949,659 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             UIApplication.shared.open(u)
         }
         return nil
+    }
+}
+
+// MARK: - Paridade com o host do Mac
+// O bundle web é o MESMO do Mac e conversa com a casca por pontes. No iPad várias delas eram
+// registradas e caíam no vazio: "Abrir CátedraLEGIS" não abria nada, o check do plano de
+// leitura nunca marcava, "Salvar PDF" não fazia nada, o tempo estudado no LEGIS/JURIS não
+// virava sessão no Cátedra, a agenda única de revisões ficava vazia. Tudo abaixo espelha
+// mac/Sources/main.swift, adaptado ao UIKit.
+extension RootViewController {
+
+    // ===== Ciclo de vida do app =====
+    // Os relógios de estudo pausam quando o app perde o foco. Em segundo plano o iPadOS pode
+    // encerrar o app sem avisar: a rajada é fechada AGORA e guardada em disco; o registro
+    // chega ao Cátedra na volta (ou na próxima abertura).
+    func instalarCicloDeVida() {
+        let nc = NotificationCenter.default
+        nc.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                StudyClock.shared.setAppActive(true)
+                JurisClock.shared.setAppActive(true)
+                guard let self else { return }
+                self.entregarEstudosPendentesSePossivel()
+                self.pushNativeReviews()
+            }
+        }
+        nc.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated {
+                StudyClock.shared.setAppActive(false)
+                JurisClock.shared.setAppActive(false)
+            }
+        }
+        nc.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.flushLegisStudy(); self?.flushJurisStudy() }
+        }
+        nc.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.flushLegisStudy(); self?.flushJurisStudy() }
+        }
+    }
+
+    // Check de leitura nos apps NATIVOS (plano do LEGIS/JURIS) → volta para a aba Cátedra e
+    // abre o registro de atividades. A troca de aba já dispara o flush do cronômetro (se
+    // houve ≥ 1 min de estudo, o registro abre com o TEMPO real rateado); senão abrimos com o
+    // prefill da leitura marcada — a chamada é "auto": nunca atropela um modal aberto.
+    func instalarObservadoresNativos() {
+        let nc = NotificationCenter.default
+        nc.addObserver(forName: Notification.Name("catedraPlanoLegisMarcado"), object: nil, queue: .main) { [weak self] n in
+            MainActor.assumeIsolated {
+                guard let self, let k = n.userInfo?["key"] as? String else { return }
+                var payload: [String: Any] = ["auto": true, "origem": "CátedraLEGIS", "min": 0,
+                                              "categoria": "Lei seca", "topico": "Leitura de leis — plano"]
+                let parts = k.split(separator: "_").compactMap { Int($0) }
+                if parts.count == 3, parts[0] < ReadingData.plano.count {
+                    let disc = ReadingData.plano[parts[0]]
+                    if parts[1] < disc.laws.count, parts[2] < disc.laws[parts[1]].days.count {
+                        let law = disc.laws[parts[1]]
+                        let day = law.days[parts[2]]
+                        let juris = disc.name == "Súmulas"
+                        payload["categoria"] = juris ? "Jurisprudência" : "Lei seca"
+                        payload["topico"] = (juris ? "Jurisprudência — " : "Lei seca — ") + law.name + " · " + day.a
+                        if !juris { payload["disc"] = disc.name }
+                    }
+                }
+                self.abrirRegistroAuto(payload)
+            }
+        }
+        nc.addObserver(forName: Notification.Name("catedraPlanoJurisMarcado"), object: nil, queue: .main) { [weak self] n in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                let dia = n.userInfo?["dia"] as? Int ?? 0
+                let faixa = n.userInfo?["faixa"] as? String ?? ""
+                let trilha = n.userInfo?["trilha"] as? String ?? ""
+                self.abrirRegistroAuto(["auto": true, "origem": "CátedraJURIS", "min": 0,
+                                        "categoria": "Jurisprudência",
+                                        "topico": "Súmulas \(trilha) — \(faixa) (Dia \(dia))"])
+            }
+        }
+        // Item do checklist de leitura (LEGIS/JURIS) marcado como feito → marca a tarefa
+        // correspondente do ciclo de estudos como concluída no Cátedra.
+        nc.addObserver(forName: ChecklistSyncBridge.itemDone, object: nil, queue: .main) { [weak self] note in
+            MainActor.assumeIsolated { self?.markCycleTaskDone(note.userInfo) }
+        }
+        // Engrenagem da barra lateral do JURIS (o embed não tem cena Settings).
+        nc.addObserver(forName: JurisHostBridge.openSettings, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.abrirAjustes(aba: 2) }
+        }
+    }
+
+    // ===== Ajustes dos módulos nativos =====
+    @objc func abrirAjustesDoModulo() { abrirAjustes(aba: segmento.selectedSegmentIndex) }
+
+    func abrirAjustes(aba: Int) {
+        guard presentedViewController == nil else { return }
+        let acento = ThemeState.t.accent
+        let host: UIViewController
+        if aba == 2 {
+            // Garante store/updater mesmo se a aba nunca foi aberta nesta sessão.
+            let store = jurisStore ?? LibraryStore()
+            let updater = jurisUpdater ?? UpdateService()
+            jurisStore = store; jurisUpdater = updater
+            host = UIHostingController(rootView: AjustesEmbrulho(titulo: "Ajustes — CátedraJURIS", fechar: { [weak self] in self?.dismiss(animated: true) }) {
+                JurisSettingsView().environment(store).environment(updater)
+            }.tint(acento))
+        } else if aba == 1 {
+            host = UIHostingController(rootView: AjustesEmbrulho(titulo: "Ajustes — CátedraLEGIS", fechar: { [weak self] in self?.dismiss(animated: true) }) {
+                SettingsView().environmentObject(AppStore.shared)
+            }.tint(acento))
+        } else { return }
+        host.overrideUserInterfaceStyle = ThemeState.t.isDark ? .dark : .light
+        host.modalPresentationStyle = .formSheet
+        present(host, animated: !ThemeState.t.baixaEstimulacao)
+    }
+
+    // ===== Navegação pedida pela web =====
+    /// `catedraNav`: "Abrir CátedraLEGIS/JURIS" do Cátedra e o "Abrir" das revisões nativas.
+    /// String ("legis"/"juris") ou dicionário {alvo, termo, de} — os dois formatos do Mac.
+    func navegarPara(_ corpo: Any?) {
+        var alvo = "", termo = ""
+        var origem: AcervoEntrada.Origem?
+        if let str = corpo as? String {
+            alvo = str
+        } else if let d = corpo as? [String: Any] {
+            alvo = (d["alvo"] as? String) ?? ""
+            termo = (d["termo"] as? String) ?? ""
+            origem = AcervoEntrada.origem(de: d["de"] as? [String: Any])
+        }
+        irParaAcervo(alvo: alvo, termo: termo, origem: origem)
+    }
+
+    /// Troca para a aba nativa pedida, levando o termo (JURIS busca direto) e o ponto de
+    /// origem para a volta ("← Voltar ao processo").
+    func irParaAcervo(alvo: String, termo: String, origem: AcervoEntrada.Origem?) {
+        guard alvo == "legis" || alvo == "juris" else { return }
+        if alvo == "juris" && !jurisDisponivel { return }   // a área não oferece jurisprudência
+        AcervoEntrada.shared.chegou(termo: termo, origem: origem)
+        selecionarAba(alvo == "juris" ? 2 : 1)
+        atualizarBotaoVoltarAcervo()
+        if alvo == "juris", !termo.isEmpty {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                guard let store = self?.jurisStore else { return }
+                store.ir(.todos)          // ir() zera a busca: o termo entra DEPOIS
+                store.searchText = termo
+            }
+        }
+    }
+
+    // ===== Agenda de revisão única, plano de leitura e catálogo (nativo → web) =====
+    // O host lê os baralhos SRS dos dois módulos e injeta um resumo no WebView
+    // ({legis:{due,deck}, juris:{due,deck}}); a view Revisões do Cátedra exibe e o botão
+    // "Abrir" volta por catedraNav. Atualiza a cada 2 min, ao voltar à aba Cátedra e ao abrir.
+    func startNativeReviewsSync() {
+        let tm = Timer(timeInterval: 120.0, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.pushNativeReviews() }
+        }
+        RunLoop.main.add(tm, forMode: .common); nativeRevTimer = tm
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
+            guard let self else { return }
+            // Instancia o store do JURIS cedo (é o mesmo objeto reaproveitado pela aba),
+            // senão a contagem só existiria após a primeira visita à aba de jurisprudência.
+            if self.jurisStore == nil { self.jurisStore = LibraryStore() }
+            self.pushNativeReviews()
+        }
+    }
+
+    func pushNativeReviews() {
+        guard let wv = webView else { return }
+        let payload = "{\"legis\":{\"due\":\(AppStore.shared.srsDueCount()),\"deck\":\(AppStore.shared.srsDeckCount)}," +
+                      "\"juris\":{\"due\":\(jurisStore?.srsDueCount ?? 0),\"deck\":\(jurisStore?.srsDeckCount ?? 0)}}"
+        wv.evaluateJavaScript("window.catedraSetNativeRev && window.catedraSetNativeRev(\(payload))", completionHandler: nil)
+        // Planos de leitura (LEGIS + JURIS) → blocos no Ciclo de Estudos do Cátedra.
+        if let planoJSON = nativePlanoPayload() {
+            wv.evaluateJavaScript("window.catedraSetNativePlano && window.catedraSetNativePlano(\(planoJSON))", completionHandler: nil)
+        }
+        // Catálogo de leis/fontes → seletores do registro de sessão.
+        if let cat = nativeCatalogoJSON() {
+            wv.evaluateJavaScript("window.catedraSetNativeCatalogo && window.catedraSetNativeCatalogo(\(cat))", completionHandler: nil)
+        }
+    }
+
+    // Checkbox do ciclo semanal (web) → marca/desmarca a leitura no plano do LEGIS.
+    // Linhas de súmulas espelham no plano do JURIS (é a MESMA leitura nos dois).
+    func togglePlanoLeitura(_ key: String) {
+        guard !key.isEmpty else { return }
+        let d = UserDefaults.standard
+        var done = Set((d.array(forKey: "catedra.plano.done.v1") as? [String]) ?? [])
+        let marcando = !done.contains(key)
+        if marcando { done.insert(key) } else { done.remove(key) }
+        d.set(Array(done), forKey: "catedra.plano.done.v1")
+        let parts = key.split(separator: "_").compactMap { Int($0) }
+        if parts.count == 3, parts[0] < ReadingData.plano.count {
+            let disc = ReadingData.plano[parts[0]]
+            if disc.name == "Súmulas", parts[1] < disc.laws.count {
+                let lawName = disc.laws[parts[1]].name
+                let dyi = parts[2]
+                var jurisDia: Int? = nil
+                if lawName.contains("VINCULANTES") { jurisDia = 1 + dyi }
+                else if lawName.contains("TSE") { jurisDia = 6 + dyi }
+                else if lawName.contains("STJ") { jurisDia = 12 + dyi }
+                else if lawName.contains("STF") { jurisDia = 50 + dyi }
+                if let jd = jurisDia {
+                    var lidos = Set((d.array(forKey: "juris.plano.done.v1") as? [Int]) ?? [])
+                    if marcando { lidos.insert(jd) } else { lidos.remove(jd) }
+                    d.set(Array(lidos), forKey: "juris.plano.done.v1")
+                }
+            }
+        }
+        pushNativeReviews()   // re-injeta o payload → o quadro semanal atualiza na hora
+    }
+
+    func abrirRegistroAuto(_ payload: [String: Any]) {
+        selecionarAba(0)   // volta para o Cátedra — dispara o flush do tempo estudado
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+            guard let self, let wv = self.webView,
+                  let data = try? JSONSerialization.data(withJSONObject: payload),
+                  let json = String(data: data, encoding: .utf8) else { return }
+            wv.evaluateJavaScript("window.catedraOpenStudyRegistration && window.catedraOpenStudyRegistration(\(json))", completionHandler: nil)
+            self.pushNativeReviews()
+        }
+    }
+
+    // Catálogo p/ o registro de sessão: "Lei seca" lista as leis do plano do LEGIS
+    // (por disciplina); "Jurisprudência" lista as fontes do JURIS. Estático — cacheado.
+    func nativeCatalogoJSON() -> String? {
+        if let c = catalogoJSONCache { return c }
+        var legis: [[String: Any]] = []
+        for disc in ReadingData.plano where disc.name != "Súmulas" {
+            legis.append(["disc": disc.name, "leis": disc.laws.map { $0.name }])
+        }
+        let fontes: [Fonte] = [.sumulaVinculante, .sumulaSTF, .sumulaSTJ, .sumulaTSE,
+                               .repercussaoGeral, .repetitivo, .jurisEmTeses,
+                               .informativoSTF, .informativoSTJ, .informativoTSE,
+                               .controleConst, .adi, .adc, .ado, .adpf, .precedentesObrig]
+        let dict: [String: Any] = ["legis": legis, "juris": fontes.map { $0.nome }]
+        guard let d = try? JSONSerialization.data(withJSONObject: dict),
+              let s = String(data: d, encoding: .utf8) else { return nil }
+        catalogoJSONCache = s
+        return s
+    }
+
+    // Próxima meta de cada plano de leitura + progresso — vira bloco no Ciclo.
+    // LEGIS: cronograma por disciplina (id de leitura "di_li_dyi", próximo = 1º não
+    // concluído, mesma ordem do PlanoLeituraView). JURIS: dias de súmulas (próximo = 1º
+    // "dia" não lido). Lê os mesmos UserDefaults dos planos nativos.
+    func nativePlanoPayload() -> String? {
+        let ldone = PlanoStore.loadDone()
+        var lTotal = 0
+        // TODAS as leituras agrupadas por número da tabela-dia ("Dia 3" → CF, CC, CPC… + a
+        // linha de súmulas), com estado feito/pendente por lei. O roteiro fixa seg→sex = os
+        // 5 dias da SEMANA do plano em curso.
+        var porDia: [Int: [[String: Any]]] = [:]
+        var pendMin: Int? = nil
+        for (di, disc) in ReadingData.plano.enumerated() {
+            for (li, law) in disc.laws.enumerated() {
+                for (dyi, day) in law.days.enumerated() {
+                    lTotal += 1
+                    let key = "\(di)_\(li)_\(dyi)"
+                    let feito = ldone.contains(key)
+                    let n = Int(day.d.replacingOccurrences(of: "Dia ", with: "")) ?? 0
+                    porDia[n, default: []].append(["key": key, "law": law.name, "arts": day.a, "done": feito, "cor": law.color, "disc": disc.name])
+                    if !feito { pendMin = min(pendMin ?? n, n) }
+                }
+            }
+        }
+        let maxDia = porDia.keys.max() ?? 1
+        let alvo = pendMin ?? maxDia
+        let sIni = ((alvo - 1) / 5) * 5 + 1
+        var semana: [[String: Any]] = []
+        for n in sIni...(sIni + 4) where porDia[n] != nil {
+            semana.append(["num": n, "itens": porDia[n]!])
+        }
+        var lNext: Any = NSNull()
+        if let pm = pendMin, let itens = porDia[pm] {
+            let pend = itens.filter { !(($0["done"] as? Bool) ?? false) }
+            if let i0 = pend.first {
+                lNext = ["dia": "Dia \(pm)", "law": i0["law"] ?? "", "arts": i0["arts"] ?? "",
+                         "disc": (pend.count > 1 ? "\(pend.count) normas neste dia" : ""), "color": "#0D9488"] as [String: Any]
+            }
+        }
+        var todosDias: [String: Any] = [:]
+        for (n, itens) in porDia { todosDias[String(n)] = itens }
+        let legis: [String: Any] = ["done": ldone.count, "total": lTotal, "next": lNext, "semana": semana, "todosDias": todosDias]
+
+        let jdone = JurisPlanoStore.lidos()
+        let jTotal = JurisPlano.dias.count
+        let jDone = JurisPlano.dias.filter { jdone.contains($0.dia) }.count
+        var jProx: [[String: Any]] = []
+        for nd in JurisPlano.dias where !jdone.contains(nd.dia) {
+            if jProx.count >= 7 { break }
+            jProx.append(["dia": nd.dia, "faixa": nd.faixa, "trilha": nd.trilha, "qtd": nd.qtd, "color": jurisTrilhaColor(nd.trilha)])
+        }
+        let jNext: Any = jProx.first.map { $0 as Any } ?? NSNull()
+        let juris: [String: Any] = ["done": jDone, "total": jTotal, "next": jNext, "prox": jProx]
+
+        let dict: [String: Any] = ["legis": legis, "juris": juris]
+        guard let data = try? JSONSerialization.data(withJSONObject: dict),
+              let json = String(data: data, encoding: .utf8) else { return nil }
+        return json
+    }
+
+    private func jurisTrilhaColor(_ t: String) -> String {
+        switch t {
+        case "STJ": return "#0D9488"
+        case "TSE": return "#7C3AED"
+        default:    return "#2563EB"
+        }
+    }
+
+    /// Espelha as matérias do edital do Cátedra p/ o vínculo da checklist de leitura do LEGIS.
+    func refreshEditalDisciplinas() {
+        webView.evaluateJavaScript("window.catedraEditalDisciplinas && window.catedraEditalDisciplinas()") { result, _ in
+            guard let s = result as? String, let data = s.data(using: .utf8),
+                  let names = try? JSONDecoder().decode([String].self, from: data) else { return }
+            AppStore.shared.setEditalDisciplinas(names)
+        }
+    }
+    /// Mesma coisa, para a checklist de leitura PRÓPRIA do CátedraJURIS (dados separados).
+    func refreshEditalDisciplinasJuris() {
+        guard let store = jurisStore else { return }
+        webView.evaluateJavaScript("window.catedraEditalDisciplinas && window.catedraEditalDisciplinas()") { result, _ in
+            guard let s = result as? String, let data = s.data(using: .utf8),
+                  let names = try? JSONDecoder().decode([String].self, from: data) else { return }
+            store.setEditalDisciplinas(names)
+        }
+    }
+
+    // ===== Ponte de estudo (CátedraLEGIS → Cátedra) =====
+    // Registra as condições/baselines do cronômetro (chamado 1× no launch).
+    func setupLegisClock() {
+        StudyClock.shared.onBurstStart = { [weak self] in
+            guard let self, self.legisReadsBaseline == nil else { return }
+            self.legisReadsBaseline = AppStore.shared.readsToday
+            self.legisReviewsBaseline = AppStore.shared.reviewedToday
+        }
+        // Cada segmento do cronômetro soma no tempo de estudo daquela norma.
+        StudyClock.shared.onSegmentEnd = { law, secs in
+            AppStore.shared.addStudyTime(law, secs)
+        }
+    }
+
+    // Fecha a rajada: ABRE o registro do Cátedra pré-preenchido (a pessoa confere — não
+    // grava sozinho). O tempo vem RATEADO POR MATÉRIA (o relógio fecha um segmento a cada
+    // troca de norma): uma matéria → um registro; várias → FILA (um modal por matéria).
+    // Sobras < 1 min fundem na dominante.
+    func flushLegisStudy() {
+        let (total, byLaw) = StudyClock.shared.takeAndResetBurst()
+        defer { legisReadsBaseline = nil; legisReviewsBaseline = nil }
+        guard Int((total / 60).rounded()) >= 1, legisVC != nil else { return }
+
+        struct Acc { var secs: TimeInterval = 0; var topLaw: LawEntry?; var topSecs: TimeInterval = 0 }
+        var porDisc: [String: Acc] = [:]
+        for (id, s) in byLaw {
+            guard let law = AppStore.shared.laws.first(where: { $0.id == id }) else { continue }
+            let disc = law.customCategory ?? Self.catedraDisc(for: law.category)
+            var a = porDisc[disc] ?? Acc()
+            a.secs += s
+            if s > a.topSecs { a.topSecs = s; a.topLaw = law }
+            porDisc[disc] = a
+        }
+        if porDisc.isEmpty {  // segurança: sem rateio, registra o total como antes
+            let (disc, _) = legisDiscAndTopic()
+            porDisc[disc] = Acc(secs: total, topLaw: nil, topSecs: 0)
+        }
+        var lista = porDisc.map { (disc: $0.key, acc: $0.value) }.sorted { $0.acc.secs > $1.acc.secs }
+        if lista.count > 1 {
+            let resto = lista.dropFirst().filter { $0.acc.secs < 60 }.reduce(0.0) { $0 + $1.acc.secs }
+            lista[0].acc.secs += resto
+            lista = [lista[0]] + lista.dropFirst().filter { $0.acc.secs >= 60 }
+        }
+
+        let reads = max(0, AppStore.shared.readsToday - (legisReadsBaseline ?? AppStore.shared.readsToday))
+        let reviews = max(0, AppStore.shared.reviewedToday - (legisReviewsBaseline ?? AppStore.shared.reviewedToday))
+        let artigo = UserDefaults.standard.string(forKey: "lastStudiedUnitLabel") ?? ""
+        let lastLawID = UserDefaults.standard.string(forKey: "lastStudiedLawID").flatMap(UUID.init)
+
+        var itens: [[String: Any]] = []
+        for item in lista {
+            let mins = Int((item.acc.secs / 60).rounded())
+            guard mins >= 1 else { continue }
+            var topico = item.acc.topLaw?.title ?? "Leitura de leis · CátedraLEGIS"
+            var nota = "leitura de lei no CátedraLEGIS"
+            if let law = item.acc.topLaw, law.id == lastLawID, !artigo.isEmpty {
+                topico += " — \(artigo)"
+                nota = "parou no \(artigo) no CátedraLEGIS"
+            }
+            itens.append(["min": mins, "disc": item.disc, "topico": topico,
+                          "categoria": "Lei seca", "origem": "CátedraLEGIS", "nota": nota])
+        }
+        guard !itens.isEmpty else { return }
+        var partes: [String] = []
+        if reads > 0 { partes.append("\(reads) artigo\(reads == 1 ? "" : "s") lido\(reads == 1 ? "" : "s")") }
+        if reviews > 0 { partes.append("\(reviews) revisã\(reviews == 1 ? "o" : "es")") }
+        if !partes.isEmpty, let nota0 = itens[0]["nota"] as? String {
+            itens[0]["nota"] = partes.joined(separator: " · ") + " · " + nota0
+        }
+        let payload: [String: Any] = itens.count == 1 ? itens[0] : ["queue": itens, "origem": "CátedraLEGIS"]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload),
+              let json = String(data: data, encoding: .utf8) else { return }
+        deliverStudyRegistration(json)
+    }
+
+    // ===== Ponte de estudo (CátedraJURIS → Cátedra) =====
+    func setupJurisClock() {
+        JurisClock.shared.onBurstStart = { [weak self] in
+            guard let self, self.jurisLidosBaseline == nil else { return }
+            self.jurisLidosBaseline = self.jurisStore?.lidosHoje ?? 0
+        }
+    }
+
+    func flushJurisStudy() {
+        var breakdown = JurisClock.shared.takeAndResetBreakdown()   // já vem por ordem de tempo
+        defer { jurisLidosBaseline = nil }
+        guard !breakdown.isEmpty, let store = jurisStore else { return }
+        if breakdown.count > 1 {
+            let resto = breakdown.dropFirst().filter { $0.secs < 60 }.reduce(0) { $0 + $1.secs }
+            breakdown = [(breakdown[0].disc, breakdown[0].secs + resto, breakdown[0].titulo)]
+                + breakdown.dropFirst().filter { $0.secs >= 60 }
+        }
+        let lidos = max(0, store.lidosHoje - (jurisLidosBaseline ?? store.lidosHoje))
+        var itens: [[String: Any]] = []
+        for (disc, secs, titulo) in breakdown {
+            let mins = Int((secs / 60).rounded())
+            guard mins >= 1 else { continue }
+            let topico = titulo.map { "Jurisprudência — \($0)" } ?? "Revisão de jurisprudência · CátedraJURIS"
+            let nota = (titulo.map { "parou em \($0)" } ?? "revisão de jurisprudência") + " no CátedraJURIS"
+            itens.append(["min": mins, "disc": disc, "topico": topico,
+                          "categoria": "Jurisprudência", "origem": "CátedraJURIS", "nota": nota])
+        }
+        guard !itens.isEmpty else { return }
+        if lidos > 0, var nota0 = itens[0]["nota"] as? String {
+            nota0 = "\(lidos) verbete\(lidos == 1 ? "" : "s") lido\(lidos == 1 ? "" : "s") · " + nota0
+            itens[0]["nota"] = nota0
+        }
+        let payload: [String: Any] = itens.count == 1 ? itens[0] : ["queue": itens, "origem": "CátedraJURIS"]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload),
+              let json = String(data: data, encoding: .utf8) else { return }
+        deliverStudyRegistration(json)
+    }
+
+    // Entrega o registro de estudo pré-preenchido ao app web. SEMPRE passa pelo disco: se a
+    // página estiver morta, recarregando, ou o app for encerrado antes de a ponte responder,
+    // o registro sobrevive e é entregue na próxima chance. Só sai do disco o que a web
+    // confirmar que recebeu ('ok'/'queued').
+    func deliverStudyRegistration(_ json: String) {
+        var pend = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+        pend.append(json)
+        UserDefaults.standard.set(pend, forKey: "catedraPendingStudyRegs")
+        entregarEstudosPendentesSePossivel()
+    }
+
+    /// Entrega só numa página ESTÁVEL: já hidratada, ou entrada sem portão aberto (visitante /
+    /// sem rede com sessão). Antes da hidratação o auth.js ainda dá location.reload(), e a
+    /// injeção cairia numa página que está morrendo.
+    func entregarEstudosPendentesSePossivel() {
+        let pend = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+        guard !pend.isEmpty, let wv = webView else { return }
+        let js = """
+        (function(){ try {
+          var g = document.getElementById('catedra-auth-gate');
+          var aberto = !!(g && g.style.display !== 'none');
+          var auth = localStorage.getItem('catedra:auth') === '1';
+          var hid = sessionStorage.getItem('catedra:hydrated') === '1';
+          return (hid || (auth && !aberto)) ? '1' : '0';
+        } catch (e) { return '0'; } })()
+        """
+        wv.evaluateJavaScript(js) { [weak self] r, _ in
+            guard let self, (r as? String) == "1" else { return }
+            MainActor.assumeIsolated { self.entregarEstudosPendentes(pend) }
+        }
+    }
+
+    /// Injeta os registros pendentes e remove do disco SÓ os confirmados.
+    private func entregarEstudosPendentes(_ pend: [String]) {
+        for (i, json) in pend.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.6) { [weak self] in
+                guard let self else { return }
+                self.webView.evaluateJavaScript(
+                    "window.catedraOpenStudyRegistration ? window.catedraOpenStudyRegistration(\(json)) : 'sem-ponte'"
+                ) { r, _ in
+                    let s = r as? String
+                    guard s == "ok" || s == "queued" else { return }
+                    MainActor.assumeIsolated {
+                        var restante = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+                        if let idx = restante.firstIndex(of: json) { restante.remove(at: idx) }
+                        UserDefaults.standard.set(restante, forKey: "catedraPendingStudyRegs")
+                    }
+                }
+            }
+        }
+    }
+
+    // Item de leitura marcado como feito no LEGIS/JURIS → tenta marcar como concluída a
+    // tarefa correspondente de HOJE no ciclo de estudos (por matéria/categoria).
+    private func markCycleTaskDone(_ userInfo: [AnyHashable: Any]?) {
+        guard let userInfo, let origem = userInfo["origem"] as? String,
+              let texto = userInfo["texto"] as? String else { return }
+        let categoria = userInfo["categoria"] as? String
+        let payload: [String: Any] = ["origem": origem, "categoria": categoria ?? NSNull(), "texto": texto]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload),
+              let json = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.catedraMarkChecklistDone && window.catedraMarkChecklistDone(\(json))", completionHandler: nil)
+    }
+
+    // Disciplina do Cátedra + tópico (norma + artigo onde parou) da última norma estudada.
+    private func legisDiscAndTopic() -> (String, String) {
+        guard let idStr = UserDefaults.standard.string(forKey: "lastStudiedLawID"),
+              let uuid = UUID(uuidString: idStr),
+              let law = AppStore.shared.laws.first(where: { $0.id == uuid }) else {
+            return ("Legislação", "Leitura de leis · CátedraLEGIS")
+        }
+        let disc = law.customCategory ?? Self.catedraDisc(for: law.category)
+        var topico = law.title
+        if let artigo = UserDefaults.standard.string(forKey: "lastStudiedUnitLabel"), !artigo.isEmpty {
+            topico += " — \(artigo)"
+        }
+        return (disc, topico)
+    }
+
+    private static func catedraDisc(for c: LawCategory) -> String {
+        switch c {
+        case .constitucional: return "Direito Constitucional"
+        case .civil:          return "Direito Civil"
+        case .penal:          return "Direito Penal"
+        case .administrativo: return "Direito Administrativo"
+        case .tributario:     return "Direito Tributário"
+        case .trabalhista:    return "Direito do Trabalho"
+        case .previdenciario: return "Direito Previdenciário"
+        case .empresarial:    return "Direito Empresarial"
+        case .consumidor:     return "Direito do Consumidor"
+        case .ambiental:      return "Direito Ambiental"
+        case .internacional:  return "Direito Internacional"
+        default:              return "Legislação"
+        }
+    }
+
+    // ===== Imprimir / salvar PDF =====
+    // No Mac é a NSPrintOperation da própria webview. Aqui a página inteira vira um PDF
+    // paginado em A4 e vai para a folha de compartilhamento: Salvar em Arquivos, AirDrop,
+    // Mail, Imprimir — o que a pessoa quiser fazer com ele.
+    func exportarPDF() {
+        let render = UIPrintPageRenderer()
+        render.addPrintFormatter(webView.viewPrintFormatter(), startingAtPageAt: 0)
+        let a4 = CGRect(x: 0, y: 0, width: 595.2, height: 841.8)
+        render.setValue(NSValue(cgRect: a4), forKey: "paperRect")
+        render.setValue(NSValue(cgRect: a4.insetBy(dx: 28, dy: 28)), forKey: "printableRect")
+        let dados = NSMutableData()
+        UIGraphicsBeginPDFContextToData(dados, a4, nil)
+        let paginas = render.numberOfPages
+        for i in 0..<paginas {
+            UIGraphicsBeginPDFPage()
+            render.drawPage(at: i, in: UIGraphicsGetPDFContextBounds())
+        }
+        UIGraphicsEndPDFContext()
+        guard paginas > 0, dados.length > 0 else { mostrarErro("Não consegui montar o PDF desta tela."); return }
+        var nome = (webView.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if nome.isEmpty { nome = "Cátedra" }
+        nome = nome.replacingOccurrences(of: "[/:\\\\]", with: "-", options: .regularExpression)
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(nome + ".pdf")
+        do { try dados.write(to: url, options: .atomic) } catch { mostrarErro("Não consegui gravar o PDF: \(error.localizedDescription)"); return }
+        let folha = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        // No iPad a folha é um popover e PRECISA de âncora — sem ela o app cai.
+        folha.popoverPresentationController?.sourceView = segmento
+        folha.popoverPresentationController?.sourceRect = segmento.bounds
+        present(folha, animated: !ThemeState.t.baixaEstimulacao)
+    }
+
+    // ===== A casca segue o tema do app =====
+    // A barra de abas e o fundo eram systemBackground: com o Cátedra no escuro a faixa de cima
+    // ficava branca (e vice-versa). O status bar acompanha pelo overrideUserInterfaceStyle.
+    func aplicarAparenciaHost() {
+        let t = ThemeState.t
+        overrideUserInterfaceStyle = t.isDark ? .dark : .light
+        let acento = UIColor(t.accent)
+        view.backgroundColor = UIColor(t.bg)
+        barra?.backgroundColor = UIColor(t.surface)
+        segmento?.backgroundColor = UIColor(t.surface2)
+        segmento?.selectedSegmentTintColor = acento
+        let sobreAcento: UIColor = Self.luminancia(acento) < 0.5 ? .white : .black
+        segmento?.setTitleTextAttributes([.foregroundColor: sobreAcento, .font: UIFont.systemFont(ofSize: 13, weight: .semibold)], for: .selected)
+        segmento?.setTitleTextAttributes([.foregroundColor: UIColor(t.ink), .font: UIFont.systemFont(ofSize: 13, weight: .medium)], for: .normal)
+        botaoVoltarAcervo?.tintColor = acento
+        botaoAjustes?.tintColor = acento
+        setNeedsStatusBarAppearanceUpdate()
+    }
+
+    private static func luminancia(_ c: UIColor) -> CGFloat {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard c.getRed(&r, green: &g, blue: &b, alpha: &a) else { return 1 }
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+
+    /// O app não avisa a casca quando a pessoa troca cor/claro-escuro nos Ajustes; com a aba
+    /// Cátedra na tela, o espelho relê os tokens a cada 2 s (leitura barata) e só age se mudou.
+    func iniciarEspelhoDeTema() {
+        let tm = Timer(timeInterval: 2.0, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.abaAtual == 0, self.presentedViewController == nil else { return }
+                self.espelharTema { mudou in if mudou { self.temaPendenteNativo = true } }
+            }
+        }
+        RunLoop.main.add(tm, forMode: .common); temaTimer = tm
+    }
+
+    // ===== Notificações: aparecem com o app ABERTO; o toque navega =====
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .list, .sound])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        if let view = response.notification.request.content.userInfo["view"] as? String, !view.isEmpty,
+           let esc = view.addingPercentEncoding(withAllowedCharacters: .alphanumerics) {
+            selecionarAba(0)   // a navegação da notificação é no app web (aba Cátedra)
+            webView?.evaluateJavaScript("window.__catedraGoView && window.__catedraGoView('\(esc)')", completionHandler: nil)
+        }
+        completionHandler()
+    }
+
+    // ===== Navegação da WebView =====
+    func webView(_ wv: WKWebView, didFinish navigation: WKNavigation!) {
+        guard wv === webView else { return }
+        // A casca segue o tema assim que a página pinta (o auth.js ainda recarrega uma vez).
+        // Se um módulo nativo já está na tela (aberto por argumento de launch ou antes de a
+        // página pintar), ele nasceu com o tema de fallback: remonta agora com o tema certo.
+        espelharTema { [weak self] mudou in
+            guard let self, mudou else { return }
+            if self.abaAtual == 0 { self.temaPendenteNativo = true } else { self.montarAba(remontar: true) }
+        }
+        entregarEstudosPendentesSePossivel()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in self?.pushNativeReviews() }
+    }
+
+    /// O iPadOS mata o processo de conteúdo do WKWebView em segundo plano quando falta memória.
+    /// Sem isto a pessoa voltava para uma tela BRANCA e tinha de fechar o app à mão.
+    func webViewWebContentProcessDidTerminate(_ wv: WKWebView) {
+        guard wv === webView else { return }
+        carregarApp()
+    }
+}
+
+/// Embrulho dos Ajustes dos módulos numa folha do iPad: título e botão de fechar (no Mac
+/// eram janelas com o próprio botão de fechar).
+struct AjustesEmbrulho<Conteudo: View>: View {
+    let titulo: String
+    let fechar: () -> Void
+    @ViewBuilder let conteudo: () -> Conteudo
+    var body: some View {
+        NavigationStack {
+            conteudo()
+                .navigationTitle(titulo)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Fechar", action: fechar) } }
+        }
     }
 }
 
@@ -942,3 +1708,31 @@ struct CatedraJurisRoot: View {
             }
     }
 }
+
+#if targetEnvironment(simulator)
+extension RootViewController {
+    /// Só no simulador e só com `-semPortao`: marca o aparelho como "entrado" ANTES de o app
+    /// montar (o Catedra.dc.html lê catedra:auth no construtor) e fecha o portão de login pela
+    /// ponte `__setGateOpen` que o auth.js expõe para os testes — o mesmo que tests/run.mjs faz.
+    /// Sem sessão do Supabase nada sincroniza; serve para OLHAR e USAR as telas.
+    static let scriptsSemPortao: [WKUserScript] = [
+        WKUserScript(source: """
+        (function(){ try { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); } catch (e) {} })();
+        """, injectionTime: .atDocumentStart, forMainFrameOnly: true),
+        WKUserScript(source: """
+        (function(){
+          var n = 0;
+          var t = setInterval(function () {
+            n++;
+            try {
+              localStorage.setItem('catedra:auth', '1');
+              var g = document.getElementById('catedra-auth-gate');
+              if (g && g.__setGateOpen) g.__setGateOpen(false);
+            } catch (e) {}
+            if (n > 60) clearInterval(t);
+          }, 200);
+        })();
+        """, injectionTime: .atDocumentEnd, forMainFrameOnly: true),
+    ]
+}
+#endif

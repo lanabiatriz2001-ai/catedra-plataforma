@@ -38,7 +38,9 @@ struct SRSReviewView: View {
             Divider()
             content
         }
-        .frame(width: 720, height: 720)
+        // Sem tamanho fixo: no iPad a folha tem o tamanho do sistema (page sheet), e um
+        // 720×720 fixo cortava os botões de nota (Errei/Difícil/Bom/Fácil) no rodapé.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task { await build() }
     }
 

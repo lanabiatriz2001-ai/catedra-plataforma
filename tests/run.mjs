@@ -18,6 +18,8 @@ import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
+import { testarIpadToque } from './ipad-toque.mjs';
+import { testarAuthIpad } from './auth-ipad.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -7958,6 +7960,20 @@ catch (e) {
 try { await testarIphoneSatelites390(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPHONE/satélites 390 [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Login e sincronização no iPad (tests/auth-ipad.mjs): portão, teclado, sessão expirada, boot sem rede
+try { await testarAuthIpad(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'AUTH IPAD [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// iPad por toque (tests/ipad-toque.mjs): o mesmo roteiro do runner WebKit, aqui no Chromium
+try { await testarIpadToque(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'IPAD TOQUE [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

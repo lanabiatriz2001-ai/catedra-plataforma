@@ -173,6 +173,9 @@ struct LawReaderView: View {
             // O mesmo MateriaBanner do Estudo (Theme.swift) — era um cabeçalho próprio aqui.
             MateriaBanner(context: law.reference, title: law.title, color: accent, symbol: headerSymbol,
                           trailing: AnyView(headerControls(for: law)), framed: false)
+            // Os chips rolam na horizontal quando não cabem (retrato, Split View); com espaço
+            // o visual é o mesmo do Mac, alinhado à esquerda.
+            ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                     if isNovidades {
                         Label("Índice de novidades", systemImage: "sparkles")
@@ -184,7 +187,7 @@ struct LawReaderView: View {
                         }
                         .pickerStyle(.segmented)
                         .frame(width: 210)
-                        .help("Estudo: artigo por artigo, com progresso. Leitura corrida: texto contínuo com grifos e ⌘F.")
+                        .help("Estudo: artigo por artigo, com progresso. Leitura corrida: texto contínuo com grifos e busca no texto.")
                     }
                 if let fetched = law.lastFetched {
                     Chip(text: "Verificada \(fetched.formatted(date: .abbreviated, time: .shortened))",
@@ -225,7 +228,7 @@ struct LawReaderView: View {
                     .buttonStyle(.plain)
                     .help("Datas (promulgação e alterações) e redações anteriores desta norma")
                 }
-                Spacer()
+            }
             }
             if !isNovidades {
                 let subs = store.subjects(for: lawID)
@@ -259,14 +262,14 @@ struct LawReaderView: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 210)
-                .help("Estudo: artigo por artigo, com progresso. Leitura corrida: texto contínuo com grifos e ⌘F.")
+                .help("Estudo: artigo por artigo, com progresso. Leitura corrida: texto contínuo com grifos e busca no texto.")
             }
             if effectiveMode == "corrido" && !isNovidades {
                 TextField("Ir para artigo…", text: $articleQuery)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 150)
                     .onSubmit { controller.jump(toArticle: articleQuery) }
-                    .help("Digite o número do artigo e pressione Enter (busca no texto: ⌘F)")
+                    .help("Digite o número do artigo e confirme no teclado (para buscar no texto, use o botão Buscar)")
             }
         }
     }
@@ -327,29 +330,40 @@ struct LawReaderView: View {
     }
 
     private var readerBar: some View {
-        HStack(spacing: 6) {
+        Group {
             if cleanReading {
                 // IMERSÃO: barra mínima — mas a saída está SEMPRE aqui, escrita por extenso.
                 // O botão antigo dizia só "Imersão" e ficava tintado quando ligado: lia-se
                 // como rótulo do modo atual, não como saída. Além disso cleanReading é
                 // @AppStorage, então fechar o app não desfazia — dava para ficar preso.
-                Button { withAnimation(.easeInOut(duration: 0.15)) { cleanReading = false } } label: {
-                    Label("Sair da imersão", systemImage: "arrow.down.right.and.arrow.up.left")
-                }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut("i", modifiers: [.command, .shift])
-                .help("Voltar ao leitor completo (⌘⇧I)")
+                HStack(spacing: 6) {
+                    Button { withAnimation(.easeInOut(duration: 0.15)) { cleanReading = false } } label: {
+                        Label("Sair da imersão", systemImage: "arrow.down.right.and.arrow.up.left")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
+                    .help("Voltar ao leitor completo")
 
-                if !isNovidades { modoPicker }
-                Spacer(minLength: 0)
-                tipografiaMenu
-                anotacoesBotao
+                    if !isNovidades { modoPicker }
+                    Spacer(minLength: 0)
+                    tipografiaMenu
+                    anotacoesBotao
+                }
+                .labelStyle(.titleAndIcon)
             } else {
-                barraCompleta
+                // A barra se adapta à largura: com espaço, ícone + rótulo como no Mac; sem
+                // espaço (retrato, Split View), só ícones; e, se nem assim couber (Slide
+                // Over), a fileira de ícones rola na horizontal em vez de vazar.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 6) { barraCompleta }.labelStyle(.titleAndIcon)
+                    HStack(spacing: 6) { barraCompleta }.labelStyle(.iconOnly)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) { barraCompleta }.labelStyle(.iconOnly)
+                    }
+                }
             }
         }
         .controlSize(.small)
-        .labelStyle(.titleAndIcon)
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
         .background(.bar)
@@ -390,7 +404,7 @@ struct LawReaderView: View {
                 }
                 .buttonStyle(.bordered)
                 .keyboardShortcut("i", modifiers: [.command, .shift])
-                .help("Modo imersão: esconde o entorno e deixa só o texto (⌘⇧I)")
+                .help("Modo imersão: esconde o entorno e deixa só o texto")
             }
 
             if !isNovidades && effectiveMode == "corrido" { modoPicker }
@@ -432,12 +446,13 @@ struct LawReaderView: View {
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
                 .help("Grifar, sublinhar, tachar, anotar ou apagar a seleção")
 
+                // Abre a busca nativa da UITextView (campo + anterior/próximo + destaque).
                 Button { controller.showFindBar() } label: {
                     Label("Buscar", systemImage: "magnifyingglass")
                 }
                 .buttonStyle(.bordered)
                 .keyboardShortcut("f", modifiers: .command)
-                .help("Busca nativa no texto (⌘F)")
+                .help("Buscar no texto desta norma")
 
                 Menu {
                     Button { store.setAlinhamento("left", lawID: lawID, unitKey: "full") } label: { Label("À esquerda", systemImage: "text.alignleft") }
