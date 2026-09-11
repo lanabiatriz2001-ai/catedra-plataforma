@@ -330,6 +330,26 @@ const sync = await page.evaluate(() => {
   const mL = JSON.parse(M(svL, lcL, false)['catedra:leituras']);
   r.leiturasUniaoPorId = mL.length === 3 && mL.some(x => x.id === 'la|cf|413') && mL.some(x => x.id === 'la|cc|9');
   r.leiturasUpMaiorVence = (mL.find(x => x.id === 'la|cf|412').nao || []).length === 0;
+
+  // 10. INTERRUPTOR ('0'/'1'): '0' é escolha, não vazio. A regra "vazio nunca apaga cheio"
+  //     fazia o '1' do servidor vencer SEMPRE o '0' daqui, sem olhar o carimbo — era o que
+  //     desfazia o tema claro a cada sync ("o tema não fixa"). Agora decide o carimbo.
+  const svM = { 'catedra:dark': '1', 'catedra:_kts': J({ 'catedra:dark': 1000 }) };
+  const lcM = { 'catedra:dark': '0', 'catedra:_kts': J({ 'catedra:dark': 9000 }) };
+  r.claroEscolhidoFica = M(svM, lcM, false)['catedra:dark'] === '0';
+  r.claroEscolhidoFicaPreferServer = M(svM, lcM, true)['catedra:dark'] === '0';
+  // e o caminho inverso continua valendo: escuro escolhido no outro aparelho chega aqui
+  const svN = { 'catedra:dark': '1', 'catedra:_kts': J({ 'catedra:dark': 9000 }) };
+  const lcN = { 'catedra:dark': '0', 'catedra:_kts': J({ 'catedra:dark': 1000 }) };
+  r.escuroMaisNovoChega = M(svN, lcN, false)['catedra:dark'] === '1';
+  // o leitor dos satélites (LEGIS/JURIS) guarda do mesmo jeito e segue a mesma regra
+  const svO = { 'catedra:leitorDark': '1', 'catedra:_kts': J({ 'catedra:leitorDark': 1000 }) };
+  const lcO = { 'catedra:leitorDark': '0', 'catedra:_kts': J({ 'catedra:leitorDark': 9000 }) };
+  r.leitorClaroFica = M(svO, lcO, false)['catedra:leitorDark'] === '0';
+  // contador continua protegido: 0 recém-semeado NÃO apaga o número do outro aparelho
+  const svP = { 'catedra:escudos': '3', 'catedra:_kts': J({ 'catedra:escudos': 1000 }) };
+  const lcP = { 'catedra:escudos': '0', 'catedra:_kts': J({ 'catedra:escudos': 9000 }) };
+  r.contadorZeroNaoApaga = M(svP, lcP, false)['catedra:escudos'] === '3';
   return r;
 });
 for (const [k, v] of Object.entries(sync)) ok(v, 'SYNC ' + k);
@@ -7694,8 +7714,13 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     ok(guardado === '"tema"', 'COR "padrão do tema" fica guardado como valor com conteúdo, não como chave apagada');
     ok((await accentDe()) === '#4f46e5', 'COR "padrão do tema" pinta com a cor da direção (Fibra = índigo), não com o verde');
     const escritas = await page.evaluate(() => { const w = window.__escritas.slice(); window.__escritas.length = 0; return w; });
-    // só as chaves sincronizadas contam: 'ct_timer' é o cronômetro, fora do autosave e do sync
-    const alheias = escritas.filter(k => k !== 'catedra:accent' && k.indexOf('catedra:') === 0);
+    // só as chaves sincronizadas contam: 'ct_timer' é o cronômetro, fora do autosave e do sync.
+    // 'catedra:_temaTs' também não é dado: é a hora em que a pessoa escolheu o tema NESTE
+    // aparelho, escrita de propósito pelo próprio clique (não pelo autosave) para o portão
+    // recusar valor velho da nuvem depois de recarregar. Está no EXCLUDE, não sobe, e o
+    // clearLocal a apaga na troca de conta. O que este caso guarda segue de pé: nenhuma
+    // chave de DADO pode ser regravada por tabela quando só a cor mudou.
+    const alheias = escritas.filter(k => k !== 'catedra:accent' && k !== 'catedra:_temaTs' && k.indexOf('catedra:') === 0);
     ok(alheias.length === 0, 'COR o autosave grava só o que mudou — nenhuma outra chave regravada (' + alheias.slice(0, 3).join(', ') + ')' + (alheias.length && assentou ? ' — antes do grampo: ' + assentou : ''));
     // chega um sync com o verde VELHO da nuvem (carimbo de agosto): não desfaz a escolha…
     await page.evaluate(() => { localStorage.setItem('catedra:accent', '"#0f7a57"'); window.dispatchEvent(new Event('catedra:synced')); });
