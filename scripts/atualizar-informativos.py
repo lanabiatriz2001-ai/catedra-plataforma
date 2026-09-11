@@ -19,7 +19,9 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.request
+import urllib.error
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IDX = os.path.join(ROOT, "juris-index.js")
@@ -28,18 +30,32 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
 DRY = "--dry-run" in sys.argv
 MAXED = 40
+TIMEOUT = 40
+RETRY_MAX = 3
+RETRY_BACKOFF = 2.0
 if "--max-edicoes" in sys.argv:
     MAXED = int(sys.argv[sys.argv.index("--max-edicoes") + 1])
 
 
-def get(url):
+def get(url, retry=0):
+    """Fetch URL com retry exponencial e tratamento de rede"""
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "text/html"})
     try:
-        with urllib.request.urlopen(req, timeout=40) as r:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
             return r.status, r.read()
     except urllib.error.HTTPError as e:
         return e.code, b""
-    except Exception:
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+        if retry < RETRY_MAX:
+            wait = RETRY_BACKOFF ** retry
+            print(f"  ⚠️ erro de rede ({type(e).__name__}), retry em {wait:.0f}s... (tentativa {retry + 1}/{RETRY_MAX})", file=sys.stderr)
+            time.sleep(wait)
+            return get(url, retry + 1)
+        else:
+            print(f"  ✗ erro de rede após {RETRY_MAX} tentativas: {type(e).__name__}", file=sys.stderr)
+            return 0, b""
+    except Exception as e:
+        print(f"  ✗ erro inesperado: {type(e).__name__}: {e}", file=sys.stderr)
         return 0, b""
 
 
