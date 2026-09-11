@@ -27,6 +27,7 @@ import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
+import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -3291,6 +3292,15 @@ ok(u6b.itemNaoPergunta, 'U6 exclusão de item não pede mais confirmação');
 try { await testarAssinaturaLimpa(ok); }
 catch (e) {
   ok(false, 'ASSINATURA o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+/* ============= XCODE CLOUD COMPILA O APP DO build-ipad.sh =============
+   Pós-clone em ios/ci_scripts gera o bundle web; o alvo compila ios/vendor por pasta
+   sincronizada. Roteiro em tests/xcode-cloud.mjs (estático; roda também na CI). */
+try { await testarXcodeCloud(ok); }
+catch (e) {
+  ok(false, 'XCODE CLOUD o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
