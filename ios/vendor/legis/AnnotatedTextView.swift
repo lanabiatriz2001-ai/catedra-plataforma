@@ -98,6 +98,10 @@ final class ReaderTextView: UITextView {
     var onCommand: ((ReaderCommand) -> Void)?
     var annotatedRanges: [NSRange] = []
     var allowsNoteCommand = true   // "Anotar…" só onde há painel de nota da anotação
+    /// Ações extras no menu da seleção (compacto: no iPhone a barra flutuante de marcação
+    /// não cabe, então negrito, lacuna, comentar e as cores favoritas entram AQUI, no menu
+    /// de edição do sistema). Vazio no iPad: o menu fica o de sempre.
+    var acoesExtras: [UIMenuElement] = []
     /// Avisa quando a LARGURA da view muda (girar o iPad, entrar/sair do Split View). O
     /// updateUIView do SwiftUI não roda nessa hora — nenhum estado mudou — e a coluna de
     /// texto ficava com a largura da orientação anterior. Quem escuta refaz o layout.
@@ -116,7 +120,7 @@ final class ReaderTextView: UITextView {
     // há texto selecionado, então o ponto do clique deixa de fazer sentido e some.
     override func editMenu(for textRange: UITextRange, suggestedActions: [UIMenuElement]) -> UIMenu? {
         let sel = selectedRange
-        var acoes: [UIAction] = []
+        var acoes: [UIMenuElement] = []
         if sel.length > 0 {
             acoes.append(item("Grifar", "highlighter") { [weak self] in self?.onCommand?(.apply(.highlight)) })
             acoes.append(item("Sublinhar", "underline") { [weak self] in self?.onCommand?(.apply(.underline)) })
@@ -124,6 +128,7 @@ final class ReaderTextView: UITextView {
             if allowsNoteCommand {
                 acoes.append(item("Anotar…", "note.text.badge.plus") { [weak self] in self?.onCommand?(.annotate) })
             }
+            acoes.append(contentsOf: acoesExtras)
             if annotatedRanges.contains(where: { NSIntersectionRange($0, sel).length > 0 }) {
                 acoes.append(item("Remover marcação", "eraser") { [weak self] in self?.onCommand?(.removeInSelection) })
             }

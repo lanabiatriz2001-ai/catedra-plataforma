@@ -114,7 +114,7 @@ struct SettingsView: View {
         .formStyle(.grouped)
         // Largura do sistema: o host apresenta esta tela numa folha (540 pt em retrato, tela
         // cheia no Slide Over) — 500 pt fixos estouravam no modo compacto.
-        .frame(maxWidth: .infinity)
+        .folhaAdaptavel()
         .padding()
         .confirmationDialog("Restaurar o backup mais recente?",
                             isPresented: $showRestoreConfirm, titleVisibility: .visible) {

@@ -12,6 +12,8 @@ struct DashboardView: View {
     @AppStorage("lastStudiedLawID") private var lastStudiedLawID = ""
     @AppStorage("srsEnabled") private var srsEnabled = false
     @AppStorage("appearance") private var appearance = "light"  // "system" | "light" | "dark" (default casa com o fallback claro)
+    // Compacto (iPhone): os quatro números-chave do hero em 2 × 2 em vez de uma fileira.
+    @Environment(\.ehCompacto) private var ehCompacto
     // Um único .sheet(item:) — empilhar vários .sheet(isPresented:) no mesmo view
     // faz o SwiftUI (macOS) confundir qual apresentar/dispensar, e uma folha
     // acabava "sequestrando" a outra (ex.: apagar um flashcard abria a revisão).
@@ -51,11 +53,11 @@ struct DashboardView: View {
             HStack(spacing: 10) {
                 IconBubble(symbol: symbol, color: emCurso ? AppTheme.warn : ThemeState.t.accent, size: 34)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
-                    Text(subtitle).font(.system(size: 11)).foregroundStyle(emCurso ? AppTheme.warn : AppTheme.secondaryInk).lineLimit(1)
+                    Text(title).font(AppTheme.ui(13, .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                    Text(subtitle).font(AppTheme.ui(11)).foregroundStyle(emCurso ? AppTheme.warn : AppTheme.secondaryInk).lineLimit(1)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                Image(systemName: "chevron.right").font(AppTheme.ui(10, .semibold))
                     .foregroundStyle(AppTheme.secondaryInk.opacity(0.5))
             }
             .padding(12)
@@ -83,7 +85,7 @@ struct DashboardView: View {
                         }
                         Spacer()
                         if due > 0 {
-                            Text("Revisar").font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                            Text("Revisar").font(AppTheme.ui(13, .bold)).foregroundStyle(.white)
                                 .padding(.horizontal, 14).padding(.vertical, 7)
                                 .background(Capsule().fill(AppTheme.srs))
                         } else {
@@ -164,7 +166,7 @@ struct DashboardView: View {
     private func normaTimeRow(_ law: LawEntry, _ secs: Double, _ maxSecs: Double) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 8) {
-                Text(law.title).font(.system(size: 12.5, weight: .medium))
+                Text(law.title).font(AppTheme.ui(12.5, .medium))
                     .foregroundStyle(AppTheme.ink).lineLimit(1)
                 Spacer(minLength: 8)
                 Text(Self.fmtDur(secs)).font(Typo.num(12, .semibold))
@@ -188,10 +190,20 @@ struct DashboardView: View {
     }
 
     // Célula de número-chave dentro do hero (fundo translúcido sobre o gradiente).
+    /// Os quatro números-chave do hero — a mesma sequência na fileira (iPad) e na grade (iPhone).
+    @ViewBuilder
+    private var heroStats: some View {
+        heroStat("\(store.totalReadUnits)", "artigos lidos")
+        heroStat("\(store.totalReviewUnits)", "p/ revisão")
+        // Baixa estimulação: a sequência (gamificação) sai do hero; o dado fica no store.
+        if !ThemeState.t.baixaEstimulacao { heroStat("🔥 \(store.currentStreak)d", "sequência") }
+        heroStat("\(store.activeDaysLastYear)", "dias ativos")
+    }
+
     private func heroStat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(value).font(Typo.num(20)).foregroundStyle(.white)
-            Text(label).font(.system(size: 11)).foregroundStyle(.white.opacity(0.85))
+            Text(label).font(AppTheme.ui(11)).foregroundStyle(.white.opacity(0.85))
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -207,7 +219,7 @@ struct DashboardView: View {
                     VStack(alignment: .leading, spacing: 7) {
                         let dateText = Date().formatted(date: .complete, time: .omitted)
                         Text((dateText.prefix(1).localizedUppercase + dateText.dropFirst()).uppercased())
-                            .font(.system(size: 11, weight: .semibold)).tracking(1.4)
+                            .font(AppTheme.ui(11, .semibold)).tracking(1.4)
                             .foregroundStyle(.white.opacity(0.8))
                             .lineLimit(1).minimumScaleFactor(0.7)
                         Text("CátedraLEGIS")
@@ -215,7 +227,7 @@ struct DashboardView: View {
                             .foregroundStyle(.white)
                             .lineLimit(1).minimumScaleFactor(0.6)
                         Text("\(lawCount) normas · \(store.annotations.count) marcações na sua biblioteca")
-                            .font(.system(size: 14))
+                            .font(AppTheme.ui(14))
                             .foregroundStyle(.white.opacity(0.88))
                             .lineLimit(1).minimumScaleFactor(0.8)
                     }
@@ -227,18 +239,19 @@ struct DashboardView: View {
                         } ?? law.category.gradStops
                         Button { openLaw(law.id) } label: {
                             HStack(spacing: 8) {
-                                Image(systemName: "play.fill").font(.system(size: 11, weight: .bold))
+                                Image(systemName: "play.fill").font(AppTheme.ui(11, .bold))
                                 Text("Continuar · \(law.title)").lineLimit(1)
                             }
                         }
                         .buttonStyle(.legisPrimary(ctaStops))
                     }
-                    HStack(spacing: 10) {
-                        heroStat("\(store.totalReadUnits)", "artigos lidos")
-                        heroStat("\(store.totalReviewUnits)", "p/ revisão")
-                        // Baixa estimulação: a sequência (gamificação) sai do hero; o dado fica no store.
-                        if !ThemeState.t.baixaEstimulacao { heroStat("🔥 \(store.currentStreak)d", "sequência") }
-                        heroStat("\(store.activeDaysLastYear)", "dias ativos")
+                    if ehCompacto {
+                        // 2 × 2: em 390 pt cada célula ficava com ~39 pt para "artigos lidos".
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                            heroStats
+                        }
+                    } else {
+                        HStack(spacing: 10) { heroStats }
                     }
                 }
                 .padding(26)
@@ -618,15 +631,15 @@ private struct MateriaTile: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
                 Image(systemName: cat.symbol)
-                    .font(.system(size: 19, weight: .semibold))
+                    .font(AppTheme.ui(19, .semibold))
                     .foregroundStyle(.white)
                 Spacer(minLength: 4)
                 Text(cat.shortName)
-                    .font(.system(size: 13.5, weight: .bold))
+                    .font(AppTheme.ui(13.5, .bold))
                     .foregroundStyle(.white)
                     .lineLimit(1).minimumScaleFactor(0.75)
                 Text("\(count) norma\(count == 1 ? "" : "s")")
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(AppTheme.ui(10.5, .medium))
                     .foregroundStyle(.white.opacity(0.85))
             }
             .padding(14)
@@ -713,12 +726,12 @@ struct DailyGoalsCard: View {
                 ForEach(Array(forecast.enumerated()), id: \.element.date) { i, d in
                     VStack(spacing: 3) {
                         Text(d.count > 0 ? "\(d.count)" : " ")
-                            .font(.system(size: 9).monospacedDigit()).foregroundStyle(.secondary)
+                            .font(AppTheme.ui(9).monospacedDigit()).foregroundStyle(.secondary)
                         RoundedRectangle(cornerRadius: 3)
                             .fill(i == 0 ? ThemeState.t.accent : ThemeState.t.accent.opacity(0.45))
                             .frame(height: max(3, CGFloat(d.count) / CGFloat(maxC) * 40))
                         Text(Self.weekdayLabel(d.date))
-                            .font(.system(size: 9))
+                            .font(AppTheme.ui(9))
                             .foregroundStyle(i == 0 ? Color.primary : Color.secondary)
                     }
                     .frame(maxWidth: .infinity)

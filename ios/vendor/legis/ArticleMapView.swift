@@ -68,7 +68,7 @@ struct ArticleMapView: View {
             header
             if root.children.isEmpty {
                 Text("Artigo sem incisos, alíneas ou parágrafos — apenas o caput.")
-                    .font(.system(size: 12)).foregroundColor(sub)
+                    .font(AppTheme.ui(12)).foregroundColor(sub)
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(root.children) { child in
@@ -77,7 +77,7 @@ struct ArticleMapView: View {
                 }
             }
             Text("CátedraLEGIS · esquema estrutural do artigo")
-                .font(.system(size: 9, weight: .medium)).foregroundColor(sub)
+                .font(AppTheme.ui(9, .medium)).foregroundColor(sub)
                 .padding(.top, 2)
         }
         .padding(22)
@@ -89,15 +89,15 @@ struct ArticleMapView: View {
         VStack(alignment: .leading, spacing: 6) {
             if !lawTitle.isEmpty {
                 Text(lawTitle.uppercased())
-                    .font(.system(size: 11, weight: .heavy))
+                    .font(AppTheme.ui(11, .heavy))
                     .foregroundColor(.white.opacity(0.9)).lineLimit(2)
             }
             Text(root.label ?? "Artigo")
-                .font(.system(size: 26, weight: .bold, design: .default))
+                .font(AppTheme.ui(26, .bold, design: .default))
                 .foregroundColor(.white)
             if !root.text.isEmpty {
                 Text(root.text)
-                    .font(.system(size: 13)).foregroundColor(.white.opacity(0.94))
+                    .font(AppTheme.ui(13)).foregroundColor(.white.opacity(0.94))
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -129,14 +129,14 @@ private struct MapBranch: View {
                 HStack(alignment: .top, spacing: 8) {
                     if let label = node.label, !label.isEmpty {
                         Text(label)
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .font(AppTheme.ui(12, .bold, design: .rounded))
                             .foregroundColor(.white)
                             .padding(.horizontal, 8).padding(.vertical, 3)
                             .background(Capsule().fill(color))
                             .fixedSize()
                     }
                     Text(node.text)
-                        .font(.system(size: 14)).foregroundColor(ink)
+                        .font(AppTheme.ui(14)).foregroundColor(ink)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 ForEach(node.children) { child in
@@ -154,7 +154,9 @@ struct ArticleMapSheet: View {
     let lawTitle: String
     let accent: Color
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.ehCompacto) private var ehCompacto
     @State private var message = ""
+    @State private var alturaMapa: CGFloat = 400   // altura natural do mapa (para a prévia escalada)
 
     private var root: ArtNode { ArtNode.build(from: unit) }
     private var map: ArticleMapView { ArticleMapView(root: root, lawTitle: lawTitle, accent: accent) }
@@ -167,24 +169,55 @@ struct ArticleMapSheet: View {
                     Text(unit.label).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button { copyImage() } label: { Label("Copiar imagem", systemImage: "doc.on.doc") }
-                Button { savePNG() } label: { Label("Salvar PNG", systemImage: "square.and.arrow.down") }
-                    .buttonStyle(.borderedProminent).tint(accent)
-                Button("Fechar") { dismiss() }
+                if ehCompacto {
+                    // Os três botões somavam ~380 pt: exportar vira um menu de 44 pt.
+                    Menu {
+                        Button { copyImage() } label: { Label("Copiar imagem", systemImage: "doc.on.doc") }
+                        Button { savePNG() } label: { Label("Salvar PNG", systemImage: "square.and.arrow.down") }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up").alvoToque()
+                    }
+                    .accessibilityLabel("Exportar o mapa")
+                } else {
+                    Button { copyImage() } label: { Label("Copiar imagem", systemImage: "doc.on.doc") }
+                    Button { savePNG() } label: { Label("Salvar PNG", systemImage: "square.and.arrow.down") }
+                        .buttonStyle(.borderedProminent).tint(accent)
+                }
+                Button("Fechar") { dismiss() }.alvoToque()
             }
             .padding(14)
             Divider()
-            ScrollView([.vertical, .horizontal]) {
-                map.padding(20)
+            if ehCompacto {
+                // Prévia ESCALADA à largura da folha; a imagem exportada continua com os
+                // 620 pt do ArticleMapView (largura fixa só na exportação).
+                GeometryReader { g in
+                    let escala = min(1, max(0.1, (g.size.width - 24) / 620))
+                    ScrollView(.vertical) {
+                        map
+                            .background(GeometryReader { mg in
+                                Color.clear
+                                    .onAppear { alturaMapa = mg.size.height }
+                                    .onChange(of: mg.size.height) { _, h in alturaMapa = h }
+                            })
+                            .scaleEffect(escala, anchor: .topLeading)
+                            .frame(width: 620 * escala, height: alturaMapa * escala, alignment: .topLeading)
+                            .padding(12)
+                    }
+                }
+                .background(Color(white: 0.88))
+            } else {
+                ScrollView([.vertical, .horizontal]) {
+                    map.padding(20)
+                }
+                .background(Color(white: 0.88))
             }
-            .background(Color(white: 0.88))
             if !message.isEmpty {
                 Divider()
                 Text(message).font(.caption).foregroundStyle(.secondary)
                     .padding(.vertical, 7).frame(maxWidth: .infinity)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
+        .folhaAdaptavel(larga: true)   // iPad: folha .page (o mapa tem 620 pt); iPhone: tela inteira
     }
 
     @MainActor private func makeRenderer() -> ImageRenderer<ArticleMapView> {

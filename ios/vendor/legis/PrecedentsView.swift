@@ -74,7 +74,7 @@ struct LawPrecedentsView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
+        .folhaAdaptavel(larga: true)   // iPad: folha .page (lista larga); iPhone: tela inteira
         .sheet(item: $editing) { PrecedentEditView(lawID: lawID, accent: accent, existing: $0) }
         .sheet(isPresented: $showNew) { PrecedentEditView(lawID: lawID, accent: accent, existing: nil) }
         .confirmationDialog("Excluir esta jurisprudência?",
@@ -97,7 +97,7 @@ struct LawPrecedentsView: View {
                 Text(lawTitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
-            Button("Fechar") { dismiss() }
+            Button("Fechar") { dismiss() }.alvoToque()
         }
         .padding(16)
     }
@@ -115,7 +115,7 @@ struct LawPrecedentsView: View {
             Button {
                 showNew = true
             } label: {
-                Label("Adicionar", systemImage: "plus")
+                Label("Adicionar", systemImage: "plus").alvoToque()
             }
             .buttonStyle(.borderedProminent)
             .tint(accent)
@@ -224,51 +224,69 @@ struct PrecedentEditView: View {
     @State private var notes = ""
     @State private var url = ""
     @State private var tags = ""
+    @FocusState private var foco: Bool
+    @State private var confirmarDescarte = false
 
     private var canSave: Bool {
         !identifier.trimmingCharacters(in: .whitespaces).isEmpty ||
         !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(existing == nil ? "Nova jurisprudência" : "Editar jurisprudência")
-                .font(AppTheme.displayFont(18, .bold))
-            Form {
-                Picker("Tipo", selection: $kind) {
-                    ForEach(PrecedentKind.all, id: \.self) { Text($0).tag($0) }
-                }
-                TextField("Tribunal (ex.: STF, STJ, TJSP, TRF-1)", text: $court)
-                TextField("Número / identificação (ex.: Súmula 231, REsp 1.657.156, Tema 69)", text: $identifier)
-                TextField("Artigo relacionado (ex.: Art. 5º, XII) — opcional", text: $articleRef)
-                TextField("Data do julgamento/publicação — opcional", text: $date)
-                TextField("Link para a íntegra — opcional", text: $url)
-                TextField("Tags separadas por vírgula — opcional", text: $tags)
-            }
-            .frame(height: 190)
-
-            Text("Ementa / enunciado / tese").font(.headline)
-            TextEditor(text: $summary)
-                .font(.body)
-                .frame(minHeight: 120)
-                .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).stroke(.quaternary))
-
-            Text("Anotações (opcional)").font(.headline)
-            TextEditor(text: $notes)
-                .font(.body)
-                .frame(minHeight: 70)
-                .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).stroke(.quaternary))
-
-            HStack {
-                Spacer()
-                Button("Cancelar") { dismiss() }
-                Button("Salvar") { save() }
-                    .buttonStyle(.legisPrimary([accent, accent.opacity(0.72)]))
-                    .disabled(!canSave)
-            }
+    /// Há texto digitado que se perderia ao fechar? Trava o fechar por gesto e faz o
+    /// Cancelar perguntar antes.
+    private var temRascunho: Bool {
+        guard let e = existing else {
+            return !court.isEmpty || !identifier.isEmpty || !date.isEmpty || !summary.isEmpty
+                || !notes.isEmpty || !url.isEmpty || !tags.isEmpty || articleRef != prefillArticle
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
+        return court != e.court || kind != e.kind || identifier != e.identifier || articleRef != e.articleRef
+            || date != e.date || summary != e.summary || notes != e.notes || url != e.url
+            || tags != e.tags.joined(separator: ", ")
+    }
+
+    var body: some View {
+        // Form nativo em seções, com Cancelar/Salvar na barra de uma NavigationStack
+        // interna: o Form de 190 pt que rolava dentro da folha (que também rolava) e os
+        // botões no rodapé saíam da tela no iPhone; aqui tudo rola junto e o teclado
+        // empurra o conteúdo.
+        NavigationStack {
+            Form {
+                Section {
+                    Picker("Tipo", selection: $kind) {
+                        ForEach(PrecedentKind.all, id: \.self) { Text($0).tag($0) }
+                    }
+                    TextField("Tribunal (ex.: STF, STJ, TJSP, TRF-1)", text: $court).focused($foco)
+                    TextField("Número / identificação (ex.: Súmula 231, REsp 1.657.156, Tema 69)", text: $identifier).focused($foco)
+                    TextField("Artigo relacionado (ex.: Art. 5º, XII) — opcional", text: $articleRef).focused($foco)
+                    TextField("Data do julgamento/publicação — opcional", text: $date).focused($foco)
+                    TextField("Link para a íntegra — opcional", text: $url).focused($foco)
+                        .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    TextField("Tags separadas por vírgula — opcional", text: $tags).focused($foco)
+                }
+                Section("Ementa / enunciado / tese") {
+                    TextEditor(text: $summary).font(.body).frame(minHeight: 120).focused($foco)
+                }
+                Section("Anotações (opcional)") {
+                    TextEditor(text: $notes).font(.body).frame(minHeight: 70).focused($foco)
+                }
+            }
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.pageBackground)
+            .navigationTitle(existing == nil ? "Nova jurisprudência" : "Editar jurisprudência")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { if temRascunho { confirmarDescarte = true } else { dismiss() } }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salvar") { save() }.disabled(!canSave)
+                }
+            }
+            .tecladoConcluir(foco: $foco)
+            .legisDescartarRascunho(isPresented: $confirmarDescarte) { dismiss() }
+        }
+        .folhaAdaptavel(temRascunho: temRascunho)
         .onAppear {
             guard let e = existing else {
                 if articleRef.isEmpty { articleRef = prefillArticle }   // novo, vindo do Estudo

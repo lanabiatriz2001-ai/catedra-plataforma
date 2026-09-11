@@ -45,8 +45,8 @@ struct LegisChip: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            if let icon { Image(systemName: icon).font(.system(size: size - 1.5, weight: .bold)) }
-            Text(text).font(.system(size: size, weight: variant == .ghost ? .medium : .bold)).lineLimit(1)
+            if let icon { Image(systemName: icon).font(AppTheme.ui(size - 1.5, .bold)) }
+            Text(text).font(AppTheme.ui(size, variant == .ghost ? .medium : .bold)).lineLimit(1)
         }
         .padding(.horizontal, variant == .ghost ? 0 : 8)
         .padding(.vertical, variant == .ghost ? 0 : 3.5)
@@ -76,7 +76,7 @@ struct LegisFilterChip: View {
 
     var body: some View {
         Button(action: action) {
-            Text(text).font(.system(size: 12, weight: .semibold))
+            Text(text).font(AppTheme.ui(12, .semibold))
                 .padding(.horizontal, 10).padding(.vertical, 5)
                 .background(Capsule().fill(on ? tint : AppTheme.hairline.opacity(0.35)))
                 .foregroundStyle(on ? Color.white : AppTheme.ink)
@@ -100,10 +100,10 @@ struct LegisSectionHeader: View {
     var body: some View {
         HStack(spacing: 6) {
             if let icon {
-                Image(systemName: icon).font(.system(size: 10, weight: .bold)).foregroundStyle(tint)
+                Image(systemName: icon).font(AppTheme.ui(10, .bold)).foregroundStyle(tint)
             }
             Text(title.uppercased())
-                .font(.system(size: 10.5, weight: .bold)).tracking(1)
+                .font(AppTheme.ui(10.5, .bold)).tracking(1)
                 .foregroundStyle(tint)
             if let count {
                 Text("\(count)")
@@ -178,7 +178,7 @@ struct LegisPrimaryButtonStyle: ButtonStyle {
 
         var body: some View {
             configuration.label
-                .font(.system(size: 13, weight: .bold))
+                .font(AppTheme.ui(13, .bold))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 16).padding(.vertical, 9)
                 .background(Capsule().fill(LinearGradient(colors: stops, startPoint: .leading, endPoint: .trailing)))
@@ -205,7 +205,7 @@ struct LegisGhostButtonStyle: ButtonStyle {
 
         var body: some View {
             configuration.label
-                .font(.system(size: 12.5, weight: .semibold))
+                .font(AppTheme.ui(12.5, .semibold))
                 .foregroundStyle(tint)
                 .opacity(isEnabled ? (configuration.isPressed ? 0.6 : 1) : 0.4)
                 .contentShape(Rectangle())

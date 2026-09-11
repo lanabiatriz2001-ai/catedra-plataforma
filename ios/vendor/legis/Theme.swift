@@ -71,9 +71,22 @@ enum AppTheme {
     /// (antes era `.purple`/`.indigo` solto em cada tela).
     static let info: Color  = Color(hex: 0x2563EB)
     static let srs: Color   = Color(hex: 0x7C3AED)
+    /// Piso e escala da tipografia da interface (F2 do plano do iPhone): nada abaixo de
+    /// 11 pt (piso da HIG e da casa) e o valor acompanha o Dynamic Type pela métrica do
+    /// `.body`. No tamanho padrão (Large) `scaledValue` devolve o próprio número — o iPad
+    /// no tamanho de sempre não muda um pixel; só os rótulos de 8–10,5 pt sobem para 11.
+    static func escala(_ size: CGFloat) -> CGFloat {
+        UIFontMetrics(forTextStyle: .body).scaledValue(for: max(11, size))
+    }
+    /// Fonte da INTERFACE (rótulos, botões, ícones): o `.system(size:weight:)` de sempre,
+    /// passando pelo piso e pela escala. É por aqui que passa toda a tipografia fixa do
+    /// LEGIS; a de leitura (tamanho escolhido no "Aa") continua fora, por decisão da pessoa.
+    static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular, design: Font.Design = .default) -> Font {
+        .system(size: escala(size), weight: weight, design: design)
+    }
     /// Fonte de TÍTULO no padrão da casa: serifada quando o tema do Cátedra é serifado.
     static func displayFont(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        .system(size: size, weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
+        .system(size: escala(size), weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
     }
     static var surface: Color          { ThemeState.t.surface }
     static var elevatedSurface: Color  { ThemeState.t.surface }
