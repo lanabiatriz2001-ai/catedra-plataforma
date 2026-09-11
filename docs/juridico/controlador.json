@@ -7,9 +7,9 @@
   "emailEncarregado": "",
   "prazos": {
     "_leia": "Só números. Vazio mantém entre colchetes a proposta escrita no documento (30 dias de aviso de encerramento, 15 de aviso de mudança, 30 para apagar da nuvem, 12 meses de contagem de IA e auditoria).",
-    "avisoEncerramentoDias": "",
-    "avisoMudancaDias": "",
-    "exclusaoNuvemDias": "",
-    "retencaoIaMeses": ""
+    "avisoEncerramentoDias": "30",
+    "avisoMudancaDias": "15",
+    "exclusaoNuvemDias": "30",
+    "retencaoIaMeses": "12"
   }
 }
