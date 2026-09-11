@@ -87,6 +87,11 @@ mac/build-app.sh · ios/build-ipad.sh                                           
 - Teste que depende de "hoje" fixa o relógio (`page.clock.install` em contexto próprio, padrão
   de `tests/registro-sessao.mjs`); sessão de madrugada pertence a ontem por desenho.
 - `discursivas.js` é GERADO de `discursivas-completo.js` por `scripts/build-discursivas-split.mjs`.
+- Worktree em ~/Desktop ou ~/Documents (iCloud): o File Provider esvazia arquivos parados (`dataless`;
+  `find . -flags +dataless`) e ler um deles já voltou com conteúdo errado. `scripts/verificar-pasta-sincronizada.mjs`
+  roda antes dos builds e da suíte, devolve do git os rastreados sem mudança e para no resto com o comando.
+  Esvaziar muda o `ctime`, então `git status`/`git add` releem (baixam) cada arquivo: rode a checagem antes.
+  Worktree que você mesmo cria vai para fora dessas pastas (ex.: `~/catedra-plataforma-main/.claude/worktrees/`).
 - Duas sessões no mesmo clone: confira `git branch --show-current` no mesmo comando do
   checkout; o build cruzado cai para assinatura ad-hoc.
 - macOS não tem `timeout`; em zsh, `echo =====` vira expansão `=cmd`.

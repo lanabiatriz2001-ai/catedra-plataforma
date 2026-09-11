@@ -12,6 +12,11 @@
 //
 // O Catedra.dc.html permanece intocado — este script só o lê.
 
+// PRIMEIRO import, e de propósito: arquivo esvaziado pelo iCloud volta do git (ou o build para)
+// antes que os verificadores abaixo e o bundle leiam qualquer coisa. Ver o próprio arquivo.
+// O nome importado também é de propósito: se o iCloud devolver o verificador VAZIO (já devolveu
+// um build-app.sh assim, que saiu 0 sem fazer nada), o import falha alto em vez de pular calado.
+import { SAIDA_ESVAZIADOS } from './verificar-pasta-sincronizada.mjs';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSync, readdirSync} from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
