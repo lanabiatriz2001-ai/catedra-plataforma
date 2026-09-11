@@ -96,7 +96,8 @@ async function sinalDoSync(browser, base, ok, R) {
   const casos = [
     ['o pull traz dados da nuvem', { data: { data: { 'catedra:metas': '[]' }, updated_at: '2000-01-01T00:00:00Z' }, error: null }, true],
     ['a nuvem não tem linha desta conta', { data: null, error: null }, true],
-    ['o pull falha (res.error, sem rejeitar)', { data: null, error: { message: 'JWT recusado' } }, false],
+    // erro de REDE: com status 401 + "jwt" o auth.js da main trata como sessão caída (sessaoCaiu), outro caminho
+    ['o pull falha (res.error, sem rejeitar)', { data: null, error: { message: 'Failed to fetch' } }, false],
   ];
   for (const [nome, resposta, esperado] of casos) {
     const ctx = await browser.newContext();
