@@ -381,7 +381,11 @@ struct EntryRow: View {
                         .font(.system(size: 14))
                         .foregroundStyle(store.isLido(entry.id) ? Palette.fonteSTJ
                                          : Palette.secondaryInk.opacity(0.4))
+                        // Alvo de 44 × 44 pt (o círculo tem 14). O recuo negativo mantém a
+                        // linha compacta: a área de toque avança sobre o recuo da lista.
+                        .frame(width: 44, height: 44, alignment: .top)
                         .contentShape(Rectangle())
+                        .padding(.horizontal, -9)
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 1)
@@ -467,6 +471,7 @@ struct SearchBar: View {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 12))
                         .foregroundStyle(Palette.secondaryInk)
+                        .jurisAlvoToque().padding(.vertical, -7)   // alvo de 44 pt sem engordar o campo
                 }
                 .buttonStyle(.plain)
             }
@@ -540,20 +545,32 @@ struct IndexView: View {
                     .scrollContentBackground(.hidden)
                     .background(Palette.appBackground)
 
-                    // trilho A–Z
-                    VStack(spacing: 1) {
-                        ForEach(grupos, id: \.letra) { g in
-                            Button { withAnimation { proxy.scrollTo("letra-\(g.letra)", anchor: .top) } } label: {
-                                Text(g.letra)
+                    // trilho A–Z: coluna de 44 pt de largura em que TOCAR ou ARRASTAR escolhe
+                    // a letra sob o dedo (o padrão do índice do iOS). Cada letra sozinha era um
+                    // botão de 18 × 15 pt — e 26 letras não cabem com 44 pt de altura cada.
+                    GeometryReader { geo in
+                        let letras = grupos.map(\.letra)
+                        let alturaLetra = max(1, geo.size.height / CGFloat(max(letras.count, 1)))
+                        VStack(spacing: 0) {
+                            ForEach(letras, id: \.self) { l in
+                                Text(l)
                                     .font(.system(size: 9.5, weight: .bold))
                                     .foregroundStyle(Palette.accent)
-                                    .frame(width: 18, height: 15)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                             }
-                            .buttonStyle(.plain)
                         }
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { v in
+                                    let i = min(max(Int(v.location.y / alturaLetra), 0), letras.count - 1)
+                                    guard letras.indices.contains(i) else { return }
+                                    proxy.scrollTo("letra-\(letras[i])", anchor: .top)
+                                }
+                        )
                     }
+                    .frame(width: 44)
                     .padding(.vertical, 6)
-                    .frame(width: 22)
                 }
             }
         }

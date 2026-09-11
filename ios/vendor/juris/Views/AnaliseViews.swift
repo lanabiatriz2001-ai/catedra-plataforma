@@ -45,7 +45,8 @@ struct ComparadorView: View {
                 .padding(20)
             }
         }
-        .frame(width: 900, height: 680)
+        // Sem 900 × 680 fixos: a folha do sistema (page sheet do iPad) decide o tamanho.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.appBackground)
         .task(id: entry.id) {
             stf = store.comparaveis(entry, tribunal: "STF")
@@ -68,8 +69,9 @@ struct ComparadorView: View {
                         Task { await analisarIA() }
                     } label: {
                         Label(iaTexto.isEmpty ? "Comparar com IA" : "Refazer análise", systemImage: "sparkles")
+                            .frame(minHeight: 30)   // com a borda, ≥ 44 pt de alvo
                     }
-                    .buttonStyle(.borderedProminent).tint(Palette.accent).controlSize(.small)
+                    .buttonStyle(.borderedProminent).tint(Palette.accent)
                     .disabled(stf.isEmpty && stj.isEmpty)
                 }
             }
@@ -139,7 +141,7 @@ struct ComparadorView: View {
                 Label("Comparar STF × STJ", systemImage: "arrow.left.arrow.right.square")
                     .font(.system(size: 16, weight: .bold)).foregroundStyle(Palette.titleInk)
                 Spacer()
-                Button("Fechar") { dismiss() }
+                Button { dismiss() } label: { Text("Fechar").jurisAlvoToque() }
             }
             Text("Mesmo assunto de: \(entry.titulo). A comparação é para você julgar — não afirmo divergência automaticamente.")
                 .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
@@ -219,9 +221,9 @@ struct LinhaTempoView: View {
                 Label("Linha do tempo do tema", systemImage: "clock.arrow.circlepath")
                     .font(.system(size: 16, weight: .bold)).foregroundStyle(Palette.titleInk)
                 Spacer()
-                Button("Fechar") { dismiss() }
+                Button { dismiss() } label: { Text("Fechar").jurisAlvoToque() }
             }
-            .padding(20)
+            .padding(.horizontal, 20).padding(.vertical, 10)
             .background(Palette.sidebarBackground)
             .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
 
@@ -238,7 +240,8 @@ struct LinhaTempoView: View {
                 .padding(.horizontal, 20).padding(.bottom, 20)
             }
         }
-        .frame(width: 720, height: 640)
+        // Sem 720 × 640 fixos: a folha do sistema decide o tamanho.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Palette.appBackground)
     }
 

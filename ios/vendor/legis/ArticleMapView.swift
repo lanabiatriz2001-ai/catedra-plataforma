@@ -184,7 +184,7 @@ struct ArticleMapSheet: View {
                     .padding(.vertical, 7).frame(maxWidth: .infinity)
             }
         }
-        .frame(width: 760, height: 760)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
     }
 
     @MainActor private func makeRenderer() -> ImageRenderer<ArticleMapView> {
