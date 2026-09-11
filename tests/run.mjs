@@ -7693,8 +7693,13 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     ok(guardado === '"tema"', 'COR "padrão do tema" fica guardado como valor com conteúdo, não como chave apagada');
     ok((await accentDe()) === '#4f46e5', 'COR "padrão do tema" pinta com a cor da direção (Fibra = índigo), não com o verde');
     const escritas = await page.evaluate(() => { const w = window.__escritas.slice(); window.__escritas.length = 0; return w; });
-    // só as chaves sincronizadas contam: 'ct_timer' é o cronômetro, fora do autosave e do sync
-    const alheias = escritas.filter(k => k !== 'catedra:accent' && k.indexOf('catedra:') === 0);
+    // só as chaves sincronizadas contam: 'ct_timer' é o cronômetro, fora do autosave e do sync.
+    // 'catedra:_temaTs' também não é dado: é a hora em que a pessoa escolheu o tema NESTE
+    // aparelho, escrita de propósito pelo próprio clique (não pelo autosave) para o portão
+    // recusar valor velho da nuvem depois de recarregar. Está no EXCLUDE, não sobe, e o
+    // clearLocal a apaga na troca de conta. O que este caso guarda segue de pé: nenhuma
+    // chave de DADO pode ser regravada por tabela quando só a cor mudou.
+    const alheias = escritas.filter(k => k !== 'catedra:accent' && k !== 'catedra:_temaTs' && k.indexOf('catedra:') === 0);
     ok(alheias.length === 0, 'COR o autosave grava só o que mudou — nenhuma outra chave regravada (' + alheias.slice(0, 3).join(', ') + ')' + (alheias.length && assentou ? ' — antes do grampo: ' + assentou : ''));
     // chega um sync com o verde VELHO da nuvem (carimbo de agosto): não desfaz a escolha…
     await page.evaluate(() => { localStorage.setItem('catedra:accent', '"#0f7a57"'); window.dispatchEvent(new Event('catedra:synced')); });
