@@ -6,6 +6,8 @@ struct MapaMentalSheet: View {
     let entry: JurisEntry
     @Environment(LibraryStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.ehCompacto) private var ehCompacto
+    @State private var tamanhoReal = false   // iPhone: prévia inteira (escalada) ou 100 % para ler
 
     private var nota: NotaEstudo { MapaMentalView.notaEfetiva(entry, curada: store.notaApp(for: entry.id)) }
     private var temNotaCurada: Bool { store.notaApp(for: entry.id) != nil }
@@ -14,9 +16,9 @@ struct MapaMentalSheet: View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
                 Label("Mapa mental", systemImage: "brain.head.profile")
-                    .font(.system(size: 16, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(Typo.ui(16, .bold)).foregroundStyle(Palette.titleInk)
                 if !temNotaCurada {
-                    Text("gerado do enunciado").font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                    Text("gerado do enunciado").font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Palette.secondaryInk.opacity(0.12), in: Capsule())
                 }
@@ -30,16 +32,42 @@ struct MapaMentalSheet: View {
             .background(Palette.sidebarBackground)
             .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
 
-            ScrollView([.horizontal, .vertical]) {
-                MapaMentalView(entry: entry, nota: nota)
-                    .environment(\.colorScheme, .light)
-                    .padding(24)
+            if ehCompacto {
+                // O canvas tem 1040 pt (é feito para exportar): na tela do iPhone entra
+                // ESCALADO, inteiro, sem arrastar em dois eixos; "Tamanho real" para ler.
+                Picker("Como ver", selection: $tamanhoReal) {
+                    Text("Prévia").tag(false)
+                    Text("Tamanho real").tag(true)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 16).padding(.top, 10)
+                if tamanhoReal {
+                    ScrollView([.horizontal, .vertical]) {
+                        MapaMentalView(entry: entry, nota: nota)
+                            .environment(\.colorScheme, .light)
+                            .padding(16)
+                    }
+                    .background(Palette.appBackground)
+                } else {
+                    JurisPreviaEscalada(larguraNatural: 1040) {
+                        MapaMentalView(entry: entry, nota: nota)
+                            .environment(\.colorScheme, .light)
+                    }
+                    .padding(12)
+                    .background(Palette.appBackground)
+                }
+            } else {
+                ScrollView([.horizontal, .vertical]) {
+                    MapaMentalView(entry: entry, nota: nota)
+                        .environment(\.colorScheme, .light)
+                        .padding(24)
+                }
+                .background(Palette.appBackground)
             }
-            .background(Palette.appBackground)
         }
-        // Sem 940 × 700 fixos: no iPad quem dimensiona é a folha do sistema (page sheet,
-        // ~700 pt de largura) — com o tamanho fixo, Fechar/PNG/PDF ficavam fora dela.
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Sem 940 × 700 fixos: no iPad quem dimensiona é a folha do sistema (.page no iOS 18,
+        // pela folhaAdaptavel) — com o tamanho fixo, Fechar/PNG/PDF ficavam fora dela.
+        .folhaAdaptavel(larga: true)
         // Todo mapa aberto entra na galeria "Mapas mentais" (persistido).
         .onAppear { store.registrarMapa(entry.id) }
     }

@@ -3,6 +3,7 @@ import SwiftUI
 struct EntryListView: View {
     @Environment(LibraryStore.self) private var store
     @Environment(UpdateService.self) private var updater
+    @Environment(\.ehCompacto) private var ehCompacto
 
     private var selection: Binding<String?> {
         Binding(get: { store.selectedID }, set: { store.selectedID = $0 })
@@ -131,7 +132,7 @@ struct EntryListView: View {
                     store.selectedID = nil
                     store.selecao = v.destino
                 } label: {
-                    Label(v.rotulo, systemImage: "chevron.left").font(.system(size: 12, weight: .medium))
+                    Label(v.rotulo, systemImage: "chevron.left").font(Typo.ui(12, .medium))
                 }
                 .buttonStyle(.borderless)
                 Spacer()
@@ -153,6 +154,7 @@ struct EntryListView: View {
                              isFavorite: store.isFavorite(entry.id),
                              isImportante: store.isImportante(entry),
                              hasNote: store.hasAnnotation(entry.id))
+                        .jurisAbreNoToque(entry.id)
                         .listRowSeparatorTint(Palette.hairline)
                         .tag(entry.id)
                 }
@@ -169,20 +171,34 @@ struct EntryListView: View {
             return AnyView(
                 Button { Task { await updater.atualizar(store: store) } } label: {
                     Label("Atualizar", systemImage: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 11.5, weight: .medium))
+                        .font(Typo.ui(11.5, .medium))
                 }
                 .disabled(estaAtualizando)
                 .controlSize(.small)
             )
         }
         if isIndice { return nil }
+        if ehCompacto {
+            // 390 pt: três botões rotulados ao lado do título de 26 pt deixavam ~72 pt para
+            // ele. Um Menu só, com filtro, ordenação e Anki dentro — nada some.
+            return AnyView(
+                Menu {
+                    filterMenu
+                    sortMenu
+                    Button { mostrarAnki = true } label: { Label("Exportar para o Anki", systemImage: "rectangle.on.rectangle.angled") }
+                } label: {
+                    Image(systemName: "ellipsis.circle").font(Typo.ui(20, .medium)).alvoToque()
+                }
+                .accessibilityLabel("Filtrar, ordenar e exportar")
+            )
+        }
         return AnyView(
             HStack(spacing: 10) {
                 filterMenu
                 sortMenu
                 Button { mostrarAnki = true } label: {
                     Label("Anki", systemImage: "rectangle.on.rectangle.angled")
-                        .font(.system(size: 11.5, weight: .medium))
+                        .font(Typo.ui(11.5, .medium))
                 }
                 .help("Exportar estes verbetes para o Anki")
             }
@@ -263,7 +279,7 @@ struct EdicoesListView: View {
             } label: {
                 HStack(spacing: 12) {
                     Text("\(ed.numero)")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(Typo.ui(15, .bold))
                         .foregroundStyle(Palette.fonteJT)
                         .frame(width: 44, height: 34)
                         .background(Palette.fonteJT.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner))
@@ -273,12 +289,12 @@ struct EdicoesListView: View {
                             .foregroundStyle(Palette.titleInk)
                             .lineLimit(2)
                         Text("\(ed.count) tese\(ed.count == 1 ? "" : "s")")
-                            .font(.system(size: 10.5))
+                            .font(Typo.ui(10.5))
                             .foregroundStyle(Palette.secondaryInk)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(Typo.ui(10, .semibold))
                         .foregroundStyle(Palette.accent.opacity(0.6))
                 }
                 .contentShape(Rectangle())
@@ -326,6 +342,7 @@ struct TesesDaEdicaoView: View {
                              isFavorite: store.isFavorite(entry.id),
                              isImportante: store.isImportante(entry),
                              hasNote: store.hasAnnotation(entry.id))
+                        .jurisAbreNoToque(entry.id)
                         .listRowSeparatorTint(Palette.hairline)
                         .tag(entry.id)
                 }
@@ -345,14 +362,14 @@ struct TesesDaEdicaoView: View {
                 store.selectedID = nil
             } label: {
                 Label("Edições", systemImage: "chevron.left")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typo.ui(12, .medium))
             }
             .buttonStyle(.borderless)
 
             Spacer()
             if let ed = store.edicaoAtual {
                 Text(ed.tema)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Typo.ui(11, .semibold))
                     .foregroundStyle(Palette.fonteJT)
                     .lineLimit(1)
             }
@@ -378,7 +395,7 @@ struct EntryRow: View {
             if mostrarLido {
                 Button { store.toggleLido(entry.id) } label: {
                     Image(systemName: store.isLido(entry.id) ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 14))
+                        .font(Typo.ui(14))
                         .foregroundStyle(store.isLido(entry.id) ? Palette.fonteSTJ
                                          : Palette.secondaryInk.opacity(0.4))
                         // Alvo de 44 × 44 pt (o círculo tem 14). O recuo negativo mantém a
@@ -410,15 +427,15 @@ struct EntryRow: View {
                     Spacer(minLength: 4)
                     if hasNote {
                         Image(systemName: "square.and.pencil")
-                            .font(.system(size: 10)).foregroundStyle(Palette.accent)
+                            .font(Typo.ui(10)).foregroundStyle(Palette.accent)
                     }
                     if isImportante {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 10)).foregroundStyle(Palette.accent)
+                            .font(Typo.ui(10)).foregroundStyle(Palette.accent)
                     }
                     if isFavorite {
                         Image(systemName: "star.fill")
-                            .font(.system(size: 10)).foregroundStyle(.yellow)
+                            .font(Typo.ui(10)).foregroundStyle(.yellow)
                     }
                 }
 
@@ -459,17 +476,17 @@ struct SearchBar: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 12, weight: .medium))
+                .font(Typo.ui(12, .medium))
                 .foregroundStyle(focado ? Palette.accent : Palette.secondaryInk)
             TextField(prompt, text: $text)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13))
+                .font(Typo.ui(13))
                 .foregroundStyle(Palette.bodyInk)
                 .focused($focado)
             if !text.isEmpty {
                 Button { text = "" } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 12))
+                        .font(Typo.ui(12))
                         .foregroundStyle(Palette.secondaryInk)
                         .jurisAlvoToque().padding(.vertical, -7)   // alvo de 44 pt sem engordar o campo
                 }
@@ -520,12 +537,12 @@ struct IndexView: View {
                                     } label: {
                                         HStack(spacing: 8) {
                                             Text(item.tema)
-                                                .font(.system(size: 12.5))
+                                                .font(Typo.ui(12.5))
                                                 .foregroundStyle(Palette.bodyInk)
                                                 .lineLimit(2)
                                             Spacer(minLength: 6)
                                             Text("\(item.count)")
-                                                .font(.system(size: 10.5, weight: .medium))
+                                                .font(Typo.ui(10.5, .medium))
                                                 .foregroundStyle(Palette.secondaryInk)
                                         }
                                         .contentShape(Rectangle())
@@ -554,7 +571,7 @@ struct IndexView: View {
                         VStack(spacing: 0) {
                             ForEach(letras, id: \.self) { l in
                                 Text(l)
-                                    .font(.system(size: 9.5, weight: .bold))
+                                    .font(Typo.ui(9.5, .bold))
                                     .foregroundStyle(Palette.accent)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                             }
@@ -594,7 +611,7 @@ struct InfoEdicoesView: View {
                 HStack(spacing: 12) {
                     VStack(spacing: 0) {
                         Text("\(ed.numero)")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(Typo.ui(15, .bold))
                             .foregroundStyle(fonte.cor)
                     }
                     .frame(width: 52, height: 34)
@@ -607,12 +624,12 @@ struct InfoEdicoesView: View {
                             Text("\(ed.count) julgado\(ed.count == 1 ? "" : "s")")
                             if let d = ed.data { Text("· \(d)") }
                         }
-                        .font(.system(size: 10.5))
+                        .font(Typo.ui(10.5))
                         .foregroundStyle(Palette.secondaryInk)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(Typo.ui(10, .semibold))
                         .foregroundStyle(Palette.accent.opacity(0.6))
                 }
                 .contentShape(Rectangle())
@@ -646,12 +663,12 @@ struct InfoTesesView: View {
                     store.selectedID = nil
                 } label: {
                     Label(fonte.nome, systemImage: "chevron.left")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Typo.ui(12, .medium))
                 }
                 .buttonStyle(.borderless)
                 Spacer()
                 Text("Informativo \(numero)")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Typo.ui(11, .semibold))
                     .foregroundStyle(fonte.cor).lineLimit(1)
             }
             .padding(.horizontal, 12).padding(.vertical, 7)
@@ -666,6 +683,7 @@ struct InfoTesesView: View {
                              isFavorite: store.isFavorite(entry.id),
                              isImportante: store.isImportante(entry),
                              hasNote: store.hasAnnotation(entry.id))
+                        .jurisAbreNoToque(entry.id)
                         .listRowSeparatorTint(Palette.hairline)
                         .tag(entry.id)
                 }

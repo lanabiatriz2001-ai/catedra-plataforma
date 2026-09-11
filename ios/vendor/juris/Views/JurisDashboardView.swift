@@ -5,6 +5,7 @@ import SwiftUI
 /// cabeçalhos de seção iguais aos das prateleiras.
 struct JurisDashboardView: View {
     @Environment(LibraryStore.self) private var store
+    @Environment(\.ehCompacto) private var ehCompacto
 
     @State private var mostrarFlash = false
     @State private var flashDeck: [JurisEntry] = []
@@ -48,7 +49,7 @@ struct JurisDashboardView: View {
                 secao("Seu progresso por fonte", "chart.bar.fill") { progressoFontes }
             }
         }
-        .padding(.horizontal, 26)
+        .jurisMargemPagina()
         .sheet(isPresented: $mostrarFlash) { ExportAnkiSheet(entries: flashDeck, titulo: flashTitulo) }
         .sheet(isPresented: $mostrarRevisao) { RevisaoView(deck: revisaoDeck) }
         .sheet(isPresented: $mostrarSRS) { RevisaoEspacadaView() }
@@ -78,21 +79,24 @@ struct JurisDashboardView: View {
         let frac = min(Double(feito) / Double(meta), 1)
         let dataLonga = Date().formatted(.dateTime.weekday(.wide).day().month(.wide)).uppercased()
         return VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 14) {
+            // iPhone: a saudação de 26 pt ao lado do contador quebrava "jurisprudência" no meio
+            // da palavra; o contador desce para baixo do texto e a saudação vai a 22 pt.
+            JurisFileira(espacamento: 14, alinhamento: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(dataLonga)
-                        .font(.system(size: 10, weight: .bold)).tracking(1.1)
+                        .font(Typo.ui(10, .bold)).tracking(1.1)
                         .foregroundStyle(.white.opacity(0.75))
                     Text("\(saudacao), vamos revisar jurisprudência?")
-                        .font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
+                        .font(Typo.ui(ehCompacto ? 22 : 26, .bold)).foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer(minLength: 0)
+                if !ehCompacto { Spacer(minLength: 0) }
                 if !ThemeState.t.baixaEstimulacao { streakBadge }   // baixa estimulação: sem contador de dias
             }
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
-                    Image(systemName: "target").font(.system(size: 12, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
-                    Text("Meta de hoje").font(.system(size: 12.5, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
+                    Image(systemName: "target").font(Typo.ui(12, .semibold)).foregroundStyle(.white.opacity(0.9))
+                    Text("Meta de hoje").font(Typo.ui(12.5, .semibold)).foregroundStyle(.white.opacity(0.9))
                     Spacer()
                     Text("\(feito) / \(meta)")
                         .font(Typo.serifTitle(14, .bold))
@@ -104,7 +108,7 @@ struct JurisDashboardView: View {
                     .tint(.white)
                 if feito >= meta {
                     Label("Meta batida hoje!", systemImage: "checkmark.seal.fill")
-                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
+                        .font(Typo.ui(11, .semibold)).foregroundStyle(.white)
                 }
             }
             .padding(14)
@@ -121,7 +125,7 @@ struct JurisDashboardView: View {
     // Botões ± da meta — vivem no hero (gradiente): vidro branco.
     private func passo(_ icone: String, _ acao: @escaping () -> Void) -> some View {
         Button(action: acao) {
-            Image(systemName: icone).font(.system(size: 10, weight: .bold))
+            Image(systemName: icone).font(Typo.ui(10, .bold))
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
                 .background(Color.white.opacity(0.18), in: Circle())
@@ -133,12 +137,12 @@ struct JurisDashboardView: View {
     private var streakBadge: some View {
         let s = store.streak
         return HStack(spacing: 8) {
-            Image(systemName: "flame.fill").font(.system(size: 18))
+            Image(systemName: "flame.fill").font(Typo.ui(18))
                 .foregroundStyle(s > 0 ? Palette.warn : .white.opacity(0.45))
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(s)").font(Typo.serifTitle(19, .bold)).foregroundStyle(.white)
                 Text(s == 1 ? "dia seguido" : "dias seguidos")
-                    .font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.8))
+                    .font(Typo.ui(9.5)).foregroundStyle(.white.opacity(0.8))
             }
         }
         .padding(.horizontal, 13).padding(.vertical, 8)
@@ -164,15 +168,15 @@ struct JurisDashboardView: View {
                 Spacer(minLength: 0)
             }
             HStack(spacing: 5) {
-                Text("Menos").font(.system(size: 9)).foregroundStyle(Palette.secondaryInk)
+                Text("Menos").font(Typo.ui(9)).foregroundStyle(Palette.secondaryInk)
                 ForEach(0..<5, id: \.self) { n in
                     RoundedRectangle(cornerRadius: 2).fill(corIntensidade(n == 0 ? 0 : n * 3))
                         .frame(width: 11, height: 11)
                 }
-                Text("Mais").font(.system(size: 9)).foregroundStyle(Palette.secondaryInk)
+                Text("Mais").font(Typo.ui(9)).foregroundStyle(Palette.secondaryInk)
                 Spacer()
                 Text("Cada quadradinho = 1 dia de estudo")
-                    .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                    .font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
             }
         }
         .padding(15)
@@ -228,11 +232,11 @@ struct JurisDashboardView: View {
             HStack(spacing: 11) {
                 ZStack {
                     Circle().fill(cor.opacity(0.14)).frame(width: 34, height: 34)
-                    Image(systemName: icone).font(.system(size: 15)).foregroundStyle(cor)
+                    Image(systemName: icone).font(Typo.ui(15)).foregroundStyle(cor)
                 }
                 VStack(alignment: .leading, spacing: 1) {
                     Text("\(valor)").font(Typo.serifTitle(20, .bold)).foregroundStyle(Palette.titleInk)
-                    Text(titulo).font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                    Text(titulo).font(Typo.ui(11)).foregroundStyle(Palette.secondaryInk)
                 }
                 Spacer(minLength: 0)
             }
@@ -250,8 +254,17 @@ struct JurisDashboardView: View {
 
     // MARK: Atalhos (cards uniformes)
 
-    private var acoesRapidas: some View {
-        HStack(spacing: 12) {
+    /// iPad: seis cartões numa linha. iPhone: grade de duas colunas — seis fichas de ~46 pt
+    /// numa linha deixavam a porta da revisão espaçada ilegível.
+    @ViewBuilder private var acoesRapidas: some View {
+        if ehCompacto {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) { atalhos }
+        } else {
+            HStack(spacing: 12) { atalhos }
+        }
+    }
+
+    @ViewBuilder private var atalhos: some View {
             Menu {
                 Button { abrirFlash(store.entries.filter { store.isFavorite($0.id) }, "Favoritos") }
                     label: { Label("Favoritos (\(store.favorites.count))", systemImage: "star") }
@@ -281,24 +294,23 @@ struct JurisDashboardView: View {
                 .buttonStyle(.plain)
             Button { store.ir(.indice) } label: { atalhoCard("Índice", "textformat.abc", Palette.fonteRG) }
                 .buttonStyle(.plain)
-        }
     }
 
     private func atalhoCard(_ t: String, _ icone: String, _ cor: Color, badge: Int? = nil) -> some View {
         HStack(spacing: 9) {
             ZStack {
                 Circle().fill(cor.opacity(0.14)).frame(width: 30, height: 30)
-                Image(systemName: icone).font(.system(size: 13)).foregroundStyle(cor)
+                Image(systemName: icone).font(Typo.ui(13)).foregroundStyle(cor)
             }
             // No iPad os cartões são mais estreitos que no Mac e o rótulo quebrava NO MEIO
             // DA PALAVRA ("JurisFl / ashcar / ds"). Uma linha só, encolhendo se faltar
             // espaço, e sem hifenização.
-            Text(t).font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.bodyInk)
+            Text(t).font(Typo.ui(13, .semibold)).foregroundStyle(Palette.bodyInk)
                 .lineLimit(1).minimumScaleFactor(0.75).allowsTightening(true)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             if let badge, badge > 0 {
-                Text("\(badge)").font(.system(size: 10.5, weight: .bold)).foregroundStyle(.white)
+                Text("\(badge)").font(Typo.ui(10.5, .bold)).foregroundStyle(.white)
                     .padding(.horizontal, 6).padding(.vertical, 1)
                     .background(cor, in: Capsule())
             }
@@ -338,13 +350,30 @@ struct JurisDashboardView: View {
         let lidos = store.lidosDaFonte(f)
         let frac = total == 0 ? 0 : Double(lidos) / Double(total)
         return Button { store.ir(.fonte(f)) } label: {
-            HStack(spacing: 10) {
-                Image(systemName: f.simbolo).font(.system(size: 12)).foregroundStyle(f.cor).frame(width: 20)
-                Text(f.nome).font(.system(size: 12.5, weight: .medium)).foregroundStyle(Palette.bodyInk)
-                    .lineLimit(1).frame(width: 186, alignment: .leading)
-                ProgressView(value: frac).tint(f.cor)
-                Text("\(lidos)/\(total)").font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Palette.secondaryInk).frame(width: 68, alignment: .trailing)
+            if ehCompacto {
+                // 186 + 68 pt fixos sobravam 4 pt para a barra em 390 pt: nome e contagem
+                // em cima, a barra inteira embaixo.
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 10) {
+                        Image(systemName: f.simbolo).font(Typo.ui(12)).foregroundStyle(f.cor).frame(width: 20)
+                        Text(f.nome).font(Typo.ui(12.5, .medium)).foregroundStyle(Palette.bodyInk).lineLimit(1)
+                        Spacer(minLength: 6)
+                        Text("\(lidos)/\(total)").font(Typo.ui(11, .semibold))
+                            .foregroundStyle(Palette.secondaryInk)
+                    }
+                    ProgressView(value: frac).tint(f.cor)
+                }
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            } else {
+                HStack(spacing: 10) {
+                    Image(systemName: f.simbolo).font(Typo.ui(12)).foregroundStyle(f.cor).frame(width: 20)
+                    Text(f.nome).font(Typo.ui(12.5, .medium)).foregroundStyle(Palette.bodyInk)
+                        .lineLimit(1).frame(width: 186, alignment: .leading)
+                    ProgressView(value: frac).tint(f.cor)
+                    Text("\(lidos)/\(total)").font(Typo.ui(11, .semibold))
+                        .foregroundStyle(Palette.secondaryInk).frame(width: 68, alignment: .trailing)
+                }
             }
         }
         .buttonStyle(.plain)

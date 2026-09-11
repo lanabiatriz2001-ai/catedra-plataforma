@@ -140,7 +140,7 @@ struct OralBancasView: View {
                                  trailing: AnyView(botaoSessao)) {
                         ScrollView {
                             detalhe(c)
-                                .padding(.horizontal, 28).padding(.vertical, 24)
+                                .jurisMargemPagina(28).padding(.vertical, 24)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -153,7 +153,7 @@ struct OralBancasView: View {
                              search: $busca, searchPrompt: "Buscar órgão, cargo, concurso…") {
                     ScrollView {
                         catalogo
-                            .padding(.horizontal, 28).padding(.vertical, 24)
+                            .jurisMargemPagina(28).padding(.vertical, 24)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -182,15 +182,15 @@ struct OralBancasView: View {
             case .carregando, .naoCarregado:
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text("Abrindo o acervo de provas orais…").font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
+                    Text("Abrindo o acervo de provas orais…").font(Typo.ui(13)).foregroundStyle(Palette.secondaryInk)
                 }
             case .indisponivel:
                 // Estado humano, com saída: o nome do arquivo foi para o log, não para cá.
                 VStack(alignment: .leading, spacing: 8) {
                     Text("O acervo de provas orais não veio nesta versão do app.")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(Typo.ui(14, .semibold))
                     Text("Os pontos sorteáveis, as perguntas das bancas e os padrões de resposta ficam nesta tela. Enquanto isso, o mesmo material está no Cátedra na web.")
-                        .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
+                        .font(Typo.ui(13)).foregroundStyle(Palette.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
                     Button("Tentar de novo") { OralBancas.carregar(forcar: true); acervoVersao += 1 }
                         .buttonStyle(.bordered)
@@ -198,7 +198,7 @@ struct OralBancasView: View {
                 .padding(.vertical, 4)
             case .pronto where OralBancas.concursos.isEmpty:
                 Text("Nenhum concurso no acervo desta versão.")
-                    .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
+                    .font(Typo.ui(13)).foregroundStyle(Palette.secondaryInk)
             case .pronto:
                 EmptyView()
             }
@@ -225,10 +225,10 @@ struct OralBancasView: View {
                                 if !c.banca.isEmpty { EtiquetaEstudo(texto: c.banca, cor: Palette.secondaryInk) }
                                 if c.ouro { EtiquetaEstudo(texto: "padrão de resposta", cor: Palette.importante) }
                             }
-                            Text(c.titulo).font(.system(size: 16, weight: .heavy)).foregroundStyle(Palette.titleInk)
-                            Text(c.cargo).font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
+                            Text(c.titulo).font(Typo.ui(16, .heavy)).foregroundStyle(Palette.titleInk)
+                            Text(c.cargo).font(Typo.ui(12.5)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
                             Text("\(c.materiais.count) documento(s): " + c.tem.compactMap { rotuloCurto($0) }.joined(separator: ", "))
-                                .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
+                                .font(Typo.ui(11.5)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading).padding(14)
                         .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
@@ -270,14 +270,14 @@ struct OralBancasView: View {
                                 Button { abrir(m.url) } label: {
                                     VStack(alignment: .leading, spacing: 2) {
                                         HStack(alignment: .top, spacing: 6) {
-                                            Image(systemName: "doc.text").font(.system(size: 11)).foregroundStyle(Palette.accent)
-                                            Text(m.titulo.isEmpty ? m.url : m.titulo).font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.titleInk)
+                                            Image(systemName: "doc.text").font(Typo.ui(11)).foregroundStyle(Palette.accent)
+                                            Text(m.titulo.isEmpty ? m.url : m.titulo).font(Typo.ui(13, .semibold)).foregroundStyle(Palette.titleInk)
                                                 .multilineTextAlignment(.leading)
                                             Spacer(minLength: 0)
-                                            Image(systemName: "arrow.up.right").font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                                            Image(systemName: "arrow.up.right").font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
                                         }
                                         if !m.obs.isEmpty {
-                                            Text(m.obs).font(.system(size: 11)).foregroundStyle(Palette.secondaryInk).lineLimit(3)
+                                            Text(m.obs).font(Typo.ui(11)).foregroundStyle(Palette.secondaryInk).lineLimit(3)
                                         }
                                     }
                                     .contentShape(Rectangle())
@@ -298,7 +298,7 @@ struct OralBancasView: View {
     @ViewBuilder private func sessao(_ c: ConcursoOral) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Arguição em curso").font(.system(size: 15, weight: .heavy)).foregroundStyle(Palette.titleInk)
+                Text("Arguição em curso").font(Typo.ui(15, .heavy)).foregroundStyle(Palette.titleInk)
                 Spacer()
                 Text(hms(restante)).font(Typo.num(30, .heavy))
                     .foregroundStyle(restante < 120 ? Palette.bad : Palette.titleInk)
@@ -306,23 +306,23 @@ struct OralBancasView: View {
                     .disabled(inicio != nil)
             }
             Text("Abra os pontos sorteáveis abaixo, escolha um ao acaso e responda em voz alta como responderia à banca. Ao final, abra o padrão de resposta e confronte — item a item, sem piedade.")
-                .font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
+                .font(Typo.ui(12.5)).foregroundStyle(Palette.secondaryInk)
             VStack(alignment: .leading, spacing: 6) {
                 RotuloEstudo(texto: "Como esta prova é avaliada")
                 ForEach(OralBancas.criteriosCNJ, id: \.0) { t, d in
                     HStack(alignment: .top, spacing: 6) {
-                        Text("•").font(.system(size: 12, weight: .bold)).foregroundStyle(Palette.accent)
-                        (Text(t + " — ").font(.system(size: 12, weight: .bold)) + Text(d).font(.system(size: 12)))
+                        Text("•").font(Typo.ui(12, .bold)).foregroundStyle(Palette.accent)
+                        (Text(t + " — ").font(Typo.ui(12, .bold)) + Text(d).font(Typo.ui(12)))
                             .foregroundStyle(Palette.titleInk)
                     }
                 }
                 Text("Resolução CNJ 75/2009, arts. 63 a 66 — vale para a magistratura; nas demais carreiras, confira o regulamento do próprio edital, listado acima quando publicado.")
-                    .font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk)
+                    .font(Typo.ui(10.5)).foregroundStyle(Palette.secondaryInk)
             }
             .padding(12)
             .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.accent.opacity(0.07)))
             RotuloEstudo(texto: "Suas anotações da arguição")
-            TextEditor(text: $anotacoes).font(.system(size: 14)).frame(minHeight: 130)
+            TextEditor(text: $anotacoes).font(Typo.ui(14)).frame(minHeight: 130)
                 .padding(8)
                 .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.cardBackground))
                 .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline))
@@ -332,7 +332,7 @@ struct OralBancasView: View {
                 Text(fund.isEmpty
                      ? "Você não citou nenhum artigo, súmula ou tema. Na oral, o fundamento é o que sustenta a resposta."
                      : "Fundamentos que você citou: " + fund.joined(separator: "; "))
-                    .font(.system(size: 12)).foregroundStyle(fund.isEmpty ? Palette.warn : Palette.secondaryInk)
+                    .font(Typo.ui(12)).foregroundStyle(fund.isEmpty ? Palette.warn : Palette.secondaryInk)
             }
         }
         .padding(16)

@@ -12,9 +12,9 @@ struct FonteBadge: View {
     var compact: Bool = false
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: fonte.simbolo).font(.system(size: compact ? 8.5 : 9.5, weight: .semibold))
+            Image(systemName: fonte.simbolo).font(Typo.ui(compact ? 8.5 : 9.5, .semibold))
             Text((compact ? fonte.nomeCurto : fonte.nome).uppercased())
-                .font(.system(size: compact ? 9.5 : 10, weight: .bold))
+                .font(Typo.ui(compact ? 9.5 : 10, .bold))
                 .tracking(0.6)
                 .lineLimit(1)
         }
@@ -48,8 +48,8 @@ struct JurisChip: View {
 
     private func rotulo(clicavel: Bool) -> some View {
         HStack(spacing: 4) {
-            if let s = simbolo { Image(systemName: s).font(.system(size: clicavel ? 10 : 8.5, weight: .medium)) }
-            Text(texto).font(.system(size: clicavel ? 12 : 10.5, weight: clicavel ? .semibold : .medium)).lineLimit(1)
+            if let s = simbolo { Image(systemName: s).font(Typo.ui(clicavel ? 10 : 8.5, .medium)) }
+            Text(texto).font(Typo.ui(clicavel ? 12 : 10.5, clicavel ? .semibold : .medium)).lineLimit(1)
         }
         .padding(.horizontal, clicavel ? 10 : 7).padding(.vertical, clicavel ? 5 : 2.5)
         .foregroundStyle(clicavel ? (ativo ? Color.white : Palette.titleInk) : cor)
@@ -70,7 +70,7 @@ struct SituacaoPill: View {
     }
     var body: some View {
         Text(texto.uppercased())
-            .font(.system(size: 9, weight: .bold))
+            .font(Typo.ui(9, .bold))
             .tracking(0.5)
             .padding(.horizontal, 7).padding(.vertical, 2.5)
             .foregroundStyle(cor)
@@ -82,8 +82,8 @@ struct SituacaoPill: View {
 struct ImportantePill: View {
     var body: some View {
         HStack(spacing: 3) {
-            Image(systemName: "bolt.fill").font(.system(size: 8.5))
-            Text("IMPORTANTE").font(.system(size: 9, weight: .bold)).tracking(0.5)
+            Image(systemName: "bolt.fill").font(Typo.ui(8.5))
+            Text("IMPORTANTE").font(Typo.ui(9, .bold)).tracking(0.5)
         }
         .padding(.horizontal, 7).padding(.vertical, 2.5)
         .foregroundStyle(Palette.accent)
@@ -100,16 +100,16 @@ struct MetaRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Image(systemName: icone)
-                .font(.system(size: 11))
+                .font(Typo.ui(11))
                 .foregroundStyle(Palette.accent)
                 .frame(width: 16)
             Text(rotulo.uppercased())
-                .font(.system(size: 10, weight: .bold))
+                .font(Typo.ui(10, .bold))
                 .tracking(0.4)
                 .foregroundStyle(Palette.secondaryInk)
                 .frame(width: 132, alignment: .leading)
             Text(valor)
-                .font(.system(size: 12.5))
+                .font(Typo.ui(12.5))
                 .foregroundStyle(Palette.bodyInk)
                 .textSelection(.enabled)
             Spacer(minLength: 0)
@@ -124,7 +124,7 @@ struct SectionRule: View {
         HStack(spacing: 8) {
             Rectangle().fill(Palette.accent.opacity(0.5)).frame(width: 18, height: 1)
             Text(titulo.uppercased())
-                .font(.system(size: 10, weight: .bold))
+                .font(Typo.ui(10, .bold))
                 .tracking(1.2)
                 .foregroundStyle(Palette.accent)
             Rectangle().fill(Palette.hairline).frame(height: 1)
@@ -145,7 +145,7 @@ struct JurisSecaoTitulo: View {
 
     var body: some View {
         HStack(spacing: 7) {
-            if let s = simbolo { Image(systemName: s).font(.system(size: 12)).foregroundStyle(cor) }
+            if let s = simbolo { Image(systemName: s).font(Typo.ui(12)).foregroundStyle(cor) }
             Text(titulo).font(Typo.serifTitle(17, .bold)).foregroundStyle(Palette.titleInk)
             if let count {
                 Text("\(count)").font(Typo.num(11))
@@ -155,8 +155,8 @@ struct JurisSecaoTitulo: View {
             Spacer()
             if let v = verTodos {
                 Button(action: v) {
-                    HStack(spacing: 3) { Text("Ver todos"); Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold)) }
-                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.accent)
+                    HStack(spacing: 3) { Text("Ver todos"); Image(systemName: "chevron.right").font(Typo.ui(9, .bold)) }
+                        .font(Typo.ui(11, .semibold)).foregroundStyle(Palette.accent)
                 }.buttonStyle(.plain)
             }
         }
@@ -201,10 +201,10 @@ struct CartaoJuris: View {
             if let s = entry.situacao, entry.situacaoKind != .vigente { SituacaoPill(texto: s) }
             Spacer()
             if store.isImportante(entry) {
-                Image(systemName: "bolt.fill").font(.system(size: 9)).foregroundStyle(Palette.accent)
+                Image(systemName: "bolt.fill").font(Typo.ui(9)).foregroundStyle(Palette.accent)
             }
             if store.isFavorite(entry.id) {
-                Image(systemName: "star.fill").font(.system(size: 9)).foregroundStyle(Palette.importante)
+                Image(systemName: "star.fill").font(Typo.ui(9)).foregroundStyle(Palette.importante)
             }
         }
     }
@@ -223,10 +223,10 @@ struct CartaoJuris: View {
             Spacer(minLength: 0)
             HStack {
                 if let r = entry.ramoDireito {
-                    Text(r).font(.system(size: 9.5, weight: .semibold)).foregroundStyle(ramoCor).lineLimit(1)
+                    Text(r).font(Typo.ui(9.5, .semibold)).foregroundStyle(ramoCor).lineLimit(1)
                 }
                 Spacer()
-                if let rodape { Text(rodape).font(.system(size: 9.5, weight: .semibold)).foregroundStyle(Palette.secondaryInk) }
+                if let rodape { Text(rodape).font(Typo.ui(9.5, .semibold)).foregroundStyle(Palette.secondaryInk) }
             }
         }
         .padding(13)
@@ -237,7 +237,7 @@ struct CartaoJuris: View {
     private var row: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: store.isLido(entry.id) ? "checkmark.circle.fill" : "circle")
-                .font(.system(size: 13))
+                .font(Typo.ui(13))
                 .foregroundStyle(store.isLido(entry.id) ? Palette.ok : Palette.secondaryInk.opacity(0.4))
                 .padding(.top, 2)
             VStack(alignment: .leading, spacing: 4) {
@@ -246,7 +246,7 @@ struct CartaoJuris: View {
                     FonteBadge(fonte: entry.fonteKind, compact: true)
                     if let s = entry.situacao, entry.situacaoKind != .vigente { SituacaoPill(texto: s) }
                     Spacer(minLength: 0)
-                    if let rodape { Text(rodape).font(.system(size: 9.5, weight: .semibold)).foregroundStyle(Palette.secondaryInk) }
+                    if let rodape { Text(rodape).font(Typo.ui(9.5, .semibold)).foregroundStyle(Palette.secondaryInk) }
                 }
                 Text(entry.enunciado).font(Typo.serifBody(12)).foregroundStyle(Palette.bodyInk.opacity(0.85))
                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
@@ -272,8 +272,8 @@ struct CartaoJuris: View {
                     .lineLimit(4).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
                     .multilineTextAlignment(.leading)
                 HStack(spacing: 6) {
-                    Image(systemName: "book.fill").font(.system(size: 11))
-                    Text("Ler inteiro teor").font(.system(size: 12.5, weight: .bold))
+                    Image(systemName: "book.fill").font(Typo.ui(11))
+                    Text("Ler inteiro teor").font(Typo.ui(12.5, .bold))
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 16).padding(.vertical, 9)
@@ -326,10 +326,10 @@ struct Prateleira<Conteudo: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             JurisSecaoTitulo(titulo: titulo, simbolo: simbolo, verTodos: verTodos)
-                .padding(.horizontal, 26)
+                .jurisMargemPagina()
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) { conteudo() }
-                    .padding(.horizontal, 26).padding(.vertical, 2)
+                    .jurisMargemPagina().padding(.vertical, 2)
             }
         }
     }
@@ -350,29 +350,29 @@ struct HubCard: View {
             HStack(spacing: 10) {
                 if let s = sigla {
                     Text(s)
-                        .font(.system(size: 11, weight: .bold))
+                        .font(Typo.ui(11, .bold))
                         .minimumScaleFactor(0.6).lineLimit(1)
                         .foregroundStyle(.white)
                         .frame(width: 42, height: 34)
                         .background(cor, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 } else {
                     Image(systemName: icon)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(Typo.ui(14, .semibold))
                         .foregroundStyle(cor)
                         .frame(width: 34, height: 34)
                         .background(cor.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 }
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(titulo).font(.system(size: 12.5, weight: .semibold))
+                    Text(titulo).font(Typo.ui(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk)
                         .lineLimit(2).multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(subtitulo)
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                Image(systemName: "chevron.right").font(Typo.ui(10, .semibold))
                     .foregroundStyle(Palette.secondaryInk)
             }
             .padding(12)
@@ -393,7 +393,7 @@ struct HubBackBar: View {
     var body: some View {
         HStack {
             Button(action: acao) {
-                Label(rotulo, systemImage: "chevron.left").font(.system(size: 12, weight: .medium))
+                Label(rotulo, systemImage: "chevron.left").font(Typo.ui(12, .medium))
             }
             .buttonStyle(.borderless)
             Spacer()
@@ -412,7 +412,7 @@ struct RotuloEstudo: View {
     let texto: String
     var body: some View {
         Text(texto.uppercased())
-            .font(.system(size: 10.5, weight: .bold)).tracking(1.4)
+            .font(Typo.ui(10.5, .bold)).tracking(1.4)
             .foregroundStyle(Palette.secondaryInk)
     }
 }
@@ -429,7 +429,7 @@ struct BlocoEstudo<Corpo: View>: View {
             HStack(alignment: .top, spacing: 0) {
                 RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3)
                 corpo
-                    .font(.system(size: 14.5)).lineSpacing(3)
+                    .font(Typo.ui(14.5)).lineSpacing(3)
                     .foregroundStyle(Palette.titleInk)
                     .padding(.horizontal, 13).padding(.vertical, 10)
                 Spacer(minLength: 0)
@@ -446,7 +446,7 @@ struct EtiquetaEstudo: View {
     var cor: Color = Palette.accent
     var body: some View {
         Text(texto.uppercased())
-            .font(.system(size: 10, weight: .heavy)).tracking(0.6)
+            .font(Typo.ui(10, .heavy)).tracking(0.6)
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(Capsule().fill(cor.opacity(0.15)))
             .foregroundStyle(cor)
@@ -473,12 +473,12 @@ struct JurisCampoBusca: View {
     var aoSubmeter: (() -> Void)? = nil
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
-            TextField(prompt, text: $texto).textFieldStyle(.plain).font(.system(size: 13.5))
+            Image(systemName: "magnifyingglass").font(Typo.ui(13)).foregroundStyle(Palette.secondaryInk)
+            TextField(prompt, text: $texto).textFieldStyle(.plain).font(Typo.ui(13.5))
                 .onSubmit { aoSubmeter?() }
             if !texto.isEmpty {
                 Button { texto = "" } label: {
-                    Image(systemName: "xmark.circle.fill").font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                    Image(systemName: "xmark.circle.fill").font(Typo.ui(12)).foregroundStyle(Palette.secondaryInk)
                 }.buttonStyle(.plain)
             }
         }

@@ -161,7 +161,7 @@ struct GradeInformativosView: View {
                         if !eds.isEmpty { colecao(f, eds) }
                     }
                 }
-                .padding(.horizontal, 28).padding(.vertical, 24)
+                .jurisMargemPagina(28).padding(.vertical, 24)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -200,7 +200,7 @@ struct GradeInformativosView: View {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 JurisSecaoTitulo(titulo: f.nome, simbolo: f.simbolo, cor: cor, count: eds.count)
                 Text("até a \(eds.first?.numero ?? 0)")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                    .font(Typo.ui(12)).foregroundStyle(Palette.secondaryInk)
             }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 64), spacing: 7)], spacing: 7) {
                 ForEach(eds.prefix(mostrar)) { e in
@@ -209,7 +209,7 @@ struct GradeInformativosView: View {
                         VStack(spacing: 1) {
                             Text("\(e.numero)").font(Typo.num(14, .heavy))
                             Text(s.lidos > 0 ? "\(s.lidos)/\(s.total)" : "\(s.total)")
-                                .font(.system(size: 9, weight: .bold))
+                                .font(Typo.ui(9, .bold))
                         }
                         .frame(maxWidth: .infinity, minHeight: 56)
                         .foregroundStyle(cls(s) == .lida ? Palette.okInk : cls(s) == .parcial ? Palette.warn : Palette.secondaryInk)
@@ -252,13 +252,13 @@ struct JulgadoDoDiaView: View {
             SectionShell(icon: Selecao.julgadoDoDia.simbolo, title: Selecao.julgadoDoDia.titulo,
                          subtitle: Date().formatted(.dateTime.weekday(.wide).day().month(.wide).year().locale(Locale(identifier: "pt_BR")))) {
                 ScrollView {
-                    conteudo.padding(.horizontal, 28).padding(.vertical, 24)
+                    conteudo.jurisMargemPagina(28).padding(.vertical, 24)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         } else {
-            conteudo.padding(.horizontal, 28)
+            conteudo.jurisMargemPagina(28)
         }
     }
 
@@ -275,11 +275,11 @@ struct JulgadoDoDiaView: View {
                 if let r = e.ramoDireito { EtiquetaEstudo(texto: r, cor: cor) }
                 if e.importante { EtiquetaEstudo(texto: "Destaque", cor: Palette.importante) }
             }
-            Text(e.titulo).font(.system(size: 21, weight: .heavy)).tracking(-0.3).foregroundStyle(Palette.titleInk)
-            Text(e.enunciado).font(.system(size: 15)).lineSpacing(4).foregroundStyle(Palette.titleInk)
+            Text(e.titulo).font(Typo.ui(21, .heavy)).tracking(-0.3).foregroundStyle(Palette.titleInk)
+            Text(e.enunciado).font(Typo.ui(15)).lineSpacing(4).foregroundStyle(Palette.titleInk)
                 .textSelection(.enabled)
-            if let fp = e.fontePublicacao { Text(fp).font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk) }
-            HStack(spacing: 9) {
+            if let fp = e.fontePublicacao { Text(fp).font(Typo.ui(11.5)).foregroundStyle(Palette.secondaryInk) }
+            JurisFileira(espacamento: 9) {
                 Button("Abrir no leitor") { store.lerCheio(e.id) }.buttonStyle(.borderedProminent).tint(Palette.accent)
                 Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }.buttonStyle(.bordered).tint(Palette.accent)
                 Button(store.dominados.contains(e.id) ? "✓ Dominado" : "Marcar como dominado") {
@@ -322,7 +322,7 @@ struct RoteiroEstudoView: View {
             Divider().padding(.vertical, 4)
             if let r = roteiro { conteudo(r) }
             else {
-                HStack(spacing: 10) {
+                JurisFileira(espacamento: 10) {
                     Button {
                         Task { await gerar() }
                     } label: { Label(gerando ? "Montando…" : "Montar roteiro de estudo", systemImage: "list.bullet.rectangle") }
@@ -332,8 +332,8 @@ struct RoteiroEstudoView: View {
                         .buttonStyle(.bordered)
                 }
                 Text("Tese em uma frase, fundamento, o que mudou, pontos que a prova cobra, pegadinha e um quiz — montados aqui mesmo a partir do enunciado oficial e do acervo, sem IA.")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
-                if let erro { Text(erro).font(.system(size: 12)).foregroundStyle(Palette.bad) }
+                    .font(Typo.ui(12)).foregroundStyle(Palette.secondaryInk)
+                if let erro { Text(erro).font(Typo.ui(12)).foregroundStyle(Palette.bad) }
                 if mostrarOral { ProvaOralView(entry: entry) }
             }
         }
@@ -374,7 +374,7 @@ struct RoteiroEstudoView: View {
         }
         if mostrarOral { ProvaOralView(entry: entry) }
         Text("Roteiro montado localmente a partir do enunciado oficial e do acervo (sem IA) — confira os números antes de decorar.")
-            .font(.system(size: 11)).italic().foregroundStyle(Palette.secondaryInk)
+            .font(Typo.ui(11)).italic().foregroundStyle(Palette.secondaryInk)
     }
 
     private func lista(_ rotulo: String, _ itens: [String], cor: Color) -> some View {
@@ -393,7 +393,7 @@ struct RoteiroEstudoView: View {
             RotuloEstudo(texto: "Quiz — \(qs.count) questões")
             ForEach(Array(qs.enumerated()), id: \.offset) { i, q in
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("\(i + 1). \(q.en)").font(.system(size: 14)).foregroundStyle(Palette.titleInk)
+                    Text("\(i + 1). \(q.en)").font(Typo.ui(14)).foregroundStyle(Palette.titleInk)
                     ForEach(Array(q.alts.enumerated()), id: \.offset) { j, a in
                         let resp = respostas[i]
                         let certa = (j == q.ok), escolhida = (resp == j)
@@ -402,7 +402,7 @@ struct RoteiroEstudoView: View {
                         } label: {
                             HStack(alignment: .top, spacing: 8) {
                                 Text(String(Character(UnicodeScalar(UInt8(65 + min(j, 25))))) + ")").font(Typo.num(13))
-                                Text(a).font(.system(size: 13)).multilineTextAlignment(.leading)
+                                Text(a).font(Typo.ui(13)).multilineTextAlignment(.leading)
                                 Spacer(minLength: 0)
                             }
                             .padding(.horizontal, 12).padding(.vertical, 8)
@@ -459,11 +459,11 @@ struct ProvaOralView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             RotuloEstudo(texto: "Prova oral")
-            Text(pergunta).font(.system(size: 15.5, weight: .semibold)).lineSpacing(3).foregroundStyle(Palette.titleInk)
+            Text(pergunta).font(Typo.ui(15.5, .semibold)).lineSpacing(3).foregroundStyle(Palette.titleInk)
             // A resposta digitada é RASCUNHO por verbete (JurisRascunhoCache): navegar
             // ⌘→ para o próximo verbete ou trocar de aba e voltar não apaga o que foi escrito.
             TextEditor(text: $resposta)
-                .font(.system(size: 14)).frame(minHeight: 110)
+                .font(Typo.ui(14)).frame(minHeight: 110)
                 .padding(8)
                 .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.cardBackground))
                 .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline))
@@ -517,6 +517,7 @@ struct DestaquesEstudoView: View {
     enum Parte { case tudo, julgado, informativos }
     var parte: Parte = .tudo
     @Environment(LibraryStore.self) private var store
+    @Environment(\.ehCompacto) private var ehCompacto
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if parte != .informativos {
@@ -525,15 +526,16 @@ struct DestaquesEstudoView: View {
             if parte != .julgado {
             JurisSecaoTitulo(titulo: "Últimos informativos", simbolo: "newspaper",
                              verTodos: { store.ir(.gradeInformativos) })
-            .padding(.horizontal, 28)
-            HStack(spacing: 10) {
+            .jurisMargemPagina(28)
+            // iPhone: três cartões com "nº 1234" a 24 pt não cabem lado a lado — grade.
+            JurisGradeOuFileira(compacto: ehCompacto, minimo: 150, espacamento: 10) {
                 ForEach([Fonte.informativoSTF, .informativoSTJ, .informativoTSE]) { f in
                     if let e = store.edicoesInfo(f).first {
                         Button { store.ir(.infoEdicao(f, e.numero)) } label: {
                             VStack(alignment: .leading, spacing: 4) {
                                 EtiquetaEstudo(texto: f.nomeCurto, cor: f.cor)
                                 Text("nº \(e.numero)").font(Typo.num(24, .heavy)).foregroundStyle(Palette.titleInk)
-                                Text("\(e.count) verbetes").font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
+                                Text("\(e.count) verbetes").font(Typo.ui(11.5)).foregroundStyle(Palette.secondaryInk)
                             }
                             .padding(14).frame(maxWidth: .infinity, alignment: .leading)
                             .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
@@ -542,7 +544,7 @@ struct DestaquesEstudoView: View {
                     }
                 }
             }
-            .padding(.horizontal, 28)
+            .jurisMargemPagina(28)
             }
         }
     }
@@ -646,8 +648,8 @@ struct ProvaOralJurisView: View {
                             Spacer()
                             Button("Abrir no leitor") { store.lerCheio(e.id) }.buttonStyle(.plain).foregroundStyle(Palette.accent)
                         }
-                        Text(e.titulo).font(.system(size: 19, weight: .heavy)).foregroundStyle(Palette.titleInk)
-                        Text(e.enunciado).font(.system(size: 14)).lineSpacing(3).foregroundStyle(Palette.titleInk)
+                        Text(e.titulo).font(Typo.ui(19, .heavy)).foregroundStyle(Palette.titleInk)
+                        Text(e.enunciado).font(Typo.ui(14)).lineSpacing(3).foregroundStyle(Palette.titleInk)
                         ProvaOralView(entry: e).id(e.id)
                     }
                     .padding(20)
@@ -655,7 +657,7 @@ struct ProvaOralJurisView: View {
                     .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
                 }
             }
-            .padding(.horizontal, 28).padding(.vertical, 24)
+            .jurisMargemPagina(28).padding(.vertical, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
