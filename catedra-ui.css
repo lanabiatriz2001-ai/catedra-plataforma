@@ -1252,7 +1252,8 @@ button:disabled { cursor: not-allowed; }
 
 /* ===== 16.2 · Agenda da semana (Configurar, manual): cartões legíveis na cor da matéria,
    edição de um cartão por vez com rótulos, carga do dia por coluna ===== */
-/* a semana QUEBRA LINHA em vez de rolar de lado: no laptop cabem 4 dias por fila, no celular 1 */
+/* a semana QUEBRA LINHA em vez de rolar de lado: a 1280 px cabem 4 dias por fila; a 1180 px,
+   com a barra lateral aberta, 3 (colunas de ~267 px); no celular, 1 */
 .ct-ag-rolagem { padding-bottom: 2px; }
 .ct-ag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; align-items: start; }
 .ct-ag-col { display: flex; flex-direction: column; min-width: 0; padding: 10px; border-radius: var(--ct-r-lg); background: var(--surface2, #f0ece1); border: 1px solid var(--border, #e6e1d4); }
@@ -1272,6 +1273,12 @@ button:disabled { cursor: not-allowed; }
 .ct-ag-tit { font-weight: 700; font-size: var(--fs-base, 13.5px); color: var(--ink, #1f1c17); line-height: 1.3; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .ct-ag-meta { font-size: var(--fs-sm, 12.5px); color: color-mix(in srgb, var(--text2, #5c564a) 50%, var(--ink, #1f1c17)); }
 .ct-ag[data-sem-disc="true"] .ct-ag-tit { color: var(--danger, #c0392f); }
+/* No cartão EM EDIÇÃO o título vai até 13 linhas: é a única superfície onde o tópico
+   escolhido aparece por extenso (o select, a 173 px, nunca mostra um nome de edital de
+   73 a 230 caracteres, e esses cabem inteiros); nome-parágrafo de outros modelos (o de 1179
+   do promotor) corta, para os campos e o Pronto não descerem abaixo da dobra. O display
+   -webkit-box, a orientação e o overflow vêm da regra base. Fechado, segue em 3 linhas. */
+.ct-ag[data-editando="1"] .ct-ag-tit { -webkit-line-clamp: 13; }
 .ct-ag-seta { flex: none; color: var(--text3, #7a7368); transition: transform .18s ease; }
 .ct-ag[data-editando="1"] .ct-ag-seta { transform: rotate(180deg); }
 .ct-ag-form { display: flex; flex-direction: column; gap: 9px; padding: 4px 12px 12px; border-top: 1px solid color-mix(in oklab, var(--ct-item-cor) 30%, var(--border, #e6e1d4)); }
@@ -1279,10 +1286,23 @@ button:disabled { cursor: not-allowed; }
 .ct-ag-campo .ct-campo { width: 100%; min-width: 0; min-height: 40px; }
 @media (pointer: coarse) { .ct-ag-campo .ct-campo { min-height: 44px; } }
 [data-toque="1"] .ct-ag-campo .ct-campo { min-height: 44px; }
-.ct-ag-linha { display: flex; gap: 8px; }
-.ct-ag-nota { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); }
+/* Tipo e Minutos lado a lado QUANDO CABEM; senão um por linha. A base do Tipo vem de medida,
+   não de chute: "Jurisprudência" (a opção mais longa) ocupa 95,3 px na fonte do select
+   (13,5 px) + 24 de padding + 24 da seta + 2 de borda = 145,3 px. Com a divisão fixa 3:2 o
+   select ficava com 100 px na grade de 4 colunas e cortava 4 dos 9 tipos ("Questõe…").
+   A 390 px de toque os dois ficam lado a lado (150 + 8 + 88 = 246 ≤ 260); na grade do laptop
+   (linha de 175 a 219 px) o Minutos desce para a linha de baixo. */
+.ct-ag-linha { display: flex; flex-wrap: wrap; gap: 8px; }
+.ct-ag-campo-tipo { flex: 3 1 150px; }
+.ct-ag-campo-min { flex: 2 1 88px; }
+.ct-ag-nota { font-size: var(--fs-sm, 12.5px); }
+/* Rótulos e nota ficam sobre a LAVAGEM da cor da matéria (alfa ~0,16 a 13 px da borda):
+   --text3 puro dava 4,15:1 no claro e 4,31:1 no escuro no cartão de Penal. Meio caminho até
+   a tinta, como a .ct-ag-meta, passa de 4,5:1 em qualquer cor de ramo nos dois modos. */
+.ct-ag-form .ct-rotulo, .ct-ag-nota { color: color-mix(in srgb, var(--text3, #7a7368) 50%, var(--ink, #1f1c17)); }
 .ct-ag-acoes { display: flex; justify-content: space-between; gap: 8px; margin-top: 2px; }
-.ct-ag-remover { color: var(--danger, #c0392f); border-color: color-mix(in oklab, var(--danger, #c0392f) 40%, var(--border, #e6e1d4)); }
+/* fundo próprio: o vermelho não é lido sobre a lavagem (4,43:1 no cartão de Penal, claro) */
+.ct-ag-remover { color: var(--danger, #c0392f); background: var(--surface, #fffdf8); border-color: color-mix(in oklab, var(--danger, #c0392f) 40%, var(--border, #e6e1d4)); }
 .ct-ag-vazio { font-size: var(--fs-sm, 12.5px); color: var(--text3, #7a7368); padding: 6px 4px; text-align: center; }
 .ct-ag-add { margin-top: 8px; background: var(--surface, #fffdf8); border: 1px dashed var(--border, #e6e1d4); border-radius: var(--ct-r-md); padding: 9px 10px; font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a); cursor: pointer; font-family: inherit; font-weight: 700; }
 .ct-ag-add:hover { border-color: var(--accent, #0f7a57); color: var(--accentD, #0b5e43); }

@@ -17,8 +17,10 @@
 
    Função, não script, para rodar em qualquer par motor × origem (como oral-lei-seca.mjs). */
 
+import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url';
+import vm from 'vm';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
   const motor = opcoes.motor || 'chromium';
@@ -60,9 +62,11 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
   });
   await page.goto(base + '/' + arquivo);
   await w(1800);
+  await page.evaluate(medidasNaPagina);
 
   const r = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
+    const { tipoCabeOTexto } = window.__ctAg;
     const nav = document.querySelector('button[data-view="ciclo"]'); if (nav) nav.click(); await w(900);
     const r = {};
     const B = JSON.parse(localStorage.getItem('catedra:blocks') || '[]');
@@ -133,12 +137,25 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
     // agenda: cartões LEGÍVEIS (tópico/disciplina + "Tipo · min", sem select à vista), edição de um por vez
     // com o tipo por extenso (antes o select saía com uma letra), carga do dia na coluna, "+ atividade" já em edição
     const cards = [...cfg.querySelectorAll('.ct-ag')];
+    const idsAg = cards.map(c => ((c.querySelector('.ct-ag-cab') || {}).dataset || {}).id);
     r.agendaCartoesLegiveis = cards.length === 3 && cards.every(c => /Direito Penal/.test((c.querySelector('.ct-ag-tit') || {}).textContent || '') && /Teoria · 50min/.test((c.querySelector('.ct-ag-meta') || {}).textContent || '') && !c.querySelector('select'));
     cards[0].querySelector('.ct-ag-cab').click(); await w(400);
     const aberto = cfg.querySelector('.ct-ag[data-editando="1"]'); const kindSel = aberto && aberto.querySelector('select[data-field="kind"]');
     r.agendaEditaUmPorVez = !!aberto && cfg.querySelectorAll('.ct-ag[data-editando="1"]').length === 1 && !!kindSel && kindSel.getBoundingClientRect().width >= 100 && aberto.querySelector('.ct-ag-cab').getAttribute('aria-expanded') === 'true';
-    const idAberto = aberto.querySelector('.ct-ag-cab').dataset.id;
-    [...aberto.querySelectorAll('button')].find(b => /^Pronto$/.test((b.textContent || '').trim())).click(); await w(400);
+    // o tipo aparece POR EXTENSO: cada opção cabe na área útil do select (sem o padding e a seta
+    // de ~24 px) na grade de 4 colunas, o pior caso. Com a divisão fixa 3:2 o select tinha 100 px
+    // e "Jurisprudência" (95 px de texto), "Flashcards", "Questões" e "Simulado" saíam cortados.
+    r.agendaTipoCabeOTexto = !!kindSel && tipoCabeOTexto(kindSel);
+    // UM CARTÃO POR VEZ de verdade: com A aberto, abrir B fecha A (estado e aria dos dois)
+    const cabDe = id => cfg.querySelector('.ct-ag-cab[data-id="' + id + '"]');
+    cabDe(idsAg[1]).click(); await w(400);
+    const abertos = [...cfg.querySelectorAll('.ct-ag[data-editando="1"]')];
+    r.agendaAbrirOutroFechaOPrimeiro = !!idsAg[0] && !!idsAg[1] && idsAg[0] !== idsAg[1] && abertos.length === 1
+      && abertos[0].contains(cabDe(idsAg[1])) && cabDe(idsAg[0]).closest('.ct-ag').getAttribute('data-editando') === '0'
+      && cabDe(idsAg[1]).getAttribute('aria-expanded') === 'true' && cabDe(idsAg[0]).getAttribute('aria-expanded') === 'false';
+    const abertoB = abertos[0] || cfg.querySelector('.ct-ag[data-editando="1"]');
+    const idAberto = abertoB.querySelector('.ct-ag-cab').dataset.id;
+    [...abertoB.querySelectorAll('button')].find(b => /^Pronto$/.test((b.textContent || '').trim())).click(); await w(400);
     r.agendaProntoFecha = !cfg.querySelector('.ct-ag[data-editando="1"]');
     r.agendaProntoDevolveOFoco = document.activeElement === cfg.querySelector('.ct-ag-cab[data-id="' + idAberto + '"]');   // o foco não cai no body
     const colSeg = [...cfg.querySelectorAll('.ct-ag-col')].find(c => c.getAttribute('aria-label') === 'Segunda');
@@ -229,6 +246,243 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
     return r;
   });
   for (const [k, v] of Object.entries(c)) ok(v, R + k);
+
+  await agendaNomesLongos(page, base, ok, R, arquivo);
+  await agendaNoToque(page, base, ok, R, arquivo);
+}
+
+/* Medidas de aparência que rodam DENTRO da página (instaladas em window.__ctAg por
+   page.evaluate(medidasNaPagina)): largura de texto pela fonte computada e contraste WCAG
+   contra o pixel da lavagem. Presença no DOM não prova que pinta — isto mede. */
+function medidasNaPagina() {
+  const fonte = cs => [cs.fontStyle, cs.fontWeight, cs.fontSize, cs.fontFamily].join(' ');
+  // a régua: o texto cabe na área útil do select — clientWidth − padding − a seta (~24 px),
+  // largura medida por canvas com a fonte COMPUTADA do próprio select
+  const textoCabe = (sel, t) => {
+    const cs = getComputedStyle(sel); const cx = document.createElement('canvas').getContext('2d'); cx.font = fonte(cs);
+    const util = sel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 24;
+    return cx.measureText(t).width <= util;
+  };
+  // cada opção do select cabe na área útil
+  const tipoCabeOTexto = sel => {
+    const ops = [...sel.options].map(o => o.textContent.trim());
+    return ops.includes('Jurisprudência') && ops.every(t => textoCabe(sel, t));
+  };
+  // a opção VAZIA (value "") é a primeira, é a que está à vista e cabe na área útil
+  const vaziaCabe = sel => !!sel && sel.options[0].value === '' && sel.selectedIndex === 0 && textoCabe(sel, sel.options[0].textContent.trim());
+  // o Chrome devolve rgb(), rgba() e, para color-mix, color(srgb r g b / a): os três viram {r,g,b,a} em 0..1
+  const rgba = s => { s = String(s || '').trim(); let m;
+    if ((m = s.match(/^rgba?\(([^)]*)\)$/i))) { const p = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat); return { r: p[0] / 255, g: p[1] / 255, b: p[2] / 255, a: p.length > 3 ? p[3] : 1 }; }
+    if ((m = s.match(/^color\(srgb\s+([^)]*)\)$/i))) { const p = m[1].split(/[\s/]+/).filter(Boolean).map(parseFloat); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; }
+    throw new Error('cor que o teste não sabe ler: ' + s); };
+  const sobre = (fg, bg) => ({ r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a), a: 1 });
+  const lum = c => { const l = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); return 0.2126 * l(c.r) + 0.7152 * l(c.g) + 0.0722 * l(c.b); };
+  const razao = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  // a cor que um token resolve DENTRO de um elemento (herda o --ct-item-cor do cartão)
+  const token = (host, v) => { const s = document.createElement('span'); s.style.color = v; host.appendChild(s); const c = getComputedStyle(s).color; s.remove(); return c; };
+  // o PIOR ponto da lavagem do .ct-item: a cor da matéria a 18% sobre a superfície do cartão
+  const fundoLavagem = card => { const c = rgba(token(card, 'var(--ct-item-cor)')); return sobre({ r: c.r, g: c.g, b: c.b, a: 0.18 * c.a }, rgba(token(card, 'var(--surface)'))); };
+  const texto = (el, bg) => razao(sobre(rgba(getComputedStyle(el).color), bg), bg);
+  window.__ctAg = { textoCabe, tipoCabeOTexto, vaziaCabe, rgba, sobre, razao, token, fundoLavagem, texto };
+}
+
+/* NOMES DO EDITAL no cartão aberto, a 1280 px (a grade de 4 colunas: select de ~173 px, área
+   útil de ~125 px — o layout mais estreito). Semente com nomes REAIS do modelo de
+   magistratura (modelos-edital.js): um subtópico de 202 caracteres e um tópico de 73 (o select
+   corta a opção em 70). Quatro cartões, um por estado do vínculo — cheio, sem subtópico, sem
+   tópico, sem disciplina — para que cada opção vazia apareça À VISTA no seu select. Prova:
+   (a) as três opções vazias cabem na área útil (antes: "— sem vínculo com o edital —" 193 px,
+   "— a disciplina inteira —" 149 px, "— o tópico inteiro —" 130 px, todas cortadas);
+   (b) o title de cada select é o nome inteiro do que está selecionado (hover no desktop) —
+   inclusive quando a opção foi cortada em 70 com "…"; vazio quando nada está selecionado;
+   (c) o cabeçalho do cartão EM EDIÇÃO vai até 13 linhas: mostra inteiros o subtópico de 202 e o
+   tópico de 73, e o cartão fechado continua cortado em 3;
+   (d) o nome-parágrafo real (o tópico de 1179 caracteres do modelo promotor) corta em no máximo
+   13 linhas em edição, e com o cabeçalho no topo da janela o select Disciplina fica à vista —
+   sem o corte, o cabeçalho empurrava os campos e o Pronto abaixo da dobra. */
+function topicoParagrafoDoPromotor() {
+  // o maior nome de tópico do modelo promotor, lido do arquivo que o app carrega (não copiado)
+  const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const ctx = { window: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(raiz, 'modelos-edital.js'), 'utf8'), ctx);
+  let maior = { disc: '', nome: '' };
+  for (const [disc, , tops] of ctx.window.CT_MODELOS_DATA.promotor || [])
+    for (const [nome] of tops) if (nome.length > maior.nome.length) maior = { disc, nome };
+  if (maior.nome.length < 1000) throw new Error('o modelo promotor não tem mais o tópico-parágrafo (maior: ' + maior.nome.length + ' caracteres)');
+  return maior;
+}
+
+async function agendaNomesLongos(page, base, ok, R, arquivo) {
+  const T = R + 'agenda nomes do edital (1280) ';
+  const SUB = 'Crimes contra as relações de consumo (Lei nº 8.078, de 11 de setembro de 1990), a ordem tributária (Lei nº 8.137, de 27 de dezembro de 1990) e a ordem econômica (Lei nº 8.176, de 8 de fevereiro de 1991)';
+  const CPP = 'Código de Processo Penal (Decreto-lei nº 3.689, de 3 de outubro de 1.941)';
+  const PROM = topicoParagrafoDoPromotor().nome;
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(base + '/__semente');
+  await page.evaluate(({ SUB, CPP, PROM }) => {
+    const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+    localStorage.clear();
+    set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica'); set('cycleMode', 'manual'); set('blocks', []);
+    // subs nos dois formatos que o edital guarda: string (parser) e {name} (mesclagem)
+    set('edital', [
+      { disc: 'Direito Penal', peso: 2, questoes: 15, topics: [{ name: 'Leis Penais Especiais', done: false, subs: [SUB, 'Crimes hediondos'] }, { name: 'Teoria do crime', done: false, subs: [] }] },
+      { disc: 'Direito Processual Penal', peso: 2, questoes: 15, topics: [{ name: CPP, done: false, subs: [{ name: 'Do inquérito policial' }, { name: 'Da ação penal' }] }, { name: 'Do processo penal em geral', done: false, subs: [] }, { name: PROM, done: false, subs: [] }] }]);
+    set('sessions', []); set('reviews', []); set('errors', []);
+    set('manualFixed', [
+      { id: 'ag-longo', disc: 'Direito Penal', kind: 'Teoria', min: 50, dia: 'seg', roteiro: '', discEdital: 'Direito Penal', topico: 'Leis Penais Especiais', subtopico: SUB },
+      { id: 'ag-cpp', disc: 'Direito Processual Penal', kind: 'Teoria', min: 50, dia: 'ter', roteiro: '', discEdital: 'Direito Processual Penal', topico: CPP, subtopico: '' },
+      { id: 'ag-semtop', disc: 'Direito Processual Penal', kind: 'Teoria', min: 50, dia: 'qua', roteiro: '', discEdital: 'Direito Processual Penal', topico: '', subtopico: '' },
+      { id: 'ag-semdisc', disc: '', kind: 'Questões', min: 30, dia: 'qui', roteiro: '', discEdital: '', topico: '' },
+      { id: 'ag-prom', disc: 'Direito Processual Penal', kind: 'Teoria', min: 50, dia: 'sex', roteiro: '', discEdital: 'Direito Processual Penal', topico: PROM, subtopico: '' }]);
+  }, { SUB, CPP, PROM });
+  await page.goto(base + '/' + arquivo); await page.waitForTimeout(1800);
+  await page.evaluate(medidasNaPagina);
+  const r = await page.evaluate(async ({ SUB, CPP, PROM }) => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const M = window.__ctAg, r = {};
+    window.__catedraGoView('ciclo'); await w(900);
+    document.getElementById('ct-cycle-tab-configurar').click(); await w(600);
+    const cfg = document.getElementById('ct-cycle-panel-configurar');
+    const cab = id => cfg.querySelector('.ct-ag-cab[data-id="' + id + '"]');
+    const abrir = async id => { if (cab(id).getAttribute('aria-expanded') !== 'true') { cab(id).click(); await w(400); } return cab(id).closest('.ct-ag'); };
+    const sel = (card, f) => card.querySelector('select[data-field="' + f + '"]');
+    const tit = card => card.querySelector('.ct-ag-tit');
+    const inteiro = el => !!el && el.scrollHeight <= el.clientHeight + 1;
+    if (!['ag-longo', 'ag-cpp', 'ag-semtop', 'ag-semdisc', 'ag-prom'].every(id => !!cab(id))) throw new Error('a semente não montou os 5 cartões da agenda');
+    // fechado, o título do nome longo segue cortado em 3 linhas (a semana precisa caber) — medido
+    // ANTES de abrir, e exigido junto com o "inteiro em edição" lá embaixo
+    const fechadoCortado = tit(cab('ag-longo').closest('.ct-ag')).textContent === SUB && !inteiro(tit(cab('ag-longo').closest('.ct-ag')));
+    // (a) cada opção vazia, à vista no seu select, cabe na área útil
+    let c = await abrir('ag-semdisc');
+    r.vaziaDaDisciplinaCabe = M.vaziaCabe(sel(c, 'discEdital'));
+    c = await abrir('ag-semtop');
+    r.vaziaDoTopicoCabe = M.vaziaCabe(sel(c, 'topico'));
+    c = await abrir('ag-cpp');
+    r.vaziaDoSubtopicoCabe = M.vaziaCabe(sel(c, 'subtopico'));
+    // (b) title = nome inteiro do selecionado; o tópico de 73 caracteres, cortado em 70 na opção
+    const sT = sel(c, 'topico'), opT = sT && sT.selectedOptions[0];
+    r.titleDoTopicoCortadoEhONomeInteiro = !!opT && sT.title === CPP && opT.textContent === CPP.slice(0, 70) + '…';
+    // (c) em edição, o cabeçalho mostra o tópico inteiro
+    r.cabecalhoEmEdicaoMostraOTopicoInteiro = tit(c).textContent === CPP && inteiro(tit(c));
+    c = await abrir('ag-longo');
+    const sD = sel(c, 'discEdital'), sS = sel(c, 'subtopico'), sTl = sel(c, 'topico');
+    r.titleDaDisciplinaEhOSelecionado = !!sD && sD.title === 'Direito Penal' && sD.selectedOptions[0].textContent === 'Direito Penal';
+    r.titleDoTopicoEhOSelecionado = !!sTl && sTl.title === 'Leis Penais Especiais' && sTl.selectedOptions[0].textContent === 'Leis Penais Especiais';
+    r.titleDoSubtopicoCortadoEhONomeInteiro = !!sS && sS.title === SUB && sS.selectedOptions[0].textContent === SUB.slice(0, 70) + '…';
+    r.cabecalhoEmEdicaoMostraOSubtopicoInteiroEFechadoCorta = fechadoCortado && tit(c).textContent === SUB && inteiro(tit(c));
+    // o title acompanha o valor: vazio enquanto nada está escolhido (a opção vazia cabe, não há o
+    // que revelar) e, escolhido pelo select, o nome escolhido — o template re-renderiza
+    c = await abrir('ag-cpp');
+    const sSub = sel(c, 'subtopico'); const tituloVazio = sSub.value === '' && sSub.title === '';
+    sSub.value = 'Do inquérito policial'; sSub.dispatchEvent(new Event('change', { bubbles: true })); await w(500);
+    c = cab('ag-cpp').closest('.ct-ag');
+    r.titleAcompanhaOValor = tituloVazio && sel(c, 'subtopico').title === 'Do inquérito policial' && tit(c).textContent === 'Do inquérito policial';
+    // (d) o nome-parágrafo (tópico de 1179 do promotor): em edição, mais que o fechado e no
+    // máximo 13 linhas, cortado; com o cabeçalho no topo da área visível, o select Disciplina
+    // (o primeiro campo) fica inteiro dentro da janela
+    c = await abrir('ag-prom');
+    const tP = tit(c), lh = parseFloat(getComputedStyle(tP).lineHeight);
+    r.nomeParagrafoEmEdicaoCortaEmAte13Linhas = tP.textContent === PROM && lh > 0
+      && tP.clientHeight > 3 * lh + 1 && tP.clientHeight <= 13 * lh + 1 && tP.scrollHeight > tP.clientHeight + 1;
+    cab('ag-prom').scrollIntoView({ block: 'start', behavior: 'instant' }); await w(300);
+    let rol = cab('ag-prom').parentElement;
+    while (rol && rol !== document.documentElement && !(/(auto|scroll)/.test(getComputedStyle(rol).overflowY) && rol.scrollHeight > rol.clientHeight)) rol = rol.parentElement;
+    const caixa = rol && rol !== document.documentElement ? rol.getBoundingClientRect() : { top: 0, bottom: innerHeight };
+    const topoVis = Math.max(0, caixa.top), fundoVis = Math.min(innerHeight, caixa.bottom);
+    const rc = cab('ag-prom').getBoundingClientRect(), sDp = sel(cab('ag-prom').closest('.ct-ag'), 'discEdital');
+    const rd = sDp && sDp.getBoundingClientRect();
+    r.nomeParagrafoDeixaADisciplinaNaJanela = !!rd && Math.abs(rc.top - topoVis) <= 2 && rd.top >= topoVis && rd.bottom <= fundoVis + 1;
+    return r;
+  }, { SUB, CPP, PROM });
+  for (const [k, v] of Object.entries(r)) ok(v, T + k);
+}
+
+/* A agenda no TOQUE, a 390 px (celular), em contexto próprio (padrão de registro-sessao.mjs):
+   três atividades no mesmo roteiro — Penal, Civil e uma SEM disciplina — para que a nota
+   "Roteiro: …" apareça (no roteiro principal o cadastro rápido grava roteiro vazio). Prova:
+   sem rolagem lateral, colunas dentro do contêiner, alvos ≥ 44 px, Tipo por extenso e lado a
+   lado com Minutos, contraste ≥ 4,5:1 contra o pior ponto da lavagem nos DOIS temas (meta,
+   rótulos, nota, Remover, título vermelho do cartão sem disciplina) e o anel de foco inset. */
+async function agendaNoToque(pageDaSuite, base, ok, R, arquivo) {
+  const ctx = await pageDaSuite.context().browser().newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+  const T = R + 'agenda no toque (390) ';
+  try {
+    await page.goto(base + '/__semente');
+    await page.evaluate(() => {
+      const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+      const Tp = names => names.map(n => ({ name: n, done: false, subs: [] }));
+      localStorage.clear();
+      set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica'); set('cycleMode', 'manual'); set('blocks', []);
+      set('edital', [{ disc: 'Direito Penal', peso: 2, questoes: 15, topics: Tp(['Teoria do crime']) }, { disc: 'Direito Civil', peso: 2, questoes: 15, topics: Tp(['Obrigações']) }]);
+      set('sessions', []); set('reviews', []); set('errors', []);
+      set('manualFixed', [
+        { id: 'ag-penal', disc: 'Direito Penal', kind: 'Jurisprudência', min: 50, dia: 'seg', roteiro: 'Roteiro 1', discEdital: 'Direito Penal', topico: 'Teoria do crime' },
+        { id: 'ag-civil', disc: 'Direito Civil', kind: 'Flashcards', min: 45, dia: 'qua', roteiro: 'Roteiro 1', discEdital: 'Direito Civil', topico: '' },
+        { id: 'ag-solta', disc: '', kind: 'Questões', min: 30, dia: 'sex', roteiro: 'Roteiro 1', discEdital: '', topico: '' }]);
+    });
+    await page.goto(base + '/' + arquivo); await page.waitForTimeout(1800);
+    await page.evaluate(medidasNaPagina);
+    const { r, n } = await page.evaluate(async () => {
+      const w = ms => new Promise(res => setTimeout(res, ms));
+      const app = window.__catedraApp, M = window.__ctAg, r = {}, n = { claro: {}, escuro: {} };
+      window.__catedraGoView('ciclo'); await w(900);
+      document.getElementById('ct-cycle-tab-configurar').click(); await w(600);
+      const cfg = document.getElementById('ct-cycle-panel-configurar');
+      const cab = id => cfg.querySelector('.ct-ag-cab[data-id="' + id + '"]');
+      const abrir = async id => { if (cab(id).getAttribute('aria-expanded') !== 'true') { cab(id).click(); await w(400); } return cab(id).closest('.ct-ag'); };
+      r.tresCartoesNoMesmoRoteiro = cfg.querySelectorAll('.ct-ag').length === 3 && !!cab('ag-penal') && !!cab('ag-civil') && !!cab('ag-solta');
+      // a semana quebra linha: nada rola de lado, nenhuma coluna passa da borda do contêiner
+      const cont = cfg.querySelector('.ct-ag-rolagem').getBoundingClientRect(); const cols = [...cfg.querySelectorAll('.ct-ag-col')];
+      r.semRolagemLateral = document.documentElement.scrollWidth <= innerWidth;
+      r.colunasDentroDoConteiner = cols.length === 8 && cols.every(c => { const b = c.getBoundingClientRect(); return b.left >= cont.left - 0.5 && b.right <= cont.right + 0.5 && b.right <= innerWidth; });
+      // alvos de toque, com um cartão aberto
+      const ab = await abrir('ag-penal'); const alt = el => el.getBoundingClientRect().height;
+      const campos = [...ab.querySelectorAll('.ct-campo')], acoes = [...ab.querySelectorAll('.ct-ag-acoes button')], adds = [...cfg.querySelectorAll('.ct-ag-add')], cabs = [...cfg.querySelectorAll('.ct-ag-cab')];
+      r.alvoCamposNo44 = campos.length >= 5 && campos.every(e => alt(e) >= 44);
+      r.alvoProntoERemoverNo44 = acoes.length === 2 && acoes.every(e => alt(e) >= 44);
+      r.alvoMaisAtividadeNo44 = adds.length === 8 && adds.every(e => alt(e) >= 44);
+      r.alvoCabecalhoNo44 = cabs.length === 3 && cabs.every(e => alt(e) >= 44);
+      // Tipo por extenso e, havendo espaço (260 px de linha), lado a lado com Minutos
+      const sel = ab.querySelector('select[data-field="kind"]'), num = ab.querySelector('input[data-field="min"]');
+      r.tipoCabeOTexto = !!sel && M.tipoCabeOTexto(sel);
+      const bt = sel.closest('.ct-ag-campo').getBoundingClientRect(), bm = num.closest('.ct-ag-campo').getBoundingClientRect();
+      r.tipoEMinutosLadoALado = Math.abs(bt.top - bm.top) < 1 && bm.left >= bt.right;
+      // contraste contra o pior ponto da lavagem, cartão a cartão, nos dois temas
+      for (const escuro of [false, true]) {
+        app.setState({ darkMode: escuro }); await w(500);
+        const q = n[escuro ? 'escuro' : 'claro']; q.meta = []; q.rotulos = []; q.nota = []; q.remover = []; q.titulo = [];
+        for (const id of ['ag-penal', 'ag-civil', 'ag-solta']) {
+          const card = await abrir(id); const bg = M.fundoLavagem(card);
+          q.meta.push(M.texto(card.querySelector('.ct-ag-meta'), bg));
+          card.querySelectorAll('.ct-ag-form .ct-rotulo').forEach(e => q.rotulos.push(M.texto(e, bg)));
+          const nota = card.querySelector('.ct-ag-nota'); if (nota) q.nota.push(M.texto(nota, bg));
+          const rem = card.querySelector('.ct-ag-remover'); const rb = M.rgba(getComputedStyle(rem).backgroundColor);
+          q.remover.push(M.texto(rem, rb.a >= 1 ? rb : M.sobre(rb, bg)));
+          if (id === 'ag-solta') {
+            const tit = card.querySelector('.ct-ag-tit');
+            r['tituloSemDisciplinaNaCorDoPerigo' + (escuro ? 'Escuro' : 'Claro')] = card.getAttribute('data-sem-disc') === 'true' && getComputedStyle(tit).color === M.token(card, 'var(--danger)');
+            q.titulo.push(M.texto(tit, bg));
+          }
+        }
+      }
+      app.setState({ darkMode: false }); await w(400);
+      return { r, n };
+    });
+    for (const [k, v] of Object.entries(r)) ok(v, T + k);
+    const minimo = { meta: 3, rotulos: 12, nota: 3, remover: 3, titulo: 1 };
+    for (const tema of ['claro', 'escuro']) for (const [k, qtd] of Object.entries(minimo)) {
+      const xs = n[tema][k] || []; const pior = xs.length ? Math.min(...xs) : 0;
+      ok(xs.length >= qtd && pior >= 4.5, T + 'contraste ' + tema + ' ' + k + ' ≥ 4,5:1 (pior ' + pior.toFixed(2) + ' em ' + xs.length + ' medidas)');
+    }
+    // anel de foco: o cabeçalho focado por teclado mostra o box-shadow inset (o cartão não corta)
+    const foco = () => page.evaluate(() => { const c = document.querySelector('#ct-cycle-panel-configurar .ct-ag-cab'); return { ativo: document.activeElement === c, fv: c.matches(':focus-visible'), sombra: getComputedStyle(c).boxShadow }; });
+    await page.evaluate(() => document.querySelector('#ct-cycle-panel-configurar .ct-ag-cab').focus({ focusVisible: true }));
+    let f = await foco();
+    if (!f.fv) { await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Tab'); f = await foco(); }
+    ok(f.ativo && f.fv && /inset/.test(f.sombra), T + 'cabeçalho focado por teclado mostra o anel inset (' + f.sombra + ')');
+  } finally { await ctx.close(); }
 }
 
 // execução avulsa: `CT_PORT=8142 node tests/ciclo-inteligente.mjs`
