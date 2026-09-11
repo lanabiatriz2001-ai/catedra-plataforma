@@ -71,7 +71,8 @@ const BUILD = { versao: _sha, data: new Date().toISOString().slice(0, 10), alvo:
 
 // Endereço absoluto das funções serverless. A página vem do bundle local (file://),
 // então "/api/..." não resolve sozinho.
-const API_BASE = 'https://catedra-plataforma.vercel.app';
+// É a produção VIVA (time "ia"); catedra-plataforma.vercel.app é de um projeto antigo que ainda publica a main.
+const API_BASE = 'https://catedra-plataforma-fawn.vercel.app';
 
 const INJECT = `
 <!-- ▼ injetado pelo build NATIVO macOS — não existe no Catedra.dc.html original ▼ -->
