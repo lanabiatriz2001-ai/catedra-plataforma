@@ -48,6 +48,12 @@ ios/.build-n
 # travas de build cruzado (mkdir atômico; morrem com o processo)
 .build-lock-*
 
+# arquivos esvaziados pelo iCloud: a pasta temporária da restauração do git
+# (scripts/verificar-pasta-sincronizada.mjs) e a sonda do teste com esvaziamento real
+# (tests/pasta-sincronizada.mjs). As duas somem sozinhas; o padrão cobre a que um ⌃C deixar.
+.ct-restaurar-*/
+.ct-sonda-*/
+
 # lixo de manutenção do git de outra sessão (locks, worktree antiga) — entrou por engano
 # num `git add -A` meu; fica no disco, fora do repositório
 _to_delete/
