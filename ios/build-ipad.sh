@@ -43,6 +43,9 @@ EXEC="Catedra"
 BUNDLE_ID="com.catedra.ipad"
 APP="$BUILD/$NAME.app"
 MIN_IOS=17.0
+# Worktree em ~/Desktop ou ~/Documents: arquivo esvaziado pelo iCloud volta do git antes de
+# qualquer leitura, ou o build para aqui com o comando (scripts/verificar-pasta-sincronizada.mjs).
+ct_conferir_pasta "$ROOT"
 # Número do build. A Apple recusa reenviar a mesma versão ("The bundle version must be higher
 # than the previously uploaded version"), então ele precisa subir sozinho — número fixo dá um
 # 409 no meio do upload e faz perder a viagem. A contagem de commits serve bem: sobe a cada

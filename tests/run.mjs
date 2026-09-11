@@ -8,11 +8,17 @@
    Servidor e navegador vêm de tests/_infra.mjs. O motor padrão é o Chromium — executável
    de CT_CHROME ou dos caminhos usuais (CI: google-chrome); CT_BROWSER=webkit troca pelo
    WebKit do Playwright, o mesmo que tests/run-webkit.mjs usa como proxy do iPad. */
+// PRIMEIRO import, e de propósito: arquivo esvaziado pelo iCloud volta do git (ou a suíte para)
+// antes de qualquer outro módulo ser avaliado — o playwright-core lido errado num worktree do
+// Desktop derrubou a suíte WebKit. Ver scripts/verificar-pasta-sincronizada.mjs. O nome importado
+// é de propósito: verificador devolvido VAZIO pelo iCloud falha alto, em vez de pular calado.
+import { SAIDA_ESVAZIADOS } from '../scripts/verificar-pasta-sincronizada.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
+import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
@@ -386,37 +392,53 @@ await page.waitForTimeout(300);
 const a4b = await page.evaluate(() => ![...document.querySelectorAll('button')].some(x => /Voltar ao ponto/.test(x.textContent || '')));
 ok(a4b, 'ACERVO sem volta=1 não há pílula');
 
-// ciclo completo no harness que simula o host
+// ciclo completo no harness que simula o host. SEM TEMPO FIXO (11/09/2026): sob carga o
+// iframe ainda não tinha trocado de página quando o teste lia o painel, e a volta falhava sem
+// defeito no app. Cada passo espera a sua condição (a cada 50 ms, até 8 s); elemento ausente
+// vira falha nomeada, não exceção que derruba a suíte.
 await page.goto(URL0 + '/tests/harness-acervo.html');
-await page.waitForTimeout(600);
 const a5 = await page.evaluate(async (PECA) => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
   const fr = document.getElementById('fr');
+  for (let i = 0; i < 160 && !(fr.contentWindow && fr.contentWindow.CTRoteiro); i++) await w(50);
+  if (!fr.contentWindow.CTRoteiro) return { erro: 'o mapa não carregou no iframe' };
   fr.contentWindow.CTRoteiro.abrir(PECA);
-  await new Promise(r => setTimeout(r, 300));
-  const chip = [...fr.contentDocument.querySelectorAll('.ctr .rf button')].find(b => +b.dataset.b > 0);
+  const acha = () => [...fr.contentDocument.querySelectorAll('.ctr .rf button')].find(b => +b.dataset.b > 0);
+  for (let i = 0; i < 160 && !acha(); i++) await w(50);
+  const chip = acha(); if (!chip) return { erro: 'sem chip de bloco no painel' };
+  const n = window.__log.length;
   chip.click();
-  await new Promise(r => setTimeout(r, 300));
+  for (let i = 0; i < 160 && window.__log.length === n; i++) await w(50);
   return window.__log[window.__log.length - 1];
 }, PECA);
-ok(/legis-web/.test(a5.src) && /volta=1/.test(a5.src) && /q=/.test(a5.src), 'ACERVO ida: LEGIS com q= e volta=1');
-await page.waitForTimeout(1500);
+ok(!a5.erro && /legis-web/.test(a5.src) && /volta=1/.test(a5.src) && /q=/.test(a5.src), 'ACERVO ida: LEGIS com q= e volta=1' + (a5.erro ? ' (' + a5.erro + ')' : ''));
 const a6 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
   const fr = document.getElementById('fr');
-  const b = [...fr.contentDocument.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || ''));
+  // o LEGIS entra no lugar do mapa: espera a pílula DELE, não 1,5 s fixos
+  const pilula = () => { const d = fr.contentDocument; return d && /legis-web/.test(d.location.pathname) && [...d.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || '')); };
+  for (let i = 0; i < 160 && !pilula(); i++) await w(50);
+  const b = pilula();
   if (!b) return { erro: 'sem pílula no iframe' };
+  const n = window.__log.length;
   b.click();
-  await new Promise(r => setTimeout(r, 400));
+  for (let i = 0; i < 160 && window.__log.length === n; i++) await w(50);
   return window.__log[window.__log.length - 1];
 });
-ok(a6.view === 'areamod' && /peca=/.test(a6.src) && /bloco=/.test(a6.src), 'ACERVO volta: mapa com peca+bloco');
-await page.waitForTimeout(1200);
-const a7 = await page.evaluate(() => {
-  const d = document.getElementById('fr').contentDocument;
-  const rot = d.querySelector('.ctr');
-  return { aberto: rot && rot.classList.contains('on'),
-           destacou: [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')) };
+ok(!a6.erro && a6.view === 'areamod' && /peca=/.test(a6.src) && /bloco=/.test(a6.src), 'ACERVO volta: mapa com peca+bloco' + (a6.erro ? ' (' + a6.erro + ')' : ''));
+const a7 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  // espera o iframe TROCAR de página (sai o LEGIS, entra o mapa com ?bloco=) e o painel reabrir
+  // no bloco — espera e leitura no mesmo passo, sem 1,2 s fixos no meio
+  const doc = () => document.getElementById('fr').contentDocument;
+  const pronto = () => { const d = doc(); return !!d && /bloco=/.test(d.location.search) && !!d.querySelector('.ctr.on') && [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')); };
+  for (let i = 0; i < 160 && !pronto(); i++) await w(50);
+  const d = doc(), rot = d && d.querySelector('.ctr');
+  return { aberto: !!rot && rot.classList.contains('on'),
+           destacou: !!d && [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')),
+           onde: d ? d.location.pathname + d.location.search : 'sem documento no iframe' };
 });
-ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado');
+ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' + (a7.aberto && a7.destacou ? '' : ' (' + a7.onde + ')'));
 
 /* ================ ERRO VIRA REVISÃO (item 2) ================ */
 await page.goto(URL0 + '/tests/harness-erros.html');
@@ -6903,6 +6925,7 @@ const AUDITOR = () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
     document.querySelector('button[data-view="oral"]').click(); await w(900);
     const cards = [...document.querySelectorAll('button[data-i]')];
+    let diag = '';
     const r = {
       tresIntencoes: cards.length === 3,
       // o rótulo diz o ATO, não o acervo de onde vem
@@ -6911,19 +6934,35 @@ const AUDITOR = () => {
         && /consultar concursos/i.test(cards.map(c => c.textContent).join(' ')),
       // a diferença entre as três está escrita, não subentendida
       explicaADiferenca: cards.every(c => (c.textContent || '').length > 90),
-      // os cards vêm ANTES dos filtros detalhados
-      antesDosFiltros: (() => {
-        const f = document.querySelector('button[data-v]');
-        return !!f && !!(cards[0].compareDocumentPosition(f) & Node.DOCUMENT_POSITION_FOLLOWING);
+      // os cards vêm ANTES dos filtros detalhados. Os filtros só pintam quando o acervo de
+      // jurisprudência acaba de carregar (até lá a tela diz "Carregando o acervo…"). Sob carga
+      // isso passava dos 900 ms, não havia button[data-v] NENHUM na página, e a asserção falhava
+      // por ausência, não por ordem. Espera os filtros (a cada 50 ms) e só então compara.
+      antesDosFiltros: await (async () => {
+        for (let i = 0; i < 160 && !document.querySelector('button[data-v]'); i++) await w(50);
+        const f = document.querySelector('button[data-v]'), c0 = document.querySelector('button[data-i]');
+        const antes = !!f && !!c0 && !!(c0.compareDocumentPosition(f) & Node.DOCUMENT_POSITION_FOLLOWING);
+        if (!antes) {   // quando falha, diz quem é o button[data-v] (ou que não há nenhum)
+          const nome = e => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + (typeof e.className === 'string' && e.className.trim() ? '.' + e.className.trim().split(/\s+/).join('.') : '')
+            + ['role', 'aria-label', 'data-ct-view'].map(a => e.getAttribute(a) ? '[' + a + '=' + e.getAttribute(a) + ']' : '').join('');
+          const anc = []; for (let e = f && f.parentElement; e && e !== document.documentElement && anc.length < 12; e = e.parentElement) anc.push(nome(e));
+          diag = JSON.stringify({ view: (window.__catedraApp || { state: {} }).state.view, carregandoAcervo: /Carregando o acervo/.test(document.body.innerText),
+            html: f ? f.outerHTML.slice(0, 300) : 'nenhum button[data-v] na página', ancestrais: anc,
+            dialogos: [...document.querySelectorAll('[role=dialog]')].map(d => d.getAttribute('aria-label') || nome(d)) });
+        }
+        return antes;
       })(),
     };
+    if (diag) r.__diag = diag;
     // "Treinar arguição" cai no modo arguição que já existia — com relógio e sem cronômetro novo
     cards.find(c => c.dataset.i === 'treinar').click(); await w(3500);
     r.treinarAbreArguicao = /\d+:\d\d/.test(document.body.innerText) && !document.querySelector('button[data-i]');
     r.umCronometroSo = (document.body.innerText.match(/\b\d{1,2}:\d{2}\b/g) || []).length <= 3;
     return r;
   });
-  for (const [k, v] of Object.entries(oral)) ok(v, 'TASK8 oral ' + k);
+  // o diagnóstico vai para o log, não vira asserção
+  if (oral.__diag) console.log('  diagnóstico do TASK8 oral antesDosFiltros: ' + oral.__diag);
+  for (const [k, v] of Object.entries(oral)) if (k !== '__diag') ok(v, 'TASK8 oral ' + k);
 
   // --- Prioridade: as duas saídas de estudo ---
   const prioAcoes = await page.evaluate(async () => {
@@ -7525,17 +7564,32 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     };
     await irParaAparencia();
     ok((await accentDe()) === '#0f7a57', 'COR parte do verde guardado');
+    // SEM TEMPO FIXO (11/09/2026). O autosave da ABERTURA tem de assentar antes do grampo: sob
+    // carga ele passava das esperas fixas acima, caía dentro da janela e o teste acusava
+    // areaEstudo, casos e edital "regravados" — era só a primeira gravação do app. Descarrega o
+    // pendente e espera nenhuma chave do _autosaveKeys() diferir do disco (a cada 50 ms, até 8 s).
+    const assentou = await page.evaluate(async () => {
+      const w = ms => new Promise(r => setTimeout(r, ms));
+      for (let i = 0; i < 160 && !(window.__catedraApp && window.__catedraApp._salvarAgora); i++) await w(50);
+      const a = window.__catedraApp; if (!a || !a._salvarAgora) return 'o app não subiu';
+      a._salvarAgora();
+      const difere = () => a._autosaveKeys().filter(k => a.state[k] !== undefined && localStorage.getItem(a._chave(k)) !== a._serializar(k, a.state[k]));
+      for (let i = 0; i < 160 && difere().length; i++) await w(50);
+      return difere().length ? 'ainda diferem do disco: ' + difere().slice(0, 3).join(', ') : '';
+    });
     // grampo nas escritas: o que o autosave grava depois de "Padrão do tema"
     await page.evaluate(() => { const w = []; const o = localStorage.setItem.bind(localStorage); localStorage.setItem = (k, v) => { w.push(k); o(k, v); }; window.__escritas = w; });
     await page.evaluate(() => [...document.querySelectorAll('button')].find(b => /Padrão do tema/.test(b.textContent))?.click());
-    await page.waitForTimeout(1300);   // autosave (500 ms) + folga
+    // sentinela da ausência: o autosave que o clique arma só marca a cor como salva (_lastSaved)
+    // DEPOIS de passar por todas as chaves — daí em diante, o que não foi gravado não vai ser
+    await page.waitForFunction(() => { const a = window.__catedraApp; return !!a && !!a._lastSaved && a.state.accent == null && a._lastSaved.accent === a.state.accent; }, null, { polling: 50, timeout: 8000 }).catch(() => {});
     const guardado = await page.evaluate(() => localStorage.getItem('catedra:accent'));
     ok(guardado === '"tema"', 'COR "padrão do tema" fica guardado como valor com conteúdo, não como chave apagada');
     ok((await accentDe()) === '#4f46e5', 'COR "padrão do tema" pinta com a cor da direção (Fibra = índigo), não com o verde');
     const escritas = await page.evaluate(() => { const w = window.__escritas.slice(); window.__escritas.length = 0; return w; });
     // só as chaves sincronizadas contam: 'ct_timer' é o cronômetro, fora do autosave e do sync
     const alheias = escritas.filter(k => k !== 'catedra:accent' && k.indexOf('catedra:') === 0);
-    ok(alheias.length === 0, 'COR o autosave grava só o que mudou — nenhuma outra chave regravada (' + alheias.slice(0, 3).join(', ') + ')');
+    ok(alheias.length === 0, 'COR o autosave grava só o que mudou — nenhuma outra chave regravada (' + alheias.slice(0, 3).join(', ') + ')' + (alheias.length && assentou ? ' — antes do grampo: ' + assentou : ''));
     // chega um sync com o verde VELHO da nuvem (carimbo de agosto): não desfaz a escolha…
     await page.evaluate(() => { localStorage.setItem('catedra:accent', '"#0f7a57"'); window.dispatchEvent(new Event('catedra:synced')); });
     await page.waitForTimeout(800);
@@ -7986,6 +8040,17 @@ catch (e) {
 try { await testarIpadToque(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPAD TOQUE [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+/* ============= PASTA SINCRONIZADA — ARQUIVOS ESVAZIADOS PELO iCLOUD =============
+   Worktree em ~/Desktop: o File Provider esvazia arquivos e ler um deles já voltou errado.
+   scripts/verificar-pasta-sincronizada.mjs roda antes dos builds e desta suíte (primeiro
+   import) e devolve do git o que dá para provar igual. Roteiro em tests/pasta-sincronizada.mjs
+   (o comportamento só no macOS; na CI roda a parte estática e o "fora do macOS não faz nada"). */
+try { await testarPastaSincronizada(ok); }
+catch (e) {
+  ok(false, 'PASTA o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

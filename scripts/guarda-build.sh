@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# guarda-build.sh — trava de build cruzado, comum ao Mac e ao iPad.
+# guarda-build.sh — guardas comuns aos builds do Mac e do iPad.
 #
-#   source "$ROOT/scripts/guarda-build.sh"; ct_travar_build macos "$ROOT"
+#   source "$ROOT/scripts/guarda-build.sh"
+#   ct_travar_build macos "$ROOT"     # trava de build cruzado
+#   ct_conferir_pasta "$ROOT"         # arquivos esvaziados pelo iCloud, antes de qualquer leitura
 #
 # POR QUE EXISTE: dois builds do MESMO alvo rodando ao mesmo tempo neste repositório
 # se atropelam — os dois escrevem em mac/build (ou ios/build) e no bundle web gerado por
@@ -54,4 +56,19 @@ ct_travar_build() {
   # grep, um editor aberto no arquivo ou um `tail` com o nome do script bastam para
   # bloquear a pessoa. O arquivo de trava é a fonte da verdade: é atômico, guarda o PID
   # e sabe distinguir dono vivo de trava órfã.
+}
+
+# ct_conferir_pasta <raiz> — arquivos esvaziados pelo iCloud, ANTES de o build ler qualquer um.
+#
+# Com o repositório em ~/Desktop ou ~/Documents, o File Provider esvazia arquivos parados
+# (flag dataless), e ler um deles já devolveu conteúdo errado — que iria parar no bundle. Os
+# rastreados sem mudança voltam do git; o resto para o build com o comando que resolve. As
+# medições e a decisão moram em scripts/verificar-pasta-sincronizada.mjs.
+# O recado CATEDRA_PASTA_CONFERIDA=1 só cala a linha repetida: o scripts/build-macos.mjs, chamado
+# logo em seguida, confere de novo (0,2 s). Não é desperdício: se o iCloud devolver o verificador
+# VAZIO, este node sai 0 sem conferir nada, e é o import nomeado do build-macos que acusa.
+ct_conferir_pasta() {
+  local raiz="$1"
+  node "$(dirname "${BASH_SOURCE[0]}")/verificar-pasta-sincronizada.mjs" --raiz "$raiz" || exit $?
+  export CATEDRA_PASTA_CONFERIDA=1
 }
