@@ -90,3 +90,7 @@ mac/build-app.sh · ios/build-ipad.sh                                           
 - Duas sessões no mesmo clone: confira `git branch --show-current` no mesmo comando do
   checkout; o build cruzado cai para assinatura ad-hoc.
 - macOS não tem `timeout`; em zsh, `echo =====` vira expansão `=cmd`.
+- Repositório em ~/Desktop ou ~/Documents (iCloud): o File Provider marca a raiz do `.app` com
+  `com.apple.FinderInfo` e o `codesign` recusa ("detritus"). `scripts/assinar-app.sh` assina numa
+  cópia em /private/tmp e confere com `--strict` lá; o bundle que volta é remarcado, então instale no
+  Mac com `ditto --norsrc --noextattr --noacl` (Finder e `cp` levam o atributo junto para /Applications).
