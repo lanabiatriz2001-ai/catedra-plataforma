@@ -40,7 +40,7 @@ struct HistoricoView: View {
                 .padding(16)
             }
         }
-        .frame(width: 660, height: 720)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
         .sheet(isPresented: $showPrevious) {
             PreviousTextView(subtitle: previousSubtitle, text: store.loadPreviousText(for: lawID) ?? "")
         }
@@ -174,7 +174,7 @@ struct PreviousTextView: View {
             // com o texto integral de um código (centenas de KB).
             ReadOnlyTextView(text: text.isEmpty ? "Redação anterior indisponível." : text)
         }
-        .frame(width: 640, height: 700)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
     }
 }
 

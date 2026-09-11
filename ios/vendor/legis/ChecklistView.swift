@@ -82,7 +82,7 @@ fileprivate struct DuePill: View {
     }
 }
 
-/// Menu de reagendar em 1 clique — a utilidade nova do checklist.
+/// Menu de reagendar em 1 toque — a utilidade nova do checklist.
 fileprivate struct ReagendarMenu: View {
     let itemID: UUID
     @EnvironmentObject var store: AppStore
@@ -95,9 +95,12 @@ fileprivate struct ReagendarMenu: View {
             Button { store.setChecklistDue(itemID, nil) } label: { Label("Sem prazo", systemImage: "calendar.badge.minus") }
         } label: {
             Image(systemName: "calendar").font(.system(size: 12))
+                .frame(minWidth: 44, minHeight: 44)   // alvo de toque ≥ 44 pt
+                .contentShape(Rectangle())
         }
         .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
         .help("Reagendar esta meta")
+        .accessibilityLabel("Reagendar esta meta")
     }
     private func set(daysFromToday n: Int) {
         let d = Calendar.current.date(byAdding: .day, value: n,
@@ -289,7 +292,7 @@ struct ChecklistView: View {
 
     var body: some View {
         SectionShell(icon: "checklist", title: "Checklist de leitura",
-                     subtitle: "Metas que você define — agrupadas por urgência, com reagendar em 1 clique.",
+                     subtitle: "Metas que você define — agrupadas por urgência, com reagendar em 1 toque.",
                      count: total == 0 ? nil : total) {
             VStack(spacing: 0) {
                 addForm
@@ -518,7 +521,6 @@ private struct ChecklistRow: View {
     let onToggle: () -> Void
     let onDelete: () -> Void
     let onOpenLaw: (UUID) -> Void
-    @State private var hovering = false
 
     private var kind: DueKind { dueKind(item) }
     private var overdue: Bool { if case .overdue = kind { return !item.done }; return false }
@@ -545,8 +547,11 @@ private struct ChecklistRow: View {
                 }
                 .frame(width: 21, height: 21)
                 .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : item.done)   // baixa estimulação: valor fixo = sem salto
+                .frame(minWidth: 44, minHeight: 44)   // alvo de toque ≥ 44 pt; o desenho continua 21 pt
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(item.done ? "Desmarcar meta" : "Concluir meta")
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(item.text)
@@ -568,22 +573,24 @@ private struct ChecklistRow: View {
                 }
             }
             Spacer(minLength: 6)
-            if hovering && !item.done {
+            // No Mac estes dois só apareciam no hover. No iPad não há hover: ficam sempre
+            // visíveis, com alvo de toque ≥ 44 pt (o ícone continua pequeno).
+            if !item.done {
                 ReagendarMenu(itemID: item.id)
                     .foregroundStyle(AppTheme.secondaryInk)
             }
-            if hovering {
-                Button(action: onDelete) {
-                    Image(systemName: "trash").font(.system(size: 12))
-                }
-                .buttonStyle(.plain).foregroundStyle(AppTheme.secondaryInk)
+            Button(action: onDelete) {
+                Image(systemName: "trash").font(.system(size: 12))
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain).foregroundStyle(AppTheme.secondaryInk)
+            .accessibilityLabel("Apagar meta")
         }
-        .padding(.horizontal, 13).padding(.vertical, 11)
+        .padding(.horizontal, 13).padding(.vertical, 6)
         .legisCard(tint: item.done ? tint.opacity(0.35) : tint, spine: true, hover: true,
                    stroke: overdue ? AppTheme.danger.opacity(0.4) : nil)
         .opacity(dimmed ? 0.6 : 1)
-        .onHover { hovering = $0 }
         .contextMenu {
             if !item.done {
                 Button { store.setChecklistDue(item.id, Calendar.current.startOfDay(for: Date())) } label: { Label("Para hoje", systemImage: "sun.max") }

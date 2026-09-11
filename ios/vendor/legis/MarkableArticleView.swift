@@ -358,8 +358,10 @@ struct MarkableArticleView: UIViewRepresentable {
         var incisoRanges: [NSRange] = []
         init(_ parent: MarkableArticleView) { self.parent = parent }
 
-        func textViewDidChangeSelection(_ notification: Notification) {
-            guard let tv = textView else { return }
+        // Assinatura do UIKit: recebe a própria UITextView. A do AppKit (Notification) nunca
+        // era chamada no iPad — a barra de marcação não acordava ao selecionar um trecho.
+        func textViewDidChangeSelection(_ textView: UITextView) {
+            guard let tv = (textView as? ReaderTextView) ?? self.textView else { return }
             let sel = tv.selectedRange
             let len = sel.length
             // Retângulo da seleção (para a barra de marcação contextual) — mesmo cálculo

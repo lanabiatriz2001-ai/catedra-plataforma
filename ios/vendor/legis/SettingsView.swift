@@ -34,7 +34,7 @@ struct SettingsView: View {
                     Task { await store.checkAllUpdates(manual: true) }
                 }
                 .disabled(store.isChecking)
-                Text("A verificação acontece enquanto o app estiver aberto (pode ficar em segundo plano). Quando uma lei mudar no Planalto ou um ato novo for publicado, você recebe uma notificação do macOS e a alteração fica registrada na aba Atualizações. Uma mudança só é anunciada depois de confirmada por uma segunda consulta, para evitar alarmes falsos.")
+                Text("A verificação acontece enquanto o app estiver aberto (pode ficar em segundo plano). Quando uma lei mudar no Planalto ou um ato novo for publicado, você recebe uma notificação do iPadOS e a alteração fica registrada na aba Atualizações. Uma mudança só é anunciada depois de confirmada por uma segunda consulta, para evitar alarmes falsos.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -54,7 +54,7 @@ struct SettingsView: View {
                 if !store.checkProgress.isEmpty {
                     Text(store.checkProgress).font(.caption).foregroundStyle(.secondary)
                 }
-                Text("O Vade Mecum funciona sem internet: o texto de cada norma que você abre fica salvo em disco, e as suas anotações, favoritos e progresso ficam sempre no seu Mac. Baixe todas as normas de uma vez para tê-las à mão mesmo offline. Enquanto você estiver sem conexão, as verificações de atualização pausam e retomam sozinhas quando a conexão voltar.")
+                Text("O Vade Mecum funciona sem internet: o texto de cada norma que você abre fica salvo em disco, e as suas anotações, favoritos e progresso ficam sempre neste iPad. Baixe todas as normas de uma vez para tê-las à mão mesmo offline. Enquanto você estiver sem conexão, as verificações de atualização pausam e retomam sozinhas quando a conexão voltar.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -62,29 +62,41 @@ struct SettingsView: View {
                 LabeledContent("Último backup",
                                value: store.lastBackupDate?.formatted(date: .abbreviated, time: .shortened) ?? "ainda não realizado")
                 LabeledContent("Backups guardados", value: "\(store.backupFiles().count) (mantém os 10 mais recentes)")
-                HStack {
-                    Button {
-                        if store.backupNow() != nil { backupFeedback = "Backup criado agora." }
-                        else { backupFeedback = "Não foi possível criar o backup." }
-                    } label: {
-                        Label("Fazer backup agora", systemImage: "externaldrive.badge.plus")
-                    }
-                    Button {
-                        store.revealBackupsInFinder()
-                    } label: {
-                        Label("Abrir pasta no Finder", systemImage: "folder")
-                    }
-                    Button(role: .destructive) {
-                        showRestoreConfirm = true
-                    } label: {
-                        Label("Restaurar backup mais recente", systemImage: "arrow.uturn.backward")
-                    }
-                    .disabled(store.backupFiles().isEmpty)
+                // Uma ação por linha (não a fileira do Mac): na folha do iPad os quatro
+                // rótulos não cabem lado a lado, e cada linha do Form já tem 44 pt de toque.
+                Button {
+                    if store.backupNow() != nil { backupFeedback = "Backup criado agora." }
+                    else { backupFeedback = "Não foi possível criar o backup." }
+                } label: {
+                    Label("Fazer backup agora", systemImage: "externaldrive.badge.plus")
                 }
+                Button {
+                    store.abrirBackupsNoArquivos { abriu in
+                        backupFeedback = abriu
+                            ? "Pasta aberta no app Arquivos."
+                            : "Não foi possível abrir o app Arquivos. A pasta está em \(store.backupsCaminhoLegivel)."
+                    }
+                } label: {
+                    Label("Abrir no Arquivos", systemImage: "folder")
+                }
+                Button {
+                    if !store.compartilharUltimoBackup() {
+                        backupFeedback = "Nenhum backup para compartilhar ainda."
+                    }
+                } label: {
+                    Label("Compartilhar backup mais recente", systemImage: "square.and.arrow.up")
+                }
+                .disabled(store.backupFiles().isEmpty)
+                Button(role: .destructive) {
+                    showRestoreConfirm = true
+                } label: {
+                    Label("Restaurar backup mais recente", systemImage: "arrow.uturn.backward")
+                }
+                .disabled(store.backupFiles().isEmpty)
                 if let backupFeedback {
                     Text(backupFeedback).font(.caption).foregroundStyle(.secondary)
                 }
-                Text("Uma cópia de segurança da sua biblioteca (favoritos, anotações, progresso, jurisprudência e revisão espaçada) é criada automaticamente a cada dia de uso. Os textos das leis não entram no backup porque podem ser rebaixados do Planalto.")
+                Text("Uma cópia de segurança da sua biblioteca (favoritos, anotações, progresso, jurisprudência e revisão espaçada) é criada automaticamente a cada dia de uso, em \(store.backupsCaminhoLegivel). Os textos das leis não entram no backup porque podem ser rebaixados do Planalto.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -100,7 +112,9 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 500)
+        // Largura do sistema: o host apresenta esta tela numa folha (540 pt em retrato, tela
+        // cheia no Slide Over) — 500 pt fixos estouravam no modo compacto.
+        .frame(maxWidth: .infinity)
         .padding()
         .confirmationDialog("Restaurar o backup mais recente?",
                             isPresented: $showRestoreConfirm, titleVisibility: .visible) {
@@ -112,7 +126,7 @@ struct SettingsView: View {
             }
             Button("Cancelar", role: .cancel) {}
         } message: {
-            Text("A biblioteca atual será substituída pela do último backup. O estado atual é salvo automaticamente em backups/ antes, por segurança.")
+            Text("A biblioteca atual será substituída pela do último backup. O estado atual é salvo automaticamente em Backups do LEGIS antes, por segurança.")
         }
     }
 }
