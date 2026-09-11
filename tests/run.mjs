@@ -610,40 +610,49 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     const r = {}, LA = window.CT_LA;
     const espera = ms => new Promise(res => setTimeout(res, ms));   // o _autosave grava 500 ms depois do setState
     const gravado = () => JSON.parse(localStorage.getItem('catedra:leituras') || '[]');
+    // SEM TEMPO FIXO (11/09/2026). Sob carga o _autosave (500 ms) passava de 900 ms e o teste lia
+    // o disco antes da gravação — falhava sem defeito nenhum. `ate` espera a condição; `sentinela`
+    // garante que as mensagens já postadas foram tratadas (a resposta ao pedido chega depois
+    // delas, em ordem); `assenta` faz isso e descarrega o estado no disco — é o que as asserções
+    // de AUSÊNCIA precisam, porque "não gravou" não tem como ser esperado.
+    const ate = async (f, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (f()) return true; } catch (_) {} await new Promise(res => setTimeout(res, 50)); } try { return !!f(); } catch (_) { return false; } };
+    const sentinela = async () => { await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeituras' && e.data.leiId === 'https://assenta.invalido/') { window.removeEventListener('message', h); res(); } };
+      window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasPedir', leiId: 'https://assenta.invalido/' }, '*'); setTimeout(res, 3000); }); await new Promise(res => setTimeout(res, 150)); };
+    const assenta = async () => { await sentinela(); const a = window.__catedraApp; if (a && a._salvarAgora) a._salvarAgora(); };
     r.moduloNoHost = !!LA && typeof window.__catedraGoView === 'function';
     if (!LA) return r;
     const TXT = 'XI - a casa é asilo inviolável do indivíduo, ninguém nela podendo penetrar sem consentimento do morador';
     const item = LA.marcar(LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: TXT }), 'quem', { s: 5, t: 'a casa' });
 
     window.postMessage({ type: 'ctLeituraAtiva', item }, '*');
-    await espera(900);
+    await ate(() => { const x = gravado(); return x.length === 1 && x[0].id === item.id; });
     let g = gravado();
     r.upsertGravou = g.length === 1 && g[0].id === item.id && g[0].el.quem.length === 1;
     r.semTextoDeLei = !JSON.stringify(g).includes('asilo inviolável') && !('txt' in (g[0] || {}));
 
     // edição mais VELHA não desfaz a guardada
     window.postMessage({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { up: item.up - 5000, nao: ['prazo'] }) }, '*');
-    await espera(900);
+    await assenta();
     g = gravado();
     r.upMaiorVence = g.length === 1 && (g[0].nao || []).length === 0;
 
     // edição mais NOVA entra
     const novo = LA.naoHa(item, 'prazo', true);
     window.postMessage({ type: 'ctLeituraAtiva', item: novo }, '*');
-    await espera(900);
+    await ate(() => ((gravado()[0] || {}).nao || []).indexOf('prazo') >= 0);
     g = gravado();
     r.upNovoEntra = g.length === 1 && (g[0].nao || []).indexOf('prazo') >= 0;
 
     // lixo não entra: sem leiId, com texto, id incoerente
     window.postMessage({ type: 'ctLeituraAtiva', item: { id: 'la|x|1', gi: 1, txt: TXT } }, '*');
     window.postMessage({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { id: 'la|outra|412' }) }, '*');
-    await espera(900);
+    await assenta();
     r.lixoNaoEntra = gravado().length === 1;
 
     // outra lei no mesmo array; pedir devolve SÓ a lei pedida
     const outra = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 3, txt: 'Aquele que, não sendo proprietário' });
     window.postMessage({ type: 'ctLeituraAtiva', item: outra }, '*');
-    await espera(900);
+    await ate(() => gravado().length === 2);
     r.duasLeis = gravado().length === 2;
     const resposta = await new Promise(res => {
       const h = e => { if (e.data && e.data.type === 'ctLeituras') { window.removeEventListener('message', h); res(e.data); } };
@@ -664,7 +673,8 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     window.postMessage({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 3 }, '*');
     window.postMessage({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 4 }, '*');   // q inválido: ignorado
     window.postMessage({ type: 'ctLeituraConferida', id: 'la|nao|existe', el: 'quem', q: 1 }, '*');
-    await espera(900);
+    await ate(() => { const x = gravado().find(y => y.id === item.id); return !!x && (x.conf || []).length >= 1; });
+    await assenta();   // e só então conta: a conferência inválida não pode ter entrado depois
     const it = gravado().find(x => x.id === item.id);
     r.conferenciaGravada = !!it && (it.conf || []).length === 1 && it.conf[0].el === 'quem' && it.conf[0].q === 3;
 
@@ -911,19 +921,30 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
   const la4h = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
-    const LA = window.CT_LA, r = {};
+    const LA = window.CT_LA, r = {}, app = window.__catedraApp;
+    // SEM TEMPO FIXO (11/09/2026). Sob carga o _autosave (500 ms) passava de 900 ms e o teste lia
+    // o disco antes da gravação — falhava sem defeito nenhum. `ate` espera a condição; `sentinela`
+    // garante que as mensagens já postadas foram tratadas (a resposta ao pedido chega depois
+    // delas, em ordem); `assenta` faz isso e descarrega o estado no disco — é o que as asserções
+    // de AUSÊNCIA precisam, porque "não gravou" não tem como ser esperado.
+    const ate = async (f, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (f()) return true; } catch (_) {} await new Promise(res => setTimeout(res, 50)); } try { return !!f(); } catch (_) { return false; } };
+    const sentinela = async () => { await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeituras' && e.data.leiId === 'https://assenta.invalido/') { window.removeEventListener('message', h); res(); } };
+      window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasPedir', leiId: 'https://assenta.invalido/' }, '*'); setTimeout(res, 3000); }); await new Promise(res => setTimeout(res, 150)); };
+    const assenta = async () => { await sentinela(); const a = window.__catedraApp; if (a && a._salvarAgora) a._salvarAgora(); };
     const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural, tornando-a produtiva por seu trabalho, tendo nela sua moradia.';
     let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: TXT });
     const marca = (el, t) => { it = LA.marcar(it, el, { s: TXT.indexOf(t), t }); };
     marca('quem', 'Aquele que, não sendo proprietário de imóvel rural ou urbano'); marca('oque', 'possua como sua');
     marca('prazo', 'por cinco anos ininterruptos'); marca('como', 'tornando-a produtiva por seu trabalho');
-    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await w(900);
+    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await ate(() => ler('leituras').some(x => x.id === it.id));
     const cartao = el => LA.cartaoConferencia(it, el, TXT);
     const rodada = (qs) => ({ type: 'ctLeituraConferida', id: it.id, ref: 'CC · Art. 1.239',
       itens: [['quem', qs[0]], ['oque', qs[1]], ['prazo', qs[2]], ['como', qs[3]]].map(([el, q]) => ({ el, q, front: cartao(el).front, back: cartao(el).back })) });
 
     // 1. a rodada do aceite
-    window.postMessage(rodada([5, 5, 3, 1]), '*'); await w(1000);
+    window.postMessage(rodada([5, 5, 3, 1]), '*');
+    await ate(() => ler('fc').length >= 2 && ler('reviews').length >= 2 && ler('errors').length >= 1 && (ler('leituras')[0].conf || []).length >= 4);
+    await assenta();
     let fc = ler('fc'), rv = ler('reviews'), er = ler('errors');
     r.doisCartoes = fc.length === 2 && fc.every(c => c.id && c.up && c.hash && /Leitura ativa/.test(c.origem) && c.la && c.la.id === it.id);
     r.cartaoDoPrazo = fc.some(c => c.la.el === 'prazo' && c.front.includes('Há prazo?') && c.back === 'por cinco anos ininterruptos' && !c.tipo);
@@ -939,20 +960,23 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     r.toastTemDesfazer = !!undo;
 
     // 2. desfazer limpa os 5 (e a conferência registrada no item)
-    if (undo) undo.click(); await w(1000);
+    if (undo) undo.click();
+    await ate(() => ler('fc').length === 0 && ler('reviews').length === 0 && ler('errors').length === 0); await assenta();
     r.desfazerLimpaOsCinco = ler('fc').length === 0 && ler('reviews').length === 0 && ler('errors').length === 0;
     r.desfazerDevolveOItem = (ler('leituras')[0].conf || []).length === 0;
 
     // 3. repetir a conferência do mesmo dispositivo não duplica: sm2 na revisão, hash no cartão, id no erro
-    window.postMessage(rodada([5, 5, 3, 1]), '*'); await w(1000);
-    window.postMessage(rodada([5, 5, 3, 3]), '*'); await w(1000);
+    window.postMessage(rodada([5, 5, 3, 1]), '*'); await ate(() => ler('reviews').length >= 2);
+    window.postMessage(rodada([5, 5, 3, 3]), '*');
+    await ate(() => { const p = ler('reviews').find(x => x.id.endsWith('|prazo')); return !!p && p.repeticoes === 2; }); await assenta();
     fc = ler('fc'); rv = ler('reviews'); er = ler('errors');
     r.repetirNaoDuplica = fc.length === 2 && rv.length === 2 && er.length === 1;
     r.repetirAplicaSm2 = rv.find(x => x.id.endsWith('|prazo')).repeticoes === 2 && rv.find(x => x.id.endsWith('|como')).repeticoes === 1;
 
     // 4. acertar tudo não cria nada (as contagens não se movem) e o toast diz isso, sem "desfazer"
     const antes4 = [ler('fc').length, ler('reviews').length, ler('errors').length].join('/');
-    window.postMessage(rodada([5, 5, 5, 5]), '*'); await w(1000);
+    window.postMessage(rodada([5, 5, 5, 5]), '*');
+    await ate(() => [...document.querySelectorAll('div[role=status]')].some(d => /acertou, nada a revisar/.test(d.textContent || ''))); await assenta();
     // o toast simples e o toast com ação são dois elementos: procura pelo texto, não pelo primeiro
     const t2 = [...document.querySelectorAll('div[role=status]')].find(d => /acertou, nada a revisar/.test(d.textContent || ''));
     r.acertarTudoNaoCria = [ler('fc').length, ler('reviews').length, ler('errors').length].join('/') === antes4
@@ -962,17 +986,23 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     const muitos = { type: 'ctLeituraConferida', id: it.id, ref: 'CC · Art. 1.239',
       itens: Array.from({ length: 25 }, (_, i) => ({ el: ['quem', 'oque', 'prazo', 'como'][i % 4], q: 3, front: 'F' + i, back: 'B' + i })) };
     const antes = (ler('leituras')[0].conf || []).length;
-    window.postMessage(muitos, '*'); await w(1000);
+    window.postMessage(muitos, '*'); await ate(() => (ler('leituras')[0].conf || []).length - antes >= 20); await assenta();
     r.tetoVinte = (ler('leituras')[0].conf || []).length - antes === 20;
     const t3 = [...document.querySelectorAll('div[role=status]')].find(d => /ficaram para a próxima conferência/.test(d.textContent || ''));
     r.avisaORestante = !!t3 && /5 ficaram para a próxima conferência/.test(t3.textContent || '');
 
-    // 6. lixo não entra: id inexistente, q inválido, el inválido
+    // 6. lixo não entra: id inexistente, q inválido, el inválido. A prova é o ESTADO não se mover:
+    // apagar as chaves do disco e esperar que continuem vazias dependia de nenhum _autosave
+    // atrasado (do passo 5, sob carga) regravá-las — e aí o teste acusava lixo que não existia.
+    await assenta();
+    const n6 = () => [(app.state.flashcards || []).length, (app.state.reviews || []).length, (app.state.errors || []).length].join('/');
+    const antes6 = n6();
     ['fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
     window.postMessage({ type: 'ctLeituraConferida', id: 'la|nao|1', itens: [{ el: 'quem', q: 1, front: 'x', back: 'y' }] }, '*');
     window.postMessage({ type: 'ctLeituraConferida', id: it.id, itens: [{ el: 'quem', q: 4, front: 'x', back: 'y' }, { el: 'porque', q: 1, front: 'x', back: 'y' }] }, '*');
-    await w(900);
-    r.lixoNaoCria = ler('fc').length === 0 && ler('reviews').length === 0 && ler('errors').length === 0;
+    await sentinela();
+    r.lixoNaoCria = n6() === antes6;
+    if (!r.lixoNaoCria) r.__diag6 = antes6 + ' → ' + n6();
     ['leituras', 'fc', 'reviews', 'errors', 'edital'].forEach(k => localStorage.removeItem('catedra:' + k));
     return r;
   });
@@ -1130,15 +1160,16 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
     const w = ms => new Promise(res => setTimeout(res, ms));
     const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
     const LA = window.CT_LA, r = {};
+    const ate = async (f, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (f()) return true; } catch (_) {} await new Promise(res => setTimeout(res, 50)); } try { return !!f(); } catch (_) { return false; } };   // espera a condição, não um tempo fixo
     r.inverterDisponivel = !!(window.CT_TREINO && window.CT_TREINO.inverter);
     const TXT = 'O prazo para contestar é de 15 dias, contados da audiência de conciliação, sem oposição.';
     let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm', sigla: 'CPC', rot: 'Art. 335', gi: 7, txt: TXT });
     it = LA.marcar(it, 'prazo', { s: TXT.indexOf('de 15 dias'), t: 'de 15 dias' });
-    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await w(900);
+    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await ate(() => ler('leituras').some(x => x.id === it.id));
     const cz = LA.cloze(it, 'prazo', TXT);
     window.postMessage({ type: 'ctLeituraConferida', id: it.id, ref: 'CPC · Art. 335',
       itens: [{ el: 'prazo', q: 1, front: cz.front, back: cz.back, extra: cz.extra, tipo: 'cloze', tags: cz.tags, termos: cz.termos, situacao: '' }] }, '*');
-    await w(1000);
+    await ate(() => ler('fc').length >= 1 && ler('reviews').length >= 1);
     const fc = ler('fc');
     // o núcleo do prazo é número + unidade: "de" fica visível, "15 dias" vira a lacuna
     r.cartaoCloze = fc.length === 1 && fc[0].tipo === 'cloze' && fc[0].front === 'O prazo para contestar é de {{c1::15 dias}}, contados da audiência de conciliação, sem oposição.'
@@ -1160,19 +1191,22 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
     location.reload(); await w(2000);
     return true;
   }).catch(() => false);
-  await page.waitForTimeout(2200);
+  // depois do reload, espera o app e o menu existirem (não 2,2 s fixos)
+  await page.waitForFunction(() => !!window.__catedraApp && !!document.querySelector('button[data-view="ajustes"]'), null, { timeout: 15000 }).catch(() => {});
   const exp2 = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const mais = document.querySelector('button[aria-label="Mostrar mais opções"]'); if (mais) mais.click(); await w(300);
-    document.querySelector('button[data-view="ajustes"]').click(); await w(700);
+    document.querySelector('button[data-view="ajustes"]').click();
+    for (let i = 0; i < 160 && !document.querySelector('main .aj-abas button[data-s]'); i++) await w(50);
     const acha = () => [...document.querySelectorAll('main button')].find(b => /Flashcards → Anki/.test(b.textContent || ''));
-    for (const aba of document.querySelectorAll('main .aj-abas button[data-s]')) { if (acha()) break; aba.click(); await w(500); }
+    for (const aba of document.querySelectorAll('main .aj-abas button[data-s]')) { if (acha()) break; aba.click(); for (let i = 0; i < 40 && !acha(); i++) await w(50); }
     const b = acha(); if (!b) return { erro: 'botão de exportação não encontrado' };
     const notas = [...document.querySelectorAll('main div')].filter(d => /catedra-cloze-lei-seca\.txt/.test(d.textContent || ''));
     const nota = notas.find(d => !notas.some(o => o !== d && d.contains(o)));   // o mais interno
-    b.click(); await w(1500);
+    b.click();
     return { notaCloze: !!nota && /tipo de nota Cloze e permita HTML/.test(nota.textContent) };
   });
+  for (let i = 0; i < 150 && downloads.length < 2; i++) await page.waitForTimeout(100);   // os dois arquivos, sem tempo fixo
   const nomes = downloads.map(d => d.suggestedFilename()).sort();
   ok(!exp2.erro && exp2.notaCloze, 'LEITURA/CLOZE a tela de exportação avisa do arquivo Cloze e do HTML' + (exp2.erro ? ' (' + exp2.erro + ')' : ''));
   ok(nomes.join(',') === 'catedra-cloze-lei-seca.txt,catedra-flashcards.txt', 'LEITURA/CLOZE a exportação gera os dois arquivos (' + nomes.join(', ') + ')');
@@ -1202,11 +1236,13 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
   const rev = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const r = {};
-    window.__catedraGoView('revisoes'); await w(700);
+    window.__catedraGoView('revisoes');
+    for (let i = 0; i < 160 && ![...document.querySelectorAll('#dc-root button')].some(x => /^Começar/.test((x.textContent || '').trim()) && !x.disabled); i++) await w(50);
     // o botão da sessão diz "Começar (N)"; desabilitado quando não há revisão vencida
     const b = [...document.querySelectorAll('#dc-root button')].find(x => /^Começar/.test((x.textContent || '').trim()) && !x.disabled);
     if (!b) return { erro: 'sem botão "Começar" habilitado na tela de revisões' };
-    b.click(); await w(600);
+    b.click();
+    for (let i = 0; i < 160 && !document.querySelector('[role=dialog][aria-label="Sessão de revisão"] .la-cloze .la-lacuna'); i++) await w(50);
     const dlg = document.querySelector('[role=dialog][aria-label="Sessão de revisão"]');
     if (!dlg) return { erro: 'a sessão não abriu' };
     const lac = dlg.querySelector('.la-cloze .la-lacuna');
@@ -1214,7 +1250,9 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
       && !dlg.querySelector('.la-cloze').textContent.includes('15 dias') && dlg.querySelector('.la-cloze').textContent.includes('contados da audiência');
     r.extraEscondidoAntes = !dlg.querySelector('.la-cloze-extra');
     const rev = [...dlg.querySelectorAll('button')].find(x => /Já recordei/.test(x.textContent || ''));
-    rev.click(); await w(400);
+    if (!rev) return { erro: 'sem o botão "Já recordei" na sessão' };
+    rev.click();
+    for (let i = 0; i < 160 && !dlg.querySelector('.la-cloze .la-lacuna.revelada'); i++) await w(50);
     const lac2 = dlg.querySelector('.la-cloze .la-lacuna');
     r.reveladoMostraOTrecho = !!lac2 && lac2.classList.contains('revelada') && lac2.textContent === '15 dias';
     r.extraDepois = !!dlg.querySelector('.la-cloze-extra') && /Prazo de 15 dias/.test(dlg.querySelector('.la-cloze-extra').textContent) && /A banca costuma trocar/.test(dlg.querySelector('.la-cloze-extra').textContent);
@@ -1361,6 +1399,11 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
   await page.goto(host);
   await page.waitForTimeout(1600);
   const la6h = await page.evaluate(async () => {
+    const ate = async (f, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (f()) return true; } catch (_) {} await new Promise(res => setTimeout(res, 50)); } try { return !!f(); } catch (_) { return false; } };   // espera a condição, não um tempo fixo
+    // sentinela: o pedido de resumo é respondido depois das mensagens já postadas (o canal trata em
+    // ordem, e o ctRegistrarLeitura é síncrono) — é o que as asserções de AUSÊNCIA precisam
+    const sentinela = () => new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeiturasResumoResp') { window.removeEventListener('message', h); res(); } };
+      window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasResumo' }, '*'); setTimeout(res, 3000); });
     const w = ms => new Promise(res => setTimeout(res, ms));
     const LA = window.CT_LA, r = {};
     // casamento do rot: "Art. 5º, XI" ↔ "art. 5o , XI" ↔ "Art. 5º — XI"
@@ -1373,9 +1416,11 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     a = LA.marcar(a, 'prazo', { s: 26, t: 'por cinco anos' }); a = LA.naoHa(a, 'proibicao', true);
     let b = LA.nova({ leiId: CF, sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: 'a casa é asilo inviolável' });
     b = LA.marcar(b, 'quem', { s: 0, t: 'a casa' });
-    window.postMessage({ type: 'ctLeituraAtiva', item: a }, '*'); window.postMessage({ type: 'ctLeituraAtiva', item: b }, '*'); await w(900);
+    window.postMessage({ type: 'ctLeituraAtiva', item: a }, '*'); window.postMessage({ type: 'ctLeituraAtiva', item: b }, '*');
+    await ate(() => { const L = (window.__catedraApp && window.__catedraApp.state.leituras) || []; return L.some(x => x.id === a.id) && L.some(x => x.id === b.id); });
     // 1. Prova oral → Lei seca, com o artigo sorteado forçado para o CC art. 1.239
-    window.__catedraGoView('oral'); await w(600);
+    window.__catedraGoView('oral');
+    await ate(() => !!document.querySelector('#dc-root button[data-m="lei"]'));
     document.querySelector('#dc-root button[data-m="lei"]').click();
     await new Promise(res => { const t = setInterval(() => { if (Array.isArray(window.CT_LEIS) && window.CT_LEIS.length) { clearInterval(t); res(); } }, 100); setTimeout(res, 25000); });
     await w(400);
@@ -1384,7 +1429,7 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     // sorteio determinístico: fixa Math.random para cair no CC art. 1.239 é frágil; em vez disso,
     // usa o caminho real com o artigo escolhido pela própria função do treino
     const T = window.CT_TREINO; const escolhido = { sigla: 'CC', nome: cc.nome, url: cc.url, rot: art.rot, txt: T.limpa(art.txt) };
-    const app = window.__catedraApp; if (app) { app.setState({ oralArt: escolhido, oralArtVariante: 0, oralPergunta: T.perguntaLei(escolhido, 0), oralResposta: '', oralCorrecao: null }); await w(500); }
+    const app = window.__catedraApp; if (app) { app.setState({ oralArt: escolhido, oralArtVariante: 0, oralPergunta: T.perguntaLei(escolhido, 0), oralResposta: '', oralCorrecao: null }); await ate(() => !!document.querySelector('#dc-root .la-trilho-ro')); }
     r.appExposto = !!app;
     const trilho = document.querySelector('#dc-root .la-trilho-ro');
     r.oralMostraOTrilho = !!trilho && /Art\. 1\.239/.test(trilho.textContent) && trilho.querySelectorAll('.la-chip').length === 7
@@ -1396,19 +1441,20 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     const btnOral = [...document.querySelectorAll('#dc-root button')].find(x => /Ler ativamente no LEGIS/.test(x.textContent || ''));
     r.oralTemBotao = !!btnOral && btnOral.dataset.lei === CC && /1\.239/.test(btnOral.dataset.rot);
     // "Ler ativamente" leva ao LEGIS com o pedido de abrir no dispositivo
-    btnOral.click(); await w(2600);
+    if (btnOral) { btnOral.click(); await ate(() => { const f = document.querySelector('iframe[data-ct-view="legis"]'); const rd = f && f.contentDocument && f.contentDocument.getElementById('rdr');
+      return !!rd && (rd.classList.contains('on') || /la=/.test(f.getAttribute('src') || '') || !!(f.contentWindow && f.contentWindow.__laAbrirPedido)); }, 10000); }
     const f = document.querySelector('iframe[data-ct-view="legis"]');
     const rdr = f && f.contentDocument && f.contentDocument.getElementById('rdr');
     r.abreOLegisNoLeitor = !!rdr && (rdr.classList.contains('on') || /la=/.test(f.getAttribute('src') || '') || !!(f.contentWindow && f.contentWindow.__laAbrirPedido));
     // 2. registrar sessão ao sair do modo guiado (o interruptor de Ajustes ligado abre o registro preenchido)
     let abriu = null; const orig = window.catedraOpenStudyRegistration; window.catedraOpenStudyRegistration = info => { abriu = info; return 'ok'; };
-    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lei: 'Código Civil', faixa: 'Art. 1.239 – Art. 1.241', lidos: 3, min: 7 }, '*'); await w(200);
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lei: 'Código Civil', faixa: 'Art. 1.239 – Art. 1.241', lidos: 3, min: 7 }, '*'); await ate(() => abriu !== null);
     r.registroPreenchido = !!abriu && abriu.categoria === 'Lei seca' && abriu.disc === 'Direito Civil' && abriu.topico === 'CC · Art. 1.239 – Art. 1.241' && abriu.min === 7 && /3 dispositivos/.test(abriu.nota);
     abriu = null;
-    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 0, min: 3 }, '*'); await w(200);
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 0, min: 3 }, '*'); await sentinela();
     r.semLeituraNaoOferece = abriu === null;
-    if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: false } })); await w(100); }
-    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 2, min: 3 }, '*'); await w(200);
+    if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: false } })); await ate(() => !!app.state.prefs && app.state.prefs.autoRegistro === false); }
+    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 2, min: 3 }, '*'); await sentinela();
     r.interruptorDesligadoNaoOferece = !app || abriu === null;
     if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: true } })); }
     window.catedraOpenStudyRegistration = orig;
@@ -1433,8 +1479,10 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     // respostas: errou o 1.239 (marcou certo), acertou o 1.240, errou o 1.241 (marcou errado)
     const resp = {}; resp[itens[0].id] = true; resp[itens[1].id] = true; resp[itens[2].id] = false;
     // o painel do simulado misto precisa estar aberto; o encerramento real monta o relatório e o gabarito
-    app.setState({ sjAberto: true, sjPronto: true, sjItens: itens, sjResp: resp, sjAtual: 0, sjFim: false, sjIni: Date.now() - 60000 }); await w(300);
-    app.encerrarSj(); await w(800);
+    app.setState({ sjAberto: true, sjPronto: true, sjItens: itens, sjResp: resp, sjAtual: 0, sjFim: false, sjIni: Date.now() - 60000 });
+    for (let i = 0; i < 160 && !(app.state.sjAberto && (app.state.sjItens || []).length === 3); i++) await w(50);
+    app.encerrarSj();
+    for (let i = 0; i < 160 && !document.querySelector('#dc-root .la-trilho-ro'); i++) await w(50);   // a correção pinta a grade: espera ela
     const blocos = [...document.querySelectorAll('#dc-root .la-trilho-ro')];
     r.gradeSoNoErradoComLeitura = blocos.length === 1 && /Art\. 1\.239/.test(blocos[0].textContent) && blocos[0].querySelector('.la-chip.la-prazo').classList.contains('resp');
     const conferir = [...document.querySelectorAll('#dc-root button')].filter(x => /Conferir de novo/.test(x.textContent || ''));
@@ -1791,7 +1839,7 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.encerrarFechaECorrige = !app.state.provaMode && !document.querySelector('.ct-enam') && app.state.sjFim === true && app.state.sim.total === 80 && app.state.sim.acertos === 3 && app.state.sim.erros === 2 && app.state.sim.brancos === 75;
     r.sessaoPreenchida = app.state.sessionModalOpen === true && app.state.sessionDraft.categoria === 'Simulado' && app.state.sessionDraft.disc === 'ENAM' && app.state.sessionDraft.minutos === '47' && /ENAM .* · simulado/.test(app.state.sessionDraft.topico);
     const es = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]');
-    r.tentativaSoComIds = es.length === 1 && es[0].idsUsados.length === 80 && es[0].acertos === 3 && es[0].brancos === 75 && es[0].up > 0 && !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !localStorage.getItem('catedra:enamSim').includes(its[0].enunciado.slice(0, 30));
+    r.tentativaSoComIds = es.length === 1 && es[0].idsUsados.length === 80 && es[0].acertos === 3 && es[0].brancos === 75 && es[0].up > 0 && !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !(localStorage.getItem('catedra:enamSim') || '').includes(its[0].enunciado.slice(0, 30));
     r.errosPeloCanalDoItem2 = (app.state.errors || []).filter(e => e.source === 'Simulado ENAM').length === 2 && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM' && /^Gabarito: [A-E] — /.test(c.back)).length === 2;
     r.limpouAsChaves = !localStorage.getItem('ct_enam_prova') && !localStorage.getItem('ct_prova');
     app.closeSession(); await w(300);
@@ -1868,7 +1916,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     let its = await montar();
     its[0].refs = ['Art. 25 da CF', 'Tema 698', 'Art. 11']; its[0].origem = 'enam';
     app.setState({ sjResp: responder(its), provaSeconds: 16920 }); await w(200);
-    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(900);
+    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click();
+    // a correção cria o lote de erros e os cartões e troca a tela: espera isso, não um tempo fixo (sob
+    // carga os 900 ms passavam e o teto de vinte era medido antes de o lote existir)
+    for (let i = 0; i < 160 && !((app.state.errors || []).filter(e => e.source === 'Simulado ENAM').length >= 20 && document.querySelector('main .ct-enam-res-n')); i++) await w(50);
     const main = () => document.querySelector('main');
     const selo = main().querySelector('.ct-enam-selo');
     r.numeroGrande = /51/.test(main().querySelector('.ct-enam-res-n').textContent) && /\/80/.test(main().querySelector('.ct-enam-res-n').textContent) && /Georgia|serif|Fraunces|Playfair|Display/i.test(getComputedStyle(main().querySelector('.ct-enam-res-n')).fontFamily);
@@ -1889,13 +1940,15 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.flashcardComGabaritoEReferencia = (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').every(c => /^Gabarito: [A-E] — /.test(c.back) && /\(ENAM 20\d\d\.\d · questão \d+\)$/.test(c.back));
     const desfazer = [...document.querySelectorAll('div[role=status] button')].find(b => /desfazer/i.test(b.textContent));
     r.desfazerTiraOLote = (() => { if (!desfazer) return false; desfazer.click(); return true; })();
-    await w(400);
+    for (let i = 0; i < 160 && errs().length > 0; i++) await w(50);   // espera o lote sair, não 400 ms fixos
     r.desfazerTiraOLote = r.desfazerTiraOLote && errs().length === 0 && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').length === 0;
-    // a tentativa: shape do E4, sem enunciado
+    // a tentativa: shape do E4, sem enunciado. O _autosave grava 500 ms depois do setState; sob
+    // carga isso passava do tempo fixo e a leitura dava null — que derrubava a suíte inteira.
+    for (let i = 0; i < 160 && !localStorage.getItem('catedra:enamSim'); i++) await w(50);
     const es = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]'), t = es[0];
     r.tentativaNoHistorico = es.length === 1 && /^enam\d+$/.test(t.id) && t.up > 0 && /^\d{4}-\d\d-\d\dT/.test(t.quando) && t.meta === 56 && t.acertos === 51 && t.brancos === 4 && t.habilitaria === false && t.margem === -5
       && t.porArea.length === 8 && t.porArea.every(a => 'ok' in a && 'cota' in a && 'area' in a) && t.tempoTotalSeg === 16920 && t.idsUsados.length === 80 && Array.isArray(t.edicaoBanco) && t.edicaoBanco.length >= 1 && t.comPausa === false;
-    r.semEnunciadoNoHistorico = !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !localStorage.getItem('catedra:enamSim').includes(its[3].enunciado.slice(0, 30));
+    r.semEnunciadoNoHistorico = !/enunciado/.test(localStorage.getItem('catedra:enamSim')) && !(localStorage.getItem('catedra:enamSim') || '').includes(its[3].enunciado.slice(0, 30));
     // o gabarito comentado: as referências e o caminho
     app.closeSession(); await w(300);
     const refs = main().querySelector('.ct-enam-refs');
@@ -1915,8 +1968,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.duasTentativasSincronizaveis = JSON.parse(localStorage.getItem('catedra:enamSim')).length === 2 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].meta === 40 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].habilitaria === true;
     app.closeSession(); ['catedra:enamSim', 'catedra:enam', 'catedra:errors', 'catedra:fc'].forEach(k => localStorage.removeItem(k)); app.setState({ enamSim: [], enam: null });
     return r;
-  });
-  for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E4 host ' + k);
+  }).catch(e => ({ __excecao: String(e && e.message || e).split('\n')[0].slice(0, 200) }));
+  // uma exceção aqui dentro vira UMA falha nomeada, não o fim da suíte inteira
+  if (h.__excecao) ok(false, 'ENAM/E4 host o roteiro correu sem exceção (' + h.__excecao + ')');
+  else for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E4 host ' + k);
 }
 
 /* ============= ENAM — E5: a Trilha ENAM no Início ============= */
