@@ -1428,6 +1428,7 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     await w(400);
     const cc = (window.CT_LEIS || []).find(l => l.sigla === 'CC'), art = cc && cc.artigos.find(x => /^Art\.\s*1\.239\b/.test(x.rot));
     r.acervoTemOArtigo = !!art && cc.url === CC;
+    if (!art) return r;   // sob carga o CT_LEIS pode não chegar nos 25 s: falha nomeada, não o cc.nome que derrubava a suíte
     // sorteio determinístico: fixa Math.random para cair no CC art. 1.239 é frágil; em vez disso,
     // usa o caminho real com o artigo escolhido pela própria função do treino
     const T = window.CT_TREINO; const escolhido = { sigla: 'CC', nome: cc.nome, url: cc.url, rot: art.rot, txt: T.limpa(art.txt) };
@@ -1452,6 +1453,9 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     let abriu = null; const orig = window.catedraOpenStudyRegistration; window.catedraOpenStudyRegistration = info => { abriu = info; return 'ok'; };
     window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lei: 'Código Civil', faixa: 'Art. 1.239 – Art. 1.241', lidos: 3, min: 7 }, '*'); await ate(() => abriu !== null);
     r.registroPreenchido = !!abriu && abriu.categoria === 'Lei seca' && abriu.disc === 'Direito Civil' && abriu.topico === 'CC · Art. 1.239 – Art. 1.241' && abriu.min === 7 && /3 dispositivos/.test(abriu.nota);
+    // quando falha, diz o que chegou (ou que nada chegou) e em que estado o app estava — vai para o log
+    if (!r.registroPreenchido) r.__diag = JSON.stringify({ abriu, autoRegistro: app && (app.state.prefs || {}).autoRegistro,
+      edital: app && (app.state.edital || []).map(d => d.disc), disc: app && app._laDisciplina({ sigla: 'CC', leiId: CC }) });
     abriu = null;
     window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 0, min: 3 }, '*'); await sentinela();
     r.semLeituraNaoOferece = abriu === null;
@@ -1464,8 +1468,11 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     const resumo = await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeiturasResumoResp') { window.removeEventListener('message', h); res(e.data.resumo); } }; window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasResumo' }, '*'); setTimeout(() => res(null), 2000); });
     r.resumoPorLei = !!resumo && resumo[CC] && resumo[CC].lidos === 1 && resumo[CF].lidos === 1 && resumo[CC].completos === 0 && !JSON.stringify(resumo).includes('asilo');
     return r;
-  });
-  for (const [k, v] of Object.entries(la6h)) ok(v, 'LEITURA/ONDE-MAIS ' + k);
+  }).catch(e => ({ __excecao: String(e && e.message || e).split('\n')[0].slice(0, 200) }));
+  // uma exceção aqui dentro vira UMA falha nomeada; o diagnóstico vai para o log, não vira asserção
+  if (la6h.__excecao) ok(false, 'LEITURA/ONDE-MAIS o roteiro correu sem exceção (' + la6h.__excecao + ')');
+  if (la6h.__diag) console.log('  diagnóstico do LEITURA/ONDE-MAIS registroPreenchido: ' + la6h.__diag);
+  for (const [k, v] of Object.entries(la6h)) if (!k.startsWith('__')) ok(v, 'LEITURA/ONDE-MAIS ' + k);
 
   // 4. simulado: item de lei seca ERRADO no gabarito mostra a grade lida e "Conferir de novo"
   const la6s = await page.evaluate(async () => {
@@ -1837,7 +1844,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     resp[its[0].id] = its[0].certo; resp[its[1].id] = its[1].certo; resp[its[2].id] = its[2].certo;
     resp[its[3].id] = its[3].certo === 'A' ? 'B' : 'A'; resp[its[4].id] = its[4].certo === 'A' ? 'B' : 'A';
     app.setState({ sjResp: resp, provaSeconds: 47 * 60 }); await w(200);
-    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(900);
+    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click();
+    // a correção fecha a prova, e a tentativa só chega ao disco pelo autosave (500 ms). Sob carga os
+    // 900 ms fixos passavam, catedra:enamSim vinha vazio e o es[0] logo abaixo derrubava a suíte inteira
+    for (let i = 0; i < 160 && !(app.state.sjFim === true && JSON.parse(localStorage.getItem('catedra:enamSim') || '[]').length >= 1); i++) await w(50);
     r.encerrarFechaECorrige = !app.state.provaMode && !document.querySelector('.ct-enam') && app.state.sjFim === true && app.state.sim.total === 80 && app.state.sim.acertos === 3 && app.state.sim.erros === 2 && app.state.sim.brancos === 75;
     r.sessaoPreenchida = app.state.sessionModalOpen === true && app.state.sessionDraft.categoria === 'Simulado' && app.state.sessionDraft.disc === 'ENAM' && app.state.sessionDraft.minutos === '47' && /ENAM .* · simulado/.test(app.state.sessionDraft.topico);
     const es = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]');
@@ -1849,19 +1859,23 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.relatorioPorArea = /Por área do edital/.test(main) && /Constitucional\s*\d+ de 16 · alvo \d+/.test(main) && !/Jurisprudência\s*0\/0/.test(main);
     r.gabaritoComReferencia = /ENAM 20\d\d\.\d · questão \d+/.test(main) && !/Texto oficial:/.test(main);
     // a segunda montagem evita as 80 já feitas
-    const feitas = new Set(es[0].idsUsados);
-    r.proximaEvitaAsFeitas = window.CT_ENAM.montar(window.CT_QUESTOES_ENAM, { excluir: [...feitas], reserva: window.CT_QUESTOES_PROVA || [] }).itens.every(x => !feitas.has(x.id));
+    const feitas = es[0] ? new Set(es[0].idsUsados) : null;   // sem a tentativa gravada: falha nomeada, não exceção
+    r.proximaEvitaAsFeitas = !!feitas && window.CT_ENAM.montar(window.CT_QUESTOES_ENAM, { excluir: [...feitas], reserva: window.CT_QUESTOES_PROVA || [] }).itens.every(x => !feitas.has(x.id));
     // tempo esgotado: corrige sozinho, sem beep
     [...document.querySelectorAll('main button')].find(b => /Novo simulado/.test(b.textContent)).click(); await w(300);
     [...document.querySelectorAll('main button')].find(b => /Iniciar o simulado ENAM/.test(b.textContent)).click();
     for (let i = 0; i < 60 && !document.querySelector('.ct-enam'); i++) await w(250);
-    app.setState({ provaSeconds: 300 * 60 - 1 }); await w(1900);
+    app.setState({ provaSeconds: 300 * 60 - 1 });
+    // o relógio zera, a correção roda sozinha e a 2ª tentativa chega ao disco: espera isso, não 1,9 s fixos
+    for (let i = 0; i < 160 && JSON.parse(localStorage.getItem('catedra:enamSim') || '[]').length < 2; i++) await w(50);
     const es2 = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]');
     r.tempoEsgotadoCorrigeSozinho = !app.state.provaMode && app.state.sjFim === true && es2.length === 2 && es2[1].auto === true && !app._ac;
     app.closeSession(); localStorage.removeItem('catedra:enamSim'); app.setState({ enamSim: [] });
     return r;
-  }, a);
-  for (const [k, v] of Object.entries(b)) ok(v, 'ENAM/E3 host ' + k);
+  }, a).catch(e => ({ __excecao: String(e && e.message || e).split('\n')[0].slice(0, 200) }));
+  // uma exceção aqui dentro vira UMA falha nomeada, não o fim da suíte inteira
+  if (b.__excecao) ok(false, 'ENAM/E3 host o roteiro correu sem exceção (' + b.__excecao + ')');
+  else for (const [k, v] of Object.entries(b)) ok(v, 'ENAM/E3 host ' + k);
 }
 
 /* ============= ENAM — E4: a correção "habilitaria?" ============= */
