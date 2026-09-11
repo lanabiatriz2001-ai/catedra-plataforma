@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -20,6 +20,28 @@
 		CA7E000000000000000000B4 /* Catedra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Catedra.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CA7E000000000000000000B7 /* Exceptions for "vendor" folder in "Catedra" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				legis/_data/indice.json,
+				legis/_data/plano.json,
+			);
+			target = CA7E000000000000000000E1 /* Catedra */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		CA7E000000000000000000B6 /* vendor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CA7E000000000000000000B7 /* Exceptions for "vendor" folder in "Catedra" target */,
+			);
+			path = vendor;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		CA7E000000000000000000C1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -35,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				CA7E000000000000000000D3 /* Sources */,
+				CA7E000000000000000000B6 /* vendor */,
 				CA7E000000000000000000B5 /* Assets.xcassets */,
 				CA7E000000000000000000B3 /* Info.plist */,
 				CA7E000000000000000000B2 /* web */,
@@ -74,6 +97,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				CA7E000000000000000000B6 /* vendor */,
+			);
 			name = Catedra;
 			productName = Catedra;
 			productReference = CA7E000000000000000000B4 /* Catedra.app */;
@@ -95,7 +121,6 @@
 				};
 			};
 			buildConfigurationList = CA7E000000000000000000F1 /* Build configuration list for PBXProject "Catedra" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = pt_BR;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -103,6 +128,7 @@
 				Base,
 			);
 			mainGroup = CA7E000000000000000000D1;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = CA7E000000000000000000D2 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -142,7 +168,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Regenera mac/build/web a partir do Catedra.dc.html antes de empacotar.\n# Sem isto o app embarcaria um bundle velho sem ninguem notar.\ncd \"$SRCROOT/..\" || exit 1\nif command -v node >/dev/null 2>&1; then\n  node scripts/build-macos.mjs || echo \"aviso: build-macos.mjs falhou; usando o bundle que ja estava em mac/build/web\"\nelse\n  echo \"aviso: node nao encontrado no PATH do Xcode; usando o bundle existente\"\nfi\n";
+			shellScript = "# Regenera mac/build/web a partir do Catedra.dc.html antes de empacotar, com o alvo do iPad.\n# No Xcode Cloud quem gera é ios/ci_scripts/ci_post_clone.sh, antes do xcodebuild.\ncd \"$SRCROOT/..\" || exit 1\nif command -v node >/dev/null 2>&1; then\n  CATEDRA_ALVO=iPadOS node scripts/build-macos.mjs || echo \"aviso: build-macos.mjs falhou; usando o bundle que já estava em mac/build/web\"\nelse\n  echo \"aviso: node não encontrado no PATH do Xcode; usando o bundle existente\"\nfi\n# Sem bundle nenhum, o erro diz o que falta (antes era \"The file web couldn't be opened\").\nif [ ! -f mac/build/web/index.html ]; then\n  echo \"error: falta o bundle web em mac/build/web. Gere com: CATEDRA_ALVO=iPadOS node scripts/build-macos.mjs\"\n  exit 1\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
