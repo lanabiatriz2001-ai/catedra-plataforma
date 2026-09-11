@@ -2299,23 +2299,23 @@ window.ctPdfLib = (function(){
                         <sc-if value="{{ f.editing }}" hint-placeholder-val="{{ false }}">
                           <div class="ct-ag-form">
                             <label class="ct-ag-campo"><span class="ct-rotulo">Disciplina do edital</span>
-                              <select data-id="{{ f.id }}" data-field="discEdital" value="{{ f.discEdital }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">— sem vínculo com o edital —</option><sc-for list="{{ f.discOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                              <select data-id="{{ f.id }}" data-field="discEdital" value="{{ f.discEdital }}" title="{{ f.discEdital }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">Sem vínculo</option><sc-for list="{{ f.discOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
                             </label>
                             <sc-if value="{{ f.temTopicos }}" hint-placeholder-val="{{ false }}">
                               <label class="ct-ag-campo"><span class="ct-rotulo">Tópico do edital</span>
-                                <select data-id="{{ f.id }}" data-field="topico" value="{{ f.topico }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">— a disciplina inteira —</option><sc-for list="{{ f.topicOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                                <select data-id="{{ f.id }}" data-field="topico" value="{{ f.topico }}" title="{{ f.topico }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">Toda a disciplina</option><sc-for list="{{ f.topicOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
                               </label>
                             </sc-if>
                             <sc-if value="{{ f.temSubs }}" hint-placeholder-val="{{ false }}">
                               <label class="ct-ag-campo"><span class="ct-rotulo">Subtópico</span>
-                                <select data-id="{{ f.id }}" data-field="subtopico" value="{{ f.subtopico }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">— o tópico inteiro —</option><sc-for list="{{ f.subOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
+                                <select data-id="{{ f.id }}" data-field="subtopico" value="{{ f.subtopico }}" title="{{ f.subtopico }}" onchange="{{ editFixed }}" class="ct-campo"><option value="">Todo o tópico</option><sc-for list="{{ f.subOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select>
                               </label>
                             </sc-if>
                             <div class="ct-ag-linha">
-                              <label class="ct-ag-campo" style="flex:3;"><span class="ct-rotulo">Tipo</span>
+                              <label class="ct-ag-campo ct-ag-campo-tipo"><span class="ct-rotulo">Tipo</span>
                                 <select data-id="{{ f.id }}" data-field="kind" value="{{ f.kind }}" onchange="{{ editFixed }}" class="ct-campo"><sc-for list="{{ f.kindOpts }}" as="k" hint-placeholder-count="6"><option value="{{ k.v }}" selected="{{ k.sel }}">{{ k.v }}</option></sc-for></select>
                               </label>
-                              <label class="ct-ag-campo" style="flex:2;"><span class="ct-rotulo">Minutos</span>
+                              <label class="ct-ag-campo ct-ag-campo-min"><span class="ct-rotulo">Minutos</span>
                                 <input data-id="{{ f.id }}" data-field="min" type="number" min="5" step="5" value="{{ f.min }}" oninput="{{ editFixed }}" class="ct-campo ct-campo-num">
                               </label>
                             </div>
