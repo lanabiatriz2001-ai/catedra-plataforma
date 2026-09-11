@@ -416,7 +416,7 @@ para fevereiro/2027); ciclo 2027.1 com edital previsto para março e prova para 
 - [ ] **Encarregado (DPO)**: quem é e qual e-mail (`emailEncarregado` no mesmo JSON), lido de
       verdade — é o canal dos direitos do art. 18 da LGPD, com resposta em 15 dias (art. 19).
       E `emailContato`, o e-mail geral dos Termos.
-- [ ] **Prazos** (`prazos` no mesmo JSON, só números): retenção da contagem de IA e da
+- [x] **Prazos** (`prazos` no mesmo JSON, só números) — confirmados em 10/09/2026: 30 / 15 / 30 dias e 12 meses: retenção da contagem de IA e da
       auditoria (12 meses?), exclusão da nuvem após encerrar conta (30 dias?), aviso prévio de
       encerramento da plataforma (30 dias?), aviso de mudança nos documentos (15 dias?). Vazio
       mantém a proposta entre colchetes no texto.
