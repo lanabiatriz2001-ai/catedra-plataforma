@@ -1043,8 +1043,54 @@ button, [role="button"], .ct-alvo, .ct-chips > *, select, summary, aside a { -we
    ≤900), que sob [data-toque] vale em QUALQUER largura — inclusive no iPad em paisagem, onde a
    tela passa de 900 e a regra por largura não alcança. Os demais .ct-alvo (botão de texto, chip
    de filtro) são faixas: esticar não deforma, e continuam subindo a 44. */
-@media (pointer: coarse) { main button:not(.ct-miudo), .ct-topbar button { min-height: 44px; } }
-[data-toque="1"] main button:not(.ct-miudo), [data-toque="1"] .ct-topbar button { min-height: 44px; }
+/* A largura entrou junto com a altura (medido a 390px): o alvo era 44 de alto e 23 a 42 de
+   largura em quatro lugares — Editar e Remover de cada sessão do Histórico (23×44, 48 deles
+   numa tela só) e os chips de duração do Simulado (41 a 42×44). Metade de um alvo não é um
+   alvo. Quem é pequeno de propósito continua saindo pelo mesmo `.ct-miudo` de sempre, e ganha
+   os 44 pelo ::after de .ct-alvo, sem esticar o desenho. */
+@media (pointer: coarse) { main button:not(.ct-miudo), .ct-topbar button { min-height: 44px; min-width: 44px; } }
+[data-toque="1"] main button:not(.ct-miudo), [data-toque="1"] .ct-topbar button { min-height: 44px; min-width: 44px; }
+/* A FILEIRA QUE ROLA DIZ QUE ROLA.
+   Medido a 390 px: cinco fileiras de abas e chips rolavam de lado sem sinal nenhum
+   (mask-image:none, sem seta, sem sombra) — Desempenho 589/356 escondendo Histórico, Relatório
+   e Domínio; Ajustes 917/358 escondendo 4 das 7 seções. Quem olha não tem como saber que
+   existe mais: não é estouro (o pai corta), é destino invisível.
+   A sombra é de CSS puro, pelo truque das duas camadas: as tampas em `local` andam JUNTO com o
+   conteúdo e cobrem a sombra enquanto a fileira está encostada naquela ponta; assim que rola,
+   a tampa sai de cima e a sombra aparece — só do lado que ainda tem conteúdo. Sem JS, sem
+   observador de rolagem e sem sintaxe nova (o WKWebView usa JavaScriptCore).
+   `background-image` vai com !important porque estas fileiras trazem `background:` inline, e o
+   atalho zeraria a imagem; a cor de tampa entra por --ct-rolo-bg, que cada fileira declara. */
+.ct-rolo {
+  background-image:
+    linear-gradient(to right, var(--ct-rolo-bg, var(--surface, #fff)), transparent),
+    linear-gradient(to left,  var(--ct-rolo-bg, var(--surface, #fff)), transparent),
+    linear-gradient(to right, rgba(0, 0, 0, .13), transparent),
+    linear-gradient(to left,  rgba(0, 0, 0, .13), transparent) !important;
+  background-position: left center, right center, left center, right center !important;
+  background-size: 26px 100%, 26px 100%, 13px 100%, 13px 100% !important;
+  background-repeat: no-repeat !important;
+  background-attachment: local, local, scroll, scroll !important;
+}
+/* O CAMPO NÃO ESTOURA O CARTÃO — E TEM 44 PX NO TOQUE.
+   Medido a 390 px: o <select> "Banca" da Redação mede 541 px, porque um select toma a largura
+   da opção mais longa ("TRF2 (Comissão Organizadora e Examinadora do concurso — banca própria)"),
+   e num flex-wrap de 308 px isso sai 192 px além da borda e é cortado pelo cartão. O max-width
+   dá o teto; o min-width:0 é o que faz valer, porque o padrão min-width:auto de item de flex
+   ignora o teto e mantém a largura de conteúdo. Altura: a regra de 44 px só alcançava
+   .ct-ag-campo (a agenda) e sobravam 9 campos entre 38 e 41 px em cinco telas — Ciclo, Redação,
+   Simulados, Reta final e Registrar. Checkbox, radio, color e range ficam de fora: são desenho
+   pequeno de propósito e ganham a área do dedo pelo ::after de .ct-alvo, não esticando. */
+main select, main .ct-campo,
+main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]) {
+  max-width: 100%; min-width: 0;
+}
+@media (pointer: coarse) {
+  main select, main .ct-campo,
+  main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]) { min-height: 44px; }
+}
+[data-toque="1"] main select, [data-toque="1"] main .ct-campo,
+[data-toque="1"] main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]) { min-height: 44px; }
 /* D4 dentro de um KPI: o convite curto no lugar do número — título, descrição e ação, sem zero em destaque */
 .ct-convite { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
 .ct-convite b { font-family: var(--display, Georgia, serif); font-size: var(--fs-xl, 17px); color: var(--ink, #1c1a16); line-height: 1.2; }
