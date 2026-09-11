@@ -243,9 +243,6 @@ struct JurisDashboardView: View {
             .padding(13)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
-            .overlay(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3).padding(.vertical, 12)
-            }
             .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
             .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
         }

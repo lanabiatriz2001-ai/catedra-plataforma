@@ -295,7 +295,6 @@ struct JulgadoDoDiaView: View {
         }
         .padding(22)
         .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
-        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 4).padding(.vertical, 14) }
         .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
     }
 }

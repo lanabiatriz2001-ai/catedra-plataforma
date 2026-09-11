@@ -289,14 +289,12 @@ struct CartaoJuris: View {
             LinearGradient(colors: [ramoCor.opacity(0.18), Palette.cardBackground],
                            startPoint: .topLeading, endPoint: .bottomTrailing),
             in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
-        .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 2).fill(ramoCor).frame(width: 4).padding(.vertical, 22)
-        }
         .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(ramoCor.opacity(0.25), lineWidth: 1))
         .shadow(color: ramoCor.opacity(0.16), radius: 16, y: 8)
     }
 
-    /// Fundo de cartão + lombada do ramo + filete + sombra que "levanta" no hover.
+    /// Fundo de cartão + filete + sombra que "levanta" no hover. Sem lombada colorida à
+    /// esquerda: faixa lateral é proibida pelo DESIGN.md; a cor do ramo fica nas etiquetas.
     private struct Moldura: ViewModifier {
         let cor: Color
         let hovering: Bool
@@ -304,9 +302,6 @@ struct CartaoJuris: View {
         func body(content: Content) -> some View {
             content
                 .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: raio, style: .continuous))
-                .overlay(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3).padding(.vertical, 12)
-                }
                 .overlay(RoundedRectangle(cornerRadius: raio, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
                 .shadow(color: hovering ? cor.opacity(0.25) : .black.opacity(0.05),
                         radius: hovering ? 10 : 5, y: hovering ? 5 : 2)
@@ -417,7 +412,7 @@ struct RotuloEstudo: View {
     }
 }
 
-/// Bloco do roteiro: rótulo em cima, corpo com faixa colorida à esquerda.
+/// Bloco do roteiro: rótulo em cima, corpo sobre fundo tingido pela cor do bloco.
 struct BlocoEstudo<Corpo: View>: View {
     let rotulo: String
     var cor: Color = Palette.accent
@@ -427,7 +422,6 @@ struct BlocoEstudo<Corpo: View>: View {
         VStack(alignment: .leading, spacing: 6) {
             RotuloEstudo(texto: rotulo)
             HStack(alignment: .top, spacing: 0) {
-                RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3)
                 corpo
                     .font(Typo.ui(14.5)).lineSpacing(3)
                     .foregroundStyle(Palette.titleInk)
@@ -517,11 +511,18 @@ struct JurisChipsLimitados<T: Hashable>: View {
 // depender de largura fixa nem de ScrollView horizontal escondendo conteúdo.
 struct Flow: Layout {
     var espacamento: CGFloat = 6
+    /// Tamanho ideal do filho; se ele não cabe na largura, mede de novo COM a largura. Sem
+    /// isso um texto longo (a saudação do Início, no iPhone) media uma linha só e saía da tela.
+    static func medir(_ v: LayoutSubview, cabe largura: CGFloat) -> CGSize {
+        let t = v.sizeThatFits(.unspecified)
+        guard largura.isFinite, t.width > largura else { return t }
+        return v.sizeThatFits(ProposedViewSize(width: largura, height: nil))
+    }
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let largura = proposal.width ?? .infinity
         var x: CGFloat = 0, y: CGFloat = 0, alturaLinha: CGFloat = 0
         for v in subviews {
-            let t = v.sizeThatFits(.unspecified)
+            let t = Flow.medir(v, cabe: largura)
             if x > 0 && x + t.width > largura { x = 0; y += alturaLinha + espacamento; alturaLinha = 0 }
             x += t.width + espacamento
             alturaLinha = max(alturaLinha, t.height)
@@ -531,7 +532,7 @@ struct Flow: Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         var x: CGFloat = bounds.minX, y: CGFloat = bounds.minY, alturaLinha: CGFloat = 0
         for v in subviews {
-            let t = v.sizeThatFits(.unspecified)
+            let t = Flow.medir(v, cabe: bounds.width)
             if x > bounds.minX && x + t.width > bounds.maxX { x = bounds.minX; y += alturaLinha + espacamento; alturaLinha = 0 }
             v.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(t))
             x += t.width + espacamento

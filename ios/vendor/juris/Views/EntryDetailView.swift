@@ -524,59 +524,69 @@ struct EntryDetailView: View {
     private var marcacaoToolbar: some View {
         // Flow, não HStack: em retrato (744–834 pt) a fileira de ~20 controles estourava o
         // card e os botões saíam pela direita. Agora quebra linha; cada alvo tem 44 pt.
-        Flow(espacamento: 2) {
-            Text("MARCAR")
-                .font(Typo.ui(9, .bold)).tracking(1)
-                .foregroundStyle(Palette.secondaryInk)
-                .frame(height: 44)
-
-            toolBtn("arrow.uturn.backward") { store.undoMarks(entry.id) }
-                .disabled(!store.canUndoMarks(entry.id)).help("Desfazer marcação")
-            toolBtn("arrow.uturn.forward") { store.redoMarks(entry.id) }
-                .disabled(!store.canRedoMarks(entry.id)).help("Refazer marcação")
-            divisor
-
-            grifoMenu
-            toolBtn("bold") { aplicar(.negrito) }.help("Negrito no trecho")
-            toolBtn("italic") { aplicar(.italico) }.help("Itálico no trecho")
-            toolBtn("underline") { aplicar(.sublinhar) }.help("Sublinhar o trecho")
-            toolBtn("strikethrough") { aplicar(.tachar) }.help("Tachar o trecho")
-            corTextoMenu
-
-            divisor
-            gerarCardMenu
-            alinhamentoMenu
-            divisor
-            toolBtn("text.bubble") { comment() }
-                .disabled(markController.selecao.length == 0 && !hasComments)
-                .help("Comentar o trecho selecionado")
-            toolBtn("sidebar.right") { showAnnotationsPanel.toggle() }
-                .foregroundStyle(showAnnotationsPanel ? Palette.accent : Palette.bodyInk)
-                .help("Painel de anotações")
-            divisor
-            toolBtn("doc.on.doc") { copiarSelecao() }.help("Copiar o trecho selecionado")
-            toolBtn("pencil") { iniciarEdicao() }
-                .foregroundStyle(store.enunciadoFoiEditado(entry.id) ? Palette.accent : Palette.bodyInk)
-                .help(store.enunciadoFoiEditado(entry.id) ? "Editar o texto (editado)" : "Editar o texto do verbete")
-
-            divisor
-
-            // Tamanho da fonte de leitura
-            toolBtn("textformat.size.smaller") { readingScale = max(readingScale - 0.1, 0.8) }
-                .help("Diminuir a fonte")
-            Text("\(Int(readingScale * 100))%")
-                .font(Typo.num(9.5, .medium))
-                .foregroundStyle(Palette.secondaryInk).frame(width: 34, height: 44)
-            toolBtn("textformat.size.larger") { readingScale = min(readingScale + 0.1, 1.8) }
-                .help("Aumentar a fonte")
-
-            divisor
-            toolBtn("eraser") { limparMarca() }.help("Remover marcação do trecho selecionado")
+        // Os controles entram como [AnyView]: escritos direto no Flow, viravam uma TupleView
+        // de 27 filhos com menus aninhados, e o runtime do Swift estourava a pilha da thread
+        // principal do iPhone ao montar esse tipo — o app fechava ao abrir qualquer verbete.
+        let itens = marcacaoItens
+        return Flow(espacamento: 2) {
+            ForEach(itens.indices, id: \.self) { itens[$0] }
         }
         .buttonStyle(.plain)
         .font(Typo.ui(13))
         .disabled(editandoEnunciado)
         .opacity(editandoEnunciado ? 0.4 : 1)
+    }
+
+    private var marcacaoItens: [AnyView] {
+        [
+            AnyView(Text("MARCAR")
+                .font(Typo.ui(9, .bold)).tracking(1)
+                .foregroundStyle(Palette.secondaryInk)
+                .frame(height: 44)),
+
+            AnyView(toolBtn("arrow.uturn.backward") { store.undoMarks(entry.id) }
+                .disabled(!store.canUndoMarks(entry.id)).help("Desfazer marcação")),
+            AnyView(toolBtn("arrow.uturn.forward") { store.redoMarks(entry.id) }
+                .disabled(!store.canRedoMarks(entry.id)).help("Refazer marcação")),
+            AnyView(divisor),
+
+            AnyView(grifoMenu),
+            AnyView(toolBtn("bold") { aplicar(.negrito) }.help("Negrito no trecho")),
+            AnyView(toolBtn("italic") { aplicar(.italico) }.help("Itálico no trecho")),
+            AnyView(toolBtn("underline") { aplicar(.sublinhar) }.help("Sublinhar o trecho")),
+            AnyView(toolBtn("strikethrough") { aplicar(.tachar) }.help("Tachar o trecho")),
+            AnyView(corTextoMenu),
+
+            AnyView(divisor),
+            AnyView(gerarCardMenu),
+            AnyView(alinhamentoMenu),
+            AnyView(divisor),
+            AnyView(toolBtn("text.bubble") { comment() }
+                .disabled(markController.selecao.length == 0 && !hasComments)
+                .help("Comentar o trecho selecionado")),
+            AnyView(toolBtn("sidebar.right") { showAnnotationsPanel.toggle() }
+                .foregroundStyle(showAnnotationsPanel ? Palette.accent : Palette.bodyInk)
+                .help("Painel de anotações")),
+            AnyView(divisor),
+            AnyView(toolBtn("doc.on.doc") { copiarSelecao() }.help("Copiar o trecho selecionado")),
+            AnyView(toolBtn("pencil") { iniciarEdicao() }
+                .foregroundStyle(store.enunciadoFoiEditado(entry.id) ? Palette.accent : Palette.bodyInk)
+                .help(store.enunciadoFoiEditado(entry.id) ? "Editar o texto (editado)" : "Editar o texto do verbete")),
+
+            AnyView(divisor),
+
+            // Tamanho da fonte de leitura
+            AnyView(toolBtn("textformat.size.smaller") { readingScale = max(readingScale - 0.1, 0.8) }
+                .help("Diminuir a fonte")),
+            AnyView(Text("\(Int(readingScale * 100))%")
+                .font(Typo.num(9.5, .medium))
+                .foregroundStyle(Palette.secondaryInk).frame(width: 34, height: 44)),
+            AnyView(toolBtn("textformat.size.larger") { readingScale = min(readingScale + 0.1, 1.8) }
+                .help("Aumentar a fonte")),
+
+            AnyView(divisor),
+            AnyView(toolBtn("eraser") { limparMarca() }.help("Remover marcação do trecho selecionado")),
+        ]
     }
 
     /// Quadradinho da cor para aparecer colorido nos menus. No macOS era NSImage com
