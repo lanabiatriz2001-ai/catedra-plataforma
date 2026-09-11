@@ -8,7 +8,10 @@
 window.addEventListener('error',function(e){var m=(e&&e.message)||'erro';var f=(e&&e.filename)?String(e.filename).split('/').pop()+':'+e.lineno+':'+e.colno:'';mostra(m+' @'+f,e&&e.error&&e.error.stack);});
 window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostra('promise: '+((r&&r.message)||String(r)),r&&r.stack);});})();</script>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- viewport-fit=cover: sem ele env(safe-area-inset-*) vale 0 no iPhone e o app fica sob o
+     indicador de Início, porque o host prende o WKWebView ao fundo da tela (ios/Sources/main.swift:138).
+     O CSS já paga o env() na barra inferior e no .ct-scroll; era o meta que faltava. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cátedra · Plataforma de estudos</title>
 <meta name="description" content="Protótipo funcional da Cátedra para organizar estudos, revisões, simulados e materiais.">
 <script src="./prioridade-calc.js"></script>
@@ -126,6 +129,24 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 .ct-scroll .ct-hero::before, .ct-scroll [style*="--heroGrad)"]::before{ content:""; position:absolute; right:70px; bottom:-90px; width:170px; height:170px; border-radius:999px; background:rgba(255,255,255,.05); pointer-events:none; }
 .ct-tb-div{width:1px;height:26px;background:var(--border);flex:none;border-radius:99px;}
 @media (max-width:680px){.ct-tb-searchlabel{display:none!important;}.ct-tb-div{display:none!important;}}
+/* ===== TOPBAR DE UMA LINHA NO CELULAR =====
+   Medido a 390x844: a topbar quebrava em duas faixas de 44px (123px no total) e, com a barra
+   inferior de 61, a casca comia 184px de 844 — 22% da tela, 28% num iPhone SE. A segunda faixa
+   nascia do flex-wrap: busca + sino + avatar + Focar não cabem ao lado do título.
+   Aqui ela volta a UMA linha. O título ganha `flex-basis:auto` de propósito: com basis:0 ele
+   reservava espaço mesmo vazio, e em LEGIS, JURIS, Prioridade e 2ª fase o viewTitle É vazio —
+   com basis:auto o bloco encolhe sozinho para 0 e devolve a largura aos controles. */
+@media (max-width:540px){
+  .ct-topbar{flex-wrap:nowrap!important;gap:8px!important;
+    padding:6px 12px!important;padding-top:calc(6px + env(safe-area-inset-top))!important;}
+  .ct-tb-titulo{flex:1 1 auto!important;min-width:0!important;}
+  .ct-tb-titulo h1{font-size:var(--fs-xl)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ct-tb-titulo p{display:none!important;}
+  .ct-tb-acoes{flex-wrap:nowrap!important;gap:6px!important;flex:none;}
+  .ct-kbd{display:none!important;}
+  /* o chip de foco parado vira só o ícone (ver focoChipLblCls no render) */
+  .ct-foco-lbl{display:none!important;}
+}
 @media (max-width:760px){.ct-dash-daylbl{display:none!important;}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important;}}
 /* P16: "Baixa estimulação" ligada nos Ajustes vale o mesmo que "reduzir movimento" no sistema. O atributo mora
@@ -199,6 +220,10 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 .ct-skelbox i:nth-child(3n){animation-delay:.36s;}
 @keyframes ctSkel{0%,100%{opacity:.5;}50%{opacity:1;}}
 @media (max-width:899px){ .ct-scroll{ padding-bottom:calc(84px + env(safe-area-inset-bottom)) !important; } }
+/* Teclado aberto (ver _ajustarTeclado): a barra inferior sai da frente e a reserva de 84px
+   dela cai, senão o campo focado e o botão de salvar ficam atrás do teclado sem como rolar. */
+html.ct-teclado .ct-bnav{ display:none !important; }
+html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 /* ===== INÍCIO "VITRINE EDITORIAL" (Take 1 aprovado) ===== */
 .cth-hero{ position:relative; overflow:hidden; border-radius:var(--radius);
   background: radial-gradient(1100px 460px at 88% -30%, rgba(255,255,255,.16), transparent 55%),
@@ -300,6 +325,48 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
   font-size:var(--fs-xs); font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
 .cth-lawsep::after{ content:""; flex:1; height:1px; background:var(--border); }
 .cth-tbl{ width:100%; border-collapse:collapse; }
+/* ===== O PAINEL POR DISCIPLINA CABE NO CARTÃO =====
+   Medido a 390x844: esta tabela media 373px dentro de um .cth-card de 358 e era o ÚNICO ponto
+   do Início que fazia o .ct-scroll rolar de lado (22px) — com a coluna Líquido, que é a que
+   resume tudo, passando da borda. `table-layout:fixed` tira o dimensionamento pelo conteúdo
+   (era ele que empurrava para 373); abaixo de 520px as três colunas de contagem saem, porque
+   o Líquido já as resume, e a largura volta para Matéria, que é o que se lê. */
+/* ===== O HISTÓRICO VIRA CARTÃO NO CELULAR =====
+   Medido a 390x844: a linha é um grid de 8 colunas dentro de um min-width:560px num contêiner
+   de 320 — as colunas em px somam 494 e sobravam 29px para Disciplina e 36 para Tópico. Na
+   tela: "C.", "Tóp…", "30 mi" cortado, e Acerto, Líquido, Editar e Remover fora da borda. Pior:
+   o cabeçalho já some ≤680px (.ct-sm-hide), então quem rolava de lado via números sem nome.
+   A tabela só faz sentido ≥900px, onde se varre muitas sessões comparando colunas — no celular
+   a tarefa é outra (ler UMA sessão), e a forma certa é o cartão, que a agenda (.ct-ag) já usa.
+   A ordem é a da leitura: data e disciplina inteira, tópico em até 2 linhas, e os números como
+   chips embaixo; editar e remover ficam à direita, com 44px de dedo. */
+@media (max-width:680px){
+  .ct-hist-tab{ min-width:0!important; }
+  .ct-hist-linha{ display:flex!important; flex-wrap:wrap; align-items:baseline;
+    gap:3px 10px!important; padding:12px 0!important; }
+  .ct-hist-linha > *:nth-child(1){ order:1; flex:none; }                 /* data */
+  .ct-hist-linha > *:nth-child(2){ order:2; flex:1 1 auto; min-width:0; } /* disciplina inteira */
+  .ct-hist-linha > *:nth-child(8){ order:3; flex:none; margin-left:auto; } /* editar · remover */
+  .ct-hist-linha > *:nth-child(3){ order:4; flex:1 1 100%; white-space:normal!important;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .ct-hist-linha > *:nth-child(4),
+  .ct-hist-linha > *:nth-child(5),
+  .ct-hist-linha > *:nth-child(6),
+  .ct-hist-linha > *:nth-child(7){ order:5; flex:none; }
+  /* Editar e Remover tinham 23px de largura (a regra de altura dava 44, a de largura não existia) */
+  .ct-hist-linha button{ min-width:44px; }
+}
+@media (max-width:520px){
+  /* `fixed` vive AQUI dentro de propósito: no desktop ele igualaria as seis colunas e mudaria
+     uma tabela que hoje está certa. Abaixo de 520 ele é o que faz as larguras abaixo valerem. */
+  .cth-tbl{ table-layout:fixed; }
+  .cth-tbl th:nth-child(3),.cth-tbl th:nth-child(4),.cth-tbl th:nth-child(5),
+  .cth-tbl td:nth-child(3),.cth-tbl td:nth-child(4),.cth-tbl td:nth-child(5){ display:none; }
+  .cth-tbl th:nth-child(1),.cth-tbl td:nth-child(1){ width:46%; }
+  .cth-tbl th:nth-child(2),.cth-tbl td:nth-child(2){ width:24%; }
+  .cth-tbl th:nth-child(6),.cth-tbl td:nth-child(6){ width:30%; }
+  .cth-mname{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+}
 .cth-tbl th{ font-size:var(--fs-2xs); font-weight:700; letter-spacing:.12em; text-transform:uppercase;
   color:var(--text3); text-align:right; padding:0 8px 9px; white-space:nowrap; }
 .cth-tbl th:first-child{ text-align:left; padding-left:6px; }
@@ -507,6 +574,13 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 /* ---- calendário grande (grade em largura total) ---- */
 .ct-calwrap{display:flex;flex-direction:column;gap:16px;}
 .ct-calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+/* Sete colunas com gap 8 num cartão de 308px davam células de 37px — abaixo dos 44 do dedo, e
+   os rótulos dos eventos sumiam virando pontos de 6px. Fechando o gap e o respiro lateral do
+   cartão, as mesmas sete colunas voltam a ~42px, que com o gap somado é o alvo inteiro. */
+@media (max-width:520px){
+  .ct-calgrid, .ct-calcab{gap:4px!important;}
+  .ct-calwrap .ct-card{padding-left:8px!important;padding-right:8px!important;}
+}
 .ct-calcell{min-height:104px;overflow:hidden;}
 @media (max-width:760px){.ct-calcell{min-height:70px;}}
 @media (max-width:520px){.ct-calcell{min-height:52px;}}
@@ -649,12 +723,12 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
         <button onclick="{{ toggleMenu }}" aria-label="Abrir menu" title="Menu" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);flex:none;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"></path></svg></button>
       </sc-if>
-      <div style="flex:1;min-width:120px;">
+      <div class="ct-tb-titulo" style="flex:1;min-width:120px;">
         <h1 style="margin:0;font-family:var(--display);font-size:clamp(22px,2.8vw,30px);font-weight:700;color:var(--ink);line-height:1.05;letter-spacing:-.015em;">{{ viewTitle }}</h1>
         <p style="margin:3px 0 0;font-size:var(--fs-sm);color:var(--text3);">{{ viewSub }}</p>
       </div>
 
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto;">
+      <div class="ct-tb-acoes" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto;">
       <!-- busca / paleta de comando -->
       <button onclick="{{ openPalette }}" title="Buscar (Ctrl+K)" style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface2);border-radius:99px;padding:0 12px;height:38px;cursor:pointer;color:var(--text3);flex:none;">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5" stroke-linecap="round"></path></svg>
@@ -736,7 +810,7 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg></sc-if>
         </span>
         <span style="display:flex;flex-direction:column;align-items:flex-start;min-width:0;">
-          <span style="font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);line-height:1.1;">{{ focoChipTempo }}</span>
+          <span class="{{ focoChipLblCls }}" style="font-size:var(--fs-lg);font-weight:600;color:var(--ink);font-family:var(--mono);line-height:1.1;">{{ focoChipTempo }}</span>
           <sc-if value="{{ focoChipTemSub }}" hint-placeholder-val="{{ false }}">
             <span class="ct-sm-hide2" style="font-size:var(--fs-3xs);letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ focoChipSub }}</span>
           </sc-if>
@@ -1481,7 +1555,7 @@ window.ctPdfLib = (function(){
                   <sc-for list="{{ homeHoje }}" as="h" hint-placeholder-count="5">
                     <sc-if value="{{ h.isNext }}" hint-placeholder-val="{{ false }}">
                       <div class="cth-tasknext">
-                        <button data-i="{{ h.i }}" onclick="{{ toggleBlock }}" title="Concluir (abre o registro)" class="cth-chk" style="border-color:var(--accentRing);"></button>
+                        <button data-i="{{ h.i }}" onclick="{{ toggleBlock }}" title="Concluir (abre o registro)" class="ct-alvo ct-miudo cth-chk" style="border-color:var(--accentRing);"></button>
                         <span class="tx"><b>{{ h.titulo }}</b><small><i class="cth-dot" style="background:{{ h.rail }};"></i>{{ h.sub }}</small></span>
                         <button data-i="{{ h.i }}" onclick="{{ enterFocus }}" class="cth-bfoco">▶ Foco</button>
                         <span class="cth-dur">{{ h.min }}min</span>
@@ -3951,7 +4025,7 @@ window.ctPdfLib = (function(){
       <!-- ================= ANÁLISE ================= -->
       <sc-if value="{{ isAnalise }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
-        <div class="rel-noprint" style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:5px;overflow-x:auto;">
+        <div class="rel-noprint ct-rolo" style="--ct-rolo-bg:var(--surface2);display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:5px;overflow-x:auto;">
           <button data-d="visao" onclick="{{ navDesemp }}" style="{{ desempTabStyle.visao }}">Visão geral</button>
           <button data-d="disciplina" onclick="{{ navDesemp }}" style="{{ desempTabStyle.disciplina }}">Por disciplina</button>
           <button data-d="risco" onclick="{{ navDesemp }}" style="{{ desempTabStyle.risco }}">Risco</button>
@@ -4279,7 +4353,7 @@ window.ctPdfLib = (function(){
         <div class="ct-calwrap">
           <!-- grade do mês -->
           <div class="ct-card">
-            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:9px;">
+            <div class="ct-calcab" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:9px;">
               <div style="text-align:center;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">dom</div><div style="text-align:center;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">seg</div><div style="text-align:center;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">ter</div><div style="text-align:center;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">qua</div><div style="text-align:center;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">qui</div><div style="text-align:center;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">sex</div><div style="text-align:center;font-size:var(--fs-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);">sáb</div>
             </div>
             <div class="ct-calgrid">
@@ -4572,7 +4646,7 @@ window.ctPdfLib = (function(){
         </div>
 
         <!-- SEÇÕES -->
-        <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;">
+        <div class="ct-rolo" style="--ct-rolo-bg:var(--bg);display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;">
           <sc-for list="{{ ajSecoes }}" as="sc" hint-placeholder-count="6">
             <button data-s="{{ sc.id }}" onclick="{{ setAjSec }}" aria-current="{{ sc.cur }}" style="{{ sc.style }}">
               <span aria-hidden="true" style="font-size:var(--fs-md);">{{ sc.icone }}</span>
@@ -4626,8 +4700,12 @@ window.ctPdfLib = (function(){
             <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:var(--fs-lg);color:var(--ink);">{{ userName }}</div><div style="font-size:var(--fs-sm);color:var(--text3);">{{ userObjetivo }} · {{ contaLabel }}</div></div>
             
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div><label class="ct-rotulo">Como quer ser chamado</label><input data-k="nome" value="{{ prefNome }}" oninput="{{ setPrefVal }}" class="ct-campo"></div>
+          <!-- auto-fit e não 1fr 1fr: a 390px as duas colunas fixas davam 288px ao primeiro campo
+               e 45 ao segundo, e o rótulo "Objetivo / cargo-alvo" quebrava em três linhas sobre
+               um input de 45px. Com minmax(200px,1fr) os dois empilham no celular e voltam lado
+               a lado a partir de ~440px, sem breakpoint escrito à mão. -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+            <div style="min-width:0;"><label class="ct-rotulo">Como quer ser chamado</label><input data-k="nome" value="{{ prefNome }}" oninput="{{ setPrefVal }}" class="ct-campo"></div>
             <div><label class="ct-rotulo">Objetivo / cargo-alvo</label><input data-k="objetivo" value="{{ prefObjetivo }}" oninput="{{ setPrefVal }}" class="ct-campo"></div>
             <div><label class="ct-rotulo">Data da prova <span style="font-weight:400;">(opcional)</span></label><div style="display:flex;gap:8px;align-items:center;"><input type="date" value="{{ retaProvaData }}" onchange="{{ setProvaData }}" style="flex:1;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"><sc-if value="{{ retaProvaData }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ clearProvaData }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;">Ainda não sei</button></sc-if></div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:5px;">alimenta a contagem regressiva do Início e a Reta Final — sem prova marcada, a contagem fica desligada</div></div>
           </div>
@@ -5764,10 +5842,10 @@ window.ctPdfLib = (function(){
             <div class="ct-esp-cab">O que você já registrou</div>
             <div class="ct-esp-ex">{{ histResumoLinha }}</div>
             <div style="display:flex;flex-direction:column;">
-              <div style="overflow-x:auto;"><div style="min-width:560px;">
+              <div style="overflow-x:auto;"><div class="ct-hist-tab" style="min-width:560px;">
               <div class="ct-sm-hide" style="display:grid;grid-template-columns:64px 1.3fr 1.6fr 116px 60px 60px 60px 64px;gap:10px;padding:0 0 10px;border-bottom:1px solid var(--border);font-size:var(--fs-2xs);letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:600;"><span>Data</span><span>Disciplina</span><span>Tópico</span><span>Categoria</span><span>Tempo</span><span>Acerto</span><span>Líquido</span><span></span></div>
               <sc-for list="{{ histList }}" as="s" hint-placeholder-count="6">
-                <div style="display:grid;grid-template-columns:64px 1.3fr 1.6fr 116px 60px 60px 60px 64px;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);font-size:var(--fs-base);">
+                <div class="ct-hist-linha" style="display:grid;grid-template-columns:64px 1.3fr 1.6fr 116px 60px 60px 60px 64px;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);font-size:var(--fs-base);">
                   <span style="color:var(--text3);font-size:var(--fs-sm);">{{ s.dateStr }}</span>
                   <span style="display:flex;align-items:center;gap:7px;min-width:0;"><span style="width:8px;height:8px;border-radius:99px;background:{{ s.color }};flex:none;"></span><span style="color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.discShort }}</span></span>
                   <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.topico }}</span>
@@ -6104,7 +6182,7 @@ window.ctPdfLib = (function(){
   <!-- não como filho. Sem os tokens no próprio nó, var(--surface)/var(--border) resolvem -->
   <!-- vazio e a barra sai transparente e sem borda no celular — daí o bnBarStyle.        -->
   <sc-if value="{{ mostraBottomNav }}" hint-placeholder-val="{{ false }}">
-    <nav aria-label="Navegação rápida" style="{{ bnBarStyle }}">
+    <nav class="ct-bnav" aria-label="Navegação rápida" style="{{ bnBarStyle }}">
       <button data-view="inicio" aria-current="{{ navCur.inicio }}" onclick="{{ onNav }}" aria-label="Início" style="{{ bnInicio }}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 11l9-8 9 8M5 9v11h5v-6h4v6h5V9" stroke-linecap="round" stroke-linejoin="round"></path></svg>Início</button>
       <button data-view="ciclo" aria-current="{{ navCur.ciclo }}" onclick="{{ onNav }}" aria-label="Ciclo de Estudos" style="{{ bnCiclo }}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg>Ciclo</button>
       <button onclick="{{ openSession }}" aria-label="Registrar sessão" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:none;cursor:pointer;padding:0 2px 7px;font-family:inherit;font-size:var(--fs-2xs);font-weight:700;color:var(--accent);">
@@ -7069,6 +7147,34 @@ class Component extends DCLogic {
     this._onWake = ()=>{ if(document.visibilityState==='visible'){ try{ this._reconcileStreak(); }catch(_){} try{ this._reconcileReviews(); }catch(_){} try{ this._reconcileCiclo(); }catch(_){} try{ this._reconcileHabitos(); }catch(_){} try{ this._reconcileRetaFinal(); }catch(_){} } };
     document.addEventListener('visibilitychange', this._onWake);
     window.addEventListener('focus', this._onWake);
+    /* ===== O TECLADO DO IPHONE NÃO PODE ESCONDER O CAMPO =====
+       Ao focar um campo o iOS levanta o teclado e encolhe o visualViewport — a janela
+       (innerHeight) NÃO muda. Só que a barra inferior é fixa em bottom:0, ou seja, fica POR
+       CIMA do teclado, e o .ct-scroll segue reservando os 84px dela: no modal de registro o
+       campo e o botão Salvar ficavam atrás do teclado, sem como rolar até eles.
+       Enquanto o teclado está aberto a barra sai e a reserva cai; o modal volta a rolar inteiro.
+       O corte é 150px porque barra de URL e faixa de acessórios variam por aparelho e nenhuma
+       chega perto disso, enquanto o teclado do iPhone come de 250 a 340.
+       Fica exposto como método porque é assim que o teste o alcança: nem o Playwright nem o
+       WebKit de teste levantam teclado de verdade — o que se mede é o efeito, não o gesto. */
+    this._ajustarTeclado = ()=>{
+      try{
+        const vv = window.visualViewport;
+        const aberto = !!vv && (window.innerHeight - vv.height) > 150;
+        const raiz = document.documentElement;
+        if(aberto) raiz.classList.add('ct-teclado'); else raiz.classList.remove('ct-teclado');
+      }catch(_){}
+    };
+    try{
+      if(window.visualViewport){
+        window.visualViewport.addEventListener('resize', this._ajustarTeclado);
+        window.visualViewport.addEventListener('scroll', this._ajustarTeclado);
+      }
+      // Teclado FÍSICO (iPad com Magic Keyboard, Mac) não mexe no visualViewport: sem este
+      // laço no focusout a classe ficaria presa se ela acoplasse o teclado com um campo aberto.
+      // O atraso existe porque no focusout o viewport ainda não voltou ao tamanho cheio.
+      document.addEventListener('focusout', ()=>{ setTimeout(this._ajustarTeclado, 60); });
+    }catch(_){}
     // virada de meia-noite com o app aberto/focado: filas (revisões/ciclo/ofensiva) viram sozinhas
     this._lastDia=this._hoje();
     this._dayT=setInterval(()=>{ try{ const h=this._hoje(); if(h!==this._lastDia){ this._lastDia=h; this._onWake(); } }catch(_){} }, 60000);
@@ -17131,6 +17237,9 @@ class Component extends DCLogic {
         return (this.state.pomoPhase==='pausa')?'pausa':'foco';
       })(),
       focoChipTemSub:!!(this.state.timerRunning),
+      // A 390px a palavra "Focar" parada custa a largura que o título precisa: no celular o
+      // chip vira só o ícone enquanto está parado, e volta a mostrar o tempo assim que roda.
+      focoChipLblCls:(this.state.timerRunning||this.state.timerSeconds||this.state.studiedSeconds)?'':'ct-foco-lbl',
       focoChipStyle:'display:flex;align-items:center;gap:9px;border:1px solid '
         +(this.state.timerRunning?'var(--accent)':'var(--border)')+';background:'
         +(this.state.timerRunning?'color-mix(in srgb,var(--accent) 9%,var(--surface2))':'var(--surface2)')
@@ -17612,7 +17721,7 @@ class Component extends DCLogic {
       // histórico
       isHistorico:this.state.view==='historico', navHistorico:navStyle('historico'),
       histList, histEmpty:histList.length===0, histNotEmpty:histList.length>0, histCount:String(histList.length),
-      histResumoLinha: histList.length+' sessão'+(histList.length===1?'':'ões')+' registrada'+(histList.length===1?'':'s')+(_histFilter?(' · filtrado por '+_histFilter):' · todas as disciplinas'), histFilterVal:_histFilter, histDiscs,
+      histResumoLinha: histList.length+(histList.length===1?' sessão':' sessões')+' registrada'+(histList.length===1?'':'s')+(_histFilter?(' · filtrado por '+_histFilter):' · todas as disciplinas'), histFilterVal:_histFilter, histDiscs,
       histTotal:String(this.state.sessions.length), histHoras:(Math.round(_histTotMin/60*10)/10).toFixed(1), histBruto:B.brutoPct+'%', histLiq:(B.liq>0?'+'+B.liq:String(B.liq)),
       setHistFilter:this.setHistFilter, delSession:this.delSession,
       limparHistorico:this.limparHistorico, toggleLixeira:this.toggleLixeira, restoreSession:this.restoreSession, purgeSession:this.purgeSession, esvaziarLixeira:this.esvaziarLixeira,
