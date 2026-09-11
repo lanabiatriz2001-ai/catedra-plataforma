@@ -2171,8 +2171,13 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.ttsNaoChamadoSemConsentimento = !ttsChamado && app.state.mfTtsBusy === false;
     window.fetch = fetchOrig;
     // autorizar: a chamada pendente resolve, a chave é gravada, a segunda passa direto
-    const p2 = window.claude.complete('x'); await w(300);
-    bt(/Autorizar a IA/).click(); await w(900);   // o autosave tem 500 ms de debounce
+    // SEM TEMPO FIXO (11/09/2026): sob carga os 300 ms não bastavam para o modal pintar e os 900 ms
+    // passavam antes do autosave (500 ms de debounce) — o teste lia a chave antes de ela existir.
+    const p2 = window.claude.complete('x');
+    for (let i = 0; i < 160 && !bt(/Autorizar a IA/); i++) await w(50);
+    const autorizar = bt(/Autorizar a IA/);
+    if (autorizar) autorizar.click();   // sem o botão: a asserção abaixo falha com nome, sem exceção
+    for (let i = 0; autorizar && i < 160 && !(guardado() && !modal()); i++) await w(50);
     const c = guardado();
     r.autorizarResolveEGrava = (await p2) === 'resp:x' && !!c && c.versao === app.IA_CONSENT_VERSAO && c.ts > 0 && !modal();
     r.segundaChamadaDireta = (await window.claude.complete('y')) === 'resp:y' && !modal() && chamouOriginal === 0;
@@ -2214,8 +2219,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     app.exportJSON = expOrig; window.confirm = confOrig;
     ['catedra:iaConsentimento', 'catedra:aceite'].forEach(k => localStorage.removeItem(k)); app.setState({ aceite: null, iaConsentimento: null, biblioteca: [], mfGen: {}, multiSrc: '' });
     return r;
-  });
-  for (const [k, v] of Object.entries(h)) ok(v, 'JURÍDICO/P14 host ' + k);
+  }).catch(e => ({ __excecao: String(e && e.message || e).split('\n')[0].slice(0, 200) }));
+  // uma exceção aqui dentro vira UMA falha nomeada, não o fim da suíte inteira
+  if (h.__excecao) ok(false, 'JURÍDICO/P14 host o roteiro correu sem exceção (' + h.__excecao + ')');
+  else for (const [k, v] of Object.entries(h)) ok(v, 'JURÍDICO/P14 host ' + k);
 }
 
 /* ============= PÚBLICO — P15: sobre.html e a lista de espera ============= */
