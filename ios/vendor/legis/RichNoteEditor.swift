@@ -13,12 +13,16 @@ struct RichNoteEditor: View {
     @EnvironmentObject var store: AppStore   // cores favoritas COMPARTILHADAS com o marca-texto da lei
     @State private var inkColor = Color.primary   // última cor de texto escolhida (pra favoritar)
     @State private var hlColor = Color(hexRGBA: "#FFD60AFF")   // última cor de marca-texto escolhida
+    // Compacto (iPhone): as duas fileiras de ~600 pt rolam na horizontal, cada botão ganha
+    // 44 pt de toque e o teclado recebe uma barra "Concluir". No iPad nada muda.
+    @Environment(\.ehCompacto) private var ehCompacto
 
     var body: some View {
         VStack(spacing: 0) {
             toolbar
             Rectangle().fill(AppTheme.hairline).frame(height: 1)
-            RichTextView(initialRTF: initialRTF, coord: coord, onChange: onChange, placeholder: placeholder)
+            RichTextView(initialRTF: initialRTF, coord: coord, onChange: onChange, placeholder: placeholder,
+                         compacto: ehCompacto)
                 .frame(minHeight: minHeight)
         }
         .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius, style: .continuous).fill(AppTheme.cardBackground))
@@ -33,9 +37,21 @@ struct RichNoteEditor: View {
         ("🚩", "Revisar", NSColor(red: 0.55, green: 0.80, blue: 0.95, alpha: 0.32)),
     ]
 
+    /// Uma fileira da barra: HStack no iPad; no compacto, a mesma fileira rolando na
+    /// horizontal (no UIKit o ScrollView não engole o toque dos botões, ao contrário do
+    /// NSHostingView do Mac que motivou a nota abaixo).
+    @ViewBuilder
+    private func fileira<C: View>(@ViewBuilder _ conteudo: () -> C) -> some View {
+        if ehCompacto {
+            ScrollView(.horizontal, showsIndicators: false) { HStack(spacing: 3) { conteudo() } }
+        } else {
+            HStack(spacing: 3) { conteudo() }
+        }
+    }
+
     private var toolbar: some View {
         VStack(spacing: 4) {
-            HStack(spacing: 3) {
+            fileira {
                 fmt("arrow.uturn.backward", "Desfazer") { coord.undo() }.disabled(!coord.canUndo)
                 fmt("arrow.uturn.forward", "Refazer") { coord.redo() }.disabled(!coord.canRedo)
                 sep
@@ -48,13 +64,13 @@ struct RichNoteEditor: View {
                 fmt("strikethrough", "Tachado") { coord.toggleStrikethrough() }
                 sep
                 // Cor do TEXTO — livre (abre o painel do macOS); aplica na seleção.
-                Image(systemName: "textformat").font(.system(size: 10))
+                Image(systemName: "textformat").font(AppTheme.ui(10))
                 ColorPicker("", selection: $inkColor, supportsOpacity: false)
                     .labelsHidden()
                     .onChange(of: inkColor) { _, c in coord.setTextColor(NSColor(c)) }
                     .help("Cor do texto — escolha qualquer cor")
                 // MARCA-TEXTO — livre; aplica na seleção.
-                Image(systemName: "highlighter").font(.system(size: 10))
+                Image(systemName: "highlighter").font(AppTheme.ui(10))
                 ColorPicker("", selection: $hlColor, supportsOpacity: false)
                     .labelsHidden()
                     .onChange(of: hlColor) { _, c in coord.setHighlight(NSColor(c)) }
@@ -62,7 +78,7 @@ struct RichNoteEditor: View {
                 fmt("highlighter", "Remover marca-texto do trecho") { coord.setHighlight(nil) }
                 Spacer(minLength: 0)
             }
-            HStack(spacing: 3) {
+            fileira {
                 fmt("list.bullet", "Lista com marcadores") { coord.toggleList(ordered: false) }
                 fmt("list.number", "Lista numerada") { coord.toggleList(ordered: true) }
                 fmt("text.quote", "Citação") { coord.toggleQuote() }
@@ -76,12 +92,14 @@ struct RichNoteEditor: View {
                 sep
                 ForEach(tags, id: \.1) { emoji, name, color in
                     Button { coord.insertTag(emoji: emoji, color: color) } label: {
-                        Text(emoji).font(.system(size: 12))
+                        Text(emoji).font(AppTheme.ui(12))
                             .frame(width: 22, height: 20)
                             .background(RoundedRectangle(cornerRadius: 5).fill(Color(uiColor: color)))
+                            .legisAlvoToque(ehCompacto)
                     }
                     .buttonStyle(.plain)
                     .help(name)
+                    .accessibilityLabel("Marcador \(name)")
                 }
                 sep
                 // Favoritar a cor de marca-texto atual + cores favoritas (compartilhadas
@@ -96,8 +114,10 @@ struct RichNoteEditor: View {
                     Button { hlColor = Color(hexRGBA: hex); coord.setHighlight(NSColor(hexRGBA: hex)) } label: {
                         Circle().fill(Color(hexRGBA: hex)).frame(width: 14, height: 14)
                             .overlay(Circle().strokeBorder(.secondary.opacity(0.35), lineWidth: 0.5))
+                            .legisAlvoToque(ehCompacto)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Marcar com a cor favorita")
                     .help("Marcar com esta cor · toque e segure para remover dos favoritos")
                     .contextMenu {
                         Button(role: .destructive) { store.removerCorFavorita(hex) } label: {
@@ -110,16 +130,18 @@ struct RichNoteEditor: View {
             }
         }
         .buttonStyle(.plain)
-        .font(.system(size: 13))
+        .font(AppTheme.ui(13))
         .foregroundStyle(AppTheme.secondaryInk)
         .padding(.horizontal, 8).padding(.vertical, 6)
     }
 
     private func headingBtn(_ label: String, _ level: Int) -> some View {
         Button { coord.setHeading(level) } label: {
-            Text(label).font(.system(size: 11, weight: .bold)).frame(width: 22, height: 20)
+            Text(label).font(AppTheme.ui(11, .bold)).frame(width: 22, height: 20)
+                .legisAlvoToque(ehCompacto)
         }
         .help("Título \(label)")
+        .accessibilityLabel("Título \(label)")
     }
 
     private var sep: some View {
@@ -130,8 +152,10 @@ struct RichNoteEditor: View {
         Button(action: action) {
             Image(systemName: icon).frame(width: 24, height: 22)
                 .contentShape(Rectangle())
+                .legisAlvoToque(ehCompacto)
         }
         .help(help)
+        .accessibilityLabel(help)
     }
 }
 
@@ -141,6 +165,8 @@ private struct RichTextView: UIViewRepresentable {
     let coord: RichTextCoordinator
     let onChange: (Data, String) -> Void
     let placeholder: String
+    /// Compacto: barra "Concluir" acima do teclado (no iPhone não há Esc nem ⌘).
+    var compacto: Bool = false
 
     func makeUIView(context: Context) -> UITextView {
         // No iPadOS a UITextView JÁ rola sozinha: não existe NSScrollView em volta, e
@@ -155,6 +181,7 @@ private struct RichTextView: UIViewRepresentable {
         coord.textView = tv
         coord.onChange = onChange
         coord.placeholder = placeholder
+        if compacto { tv.inputAccessoryView = legisBarraConcluir(para: tv) }
         // NSAttributedString(rtf:) é do AppKit; no iPadOS o RTF entra por data(_:options:).
         if let initialRTF,
            let s = try? NSAttributedString(data: initialRTF,

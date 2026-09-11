@@ -94,7 +94,7 @@ fileprivate struct ReagendarMenu: View {
             Divider()
             Button { store.setChecklistDue(itemID, nil) } label: { Label("Sem prazo", systemImage: "calendar.badge.minus") }
         } label: {
-            Image(systemName: "calendar").font(.system(size: 12))
+            Image(systemName: "calendar").font(AppTheme.ui(12))
                 .frame(minWidth: 44, minHeight: 44)   // alvo de toque ≥ 44 pt
                 .contentShape(Rectangle())
         }
@@ -141,7 +141,7 @@ struct ChecklistMiniCard: View {
                     .fill(LinearGradient(colors: [ThemeState.t.accent, ThemeState.t.accentD],
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 30, height: 30)
-                    .overlay(Image(systemName: "checklist").font(.system(size: 13, weight: .semibold))
+                    .overlay(Image(systemName: "checklist").font(AppTheme.ui(13, .semibold))
                         .foregroundStyle(.white))
                 Text("Checklist de leitura")
                     .font(AppTheme.displayFont(15, .bold)).foregroundStyle(AppTheme.ink)
@@ -157,11 +157,11 @@ struct ChecklistMiniCard: View {
             HStack(spacing: 8) {
                 TextField("Nova meta de leitura…", text: $newText)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .font(AppTheme.ui(13))
                     .focused($fieldFocused)
                     .onSubmit(addQuick)
                 Button(action: addQuick) {
-                    Image(systemName: "plus.circle.fill").font(.system(size: 17))
+                    Image(systemName: "plus.circle.fill").font(AppTheme.ui(17))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(newText.trimmingCharacters(in: .whitespaces).isEmpty
@@ -211,11 +211,11 @@ struct ChecklistMiniCard: View {
         } label: {
             HStack(spacing: 9) {
                 Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 15))
+                    .font(AppTheme.ui(15))
                     .foregroundStyle(item.done ? tint : tint.opacity(0.45))
                     .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : item.done)   // baixa estimulação: valor fixo = sem salto
                 Text(item.text)
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(AppTheme.ui(12.5, .medium))
                     .foregroundStyle(AppTheme.ink)
                     .lineLimit(1)
                 Spacer(minLength: 4)
@@ -341,7 +341,7 @@ struct ChecklistView: View {
                           center: total == 0 ? "0%" : "\(Int((Double(doneCount) / Double(total) * 100).rounded()))%")
             VStack(alignment: .leading, spacing: 7) {
                 Text("\(doneCount) de \(total) concluídas")
-                    .font(.system(size: 15, weight: .bold)).foregroundStyle(AppTheme.ink)
+                    .font(AppTheme.ui(15, .bold)).foregroundStyle(AppTheme.ink)
                 HStack(spacing: 7) {
                     statChip("\(hoje.count) hoje", tint: ThemeState.t.accent, on: !hoje.isEmpty)
                     statChip("\(atrasadas.count) atrasada\(atrasadas.count == 1 ? "" : "s")",
@@ -375,7 +375,7 @@ struct ChecklistView: View {
             HStack(spacing: 8) {
                 TextField("Nova meta de leitura (ex.: revisar CDC até sexta)", text: $newText)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13.5))
+                    .font(AppTheme.ui(13.5))
                     .focused($fieldFocused)
                     .onSubmit(addItem)
                 linkMenu
@@ -383,7 +383,7 @@ struct ChecklistView: View {
                     withAnimation(.easeInOut(duration: 0.15)) { newHasDueDate.toggle() }
                 } label: {
                     Image(systemName: newHasDueDate ? "calendar.badge.checkmark" : "calendar.badge.plus")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(AppTheme.ui(14, .medium))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(newHasDueDate ? ThemeState.t.accent : AppTheme.secondaryInk)
@@ -404,7 +404,7 @@ struct ChecklistView: View {
                     DatePicker("Prazo", selection: $newDueDate, displayedComponents: .date)
                         .datePickerStyle(.compact)
                         .labelsHidden()
-                        .font(.system(size: 12.5))
+                        .font(AppTheme.ui(12.5))
                 }
                 Spacer(minLength: 0)
                 Button("Adicionar", action: addItem)
@@ -451,7 +451,7 @@ struct ChecklistView: View {
             }
         } label: {
             Image(systemName: hasLink ? "books.vertical.fill" : "books.vertical")
-                .font(.system(size: 14, weight: .medium))
+                .font(AppTheme.ui(14, .medium))
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
@@ -462,9 +462,9 @@ struct ChecklistView: View {
     @ViewBuilder
     private func linkChip(icon: String, label: String, onClear: @escaping () -> Void) -> some View {
         HStack(spacing: 5) {
-            Image(systemName: icon).font(.system(size: 9.5))
-            Text(label).font(.system(size: 11, weight: .medium)).lineLimit(1)
-            Button(action: onClear) { Image(systemName: "xmark").font(.system(size: 8.5, weight: .bold)) }
+            Image(systemName: icon).font(AppTheme.ui(9.5))
+            Text(label).font(AppTheme.ui(11, .medium)).lineLimit(1)
+            Button(action: onClear) { Image(systemName: "xmark").font(AppTheme.ui(8.5, .bold)) }
                 .buttonStyle(.plain)
         }
         .padding(.horizontal, 9).padding(.vertical, 4)
@@ -542,7 +542,7 @@ private struct ChecklistRow: View {
                     Circle().strokeBorder(item.done ? Color.clear : tint.opacity(0.5), lineWidth: 1.8)
                     if item.done {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .heavy)).foregroundStyle(.white)
+                            .font(AppTheme.ui(10, .heavy)).foregroundStyle(.white)
                     }
                 }
                 .frame(width: 21, height: 21)
@@ -555,7 +555,7 @@ private struct ChecklistRow: View {
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(item.text)
-                    .font(.system(size: 13.5, weight: .medium))
+                    .font(AppTheme.ui(13.5, .medium))
                     .strikethrough(item.done)
                     .foregroundStyle(item.done ? AppTheme.secondaryInk : AppTheme.ink)
                 HStack(spacing: 6) {
@@ -580,7 +580,7 @@ private struct ChecklistRow: View {
                     .foregroundStyle(AppTheme.secondaryInk)
             }
             Button(action: onDelete) {
-                Image(systemName: "trash").font(.system(size: 12))
+                Image(systemName: "trash").font(AppTheme.ui(12))
                     .frame(minWidth: 44, minHeight: 44)
                     .contentShape(Rectangle())
             }

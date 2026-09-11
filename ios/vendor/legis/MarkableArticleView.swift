@@ -29,6 +29,8 @@ struct MarkableArticleView: UIViewRepresentable {
     @Binding var commentAnchors: [ArticleCommentAnchor]  // posições dos comentários p/ os balões
     @ObservedObject var controller: ReaderController
     var onCommand: (ReaderCommand) -> Void
+    /// Ações extras do menu de seleção (compacto) — ver ReaderTextView.acoesExtras.
+    var acoesExtras: [UIMenuElement] = []
 
     private var articleText: String {
         let ns = fullText as NSString
@@ -65,6 +67,7 @@ struct MarkableArticleView: UIViewRepresentable {
         textView.onCommand = { [weak coordinator = context.coordinator] cmd in
             coordinator?.parent.onCommand(cmd)
         }
+        textView.acoesExtras = acoesExtras
 
         controller.textView = textView
         context.coordinator.textView = textView
@@ -77,6 +80,7 @@ struct MarkableArticleView: UIViewRepresentable {
     func updateUIView(_ textView: ReaderTextView, context: Context) {
         context.coordinator.parent = self
         controller.textView = textView
+        textView.acoesExtras = acoesExtras
         let key = "\(articleText.hashValue)|\(fontFamily)|\(fontSize)|\(accent.hashValue)|\(textAlignment.rawValue)|\(lineSpacing)"
         var changed = false
         if context.coordinator.lastKey != key {

@@ -254,7 +254,7 @@ struct FontPickerView: View {
                 }
             )) { family in
                 Text(family)
-                    .font(family.hasPrefix("Sistema") ? .system(size: 13) : .custom(family, size: 13))
+                    .font(family.hasPrefix("Sistema") ? AppTheme.ui(13) : .custom(family, size: 13))
                     .tag(family)
             }
             .frame(minHeight: 260)
