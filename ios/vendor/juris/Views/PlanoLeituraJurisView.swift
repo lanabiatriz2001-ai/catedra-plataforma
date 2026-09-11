@@ -54,9 +54,9 @@ struct PlanoLeituraJurisView: View {
                           center: "\(Int((frac * 100).rounded()))%")
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(lidos.count) de \(JurisPlano.totalDias) dias lidos")
-                    .font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(Typo.ui(15, .bold)).foregroundStyle(Palette.titleInk)
                 Text("Marque o dia ao terminar a faixa — o registro vai para o Cátedra.")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                    .font(Typo.ui(12)).foregroundStyle(Palette.secondaryInk)
             }
             Spacer(minLength: 12)
         }
@@ -89,17 +89,17 @@ struct PlanoLeituraJurisView: View {
                 }
             } label: {
                 Image(systemName: lido ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18)).foregroundStyle(lido ? c : Palette.secondaryInk.opacity(0.55))
+                    .font(Typo.ui(18)).foregroundStyle(lido ? c : Palette.secondaryInk.opacity(0.55))
             }
             .buttonStyle(.plain)
-            Text("Dia \(d.dia)").font(.system(size: 11, weight: .bold)).foregroundStyle(c)
+            Text("Dia \(d.dia)").font(Typo.ui(11, .bold)).foregroundStyle(c)
                 .padding(.horizontal, 9).padding(.vertical, 3)
                 .background(Capsule().fill(c.opacity(0.14)))
-            Text("Súmulas \(d.faixa)").font(.system(size: 13.5))
+            Text("Súmulas \(d.faixa)").font(Typo.ui(13.5))
                 .foregroundStyle(lido ? Palette.secondaryInk : Palette.bodyInk)
                 .strikethrough(lido, color: Palette.secondaryInk)
             Spacer(minLength: 8)
-            Text("\(d.qtd)").font(.system(size: 11, weight: .semibold).monospacedDigit())
+            Text("\(d.qtd)").font(Typo.num(11, .semibold))
                 .foregroundStyle(Palette.secondaryInk)
                 .help("\(d.qtd) súmulas")
         }
