@@ -40,7 +40,7 @@ struct SRSReviewView: View {
         }
         // Sem tamanho fixo: no iPad a folha tem o tamanho do sistema (page sheet), e um
         // 720×720 fixo cortava os botões de nota (Errei/Difícil/Bom/Fácil) no rodapé.
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .folhaAdaptavel(larga: true)
         .task { await build() }
     }
 
@@ -59,7 +59,7 @@ struct SRSReviewView: View {
             if !loading && allItems.count > 1 && (materiaOptions.count > 1 || normOptions.count > 1) {
                 scopeMenu
             }
-            Button("Fechar") { dismiss() }
+            Button("Fechar") { dismiss() }.alvoToque()
         }
         .padding(16)
     }
@@ -183,11 +183,11 @@ struct SRSReviewView: View {
                         Text(promptLabel(kind))
                             .font(.caption.weight(.semibold)).foregroundStyle(item.accent)
                         Text(prompt)
-                            .font(.system(size: 20, design: .default)).lineSpacing(5)
+                            .font(AppTheme.ui(20, design: .default)).lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
                     } else {
-                        Text(item.unit.label).font(.system(size: 30, weight: .bold, design: .default))
+                        Text(item.unit.label).font(AppTheme.ui(30, .bold, design: .default))
                         if let context = item.unit.context {
                             Text(context).font(.subheadline).foregroundStyle(.secondary)
                         }

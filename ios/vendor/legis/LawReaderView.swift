@@ -27,6 +27,11 @@ struct LawReaderView: View {
     // não repetir os mesmos botões duas vezes, uma barra em cima da outra.
     @AppStorage("studyLayout") private var studyLayout = "foco"
     @State private var showReaderFontPicker = false
+    // Compacto (iPhone, Slide Over): nem readerBar nem cabeçalho da norma — a barra de
+    // navegação do sistema leva um menu "Mais" com tudo; na Leitura corrida, um rodapé
+    // fino com "Ir para artigo", busca, marcação e alinhamento. Em regular nada muda.
+    @Environment(\.ehCompacto) private var ehCompacto
+    @FocusState private var focoArtigo: Bool
 
     private var law: LawEntry? { store.laws.first { $0.id == lawID } }
     // Índices de "Novidades 2026" são feeds (lista de atos), não normas com artigos:
@@ -59,7 +64,23 @@ struct LawReaderView: View {
         // LEGIS entra como NSHostingView-subview — então .toolbar { } daqui nunca era
         // desenhado e TODOS estes controles estavam mortos. Viram uma barra própria acima
         // do conteúdo, como o JURIS já faz em EntryDetailView.
-        .safeAreaInset(edge: .top, spacing: 0) { readerBar }
+        .safeAreaInset(edge: .top, spacing: 0) { if !ehCompacto { readerBar } }
+        .toolbar {
+            if ehCompacto {
+                ToolbarItem(placement: .topBarTrailing) { maisMenuCompacto }
+            }
+        }
+        // Gancho de VERIFICAÇÃO (ver ContentView): `-legisAbrirFolha precedentes|historico|anotacoes`
+        // abre a folha logo que o leitor aparece. Inerte sem o argumento.
+        .task {
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            switch UserDefaults.standard.string(forKey: "legisAbrirFolha") {
+            case "precedentes": showPrecedents = true
+            case "historico":   showHistorico = true
+            case "anotacoes":   showInspector = true
+            default: break
+            }
+        }
         .inspector(isPresented: $showInspector) {
             AnnotationsPanel(lawID: lawID,
                              focusedAnnotationID: $focusedAnnotationID,
@@ -87,6 +108,7 @@ struct LawReaderView: View {
                 }
             }
             .padding(12)
+            .legisDetentesSeCompacto([.medium, .large])
         }
         .confirmationDialog("Excluir esta norma e todas as suas anotações?",
                             isPresented: $showDeleteConfirm, titleVisibility: .visible) {
@@ -114,8 +136,10 @@ struct LawReaderView: View {
 
     private func reader(for law: LawEntry) -> some View {
         VStack(spacing: 0) {
-            // Modo leitura limpa: some com o cabeçalho para o texto ocupar tudo.
-            if !cleanReading {
+            // Modo leitura limpa: some com o cabeçalho para o texto ocupar tudo. Em compacto
+            // o cabeçalho nunca entra: o título já está na barra de navegação e a faixa do
+            // artigo (ArticleStudyView) traz contexto, progresso e navegação.
+            if !cleanReading && !ehCompacto {
                 header(for: law)
                 Divider()
             }
@@ -131,6 +155,7 @@ struct LawReaderView: View {
                                       focusedAnnotationID: $focusedAnnotationID,
                                       onCommand: handle,
                                       textAlignment: store.alinhamentoNS(lawID: lawID, unitKey: "full"))
+                    if ehCompacto && !isNovidades { barraCorridaCompacta }
                 }
             } else if loadAttempted {
                 ContentUnavailableView {
@@ -413,34 +438,7 @@ struct LawReaderView: View {
             // marcação é pela barra do próprio artigo e a busca é pelo Índice. (Estes
             // controles ficavam MORTOS no Estudo; o ColorPicker virava a "pílula verde".)
             if effectiveMode == "corrido" {
-                Menu {
-                    ForEach(store.coresFavoritas, id: \.self) { hex in
-                        Button {
-                            markerColorHex = hex
-                        } label: {
-                            Label(hex, systemImage: markerColorHex == hex ? "checkmark.circle.fill" : "circle.fill")
-                        }
-                    }
-                    Divider()
-                    Button("Favoritar cor atual", systemImage: "plus") { store.adicionarCorFavorita(markerColorHex) }
-                        .disabled(store.coresFavoritas.contains(markerColorHex))
-                    if store.coresFavoritas.contains(markerColorHex) {
-                        Button("Remover cor dos favoritos", systemImage: "minus", role: .destructive) { store.removerCorFavorita(markerColorHex) }
-                    }
-                    ColorPicker("Escolher outra cor…", selection: Binding(
-                        get: { Color(hexRGBA: markerColorHex) },
-                        set: { markerColorHex = $0.hexRGBA }))
-                    Divider()
-                    ForEach(AnnotationStyle.allCases.filter { $0 != .cloze }) { style in
-                        Button { handle(.apply(style)) } label: { Label(style.label, systemImage: style.symbol) }
-                            .disabled(controller.selectionLength == 0)
-                    }
-                    Button { handle(.annotate) } label: { Label("Anotar", systemImage: "note.text.badge.plus") }
-                        .disabled(controller.selectionLength == 0)
-                    Divider()
-                    Button(role: .destructive) { handle(.removeInSelection) } label: { Label("Apagar marcação", systemImage: "eraser") }
-                        .disabled(controller.selectionLength == 0)
-                } label: {
+                Menu { marcarItens } label: {
                     Label("Marcar", systemImage: "highlighter")
                 }
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
@@ -454,14 +452,7 @@ struct LawReaderView: View {
                 .keyboardShortcut("f", modifiers: .command)
                 .help("Buscar no texto desta norma")
 
-                Menu {
-                    Button { store.setAlinhamento("left", lawID: lawID, unitKey: "full") } label: { Label("À esquerda", systemImage: "text.alignleft") }
-                    Button { store.setAlinhamento("center", lawID: lawID, unitKey: "full") } label: { Label("Centralizado", systemImage: "text.aligncenter") }
-                    Button { store.setAlinhamento("right", lawID: lawID, unitKey: "full") } label: { Label("À direita", systemImage: "text.alignright") }
-                    Button { store.setAlinhamento("justify", lawID: lawID, unitKey: "full") } label: { Label("Justificado", systemImage: "text.justify") }
-                    Divider()
-                    Button { store.setAlinhamento("natural", lawID: lawID, unitKey: "full") } label: { Label("Usar padrão", systemImage: "arrow.uturn.backward") }
-                } label: {
+                Menu { alinhamentoItens } label: {
                     Label("Alinhamento", systemImage: "text.alignleft")
                 }
                 .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
@@ -475,6 +466,122 @@ struct LawReaderView: View {
             maisMenu
             anotacoesBotao
         }
+    }
+
+    /// Itens do menu "Marcar" (Leitura corrida): cores favoritas, estilos, anotar, apagar.
+    /// Compartilhados pela barra do iPad e pelo rodapé compacto.
+    @ViewBuilder
+    private var marcarItens: some View {
+        ForEach(store.coresFavoritas, id: \.self) { hex in
+            Button {
+                markerColorHex = hex
+            } label: {
+                Label(hex, systemImage: markerColorHex == hex ? "checkmark.circle.fill" : "circle.fill")
+            }
+        }
+        Divider()
+        Button("Favoritar cor atual", systemImage: "plus") { store.adicionarCorFavorita(markerColorHex) }
+            .disabled(store.coresFavoritas.contains(markerColorHex))
+        if store.coresFavoritas.contains(markerColorHex) {
+            Button("Remover cor dos favoritos", systemImage: "minus", role: .destructive) { store.removerCorFavorita(markerColorHex) }
+        }
+        ColorPicker("Escolher outra cor…", selection: Binding(
+            get: { Color(hexRGBA: markerColorHex) },
+            set: { markerColorHex = $0.hexRGBA }))
+        Divider()
+        ForEach(AnnotationStyle.allCases.filter { $0 != .cloze }) { style in
+            Button { handle(.apply(style)) } label: { Label(style.label, systemImage: style.symbol) }
+                .disabled(controller.selectionLength == 0)
+        }
+        Button { handle(.annotate) } label: { Label("Anotar", systemImage: "note.text.badge.plus") }
+            .disabled(controller.selectionLength == 0)
+        Divider()
+        Button(role: .destructive) { handle(.removeInSelection) } label: { Label("Apagar marcação", systemImage: "eraser") }
+            .disabled(controller.selectionLength == 0)
+    }
+
+    /// Itens do menu "Alinhamento" (Leitura corrida).
+    @ViewBuilder
+    private var alinhamentoItens: some View {
+        Button { store.setAlinhamento("left", lawID: lawID, unitKey: "full") } label: { Label("À esquerda", systemImage: "text.alignleft") }
+        Button { store.setAlinhamento("center", lawID: lawID, unitKey: "full") } label: { Label("Centralizado", systemImage: "text.aligncenter") }
+        Button { store.setAlinhamento("right", lawID: lawID, unitKey: "full") } label: { Label("À direita", systemImage: "text.alignright") }
+        Button { store.setAlinhamento("justify", lawID: lawID, unitKey: "full") } label: { Label("Justificado", systemImage: "text.justify") }
+        Divider()
+        Button { store.setAlinhamento("natural", lawID: lawID, unitKey: "full") } label: { Label("Usar padrão", systemImage: "arrow.uturn.backward") }
+    }
+
+    // MARK: - Compacto: menu "Mais" na barra de navegação e rodapé da Leitura corrida
+
+    /// Tudo o que a readerBar e o cabeçalho ofereciam, num menu só da barra de navegação:
+    /// modo (Estudo/Leitura corrida), favoritar, anotações, tipografia e o "Mais" de sempre.
+    @ViewBuilder
+    private var maisMenuCompacto: some View {
+        if let law {
+            Menu {
+                if !isNovidades {
+                    Picker("Modo de leitura", selection: $readerMode) {
+                        Label("Estudo (artigo por artigo)", systemImage: "doc.text").tag("estudo")
+                        Label("Leitura corrida", systemImage: "text.justify.left").tag("corrido")
+                    }
+                    .pickerStyle(.inline)
+                }
+                if law.isRegularLaw {
+                    Button { store.toggleFavorite(law.id) } label: {
+                        Label(law.favorite == true ? "Remover dos favoritos" : "Adicionar aos favoritos",
+                              systemImage: law.favorite == true ? "star.slash" : "star")
+                    }
+                }
+                Button { showInspector.toggle() } label: {
+                    Label("Anotações", systemImage: "sidebar.right")
+                }
+                if effectiveMode == "corrido" {
+                    Menu {
+                        Button("Fonte do leitor…") { showReaderFontPicker = true }
+                        Button("Aumentar") { fontSize = min(30, fontSize + 1) }
+                        Button("Diminuir") { fontSize = max(10, fontSize - 1) }
+                    } label: {
+                        Label("Tipografia · \(Int(fontSize)) pt", systemImage: "textformat.size")
+                    }
+                    Toggle(isOn: $cleanReading) { Label("Imersão", systemImage: "book.closed") }
+                }
+                Divider()
+                maisMenuItens(law)
+            } label: {
+                Image(systemName: "ellipsis.circle").alvoToque()
+            }
+            .accessibilityLabel("Mais opções da norma")
+        }
+    }
+
+    /// Rodapé da Leitura corrida em compacto: "Ir para artigo", busca no texto, marcação e
+    /// alinhamento — os controles que a readerBar tinha, ao alcance do polegar, 44 pt cada.
+    private var barraCorridaCompacta: some View {
+        HStack(spacing: 8) {
+            TextField("Ir para artigo…", text: $articleQuery)
+                .textFieldStyle(.roundedBorder)
+                .submitLabel(.go)
+                .focused($focoArtigo)
+                .onSubmit { controller.jump(toArticle: articleQuery) }
+                .frame(minHeight: 44)
+                .accessibilityLabel("Ir para artigo")
+            Button { controller.showFindBar() } label: {
+                Image(systemName: "magnifyingglass").alvoToque()
+            }
+            .accessibilityLabel("Buscar no texto desta norma")
+            Menu { marcarItens } label: {
+                Image(systemName: "highlighter").alvoToque()
+            }
+            .accessibilityLabel("Marcar a seleção")
+            Menu { alinhamentoItens } label: {
+                Image(systemName: "text.alignleft").alvoToque()
+            }
+            .accessibilityLabel("Alinhamento do texto")
+        }
+        .padding(.horizontal, 12).padding(.vertical, 4)
+        .background(.bar)
+        .overlay(Rectangle().fill(AppTheme.hairline).frame(height: 1), alignment: .top)
+        .tecladoConcluir(foco: $focoArtigo)
     }
 
     private var tipografiaMenu: some View {
@@ -512,6 +619,19 @@ struct LawReaderView: View {
     private var maisMenu: some View {
         if let law {
             Menu {
+                maisMenuItens(law)
+            } label: {
+                Label("Mais", systemImage: "ellipsis.circle")
+            }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .labelStyle(.iconOnly)
+            .help("Histórico, jurisprudência, monitoramento, mover de matéria e excluir")
+        }
+    }
+
+    /// Itens do "Mais" — os mesmos na barra do iPad e no menu compacto.
+    @ViewBuilder
+    private func maisMenuItens(_ law: LawEntry) -> some View {
                     if !isNovidades {
                         Button { showHistorico = true } label: {
                             Label("Histórico da norma", systemImage: "clock.arrow.circlepath")
@@ -571,13 +691,6 @@ struct LawReaderView: View {
                             Label("Excluir norma…", systemImage: "trash")
                         }
                     }
-            } label: {
-                Label("Mais", systemImage: "ellipsis.circle")
-            }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .labelStyle(.iconOnly)
-            .help("Histórico, jurisprudência, monitoramento, mover de matéria e excluir")
-        }
     }
 
     private var anotacoesBotao: some View {

@@ -247,11 +247,11 @@ private struct FlowRemissions: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "arrowtriangle.right.fill")
-                            .font(.system(size: 7)).foregroundStyle(accent.opacity(0.7))
+                            .font(AppTheme.ui(7)).foregroundStyle(accent.opacity(0.7))
                         Text(r.display).font(.caption)
                             .foregroundStyle(r.isNavigable ? AppTheme.ink : AppTheme.secondaryInk)
                         if r.isNavigable {
-                            Image(systemName: r.symbol).font(.system(size: 8)).foregroundStyle(.tertiary)
+                            Image(systemName: r.symbol).font(AppTheme.ui(8)).foregroundStyle(.tertiary)
                         }
                     }
                     .contentShape(Rectangle())

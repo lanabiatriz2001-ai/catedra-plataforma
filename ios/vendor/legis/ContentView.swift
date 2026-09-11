@@ -25,6 +25,7 @@ enum NavRoute: Hashable {
     case section(SidebarItem)   // uma seção/lista em tela cheia
     case reader(UUID)           // a norma aberta em tela cheia ("dar play")
     case updateDetail(UUID)     // detalhe de uma alteração
+    case secoes                 // compacto (iPhone): a lista da barra lateral como tela
 }
 
 struct ContentView: View {
@@ -44,6 +45,11 @@ struct ContentView: View {
     // o conteúdo não cabia. Acima disso o visual é o do Mac.
     private static let larguraCompacta: CGFloat = 700
     @State private var showSidebarDrawer = false
+    // Largura COMPACTA de verdade (size class: iPhone em retrato, Slide Over): nem barra
+    // lateral nem barra do topo — a NavigationStack é a raiz, com os controles na barra de
+    // navegação do sistema e a lista da barra lateral como tela ("Seções"). Em regular
+    // (iPad em tela cheia) o corpo abaixo continua o de sempre.
+    @Environment(\.ehCompacto) private var ehCompacto
 
     // Top bar no esquema do Cátedra: título + Buscar + notificações + cronômetro EM CURSO.
     // No modo compacto ganha o botão da gaveta e encolhe o que não é essencial.
@@ -52,7 +58,7 @@ struct ContentView: View {
             if compacto {
                 Button { showSidebarDrawer = true } label: {
                     Image(systemName: "sidebar.left")
-                        .font(.system(size: 13, weight: .medium)).foregroundStyle(AppTheme.secondaryInk)
+                        .font(AppTheme.ui(13, .medium)).foregroundStyle(AppTheme.secondaryInk)
                         .frame(width: 34, height: 34)
                         .background(Circle().fill(AppTheme.cardBackground))
                         .overlay(Circle().strokeBorder(AppTheme.hairline, lineWidth: 1))
@@ -63,17 +69,17 @@ struct ContentView: View {
                 .accessibilityLabel("Abrir a barra lateral")
             }
             VStack(alignment: .leading, spacing: 1) {
-                Text("CátedraLEGIS").font(.system(size: 15, weight: .bold)).foregroundStyle(AppTheme.ink)
+                Text("CátedraLEGIS").font(AppTheme.ui(15, .bold)).foregroundStyle(AppTheme.ink)
                 if !compacto {
-                    Text("Vade Mecum de leis").font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk)
+                    Text("Vade Mecum de leis").font(AppTheme.ui(10.5)).foregroundStyle(AppTheme.secondaryInk)
                 }
             }
             Spacer(minLength: 12)
             Button { showPalette = true } label: {
                 HStack(spacing: 7) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 11))
+                    Image(systemName: "magnifyingglass").font(AppTheme.ui(11))
                     if !compacto {
-                        Text("Buscar").font(.system(size: 12.5))
+                        Text("Buscar").font(AppTheme.ui(12.5))
                     }
                 }
                 .foregroundStyle(AppTheme.secondaryInk)
@@ -87,7 +93,7 @@ struct ContentView: View {
             .accessibilityLabel("Buscar norma, matéria ou ação")
             Button { path = [.section(.updates)] } label: {
                 Image(systemName: store.unreadCount > 0 ? "bell.badge.fill" : "bell")
-                    .font(.system(size: 13, weight: .medium)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(AppTheme.ui(13, .medium)).foregroundStyle(AppTheme.secondaryInk)
                     .frame(width: 34, height: 34)
                     .background(Circle().fill(AppTheme.cardBackground))
                     .overlay(Circle().strokeBorder(AppTheme.hairline, lineWidth: 1))
@@ -96,14 +102,14 @@ struct ContentView: View {
             // Cronômetro EM CURSO (destaque, como o Cátedra)
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(.system(size: 8, weight: .heavy)).tracking(0.8)
+                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(AppTheme.ui(8, .heavy)).tracking(0.8)
                         .foregroundStyle(clock.running ? ThemeState.t.accent : AppTheme.secondaryInk)
                     Text(clock.formatted).font(Typo.num(16))
                         .foregroundStyle(AppTheme.ink)
                 }
                 Button { clock.togglePlay() } label: {
                     Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                        .font(AppTheme.ui(11, .bold)).foregroundStyle(.white)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(clock.manualPlaying ? AppTheme.secondaryInk : ThemeState.t.accent))
                 }
@@ -118,7 +124,7 @@ struct ContentView: View {
         .overlay(alignment: .bottom) { Rectangle().fill(AppTheme.hairline).frame(height: 1) }
     }
 
-    var body: some View {
+    private var corpoRegular: some View {
         GeometryReader { geo in
             let compacto = geo.size.width < Self.larguraCompacta
             // Barra lateral: 210 pt como no Mac, mas nunca mais que ~27% da janela.
@@ -141,19 +147,7 @@ struct ContentView: View {
                             openUpdate: { path.append(.updateDetail($0)) },
                             newCategory: { showNewCategory = true }
                         )
-                        .navigationDestination(for: NavRoute.self) { route in
-                            switch route {
-                            case .section(let item):
-                                SectionScreen(item: item,
-                                              openLaw: { path.append(.reader($0)) },
-                                              openUpdate: { path.append(.updateDetail($0)) },
-                                              showAddLaw: $showAddLaw)
-                            case .reader(let id):
-                                ReaderScreen(lawID: id, openLaw: { path.append(.reader($0)) })
-                            case .updateDetail(let id):
-                                UpdateDetailScreen(updateID: id, openLaw: { path.append(.reader($0)) })
-                            }
-                        }
+                        .navigationDestination(for: NavRoute.self) { route in destino(route) }
                     }
                 }
             }
@@ -182,6 +176,156 @@ struct ContentView: View {
             .onChange(of: compacto) { _, agora in
                 if !agora { showSidebarDrawer = false }   // voltou a caber: a gaveta some
             }
+        }
+    }
+
+    /// Compacto (iPhone): só a NavigationStack. O Início é a raiz; "Seções" (a lista da
+    /// barra lateral), busca, sino e cronômetro vivem na barra de navegação — nenhuma
+    /// barra própria empilhada por cima.
+    private var corpoCompacto: some View {
+        NavigationStack(path: $path) {
+            DashboardView(
+                openLaw: { path.append(.reader($0)) },
+                openSection: { path.append(.section($0)) },
+                openUpdates: { path.append(.section(.updates)) },
+                openUpdate: { path.append(.updateDetail($0)) },
+                newCategory: { showNewCategory = true }
+            )
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { barraCompacta }
+            .navigationDestination(for: NavRoute.self) { route in destino(route) }
+        }
+    }
+
+    /// Destinos da pilha — os mesmos nos dois corpos.
+    @ViewBuilder
+    private func destino(_ route: NavRoute) -> some View {
+        switch route {
+        case .section(let item):
+            SectionScreen(item: item,
+                          openLaw: { path.append(.reader($0)) },
+                          openUpdate: { path.append(.updateDetail($0)) },
+                          showAddLaw: $showAddLaw)
+        case .reader(let id):
+            ReaderScreen(lawID: id, openLaw: { path.append(.reader($0)) })
+        case .updateDetail(let id):
+            UpdateDetailScreen(updateID: id, openLaw: { path.append(.reader($0)) })
+        case .secoes:
+            LegisSecoesScreen(path: $path, showNewCategory: $showNewCategory,
+                              openPalette: { showPalette = true })
+        }
+    }
+
+    /// Barra de navegação do Início em compacto: Seções à esquerda; busca, sino e o
+    /// cronômetro EM CURSO à direita. Cada alvo tem 44 pt.
+    @ToolbarContentBuilder
+    private var barraCompacta: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button { path.append(.secoes) } label: {
+                Image(systemName: "list.bullet").alvoToque()
+            }
+            .accessibilityLabel("Seções")
+        }
+        ToolbarItemGroup(placement: .topBarTrailing) {
+            Button { showPalette = true } label: {
+                Image(systemName: "magnifyingglass").alvoToque()
+            }
+            .accessibilityLabel("Buscar norma, matéria ou ação")
+            Button { path = [.section(.updates)] } label: {
+                Image(systemName: store.unreadCount > 0 ? "bell.badge.fill" : "bell").alvoToque()
+            }
+            .accessibilityLabel(store.unreadCount > 0 ? "Atualizações, \(store.unreadCount) não lidas" : "Atualizações")
+            cronometroCompacto
+        }
+    }
+
+    /// Cronômetro na barra: tempo em dígitos tabulares (na cor do acento enquanto corre)
+    /// e o play/pause de 28 pt com área de toque de 44 — sem o rótulo "EM CURSO" de 8 pt.
+    private var cronometroCompacto: some View {
+        HStack(spacing: 2) {
+            Text(clock.formatted).font(Typo.num(15))
+                .foregroundStyle(clock.running ? ThemeState.t.accent : AppTheme.secondaryInk)
+                .accessibilityLabel(clock.running ? "Em curso, \(clock.formatted)" : "Estudo, \(clock.formatted)")
+            Button { clock.togglePlay() } label: {
+                Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
+                    .font(AppTheme.ui(11, .bold)).foregroundStyle(.white)
+                    .frame(width: 28, height: 28)
+                    .background(Circle().fill(clock.manualPlaying ? AppTheme.secondaryInk : ThemeState.t.accent))
+                    .alvoToque()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(clock.manualPlaying ? "Pausar o cronômetro" : "Iniciar o cronômetro")
+        }
+    }
+
+    /// Em compacto a paleta ⌘K é uma FOLHA com o campo no topo (busca modal nativa), não
+    /// o overlay de 580 pt do Mac. O mesmo `showPalette` alimenta os dois.
+    private var paletaEmFolha: Binding<Bool> {
+        Binding(get: { ehCompacto && showPalette }, set: { if !$0 { showPalette = false } })
+    }
+
+    // MARK: - Ganchos de VERIFICAÇÃO (argumentos de lançamento; inertes no uso normal)
+    //
+    // O app não tem projeto Xcode nem XCUITest, e o simulador sem toque só chega ao Início.
+    // Estes argumentos (`xcrun simctl launch … -legisAbrirTela secoes`) deixam fotografar e
+    // medir cada tela do LEGIS no simulador; sem eles, nada acontece.
+    //   -legisSemearNorma 1      cadastra uma norma curta de verificação (texto local) e a abre
+    //   -legisAbrirNorma "<trecho do título>"   abre o leitor da norma
+    //   -legisAbrirTela secoes|paleta|cadastrar   abre a tela/folha indicada
+    @State private var ganchosAplicados = false
+
+    private func aplicarGanchosDeVerificacao() async {
+        guard !ganchosAplicados else { return }
+        ganchosAplicados = true
+        let d = UserDefaults.standard
+        if d.bool(forKey: "legisSemearNorma") {
+            let titulo = "Lei de Verificação do Leitor"
+            if !store.laws.contains(where: { $0.title == titulo }) {
+                await store.addCustomLaw(title: titulo, reference: "Lei nº 0, de 11 de setembro de 2026",
+                                         sourceURL: nil, pastedText: Self.textoDeVerificacao,
+                                         category: .civil, customCategory: nil)
+            }
+            if let law = store.laws.first(where: { $0.title == titulo }) { path = [.reader(law.id)] }
+        }
+        if let trecho = d.string(forKey: "legisAbrirNorma"), !trecho.isEmpty,
+           let law = store.laws.first(where: {
+               $0.isRegularLaw && ($0.title.localizedCaseInsensitiveContains(trecho)
+                                   || $0.reference.localizedCaseInsensitiveContains(trecho))
+           }) {
+            path = [.reader(law.id)]
+        }
+        switch d.string(forKey: "legisAbrirTela") {
+        case "secoes":    if ehCompacto { path = [.secoes] }
+        case "paleta":    showPalette = true
+        case "cadastrar": showAddLaw = true
+        default: break
+        }
+    }
+
+    /// Seis artigos com incisos e parágrafos — o bastante para o Estudo, o índice e a marcação.
+    private static let textoDeVerificacao = """
+    Art. 1º Esta lei regula a verificação visual do leitor de normas do CátedraLEGIS no iPhone e no iPad, sem alterar o conteúdo estudado.
+    § 1º A verificação abrange a barra de navegação, a faixa do artigo, o cartão do texto e o dock de estudo.
+    § 2º Nenhum dado da pessoa é lido ou gravado pela verificação.
+    Art. 2º São princípios da verificação:
+    I - a legibilidade do texto em qualquer tamanho de letra escolhido pela pessoa;
+    II - a área mínima de toque de quarenta e quatro pontos em todo controle;
+    III - a preservação do leitor do iPad, pixel a pixel, na largura regular.
+    Art. 3º O texto do artigo deve começar antes da dobra da tela em retrato.
+    Parágrafo único. Considera-se dobra o limite de duzentos pontos a partir do topo da área do módulo.
+    Art. 4º A marcação de trechos faz-se pelo menu de seleção do sistema quando a barra flutuante não couber.
+    Art. 5º Os comentários aparecem abaixo do texto quando a margem lateral não couber.
+    Art. 6º Esta lei entra em vigor na data de sua publicação.
+    """
+
+    var body: some View {
+        Group {
+            if ehCompacto { corpoCompacto } else { corpoRegular }
+        }
+        .task {
+            // Ganchos de verificação: depois da 1ª pintura, para a pilha já existir.
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            await aplicarGanchosDeVerificacao()
         }
         .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
         // Item 5: o chip ⚖️ do mapa de Processo e peças manda o TERMO junto. Sem isto a aba
@@ -230,9 +374,17 @@ struct ContentView: View {
                 .keyboardShortcut("k", modifiers: .command)
                 .opacity(0)
         )
+        .sheet(isPresented: paletaEmFolha) {
+            CommandPalette(isPresented: $showPalette,
+                           openLaw: { path.append(.reader($0)) },
+                           openSection: { path = [.section($0)] },
+                           addLaw: { showAddLaw = true })
+                .environmentObject(store)
+                .folhaAdaptavel()
+        }
         .overlay {
             Group {
-                if showPalette {
+                if showPalette && !ehCompacto {
                     CommandPalette(isPresented: $showPalette,
                                    openLaw: { path.append(.reader($0)) },
                                    openSection: { path = [.section($0)] },
@@ -287,10 +439,10 @@ private struct LegisSidebar: View {
                 RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous)
                     .fill(ThemeState.t.accent).frame(width: 34, height: 34)
                     .overlay(Image(systemName: "books.vertical.fill")
-                        .font(.system(size: 15, weight: .bold)).foregroundStyle(.white))
+                        .font(AppTheme.ui(15, .bold)).foregroundStyle(.white))
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("CátedraLEGIS").font(.system(size: 14.5, weight: .bold)).foregroundStyle(.white)
-                    Text("Vade Mecum de leis").font(.system(size: 10))
+                    Text("CátedraLEGIS").font(AppTheme.ui(14.5, .bold)).foregroundStyle(.white)
+                    Text("Vade Mecum de leis").font(AppTheme.ui(10))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
                 }
             }
@@ -298,8 +450,8 @@ private struct LegisSidebar: View {
 
             Button(action: openPalette) {
                 HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 12))
-                    Text("Buscar…").font(.system(size: 12.5))
+                    Image(systemName: "magnifyingglass").font(AppTheme.ui(12))
+                    Text("Buscar…").font(AppTheme.ui(12.5))
                     Spacer()
                 }
                 .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
@@ -343,8 +495,8 @@ private struct LegisSidebar: View {
                     }
                     Button { showNewCategory = true; aoNavegar() } label: {
                         HStack(spacing: 11) {
-                            Image(systemName: "plus").font(.system(size: 12, weight: .semibold)).frame(width: 20)
-                            Text("Nova matéria").font(.system(size: 13, weight: .medium))
+                            Image(systemName: "plus").font(AppTheme.ui(12, .semibold)).frame(width: 20)
+                            Text("Nova matéria").font(AppTheme.ui(13, .medium))
                             Spacer(minLength: 0)
                         }
                         .padding(.horizontal, 11).padding(.vertical, 8)
@@ -368,7 +520,7 @@ private struct LegisSidebar: View {
     /// acompanha o texto ativo (contraste sobre o fundo de seleção).
     private func groupTitle(_ t: String) -> some View {
         Text(t)
-            .font(.system(size: 9.5, weight: .bold)).tracking(0.9)
+            .font(AppTheme.ui(9.5, .bold)).tracking(0.9)
             .foregroundStyle(ThemeState.t.sidebarText.opacity(0.55))
             .padding(.horizontal, 12).padding(.top, 16).padding(.bottom, 5)
     }
@@ -383,10 +535,10 @@ private struct LegisSidebar: View {
         let active = isActive(item)
         Button { go(item) } label: {
             HStack(spacing: 11) {
-                Image(systemName: icon).font(.system(size: 13, weight: .medium)).frame(width: 20)
+                Image(systemName: icon).font(AppTheme.ui(13, .medium)).frame(width: 20)
                     .foregroundStyle(rowIconColor(item, active: active) ??
                                      (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
-                Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
+                Text(label).font(AppTheme.ui(13, active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
             }
             .padding(.horizontal, 11).padding(.vertical, 8)
@@ -471,6 +623,7 @@ private struct SectionScreen: View {
 private struct ReaderScreen: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.ehCompacto) private var ehCompacto
     let lawID: UUID
     let openLaw: (UUID) -> Void
 
@@ -479,6 +632,9 @@ private struct ReaderScreen: View {
         LawReaderView(lawID: lawID, onOpenLaw: openLaw)
             .id(lawID)
             .navigationTitle(store.laws.first { $0.id == lawID }?.title ?? "Norma")
+            // Compacto: título em linha (44 pt) — o título grande comeria ~96 pt dos 844
+            // antes da primeira linha da lei. Em regular fica como sempre.
+            .navigationBarTitleDisplayMode(ehCompacto ? .inline : .automatic)
             .onReceive(store.$laws) { laws in
                 // Excluída enquanto lida → volta para a tela anterior.
                 if !laws.contains(where: { $0.id == lawID }) { dismiss() }
@@ -586,7 +742,7 @@ struct LawListView: View {
         guard let add = onAddLaw else { return nil }
         return AnyView(
             Button { add() } label: {
-                Image(systemName: "plus.circle.fill").font(.system(size: 19)).foregroundStyle(ThemeState.t.accent)
+                Image(systemName: "plus.circle.fill").font(AppTheme.ui(19)).foregroundStyle(ThemeState.t.accent)
             }
             .buttonStyle(.plain).help("Cadastrar uma norma sua (link, PDF ou texto colado)")
         )
@@ -769,7 +925,7 @@ struct SubjectsView: View {
     private func subjectRows(filtered: [(subject: String, lawIDs: [UUID])], q: String) -> some View {
         if filtered.isEmpty {
             Text("Nenhum assunto corresponde a “\(q)”.")
-                .font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+                .font(AppTheme.ui(12.5)).foregroundStyle(AppTheme.secondaryInk)
                 .frame(maxWidth: .infinity).padding(.vertical, 40)
         } else {
             ForEach(filtered, id: \.subject) { entry in
@@ -786,7 +942,7 @@ struct SubjectsView: View {
     private var indexBanner: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(store.sigenIndexedCount) de \(total) normas com assuntos · \(store.sigenPendingCount) a indexar")
-                .font(.system(size: 12.5, weight: .medium)).foregroundStyle(AppTheme.ink)
+                .font(AppTheme.ui(12.5, .medium)).foregroundStyle(AppTheme.ink)
             if store.sigenIndexing {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
@@ -845,12 +1001,12 @@ struct SubjectsView: View {
             HStack(spacing: 8) {
                 ProgressView().controlSize(.small)
                 Text("Procurando artigos que mencionam “\(subject)”…")
-                    .font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(AppTheme.ui(12)).foregroundStyle(AppTheme.secondaryInk)
             }
             .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 14)
         } else if contentHits.isEmpty {
             Text("Nenhum artigo das normas baixadas menciona “\(subject)”.")
-                .font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                .font(AppTheme.ui(12)).foregroundStyle(AppTheme.secondaryInk)
                 .padding(.vertical, 14)
         } else {
             ForEach(contentHits) { hit in
@@ -871,14 +1027,14 @@ struct SubjectsView: View {
             IconBubble(symbol: "doc.text.magnifyingglass", color: ThemeState.t.accent, size: 30)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(hit.unitLabel).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(ThemeState.t.accent)
-                    Text("· \(hit.lawTitle)").font(.system(size: 11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
+                    Text(hit.unitLabel).font(AppTheme.ui(12.5, .semibold)).foregroundStyle(ThemeState.t.accent)
+                    Text("· \(hit.lawTitle)").font(AppTheme.ui(11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
                 }
-                Text(hit.snippet).font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                Text(hit.snippet).font(AppTheme.ui(12)).foregroundStyle(AppTheme.secondaryInk)
                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 6)
-            Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold))
+            Image(systemName: "chevron.right").font(AppTheme.ui(11, .semibold))
                 .foregroundStyle(AppTheme.secondaryInk.opacity(0.6))
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
@@ -979,7 +1135,7 @@ struct DOUView: View {
             HStack(alignment: .top, spacing: 10) {
                 VStack(spacing: 1) {
                     Image(systemName: "newspaper").foregroundStyle(ThemeState.t.accent)
-                    Text(item.date).font(.system(size: 9).monospacedDigit()).foregroundStyle(.tertiary)
+                    Text(item.date).font(AppTheme.ui(9).monospacedDigit()).foregroundStyle(.tertiary)
                 }
                 .frame(width: 54)
                 VStack(alignment: .leading, spacing: 3) {
@@ -1199,19 +1355,46 @@ struct CommandPalette: View {
         return all.filter { $0.label.lowercased().contains(q) }
     }
 
+    @Environment(\.ehCompacto) private var ehCompacto
+
     var body: some View {
-        ZStack(alignment: .top) {
-            Rectangle().fill(Color.black.opacity(0.34)).ignoresSafeArea()
-                .onTapGesture { isPresented = false }
+        Group {
+            if ehCompacto {
+                // Folha (iPhone): o painel preenche a folha do sistema, campo no topo.
+                painel
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(AppTheme.cardBackground)
+            } else {
+                ZStack(alignment: .top) {
+                    Rectangle().fill(Color.black.opacity(0.34)).ignoresSafeArea()
+                        .onTapGesture { isPresented = false }
+                    painel
+                        // Até 580 pt (o painel do Mac), mas nunca mais que a janela: em Split View e
+                        // Slide Over a paleta encolhe em vez de vazar pelas bordas.
+                        .frame(maxWidth: 580)
+                        .background(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous).fill(AppTheme.cardBackground))
+                        .overlay(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
+                        .shadow(color: Color.black.opacity(0.3), radius: 30, y: 14)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 64)
+                }
+            }
+        }
+        .onAppear { focused = true }
+        // onExitCommand (tecla Esc) não existe no iPadOS. Quem fecha aqui é o X do campo ou
+        // um toque no véu escuro.
+    }
+
+    private var painel: some View {
             VStack(spacing: 0) {
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                     TextField("Ir para norma, matéria ou ação…", text: $query)
-                        .textFieldStyle(.plain).font(.system(size: 17)).focused($focused)
+                        .textFieldStyle(.plain).font(AppTheme.ui(17)).focused($focused)
                         .onSubmit { if let first = laws.first { choose { openLaw(first.id) } } else if let a = actions.first { choose(a.run) } }
                     // No Mac era a pastilha "esc"; o iPad não tem a tecla — vira um X de verdade.
                     Button { isPresented = false } label: {
-                        Image(systemName: "xmark.circle.fill").font(.system(size: 18)).foregroundStyle(.secondary)
+                        Image(systemName: "xmark.circle.fill").font(AppTheme.ui(18)).foregroundStyle(.secondary)
                             .frame(minWidth: 44, minHeight: 44)   // alvo de toque ≥ 44 pt
                             .contentShape(Rectangle())
                     }
@@ -1237,26 +1420,14 @@ struct CommandPalette: View {
                             }
                         }
                         if laws.isEmpty && actions.isEmpty {
-                            Text("Nada encontrado.").font(.system(size: 13)).foregroundStyle(.secondary)
+                            Text("Nada encontrado.").font(AppTheme.ui(13)).foregroundStyle(.secondary)
                                 .padding(.horizontal, 12).padding(.vertical, 16)
                         }
                     }
                     .padding(8)
                 }
-                .frame(maxHeight: 380)
+                .frame(maxHeight: ehCompacto ? .infinity : 380)
             }
-            // Até 580 pt (o painel do Mac), mas nunca mais que a janela: em Split View e
-            // Slide Over a paleta encolhe em vez de vazar pelas bordas.
-            .frame(maxWidth: 580)
-            .background(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous).fill(AppTheme.cardBackground))
-            .overlay(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous).strokeBorder(AppTheme.hairline, lineWidth: 1))
-            .shadow(color: Color.black.opacity(0.3), radius: 30, y: 14)
-            .padding(.horizontal, 16)
-            .padding(.top, 64)
-        }
-        .onAppear { focused = true }
-        // onExitCommand (tecla Esc) não existe no iPadOS. Quem fecha aqui é o X do campo ou
-        // um toque no véu escuro.
     }
 
     private func choose(_ run: () -> Void) { run(); isPresented = false }
@@ -1268,10 +1439,10 @@ struct CommandPalette: View {
     private func paletteRow(_ color: Color, _ icon: String, _ title: String, _ sub: String?, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
             HStack(spacing: 11) {
-                Image(systemName: icon).font(.system(size: 13, weight: .semibold)).foregroundStyle(color).frame(width: 22)
+                Image(systemName: icon).font(AppTheme.ui(13, .semibold)).foregroundStyle(color).frame(width: 22)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(title).font(.system(size: 13.5, weight: .medium)).foregroundStyle(AppTheme.ink).lineLimit(1)
-                    if let sub { Text(sub).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1) }
+                    Text(title).font(AppTheme.ui(13.5, .medium)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                    if let sub { Text(sub).font(AppTheme.ui(11)).foregroundStyle(.secondary).lineLimit(1) }
                 }
                 Spacer()
             }

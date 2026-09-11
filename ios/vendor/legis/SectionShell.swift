@@ -26,7 +26,7 @@ struct SectionShell<Content: View>: View {
                 RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous)
                     .fill(LinearGradient(colors: stops, startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 46, height: 46)
-                    .overlay(Image(systemName: icon).font(.system(size: 19, weight: .semibold))
+                    .overlay(Image(systemName: icon).font(AppTheme.ui(19, .semibold))
                         .foregroundStyle(.white))
                     .shadow(color: stops[0].opacity(0.4), radius: 8, y: 4)
                 VStack(alignment: .leading, spacing: 2) {
@@ -42,7 +42,7 @@ struct SectionShell<Content: View>: View {
                         }
                     }
                     if let subtitle {
-                        Text(subtitle).font(.system(size: 12.5))
+                        Text(subtitle).font(AppTheme.ui(12.5))
                             .foregroundStyle(AppTheme.secondaryInk)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -54,13 +54,13 @@ struct SectionShell<Content: View>: View {
 
             if let search {
                 HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 13))
+                    Image(systemName: "magnifyingglass").font(AppTheme.ui(13))
                         .foregroundStyle(AppTheme.secondaryInk)
-                    TextField(searchPrompt, text: search).textFieldStyle(.plain).font(.system(size: 13.5))
+                    TextField(searchPrompt, text: search).textFieldStyle(.plain).font(AppTheme.ui(13.5))
                         .onSubmit { onSearchSubmit?() }
                     if !search.wrappedValue.isEmpty {
                         Button { search.wrappedValue = "" } label: {
-                            Image(systemName: "xmark.circle.fill").font(.system(size: 13))
+                            Image(systemName: "xmark.circle.fill").font(AppTheme.ui(13))
                         }
                         .buttonStyle(.plain).foregroundStyle(.tertiary)
                     }
@@ -91,10 +91,10 @@ struct LegisEmpty: View {
             RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous)
                 .fill(ThemeState.t.accent.opacity(0.10))
                 .frame(width: 64, height: 64)
-                .overlay(Image(systemName: icon).font(.system(size: 27, weight: .medium))
+                .overlay(Image(systemName: icon).font(AppTheme.ui(27, .medium))
                     .foregroundStyle(ThemeState.t.accent))
             Text(title).font(AppTheme.displayFont(16.5, .semibold)).foregroundStyle(AppTheme.ink)
-            Text(message).font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+            Text(message).font(AppTheme.ui(12.5)).foregroundStyle(AppTheme.secondaryInk)
                 .multilineTextAlignment(.center).lineSpacing(2.5)
                 .frame(maxWidth: 400)
             if let actionLabel, let action {
@@ -119,10 +119,10 @@ struct SectionRow: View {
         HStack(spacing: 12) {
             IconBubble(symbol: icon, color: ThemeState.t.accent, size: 34)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 13.5, weight: .semibold))
+                Text(title).font(AppTheme.ui(13.5, .semibold))
                     .foregroundStyle(AppTheme.ink).lineLimit(2)
                 if let subtitle, !subtitle.isEmpty {
-                    Text(subtitle).font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk).lineLimit(2)
+                    Text(subtitle).font(AppTheme.ui(11.5)).foregroundStyle(AppTheme.secondaryInk).lineLimit(2)
                 }
             }
             Spacer(minLength: 6)
@@ -130,7 +130,7 @@ struct SectionRow: View {
                 Text(trailingText).font(Typo.num(11.5, .medium))
                     .foregroundStyle(AppTheme.secondaryInk)
             }
-            Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold))
+            Image(systemName: "chevron.right").font(AppTheme.ui(11, .semibold))
                 .foregroundStyle(AppTheme.secondaryInk.opacity(0.6))
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
