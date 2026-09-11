@@ -6940,10 +6940,7 @@ const AUDITOR = () => {
 
   const oral = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
-    document.querySelector('button[data-view="oral"]').click();
-    // espera o cartão "Treinar arguição" DESTA tela, não 900 ms fixos (sob carga o TASK8 lia a tela
-    // antes de pintar). Contar button[data-i] não serve: a tela anterior também tem botões com data-i.
-    for (let i = 0; i < 160 && !document.querySelector('button[data-i="treinar"]'); i++) await w(50);
+    document.querySelector('button[data-view="oral"]').click(); await w(900);
     const cards = [...document.querySelectorAll('button[data-i]')];
     const r = {
       tresIntencoes: cards.length === 3,
@@ -6960,9 +6957,7 @@ const AUDITOR = () => {
       })(),
     };
     // "Treinar arguição" cai no modo arguição que já existia — com relógio e sem cronômetro novo
-    const treinar = cards.find(c => c.dataset.i === 'treinar');
-    if (!treinar) return { ...r, treinarAbreArguicao: false };   // falha nomeada, não o fim da suíte
-    treinar.click(); await w(3500);
+    cards.find(c => c.dataset.i === 'treinar').click(); await w(3500);
     r.treinarAbreArguicao = /\d+:\d\d/.test(document.body.innerText) && !document.querySelector('button[data-i]');
     r.umCronometroSo = (document.body.innerText.match(/\b\d{1,2}:\d{2}\b/g) || []).length <= 3;
     return r;
