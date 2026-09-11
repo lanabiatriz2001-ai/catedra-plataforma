@@ -512,7 +512,7 @@ struct FlashcardsManagerSheet: View {
             }
             .padding()
         }
-        .frame(width: 540, height: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)   // folha do iPad: tamanho do sistema
         .confirmationDialog("Apagar TODOS os flashcards?", isPresented: $confirmClearAll, titleVisibility: .visible) {
             Button("Apagar todos", role: .destructive) { store.srsClearAll() }
             Button("Cancelar", role: .cancel) {}
@@ -572,7 +572,7 @@ struct AnkiExportSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 480)
+        .frame(maxWidth: .infinity)   // folha do iPad: largura do sistema
     }
 
     private func save() {

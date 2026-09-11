@@ -1026,10 +1026,25 @@ button:disabled { cursor: not-allowed; }
    espalhadas por este arquivo, ao lado de cada @media prefers-reduced-motion). O host o espelha no <html>, e os
    satélites o recebem pela mensagem ctTheme (tema-satelite.js). */
 [data-baixa="1"] .ct-emo, [data-baixa="1"] .ct-gam { display: none !important; }
+/* O WebKit pinta um retângulo cinza sobre QUALQUER coisa tocada — era o "pisca" a cada toque no
+   iPad, por cima dos estados de pressionado que o app já desenha. Vale para o host e para os
+   satélites (todos carregam esta folha; o portão do auth.js já fazia o mesmo por conta própria).
+   E o balão de copiar/abrir do toque LONGO não faz sentido em botão, chip ou seleção de lista —
+   só em texto de leitura, que fica de fora de propósito. */
+* { -webkit-tap-highlight-color: transparent; }
+button, [role="button"], .ct-alvo, .ct-chips > *, select, summary, aside a { -webkit-touch-callout: none; }
 @media (pointer: coarse) { :root, [data-dir] { --ct-alvo: 44px; } }
 [data-toque="1"] { --ct-alvo: 44px; }
-@media (pointer: coarse) { main button, .ct-topbar button { min-height: 44px; } }
-[data-toque="1"] main button, [data-toque="1"] .ct-topbar button { min-height: 44px; }
+/* O QUADRADINHO NÃO CRESCE. `.ct-miudo` marca o controle cujo desenho é pequeno de propósito —
+   concluir tópico do Edital (20×20), subtópico (16×16), leitura do plano e evento do Calendário
+   (22×22), bolinha de cor da Redação (30×30), ponto de foco (27×27), paletas do leitor. Sem o
+   :not, este min-height esticava cada um numa barra de 20×44 (medido no iPad). Todo .ct-miudo é
+   também .ct-alvo: quem dá os 44 px é o ::after do host (Catedra.dc.html, ao lado do @media
+   ≤900), que sob [data-toque] vale em QUALQUER largura — inclusive no iPad em paisagem, onde a
+   tela passa de 900 e a regra por largura não alcança. Os demais .ct-alvo (botão de texto, chip
+   de filtro) são faixas: esticar não deforma, e continuam subindo a 44. */
+@media (pointer: coarse) { main button:not(.ct-miudo), .ct-topbar button { min-height: 44px; } }
+[data-toque="1"] main button:not(.ct-miudo), [data-toque="1"] .ct-topbar button { min-height: 44px; }
 /* D4 dentro de um KPI: o convite curto no lugar do número — título, descrição e ação, sem zero em destaque */
 .ct-convite { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
 .ct-convite b { font-family: var(--display, Georgia, serif); font-size: var(--fs-xl, 17px); color: var(--ink, #1c1a16); line-height: 1.2; }

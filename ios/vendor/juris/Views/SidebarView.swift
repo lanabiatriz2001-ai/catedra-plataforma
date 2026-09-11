@@ -111,7 +111,8 @@ struct JurisSidebar: View {
                             Text("Nova coleção").font(.system(size: 13, weight: .medium))
                             Spacer(minLength: 0)
                         }
-                        .padding(.horizontal, 11).padding(.vertical, 8)
+                        .padding(.horizontal, 11).padding(.vertical, 6)
+                        .frame(minHeight: 44)   // alvo de 44 pt (regra da casa)
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
                         .contentShape(Rectangle())
                     }
@@ -133,7 +134,9 @@ struct JurisSidebar: View {
 
             // Cronômetro de estudo AO VIVO + Ajustes (a busca vive nas páginas,
             // como no CátedraLEGIS; o strip do topo saiu).
-            HStack(spacing: 10) {
+            // Espaçamento de 6 e alvos que avançam sobre o respiro HORIZONTAL também: com os dois
+            // botões a 44 pt de largura o rodapé não cabia em 210 pt e o "00:00" quebrava em duas linhas.
+            HStack(spacing: 6) {
                 Image(systemName: clock.running ? "clock.fill" : "clock")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(clock.running ? ThemeState.t.accent : ThemeState.t.sidebarText.opacity(0.7))
@@ -141,18 +144,22 @@ struct JurisSidebar: View {
                     Text(clock.formatted)
                         .font(.system(size: 17, weight: .semibold).monospacedDigit())
                         .foregroundStyle(.white)
+                        .lineLimit(1).fixedSize(horizontal: true, vertical: false)
                     Text(clock.running ? "revisando · vai pro Cátedra" : "tempo de estudo · play manual")
                         .font(.system(size: 8.5, weight: .medium))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.62))
                         .lineLimit(1).minimumScaleFactor(0.75)
                 }
                 Spacer(minLength: 0)
+                // Play e engrenagem: o círculo de 26 pt continua igual; o alvo passa a 44 pt
+                // (o recuo negativo avança sobre o respiro vertical de 11 pt da linha).
                 Button { clock.togglePlay() } label: {
                     Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 26, height: 26)
                         .background(Circle().fill(clock.manualPlaying ? Color.white.opacity(0.16) : ThemeState.t.accent))
+                        .jurisAlvoToque().padding(.vertical, -9).padding(.horizontal, -7)
                 }
                 .buttonStyle(.plain)
                 .help(clock.manualPlaying ? "Pausar o relógio de estudo" : "Iniciar o relógio de estudo")
@@ -163,7 +170,7 @@ struct JurisSidebar: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
                         .frame(width: 26, height: 26)
-                        .contentShape(Rectangle())
+                        .jurisAlvoToque().padding(.vertical, -9).padding(.horizontal, -7)
                 }
                 .buttonStyle(.plain)
                 .help("Ajustes do CátedraJURIS (⌥⌘,)")
@@ -208,6 +215,7 @@ struct JurisSidebar: View {
                 Button { store.searchText = "" } label: {
                     Image(systemName: "xmark.circle.fill").font(.system(size: 11))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.7))
+                        .jurisAlvoToque().padding(.vertical, -8)   // alvo de 44 pt sem engordar o campo
                 }
                 .buttonStyle(.plain)
             }
@@ -267,8 +275,8 @@ struct JurisSidebar: View {
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.55))
                 }
             }
-            .padding(.horizontal, 11).padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 11).padding(.vertical, 6)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)   // linha = alvo de 44 pt
             .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
                 .fill(active ? ThemeState.t.sidebarActiveBg : Color.clear))
             .foregroundStyle(active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText)
