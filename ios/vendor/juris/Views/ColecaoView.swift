@@ -35,6 +35,7 @@ struct ColecaoView: View {
                                          isFavorite: store.isFavorite(entry.id),
                                          isImportante: store.isImportante(entry),
                                          hasNote: store.hasAnnotation(entry.id))
+                                    .jurisAbreNoToque(entry.id)
                                     .listRowSeparatorTint(Palette.hairline)
                                     .tag(entry.id)
                             }
@@ -70,7 +71,7 @@ struct ColecaoView: View {
         HStack(spacing: 8) {
             Button { revisar = true } label: {
                 Label("Revisar", systemImage: "rectangle.on.rectangle.angled")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(Typo.ui(12, .semibold))
             }
             .buttonStyle(.borderedProminent).tint(Palette.accent)
             .disabled(total == 0)
@@ -109,8 +110,8 @@ struct RevisaoView: View {
                 fim
             }
         }
-        // Sem 620 × 520 fixos: a folha do sistema (page sheet do iPad) decide o tamanho.
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Sem 620 × 520 fixos: a folha do sistema decide o tamanho (folhaAdaptavel).
+        .folhaAdaptavel()
         .background(Palette.detailBackground)
         .onAppear { fila = deck; total = deck.count; acertos = 0; revelado = false }
         .semMovimentoSeBaixa()   // sheet: fora do .transaction da raiz
@@ -121,9 +122,9 @@ struct RevisaoView: View {
             Button { dismiss() } label: { Image(systemName: "xmark").jurisAlvoToque() }.buttonStyle(.plain)
             Spacer()
             Text("Revisão · \(total - fila.count + (fila.isEmpty ? 0 : 1))/\(max(total,1))")
-                .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
+                .font(Typo.ui(12, .semibold)).foregroundStyle(Palette.secondaryInk)
             Spacer()
-            Text("\(acertos) ✓").font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.fonteSTJ)
+            Text("\(acertos) ✓").font(Typo.ui(12, .semibold)).foregroundStyle(Palette.fonteSTJ)
         }
         .padding(.horizontal, 16).padding(.vertical, 12)
     }
@@ -156,7 +157,7 @@ struct RevisaoView: View {
             } else {
                 Spacer()
                 Text("Tente lembrar o enunciado…")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                    .font(Typo.ui(12)).foregroundStyle(Palette.secondaryInk)
             }
             Spacer(minLength: 8)
             if revelado {
@@ -193,11 +194,11 @@ struct RevisaoView: View {
 
     private var fim: some View {
         VStack(spacing: 14) {
-            Image(systemName: "checkmark.seal.fill").font(.system(size: 44))
+            Image(systemName: "checkmark.seal.fill").font(Typo.ui(44))
                 .foregroundStyle(Palette.fonteSTJ)
             Text("Revisão concluída!").font(Typo.serifTitle(20, .semibold)).foregroundStyle(Palette.titleInk)
             Text("\(acertos) de \(total) marcados como \"já sei\".")
-                .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
+                .font(Typo.ui(13)).foregroundStyle(Palette.secondaryInk)
             Button("Fechar") { dismiss() }.buttonStyle(.borderedProminent).tint(Palette.accent)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

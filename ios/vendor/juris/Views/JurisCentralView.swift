@@ -7,6 +7,7 @@ import SwiftUI
 struct JurisCentralView: View {
     let central: JurisCentral
     @Environment(LibraryStore.self) private var store
+    @Environment(\.ehCompacto) private var ehCompacto
     @State private var novoTribunal = false
     @State private var nomeTribunal = ""
     @State private var siglaTribunal = ""
@@ -32,19 +33,21 @@ struct JurisCentralView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // Hero da Central — mesma assinatura visual da casa (gradiente + branco)
                 VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 10) {
-                        Image(systemName: central.simbolo).font(.system(size: 22, weight: .semibold))
+                    // iPhone: a cápsula da contagem desce para baixo do nome (o nome quebrava
+                    // em três linhas ao lado dela).
+                    JurisFileira(espacamento: 10) {
+                        Image(systemName: central.simbolo).font(Typo.ui(22, .semibold))
                             .foregroundStyle(.white.opacity(0.9))
-                        Text(central.nome).font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
-                        Spacer()
+                        Text(central.nome).font(Typo.ui(26, .bold)).foregroundStyle(.white)
+                        if !ehCompacto { Spacer() }
                         Text("\(total) verbetes")
-                            .font(.system(size: 11.5, weight: .semibold)).monospacedDigit()
+                            .font(Typo.ui(11.5, .semibold)).monospacedDigit()
                             .padding(.horizontal, 10).padding(.vertical, 4)
                             .background(Color.white.opacity(0.16), in: Capsule())
                             .foregroundStyle(.white)
                     }
                     Text(central.subtitulo)
-                        .font(.system(size: 12.5)).foregroundStyle(.white.opacity(0.85))
+                        .font(Typo.ui(12.5)).foregroundStyle(.white.opacity(0.85))
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(22)
@@ -96,7 +99,7 @@ struct JurisCentralView: View {
                 }
                 Color.clear.frame(height: 20)
             }
-            .padding(.horizontal, 26).padding(.top, 22)
+            .jurisMargemPagina().padding(.top, 22)
         }
         .background(Palette.appBackground)
         .alert("Nova central de tribunal", isPresented: $novoTribunal) {
@@ -125,23 +128,23 @@ struct JurisCentralView: View {
         return Button { if count > 0 { store.ir(.fonte(f)) } } label: {
             HStack(spacing: 10) {
                 Image(systemName: f.simbolo)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(Typo.ui(15, .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
                     .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(f.nome).font(.system(size: 12.5, weight: .semibold))
+                    Text(f.nome).font(Typo.ui(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk)
                         .lineLimit(2).multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(count > 0 ? "\(count) verbete\(count == 1 ? "" : "s")"
                                    : "use Atualizar em Novidades para buscar no site oficial")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)
                 if count > 0 {
-                    Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                    Image(systemName: "chevron.right").font(Typo.ui(10, .semibold))
                         .foregroundStyle(Palette.secondaryInk)
                 }
             }
@@ -161,21 +164,21 @@ struct JurisCentralView: View {
         Button { store.ir(.ramoDetalhe(EscopoFiltrado(central: central, ramo: nome))) } label: {
             HStack(spacing: 10) {
                 Image(systemName: "bookmark")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(Typo.ui(14, .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
                     .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(nome).font(.system(size: 12.5, weight: .semibold))
+                    Text(nome).font(Typo.ui(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk)
                         .lineLimit(2).multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                     Text("\(count) verbete\(count == 1 ? "" : "s") · assuntos e tipos")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                Image(systemName: "chevron.right").font(Typo.ui(10, .semibold))
                     .foregroundStyle(Palette.secondaryInk)
             }
             .padding(12)
@@ -193,26 +196,26 @@ struct JurisCentralView: View {
         return Button { store.ir(.tribunal(t.id)) } label: {
             HStack(spacing: 10) {
                 Text(t.sigla)
-                    .font(.system(size: 11, weight: .bold))
+                    .font(Typo.ui(11, .bold))
                     .minimumScaleFactor(0.6).lineLimit(1)
                     .foregroundStyle(.white)
                     .frame(width: 42, height: 34)
                     .background(Palette.accent, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(t.nome).font(.system(size: 12.5, weight: .semibold))
+                    Text(t.nome).font(Typo.ui(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk).lineLimit(1)
                     Text(count > 0 ? "\(count) verbete\(count == 1 ? "" : "s")"
                                    : "sem verbetes no acervo ainda")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)
                 if t.aoVivo {
                     Image(systemName: "antenna.radiowaves.left.and.right")
-                        .font(.system(size: 10, weight: .semibold)).foregroundStyle(Palette.accent)
+                        .font(Typo.ui(10, .semibold)).foregroundStyle(Palette.accent)
                         .help("Tem busca ao vivo no site do tribunal")
                 }
-                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                Image(systemName: "chevron.right").font(Typo.ui(10, .semibold))
                     .foregroundStyle(Palette.secondaryInk)
             }
             .padding(12)
@@ -236,15 +239,15 @@ struct JurisCentralView: View {
         Button { nomeTribunal = ""; siglaTribunal = ""; novoTribunal = true } label: {
             HStack(spacing: 10) {
                 Image(systemName: "plus")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(Typo.ui(15, .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
                     .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Nova central de tribunal").font(.system(size: 12.5, weight: .semibold))
+                    Text("Nova central de tribunal").font(Typo.ui(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk)
                     Text("cadastre o tribunal que você quiser (ex.: TJSP)")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)

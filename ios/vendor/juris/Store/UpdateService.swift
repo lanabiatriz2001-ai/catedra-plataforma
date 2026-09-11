@@ -125,6 +125,10 @@ final class UpdateService {
 
     /// Pede permissão de notificação (idempotente).
     func pedirPermissaoNotificacao() {
+        #if targetEnvironment(simulator)
+        // Ensaio por captura (JurisEnsaio): o diálogo do sistema cobriria a tela e não há toque.
+        if ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("-juris") }) { return }
+        #endif
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
     }
 

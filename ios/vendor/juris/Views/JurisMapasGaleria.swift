@@ -33,7 +33,7 @@ struct JurisMapasGaleria: View {
                             }
                             Color.clear.frame(height: 20)
                         }
-                        .padding(.horizontal, 26).padding(.top, 20)
+                        .jurisMargemPagina().padding(.top, 20)
                     }
                 }
             }
@@ -46,7 +46,7 @@ struct JurisMapasGaleria: View {
         Button { exportarTodos() } label: {
             Label(exportando ? "Exportando… \(exportados)/\(entries.count)" : "Exportar todos (PNG)…",
                   systemImage: "square.and.arrow.up.on.square")
-                .font(.system(size: 11.5, weight: .medium))
+                .font(Typo.ui(11.5, .medium))
         }
         .controlSize(.small)
         .disabled(exportando)

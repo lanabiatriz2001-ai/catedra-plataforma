@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct EntryDetailView: View {
     let entry: JurisEntry
     @Environment(LibraryStore.self) private var store
+    @Environment(\.ehCompacto) private var ehCompacto   // iPhone: leitor na pilha, ações embaixo
     @AppStorage("readingScale") private var readingScale: Double = 1.0
     @AppStorage("markColor") private var markColorHex: String = MarkColor.amarelo.rawValue
     @AppStorage("defaultAlign") private var defaultAlign: String = "justify"   // alinhamento global padrão
@@ -71,26 +72,59 @@ struct EntryDetailView: View {
                 relacionadosSection
                 footer
             }
-            .padding(.horizontal, 34)
-            .padding(.vertical, 30)
+            .padding(.horizontal, ehCompacto ? 16 : 34)   // 390 pt de tela: 34 de cada lado comia 68
+            .padding(.vertical, ehCompacto ? 16 : 30)
             .frame(maxWidth: .infinity, alignment: .leading)   // largura total — a Lana pediu; era 780pt
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .background(detailCanvas)
         .navigationTitle(entry.titulo)
-        // A nav bar do NavigationStack repetia o título em letras grandes entre a barra
+        // iPad: a nav bar do NavigationStack repetia o título em letras grandes entre a barra
         // "Voltar" do leitor e a barra do verbete — três barras empilhadas antes do texto,
         // e o título já está no cabeçalho "vitrine" logo abaixo. Escondida.
-        .toolbar(.hidden, for: .navigationBar)
-        // No embed a toolbar da JANELA pertence ao host (seletor de abas) — os botões
+        // iPhone: o verbete é um destino da pilha e a nav bar É o voltar (botão e gesto da
+        // borda) — fica visível, com anterior/próximo à direita; nada mais empilha em cima.
+        .toolbar(ehCompacto ? .visible : .hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if ehCompacto {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button { store.navegarLeitura(-1) } label: { Image(systemName: "chevron.up").alvoToque() }
+                        .disabled(!store.temAnterior())
+                        .accessibilityLabel("Verbete anterior")
+                    Button { store.navegarLeitura(1) } label: { Image(systemName: "chevron.down").alvoToque() }
+                        .disabled(!store.temProximo())
+                        .accessibilityLabel("Próximo verbete")
+                }
+            }
+        }
+        // iPad: no embed a toolbar da JANELA pertence ao host (seletor de abas) — os botões
         // do verbete viram uma barra própria acima do conteúdo (estilo Books).
-        .safeAreaInset(edge: .top, spacing: 0) { entryToolbar }
+        // iPhone: a mesma barra vai para baixo, rolável de lado — todas as ações à mão,
+        // nenhuma escondida, e só a nav bar acima do texto.
+        .safeAreaInset(edge: .top, spacing: 0) { if !ehCompacto { entryToolbar } }
+        .safeAreaInset(edge: .bottom, spacing: 0) { if ehCompacto { entryToolbarCompacta } }
         .onAppear {
             store.markRecent(entry.id)
             // Rateio do relógio: o tempo passa a contar para a matéria deste verbete.
             JurisClock.shared.setContext(entry.ramoDireito, titulo: entry.titulo)
+            #if targetEnvironment(simulator)
+            // Ensaio por captura (JurisCompacto.swift): abre a folha pedida no lançamento,
+            // depois de a pilha assentar (apresentar durante o push é ignorado).
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                switch JurisEnsaio.folha {
+                case "mapa": mostrarMapa = true
+                case "revisao": mostrarRevisao = true
+                case "colecao": mostrarNovaColecao = true
+                case "comentario": editingMarkComment = EditingMarkComment(markID: nil, range: NSRange(location: 0, length: 12), text: "")
+                case "comparador": mostrarComparador = true
+                case "linhatempo": mostrarLinhaTempo = true
+                default: break
+                }
+            }
+            #endif
         }
-        .alert("Nova coleção", isPresented: $mostrarNovaColecao) {
+        .alert("Nova coleção", isPresented: novaColecaoAlerta) {
             TextField("Nome (ex.: Meu edital)", text: $novaColecaoNome)
             Button("Criar") {
                 let nome = novaColecaoNome.trimmingCharacters(in: .whitespaces)
@@ -101,6 +135,13 @@ struct EntryDetailView: View {
             Button("Cancelar", role: .cancel) { novaColecaoNome = "" }
         } message: {
             Text("O verbete atual será adicionado à nova coleção.")
+        }
+        // iPhone: folha com trava de rascunho (o alerta não tem) — JurisCompacto.swift.
+        .sheet(isPresented: novaColecaoFolha) {
+            JurisNovaColecaoFolha(mensagem: "O verbete atual será adicionado à nova coleção.") { nome in
+                let c = store.criarColecao(nome)
+                store.toggleNaColecao(entry.id, c.id)
+            }
         }
         .sheet(isPresented: $mostrarAnki) {
             ExportAnkiSheet(entries: [entry], titulo: entry.titulo)
@@ -123,7 +164,17 @@ struct EntryDetailView: View {
             JurisAnnotationsPanel(entryID: entry.id, focusedMarkID: $focusedMarkID, markController: markController)
                 .inspectorColumnWidth(min: 260, ideal: 320, max: 420)
         }
+        // Por fora do inspector: no iPhone o painel (recolhido) emprestava "Anotações" à barra.
+        .navigationTitle(entry.titulo)
         .id(entry.id)
+    }
+
+    /// O mesmo estado abre o alerta (iPad) ou a folha (iPhone) de nova coleção.
+    private var novaColecaoAlerta: Binding<Bool> {
+        Binding(get: { mostrarNovaColecao && !ehCompacto }, set: { mostrarNovaColecao = $0 })
+    }
+    private var novaColecaoFolha: Binding<Bool> {
+        Binding(get: { mostrarNovaColecao && ehCompacto }, set: { mostrarNovaColecao = $0 })
     }
 
     // Canvas do verbete: fundo + brilho sutil na cor do RAMO (espelha o leitor web).
@@ -143,16 +194,26 @@ struct EntryDetailView: View {
         // Faixa "vitrine": gradiente do RAMO com título serifado em branco —
         // cada verbete carrega a identidade de cor da sua disciplina.
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                FonteBadge(fonte: entry.fonteKind)
-                if let s = entry.situacao { SituacaoPill(texto: s) }
-                if store.isImportante(entry) { ImportantePill() }
-                if let d = entry.data { dataPill(d) }
-                Spacer()
-                lidoBotao
+            if ehCompacto {
+                // Selos em fileira que quebra; "Marcar como lido" já está na barra de ações.
+                Flow(espacamento: 8) {
+                    FonteBadge(fonte: entry.fonteKind)
+                    if let s = entry.situacao { SituacaoPill(texto: s) }
+                    if store.isImportante(entry) { ImportantePill() }
+                    if let d = entry.data { dataPill(d) }
+                }
+            } else {
+                HStack(spacing: 8) {
+                    FonteBadge(fonte: entry.fonteKind)
+                    if let s = entry.situacao { SituacaoPill(texto: s) }
+                    if store.isImportante(entry) { ImportantePill() }
+                    if let d = entry.data { dataPill(d) }
+                    Spacer()
+                    lidoBotao
+                }
             }
             Text(entry.titulo)
-                .font(Typo.serifTitle(30))
+                .font(Typo.serifTitle(ehCompacto ? 24 : 30))
                 .foregroundStyle(.white)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
@@ -165,7 +226,7 @@ struct EntryDetailView: View {
             }
             if let r = entry.ramoDireito {
                 Text(r.uppercased())
-                    .font(.system(size: 10, weight: .bold)).tracking(1.1)
+                    .font(Typo.ui(10, .bold)).tracking(1.1)
                     .foregroundStyle(.white.opacity(0.85))
                     .padding(.horizontal, 9).padding(.vertical, 3)
                     .background(Color.white.opacity(0.16), in: Capsule())
@@ -191,10 +252,10 @@ struct EntryDetailView: View {
             let mostraTexto = (notaEmTexto && nota.texto != nil) || !nota.temEsquema
             VStack(alignment: .leading, spacing: 13) {
                 HStack(spacing: 7) {
-                    Image(systemName: "brain.head.profile").font(.system(size: 12)).foregroundStyle(Palette.importante)
-                    Text("NOTA DE ESTUDO").font(.system(size: 10.5, weight: .bold)).tracking(1)
+                    Image(systemName: "brain.head.profile").font(Typo.ui(12)).foregroundStyle(Palette.importante)
+                    Text("NOTA DE ESTUDO").font(Typo.ui(10.5, .bold)).tracking(1)
                         .foregroundStyle(Palette.importante)
-                    Text("não oficial").font(.system(size: 9.5)).foregroundStyle(Palette.secondaryInk)
+                    Text("não oficial").font(Typo.ui(9.5)).foregroundStyle(Palette.secondaryInk)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Palette.secondaryInk.opacity(0.12), in: Capsule())
                     Spacer()
@@ -235,7 +296,7 @@ struct EntryDetailView: View {
 
     private func modoNotaBtn(_ titulo: String, ativo: Bool, _ acao: @escaping () -> Void) -> some View {
         Button(action: acao) {
-            Text(titulo).font(.system(size: 10, weight: .semibold))
+            Text(titulo).font(Typo.ui(10, .semibold))
                 .foregroundStyle(ativo ? .white : Palette.secondaryInk)
                 .padding(.horizontal, 9).padding(.vertical, 3)
                 .background(ativo ? Palette.importante : Color.clear, in: Capsule())
@@ -248,7 +309,7 @@ struct EntryDetailView: View {
         VStack(spacing: 4) {
             ForEach(Array(passos.enumerated()), id: \.offset) { i, passo in
                 Text(passo)
-                    .font(.system(size: 12.5, weight: i == 0 ? .semibold : .regular))
+                    .font(Typo.ui(12.5, i == 0 ? .semibold : .regular))
                     .foregroundStyle(Palette.bodyInk)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -257,7 +318,7 @@ struct EntryDetailView: View {
                     .background(Palette.accent.opacity(i == 0 ? 0.14 : 0.07), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.accent.opacity(0.25), lineWidth: 1))
                 if i < passos.count - 1 {
-                    Image(systemName: "arrow.down").font(.system(size: 11, weight: .bold)).foregroundStyle(Palette.accent)
+                    Image(systemName: "arrow.down").font(Typo.ui(11, .bold)).foregroundStyle(Palette.accent)
                 }
             }
         }
@@ -271,13 +332,13 @@ struct EntryDetailView: View {
     private func ramoView(_ r: RamoNota) -> some View {
         let cor = corRamo(r.tipo)
         return HStack(alignment: .top, spacing: 10) {
-            Image(systemName: r.simbolo).font(.system(size: 12)).foregroundStyle(cor).frame(width: 18)
+            Image(systemName: r.simbolo).font(Typo.ui(12)).foregroundStyle(cor).frame(width: 18)
             VStack(alignment: .leading, spacing: 4) {
-                Text(r.titulo.uppercased()).font(.system(size: 10, weight: .bold)).tracking(0.6).foregroundStyle(cor)
+                Text(r.titulo.uppercased()).font(Typo.ui(10, .bold)).tracking(0.6).foregroundStyle(cor)
                 ForEach(Array(r.itens.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .top, spacing: 6) {
-                        Text("•").font(.system(size: 12)).foregroundStyle(cor.opacity(0.7))
-                        Text(item).font(.system(size: 12.5)).foregroundStyle(Palette.bodyInk)
+                        Text("•").font(Typo.ui(12)).foregroundStyle(cor.opacity(0.7))
+                        Text(item).font(Typo.ui(12.5)).foregroundStyle(Palette.bodyInk)
                             .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -298,18 +359,18 @@ struct EntryDetailView: View {
             let cor: Color = cancelada ? Palette.bad : Palette.warn
             HStack(alignment: .top, spacing: 11) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 18)).foregroundStyle(cor)
+                    .font(Typo.ui(18)).foregroundStyle(cor)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(cancelada ? "SÚMULA / TESE CANCELADA" : "ENTENDIMENTO SUPERADO")
-                        .font(.system(size: 12.5, weight: .bold)).tracking(0.5).foregroundStyle(cor)
+                        .font(Typo.ui(12.5, .bold)).tracking(0.5).foregroundStyle(cor)
                     Text(entry.situacao ?? (cancelada
                             ? "Não utilize como fundamento — este enunciado foi cancelado."
                             : "Verifique o entendimento atual — esta tese foi superada."))
-                        .font(.system(size: 12)).foregroundStyle(Palette.bodyInk)
+                        .font(Typo.ui(12)).foregroundStyle(Palette.bodyInk)
                         .fixedSize(horizontal: false, vertical: true)
                     if !store.relacionados(entry).isEmpty {
                         Text("Veja os julgados relacionados abaixo para o entendimento vigente.")
-                            .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                            .font(Typo.ui(11)).foregroundStyle(Palette.secondaryInk)
                     }
                 }
                 Spacer(minLength: 0)
@@ -324,8 +385,8 @@ struct EntryDetailView: View {
     /// Data do julgado/súmula, visível no topo (calendário + data).
     private func dataPill(_ d: String) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: "calendar").font(.system(size: 10, weight: .semibold))
-            Text(d).font(.system(size: 11, weight: .semibold))
+            Image(systemName: "calendar").font(Typo.ui(10, .semibold))
+            Text(d).font(Typo.ui(11, .semibold))
         }
         .foregroundStyle(Palette.secondaryInk)
         .padding(.horizontal, 9).padding(.vertical, 4)
@@ -340,9 +401,9 @@ struct EntryDetailView: View {
         return Button { store.toggleLido(entry.id) } label: {
             HStack(spacing: 5) {
                 Image(systemName: lido ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(Typo.ui(12, .semibold))
                 Text(lido ? "Lido" : "Marcar como lido")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(Typo.ui(12, .semibold))
             }
             .foregroundStyle(lido ? .white : Palette.bodyInk)
             .padding(.horizontal, 12).padding(.vertical, 6)
@@ -398,8 +459,10 @@ struct EntryDetailView: View {
                                 .padding(.top, 8).allowsHitTesting(false)
                         }
                     }
-                if hasComments && !editandoEnunciado { commentsMargin }
+                if hasComments && !editandoEnunciado && !ehCompacto { commentsMargin }
             }
+            // iPhone: a margem de 208 pt deixaria 58 pt para o texto — os balões vêm abaixo.
+            if hasComments && !editandoEnunciado && ehCompacto { comentariosEmpilhados }
             if editandoEnunciado { edicaoBar }
         }
         .padding(.vertical, 18)
@@ -432,6 +495,19 @@ struct EntryDetailView: View {
         .frame(width: 208)
     }
 
+    /// Balões de comentário um abaixo do outro, na ordem do texto (largura compacta).
+    private var comentariosEmpilhados: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(commentAnchors.sorted { $0.y < $1.y }) { item in
+                MarkCommentBalloon(note: item.note, color: Color(hex: item.colorHex),
+                                   onTap: {
+                                       editingMarkComment = EditingMarkComment(markID: item.id, range: NSRange(location: 0, length: 0), text: item.note)
+                                   })
+            }
+        }
+        .padding(.top, 12)
+    }
+
     /// Anti-colisão vertical dos balões (empurra os sobrepostos para baixo).
     private func laidOutBalloons() -> [MarkCommentAnchor] {
         var out: [MarkCommentAnchor] = []
@@ -450,7 +526,7 @@ struct EntryDetailView: View {
         // card e os botões saíam pela direita. Agora quebra linha; cada alvo tem 44 pt.
         Flow(espacamento: 2) {
             Text("MARCAR")
-                .font(.system(size: 9, weight: .bold)).tracking(1)
+                .font(Typo.ui(9, .bold)).tracking(1)
                 .foregroundStyle(Palette.secondaryInk)
                 .frame(height: 44)
 
@@ -489,7 +565,7 @@ struct EntryDetailView: View {
             toolBtn("textformat.size.smaller") { readingScale = max(readingScale - 0.1, 0.8) }
                 .help("Diminuir a fonte")
             Text("\(Int(readingScale * 100))%")
-                .font(.system(size: 9.5, weight: .medium).monospacedDigit())
+                .font(Typo.num(9.5, .medium))
                 .foregroundStyle(Palette.secondaryInk).frame(width: 34, height: 44)
             toolBtn("textformat.size.larger") { readingScale = min(readingScale + 0.1, 1.8) }
                 .help("Aumentar a fonte")
@@ -498,7 +574,7 @@ struct EntryDetailView: View {
             toolBtn("eraser") { limparMarca() }.help("Remover marcação do trecho selecionado")
         }
         .buttonStyle(.plain)
-        .font(.system(size: 13))
+        .font(Typo.ui(13))
         .disabled(editandoEnunciado)
         .opacity(editandoEnunciado ? 0.4 : 1)
     }
@@ -640,8 +716,8 @@ struct EntryDetailView: View {
             // Flow: quebra linha em retrato em vez de estourar o card.
             Flow(espacamento: 2) {
                 HStack(spacing: 5) {
-                    Image(systemName: "pencil.and.outline").font(.system(size: 11))
-                    Text("EDITANDO O TEXTO").font(.system(size: 9, weight: .bold)).tracking(1)
+                    Image(systemName: "pencil.and.outline").font(Typo.ui(11))
+                    Text("EDITANDO O TEXTO").font(Typo.ui(9, .bold)).tracking(1)
                 }
                 .frame(height: 44)
                 divisor
@@ -671,26 +747,26 @@ struct EntryDetailView: View {
                 } label: { Image(systemName: "textformat").jurisAlvoToque() }
                 .menuIndicator(.hidden).help("Fonte de leitura do app")
             }
-            .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.accent)
+            .buttonStyle(.plain).font(Typo.ui(12)).foregroundStyle(Palette.accent)
 
             HStack(spacing: 8) {
                 Text("O texto oficial nunca é perdido — “Restaurar original” volta a qualquer momento.")
-                    .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                    .font(Typo.ui(10)).foregroundStyle(Palette.secondaryInk)
                 Spacer()
                 if store.enunciadoFoiEditado(entry.id) {
                     Button {
                         store.restaurarEnunciadoOriginal(entry.id)
                         editandoEnunciado = false
                     } label: { Text("Restaurar original").jurisAlvoToque() }
-                    .font(.system(size: 11))
+                    .font(Typo.ui(11))
                 }
                 Button { editandoEnunciado = false } label: { Text("Cancelar").jurisAlvoToque() }
-                    .font(.system(size: 11))
+                    .font(Typo.ui(11))
                 Button {
                     store.setTextoEditado(rascunhoEnunciado, entry: entry)
                     editandoEnunciado = false
                 } label: { Text("Salvar").frame(minHeight: 30) }   // com a borda, ≥ 44 pt
-                .font(.system(size: 11, weight: .semibold))
+                .font(Typo.ui(11, .semibold))
                 .buttonStyle(.borderedProminent).tint(Palette.accent)
             }
         }
@@ -835,8 +911,8 @@ struct EntryDetailView: View {
             // retrato): juntos num HStack, os 14 botões saíam do card no iPad em pé.
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
-                    Image(systemName: "square.and.pencil").font(.system(size: 11, weight: .semibold))
-                    Text("MINHAS ANOTAÇÕES").font(.system(size: 10.5, weight: .bold)).tracking(1)
+                    Image(systemName: "square.and.pencil").font(Typo.ui(11, .semibold))
+                    Text("MINHAS ANOTAÇÕES").font(Typo.ui(10.5, .bold)).tracking(1)
                     Spacer()
                 }
                 formatToolbar
@@ -991,7 +1067,7 @@ struct EntryDetailView: View {
             }
         }
         .buttonStyle(.plain)
-        .font(.system(size: 12))
+        .font(Typo.ui(12))
         .foregroundStyle(Palette.accent)
     }
 
@@ -1043,7 +1119,7 @@ struct EntryDetailView: View {
                 .padding(.top, 10)
         } label: {
             Label(titulo, systemImage: icone)
-                .font(.system(size: 13, weight: .semibold))
+                .font(Typo.ui(13, .semibold))
                 .foregroundStyle(Palette.accent)
         }
         .tint(Palette.accent)
@@ -1065,7 +1141,7 @@ struct EntryDetailView: View {
                             VStack(alignment: .leading, spacing: 3) {
                                 HStack(spacing: 6) {
                                     FonteBadge(fonte: r.fonteKind, compact: true)
-                                    Text(r.titulo).font(.system(size: 12.5, weight: .semibold))
+                                    Text(r.titulo).font(Typo.ui(12.5, .semibold))
                                         .foregroundStyle(Palette.titleInk).lineLimit(1)
                                 }
                                 Text(r.enunciado).font(Typo.serifBody(11.5))
@@ -1073,7 +1149,7 @@ struct EntryDetailView: View {
                                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                             }
                             Spacer(minLength: 0)
-                            Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+                            Image(systemName: "chevron.right").font(Typo.ui(9, .semibold))
                                 .foregroundStyle(.tertiary)
                         }
                         .contentShape(Rectangle())
@@ -1094,7 +1170,7 @@ struct EntryDetailView: View {
         if let url = entry.fonteOficialURL {
             Link(destination: url) {
                 Label(entry.fonteOficialLabel, systemImage: "arrow.up.forward.square")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(Typo.ui(12, .semibold))
             }
             .buttonStyle(.plain)
             .foregroundStyle(Palette.accent)
@@ -1107,8 +1183,8 @@ struct EntryDetailView: View {
     // Cápsula de ícone da barra (com chevron opcional para os menus).
     private func capsIcon(_ icone: String, tint: Color = Palette.secondaryInk, chevron: Bool = false) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: icone).font(.system(size: 12.5, weight: .medium))
-            if chevron { Image(systemName: "chevron.down").font(.system(size: 7, weight: .bold)) }
+            Image(systemName: icone).font(Typo.ui(12.5, .medium))
+            if chevron { Image(systemName: "chevron.down").font(Typo.ui(7, .bold)) }
         }
         .foregroundStyle(tint)
         .padding(.horizontal, 11).padding(.vertical, 7)
@@ -1120,7 +1196,31 @@ struct EntryDetailView: View {
     private var entryToolbar: some View {
         HStack(spacing: 6) {
             Spacer(minLength: 0)
+            acoesVerbete
+        }
+        .padding(.horizontal, 14).padding(.vertical, 2)
+        .background(Palette.sidebarBackground)
+        .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
+    }
 
+    /// iPhone: as MESMAS ações, numa fileira rolável de lado no rodapé — nada some.
+    private var entryToolbarCompacta: some View {
+        // GeometryReader: sem ele a largura IDEAL da fileira (~600 pt) subia pelo
+        // safeAreaInset e alargava a página inteira além dos 390 pt da tela.
+        GeometryReader { geo in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) { acoesVerbete }
+                    .padding(.horizontal, 12).padding(.vertical, 2)
+            }
+            .frame(width: geo.size.width)
+        }
+        .frame(height: 48)
+        .background(Palette.sidebarBackground.ignoresSafeArea(edges: .bottom))
+        .overlay(alignment: .top) { Rectangle().fill(Palette.hairline).frame(height: 1) }
+    }
+
+    @ViewBuilder
+    private var acoesVerbete: some View {
             // ── Marcar: favoritar / importante / lido ──
             Button { store.toggleFavorite(entry.id) } label: {
                 capsIcon(store.isFavorite(entry.id) ? "star.fill" : "star",
@@ -1210,10 +1310,6 @@ struct EntryDetailView: View {
             } label: { capsIcon("textformat.size", chevron: true) }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
             .help("Tamanho do texto de leitura")
-        }
-        .padding(.horizontal, 14).padding(.vertical, 2)
-        .background(Palette.sidebarBackground)
-        .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
     }
 
     private func copiar(_ s: String) {
@@ -1240,14 +1336,14 @@ struct DetailPlaceholder: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "books.vertical")
-                .font(.system(size: 42, weight: .thin))
+                .font(Typo.ui(42, .thin))
                 .foregroundStyle(Palette.accent.opacity(0.7))
             VStack(spacing: 5) {
                 Text("CátedraJURIS")
                     .font(Typo.serifTitle(19, .semibold))
                     .foregroundStyle(Palette.titleInk)
                 Text("Escolha uma súmula, tese, informativo ou repercussão geral\npara ler o inteiro teor.")
-                    .font(.system(size: 12.5))
+                    .font(Typo.ui(12.5))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Palette.secondaryInk)
             }

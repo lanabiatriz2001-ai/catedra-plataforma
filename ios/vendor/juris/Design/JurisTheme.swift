@@ -167,24 +167,35 @@ enum Typo {
         let f = UserDefaults.standard.string(forKey: "readingFontFamily")
         return (f?.isEmpty == false) ? f : nil
     }
+    /// Piso de 11 pt (HIG e regra da casa) e Dynamic Type PARCIAL num lugar só: o tamanho
+    /// pedido é escalado pela métrica do texto de corpo, então no tamanho padrão do sistema
+    /// o valor visual é o mesmo de sempre, e quem aumenta o texto no aparelho vê o JURIS
+    /// acompanhar. Os `.system(size:)` soltos do módulo passaram a vir por aqui (F3 do
+    /// plano do iPhone); a migração completa para text styles fica para outro ciclo.
+    /// A raiz (RootView) recebe `.id(dynamicTypeSize)` para reavaliar quando a pessoa muda
+    /// o tamanho com o app aberto.
+    static func escalado(_ size: CGFloat) -> CGFloat {
+        UIFontMetrics(forTextStyle: .body).scaledValue(for: max(11, size))
+    }
     static func serifTitle(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        if let fam = readingFamily { return Font.custom(fam, size: size).weight(weight) }
+        // Font.custom(_:size:) já escala com o Dynamic Type sozinho — só o piso entra.
+        if let fam = readingFamily { return Font.custom(fam, size: max(11, size)).weight(weight) }
         // Unificação (21/08/2026): título segue o display do tema do Cátedra — serifado
         // no Planilha/Tribunal, sans nos temas frios. Um produto, uma tipografia.
-        return .system(size: size, weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
+        return .system(size: escalado(size), weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
     }
     static func serifBody(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        if let fam = readingFamily { return Font.custom(fam, size: size).weight(weight) }
-        return .system(size: size, weight: weight, design: .default)
+        if let fam = readingFamily { return Font.custom(fam, size: max(11, size)).weight(weight) }
+        return .system(size: escalado(size), weight: weight, design: .default)
     }
     /// Fonte da interface (chrome) — sempre o sistema, para manter a legibilidade.
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .default)
+        .system(size: escalado(size), weight: weight, design: .default)
     }
     /// Números/KPIs: a fonte da interface com dígitos tabulares — no lugar do
     /// `design: .monospaced` que saía em Menlo no meio de uma tela SF Pro.
     static func num(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        Font.system(size: size, weight: weight, design: .default).monospacedDigit()
+        Font.system(size: escalado(size), weight: weight, design: .default).monospacedDigit()
     }
 }
 
