@@ -792,30 +792,30 @@ window.ctPdfLib = (function(){
             </div>
 
             <div class="ct-reg-campos">
-              <div><label class="ct-rotulo">Disciplina <span class="ct-rotulo-nota">(do seu edital)</span></label><select value="{{ sessDiscSelVal }}" aria-label="Disciplina" onchange="{{ onSessionDisc }}" class="ct-campo"><sc-for list="{{ sessDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ sessDiscCustom }}">Outra…</option></select>
+              <div><label class="ct-rotulo">Disciplina <span class="ct-rotulo-nota">(do seu edital)</span></label><select value="{{ sessDiscSelVal }}" aria-label="Disciplina" title="{{ sessDiscTitle }}" onchange="{{ onSessionDisc }}" class="ct-campo"><sc-for list="{{ sessDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ sessDiscCustom }}">Outra…</option></select>
                 <sc-if value="{{ sessDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ sessionDraft.disc }}" oninput="{{ onSessionField }}" placeholder="Digite o nome da disciplina" aria-label="Nome da disciplina" class="ct-campo" style="margin-top:8px;border-color:var(--accent);"></sc-if>
               </div>
               <sc-if value="{{ sessMaisOn }}" hint-placeholder-val="{{ true }}">
               <sc-if value="{{ sessTopShow }}" hint-placeholder-val="{{ true }}">
-                <div><label class="ct-rotulo">Tópico <span class="ct-rotulo-nota">(do seu edital)</span></label><select value="{{ sessTopSel }}" aria-label="Tópico" onchange="{{ onSessionTop }}" class="ct-campo" style="cursor:pointer;"><option value="__livre__" selected="{{ sessTopLivre }}">— escolher o tópico —</option><sc-for list="{{ sessTopOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Tópico <span class="ct-rotulo-nota">(do seu edital)</span></label><select value="{{ sessTopSel }}" aria-label="Tópico" title="{{ sessTopTitle }}" onchange="{{ onSessionTop }}" class="ct-campo" style="cursor:pointer;"><option value="__livre__" selected="{{ sessTopLivre }}">— escolher o tópico —</option><sc-for list="{{ sessTopOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
               <sc-if value="{{ sessSubShow }}" hint-placeholder-val="{{ false }}">
-                <div><label class="ct-rotulo">Subtópico <span class="ct-rotulo-nota">(opcional — deixe vazio para o tópico inteiro)</span></label><select value="{{ sessSubSel }}" aria-label="Subtópico" onchange="{{ onSessionSub }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessSubVazio }}">— todo o tópico —</option><sc-for list="{{ sessSubOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Subtópico <span class="ct-rotulo-nota">(opcional — deixe vazio para o tópico inteiro)</span></label><select value="{{ sessSubSel }}" aria-label="Subtópico" title="{{ sessSubTitle }}" onchange="{{ onSessionSub }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessSubVazio }}">— todo o tópico —</option><sc-for list="{{ sessSubOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
               <div><label class="ct-rotulo">Tópico estudado <span class="ct-rotulo-nota">(preenchido pelo edital — pode ajustar)</span></label><input data-k="topico" value="{{ sessionDraft.topico }}" oninput="{{ onSessionField }}" placeholder="{{ sessTopicoPh }}" aria-label="Tópico estudado" class="ct-campo"></div>
               <sc-if value="{{ sessMarcarShow }}" hint-placeholder-val="{{ false }}">
                 <div><button data-k="marcarEdital" onclick="{{ toggleSessionFlag }}" role="checkbox" aria-checked="{{ sessMarcarAria }}" class="ct-reg-check"><span style="{{ sessMarcarStyle }}"><sc-if value="{{ sessMarcarEdital }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></span><span class="ct-nota" style="color:var(--text2);">{{ sessMarcarLabel }}</span></button></div>
               </sc-if>
               <sc-if value="{{ sessShowLeis }}" hint-placeholder-val="{{ false }}">
-                <div><label class="ct-rotulo">Qual lei? <span class="ct-rotulo-nota">(catálogo do LEGIS — preenche tópico e disciplina)</span></label><select value="{{ sessLeiSel }}" aria-label="Qual lei" onchange="{{ onSessionLei }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessLeiVazio }}">— escolher a lei —</option><sc-for list="{{ sessLeiOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Qual lei? <span class="ct-rotulo-nota">(catálogo do LEGIS — preenche tópico e disciplina)</span></label><select value="{{ sessLeiSel }}" aria-label="Qual lei" title="{{ sessLeiTitle }}" onchange="{{ onSessionLei }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessLeiVazio }}">— escolher a lei —</option><sc-for list="{{ sessLeiOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
               <sc-if value="{{ sessShowJuris }}" hint-placeholder-val="{{ false }}">
-                <div><label class="ct-rotulo">Qual fonte? <span class="ct-rotulo-nota">(catálogo do JURIS — preenche o tópico)</span></label><select value="{{ sessJurisSel }}" aria-label="Qual fonte" onchange="{{ onSessionJuris }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessJurisVazio }}">— escolher a fonte —</option><sc-for list="{{ sessJurisOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Qual fonte? <span class="ct-rotulo-nota">(catálogo do JURIS — preenche o tópico)</span></label><select value="{{ sessJurisSel }}" aria-label="Qual fonte" title="{{ sessJurisTitle }}" onchange="{{ onSessionJuris }}" class="ct-campo" style="cursor:pointer;"><option value="" selected="{{ sessJurisVazio }}">— escolher a fonte —</option><sc-for list="{{ sessJurisOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></div>
               </sc-if>
               <sc-if value="{{ sessTrechoShow }}" hint-placeholder-val="{{ false }}">
                 <div><label class="ct-rotulo">{{ sessTrechoLabel }} <span class="ct-rotulo-nota">(subtópico — entra no histórico e no domínio)</span></label>
                   <sc-if value="{{ sessTrechoTemOpts }}" hint-placeholder-val="{{ false }}">
-                    <select value="{{ sessTrechoSel }}" aria-label="Trecho da lei ou da fonte" onchange="{{ onSessionTrecho }}" class="ct-campo" style="cursor:pointer;margin-bottom:8px;"><option value="" selected="{{ sessTrechoVazio }}">— a lei/fonte inteira —</option><sc-for list="{{ sessTrechoOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for><option value="__outro__" selected="{{ sessTrechoLivre }}">Outro trecho…</option></select>
+                    <select value="{{ sessTrechoSel }}" aria-label="Trecho da lei ou da fonte" title="{{ sessTrechoTitle }}" onchange="{{ onSessionTrecho }}" class="ct-campo" style="cursor:pointer;margin-bottom:8px;"><option value="" selected="{{ sessTrechoVazio }}">— a lei/fonte inteira —</option><sc-for list="{{ sessTrechoOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for><option value="__outro__" selected="{{ sessTrechoLivre }}">Outro trecho…</option></select>
                   </sc-if>
                   <sc-if value="{{ sessTrechoLivre }}" hint-placeholder-val="{{ true }}">
                     <input data-k="edSub" value="{{ sessionDraft.edSub }}" oninput="{{ onSessionField }}" placeholder="{{ sessTrechoPh }}" aria-label="{{ sessTrechoLabel }}" class="ct-campo">
@@ -823,7 +823,7 @@ window.ctPdfLib = (function(){
                 </div>
               </sc-if>
               <sc-if value="{{ hasBibForLink }}" hint-placeholder-val="{{ false }}">
-                <div><label class="ct-rotulo">Vincular material da biblioteca <span class="ct-rotulo-nota">(opcional)</span></label><select data-k="materialId" value="{{ sessionDraft.materialId }}" aria-label="Vincular material da biblioteca" onchange="{{ onSessionField }}" class="ct-campo"><option value="">— nenhum —</option><sc-for list="{{ bibLinkOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.id }}">{{ o.titulo }}</option></sc-for></select></div>
+                <div><label class="ct-rotulo">Vincular material da biblioteca <span class="ct-rotulo-nota">(opcional)</span></label><select data-k="materialId" value="{{ sessionDraft.materialId }}" aria-label="Vincular material da biblioteca" title="{{ sessMatTitle }}" onchange="{{ onSessionField }}" class="ct-campo"><option value="">— nenhum —</option><sc-for list="{{ bibLinkOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.id }}">{{ o.titulo }}</option></sc-for></select></div>
               </sc-if>
               </sc-if>
             </div>
@@ -15134,6 +15134,10 @@ class Component extends DCLogic {
       try{ CT_TABELA.fontes.forEach(add); }catch(_){}
       return out; })();
     const sessLeiVazio=!sessLeiSel, sessJurisVazio=!sessJurisSel;
+    // texto da opção escolhida de uma lista {label, sel} — vira o title do select (o
+    // template não aceita "||", então cada title chega pronto do render)
+    const _txtSel=(ops)=>{ const o=(ops||[]).find(x=>x.sel); return o?String(o.label||''):''; };
+    const sessLeiTitle=_txtSel(sessLeiOpts), sessJurisTitle=_txtSel(sessJurisOpts);
     const sessShowLeis=sessLeiOpts.length>0 && _selCats.includes('Lei seca');
     const sessShowJuris=sessJurisOpts.length>0 && _selCats.includes('Jurisprudência');
     // TRECHO da lei/fonte (= subtópico): faixas conhecidas da SUA tabela de leitura
@@ -15160,6 +15164,7 @@ class Component extends DCLogic {
     const sessTrechoLivre=!!_sd.trechoLivre || (sessTrechoShow && sessTrechoOpts.length===0);
     const sessTrechoSel=sessTrechoLivre?'__outro__':(_sd.edSub||'');
     const sessTrechoVazio=!_sd.edSub && !sessTrechoLivre;
+    const sessTrechoTitle=sessTrechoLivre?'':_txtSel(sessTrechoOpts);
     const sessTrechoLabel=sessShowJuris&&!sessShowLeis ? 'Faixa / verbete' : 'Artigos estudados';
     const sessTrechoPh=sessShowJuris&&!sessShowLeis ? 'ex.: Súmulas 1 a 60 · Informativo 812' : 'ex.: Art. 60 a 91';
     const _sdA=parseInt(_sd.acertos,10)||0; const _sdE=parseInt(_sd.erradas,10)||0; const _sdB=parseInt(_sd.brancos,10)||0;
@@ -15189,6 +15194,8 @@ class Component extends DCLogic {
     const sessionSummary = `${_sdMin?_sdMin+' min':'sem tempo'}${_sdTotal?' · '+_sdTotal+'q · '+sdBrutoPct+'% · líq '+(sdLiquido>0?'+'+sdLiquido:sdLiquido):''}${_sd.agendarRevisao?' · +revisão':''}${_sd.contarMeta!==false?' · conta p/ meta':''}`;
     const bibLinkOpts=(this.state.biblioteca||[]).map(b=>({id:b.id, titulo:b.titulo}));
     const hasBibForLink=bibLinkOpts.length>0;
+    // o título do material só aparece no select: o title o mostra inteiro no hover
+    const sessMatTitle=String(((_sd.materialId && bibLinkOpts.find(o=>o.id===_sd.materialId))||{}).titulo||'');
     // multiformato: conteúdo só existe quando a IA gera (state.mfGen), por fonte+formato
     const _mfFmt=this.state.multiFmt;
     const _mfBib=(this.state.biblioteca||[]);
@@ -16097,10 +16104,18 @@ class Component extends DCLogic {
     const sessTopLivre=!_sd0.edTop;
     const _sdSubs=this._subsDe(_sd0.disc, _sd0.edTop);
     const sessSubShow=!!_sd0.edTop && _sdSubs.length>0;
-    const sessSubOpts=_sdSubs.map(x=>{ const n=String(x.name||'').trim();
-      return { v:n, label:(x.done?'✓ ':'')+n, sel:n===(_sd0.edSub||'') }; });
+    // O edital guarda `subs` ora como string (parser), ora como {name} (mesclagem) — o
+    // mesmo cuidado da agenda da semana. Só com x.name, o subtópico em string virava uma
+    // opção sem texto e sem valor: o select mostrava linhas em branco e não escolhia nada.
+    const sessSubOpts=_sdSubs.map(x=>{ const n=String((x&&x.name)||x||'').trim();
+      return { v:n, label:((x&&x.done)?'✓ ':'')+n, sel:n===(_sd0.edSub||'') }; }).filter(o=>o.v);
     const sessSubSel=_sd0.edSub||'';
     const sessSubVazio=!_sd0.edSub;
+    // title de cada select = o texto da opção escolhida: o nome longo que o select corta
+    // aparece inteiro no hover (vazio quando nada foi escolhido — a opção vazia cabe)
+    const sessDiscTitle=sessDiscCustom?'':_txtSel(sessDiscOpts.map(o=>({label:o.v, sel:o.sel})));
+    const sessTopTitle=_txtSel(sessTopOpts);
+    const sessSubTitle=_txtSel(sessSubOpts);
     const sessMarcarEdital=!!_sd0.marcarEdital;
     /* ===== O EFEITO AO VIVO DO REGISTRO (09/09/2026: "não mostra o efeito do registro") =====
        Cada linha usa a MESMA régua que o saveSession e o _brain vão usar depois: a data da
@@ -17464,6 +17479,7 @@ class Component extends DCLogic {
       sessDiscOpts, sessDiscCustom, sessDiscSelVal, onSessionDisc:this.onSessionDisc,
       sessTopShow, sessTopOpts, sessTopSel, sessTopLivre, onSessionTop:this.onSessionTop,
       sessSubShow, sessSubOpts, sessSubSel, sessSubVazio, onSessionSub:this.onSessionSub,
+      sessDiscTitle, sessTopTitle, sessSubTitle, sessLeiTitle, sessJurisTitle, sessTrechoTitle, sessMatTitle,
       // só oferece "marcar no edital" quando o tópico É do edital — com lei do LEGIS
       // ou fonte do JURIS em edTop, o checkbox aparecia e não marcava nada.
       sessMarcarEdital, sessMarcarLabel, sessMarcarStyle,
