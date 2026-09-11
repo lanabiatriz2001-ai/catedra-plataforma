@@ -7799,9 +7799,11 @@ class Component extends DCLogic {
   // ===== cronômetro de sessão (livre = sobe / pomodoro = regressivo foco↔pausa) =====
   // O contexto de áudio é UM só, criado (e acordado) no primeiro gesto da pessoa — ver o
   // componentDidMount. Fora de gesto o iPad o deixa 'suspended' e o bipe sai mudo.
-  _acDespertar = ()=>{ try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return; const ac=this._ac||(this._ac=new Ctx());
+  // O contexto acordado fica em _acPronto; `_ac` só nasce no PRIMEIRO BIPE — é assim que os
+  // testes provam que um aviso foi silencioso (`!app._ac`), e um gesto qualquer não pode mudar isso.
+  _acDespertar = ()=>{ try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return; const ac=this._acPronto||(this._acPronto=new Ctx());
       if(ac.state==='suspended'){ const p=ac.resume(); if(p&&p.catch) p.catch(()=>{}); } }catch(_){} };
-  _beep(){ try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return; const ac=this._ac||(this._ac=new Ctx());
+  _beep(){ try{ const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return; const ac=this._ac||(this._ac=this._acPronto||new Ctx());
       if(ac.state==='suspended'){ try{ const p=ac.resume(); if(p&&p.catch) p.catch(()=>{}); }catch(_){} }   // fora de gesto pode não acordar, mas custa nada tentar
       const o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(ac.destination);
       o.type='sine'; o.frequency.value=this.state.pomoPhase==='foco'?660:440;
