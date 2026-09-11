@@ -8,11 +8,17 @@
    Servidor e navegador vêm de tests/_infra.mjs. O motor padrão é o Chromium — executável
    de CT_CHROME ou dos caminhos usuais (CI: google-chrome); CT_BROWSER=webkit troca pelo
    WebKit do Playwright, o mesmo que tests/run-webkit.mjs usa como proxy do iPad. */
+// PRIMEIRO import, e de propósito: arquivo esvaziado pelo iCloud volta do git (ou a suíte para)
+// antes de qualquer outro módulo ser avaliado — o playwright-core lido errado num worktree do
+// Desktop derrubou a suíte WebKit. Ver scripts/verificar-pasta-sincronizada.mjs. O nome importado
+// é de propósito: verificador devolvido VAZIO pelo iCloud falha alto, em vez de pular calado.
+import { SAIDA_ESVAZIADOS } from '../scripts/verificar-pasta-sincronizada.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
+import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
@@ -7985,6 +7991,17 @@ catch (e) {
 try { await testarIpadToque(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPAD TOQUE [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+/* ============= PASTA SINCRONIZADA — ARQUIVOS ESVAZIADOS PELO iCLOUD =============
+   Worktree em ~/Desktop: o File Provider esvazia arquivos e ler um deles já voltou errado.
+   scripts/verificar-pasta-sincronizada.mjs roda antes dos builds e desta suíte (primeiro
+   import) e devolve do git o que dá para provar igual. Roteiro em tests/pasta-sincronizada.mjs
+   (o comportamento só no macOS; na CI roda a parte estática e o "fora do macOS não faz nada"). */
+try { await testarPastaSincronizada(ok); }
+catch (e) {
+  ok(false, 'PASTA o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

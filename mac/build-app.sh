@@ -41,6 +41,10 @@ APP="$BUILD/$NAME.app"
 AI_ENDPOINT="${CATEDRA_AI_ENDPOINT:-https://catedra-plataforma-fawn.vercel.app/api/complete}"
 GEMINI_KEY="${CATEDRA_GEMINI_KEY:-}"
 
+# Worktree em ~/Desktop ou ~/Documents: arquivo esvaziado pelo iCloud volta do git antes de
+# qualquer leitura, ou o build para aqui com o comando (scripts/verificar-pasta-sincronizada.mjs).
+ct_conferir_pasta "$ROOT"
+
 echo "→ 1/5  Gerando bundle web (Catedra.dc.html → mac/build/web)…"
 node "$ROOT/scripts/build-macos.mjs"
 
