@@ -143,11 +143,18 @@ async function vendorarFontes() {
   return './fonts.css';
 }
 
+/* AS FONTES VÊM ANTES DAS BIBLIOTECAS, e a ordem é o ponto. As faces são copiadas do
+   repositório e não pedem nada à rede; as libs ainda são baixadas do jsdelivr e ABORTAM o
+   build quando a rede falta. Com o vendorarFontes() no fim, um build sem rede morria no
+   react e public/fonts nunca era escrita — quem não tivesse sobra de um build anterior
+   ficava sem as 20 faces. Copiando primeiro, o passo que não depende de rede sempre
+   acontece, e o aborto das libs continua igual. */
+const fontsHref = await vendorarFontes();
+
 // React antes de ReactDOM (que usa o global React), ambos antes do support.js.
 const reactTag = await vendor(REACT_CDN, 'react.js');
 const reactDomTag = await vendor(REACTDOM_CDN, 'react-dom.js');
 const supabaseTag = await vendor(SUPABASE_CDN, 'supabase.js');
-const fontsHref = await vendorarFontes();
 
 // Carimbo do build. Sem ele, um relato de bug de testador chega sem dizer QUAL versão
 // quebrou — e aí não dá para saber se já foi corrigido. Na Vercel o sha vem do ambiente.
