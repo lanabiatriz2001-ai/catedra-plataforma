@@ -7198,10 +7198,10 @@ class Component extends DCLogic {
     try{
       this._mqDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
       if(this._mqDark){
-        this._onMqDark = ()=>{ try{ if((this.state.prefs||{}).temaAuto) this._seguirTemaDoSistema(); }catch(_){} };
+        this._onMqDark = ()=>{ try{ if(this._temaAutoLigado()) this._seguirTemaDoSistema(); }catch(_){} };
         if(this._mqDark.addEventListener) this._mqDark.addEventListener('change', this._onMqDark);
         else if(this._mqDark.addListener) this._mqDark.addListener(this._onMqDark);
-        if((this.state.prefs||{}).temaAuto) this._seguirTemaDoSistema();
+        if(this._temaAutoLigado()) this._seguirTemaDoSistema();
       }
     }catch(_){}
     // "Ao abrir a plataforma" (Orientação): ciclo abre o Ciclo; foco/início ficam no Início
@@ -9008,8 +9008,27 @@ class Component extends DCLogic {
   // Claro/Escuro é escolha MANUAL e por isso desliga o automático (U7): botão que a pessoa
   // aperta e volta sozinho na próxima mudança do sistema é botão quebrado.
   toggleDark = (e)=>{ const v=e&&e.currentTarget&&e.currentTarget.dataset.v; const nv = v? v==='dark' : !this.state.darkMode;
-    this._temaEscolhidoAgora();
-    this.setState(s=>({darkMode:nv, prefs:{...s.prefs, temaAuto:false}}), ()=>this._temaBroadcast()); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
+    this._temaEscolhidoAgora(); this._setTemaAuto(false);
+    this.setState({darkMode:nv}, ()=>this._temaBroadcast()); try{ localStorage.setItem('catedra:dark', nv?'1':'0'); }catch(_){} };
+  /* SEGUIR O SISTEMA é ajuste DESTE aparelho, não da pessoa: cada aparelho tem o seu
+     sistema operacional. Morava em prefs, que sincroniza — ligar no Mac ligava no iPad, e
+     com um no claro e outro no escuro os dois viravam o tema um do outro a cada abertura.
+     Mora em catedra:_temaAuto, fora do sync (EXCLUDE), e o clearLocal o apaga na troca de
+     conta. Quem já tinha o Auto ligado em prefs continua com ele ligado aqui. */
+  _temaAutoLigado(){
+    try{ const r=localStorage.getItem('catedra:_temaAuto');
+      if(r!=null) return r==='1';
+      // migração de quem ligou o Auto quando ele ainda vivia em prefs
+      return !!(this.state.prefs && this.state.prefs.temaAuto);
+    }catch(_){ return false; }
+  }
+  _setTemaAuto(lig){
+    try{ localStorage.setItem('catedra:_temaAuto', lig?'1':'0'); }catch(_){}
+    // tira o resquício de prefs para não voltar ligado pela nuvem no próximo sync
+    try{ if(this.state.prefs && 'temaAuto' in this.state.prefs){
+      const p={...this.state.prefs}; delete p.temaAuto; this.setState({prefs:p});
+    } }catch(_){}
+  }
   /** Aplica AGORA o que o sistema pede (usado ao ligar o automático e a cada mudança dele). */
   _seguirTemaDoSistema(){
     try{
@@ -9018,12 +9037,20 @@ class Component extends DCLogic {
       // Reconcilia SEMPRE, antes do return: com o setItem depois dele, a chave nunca era
       // corrigida quando estado e sistema já concordavam — e ela pode ter chegado torta da
       // nuvem. Chave que ninguém reconcilia é chave que mente.
-      try{ localStorage.setItem('catedra:dark', escuro?'1':'0'); }catch(_){}
+      // Mas aqui o valor é DERIVADO do sistema deste aparelho, não escolha da pessoa: vai
+      // pelo gravarDerivado, que não carimba nem envia. Pelo caminho normal, cada abertura
+      // recarimbava a chave e a mandava para a nuvem — dois aparelhos com sistemas
+      // diferentes viravam o tema um do outro sem parar, e o aparelho no automático
+      // apagava a escolha manual feita no outro.
+      try{ const S=window.CatedraSync;
+        if(S && S.gravarDerivado) S.gravarDerivado('catedra:dark', escuro?'1':'0');
+        else localStorage.setItem('catedra:dark', escuro?'1':'0');
+      }catch(_){}
       if(escuro===!!this.state.darkMode) return;
       this.setState({darkMode:escuro}, ()=>this._temaBroadcast());
     }catch(_){}
   }
-  temaAuto = ()=>{ this.setState(s=>({prefs:{...s.prefs, temaAuto:true}}), ()=>this._seguirTemaDoSistema()); };
+  temaAuto = ()=>{ this._setTemaAuto(true); this._seguirTemaDoSistema(); this.forceUpdate(); };
   toggleMenu = ()=> this.setState(s=>({menuOpen:!s.menuOpen}));
   toggleNav = ()=> this.setState(s=>({navExpanded:!s.navExpanded}));
   /* Filtro do ciclo: disciplina, tipo (Teoria/Lei seca/Questões/…) e busca por assunto.
@@ -15662,7 +15689,7 @@ class Component extends DCLogic {
     const dirCard=(id)=>`flex:1;min-width:150px;text-align:left;cursor:pointer;border-radius:var(--radius);padding:16px;font-family:inherit;border:2px solid ${this.state.dir===id?'var(--accent)':'var(--border)'};background:var(--surface);`;
     const densBtn=(d)=>`padding:9px 15px;border-radius:var(--r-md);border:1px solid ${this.state.prefs.density===d?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;background:${this.state.prefs.density===d?'var(--accentSoft)':'var(--surface)'};color:${this.state.prefs.density===d?'var(--accentD)':'var(--text2)'};`;
     // U7: com o automático ligado, o par Claro/Escuro fica apagado — quem manda é o sistema.
-    const _temaAutoOn = !!pf0.temaAuto;
+    const _temaAutoOn = this._temaAutoLigado();
     const modeAutoStyle = `display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;border:none;cursor:pointer;font-size:var(--fs-sm);font-weight:600;font-family:inherit;transition:.15s;background:${_temaAutoOn?'var(--surface)':'transparent'};color:${_temaAutoOn?'var(--ink)':'var(--text3)'};box-shadow:${_temaAutoOn?'0 1px 3px rgba(0,0,0,.12)':'none'};`;
     const modeBtn=(isDarkBtn)=>{ const on=!_temaAutoOn && this.state.darkMode===isDarkBtn; return `display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;border:none;cursor:pointer;font-size:var(--fs-sm);font-weight:600;font-family:inherit;transition:.15s;background:${on?'var(--surface)':'transparent'};color:${on?'var(--ink)':'var(--text3)'};box-shadow:${on?'0 1px 3px rgba(0,0,0,.12)':'none'};`; };
     const togStyle=(on)=>`width:42px;height:24px;border-radius:99px;border:none;cursor:pointer;position:relative;transition:all .15s;background:${on?'var(--accent)':'var(--border)'};flex:none;`;
