@@ -343,6 +343,23 @@ struct MarkableText: UIViewRepresentable {
         }
     }
 
+    /// O SwiftUI PERGUNTA o tamanho antes de posicionar. Sem esta resposta ele usava o
+    /// tamanho próprio da UITextView (rolagem desligada ⇒ ela se declara do tamanho do
+    /// conteúdo), e no iPhone o verbete ficava mais largo que a tela: o texto começava fora
+    /// da borda esquerda ("…ança de taxas porque:") e as faixas atravessavam os dois lados.
+    /// Mesmo conserto do leitor de lei (MarkableArticleView.sizeThatFits).
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
+        guard let largura = proposal.width, largura > 1 else { return nil }
+        let tc = uiView.textContainer
+        tc.widthTracksTextView = false
+        tc.size = CGSize(width: largura, height: .greatestFiniteMagnitude)
+        let lm = uiView.layoutManager
+        lm.ensureLayout(for: tc)
+        let h = ceil(lm.usedRect(for: tc).height) + 2
+        if abs(h - height) > 0.5 { DispatchQueue.main.async { height = h } }
+        return CGSize(width: largura, height: max(h, 24))
+    }
+
     /// Calcula o y de cada comentário no layout real (mesma técnica do LEGIS:
     /// glyphRange → boundingRect), para posicionar o balão na margem.
     private func updateCommentAnchors(lm: NSLayoutManager, container: NSTextContainer) {

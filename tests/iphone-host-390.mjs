@@ -22,6 +22,8 @@
    · (g) a faixa do Início aguenta conteúdo comprido: com a ficha do simulado, uma palavra sem
          espaço e o subtítulo esticado, nada dela passa da janela — era o corte que aparecia no
          iPhone da dona ("Sexta-feira, 11 de setembro · Ta…") e que a conta de teste não produz;
+   · (h) o título de revisão cortado pelo Treino antigo aparece arredondado com reticências, e
+         o cartão "Foco sugerido" empilha o botão no celular em vez de espremer o texto;
    · (f) a 1024 e a 1280 px NADA disso se aplica: a topbar mantém as duas faixas com subtítulo,
          a tabela volta a table-layout:auto com as seis colunas e o Histórico continua tabela.
          É o caso que protege o desktop de um conserto de celular.
@@ -273,6 +275,49 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       ok(!!t && t.colunas === 6, R + '(f) ' + largura + ': …com as seis colunas de sempre ('
         + (t ? t.colunas : 0) + ')');
       ok(m.docRola <= 0, R + '(f) ' + largura + ': o documento não rola de lado (' + m.docRola + ' px)');
+    } finally { await ctx.close(); }
+  }
+
+  /* ---------- (h) título de revisão arredondado e cartão de foco empilhado ---------- */
+  {
+    const { ctx, page } = await abrir({ width: 390, height: 844 });
+    try {
+      /* O Treino antigo gravava o enunciado do erro cortado em 44 caracteres EXATOS, no meio
+         da palavra e sem reticências — no iPhone da dona aparecia "…anular negócio jurí".
+         O corte está no dado gravado, então o conserto é na exibição (mkRev). */
+      const CORTADO = 'O prazo decadencial para anular negócio jurí';   // 44 caracteres
+      await page.evaluate((t) => {
+        window.__catedraApp.setState({ reviews: [{ id: 'r1', disc: 'Direito Civil', topic: t,
+          color: 'var(--danger)', due: -1, dueDate: '2026-09-14', intervalo: 1, facilidade: 2.5, repeticoes: 0 }] });
+      }, CORTADO);
+      await ir(page, 'inicio'); await page.waitForTimeout(1500);
+      const m = await page.evaluate(() => {
+        const t = document.querySelector('.cth-rev b.t');
+        const foco = document.querySelector('.cth-foco');
+        const btn = foco && foco.querySelector('.cth-bfsug');
+        const p = foco && foco.querySelector('.tx p');
+        const W = innerWidth;
+        const fora = foco ? [...foco.querySelectorAll('*')].filter(e => {
+          const r = e.getBoundingClientRect(); return r.width > 0 && (r.right > W + 1 || r.left < -1); }).length : -1;
+        return { titulo: t ? t.textContent.trim() : null,
+          temFoco: !!foco, fora,
+          botao: btn ? { w: Math.round(btn.getBoundingClientRect().width), h: Math.round(btn.getBoundingClientRect().height) } : null,
+          textoW: p ? Math.round(p.getBoundingClientRect().width) : 0,
+          docRola: document.documentElement.scrollWidth - W };
+      });
+      ok(m.titulo === 'O prazo decadencial para anular negócio…',
+        R + '(h) o título cortado em 44 caracteres vira palavra inteira com reticências ("' + m.titulo + '")');
+      ok(!!m.titulo && !/jurí$/.test(m.titulo), R + '(h) …e não termina no meio da palavra');
+      ok(m.temFoco, R + '(h) o cartão "Foco sugerido" está na tela');
+      if (m.temFoco) {
+        ok(m.fora === 0, R + '(h) nada do cartão de foco passa da janela (' + m.fora + ' fora)');
+        ok(!!m.botao && m.botao.w >= 280, R + '(h) o botão do foco ocupa a linha inteira ('
+          + (m.botao ? m.botao.w : 0) + ' px), em vez de espremer o texto ao lado');
+        ok(!!m.botao && m.botao.h >= 44, R + '(h) o botão do foco tem alvo de toque ≥ 44 px ('
+          + (m.botao ? m.botao.h : 0) + ')');
+        ok(m.textoW >= 200, R + '(h) o texto do foco tem largura de leitura (' + m.textoW + ' px, não a coluna de três palavras)');
+      }
+      ok(m.docRola <= 0, R + '(h) a tela "inicio" não rola de lado (' + m.docRola + ' px)');
     } finally { await ctx.close(); }
   }
 
