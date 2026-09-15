@@ -364,7 +364,8 @@ window.CT_PECAS = {
         'Inquéritos e ações em curso não agravam a pena-base — Súmula 444 do STJ',
         'Reincidência não vale na 1ª e na 2ª fase ao mesmo tempo — Súmula 241 do STJ',
         'Atenuante não reduz abaixo do mínimo — Súmula 231 do STJ',
-        'Confissão usada na convicção gera a atenuante — Súmula 545 do STJ',
+        'Confissão atenua ainda que não usada na convicção — Súmula 545 do STJ (revisada em 10/09/2025, Tema 1194)',
+              'Confissão com retratação não atenua, salvo se serviu à apuração dos fatos — Tema 1194 do STJ',
         'Maus antecedentes não se sujeitam ao prazo de cinco anos — STF, RE 593.818, Tema 150, j. 17/08/2020',
         'Roubo majorado: aumento exige fundamentação concreta — Súmula 443 do STJ'
       ],
@@ -458,7 +459,7 @@ window.CT_PECAS = {
   ],
   especiais: [
     { t:'Tráfico de drogas', d:'Na primeira fase preponderam a natureza e a quantidade da substância, a personalidade e a conduta social (Lei 11.343/06, art. 42) — e a quantidade não pode ser usada de novo na terceira fase para negar o tráfico privilegiado. A causa de diminuição de 1/6 a 2/3 do art. 33, § 4º exige réu primário, de bons antecedentes, que não se dedique a atividades criminosas nem integre organização criminosa.' },
-    { t:'Violência doméstica e familiar', d:'Vedada a substituição por prestação pecuniária, cesta básica ou pagamento isolado de multa (Lei 11.340/06, art. 17). Não cabem os institutos da Lei 9.099/95 (Súmula 536 do STJ), não se aplica a substituição por restritivas nos crimes cometidos com violência (Súmula 588 do STJ) e não incide o princípio da insignificância (Súmula 589 do STJ).' },
+    { t:'Violência doméstica e familiar', d:'Vedada a substituição por prestação pecuniária, cesta básica ou pagamento isolado de multa (Lei 11.340/06, art. 17). Não se aplica a Lei 9.099/95 (Lei 11.340/06, art. 41; quanto à suspensão condicional do processo e à transação penal, Súmula 536 do STJ), não se aplica a substituição por restritivas nos crimes cometidos com violência (Súmula 588 do STJ) e não incide o princípio da insignificância (Súmula 589 do STJ).' },
     { t:'Réu menor de 21 anos na data do fato', d:'Atenuante do art. 65, I, do CP e prazo prescricional reduzido pela metade (art. 115). A menoridade exige prova por documento hábil (Súmula 74 do STJ) — se o enunciado não trouxer o documento, diga isso na sentença em vez de simplesmente aplicar.' },
     { t:'Corrupção de menores', d:'O art. 244-B do ECA é crime formal: configura-se independentemente de prova da efetiva corrupção do adolescente (Súmula 500 do STJ). Nos crimes praticados em concurso com menor, verifique se não há bis in idem com a agravante do art. 62, IV, do CP.' },
     { t:'Sucessão de leis no tempo', d:'Verifique qual lei é mais benéfica ao réu no conjunto, e não dispositivo por dispositivo. A lei penal mais benigna retroage (CF, art. 5º, XL; CP, art. 2º, parágrafo único), inclusive quanto ao regime e à substituição.' },
@@ -1511,7 +1512,7 @@ window.CT_PECAS = {
     { t:'O prazo recursal de dez dias está no art. 198, II, e não alcança os embargos de declaração. Citar "art. 198" sem o inciso é impreciso.', alerta:true }
   ],
   especiais: [
-    { t:'Remissão', d:'Pode ser ministerial, antes de iniciado o procedimento (exclusão do processo), ou judicial, depois de iniciado (suspensão ou extinção). Não implica reconhecimento nem comprovação de responsabilidade e não prevalece para efeito de antecedentes (ECA, art. 127). Cumulável com medida em meio aberto — nunca com internação ou semiliberdade (Súmula 108 do STJ e art. 127, parte final).' },
+    { t:'Remissão', d:'Pode ser ministerial, antes de iniciado o procedimento (exclusão do processo), ou judicial, depois de iniciado (suspensão ou extinção). Não implica reconhecimento nem comprovação de responsabilidade e não prevalece para efeito de antecedentes (ECA, art. 127). Cumulável com medida em meio aberto — nunca com internação ou semiliberdade (ECA, art. 127, parte final). Aplicar medida socioeducativa é competência exclusiva do juiz (Súmula 108 do STJ).' },
     { t:'Ato análogo ao tráfico', d:'A Súmula 492 do STJ impede a internação automática. Sem violência ou grave ameaça, o inciso I do art. 122 não incide; a internação só cabe pela reiteração (II) ou pelo descumprimento (III), e cada uma exige demonstração própria.' },
     { t:'Adolescente com transtorno mental ou dependência', d:'O art. 112, § 3º, do ECA determina tratamento individual e especializado, em local adequado. A medida socioeducativa não se converte em medida de segurança, e a internação psiquiátrica segue a legislação de saúde mental, não o art. 122.' },
     { t:'Prática em concurso com maior de idade', d:'O adolescente responde no juízo da infância, e o adulto no juízo criminal — não há reunião. Para o adulto, verifique a corrupção de menores do art. 244-B do ECA, crime formal que dispensa prova da efetiva corrupção (Súmula 500 do STJ).' },
@@ -1824,7 +1825,8 @@ window.CT_PECAS = {
             'Cabimento — CPP, art. 647',
             'Hipóteses de coação ilegal — CPP, art. 648, I a VII'],
       juris: ['Não cabe contra decisão que aplica só pena de multa — Súmula 693 do STF',
-              'Não cabe contra punição disciplinar militar — Súmula 694 do STF',
+              'Não cabe contra exclusão de militar ou perda de patente ou de função pública — Súmula 694 do STF',
+              'Mérito de punição disciplinar militar não se discute em HC — CF, art. 142, § 2º',
               'Não cabe se já extinta a pena privativa de liberdade — Súmula 695 do STF'],
       erro: 'Usar o HC como recurso genérico contra decisão que não afeta a liberdade de locomoção. É a razão mais comum de não conhecimento.' },
     { nome: 'Legitimidade, autoridade coatora e competência',
@@ -2754,7 +2756,8 @@ window.CT_PECAS = {
             'Substituição — CP, art. 44',
             'Detração e recorrer em liberdade — CPP, art. 387, §§ 1º e 2º'],
       juris: ['Inquéritos e ações em curso não agravam a pena-base — Súmula 444 do STJ',
-              'Confissão usada na convicção gera a atenuante — Súmula 545 do STJ',
+              'Confissão atenua ainda que não usada na convicção — Súmula 545 do STJ (revisada em 10/09/2025, Tema 1194)',
+              'Confissão com retratação não atenua, salvo se serviu à apuração dos fatos — Tema 1194 do STJ',
               'Atenuante não reduz abaixo do mínimo — Súmula 231 do STJ'],
       erro: 'Não fazer os pedidos subsidiários por achar que enfraquece a tese principal. Não enfraquece — e sem eles, condenado o réu, a defesa perde a dosimetria sem ter disputado.' }
   ],
