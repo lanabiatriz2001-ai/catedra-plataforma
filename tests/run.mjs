@@ -5079,6 +5079,37 @@ const { verificarPII } = await import('../scripts/verificar-pii.mjs');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
 
+/* ===== C1b: o número do CONTROLADOR é liberado SÓ nos dois documentos jurídicos =====
+   A LGPD (art. 5º, VI) manda quem trata os dados se identificar, e os Termos e a Política
+   trazem o CPF/CNPJ do controlador no corpo do texto: sem exceção, preencher o
+   controlador.json aborta todo build. A exceção é por ARQUIVO, e não pelo número, porque o
+   incidente que criou esta trava foi o CPF DA DONA vazando para dentro do juris-text.js —
+   liberar o número em qualquer lugar deixaria aquele caso passar de novo. Este caso trava
+   as duas pontas: passa onde é obrigatório, aborta em qualquer outro arquivo. */
+{
+  const declarado = String(JSON.parse(
+    fs.readFileSync(path.join(RAIZ, 'docs/juridico/controlador.json'), 'utf8')).cnpjCpf || '');
+  const dig = declarado.replace(/\D/g, '');
+  const fmt = dig.length === 11
+    ? dig.slice(0, 3) + '.' + dig.slice(3, 6) + '.' + dig.slice(6, 9) + '-' + dig.slice(9) : '';
+  ok(fmt !== '', 'C1b o controlador.json declara um CPF de 11 dígitos (vazio = documentos em RASCUNHO)');
+  if (fmt) {
+    const dir = fs.mkdtempSync(path.join(RAIZ, '.pii-'));
+    try {
+      fs.writeFileSync(path.join(dir, 'termos.html'), '<p>A Cátedra é operada por Fulana, CPF ' + fmt + '.</p>');
+      fs.writeFileSync(path.join(dir, 'privacidade.html'), '<p>Controlador: Fulana, CPF ' + fmt + '.</p>');
+      const soDocs = verificarPII(dir, { abortar: false, rotulo: 'fixture' });
+      ok(soDocs.length === 0, 'C1b o CPF do controlador passa em termos.html e privacidade.html');
+      fs.writeFileSync(path.join(dir, 'juris-text.js'), 'var v={ob:"fonte … CPF ' + fmt + ' …"};');
+      const warn = console.warn; console.warn = () => {};
+      const fora = verificarPII(dir, { abortar: false, rotulo: 'fixture' });
+      console.warn = warn;
+      ok(fora.length === 1 && /juris-text\.js$/.test(fora[0].arq),
+        'C1b …e o MESMO número em outro arquivo continua abortando (' + fora.length + ' achado(s))');
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  }
+}
+
 /* ===== C2: ponte para as plataformas de questões (só link de saída) =====
    A regra dura: o Cátedra NUNCA raspa, embute por iframe nem copia conteúdo dessas
    plataformas, e nenhuma credencial delas passa por aqui. O teste trava as duas coisas

@@ -13,7 +13,8 @@
 // forma legítima e um alarme falso por página faria a trava ser ignorada.
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, extname } from 'node:path';
+import { join, extname, basename, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const PADROES = [
   { nome: 'CPF rotulado', re: /CPF:?\s*\d{11}\b/gi },
@@ -59,17 +60,48 @@ function arquivos(dir) {
   return saida;
 }
 
+/* O CPF/CNPJ do CONTROLADOR é a única exceção, e ela é estreita de propósito.
+ *
+ * A LGPD (art. 5º, VI) pede que quem trata os dados se identifique, e os Termos e a Política
+ * trazem esse número no corpo do texto — é dado que PRECISA ser publicado, não marca d'água
+ * que escapou. Sem esta exceção, preencher docs/juridico/controlador.json aborta todo build.
+ *
+ * O recorte é por ARQUIVO, e não pelo número, e o motivo é o próprio incidente que criou esta
+ * trava: o que vazou no juris-text.js era o CPF DA DONA. Liberar o número em qualquer lugar
+ * deixaria passar exatamente aquele caso de novo. Liberado só onde ele é obrigatório, um
+ * mesmo número aparecendo em qualquer outro arquivo continua abortando o build. */
+const ARQUIVOS_DO_CONTROLADOR = new Set(['termos.html', 'privacidade.html']);
+
+/** Dígitos do cnpjCpf declarado em docs/juridico/controlador.json, ou null se não houver.
+ *  O caminho sai da localização DESTE arquivo, e não de process.cwd(): a suíte e os builds
+ *  rodam de pastas diferentes, e um cwd inesperado faria a exceção sumir em silêncio — o
+ *  build voltaria a abortar sem ninguém entender por quê. */
+function numeroDoControlador() {
+  try {
+    const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
+    const p = join(raiz, 'docs', 'juridico', 'controlador.json');
+    const d = (JSON.parse(readFileSync(p, 'utf8')).cnpjCpf || '').replace(/\D/g, '');
+    return d.length >= 11 ? d : null;
+  } catch (_) { return null; }
+}
+
 /** Varre `dir`. Devolve a lista de ocorrências; lança se `abortar` e houver alguma. */
 export function verificarPII(dir, { abortar = true, rotulo = dir } = {}) {
   const achados = [];
+  const doControlador = numeroDoControlador();
   for (const arq of arquivos(dir)) {
     const txt = readFileSync(arq, 'utf8');
+    const ehDocumentoJuridico = ARQUIVOS_DO_CONTROLADOR.has(basename(arq).toLowerCase());
     for (const { nome, re } of PADROES) {
       re.lastIndex = 0;
       let hits = txt.match(re);
       // Nos padrões de CPF, só conta o que valida: número de exemplo em modelo de peça
       // (o "111.222.333-33" dos espelhos) não é dado de ninguém.
       if (hits && /CPF/i.test(nome)) hits = hits.filter(cpfValido);
+      // …e, nos dois documentos jurídicos, o número do próprio controlador está ali por dever legal.
+      if (hits && doControlador && ehDocumentoJuridico) {
+        hits = hits.filter((h) => String(h).replace(/\D/g, '') !== doControlador);
+      }
       if (hits && hits.length) achados.push({ arq, tipo: nome, quantos: hits.length, exemplo: hits[0] });
     }
   }
