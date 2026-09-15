@@ -99,6 +99,21 @@ struct JurisCompactoRaiz: View {
     @Environment(LibraryStore.self) private var store
     @State private var caminho: [JurisDestinoCompacto] = []
 
+    /// SÓ NO SIMULADOR: `-jurisVerbete` abre um verbete já na inicialização. Sem isto a
+    /// inspeção do verbete no iPhone dependia de alguém TOCANDO na tela — e sem o
+    /// Simulator.app não há toque. Foi assim que o texto vazando passou despercebido.
+    private func abrirPorArgumento() {
+        #if targetEnvironment(simulator)
+        guard caminho.isEmpty, !store.entries.isEmpty else { return }
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-jurisVerbete") else { return }
+        let alvo = (i + 1 < args.count && !args[i + 1].hasPrefix("-")) ? args[i + 1].lowercased() : ""
+        let e = alvo.isEmpty ? store.entries.first
+                             : store.entries.first { $0.titulo.lowercased().contains(alvo) } ?? store.entries.first
+        if let e { DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { caminho = [.verbete(e.id)] } }
+        #endif
+    }
+
     var body: some View {
         NavigationStack(path: $caminho) {
             Group {
@@ -119,6 +134,7 @@ struct JurisCompactoRaiz: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) { JurisBarraCompacta() }
             }
+            .onAppear { abrirPorArgumento() }
             .navigationDestination(for: JurisDestinoCompacto.self) { destino in
                 switch destino {
                 case .secoes:

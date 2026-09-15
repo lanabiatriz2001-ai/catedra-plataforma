@@ -195,6 +195,23 @@ struct ContentView: View {
             .toolbar { barraCompacta }
             .navigationDestination(for: NavRoute.self) { route in destino(route) }
         }
+        .onAppear { abrirPorArgumento() }
+    }
+
+    /// SÓ NO SIMULADOR: `-legisLei [trecho do nome]` abre o leitor de uma norma já na
+    /// inicialização. Existe porque a inspeção das telas internas (leitor, leitura ativa,
+    /// marcação) exigia alguém TOCANDO na tela — sem o Simulator.app não há toque, e sem
+    /// entrar nessas telas os defeitos de largura no iPhone passavam despercebidos.
+    private func abrirPorArgumento() {
+        #if targetEnvironment(simulator)
+        guard path.isEmpty else { return }
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-legisLei") else { return }
+        let alvo = (i + 1 < args.count && !args[i + 1].hasPrefix("-")) ? args[i + 1].lowercased() : ""
+        let lei = alvo.isEmpty ? store.laws.first
+                               : store.laws.first { $0.title.lowercased().contains(alvo) } ?? store.laws.first
+        if let lei { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { path.append(.reader(lei.id)) } }
+        #endif
     }
 
     /// Destinos da pilha — os mesmos nos dois corpos.
@@ -244,6 +261,9 @@ struct ContentView: View {
     private var cronometroCompacto: some View {
         HStack(spacing: 2) {
             Text(clock.formatted).font(Typo.num(15))
+                // No iPhone a barra aperta e o "00:00" quebrava em duas linhas ("00:" / "00"):
+                // uma linha só, no tamanho natural do texto.
+                .lineLimit(1).fixedSize(horizontal: true, vertical: false)
                 .foregroundStyle(clock.running ? ThemeState.t.accent : AppTheme.secondaryInk)
                 .accessibilityLabel(clock.running ? "Em curso, \(clock.formatted)" : "Estudo, \(clock.formatted)")
             Button { clock.togglePlay() } label: {

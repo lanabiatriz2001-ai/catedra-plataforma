@@ -67,6 +67,15 @@ struct MarkableArticleView: UIViewRepresentable {
         textView.onCommand = { [weak coordinator = context.coordinator] cmd in
             coordinator?.parent.onCommand(cmd)
         }
+        // A LARGURA REAL manda. Sem isto, a coluna ficava com a largura da primeira medição
+        // (a proposta do SwiftUI naquele instante) e, quando a view nascia mais estreita —
+        // o iPhone a 390 pt —, o texto continuava desenhado largo e VAZAVA pela direita:
+        // "A República Federativa do Brasil," cortado no meio. A leitura corrida já escutava
+        // este aviso; o leitor de estudo, não.
+        textView.onLarguraMudou = { [weak coordinator = context.coordinator] largura in
+            guard let coordinator, let tv = coordinator.textView else { return }
+            coordinator.parent.remeasure(tv, coordinator: coordinator, force: true, largura: largura)
+        }
         textView.acoesExtras = acoesExtras
 
         controller.textView = textView
@@ -98,12 +107,24 @@ struct MarkableArticleView: UIViewRepresentable {
         remeasure(textView, coordinator: context.coordinator, force: changed || annChanged)
     }
 
+    /// O SwiftUI PERGUNTA o tamanho antes de posicionar. Sem esta resposta ele usava o
+    /// tamanho próprio do UITextView (rolagem desligada ⇒ ele se declara do tamanho do
+    /// conteúdo), a coluna ficava mais larga que o cartão e o texto VAZAVA pela direita no
+    /// iPhone — "A República Federativa do Brasi…". Aqui a largura oferecida manda sempre.
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: ReaderTextView, context: Context) -> CGSize? {
+        let largura = proposal.width ?? proposedWidth
+        guard largura > 1 else { return nil }
+        remeasure(uiView, coordinator: context.coordinator, force: false, largura: largura)
+        return CGSize(width: largura, height: max(measuredHeight, 40))
+    }
+
     // Mede a altura do artigo na largura dada pelo SwiftUI (via GeometryReader) e
     // devolve pelo binding — o ScrollView externo então sabe o tamanho real e rola
     // até o fim. Largura EXPLÍCITA no container (widthTracksTextView lê o frame, que
     // às vezes ainda é 0 → media truncava o artigo em ~2/3, prendendo a rolagem).
-    private func remeasure(_ textView: ReaderTextView, coordinator: Coordinator, force: Bool) {
-        let width = proposedWidth
+    fileprivate func remeasure(_ textView: ReaderTextView, coordinator: Coordinator,
+                               force: Bool, largura: CGFloat? = nil) {
+        let width = largura ?? proposedWidth
         // No iPadOS layoutManager e textContainer NÃO são opcionais (no macOS são).
         guard width > 1 else { return }
         let lm = textView.layoutManager
