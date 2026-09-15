@@ -2161,9 +2161,24 @@ window.ctPdfLib = (function(){
                 <sc-if value="{{ cicloBcTemMotivo }}" hint-placeholder-val="{{ false }}">
                   <p class="ct-cb-motivo" style="--ct-item-cor:{{ cicloBcCor }};"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 17l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" stroke-linejoin="round"></path></svg><span>{{ cicloBcMotivo }}</span></p>
                 </sc-if>
+                <sc-if value="{{ cicloBcTemParcial }}" hint-placeholder-val="{{ false }}">
+                  <p class="ct-cb-parcial" style="--ct-item-cor:{{ cicloBcCor }};"><span class="ct-cb-parcial-barra" aria-hidden="true"><i style="width:{{ cicloBcParcialPct }};"></i></span><span class="ct-cb-parcial-tx">{{ cicloBcParcial }}</span></p>
+                </sc-if>
               </div>
               <!-- antes era onNav sem data-view: navegava para lugar nenhum. Agora entra na sala de foco com o bloco carregado. -->
-              <button data-i="{{ cicloBcI }}" onclick="{{ enterFocus }}" class="ct-bc-acao ct-btn">Estudar agora · {{ cicloBcMin }}</button>
+              <div class="ct-bc-acoes">
+                <button data-i="{{ cicloBcI }}" onclick="{{ enterFocus }}" class="ct-bc-acao ct-btn">Estudar agora · {{ cicloBcMin }}</button>
+                <span class="ct-bc-acoes-min">
+                <button class="ct-alvo ct-cb-mini" data-i="{{ cicloBcI }}" onclick="{{ toggleBlock }}" title="Concluir esta atividade (abre o registro)" aria-label="Concluir {{ cicloBcDisc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                <sc-if value="{{ cicloBcPodeParcial }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-alvo ct-cb-mini" data-i="{{ cicloBcI }}" onclick="{{ registrarParcial }}" title="Registrar o que já estudou e deixar a atividade em aberto" aria-label="Registrar parcial de {{ cicloBcDisc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke-linecap="round"></path></svg></button>
+                </sc-if>
+                <sc-if value="{{ cicloBcTemAcervo }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-alvo ct-cb-mini" data-i="{{ cicloBcI }}" data-alvo="legis" onclick="{{ abrirAcervoDoBloco }}" title="Abrir a legislação deste assunto no CátedraLEGIS" aria-label="Legislação de {{ cicloBcDisc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7z" stroke-linejoin="round"></path></svg></button>
+                  <button class="ct-alvo ct-cb-mini" data-i="{{ cicloBcI }}" data-alvo="juris" onclick="{{ abrirAcervoDoBloco }}" title="Abrir a jurisprudência deste assunto no CátedraJURIS" aria-label="Jurisprudência de {{ cicloBcDisc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M5 9l7-5 7 5M4 18h16" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                </sc-if>
+                </span>
+              </div>
             </div>
             <div class="ct-bc-apoio">
               <div class="ct-bc-apoio-t">material deste bloco</div>
@@ -2186,11 +2201,21 @@ window.ctPdfLib = (function(){
                 <sc-if value="{{ b.temMotivo }}" hint-placeholder-val="{{ false }}">
                   <div class="ct-cb-motivo"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 17l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" stroke-linejoin="round"></path></svg><span>{{ b.motivo }}</span></div>
                 </sc-if>
+                <sc-if value="{{ b.temParcial }}" hint-placeholder-val="{{ false }}">
+                  <div class="ct-cb-parcial"><span class="ct-cb-parcial-barra" aria-hidden="true"><i style="width:{{ b.parcialPct }};"></i></span><span class="ct-cb-parcial-tx">{{ b.parcialTxt }}</span></div>
+                </sc-if>
               </div>
               <div class="ct-item-fim">
                 <span class="ct-dado ct-cb-min">{{ b.min }} min</span>
                 <sc-if value="{{ b.notDone }}" hint-placeholder-val="{{ true }}">
                   <button class="ct-btn ct-cb-foco" data-i="{{ b.i }}" onclick="{{ enterFocus }}" title="Abrir a sala de foco com este bloco"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>Foco</button>
+                </sc-if>
+                <sc-if value="{{ b.podeParcial }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" onclick="{{ registrarParcial }}" title="Registrar o que já estudou e deixar a atividade em aberto" aria-label="Registrar parcial de {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke-linecap="round"></path></svg></button>
+                </sc-if>
+                <sc-if value="{{ b.temAcervo }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" data-alvo="legis" onclick="{{ abrirAcervoDoBloco }}" title="Abrir a legislação deste assunto no CátedraLEGIS" aria-label="Legislação de {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7z" stroke-linejoin="round"></path></svg></button>
+                  <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" data-alvo="juris" onclick="{{ abrirAcervoDoBloco }}" title="Abrir a jurisprudência deste assunto no CátedraJURIS" aria-label="Jurisprudência de {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M5 9l7-5 7 5M4 18h16" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
                 </sc-if>
                 <span class="ct-cb-acoes">
                   <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" data-dir="-1" onclick="{{ moveBlock }}" disabled="{{ b.naoSobe }}" title="Subir" aria-label="Subir {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
@@ -5855,7 +5880,7 @@ window.ctPdfLib = (function(){
                 <div class="ct-hist-linha" style="display:grid;grid-template-columns:64px 1.3fr 1.6fr 116px 60px 60px 60px 64px;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);font-size:var(--fs-base);">
                   <span style="color:var(--text3);font-size:var(--fs-sm);">{{ s.dateStr }}</span>
                   <span style="display:flex;align-items:center;gap:7px;min-width:0;"><span style="width:8px;height:8px;border-radius:99px;background:{{ s.color }};flex:none;"></span><span style="color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.discShort }}</span></span>
-                  <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.topico }}</span>
+                  <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.topico }}<sc-if value="{{ s.temOrigem }}" hint-placeholder-val="{{ false }}"><span class="ct-hist-origem" title="{{ s.origemTitulo }}">{{ s.origemTxt }}</span></sc-if></span>
                   <span style="font-size:var(--fs-sm);color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.catEmojis }} {{ s.catLabel }}</span>
                   <span style="font-family:var(--mono);color:var(--text2);font-size:var(--fs-sm);">{{ s.minStr }}</span>
                   <span style="font-weight:600;color:{{ s.accColor }};">{{ s.accStr }}</span>
@@ -6936,6 +6961,13 @@ class Component extends DCLogic {
           this._marcarPonto('prioridade', {disc:de.disc||''});
           return;
         }
+        // veio do cartão de uma atividade do ciclo: a volta é para o Ciclo, não para o
+        // Processo e peças (que era o destino padrão de toda origem desconhecida)
+        if(de && de.view==='ciclo'){
+          this.setState({view:'ciclo', acervoDe:null, acervoBusca:'', origemAbrir:''});
+          this._marcarPonto('ciclo', {});
+          return;
+        }
         const v=(de&&de.view==='roteiros')?'roteiros':'areamod';
         const q=[];
         if(de&&de.rito) q.push('rito='+encodeURIComponent(de.rito));
@@ -7025,6 +7057,7 @@ class Component extends DCLogic {
         const n=+e.data.lidos||0; if(n<1) return;
         const sigla=String(e.data.sigla||''), lei=String(e.data.lei||''), faixa=String(e.data.faixa||'');
         try{ window.catedraOpenStudyRegistration({ auto:true, origem:'CátedraLEGIS · leitura ativa', categoria:'Lei seca',
+          leiId:String(e.data.leiId||''),
           disc:this._laDisciplina({sigla, leiId:String(e.data.leiId||'')}), topico:((sigla||lei)+(faixa?' · '+faixa:'')).slice(0,120),
           min:Math.max(1, Math.round(+e.data.min||1)), nota:n+' dispositivo'+(n>1?'s':'')+' lido'+(n>1?'s':'')+' ativamente' }); }catch(_){}
         return;
@@ -7259,6 +7292,11 @@ class Component extends DCLogic {
           disc: disc || fresh.disc, discCustom:false, topico: topico,
           categorias:[cat], categoria:cat,
           minutos: min>0 ? String(min) : '', nota: nota, foco:3,   // neutro — ela ajusta
+          // Origem legível por máquina (não só no texto do tópico): é o que deixa o
+          // histórico e o Desempenho dizerem DE ONDE cada número veio. leiId prende a
+          // sessão ao dispositivo lido, sem duplicar o cadastro do conteúdo.
+          origem:(String(info.origem||'').indexOf('JURIS')>=0?'juris':'legis'),
+          leiId:String(info.leiId||''),
           _ext:true   // registro vindo do LEGIS/JURIS: NÃO mexe no cronômetro do app
         }
       };});
@@ -9110,8 +9148,67 @@ class Component extends DCLogic {
     if(b[i].srcId && b[i].srcDate){ const fe={...(this.state.agendaFeitas||{})}; const k=b[i].srcId+'|'+b[i].srcDate; if(willDone) fe[k]=true; else delete fe[k]; extra.agendaFeitas=fe; }
     if(willDone){ // concluiu → SEMPRE abre o registro preenchido (ela confere e salva — nada grava sozinho)
       const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60);
-      this.setState(s=>({blocks:b, ...extra, sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._blockToDraft(b[i], s.sessionDraft), minutos: pre>0?String(pre):String(b[i].min||'')}}));
+      // Concluir desconta o que já foi registrado em parciais: quem fez 30 min de um bloco
+      // de 90 e agora fecha vê 60, não 90 — senão o tempo dos parciais era contado duas vezes.
+      const _jaMin=this._atvMin(this._atvChave(b[i]));
+      const _resta=Math.max(0, (parseInt(b[i].min,10)||0)-_jaMin);
+      this.setState(s=>({blocks:b, ...extra, sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._blockToDraft(b[i], s.sessionDraft), concluiu:true, minutos: pre>0?String(pre):String(_resta||'')}}));
     } else { this.setState({blocks:b, ...extra}); } };
+  /* Do ciclo para o acervo: leva o ASSUNTO (tópico do edital, senão a disciplina) para a
+     busca do CátedraLEGIS/CátedraJURIS. Abrir uma lei ou um julgado NÃO marca leitura nem
+     conclusão — o progresso continua vindo só de ação identificável (conferir a leitura
+     ativa, registrar a sessão). Aqui é só o caminho, e o caminho não estuda por ninguém. */
+  abrirAcervoDoBloco = (e)=>{ const _di=e.currentTarget.dataset.i; const alvo=e.currentTarget.dataset.alvo==='juris'?'juris':'legis';
+    if(_di==null||_di==='') return; const b=this.state.blocks[+_di]; if(!b) return;
+    const termo=String(b.topico||b.discEdital||b.disc||'').trim();
+    if(this._irPara(alvo, {acervoBusca:termo, acervoDe:{view:'ciclo', disc:String(b.discEdital||b.disc||'')}, origemAbrir:''})==='indisponivel') return;
+    this._marcarPonto(alvo, {termo});
+  };
+  /* PARCIAL — "estudei um pedaço e paro aqui". Abre o mesmo registro do concluir, mas a
+     atividade NÃO fecha: o tempo entra no histórico com o vínculo (atvKey) e o bloco volta
+     a aparecer amanhã mostrando quanto já foi feito. É o que separa tempo estudado de
+     conteúdo concluído — uma sessão encerrada não é assunto dominado. */
+  registrarParcial = (e)=>{ const _di=e.currentTarget.dataset.i; if(_di==null||_di==='') return;
+    const i=+_di, b=this.state.blocks[i]; if(!b) return;
+    if(!this._atvChave(b)){ this._toast('Bloco avulso não guarda parcial — conclua ou registre pelo cronômetro'); return; }
+    const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60);
+    const resta=Math.max(0,(parseInt(b.min,10)||0)-this._atvMin(this._atvChave(b)));
+    this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false,
+      sessionDraft:{...this._blockToDraft(b, s.sessionDraft), concluiu:false, minutos: pre>0?String(pre):String(Math.min(resta||25,25))}}));
+    this._toast('Parcial de '+String(b.disc||'bloco')+' — a atividade continua em aberto');
+  };
+  /* O par do _reabrirAtividade: desfazer a exclusão (ou restaurar da lixeira) a sessão que
+     fechou a atividade fecha a atividade de novo — voltar atrás volta inteiro. */
+  _fecharAtividade(rec){
+    if(!rec || !rec.concluiu || !rec.atvKey) return;
+    const k=String(rec.atvKey), patch={};
+    if(k.slice(0,3)==='ag|'){ patch.agendaFeitas={...(this.state.agendaFeitas||{}), [k.slice(3)]:true}; }
+    else if(k.slice(0,3)==='vt|'){ const V=this.state.cicloVolta;
+      if(V&&V.blocos) patch.cicloVolta={...V, blocos:V.blocos.map(x=>x.id===k.slice(3)?{...x, done:true, doneDate:this._hoje()}:x)}; }
+    else if(k.slice(0,3)==='rt|'){ const rot=(this.state.manualRot||[]).map(x=>x.id===k.slice(3)?{...x, done:true, doneDate:this._hoje()}:x);
+      patch.manualRot=rot; patch.rotPointer=this._rotPonteiro(rot); }
+    if(!Object.keys(patch).length) return;
+    patch.blocks=(this.state.blocks||[]).map(b=>this._atvChave(b)===k?{...b, done:true}:b);
+    this.setState(patch); this.flashSync();
+  }
+  /* Excluir (ou mandar para a lixeira) a sessão que FECHOU uma atividade reabre a atividade:
+     o histórico e o planejamento voltam a dizer a mesma coisa. Só a sessão com concluiu=true
+     reabre — apagar um parcial apenas tira aquele tempo da conta (que é derivada). */
+  _reabrirAtividade(rec){
+    if(!rec || !rec.concluiu || !rec.atvKey) return;
+    const k=String(rec.atvKey);
+    const patch={};
+    if(k.slice(0,3)==='ag|'){ const fe={...(this.state.agendaFeitas||{})}; const kk=k.slice(3);
+      if(fe[kk]!==undefined){ delete fe[kk]; patch.agendaFeitas=fe; } }
+    else if(k.slice(0,3)==='vt|'){ const V=this.state.cicloVolta;
+      if(V&&V.blocos) patch.cicloVolta={...V, blocos:V.blocos.map(x=>x.id===k.slice(3)?{...x, done:false, doneDate:''}:x)}; }
+    else if(k.slice(0,3)==='rt|'){ const rot=(this.state.manualRot||[]).map(x=>x.id===k.slice(3)?{...x, done:false, doneDate:''}:x);
+      patch.manualRot=rot; patch.rotPointer=this._rotPonteiro(rot); }
+    if(!Object.keys(patch).length) return;
+    patch.blocks=(this.state.blocks||[]).map(b=>this._atvChave(b)===k?{...b, done:false}:b);
+    this.setState(patch, ()=>{ try{ this._toast('Atividade do ciclo reaberta — a sessão que a fechou saiu do histórico'); }catch(_){} });
+    this.flashSync();
+  }
   // Adaptação por energia: blocos mais CURTOS em dias de baixa energia, mais longos na alta.
   _enMult(){ const O=this.state.orient||{}; const e=O.energiaPlano||O.energia||'normal'; return e==='baixa'?0.7:(e==='alta'?1.2:1); }
   // 'Lei seca' e 'Jurisprudência' só existem em prova jurídica: fora do Direito, os
@@ -9725,6 +9822,48 @@ class Component extends DCLogic {
   // cor de categoria consciente do modo: par d quando existir, senão o claro/token
   _catCor(kind){ const m=CT_CAT_META[kind]; if(!m) return 'var(--accent)';
     return (this.state.darkMode && m.d) ? m.d : m.c; }
+  /* ===== VÍNCULO SESSÃO ↔ ATIVIDADE DO CICLO =====
+     A atividade do ciclo e a sessão registrada eram dois mundos: o bloco pré-preenchia o
+     registro e ali o fio se cortava. Sem fio, "tempo estudado" não voltava para a atividade,
+     sessão parcial não existia (ou concluía o bloco, ou não contava nada) e apagar a sessão
+     deixava a atividade fechada por um estudo que não existe mais.
+     A chave é a OCORRÊNCIA da atividade (item da agenda + dia, bloco da volta, bloco do
+     ciclo manual) — não o bloco na tela, que é derivado e se recompõe a cada dia. */
+  _atvChave(b){
+    if(!b) return '';
+    if(b.srcId && b.srcDate) return 'ag|'+b.srcId+'|'+b.srcDate;
+    if(b.voltaId) return 'vt|'+b.voltaId;
+    if(b.rotId) return 'rt|'+b.rotId;
+    return '';
+  }
+  /* Minutos já registrados numa atividade. DERIVADO das sessões, nunca gravado: é o que
+     faz editar, cancelar ou excluir uma sessão corrigir o ciclo sozinho, sem uma segunda
+     contagem para manter em dia (e sem contar o mesmo tempo duas vezes). */
+  _atvMin(chave){
+    if(!chave) return 0;
+    let t=0; (this.state.sessions||[]).forEach(x=>{ if(x && x.atvKey===chave) t+=Math.max(0,+x.min||0); });
+    return t;
+  }
+  /* Ramo do acervo a que a disciplina pertence — o caminho inverso do _laDisciplina, para
+     que do assunto do ciclo/edital se chegue à legislação e à jurisprudência sem procurar
+     de novo. Decidido só pelo NOME da disciplina, de propósito: o catálogo (leis-catalogo.js)
+     é carregado sob demanda ao entrar no LEGIS, e esperar por ele para saber se o botão
+     aparece faria o atalho piscar (ou sumir) conforme a pessoa já tivesse passado por lá. */
+  _ramoAcervo(disc){
+    const d=String(disc||'').toLowerCase(); if(!d) return '';
+    try{ if(!CT_AREA(this.state.areaEstudo).juridico) return ''; }catch(_){}
+    const CAT={constitucional:['constitucional'], civil:['civil'], penal:['penal'], administrativo:['administrativo'],
+      tributario:['tributário','tributario'], trabalho:['trabalho'], empresarial:['empresarial','comercial'],
+      ambiental:['ambiental'], consumidor:['consumidor'], eleitoral:['eleitoral'],
+      previdenciario:['previdenciário','previdenciario'], internacional:['internacional'], financeiro:['financeiro']};
+    return Object.keys(CAT).find(k=>CAT[k].some(p=>d.indexOf(p)>=0))||'';
+  }
+  /* As leis daquele ramo, quando o catálogo já está carregado. Vazio não quer dizer
+     "não existe lei": quer dizer "o catálogo ainda não foi lido". */
+  _leisDaDisciplina(disc){
+    const r=this._ramoAcervo(disc); if(!r) return [];
+    try{ return (window.CT_LEIS_CAT||[]).filter(l=>String(l.c||'')===r); }catch(_){ return []; }
+  }
   _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind);
     // Se o bloco tem vínculo com o edital (disciplina + tópico da Agenda da semana),
     // a sessão nasce vinculada — e o progresso do edital/domínio conta certo.
@@ -9734,7 +9873,10 @@ class Component extends DCLogic {
     const _edTop=this._topicosDe(disc).some(t=>String(t.name||'').trim()===String(topico||'').trim())?topico:'';
     // o subtópico do bloco vira o subtópico da sessão — é o que dá granularidade ao
     // domínio por tópico; sem isto o registro voltava para "o tópico inteiro".
-    return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:[cat], categoria:cat}; }
+    // atvKey é o fio que leva a sessão de volta à atividade: tempo parcial, origem do
+    // indicador e reabertura da atividade quando a sessão é excluída dependem só dele.
+    return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:[cat], categoria:cat,
+      atvKey:this._atvChave(b), origem:'ciclo'}; }
   openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
     const n=(this._extRegQueue||[]).length;
@@ -9934,7 +10076,12 @@ class Component extends DCLogic {
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000),
       disc:_disc, topico:d.topico.trim()|| (mat&&mat.titulo) || _cats0, categoria:_cats0, categorias:_catsArr,
       edTop:(d.edTop||'').trim()||null, edSub:(d.edSub||'').trim()||null,   // vínculo com o edital (tópico · subtópico)
-      min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, foco:d.foco, nota:d.nota.trim(), materialId:d.materialId||null, countMeta:d.contarMeta!==false };
+      min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, foco:d.foco, nota:d.nota.trim(), materialId:d.materialId||null, countMeta:d.contarMeta!==false,
+      // De onde o indicador veio (ciclo, LEGIS, JURIS, registro à mão) e a qual atividade
+      // do ciclo ele pertence. `concluiu` distingue "estudei um pedaço" de "fechei a
+      // atividade": só a sessão que fechou reabre o bloco se for excluída depois.
+      origem:String(d.origem||'manual'), atvKey:String(d.atvKey||'')||null,
+      leiId:String(d.leiId||'')||null, concluiu:!!d.concluiu };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     const patch={ sessions, sessionModalOpen:false, sessionDraft:this._freshSessionDraft(d) };
     if(!_ext){ patch.studiedSeconds=0; patch.timerSeconds=0; patch.timerRunning=false; }
@@ -13755,20 +13902,20 @@ class Component extends DCLogic {
               const lix=[{...alvo, _delAt:Date.now()}, ...(s.sessionsLixeira||[])];
               try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){}
               return {sessions, sessionsLixeira:lix};
-            }, ()=>this.flashSync()); },
+            }, ()=>{ this.flashSync(); try{ this._reabrirAtividade(alvo); }catch(_){} }); },
       ()=>{ this.setState(s=>{
               const lix=(s.sessionsLixeira||[]).filter(x=>x.id!==id);
               const rec={...alvo}; delete rec._delAt; rec.up=Date.now();   // carimbo novo: vence a lápide
               const sessions=[rec, ...(s.sessions||[])].sort((a,b)=>(b.ts||0)-(a.ts||0));
               try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){}
               return {sessions, sessionsLixeira:lix};
-            }, ()=>this.flashSync()); });
+            }, ()=>{ this.flashSync(); try{ this._fecharAtividade(alvo); }catch(_){} }); });
   };
 
   // Limpar histórico inteiro = tudo para a lixeira de uma vez.
   limparHistorico = ()=>{ const n=(this.state.sessions||[]).length; if(!n){ this._toast('Histórico já está vazio'); return; } if(!window.confirm('Mover as '+n+' sessões do histórico para a lixeira? Você poderá restaurar depois.')) return; this.setState(s=>{ const marc=(s.sessions||[]).map(x=>({...x, _delAt:Date.now()})); const lix=[...marc, ...(s.sessionsLixeira||[])]; try{ this._saveSessions([]); this._saveLixeira(lix); }catch(_){} return {sessions:[], sessionsLixeira:lix}; }); try{ this._toast(n+' sessões movidas para a lixeira ✦'); }catch(_){} this.flashSync(); };
   toggleLixeira = ()=> this.setState(s=>({histLixeiraOpen:!s.histLixeiraOpen}));
-  restoreSession = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const alvo=(s.sessionsLixeira||[]).find(x=>x.id===id); if(!alvo) return {}; const lix=s.sessionsLixeira.filter(x=>x.id!==id); const rec={...alvo}; delete rec._delAt; rec.up=Date.now(); /* carimbo: restauração vence a exclusão no merge entre aparelhos */ const sessions=[rec, ...(s.sessions||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)); try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){} return {sessions, sessionsLixeira:lix}; }); try{ this._toast('Sessão restaurada ✦'); }catch(_){} try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} this.flashSync(); };
+  restoreSession = (e)=>{ const id=e.currentTarget.dataset.id; const _alvo=(this.state.sessionsLixeira||[]).find(x=>x.id===id); this.setState(s=>{ const alvo=(s.sessionsLixeira||[]).find(x=>x.id===id); if(!alvo) return {}; const lix=s.sessionsLixeira.filter(x=>x.id!==id); const rec={...alvo}; delete rec._delAt; rec.up=Date.now(); /* carimbo: restauração vence a exclusão no merge entre aparelhos */ const sessions=[rec, ...(s.sessions||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)); try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){} return {sessions, sessionsLixeira:lix}; }); try{ this._toast('Sessão restaurada ✦'); }catch(_){} try{ this._fecharAtividade(_alvo); }catch(_){} try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} this.flashSync(); };
   purgeSession = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const lix=(s.sessionsLixeira||[]).filter(x=>x.id!==id); try{ this._saveLixeira(lix); }catch(_){} return {sessionsLixeira:lix}; }); this.flashSync(); };
   esvaziarLixeira = ()=>{ const n=(this.state.sessionsLixeira||[]).length; if(!n) return; if(!window.confirm('Apagar DE VEZ as '+n+' sessões da lixeira? Isso não pode ser desfeito.')) return; this.setState(()=>{ try{ this._saveLixeira([]); }catch(_){} return {sessionsLixeira:[]}; }); try{ this._toast('Lixeira esvaziada'); }catch(_){} this.flashSync(); };
   openHistEdit = (e)=>{ const id=e.currentTarget.dataset.id; const r=this.state.sessions.find(x=>x.id===id); if(!r) return;
@@ -14553,7 +14700,16 @@ class Component extends DCLogic {
       naoDesce:(_fqOn || i===arr.length-1 || !(b.voltaId||b.rotId) || !((arr[i+1]||{}).voltaId||(arr[i+1]||{}).rotId)),
       ehExtra:!!b.extra,
       chkLabel:(b.done?'Desmarcar ':'Concluir ')+String(b.disc||'bloco'),
-      strike: b.done?'line-through':'none'}));
+      strike: b.done?'line-through':'none',
+      // PARCIAL: tempo já registrado nesta atividade, somado das sessões (derivado — some
+      // sozinho quando a sessão é apagada). Só aparece com o bloco ainda em aberto.
+      ...(()=>{ const k=this._atvChave(b), fez=this._atvMin(k), alvo=parseInt(b.min,10)||0;
+        return { atvKey:k, podeParcial:!!k && !b.done,
+          temParcial:(!b.done && fez>0),
+          parcialTxt: fez>0 ? (fez+' de '+alvo+' min já registrados') : '',
+          parcialPct: (alvo>0 ? Math.min(100, Math.round(fez/alvo*100)) : 0)+'%' }; })(),
+      // Legislação e jurisprudência do assunto, a um toque. ABRIR NÃO MARCA NADA: só leva.
+      temAcervo: !!this._ramoAcervo(b.discEdital||b.disc)}));
     // o filtro vale para a LISTA; os KPIs do dia seguem contando o dia inteiro
     const blocksTodos = blocks;
     const cicloRestamCalc=(bs)=>{ const n=bs.filter(b=>!b.done).length; return n+' bloco'+(n===1?'':'s')+' em aberto hoje'; };
@@ -14577,6 +14733,14 @@ class Component extends DCLogic {
     const cicloRestam = cicloTotal - cicloDone;
     const cicloBcI = _bcFoco ? String(_bcFoco.i) : '';
     const cicloBcMotivo = _bcFoco ? String(_bcFoco.motivo||'') : '';
+    // A bancada é o bloco DE AGORA e existe em todo modo (a lista plana só aparece fora do
+    // manual com agenda por dia). É aqui, então, que moram o parcial e o caminho para o
+    // acervo — senão quem usa agenda da semana nunca os via.
+    const cicloBcParcial = _bcFoco ? String(_bcFoco.parcialTxt||'') : '';
+    const cicloBcTemParcial = !!cicloBcParcial;
+    const cicloBcParcialPct = _bcFoco ? String(_bcFoco.parcialPct||'0%') : '0%';
+    const cicloBcPodeParcial = !!(_bcFoco && _bcFoco.podeParcial);
+    const cicloBcTemAcervo = !!(_bcFoco && _bcFoco.temAcervo);
     // LINHA DO CICLO: a VOLTA inteira, não só o dia — um trecho por bloco, largura proporcional
     // aos minutos, na cor da matéria. feito = cheio e escuro; hoje = cheio com anel; por vir =
     // lavado (sem clique). Os extras do dia (revisão vencida, simulado, flashcards) entram antes,
@@ -16399,7 +16563,15 @@ class Component extends DCLogic {
       return { id:s.id, disc:s.disc||'—', discShort:(s.disc||'—').replace('Direito ',''), color:_histCol[s.disc]||'#0f7a57', topico:_tLabel, categoria:s.categoria||'—', catLabel:_sc.join(' · ')||'—', catEmojis:_sc.map(c=>_histCat[c]||'•').join(''), catEmoji:_histCat[s.categoria]||'•',
         dateStr:(()=>{ try{ return new Date(s.ts||(s.date+'T12:00:00')).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return s.date||''; } })(),
         minStr:(s.min||0)+' min', accStr:acc!=null?acc+'%':'—', accColor:acc==null?'var(--text3)':(acc>=80?'var(--ok)':acc>=60?'var(--warn)':'var(--danger)'),
-        liqStr:q?(liq>0?'+'+liq:String(liq)):'—', liqColor:liq>0?'var(--ok)':(liq<0?'var(--danger)':'var(--text3)') }; });
+        liqStr:q?(liq>0?'+'+liq:String(liq)):'—', liqColor:liq>0?'var(--ok)':(liq<0?'var(--danger)':'var(--text3)'),
+        // DE ONDE VEIO o número: ciclo, CátedraLEGIS, CátedraJURIS. Sem o selo, o histórico
+        // dizia quanto e não dizia de onde — e todo indicador que ele alimenta herdava a
+        // mesma cegueira. `parcial` separa o pedaço estudado da atividade fechada.
+        ...(()=>{ const o=String(s.origem||'');
+          const T={ciclo:(s.concluiu?'ciclo':'ciclo · parcial'), legis:'LEGIS', juris:'JURIS'}[o]||'';
+          return { temOrigem:!!T, origemTxt:T,
+            origemTitulo:{ciclo:(s.concluiu?'Registrada ao concluir uma atividade do ciclo':'Parcial de uma atividade do ciclo, que seguiu em aberto'),
+              legis:'Leitura de lei no CátedraLEGIS', juris:'Estudo de jurisprudência no CátedraJURIS'}[o]||'' }; })() }; });
     const _histFilter=this.state.historicoFilter||'';
     const histList=_histFilter?histAll.filter(s=>s.disc===_histFilter):histAll;
     const histDiscs=[...new Set(this.state.sessions.map(s=>s.disc).filter(Boolean))];
@@ -17175,7 +17347,7 @@ class Component extends DCLogic {
       setOralBancaCarr:this.setOralBancaCarr, setOralBancaBanca:this.setOralBancaBanca,
       onOralBancaQ:this.onOralBancaQ, toggleOralOuro:this.toggleOralOuro,
       abrirConcursoOral:this.abrirConcursoOral, voltarConcursoOral:this.voltarConcursoOral,
-      toggleBlock:this.toggleBlock, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
+      toggleBlock:this.toggleBlock, registrarParcial:this.registrarParcial, abrirAcervoDoBloco:this.abrirAcervoDoBloco, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
       cicloFolha, cicloFolhaHeader, roteiroNav:this.roteiroNav, roteiroHoje:this.roteiroHoje,
       reorganizarPorPonto:this.reorganizarPorPonto, desfazerReorg:this.desfazerReorg,
       temDesfazerReorg:!!this.state.cicloDesfazer, desfazerReorgN:String((this.state.cicloDesfazer&&this.state.cicloDesfazer.n)||0),
@@ -17238,6 +17410,7 @@ class Component extends DCLogic {
       cicloSemana, cicloListaFlat, toggleAgendaDia:this.toggleAgendaDia, togglePlanoLegis:this.togglePlanoLegis,
       // faixa do ciclo + linha do dia + inteligente
       cicloLinha, cicloLinhaShow:cicloLinha.length>0, cicloLinhaLegenda, cicloMiniStyle, cicloBcI, cicloBcMotivo, cicloBcTemMotivo:!!cicloBcMotivo,
+      cicloBcParcial, cicloBcTemParcial, cicloBcParcialPct, cicloBcPodeParcial, cicloBcTemAcervo,
       cicloVoltaN:String(cicloVoltaN), cicloVoltaFeitos:String(cicloVoltaFeitos), cicloVoltaTotal:String(cicloVoltaTotal), cicloVoltaShow:cicloVoltaTotal>0,
       cicloPlanejado:_cHM(cicloPlanMin), cicloPlanejadoLbl:(cicloMetaMin?('planejado · meta '+_cHM(cicloMetaMin)):'planejado hoje'),
       puxarProximo:this.puxarProximo, gerarVoltaManual:this.gerarVoltaManual, recomecarVolta:this.recomecarVolta,

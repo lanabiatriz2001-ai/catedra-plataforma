@@ -827,7 +827,12 @@ button.ct-card:hover, a.ct-card:hover {
   letter-spacing: -.025em; line-height: 1.1; margin: 0 0 5px; color: var(--ink, #1f1c17);
 }
 .ct-bc-foco p { margin: 0; font-size: var(--fs-md, 14.5px); color: var(--text2, #5c564a); line-height: 1.55; }
-.ct-bc-foco .ct-bc-acao { margin-top: var(--ct-e4); align-self: flex-start; }
+/* A linha de ação da bancada: o botão grande de estudar e, ao lado, os caminhos curtos —
+   registrar um parcial e abrir a legislação/jurisprudência do assunto. Empilha no toque
+   para os alvos não encolherem abaixo de 44 px. */
+.ct-bc-acoes { display: flex; align-items: center; gap: var(--ct-e3); flex-wrap: wrap; margin-top: var(--ct-e4); }
+.ct-bc-foco .ct-bc-acao { margin-top: 0; align-self: flex-start; }
+.ct-bc-acoes-min { display: inline-flex; align-items: center; gap: 6px; }
 .ct-bc-apoio {
   min-height: 200px; padding: var(--ct-e4);
   border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-lg);
@@ -1167,6 +1172,19 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 }
 .ct-cb-motivo svg { flex: none; margin-top: 1px; }
 .ct-bc-foco .ct-cb-motivo { margin-top: 8px; }
+/* Tempo PARCIAL já registrado numa atividade do ciclo: a barra mostra o quanto, o texto
+   diz de quanto. Existe só enquanto a atividade está em aberto — atividade fechada não
+   negocia mais com o tempo. A cor é a da matéria (token), como o resto do cartão. */
+.ct-cb-parcial { display: flex; align-items: center; gap: 8px; margin: 7px 0 0; }
+.ct-cb-parcial-barra {
+  flex: none; width: 74px; height: 6px; border-radius: 99px; overflow: hidden;
+  background: var(--surface2, #f0ece1);
+}
+.ct-cb-parcial-barra i {
+  display: block; height: 100%; border-radius: 99px;
+  background: var(--ct-item-cor, var(--accent, #0f7a57));
+}
+.ct-cb-parcial-tx { font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a); line-height: 1.4; }
 .ct-cb-min { font-size: var(--fs-base, 13.5px); color: var(--text2, #5c564a); background: var(--surface2, #f0ece1); padding: 5px 10px; border-radius: var(--r-md, 10px); }
 .ct-cb-foco { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; min-height: 36px; }
 
@@ -1369,3 +1387,11 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-ag-add:hover { border-color: var(--accent, #0f7a57); color: var(--accentD, #0b5e43); }
 @media (prefers-reduced-motion: reduce) { .ct-ag-seta { transition: none; } }
 [data-baixa="1"] .ct-ag-seta { transition: none; }
+
+/* Selo de ORIGEM na linha do histórico: de onde o registro veio (ciclo, LEGIS, JURIS).
+   Discreto por desenho — é rastreabilidade, não manchete; contraste de texto secundário. */
+.ct-hist-origem {
+  display: inline-block; margin-left: 7px; padding: 1px 7px; border-radius: 99px;
+  font-size: var(--fs-2xs, 11px); font-weight: 600; letter-spacing: .02em;
+  color: var(--text2, #5c564a); background: var(--surface2, #f0ece1); vertical-align: 1px;
+}
