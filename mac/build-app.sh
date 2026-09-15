@@ -54,10 +54,22 @@ node "$ROOT/scripts/build-macos.mjs"
 # Observation (@Observable) e SettingsLink, disponíveis a partir do macOS 14.
 TARGET="arm64-apple-macos14.0"
 
+# A SDK vai EXPLÍCITA em todo swiftc. Sem `-sdk`, o compilador resolve sozinho e nesta
+# máquina escolheu uma MacOSX26.5.sdk que não existe mais dentro do Xcode (atualizado
+# para o 27): "unable to load standard library", com o build morrendo no 3/5. Perguntar
+# o caminho por nome (`xcrun --sdk macosx`) é o mesmo remédio já usado para os plugins
+# de macro logo abaixo, e não depende do estado das Command Line Tools.
+SDK_PATH="$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
+if [ -z "$SDK_PATH" ] || [ ! -d "$SDK_PATH" ]; then
+  echo "     erro: não achei a SDK do macOS (xcrun --sdk macosx). Confira o xcode-select." >&2
+  exit 1
+fi
+SDK_FLAGS=(-sdk "$SDK_PATH")
+
 echo "→ 2/5  Desenhando o ícone (.icns)…"
 ICONSET="$BUILD/Catedra.iconset"
 rm -rf "$ICONSET"; mkdir -p "$ICONSET"
-swiftc -O -target "$TARGET" "$HERE/Sources/icon.swift" -o "$BUILD/makeicon" -framework AppKit
+swiftc -O -target "$TARGET" "${SDK_FLAGS[@]}" "$HERE/Sources/icon.swift" -o "$BUILD/makeicon" -framework AppKit
 "$BUILD/makeicon" "$ICONSET"
 iconutil -c icns "$ICONSET" -o "$BUILD/AppIcon.icns"
 
@@ -99,7 +111,7 @@ else echo "     aviso: plugins de macro não encontrados em $PLUGIN_DIR — se o
 # Se a fatia Intel falhar (SDK sem suporte na máquina), seguimos só com arm64 avisando,
 # em vez de derrubar o build inteiro.
 compilar_fatia() {
-  swiftc -O -target "$1" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES "$HERE/Sources/main.swift" -o "$2" \
+  swiftc -O -target "$1" "${SDK_FLAGS[@]}" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES "$HERE/Sources/main.swift" -o "$2" \
     -framework Cocoa -framework WebKit -framework UserNotifications -framework SwiftUI \
     -framework Network -framework PDFKit
 }
