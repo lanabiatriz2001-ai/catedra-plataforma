@@ -45,10 +45,22 @@ if [ -z "$SIGN_ID" ]; then
   exit 1
 fi
 
+# A SDK vai EXPLÍCITA no swiftc, pelo mesmo motivo do mac/build-app.sh: sem `-sdk` o
+# compilador resolve sozinho e, com o Xcode em 27, escolhe uma MacOSX26.5.sdk que não existe
+# mais dentro dele — o build morre em "unable to load standard library". Aqui o alvo também
+# é macOS, então o defeito é o mesmo; ele só não tinha aparecido porque este script roda
+# depois do build-app.sh, que já parava antes.
+SDK_PATH="$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
+if [ -z "$SDK_PATH" ] || [ ! -d "$SDK_PATH" ]; then
+  echo "✗ não achei a SDK do macOS (xcrun --sdk macosx). Confira o xcode-select." >&2
+  exit 1
+fi
+SDK_FLAGS=(-sdk "$SDK_PATH")
+
 echo "→ 1/5  Compilando a extensão de widget (WidgetKit)…"
 # -parse-as-library: sem isso, um único .swift com @main é lido como script e o
 # @main é recusado ('main attribute cannot be used in a module with top-level code').
-swiftc -O -target "$TARGET" -parse-as-library "$HERE/$WIDGET_EXEC.swift" \
+swiftc -O -target "$TARGET" "${SDK_FLAGS[@]}" -parse-as-library "$HERE/$WIDGET_EXEC.swift" \
   -o "$BUILD/$WIDGET_EXEC" -framework WidgetKit -framework SwiftUI
 
 echo "→ 2/5  Montando a .appex em Contents/PlugIns…"

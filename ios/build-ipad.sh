@@ -189,7 +189,16 @@ PLIST
 # ── Ícone: mesmo renderizador do Mac (mac/Sources/icon.swift → iconset 16…1024), depois os
 #    tamanhos que o iPad usa. Antes o app chegava ao iPad sem logo nenhuma.
 ICONSET="$BUILD/Catedra.iconset"; rm -rf "$ICONSET"; mkdir -p "$ICONSET"
-if swiftc -O -target arm64-apple-macos14.0 "$ROOT/mac/Sources/icon.swift" -o "$BUILD/makeicon" -framework AppKit 2>/dev/null \
+#    O renderizador é do MAC (roda aqui só para gerar os PNG), então este swiftc pede a SDK do
+#    macOS explícita, pelo motivo do mac/build-app.sh. O agravante é o lugar: falhando DENTRO
+#    deste if, com o stderr em /dev/null, o ícone sumia em SILÊNCIO — e junto com ele o
+#    Assets.car e o CFBundleIconName que o App Store Connect exige (90713). O caminho entra
+#    direto, sem array: xcrun vazio vira `-sdk ""`, que o swiftc recusa com mensagem, e um
+#    array vazio sob `set -u` é justamente o que quebra no bash 3.2 que o macOS traz. Ícone
+#    sem SDK segue degradando em vez de derrubar o build — mas agora dizendo por quê.
+MAC_SDK="$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
+ICONE_LOG="$BUILD/icone-erro.log"
+if swiftc -O -target arm64-apple-macos14.0 -sdk "$MAC_SDK" "$ROOT/mac/Sources/icon.swift" -o "$BUILD/makeicon" -framework AppKit 2>"$ICONE_LOG" \
    && "$BUILD/makeicon" "$ICONSET" >/dev/null 2>&1 && [ -f "$ICONSET/icon_512x512@2x.png" ]; then
   for par in "AppIcon60x60@2x:120" "AppIcon60x60@3x:180" "AppIcon76x76@2x:152" "AppIcon83.5x83.5@2x:167" "AppIcon76x76:76"; do
     nome="${par%%:*}"; px="${par##*:}"
@@ -254,6 +263,7 @@ JSONEOF
   fi
 else
   echo "     ⚠ ícone não gerado (icon.swift/makeicon) — o app vai sem logo"
+  if [ -s "$ICONE_LOG" ]; then echo "       motivo: $(tail -1 "$ICONE_LOG")"; fi
 fi
 # CátedraJURIS nativo: o acervo é um corpus.json EMBUTIDO no bundle. O build do Mac já
 # fazia isso; aqui faltava, e sem ele a aba CátedraJURIS do iPad abria com
