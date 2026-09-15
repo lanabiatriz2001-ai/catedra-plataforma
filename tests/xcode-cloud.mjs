@@ -88,6 +88,29 @@ export async function testarXcodeCloud(ok) {
     .replace(/\/\* Begin PBXFileSystemSynchronizedRootGroup section \*\/[\s\S]*?\/\* End PBXFileSystemSynchronizedRootGroup section \*\/\n/, '');
   ok(antigo !== pbx && problemasDoProjeto(antigo).some((s) => /vendor/.test(s)),
     'XC5 controle: sem a pasta sincronizada o mesmo projeto reprova (a régua enxerga o furo)');
+
+  /* O QUE O XCODE CLOUD MANDA PARA O TESTFLIGHT tem de bater com o que o build-ipad.sh
+     instala nos aparelhos. Os dois caminhos já divergiram em silêncio: o script escrevia
+     UIDeviceFamily 1 e 2 (universal) e o projeto ficou em TARGETED_DEVICE_FAMILY = 2, então
+     o build do TestFlight sairia SÓ PARA IPAD — sem dar para instalar no iPhone. E a
+     resposta de criptografia de exportação existia só no script; sem ela no Info.plist do
+     projeto, o TestFlight prende cada build perguntando antes de liberar aos testadores. */
+  const plist = fs.readFileSync(path.join(IOS, 'Info.plist'), 'utf8');
+  const sh2 = fs.readFileSync(path.join(IOS, 'build-ipad.sh'), 'utf8');
+  const scriptUniversal = /<key>UIDeviceFamily<\/key><array><integer>1<\/integer><integer>2<\/integer><\/array>/.test(sh2);
+  const projetoUniversal = /TARGETED_DEVICE_FAMILY = "1,2";/.test(pbx)
+    && !/TARGETED_DEVICE_FAMILY = 2;/.test(pbx);
+  ok(scriptUniversal && projetoUniversal,
+    'XC6 projeto e build-ipad.sh concordam: o app é universal (iPhone + iPad) nos DOIS caminhos'
+    + (scriptUniversal ? '' : ' — o script deixou de escrever UIDeviceFamily 1 e 2')
+    + (projetoUniversal ? '' : ' — o projeto não está em TARGETED_DEVICE_FAMILY "1,2"'));
+
+  const respostaNoPlist = /<key>ITSAppUsesNonExemptEncryption<\/key>\s*<false\/>/.test(plist);
+  const respostaNoScript = /ITSAppUsesNonExemptEncryption/.test(sh2);
+  ok(respostaNoPlist && respostaNoScript,
+    'XC7 a resposta de criptografia de exportação está nos DOIS caminhos (senão o TestFlight prende o build)'
+    + (respostaNoPlist ? '' : ' — falta em ios/Info.plist, que é por onde o Xcode Cloud arquiva')
+    + (respostaNoScript ? '' : ' — falta em ios/build-ipad.sh'));
 }
 
 if (path.resolve(process.argv[1] || '') === fileURLToPath(import.meta.url)) {
