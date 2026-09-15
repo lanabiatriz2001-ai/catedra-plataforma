@@ -69,3 +69,6 @@ _to_delete/
 .impeccable/live/
 .impeccable/mocks/
 .impeccable/review/
+
+# saída do xcodebuild archive (286 MB, regerável)
+ios/DerivedData/
