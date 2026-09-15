@@ -640,6 +640,7 @@ window.ctPdfLib = (function(){
       <button data-view="inicio" aria-current="{{ navCur.inicio }}" onclick="{{ onNav }}" style="{{ navStyle.inicio }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12 12 3l9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Início</span></button>
       <button data-view="ciclo" aria-current="{{ navCur.ciclo }}" onclick="{{ onNav }}" style="{{ navStyle.ciclo }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg><span>Ciclo de Estudos</span></button>
       <button data-view="revisoes" aria-current="{{ navCur.revisoes }}" onclick="{{ onNav }}" style="{{ navStyle.revisoes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Revisões</span><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accent);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ revPendStr }}</span></sc-if></button>
+      <button data-view="flashcards" aria-current="{{ navCur.flashcards }}" onclick="{{ onNav }}" style="{{ navStyle.flashcards }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M8 6h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM3 16V5a2 2 0 0 1 2-2h11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Baralho</span><sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accent);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ fcDueStr }}</span></sc-if></button>
       <button data-view="calendario" aria-current="{{ navCur.calendario }}" onclick="{{ onNav }}" style="{{ navCalendario }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"></path></svg><span>Calendário</span></button>
     </nav>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Estudo base</div>
@@ -1789,6 +1790,16 @@ window.ctPdfLib = (function(){
             </sc-if>
           </div>
         </sc-if>
+        <!-- O BARALHO NO PAINEL. Os cartões eram gerados por três caminhos e não apareciam em
+             lugar nenhum: o painel dizia que o dia estava em dia com uma pilha vencida ao lado. -->
+        <sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ false }}">
+          <div class="cth-sec"><h2>Baralho</h2><span class="rule"></span><span class="meta"><b>{{ fcDueStr }}</b> para revisar</span></div>
+          <button onclick="{{ fcEstudar }}" class="cth-baralho">
+            <span class="n">{{ fcDueStr }}</span>
+            <span class="tx"><b>cartões vencidos</b><small>de {{ fcTotalStr }} no baralho — do quiz do JURIS, da leitura da lei e dos seus erros</small></span>
+            <span class="ir">Revisar →</span>
+          </button>
+        </sc-if>
         <div class="cth-sec"><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button class="ct-alvo" data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
         <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
           <div class="cth-revs">
@@ -2168,6 +2179,9 @@ window.ctPdfLib = (function(){
               <!-- antes era onNav sem data-view: navegava para lugar nenhum. Agora entra na sala de foco com o bloco carregado. -->
               <div class="ct-bc-acoes">
                 <button data-i="{{ cicloBcI }}" onclick="{{ enterFocus }}" class="ct-bc-acao ct-btn">Estudar agora · {{ cicloBcMin }}</button>
+                <sc-if value="{{ cicloBcEhBaralho }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-btn" data-i="{{ cicloBcI }}" onclick="{{ fcEstudar }}">Abrir o baralho</button>
+                </sc-if>
                 <span class="ct-bc-acoes-min">
                 <button class="ct-alvo ct-cb-mini" data-i="{{ cicloBcI }}" onclick="{{ toggleBlock }}" title="Concluir esta atividade (abre o registro)" aria-label="Concluir {{ cicloBcDisc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
                 <sc-if value="{{ cicloBcPodeParcial }}" hint-placeholder-val="{{ false }}">
@@ -2209,6 +2223,9 @@ window.ctPdfLib = (function(){
                 <span class="ct-dado ct-cb-min">{{ b.min }} min</span>
                 <sc-if value="{{ b.notDone }}" hint-placeholder-val="{{ true }}">
                   <button class="ct-btn ct-cb-foco" data-i="{{ b.i }}" onclick="{{ enterFocus }}" title="Abrir a sala de foco com este bloco"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>Foco</button>
+                </sc-if>
+                <sc-if value="{{ b.ehBaralho }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-btn ct-cb-foco" data-i="{{ b.i }}" onclick="{{ fcEstudar }}" title="Abrir o baralho de flashcards">Baralho</button>
                 </sc-if>
                 <sc-if value="{{ b.podeParcial }}" hint-placeholder-val="{{ false }}">
                   <button class="ct-alvo ct-cb-mini" data-i="{{ b.i }}" onclick="{{ registrarParcial }}" title="Registrar o que já estudou e deixar a atividade em aberto" aria-label="Registrar parcial de {{ b.disc }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke-linecap="round"></path></svg></button>
@@ -2875,6 +2892,73 @@ window.ctPdfLib = (function(){
           </div>
           <button onclick="{{ addCadastro }}" style="margin-top:14px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Adicionar ao edital</button>
         </div>
+       </div>
+      </sc-if>
+
+      <!-- ================= BARALHO (flashcards) =================
+           O baralho existia como DADO e não como tela: o quiz do JURIS, a leitura ativa e a
+           colheita de erros gravavam cartões que ninguém podia rever. Aqui eles voltam. -->
+      <sc-if value="{{ isBaralho }}" hint-placeholder-val="{{ false }}">
+       <div style="display:flex;flex-direction:column;gap:18px;">
+        <sc-if value="{{ fcParado }}" hint-placeholder-val="{{ true }}">
+          <div class="ct-bc">
+            <div class="ct-bc-foco">
+              <div>
+                <h3>{{ fcDueStr }} para revisar</h3>
+                <p>De {{ fcTotalStr }} cartões no baralho. Eles vieram do quiz do CátedraJURIS, da leitura ativa da lei e dos erros que você registrou — e voltam na data que o SM-2 marcar.</p>
+              </div>
+              <div class="ct-bc-acoes">
+                <sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ true }}">
+                  <button onclick="{{ fcEstudar }}" class="ct-bc-acao ct-btn">Revisar agora · {{ fcDueStr }}</button>
+                </sc-if>
+              </div>
+            </div>
+            <div class="ct-bc-apoio">
+              <div class="ct-bc-apoio-t">por disciplina</div>
+              <sc-for list="{{ fcPorDisc }}" as="d" hint-placeholder-count="4">
+                <button class="ct-bc-it ct-fc-disc" data-disc="{{ d.v }}" onclick="{{ fcEstudar }}" style="--ct-item-cor:{{ d.cor }};"><b>{{ d.n }}</b><span>{{ d.label }}</span></button>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ fcSemCartao }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:24px 18px;text-align:center;font-size:var(--fs-base);color:var(--text3);">O baralho está vazio. Ele se enche sozinho: responda o quiz do CátedraJURIS, confira uma leitura ativa da lei ou registre um erro no seu caderno.</div>
+          </sc-if>
+          <sc-if value="{{ fcAcabou }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--accentSoft);border:1px dashed var(--accentRing);border-radius:var(--radius);padding:24px 18px;text-align:center;">
+              <div style="font-size:var(--fs-md);color:var(--accentD);font-weight:700;margin-bottom:10px;">Rodada concluída — {{ fcAcertosStr }} acertos e {{ fcErrosStr }} a rever</div>
+              <button onclick="{{ fcEncerrar }}" class="ct-btn">Registrar a sessão</button>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ fcRodando }}" hint-placeholder-val="{{ false }}">
+          <div class="ct-fc-sala">
+            <div class="ct-fc-topo">
+              <span class="ct-fc-barra" aria-hidden="true"><i style="width:{{ fcProgresso }};"></i></span>
+              <span class="ct-fc-conta">{{ fcRestamStr }} na fila · {{ fcAcertosStr }} sei · {{ fcErrosStr }} a rever</span>
+              <button onclick="{{ fcEncerrar }}" class="ct-alvo ct-fc-sair">Encerrar</button>
+            </div>
+            <div class="ct-fc-cartao" style="--ct-item-cor:{{ fcCorAtual }};">
+              <div class="ct-fc-disc-tag">{{ fcDiscAtual }}</div>
+              <div class="ct-fc-frente">{{ fcFrente }}</div>
+              <sc-if value="{{ fcVirado }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-fc-verso">{{ fcVerso }}</div>
+                <sc-if value="{{ fcTemExtra }}" hint-placeholder-val="{{ false }}"><div class="ct-fc-extra">{{ fcExtra }}</div></sc-if>
+                <sc-if value="{{ fcTemOrigem }}" hint-placeholder-val="{{ false }}"><div class="ct-fc-fonte">de: {{ fcOrigem }}</div></sc-if>
+              </sc-if>
+            </div>
+            <sc-if value="{{ fcNaoVirado }}" hint-placeholder-val="{{ true }}">
+              <button onclick="{{ fcVirar }}" class="ct-btn ct-fc-virar">Mostrar a resposta</button>
+            </sc-if>
+            <sc-if value="{{ fcVirado }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-fc-notas">
+                <button data-q="1" onclick="{{ fcResponder }}" class="ct-alvo ct-fc-nota ct-fc-n1">Não sei<small>volta ainda hoje</small></button>
+                <button data-q="3" onclick="{{ fcResponder }}" class="ct-alvo ct-fc-nota ct-fc-n3">Quase<small>volta logo</small></button>
+                <button data-q="5" onclick="{{ fcResponder }}" class="ct-alvo ct-fc-nota ct-fc-n5">Sei<small>volta mais longe</small></button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
        </div>
       </sc-if>
 
@@ -6613,6 +6697,9 @@ class Component extends DCLogic {
       enamSim: this._load('enamSim', []),   // E3/E4: tentativas do Modo ENAM — só ids e respostas, nunca enunciado
       revSession: null,
       treino: null,
+      // rodada do baralho: só de tela (a fila se remonta do agendamento a cada vez).
+      // NÃO entra em _autosaveKeys — o que sobrevive é o SM-2 gravado em cada cartão.
+      fcSess: null,
       sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}), simNome:'', simMin:'',
       simAnalysis:this._load('simAnalysis', 'liquida'),
       discItems:this._load('discItems', []),
@@ -9183,6 +9270,8 @@ class Component extends DCLogic {
     if(!rec || !rec.concluiu || !rec.atvKey) return;
     const k=String(rec.atvKey), patch={};
     if(k.slice(0,3)==='ag|'){ patch.agendaFeitas={...(this.state.agendaFeitas||{}), [k.slice(3)]:true}; }
+    else if(k.slice(0,3)==='ev|'){ const eid=k.slice(3);
+      patch.eventos=(this.state.eventos||[]).map(x=>((x.id||('seed'+x.dia+x.titulo))===eid)?{...x, done:true, up:Date.now()}:x); }
     else if(k.slice(0,3)==='vt|'){ const V=this.state.cicloVolta;
       if(V&&V.blocos) patch.cicloVolta={...V, blocos:V.blocos.map(x=>x.id===k.slice(3)?{...x, done:true, doneDate:this._hoje()}:x)}; }
     else if(k.slice(0,3)==='rt|'){ const rot=(this.state.manualRot||[]).map(x=>x.id===k.slice(3)?{...x, done:true, doneDate:this._hoje()}:x);
@@ -9200,6 +9289,8 @@ class Component extends DCLogic {
     const patch={};
     if(k.slice(0,3)==='ag|'){ const fe={...(this.state.agendaFeitas||{})}; const kk=k.slice(3);
       if(fe[kk]!==undefined){ delete fe[kk]; patch.agendaFeitas=fe; } }
+    else if(k.slice(0,3)==='ev|'){ const eid=k.slice(3);
+      patch.eventos=(this.state.eventos||[]).map(x=>((x.id||('seed'+x.dia+x.titulo))===eid)?{...x, done:false, up:Date.now()}:x); }
     else if(k.slice(0,3)==='vt|'){ const V=this.state.cicloVolta;
       if(V&&V.blocos) patch.cicloVolta={...V, blocos:V.blocos.map(x=>x.id===k.slice(3)?{...x, done:false, doneDate:''}:x)}; }
     else if(k.slice(0,3)==='rt|'){ const rot=(this.state.manualRot||[]).map(x=>x.id===k.slice(3)?{...x, done:false, doneDate:''}:x);
@@ -12967,7 +13058,30 @@ class Component extends DCLogic {
       ()=>{ this.setState(s=>({eventos:s.eventos.filter(x=>this._evId(x)!==id)}), ()=>this.flashSync()); },
       ()=>{ this.setState(s=>({eventos:[...s.eventos, {...alvo, up:Date.now()}]}), ()=>this.flashSync()); });
   };
-  toggleEvent = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({eventos:s.eventos.map(x=>((x.id||('seed'+x.dia+x.titulo))===id?{...x,done:!x.done}:x))})); this.flashSync(); };
+  /* Concluir um evento do calendário passa a OFERECER o registro da sessão, preenchido com o
+     que o evento já sabe (disciplina, título como assunto, tipo como categoria). Antes o
+     calendário era um mural à parte: marcar "Resolver 30 questões" como feito não punha um
+     minuto no histórico, e o painel seguia dizendo que o dia estava vazio.
+     Como em todo o resto, automação ABRE, não grava — e o vínculo `ev|<id>` é a mesma chave
+     do ciclo, então excluir a sessão reabre o evento pelo _reabrirAtividade, de graça.
+     Desmarcar não oferece nada: quem desmarca está corrigindo, não estudando. */
+  toggleEvent = (e)=>{ const id=e.currentTarget.dataset.id;
+    const alvo=(this.state.eventos||[]).find(x=>(x.id||('seed'+x.dia+x.titulo))===id);
+    const marcando=!(alvo&&alvo.done);
+    this.setState(s=>({eventos:s.eventos.map(x=>((x.id||('seed'+x.dia+x.titulo))===id?{...x,done:!x.done}:x))}));
+    this.flashSync();
+    if(!marcando || !alvo) return;
+    const pf=this.state.prefs||{}; if(pf.autoRegistro===false) return;
+    if(this.state.sessionModalOpen) return;          // não atropela um registro já aberto
+    const CAT={'Revisão':'Revisão','Simulado':'Simulado','Meta':'Teoria','Tarefa':'Teoria'};
+    const cat=CAT[String(alvo.tipo||'')]||'Teoria';
+    this.setState(st=>({ sessionModalOpen:true, pomoMenuOpen:false,
+      sessionDraft:{...this._freshSessionDraft(st.sessionDraft),
+        disc:String(alvo.disc||'').trim()||st.sessionDraft.disc,
+        topico:String(alvo.titulo||'').slice(0,120), categorias:[cat], categoria:cat,
+        minutos:'', foco:3, origem:'calendario', atvKey:'ev|'+id, concluiu:true, _ext:true }}));
+    this._toast('Evento concluído — confira e registre o que estudou');
+  };
   // ===== calendário: navegação / seleção / filtro =====
   _calShift = (dir)=> this.setState(s=>{
     if((s.calView||'mes')==='semana'){ // anda de 7 em 7 dias, seguindo o mês junto
@@ -12995,6 +13109,85 @@ class Component extends DCLogic {
     this.setState(s=>({habitos:{...s.habitos, [k]:Math.max(0, Math.round(((s.habitos[k]||0)-step)*10)/10)}}), ()=>{ this._persistHabitos(); }); this.flashSync(); };
   openPdf = (e)=> this.setState({pdfOpen:e.currentTarget.dataset.t});
   closePdf = ()=> this.setState({pdfOpen:null});
+  /* ===== BARALHO DE FLASHCARDS: O CONSUMIDOR QUE FALTAVA =====
+     Três caminhos PRODUZIAM cartões — o quiz do CátedraJURIS, a conferência da leitura ativa
+     e a colheita de erros — e nenhum os consumia: a tela de Anki foi removida e sobraram
+     `fcCards`/`fcEmpty` calculados no render sem ninguém no template para lê-los. O ciclo
+     ainda gerava o bloco "Revisão · Anki — N cartões no baralho", mandando estudar uma coisa
+     que não tinha onde ser estudada.
+     O cartão ganha o MESMO SM-2 das revisões (this.sm2), gravado no próprio cartão: `catedra:fc`
+     já está no ARRAY_ID do auth.js e o cartão já tem id, então o agendamento sincroniza entre
+     aparelhos por id, sem chave nova. Cartão sem `dueDate` é cartão novo — vence hoje. */
+  _fcVence(c, hoje){ if(!c) return false; const d=String(c.dueDate||''); return !d || d<=hoje; }
+  /** Fila do baralho: vencidos primeiro (mais atrasado na frente), novos depois. */
+  _fcFila(disc){
+    const hoje=this._hoje(), d=String(disc||'').trim();
+    const todos=(this.state.flashcards||[]).filter(c=>c&&c.front&&this._fcVence(c,hoje));
+    const alvo = d ? todos.filter(c=>String(c.disc||'').trim()===d) : todos;
+    return alvo.slice().sort((a,b)=>{
+      const an=a.dueDate?0:1, bn=b.dueDate?0:1;          // vencido antes de novo
+      if(an!==bn) return an-bn;
+      return String(a.dueDate||'').localeCompare(String(b.dueDate||''));
+    });
+  }
+  /** Disciplina que domina a fila — é a que o registro de sessão vai propor. */
+  _fcDiscDaFila(ids){
+    const cont={}; (this.state.flashcards||[]).forEach(c=>{ if(ids.indexOf(c.id)<0) return;
+      const d=String(c.disc||'').trim(); if(d) cont[d]=(cont[d]||0)+1; });
+    return Object.keys(cont).sort((a,b)=>cont[b]-cont[a])[0]||'';
+  }
+  fcEstudar = (e)=>{
+    const ds=(e&&e.currentTarget&&e.currentTarget.dataset)||{};
+    const fila=this._fcFila(ds.disc||'');
+    if(!fila.length){ this._toast('Nada vencido no baralho — os cartões voltam na data que o SM-2 marcou'); return; }
+    // vindo de um bloco do ciclo, a sessão nasce amarrada àquela atividade (mesmo fio do parcial)
+    let atvKey=''; const _di=ds.i;
+    if(_di!=null && _di!=='' && this.state.blocks[+_di]) atvKey=this._atvChave(this.state.blocks[+_di]);
+    this.setState({view:'flashcards', menuOpen:false,
+      fcSess:{ ids:fila.map(c=>c.id), i:0, virado:false, acertos:0, erros:0, inicio:Date.now(), atvKey, disc:ds.disc||'' }});
+  };
+  fcVirar = ()=> this.setState(s=>s.fcSess?({fcSess:{...s.fcSess, virado:true}}):null);
+  /* Responder aplica o SM-2 NO CARTÃO. "Não sei" (q=1) devolve o cartão ao fim da fila desta
+     rodada: errar e não rever de novo no mesmo dia é o modo mais rápido de esquecer. */
+  fcResponder = (e)=>{
+    const q=+e.currentTarget.dataset.q; if(q!==1&&q!==3&&q!==5) return;
+    const S=this.state.fcSess; if(!S) return;
+    const id=S.ids[S.i]; const hoje=this._hoje();
+    const fc=(this.state.flashcards||[]).map(c=>{ if(c.id!==id) return c;
+      const base={facilidade:(c.facilidade||2.5), intervalo:(c.intervalo||1), repeticoes:(c.repeticoes||0)};
+      const sc=this.sm2(base, q);
+      // O SM-2 devolve intervalo 1 (amanhã) para q<3, mas o botão promete "volta ainda hoje" —
+      // e promete certo: quem errou precisa rever no mesmo dia. Sem esta linha, sair da sala e
+      // voltar dez minutos depois fazia o cartão recém-errado sumir da fila até amanhã.
+      const quando = (q<3) ? hoje : this._addDiasStr(hoje, sc.intervalo);
+      return {...c, ...sc, dueDate:quando, up:Date.now()}; });
+    try{ this._saveFC(fc); }catch(_){}
+    const ids=S.ids.slice();
+    if(q===1) ids.push(id);   // volta no fim desta rodada
+    this.setState({flashcards:fc, fcSess:{...S, ids, i:S.i+1, virado:false,
+      acertos:S.acertos+(q>=3?1:0), erros:S.erros+(q<3?1:0)}});
+    this.flashSync();
+  };
+  /* Terminar o baralho OFERECE o registro preenchido — não grava sozinho (regra da casa:
+     automação abre, não grava). Os cartões viram questões da sessão: é isso que deixa a meta
+     de cartões, o histórico e o Desempenho contarem o baralho pela mesma régua do resto. */
+  fcEncerrar = ()=>{
+    const S=this.state.fcSess; if(!S){ this.setState({view:'inicio'}); return; }
+    const vistos=S.acertos+S.erros;
+    const min=Math.max(1, Math.round((Date.now()-(S.inicio||Date.now()))/60000));
+    this.setState({fcSess:null});
+    if(!vistos){ this._toast('Baralho fechado — nada respondido, nada registrado'); return; }
+    const disc=S.disc||this._fcDiscDaFila(S.ids)||'';
+    const pf=this.state.prefs||{};
+    if(pf.autoRegistro===false){ this._toast(vistos+' cartão(ões) revisado(s) — agendamento atualizado'); return; }
+    this.setState(st=>({ sessionModalOpen:true, pomoMenuOpen:false,
+      sessionDraft:{...this._freshSessionDraft(st.sessionDraft),
+        disc: disc || st.sessionDraft.disc, categorias:['Flashcards'], categoria:'Flashcards',
+        topico:'Revisão do baralho', minutos:String(min),
+        acertos:String(S.acertos), erradas:String(S.erros), brancos:'0', foco:3,
+        origem:'flashcards', atvKey:S.atvKey||'', concluiu:!!S.atvKey, _ext:true }}));
+    this._toast(vistos+' cartão(ões) revisado(s) — confira e registre');
+  };
   removeCard = (e)=>{ const id=e.currentTarget.dataset.id;
     const alvo=(this.state.flashcards||[]).find(c=>c.id===id); if(!alvo) return;
     this._excluirComDesfazer('Flashcard',
@@ -13065,7 +13258,9 @@ class Component extends DCLogic {
   addMeta = ()=>{ const d=this.state.metaDraft; if(!d.titulo.trim()) return;
     // infere a unidade do título → metas de questões/simulados/revisões progridem sozinhas
     const t=d.titulo.toLowerCase();
-    const unidade = /quest/.test(t)?'questões' : /simulad/.test(t)?'simulados' : /revis/.test(t)?'revisões' : /\bhora|\bmin/.test(t)?'min':'un.';
+    // 'cartões'/'flashcards' vem ANTES de 'revis': "revisar 200 cartões" é meta de baralho,
+    // e a régua do baralho (cartões vistos) não é a das revisões espaçadas (itens concluídos).
+    const unidade = /cart|flashcard|baralho/.test(t)?'cartões' : /quest/.test(t)?'questões' : /simulad/.test(t)?'simulados' : /revis/.test(t)?'revisões' : /\bhora|\bmin/.test(t)?'min':'un.';
     this.setState(s=>({metas:[...s.metas,{id:'m'+Date.now(), titulo:d.titulo.trim(), prog:0, alvo:(/\bhora/.test(t)?60:1)*(parseInt(d.alvo,10)||100), unidade}], metaDraft:{titulo:'',alvo:100}})); this.flashSync(); };
   metaPlus = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,prog:Math.min(m.alvo,m.prog+1)}:m)})); this.flashSync(); };
   editMeta = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field; let v=el.value; if(field==='alvo'&&v!=='') v=Math.max(1,parseInt(v,10)||0); this.setState(s=>({metas:s.metas.map(m=> m.id===id?{...m,[field]:v}:m)})); };
@@ -14641,7 +14836,7 @@ class Component extends DCLogic {
     /* O item ativo do menu só se distinguia pela cor: leitor de tela lia 23 botões
        iguais, sem dizer em qual tela a pessoa está. aria-current="page" resolve, e
        string vazia é lida como "não é a atual". */
-    const navCur = {}; ['admin', 'ajustes', 'analise', 'areamod', 'bancas', 'bemestar', 'calendario', 'casos', 'ciclo', 'comunidade', 'conquistas', 'edital', 'historico', 'inicio', 'juris', 'legis', 'oral', 'prioridade', 'redacao', 'revisoes', 'roteiros', 'segundafase', 'simulados'].forEach(id=>{ navCur[id]= this.state.view===id ? 'page' : ''; });
+    const navCur = {}; ['admin', 'ajustes', 'analise', 'areamod', 'bancas', 'bemestar', 'calendario', 'casos', 'ciclo', 'comunidade', 'conquistas', 'edital', 'flashcards', 'historico', 'inicio', 'juris', 'legis', 'oral', 'prioridade', 'redacao', 'revisoes', 'roteiros', 'segundafase', 'simulados'].forEach(id=>{ navCur[id]= this.state.view===id ? 'page' : ''; });
     const navStyle = (id)=>{
       const on = this.state.view===id;
       // No Mac e no iPad, CátedraLEGIS e CátedraJURIS são ABAS no topo — e agora o nativo
@@ -14709,7 +14904,9 @@ class Component extends DCLogic {
           parcialTxt: fez>0 ? (fez+' de '+alvo+' min já registrados') : '',
           parcialPct: (alvo>0 ? Math.min(100, Math.round(fez/alvo*100)) : 0)+'%' }; })(),
       // Legislação e jurisprudência do assunto, a um toque. ABRIR NÃO MARCA NADA: só leva.
-      temAcervo: !!this._ramoAcervo(b.discEdital||b.disc)}));
+      temAcervo: !!this._ramoAcervo(b.discEdital||b.disc),
+      // o bloco 'Revisão · Anki' mandava estudar cartões sem ter tela para isso
+      ehBaralho: b.kind==='Flashcards' && !b.done}));
     // o filtro vale para a LISTA; os KPIs do dia seguem contando o dia inteiro
     const blocksTodos = blocks;
     const cicloRestamCalc=(bs)=>{ const n=bs.filter(b=>!b.done).length; return n+' bloco'+(n===1?'':'s')+' em aberto hoje'; };
@@ -14741,6 +14938,7 @@ class Component extends DCLogic {
     const cicloBcParcialPct = _bcFoco ? String(_bcFoco.parcialPct||'0%') : '0%';
     const cicloBcPodeParcial = !!(_bcFoco && _bcFoco.podeParcial);
     const cicloBcTemAcervo = !!(_bcFoco && _bcFoco.temAcervo);
+    const cicloBcEhBaralho = !!(_bcFoco && _bcFoco.ehBaralho);
     // LINHA DO CICLO: a VOLTA inteira, não só o dia — um trecho por bloco, largura proporcional
     // aos minutos, na cor da matéria. feito = cheio e escuro; hoje = cheio com anel; por vir =
     // lavado (sem clique). Os extras do dia (revisão vencida, simulado, flashcards) entram antes,
@@ -16362,6 +16560,9 @@ class Component extends DCLogic {
       // revisões CONCLUÍDAS desde a criação da meta — antes era (alvo − atrasadas), que
       // nascia em 100% sem nenhuma revisão feita
       else if(u.indexOf('revis')>=0){ prog=(this.state.reviews||[]).filter(r=>(r.repeticoes||0)>0 && (r.up||0)>=_mTs).length; auto=true; }
+      // cartões revisados desde a criação da meta: as sessões do baralho gravam os cartões
+      // vistos como `questoes`, então a conta sai das sessões — sem contador paralelo.
+      else if(u.indexOf('cart')>=0){ prog=(this.state.sessions||[]).filter(s=>(s.ts||0)>=_mTs && s.origem==='flashcards').reduce((a,s)=>a+(s.questoes||0),0); auto=true; }
       else if(u==='min'){ prog=(this.state.sessions||[]).filter(s=>(s.ts||0)>=_mTs && s.countMeta!==false).reduce((a,s)=>a+(s.min||0),0); auto=true; }
       prog=Math.min(m.alvo||0, prog);
       return {...m, prog, auto, manual:!auto, pct:Math.min(100,Math.round(prog/(m.alvo||1)*100)), done:prog>=(m.alvo||0)}; });
@@ -16394,6 +16595,7 @@ class Component extends DCLogic {
       {view:'ciclo', label:'Ir para Ciclo de Estudos', hint:'blocos do dia'},
       {view:'edital', label:'Ir para Edital', hint:'conteúdo programático'},
       {view:'revisoes', label:'Ir para Revisões', hint:'revisão espaçada'},
+      {view:'flashcards', label:'Ir para o Baralho', hint:'flashcards · revisão dos cartões'},
       {view:'simulados', label:'Ir para Simulados', hint:'raio-x'},
       {view:'analise', label:'Ir para Desempenho', hint:'análise, disciplina, risco, domínio'},
       {view:'conquistas', label:'Ir para Metas & Conquistas', hint:'metas e gamificação'},
@@ -16568,10 +16770,12 @@ class Component extends DCLogic {
         // dizia quanto e não dizia de onde — e todo indicador que ele alimenta herdava a
         // mesma cegueira. `parcial` separa o pedaço estudado da atividade fechada.
         ...(()=>{ const o=String(s.origem||'');
-          const T={ciclo:(s.concluiu?'ciclo':'ciclo · parcial'), legis:'LEGIS', juris:'JURIS'}[o]||'';
+          const T={ciclo:(s.concluiu?'ciclo':'ciclo · parcial'), legis:'LEGIS', juris:'JURIS',
+            flashcards:'baralho', calendario:'agenda'}[o]||'';
           return { temOrigem:!!T, origemTxt:T,
             origemTitulo:{ciclo:(s.concluiu?'Registrada ao concluir uma atividade do ciclo':'Parcial de uma atividade do ciclo, que seguiu em aberto'),
-              legis:'Leitura de lei no CátedraLEGIS', juris:'Estudo de jurisprudência no CátedraJURIS'}[o]||'' }; })() }; });
+              legis:'Leitura de lei no CátedraLEGIS', juris:'Estudo de jurisprudência no CátedraJURIS',
+              flashcards:'Rodada de revisão do baralho de flashcards', calendario:'Registrada ao concluir um evento do calendário'}[o]||'' }; })() }; });
     const _histFilter=this.state.historicoFilter||'';
     const histList=_histFilter?histAll.filter(s=>s.disc===_histFilter):histAll;
     const histDiscs=[...new Set(this.state.sessions.map(s=>s.disc).filter(Boolean))];
@@ -17411,6 +17615,7 @@ class Component extends DCLogic {
       // faixa do ciclo + linha do dia + inteligente
       cicloLinha, cicloLinhaShow:cicloLinha.length>0, cicloLinhaLegenda, cicloMiniStyle, cicloBcI, cicloBcMotivo, cicloBcTemMotivo:!!cicloBcMotivo,
       cicloBcParcial, cicloBcTemParcial, cicloBcParcialPct, cicloBcPodeParcial, cicloBcTemAcervo,
+      cicloBcEhBaralho, fcEstudar:this.fcEstudar,
       cicloVoltaN:String(cicloVoltaN), cicloVoltaFeitos:String(cicloVoltaFeitos), cicloVoltaTotal:String(cicloVoltaTotal), cicloVoltaShow:cicloVoltaTotal>0,
       cicloPlanejado:_cHM(cicloPlanMin), cicloPlanejadoLbl:(cicloMetaMin?('planejado · meta '+_cHM(cicloMetaMin)):'planejado hoje'),
       puxarProximo:this.puxarProximo, gerarVoltaManual:this.gerarVoltaManual, recomecarVolta:this.recomecarVolta,
@@ -17866,9 +18071,10 @@ class Component extends DCLogic {
       provaSala:this.state.provaMode && this.state.sjModo!=='enam', enamEmProva:false,
       ...((this.state.provaMode && this.state.sjModo==='enam' && (this.state.sjItens||[]).length) ? this._enamVM() : {}),
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
+      isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
-      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
       // O estado vem do auth.js (local|enviando|salvo|offline|erro). O texto diz o que
@@ -18058,6 +18264,31 @@ class Component extends DCLogic {
       ankiPoly, ankiW, ankiH, ankiInsights, ankiIdealRange, ankiInput:this.state.ankiInput, onAnkiInput:this.onAnkiInput, ankiRevInput:this.state.ankiRevInput, onAnkiRevInput:this.onAnkiRevInput, saveAnki:this.saveAnki,
       fcCards: this.state.flashcards.map(f=>({...f, discColor:(this.DISC_COLOR[(f.disc||'').replace('Direito ','')]||'#0f7a57')})),
       fcCountStr:String(this.state.flashcards.length), fcEmpty:this.state.flashcards.length===0, removeCard:this.removeCard,
+      // ===== Baralho (tela nova) =====
+      ...(()=>{ const hoje=this._hoje(), todos=(this.state.flashcards||[]).filter(c=>c&&c.front);
+        const dueAll=todos.filter(c=>this._fcVence(c,hoje));
+        const S=this.state.fcSess;
+        const porDisc=(()=>{ const m={}; dueAll.forEach(c=>{ const d=String(c.disc||'').trim()||'Sem disciplina'; m[d]=(m[d]||0)+1; });
+          return Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0,8)
+            .map(d=>({disc:d, n:String(m[d]), label:d.replace('Direito ','')+' · '+m[d],
+              v:(d==='Sem disciplina'?'':d), cor:this._corDisc(d)})); })();
+        const atual = S ? (this.state.flashcards||[]).find(c=>c.id===S.ids[S.i]) : null;
+        const restam = S ? Math.max(0, S.ids.length-S.i) : 0;
+        return {
+          fcDueN:dueAll.length, fcTemDue:dueAll.length>0, fcDueStr:String(dueAll.length),
+          fcTotalStr:String(todos.length), fcSemCartao:todos.length===0,
+          fcPorDisc:porDisc, fcTemPorDisc:porDisc.length>1,
+          fcEstudar:this.fcEstudar, fcVirar:this.fcVirar, fcResponder:this.fcResponder, fcEncerrar:this.fcEncerrar,
+          fcRodando:!!(S&&atual), fcParado:!(S&&atual),
+          fcFrente: atual?String(atual.front||''):'', fcVerso: atual?String(atual.back||''):'',
+          fcExtra: atual?String(atual.extra||''):'', fcTemExtra: !!(atual&&atual.extra),
+          fcOrigem: atual?String(atual.origem||atual.fonte||''):'', fcTemOrigem: !!(atual&&(atual.origem||atual.fonte)),
+          fcDiscAtual: atual?String(atual.disc||''):'', fcCorAtual: atual?this._corDisc(atual.disc):'var(--accent)',
+          fcVirado: !!(S&&S.virado), fcNaoVirado: !(S&&S.virado),
+          fcRestamStr: String(restam), fcAcertosStr: S?String(S.acertos):'0', fcErrosStr: S?String(S.erros):'0',
+          fcProgresso: (S&&S.ids.length) ? (Math.round(S.i/S.ids.length*100)+'%') : '0%',
+          // o baralho acabou dentro da rodada (fila esvaziou) — a tela diz e oferece registrar
+          fcAcabou: !!(S && !atual) }; })(),
       // cronômetro
       timerMode:this.state.timerMode, pomoMenuOpen:this.state.pomoMenuOpen, togglePomoMenu:this.togglePomoMenu, setTimerMode:this.setTimerMode,
       timerStateLabel, pomoLivre:pomoChip('livre'), pomoPomo:pomoChip('pomo'),
