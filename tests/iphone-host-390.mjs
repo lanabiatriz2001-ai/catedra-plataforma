@@ -19,6 +19,9 @@
          teste levantam teclado de verdade, e o que interessa é o efeito, não o gesto;
    · (e) o meta viewport traz viewport-fit=cover — sem ele env(safe-area-inset-bottom) vale 0
          e a barra cai sobre o indicador de Início, que é o primeiro furo a aparecer no aparelho;
+   · (g) a faixa do Início aguenta conteúdo comprido: com a ficha do simulado, uma palavra sem
+         espaço e o subtítulo esticado, nada dela passa da janela — era o corte que aparecia no
+         iPhone da dona ("Sexta-feira, 11 de setembro · Ta…") e que a conta de teste não produz;
    · (f) a 1024 e a 1280 px NADA disso se aplica: a topbar mantém as duas faixas com subtítulo,
          a tabela volta a table-layout:auto com as seis colunas e o Histórico continua tabela.
          É o caso que protege o desktop de um conserto de celular.
@@ -270,6 +273,47 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       ok(!!t && t.colunas === 6, R + '(f) ' + largura + ': …com as seis colunas de sempre ('
         + (t ? t.colunas : 0) + ')');
       ok(m.docRola <= 0, R + '(f) ' + largura + ': o documento não rola de lado (' + m.docRola + ' px)');
+    } finally { await ctx.close(); }
+  }
+
+  /* ---------- (g) a faixa do Início aguenta conteúdo comprido ---------- */
+  {
+    const { ctx, page } = await abrir({ width: 390, height: 844 });
+    try {
+      await ir(page, 'inicio'); await page.waitForTimeout(1400);
+      const m = await page.evaluate(() => {
+        /* O defeito visto no iPhone da dona: a ficha comprida do simulado e a linha do
+           cronômetro esticavam o bloco além da tela, e a faixa (overflow:hidden) comia o fim
+           do subtítulo e das fichas. Aqui o conteúdo comprido é POSTO À MÃO — a conta de
+           teste não tem simulado nem data de prova — e a medida exige que nada saia. */
+        const chips = document.querySelector('.cth-chips'), sub = document.querySelector('.cth-sub');
+        if (!chips || !sub) return { faltou: true };
+        const ficha = document.createElement('span');
+        ficha.className = 'cth-chip';
+        ficha.textContent = 'Nenhum simulado ainda — fazer o primeiro agora mesmo';
+        chips.appendChild(ficha);
+        const palavra = document.createElement('span');
+        palavra.className = 'cth-chip';
+        palavra.textContent = 'Lei' + 'X'.repeat(60);   // palavra sem espaço: URL, número de lei
+        chips.appendChild(palavra);
+        sub.textContent += ' · Tabela Dia 12 · Roteiro ' + 'Y'.repeat(50);
+        const grid = document.querySelector('.cth-hero-grid');
+        const fora = [...document.querySelectorAll('.cth-hero-grid, .cth-hero-grid *')]
+          .filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1); })
+          .map(e => e.tagName.toLowerCase() + '.' + [...e.classList].slice(0, 2).join('.'));
+        return { faltou: false, fora, alturaFicha: Math.round(ficha.getBoundingClientRect().height),
+          gridLargura: grid ? Math.round(grid.getBoundingClientRect().width) : 0,
+          docRola: document.documentElement.scrollWidth - innerWidth };
+      });
+      ok(!m.faltou, R + '(g) a faixa do Início tem subtítulo e fichas para medir');
+      if (!m.faltou) {
+        ok(m.fora.length === 0, R + '(g) com ficha comprida, palavra sem espaço e subtítulo esticado, '
+          + 'nada da faixa passa da janela' + (m.fora.length ? ' (fora: ' + m.fora.slice(0, 5).join(', ') + ')' : ''));
+        ok(m.gridLargura <= 390, R + '(g) a grade da faixa cabe na tela (' + m.gridLargura + ' px)');
+        ok(m.alturaFicha > 40, R + '(g) a ficha comprida QUEBRA em mais de uma linha em vez de ser cortada ('
+          + m.alturaFicha + ' px de altura)');
+        ok(m.docRola <= 0, R + '(g) a tela "inicio" não passa a rolar de lado (' + m.docRola + ' px)');
+      }
     } finally { await ctx.close(); }
   }
 }

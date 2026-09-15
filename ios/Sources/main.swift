@@ -41,7 +41,7 @@ func aiEndpoint() -> String {
 final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply, WKDownloadDelegate, UIDocumentPickerDelegate, UNUserNotificationCenterDelegate, UINavigationBarDelegate {
 
     var webView: WKWebView!
-    private var segmento: UISegmentedControl!
+    private var segmento: SeletorProduto!
     private var areaConteudo: UIView!
     private var legisVC: UIViewController?   // criados sob demanda, na 1ª vez que a aba abre
     private var jurisVC: UIViewController?
@@ -118,7 +118,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // vive na área de conteúdo, trocada com as telas nativas do LEGIS e do JURIS. Os
         // títulos dos segmentos são decididos SÓ por reconstruirSegmentos(compacto:) — curtos
         // em largura compacta (iPhone, Slide Over), inteiros em regular.
-        segmento = UISegmentedControl(items: ["Cátedra", "CátedraLEGIS", "CátedraJURIS"])
+        segmento = SeletorProduto(items: ["Cátedra", "CátedraLEGIS", "CátedraJURIS"])
         segmento.apportionsSegmentWidthsByContent = true
         // -abaLegis / -abaJuris abrem já na aba correspondente. Servem para verificar os
         // portes no simulador sem depender de alguém tocar na tela; em uso normal ninguém
@@ -1603,12 +1603,13 @@ extension RootViewController {
         navBar?.compactAppearance = aparencia
         navBar?.compactScrollEdgeAppearance = aparencia
         navBar?.tintColor = acento          // chevron e rótulo do voltar, e a engrenagem
-        segmento?.backgroundColor = UIColor(t.surface2)
-        segmento?.selectedSegmentTintColor = acento
-        // Texto sobre o acento: o --onAccent do tema; sem ele, o contraste decide.
+        // O seletor é desenhado pelo app (SeletorProduto), e não um UISegmentedControl: o iOS 27
+        // ignora selectedSegmentTintColor e pinta a própria pílula clara, mas respeita a cor do
+        // texto — o acento sumia e "JURIS" ficava branco sobre cinza. Desenhando, a pílula é
+        // sempre o acento e o texto sobre ela é o --onAccent (sem ele, o contraste decide).
         let sobreAcento = corSobreAcento ?? (Self.luminancia(acento) < 0.5 ? .white : .black)
-        segmento?.setTitleTextAttributes([.foregroundColor: sobreAcento, .font: UIFont.systemFont(ofSize: 13, weight: .semibold)], for: .selected)
-        segmento?.setTitleTextAttributes([.foregroundColor: UIColor(t.ink), .font: UIFont.systemFont(ofSize: 13, weight: .medium)], for: .normal)
+        segmento?.aplicarCores(fundo: UIColor(t.surface2), acento: acento,
+                               sobreAcento: sobreAcento, texto: UIColor(t.ink))
         setNeedsStatusBarAppearanceUpdate()
     }
 
