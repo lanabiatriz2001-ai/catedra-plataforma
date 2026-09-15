@@ -22,6 +22,7 @@ import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
+import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
@@ -8184,6 +8185,13 @@ catch (e) {
 try { await testarRegistroSessao(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REGISTRO [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Integração entre os módulos: edital → ciclo → sessão → acervo → progresso (tests/integracao-modulos.mjs)
+try { await testarIntegracaoModulos(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'INTEGRAÇÃO [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
