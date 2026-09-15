@@ -28,6 +28,10 @@ artifacts/
 # build do app nativo (binário compilado, gerado por mac/build-app.sh)
 mac/build/
 ios/build/
+# saída de trabalho do xcodebuild (e o .xcarchive que o archive deixa lá dentro):
+# centenas de MB que se refazem sozinhos a cada build — 303 MB já ficaram de fora
+# do controle por falta desta linha, em 11/09/2026.
+ios/DerivedData/
 ios/Catedra.xcodeproj/xcuserdata/
 ios/Catedra.xcodeproj/project.xcworkspace/xcuserdata/
 # perfil de provisionamento: é credencial de assinatura, não vai para repo PÚBLICO
