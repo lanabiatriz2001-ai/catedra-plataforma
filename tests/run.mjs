@@ -2064,7 +2064,13 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.chipsMarcadosEBotaoSome = [...bloco().querySelectorAll('.ct-trilha-data')].every(c => c.getAttribute('data-agendada') === '1') && ![...bloco().querySelectorAll('button')].some(b => /Colocar na agenda/.test(b.textContent)) && /na agenda/.test(txt());
     app.enamAgendar(); await w(400);
     r.agendarDeNovoNaoDuplica = (app.state.eventos || []).filter(e => /^enam:sim:/.test(String(e.id))).length === cad.length;
-    r.fimDeSemanaPuro = app._enamFimDeSemana('2026-09-16') === '2026-09-19' && app._enamFimDeSemana('2026-09-15') === '2026-09-13' && app._enamFimDeSemana('2026-09-19') === '2026-09-19' && app._enamFimDeSemana('2026-09-20') === '2026-09-20' && app._enamFimDeSemana('2026-09-17') === '2026-09-19';
+    // Relógio não fixo: a guarda de _enamFimDeSemana ("alvo < hoje" → próximo sábado) fazia datas
+    // fixas quebrarem sozinhas com a virada do calendário. Ancora numa segunda futura, onde só a
+    // regra pura age, e cobre a guarda à parte com uma data claramente no passado.
+    const seg = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + 28); d.setDate(d.getDate() + ((1 - d.getDay() + 7) % 7)); return d; })();
+    const mais = n => { const d = new Date(seg); d.setDate(seg.getDate() + n); return app._ymd(d); };
+    r.fimDeSemanaPuro = app._enamFimDeSemana(mais(0)) === mais(-1) && app._enamFimDeSemana(mais(1)) === mais(-1) && app._enamFimDeSemana(mais(2)) === mais(5) && app._enamFimDeSemana(mais(3)) === mais(5) && app._enamFimDeSemana(mais(4)) === mais(5) && app._enamFimDeSemana(mais(5)) === mais(5) && app._enamFimDeSemana(mais(6)) === mais(6);
+    r.fimDeSemanaPassadoVaiProProximoSabado = app._enamFimDeSemana('2020-03-10') === (() => { const h = new Date(); h.setHours(0, 0, 0, 0); const p = new Date(h); p.setDate(h.getDate() + ((6 - h.getDay() + 7) % 7 || 7)); return app._ymd(p); })();
     // "Importar o edital ENAM" quando faltar; presente, a régua vira a segunda métrica
     const norm = s => String(s || '').trim().toLowerCase();
     const nomes = E.AREAS.map(a => a.disciplinasApp[0]);
