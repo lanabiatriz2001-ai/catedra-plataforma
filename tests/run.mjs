@@ -4930,14 +4930,24 @@ const u7 = await page.evaluate(async () => {
   const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
   const r = { temBotaoAuto: !!btn('Auto') };
   if (btn('Escuro')) btn('Escuro').click();
-  await w(1200);
-  const prefs = JSON.parse(localStorage.getItem('catedra:prefs') || '{}');
-  r.manualDesligaOAutomatico = prefs.temaAuto === false;
+  // ≥ 1,3 s: a limpeza do resquício em prefs passa pelo autosave (debounce de 500 ms), e
+  // a regra da casa manda ler o storage só depois disso. catedra:_temaAuto é gravado na
+  // hora, mas prefs não — com 1200 ms o caso ficaria instável sob carga.
+  await w(1400);
+  // O interruptor MUDOU DE LUGAR: morava em prefs, que sincroniza — ligar no Mac ligava no
+  // iPad, e cada um seguia o SEU sistema, virando o tema do outro a cada abertura. Agora
+  // mora em catedra:_temaAuto, fora do sync. O COMPORTAMENTO cobrado aqui é o mesmo de
+  // antes; só o endereço da chave mudou. A semeadura lá em cima ainda usa prefs de
+  // propósito: os casos acima (sistema escuro deixa o app escuro) provam, de quebra, que
+  // quem já tinha o Auto ligado em prefs continua com ele ligado.
+  r.manualDesligaOAutomatico = localStorage.getItem('catedra:_temaAuto') === '0';
   r.manualVale = document.querySelector('[data-dark]').getAttribute('data-dark') === '1';
+  // e o resquício sai de prefs, senão a nuvem o traria de volta ligado no próximo sync
+  r.manualLimpaOResquicioDePrefs = !('temaAuto' in JSON.parse(localStorage.getItem('catedra:prefs') || '{}'));
   if (btn('Auto')) btn('Auto').click();
   await w(800);
   r.autoVoltaAoSistema = document.querySelector('[data-dark]').getAttribute('data-dark') === '0'
-    && JSON.parse(localStorage.getItem('catedra:prefs') || '{}').temaAuto === true;
+    && localStorage.getItem('catedra:_temaAuto') === '1';
   return r;
 });
 for (const [k, v] of Object.entries(u7)) ok(v, 'U7 ' + k);
