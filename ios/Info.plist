@@ -11,6 +11,21 @@
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>1.0.0</string>
   <key>CFBundleVersion</key><string>310</string>
+  <!-- RESPOSTA DE CRIPTOGRAFIA DE EXPORTAÇÃO. Sem esta chave o TestFlight recebe o build e
+       o PRENDE, perguntando sobre exportação, antes de liberar para quem vai testar — uma
+       pergunta por build, respondida à mão no App Store Connect. O ios/build-ipad.sh já
+       responde (ver o PlistBuddy no fim dele), mas o Xcode Cloud arquiva por ESTE arquivo
+       (INFOPLIST_FILE = Info.plist no projeto), e aqui a resposta faltava.
+       A resposta é a mesma, e a auditoria que a sustenta está inteira no build-ipad.sh:
+       CryptoKit aparece em 2 lugares e só como SHA256.hash(), impressão digital do texto de
+       uma lei para saber se o Planalto mudou a norma — hash, não cifra; o binário não linka
+       OpenSSL, libsodium nem BoringSSL; no bundle web o `crypto.subtle` só aparece dentro
+       da biblioteca do Supabase, no desafio PKCE (hash) e na verificação do JWT
+       (autenticação); o backup sai como JSON em texto puro; toda a rede é HTTPS do sistema.
+       Isso cai nas isenções: criptografia do próprio sistema e uso restrito a autenticação.
+       Se um dia o app passar a CIFRAR dado (backup cifrado, ponta a ponta), esta chave sai
+       daqui E de lá — as duas se conferem juntas. -->
+  <key>ITSAppUsesNonExemptEncryption</key><false/>
   <!-- Sem esta chave o iOS 14+ roda o app em modo compatibilidade: barras pretas e
        resolução errada. Vazia = tela de lançamento em branco, que é o que queremos. -->
   <key>UILaunchScreen</key><dict/>
