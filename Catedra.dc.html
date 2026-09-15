@@ -233,6 +233,13 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
   background:linear-gradient(180deg,transparent,rgba(8,7,15,.32)); pointer-events:none; }
 .cth-hero-grid{ position:relative; z-index:1; display:grid;
   grid-template-columns:minmax(0,1.15fr) minmax(400px,.95fr); gap:26px; align-items:center; }
+/* Nada dentro da faixa pode ficar mais largo que a faixa. Sem isto, no iPhone (390 px) um
+   filho de grid/flex não encolhe abaixo do próprio conteúdo — a ficha comprida do simulado e
+   a linha do cronômetro esticavam o bloco, e a faixa, que esconde o excedente, comia o fim do
+   subtítulo e das fichas. min-width:0 deixa encolher; a quebra trata palavra longa (URL, lei). */
+.cth-hero-grid, .cth-hero-grid > *, .cth-timer, .cth-timer-top, .cth-timer-top > *{ min-width:0; }
+.cth-sub, .cth-h1, .cth-chip{ overflow-wrap:anywhere; }
+.cth-chip{ max-width:100%; }
 .cth-kicker{ display:inline-flex; align-items:center; gap:8px; font-size:var(--fs-xs); font-weight:700;
   letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.85);
   background:rgba(8,7,15,.28); border:1px solid rgba(255,255,255,.22); border-radius:30px; padding:6px 14px; }
