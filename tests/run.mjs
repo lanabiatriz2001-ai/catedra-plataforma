@@ -73,6 +73,11 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
      isso o build não pede nada à rede: em vez de abortar, ele PUBLICA. A asserção que
      antes exigia falha agora exige sucesso — e o CT_PERMITE_CDN deixou de existir, porque
      não há mais CDN de onde depender. */
+  /* APAGA public/fonts ANTES de rodar. Sem isso o caso media SOBRA: public/ está no
+     .gitignore, então no checkout principal a pasta ficava de um build feito COM rede e a
+     asserção passava sem que o build da vez tivesse copiado nada — em clone ou worktree
+     novo, onde public/ não existe, ela falhava. Apagando, o que sobrar é do build de agora. */
+  fs.rmSync(path.join(RAIZ, 'public', 'fonts'), { recursive: true, force: true });
   const semRede = rodar({ NODE_OPTIONS: '--require ' + stub });
   /* Sem rede o build ainda para — mas agora por causa das BIBLIOTECAS (react, supabase),
      que continuam sendo vendoradas da internet. O que mudou é que as FONTES saíram dessa
@@ -80,6 +85,13 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
      saída, senão ela passaria a medir o vendor das libs sem querer. */
   ok(!/vendorar as fontes|fonts\.googleapis|fonts\.gstatic/.test(semRede.saida),
      'D9 sem rede, as fontes NÃO são mais motivo de aborto');
+  /* Sem rede o build AINDA aborta — pelas bibliotecas, não pelas fontes. Este caso guarda
+     o outro lado do contrato: degradar em silêncio continua proibido. */
+  ok(semRede.code !== 0 && /vendorar react\.js|cdn\.jsdelivr/.test(semRede.saida),
+     'D9 sem rede o build aborta pelas BIBLIOTECAS');
+  /* E, mesmo abortando, as fontes já chegaram: a cópia acontece antes do vendor das libs,
+     de propósito (ver scripts/build.mjs). É por isso que este caso pode medir o build da
+     vez, com public/fonts apagada logo acima. */
   const fontesPub = path.join(RAIZ, 'public', 'fonts');
   ok(fs.existsSync(fontesPub) && fs.readdirSync(fontesPub).filter(f => f.endsWith('.woff2')).length >= 20,
      'D9 as 20 faces chegam a public/fonts mesmo sem rede');
