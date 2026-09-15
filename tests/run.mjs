@@ -362,6 +362,22 @@ const sync = await page.evaluate(() => {
   const svP = { 'catedra:escudos': '3', 'catedra:_kts': J({ 'catedra:escudos': 1000 }) };
   const lcP = { 'catedra:escudos': '0', 'catedra:_kts': J({ 'catedra:escudos': 9000 }) };
   r.contadorZeroNaoApaga = M(svP, lcP, false)['catedra:escudos'] === '3';
+
+  // 11. SEGUIR O SISTEMA ("Auto"). Com o Auto ligado, catedra:dark deixa de ser escolha da
+  //     pessoa e vira leitura do sistema DESTE aparelho. Gravado pelo caminho normal, cada
+  //     abertura recarimbava a chave e a mandava para a nuvem: Mac no claro e iPad no
+  //     escuro viravam o tema um do outro a cada abertura, e o aparelho no automático
+  //     apagava a escolha manual feita no outro. O gravarDerivado grava sem carimbar.
+  localStorage.removeItem('catedra:_kts');
+  localStorage.setItem('catedra:dark', '1');                       // escolha manual
+  r.escolhaManualCarimba = !!(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
+  localStorage.removeItem('catedra:_kts');
+  window.CatedraSync.gravarDerivado('catedra:dark', '0');          // leitura do sistema
+  r.derivadoNaoCarimba = !(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
+  r.derivadoGravaMesmoAssim = localStorage.getItem('catedra:dark') === '0';
+  localStorage.removeItem('catedra:_kts'); localStorage.removeItem('catedra:dark');
+  // o próprio interruptor do Auto é deste aparelho: não pode atravessar o merge
+  r.autoNaoSincroniza = !M({ 'catedra:_temaAuto': '1' }, {}, false)['catedra:_temaAuto'];
   return r;
 });
 for (const [k, v] of Object.entries(sync)) ok(v, 'SYNC ' + k);
@@ -4914,14 +4930,24 @@ const u7 = await page.evaluate(async () => {
   const btn = n => [...document.querySelectorAll('main button')].find(b => (b.textContent || '').trim() === n);
   const r = { temBotaoAuto: !!btn('Auto') };
   if (btn('Escuro')) btn('Escuro').click();
-  await w(1200);
-  const prefs = JSON.parse(localStorage.getItem('catedra:prefs') || '{}');
-  r.manualDesligaOAutomatico = prefs.temaAuto === false;
+  // ≥ 1,3 s: a limpeza do resquício em prefs passa pelo autosave (debounce de 500 ms), e
+  // a regra da casa manda ler o storage só depois disso. catedra:_temaAuto é gravado na
+  // hora, mas prefs não — com 1200 ms o caso ficaria instável sob carga.
+  await w(1400);
+  // O interruptor MUDOU DE LUGAR: morava em prefs, que sincroniza — ligar no Mac ligava no
+  // iPad, e cada um seguia o SEU sistema, virando o tema do outro a cada abertura. Agora
+  // mora em catedra:_temaAuto, fora do sync. O COMPORTAMENTO cobrado aqui é o mesmo de
+  // antes; só o endereço da chave mudou. A semeadura lá em cima ainda usa prefs de
+  // propósito: os casos acima (sistema escuro deixa o app escuro) provam, de quebra, que
+  // quem já tinha o Auto ligado em prefs continua com ele ligado.
+  r.manualDesligaOAutomatico = localStorage.getItem('catedra:_temaAuto') === '0';
   r.manualVale = document.querySelector('[data-dark]').getAttribute('data-dark') === '1';
+  // e o resquício sai de prefs, senão a nuvem o traria de volta ligado no próximo sync
+  r.manualLimpaOResquicioDePrefs = !('temaAuto' in JSON.parse(localStorage.getItem('catedra:prefs') || '{}'));
   if (btn('Auto')) btn('Auto').click();
   await w(800);
   r.autoVoltaAoSistema = document.querySelector('[data-dark]').getAttribute('data-dark') === '0'
-    && JSON.parse(localStorage.getItem('catedra:prefs') || '{}').temaAuto === true;
+    && localStorage.getItem('catedra:_temaAuto') === '1';
   return r;
 });
 for (const [k, v] of Object.entries(u7)) ok(v, 'U7 ' + k);
