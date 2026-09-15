@@ -362,6 +362,22 @@ const sync = await page.evaluate(() => {
   const svP = { 'catedra:escudos': '3', 'catedra:_kts': J({ 'catedra:escudos': 1000 }) };
   const lcP = { 'catedra:escudos': '0', 'catedra:_kts': J({ 'catedra:escudos': 9000 }) };
   r.contadorZeroNaoApaga = M(svP, lcP, false)['catedra:escudos'] === '3';
+
+  // 11. SEGUIR O SISTEMA ("Auto"). Com o Auto ligado, catedra:dark deixa de ser escolha da
+  //     pessoa e vira leitura do sistema DESTE aparelho. Gravado pelo caminho normal, cada
+  //     abertura recarimbava a chave e a mandava para a nuvem: Mac no claro e iPad no
+  //     escuro viravam o tema um do outro a cada abertura, e o aparelho no automático
+  //     apagava a escolha manual feita no outro. O gravarDerivado grava sem carimbar.
+  localStorage.removeItem('catedra:_kts');
+  localStorage.setItem('catedra:dark', '1');                       // escolha manual
+  r.escolhaManualCarimba = !!(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
+  localStorage.removeItem('catedra:_kts');
+  window.CatedraSync.gravarDerivado('catedra:dark', '0');          // leitura do sistema
+  r.derivadoNaoCarimba = !(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
+  r.derivadoGravaMesmoAssim = localStorage.getItem('catedra:dark') === '0';
+  localStorage.removeItem('catedra:_kts'); localStorage.removeItem('catedra:dark');
+  // o próprio interruptor do Auto é deste aparelho: não pode atravessar o merge
+  r.autoNaoSincroniza = !M({ 'catedra:_temaAuto': '1' }, {}, false)['catedra:_temaAuto'];
   return r;
 });
 for (const [k, v] of Object.entries(sync)) ok(v, 'SYNC ' + k);

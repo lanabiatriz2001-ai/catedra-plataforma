@@ -34,7 +34,11 @@
     // _temaTs é a hora em que a pessoa escolheu tema/cor/direção NESTE aparelho: serve só
     // para o portão local recusar valor velho da nuvem. Subir faria a escolha feita aqui
     // calar a escolha feita no outro aparelho — entre aparelhos quem decide é o _kts.
-    'catedra:notifRevDia': 1, 'catedra:_bkpAutoTry': 1, 'catedra:_bkpAutoTs': 1, 'catedra:_temaTs': 1 };
+    // _temaAuto é "seguir o claro/escuro do sistema" NESTE aparelho. Morava em prefs, que
+    // sincroniza: ligar no Mac ligava no iPad, e cada um seguia o SEU sistema — com
+    // sistemas diferentes, os dois viravam o tema um do outro a cada abertura.
+    'catedra:notifRevDia': 1, 'catedra:_bkpAutoTry': 1, 'catedra:_bkpAutoTs': 1, 'catedra:_temaTs': 1,
+    'catedra:_temaAuto': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
   // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
@@ -436,7 +440,17 @@
     setDirty(true);
     clearTimeout(pushT);
     pushT = setTimeout(pushNow, 700);
-  }, get status() { return syncStatus; },
+  },
+  /* Grava um valor DERIVADO deste aparelho: sem carimbo (_kts) e sem envio.
+     Existe para o claro/escuro quando o "Auto" está ligado — ali `catedra:dark` deixa de
+     ser escolha da pessoa e passa a ser leitura do sistema operacional DESTE aparelho.
+     Gravado pelo caminho normal, cada abertura recarimbava a chave e a mandava para a
+     nuvem: dois aparelhos com sistemas diferentes viravam o tema um do outro a cada
+     abertura, e um aparelho no automático apagava a escolha manual feita no outro.
+     Use SÓ para valor que o aparelho recalcula sozinho — nunca para escolha da pessoa,
+     que precisa do carimbo para vencer no merge. */
+  gravarDerivado: function (k, v) { try { _si(k, v); } catch (_) {} },
+  get status() { return syncStatus; },
   // o primeiro acerto com a nuvem desta abertura terminou (ver marcarSincronizado)
   get pronto() { return sincronizado; },
   // gancho interno de diagnóstico/teste (não usado pelo app)
