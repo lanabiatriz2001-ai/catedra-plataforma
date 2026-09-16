@@ -64,6 +64,16 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   .row .rg{position:relative;z-index:1;min-height:44px;padding:8px 13px}
   .search input{min-height:44px}
 }
+/* ===== D8(b) — o mesmo alvo de 44px CHEGA AO IPAD (ver juris-web.html) ================
+   A bolinha de status NÃO cresce: quem dá os 44 é o ::after, como já fazia por largura. */
+@media (pointer:coarse){
+  .row .st{position:relative}
+  .row .st::after{content:'';position:absolute;left:50%;top:50%;width:44px;height:44px;
+    transform:translate(-50%,-50%)}
+  .row .fav{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .row .rg{position:relative;z-index:1;min-height:44px;padding:8px 13px}
+  .search input{min-height:44px}
+}
 </style><script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script><script src="./tema-satelite.js"></script>
 </head>
 <body><div class="wrap">

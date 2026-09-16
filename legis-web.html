@@ -377,6 +377,24 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
   .rdr .mnode{min-height:44px;display:flex;flex-direction:column;justify-content:center}
   .rdr .doc{padding:18px 14px 120px}
 }
+/* ===== D8(b) — o mesmo alvo de 44px CHEGA AO IPAD (ver juris-web.html) ================
+   Medido com ponteiro grosso: 0 alvos abaixo de 44 a 390px e 1075 a 1024px. Só as linhas
+   de alvo se repetem; a gaveta do mapa e o "⋯" seguem presos à largura. */
+@media (pointer:coarse){
+  .tabs button{min-height:44px;padding:9px 15px}
+  .search input{min-height:44px}
+  .lawrow{min-height:56px}
+  /* a linha já tinha 44, mas quem se aperta é o BOTÃO do título, e ele ficava 32 dentro dela.
+     A 390px passava por acidente — o nome da lei quebra em duas linhas e estica sozinho.
+     Coluna centrada para o subtítulo de leitura (.laLido) continuar embaixo, como já fica. */
+  .lawrow .lt{min-height:44px;display:flex;flex-direction:column;justify-content:center}
+  .lawrow .st,.lawrow .fav{width:44px;height:44px}
+  .lawrow a{min-height:44px;padding:6px 8px}
+  .dip,.sec-h,.grp-h,.day,.tt-row{min-height:44px}
+  .rdr .back{min-width:44px;min-height:44px}
+  .rdr .tool{width:44px;height:44px}
+  .rdr .mnode{min-height:44px;display:flex;flex-direction:column;justify-content:center}
+}
 </style><script src="./tema-satelite.js"></script><script src="./leitura-ativa.js"></script></head>
 <body><div class="wrap">
 <div class="head"><div class="ic">📖</div><div><h1>CátedraLEGIS</h1><p>Vade mecum de leis · catálogo, plano de leitura e estrutura das normas</p></div></div>
