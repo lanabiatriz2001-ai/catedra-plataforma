@@ -24,6 +24,7 @@ import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarEnamModo } from './enam-modo.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
+import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -83,6 +84,13 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarIpadToque(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'IPAD TOQUE [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+    // o WebKit é o motor do WKWebView do iPad: é aqui que o alvo de toque dos satélites
+    // vale mais, porque é o navegador do aparelho onde a régua por largura não alcançava.
+    try { await testarIpadToqueSatelites(page, base, ok, { motor, origem }); }
+    catch (e) {
+      ok(false, 'IPAD/satélites toque [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
   }
