@@ -122,6 +122,13 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
   .busca input{font-size:var(--t-titulo)}          /* abaixo de 16px o iOS dá zoom sozinho ao focar */
   .sel{flex:1;max-width:none}
 }
+/* ===== D8(b) — o mesmo alvo de 44px CHEGA AO IPAD (ver juris-web.html) ================
+   Os dois selects mediam 177×43 e 205×43 no iPad: 1px abaixo do mínimo, invisível a olho
+   e reprovado na régua. */
+@media (pointer:coarse){
+  .busca input,.sel{min-height:44px}
+  .busca input{font-size:var(--t-titulo)}
+}
 </style>
 <script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
 <script src="./tema-satelite.js"></script>
