@@ -385,6 +385,70 @@ const sync = await page.evaluate(() => {
 });
 for (const [k, v] of Object.entries(sync)) ok(v, 'SYNC ' + k);
 
+/* ========= PEÇAS — JURISPRUDÊNCIA CITADA NO ROTEIRO (auditoria 15/09/2026) =========
+
+   Auditoria contra a fonte oficial achou quatro citações em pecas.js que ensinavam coisa
+   diferente do que o tribunal decidiu. Nenhuma era invenção: eram rótulo velho ou súmula
+   citada para proposição que ela não sustenta. O que se prova aqui é que não voltam.
+
+   · Súmula 545 do STJ estava na REDAÇÃO ANTERIOR ("quando a confissão for utilizada para a
+     formação do convencimento"), revogada em 10/09/2025 (REsp 2.001.973/RS, Tema repetitivo
+     1194). A vigente diz o oposto da condicional: atenua INDEPENDENTEMENTE disso.
+   · Súmula 694 do STF não trata de punição disciplinar militar (isso é o art. 142, § 2º, da
+     CF) e sim de exclusão de militar, perda de patente ou de função pública.
+   · Súmula 108 do STJ diz só que aplicar medida socioeducativa é competência exclusiva do
+     juiz — nada dispõe sobre cumular remissão com medida, que é o art. 127 do ECA.
+   · Súmula 536 do STJ alcança suspensão condicional do processo e transação penal; a
+     exclusão inteira da Lei 9.099/95 vem do art. 41 da Lei 11.340/06. */
+{
+  const pecasSrc = fs.readFileSync(path.join(RAIZ, 'pecas.js'), 'utf8');
+  const escopoP = {};
+  new Function('window', pecasSrc).call(null, escopoP);
+  const PECAS = escopoP.CT_PECAS;
+  ok(PECAS && Object.keys(PECAS).length > 20,
+    'PEÇAS o roteiro carrega (' + Object.keys(PECAS || {}).length + ' peças)');
+
+  // tudo que a peça diz, num texto só: juris, itens, especiais, dicas, erro…
+  const textoDaPeca = (nome) => JSON.stringify(PECAS[nome] || {});
+  const tudo = JSON.stringify(PECAS);
+
+  // A1 — a redação revogada da Súmula 545 não pode voltar, em peça nenhuma
+  ok(!/Confissão usada na convicção gera a atenuante/.test(tudo),
+    'PEÇAS a redação anterior da Súmula 545 (condicionada ao convencimento) sumiu do roteiro');
+  for (const p of ['Sentença penal — treino guiado', 'Alegações finais da defesa']) {
+    ok(/Súmula 545 do STJ \(revisada em 10\/09\/2025, Tema 1194\)/.test(textoDaPeca(p))
+      && /atenua ainda que não usada na convicção/.test(textoDaPeca(p)),
+      'PEÇAS ' + p + ' ensina a Súmula 545 na redação vigente');
+    ok(/retratação não atenua, salvo se serviu à apuração/.test(textoDaPeca(p)),
+      'PEÇAS ' + p + ' traz a ressalva da retratação (Tema 1194) — a tese não é incondicional');
+  }
+
+  // A2 — Súmula 694 do STF descrita pelo que ela diz; a punição disciplinar é a CF
+  const hc = textoDaPeca('Habeas corpus');
+  ok(!/punição disciplinar militar — Súmula 694/.test(tudo),
+    'PEÇAS a Súmula 694 não é mais apresentada como sendo sobre punição disciplinar militar');
+  ok(/exclusão de militar ou perda de patente ou de função pública — Súmula 694 do STF/.test(hc),
+    'PEÇAS o HC traz a Súmula 694 pelo que ela de fato enuncia');
+  ok(/art\. 142, § 2º/.test(hc),
+    'PEÇAS …e a punição disciplinar militar aparece com o seu fundamento certo (CF, art. 142, § 2º)');
+
+  // A3 — cumular remissão com medida é o art. 127 do ECA, não a Súmula 108
+  const socio = textoDaPeca('Sentença socioeducativa');
+  ok(!/semiliberdade \(Súmula 108 do STJ e art\. 127/.test(tudo),
+    'PEÇAS a Súmula 108 não é mais citada como fundamento da cumulabilidade da remissão');
+  ok(/nunca com internação ou semiliberdade \(ECA, art\. 127, parte final\)/.test(socio),
+    'PEÇAS a cumulabilidade da remissão vem do art. 127 do ECA');
+  ok(/competência exclusiva do juiz \(Súmula 108 do STJ\)/.test(socio),
+    'PEÇAS …e a Súmula 108 fica no que ela enuncia: quem aplica a medida é o juiz');
+
+  // A4 — a Súmula 536 não exclui a Lei 9.099 inteira; isso é o art. 41 da Lei 11.340
+  ok(!/Não cabem os institutos da Lei 9\.099\/95 \(Súmula 536 do STJ\)/.test(tudo),
+    'PEÇAS a Súmula 536 não é mais apresentada como exclusão inteira da Lei 9.099/95');
+  ok(/Não se aplica a Lei 9\.099\/95 \(Lei 11\.340\/06, art\. 41/.test(tudo)
+    && /suspensão condicional do processo e à transação penal, Súmula 536 do STJ/.test(tudo),
+    'PEÇAS a exclusão da 9.099 vem do art. 41 da Lei 11.340/06, e a Súmula 536 fica no seu alcance');
+}
+
 /* ======================= ACERVO — ida e volta ======================= */
 await page.goto(URL0 + '/ritos-web.html');
 const PECA = await page.evaluate(() => Object.keys(window.CT_PECAS || {})[0]);
