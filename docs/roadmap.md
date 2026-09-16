@@ -18,8 +18,8 @@
 | Ampliar `questoes-prova.js` (83 → +VUNESP TJ-SP/TJ-RJ, FGV/CEBRASPE 2024-26) | sessões TEC **espaçadas** — anti-bot apareceu em 21/08, uma prova por vez | pipeline pronto (`build-questoes-prova.mjs`) |
 | Bloco de Penal + Processo Penal no ciclo | métrica de 21/08: 3% e ~0% do tempo em 30d | gancho: sentença criminal TJ-GO |
 | Decidir: import do desempenho TEC (`tec-desempenho`) | decisão da Lana — em aberto, não aprovado | fecharia o retrovisor do histórico de questões |
-| A11y restantes: `aria-label` nos selects, chips a 44px | — | menor; itens 6/8 da auditoria |
-| Separar cor-identidade (gráficos, ≥3:1 ok) de cor-texto (escurecida ≥4,5:1) nos ~6 consumidores textuais de `_corDisc` | achado 2 do code review de 21/08 | paliativo: `color-mix(… 75%, black)` nos badges |
+| ~~A11y restantes: `aria-label` nos selects, chips a 44px~~ | **PR #97, 16/09/2026** (riscar de vez no merge) | o host já estava coberto (`run.mjs` varre os selects de 21 telas). O que faltava era **nos satélites**, e maior do que a linha dizia: o alvo de 44px morava em `@media (max-width:640px)` e nunca alcançava o iPad — 1307 controles abaixo de 44 a 1024px contra 0 a 390px, mesmo ponteiro. Ver `tests/ipad-toque-satelites.mjs`. |
+| ~~Separar cor-identidade de cor-texto nos consumidores textuais de `_corDisc`~~ | **já estava feito** (conferido em 16/09/2026) | o paliativo `color-mix(… 75%, black)` não existe mais: `_corTx()` escurece (clareia no escuro) em passos de 3% até MEDIR 4,5:1. Medido: 0 textos com cor-identidade crua abaixo de 4,5:1 em 21 telas × 2 modos. `scripts/verificar-cores-texto.mjs` ABORTA o build se alguma das 26 famílias falhar, e a suíte cobre com `corTextoLegivelNosDoisModos`. |
 
 ## Depois (1–3 meses)
 
