@@ -268,6 +268,72 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
     'U10 o host tem por onde ler o estado do acervo offline e mandar baixar o resto');
 }
 
+/* ================= JURIS — RÓTULO DO VERBETE (auditoria 15/09/2026) =================
+
+   Auditoria contra a fonte oficial achou verbetes cujo RÓTULO não descrevia o conteúdo:
+   quatro teses de repercussão geral indexadas sob número de tema errado (a pessoa decora o
+   número errado, e quem busca o número certo recebe o precedente errado) e oito teses do
+   STJ gravadas com tribunal "STF" (somem do filtro por tribunal). O texto sempre esteve
+   certo — errado era o rótulo. O vínculo processo↔tema de cada caso foi conferido na
+   consulta processual do STF ("Rep. Geral Tema: N").
+
+   O id NÃO muda: 'catedra:jurisEstudo' guarda favorito e status POR ID, e trocar o id
+   apagaria o estudo da pessoa. Por isso o id segue com o número antigo — é chave opaca. */
+{
+  const idxSrc = fs.readFileSync(path.join(RAIZ, 'juris-index.js'), 'utf8');
+  const escopo = {};
+  new Function('window', idxSrc).call(null, escopo);
+  const IDX = escopo.__JURIS_IDX__;
+  const por = Object.create(null);
+  for (const r of IDX) por[r[0]] = r;
+  ok(Array.isArray(IDX) && IDX.length > 15000, 'JURIS o índice carrega (' + IDX.length + ' verbetes)');
+
+  // 1. tese de RG sob o número do tema certo — conferido em portal.stf.jus.br
+  const NUMERO = [
+    ['COORD-RG-791', 761, 'Tema 761 (RG)', 'RE 670422 — transgênero, alteração de prenome'],
+    ['PRECOBR-002', 500, 'Tema 500 (RG — STF)', 'RE 657718 — medicamento experimental/sem registro'],
+    ['repgeral-repercussao_geral-STF-380', 951, 'Tema 951 (RG)', 'RE 1023750 — CLT→RJU, PCCS'],
+    ['repgeral-repercussao_geral-STF-82', 499, 'Tema 499 (RG)', 'RE 612043 — coisa julgada em ação de associação'],
+  ];
+  for (const [id, num, titulo, fonte] of NUMERO) {
+    const r = por[id];
+    ok(!!r && r[3] === num && r[4] === titulo,
+      'JURIS ' + id + ' é ' + titulo + ' (' + fonte + ')');
+  }
+  // o número ERRADO não pode voltar: é o defeito exato que a auditoria achou
+  const VOLTOU = [['COORD-RG-791', 791], ['PRECOBR-002', 6],
+    ['repgeral-repercussao_geral-STF-380', 380], ['repgeral-repercussao_geral-STF-82', 82]];
+  ok(VOLTOU.every(([id, mau]) => por[id] && por[id][3] !== mau),
+    'JURIS nenhum dos quatro voltou ao número de tema antigo');
+
+  // 2. tese do STJ não fica sob a bandeira do STF (some do filtro por tribunal)
+  const DO_STJ = ['repgeral-repetitivo-STF-18', 'repgeral-repetitivo-STF-185',
+    'repgeral-repetitivo-STF-185-2', 'repgeral-repetitivo-STF-220', 'repgeral-repetitivo-STF-292',
+    'repgeral-repetitivo-STF-340', 'repgeral-repetitivo-STF-581', 'repgeral-repetitivo-STF-596'];
+  ok(DO_STJ.every(id => por[id] && por[id][1] === 'STJ'),
+    'JURIS os oito repetitivos de tese do STJ estão sob tribunal STJ');
+  // …e os dois que são MESMO do STF continuam no STF (não corrigir demais)
+  ok(['repgeral-repetitivo-STF-676', 'repgeral-repetitivo-STF-1127']
+      .every(id => por[id] && por[id][1] === 'STF'),
+    'JURIS Temas 676 e 1127, que são do STF, seguem no STF');
+
+  // 3. o id é chave opaca de 'catedra:jurisEstudo' — mexer nele apaga favorito e status
+  ok(NUMERO.every(([id]) => !!por[id]) && DO_STJ.every(id => !!por[id]),
+    'JURIS os ids não mudaram (favorito e status da pessoa são gravados por id)');
+
+  // 4. rótulo e número andam juntos em TODO verbete de tema: título tem de citar o número
+  // "Tema 1.234" usa separador de milhar: tira o ponto ENTRE dígitos antes de comparar
+  const numDoTitulo = (t) => {
+    const m = /^Tema\s+0*([0-9][0-9.]*)/.exec(String(t).replace(/(\d)\.(?=\d{3}\b)/g, '$1'));
+    return m ? m[1].replace(/\D.*$/, '') : null;
+  };
+  const incoerentes = IDX.filter(r => typeof r[3] === 'number' && /^Tema /.test(r[4] || '')
+    && numDoTitulo(r[4]) !== String(r[3]));
+  ok(incoerentes.length === 0,
+    'JURIS nenhum verbete tem título "Tema N" divergente do número gravado'
+    + (incoerentes.length ? ' (' + incoerentes.slice(0, 3).map(r => r[0]).join(', ') + ')' : ''));
+}
+
 
 /* ============================ SYNC (mergeAll) ============================ */
 await page.goto(URL0 + '/tests/sync-fixture.html');
@@ -555,6 +621,61 @@ const a7 = await page.evaluate(async () => {
            onde: d ? d.location.pathname + d.location.search : 'sem documento no iframe' };
 });
 ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' + (a7.aberto && a7.destacou ? '' : ' (' + a7.onde + ')'));
+
+/* ===== JURIS — INFORMATIVOS DO STF: EDIÇÃO, TRIBUNAL E DATA (auditoria 15/09/2026) =====
+
+   Conferência do bloco `informativo_stf` (1.606 verbetes) contra as edições oficiais em
+   www.stf.jus.br/arquivo/informativo/documento/informativo{N}.htm. Seis verbetes apontavam
+   para uma edição que não traz o assunto; um trazia o Informativo 690 do STJ sob a bandeira
+   do STF; dois tinham o ano da data errado. Em todos, o texto está certo — errado era o
+   rótulo. Cada correção foi conferida por termo específico nas DUAS edições (a declarada,
+   onde o assunto não aparece, e a correta, onde aparece). */
+{
+  const jsrc = fs.readFileSync(path.join(RAIZ, 'juris-index.js'), 'utf8');
+  const esc = {};
+  new Function('window', jsrc).call(null, esc);
+  const IDX = esc.__JURIS_IDX__;
+  const por = Object.create(null);
+  for (const r of IDX) por[r[0]] = r;
+
+  // 1. verbete na edição certa (o assunto está lá, e não na que estava declarada)
+  const EDICAO = [
+    ['INF2021-0029', 1012, 'leitos de UTI para Covid-19'],
+    ['INF2022-0273', 1053, 'assistência médico-hospitalar e operadoras'],
+    ['INF2023-0050', 1081, 'teto da RPV por estados e municípios'],
+    ['INF2023-0082', 1081, 'imunidades dos deputados estaduais (ADI 5.824)'],
+    ['INF2023-0766', 1113, 'transporte público gratuito em dia de eleição'],
+    ['INF2020-0055', 981, 'antenas de telefonia e limites de radiação'],
+  ];
+  for (const [id, num, assunto] of EDICAO) {
+    const r = por[id];
+    ok(!!r && r[3] === num && r[4] === 'Info ' + num + ' · STF',
+      'INFO ' + id + ' é o Info ' + num + ' (' + assunto + ')');
+  }
+  const ANTIGO = [['INF2021-0029', 1037], ['INF2022-0273', 1055], ['INF2023-0050', 1082],
+    ['INF2023-0082', 1082], ['INF2023-0766', 1123], ['INF2020-0055', 994]];
+  ok(ANTIGO.every(([id, mau]) => por[id] && por[id][3] !== mau),
+    'INFO nenhum dos seis voltou à edição antiga');
+
+  // 2. o Informativo 690 é do STJ (29/03/2021 — DPVAT, impenhorabilidade, art. 833, VI, CPC)
+  ok(por['INF2021-0401'] && por['INF2021-0401'][1] === 'STJ'
+    && por['INF2021-0401'][4] === 'Info 690 · STJ',
+    'INFO o verbete do DPVAT está sob o STJ (o Info 690 do STF é de 2012 e não trata disso)');
+
+  // 3. datas conferidas na própria edição oficial ("julgamento virtual finalizado em …")
+  ok(por['INF2022-0860'] && por['INF2022-0860'][7] === '17/12/2021',
+    'INFO INF2022-0860 tem a data que o Info 1042 registra (17.12.2021, não 2012)');
+  ok(por['INF2025-0433'] && por['INF2025-0433'][7] === '11/03/2025',
+    'INFO INF2025-0433 tem a data que o Info 1168 registra (11.03.2025, terça-feira)');
+
+  // 4. guarda geral: verbete de informativo tem de ter título coerente com o número e o tribunal
+  const inc = IDX.filter(r => r[2] === 'informativo_stf' && typeof r[3] === 'number'
+    && /^Info\s/.test(r[4] || '')
+    && r[4] !== 'Info ' + r[3] + ' · ' + r[1]);
+  ok(inc.length === 0,
+    'INFO todo verbete de informativo tem título "Info N · TRIBUNAL" coerente com os campos'
+    + (inc.length ? ' (' + inc.slice(0, 3).map(r => r[0] + ':' + r[4]).join(', ') + ')' : ''));
+}
 
 /* ================ ERRO VIRA REVISÃO (item 2) ================ */
 await page.goto(URL0 + '/tests/harness-erros.html');
