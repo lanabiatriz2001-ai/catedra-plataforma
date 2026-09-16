@@ -29,26 +29,33 @@
    · (c) os sete: todo campo visível (select e input) tem nome acessível — a 2ª fase tinha
          21 selects sem nome nenhum (os dois filtros e o seletor de horas de cada prova),
          e a varredura de selects do run.mjs só olha o documento do HOST, nunca o iframe;
-   · (d) a 1280 px com ponteiro FINO os tamanhos ORIGINAIS voltam. É o que prova que a
-         regra é por ponteiro e não vazou para o desktop: se alguém trocar o
-         `(pointer:coarse)` por largura outra vez, (b) continua verde e (d) fica vermelho.
+   · (d) a 1280 px com ponteiro FINO a regra de toque NÃO se aplica. Prova que ela é por
+         ponteiro e não vazou para o desktop: se alguém trocar o `(pointer:coarse)` por
+         largura outra vez, (b) continua verde e (d) fica vermelho.
+         O que se mede é o `min-height` COMPUTADO, não a altura em pixels. A primeira versão
+         deste caso cravava a altura que eu tinha medido no Chromium (31, 32, 38, 43, 38) e
+         quebrou nos cinco no WebKit, que dá 35, 36, 46, 51, 46 para os mesmos controles: são
+         métricas de fonte de cada motor, não vazamento — vazamento daria 44 cravado. Pior, o
+         .sel de peças nasce com 51 px no WebKit, acima de 44, então nem "altura < 44" serviria.
+         O `min-height` responde a pergunta certa em qualquer motor: valendo a regra ele é
+         44px; sem ela é o que a folha do satélite disser.
 
    Rótulos "IPAD/satélites toque …". */
 
 const SATELITES = ['legis-web.html', 'juris-web.html', 'ritos-web.html', 'pecas-web.html',
   'area-web.html', 'prioridade-web.html', 'segunda-fase-web.html'];
 
-/* (d) um controle conhecido por satélite e a altura que ele TEM no desktop hoje. São as
-   medidas de antes da mudança, conferidas com ponteiro fino a 1280: se qualquer uma subir
-   para 44, a regra de toque vazou para quem usa mouse. `area-web.html` fica de fora porque
-   já resolvia tudo por ::after e não tem controle abaixo de 44 para vigiar. */
+/* (d) um controle por satélite que o bloco @media (pointer:coarse) leva a min-height:44px.
+   No toque o computado tem de ser 44px; com mouse, qualquer coisa MENOS 44px — é assim que
+   se vê se a regra vazou, sem depender da métrica de fonte do motor. `area-web.html` fica de
+   fora porque resolve por ::after, não por min-height, e não tem o que vigiar aqui. */
 const DESKTOP = [
-  ['juris-web.html', '.tab', 31],
-  ['legis-web.html', '.lt', 32],
-  ['ritos-web.html', '.modos button', 38],
-  ['pecas-web.html', '.sel', 43],
-  ['prioridade-web.html', '.sel', 38],
-  ['segunda-fase-web.html', '.sel', 38],
+  ['juris-web.html', '.tab'],
+  ['legis-web.html', '.lt'],
+  ['ritos-web.html', '.modos button'],
+  ['pecas-web.html', '.sel'],
+  ['prioridade-web.html', '.sel'],
+  ['segunda-fase-web.html', '.sel'],
 ];
 
 export async function testarIpadToqueSatelites(pageDaSuite, base, ok, opcoes = {}) {
@@ -129,26 +136,45 @@ export async function testarIpadToqueSatelites(pageDaSuite, base, ok, opcoes = {
     }
   });
 
-  /* ---------- (d) a 1280 com ponteiro FINO, o desktop não mudou ---------- */
+  /* ---------- (d) a 1280 com ponteiro FINO, a regra de toque não se aplica ---------- */
+  /* Primeiro reconfere, no toque, que estes mesmos controles ESTÃO com a regra: sem este
+     lado o caso vira "não é 44px", que um seletor errado (que não acha nada) satisfaz de
+     graça. Os dois lados juntos é que dizem "vale com o dedo e não vale com o mouse". */
+  const noToque = new Map();
+  await comContexto(1024, 768, true, async (ctx) => {
+    for (const [arquivo, seletor] of DESKTOP) {
+      const { page } = await abrir(ctx, arquivo);
+      noToque.set(arquivo + '|' + seletor, await page.evaluate((sel) => {
+        const el = [...document.querySelectorAll(sel)].find(e => e.getBoundingClientRect().height > 0);
+        return el ? { mh: getComputedStyle(el).minHeight, alt: Math.round(el.getBoundingClientRect().height) } : null;
+      }, seletor));
+      await page.close();
+    }
+  });
   await comContexto(1280, 900, false, async (ctx) => {
     let conferiuPonteiro = false;
-    for (const [arquivo, seletor, alturaEsperada] of DESKTOP) {
+    for (const [arquivo, seletor] of DESKTOP) {
       const { page } = await abrir(ctx, arquivo);
       const m = await page.evaluate((sel) => {
         const el = [...document.querySelectorAll(sel)].find(e => e.getBoundingClientRect().height > 0);
-        const b = el ? el.getBoundingClientRect() : null;
         return { coarse: matchMedia('(pointer: coarse)').matches, achou: !!el,
-          altura: b ? Math.round(b.height) : -1 };
+          mh: el ? getComputedStyle(el).minHeight : '',
+          alt: el ? Math.round(el.getBoundingClientRect().height) : -1 };
       }, seletor);
+      const tq = noToque.get(arquivo + '|' + seletor);
       if (!conferiuPonteiro) {
         ok(!m.coarse, R + '(d) a 1280 o ponteiro é FINO (coarse ' + m.coarse + ')');
         conferiuPonteiro = true;
       }
-      ok(m.achou, R + '(d) ' + arquivo + ': achei ' + seletor + ' para medir');
-      /* Cobra a altura EXATA de antes da mudança, não "< 44": assim a asserção também pega
-         quem encolher o controle por outro motivo, e diz o número quando quebra. */
-      ok(m.altura === alturaEsperada, R + '(d) ' + arquivo + ' ' + seletor + ': o desktop segue em '
-        + alturaEsperada + ' px (medido ' + m.altura + ') — a regra de toque não vazou para o mouse');
+      ok(m.achou && !!tq, R + '(d) ' + arquivo + ': achei ' + seletor + ' nos dois contextos');
+      ok(!!tq && tq.mh === '44px', R + '(d) ' + arquivo + ' ' + seletor
+        + ': NO TOQUE a regra vale (min-height ' + (tq ? tq.mh : '—') + ', altura ' + (tq ? tq.alt : '—') + ' px)');
+      /* A altura em pixels NÃO entra na asserção: ela é métrica de fonte do motor (o mesmo
+         controle dá 31 no Chromium e 35 no WebKit) e já me custou cinco falsos vermelhos.
+         Vai na mensagem só para quem for depurar. */
+      ok(m.mh !== '44px', R + '(d) ' + arquivo + ' ' + seletor
+        + ': COM MOUSE a regra não vale (min-height ' + m.mh + ', altura ' + m.alt
+        + ' px) — não vazou para o desktop');
       await page.close();
     }
   });
