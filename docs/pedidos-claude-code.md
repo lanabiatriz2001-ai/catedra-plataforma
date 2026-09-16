@@ -63,7 +63,11 @@ altere o conteúdo dos arquivos. Se algum teste falhar, pare e me mostre a saíd
 ```
 
 ### P2 · Levar o teste WebKit ao bundle do iPad
-- [ ] `tests/run-webkit.mjs` também abre `mac/build/web/index.html` em `file://`
+- [x] `tests/run-webkit.mjs` também abre `mac/build/web/index.html` em `file://` — **feito, e além do pedido**
+      (conferido em 16/09/2026). A origem `[bundle]` existe e roda `testarOralLeiSeca`, `testarLegisGuiado`
+      e `testarEnamModo`; exclui bundle esvaziado pelo iCloud; e quando o bundle não existe **pula com
+      aviso, nunca finge**. Provado vivo: gerando o bundle e rodando o roteiro, 41 asserções `[bundle]`
+      verdes, com a lista de leis chegando por `<script>` (14 códigos: CF 562, CC 2086, CPC 1227, CP 393…).
 
 ```
 Em tests/run-webkit.mjs, acrescente uma terceira origem: se existir mac/build/web/index.html
