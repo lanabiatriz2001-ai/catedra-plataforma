@@ -539,6 +539,61 @@ const a7 = await page.evaluate(async () => {
 });
 ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' + (a7.aberto && a7.destacou ? '' : ' (' + a7.onde + ')'));
 
+/* ===== JURIS — INFORMATIVOS DO STF: EDIÇÃO, TRIBUNAL E DATA (auditoria 15/09/2026) =====
+
+   Conferência do bloco `informativo_stf` (1.606 verbetes) contra as edições oficiais em
+   www.stf.jus.br/arquivo/informativo/documento/informativo{N}.htm. Seis verbetes apontavam
+   para uma edição que não traz o assunto; um trazia o Informativo 690 do STJ sob a bandeira
+   do STF; dois tinham o ano da data errado. Em todos, o texto está certo — errado era o
+   rótulo. Cada correção foi conferida por termo específico nas DUAS edições (a declarada,
+   onde o assunto não aparece, e a correta, onde aparece). */
+{
+  const jsrc = fs.readFileSync(path.join(RAIZ, 'juris-index.js'), 'utf8');
+  const esc = {};
+  new Function('window', jsrc).call(null, esc);
+  const IDX = esc.__JURIS_IDX__;
+  const por = Object.create(null);
+  for (const r of IDX) por[r[0]] = r;
+
+  // 1. verbete na edição certa (o assunto está lá, e não na que estava declarada)
+  const EDICAO = [
+    ['INF2021-0029', 1012, 'leitos de UTI para Covid-19'],
+    ['INF2022-0273', 1053, 'assistência médico-hospitalar e operadoras'],
+    ['INF2023-0050', 1081, 'teto da RPV por estados e municípios'],
+    ['INF2023-0082', 1081, 'imunidades dos deputados estaduais (ADI 5.824)'],
+    ['INF2023-0766', 1113, 'transporte público gratuito em dia de eleição'],
+    ['INF2020-0055', 981, 'antenas de telefonia e limites de radiação'],
+  ];
+  for (const [id, num, assunto] of EDICAO) {
+    const r = por[id];
+    ok(!!r && r[3] === num && r[4] === 'Info ' + num + ' · STF',
+      'INFO ' + id + ' é o Info ' + num + ' (' + assunto + ')');
+  }
+  const ANTIGO = [['INF2021-0029', 1037], ['INF2022-0273', 1055], ['INF2023-0050', 1082],
+    ['INF2023-0082', 1082], ['INF2023-0766', 1123], ['INF2020-0055', 994]];
+  ok(ANTIGO.every(([id, mau]) => por[id] && por[id][3] !== mau),
+    'INFO nenhum dos seis voltou à edição antiga');
+
+  // 2. o Informativo 690 é do STJ (29/03/2021 — DPVAT, impenhorabilidade, art. 833, VI, CPC)
+  ok(por['INF2021-0401'] && por['INF2021-0401'][1] === 'STJ'
+    && por['INF2021-0401'][4] === 'Info 690 · STJ',
+    'INFO o verbete do DPVAT está sob o STJ (o Info 690 do STF é de 2012 e não trata disso)');
+
+  // 3. datas conferidas na própria edição oficial ("julgamento virtual finalizado em …")
+  ok(por['INF2022-0860'] && por['INF2022-0860'][7] === '17/12/2021',
+    'INFO INF2022-0860 tem a data que o Info 1042 registra (17.12.2021, não 2012)');
+  ok(por['INF2025-0433'] && por['INF2025-0433'][7] === '11/03/2025',
+    'INFO INF2025-0433 tem a data que o Info 1168 registra (11.03.2025, terça-feira)');
+
+  // 4. guarda geral: verbete de informativo tem de ter título coerente com o número e o tribunal
+  const inc = IDX.filter(r => r[2] === 'informativo_stf' && typeof r[3] === 'number'
+    && /^Info\s/.test(r[4] || '')
+    && r[4] !== 'Info ' + r[3] + ' · ' + r[1]);
+  ok(inc.length === 0,
+    'INFO todo verbete de informativo tem título "Info N · TRIBUNAL" coerente com os campos'
+    + (inc.length ? ' (' + inc.slice(0, 3).map(r => r[0] + ':' + r[4]).join(', ') + ')' : ''));
+}
+
 /* ================ ERRO VIRA REVISÃO (item 2) ================ */
 await page.goto(URL0 + '/tests/harness-erros.html');
 await page.waitForFunction(() => !!window.colherErros);
