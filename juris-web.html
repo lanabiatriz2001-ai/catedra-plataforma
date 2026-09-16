@@ -295,6 +295,24 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   .rdr .toolset{position:absolute;right:10px;top:100%;margin-top:6px;flex-direction:column;z-index:6;background:var(--rcard);border:1px solid var(--rline);border-radius:12px;padding:6px;box-shadow:0 18px 34px -20px rgba(0,0,0,.65)}
   .rdr .toolset:not(.aberto){display:none}
 }
+/* ===== D8(b) — o mesmo alvo de 44px CHEGA AO IPAD =====================================
+   As regras de alvo acima moram num @media por LARGURA, e o iPad tem 768 a 1024+: medido
+   com ponteiro grosso, o bloco de cima resolvia 176 alvos a 390px e ZERO a 1024 — as abas
+   ficavam 71×31 e os chips de tribunal 100×29, no aparelho em que o dedo é o único ponteiro.
+   É a lição que o host já tinha aprendido (catedra-ui.css: "sob [data-toque] vale em
+   QUALQUER largura — inclusive no iPad em paisagem, onde a tela passa de 900 e a regra por
+   largura não alcança"), e que os satélites não tinham recebido.
+   Aqui vão SÓ as linhas de alvo, repetidas: o layout de celular (fileiras que rolam, mapa
+   virando gaveta, ferramentas no "⋯") continua preso à largura, senão o iPad ganharia
+   desenho de telefone. */
+@media (pointer:coarse){
+  .tab,.chip,.fbtn,.gmais,.estBtn,.diaAcoes button,.tccard .acv{min-height:44px}
+  .tab,.chip{display:inline-flex;align-items:center}
+  .edic{min-height:56px}
+  .st{width:44px;height:44px;font-size:16px}
+  .fav{min-width:44px;min-height:44px;font-size:20px;display:flex;align-items:center;justify-content:center}
+  .rdr .back,.rdr .nav,.rdr .tool{min-width:44px;min-height:44px}
+}
 </style>
 <script src="./tema-satelite.js"></script>
 <script src="ct-dados.js"></script>

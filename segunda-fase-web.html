@@ -171,6 +171,19 @@ details.instr ul{margin:10px 0 0;padding-left:20px;font-size:var(--t-micro);colo
   .maisit.on{display:flex}
   .maisit .bt{border-color:transparent;text-align:left;justify-content:flex-start}
 }
+/* ===== D8(b) — o mesmo alvo de 44px CHEGA AO IPAD (ver juris-web.html) ================
+   Medido com ponteiro grosso: 0 abaixo de 44 a 390px e 47 a 1024px. Os links soltos no meio
+   da prosa ficam de fora de propósito — a WCAG 2.5.8 abre exceção para link em linha. */
+@media (pointer:coarse){
+  .bt,.sel,.inp{min-height:44px}
+  .bt{display:inline-flex;align-items:center;justify-content:center}
+  .ver button{min-height:44px;padding:8px 16px}
+  .disp button{min-height:44px}
+  .plinks a{display:inline-flex;align-items:center;min-height:44px}
+  details.instr summary{min-height:44px;display:flex;align-items:center}
+  .vb button{min-height:44px}
+  .mais .bmais{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 10px}
+}
 </style>
 <script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
 <script src="./tema-satelite.js"></script>
@@ -235,9 +248,9 @@ function telaEscolha(){
   $('cab').innerHTML=
      '<div class="brand"><span class="ic">2ª</span><div><b>Simulado de 2ª fase</b>'
     +'<small>prova real, cronômetro e espelho oficial</small></div></div><span class="sp"></span>'
-    +'<select class="sel" id="ftipo"><option value="sentenca">Sentenças e peças</option>'
+    +'<select class="sel" id="ftipo" aria-label="Filtrar por tipo de prova"><option value="sentenca">Sentenças e peças</option>'
       +'<option value="discursiva">Discursivas</option><option value="">Tudo</option></select>'
-    +'<select class="sel" id="ftrib"><option value="">Todos os tribunais</option></select>'
+    +'<select class="sel" id="ftrib" aria-label="Filtrar por tribunal"><option value="">Todos os tribunais</option></select>'
     +'<input class="inp" id="fq" aria-label="Buscar prova por tema, disciplina ou banca" placeholder="Buscar tema, disciplina, banca…" autocomplete="off">';
   const tribs=[...new Set(E.provas.map(p=>p.trib))].sort();
   tribs.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; $('ftrib').appendChild(o); });
@@ -266,7 +279,7 @@ function listar(){
         +(p.prova2?'<a href="'+esc(p.prova2)+'" target="_blank" rel="noopener">2º caderno</a>':'')
         +(p.url?'<a href="'+esc(p.url)+'" target="_blank" rel="noopener">espelho oficial</a>':'')+'</div>'
       +'<div class="pacoes"><button class="bt pri" data-id="'+esc(p.id)+'">Começar</button>'
-        +'<select class="sel" data-h="'+esc(p.id)+'">'
+        +'<select class="sel" data-h="'+esc(p.id)+'" aria-label="Duração da prova em horas — '+esc(p.trib)+' '+p.ano+'">'
           +[2,3,4,5].map(h=>'<option value="'+h+'"'+(h===p.horas?' selected':'')+'>'+h+' h</option>').join('')
         +'</select></div>'
       +'</article>';

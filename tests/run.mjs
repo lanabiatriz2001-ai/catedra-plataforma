@@ -25,6 +25,7 @@ import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
+import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
@@ -8231,6 +8232,15 @@ catch (e) {
 try { await testarIphoneSatelites390(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPHONE/satélites 390 [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// iPad no toque, em largura de TABLET (tests/ipad-toque-satelites.mjs): a combinação que
+// faltava — o módulo do iPhone só liga o toque abaixo de 900 px, e o alvo dos satélites
+// morava atrás de um @media por largura que nunca alcançava o aparelho.
+try { await testarIpadToqueSatelites(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'IPAD/satélites toque [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
