@@ -428,6 +428,26 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
   font-weight:800; font-size:var(--fs-md); border:none; border-radius:var(--radius); padding:12px 20px; flex:none; cursor:pointer;
   font-family:inherit; box-shadow:0 10px 30px -8px color-mix(in oklab, var(--accent) 55%, transparent); transition:transform .12s; }
 .cth-bfsug:hover{ transform:translateY(-1px); }
+/* O gráfico do Início media 371 px numa caixa de 320 no iPhone: a quinta disciplina ficava
+   fora da tela e só aparecia arrastando a fileira de lado. Colunas mais estreitas e espaço
+   menor fazem as cinco caberem; o nome continua com reticências quando não couber. */
+@media (max-width:540px){
+  .ct-graf-fila{ gap:8px!important; }
+  .ct-graf-col{ min-width:0!important; }
+  .ct-graf-col > span:last-child{ max-width:100%!important; }
+}
+/* Cartão de prova da Redação: com overflow:hidden e filhos que não encolhiam, o título e o
+   rótulo ("TRF3 · 2025 · FGV · Juiz Federal Substituto") eram CORTADOS dentro do cartão. */
+.ct-card-prova, .ct-card-prova *{ min-width:0; }
+.ct-card-prova{ overflow-wrap:anywhere; }
+/* No iPhone (390 px) o botão comia a largura e o texto do foco ficava numa coluna de três
+   palavras por linha ("Ataque já / as revisões / vencidas."). Abaixo de 540 px o cartão
+   empilha: ícone e texto na primeira linha, botão inteiro embaixo, com alvo de 44 pt. */
+@media (max-width:540px){
+  .cth-foco{ flex-wrap:wrap; padding:16px; gap:12px; }
+  .cth-foco .tx{ flex:1 1 60%; }
+  .cth-bfsug{ flex:1 1 100%; width:100%; min-height:44px; }
+}
 @media (max-width:1240px){
   .cth-hero-grid{ grid-template-columns:1fr; }
   .cth-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -1814,9 +1834,9 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ paDesempShow }}" hint-placeholder-val="{{ false }}">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;">
           <div style="font-family:var(--mono);font-size:var(--fs-3xs);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">Desempenho por disciplina · acertos × erros · % líquido</div>
-          <div style="display:flex;align-items:flex-end;gap:16px;height:120px;overflow-x:auto;padding-bottom:2px;">
+          <div class="ct-graf-fila" style="display:flex;align-items:flex-end;gap:16px;height:120px;overflow-x:auto;padding-bottom:2px;">
             <sc-for list="{{ paDesemp }}" as="d" hint-placeholder-count="6">
-              <div style="flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+              <div class="ct-graf-col" style="flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
                 <span style="font-family:var(--mono);font-size:var(--fs-2xs);font-weight:800;color:{{ d.colorTx }};">{{ d.pct }}</span>
                 <div style="display:flex;align-items:flex-end;gap:4px;width:100%;justify-content:center;">
                   <div style="width:36%;background:var(--ok);border-radius:4px 4px 2px 2px;height:{{ d.aH }};"></div>
@@ -3053,7 +3073,7 @@ window.ctPdfLib = (function(){
 
           <div class="ct-grade">
             <sc-for list="{{ bancoLista }}" as="q" hint-placeholder-count="6">
-              <button data-id="{{ q.id }}" onclick="{{ usarDiscursiva }}" class="ct-card" style="padding:0;text-align:left;cursor:pointer;font-family:inherit;overflow:hidden;display:flex;flex-direction:column;">
+              <button data-id="{{ q.id }}" onclick="{{ usarDiscursiva }}" class="ct-card ct-card-prova" style="padding:0;text-align:left;cursor:pointer;font-family:inherit;overflow:hidden;display:flex;flex-direction:column;">
                 <div style="{{ q.faixa }}"></div>
                 <sc-if value="{{ q.abrindo }}" hint-placeholder-val="{{ false }}"><div style="padding:6px 14px;background:var(--accentSoft);color:var(--accentD, var(--accent));font-size:var(--fs-xs);font-weight:700;">abrindo a prova…</div></sc-if>
                 <div style="padding:18px;display:flex;flex-direction:column;gap:8px;flex:1;">
@@ -10322,6 +10342,17 @@ class Component extends DCLogic {
 
   // Fase 4: TREINO ADAPTATIVO — o caderno de erros vira um banco re-testável.
   // A fila prioriza as disciplinas mais FRACAS (líquido do _brain) e os erros em aberto.
+  /// Arredonda título de revisão cortado no meio da palavra pelo Treino antigo (44 caracteres
+  /// exatos, sem reticências). Título que não veio daquele corte passa intacto.
+  _tituloRev(t){ const s=String(t||'');
+    if(s.length!==44) return s;
+    const i=s.lastIndexOf(' ');
+    return (i>20 ? s.slice(0,i) : s).replace(/[\s,;:.\-]+$/,'')+'…'; }
+  /// Corta no fim da última palavra inteira que cabe, com reticências.
+  _cortarTitulo(s, n){ const t=String(s||'').trim();
+    if(t.length<=n) return t;
+    const corte=t.slice(0,n), i=corte.lastIndexOf(' ');
+    return (i>Math.floor(n/2) ? corte.slice(0,i) : corte).replace(/[\s,;:.\-]+$/,'')+'…'; }
   treinoStart = ()=>{
     const errs=(this.state.errors||[]).filter(e=>e.enunciado);
     if(!errs.length){ this._toast('Cadastre erros com enunciado para treinar'); return; }
@@ -10343,7 +10374,7 @@ class Component extends DCLogic {
   treinoAgendarRevisoes = ()=>{ const ts=this.state.treino; if(!ts||!ts.wrongIds||!ts.wrongIds.length){ this.setState({treino:null}); return; }
     const hoje=this._hoje(); const novos=[];
     ts.wrongIds.forEach(id=>{ const er=(this.state.errors||[]).find(x=>x.id===id); if(!er) return;
-      const topic=er.topico||String(er.enunciado||'').slice(0,44);
+      const topic=er.topico||this._cortarTitulo(er.enunciado, 80);
       const jaTem=(this.state.reviews||[]).some(rv=> rv.disc===er.disc && String(rv.topic||'').toLowerCase()===String(topic).toLowerCase());
       if(!jaTem) novos.push({id:'r'+Date.now()+'-'+novos.length, disc:er.disc, topic, color:'var(--danger)', due:0, dueDate:hoje, intervalo:1, facilidade:2.5, repeticoes:0}); });
     if(novos.length) this.setState(s=>({reviews:[...s.reviews, ...novos], treino:null}), ()=>{ this._toast(novos.length+' revisão(ões) dos seus erros agendada(s) ✦'); });
@@ -15266,6 +15297,10 @@ class Component extends DCLogic {
 
     // ===== Revisões =====
     const mkRev = (r)=>({ ...r,
+      // O Treino gravava o enunciado do erro cortado em 44 caracteres, no meio da palavra
+      // ("…anular negócio jurí"). O corte já está GRAVADO na conta de quem usou antes, então
+      // ele é arredondado aqui, na exibição, até a última palavra inteira e com reticências.
+      topic: this._tituloRev(r.topic),
       // `facilidade` vem do SM-2 e a revisão criada pelo app sempre a tem. Mas um blob de
       // sincronização truncado, ou um item vindo de uma versão anterior, chega sem ela — e
       // um `.toFixed` de undefined derrubava o renderVals INTEIRO, pintando na tela
