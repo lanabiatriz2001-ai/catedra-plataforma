@@ -248,16 +248,10 @@ final class RichTextCoordinator: NSObject, ObservableObject, NSTextViewDelegate 
     func toggleTrait(_ trait: NSFontTraitMask) {
         edit { tv, r, ts in
             let fm = NSFontManager.shared
-            /* UMA decisão para a seleção toda, lida do começo dela — como o RichText.swift
-               do JURIS deste mesmo app já fazia. Alternando trecho a trecho, seleção MISTA
-               se inverte em vez de ficar uniforme. O `edit` acima garante r.length > 0,
-               então r.location é índice válido; mesmo acesso do toggleUnderline abaixo. */
-            let base = (ts.attribute(.font, at: r.location, effectiveRange: nil) as? NSFont)
-                ?? tv.font ?? .systemFont(ofSize: 13.5)
-            let ativar = !fm.traits(of: base).contains(trait)
             ts.enumerateAttribute(.font, in: r) { val, sub, _ in
                 let font = (val as? NSFont) ?? tv.font ?? .systemFont(ofSize: 13.5)
-                let newFont = ativar ? fm.convert(font, toHaveTrait: trait) : fm.convert(font, toNotHaveTrait: trait)
+                let has = fm.traits(of: font).contains(trait)
+                let newFont = has ? fm.convert(font, toNotHaveTrait: trait) : fm.convert(font, toHaveTrait: trait)
                 ts.addAttribute(.font, value: newFont, range: sub)
             }
         }
