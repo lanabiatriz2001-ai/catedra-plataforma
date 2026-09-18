@@ -166,6 +166,14 @@ struct EntryDetailView: View {
         }
         // Por fora do inspector: no iPhone o painel (recolhido) emprestava "Anotações" à barra.
         .navigationTitle(entry.titulo)
+        // SÓ NO SIMULADOR: -jurisAnotacoes abre o painel junto do verbete. É o estado em que
+        // o defeito de largura do iPad aparece (com o inspector aberto), e sem toque não há
+        // outro jeito de chegar nele.
+        .onAppear {
+            #if targetEnvironment(simulator)
+            if ProcessInfo.processInfo.arguments.contains("-jurisAnotacoes") { showAnnotationsPanel = true }
+            #endif
+        }
         .id(entry.id)
     }
 
