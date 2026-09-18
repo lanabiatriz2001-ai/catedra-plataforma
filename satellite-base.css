@@ -127,6 +127,41 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   padding: 16px;
 }
 
+/* ===== 5b. o select desenhado pela casa ===========================================
+   No WebKit (Safari, WKWebView do Mac e do iPad) o <select> com aparência nativa é
+   redesenhado pelo tema do motor, que joga fora o que a página pediu. Medido no .sel de
+   peças, prioridade e 2ª fase, com a regra de toque casando: padding 0 em vez de
+   10px 12px, raio 5px em vez de 11px e min-height 18px em vez de 44px — altura final de
+   21 a 24 px, metade do alvo do dedo. O Chromium respeita a folha e dava 44, por isso a
+   falha só aparecia na suíte WebKit. No iPad o tema é outro (RenderThemeIOS), mas pelo
+   código do WebKit ele também impõe min-height e padding próprios ao menu; não medi no
+   aparelho, e esta regra vale para os dois temas porque desliga os dois.
+   Com appearance:none o motor para de mexer e a folha do satélite vale nos dois motores.
+   A seta nativa vai junto, então ela é redesenhada aqui: o desenho do chevron-down do
+   Lucide (10×5 px, traço de 1,5 px) em dois gradientes com a cor de --text2, que segue o
+   tema do host (claro e escuro). Não é SVG em data: porque ali a cor teria de ser hex fixo.
+   Especificidade 0,1,1 de propósito: a página declara `.sel{background:var(--bg)}`
+   DEPOIS desta base, e o atalho `background` zeraria a imagem se empatasse. */
+select.sel {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent calc(50% - .75px), var(--text2, #5c564a) calc(50% - .75px),
+      var(--text2, #5c564a) calc(50% + .75px), transparent calc(50% + .75px)),
+    linear-gradient(135deg, transparent calc(50% - .75px), var(--text2, #5c564a) calc(50% - .75px),
+      var(--text2, #5c564a) calc(50% + .75px), transparent calc(50% + .75px));
+  background-size: 5px 5px, 5px 5px;
+  background-position: right 19px center, right 14px center;
+  background-repeat: no-repeat;
+}
+/* Em cores forçadas (alto contraste do Windows) o navegador apaga todo background-image
+   que não é url() — o chevron sumiria e o campo deixaria de parecer um menu. Ali volta a
+   aparência nativa, que o sistema pinta com a própria seta. */
+@media (forced-colors: active) {
+  select.sel { -webkit-appearance: auto; appearance: auto; background-image: none; }
+}
+
 /* ===== 6. alvo de toque no celular ================================================
    O ícone pode continuar pequeno; a CAIXA de toque é que precisa dar conta do polegar.
    44px é o mínimo do WCAG 2.2 (2.5.8 usa 24, mas 44 é o alvo confortável do iOS). */
