@@ -39,8 +39,28 @@
          .sel de peças nasce com 51 px no WebKit, acima de 44, então nem "altura < 44" serviria.
          O `min-height` responde a pergunta certa em qualquer motor: valendo a regra ele é
          44px; sem ela é o que a folha do satélite disser.
+   · (e) o <select> dos três satélites que têm select (peças, prioridade, 2ª fase) recebe a
+         folha da página, com dedo e com mouse. Este módulo entrou na main vermelho no WebKit
+         (a CI estava parada e ninguém viu): o tema nativo do motor redesenhava o select e
+         jogava fora padding (0 em vez de 12px), raio (5px em vez de 11px) e min-height (18px
+         em vez de 44px) — 21 a 24 px de altura no toque. A régua é um <div class="sel"> posto
+         ao lado: div não tem tema nativo, então o computado dele é exatamente o que a página
+         pediu, e o select tem de bater com ele;
+   · (f) a seta que substitui a nativa PINTA, e com contraste: captura da região do chevron,
+         pixel a pixel, contra o fundo do próprio select — nas 16 paletas do host (8 temas,
+         claro e escuro), tiradas do THEMES() do Catedra.dc.html e mandadas pelo mesmo
+         `ctTheme` que o app usa. ≥ 3:1 é o piso de componente de interface (WCAG 1.4.11);
+   · (g) em cores forçadas (alto contraste do Windows) o gradiente é apagado pelo navegador,
+         então a aparência nativa volta. Só onde o motor emula `forced-colors` (o Chromium,
+         onde é obrigatório emular — sem isto o caso passaria por vacuidade).
 
    Rótulos "IPAD/satélites toque …". */
+
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const SATELITES = ['legis-web.html', 'juris-web.html', 'ritos-web.html', 'pecas-web.html',
   'area-web.html', 'prioridade-web.html', 'segunda-fase-web.html'];
@@ -175,6 +195,130 @@ export async function testarIpadToqueSatelites(pageDaSuite, base, ok, opcoes = {
       ok(m.mh !== '44px', R + '(d) ' + arquivo + ' ' + seletor
         + ': COM MOUSE a regra não vale (min-height ' + m.mh + ', altura ' + m.alt
         + ' px) — não vazou para o desktop');
+      await page.close();
+    }
+  });
+
+  /* ---------- (e) (f) (g) o select recebe a folha da página, e a seta pinta ---------- */
+  const COM_SELECT = ['pecas-web.html', 'prioridade-web.html', 'segunda-fase-web.html'];
+
+  /* As 16 paletas do host, lidas da fonte: um tema novo no app entra aqui sozinho. */
+  const src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  const ini = src.indexOf('THEMES(){ return {');
+  const blocoTemas = ini >= 0 ? src.slice(ini, src.indexOf('};}', ini)) : '';
+  const kv = (s) => Object.fromEntries([...s.matchAll(/(\w+):'([^']*)'/g)].map(x => [x[1], x[2]]));
+  const paletas = [];
+  for (const m of blocoTemas.matchAll(/(\w+):\{ label:'[^']*'[\s\S]*?\blight:\{([^}]*)\}[\s\S]*?\bdark:\{([^}]*)\}/g)) {
+    for (const [modo, corpo] of [['claro', m[2]], ['escuro', m[3]]]) {
+      const p = kv(corpo), tokens = {};
+      for (const k of ['bg', 'surface', 'surface2', 'border', 'ink', 'text2', 'text3', 'accent']) {
+        if (p[k]) tokens['--' + k] = p[k];
+      }
+      paletas.push({ nome: m[1] + ' ' + modo, tokens });
+    }
+  }
+  ok(paletas.length >= 16 && paletas.every(p => p.tokens['--bg'] && p.tokens['--text2']),
+    R + '(f) li as paletas do host no THEMES() (' + paletas.length + ', cada uma com --bg e --text2)'
+    + ' — sem elas o contraste seria medido só na cor avulsa');
+
+  /* O que o motor fez com o select × o que a página pediu (o div.sel ao lado). */
+  const folhaDoSelect = (page) => page.evaluate(() => {
+    const el = [...document.querySelectorAll('select.sel')].find(e => e.getBoundingClientRect().height > 0);
+    if (!el) return null;
+    const regua = document.createElement('div');
+    regua.className = 'sel'; regua.textContent = 'x';
+    el.parentElement.insertBefore(regua, el.nextSibling);
+    const a = getComputedStyle(el), b = getComputedStyle(regua);
+    const props = ['padding-top', 'padding-left', 'border-top-left-radius', 'min-height'];
+    const dif = props.filter(p => a.getPropertyValue(p) !== b.getPropertyValue(p))
+      .map(p => p + ' ' + a.getPropertyValue(p) + ' (pedido ' + b.getPropertyValue(p) + ')');
+    regua.remove();
+    return { id: el.id || el.getAttribute('data-h') || '', dif,
+      alt: Math.round(el.getBoundingClientRect().height), mh: a.minHeight };
+  });
+
+  const conferirFolha = async (page, arquivo, toque) => {
+    const f = await folhaDoSelect(page);
+    ok(!!f && !f.dif.length, R + '(e) ' + arquivo + ' ' + (toque ? 'NO TOQUE' : 'COM MOUSE')
+      + ': o select#' + (f ? f.id : '—') + ' recebe a folha da página, sem o tema nativo do motor por cima'
+      + (f && f.dif.length ? ' (' + f.dif.join('; ') + ')' : '') + ' — altura ' + (f ? f.alt : '—') + ' px');
+  };
+
+  /* (f) Captura da região da seta (22×12 px CSS à direita, longe da borda e do texto, que
+     termina 34 px antes da borda) e contagem, numa página em branco, dos pixels que
+     contrastam ≥ 3:1 com o fundo do select. A 2× a seta tem dezenas deles; sem seta, zero.
+     (e) e (f) dividem o contexto de toque, e (e) e (g) o de mouse: cada abertura de página
+     custa uns 3 s no WebKit, e abrir de novo não mediria nada a mais. */
+  await comContexto(1024, 768, true, async (ctx) => {
+    const lab = await ctx.newPage();
+    const medirSeta = async (page) => {
+      const info = await page.evaluate(() => {
+        const el = [...document.querySelectorAll('select.sel')].find(e => e.getBoundingClientRect().height > 0);
+        const r = el.getBoundingClientRect();
+        return { x: r.right - 30, y: r.top + r.height / 2 - 6, fundo: getComputedStyle(el).backgroundColor };
+      });
+      const png = await page.screenshot({ clip: { x: info.x, y: info.y, width: 22, height: 12 } });
+      return lab.evaluate(async ({ b64, fundo }) => {
+        const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+        const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+        const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+        const d = g.getImageData(0, 0, c.width, c.height).data;
+        const [fr, fg, fb] = fundo.match(/[\d.]+/g).map(Number);
+        const lin = (v) => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); };
+        const L = (r, gg, b) => .2126 * lin(r) + .7152 * lin(gg) + .0722 * lin(b);
+        const C = (x, y) => (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+        const lf = L(fr, fg, fb);
+        let fortes = 0, max = 1;
+        for (let i = 0; i < d.length; i += 4) {
+          const k = C(L(d[i], d[i + 1], d[i + 2]), lf);
+          if (k >= 3) fortes++;
+          if (k > max) max = k;
+        }
+        return { fortes, max: Math.round(max * 100) / 100 };
+      }, { b64: png.toString('base64'), fundo: info.fundo });
+    };
+
+    for (const arquivo of COM_SELECT) {
+      const { page } = await abrir(ctx, arquivo);
+      await conferirFolha(page, arquivo, true);
+      const avulsa = await medirSeta(page);
+      ok(avulsa.fortes >= 12 && avulsa.max >= 3, R + '(f) ' + arquivo + ' avulso: a seta do select PINTA ('
+        + avulsa.fortes + ' px ≥ 3:1, máximo ' + avulsa.max + ':1)');
+      const fracas = [];
+      for (const p of paletas) {
+        await page.evaluate((t) => window.postMessage({ type: 'ctTheme', tokens: t }, '*'), p.tokens);
+        /* tema que não chega é falha, não "mediu a cor avulsa de novo e passou" */
+        const chegou = await page.waitForFunction((bg) => document.documentElement.style.getPropertyValue('--bg') === bg,
+          p.tokens['--bg'], { timeout: 3000 }).then(() => true, () => false);
+        if (!chegou) { fracas.push(p.nome + ' (o ctTheme não chegou)'); continue; }
+        const s = await medirSeta(page);
+        if (!(s.fortes >= 12 && s.max >= 3)) fracas.push(p.nome + ' ' + s.max + ':1 (' + s.fortes + ' px)');
+      }
+      ok(paletas.length && !fracas.length, R + '(f) ' + arquivo + ': a seta tem ≥ 3:1 contra o fundo do select nas '
+        + paletas.length + ' paletas do host' + (fracas.length ? ' (falha: ' + fracas.slice(0, 4).join(', ') + ')' : ''));
+      await page.close();
+    }
+    await lab.close();
+  });
+
+  /* (g) cores forçadas: o gradiente some por regra do navegador, então a seta nativa volta. */
+  await comContexto(1280, 768, false, async (ctx) => {
+    for (const arquivo of COM_SELECT) {
+      const { page } = await abrir(ctx, arquivo);
+      await conferirFolha(page, arquivo, false);
+      let emula = false;
+      try { await page.emulateMedia({ forcedColors: 'active' }); emula = await page.evaluate(() => matchMedia('(forced-colors: active)').matches); }
+      catch (_) { emula = false; }
+      if (motor === 'chromium') ok(emula, R + '(g) ' + arquivo + ': o Chromium emula forced-colors — sem isto (g) não mediria nada');
+      if (emula) {
+        const m = await page.evaluate(() => {
+          const el = [...document.querySelectorAll('select.sel')].find(e => e.getBoundingClientRect().height > 0);
+          const cs = getComputedStyle(el);
+          return { ap: cs.appearance || cs.webkitAppearance, img: cs.backgroundImage };
+        });
+        ok(m.ap === 'auto', R + '(g) ' + arquivo + ': em cores forçadas o select volta à aparência nativa, com a seta do sistema'
+          + ' (appearance ' + m.ap + ', imagem ' + String(m.img).slice(0, 30) + ')');
+      }
       await page.close();
     }
   });
