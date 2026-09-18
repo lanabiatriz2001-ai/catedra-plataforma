@@ -288,17 +288,10 @@ final class RichTextCoordinator: NSObject, ObservableObject, UITextViewDelegate 
     /// NSFontManager; no iPadOS o trait vive no descriptor da própria fonte.
     func toggleTrait(_ trait: UIFontDescriptor.SymbolicTraits) {
         edit { tv, r, ts in
-            /* UMA decisão para a seleção toda, lida do começo dela. Alternando trecho a
-               trecho, seleção MISTA se inverte em vez de ficar uniforme — o mesmo defeito
-               que o JURIS tinha. O `edit` acima garante r.length > 0, então r.location é
-               índice válido; é o mesmo acesso que toggleUnderline já faz aqui embaixo. */
-            let base = (ts.attribute(.font, at: r.location, effectiveRange: nil) as? NSFont)
-                ?? tv.font ?? .systemFont(ofSize: 13.5)
-            let ativar = !base.fontDescriptor.symbolicTraits.contains(trait)
             ts.enumerateAttribute(.font, in: r) { val, sub, _ in
                 let font = (val as? NSFont) ?? tv.font ?? .systemFont(ofSize: 13.5)
                 var traits = font.fontDescriptor.symbolicTraits
-                if ativar { traits.insert(trait) } else { traits.remove(trait) }
+                if traits.contains(trait) { traits.remove(trait) } else { traits.insert(trait) }
                 guard let d = font.fontDescriptor.withSymbolicTraits(traits) else { return }
                 ts.addAttribute(.font, value: UIFont(descriptor: d, size: font.pointSize), range: sub)
             }
