@@ -20,6 +20,18 @@ import SwiftUI
 /// O que a IA devolve para um verbete. Todos os campos opcionais: a IA pode não ter
 /// "como era" para um verbete que não mudou nada, e isso é resposta legítima.
 struct RoteiroEstudo: Codable, Hashable {
+    /// Versão do FORMATO do roteiro. Campo novo opcional não quebra a decodificação do
+    /// cache (o compilador sintetiza decodeIfPresent), mas quebraria a ENTREGA: a view só
+    /// gera quando `roteiro == nil`, então os até 400 roteiros já gravados continuariam
+    /// aparecendo sem o bloco novo, para sempre e sem aviso. Roteiro de versão antiga é
+    /// tratado como ausente e regerado — custa milissegundos, é tudo local.
+    ///   1 = até o roteiro sem quadro · 2 = com o quadro "Não confunda com"
+    ///   3 = quadro com piso de confundibilidade: o de v2 nascia em 99% dos verbetes, com
+    ///       trava por tribunal e colunas escolhidas por vocabulário — gravado, continuaria
+    ///       na tela mesmo depois do conserto.
+    static let versaoAtual = 3
+
+    var versao: Int?
     var nivel: Int?
     var segundaFase: Bool?
     var frase: String?
@@ -27,11 +39,20 @@ struct RoteiroEstudo: Codable, Hashable {
     var comoEra: String?
     var decidiu: String?
     var chave: [String]?
-    var jurisprudencia: [String]?
     var atencao: String?
     var hoje: String?
     var pegadinha: String?
     var quiz: [QuestaoQuiz]?
+    /// O quadro "Não confunda com" (QuadroRelacionados.swift). Substituiu a lista achatada
+    /// `jurisprudencia`, que deixou de existir: nenhum roteiro do formato atual a pintava, e
+    /// ela ia para o disco em cada roteiro. Chave desconhecida no JSON antigo é ignorada.
+    var quadro: QuadroRelacionados?
+    /// De que acervo o roteiro saiu (AcervoQuadro.carimbo: "verbetes/notas"). O quadro e a
+    /// lista "Do mesmo assunto" dependem do acervo INTEIRO — IDF, temas, vizinhos, curadoria
+    /// —, e o roteiro gravado sobrevive à atualização de informativos: sem o carimbo, o
+    /// verbete reaberto repintava colunas escolhidas sobre um acervo que não existe mais.
+    /// Carimbo diferente = roteiro ausente, regerado; o molde é o do antigo kwCount.
+    var acervo: String?
     var geradoEm: Date?
 
     struct QuestaoQuiz: Codable, Hashable, Identifiable {
@@ -52,6 +73,9 @@ struct RoteiroEstudo: Codable, Hashable {
 enum RoteiroCache {
     private static var mem: [String: RoteiroEstudo] = [:]
     private static var carregado = false
+    private static var gravando = false
+    private static var sujo = false
+    private static var aquecendo = false
 
     private static var url: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -67,6 +91,27 @@ enum RoteiroCache {
            let m = try? JSONDecoder().decode([String: RoteiroEstudo].self, from: d) { mem = m }
     }
     static func get(_ id: String) -> RoteiroEstudo? { carregar(); return mem[id] }
+
+    /// Lê o arquivo FORA da main. Chamado no começo do `load` do acervo, em paralelo com o
+    /// decode do corpus: sem isso a primeira consulta — o roteiro do Julgado do dia, na
+    /// abertura da aba — decodificava ~1,4 MB na main (medido: 9 a 20 ms). Se alguém ler na
+    /// main antes de a leitura destacada voltar (carregar()), vale a de lá e esta é
+    /// descartada: nada gravado nesse meio-tempo se perde.
+    static func aquecer() {
+        guard !carregado, !aquecendo else { return }
+        aquecendo = true
+        let origem = url
+        Task { @MainActor in
+            let lido = await Task.detached(priority: .utility) { () -> [String: RoteiroEstudo]? in
+                guard let d = try? Data(contentsOf: origem) else { return nil }
+                return try? JSONDecoder().decode([String: RoteiroEstudo].self, from: d)
+            }.value
+            aquecendo = false
+            guard !carregado else { return }
+            carregado = true
+            if let lido { mem = lido }
+        }
+    }
     static func set(_ id: String, _ r: RoteiroEstudo?) {
         carregar()
         if let r { mem[id] = r } else { mem.removeValue(forKey: id) }
@@ -75,7 +120,29 @@ enum RoteiroCache {
             let ordem = mem.sorted { ($0.value.geradoEm ?? .distantPast) < ($1.value.geradoEm ?? .distantPast) }
             for (k, _) in ordem.prefix(mem.count - 400) { mem.removeValue(forKey: k) }
         }
-        if let d = try? JSONEncoder().encode(mem) { try? d.write(to: url, options: .atomic) }
+        gravarDepois()
+    }
+
+    /// Codificar e gravar o mapa INTEIRO (até 400 roteiros, ~1,4 MB) custava ~11 ms na main
+    /// a cada roteiro montado — medido. Agora a main só troca o valor em memória (`mem`
+    /// continua sendo a verdade) e o disco recebe uma CÓPIA numa tarefa destacada. Pedidos
+    /// que chegam com uma gravação em curso viram uma só, com o estado mais novo: nunca duas
+    /// gravações do mesmo arquivo ao mesmo tempo. Se o app fechar no meio, perde-se o último
+    /// roteiro — que é local e é refeito na próxima abertura.
+    private static func gravarDepois() {
+        sujo = true
+        guard !gravando else { return }
+        gravando = true
+        Task { @MainActor in
+            while sujo {
+                sujo = false
+                let copia = mem, destino = url
+                await Task.detached(priority: .utility) {
+                    if let d = try? JSONEncoder().encode(copia) { try? d.write(to: destino, options: .atomic) }
+                }.value
+            }
+            gravando = false
+        }
     }
 }
 
@@ -295,7 +362,9 @@ struct JulgadoDoDiaView: View {
         }
         .padding(22)
         .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
-        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 4).padding(.vertical, 14) }
+        // Sem o filete de 4 pt na lateral: faixa colorida na lateral é proibida na casa (o iPad
+        // tirou a dele no PR #83, e o BlocoEstudo daqui já perdeu a sua). A cor do ramo segue
+        // na etiqueta logo acima.
         .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
     }
 }
@@ -310,8 +379,23 @@ struct RoteiroEstudoView: View {
     /// (a lista inteira, 25 mil) o padrão continua sob demanda — gerar em toda abertura
     /// de página gastaria a cota da API à toa.
     var autoGerar: Bool = false
+    /// true quando a PÁGINA já lista os julgados vizinhos mais abaixo (o detalhe do verbete
+    /// tem a seção própria): aí o quadro não repete a lista "Do mesmo assunto", senão a
+    /// mesma rolagem mostra duas vezes o mesmo conjunto.
+    var vizinhosAbaixo: Bool = false
+    /// Avisa a página de qual quadro está NA TELA: o detalhe do verbete tira dele a seção
+    /// "Do mesmo assunto" e o aviso de tese superada. É o mesmo objeto pintado aqui — antes
+    /// o detalhe montava o quadro de novo por conta própria (a segunda varredura do acervo
+    /// por abertura, na main), e com o roteiro vindo do cache as duas listas discordavam.
+    var aoMudarQuadro: ((QuadroRelacionados?) -> Void)? = nil
     @State private var roteiro: RoteiroEstudo?
-    @State private var gerando = false
+    /// O verbete cujo roteiro está sendo montado agora. Por id, e não um Bool: a montagem
+    /// roda fora da main e volta depois, e a pessoa pode ter trocado de verbete no meio — o
+    /// verbete novo não pode ficar sem roteiro porque o anterior ainda estava "montando".
+    @State private var montandoID: String?
+    /// O verbete que a view mostra AGORA (a struct que a tarefa capturou pode ser a de antes):
+    /// o roteiro que volta de outro verbete vai só para o cache.
+    @State private var idNaTela: String?
     @State private var erro: String?
     @State private var respostas: [Int: Int] = [:]
     @State private var enviouFlash = false
@@ -337,20 +421,53 @@ struct RoteiroEstudoView: View {
                 if mostrarOral { ProvaOralView(entry: entry) }
             }
         }
-        .onAppear { roteiro = RoteiroCache.get(entry.id) }
-        .onChange(of: entry.id) { _, _ in roteiro = RoteiroCache.get(entry.id); respostas = [:]; enviouFlash = false; erro = nil }
-        .task(id: entry.id) {
-            if autoGerar, roteiro == nil, !gerando { await gerar() }
+        .onAppear { idNaTela = entry.id; publicar(doCache(entry.id)) }
+        .onChange(of: entry.id) { _, novo in
+            idNaTela = novo; publicar(doCache(novo)); respostas = [:]; enviouFlash = false; erro = nil
+        }
+        // O carimbo do acervo entra na chave: quando uma atualização troca o acervo com a
+        // página aberta, a tarefa roda de novo, o cache recusa o roteiro montado sobre o
+        // acervo anterior e ele é refeito.
+        .task(id: entry.id + "#" + store.carimboAcervo) {
+            publicar(doCache(entry.id))
+            if autoGerar, roteiro == nil, montandoID != entry.id { await gerar() }
         }
     }
 
-    // Sem IA: o roteiro sai do próprio verbete e do acervo (RoteiroLocal). Instantâneo,
-    // off-line, sem custo — e igual em todos os aparelhos. O cache continua o mesmo.
+    private var gerando: Bool { montandoID == entry.id }
+
+    /// O roteiro na tela, e o quadro dele para a página (aoMudarQuadro).
+    private func publicar(_ r: RoteiroEstudo?) {
+        roteiro = r
+        aoMudarQuadro?(r?.quadro)
+    }
+
+    /// O cache só vale se for do formato de hoje E do acervo de agora: roteiro de versão
+    /// anterior, ou montado sobre outro acervo, é tratado como ausente e regerado. É o que
+    /// faz o quadro novo chegar a quem já abriu o verbete antes. Com o acervo recarregando
+    /// (o `reload` zera os verbetes por um instante) não há como julgar o carimbo: vale o
+    /// gravado, e a tarefa confere de novo quando o acervo volta.
+    private func doCache(_ id: String) -> RoteiroEstudo? {
+        guard let r = RoteiroCache.get(id), r.versao == RoteiroEstudo.versaoAtual else { return nil }
+        if store.isLoading || store.entries.isEmpty { return r }
+        return r.acervo == store.carimboAcervo ? r : nil
+    }
+
+    // Sem IA: o roteiro sai do próprio verbete e do acervo (RoteiroLocal) — off-line, sem
+    // custo, igual em todos os aparelhos. E FORA da main: a montagem varre o acervo e roda
+    // numa tarefa destacada, sobre o retrato do store (AcervoQuadro); aqui fica só publicar.
+    // Antes rodava inteira na main, junto com a gravação do cache.
     private func gerar() async {
-        gerando = true; erro = nil
-        defer { gerando = false }
-        let r = RoteiroLocal.gerar(entry, store: store)
-        RoteiroCache.set(entry.id, r); roteiro = r
+        guard let acervo = store.acervoParaQuadro() else { return }   // acervo ainda carregando
+        let e = entry
+        montandoID = e.id; erro = nil
+        defer { if montandoID == e.id { montandoID = nil } }
+        let r = await Task.detached(priority: .userInitiated) { RoteiroLocal.gerar(e, acervo: acervo) }.value
+        // Montado, vai para o cache de qualquer jeito; para a tela, só se ela ainda mostra
+        // este verbete (a tarefa é cancelada quando a pessoa troca de verbete ou sai).
+        RoteiroCache.set(e.id, r)
+        guard !Task.isCancelled, idNaTela == e.id else { return }
+        publicar(r)
     }
 
     @ViewBuilder private func conteudo(_ r: RoteiroEstudo) -> some View {
@@ -363,14 +480,25 @@ struct RoteiroEstudoView: View {
         if let t = r.comoEra, !t.isEmpty { BlocoEstudo(rotulo: "Como era", cor: Palette.warn) { Text(t) } }
         if let t = r.decidiu, !t.isEmpty { BlocoEstudo(rotulo: "O que decidiu", cor: Palette.ok) { Text(t) } }
         if let l = r.chave, !l.isEmpty { lista("Pontos que a prova cobra", l, cor: Palette.accent) }
-        if let l = r.jurisprudencia, !l.isEmpty { lista("Relacionados", l, cor: Palette.secondaryInk) }
+        // Os julgados vizinhos: QUADRO quando o acervo sustenta a comparação, senão a lista
+        // "Do mesmo assunto" — quem decide é o próprio QuadroRelacionadosView.
+        if let q = r.quadro, !q.vazio {
+            QuadroRelacionadosView(quadro: q, listaAqui: !vizinhosAbaixo)
+        }
         if let t = r.atencao, !t.isEmpty { BlocoEstudo(rotulo: "Atenção", cor: Palette.warn) { Text(t) } }
         if let t = r.hoje, !t.isEmpty { BlocoEstudo(rotulo: "O que vale hoje", cor: Palette.ok) { Text(t) } }
         if let t = r.pegadinha, !t.isEmpty { BlocoEstudo(rotulo: "Pegadinha de prova", cor: Palette.bad) { Text(t).fontWeight(.medium) } }
         if let q = r.quiz, !q.isEmpty { quiz(q) }
         HStack(spacing: 9) {
             Button(mostrarOral ? "Fechar prova oral" : "Modo prova oral") { mostrarOral.toggle() }.buttonStyle(.bordered)
-            Button("Refazer") { RoteiroCache.set(entry.id, nil); roteiro = nil; respostas = [:]; enviouFlash = false }.buttonStyle(.plain).foregroundStyle(Palette.secondaryInk)
+            Button("Refazer") {
+                RoteiroCache.set(entry.id, nil); publicar(nil); respostas = [:]; enviouFlash = false
+                // Na página que monta sozinha, refazer é montar de novo: o quadro e a seção
+                // "Do mesmo assunto" da página, que lê este mesmo quadro, sumiriam até um
+                // segundo clique.
+                if autoGerar { Task { await gerar() } }
+            }
+            .buttonStyle(.plain).foregroundStyle(Palette.secondaryInk)
         }
         if mostrarOral { ProvaOralView(entry: entry) }
         Text("Roteiro montado localmente a partir do enunciado oficial e do acervo (sem IA) — confira os números antes de decorar.")
