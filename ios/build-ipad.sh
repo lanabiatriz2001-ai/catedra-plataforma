@@ -72,7 +72,7 @@ printf '%s' "$BUILD_N" > "$HERE/.build-n" 2>/dev/null || true
 # xcode-select global (que exigiria senha).
 if [ "$ALVO_REAL" = "testflight" ] && [ -d /Applications/Xcode.app/Contents/Developer ]; then
   export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-  echo "     usando o Xcode estável: $(xcodebuild -version 2>/dev/null | head -1) (SDK iOS $(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null))"
+  echo "     usando o Xcode estável: $(xcodebuild -version 2>/dev/null | awk 'NR==1') (SDK iOS $(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null))"
 fi
 # O domínio é o da produção VIVA (projeto do time "ia" na Vercel). catedra-plataforma.vercel.app é de um
 # projeto antigo que ainda publica a main mas não se controla daqui (chaves e ajustes podem divergir).
@@ -111,7 +111,11 @@ cp -R "$ROOT/mac/build/web" "$APP/web"
 DT_SDK_VER="$(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || echo 26.5)"
 DT_SDK_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :ProductBuildVersion' "$(xcrun --sdk iphoneos --show-sdk-path)/System/Library/CoreServices/SystemVersion.plist" 2>/dev/null || echo 23F81a)"
 DT_XCODE_BUILD="$(xcodebuild -version 2>/dev/null | tail -1 | awk '{print $3}')"
-DT_XCODE="$(xcodebuild -version 2>/dev/null | head -1 | awk '{print $2}' | awk -F. '{printf "%d%d0", $1, ($2==""?0:$2)}')"
+# SEM `head`: com `set -o pipefail`, o head fechava o cano antes de o xcodebuild terminar de
+# escrever, o xcodebuild morria de SIGPIPE e o script parava CALADO na etapa 3 (código 141),
+# deixando um Cátedra.app sem Info.plist que o aparelho recusa ("not a valid bundle").
+# O awk lê a saída inteira e pega só a primeira linha.
+DT_XCODE="$(xcodebuild -version 2>/dev/null | awk 'NR==1{print $2}' | awk -F. '{printf "%d%d0", $1, ($2==""?0:$2)}')"
 DT_MAC_BUILD="$(sw_vers -buildVersion 2>/dev/null)"
 
 cat > "$APP/Info.plist" <<PLIST
@@ -353,7 +357,7 @@ if [ "$ALVO" = "device" ]; then
   if [ "$ALVO_REAL" = "testflight" ]; then
     PERFIL="$HERE/appstore.mobileprovision"
     if [ ! -f "$PERFIL" ]; then
-      ACHADO="$(grep -rl 'beta-reports-active' "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/" 2>/dev/null | head -1)"
+      ACHADO="$(grep -rl 'beta-reports-active' "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/" 2>/dev/null | awk 'NR==1' || true)"
       [ -n "$ACHADO" ] && PERFIL="$ACHADO"
     fi
   else
