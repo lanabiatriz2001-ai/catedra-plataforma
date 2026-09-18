@@ -469,11 +469,6 @@ struct EntryDetailView: View {
         .padding(.horizontal, 22)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
-        .overlay(alignment: .leading) {
-            // Lombada do RAMO (vitrine) — combina com a faixa do cabeçalho.
-            RoundedRectangle(cornerRadius: 2).fill(RamoStyle.color(entry.ramoDireito))
-                .frame(width: 3.5).padding(.vertical, 16).padding(.leading, 1.5)
-        }
         .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.18), radius: 14, y: 6)
         .shadow(color: .black.opacity(0.04), radius: 3, y: 1)
