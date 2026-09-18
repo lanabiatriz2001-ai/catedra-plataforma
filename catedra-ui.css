@@ -1449,3 +1449,19 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .cth-baralho .tx small { font-size: var(--fs-sm, 12.5px); color: var(--text3, #8a8172); line-height: 1.4; }
 .cth-baralho .ir { font-size: var(--fs-sm, 12.5px); font-weight: 700; color: var(--accentD, #0b5e43); flex: none; }
 @media (max-width: 520px) { .cth-baralho .ir { display: none; } }
+
+/* ===== CONCURSOS (Fase 1 — visual provisório; a Fase 3 passa por mockup) =====
+   Só o necessário para funcionar, com tokens. O interruptor "cai neste concurso" mostra o
+   estado em aria-pressed e tem alvo de 44 px no toque, como o resto dos controles. */
+.ct-concursos { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 14px 16px; border: 1px solid var(--border, #e6e1d4); border-radius: var(--radius, 14px);
+  background: var(--surface, #fffdf8); }
+.ct-concursos select { min-width: 200px; flex: 1 1 200px; min-height: 44px; }
+.ct-concursos .ct-btn { min-height: 44px; }
+.ct-concursos-nota { flex: 1 1 100%; margin: 2px 0 0; font-size: var(--fs-sm, 12.5px); line-height: 1.5; color: var(--text2, #5c564a); }
+.ct-ed-noconc { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px;
+  border-radius: var(--r-md, 10px); border: 1px solid var(--border, #e6e1d4); background: var(--surface, #fffdf8);
+  font-family: inherit; font-size: var(--fs-xs, 11.5px); font-weight: 600; color: var(--text3, #8a8172); cursor: pointer; }
+.ct-ed-noconc[aria-pressed="true"] { border-color: var(--accent, #0f7a57); background: var(--accentSoft); color: var(--accentD, #0b5e43); }
+@media (pointer: coarse) { .ct-ed-noconc { min-height: 44px; } }
+[data-toque="1"] .ct-ed-noconc { min-height: 44px; }
