@@ -164,7 +164,7 @@ enum JurisFlashcards {
         return (JurisFlashKind.direta, "Qual é a tese central de \(e.titulo)?", limparTese(e))
     }
 
-    private static func base(_ e: JurisEntry) -> String {
+    nonisolated private static func base(_ e: JurisEntry) -> String {
         (e.enunciado.split(whereSeparator: { $0 == "\n" }).first.map(String.init) ?? e.enunciado)
             .trimmingCharacters(in: .whitespaces)
     }
@@ -190,8 +190,9 @@ enum JurisFlashcards {
         return (JurisFlashKind.certoErrado, texto, "Certo — reproduz a tese firmada.")
     }
 
-    /// Pergunta direta a partir da lacuna operativa.
-    static func direta(_ e: JurisEntry) -> (kind: String, prompt: String, answer: String?)? {
+    /// Pergunta direta a partir da lacuna operativa. `nonisolated`: o roteiro de estudo a
+    /// monta fora da main (RoteiroLocal).
+    nonisolated static func direta(_ e: JurisEntry) -> (kind: String, prompt: String, answer: String?)? {
         let texto = base(e)
         guard let r = Exporter.melhorLacuna(texto) else { return nil }
         let ns = texto as NSString
