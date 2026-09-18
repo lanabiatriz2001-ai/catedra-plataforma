@@ -24,7 +24,7 @@ export async function testarVariosEditais(pageDaSuite, base, ok, opcoes = {}) {
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
   const t = new Date(); t.setHours(14, 0, 0, 0); await page.clock.install({ time: t });
-  try { await roteiro(page, base, ok, R, arquivo); await mergeEntreAparelhos(page, base, ok, R); } finally { await ctx.close(); }
+  try { await roteiro(page, base, ok, R, arquivo); await cicloPorConcurso(page, base, ok, R, arquivo); await mergeEntreAparelhos(page, base, ok, R); } finally { await ctx.close(); }
 }
 
 /* O ponto mais perigoso desta fase não é a tela: é dois aparelhos migrando o mesmo edital.
@@ -148,4 +148,80 @@ async function roteiro(page, base, ok, R, arquivo) {
   });
   ok(re.opcoes.length === 2 && re.ativo === 'Meu concurso' && re.opcoes.includes('TJSP 2026'),
     R + 'reabrindo o app: os dois concursos e o ativo sobreviveram (' + re.opcoes.join(' / ') + ')');
+}
+
+
+/* FASE 2 — UM CICLO POR CONCURSO. Cada concurso guarda o ciclo nas próprias chaves
+   (catedra:manualFixed#ed-…); "Meu concurso" fica nas chaves de SEMPRE, sem sufixo — a
+   migração não move nada. Aqui também se provam as duas correções da Fase 1:
+   · CORRIDA ENTRE APARELHOS: espelho de peso de OUTRO concurso chegando pela nuvem não é
+     capturado para dentro do concurso ativo (seria corrupção calada);
+   · a nuvem trocar o concurso ativo faz o ciclo ser relido do lugar certo, sem gravar o
+     ciclo de um concurso por cima do outro. */
+async function cicloPorConcurso(page, base, ok, R, arquivo) {
+  await page.goto(base + '/__semente');
+  await page.evaluate(() => {
+    const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+    localStorage.clear();
+    set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica'); set('cycleMode', 'manual');
+    set('edital', [{ disc: 'Direito Civil', peso: 2, questoes: 15, topics: [{ name: 'Obrigações', done: false, subs: [] }] },
+                   { disc: 'Direito Penal', peso: 1, questoes: 10, topics: [{ name: 'Teoria do crime', done: false, subs: [] }] }]);
+    // o ciclo que JÁ EXISTE: pertence a "Meu concurso" e mora nas chaves de sempre
+    set('manualFixed', [{ id: 'ag-meu', disc: 'Direito Civil', kind: 'Teoria', min: 50, dia: 'seg', roteiro: '', discEdital: 'Direito Civil', topico: 'Obrigações' }]);
+    set('sessions', []); set('reviews', []); set('errors', []);
+  });
+  await page.goto(base + '/' + arquivo); await page.waitForTimeout(1900);
+
+  const r = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const app = window.__catedraApp, out = {};
+    const ids = () => (app.state.manualFixed || []).map(x => x.id).join(',');
+    const disco = k => JSON.parse(localStorage.getItem(k) || 'null');
+    window.__catedraGoView('edital'); await w(900);
+    out.antes = ids();
+    // novo concurso: nasce com ciclo PRÓPRIO, vazio
+    window.prompt = () => 'TJSP 2026';
+    [...document.querySelectorAll('button')].find(b => /^Novo concurso$/.test((b.textContent || '').trim())).click(); await w(1000);
+    const tj = (app.state.editais || []).find(e => e.nome === 'TJSP 2026') || {};
+    out.tjId = tj.id; out.noTjspVazio = ids();
+    // monta um bloco no ciclo do TJSP
+    app.setState({ manualFixed: [{ id: 'ag-tj', disc: 'Direito Penal', kind: 'Questões', min: 30, dia: 'ter', roteiro: '' }] }); await w(300);
+    app._salvarAgora(); await w(200);
+    out.chaveTj = (disco('catedra:manualFixed#' + tj.id) || []).map(x => x.id).join(',');
+    out.chaveSempre = (disco('catedra:manualFixed') || []).map(x => x.id).join(',');
+    // volta para o principal: o ciclo dele volta inteiro
+    const sel = document.getElementById('ct-concurso-sel');
+    sel.value = 'ed-principal'; sel.dispatchEvent(new Event('change', { bubbles: true })); await w(1000);
+    out.deVolta = ids();
+    out.chaveTjIntacta = (disco('catedra:manualFixed#' + tj.id) || []).map(x => x.id).join(',');
+
+    // ---- CORRIDA: chega pela nuvem um espelho de peso do TJSP enquanto o ativo é o principal
+    app.setState({ edital: app.state.edital.map(d => d.disc === 'Direito Civil' ? { ...d, peso: 9, _esp: tj.id } : d) }); await w(700);
+    const civ = app.state.edital.find(d => d.disc === 'Direito Civil') || {};
+    const meu = (app.state.editais || []).find(e => e.id === 'ed-principal') || {};
+    out.espelhoReprojetado = civ.peso;              // tem de voltar para o peso do principal
+    out.principalIntacto = meu.discs && meu.discs['Direito Civil'] ? meu.discs['Direito Civil'].peso : null;
+
+    // ---- a NUVEM trocou o ativo para o TJSP (outro aparelho): reidratar relê o ciclo certo
+    app._salvarAgora(); await w(150);
+    localStorage.setItem('catedra:editalAtivo', JSON.stringify(tj.id));
+    app._rehydrateFromLocal(); await w(900);
+    out.aposNuvem = ids();
+    out.principalNaoSobrescrito = (disco('catedra:manualFixed') || []).map(x => x.id).join(',');
+    return out;
+  });
+  ok(r.antes === 'ag-meu', R + 'ciclo por concurso: o ciclo que já existia é o de "Meu concurso" (' + r.antes + ')');
+  ok(r.noTjspVazio === '', R + 'concurso novo nasce com ciclo PRÓPRIO e vazio — não herda o do outro (' + (r.noTjspVazio || 'vazio') + ')');
+  ok(r.chaveTj === 'ag-tj', R + 'o ciclo do TJSP mora nas chaves dele (catedra:manualFixed#<id>)');
+  ok(r.chaveSempre === 'ag-meu', R + 'o ciclo de "Meu concurso" CONTINUA nas chaves de sempre, sem sufixo — a migração não moveu nada');
+  ok(r.deVolta === 'ag-meu' && r.chaveTjIntacta === 'ag-tj', R + 'voltar para "Meu concurso" traz o ciclo dele de volta, e o do TJSP fica intacto');
+  ok(+r.espelhoReprojetado === 2 && +r.principalIntacto === 2,
+    R + 'CORRIDA ENTRE APARELHOS: espelho de peso do TJSP chegando pela nuvem NÃO é capturado para dentro de "Meu concurso" (Civil continua 2, não 9)');
+  ok(r.aposNuvem === 'ag-tj', R + 'a nuvem trocou o concurso ativo: o ciclo é relido do lugar certo (' + r.aposNuvem + ')');
+  ok(r.principalNaoSobrescrito === 'ag-meu', R + 'e a troca vinda da nuvem não gravou o ciclo de um concurso por cima do outro');
+
+  // reabrir o app: o concurso ativo e o ciclo dele sobrevivem
+  await page.goto(base + '/' + arquivo); await page.waitForTimeout(2000);
+  const re = await page.evaluate(() => (window.__catedraApp.state.manualFixed || []).map(x => x.id).join(','));
+  ok(re === 'ag-tj', R + 'reabrindo o app: continua no TJSP, com o ciclo do TJSP (' + re + ')');
 }
