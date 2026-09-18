@@ -7491,6 +7491,19 @@ class Component extends DCLogic {
       patch.casoEdit=null; patch.casoTreino=null; patch.casoPasso=0; patch.casoResp=false; patch.casoAviso='';
       if(!this._podeAbrir(this.state.view)){ patch.view='indisponivel'; patch.viewBloqueada=this.state.view; }
     }
+    /* O CONCURSO ATIVO TAMBÉM PODE TER MUDADO NA NUVEM (outro aparelho trocou), e ele decide
+       de onde o ciclo é lido. Mesmo tratamento da área, logo depois dela (editalAtivo é da
+       área): fecha o ciclo aberto no concurso anterior, adota o novo e só então relê. */
+    try{
+      const r=localStorage.getItem(this._chave('editalAtivo'));
+      const v=(r!=null) ? (JSON.parse(r)||'') : '';
+      if(v!==(this.state.editalAtivo||'')){
+        this._salvarAgora();
+        this.state.editalAtivo=v;
+        try{ localStorage.setItem(this._chave('editalAtivo'), JSON.stringify(v)); }catch(_){}
+        patch.editalAtivo=v; this._edSig=null;
+      }
+    }catch(_){}
     try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
     try{ const raw=localStorage.getItem(this._chave('sessionsLixeira')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessionsLixeira=a; } }catch(_){}
     patch.reviews=this._load('reviews', this.state.reviews);
@@ -7959,7 +7972,9 @@ class Component extends DCLogic {
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
     'redProvaId','ajPerfis','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
-    'hl','fc','casos']);
+    'hl','fc','casos',
+    // os concursos projetam o `edital`, que é da área: ficam na mesma área que ele
+    'editais','editalAtivo']);
   /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
   _areaAtiva(){
     try{
@@ -7969,11 +7984,28 @@ class Component extends DCLogic {
     }catch(_){ return ''; }
   }
   /** Nome real da chave no localStorage, já com o namespace da área quando é o caso. */
+  /* Fase 2 dos vários concursos: UM CICLO POR CONCURSO. Cada concurso guarda o ciclo nas
+     próprias chaves (`catedra:manualFixed#ed-…`), pelo mesmo caminho que a área já usa.
+     O concurso principal ("Meu concurso") fica nas chaves de SEMPRE, sem sufixo: a migração
+     não move nada. Dois aparelhos em concursos diferentes escrevem em chaves diferentes e
+     nunca se misturam — sem espelho, sem corrida. O separador é '#' e não '@' porque o
+     auth.js lê o sufixo de área pelo último '@'. */
+  CICLO_PROPRIO = new Set(['blocks','blocksDate','cicloVolta','manualVoltaN','manualFixed','manualRot',
+    'rotPointer','manualFixedRoteiroAtual','agendaFeitas','planoLegis']);
+  /** Id do concurso ativo SEM depender do estado montado (o construtor chama _load antes). */
+  _concursoAtivoId(){
+    try{
+      if(this.state && this.state.editalAtivo!=null) return this.state.editalAtivo||'';
+      const r=localStorage.getItem(this._chave('editalAtivo'));   // editalAtivo não é do ciclo: sem recursão
+      return r!=null ? (JSON.parse(r)||'') : '';
+    }catch(_){ return ''; }
+  }
   _chave(k){
-    if(!this.AREA_PROPRIA.has(k)) return 'catedra:'+k;
-    const a=this._areaAtiva();
-    if(!a || a==='juridica') return 'catedra:'+k;   // as chaves de sempre, intocadas
-    return 'catedra:'+k+'@'+a;
+    let c;
+    if(!this.AREA_PROPRIA.has(k)) c='catedra:'+k;
+    else { const a=this._areaAtiva(); c=(!a || a==='juridica') ? ('catedra:'+k) : ('catedra:'+k+'@'+a); }   // as chaves de sempre, intocadas
+    if(this.CICLO_PROPRIO.has(k)){ const id=this._concursoAtivoId(); if(id && id!==this.ED_PRINCIPAL) c+='#'+id; }
+    return c;
   }
   /* SUBTÓPICOS DO EDITAL. `topics[].subs` guarda dois formatos que convivem — string (vindo do
      parser de edital) e {name, done} (do importador e das marcações). Todo ponto que MARCA ou
@@ -8658,13 +8690,13 @@ class Component extends DCLogic {
     this.state.edParsed.forEach((pd)=>{
       let di=ed.findIndex(d=>norm(d.disc)===norm(pd.disc));
       if(di<0){ ed.push({disc:pd.disc, color:pd.color||this._editalColor(pd.disc, ed.length), open:false, topics:[],
-        peso:(has(pd.peso)?pd.peso:''), questoes:(has(pd.questoes)?pd.questoes:''), foraDoConcurso:false}); di=ed.length-1; }
+        peso:(has(pd.peso)?pd.peso:''), questoes:(has(pd.questoes)?pd.questoes:''), foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; }
       else { const cur=ed[di]; ed[di]={...cur,           // preenche peso/questões só se a existente ainda não tiver
         peso:(has(cur.peso)?cur.peso:(has(pd.peso)?pd.peso:cur.peso)),
         questoes:(has(cur.questoes)?cur.questoes:(has(pd.questoes)?pd.questoes:cur.questoes)),
         // importar o edital de um concurso = esta disciplina cai nele. Nome idêntico ao de outro
         // concurso é a MESMA disciplina: o estudo já feito nela passa a contar aqui também.
-        foraDoConcurso:false}; }
+        foraDoConcurso:false, _esp:this._espAtivo()}; }
       const D=ed[di];
       (pd.topics||[]).forEach(pt=>{
         let ti=D.topics.findIndex(t=>norm(t.name)===norm(pt.name));
@@ -8694,8 +8726,8 @@ class Component extends DCLogic {
     const _peso = c.peso!==''&&c.peso!=null ? Math.max(0,+c.peso||0) : '';
     const _quest = c.questoes!==''&&c.questoes!=null ? Math.max(0,Math.round(+c.questoes||0)) : '';
     let di = ed.findIndex(d=>d.disc.toLowerCase()===nome.toLowerCase());
-    if(di<0){ ed.push({disc:nome, color:c.mode==='nova'?c.cor:'#0f7a57', open:true, topics:[], peso:_peso, questoes:_quest, foraDoConcurso:false}); di=ed.length-1; }
-    else { ed[di]={...ed[di], peso:(_peso!==''?_peso:ed[di].peso), questoes:(_quest!==''?_quest:ed[di].questoes), foraDoConcurso:false}; }
+    if(di<0){ ed.push({disc:nome, color:c.mode==='nova'?c.cor:'#0f7a57', open:true, topics:[], peso:_peso, questoes:_quest, foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; }
+    else { ed[di]={...ed[di], peso:(_peso!==''?_peso:ed[di].peso), questoes:(_quest!==''?_quest:ed[di].questoes), foraDoConcurso:false, _esp:this._espAtivo()}; }
     if(c.topico.trim()){
       let ti = ed[di].topics.findIndex(t=>t.name.toLowerCase()===c.topico.trim().toLowerCase());
       if(ti<0){ ed[di].topics.push({name:c.topico.trim(), done:false, subs: c.sub.trim()?[{name:c.sub.trim(), done:false}]:[]}); }
@@ -8705,7 +8737,7 @@ class Component extends DCLogic {
     this.setState({edital:ed, cad:{...c, discNova:'', topico:'', sub:'', peso:'', questoes:''}}); this.flashSync(); };
   onDiscMeta = (e)=>{ const i=+e.currentTarget.dataset.i, k=e.currentTarget.dataset.k, raw=e.currentTarget.value;
     const v = raw==='' ? '' : Math.max(0, k==='questoes'?Math.round(+raw||0):(+raw||0));
-    const ed=this.state.edital.map((d,di)=> di===i ? {...d, [k]:v, ...(v!==''?{foraDoConcurso:false}:{})} : d); this.setState({edital:ed}); this.flashSync(); };
+    const ed=this.state.edital.map((d,di)=> di===i ? {...d, [k]:v, _esp:this._espAtivo(), ...(v!==''?{foraDoConcurso:false}:{})} : d); this.setState({edital:ed}); this.flashSync(); };
   /* ===== VÁRIOS CONCURSOS AO MESMO TEMPO (Fase 1 — dados) =====
      O `edital` continua sendo o que sempre foi — disciplinas, tópicos, o que já foi estudado —
      e NÃO é movido nem reescrito na migração ("migração é onde se perde edital"). Ele passa a
@@ -8742,8 +8774,8 @@ class Component extends DCLogic {
     if(!C) return pool;
     const D=C.discs||{};
     return (pool||[]).map(d=>{ const n=String(d.disc||'').trim(); const c=D[n];
-      if(c && !c.fora) return {...d, peso:(c.peso!=null?c.peso:''), questoes:(c.questoes!=null?c.questoes:''), foraDoConcurso:false};
-      return {...d, peso:'', questoes:'', foraDoConcurso:true}; });
+      if(c && !c.fora) return {...d, peso:(c.peso!=null?c.peso:''), questoes:(c.questoes!=null?c.questoes:''), foraDoConcurso:false, _esp:C.id};
+      return {...d, peso:'', questoes:'', foraDoConcurso:true, _esp:C.id}; });
   }
   /** O caminho de volta: o que está no espelho do acervo vira a verdade do concurso ativo.
       Roda depois de qualquer mudança no edital (cadastro, importação, peso editado, renomear…).
@@ -8755,6 +8787,8 @@ class Component extends DCLogic {
     const C=this._concursoAtivo(); if(!C) return;
     const antes=C.discs||{}, depois={};
     (this.state.edital||[]).forEach(d=>{ const n=String(d.disc||'').trim(); if(!n) return;
+      // espelho de OUTRO concurso (chegou pela nuvem): nunca vira verdade deste
+      if(d._esp && d._esp!==C.id){ if(antes[n]) depois[n]=antes[n]; return; }
       if(d.foraDoConcurso){ const a=antes[n]; depois[n]={peso:(a?a.peso:''), questoes:(a?a.questoes:''), fora:true}; }
       else depois[n]={peso:(d.peso!=null?d.peso:''), questoes:(d.questoes!=null?d.questoes:''), fora:false}; });
     if(JSON.stringify(antes)===JSON.stringify(depois) && Array.isArray(this.state.editais) && this.state.editais.length) return;
@@ -8762,21 +8796,46 @@ class Component extends DCLogic {
     this.setState({editais:novos});
   }
   /** Assinatura barata do espelho: o componentDidUpdate só captura quando ela muda. */
-  _edAssinatura(){ return JSON.stringify((this.state.edital||[]).map(d=>[d.disc, d.peso, d.questoes, !!d.foraDoConcurso])); }
+  _edAssinatura(){ return JSON.stringify((this.state.edital||[]).map(d=>[d.disc, d.peso, d.questoes, !!d.foraDoConcurso, d._esp||''])); }
+  /* A CORRIDA QUE ISTO FECHA: o Mac em "Meu concurso" e o iPad no "TJSP". A nuvem pode
+     trazer o concurso ativo de um aparelho e o espelho de peso do outro — e a captura
+     gravaria o peso de "Meu concurso" DENTRO do TJSP, calada. Cada disciplina do espelho
+     carrega `_esp` (de qual concurso ela é); se não bate com o ativo, o espelho está velho:
+     reprojeta o concurso ativo por cima em vez de capturar. Sem `_esp` = dado local novo. */
   _edSincronizarConcurso(){
+    const C=this._concursoAtivo(); if(!C) return;
+    if((this.state.edital||[]).some(d=>d._esp && d._esp!==C.id)){
+      this._edSig=null; this.setState({edital:this._edProjetar(this.state.edital, C)}); return; }
     const sig=this._edAssinatura(); if(sig===this._edSig) return;
     this._edSig=sig; this._edCapturar();
+  }
+  _espAtivo(){ const C=this._concursoAtivo(); return C?C.id:''; }
+  /* Vira o concurso ativo — o mesmo cuidado que a troca de área já tem, na mesma ordem:
+     1) grava o ciclo ABERTO nas chaves do concurso de SAÍDA (o _chave ainda aponta para ele);
+     2) adota o novo concurso ANTES de reler, para todo _chave() do ciclo mirar o destino;
+     3) relê o ciclo do destino e alinha o _lastSaved — sem isso o autosave veria o ciclo velho
+        na memória como "mudança" e o gravaria DENTRO do concurso novo, apagando o dele. */
+  _virarConcurso(id, eds){
+    const C=(eds||[]).find(x=>x.id===id); if(!C) return;
+    this._edCapturar();
+    try{ clearTimeout(this._asT); }catch(_){}
+    this._salvarAgora();                                                     // (1)
+    this.state.editalAtivo=id;                                               // (2)
+    try{ localStorage.setItem(this._chave('editalAtivo'), JSON.stringify(id)); }catch(_){}
+    const patch={ editalAtivo:id, editais:eds, edital:this._edProjetar(this.state.edital, C) };
+    this.CICLO_PROPRIO.forEach(k=>{ patch[k]=this._load(k, this._vazioDe(k)); });   // (3)
+    const L=this._lastSaved||(this._lastSaved={});
+    this.CICLO_PROPRIO.forEach(k=>{ L[k]=patch[k]; }); L.editalAtivo=id;
+    this._edSig=null;
+    this.setState(patch, ()=>{ try{ this._reconcileCiclo(); }catch(_){} });
+    this.flashSync();
   }
   // ---- ações da tela ----
   trocarConcurso = (e)=>{
     const id=String(e.currentTarget.value||''); const eds=this._editaisComMigracao();
     const C=eds.find(x=>x.id===id); if(!C) return;
-    // garante que o concurso de saída tem o espelho atual antes de sair
-    this._edCapturar();
-    this.setState(st=>({ editais:(Array.isArray(st.editais)&&st.editais.length)?st.editais:eds,
-      editalAtivo:id, edital:this._edProjetar(st.edital, C) }));
-    this._toast('Concurso ativo: '+C.nome+' — pesos e questões deste edital');
-    this.flashSync();
+    this._virarConcurso(id, (Array.isArray(this.state.editais)&&this.state.editais.length)?this.state.editais:eds);
+    this._toast('Concurso ativo: '+C.nome+' — pesos, questões e o ciclo deste concurso');
   };
   novoConcurso = ()=>{
     const nome=String(window.prompt('Nome do novo concurso (ex.: TJSP 2026):','')||'').trim(); if(!nome) return;
@@ -8785,10 +8844,11 @@ class Component extends DCLogic {
     // começa SEM disciplinas: cada uma entra ao ser marcada, importada de um modelo ou cadastrada.
     // Disciplina de nome idêntico à de outro concurso é a MESMA — o estudo feito nela já conta aqui.
     const discs={}; (this.state.edital||[]).forEach(d=>{ const n=String(d.disc||'').trim(); if(n) discs[n]={peso:'', questoes:'', fora:true}; });
-    const C={ id:'ed-'+Date.now(), nome, banca:'', dataProva:'', discs, up:Date.now() };
-    this.setState(st=>({ editais:[...eds, C], editalAtivo:C.id, edital:this._edProjetar(st.edital, C) }));
-    this._toast('Concurso "'+nome+'" criado — marque as disciplinas que caem nele');
-    this.flashSync();
+    // o PRIMEIRO concurso de quem ainda não tinha nenhum é o principal: é ele que fica com as
+    // chaves de sempre do ciclo — senão o ciclo já montado ficaria órfão, sem dono
+    const C={ id:(eds.length?('ed-'+Date.now()):this.ED_PRINCIPAL), nome, banca:'', dataProva:'', discs, up:Date.now() };
+    this._virarConcurso(C.id, [...eds, C]);
+    this._toast('Concurso "'+nome+'" criado, com ciclo próprio — marque as disciplinas que caem nele');
   };
   renomearConcurso = ()=>{
     const C=this._concursoAtivo(); if(!C) return;
@@ -8801,8 +8861,8 @@ class Component extends DCLogic {
     const i=+e.currentTarget.dataset.i; const ed=(this.state.edital||[]).slice(); if(!ed[i]) return;
     const fora=!ed[i].foraDoConcurso;
     const C=this._concursoAtivo(); const guard=(C&&C.discs&&C.discs[String(ed[i].disc||'').trim()])||{};
-    ed[i]= fora ? {...ed[i], foraDoConcurso:true, peso:'', questoes:''}
-                : {...ed[i], foraDoConcurso:false, peso:(guard.peso!=null?guard.peso:''), questoes:(guard.questoes!=null?guard.questoes:'')};
+    ed[i]= fora ? {...ed[i], foraDoConcurso:true, peso:'', questoes:'', _esp:this._espAtivo()}
+                : {...ed[i], foraDoConcurso:false, peso:(guard.peso!=null?guard.peso:''), questoes:(guard.questoes!=null?guard.questoes:''), _esp:this._espAtivo()};
     this.setState({edital:ed}); this.flashSync();
   };
   // ===== modelos de edital pré-cadastrados (CT_MODELOS) =====
