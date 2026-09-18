@@ -24,7 +24,7 @@ export async function testarVariosEditais(pageDaSuite, base, ok, opcoes = {}) {
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
   const t = new Date(); t.setHours(14, 0, 0, 0); await page.clock.install({ time: t });
-  try { await roteiro(page, base, ok, R, arquivo); await cicloPorConcurso(page, base, ok, R, arquivo); await mergeEntreAparelhos(page, base, ok, R); } finally { await ctx.close(); }
+  try { await roteiro(page, base, ok, R, arquivo); await cicloPorConcurso(page, base, ok, R, arquivo); await tela(page, base, ok, R, arquivo); await mergeEntreAparelhos(page, base, ok, R); } finally { await ctx.close(); }
 }
 
 /* O ponto mais perigoso desta fase não é a tela: é dois aparelhos migrando o mesmo edital.
@@ -77,8 +77,8 @@ async function roteiro(page, base, ok, R, arquivo) {
     const app = window.__catedraApp; if (app && app._salvarAgora) app._salvarAgora(); await w(200);
     const E = JSON.parse(localStorage.getItem('catedra:editais') || '[]');
     const ED = JSON.parse(localStorage.getItem('catedra:edital') || '[]');
-    const sel = document.getElementById('ct-concurso-sel');
-    return { E, civ: ED.find(d => d.disc === 'Direito Civil') || {}, barra: sel ? sel.options[sel.selectedIndex].textContent : '' };
+    const ativa = document.querySelector('.ct-concurso-pilula[aria-pressed="true"]');
+    return { E, civ: ED.find(d => d.disc === 'Direito Civil') || {}, barra: ativa ? ativa.textContent.trim() : '' };
   });
   const principal = mig.E[0] || {};
   ok(mig.E.length === 1 && principal.id === 'ed-principal' && principal.nome === 'Meu concurso',
@@ -128,8 +128,7 @@ async function roteiro(page, base, ok, R, arquivo) {
   const volta = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
     const app = window.__catedraApp;
-    const sel = document.getElementById('ct-concurso-sel');
-    sel.value = 'ed-principal'; sel.dispatchEvent(new Event('change', { bubbles: true })); await w(800);
+    document.querySelector('.ct-concurso-pilula[data-id="ed-principal"]').click(); await w(800);
     return { civil: (app.state.edital.find(d => d.disc === 'Direito Civil') || {}).peso,
       penal: (app.state.edital.find(d => d.disc === 'Direito Penal') || {}),
       sessoes: (app.state.sessions || []).length };
@@ -143,8 +142,9 @@ async function roteiro(page, base, ok, R, arquivo) {
   const re = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
     window.__catedraGoView('edital'); await w(1000);
-    const sel = document.getElementById('ct-concurso-sel');
-    return { opcoes: sel ? [...sel.options].map(o => o.textContent) : [], ativo: sel ? sel.options[sel.selectedIndex].textContent : '' };
+    const pil = [...document.querySelectorAll('.ct-concurso-pilula')];
+    const ativa = pil.find(b => b.getAttribute('aria-pressed') === 'true');
+    return { opcoes: pil.map(b => b.textContent.trim()), ativo: ativa ? ativa.textContent.trim() : '' };
   });
   ok(re.opcoes.length === 2 && re.ativo === 'Meu concurso' && re.opcoes.includes('TJSP 2026'),
     R + 'reabrindo o app: os dois concursos e o ativo sobreviveram (' + re.opcoes.join(' / ') + ')');
@@ -190,8 +190,7 @@ async function cicloPorConcurso(page, base, ok, R, arquivo) {
     out.chaveTj = (disco('catedra:manualFixed#' + tj.id) || []).map(x => x.id).join(',');
     out.chaveSempre = (disco('catedra:manualFixed') || []).map(x => x.id).join(',');
     // volta para o principal: o ciclo dele volta inteiro
-    const sel = document.getElementById('ct-concurso-sel');
-    sel.value = 'ed-principal'; sel.dispatchEvent(new Event('change', { bubbles: true })); await w(1000);
+    document.querySelector('.ct-concurso-pilula[data-id="ed-principal"]').click(); await w(1000);
     out.deVolta = ids();
     out.chaveTjIntacta = (disco('catedra:manualFixed#' + tj.id) || []).map(x => x.id).join(',');
 
@@ -224,4 +223,61 @@ async function cicloPorConcurso(page, base, ok, R, arquivo) {
   await page.goto(base + '/' + arquivo); await page.waitForTimeout(2000);
   const re = await page.evaluate(() => (window.__catedraApp.state.manualFixed || []).map(x => x.id).join(','));
   ok(re === 'ag-tj', R + 'reabrindo o app: continua no TJSP, com o ciclo do TJSP (' + re + ')');
+}
+
+
+/* FASE 3 — A TELA, MEDIDA. O concurso ativo é a faixa de chamada do Edital (o "primeiro
+   lugar" da seção 10 do catedra-ui.css). Mede-se o que pinta: uma faixa só, pílula ativa
+   distinguível, alvos de toque, o selo do estudo compartilhado — e as duas regras do
+   DESIGN.md que eu tinha quebrado antes: nada de faixa lateral colorida, e barra de
+   progresso por translateX, nunca por largura. */
+async function tela(page, base, ok, R, arquivo) {
+  await page.goto(base + '/__semente');
+  await page.evaluate(() => {
+    const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+    localStorage.clear();
+    set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica');
+    set('edital', [{ disc: 'Direito Civil', peso: 2, questoes: 15, topics: [{ name: 'Obrigações', done: true, subs: [] }] },
+                   { disc: 'Direito Penal', peso: 1, questoes: 10, topics: [{ name: 'Teoria do crime', done: false, subs: [] }] }]);
+    // dois concursos, Civil nos dois: o estudo dele rende em dobro
+    set('editais', [{ id: 'ed-principal', nome: 'TJGO 2026', discs: { 'Direito Civil': { peso: 2, questoes: 15, fora: false }, 'Direito Penal': { peso: 1, questoes: 10, fora: false } }, up: 5 },
+                    { id: 'ed-sp', nome: 'TJSP 2026', discs: { 'Direito Civil': { peso: 3, questoes: 20, fora: false }, 'Direito Penal': { peso: '', questoes: '', fora: true } }, up: 6 }]);
+    set('fc', [{ id: 'c1', front: 'f', back: 'b', disc: 'Direito Civil' }]);
+    set('sessions', []); set('reviews', []); set('errors', []);
+  });
+  await page.goto(base + '/' + arquivo); await page.waitForTimeout(1900);
+  const m = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('edital'); await w(1100);
+    const main = document.querySelector('main') || document.body;
+    const heroes = main.querySelectorAll('.ct-hero');
+    const hero = main.querySelector('.ct-concurso-hero');
+    const tit = hero && hero.querySelector('.ct-hero-tit');
+    const pil = hero ? [...hero.querySelectorAll('.ct-concurso-pilula')] : [];
+    const ativa = pil.find(b => b.getAttribute('aria-pressed') === 'true');
+    const inativa = pil.find(b => b.getAttribute('aria-pressed') !== 'true');
+    const bg = el => el ? getComputedStyle(el).backgroundColor : '';
+    const cor = el => el ? getComputedStyle(el).color : '';
+    const numPx = hero ? Math.min(...[...hero.querySelectorAll('.ct-kpi b .sc-interp, .ct-kpi b')].map(e => parseFloat(getComputedStyle(e).fontSize))) : 0;
+    const selos = [...main.querySelectorAll('.ct-selo')].map(e => e.textContent.trim()).filter(t => /concursos/.test(t));
+    const kpis = hero ? [...hero.querySelectorAll('.ct-kpi')].map(k => k.textContent.replace(/\s+/g, ' ').trim()) : [];
+    const r = { nHero: heroes.length, titulo: tit ? tit.textContent.trim() : '', tituloPx: tit ? parseFloat(getComputedStyle(tit).fontSize) : 0,
+      nPil: pil.length, ativaBg: bg(ativa), inativaBg: bg(inativa), altPil: pil.length ? Math.min(...pil.map(b => b.getBoundingClientRect().height)) : 0,
+      selos, kpis, ativaCor: cor(ativa), inativaCor: cor(inativa), numPx };
+    // regras do DESIGN.md, medidas no Início (o cartão do baralho) e na barra do baralho
+    window.__catedraGoView('inicio'); await w(900);
+    const bar = document.querySelector('.cth-baralho');
+    if (bar) { const cs = getComputedStyle(bar); r.bordaEsq = cs.borderLeftWidth; r.bordaTopo = cs.borderTopWidth; }
+    return r;
+  });
+  ok(m.nHero === 1, R + 'a tela do Edital tem UMA faixa de chamada — "uma tela tem um primeiro lugar" (' + m.nHero + ')');
+  ok(m.titulo === 'TJGO 2026' && m.tituloPx >= 28, R + 'o concurso ativo é o título da faixa, em tamanho de display (' + m.titulo + ', ' + m.tituloPx + ' px)');
+  ok(m.nPil === 2 && m.ativaBg !== m.inativaBg && m.ativaBg !== '', R + 'as pílulas mostram os dois concursos, e a ativa PINTA diferente da outra (' + m.ativaBg + ' × ' + m.inativaBg + ')');
+  ok(m.ativaCor === m.inativaCor && /255, 255, 255/.test(m.ativaCor),
+    R + 'a pílula ATIVA tem o mesmo texto branco das outras sobre o gradiente — nunca branco sobre branco (' + m.ativaCor + ')');
+  ok(m.numPx >= 24, R + 'os números da faixa pintam em tamanho de número, não de rótulo (' + m.numPx + ' px; o seletor descendente os encolhia a 11)');
+  ok(m.altPil >= 40, R + 'pílulas com alvo de pelo menos 40 px (44 no toque) — mediu ' + Math.round(m.altPil));
+  ok(m.selos.some(t => /em 2 concursos/.test(t)), R + 'Direito Civil mostra "em 2 concursos": o estudo dele vale nos dois (' + m.selos.join(', ') + ')');
+  ok(m.kpis.some(k => /^1\s*em comum/.test(k)), R + 'a faixa conta as disciplinas em comum com outro concurso (' + m.kpis.join(' | ') + ')');
+  ok(m.bordaEsq === m.bordaTopo, R + 'DESIGN.md: o cartão do baralho no Início não tem mais faixa lateral colorida (esq ' + m.bordaEsq + ' = topo ' + m.bordaTopo + ')');
 }
