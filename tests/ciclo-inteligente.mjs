@@ -256,11 +256,13 @@ export async function testarCicloInteligente(page, base, ok, opcoes = {}) {
    contra o pixel da lavagem. Presença no DOM não prova que pinta — isto mede. */
 function medidasNaPagina() {
   const fonte = cs => [cs.fontStyle, cs.fontWeight, cs.fontSize, cs.fontFamily].join(' ');
-  // a régua: o texto cabe na área útil do select — clientWidth − padding − a seta (~24 px),
+  // a régua: o texto cabe na área útil do select — clientWidth − padding − a seta nativa (~24 px,
+  // que fica além do padding; a seta da casa, com appearance:none, mora dentro do padding-right),
   // largura medida por canvas com a fonte COMPUTADA do próprio select
   const textoCabe = (sel, t) => {
     const cs = getComputedStyle(sel); const cx = document.createElement('canvas').getContext('2d'); cx.font = fonte(cs);
-    const util = sel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 24;
+    const seta = (cs.appearance || cs.webkitAppearance) === 'none' ? 0 : 24;
+    const util = sel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - seta;
     return cx.measureText(t).width <= util;
   };
   // cada opção do select cabe na área útil
