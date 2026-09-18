@@ -29,6 +29,7 @@ import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
+import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
@@ -8434,6 +8435,14 @@ catch (e) {
 try { await testarIpadToqueSatelites(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPAD/satélites toque [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// O <select> do host (tests/select-host.mjs): no WebKit o tema nativo reescrevia padding, raio e
+// min-height; aqui o mesmo roteiro prova que o Chromium segue igual (e emula as cores forçadas)
+try { await testarSelectHost(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'SELECT/host [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
