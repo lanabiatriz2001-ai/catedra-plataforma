@@ -934,9 +934,6 @@ window.ctPdfLib = (function(){
                   </sc-if>
                 </div>
               </sc-if>
-              <sc-if value="{{ hasBibForLink }}" hint-placeholder-val="{{ false }}">
-                <div><label class="ct-rotulo">Vincular material da biblioteca <span class="ct-rotulo-nota">(opcional)</span></label><select data-k="materialId" value="{{ sessionDraft.materialId }}" aria-label="Vincular material da biblioteca" title="{{ sessMatTitle }}" onchange="{{ onSessionField }}" class="ct-campo"><option value="">— nenhum —</option><sc-for list="{{ bibLinkOpts }}" as="o" hint-placeholder-count="0"><option value="{{ o.id }}">{{ o.titulo }}</option></sc-for></select></div>
-              </sc-if>
               </sc-if>
             </div>
 
@@ -1391,11 +1388,6 @@ window.ctPdfLib = (function(){
           </div>
         </div>
       </div>
-    </sc-if>
-
-    <!-- LEITOR (biblioteca) — engine imperativa montada via ref -->
-    <sc-if value="{{ readerIsOpen }}" hint-placeholder-val="{{ false }}">
-      <div ref="{{ readerRef }}" style="position:fixed;inset:0;z-index:150;"></div>
     </sc-if>
 
     <!-- LOGIN INICIAL -->
@@ -4642,9 +4634,6 @@ window.ctPdfLib = (function(){
         <iframe data-ct-frame="{{ jurisFrameSrc }}" data-ct-view="juris" title="CátedraJURIS — súmulas e julgados do STF, STJ e TSE" style="position:relative;width:100%;height:{{ nativeFrameH }};border:none;background:transparent;display:{{ dispJuris }};"></iframe>
       </div>
 
-      <!-- ================= BIBLIOTECA ================= -->
-
-
       <!-- ================= DOMÍNIO POR TÓPICO ================= -->
       <sc-if value="{{ isDominio }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
@@ -6196,7 +6185,7 @@ window.ctPdfLib = (function(){
             em qualquer aparelho. Só você tem acesso: cada conta enxerga apenas a própria linha.
           </div>
           <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.6;margin-top:10px;">
-            <b>Não sobem para a nuvem:</b> os PDFs da biblioteca, que ficam apenas neste aparelho
+            <b>Não sobem para a nuvem:</b> os arquivos grandes, que ficam apenas neste aparelho
             (só as marcações e o progresso de leitura acompanham a conta).
           </div>
           <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.6;margin-top:10px;">
@@ -6729,17 +6718,13 @@ class Component extends DCLogic {
       sessions: (()=>{ try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
       sessionsLixeira: (()=>{ try{ const raw=localStorage.getItem(this._chave('sessionsLixeira')); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)) return arr; } }catch(_){} return []; })(),
       histLixeiraOpen:false,
-      sessionDraft:{ disc:_areaIni.discs[0], topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:false, contarMeta:true },
+      sessionDraft:{ disc:_areaIni.discs[0], topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', agendarRevisao:false, contarMeta:true },
       edRaw:'', edParsed:null, edAiBusy:false,
       modeloOpen:false, modeloSel:[], modeloOutras:false,
       modeloId:((CT_MODELOS.filter(m=>(_areaIni.modelos||[]).indexOf(m.id)>=0)[0])||CT_MODELOS[0]||{}).id||'',   // modelos de edital pré-cadastrados
       cad:{mode:'nova', discSel:_areaIni.discs[0], discNova:'', cor:'#2563eb', topico:'', sub:'', peso:'', questoes:''},
       eventos:this._load('eventos', []),
-      biblioteca:[],
-      bibDraft:{tipo:'Resumo', titulo:'', disc:'Constitucional', texto:''},
-      bibFilter:'todos',
       bibMode:'upload', bibDragOver:false, bibBusy:false, bibBusyMsg:'',
-      readerOpen:null,
       eventDraft:{dia:15, tipo:'Tarefa', titulo:''},
       calMonth:(new Date()).getMonth(), calYear:(new Date()).getFullYear(), calSel:(new Date()).getDate(), calFilter:'todos', calView:'mes',
       habitos:(()=>{ const seed={sono:0, agua:0, exercicio:0, pausas:0, alongar:0, sol:0}; try{ const h=localStorage.getItem('catedra:habitos'); if(h){ const p=JSON.parse(h); if(p&&typeof p==='object') return {...seed, ...p}; } }catch(_){} return seed; })(),
@@ -6839,9 +6824,8 @@ class Component extends DCLogic {
       synced:true, syncFlash:false, syncStatus:'local', syncHora:'', syncErroDesde:0, syncTick:0,
       historicoFilter:'', histEdit:null, relPeriod:this._load('relPeriod', 30),
       provaData:(()=>{ try{ const d=localStorage.getItem('catedra:prova'); if(d) return d; }catch(_){} return null; })(),
-      highlights: this._loadHL(), flashcards: this._loadFC()
+      flashcards: this._loadFC()
     };
-    const _sl = this._loadLib(); if(_sl && _sl.length) this.state.biblioteca = [..._sl, ...this.state.biblioteca];
     if(this.state.sessions===null){ this.state.sessions = []; }
     try{ const _o=localStorage.getItem('catedra:orient'); if(_o){ const _op=JSON.parse(_o); if(_op&&typeof _op==='object') this.state.orient={...this.state.orient, ..._op}; } }catch(_){}
     this.INTERVALS = [1,3,7,15,30];
@@ -7506,8 +7490,7 @@ class Component extends DCLogic {
     try{ const _h=localStorage.getItem('catedra:habitos'); if(_h){ const p=JSON.parse(_h); if(p&&typeof p==='object') patch.habitos={...this.state.habitos, ...p}; } }catch(_){}
     try{ const _pv=localStorage.getItem('catedra:prova'); patch.provaData=_pv||null; }catch(_){}
     try{ const _cm=localStorage.getItem('catedra:cycleMode'); if(_cm) patch.cycleMode=_cm; }catch(_){}
-    try{ patch.highlights=this._loadHL(); patch.flashcards=this._loadFC(); }catch(_){}
-    try{ const lib=this._loadLib(); if(Array.isArray(lib)&&lib.length){ const seed=this.state.biblioteca.filter(b=>!b.user); patch.biblioteca=[...lib, ...seed]; } }catch(_){}
+    try{ patch.flashcards=this._loadFC(); }catch(_){}
     // TODAS as outras chaves que o _autosave gerencia. Sem isto, o que a nuvem
     // acabou de mesclar (ciclo, prefs, perfil, simulado, redação…) era regravado
     // pela memória VELHA deste aparelho no render seguinte — e subia de volta,
@@ -7808,22 +7791,22 @@ class Component extends DCLogic {
       const canon={}; edAtual.forEach(d=>{ if(d.disc) canon[_fold(d.disc)]=d.disc; });
       const fix=(arr)=> Array.isArray(arr)? arr.map(o=>{ if(o&&o.disc){ const c=canon[_fold(o.disc)]; if(c&&c!==o.disc) return {...o, disc:c}; } return o; }) : arr;
       const _needFix=(arr)=> Array.isArray(arr) && arr.some(o=>{ if(!o||!o.disc) return false; const c=canon[_fold(o.disc)]; return c&&c!==o.disc; });
-      const slices=['sessions','reviews','errors','blocks','manualFixed','manualRot','flashcards','biblioteca'];
+      const slices=['sessions','reviews','errors','blocks','manualFixed','manualRot','flashcards'];
       const algoMuda = precisaId || slices.some(k=>_needFix(this.state[k]));
       if(algoMuda) this._backupOnce();
       const patch={};
       if(precisaId){ patch.edital=edAtual.map(d=>({ ...d, id:d.id||('d-'+_slug(d.disc)), topics:(d.topics||[]).map(t=>({...t, tid:t.tid||('t-'+_slug(t.name))})) })); }
       slices.forEach(k=>{ if(_needFix(this.state[k])) patch[k]=fix(this.state[k]); });
       if(Object.keys(patch).length){
-        this.setState(patch, ()=>{ try{ if(patch.sessions) this._saveSessions(patch.sessions); }catch(_){} try{ if(patch.flashcards&&this._saveFC) this._saveFC(patch.flashcards); }catch(_){} try{ if(patch.biblioteca&&this._persistLib) this._persistLib(); }catch(_){} });
+        this.setState(patch, ()=>{ try{ if(patch.sessions) this._saveSessions(patch.sessions); }catch(_){} try{ if(patch.flashcards&&this._saveFC) this._saveFC(patch.flashcards); }catch(_){}  });
       }
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
   componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
-    if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP(); this._teardownReader(); }
-  componentDidUpdate(){ this._baixaRaiz(); this._limpaOrigem(); this._readerSync(); this._syncModalFocus(); this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+    if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
+  componentDidUpdate(){ this._baixaRaiz(); this._limpaOrigem(); this._syncModalFocus(); this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // Trocou de tela por conta própria (menu, atalho)? Então a origem guardada e o alvo da
   // volta morrem — senão a barra "você veio de…" reaparece numa visita solta ao acervo.
   _limpaOrigem(){
@@ -8081,7 +8064,7 @@ class Component extends DCLogic {
     });
     try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(this.state.sessions||[])); }catch(_){}
     try{ localStorage.setItem(this._chave('sessionsLixeira'), JSON.stringify(this.state.sessionsLixeira||[])); }catch(_){}
-    try{ this._saveHL(this.state.highlights||{}); this._saveFC(this.state.flashcards||[]); }catch(_){}
+    try{ this._saveFC(this.state.flashcards||[]); }catch(_){}
   }
   /** O vazio certo de cada chave — array, objeto ou escalar. Sem isto, um caderno novo
       nasceria com `undefined` onde a tela espera lista. */
@@ -8780,7 +8763,7 @@ class Component extends DCLogic {
     localStorage.setItem('ct_bkpFase2', JSON.stringify(snap)); }catch(_){} }
   // Renomear disciplina = identidade canônica: o `edital` é a fonte, e o novo nome
   // PROPAGA para todos os registros que a referenciam por nome (sessões, revisões,
-  // erros, blocos, rodízio manual, flashcards, biblioteca). Resolve "renomear não propaga".
+  // erros, blocos, rodízio manual, flashcards). Resolve "renomear não propaga".
   renomearDisciplina = (e)=>{
     const i=+e.currentTarget.dataset.i; const list=this.state.edital||[]; if(i<0||i>=list.length) return;
     const old=list[i].disc; let nv=''; try{ nv=(window.prompt('Novo nome da disciplina (muda em todo o app):', old)||'').trim(); }catch(_){ nv=''; }
@@ -8791,8 +8774,8 @@ class Component extends DCLogic {
     const patch={ edital:list.map((d,j)=> j===i ? {...d, disc:nv} : d),
       sessions:fix(this.state.sessions), reviews:fix(this.state.reviews), errors:fix(this.state.errors),
       blocks:fix(this.state.blocks), manualFixed:fix(this.state.manualFixed), manualRot:fix(this.state.manualRot),
-      flashcards:fix(this.state.flashcards), biblioteca:fix(this.state.biblioteca) };
-    this.setState(patch, ()=>{ try{ this._saveSessions(patch.sessions); }catch(_){} try{ this._saveFC&&this._saveFC(patch.flashcards); }catch(_){} try{ this._persistLib&&this._persistLib(); }catch(_){} });
+      flashcards:fix(this.state.flashcards) };
+    this.setState(patch, ()=>{ try{ this._saveSessions(patch.sessions); }catch(_){} try{ this._saveFC&&this._saveFC(patch.flashcards); }catch(_){}  });
     this.flashSync&&this.flashSync(); this._toast&&this._toast('Disciplina renomeada — atualizada em todo o app ✦'); };
 
   // ===== análise por banca + perfil =====
@@ -9850,7 +9833,7 @@ class Component extends DCLogic {
       const obTxt=Number.isInteger(ob)?String(ob):ob.toFixed(1);
       notaTxt='Nota '+obTxt+' / '+mx+' ('+discPctRec+'%)';
     }
-    const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:notaTxt, discPct:discPctRec, materialId:null, countMeta:true };
+    const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:notaTxt, discPct:discPctRec, countMeta:true };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     this.setState({sessions, simNome:'', simMin:''}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
@@ -9918,7 +9901,7 @@ class Component extends DCLogic {
     const heat=[]; let heatMax=1; for(let d=27; d>=0; d--){ const ds=this._ymd(now-d*day); const mm=S.filter(s=>s.date===ds).reduce((a,s)=>a+(s.min||0),0); heatMax=Math.max(heatMax,mm); heat.push({date:ds, min:mm, isToday:d===0}); }
     return {totalMin,totalQ,totalA,totalE,totalB,liq,brutoPct,liqPct,diasEstudados,nDiscs,simulados,todayMin,todayMetaMin,weekMin,weekMinBruto,streak,discList,weeks,heat,heatMax,byTopic,normT:_normT};
   }
-  _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', edTop:'', edSub:'', marcarEdital:false, categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', materialId:'', agendarRevisao:_autoRev, contarMeta:true }; }
+  _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', edTop:'', edSub:'', marcarEdital:false, categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', agendarRevisao:_autoRev, contarMeta:true }; }
   // Tópicos/subtópicos da disciplina, lidos do EDITAL (fonte canônica) — usados
   // pelos selects do registro de sessão e da edição do histórico.
   _topicosDe(disc){ const d=(this.state.edital||[]).find(x=>String(x.disc||'').trim()===String(disc||'').trim());
@@ -10164,7 +10147,7 @@ class Component extends DCLogic {
   _registrarAtividadeAuto = ({categoria='Jurisprudência', topico='', min=0, disc='Geral'}={})=>{
     const m=Math.max(1, Math.round(min||0)||3);
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()), disc:disc||'Geral', topico:topico||categoria, categoria, categorias:[categoria],
-      edTop:null, edSub:null, min:m, questoes:0, acertos:0, erradas:0, brancos:0, liquido:0, foco:'', nota:'', materialId:null, countMeta:true, auto:true };
+      edTop:null, edSub:null, min:m, questoes:0, acertos:0, erradas:0, brancos:0, liquido:0, foco:'', nota:'', countMeta:true, auto:true };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     this.setState({sessions}, ()=>{ try{ this._reconcileStreak(); }catch(_){} });
     return rec;
@@ -10177,7 +10160,7 @@ class Component extends DCLogic {
     const br=Math.max(0, parseInt(d.brancos,10)||0);
     const q=a+er+br;
     if(!min && !d.topico.trim() && !q){ this._toast('Informe o tempo, o tópico ou as questões'); return; }
-    const mat = d.materialId ? (this.state.biblioteca.find(b=>b.id===d.materialId)||null) : null;
+
     const _catsArr = (Array.isArray(d.categorias)&&d.categorias.length) ? d.categorias : [d.categoria].filter(Boolean);
     const _cats0 = _catsArr[0]||'Teoria';
     const _disc=(d.disc||'').trim()||'Geral';
@@ -10185,9 +10168,9 @@ class Component extends DCLogic {
     // estudo de 23h→00h30 pertence a ontem — não quebra a ofensiva nem consome escudo.
     const _ext = !!d._ext;
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000),
-      disc:_disc, topico:d.topico.trim()|| (mat&&mat.titulo) || _cats0, categoria:_cats0, categorias:_catsArr,
+      disc:_disc, topico:d.topico.trim()|| _cats0, categoria:_cats0, categorias:_catsArr,
       edTop:(d.edTop||'').trim()||null, edSub:(d.edSub||'').trim()||null,   // vínculo com o edital (tópico · subtópico)
-      min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, foco:d.foco, nota:d.nota.trim(), materialId:d.materialId||null, countMeta:d.contarMeta!==false,
+      min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, foco:d.foco, nota:d.nota.trim(), countMeta:d.contarMeta!==false,
       // De onde o indicador veio (ciclo, LEGIS, JURIS, registro à mão) e a qual atividade
       // do ciclo ele pertence. `concluiu` distingue "estudei um pedaço" de "fechei a
       // atividade": só a sessão que fechou reabre o bloco se for excluída depois.
@@ -10519,7 +10502,7 @@ class Component extends DCLogic {
 
   _backupObjeto(){ return {
       version:3, exportedAt:new Date().toISOString(),
-      biblioteca:this.state.biblioteca, highlights:this.state.highlights, flashcards:this.state.flashcards,
+      flashcards:this.state.flashcards,
       errors:this.state.errors, reviews:this.state.reviews, metas:this.state.metas, eventos:this.state.eventos, sessions:this.state.sessions,
       ciclo:this.state.blocks, edital:this.state.edital, sim:this.state.sim, anki:this.state.ankiHist,
       prefs:this.state.prefs, dir:this.state.dir, darkMode:this.state.darkMode, accent:this.state.accent,
@@ -10770,9 +10753,8 @@ class Component extends DCLogic {
         });
       }
     }catch(_){}
-            ['biblioteca','flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','cicloVolta','manualVoltaN','discItems','planHoras','agendaFeitas','manualFixedRoteiroAtual','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','meusGrupos','redText','redGabarito','redEnunciado'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
+            ['flashcards','errors','reviews','metas','eventos','edital','sim','prefs','sessions','profile','orient','habitos','manualFixed','manualRot','rotPointer','cycleMode','cicloVolta','manualVoltaN','discItems','planHoras','agendaFeitas','manualFixedRoteiroAtual','escudos','streakFreezeUsados','streakCheckDate','escudoUltimoGanho','meusGrupos','redText','redGabarito','redEnunciado'].forEach(k=>{ if(d[k]!=null) patch[k]=d[k]; });
             if(Array.isArray(patch.edital)) patch.edital=this._editalReparar(patch.edital);   // o backup antigo não passa pelo _load
-            if(d.highlights!=null) patch.highlights=d.highlights;
             if(Array.isArray(d.ciclo)) patch.blocks=d.ciclo;
             if(Array.isArray(d.anki)) patch.ankiHist=d.anki;
             if(Array.isArray(d.redHistory)) patch.redHistory=d.redHistory;
@@ -10780,7 +10762,7 @@ class Component extends DCLogic {
             if(d.dir&&CT_DIRS.includes(d.dir)) patch.dir=d.dir;
             if(typeof d.darkMode==='boolean') patch.darkMode=d.darkMode;
             if(d.accent!==undefined) patch.accent=d.accent;
-            this.setState(patch, ()=>{ try{ if(patch.highlights) this._saveHL(patch.highlights); if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.biblioteca) this._persistLib(); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem('catedra:cycleMode', patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
+            this.setState(patch, ()=>{ try{ if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem('catedra:cycleMode', patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
             this.flashSync(); this._toast('Backup restaurado em todo o sistema ✦'); }
   // ===== Backup na nuvem PESSOAL (iCloud Drive / Google Drive) — além da conta Cátedra =====
   // Nativo (Mac/iPad): a ponte catedraBackup grava/lê o arquivo (Mac: pasta Cátedra do iCloud
@@ -10874,7 +10856,7 @@ class Component extends DCLogic {
       inp.click();
     }catch(e){ this._toast('Não foi possível importar'); } };
 
-  wipeAll = ()=>{ if(!window.confirm('Apagar TODOS os dados locais? Edital, ciclo, sessões, revisões, metas, biblioteca, preferências — tudo será removido deste aparelho (e da sua conta na nuvem). Esta ação não pode ser desfeita.')) return;
+  wipeAll = ()=>{ if(!window.confirm('Apagar TODOS os dados locais? Edital, ciclo, sessões, revisões, metas, preferências — tudo será removido deste aparelho (e da sua conta na nuvem). Esta ação não pode ser desfeita.')) return;
     if(this._tick){ clearInterval(this._tick); this._tick=null; }
     if(this._provaT){ clearInterval(this._provaT); this._provaT=null; }
     this.setState({timerRunning:false, timerSeconds:0, studiedSeconds:0, provaMode:false, provaRunning:false});
@@ -10883,7 +10865,7 @@ class Component extends DCLogic {
     try{ Object.keys(localStorage).filter(k=>k.indexOf('catedra:')===0 && k!=='catedra:auth' && k!=='catedra:onboarded' && k!=='catedra:_tomb' && k!=='catedra:_dirty' && k!=='catedra:_lastSrv').forEach(k=>localStorage.removeItem(k)); localStorage.removeItem('ct_timer'); localStorage.removeItem('ct_prova'); }catch(_){}
     this._fileCache={};
     this._toast('Todos os dados locais foram apagados');
-    setTimeout(()=>{ try{ location.reload(); }catch(_){ this.setState({ biblioteca:[], highlights:{}, flashcards:[], metas:[], eventos:[], edital:[], reviews:[], errors:[], sessions:[], readerOpen:null, accent:null, dir:'sutil', darkMode:false }); } }, 300); };
+    setTimeout(()=>{ try{ location.reload(); }catch(_){ this.setState({ flashcards:[], metas:[], eventos:[], edital:[], reviews:[], errors:[], sessions:[], readerOpen:null, accent:null, dir:'sutil', darkMode:false }); } }, 300); };
 
   // ===== login =====
   onLoginField = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(k==='email'?{loginEmail:v}:{loginPass:v}); };
@@ -12599,7 +12581,6 @@ class Component extends DCLogic {
   // ===== mais formas de calcular desempenho =====
   setPerfMode = (e)=> this.setState({perfMode:e.currentTarget.dataset.m});
 
-  // ===== biblioteca + leitor =====
   DISC_COLOR = {'Constitucional':'#2563eb','Administrativo':'#a855f7','Tributário':'#06b6d4','Civil':'#6366f1','Penal':'#dc2626','Processo Civil':'#84cc16'};
   /* ===== MARCAÇÃO DO ENUNCIADO DA REDAÇÃO =========================================
      Pedido dela: "sem opções para fazer marcações e anotações como no legis ou juris".
@@ -12721,346 +12702,20 @@ class Component extends DCLogic {
   // -- persistência local --
   // Marcação de texto e flashcards são do CADERNO: um cartão de "prescrição no CPC" não
   // tem o que fazer no baralho de quem estuda Enfermagem. As chaves reais são hl/fc.
-  _loadHL(){ try{ return JSON.parse(localStorage.getItem(this._chave('hl'))||'{}'); }catch(e){ return {}; } }
-  _saveHL(h){ try{ localStorage.setItem(this._chave('hl'), JSON.stringify(h)); }catch(e){} }
+  /* A paleta de marcação. Nasceu no leitor da biblioteca, mas quem a usa hoje é a
+     REDAÇÃO (marcar trechos do enunciado) — por isso sobrevive à remoção do leitor. */
+  HL_COLORS = [
+    {id:'amarelo', c:'#f5c451', label:'Amarelo'},
+    {id:'verde', c:'#7ed99a', label:'Verde'},
+    {id:'rosa', c:'#f5a3c0', label:'Rosa'},
+    {id:'azul', c:'#8fc4f0', label:'Azul'},
+    {id:'roxo', c:'#c4a3f0', label:'Roxo'},
+    {id:'laranja', c:'#f7b27a', label:'Laranja'},
+    {id:'ciano', c:'#8ee6d8', label:'Ciano'},
+  ];
   _loadFC(){ try{ return JSON.parse(localStorage.getItem(this._chave('fc'))||'[]'); }catch(e){ return []; } }
   _saveFC(f){ try{ localStorage.setItem(this._chave('fc'), JSON.stringify(f)); }catch(e){} }
-  _loadLib(){ try{ return JSON.parse(localStorage.getItem('catedra:lib')||'[]'); }catch(e){ return []; } }
-  _saveLib(lib){ try{ const slim=lib.filter(b=>b.user).map(b=>({...b, _bytes:undefined})); localStorage.setItem('catedra:lib', JSON.stringify(slim)); }catch(e){} }
-  _persistLib(){ this._saveLib(this.state.biblioteca); }
-  _b64ToBytes(b64){ const bin=atob(b64); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i); return u; }
-  _bytesToB64(bytes){ let bin=''; const ch=0x8000; for(let i=0;i<bytes.length;i+=ch){ bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+ch)); } return btoa(bin); }
-  _pdfBytes(item){ if(this._fileCache && this._fileCache[item.id]) return this._fileCache[item.id]; if(item.pdfB64) return this._b64ToBytes(item.pdfB64); return null; }
-  // Baixa o pdf.js na primeira vez que alguém precisa dele (importar edital, abrir
-  // um PDF da biblioteca) — o boot do app não carrega mais nada disso.
   _pdfLib(){ return window.ctPdfLib ? window.ctPdfLib() : Promise.reject(new Error('pdfjs unavailable')); }
-
-  onBibDraft = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({bibDraft:{...s.bibDraft,[k]:v}})); };
-  editBiblio = (e)=>{ const el=e.currentTarget, id=el.dataset.id, field=el.dataset.field, v=el.value; this.setState(s=>({biblioteca:s.biblioteca.map(b=> b.id===id?{...b,[field]:v}:b)}), ()=>this._persistLib()); };
-  setBibMode = (e)=> this.setState({bibMode:e.currentTarget.dataset.m});
-  addBiblio = ()=>{ const d=this.state.bibDraft; if(!d.titulo.trim()) return;
-    const content = (d.texto||'').split(/\n{2,}/).map(p=>p.trim()).filter(Boolean);
-    const rec={id:'b'+Date.now(), tipo:d.tipo, titulo:d.titulo.trim(), disc:d.disc, color:this.DISC_COLOR[d.disc]||'#0f7a57', kind:'text', content:content.length?content:[d.texto||'(material vazio — edite depois)'], user:true};
-    this.setState(s=>({biblioteca:[rec,...s.biblioteca], bibDraft:{...s.bibDraft, titulo:'', texto:''}, readerOpen:rec.id}), ()=>{ this._persistLib(); });
-    this.flashSync(); };
-  removeBiblio = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const hl={...s.highlights}; delete hl[id]; return {biblioteca:s.biblioteca.filter(b=>b.id!==id), highlights:hl}; }, ()=>{ this._persistLib(); this._saveHL(this.state.highlights); }); this.flashSync(); };
-  setBibFilter = (e)=> this.setState({bibFilter:e.currentTarget.dataset.f});
-
-  // -- upload / drag-drop --
-  bibDragOver = (e)=>{ e.preventDefault(); if(!this.state.bibDragOver) this.setState({bibDragOver:true}); };
-  bibDrop = (e)=>{ e.preventDefault(); this.setState({bibDragOver:false}); const files=e.dataTransfer&&e.dataTransfer.files; if(files&&files.length) this._ingestFiles(files); };
-  bibDragLeave = (e)=>{ this.setState({bibDragOver:false}); };
-  bibPickFile = (e)=>{ const files=e.currentTarget.files; if(files&&files.length) this._ingestFiles(files); e.currentTarget.value=''; };
-  _readFileBytes(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(new Uint8Array(fr.result)); fr.onerror=rej; fr.readAsArrayBuffer(file); }); }
-  _readFileText(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsText(file); }); }
-  async _pdfPageCount(bytes){ try{ const lib=await this._pdfLib(); const pdf=await lib.getDocument({data:bytes.slice(0)}).promise; const n=pdf.numPages; pdf.destroy&&pdf.destroy(); return n; }catch(e){ return null; } }
-  async _ingestFiles(fileList){
-    const files=[...fileList]; this.setState({bibBusy:true, bibBusyMsg:'Processando '+files.length+' arquivo(s)…'});
-    if(!this._fileCache) this._fileCache={};
-    const newItems=[];
-    for(const file of files){
-      const isPdf = /pdf$/i.test(file.type) || /\.pdf$/i.test(file.name);
-      const id='b'+Date.now()+Math.floor(Math.random()*999);
-      const titulo=file.name.replace(/\.(pdf|txt)$/i,'');
-      const disc=this.state.bibDraft.disc||'Constitucional';
-      if(isPdf){
-        try{
-          const bytes=await this._readFileBytes(file);
-          this._fileCache[id]=bytes;
-          const pages=await this._pdfPageCount(bytes);
-          let pdfB64=null; if(bytes.length < 3.4*1024*1024){ try{ pdfB64=this._bytesToB64(bytes); }catch(e){} }
-          newItems.push({id, tipo:'PDF', titulo, disc, color:this.DISC_COLOR[disc]||'#0f7a57', kind:'pdf', pages:pages||null, pdfB64, user:true});
-        }catch(e){ /* skip */ }
-      } else {
-        try{ const txt=await this._readFileText(file); const content=txt.split(/\n{2,}/).map(p=>p.replace(/\n/g,' ').trim()).filter(Boolean);
-          newItems.push({id, tipo:'Resumo', titulo, disc, color:this.DISC_COLOR[disc]||'#0f7a57', kind:'text', content:content.length?content:[txt], user:true});
-        }catch(e){}
-      }
-    }
-    if(newItems.length){ this.setState(s=>({biblioteca:[...newItems, ...s.biblioteca], bibBusy:false, bibBusyMsg:'', readerOpen: newItems.length===1?newItems[0].id:null}), ()=>{ this._persistLib(); }); this.flashSync(); }
-    else this.setState({bibBusy:false, bibBusyMsg:''});
-  }
-
-  // -- abrir / fechar leitor --
-  openReader = (e)=>{ const id=e.currentTarget.dataset.id; this.setState({readerOpen:id}); };
-  closeReader = ()=>{ this._teardownReader(); this.setState({readerOpen:null}); };
-  readerRef = (el)=>{ this._readerEl = el || null; };
-
-  // -- ciclo de montagem do leitor --
-  _readerSync(){
-    const open=this.state.readerOpen;
-    if(open && this._readerEl){
-      if(this._rdMountedId!==open){ this._mountReader(open); }
-      else { this._rdRefresh(); }
-    } else if(!open && this._rdMountedId){ this._teardownReader(); }
-  }
-  _teardownReader(){ this._rdMountedId=null; this._rd=null; if(this._readerEl){ try{ this._readerEl.innerHTML=''; }catch(e){} } document.removeEventListener('mouseup', this._rdOnMouseUp, true); }
-
-  _mountReader(id){
-    const item=this.state.biblioteca.find(b=>b.id===id); const host=this._readerEl; if(!item||!host) return;
-    this._rdMountedId=id;
-    this._rd={ item, scale:1.25, color:(this.HL_COLORS[0].c), colorId:this.HL_COLORS[0].id, underline:false, strike:false, night:!!this.state.darkMode, filterColor:null, pages:[], pdf:null, sidebar:true, toc:[] };
-    host.innerHTML='';
-    const ink='var(--ink)', sf='var(--surface)', sf2='var(--surface2)', bd='var(--border)', t2='var(--text2)', t3='var(--text3)';
-    // backdrop
-    const back=document.createElement('div'); back.style.cssText='position:absolute;inset:0;background:rgba(15,30,25,.62);backdrop-filter:blur(2px);'; back.onclick=()=>this.closeReader(); host.appendChild(back);
-    // shell
-    const shell=document.createElement('div'); shell.className='rd-shell'; shell.style.cssText='position:absolute;inset:clamp(10px,2.2vw,30px);background:'+sf+';border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden;'; host.appendChild(shell);
-    // top bar
-    const top=document.createElement('div'); top.className='rd-toolbar'; top.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid '+bd+';flex-wrap:wrap;flex:none;';
-    const titleWrap=document.createElement('div'); titleWrap.style.cssText='flex:1;min-width:120px;';
-    titleWrap.innerHTML='<div style="display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:3px;background:'+(item.color||'#0f7a57')+';flex:none;"></span><span style="font-family:var(--display);font-weight:600;font-size:var(--fs-lg);color:'+ink+';line-height:1.2;">'+this._esc(item.titulo)+'</span></div><div style="font-size:var(--fs-xs);color:'+t3+';margin-top:3px;">'+this._esc(item.tipo)+' · '+this._esc(item.disc)+(item.kind==='pdf'?' · PDF':'')+'</div>';
-    top.appendChild(titleWrap);
-    // marker palette in toolbar
-    const palette=document.createElement('div'); palette.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 9px;background:'+sf2+';border:1px solid '+bd+';border-radius:var(--r-md);';
-    const pLabel=document.createElement('span'); pLabel.textContent='Marcador'; pLabel.style.cssText='font-size:var(--fs-xs);color:'+t3+';font-weight:600;margin-right:2px;'; palette.appendChild(pLabel);
-    this._rd.swatches=[];
-    // .ct-miudo: no toque a regra global estica todo botão de <main> a 44px, menos este — o desenho fica 20px e o ::after de .ct-alvo dá o alvo
-    this.HL_COLORS.forEach(col=>{ const s=document.createElement('button'); s.className='ct-alvo ct-miudo'; s.title=col.label; s.style.cssText='width:20px;height:20px;border-radius:var(--r-sm);cursor:pointer;background:'+col.c+';border:2px solid '+(col.id===this._rd.colorId?'var(--ink)':'transparent')+';'; s.onclick=()=>{ this._rd.color=col.c; this._rd.colorId=col.id; this._rd.underline=false; this._rd.strike=false; this._rdSyncTools(); }; palette.appendChild(s); this._rd.swatches.push({el:s,id:col.id}); });
-    const uBtn=document.createElement('button'); uBtn.className='ct-alvo ct-miudo'; uBtn.title='Sublinhar'; uBtn.innerHTML='<span style="text-decoration:underline;text-decoration-thickness:2px;font-weight:700;">U</span>'; uBtn.style.cssText='width:24px;height:22px;border-radius:var(--r-sm);cursor:pointer;border:1px solid '+bd+';background:'+sf+';color:'+ink+';font-size:var(--fs-sm);margin-left:3px;'; uBtn.onclick=()=>{ this._rd.underline=!this._rd.underline; if(this._rd.underline) this._rd.strike=false; this._rdSyncTools(); }; palette.appendChild(uBtn); this._rd.uBtn=uBtn;
-    const stBtn=document.createElement('button'); stBtn.className='ct-alvo ct-miudo'; stBtn.title='Tachar'; stBtn.innerHTML='<span style="text-decoration:line-through;text-decoration-thickness:2px;font-weight:700;">S</span>'; stBtn.style.cssText='width:24px;height:22px;border-radius:var(--r-sm);cursor:pointer;border:1px solid '+bd+';background:'+sf+';color:'+ink+';font-size:var(--fs-sm);'; stBtn.onclick=()=>{ this._rd.strike=!this._rd.strike; if(this._rd.strike) this._rd.underline=false; this._rdSyncTools(); }; palette.appendChild(stBtn); this._rd.stBtn=stBtn;
-    top.appendChild(palette);
-    // zoom (pdf only) + page nav handled inline
-    if(item.kind==='pdf'){ const zoom=document.createElement('div'); zoom.style.cssText='display:flex;align-items:center;gap:2px;background:'+sf2+';border:1px solid '+bd+';border-radius:var(--r-md);padding:3px;';
-      const mk=(txt,fn)=>{ const b=document.createElement('button'); b.textContent=txt; b.style.cssText='width:28px;height:26px;border:none;background:transparent;cursor:pointer;color:'+t2+';font-size:var(--fs-lg);border-radius:var(--r-sm);'; b.onclick=fn; return b; };
-      zoom.appendChild(mk('−',()=>this._rdZoom(-0.2))); const zl=document.createElement('span'); zl.style.cssText='font-size:var(--fs-xs);color:'+t3+';min-width:36px;text-align:center;font-family:var(--mono);'; this._rd.zoomLabel=zl; zoom.appendChild(zl); zoom.appendChild(mk('+',()=>this._rdZoom(0.2))); top.appendChild(zoom);
-    }
-    const _icb=(title,svg,fn)=>{ const b=document.createElement('button'); b.title=title; b.innerHTML=svg; b.style.cssText='width:36px;height:36px;border-radius:var(--r-md);border:1px solid '+bd+';background:'+sf2+';cursor:pointer;color:'+t2+';display:flex;align-items:center;justify-content:center;flex:none;'; b.onclick=fn; return b; };
-    const tocBtn=_icb('Sumário', this._svg('M4 6h16M4 12h16M4 18h10','none'), ()=>this._rdToggleToc()); top.appendChild(tocBtn); this._rd.tocBtn=tocBtn;
-    const nightBtn=_icb('Modo noturno', this._svg('M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z','none'), ()=>this._rdToggleNight()); top.appendChild(nightBtn); this._rd.nightBtn=nightBtn;
-    const sideBtn=document.createElement('button'); sideBtn.title='Painel de destaques'; sideBtn.innerHTML=this._svg('M4 4h16v16H4zM14 4v16','none'); sideBtn.style.cssText='width:36px;height:36px;border-radius:var(--r-md);border:1px solid '+bd+';background:'+sf2+';cursor:pointer;color:'+t2+';display:flex;align-items:center;justify-content:center;'; sideBtn.onclick=()=>{ this._rd.sidebar=!this._rd.sidebar; this._rd.sideEl.style.display=this._rd.sidebar?'flex':'none'; }; top.appendChild(sideBtn);
-    const expBtn=document.createElement('button'); expBtn.title='Exportar destaques'; expBtn.innerHTML=this._svg('M12 4v12M12 16l-4-4M12 16l4-4 M4 20h16','none'); expBtn.style.cssText='width:36px;height:36px;border-radius:var(--r-md);border:1px solid '+bd+';background:'+sf2+';cursor:pointer;color:'+t2+';display:flex;align-items:center;justify-content:center;'; expBtn.onclick=()=>this._exportHighlights(item); top.appendChild(expBtn);
-    const closeBtn=document.createElement('button'); closeBtn.innerHTML='✕'; closeBtn.style.cssText='width:36px;height:36px;border-radius:var(--r-md);border:1px solid '+bd+';background:'+sf2+';cursor:pointer;color:'+t2+';font-size:var(--fs-lg);'; closeBtn.onclick=()=>this.closeReader(); top.appendChild(closeBtn);
-    shell.appendChild(top);
-    // body: scroll area + sidebar
-    const body=document.createElement('div'); body.style.cssText='flex:1;min-height:0;display:flex;'; shell.appendChild(body);
-    const scroll=document.createElement('div'); scroll.className='rd-scroll'; scroll.style.cssText='flex:1;min-width:0;overflow:auto;background:'+sf2+';padding:26px clamp(12px,3vw,40px) 60px;'; body.appendChild(scroll); this._rd.scroll=scroll;
-    const pagesWrap=document.createElement('div'); pagesWrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:18px;'; scroll.appendChild(pagesWrap); this._rd.pagesWrap=pagesWrap;
-    // sidebar
-    const side=document.createElement('div'); side.style.cssText='width:300px;flex:none;border-left:1px solid '+bd+';background:'+sf+';display:flex;flex-direction:column;'; body.appendChild(side); this._rd.sideEl=side;
-    if(this.state.isMobile){ side.style.display='none'; this._rd.sidebar=false; }
-    const sHead=document.createElement('div'); sHead.style.cssText='padding:14px 16px 10px;border-bottom:1px solid '+bd+';'; sHead.innerHTML='<div style="font-weight:600;color:'+ink+';font-size:var(--fs-md);">Destaques & notas</div><div style="font-size:var(--fs-xs);color:'+t3+';margin-top:2px;" id="rd-subc">—</div>'; side.appendChild(sHead); this._rd.subc=sHead.querySelector('#rd-subc');
-    // filtro por cor
-    const filterRow=document.createElement('div'); filterRow.style.cssText='display:flex;align-items:center;gap:5px;margin-top:10px;flex-wrap:wrap;'; sHead.appendChild(filterRow); this._rd.filterRow=filterRow;
-    const allChip=document.createElement('button'); allChip.textContent='Todas'; allChip.style.cssText='font-size:var(--fs-2xs);font-weight:600;border-radius:99px;padding:4px 10px;cursor:pointer;font-family:inherit;border:1px solid '+bd+';'; allChip.onclick=()=>{ this._rd.filterColor=null; this._rdSidebar(); this._rdRepaint(); }; filterRow.appendChild(allChip); this._rd.allChip=allChip;
-    this._rd.filterChips=[]; this.HL_COLORS.forEach(col=>{ const c=document.createElement('button'); c.title='Filtrar '+col.label; c.style.cssText='width:18px;height:18px;border-radius:5px;cursor:pointer;background:'+col.c+';border:2px solid transparent;'; c.onclick=()=>{ this._rd.filterColor = this._rd.filterColor===col.id?null:col.id; this._rdSidebar(); this._rdRepaint(); }; filterRow.appendChild(c); this._rd.filterChips.push({el:c,id:col.id}); });
-    const sList=document.createElement('div'); sList.className='rd-scroll'; sList.style.cssText='flex:1;overflow:auto;padding:10px;'; side.appendChild(sList); this._rd.sList=sList;
-    const sFoot=document.createElement('div'); sFoot.style.cssText='padding:12px 14px;border-top:1px solid '+bd+';font-size:var(--fs-xs);color:'+t3+';line-height:1.5;'; sFoot.innerHTML='Selecione um trecho para marcar. Toque num destaque para anotar ou enviar ao <b style="color:'+t2+'">Anki</b> ou às <b style="color:'+t2+'">Revisões</b>.'; side.appendChild(sFoot);
-    // selection mini toolbar (floating)
-    const mini=document.createElement('div'); mini.style.cssText='position:absolute;z-index:20;display:none;gap:6px;align-items:center;background:#1f2a26;padding:7px 9px;border-radius:var(--r-md);box-shadow:0 8px 24px rgba(0,0,0,.4);'; host.appendChild(mini); this._rd.mini=mini;
-    this.HL_COLORS.forEach(col=>{ const s=document.createElement('button'); s.className='ct-alvo ct-miudo'; s.title=col.label; s.style.cssText='width:22px;height:22px;border-radius:var(--r-sm);cursor:pointer;background:'+col.c+';border:none;'; s.onmousedown=(ev)=>{ ev.preventDefault(); }; s.onclick=()=>this._applySelection(col.c, col.id, {}); mini.appendChild(s); });
-    const um=document.createElement('button'); um.className='ct-alvo ct-miudo'; um.innerHTML='<span style="text-decoration:underline;text-decoration-thickness:2px;">U</span>'; um.title='Sublinhar'; um.style.cssText='width:26px;height:22px;border-radius:var(--r-sm);cursor:pointer;background:rgba(255,255,255,.15);border:none;color:#fff;font-weight:700;font-size:var(--fs-sm);'; um.onmousedown=(ev)=>ev.preventDefault(); um.onclick=()=>this._applySelection(this._rd.color, this._rd.colorId, {underline:true}); mini.appendChild(um);
-    const sm=document.createElement('button'); sm.className='ct-alvo ct-miudo'; sm.innerHTML='<span style="text-decoration:line-through;text-decoration-thickness:2px;">S</span>'; sm.title='Tachar'; sm.style.cssText='width:26px;height:22px;border-radius:var(--r-sm);cursor:pointer;background:rgba(255,255,255,.15);border:none;color:#fff;font-weight:700;font-size:var(--fs-sm);'; sm.onmousedown=(ev)=>ev.preventDefault(); sm.onclick=()=>this._applySelection(this._rd.color, this._rd.colorId, {strike:true}); mini.appendChild(sm);
-
-    // drawer de sumário
-    const toc=document.createElement('div'); toc.style.cssText='position:absolute;left:0;top:0;bottom:0;width:280px;max-width:80vw;background:'+sf+';border-right:1px solid '+bd+';box-shadow:8px 0 30px rgba(0,0,0,.18);display:none;flex-direction:column;z-index:15;'; shell.appendChild(toc); this._rd.tocEl=toc;
-    const tocHead=document.createElement('div'); tocHead.style.cssText='padding:14px 16px;border-bottom:1px solid '+bd+';display:flex;justify-content:space-between;align-items:center;'; tocHead.innerHTML='<span style="font-weight:600;color:'+ink+';font-size:var(--fs-md);">Sumário</span>'; const tocClose=document.createElement('button'); tocClose.innerHTML='✕'; tocClose.style.cssText='width:28px;height:28px;border-radius:var(--r-sm);border:1px solid '+bd+';background:'+sf2+';cursor:pointer;color:'+t2+';'; tocClose.onclick=()=>this._rdToggleToc(); tocHead.appendChild(tocClose); toc.appendChild(tocHead);
-    const tocList=document.createElement('div'); tocList.className='rd-scroll'; tocList.style.cssText='flex:1;overflow:auto;padding:8px;'; toc.appendChild(tocList); this._rd.tocList=tocList;
-
-    // render content
-    if(item.kind==='pdf'){ this._renderPdfPages(item); } else { this._renderTextPages(item); }
-    this._rdSyncTools(); this._rdRefresh(); this._buildToc(item);
-    // selection listener
-    this._rdOnMouseUp=(ev)=>this._onReaderMouseUp(ev);
-    document.addEventListener('mouseup', this._rdOnMouseUp, true);
-  }
-  _esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-  _svg(d,fill){ return '<svg viewBox="0 0 24 24" width="18" height="18" fill="'+(fill||'none')+'" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"></path></svg>'; }
-  _rdSyncTools(){ const rd=this._rd; if(!rd) return; const plain=!rd.underline&&!rd.strike; (rd.swatches||[]).forEach(s=>{ s.el.style.border='2px solid '+((s.id===rd.colorId&&plain)?'var(--ink)':'transparent'); });
-    if(rd.uBtn){ rd.uBtn.style.background=rd.underline?'var(--ink)':'var(--surface)'; rd.uBtn.style.color=rd.underline?'#fff':'var(--ink)'; }
-    if(rd.stBtn){ rd.stBtn.style.background=rd.strike?'var(--ink)':'var(--surface)'; rd.stBtn.style.color=rd.strike?'#fff':'var(--ink)'; }
-    if(rd.allChip){ const on=!rd.filterColor; rd.allChip.style.background=on?'var(--accent)':'transparent'; rd.allChip.style.color=on?'var(--onAccent)':'var(--text2)'; rd.allChip.style.borderColor=on?'transparent':'var(--border)'; }
-    (rd.filterChips||[]).forEach(c=>{ c.el.style.border='2px solid '+(rd.filterColor===c.id?'var(--ink)':'transparent'); });
-    if(rd.nightBtn){ rd.nightBtn.style.background=rd.night?'var(--ink)':'var(--surface2)'; rd.nightBtn.style.color=rd.night?'#fff':'var(--text2)'; }
-  }
-  _rdToggleNight(){ const rd=this._rd; if(!rd) return; rd.night=!rd.night; this._rdReapplyNight(); this._rdSyncTools(); }
-  _rdReapplyNight(){ const rd=this._rd; if(!rd) return;
-    if(rd.scroll) rd.scroll.style.background = rd.night ? '#0e1512' : 'var(--surface2)';
-    if(rd.item.kind==='pdf'){ rd.pages.forEach(pg=>{ const cv=pg.wrap.querySelector('canvas'); if(cv) cv.style.filter = rd.night?'invert(0.92) hue-rotate(180deg)':''; }); }
-    else { rd.pages.forEach(pg=>{ const p=pg.wrap; if(rd.night){ p.style.background='#15201c'; p.style.color='#e7ecea'; p.querySelectorAll('h3').forEach(h=>h.style.color='#9be8c0'); } else { p.style.background='#fff'; p.style.color='#1c2530'; p.querySelectorAll('h3').forEach(h=>h.style.color='#0f3d2e'); } }); }
-  }
-  _rdToggleToc(){ const rd=this._rd; if(!rd||!rd.tocEl) return; const open=rd.tocEl.style.display==='flex'; rd.tocEl.style.display=open?'none':'flex'; }
-  _buildToc(item){ const rd=this._rd; if(!rd||!rd.tocList) return; rd.tocList.innerHTML=''; rd.toc=[];
-    const add=(label,page,level)=>{ const b=document.createElement('button'); b.textContent=label; b.style.cssText='display:block;width:100%;text-align:left;cursor:pointer;font-family:inherit;background:transparent;border:none;border-radius:var(--r-sm);padding:8px 10px 8px '+(10+level*14)+'px;font-size:var(--fs-sm);color:var(--text2);line-height:1.4;'; b.onmouseenter=()=>b.style.background='var(--surface2)'; b.onmouseleave=()=>b.style.background='transparent'; b.onclick=()=>{ this._rdJumpPage(page); this._rdToggleToc(); }; rd.tocList.appendChild(b); rd.toc.push({label,page}); };
-    if(item.kind==='pdf' && rd.pdf && rd.pdf.getOutline){
-      rd.pdf.getOutline().then(async(out)=>{ if(out&&out.length){ for(const o of out){ let pg=1; try{ if(o.dest){ const d=typeof o.dest==='string'?await rd.pdf.getDestination(o.dest):o.dest; const ref=d&&d[0]; if(ref){ pg=(await rd.pdf.getPageIndex(ref))+1; } } }catch(e){} add(o.title||'(sem título)', pg, 0); if(o.items){ for(const c of o.items){ let cpg=pg; try{ if(c.dest){ const d=typeof c.dest==='string'?await rd.pdf.getDestination(c.dest):c.dest; const ref=d&&d[0]; if(ref){ cpg=(await rd.pdf.getPageIndex(ref))+1; } } }catch(e){} add(c.title||'', cpg, 1); } } } }
-        else { for(let p=1;p<=(rd.pdf.numPages||1);p++) add('Página '+p, p, 0); } }).catch(()=>{ for(let p=1;p<=(rd.pdf&&rd.pdf.numPages||1);p++) add('Página '+p, p, 0); });
-    } else if(item.content){ item.content.forEach((p,i)=>{ const isH=/^(art\.|título|capítulo|seção|sv\s)/i.test(p)&&p.length<90; if(isH) add(p, i+1, 0); }); if(!rd.toc.length){ item.content.forEach((p,i)=>{ if(i%3===0) add(p.slice(0,46)+'…', i+1, 0); }); } }
-    if(!rd.tocList.children.length){ rd.tocList.innerHTML='<div style="padding:18px;text-align:center;color:var(--text3);font-size:var(--fs-sm);">Sem sumário disponível</div>'; }
-  }
-  _rdJumpPage(page){ const rd=this._rd; if(!rd) return; const pg=rd.pages.find(p=>p.page===page) || rd.pages[Math.min(page-1, rd.pages.length-1)]; if(pg && rd.scroll){ rd.scroll.scrollTo({top:Math.max(0, pg.wrap.offsetTop-20), behavior:this._rolagem()}); } }
-  _rdZoom(delta){ const rd=this._rd; if(!rd) return; rd.scale=Math.max(0.7, Math.min(2.4, rd.scale+delta)); if(rd.zoomLabel) rd.zoomLabel.textContent=Math.round(rd.scale*100)+'%'; if(rd.item.kind==='pdf') this._renderPdfPages(rd.item); }
-
-  _renderTextPages(item){
-    const rd=this._rd; const W=Math.min(760, (this._rd.scroll.clientWidth||760)-4);
-    rd.pagesWrap.innerHTML=''; rd.pages=[];
-    const paper=document.createElement('div'); paper.className='rd-textPaper'; paper.style.cssText='position:relative;width:'+W+'px;max-width:100%;background:#fff;color:#1c2530;border:1px solid var(--border);border-radius:var(--r-sm);box-shadow:0 6px 24px rgba(0,0,0,.10);padding:54px 56px;font-size:var(--fs-lg);line-height:1.72;font-family:var(--display);';
-    const tx=document.createElement('div'); tx.style.cssText='position:relative;z-index:1;';
-    (item.content||[]).forEach(p=>{ const isH=/^(art\.|título|capítulo|seção|sv\s)/i.test(p)&&p.length<90; const el=document.createElement(isH?'h3':'p'); el.textContent=p; if(isH){ el.style.cssText='font-weight:700;font-size:var(--fs-xl);color:#0f3d2e;'; } tx.appendChild(el); });
-    const hl=document.createElement('div'); hl.style.cssText='position:absolute;inset:0;z-index:3;pointer-events:none;';
-    paper.appendChild(tx); paper.appendChild(hl);
-    rd.pagesWrap.appendChild(paper);
-    rd.pages.push({wrap:paper, hlLayer:hl, page:1});
-    this._rdRepaint(); this._rdReapplyNight();
-  }
-
-  _buildTextLayer(tl, tc, viewport){
-    try{
-      const U=window.pdfjsLib.Util;
-      (tc.items||[]).forEach(it=>{ if(!it.str) return; const tx=U.transform(viewport.transform, it.transform); const fs=Math.hypot(tx[2],tx[3]); if(!fs) return;
-        const span=document.createElement('span'); span.textContent=it.str;
-        const angle=Math.atan2(tx[1],tx[0]);
-        span.style.left=tx[4]+'px'; span.style.top=(tx[5]-fs)+'px'; span.style.fontSize=fs+'px'; span.style.fontFamily='sans-serif';
-        tl.appendChild(span);
-        const rot=angle?'rotate('+angle+'rad)':'';
-        if(it.width){ const target=it.width*viewport.scale; const actual=span.getBoundingClientRect().width; if(actual>0){ span.style.transform=(rot?rot+' ':'')+'scaleX('+(target/actual)+')'; } else if(rot){ span.style.transform=rot; } }
-        else if(rot){ span.style.transform=rot; }
-      });
-    }catch(e){}
-  }
-  async _renderPdfPages(item){
-    const rd=this._rd; const bytes=this._pdfBytes(item);
-    rd.pagesWrap.innerHTML=''; rd.pages=[];
-    if(!bytes){ const msg=document.createElement('div'); msg.style.cssText='background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:34px;text-align:center;max-width:520px;'; msg.innerHTML='<div style="font-size:30px;">📄</div><div style="font-weight:600;color:var(--ink);margin-top:8px;">Arquivo não disponível nesta sessão</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:5px;line-height:1.5;">Este PDF era grande demais para salvar no aparelho. Reenvie o arquivo na biblioteca para lê-lo de novo — suas marcações foram preservadas.</div>'; rd.pagesWrap.appendChild(msg); return; }
-    if(this._rd&&this._rd.zoomLabel) this._rd.zoomLabel.textContent=Math.round(rd.scale*100)+'%';
-    const token = (rd._rtok = (rd._rtok||0)+1);
-    // 1ª abertura de PDF na sessão: a lib vem agora, com aviso na tela.
-    let lib=window.pdfjsLib;
-    if(!lib){
-      rd.pagesWrap.innerHTML='<div style="color:var(--text3);font-size:var(--fs-base);padding:40px;">Carregando o leitor de PDF…</div>';
-      try{ lib=await this._pdfLib(); }catch(e){
-        if(rd._rtok!==token) return;
-        rd.pagesWrap.innerHTML='<div style="color:var(--text3);font-size:var(--fs-base);padding:40px;">Não deu para carregar o leitor de PDF. Confira a conexão e tente de novo.</div>';
-        return;
-      }
-      if(rd._rtok!==token) return;
-      rd.pagesWrap.innerHTML='';
-    } else { await this._pdfLib(); }
-    try{
-      const pdf=await lib.getDocument({data:bytes.slice(0)}).promise; if(rd._rtok!==token) return; rd.pdf=pdf;
-      for(let p=1;p<=pdf.numPages;p++){
-        const page=await pdf.getPage(p); if(rd._rtok!==token) return; const viewport=page.getViewport({scale:rd.scale});
-        const wrap=document.createElement('div'); wrap.className='rd-page'; wrap.style.cssText='position:relative;width:'+viewport.width+'px;height:'+viewport.height+'px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.12);border-radius:3px;';
-        const canvas=document.createElement('canvas'); canvas.width=viewport.width; canvas.height=viewport.height; canvas.style.cssText='display:block;width:100%;height:100%;'; wrap.appendChild(canvas);
-        const tl=document.createElement('div'); tl.className='rd-textLayer'; tl.style.setProperty('--scale-factor', rd.scale); tl.style.width=viewport.width+'px'; tl.style.height=viewport.height+'px'; wrap.appendChild(tl);
-        const hl=document.createElement('div'); hl.style.cssText='position:absolute;inset:0;z-index:3;pointer-events:none;'; wrap.appendChild(hl);
-        rd.pagesWrap.appendChild(wrap);
-        rd.pages.push({wrap, hlLayer:hl, page:p});
-        await page.render({canvasContext:canvas.getContext('2d'), viewport}).promise; if(rd._rtok!==token) return;
-        page.getTextContent().then(tc=>{ if(rd._rtok!==token) return; this._buildTextLayer(tl, tc, viewport); });
-      }
-      this._rdRepaint(); this._rdReapplyNight();
-    }catch(e){ if(rd._rtok===token){ rd.pagesWrap.innerHTML='<div style="color:var(--danger);font-size:var(--fs-base);padding:30px;">Não foi possível abrir este PDF.</div>'; } }
-  }
-
-  _onReaderMouseUp(ev){
-    const rd=this._rd; if(!rd) return; const mini=rd.mini;
-    const sel=window.getSelection(); if(!sel||sel.isCollapsed){ if(mini) mini.style.display='none'; return; }
-    const text=sel.toString().trim(); if(!text){ if(mini) mini.style.display='none'; return; }
-    // must be inside a page
-    const anchor=sel.anchorNode; if(!anchor || !rd.pagesWrap.contains(anchor.nodeType===1?anchor:anchor.parentNode)){ return; }
-    rd._pendingSel=this._captureSelectionRects();
-    if(!rd._pendingSel || !rd._pendingSel.rects.length){ if(mini) mini.style.display='none'; return; }
-    // position mini toolbar
-    try{ const r=sel.getRangeAt(0).getBoundingClientRect(); const hostR=this._readerEl.getBoundingClientRect(); mini.style.display='flex'; let left=r.left - hostR.left + r.width/2 - 90; let topp=r.top - hostR.top - 46; if(topp<6) topp=r.bottom-hostR.top+8; left=Math.max(8, Math.min(left, hostR.width-200)); mini.style.left=left+'px'; mini.style.top=topp+'px'; }catch(e){}
-  }
-  _captureSelectionRects(){
-    const rd=this._rd; const sel=window.getSelection(); if(!sel||!sel.rangeCount) return null; const range=sel.getRangeAt(0);
-    const clientRects=[...range.getClientRects()].filter(r=>r.width>1&&r.height>1);
-    const out=[]; const text=sel.toString().trim();
-    clientRects.forEach(cr=>{ const cx=cr.left+cr.width/2, cy=cr.top+cr.height/2;
-      for(const pg of rd.pages){ const wr=pg.wrap.getBoundingClientRect(); if(cx>=wr.left-1&&cx<=wr.right+1&&cy>=wr.top-1&&cy<=wr.bottom+1){ out.push({page:pg.page, x:(cr.left-wr.left)/wr.width, y:(cr.top-wr.top)/wr.height, w:cr.width/wr.width, h:cr.height/wr.height}); break; } } });
-    return {rects:out, text};
-  }
-  _applySelection(color, colorId, opts){
-    opts = opts||{}; const rd=this._rd; const cap=rd._pendingSel; if(!cap||!cap.rects.length) return;
-    const hl={id:'h'+Date.now()+Math.floor(Math.random()*99), color, colorId, underline:!!opts.underline, strike:!!opts.strike, text:cap.text, rects:cap.rects, note:'', ts:Date.now(), disc:rd.item.disc};
-    const itemId=rd.item.id;
-    this.setState(s=>{ const all={...s.highlights}; all[itemId]=[...(all[itemId]||[]), hl]; this._saveHL(all); return {highlights:all}; });
-    rd._pendingSel=null; if(rd.mini) rd.mini.style.display='none'; try{ window.getSelection().removeAllRanges(); }catch(e){}
-    this.flashSync();
-  }
-  _hlsFor(itemId){ return (this.state.highlights&&this.state.highlights[itemId])||[]; }
-  _rdRefresh(){ if(!this._rd) return; this._rdRepaint(); this._rdSidebar(); }
-  _rgba(hex,a){ const m=hex.replace('#',''); const r=parseInt(m.substr(0,2),16),g=parseInt(m.substr(2,2),16),b=parseInt(m.substr(4,2),16); return 'rgba('+r+','+g+','+b+','+a+')'; }
-  _rdRepaint(){ const rd=this._rd; if(!rd||!rd.pages.length) return; const hls=this._hlsFor(rd.item.id);
-    rd.pages.forEach(pg=>{ pg.hlLayer.innerHTML=''; });
-    const fc=rd.filterColor;
-    hls.forEach(h=>{ const dim = fc && h.colorId!==fc; h.rects.forEach(rc=>{ const pg=rd.pages.find(p=>p.page===rc.page); if(!pg) return; const wr=pg.wrap; const W=wr.clientWidth, H=wr.clientHeight; const d=document.createElement('div'); d.className='rd-hl'+((h.underline||h.strike)?' uline':'')+(h.note?' has-note':''); d.dataset.hid=h.id;
-      d.style.left=(rc.x*W)+'px'; d.style.width=(rc.w*W)+'px';
-      if(h.underline){ d.style.borderBottomColor=h.color; d.style.top=(rc.y*H+rc.h*H-2)+'px'; d.style.height='3px'; }
-      else if(h.strike){ d.style.borderBottomColor=h.color; d.style.top=(rc.y*H+rc.h*H*0.55)+'px'; d.style.height='3px'; }
-      else { d.style.top=(rc.y*H)+'px'; d.style.height=(rc.h*H)+'px'; d.style.background=this._rgba(h.color,0.5); }
-      if(dim) d.style.opacity='0.18';
-      d.onclick=(ev)=>{ ev.stopPropagation(); this._openHlPopover(h); }; pg.hlLayer.appendChild(d); }); });
-  }
-  _rdSidebar(){ const rd=this._rd; if(!rd||!rd.sList) return; const all=this._hlsFor(rd.item.id); const ink='var(--ink)',t2='var(--text2)',t3='var(--text3)',bd='var(--border)';
-    const hls = rd.filterColor ? all.filter(h=>h.colorId===rd.filterColor) : all;
-    this._rdSyncTools();
-    rd.subc.textContent = all.length? (all.length+' destaque'+(all.length>1?'s':'')+(rd.filterColor?' · '+hls.length+' filtrado(s)':' · '+all.filter(h=>h.note).length+' com nota')) : 'Nenhum destaque ainda';
-    rd.sList.innerHTML='';
-    if(!hls.length){ const e=document.createElement('div'); e.style.cssText='padding:30px 12px;text-align:center;color:'+t3+';font-size:var(--fs-sm);line-height:1.6;'; e.innerHTML='<div style="font-size:26px;">🖍️</div>Selecione qualquer trecho e escolha uma cor para começar a marcar.'; rd.sList.appendChild(e); return; }
-    [...hls].reverse().forEach(h=>{ const card=document.createElement('div'); card.style.cssText='border:1px solid '+bd+';border-radius:var(--r-md);padding:10px 11px;margin-bottom:9px;background:var(--surface);';
-      const quote=document.createElement('div'); quote.style.cssText='font-size:var(--fs-sm);color:'+ink+';line-height:1.5;border:1px solid color-mix(in oklab, '+h.color+' 30%, var(--border));border-radius:8px;padding:7px 10px;background-image:linear-gradient(90deg,color-mix(in oklab, '+h.color+' 14%, transparent),transparent 40%);cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;'; quote.textContent=h.text; quote.onclick=()=>this._jumpToHl(h); card.appendChild(quote);
-      if(h.note){ const n=document.createElement('div'); n.style.cssText='font-size:var(--fs-xs);color:'+t2+';margin-top:7px;background:var(--surface2);border-radius:var(--r-sm);padding:6px 8px;'; n.textContent='✎ '+h.note; card.appendChild(n); }
-      const row=document.createElement('div'); row.style.cssText='display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;';
-      const mk=(label,title,fn,bg,col)=>{ const b=document.createElement('button'); b.textContent=label; b.title=title||label; b.style.cssText='font-size:var(--fs-2xs);font-weight:600;border:1px solid '+bd+';background:'+(bg||'var(--surface2)')+';color:'+(col||t2)+';border-radius:var(--r-sm);padding:5px 8px;cursor:pointer;font-family:inherit;'; b.onclick=fn; return b; };
-      row.appendChild(mk('✎ Nota','Anotar',()=>this._openHlPopover(h)));
-      row.appendChild(mk('Anki','Criar flashcard',()=>this._routeHl(h,'anki'),'rgba(99,102,241,.12)','#5b53d6'));
-      row.appendChild(mk('Revisão','Agendar revisão',()=>this._routeHl(h,'revisao'),'rgba(15,157,107,.14)','#0b7a52'));
-      row.appendChild(mk('✕','Remover',()=>this._removeHl(h.id),'transparent','var(--danger)'));
-      card.appendChild(row); rd.sList.appendChild(card); });
-  }
-  _jumpToHl(h){ const rd=this._rd; if(!rd) return; const rc=h.rects[0]; const pg=rd.pages.find(p=>p.page===rc.page); if(!pg) return; const top=pg.wrap.offsetTop + rc.y*pg.wrap.clientHeight - 80; rd.scroll.scrollTo({top:Math.max(0,top), behavior:this._rolagem()});
-    setTimeout(()=>{ const el=pg.hlLayer.querySelector('[data-hid="'+h.id+'"]'); if(el){ el.classList.remove('rd-jump'); void el.offsetWidth; el.classList.add('rd-jump'); } }, 300); }
-  _removeHl(id){ const itemId=this._rd.item.id; this.setState(s=>{ const all={...s.highlights}; all[itemId]=(all[itemId]||[]).filter(h=>h.id!==id); this._saveHL(all); return {highlights:all}; }); if(this._rd._pop) this._closeHlPopover(); this.flashSync(); }
-  _updateHl(id, patch){ const itemId=this._rd.item.id; this.setState(s=>{ const all={...s.highlights}; all[itemId]=(all[itemId]||[]).map(h=>h.id===id?{...h,...patch,up:Date.now()}:h); this._saveHL(all); return {highlights:all}; }); this.flashSync(); }
-
-  _openHlPopover(h){ this._closeHlPopover(); const rd=this._rd; const ink='var(--ink)',bd='var(--border)',t3='var(--text3)';
-    const ov=document.createElement('div'); ov.style.cssText='position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);'; ov.onclick=(e)=>{ if(e.target===ov) this._closeHlPopover(); };
-    const box=document.createElement('div'); box.style.cssText='background:var(--surface);border:1px solid '+bd+';border-radius:var(--radius);width:380px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.4);overflow:hidden;animation:ctpop .16s ease;';
-    box.innerHTML='<div style="padding:14px 16px;border-bottom:1px solid '+bd+';"><div style="font-size:var(--fs-xs);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:'+t3+';">Trecho destacado</div><div style="font-size:var(--fs-base);color:'+ink+';line-height:1.5;margin-top:6px;border:1px solid color-mix(in oklab, '+h.color+' 38%, var(--border));padding-left:10px;max-height:120px;overflow:auto;background-image:linear-gradient(90deg,color-mix(in oklab, '+h.color+' 19%, transparent),transparent 46%);">'+this._esc(h.text)+'</div></div>';
-    const bodyP=document.createElement('div'); bodyP.style.cssText='padding:14px 16px;'; box.appendChild(bodyP);
-    // colors
-    const crow=document.createElement('div'); crow.style.cssText='display:flex;gap:7px;align-items:center;margin-bottom:12px;'; const cl=document.createElement('span'); cl.textContent='Cor'; cl.style.cssText='font-size:var(--fs-xs);color:'+t3+';margin-right:4px;'; crow.appendChild(cl);
-    this.HL_COLORS.forEach(col=>{ const s=document.createElement('button'); s.className='ct-alvo ct-miudo'; s.style.cssText='width:22px;height:22px;border-radius:var(--r-sm);cursor:pointer;background:'+col.c+';border:2px solid '+(col.id===h.colorId?'var(--ink)':'transparent')+';'; s.onclick=()=>{ this._updateHl(h.id,{color:col.c,colorId:col.id}); h.color=col.c; h.colorId=col.id; [...crow.querySelectorAll('button')].forEach(b=>b.style.border='2px solid transparent'); s.style.border='2px solid var(--ink)'; }; crow.appendChild(s); });
-    const ub=document.createElement('button'); ub.className='ct-alvo ct-miudo'; ub.innerHTML='<span style="text-decoration:underline;">U</span>'; ub.title='Alternar sublinhado'; ub.style.cssText='width:26px;height:22px;border-radius:var(--r-sm);cursor:pointer;border:1px solid '+bd+';background:'+(h.underline?'var(--ink)':'var(--surface)')+';color:'+(h.underline?'#fff':'var(--ink)')+';margin-left:4px;font-weight:700;'; ub.onclick=()=>{ const nv=!h.underline; h.underline=nv; if(nv)h.strike=false; this._updateHl(h.id,{underline:nv, strike:false}); ub.style.background=nv?'var(--ink)':'var(--surface)'; ub.style.color=nv?'#fff':'var(--ink)'; sb.style.background=h.strike?'var(--ink)':'var(--surface)'; sb.style.color=h.strike?'#fff':'var(--ink)'; }; crow.appendChild(ub);
-    const sb=document.createElement('button'); sb.className='ct-alvo ct-miudo'; sb.innerHTML='<span style="text-decoration:line-through;">S</span>'; sb.title='Alternar tachado'; sb.style.cssText='width:26px;height:22px;border-radius:var(--r-sm);cursor:pointer;border:1px solid '+bd+';background:'+(h.strike?'var(--ink)':'var(--surface)')+';color:'+(h.strike?'#fff':'var(--ink)')+';font-weight:700;'; sb.onclick=()=>{ const nv=!h.strike; h.strike=nv; if(nv)h.underline=false; this._updateHl(h.id,{strike:nv, underline:false}); sb.style.background=nv?'var(--ink)':'var(--surface)'; sb.style.color=nv?'#fff':'var(--ink)'; ub.style.background=h.underline?'var(--ink)':'var(--surface)'; ub.style.color=h.underline?'#fff':'var(--ink)'; }; crow.appendChild(sb);
-    bodyP.appendChild(crow);
-    const ta=document.createElement('textarea'); ta.value=h.note||''; ta.placeholder='Escreva uma nota sobre este trecho…'; ta.style.cssText='width:100%;min-height:74px;resize:vertical;border:1px solid '+bd+';background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:'+ink+';font-family:inherit;line-height:1.5;'; bodyP.appendChild(ta);
-    const actions=document.createElement('div'); actions.style.cssText='display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;';
-    const mk=(label,fn,primary,col)=>{ const b=document.createElement('button'); b.textContent=label; b.style.cssText='font-size:var(--fs-sm);font-weight:600;border-radius:var(--r-md);padding:8px 12px;cursor:pointer;font-family:inherit;border:1px solid '+bd+';'+(primary?'background:var(--accent);color:var(--onAccent);border-color:transparent;':'background:var(--surface2);color:'+(col||'var(--text2)')+';'); b.onclick=fn; return b; };
-    actions.appendChild(mk('Salvar nota',()=>{ this._updateHl(h.id,{note:ta.value.trim()}); this._closeHlPopover(); }, true));
-    actions.appendChild(mk('→ Anki',()=>{ this._updateHl(h.id,{note:ta.value.trim()}); this._routeHl(h,'anki'); this._closeHlPopover(); }, false,'#5b53d6'));
-    actions.appendChild(mk('→ Revisão',()=>{ this._routeHl(h,'revisao'); this._closeHlPopover(); }, false,'#0b7a52'));
-    actions.appendChild(mk('Remover',()=>{ this._removeHl(h.id); }, false,'var(--danger)'));
-    bodyP.appendChild(actions);
-    box.appendChild(bodyP); ov.appendChild(box); this._readerEl.appendChild(ov); this._rd._pop=ov; ta.focus();
-  }
-  _closeHlPopover(){ if(this._rd&&this._rd._pop){ try{ this._rd._pop.remove(); }catch(e){} this._rd._pop=null; } }
-
-  // ===== cérebro conectado: roteia um destaque para outras áreas =====
-  _discFull(d){ const m={'Constitucional':'Direito Constitucional','Administrativo':'Direito Administrativo','Tributário':'Direito Tributário','Civil':'Direito Civil','Penal':'Direito Penal','Processo Civil':'Processo Civil'}; return m[d]||d; }
-  async _routeHl(h, dest){ const rd=this._rd; const item=rd.item; const discFull=this._discFull(item.disc); const colorMap={'Direito Constitucional':'#2563eb','Direito Administrativo':'#a855f7','Direito Tributário':'#06b6d4','Direito Civil':'#6366f1','Direito Penal':'#dc2626','Processo Civil':'#84cc16'};
-    if(dest==='anki'){
-      // gera uma pergunta/resposta de recall ativo via IA; se falhar, cai no card literal (trecho)
-      const literal={id:'fc'+Date.now(), front:(h.note||'Defina / explique o trecho marcado'), back:h.text, disc:discFull, source:item.titulo, ts:Date.now()};
-      let card=literal;
-      try{
-        if(window.claude && window.claude.complete){
-          this._toast('Gerando flashcard com IA…');
-          const prompt='Você cria flashcards de RECALL ATIVO para concursos públicos. A partir do TRECHO abaixo (e da nota, se houver), gere UMA pergunta clara que force lembrar o conceito e a resposta correta e concisa (não copie o trecho literalmente). Responda SOMENTE com JSON válido, sem texto fora dele: {"front":"pergunta","back":"resposta"}\nTRECHO:\n"""'+(h.text||'').slice(0,1500)+'"""'+(h.note?('\nNOTA: '+h.note.slice(0,300)):'');
-          const r=await window.claude.complete(prompt); const j=this._parseJSON(r);
-          if(j && j.front && j.back){ card={...literal, front:String(j.front).trim(), back:String(j.back).trim(), ia:true}; }
-        }
-      }catch(_){}
-      this.setState(s=>{ const fc=[card,...s.flashcards]; this._saveFC(fc); return {flashcards:fc, ankiImported:true}; });
-      this._toast(card.ia?'Flashcard gerado com IA ✦':'Flashcard criado (IA indisponível — usei o trecho)');
-      this.flashSync(); return;
-    }
-    else if(dest==='revisao'){ const rev={id:'r'+Date.now(), disc:discFull, topic:item.titulo, color:colorMap[discFull]||item.color||'#0f7a57', due:1, dueDate:this._addDiasStr(this._hoje(),1), intervalo:1, facilidade:2.5, repeticoes:0}; this.setState(s=>({reviews:[...s.reviews, rev]})); this._toast('Revisão agendada para amanhã ✦'); }
-    this.flashSync();
-  }
   _toast(msg){
     // P16: sem celebração na baixa estimulação (🎉 some inteiro) e sem emoji decorativo nos demais avisos
     if(this._baixa()){ if(/\u{1F389}/u.test(String(msg||''))) return; msg=this._emo(msg); }
@@ -13069,12 +12724,6 @@ class Component extends DCLogic {
     if(this.state.focusMode){ (this._toastFila||(this._toastFila=[])).push(msg); return; }
     try{ let t=this._toastEl; if(!t){ t=document.createElement('div'); t.setAttribute('role','status'); t.setAttribute('aria-live','polite'); t.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:9999;background:#1f2a26;color:#fff;padding:12px 20px;border-radius:var(--radius);font:600 13.5px/1.3 var(--display),sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.4);pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;'; document.body.appendChild(t); this._toastEl=t; } t.textContent=msg; try{ t.style.bottom=(window.innerWidth<900?'92px':'30px'); }catch(_){} t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; clearTimeout(this._toastT); this._toastT=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, 2100); }catch(e){} }
 
-  _exportHighlights(item){ const hls=this._hlsFor(item.id); if(!hls.length){ this._toast('Nenhum destaque para exportar'); return; }
-    let out='DESTAQUES — '+item.titulo+'\n'+item.tipo+' · '+item.disc+'\n'+new Date().toLocaleDateString('pt-BR')+'\n'+'='.repeat(40)+'\n\n';
-    hls.forEach((h,i)=>{ out+=(i+1)+'. '+(h.underline?'[sublinhado] ':'['+(h.colorId||'marca')+'] ')+'\n“'+h.text+'”\n'+(h.note?'   ✎ Nota: '+h.note+'\n':'')+'\n'; });
-    try{ const blob=new Blob([out],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='destaques-'+item.titulo.replace(/[^\w]+/g,'_').slice(0,40)+'.txt'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); this._toast('Destaques exportados'); }catch(e){ this._toast('Não foi possível exportar'); }
-  }
-  // ===== calendário: incluir / excluir / check =====
   onEventDraft = (e)=>{ const k=e.currentTarget.dataset.k; let v=e.currentTarget.value; if(k==='dia'&&v!==''){ const max=new Date(this.state.calYear, this.state.calMonth+1, 0).getDate(); v=Math.max(1,Math.min(max,parseInt(v,10)||1)); } this.setState(s=>({eventDraft:{...s.eventDraft,[k]:v}})); };
   addEvent = ()=>{ const d=this.state.eventDraft; if(!d.titulo.trim()) return;
     const colorMap={'Revisão':'#06b6d4','Simulado':'var(--accent)','Meta':'var(--warn)','Tarefa':'#6b4fbb','Prova':'var(--danger)'};
@@ -13218,12 +12867,6 @@ class Component extends DCLogic {
         acertos:String(S.acertos), erradas:String(S.erros), brancos:'0', foco:3,
         origem:'flashcards', atvKey:S.atvKey||'', concluiu:!!S.atvKey, _ext:true }}));
     this._toast(vistos+' cartão(ões) revisado(s) — confira e registre');
-  };
-  removeCard = (e)=>{ const id=e.currentTarget.dataset.id;
-    const alvo=(this.state.flashcards||[]).find(c=>c.id===id); if(!alvo) return;
-    this._excluirComDesfazer('Flashcard',
-      ()=>{ this.setState(s=>{ const fc=s.flashcards.filter(c=>c.id!==id); this._saveFC(fc); return {flashcards:fc}; }, ()=>this.flashSync()); },
-      ()=>{ this.setState(s=>{ const fc=[{...alvo, up:Date.now()}, ...s.flashcards]; this._saveFC(fc); return {flashcards:fc}; }, ()=>this.flashSync()); });
   };
 
   // ===== planejamento =====
@@ -13976,7 +13619,7 @@ class Component extends DCLogic {
       // o que tem gravação própria e não está em _autosaveKeys, mas é do caderno
       recarregado.sessions=this._load('sessions', []);
       recarregado.sessionsLixeira=this._load('sessionsLixeira', []);
-      try{ recarregado.highlights=this._loadHL(); recarregado.flashcards=this._loadFC(); }catch(_){}
+      try{ recarregado.flashcards=this._loadFC(); }catch(_){}
       this.setState(recarregado, ()=>{
         // o carimbo do autosave tem de refletir o caderno NOVO, senão a primeira
         // gravação acha que tudo mudou e escreve por cima
@@ -14304,15 +13947,17 @@ class Component extends DCLogic {
   // pronto — PCM cru não toca em <audio> nenhum.
   narrarMf = async ()=>{
     if(this.state.mfTtsBusy) return;
-    const bib=this.state.biblioteca||[]; const id=this.state.multiSrc||(bib[0]&&bib[0].id);
-    const it=bib.find(b=>b.id===id)||bib[0]; if(!it) return;
-    const gen=(this.state.mfGen||{})[(it.id||'')+':audio'];
+    // A narração só precisa do ID da fonte: o texto vem do mfGen, não do item da
+    // biblioteca (que deixou de existir). O portão de consentimento da IA, mais abaixo,
+    // é o que realmente importa aqui — /api/tts também só roda com autorização (P14).
+    const id=String(this.state.multiSrc||''); if(!id) return;
+    const gen=(this.state.mfGen||{})[id+':audio'];
     const texto=(gen&&(gen.preview||gen.texto))||'';
     if(!texto.trim()){ this._toast('Gere a narração com a IA primeiro'); return; }
 
     // Já baixamos este áudio nesta sessão? Toca de novo sem gastar chamada.
     const cache=this._mfAudio||(this._mfAudio={});
-    if(cache[it.id]){ this._tocarMf(cache[it.id]); return; }
+    if(cache[id]){ this._tocarMf(cache[id]); return; }
 
     this.setState({mfTtsBusy:true});
     try{ await this._iaAutorizar(); }catch(_){ this.setState({mfTtsBusy:false}); return; }   // P14: /api/tts também só com consentimento
@@ -14326,7 +13971,7 @@ class Component extends DCLogic {
       const j=await r.json().catch(()=>({}));
       if(!r.ok || !j.audio){ this.setState({mfTtsBusy:false}); this._toast(j.error||'Não deu para gerar a narração'); return; }
       const url='data:'+(j.mime||'audio/wav')+';base64,'+j.audio;
-      cache[it.id]=url; this.setState({mfTtsBusy:false}); this._tocarMf(url);
+      cache[id]=url; this.setState({mfTtsBusy:false}); this._tocarMf(url);
     }catch(_){ this.setState({mfTtsBusy:false}); this._toast('Não deu para gerar a narração'); }
   };
   _tocarMf(url){
@@ -14337,8 +13982,8 @@ class Component extends DCLogic {
     }catch(_){ this._toast('Este navegador não conseguiu tocar o áudio'); }
   }
   genMulti = async (e)=>{ const fmt=e.currentTarget.dataset.k; if(this.state.mfBusy){ this._toast('Aguarde — outra geração está em andamento'); return; }
-    const bib=this.state.biblioteca||[]; const id=this.state.multiSrc||(bib[0]&&bib[0].id); const it=bib.find(b=>b.id===id)||bib[0];
-    if(!it || !Array.isArray(it.content) || !it.content.length){ this._toast('Selecione um material da biblioteca com conteúdo'); return; }
+    const bib=[]; const id=this.state.multiSrc||(bib[0]&&bib[0].id); const it=bib.find(b=>b.id===id)||bib[0];
+    if(!it || !Array.isArray(it.content) || !it.content.length){ this._toast('Sem material de origem'); return; }
     const key=(it.id||'')+':'+fmt;
     this.setState({mfBusy:fmt});
     const base=it.content.join('\n\n').slice(0,6000);
@@ -14353,7 +13998,7 @@ class Component extends DCLogic {
     try{ if(window.claude && window.claude.complete){ const r=await window.claude.complete(prompt); data=this._parseJSON(r); } }catch(_){}
     if(!data){ this.setState({mfBusy:''}); this._toast('Não consegui gerar agora — conecte um modelo de IA e tente de novo'); return; }
     this.setState(s=>({mfGen:{...s.mfGen, [key]:data}, mfBusy:''})); this._toast('Conteúdo gerado pela IA ✦'); this.flashSync(); };
-  addMfCards = ()=>{ const bib=this.state.biblioteca||[]; const id=this.state.multiSrc||(bib[0]&&bib[0].id); const it=bib.find(b=>b.id===id)||bib[0]; if(!it) return;
+  addMfCards = ()=>{ const it=null; if(!it) return;   // sem biblioteca, o Multiformato não tem fonte
     const gen=(this.state.mfGen||{})[(it.id||'')+':cards']; const cards=(gen&&Array.isArray(gen.cards))?gen.cards:[];
     if(!cards.length){ this._toast('Gere os flashcards com a IA primeiro'); return; }
     const novos=cards.map((c,i)=>({id:'fc'+Date.now()+'_'+i, front:String(c.front||''), back:String(c.back||''), disc:it.disc, source:it.titulo, ts:Date.now()}));
@@ -14535,12 +14180,6 @@ class Component extends DCLogic {
     if(act==='foco'){ this.setState({paletteOpen:false, paletteQuery:''}); this.enterFocus(); return; }
     if(act==='registrar'){ this.setState({paletteOpen:false, paletteQuery:'', sessionModalOpen:true}); return; }
     if(act==='atalhos'){ this.abrirAtalhos(); return; }
-    const openId=e.currentTarget.dataset.open;
-    // Abrir um destaque pelo ⌘K: NÃO mudar de view. Antes ia para 'biblioteca', que
-    // deixou de existir no template — o leitor (overlay global) abria por cima, mas ao
-    // fechá-lo a pessoa ficava numa tela em BRANCO. Agora o leitor abre sobre a tela
-    // em que ela já estava, e fechar devolve para lá.
-    if(openId){ this.setState({paletteOpen:false, paletteQuery:'', menuOpen:false, readerOpen:openId}); return; }
     this.setState({paletteOpen:false, paletteQuery:''});
     this._irPara(v); };
 
@@ -15913,13 +15552,11 @@ class Component extends DCLogic {
     const _knob=(on)=>`width:18px;height:18px;border-radius:99px;background:#fff;display:block;transform:translateX(${on?'16px':'0'});transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.3);`;
     const _sdMin=parseInt(_sd.minutos,10)||0;
     const sessionSummary = `${_sdMin?_sdMin+' min':'sem tempo'}${_sdTotal?' · '+_sdTotal+'q · '+sdBrutoPct+'% · líq '+(sdLiquido>0?'+'+sdLiquido:sdLiquido):''}${_sd.agendarRevisao?' · +revisão':''}${_sd.contarMeta!==false?' · conta p/ meta':''}`;
-    const bibLinkOpts=(this.state.biblioteca||[]).map(b=>({id:b.id, titulo:b.titulo}));
-    const hasBibForLink=bibLinkOpts.length>0;
+
     // o título do material só aparece no select: o title o mostra inteiro no hover
-    const sessMatTitle=String(((_sd.materialId && bibLinkOpts.find(o=>o.id===_sd.materialId))||{}).titulo||'');
     // multiformato: conteúdo só existe quando a IA gera (state.mfGen), por fonte+formato
     const _mfFmt=this.state.multiFmt;
-    const _mfBib=(this.state.biblioteca||[]);
+    const _mfBib=[];
     const _mfId=this.state.multiSrc || (_mfBib[0]&&_mfBib[0].id) || '';
     const _mfItem=_mfBib.find(b=>b.id===_mfId)||_mfBib[0]||null;
     const mfFonte=_mfItem?_mfItem.titulo:'—';
@@ -16400,24 +16037,6 @@ class Component extends DCLogic {
     const habDoneN=String(habCards.filter(h=>h.done).length);
     const habTotalN=String(habCards.length);
 
-    // ===== Biblioteca =====
-    const bibFilters=['todos','Resumo','Lei seca','Jurisprudência','PDF'];
-    const bibTipoMeta={'Resumo':{ic:'📝',c:'#6b4fbb'},'Lei seca':{ic:'⚖️',c:'#b08433'},'Jurisprudência':{ic:'🏛️',c:'var(--danger)'},'PDF':{ic:'📄',c:'#0a7ea4'}};
-    const hlMap = this.state.highlights||{};
-    const bibList = (this.state.bibFilter==='todos'?this.state.biblioteca:this.state.biblioteca.filter(b=>b.tipo===this.state.bibFilter))
-      .map(b=>{ const hc=(hlMap[b.id]||[]).length; const pages=b.pages||((b.content&&b.content.length)?Math.max(1,Math.ceil(b.content.join(' ').length/1800)):1);
-        const metaStr = b.kind==='pdf' ? (b.pages?b.pages+' pág.':'PDF') : (b.content?((b.content.join(' ').match(/\S+/g)||[]).length+' palavras'):'—');
-        return {...b, tipoIcon:(bibTipoMeta[b.tipo]||{}).ic||'📚', tipoColor:(bibTipoMeta[b.tipo]||{}).c||'var(--text3)', hasHl:hc>0, hlStr:String(hc), metaStr}; });
-    const bibCount = this.state.biblioteca.length;
-    const bibStats = ['Resumo','Lei seca','Jurisprudência','PDF'].map(t=>({tipo:t, icon:bibTipoMeta[t].ic, color:bibTipoMeta[t].c, n:this.state.biblioteca.filter(b=>b.tipo===t).length}));
-    const bibEmpty = bibList.length===0;
-    const segOn='flex:1;text-align:center;border:none;border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1);';
-    const segOff='flex:1;text-align:center;border:none;border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--text3);';
-    // ===== Rede de conhecimento (cérebro conectado) =====
-    let _allHls=[]; Object.keys(hlMap).forEach(itemId=>{ const it=this.state.biblioteca.find(b=>b.id===itemId); if(!it) return; (hlMap[itemId]||[]).forEach(h=>_allHls.push({...h, itemId, titulo:it.titulo, disc:it.disc})); });
-    _allHls.sort((a,b)=>(b.ts||0)-(a.ts||0));
-    // (rede de conhecimento removida do Início — _allHls mantido p/ paleta de busca)
-
     // ===== Planejamento (tempo por peso × domínio × disponibilidade) =====
     const _domBy={}; B.discList.forEach(d=>{ _domBy[d.disc]= d.q>0 ? Math.max(8, Math.min(95, d.liqPct)) : null; });
     const _pesoBy={'Direito Constitucional':2,'Direito Administrativo':2,'Direito Penal':1.5,'Direito Civil':1.5,'Direito Tributário':1,'Processo Civil':1};
@@ -16643,7 +16262,7 @@ class Component extends DCLogic {
       {act:'atalhos', label:'Atalhos do teclado', hint:'tecla ?'},
     ];
     const palLib = [];  // Biblioteca removida do menu — não indexa mais os docs no ⌘K (os dados seguem salvos)
-    const palHl = _allHls.slice(0,40).map(h=>({open:h.itemId, label:'“'+(h.text||'').slice(0,52)+(h.text&&h.text.length>52?'…':'')+'”', hint:'destaque · '+h.titulo}));
+    const palHl = [];  // grifos saíram junto com o leitor da biblioteca
     const palPool = palItemsAll.concat(palLib, palHl);
     const pq=(this.state.paletteQuery||'').toLowerCase();
     // "Telas e ações" primeiro (é o que a paleta sempre fez), depois o CONTEÚDO por seção
@@ -16886,9 +16505,8 @@ class Component extends DCLogic {
         _fx.push({t:'Domínio em "'+nm+'": '+(p0==null?'sem medida':(p0+'%'))+' → '+p1+'%'+(q1<6?' (ainda poucas questões para valer)':''), cor:(p1>=70?'var(--ok)':p1>=55?'var(--warn)':'var(--danger)')}); }
     }
     if(this.state.sessionModalOpen && _sd0.agendarRevisao && (_fxMin>0||_sdTotal>0||_fxTop)){
-      // mesma regra do saveSession: tópico digitado, senão o título do material, senão a 1ª categoria
-      const _mat=_sd0.materialId?((this.state.biblioteca||[]).find(b=>b.id===_sd0.materialId)||null):null;
-      const _rd=_fxDisc||'Geral'; const _rt=(_fxTop||(_mat&&_mat.titulo)||(_selCats[0]||'Teoria')).toLowerCase();
+      // mesma regra do saveSession: tópico digitado, senão a 1ª categoria
+      const _rd=_fxDisc||'Geral'; const _rt=(_fxTop||(_selCats[0]||'Teoria')).toLowerCase();
       const ja=(this.state.reviews||[]).some(r=>r.disc===_rd && String(r.topic||'').toLowerCase()===_rt);
       _fx.push({t:ja?'Revisão deste tópico já está na fila':'Revisão espaçada: amanhã (1º intervalo do SM-2)', cor:'var(--info, var(--accent))'}); }
     const _fxMarca=!!_sd0.marcarEdital && !!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim());
@@ -18108,8 +17726,8 @@ class Component extends DCLogic {
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',biblioteca:'Biblioteca',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
-      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',biblioteca:'Resumos, leis, jurisprudência e materiais',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
       // O estado vem do auth.js (local|enviando|salvo|offline|erro). O texto diz o que
@@ -18215,16 +17833,16 @@ class Component extends DCLogic {
       // --- registro rápido: o modal abre enxuto; detalhe preenchido força a expansão ---
       toggleSessMais:this.toggleSessMais,
       sessMaisOn:(()=>{ const d=this.state.sessionDraft||{};
-        return this.state.sessMais || !!(String(d.topico||'').trim()||d.acertos||d.erradas||d.brancos||String(d.nota||'').trim()||d.materialId||String(d.edSub||'').trim()); })(),
+        return this.state.sessMais || !!(String(d.topico||'').trim()||d.acertos||d.erradas||d.brancos||String(d.nota||'').trim()||String(d.edSub||'').trim()); })(),
       sessMaisRotulo:(()=>{ const d=this.state.sessionDraft||{};
-        const aberto=this.state.sessMais || !!(String(d.topico||'').trim()||d.acertos||d.erradas||d.brancos||String(d.nota||'').trim()||d.materialId||String(d.edSub||'').trim());
+        const aberto=this.state.sessMais || !!(String(d.topico||'').trim()||d.acertos||d.erradas||d.brancos||String(d.nota||'').trim()||String(d.edSub||'').trim());
         return aberto?'▴ Menos detalhes':'▾ Mais detalhes — tópico, desempenho, anotação'; })(),
       sessMaisAria:String(!!this.state.sessMais),
       onSessionField:this.onSessionField, setSessionCat:this.setSessionCat, setSessionFoco:this.setSessionFoco, toggleSessionFlag:this.toggleSessionFlag, sessionQuickMin:this.sessionQuickMin,
       sessDiscOpts, sessDiscCustom, sessDiscSelVal, onSessionDisc:this.onSessionDisc,
       sessTopShow, sessTopOpts, sessTopSel, sessTopLivre, onSessionTop:this.onSessionTop,
       sessSubShow, sessSubOpts, sessSubSel, sessSubVazio, onSessionSub:this.onSessionSub,
-      sessDiscTitle, sessTopTitle, sessSubTitle, sessLeiTitle, sessJurisTitle, sessTrechoTitle, sessMatTitle,
+      sessDiscTitle, sessTopTitle, sessSubTitle, sessLeiTitle, sessJurisTitle, sessTrechoTitle,
       // só oferece "marcar no edital" quando o tópico É do edital — com lei do LEGIS
       // ou fonte do JURIS em edTop, o checkbox aparecia e não marcava nada.
       sessMarcarEdital, sessMarcarLabel, sessMarcarStyle,
@@ -18232,7 +17850,7 @@ class Component extends DCLogic {
       sessEfeitos, sessEfeitosShow, sessEfeitoVazio, sessCorStyle, sessDiscTitulo, sessSubtitulo,
       sessRevAria:String(!!_sd0.agendarRevisao), sessMetaAria:String(_sd0.contarMeta!==false), sessMarcarAria:String(!!_sd0.marcarEdital),
       sessMarcarShow:!!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim()),
-      sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdSegOk, sdSegErr, sdSegBr, sessMinFmt, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary, bibLinkOpts, hasBibForLink,
+      sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdSegOk, sdSegErr, sdSegBr, sessMinFmt, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary,
       sessLeiOpts, sessJurisOpts, sessShowLeis, sessShowJuris, sessLeiSel, sessJurisSel, sessLeiVazio, sessJurisVazio, onSessionLei:this.onSessionLei, onSessionJuris:this.onSessionJuris,
       sessTrechoShow, sessTrechoOpts, sessTrechoSel, sessTrechoVazio, sessTrechoLivre, sessTrechoLabel, sessTrechoPh,
       sessTrechoTemOpts:sessTrechoOpts.length>0, onSessionTrecho:this.onSessionTrecho,
@@ -18297,8 +17915,6 @@ class Component extends DCLogic {
       // anki
       ankiHist, ankiLast, ankiAvg, ankiTotalRev, ankiStatus, ankiStatusColor, ankiStatusMsg,
       ankiPoly, ankiW, ankiH, ankiInsights, ankiIdealRange, ankiInput:this.state.ankiInput, onAnkiInput:this.onAnkiInput, ankiRevInput:this.state.ankiRevInput, onAnkiRevInput:this.onAnkiRevInput, saveAnki:this.saveAnki,
-      fcCards: this.state.flashcards.map(f=>({...f, discColor:(this.DISC_COLOR[(f.disc||'').replace('Direito ','')]||'#0f7a57')})),
-      fcCountStr:String(this.state.flashcards.length), fcEmpty:this.state.flashcards.length===0, removeCard:this.removeCard,
       // ===== Baralho (tela nova) =====
       ...(()=>{ const hoje=this._hoje(), todos=(this.state.flashcards||[]).filter(c=>c&&c.front);
         const dueAll=todos.filter(c=>this._fcVence(c,hoje));
@@ -18424,23 +18040,9 @@ class Component extends DCLogic {
       calWeek, calWeekTitle, calAgenda, calAgendaEmpty, calProvaChip, calHasProva,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze,
       eventDraft:this.state.eventDraft, onEventDraft:this.onEventDraft, addEvent:this.addEvent, removeEvent:this.removeEvent, toggleEvent:this.toggleEvent, calProxEmpty:calProx.length===0,
-      // biblioteca
-      isBiblioteca:this.state.view==='biblioteca', navBiblioteca:navStyle('biblioteca'), bibList, bibCount,
       isLegis:this.state.view==='legis', navLegis:navStyle('legis'),
       isJuris:this.state.view==='juris', navJuris:navStyle('juris'),
       mostraNavAcervo: !this._temAbasNativas(),
-      bibDraft:this.state.bibDraft, onBibDraft:this.onBibDraft, addBiblio:this.addBiblio, removeBiblio:this.removeBiblio, editBiblio:this.editBiblio, setBibFilter:this.setBibFilter,
-      bibStats, bibEmpty,
-      // leitor + upload
-      openReader:this.openReader, readerRef:this.readerRef, readerIsOpen:!!this.state.readerOpen,
-      setBibMode:this.setBibMode, bibModeUpload:this.state.bibMode!=='texto', bibModeTexto:this.state.bibMode==='texto',
-      bibSegUpload: this.state.bibMode!=='texto'?segOn:segOff, bibSegTexto: this.state.bibMode==='texto'?segOn:segOff,
-      bibDrop:this.bibDrop, bibDragOver:this.bibDragOver, bibDragLeave:this.bibDragLeave, bibPickFile:this.bibPickFile,
-      bibBusy:this.state.bibBusy, bibBusyMsg:this.state.bibBusyMsg||'Processando…',
-      // a zona de arraste MUDA de cor ao receber o arquivo (antes o estilo do rótulo
-      // era fixo e este aqui, que reage, nunca era usado — arrastar não dava sinal)
-      bibDropStyle:`display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;cursor:pointer;margin-top:12px;border:2px dashed ${this.state.bibDragOver?'var(--accent)':'var(--border)'};background:${this.state.bibDragOver?'var(--accentSoft)':'var(--surface2)'};border-radius:var(--radius);padding:20px;transition:.15s;`,
-      bibChips:bibFilters.map(f=>({f, label:f==='todos'?'Todos':f, style:`padding:7px 13px;border-radius:var(--r-md);border:1px solid ${this.state.bibFilter===f?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:600;background:${this.state.bibFilter===f?'var(--accentSoft)':'var(--surface)'};color:${this.state.bibFilter===f?'var(--accentD)':'var(--text2)'};`})),
       // ferramenta nova: matriz de prioridade
       // personalização: layout
       radTema:segOpt(pf0.radius,'tema'), radMedio:segOpt(pf0.radius,'medio'), radArred:segOpt(pf0.radius,'arredondado'), radReto:segOpt(pf0.radius,'reto'),
