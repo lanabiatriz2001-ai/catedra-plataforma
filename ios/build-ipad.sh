@@ -13,10 +13,10 @@
 #
 # Escolha do certificado (modos device e testflight):
 #   CATEDRA_IOS_ID=<texto>    casa por texto simples com a linha do `security find-identity`:
-#                             o nome inteiro, um pedaço dele, ou só o Team ID. Necessário
-#                             quando há mais de um time da Apple no chaveiro — sem isto o
-#                             script pega o primeiro, que pode ser do time errado, e o iOS
-#                             recusa a instalação sem dizer por quê.
+#                             o nome inteiro ou um pedaço dele. Necessário quando há mais de
+#                             um certificado do mesmo tipo no chaveiro — sem isto o script
+#                             pega o primeiro, que pode não estar no perfil, e o iOS recusa
+#                             a instalação sem dizer por quê.
 #
 # Por que sem projeto Xcode: o app do Mac já é montado assim (swiftc + bundle à mão), e
 # manter o mesmo estilo evita um .xcodeproj que ninguém edita e que vive dando conflito.
@@ -335,14 +335,16 @@ if [ "$ALVO" = "device" ]; then
   # `grep` sem casar devolve 1 e, com `set -e` + pipefail, o script morria AQUI em silêncio,
   # sem chegar ao aviso de baixo: || true.
   #
-  # CATEDRA_IOS_ID manda, quando existe. POR QUE ISTO EXISTE: quem tem mais de um time da
-  # Apple tem mais de um "Apple Development" no chaveiro, e o `head -1` pegava sempre o
-  # primeiro — que pode ser do time ERRADO. O iOS então recusa a instalação, porque o perfil
-  # de provisionamento é de um time e a assinatura é de outro, e a mensagem não diz isso.
-  # O valor casa por texto simples: serve o nome inteiro entre aspas, um pedaço dele, ou só
-  # o Team ID (ex.: CATEDRA_IOS_ID=2ZT3GWTS9Z). Mesmo espírito do CATEDRA_SIGN_ID que o
-  # mac/Widget/build-widget.sh já usa.
-  # A variável escolhe o TIME, não o tipo: ela filtra DENTRO de "$PADRAO_CERT". Sem isso ela
+  # CATEDRA_IOS_ID manda, quando existe. POR QUE ISTO EXISTE: o chaveiro pode ter mais de um
+  # "Apple Development" (em 21/09/2026 eram três, todos do mesmo time), e o `head -1`
+  # escolhia entre eles pela ordem do chaveiro — que muda quando um certificado é renovado ou
+  # reimportado. Nem todo certificado do chaveiro está em todo perfil de provisionamento:
+  # assinado com um que o perfil não lista, o iOS recusa a instalação e não diz por quê.
+  # O valor casa por texto simples: o nome inteiro entre aspas ou um pedaço dele. ATENÇÃO: o
+  # que vem entre parênteses num "Apple Development" é o ID PESSOAL de quem desenvolve, NÃO o
+  # Team ID (o time real é 2ZT3GWTS9Z) — escolher "pelo time" por ali não funciona.
+  # Mesmo espírito do CATEDRA_SIGN_ID que o mac/Widget/build-widget.sh já usa.
+  # A variável escolhe o CERTIFICADO, não o tipo: ela filtra DENTRO de "$PADRAO_CERT". Sem isso ela
   # deixaria pegar "Developer ID Application" para o TestFlight — que é distribuição FORA da
   # loja, e o App Store Connect recusa em silêncio. É o mesmo defeito que o comentário acima
   # já descreve; a saída seria trocar um silêncio por outro.
@@ -372,9 +374,9 @@ if [ "$ALVO" = "device" ]; then
     if [ "${N_ACHADOS:-0}" -gt 1 ]; then
       echo "     ⚠ há $N_ACHADOS certificados '$PADRAO_CERT' no chaveiro; peguei o primeiro:"
       echo "         $IOS_ID"
-      echo "       Se o time estiver errado (o perfil é de um time e a assinatura de outro,"
-      echo "       e o iOS recusa sem explicar), escolha assim:"
-      echo "         CATEDRA_IOS_ID=\"<Team ID ou nome>\" bash ios/build-ipad.sh $ALVO_REAL"
+      echo "       Se o iOS recusar a instalação (o certificado escolhido não está no perfil),"
+      echo "       escolha outro pelo nome ou por um pedaço dele:"
+      echo "         CATEDRA_IOS_ID=\"<nome do certificado>\" bash ios/build-ipad.sh $ALVO_REAL"
     fi
   fi
   # Assina numa cópia fora da pasta sincronizada e confere com --verify --strict lá
