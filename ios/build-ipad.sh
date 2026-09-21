@@ -11,6 +11,13 @@
 #                             sessão usando simuladores nesta máquina.
 #   CATEDRA_SIM=iphone|ipad   filtra pelo nome (padrão ipad); o 2º argumento vale o mesmo.
 #
+# Escolha do certificado (modos device e testflight):
+#   CATEDRA_IOS_ID=<texto>    casa por texto simples com a linha do `security find-identity`:
+#                             o nome inteiro ou um pedaço dele. Necessário quando há mais de
+#                             um certificado do mesmo tipo no chaveiro — sem isto o script
+#                             pega o primeiro, que pode não estar no perfil, e o iOS recusa
+#                             a instalação sem dizer por quê.
+#
 # Por que sem projeto Xcode: o app do Mac já é montado assim (swiftc + bundle à mão), e
 # manter o mesmo estilo evita um .xcodeproj que ninguém edita e que vive dando conflito.
 #
@@ -331,7 +338,51 @@ if [ "$ALVO" = "device" ]; then
   if [ "$ALVO_REAL" = "testflight" ]; then PADRAO_CERT='Apple Distribution'; else PADRAO_CERT='Apple Development'; fi
   # `grep` sem casar devolve 1 e, com `set -e` + pipefail, o script morria AQUI em silêncio,
   # sem chegar ao aviso de baixo: || true.
-  IOS_ID="$(security find-identity -v -p codesigning 2>/dev/null | grep -E "$PADRAO_CERT" | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/' || true)"
+  #
+  # CATEDRA_IOS_ID manda, quando existe. POR QUE ISTO EXISTE: o chaveiro pode ter mais de um
+  # "Apple Development" (em 21/09/2026 eram três, todos do mesmo time), e o `head -1`
+  # escolhia entre eles pela ordem do chaveiro — que muda quando um certificado é renovado ou
+  # reimportado. Nem todo certificado do chaveiro está em todo perfil de provisionamento:
+  # assinado com um que o perfil não lista, o iOS recusa a instalação e não diz por quê.
+  # O valor casa por texto simples: o nome inteiro entre aspas ou um pedaço dele. ATENÇÃO: o
+  # que vem entre parênteses num "Apple Development" é o ID PESSOAL de quem desenvolve, NÃO o
+  # Team ID (o time real é 2ZT3GWTS9Z) — escolher "pelo time" por ali não funciona.
+  # Mesmo espírito do CATEDRA_SIGN_ID que o mac/Widget/build-widget.sh já usa.
+  # A variável escolhe o CERTIFICADO, não o tipo: ela filtra DENTRO de "$PADRAO_CERT". Sem isso ela
+  # deixaria pegar "Developer ID Application" para o TestFlight — que é distribuição FORA da
+  # loja, e o App Store Connect recusa em silêncio. É o mesmo defeito que o comentário acima
+  # já descreve; a saída seria trocar um silêncio por outro.
+  if [ -n "${CATEDRA_IOS_ID:-}" ]; then
+    DO_TIPO="$(security find-identity -v -p codesigning 2>/dev/null | grep -E "$PADRAO_CERT" || true)"
+    IOS_ID="$(printf '%s\n' "$DO_TIPO" | grep -F "$CATEDRA_IOS_ID" | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/' || true)"
+    if [ -z "$IOS_ID" ]; then
+      echo "     ✗ CATEDRA_IOS_ID=\"$CATEDRA_IOS_ID\" não casa com nenhum '$PADRAO_CERT' do chaveiro." >&2
+      # Casou com outro TIPO: o motivo mais provável, e o mais fácil de não enxergar sozinha.
+      OUTRO="$(security find-identity -v -p codesigning 2>/dev/null | grep -F "$CATEDRA_IOS_ID" | head -1 || true)"
+      if [ -n "$OUTRO" ]; then
+        echo "       Ele casa com uma identidade de OUTRO tipo:" >&2
+        echo "        $OUTRO" >&2
+        echo "       Para '$ALVO_REAL' o certificado tem de ser '$PADRAO_CERT'." >&2
+      fi
+      echo "       Identidades do tipo certo:" >&2
+      printf '%s\n' "${DO_TIPO:-  (nenhuma)}" >&2
+      exit 1
+    fi
+    echo "     identidade escolhida por CATEDRA_IOS_ID: $IOS_ID"
+  else
+    ACHADOS="$(security find-identity -v -p codesigning 2>/dev/null | grep -E "$PADRAO_CERT" || true)"
+    IOS_ID="$(printf '%s\n' "$ACHADOS" | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/' || true)"
+    # Mais de um candidato: o silêncio é que fazia o defeito custar caro. Diz qual pegou e
+    # como mandar noutro, em vez de deixar a pessoa descobrir no aparelho.
+    N_ACHADOS="$(printf '%s' "$ACHADOS" | grep -c . || true)"
+    if [ "${N_ACHADOS:-0}" -gt 1 ]; then
+      echo "     ⚠ há $N_ACHADOS certificados '$PADRAO_CERT' no chaveiro; peguei o primeiro:"
+      echo "         $IOS_ID"
+      echo "       Se o iOS recusar a instalação (o certificado escolhido não está no perfil),"
+      echo "       escolha outro pelo nome ou por um pedaço dele:"
+      echo "         CATEDRA_IOS_ID=\"<nome do certificado>\" bash ios/build-ipad.sh $ALVO_REAL"
+    fi
+  fi
   # Assina numa cópia fora da pasta sincronizada e confere com --verify --strict lá
   # (scripts/assinar-app.sh). Com o repositório no iCloud, assinar no lugar parava aqui com
   # "detritus not allowed". Falhou = sai com erro e mostra o motivo que o codesign deu.
