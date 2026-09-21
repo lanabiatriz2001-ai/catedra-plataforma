@@ -214,7 +214,9 @@ async function selectsDoModal(page, base, ok, R, arquivo) {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const fonte = cs => [cs.fontStyle, cs.fontWeight, cs.fontSize, cs.fontFamily].join(' ');
     const largura = (sel, t) => { const cx = document.createElement('canvas').getContext('2d'); cx.font = fonte(getComputedStyle(sel)); return cx.measureText(t).width; };
-    const textoCabe = (sel, t) => { const cs = getComputedStyle(sel); return largura(sel, t) <= sel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 24; };
+    // a seta nativa (~24 px) fica ALÉM do padding; a da casa (appearance:none) mora dentro do padding-right
+    const seta = cs => (cs.appearance || cs.webkitAppearance) === 'none' ? 0 : 24;
+    const textoCabe = (sel, t) => { const cs = getComputedStyle(sel); return largura(sel, t) <= sel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - seta(cs); };
     // a opção vazia (value "" ou "__livre__") é a que está à vista, e cabe
     const vaziaCabe = sel => { const o = sel && sel.selectedOptions[0]; return !!o && (o.value === '' || o.value === '__livre__') && textoCabe(sel, o.textContent.trim()); };
     const escolhido = sel => { const o = sel && sel.selectedOptions[0]; return o ? o.textContent.trim() : null; };

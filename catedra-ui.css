@@ -1098,6 +1098,42 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 }
 [data-toque="1"] main select, [data-toque="1"] main .ct-campo,
 [data-toque="1"] main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]) { min-height: 44px; }
+/* O SELECT DESENHADO PELA CASA — TAMBÉM NO WEBKIT.
+   As regras acima pedem 44 px no toque e o Chromium obedece; o WebKit (Safari e o WKWebView do
+   Mac e do iPad) não. Um <select> com borda ou fundo estilizados vira `menulist-button`, e o tema
+   nativo do motor reescreve a folha. Medido em 18/09/2026 no select.ct-campo, com ponteiro grosso
+   e as duas regras casando: padding 0 (pedido 10px 12px), raio 5px (pedido 11px) e min-height
+   18px (pedido 44px) — 20 px de altura no toque, e os mesmos 20 com mouse, no app do Mac (pedido
+   38). No iPad o tema é outro (RenderThemeIOS::adjustMenuListButtonStyle) e impõe o próprio
+   min-height e padding 0 0.5em. Eram todos: Disciplina, Tópico, Subtópico, Qual lei e Qual fonte
+   do Registrar sessão, e os do Ciclo, Ajustes, Histórico, Banco, Calendário e Reta final.
+   Com appearance:none o motor para de mexer e a folha vale nos dois motores. A seta nativa vai
+   junto e é redesenhada como nos satélites (select.sel, satellite-base.css): o chevron-down do
+   Lucide (10×5 px, traço de 1,5 px) em dois gradientes na cor de --text2, que segue o tema — um
+   SVG em data: exigiria hex fixo. A seta mora nos 34 px de padding-right.
+   `!important` nas camadas de fundo e no padding-right, como na .ct-rolo: 15 destes selects trazem
+   `padding:` inline e 8 deles também `background:` — o atalho zeraria a imagem, e o padding inline
+   poria o texto por baixo da seta. A cor de fundo segue de quem a declara.
+   #ct-main, e não `main`: os satélites também carregam esta folha e têm o próprio select. */
+#ct-main select, select.ct-campo {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 34px !important;
+  background-image:
+    linear-gradient(45deg, transparent calc(50% - .75px), var(--text2, #5c564a) calc(50% - .75px),
+      var(--text2, #5c564a) calc(50% + .75px), transparent calc(50% + .75px)),
+    linear-gradient(135deg, transparent calc(50% - .75px), var(--text2, #5c564a) calc(50% - .75px),
+      var(--text2, #5c564a) calc(50% + .75px), transparent calc(50% + .75px)) !important;
+  background-size: 5px 5px, 5px 5px !important;
+  background-position: right 19px center, right 14px center !important;
+  background-repeat: no-repeat !important;
+}
+/* Em cores forçadas (alto contraste do Windows) o navegador apaga todo background-image que não é
+   url() — o chevron sumiria e o campo deixaria de parecer um menu. Ali volta a aparência nativa,
+   que o sistema pinta com a própria seta. */
+@media (forced-colors: active) {
+  #ct-main select, select.ct-campo { -webkit-appearance: auto; appearance: auto; background-image: none !important; }
+}
 /* D4 dentro de um KPI: o convite curto no lugar do número — título, descrição e ação, sem zero em destaque */
 .ct-convite { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
 .ct-convite b { font-family: var(--display, Georgia, serif); font-size: var(--fs-xl, 17px); color: var(--ink, #1c1a16); line-height: 1.2; }
@@ -1370,7 +1406,8 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 [data-toque="1"] .ct-ag-campo .ct-campo { min-height: 44px; }
 /* Tipo e Minutos lado a lado QUANDO CABEM; senão um por linha. A base do Tipo vem de medida,
    não de chute: "Jurisprudência" (a opção mais longa) ocupa 95,3 px na fonte do select
-   (13,5 px) + 24 de padding + 24 da seta + 2 de borda = 145,3 px. Com a divisão fixa 3:2 o
+   (13,5 px) + 24 de padding + 24 da seta + 2 de borda = 145,3 px (com a seta da casa, que mora
+   nos 34 px de padding-right: 95,3 + 12 + 34 + 2 = 143,3 px). Com a divisão fixa 3:2 o
    select ficava com 100 px na grade de 4 colunas e cortava 4 dos 9 tipos ("Questõe…").
    A 390 px de toque os dois ficam lado a lado (150 + 8 + 88 = 246 ≤ 260); na grade do laptop
    (linha de 175 a 219 px) o Minutos desce para a linha de baixo. */
