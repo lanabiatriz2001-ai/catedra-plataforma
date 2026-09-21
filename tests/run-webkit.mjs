@@ -1,7 +1,8 @@
 /* Runner do WebKit — o proxy do Safari e do WKWebView do iPad na CI (`npm run test:webkit`).
    Enxuto de propósito: a suíte grande (tests/run.mjs) foi escrita para Chromium e leva
    minutos; aqui roda só o que precisa do motor da Apple para ter valor — a Prova oral →
-   Lei seca, que no iPad abria sem lei nenhuma. Duas origens, com as mesmas asserções:
+   Lei seca, que no iPad abria sem lei nenhuma, e o quadro "Não confunda com" do JURIS, que
+   depende de subgrid e color-mix. Duas origens, com as mesmas asserções:
    · http://localhost — como o site;
    · file://          — como o app nativo, onde fetch de arquivo local falha e o acervo
                         tem de chegar por <script>. É o que mais se parece com o iPad.
@@ -27,13 +28,14 @@ import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarSelectHost } from './select-host.mjs';
+import { testarJurisQuadro } from './juris-quadro.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
 const PORTA = +(process.env.CT_PORT || 8124);
 const { srv, url: URL0 } = await iniciarServidor(RAIZ, PORTA);
 const { browser, motor } = await lancarNavegador(process.env.CT_BROWSER || 'webkit');
-console.log('[' + motor + '] Prova oral → Lei seca, LEGIS guiado e Modo ENAM em http://localhost:' + PORTA + ' e em file://');
+console.log('[' + motor + '] Prova oral → Lei seca, LEGIS guiado, Modo ENAM e o quadro do JURIS em http://localhost:' + PORTA + ' e em file://');
 
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
@@ -99,6 +101,17 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarSelectHost(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'SELECT/host [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+  }
+  // O quadro "Não confunda com" do JURIS: a grade usa subgrid, container query e color-mix, e
+  // é o motor da Apple que o iPad e o Mac mostram — passar no Chromium não garante o que eles
+  // pintam. Só na origem http: o módulo semeia os roteiros por base+'/__semente' (404 na mesma
+  // origem), que não existe em file://, e monta o satélite num iframe com a ponte de IA falsa.
+  if (origem === 'http') {
+    try { await testarJurisQuadro(page, base, ok, { motor, origem }); }
+    catch (e) {
+      ok(false, 'JURIS/QUADRO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
   }

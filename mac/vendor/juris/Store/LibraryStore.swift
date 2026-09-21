@@ -18,6 +18,31 @@ struct InfoEdicao: Identifiable, Hashable {
     var id: Int { numero }
 }
 
+/// Índices derivados do corpus (busca, contagens, edições, índice remissivo). Calculados
+/// FORA da main em `LibraryStore.load` e só então publicados no store — no arquivo, não
+/// dentro da classe, para não herdar isolamento de ator.
+private struct JurisIndices {
+    var byId: [String: JurisEntry] = [:]
+    var blobs: [String: String] = [:]
+    var fonteCounts: [Fonte: Int] = [:]
+    var ramosOrdenados: [(nome: String, count: Int)] = []
+    var disciplinasOrdenadas: [(nome: String, count: Int)] = []
+    var topicosPorDisciplina: [String: [(nome: String, count: Int)]] = [:]
+    var edicoesJT: [EdicaoJT] = []
+    var infoEdicoes: [String: [InfoEdicao]] = [:]
+    var indice: [(letra: String, itens: [IndiceItem])] = []
+}
+
+/// Tudo o que o carregamento produz fora da main: verbetes, erro, índices, notas de estudo
+/// e o índice de termos do Comparador e do quadro "Não confunda com" (IndiceTermos).
+private struct JurisCarga {
+    var items: [JurisEntry]
+    var error: String?
+    var indices: JurisIndices
+    var notas: [String: NotaEstudo]
+    var termos = IndiceTermos()
+}
+
 @Observable
 @MainActor
 final class LibraryStore {
@@ -155,9 +180,18 @@ final class LibraryStore {
 
     func load() async {
         let onlineURL = onlineCorpusURL
-        let result: (items: [JurisEntry], error: String?) = await Task.detached(priority: .userInitiated) {
+        // O cache dos roteiros de estudo é lido junto, fora da main, enquanto o corpus
+        // decodifica: a primeira tela da aba (o Julgado do dia) já o consulta.
+        RoteiroCache.aquecer()
+        // TUDO o que pesa roda fora da main: ler e decodificar ~35 MB de JSON (corpus +
+        // Central de Contas), montar os índices (o blob de busca dobra o texto inteiro
+        // sem acento — era isso, feito na main depois do decode, que congelava a aba por
+        // segundos na primeira abertura), as notas de estudo (2,5 MB) e o índice de termos.
+        // Na main fica só a publicação no store.
+        let carga: JurisCarga = await Task.detached(priority: .userInitiated) {
             guard let url = Self.corpusURL() else {
-                return ([], "corpus.json não encontrado no bundle.")
+                return JurisCarga(items: [], error: "corpus.json não encontrado no bundle.",
+                                  indices: JurisIndices(), notas: [:])
             }
             do {
                 let data = try Data(contentsOf: url)
@@ -183,28 +217,41 @@ final class LibraryStore {
                         items.append(e); vistos.insert(e.id)
                     }
                 }
-                return (items, nil)
+                // Os três derivados não dependem um do outro: montados em PARALELO. O índice
+                // de termos (IndiceTermos) é o mais caro deles e ia para a main na primeira
+                // abertura de verbete — o mesmo congelamento de segundos que este `load` já
+                // tinha caçado no blob de busca. Em paralelo, o carregamento termina quando
+                // termina o mais lento, e não na soma dos três.
+                let todos = items
+                async let indices = Self.construirIndices(todos)
+                async let notas = Self.carregarNotas()
+                async let termos = IndiceTermos.montar(todos)
+                return await JurisCarga(items: todos, error: nil,
+                                        indices: indices, notas: notas, termos: termos)
             } catch {
-                return ([], "Falha ao ler corpus.json: \(error.localizedDescription)")
+                return JurisCarga(items: [], error: "Falha ao ler corpus.json: \(error.localizedDescription)",
+                                  indices: JurisIndices(), notas: [:])
             }
         }.value
 
-        self.entries = result.items
-        self.loadError = result.error
-        indexAll()
+        self.entries = carga.items
+        self.loadError = carga.error
+        aplicar(carga.indices)
+        self.notasApp = carga.notas
+        self.termos = carga.termos
         loadNovidades()
-        loadNotas()
         self.isLoading = false
     }
 
     /// Notas de estudo ORIGINAIS (não oficiais) — esquema/mapa mental a partir do texto público.
     private(set) var notasApp: [String: NotaEstudo] = [:]
     func notaApp(for id: String) -> NotaEstudo? { notasApp[id] }
-    private func loadNotas() {
+    /// Lê notas.json (2,5 MB) — chamado fora da main, dentro do `load`.
+    nonisolated private static func carregarNotas() -> [String: NotaEstudo] {
         guard let url = Self.resourceURL("notas", ext: "json"),
               let data = try? Data(contentsOf: url),
-              let dict = try? JSONDecoder().decode([String: NotaEstudo].self, from: data) else { return }
-        notasApp = dict
+              let dict = try? JSONDecoder().decode([String: NotaEstudo].self, from: data) else { return [:] }
+        return dict
     }
 
     private func loadNovidades() {
@@ -263,7 +310,9 @@ final class LibraryStore {
         return nil
     }
 
-    private func indexAll() {
+    /// Monta os índices a partir dos verbetes — função PURA, chamada fora da main no `load`.
+    /// (Era o `indexAll()` de instância, rodando na main depois do decode.)
+    nonisolated private static func construirIndices(_ entries: [JurisEntry]) -> JurisIndices {
         var byId = [String: JurisEntry](minimumCapacity: entries.count)
         var blobs = [String: String](minimumCapacity: entries.count)
         var fonteCounts: [Fonte: Int] = [:]
@@ -295,47 +344,61 @@ final class LibraryStore {
                 infoEd[e.fonteKind.rawValue, default: [:]][n] = cur
             }
         }
-        self.byId = byId
-        self.blobs = blobs
-        self.fonteCounts = fonteCounts
-        self.ramosOrdenados = ramoCounts
+        var out = JurisIndices()
+        out.byId = byId
+        out.blobs = blobs
+        out.fonteCounts = fonteCounts
+        out.ramosOrdenados = ramoCounts
             .map { (nome: $0.key, count: $0.value) }
             .sorted { $0.count != $1.count ? $0.count > $1.count : $0.nome < $1.nome }
-        self.disciplinasOrdenadas = discCounts
+        out.disciplinasOrdenadas = discCounts
             .map { (nome: $0.key, count: $0.value) }
             .sorted { $0.count != $1.count ? $0.count > $1.count : $0.nome < $1.nome }
-        self.topicosPorDisciplina = temasPorDisc.mapValues { dict in
+        out.topicosPorDisciplina = temasPorDisc.mapValues { dict in
             dict.map { (nome: $0.key, count: $0.value) }
                 .sorted { $0.count != $1.count ? $0.count > $1.count : $0.nome < $1.nome }
         }
-        self.edicoesJT = edicoes
+        out.edicoesJT = edicoes
             .map { EdicaoJT(numero: $0.key, tema: $0.value.tema, count: $0.value.count) }
             .sorted { $0.numero > $1.numero }
-        self.infoEdicoes = infoEd.mapValues { dict in
+        out.infoEdicoes = infoEd.mapValues { dict in
             dict.map { InfoEdicao(numero: $0.key, count: $0.value.count, data: $0.value.data) }
                 .sorted { $0.numero > $1.numero }
         }
-        buildIndice()
+        out.indice = carregarIndiceRemissivo()
+        return out
+    }
+
+    /// Publica no store os índices calculados fora da main.
+    private func aplicar(_ i: JurisIndices) {
+        byId = i.byId
+        blobs = i.blobs
+        fonteCounts = i.fonteCounts
+        ramosOrdenados = i.ramosOrdenados
+        disciplinasOrdenadas = i.disciplinasOrdenadas
+        topicosPorDisciplina = i.topicosPorDisciplina
+        edicoesJT = i.edicoesJT
+        infoEdicoes = i.infoEdicoes
+        indice = i.indice
     }
 
     private func fold(_ s: String) -> String {
         s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
     }
 
-    /// Índice REMISSIVO por TERMO (palavra-chave), computado em segundo plano.
-    /// Carrega o índice remissivo PRÉ-COMPUTADO (indice.json) — instantâneo.
-    private func buildIndice() {
+    /// Índice REMISSIVO por TERMO (palavra-chave): carrega o PRÉ-COMPUTADO (indice.json).
+    nonisolated private static func carregarIndiceRemissivo() -> [(letra: String, itens: [IndiceItem])] {
         guard let url = Self.resourceURL("indice", ext: "json"),
-              let data = try? Data(contentsOf: url) else { return }
+              let data = try? Data(contentsOf: url) else { return [] }
         struct Raw: Decodable { let termo: String; let count: Int; let letra: String }
-        guard let raws = try? JSONDecoder().decode([Raw].self, from: data) else { return }
+        guard let raws = try? JSONDecoder().decode([Raw].self, from: data) else { return [] }
         var grupos: [String: [IndiceItem]] = [:]
         var ordem: [String] = []
         for r in raws {
             if grupos[r.letra] == nil { ordem.append(r.letra) }
             grupos[r.letra, default: []].append(IndiceItem(tema: r.termo, count: r.count))
         }
-        self.indice = ordem.sorted().map { (letra: $0, itens: grupos[$0] ?? []) }
+        return ordem.sorted().map { (letra: $0, itens: grupos[$0] ?? []) }
     }
 
     nonisolated static func resourceURL(_ name: String, ext: String) -> URL? {
@@ -911,100 +974,46 @@ final class LibraryStore {
 
     // MARK: - Julgados relacionados
 
-    private static let stop: Set<String> = ["de","do","da","dos","das","e","em","a","o","os","as",
-        "no","na","nos","nas","ao","à","com","por","para","que","não","um","uma","the","art",
-        "lei","sobre","entre","ser","é","se","direito",
-        // genéricos jurídicos que casariam qualquer súmula/tese (poluem o comparador)
-        "sumula","vinculante","tese","teses","tema","temas","tribunal","supremo","superior",
-        "justica","federal","constitucional","constituicao","artigo","processo","leis","decreto",
-        "pelo","pela","pelos","pelas","como","quando","onde","seus","suas","este","esta","esse",
-        "essa","aquele","aquela","serao","serem","sera","sendo","seja","sejam","seguinte","mediante",
-        "conforme","inciso","alinea","paragrafo","todos","todas","cada","qualquer","outro","outra",
-        "mesmo","mesma","ainda","apos","antes","desde","deve","devem","pode","podem","cabe","cabem",
-        "aplica","aplicam","recurso","acao","instancia","instancias","competente","competencia",
-        "julgar","processar","numero","enunciado","disposto","previsto","prevista","efeito","efeitos",
-        "publico","publica","publicos","publicas","nao","dos","das","uma","umas"]
+    // O índice de termos (palavras-chave, IDF, temas) mora em IndiceTermos, no fim deste
+    // arquivo: é VALOR, montado fora da main no `load` e lido por retrato (AcervoQuadro) pelo
+    // quadro "Não confunda com", que também roda fora da main. O store guarda o índice
+    // publicado e expõe só o que as telas da main usam — o Comparador STF × STJ e a Linha do
+    // tempo.
+    @ObservationIgnored private var termos = IndiceTermos()
 
-    /// Verbetes correlatos: mesmo ramo, pontuados por termos em comum no título/tema.
-    func relacionados(_ entry: JurisEntry, limite: Int = 6) -> [JurisEntry] {
-        func termos(_ s: String?) -> Set<String> {
-            guard let s = s else { return [] }
-            let f = s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-            return Set(f.split { !$0.isLetter && !$0.isNumber }
-                .map(String.init).filter { $0.count >= 4 && !Self.stop.contains($0) })
-        }
-        let base = termos(entry.titulo).union(termos(entry.tema))
-        guard !base.isEmpty else { return [] }
-        let candidatos = entry.ramoDireito != nil
-            ? entries.filter { $0.ramoDireito == entry.ramoDireito && $0.id != entry.id }
-            : entries.filter { $0.fonteKind == entry.fonteKind && $0.id != entry.id }
-        let pontuados = candidatos.compactMap { c -> (JurisEntry, Int)? in
-            let comum = base.intersection(termos(c.titulo).union(termos(c.tema)))
-            guard !comum.isEmpty else { return nil }
-            var s = comum.count * 10
-            if c.tema == entry.tema, entry.tema != nil { s += 20 }
-            if c.numero == entry.numero, entry.numero != nil { s += 3 }
-            return (c, s)
-        }
-        return pontuados.sorted { $0.1 > $1.1 }.prefix(limite).map(\.0)
+    /// Rede de segurança, não caminho normal: o índice nasce no `load`, fora da main, junto
+    /// de JurisIndices. Só é refeito AQUI — na main, com a tela parada — se o acervo tiver
+    /// mudado por outro caminho, e hoje nenhum muda. É o molde do antigo kwCount: índice de
+    /// outro tamanho é de outro acervo.
+    private func prepararKW() {
+        guard termos.total != entries.count else { return }
+        termos = IndiceTermos.montar(entries)
     }
 
-    /// Termos-chave de um verbete (título + tema), para casar assunto.
     /// Palavras-chave de assunto (título + tema + ENUNCIADO), sem termos genéricos.
     func termosChave(_ e: JurisEntry) -> Set<String> {
-        if kwPronto, let c = kwCache[e.id] { return c }
-        return termosChaveRaw(e)
+        termos.total == entries.count ? termos.termosChave(e) : IndiceTermos.termosChave(e)
     }
-    private func termosChaveRaw(_ e: JurisEntry) -> Set<String> {
-        func t(_ s: String?) -> [String] {
-            guard let s = s else { return [] }
-            let f = s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-            return f.split { !$0.isLetter && !$0.isNumber }.map(String.init)
-                .filter { $0.count >= 4 && !Self.stop.contains($0) }
-        }
-        return Set(t(e.titulo) + t(e.tema) + t(e.enunciado))
-    }
-
-    // Cache de palavras-chave + frequência de documentos (IDF) — para relevância no comparador.
-    @ObservationIgnored private var kwCache: [String: Set<String>] = [:]
-    @ObservationIgnored private var docFreq: [String: Int] = [:]
-    @ObservationIgnored private var kwPronto = false
-    @ObservationIgnored private var kwCount = 0
-    private func prepararKW() {
-        guard !kwPronto || kwCount != entries.count else { return }  // reconstrói se o corpus mudou
-        kwCache.removeAll(keepingCapacity: true); docFreq.removeAll(keepingCapacity: true)
-        kwCount = entries.count
-        kwCache.reserveCapacity(entries.count)
-        for e in entries {
-            let ks = termosChaveRaw(e)
-            kwCache[e.id] = ks
-            for t in ks { docFreq[t, default: 0] += 1 }
-        }
-        kwPronto = true
-    }
-
-    /// Fontes que NÃO entram no comparador STF × STJ (seleções de TJ, TSE, TJRO).
-    private static let foraComparador: Set<String> =
-        ["sel_tjgo","sel_tjpr","sel_tjrj","sumula_tse","informativo_tse","tjro","tjro_prec"]
 
     /// Verbetes de um tribunal que tratam do mesmo assunto do `entry` (Comparador STF × STJ).
     /// Pontua por termos raros em comum no ENUNCIADO (IDF), com filtro de fonte/tribunal.
     func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int = 8) -> [JurisEntry] {
         prepararKW()
-        let base = kwCache[entry.id] ?? termosChaveRaw(entry)
-        guard base.count >= 2 else { return [] }
-        let n = Double(max(entries.count, 1))
-        let pont = entries.compactMap { c -> (JurisEntry, Double)? in
-            guard c.id != entry.id, c.tribunal == tribunal,
-                  !Self.foraComparador.contains(c.fonte) else { return nil }
-            let comum = base.intersection(kwCache[c.id] ?? [])
-            guard comum.count >= 2 else { return nil }
-            var s = comum.reduce(0.0) { $0 + log(n / Double(1 + (docFreq[$1] ?? 0))) }
-            if c.ramoDireito == entry.ramoDireito { s += 1 }
-            return (c, s)
-        }
-        return pont.sorted { $0.1 > $1.1 }.prefix(limite).map(\.0)
+        return termos.comparaveis(entry, tribunal: tribunal, limite: limite, em: entries)
     }
+
+    /// O retrato do acervo que o quadro "Não confunda com" lê numa tarefa destacada, com o
+    /// índice de termos já montado. nil enquanto o acervo carrega: montar o quadro sobre um
+    /// acervo vazio (o `reload` zera `entries` por um instante) gravaria no cache um roteiro
+    /// sem vizinhos.
+    func acervoParaQuadro() -> AcervoQuadro? {
+        guard !isLoading, !entries.isEmpty else { return nil }
+        prepararKW()
+        return AcervoQuadro(entries: entries, byId: byId, notas: notasApp, termos: termos)
+    }
+
+    /// O acervo de agora, no formato do carimbo que o roteiro grava (RoteiroEstudo.acervo).
+    var carimboAcervo: String { AcervoQuadro.carimbo(verbetes: entries.count, notas: notasApp.count) }
 
     /// Ordena verbetes por data (DD/MM/AAAA); sem data vão para o fim.
     static func chaveData(_ e: JurisEntry) -> Int {
@@ -1291,5 +1300,331 @@ final class LibraryStore {
         let checklistExistentes = Set(readingChecklist.map(\.id))
         readingChecklist.append(contentsOf: (s.readingChecklist ?? []).filter { !checklistExistentes.contains($0.id) })
         return true
+    }
+}
+
+// MARK: - Índice de termos e retrato do acervo (fora da main)
+
+/// O índice de TERMOS do acervo: as palavras-chave de cada verbete, a frequência de
+/// documentos de cada termo (o IDF do Comparador STF × STJ, da Linha do tempo e do quadro
+/// "Não confunda com") e os temas específicos. Montá-lo passa pelo texto inteiro dos 24,6 mil
+/// verbetes — medido: ~0,93 s numa passada só num Mac Apple Silicon, mais sob carga e no
+/// iPad —, e até aqui ele nascia NA MAIN, na primeira abertura de verbete de cada
+/// lançamento, com a tela parada. Agora nasce no `load`, fora da main, em fatias paralelas
+/// (~0,23 s no mesmo Mac) e ao lado de JurisIndices.
+///
+/// É VALOR (Sendable) e fica no arquivo, fora da classe, pelo mesmo motivo de JurisIndices:
+/// dentro dela herdaria o isolamento da main. O quadro lê um retrato dele (AcervoQuadro)
+/// numa tarefa destacada, sem tocar no store.
+struct IndiceTermos: Sendable {
+    /// id → termos de título + tema + enunciado.
+    var kw: [String: Set<String>] = [:]
+    /// id → termos de título + tema, só: o vocabulário de ASSUNTO. Guardado à parte porque
+    /// relacionados() o pede para cada candidato do ramo — antes ele era dobrado de novo a
+    /// cada chamada, milhares de vezes por verbete aberto.
+    var assunto: [String: Set<String>] = [:]
+    var docFreq: [String: Int] = [:]
+    /// Quantos verbetes compartilham cada `tema` normalizado. Tema repetido em dezenas de
+    /// verbetes ("Direito Civil", "Tribunal do Júri", o título de uma edição de
+    /// Jurisprudência em Teses) é BALDE, não assunto: não prova que dois verbetes se
+    /// confundem, e casava as 12 teses da mesma edição umas com as outras.
+    var temaFreq: [String: Int] = [:]
+    /// tema normalizado → ids, na ordem do acervo. Deixa o quadro buscar o MESMO assunto
+    /// direto, em vez de torcer para a busca por vocabulário alcançá-lo antes do teto.
+    var temaIds: [String: [String]] = [:]
+    /// Quantos verbetes o acervo tinha quando o índice foi montado — o carimbo, no molde do
+    /// antigo kwCount: índice de outro tamanho é de outro acervo e é refeito.
+    var total = 0
+
+    /// Monta o índice inteiro — função PURA, chamada fora da main no `load`. Em FATIAS
+    /// paralelas: o índice é o derivado mais lento do carregamento (separar as palavras dos
+    /// 10 milhões de caracteres, mais que dobrar os acentos), e em série ele atrasava o fim do
+    /// `load` em quase um segundo. As fatias são juntadas NA ORDEM do acervo, então o
+    /// resultado é o mesmo da passada única: o último registro de um id repetido vence,
+    /// `docFreq` soma e `temaIds` guarda a ordem do acervo.
+    static func montar(_ entries: [JurisEntry]) -> IndiceTermos {
+        let n = entries.count
+        let fatias = max(1, min(ProcessInfo.processInfo.activeProcessorCount, n / 1_000))
+        var parciais = [IndiceTermos](repeating: IndiceTermos(), count: fatias)
+        parciais.withUnsafeMutableBufferPointer { saida in
+            DispatchQueue.concurrentPerform(iterations: fatias) { f in
+                saida[f] = montarFatia(entries[(n * f / fatias)..<(n * (f + 1) / fatias)])
+            }
+        }
+        var i = IndiceTermos()
+        i.total = n
+        i.kw.reserveCapacity(n)
+        i.assunto.reserveCapacity(n)
+        for p in parciais {
+            i.kw.merge(p.kw) { _, depois in depois }
+            i.assunto.merge(p.assunto) { _, depois in depois }
+            for (t, c) in p.docFreq { i.docFreq[t, default: 0] += c }
+            for (t, c) in p.temaFreq { i.temaFreq[t, default: 0] += c }
+            for (t, ids) in p.temaIds { i.temaIds[t, default: []].append(contentsOf: ids) }
+        }
+        return i
+    }
+
+    private static func montarFatia(_ fatia: ArraySlice<JurisEntry>) -> IndiceTermos {
+        var i = IndiceTermos()
+        i.kw.reserveCapacity(fatia.count)
+        i.assunto.reserveCapacity(fatia.count)
+        for e in fatia {
+            let a = Set(termos(e.titulo) + termos(e.tema))
+            let ks = a.union(termos(e.enunciado))
+            i.assunto[e.id] = a
+            i.kw[e.id] = ks
+            for t in ks { i.docFreq[t, default: 0] += 1 }
+            let tema = chaveTema(e)
+            if !tema.isEmpty { i.temaFreq[tema, default: 0] += 1; i.temaIds[tema, default: []].append(e.id) }
+        }
+        return i
+    }
+
+    // MARK: Vocabulário
+
+    static let stop: Set<String> = ["de","do","da","dos","das","e","em","a","o","os","as",
+        "no","na","nos","nas","ao","à","com","por","para","que","não","um","uma","the","art",
+        "lei","sobre","entre","ser","é","se","direito",
+        // genéricos jurídicos que casariam qualquer súmula/tese (poluem o comparador)
+        "sumula","vinculante","tese","teses","tema","temas","tribunal","supremo","superior",
+        "justica","federal","constitucional","constituicao","artigo","processo","leis","decreto",
+        "pelo","pela","pelos","pelas","como","quando","onde","seus","suas","este","esta","esse",
+        "essa","aquele","aquela","serao","serem","sera","sendo","seja","sejam","seguinte","mediante",
+        "conforme","inciso","alinea","paragrafo","todos","todas","cada","qualquer","outro","outra",
+        "mesmo","mesma","ainda","apos","antes","desde","deve","devem","pode","podem","cabe","cabem",
+        "aplica","aplicam","recurso","acao","instancia","instancias","competente","competencia",
+        "julgar","processar","numero","enunciado","disposto","previsto","prevista","efeito","efeitos",
+        "publico","publica","publicos","publicas","nao","dos","das","uma","umas"]
+
+    /// Vocabulário de CALENDÁRIO e de metatexto de notícia. Ele não entra na `stop` geral
+    /// porque o Comparador STF × STJ e a Linha do tempo usam a mesma base e lá esses termos
+    /// não atrapalham; aqui eles fabricavam pares — medido: o Tema 1234 (medicamentos/SUS)
+    /// casava com o "teto remuneratório da magistratura" por "fevereiro" e "mantido", e com
+    /// o Marco Civil da Internet por "reuniões", "fluxo", "nunc" e "junho".
+    ///
+    /// "março" fica de fora de propósito: dobrado ele vira "marco", e "Marco Civil da
+    /// Internet" e "marco temporal" são assunto, não calendário. Entram também as formas
+    /// verbais e os advérbios de ligação que passam do teto de raridade e não dizem assunto
+    /// nenhum — sem eles, a Súmula 471 anunciava "isentas · estão · emprêsas" como o que se
+    /// discute.
+    static let ruidoDeQuadro: Set<String> = [
+        "janeiro","fevereiro","abril","maio","junho","julho","agosto","setembro",
+        "outubro","novembro","dezembro","julgou","julgamento","modulacao","item","itens",
+        "dias","atual","atuais","novas","novos","novo","nova","regras","sessao","sessoes",
+        "reuniao","reunioes","nunc","tunc","mantido","mantida","fluxo","placar","votos","voto",
+        "maioria","unanimidade","relator","relatora","ministro","ministra","ministros","ontem",
+        "hoje","semana","pauta","virtual","presencial","comecou","terminou","retomada",
+        "retomado","vista","info","informativo","edicao","edicoes",
+        "estao","estava","estavam","foram","sido","houver","havera","haver","tenha","tenham",
+        "possa","possam","fica","ficam","feito","feita","caso","casos","modo","forma","vezes",
+        "apenas","somente","inclusive","assim","entao","porem","todavia","contudo","quanto",
+        "tanto","tendo","isso","isto","aqui","depois","sempre","nunca","muito","muitos","muita",
+        "outros","outras","alguns","algumas","demais","nenhum","nenhuma",
+        // classe processual e edição, que vêm do TÍTULO do informativo ("STJ · AgInt no REsp
+        // 1852422/SP", "Ed. Extraordinária 25") e saíam como "termos próprios" do vizinho
+        "agint","agrg","resp","aresp","eresp","edcl","extraordinaria"]
+
+    static func ehRuidoDeQuadro(_ t: String) -> Bool {
+        ruidoDeQuadro.contains(t) || t.allSatisfy { $0.isNumber }
+    }
+
+    /// Fontes que NÃO entram no comparador STF × STJ (seleções de TJ, TSE, TJRO).
+    static let foraComparador: Set<String> =
+        ["sel_tjgo","sel_tjpr","sel_tjrj","sumula_tse","informativo_tse","tjro","tjro_prec"]
+
+    /// As palavras de um campo: dobradas (sem acento, minúsculas), com 4 letras ou mais,
+    /// fora da `stop`.
+    static func termos(_ s: String?) -> [String] {
+        guard let s else { return [] }
+        let f = s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        return f.split { !$0.isLetter && !$0.isNumber }.map(String.init)
+            .filter { $0.count >= 4 && !stop.contains($0) }
+    }
+
+    /// Palavras-chave de um verbete (título + tema + ENUNCIADO), sem o índice.
+    static func termosChave(_ e: JurisEntry) -> Set<String> {
+        Set(termos(e.titulo) + termos(e.tema) + termos(e.enunciado))
+    }
+
+    /// Palavras-chave de ASSUNTO (título + tema), sem o enunciado. O enunciado é prosa: os
+    /// termos mais raros dele são verbo e advérbio de redação ("esmorecer", "Falcão"), e foi
+    /// isso que a linha "O que separa" do quadro andou imprimindo. Título e tema são a
+    /// etiqueta editorial do verbete — é ali que mora o vocabulário do domínio.
+    static func termosDeAssunto(_ e: JurisEntry) -> Set<String> {
+        Set(termos(e.titulo) + termos(e.tema))
+    }
+
+    func termosChave(_ e: JurisEntry) -> Set<String> { kw[e.id] ?? Self.termosChave(e) }
+    func termosDeAssunto(_ e: JurisEntry) -> Set<String> { assunto[e.id] ?? Self.termosDeAssunto(e) }
+
+    // MARK: Tema
+
+    /// O `tema` dobrado e colapsado — a chave de agrupamento, não o texto de tela. Vazio em
+    /// Jurisprudência em Teses: lá o `tema` é o título da EDIÇÃO ("MEDIDAS
+    /// SOCIOEDUCATIVAS"), igual em todas as teses dela — é balde por construção, e nas
+    /// edições pequenas passava por baixo do teto e casava tese com tese da mesma edição.
+    static func chaveTema(_ e: JurisEntry) -> String {
+        guard e.fonteKind != .jurisEmTeses, let bruto = e.tema else { return "" }
+        let t = bruto.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
+        guard t.count >= 6 else { return "" }
+        return t.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+    }
+
+    /// Acima disso o `tema` é balde. Medido no acervo de hoje: 3.615 temas distintos, e os
+    /// maiores ("da administração pública" 115, "direito civil" 73) juntam verbetes que não
+    /// têm nada a ver um com o outro.
+    static let tetoTemaCompartilhado = 8
+
+    /// true quando os dois verbetes têm o MESMO tema e esse tema é específico o bastante
+    /// para significar alguma coisa. É o sinal de confundibilidade mais forte depois da
+    /// curadoria.
+    func mesmoTemaEspecifico(_ a: JurisEntry, _ b: JurisEntry) -> Bool {
+        let ta = Self.chaveTema(a)
+        guard !ta.isEmpty, ta == Self.chaveTema(b) else { return false }
+        return (temaFreq[ta] ?? 0) <= Self.tetoTemaCompartilhado
+    }
+
+    // MARK: Pontuação
+
+    /// Termo que aparece em mais de 5% do acervo é vocabulário comum: não distingue nada e
+    /// não pode virar "o que se discute" ("contra" 1.369, "decisão" 1.595).
+    var corteTermoPopular: Int { max(1, total / 20) }
+
+    /// Verbetes de um tribunal que tratam do mesmo assunto do `entry`: termos raros em comum
+    /// no ENUNCIADO (IDF), com filtro de fonte/tribunal. `entries` é o acervo com que o
+    /// índice foi montado.
+    func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int, em entries: [JurisEntry]) -> [JurisEntry] {
+        let base = termosChave(entry)
+        guard base.count >= 2 else { return [] }
+        let n = Double(max(entries.count, 1))
+        let pont = entries.compactMap { c -> (JurisEntry, Double)? in
+            guard c.id != entry.id, c.tribunal == tribunal,
+                  !Self.foraComparador.contains(c.fonte) else { return nil }
+            let comum = base.intersection(kw[c.id] ?? [])
+            guard comum.count >= 2 else { return nil }
+            var s = comum.reduce(0.0) { $0 + log(n / Double(1 + (docFreq[$1] ?? 0))) }
+            if c.ramoDireito == entry.ramoDireito { s += 1 }
+            return (c, s)
+        }
+        return pont.sorted { $0.1 > $1.1 }.prefix(limite).map(\.0)
+    }
+
+    /// Semelhança de VOCABULÁRIO entre dois verbetes, de 0 a 1: Jaccard dos termos-chave
+    /// PONDERADO pelo IDF, sem o ruído de calendário e de notícia. É o sinal mais fraco do
+    /// piso de confundibilidade do quadro, e por isso é medido e não contado: contar termos
+    /// abaixo de um corte fixo de raridade deixava de fora o par clássico Tema 246 × Tema
+    /// 1.118 (18 termos em comum, só 1 abaixo do corte), e a soma sem normalizar premiava o
+    /// enunciado-notícia longo (o Tema 1.234 somava 122 com o teto remuneratório da
+    /// magistratura; o par Súmula 7 × Súmula 279, 14). Normalizado, os dois ficam em 0,04 e
+    /// 0,45.
+    func similaridade(_ a: JurisEntry, _ b: JurisEntry) -> Double {
+        let ka = termosChave(a), kb = termosChave(b)
+        let n = Double(max(total, 1))
+        func peso(_ t: String) -> Double { Self.ehRuidoDeQuadro(t) ? 0 : log(n / Double(1 + (docFreq[t] ?? 0))) }
+        var comum = 0.0, uniao = 0.0
+        for t in ka { let w = peso(t); uniao += w; if kb.contains(t) { comum += w } }
+        for t in kb where !ka.contains(t) { uniao += peso(t) }
+        return uniao > 0 ? comum / uniao : 0
+    }
+
+    /// Termos de ASSUNTO de `outro` que NÃO aparecem em `base`, do mais raro para o mais
+    /// comum. É o que alimenta a célula "Termos próprios" do quadro de julgados vizinhos:
+    /// VOCABULÁRIO do título e do tema, e só. Dizer que dois julgados divergem no mérito
+    /// exigiria uma fonte que o acervo não tem.
+    ///
+    /// POR QUE NÃO O ENUNCIADO: com ele a célula saía "esmorecer · prolongadamente ·
+    /// retroagiria · somava" e "Falcão · Francisco · altura · peculiar" — medido, o primeiro
+    /// termo aparecia num ÚNICO verbete do acervo em 40% das colunas. Um termo que não
+    /// existe em nenhum outro verbete é, por construção, o oposto do que confunde quem
+    /// estuda. Restrito a título+tema, sai "prescrição", "simples · nacional", "reexame ·
+    /// necessário" — e a célula some em ~40% das colunas, que é o resultado honesto.
+    func termosExclusivos(_ outro: JurisEntry, fora base: JurisEntry, limite: Int = 4) -> [String] {
+        porRaridade(termosDeAssunto(outro).subtracting(termosDeAssunto(base)),
+                    limite: limite, teto: corteTermoPopular)
+    }
+
+    /// Termos-chave comuns a TODOS os verbetes dados, do mais raro para o mais comum. Serve
+    /// de "o que se discute" quando o verbete aberto não tem `tema` — nenhuma das 736
+    /// súmulas do STF tem. O teto de frequência é o que impede a linha de anunciar o
+    /// assunto da controvérsia como "defere · contra" ou "houver · decisão".
+    func termosComuns(_ es: [JurisEntry], limite: Int = 5) -> [String] {
+        guard let primeiro = es.first else { return [] }
+        var comum = termosChave(primeiro)
+        for e in es.dropFirst() { comum.formIntersection(termosChave(e)) }
+        return porRaridade(comum, limite: limite, teto: corteTermoPopular)
+    }
+
+    /// Raro primeiro; empate desfeito pelo próprio termo, para a ordem ser ESTÁVEL entre
+    /// aparelhos e entre gerações — sem isso o mesmo verbete mostraria palavras diferentes
+    /// a cada vez que o quadro fosse montado. `teto` descarta o termo popular demais para
+    /// distinguir; o ruído de calendário e de metatexto sai sempre.
+    func porRaridade(_ termos: Set<String>, limite: Int, teto: Int? = nil) -> [String] {
+        let filtrados = termos.filter { t in
+            if Self.ehRuidoDeQuadro(t) { return false }
+            if let teto, (docFreq[t] ?? 0) > teto { return false }
+            return true
+        }
+        let ordem = filtrados.sorted { a, b in
+            let fa = docFreq[a] ?? 0, fb = docFreq[b] ?? 0
+            return fa == fb ? a < b : fa < fb
+        }
+        return Array(ordem.prefix(limite))
+    }
+}
+
+/// O que o quadro "Não confunda com" lê do acervo, por VALOR: a montagem roda numa tarefa
+/// destacada (RoteiroEstudoView.gerar) e não pode tocar no store, que é da main. Tirar o
+/// retrato na main não copia nada — array e dicionário do Swift são cópia-na-escrita.
+struct AcervoQuadro: Sendable {
+    let entries: [JurisEntry]
+    let byId: [String: JurisEntry]
+    let notas: [String: NotaEstudo]
+    let termos: IndiceTermos
+
+    /// O carimbo que o roteiro grava (RoteiroEstudo.acervo): quantos verbetes e quantas notas
+    /// de estudo havia. O quadro depende dos dois — vizinhos e IDF do acervo inteiro, e a
+    /// curadoria das notas —, e os dois só mudam juntos com atualização.
+    static func carimbo(verbetes: Int, notas: Int) -> String { "\(verbetes)/\(notas)" }
+    var carimbo: String { Self.carimbo(verbetes: entries.count, notas: notas.count) }
+
+    func notaApp(for id: String) -> NotaEstudo? { notas[id] }
+    func termosChave(_ e: JurisEntry) -> Set<String> { termos.termosChave(e) }
+    func similaridade(_ a: JurisEntry, _ b: JurisEntry) -> Double { termos.similaridade(a, b) }
+    func mesmoTemaEspecifico(_ a: JurisEntry, _ b: JurisEntry) -> Bool { termos.mesmoTemaEspecifico(a, b) }
+    func termosExclusivos(_ outro: JurisEntry, fora base: JurisEntry, limite: Int = 4) -> [String] {
+        termos.termosExclusivos(outro, fora: base, limite: limite)
+    }
+    func termosComuns(_ es: [JurisEntry], limite: Int = 5) -> [String] { termos.termosComuns(es, limite: limite) }
+    func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int = 8) -> [JurisEntry] {
+        termos.comparaveis(entry, tribunal: tribunal, limite: limite, em: entries)
+    }
+
+    /// Os verbetes que dividem com `e` um tema ESPECÍFICO (no máximo
+    /// `tetoTemaCompartilhado` verbetes no acervo), na ordem do acervo, sem o próprio.
+    func mesmoTema(_ e: JurisEntry, limite: Int) -> [JurisEntry] {
+        let t = IndiceTermos.chaveTema(e)
+        guard !t.isEmpty, (termos.temaFreq[t] ?? 0) <= IndiceTermos.tetoTemaCompartilhado else { return [] }
+        return Array((termos.temaIds[t] ?? []).lazy.filter { $0 != e.id }.compactMap { self.byId[$0] }.prefix(limite))
+    }
+
+    /// Verbetes correlatos: mesmo ramo, pontuados por termos em comum no título/tema. Os
+    /// termos de cada candidato vêm do índice (IndiceTermos.assunto): antes eram dobrados de
+    /// novo para cada verbete do ramo, a cada chamada.
+    func relacionados(_ entry: JurisEntry, limite: Int = 6) -> [JurisEntry] {
+        let base = termos.termosDeAssunto(entry)
+        guard !base.isEmpty else { return [] }
+        let candidatos = entry.ramoDireito != nil
+            ? entries.filter { $0.ramoDireito == entry.ramoDireito && $0.id != entry.id }
+            : entries.filter { $0.fonteKind == entry.fonteKind && $0.id != entry.id }
+        let pontuados = candidatos.compactMap { c -> (JurisEntry, Int)? in
+            let comum = base.intersection(termos.termosDeAssunto(c))
+            guard !comum.isEmpty else { return nil }
+            var s = comum.count * 10
+            if c.tema == entry.tema, entry.tema != nil { s += 20 }
+            if c.numero == entry.numero, entry.numero != nil { s += 3 }
+            return (c, s)
+        }
+        return pontuados.sorted { $0.1 > $1.1 }.prefix(limite).map(\.0)
     }
 }

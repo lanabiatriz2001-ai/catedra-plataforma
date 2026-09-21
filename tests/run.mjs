@@ -31,6 +31,7 @@ import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
+import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
@@ -8475,6 +8476,17 @@ catch (e) {
 try { await testarEditalSubtopicos(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'EDITAL/SUBTÓPICOS [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// JURIS: o quadro "Não confunda com" no lugar da lista de Relacionados (tests/juris-quadro.mjs).
+// Roteiro em módulo próprio porque o caso precisa de RELOAD com semente — o mapa ROT do
+// satélite é lido uma vez no boot —, de contexto próprio por largura (390 e 1280) e de um
+// terceiro, em que a página de fora faz o papel do app e responde a ponte de IA com o que
+// cada caso fabrica (payload hostil, recusa, falha).
+try { await testarJurisQuadro(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'JURIS/QUADRO [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
