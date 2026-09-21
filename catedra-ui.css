@@ -230,7 +230,9 @@
   font-size: 28px; font-weight: 700; line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-.ct-kpi span {
+/* `>` e não descendente: o runtime embrulha cada {{ }} num <span class="sc-interp">, e
+   `.ct-kpi span` encolhia o próprio NÚMERO a 11 px (acontecia no Ciclo também). */
+.ct-kpi > span {
   font-size: var(--fs-2xs, 11px); text-transform: uppercase;
   letter-spacing: .09em; font-weight: 700; color: rgba(255, 255, 255, .82);
 }
@@ -1181,8 +1183,9 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
   background: var(--surface2, #f0ece1);
 }
 .ct-cb-parcial-barra i {
-  display: block; height: 100%; border-radius: 99px;
+  display: block; height: 100%; width: 100%; border-radius: 99px;
   background: var(--ct-item-cor, var(--accent, #0f7a57));
+  transform: translateX(calc(var(--pct, 0%) - 100%));   /* DESIGN.md: nunca `width` */
 }
 .ct-cb-parcial-tx { font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a); line-height: 1.4; }
 .ct-cb-min { font-size: var(--fs-base, 13.5px); color: var(--text2, #5c564a); background: var(--surface2, #f0ece1); padding: 5px 10px; border-radius: var(--r-md, 10px); }
@@ -1408,13 +1411,15 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-fc-topo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ct-fc-barra { flex: 1 1 120px; min-width: 100px; height: 6px; border-radius: 99px; overflow: hidden;
   background: var(--surface2, #f0ece1); }
-.ct-fc-barra i { display: block; height: 100%; border-radius: 99px; background: var(--accent, #0f7a57); }
+.ct-fc-barra i { display: block; height: 100%; width: 100%; border-radius: 99px; background: var(--accent, #0f7a57);
+  transform: translateX(calc(var(--pct, 0%) - 100%)); }
 .ct-fc-conta { font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a); }
 .ct-fc-sair { background: transparent; border: 1px solid var(--border, #e6e1d4); border-radius: var(--r-md, 10px);
   padding: 8px 14px; min-height: 44px; cursor: pointer; font-family: inherit; font-weight: 600;
   font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a); }
-.ct-fc-cartao { border: 1px solid var(--border, #e6e1d4); border-top: 3px solid var(--ct-item-cor, var(--accent));
+.ct-fc-cartao { border: 1px solid color-mix(in oklab, var(--ct-item-cor, var(--accent)) 38%, var(--border, #e6e1d4));
   border-radius: var(--ct-r-lg, 14px); background: var(--surface, #fffdf8);
+  background-image: linear-gradient(90deg, color-mix(in oklab, var(--ct-item-cor, var(--accent)) 14%, transparent), transparent 46%);
   padding: var(--ct-e5, 20px); min-height: 220px; display: flex; flex-direction: column; gap: 14px; }
 .ct-fc-disc-tag { font-size: var(--fs-2xs, 11px); font-weight: 700; letter-spacing: .06em;
   text-transform: uppercase; color: var(--text3, #8a8172); }
@@ -1440,8 +1445,13 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
    responde é "quanto tem me esperando?", e a resposta tem de caber num olhar. */
 .cth-baralho { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
   cursor: pointer; font-family: inherit; min-height: 44px; padding: 14px 16px;
-  border: 1px solid var(--border, #e6e1d4); border-left: 3px solid var(--accent, #0f7a57);
-  border-radius: var(--r-md, 10px); background: var(--surface, #fffdf8); }
+  /* DESIGN.md proíbe faixa lateral colorida: a cor entra como no .ct-item, borda inteira
+     tingida + lavagem curta da esquerda. (Tinha border-left de 3 px — erro da PR #98.) */
+  --ct-item-cor: var(--accent, #0f7a57);
+  border: 1px solid color-mix(in oklab, var(--ct-item-cor) 38%, var(--border, #e6e1d4));
+  background: var(--surface, #fffdf8);
+  background-image: linear-gradient(90deg, color-mix(in oklab, var(--ct-item-cor) 18%, transparent), transparent 46%);
+  border-radius: var(--r-md, 10px); }
 .cth-baralho:hover { border-color: var(--accent, #0f7a57); }
 .cth-baralho .n { font-family: var(--mono); font-weight: 700; font-size: 26px; color: var(--accentD, #0b5e43); flex: none; }
 .cth-baralho .tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
@@ -1449,3 +1459,31 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .cth-baralho .tx small { font-size: var(--fs-sm, 12.5px); color: var(--text3, #8a8172); line-height: 1.4; }
 .cth-baralho .ir { font-size: var(--fs-sm, 12.5px); font-weight: 700; color: var(--accentD, #0b5e43); flex: none; }
 @media (max-width: 520px) { .cth-baralho .ir { display: none; } }
+
+.ct-ed-noconc { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px;
+  border-radius: var(--r-md, 10px); border: 1px solid var(--border, #e6e1d4); background: var(--surface, #fffdf8);
+  font-family: inherit; font-size: var(--fs-xs, 11.5px); font-weight: 600; color: var(--text3, #8a8172); cursor: pointer; }
+.ct-ed-noconc[aria-pressed="true"] { border-color: var(--accent, #0f7a57); background: var(--accentSoft); color: var(--accentD, #0b5e43); }
+@media (pointer: coarse) { .ct-ed-noconc { min-height: 44px; } }
+[data-toque="1"] .ct-ed-noconc { min-height: 44px; }
+
+/* ===== CONCURSOS — a faixa de chamada do Edital (Fase 3) =====
+   A faixa é o .ct-hero da seção 10; aqui só o que é próprio dela. As pílulas usam a
+   .ct-btn-clara (a única que sobrevive sobre o gradiente) e a ativa vira sólida, com o
+   estado em aria-pressed. Alvos de 44 px no toque. */
+.ct-concurso-trilho { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ct-concurso-pilula, .ct-concurso-novo { min-height: 40px; }
+.ct-concurso-pilula[aria-pressed="true"] {
+  background: rgba(255, 255, 255, .32); border: 2px solid #fff; font-weight: 800;
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .45);
+}
+.ct-concurso-ren {
+  margin-left: auto; background: none; border: none; padding: 8px 4px; cursor: pointer;
+  font-family: inherit; font-size: var(--fs-sm, 12.5px); font-weight: 600;
+  color: rgba(255, 255, 255, .86); text-decoration: underline; text-underline-offset: 3px;
+}
+.ct-concurso-ren:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 6px; }
+@media (pointer: coarse) { .ct-concurso-pilula, .ct-concurso-novo, .ct-concurso-ren { min-height: 44px; } }
+[data-toque="1"] .ct-concurso-pilula, [data-toque="1"] .ct-concurso-novo, [data-toque="1"] .ct-concurso-ren { min-height: 44px; }
+@media (max-width: 520px) { .ct-concurso-ren { margin-left: 0; } }
+.ct-concurso-aviso { margin: 0; font-size: var(--fs-sm, 12.5px); line-height: 1.55; color: var(--text2, #5c564a); }

@@ -24,6 +24,7 @@ import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
+import { testarVariosEditais } from './varios-editais.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
@@ -8472,6 +8473,13 @@ catch (e) {
 try { await testarIntegracaoModulos(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'INTEGRAÇÃO [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Vários concursos ao mesmo tempo — Fase 1, dados (tests/varios-editais.mjs)
+try { await testarVariosEditais(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'EDITAIS [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

@@ -2185,7 +2185,7 @@ window.ctPdfLib = (function(){
                   <p class="ct-cb-motivo" style="--ct-item-cor:{{ cicloBcCor }};"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 17l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" stroke-linejoin="round"></path></svg><span>{{ cicloBcMotivo }}</span></p>
                 </sc-if>
                 <sc-if value="{{ cicloBcTemParcial }}" hint-placeholder-val="{{ false }}">
-                  <p class="ct-cb-parcial" style="--ct-item-cor:{{ cicloBcCor }};"><span class="ct-cb-parcial-barra" aria-hidden="true"><i style="width:{{ cicloBcParcialPct }};"></i></span><span class="ct-cb-parcial-tx">{{ cicloBcParcial }}</span></p>
+                  <p class="ct-cb-parcial" style="--ct-item-cor:{{ cicloBcCor }};"><span class="ct-cb-parcial-barra" aria-hidden="true"><i style="--pct:{{ cicloBcParcialPct }};"></i></span><span class="ct-cb-parcial-tx">{{ cicloBcParcial }}</span></p>
                 </sc-if>
               </div>
               <!-- antes era onNav sem data-view: navegava para lugar nenhum. Agora entra na sala de foco com o bloco carregado. -->
@@ -2228,7 +2228,7 @@ window.ctPdfLib = (function(){
                   <div class="ct-cb-motivo"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 17l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" stroke-linejoin="round"></path></svg><span>{{ b.motivo }}</span></div>
                 </sc-if>
                 <sc-if value="{{ b.temParcial }}" hint-placeholder-val="{{ false }}">
-                  <div class="ct-cb-parcial"><span class="ct-cb-parcial-barra" aria-hidden="true"><i style="width:{{ b.parcialPct }};"></i></span><span class="ct-cb-parcial-tx">{{ b.parcialTxt }}</span></div>
+                  <div class="ct-cb-parcial"><span class="ct-cb-parcial-barra" aria-hidden="true"><i style="--pct:{{ b.parcialPct }};"></i></span><span class="ct-cb-parcial-tx">{{ b.parcialTxt }}</span></div>
                 </sc-if>
               </div>
               <div class="ct-item-fim">
@@ -2709,6 +2709,33 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ isEdital }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
 
+        <!-- CONCURSOS — a faixa de chamada do Edital. Uma tela tem UM primeiro lugar, e aqui ele é
+             a resposta a "de qual concurso eu estou falando?": tudo abaixo (pesos, questões,
+             cobertura) é deste concurso. A troca é por pílulas sobre o gradiente — com dois a
+             quatro concursos, ver todos de uma vez vale mais que abrir um seletor. -->
+        <sc-if value="{{ temConcurso }}" hint-placeholder-val="{{ false }}">
+          <section class="ct-hero ct-concurso-hero" aria-label="Concurso ativo">
+            <div class="ct-hero-eb">Concurso ativo<sc-if value="{{ concursoVarios }}" hint-placeholder-val="{{ false }}"> · {{ concursoN }} no total</sc-if></div>
+            <h2 class="ct-hero-tit">{{ concursoNome }}</h2>
+            <p class="ct-hero-sub">Pesos, questões e o ciclo de estudos são deste concurso. O que você estuda numa disciplina vale para todos os concursos que a têm.</p>
+            <div class="ct-hero-kpis">
+              <div class="ct-kpi"><b>{{ concursoDiscN }}</b><span>disciplinas</span></div>
+              <div class="ct-kpi"><b>{{ edPct }}%</b><span>do edital coberto</span></div>
+              <sc-if value="{{ concursoVarios }}" hint-placeholder-val="{{ false }}"><div class="ct-kpi"><b>{{ concursoCompartN }}</b><span>em comum com outro concurso</span></div></sc-if>
+            </div>
+            <div class="ct-concurso-trilho" role="group" aria-label="Trocar de concurso">
+              <sc-for list="{{ concursoOpts }}" as="o" hint-placeholder-count="2">
+                <button class="ct-btn-clara ct-concurso-pilula" data-id="{{ o.id }}" aria-pressed="{{ o.selStr }}" onclick="{{ trocarConcurso }}"><sc-if value="{{ o.sel }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.8" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>{{ o.nome }}</button>
+              </sc-for>
+              <button class="ct-btn-clara ct-concurso-novo" onclick="{{ novoConcurso }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>Novo concurso</button>
+              <button class="ct-concurso-ren" onclick="{{ renomearConcurso }}">Renomear “{{ concursoNome }}”</button>
+            </div>
+          </section>
+          <sc-if value="{{ concursoTemFora }}" hint-placeholder-val="{{ false }}">
+            <p class="ct-concurso-aviso">{{ concursoForaN }} disciplina(s) do seu acervo não caem em {{ concursoNome }}. Marque as que caem — o estudo que você já fez nelas passa a contar aqui.</p>
+          </sc-if>
+        </sc-if>
+
         <!-- Modelo pré-cadastrado: o edital não precisa começar do zero -->
         <div style="border:1px solid transparent;border-radius:var(--radius);background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--heroGrad) border-box;padding:18px 20px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -2793,6 +2820,10 @@ window.ctPdfLib = (function(){
               </button>
               <!-- peso + nº de questões: compacto, sempre visível (não precisa expandir) -->
               <div title="Peso e nº de questões da disciplina — usados no ciclo, no cronograma e no ranking &quot;onde rende mais pontos&quot;" style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:0 18px 11px 42px;">
+                <sc-if value="{{ temConcurso }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-alvo ct-ed-noconc" data-i="{{ d.i }}" onclick="{{ toggleNoConcurso }}" aria-pressed="{{ d.noConcursoStr }}" title="Marque se esta disciplina cai no concurso ativo. Desmarcar não apaga o estudo: ele é da disciplina e vale para todo concurso que a tenha." aria-label="{{ d.disc }} cai em {{ concursoNome }}"><sc-if value="{{ d.noConcurso }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if><span>{{ concursoNome }}</span></button>
+                  <sc-if value="{{ d.emVariosConcursos }}" hint-placeholder-val="{{ false }}"><span class="ct-selo ct-selo-hoje" title="O estudo desta disciplina conta para todos esses concursos">em {{ d.emConcursosN }} concursos</span></sc-if>
+                </sc-if>
                 <label style="display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);color:var(--text3);font-weight:500;">Peso<input type="number" min="0" step="0.5" data-i="{{ d.i }}" data-k="peso" value="{{ d.pesoVal }}" oninput="{{ onDiscMeta }}" placeholder="—" style="width:52px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-sm);padding:4px 7px;font-size:var(--fs-sm);color:var(--ink);font-family:var(--mono);text-align:center;"></label>
                 <label style="display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);color:var(--text3);font-weight:500;">Questões<input type="number" min="0" step="1" data-i="{{ d.i }}" data-k="questoes" value="{{ d.questoesVal }}" oninput="{{ onDiscMeta }}" placeholder="—" style="width:58px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-sm);padding:4px 7px;font-size:var(--fs-sm);color:var(--ink);font-family:var(--mono);text-align:center;"></label>
                 <label title="Cor da disciplina — vale em todo o app (ciclo, gráficos, revisões)" style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);color:var(--text3);font-weight:500;cursor:pointer;flex:none;">Cor<input type="color" data-i="{{ d.i }}" value="{{ d.colorHex }}" oninput="{{ setDiscCor }}" style="width:30px;height:27px;padding:0;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;"></label>
@@ -2946,7 +2977,7 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ fcRodando }}" hint-placeholder-val="{{ false }}">
           <div class="ct-fc-sala">
             <div class="ct-fc-topo">
-              <span class="ct-fc-barra" aria-hidden="true"><i style="width:{{ fcProgresso }};"></i></span>
+              <span class="ct-fc-barra" aria-hidden="true"><i style="--pct:{{ fcProgresso }};"></i></span>
               <span class="ct-fc-conta">{{ fcRestamStr }} na fila · {{ fcAcertosStr }} sei · {{ fcErrosStr }} a rever</span>
               <button onclick="{{ fcEncerrar }}" class="ct-alvo ct-fc-sair">Encerrar</button>
             </div>
@@ -6696,6 +6727,8 @@ class Component extends DCLogic {
       manualFixedRoteiroAtual:this._load('manualFixedRoteiroAtual', ''),
       agendaFeitas:this._load('agendaFeitas', {}),
       edital: this._load('edital', []),
+      // concursos por cima do acervo (ver _editaisComMigracao). editalAtivo '' = o primeiro.
+      editais: this._load('editais', []), editalAtivo: this._load('editalAtivo', ''),
       reviews: this._load('reviews', []),
       // leitura ativa da lei (LA1): um item por dispositivo lido, sem o texto da lei
       leituras: this._load('leituras', []),
@@ -7474,6 +7507,19 @@ class Component extends DCLogic {
       patch.casoEdit=null; patch.casoTreino=null; patch.casoPasso=0; patch.casoResp=false; patch.casoAviso='';
       if(!this._podeAbrir(this.state.view)){ patch.view='indisponivel'; patch.viewBloqueada=this.state.view; }
     }
+    /* O CONCURSO ATIVO TAMBÉM PODE TER MUDADO NA NUVEM (outro aparelho trocou), e ele decide
+       de onde o ciclo é lido. Mesmo tratamento da área, logo depois dela (editalAtivo é da
+       área): fecha o ciclo aberto no concurso anterior, adota o novo e só então relê. */
+    try{
+      const r=localStorage.getItem(this._chave('editalAtivo'));
+      const v=(r!=null) ? (JSON.parse(r)||'') : '';
+      if(v!==(this.state.editalAtivo||'')){
+        this._salvarAgora();
+        this.state.editalAtivo=v;
+        try{ localStorage.setItem(this._chave('editalAtivo'), JSON.stringify(v)); }catch(_){}
+        patch.editalAtivo=v; this._edSig=null;
+      }
+    }catch(_){}
     try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
     try{ const raw=localStorage.getItem(this._chave('sessionsLixeira')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessionsLixeira=a; } }catch(_){}
     patch.reviews=this._load('reviews', this.state.reviews);
@@ -7806,7 +7852,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
-  componentDidUpdate(){ this._baixaRaiz(); this._limpaOrigem(); this._syncModalFocus(); this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+  componentDidUpdate(){ this._baixaRaiz(); this._limpaOrigem(); this._syncModalFocus(); try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // Trocou de tela por conta própria (menu, atalho)? Então a origem guardada e o alvo da
   // volta morrem — senão a barra "você veio de…" reaparece numa visita solta ao acervo.
   _limpaOrigem(){
@@ -7942,7 +7988,9 @@ class Component extends DCLogic {
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
     'redProvaId','ajPerfis','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
-    'hl','fc','casos']);
+    'hl','fc','casos',
+    // os concursos projetam o `edital`, que é da área: ficam na mesma área que ele
+    'editais','editalAtivo']);
   /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
   _areaAtiva(){
     try{
@@ -7952,11 +8000,28 @@ class Component extends DCLogic {
     }catch(_){ return ''; }
   }
   /** Nome real da chave no localStorage, já com o namespace da área quando é o caso. */
+  /* Fase 2 dos vários concursos: UM CICLO POR CONCURSO. Cada concurso guarda o ciclo nas
+     próprias chaves (`catedra:manualFixed#ed-…`), pelo mesmo caminho que a área já usa.
+     O concurso principal ("Meu concurso") fica nas chaves de SEMPRE, sem sufixo: a migração
+     não move nada. Dois aparelhos em concursos diferentes escrevem em chaves diferentes e
+     nunca se misturam — sem espelho, sem corrida. O separador é '#' e não '@' porque o
+     auth.js lê o sufixo de área pelo último '@'. */
+  CICLO_PROPRIO = new Set(['blocks','blocksDate','cicloVolta','manualVoltaN','manualFixed','manualRot',
+    'rotPointer','manualFixedRoteiroAtual','agendaFeitas','planoLegis']);
+  /** Id do concurso ativo SEM depender do estado montado (o construtor chama _load antes). */
+  _concursoAtivoId(){
+    try{
+      if(this.state && this.state.editalAtivo!=null) return this.state.editalAtivo||'';
+      const r=localStorage.getItem(this._chave('editalAtivo'));   // editalAtivo não é do ciclo: sem recursão
+      return r!=null ? (JSON.parse(r)||'') : '';
+    }catch(_){ return ''; }
+  }
   _chave(k){
-    if(!this.AREA_PROPRIA.has(k)) return 'catedra:'+k;
-    const a=this._areaAtiva();
-    if(!a || a==='juridica') return 'catedra:'+k;   // as chaves de sempre, intocadas
-    return 'catedra:'+k+'@'+a;
+    let c;
+    if(!this.AREA_PROPRIA.has(k)) c='catedra:'+k;
+    else { const a=this._areaAtiva(); c=(!a || a==='juridica') ? ('catedra:'+k) : ('catedra:'+k+'@'+a); }   // as chaves de sempre, intocadas
+    if(this.CICLO_PROPRIO.has(k)){ const id=this._concursoAtivoId(); if(id && id!==this.ED_PRINCIPAL) c+='#'+id; }
+    return c;
   }
   /* SUBTÓPICOS DO EDITAL. `topics[].subs` guarda dois formatos que convivem — string (vindo do
      parser de edital) e {name, done} (do importador e das marcações). Todo ponto que MARCA ou
@@ -8053,7 +8118,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
@@ -8641,10 +8706,13 @@ class Component extends DCLogic {
     this.state.edParsed.forEach((pd)=>{
       let di=ed.findIndex(d=>norm(d.disc)===norm(pd.disc));
       if(di<0){ ed.push({disc:pd.disc, color:pd.color||this._editalColor(pd.disc, ed.length), open:false, topics:[],
-        peso:(has(pd.peso)?pd.peso:''), questoes:(has(pd.questoes)?pd.questoes:'')}); di=ed.length-1; }
+        peso:(has(pd.peso)?pd.peso:''), questoes:(has(pd.questoes)?pd.questoes:''), foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; }
       else { const cur=ed[di]; ed[di]={...cur,           // preenche peso/questões só se a existente ainda não tiver
         peso:(has(cur.peso)?cur.peso:(has(pd.peso)?pd.peso:cur.peso)),
-        questoes:(has(cur.questoes)?cur.questoes:(has(pd.questoes)?pd.questoes:cur.questoes))}; }
+        questoes:(has(cur.questoes)?cur.questoes:(has(pd.questoes)?pd.questoes:cur.questoes)),
+        // importar o edital de um concurso = esta disciplina cai nele. Nome idêntico ao de outro
+        // concurso é a MESMA disciplina: o estudo já feito nela passa a contar aqui também.
+        foraDoConcurso:false, _esp:this._espAtivo()}; }
       const D=ed[di];
       (pd.topics||[]).forEach(pt=>{
         let ti=D.topics.findIndex(t=>norm(t.name)===norm(pt.name));
@@ -8674,8 +8742,8 @@ class Component extends DCLogic {
     const _peso = c.peso!==''&&c.peso!=null ? Math.max(0,+c.peso||0) : '';
     const _quest = c.questoes!==''&&c.questoes!=null ? Math.max(0,Math.round(+c.questoes||0)) : '';
     let di = ed.findIndex(d=>d.disc.toLowerCase()===nome.toLowerCase());
-    if(di<0){ ed.push({disc:nome, color:c.mode==='nova'?c.cor:'#0f7a57', open:true, topics:[], peso:_peso, questoes:_quest}); di=ed.length-1; }
-    else { ed[di]={...ed[di], peso:(_peso!==''?_peso:ed[di].peso), questoes:(_quest!==''?_quest:ed[di].questoes)}; }
+    if(di<0){ ed.push({disc:nome, color:c.mode==='nova'?c.cor:'#0f7a57', open:true, topics:[], peso:_peso, questoes:_quest, foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; }
+    else { ed[di]={...ed[di], peso:(_peso!==''?_peso:ed[di].peso), questoes:(_quest!==''?_quest:ed[di].questoes), foraDoConcurso:false, _esp:this._espAtivo()}; }
     if(c.topico.trim()){
       let ti = ed[di].topics.findIndex(t=>t.name.toLowerCase()===c.topico.trim().toLowerCase());
       if(ti<0){ ed[di].topics.push({name:c.topico.trim(), done:false, subs: c.sub.trim()?[{name:c.sub.trim(), done:false}]:[]}); }
@@ -8685,7 +8753,134 @@ class Component extends DCLogic {
     this.setState({edital:ed, cad:{...c, discNova:'', topico:'', sub:'', peso:'', questoes:''}}); this.flashSync(); };
   onDiscMeta = (e)=>{ const i=+e.currentTarget.dataset.i, k=e.currentTarget.dataset.k, raw=e.currentTarget.value;
     const v = raw==='' ? '' : Math.max(0, k==='questoes'?Math.round(+raw||0):(+raw||0));
-    const ed=this.state.edital.map((d,di)=> di===i ? {...d, [k]:v} : d); this.setState({edital:ed}); this.flashSync(); };
+    const ed=this.state.edital.map((d,di)=> di===i ? {...d, [k]:v, _esp:this._espAtivo(), ...(v!==''?{foraDoConcurso:false}:{})} : d); this.setState({edital:ed}); this.flashSync(); };
+  /* ===== VÁRIOS CONCURSOS AO MESMO TEMPO (Fase 1 — dados) =====
+     O `edital` continua sendo o que sempre foi — disciplinas, tópicos, o que já foi estudado —
+     e NÃO é movido nem reescrito na migração ("migração é onde se perde edital"). Ele passa a
+     ser o ACERVO COMUM de conteúdo. Por cima dele, `editais` guarda os concursos: cada um com
+     o próprio peso e número de questões por disciplina, porque o mesmo Direito Civil vale
+     diferente no TJGO e no TJSP.
+     O peso/questões que ficam em cada disciplina do acervo são o ESPELHO do concurso ativo:
+     trocar de concurso reescreve o espelho; editar o peso grava de volta no concurso. Assim as
+     ~23 leituras de `d.peso` espalhadas pelo app enxergam o concurso certo sem ser tocadas.
+     Disciplina que não cai no concurso ativo fica com `foraDoConcurso:true` e peso vazio.
+     O estudo é um só: a sessão aponta a disciplina, e todo concurso que a tem enxerga o estudo.
+     Não há segunda cópia — por isso o tempo nunca é contado duas vezes. */
+  ED_PRINCIPAL = 'ed-principal';
+  /** Migração que não move nada: sem concursos e com edital, o que existe vira o 1º concurso.
+      Id FIXO + up=1: dois aparelhos que migram ao mesmo tempo geram o MESMO concurso, e qualquer
+      edição real (up = agora) vence este padrão no merge por id do auth.js. */
+  _editaisComMigracao(){
+    const eds=this.state.editais;
+    if(Array.isArray(eds) && eds.length) return eds;
+    const pool=this.state.edital||[];
+    if(!pool.length) return [];
+    const discs={};
+    pool.forEach(d=>{ const n=String(d.disc||'').trim(); if(!n) return;
+      discs[n]={peso:(d.peso!=null?d.peso:''), questoes:(d.questoes!=null?d.questoes:''), fora:!!d.foraDoConcurso}; });
+    return [{ id:this.ED_PRINCIPAL, nome:'Meu concurso', banca:'', dataProva:(this.state.provaData||''), discs, up:1 }];
+  }
+  _concursoAtivo(){
+    const eds=this._editaisComMigracao(); if(!eds.length) return null;
+    return eds.find(e=>e.id===this.state.editalAtivo) || eds[0];
+  }
+  /** Projeta o concurso C sobre o acervo: membros recebem o peso/questões de C; quem não cai em
+      C fica marcado e sem peso. Tópicos, cor e progresso NÃO são tocados — são do acervo. */
+  _edProjetar(pool, C){
+    if(!C) return pool;
+    const D=C.discs||{};
+    return (pool||[]).map(d=>{ const n=String(d.disc||'').trim(); const c=D[n];
+      if(c && !c.fora) return {...d, peso:(c.peso!=null?c.peso:''), questoes:(c.questoes!=null?c.questoes:''), foraDoConcurso:false, _esp:C.id};
+      return {...d, peso:'', questoes:'', foraDoConcurso:true, _esp:C.id}; });
+  }
+  /** O caminho de volta: o que está no espelho do acervo vira a verdade do concurso ativo.
+      Roda depois de qualquer mudança no edital (cadastro, importação, peso editado, renomear…).
+      Só grava — e só carimba `up` — quando algo mudou de fato: senão o merge entre aparelhos
+      veria uma edição que não aconteceu. Disciplina marcada "fora" guarda o peso que tinha:
+      desmarcar e marcar de novo por engano não apaga o que foi digitado. */
+  _edCapturar(){
+    const eds=this._editaisComMigracao(); if(!eds.length) return;
+    const C=this._concursoAtivo(); if(!C) return;
+    const antes=C.discs||{}, depois={};
+    (this.state.edital||[]).forEach(d=>{ const n=String(d.disc||'').trim(); if(!n) return;
+      // espelho de OUTRO concurso (chegou pela nuvem): nunca vira verdade deste
+      if(d._esp && d._esp!==C.id){ if(antes[n]) depois[n]=antes[n]; return; }
+      if(d.foraDoConcurso){ const a=antes[n]; depois[n]={peso:(a?a.peso:''), questoes:(a?a.questoes:''), fora:true}; }
+      else depois[n]={peso:(d.peso!=null?d.peso:''), questoes:(d.questoes!=null?d.questoes:''), fora:false}; });
+    if(JSON.stringify(antes)===JSON.stringify(depois) && Array.isArray(this.state.editais) && this.state.editais.length) return;
+    const novos=eds.map(e=>e.id===C.id?{...e, discs:depois, up:(JSON.stringify(antes)===JSON.stringify(depois)?e.up:Date.now())}:e);
+    this.setState({editais:novos});
+  }
+  /** Assinatura barata do espelho: o componentDidUpdate só captura quando ela muda. */
+  _edAssinatura(){ return JSON.stringify((this.state.edital||[]).map(d=>[d.disc, d.peso, d.questoes, !!d.foraDoConcurso, d._esp||''])); }
+  /* A CORRIDA QUE ISTO FECHA: o Mac em "Meu concurso" e o iPad no "TJSP". A nuvem pode
+     trazer o concurso ativo de um aparelho e o espelho de peso do outro — e a captura
+     gravaria o peso de "Meu concurso" DENTRO do TJSP, calada. Cada disciplina do espelho
+     carrega `_esp` (de qual concurso ela é); se não bate com o ativo, o espelho está velho:
+     reprojeta o concurso ativo por cima em vez de capturar. Sem `_esp` = dado local novo. */
+  _edSincronizarConcurso(){
+    const C=this._concursoAtivo(); if(!C) return;
+    if((this.state.edital||[]).some(d=>d._esp && d._esp!==C.id)){
+      this._edSig=null; this.setState({edital:this._edProjetar(this.state.edital, C)}); return; }
+    const sig=this._edAssinatura(); if(sig===this._edSig) return;
+    this._edSig=sig; this._edCapturar();
+  }
+  _espAtivo(){ const C=this._concursoAtivo(); return C?C.id:''; }
+  /* Vira o concurso ativo — o mesmo cuidado que a troca de área já tem, na mesma ordem:
+     1) grava o ciclo ABERTO nas chaves do concurso de SAÍDA (o _chave ainda aponta para ele);
+     2) adota o novo concurso ANTES de reler, para todo _chave() do ciclo mirar o destino;
+     3) relê o ciclo do destino e alinha o _lastSaved — sem isso o autosave veria o ciclo velho
+        na memória como "mudança" e o gravaria DENTRO do concurso novo, apagando o dele. */
+  _virarConcurso(id, eds){
+    const C=(eds||[]).find(x=>x.id===id); if(!C) return;
+    this._edCapturar();
+    try{ clearTimeout(this._asT); }catch(_){}
+    this._salvarAgora();                                                     // (1)
+    this.state.editalAtivo=id;                                               // (2)
+    try{ localStorage.setItem(this._chave('editalAtivo'), JSON.stringify(id)); }catch(_){}
+    const patch={ editalAtivo:id, editais:eds, edital:this._edProjetar(this.state.edital, C) };
+    this.CICLO_PROPRIO.forEach(k=>{ patch[k]=this._load(k, this._vazioDe(k)); });   // (3)
+    const L=this._lastSaved||(this._lastSaved={});
+    this.CICLO_PROPRIO.forEach(k=>{ L[k]=patch[k]; }); L.editalAtivo=id;
+    this._edSig=null;
+    this.setState(patch, ()=>{ try{ this._reconcileCiclo(); }catch(_){} });
+    this.flashSync();
+  }
+  // ---- ações da tela ----
+  trocarConcurso = (e)=>{
+    const id=String((e.currentTarget.dataset&&e.currentTarget.dataset.id)||e.currentTarget.value||''); const eds=this._editaisComMigracao();
+    const C=eds.find(x=>x.id===id); if(!C) return;
+    this._virarConcurso(id, (Array.isArray(this.state.editais)&&this.state.editais.length)?this.state.editais:eds);
+    this._toast('Concurso ativo: '+C.nome+' — pesos, questões e o ciclo deste concurso');
+  };
+  novoConcurso = ()=>{
+    const nome=String(window.prompt('Nome do novo concurso (ex.: TJSP 2026):','')||'').trim(); if(!nome) return;
+    this._edCapturar();
+    const eds=this._editaisComMigracao();
+    // começa SEM disciplinas: cada uma entra ao ser marcada, importada de um modelo ou cadastrada.
+    // Disciplina de nome idêntico à de outro concurso é a MESMA — o estudo feito nela já conta aqui.
+    const discs={}; (this.state.edital||[]).forEach(d=>{ const n=String(d.disc||'').trim(); if(n) discs[n]={peso:'', questoes:'', fora:true}; });
+    // o PRIMEIRO concurso de quem ainda não tinha nenhum é o principal: é ele que fica com as
+    // chaves de sempre do ciclo — senão o ciclo já montado ficaria órfão, sem dono
+    const C={ id:(eds.length?('ed-'+Date.now()):this.ED_PRINCIPAL), nome, banca:'', dataProva:'', discs, up:Date.now() };
+    this._virarConcurso(C.id, [...eds, C]);
+    this._toast('Concurso "'+nome+'" criado, com ciclo próprio — marque as disciplinas que caem nele');
+  };
+  renomearConcurso = ()=>{
+    const C=this._concursoAtivo(); if(!C) return;
+    const nome=String(window.prompt('Novo nome do concurso:', C.nome)||'').trim(); if(!nome||nome===C.nome) return;
+    const eds=this._editaisComMigracao();
+    this.setState({editais:eds.map(e=>e.id===C.id?{...e, nome, up:Date.now()}:e)}); this.flashSync();
+  };
+  /** Marca/desmarca "cai neste concurso". Desmarcar NÃO apaga o estudo: ele é do acervo. */
+  toggleNoConcurso = (e)=>{
+    const i=+e.currentTarget.dataset.i; const ed=(this.state.edital||[]).slice(); if(!ed[i]) return;
+    const fora=!ed[i].foraDoConcurso;
+    const C=this._concursoAtivo(); const guard=(C&&C.discs&&C.discs[String(ed[i].disc||'').trim()])||{};
+    ed[i]= fora ? {...ed[i], foraDoConcurso:true, peso:'', questoes:'', _esp:this._espAtivo()}
+                : {...ed[i], foraDoConcurso:false, peso:(guard.peso!=null?guard.peso:''), questoes:(guard.questoes!=null?guard.questoes:''), _esp:this._espAtivo()};
+    this.setState({edital:ed}); this.flashSync();
+  };
   // ===== modelos de edital pré-cadastrados (CT_MODELOS) =====
   // O conteúdo dos 12 modelos (~430 KB) mora em modelos-edital.js e só é buscado
   // quando ela abre "Começar com um modelo" — quem só registra sessão nunca baixa.
@@ -9350,7 +9545,7 @@ class Component extends DCLogic {
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*mult));
     const nBl=Math.max(4, Math.min(40, Math.round(this._voltaTotalMin()/base)));
     let B; try{ B=this._brain(); }catch(_){ B={byTopic:{}, discList:[]}; }
-    const ed=(this.state.edital||[]).map(d=>({disc:String(d.disc||'').trim(), peso:(parseFloat(d.peso)||1), pend:(d.topics||[]).filter(t=>t&&!t.done).map(t=>String(t.name||'').trim()).filter(Boolean)})).filter(d=>d.disc);
+    const ed=(this.state.edital||[]).filter(d=>!d.foraDoConcurso).map(d=>({disc:String(d.disc||'').trim(), peso:(parseFloat(d.peso)||1), pend:(d.topics||[]).filter(t=>t&&!t.done).map(t=>String(t.name||'').trim()).filter(Boolean)})).filter(d=>d.disc);
     let prio=[]; try{ prio=this._prioridade(); }catch(_){ prio=[]; }
     const pmap={}; prio.forEach(p=>{ pmap[p.disc]=p; });
     let discs;
@@ -12282,7 +12477,7 @@ class Component extends DCLogic {
     try{
       const calc=window.CT_PRIORIDADE_CALC; if(!calc) return [];
       return calc.prioridadeDisciplinas({
-        edital:this.state.edital, errors:this.state.errors, reviews:this.state.reviews,
+        edital:(this.state.edital||[]).filter(d=>!d.foraDoConcurso), errors:this.state.errors, reviews:this.state.reviews,
         sessions:this.state.sessions, incidencia:this._prioridadeIncidencia(), leituraPendente:this._laPendentePorDisc(), hoje:this._hoje()
       });
     }catch(_){ return []; }
@@ -14907,8 +15102,14 @@ class Component extends DCLogic {
         domMedioColor: domMedio==null?'var(--text3)':(domMedio>=70?'var(--ok)':domMedio>=55?'var(--warn)':'var(--danger)'),
         pesoVal:_pv, questoesVal:_qv, pesoStr:_pv!==''?String(_pv):'—', questoesStr:_qv!==''?String(_qv):'—', hasMeta:_hasMeta, metaChip:(_pv!==''?('peso '+_pv):'')+(_pv!==''&&_qv!==''?' · ':'')+(_qv!==''?(_qv+'q'):''),
         colorHex:(/^#[0-9a-f]{6}$/i.test(d.color||'')?d.color:'#0f7a57'),   // <input type=color> só aceita #rrggbb
+        noConcurso:!d.foraDoConcurso, foraConcurso:!!d.foraDoConcurso, noConcursoStr:d.foraDoConcurso?'false':'true',
+        ...(()=>{ const n=String(d.disc||'').trim(); const k=(this._editaisComMigracao()||[]).filter(e=>e.discs&&e.discs[n]&&!e.discs[n].fora).length;
+          return { emConcursosN:String(k), emVariosConcursos:k>1 }; })(),
         topics:_tops};
     });
+    // Contagens e pesos do painel valem para o CONCURSO ATIVO: disciplina que não cai nele
+    // continua na lista do edital (para ser marcada), mas não entra em cobertura nem em peso.
+    const _edMembros = edital.filter(d=>!d.foraDoConcurso);
     // ===== modelo de edital pré-cadastrado =====
     const _mSel=this.state.modeloSel||[];
     // Os modelos prontos hoje são todos de carreiras jurídicas. Mostro os da área
@@ -14952,14 +15153,14 @@ class Component extends DCLogic {
       : (modeloVazio ? '' : 'carregando o conteúdo…');
     const modeloTodasLabel=(_mDiscs.length&&_mSel.length===_mDiscs.length)?'Desmarcar todas':'Marcar todas';
     const modeloAplicarLabel='Adicionar '+(_mSel.length||0)+' disciplina'+(_mSel.length===1?'':'s')+' ao edital';
-    const edTotal = edital.reduce((a,d)=>a+d.tot,0);
-    const edDone = edital.reduce((a,d)=>a+d.done,0);
+    const edTotal = _edMembros.reduce((a,d)=>a+d.tot,0);
+    const edDone = _edMembros.reduce((a,d)=>a+d.done,0);
     const edPct = edTotal>0 ? Math.round(edDone/edTotal*100) : 0;
-    const edAlta = edital.filter(d=>d.pct>=60).length;
+    const edAlta = _edMembros.filter(d=>d.pct>=60).length;
     // meta de tempo por peso (brief: metasDeTempo)
     const pesoMap = {'Direito Constitucional':2,'Direito Administrativo':2,'Direito Penal':1.5,'Direito Civil':1.5,'Direito Tributário':1,'Processo Civil':1,'Direito Financeiro':1};
     const weeklyMin = 1440; // 24h/semana
-    const matsPeso = edital.map(d=>({disc:d.disc, color:d.color, peso:(d.pesoVal!==''&&d.pesoVal!=null)?(+d.pesoVal||0.0001):(pesoMap[d.disc]||1)}));
+    const matsPeso = _edMembros.map(d=>({disc:d.disc, color:d.color, peso:(d.pesoVal!==''&&d.pesoVal!=null)?(+d.pesoVal||0.0001):(pesoMap[d.disc]||1)}));
     const somaPesos = matsPeso.reduce((a,m)=>a+m.peso,0);
     const fmtHM = (min)=>{ const h=Math.floor(min/60), m=Math.round(min%60); return h>0?(m>0?`${h}h${String(m).padStart(2,'0')}`:`${h}h`):`${m}min`; };
     const metaTempo = matsPeso.map(m=>{ const meta=somaPesos?Math.round(weeklyMin*(m.peso/somaPesos)):0; return {...m, meta, metaLabel:fmtHM(meta), pct:Math.round(meta/weeklyMin*100)}; }).sort((a,b)=>b.meta-a.meta);
@@ -17425,6 +17626,20 @@ class Component extends DCLogic {
       homeRevJuris:String((this.state.nativeRev&&this.state.nativeRev.juris&&this.state.nativeRev.juris.due)||0),
       homeTimerDot:(this.state.timerRunning?'#34d399':'#5f7a6e'), homeTimerSub:(this.state.timerRunning?'EM CURSO · TOQUE P/ PAUSAR':'PARADO · TOQUE P/ INICIAR'),
       isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
+      // ===== concursos (Fase 1): quem está ativo, a lista e as ações =====
+      ...(()=>{ const eds=this._editaisComMigracao(), C=this._concursoAtivo();
+        const fora=(this.state.edital||[]).filter(d=>d.foraDoConcurso).length;
+        // disciplina do concurso ativo que também cai em OUTRO: é aqui que o estudo rende em dobro
+        const membro=(e,n)=>!!(e&&e.discs&&e.discs[n]&&!e.discs[n].fora);
+        const doAtivo=(this.state.edital||[]).filter(d=>!d.foraDoConcurso).map(d=>String(d.disc||'').trim());
+        const compart=C?doAtivo.filter(n=>eds.some(e=>e.id!==C.id&&membro(e,n))).length:0;
+        return { temConcurso:!!C, concursoNome:C?C.nome:'',
+          concursoOpts:eds.map(e=>({id:e.id, nome:e.nome, sel:!!(C&&e.id===C.id), selStr:(C&&e.id===C.id)?'true':'false'})),
+          concursoDiscN:String(doAtivo.length), concursoCompartN:String(compart),
+          concursoVarios:eds.length>1, concursoN:String(eds.length),
+          concursoForaN:String(fora), concursoTemFora:fora>0,
+          trocarConcurso:this.trocarConcurso, novoConcurso:this.novoConcurso, renomearConcurso:this.renomearConcurso,
+          toggleNoConcurso:this.toggleNoConcurso }; })(),
       // --- o menu pergunta CAPACIDADE, não "que área é esta" ---
       // Escritas uma a uma de propósito: o dc-runtime só resolve CHAVE LITERAL de
       // primeiro nível, e variável que ele não acha vira string vazia em silêncio.
