@@ -27,6 +27,7 @@ import { testarEnamModo } from './enam-modo.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
+import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -93,6 +94,13 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarIpadToqueSatelites(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'IPAD/satélites toque [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+    // o <select> do host: o tema nativo do WebKit reescrevia padding, raio e min-height (20 px
+    // no toque em vez de 44, e 20 com mouse no app do Mac em vez de 38) — só este motor acusa
+    try { await testarSelectHost(page, base, ok, { motor, origem }); }
+    catch (e) {
+      ok(false, 'SELECT/host [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
   }
