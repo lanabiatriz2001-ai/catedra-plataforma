@@ -197,10 +197,9 @@ async function selectsDoModal(page, base, ok, R, arquivo) {
   const T = R + 'selects do modal (1280) ';
   const SUB = 'Crimes contra as relações de consumo (Lei nº 8.078, de 11 de setembro de 1990), a ordem tributária (Lei nº 8.137, de 27 de dezembro de 1990) e a ordem econômica (Lei nº 8.176, de 8 de fevereiro de 1991)';
   const CPP = 'Código de Processo Penal (Decreto-lei nº 3.689, de 3 de outubro de 1.941)';
-  const MAT = 'Manual de Direito Processual Penal — volume único, 12ª edição revista, ampliada e atualizada pelo Pacote Anticrime';
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(base + '/__semente');
-  await page.evaluate(({ SUB, CPP, MAT }) => {
+  await page.evaluate(({ SUB, CPP }) => {
     const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
     localStorage.clear();
     set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica');
@@ -209,11 +208,9 @@ async function selectsDoModal(page, base, ok, R, arquivo) {
       { disc: 'Direito Penal', peso: 2, questoes: 15, topics: [{ name: 'Leis Penais Especiais', done: false, subs: [SUB, 'Crimes hediondos'] }] },
       { disc: 'Direito Processual Penal', peso: 2, questoes: 15, topics: [{ name: CPP, done: false, subs: [{ name: 'Do inquérito policial' }, { name: 'Da ação penal' }] }] }]);
     set('sessions', []); set('reviews', []); set('errors', []);
-    // o material da pessoa vive em catedra:lib (só os itens com user)
-    localStorage.setItem('catedra:lib', JSON.stringify([{ id: 'mat-longo', titulo: MAT, tipo: 'livro', user: true }, { id: 'mat-curto', titulo: 'Súmulas do STJ', tipo: 'pdf', user: true }]));
-  }, { SUB, CPP, MAT });
+  }, { SUB, CPP });
   await page.goto(base + '/' + arquivo); await page.waitForTimeout(1800);
-  const r = await page.evaluate(async ({ SUB, CPP, MAT }) => {
+  const r = await page.evaluate(async ({ SUB, CPP }) => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const fonte = cs => [cs.fontStyle, cs.fontWeight, cs.fontSize, cs.fontFamily].join(' ');
     const largura = (sel, t) => { const cx = document.createElement('canvas').getContext('2d'); cx.font = fonte(getComputedStyle(sel)); return cx.measureText(t).width; };
@@ -256,12 +253,7 @@ async function selectsDoModal(page, base, ok, R, arquivo) {
     r.nomeInteiroDoTopicoLongoApareceNoModal = dlg.querySelector('input[data-k="topico"]').value === CPP && (dlg.textContent || '').includes('Marcar “' + CPP + '”');
     const nomesObj = [...q('Subtópico').options].map(o => o.textContent.trim());
     r.subtopicoEmObjetoSegueComONome = nomesObj.includes('Do inquérito policial') && nomesObj.includes('Da ação penal');
-    // material da biblioteca: o título só existe no select
-    s = q('Vincular material da biblioteca'); r.vaziaDoMaterialCabe = vaziaCabe(s); const matSemTitle = s.title === '';
-    s = await troca('Vincular material da biblioteca', 'mat-longo');
-    r.titleDoMaterialLongoEhOTituloInteiro = matSemTitle && !textoCabe(s, MAT) && s.title === MAT && titleEhOEscolhido(s);
-    s = await troca('Vincular material da biblioteca', 'mat-curto');
-    r.titleDoMaterialAcompanhaATroca = s.title === 'Súmulas do STJ' && titleEhOEscolhido(s);
+    // (o seletor "Vincular material da biblioteca" saiu com a remoção da Biblioteca)
     // Lei seca: catálogo do LEGIS; a lei de nome mais largo é a que o select corta
     if (chip('Lei seca').getAttribute('aria-pressed') !== 'true') { chip('Lei seca').click(); await w(400); }
     s = q('Qual lei'); r.vaziaDaLeiCabe = vaziaCabe(s); const leiSemTitle = s.title === '';
@@ -284,10 +276,10 @@ async function selectsDoModal(page, base, ok, R, arquivo) {
     s = await troca('Qual fonte', foV);
     r.titleDaFonteEhOEscolhido = foSemTitle && s.title === foT && titleEhOEscolhido(s);
     // todo select do modal passou pela régua acima (um select novo sem medida derruba o caso)
-    const esperados = ['Disciplina', 'Tópico', 'Subtópico', 'Vincular material da biblioteca', 'Qual lei', 'Trecho da lei ou da fonte', 'Qual fonte'];
+    const esperados = ['Disciplina', 'Tópico', 'Subtópico', 'Qual lei', 'Trecho da lei ou da fonte', 'Qual fonte'];
     r.todoSelectDoModalPassouPelaRegua = esperados.every(l => medidos.has(l)) && [...dlg.querySelectorAll('select')].every(x => esperados.includes(x.getAttribute('aria-label')));
     return r;
-  }, { SUB, CPP, MAT });
+  }, { SUB, CPP });
   for (const [k, v] of Object.entries(r)) ok(v, T + k);
 }
 

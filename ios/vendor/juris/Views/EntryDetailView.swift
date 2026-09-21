@@ -176,6 +176,14 @@ struct EntryDetailView: View {
         }
         // Por fora do inspector: no iPhone o painel (recolhido) emprestava "Anotações" à barra.
         .navigationTitle(entry.titulo)
+        // SÓ NO SIMULADOR: -jurisAnotacoes abre o painel junto do verbete. É o estado em que
+        // o defeito de largura do iPad aparece (com o inspector aberto), e sem toque não há
+        // outro jeito de chegar nele.
+        .onAppear {
+            #if targetEnvironment(simulator)
+            if ProcessInfo.processInfo.arguments.contains("-jurisAnotacoes") { showAnnotationsPanel = true }
+            #endif
+        }
         .id(entry.id)
     }
 
@@ -297,9 +305,6 @@ struct EntryDetailView: View {
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Palette.importante.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
-            .overlay(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2).fill(Palette.importante).frame(width: 3.5).padding(.vertical, 14)
-            }
             .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.importante.opacity(0.22), lineWidth: 1))
         }
     }
@@ -358,7 +363,6 @@ struct EntryDetailView: View {
         .padding(.vertical, 8).padding(.horizontal, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(cor.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
-        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 1.5).fill(cor).frame(width: 2.5).padding(.vertical, 8) }
     }
 
     /// Alerta forte quando a súmula/tese perdeu validade (cancelada ou superada).
@@ -488,11 +492,6 @@ struct EntryDetailView: View {
         .padding(.horizontal, 22)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
-        .overlay(alignment: .leading) {
-            // Lombada do RAMO (vitrine) — combina com a faixa do cabeçalho.
-            RoundedRectangle(cornerRadius: 2).fill(RamoStyle.color(entry.ramoDireito))
-                .frame(width: 3.5).padding(.vertical, 16).padding(.leading, 1.5)
-        }
         .overlay(RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
         .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.18), radius: 14, y: 6)
         .shadow(color: .black.opacity(0.04), radius: 3, y: 1)

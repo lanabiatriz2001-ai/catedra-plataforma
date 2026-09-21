@@ -24,6 +24,7 @@ import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
+import { testarVariosEditais } from './varios-editais.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
@@ -677,6 +678,72 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
   ok(inc.length === 0,
     'INFO todo verbete de informativo tem título "Info N · TRIBUNAL" coerente com os campos'
     + (inc.length ? ' (' + inc.slice(0, 3).map(r => r[0] + ':' + r[4]).join(', ') + ')' : ''));
+}
+
+/* === JURIS — CONTEÚDO: VOTO NÃO É TESE, ORIENTAÇÃO SUPERADA, TESE CORTADA (auditoria 18/09/2026) ===
+
+   A auditoria conferiu o controle de constitucionalidade e as seleções para concurso contra a
+   publicação temática oficial do STF e os informativos. Achou verbete ensinando como tese do
+   Tribunal o que era voto do relator (inclusive tese que o STF rejeita), orientação depois
+   superada sem ressalva, e tese cortada pelo parser. O que se prova aqui:
+   · a web volta a mostrar a CITAÇÃO DE ORIGEM (fp) — "[Rcl 4.335, voto do rel. min. …]" —, que
+     o app nativo sempre teve e a web tinha perdido: é ela que diz que o trecho é voto;
+   · a nota de atualização vai em co ("Comentário"), NUNCA em ob — ob é "observação DA FONTE",
+     e a nota fingiria ser do STF; toda nota tem o prefixo e termina na fonte oficial;
+   · tese que estava cortada agora termina a frase;
+   · a mesma decisão mostra a mesma data em todo verbete que a cita (ARE 1.314.490). */
+{
+  const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8')).call(null, e); return e[g]; };
+  const TXT = carrega('juris-text.js', '__JURIS_TXT__');
+  const IDX = {}; for (const r of carrega('juris-index.js', '__JURIS_IDX__')) IDX[r[0]] = r;
+  const PREFIXO = 'Nota do Cátedra (auditoria de set/2026, conferida em fonte oficial): ';
+  const t = id => TXT[id] || {};
+
+  // 1. guardas gerais sobre TODO o acervo
+  const notas = Object.entries(TXT).filter(([, v]) => v && typeof v.co === 'string' && v.co.includes('Nota do Cátedra'));
+  ok(notas.length >= 58, 'CONTEÚDO há notas de atualização da auditoria no acervo (' + notas.length + ')');
+  ok(notas.every(([, v]) => v.co.startsWith(PREFIXO)),
+    'CONTEÚDO toda nota da auditoria começa com o prefixo exato (o leitor sabe que a nota é do Cátedra)');
+  // a última frase da nota nomeia a fonte: rótulo "Fonte:", tribunal, informativo, número de
+  // processo ou endereço oficial — em qualquer das formas em que as notas a citam
+  const FONTE = /Fonte:|Informativos?\b|\bSTF\b|\bSTJ\b|stf\.jus\.br|\bRISTF\b|\b(Lei|Decreto)\s+[\d.]+|\b(ADI|ADC|ADPF|ADO|RE|ARE|HC|RHC|Rcl|REsp|MS|Pet)\s*\d/;
+  ok(notas.every(([, v]) => /\]\s*\.?$/.test(v.co.trim()) || FONTE.test(v.co.slice(-220))),
+    'CONTEÚDO toda nota da auditoria termina nomeando a fonte oficial que a sustenta');
+  ok(!Object.values(TXT).some(v => v && typeof v.ob === 'string' && v.ob.includes('Nota do Cátedra')),
+    'CONTEÚDO nenhuma nota nossa entrou em ob ("observação DA FONTE" — fingiria ser do STF)');
+
+  // 2. voto do relator: a web mostra a citação de origem, e a nota diz o que o Plenário fez
+  ok(/voto do rel\. min\. Gilmar Mendes/.test(t('CTRLCONST-0056').fp || '')
+    && /n[ãa]o fixada|n[ãa]o foi adotada|voto do relator/.test(t('CTRLCONST-0056').co || ''),
+    'CONTEÚDO CTRLCONST-0056: mutação do art. 52, X, aparece como voto (Rcl 4.335), não como tese do STF');
+  ok(/n[ãa]o adota a transcend[êe]ncia dos motivos determinantes/.test(t('CTRLCONST-0062').co || ''),
+    'CONTEÚDO CTRLCONST-0062: avisa que o STF NÃO adota a transcendência dos motivos determinantes');
+  // a citação restaurada é cópia literal do nativo: sempre "[…]"
+  const cit = ['CTRLCONST-0002', 'CTRLCONST-0006', 'CTRLCONST-0056', 'CTRLCONST-0062', 'CTRLCONST-0109'];
+  ok(cit.every(id => /^\[[^\[\]]{15,}\]\.?$/.test(t(id).fp || '')),
+    'CONTEÚDO os trechos do controle de constitucionalidade voltam a trazer a citação de origem na web');
+
+  // 3. orientação superada, com ressalva
+  ok(/ADI 145/.test(t('CTRLCONST-0006').co || '') && /Informativo STF 907/.test(t('CTRLCONST-0006').co || ''),
+    'CONTEÚDO CTRLCONST-0006: ressalva que o Plenário superou a prejudicialidade (ADI 145, Info 907)');
+
+  // 4. lixo do parser que aparecia como "Observação" saiu
+  ok(!/Confedera[çc][ãa]o sindical ou entidade de classe/.test(t('CTRLCONST-0109').ob || ''),
+    'CONTEÚDO CTRLCONST-0109: o título da subseção seguinte não aparece mais como observação');
+
+  // 5. tese cortada agora termina a frase
+  const fimDeFrase = s => /[.”"!?)\]]\s*$/.test(String(s || '').trim());
+  ok(fimDeFrase(t('SELTJGO-0086').en) && /n[ãa]o incid[êe]ncia de ICMS no deslocamento/i.test(t('SELTJGO-0086').en || ''),
+    'CONTEÚDO SELTJGO-0086: a tese do ICMS (Tema 1.367) está inteira, e não cortada');
+  ok(['SELTJGO-0012', 'SELTJGO-0029', 'SELTJGO-0048', 'SELTJGO-0111'].every(id => fimDeFrase(t(id).en) && (t(id).en || '').length > 150),
+    'CONTEÚDO as teses que o parser tinha reduzido a um fragmento voltaram inteiras');
+
+  // 6. a mesma decisão, a mesma data, em todo verbete que a cita
+  ok(IDX['SELTJGO-0124'][7] === '06/02/2026' && IDX['INF2026-STF-1204-01'][7] === '06/02/2026'
+    && /06[./]02[./]2026/.test(t('INF2026-STF-1204-01').fp || '') && /06[./]02[./]2026/.test(t('SELTJGO-0124').fp || ''),
+    'CONTEÚDO ARE 1.314.490: data e citação dizem 06/02/2026 nos dois verbetes (o Info 1204 erra o ano)');
+  ok(IDX['INF2026-STF-1205-02'][7] === '13/02/2026' && /erro material/.test(t('INF2026-STF-1205-02').co || ''),
+    'CONTEÚDO RE 1.408.525: 13/02/2026, com a nota de que o Info 1205 erra o ano');
 }
 
 /* ================ ERRO VIRA REVISÃO (item 2) ================ */
@@ -8407,6 +8474,13 @@ catch (e) {
 try { await testarIntegracaoModulos(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'INTEGRAÇÃO [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Vários concursos ao mesmo tempo — Fase 1, dados (tests/varios-editais.mjs)
+try { await testarVariosEditais(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'EDITAIS [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
