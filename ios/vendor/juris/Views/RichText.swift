@@ -42,6 +42,15 @@ final class RichTextController {
         guard let d = f.fontDescriptor.withSymbolicTraits(tr) else { return f }
         return UIFont(descriptor: d, size: f.pointSize)
     }
+    /// LIGA ou DESLIGA o trait, sem alternar: a decisão vem de fora, tomada uma vez para a
+    /// seleção inteira. `alterna` continua servindo ao caso de cursor sem seleção, onde há
+    /// uma fonte só e alternar é o certo.
+    private func definindo(_ f: NSFont, _ t: UIFontDescriptor.SymbolicTraits, _ ativo: Bool) -> NSFont {
+        var tr = f.fontDescriptor.symbolicTraits
+        if ativo { tr.insert(t) } else { tr.remove(t) }
+        guard let d = f.fontDescriptor.withSymbolicTraits(tr) else { return f }
+        return UIFont(descriptor: d, size: f.pointSize)
+    }
     func toggleTrait(symbolic: UIFontDescriptor.SymbolicTraits) {
         guard let tv = textView else { return }
         let sel = tv.selectedRange
@@ -52,12 +61,19 @@ final class RichTextController {
         }
         let ts = tv.textStorage          // não-opcional no iPadOS
         let base = (ts.attribute(.font, at: sel.location, effectiveRange: nil) as? NSFont) ?? .systemFont(ofSize: 14)
+        /* A decisão é UMA para a seleção toda, tomada pelo começo dela — e é por isso que
+           `ativar` existe. Alternando trecho a trecho, uma seleção MISTA se INVERTE: o que
+           estava em negrito sai, o que não estava entra, e o botão nunca deixa o trecho
+           uniforme. O compilador denunciou isto como "valor nunca usado" (RichText.swift:55),
+           e o Mac deste mesmo editor (mac/vendor/juris/Views/RichText.swift) sempre esteve
+           certo — usa `ativar` no lugar equivalente. A porta para UIKit trocou o
+           `fm.convert(toHave:/toNotHave:)` por um `alterna()` e perdeu a decisão única.
+           O toggleLineAttr logo abaixo já faz o certo: lê o começo e aplica igual em tudo. */
         let ativar = !hasTrait(base, symbolic)
         ts.beginEditing()
         ts.enumerateAttribute(.font, in: sel) { v, r, _ in
             let f = (v as? NSFont) ?? .systemFont(ofSize: 14)
-            let nf = alterna(f, symbolic)
-            ts.addAttribute(.font, value: nf, range: r)
+            ts.addAttribute(.font, value: definindo(f, symbolic, ativar), range: r)
         }
         ts.endEditing()
         tv.delegate?.textViewDidChange?(tv)   // no macOS era didChangeText()
