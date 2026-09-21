@@ -1524,3 +1524,24 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 [data-toque="1"] .ct-concurso-pilula, [data-toque="1"] .ct-concurso-novo, [data-toque="1"] .ct-concurso-ren { min-height: 44px; }
 @media (max-width: 520px) { .ct-concurso-ren { margin-left: 0; } }
 .ct-concurso-aviso { margin: 0; font-size: var(--fs-sm, 12.5px); line-height: 1.55; color: var(--text2, #5c564a); }
+
+/* ===== CONCURSOS NO PAINEL (Fase 4) =====
+   Cartões na linguagem do .ct-item (borda tingida + lavagem, sem faixa lateral) e barra de
+   progresso por translateX, como manda o DESIGN.md. O cartão do concurso ativo leva a cor de
+   destaque; os outros, a borda neutra. */
+.ct-conc-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--ct-e3, 12px); }
+.ct-conc-card { width: 100%; text-align: left; font-family: inherit; cursor: pointer; min-height: 44px; }
+.ct-conc-card[aria-pressed="true"] { --ct-item-cor: var(--accent, #0f7a57); }
+.ct-conc-card .ct-item-corpo { display: flex; flex-direction: column; gap: 4px; }
+.ct-conc-pct { font-family: var(--display, Georgia, serif); font-size: 26px; font-weight: 700; line-height: 1;
+  color: var(--ink, #1f1c17); font-variant-numeric: tabular-nums; }
+.ct-conc-barra { display: block; height: 6px; border-radius: 99px; overflow: hidden; background: var(--surface2, #f0ece1); margin-top: 6px; }
+.ct-conc-barra i { display: block; height: 100%; width: 100%; border-radius: 99px; background: var(--accent, #0f7a57);
+  transform: translateX(calc(var(--pct, 0%) - 100%)); }
+.ct-conc-desemp { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px;
+  border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-lg, 14px); background: var(--surface, #fffdf8); }
+.ct-conc-nota { margin: 0; font-size: var(--fs-sm, 12.5px); line-height: 1.55; color: var(--text2, #5c564a); }
+.ct-conc-linha { display: grid; grid-template-columns: minmax(90px, 160px) 1fr auto; align-items: center; gap: 12px; }
+.ct-conc-linha .ct-conc-barra { margin-top: 0; }
+.ct-conc-nome { font-size: var(--fs-base, 13.5px); font-weight: 600; color: var(--ink, #1f1c17); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ct-conc-t { font-family: var(--mono); font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a); font-variant-numeric: tabular-nums; }
