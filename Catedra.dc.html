@@ -1744,6 +1744,23 @@ window.ctPdfLib = (function(){
 
         <!-- REVISÕES -->
         <!-- ONDE ESTOU FRACA (item 1): a decisão nº 1 do dia, com o porquê -->
+        <!-- SEUS CONCURSOS (Fase 4). Cobertura calculada sobre o acervo comum: estudar uma
+             disciplina avança todo concurso que a tem. Só com dois concursos ou mais. -->
+        <sc-if value="{{ concPainelTem }}" hint-placeholder-val="{{ false }}">
+          <div class="cth-sec"><h2>Seus concursos</h2><span class="rule"></span><span class="meta">o estudo de uma disciplina vale em cada concurso que a tem</span></div>
+          <div class="ct-conc-grade">
+            <sc-for list="{{ concPainel }}" as="c" hint-placeholder-count="2">
+              <button class="ct-item ct-conc-card" data-id="{{ c.id }}" aria-pressed="{{ c.ativoStr }}" onclick="{{ abrirConcurso }}" aria-label="{{ c.nome }}: {{ c.pctStr }} do edital coberto; abrir o edital deste concurso">
+                <span class="ct-item-corpo">
+                  <span class="ct-item-tit">{{ c.nome }}</span>
+                  <span class="ct-item-nota">{{ c.discTxt }} · {{ c.tempoTxt }} nesta semana<sc-if value="{{ c.temCompart }}" hint-placeholder-val="{{ false }}"> · {{ c.compartStr }} em comum</sc-if></span>
+                  <span class="ct-conc-barra" aria-hidden="true"><i style="--pct:{{ c.pctStr }};"></i></span>
+                </span>
+                <span class="ct-item-fim"><b class="ct-conc-pct">{{ c.pctStr }}</b></span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
         <div class="cth-sec"><h2>Onde estou fraca</h2><span class="rule"></span><span class="meta">erros, revisões vencidas, tempo parada e peso do edital</span></div>
         <sc-if value="{{ prioTem }}" hint-placeholder-val="{{ true }}">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:26px;">
@@ -4195,6 +4212,17 @@ window.ctPdfLib = (function(){
 
         <sc-if value="{{ anaVisao }}" hint-placeholder-val="{{ true }}">
          <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- TEMPO POR CONCURSO (Fase 4). A mesma sessão serve a todo concurso que tem a
+               disciplina: a soma das linhas PODE passar do total, e a tela diz isso antes. -->
+          <sc-if value="{{ concPainelTem }}" hint-placeholder-val="{{ false }}">
+            <section class="ct-conc-desemp" aria-label="Tempo por concurso">
+              <div class="ct-grupo"><span class="ct-grupo-ponto"></span><h3 class="ct-grupo-titulo">Tempo por concurso · últimos 7 dias</h3><span class="ct-grupo-n">{{ concTotalTxt }} no total</span></div>
+              <p class="ct-conc-nota">Uma sessão conta para todo concurso que tem a disciplina. Por isso a soma das linhas pode passar de <b>{{ concTotalTxt }}</b>, que é o tempo que você de fato estudou — contado uma vez só.</p>
+              <sc-for list="{{ concPainel }}" as="c" hint-placeholder-count="2">
+                <div class="ct-conc-linha"><span class="ct-conc-nome">{{ c.nome }}</span><span class="ct-conc-barra" aria-hidden="true"><i style="--pct:{{ c.tempoPctStr }};"></i></span><b class="ct-conc-t">{{ c.tempoTxt }}</b></div>
+              </sc-for>
+            </section>
+          </sc-if>
           <!-- KPIs reais -->
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
             <sc-for list="{{ anaKpis }}" as="k" hint-placeholder-count="4">
@@ -8846,6 +8874,39 @@ class Component extends DCLogic {
     this.setState(patch, ()=>{ try{ this._reconcileCiclo(); }catch(_){} });
     this.flashSync();
   }
+  /* ===== FASE 4: CADA CONCURSO NO PAINEL =====
+     Tudo é calculado sobre o ACERVO COMUM: o tópico concluído em Direito Civil avança todo
+     concurso que tem Civil, e a sessão de Civil serve a todos eles. É exatamente o que a dona
+     pediu no começo — "contabilize o tempo da sessão apenas uma vez" —, e por isso o tempo
+     por concurso NÃO soma para dar o total: o total é contado uma vez, à parte (_tempoUnico),
+     e a tela diz isso com todas as letras. Só existe com dois concursos ou mais. */
+  _resumoConcursos(){
+    const eds=this._editaisComMigracao(); if(eds.length<2) return [];
+    const C=this._concursoAtivo(), pool=this.state.edital||[];
+    const desde=Date.now()-7*864e5;
+    const membro=(e,n)=>!!(e&&e.discs&&e.discs[n]&&!e.discs[n].fora);
+    const sess=(this.state.sessions||[]).filter(x=>(x.ts||0)>=desde);
+    return eds.map(e=>{
+      const discs=pool.filter(d=>membro(e, String(d.disc||'').trim()));
+      const nomes=new Set(discs.map(d=>String(d.disc||'').trim()));
+      let tot=0, done=0; discs.forEach(d=>(d.topics||[]).forEach(t=>{ tot++; if(t&&t.done) done++; }));
+      const min=sess.filter(x=>nomes.has(String(x.disc||'').trim())).reduce((a,x)=>a+Math.max(0,+x.min||0),0);
+      const compart=[...nomes].filter(n=>eds.some(o=>o.id!==e.id&&membro(o,n))).length;
+      return { id:e.id, nome:e.nome, ativo:!!(C&&C.id===e.id), discN:nomes.size,
+        pct:(tot?Math.round(done/tot*100):0), min, compart };
+    });
+  }
+  /** O tempo estudado nos últimos 7 dias, contado UMA vez — a régua contra a qual cada concurso se mede. */
+  _tempoUnico(){ const desde=Date.now()-7*864e5;
+    return (this.state.sessions||[]).filter(x=>(x.ts||0)>=desde).reduce((a,x)=>a+Math.max(0,+x.min||0),0); }
+  _fmtMin(m){ m=Math.round(m||0); if(m<60) return m+' min'; const h=Math.floor(m/60), r=m%60; return h+'h'+(r?String(r).padStart(2,'0'):''); }
+  /** Do cartão do painel para o Edital daquele concurso (troca o ativo se for outro). */
+  abrirConcurso = (e)=>{
+    const id=String(e.currentTarget.dataset.id||''); const C=this._concursoAtivo();
+    if(C && C.id!==id){ const eds=(Array.isArray(this.state.editais)&&this.state.editais.length)?this.state.editais:this._editaisComMigracao();
+      if(eds.some(x=>x.id===id)) this._virarConcurso(id, eds); }
+    this._irPara('edital');
+  };
   // ---- ações da tela ----
   trocarConcurso = (e)=>{
     const id=String((e.currentTarget.dataset&&e.currentTarget.dataset.id)||e.currentTarget.value||''); const eds=this._editaisComMigracao();
@@ -17626,6 +17687,11 @@ class Component extends DCLogic {
       homeRevJuris:String((this.state.nativeRev&&this.state.nativeRev.juris&&this.state.nativeRev.juris.due)||0),
       homeTimerDot:(this.state.timerRunning?'#34d399':'#5f7a6e'), homeTimerSub:(this.state.timerRunning?'EM CURSO · TOQUE P/ PAUSAR':'PARADO · TOQUE P/ INICIAR'),
       isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
+      // ===== concursos no painel (Fase 4) =====
+      ...(()=>{ const R=this._resumoConcursos(), tot=this._tempoUnico();
+        const painel=R.map(c=>({...c, ativoStr:c.ativo?'true':'false', pctStr:c.pct+'%', discTxt:(c.discN===1?'1 disciplina':c.discN+' disciplinas'), tempoTxt:this._fmtMin(c.min),
+          tempoPctStr:(tot?Math.min(100,Math.round(c.min/tot*100)):0)+'%', temCompart:c.compart>0, compartStr:String(c.compart)}));
+        return { concPainel:painel, concPainelTem:painel.length>1, concTotalTxt:this._fmtMin(tot), abrirConcurso:this.abrirConcurso }; })(),
       // ===== concursos (Fase 1): quem está ativo, a lista e as ações =====
       ...(()=>{ const eds=this._editaisComMigracao(), C=this._concursoAtivo();
         const fora=(this.state.edital||[]).filter(d=>d.foraDoConcurso).length;

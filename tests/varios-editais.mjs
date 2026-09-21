@@ -24,7 +24,7 @@ export async function testarVariosEditais(pageDaSuite, base, ok, opcoes = {}) {
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
   const t = new Date(); t.setHours(14, 0, 0, 0); await page.clock.install({ time: t });
-  try { await roteiro(page, base, ok, R, arquivo); await cicloPorConcurso(page, base, ok, R, arquivo); await tela(page, base, ok, R, arquivo); await mergeEntreAparelhos(page, base, ok, R); } finally { await ctx.close(); }
+  try { await roteiro(page, base, ok, R, arquivo); await cicloPorConcurso(page, base, ok, R, arquivo); await tela(page, base, ok, R, arquivo); await painel(page, base, ok, R, arquivo); await mergeEntreAparelhos(page, base, ok, R); } finally { await ctx.close(); }
 }
 
 /* O ponto mais perigoso desta fase não é a tela: é dois aparelhos migrando o mesmo edital.
@@ -280,4 +280,75 @@ async function tela(page, base, ok, R, arquivo) {
   ok(m.selos.some(t => /em 2 concursos/.test(t)), R + 'Direito Civil mostra "em 2 concursos": o estudo dele vale nos dois (' + m.selos.join(', ') + ')');
   ok(m.kpis.some(k => /^1\s*em comum/.test(k)), R + 'a faixa conta as disciplinas em comum com outro concurso (' + m.kpis.join(' | ') + ')');
   ok(m.bordaEsq === m.bordaTopo, R + 'DESIGN.md: o cartão do baralho no Início não tem mais faixa lateral colorida (esq ' + m.bordaEsq + ' = topo ' + m.bordaTopo + ')');
+}
+
+
+/* FASE 4 — CADA CONCURSO NO PAINEL. Números conferidos à mão:
+   · TJGO tem Civil (1 de 2 tópicos feitos) e Penal (0 de 1) → 1/3 = 33%; tempo 60 + 30 = 90 min
+   · TJSP tem só Civil (1 de 2) → 50%; tempo 60 min
+   · o tempo ESTUDADO é 90 min — e a soma dos concursos (150) passa disso, porque a sessão de Civil
+     serve aos dois. A tela tem de dizer o total uma vez só, e avisar que a soma não é o total.
+   Isso é o "contabilize o tempo da sessão apenas uma vez" do pedido original, medido. */
+async function painel(page, base, ok, R, arquivo) {
+  await page.goto(base + '/__semente');
+  await page.evaluate(() => {
+    const set = (k, v) => localStorage.setItem('catedra:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+    localStorage.clear();
+    set('auth', '1'); set('onboarded', '1'); set('areaEstudo', 'juridica');
+    set('edital', [{ disc: 'Direito Civil', peso: 2, questoes: 15, topics: [{ name: 'Obrigações', done: true, subs: [] }, { name: 'Contratos', done: false, subs: [] }] },
+                   { disc: 'Direito Penal', peso: 1, questoes: 10, topics: [{ name: 'Teoria do crime', done: false, subs: [] }] }]);
+    set('editais', [{ id: 'ed-principal', nome: 'TJGO 2026', discs: { 'Direito Civil': { peso: 2, questoes: 15, fora: false }, 'Direito Penal': { peso: 1, questoes: 10, fora: false } }, up: 5 },
+                    { id: 'ed-sp', nome: 'TJSP 2026', discs: { 'Direito Civil': { peso: 3, questoes: 20, fora: false }, 'Direito Penal': { peso: '', questoes: '', fora: true } }, up: 6 }]);
+    const agora = Date.now(), d = new Date().toISOString().slice(0, 10);
+    const ses = (id, disc, min) => ({ id, ts: agora - 3600e3, date: d, disc, topico: 'x', categoria: 'Teoria', categorias: ['Teoria'], min, questoes: 0, acertos: 0, erradas: 0, brancos: 0, liquido: 0 });
+    set('sessions', [ses('s1', 'Direito Civil', 60), ses('s2', 'Direito Penal', 30),
+      { ...ses('s-velha', 'Direito Civil', 500), ts: agora - 20 * 864e5 }]);   // fora da semana: não conta
+    set('reviews', []); set('errors', []);
+  });
+  await page.goto(base + '/' + arquivo); await page.waitForTimeout(1900);
+  const m = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    window.__catedraGoView('inicio'); await w(1000);
+    const cards = [...document.querySelectorAll('.ct-conc-card')];
+    const txt = el => (el ? el.textContent : '').replace(/\s+/g, ' ').trim();
+    const r = { nCards: cards.length, cards: cards.map(c => ({ id: c.dataset.id, pct: txt(c.querySelector('.ct-conc-pct')), nota: txt(c.querySelector('.ct-item-nota')), ativo: c.getAttribute('aria-pressed') })) };
+    const barra = document.querySelector('.ct-conc-card .ct-conc-barra i');
+    r.barraTransform = barra ? getComputedStyle(barra).transform : '';
+    const c0 = cards[0]; if (c0) { const cs = getComputedStyle(c0); r.esq = cs.borderLeftWidth; r.topo = cs.borderTopWidth; }
+    // Desempenho: o total uma vez só, e o aviso de que a soma passa dele
+    window.__catedraGoView('analise'); await w(1000);
+    const sec = document.querySelector('.ct-conc-desemp');
+    r.desempTxt = txt(sec);
+    r.linhas = sec ? [...sec.querySelectorAll('.ct-conc-linha')].map(l => txt(l)) : [];
+    // tocar no TJSP leva ao Edital do TJSP
+    window.__catedraGoView('inicio'); await w(800);
+    const sp = document.querySelector('.ct-conc-card[data-id="ed-sp"]'); if (sp) { sp.click(); await w(1100); }
+    const app = window.__catedraApp;
+    r.viewDepois = app.state.view; r.ativoDepois = app.state.editalAtivo;
+    return r;
+  });
+  const go = m.cards.find(c => c.id === 'ed-principal') || {}, sp = m.cards.find(c => c.id === 'ed-sp') || {};
+  ok(m.nCards === 2, R + 'Início: com dois concursos, aparece "Seus concursos" com um cartão para cada (' + m.nCards + ')');
+  ok(go.pct === '33%' && sp.pct === '50%', R + 'cobertura por concurso sobre o acervo comum: TJGO 33%, TJSP 50% (' + go.pct + ' / ' + sp.pct + ')');
+  ok(/1h30 nesta semana/.test(go.nota) && /1h nesta semana/.test(sp.nota),
+    R + 'tempo da semana por concurso: TJGO 1h30, TJSP 1h — a sessão de 20 dias atrás não entra (' + go.nota + ' | ' + sp.nota + ')');
+  ok(/^1 disciplina ·/.test(sp.nota) && /^2 disciplinas ·/.test(go.nota), R + 'singular e plural certos: "1 disciplina", "2 disciplinas" (' + sp.nota.split(' ·')[0] + ')');
+  ok(go.ativo === 'true' && sp.ativo === 'false', R + 'o cartão do concurso ativo se marca em aria-pressed');
+  ok(m.barraTransform && m.barraTransform !== 'none', R + 'DESIGN.md: a barra do cartão anda por transform, não por largura (' + m.barraTransform + ')');
+  ok(m.esq === m.topo, R + 'DESIGN.md: cartão sem faixa lateral colorida (esq ' + m.esq + ' = topo ' + m.topo + ')');
+  ok(/1h30 no total/.test(m.desempTxt) && /soma das linhas pode passar de 1h30/.test(m.desempTxt),
+    R + 'Desempenho: o tempo total aparece UMA vez (1h30) e a tela avisa que a soma dos concursos passa dele');
+  ok(m.linhas.length === 2 && m.linhas.some(l => /TJGO 2026\s*1h30/.test(l)) && m.linhas.some(l => /TJSP 2026\s*1h$/.test(l)),
+    R + 'Desempenho: TJGO 1h30 e TJSP 1h — somam 2h30 sobre 1h30 estudadas, e isso é certo (' + m.linhas.join(' | ') + ')');
+  ok(m.viewDepois === 'edital' && m.ativoDepois === 'ed-sp', R + 'tocar no cartão do TJSP abre o Edital já no TJSP');
+
+  // com UM concurso só, a seção não existe (não há o que comparar)
+  const um = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const app = window.__catedraApp;
+    app.setState({ editais: [(app.state.editais || [])[0]] }); await w(400);
+    window.__catedraGoView('inicio'); await w(700);
+    return document.querySelectorAll('.ct-conc-card').length;
+  });
+  ok(um === 0, R + 'com um concurso só, "Seus concursos" não aparece — não há o que comparar');
 }
