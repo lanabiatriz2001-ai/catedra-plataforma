@@ -11,19 +11,25 @@ import Foundation
 ///   comoEra/hoje  situação + observação da fonte (cancelada/superada/alterada)
 ///   decidiu       o enunciado inteiro, limpo
 ///   chave         ramos "regra"/"fundamento" da nota do app, ou frases-núcleo do enunciado
-///   jurisprudencia verbetes relacionados do acervo (mesmo ramo/tema) — reais, abríveis
+///   quadro        o "Não confunda com": os vizinhos confundíveis em colunas, com as
+///                 células que o acervo sustenta (QuadroRelacionados.swift)
 ///   atencao       ramos "cuidado"/"excecao"/"vedacao" da nota
 ///   pegadinha     a inversão segura da tese (Exporter.afirmacaoFalsaAuto) — a troca que a
 ///                 banca faz para virar alternativa errada
 ///   quiz          1 questão C/E com a inversão + flashcard por lacuna (JurisFlashcards)
-@MainActor
+///
+/// PURO e sem @MainActor: lê o acervo por um retrato (AcervoQuadro) e roda numa tarefa
+/// destacada (RoteiroEstudoView.gerar). O quadro varre o acervo, e o resto do roteiro
+/// compila dezenas de expressões regulares — medido, ~9 ms fora o quadro —, e nada disso
+/// tem por que disputar a main com a rolagem.
 enum RoteiroLocal {
 
-    static func gerar(_ e: JurisEntry, store: LibraryStore) -> RoteiroEstudo {
-        let nota = store.notaApp(for: e.id)
+    static func gerar(_ e: JurisEntry, acervo: AcervoQuadro) -> RoteiroEstudo {
+        let nota = acervo.notaApp(for: e.id)
         let en = limpar(e.enunciado)
         let frases = sentencas(en)
         var r = RoteiroEstudo()
+        r.versao = RoteiroEstudo.versaoAtual
         r.nivel = nivel(e)
         r.segundaFase = e.importante || (nota?.temEsquema ?? false)
         r.frase = nota?.tese.map(limpar).flatMap { $0.isEmpty ? nil : $0 } ?? frases.first ?? en
@@ -39,9 +45,15 @@ enum RoteiroLocal {
         if chave.isEmpty { chave = Array(frases.filter(ehNucleo).prefix(5)) }
         if chave.isEmpty, let f = frases.first { chave = [f] }
         r.chave = Array(chave.prefix(5))
-        r.jurisprudencia = store.relacionados(e, limite: 5).map { rel in
-            [rel.tribunal, rel.titulo].joined(separator: " · ")
-        }
+        // Vizinhos: um cálculo SÓ (QuadroRelacionadosCalc) para o quadro e para a lista "Do
+        // mesmo assunto" — o detalhe do verbete lê a lista DESTE quadro, não recalcula.
+        // Antes esta linha achatava o JurisEntry inteiro em "tribunal · titulo" e jogava
+        // fora ramo, tema, data, situação e id — e para um Tema o titulo é literalmente
+        // "Tema 457 (RG)", que não diz nada. A lista achatada (`jurisprudencia`) deixou de
+        // ser gravada: nenhum roteiro do formato atual a pintava, e ela ia inteira para o
+        // cache em disco de cada verbete aberto.
+        r.quadro = QuadroRelacionadosCalc.montar(e, acervo: acervo)
+        r.acervo = acervo.carimbo
         let aten = ramos.filter { ["cuidado", "excecao", "vedacao", "pegadinha"].contains($0.tipo) }.flatMap { $0.itens }
         r.atencao = aten.prefix(3).joined(separator: " ")
         let falsa = Exporter.afirmacaoFalsaAuto(en)
@@ -77,9 +89,15 @@ enum RoteiroLocal {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Quebra em sentenças sem cortar em "art.", "n.", "§", "inc.", "Min.", "Rel.".
+    /// Quebra em sentenças sem cortar em "art.", "n.", "§", "inc.", "Min.", "Rel." — nem no
+    /// ponto que separa milhar. Sem a segunda proteção o texto quebrava dentro de "Lei
+    /// 8.078", "REsp 1.657.156" e "Decreto 11.846": medido, 2.075 de 15.220 verbetes tinham
+    /// a 1ª sentença cortada no meio de um número, e o Tema 500 exibia, sob o rótulo "Tese
+    /// fixada", o fragmento "Em, 25/04/2018, o STJ, ao julgar o REsp 1".
     static func sentencas(_ s: String) -> [String] {
-        let protegido = s.replacingOccurrences(of: "(?i)\\b(art|arts|n|nº|inc|min|rel|des|ed|obs|p|pp|fl|fls|cf|ex|v|vs)\\.", with: "$1§PT§", options: .regularExpression)
+        let protegido = s
+            .replacingOccurrences(of: "(?i)\\b(art|arts|n|nº|inc|min|rel|des|ed|obs|p|pp|fl|fls|cf|ex|v|vs)\\.", with: "$1§PT§", options: .regularExpression)
+            .replacingOccurrences(of: "(?<=\\d)\\.(?=\\d)", with: "§PT§", options: .regularExpression)
         return protegido.components(separatedBy: CharacterSet(charactersIn: ".;"))
             .map { $0.replacingOccurrences(of: "§PT§", with: ".").trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { $0.count > 25 }

@@ -31,6 +31,13 @@ struct EntryDetailView: View {
     @State private var editingMarkComment: EditingMarkComment?
     @State private var focusedMarkID: String?
     @State private var showAnnotationsPanel = false
+    /// O quadro dos julgados vizinhos que o roteiro PINTOU — o roteiro o passa para cá
+    /// (aoMudarQuadro). Antes `store.relacionados(entry)` era chamado DENTRO do corpo, em
+    /// dois lugares, a cada mudança de estado; depois a página montava o quadro de novo num
+    /// .task próprio, na main, além do que o roteiro já montava. Agora é UM cálculo, fora da
+    /// main, e a seção "Do mesmo assunto" nunca discorda do quadro na mesma rolagem — nem
+    /// quando o roteiro vem do cache.
+    @State private var vizinhos: QuadroRelacionados?
 
     private var baseSize: CGFloat { 16.5 * readingScale }
     private var markColor: MarkColor { MarkColor(rawValue: markColorHex) ?? .amarelo }
@@ -50,7 +57,10 @@ struct EntryDetailView: View {
                 // O roteiro é local e instantâneo (RoteiroLocal), então nasce aberto em TODO
                 // verbete — informativo ou não. Antes havia dois ramos (ehInformativo e o
                 // contrário) chamando a mesma coisa com comentários que diziam o oposto.
-                RoteiroEstudoView(entry: entry, autoGerar: true)
+                // vizinhosAbaixo: a lista "Do mesmo assunto" é a seção que fecha a página
+                // (relacionadosSection), então o quadro não a repete aqui em cima.
+                RoteiroEstudoView(entry: entry, autoGerar: true, vizinhosAbaixo: true,
+                                  aoMudarQuadro: { vizinhos = $0 })
                 // "Minhas anotações" LOGO ABAIXO do dispositivo (pedido da Lana) —
                 // antes vinha depois da nota de estudo do app.
                 anotacaoCard
@@ -302,9 +312,18 @@ struct EntryDetailView: View {
                             : "Verifique o entendimento atual — esta tese foi superada."))
                         .font(.system(size: 12)).foregroundStyle(Palette.bodyInk)
                         .fixedSize(horizontal: false, vertical: true)
-                    if !store.relacionados(entry).isEmpty {
-                        Text("Veja os julgados relacionados abaixo para o entendimento vigente.")
-                            .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                    // Aponta para o que DE FATO vai pintar: a seção do fim da página lista só o
+                    // que ficou fora do quadro, e pode estar vazia quando todos os vizinhos
+                    // viraram colunas. E não promete que ali está "o entendimento vigente" —
+                    // o acervo não marca qual vizinho é o atual.
+                    if let v = vizinhos {
+                        if !v.mesmoAssuntoItens.isEmpty {
+                            Text("Os julgados do mesmo assunto estão no fim da página — confira neles, e no tribunal, qual é o entendimento atual.")
+                                .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                        } else if v.temQuadro {
+                            Text("Compare com os verbetes do quadro “Não confunda com”, no roteiro logo abaixo.")
+                                .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                        }
                     }
                 }
                 Spacer(minLength: 0)
@@ -1035,33 +1054,24 @@ struct EntryDetailView: View {
         .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 
+    /// A ÚNICA lista de vizinhos da página. Antes ela chamava store.relacionados(entry) com
+    /// o limite padrão 6 enquanto o roteiro pedia 5: dois conjuntos diferentes do mesmo
+    /// verbete na mesma rolagem. Agora lista o que ficou de fora do quadro ("Do mesmo
+    /// assunto") — e quando não há quadro, lista todos os vizinhos, como antes.
     @ViewBuilder
     private var relacionadosSection: some View {
-        let rel = store.relacionados(entry)
+        let rel = (vizinhos?.mesmoAssuntoItens ?? []).compactMap { store.byId[$0.id] }
         if !rel.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
-                SectionRule(titulo: "Julgados relacionados")
+                // Sempre "Do mesmo assunto": sem quadro, estes são os vizinhos que NÃO passaram
+                // no piso de confundibilidade — "relacionados" prometia mais do que o
+                // vocabulário em comum sustenta, e o aviso de tese superada lá em cima já os
+                // chama por esse nome.
+                SectionRule(titulo: "Do mesmo assunto")
                 ForEach(rel) { r in
-                    Button { if store.leituraID != nil { store.lerCheio(r.id) } else { store.selectedID = r.id } } label: {
-                        HStack(alignment: .top, spacing: 10) {
-                            RoundedRectangle(cornerRadius: 2).fill(r.fonteKind.cor).frame(width: 3)
-                            VStack(alignment: .leading, spacing: 3) {
-                                HStack(spacing: 6) {
-                                    FonteBadge(fonte: r.fonteKind, compact: true)
-                                    Text(r.titulo).font(.system(size: 12.5, weight: .semibold))
-                                        .foregroundStyle(Palette.titleInk).lineLimit(1)
-                                }
-                                Text(r.enunciado).font(Typo.serifBody(11.5))
-                                    .foregroundStyle(Palette.bodyInk.opacity(0.85))
-                                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                            }
-                            Spacer(minLength: 0)
-                            Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .contentShape(Rectangle())
+                    JurisVizinhoLinha(entry: r) {
+                        if store.leituraID != nil { store.lerCheio(r.id) } else { store.selectedID = r.id }
                     }
-                    .buttonStyle(.plain)
                     if r.id != rel.last?.id { Divider().overlay(Palette.hairline) }
                 }
             }
