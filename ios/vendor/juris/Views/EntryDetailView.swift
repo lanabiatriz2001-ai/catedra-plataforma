@@ -305,9 +305,6 @@ struct EntryDetailView: View {
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Palette.importante.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
-            .overlay(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2).fill(Palette.importante).frame(width: 3.5).padding(.vertical, 14)
-            }
             .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.importante.opacity(0.22), lineWidth: 1))
         }
     }
@@ -366,7 +363,6 @@ struct EntryDetailView: View {
         .padding(.vertical, 8).padding(.horizontal, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(cor.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
-        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 1.5).fill(cor).frame(width: 2.5).padding(.vertical, 8) }
     }
 
     /// Alerta forte quando a súmula/tese perdeu validade (cancelada ou superada).
