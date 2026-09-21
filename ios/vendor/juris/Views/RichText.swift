@@ -349,7 +349,11 @@ struct MarkableText: UIViewRepresentable {
     /// da borda esquerda ("…ança de taxas porque:") e as faixas atravessavam os dois lados.
     /// Mesmo conserto do leitor de lei (MarkableArticleView.sizeThatFits).
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
-        guard let largura = proposal.width, largura > 1 else { return nil }
+        // Proposta "livre" (largura nil) acontece dentro de alguns contêineres do iPad: aí a
+        // referência passa a ser a largura ATUAL da view, nunca a do conteúdo — que é o que
+        // fazia a coluna inchar e o texto sair da tela.
+        let proposta = proposal.width ?? (uiView.bounds.width > 1 ? uiView.bounds.width : nil)
+        guard let largura = proposta, largura > 1 else { return nil }
         let tc = uiView.textContainer
         tc.widthTracksTextView = false
         tc.size = CGSize(width: largura, height: .greatestFiniteMagnitude)
