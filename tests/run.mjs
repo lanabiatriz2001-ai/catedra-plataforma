@@ -746,6 +746,66 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
     'CONTEÚDO RE 1.408.525: 13/02/2026, com a nota de que o Info 1205 erra o ano');
 }
 
+/* === JURIS — STJ CONFERIDO NA FONTE: TESE, JULGADO, TEMA E EDIÇÃO (auditoria 18–21/09/2026) ===
+
+   A auditoria conferiu o acervo do STJ no portal de repetitivos, nas edições do Informativo e na
+   compilação oficial da Jurisprudência em Teses (dez/2024). Cada correção deste PR é texto LITERAL
+   da fonte ou metadado que consta dela. O que se prova aqui, um caso por tipo de defeito:
+   · tese invertida volta ao sentido que o STJ fixou;
+   · condição ou ressalva perdida volta à tese;
+   · o destaque certo deixa de vir colado a um julgado de outro processo;
+   · tese de Turma deixa de aparecer como tese de repetitivo;
+   · tema e edição apontam para onde a fonte mostra o julgado;
+   · lixo de processamento e tese perdida inteira dão lugar ao texto oficial;
+   · palavra partida ("alegaçõe s") volta inteira. */
+{
+  const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8')).call(null, e); return e[g]; };
+  const TXT = carrega('juris-text.js', '__JURIS_TXT__');
+  const IDX = {}; for (const r of carrega('juris-index.js', '__JURIS_IDX__')) IDX[r[0]] = r;
+  const en = id => (TXT[id] || {}).en || '';
+
+  // 1. tese invertida / regra trocada
+  ok(/n[ãa]o [ée] incompat[íi]vel com a prescri[çc][ãa]o intercorrente/.test(en('INF2024-0062')),
+    'STJ INF2024-0062: a multa aduaneira NÃO escapa da prescrição intercorrente (a 2ª Turma decidiu que ela se aplica)');
+  ok(/sistema declarativo/.test(en('JT-ED024-20')) && !/sistema atributivo/.test(en('JT-ED024-20')),
+    'STJ JT-ED024-20: a tese oficial diz "sistema declarativo", não "atributivo"');
+  ok(/arrendamento rural/.test(en('INF2023-0218')) && !/arrendamento mercantil/.test(en('INF2023-0218')),
+    'STJ INF2023-0218: o prazo mínimo de 5 anos é do arrendamento RURAL, não mercantil');
+
+  // 2. condição ou ressalva que a tese exige
+  ok(/desde que a medida represente vantagens ao adotando/.test(en('JT-ED027-14')),
+    'STJ JT-ED027-14: a adoção por casal homoafetivo vem com a condição da tese oficial');
+  ok(/na hip[óo]tese de haver cl[áa]usula contratual de exclus[ãa]o/.test(en('JT-ED143-04')),
+    'STJ JT-ED143-04: a operadora só deixa de custear a fertilização in vitro se houver cláusula de exclusão');
+
+  // 3. julgado de outro processo colado ao verbete
+  ok(/^[ÉE] devida a cobertura/.test(en('INF2020-0693')) && !/n[ãa]o [ée] obrigada a custear/.test(en('INF2020-0693')),
+    'STJ INF2020-0693: o verbete não abre mais com a tese oposta de outro julgado');
+  ok(!/A[çc][ãa]o Popular/.test(en('SELTJRJ-0520')) && /contribui[çc][õo]es extraordin[áa]rias/.test(en('SELTJRJ-0520')),
+    'STJ SELTJRJ-0520: sai a tese de outro processo (ação popular); fica só a deste julgado');
+  ok(/As despesas relativas [àa] remo[çc][ãa]o, guarda e conserva[çc][ãa]o/.test(en('repgeral-repetitivo-STJ-453'))
+    && !/O arrendante [ée] respons[áa]vel/.test(en('repgeral-repetitivo-STJ-453')),
+    'STJ Tema 453: a tese do repetitivo substitui o julgado da 3ª Turma que dizia o contrário');
+
+  // 4. tema e edição onde a fonte mostra o julgado
+  ok(IDX['repgeral-repetitivo-STJ-x1253'][4] === 'Tema 1249 (Repetitivo)' && IDX['repgeral-repetitivo-STJ-x1253'][3] === 1249,
+    'STJ "Tema s/n" das medidas protetivas passa a dizer Tema 1249');
+  ok(IDX['INF2020-0016'][4] === 'Info 681 · STJ',
+    'STJ INF2020-0016: RMS 61.302 saiu no Informativo 681, não no 678');
+  ok(IDX['INF2023-0395'][4] === 'Ed. Extraordinária 9 · STJ' && IDX['INF2023-0395'][3] === 9 && (TXT['INF2023-0395'] || {}).fp === 'Ed. Extraordinária 9 STJ',
+    'STJ INF2023-0395: título, número e citação apontam a Edição Extraordinária 9');
+
+  // 5. lixo e tese perdida inteira
+  ok(!/buscadordizerodireito_com_br/.test(en('repgeral-repetitivo-STJ-588-2')) && /ADI 3\.106/.test(en('repgeral-repetitivo-STJ-588-2')),
+    'STJ Tema 588: o enunciado deixa de ser um pedaço de URL e traz a tese');
+  ok(/dispensa do dever de cola[çc][ãa]o exige declara[çc][ãa]o formal/.test(en('SELTJGO-0202')),
+    'STJ SELTJGO-0202: a tese deixa de ser só "legítima." e volta inteira');
+
+  // 6. palavra partida
+  ok(/alega[çc][õo]es\b/.test(en('INF2020-0699')) && !/alega[çc][õo]e s\b/.test(en('INF2020-0699')),
+    'STJ INF2020-0699: "alegaçõe s" volta a ser "alegações"');
+}
+
 /* ================ ERRO VIRA REVISÃO (item 2) ================ */
 await page.goto(URL0 + '/tests/harness-erros.html');
 await page.waitForFunction(() => !!window.colherErros);
