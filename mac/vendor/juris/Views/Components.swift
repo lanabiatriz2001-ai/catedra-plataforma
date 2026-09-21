@@ -426,8 +426,9 @@ struct BlocoEstudo<Corpo: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             RotuloEstudo(texto: rotulo)
+            // Sem filete lateral: faixa colorida de 3-4px na lateral é proibida na casa (o
+            // iPad já tinha tirado a dele). A cor continua no fundo tingido logo abaixo.
             HStack(alignment: .top, spacing: 0) {
-                RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3)
                 corpo
                     .font(.system(size: 14.5)).lineSpacing(3)
                     .foregroundStyle(Palette.titleInk)

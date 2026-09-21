@@ -317,7 +317,7 @@ enum Exporter {
 
     /// Pares de inversão de tese (de → para). A ordem importa: formas negadas e
     /// "inconstitucional" vêm antes das afirmativas para não serem mascaradas.
-    private static let paresFalsa: [(String, String)] = [
+    nonisolated private static let paresFalsa: [(String, String)] = [
         ("é inconstitucional", "é constitucional"),
         ("são inconstitucionais", "são constitucionais"),
         ("é constitucional", "é inconstitucional"),
@@ -340,7 +340,9 @@ enum Exporter {
     /// Gera automaticamente uma versão FALSA da afirmação, invertendo um operador
     /// de tese (constitucional↔inconstitucional, incide↔não incide, pode↔não pode…).
     /// Retorna nil quando nenhum operator confiável é encontrado (não força card).
-    static func afirmacaoFalsaAuto(_ texto: String) -> String? {
+    /// `nonisolated` (com os pares e a melhor lacuna): texto puro, sem tela — o roteiro de
+    /// estudo o chama fora da main (RoteiroLocal), e o resto do Exporter continua na main.
+    nonisolated static func afirmacaoFalsaAuto(_ texto: String) -> String? {
         // usa só a 1ª frase/linha — suficiente para um card Certo/Errado.
         let base = texto.split(whereSeparator: { $0 == "\n" }).first.map(String.init) ?? texto
         let ns = base as NSString
@@ -360,7 +362,7 @@ enum Exporter {
 
     /// Alvos "operativos" — o que as bancas mais cobram: valor, percentual, fração/
     /// quórum, número + unidade jurídica (prazo/pena), e número por extenso + unidade.
-    private static let regexOperativo = try! NSRegularExpression(pattern:
+    nonisolated private static let regexOperativo = try! NSRegularExpression(pattern:
         "R\\$\\s?[\\d.]+(?:,\\d{2})?" +
         "|\\b\\d{1,3}(?:\\.\\d{3})*(?:,\\d+)?\\s?%" +
         "|(?<![\\d.])\\d{1,2}/\\d{1,3}(?![\\d/])" +
@@ -369,7 +371,7 @@ enum Exporter {
         options: [.caseInsensitive])
 
     /// Termos de competência/tribunal — 2º alvo mais cobrado em jurisprudência.
-    private static let alvosCompetencia = [
+    nonisolated private static let alvosCompetencia = [
         "Justiça Estadual", "Justiça Federal", "Justiça do Trabalho", "Justiça Eleitoral",
         "competência da União", "competência dos Estados", "competência do Município",
         "Supremo Tribunal Federal", "Superior Tribunal de Justiça", "STF", "STJ",
@@ -378,7 +380,7 @@ enum Exporter {
     /// Escolhe a MELHOR lacuna do enunciado (o trecho mais cobrado), ignorando os
     /// intervalos já usados. Ordem: número/prazo/valor → competência → operador de
     /// tese → palavra-chave mais longa do índice. Retorna nil se não achar nada bom.
-    static func melhorLacuna(_ enunciado: String, evitando usados: [NSRange] = []) -> NSRange? {
+    nonisolated static func melhorLacuna(_ enunciado: String, evitando usados: [NSRange] = []) -> NSRange? {
         let ns = enunciado as NSString
         let full = NSRange(location: 0, length: ns.length)
         func livre(_ r: NSRange) -> Bool { usados.allSatisfy { NSIntersectionRange($0, r).length == 0 } }
