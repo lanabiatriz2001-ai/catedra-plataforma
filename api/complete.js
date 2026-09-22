@@ -111,15 +111,16 @@ export async function cotaDoDia(user) {
       headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
       body: '{}',
     });
-    if (!r.ok) return null;
+    if (!r.ok) { console.warn('[cota IA] consulta falhou (HTTP ' + r.status + '): liberando sem teto'); return null; }
     const j = await r.json();
     return (j && typeof j.limite === 'number' && typeof j.usadas === 'number') ? j : null;
-  } catch (_) {
+  } catch (e) {
+    console.warn('[cota IA] consulta falhou (' + (e && e.message) + '): liberando sem teto');
     return null;
   }
 }
 export function mensagemCota(c) {
-  return 'Você usou as ' + c.limite + ' chamadas de IA de hoje; volta amanhã ou fale com quem te convidou.';
+  return 'Você usou as ' + c.limite + ' chamadas de IA de hoje. A cota volta amanhã, à meia-noite de Brasília.';
 }
 
 export default async function handler(req, res) {
