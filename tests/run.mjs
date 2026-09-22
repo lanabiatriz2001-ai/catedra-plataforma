@@ -26,6 +26,7 @@ import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
+import { testarReguaUnica } from './regua-unica.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
@@ -8624,6 +8625,7 @@ catch (e) {
 // (tests/iphone-host-390.mjs e tests/iphone-satelites-390.mjs — casas dos casos de F4 e F5)
 try { await testarOnboardingImportar(page, URL0, ok); } catch (e) { ok(false, 'ONBOARDING/importar exceção: ' + e.message); }
 try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exceção: ' + e.message); }
+{ const ctxR = await browser.newContext(); const pageR = await ctxR.newPage(); try { await testarReguaUnica(pageR, URL0, ok); } catch (e) { ok(false, 'RÉGUA/única exceção: ' + e.message); } finally { await ctxR.close(); } }
 try { await testarIphoneHost390(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPHONE/host 390 [' + motor + '] [http] o roteiro correu sem exceção ('

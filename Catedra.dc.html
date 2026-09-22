@@ -12556,7 +12556,9 @@ class Component extends DCLogic {
       const calc=window.CT_PRIORIDADE_CALC; if(!calc) return [];
       return calc.prioridadeDisciplinas({
         edital:(this.state.edital||[]).filter(d=>!d.foraDoConcurso), errors:this.state.errors, reviews:this.state.reviews,
-        sessions:this.state.sessions, incidencia:this._prioridadeIncidencia(), leituraPendente:this._laPendentePorDisc(), hoje:this._hoje()
+        sessions:this.state.sessions, incidencia:this._prioridadeIncidencia(), leituraPendente:this._laPendentePorDisc(), hoje:this._hoje(),
+        // os controles de prioridade de Ajustes SÃO os pesos: a mesma régua do Foco do Início
+        pesos:(typeof calc.pesosDosControles==='function') ? calc.pesosDosControles(this.state.orient||{}) : undefined
       });
     }catch(_){ return []; }
   }
@@ -15606,26 +15608,27 @@ class Component extends DCLogic {
         f.ptsEstrat=f.pts*(0.6+0.8*f.pesoRel); });
       focoRende.sort((a,b)=>{ if(a.semDados!==b.semDados) return a.semDados?1:-1; return (b.ptsEstrat||0)-(a.ptsEstrat||0); });
     }
-    const focoRendeTop=focoRende[0]||null;
     const hasFocoRende=focoRende.length>0;
     const _focoCands=[];
     if(revPend>0) _focoCands.push({s:(parseInt(_orientCfg.pRevVenc,10)||10)+(revOverdue.length?3:0), t:(revOverdue.length?'as revisões vencidas':'as revisões de hoje'), v:'revisoes', btn:'Revisar agora'});
     if(_retaOnNow) _focoCands.push({s:(parseInt(_orientCfg.pProva,10)||8)+4, t:'simulados e revisão da reta final', v:'reta-final', btn:'Abrir reta final'});
-    if(focoRendeTop && focoRendeTop.pts>0 && !focoRendeTop.semDados){
-      // com foco estratégico ligado, a proximidade da prova empurra o "onde rende mais"
-      // para cima das outras sugestões do dia (é a metade "urgência" da promessa da caixa)
-      let _sIncid=(parseInt(_orientCfg.pIncid,10)||8);
-      if(_focoEstrat){ const _d=+_diasProvaN;
-        _sIncid += (isFinite(_d) && _d>0) ? (_d<=30?6 : _d<=90?4 : 2) : 2;
-        _sIncid += Math.round(2*(focoRendeTop.pesoRel||0)); }
-      _focoCands.push({s:_sIncid, t:focoRendeTop.short+' — pode render '+focoRendeTop.ptsStr+' a mais na prova', v:'ciclo', btn:'Ver ciclo'}); }
+    /* RÉGUA ÚNICA (22/09/2026): a disciplina do Foco sai do topo de "Onde estou fraca"
+       (_prioridade), que já soma erros, revisões, tempo parada, desempenho e incidência com
+       os pesos dos controles de Ajustes. Antes, três candidatas escolhiam disciplina cada
+       uma por conta própria (líquido mais baixo, mais tempo parada, "onde rende mais") e as
+       duas caixas da mesma tela recomendavam matérias diferentes. A nota da candidata é o
+       controle do fator que mais pesou para ela. */
+    let _prioTop=null; try{ _prioTop=(this._prioridade()||[])[0]||null; }catch(_){ _prioTop=null; }
+    if(_prioTop && !_prioTop.semDados){
+      const _CTRL={erros:'pErros', revisoes:'pRevVenc', esfriando:'pTempo', simulado:'pDesemp', incidencia:'pIncid', leitura:'pIncid'};
+      const _dom=(_prioTop.fatores||[]).slice().sort((a,b)=>(b.valor*b.peso)-(a.valor*a.peso))[0];
+      const _k=_dom?_CTRL[_dom.chave]:'pDesemp';
+      let _sPrio=parseInt(_orientCfg[_k],10); if(!isFinite(_sPrio)) _sPrio=AJ_ORIENT_PADRAO[_k]||8;
+      if(_focoEstrat){ const _d=+_diasProvaN; _sPrio += (isFinite(_d) && _d>0) ? (_d<=30?6 : _d<=90?4 : 2) : 2; }
+      _focoCands.push({s:_sPrio, t:String(_prioTop.disc).replace('Direito ','')+(_prioTop.motivos&&_prioTop.motivos[0]?(' — '+_prioTop.motivos[0]):''), v:'ciclo', btn:'Ver ciclo'});
+    }
     _focoCands.push({s:(parseInt(_orientCfg.pEdital,10)||8), t: nextAction?('o bloco de '+String(nextAction.disc||'estudo').replace('Direito ','')):'o próximo bloco do edital', v:'ciclo', btn:'Ver ciclo'});
-    // sliders de prioridade que faltavam entrar no cálculo: desempenho, tempo sem estudar, erros
-    const _weakD=[...B.discList].filter(d=>d.q>=5).sort((a,b)=>a.liqPct-b.liqPct)[0];
-    if(_weakD) _focoCands.push({s:(parseInt(_orientCfg.pDesemp,10)||9), t:_weakD.disc.replace('Direito ','')+' — seu líquido mais baixo ('+_weakD.liqPct+'%)', v:'analise', btn:'Ver desempenho'});
-    const _lastByDisc={}; (this.state.sessions||[]).forEach(s=>{ if(s.disc){ const t=s.ts||0; if(t>(_lastByDisc[s.disc]||0)) _lastByDisc[s.disc]=t; } });
-    const _staleD=(this.state.edital||[]).map(d=>({disc:d.disc, last:_lastByDisc[d.disc]||0})).sort((a,b)=>a.last-b.last)[0];
-    if(_staleD && (this.state.sessions||[]).length){ const _dsem=_staleD.last?Math.floor((Date.now()-_staleD.last)/864e5):null; if(_dsem===null||_dsem>=7) _focoCands.push({s:(parseInt(_orientCfg.pTempo,10)||7), t:_staleD.disc.replace('Direito ','')+(_dsem!=null?(' — sem estudar há '+_dsem+' dias'):' — ainda sem sessões'), v:'ciclo', btn:'Ver ciclo'}); }
+    // desempenho, tempo sem estudar e erros já entram pela régua única acima (_prioTop)
     _focoCands.sort((a,b)=>b.s-a.s);
     const _focoVerbo = _cob==='rigido'?'Ataque já' : (_cob==='leve'?'Sem pressa, priorize' : 'Priorize');
     const _focoWin=_focoCands[0]||{t:'o que mais pesa na sua aprovação', v:'ciclo', btn:'Continuar'};
