@@ -1377,8 +1377,9 @@ window.ctPdfLib = (function(){
               <div role="radiogroup" aria-label="Por onde quer começar" style="display:flex;flex-direction:column;gap:10px;">
                 <button data-c="edital" role="radio" aria-checked="{{ onbEditalSel }}" onclick="{{ onboardPick }}" style="{{ onbEdital }}"><b style="color:var(--ink);font-size:var(--fs-md);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Tenho o edital</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Importe o edital e a plataforma prioriza por peso e incidência.</div></button>
                 <button data-c="ciclo" role="radio" aria-checked="{{ onbCicloSel }}" onclick="{{ onboardPick }}" style="{{ onbCiclo }}"><b style="color:var(--ink);font-size:var(--fs-md);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Começar com o ciclo padrão <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:middle;">Recomendado</span></b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Blocos prontos + revisão espaçada. O edital entra depois.</div></button>
-                <button data-c="import" role="radio" aria-checked="{{ onbImportSel }}" onclick="{{ onboardPick }}" style="{{ onbImport }}"><b style="color:var(--ink);font-size:var(--fs-md);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg> Importar meus dados</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Backup JSON de outro dispositivo.</div></button>
               </div>
+              <!-- Backup é coisa de quem JÁ usava: fora da escolha principal de quem acabou de chegar. -->
+              <button type="button" onclick="{{ onboardImportar }}" style="display:block;width:100%;min-height:44px;margin-top:10px;background:none;border:none;color:var(--text2);font-size:var(--fs-sm);font-family:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Já usava o Cátedra? Importe seu backup</button>
               <button onclick="{{ onboardNext }}" style="width:100%;margin-top:20px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Continuar</button>
             </sc-if>
             <sc-if value="{{ onboardStep4 }}" hint-placeholder-val="{{ false }}">
@@ -13176,6 +13177,7 @@ class Component extends DCLogic {
     return {onboardStep: s.onboardStep+1};
   });
   onboardPick = (e)=> this.setState({onboardChoice:e.currentTarget.dataset.c});
+  onboardImportar = ()=> this.setState({onboardChoice:'import'}, ()=>this.onboardFinish());
   onboardFinish = ()=>{ try{ localStorage.setItem('catedra:onboarded','1'); }catch(_){}
     const choice=this.state.onboardChoice; const patch={onboardStep:0};
     // nunca deixa o usuário num app vazio: se ainda não há ciclo, monta um pela sugestão
@@ -18309,7 +18311,7 @@ class Component extends DCLogic {
       // navShowMore é DERIVADO (navExpanded OU estar numa das views de "mais opções") —
       // ler this.state.navShowMore devolvia undefined e o aria ficava sempre 'false'.
       navMaisAttr:(navShowMore?'true':'false'), onboardStep:this.state.onboardStep, onboardStep1:this.state.onboardStep===1, onboardStep2:this.state.onboardStep===2, onboardStep3:this.state.onboardStep===3, onboardStep4:this.state.onboardStep===4,
-      onboardNext:this.onboardNext, onboardPick:this.onboardPick, onboardFinish:this.onboardFinish,
+      onboardNext:this.onboardNext, onboardPick:this.onboardPick, onboardImportar:this.onboardImportar, onboardFinish:this.onboardFinish,
       onbEdital:onboardCard('edital'), onbCiclo:onboardCard('ciclo'), onbImport:onboardCard('import'),
       // a seleção precisa ser DITA, não só pintada
       onbEditalSel:(this.state.onboardChoice==='edital'?'true':'false'),
