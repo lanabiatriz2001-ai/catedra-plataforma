@@ -806,6 +806,72 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
     'STJ INF2020-0699: "alegaçõe s" volta a ser "alegações"');
 }
 
+/* === JURIS — STJ, SEGUNDA LEVA: AS CORREÇÕES QUE EXIGIAM REDAÇÃO À MÃO (auditoria 21–22/09/2026) ===
+
+   Os defeitos que o PR #115 deixou "a preparar" — a correção proposta não era literal da fonte —
+   voltaram redigidos de uma das três formas permitidas: trecho copiado da fonte oficial, remoção
+   do trecho, ou nota do Cátedra citando a fonte. O que se prova aqui, um caso por tipo:
+   · termo trocado num comentário didático volta ao da fonte (fiduciante × fiduciário; número de lei);
+   · julgado de outro processo sai do verbete, no enunciado e no comentário;
+   · verbete com o texto de outra edição passa a apontar a edição certa — título, número, órgão e data juntos;
+   · tema cujo texto era de outro tema recebe a questão oficial e a nota de que não há tese firmada;
+   · rótulo de processamento ("Hipótese 2 :") sai; órgão e data seguem a nota; citação segue a ficha. */
+{
+  const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8')).call(null, e); return e[g]; };
+  const TXT = carrega('juris-text.js', '__JURIS_TXT__');
+  const IDX = {}; for (const r of carrega('juris-index.js', '__JURIS_IDX__')) IDX[r[0]] = r;
+  const PREFIXO = 'Nota do Cátedra (auditoria de set/2026, conferida em fonte oficial): ';
+  const t = id => TXT[id] || {};
+
+  // 1. termo trocado dentro de comentário didático
+  ok(/devedor fiduciante/.test(t('INF2020-0298').en) && /credor fiduci[áa]rio/.test(t('INF2020-0298').en) && !/devedor fiduci[áa]rio/.test(t('INF2020-0298').en),
+    'STJ-2 INF2020-0298: devedor é o fiduciante e credor o fiduciário, como na nota oficial');
+  ok(/Lei n\. 8\.429\/1992/.test(t('INF2020-0220').co || '') && !/8\.492/.test(t('INF2020-0220').co || ''),
+    'STJ-2 INF2020-0220: o comentário cita a Lei 8.429/1992, não a inexistente 8.492');
+
+  // 2. julgado de outro processo sai do verbete
+  ok(!/anuidades devidas aos conselhos profissionais/.test(t('INF2020-0415').en) && /redirecionamento da Execu[çc][ãa]o Fiscal/.test(t('INF2020-0415').en),
+    'STJ-2 INF2020-0415: o enunciado deixa de abrir com a tese das anuidades (outro julgado)');
+  ok(t('INF2020-0730').co === undefined,
+    'STJ-2 INF2020-0730: o comentário que era de outro julgado (licenciamento de assentamentos) saiu');
+
+  // 3. edição certa, com título, número, órgão e data coerentes entre si
+  ok(IDX['INF2021-0872'][4] === 'Info 713 · STJ' && IDX['INF2021-0872'][3] === 713 && IDX['INF2021-0872'][7] === '05/10/2021' && /3ª Turma/.test(t('INF2021-0872').og || ''),
+    'STJ-2 INF2021-0872: o enunciado é o destaque do Info 713 (3ª Turma, 05/10/2021) — título, número, órgão e data acompanham');
+  ok(IDX['INF2024-0714'][4] === 'Info 808 · STJ' && IDX['INF2024-0714'][3] === 808 && /^Processo administrativo ambiental/.test(IDX['INF2024-0714'][6] || '') && t('INF2024-0714').co === undefined,
+    'STJ-2 INF2024-0714: rótulos e assunto passam ao Info 808, de onde vem o enunciado; sai o comentário de outro julgado');
+  ok(IDX['INF2020-0717'][4] === 'Info 668 · STJ' && IDX['INF2020-0717'][3] === 668,
+    'STJ-2 INF2020-0717: o HC 543.279 recebe a edição em que saiu (Info 668)');
+
+  // 4. tema cujo texto era de outro tema
+  ok(/^Se o prazo da prescri[çc][ãa]o/.test(t('COORD-REP-1126').en) && !/Stock Option/.test(t('COORD-REP-1126').en)
+    && (t('COORD-REP-1126').co || '').startsWith(PREFIXO) && /Afetado/.test(t('COORD-REP-1126').co) && IDX['COORD-REP-1126'][6] === 'DIREITO PROCESSUAL PENAL',
+    'STJ-2 COORD-REP-1126: sai a tese do Stock Option (Tema 1226); entra a questão oficial do Tema 1126 com a nota de que está afetado, sem tese');
+  ok((t('repgeral-repetitivo-STJ-1300').co || '').startsWith(PREFIXO) && /Tema 130 do STJ/.test(t('repgeral-repetitivo-STJ-1300').co),
+    'STJ-2 Tema "1300": a nota avisa que o texto é o do Tema 130');
+
+  // 5. lixo, órgão, data e citação
+  ok(/^Pedro depositou/.test(t('INF2020-0378').en), 'STJ-2 INF2020-0378: o rótulo "Hipótese 2 :" saiu do enunciado');
+  ok(IDX['INF2024-0788'][7] === '14/08/2024' && t('INF2024-0788').og === 'Primeira Seção',
+    'STJ-2 INF2024-0788: data e órgão são os da nota oficial (Primeira Seção, 14/08/2024)');
+  ok(t('COORD-REP-1088').og === '1ª Seção' && (t('COORD-REP-1088').co || '').startsWith(PREFIXO) && /Sobrestado/.test(t('COORD-REP-1088').co),
+    'STJ-2 COORD-REP-1088: ganha o órgão da ficha e a nota de que o tema está sobrestado');
+  ok(t('repgeral-repetitivo-STF-581').fp === 'REsp 1110520/SP',
+    'STJ-2 Tema 581: a citação de origem é o processo da ficha, não "Info 835"');
+
+  // 6. guarda: no STJ, título e número nunca divergem — o #115 trocou títulos de edição e deixou o
+  //    número antigo em 21 verbetes. Vale para edição possível do STJ (ordinária até 900, extraordinária
+  //    até 33); os 3 títulos com número do STF ("Info 1111 · STJ") são defeito registrado, fora daqui.
+  const diverge = Object.values(IDX).filter(r => {
+    if (r[1] !== 'STJ') return false;
+    const m = String(r[4] || '').match(/^(?:Info )?(Ed\. Extraordin[áa]ria |Ed\. Especial )?(\d+) · STJ$/);
+    if (!m) return false;
+    const n = Number(m[2]), extra = !!m[1];
+    return (extra ? n <= 33 : n <= 900) && r[3] !== n;
+  });
+  ok(diverge.length === 0, 'STJ-2 nenhum verbete do STJ tem número diferente da edição que o título diz (' + diverge.length + ')');
+}
+
 /* ================ ERRO VIRA REVISÃO (item 2) ================ */
 await page.goto(URL0 + '/tests/harness-erros.html');
 await page.waitForFunction(() => !!window.colherErros);
