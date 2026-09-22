@@ -7712,7 +7712,8 @@ const AUDITOR = () => {
     const marcado = cards.filter(c => c.getAttribute('aria-checked') === 'true');
     return {
       grupoTemPapel: true,
-      tresOpcoesComPapel: cards.length === 3,
+      // duas opções: importar backup saiu da escolha principal e virou link (tests/onboarding-importar.mjs)
+      duasOpcoesComPapel: cards.length === 2,
       umaSoMarcada: marcado.length === 1,
       oRecomendadoVemMarcado: marcado.length === 1 && marcado[0].getAttribute('data-c') === 'ciclo',
       // /i porque o rótulo é uppercase por CSS e o innerText devolve RECOMENDADO
