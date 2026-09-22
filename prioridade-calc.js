@@ -22,6 +22,31 @@
     incidencia: 0.10,   // peso no edital × incidência do diploma
     leitura: 0.05       // dispositivos de incidência alta que ela ainda não leu ativamente (LA6)
   };
+  /* Os controles de prioridade de Ajustes (0–10) são os pesos desta régua — a MESMA que o
+     "Foco sugerido" do Início usa. Cada controle multiplica o peso do seu fator pela razão
+     entre o valor escolhido e o padrão; depois tudo volta a somar 1. Com os controles no
+     padrão, a régua é exatamente PESOS: quem nunca mexeu não vê diferença nenhuma.
+     "Peso no edital" e "Incidência" dividem o fator incidência (a média dos dois).
+     A leitura ativa não tem controle e fica com o peso fixo. */
+  var CONTROLE_PADRAO = { pErros: 9, pRevVenc: 10, pTempo: 7, pDesemp: 9, pEdital: 8, pIncid: 8 };
+  function pesosDosControles(ctrl) {
+    var c = ctrl || {};
+    var v = function (k) { var x = parseFloat(c[k]); return (isFinite(x) && x >= 0) ? x : CONTROLE_PADRAO[k]; };
+    var razao = function (k) { return v(k) / CONTROLE_PADRAO[k]; };
+    var bruto = {
+      erros: PESOS.erros * razao('pErros'),
+      revisoes: PESOS.revisoes * razao('pRevVenc'),
+      esfriando: PESOS.esfriando * razao('pTempo'),
+      simulado: PESOS.simulado * razao('pDesemp'),
+      incidencia: PESOS.incidencia * (razao('pEdital') + razao('pIncid')) / 2,
+      leitura: PESOS.leitura
+    };
+    var tot = 0; for (var k in bruto) tot += bruto[k];
+    if (!(tot > 0)) return Object.assign({}, PESOS);   // tudo zerado: volta ao padrão, não divide por zero
+    var out = {}; for (var j in bruto) out[j] = bruto[j] / tot;
+    return out;
+  }
+
   var JANELA_ERROS = 30;        // dias
   var ESFRIA_DIAS = 21;         // sem estudar por 21 dias = fator no máximo
   var MIN_QUESTOES = 6;         // abaixo disso, o desempenho não é sinal (amostra pequena)
@@ -55,6 +80,7 @@
     var erros = arr(e.errors), reviews = arr(e.reviews), sessions = arr(e.sessions);
     var inc = e.incidencia || {};
     var lei = e.leituraPendente || {};
+    var P = e.pesos || PESOS;   // pesosDosControles(orient) no app; sem ele, a régua padrão
 
     // ---- agregados por disciplina normalizada
     var porDisc = {};
@@ -108,17 +134,17 @@
       var fInc = clamp01(0.5 * (o.peso / maxPeso) + 0.5 * (+inc[norm(o.disc)] || 0));
 
       var fatores = [
-        { chave: 'erros', rotulo: 'erros recentes', valor: fErros, peso: PESOS.erros,
+        { chave: 'erros', rotulo: 'erros recentes', valor: fErros, peso: P.erros,
           texto: o.erros30 ? (o.erros30 + ' erro' + (o.erros30 > 1 ? 's' : '') + ' nos últimos ' + JANELA_ERROS + ' dias') : 'sem erros recentes' },
-        { chave: 'revisoes', rotulo: 'revisões vencidas', valor: fRev, peso: PESOS.revisoes,
+        { chave: 'revisoes', rotulo: 'revisões vencidas', valor: fRev, peso: P.revisoes,
           texto: o.revVencidas ? (o.revVencidas + ' revis' + (o.revVencidas > 1 ? 'ões' : 'ão') + ' vencida' + (o.revVencidas > 1 ? 's' : '')) : 'revisões em dia' },
-        { chave: 'esfriando', rotulo: 'tempo sem estudar', valor: fEsfria, peso: PESOS.esfriando,
+        { chave: 'esfriando', rotulo: 'tempo sem estudar', valor: fEsfria, peso: P.esfriando,
           texto: diasSem == null ? 'nunca estudada por aqui' : (diasSem === 0 ? 'estudada hoje' : ('há ' + diasSem + ' dia' + (diasSem > 1 ? 's' : '') + ' sem estudar')) },
-        { chave: 'simulado', rotulo: 'desempenho', valor: fSim, peso: PESOS.simulado,
+        { chave: 'simulado', rotulo: 'desempenho', valor: fSim, peso: P.simulado,
           texto: liqPct == null ? 'poucas questões para medir' : (liqPct + '% de líquido em ' + o.q + ' questões') },
-        { chave: 'incidencia', rotulo: 'peso na prova', valor: fInc, peso: PESOS.incidencia,
+        { chave: 'incidencia', rotulo: 'peso na prova', valor: fInc, peso: P.incidencia,
           texto: 'peso ' + o.peso + ' no edital' },
-        { chave: 'leitura', rotulo: 'lei seca por ler', valor: clamp01(+lei[norm(o.disc)] || 0), peso: PESOS.leitura,
+        { chave: 'leitura', rotulo: 'lei seca por ler', valor: clamp01(+lei[norm(o.disc)] || 0), peso: P.leitura,
           texto: Math.round(clamp01(+lei[norm(o.disc)] || 0) * 100) + '% dos artigos mais citados ainda sem leitura ativa' }
       ];
 
@@ -139,7 +165,7 @@
     return saida.sort(function (a, b) { return b.nota - a.nota || a.disc.localeCompare(b.disc); });
   }
 
-  var api = { prioridadeDisciplinas: prioridadeDisciplinas, PESOS: PESOS,
+  var api = { prioridadeDisciplinas: prioridadeDisciplinas, PESOS: PESOS, pesosDosControles: pesosDosControles,
               JANELA_ERROS: JANELA_ERROS, ESFRIA_DIAS: ESFRIA_DIAS, MIN_QUESTOES: MIN_QUESTOES };
   w.CT_PRIORIDADE_CALC = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
