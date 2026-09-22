@@ -611,7 +611,13 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .ct-calcell{min-height:104px;overflow:hidden;}
 @media (max-width:760px){.ct-calcell{min-height:70px;}}
 @media (max-width:520px){.ct-calcell{min-height:52px;}}
-.ct-calev{display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);line-height:1.25;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ct-calev{display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);line-height:1.25;overflow:hidden;white-space:nowrap;}
+/* text-overflow NÃO age em contêiner flex: ele corta o rótulo a seco, no meio da palavra e
+   sem "…" — era o que aparecia no calendário do iPad ("Caderno de quest", "Prova FGV 2024 -").
+   As reticências têm de morar no PRÓPRIO rótulo, que ainda precisa de min-width:0 para poder
+   encolher dentro da linha. O título inteiro continua no `title` do evento e no painel do dia. */
+.ct-calev > *{min-width:0;}
+.ct-calev .ct-callbl{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 @media (max-width:520px){.ct-calev span.ct-callbl{display:none;}}
 </style>
 <!-- pdf.js NÃO entra no boot: são ~350 KB que só servem para importar edital e para
@@ -15399,7 +15405,9 @@ class Component extends DCLogic {
       // O Treino gravava o enunciado do erro cortado em 44 caracteres, no meio da palavra
       // ("…anular negócio jurí"). O corte já está GRAVADO na conta de quem usou antes, então
       // ele é arredondado aqui, na exibição, até a última palavra inteira e com reticências.
-      topic: this._tituloRev(r.topic),
+      // Só nas revisões que o Treino criou (as únicas com cor var(--danger)): um tema digitado
+      // que por acaso tenha 44 caracteres perdia a última palavra.
+      topic: r.color==='var(--danger)' ? this._tituloRev(r.topic) : r.topic,
       // `facilidade` vem do SM-2 e a revisão criada pelo app sempre a tem. Mas um blob de
       // sincronização truncado, ou um item vindo de uma versão anterior, chega sem ela — e
       // um `.toFixed` de undefined derrubava o renderVals INTEIRO, pintando na tela
