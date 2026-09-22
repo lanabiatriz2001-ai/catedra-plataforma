@@ -3029,7 +3029,7 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   const { default: complete, mensagemCota } = await import('../api/complete.js');
   const { default: tts } = await import('../api/tts.js');
   const req = (body) => ({ method: 'POST', headers: { authorization: 'Bearer tok' }, body });
-  r.mensagemEmPortugues = mensagemCota({ limite: 40 }) === 'Você usou as 40 chamadas de IA de hoje; volta amanhã ou fale com quem te convidou.';
+  r.mensagemEmPortugues = mensagemCota({ limite: 40 }) === 'Você usou as 40 chamadas de IA de hoje. A cota volta amanhã, à meia-noite de Brasília.';
   let ch = cenario({ plano: 'beta', limite: 2, usadas: 2, restante: 0 }); let res = fakeRes();
   await complete(req({ prompt: 'olá' }), res);
   r.estourou429 = res.codigo === 429 && /usou as 2 chamadas de IA de hoje/.test(res.corpo.error) && res.corpo.cota.restante === 0 && !ch.some(u => /anthropic/.test(u)) && !ch.some(u => /registrar_uso_ia/.test(u));
