@@ -26,6 +26,7 @@ import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
+import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
@@ -8619,6 +8620,7 @@ catch (e) {
 
 // iPhone (app universal): o host e os satélites a 390×844 no toque
 // (tests/iphone-host-390.mjs e tests/iphone-satelites-390.mjs — casas dos casos de F4 e F5)
+try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exceção: ' + e.message); }
 try { await testarIphoneHost390(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPHONE/host 390 [' + motor + '] [http] o roteiro correu sem exceção ('
