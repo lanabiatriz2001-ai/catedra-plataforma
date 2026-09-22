@@ -1377,8 +1377,9 @@ window.ctPdfLib = (function(){
               <div role="radiogroup" aria-label="Por onde quer começar" style="display:flex;flex-direction:column;gap:10px;">
                 <button data-c="edital" role="radio" aria-checked="{{ onbEditalSel }}" onclick="{{ onboardPick }}" style="{{ onbEdital }}"><b style="color:var(--ink);font-size:var(--fs-md);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Tenho o edital</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Importe o edital e a plataforma prioriza por peso e incidência.</div></button>
                 <button data-c="ciclo" role="radio" aria-checked="{{ onbCicloSel }}" onclick="{{ onboardPick }}" style="{{ onbCiclo }}"><b style="color:var(--ink);font-size:var(--fs-md);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Começar com o ciclo padrão <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:middle;">Recomendado</span></b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Blocos prontos + revisão espaçada. O edital entra depois.</div></button>
-                <button data-c="import" role="radio" aria-checked="{{ onbImportSel }}" onclick="{{ onboardPick }}" style="{{ onbImport }}"><b style="color:var(--ink);font-size:var(--fs-md);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg> Importar meus dados</b><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">Backup JSON de outro dispositivo.</div></button>
               </div>
+              <!-- Backup é coisa de quem JÁ usava: fora da escolha principal de quem acabou de chegar. -->
+              <button type="button" onclick="{{ onboardImportar }}" style="display:block;width:100%;min-height:44px;margin-top:10px;background:none;border:none;color:var(--text2);font-size:var(--fs-sm);font-family:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Já usava o Cátedra? Importe seu backup</button>
               <button onclick="{{ onboardNext }}" style="width:100%;margin-top:20px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Continuar</button>
             </sc-if>
             <sc-if value="{{ onboardStep4 }}" hint-placeholder-val="{{ false }}">
@@ -2911,6 +2912,7 @@ window.ctPdfLib = (function(){
             <button onclick="{{ edStructureAI }}" disabled="{{ edAiBusy }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;box-shadow:0 6px 16px -6px var(--accent);">{{ edAiLabel }}</button>
             <button onclick="{{ edRecognize }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Reconhecer sem IA</button>
           </div>
+          <sc-if value="{{ cotaIATem }}" hint-placeholder-val="{{ false }}"><div data-ia-cota-edital="1" style="font-size:var(--fs-sm);color:var(--text2);margin-top:8px;line-height:1.5;">{{ cotaIAEditalTxt }}</div></sc-if>
 
           <sc-if value="{{ hasParsed }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px;">
@@ -6271,6 +6273,7 @@ window.ctPdfLib = (function(){
           <div style="margin:16px 0 0;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-md);">
             <div style="font-weight:600;color:var(--ink);">Inteligência artificial</div>
             <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 10px;line-height:1.5;" data-ia-txt="1">{{ iaConsentTxt }}</div>
+            <sc-if value="{{ cotaIATem }}" hint-placeholder-val="{{ false }}"><div data-ia-cota="1" style="font-size:var(--fs-sm);color:var(--text2);margin:0 0 10px;"><b style="color:var(--ink);">IA hoje: {{ cotaIAUsadas }} de {{ cotaIALimite }}</b> chamadas · a contagem zera à meia-noite de Brasília</div></sc-if>
             <sc-if value="{{ iaConsentTem }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ iaRevogar }}" class="ct-btn-2" style="min-height:44px;">Revogar o consentimento</button></sc-if>
             <sc-if value="{{ !iaConsentTem }}" hint-placeholder-val="{{ true }}"><button type="button" onclick="{{ iaAutorizarAjustes }}" class="ct-btn-2" style="min-height:44px;">Autorizar a IA</button></sc-if>
           </div>
@@ -6769,7 +6772,7 @@ class Component extends DCLogic {
       // trilha ENAM (E1): edição, data, meta de acertos — só o número, nunca o motivo
       enam: this._load('enam', null),
       // P14: aceite versionado dos Termos/Política e consentimento específico da IA; os modais e o documento aberto
-      aceite: this._load('aceite', null), iaConsentimento: this._load('iaConsentimento', null), iaConsentPedir:false, docAberto:'',
+      aceite: this._load('aceite', null), iaConsentimento: this._load('iaConsentimento', null), iaConsentPedir:false, cotaIA:null, docAberto:'',
       enamSim: this._load('enamSim', []),   // E3/E4: tentativas do Modo ENAM — só ids e respostas, nunca enunciado
       revSession: null,
       treino: null,
@@ -7417,7 +7420,7 @@ class Component extends DCLogic {
     window.addEventListener('catedra:synced', this._onSynced);
     // primeiro acerto com a nuvem: agora o conserto do edital pode ir ao disco sem vencer edição
     // mais nova de outro aparelho. setTimeout: deixa a reidratação do mesmo tique assentar antes.
-    this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._edPersistirReparo(); }catch(_){} }, 0); };
+    this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._edPersistirReparo(); }catch(_){} try{ this._carregarCotaIA(); }catch(_){} }, 0); };
     window.addEventListener('catedra:syncpronto', this._onSyncPronto);
     // Ponte CátedraLEGIS → Cátedra: o app nativo chama isto (evaluateJavaScript) para
     // registrar o estudo de leis feito na aba CátedraLEGIS como uma sessão REAL — assim o
@@ -11901,8 +11904,16 @@ class Component extends DCLogic {
     const c=window.claude; if(!c || typeof c.complete!=='function' || c.__ctPortao) return;
     const original=c.complete.bind(c); c.__ctPortao=true; c.__ctSemPortao=original;
     // P18: a cota do dia estourada chega como erro com a mensagem do servidor — vira toast, e o erro segue para quem chamou
-    c.complete=(prompt)=>this._iaAutorizar().then(()=>original(prompt)).catch((err)=>{ const m=String(err&&err.message||''); if(/chamadas de IA de hoje/.test(m)) this._toast(m); throw err; });
+    c.complete=(prompt)=>this._iaAutorizar().then(()=>original(prompt)).then((r)=>{ this._carregarCotaIA(); return r; }).catch((err)=>{ const m=String(err&&err.message||''); if(/chamadas de IA de hoje/.test(m)) this._toast(m); this._carregarCotaIA(); throw err; });
   }
+  /** Cota de IA do dia, lida da RPC minha_cota_ia. Estado só de tela (não sincroniza). O
+      supabase-js NÃO rejeita em erro: sem res.data válido, o contador some — nunca "0 de 0". */
+  _carregarCotaIA = async ()=>{
+    const sb=this._sb(); if(!sb || typeof sb.rpc!=='function') return;
+    let d=null; try{ const res=await sb.rpc('minha_cota_ia'); d=(res && !res.error) ? res.data : null; }catch(_){ d=null; }
+    const ok=d && typeof d.limite==='number' && typeof d.usadas==='number';
+    this.setState({cotaIA: ok ? {limite:d.limite, usadas:d.usadas, restante:Math.max(0, d.limite-d.usadas)} : null});
+  };
   _iaConsentido(){ const c=this.state.iaConsentimento; return !!(c && c.versao===this.IA_CONSENT_VERSAO && +c.ts>0); }
   /** Resolve quando há consentimento (já dado, ou dado agora no modal); rejeita se a pessoa recusar. */
   _iaAutorizar(){
@@ -13176,6 +13187,7 @@ class Component extends DCLogic {
     return {onboardStep: s.onboardStep+1};
   });
   onboardPick = (e)=> this.setState({onboardChoice:e.currentTarget.dataset.c});
+  onboardImportar = ()=> this.setState({onboardChoice:'import'}, ()=>this.onboardFinish());
   onboardFinish = ()=>{ try{ localStorage.setItem('catedra:onboarded','1'); }catch(_){}
     const choice=this.state.onboardChoice; const patch={onboardStep:0};
     // nunca deixa o usuário num app vazio: se ainda não há ciclo, monta um pela sugestão
@@ -18176,7 +18188,9 @@ class Component extends DCLogic {
       // importador edital
       edRaw:this.state.edRaw,
       edParsedView, edParsedDisc, edParsedTopics, edParsedSubs, hasParsed:!!this.state.edParsed,      edSetRaw:this.edSetRaw, edRecognize:this.edRecognize, edConfirm:this.edConfirm, edDiscard:this.edDiscard,
-      edStructureAI:this.edStructureAI, edAiBusy:this.state.edAiBusy, edAiLabel:(this.state.edAiBusy?'Estruturando com IA…':'Estruturar com IA ✦'),
+      edStructureAI:this.edStructureAI, edAiBusy:this.state.edAiBusy,
+      cotaIATem:!!this.state.cotaIA, cotaIAUsadas:(this.state.cotaIA||{}).usadas, cotaIALimite:(this.state.cotaIA||{}).limite,
+      cotaIAEditalTxt:(()=>{ const c=this.state.cotaIA; if(!c) return ''; return c.restante>0 ? ('Estruturar usa 1 das '+c.restante+' chamadas de IA que restam hoje. Sem gastar: Reconhecer sem IA.') : 'As chamadas de IA de hoje acabaram. Use Reconhecer sem IA — a cota volta amanhã.'; })(), edAiLabel:(this.state.edAiBusy?'Estruturando com IA…':'Estruturar com IA ✦'),
       onDragOver:(e)=>e.preventDefault(),
       // estatísticas (Início)
       statsTiles:[
@@ -18309,7 +18323,7 @@ class Component extends DCLogic {
       // navShowMore é DERIVADO (navExpanded OU estar numa das views de "mais opções") —
       // ler this.state.navShowMore devolvia undefined e o aria ficava sempre 'false'.
       navMaisAttr:(navShowMore?'true':'false'), onboardStep:this.state.onboardStep, onboardStep1:this.state.onboardStep===1, onboardStep2:this.state.onboardStep===2, onboardStep3:this.state.onboardStep===3, onboardStep4:this.state.onboardStep===4,
-      onboardNext:this.onboardNext, onboardPick:this.onboardPick, onboardFinish:this.onboardFinish,
+      onboardNext:this.onboardNext, onboardPick:this.onboardPick, onboardImportar:this.onboardImportar, onboardFinish:this.onboardFinish,
       onbEdital:onboardCard('edital'), onbCiclo:onboardCard('ciclo'), onbImport:onboardCard('import'),
       // a seleção precisa ser DITA, não só pintada
       onbEditalSel:(this.state.onboardChoice==='edital'?'true':'false'),

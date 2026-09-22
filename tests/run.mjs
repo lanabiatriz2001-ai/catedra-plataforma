@@ -26,6 +26,8 @@ import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
+import { testarOnboardingImportar } from './onboarding-importar.mjs';
+import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
@@ -3028,7 +3030,7 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   const { default: complete, mensagemCota } = await import('../api/complete.js');
   const { default: tts } = await import('../api/tts.js');
   const req = (body) => ({ method: 'POST', headers: { authorization: 'Bearer tok' }, body });
-  r.mensagemEmPortugues = mensagemCota({ limite: 40 }) === 'Você usou as 40 chamadas de IA de hoje; volta amanhã ou fale com quem te convidou.';
+  r.mensagemEmPortugues = mensagemCota({ limite: 40 }) === 'Você usou as 40 chamadas de IA de hoje. A cota volta amanhã, à meia-noite de Brasília.';
   let ch = cenario({ plano: 'beta', limite: 2, usadas: 2, restante: 0 }); let res = fakeRes();
   await complete(req({ prompt: 'olá' }), res);
   r.estourou429 = res.codigo === 429 && /usou as 2 chamadas de IA de hoje/.test(res.corpo.error) && res.corpo.cota.restante === 0 && !ch.some(u => /anthropic/.test(u)) && !ch.some(u => /registrar_uso_ia/.test(u));
@@ -7711,7 +7713,8 @@ const AUDITOR = () => {
     const marcado = cards.filter(c => c.getAttribute('aria-checked') === 'true');
     return {
       grupoTemPapel: true,
-      tresOpcoesComPapel: cards.length === 3,
+      // duas opções: importar backup saiu da escolha principal e virou link (tests/onboarding-importar.mjs)
+      duasOpcoesComPapel: cards.length === 2,
       umaSoMarcada: marcado.length === 1,
       oRecomendadoVemMarcado: marcado.length === 1 && marcado[0].getAttribute('data-c') === 'ciclo',
       // /i porque o rótulo é uppercase por CSS e o innerText devolve RECOMENDADO
@@ -8619,6 +8622,8 @@ catch (e) {
 
 // iPhone (app universal): o host e os satélites a 390×844 no toque
 // (tests/iphone-host-390.mjs e tests/iphone-satelites-390.mjs — casas dos casos de F4 e F5)
+try { await testarOnboardingImportar(page, URL0, ok); } catch (e) { ok(false, 'ONBOARDING/importar exceção: ' + e.message); }
+try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exceção: ' + e.message); }
 try { await testarIphoneHost390(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPHONE/host 390 [' + motor + '] [http] o roteiro correu sem exceção ('
