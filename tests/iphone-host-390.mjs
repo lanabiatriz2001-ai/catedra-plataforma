@@ -288,7 +288,11 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       const CORTADO = 'O prazo decadencial para anular negócio jurí';   // 44 caracteres
       await page.evaluate((t) => {
         window.__catedraApp.setState({ reviews: [{ id: 'r1', disc: 'Direito Civil', topic: t,
-          color: 'var(--danger)', due: -1, dueDate: '2026-09-14', intervalo: 1, facilidade: 2.5, repeticoes: 0 }] });
+          color: 'var(--danger)', due: -1, dueDate: '2026-09-14', intervalo: 1, facilidade: 2.5, repeticoes: 0 },
+          /* Tema legítimo que por acaso tem 44 caracteres: não veio do Treino (outra cor) e
+             NÃO pode perder a última palavra. */
+          { id: 'r2', disc: 'Direito Civil', topic: 'Direito Civil: prescrição e decadência no CC',
+          color: 'var(--accent)', due: -1, dueDate: '2026-09-14', intervalo: 1, facilidade: 2.5, repeticoes: 0 }] });
       }, CORTADO);
       await ir(page, 'inicio'); await page.waitForTimeout(1500);
       const m = await page.evaluate(() => {
@@ -299,7 +303,8 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
         const W = innerWidth;
         const fora = foco ? [...foco.querySelectorAll('*')].filter(e => {
           const r = e.getBoundingClientRect(); return r.width > 0 && (r.right > W + 1 || r.left < -1); }).length : -1;
-        return { titulo: t ? t.textContent.trim() : null,
+        const titulos = [...document.querySelectorAll('.cth-rev b.t')].map(b => b.textContent.trim());
+        return { titulo: t ? t.textContent.trim() : null, titulos,
           temFoco: !!foco, fora,
           botao: btn ? { w: Math.round(btn.getBoundingClientRect().width), h: Math.round(btn.getBoundingClientRect().height) } : null,
           textoW: p ? Math.round(p.getBoundingClientRect().width) : 0,
@@ -308,6 +313,8 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       ok(m.titulo === 'O prazo decadencial para anular negócio…',
         R + '(h) o título cortado em 44 caracteres vira palavra inteira com reticências ("' + m.titulo + '")');
       ok(!!m.titulo && !/jurí$/.test(m.titulo), R + '(h) …e não termina no meio da palavra');
+      ok(m.titulos.includes('Direito Civil: prescrição e decadência no CC'),
+        R + '(h) tema legítimo de 44 caracteres fica intacto (' + JSON.stringify(m.titulos) + ')');
       ok(m.temFoco, R + '(h) o cartão "Foco sugerido" está na tela');
       if (m.temFoco) {
         ok(m.fora === 0, R + '(h) nada do cartão de foco passa da janela (' + m.fora + ' fora)');
