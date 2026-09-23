@@ -1141,6 +1141,35 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-convite span { font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); line-height: 1.5; }
 .ct-convite .ct-btn-2 { align-self: flex-start; min-height: 44px; margin-top: 2px; }
 
+/* Gráficos exploráveis: a mesma leitura aparece com mouse, teclado e toque. */
+.ct-graf-interativo { position: relative; isolation: isolate; }
+.ct-graf-ponto {
+  appearance: none; -webkit-appearance: none; position: relative; min-width: var(--ct-e5);
+  border: 0; padding: 0; margin: 0; background: transparent; color: inherit;
+  font: inherit; cursor: pointer;
+}
+.ct-graf-ponto::before { display: none; }
+.ct-graf-ponto::after {
+  content: attr(data-tip); position: fixed; left: 50%; bottom: var(--ct-e5); z-index: 80;
+  width: max-content; max-width: min(72vw, 19rem); white-space: pre-line;
+  padding: var(--ct-e2) var(--ct-e3); border: 1px solid var(--border);
+  border-radius: var(--r-md); background: var(--ink); color: var(--bg);
+  box-shadow: 0 var(--ct-e2) var(--ct-e5) color-mix(in srgb, var(--ink) 22%, transparent);
+  font-family: var(--body); font-size: var(--fs-xs); font-weight: 600;
+  line-height: 1.45; text-align: left; opacity: 0; pointer-events: none;
+  transition: opacity 120ms ease; transform: translateX(-50%);
+}
+.ct-graf-ponto:hover::after, .ct-graf-ponto:focus::after { opacity: 1; }
+.ct-graf-ponto:hover .ct-graf-barra, .ct-graf-ponto:focus .ct-graf-barra { filter: saturate(1.12) brightness(.92); }
+.ct-graf-barra { transition: filter 120ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .ct-graf-ponto::after, .ct-graf-barra { transition: none; }
+}
+@media (max-width: 900px) {
+  .ct-graf-ponto::after { bottom: calc(var(--ct-alvo-toque) + var(--ct-e6) + var(--ct-e2) + env(safe-area-inset-bottom)); }
+  .ct-graf-interativo { gap: 0 !important; overflow-x: auto; overflow-y: hidden; }
+}
+
 /* ===== 16. CICLO — A LINHA DO DIA E O BLOCO ====================================
    A faixa do Ciclo deixa de ser navy fixo (quebrava em sete das oito direções) e ganha o
    único componente novo desta tela: a LINHA DO DIA, o plano de hoje como uma barra em
