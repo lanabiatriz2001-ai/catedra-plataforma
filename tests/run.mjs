@@ -32,6 +32,7 @@ import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
+import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
@@ -8846,6 +8847,7 @@ catch (e) {
 }
 
 // Erro de simulado → revisão → material de origem (LEGIS/JURIS)
+try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
