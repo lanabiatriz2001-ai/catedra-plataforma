@@ -115,3 +115,30 @@ Prioridades para os próximos PRs:
 O build passou. O código de execução é idêntico ao `285ae1e`, validado nas suítes
 Chromium e WebKit completas na entrega #130; não foram reexecutadas por esta mudança
 exclusivamente documental. Não há build/instalação nativa adicional para este relatório.
+
+## Experimento controlado — primeira pintura embutida e scripts adiados
+
+Em continuação ao relatório, a casca foi embutida no HTML gerado e os 15 scripts externos
+do `<head>` passaram a baixar em paralelo com `defer`, mantendo a ordem de execução e
+rodando somente após o parse. A fonte continua separada em três arquivos editáveis; a
+transformação ocorre apenas nos builds web e nativo.
+
+As três amostras completas da variante, nas mesmas condições acima, mediram:
+
+| Variante / rodada | Performance | FCP (s) | LCP (s) | TBT (ms) | CLS | Transferência (bytes) |
+|---|---:|---:|---:|---:|---:|---:|
+| Scripts adiados 5 | 42 | 10,803 | 16,240 | 516 | 0,005585 | 2.859.779 |
+| Scripts adiados 6 | 43 | 10,803 | 16,240 | 514 | 0,005585 | 2.859.779 |
+| Scripts adiados 7 | 43 | 10,803 | 16,242 | 510 | 0,005585 | 2.859.779 |
+| **Mediana** | **43** | **10,803** | **16,240** | **514** | **0,005585** | **2.859.779** |
+
+Contra a mediana imediatamente anterior: FCP caiu **4,542 s (29,6%)**, LCP caiu
+**0,305 s (1,8%)**, TBT caiu **68 ms (11,7%)** e a transferência reportada caiu
+**45.608 bytes (1,6%)**. O elemento LCP continuou sendo “Bom dia, Aluno.”. A rodada 4
+foi descartada porque quatro scripts locais não foram entregues pelo servidor; as rodadas
+5–7 receberam todos os scripts locais. As RPCs do Supabase continuaram indisponíveis.
+
+Interpretação: a pessoa recebe feedback visual materialmente antes, mas o app real ainda
+leva cerca de 16,2 s para terminar de pintar neste cenário. É ganho de espera percebida,
+não solução do peso do host. Relatórios brutos locais:
+`/private/tmp/catedra-p20-defer-{5,6,7}.json`.

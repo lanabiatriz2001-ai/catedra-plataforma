@@ -20,3 +20,28 @@ for (const [nome, tema] of Object.entries(temas)) {
 }
 writeFileSync(new URL('abertura-temas.js', raiz), '// GERADO por scripts/build-abertura.mjs a partir de THEMES() do host.\nwindow.CT_ABERTURA_TEMAS = ' + JSON.stringify(saida) + ';\n');
 console.log('✓ abertura usa as ' + Object.keys(saida).length + ' paletas do host');
+
+/* No código-fonte, CSS, paletas e comportamento continuam separados e testáveis. No
+   artefato, entram no próprio <head>: pedir três arquivos antes da primeira pintura
+   anulava boa parte do benefício da casca em rede lenta. */
+export function embutirAbertura(html) {
+  const css = readFileSync(new URL('carregamento-inicial.css', raiz), 'utf8');
+  const paletas = readFileSync(new URL('abertura-temas.js', raiz), 'utf8');
+  const comportamento = readFileSync(new URL('carregamento-inicial.js', raiz), 'utf8');
+  const bloco = '<style data-ct-abertura>' + css.replace(/<\/style/gi, '<\\/style') + '</style>\n'
+    + '<script data-ct-abertura="temas">' + paletas.replace(/<\/script/gi, '<\\/script') + '</script>\n'
+    + '<script data-ct-abertura="comportamento">' + comportamento.replace(/<\/script/gi, '<\\/script') + '</script>';
+  const externo = '<link rel="stylesheet" href="./carregamento-inicial.css">\n'
+    + '<script src="./abertura-temas.js"></script>\n'
+    + '<script src="./carregamento-inicial.js"></script>';
+  if (!html.includes(externo)) throw new Error('Bloco externo da abertura não encontrado no host.');
+  return html.replace(externo, bloco);
+}
+
+export function prepararAbertura(html) {
+  const embutido = embutirAbertura(html);
+  const fim = embutido.indexOf('</head>');
+  if (fim < 0) throw new Error('O host não tem </head> para ordenar a abertura.');
+  const head = embutido.slice(0, fim).replace(/<script\b(?![^>]*\b(?:defer|async)\b)([^>]*\bsrc="[^"]+"[^>]*)>/g, '<script defer$1>');
+  return head + embutido.slice(fim);
+}
