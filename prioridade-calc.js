@@ -61,7 +61,7 @@
   /**
    * @param estado {edital, errors, reviews, sessions, sim, incidencia, hoje}
    *   - edital:   [{disc, peso, questoes, topics}]
-   *   - errors:   [{disc, ts}]
+   *   - errors:   [{disc, ts, resolvido}]
    *   - reviews:  [{disc, dueDate}]  (vencida = dueDate <= hoje)
    *   - sessions: [{disc, date, questoes, acertos, erradas}]
    *   - incidencia: {disciplinaNormalizada: 0..1}  (opcional)
@@ -95,7 +95,7 @@
 
     var limite = hojeMs - JANELA_ERROS * 864e5;
     erros.forEach(function (x) {
-      var o = achar(x && x.disc); if (!o) return;
+      var o = achar(x && x.disc); if (!o || x.resolvido === true) return;
       var ts = +(x.ts || 0);
       if (ts >= limite) o.erros30++;
     });
