@@ -26,6 +26,7 @@ import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual nas 3 fon
 import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
+import './build-abertura.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'mac', 'build', 'web');
@@ -109,8 +110,10 @@ ${supabaseTag}
 `;
 
 const src = read('Catedra.dc.html');
-const out = src.replace('<head>', '<head>' + INJECT);
+if (!src.includes('<!-- /ct-abertura -->')) throw new Error('Marcador de abertura ausente no host.');
+const out = src.replace('<!-- /ct-abertura -->', '<!-- /ct-abertura -->' + INJECT);
 writeFileSync(join(OUT, 'index.html'), out);
+for (const f of ['abertura-temas.js', 'carregamento-inicial.js', 'carregamento-inicial.css']) copyFileSync(join(ROOT, f), join(OUT, f));
 
 // copia os assets que o app referencia por caminho relativo
 // O LEGIS e o JURIS são documentos SEPARADOS (entram por <iframe>), então o
