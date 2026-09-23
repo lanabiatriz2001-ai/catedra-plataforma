@@ -80,3 +80,26 @@ tela).
 3. Adiar `supabase.js` e `react-dom.js` para depois da primeira pintura (defer/preload ordenado).
 4. Estados vazios que convidam (D4) nas telas que a pessoa nova vê primeiro — não muda o tempo, muda a
    primeira impressão. Vai em PR próprio, como o P20 pede.
+
+## Continuação do P20 — primeira pintura do host (23/09/2026)
+
+A abertura agora tem uma casca de carregamento antes das bibliotecas do runtime, tanto no
+site quanto no bundle nativo. São aproximadamente 10 KB de CSS e JavaScript locais, também
+incluídos no precache. Os tokens de cor e tipografia são um recorte **gerado** de `THEMES()`;
+não há uma segunda paleta editada à mão.
+
+A casca respeita a direção guardada, claro/escuro, tema automático e baixa estimulação.
+Não mostra números, dados ou controles de estudo fictícios. Desaparece quando o `#ct-main`
+real entra no `#dc-root`, sem timer que esconda carregamento ainda pendente. Em falha de
+JavaScript anterior à montagem, apresenta explicação e “Tentar novamente”. O portão de
+autenticação mantém prioridade e não é contornado.
+
+O teste `tests/carregamento-inicial.mjs` suspende o runtime, mede a pintura, contraste,
+largura e ausência de animação; depois libera o runtime e verifica a retirada da casca.
+Cobre Planilha e Aurora, claro e escuro, 390 e 1280 px, erro e preservação das preferências.
+
+**O que isto não afirma:** as métricas acima continuam sendo a medição de 08/09, não um
+novo resultado. Esta entrega não reduz o documento principal nem elimina seu segundo
+download. A releitura de `support.js` é necessária para recuperar o template dos selects
+no WKWebView (PR #123); qualquer otimização precisa preservar esse caminho. Adiamento de
+bibliotecas e nova revisão dos estados vazios permanecem etapas separadas.
