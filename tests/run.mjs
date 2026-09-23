@@ -2777,6 +2777,16 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   await page.evaluate((g) => { ['catedra:enam', 'catedra:enamSim', 'catedra:errors', 'catedra:prova'].forEach(k => localStorage.removeItem(k)); if (g.edital != null) localStorage.setItem('catedra:edital', g.edital); else localStorage.removeItem('catedra:edital'); if (g.eventos != null) localStorage.setItem('catedra:eventos', g.eventos); else localStorage.removeItem('catedra:eventos'); }, guardado);
 }
 
+/* ============= JURIS — datas oficiais de publicação das Súmulas 722 a 736 do STF ============= */
+{
+  const bruto = fs.readFileSync(path.join(RAIZ, 'juris-index.js'), 'utf8');
+  const itens = JSON.parse(bruto.slice(bruto.indexOf('=') + 1, bruto.lastIndexOf(';')));
+  const lote = itens.filter(x => /^STF-SUM-(72[2-9]|73[0-6])$/.test(x[0]));
+  ok(lote.length === 15, 'JURIS/STF encontrou todas as Súmulas 722 a 736');
+  ok(lote.every(x => x[7] === '11/12/2003'), 'JURIS/STF usa a publicação oficial de 11/12/2003 nas Súmulas 722 a 736');
+  ok(lote.find(x => x[0] === 'STF-SUM-729')?.[7] === '11/12/2003', 'JURIS/STF Súmula 729 não volta à data de aprovação');
+}
+
 /* ============= JURÍDICO — P14: termos, privacidade, aceite, consentimento da IA e exclusão de conta ============= */
 // (a) o conversor e as páginas geradas: Markdown mínimo → HTML com tokens, sem rede; a versão vigente do aceite
 //     sai do cabeçalho dos documentos; o texto dos documentos chega intacto
