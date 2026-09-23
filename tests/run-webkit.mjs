@@ -28,6 +28,7 @@ import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
+import { testarCarregamentoInicial } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSelectHost } from './select-host.mjs';
@@ -94,6 +95,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     }
   }
   if (origem === 'http') {
+    await testarCarregamentoInicial(page, base, ok);
     try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
     try { await testarRevisaoFonte(page, base, ok, { motor, origem }); }
     catch (e) {

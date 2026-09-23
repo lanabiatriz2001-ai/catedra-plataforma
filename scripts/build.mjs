@@ -21,6 +21,7 @@ import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual nas 3 fon
 import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
+import './build-abertura.mjs';   // primeira pintura usa as paletas reais do host
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -306,7 +307,8 @@ window.__catedraOffline = (function () {
 // D9: as fontes passam a ser servidas do próprio domínio. O <link> do Google e os dois
 // preconnect saem — senão o navegador ainda bate lá, e numa rede que bloqueia o Google
 // a página trava esperando o CSS.
-let out = src.replace('<head>', '<head>' + INJECT);
+if (!src.includes('<!-- /ct-abertura -->')) throw new Error('Marcador de abertura ausente no host.');
+let out = src.replace('<!-- /ct-abertura -->', '<!-- /ct-abertura -->' + INJECT);
 if (fontsHref) {
   /* O dc.html não tem mais link para o Google (as faces vêm do catedra-ui.css). O
      fonts.css publicado existe para quem carrega o index.html sem o CSS compartilhado —
@@ -349,7 +351,9 @@ const pastasDeDados = () => {
    ABRIR. Antes, os três <script> do <head> e as fontes só entravam no cache DEPOIS
    da primeira navegação — quem instalasse e entrasse no avião em seguida abria o
    app sem eles. */
-const casca = [...vendorados, './prioridade-calc.js', './busca-unica.js', './semana-juris.js',
+const abertura = ['abertura-temas.js', 'carregamento-inicial.js', 'carregamento-inicial.css'];
+for (const f of abertura) copyFileSync(join(ROOT, f), join(pub, f));
+const casca = [...abertura.map(f => './' + f), ...vendorados, './prioridade-calc.js', './busca-unica.js', './semana-juris.js',
   // C2 e C3 tambem sao <script> do <head>: fora da casca, o app instalado abriria sem
   // o mapa das plataformas e sem o miolo do espelho sugerido.
   './plataformas-questoes.js', './espelho-sugerido.js', './area-registry.js', './casos.js',

@@ -40,6 +40,7 @@ import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
+import { testarCarregamentoInicial } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
@@ -8913,6 +8914,7 @@ catch (e) {
 
 // Login e sincronização no iPad (tests/auth-ipad.mjs): portão, teclado, sessão expirada, boot sem rede
 await testarAuthAbertura(page, URL0, ok);
+await testarCarregamentoInicial(page, URL0, ok);
 try { await testarAuthIpad(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'AUTH IPAD [' + motor + '] [http] o roteiro correu sem exceção ('
