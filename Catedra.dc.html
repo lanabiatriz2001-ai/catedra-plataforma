@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- ct-abertura: precisa pintar antes das bibliotecas injetadas pelo build -->
+<link rel="stylesheet" href="./carregamento-inicial.css">
+<script src="./abertura-temas.js"></script>
+<script src="./carregamento-inicial.js"></script>
+<!-- /ct-abertura -->
 <!-- Diagnóstico de erro em tela (21/08/2026): num iPad/Mac não há console. Se o JS quebrar,
      a mensagem aparece numa faixa no rodapé e fica em localStorage (catedra:_lastErr), que o
      "Copiar relatório" dos Ajustes inclui. Sem isso, a tela só fica em branco e ninguém sabe por quê. -->
