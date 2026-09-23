@@ -28,10 +28,15 @@
   function conferir() {
     // O contêiner vazio do React ainda não é uma tela. Aguarda o main real, inclusive
     // quando ele está protegido pelo portão de acesso (que tem prioridade própria).
+    // No artefato gerado, aguarda também o CSS completo: retirar a casca antes dele
+    // exporia por um instante toda a interface sem estilo.
     if (!document.querySelector('#dc-root #ct-main')) return;
+    if (window.CT_CSS_ESPERADO && !window.CT_CSS_PRONTO) return;
     observador.disconnect();
     window.removeEventListener('error', falhou);
     window.removeEventListener('unhandledrejection', falhou);
+    window.removeEventListener('ct-css-pronto', conferir);
+    window.removeEventListener('ct-css-falhou', falhou);
     if (el.parentNode) el.parentNode.removeChild(el);
   }
   function falhou() {
@@ -45,6 +50,8 @@
   observador.observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('error', falhou);
   window.addEventListener('unhandledrejection', falhou);
+  window.addEventListener('ct-css-pronto', conferir);
+  window.addEventListener('ct-css-falhou', falhou);
   document.addEventListener('DOMContentLoaded', function () {
     if (el.parentNode && document.body && el.parentNode !== document.body) document.body.appendChild(el);
     conferir();

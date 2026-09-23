@@ -30,7 +30,7 @@ export function embutirAbertura(html) {
   const comportamento = readFileSync(new URL('carregamento-inicial.js', raiz), 'utf8');
   const bloco = '<style data-ct-abertura>' + css.replace(/<\/style/gi, '<\\/style') + '</style>\n'
     + '<script data-ct-abertura="temas">' + paletas.replace(/<\/script/gi, '<\\/script') + '</script>\n'
-    + '<script data-ct-abertura="comportamento">' + comportamento.replace(/<\/script/gi, '<\\/script') + '</script>';
+    + '<script data-ct-abertura="comportamento">window.CT_CSS_ESPERADO=true;\n' + comportamento.replace(/<\/script/gi, '<\\/script') + '</script>';
   const externo = '<link rel="stylesheet" href="./carregamento-inicial.css">\n'
     + '<script src="./abertura-temas.js"></script>\n'
     + '<script src="./carregamento-inicial.js"></script>';
@@ -38,10 +38,23 @@ export function embutirAbertura(html) {
   return html.replace(externo, bloco);
 }
 
+export function linkEstiloNaoBloqueante(href, sinalPronto) {
+  const aoCarregar = "this.onload=null;this.media='all';"
+    + (sinalPronto ? "window." + sinalPronto + "=true;window.dispatchEvent(new Event('ct-css-pronto'))" : '');
+  const aoFalhar = sinalPronto ? "window.dispatchEvent(new Event('ct-css-falhou'))" : '';
+  return '<link rel="stylesheet" href="' + href + '" media="print" onload="' + aoCarregar + '" onerror="' + aoFalhar + '">'
+    + '<noscript><link rel="stylesheet" href="' + href + '"></noscript>';
+}
+
 export function prepararAbertura(html) {
   const embutido = embutirAbertura(html);
   const fim = embutido.indexOf('</head>');
   if (fim < 0) throw new Error('O host não tem </head> para ordenar a abertura.');
-  const head = embutido.slice(0, fim).replace(/<script\b(?![^>]*\b(?:defer|async)\b)([^>]*\bsrc="[^"]+"[^>]*)>/g, '<script defer$1>');
+  const css = '<link rel="stylesheet" href="./catedra-ui.css">';
+  const cssAssincrono = linkEstiloNaoBloqueante('./catedra-ui.css', 'CT_CSS_PRONTO');
+  if (!embutido.includes(css)) throw new Error('Folha visual compartilhada não encontrada no host.');
+  const head = embutido.slice(0, fim)
+    .replace(css, cssAssincrono)
+    .replace(/<script\b(?![^>]*\b(?:defer|async)\b)([^>]*\bsrc="[^"]+"[^>]*)>/g, '<script defer$1>');
   return head + embutido.slice(fim);
 }
