@@ -1,5 +1,8 @@
 # Lighthouse — primeiro carregamento (08/09/2026)
 
+Nova medição, com limites de comparação e amostras completas, em
+[Lighthouse de 23/09/2026](lighthouse-2026-09-23.md). Os números abaixo são históricos.
+
 Medição feita ANTES de qualquer mudança de desempenho, como o P20 pede. Lighthouse 12.8.2, modo
 mobile (Moto G Power emulado), 4G lento simulado (throttling `simulate`), Chromium do Playwright,
 página servida de `public/` por um servidor estático local **sem compressão** — na Vercel o HTML e
