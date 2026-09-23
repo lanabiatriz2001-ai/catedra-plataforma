@@ -36,3 +36,19 @@ export async function testarCarregamentoInicial(page, base, ok) {
     } finally { await ctx.close(); }
   }
 }
+
+export async function testarAberturaEmbutida(ok) {
+  const { readFileSync } = await import('node:fs');
+  const { prepararAbertura } = await import('../scripts/build-abertura.mjs');
+  const fonte = readFileSync(new URL('../Catedra.dc.html', import.meta.url), 'utf8');
+  const saida = prepararAbertura(fonte);
+  const antesDoRuntime = saida.slice(0, saida.indexOf('<!-- /ct-abertura -->'));
+  ok(!/carregamento-inicial\.(?:css|js)|abertura-temas\.js/.test(antesDoRuntime), 'ABERTURA BUILD não depende de três arquivos antes do primeiro pixel');
+  ok((antesDoRuntime.match(/<style data-ct-abertura>/g) || []).length === 1, 'ABERTURA BUILD embute o CSS uma vez');
+  ok((antesDoRuntime.match(/<script data-ct-abertura/g) || []).length === 2, 'ABERTURA BUILD embute tema e comportamento uma vez');
+  ok(antesDoRuntime.indexOf('window.CT_ABERTURA_TEMAS') < antesDoRuntime.indexOf('id = \'ct-carregamento\''), 'ABERTURA BUILD aplica os temas antes de criar a casca');
+  const head = saida.slice(0, saida.indexOf('</head>'));
+  const externos = head.match(/<script\b[^>]*\bsrc="[^"]+"[^>]*>/g) || [];
+  ok(externos.length > 5 && externos.every(tag => /\bdefer\b/.test(tag)), 'ABERTURA BUILD baixa scripts do cabeçalho em paralelo e preserva a execução ordenada após o parse');
+  ok(/<link rel="stylesheet" href="\.\/carregamento-inicial\.css">/.test(fonte), 'ABERTURA BUILD mantém a fonte editável com arquivos separados');
+}
