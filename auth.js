@@ -148,6 +148,7 @@
   // reconfirmar por falta de rede (o app segue offline com o dado dele até a rede voltar).
   // `avisoSessao`/`ultimoEmail`: o formulário de login explica por que voltou e poupa o e-mail.
   var saindo = false, pendente = null, avisoSessao = '', ultimoEmail = '', viaPendente = false;
+  var cancelarConsultaInicial = null;
   // mantém o token do usuário em cache (para o flush com keepalive ao fechar a aba)
   // O link de redefinição chega como #type=recovery (fluxo implícito) ou ?code=… com
   // ?type=recovery (PKCE). Marcamos ANTES de qualquer coisa: o supabase-js abre a sessão
@@ -161,7 +162,9 @@
 
   sb.auth.onAuthStateChange(function (_e, session) {
     authToken = session && session.access_token;
-    if (_e === 'PASSWORD_RECOVERY') { ehRecuperacao = true; showNovaSenha(); }
+    // Revogação explícita prevalece sobre o prazo offline da consulta inicial.
+    if (_e === 'SIGNED_OUT' && cancelarConsultaInicial) cancelarConsultaInicial();
+    if (_e === 'PASSWORD_RECOVERY') { ehRecuperacao = true; if (cancelarConsultaInicial) cancelarConsultaInicial(true); showNovaSenha(); }
     // O supabase-js emite SIGNED_OUT quando o refresh do token é recusado (sessão revogada,
     // senha trocada noutro aparelho). Sem isto o app seguia "logado" com o sync falhando para
     // sempre — e o Sair apagava os estudos sem aviso, porque o confirm exigia authToken.
@@ -1302,9 +1305,40 @@
     if (dono) avisoSessao = AVISO_SESSAO;
     showLoginState();
   }
-  sb.auth.getSession().then(function (res) {
+  // Um refresh pode ficar preso no cliente, sem resolver nem rejeitar. O prazo vale
+  // só para esta abertura: não apaga credenciais e não transforma demora em sessão
+  // inválida. Dono com dados continua pelo caminho offline existente, sem upload.
+  // Resposta atrasada não pode trocar a conta depois que a pessoa retomou o estudo.
+  function consultarSessaoNaAbertura() {
+    return new Promise(function (resolve, reject) {
+      var terminou = false;
+      var prazo = setTimeout(function () {
+        terminou = true; cancelarConsultaInicial = null;
+        reject({ name: 'AuthRetryableFetchError', message: 'O servidor de contas não respondeu a tempo.' });
+      }, 10000);
+      function concluir(res, err) {
+        if (terminou) return;
+        terminou = true; clearTimeout(prazo); cancelarConsultaInicial = null;
+        if (err) reject(err); else resolve(res);
+      }
+      cancelarConsultaInicial = function (recuperacao) { concluir(recuperacao ? { recuperacao: true } : { sessaoEncerrada: true }); };
+      try { sb.auth.getSession().then(function (res) { concluir(res); }, function (err) { concluir(null, err); }); }
+      catch (err) { concluir(null, err); }
+    });
+  }
+  // A pessoa já escolheu estudar sem conta: a rede não participa da abertura.
+  if (modoLocalAtivo() && !ehRecuperacao) { semSessao(); return; }
+  consultarSessaoNaAbertura().then(function (res) {
+    if (res && res.sessaoEncerrada) { avisoSessao = AVISO_SESSAO; showLoginState(); return; }
     var s = res && res.data && res.data.session;
     if (ehRecuperacao) { showNovaSenha(); return; }
     if (s && s.user) onLogin(s.user); else semSessao(res && res.error);
-  }).catch(function (err) { semSessao(err); });
+  }).catch(function (err) {
+    semSessao(err);
+    if (!pendente && !modoLocalAtivo() && erroDeRede(err)) {
+      var aviso = el.querySelector('#cterr');
+      if (aviso) aviso.textContent = MSG_SEM_SERVIDOR + ' Seus dados neste aparelho foram preservados.';
+      oferecerModoLocal();
+    }
+  });
 })();

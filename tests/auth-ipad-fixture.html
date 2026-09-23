@@ -32,6 +32,7 @@
         auth: {
           getSession: function () {
             chamou('getSession');
+            if (cfg('sessaoPendente', false)) return new Promise(function (resolve) { window.__ctResolverSessao = resolve; });
             var u = cfg('sessao', null), err = cfg('sessaoErro', null);
             return Promise.resolve({ data: { session: u && !err ? sessao(u) : null }, error: err });
           },
