@@ -152,7 +152,11 @@
     const rootName = rootNameForDocument(doc, location);
     runtime.markFetched(rootName);
     runtime.adoptParsed(rootName, parsed);
-    fetch(location.href).then((res) => res.ok ? res.text() : "").then((t) => {
+    // file:// (app nativo do Mac e do iPad) não tem código HTTP: o fetch traz o arquivo INTEIRO
+    // com ok=false e status=0. Descartar essa resposta deixava valendo o template que o parser
+    // já tinha mutilado — no WebKit do iPadOS 27 todo <sc-for> dentro de <select> some, e os
+    // menus ficavam com uma linha em branco e "Outra…" (23/09/2026).
+    fetch(location.href).then((res) => res.ok || res.status === 0 ? res.text() : "").then((t) => {
       const raw = t ? parseDcText(t) : null;
       if (raw?.template) runtime.updateHtml(rootName, raw.template);
     }).catch(() => {
