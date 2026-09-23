@@ -32,6 +32,7 @@ import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
+import { testarRevisaoFonte } from './revisao-fonte.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -90,6 +91,11 @@ for (const [base, origem, arquivo] of ORIGENS) {
     }
   }
   if (origem === 'http') {
+    try { await testarRevisaoFonte(page, base, ok, { motor, origem }); }
+    catch (e) {
+      ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
     try { await testarIpadToque(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'IPAD TOQUE [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('

@@ -1269,6 +1269,11 @@ window.ctPdfLib = (function(){
               <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:clamp(24px,4vw,40px);text-align:center;">
                 <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border-radius:99px;padding:6px 13px;font-size:var(--fs-xs);font-weight:600;color:rgba(255,255,255,.85);"><span style="width:8px;height:8px;border-radius:2px;background:{{ revCardColor }};"></span>{{ revCardDisc }}</span>
                 <div style="font-family:var(--display);font-size:clamp(22px,3.4vw,30px);font-weight:600;line-height:1.25;margin:18px 0 6px;">{{ revCardTopic }}</div>
+                <sc-if value="{{ revRefTem }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" data-id="{{ revCardId }}" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-clara ct-alvo" style="min-height:var(--ct-alvo-toque);margin-top:var(--ct-e3);">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ revRefLabel }}
+                  </button>
+                </sc-if>
                 <!-- LA5: tópico de leitura ativa → o cartão cloze, lacuna antes de revelar e "extra" depois -->
                 <sc-if value="{{ revLaTem }}" hint-placeholder-val="{{ false }}"><div class="la-cloze"><sc-for list="{{ revLaSegs }}" as="s" hint-placeholder-count="3"><sc-if value="{{ s.lacuna }}" hint-placeholder-val="{{ false }}"><span class="la-lacuna {{ s.cls }}" style="{{ s.style }}">{{ s.t }}</span></sc-if><sc-if value="{{ s.texto }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if></sc-for></div><sc-if value="{{ revLaExtra }}" hint-placeholder-val="{{ false }}"><div class="la-cloze-extra">{{ revLaExtra }}</div></sc-if></sc-if>
                 <sc-if value="{{ revNotRevealed }}" hint-placeholder-val="{{ true }}">
@@ -3076,6 +3081,9 @@ window.ctPdfLib = (function(){
                 <div style="flex:1;min-width:140px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.topic }}</div><div class="ct-nota ct-nota-solta">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--danger);font-weight:600;background:var(--surface2);padding:4px 10px;border-radius:99px;">vencida {{ r.dueLabel }}</span>
                 <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);font-variant-numeric:tabular-nums;letter-spacing:.02em;">int. {{ r.interval }} · ef {{ r.ef }}</span>
+                <sc-if value="{{ r.refTem }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" data-id="{{ r.id }}" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
+                </sc-if>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                   <span style="font-size:var(--fs-xs);color:var(--text3);margin-right:2px;">Como foi?</span>
                   <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:var(--danger);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
@@ -3104,6 +3112,9 @@ window.ctPdfLib = (function(){
                 <div style="flex:1;min-width:140px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.topic }}</div><div class="ct-nota ct-nota-solta">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--accentD);font-weight:600;background:var(--accentSoft);padding:4px 10px;border-radius:99px;">agendada hoje</span>
                 <span class="ct-dado" style="color:var(--text2);">int. {{ r.interval }} · ef {{ r.ef }}</span>
+                <sc-if value="{{ r.refTem }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" data-id="{{ r.id }}" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
+                </sc-if>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                   <span style="font-size:var(--fs-xs);color:var(--text3);margin-right:2px;">Como foi?</span>
                   <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:var(--danger);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
@@ -3132,6 +3143,9 @@ window.ctPdfLib = (function(){
                 <div style="flex:1;min-width:140px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.topic }}</div><div class="ct-nota ct-nota-solta">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--text3);font-weight:500;">{{ r.dueLabel }}</span>
                 <span class="ct-dado" style="color:var(--text2);">intervalo {{ r.interval }}</span>
+                <sc-if value="{{ r.refTem }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" data-id="{{ r.id }}" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
+                </sc-if>
                 <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
               </div>
             </sc-for>
@@ -8483,6 +8497,16 @@ class Component extends DCLogic {
   reviewRate = (e)=>{ const id=e.currentTarget.dataset.id; const q=+e.currentTarget.dataset.q; const hoje=this._hoje();
     const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const sc=this.sm2(r, q); return {...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:Date.now()}; }); this.setState({reviews:rv}); };
   reviewSnooze = (e)=>{ const id=e.currentTarget.dataset.id; const hoje=this._hoje(); const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const base=((r.due||0)<0||!r.dueDate)?hoje:r.dueDate; return {...r, dueDate:this._addDiasStr(base,1), due:Math.max(1,(r.due||0)+1), up:Date.now()}; }); this.setState({reviews:rv}); };
+  /* A referência fica no objeto sincronizado da revisão. O id no botão evita pôr texto
+     jurídico cru em atributo HTML; a navegação sai pelo mesmo ctAbrirAcervo que os
+     satélites usam, para abrir iframe na web e aba de verdade no Mac/iPad. */
+  abrirAcervoDaRevisao = (e)=>{ const id=String((e.currentTarget.dataset||{}).id||'');
+    const r=(this.state.reviews||[]).find(x=>x&&x.id===id); if(!r) return;
+    const ref=String(r.ref||'').trim(), alvo=this._alvoAcervoDaRef(ref); if(!ref||!alvo) return;
+    const abrir=()=>this._abrirAcervoPorMensagem(alvo, ref);
+    // Na sessão guiada, navegar sem fechar deixaria o modal de tela inteira por cima do acervo.
+    if(this.state.revSession) this.setState({revSession:null}, abrir); else abrir();
+  };
   /* Tirar da fila: a revisão nasce de vários lugares (erro, treino, registro de sessão,
      destaque do leitor) e às vezes entra um tópico que ela nunca estudou — sem isto ele
      ficava eternamente reaparecendo em "Próximas". Some de vez; a lápide do auth.js
@@ -9513,6 +9537,28 @@ class Component extends DCLogic {
      busca do CátedraLEGIS/CátedraJURIS. Abrir uma lei ou um julgado NÃO marca leitura nem
      conclusão — o progresso continua vindo só de ação identificável (conferir a leitura
      ativa, registrar a sessão). Aqui é só o caminho, e o caminho não estuda por ninguém. */
+  _alvoAcervoDaRef(ref){
+    const t=String(ref||'').replace(/\s+/g,' ').trim(); if(!t) return '';
+    // A mesma leitura de referências usada pelo ENAM resolve "Art. 525 do CPC" e
+    // "Tema 698". O complemento cobre o formato dos simulados mistos ("STJ · Tema…",
+    // "CC · Art.…") sem transformar a referência opaca da questão ENAM (2024.1·37) em
+    // uma busca falsa no LEGIS.
+    try{ const r=this._enamRef(t); if(r&&r.jurisTem) return 'juris'; if(r&&r.legis) return 'legis'; }catch(_){}
+    if(/(?:^|[\s·—–(])(?:s[úu]mula|tema|informativo|info\.?|repetitivo|repercuss[ãa]o geral|ac[óo]rd[ãa]o|precedente|stf|stj|tse|trf|resp|re|adi|adc|adpf|rcl|hc|iac|irdr)(?:\b|\s|·|$)/i.test(t)) return 'juris';
+    if(/(?:^|[\s·—–(])(?:arts?\.?\s*\d+|leis?(?:\s+n[ºo.]*)?\s*\d+|decreto|constitui[çc][ãa]o|c[óo]digo|cf|crfb|cc|cpc|cpp|cp|cdc|ctn|clt|eca|lep)(?:\b|\s|·|$)/i.test(t)) return 'legis';
+    return '';
+  }
+  _abrirAcervoPorMensagem(alvo, termo){
+    const a=alvo==='juris'?'juris':'legis', t=String(termo||'').trim(); if(!t) return;
+    try{
+      // No site, o listener ctAbrirAcervo troca a view e aplica a busca. Nos apps, o
+      // shim instalado em documentStart intercepta a mesma mensagem e abre a ABA nativa.
+      window.postMessage({type:'ctAbrirAcervo', alvo:a, termo:t}, '*');
+    }catch(_){
+      // Fallback para um host sem postMessage; os hosts oficiais seguem o caminho acima.
+      if(this._irPara(a, {acervoBusca:t, acervoDe:null, origemAbrir:''})!=='indisponivel') this._marcarPonto(a, {termo:t});
+    }
+  }
   abrirAcervoDoBloco = (e)=>{ const _di=e.currentTarget.dataset.i; const alvo=e.currentTarget.dataset.alvo==='juris'?'juris':'legis';
     if(_di==null||_di==='') return; const b=this.state.blocks[+_di]; if(!b) return;
     const termo=String(b.topico||b.discEdital||b.disc||'').trim();
@@ -12017,7 +12063,7 @@ class Component extends DCLogic {
     let h=5381; for(let i=0;i<t.length;i++){ h=((h*33)^t.charCodeAt(i))>>>0; } return 'h'+h.toString(36); }
   /**
    * Colhe um lote de erros.
-   * @param itens [{enunciado, gabarito, disc, topico, fonte, lesson}]
+   * @param itens [{enunciado, gabarito, disc, topico, fonte, lesson, extra:{ref}}]
    * @param origem rótulo curto ('Simulado', 'Simulado 2ª fase — TJ-RJ 2026')
    */
   _colherErros(itens, origem){
@@ -12045,8 +12091,13 @@ class Component extends DCLogic {
     Object.keys(porDisc).forEach((d,i)=>{
       const topico=(porDisc[d].length===1 && porDisc[d][0].topico) ? porDisc[d][0].topico : ('Erros — '+(origem||'treino'));
       if(temRev(d,topico)) return;
+      // A revisão continua sendo UMA por disciplina para não virar enxurrada. Quando o lote
+      // tem material de origem, o primeiro com referência dá à pessoa um caminho concreto
+      // de volta; a ordem é a mesma das questões corrigidas, portanto é determinística.
+      const comRef=porDisc[d].find(e=>String(e.ref||'').trim()), ref=comRef?String(comRef.ref).trim():'';
       revs.push({id:'r'+(agora+i)+'-auto', disc:d, topic:topico, color:this._corDisc(d), due:1,
-        dueDate:this._addDiasStr(this._hoje(),1), intervalo:1, facilidade:2.5, repeticoes:0, up:agora, auto:true});
+        dueDate:this._addDiasStr(this._hoje(),1), intervalo:1, facilidade:2.5, repeticoes:0, up:agora, auto:true,
+        ...(ref?{ref}:{})});
     });
     this.setState(st=>{
       const fc=[...cards, ...st.flashcards];
@@ -12263,7 +12314,8 @@ class Component extends DCLogic {
         enunciado:it.enunciado, disc:it.ramo||'Geral', topico:it.tema||'',
         gabarito:(it.alternativas ? ('Gabarito: '+String(it.certo)+(it.original?(' — '+String(it.original).slice(0,600)):''))
                                   : ((it.certo?'CERTO':'ERRADO')+(it.original?(' — '+String(it.original).slice(0,600)):''))),
-        lesson:(it.trocaDe&&it.trocaPara)?('A banca trocou "'+it.trocaDe+'" por "'+it.trocaPara+'".'):''
+        lesson:(it.trocaDe&&it.trocaPara)?('A banca trocou "'+it.trocaDe+'" por "'+it.trocaPara+'".'):'',
+        extra:it.ref?{fonte:String(it.origem||''), ref:String(it.ref)}:undefined
       })), 'Simulado');
     }catch(_){}
   };
@@ -15428,7 +15480,9 @@ class Component extends DCLogic {
       // "Catedra.renderVals(): Cannot read properties of undefined". Erro técnico não é
       // assunto de quem está estudando: 2.5 é o valor inicial do próprio SM-2.
       interval: (r.intervalo||0)+'d', ef: Number(r.facilidade!=null?r.facilidade:2.5).toFixed(2), reps: (r.repeticoes||0),
-      dueLabel: r.due<0 ? `há ${Math.abs(r.due)} ${Math.abs(r.due)===1?'dia':'dias'}` : (r.due===0?'hoje':(r.due===1?'amanhã':`em ${r.due} dias`)) });
+      dueLabel: r.due<0 ? `há ${Math.abs(r.due)} ${Math.abs(r.due)===1?'dia':'dias'}` : (r.due===0?'hoje':(r.due===1?'amanhã':`em ${r.due} dias`)),
+      refTem: !!this._alvoAcervoDaRef(r.ref),
+      refLabel: this._alvoAcervoDaRef(r.ref)==='juris'?'Abrir no JURIS':'Abrir no LEGIS' });
     const revOverdue = this.state.reviews.filter(r=>r.due<0).sort((a,b)=>a.due-b.due).map(mkRev);
     const revToday   = this.state.reviews.filter(r=>r.due===0).map(mkRev);
     const revUpcoming= this.state.reviews.filter(r=>r.due>0).sort((a,b)=>a.due-b.due).map(mkRev);
@@ -15438,9 +15492,10 @@ class Component extends DCLogic {
     if(RS){ const total=RS.queue.length, idx=RS.idx, done=RS.done||idx>=total;
       const reviewedN=RS.again+RS.hard+RS.good+RS.easy;
       const cur=done?null:this.state.reviews.find(r=>r.id===RS.queue[idx]);
-      const _iv=(q)=>cur?this.sm2(cur,q).intervalo:0;
+      const _iv=(q)=>cur?this.sm2(cur,q).intervalo:0, _refAlvo=cur?this._alvoAcervoDaRef(cur.ref):'';
       revRun={ active:true, total, pos:Math.min(idx+1,total), pct: total?Math.round(idx/total*100):0, revealed:RS.revealed, done,
-        disc: cur?cur.disc:'', discShort: cur?cur.disc.replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
+        id:cur?cur.id:'', disc: cur?cur.disc:'', discShort: cur?cur.disc.replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
+        refTem:!!_refAlvo, refLabel:_refAlvo==='juris'?'Abrir no JURIS':'Abrir no LEGIS',
         intervalo: (cur&&cur.intervalo)||0, ef: cur?Number(cur.facilidade!=null?cur.facilidade:2.5).toFixed(2):'', reps: (cur&&cur.repeticoes)||0,
         opts: cur?[ {q:2,label:'Errei',sub:'1 dia',color:'var(--danger)'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'var(--warn)'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'var(--ok)'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
         again:RS.again, hard:RS.hard, good:RS.good, easy:RS.easy, reviewedN, acertos:RS.good+RS.easy };
@@ -17638,9 +17693,11 @@ class Component extends DCLogic {
       homeTimerLabel, homeTimerBtn:(this.state.timerRunning?'❚❚ Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'▶ Retomar':'▶ Iniciar')), homePmLivre, homePm25, homePm50, homePm90, pmCustShow, pmCustF, pmCustB, pmCustLabel, homePmCust,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze, reviewRemove:this.reviewRemove,
       startRevSession:this.startRevSession, revReveal:this.revReveal, revAnswer:this.revAnswer, revSkip:this.revSkip, closeRevSession:this.closeRevSession,
+      abrirAcervoDaRevisao:this.abrirAcervoDaRevisao,
       laAbrirNoLegis:this.laAbrirNoLegis,
       revActive:revRun.active, revDone:revRun.done, revNotDone:revRun.active&&!revRun.done, revRevealed:revRun.revealed, revNotRevealed:revRun.active&&!revRun.done&&!revRun.revealed,
-      revPos:revRun.pos, revTotal:revRun.total, revPct:revRun.pct, revCardDisc:revRun.discShort, revCardTopic:revRun.topic, revCardColor:revRun.color,
+      revPos:revRun.pos, revTotal:revRun.total, revPct:revRun.pct, revCardId:revRun.id, revCardDisc:revRun.discShort, revCardTopic:revRun.topic, revCardColor:revRun.color,
+      revRefTem:!!revRun.refTem, revRefLabel:revRun.refLabel||'',
       revCardInterval:revRun.intervalo, revCardEf:revRun.ef, revCardReps:revRun.reps, revOpts:revRun.opts,
       revLaTem:!!revRun.laTem, revLaSegs:revRun.laSegs||[], revLaExtra:revRun.laExtra||'',
       ankiNotaCloze:(()=>{ const n=(this.state.flashcards||[]).filter(c=>c&&c.tipo==='cloze').length;

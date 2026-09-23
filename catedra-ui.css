@@ -27,6 +27,7 @@
   /* espaçamento — 4, 8, 12, 16, 24, 32, 48 */
   --ct-e1: 4px;  --ct-e2: 8px;  --ct-e3: 12px;
   --ct-e4: 16px; --ct-e5: 24px; --ct-e6: 32px; --ct-e7: 48px;
+  --ct-alvo-toque: 44px;
 
   /* raio: herda o tema do host (o app deixa a pessoa escolher cantos) */
   --ct-r-sm: var(--r-sm, 8px);

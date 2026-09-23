@@ -30,6 +30,7 @@ import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
+import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
@@ -8603,6 +8604,13 @@ catch (e) {
 try { await testarRegistroSessao(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REGISTRO [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Erro de simulado → revisão → material de origem (LEGIS/JURIS)
+try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
