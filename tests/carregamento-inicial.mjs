@@ -29,10 +29,13 @@ export async function testarCarregamentoInicial(page, base, ok) {
       await p.evaluate(() => window.dispatchEvent(new Event('unhandledrejection')));
       const retentar = painel.getByRole('button', { name: 'Tentar novamente' });
       ok(await retentar.isVisible() && (await retentar.boundingBox()).height >= 44, rot + 'falha oferece recuperação com alvo ≥ 44');
+      await p.evaluate(() => { window.CT_CSS_ESPERADO = true; });
       await p.addScriptTag({ url: base + '/support.js?retomar=1' });
       await p.waitForSelector('#ct-main', { timeout: 20000 });
+      ok(await painel.isVisible(), rot + 'não expõe o app real antes de o CSS completo ficar pronto');
+      await p.evaluate(() => { window.CT_CSS_PRONTO = true; window.dispatchEvent(new Event('ct-css-pronto')); });
       await p.waitForFunction(() => !document.getElementById('ct-carregamento'));
-      ok(true, rot + 'só sai quando o conteúdo real monta');
+      ok(true, rot + 'só sai quando conteúdo e CSS real estão prontos');
     } finally { await ctx.close(); }
   }
 }
@@ -50,5 +53,10 @@ export async function testarAberturaEmbutida(ok) {
   const head = saida.slice(0, saida.indexOf('</head>'));
   const externos = head.match(/<script\b[^>]*\bsrc="[^"]+"[^>]*>/g) || [];
   ok(externos.length > 5 && externos.every(tag => /\bdefer\b/.test(tag)), 'ABERTURA BUILD baixa scripts do cabeçalho em paralelo e preserva a execução ordenada após o parse');
+  ok(/<link rel="stylesheet" href="\.\/catedra-ui\.css" media="print" onload="[^"]*CT_CSS_PRONTO/.test(head), 'ABERTURA BUILD tira o CSS completo do caminho da primeira pintura e sinaliza quando ficou pronto');
+  ok(/onerror="[^"]*ct-css-falhou/.test(head), 'ABERTURA BUILD mantém a recuperação visível se o CSS completo falhar');
+  ok(/<noscript><link rel="stylesheet" href="\.\/catedra-ui\.css"><\/noscript>/.test(head), 'ABERTURA BUILD preserva o estilo completo sem JavaScript');
+  ok(head.indexOf('CT_CSS_ESPERADO=true') < head.indexOf('id = \'ct-carregamento\''), 'ABERTURA BUILD avisa a casca que deve aguardar o CSS completo');
   ok(/<link rel="stylesheet" href="\.\/carregamento-inicial\.css">/.test(fonte), 'ABERTURA BUILD mantém a fonte editável com arquivos separados');
+  ok(/<link rel="stylesheet" href="\.\/catedra-ui\.css">/.test(fonte), 'ABERTURA BUILD mantém o CSS bloqueante na fonte aberta diretamente');
 }

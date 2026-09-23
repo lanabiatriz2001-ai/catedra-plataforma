@@ -142,3 +142,27 @@ Interpretação: a pessoa recebe feedback visual materialmente antes, mas o app 
 leva cerca de 16,2 s para terminar de pintar neste cenário. É ganho de espera percebida,
 não solução do peso do host. Relatórios brutos locais:
 `/private/tmp/catedra-p20-defer-{5,6,7}.json`.
+
+## Experimento controlado — CSS completo fora da primeira pintura
+
+Mantendo a casca crítica embutida, `catedra-ui.css` passou a carregar com mídia
+temporária e só é aplicado no `onload`. A casca aguarda simultaneamente o `#ct-main` e
+esse sinal antes de sair; assim, o ganho não expõe a interface sem estilo. Há fallback
+em `noscript` e a falha da folha mantém a recuperação da abertura visível.
+
+| Variante / rodada | Performance | FCP (s) | LCP (s) | TBT (ms) | CLS |
+|---|---:|---:|---:|---:|---:|
+| CSS assíncrono 1 | 44 | 10,207 | 16,219 | 490 | 0,005585 |
+| CSS assíncrono 2 | 49 | 10,210 | 16,226 | 322 | 0,005585 |
+| CSS assíncrono 3 | 44 | 10,205 | 16,215 | 461 | 0,005585 |
+| **Mediana** | **44** | **10,207** | **16,219** | **461** | **0,005585** |
+
+Contra a variante imediatamente anterior, o FCP caiu mais **0,596 s (5,5%)**. LCP e
+CLS ficaram materialmente estáveis; a mediana de TBT caiu 53 ms. O elemento real do
+LCP continuou sendo a saudação do Início. Relatórios brutos locais:
+`/private/tmp/catedra-p20-css-{1,2,3}.json`.
+
+Também foi medido `fonts.css` fora do caminho crítico. O FCP caiu para 9,377 s, mas a
+mediana de TBT subiu para 759 ms (amostras: 759, 1.398 e 655 ms). A variante foi
+**descartada**: antecipar o primeiro pixel não compensava tornar a interação mais
+travada. Relatórios descartados: `/private/tmp/catedra-p20-css-fonts-{1,2,3}.json`.
