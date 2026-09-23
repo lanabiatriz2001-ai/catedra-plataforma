@@ -26,6 +26,7 @@ import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
+import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
@@ -8628,6 +8629,7 @@ try { await testarOnboardingImportar(page, URL0, ok); } catch (e) { ok(false, 'O
 try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exceção: ' + e.message); }
 { const ctxR = await browser.newContext(); const pageR = await ctxR.newPage(); try { await testarReguaUnica(pageR, URL0, ok); } catch (e) { ok(false, 'RÉGUA/única exceção: ' + e.message); } finally { await ctxR.close(); } }
 try { await testarTemplateFileUrl(browser, URL0, ok, { motor }); } catch (e) { ok(false, 'TEMPLATE/file exceção: ' + e.message); }
+{ const ctxML = await browser.newContext(); const pML = await ctxML.newPage(); try { await testarAuthModoLocal(pML, URL0, ok); } catch (e) { ok(false, 'MODO LOCAL exceção: ' + e.message); } finally { await ctxML.close(); } }
 try { await testarIphoneHost390(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPHONE/host 390 [' + motor + '] [http] o roteiro correu sem exceção ('
