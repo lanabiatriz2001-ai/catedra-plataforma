@@ -27,6 +27,7 @@ import { testarEnamModo } from './enam-modo.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
+import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSelectHost } from './select-host.mjs';
@@ -85,6 +86,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
   // fixture tests/auth-ipad-fixture.html carrega o auth.js com um Supabase de mentira —
   // existe na raiz do repositório, não no bundle, por isso a origem [bundle] fica de fora.
   if (origem !== 'bundle') {
+    await testarAuthAbertura(page, base, ok);
     try { await testarAuthIpad(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'AUTH IPAD [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
