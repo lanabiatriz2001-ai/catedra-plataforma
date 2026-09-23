@@ -28,8 +28,11 @@
      padrão, a régua é exatamente PESOS: quem nunca mexeu não vê diferença nenhuma.
      "Peso no edital" e "Incidência" dividem o fator incidência (a média dos dois).
      A leitura ativa não tem controle e fica com o peso fixo. */
-  var CONTROLE_PADRAO = { pErros: 9, pRevVenc: 10, pTempo: 7, pDesemp: 9, pEdital: 8, pIncid: 8 };
-  function pesosDosControles(ctrl) {
+  // Discursivas só entram nas matérias com correção válida. Sem histórico, os seis
+  // pesos antigos permanecem EXATAMENTE iguais. Peso bruto 0,14 (~12,3% no padrão).
+  var PESO_DISCURSIVA = 0.14, MAX_DISCURSIVAS = 5;
+  var CONTROLE_PADRAO = { pErros: 9, pRevVenc: 10, pTempo: 7, pDesemp: 9, pEdital: 8, pIncid: 8, pDiscursiva: 7 };
+  function pesosDosControles(ctrl, comDiscursiva) {
     var c = ctrl || {};
     var v = function (k) { var x = parseFloat(c[k]); return (isFinite(x) && x >= 0) ? x : CONTROLE_PADRAO[k]; };
     var razao = function (k) { return v(k) / CONTROLE_PADRAO[k]; };
@@ -41,6 +44,7 @@
       incidencia: PESOS.incidencia * (razao('pEdital') + razao('pIncid')) / 2,
       leitura: PESOS.leitura
     };
+    if (comDiscursiva) bruto.discursiva = PESO_DISCURSIVA * razao('pDiscursiva');
     var tot = 0; for (var k in bruto) tot += bruto[k];
     if (!(tot > 0)) return Object.assign({}, PESOS);   // tudo zerado: volta ao padrão, não divide por zero
     var out = {}; for (var j in bruto) out[j] = bruto[j] / tot;
@@ -59,11 +63,13 @@
   function arr(x) { return Array.isArray(x) ? x : []; }
 
   /**
-   * @param estado {edital, errors, reviews, sessions, sim, incidencia, hoje}
+   * @param estado {edital, errors, reviews, sessions, redHist, incidencia, hoje}
    *   - edital:   [{disc, peso, questoes, topics}]
    *   - errors:   [{disc, ts, resolvido}]
    *   - reviews:  [{disc, dueDate}]  (vencida = dueDate <= hoje)
    *   - sessions: [{disc, date, questoes, acertos, erradas}]
+   *   - redHist: [{disc, notaTotal, notaMax, ts, quesitos:[{disc,nota,max,peso}]}]
+   *   - pesos / pesosDiscursiva: pesosDosControles(controles, false / true)
    *   - incidencia: {disciplinaNormalizada: 0..1}  (opcional)
    *   - leituraPendente: {disciplinaNormalizada: 0..1}  fração dos artigos de incidência alta
    *                      ainda sem leitura ativa (opcional; sem o dado, o fator vale 0)
@@ -80,7 +86,8 @@
     var erros = arr(e.errors), reviews = arr(e.reviews), sessions = arr(e.sessions);
     var inc = e.incidencia || {};
     var lei = e.leituraPendente || {};
-    var P = e.pesos || PESOS;   // pesosDosControles(orient) no app; sem ele, a régua padrão
+    var basePesos = e.pesos || PESOS;
+    var comDiscursiva = e.pesosDiscursiva || pesosDosControles(null, true);
 
     // ---- agregados por disciplina normalizada
     var porDisc = {};
@@ -88,7 +95,7 @@
       porDisc[norm(d.disc)] = {
         disc: String(d.disc).trim(),
         peso: (d.peso != null && d.peso !== '' && isFinite(+d.peso) && +d.peso > 0) ? +d.peso : 1,
-        erros30: 0, revVencidas: 0, ultimaSessao: null, q: 0, a: 0, er: 0
+        erros30: 0, revVencidas: 0, ultimaSessao: null, q: 0, a: 0, er: 0, discursivas: []
       };
     });
     var achar = function (nome) { return porDisc[norm(nome)] || null; };
@@ -111,6 +118,34 @@
       o.q += +(s.questoes || 0); o.a += +(s.acertos || 0); o.er += +(s.erradas || 0);
     });
 
+    // Não adivinha matéria nem escala de registros antigos. Espelho sugerido não é
+    // critério oficial. Cada tentativa contribui uma vez por disciplina, por pontos;
+    // provas multidisciplinares usam a disciplina declarada em cada quesito.
+    var vistos = {};
+    arr(e.redHist).slice().sort(function (a,b) { return +(b && (b.ts || b.up) || 0) - +(a && (a.ts || a.up) || 0); }).forEach(function (h) {
+      if (!h || h.aproximada || (h.id && vistos[h.id])) return;
+      if (h.id) vistos[h.id] = true;
+      var partes = {};
+      var valido = function (x) { return x !== null && x !== undefined && x !== '' && isFinite(+x); };
+      var somar = function (disc, nota, max) {
+        var o = achar(disc); if (!o || !valido(nota) || !valido(max) || +max <= 0 || +nota < 0 || +nota > +max) return;
+        var k = norm(o.disc), p = partes[k] || (partes[k] = { nota:0, max:0 });
+        p.nota += +nota; p.max += +max;
+      };
+      if (h.disc && valido(h.notaTotal) && valido(h.notaMax)) somar(h.disc, h.notaTotal, h.notaMax);
+      else arr(h.quesitos).forEach(function (q) {
+        if (!q) return;
+        if (q.peso != null) {
+          if (!valido(q.nota) || !valido(q.max) || +q.max <= 0) return;
+          somar(q.disc || h.disc, +q.nota / +q.max * +q.peso, q.peso);
+        } else somar(q.disc || h.disc, q.nota, q.max);
+      });
+      Object.keys(partes).forEach(function (k) {
+        var o = porDisc[k], p = partes[k];
+        if (o.discursivas.length < MAX_DISCURSIVAS) o.discursivas.push(p.nota / p.max);
+      });
+    });
+
     // ---- normalização: cada fator vira 0..1 comparando com o pior caso do conjunto
     var lista = Object.keys(porDisc).map(function (k) { return porDisc[k]; });
     var maxErros = Math.max.apply(null, [1].concat(lista.map(function (o) { return o.erros30; })));
@@ -118,6 +153,8 @@
     var maxPeso = Math.max.apply(null, [1].concat(lista.map(function (o) { return o.peso; })));
 
     var saida = lista.map(function (o) {
+      var temDiscursiva = o.discursivas.length > 0 && comDiscursiva.discursiva > 0;
+      var P = temDiscursiva ? comDiscursiva : basePesos;
       var fErros = clamp01(o.erros30 / maxErros);
       var fRev = clamp01(o.revVencidas / maxRev);
 
@@ -148,6 +185,12 @@
           texto: Math.round(clamp01(+lei[norm(o.disc)] || 0) * 100) + '% dos artigos mais citados ainda sem leitura ativa' }
       ];
 
+      if (temDiscursiva) {
+        var media = o.discursivas.reduce(function (a,b) { return a+b; },0) / o.discursivas.length;
+        fatores.push({ chave:'discursiva', rotulo:'discursivas', valor:clamp01(1-media), peso:P.discursiva,
+          texto:Math.round(media*100)+'% '+(o.discursivas.length===1?'na última correção de discursiva':'nas últimas '+o.discursivas.length+' correções de discursiva') });
+      }
+
       var nota = Math.round(fatores.reduce(function (a, f) { return a + f.valor * f.peso; }, 0) * 100);
       // os fatores que de fato empurraram esta disciplina para cima
       var dominantes = fatores.slice().sort(function (a, b) { return (b.valor * b.peso) - (a.valor * a.peso); })
@@ -158,7 +201,7 @@
         motivos: dominantes.map(function (f) { return f.texto; }),
         erros30: o.erros30, revVencidas: o.revVencidas, diasSem: diasSem,
         liqPct: liqPct, questoes: o.q, peso: o.peso,
-        semDados: (o.erros30 === 0 && o.revVencidas === 0 && o.q === 0 && diasSem == null)
+        semDados: (o.erros30 === 0 && o.revVencidas === 0 && o.q === 0 && diasSem == null && !temDiscursiva)
       };
     });
 

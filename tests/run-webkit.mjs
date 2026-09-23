@@ -33,6 +33,7 @@ import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
+import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -91,6 +92,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     }
   }
   if (origem === 'http') {
+    try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
     try { await testarRevisaoFonte(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
