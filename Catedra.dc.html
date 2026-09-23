@@ -3296,6 +3296,7 @@ window.ctPdfLib = (function(){
                     <span style="flex:1;min-width:0;">
                       <span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">{{ h.temaShort }}</span>
                       <span style="display:block;font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ h.when }} · {{ h.words }} palavras · {{ h.tipo }}</span>
+                      <sc-if value="{{ h.disc }}" hint-placeholder-val="{{ false }}"><span class="ct-nota">{{ h.disc }}</span></sc-if>
                     </span>
                     <!-- C3: nota tirada de espelho sugerido não se confunde com a oficial -->
                     <sc-if value="{{ h.aprox }}" hint-placeholder-val="{{ false }}">
@@ -3393,6 +3394,14 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-sm);color:var(--text3);font-family:var(--mono);">{{ redWords }} palavras{{ redLimiteTxt }}</div>
             </div>
             <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" rows="18" placeholder="Escreva como escreveria na prova: enfrente o comando na ordem em que ele foi feito, fundamente com o dispositivo e conclua de forma expressa." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:20px;color:var(--ink);font-family:var(--body);font-size:var(--fs-lg);line-height:1.85;resize:vertical;outline:none;"></textarea>
+            <div style="margin-top:var(--ct-e4);">
+              <label for="red-disciplina" class="ct-eb">Disciplina desta correção</label>
+              <select id="red-disciplina" class="ct-campo" value="{{ redDiscValor }}" onchange="{{ onRedDisciplina }}" disabled="{{ redBusy }}" aria-describedby="red-disciplina-ajuda" style="min-height:var(--ct-alvo-toque);margin-top:var(--ct-e2);">
+                <option value="">Sem vínculo — não altera a prioridade</option>
+                <sc-for list="{{ redDiscOpcoes }}" as="d"><option value="{{ d.v }}">{{ d.l }}</option></sc-for>
+              </select>
+              <p id="red-disciplina-ajuda" class="ct-nota" style="margin-top:var(--ct-e2);">{{ redDiscAjuda }}</p>
+            </div>
             <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;align-items:center;">
               <button onclick="{{ submitRed }}" style="{{ redBtnStyle }}">{{ redBtnLabel }}</button>
               <span style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
@@ -5031,11 +5040,11 @@ window.ctPdfLib = (function(){
             <sc-for list="{{ orSliders }}" as="s" hint-placeholder-count="7">
               <div style="display:flex;align-items:center;gap:16px;padding:11px 0;border-bottom:1px solid var(--border);">
                 <span style="flex:1;min-width:0;font-size:var(--fs-base);font-weight:600;color:var(--ink);">{{ s.l }}</span>
-                <input type="range" min="0" max="10" data-k="{{ s.k }}" value="{{ s.v }}" oninput="{{ setOrientSlider }}" style="width:150px;accent-color:var(--accent);cursor:pointer;flex:none;">
+                <input type="range" min="0" max="10" data-k="{{ s.k }}" aria-label="{{ s.l }}" value="{{ s.v }}" oninput="{{ setOrientSlider }}" style="width:150px;min-height:var(--ct-alvo-toque);accent-color:var(--accent);cursor:pointer;flex:none;">
                 <span style="width:24px;text-align:right;font-family:var(--mono);font-size:var(--fs-base);font-weight:700;color:var(--accentD);flex:none;">{{ s.v }}</span>
               </div>
             </sc-for>
-            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:14px;line-height:1.5;">Quanto maior o peso, mais esse critério influencia a próxima ação sugerida no início, relatório e estatísticas.</div>
+            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:14px;line-height:1.5;">Quanto maior o peso, mais esse critério influencia a próxima ação sugerida no início, relatório e estatísticas. Discursivas usa as cinco correções mais recentes por disciplina; sem nota vinculada, a régua não muda. Espelhos sugeridos não entram. Zero desliga o fator.</div>
           </div>
 
           <div class="ct-card">
@@ -6430,7 +6439,7 @@ const AJ_ORIENT_PADRAO = {
   nivel:'intermediario', tempoDia:'180', turno:'noite', energia:'normal', dias:'seg,ter,qua,qui,sex,sab', energiaPlano:'normal',
   cobranca:'equilibrado', estrategia:'ciclo', banca:'cebraspe', linguagem:'professor', focoEstrategico:false,
   blocoPadrao:'50', modoPadrao:'livre', aoAbrir:'foco',
-  pEdital:8, pDesemp:9, pRevVenc:10, pIncid:8, pProva:8, pTempo:7, pErros:9,
+  pEdital:8, pDesemp:9, pDiscursiva:7, pRevVenc:10, pIncid:8, pProva:8, pTempo:7, pErros:9,
   metaMin:'60', metaIdeal:'180', metaForte:'300', retaFinalCom:'30', ativarReta:true, reduzirTeoria:true,
   ankiRetMin:'85', ankiRetMax:'90', ankiAlerta:'80', ankiMaxRev:'350', ankiNovos:'25'
 };
@@ -6461,7 +6470,7 @@ const AJ_SECOES = [
   {id:'ritmo',     icone:'◐', titulo:'Ritmo e metas',     desc:'quanto você estuda, como o ciclo é montado e o que conta como dia cumprido',
    o:['nivel','tempoDia','energia','dias','energiaPlano','cobranca','estrategia','blocoPadrao','modoPadrao','aoAbrir',
       'metaMin','metaIdeal','metaForte','retaFinalCom','ativarReta','reduzirTeoria','focoEstrategico','banca',
-      'pEdital','pDesemp','pRevVenc','pIncid','pProva','pTempo','pErros',
+      'pEdital','pDesemp','pDiscursiva','pRevVenc','pIncid','pProva','pTempo','pErros',
       'ankiRetMin','ankiRetMax','ankiAlerta','ankiMaxRev','ankiNovos'],
    p:['metaDiaria','focoBloco','focoPausa'], s:['planHoras','plataformaQuestoes']},
   {id:'automacoes',icone:'◈', titulo:'Automações e avisos', desc:'o que o app faz sozinho e quando ele te chama',
@@ -6854,7 +6863,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist2:this._load('redHist',[]), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false,
+      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false,
       // C3: espelhos SUGERIDOS pela IA (nunca oficiais) — cache por prova, sincronizado
       espelhosSugeridos:this._load('espelhosSugeridos',[]), espSugBusy:false, espSugAtual:null,
       // guarda qual prova está aberta: sem isso, recarregar o app deixava o gabarito
@@ -7200,8 +7209,8 @@ class Component extends DCLogic {
       if(e.data.type==='ctRedacaoResultado'){
         try{
           this._redRegistrar({ origem:'segunda-fase', prova:String(e.data.prova||''),
-            quesitos:(Array.isArray(e.data.quesitos)?e.data.quesitos:[]).map(q=>({titulo:q.titulo, nota:q.nota, max:q.max})),
-            notaTotal:(e.data.notaTotal!=null?+e.data.notaTotal:null) });
+            quesitos:(Array.isArray(e.data.quesitos)?e.data.quesitos:[]).map(q=>({titulo:q.titulo, nota:q.nota, max:q.max, peso:q.peso, disc:this._redDiscDoBanco(q.disc)})),
+            notaMax:100, notaTotal:(e.data.notaTotal!=null?+e.data.notaTotal:null) });
         }catch(_){}
         return;
       }
@@ -8035,7 +8044,7 @@ class Component extends DCLogic {
      encontra o antigo intacto ao voltar. */
   AREA_PROPRIA = new Set(['edital','reviews','blocks','blocksDate','cicloVolta','manualVoltaN','manualFixed','manualRot',
     'rotPointer','manualFixedRoteiroAtual','agendaFeitas','planoLegis','metas','eventos','errors','sim',
-    'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redMarcas','redHist',
+    'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redMarcas','redHist','redDisciplina',
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
     'redProvaId','ajPerfis','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
@@ -8169,7 +8178,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
@@ -8207,8 +8216,7 @@ class Component extends DCLogic {
          aparelho. Carimbo só faz sentido em escrita de verdade. */
       let gravou=false;
       for(const k of keys){ try{
-        // chave sem estado (ex.: 'redHist', cujo estado vive em redHist2) gravava a
-        // palavra "undefined" a cada salvamento — e recarimbava sozinha
+        // Chave sem estado não pode gravar "undefined" nem recarimbar sozinha.
         if(this.state[k]===undefined){ L[k]=undefined; continue; }
         // o edital consertado na leitura vai ao disco por _edPersistirReparo, quando o sync permite
         if(k==='edital' && this._edSoReparado()){ L[k]=this.state[k]; continue; }
@@ -11405,6 +11413,7 @@ class Component extends DCLogic {
     const _gab = gabTexto || (_sug ? this._espSugTexto(_sug) : '');
     this.setState({
       redProvaId: q.id, espSugAtual: _sug,
+      redDisciplina:{disc:this._redDiscDoBanco(q.disciplina), origem:'banco', banco:String(q.disciplina||'')},
       // guarda POR QUE não há espelho, para a faixa dizer a verdade em vez de chutar
       redEspSituacao: (q.espelhoSituacao || ''), redEspTemPdf: !!q.fonte_espelho,
       redEnunciado: cab+'\n\n'+(q.enunciado||''),
@@ -12538,19 +12547,24 @@ class Component extends DCLogic {
   _redRegistrar(reg){
     if(!reg || !Array.isArray(reg.quesitos) || !reg.quesitos.length) return null;
     const agora=Date.now();
-    const item={ id:'rh'+agora, up:agora, quando:new Date(agora).toISOString().slice(0,10), ts:agora,
+    const item={ id:'rh'+agora+'-'+Math.random().toString(36).slice(2,8), up:agora, quando:new Date(agora).toISOString().slice(0,10), ts:agora,
       origem:(reg.origem==='segunda-fase'?'segunda-fase':'redacao'),
+      disc:String(reg.disc||'').trim().slice(0,140), disciplinaOrigem:String(reg.disciplinaOrigem||''), aproximada:!!reg.aproximada,
+      notaMax:reg.notaMax!=null?+reg.notaMax:null,
       prova:String(reg.prova||'').slice(0,140),
       quesitos:reg.quesitos.slice(0,40).map((q,i)=>({ i, titulo:String(q.titulo||('Quesito '+(i+1))).slice(0,120),
+        disc:String(q.disc||reg.disc||'').trim().slice(0,140),
+        ...(q.peso!=null?{peso:+q.peso}:{}),
         nota:Math.round((+q.nota||0)*100)/100, max:Math.round((+q.max||1)*100)/100 })),
       notaTotal:(reg.notaTotal!=null?Math.round((+reg.notaTotal)*100)/100:null) };
-    const hist=[item, ...(this.state.redHist2||[])].slice(0,this.RED_HIST_MAX);
-    this.setState({redHist2:hist}, ()=>this.flashSync());
+    // Nome do estado igual à chave: redHist2 não era visto pelo autosave de redHist.
+    const hist=[item, ...(this.state.redHist||[])].slice(0,this.RED_HIST_MAX);
+    this.setState({redHist:hist}, ()=>this.flashSync());
     return item;
   }
   /** Tentativas da mesma prova, e o delta por quesito entre a primeira e a última. */
   _redEvolucao(){
-    const hist=(this.state.redHist2||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const hist=(this.state.redHist||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
     const porProva={};
     hist.forEach(h=>{ const k=h.origem+'|'+h.prova; (porProva[k]=porProva[k]||[]).push(h); });
     const provas=Object.keys(porProva).map(k=>{
@@ -12608,9 +12622,10 @@ class Component extends DCLogic {
       const calc=window.CT_PRIORIDADE_CALC; if(!calc) return [];
       return calc.prioridadeDisciplinas({
         edital:(this.state.edital||[]).filter(d=>!d.foraDoConcurso), errors:this.state.errors, reviews:this.state.reviews,
-        sessions:this.state.sessions, incidencia:this._prioridadeIncidencia(), leituraPendente:this._laPendentePorDisc(), hoje:this._hoje(),
+        sessions:this.state.sessions, redHist:this.state.redHist, incidencia:this._prioridadeIncidencia(), leituraPendente:this._laPendentePorDisc(), hoje:this._hoje(),
         // os controles de prioridade de Ajustes SÃO os pesos: a mesma régua do Foco do Início
-        pesos:(typeof calc.pesosDosControles==='function') ? calc.pesosDosControles(this.state.orient||{}) : undefined
+        pesos:(typeof calc.pesosDosControles==='function') ? calc.pesosDosControles(this.state.orient||{}) : undefined,
+        pesosDiscursiva:(typeof calc.pesosDosControles==='function') ? calc.pesosDosControles(this.state.orient||{},true) : undefined
       });
     }catch(_){ return []; }
   }
@@ -12645,10 +12660,30 @@ class Component extends DCLogic {
   semanaMais = ()=> this.setState({semanaTudo:!this.state.semanaTudo});
   semanaVerTudo = ()=> this._irPara('juris', {acervoBusca:'', acervoDe:null, origemAbrir:''});
 
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redProvaId:'', espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+  _redDiscDoBanco(nome){
+    const d=String(nome||'').trim().slice(0,140); if(!d) return '';
+    const norm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/^direito\s+/,'').replace(/^processo\s+/,'processual ').trim();
+    const nomes=(this.state.edital||[]).filter(x=>!x.foraDoConcurso).map(x=>x.disc).filter(Boolean);
+    const iguais=nomes.filter(x=>norm(x)===norm(d));
+    // Apenas equivalência inequívoca. "Civil e Processo Civil" não vira uma só matéria.
+    return iguais.length===1?iguais[0]:d;
+  }
+  _redDiscOpcoes(){
+    const atual=this.state.redDisciplina||{};
+    const edital=(this.state.edital||[]).filter(d=>!d.foraDoConcurso).map(d=>d.disc);
+    return [...new Set((edital.length?edital:(CT_AREA(this.state.areaEstudo).discs||[]))
+      .concat([atual.disc, atual.banco&&this._redDiscDoBanco(atual.banco)]).filter(Boolean))].map(d=>({v:d,l:d}));
+  }
+  onRedDisciplina = (e)=>{
+    if(this.state.redBusy) return;
+    const disc=String(e.currentTarget.value||'');
+    if(disc && !this._redDiscOpcoes().some(d=>d.v===disc)) return;
+    this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
+  };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
-    this.setState({redResult:h.res, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
+    this.setState({redResult:h.res, redDisciplina:{disc:h.disc||'',origem:h.disciplinaOrigem||''}, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
   // ===== C3: ESPELHO SUGERIDO (nunca oficial) =====
   // Onde a banca não publicou espelho, o aviso honesto do C1 continua e ganha ao lado uma
   // saída útil: um espelho SUGERIDO pelo Cátedra, gerado por IA a partir do enunciado. O
@@ -12700,6 +12735,7 @@ class Component extends DCLogic {
     if(words<40){ this._toast('Escreva ao menos ~40 palavras para corrigir'); return; }
     if(this.state.redBusy) return;
     if(!(this.state.redGabarito||'').trim()){ this._toast('Cole ou importe o gabarito para comparar'); return; }
+    const _disc={...(this.state.redDisciplina||{})};
     this.setState({redBusy:true, redResult:null, redSubText:text, redSubGab:this.state.redGabarito, redEspelhoOculto:false});
     const enun=(this.state.redEnunciado||'').trim();
     const _titulo=(enun? enun.replace(/\s+/g,' ').slice(0,80) : (text.replace(/\s+/g,' ').slice(0,60)||'Questão discursiva'));
@@ -12711,14 +12747,15 @@ class Component extends DCLogic {
     // evolução com o mesmo peso de uma tirada do espelho oficial.
     const _aprox=!!this.state.espSugAtual;
     try{ if(res && typeof res==='object') res.aproximada=_aprox; }catch(_){}
-    const entry={id:'rd'+Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now(), res, texto:text, gabarito:this.state.redGabarito, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial')};
+    const entry={id:'rd'+Date.now(), up:Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now(), disc:_disc.disc||'', disciplinaOrigem:_disc.origem||'', res, texto:text, gabarito:this.state.redGabarito, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial')};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
     this.setState({redBusy:false, redResult:res, redHistory:hist}); this.flashSync();
     // registro por quesito para a curva de evolução (item 4)
     try{
       const qs=(res.quesitos&&res.quesitos.length? res.quesitos.map((q,i)=>({titulo:q.quesito||q.titulo||('Quesito '+(i+1)), nota:+q.obtido||0, max:+q.pontos||1}))
               : (res.criterios||[]).map(c=>({titulo:c.nome, nota:+c.nota||0, max:+c.max||10})));
-      this._redRegistrar({origem:'redacao', prova:_titulo, quesitos:qs, notaTotal:res.nota});
+      this._redRegistrar({origem:'redacao', prova:_titulo, quesitos:qs, notaTotal:res.nota, notaMax:10,
+        disc:_disc.disc, disciplinaOrigem:_disc.origem, aproximada:_aprox});
     }catch(_){}
   };
   async _corrigeRedacaoLivre(tema, text, gabarito, enun){
@@ -15675,7 +15712,7 @@ class Component extends DCLogic {
        controle do fator que mais pesou para ela. */
     let _prioTop=null; try{ _prioTop=(this._prioridade()||[])[0]||null; }catch(_){ _prioTop=null; }
     if(_prioTop && !_prioTop.semDados){
-      const _CTRL={erros:'pErros', revisoes:'pRevVenc', esfriando:'pTempo', simulado:'pDesemp', incidencia:'pIncid', leitura:'pIncid'};
+      const _CTRL={erros:'pErros', revisoes:'pRevVenc', esfriando:'pTempo', simulado:'pDesemp', discursiva:'pDiscursiva', incidencia:'pIncid', leitura:'pIncid'};
       const _dom=(_prioTop.fatores||[]).slice().sort((a,b)=>(b.valor*b.peso)-(a.valor*a.peso))[0];
       const _k=_dom?_CTRL[_dom.chave]:'pDesemp';
       let _sPrio=parseInt(_orientCfg[_k],10); if(!isFinite(_sPrio)) _sPrio=AJ_ORIENT_PADRAO[_k]||8;
@@ -16635,6 +16672,7 @@ class Component extends DCLogic {
     const _energiaCard=(k,t1,t2)=>{ const on=O.energiaPlano===k; return `flex:1;min-width:150px;text-align:left;cursor:pointer;font-family:inherit;border-radius:var(--radius);padding:16px;transition:all .15s;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};`; };
     const _sliderRows=[
       {k:'pEdital',l:'Peso no edital',v:O.pEdital},{k:'pDesemp',l:'Baixo desempenho',v:O.pDesemp},
+      {k:'pDiscursiva',l:'Discursivas',v:O.pDiscursiva==null?7:O.pDiscursiva},
       {k:'pRevVenc',l:'Revisão vencida',v:O.pRevVenc},{k:'pIncid',l:'Alta incidência',v:O.pIncid},
       {k:'pProva',l:'Proximidade da prova',v:O.pProva},{k:'pTempo',l:'Tempo sem estudar',v:O.pTempo},
       {k:'pErros',l:'Erros abertos',v:O.pErros}
@@ -17980,6 +18018,12 @@ class Component extends DCLogic {
       redKpiFeitas:String((this.state.redHistory||[]).length),
       redText:this.state.redText, redWords:String(redWords), redWordsN:redWords, redCanSubmit, redBusy:this.state.redBusy, redIdle:!this.state.redBusy,
       redEnunciado:this.state.redEnunciado, onRedEnun:this.onRedEnun,
+      redDiscValor:(this.state.redDisciplina||{}).disc||'', redDiscOpcoes:this._redDiscOpcoes(), onRedDisciplina:this.onRedDisciplina,
+      redDiscAjuda:(this.state.redDisciplina||{}).disc && !(this.state.edital||[]).some(d=>!d.foraDoConcurso&&d.disc===this.state.redDisciplina.disc)
+        ? 'Esta disciplina não corresponde a uma matéria do edital ativo. Escolha a matéria para a nota entrar na prioridade; sem correspondência, ela fica apenas no histórico.'
+        : (this.state.redDisciplina||{}).origem==='banco'
+          ? 'Disciplina indicada pelo banco/espelho. Você pode alterá-la antes de corrigir.'
+          : 'Sua escolha vincula a nota à prioridade e ao ciclo. Sem vínculo, a correção continua disponível no histórico.',
       bancoOpen:this.state.bancoOpen, toggleBanco:this.toggleBanco, bancoQ:this.state.bancoQ,
       onBancoBusca:this.onBancoBusca, bancoDisc:this.state.bancoDisc, setBancoDisc:this.setBancoDisc,
       usarDiscursiva:this.usarDiscursiva, bancoLista:_bancoLista,
