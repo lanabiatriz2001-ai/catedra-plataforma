@@ -27,6 +27,7 @@ import { testarEnamModo } from './enam-modo.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
+import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 
@@ -98,6 +99,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     }
     // o <select> do host: o tema nativo do WebKit reescrevia padding, raio e min-height (20 px
     // no toque em vez de 44, e 20 com mouse no app do Mac em vez de 38) — só este motor acusa
+    try { await testarTemplateFileUrl(browser, base, ok, { motor }); } catch (e) { ok(false, 'TEMPLATE/file exceção: ' + e.message); }
     try { await testarSelectHost(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'SELECT/host [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
