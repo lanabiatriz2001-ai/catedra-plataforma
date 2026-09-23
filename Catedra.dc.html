@@ -1926,13 +1926,13 @@ window.ctPdfLib = (function(){
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
                 <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:18px;">Últimos 7 dias</div>
-                <div style="display:flex;align-items:flex-end;gap:10px;height:140px;">
+                <div class="ct-graf-interativo" style="display:flex;align-items:flex-end;gap:10px;height:140px;padding-top:var(--ct-e6);">
                   <sc-for list="{{ dashLast7 }}" as="d" hint-placeholder-count="7">
-                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;">
+                    <button type="button" class="ct-graf-ponto" data-tip="{{ d.tip }}" aria-label="{{ d.aria }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;">
                       <span style="font-family:var(--mono);font-size:var(--fs-2xs);color:var(--text2);font-weight:600;">{{ d.label }}</span>
-                      <div style="width:100%;background:var(--accent);border-radius:5px 5px 0 0;height:{{ d.h }}%;"></div>
+                      <span class="ct-graf-barra" aria-hidden="true" style="display:block;width:100%;background:var(--accent);border-radius:var(--r-sm) var(--r-sm) 0 0;height:{{ d.h }}%;"></span>
                       <span style="font-size:var(--fs-2xs);color:var(--text3);">{{ d.d }}</span>
-                    </div>
+                    </button>
                   </sc-for>
                 </div>
               </div>
@@ -1946,13 +1946,13 @@ window.ctPdfLib = (function(){
                     </div>
                   </sc-for>
                 </div>
-                <div class="ct-dx-mini" style="display:flex;align-items:flex-end;gap:5px;height:140px;">
+                <div class="ct-dx-mini ct-graf-interativo" style="display:flex;align-items:flex-end;gap:5px;height:140px;padding-top:var(--ct-e6);overflow-x:auto;overflow-y:hidden;">
                   <sc-for list="{{ dashWeek }}" as="d" hint-placeholder-count="12">
-                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;">
+                    <button type="button" class="ct-graf-ponto" data-tip="{{ d.tip }}" aria-label="{{ d.aria }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;">
                       <span style="font-family:var(--mono);font-size:var(--fs-3xs);color:var(--text2);font-weight:600;white-space:nowrap;">{{ d.vlabel }}</span>
-                      <div title="{{ d.label }}" style="width:100%;background:#d4a017;border-radius:4px 4px 0 0;height:{{ d.h }}%;"></div>
+                      <span class="ct-graf-barra" aria-hidden="true" style="display:block;width:100%;background:var(--warn);border-radius:var(--r-sm) var(--r-sm) 0 0;height:{{ d.h }}%;"></span>
                       <span style="font-size:var(--fs-3xs);color:var(--text3);">{{ d.w }}</span>
-                    </div>
+                    </button>
                   </sc-for>
                 </div>
               </div>
@@ -1972,15 +1972,15 @@ window.ctPdfLib = (function(){
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
                 <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:4px;">Questões por semana</div>
                 <div style="font-size:var(--fs-xs);color:var(--text3);margin-bottom:14px;">acertos × erros · últimas 4 semanas · {{ homeQTot }} questões</div>
-                <div style="display:flex;align-items:flex-end;gap:16px;height:118px;">
+                <div class="ct-graf-interativo" style="display:flex;align-items:flex-end;gap:16px;height:118px;padding-top:var(--ct-e6);">
                   <sc-for list="{{ homeQSem }}" as="q" hint-placeholder-count="4">
-                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;">
+                    <button type="button" class="ct-graf-ponto" data-tip="{{ q.tip }}" aria-label="{{ q.aria }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;">
                       <div style="display:flex;align-items:flex-end;gap:4px;width:100%;justify-content:center;">
-                        <div title="{{ q.aStr }} acertos" style="width:38%;background:var(--accent);border-radius:5px 5px 2px 2px;height:{{ q.aH }};"></div>
-                        <div title="{{ q.eStr }} erros" style="width:38%;background:#e5b3be;border-radius:5px 5px 2px 2px;height:{{ q.eH }};"></div>
+                        <span class="ct-graf-barra" aria-hidden="true" style="display:block;width:38%;background:var(--accent);border-radius:var(--r-sm) var(--r-sm) 2px 2px;height:{{ q.aH }};"></span>
+                        <span class="ct-graf-barra" aria-hidden="true" style="display:block;width:38%;background:color-mix(in srgb,var(--danger) 38%,var(--surface));border-radius:var(--r-sm) var(--r-sm) 2px 2px;height:{{ q.eH }};"></span>
                       </div>
                       <span style="font-family:var(--mono);font-size:var(--fs-3xs);color:var(--text3);">{{ q.label }}</span>
-                    </div>
+                    </button>
                   </sc-for>
                 </div>
               </div>
@@ -2008,13 +2008,13 @@ window.ctPdfLib = (function(){
                     </div>
                   </sc-for>
                 </div>
-                <div class="ct-dx-mini" style="display:flex;align-items:flex-end;gap:18px;height:140px;">
+                <div class="ct-dx-mini ct-graf-interativo" style="display:flex;align-items:flex-end;gap:18px;height:140px;padding-top:var(--ct-e6);">
                   <sc-for list="{{ dashMonth }}" as="d" hint-placeholder-count="4">
-                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;">
+                    <button type="button" class="ct-graf-ponto" data-tip="{{ d.tip }}" aria-label="{{ d.aria }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;">
                       <span style="font-family:var(--mono);font-size:var(--fs-xs);color:#1f9d57;font-weight:700;">{{ d.label }}</span>
-                      <div style="width:100%;background:#1f9d57;border-radius:var(--r-sm) 6px 0 0;height:{{ d.h }}%;"></div>
+                      <span class="ct-graf-barra" aria-hidden="true" style="display:block;width:100%;background:var(--ok);border-radius:var(--r-sm) var(--r-sm) 0 0;height:{{ d.h }}%;"></span>
                       <span style="font-size:var(--fs-xs);color:var(--text3);">{{ d.mo }}</span>
-                    </div>
+                    </button>
                   </sc-for>
                 </div>
               </div>
@@ -15459,7 +15459,10 @@ class Component extends DCLogic {
       return {d:_dashDayLabel(dt), m:_dashByDate[key]||0};
     });
     const last7Max = Math.max(1, ...last7Raw.map(x=>x.m));
-    const dashLast7 = last7Raw.map(x=>({...x, label:fmtH(x.m*60), h:Math.round(x.m/last7Max*100)}));
+    const _dashComparacao=(atual,anterior)=> anterior===0
+      ? (atual===0?'sem estudo também no período anterior':'primeiro registro após um período vazio')
+      : ((atual-anterior)>=0?'+':'−')+fmtH(Math.abs(atual-anterior)*60)+' em relação ao período anterior';
+    const dashLast7 = last7Raw.map((x,i)=>{ const valor=fmtH(x.m*60), comp=_dashComparacao(x.m,i?last7Raw[i-1].m:0); return {...x, label:valor, h:Math.round(x.m/last7Max*100), tip:x.d+'\n'+valor+' · '+comp, aria:x.d+': '+valor+'. '+comp}; });
     // semanal
     const _dashWeekStart=(dt)=>{ const d=new Date(dt); const day=(d.getDay()+6)%7; d.setHours(0,0,0,0); d.setDate(d.getDate()-day); return d; };
     const weekRaw = Array.from({length:12},(_,i)=>{
@@ -15468,7 +15471,7 @@ class Component extends DCLogic {
       return {w:start.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}), m};
     });
     const weekMax = Math.max(1, ...weekRaw.map(x=>x.m));
-    const dashWeek = weekRaw.map(x=>({...x, label:fmtH(x.m*60), vlabel:fmtH(x.m*60), h:Math.round(x.m/weekMax*100)}));
+    const dashWeek = weekRaw.map((x,i)=>{ const valor=fmtH(x.m*60), comp=_dashComparacao(x.m,i?weekRaw[i-1].m:0); return {...x, label:valor, vlabel:valor, h:Math.round(x.m/weekMax*100), tip:'Semana de '+x.w+'\n'+valor+' · '+comp, aria:'Semana de '+x.w+': '+valor+'. '+comp}; });
     // mensal
     const monthRaw = Array.from({length:4},(_,i)=>{
       const dt = new Date(nowDate.getFullYear(), nowDate.getMonth()-(3-i), 1);
@@ -15476,7 +15479,7 @@ class Component extends DCLogic {
       return {mo:_dashMonthLabel(dt), m:_dashByMonth[key]||0};
     });
     const monthMax = Math.max(1, ...monthRaw.map(x=>x.m));
-    const dashMonth = monthRaw.map(x=>({...x, label:fmtH(x.m*60), h:Math.round(x.m/monthMax*100)}));
+    const dashMonth = monthRaw.map((x,i)=>{ const valor=fmtH(x.m*60), comp=_dashComparacao(x.m,i?monthRaw[i-1].m:0); return {...x, label:valor, h:Math.round(x.m/monthMax*100), tip:x.mo+'\n'+valor+' · '+comp, aria:x.mo+': '+valor+'. '+comp}; });
     const dashYearTotal = fmtH(monthRaw.reduce((a,x)=>a+x.m,0)*60);
     // rosca por disciplina (tempo hoje)
     const _dashTodayKey = _dashDateKey(nowDate);
@@ -16219,7 +16222,7 @@ class Component extends DCLogic {
         let a=0,e=0; S.forEach(s=>{ const t=s.ts||0; if(t>=ini.getTime()&&t<fim.getTime()){ a+=(+s.acertos||0); e+=(+s.erradas||0); } });
         out.push({label:ini.getDate()+'/'+(ini.getMonth()+1), a, e}); }
       const mx=Math.max(1,...out.map(x=>Math.max(x.a,x.e)));
-      return out.map(x=>({label:x.label, aH:Math.max(x.a?6:2,Math.round(x.a/mx*88))+'px', eH:Math.max(x.e?6:2,Math.round(x.e/mx*88))+'px', aStr:String(x.a), eStr:String(x.e)})); })();
+      return out.map(x=>{ const total=x.a+x.e, pct=total?Math.round(x.a/total*100):0, detalhe=total?(pct+'% de acerto'):'nenhuma questão registrada'; return {label:x.label, aH:Math.max(x.a?6:2,Math.round(x.a/mx*88))+'px', eH:Math.max(x.e?6:2,Math.round(x.e/mx*88))+'px', aStr:String(x.a), eStr:String(x.e), tip:'Semana de '+x.label+'\n'+x.a+' acertos · '+x.e+' erros\n'+detalhe, aria:'Semana de '+x.label+': '+x.a+' acertos, '+x.e+' erros. '+detalhe}; }); })();
     const homeQTot=(this.state.sessions||[]).length? homeQSem.reduce((n,x)=>n+(+x.aStr)+(+x.eStr),0) : 0;
 
     // ===== Painel do Aprovado (Início) =====
