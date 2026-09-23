@@ -3403,6 +3403,36 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   await page.evaluate((g) => { if (g.edital != null) localStorage.setItem('catedra:edital', g.edital); else localStorage.removeItem('catedra:edital'); if (g.sessions != null) localStorage.setItem('catedra:sessions', g.sessions); else localStorage.removeItem('catedra:sessions'); }, guard);
 }
 
+/* ============= GRÁFICOS INTERATIVOS — mouse, teclado e toque mostram a mesma leitura ============= */
+{
+  await page.goto(URL0 + '/Catedra.dc.html');
+  const r = await page.evaluate(async () => {
+    const w = ms => new Promise(res => setTimeout(res, ms));
+    const app = window.__catedraApp, agora = new Date(), ontem = new Date(agora); ontem.setDate(agora.getDate() - 1);
+    const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    app.setState({ sessions: [
+      { id:'graf-1', ts:ontem.getTime(), date:ymd(ontem), min:30, acertos:6, erradas:2, disc:'Direito Civil' },
+      { id:'graf-2', ts:agora.getTime(), date:ymd(agora), min:75, acertos:8, erradas:2, disc:'Direito Penal' }
+    ], view:'inicio' });
+    await w(700);
+    const pontos = [...document.querySelectorAll('main .ct-graf-ponto')];
+    const alvo = pontos.find(b => /75/.test(b.getAttribute('aria-label') || '')) || pontos[0];
+    const opacidadeAntes = getComputedStyle(alvo, '::after').opacity;
+    alvo.focus(); await w(180);
+    const opacidadeFoco = getComputedStyle(alvo, '::after').opacity;
+    return {
+      quatroGraficos: document.querySelectorAll('main .ct-graf-interativo').length >= 4,
+      todosSaoBotoes: pontos.length >= 20 && pontos.every(b => b.tagName === 'BUTTON' && b.type === 'button'),
+      nomesComContexto: pontos.every(b => /(:|Semana de)/.test(b.getAttribute('aria-label') || '')),
+      comparaPeriodo: pontos.some(b => /período anterior/.test(b.dataset.tip || '')),
+      questoesExplicam: pontos.some(b => /acertos.*erros.*% de acerto/s.test(b.dataset.tip || '')),
+      tecladoMostra: parseFloat(opacidadeAntes) === 0 && parseFloat(opacidadeFoco) === 1,
+      alvoToque: alvo.getBoundingClientRect().height >= 44
+    };
+  });
+  for (const [k, v] of Object.entries(r)) ok(v, 'GRÁFICOS interativos ' + k);
+}
+
 /* ============= EVOLUÇÃO DA REDAÇÃO (item 4) ============= */
 await page.goto(URL0 + '/tests/harness-redhist.html');
 await page.waitForFunction(() => !!window.redRegistrar);
