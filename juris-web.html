@@ -539,6 +539,49 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // ---- estudo (localStorage)
   var LK='catedra:jurisEstudo';
   var est={fav:{},stat:{}}; try{est=Object.assign({fav:{},stat:{}},JSON.parse(localStorage.getItem(LK))||{})}catch(e){}
+  /* Registros editoriais foram retirados ou receberam identificador canônico na
+     auditoria sem retirar o conteúdo jurídico correspondente. Leva o estado pessoal
+     ao verbete sobrevivente, mas conserva a chave antiga como cópia de segurança:
+     nunca se perde anotação por causa de uma limpeza do acervo. */
+  var JURIS_ID_MIGRACOES={
+    'repgeral-repetitivo-STJ-x640':'repgeral-repetitivo-STJ-518',
+    'SELTJGO-0438':'SELTJGO-0433',
+    'repgeral-repercussao_geral-STF-x1198':'repgeral-repetitivo-STJ-931',
+    'repgeral-repetitivo-STF-x1319':'repgeral-repetitivo-STJ-1196',
+    'repgeral-repercussao_geral-STJ-x257':'repgeral-repercussao_geral-STF-476',
+    'repgeral-repercussao_geral-STF-x1586':'repgeral-repercussao_geral-STF-825',
+    'repgeral-repercussao_geral-STF-x1590':'repgeral-repercussao_geral-STF-21',
+    'INF2022-0470':'INF2021-0815'
+  };
+  function migraEstadoJuris(){
+    var mudou=false, peso={'':0,rev:1,dom:2};
+    Object.keys(JURIS_ID_MIGRACOES).forEach(function(antigo){
+      var novo=JURIS_ID_MIGRACOES[antigo];
+      if(est.fav[antigo]&&!est.fav[novo]){est.fav[novo]=est.fav[antigo];mudou=true;}
+      var sa=est.stat[antigo]||'', sn=est.stat[novo]||'';
+      if((peso[sa]||0)>(peso[sn]||0)){est.stat[novo]=sa;mudou=true;}
+      try{
+        var ka='catedra:grifosJuris:'+antigo, kn='catedra:grifosJuris:'+novo;
+        var aa=JSON.parse(localStorage.getItem(ka)||'[]');
+        var an=JSON.parse(localStorage.getItem(kn)||'[]');
+        if(Array.isArray(aa)&&aa.length){
+          var vistos={}; an.forEach(function(v){vistos[JSON.stringify(v)]=1;});
+          aa.forEach(function(v){var k=JSON.stringify(v);if(!vistos[k]){an.push(v);vistos[k]=1;}});
+          localStorage.setItem(kn,JSON.stringify(an));
+        }
+      }catch(e){}
+    });
+    if(mudou){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
+    try{
+      var kr='catedraJurisRoteiros', rots=JSON.parse(localStorage.getItem(kr)||'{}'), mr=false;
+      Object.keys(JURIS_ID_MIGRACOES).forEach(function(antigo){
+        var novo=JURIS_ID_MIGRACOES[antigo];
+        if(rots[antigo]&&!rots[novo]){rots[novo]=rots[antigo];mr=true;}
+      });
+      if(mr)localStorage.setItem(kr,JSON.stringify(rots));
+    }catch(e){}
+  }
+  migraEstadoJuris();
   function saveEst(){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
   var STAT=['','rev','dom'], STICON={'':'','rev':'◐','dom':'✓'};
   // D10 — o botão de status é só um glifo (e às vezes glifo nenhum): sem isto quem usa

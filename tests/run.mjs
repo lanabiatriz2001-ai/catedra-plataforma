@@ -15,6 +15,7 @@
 import { SAIDA_ESVAZIADOS } from '../scripts/verificar-pasta-sincronizada.mjs';
 import fs from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
@@ -632,38 +633,63 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
 
 /* ===== JURIS — INFORMATIVOS DO STF: EDIÇÃO, TRIBUNAL E DATA (auditoria 15/09/2026) =====
 
-   Conferência do bloco `informativo_stf` (1.606 verbetes) contra as edições oficiais em
-   www.stf.jus.br/arquivo/informativo/documento/informativo{N}.htm. Seis verbetes apontavam
-   para uma edição que não traz o assunto; um trazia o Informativo 690 do STJ sob a bandeira
-   do STF; dois tinham o ano da data errado. Em todos, o texto está certo — errado era o
-   rótulo. Cada correção foi conferida por termo específico nas DUAS edições (a declarada,
-   onde o assunto não aparece, e a correta, onde aparece). */
+   Conferência do bloco `informativo_stf` contra as edições oficiais em
+   www.stf.jus.br/arquivo/informativo/documento/informativo{N}.htm. A revisão final mostrou
+   que três casos inicialmente tratados como simples erro de rótulo eram, na verdade,
+   verbetes híbridos: cada julgamento foi preservado em seu próprio id e sua própria edição. */
 {
   const jsrc = fs.readFileSync(path.join(RAIZ, 'juris-index.js'), 'utf8');
   const esc = {};
   new Function('window', jsrc).call(null, esc);
   const IDX = esc.__JURIS_IDX__;
+  const tesc = {};
+  new Function('window', fs.readFileSync(path.join(RAIZ, 'juris-text.js'), 'utf8')).call(null, tesc);
+  const TXT = tesc.__JURIS_TXT__;
   const por = Object.create(null);
   for (const r of IDX) por[r[0]] = r;
 
-  // 1. verbete na edição certa (o assunto está lá, e não na que estava declarada)
+  // 1. verbete na edição certa e sem conteúdo de outro julgamento concatenado
   const EDICAO = [
-    ['INF2021-0029', 1012, 'leitos de UTI para Covid-19'],
-    ['INF2022-0273', 1053, 'assistência médico-hospitalar e operadoras'],
+    ['INF2021-0029', 1037, 'apoio da União à expansão da rede de UTI'],
+    ['INF2022-0273', 1055, 'restrição de liberdade de policiais e bombeiros militares'],
     ['INF2023-0050', 1081, 'teto da RPV por estados e municípios'],
     ['INF2023-0082', 1081, 'imunidades dos deputados estaduais (ADI 5.824)'],
     ['INF2023-0766', 1113, 'transporte público gratuito em dia de eleição'],
-    ['INF2020-0055', 981, 'antenas de telefonia e limites de radiação'],
+    ['INF2020-0055', 994, 'implantação de instalações de energia nuclear'],
+    ['INF2021-0876', 1012, 'restabelecimento dos leitos de UTI para Covid-19'],
+    ['INF2022-0927', 1053, 'assistência médico-hospitalar e operadoras'],
+    ['INF2022-0928', 1062, 'inadimplência em instituições de ensino'],
   ];
   for (const [id, num, assunto] of EDICAO) {
     const r = por[id];
     ok(!!r && r[3] === num && r[4] === 'Info ' + num + ' · STF',
       'INFO ' + id + ' é o Info ' + num + ' (' + assunto + ')');
   }
-  const ANTIGO = [['INF2021-0029', 1037], ['INF2022-0273', 1055], ['INF2023-0050', 1082],
-    ['INF2023-0082', 1082], ['INF2023-0766', 1123], ['INF2020-0055', 994]];
+  const ANTIGO = [['INF2021-0029', 1012], ['INF2022-0273', 1053], ['INF2023-0050', 1082],
+    ['INF2023-0082', 1082], ['INF2023-0766', 1123], ['INF2020-0055', 981]];
   ok(ANTIGO.every(([id, mau]) => por[id] && por[id][3] !== mau),
-    'INFO nenhum dos seis voltou à edição antiga');
+    'INFO nenhum dos seis voltou ao rótulo incorreto da primeira triagem');
+  ok(/energia nuclear/.test(TXT['INF2020-0055'].en) && !/antenas transmissoras/.test(TXT['INF2020-0055'].en)
+    && /antenas transmissoras/.test(TXT['CTRLCONST-0426'].en),
+    'INFO ADI 330 e ADI 3.110 ficam em verbetes próprios, sem perder a tese sobre antenas');
+  ok(/suporte técnico e apoio financeiro/.test(TXT['INF2021-0029'].en)
+    && !/restabelecimento dos leitos/.test(TXT['INF2021-0029'].en)
+    && /restabelecimento dos leitos/.test(TXT['INF2021-0876'].en),
+    'INFO os dois momentos processuais das ações sobre UTI ficam separados nos Infos 1037 e 1012');
+  ok(/policiais e bombeiros militares/.test(TXT['INF2022-0273'].en)
+    && !/operadoras de planos/.test(TXT['INF2022-0273'].en)
+    && /operadoras de planos/.test(TXT['INF2022-0927'].en),
+    'INFO planos de saúde e regime disciplinar militar ficam separados nos Infos 1053 e 1055');
+  ok(/atividades nucleares/.test(TXT['INF2022-0294'].en)
+    && !/instituições particulares de ensino/.test(TXT['INF2022-0294'].en)
+    && /instituições particulares de ensino/.test(TXT['INF2022-0928'].en),
+    'INFO ensino superior e atividades nucleares ficam separados nos Infos 1062 e 1061');
+  ok(/conceito de “floresta”/.test(TXT['INF2025-0059'].en)
+    && !/transporte privado individual/.test(TXT['INF2025-0059'].en),
+    'INFO 1201 conserva apenas a tese ambiental da ADI 7.841');
+  ok(!por['INF2022-0470'] && !TXT['INF2022-0470']
+    && /orçamento de 2021\./.test(TXT['INF2021-0815'].en),
+    'INFO a duplicata de orçamento secreto sai e o verbete canônico preserva o ano completo');
 
   // 2. o Informativo 690 é do STJ (29/03/2021 — DPVAT, impenhorabilidade, art. 833, VI, CPC)
   ok(por['INF2021-0401'] && por['INF2021-0401'][1] === 'STJ'
@@ -683,6 +709,78 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
   ok(inc.length === 0,
     'INFO todo verbete de informativo tem título "Info N · TRIBUNAL" coerente com os campos'
     + (inc.length ? ' (' + inc.slice(0, 3).map(r => r[0] + ':' + r[4]).join(', ') + ')' : ''));
+}
+
+/* === JURIS — RÓTULOS MISTOS E ARTEFATOS GRÁFICOS (auditoria 23/09/2026) === */
+{
+  const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8')).call(null, e); return e[g]; };
+  const linhas = carrega('juris-index.js', '__JURIS_IDX__');
+  const TXT = carrega('juris-text.js', '__JURIS_TXT__');
+  const IDX = Object.fromEntries(linhas.map(r => [r[0], r]));
+
+  const fontes = {
+    'INF2020-0239': 'Info 969 · STF',
+    'INF2020-0636': 'Info 981 · STF',
+    'INF2020-0800': 'Tema 176 · STF',
+    'INF2021-0375': 'Tema 961 · STF',
+    'INF2021-0755': 'Tema 705 · STF',
+    'INF2021-0783': 'Tema 1048 · STF',
+    'INF2020-0485': 'Info 982 · STF',
+    'INF2023-0697': 'Tema 1247 · STF',
+    'INF2023-0035': 'Info 1111 · STF',
+  };
+  ok(Object.entries(fontes).every(([id, fp]) => IDX[id]?.[1] === 'STF'
+    && TXT[id]?.fp === fp && /^https:\/\/(?:stf|portal\.stf)\.jus\.br\//.test(TXT[id]?.ur || '')),
+    'JURIS-MISTOS os nove verbetes apontam o tribunal e a fonte oficial corretos');
+  ok(!/RMS 70\.921|Súmula 655 do STJ/.test(TXT['INF2020-0239'].en + TXT['INF2020-0636'].en)
+    && TXT['INF2020-0800'].en === 'A demanda de potência elétrica não é passível, por si só, de tributação via ICMS, porquanto somente integram a base de cálculo desse imposto os valores referentes àquelas operações em que haja efetivo consumo de energia elétrica pelo consumidor.',
+    'JURIS-MISTOS conteúdo de outro tribunal não continua concatenado aos informativos do STF');
+
+  const artefatos = {
+    'INF2020-0298': ['opta r'], 'INF2020-0391': ['ava l'], 'INF2020-0419': ['a claratórios'],
+    'INF2021-0352': ['federa l'], 'INF2021-0377': ['d evem'], 'INF2021-0381': ['rura l'],
+    'INF2021-0461': ['exibiçã o'], 'INF2021-0597': ['nulidad e'], 'INF2022-0029': ['T endo'],
+    'INF2025-0681': ['produtiv o'], 'INF2025-0727': ['de mais'],
+    'SELTJGO-0146': ['ef eitos'], 'SELTJGO-0155': ['improbida de'], 'SELTJGO-0190': ['consequent e'],
+    'SELTJGO-0206': ['j uros'], 'SELTJGO-0222': ['improbida de'], 'SELTJGO-0242': ['Pres tação'],
+    'SELTJGO-0261': ['cri me'], 'SELTJGO-0304': ['inci so'], 'SELTJGO-0306': ['vinc ulada'],
+    'SELTJGO-0395': ['c ondições', 'ajustando -a'], 'SELTJGO-0398': ['veredi ctos'],
+    'SELTJGO-0484': ['leal dade'], 'SELTJGO-0499': ['cri me'], 'SELTJGO-0504': ['com provar'],
+    'SELTJGO-0549': ['todo s', 'most rarem', 'dá -se', 'encontra -se'],
+    'SELTJGO-0550': ['most rarem'], 'SELTJGO-0612': ['unicidad e'],
+    'SELTJGO-0625': ['quan do'], 'SELTJGO-0633': ['quan do'],
+    'SELTJRJ-0132': ['ef eitos'], 'SELTJRJ-0141': ['improbida de'], 'SELTJRJ-0190': ['j uros'],
+    'SELTJRJ-0239': ['cri me'], 'SELTJRJ-0326': ['apl ica'],
+    'SELTJRJ-0358': ['c ondições', 'ajustando -a'], 'SELTJRJ-0361': ['veredi ctos'],
+    'SELTJRJ-0432': ['Consel ho'], 'SELTJRJ-0501': ['most rarem'], 'SELTJRJ-0538': ['jurí dica'],
+    'SELTJPR-0137': ['desl igamento'], 'SELTJPR-0149': ['veredi ctos'], 'SELTJPR-0195': ['inci so'],
+    'SELTJPR-0218': ['prescriç ão', 'ci nco'], 'SELTJPR-0263': ['leal dade'], 'SELTJPR-0272': ['cri me'],
+    'SELTJPR-0312': ['todo s', 'most rarem', 'dá -se', 'encontra -se'],
+    'SELTJPR-0344': ['F raude', 'Inexist ência'], 'SELTJPR-0351': ['fa limentar'],
+    'SELTJPR-0372': ['comprov ação'], 'SELTJPR-0378': ['c ondições', 'ajustando -a'],
+    'SELTJGO-0002': ['veda -se'], 'SELTJGO-0004': ['gu ardar'], 'SELTJGO-0007': ['realizaç ão'],
+    'SELTJRJ-0005': ['A dministração'], 'SELTJGO-0010': ['análi se'], 'SELTJRJ-0010': ['análi se'],
+    'SELTJGO-0014': ['orça mentário'], 'SELTJGO-0015': ['órgã o'], 'SELTJGO-0019': ['ambie nte'],
+    'SELTJGO-0039': ['a nimais', 'bem - estar'], 'SELTJGO-0045': ['tor -tura'],
+    'SELTJGO-0049': ['vice -governador'], 'SELTJGO-0053': ['esportiva s'],
+    'SELTJGO-0060': ['finan ceiro'], 'SELTJGO-0061': ['parâme tros'],
+    'SELTJGO-0082': ['quinta - feira'], 'SELTJGO-0085': ['h ipótese'],
+    'SELTJGO-0090': ['a dvocatícios'],
+    'SELTJGO-0091': ['estad ual', 'não - cumulatividade', 'ga rantia', 'constitucio nalidade'],
+    'SELTJGO-0095': ['c ada'], 'SELTJGO-0100': ['especí fico'],
+    'SELTJGO-0103': ['parlamentare s'], 'SELTJGO-0106': ['substituiçã o'],
+    'SELTJPR-0096': ['confiança legitima', 'oposição sej a'],
+  };
+  const pendentes = [];
+  for (const [id, ruins] of Object.entries(artefatos)) {
+    const blob = [...(IDX[id] || []), ...Object.values(TXT[id] || {})].join(' ');
+    if (!IDX[id] || !TXT[id] || ruins.some(ruim => blob.includes(ruim))) pendentes.push(id);
+  }
+  ok(Object.keys(artefatos).length === 75 && pendentes.length === 0,
+    'JURIS-GRAFIA os 75 verbetes não voltam a exibir palavras partidas (' + pendentes.join(', ') + ')');
+  ok(/confiança legítima/.test(TXT['SELTJPR-0096'].en)
+    && /mesmos canais disponíveis para a sindicalização\.$/.test(TXT['SELTJPR-0096'].en),
+    'JURIS-GRAFIA a tese sobre contribuição assistencial preserva acento e ressalva final');
 }
 
 /* === JURIS — CONTEÚDO: VOTO NÃO É TESE, ORIENTAÇÃO SUPERADA, TESE CORTADA (auditoria 18/09/2026) ===
@@ -876,6 +974,146 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
   });
   ok(diverge.length === 0, 'STJ-2 nenhum verbete do STJ tem número diferente da edição que o título diz (' + diverge.length + ')');
 }
+
+/* === JURIS — SALDO FINAL DA AUDITORIA STJ (23/09/2026) ===
+
+   O digest cobre todos os 33 registros web tocados pelo saldo (inclusive os dois
+   tombstones). As asserções legíveis abaixo guardam os erros de maior impacto e
+   a restauração da rastreabilidade do bloco de controle de constitucionalidade. */
+{
+  const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8')).call(null, e); return e[g]; };
+  const linhas = carrega('juris-index.js', '__JURIS_IDX__');
+  const TXT = carrega('juris-text.js', '__JURIS_TXT__');
+  const IDX = Object.fromEntries(linhas.map(r => [r[0], r]));
+  const ids = ["INF2020-0260","INF2020-0351","INF2021-0224","INF2021-0285","INF2021-0533","INF2021-0664","INF2022-0393","INF2022-0604","INF2023-0498","INF2024-0496","INF2025-0518","SELTJGO-0163","SELTJGO-0265","SELTJGO-0313","SELTJGO-0417","SELTJGO-0433","SELTJGO-0438","SELTJGO-0520","SELTJPR-0190","SELTJPR-0285","SELTJRJ-0451","SELTJRJ-0545","SELTJRJ-0562","repgeral-repetitivo-STJ-1093-2","repgeral-repetitivo-STJ-1149-2","repgeral-repetitivo-STJ-1195","repgeral-repetitivo-STJ-1295","repgeral-repetitivo-STJ-905","repgeral-repetitivo-STJ-905-2","repgeral-repetitivo-STJ-x1060","repgeral-repetitivo-STJ-x1139","repgeral-repetitivo-STJ-x640","repgeral-repetitivo-STJ-x641"];
+  const retrato = Object.fromEntries(ids.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
+  const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
+  ok(digest === 'ae9e557f3edb64dfa8e7c1ab1f53becd07946a9df107316bc64da277ae91e1dc',
+    'STJ-SALDO os 33 registros mantêm exatamente as 49 correções e 2 exclusões validadas (' + digest.slice(0, 12) + ')');
+
+  ok(!IDX['repgeral-repetitivo-STJ-x640'] && !TXT['repgeral-repetitivo-STJ-x640']
+    && !IDX['SELTJGO-0438'] && !TXT['SELTJGO-0438'],
+    'STJ-SALDO o híbrido x640 e a duplicata SELTJGO-0438 saíram das duas tabelas web');
+  ok(IDX['repgeral-repetitivo-STJ-x1060'][2] === 'precedentes_obrig'
+    && IDX['repgeral-repetitivo-STJ-x1060'][3] === 3
+    && /IAC 3/.test(IDX['repgeral-repetitivo-STJ-x1060'][4]),
+    'STJ-SALDO o IAC 3 não é mais apresentado como recurso repetitivo');
+  ok(IDX['repgeral-repetitivo-STJ-x641'][2] === 'informativo_stj'
+    && IDX['repgeral-repetitivo-STJ-x641'][3] === 788,
+    'STJ-SALDO o julgado de Turma x641 aponta o Informativo 788, sem rótulo de repetitivo');
+  ok((TXT['repgeral-repetitivo-STJ-1093-2'].en.match(/^\d\./gm) || []).length === 5
+    && /podem lhe gerar cr[ée]ditos/.test(TXT['repgeral-repetitivo-STJ-1093-2'].en)
+    && /\(sejam mantidos\)/.test(TXT['repgeral-repetitivo-STJ-1093-2'].en)
+    && TXT['repgeral-repetitivo-STJ-1093-2'].fp === 'Info 734',
+    'STJ-SALDO o Tema 1093 traz os cinco itens, sem artefato, e cita o Info 734');
+  ok(/Lei (?:n\. )?9\.696\/1998/.test(TXT['repgeral-repetitivo-STJ-1149-2'].en),
+    'STJ-SALDO o Tema 1149 cita a Lei 9.696/1998');
+  ok(/REsp 2\.029\.719-RJ/.test(TXT['SELTJGO-0163'].fp || '')
+    && !/RMS 70\.921/.test(TXT['SELTJGO-0163'].en || ''),
+    'STJ-SALDO SELTJGO-0163 preserva o julgado do show artístico e sua citação própria');
+
+  const controle = linhas.filter(r => r[2] === 'controle_const');
+  ok(controle.length === 426 && controle.every(r => !!(TXT[r[0]] || {}).fp),
+    'STJ-SALDO os 426 verbetes de controle de constitucionalidade têm citação de origem');
+  ok(new Set(linhas.map(r => r[0])).size === linhas.length
+    && linhas.every(r => !!TXT[r[0]])
+    && Object.keys(TXT).every(id => !!IDX[id]),
+    'STJ-SALDO ids únicos e nenhuma linha ou texto órfão depois das exclusões');
+}
+
+/* === JURIS — 58 CORTES REMANESCENTES DA AUDITORIA (23/09/2026) === */
+{
+  const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8')).call(null, e); return e[g]; };
+  const linhas = carrega('juris-index.js', '__JURIS_IDX__');
+  const TXT = carrega('juris-text.js', '__JURIS_TXT__');
+  const IDX = Object.fromEntries(linhas.map(r => [r[0], r]));
+  const ids = ["CTRLCONST-0292","INF2020-0381","INF2020-0484","INF2020-0522","INF2020-0551","INF2023-0082","INF2023-0088","INF2023-0092","INF2023-0111","INF2023-0113","INF2023-0143","INF2023-0159","INF2023-0212","INF2023-0250","INF2023-0451","INF2023-0552","INF2023-0643","INF2023-0677","INF2023-0692","INF2023-0735","INF2023-0770","INF2023-0774","INF2024-0188","INF2024-0563","INF2024-0583","INF2024-0680","INF2025-0174","INF2025-0427","INF2025-0565","INF2025-0585","INF2025-0897","SELTJGO-0461","SELTJGO-0627","SELTJGO-0640","SELTJGO-0642","SELTJGO-0643","SELTJPR-0186","SELTJRJ-0570","SELTJRJ-0596","repgeral-repercussao_geral-STF-1015","repgeral-repercussao_geral-STF-1090","repgeral-repercussao_geral-STF-1277","repgeral-repercussao_geral-STF-21","repgeral-repercussao_geral-STF-324","repgeral-repercussao_geral-STF-370","repgeral-repercussao_geral-STF-432","repgeral-repercussao_geral-STF-476","repgeral-repercussao_geral-STF-554","repgeral-repercussao_geral-STF-580","repgeral-repercussao_geral-STF-703","repgeral-repercussao_geral-STF-820","repgeral-repercussao_geral-STF-825","repgeral-repercussao_geral-STF-881","repgeral-repercussao_geral-STF-967","repgeral-repercussao_geral-STF-x1198","repgeral-repercussao_geral-STF-x1586","repgeral-repercussao_geral-STF-x1590","repgeral-repercussao_geral-STJ-x257","repgeral-repetitivo-STF-x1319","repgeral-repetitivo-STJ-1196","repgeral-repetitivo-STJ-1197","repgeral-repetitivo-STJ-1235","repgeral-repetitivo-STJ-931"];
+  const retrato = Object.fromEntries(ids.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
+  const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
+  ok(digest === '42175d7f3884d6e10b28e1c5c8f4f31628c352980926c0a3599e2b9ef7fd6c9b',
+    'JURIS-CORTES os 58 fragmentos e seus cinco destinos mantêm a redação oficial validada (' + digest.slice(0, 12) + ')');
+
+  const antigos = ['repgeral-repercussao_geral-STF-x1198', 'repgeral-repetitivo-STF-x1319',
+    'repgeral-repercussao_geral-STJ-x257', 'repgeral-repercussao_geral-STF-x1586',
+    'repgeral-repercussao_geral-STF-x1590'];
+  ok(antigos.every(id => !IDX[id] && !TXT[id]),
+    'JURIS-CORTES os cinco ids classificados no tribunal ou tema errado foram retirados');
+  ok(IDX['repgeral-repetitivo-STJ-1196']?.[1] === 'STJ'
+    && IDX['repgeral-repetitivo-STJ-1196']?.[2] === 'repetitivo'
+    && IDX['repgeral-repercussao_geral-STF-476']?.[3] === 476
+    && IDX['repgeral-repercussao_geral-STF-825']?.[3] === 825
+    && IDX['repgeral-repercussao_geral-STF-21']?.[3] === 21,
+    'JURIS-CORTES os quatro verbetes renomeados apontam o precedente qualificado correto');
+  ok(/^1\. As decisões do STF/.test(TXT['repgeral-repercussao_geral-STF-881'].en)
+    && /relações jurídicas tributárias/.test(TXT['repgeral-repercussao_geral-STF-881'].en)
+    && /matéria tributária/.test(IDX['repgeral-repercussao_geral-STF-881'][6]),
+    'JURIS-CORTES o Tema 881 traz sua tese tributária, não uma nota lateral sobre amicus curiae');
+  ok(TXT['INF2020-0381'].en === 'Ainda que citado pessoalmente na fase de conhecimento, é devida a intimação por carta do réu revel, sem procurador constituído, para o cumprimento de sentença.'
+    && TXT['INF2024-0563'].ob === 'Tema 1338 · STF'
+    && /preceito fundamental\.$/.test(TXT['CTRLCONST-0292'].en),
+    'JURIS-CORTES destaques e teses terminam completos e preservam a rastreabilidade oficial');
+}
+
+/* A limpeza editorial não pode apagar estudo pessoal. Semeia no mesmo origin antes
+   de abrir a tela, como exige a trava contra a corrida do autosave. */
+await page.goto(URL0 + '/__semente');
+await page.evaluate(() => {
+  localStorage.setItem('catedra:jurisEstudo', JSON.stringify({
+    fav: {
+      'repgeral-repetitivo-STJ-x640': 1, 'SELTJGO-0438': 1,
+      'repgeral-repercussao_geral-STF-x1198': 1,
+      'repgeral-repetitivo-STF-x1319': 1,
+      'repgeral-repercussao_geral-STJ-x257': 1,
+      'repgeral-repercussao_geral-STF-x1586': 1,
+      'repgeral-repercussao_geral-STF-x1590': 1,
+      'INF2022-0470': 1
+    },
+    stat: {
+      'repgeral-repetitivo-STJ-x640': 'dom', 'repgeral-repetitivo-STJ-518': 'rev',
+      'repgeral-repercussao_geral-STF-x1198': 'rev',
+      'repgeral-repetitivo-STF-x1319': 'dom',
+      'INF2022-0470': 'rev'
+    }
+  }));
+  localStorage.setItem('catedra:grifosJuris:repgeral-repetitivo-STJ-x640', JSON.stringify([{ gi: 0, s: 1, t: 'antigo' }]));
+  localStorage.setItem('catedra:grifosJuris:repgeral-repetitivo-STJ-518', JSON.stringify([{ gi: 1, s: 2, t: 'novo' }]));
+  localStorage.setItem('catedra:grifosJuris:repgeral-repetitivo-STF-x1319', JSON.stringify([{ gi: 2, s: 3, t: 'tema 1196' }]));
+  localStorage.setItem('catedra:grifosJuris:INF2022-0470', JSON.stringify([{ gi: 3, s: 4, t: 'orçamento' }]));
+  localStorage.setItem('catedraJurisRoteiros', JSON.stringify({
+    'SELTJGO-0438': { ts: 7, q: 'roteiro preservado' },
+    'repgeral-repercussao_geral-STF-x1590': { ts: 8, q: 'tema 21 preservado' },
+    'INF2022-0470': { ts: 9, q: 'orçamento preservado' }
+  }));
+});
+await page.goto(URL0 + '/juris-web.html');
+await page.waitForFunction(() => typeof window.openVerbete === 'function');
+const migrado = await page.evaluate(() => ({
+  estudo: JSON.parse(localStorage.getItem('catedra:jurisEstudo') || '{}'),
+  grifos: JSON.parse(localStorage.getItem('catedra:grifosJuris:repgeral-repetitivo-STJ-518') || '[]'),
+  grifos1196: JSON.parse(localStorage.getItem('catedra:grifosJuris:repgeral-repetitivo-STJ-1196') || '[]'),
+  grifosOrcamento: JSON.parse(localStorage.getItem('catedra:grifosJuris:INF2021-0815') || '[]'),
+  roteiros: JSON.parse(localStorage.getItem('catedraJurisRoteiros') || '{}'),
+  copiaGrifos: localStorage.getItem('catedra:grifosJuris:repgeral-repetitivo-STJ-x640')
+}));
+ok(migrado.estudo.fav['repgeral-repetitivo-STJ-518'] === 1
+  && migrado.estudo.fav['SELTJGO-0433'] === 1
+  && migrado.estudo.stat['repgeral-repetitivo-STJ-518'] === 'dom'
+  && migrado.estudo.fav['repgeral-repetitivo-STJ-931'] === 1
+  && migrado.estudo.fav['repgeral-repetitivo-STJ-1196'] === 1
+  && migrado.estudo.fav['repgeral-repercussao_geral-STF-476'] === 1
+  && migrado.estudo.fav['repgeral-repercussao_geral-STF-825'] === 1
+  && migrado.estudo.fav['repgeral-repercussao_geral-STF-21'] === 1
+  && migrado.estudo.stat['repgeral-repetitivo-STJ-1196'] === 'dom'
+  && migrado.estudo.fav['INF2021-0815'] === 1
+  && migrado.estudo.stat['INF2021-0815'] === 'rev',
+  'STJ-SALDO favoritos e o progresso mais avançado migram aos verbetes sobreviventes');
+ok(migrado.grifos.length === 2 && migrado.copiaGrifos
+  && migrado.grifos1196[0]?.t === 'tema 1196'
+  && migrado.grifosOrcamento[0]?.t === 'orçamento'
+  && migrado.roteiros['SELTJGO-0433']?.q === 'roteiro preservado'
+  && migrado.roteiros['repgeral-repercussao_geral-STF-21']?.q === 'tema 21 preservado'
+  && migrado.roteiros['INF2021-0815']?.q === 'orçamento preservado',
+  'STJ-SALDO grifos e roteiro migram sem apagar a cópia antiga nem conteúdo já existente');
 
 /* ================ ERRO VIRA REVISÃO (item 2) ================ */
 await page.goto(URL0 + '/tests/harness-erros.html');
@@ -2414,7 +2652,7 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     // meta 40: a mesma prova habilitaria, com margem +11, selo em --ok
     localStorage.setItem('catedra:enam', JSON.stringify({ ...app._enamNovo(), metaAcertos: 40, up: Date.now() })); app.setState({ enam: JSON.parse(localStorage.getItem('catedra:enam')) }); await w(200);
     its = await montar(); app.setState({ sjResp: responder(its), provaSeconds: 16920 }); await w(200);
-    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(900);
+    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(1400);
     const selo2 = main().querySelector('.ct-enam-selo');
     r.meta40Habilitaria = !!selo2 && selo2.textContent.trim() === 'habilitaria' && selo2.getAttribute('data-ok') === '1' && corDe(selo2) === corToken('--ok') && /meta de 40 acertos · margem \+11/.test(main().textContent) && /16 de 16 · alvo 8/.test(main().querySelector('.ct-enam-barra').textContent);
     r.duasTentativasSincronizaveis = JSON.parse(localStorage.getItem('catedra:enamSim')).length === 2 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].meta === 40 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].habilitaria === true;

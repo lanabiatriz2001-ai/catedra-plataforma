@@ -1142,9 +1142,55 @@ final class LibraryStore {
         var readingChecklist: [ReadingChecklistItem]?
     }
 
+    /// Mantém acessível o estudo feito em registros editoriais retirados da base.
+    /// A chave antiga permanece no estado como cópia de segurança; o destino só
+    /// recebe um valor quando ainda não tinha conteúdo próprio.
+    private static func migrarIDsRetirados(_ s: inout Persisted) {
+        let destinos = [
+            "repgeral-repetitivo-STJ-x640": "repgeral-repetitivo-STJ-518",
+            "SELTJGO-0438": "SELTJGO-0433",
+            "repgeral-repercussao_geral-STF-x1198": "repgeral-repetitivo-STJ-931",
+            "repgeral-repetitivo-STF-x1319": "repgeral-repetitivo-STJ-1196",
+            "repgeral-repercussao_geral-STJ-x257": "repgeral-repercussao_geral-STF-476",
+            "repgeral-repercussao_geral-STF-x1586": "repgeral-repercussao_geral-STF-825",
+            "repgeral-repercussao_geral-STF-x1590": "repgeral-repercussao_geral-STF-21",
+            "INF2022-0470": "INF2021-0815",
+        ]
+
+        func soma(_ valores: inout [String], de antigo: String, para novo: String) {
+            if valores.contains(antigo), !valores.contains(novo) { valores.append(novo) }
+        }
+        func copia<T>(_ valores: inout [String: T]?, de antigo: String, para novo: String) {
+            guard let valor = valores?[antigo], valores?[novo] == nil else { return }
+            valores?[novo] = valor
+        }
+
+        for (antigo, novo) in destinos {
+            soma(&s.favorites, de: antigo, para: novo)
+            soma(&s.recents, de: antigo, para: novo)
+            if s.importantes != nil { soma(&s.importantes!, de: antigo, para: novo) }
+            if s.lidos != nil { soma(&s.lidos!, de: antigo, para: novo) }
+            if s.dominados != nil { soma(&s.dominados!, de: antigo, para: novo) }
+            if s.mapasFeitos != nil { soma(&s.mapasFeitos!, de: antigo, para: novo) }
+            copia(&s.annotations, de: antigo, para: novo)
+            copia(&s.richNotes, de: antigo, para: novo)
+            copia(&s.marks, de: antigo, para: novo)
+            copia(&s.afirmacoesFalsas, de: antigo, para: novo)
+            copia(&s.alinhamentos, de: antigo, para: novo)
+            copia(&s.textosEditados, de: antigo, para: novo)
+            copia(&s.srs, de: antigo, para: novo)
+            if s.colecoes != nil {
+                for i in s.colecoes!.indices where s.colecoes![i].ids.contains(antigo) {
+                    if !s.colecoes![i].ids.contains(novo) { s.colecoes![i].ids.append(novo) }
+                }
+            }
+        }
+    }
+
     private func loadState() {
         guard let data = try? Data(contentsOf: stateURL),
-              let s = try? JSONDecoder().decode(Persisted.self, from: data) else { return }
+              var s = try? JSONDecoder().decode(Persisted.self, from: data) else { return }
+        Self.migrarIDsRetirados(&s)
         favorites = Set(s.favorites)
         recents = s.recents
         marcadosImportantes = Set(s.importantes ?? [])
