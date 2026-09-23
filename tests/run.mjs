@@ -29,6 +29,7 @@ import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
+import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
@@ -57,6 +58,9 @@ const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+
+try { await testarPrioridadeErrosResolvidos(ok); }
+catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
 
 /* ============= D9 — BUILD SEM CDN: FALHAR EM VEZ DE DEGRADAR ============= */
 // Este é o único teste que não usa navegador: o que se prova aqui é o comportamento do

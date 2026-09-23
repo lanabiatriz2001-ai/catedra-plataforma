@@ -31,6 +31,7 @@ import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
+import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -41,6 +42,9 @@ console.log('[' + motor + '] Prova oral → Lei seca, LEGIS guiado, Modo ENAM e 
 
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
+
+try { await testarPrioridadeErrosResolvidos(ok); }
+catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
 
 // pathToFileURL não põe barra final; o teste concatena '/' + arquivo
 const ORIGENS = [[URL0, 'http', 'Catedra.dc.html'], [pathToFileURL(RAIZ).href, 'file', 'Catedra.dc.html']];
