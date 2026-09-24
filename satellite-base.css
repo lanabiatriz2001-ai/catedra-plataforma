@@ -68,6 +68,27 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
 /* estado nunca só por cor: o carregando também muda o cursor e o texto de cada página */
 [data-carregando] { opacity: .6; }
 
+/* O mesmo vocabulário de vazio, erro e espera do host. O satélite pode ser aberto
+   sozinho, por isso todos os tokens têm fallback e nenhuma variável depende do pai. */
+.ct-estado {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 32px 24px; border: 1px dashed var(--border, #e6e1d4);
+  border-radius: var(--radius, 14px); background: var(--surface, #fffdf8);
+  color: var(--text2, #5c564a); text-align: center;
+}
+.ct-estado-titulo { color: var(--ink, #1f1c17); font: 700 var(--t-titulo, 19px) / 1.25 var(--display, Georgia, serif); }
+.ct-estado-desc { max-width: 46ch; color: var(--text2, #5c564a); font-size: var(--t-corpo, 15px); line-height: 1.6; }
+.ct-estado-acao { margin-top: 8px; }
+.ct-estado-erro { border-style: solid; border-color: var(--dangerBd, #f0d3d1); background: var(--dangerSoft, #faeceb); }
+.ct-estado-erro .ct-estado-titulo { color: var(--danger, #c0392f); }
+.ct-estado-carregando { border-style: solid; }
+.ct-estado-carregando::before {
+  content: ""; width: 24px; height: 24px; border: 2px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-top-color: var(--module-accent, var(--accent, #0f7a57)); border-radius: 99px;
+  animation: ct-giro .8s linear infinite;
+}
+@keyframes ct-giro { to { transform: rotate(360deg); } }
+
 /* ===== 5. controles: busca, botão, chip, card =====================================
    Só o esqueleto do que aparece em mais de um módulo. A cor de módulo entra por
    --module-accent, que cada página define; sem ela, vale o accent do host. */
@@ -96,13 +117,22 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   background: var(--surface, #fffdf8);
   color: var(--ink, #1f1c17);
   font: 600 var(--fs-sm, 12.5px) / 1.2 inherit;
-  cursor: pointer;
+  position: relative; cursor: pointer;
+  transition: border-color .14s ease, background-color .14s ease, color .14s ease, opacity .14s ease;
 }
 .ct-btn:hover { border-color: var(--module-accent, var(--accent, #0f7a57)); }
 .ct-btn-1 {
   background: var(--module-accent, var(--accent, #0f7a57));
   border-color: var(--module-accent, var(--accent, #0f7a57));
   color: var(--onAccent, #fff);
+}
+.ct-btn:is([disabled],[aria-disabled='true'],[aria-busy='true']) {
+  opacity: .56; cursor: not-allowed; pointer-events: none;
+}
+.ct-btn[aria-busy='true']::before {
+  content: ""; width: 16px; height: 16px; flex: none;
+  border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 99px; animation: ct-giro .8s linear infinite;
 }
 
 .ct-chip {
@@ -180,6 +210,11 @@ select.sel {
      em 6 dos 7 satelites, e a regra prometia um efeito que nao acontecia. */
   input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
   textarea { min-height: 44px; font-size: max(16px, var(--fs-sm, 12.5px)) !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-btn { transition: none; }
+  .ct-btn[aria-busy='true']::before, .ct-estado-carregando::before { animation: none; }
 }
 
 /* ===== 6b. a fileira que rola diz que rola ========================================

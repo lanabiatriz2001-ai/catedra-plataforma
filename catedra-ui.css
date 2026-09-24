@@ -33,6 +33,7 @@
   --ct-r-sm: var(--r-sm, 8px);
   --ct-r-md: var(--r-md, 11px);
   --ct-r-lg: var(--radius, 14px);
+  --ct-pill: 99px;
 
   /* sombra: dois degraus, e só. Sombra inventada por página é o que faz um card
      parecer de outro produto. */
@@ -109,6 +110,15 @@
 .ct-estado-acao { margin-top: var(--ct-e2); }
 .ct-estado-erro { border-style: solid; border-color: var(--dangerBd, #f0d3d1); background: var(--dangerSoft, #faeceb); }
 .ct-estado-erro .ct-estado-titulo { color: var(--danger, #c0392f); }
+.ct-estado-carregando { border-style: solid; text-align: left; align-items: stretch; }
+.ct-estado-carregando::before {
+  content: ""; width: var(--ct-e5); height: var(--ct-e5); align-self: center;
+  border: 2px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-top-color: var(--accent); border-radius: var(--ct-pill);
+  animation: ct-giro .8s linear infinite;
+}
+.ct-estado-carregando .ct-estado-titulo,
+.ct-estado-carregando .ct-estado-desc { align-self: center; text-align: center; }
 
 /* ===== 7. LINHA DE DADO ===========================================================
    rótulo, dado, explicação, situação e ação — na mesma ordem em toda a plataforma. */
@@ -246,7 +256,9 @@
   cursor: pointer; border-radius: var(--ct-r-md);
   padding: 10px 18px; line-height: 1.2;
   min-height: var(--control-h, 38px);
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  transition: border-color .14s ease, background-color .14s ease, color .14s ease,
+    opacity .14s ease, transform .14s ease, box-shadow .14s ease;
 }
 .ct-btn   { background: var(--accent, #0f7a57); color: var(--onAccent, #fff); border: none; font-weight: 700; }
 .ct-btn-2 { background: transparent; color: var(--text2, #5c564a); border: 1px solid var(--border, #e6e1d4); font-weight: 600; }
@@ -254,9 +266,35 @@
   background: rgba(255, 255, 255, .14); color: #fff;
   border: 1px solid rgba(255, 255, 255, .55); border-radius: 99px; font-weight: 700;
 }
-.ct-btn[disabled], .ct-btn-2[disabled] { opacity: .5; cursor: not-allowed; }
+.ct-btn-2:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) {
+  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface)); color: var(--ink);
+}
+.ct-btn:is([disabled],[aria-disabled="true"],[aria-busy="true"]),
+.ct-btn-2:is([disabled],[aria-disabled="true"],[aria-busy="true"]),
+.ct-btn-clara:is([disabled],[aria-disabled="true"],[aria-busy="true"]) {
+  opacity: .56; cursor: not-allowed; pointer-events: none; box-shadow: none; transform: none;
+}
+.ct-btn[aria-busy="true"]::before,
+.ct-btn-2[aria-busy="true"]::before,
+.ct-btn-clara[aria-busy="true"]::before {
+  content: ""; width: var(--ct-e4); height: var(--ct-e4); flex: none;
+  border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: var(--ct-pill); animation: ct-giro .8s linear infinite;
+}
 .ct-btn:focus-visible, .ct-btn-2:focus-visible { outline: 2px solid var(--accent, #0f7a57); outline-offset: 2px; }
 .ct-btn-clara:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@keyframes ct-giro { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ct-btn, .ct-btn-2, .ct-btn-clara { transition: none; }
+  .ct-btn[aria-busy="true"]::before, .ct-btn-2[aria-busy="true"]::before,
+  .ct-btn-clara[aria-busy="true"]::before, .ct-estado-carregando::before { animation: none; }
+}
+[data-baixa="1"] .ct-btn, [data-baixa="1"] .ct-btn-2, [data-baixa="1"] .ct-btn-clara { transition: none; }
+[data-baixa="1"] .ct-btn[aria-busy="true"]::before,
+[data-baixa="1"] .ct-btn-2[aria-busy="true"]::before,
+[data-baixa="1"] .ct-btn-clara[aria-busy="true"]::before,
+[data-baixa="1"] .ct-estado-carregando::before { animation: none; }
 
 /* ---- 10.4 GRUPO: o que anuncia uma leva de itens ------------------------------
    O ponto colorido não é enfeite: ele carrega a situação do grupo (atrasado, hoje, em
@@ -568,12 +606,11 @@ button.ct-card:hover, a.ct-card:hover {
 .ct-btn {
   background: linear-gradient(180deg, var(--accent, #0f7a57), color-mix(in srgb, var(--accent, #0f7a57) 82%, #000));
   box-shadow: 0 1px 2px rgba(0,0,0,.10), 0 8px 20px -10px color-mix(in srgb, var(--accent) 65%, transparent);
-  transition: transform .14s ease, box-shadow .14s ease;
 }
-.ct-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,.12), 0 12px 26px -10px color-mix(in srgb, var(--accent) 75%, transparent); }
+.ct-btn:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"]) { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,.12), 0 12px 26px -10px color-mix(in srgb, var(--accent) 75%, transparent); }
 .ct-btn:active { transform: translateY(0); }
-@media (prefers-reduced-motion: reduce) { .ct-btn { transition: none; } .ct-btn:hover { transform: none; } }
-[data-baixa="1"] .ct-btn { transition: none; } [data-baixa="1"] .ct-btn:hover { transform: none; }
+@media (prefers-reduced-motion: reduce) { .ct-btn:hover { transform: none; } }
+[data-baixa="1"] .ct-btn:hover { transform: none; }
 
 /* ===== 15. O RESTO DO APP ========================================================
  * A seção 13 deu identidade ao `.ct-card` — 90 cartões. Só que o app tem 158 OUTROS que
