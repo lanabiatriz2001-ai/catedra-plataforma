@@ -44,6 +44,7 @@ import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregament
 import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
+import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
@@ -8995,6 +8996,12 @@ catch (e) {
 try { await testarJurisQuadro(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'JURIS/QUADRO [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+try { await testarPadronizacaoVisual(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'PADRONIZAÇÃO VISUAL [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
