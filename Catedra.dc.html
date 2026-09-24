@@ -2919,7 +2919,7 @@ window.ctPdfLib = (function(){
           </div>
           <textarea value="{{ edRaw }}" oninput="{{ edSetRaw }}" rows="7" placeholder="Cole aqui o conteúdo programático. Ex.:&#10;DIREITO ADMINISTRATIVO&#10;1 Atos administrativos&#10;2 Licitações e contratos&#10;DIREITO CONSTITUCIONAL&#10;1 Direitos fundamentais" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-md);padding:13px;font-size:var(--fs-base);color:var(--ink);font-family:var(--mono);line-height:1.6;resize:vertical;"></textarea>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-            <button onclick="{{ edStructureAI }}" disabled="{{ edAiBusy }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;box-shadow:0 6px 16px -6px var(--accent);">{{ edAiLabel }}</button>
+            <button class="ct-btn" onclick="{{ edStructureAI }}" disabled="{{ edAiBusy }}" aria-busy="{{ edAiBusy }}">{{ edAiLabel }}</button>
             <button onclick="{{ edRecognize }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Reconhecer sem IA</button>
           </div>
           <sc-if value="{{ cotaIATem }}" hint-placeholder-val="{{ false }}"><div data-ia-cota-edital="1" style="font-size:var(--fs-sm);color:var(--text2);margin-top:8px;line-height:1.5;">{{ cotaIAEditalTxt }}</div></sc-if>
@@ -3408,7 +3408,7 @@ window.ctPdfLib = (function(){
               <p id="red-disciplina-ajuda" class="ct-nota" style="margin-top:var(--ct-e2);">{{ redDiscAjuda }}</p>
             </div>
             <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;align-items:center;">
-              <button onclick="{{ submitRed }}" style="{{ redBtnStyle }}">{{ redBtnLabel }}</button>
+              <button class="ct-btn" onclick="{{ submitRed }}" disabled="{{ redBtnDisabled }}" aria-busy="{{ redBusy }}">{{ redBtnLabel }}</button>
               <span style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
             </div>
           </div>
@@ -5471,7 +5471,7 @@ window.ctPdfLib = (function(){
                     </sc-for>
                   </div>
                 </sc-if>
-                <button onclick="{{ gerarDicasBanca }}" disabled="{{ bancaIABusy }}" style="{{ bancaIAStyle }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke-linecap="round"></path></svg>{{ bancaIALabel }}</button>
+                <button class="ct-btn" onclick="{{ gerarDicasBanca }}" disabled="{{ bancaIABusy }}" aria-busy="{{ bancaIABusy }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke-linecap="round"></path></svg>{{ bancaIALabel }}</button>
               </div>
             </div>
           </div>
@@ -5896,7 +5896,10 @@ window.ctPdfLib = (function(){
             </sc-if>
 
             <sc-if value="{{ adminBusy }}" hint-placeholder-val="{{ false }}">
-              <div class="adm-empty">carregando…</div>
+              <div class="ct-estado ct-estado-carregando" role="status" aria-live="polite">
+                <div class="ct-estado-titulo">Carregando o console</div>
+                <div class="ct-estado-desc">Buscando os dados mais recentes sem interromper o restante do aplicativo.</div>
+              </div>
             </sc-if>
           </div>
         </div>
@@ -16702,8 +16705,8 @@ class Component extends DCLogic {
     const redGabarito=this.state.redGabarito, redGabBusy=this.state.redGabBusy, redGabFile=this.state.redGabFile;
     const redGabWords=((this.state.redGabarito||'').match(/\S+/g)||[]).length;
     const redCanSubmit=redWords>=40 && !!(this.state.redGabarito||'').trim() && !this.state.redBusy;
-    const redBtnStyle=`background:${redCanSubmit?'var(--accent)':'var(--surface2)'};color:${redCanSubmit?'var(--onAccent)':'var(--text3)'};border:1px solid ${redCanSubmit?'var(--accent)':'var(--border)'};border-radius:var(--r-md);padding:12px 24px;font-weight:600;font-size:var(--fs-md);cursor:${redCanSubmit?'pointer':'default'};font-family:inherit;`;
-    const redBtnLabel=this.state.redBusy?'⏳ Corrigindo com IA — pode levar ~30s…':'Comparar com o gabarito ✦';
+    const redBtnDisabled=!redCanSubmit;
+    const redBtnLabel=this.state.redBusy?'Corrigindo com IA — pode levar cerca de 30 segundos':'Comparar com o gabarito';
     // evolução por quesito (item 4): tentativas da mesma prova e o delta do primeiro ao último
     const redEvo=this._redEvolucao().map(p=>({
       chave:p.chave, prova:p.prova||'(sem título)', tentativas:String(p.tentativas)+(p.tentativas>1?' tentativas':' tentativa'),
@@ -18123,7 +18126,7 @@ class Component extends DCLogic {
       semanaAbrir:this.semanaAbrir, semanaLido:this.semanaLido, semanaMais:this.semanaMais,
       semanaVerTudo:this.semanaVerTudo, semanaMaisLabel:(this.state.semanaTudo?'ver menos':'ver mais'),
       semanaTemMais:_semanaTodos.length>this.SEMANA_N,
-      redHist, redHistTem:redHist.length>0, redHistEmpty:redHist.length===0, redBtnStyle, redBtnLabel,
+      redHist, redHistTem:redHist.length>0, redHistEmpty:redHist.length===0, redBtnDisabled, redBtnLabel,
       redEvo, redEvoTem:redEvo.length>0, redEvoOpen:this.state.redEvoOpen, toggleRedEvo:this.toggleRedEvo,
       redEvoLabel:(this.state.redEvoOpen?'ocultar':'ver'), redParaCiclo:this.redParaCiclo,
       onRedText:this.onRedText, submitRed:this.submitRed, redReset:this.redReset, redOpenHist:this.redOpenHist,
