@@ -36,6 +36,7 @@ import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
+import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -130,6 +131,8 @@ for (const [base, origem, arquivo] of ORIGENS) {
   // pintam. Só na origem http: o módulo semeia os roteiros por base+'/__semente' (404 na mesma
   // origem), que não existe em file://, e monta o satélite num iframe com a ponte de IA falsa.
   if (origem === 'http') {
+    try { await testarPadronizacaoVisual(page, base, ok, { motor, origem }); }
+    catch (e) { ok(false, 'PADRONIZAÇÃO VISUAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     try { await testarJurisQuadro(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'JURIS/QUADRO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
