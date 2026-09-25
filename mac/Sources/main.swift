@@ -219,6 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var legisReviewsBaseline: Int?            // reviewedToday no início da rajada
 
     func applicationDidFinishLaunching(_ n: Notification) {
+        DSFontes.registrar()       // fontes da casa (web/fonts) para o LEGIS/JURIS nativos
         buildMenu()
         setupMenuBarExtra()
         startWidgetSync()
@@ -1487,6 +1488,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             let l = disp.lowercased()
             t.displaySerif = l.contains("spectral") || l.contains("georgia")
                 || (l.contains("serif") && !l.contains("sans-serif"))
+            if let fam = DS.familiaDisplay(css: disp) { t.displayFamilia = fam }
         }
         if let c = col("sbg")      { t.sidebarBg = c }
         if let c = col("stext")    { t.sidebarText = c }
