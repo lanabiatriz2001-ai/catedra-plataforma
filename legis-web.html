@@ -467,8 +467,8 @@ function renderIncid(){
     det.querySelectorAll('.art').forEach(b=>{
       // o salto legis→juris não pode perder a origem: quem veio do roteiro continua
       // com o caminho de volta depois de pular para a jurisprudência
-      b.onclick=()=>{ try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo:'juris',
-        termo:'art. '+b.dataset.a, origem:(window.CT_ORIGEM||null)}, '*'); }catch(e){} };
+      b.onclick=()=>{ try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo:'juris',
+        termo:'art. '+b.dataset.a, origem:(window.CT_ORIGEM||null)}); }catch(e){} };
     });
     return;
   }
@@ -584,7 +584,7 @@ window.ctAplicarBusca = function (q) {
   window.ctAplicarBusca(q);
 }catch(e){} })();
 window.addEventListener('message', function (e) {
-  if (e && e.data && e.data.type === 'ctBusca') window.ctAplicarBusca(e.data.termo);
+  if (window.ctMensagemDoHost(e) && e.data && e.data.type === 'ctBusca') window.ctAplicarBusca(e.data.termo);
 });
 /* LEITURA ATIVA (LA1) — o canal com o host. O host guarda catedra:leituras e é a fonte da
    verdade; aqui fica só um ESPELHO por lei ('catedra:leituras:'+leiId) para desenhar a
@@ -595,7 +595,7 @@ window.CT_LA_CANAL=(function(){
   var chave=function(leiId){ return 'catedra:leituras:'+String(leiId||''); };
   var ler=function(leiId){ try{ return JSON.parse(localStorage.getItem(chave(leiId)))||[]; }catch(e){ return []; } };
   var gravar=function(leiId, itens){ try{ localStorage.setItem(chave(leiId), JSON.stringify(Array.isArray(itens)?itens:[])); }catch(e){} };
-  var aoHost=function(msg){ try{ if(window.parent && window.parent!==window) window.parent.postMessage(msg, '*'); }catch(e){} };
+  var aoHost=function(msg){ try{ window.ctEnviarAoHost(msg); }catch(e){} };
   var pedir=function(leiId){ if(leiId) aoHost({type:'ctLeiturasPedir', leiId:String(leiId)}); };
   var enviar=function(item){
     if(!item || !item.leiId || !item.id) return;
@@ -613,7 +613,7 @@ window.CT_LA_CANAL=(function(){
     if(msg.itens.length) aoHost(msg);
   };
   window.addEventListener('message', function(e){
-    if(!e || !e.data || e.data.type!=='ctLeituras') return;
+    if(!window.ctMensagemDoHost(e) || !e.data || e.data.type!=='ctLeituras') return;
     gravar(e.data.leiId, e.data.itens);
     try{ window.dispatchEvent(new CustomEvent('catedra:leituras', {detail:{leiId:String(e.data.leiId||'')}})); }catch(_){}
     pedirResumo();
@@ -621,13 +621,13 @@ window.CT_LA_CANAL=(function(){
   // LA6: contagens por lei para o catálogo (o host responde ctLeiturasResumoResp)
   var pedirResumo=function(){ aoHost({type:'ctLeiturasResumo'}); };
   window.addEventListener('message', function(e){
-    if(!e || !e.data || e.data.type!=='ctLeiturasResumoResp') return;
+    if(!window.ctMensagemDoHost(e) || !e.data || e.data.type!=='ctLeiturasResumoResp') return;
     window.CT_LA_RESUMO=e.data.resumo||{};
     try{ window.dispatchEvent(new CustomEvent('catedra:leiturasResumo')); }catch(_){}
   });
   // LA6: "Ler ativamente" / "Conferir de novo" vindos do host — abrir a lei no dispositivo
   window.addEventListener('message', function(e){
-    if(!e || !e.data || e.data.type!=='ctLeituraAbrir') return;
+    if(!window.ctMensagemDoHost(e) || !e.data || e.data.type!=='ctLeituraAbrir') return;
     try{ window.ctLeituraAbrir && window.ctLeituraAbrir(e.data); }catch(_){}
   });
   return { ler:ler, pedir:pedir, enviar:enviar, conferir:conferir, pedirResumo:pedirResumo };
@@ -647,7 +647,7 @@ window.CT_LA_CANAL=(function(){
     +'background:var(--accent,#0f7a57);color:var(--onAccent,#fff);border-radius:99px;'
     +'min-height:44px;display:inline-flex;align-items:center;'
     +'padding:10px 18px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)';
-  b.onclick=function(){ try{ window.parent.postMessage({type:'ctVoltarAcervo'}, '*'); }catch(e){} };
+  b.onclick=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarAcervo'}); }catch(e){} };
   b.id='ct-volta';
   document.body.appendChild(b);
   return b;
@@ -659,7 +659,7 @@ window.CT_LA_CANAL=(function(){
   };
   if(pedidoURL) mostrar(true);
   window.addEventListener('message', function(e){
-    if(e && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on);
+    if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on);
   });
 }catch(e){} })();
 const AREA_ID=(function(){ try{ return new URLSearchParams(location.search).get('area')||''; }catch(e){ return ''; } })();
@@ -1181,8 +1181,8 @@ function _colher(alvos, jaVistos){
     if(registrar!==false && n>0 && CANAL && window.parent && window.parent!==window){
       var gis=Object.keys(G.lidos).map(Number).sort(function(a,b){return a-b;});
       var faixaTxt=laRot(gis[0])+(gis.length>1?(' – '+laRot(gis[gis.length-1])):'');
-      try{ window.parent.postMessage({type:'ctRegistrarLeitura', leiId:laLeiId(), sigla:laSigla(), lei:String(curLaw&&curLaw.t||''), faixa:faixaTxt, lidos:n,
-        min:Math.max(1, Math.round((Date.now()-G.ini)/60000))}, '*'); }catch(e){} } }
+      try{ window.ctEnviarAoHost({type:'ctRegistrarLeitura', leiId:laLeiId(), sigla:laSigla(), lei:String(curLaw&&curLaw.t||''), faixa:faixaTxt, lidos:n,
+        min:Math.max(1, Math.round((Date.now()-G.ini)/60000))}); }catch(e){} } }
   function laGdPalavras(gi){ var txt=disp[gi]||'', it=_laItens[gi], out='', pos=0;
     var marcada=function(a,b){ if(!it) return ''; for(var k=0;k<LA.IDS.length;k++){ var ms=it.el[LA.IDS[k]]||[]; for(var j=0;j<ms.length;j++){ var s=(ms[j].s!=null&&txt.substr(ms[j].s,ms[j].t.length)===ms[j].t)?ms[j].s:txt.indexOf(ms[j].t); if(s>=0 && a>=s && b<=s+ms[j].t.length) return LA.IDS[k]; } } return ''; };
     txt.split(/(\s+)/).forEach(function(tok){ if(!tok) return; var a=pos, b=pos+tok.length; pos=b;
@@ -1376,7 +1376,7 @@ function _colher(alvos, jaVistos){
     var rot=P.get('de'), tipo=P.get('deTipo')||'';
     window.CT_ORIGEM = rot ? {rotulo:rot, view:tipo} : null;   // repassado adiante nos saltos legis→juris
     if(!rot) return;
-    var volta=function(){ try{ window.parent.postMessage({type:'ctVoltarOrigem'}, '*'); }catch(e){} };
+    var volta=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarOrigem'}); }catch(e){} };
     var barra=document.createElement('div');
     barra.setAttribute('role','navigation');
     barra.setAttribute('aria-label','Voltar ao ponto de origem');

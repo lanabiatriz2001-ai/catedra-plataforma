@@ -1309,7 +1309,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     window.ctAplicarBusca(q);
   }catch(e){} })();
   window.addEventListener('message', function (e) {
-    if (e && e.data && e.data.type === 'ctBusca') window.ctAplicarBusca(e.data.termo);
+    if (window.ctMensagemDoHost(e) && e.data && e.data.type === 'ctBusca') window.ctAplicarBusca(e.data.termo);
   });
   // ?volta=1: ela veio do mapa do processo — a pílula devolve ao ponto exato (o host
   // guarda rito/peça/bloco e responde ao ctVoltarAcervo). Só o host web manda este
@@ -1324,7 +1324,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     b.style.cssText='position:fixed;left:14px;bottom:14px;z-index:95;border:none;cursor:pointer;'
       +'background:var(--accent,#0f7a57);color:var(--onAccent,#fff);border-radius:99px;'
       +'padding:10px 16px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)';
-    b.onclick=function(){ try{ window.parent.postMessage({type:'ctVoltarAcervo'}, '*'); }catch(e){} };
+    b.onclick=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarAcervo'}); }catch(e){} };
     b.id='ct-volta';
     document.body.appendChild(b);
     return b;
@@ -1336,7 +1336,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     };
     if(pedidoURL) mostrar(true);
     window.addEventListener('message', function(e){
-      if(e && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on);
+      if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on);
     });
   }catch(e){} })();
   document.querySelectorAll('#tabs .tab').forEach(function(b){ b.onclick=function(){ setPane(b.dataset.pane); }; });
@@ -1444,7 +1444,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // então o pedido vai para o app por postMessage e a resposta volta pelo mesmo canal.
   var iaPend={}, iaSeq=0;
   window.addEventListener('message',function(e){
-    if(!e||!e.data||e.data.type!=='ctIAResp')return;
+    if(!window.ctMensagemDoHost(e)||!e.data||e.data.type!=='ctIAResp')return;
     var f=iaPend[e.data.reqId]; if(!f)return; delete iaPend[e.data.reqId];
     f(e.data.texto||'', e.data.erro||'');
   });
@@ -1454,7 +1454,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
       var id='r'+(++iaSeq)+'_'+Date.now();
       var t=setTimeout(function(){ delete iaPend[id]; rej(new Error('A IA demorou demais.')); },75000);
       iaPend[id]=function(texto,erro){ clearTimeout(t); if(erro&&!texto)rej(new Error(erro)); else res(texto); };
-      try{ window.parent.postMessage({type:'ctIA', reqId:id, prompt:prompt}, '*'); }
+      try{ window.ctEnviarAoHost({type:'ctIA', reqId:id, prompt:prompt}); }
       catch(err){ clearTimeout(t); delete iaPend[id]; rej(err); }
     });
   }
@@ -2418,7 +2418,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
           .filter(function(c){ return c.front&&c.back; });
         if(!novos.length)return;
         try{
-          window.parent.postMessage({type:'ctFlashcards', cards:novos, origem:id}, '*');
+          window.ctEnviarAoHost({type:'ctFlashcards', cards:novos, origem:id});
           fc.disabled=true; fc.textContent=novos.length===1?'✓ flashcard no seu baralho':('✓ '+novos.length+' flashcards no seu baralho');
         }catch(e){ fc.textContent='Não consegui enviar os flashcards.'; }
       };
@@ -2526,7 +2526,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     var rot=P.get('de'), tipo=P.get('deTipo')||'';
     window.CT_ORIGEM = rot ? {rotulo:rot, view:tipo} : null;   // repassado adiante nos saltos legis→juris
     if(!rot) return;
-    var volta=function(){ try{ window.parent.postMessage({type:'ctVoltarOrigem'}, '*'); }catch(e){} };
+    var volta=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarOrigem'}); }catch(e){} };
     var barra=document.createElement('div');
     barra.setAttribute('role','navigation');
     barra.setAttribute('aria-label','Voltar ao ponto de origem');

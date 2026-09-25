@@ -1204,7 +1204,7 @@
     // Política e "Conhecer" não abriam, e o aceite obrigava a aceitar sem conseguir ler. Os
     // irmãos dentro do portão ficam inertes enquanto o documento está aberto (Tab e leitor de
     // tela ficam no documento) e o Fechar devolve o foco a quem abriu.
-    docAberto = { box: box, foco: document.activeElement, inertes: [] };
+    docAberto = { box: box, frame: fr, foco: document.activeElement, inertes: [] };
     if (noGate) Array.prototype.forEach.call(el.children, function (n) {
       if (n.tagName === 'STYLE') return;
       docAberto.inertes.push({ node: n, inert: !!n.inert, ariaHidden: n.getAttribute('aria-hidden') });
@@ -1214,7 +1214,14 @@
     (noGate ? el : document.body).appendChild(box); fechar.focus();
     window.addEventListener('message', aoFecharDoc);
   }
-  function aoFecharDoc(e) { if (e && e.data && e.data.type === 'ctFecharDoc') fecharDoc(); }
+  function aoFecharDoc(e) {
+    if (!e || !e.data || e.data.type !== 'ctFecharDoc' || !docAberto || !docAberto.frame) return;
+    try {
+      if (e.source !== docAberto.frame.contentWindow) return;
+      if ((location.protocol === 'http:' || location.protocol === 'https:') && e.origin !== location.origin) return;
+    } catch (_) { return; }
+    fecharDoc();
+  }
   function fecharDoc() {
     window.removeEventListener('message', aoFecharDoc);
     var d = docAberto; docAberto = null;

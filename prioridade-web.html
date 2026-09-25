@@ -129,7 +129,6 @@ button,select{font-family:inherit}
   .acoes .ac{min-height:44px}
 }
 </style>
-<script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
 <script src="./tema-satelite.js"></script>
 </head><body>
 
@@ -179,15 +178,15 @@ const abertos={};
 /* o clique num dispositivo abre a lei seca no app — e leva a origem junto, para
    a barra de volta do CátedraLEGIS devolver a pessoa a esta linha */
 function abrirAcervo(termo, disc){
-  try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo:'legis', termo,
-    origem:{view:'prioridade', disc, rotulo:'Painel de prioridade · '+disc}}, '*'); }catch(e){}
+  try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo:'legis', termo,
+    origem:{view:'prioridade', disc, rotulo:'Painel de prioridade · '+disc}}); }catch(e){}
 }
 
 /* O ranking dizia o que estudar e parava aí. O host recebe isto e abre a plataforma de
    questões escolhida em Ajustes, com a disciplina no filtro — só link de saída: nenhum
    conteúdo dessas plataformas entra no Cátedra, nenhuma credencial sai daqui. */
 function praticar(disc){
-  try{ window.parent.postMessage({type:'ctPraticarPrioridade', disc}, '*'); }catch(e){}
+  try{ window.ctEnviarAoHost({type:'ctPraticarPrioridade', disc}); }catch(e){}
 }
 
 function score(l, fonte){

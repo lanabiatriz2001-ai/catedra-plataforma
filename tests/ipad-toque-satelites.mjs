@@ -286,7 +286,10 @@ export async function testarIpadToqueSatelites(pageDaSuite, base, ok, opcoes = {
         + avulsa.fortes + ' px ≥ 3:1, máximo ' + avulsa.max + ':1)');
       const fracas = [];
       for (const p of paletas) {
-        await page.evaluate((t) => window.postMessage({ type: 'ctTheme', tokens: t }, '*'), p.tokens);
+        await page.evaluate((t) => window.dispatchEvent(new MessageEvent('message', {
+          source: window.parent, origin: location.origin,
+          data: { type: 'ctTheme', tokens: t }
+        })), p.tokens);
         /* tema que não chega é falha, não "mediu a cor avulsa de novo e passou" */
         const chegou = await page.waitForFunction((bg) => document.documentElement.style.getPropertyValue('--bg') === bg,
           p.tokens['--bg'], { timeout: 3000 }).then(() => true, () => false);

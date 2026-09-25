@@ -74,7 +74,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   .row .rg{position:relative;z-index:1;min-height:44px;padding:8px 13px}
   .search input{min-height:44px}
 }
-</style><script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script><script src="./tema-satelite.js"></script>
+</style><script src="./tema-satelite.js"></script>
 </head>
 <body><div class="wrap">
 <div class="head"><div class="ic" id="ic">📚</div><div><h1 id="tt">Módulo da área</h1><p id="sb"></p></div></div>
@@ -157,7 +157,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       };
       // ABRE o registro de sessão preenchido — nunca grava sozinho (regra da casa).
       r.querySelector('.rg').onclick=function(){
-        try{ window.parent.postMessage({type:'ctRegistrarArea', disc:M.disc||M.nome, topico:g.n, sub:it.t}, '*'); }catch(e){}
+        try{ window.ctEnviarAoHost({type:'ctRegistrarArea', disc:M.disc||M.nome, topico:g.n, sub:it.t}); }catch(e){}
       };
       box.appendChild(r);
     });

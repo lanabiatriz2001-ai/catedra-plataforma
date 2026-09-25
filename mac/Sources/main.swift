@@ -62,9 +62,32 @@ let bridgeJS = """
   // portanto ANTES do listener do app web — por isso o stopImmediatePropagation basta
   // para o web não tratar a mesma mensagem em seguida. Se a ponte não existir (site na
   // Vercel), o postMessage lança e o caminho web continua valendo.
+  function satelitePodeAbrirAcervo(e) {
+    if (!e || !e.source) return false;
+    // A revisão do app pede o acervo à própria janela (e.source === window).
+    if (e.source === window) return true;
+    var frames = document.querySelectorAll('iframe[data-ct-view][data-ct-frame]');
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i].contentWindow !== e.source) continue;
+      var view = frames[i].getAttribute('data-ct-view') || '';
+      var src = frames[i].getAttribute('src') || '';
+      if (src.indexOf('http:') === 0 || src.indexOf('https:') === 0 || src.indexOf('//') === 0) return false;
+      var arquivo = src.split('?')[0].split('#')[0];
+      arquivo = arquivo.slice(arquivo.lastIndexOf('/') + 1);
+      if (view === 'areamod' && arquivo !== 'ritos-web.html') return false;
+      if (view === 'roteiros' && arquivo !== 'pecas-web.html') return false;
+      if (view === 'prioridade' && arquivo !== 'prioridade-web.html') return false;
+      if (view === 'segundafase' && arquivo !== 'segunda-fase-web.html') return false;
+      if (view === 'legis' && arquivo !== 'legis-web.html') return false;
+      return view === 'areamod' || view === 'roteiros' || view === 'prioridade'
+        || view === 'segundafase' || view === 'legis';
+    }
+    return false;
+  }
   window.addEventListener('message', function (e) {
     try {
       if (!e || !e.data || e.data.type !== 'ctAbrirAcervo') return;
+      if (!satelitePodeAbrirAcervo(e)) return;
       var alvo = String(e.data.alvo || '');
       if (alvo !== 'legis' && alvo !== 'juris') return;
       // Item 5: o termo e o ponto de origem viajam junto — antes só o nome da aba ia, e a
@@ -1611,9 +1634,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
 
     // MARK: Roteamento das pontes JS → Swift
+    private func mensagemDaPaginaLocal(_ message: WKScriptMessage) -> Bool {
+        guard message.frameInfo.isMainFrame,
+              let origem = message.frameInfo.request.url,
+              origem.isFileURL,
+              let raizWeb = Bundle.main.resourceURL?.appendingPathComponent("web", isDirectory: true)
+        else { return false }
+        let raiz = raizWeb.standardizedFileURL.path
+        let caminho = origem.standardizedFileURL.path
+        return caminho == raiz || caminho.hasPrefix(raiz + "/")
+    }
+
     func userContentController(_ ucc: WKUserContentController, didReceive message: WKScriptMessage,
                                replyHandler: @escaping (Any?, String?) -> Void) {
         let reply: (Any?, String?) -> Void = { v, e in DispatchQueue.main.async { replyHandler(v, e) } }
+        guard mensagemDaPaginaLocal(message) else {
+            reply(nil, "origem não autorizada")
+            return
+        }
         switch message.name {
         case "catedraAI":        handleAI(message, reply)
         case "notifyPermission": handleNotifPermission(message, reply)

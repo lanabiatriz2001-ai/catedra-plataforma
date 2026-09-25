@@ -1485,6 +1485,7 @@
       if (window.parent === window) return;
       const r = runtime.registry.entries[rootName];
       try {
+        const destino = location.protocol === "http:" || location.protocol === "https:" ? location.origin : "*";
         window.parent.postMessage(
           {
             type: "__dc_booted",
@@ -1492,7 +1493,7 @@
             propsMeta: r && r.propsMeta || null,
             preview: r && r.preview || null
           },
-          "*"
+          destino
         );
       } catch {
       }

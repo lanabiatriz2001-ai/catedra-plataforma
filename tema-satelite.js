@@ -84,8 +84,39 @@
     } catch (e) { return false; }
   }
 
+  /* O canal é privado entre o satélite e a janela que realmente o hospeda. Na web,
+     identidade sem origem não basta; no bundle file:// a origem é opaca e a identidade
+     de window.parent é a garantia disponível. Aberto avulso, parent===window mantém as
+     páginas testáveis sem criar uma exceção quando elas estão embutidas. */
+  function destinoHost() {
+    try { return location.protocol === 'http:' || location.protocol === 'https:' ? location.origin : '*'; }
+    catch (e) { return '*'; }
+  }
+  function mensagemDoHost(e) {
+    try {
+      if (!e || !e.source) return false;
+      var pai = window.parent;
+      if (pai === window) return e.source === window
+        && (location.protocol !== 'http:' && location.protocol !== 'https:' || e.origin === location.origin);
+      if (e.source !== pai) return false;
+      if (location.protocol === 'http:' || location.protocol === 'https:') return e.origin === location.origin;
+      return location.protocol === 'file:';
+    } catch (_) { return false; }
+  }
+  function enviarAoHost(dados) {
+    try {
+      if (!window.parent || window.parent === window) return false;
+      window.parent.postMessage(dados, destinoHost());
+      return true;
+    } catch (_) { return false; }
+  }
+  window.ctMensagemDoHost = mensagemDoHost;
+  window.ctEnviarAoHost = enviarAoHost;
+
   window.addEventListener('message', function (e) {
-    if (e && e.data && e.data.type === 'ctTheme' && e.data.tokens) { aplicar(e.data.tokens); aplicarBaixa(e.data.baixa); }
+    if (mensagemDoHost(e) && e.data && e.data.type === 'ctTheme' && e.data.tokens) {
+      aplicar(e.data.tokens); aplicarBaixa(e.data.baixa);
+    }
   });
 
   function avisar() {
@@ -93,8 +124,8 @@
       if (window.parent && window.parent !== window) {
         // `ctPronto` é o aviso novo; `ctChecklistReady` fica por compatibilidade com o
         // host antigo (bundle já publicado no app nativo, que pode estar atrás).
-        window.parent.postMessage({ type: 'ctPronto', pagina: location.pathname.split('/').pop() }, '*');
-        window.parent.postMessage({ type: 'ctChecklistReady' }, '*');
+        enviarAoHost({ type: 'ctPronto', pagina: location.pathname.split('/').pop() });
+        enviarAoHost({ type: 'ctChecklistReady' });
       }
     } catch (e) {}
   }

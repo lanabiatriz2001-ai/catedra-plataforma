@@ -7070,36 +7070,70 @@ class Component extends DCLogic {
         return t;
       }catch(_){ return null; }
     };
+    /* Autoriza a ponte pela JANELA exata que o host montou. `origin` sozinho não basta:
+       qualquer iframe da mesma origem poderia personificar o LEGIS/JURIS. Em file:// a
+       origem é opaca, então a identidade de contentWindow é a garantia inteira. */
+    this._msgDestino = ()=>{
+      try{ return (location.protocol==='http:'||location.protocol==='https:')?location.origin:'*'; }
+      catch(_){ return '*'; }
+    };
+    this._msgOrigem = (e)=>{
+      try{
+        if(!e || !e.source) return null;
+        const p=location.protocol;
+        if(p!=='file:' && p!=='http:' && p!=='https:') return null;
+        if((p==='http:'||p==='https:') && e.origin!==location.origin) return null;
+        const frame=[].slice.call(document.querySelectorAll('iframe[data-ct-view][data-ct-frame],iframe[data-ct-doc]'))
+          .find(f=>{ try{ return f.contentWindow===e.source; }catch(_){ return false; } });
+        if(!frame) return null;
+        const doc=frame.hasAttribute('data-ct-doc'), view=frame.getAttribute('data-ct-view')||'';
+        const porView={areamod:['ritos-web.html','area-web.html'], roteiros:['pecas-web.html'],
+          prioridade:['prioridade-web.html'], segundafase:['segunda-fase-web.html'],
+          legis:['legis-web.html'], juris:['juris-web.html']};
+        const nomes=doc?['termos.html','privacidade.html','sobre.html']:(porView[view]||[]);
+        const u=new URL(frame.getAttribute('src')||'', location.href);
+        if(!nomes.some(n=>u.pathname.slice(-n.length-1)==='/'+n || u.pathname===n)) return null;
+        if((p==='http:'||p==='https:') && u.origin!==location.origin) return null;
+        if(p==='file:' && u.protocol!=='file:') return null;
+        return {tipo:doc?'doc':'frame', view, frame, destino:this._msgDestino()};
+      }catch(_){ return null; }
+    };
+    this._msgPermitida = (e, views)=>{
+      const o=this._msgOrigem(e); if(!o) return null;
+      const a=Array.isArray(views)?views:[views];
+      if(o.tipo==='doc') return a.indexOf('doc')>=0?o:null;
+      return (a.indexOf('*')>=0 || a.indexOf(o.view)>=0)?o:null;
+    };
     this._ckMsg = (e)=>{
       if(!e||!e.data) return;
       // `ctChecklistReady` continua aceito: o app nativo pode estar com bundle anterior.
       if(e.data.type!=='ctPronto' && e.data.type!=='ctChecklistReady') return;
+      const origem=this._msgPermitida(e, '*');
+      if(!origem || origem.tipo!=='frame') return;
       // U2: descobrimos de qual tela veio comparando a janela que mandou (funciona também
       // em file://, onde não dá para ler a origem). MEDIDO: o `ctPronto` sai do <head> do
       // satélite — no LEGIS ele chega aos 428 ms e a página só fica pronta aos 641 ms (e
       // essa distância cresce muito no aparelho lento, porque a lei seca tem megabytes).
       // Sozinho, o aviso tiraria o esqueleto cedo demais e devolveria o vazio que ele veio
       // resolver; por isso quem manda é o `load` do quadro, e o aviso só CONFIRMA depois.
-      try{
-        const alvo=[].slice.call(document.querySelectorAll('iframe[data-ct-view]'))
-          .find(f=>{ try{ return f.contentWindow===e.source; }catch(_){ return false; } });
-        if(alvo && alvo.dataset.ctLoad==='1') this._marcarFramePronto(alvo.getAttribute('data-ct-view'));
-      }catch(_){}
+      try{ if(origem.frame && origem.frame.dataset.ctLoad==='1') this._marcarFramePronto(origem.view); }catch(_){}
       const t=this._temaTokens(); if(!t) return;
-      try{ e.source && e.source.postMessage({type:'ctTheme', tokens:t, baixa:this._baixa()?'1':''}, '*'); }catch(_){}
+      try{ e.source && e.source.postMessage({type:'ctTheme', tokens:t, baixa:this._baixa()?'1':''}, origem.destino); }catch(_){}
     };
     window.addEventListener('message', this._ckMsg);
-    /** Reenvia o tema a TODOS os iframes — chamado quando cor, modo escuro ou fonte mudam. */
+    /** Reenvia o tema somente aos seis satélites registrados. */
     this._temaBroadcast = ()=>{
       const t=this._temaTokens(); if(!t) return;
-      try{ document.querySelectorAll('iframe').forEach(f=>{
-        try{ f.contentWindow && f.contentWindow.postMessage({type:'ctTheme', tokens:t, baixa:this._baixa()?'1':''}, '*'); }catch(_){}
+      try{ document.querySelectorAll('iframe[data-ct-view][data-ct-frame]').forEach(f=>{
+        try{ f.contentWindow && f.contentWindow.postMessage({type:'ctTheme', tokens:t, baixa:this._baixa()?'1':''}, this._msgDestino()); }catch(_){}
       }); }catch(_){}
     };
     // Botão "Registrar" do módulo da área: abre o registro já com disciplina e tópico
     // do ponto estudado. Mesma regra do resto da casa — abre, quem salva é ela.
     this._areaMsg = (e)=>{
       if(!e||!e.data||e.data.type!=='ctRegistrarArea') return;
+      const origem=this._msgPermitida(e, 'areamod');
+      if(!origem || !/(^|\/)area-web\.html(?:[?#]|$)/.test(origem.frame.getAttribute('src')||'')) return;
       try{ window.catedraOpenStudyRegistration({ origem:'Módulo da área', disc:e.data.disc||'',
         topico:e.data.sub||e.data.topico||'', categoria:'Teoria' }); }catch(_){}
     };
@@ -7108,6 +7142,24 @@ class Component extends DCLogic {
     // troca e o termo viaja no ?q= do iframe (ver ctBuscaInicial no legis/juris-web).
     this._acervoMsg = (e)=>{
       if(!e||!e.data) return;
+      const tipo=String(e.data.type||'');
+      const porTipo={
+        ctPraticarPrioridade:['prioridade'], ctFecharDoc:['doc'],
+        ctAbrirAcervo:['legis','prioridade','segundafase','roteiros','areamod'],
+        ctVoltarAcervo:['legis','juris'],
+        ctFlashcards:['juris'], ctErrosSegundaFase:['segundafase'], ctRedacaoResultado:['segundafase'],
+        ctLeiturasPedir:['legis'], ctLeituraAtiva:['legis'], ctRegistrarLeitura:['legis'],
+        ctLeiturasResumo:['legis'], ctLeituraConferida:['legis'], ctIA:['juris']
+      };
+      // A revisão (item 4 do laço) abre o acervo mandando ctAbrirAcervo para a PRÓPRIA
+      // janela, para que o shim nativo intercepte e troque a aba. e.source===window só
+      // nasce de script desta página, que já tem acesso a tudo: não abre porta nova.
+      const doHost=(tipo==='ctAbrirAcervo' && e.source===window
+        && (location.protocol==='file:' || e.origin===location.origin));
+      const origem=doHost?{tipo:'host', view:''}:this._msgPermitida(e, porTipo[tipo]||[]);
+      if(!origem) return;
+      if(tipo==='ctAbrirAcervo' && origem.view==='areamod'
+        && !/(^|\/)ritos-web\.html(?:[?#]|$)/.test(origem.frame.getAttribute('src')||'')) return;
       // O ranking de prioridade dizia o que estudar e parava aí. Este é o atalho para
       // AGIR: sai para a plataforma de questões que a pessoa escolheu em Ajustes, com a
       // disciplina já no filtro. Nada do conteúdo dessas plataformas entra aqui, e
@@ -7228,9 +7280,9 @@ class Component extends DCLogic {
          Tudo que chega passa por CT_LA.sanear: só o shape entra, nunca o texto da lei. */
       if(e.data.type==='ctLeiturasPedir'){
         // responde SÓ com os itens daquela lei — o array inteiro cresce com o estudo
-        const leiId=String(e.data.leiId||''), src=e.source;
+        const leiId=String(e.data.leiId||''), src=origem.frame.contentWindow;
         const itens=(this.state.leituras||[]).filter(x=>x&&x.leiId===leiId);
-        try{ src && src.postMessage({type:'ctLeituras', leiId, itens}, '*'); }catch(_){}
+        try{ src && src.postMessage({type:'ctLeituras', leiId, itens}, origem.destino); }catch(_){}
         return;
       }
       if(e.data.type==='ctLeituraAtiva'){
@@ -7256,10 +7308,10 @@ class Component extends DCLogic {
       }
       // LA6: o catálogo do LEGIS mostra quanto de cada lei já foi lido — só contagens, nunca itens
       if(e.data.type==='ctLeiturasResumo'){
-        const LA=window.CT_LA, src=e.source, por={};
+        const LA=window.CT_LA, src=origem.frame.contentWindow, por={};
         (this.state.leituras||[]).forEach(x=>{ if(!x||!x.leiId) return; const r=(por[x.leiId]=por[x.leiId]||{lidos:0, completos:0}); r.lidos++;
           if(LA&&LA.completude(x).respondidas===LA.IDS.length) r.completos++; });
-        try{ src && src.postMessage({type:'ctLeiturasResumoResp', resumo:por}, '*'); }catch(_){}
+        try{ src && src.postMessage({type:'ctLeiturasResumoResp', resumo:por}, origem.destino); }catch(_){}
         return;
       }
       if(e.data.type==='ctLeituraConferida'){
@@ -7275,8 +7327,8 @@ class Component extends DCLogic {
         return;
       }
       if(e.data.type==='ctIA'){
-        const src=e.source, id=e.data.reqId;
-        const responde=(texto,erro)=>{ try{ src && src.postMessage({type:'ctIAResp', reqId:id, texto:texto||'', erro:erro||''}, '*'); }catch(_){} };
+        const src=origem.frame.contentWindow, id=e.data.reqId;
+        const responde=(texto,erro)=>{ try{ src && src.postMessage({type:'ctIAResp', reqId:id, texto:texto||'', erro:erro||''}, origem.destino); }catch(_){} };
         Promise.resolve(this._aiText(String(e.data.prompt||'')))
           .then(t=>responde(t, t?'':'A IA não respondeu.'))
           .catch(err=>responde('', String((err&&err.message)||err||'falha na IA')));
@@ -7917,7 +7969,7 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){ this._baixaRaiz(); this._limpaOrigem(); this._syncModalFocus(); try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
@@ -8026,15 +8078,15 @@ class Component extends DCLogic {
     try{
       const w=f.contentWindow; if(!w) return;
       if(dono==='legis'||dono==='juris'){
-        w.postMessage({type:'ctBusca', termo:String(this.state.acervoBusca||'')}, '*');
-        w.postMessage({type:'ctVoltaDisponivel', on:!!this.state.acervoDe}, '*');
+        w.postMessage({type:'ctBusca', termo:String(this.state.acervoBusca||'')}, this._msgDestino());
+        w.postMessage({type:'ctVoltaDisponivel', on:!!this.state.acervoDe}, this._msgDestino());
         // LA6: "Ler ativamente" / "Conferir de novo" vindos do oral e do simulado
-        if(dono==='legis' && this._laAbrir){ const a=this._laAbrir; this._laAbrir=null; w.postMessage({type:'ctLeituraAbrir', leiId:a.leiId, rot:a.rot, conferir:!!a.conferir}, '*'); }
+        if(dono==='legis' && this._laAbrir){ const a=this._laAbrir; this._laAbrir=null; w.postMessage({type:'ctLeituraAbrir', leiId:a.leiId, rot:a.rot, conferir:!!a.conferir}, this._msgDestino()); }
         return;
       }
       const p=new URLSearchParams(this.state.origemAbrir||'');
       w.postMessage({type:'ctAbrirBloco', rito:p.get('rito')||'', peca:p.get('peca')||'',
-                     bloco:(p.get('bloco')!=null?Number(p.get('bloco')):null)}, '*');
+                     bloco:(p.get('bloco')!=null?Number(p.get('bloco')):null)}, this._msgDestino());
     }catch(_){}
   }
   // carrega uma fatia do estado do localStorage (usado no construtor)
@@ -9569,7 +9621,7 @@ class Component extends DCLogic {
     try{
       // No site, o listener ctAbrirAcervo troca a view e aplica a busca. Nos apps, o
       // shim instalado em documentStart intercepta a mesma mensagem e abre a ABA nativa.
-      window.postMessage({type:'ctAbrirAcervo', alvo:a, termo:t}, '*');
+      window.postMessage({type:'ctAbrirAcervo', alvo:a, termo:t}, this._msgDestino());
     }catch(_){
       // Fallback para um host sem postMessage; os hosts oficiais seguem o caminho acima.
       if(this._irPara(a, {acervoBusca:t, acervoDe:null, origemAbrir:''})!=='indisponivel') this._marcarPonto(a, {termo:t});
