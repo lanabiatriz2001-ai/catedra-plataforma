@@ -594,17 +594,34 @@ $('bPrint').onclick=()=>{ fecharMenu(); window.print(); };
 /* U1: uma função só para "abrir neste ponto", chamada pela URL (1ª carga, deep-link,
    testes) E pela mensagem do host (iframe vivo, sem recarregar). Dois caminhos separados
    divergiriam na primeira correção. */
-window.ctAbrirPonto = function (rito, peca, bloco) {
+/* mapa='tipo:id' (volta de uma referência do painel do Mapa de Processo): reabre aquele
+   painel no mapa. O rito MESMO com o mapa já montado não remonta: remontar fecharia o
+   painel e perderia o que está na tela à toa (é o caso da volta com o iframe vivo). */
+window.ctAbrirPonto = function (rito, peca, bloco, mapaPt) {
   try {
+    const alvo = lerPontoMapa(mapaPt);
     if (rito && ORDEM.includes(rito)) {
+      const muda = rito !== atual;
       atual = rito;
       pintaBotao();
-      pinta();
-      if (modo === 'mapa') montarMapa();
-    }
-    if (peca && PECAS[peca]) setTimeout(() => R.abrir(peca, (bloco == null ? undefined : bloco)), 60);
+      if (muda || modo !== 'mapa' || !mapa) pinta();
+      if (alvo && modo !== 'mapa') aplicarModo('mapa', false);          // já monta o mapa
+      else if (modo === 'mapa' && (muda || !mapa)) montarMapa();
+    } else if (alvo && modo !== 'mapa') aplicarModo('mapa', false);
+    if (alvo && mapa && mapa.abrirPainel) mapa.abrirPainel(alvo.tipo, alvo.id);
+    if (pecaPropria(peca)) setTimeout(() => R.abrir(peca, (bloco == null ? undefined : bloco)), 60);
   } catch (e) {}
 };
+/* K3: id que vem de fora (URL, mensagem do host) nunca é propriedade herdada — 'constructor',
+   'toString', '__proto__' existem em qualquer objeto e passariam num PECAS[id] truthy. */
+function idProprio(id){ const s = String(id == null ? '' : id); return s !== '' && !(s in Object.prototype); }
+function pecaPropria(nome){ return idProprio(nome) && Object.prototype.hasOwnProperty.call(PECAS, String(nome)); }
+function lerPontoMapa(v){
+  const s = String(v == null ? '' : v), i = s.indexOf(':');
+  if (i < 1) return null;
+  const tipo = s.slice(0, i), id = s.slice(i + 1);
+  return ((tipo === 'no' || tipo === 'peca') && idProprio(id)) ? { tipo, id } : null;
+}
 
 /* ═══════════════ MODO DE LEITURA: fluxo vertical ou mapa horizontal ═══════════
    O mesmo rito, os mesmos dados, dois desenhos. O FLUXO é a leitura de cima para
@@ -668,11 +685,14 @@ pinta();
   aplicarModo(m==='mapa'?'mapa':'fluxo', false);
 })();
 try{ const u=new URLSearchParams(location.search), pc=u.get('peca');
-  if(pc && PECAS[pc]) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
+  if(pecaPropria(pc)) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
+/* ?mapa=tipo:id — a 1ª carga da volta ao painel do Mapa de Processo (o mesmo caminho da mensagem) */
+try{ const mp=new URLSearchParams(location.search).get('mapa');
+  if(mp) window.ctAbrirPonto(atual, '', null, mp); }catch(e){}
 
 window.addEventListener('message', function (e) {
   if (window.ctMensagemDoHost(e) && e.data && e.data.type === 'ctAbrirBloco') {
-    window.ctAbrirPonto(e.data.rito, e.data.peca, e.data.bloco);
+    window.ctAbrirPonto(e.data.rito, e.data.peca, e.data.bloco, e.data.mapa);
   }
 });
 </script>

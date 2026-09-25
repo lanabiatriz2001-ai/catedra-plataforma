@@ -176,10 +176,11 @@ const pct=x=>(x*100).toFixed(0)+'%';
 const abertos={};
 
 /* o clique num dispositivo abre a lei seca no app — e leva a origem junto, para
-   a barra de volta do CátedraLEGIS devolver a pessoa a esta linha */
+   a pílula de voltar do CátedraLEGIS devolver a pessoa a esta linha (o host manda
+   ctAbrirBloco {disc} na volta). O rótulo segue a régua do host e serve ao botão nativo. */
 function abrirAcervo(termo, disc){
   try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo:'legis', termo,
-    origem:{view:'prioridade', disc, rotulo:'Painel de prioridade · '+disc}}); }catch(e){}
+    origem:{view:'prioridade', disc, rotulo:'Voltar ao painel de prioridade'}}); }catch(e){}
 }
 
 /* O ranking dizia o que estudar e parava aí. O host recebe isto e abre a plataforma de
@@ -288,11 +289,19 @@ function pinta(){
 
 $('fonte').onchange=pinta; $('filtro').onchange=pinta;
 
-/* ?disc=Nome abre a disciplina já expandida (volta do acervo) */
-try{ const d=new URLSearchParams(location.search).get('disc'); if(d) abertos[d]=true; }catch(e){}
+/* Volta do acervo: reabre a linha da disciplina e rola até ela. Uma função só para
+   o ?disc= da 1ª carga e para o ctAbrirBloco {disc} do host com o iframe vivo. */
+function abrirDisc(d){
+  if(!d) return;
+  abertos[d]=true;
+  pinta();
+  try{ const el=[].slice.call(document.querySelectorAll('.linha')).find(x=>x.dataset.d===d);
+    if(el) setTimeout(()=>el.scrollIntoView({block:'center',behavior:(document.documentElement.getAttribute('data-baixa')==='1'||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))?'auto':'smooth'}),120); }catch(e){}
+}
 pinta();
-try{ const d=new URLSearchParams(location.search).get('disc');
-  if(d){ const el=document.querySelector('.linha[data-d="'+d.replace(/"/g,'\\"')+'"]');
-    if(el) setTimeout(()=>el.scrollIntoView({block:'center',behavior:(document.documentElement.getAttribute('data-baixa')==='1'||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))?'auto':'smooth'}),120); } }catch(e){}
+try{ abrirDisc(new URLSearchParams(location.search).get('disc')||''); }catch(e){}
+window.addEventListener('message', function(e){
+  if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctAbrirBloco' && e.data.disc) abrirDisc(String(e.data.disc));
+});
 </script>
 </body></html>

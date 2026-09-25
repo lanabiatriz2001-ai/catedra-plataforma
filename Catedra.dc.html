@@ -206,6 +206,7 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
 .ct-skip{position:fixed;left:10px;top:-60px;z-index:200;background:var(--accent);color:var(--onAccent);padding:10px 16px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;text-decoration:none;transition:top .15s;}
 .ct-skip:focus{top:10px;}
 #ct-main:focus{outline:none;}
+#ct-view-titulo:focus:not(:focus-visible){outline:none;}
 /* ===== U2 — ESQUELETO DE CARREGAMENTO DOS ACERVOS =====
    O <iframe> nasce TRANSPARENTE: entre clicar em CátedraLEGIS e a página satélite pintar
    (megabytes de lei seca no aparelho), o que se via era um vazio sem explicação — parecia
@@ -763,7 +764,7 @@ window.ctPdfLib = (function(){
         <button onclick="{{ toggleMenu }}" aria-label="Abrir menu" title="Menu" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);flex:none;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"></path></svg></button>
       </sc-if>
       <div class="ct-tb-titulo" style="flex:1;min-width:120px;">
-        <h1 style="margin:0;font-family:var(--display);font-size:clamp(22px,2.8vw,30px);font-weight:700;color:var(--ink);line-height:1.05;letter-spacing:-.015em;">{{ viewTitle }}</h1>
+        <h1 id="ct-view-titulo" tabindex="-1" style="margin:0;font-family:var(--display);font-size:clamp(22px,2.8vw,30px);font-weight:700;color:var(--ink);line-height:1.05;letter-spacing:-.015em;">{{ viewTitle }}</h1>
         <p style="margin:3px 0 0;font-size:var(--fs-sm);color:var(--text3);">{{ viewSub }}</p>
       </div>
 
@@ -3087,7 +3088,7 @@ window.ctPdfLib = (function(){
                 <span style="font-size:var(--fs-xs);color:var(--danger);font-weight:600;background:var(--surface2);padding:4px 10px;border-radius:99px;">vencida {{ r.dueLabel }}</span>
                 <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);font-variant-numeric:tabular-nums;letter-spacing:.02em;">int. {{ r.interval }} · ef {{ r.ef }}</span>
                 <sc-if value="{{ r.refTem }}" hint-placeholder-val="{{ false }}">
-                  <button type="button" data-id="{{ r.id }}" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
+                  <button type="button" data-id="{{ r.id }}" data-acervo-rev="1" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
                 </sc-if>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                   <span style="font-size:var(--fs-xs);color:var(--text3);margin-right:2px;">Como foi?</span>
@@ -3118,7 +3119,7 @@ window.ctPdfLib = (function(){
                 <span style="font-size:var(--fs-xs);color:var(--accentD);font-weight:600;background:var(--accentSoft);padding:4px 10px;border-radius:99px;">agendada hoje</span>
                 <span class="ct-dado" style="color:var(--text2);">int. {{ r.interval }} · ef {{ r.ef }}</span>
                 <sc-if value="{{ r.refTem }}" hint-placeholder-val="{{ false }}">
-                  <button type="button" data-id="{{ r.id }}" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
+                  <button type="button" data-id="{{ r.id }}" data-acervo-rev="1" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
                 </sc-if>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                   <span style="font-size:var(--fs-xs);color:var(--text3);margin-right:2px;">Como foi?</span>
@@ -3149,7 +3150,7 @@ window.ctPdfLib = (function(){
                 <span style="font-size:var(--fs-xs);color:var(--text3);font-weight:500;">{{ r.dueLabel }}</span>
                 <span class="ct-dado" style="color:var(--text2);">intervalo {{ r.interval }}</span>
                 <sc-if value="{{ r.refTem }}" hint-placeholder-val="{{ false }}">
-                  <button type="button" data-id="{{ r.id }}" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
+                  <button type="button" data-id="{{ r.id }}" data-acervo-rev="1" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
                 </sc-if>
                 <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
               </div>
@@ -6842,7 +6843,7 @@ class Component extends DCLogic {
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
       isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'', acervoBusca:'',
-      acervoDe:null, origemAbrir:'',
+      acervoDe:null, origemAbrir:'', origemAbrirView:'',
       adminGrupos:[], adminAllow:[], adminAllowInput:'', adminDetalhe:null, adminDetalheBusy:false,
       // console de administração: aba aberta, recorte da lista de contas e a gaveta
       // da conta selecionada (admConfirmTxt é o e-mail digitado na zona de risco —
@@ -6960,7 +6961,6 @@ class Component extends DCLogic {
     // U4: o rascunho que veio do disco. Enquanto o texto na tela for IGUAL a este, ele é de
     // outra sessão — é essa comparação (e não um relógio) que decide se a faixa aparece.
     this._redBoot=String(this.state.redText||'');
-    this._prevView=this.state.view;
     // Ao TROCAR de modo (girar o iPad), as camadas do modo antigo fecham junto: a gaveta aberta
     // em retrato fica invisível na paisagem (a barra lateral fixa a ignora) com menuOpen ainda
     // true — e ao voltar ao retrato ela reaparecia aberta, com o fundo escurecido, sem ninguém
@@ -7048,7 +7048,7 @@ class Component extends DCLogic {
         // com o corpo fixo do seu próprio CSS: quem escolhia "texto grande" nos Ajustes via
         // o app crescer e o iframe dentro dele continuar miúdo.
         const V=['--bg','--surface','--surface2','--border','--ink','--text','--text2','--text3',
-                 '--accent','--accentD','--accentSoft','--accentRing','--onAccent',
+                 '--accent','--accentD','--accentSoft','--accentRing','--onAccent','--accentFill','--onAccentFill',
                  '--ok','--warn','--danger','--radius','--r-sm','--r-md',
                  '--display','--body','--mono','--heroGrad',
                  '--fs-3xs','--fs-2xs','--fs-xs','--fs-sm','--fs-base','--fs-md',
@@ -7172,53 +7172,24 @@ class Component extends DCLogic {
       if(e.data.type==='ctFecharDoc'){ this.setState({docAberto:''}); return; }   // P14: "Voltar ao app" dentro de termos/privacidade
       if(e.data.type==='ctAbrirAcervo'){
         const alvo=e.data.alvo==='juris'?'juris':'legis';
-        // Guarda o PONTO DE ORIGEM (view + rito/peça/bloco) para a pílula "voltar"
-        // do acervo. Salto DENTRO do acervo (LEGIS→JURIS, incidência) não traz `de`
-        // — a origem anterior continua valendo; vindo de outra tela sem `de`, não
-        // há para onde voltar.
-        const v=this.state.view, d=e.data.de; let de=this.state.acervoDe;
-        if(d && typeof d==='object' && (v==='areamod'||v==='roteiros')){
-          de={view:v, rito:String(d.rito||''), peca:String(d.peca||''),
-              bloco:(d.bloco!=null&&isFinite(d.bloco))?+d.bloco:null};
-        } else if(e.data.origem && typeof e.data.origem==='object' && e.data.origem.view){
-          // O painel de prioridade manda `origem` (não `de`), e o host só lia `de`: quem
-          // clicava "Abrir a lei mais cobrada" caía no LEGIS sem pílula de voltar, e o
-          // ?disc= que o prioridade-web sabe ler nunca era preenchido por ninguém.
-          const o=e.data.origem;
-          de={view:String(o.view), disc:String(o.disc||''), rotulo:String(o.rotulo||''),
-              rito:'', peca:'', bloco:null};
-        } else if(v!=='legis'&&v!=='juris'){ de=null; }
+        // Guarda o PONTO DE ORIGEM para a pílula "voltar" do acervo. Quem calcula a
+        // origem é o host (_origemDaMensagem): a view vem do quadro que mandou (ou do
+        // próprio host), o rótulo é recalculado aqui — texto livre do satélite não vira
+        // botão. Salto DENTRO do acervo (LEGIS→JURIS) devolve `undefined`: a origem
+        // anterior continua; vindo de outra tela sem origem, não há para onde voltar.
+        const de=this._origemDaMensagem(e.data, origem);
         // o iframe pede a troca, mas quem decide se ela pode acontecer é o guarda:
         // a aba Incidência do LEGIS pedia o JURIS até em área que não tem jurisprudência
-        if(this._irPara(alvo, {acervoBusca:String(e.data.termo||''), acervoDe:de, origemAbrir:''})==='indisponivel') return;
+        if(this._irPara(alvo, {acervoBusca:String(e.data.termo||''),
+          acervoDe:(de===undefined?this.state.acervoDe:de), origemAbrir:''})==='indisponivel') return;
         this._marcarPonto(alvo, {termo:String(e.data.termo||'')});   // U3: dá para voltar aqui depois
         return;
       }
-      // A volta: o iframe de origem saiu do DOM na ida, então recarrega — e o ponto
-      // (rito/peça/bloco) viaja na URL, pelo mesmo canal do ?q= da ida.
+      // A volta: a pílula do LEGIS/JURIS web. Os satélites ficam VIVOS (U1): o ponto
+      // é reaplicado por mensagem (ctAbrirBloco), sem recarregar. O mesmo caminho serve
+      // ao botão nativo (window.catedraVoltarAcervo) — uma função só.
       if(e.data.type==='ctVoltarAcervo'){
-        const de=this.state.acervoDe;
-        // volta ao painel de prioridade, com a disciplina reaberta (?disc=)
-        if(de && de.view==='prioridade'){
-          this.setState({view:'prioridade', acervoDe:null, acervoBusca:'',
-            origemAbrir:(de.disc?('disc='+encodeURIComponent(de.disc)):'')});
-          this._marcarPonto('prioridade', {disc:de.disc||''});
-          return;
-        }
-        // veio do cartão de uma atividade do ciclo: a volta é para o Ciclo, não para o
-        // Processo e peças (que era o destino padrão de toda origem desconhecida)
-        if(de && de.view==='ciclo'){
-          this.setState({view:'ciclo', acervoDe:null, acervoBusca:'', origemAbrir:''});
-          this._marcarPonto('ciclo', {});
-          return;
-        }
-        const v=(de&&de.view==='roteiros')?'roteiros':'areamod';
-        const q=[];
-        if(de&&de.rito) q.push('rito='+encodeURIComponent(de.rito));
-        if(de&&de.peca){ q.push('peca='+encodeURIComponent(de.peca));
-          if(de.bloco!=null) q.push('bloco='+de.bloco); }
-        this.setState({view:v, acervoDe:null, acervoBusca:'', origemAbrir:q.join('&')});
-        this._marcarPonto(v, {rito:(de&&de.rito)||'', peca:(de&&de.peca)||'', bloco:(de&&de.bloco)});   // U3
+        this._voltarDoAcervo(this.state.acervoDe);
         return;
       }
       // Os iframes (LEGIS, JURIS, mapa de processo) NÃO têm window.claude: no app nativo
@@ -7375,23 +7346,34 @@ class Component extends DCLogic {
     // CATÁLOGO: leis do LEGIS (por disciplina) + fontes do JURIS — os seletores do
     // registro de sessão usam isto quando a categoria é Lei seca/Jurisprudência.
     try{ window.catedraSetNativeCatalogo = (o)=>{ try{ if(o && typeof o==='object') this.setState({nativeCatalogo:o}); }catch(_){} }; }catch(_){}
-    // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
-    // O app NATIVO (Mac/iPad) abre o LEGIS/JURIS em ABA nativa, então a volta ao ponto do
-    // processo não passa por postMessage — o host Swift chama esta função depois de trocar
-    // para a aba Cátedra. Reusa exatamente o caminho do ctVoltarAcervo. (item 5)
+    // O app NATIVO (Mac/iPad) abre o LEGIS/JURIS em ABA nativa: o shim intercepta o
+    // ctAbrirAcervo, a view web NUNCA sai da origem, e o botão nativo chama isto depois de
+    // voltar à aba Cátedra, devolvendo o `de` que recebeu na ida, intacto. É a MESMA
+    // função da pílula web (_voltarDoAcervo) — duas cópias já tinham divergido.
     try{ window.catedraVoltarAcervo = (de)=>{
-      try{
-        de = de || {};
-        const v = (de.view==='roteiros') ? 'roteiros' : 'areamod';
-        const q = [];
-        if(de.rito) q.push('rito='+encodeURIComponent(de.rito));
-        if(de.peca){ q.push('peca='+encodeURIComponent(de.peca));
-          if(de.bloco!=null && de.bloco!=='') q.push('bloco='+de.bloco); }
-        this.setState({view:v, acervoDe:null, acervoBusca:'', origemAbrir:q.join('&'), menuOpen:false});
-        return true;
-      }catch(_){ return false; }
+      try{ return this._voltarDoAcervo(de); }catch(_){ return false; }
     }; }catch(_){}
-    // o escape global (notificação, app nativo, console) passa pelo MESMO guarda de área
+    // C1: a origem guardada, em JSON puro (view e rótulo já normalizados), para o shim
+    // nativo ler — ou null. Cópia: quem recebe não mexe no estado do app.
+    try{ window.__catedraOrigemAcervo = ()=>{
+      try{ const d=this.state.acervoDe; if(!d || typeof d!=='object') return null;
+        return JSON.parse(JSON.stringify(this._normalizarDe(d, String(d.view||'areamod'), true))); }
+      catch(_){ return null; }
+    }; }catch(_){}
+    // K2: a origem que um SATÉLITE mandou (fora LEGIS/JURIS), passada pela mesma régua da
+    // web para mensagem de quadro (_normalizarDe sem os campos só do host: rev, item). A
+    // view é o data-ct-view do iframe que mandou, lido pelo shim — nunca o que a página diz.
+    // O shim nativo repassa ISTO, não o objeto cru do quadro. Cópia JSON, ou null.
+    try{ window.__catedraOrigemDoFrame = (de, view)=>{
+      try{
+        if(!de || typeof de!=='object' || Array.isArray(de)) return null;
+        const v=String(view==null?'':view);
+        if(!/^[a-z][a-z0-9-]{0,40}$/.test(v) || v==='legis' || v==='juris' || v==='indisponivel') return null;
+        return JSON.parse(JSON.stringify(this._normalizarDe(de, v, false)));
+      }catch(_){ return null; }
+    }; }catch(_){}
+    // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
+    // O escape global (notificação, app nativo, console) passa pelo MESMO guarda de área.
     try{ window.__catedraGoView = (v)=>{ try{ this._irPara(v); }catch(_){} }; }catch(_){}
     // gancho dos testes de tela (LA6): estado forçado no oral e no simulado sem clicar por dez telas
     try{ window.__catedraApp = this; }catch(_){}
@@ -7972,24 +7954,11 @@ class Component extends DCLogic {
   componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
-  componentDidUpdate(){ this._baixaRaiz(); this._limpaOrigem(); this._syncModalFocus(); try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
-  // Trocou de tela por conta própria (menu, atalho)? Então a origem guardada e o alvo da
-  // volta morrem — senão a barra "você veio de…" reaparece numa visita solta ao acervo.
-  _limpaOrigem(){
-    if(this._prevView===this.state.view) return;
-    this._prevView=this.state.view;
-    const patch={};
-    if(this._acervoJump) this._acervoJump=false;
-    else if(this.state.acervoOrigem) patch.acervoOrigem=null;
-    if(this._voltaJump) this._voltaJump=false;
-    else if(this.state.voltaAlvo) patch.voltaAlvo=null;
-    if(Object.keys(patch).length) this.setState(patch);
-  }
-
+  componentDidUpdate(){ this._baixaRaiz(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
   // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a
-  // aba abre de verdade, e uma vez só (o iframe some do DOM ao trocar de view).
+  // aba abre de verdade, e uma vez só (depois o iframe fica no DOM, escondido, ao trocar de view).
   _montarFrames(){
     try{
       const view=this.state.view;
@@ -8041,14 +8010,24 @@ class Component extends DCLogic {
   }
   /** Chave do que precisa chegar ao iframe — muda quando busca/ponto mudam. */
   _frameChave(dono){
-    if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?'1':'0');
+    // o rótulo entra na chave: trocar de origem com o LEGIS aberto troca o texto da pílula
+    if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?('1:'+this._rotuloVolta(this.state.acervoDe)):'0');
     // 2ª fase não recebe nada do host depois de montada: chave fixa para não mandar
-    // ctAbrirBloco (que é do mapa de ritos) a cada volta do acervo.
+    // ctAbrirBloco (que é do mapa de ritos) a cada volta do acervo. A correção em curso
+    // mora no próprio iframe, que nunca sai do DOM.
     if(dono==='segundafase') return '-';
-    // Prioridade passou a ter uma volta de verdade (?disc=): a chave precisa mudar quando
-    // a disciplina de retorno muda, senão o iframe não recarrega e a linha não reabre.
-    if(dono==='prioridade') return 'd:'+(this.state.origemAbrir||'');
-    return 'p:'+(this.state.origemAbrir||'');
+    // Prioridade: a chave muda com a disciplina da volta para o ctAbrirBloco {disc}
+    // chegar ao iframe vivo e reabrir a linha dela.
+    if(dono==='prioridade') return 'd:'+this._abrirPara(dono);
+    return 'p:'+this._abrirPara(dono);
+  }
+  /** O ponto a reabrir (origemAbrir) vale SÓ para o quadro da view de destino. A chave
+      'p:'+origemAbrir era a mesma para areamod e roteiros, e _montarFrames percorre todos
+      os iframes: a volta ao roteiro de peças abria também o roteiro lateral do ritos-web
+      escondido (e vice-versa). */
+  _abrirPara(dono){
+    const para=this.state.origemAbrirView||'';
+    return (!para || para===dono) ? (this.state.origemAbrir||'') : '';
   }
   /** Os mesmos dados, em querystring — usados só na PRIMEIRA carga (e em deep-link). */
   _frameExtras(dono, base){
@@ -8064,12 +8043,12 @@ class Component extends DCLogic {
     if(dono==='legis'||dono==='juris'){
       const la=(dono==='legis'&&this._laAbrir)?this._laAbrir:null; if(la) this._laAbrir=null;
       const q=[(this.state.acervoBusca||'').trim()?('q='+encodeURIComponent(this.state.acervoBusca.trim())):'',
-               this.state.acervoDe?'volta=1':'',
+               this.state.acervoDe?('volta=1&vr='+encodeURIComponent(this._rotuloVolta(this.state.acervoDe))):'',
                la?('la='+encodeURIComponent(la.leiId)+'&rot='+encodeURIComponent(la.rot)+(la.conferir?'&conferir=1':'')):'',
                (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
       return q?(sep+q):'';
     }
-    const abrir=this.state.origemAbrir||'';
+    const abrir=this._abrirPara(dono);
     const q=[abrir, (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
     return q?(sep+q):'';
   }
@@ -8079,14 +8058,16 @@ class Component extends DCLogic {
       const w=f.contentWindow; if(!w) return;
       if(dono==='legis'||dono==='juris'){
         w.postMessage({type:'ctBusca', termo:String(this.state.acervoBusca||'')}, this._msgDestino());
-        w.postMessage({type:'ctVoltaDisponivel', on:!!this.state.acervoDe}, this._msgDestino());
+        w.postMessage({type:'ctVoltaDisponivel', on:!!this.state.acervoDe,
+          rotulo:(this.state.acervoDe?this._rotuloVolta(this.state.acervoDe):'')}, this._msgDestino());
         // LA6: "Ler ativamente" / "Conferir de novo" vindos do oral e do simulado
         if(dono==='legis' && this._laAbrir){ const a=this._laAbrir; this._laAbrir=null; w.postMessage({type:'ctLeituraAbrir', leiId:a.leiId, rot:a.rot, conferir:!!a.conferir}, this._msgDestino()); }
         return;
       }
-      const p=new URLSearchParams(this.state.origemAbrir||'');
+      const p=new URLSearchParams(this._abrirPara(dono));
       w.postMessage({type:'ctAbrirBloco', rito:p.get('rito')||'', peca:p.get('peca')||'',
-                     bloco:(p.get('bloco')!=null?Number(p.get('bloco')):null)}, this._msgDestino());
+                     bloco:(p.get('bloco')!=null?Number(p.get('bloco')):null), disc:p.get('disc')||'',
+                     mapa:p.get('mapa')||''}, this._msgDestino());   // 'no:<id>' | 'peca:<id>' (Mapa de Processo)
     }catch(_){}
   }
   // carrega uma fatia do estado do localStorage (usado no construtor)
@@ -8571,10 +8552,30 @@ class Component extends DCLogic {
   abrirAcervoDaRevisao = (e)=>{ const id=String((e.currentTarget.dataset||{}).id||'');
     const r=(this.state.reviews||[]).find(x=>x&&x.id===id); if(!r) return;
     const ref=String(r.ref||'').trim(), alvo=this._alvoAcervoDaRef(ref); if(!ref||!alvo) return;
-    const abrir=()=>this._abrirAcervoPorMensagem(alvo, ref);
-    // Na sessão guiada, navegar sem fechar deixaria o modal de tela inteira por cima do acervo.
-    if(this.state.revSession) this.setState({revSession:null}, abrir); else abrir();
+    // Nada se fecha antes de saber se o acervo abre nesta área: fechar a sessão e depois
+    // descobrir que o JURIS não existe aqui largava a pessoa sem sessão e sem acervo.
+    if(!this._podeAbrir(alvo)){
+      try{ this._toast((alvo==='juris'?'O CátedraJURIS':'O CátedraLEGIS')+' não faz parte da sua área de estudo — a referência fica só como anotação.'); }catch(_){}
+      return;
+    }
+    // Na sessão guiada, navegar sem fechar deixaria o modal de tela inteira por cima do
+    // acervo. Então ele fecha — mas o RETRATO da sessão (fila, item, placar) vai na origem
+    // e a volta reabre a sessão no mesmo item (_restaurarRevisao).
+    // No app com abas nativas o acervo abre em OUTRA aba e a web fica escondida atrás dela:
+    // a sessão NÃO fecha (voltar pelo seletor de abas, sem o botão, perdia o retrato). O
+    // retrato vai junto do mesmo jeito; na volta, sessão ainda aberta = nada a restaurar.
+    const rs=this.state.revSession;
+    const de=this._origemAqui(rs ? {rev:{queue:(rs.queue||[]).slice(), idx:rs.idx, revealed:!!rs.revealed,
+      again:rs.again, hard:rs.hard, good:rs.good, easy:rs.easy}} : {item:id});
+    const abrir=()=>this._abrirAcervoPorMensagem(alvo, ref, de);
+    if(rs && !this._temAbasNativas()) this.setState({revSession:null}, abrir); else abrir();
   };
+  /** O acervo de uma referência, só se ele abre NESTA área ('' senão): sem isso a lista e
+      a sessão ofereciam "Abrir no JURIS" a quem estuda uma área sem jurisprudência. */
+  _alvoAcervoAberto(ref){
+    const a=this._alvoAcervoDaRef(ref);
+    return (a && this._podeAbrir(a)) ? a : '';
+  }
   /* Tirar da fila: a revisão nasce de vários lugares (erro, treino, registro de sessão,
      destaque do leitor) e às vezes entra um tópico que ela nunca estudou — sem isto ele
      ficava eternamente reaparecendo em "Próximas". Some de vez; a lápide do auth.js
@@ -9433,7 +9434,14 @@ class Component extends DCLogic {
       this.setState({view:'indisponivel', viewBloqueada:v, menuOpen:false});
       return 'indisponivel';
     }
-    this.setState({view:v, menuOpen:false, ...(extra||{})});
+    const x={...(extra||{})};
+    // Pílula velha: entrar no LEGIS/JURIS sem dizer de onde veio (menu, paleta, "continuar
+    // de onde parei", notificação) apaga a origem guardada — senão a pílula acendia numa
+    // visita solta e devolvia a um ponto antigo. Quem tem origem passa `acervoDe` explícito.
+    if((v==='legis'||v==='juris') && !('acervoDe' in x)) x.acervoDe=null;
+    // o ponto a reabrir (origemAbrir) é SÓ do quadro desta view (ver _abrirPara)
+    if(('origemAbrir' in x) && !('origemAbrirView' in x)) x.origemAbrirView=v;
+    this.setState({view:v, menuOpen:false, ...x});
     try{ this._contarTela(v); }catch(_){}   // P17: contador local por tela e dia; só sai do aparelho com a telemetria ligada
     if(v==='comunidade') this._loadGrupos();
     if(v==='admin') this._loadAdmin();
@@ -9459,6 +9467,213 @@ class Component extends DCLogic {
     return v;
   }
   onNav = (e)=>{ const v=this._irPara(e.currentTarget.dataset.view); if(v!=='indisponivel') this._marcarPonto(v); };
+
+  /* ===== VOLTA DO ACERVO: um mecanismo só =====
+     A origem ("de") é JSON puro: {view, rotulo, rito?, peca?, bloco?, disc?, rev?}. Quem a
+     monta é o host — nas idas que ele dispara (_deHost/_origemAqui) e nas que chegam dos
+     satélites (_origemDaMensagem, que recalcula a view pelo quadro e o rótulo aqui). A
+     pílula web e o botão nativo devolvem esse objeto a _voltarDoAcervo. */
+  /** Texto do botão de voltar, sem seta. Uma régua só para a pílula web e o botão nativo. */
+  _rotuloVolta(de){
+    if(!de || typeof de!=='object') return '';
+    if(de.rev && typeof de.rev==='object') return 'Voltar à revisão';
+    // saída do painel do Mapa de Processo: a volta reabre o painel no mapa, não o roteiro
+    if(String(de.view||'areamod')==='areamod' && this._mapaDe(de.mapa)) return 'Voltar ao mapa do processo';
+    const b=(de.bloco!=null && de.bloco!=='' && isFinite(de.bloco)) ? (' · bloco '+(Number(de.bloco)+1)) : '';
+    switch(String(de.view||'areamod')){
+      case 'areamod': return de.peca ? ('Voltar à peça'+b) : (de.rito ? 'Voltar ao rito' : 'Voltar ao processo');
+      case 'roteiros': return de.peca ? ('Voltar à peça'+b) : 'Voltar ao roteiro';
+      case 'prioridade': return 'Voltar ao painel de prioridade';
+      case 'segundafase': return 'Voltar à correção';
+      case 'ciclo': return 'Voltar ao ciclo';
+      case 'revisoes': return 'Voltar às revisões';
+      case 'simulados': return 'Voltar ao simulado';
+      case 'oral': return 'Voltar à prova oral';
+    }
+    return 'Voltar';
+  }
+  /** Ponto do Mapa de Processo validado: {tipo:'no'|'peca', id:string curto} ou null. */
+  _mapaDe(m){
+    if(!m || typeof m!=='object' || Array.isArray(m)) return null;
+    const tipo=String(m.tipo||''), id=(typeof m.id==='string') ? m.id : '';
+    if((tipo!=='no' && tipo!=='peca') || !id || id.length>120 || /[\u0000-\u001f\u007f]/.test(id)) return null;
+    // K3: id que é propriedade herdada ("constructor", "__proto__", "toString"…) casaria
+    // com qualquer objeto do mapa numa consulta por chave — recusado já aqui.
+    if(id in Object.prototype) return null;
+    return {tipo, id};
+  }
+  /* As views que o template DESTE app conhece (D2): as dos portões {{ isX }} do template,
+     as dos quadros data-ct-view e as agrupadas em isConfig/isConqMetas. Tirada do código,
+     não da régua do rótulo — uma origem com view que não existe aqui não leva a lugar
+     nenhum. legis/juris/indisponivel ficam de fora de propósito: não são destino de volta.
+     View nova no template entra aqui também. */
+  VIEWS_VOLTA = ['admin','ajustes','analise','areamod','bancas','bemestar','calendario','casos','ciclo',
+    'comunidade','conquistas','dominio','edital','flashcards','historico','inicio','metas','oral',
+    'orientacao','personalizacao','prioridade','redacao','reta-final','revisoes','roteiros',
+    'segundafase','simulados'];
+  /** Normaliza uma origem: só os campos que cada view usa, strings curtas, rótulo daqui. */
+  _normalizarDe(d, view, doHost){
+    d=(d && typeof d==='object') ? d : {};
+    const cur=(x)=>String(x==null?'':x).slice(0,300);
+    const de={view:String(view||'')};
+    if(de.view==='areamod' || de.view==='roteiros'){
+      de.rito=cur(d.rito); de.peca=cur(d.peca);
+      de.bloco=(d.bloco!=null && d.bloco!=='' && isFinite(d.bloco)) ? Number(d.bloco) : null;
+    }
+    // Mapa de Processo (ritos-web em modo mapa): {tipo:'no'|'peca', id}. Com ele a peça e o
+    // bloco NÃO seguem — senão a volta abriria o roteiro lateral por cima do mapa.
+    if(de.view==='areamod'){ const m=this._mapaDe(d.mapa); if(m){ de.mapa=m; de.peca=''; de.bloco=null; } }
+    if(d.disc!=null && d.disc!=='') de.disc=cur(d.disc);
+    // a linha da lista de revisões de onde ela saiu (id do item) — só para devolver o foco
+    if(doHost && de.view==='revisoes' && typeof d.item==='string' && d.item && d.item.length<=120) de.item=d.item;
+    // o retrato da sessão guiada só nasce no host (abrirAcervoDaRevisao)
+    if(doHost && d.rev && typeof d.rev==='object' && Array.isArray(d.rev.queue)){
+      const r=d.rev, n=(x)=>(isFinite(x)?Math.max(0, Math.floor(Number(x))):0);
+      de.rev={queue:r.queue.map(String).slice(0,2000), idx:n(r.idx), revealed:!!r.revealed,
+        again:n(r.again), hard:n(r.hard), good:n(r.good), easy:n(r.easy)};
+    }
+    de.rotulo=this._rotuloVolta(de);
+    return de;
+  }
+  /** Origem de uma ida que o próprio host dispara, a partir de uma view dada. */
+  _deHost(view, extra){ return this._normalizarDe(extra||{}, view, true); }
+  /** Origem = a tela atual. Salto dentro do acervo devolve undefined (a origem anterior
+      continua); o Início fica sem volta (decisão da dona, em aberto). */
+  _origemAqui(extra){
+    const v=this.state.view;
+    if(v==='legis' || v==='juris') return undefined;
+    if(!v || v==='inicio' || v==='indisponivel') return null;
+    return this._deHost(v, extra);
+  }
+  /** Para as idas do host por _irPara: a tela atual, ou a origem que já existe (salto). */
+  _origemIda(extra){ const de=this._origemAqui(extra); return de===undefined ? this.state.acervoDe : de; }
+  /** Origem de um ctAbrirAcervo. undefined = mantém a atual (salto LEGIS→JURIS). */
+  _origemDaMensagem(data, origem){
+    const v=this.state.view;
+    if(v==='legis' || v==='juris' || (origem && (origem.view==='legis' || origem.view==='juris'))) return undefined;
+    const d=(data.de && typeof data.de==='object') ? data.de
+          : ((data.origem && typeof data.origem==='object') ? data.origem : null);
+    if(!d) return null;
+    // Do host (revisão), a view vem no próprio objeto; de um satélite, manda o quadro:
+    // o data-ct-view de quem mandou, não o que a página diz ser.
+    if(origem && origem.tipo==='host') return this._normalizarDe(d, String(d.view||v), true);
+    return this._normalizarDe(d, (origem&&origem.view)||v, false);
+  }
+  /** Reabre a sessão guiada de revisão no item em que ela estava, se ele ainda está na fila. */
+  _restaurarRevisao(rev){
+    if(!rev || typeof rev!=='object' || !Array.isArray(rev.queue) || this.state.revSession) return false;
+    // a mesma régua de _normalizarDe: contadores e índice inteiros >= 0; a fila só com ids
+    // (strings) que existem nas revisões de agora — nada de objeto ou número entrando nela
+    const n=(x)=>(isFinite(x)?Math.max(0, Math.floor(Number(x))):0);
+    const ids=new Set((this.state.reviews||[]).map(r=>r&&r.id).filter(id=>typeof id==='string'));
+    const fila=rev.queue.slice(0,2000);
+    const q=fila.filter(id=>typeof id==='string' && ids.has(id));
+    const i0=n(rev.idx);
+    const cur=(i0<fila.length) ? fila[i0] : undefined;
+    let idx=(typeof cur==='string') ? q.indexOf(cur) : -1;
+    // o item sumiu (tirado da fila em outro aparelho): segue do próximo que ainda existe
+    if(idx<0){ const resto=fila.slice(i0+1); idx=q.findIndex(id=>resto.indexOf(id)>=0); }
+    if(!q.length || idx<0) return false;
+    this.setState({revSession:{queue:q, idx, revealed:(idx===q.indexOf(cur))&&rev.revealed===true,
+      again:n(rev.again), hard:n(rev.hard), good:n(rev.good), easy:n(rev.easy), done:false}});
+    return true;
+  }
+  /** A volta, para a pílula web (ctVoltarAcervo) e o botão nativo (catedraVoltarAcervo). */
+  _voltarDoAcervo(de){
+    de=(de && typeof de==='object') ? de : {};
+    // `de` antigo (bundle nativo anterior) não tinha view: era sempre o Processo e peças
+    const v=String(de.view||'areamod');
+    if(v==='legis' || v==='juris' || v==='indisponivel' || !/^[a-z][a-z0-9-]{0,40}$/.test(v)) return false;
+    // D2: só view que EXISTE neste app (VIEWS_VOLTA) — nome que o template não conhece
+    // não leva a lugar inventado nem ao Processo e peças; fica onde está.
+    if(this.VIEWS_VOLTA.indexOf(v)<0) return false;
+    // e que abre NESTA área. Checado antes de sair: bloquear só no _irPara trocava a tela
+    // do acervo pela de "indisponível" em vez de deixá-la onde estava.
+    if(!this._podeAbrir(v)){
+      try{ this._toast('Essa tela não faz parte da sua área de estudo — a volta não tem para onde ir.'); }catch(_){}
+      return false;
+    }
+    // O ponto de cada satélite viaja em origemAbrir (ctAbrirBloco com o iframe vivo)
+    const q=[], s=(x)=>String(x==null?'':x);
+    const mapa=(v==='areamod') ? this._mapaDe(de.mapa) : null;
+    if(v==='areamod' || v==='roteiros'){
+      if(de.rito) q.push('rito='+encodeURIComponent(s(de.rito)));
+      // Mapa de Processo: reabre o painel do nó/peça no mapa; sem peça solta (roteiro lateral)
+      if(mapa) q.push('mapa='+encodeURIComponent(mapa.tipo)+':'+encodeURIComponent(mapa.id));
+      else if(de.peca){ q.push('peca='+encodeURIComponent(s(de.peca)));
+        if(de.bloco!=null && de.bloco!=='' && isFinite(de.bloco)) q.push('bloco='+Number(de.bloco)); }
+    } else if(v==='prioridade' && de.disc){ q.push('disc='+encodeURIComponent(s(de.disc))); }
+    const ponto={rito:s(de.rito), peca:mapa?'':s(de.peca), bloco:(!mapa && de.bloco!=null)?de.bloco:null, disc:s(de.disc)};
+    if(this.state.view===v){
+      // Nativo: o shim interceptou a ida e a web nunca saiu daqui — o mapa, a correção, o
+      // painel estão intactos. Reaplicar o ponto destruiria esse estado vivo; só apaga a
+      // origem e devolve a sessão de revisão, que foi fechada para não cobrir o acervo.
+      this.setState({acervoDe:null, menuOpen:false});
+    } else {
+      if(this._irPara(v, {acervoDe:null, acervoBusca:'', origemAbrir:q.join('&'), origemAbrirView:v})==='indisponivel') return false;
+      this._marcarPonto(v, ponto);   // U3
+      if(de.rev) this._restaurarRevisao(de.rev);
+      this._focarVolta(v, de);
+      return true;
+    }
+    if(de.rev) this._restaurarRevisao(de.rev);
+    return true;
+  }
+  /** Foco depois da volta (a pílula ficou no iframe que acabou de sumir): o controle de
+      origem quando dá para achá-lo no host (a linha da revisão), senão o título da view.
+      Não roda no caso nativo com a view já atual — ali ninguém saiu do lugar. A sessão
+      guiada reaberta é modal e cuida do próprio foco (_syncModalFocus). */
+  _focarVolta(v, de){
+    const item=(v==='revisoes' && de && typeof de.item==='string' && de.item) ? de.item : '';
+    const acharItem=()=>{
+      if(!item) return null;
+      const esc=(window.CSS && CSS.escape) ? CSS.escape(item) : item.replace(/["\\]/g,'\\$&');
+      return [].slice.call(document.querySelectorAll('#ct-main button[data-acervo-rev][data-id="'+esc+'"]'))
+        .find(b=>b.getClientRects().length>0)||null;
+    };
+    const vazio=(el)=>(!el || el===document.body || el===document.documentElement);
+    const prox=(f)=>{ if(window.requestAnimationFrame) requestAnimationFrame(f); else setTimeout(f,16); };
+    setTimeout(()=>{
+      try{
+        if(this.state.view!==v || document.querySelector('.ct-modal-panel')) return;
+        // O <sc-for> da lista re-renderiza uns milissegundos depois e TROCA o botão: o foco
+        // posto no nó velho cai no <body>. Por ~600 ms um vigia confere se o foco ainda está
+        // no alvo conectado; se o nó foi trocado, acha o novo pelo seletor e refoca. Se a
+        // pessoa já clicou ou teclou nesse meio-tempo (ou o foco foi parar em outro
+        // controle), o vigia desiste — não rouba foco de ninguém.
+        let mexeu=false;
+        const marca=()=>{ mexeu=true; };
+        const fim=()=>{ try{ document.removeEventListener('pointerdown', marca, true); document.removeEventListener('keydown', marca, true); }catch(_){} };
+        const titulo=()=>document.getElementById('ct-view-titulo');
+        let alvo=acharItem(), rolou=false;
+        const focar=(el)=>{
+          el.focus({preventScroll:true});
+          if(el!==titulo() && !rolou){ rolou=true; try{ el.scrollIntoView({block:'center', behavior:this._rolagem()}); }catch(_){} }
+        };
+        if(alvo) focar(alvo);
+        else { const h=titulo(); if(h) focar(h); alvo=h||null; }
+        if(!item) return;   // só a volta pela lista tem o nó que o render troca
+        document.addEventListener('pointerdown', marca, true);
+        document.addEventListener('keydown', marca, true);
+        const t0=Date.now();
+        const vigia=()=>{
+          try{
+            if(mexeu || this.state.view!==v || document.querySelector('.ct-modal-panel')) return fim();
+            const at=document.activeElement, h=titulo();
+            const doItem=!!(alvo && alvo!==h);
+            if(doItem && at===alvo && alvo.isConnected){ /* no lugar */ }
+            else if(vazio(at) || (!doItem && at===h)){
+              // nó trocado (foco caiu no body) ou o item ainda não existia (foco no título)
+              const novo=acharItem();
+              if(novo){ alvo=novo; focar(novo); }
+            } else return fim();   // a pessoa (ou outra tela) já pôs o foco noutro lugar
+            if(Date.now()-t0<600) prox(vigia); else fim();
+          }catch(_){ fim(); }
+        };
+        prox(vigia);
+      }catch(_){}
+    }, 40);
+  }
   /* Trocar de direção também precisa AVISAR os satélites: variável CSS não atravessa
      iframe, os tokens vão por cópia no _temaBroadcast. Sem o aviso, LEGIS/JURIS/RITOS
      seguiam na direção antiga até algum outro caminho disparar o envio — a direção
@@ -9616,21 +9831,24 @@ class Component extends DCLogic {
     if(/(?:^|[\s·—–(])(?:arts?\.?\s*\d+|leis?(?:\s+n[ºo.]*)?\s*\d+|decreto|constitui[çc][ãa]o|c[óo]digo|cf|crfb|cc|cpc|cpp|cp|cdc|ctn|clt|eca|lep)(?:\b|\s|·|$)/i.test(t)) return 'legis';
     return '';
   }
-  _abrirAcervoPorMensagem(alvo, termo){
+  _abrirAcervoPorMensagem(alvo, termo, de){
     const a=alvo==='juris'?'juris':'legis', t=String(termo||'').trim(); if(!t) return;
+    // A origem vai junto, já com view e rótulo: na web o listener a guarda para a pílula;
+    // no app o shim a entrega à aba nativa, que a devolve em catedraVoltarAcervo.
+    const o=(de && typeof de==='object') ? de : null;
     try{
       // No site, o listener ctAbrirAcervo troca a view e aplica a busca. Nos apps, o
       // shim instalado em documentStart intercepta a mesma mensagem e abre a ABA nativa.
-      window.postMessage({type:'ctAbrirAcervo', alvo:a, termo:t}, this._msgDestino());
+      window.postMessage({type:'ctAbrirAcervo', alvo:a, termo:t, de:o}, this._msgDestino());
     }catch(_){
       // Fallback para um host sem postMessage; os hosts oficiais seguem o caminho acima.
-      if(this._irPara(a, {acervoBusca:t, acervoDe:null, origemAbrir:''})!=='indisponivel') this._marcarPonto(a, {termo:t});
+      if(this._irPara(a, {acervoBusca:t, acervoDe:o, origemAbrir:''})!=='indisponivel') this._marcarPonto(a, {termo:t});
     }
   }
   abrirAcervoDoBloco = (e)=>{ const _di=e.currentTarget.dataset.i; const alvo=e.currentTarget.dataset.alvo==='juris'?'juris':'legis';
     if(_di==null||_di==='') return; const b=this.state.blocks[+_di]; if(!b) return;
     const termo=String(b.topico||b.discEdital||b.disc||'').trim();
-    if(this._irPara(alvo, {acervoBusca:termo, acervoDe:{view:'ciclo', disc:String(b.discEdital||b.disc||'')}, origemAbrir:''})==='indisponivel') return;
+    if(this._irPara(alvo, {acervoBusca:termo, acervoDe:this._deHost('ciclo', {disc:String(b.discEdital||b.disc||'')}), origemAbrir:''})==='indisponivel') return;
     this._marcarPonto(alvo, {termo});
   };
   /* PARCIAL — "estudei um pedaço e paro aqui". Abre o mesmo registro do concluir, mas a
@@ -10837,7 +11055,8 @@ class Component extends DCLogic {
   // A escolha da cor carimba a hora, como dir/dark: um sync que chegue depois trazendo
   // valor mais velho não pode desfazê-la (ver _podeAdotarTema).
   setAccent = (e)=>{ this._temaEscolhidoAgora(); this.setState({accent:e.currentTarget.dataset.c}, ()=>this._temaBroadcast()); };
-  setAccentColor = (e)=>{ this._temaEscolhidoAgora(); this.setState({accent:e.currentTarget.value}); };
+  // a cor livre também viaja aos satélites (tokens por cópia), pelo mesmo caminho do setAccent
+  setAccentColor = (e)=>{ this._temaEscolhidoAgora(); this.setState({accent:e.currentTarget.value}, ()=>this._temaBroadcast()); };
   // "Padrão do tema" GRAVA a palavra CT_ACCENT_TEMA em vez de apagar a chave: chave
   // apagada virava "null" no autosave seguinte, "null" é vazio para o merge, e a cor
   // guardada na nuvem voltava sempre (ver _accentGuardado).
@@ -11939,13 +12158,13 @@ class Component extends DCLogic {
         const lidas=new Set((this.state.leituras||[]).filter(x=>x&&String(x.sigla||'').toUpperCase()===m[0]).map(x=>{ const k=/^art\.?\s*([\d.]+)/i.exec(String(x.rot||'')); return k?k[1].replace(/\./g,''):''; }));
         const alvo=(I.lista||[]).filter(x=>+x[1]>=corte).map(x=>String(x[0]).replace(/\./g,'')).find(a=>!lidas.has(a)); if(alvo) rot='Art. '+alvo; } }catch(_){}
       this._laAbrir={leiId:lei, rot, conferir:false, ts:Date.now()};
-      if(this._irPara('legis', {acervoBusca:'', origemAbrir:''})==='indisponivel'){ this._laAbrir=null; return; }
+      if(this._irPara('legis', {acervoBusca:'', acervoDe:this._origemIda(), origemAbrir:''})==='indisponivel'){ this._laAbrir=null; return; }
       try{ const f=document.querySelector('iframe[data-ct-view="legis"]'); if(f&&f.dataset.ctLoad==='1') this._frameMensagem(f,'legis'); }catch(_){}
       this._marcarPonto('legis', {termo:''}); return;
     }
     const BUSCA={administrativo:'administrativo', empresarial:'empresarial', dh:'direitos humanos', humanistica:'humanística'};
     const termo=BUSCA[area]||A.nome;
-    if(this._irPara('legis', {acervoBusca:termo, acervoDe:null, origemAbrir:''})==='indisponivel') return;
+    if(this._irPara('legis', {acervoBusca:termo, acervoDe:this._origemIda(), origemAbrir:''})==='indisponivel') return;
     this._marcarPonto('legis', {termo});
   };
   /** URL (leiId) de uma lei pela sigla: CT_LEIS quando carregado; senão o catálogo; senão a tabela mínima. */
@@ -11977,7 +12196,7 @@ class Component extends DCLogic {
     return {txt, lei:url, rot, juris:'', legis:!!url, jurisTem:false};
   }
   enamVerNoJuris = (e)=>{ const termo=String(e.currentTarget.dataset.busca||'').trim(); if(!termo) return;
-    if(this._irPara('juris', {acervoBusca:termo, acervoDe:null, origemAbrir:''})==='indisponivel') return; this._marcarPonto('juris', {termo}); };
+    if(this._irPara('juris', {acervoBusca:termo, acervoDe:this._origemIda(), origemAbrir:''})==='indisponivel') return; this._marcarPonto('juris', {termo}); };
   /* ===== TRILHA ENAM no Início (E5) ===== */
   /** O sábado ou domingo mais próximo de uma data (a prova real é num domingo; o simulado completo pede um dia livre).
       Empate (quarta) cai no sábado seguinte; se o fim de semana mais próximo já passou, vai para o próximo. */
@@ -12204,7 +12423,9 @@ class Component extends DCLogic {
   /** Abre o LEGIS já no dispositivo: com o iframe vivo vai por mensagem; recriado, vai na URL. */
   laAbrirNoLegis = (e)=>{ const d=e.currentTarget.dataset||{};
     this._laAbrir={leiId:String(d.lei||''), rot:String(d.rot||''), conferir:d.conferir==='1', ts:Date.now()};
-    if(this._irPara('legis', {acervoBusca:'', origemAbrir:''})==='indisponivel'){ this._laAbrir=null; return; }
+    // a origem é a tela de onde ela saiu (correção do simulado, arguição da prova oral):
+    // a pílula devolve a ela, com o estado da correção intacto
+    if(this._irPara('legis', {acervoBusca:'', acervoDe:this._origemIda(), origemAbrir:''})==='indisponivel'){ this._laAbrir=null; return; }
     try{ const f=document.querySelector('iframe[data-ct-view="legis"]'); if(f&&f.dataset.ctLoad==='1') this._frameMensagem(f,'legis'); }catch(_){}
     this._marcarPonto('legis', {termo:''});
   };
@@ -12345,24 +12566,66 @@ class Component extends DCLogic {
   /** Toast com ação (o _toast comum é só texto e ignora clique). */
   _toastDesfazer(msg, acao){ this._toastAcoes(msg, [{rotulo:'desfazer', on:acao}]); }
   /** Mesmo toast, com um ou mais botões — é o que o registro em um toque (U11) precisa. */
+  /** Altura do toast de ações: 92 px no estreito (acima da barra de abas), 30 px no largo.
+      No LEGIS/JURIS com origem, a pílula de voltar mora no pé do iframe (14 px + 44 px de
+      alvo): o toast sobe para cima dela em vez de cobri-la — um "desfazer" que chegou antes
+      da ida (o gabarito do simulado, por exemplo) não pode comer o toque da volta. Roda no
+      resize e a cada componentDidUpdate enquanto o toast está na tela. */
+  _toastAcaoPos(){
+    try{
+      const t=this._toastAcaoEl; if(!t) return;
+      let b=(window.innerWidth<900) ? 92 : 30;
+      const v=this.state.view;
+      if((v==='legis' || v==='juris') && this.state.acervoDe){
+        const f=document.querySelector('iframe[data-ct-view="'+v+'"]');
+        const r=f ? f.getBoundingClientRect() : null;
+        if(r && r.height>0) b=Math.max(b, Math.round(Math.max(0, window.innerHeight - r.bottom) + 14 + 44 + 12));
+      }
+      const px=b+'px'; if(t.style.bottom!==px) t.style.bottom=px;
+    }catch(_){}
+  }
   _toastAcoes(msg, botoes, segundos){
     try{
       let t=this._toastAcaoEl;
+      // Toast apagado não pode seguir clicável: com opacity:0 ele continuava por cima da
+      // pílula de volta (a 390 px ela fica embaixo, no mesmo lugar) e comia o toque. Some
+      // = pointer-events:none já, e o conteúdo sai quando a transição termina (nenhum
+      // botão invisível fica no Tab). O cartão NUNCA usa visibility:hidden: ele é a região
+      // viva, e uma região status que reaparece já preenchida não é lida pelo VoiceOver
+      // nem pelo NVDA — ela fica sempre na árvore e só o conteúdo troca.
+      const posicao=()=>this._toastAcaoPos();
+      let novo=false;
       if(!t){ t=document.createElement('div'); t.setAttribute('role','status'); t.setAttribute('aria-live','polite');
-        t.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:9999;background:#1f2a26;color:#fff;padding:12px 16px 12px 20px;border-radius:var(--radius);font:600 13.5px/1.3 var(--display),sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.4);display:flex;align-items:center;gap:14px;opacity:0;transition:opacity .2s,transform .2s;max-width:min(92vw,560px);flex-wrap:wrap;';
-        document.body.appendChild(t); this._toastAcaoEl=t; }
-      t.innerHTML='';
-      const sp=document.createElement('span'); sp.textContent=msg; t.appendChild(sp);
-      (botoes||[]).forEach(bt=>{
-        const b=document.createElement('button'); b.type='button'; b.textContent=bt.rotulo;
-        b.style.cssText='background:'+(bt.destaque?'#fff':'transparent')+';border:1px solid rgba(255,255,255,.35);color:'+(bt.destaque?'#1f2a26':'#fff')+';border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;';
-        b.onclick=()=>{ t.style.opacity='0'; try{ bt.on&&bt.on(); }catch(_){} };
-        t.appendChild(b);
-      });
-      try{ t.style.bottom=(window.innerWidth<900?'92px':'30px'); }catch(_){}
+        t.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:9999;background:#1f2a26;color:#fff;padding:12px 16px 12px 20px;border-radius:var(--radius);font:600 13.5px/1.3 var(--display),sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.4);display:flex;align-items:center;gap:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:min(92vw,560px);flex-wrap:wrap;';
+        document.body.appendChild(t); this._toastAcaoEl=t; novo=true;
+        // a altura acompanha a largura de agora (girar o iPad, redimensionar a janela)
+        try{ window.addEventListener('resize', ()=>this._toastAcaoPos()); }catch(_){}
+      }
+      const esconder=()=>{
+        t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; t.style.pointerEvents='none';
+        clearTimeout(this._toastAcaoT); clearTimeout(this._toastAcaoV);
+        this._toastAcaoV=setTimeout(()=>{ if(t.style.opacity==='0'){ t.innerHTML=''; t.style.padding='0'; } }, 220);
+      };
+      const preencher=()=>{
+        t.innerHTML=''; t.style.padding='12px 16px 12px 20px';
+        const sp=document.createElement('span'); sp.textContent=msg; t.appendChild(sp);
+        (botoes||[]).forEach(bt=>{
+          const b=document.createElement('button'); b.type='button'; b.textContent=bt.rotulo;
+          b.style.cssText='background:'+(bt.destaque?'#fff':'transparent')+';border:1px solid rgba(255,255,255,.35);color:'+(bt.destaque?'#1f2a26':'#fff')+';border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;';
+          b.onclick=()=>{ esconder(); try{ bt.on&&bt.on(); }catch(_){} };
+          t.appendChild(b);
+        });
+        posicao();
+      };
+      clearTimeout(this._toastAcaoV);
+      preencher();
+      // na primeira vez a região acabou de entrar na árvore: repreenche no quadro seguinte
+      // para o leitor de tela perceber a mudança de conteúdo
+      if(novo) setTimeout(()=>{ if(t.style.pointerEvents==='auto') preencher(); }, 60);
+      t.style.pointerEvents='auto';
       t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
       clearTimeout(this._toastAcaoT);
-      this._toastAcaoT=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)'; }, (segundos||7)*1000);
+      this._toastAcaoT=setTimeout(esconder, (segundos||7)*1000);
     }catch(e){ this._toast(msg); }
   }
 
@@ -14728,8 +14991,6 @@ class Component extends DCLogic {
     // A área jurídica tem página PRÓPRIA: o módulo dela é o mapa dos ritos (Processo e
     // peças), não a lista de pontos de estudo do area-web. As demais áreas seguem no
     // area-web genérico.
-    // A volta do acervo (?rito=&peca=&bloco=) reabre o mapa/roteiro no ponto exato.
-    const _abrir=(this.state.origemAbrir||'');
     // U1: o `src` do iframe passa a ser ESTÁVEL. Antes o ponto (?rito=&peca=&bloco=) e a
     // busca (?q=) iam na URL, e qualquer mudança recarregava a página. Agora a URL só é
     // usada na PRIMEIRA montagem (deep-link e testes continuam valendo) e, com o iframe já
@@ -14742,11 +15003,8 @@ class Component extends DCLogic {
     const pecasFrameSrc = 'pecas-web.html?embed=1';
     const segundaFaseFrameSrc = 'segunda-fase-web.html?embed=1';
     const prioridadeFrameSrc = 'prioridade-web.html?embed=1';
-    // O ?q= faz a página abrir já buscando o instituto que veio do mapa; o &volta=1
-    // acende a pílula de voltar quando há um ponto de origem guardado.
-    const _acBusca=(this.state.acervoBusca||'').trim();
-    const _acQ=[_acBusca?('q='+encodeURIComponent(_acBusca)):'', this.state.acervoDe?'volta=1':'']
-      .filter(Boolean).join('&');
+    // O ?q= (busca) e o &volta=1&vr= (pílula de voltar) NÃO entram aqui: vão só na 1ª
+    // carga, por _frameExtras, e depois por mensagem — o src fica estável (U1).
     const legisFrameSrc = 'legis-web.html?embed=1&area=' + encodeURIComponent(this.state.areaEstudo||'');
     const jurisFrameSrc = 'juris-web.html?embed=1';
     const areaEscolhida = !!this.state.areaEstudo;
@@ -14900,10 +15158,39 @@ class Component extends DCLogic {
     const fsTokens = `--fs-3xs:${_fs(10.5)};--fs-2xs:${_fs(11)};--fs-xs:${_fs(11.5)};--fs-sm:${_fs(12.5)};--fs-base:${_fs(13.5)};--fs-md:${_fs(14.5)};--fs-lg:${_fs(15.5)};--fs-xl:${_fs(17)};--fs-2xl:${_fs(19)};`;
     const accSoft = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.78) : this.mixWhite(this.state.accent,0.88)) : T.accentSoft;
     const accRing = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.45) : this.mixWhite(this.state.accent,0.62)) : T.accentRing;
+    // --onAccent segue a régua antiga (luma aproximada): trocá-la mexe em todo o app e
+    // fica como pendência própria. A pílula de volta usa o par calculado abaixo.
     const accOn = this.state.accent ? (()=>{ try{ const [r,g,b]=this.hexToRgb(this.state.accent); return (0.299*r+0.587*g+0.114*b)>170?'#10231c':'#fff'; }catch(_){ return '#fff'; } })() : T.onAccent;
+    /* PAR DA PÍLULA DE VOLTA (--accentFill/--onAccentFill), por contraste WCAG calculado.
+       Só a pílula consome: --accent/--onAccent do resto do app não mudam. Texto: #fff ou o
+       escuro do tema (o mais escuro entre a tinta do claro e os onAccent da direção), o de
+       maior contraste. Fundo: o próprio destaque, ajustado aos poucos até o texto passar de
+       4,5:1 e o fundo se destacar da --surface por 3:1 — no claro escurecendo, no escuro
+       CLAREANDO. Se a borda de 3:1 não fecha, vale o primeiro passo com o texto em 4,5:1. */
+    const _hex6 = (c)=> /^#[0-9a-f]{6}$/i.test(String(c||'').trim()) ? String(c).trim() : '';
+    let accFill = acc, accOnFill = accOn;
+    try{
+      const base=_hex6(acc);
+      if(base){
+        const escuros=[DIR.light&&DIR.light.ink, DIR.light&&DIR.light.onAccent, DIR.dark&&DIR.dark.onAccent, T.onAccent]
+          .map(_hex6).filter(c=>c && CT_LUM(c)<0.2).sort((x,y)=>CT_LUM(x)-CT_LUM(y));
+        const escuro=escuros[0]||'#10231c';
+        const sup=_hex6(T.surface)||(T.isDark?'#201d17':'#fffdf8');
+        const par=(fundo)=>{ const cb=CT_RATIO('#ffffff',fundo), ce=CT_RATIO(escuro,fundo);
+          return cb>=ce ? {f:fundo, t:'#ffffff', r:cb, s:CT_RATIO(fundo,sup)} : {f:fundo, t:escuro, r:ce, s:CT_RATIO(fundo,sup)}; };
+        let achou=null, soTexto=null, melhor=null;
+        for(let f=0; f<=0.9001; f+=0.02){
+          const c=par(f===0 ? base : (T.isDark ? this.lightenHex(base,f) : this.darkenHex(base,f)));
+          if(!melhor || c.r>melhor.r) melhor=c;
+          if(c.r>=4.5){ if(!soTexto) soTexto=c; if(c.s>=3){ achou=c; break; } }
+        }
+        const fim=achou||soTexto||melhor;
+        if(fim){ accFill=fim.f; accOnFill=fim.t; }
+      }
+    }catch(_){ accFill=acc; accOnFill=accOn; }
     const rootStyle = `--bg:${T.bg};--surface:${T.surface};--surface2:${T.surface2};--border:${T.border};`+
       `--ink:${T.ink};--text2:${T.text2};--text3:${T.text3};--accent:${acc};--accentD:${accD};`+
-      `--accentSoft:${accSoft};--accentRing:${accRing};--onAccent:${accOn};--radius:${radiusVal};--r-sm:${rSm};--r-md:${rMd};`+fsTokens+espTokens+
+      `--accentSoft:${accSoft};--accentRing:${accRing};--onAccent:${accOn};--accentFill:${accFill};--onAccentFill:${accOnFill};--radius:${radiusVal};--r-sm:${rSm};--r-md:${rMd};`+fsTokens+espTokens+
       `--display:${T.display};--body:${T.body};--mono:${T.mono};--heroGrad:${heroGrad};`+
       `--danger:${T.isDark?'#ff7b6e':'#c0392f'};--dangerSoft:${T.isDark?'rgba(255,123,110,.14)':'#faeceb'};--dangerBd:${T.isDark?'rgba(255,123,110,.35)':'#f0d3d1'};--ok:${T.isDark?'#3ddba0':'#0e7f58'};--warn:${T.isDark?'#f0a24a':'#a36306'};--warnSoft:${T.isDark?'rgba(240,162,74,.14)':'#faf0e0'};--info:${T.isDark?'#54cfe8':'#06809a'};--infoSoft:${T.isDark?'rgba(84,207,232,.14)':'#e0f5fa'};`+
       `--sbg:${sbgVal};--stext:${T.sidebarText};--sactbg:${this.state.accent?'rgba(255,255,255,.14)':T.sidebarActiveBg};--sacttext:${this.state.accent?'#fff':T.sidebarActiveText};`+
@@ -15581,8 +15868,8 @@ class Component extends DCLogic {
       // assunto de quem está estudando: 2.5 é o valor inicial do próprio SM-2.
       interval: (r.intervalo||0)+'d', ef: Number(r.facilidade!=null?r.facilidade:2.5).toFixed(2), reps: (r.repeticoes||0),
       dueLabel: r.due<0 ? `há ${Math.abs(r.due)} ${Math.abs(r.due)===1?'dia':'dias'}` : (r.due===0?'hoje':(r.due===1?'amanhã':`em ${r.due} dias`)),
-      refTem: !!this._alvoAcervoDaRef(r.ref),
-      refLabel: this._alvoAcervoDaRef(r.ref)==='juris'?'Abrir no JURIS':'Abrir no LEGIS' });
+      refTem: !!this._alvoAcervoAberto(r.ref),
+      refLabel: this._alvoAcervoAberto(r.ref)==='juris'?'Abrir no JURIS':'Abrir no LEGIS' });
     const revOverdue = this.state.reviews.filter(r=>r.due<0).sort((a,b)=>a.due-b.due).map(mkRev);
     const revToday   = this.state.reviews.filter(r=>r.due===0).map(mkRev);
     const revUpcoming= this.state.reviews.filter(r=>r.due>0).sort((a,b)=>a.due-b.due).map(mkRev);
@@ -15592,7 +15879,7 @@ class Component extends DCLogic {
     if(RS){ const total=RS.queue.length, idx=RS.idx, done=RS.done||idx>=total;
       const reviewedN=RS.again+RS.hard+RS.good+RS.easy;
       const cur=done?null:this.state.reviews.find(r=>r.id===RS.queue[idx]);
-      const _iv=(q)=>cur?this.sm2(cur,q).intervalo:0, _refAlvo=cur?this._alvoAcervoDaRef(cur.ref):'';
+      const _iv=(q)=>cur?this.sm2(cur,q).intervalo:0, _refAlvo=cur?this._alvoAcervoAberto(cur.ref):'';
       revRun={ active:true, total, pos:Math.min(idx+1,total), pct: total?Math.round(idx/total*100):0, revealed:RS.revealed, done,
         id:cur?cur.id:'', disc: cur?cur.disc:'', discShort: cur?cur.disc.replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
         refTem:!!_refAlvo, refLabel:_refAlvo==='juris'?'Abrir no JURIS':'Abrir no LEGIS',
