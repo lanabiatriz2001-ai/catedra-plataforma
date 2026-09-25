@@ -49,6 +49,7 @@ import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
+import { testarDesignNativo } from './design-nativo.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -4188,6 +4189,15 @@ catch (e) {
 try { await testarXcodeCloud(ok); }
 catch (e) {
   ok(false, 'XCODE CLOUD o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+/* ============= BASE VISUAL NATIVA (LEGIS/JURIS) =============
+   Catraca de hex/tamanho fixo/emoji fora de ios/vendor/design e, no Mac, os testes Swift
+   da base. Roteiro em tests/design-nativo.mjs (a catraca roda também na CI). */
+try { await testarDesignNativo(ok); }
+catch (e) {
+  ok(false, 'DESIGN NATIVO o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
