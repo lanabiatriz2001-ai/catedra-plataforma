@@ -167,7 +167,7 @@ struct JurisChecklistMiniCard: View {
                 Text(store.readingChecklist.isEmpty
                      ? "Adicione metas de leitura livres — como \"reler súmulas do TJRO\"."
                      : (ThemeState.t.baixaEstimulacao ? "Tudo em dia por aqui — nenhuma meta pendente."
-                                                       : "Tudo em dia por aqui — nenhuma meta pendente. 🎉"))
+                                                       : "Tudo em dia por aqui — nenhuma meta pendente."))
                     .font(.caption).foregroundStyle(Palette.secondaryInk)
                     .padding(.vertical, 2)
             } else {
