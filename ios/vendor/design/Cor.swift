@@ -51,6 +51,9 @@ enum DS {
         Color(hex: DSCor.texto(identidade: identidade, superficie: ThemeState.t.surfaceHex,
                                escuro: ThemeState.t.isDark))
     }
+    /// Cor de identidade (ramo, tribunal) como preenchimento — use `corTexto` quando for texto.
+    static func cor(_ identidade: UInt32) -> Color { Color(hex: identidade) }
+
     /// Cor do número de julgados na margem do leitor, legível no tema atual.
     static var corSinalMargem: Color { corTexto(DSCor.sinalMargem) }
 }
