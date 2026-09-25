@@ -47,7 +47,7 @@ import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
-import { testarMenuBaralho } from './menu-baralho.mjs';
+import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
@@ -1912,8 +1912,9 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
     location.reload(); await w(2000);
     return true;
   }).catch(() => false);
-  // depois do reload, espera o app e o menu existirem (não 2,2 s fixos)
-  await page.waitForFunction(() => !!window.__catedraApp && !!document.querySelector('button[data-view="ajustes"]'), null, { timeout: 15000 }).catch(() => {});
+  // depois do reload, espera o app e o menu existirem (não 2,2 s fixos). Pelo Início: Ajustes
+  // mora dentro de "Mais opções" e só entra no DOM depois do clique logo abaixo.
+  await page.waitForFunction(() => !!window.__catedraApp && !!document.querySelector('aside button[data-view="inicio"]'), null, { timeout: 15000 }).catch(() => {});
   const exp2 = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const mais = document.querySelector('button[aria-label="Mostrar mais opções"]'); if (mais) mais.click(); await w(300);
@@ -8417,11 +8418,13 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     });
     await page.goto(URL0 + '/Catedra.dc.html');
     await page.waitForTimeout(900);
-    // a pessoa escolhe CLARO na tela de Ajustes
+    // a pessoa escolhe CLARO na tela de Ajustes — que mora dentro de "Mais opções" (24/09/2026)
     await page.evaluate(() => {
       document.querySelector('[role="dialog"]')?.remove();
-      document.querySelector('button[data-view="ajustes"]')?.click();
+      if (!document.querySelector('button[data-view="ajustes"]')) document.querySelector('button[aria-label="Mostrar mais opções"]')?.click();
     });
+    await page.waitForTimeout(300);
+    await page.evaluate(() => document.querySelector('button[data-view="ajustes"]')?.click());
     await page.waitForTimeout(500);
     await page.evaluate(() => {
       [...document.querySelectorAll('button[data-s]')].find(b => /apar[êe]ncia/i.test(b.textContent))?.click();
@@ -8483,7 +8486,10 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     await page.waitForTimeout(900);
     const accentDe = () => page.evaluate(() => document.querySelector('[data-dark][data-dir]')?.style.getPropertyValue('--accent').trim());
     const irParaAparencia = async () => {
-      await page.evaluate(() => { document.querySelector('[role="dialog"]')?.remove(); document.querySelector('button[data-view="ajustes"]')?.click(); });
+      // Ajustes mora dentro de "Mais opções" (24/09/2026): abre o grupo e só então o item
+      await page.evaluate(() => { document.querySelector('[role="dialog"]')?.remove(); if (!document.querySelector('button[data-view="ajustes"]')) document.querySelector('button[aria-label="Mostrar mais opções"]')?.click(); });
+      await page.waitForTimeout(300);
+      await page.evaluate(() => document.querySelector('button[data-view="ajustes"]')?.click());
       await page.waitForTimeout(500);
       await page.evaluate(() => { [...document.querySelectorAll('button[data-s]')].find(b => /apar[êe]ncia/i.test(b.textContent))?.click(); });
       await page.waitForTimeout(400);
@@ -9075,10 +9081,11 @@ catch (e) {
   ok(false, 'PONTE [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
-// Menu lateral (tests/menu-baralho.mjs): o Baralho pinta como os irmãos — o botão nasceu com
-// navStyle.flashcards sem a chave no render() e saía cru; e o alvo de 44 px no toque, também em
-// paisagem no iPad, onde a regra por largura não alcançava a barra.
-try { await testarMenuBaralho(page, URL0, ok, { motor, origem: 'http' }); }
+// Menu lateral (tests/menu-lateral.mjs): o Baralho pinta como os irmãos — o botão nasceu com
+// navStyle.flashcards sem a chave no render() e saía cru; o alvo de 44 px no toque, também em
+// paisagem no iPad, onde a regra por largura não alcançava a barra; o objeto navStyle sem chave
+// sobrando; e Ajustes uma vez só, dentro de "Mais opções".
+try { await testarMenuLateral(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'MENU/BARALHO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
