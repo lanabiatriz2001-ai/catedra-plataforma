@@ -9493,6 +9493,7 @@ class Component extends DCLogic {
       case 'revisoes': return 'Voltar às revisões';
       case 'simulados': return 'Voltar ao simulado';
       case 'oral': return 'Voltar à prova oral';
+      case 'inicio': return 'Voltar ao Início';
     }
     return 'Voltar';
   }
@@ -9546,7 +9547,8 @@ class Component extends DCLogic {
   _origemAqui(extra){
     const v=this.state.view;
     if(v==='legis' || v==='juris') return undefined;
-    if(!v || v==='inicio' || v==='indisponivel') return null;
+    // o Início também é ponto de partida (trilha ENAM, "O que mudou esta semana"): tem volta
+    if(!v || v==='indisponivel') return null;
     return this._deHost(v, extra);
   }
   /** Para as idas do host por _irPara: a tela atual, ou a origem que já existe (salto). */
@@ -12978,14 +12980,14 @@ class Component extends DCLogic {
   }
   /** Abre o verbete no CátedraJURIS pelo título — o mesmo canal do ⌘K e do mapa. */
   semanaAbrir = (e)=>{ const t=e.currentTarget.dataset.t||''; if(!t) return;
-    this._irPara('juris', {acervoBusca:t, acervoDe:null, origemAbrir:''}); };
+    this._irPara('juris', {acervoBusca:t, acervoDe:this._origemIda(), origemAbrir:''}); };
   /** "Já vi": some do bloco e sincroniza (escalar em _autosaveKeys). */
   semanaLido = (e)=>{ const id=e.currentTarget.dataset.id; if(!id) return;
     this.setState(st=>({semanaLidos:[...(st.semanaLidos||[]), id].slice(-400)}),
       ()=>{ try{ localStorage.setItem(this._chave('semanaLidos'), JSON.stringify(this.state.semanaLidos)); }catch(_){} this.flashSync(); });
   };
   semanaMais = ()=> this.setState({semanaTudo:!this.state.semanaTudo});
-  semanaVerTudo = ()=> this._irPara('juris', {acervoBusca:'', acervoDe:null, origemAbrir:''});
+  semanaVerTudo = ()=> this._irPara('juris', {acervoBusca:'', acervoDe:this._origemIda(), origemAbrir:''});
 
   _redDiscDoBanco(nome){
     const d=String(nome||'').trim().slice(0,140); if(!d) return '';
