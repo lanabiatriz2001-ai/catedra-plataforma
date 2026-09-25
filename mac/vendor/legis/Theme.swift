@@ -94,47 +94,32 @@ extension View {
 }
 
 extension LawCategory {
-    /// Linguagem "vitrine": cada matéria tem identidade de COR própria (pedido da
-    /// Lana — o monocromático deixava tudo "sem vida"). Tons vivos, distinguíveis
-    /// e legíveis nos dois temas. "Minhas Normas" segue o acento da plataforma.
-    var color: Color {
+    /// Ramo da tabela única (ios/vendor/design/CoresAcervo.swift). "Minhas Normas" não tem
+    /// ramo: segue o acento da plataforma.
+    var ramo: Ramo? {
         switch self {
-        case .constitucional: return Color(hex: 0x2563EB)   // azul royal
-        case .civil:          return Color(hex: 0x0D9488)   // teal
-        case .penal:          return Color(hex: 0xE11D48)   // rosé
-        case .trabalhista:    return Color(hex: 0xD97706)   // âmbar
-        case .previdenciario: return Color(hex: 0xDB2777)   // rosa
-        case .tributario:     return Color(hex: 0x7C3AED)   // roxo
-        case .empresarial:    return Color(hex: 0x65A30D)   // lima
-        case .administrativo: return Color(hex: 0x4F46E5)   // índigo
-        case .consumidor:     return Color(hex: 0xEA580C)   // laranja
-        case .ambiental:      return Color(hex: 0x16A34A)   // verde
-        case .digital:        return Color(hex: 0xC026D3)   // fúcsia
-        case .internacional:  return Color(hex: 0x0284C7)   // azul-céu (escurecido p/ contraste AA — igual ao CT_CORES_RAMO da web)
-        case .especial:       return Color(hex: 0x64748B)   // grafite
-        case .personalizada:  return ThemeState.t.accent
+        case .constitucional: return .constitucional
+        case .civil:          return .civil
+        case .penal:          return .penal
+        case .trabalhista:    return .trabalho
+        case .previdenciario: return .previdenciario
+        case .tributario:     return .tributario
+        case .empresarial:    return .empresarial
+        case .administrativo: return .administrativo
+        case .consumidor:     return .consumidor
+        case .ambiental:      return .ambiental
+        case .digital:        return .digital
+        case .internacional:  return .internacional
+        case .especial:       return .especial
+        case .personalizada:  return nil
         }
     }
 
+    /// Linguagem "vitrine": cada matéria tem identidade de COR própria.
+    var color: Color { ramo.map { Color(hex: $0.identidade) } ?? ThemeState.t.accent }
+
     /// Segunda parada do gradiente da matéria (tom mais claro/vibrante).
-    var colorLight: Color {
-        switch self {
-        case .constitucional: return Color(hex: 0x38BDF8)
-        case .civil:          return Color(hex: 0x2DD4BF)
-        case .penal:          return Color(hex: 0xFB7185)
-        case .trabalhista:    return Color(hex: 0xFBBF24)
-        case .previdenciario: return Color(hex: 0xF472B6)
-        case .tributario:     return Color(hex: 0xA78BFA)
-        case .empresarial:    return Color(hex: 0xA3E635)
-        case .administrativo: return Color(hex: 0x818CF8)
-        case .consumidor:     return Color(hex: 0xFB923C)
-        case .ambiental:      return Color(hex: 0x4ADE80)
-        case .digital:        return Color(hex: 0xE879F9)
-        case .internacional:  return Color(hex: 0x7DD3FC)
-        case .especial:       return Color(hex: 0x94A3B8)
-        case .personalizada:  return ThemeState.t.accent.opacity(0.75)
-        }
-    }
+    var colorLight: Color { ramo.map { Color(hex: $0.clara) } ?? ThemeState.t.accent.opacity(0.75) }
 
     /// Gradiente pronto da matéria — tiles do Início, faixa da leitura, CTAs.
     var gradStops: [Color] { [color, colorLight] }
