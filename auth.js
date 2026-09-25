@@ -143,6 +143,21 @@
   function clearLocal() { var r = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('catedra:') === 0) r.push(k); } r.forEach(function (k) { _ri(k); }); }
 
   var user = null, hydrating = true, pushT = null, authToken = null, pushing = false;
+  // `hidratacaoEmCurso`: TRAVA ÚNICA da hidratação do onLogin, do começo (antes da leitura da
+  // nuvem e antes da tela de aceite dos Termos) até o reload. Só a sessão guardada abre com
+  // `hydrating` = true; o login pelo formulário, a recuperação de senha, a sessão que expirou e a
+  // sessão pendente retomada chegam ao onLogin com `hydrating` já falso — e aí o 'hidden'
+  // (pushNow) e o pagehide (flushSync, envio CEGO com o blob local ainda não mesclado, que
+  // podia apagar da nuvem o que só existia lá) saíam durante o "Carregando seus dados…" e
+  // durante a tela de aceite, antes de a pessoa aceitar. Com a trava ligada NADA sobe e nada é
+  // puxado (pushNow, pullAndMerge, flushSync e o 'hidden' param nela); as escritas do app
+  // continuam marcando o sujo (CatedraSync.push), e quem sobe é o pushNow DEPOIS do reload, com
+  // leitura antes de gravar. Todo caminho que não termina em reload solta a trava
+  // (soltarTravaHidratacao): erro na leitura, sessão que caiu no meio, "Não aceito — sair".
+  // `geracao`: conta as marcações de sujo (setDirty(true)). O pushNow só apaga o sujo se nenhuma
+  // marcação chegou depois do retrato que ele subiu (ver pushNow).
+  var hidratacaoEmCurso = false, geracao = 0;
+  function soltarTravaHidratacao() { hidratacaoEmCurso = false; }
   // `saindo`: a pessoa tocou em Sair/excluir conta de propósito — o SIGNED_OUT que o supabase-js
   // emite em seguida não é sessão derrubada. `pendente`: dono cuja sessão não deu para
   // reconfirmar por falta de rede (o app segue offline com o dado dele até a rede voltar).
@@ -196,9 +211,36 @@
     try { window.dispatchEvent(new CustomEvent('catedra:syncpronto')); } catch (_) {}
   }
   function isDirty() { try { return localStorage.getItem('catedra:_dirty') === '1'; } catch (_) { return false; } }
-  function setDirty(v) { try { if (v) _si('catedra:_dirty', '1'); else _ri('catedra:_dirty'); } catch (_) {} }
+  // Marcar sujo SEMPRE avança a geração — venha do CatedraSync.push ou de fora dele (o aceite e a
+  // pendência que a hidratação marca). Sem isso, um pushNow em voo cujo retrato não levava a
+  // marcação nova apagava o sujo na resposta, o selo dizia "salvo" e aquilo nunca subia. Não há
+  // laço: o pushNow nunca marca sujo (só limpa).
+  function setDirty(v) { try { if (v) { geracao++; _si('catedra:_dirty', '1'); } else _ri('catedra:_dirty'); } catch (_) {} }
   function lastSrv() { try { return localStorage.getItem('catedra:_lastSrv') || ''; } catch (_) { return ''; } }
   function setLastSrv(v) { try { _si('catedra:_lastSrv', v || ''); } catch (_) {} }
+  /* "O servidor é mais novo que o que este aparelho já viu?" — por INSTANTE, não por texto.
+     O _lastSrv guarda dois formatos: o do pushNow ('…T10:00:00.120Z', do toISOString) e o que
+     o PostgREST devolve no pull e na hidratação ('…T10:00:00.12+00:00', até microssegundos).
+     Comparar as strings misturadas dá errado no mesmo segundo ('+' < '0' < 'Z'). Normaliza os
+     dois lados só na comparação — o valor gravado nos aparelhos continua como está. Antes do
+     Date.parse o texto vira o formato canônico (fração com exatamente 3 dígitos, fuso ±hh:mm):
+     o JavaScriptCore do iPad só promete esse. Se algum lado não for data, volta à comparação de
+     texto de antes. */
+  function tsMs(s) {
+    if (!s) return NaN;
+    var m = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}(?::?\d{2})?)?$/i.exec(String(s).trim());
+    if (!m) return Date.parse(String(s));
+    var fr = ((m[3] || '') + '000').slice(0, 3);
+    var tz = (m[4] || 'Z').toUpperCase();
+    if (tz !== 'Z') tz = tz.slice(0, 3) + ':' + (tz.replace(':', '').slice(3) || '00');
+    return Date.parse(m[1] + 'T' + m[2] + '.' + fr + tz);
+  }
+  function srvMaisNovo(srv, visto) {
+    if (!srv) return false;
+    var a = tsMs(srv), b = tsMs(visto);
+    if (isNaN(a) || isNaN(b)) return String(srv) > String(visto || '');
+    return a > b;
+  }
 
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
@@ -383,8 +425,13 @@
   function erroDe(res) { var e = res && res.error; if (!e) return null; if (sessaoCaiu(res)) sessaoExpirou(); return e; }
 
   function pushNow() {
-    if (!user || hydrating || pushing) return;
+    if (!user || hydrating || pushing || hidratacaoEmCurso) return;
     pushing = true; setStatus('enviando');
+    var dono = user;
+    // Escrita que chega com este envio em voo: o CatedraSync.push agenda outro pushNow, que morre
+    // no `pushing` acima. Sem conferir a geração, o sucesso deste apagava o sujo de uma edição
+    // que não estava no retrato — ela não subia, o selo dizia "salvo" e o Sair não avisava.
+    var ger = -1, denovo = false;
     // read-before-write: relê o servidor e mescla antes de subir (nada de sobrescrever cego)
     sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
       .then(function (res) {
@@ -394,7 +441,11 @@
         // apagando no servidor o que o outro aparelho tinha gravado. Falhar aqui é o
         // certo: o .catch abaixo mantém o dirty e a próxima tentativa reconcilia.
         var e1 = erroDe(res); if (e1) throw e1;
+        // A leitura voltou com uma hidratação em curso (ou outra conta): este envio não sobe
+        // nada. O sujo fica; quem sobe é o pushNow depois do reload daquela hidratação.
+        if (hidratacaoEmCurso || user !== dono) return;
         var row = res && res.data;
+        ger = geracao;   // antes do retrato: escrita depois daqui pode não estar nele
         var antes = collect();
         var merged = mergeAll(row && row.data, antes, false); // subida: local prevalece nos escalares
         applyData(merged); // grava o resultado unido localmente (via _si — não redispara sync)
@@ -413,7 +464,9 @@
         return sb.from('user_data').upsert({ user_id: user.id, data: leanForUpload(merged), updated_at: now })
           .then(function (r2) {
             var e2 = erroDe(r2); if (e2) throw e2;
-            setDirty(false); setLastSrv(now); setStatus('salvo'); marcarSincronizado();
+            setLastSrv(now); marcarSincronizado();
+            if (geracao === ger) { setDirty(false); setStatus('salvo'); }
+            else denovo = true;   // chegou escrita durante o envio: o sujo fica e sobe já em seguida
           });
       })
       .catch(function (err) { console.warn('[Cátedra] sync erro:', err && err.message); setStatus(navigator.onLine === false ? 'offline' : 'erro');
@@ -421,7 +474,7 @@
         // de aba — meia sessão de estudo podia passar sem nada subir. O dirty continua
         // marcado; uma nova tentativa em 30s resolve a falha passageira sozinha.
         clearTimeout(pushT); pushT = setTimeout(pushNow, 30000); })
-      .then(function () { pushing = false; });
+      .then(function () { pushing = false; if (denovo) { clearTimeout(pushT); pushNow(); } });
   }
   /* Os satélites em <iframe> gravam localStorage DIRETO (grifos do LEGIS/JURIS,
      leituraLeis:v1, legisEstudo…): a interceptação de setItem do topo não os vê, o
@@ -440,7 +493,7 @@
   });
 
   window.CatedraSync = { push: function () {
-    setDirty(true);
+    setDirty(true);   // avança a geração (ver setDirty)
     clearTimeout(pushT);
     pushT = setTimeout(pushNow, 700);
   },
@@ -462,7 +515,7 @@
   // pull + merge ao voltar para a aba / reconectar — o outro aparelho pode ter estudado
   var pulling = false, pullT = null;
   function pullAndMerge() {
-    if (!user || hydrating || pushing || pulling) return;
+    if (!user || hydrating || pushing || pulling || hidratacaoEmCurso) return;
     pulling = true; clearTimeout(pullT);
     // Antes a falha era muda: o listener 'online' marcava "enviando" antes de chamar aqui e
     // uma leitura que falhava saía sem setStatus — o selo prendia em "sincronizando…"; ao
@@ -480,7 +533,7 @@
         // quando der certo). Sem nada a subir, a leitura deu certo (o erro já saiu acima, em falhou)
         // e a nuvem não tem nada mais novo: é o primeiro acerto com a nuvem (ver marcarSincronizado).
         if (!row || !row.data) { pulling = false; if (isDirty()) pushNow(); else { setStatus('salvo'); marcarSincronizado(); } return; }
-        var serverNewer = row.updated_at && row.updated_at > lastSrv();
+        var serverNewer = srvMaisNovo(row.updated_at, lastSrv());
         if (!serverNewer && !isDirty()) { pulling = false; setStatus('salvo'); marcarSincronizado(); return; }
         // servidor mais novo e este aparelho limpo → escalares vêm do servidor; arrays sempre por id
         var merged = mergeAll(row.data, collect(), serverNewer && !isDirty());
@@ -498,7 +551,7 @@
   // SEM token de usuário não envia (RLS rejeitaria) — o dirty fica marcado e a próxima
   // abertura reconcilia via pullAndMerge + pushNow.
   function flushSync() {
-    if (!user || hydrating) return;
+    if (!user || hydrating || hidratacaoEmCurso) return;
     clearTimeout(pushT);
     if (!authToken) return; // sem JWT o POST seria rejeitado pelo RLS — deixa o dirty para a próxima sessão
     // NÃO subir quando este aparelho não tem nada novo. Este envio é CEGO (não faz
@@ -520,12 +573,13 @@
     // Minimizar/trocar de aba NÃO é fechar: a página segue viva, então dá tempo do
     // caminho seguro (pushNow faz read-before-write). O envio cego com keepalive fica
     // só para o pagehide, onde realmente não há tempo de reler o servidor.
-    if (document.visibilityState === 'hidden') { clearTimeout(pushT); if (isDirty()) pushNow(); }
+    if (document.visibilityState === 'hidden') { if (hidratacaoEmCurso) return; clearTimeout(pushT); if (isDirty()) pushNow(); }
     else if (document.visibilityState === 'visible') { if (pendente) reconfirmarSessao(); else pullAndMerge(); }
   });
   window.addEventListener('pagehide', flushSync);
   window.addEventListener('online', function () {
     if (pendente) { reconfirmarSessao(); return; }
+    if (hidratacaoEmCurso) return;   // a própria hidratação está lendo a nuvem; o selo sai dela
     // "enviando" só quando há o que enviar; limpo, o pull decide o selo (salvo/erro/offline)
     if (isDirty()) setStatus('enviando');
     pullAndMerge();
@@ -1036,6 +1090,8 @@
     if (trocouDeDono(u)) { clearLocal(); try { sessionStorage.removeItem('catedra:hydrated'); } catch (_) {} }
     try { _si('catedra:_owner', u.id); } catch (_) {}
     if (sessionStorage.getItem('catedra:hydrated') === '1') { viaPendente = false; _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
+    // Daqui até o reload nada sobe nem desce fora desta hidratação (ver hidratacaoEmCurso).
+    hidratacaoEmCurso = true;
     showLoading('Carregando seus dados…');
     sb.from('user_data').select('data,updated_at').eq('user_id', u.id).maybeSingle().then(function (res) {
       // FALHA DE LEITURA NÃO É "CONTA VAZIA".
@@ -1051,7 +1107,9 @@
       // cativo devolvendo HTML, JWT recusado.
       if (user !== u) return;   // a sessão caiu no meio da hidratação: o login já está na tela
       if (res && res.error) {
-        if (sessaoCaiu(res)) { sessaoExpirou(); return; }   // JWT recusado: é login, não "erro"
+        if (sessaoCaiu(res)) { sessaoExpirou(); return; }   // JWT recusado: é login, não "erro" (showLoginState solta a trava)
+        // sem reload: solta a trava, senão as edições desta sessão nunca subiriam
+        soltarTravaHidratacao();
         _si('catedra:auth', '1'); hydrating = false; hide();
         setStatus(navigator.onLine === false ? 'offline' : 'erro');
         return;   // NÃO carimba lastSrv, NÃO marca hydrated, NÃO recarrega — a próxima
@@ -1059,21 +1117,53 @@
       }
       var row = res && res.data;
       var prosseguir = function () {
-      var now = new Date().toISOString();
+      /* A HIDRATAÇÃO NÃO ENVIA NADA — quem envia é o pushNow, depois do reload.
+         Aqui havia um sb.from('user_data').upsert(...) solto, sem .then, seguido de
+         setLastSrv(agora) e setDirty(false). O builder do supabase-js é PREGUIÇOSO: a
+         requisição só sai no .then — então aquele upsert nunca saiu (desde o primeiro sync),
+         e mesmo assim a marca de pendência era apagada e o selo virava "salvo". O que só
+         existia neste aparelho (estudo offline, envio que falhou, sessão que caiu) ficava
+         fora da nuvem sem aviso, e o Sair o apagava sem perguntar.
+         Agora: a pendência que já existia fica (jaSujo); o que este aparelho TRAZ que a nuvem
+         não tem vira pendência (contribuiu — detecta também aparelho já "contaminado" pelo
+         defeito antigo, sem _dirty); _lastSrv recebe o updated_at do SERVIDOR (a nuvem foi
+         vista até ali; nada foi gravado). Depois do reload o onLogin (hydrated=1) chama o
+         pushNow quando sujo: relê a nuvem, confere res.error e só limpa o dirty quando o
+         upsert confirma — na falha, dirty fica, selo em erro/offline e nova tentativa em 30 s. */
+      var jaSujo = isDirty();
       if (row && row.data && Object.keys(row.data).length) {
         // mescla nuvem + local (por id nos arrays) — edições offline deste aparelho não se perdem
         var merged = mergeAll(row.data, collect(), true);
         applyData(merged);
-        sb.from('user_data').upsert({ user_id: u.id, data: leanForUpload(merged), updated_at: now });
-        setLastSrv(now); setDirty(false);
+        // "Contribuiu" compara o que SUBIRIA (enxuto: sem o PDF local da biblioteca) com a nuvem,
+        // chave de dado a chave de dado. Sem o filtro temConteudo: '0' é escolha nos interruptores
+        // (catedra:dark), e um falso positivo custa uma subida só — depois dela a nuvem fica igual
+        // ao enxuto e a comparação zera. _kts fica de fora: carimbo novo com o mesmo valor não é
+        // dado novo. Chave que a nuvem tem e o enxuto não tem é lápide local: também sobe.
+        var contribuiu = false;
+        try {
+          var lean = leanForUpload(merged), sv = row.data;
+          contribuiu = Object.keys(lean).some(function (k) { return isData(k) && k !== 'catedra:_kts' && lean[k] !== sv[k]; })
+            || Object.keys(sv).some(function (k) { return isData(k) && k !== 'catedra:_kts' && !(k in lean); });
+        } catch (_) { contribuiu = true; }
+        setLastSrv(row.updated_at || '');
+        setDirty(jaSujo || contribuiu);
         // avisa o app: a hidratação trocou os dados locais e ele precisa reler/reaplicar migrações
         try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {}
       }
-      else { sb.from('user_data').upsert({ user_id: u.id, data: leanForUpload(collect()), updated_at: now }); setLastSrv(now); setDirty(false); }
+      else {
+        // Conta sem linha na nuvem: nada a carimbar. Com qualquer dado local (fora o _kts), fica
+        // pendente e o pushNow pós-reload cria a linha; sem nada local, não cria linha vazia.
+        var temLocal = false;
+        try { temLocal = Object.keys(collect()).some(function (k) { return k !== 'catedra:_kts'; }); } catch (_) {}
+        setDirty(jaSujo || temLocal);
+      }
       _si('catedra:auth', '1');
       sessionStorage.setItem('catedra:hydrated', '1');
       // Vindo da sessão pendente, o app estava VIVO até o showLoading de cima: dá ao autosave
       // dele (500 ms) o tempo de gravar o que a pessoa acabou de fazer antes de recarregar.
+      // A trava (ligada no começo do onLogin) segue até o reload: nos 700 ms o autosave ainda
+      // marca sujo normalmente, e o pushNow pós-reload sobe tudo com leitura antes de gravar.
       if (viaPendente) { viaPendente = false; setTimeout(function () { location.reload(); }, 700); }
       else location.reload();
       };
@@ -1083,7 +1173,7 @@
       var aceiteLocal = null; try { aceiteLocal = localStorage.getItem('catedra:aceite'); } catch (_) {}
       if (aceiteVigente(aceiteLocal, row && row.data && row.data['catedra:aceite'])) prosseguir();
       else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); } catch (_) {} prosseguir(); });
-    }).catch(function () { if (user !== u) return; _si('catedra:auth', '1'); hydrating = false; hide(); });
+    }).catch(function () { if (user !== u) return; soltarTravaHidratacao(); _si('catedra:auth', '1'); hydrating = false; hide(); });
   }
   function showLoginState() {
     user = null; pendente = null;
@@ -1092,6 +1182,9 @@
       window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: null }));
     } catch (_) {}
     try { sessionStorage.removeItem('catedra:_pend'); } catch (_) {}
+    // A hidratação que estivesse em curso morreu com a sessão (o `user !== u` dela sai sem mexer
+    // em nada): a trava é solta aqui para o próximo login — que liga a dele — e para não vazar.
+    soltarTravaHidratacao();
     _ri('catedra:auth'); sessionStorage.removeItem('catedra:hydrated'); hydrating = false; showForm();
   }
   // Sessão derrubada ou expirada DE VERDADE (SIGNED_OUT que não veio do Sair, 401/PGRST301 no
@@ -1263,7 +1356,9 @@
     var chk = el.querySelector('#ctac'), ok = el.querySelector('#ctacok');
     chk.onchange = function () { ok.disabled = !chk.checked; ok.style.opacity = chk.checked ? '1' : '.55'; };
     ok.onclick = function () { if (!chk.checked) return; ok.disabled = true; ok.textContent = 'Carregando seus dados…'; cb(); };
-    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearLocal(); location.reload(); }; sb.auth.signOut().then(fin, fin); };
+    // "Não aceito": nada sobe (a trava da hidratação segue ligada até aqui). No fim, sem conta
+    // (user nulo) e sem o dado local, a trava é solta: um login seguinte nesta aba liga a dele.
+    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; clearLocal(); soltarTravaHidratacao(); location.reload(); }; sb.auth.signOut().then(fin, fin); };
   }
   /** Exclusão da conta pela própria pessoa: a função excluir_minha_conta (security definer) apaga o blob,
       a participação e a atividade em grupos, feedback, uso de IA, acesso beta e a linha em auth.users. */
