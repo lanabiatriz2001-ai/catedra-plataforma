@@ -11,8 +11,9 @@
 //     do service worker (PWA).
 //  3. Escreve o resultado em public/index.html.
 //  4. Copia support.js, sw.js, manifest.webmanifest e icon.svg para public/.
-//  5. Ajusta o sw.js: entrada em index.html (e não Catedra.dc.html) e as três
-//     listas de precache do U10 (casca, acervo e "baixar tudo") já MEDIDAS em bytes.
+//  5. Ajusta o sw.js: entrada em index.html (e não Catedra.dc.html), as três
+//     listas de precache do U10 (casca, acervo e "baixar tudo") já MEDIDAS em bytes
+//     e a versão do cache (hash do conteúdo do deploy, scripts/sw-versao.mjs).
 
 import { cpSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync, statSync, rmSync} from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -25,6 +26,7 @@ import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';   // primeira pintura usa as paletas reais do host
 import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
+import { versaoDoCache, MARCADOR_VERSAO, linhaVersao } from './sw-versao.mjs';   // versão do cache do worker = hash do deploy
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -455,7 +457,14 @@ if (!existsSync(join(ROOT, 'sw.js'))) { console.error('BUILD ABORTADO: sw.js nã
     .replace('/*__EXTRA_ASSETS__*/', 'ASSETS = ASSETS.concat(' + JSON.stringify(casca) + ');')
     .replace('/*__ACERVOS__*/', 'ACERVOS = ' + JSON.stringify(acervos) + ';')
     .replace('/*__ACERVOS_SOB_PEDIDO__*/', 'ACERVOS_SOB_PEDIDO = ' + JSON.stringify(sobPedido) + ';');
-  writeFileSync(join(pub, 'sw.js'), sw);
+  /* Versão do cache = hash do CONTEÚDO do deploy (ver scripts/sw-versao.mjs). Tem de ser a
+     última escrita em public/ antes do sw.js: tudo o que já está lá entra na conta. Sem o
+     marcador, o worker publicado ficaria com a versão de desenvolvimento para sempre —
+     exatamente o cache que sobrevivia de um deploy ao outro. */
+  if (!sw.includes(MARCADOR_VERSAO)) { console.error('BUILD ABORTADO: sw.js sem o marcador ' + MARCADOR_VERSAO + '.'); process.exit(1); }
+  const versaoSw = versaoDoCache(pub, sw);
+  writeFileSync(join(pub, 'sw.js'), sw.replace(MARCADOR_VERSAO, linhaVersao(versaoSw)));
+  console.log('  · service worker: cache catedra-' + versaoSw + ' (hash do conteúdo do deploy)');
 }
 
 // Última porta antes da internet: public/ vai inteiro para a Vercel, sem autenticação.
