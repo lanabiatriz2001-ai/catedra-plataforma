@@ -126,6 +126,17 @@ let gaveta = GavetaContexto(altura: Binding(get: { alturaTeste }, set: { alturaT
                             aba: Binding(get: { abaTeste }, set: { abaTeste = $0 }), compacto: false) { EmptyView() }
 confere(String(describing: type(of: gaveta)).hasPrefix("GavetaContexto"), "GavetaContexto existe")
 
+// ── Artigos citados (entrega 3) ─────────────────────────────────────────────
+let invertido = CitacoesLogica.inverter([
+    "Constituição Federal": ["5": ["v1", "v2"], "10-A": ["v1"], "100": ["v1"], "2": ["v1"]],
+    "Código Civil": ["186": ["v1"]]])
+confere(CitacoesLogica.ordenar(invertido["v1"] ?? []).map { "\($0.diploma)|\($0.artigo)" }
+        == ["Código Civil|186", "Constituição Federal|2", "Constituição Federal|5", "Constituição Federal|10-A", "Constituição Federal|100"],
+        "artigos citados: por diploma e em ordem numérica (2 < 5 < 10-A < 100)")
+confere(invertido["v2"] == [ArtigoCitado(diploma: "Constituição Federal", artigo: "5")] && invertido["vX"] == nil,
+        "inversão: verbete com um artigo e verbete sem nenhum")
+confere(CitacoesLogica.inverter([:]).isEmpty, "índice vazio: nada")
+
 // (Tasks 2 e 3 acrescentam blocos aqui, antes do fechamento.)
 
 print(falhas == 0 ? "\nbase visual: tudo certo" : "\nbase visual: \(falhas) falha(s)")

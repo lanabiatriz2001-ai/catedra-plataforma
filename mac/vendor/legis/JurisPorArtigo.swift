@@ -49,6 +49,35 @@ enum JurisPorArtigo {
     /// mostra o título e "Abrir no JURIS", nunca um texto inventado.
     static var textoOficial: (String) -> String? = { _ in nil }
 
+    private static var porVerbete: [String: [ArtigoCitado]]?
+
+    /// Artigos do catálogo citados pelo verbete `id` (inverso do índice de incidência).
+    static func artigosCitados(verbeteID id: String) -> [ArtigoCitado] {
+        carregar()
+        if porVerbete == nil {
+            porVerbete = CitacoesLogica.inverter(diplomas.values.reduce(into: [:]) { acc, d in
+                acc[d.nome] = d.artigos.mapValues { $0.map(\.id) }
+            })
+        }
+        return CitacoesLogica.ordenar(porVerbete?[id] ?? [])
+    }
+
+    static let notificacaoAbrirLegis = Notification.Name("catedraAbrirArtigoLegis")
+    /// Pedido pendente: o LEGIS pode não estar montado quando o JURIS pede — ContentView
+    /// consome ao aparecer (e também ao receber a notificação).
+    static var pedidoLegis: ArtigoCitado?
+
+    static func abrirNoLegis(_ a: ArtigoCitado) {
+        pedidoLegis = a
+        NotificationCenter.default.post(name: notificacaoAbrirLegis, object: nil)
+    }
+
+    /// Diploma do índice → norma do catálogo (mesma normalização de `verbetes(lei:label:)`).
+    static func lei(doDiploma nome: String, em leis: [LawEntry]) -> LawEntry? {
+        let alvo = norm(nome)
+        return leis.first { norm($0.title) == alvo }
+    }
+
     /// Número do artigo → quantos verbetes o citam, para o sinal na margem do leitor.
     static func contagens(lei: LawEntry) -> [String: Int] {
         carregar()
