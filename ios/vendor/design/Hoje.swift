@@ -55,5 +55,6 @@ enum OrdemAutoridade {
         "sumula_tcu", "sumula_tce", "boletim_juris_tcu", "boletim_pessoal_tcu", "info_lic_tcu",
         "vademecum_dod",
     ]
-    static func posicao(_ fonteRaw: String) -> Int { ordem.firstIndex(of: fonteRaw) ?? ordem.count }
+    private static let indice: [String: Int] = Dictionary(uniqueKeysWithValues: ordem.enumerated().map { ($1, $0) })
+    static func posicao(_ fonteRaw: String) -> Int { indice[fonteRaw] ?? ordem.count }
 }
