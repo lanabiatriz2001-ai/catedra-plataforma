@@ -227,7 +227,7 @@ enum Selecao: Hashable {
         case .simulado: return "Simulado"
         case .destino(let d): return d.titulo
         case .meuMaterial: return "Meu material"
-        case .inicio: return "Início"
+        case .inicio: return "Hoje"
         case .hoje: return "Revisar hoje"
         case .todos: return "Todos os verbetes"
         case .favoritos: return "Favoritos"

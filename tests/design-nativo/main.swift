@@ -145,6 +145,16 @@ let hubTeste = DestinoHub(titulo: "Acervo", subtitulo: "", secoes: [SecaoHub(tit
     ItemHub(id: "a", titulo: "Todas", detalhe: nil, simbolo: "books.vertical", cor: nil, contagem: 3, acao: {})])])
 confere(String(describing: type(of: hubTeste)) == "DestinoHub", "DestinoHub existe")
 
+// ── Hoje e ordem por autoridade (entrega 5) ────────────────────────────────
+let cont = CartaoContinuar(titulo: "Constituição Federal", detalhe: "Art. 5º", cor: Ramo.constitucional.identidade, acao: {})
+confere(String(describing: type(of: cont)) == "CartaoContinuar", "CartaoContinuar existe")
+let ordem = ["sumula_vinculante", "stf_adi", "repercussao_geral", "repetitivo", "sumula_stf", "sumula_stj",
+             "informativo_stf", "tjro", "vademecum_dod", "desconhecida"]
+confere(ordem.map(OrdemAutoridade.posicao) == ordem.map(OrdemAutoridade.posicao).sorted(),
+        "ordem por autoridade: vinculante → controle concentrado → RG → repetitivo → súmulas → informativos → estaduais → apoio")
+confere(OrdemAutoridade.posicao("tjro") > OrdemAutoridade.posicao("sumula_stj"),
+        "TJRO depois de STF e STJ (antes a lista abria pela Súmula 1 do TJRO)")
+
 // (Tasks 2 e 3 acrescentam blocos aqui, antes do fechamento.)
 
 print(falhas == 0 ? "\nbase visual: tudo certo" : "\nbase visual: \(falhas) falha(s)")
