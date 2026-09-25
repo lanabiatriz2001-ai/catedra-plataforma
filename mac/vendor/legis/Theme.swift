@@ -1,43 +1,5 @@
 import SwiftUI
 
-/// Tema ESPELHADO do Cátedra: os tokens são lidos das variáveis CSS já computadas
-/// do WebView do Cátedra (`--bg`, `--surface`, `--border`, `--ink`, `--accent`,
-/// `--sbg`, `--radius`, `--heroGrad`…) em `main.swift` e injetados aqui. Assim o
-/// CátedraLEGIS herda EXATAMENTE a identidade visual atual do Cátedra (tema/dir/
-/// acento/claro-escuro) — e muda junto quando a Lana troca nos Ajustes do Cátedra.
-struct CatedraTheme {
-    var bg: Color, surface: Color, surface2: Color, border: Color
-    var ink: Color, text2: Color, text3: Color
-    var accent: Color, accentD: Color
-    var radius: CGFloat
-    var sidebarBg: Color, sidebarText: Color, sidebarActiveBg: Color, sidebarActiveText: Color
-    var heroStops: [Color]
-    var isDark: Bool
-    // Semânticos e display espelhados do Cátedra (21/08/2026 — unificação visual)
-    var ok: Color = Color(hex: 0x0E7F58)
-    var warn: Color = Color(hex: 0xA36306)
-    var danger: Color = Color(hex: 0xC0392F)
-    var displaySerif: Bool = true
-    /// Modo "Baixa estimulação" (P16), lido de prefs.baixaEstimulacao do Cátedra pela ponte
-    /// em main.swift. Ligado: a gamificação nativa (ofensiva, sequência, 🎉) some das telas
-    /// e as animações do SwiftUI são desligadas na raiz dos hosts. Os dados não mudam.
-    var baixaEstimulacao: Bool = false
-
-    // Fallback = identidade PLANILHA (a aprovada): a 1ª pintura já nasce com a cara da casa.
-    static let fallback = CatedraTheme(
-        bg: Color(hex: 0xF4F1EA), surface: Color(hex: 0xFFFDF8), surface2: Color(hex: 0xF0ECE1), border: Color(hex: 0xE3DDCE),
-        ink: Color(hex: 0x1F1C17), text2: Color(hex: 0x5C564A), text3: Color(hex: 0x7A7368),
-        accent: Color(hex: 0x0F7A57), accentD: Color(hex: 0x0B5E43), radius: 12,
-        sidebarBg: Color(hex: 0x1E2B3A), sidebarText: Color(hex: 0xB9C3CF),
-        sidebarActiveBg: Color(hex: 0x7FD4B5).opacity(0.18), sidebarActiveText: Color(hex: 0x7FD4B5),
-        heroStops: [Color(hex: 0x1E2B3A), Color(hex: 0x0F7A57)], isDark: false)
-}
-
-/// Estado global do tema (mutável; `main.swift` atualiza antes de montar/rebuild o host).
-enum ThemeState {
-    static var t = CatedraTheme.fallback
-}
-
 extension View {
     /// Baixa estimulação: o conteúdo de .sheet vive num controlador de apresentação à parte
     /// e NÃO herda o .transaction das raízes CatedraLegisRoot/CatedraJurisRoot. Quem anima
@@ -53,9 +15,9 @@ enum AppTheme {
     static var compactRadius: CGFloat { max(6, ThemeState.t.radius - 3) }
     // Três raios, derivados do `--radius` do Cátedra (pente fino 21/08/2026 — Build C):
     // rCard = cartão/linha, rInner = controles e caixas internas, rHero = hero/paleta/vazios.
-    static var rCard: CGFloat  { surfaceRadius }
-    static var rInner: CGFloat { compactRadius }
-    static var rHero: CGFloat  { ThemeState.t.radius + 6 }
+    static var rCard: CGFloat  { DSRaio.card }
+    static var rInner: CGFloat { DSRaio.interno }
+    static var rHero: CGFloat  { DSRaio.hero }
     static let pageInset: CGFloat = 20
     static var pageBackground: Color   { ThemeState.t.bg }
     static var cardBackground: Color   { ThemeState.t.surface }
@@ -69,11 +31,11 @@ enum AppTheme {
     static var danger: Color           { ThemeState.t.danger }
     /// Informativo (azul) — o quarto semântico; e a cor única de "domínio/revisão/SRS"
     /// (antes era `.purple`/`.indigo` solto em cada tela).
-    static let info: Color  = Color(hex: 0x2563EB)
-    static let srs: Color   = Color(hex: 0x7C3AED)
-    /// Fonte de TÍTULO no padrão da casa: serifada quando o tema do Cátedra é serifado.
+    static var info: Color { Color(hex: DSCor.info) }
+    static var srs: Color  { Color(hex: DSCor.srs) }
+    /// Fonte de TÍTULO: a família de display da direção ativa (base visual comum).
     static func displayFont(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        .system(size: size, weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
+        DS.display(size, weight)
     }
     static var surface: Color          { ThemeState.t.surface }
     static var elevatedSurface: Color  { ThemeState.t.surface }
@@ -132,47 +94,32 @@ extension View {
 }
 
 extension LawCategory {
-    /// Linguagem "vitrine": cada matéria tem identidade de COR própria (pedido da
-    /// Lana — o monocromático deixava tudo "sem vida"). Tons vivos, distinguíveis
-    /// e legíveis nos dois temas. "Minhas Normas" segue o acento da plataforma.
-    var color: Color {
+    /// Ramo da tabela única (ios/vendor/design/CoresAcervo.swift). "Minhas Normas" não tem
+    /// ramo: segue o acento da plataforma.
+    var ramo: Ramo? {
         switch self {
-        case .constitucional: return Color(hex: 0x2563EB)   // azul royal
-        case .civil:          return Color(hex: 0x0D9488)   // teal
-        case .penal:          return Color(hex: 0xE11D48)   // rosé
-        case .trabalhista:    return Color(hex: 0xD97706)   // âmbar
-        case .previdenciario: return Color(hex: 0xDB2777)   // rosa
-        case .tributario:     return Color(hex: 0x7C3AED)   // roxo
-        case .empresarial:    return Color(hex: 0x65A30D)   // lima
-        case .administrativo: return Color(hex: 0x4F46E5)   // índigo
-        case .consumidor:     return Color(hex: 0xEA580C)   // laranja
-        case .ambiental:      return Color(hex: 0x16A34A)   // verde
-        case .digital:        return Color(hex: 0xC026D3)   // fúcsia
-        case .internacional:  return Color(hex: 0x0284C7)   // azul-céu (escurecido p/ contraste AA — igual ao CT_CORES_RAMO da web)
-        case .especial:       return Color(hex: 0x64748B)   // grafite
-        case .personalizada:  return ThemeState.t.accent
+        case .constitucional: return .constitucional
+        case .civil:          return .civil
+        case .penal:          return .penal
+        case .trabalhista:    return .trabalho
+        case .previdenciario: return .previdenciario
+        case .tributario:     return .tributario
+        case .empresarial:    return .empresarial
+        case .administrativo: return .administrativo
+        case .consumidor:     return .consumidor
+        case .ambiental:      return .ambiental
+        case .digital:        return .digital
+        case .internacional:  return .internacional
+        case .especial:       return .especial
+        case .personalizada:  return nil
         }
     }
 
+    /// Linguagem "vitrine": cada matéria tem identidade de COR própria.
+    var color: Color { ramo.map { Color(hex: $0.identidade) } ?? ThemeState.t.accent }
+
     /// Segunda parada do gradiente da matéria (tom mais claro/vibrante).
-    var colorLight: Color {
-        switch self {
-        case .constitucional: return Color(hex: 0x38BDF8)
-        case .civil:          return Color(hex: 0x2DD4BF)
-        case .penal:          return Color(hex: 0xFB7185)
-        case .trabalhista:    return Color(hex: 0xFBBF24)
-        case .previdenciario: return Color(hex: 0xF472B6)
-        case .tributario:     return Color(hex: 0xA78BFA)
-        case .empresarial:    return Color(hex: 0xA3E635)
-        case .administrativo: return Color(hex: 0x818CF8)
-        case .consumidor:     return Color(hex: 0xFB923C)
-        case .ambiental:      return Color(hex: 0x4ADE80)
-        case .digital:        return Color(hex: 0xE879F9)
-        case .internacional:  return Color(hex: 0x7DD3FC)
-        case .especial:       return Color(hex: 0x94A3B8)
-        case .personalizada:  return ThemeState.t.accent.opacity(0.75)
-        }
-    }
+    var colorLight: Color { ramo.map { Color(hex: $0.clara) } ?? ThemeState.t.accent.opacity(0.75) }
 
     /// Gradiente pronto da matéria — tiles do Início, faixa da leitura, CTAs.
     var gradStops: [Color] { [color, colorLight] }
@@ -191,15 +138,6 @@ extension Color {
         })
     }
 
-    /// Cor a partir de um inteiro hexadecimal (0xRRGGBB).
-    init(hex: UInt32) {
-        self.init(.sRGB,
-                  red: Double((hex >> 16) & 0xFF) / 255,
-                  green: Double((hex >> 8) & 0xFF) / 255,
-                  blue: Double(hex & 0xFF) / 255,
-                  opacity: 1)
-    }
-
     /// Gradiente diagonal vibrante da própria cor (base → um pouco mais clara),
     /// usado nas faixas de matéria e nos ícones.
     var vibrantGradient: LinearGradient {
@@ -216,28 +154,6 @@ extension Color {
                      opacity: 1)
     }
 
-    /// Cor a partir de um valor CSS ("#rgb", "#rrggbb", "rgb(r,g,b)", "rgba(r,g,b,a)").
-    /// Usado para importar as variáveis já computadas do tema do Cátedra.
-    init?(css raw: String) {
-        var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        if s.isEmpty { return nil }
-        if s.hasPrefix("#") {
-            s.removeFirst()
-            if s.count == 3 { s = s.map { "\($0)\($0)" }.joined() }
-            guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
-            self.init(hex: v); return
-        }
-        if s.hasPrefix("rgb") {
-            guard let open = s.firstIndex(of: "("), let close = s.firstIndex(of: ")") else { return nil }
-            let parts = s[s.index(after: open)..<close].split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-            guard parts.count >= 3, let r = Double(parts[0]), let g = Double(parts[1]), let b = Double(parts[2])
-            else { return nil }
-            let a = parts.count >= 4 ? (Double(parts[3]) ?? 1) : 1
-            self.init(.sRGB, red: r/255, green: g/255, blue: b/255, opacity: a); return
-        }
-        return nil
-    }
 }
 
 /// Faixa colorida de matéria (contexto em caixa alta + título grande em branco)

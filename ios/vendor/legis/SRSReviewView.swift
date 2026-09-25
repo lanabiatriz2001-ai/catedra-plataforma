@@ -143,7 +143,7 @@ struct SRSReviewView: View {
                         subtitle: "Você está em dia! Marque artigos com “Revisão espaçada” no modo Estudo para vê-los aqui quando vencerem.")
             }
         } else if index >= queue.count {
-            allDone(title: ThemeState.t.baixaEstimulacao ? "Revisão concluída" : "Revisão concluída 🎉",
+            allDone(title: "Revisão concluída",
                     subtitle: "\(gradedKeys.count) artigo(s) revisado(s) hoje. Volte amanhã para as próximas revisões.")
         } else {
             card(queue[index])
