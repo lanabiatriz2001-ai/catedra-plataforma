@@ -111,6 +111,19 @@ confere(AlturaGaveta.meia.apos(arrasto: 30) == .meia && AlturaGaveta.meia.apos(a
 confere(AlturaGaveta.meia.fracao(compacto: true) == 1 && AlturaGaveta.meia.fracao(compacto: false) == 0.5
         && AlturaGaveta.fechada.fracao(compacto: false) == 0, "no compacto a gaveta abre em tela cheia")
 
+var modoTeste = ModoLeitor.ler
+let barra = BarraLeitor(ramo: "Constitucional", corRamo: Ramo.constitucional.identidade, titulo: "Constituição Federal",
+                        modo: Binding(get: { modoTeste }, set: { modoTeste = $0 }), aoVoltar: {},
+                        aa: { EmptyView() }, mais: { EmptyView() })
+confere(ModoLeitor.ler.rawValue == "corrido" && ModoLeitor.estudar.rawValue == "estudo"
+        && String(describing: type(of: barra)).hasPrefix("BarraLeitor"),
+        "BarraLeitor existe e o modo usa os mesmos valores de readerMode")
+var alturaTeste = AlturaGaveta.meia, abaTeste = 0
+let gaveta = GavetaContexto(altura: Binding(get: { alturaTeste }, set: { alturaTeste = $0 }),
+                            titulo: "Art. 5º", subtitulo: "3 julgados", abas: ["Jurisprudência", "Remissões"],
+                            aba: Binding(get: { abaTeste }, set: { abaTeste = $0 }), compacto: false) { EmptyView() }
+confere(String(describing: type(of: gaveta)).hasPrefix("GavetaContexto"), "GavetaContexto existe")
+
 // (Tasks 2 e 3 acrescentam blocos aqui, antes do fechamento.)
 
 print(falhas == 0 ? "\nbase visual: tudo certo" : "\nbase visual: \(falhas) falha(s)")
