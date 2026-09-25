@@ -440,7 +440,7 @@ async function roteiroWeb(page, ok, R, origem) {
   const RITO = a0.rito;
   const clicouChip = await clicar(noFrame('areamod', '#fluxo [data-legis]'));
   const a1 = await V(async () => { const vo = window.__vo; await vo.naView('legis'); return { view: vo.app().state.view, de: vo.de() }; });
-  ok(clicouChip && a1.view === 'legis', R + 'RITO o chip ⚖️ do fluxograma abre o LEGIS (view=' + a1.view + ')');
+  ok(clicouChip && a1.view === 'legis', R + 'RITO o chip da lei (ícone scale) do fluxograma abre o LEGIS (view=' + a1.view + ')');
   ok(!!a1.de && a1.de.view === 'areamod' && a1.de.rito === RITO && !a1.de.peca && a1.de.bloco == null && a1.de.rotulo === 'Voltar ao rito',
     R + 'RITO a ida grava a origem {view:areamod, rito, rótulo "Voltar ao rito"} (' + JSON.stringify(a1.de) + ')');
   conferirPilula(ok, R, 'RITO', 'legis', await V(() => window.__vo.pilula('legis')), 'Voltar ao rito');
@@ -1171,7 +1171,7 @@ async function roteiroWeb(page, ok, R, origem) {
   if (o0.erro) ok(false, R + 'MAPA ' + o0.erro);
   else {
     for (const cenario of ['no', 'peca']) {
-      // um nó (ou uma peça) cujo painel tem referência ⚖️; percorre os ritos até achar
+      // um nó (ou uma peça) cujo painel tem referência de lei ([data-legis]); percorre os ritos até achar
       const alvo = await V(async (cenario) => {
         const vo = window.__vo, f = vo.fr('areamod'), W = f.contentWindow, d = f.contentDocument;
         const ORDEM = W.eval('ORDEM'), atual = new URLSearchParams(W.location.search).get('rito');
@@ -1188,7 +1188,7 @@ async function roteiroWeb(page, ok, R, origem) {
         }
         return null;
       }, cenario);
-      if (!alvo) { ok(false, R + 'MAPA ' + cenario + ': nenhum painel do mapa com referência ⚖️ para testar'); continue; }
+      if (!alvo) { ok(false, R + 'MAPA ' + cenario + ': nenhum painel do mapa com referência de lei para testar'); continue; }
       // marca o DOM do mapa e conta as montagens: a volta não pode destruir e remontar
       await V(() => { const W = window.__vo.fr('areamod').contentWindow, d = W.document;
         // o palco e a camada dos nós são do mapa montado (os cartões dentro dela se repintam a

@@ -772,10 +772,19 @@
     + '#catedra-auth-gate .ct-forca i{display:block;height:100%;width:0;border-radius:99px;background:#e0533f;transition:width .2s,background .2s}'
     + '#catedra-auth-gate .ct-ok{color:' + (DARK ? '#7fd4b5' : '#0f7a57') + '}'
     + '#catedra-auth-gate .ct-hero li{display:flex;gap:12px;align-items:flex-start;margin:0 0 14px;font:15px/1.5 ' + SANS + ';opacity:.95}'
-    + '#catedra-auth-gate .ct-hero li b{display:inline-flex;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.14);align-items:center;justify-content:center;flex:none;font-size:14px}'
+    + '#catedra-auth-gate .ct-hero li b{display:inline-flex;width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);align-items:center;justify-content:center;flex:none;color:#fff}'
     + '@keyframes ctspin{to{transform:rotate(360deg)}}'
     + '@media (max-width:760px){#catedra-auth-gate .ct-hero{display:none!important}}'
     + '</style>';
+
+  /* Ícone Lucide por NOME (cópia pequena do padrão do host: o portão abre ANTES do app e fora
+     dele, então não enxerga o sprite do template). SVG 16 px, traço currentColor, aria-hidden. */
+  var ICO = {'scale':'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>',
+    'repeat':'<path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path>',
+    'clipboard-list':'<rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path>',
+    'mail':'<path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect>'};
+  function ico(nome) { return '<svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="' + nome + '" style="flex:none">' + (ICO[nome] || '') + '</svg>'; }
+  var MAGIC = ico('mail') + ' Receber um link de acesso por e-mail';
 
   function hero() {
     return '<div class="ct-hero" style="flex:1.1;min-width:0;background:' + HERO + ';color:#fff;flex-direction:column;justify-content:space-between;padding:clamp(28px,4vw,56px);position:relative;overflow:hidden;' + (window.innerWidth > 760 ? 'display:flex;' : 'display:none;') + '">'
@@ -786,9 +795,9 @@
       + '<div style="font:600 12px ' + SANS + ';letter-spacing:.18em;text-transform:uppercase;opacity:.8;">Sua aprovação, organizada</div>'
       + '<h1 style="font-family:' + SERIF + ';font-size:clamp(30px,3.6vw,46px);font-weight:700;line-height:1.08;margin:14px 0 0;letter-spacing:-.01em;">Estude o que cai, na proporção em que cai.</h1>'
       + '<ul style="list-style:none;padding:0;margin:26px 0 0;">'
-      + '<li><b>⚖️</b><span><strong>Edital verticalizado</strong> com peso por disciplina e o que rende mais pontos.</span></li>'
-      + '<li><b>🔁</b><span><strong>Revisão espaçada</strong> que vence na data certa — e cobra.</span></li>'
-      + '<li><b>📋</b><span><strong>Simulado e 2ª fase</strong> corrigidos pelo espelho oficial da banca.</span></li>'
+      + '<li><b aria-hidden="true">' + ico('scale') + '</b><span><strong>Edital verticalizado</strong> com peso por disciplina e o que rende mais pontos.</span></li>'
+      + '<li><b aria-hidden="true">' + ico('repeat') + '</b><span><strong>Revisão espaçada</strong> que vence na data certa — e cobra.</span></li>'
+      + '<li><b aria-hidden="true">' + ico('clipboard-list') + '</b><span><strong>Simulado e 2ª fase</strong> corrigidos pelo espelho oficial da banca.</span></li>'
       + '</ul></div>'
       + '<div style="font:12.5px ' + SANS + ';opacity:.75;position:relative;">Seus dados ficam só na sua conta · sincronizam entre Mac, iPad e web · backup no iCloud Drive ou Google Drive quando quiser</div>'
       + '</div>';
@@ -863,7 +872,7 @@
       + (login ? '<p id="ctf2" style="font-size:13px;color:' + MUT + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctesq" style="color:' + MUT + ';">Esqueci minha senha</a></p>' : '<p style="font-size:12px;color:' + MUT + ';text-align:center;margin:12px 0 0;line-height:1.5;">Vamos mandar um e-mail de confirmação. Sem ele a conta não abre.' + (WEB ? '' : ' O link abre o site da Cátedra ' + NAVEG + '; depois, volte aqui e entre.') + '</p>')
       + '</form>'
       + (WEB || OAUTH.length ? '<div style="display:flex;align-items:center;gap:12px;margin:20px 0 14px;color:' + MUT + ';font-size:12px;"><span style="flex:1;height:1px;background:' + BRD + ';"></span>ou<span style="flex:1;height:1px;background:' + BRD + ';"></span></div>' : '')
-      + (WEB ? '<button type="button" id="ctmagic" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true">✉️</span> Receber um link de acesso por e-mail</button>' : '')
+      + (WEB ? '<button type="button" id="ctmagic" style="' + GHOST + 'margin-bottom:10px;">' + MAGIC + '</button>' : '')
       + (OAUTH.indexOf('apple') >= 0 ? '<button type="button" data-oauth="apple" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true"></span> Continuar com Apple</button>' : '')
       + (OAUTH.indexOf('google') >= 0 ? '<button type="button" data-oauth="google" style="' + GHOST + 'margin-bottom:10px;"><span aria-hidden="true" style="font-weight:800;color:#4285f4;">G</span> Continuar com Google</button>' : '')
       + '<p style="font-size:11.5px;color:' + MUT + ';text-align:center;margin:18px 0 0;line-height:1.5;">Só você enxerga os seus dados. Backup e exportação ficam em <b>Ajustes › Dados</b>.</p>'
@@ -920,11 +929,11 @@
       bMagic.disabled = true; bMagic.textContent = 'Enviando…';
       sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: mode === 'signup' } })
         .then(function (res) {
-          bMagic.disabled = false; bMagic.innerHTML = '<span aria-hidden="true">✉️</span> Receber um link de acesso por e-mail';
+          bMagic.disabled = false; bMagic.innerHTML = MAGIC;
           if (res.error) { aviso(translateErr(res.error.message)); return; }
           aviso('Link enviado para ' + em + '. Abra o e-mail neste aparelho e toque no link.', true);
         })
-        .catch(function () { bMagic.disabled = false; bMagic.innerHTML = '<span aria-hidden="true">✉️</span> Receber um link de acesso por e-mail'; aviso('Falha de conexão. Tente de novo.'); });
+        .catch(function () { bMagic.disabled = false; bMagic.innerHTML = MAGIC; aviso('Falha de conexão. Tente de novo.'); });
     };
     el.querySelectorAll('[data-oauth]').forEach(function (b) {
       b.onclick = function () {
