@@ -62,9 +62,9 @@ enum Palette {
     // SEMÂNTICOS (verde/âmbar/vermelho) — espelham --ok/--warn/--bad do Cátedra e
     // seguem o claro/escuro espelhado em ThemeState.t.isDark. Antes cada tela cravava
     // "#16A34A"/"#D97706"/"#DC2626" no código e o escuro ficava com verde de tela clara.
-    static var ok: Color   { ThemeState.t.isDark ? Color(hex: "#4ADE80") : Color(hex: "#16A34A") }
-    static var warn: Color { ThemeState.t.isDark ? Color(hex: "#FBBF24") : Color(hex: "#D97706") }
-    static var bad: Color  { ThemeState.t.isDark ? Color(hex: "#F87171") : Color(hex: "#DC2626") }
+    static var ok: Color   { ThemeState.t.ok }
+    static var warn: Color { ThemeState.t.warn }
+    static var bad: Color  { ThemeState.t.danger }
     /// Tinta "forte" dos semânticos (texto sobre fundo lavado).
     static var okInk: Color  { ThemeState.t.isDark ? Color(hex: "#86EFAC") : Color(hex: "#15803D") }
     static var badInk: Color { ThemeState.t.isDark ? Color(hex: "#FCA5A5") : Color(hex: "#B91C1C") }
@@ -72,9 +72,9 @@ enum Palette {
     // RAIOS — três tamanhos, todos derivados do --radius do Cátedra. Antes havia
     // 9/10/11/12/14/16/18 cravados por tela; agora: cartão, interno (chips, campos,
     // blocos dentro de cartão) e hero (destaques grandes).
-    static var rCard: CGFloat  { ThemeState.t.radius }
-    static var rInner: CGFloat { max(6, ThemeState.t.radius - 4) }
-    static var rHero: CGFloat  { ThemeState.t.radius + 4 }
+    static var rCard: CGFloat  { DSRaio.card }
+    static var rInner: CGFloat { DSRaio.interno }
+    static var rHero: CGFloat  { DSRaio.hero }
 
     // Superfícies — tokens do Cátedra
     static var appBackground: Color    { ThemeState.t.bg }
@@ -148,10 +148,8 @@ enum Typo {
         return (f?.isEmpty == false) ? f : nil
     }
     static func serifTitle(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        if let fam = readingFamily { return Font.custom(fam, size: size).weight(weight) }
-        // Unificação (21/08/2026): título segue o display do tema do Cátedra — serifado
-        // no Planilha/Tribunal, sans nos temas frios. Um produto, uma tipografia.
-        return .system(size: size, weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
+        if let fam = readingFamily { return Font.custom(fam, size: max(11, size)).weight(weight) }
+        return DS.display(size, weight)
     }
     static func serifBody(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
         if let fam = readingFamily { return Font.custom(fam, size: size).weight(weight) }
@@ -159,12 +157,12 @@ enum Typo {
     }
     /// Fonte da interface (chrome) — sempre o sistema, para manter a legibilidade.
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .default)
+        DS.interface(size, weight)
     }
     /// Números/KPIs: a fonte da interface com dígitos tabulares — no lugar do
     /// `design: .monospaced` que saía em Menlo no meio de uma tela SF Pro.
     static func num(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        Font.system(size: size, weight: weight, design: .default).monospacedDigit()
+        DS.interface(size, weight).monospacedDigit()
     }
 }
 
