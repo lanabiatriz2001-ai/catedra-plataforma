@@ -1315,6 +1315,11 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     try {
       q = String(q == null ? '' : q);
       var tenta = function (n) {
+        // Id exato de verbete (vem do "Abrir no JURIS" do LEGIS): abre ELE, não busca.
+        // O índice monta depois desta função: até lá (nulo), espera em vez de cair na busca.
+        var tem = (q && window.jurisTemId) ? window.jurisTemId(q) : (q ? null : false);
+        if (tem === null && n > 0) { setTimeout(function () { tenta(n - 1); }, 120); return; }
+        if (tem) { window.jurisAbrirPorId(q); return; }
         var el = document.getElementById('q');
         if (!el) { if (n > 0) setTimeout(function () { tenta(n - 1); }, 120); return; }
         el.value = q;
@@ -2165,6 +2170,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   }
   // Abrir por id, não por posição: a lista exibida segue a ORDEM DE AUTORIDADE, não a do índice.
   window.jurisAbrirPorId=qdAbrir;
+  window.jurisTemId=function(id){ for(var k in byId) return !!byId[id]; return null; };   // null = índice ainda vazio
+  window.jurisVerbeteAberto=function(){ return _jr.classList.contains('on') ? curId : null; };
 
   /* Só objeto vira coluna: um registro gravado com "colunas": "abc" (ou com null no meio)
      pintava uma coluna por LETRA, e c.id de null derrubava o roteiro inteiro. */
