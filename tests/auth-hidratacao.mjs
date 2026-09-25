@@ -57,6 +57,23 @@
        reload (o setDirty(true) avança a geração); (p2) o mesmo com o autosave gravando nos
        700 ms antes do reload do viaPendente: a edição sobe junto.
 
+   O ACEITE QUE SINCRONIZA (25/09/2026). O showAceite gravava o aceite novo SEM carimbo (_kts); na
+   mescla da hidratação o empate dava a vitória à nuvem, o aceite antigo de lá desfazia o vigente
+   recém-dado, e o portão pedia de novo a cada abertura com sessionStorage novo (todo lançamento no
+   Mac/iPad). E depois de um erro de rede na leitura da hidratação o app abria destravado sem pedir
+   o aceite: a pessoa editava, a rede voltava e o pushNow subia tudo sem o aceite vigente.
+   (q) aceitar no portão: o aceite vigente fica no aparelho, sobe e vence o antigo da nuvem; a
+       segunda abertura (sessionStorage novo) NÃO pede de novo;
+   (r) aparelho que aceitou o vigente antes do conserto (SEM carimbo) e nuvem com o antigo — sem
+       carimbo e com carimbo MAIS NOVO: a versão decide, o aparelho não volta ao antigo, nada é
+       pedido e o vigente sobe;
+   (s) erro de rede na leitura da hidratação sem aceite vigente: o app abre e segue usável, as
+       edições marcam sujo, mas NADA sobe ('hidden', pagehide, 'online' e 'visible' com a rede
+       ainda fora); com a rede de volta, a tela de aceite aparece antes de qualquer upsert, e
+       depois do aceite sobem as edições, o merge e o aceite vigente;
+   (s2) a leitura dessa nova tentativa não responde: passado o prazo o app volta usável, a resposta
+       atrasada é descartada e a próxima volta da rede mostra o aceite.
+
    Todo caso confere que a hidratação TERMINOU (hydrated=1 e portão oculto) antes das guardas:
    sem isso, "nenhum upsert" passaria num fluxo que travou antes de chegar lá. */
 
@@ -434,6 +451,150 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
       ok(r.dirty == null && r.status === 'salvo', R + P + ' só depois do envio com o aceite novo: sem sujo e "salvo" (' + r.dirty + ', ' + r.status + ')');
     });
   }
+
+  await casosAceite(caso, ok, R);
+}
+
+/* Os casos do aceite que sincroniza — (q), (r), (s). Ver o cabeçalho. */
+async function casosAceite(caso, ok, R) {
+  const VELHO = JSON.stringify({ versao: '0.9/0.9', ts: 1 });
+  const VIGENTE_OLD = JSON.stringify({ versao: '1.0/1.0', ts: 777 });   // aceito antes do conserto
+  const aceiteDe = u => String(u.aceite || '');
+  const versaoLocal = page => page.evaluate(() => { try { return JSON.parse(localStorage.getItem('catedra:aceite')).versao; } catch (_) { return null; } });
+  const esconder = page => page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }); document.dispatchEvent(new Event('visibilitychange')); });
+  const mostrar = page => page.evaluate(() => { delete document.visibilityState; document.dispatchEvent(new Event('visibilitychange')); });
+  const cegos = f => f.lista.filter(x => x.keepalive && /user_data/.test(x.url)).length;
+  const LINHA_S9 = { data: { data: { 'catedra:sessions': JSON.stringify([S9]) }, updated_at: UPD }, error: null };
+  // o app aberto e usável depois de uma leitura da hidratação que falhou: selo em erro, portão oculto
+  const abertoSemHidratar = h => h.esperar(() => !!window.CatedraSync && /erro|offline/.test(window.CatedraSync.status)
+    && getComputedStyle(document.getElementById('catedra-auth-gate')).display === 'none', 8000);
+  // "segunda abertura": sessionStorage novo e a nuvem com o que o último envio gravou
+  const reabrir = async (page, h) => {
+    await page.evaluate(() => {
+      const ups = window.__ctChamadas().filter(c => c.nome === 'upsert');
+      const u = ups[ups.length - 1];
+      if (u) localStorage.setItem('__ct:select', JSON.stringify({ data: { data: u.arg.data, updated_at: u.arg.updated_at }, error: null }));
+      sessionStorage.clear(); localStorage.setItem('__ct:chamadas', '[]');
+    });
+    await page.reload();
+    // a tela de aceite NÃO pode aparecer; a hidratação termina sozinha
+    const pediu = await h.esperar(() => !!document.querySelector('#ctac'), 2500);
+    return { pediu, hidratou: await h.hidratado() };
+  };
+
+  // (q) aceitar no portão: o vigente fica, sobe e vence o antigo da nuvem; a segunda abertura não pede
+  await caso({
+    nome: '(q)',
+    aceite: true, semHidratar: true,
+    local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:aceite': VELHO },
+    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]), 'catedra:aceite': VELHO }) },
+  }, async (page, h) => {
+    ok(await h.esperar(() => !!document.querySelector('#ctac'), 8000), R + '(q) sem aceite vigente, a tela de aceite apareceu');
+    await page.click('#ctac'); await page.click('#ctacok');
+    ok(await h.hidratado(), R + '(q) depois do aceite a hidratação terminou');
+    await page.waitForTimeout(1500);
+    const r = await h.ler();
+    const v = await versaoLocal(page);
+    ok(v === '1.0/1.0', R + '(q) depois da mescla com a nuvem, o aceite do aparelho continua o vigente (' + v + ')');
+    const kts = await page.evaluate(() => { try { return JSON.parse(localStorage.getItem('catedra:_kts'))['catedra:aceite']; } catch (_) { return null; } });
+    ok(kts > 0, R + '(q) o aceite novo foi gravado com carimbo em catedra:_kts (' + kts + ')');
+    const ult = r.ups[r.ups.length - 1] || {};
+    ok(r.ups.length >= 1 && /"1\.0\/1\.0"/.test(aceiteDe(ult)) && /"s1"/.test(ult.sessions || '') && /"s9"/.test(ult.sessions || ''), R + '(q) o envio pós-reload sobe o aceite vigente junto de s1 e s9 (' + r.ups.map(u => aceiteDe(u).slice(12, 19) || '—').join(' | ') + ')');
+    ok(r.ups.every(u => !/0\.9\/0\.9/.test(aceiteDe(u))), R + '(q) nenhum envio levou o aceite antigo');
+    const seg = await reabrir(page, h);
+    ok(!seg.pediu && seg.hidratou, R + '(q) segunda abertura (sessionStorage novo): NÃO pede o aceite de novo e hidrata (pediu=' + seg.pediu + ')');
+    ok(await versaoLocal(page) === '1.0/1.0', R + '(q) segunda abertura: o aceite do aparelho segue o vigente');
+  });
+
+  // (r) aparelho que aceitou o vigente ANTES do conserto (sem carimbo), nuvem com o antigo
+  for (const [rot, ktsNuvem] of [['sem carimbo', null], ['com carimbo mais novo', { 'catedra:aceite': 9000 }]]) {
+    const nuvem = { 'catedra:sessions': JSON.stringify([S9]), 'catedra:aceite': VELHO };
+    if (ktsNuvem) nuvem['catedra:_kts'] = JSON.stringify(ktsNuvem);
+    await caso({
+      nome: '(r)',
+      aceite: true, semHidratar: true,
+      local: { 'catedra:sessions': JSON.stringify([S9]), 'catedra:aceite': VIGENTE_OLD },
+      ct: { select: linhaCom(nuvem) },
+    }, async (page, h) => {
+      const pediu = await h.esperar(() => !!document.querySelector('#ctac'), 2500);
+      ok(!pediu && await h.hidratado(), R + '(r) ' + rot + ': aceite vigente no aparelho, nada é pedido e a hidratação termina');
+      await page.waitForTimeout(1500);
+      const v = await versaoLocal(page);
+      ok(v === '1.0/1.0', R + '(r) ' + rot + ': o aparelho NÃO volta ao aceite antigo da nuvem (' + v + ')');
+      const r = await h.ler();
+      ok(r.ups.length >= 1 && r.ups.every(u => /"1\.0\/1\.0"/.test(aceiteDe(u))), R + '(r) ' + rot + ': o aceite vigente sobe e substitui o antigo na nuvem (' + r.ups.map(u => aceiteDe(u).slice(12, 19) || '—').join(' | ') + ')');
+      const seg = await reabrir(page, h);
+      ok(!seg.pediu && seg.hidratou && await versaoLocal(page) === '1.0/1.0', R + '(r) ' + rot + ': segunda abertura também não pede (pediu=' + seg.pediu + ')');
+    });
+  }
+
+  // (s) erro de rede na leitura da hidratação, sem aceite vigente: nada sobe até o aceite
+  await caso({
+    nome: '(s)',
+    aceite: true, semHidratar: true, espiarFetch: true,
+    local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:aceite': VELHO },
+    ct: { select: FALHA },
+  }, async (page, h) => {
+    const aberto = () => abertoSemHidratar(h);
+    ok(await aberto(), R + '(s) leitura da hidratação falhou: o app abre (usável offline), selo em erro');
+    // a pessoa estuda sem rede
+    await page.evaluate(() => { const a = JSON.parse(localStorage.getItem('catedra:sessions') || '[]'); a.push({ id: 's2', up: 5000, t: 'sem rede' }); localStorage.setItem('catedra:sessions', JSON.stringify(a)); });
+    await page.waitForTimeout(1300);
+    const r1 = await h.ler();
+    ok(r1.dirty === '1', R + '(s) a edição marca sujo (' + r1.dirty + ')');
+    ok(r1.chamadas.filter(n => n === 'select').length === 1 && r1.ups.length === 0, R + '(s) sem aceite vigente, a edição não dispara envio (' + r1.chamadas.join(',') + ')');
+    await esconder(page); await page.waitForTimeout(300);
+    await page.evaluate(() => window.dispatchEvent(new Event('pagehide'))); await page.waitForTimeout(300);
+    // a rede "volta" mas a leitura ainda falha: refaz a hidratação, que falha e reabre o app
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    ok(await aberto(), R + '(s) nova tentativa que falha: o app volta a ficar usável');
+    await mostrar(page);
+    ok(await aberto(), R + '(s) "visible" com a rede fora: tenta e o app volta a ficar usável');
+    await page.waitForTimeout(800);
+    const r2 = await h.ler(), f2 = await h.fetchs();
+    ok(r2.ups.length === 0 && cegos(f2) === 0, R + '(s) com a rede fora, nada subiu — nem upsert, nem POST keepalive (' + r2.ups.length + ', ' + cegos(f2) + ')');
+    ok(r2.chamadas.filter(n => n === 'select').length >= 2, R + '(s) "online"/"visible" refazem a leitura da hidratação (' + r2.chamadas.filter(n => n === 'select').length + ' select[s])');
+    ok(await page.evaluate(() => /"s2"/.test(localStorage.getItem('catedra:sessions') || '') && sessionStorage.getItem('catedra:hydrated') == null), R + '(s) a edição offline segue no aparelho e nada foi marcado como hidratado');
+    // a rede volta de verdade
+    await page.evaluate(l => { localStorage.setItem('__ct:select', JSON.stringify(l)); window.dispatchEvent(new Event('online')); }, LINHA_S9);
+    const naTela = await h.esperar(() => !!document.querySelector('#ctac'), 8000);
+    const r3 = await h.ler();
+    ok(naTela && r3.ups.length === 0, R + '(s) rede de volta: a tela de aceite aparece ANTES de qualquer upsert (' + naTela + ', ' + r3.ups.length + ')');
+    await page.click('#ctac'); await page.click('#ctacok');
+    ok(await h.hidratado(), R + '(s) depois do aceite a hidratação terminou');
+    await page.waitForTimeout(1500);
+    const r = await h.ler();
+    const ult = r.ups[r.ups.length - 1] || {};
+    ok(r.ups.length >= 1 && /"1\.0\/1\.0"/.test(aceiteDe(ult)) && ['s1', 's2', 's9'].every(id => new RegExp('"' + id + '"').test(ult.sessions || '')), R + '(s) depois do aceite sobem a edição offline (s2), s1, s9 e o aceite vigente (' + r.ups.length + ')');
+    ok(r.ups.every(u => !/0\.9\/0\.9/.test(aceiteDe(u))), R + '(s) nenhum envio levou o aceite antigo');
+    ok(r.dirty == null && r.status === 'salvo', R + '(s) no fim, sem sujo e "salvo" (' + r.dirty + ', ' + r.status + ')');
+  });
+
+  // (s2) a leitura da nova tentativa não responde (portal cativo que segura a conexão): passado o
+  // prazo, o app volta usável — o "Carregando…" não fica sobre o estudo — e a resposta atrasada é
+  // descartada; a pendência se rearma e a próxima volta da rede mostra o aceite
+  await caso({
+    nome: '(s2)',
+    aceite: true, semHidratar: true,
+    local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:aceite': VELHO },
+    ct: { select: FALHA },
+  }, async (page, h) => {
+    ok(await abertoSemHidratar(h), R + '(s2) leitura da hidratação falhou: o app abre');
+    await page.evaluate(l => { localStorage.setItem('__ct:select', JSON.stringify(l)); localStorage.setItem('__ct:selectAtraso', '60000'); window.dispatchEvent(new Event('online')); }, LINHA_S9);
+    const cobriu = await h.esperar(() => getComputedStyle(document.getElementById('catedra-auth-gate')).display !== 'none' && !document.querySelector('#ctac'), 3000);
+    ok(cobriu, R + '(s2) a nova tentativa cobre o app com "Carregando seus dados…" enquanto lê');
+    await page.clock.runFor(16000);
+    ok(await abertoSemHidratar(h), R + '(s2) a leitura não respondeu no prazo: o app volta a ficar usável');
+    await page.clock.runFor(50000);   // a resposta atrasada chega agora
+    await page.waitForTimeout(600);
+    const r1 = await h.ler();
+    const tarde = await page.evaluate(() => ({ tela: !!document.querySelector('#ctac'), hyd: sessionStorage.getItem('catedra:hydrated'),
+      gate: getComputedStyle(document.getElementById('catedra-auth-gate')).display }));
+    ok(!tarde.tela && tarde.hyd == null && tarde.gate === 'none' && r1.ups.length === 0, R + '(s2) a resposta atrasada é descartada: nem tela de aceite, nem hidratação, nem envio (' + JSON.stringify(tarde) + ', ' + r1.ups.length + ')');
+    await page.evaluate(() => { localStorage.removeItem('__ct:selectAtraso'); window.dispatchEvent(new Event('online')); });
+    const naTela = await h.esperar(() => !!document.querySelector('#ctac'), 8000);
+    ok(naTela && (await h.ler()).ups.length === 0, R + '(s2) a pendência se rearmou: com a rede boa, a tela de aceite aparece antes de qualquer envio');
+  });
 }
 
 /* Um caso: contexto e relógio próprios, semente em /__semente, abre a fixture e CONFERE que a
@@ -445,8 +606,9 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
    POST keepalive do flushSync, e o pagehide anota se o aparelho estava sujo.
    `aceite`: a fixture passa a carregar o juridico.js de verdade (injetado pela rota, antes do
    auth.js) — sem ele não há versão vigente e a tela de aceite nunca aparece.
-   `semHidratar`: o próprio corpo conduz (e confere) a hidratação — tela de aceite, erro. */
-async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, formulario, pendente, aceite, semHidratar }, corpo) {
+   `semHidratar`: o próprio corpo conduz (e confere) a hidratação — tela de aceite, erro.
+   `espiarFetch`: o mesmo registro de fetch/pagehide, sem mudar o caminho de entrada. */
+async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, formulario, pendente, aceite, semHidratar, espiarFetch }, corpo) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('ERRO NA PÁGINA (auth-hidratacao):', e.message));
@@ -459,7 +621,7 @@ async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, form
         await rota.fulfill({ response: resp, body: corpoHtml });
       });
     }
-    if (formulario || pendente) {
+    if (formulario || pendente || espiarFetch) {
       await ctx.addInitScript(() => {
         const orig = window.fetch;
         window.fetch = function (u, o) {
