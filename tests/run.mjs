@@ -127,7 +127,22 @@ async function prepararPonteReal(page, view) {
      asserção passava sem que o build da vez tivesse copiado nada — em clone ou worktree
      novo, onde public/ não existe, ela falhava. Apagando, o que sobrar é do build de agora. */
   fs.rmSync(path.join(RAIZ, 'public', 'fonts'), { recursive: true, force: true });
+  /* BUILD LIMPO: public/ sai só com o build da vez. Planta uma página que nenhuma lista cita
+     e um bloco de acervo com hash que não existe no repositório — o retrato das sobras que
+     se acumulavam (248 blocos em public/dados/juris-text contra 62 no repositório). */
+  const orfaoPag = path.join(RAIZ, 'public', 'orfao.html');
+  const orfaoBloco = path.join(RAIZ, 'public', 'dados', 'juris-text', 'zz-00000000.json');
+  const plantarOrfaos = () => {
+    fs.mkdirSync(path.dirname(orfaoBloco), { recursive: true });
+    fs.writeFileSync(orfaoPag, '<!doctype html><p>sobra de build antigo</p>');
+    fs.writeFileSync(orfaoBloco, '{"sobra":true}');
+  };
+  plantarOrfaos();
   const semRede = rodar({ NODE_OPTIONS: '--require ' + stub });
+  /* A limpeza vem ANTES das fontes e da rede: mesmo o build que aborta pelas bibliotecas
+     já não deixa a sobra de pé (e o contrato do D9 abaixo continua igual). */
+  ok(!fs.existsSync(orfaoPag) && !fs.existsSync(orfaoBloco),
+     'BUILD LIMPO public/ é apagada inteira no começo, antes da rede (sobras somem mesmo no build que aborta)');
   /* Sem rede o build ainda para — mas agora por causa das BIBLIOTECAS (react, supabase),
      que continuam sendo vendoradas da internet. O que mudou é que as FONTES saíram dessa
      lista: elas não são mais motivo de aborto. A asserção mira a causa, não o código de
@@ -155,9 +170,50 @@ async function prepararPonteReal(page, view) {
   ok(!/PERMITE_CDN/.test(fnSemComentario), 'D9 as fontes não têm mais saída de emergência para CDN');
   ok(!/fonts\.gstatic|fonts\.googleapis/.test(fnFontes), 'D9 a função de fontes não fala com o Google');
 
+  /* LISTA DE CÓPIA SEM PULO SILENCIOSO. Arquivo citado na lista que não existe derruba o
+     build e é nomeado — antes o laço pulava em silêncio e o deploy saía sem ele. O stub de
+     rede fica ligado de propósito: a conferência vem antes de qualquer rede, então a causa
+     do aborto tem de ser o arquivo (e não o vendor das bibliotecas). */
+  {
+    const alvo = path.join(RAIZ, 'sobre.html'), escondido = alvo + '.ausente-no-teste';
+    fs.renameSync(alvo, escondido);
+    let semArquivo;
+    try { semArquivo = rodar({ NODE_OPTIONS: '--require ' + stub }); }
+    finally { fs.renameSync(escondido, alvo); }
+    ok(semArquivo.code !== 0 && /sobre\.html/.test(semArquivo.saida) && /não existe/.test(semArquivo.saida)
+       && !/vendorar react\.js/.test(semArquivo.saida),
+       'BUILD LIMPO item da lista de cópia ausente derruba o build e diz qual (' + semArquivo.code + ')');
+  }
+
   // build normal: nada de terceiro sobra no HTML publicado
+  plantarOrfaos();
   const normal = rodar({});
   ok(normal.code === 0, 'D9 build com rede passa');
+  ok(!fs.existsSync(orfaoPag) && !fs.existsSync(orfaoBloco),
+     'BUILD LIMPO o build completo não deixa sobra de build anterior em public/');
+  {
+    /* "O resto saiu": public/dados é o espelho exato de dados/ (nem bloco velho, nem bloco
+       faltando), e cada item da lista de cópia chegou. */
+    const arvore = (base) => {
+      const out = [];
+      const andar = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) andar(p); else out.push(path.relative(base, p));
+      } };
+      if (fs.existsSync(base)) andar(base);
+      return out.sort();
+    };
+    const dRepo = arvore(path.join(RAIZ, 'dados')), dPub = arvore(path.join(RAIZ, 'public', 'dados'));
+    ok(dRepo.length > 0 && dRepo.join('\n') === dPub.join('\n'),
+       'BUILD LIMPO public/dados é o espelho exato de dados/ (' + dPub.length + ' de ' + dRepo.length + ' arquivos)');
+    const src = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
+    const m = src.match(/const COPIAR = (\[[^\]]*\]);/);
+    const copiar = m ? JSON.parse(m[1].replace(/'/g, '"')) : [];
+    ok(copiar.length > 20 && copiar.every(f => fs.existsSync(path.join(RAIZ, 'public', f)))
+       && ['index.html', 'sw.js', 'manifest.webmanifest', 'fonts.css', 'vendor/react.js', 'vendor/react-dom.js', 'vendor/supabase.js']
+          .every(f => fs.existsSync(path.join(RAIZ, 'public', f))),
+       'BUILD LIMPO o resto do deploy saiu inteiro (' + copiar.length + ' cópias + index, sw, manifest, fontes e vendor)');
+  }
   const html = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
   const terceiros = (html.match(/(?:src|href)="https:\/\/[^"]*(?:jsdelivr|unpkg|fonts\.googleapis|fonts\.gstatic)[^"]*"/g) || []);
   ok(terceiros.length === 0, 'D9 HTML publicado não carrega nada de CDN nem do Google Fonts');
@@ -166,6 +222,59 @@ async function prepararPonteReal(page, view) {
   ok(/font-display:\s*swap/.test(cssFontes), 'D9 font-display:swap preservado');
   ok(!/fonts\.gstatic\.com/.test(cssFontes), 'D9 o CSS das fontes aponta para arquivos locais');
   ok(fs.readdirSync(path.join(RAIZ, 'public', 'fonts')).length > 10, 'D9 os .woff2 estão no deploy');
+}
+
+/* ============= D9 NATIVO — O BUNDLE DO APP NÃO CAI PARA O CDN ============= */
+// O build-macos.mjs gera o bundle web do .app (Mac e iPad). Sem rede no build ele caía para
+// <script src="https://cdn…"> sem avisar, e o app instalado passava a precisar de internet
+// para abrir. Agora aborta. O bundle de verdade (mac/build/web) é posto de lado e volta no
+// fim: este caso não pode apagar o que o build do app ou a suíte WebKit vão usar.
+{
+  const { execFileSync } = await import('child_process');
+  const stub = path.join(RAIZ, 'tests', 'offline-stub.cjs');
+  const web = path.join(RAIZ, 'mac', 'build', 'web'), guardado = web + '.antes-do-teste-' + process.pid;
+  const tinha = fs.existsSync(web);
+  if (tinha) fs.renameSync(web, guardado);
+  let r, idx = null;
+  try {
+    try {
+      execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build-macos.mjs')],
+        { cwd: RAIZ, env: { ...process.env, NODE_OPTIONS: '--require ' + stub }, stdio: 'pipe' });
+      r = { code: 0, saida: '' };
+    } catch (e) { r = { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') }; }
+    const pIdx = path.join(web, 'index.html');
+    if (fs.existsSync(pIdx)) idx = fs.readFileSync(pIdx, 'utf8');
+  } finally {
+    fs.rmSync(web, { recursive: true, force: true });
+    if (tinha) fs.renameSync(guardado, web);
+  }
+  ok(r.code !== 0 && /BUILD ABORTADO/.test(r.saida) && /vendorar react\.js/.test(r.saida),
+     'D9 NATIVO sem rede o build-macos ABORTA e diz qual biblioteca (' + r.code + ')');
+  // `[^>]*` e não `<script src=`: o prepararAbertura põe `defer` antes do src em toda <script>.
+  ok(!idx || !/<script\b[^>]*\bsrc="https?:\/\//.test(idx),
+     'D9 NATIVO o index.html do bundle nunca carrega <script> de CDN');
+  ok(!tinha || fs.existsSync(path.join(web, 'index.html')), 'D9 NATIVO o bundle anterior volta intacto depois do caso');
+  // Lista de cópia do bundle também não pula em silêncio: um arquivo listado que sumiu do
+  // repositório para o build e é nomeado (antes o bundle saía sem ele e o app quebrava calado).
+  const sobre = path.join(RAIZ, 'sobre.html'), sobreGuardado = sobre + '.teste-' + process.pid;
+  const tinha2 = fs.existsSync(web); if (tinha2) fs.renameSync(web, guardado);
+  let r2;
+  fs.renameSync(sobre, sobreGuardado);
+  try {
+    try {
+      execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build-macos.mjs')], { cwd: RAIZ, stdio: 'pipe' });
+      r2 = { code: 0, saida: '' };
+    } catch (e) { r2 = { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') }; }
+  } finally {
+    fs.renameSync(sobreGuardado, sobre);
+    fs.rmSync(web, { recursive: true, force: true });
+    if (tinha2) fs.renameSync(guardado, web);
+  }
+  ok(r2.code !== 0 && /BUILD ABORTADO: sobre\.html/.test(r2.saida),
+     'D9 NATIVO item da lista de cópia ausente derruba o build-macos e é nomeado (' + r2.code + ')');
+  // o sw.js é obrigatório no build do site: sem ele não haveria PWA nem offline
+  ok(/if \(!existsSync\(join\(ROOT, 'sw\.js'\)\)\) \{ console\.error\('BUILD ABORTADO/.test(fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8')),
+     'BUILD LIMPO sem sw.js o build do site para, em vez de sair sem PWA');
 }
 
 /* ============= U10 — PWA INSTALÁVEL E OFFLINE DE VERDADE ============= */

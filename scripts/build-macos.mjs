@@ -6,9 +6,9 @@
 //   2. NÃO injeta o shim window.claude → /api/complete. No app nativo a IA é
 //      feita pela PONTE NATIVA (o Swift define window.claude e faz o POST via
 //      URLSession — sem esbarrar em CORS de file://). Ver mac/Sources/main.swift.
-//   3. Tenta VENDORAR o supabase-js localmente (web/vendor/supabase.js) para o
-//      app não depender do CDN só para carregar a biblioteca. Se estiver offline
-//      no build, cai no <script> do CDN (o login precisa de internet de todo jeito).
+//   3. VENDORA React, ReactDOM e supabase-js em web/vendor/. Se não conseguir (sem
+//      rede no build, CDN fora), o build ABORTA com código ≠ 0 — nunca cai para o
+//      <script> do CDN, que deixaria o app nativo dependendo de rede para abrir (D9).
 //
 // O Catedra.dc.html permanece intocado — este script só o lê.
 
@@ -48,21 +48,42 @@ mkdirSync(OUT, { recursive: true });
 
 mkdirSync(join(OUT, 'vendor'), { recursive: true });
 
-// Baixa uma lib para web/vendor/<file>; devolve a <script> local, ou (fallback,
-// se estiver offline no build) a <script> do CDN — que ainda funciona online.
-async function vendor(url, file, minLen = 1000) {
-  try {
-    const r = await fetch(url, { redirect: 'follow' });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const js = await r.text();
-    if (!js || js.length < minLen) throw new Error('corpo suspeito');
-    writeFileSync(join(OUT, 'vendor', file), js);
-    console.log('  · ' + file + ' vendorado localmente (' + js.length + ' bytes)');
-    return `<script src="./vendor/${file}"></script>`;
-  } catch (e) {
-    console.log('  · ' + file + ' via CDN (não deu para vendorar: ' + e.message + ')');
-    return `<script src="${url}"></script>`;
+/* Baixa uma lib para web/vendor/<file> e devolve a <script> LOCAL. Falhar ABORTA o build.
+   Antes, sem rede no build, caía para a <script> do CDN sem avisar além de uma linha no
+   log: o bundle empacotado no .app passava a precisar de internet para abrir, o oposto do
+   D9 que o build web (scripts/build.mjs) já cumpre. Aqui não há saída de emergência — o
+   app nativo roda em file:// e é instalado; bundle que depende de CDN não deve existir.
+   Três tentativas, como no build web: rede treme, e abortar por soluço seria pior. */
+async function baixar(url, minLen) {
+  let ultimo;
+  for (let tentativa = 1; tentativa <= 3; tentativa++) {
+    try {
+      const r = await fetch(url, { redirect: 'follow' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const js = await r.text();
+      if (!js || js.length < minLen) throw new Error('corpo suspeito (' + (js ? js.length : 0) + ' bytes)');
+      return js;
+    } catch (e) {
+      ultimo = e;
+      if (tentativa < 3) await new Promise((r) => setTimeout(r, 400 * tentativa));
+    }
   }
+  throw ultimo;
+}
+async function vendor(url, file, minLen = 1000) {
+  let js;
+  try { js = await baixar(url, minLen); }
+  catch (e) {
+    console.error('\n✗ BUILD ABORTADO: não consegui vendorar ' + file + ' para o bundle nativo.');
+    console.error('  fonte: ' + url);
+    console.error('  erro:  ' + (e && e.message ? e.message : e));
+    console.error('\n  Seguir daria um app que precisa de CDN para abrir (e em modo avião não abre).');
+    console.error('  Conserte a rede do build e rode de novo.\n');
+    process.exit(1);
+  }
+  writeFileSync(join(OUT, 'vendor', file), js);
+  console.log('  · ' + file + ' vendorado localmente (' + js.length + ' bytes)');
+  return `<script src="./vendor/${file}"></script>`;
 }
 
 // React deve vir ANTES de ReactDOM (que usa o global React) e ambos ANTES do support.js.
@@ -122,7 +143,9 @@ writeFileSync(join(OUT, 'index.html'), out);
 const FRAMES = new Set(['legis-web.html', 'juris-web.html']);
 const CARIMBO = `<script>window.CATEDRA_API_BASE = ${JSON.stringify(API_BASE)};</script>`;
 for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html']) {
-  if (!existsSync(join(ROOT, f))) continue;
+  // arquivo listado que não existe é lista velha ou arquivo perdido: o bundle sairia sem ele
+  // e o app nativo quebraria calado numa tela — melhor parar aqui dizendo qual
+  if (!existsSync(join(ROOT, f))) { console.error('BUILD ABORTADO: ' + f + ' está na lista de cópia do bundle nativo mas não existe no repositório.'); process.exit(1); }
   if (FRAMES.has(f)) {
     const html = read(f);
     if (!html.includes('<head>')) throw new Error(f + ': sem <head> — o carimbo do API_BASE não teria onde entrar');
