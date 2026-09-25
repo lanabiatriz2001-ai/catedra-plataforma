@@ -461,7 +461,7 @@ final class LibraryStore {
             return mapasFeitos.compactMap { byId[$0] }
         case .central(let c):
             return entries.filter { $0.fonteKind.central == c }
-        case .tribunal, .ramosHub, .ramoDetalhe:
+        case .tribunal, .ramosHub, .ramoDetalhe, .destino, .meuMaterial:
             return []   // páginas-hub próprias
         case .filtro(let f):
             return entriesFiltradas(f)
