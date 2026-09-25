@@ -6917,9 +6917,10 @@ class Component extends DCLogic {
       framesProntos:{},
       atalhosOpen:false,          // U8: modal da tecla ?
       redRascunhoOculto:false,    // U4: a faixa do rascunho da redação, depois de dispensada
-      // 'video' saiu dos formatos; quem tivesse essa preferência salva ficaria numa aba
-      // sem botão para sair dela (o botão não existe mais). Cai para texto.
-      multiFmt:(this._load('multiFmt', 'texto')==='video'?'texto':this._load('multiFmt', 'texto')), mfTtsBusy:false, multiSrc:this._load('multiSrc', ''), mfGen:this._load('mfGen', {}), mfBusy:'', breathOn:false, mood:'',
+      // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
+      // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
+      // mfGen antigo continua guardado, só não é mais lido.
+      multiFmt:(['video','mapa'].indexOf(this._load('multiFmt', 'texto'))>=0?'texto':this._load('multiFmt', 'texto')), mfTtsBusy:false, multiSrc:this._load('multiSrc', ''), mfGen:this._load('mfGen', {}), mfBusy:'', breathOn:false, mood:'',
       orient:{ ...AJ_ORIENT_PADRAO }, orientFlash:false,
       notifOpen:false, userMenuOpen:false,
       notifsRead:this._load('notifsRead', {}),
@@ -14419,7 +14420,6 @@ class Component extends DCLogic {
     const spec={
       texto:'Reescreva o material como um RESUMO em texto corrido, didático e fiel ao conteúdo, em 3 a 6 parágrafos. Formato do JSON: {"paras":["parágrafo 1","parágrafo 2"]}',
       audio:'Escreva um ROTEIRO DE NARRAÇÃO em áudio (locução natural e contínua), com cerca de 120 a 160 palavras, fiel ao material. Formato do JSON: {"preview":"texto corrido da narração"}',
-        mapa:'Crie um MAPA MENTAL do material: de 4 a 6 nós, cada um com um título curto e uma explicação de uma frase. Formato do JSON: {"nodes":[{"title":"título do nó","text":"explicação"}]}',
       cards:'Crie de 4 a 8 FLASHCARDS (frente/verso) cobrindo os pontos-chave do material. Formato do JSON: {"cards":[{"front":"pergunta","back":"resposta"}]}'
     }[fmt];
     const prompt='Você é um gerador de conteúdo de estudo para concursos. A partir do MATERIAL abaixo, '+spec+'. Responda SOMENTE com JSON válido em português do Brasil, sem nenhum texto fora do JSON.\nMATERIAL:\n"""\n'+base+'\n"""';
@@ -16006,7 +16006,6 @@ class Component extends DCLogic {
     const mfFonte=_mfItem?_mfItem.titulo:'—';
     const mfDisc=_mfItem?_mfItem.disc:'';
     const mfSrcOpts=_mfBib.filter(b=>Array.isArray(b.content)&&b.content.length).map(b=>({id:b.id, titulo:b.titulo, sel:b.id===_mfId}));
-    const _mfPal=['#2563eb','#a855f7','#0d9488','#d6457f','#b08433','#dc2626'];
     const mfShort=(mfFonte||'').length>26?mfFonte.slice(0,26)+'…':mfFonte;
     const mfHasMaterial=!!(_mfItem&&Array.isArray(_mfItem.content)&&_mfItem.content.length);
     const _mfKey=((_mfItem&&_mfItem.id)||'')+':'+_mfFmt;   // id RESOLVIDO — igual ao genMulti (fonte apagada não desalinha)
@@ -16014,7 +16013,7 @@ class Component extends DCLogic {
     const mfHasGen=!!_mfGen;
     const mfNoGen=!_mfGen;
     const mfBusyNow=!!this.state.mfBusy;   // qualquer geração em curso desabilita (evita clique mudo)
-    const _mfFmtNames={texto:'Resumo em texto',audio:'Narração em áudio',mapa:'Mapa mental',cards:'Flashcards'};
+    const _mfFmtNames={texto:'Resumo em texto',audio:'Narração em áudio',cards:'Flashcards'};
     const mfFmtLabel=_mfFmtNames[_mfFmt]||'conteúdo';
     const mfGenLabel=mfBusyNow?'Gerando com IA…':'Gerar com IA ✦';
     const multiFmtKey=_mfFmt;
@@ -16022,13 +16021,12 @@ class Component extends DCLogic {
     // conteúdo derivado apenas do que a IA gerou
     const mfTextoParas=(_mfGen&&Array.isArray(_mfGen.paras))?_mfGen.paras.map(String):[];
     const mfAudioPreview=(_mfGen&&_mfGen.preview)?String(_mfGen.preview):'';
-    const mfNodes=(_mfGen&&Array.isArray(_mfGen.nodes))?_mfGen.nodes.slice(0,6).map((n,i)=>({title:String(n.title||''), text:String(n.text||''), style:'border:1px solid color-mix(in oklab, '+_mfPal[i%_mfPal.length]+' 38%, var(--border));border-radius:var(--radius);padding:12px 14px;background-image:linear-gradient(90deg,color-mix(in oklab, '+_mfPal[i%_mfPal.length]+' 19%, transparent),transparent 46%);'})):[];
     const _mfChaps=(_mfGen&&Array.isArray(_mfGen.chapters))?_mfGen.chapters.slice(0,6):[];
     const mfChapters=_mfChaps.map((t,i)=>({n:i+1, title:String(t), style:`font-size:var(--fs-sm);font-weight:${i===0?700:600};color:${i===0?'#fff':(i<2?'var(--accentD)':'var(--text3)')};background:${i===0?'var(--accent)':(i<2?'var(--accentSoft)':'var(--surface2)')};border-radius:var(--r-md);padding:6px 11px;flex:none;white-space:nowrap;`}));
     const mfVideoTitle=(_mfGen&&_mfGen.title)?String(_mfGen.title):mfFonte;
     const mfCards=(_mfGen&&Array.isArray(_mfGen.cards))?_mfGen.cards.map(c=>({front:String(c.front||''), back:String(c.back||'')})):[];
     const mfCardsCount=String(mfCards.length);
-    const fmtTextoShow=_mfFmt==='texto'&&mfHasGen, fmtAudioShow=_mfFmt==='audio'&&mfHasGen, fmtVideoShow=_mfFmt==='video'&&mfHasGen, fmtMapaShow=_mfFmt==='mapa'&&mfHasGen, fmtCardsShow=_mfFmt==='cards'&&mfHasGen;
+    const fmtTextoShow=_mfFmt==='texto'&&mfHasGen, fmtAudioShow=_mfFmt==='audio'&&mfHasGen, fmtVideoShow=_mfFmt==='video'&&mfHasGen, fmtCardsShow=_mfFmt==='cards'&&mfHasGen;
 
     const timerPillStyle = `display:flex;align-items:center;gap:4px;border-radius:99px;padding:5px 6px 5px 12px;font-family:var(--mono);`+
       `border:1px solid ${this.state.timerRunning?phaseColor:'var(--border)'};`+
@@ -18583,12 +18581,12 @@ class Component extends DCLogic {
       mfTtsLabel:(this.state.mfTtsBusy?'Gerando a voz…':'Ouvir a narração'),
       mfTtsHint:(this.state.mfTtsBusy?'a primeira vez leva alguns segundos':'voz do Google · gerada na hora'),
       mfTtsBtnStyle:'display:inline-flex;align-items:center;gap:7px;background:'+(this.state.mfTtsBusy?'var(--surface2)':'var(--accent)')+';color:'+(this.state.mfTtsBusy?'var(--text3)':'var(--onAccent)')+';border:none;border-radius:var(--r-md);padding:9px 15px;font-size:var(--fs-base);font-weight:600;cursor:'+(this.state.mfTtsBusy?'default':'pointer')+';font-family:inherit;',
-      isFmtTexto:_mf==='texto', isFmtAudio:_mf==='audio', isFmtVideo:_mf==='video', isFmtMapa:_mf==='mapa', isFmtCards:_mf==='cards',
-      fmtTextoShow, fmtAudioShow, fmtVideoShow, fmtMapaShow, fmtCardsShow,
+      isFmtTexto:_mf==='texto', isFmtAudio:_mf==='audio', isFmtVideo:_mf==='video', isFmtCards:_mf==='cards',
+      fmtTextoShow, fmtAudioShow, fmtVideoShow, fmtCardsShow,
       mfHasGen, mfNoGen, mfBusyNow, mfHasMaterial, mfGenLabel, mfFmtLabel, multiFmtKey, mfGenBtnStyle, genMulti:this.genMulti,
       mfFonte, mfDisc, mfSrcOpts, mfTextoParas, setMultiSrc:this.setMultiSrc,
-      mfShort, mfAudioPreview, mfNodes, mfChapters, mfVideoTitle, mfCards, mfCardsCount, addMfCards:this.addMfCards,
-      fmtTextoBtn:fmtBtn('texto'), fmtAudioBtn:fmtBtn('audio'), fmtMapaBtn:fmtBtn('mapa'), fmtCardsBtn:fmtBtn('cards'),
+      mfShort, mfAudioPreview, mfChapters, mfVideoTitle, mfCards, mfCardsCount, addMfCards:this.addMfCards,
+      fmtTextoBtn:fmtBtn('texto'), fmtAudioBtn:fmtBtn('audio'), fmtCardsBtn:fmtBtn('cards'),
       // bem-estar
       isBem:this.state.view==='bemestar', navBem:navStyle('bemestar'),
       habCards, habDoneN, habTotalN, habInc:this.habInc, habDec:this.habDec,

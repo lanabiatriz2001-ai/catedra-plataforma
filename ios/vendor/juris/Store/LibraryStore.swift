@@ -87,8 +87,8 @@ final class LibraryStore {
     var alinhamentos: [String: String] = [:] { didSet { persist() } }     // alinhamento do enunciado por verbete
     var textosEditados: [String: String] = [:] { didSet { persist() } }   // enunciado editado pelo usuário
     var srs: [String: JurisSRSCard] = [:] { didSet { persist() } }             // baralho de revisão espaçada (id do verbete)
-    var mapasFeitos: [String] = [] { didSet { persist() } }               // verbetes com mapa mental feito (galeria)
-    private var mapasSeeded = false                                       // seed único da galeria (recuperação)
+    /// Campos da galeria de mapas (saiu em 25/09/2026): lidos do disco só para voltarem a ele.
+    private var legadoGaleria = JurisEstadoPersistido.LegadoGaleria()
     var tribunaisCustom: [TribunalCustom] = [] { didSet { persist() } }   // centrais de tribunal cadastradas
     var readingChecklist: [ReadingChecklistItem] = [] { didSet { persist() } }  // checklist de leitura PRÓPRIA do JURIS (não compartilhada com o LEGIS)
     private(set) var recents: [String] = []
@@ -243,7 +243,7 @@ final class LibraryStore {
         self.isLoading = false
     }
 
-    /// Notas de estudo ORIGINAIS (não oficiais) — esquema/mapa mental a partir do texto público.
+    /// Notas de estudo ORIGINAIS (não oficiais) — esquema a partir do texto público.
     private(set) var notasApp: [String: NotaEstudo] = [:]
     func notaApp(for id: String) -> NotaEstudo? { notasApp[id] }
     /// Lê notas.json (2,5 MB) — chamado fora da main, dentro do `load`.
@@ -457,8 +457,6 @@ final class LibraryStore {
         case .colecao(let id):
             guard let c = colecoes.first(where: { $0.id == id }) else { return [] }
             return c.ids.compactMap { byId[$0] }
-        case .mapas:
-            return mapasFeitos.compactMap { byId[$0] }
         case .central(let c):
             return entries.filter { $0.fonteKind.central == c }
         case .tribunal, .ramosHub, .ramoDetalhe, .destino, .meuMaterial:
@@ -1094,17 +1092,6 @@ final class LibraryStore {
 
     var recentEntries: [JurisEntry] { recents.compactMap { byId[$0] } }
 
-    /// Registra um mapa mental feito (abre a galeria "Mapas mentais").
-    func registrarMapa(_ id: String) {
-        mapasFeitos.removeAll { $0 == id }
-        mapasFeitos.insert(id, at: 0)
-        if mapasFeitos.count > 500 { mapasFeitos = Array(mapasFeitos.prefix(500)) }
-    }
-
-    func removerMapa(_ id: String) { mapasFeitos.removeAll { $0 == id } }
-
-    var mapasEntries: [JurisEntry] { mapasFeitos.compactMap { byId[$0] } }
-
     /// Maior número conhecido de informativo por tribunal (para a atualização online).
     /// Usa um teto plausível por tribunal para ignorar números contaminados
     /// (ex.: verbete marcado STJ mas com nº de Informativo do STF).
@@ -1125,28 +1112,8 @@ final class LibraryStore {
 
     // MARK: - Persistência
 
-    private struct Persisted: Codable {
-        var favorites: [String]
-        var recents: [String]
-        var importantes: [String]?
-        var annotations: [String: String]?     // legado (texto simples)
-        var richNotes: [String: Data]?
-        var marks: [String: [TextMark]]?
-        var colecoes: [Colecao]?
-        var lidos: [String]?
-        var dominados: [String]?
-        var afirmacoesFalsas: [String: String]?
-        var metaDiaria: Int?
-        var leiturasPorDia: [String: Int]?
-        var coresFavoritas: [String]?
-        var alinhamentos: [String: String]?
-        var textosEditados: [String: String]?
-        var srs: [String: JurisSRSCard]?
-        var mapasFeitos: [String]?
-        var mapasSeeded: Bool?
-        var tribunaisCustom: [TribunalCustom]?
-        var readingChecklist: [ReadingChecklistItem]?
-    }
+    /// O formato do disco vive em JurisEstadoPersistido.swift (compilável sozinho no teste).
+    private typealias Persisted = JurisEstadoPersistido
 
     /// Mantém acessível o estudo feito em registros editoriais retirados da base.
     /// A chave antiga permanece no estado como cópia de segurança; o destino só
@@ -1177,7 +1144,6 @@ final class LibraryStore {
             if s.importantes != nil { soma(&s.importantes!, de: antigo, para: novo) }
             if s.lidos != nil { soma(&s.lidos!, de: antigo, para: novo) }
             if s.dominados != nil { soma(&s.dominados!, de: antigo, para: novo) }
-            if s.mapasFeitos != nil { soma(&s.mapasFeitos!, de: antigo, para: novo) }
             copia(&s.annotations, de: antigo, para: novo)
             copia(&s.richNotes, de: antigo, para: novo)
             copia(&s.marks, de: antigo, para: novo)
@@ -1212,19 +1178,9 @@ final class LibraryStore {
         alinhamentos = s.alinhamentos ?? [:]
         textosEditados = s.textosEditados ?? [:]
         srs = s.srs ?? [:]
-        mapasFeitos = s.mapasFeitos ?? []
-        mapasSeeded = s.mapasSeeded ?? false
+        legadoGaleria = Persisted.LegadoGaleria(de: s)
         tribunaisCustom = s.tribunaisCustom ?? []
         readingChecklist = s.readingChecklist ?? []
-        // RECUPERAÇÃO (uma vez): os mapas mentais nunca foram registrados como
-        // objetos — mas são derivados do verbete, então regeneram idênticos.
-        // Semeia a galeria com a atividade (recentes + lidos), de onde os mapas
-        // feitos vieram; daí em diante todo mapa aberto é registrado.
-        if !mapasSeeded && mapasFeitos.isEmpty {
-            var vistos = Set<String>()
-            mapasFeitos = (s.recents + (s.lidos ?? [])).filter { vistos.insert($0).inserted }
-            mapasSeeded = true
-        }
         // migra notas antigas em texto simples -> RTF
         if let legado = s.annotations {
             for (id, texto) in legado where richNotes[id] == nil {
@@ -1286,7 +1242,7 @@ final class LibraryStore {
 
     private func persistAgora() {
         persistPendente = false
-        let s = Persisted(favorites: Array(favorites), recents: recents,
+        var s = Persisted(favorites: Array(favorites), recents: recents,
                           importantes: Array(marcadosImportantes),
                           annotations: nil,
                           richNotes: richNotes, marks: marks,
@@ -1295,8 +1251,8 @@ final class LibraryStore {
                           metaDiaria: metaDiaria, leiturasPorDia: leiturasPorDia,
                           coresFavoritas: coresFavoritas, alinhamentos: alinhamentos,
                           textosEditados: textosEditados, srs: srs,
-                          mapasFeitos: mapasFeitos, mapasSeeded: mapasSeeded,
                           tribunaisCustom: tribunaisCustom, readingChecklist: readingChecklist)
+        legadoGaleria.aplicar(em: &s)
         guard let data = try? JSONEncoder().encode(s) else { return }
         try? data.write(to: stateURL, options: .atomic)
         syncKVS(s)
@@ -1318,7 +1274,7 @@ final class LibraryStore {
     /// Exporta todos os dados pessoais para um arquivo (backup).
     func exportarBackup() -> Data? {
         flushPersist()
-        let s = Persisted(favorites: Array(favorites), recents: recents,
+        var s = Persisted(favorites: Array(favorites), recents: recents,
                           importantes: Array(marcadosImportantes), annotations: nil,
                           richNotes: richNotes, marks: marks,
                           colecoes: colecoes, lidos: Array(lidos), dominados: Array(dominados),
@@ -1326,8 +1282,8 @@ final class LibraryStore {
                           metaDiaria: metaDiaria, leiturasPorDia: leiturasPorDia,
                           coresFavoritas: coresFavoritas, alinhamentos: alinhamentos,
                           textosEditados: textosEditados, srs: srs,
-                          mapasFeitos: mapasFeitos, mapasSeeded: mapasSeeded,
                           tribunaisCustom: tribunaisCustom, readingChecklist: readingChecklist)
+        legadoGaleria.aplicar(em: &s)
         return try? JSONEncoder().encode(s)
     }
 

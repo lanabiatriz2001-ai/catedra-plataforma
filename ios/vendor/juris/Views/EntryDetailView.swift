@@ -19,7 +19,6 @@ struct EntryDetailView: View {
     @State private var mostrarAnki = false
     @State private var mostrarComparador = false
     @State private var mostrarLinhaTempo = false
-    @State private var mostrarMapa = false
     @State private var mostrarRevisao = false
     @State private var notaEmTexto = false   // alterna a nota entre esquema e prosa
     @State private var editandoEnunciado = false
@@ -166,7 +165,6 @@ struct EntryDetailView: View {
             // depois de a pilha assentar (apresentar durante o push é ignorado).
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                 switch JurisEnsaio.folha {
-                case "mapa": mostrarMapa = true
                 case "revisao": mostrarRevisao = true
                 case "colecao": mostrarNovaColecao = true
                 case "comentario": editingMarkComment = EditingMarkComment(markID: nil, range: NSRange(location: 0, length: 12), text: "")
@@ -201,7 +199,6 @@ struct EntryDetailView: View {
         }
         .sheet(isPresented: $mostrarComparador) { ComparadorView(entry: entry) }
         .sheet(isPresented: $mostrarLinhaTempo) { LinhaTempoView(entry: entry) }
-        .sheet(isPresented: $mostrarMapa) { MapaMentalSheet(entry: entry) }
         .sheet(isPresented: $mostrarRevisao) { RevisaoEspacadaView(escopo: [entry.id]) }
         .sheet(item: $editingMarkComment) { ec in
             MarkCommentEditorSheet(initial: ec.text, isEditing: ec.markID != nil,
@@ -306,7 +303,7 @@ struct EntryDetailView: View {
         .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.3), radius: 16, y: 8)
     }
 
-    /// Nota de estudo ORIGINAL (não oficial) — esquema/mapa mental do que a corte quis dizer.
+    /// Nota de estudo ORIGINAL (não oficial) — esquema do que a corte quis dizer.
     @ViewBuilder private var notaAppCard: some View {
         if let nota = store.notaApp(for: entry.id) {
             // mostra prosa se a usuária alternou E há texto; senão, o esquema (se houver)
@@ -1358,11 +1355,10 @@ struct EntryDetailView: View {
             // ── Ferramentas: analisar com IA / compartilhar ──
             Menu {
                 Button { mostrarComparador = true } label: { Label("Comparar STF × STJ (com IA)", systemImage: "sparkles") }
-                Button { mostrarMapa = true } label: { Label("Mapa mental / fluxograma…", systemImage: "brain.head.profile") }
                 Button { mostrarLinhaTempo = true } label: { Label("Linha do tempo do tema", systemImage: "clock.arrow.circlepath") }
             } label: { capsIcon("rectangle.split.2x1", chevron: true) }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Comparar STF × STJ (com IA), mapa mental e linha do tempo")
+            .help("Comparar STF × STJ (com IA) e linha do tempo")
 
             Menu {
                 Button { copiar(entry.enunciado) } label: { Label("Copiar enunciado", systemImage: "doc.on.doc") }
@@ -1445,7 +1441,6 @@ struct EntryDetailView: View {
             }
             Section("Ferramentas") {
                 Button { mostrarComparador = true } label: { Label("Comparar STF × STJ (com IA)", systemImage: "sparkles") }
-                Button { mostrarMapa = true } label: { Label("Mapa mental / fluxograma…", systemImage: "brain.head.profile") }
                 Button { mostrarLinhaTempo = true } label: { Label("Linha do tempo do tema", systemImage: "clock.arrow.circlepath") }
             }
             Section("Compartilhar") {

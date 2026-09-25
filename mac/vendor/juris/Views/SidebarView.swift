@@ -94,7 +94,7 @@ struct JurisSidebar: View {
                     row(.destino(.treinar), Destino.treinar.titulo, Destino.treinar.simbolo)
                     row(.novidades, Destino.novidades.titulo, Destino.novidades.simbolo, ponto: store.novidadesNaoVistas > 0)
                     secao("MEU MATERIAL")
-                    row(.meuMaterial, "Anotações, mapas e apoio", "folder")
+                    row(.meuMaterial, "Anotações e apoio", "folder")
                 }
                 .padding(.horizontal, 8).padding(.bottom, 14)
             }

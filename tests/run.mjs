@@ -49,6 +49,7 @@ import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
+import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
@@ -9079,6 +9080,14 @@ try { testarSemDodEstatico(ok, { motor }); }
 catch (e) { ok(false, 'SEM DOD [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 try { await testarSemDodNavegador(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) { ok(false, 'SEM DOD [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+
+// Sem mapas mentais (tests/sem-mapas-mentais.mjs): decisão da dona de 25/09/2026. Nenhum Swift do
+// Mac/iPad com a ferramenta, a folha, a galeria ou a seção; o state.json antigo do JURIS abre e
+// devolve os campos da galeria iguais (Swift, no Mac); na web, o formato "mapa" da IA saiu.
+try { testarSemMapasMentaisEstatico(ok, { motor }); }
+catch (e) { ok(false, 'SEM MAPAS MENTAIS [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+try { await testarSemMapasMentaisNavegador(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) { ok(false, 'SEM MAPAS MENTAIS [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 // JURIS: o quadro "Não confunda com" no lugar da lista de Relacionados (tests/juris-quadro.mjs).
 // Roteiro em módulo próprio porque o caso precisa de RELOAD com semente — o mapa ROT do
