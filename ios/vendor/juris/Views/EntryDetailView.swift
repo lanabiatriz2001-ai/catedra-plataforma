@@ -44,6 +44,8 @@ struct EntryDetailView: View {
     @State private var gaveta: AlturaGaveta = .fechada
     @State private var abaGaveta = 0
     @State private var mostrarSecundario = false
+    @State private var artigosDoVerbete: [ArtigoCitado] = []
+    @State private var relacionadosCache: [JurisEntry]?
 
     private var ehCompactoOuFalso: Bool { ehCompacto }
     private var baseSize: CGFloat { 16.5 * readingScale }
@@ -91,6 +93,16 @@ struct EntryDetailView: View {
                                compacto: ehCompactoOuFalso) { conteudoGavetaVerbete }
             }
         }
+        // Artigos citados: uma vez por verbete (não a cada redesenho). Relacionados: só quando
+        // a aba abre, fora da main (varre o acervo inteiro).
+        .task(id: entry.id) { artigosDoVerbete = JurisPorArtigo.artigosCitados(verbeteID: entry.id); relacionadosCache = nil }
+        .task(id: "\(entry.id)|\(abaGaveta)|\(gaveta != .fechada)") {
+            guard abaGaveta == 1, gaveta != .fechada, relacionadosCache == nil,
+                  let acervo = store.acervoParaQuadro() else { return }
+            let e = entry
+            let r = await Task.detached(priority: .userInitiated) { acervo.relacionados(e, limite: 12) }.value
+            relacionadosCache = r
+        }
         .sheet(isPresented: $mostrarSecundario) {
             ScrollView {
                 VStack(alignment: .leading, spacing: DSEspaco.e4) {
@@ -106,7 +118,7 @@ struct EntryDetailView: View {
                 }
                 .padding(DSEspaco.e5)
             }
-            .frame(minWidth: 420, minHeight: 320)
+            .frame(minWidth: ehCompactoOuFalso ? nil : 420, minHeight: 320)
         }
         .navigationTitle(entry.titulo)
         // iPad: a nav bar do NavigationStack repetia o título em letras grandes entre a barra
@@ -132,8 +144,10 @@ struct EntryDetailView: View {
         // do verbete viram uma barra própria acima do conteúdo (estilo Books).
         // iPhone: a mesma barra vai para baixo, rolável de lado — todas as ações à mão,
         // nenhuma escondida, e só a nav bar acima do texto.
+        // iPhone também tem a barra (Ler/Estudar + ⋯): sem ela o compacto ficava preso em Ler
+        // e o roteiro, as anotações e o comentário não tinham caminho (revisão final).
         .safeAreaInset(edge: .top, spacing: 0) {
-            if !ehCompacto {
+            Group {
                 BarraLeitor(ramo: [entry.tribunal, entry.ramoDireito ?? ""].filter { !$0.isEmpty }.joined(separator: " · "),
                         corRamo: CorTribunal.identidade(entry.tribunal) ?? Ramo.deNome(entry.ramoDireito)?.identidade,
                         titulo: entry.titulo, modo: $modoVerbete, aoVoltar: nil,
@@ -1436,8 +1450,16 @@ struct EntryDetailView: View {
         .menuIndicator(.hidden).fixedSize()
     }
 
+    /// "2" → "Art. 2º" (ordinal até o 9º, como a lei escreve); "10" → "Art. 10"; "5-A" → "Art. 5º-A".
+    private func rotuloArtigo(_ a: String) -> String {
+        let partes = a.split(separator: "-", maxSplits: 1).map(String.init)
+        guard let n = Int(partes.first ?? "") else { return "Art. \(a)" }
+        let base = n <= 9 ? "\(n)º" : "\(n)"
+        return "Art. " + base + (partes.count > 1 ? "-\(partes[1])" : "")
+    }
+
     private var ligacoesVerbete: some View {
-        let n = JurisPorArtigo.artigosCitados(verbeteID: entry.id).count
+        let n = artigosDoVerbete.count
         return HStack(spacing: DSEspaco.e3) {
             Button { abaGaveta = 0; gaveta = .meia } label: {
                 Label(n == 0 ? "Artigos citados" : "Artigos citados · \(n)", systemImage: "book.closed")
@@ -1454,7 +1476,7 @@ struct EntryDetailView: View {
     @ViewBuilder
     private var conteudoGavetaVerbete: some View {
         if abaGaveta == 0 {
-            let arts = JurisPorArtigo.artigosCitados(verbeteID: entry.id)
+            let arts = artigosDoVerbete
             VStack(alignment: .leading, spacing: DSEspaco.e2) {
                 if arts.isEmpty {
                     Text("Nenhum artigo de lei do catálogo é citado por este verbete.")
@@ -1463,7 +1485,7 @@ struct EntryDetailView: View {
                 ForEach(arts, id: \.self) { a in
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Art. \(a.artigo)").font(DS.display(17, .bold)).foregroundStyle(ThemeState.t.ink)
+                            Text(rotuloArtigo(a.artigo)).font(DS.display(17, .bold)).foregroundStyle(ThemeState.t.ink)
                             Text(a.diploma).font(DS.interface(13)).foregroundStyle(ThemeState.t.text2)
                         }
                         Spacer()
@@ -1475,9 +1497,10 @@ struct EntryDetailView: View {
                 }
             }
         } else {
-            let rel = store.acervoParaQuadro()?.relacionados(entry, limite: 12) ?? []
+            let rel = relacionadosCache ?? []
+            if relacionadosCache == nil { ProgressView().frame(maxWidth: .infinity) }
             VStack(alignment: .leading, spacing: DSEspaco.e2) {
-                if rel.isEmpty {
+                if relacionadosCache != nil && rel.isEmpty {
                     Text("Nenhum julgado relacionado no acervo.").font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
                 }
                 ForEach(rel) { r in

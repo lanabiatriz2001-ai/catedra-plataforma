@@ -340,12 +340,20 @@ struct ContentView: View {
 
     /// Abre a norma no artigo pedido pelo JURIS (modo Estudar, que já posiciona um artigo).
     private func consumirPedidoLegis() {
-        guard let p = JurisPorArtigo.pedidoLegis,
-              let law = JurisPorArtigo.lei(doDiploma: p.diploma, em: store.laws) else { return }
+        guard let p = JurisPorArtigo.pedidoLegis else { return }
+        if Date().timeIntervalSince(JurisPorArtigo.pedidoEm ?? .distantPast) > 30 {
+            JurisPorArtigo.pedidoLegis = nil; return            // velho demais: descarta
+        }
+        guard let law = JurisPorArtigo.lei(doDiploma: p.diploma, em: store.laws) else {
+            // Catálogo ainda carregando: tenta de novo quando as leis chegarem (onChange).
+            // Carregado e a norma não está nele: descarta, sem prender o pedido.
+            if !store.laws.isEmpty { JurisPorArtigo.pedidoLegis = nil }
+            return
+        }
         JurisPorArtigo.pedidoLegis = nil
         if let idx = store.articleUnitID(lawID: law.id, number: p.artigo) { store.setLastUnit(law.id, idx) }
-        UserDefaults.standard.set("estudo", forKey: "readerMode")
-        path = [.reader(law.id)]
+        JurisPorArtigo.modoUmaVez = "estudo"
+        if path.last != .reader(law.id) { path.append(.reader(law.id)) }
     }
 
     var body: some View {
@@ -364,6 +372,7 @@ struct ContentView: View {
         // pedido fica pendente até o LEGIS montar — por isso também no onAppear.
         .onReceive(NotificationCenter.default.publisher(for: JurisPorArtigo.notificacaoAbrirLegis)) { _ in consumirPedidoLegis() }
         .onAppear { consumirPedidoLegis() }
+        .onChange(of: store.laws.count) { _, _ in consumirPedidoLegis() }
         .onReceive(NotificationCenter.default.publisher(for: AcervoEntrada.notificacaoBuscar)) { n in
             guard let t = n.userInfo?["termo"] as? String, !t.isEmpty else { return }
             path = [.section(.globalSearch)]
