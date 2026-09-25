@@ -220,6 +220,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
 
     func applicationDidFinishLaunching(_ n: Notification) {
         DSFontes.registrar()       // fontes da casa (web/fonts) para o LEGIS/JURIS nativos
+        // Gaveta do leitor do LEGIS: texto OFICIAL do verbete lido do acervo do JURIS.
+        JurisPorArtigo.textoOficial = { [weak self] id in
+            self?.jurisStore?.entries.first { $0.id == id }?.enunciado
+        }
         buildMenu()
         setupMenuBarExtra()
         startWidgetSync()

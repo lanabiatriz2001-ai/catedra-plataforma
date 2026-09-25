@@ -225,7 +225,7 @@ struct FontPickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     private static let families: [String] = {
-        ["Sistema", "Sistema (Serifa)"] + NSFontManager.shared.availableFontFamilies.sorted()
+        ["Spectral", "Sistema", "Sistema (Serifa)"] + NSFontManager.shared.availableFontFamilies.sorted()
     }()
 
     private var filtered: [String] {

@@ -9,7 +9,7 @@ struct RedactionComparisonView: View {
     let entries: [Entry]          // vigente primeiro; depois anteriores (nova → antiga)
     let accent: Color
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("readerFontSize") private var fontSize = 16.0
+    @AppStorage("readerFontSize") private var fontSize = 18.0
 
     struct Entry: Identifiable {
         let id = UUID()
