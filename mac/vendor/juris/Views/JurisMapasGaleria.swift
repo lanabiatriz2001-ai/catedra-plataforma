@@ -46,7 +46,7 @@ struct JurisMapasGaleria: View {
         Button { exportarTodos() } label: {
             Label(exportando ? "Exportando… \(exportados)/\(entries.count)" : "Exportar todos (PNG)…",
                   systemImage: "square.and.arrow.up.on.square")
-                .font(.system(size: 11.5, weight: .medium))
+                .font(DS.interface(11.5, .medium))
         }
         .controlSize(.small)
         .disabled(exportando)
