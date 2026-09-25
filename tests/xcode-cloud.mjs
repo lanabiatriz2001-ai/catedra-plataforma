@@ -76,6 +76,14 @@ export async function testarXcodeCloud(ok) {
   ok(/^set -eu$/m.test(sh) && /CATEDRA_ALVO=iPadOS node scripts\/build-macos\.mjs/.test(sh)
     && /command -v node[\s\S]*brew install node/.test(sh) && /CI_PRIMARY_REPOSITORY_PATH/.test(sh),
     'XC3 o pós-clone instala o Node se faltar, gera o bundle do iPad na raiz do clone e para em erro');
+  /* O Xcode Cloud baixava React e supabase-js do jsdelivr a cada build (pelo build-macos.mjs),
+     com o supabase-js flutuando em `@2`: o TestFlight podia levar outra versão que a web. Agora
+     as libs vêm de vendor/ conferidas pelo sha256; o pós-clone não baixa biblioteca nenhuma
+     (sem comentários: o texto explicativo cita o que deixou de acontecer). */
+  const shCodigo = sh.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+  ok(/vendor\/manifesto\.json/.test(shCodigo)
+    && !/\b(curl|wget)\b|jsdelivr|unpkg|npm (install|i|ci)\b|npx\b/.test(shCodigo),
+    'XC8 o pós-clone não baixa biblioteca: exige vendor/manifesto.json e só o Node (se faltar) vem da rede');
 
   // O projeto.
   const pbx = fs.readFileSync(PBX, 'utf8');
