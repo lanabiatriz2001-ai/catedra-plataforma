@@ -430,6 +430,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         var t = ThemeState.t
         if let c = col("bg")       { t.bg = c }
         if let c = col("surface")  { t.surface = c }
+        if let h = (d["surface"] as? String).flatMap(Color.hexDe(css:)) { t.surfaceHex = h }
         if let c = col("surface2") { t.surface2 = c }
         if let c = col("border")   { t.border = c }
         if let c = col("ink")      { t.ink = c }

@@ -25,6 +25,27 @@ confere(DSCor.contraste(tx, 0xFFFDF8) >= 4.5, "cor-texto do lima escurece até 4
 confere(ThemeState.t.surfaceHex == 0xFFFDF8 && ThemeState.t.displayFamilia == "Spectral",
         "tema de partida é a Planilha (superfície #fffdf8, display Spectral)")
 
+// ── Tabela única de ramos e tribunais ──────────────────────────────────────
+confere(Ramo.allCases.count == 13, "13 ramos na tabela (12 famílias da web + Leis Especiais)")
+confere(Ramo.constitucional.identidade == 0x2563EB && Ramo.penal.identidade == 0xE11D48
+        && Ramo.civil.identidade == 0x0D9488 && Ramo.internacional.identidade == 0x0284C7,
+        "valores da tabela iguais aos que o LEGIS e o JURIS usavam")
+for r in Ramo.allCases {
+    let claro = DSCor.texto(identidade: r.identidade, superficie: 0xFFFDF8, escuro: false)
+    let escuro = DSCor.texto(identidade: r.identidade, superficie: 0x201D17, escuro: true)
+    confere(DSCor.contraste(claro, 0xFFFDF8) >= 4.5 && DSCor.contraste(escuro, 0x201D17) >= 4.5,
+            "\(r.rawValue): cor-texto ≥ 4,5:1 no claro e no escuro")
+}
+confere(Ramo.deNome("Direito Constitucional") == .constitucional, "deNome: Constitucional")
+confere(Ramo.deNome("Direito Processual Penal") == .penal, "deNome: Processual Penal é penal")
+confere(Ramo.deNome("Direito Processual Civil") == .civil, "deNome: Processual Civil é civil")
+confere(Ramo.deNome("Direito Previdenciário") == .previdenciario, "deNome ignora acento")
+confere(Ramo.deNome("Direito Eleitoral") == .administrativo, "deNome: Eleitoral cai em administrativo (como antes)")
+confere(Ramo.deNome("Direitos Humanos") == .internacional, "deNome: Direitos Humanos cai em internacional")
+confere(Ramo.deNome(nil) == nil && Ramo.deNome("Direito Canônico") == nil, "deNome: nil ou desconhecido devolve nil")
+confere(CorTribunal.identidade("STF") == 0x1D4ED8 && CorTribunal.identidade("STJ") == 0x0D9488
+        && CorTribunal.identidade("XYZ") == nil, "cores de tribunal e ausência para tribunal desconhecido")
+
 // (Tasks 2 e 3 acrescentam blocos aqui, antes do fechamento.)
 
 print(falhas == 0 ? "\nbase visual: tudo certo" : "\nbase visual: \(falhas) falha(s)")
