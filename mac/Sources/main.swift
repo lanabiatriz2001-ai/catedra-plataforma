@@ -706,6 +706,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         // O LEGIS pediu para abrir um verbete do acervo (jurisprudência do artigo): troca
         // para a aba JURIS e leva o store até ele. O store pode ainda não existir (aba
         // nunca aberta) — switchTo cria; por isso o abrirVerbete vem depois.
+        // Entrega 3: "Abrir no LEGIS" a partir do verbete — troca de aba; o ContentView do LEGIS
+        // consome o pedido pendente (JurisPorArtigo.pedidoLegis).
+        NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrirLegis, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.switchTo(1) }
+        }
         NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrir, object: nil, queue: .main) { [weak self] n in
             MainActor.assumeIsolated {
                 guard let self, let id = n.userInfo?["id"] as? String else { return }

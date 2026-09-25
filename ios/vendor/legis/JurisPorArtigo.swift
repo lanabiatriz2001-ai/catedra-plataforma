@@ -49,6 +49,43 @@ enum JurisPorArtigo {
     /// mostra o título e "Abrir no JURIS", nunca um texto inventado.
     static var textoOficial: (String) -> String? = { _ in nil }
 
+    private static var porVerbete: [String: [ArtigoCitado]]?
+
+    /// Artigos do catálogo citados pelo verbete `id` (inverso do índice de incidência).
+    static func artigosCitados(verbeteID id: String) -> [ArtigoCitado] {
+        carregar()
+        if porVerbete == nil {
+            // Já ORDENADO na inversão: cada redesenho só lê (revisão final da entrega 3).
+            porVerbete = CitacoesLogica.inverter(diplomas.values.reduce(into: [:]) { acc, d in
+                acc[d.nome] = d.artigos.mapValues { $0.map(\.id) }
+            }).mapValues(CitacoesLogica.ordenar)
+        }
+        return porVerbete?[id] ?? []
+    }
+
+    static let notificacaoAbrirLegis = Notification.Name("catedraAbrirArtigoLegis")
+    /// Pedido pendente: o LEGIS pode não estar montado quando o JURIS pede — ContentView
+    /// consome ao aparecer (e também ao receber a notificação).
+    static var pedidoLegis: ArtigoCitado?
+    /// Quando o pedido foi feito: passado de 30 s ele é descartado, para não jogar a pessoa
+    /// num artigo antigo horas depois (revisão final da entrega 3).
+    static var pedidoEm: Date?
+    /// Modo de leitura só para ESTA abertura (o artigo abre no Estudar) — sem gravar a
+    /// preferência global `readerMode` da pessoa.
+    static var modoUmaVez: String?
+
+    static func abrirNoLegis(_ a: ArtigoCitado) {
+        pedidoLegis = a
+        pedidoEm = Date()
+        NotificationCenter.default.post(name: notificacaoAbrirLegis, object: nil)
+    }
+
+    /// Diploma do índice → norma do catálogo (mesma normalização de `verbetes(lei:label:)`).
+    static func lei(doDiploma nome: String, em leis: [LawEntry]) -> LawEntry? {
+        let alvo = norm(nome)
+        return leis.first { norm($0.title) == alvo }
+    }
+
     /// Número do artigo → quantos verbetes o citam, para o sinal na margem do leitor.
     static func contagens(lei: LawEntry) -> [String: Int] {
         carregar()

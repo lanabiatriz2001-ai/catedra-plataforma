@@ -35,6 +35,8 @@ struct LawReaderView: View {
     @State private var mostrarIrPara = false
     // Contagem de julgados por artigo: calculada UMA vez por norma (não a cada redesenho).
     @State private var contagensLei: [String: Int] = [:]
+    // Modo pedido por "Abrir no LEGIS" só para esta abertura (não grava readerMode).
+    @State private var modoLocal: String?
     // Compacto (iPhone, Slide Over): nem readerBar nem cabeçalho da norma — a barra de
     // navegação do sistema leva um menu "Mais" com tudo; na Leitura corrida, um rodapé
     // fino com "Ir para artigo", busca, marcação e alinhamento. Em regular nada muda.
@@ -46,7 +48,7 @@ struct LawReaderView: View {
     // Índices de "Novidades 2026" são feeds (lista de atos), não normas com artigos:
     // abrem sempre em leitura corrida e não têm modo Estudo nem jurisprudência.
     private var isNovidades: Bool { law?.isNovidades ?? false }
-    private var effectiveMode: String { isNovidades ? "corrido" : readerMode }
+    private var effectiveMode: String { isNovidades ? "corrido" : (modoLocal ?? readerMode) }
     private var accent: Color {
         guard let law else { return ThemeState.t.accent }
         if law.isNovidades { return AppTheme.warn }
@@ -215,6 +217,7 @@ struct LawReaderView: View {
         .task(id: "\(lawID.uuidString)-\(law.contentHash ?? "")") {
             text = store.loadText(for: law)
             contagensLei = law.isNovidades ? [:] : JurisPorArtigo.contagens(lei: law)
+            if let m = JurisPorArtigo.modoUmaVez { modoLocal = m; JurisPorArtigo.modoUmaVez = nil }
             loadAttempted = true
             store.markRead(lawID)
             // Enriquecimento do Senado (linha do tempo): 1×, cacheado, offline-safe.
@@ -286,8 +289,8 @@ struct LawReaderView: View {
             BarraLeitor(ramo: law.customCategory ?? law.category.rawValue,
                         corRamo: law.customCategory == nil ? law.category.ramo?.identidade : nil,
                         titulo: law.title,
-                        modo: isNovidades ? nil : Binding(get: { ModoLeitor(rawValue: readerMode) ?? .ler },
-                                                         set: { readerMode = $0.rawValue }),
+                        modo: isNovidades ? nil : Binding(get: { ModoLeitor(rawValue: effectiveMode) ?? .ler },
+                                                         set: { modoLocal = nil; readerMode = $0.rawValue }),
                         aoVoltar: nil,
                         aa: { tipografiaMenu }, mais: { maisMenu })
         }
