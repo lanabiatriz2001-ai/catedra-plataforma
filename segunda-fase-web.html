@@ -185,7 +185,6 @@ details.instr ul{margin:10px 0 0;padding-left:20px;font-size:var(--t-micro);colo
   .mais .bmais{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 10px}
 }
 </style>
-<script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
 <script src="./tema-satelite.js"></script>
 </head><body>
 
@@ -452,8 +451,8 @@ function telaCorrecao(){
   });
   /* o dispositivo do espelho abre na lei seca, com caminho de volta */
   $('qs').querySelectorAll('[data-legis]').forEach(el=>{
-    el.onclick=()=>{ try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo:'legis',
-      termo:el.dataset.legis, origem:{view:'segundafase', rotulo:'Correção · '+rotulo(p)}}, '*'); }catch(e){} };
+    el.onclick=()=>{ try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo:'legis',
+      termo:el.dataset.legis, origem:{view:'segundafase', rotulo:'Correção · '+rotulo(p)}}); }catch(e){} };
   });
   $('bVoltarFolha').onclick=()=>{ S.sessao.entregue=false; grava(S); telaProva(); };
   $('bImprimir').onclick=()=>window.print();
@@ -468,14 +467,14 @@ function telaCorrecao(){
                    disc:q.disc||p.cargo||'2ª fase', tema:q.tema||'',
                    nota:(s.veredictos[q.i]==='parcial'?0.5:0), max:1,
                    fundamento:(q.dispositivos||[]).map(d=>d.rotulo).join(' · ') || String(q.exig||'').slice(0,600) }));
-      if(falhos.length) window.parent.postMessage({type:'ctErrosSegundaFase', prova:rotulo(p), quesitos:falhos}, '*');
+      if(falhos.length) window.ctEnviarAoHost({type:'ctErrosSegundaFase', prova:rotulo(p), quesitos:falhos});
     }catch(e){}
     /* A nota por quesito sobe para o host virar curva de evolução (item 4). Só notas e
        títulos curtos — o texto da peça fica aqui, para não inchar o blob de sync. */
     try{
-      window.parent.postMessage({type:'ctRedacaoResultado', prova:rotulo(p), notaTotal:n.pct,
+      window.ctEnviarAoHost({type:'ctRedacaoResultado', prova:rotulo(p), notaTotal:n.pct,
         quesitos:c.quesitos.map(q=>({ disc:q.disc||'', peso:(!q.desconto&&q.valor!=null?q.valor:0), titulo:(q.rot?(q.rot+' — '):'')+String(q.tema||q.exig||'').slice(0,100),
-          nota:(s.veredictos[q.i]==='atendeu'?1:s.veredictos[q.i]==='parcial'?0.5:0), max:1 }))}, '*');
+          nota:(s.veredictos[q.i]==='atendeu'?1:s.veredictos[q.i]==='parcial'?0.5:0), max:1 }))});
     }catch(e){}
     S.hist.unshift({ id:p.id, rotulo:rotulo(p), quando:new Date().toISOString().slice(0,10),
       pct:n.pct, ganho:n.ganho, possivel:n.possivel, gasto:s.gasto, minutos:s.minutos,

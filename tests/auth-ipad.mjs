@@ -52,7 +52,7 @@ async function portao(browser, base, ok, R, origem) {
     await esperaGate(page);
 
     // (a) documento aberto com o portão aberto: DENTRO dele, visível, não inerte, foco no Fechar
-    const a = await page.evaluate(async () => {
+    const a = await page.evaluate(async origemAtual => {
       const w = ms => new Promise(r => setTimeout(r, ms));
       const el = document.getElementById('catedra-auth-gate');
       const link = el.querySelector('a[data-doc="termos.html"]');
@@ -83,12 +83,40 @@ async function portao(browser, base, ok, R, origem) {
       el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(100);
       r.escFechaODocumento = !document.getElementById('ctdoc');
       r.escNaoFechaOPortao = getComputedStyle(el).display !== 'none';
-      // a mensagem ctFecharDoc (o "Voltar ao app" de termos.html/privacidade.html) também fecha
+      // Só o iframe do documento aberto pode fechar a sobreposição. Um frame qualquer da
+      // mesma origem não é o documento — origin sozinho não é autorização.
       el.querySelector('a[data-doc="termos.html"]').click(); await w(100);
-      window.postMessage({ type: 'ctFecharDoc' }, '*'); await w(150);
-      r.mensagemFecha = !document.getElementById('ctdoc');
+      const hostil = document.createElement('iframe');
+      hostil.src = 'about:blank'; hostil.hidden = true; document.body.appendChild(hostil);
+      await new Promise(res => { hostil.onload = res; setTimeout(res, 300); });
+      hostil.contentWindow.eval("window.parent.postMessage({type:'ctFecharDoc'},'*')");
+      await w(150);
+      r.mensagemHostilNaoFecha = !!document.getElementById('ctdoc');
+      hostil.remove();
+      // Em HTTP, preserve a cobertura direta do contentDocument. Em file://, o WebKit
+      // trata arquivos distintos como origens diferentes; o clique real é feito abaixo
+      // pela Frame API do Playwright, sem furar a fronteira de origem no código da página.
+      if (origemAtual === 'http') {
+        const docReal = document.querySelector('#ctdoc iframe');
+        if (docReal && !(docReal.contentDocument && docReal.contentDocument.querySelector('[data-fechar]'))) {
+          await new Promise(res => { docReal.addEventListener('load', res, { once: true }); setTimeout(res, 1200); });
+        }
+        const voltar = docReal && docReal.contentDocument && docReal.contentDocument.querySelector('[data-fechar]');
+        if (voltar) voltar.click();
+        await w(150);
+        r.mensagemDoDocumentoRealFecha = !document.getElementById('ctdoc');
+      }
       return r;
-    });
+    }, origem);
+    if (origem === 'file') {
+      const docReal = await esperaFrame(page, /termos\.html$/);
+      if (docReal) {
+        await docReal.waitForSelector('[data-fechar]', { timeout: 10000 });
+        await docReal.click('[data-fechar]');
+      }
+      await w(150);
+      a.mensagemDoDocumentoRealFecha = await page.evaluate(() => !document.getElementById('ctdoc'));
+    }
     for (const [k, v] of Object.entries(a)) ok(v, R + '(a) ' + k);
 
     // (a) "Conhecer a Cátedra" embutido: o "Entrar" do sobre.html fecha a sobreposição em vez de navegar

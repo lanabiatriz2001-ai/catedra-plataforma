@@ -212,7 +212,7 @@ function termoBusca(rotulo, alvo){
 function abrirAcervo(alvo, termo, de){
   const org=Object.assign({}, de||{});
   if(org.rito==null){ try{ const r=new URLSearchParams(location.search).get('rito'); if(r) org.rito=r; }catch(e){} }
-  try{ window.parent.postMessage({type:'ctAbrirAcervo', alvo, termo, de:org}, '*'); }catch(e){}
+  try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo, termo, de:org}); }catch(e){}
 }
 
 /* ---------- montagem do painel ---------- */

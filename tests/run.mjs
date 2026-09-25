@@ -45,6 +45,7 @@ import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
+import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
@@ -67,6 +68,32 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 
 try { await testarPrioridadeErrosResolvidos(ok); }
 catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
+/* Mensagens que entram no host precisam nascer da window exata do satélite registrado.
+   Os casos antigos usavam window.postMessage no próprio host, o que não representa a
+   ponte real e obrigava a produção a aceitar a janela principal como se fosse iframe. */
+async function prepararPonteReal(page, view) {
+  await page.evaluate((v) => window.__catedraGoView(v), view);
+  await page.waitForFunction((v) => {
+    const f = document.querySelector('iframe[data-ct-view="' + v + '"][data-ct-frame]');
+    return !!(f && f.contentWindow && f.dataset.ctLoad === '1');
+  }, view, { timeout: 25000 });
+  const el = await page.$('iframe[data-ct-view="' + view + '"][data-ct-frame]');
+  const frame = el && await el.contentFrame();
+  if (!frame) throw new Error('iframe legítimo não montou: ' + view);
+  await frame.evaluate(() => {
+    const alvo = () => (/^https?:$/.test(location.protocol) ? location.origin : '*');
+    window.__ctTestePostar = function (dados) { window.parent.postMessage(dados, alvo()); };
+    if (!window.__ctTesteRelayInstalado) {
+      window.__ctTesteRelayInstalado = true;
+      window.addEventListener('message', function (e) {
+        const t = e && e.data && e.data.type;
+        if (t === 'ctLeituras' || t === 'ctLeiturasResumoResp') {
+          window.parent.postMessage(e.data, alvo());
+        }
+      });
+    }
+  });
+}
 
 /* ============= D9 — BUILD SEM CDN: FALHAR EM VEZ DE DEGRADAR ============= */
 // Este é o único teste que não usa navegador: o que se prova aqui é o comportamento do
@@ -553,9 +580,23 @@ ok(a1.volta === 2, 'ACERVO bloco 2 destacado — achou ' + a1.volta);
 await page.goto(URL0 + '/ritos-web.html');
 await page.waitForTimeout(300);
 const a2 = await page.evaluate(async () => {
-  const got = new Promise(r => window.addEventListener('message', e => r(e.data), { once: true }));
   const chip = document.querySelector('#fluxo [data-legis]') || document.querySelector('#fluxo [data-juris]');
   if (!chip) return { erro: 'sem chip' };
+  // Aberto sozinho, o satélite não envia mais mensagens para si próprio: o canal de
+  // produção só existe quando há um parent real. Aqui capturamos a chamada à ponte para
+  // continuar medindo o payload do chip, com limite explícito para nunca travar a suíte.
+  const got = new Promise(resolve => {
+    const original = window.ctEnviarAoHost;
+    let resolveu = false;
+    const terminar = dados => {
+      if (resolveu) return;
+      resolveu = true;
+      window.ctEnviarAoHost = original;
+      resolve(dados);
+    };
+    window.ctEnviarAoHost = dados => { terminar(dados); return true; };
+    setTimeout(() => terminar({ erro: 'o chip não chamou a ponte' }), 2000);
+  });
   chip.click();
   return await got;
 });
@@ -565,10 +606,21 @@ ok(a2.type === 'ctAbrirAcervo' && a2.de && !!a2.de.rito, 'ACERVO chip do fluxo m
 await page.goto(URL0 + '/ritos-web.html?peca=' + encodeURIComponent(PECA));
 await page.waitForTimeout(500);
 const a3 = await page.evaluate(async () => {
-  const got = new Promise(r => window.addEventListener('message', e => r(e.data), { once: true }));
   const chips = [...document.querySelectorAll('.ctr .rf button')];
   const chip = chips.find(b => +b.dataset.b > 0) || chips[0];
   if (!chip) return { erro: 'sem chip no painel' };
+  const got = new Promise(resolve => {
+    const original = window.ctEnviarAoHost;
+    let resolveu = false;
+    const terminar = dados => {
+      if (resolveu) return;
+      resolveu = true;
+      window.ctEnviarAoHost = original;
+      resolve(dados);
+    };
+    window.ctEnviarAoHost = dados => { terminar(dados); return true; };
+    setTimeout(() => terminar({ erro: 'o chip não chamou a ponte' }), 2000);
+  });
   chip.click();
   return await got;
 });
@@ -581,7 +633,18 @@ for (const pg of ['legis-web.html?volta=1', 'juris-web.html?volta=1']) {
   const a4 = await page.evaluate(async () => {
     const b = [...document.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || ''));
     if (!b) return { pill: false };
-    const got = new Promise(r => window.addEventListener('message', e => r(e.data), { once: true }));
+    const got = new Promise(resolve => {
+      const original = window.ctEnviarAoHost;
+      let resolveu = false;
+      const terminar = dados => {
+        if (resolveu) return;
+        resolveu = true;
+        window.ctEnviarAoHost = original;
+        resolve(dados);
+      };
+      window.ctEnviarAoHost = dados => { terminar(dados); return true; };
+      setTimeout(() => terminar({ erro: 'a pílula não chamou a ponte' }), 2000);
+    });
     b.click();
     return { pill: true, msg: await got };
   });
@@ -1164,10 +1227,10 @@ const err = await page.evaluate(async () => {
 
   // 5. canal da 2ª fase (postMessage) cai no mesmo caminho
   limpa();
-  window.postMessage({ type: 'ctErrosSegundaFase', prova: 'TJ-RJ 2026 · discursiva', quesitos: [
+  window.dispatchEvent(new MessageEvent('message', { source: window.parent, origin: location.origin, data: { type: 'ctErrosSegundaFase', prova: 'TJ-RJ 2026 · discursiva', quesitos: [
     { titulo: 'Quesito 1 — enfrentar a preliminar de ilegitimidade', disc: 'Processo Civil', nota: 0, max: 1, fundamento: 'art. 485, VI, CPC' },
     { titulo: 'Quesito 2 — dosimetria', disc: 'Penal', nota: 0.5, max: 1, fundamento: 'art. 59 CP' },
-  ] }, '*');
+  ] } }));
   await new Promise(res => setTimeout(res, 200));
   const es = ler('errors');
   r.segundaFase = es.length === 2 && es.every(x => /2ª fase — TJ-RJ/.test(x.source)) && ler('reviews').length === 2;
@@ -1291,8 +1354,10 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
   });
   await page.goto(host);
   await page.waitForTimeout(1600);
+  await prepararPonteReal(page, 'legis');
   const canal = await page.evaluate(async () => {
     const r = {}, LA = window.CT_LA;
+    const postar = dados => document.querySelector('iframe[data-ct-view="legis"]').contentWindow.__ctTestePostar(dados);
     const espera = ms => new Promise(res => setTimeout(res, ms));   // o _autosave grava 500 ms depois do setState
     const gravado = () => JSON.parse(localStorage.getItem('catedra:leituras') || '[]');
     // SEM TEMPO FIXO (11/09/2026). Sob carga o _autosave (500 ms) passava de 900 ms e o teste lia
@@ -1302,62 +1367,62 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     // de AUSÊNCIA precisam, porque "não gravou" não tem como ser esperado.
     const ate = async (f, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (f()) return true; } catch (_) {} await new Promise(res => setTimeout(res, 50)); } try { return !!f(); } catch (_) { return false; } };
     const sentinela = async () => { await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeituras' && e.data.leiId === 'https://assenta.invalido/') { window.removeEventListener('message', h); res(); } };
-      window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasPedir', leiId: 'https://assenta.invalido/' }, '*'); setTimeout(res, 3000); }); await new Promise(res => setTimeout(res, 150)); };
+      window.addEventListener('message', h); postar({ type: 'ctLeiturasPedir', leiId: 'https://assenta.invalido/' }); setTimeout(res, 3000); }); await new Promise(res => setTimeout(res, 150)); };
     const assenta = async () => { await sentinela(); const a = window.__catedraApp; if (a && a._salvarAgora) a._salvarAgora(); };
     r.moduloNoHost = !!LA && typeof window.__catedraGoView === 'function';
     if (!LA) return r;
     const TXT = 'XI - a casa é asilo inviolável do indivíduo, ninguém nela podendo penetrar sem consentimento do morador';
     const item = LA.marcar(LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: TXT }), 'quem', { s: 5, t: 'a casa' });
 
-    window.postMessage({ type: 'ctLeituraAtiva', item }, '*');
+    postar({ type: 'ctLeituraAtiva', item });
     await ate(() => { const x = gravado(); return x.length === 1 && x[0].id === item.id; });
     let g = gravado();
     r.upsertGravou = g.length === 1 && g[0].id === item.id && g[0].el.quem.length === 1;
     r.semTextoDeLei = !JSON.stringify(g).includes('asilo inviolável') && !('txt' in (g[0] || {}));
 
     // edição mais VELHA não desfaz a guardada
-    window.postMessage({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { up: item.up - 5000, nao: ['prazo'] }) }, '*');
+    postar({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { up: item.up - 5000, nao: ['prazo'] }) });
     await assenta();
     g = gravado();
     r.upMaiorVence = g.length === 1 && (g[0].nao || []).length === 0;
 
     // edição mais NOVA entra
     const novo = LA.naoHa(item, 'prazo', true);
-    window.postMessage({ type: 'ctLeituraAtiva', item: novo }, '*');
+    postar({ type: 'ctLeituraAtiva', item: novo });
     await ate(() => ((gravado()[0] || {}).nao || []).indexOf('prazo') >= 0);
     g = gravado();
     r.upNovoEntra = g.length === 1 && (g[0].nao || []).indexOf('prazo') >= 0;
 
     // lixo não entra: sem leiId, com texto, id incoerente
-    window.postMessage({ type: 'ctLeituraAtiva', item: { id: 'la|x|1', gi: 1, txt: TXT } }, '*');
-    window.postMessage({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { id: 'la|outra|412' }) }, '*');
+    postar({ type: 'ctLeituraAtiva', item: { id: 'la|x|1', gi: 1, txt: TXT } });
+    postar({ type: 'ctLeituraAtiva', item: Object.assign({}, item, { id: 'la|outra|412' }) });
     await assenta();
     r.lixoNaoEntra = gravado().length === 1;
 
     // outra lei no mesmo array; pedir devolve SÓ a lei pedida
     const outra = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 3, txt: 'Aquele que, não sendo proprietário' });
-    window.postMessage({ type: 'ctLeituraAtiva', item: outra }, '*');
+    postar({ type: 'ctLeituraAtiva', item: outra });
     await ate(() => gravado().length === 2);
     r.duasLeis = gravado().length === 2;
     const resposta = await new Promise(res => {
       const h = e => { if (e.data && e.data.type === 'ctLeituras') { window.removeEventListener('message', h); res(e.data); } };
       window.addEventListener('message', h);
-      window.postMessage({ type: 'ctLeiturasPedir', leiId: item.leiId }, '*');
+      postar({ type: 'ctLeiturasPedir', leiId: item.leiId });
       setTimeout(() => res(null), 2000);
     });
     r.pedirDevolveSoALei = !!resposta && resposta.leiId === item.leiId && resposta.itens.length === 1 && resposta.itens[0].id === item.id;
     const vazia = await new Promise(res => {
       const h = e => { if (e.data && e.data.type === 'ctLeituras') { window.removeEventListener('message', h); res(e.data); } };
       window.addEventListener('message', h);
-      window.postMessage({ type: 'ctLeiturasPedir', leiId: 'https://www.planalto.gov.br/nada.htm' }, '*');
+      postar({ type: 'ctLeiturasPedir', leiId: 'https://www.planalto.gov.br/nada.htm' });
       setTimeout(() => res(null), 2000);
     });
     r.pedirLeiSemLeituraVemVazio = !!vazia && Array.isArray(vazia.itens) && vazia.itens.length === 0;
 
     // a conferência entra no item guardado
-    window.postMessage({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 3 }, '*');
-    window.postMessage({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 4 }, '*');   // q inválido: ignorado
-    window.postMessage({ type: 'ctLeituraConferida', id: 'la|nao|existe', el: 'quem', q: 1 }, '*');
+    postar({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 3 });
+    postar({ type: 'ctLeituraConferida', id: item.id, el: 'quem', q: 4 });   // q inválido: ignorado
+    postar({ type: 'ctLeituraConferida', id: 'la|nao|existe', el: 'quem', q: 1 });
     await ate(() => { const x = gravado().find(y => y.id === item.id); return !!x && (x.conf || []).length >= 1; });
     await assenta();   // e só então conta: a conferência inválida não pode ter entrado depois
     const it = gravado().find(x => x.id === item.id);
@@ -1380,7 +1445,8 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     r.espelhoVazio = C.ler(LEI).length === 0;
     let avisou = false;
     window.addEventListener('catedra:leituras', e => { if (e.detail && e.detail.leiId === LEI) avisou = true; });
-    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [{ id: 'la|' + LEI + '|1', up: 1, leiId: LEI, gi: 1 }] }, '*');
+    window.dispatchEvent(new MessageEvent('message', { source: window.parent, origin: location.origin,
+      data: { type: 'ctLeituras', leiId: LEI, itens: [{ id: 'la|' + LEI + '|1', up: 1, leiId: LEI, gi: 1 }] } }));
     await new Promise(res => setTimeout(res, 200));
     r.espelhoGravado = C.ler(LEI).length === 1 && avisou;
     // enviar: espelha localmente (upsert) — o post ao host é o que o caso (c) cobre
@@ -1527,7 +1593,8 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     // 9. a resposta do host repinta: um ctLeituras com o mesmo dispositivo e outro estado
     const novo = window.CT_LA.naoHa(window.CT_LA.nova({ leiId: LEI, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: gr.textContent }), 'excecao', true);
     novo.up = Date.now() + 5000;
-    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [novo, itInc] }, '*'); await w(150);
+    window.dispatchEvent(new MessageEvent('message', { source: window.parent, origin: location.origin,
+      data: { type: 'ctLeituras', leiId: LEI, itens: [novo, itInc] } })); await w(150);
     r.respostaDoHostRepinta = document.querySelector('#rdrDoc .la-trilho .la-chip[data-el=excecao]').classList.contains('nao') && gr.querySelectorAll('mark.la').length === 0;
 
     // 10. desligar tira trilho e legenda, mantém os dados
@@ -1552,7 +1619,8 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     const LEI = CAT.laws.find(l => /l10406/.test(l.u)).u;
     const it = window.CT_LA_CANAL.ler(LEI).find(x => x.gi === 3);
     const mudado = Object.assign({}, it, { hash: '00000000', up: it.up + 1000 });
-    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [mudado] }, '*'); await w(150);
+    window.dispatchEvent(new MessageEvent('message', { source: window.parent, origin: location.origin,
+      data: { type: 'ctLeituras', leiId: LEI, itens: [mudado] } })); await w(150);
     const tr3 = document.querySelector('#rdrDoc .la-trilho[data-gi="3"]');
     r.redacaoMudouAvisa = !!tr3 && /Redação mudou/.test(tr3.textContent) && getComputedStyle(document.querySelectorAll('#rdrDoc .gr')[3].querySelector('mark.la')).borderBottomStyle === 'dotted';
     tr3.querySelector('button[data-acao=confirmar]').click(); await w(80);
@@ -1603,10 +1671,12 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
   });
   await page.goto(host);
   await page.waitForTimeout(1600);
+  await prepararPonteReal(page, 'legis');
   const la4h = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
     const LA = window.CT_LA, r = {}, app = window.__catedraApp;
+    const postar = dados => document.querySelector('iframe[data-ct-view="legis"]').contentWindow.__ctTestePostar(dados);
     // SEM TEMPO FIXO (11/09/2026). Sob carga o _autosave (500 ms) passava de 900 ms e o teste lia
     // o disco antes da gravação — falhava sem defeito nenhum. `ate` espera a condição; `sentinela`
     // garante que as mensagens já postadas foram tratadas (a resposta ao pedido chega depois
@@ -1614,20 +1684,20 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     // de AUSÊNCIA precisam, porque "não gravou" não tem como ser esperado.
     const ate = async (f, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (f()) return true; } catch (_) {} await new Promise(res => setTimeout(res, 50)); } try { return !!f(); } catch (_) { return false; } };
     const sentinela = async () => { await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeituras' && e.data.leiId === 'https://assenta.invalido/') { window.removeEventListener('message', h); res(); } };
-      window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasPedir', leiId: 'https://assenta.invalido/' }, '*'); setTimeout(res, 3000); }); await new Promise(res => setTimeout(res, 150)); };
+      window.addEventListener('message', h); postar({ type: 'ctLeiturasPedir', leiId: 'https://assenta.invalido/' }); setTimeout(res, 3000); }); await new Promise(res => setTimeout(res, 150)); };
     const assenta = async () => { await sentinela(); const a = window.__catedraApp; if (a && a._salvarAgora) a._salvarAgora(); };
     const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural, tornando-a produtiva por seu trabalho, tendo nela sua moradia.';
     let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm', sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: TXT });
     const marca = (el, t) => { it = LA.marcar(it, el, { s: TXT.indexOf(t), t }); };
     marca('quem', 'Aquele que, não sendo proprietário de imóvel rural ou urbano'); marca('oque', 'possua como sua');
     marca('prazo', 'por cinco anos ininterruptos'); marca('como', 'tornando-a produtiva por seu trabalho');
-    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await ate(() => ler('leituras').some(x => x.id === it.id));
+    postar({ type: 'ctLeituraAtiva', item: it }); await ate(() => ler('leituras').some(x => x.id === it.id));
     const cartao = el => LA.cartaoConferencia(it, el, TXT);
     const rodada = (qs) => ({ type: 'ctLeituraConferida', id: it.id, ref: 'CC · Art. 1.239',
       itens: [['quem', qs[0]], ['oque', qs[1]], ['prazo', qs[2]], ['como', qs[3]]].map(([el, q]) => ({ el, q, front: cartao(el).front, back: cartao(el).back })) });
 
     // 1. a rodada do aceite
-    window.postMessage(rodada([5, 5, 3, 1]), '*');
+    postar(rodada([5, 5, 3, 1]));
     await ate(() => ler('fc').length >= 2 && ler('reviews').length >= 2 && ler('errors').length >= 1 && (ler('leituras')[0].conf || []).length >= 4);
     await assenta();
     let fc = ler('fc'), rv = ler('reviews'), er = ler('errors');
@@ -1651,8 +1721,8 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     r.desfazerDevolveOItem = (ler('leituras')[0].conf || []).length === 0;
 
     // 3. repetir a conferência do mesmo dispositivo não duplica: sm2 na revisão, hash no cartão, id no erro
-    window.postMessage(rodada([5, 5, 3, 1]), '*'); await ate(() => ler('reviews').length >= 2);
-    window.postMessage(rodada([5, 5, 3, 3]), '*');
+    postar(rodada([5, 5, 3, 1])); await ate(() => ler('reviews').length >= 2);
+    postar(rodada([5, 5, 3, 3]));
     await ate(() => { const p = ler('reviews').find(x => x.id.endsWith('|prazo')); return !!p && p.repeticoes === 2; }); await assenta();
     fc = ler('fc'); rv = ler('reviews'); er = ler('errors');
     r.repetirNaoDuplica = fc.length === 2 && rv.length === 2 && er.length === 1;
@@ -1660,7 +1730,7 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
 
     // 4. acertar tudo não cria nada (as contagens não se movem) e o toast diz isso, sem "desfazer"
     const antes4 = [ler('fc').length, ler('reviews').length, ler('errors').length].join('/');
-    window.postMessage(rodada([5, 5, 5, 5]), '*');
+    postar(rodada([5, 5, 5, 5]));
     await ate(() => [...document.querySelectorAll('div[role=status]')].some(d => /acertou, nada a revisar/.test(d.textContent || ''))); await assenta();
     // o toast simples e o toast com ação são dois elementos: procura pelo texto, não pelo primeiro
     const t2 = [...document.querySelectorAll('div[role=status]')].find(d => /acertou, nada a revisar/.test(d.textContent || ''));
@@ -1671,7 +1741,7 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     const muitos = { type: 'ctLeituraConferida', id: it.id, ref: 'CC · Art. 1.239',
       itens: Array.from({ length: 25 }, (_, i) => ({ el: ['quem', 'oque', 'prazo', 'como'][i % 4], q: 3, front: 'F' + i, back: 'B' + i })) };
     const antes = (ler('leituras')[0].conf || []).length;
-    window.postMessage(muitos, '*'); await ate(() => (ler('leituras')[0].conf || []).length - antes >= 20); await assenta();
+    postar(muitos); await ate(() => (ler('leituras')[0].conf || []).length - antes >= 20); await assenta();
     r.tetoVinte = (ler('leituras')[0].conf || []).length - antes === 20;
     const t3 = [...document.querySelectorAll('div[role=status]')].find(d => /ficaram para a próxima conferência/.test(d.textContent || ''));
     r.avisaORestante = !!t3 && /5 ficaram para a próxima conferência/.test(t3.textContent || '');
@@ -1683,8 +1753,8 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     const n6 = () => [(app.state.flashcards || []).length, (app.state.reviews || []).length, (app.state.errors || []).length].join('/');
     const antes6 = n6();
     ['fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
-    window.postMessage({ type: 'ctLeituraConferida', id: 'la|nao|1', itens: [{ el: 'quem', q: 1, front: 'x', back: 'y' }] }, '*');
-    window.postMessage({ type: 'ctLeituraConferida', id: it.id, itens: [{ el: 'quem', q: 4, front: 'x', back: 'y' }, { el: 'porque', q: 1, front: 'x', back: 'y' }] }, '*');
+    postar({ type: 'ctLeituraConferida', id: 'la|nao|1', itens: [{ el: 'quem', q: 1, front: 'x', back: 'y' }] });
+    postar({ type: 'ctLeituraConferida', id: it.id, itens: [{ el: 'quem', q: 4, front: 'x', back: 'y' }, { el: 'porque', q: 1, front: 'x', back: 'y' }] });
     await sentinela();
     r.lixoNaoCria = n6() === antes6;
     if (!r.lixoNaoCria) r.__diag6 = antes6 + ' → ' + n6();
@@ -1839,21 +1909,23 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
   });
   await page.goto(host);
   await page.waitForTimeout(1600);
+  await prepararPonteReal(page, 'legis');
   // o inverter mora no treino.js, que o host carrega sob demanda: aqui entra antes
   await page.evaluate(() => new Promise(res => { const t = document.createElement('script'); t.src = './treino.js'; t.onload = () => res(true); t.onerror = () => res(false); document.head.appendChild(t); }));
   const la5h = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const ler = k => JSON.parse(localStorage.getItem('catedra:' + k) || '[]');
     const LA = window.CT_LA, r = {};
+    const postar = dados => document.querySelector('iframe[data-ct-view="legis"]').contentWindow.__ctTestePostar(dados);
     const ate = async (f, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (f()) return true; } catch (_) {} await new Promise(res => setTimeout(res, 50)); } try { return !!f(); } catch (_) { return false; } };   // espera a condição, não um tempo fixo
     r.inverterDisponivel = !!(window.CT_TREINO && window.CT_TREINO.inverter);
     const TXT = 'O prazo para contestar é de 15 dias, contados da audiência de conciliação, sem oposição.';
     let it = LA.nova({ leiId: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm', sigla: 'CPC', rot: 'Art. 335', gi: 7, txt: TXT });
     it = LA.marcar(it, 'prazo', { s: TXT.indexOf('de 15 dias'), t: 'de 15 dias' });
-    window.postMessage({ type: 'ctLeituraAtiva', item: it }, '*'); await ate(() => ler('leituras').some(x => x.id === it.id));
+    postar({ type: 'ctLeituraAtiva', item: it }); await ate(() => ler('leituras').some(x => x.id === it.id));
     const cz = LA.cloze(it, 'prazo', TXT);
-    window.postMessage({ type: 'ctLeituraConferida', id: it.id, ref: 'CPC · Art. 335',
-      itens: [{ el: 'prazo', q: 1, front: cz.front, back: cz.back, extra: cz.extra, tipo: 'cloze', tags: cz.tags, termos: cz.termos, situacao: '' }] }, '*');
+    postar({ type: 'ctLeituraConferida', id: it.id, ref: 'CPC · Art. 335',
+      itens: [{ el: 'prazo', q: 1, front: cz.front, back: cz.back, extra: cz.extra, tipo: 'cloze', tags: cz.tags, termos: cz.termos, situacao: '' }] });
     await ate(() => ler('fc').length >= 1 && ler('reviews').length >= 1);
     const fc = ler('fc');
     // o núcleo do prazo é número + unidade: "de" fica visível, "15 dias" vira a lacuna
@@ -2020,7 +2092,8 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
     const LEI = CAT.laws.find(l => /constituicao\.htm/.test(l.u)).u;
     let it = window.CT_LA.nova({ leiId: LEI, sigla: 'CF', rot: 'Art. 5º', gi: 0, txt: document.querySelector('#rdrDoc .gr').textContent });
     window.CT_LA.IDS.forEach(el => { it = window.CT_LA.naoHa(it, el, true); });
-    window.postMessage({ type: 'ctLeituras', leiId: LEI, itens: [it] }, '*'); await w(150);
+    window.dispatchEvent(new MessageEvent('message', { source: window.parent, origin: location.origin,
+      data: { type: 'ctLeituras', leiId: LEI, itens: [it] } })); await w(150);
     document.querySelector('#rdrDoc .la-legenda .la-guiar').click(); await w(100);
     const gd = document.getElementById('laGuiado');
     r.tresNaLista = /dispositivo 1 de 3/.test(gd.textContent);
@@ -2083,12 +2156,14 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
   });
   await page.goto(host);
   await page.waitForTimeout(1600);
+  await prepararPonteReal(page, 'legis');
   const la6h = await page.evaluate(async () => {
+    const postar = dados => document.querySelector('iframe[data-ct-view="legis"]').contentWindow.__ctTestePostar(dados);
     const ate = async (f, ms = 8000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (f()) return true; } catch (_) {} await new Promise(res => setTimeout(res, 50)); } try { return !!f(); } catch (_) { return false; } };   // espera a condição, não um tempo fixo
     // sentinela: o pedido de resumo é respondido depois das mensagens já postadas (o canal trata em
     // ordem, e o ctRegistrarLeitura é síncrono) — é o que as asserções de AUSÊNCIA precisam
     const sentinela = () => new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeiturasResumoResp') { window.removeEventListener('message', h); res(); } };
-      window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasResumo' }, '*'); setTimeout(res, 3000); });
+      window.addEventListener('message', h); postar({ type: 'ctLeiturasResumo' }); setTimeout(res, 3000); });
     const w = ms => new Promise(res => setTimeout(res, ms));
     const LA = window.CT_LA, r = {};
     // casamento do rot: "Art. 5º, XI" ↔ "art. 5o , XI" ↔ "Art. 5º — XI"
@@ -2101,7 +2176,7 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     a = LA.marcar(a, 'prazo', { s: 26, t: 'por cinco anos' }); a = LA.naoHa(a, 'proibicao', true);
     let b = LA.nova({ leiId: CF, sigla: 'CF', rot: 'Art. 5º, XI', gi: 412, txt: 'a casa é asilo inviolável' });
     b = LA.marcar(b, 'quem', { s: 0, t: 'a casa' });
-    window.postMessage({ type: 'ctLeituraAtiva', item: a }, '*'); window.postMessage({ type: 'ctLeituraAtiva', item: b }, '*');
+    postar({ type: 'ctLeituraAtiva', item: a }); postar({ type: 'ctLeituraAtiva', item: b });
     await ate(() => { const L = (window.__catedraApp && window.__catedraApp.state.leituras) || []; return L.some(x => x.id === a.id) && L.some(x => x.id === b.id); });
     // 1. Prova oral → Lei seca, com o artigo sorteado forçado para o CC art. 1.239
     window.__catedraGoView('oral');
@@ -2134,21 +2209,21 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     r.abreOLegisNoLeitor = !!rdr && (rdr.classList.contains('on') || /la=/.test(f.getAttribute('src') || '') || !!(f.contentWindow && f.contentWindow.__laAbrirPedido));
     // 2. registrar sessão ao sair do modo guiado (o interruptor de Ajustes ligado abre o registro preenchido)
     let abriu = null; const orig = window.catedraOpenStudyRegistration; window.catedraOpenStudyRegistration = info => { abriu = info; return 'ok'; };
-    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lei: 'Código Civil', faixa: 'Art. 1.239 – Art. 1.241', lidos: 3, min: 7 }, '*'); await ate(() => abriu !== null);
+    postar({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lei: 'Código Civil', faixa: 'Art. 1.239 – Art. 1.241', lidos: 3, min: 7 }); await ate(() => abriu !== null);
     r.registroPreenchido = !!abriu && abriu.categoria === 'Lei seca' && abriu.disc === 'Direito Civil' && abriu.topico === 'CC · Art. 1.239 – Art. 1.241' && abriu.min === 7 && /3 dispositivos/.test(abriu.nota);
     // quando falha, diz o que chegou (ou que nada chegou) e em que estado o app estava — vai para o log
     if (!r.registroPreenchido) r.__diag = JSON.stringify({ abriu, autoRegistro: app && (app.state.prefs || {}).autoRegistro,
       edital: app && (app.state.edital || []).map(d => d.disc), disc: app && app._laDisciplina({ sigla: 'CC', leiId: CC }) });
     abriu = null;
-    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 0, min: 3 }, '*'); await sentinela();
+    postar({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 0, min: 3 }); await sentinela();
     r.semLeituraNaoOferece = abriu === null;
     if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: false } })); await ate(() => !!app.state.prefs && app.state.prefs.autoRegistro === false); }
-    window.postMessage({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 2, min: 3 }, '*'); await sentinela();
+    postar({ type: 'ctRegistrarLeitura', leiId: CC, sigla: 'CC', lidos: 2, min: 3 }); await sentinela();
     r.interruptorDesligadoNaoOferece = !app || abriu === null;
     if (app) { app.setState(s => ({ prefs: { ...s.prefs, autoRegistro: true } })); }
     window.catedraOpenStudyRegistration = orig;
     // 3. resumo por lei para o catálogo do LEGIS
-    const resumo = await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeiturasResumoResp') { window.removeEventListener('message', h); res(e.data.resumo); } }; window.addEventListener('message', h); window.postMessage({ type: 'ctLeiturasResumo' }, '*'); setTimeout(() => res(null), 2000); });
+    const resumo = await new Promise(res => { const h = e => { if (e.data && e.data.type === 'ctLeiturasResumoResp') { window.removeEventListener('message', h); res(e.data.resumo); } }; window.addEventListener('message', h); postar({ type: 'ctLeiturasResumo' }); setTimeout(() => res(null), 2000); });
     r.resumoPorLei = !!resumo && resumo[CC] && resumo[CC].lidos === 1 && resumo[CF].lidos === 1 && resumo[CC].completos === 0 && !JSON.stringify(resumo).includes('asilo');
     return r;
   }).catch(e => ({ __excecao: String(e && e.message || e).split('\n')[0].slice(0, 200) }));
@@ -2211,7 +2286,8 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     // "Conferir de novo" num dispositivo lido abre a conferência dele
     let it = window.CT_LA.nova({ leiId: CC, sigla: 'CC', rot: 'Art. 1.239', gi: 0, txt: document.querySelector('#rdrDoc .gr').textContent });
     it = window.CT_LA.marcar(it, 'prazo', { s: 26, t: 'por cinco anos' });
-    window.postMessage({ type: 'ctLeituras', leiId: CC, itens: [it] }, '*'); await w(150);
+    window.dispatchEvent(new MessageEvent('message', { source: window.parent, origin: location.origin,
+      data: { type: 'ctLeituras', leiId: CC, itens: [it] } })); await w(150);
     window.ctLeituraAbrir({ leiId: CC, rot: 'Art. 1.239', conferir: true }); await w(200);
     const painel = document.getElementById('laConf');
     r.conferirDeNovoAbreAConferencia = painel.classList.contains('on') && /Art\. 1\.239/.test(painel.textContent) && !!painel.querySelector('.la-lacuna.la-prazo');
@@ -2220,7 +2296,8 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     r.rotNormalizado = window.ctLeituraAbrir({ leiId: CC, rot: 'ART. 1.240 —' }) === undefined && true;
     // catálogo: o resumo do host vira a barra "lido ativamente"
     document.getElementById('rdrClose').click(); await w(100);
-    window.postMessage({ type: 'ctLeiturasResumoResp', resumo: { [CC]: { lidos: 3, completos: 1 } } }, '*'); await w(200);
+    window.dispatchEvent(new MessageEvent('message', { source: window.parent, origin: location.origin,
+      data: { type: 'ctLeiturasResumoResp', resumo: { [CC]: { lidos: 3, completos: 1 } } } })); await w(200);
     const row = [...document.querySelectorAll('.lawrow')].find(x => /Código Civil/.test(x.textContent) && !/Processo/.test(x.textContent));
     const barra = row && row.querySelector('.laLido');
     r.catalogoMostraLido = !!barra && /lido ativamente · 3/.test(barra.textContent) && /3 dispositivos/.test(barra.getAttribute('aria-label'));
@@ -2899,7 +2976,9 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.termosAbremNoApp = !!dlg && /termos\.html$/.test(dlg.querySelector('iframe').getAttribute('src')) && dlg.getAttribute('aria-label') === 'Termos de uso';
     await new Promise(res => { const f = dlg.querySelector('iframe'); if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.querySelector('h1')) res(); else f.addEventListener('load', res); setTimeout(res, 4000); });
     r.iframeRenderiza = /Termos de uso/.test((dlg.querySelector('iframe').contentDocument || {}).title || '') && !!dlg.querySelector('iframe').contentDocument.querySelector('h1');
-    window.postMessage({ type: 'ctFecharDoc' }, '*'); await w(300);   // é o que o "Voltar ao app" da página manda ao parent
+    const voltarDoc = dlg.querySelector('iframe').contentDocument.querySelector('[data-fechar]');
+    if (voltarDoc) voltarDoc.click();
+    await w(300);   // o clique real posta ctFecharDoc a partir do iframe autorizado
     r.voltarAoAppFecha = !document.querySelector('[data-doc-aberto]');
     // exclusão de conta: exporta antes, confirma, chama a RPC do auth.js
     let exportou = 0, excluiu = 0; const expOrig = app.exportJSON; app.exportJSON = () => { exportou++; };
@@ -3126,7 +3205,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.temElementoComTransicao = !!alvo;
     r.abreSemAtributo = !raizSat.hasAttribute('data-baixa');
     // tokens: {} é o mínimo que aplicar() aceita — não troca cor nenhuma, só marca data-ct-tema
-    const manda = (extra) => window.postMessage(Object.assign({ type: 'ctTheme', tokens: {} }, extra), '*');
+    const manda = (extra) => window.dispatchEvent(new MessageEvent('message', {
+      source: window.parent, origin: location.origin,
+      data: Object.assign({ type: 'ctTheme', tokens: {} }, extra)
+    }));
     manda({ baixa: '1' }); await w(250);
     r.ligaPelaMensagem = raizSat.dataset.baixa === '1' && !!alvo && trans(alvo) < 0.01;
     manda({}); await w(200);
@@ -3153,7 +3235,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     fw.Element.prototype.scrollIntoView = function (o) { vistos.push('ix:' + (o && o.behavior)); };
     fw.scrollTo = function (o) { vistos.push('up:' + (o && o.behavior)); };
     const clica = () => { vistos.length = 0; fd.querySelector('a.ix').click(); fd.getElementById('up').click(); return vistos.join(','); };
-    const manda = (extra) => window.postMessage(Object.assign({ type: 'ctTheme', tokens: {} }, extra), '*');
+    const manda = (extra) => window.dispatchEvent(new MessageEvent('message', {
+      source: window.parent, origin: location.origin,
+      data: Object.assign({ type: 'ctTheme', tokens: {} }, extra)
+    }));
     manda({ baixa: '1' }); await w(250);
     const lig = clica();
     r.ligadoSemSuave = document.documentElement.getAttribute('data-baixa') === '1' && lig === 'ix:auto,up:auto';
@@ -3474,8 +3559,9 @@ const evo = await page.evaluate(() => {
 
   // canal da 2ª fase
   limpa();
-  window.postMessage({ type: 'ctRedacaoResultado', prova: 'TJ-SP 2025 · sentença', notaTotal: 66,
-    quesitos: [{ titulo: 'Relatório', nota: 1, max: 1 }, { titulo: 'Fundamentação', nota: 0, max: 1 }] }, '*');
+  window.dispatchEvent(new MessageEvent('message', { source: window.parent, origin: location.origin,
+    data: { type: 'ctRedacaoResultado', prova: 'TJ-SP 2025 · sentença', notaTotal: 66,
+      quesitos: [{ titulo: 'Relatório', nota: 1, max: 1 }, { titulo: 'Fundamentação', nota: 0, max: 1 }] } }));
   return new Promise(res => setTimeout(() => {
     const h = ler();
     r.canal = h.length === 1 && h[0].origem === 'segunda-fase' && h[0].quesitos.length === 2 && h[0].notaTotal === 66;
@@ -3503,15 +3589,21 @@ if (!pre.erro) {
   await page.waitForTimeout(1200);
   const duas = await page.evaluate(async () => {
     const caixa = {};
-    window.addEventListener('message', e => {
-      if (e.data && (e.data.type === 'ctErrosSegundaFase' || e.data.type === 'ctRedacaoResultado')) caixa[e.data.type] = e.data;
-    });
+    // A página aberta avulsa não ecoa mais mensagens para si: a ponte segura só fala
+    // com um parent real. Este caso mede os dois payloads emitidos pela tela, enquanto
+    // tests/postmessage-seguranca.mjs prova a identidade da janela no canal completo.
+    const original = window.ctEnviarAoHost;
+    window.ctEnviarAoHost = dados => {
+      if (dados && (dados.type === 'ctErrosSegundaFase' || dados.type === 'ctRedacaoResultado')) caixa[dados.type] = dados;
+      return true;
+    };
     // marca dois quesitos como "não atendeu" para haver o que colher
     [...document.querySelectorAll('.q .ver button[data-v="nao"]')].slice(0, 2).forEach(b => b.click());
     const fechar = [...document.querySelectorAll('button')].find(b => /Salvar e sair/.test(b.textContent || ''));
-    if (!fechar) return caixa;
+    if (!fechar) { window.ctEnviarAoHost = original; return caixa; }
     fechar.click();
     await new Promise(r => setTimeout(r, 900));
+    window.ctEnviarAoHost = original;
     return caixa;
   });
   const post = duas.ctErrosSegundaFase, msg = duas.ctRedacaoResultado;
@@ -7883,11 +7975,13 @@ const AUDITOR = () => {
   await page.evaluate(() => localStorage.setItem('catedra:plataformaQuestoes', JSON.stringify('qc')));
   await page.goto(URL0 + '/Catedra.dc.html');
   await page.waitForTimeout(1800);
+  await prepararPonteReal(page, 'prioridade');
   const outraPlataforma = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
     window.__abriu = [];
     window.open = (u) => { window.__abriu.push(String(u)); return null; };
-    window.postMessage({ type: 'ctPraticarPrioridade', disc: 'Direito Civil' }, '*');
+    document.querySelector('iframe[data-ct-view="prioridade"]').contentWindow.__ctTestePostar(
+      { type: 'ctPraticarPrioridade', disc: 'Direito Civil' });
     await w(700);
     const url = window.__abriu[0] || '';
     return {
@@ -9002,6 +9096,12 @@ catch (e) {
 try { await testarPadronizacaoVisual(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'PADRONIZAÇÃO VISUAL [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Pontes host <-> satélites: uma janela arbitrária não pode ler, gravar nem acionar IA.
+try { await testarPostMessageSeguranca(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'PONTE [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
